@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.util;
 
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
 
 /**
  * @author Olivier Chalouhi
@@ -29,9 +30,9 @@ import java.nio.ByteBuffer;
  */
 public class MD5 {
   
-  int h0,h1,h2,h3;
-  int length;
-  ByteBuffer finalBuffer;
+  private int h0,h1,h2,h3;
+  private int length;
+  private ByteBuffer finalBuffer;
   
   public MD5() {
     finalBuffer = ByteBuffer.allocateDirect(64);
@@ -65,134 +66,137 @@ public class MD5 {
     x15 = M.getInt();
     
     a = h0 ; b = h1 ; c = h2 ; d = h3 ;
-    a += ((b & c) + ( ~b & d)) + x0 + -680876936;
-    a += b + ((a << 7) | (a >>> 25));
-    d += ((a & b) + ( ~a & c)) + x1 + -389564586;
-    d += a + ((d << 12) | (d >>> 20));
-    c += ((d & a) + ( ~d & b)) + x2 + 606105819;
-    c += d + ((c << 17) | (c >>> 15));
-    b += ((c & d) + ( ~c & a)) + x3 + -1044525330;
-    b += c + ((b << 22) | (b >>> 10));
-    a += ((b & c) + ( ~b & d)) + x4 + -176418897;
-    a += b + ((a << 7) | (a >>> 25));
-    d += ((a & b) + ( ~a & c)) + x5 + 1200080426;
-    d += a + ((d << 12) | (d >>> 20));
-    c += ((d & a) + ( ~d & b)) + x6 + -1473231341;
-    c += d + ((c << 17) | (c >>> 15));
-    b += ((c & d) + ( ~c & a)) + x7 + -45705983;
-    b += c + ((b << 22) | (b >>> 10));
-    a += ((b & c) + ( ~b & d)) + x8 + 1770035416;
-    a += b + ((a << 7) | (a >>> 25));
-    d += ((a & b) + ( ~a & c)) + x9 + -1958414417;
-    d += a + ((d << 12) | (d >>> 20));
-    c += ((d & a) + ( ~d & b)) + x10 + -42063;
-    c += d + ((c << 17) | (c >>> 15));
-    b += ((c & d) + ( ~c & a)) + x11 + -1990404162;
-    b += c + ((b << 22) | (b >>> 10));
-    a += ((b & c) + ( ~b & d)) + x12 + 1804603682;
-    a += b + ((a << 7) | (a >>> 25));
-    d += ((a & b) + ( ~a & c)) + x13 + -40341101;
-    d += a + ((d << 12) | (d >>> 20));
-    c += ((d & a) + ( ~d & b)) + x14 + -1502002290;
-    c += d + ((c << 17) | (c >>> 15));
-    b += ((c & d) + ( ~c & a)) + x15 + 1236535329;
-    b += c + ((b << 22) | (b >>> 10));
-    a += ((b & d) + (c & ~d)) + x1 + -165796510;
-    a += b + ((a << 5) | (a >>> 27));
-    d += ((a & c) + (b & ~c)) + x6 + -1069501632;
-    d += a + ((d << 9) | (d >>> 23));
-    c += ((d & b) + (a & ~b)) + x11 + 643717713;
-    c += d + ((c << 14) | (c >>> 18));
-    b += ((c & a) + (d & ~a)) + x0 + -373897302;
-    b += c + ((b << 20) | (b >>> 12));
-    a += ((b & d) + (c & ~d)) + x5 + -701558691;
-    a += b + ((a << 5) | (a >>> 27));
-    d += ((a & c) + (b & ~c)) + x10 + 38016083;
-    d += a + ((d << 9) | (d >>> 23));
-    c += ((d & b) + (a & ~b)) + x15 + -660478335;
-    c += d + ((c << 14) | (c >>> 18));
-    b += ((c & a) + (d & ~a)) + x4 + -405537848;
-    b += c + ((b << 20) | (b >>> 12));
-    a += ((b & d) + (c & ~d)) + x9 + 568446438;
-    a += b + ((a << 5) | (a >>> 27));
-    d += ((a & c) + (b & ~c)) + x14 + -1019803690;
-    d += a + ((d << 9) | (d >>> 23));
-    c += ((d & b) + (a & ~b)) + x3 + -187363961;
-    c += d + ((c << 14) | (c >>> 18));
-    b += ((c & a) + (d & ~a)) + x8 + 1163531501;
-    b += c + ((b << 20) | (b >>> 12));
-    a += ((b & d) + (c & ~d)) + x13 + -1444681467;
-    a += b + ((a << 5) | (a >>> 27));
-    d += ((a & c) + (b & ~c)) + x2 + -51403784;
-    d += a + ((d << 9) | (d >>> 23));
-    c += ((d & b) + (a & ~b)) + x7 + 1735328473;
-    c += d + ((c << 14) | (c >>> 18));
-    b += ((c & a) + (d & ~a)) + x12 + -1926607734;
-    b += c + ((b << 20) | (b >>> 12));
-    a += (b ^ c ^ d) + x5 + -378558;
-    a += b + ((a << 4) | (a >>> 28));
-    d += (a ^ b ^ c) + x8 + -2022574463;
-    d += a + ((d << 11) | (d >>> 21));
-    c += (d ^ a ^ b) + x11 + 1839030562;
-    c += d + ((c << 16) | (c >>> 16));
-    b += (c ^ d ^ a) + x14 + -35309556;
-    b += c + ((b << 23) | (b >>> 9));
-    a += (b ^ c ^ d) + x1 + -1530992060;
-    a += b + ((a << 4) | (a >>> 28));
-    d += (a ^ b ^ c) + x4 + 1272893353;
-    d += a + ((d << 11) | (d >>> 21));
-    c += (d ^ a ^ b) + x7 + -155497632;
-    c += d + ((c << 16) | (c >>> 16));
-    b += (c ^ d ^ a) + x10 + -1094730640;
-    b += c + ((b << 23) | (b >>> 9));
-    a += (b ^ c ^ d) + x13 + 681279174;
-    a += b + ((a << 4) | (a >>> 28));
-    d += (a ^ b ^ c) + x0 + -358537222;
-    d += a + ((d << 11) | (d >>> 21));
-    c += (d ^ a ^ b) + x3 + -722521979;
-    c += d + ((c << 16) | (c >>> 16));
-    b += (c ^ d ^ a) + x6 + 76029189;
-    b += c + ((b << 23) | (b >>> 9));
-    a += (b ^ c ^ d) + x9 + -640364487;
-    a += b + ((a << 4) | (a >>> 28));
-    d += (a ^ b ^ c) + x12 + -421815835;
-    d += a + ((d << 11) | (d >>> 21));
-    c += (d ^ a ^ b) + x15 + 530742520;
-    c += d + ((c << 16) | (c >>> 16));
-    b += (c ^ d ^ a) + x2 + -995338651;
-    b += c + ((b << 23) | (b >>> 9));
-    a += (c ^ (b  | ~d)) + x0 + -198630844;
-    a += b + ((a << 6) | (a >>> 26));
-    d += (b ^ (a  | ~c)) + x7 + 1126891415;
-    d += a + ((d << 10) | (d >>> 22));
-    c += (a ^ (d  | ~b)) + x14 + -1416354905;
-    c += d + ((c << 15) | (c >>> 17));
-    b += (d ^ (c  | ~a)) + x5 + -57434055;
-    b += c + ((b << 21) | (b >>> 11));
-    a += (c ^ (b  | ~d)) + x12 + 1700485571;
-    a += b + ((a << 6) | (a >>> 26));
-    d += (b ^ (a  | ~c)) + x3 + -1894986606;
-    d += a + ((d << 10) | (d >>> 22));
-    c += (a ^ (d  | ~b)) + x10 + -1051523;
-    c += d + ((c << 15) | (c >>> 17));
-    b += (d ^ (c  | ~a)) + x1 + -2054922799;
-    b += c + ((b << 21) | (b >>> 11));
-    a += (c ^ (b  | ~d)) + x8 + 1873313359;
-    a += b + ((a << 6) | (a >>> 26));
-    d += (b ^ (a  | ~c)) + x15 + -30611744;
-    d += a + ((d << 10) | (d >>> 22));
-    c += (a ^ (d  | ~b)) + x6 + -1560198380;
-    c += d + ((c << 15) | (c >>> 17));
-    b += (d ^ (c  | ~a)) + x13 + 1309151649;
-    b += c + ((b << 21) | (b >>> 11));
-    a += (c ^ (b  | ~d)) + x4 + -145523070;
-    a += b + ((a << 6) | (a >>> 26));
-    d += (b ^ (a  | ~c)) + x11 + -1120210379;
-    d += a + ((d << 10) | (d >>> 22));
-    c += (a ^ (d  | ~b)) + x2 + 718787259;
-    c += d + ((c << 15) | (c >>> 17));
-    b += (d ^ (c  | ~a)) + x9 + -343485551;
-    b += c + ((b << 21) | (b >>> 11));
+    
+    
+    a += ((b & c) | ( ~b & d)) + x0 + 0xd76aa478;
+    a = b + ((a << 7) | (a >>> 25));
+    d += ((a & b) | ( ~a & c)) + x1 + 0xe8c7b756;
+    d = a + ((d << 12) | (d >>> 20));
+    c += ((d & a) | ( ~d & b)) + x2 + 0x242070db;
+    c = d + ((c << 17) | (c >>> 15));
+    b += ((c & d) | ( ~c & a)) + x3 + 0xc1bdceee;
+    b = c + ((b << 22) | (b >>> 10));
+    a += ((b & c) | ( ~b & d)) + x4 + 0xf57c0faf;
+    a = b + ((a << 7) | (a >>> 25));
+    d += ((a & b) | ( ~a & c)) + x5 + 0x4787c62a;
+    d = a + ((d << 12) | (d >>> 20));
+    c += ((d & a) | ( ~d & b)) + x6 + 0xa8304613;
+    c = d + ((c << 17) | (c >>> 15));
+    b += ((c & d) | ( ~c & a)) + x7 + 0xfd469501;
+    b = c + ((b << 22) | (b >>> 10));
+    a += ((b & c) | ( ~b & d)) + x8 + 0x698098d8;
+    a = b + ((a << 7) | (a >>> 25));
+    d += ((a & b) | ( ~a & c)) + x9 + 0x8b44f7af;
+    d = a + ((d << 12) | (d >>> 20));
+    c += ((d & a) | ( ~d & b)) + x10 + 0xffff5bb1;
+    c = d + ((c << 17) | (c >>> 15));
+    b += ((c & d) | ( ~c & a)) + x11 + 0x895cd7be;
+    b = c + ((b << 22) | (b >>> 10));
+    a += ((b & c) | ( ~b & d)) + x12 + 0x6b901122;
+    a = b + ((a << 7) | (a >>> 25));
+    d += ((a & b) | ( ~a & c)) + x13 + 0xfd987193;
+    d = a + ((d << 12) | (d >>> 20));
+    c += ((d & a) | ( ~d & b)) + x14 + 0xa679438e;
+    c = d + ((c << 17) | (c >>> 15));
+    b += ((c & d) | ( ~c & a)) + x15 + 0x49b40821;
+    b = c + ((b << 22) | (b >>> 10));
+    a += ((b & d) | (c & ~d)) + x1 + 0xf61e2562;
+    a = b + ((a << 5) | (a >>> 27));
+    d += ((a & c) | (b & ~c)) + x6 + 0xc040b340;
+    d = a + ((d << 9) | (d >>> 23));
+    c += ((d & b) | (a & ~b)) + x11 + 0x265e5a51;
+    c = d + ((c << 14) | (c >>> 18));
+    b += ((c & a) | (d & ~a)) + x0 + 0xe9b6c7aa;
+    b = c + ((b << 20) | (b >>> 12));
+    a += ((b & d) | (c & ~d)) + x5 + 0xd62f105d;
+    a = b + ((a << 5) | (a >>> 27));
+    d += ((a & c) | (b & ~c)) + x10 + 0x2441453;
+    d = a + ((d << 9) | (d >>> 23));
+    c += ((d & b) | (a & ~b)) + x15 + 0xd8a1e681;
+    c = d + ((c << 14) | (c >>> 18));
+    b += ((c & a) | (d & ~a)) + x4 + 0xe7d3fbc8;
+    b = c + ((b << 20) | (b >>> 12));
+    a += ((b & d) | (c & ~d)) + x9 + 0x21e1cde6;
+    a = b + ((a << 5) | (a >>> 27));
+    d += ((a & c) | (b & ~c)) + x14 + 0xc33707d6;
+    d = a + ((d << 9) | (d >>> 23));
+    c += ((d & b) | (a & ~b)) + x3 + 0xf4d50d87;
+    c = d + ((c << 14) | (c >>> 18));
+    b += ((c & a) | (d & ~a)) + x8 + 0x455a14ed;
+    b = c + ((b << 20) | (b >>> 12));
+    a += ((b & d) | (c & ~d)) + x13 + 0xa9e3e905;
+    a = b + ((a << 5) | (a >>> 27));
+    d += ((a & c) | (b & ~c)) + x2 + 0xfcefa3f8;
+    d = a + ((d << 9) | (d >>> 23));
+    c += ((d & b) | (a & ~b)) + x7 + 0x676f02d9;
+    c = d + ((c << 14) | (c >>> 18));
+    b += ((c & a) | (d & ~a)) + x12 + 0x8d2a4c8a;
+    b = c + ((b << 20) | (b >>> 12));
+    a += (b ^ c ^ d) + x5 + 0xfffa3942;
+    a = b + ((a << 4) | (a >>> 28));
+    d += (a ^ b ^ c) + x8 + 0x8771f681;
+    d = a + ((d << 11) | (d >>> 21));
+    c += (d ^ a ^ b) + x11 + 0x6d9d6122;
+    c = d + ((c << 16) | (c >>> 16));
+    b += (c ^ d ^ a) + x14 + 0xfde5380c;
+    b = c + ((b << 23) | (b >>> 9));
+    a += (b ^ c ^ d) + x1 + 0xa4beea44;
+    a = b + ((a << 4) | (a >>> 28));
+    d += (a ^ b ^ c) + x4 + 0x4bdecfa9;
+    d = a + ((d << 11) | (d >>> 21));
+    c += (d ^ a ^ b) + x7 + 0xf6bb4b60;
+    c = d + ((c << 16) | (c >>> 16));
+    b += (c ^ d ^ a) + x10 + 0xbebfbc70;
+    b = c + ((b << 23) | (b >>> 9));
+    a += (b ^ c ^ d) + x13 + 0x289b7ec6;
+    a = b + ((a << 4) | (a >>> 28));
+    d += (a ^ b ^ c) + x0 + 0xeaa127fa;
+    d = a + ((d << 11) | (d >>> 21));
+    c += (d ^ a ^ b) + x3 + 0xd4ef3085;
+    c = d + ((c << 16) | (c >>> 16));
+    b += (c ^ d ^ a) + x6 + 0x4881d05;
+    b = c + ((b << 23) | (b >>> 9));
+    a += (b ^ c ^ d) + x9 + 0xd9d4d039;
+    a = b + ((a << 4) | (a >>> 28));
+    d += (a ^ b ^ c) + x12 + 0xe6db99e5;
+    d = a + ((d << 11) | (d >>> 21));
+    c += (d ^ a ^ b) + x15 + 0x1fa27cf8;
+    c = d + ((c << 16) | (c >>> 16));
+    b += (c ^ d ^ a) + x2 + 0xc4ac5665;
+    b = c + ((b << 23) | (b >>> 9));
+    a += (c ^ (b  | ~d)) + x0 + 0xf4292244;
+    a = b + ((a << 6) | (a >>> 26));
+    d += (b ^ (a  | ~c)) + x7 + 0x432aff97;
+    d = a + ((d << 10) | (d >>> 22));
+    c += (a ^ (d  | ~b)) + x14 + 0xab9423a7;
+    c = d + ((c << 15) | (c >>> 17));
+    b += (d ^ (c  | ~a)) + x5 + 0xfc93a039;
+    b = c + ((b << 21) | (b >>> 11));
+    a += (c ^ (b  | ~d)) + x12 + 0x655b59c3;
+    a = b + ((a << 6) | (a >>> 26));
+    d += (b ^ (a  | ~c)) + x3 + 0x8f0ccc92;
+    d = a + ((d << 10) | (d >>> 22));
+    c += (a ^ (d  | ~b)) + x10 + 0xffeff47d;
+    c = d + ((c << 15) | (c >>> 17));
+    b += (d ^ (c  | ~a)) + x1 + 0x85845dd1;
+    b = c + ((b << 21) | (b >>> 11));
+    a += (c ^ (b  | ~d)) + x8 + 0x6fa87e4f;
+    a = b + ((a << 6) | (a >>> 26));
+    d += (b ^ (a  | ~c)) + x15 + 0xfe2ce6e0;
+    d = a + ((d << 10) | (d >>> 22));
+    c += (a ^ (d  | ~b)) + x6 + 0xa3014314;
+    c = d + ((c << 15) | (c >>> 17));
+    b += (d ^ (c  | ~a)) + x13 + 0x4e0811a1;
+    b = c + ((b << 21) | (b >>> 11));
+    a += (c ^ (b  | ~d)) + x4 + 0xf7537e82;
+    a = b + ((a << 6) | (a >>> 26));
+    d += (b ^ (a  | ~c)) + x11 + 0xbd3af235;
+    d = a + ((d << 10) | (d >>> 22));
+    c += (a ^ (d  | ~b)) + x2 + 0x2ad7d2bb;
+    c = d + ((c << 15) | (c >>> 17));
+    b += (d ^ (c  | ~a)) + x9 + 0xeb86d391;
+    b = c + ((b << 21) | (b >>> 11));
+
     
     h0 += a;
     h1 += b;
@@ -205,10 +209,10 @@ public class MD5 {
    * Must be called before starting a new hash calculation.
    */
   public void reset() {
-    h0 = 0x01234567;
-    h1 = 0x89abcdef;
-    h2 = 0xfedcba98;   
-    h3 = 0x76543210;    
+    h0 = 0x67452301;
+    h1 = 0xEFCDAB89;
+    h2 = 0x98BADCFE;
+    h3 = 0x10325476;   
     
     length = 0;
     
@@ -257,7 +261,7 @@ public class MD5 {
   
   
   /**
-   * Finishes the SHA-1 message digest calculation.
+   * Finishes the MD5-1 message digest calculation.
    * @return 16-byte hash result
    */
   public byte[] digest() {
@@ -305,6 +309,50 @@ public class MD5 {
   public byte[] digest(ByteBuffer buffer) {
     update( buffer );
     return digest();
+  }
+  
+  public static void main(String args[]) throws Exception {
+    MD5 md5Gudy = new MD5();
+    Md5Hasher md5Jmule = new Md5Hasher();
+    MessageDigest md5Sun = MessageDigest.getInstance("MD5");
+    
+    ByteBuffer bhashJ = ByteBuffer.allocate(16);
+    
+    
+    System.out.println("Gudy : " + ByteFormatter.nicePrint(md5Gudy.digest()));
+    md5Gudy.reset();
+    md5Jmule.finalDigest(bhashJ);
+    bhashJ.rewind();      
+    byte hashJ[] = bhashJ.array();
+    System.out.println("Jmule: " + ByteFormatter.nicePrint(hashJ));
+    System.out.println("Sun: " + ByteFormatter.nicePrint(md5Sun.digest()));
+    
+    for(int i = 0 ; i < 4 ; i++) {
+      ByteBuffer test = ByteBuffer.allocate(i);
+      while(test.remaining() > 0) {
+        test.put((byte)(Math.random() * 256));
+      }
+      test.rewind();
+      byte hashG[] = md5Gudy.digest(test);
+      md5Gudy.reset();
+      
+      md5Jmule.update(test);      
+      bhashJ.rewind();
+      md5Jmule.finalDigest(bhashJ);
+      bhashJ.rewind();      
+      hashJ = bhashJ.array();
+      test.rewind();
+      
+      md5Sun.update(test.array());
+      byte hashS[] = md5Sun.digest();
+      
+      System.out.println("Gudy : " + ByteFormatter.nicePrint(hashG));
+      System.out.println("Jmule: " + ByteFormatter.nicePrint(hashJ));
+      System.out.println("Sun: " + ByteFormatter.nicePrint(hashS));
+      //boolean same = true;
+
+      //System.out.println(i + " : " + same);      
+    }
   }
   
 }
