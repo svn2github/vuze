@@ -707,7 +707,7 @@ PEPeerTransportProtocol
         + ":"
         + pieceOffset
         + "->"
-        + pieceLength
+        + (pieceOffset + pieceLength)
         + " which is an invalid request.",
         true);
 		  return;
