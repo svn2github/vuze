@@ -1083,6 +1083,12 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
 	destroyed()
 	{
  	}
+	
+	public void
+	destroyInitiated()
+	{
+	}				
+	
   
 /*
   private List getSelection() {

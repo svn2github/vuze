@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.global.seedingrules.defaultplugin;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.*;
@@ -34,10 +36,20 @@ public class
 GMSRDefaultPlugin 
 	implements Plugin
 {	
-	protected PluginInterface		plugin_interface;
-	protected PluginConfig			plugin_config;
-	protected DownloadManager		download_manager;
-	protected LoggerChannel			log;
+	public static final long			MIN_AUTO_START_PERIOD = 30*1000;
+	
+	protected PluginInterface			plugin_interface;
+	protected PluginConfig				plugin_config;
+	protected DownloadManager			download_manager;
+	protected DownloadListener			download_listener;
+	protected DownloadTrackerListener	download_tracker_listener;
+	
+	protected Map						download_data = new HashMap();
+	
+	protected boolean					closing_down;
+	protected boolean					something_changed;
+	
+	protected LoggerChannel				log;
 	
 	public void 
 	initialize(
@@ -45,6 +57,29 @@ GMSRDefaultPlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
+		plugin_interface.addListener(
+			new PluginListener()
+			{
+				public void
+				initializationComplete()
+				{
+				}
+				
+				public void
+				closedownInitiated()
+				{
+					synchronized( GMSRDefaultPlugin.this ){
+						
+						closing_down	= true;
+					}
+				}
+				
+				public void
+				closedownComplete()
+				{
+				}
+			});
+			
 		log = plugin_interface.getLogger().getChannel("SeedingRules");
 		
 		log.log( LoggerChannel.LT_INFORMATION, "Default Seeding Rules Plugin Initialisation" );
@@ -53,15 +88,99 @@ GMSRDefaultPlugin
 		
 		download_manager = plugin_interface.getDownloadManager();
 		
-			// initial implementation loops - change to event driven
+		download_listener	= 
+			new DownloadListener()
+			{
+				public void
+				stateChanged(
+					Download		download,
+					int				old_state,
+					int				new_state )
+				{
+					synchronized( GMSRDefaultPlugin.this ){
+						
+						something_changed = true;
+					}
+				}
+			};
 		
-		Thread	t = new Thread()
+		download_tracker_listener	= 
+			new DownloadTrackerListener()
+			{
+				public void
+				scrapeResult(
+					DownloadScrapeResult result )
+				{
+					synchronized( GMSRDefaultPlugin.this ){
+						
+						something_changed = true;
+					}
+				}
+				
+				public void
+				announceResult(
+					DownloadAnnounceResult	result )
+				{
+				}								
+			};
+
+		download_manager.addListener(
+				new DownloadManagerListener()
+				{
+					public void
+					downloadAdded(
+						Download	download )
+					{
+						download_data.put( download, new downloadData());
+						
+						download.addListener( download_listener );
+						
+						download.addTrackerListener( download_tracker_listener );
+						
+						synchronized( GMSRDefaultPlugin.this ){
+							
+							something_changed = true;
+						}
+					}
+					
+					public void
+					downloadRemoved(
+						Download	download )
+					{
+						download.removeListener( download_listener );
+						
+						download.removeTrackerListener( download_tracker_listener );
+				
+						download_data.remove( download );
+						
+						synchronized( GMSRDefaultPlugin.this ){
+							
+							something_changed = true;
+						}
+					}					
+				});
+				
+			// initial implementation loops - change to event driven maybe although
+			// the current rules permit loops under certain circumstances.....
+		
+		Thread	t = new Thread("GMSRDefaultPlugin")
 			{
 				public void
 				run()
 				{
 					while(true){
 						try{
+							synchronized( GMSRDefaultPlugin.this ){
+								
+								if ( closing_down ){
+									
+									log.log( LoggerChannel.LT_INFORMATION, "System Closing - processing stopped" );
+									
+									break;
+								}
+								
+								something_changed = false;
+							}
 							
 							process();
 							
@@ -71,7 +190,17 @@ GMSRDefaultPlugin
 						}
 					
 						try{
-							Thread.sleep(1000);
+							int	sleep_period = 1000;
+							
+							synchronized( GMSRDefaultPlugin.this ){
+								
+								if ( something_changed ){
+									
+									sleep_period = 100;
+								}
+							}
+														
+							Thread.sleep(sleep_period);
 							
 						}catch( InterruptedException e ){
 							
@@ -89,6 +218,8 @@ GMSRDefaultPlugin
 	protected synchronized void
 	process()
 	{
+		long	process_time = System.currentTimeMillis();
+		
 		Download[]	downloads = download_manager.getDownloads();
 		
 		int	started		= 0;
@@ -97,6 +228,13 @@ GMSRDefaultPlugin
 		for (int i=0;i<downloads.length;i++){
 			
 			Download	download = downloads[i];
+			
+			downloadData	dl_data = (downloadData)download_data.get( download );
+			
+			if ( dl_data == null ){
+				
+				continue;
+			}
 			
 			int	state = download.getState();
 			
@@ -208,86 +346,98 @@ GMSRDefaultPlugin
 				}
 				
 			}else if ( state == Download.ST_STOPPED && download.getStats().getCompleted() == 1000){
+				
+					// check that we didn't auto-start this recently
+				
+				if ( process_time - dl_data.getLastAutoStartTime() > MIN_AUTO_START_PERIOD ){
 					
-				boolean download_started = false;
-				
-				//Checks if any condition to start seeding is met
-				
-				int nbMinSeeds = plugin_config.getIntParameter("Start Num Peers", 0);
-				
-				int minSeedsPerPeersRatio = plugin_config.getIntParameter("Start Peers Ratio", 0);
-				
-				//0 means never start
-				
-				if ( minSeedsPerPeersRatio != 0 && ! download.isStartStopLocked()){
+					boolean download_started = false;
 					
-					DownloadScrapeResult sr = download.getLastScrapeResult();
+					//Checks if any condition to start seeding is met
 					
-					if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
-						
-						int nbPeers = sr.getNonSeedCount();
-						
-						int nbSeeds = sr.getSeedCount();
-						
-							//If there are no seeds, avoid / by 0
-						
-						if (nbPeers != 0){
-							
-							try{							
-						
-								if (nbSeeds != 0){
-									
-									int ratio = nbPeers / nbSeeds;
-									
-									if (ratio >= minSeedsPerPeersRatio){
-										
-										log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (ratio)" );
-										
-										download.restart();
-										
-										download_started = true;
-										
-									}
-								}else{
-										//No seeds, at least 1 peer, let's start download.
-									
-									log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (no seeds, >=1 peer)" );
-									
-									download.restart();
-									
-									download_started	= true;
-								}
-							}catch( DownloadException e ){
-								
-								e.printStackTrace();
-							}
-						}
-					}
-				}
-				
-				if ( !download_started ){
+					int nbMinSeeds = plugin_config.getIntParameter("Start Num Peers", 0);
 					
-					if (nbMinSeeds > 0 && ! download.isStartStopLocked()) {
+					int minSeedsPerPeersRatio = plugin_config.getIntParameter("Start Peers Ratio", 0);
+					
+					//0 means never start
+					
+					if ( minSeedsPerPeersRatio != 0 && ! download.isStartStopLocked()){
 						
 						DownloadScrapeResult sr = download.getLastScrapeResult();
 						
 						if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
 							
+							int nbPeers = sr.getNonSeedCount();
+							
 							int nbSeeds = sr.getSeedCount();
 							
-							if (nbSeeds < nbMinSeeds){
+								//If there are no seeds, avoid / by 0
+							
+							if (nbPeers != 0){
 								
-								try{
-									log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: seeds < min seeds" );
-									
-									download.restart();
-									
+								try{							
+							
+									if (nbSeeds != 0){
+										
+										int ratio = nbPeers / nbSeeds;
+										
+										if (ratio >= minSeedsPerPeersRatio){
+											
+											log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (ratio)" );
+											
+											download.restart();
+											
+											download_started = true;
+											
+										}
+									}else{
+											//No seeds, at least 1 peer, let's start download.
+										
+										log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: min seeds per peer (no seeds, >=1 peer)" );
+										
+										download.restart();
+										
+										download_started	= true;
+									}
 								}catch( DownloadException e ){
 									
 									e.printStackTrace();
 								}
 							}
 						}
+					}
+					
+					if ( !download_started ){
+						
+						if (nbMinSeeds > 0 && ! download.isStartStopLocked()) {
+							
+							DownloadScrapeResult sr = download.getLastScrapeResult();
+							
+							if ( sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+								
+								int nbSeeds = sr.getSeedCount();
+								
+								if (nbSeeds < nbMinSeeds){
+									
+									try{
+										log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: seeds < min seeds" );
+										
+										download.restart();
+										
+										download_started	= true;
+										
+									}catch( DownloadException e ){
+										
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+					}
+				
+					if ( download_started ){
+						
+						dl_data.setLastAutoStartTime( process_time );
 					}
 				}
 			}
@@ -312,7 +462,7 @@ GMSRDefaultPlugin
 		for (int i=0;i<downloads.length;i++){
 			
 			Download	download = downloads[i];
-			
+						
 			int	state = download.getState();
 			
 			if ( state == Download.ST_WAITING && !alreadyOneAllocatingOrChecking ){
@@ -337,7 +487,7 @@ GMSRDefaultPlugin
 			if ( 	download.getState() == Download.ST_READY &&
 					((nbMax == 0) || (started < nbMax)) &&
 					(download.getStats().getCompleted() == 1000 || ((nbMaxDownloads == 0) || (downloading < nbMaxDownloads)))){
-				
+					
 				try{
 					log.log( LoggerChannel.LT_INFORMATION, "Start ["+i+"]: < max downloads running" );
 					
@@ -352,6 +502,7 @@ GMSRDefaultPlugin
 				}catch( DownloadException e ){
 					
 					e.printStackTrace();
+					
 				}
 			}
 
@@ -383,6 +534,25 @@ GMSRDefaultPlugin
 					e.printStackTrace();
 				}
 			}		
+		}
+	}
+	
+	protected class
+	downloadData
+	{
+		protected long	last_auto_start_time;
+		
+		public long
+		getLastAutoStartTime()
+		{
+			return( last_auto_start_time );
+		}
+		
+		public void
+		setLastAutoStartTime(
+			long			time )
+		{
+			last_auto_start_time		= time;
 		}
 	}
 }

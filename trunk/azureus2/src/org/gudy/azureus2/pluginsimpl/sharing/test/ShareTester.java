@@ -106,8 +106,9 @@ ShareTester
 								{
 									public void
 									stateChanged(
-										int		old,
-										int		cur )
+										Download	dl,
+										int			old,
+										int			cur )
 									{
 										System.out.println( "statechange:" + old + "-> " + cur + "  (" + download + ")");
 									}
@@ -167,6 +168,16 @@ ShareTester
 			e.printStackTrace();
 		}
 	
+	}
+	
+	public void
+	closedownInitiated()
+	{
+	}
+	
+	public void
+	closedownComplete()
+	{
 	}
 	
 	public void

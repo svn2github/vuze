@@ -579,6 +579,9 @@ public class GlobalManagerImpl
 
   public void stopAll() {
     if (!isStopped){
+    	
+    	informDestroyInitiated();
+    	
     		// kick off a 'null' non-daemon task. This will ensure that we hang around
     		// for at least LINGER_PERIOD to run other non-daemon tasks such as writing
     		// torrent resume data...
@@ -911,6 +914,18 @@ public class GlobalManagerImpl
   			for (int i=0;i<listeners.size();i++){
   			
   				((GlobalManagerListener)listeners.elementAt(i)).destroyed();
+  			}
+  		}
+  	}
+  	
+  	public void
+  	informDestroyInitiated()
+  	{
+  		synchronized( listeners ){
+  			
+  			for (int i=0;i<listeners.size();i++){
+  				
+  				((GlobalManagerListener)listeners.elementAt(i)).destroyInitiated();
   			}
   		}
   	}

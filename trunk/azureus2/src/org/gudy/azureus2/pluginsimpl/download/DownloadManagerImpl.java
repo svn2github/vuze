@@ -122,6 +122,11 @@ DownloadManagerImpl
 				}
 				
 				public void
+				destroyInitiated()
+				{
+				}				
+				
+				public void
 				destroyed()
 				{	
 				}

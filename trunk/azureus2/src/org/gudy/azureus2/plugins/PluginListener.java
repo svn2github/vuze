@@ -30,4 +30,10 @@ PluginListener
 {
 	public void
 	initializationComplete();
+	
+	public void
+	closedownInitiated();
+	
+	public void
+	closedownComplete();
 }

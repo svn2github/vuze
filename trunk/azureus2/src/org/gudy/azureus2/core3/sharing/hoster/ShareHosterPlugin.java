@@ -94,6 +94,16 @@ ShareHosterPlugin
 	}
 	
 	public void
+	closedownInitiated()
+	{
+	}
+	
+	public void
+	closedownComplete()
+	{
+	}
+	
+	public void
 	resourceAdded(
 		ShareResource		resource )
 	{

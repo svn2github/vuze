@@ -60,6 +60,11 @@ UserAlerts
 				}  
 				
 				public void
+				destroyInitiated()
+				{
+				}				
+				
+				public void
 				destroyed()
 				{
 					tidyUp();

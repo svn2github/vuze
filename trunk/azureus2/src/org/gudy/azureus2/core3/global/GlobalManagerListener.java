@@ -40,5 +40,8 @@ GlobalManagerListener
 		DownloadManager	dm );
 		
 	public void
+	destroyInitiated();
+		
+	public void
 	destroyed();
 }

@@ -230,6 +230,11 @@ public class TrayWindow implements GlobalManagerListener {
 	{
 	}
 	
+	public void
+	destroyInitiated()
+	{
+	}				
+	
   public void updateLanguage() {
     MainWindow.updateMenuText(menu);
   }

@@ -32,6 +32,9 @@ DownloadScrapeResult
 	public static final int	RT_SUCCESS	= 1;
 	public static final int RT_ERROR	= 2;
 	
+	public Download
+	getDownload();
+	
 	public int
 	getResponseType();	// either RT_SUCCESS or RT_ERROR
 	

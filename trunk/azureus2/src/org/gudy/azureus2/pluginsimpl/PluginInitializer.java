@@ -26,7 +26,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.*;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.tracker.host.*;
@@ -44,7 +46,10 @@ import org.gudy.azureus2.ui.tracker.TrackerWebDefaultStaticPlugin;
  * @author Olivier
  * 
  */
-public class PluginInitializer {
+public class 
+PluginInitializer
+	implements GlobalManagerListener
+{
 
   private Class[]	builtin_plugins = new Class[]{ 	org.gudy.azureus2.core3.global.seedingrules.defaultplugin.GMSRDefaultPlugin.class,
 													ShareHosterPlugin.class,
@@ -101,8 +106,15 @@ public class PluginInitializer {
   	}
   }
   
-  protected PluginInitializer(GlobalManager gm,SplashWindow splash) {
+  protected 
+  PluginInitializer(
+  	GlobalManager gm,
+	SplashWindow splash) 
+  {
   	global_manager	= gm;
+  	
+  	global_manager.addListener( this );
+  	
     this.splash 	= splash;
     
     tracker_host	= TRHostFactory.create();
@@ -244,6 +256,36 @@ public class PluginInitializer {
   	return( default_plugin );
   }
   
+  public void
+  downloadManagerAdded(
+  	DownloadManager	dm )
+  {
+  }
+  
+  public void
+  downloadManagerRemoved(
+  	DownloadManager	dm )
+  {
+  }
+  
+  public void
+  destroyInitiated()
+  {	
+  	for (int i=0;i<plugin_interfaces.size();i++){
+  		
+  		((PluginInterfaceImpl)plugin_interfaces.get(i)).closedownInitiated();
+  	} 
+  }
+  
+  public void
+  destroyed()
+  {
+  	for (int i=0;i<plugin_interfaces.size();i++){
+  		
+  		((PluginInterfaceImpl)plugin_interfaces.get(i)).closedownComplete();
+  	}  	
+  }
+  
   protected void
   initialisationCompleteSupport()
   {
@@ -252,6 +294,7 @@ public class PluginInitializer {
   		((PluginInterfaceImpl)plugin_interfaces.get(i)).initialisationComplete();
   	}
   }
+  
   
   public static void
   initialisationComplete()

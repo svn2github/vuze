@@ -1678,6 +1678,11 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
   {
   }
   
+  public void
+  destroyInitiated()
+  {
+  }				
+  
   public void 
   downloadManagerAdded(
   	final DownloadManager created) 

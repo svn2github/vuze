@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.download;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 
 public class 
@@ -45,6 +46,12 @@ DownloadAnnounceResultImpl
 	{
 		download	= _download;
 		response	= _response;
+	}
+	
+	public Download
+	getDownload()
+	{
+		return( download );
 	}
 	
 	public int

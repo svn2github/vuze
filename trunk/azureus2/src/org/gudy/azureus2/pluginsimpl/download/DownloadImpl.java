@@ -346,7 +346,7 @@ DownloadImpl
 				for (int i=0;i<listeners.size();i++){
 					
 					try{
-						((DownloadListener)listeners.get(i)).stateChanged( prev_state, curr_state );
+						((DownloadListener)listeners.get(i)).stateChanged( this, prev_state, curr_state );
 					
 					}catch( Throwable e ){
 						
@@ -390,12 +390,10 @@ DownloadImpl
 	
 	public DownloadScrapeResult
 	getLastScrapeResult()
-	{
-		// TODO: scraping is *NOT* yet event driven from download manager
-		
+	{		
 		TRTrackerScraperResponse response = download_manager.getTrackerScrapeResponse();
 	
-		last_scrape_result = new DownloadScrapeResultImpl( response );
+		last_scrape_result = new DownloadScrapeResultImpl( this, response );
 		
 		return( last_scrape_result );
 	}
@@ -405,7 +403,7 @@ DownloadImpl
 	scrapeResult(
 		TRTrackerScraperResponse	response )
 	{
-		last_scrape_result		= new DownloadScrapeResultImpl( response );
+		last_scrape_result		= new DownloadScrapeResultImpl( this, response );
 		
 		synchronized( tracker_listeners ){
 			

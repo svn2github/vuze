@@ -30,6 +30,7 @@ DownloadListener
 {
 	public void
 	stateChanged(
-		int	old_state,
-		int	new_state );
+		Download		download,
+		int				old_state,
+		int				new_state );
 }

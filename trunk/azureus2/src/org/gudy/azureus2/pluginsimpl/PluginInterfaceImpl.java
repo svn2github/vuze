@@ -164,6 +164,36 @@ public class PluginInterfaceImpl implements PluginInterface {
   	}
   }
   
+  protected void
+  closedownInitiated()
+  {
+  	for (int i=0;i<listeners.size();i++){
+  		
+  		try{
+  			((PluginListener)listeners.get(i)).closedownInitiated();
+  			
+  		}catch( Throwable e ){
+  			
+  			e.printStackTrace();
+  		}
+  	}
+  }
+  
+  protected void
+  closedownComplete()
+  {
+  	for (int i=0;i<listeners.size();i++){
+  		
+  		try{
+  			((PluginListener)listeners.get(i)).closedownComplete();
+  			
+  		}catch( Throwable e ){
+  			
+  			e.printStackTrace();
+  		}
+  	}
+  }
+  
   public void
   addListener(
   	PluginListener	l )

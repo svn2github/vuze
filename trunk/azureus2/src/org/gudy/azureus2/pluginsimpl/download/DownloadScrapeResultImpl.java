@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.download;
  *
  */
 
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -34,13 +35,22 @@ public class
 DownloadScrapeResultImpl
 	implements DownloadScrapeResult
 {
+	protected Download					download;
 	protected TRTrackerScraperResponse	response;
 	
 	protected
 	DownloadScrapeResultImpl(
+		Download					_download,
 		TRTrackerScraperResponse	_response )
 	{
+		download	= _download;
 		response	= _response;
+	}
+	
+	public Download
+	getDownload()
+	{
+		return( download );
 	}
 	
 	public int
