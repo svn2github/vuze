@@ -101,6 +101,7 @@ StartStopRulesDefaultPlugin
   int iRankTypeSeedFallback;
   boolean bAutoReposition;
   long minTimeAlive;
+  boolean bSeed0Peers;
 
   public void
   initialize(
@@ -258,6 +259,7 @@ StartStopRulesDefaultPlugin
     iRankTypeSeedFallback = plugin_config.getIntParameter("StartStopManager_iRankTypeSeedFallback");
     bAutoReposition = plugin_config.getBooleanParameter("StartStopManager_bAutoReposition");
     minTimeAlive = plugin_config.getIntParameter("StartStopManager_iMinSeedingTime") * 1000;
+    bSeed0Peers = plugin_config.getBooleanParameter("StartStopManager_bSeed0Peers");
     // shorted recalc for timed rank type, since the calculation is fast and we want to stop on the second
     if (iRankType == RANK_TIMED)
       RECALC_QR_EVERY = 1000;
@@ -288,10 +290,10 @@ StartStopRulesDefaultPlugin
     int totalCompleteQueued = 0;
     int totalIncompleteQueued = 0;
 
-    boolean recalcQR = (iRankType != RANK_NONE) && ((process_time - lastQRcalcTime) > RECALC_QR_EVERY);
+    boolean recalcQR = ((process_time - lastQRcalcTime) > RECALC_QR_EVERY);
     if (somethingChanged) {
     	somethingChanged = false;
-    	recalcQR = (iRankType != RANK_NONE);
+    	recalcQR = true;
     }
 	  if (recalcQR)
   	  lastQRcalcTime = System.currentTimeMillis();
@@ -409,8 +411,12 @@ StartStopRulesDefaultPlugin
       downloadData dl_data = dlDataArray[i];
       Download download = dl_data.getDownloadObject();
       boolean bStopAndQueued = false;
-
-      //log.log( LoggerChannel.LT_INFORMATION, "["+download.getTorrent().getName()+"]: state="+download.getState()+";qr="+dl_data.getQR()+";compl="+download.getStats().getDownloadCompleted(false));
+/*
+      log.log( LoggerChannel.LT_INFORMATION, "["+download.getTorrent().getName()+"]: state="+
+               download.getState()+
+               ";qr="+dl_data.getQR()+
+               ";compl="+download.getStats().getDownloadCompleted(false));
+*/
       // Initialize STATE_WAITING torrents
       if ((download.getState() == Download.ST_WAITING) &&
           !getAlreadyAllocatingOrChecking()) {
@@ -508,7 +514,7 @@ StartStopRulesDefaultPlugin
         }
         // We can stop items queued, but we can't queue items queued ;)
         boolean okToQueue = okToStop && (state != Download.ST_QUEUED);
-
+        
         if (download.getState() == Download.ST_READY ||
             download.getState() == Download.ST_SEEDING ||
             download.getState() == Download.ST_WAITING ||
@@ -521,7 +527,9 @@ StartStopRulesDefaultPlugin
                   ";numWaitingorSeeding="+numWaitingOrSeeding+
                   ";okToQueue="+okToQueue+
                   ";okToStop="+okToStop+
-                  ";qr="+dl_data.getQR());
+                  ";qr="+dl_data.getQR()+
+                  ";higherQueued="+higherQueued+
+                  ";maxSeeders="+maxSeeders);
 
         // Change to waiting if queued and we have an open slot
         if ((download.getState() == Download.ST_QUEUED) &&
@@ -560,7 +568,7 @@ StartStopRulesDefaultPlugin
         // if there's more torrents waiting/seeding than our max, or if
         // there's a higher ranked torrent queued, stop this one
         if (okToQueue &&
-            ((numWaitingOrSeeding > maxSeeders) || higherQueued)) {
+            ((numWaitingOrSeeding > maxSeeders) || higherQueued || dl_data.getQR() <= -2)) {
           try {
             if (download.getState() == Download.ST_READY)
               totalWaitingToSeed--;
@@ -619,7 +627,7 @@ StartStopRulesDefaultPlugin
           dl_data.setQR(QR_TIMED_QUEUED_ENDS_AT - totalComplete);
         }
 
-        if (download.getState() == Download.ST_QUEUED)
+        if (download.getState() == Download.ST_QUEUED && dl_data.getQR() >= 0)
           higherQueued = true;
 
         // XXX: Old code. Do we really want to remove torrents when the error is "File Not Found"?
@@ -781,7 +789,7 @@ StartStopRulesDefaultPlugin
 
   //log.log( LoggerChannel.LT_INFORMATION, "["+dl.getTorrent().getName()+"]: Peers="+numPeers+"; Seeds="+numSeeds);
 
-      if (numSeeds == 0 && numPeers == 0 && bScrapeResultsOk) {
+      if (numSeeds == 0 && numPeers == 0 && bScrapeResultsOk && !bSeed0Peers) {
         setQR(QR_0SEEDSPEERS);
         return QR_0SEEDSPEERS;
       }
@@ -812,7 +820,11 @@ StartStopRulesDefaultPlugin
       // ranking)
       int newQR = 0;
 
-      if (iRankType == RANK_TIMED) {
+      if (iRankType == RANK_NONE) {
+        // everythink ok!
+        qr = 0;
+        return 0;
+      }if (iRankType == RANK_TIMED) {
         if (shareRatio <= 500 && shareRatio != -1) {
           setQR(QR_INCOMPLETE_ENDS_AT - 10000);
           return getQR();
@@ -981,11 +993,7 @@ StartStopRulesDefaultPlugin
     }
 
   	public String configSectionGetName() {
-  		return MessageText.getString("ConfigView.section.queue");
-  	}
-
-  	public String configSectionGetID() {
-  		return "ConfigView.section.queue";
+  		return "queue";
   	}
 
     public void configSectionSave() {
@@ -999,7 +1007,7 @@ StartStopRulesDefaultPlugin
 
   class ConfigSectionStarting implements ConfigSection {
     public String configSectionGetParentSection() {
-      return "ConfigView.section.queue";
+      return "queue";
     }
 
     public Composite configSectionCreate(Composite parent) {
@@ -1232,7 +1240,11 @@ StartStopRulesDefaultPlugin
 
       label = new Label(gQR, SWT.NULL);
       Messages.setLanguageText(label, "ConfigView.label.seeding.autoReposition"); //$NON-NLS-1$
-      BooleanParameter removeOnStopParam = new BooleanParameter(gQR, "StartStopManager_bAutoReposition");
+      new BooleanParameter(gQR, "StartStopManager_bAutoReposition");
+
+      label = new Label(gQR, SWT.NULL);
+      Messages.setLanguageText(label, "ConfigView.label.seeding.seed0Peers"); //$NON-NLS-1$
+      new BooleanParameter(gQR, "StartStopManager_bSeed0Peers");
 
       return gQR;
     }
@@ -1246,11 +1258,7 @@ StartStopRulesDefaultPlugin
     }
 
   	public String configSectionGetName() {
-  		return MessageText.getString("ConfigView.section.queue.autoSeeding");
-  	}
-
-  	public String configSectionGetID() {
-  		return "ConfigView.section.queue.autoSeeding";
+  		return "queue.autoSeeding";
   	}
 
     public void configSectionSave() {
@@ -1265,7 +1273,7 @@ StartStopRulesDefaultPlugin
   class ConfigSectionStopping implements ConfigSection {
 
     public String configSectionGetParentSection() {
-      return "ConfigView.section.queue";
+      return "queue";
     }
 
     public Composite configSectionCreate(Composite parent) {
@@ -1329,11 +1337,7 @@ StartStopRulesDefaultPlugin
     }
 
   	public String configSectionGetName() {
-  		return MessageText.getString("ConfigView.section.queue.autoStopping");
-  	}
-
-  	public String configSectionGetID() {
-  		return "ConfigView.section.queue.autoStopping";
+  		return "queue.autoStopping";
   	}
 
     public void configSectionSave() {

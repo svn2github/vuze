@@ -44,7 +44,7 @@ public interface PluginPeerItemFactory {
    * The logical name of the column.<br>
    * Note that spaces in the name should be avoid.<br>
    * In order to the plugin to display correctly the column name, a key in the
-   * Plugin language file will need to contain PeersView.<getName() result>=The column name.<br>
+   * Plugin language file will need to contain PeersView.&lt;getName() result&gt;=The column name.<br>
    * @return the column name (identification)
    */
   public String getName();

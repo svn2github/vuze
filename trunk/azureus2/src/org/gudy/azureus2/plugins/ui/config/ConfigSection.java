@@ -30,15 +30,16 @@ public interface ConfigSection {
   /**
    * Configuration panel will be added to main configuration view area
    */
-  public static final String SECTION_ROOT = "ConfigView.section.root";
+  public static final String SECTION_ROOT = "root";
   /**
    * Configuration panel will be added to the plugins view area.
    */
-  public static final String SECTION_PLUGINS = "ConfigView.section.plugins";
+  public static final String SECTION_PLUGINS = "plugins";
 
   /**
-   * Returns section you want your configuration panel to be.
-   * See SECTION_* constants.
+   * Returns section you want your configuration panel to be under.
+   * See SECTION_* constants.  To add a subsection to your own ConfigSection,
+   * return the configSectionGetName result of your parent.<br>
    */
   public String configSectionGetParentSection();
 
@@ -54,15 +55,13 @@ public interface ConfigSection {
   public Composite configSectionCreate(Composite parent);
 
   /**
+   * In order for the plugin to display its section correctly, a key in the
+   * Plugin language file will need to contain 
+   * <TT>ConfigView.section.<i>&lt;configSectionGetName() result&gt;</i>=The Section name.</TT><br>
+   *
    * @return The name of the configuration section
    */
   public String configSectionGetName();
-
-  /**
-   * @return A string to identify your section.  You can use this ID to add
-   *         subsections to your section.
-   */
-  public String configSectionGetID();
 
   /**
    * User selected Save.

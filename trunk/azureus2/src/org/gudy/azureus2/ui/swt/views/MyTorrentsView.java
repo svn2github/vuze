@@ -1095,20 +1095,34 @@ public class MyTorrentsView extends AbstractIView
     Arrays.sort(categories);
 
     if (categories.length > 0) {
-      for (i = 0; i < categories.length; i++) {
+      Category catAll = CategoryManager.getCategory(Category.TYPE_ALL);
+      if (catAll != null) {
         final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
-        if (categories[i].getType() == Category.TYPE_USER)
-          itemCategory.setText(categories[i].getName());
-        else
-          Messages.setLanguageText(itemCategory, categories[i].getName());
-        itemCategory.setData("Category", categories[i]);
-  
+        Messages.setLanguageText(itemCategory, catAll.getName());
+        itemCategory.setData("Category", catAll);
         itemCategory.addListener(SWT.Selection, new Listener() {
           public void handleEvent(Event event) {
             MenuItem item = (MenuItem)event.widget;
             assignSelectedToCategory((Category)item.getData("Category"));
           }
         });
+
+        new MenuItem(menuCategory, SWT.SEPARATOR);
+      }
+      
+      for (i = 0; i < categories.length; i++) {
+        if (categories[i].getType() == Category.TYPE_USER) {
+          final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
+          itemCategory.setText(categories[i].getName());
+          itemCategory.setData("Category", categories[i]);
+
+          itemCategory.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+              MenuItem item = (MenuItem)event.widget;
+              assignSelectedToCategory((Category)item.getData("Category"));
+            }
+          });
+        }
       }
   
       new MenuItem(menuCategory, SWT.SEPARATOR);

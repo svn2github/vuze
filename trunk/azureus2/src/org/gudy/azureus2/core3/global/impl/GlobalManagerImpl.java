@@ -529,6 +529,9 @@ public class GlobalManagerImpl
 
       trackerScraper.remove(manager.getTorrent());
     }
+
+    if (manager.getCategory() != null)
+      manager.setCategory(null);
   }
 
   public void stopAll() {
