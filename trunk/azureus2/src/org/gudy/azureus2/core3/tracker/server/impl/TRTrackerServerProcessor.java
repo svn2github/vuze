@@ -72,7 +72,7 @@ TRTrackerServerProcessor
 				}
 			}
 	
-			// System.out.println( "got header:" + header );
+			System.out.println( "got header:" + header );
 			
 			if ( !header.startsWith( "GET " )){
 				
@@ -179,7 +179,7 @@ TRTrackerServerProcessor
 						throw( new Exception( "format invalid" ));
 					}
 						
-					String	lhs = token.substring( 0, p2 );
+					String	lhs = token.substring( 0, p2 ).toLowerCase();
 					String	rhs = URLDecoder.decode(token.substring( p2+1 ), Constants.BYTE_ENCODING );
 						
 					// System.out.println( "param:" + lhs + " = " + rhs );
@@ -200,6 +200,10 @@ TRTrackerServerProcessor
 							
 						event = rhs;
 							
+					}else if ( lhs.equals( "ip" )){
+							
+						client_ip_address = rhs;
+						
 					}else if ( lhs.equals( "uploaded" )){
 							
 						uploaded = Integer.parseInt( rhs );
