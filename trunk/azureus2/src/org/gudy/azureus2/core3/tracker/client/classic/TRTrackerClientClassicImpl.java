@@ -85,6 +85,8 @@ TRTrackerClientClassicImpl
 	private long				last_update_time_secs;
 	private long				current_time_to_wait_secs;
   
+  private long min_interval = 0;
+  
 	private int  failure_added_time = 0;
     private long failure_time_last_updated = 0;
 	
@@ -116,6 +118,11 @@ TRTrackerClientClassicImpl
 	private static final int	   	key_id_length	= 8;
 	private int						key_udp;
 	
+  
+  private String tracker_id = "";
+  
+  
+  
 	private String port;
 	private String ip_override;
 
@@ -399,6 +406,19 @@ TRTrackerClientClassicImpl
 	  			
         secs_to_wait = REFRESH_MINIMUM_SECS;
       }
+      
+      //use 'min interval' for calculation
+      if( min_interval != 0 && secs_to_wait < min_interval ) {
+        float percentage = (float)min_interval / current_time_to_wait_secs;  //percentage of original interval
+        
+        long orig_override = secs_to_wait;
+        
+        int added_secs = (int)((min_interval - secs_to_wait) * percentage);  //increase by x percentage of difference
+        secs_to_wait += added_secs;
+        
+        System.out.println( "MIN INTERVAL CALC: min_interval=" +min_interval+ ", interval=" +current_time_to_wait_secs+ ", orig=" +orig_override+ ", new=" +secs_to_wait+ ", added=" +added_secs+ ", perc=" + percentage);
+      }
+      
     }
   		
 	  return( secs_to_wait );
@@ -1423,6 +1443,13 @@ TRTrackerClientClassicImpl
   	request.append("&downloaded=").append(announce_data_provider.getTotalReceived());
   	request.append("&left=").append(announce_data_provider.getRemaining());
 	
+    
+    //TrackerID extension
+    if( tracker_id.length() > 0 ) {
+      request.append( "&trackerid=" + tracker_id );
+    }
+    
+    
     if (evt.length() != 0) {
     	request.append("&event=").append(evt);
     }
@@ -1726,6 +1753,17 @@ TRTrackerClientClassicImpl
 							
 							time_to_wait = 0xffffffffL;
 						}
+            
+            
+            Long raw_min_interval = (Long)metaData.get("min interval");
+            if( raw_min_interval != null ) {
+              min_interval = raw_min_interval.longValue();
+              
+              if( min_interval < 1 || min_interval >= time_to_wait ) {  //ignore useless values
+                min_interval = 0;
+              }
+            }            
+            
 									
 				   }catch( Exception e ){
 				   	
@@ -1757,7 +1795,18 @@ TRTrackerClientClassicImpl
 				   	LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
                          "ANNOUNCE SCRAPE1: seeds=" +complete_l+ " peers=" +incomplete_l);
 				   }
-						
+           
+           
+           //TrackerID extension, used by phpbt trackers.
+           //We reply with '&trackerid=1234' when we receive
+           //'10:tracker id4:1234e' on announce reply.
+           //NOTE: we receive as 'tracker id' but reply as 'trackerid'
+           byte[] trackerid = (byte[])metaData.get( "tracker id" );
+           if( trackerid != null ) {
+             tracker_id = new String( trackerid );
+           }
+           
+           						
 						//build the list of peers
 					List valid_meta_peers = new ArrayList();
 						
