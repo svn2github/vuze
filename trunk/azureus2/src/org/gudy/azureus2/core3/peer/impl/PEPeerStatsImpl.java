@@ -85,7 +85,7 @@ PEPeerStatsImpl
       
     }
     
-    public void protocol_recevied( int length ) {  //TODO
+    public void protocol_received( int length ) {  //TODO
       
     }
     

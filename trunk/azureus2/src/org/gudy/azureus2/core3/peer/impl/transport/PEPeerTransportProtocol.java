@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
@@ -43,6 +44,7 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessageEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 
 
@@ -409,10 +411,21 @@ PEPeerTransportProtocol
       avail_vers[i] = avail_msgs[i].getVersion();
     }
     
+    int udp_listen_port = -1;
+    try{  //TODO udp port value should be in the core someday
+      DHTPlugin dht = (DHTPlugin)AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin();
+      udp_listen_port = dht.getPort();
+    }
+    catch( Throwable t ) {
+      Debug.out( "Exception while obtaining udp listen port from DHTPlugin:", t );
+    }
+    
     AZHandshake az_handshake = new AZHandshake(
         AZPeerIdentityManager.getAZPeerIdentity(),
         Constants.AZUREUS_NAME,
         Constants.AZUREUS_VERSION,
+        COConfigurationManager.getIntParameter( "TCP.Listen.Port" ),
+        udp_listen_port,
         avail_ids,
         avail_vers );        
 
@@ -422,11 +435,7 @@ PEPeerTransportProtocol
   }
   
 
-  
-  
-  
-  
-  
+
   
 
   public int getPeerState() {  return current_peer_state;  }
@@ -1425,7 +1434,7 @@ PEPeerTransportProtocol
       
       public void protocolBytesReceived( int byte_count ) {
         //update stats
-        stats.protocol_recevied( byte_count );
+        stats.protocol_received( byte_count );
         manager.protocol_received( byte_count );
       }
       

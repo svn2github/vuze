@@ -47,14 +47,24 @@ public class AZHandshake implements AZMessage {
   private final String client_version;
   private final String[] avail_ids;
   private final byte[] avail_versions;
+  private final int tcp_port;
+  private final int udp_port;
   
   
-  public AZHandshake( byte[] peer_identity, String client, String version, String[] avail_msg_ids, byte[] avail_msg_versions ) {
+  public AZHandshake( byte[] peer_identity,
+                      String client,
+                      String version,
+                      int tcp_listen_port,
+                      int udp_listen_port,
+                      String[] avail_msg_ids,
+                      byte[] avail_msg_versions ) {
     this.identity = peer_identity;
     this.client = client;
     this.client_version = version;
     this.avail_ids = avail_msg_ids;
     this.avail_versions = avail_msg_versions;
+    this.tcp_port = tcp_listen_port;
+    this.udp_port = udp_listen_port;
     
     Map payload_map = new HashMap();
     
@@ -62,6 +72,8 @@ public class AZHandshake implements AZMessage {
     payload_map.put( "identity", peer_identity );
     payload_map.put( "client", client );
     payload_map.put( "version", version );
+    payload_map.put( "tcp_port", new Long( tcp_listen_port ) );
+    payload_map.put( "udp_port", new Long( udp_listen_port ) );
         
     //available message list
     List message_list = new ArrayList();
@@ -100,7 +112,7 @@ public class AZHandshake implements AZMessage {
     
     if( raw_payload.length > 1200 )  System.out.println( "Generated AZHandshake size = " +raw_payload.length+ " bytes" );
 
-    this.description = getID()+ " from [" +ByteFormatter.nicePrint( peer_identity, true )+ ", " +client+ " " +version+ "] supports " +msgs_desc;
+    this.description = getID()+ " from [" +ByteFormatter.nicePrint( peer_identity, true )+ ", " +client+ " " +version+ ", ports " +tcp_port+ "/" +udp_port+ "] supports " +msgs_desc;
   }
 
   
@@ -114,6 +126,9 @@ public class AZHandshake implements AZMessage {
   public String[] getMessageIDs() {  return avail_ids;  }
   
   public byte[] getMessageVersions() {  return avail_versions;  }
+  
+  public int getTCPListenPort() {  return tcp_port;  }
+  public int getUDPListenPort() {  return udp_port;  }
   
   
     
@@ -162,6 +177,17 @@ public class AZHandshake implements AZMessage {
       }
       String version = new String( raw_ver );
       //////////////////////////////////////////////
+      Long tcp_lport = (Long)root.get( "tcp_port" );
+      if( tcp_lport == null ) {  //old handshake
+        tcp_lport = new Long( -1 );
+      }
+      //////////////////////////////////////////////
+      Long udp_lport = (Long)root.get( "udp_port" );
+      if( udp_lport == null ) {  //old handshake
+        udp_lport = new Long( -1 );
+      }
+      //////////////////////////////////////////////
+      
       List raw_msgs = (List)root.get( "messages" );
       if( raw_msgs == null ) {
         throw new Exception( "raw_msgs == null" );
@@ -196,7 +222,7 @@ public class AZHandshake implements AZMessage {
       
       data.returnToPool();
       
-      return new AZHandshake( id, name, version, ids, vers );
+      return new AZHandshake( id, name, version, tcp_lport.intValue(), udp_lport.intValue(), ids, vers );
     }
     catch( Throwable t ) {
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] payload b-decode error: " +t.getMessage() );
