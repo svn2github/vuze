@@ -57,22 +57,22 @@ PlatformManagerUpdateChecker
 		
 		String	version = "1.0";
 		
-		try{
-			PlatformManagerImpl platform	= (PlatformManagerImpl)PlatformManagerFactory.getPlatformManager();
+		if (  PlatformManagerFactory.getPlatformType() == PlatformManager.PT_WINDOWS ){
+
+			try{
+				PlatformManagerImpl platform	= (PlatformManagerImpl)PlatformManagerFactory.getPlatformManager();
 			
-			version = platform.getVersion();
+				version = platform.getVersion();
 			
-		}catch( Throwable e ){
+			}catch( Throwable e ){
 			
-			e.printStackTrace();
+				e.printStackTrace();
+			}
+
+			plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
 		}
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", version );
-		
-		if (  PlatformManagerFactory.getPlatformType() == PlatformManager.PT_WINDOWS ){
-		
-			plugin_interface.getUpdateManager().registerUpdatableComponent( this, false );
-		}
 	}
 	
 	public void
