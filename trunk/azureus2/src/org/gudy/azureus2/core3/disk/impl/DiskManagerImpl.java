@@ -676,6 +676,8 @@ DiskManagerImpl
 
 	public class DiskWriteThread extends Thread {
 		private boolean bContinue = true;
+    
+		private boolean isRunning = true;
 
 		public DiskWriteThread() {
 			super("Disk Writer & Checker");
@@ -698,27 +700,23 @@ DiskManagerImpl
 					manager.blockWritten(elt.getPieceNumber(), elt.getOffset(),elt.getSender());
 				}
         
-				
 				if (checkQueue.size() != 0) {
-					QueueElement elt = (QueueElement)checkQueue.remove(0);
-					boolean correct = checkPiece(elt.getPieceNumber());
-          if(!correct) {
-            MD5CheckPiece(elt.getPieceNumber());
-          }
-					manager.pieceChecked(elt.getPieceNumber(), correct);
-					if (!correct) {
-					  LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
-					} else LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
-          
+				  QueueElement elt = (QueueElement)checkQueue.remove(0);
+				  boolean correct = checkPiece(elt.getPieceNumber());
+					
+				  if(!correct) {
+				    MD5CheckPiece(elt.getPieceNumber());
+				  }
+				
+              manager.pieceChecked(elt.getPieceNumber(), correct);
+              
+              if (!correct) {
+                LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + elt.getPieceNumber() + " failed hash check.");
+              } else LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + elt.getPieceNumber() + " passed hash check.");
 				}
 				
-        
-				try {
-					Thread.sleep(15);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
+				isRunning = true;
+				try { Thread.sleep(15); } catch (Exception e) { e.printStackTrace(); }
 			}
 		}
 
@@ -729,6 +727,14 @@ DiskManagerImpl
 				ByteBufferPool.getInstance().freeBuffer(elt.data);
 				elt.data = null;
 			}
+		}
+    
+		public boolean isStillRunning() {
+		  if (isRunning) {
+		    isRunning = false;
+		    return true;
+		  }
+		  return false;
 		}
 	}
 
@@ -1641,6 +1647,10 @@ DiskManagerImpl
   public boolean isChecking() {
     if (checkQueue.size() == 0) return false;
     else return true;
+  }
+  
+  public boolean isWriteThreadRunning() {
+    return writeThread.isStillRunning();
   }
 
 }

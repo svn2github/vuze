@@ -135,5 +135,7 @@
   moveCompletedFiles();
 
   public boolean isChecking();
-
+  
+  public boolean isWriteThreadRunning();
+  
  }
