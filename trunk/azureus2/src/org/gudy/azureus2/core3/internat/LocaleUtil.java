@@ -1,12 +1,9 @@
 package org.gudy.azureus2.core3.internat;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.CoderResult;
+
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
-import java.util.Arrays;
 import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.torrent.*;
@@ -43,11 +40,13 @@ LocaleUtil
 		 
 		 CharsetDecoder decoder = Charset.forName(name).newDecoder();
 		 
-		 decoders.add( new LocaleUtilDecoder(decoder, name));
+		 decoders.add( new LocaleUtilDecoderReal(decoder, name));
 		 		 
 	   }catch (Exception ignore) {
 	   }
 	 }
+	
+	decoders.add( new LocaleUtilDecoderFallback());
 
 	/*
 	Map m = Charset.availableCharsets();
@@ -111,38 +110,14 @@ LocaleUtil
       
 	  try{
 			LocaleUtilDecoder decoder = charsetDecoders[i];
-      	      		
-			ByteBuffer bb = ByteBuffer.wrap(array);
-      		
-			CharBuffer cb = CharBuffer.allocate(array.length);
-      		
-			CoderResult cr = decoder.getDecoder().decode(bb,cb, true);
-			
-			if ( !cr.isError() ){
-							
-				cb.flip();
+      	      	
+			String str = decoder.tryDecode( array );
+
+			if ( str != null ){
 				
-				String	str = cb.toString();
-				
-				byte[]	b2 = str.getBytes(decoder.getName() );
-				
-					// make sure the conversion is symetric (there are cases where it appears
-					// to work but in fact converting back to bytes leads to a different
-					// result
-					
-				/*
-				for (int k=0;k<str.length();k++){
-					System.out.print( Integer.toHexString(str.charAt(k)));
-				}
-				System.out.println("");
-				*/
-				
-				if ( Arrays.equals( array, b2 )){
-				
-					candidates[i].value = str;
+				candidates[i].value = str;
         		
-					candidates[i].decoder = decoder;
-				}
+				candidates[i].decoder = decoder;
 			}
 	  } catch (Exception ignore) {
       	

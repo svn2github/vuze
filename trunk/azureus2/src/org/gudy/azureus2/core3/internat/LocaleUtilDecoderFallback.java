@@ -20,29 +20,69 @@
  *
  */
 
-
 package org.gudy.azureus2.core3.internat;
+
+import java.io.UnsupportedEncodingException;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author parg
  *
  */
 
-import java.io.*;
-
-public interface 
-LocaleUtilDecoder
+public class 
+LocaleUtilDecoderFallback 
+	implements LocaleUtilDecoder
 {
+	protected static final String VALID_CHARS = "abcdefghijklmnopqrstuvwxyz1234567890_-.";
+	
 	public String
-	getName();
+	getName()
+	{
+		return( "Fallback" );
+	}
 
 	public String
 	tryDecode(
-		byte[]		array );
+		byte[]		bytes )
+	{
+		return( decode( bytes ));
+	}
 	
 	public String
 	decodeString(
 		byte[]		bytes )
 		
-		throws UnsupportedEncodingException;
+		throws UnsupportedEncodingException
+	{
+		return( decode( bytes ));
+	}
+	
+	protected String
+	decode(
+		byte[]	data )
+	{
+		if ( data == null ){
+			
+			return( null );
+		}
+		
+		String	res = "";
+		
+		for (int i=0;i<data.length;i++){
+			
+			byte	c = data[i];
+			
+			if ( VALID_CHARS.indexOf( Character.toLowerCase((char)c)) != -1 ){
+				
+				res += (char)c;
+				
+			}else{
+				
+				res += "_" + ByteFormatter.nicePrint(c);
+			}
+		}
+		
+		return( res );
+	}
 }

@@ -106,25 +106,34 @@ public class LocaleUtilSWT extends LocaleUtil implements ILocaleUtilChooser {
        
     // add all general candidates with names not already in the list
     for (int j = 0; j < generalCharsets.length; j++) {
+    	
       for (int i = 1; i < candidates.length; i++) {
-      	if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) break;
-        if(generalCharsets[j].equals(candidates[i].getDecoder().getName()) && !choosableCandidates.contains(candidates[i])) {
-          choosableCandidates.add(candidates[i]);
-          break;
+      	
+      	if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) continue;
+      	
+        if(generalCharsets[j].equals(candidates[i].getDecoder().getName())){
+        	
+        	if (!choosableCandidates.contains(candidates[i])) {
+       
+        		choosableCandidates.add(candidates[i]);
+        		
+        		break;
+        	}
         }
       }
     }
     
     // add the remaining possible locales
-    for (int j = 0; j < generalCharsets.length; j++) {
-    	for (int i = 1; i < candidates.length; i++) {
-    		if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) break;
-    		if(!choosableCandidates.contains(candidates[i])) {
-    			choosableCandidates.add(candidates[i]);
-    			break;
-    		}
-    	}
-    }  
+   	for (int i = 1; i < candidates.length; i++){
+   		
+   		if (candidates[i].getValue()==null || candidates[i].getDecoder()==null) continue;
+   		
+   		if(!choosableCandidates.contains(candidates[i])){
+   			
+   			choosableCandidates.add(candidates[i]);
+   		}
+   	}
+ 
 
     final Candidate[] candidatesToChoose = (Candidate[]) choosableCandidates.toArray(new Candidate[choosableCandidates.size()]);
        
