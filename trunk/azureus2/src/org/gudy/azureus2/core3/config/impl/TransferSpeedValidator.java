@@ -1,8 +1,28 @@
 package org.gudy.azureus2.core3.config.impl;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
+/*
+ * Created on 13-Feb-2005
+ * Created by James Yeh
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * AELITIS, SARL au capital de 30,000 euros
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ *
+ */
 
-//todo extract if more validators are needed
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 /**
  * Provides validation for transfer speed settings
@@ -12,16 +32,27 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
  */
 public final class TransferSpeedValidator
 {
-    private static final String UPLOAD_CONFIGKEY =  "Max Upload Speed KBs";
-    private static final String DOWNLOAD_CONFIGKEY =  "Max Download Speed KBs";
+    public static final String UPLOAD_CONFIGKEY =  "Max Upload Speed KBs";
+    public static final String DOWNLOAD_CONFIGKEY =  "Max Download Speed KBs";
+
+    private final String configKey;
+    private final Object configValue;
 
     /**
-     * Validates the given configuration key/value pair and returns the validated value
-     * @param configKey Configuration key
-     * @param value Configuration value
-     * @return Modified configuration value that conforms to validation
+     * Creates a TransferSpeedValidator with the given configuration key and value
+     * @param configKey Configuration key; must be "Max Upload Speed KBs" or "Max Download Speed KBs"
+     * @param value Configuration value to be validated
      */
-    public static Object validate(final String configKey, final Object value)
+    public TransferSpeedValidator(final String configKey, final Object value)
+    {
+        this.configKey = configKey;
+        configValue = value;
+    }
+
+    /**
+     * Gets the transformed value as an Integer
+     */
+    private static Object validate(final String configKey, final Object value)
     {
         assert value instanceof Number;
 
@@ -77,15 +108,11 @@ public final class TransferSpeedValidator
     }
 
     /**
-     * Validates the given configuration key/value pair and saves the user configuration
-     * @param configKey Configuration key
-     * @param value Configuration value
+     * Validates the given configuration key/value pair and returns the validated value
+     * @return Modified configuration value that conforms to validation as an Integer
      */
-    public static void validateAndSave(final String configKey, final Object value)
+    public Object getValue()
     {
-        assert value instanceof Number;
-
-        COConfigurationManager.setParameter(configKey, ((Number)validate(configKey, value)).intValue());
-        COConfigurationManager.save();
+        return validate(configKey, configValue);
     }
 }

@@ -282,7 +282,9 @@ public class SystemTraySWT {
                     if(items[i] == event.widget)
                     {
                         items[i].setSelection(true);
-                        TransferSpeedValidator.validateAndSave(configKey, items[i].getData("maxkb"));
+                        final int cValue = ((Integer)new TransferSpeedValidator(configKey, items[i].getData("maxkb")).getValue()).intValue();
+                        COConfigurationManager.setParameter(configKey, cValue);
+                        COConfigurationManager.save();
                     }
                     else {
                         items[i].setSelection(false);
