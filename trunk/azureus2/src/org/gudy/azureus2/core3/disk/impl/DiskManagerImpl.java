@@ -1441,20 +1441,15 @@ DiskManagerImpl
 			} else {
 				list.clear();
 			}
-
-			for (int j = 0; j < pieceCompletion.length; j++) {
-				if (pieceCompletion[j] == i) {
-					list.set(j);
-				}
+			priorityLists[i]=list;
+		}
+		
+		int priority;
+		for (int j = 0; j < pieceCompletion.length; j++) {
+			priority = pieceCompletion[j];
+			if (priority>0) {
+				priorityLists[priority].set(j);
 			}
-			priorityLists[i] = list;
-			/*      priorityLists[i][priorityLists[i][nbPieces]] = 0;
-				  for (int j = 0; j < pieceCompletion.length; j++) {
-					if (pieceCompletion[j] == i) {
-					  priorityLists[i][priorityLists[i][nbPieces]++] = j;
-					}
-				  }
-			*/
 		}
 	}
 
