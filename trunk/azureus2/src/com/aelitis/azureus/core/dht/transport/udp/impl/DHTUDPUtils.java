@@ -139,7 +139,8 @@ DHTUDPUtils
 	protected static DHTTransportValue[]
 	deserialiseTransportValues(
 		DHTTransportUDPImpl		transport,
-		DataInputStream			is )
+		DataInputStream			is,
+		long					skew )
 	
 		throws IOException
 	{
@@ -156,7 +157,7 @@ DHTUDPUtils
 			
 			try{
 				
-				l.add( deserialiseTransportValue( transport, is ));
+				l.add( deserialiseTransportValue( transport, is, skew ));
 				
 			}catch( DHTTransportException e ){
 				
@@ -190,13 +191,16 @@ DHTUDPUtils
 	protected static DHTTransportValue
 	deserialiseTransportValue(
 		DHTTransportUDPImpl	transport,
-		DataInputStream		is )
+		DataInputStream		is, 
+		long				skew )
 	
 		throws IOException, DHTTransportException
 	{
 		final int	distance	= is.readInt();
 		
-		final long 	created		= is.readLong();
+		final long 	created		= is.readLong() + skew;
+		
+		System.out.println( "    Adjusted creation time by " + skew );
 		
 		final byte[]	value_bytes = deserialiseByteArray( is, 256 );
 		
@@ -369,7 +373,7 @@ DHTUDPUtils
 				
 		InetSocketAddress	external_address = deserialiseAddress( is );
 		
-		return( new DHTTransportUDPContactImpl( transport, external_address, external_address, version, 0 ));
+		return( new DHTTransportUDPContactImpl( transport, external_address, external_address, version, 0, 0 ));
 	}
 	
 	

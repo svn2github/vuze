@@ -131,7 +131,7 @@ DHTTransportUDPImpl
 
 		logger.log( "Initial external address: " + address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTUDPPacket.VERSION, random.nextInt());
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTUDPPacket.VERSION, random.nextInt(), 0);
 	}
 	
 	public void
@@ -139,7 +139,7 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
-		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), DHTUDPPacket.VERSION, random.nextInt());		
+		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), DHTUDPPacket.VERSION, random.nextInt(), 0);		
 	}
 	
 	public void
@@ -157,7 +157,7 @@ DHTTransportUDPImpl
 		
 		InetSocketAddress	address = new InetSocketAddress( external_address, port );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTUDPPacket.VERSION, local_contact.getInstanceID());		
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTUDPPacket.VERSION, local_contact.getInstanceID(), 0 );		
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -469,7 +469,7 @@ DHTTransportUDPImpl
 		
 		logger.log( "External address changed: " + s_address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, s_address, s_address, DHTUDPPacket.VERSION, random.nextInt());
+		local_contact = new DHTTransportUDPContactImpl( this, s_address, s_address, DHTUDPPacket.VERSION, random.nextInt(), 0);
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -537,7 +537,7 @@ DHTTransportUDPImpl
 	{
 			// instance id of 0 means "unknown"
 		
-		DHTTransportContact	contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, 0 );
+		DHTTransportContact	contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, 0, 0 );
 		
 		request_handler.contactImported( contact );
 		
@@ -1171,7 +1171,8 @@ DHTTransportUDPImpl
 						transport_address, 
 						request.getOriginatorAddress(), 
 						request.getVersion(),
-						request.getOriginatorInstanceID());
+						request.getOriginatorInstanceID(),
+						request.getClockSkew());
 			
 			try{
 				checkAddress( originating_contact );

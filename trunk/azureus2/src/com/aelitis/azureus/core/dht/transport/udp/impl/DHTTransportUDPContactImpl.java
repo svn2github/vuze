@@ -47,6 +47,7 @@ DHTTransportUDPContactImpl
 	private byte[]				id;
 	private byte				protocol_version;
 	private int					instance_id;
+	private long				skew;
 	
 	protected
 	DHTTransportUDPContactImpl(
@@ -54,7 +55,8 @@ DHTTransportUDPContactImpl
 		InetSocketAddress		_transport_address,
 		InetSocketAddress		_external_address,
 		byte					_protocol_version,
-		int						_instance_id )
+		int						_instance_id,
+		long					_skew )
 	
 		throws DHTTransportException
 	{
@@ -69,6 +71,7 @@ DHTTransportUDPContactImpl
 		}
 		
 		instance_id		=		 _instance_id;
+		skew			= 		_skew;
 		
 		if ( 	transport_address == external_address ||
 				transport_address.getAddress().equals( external_address.getAddress())){
@@ -81,6 +84,12 @@ DHTTransportUDPContactImpl
 	getProtocolVersion()
 	{
 		return( protocol_version );
+	}
+	
+	public long
+	getClockSkew()
+	{
+		return( skew );
 	}
 	
 	protected boolean

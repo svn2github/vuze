@@ -63,7 +63,9 @@ DHTUDPPacketRequestStore
 		
 		key		= DHTUDPUtils.deserialiseByteArray( is, 64 );
 		
-		values 	= DHTUDPUtils.deserialiseTransportValues( transport, is );
+			// times receieved are adjusted by + skew
+				
+		values 	= DHTUDPUtils.deserialiseTransportValues( transport, is, getClockSkew());
 	}
 	
 	public void

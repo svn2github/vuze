@@ -46,6 +46,8 @@ DHTUDPPacketRequest
 	private InetSocketAddress	originator_address;
 	private int					originator_instance_id;
 	
+	private long				skew;
+	
 	public
 	DHTUDPPacketRequest(
 		int								_type,
@@ -81,6 +83,27 @@ DHTUDPPacketRequest
 		originator_instance_id	= is.readInt();
 		
 		originator_time			= is.readLong();
+		
+			// We maintain a rough view of the clock diff between them and us,
+			// times are then normalised appropriately. 
+			// If the skew is positive then this means our clock is ahead of their
+			// clock. Thus any times they send us will need to have the skew added in
+			// so that they're correct relative to us.
+			// For example: X has clock = 01:00, they create a value that expires at
+			// X+8 hours 09:00. They send X to us. Our clock is an hour ahead (skew=+1hr)
+			// We receive it at 02:00 (our time) and therefore time it out an hour early.
+			// We therefore need to adjust the creation time to be 02:00.
+		
+			// Likewise, when we return a time to a caller we need to adjust by - skew to
+			// put the time into their frame of reference.
+		
+		skew = SystemTime.getCurrentTime() - originator_time;
+	}
+	
+	protected long
+	getClockSkew()
+	{
+		return( skew );
 	}
 	
 	protected byte

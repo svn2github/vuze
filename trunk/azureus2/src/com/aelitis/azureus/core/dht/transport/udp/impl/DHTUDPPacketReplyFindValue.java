@@ -62,7 +62,11 @@ DHTUDPPacketReplyFindValue
 		
 		if ( is_value ){
 			
-			values = DHTUDPUtils.deserialiseTransportValues( transport, is );
+				// values returned to a caller are adjusted by - skew
+			
+			System.out.println( "FindValue reply: originator skew is " + getClockSkew());
+
+			values = DHTUDPUtils.deserialiseTransportValues( transport, is, -getClockSkew());
 			
 		}else{
 			

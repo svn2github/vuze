@@ -60,6 +60,11 @@ DHTTransportLoopbackContactImpl
 	{
 		return( 0 );
 	}
+	public long
+	getClockSkew()
+	{
+		return( 0 );
+	}
 	
 	public int
 	getMaxFailForLiveCount()

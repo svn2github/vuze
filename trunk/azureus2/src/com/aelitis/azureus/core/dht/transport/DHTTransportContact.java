@@ -47,6 +47,9 @@ DHTTransportContact
 	public byte
 	getProtocolVersion();
 	
+	public long
+	getClockSkew();
+	
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler );

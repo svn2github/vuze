@@ -42,6 +42,8 @@ DHTUDPPacketReply
 	private byte	version;
 	private int		target_instance_id;
 	
+	private long	skew;
+	
 	public
 	DHTUDPPacketReply(
 		int					_type,
@@ -56,6 +58,8 @@ DHTUDPPacketReply
 		version			= DHTUDPPacket.VERSION;
 		
 		target_instance_id	= _contact.getInstanceID();
+		
+		skew	= _contact.getClockSkew();
 	}
 	
 	protected
@@ -89,7 +93,13 @@ DHTUDPPacketReply
 		return( connection_id );
 	}
 	
-	public byte
+	protected long
+	getClockSkew()
+	{
+		return( skew );
+	}
+	
+	protected byte
 	getVersion()
 	{
 		return( version );
