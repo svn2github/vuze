@@ -204,6 +204,12 @@ Download
 	public String 
 	getName();
 	
+	/** Returns the full file path and name of the .torrent file
+	 *
+	 * @return File name of the torrent.
+	 */
+  public String getTorrentFileName();
+
 	/**
 	 * Removes a download. The download must be stopped or in error. Removal may fail if another 
 	 * component does not want the removal to occur - in this case a "veto" exception is thrown

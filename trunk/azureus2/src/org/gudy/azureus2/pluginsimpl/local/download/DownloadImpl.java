@@ -351,6 +351,10 @@ DownloadImpl
 		return download_manager.getName();
 	}
 
+  public String getTorrentFileName() {
+    return download_manager.getTorrentFileName();
+  }
+  
 	public void
 	remove()
 	
