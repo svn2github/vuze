@@ -158,7 +158,8 @@ IpFilterImpl
 		}
 	}
   
-	private void loadFilters() 
+	private void 
+	loadFilters() 
 		throws Exception
 	{
 		try{
@@ -183,8 +184,10 @@ IpFilterImpl
 				  String startIp =  new String((byte[])range.get("start"));
 				  String endIp = new String((byte[])range.get("end"));
 		        
-				  IpRange ipRange = new IpRangeImpl(description,startIp,endIp,false);
+				  IpRangeImpl ipRange = new IpRangeImpl(description,startIp,endIp,false);
 
+				  ipRange.setAddedToRangeList(true);
+				  
 				  new_ipRanges.add( ipRange );
 				}
 				bin.close();
@@ -197,7 +200,7 @@ IpFilterImpl
 		  	Iterator	it = all_ip_ranges.iterator();
 		  	
 		  	while( it.hasNext()){
-		  		
+		  		  		
 		  		((IpRange)it.next()).checkValid();
 		  	}
 		  	
