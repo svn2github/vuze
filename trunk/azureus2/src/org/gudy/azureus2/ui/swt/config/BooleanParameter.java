@@ -4,6 +4,8 @@
  */
 package org.gudy.azureus2.ui.swt.config;
 
+import java.util.*;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -20,14 +22,17 @@ public class BooleanParameter implements IParameter{
 
   String name;
   Button checkBox;
-  IAdditionalActionPerformer performer;
+  
+  List	performers	= new ArrayList();
   
   public BooleanParameter(Composite composite, final String name, boolean defaultValue) {
     this(composite,name,defaultValue,null);
   }
   
   public BooleanParameter(Composite composite, final String name, boolean defaultValue,IAdditionalActionPerformer actionPerformer) {
-    this.performer = actionPerformer;
+    if ( actionPerformer != null ){
+    	performers.add( actionPerformer );
+    }
     boolean value = COConfigurationManager.getBooleanParameter(name,defaultValue);
     checkBox = new Button(composite,SWT.CHECK);
     checkBox.setSelection(value);
@@ -38,9 +43,13 @@ public class BooleanParameter implements IParameter{
     public void handleEvent(Event event) {
 		boolean selected  = checkBox.getSelection();
     COConfigurationManager.setParameter(name,selected);
-    if(performer != null) {
-      performer.setSelected(selected);
-      performer.performAction();
+    if(performers.size() > 0 ) {
+    	for (int i=0;i<performers.size();i++){
+    		IAdditionalActionPerformer	performer = (IAdditionalActionPerformer)performers.get(i);
+    	
+    		performer.setSelected(selected);
+    		performer.performAction();
+    	}
     }    
     }
   });
@@ -51,10 +60,10 @@ public class BooleanParameter implements IParameter{
   }
   
   public void setAdditionalActionPerformer(IAdditionalActionPerformer actionPerformer) {
-    this.performer = actionPerformer;
+    performers.add(actionPerformer);
     boolean selected  = checkBox.getSelection();
-    performer.setSelected(selected);
-    performer.performAction();
+    actionPerformer.setSelected(selected);
+    actionPerformer.performAction();
   }
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IParameter#getControl()
