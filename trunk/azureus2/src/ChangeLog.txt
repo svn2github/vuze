@@ -23,6 +23,9 @@ FEATURE: UI   | Option to add torrent downloads silently (without activating mai
 FEATURE: UI   | Added download speed limit column to MyTorrents [Parg]
 FEATURE: Core | Added ability to apply updates and shutdown Azureus instead of restarting [Parg]
 FEATURE: Core | Can now specify that password protected tracker web is only available via HTTPS, HTTP access -> access denied [Parg]
+FEATURE: Core | Can now specify comment to be added to share torrents [Parg]
+FEATURE: Plug | Status mailer support for SMTP port, user + password [Parg]
+FEATURE: UI   | Telnet UI added [Fatal]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]
@@ -65,7 +68,7 @@ BUGFIX: Core | Fix for hangs when scraping due to slow DNS resolves [Parg]
 BUGFIX: Core | Fix for UPnP failing if trailing spaces in 'action name' [Parg]
 BUGFIX: Core | Fixed bug in choke/unchoke logic when number of connected peers < max upload slots [Nolar]
 BUGGIX: UI   | Fixed bug with sharing window re-animating even when opened [Gudy]
-
+BUGFIX: Core | Updater problems with non-ascii chars in user dir (again!) [Parg]
 
 
 
