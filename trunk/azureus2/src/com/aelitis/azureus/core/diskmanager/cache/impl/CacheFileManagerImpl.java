@@ -66,14 +66,17 @@ CacheFileManagerImpl
 		
 	protected FMFileManager		file_manager;
 	
+		// copy on update semantics
+	
 	protected WeakHashMap		cache_files	= new WeakHashMap();
 	
-
 		// access order
 	
 	protected LinkedHashMap		cache_entries = new LinkedHashMap(1024, 0.75f, true );
 	
 	protected CacheFileManagerStatsImpl	stats;
+	
+		// copy on update semantics
 	
 	protected Map	torrent_to_cache_file_map	= new HashMap();
 	
@@ -198,18 +201,21 @@ CacheFileManagerImpl
 				
 			cache_files	= new_cache_files;
 			
-			
-			try{
-				this_mon.enter();
+			if ( tf != null ){
+
+				try{
+					this_mon.enter();
+							
+					Map	new_map = new HashMap( torrent_to_cache_file_map );
+						
+					new_map.put( tf, cf );
+		
+					torrent_to_cache_file_map	= new_map;
 				
-				if ( tf != null ){
-					
-					torrent_to_cache_file_map.put( tf, cf );
-	
+				}finally{
+				
+					this_mon.exit();
 				}
-			}finally{
-			
-				this_mon.exit();
 			}
 			
 			return( cf );
@@ -377,8 +383,6 @@ CacheFileManagerImpl
 				try{
 					this_mon.enter();
 			
-					Map	t_to_c_file_map	= new HashMap();
-					
 					if ( cache_entries.size() > 0 ){
 						
 						Iterator it = cache_entries.keySet().iterator();
@@ -386,16 +390,7 @@ CacheFileManagerImpl
 						while( it.hasNext()){
 							
 							CacheEntry	entry = (CacheEntry)it.next();
-	
-							CacheFileImpl	file = entry.getFile();
-							
-							TOTorrentFile	tf = file.getTorrentFile();
-							
-							if ( tf != null ){
 								
-								t_to_c_file_map.put( tf, file );
-							}
-							
 							// System.out.println( "oldest entry = " + ( now - entry.getLastUsed()));
 							
 							if ( entry.isDirty()){
@@ -405,8 +400,8 @@ CacheFileManagerImpl
 						}
 					}
 					
-					torrent_to_cache_file_map	= t_to_c_file_map;
-						
+					// System.out.println( "cache file = " + cache_files.size() + ", torrent map = " + torrent_to_cache_file_map.size());
+					
 				}finally{
 					
 					this_mon.exit();
@@ -713,6 +708,30 @@ CacheFileManagerImpl
 		return( file_write_count );
 	}
 	
+	protected void
+	closeFile(
+		CacheFileImpl	file )
+	{
+		TOTorrentFile	tf = file.getTorrentFile();
+		
+		if ( tf != null && torrent_to_cache_file_map.get( tf ) != null ){
+
+			try{
+				this_mon.enter();
+						
+				Map	new_map = new HashMap( torrent_to_cache_file_map );
+				
+				new_map.remove( tf );
+	
+				torrent_to_cache_file_map	= new_map;
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+		}
+	}
+	
 	protected long
 	getBytesInCache(
 		TOTorrent		torrent,
@@ -720,6 +739,8 @@ CacheFileManagerImpl
 		int				offset,
 		long			length )
 	{
+			// copied on update, grab local ref to access
+		
 		Map	map = torrent_to_cache_file_map;
 		
 		TOTorrentFile[]	files = torrent.getFiles();

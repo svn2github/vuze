@@ -1322,6 +1322,10 @@ CacheFileImpl
 		}catch( FMFileManagerException e ){
 			
 			manager.rethrow(e);
+			
+		}finally{
+			
+			manager.closeFile( this );
 		}
 	}
 	
