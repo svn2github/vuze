@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -69,8 +70,8 @@ public class ActivityView extends AbstractIView {
   }
   
   public void periodicUpdate() {
-    downSpeedGraphic.addIntValue((int)manager.getStats().getDownloadAverage());
-    upSpeedGraphic.addIntValue((int)manager.getStats().getUploadAverage());
+    downSpeedGraphic.addIntsValue((int)manager.getStats().getDownloadAverage(),COConfigurationManager.getIntParameter("Max Download Speed KBs") * 1024);
+    upSpeedGraphic.addIntsValue((int)manager.getStats().getUploadAverage(),COConfigurationManager.getIntParameter("Max Upload Speed KBs") * 1024);
   }
   
   public void initialize(Composite composite) {
