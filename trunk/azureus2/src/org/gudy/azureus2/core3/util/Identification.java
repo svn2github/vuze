@@ -23,7 +23,8 @@ public class Identification {
     final boolean DEBUG_UNKNOWN = false;
     
     String generic = MessageText.getString("PeerSocket.generic");
-    
+    String unknown = MessageText.getString("PeerSocket.unknown");
+        
     try {
 
       if (DEBUG_ALL) System.out.println(new String(peerID, 0, 20, Constants.BYTE_ENCODING));
@@ -61,6 +62,13 @@ public class Identification {
         return name;
       }
       
+      //check for generic client
+      boolean allZero = true;
+      for (int i = 0; i < 12; i++) {
+        if (peerID[i] != (byte)0) { allZero = false; break; }
+      }
+      if (allZero) return generic;
+      
     }
     catch (Exception ignore) {/*ignore*/}
     
@@ -70,7 +78,7 @@ public class Identification {
       } catch (Exception ignore) {/*ignore*/} 
     }
     
-    return generic;  
+    return unknown;  
   }
 
 }
