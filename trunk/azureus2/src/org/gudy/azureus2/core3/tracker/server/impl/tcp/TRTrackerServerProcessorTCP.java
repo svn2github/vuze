@@ -114,7 +114,8 @@ TRTrackerServerProcessorTCP
 					
 				// System.out.println( "got header:" + header_plus );
 				
-				ByteArrayInputStream	data = null;
+				InputStream	post_is 	= null;
+				File		post_file	= null;
 				
 				String	actual_header;
 				String	lowercase_header;
@@ -160,8 +161,28 @@ TRTrackerServerProcessorTCP
 					}
 					
 					int	content_length = Integer.parseInt( actual_header.substring(cl_start+15,cl_end ).trim());
+				
+					ByteArrayOutputStream	baos		= null;
+					FileOutputStream		fos			= null;
+				
+					OutputStream	data_os;
 					
-					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+					if ( content_length <= 256*1024 ){
+						
+						baos = new ByteArrayOutputStream();
+					
+						data_os	= baos;
+						
+					}else{
+						
+						post_file	= File.createTempFile( "AZU", null );
+						
+						post_file.deleteOnExit();
+						
+						fos	= new FileOutputStream( post_file );
+						
+						data_os	= fos;
+					}
 					
 						// if we have X<NL><NL>Y get Y
 					
@@ -171,7 +192,7 @@ TRTrackerServerProcessorTCP
 						
 						content_length	-= rem;
 						
-						baos.write( header_plus.substring(header_plus.length()-rem).getBytes( Constants.BYTE_ENCODING ));
+						data_os.write( header_plus.substring(header_plus.length()-rem).getBytes( Constants.BYTE_ENCODING ));
 					}
 					
 					while( content_length > 0 ){
@@ -183,12 +204,21 @@ TRTrackerServerProcessorTCP
 							throw( new TRTrackerServerException( "premature end of input stream" ));
 						}
 						
-						baos.write( buffer, 0, len );
+						data_os.write( buffer, 0, len );
 						
 						content_length -= len;
 					}
-										
-					data = new ByteArrayInputStream(baos.toByteArray());
+					
+					if ( baos != null ){
+						
+						post_is = new ByteArrayInputStream(baos.toByteArray());
+						
+					}else{
+						
+						fos.close();
+						
+						post_is = new BufferedInputStream( new FileInputStream( post_file ), 256*1024 );
+					}
 					
 					// System.out.println( "TRTrackerServerProcessorTCP: request data = " + baos.size());
 				}else{
@@ -196,59 +226,78 @@ TRTrackerServerProcessorTCP
 					throw( new TRTrackerServerException( "header doesn't start with GET or POST ('" + (header_plus.length()>256?header_plus.substring(0,256):header_plus)+"')" ));
 				}
 				
-				String	url = actual_header.substring(4).trim();
-				
-				int	pos = url.indexOf( " " );
-				
-				if ( pos == -1 ){
-					
-					throw( new TRTrackerServerException( "header doesn't have space in right place" ));
-				}
-								
-				url = url.substring(0,pos);
-				
-				if ( head ){
-					
-					ByteArrayOutputStream	head_response = new ByteArrayOutputStream(4096);
-					
-					processRequest( actual_header,
-							lowercase_header,
-							url, 
-							socket.getInetAddress().getHostAddress(),
-							data,
-							head_response );
-					
-					byte[]	head_data = head_response.toByteArray();
-					
-					int	header_length = head_data.length;
-					
-					for (int i=3;i<head_data.length;i++){
+				try{
+					if ( post_is == null ){
 						
-						if ( 	head_data[i-3] 	== CR &&
-								head_data[i-2] 	== FF &&
-								head_data[i-1] 	== CR &&
-								head_data[i]	== FF ){
-							
-							header_length = i+1;
-					
-							break;
-						}
+							// set up a default input stream 
+						
+						post_is = new ByteArrayInputStream(new byte[0]);
 					}
-											
-					socket.getOutputStream().write( head_data, 0, header_length );
 					
-					socket.getOutputStream().flush();
+					String	url = actual_header.substring(4).trim();
 					
-				}else{
-				
-					processRequest( actual_header,
-									lowercase_header,
-									url, 
-									socket.getInetAddress().getHostAddress(),
-									data,
-									socket.getOutputStream() );
-				}
+					int	pos = url.indexOf( " " );
+					
+					if ( pos == -1 ){
+						
+						throw( new TRTrackerServerException( "header doesn't have space in right place" ));
+					}
+									
+					url = url.substring(0,pos);
+					
+					if ( head ){
+						
+						ByteArrayOutputStream	head_response = new ByteArrayOutputStream(4096);
+						
+						processRequest( actual_header,
+								lowercase_header,
+								url, 
+								socket.getInetAddress().getHostAddress(),
+								post_is,
+								head_response );
+						
+						byte[]	head_data = head_response.toByteArray();
+						
+						int	header_length = head_data.length;
+						
+						for (int i=3;i<head_data.length;i++){
+							
+							if ( 	head_data[i-3] 	== CR &&
+									head_data[i-2] 	== FF &&
+									head_data[i-1] 	== CR &&
+									head_data[i]	== FF ){
 								
+								header_length = i+1;
+						
+								break;
+							}
+						}
+												
+						socket.getOutputStream().write( head_data, 0, header_length );
+						
+						socket.getOutputStream().flush();
+						
+					}else{
+					
+						processRequest( actual_header,
+										lowercase_header,
+										url, 
+										socket.getInetAddress().getHostAddress(),
+										post_is,
+										socket.getOutputStream() );
+					}
+				}finally{
+					
+					if ( post_is != null ){
+						
+						post_is.close();
+					}
+					
+					if ( post_file != null ){
+						
+						post_file.delete();
+					}
+				}
 			}catch( SocketTimeoutException e ){
 				
 				// System.out.println( "TRTrackerServerProcessor: timeout reading header, got '" + header + "'");
