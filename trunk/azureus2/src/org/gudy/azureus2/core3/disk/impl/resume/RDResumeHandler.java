@@ -259,7 +259,7 @@ RDResumeHandler
 										public void
 										processResult(
 											int		p,
-											boolean	b )
+											int		r )
 										{
 											pending_checks_sem.release();
 										}
@@ -319,7 +319,7 @@ RDResumeHandler
 						public void
 						processResult(
 							int		p,
-							boolean	b )
+							int		result )
 						{
 							pending_checks_sem.release();
 						}

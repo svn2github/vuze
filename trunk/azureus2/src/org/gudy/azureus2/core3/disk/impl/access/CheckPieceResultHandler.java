@@ -29,8 +29,12 @@ package org.gudy.azureus2.core3.disk.impl.access;
 public interface 
 CheckPieceResultHandler 
 {
+	public static final int	OP_SUCCESS		= 1;
+	public static final int	OP_FAILURE		= 2;
+	public static final int	OP_CANCELLED	= 3;
+	
 	public void
 	processResult(
 		int			piece_number,
-		boolean		success );
+		int			result );
 }

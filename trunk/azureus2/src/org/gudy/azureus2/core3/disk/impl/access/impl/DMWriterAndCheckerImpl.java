@@ -79,7 +79,7 @@ DMWriterAndCheckerImpl
 		}
 		*/
 		
-		int	check_limit_pieces = COConfigurationManager.getIntParameter("DiskManager Check Queue Piece Limit", 0);
+		// int	check_limit_pieces = COConfigurationManager.getIntParameter("DiskManager Check Queue Piece Limit", 0);
 
 		//global_check_queue_block_sem_size	= check_limit_pieces==0?512:check_limit_pieces;
 		
@@ -108,8 +108,6 @@ DMWriterAndCheckerImpl
 		
 	protected volatile ConcurrentHasherRequest	current_hash_request;
 	
-	protected Md5Hasher md5;			
-
 	protected boolean	bOverallContinue		= true;
 	
 	protected int		pieceLength;
@@ -133,8 +131,6 @@ DMWriterAndCheckerImpl
 		totalLength		= disk_manager.getTotalLength();
 		
 		nbPieces		= disk_manager.getNumberOfPieces();
-		
-		md5 	= new Md5Hasher();
 	}
 	
 	public void
@@ -295,14 +291,14 @@ DMWriterAndCheckerImpl
 				public void
 				processResult(
 					int		piece_number,
-					boolean	success )
+					int		result )
 				{
 					try{						
 				    	boolean[]	pieceDone	= disk_manager.getPiecesDone();
 				    		
 						boolean	piece_was_done	= pieceDone[ pieceNumber ]; 
 						
-						if ( success ){
+						if ( result ==  CheckPieceResultHandler.OP_SUCCESS ){
 							
 							pieceDone[ pieceNumber] = true;
 							
@@ -325,14 +321,14 @@ DMWriterAndCheckerImpl
 												
 						if ( _result_handler != null ){
 							
-							_result_handler.processResult( pieceNumber, success );
+							_result_handler.processResult( pieceNumber, result );
 						}
 					}
 				}
 			};
 			
 			
-		boolean	check_result	= false;
+		int		check_result	= CheckPieceResultHandler.OP_CANCELLED;
 		
 		DirectByteBuffer	buffer	= null;
               
@@ -353,7 +349,7 @@ DMWriterAndCheckerImpl
 		    	}
 		    }
 		       			    
-		    if ( bOverallContinue == false ){
+		    if ( !bOverallContinue ){
 		    	
 		    	return;
 		    }
@@ -369,34 +365,35 @@ DMWriterAndCheckerImpl
 	            
 				try {
 	                    
-				  //if the file is large enough
+						//if the file is large enough
+					
 					if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
 						
-            //Make sure we only read in this entry-length's worth of data from the file
-            //NOTE: Without this limit the read op will
-            // a) fill the entire buffer with file data if the file length is big enough,
-            //    i.e. the whole piece is contained within the file somewhere, or
-            // b) read the file into the buffer until it reaches EOF,
-            //    i.e. the piece overlaps two different files
-            //Under normal conditions this works ok, because the assumption is that if a piece
-            //is contained within a single file, then there will only be one PieceMapEntry for
-            //that piece, so we can just fill the buffer.  It also assumes that if a piece
-            //overlaps two (or more) files, then there will be multiple PieceMapEntrys, with
-            //each entry ending at the file EOF boundary.  However, if for some reason one of
-            //these files is at least one byte too large, then the read op will read in too
-            //many bytes before hitting EOF, and our piece buffer data will be misaligned,
-            //causing hash failure (and a 99.9% bug).  Better to set the buffer limit explicitly.
-            
-            int entry_read_limit = buffer.position( DirectByteBuffer.SS_DW ) + tempPiece.getLength();
-            buffer.limit( DirectByteBuffer.SS_DW, entry_read_limit );
-
-            tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());  //do read
-            
-            buffer.limit( DirectByteBuffer.SS_DW, this_piece_length );  //restore limit
+			            //Make sure we only read in this entry-length's worth of data from the file
+			            //NOTE: Without this limit the read op will
+			            // a) fill the entire buffer with file data if the file length is big enough,
+			            //    i.e. the whole piece is contained within the file somewhere, or
+			            // b) read the file into the buffer until it reaches EOF,
+			            //    i.e. the piece overlaps two different files
+			            //Under normal conditions this works ok, because the assumption is that if a piece
+			            //is contained within a single file, then there will only be one PieceMapEntry for
+			            //that piece, so we can just fill the buffer.  It also assumes that if a piece
+			            //overlaps two (or more) files, then there will be multiple PieceMapEntrys, with
+			            //each entry ending at the file EOF boundary.  However, if for some reason one of
+			            //these files is at least one byte too large, then the read op will read in too
+			            //many bytes before hitting EOF, and our piece buffer data will be misaligned,
+			            //causing hash failure (and a 99.9% bug).  Better to set the buffer limit explicitly.
+			            
+			            int entry_read_limit = buffer.position( DirectByteBuffer.SS_DW ) + tempPiece.getLength();
+			            buffer.limit( DirectByteBuffer.SS_DW, entry_read_limit );
+			
+			            tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());  //do read
+			            
+			            buffer.limit( DirectByteBuffer.SS_DW, this_piece_length );  //restore limit
 						
 					}else{
-					  // file is too small, therefore required data hasn't been 
-					  // written yet -> check fails
+						// file is too small, therefore required data hasn't been 
+						// written yet -> check fails
 								
 						return;
 					}
@@ -417,13 +414,6 @@ DMWriterAndCheckerImpl
 	      
 	      		buffer.position(DirectByteBuffer.SS_DW, 0);
 
-				// byte[] testHash = hasher.calculateHash(buffer.getBuffer());
-	      		
-    		    if ( !bOverallContinue ){
-    		    		    		    	
-    		    	return;
-    		    }
-
     		    if ( CONCURRENT_CHECKING ){
 
     		    	async_request	= true;
@@ -439,37 +429,35 @@ DMWriterAndCheckerImpl
 									complete(
 										ConcurrentHasherRequest	request )
 	    		    				{
-	    		    					boolean	async_check_result	= false;
-	    		    					
+	    		    					int	async_result	= CheckPieceResultHandler.OP_CANCELLED;
+	    		    						    		    					
 	    		    					try{
 	    		    						
 		    								byte[] testHash = request.getResult();
 		    										    								
-		    								if ( testHash == null ){
-		    								
-		    										// cancelled
-		    															
-		    									return;
-		    								}
-		    								
-		    								byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
-		    								
-		    								async_check_result	= true;
-		    								
-		    								for (int i = 0; i < 20; i++){
-		    									
-		    									if ( testHash[i] != required_hash[i]){
-		    										
-		    										async_check_result	= false;
-		    										
-		    										break;
-		    									}
+		    								if ( testHash != null ){
+		    											
+			    								byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
+			    								
+			    								async_result = CheckPieceResultHandler.OP_SUCCESS;
+			    								
+			    								for (int i = 0; i < 20; i++){
+			    									
+			    									if ( testHash[i] != required_hash[i]){
+			    										
+			    										async_result = CheckPieceResultHandler.OP_FAILURE;
+			    										
+			    										break;
+			    									}
+			    								}
 		    								}
 	    		    					}finally{
 	    		    						
 	    		    						f_buffer.returnToPool();
 
-	    		    						result_handler.processResult( pieceNumber, async_check_result );
+	    		    						result_handler.processResult( 
+	    		    								pieceNumber, 
+													async_result );
 	    		    					}
 	    		    				}
 	    		    				
@@ -491,13 +479,13 @@ DMWriterAndCheckerImpl
 					
 					byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
 					
-					check_result	= true;
+					check_result	= CheckPieceResultHandler.OP_SUCCESS;
 					
 					for (int i = 0; i < 20; i++){
 						
 						if ( testHash[i] != required_hash[i]){
 							
-							check_result	= false;
+							check_result	= CheckPieceResultHandler.OP_FAILURE;
 							
 							break;
 						}
@@ -527,7 +515,9 @@ DMWriterAndCheckerImpl
 	private byte[] 
 	computeMd5Hash(
 		DirectByteBuffer buffer) 
-	{ 	
+	{ 			
+		Md5Hasher md5 	= new Md5Hasher();
+
 	    md5.reset();
 	    
 	    int position = buffer.position(DirectByteBuffer.SS_DW);
@@ -889,9 +879,9 @@ DMWriterAndCheckerImpl
 						  			public void
 									processResult(
 										int			pieceNumber,
-										boolean		success )
+										int			result )
 						  			{
-						  				if ( success ){
+						  				if ( result == CheckPieceResultHandler.OP_SUCCESS ){
 									  								  	
 						  					LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + pieceNumber + " passed hash check.");
 									    
@@ -900,15 +890,19 @@ DMWriterAndCheckerImpl
 						  						MD5CheckPiece(pieceNumber,true);
 						  					}
 	
-						  				}else{
+						  				}else if ( result == CheckPieceResultHandler.OP_FAILURE ){
 
 						  					MD5CheckPiece(pieceNumber,false);
 										    
 							  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " failed hash check.");
 
+						  				}else{
+						  					
+							  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " hash check cancelled.");
+						  					
 						  				}
 		
-									  	disk_manager.getPeerManager().asyncPieceChecked(pieceNumber, success);
+									  	disk_manager.getPeerManager().asyncPieceChecked(pieceNumber, result == CheckPieceResultHandler.OP_SUCCESS);
 						  			}
 								});
 					  }
