@@ -518,7 +518,7 @@ public class TableView
 
     // Since OSX can't handle TableColumn ControlListener, check widths
     if (checkColumnWidthsEvery != 0 && 
-        (checkColumnWidthsEvery % loopFactor) == 0) {
+        (loopFactor % checkColumnWidthsEvery) == 0) {
       TableColumn[] tableColumnsSWT = table.getColumns();
       for (int i = 0; i < tableColumnsSWT.length; i++) {
         TableColumnCore tc = (TableColumnCore)tableColumnsSWT[i].getData("TableColumnCore");
