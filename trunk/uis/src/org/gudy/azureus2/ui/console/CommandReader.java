@@ -8,7 +8,6 @@ package org.gudy.azureus2.ui.console;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Writer;
 
 import java.util.Vector;
 
@@ -25,18 +24,15 @@ public class CommandReader extends Reader {
   private final int NONQUOTEDESCAPE = 5;
   
   private Reader in = null;
-  private Writer out = null;
   private char[] cb = null;
-  private String line = null;
   private int state = ENTER;
   
   public Vector commandargs =null;
   
   /** Creates a new instance of CommandReader */
-  public CommandReader(Reader _in, Writer _out) {
+  public CommandReader(Reader _in) {
     super();
     in = _in;
-    out = _out;
   }
   
   private void ensureOpen() throws java.io.IOException {
@@ -49,10 +45,6 @@ public class CommandReader extends Reader {
       if (in != null) {
         in.close();
         in = null;
-      }
-      if (out != null) {
-        out.close();
-        out = null;
       }
       cb = null;
     }
@@ -73,19 +65,12 @@ public class CommandReader extends Reader {
   }
   
   public String readLine() throws java.io.IOException {
-    if (line == null)
-      fetchCommand();
-    String readline = line;
-    line = null;
-    return readline;
-  }
-  
-  public String fetchCommand() throws java.io.IOException {
     synchronized(lock) {
       ensureOpen();
-      line = "";
+      StringBuffer line = new StringBuffer();
       StringBuffer current = new StringBuffer();
       Vector args = new Vector();
+      boolean allowEmpty = false;
       boolean bailout = false;
       while (!bailout) {
       	
@@ -100,7 +85,7 @@ public class CommandReader extends Reader {
       	
       	if (c!='\n'){
       		
-      		line += c;
+      		line.append( c );
       	}
       	
         switch (state) {
@@ -144,9 +129,10 @@ public class CommandReader extends Reader {
             }
             if ((state == ENTER) && ((c==' ') || (c=='\n'))) {
               String arg = current.toString().trim();
-              if( arg.length() > 0 )
+              if( arg.length() > 0 || allowEmpty )
               {
               	args.addElement(arg);
+              	allowEmpty = false;
               }
               current = new StringBuffer();
             }
@@ -155,6 +141,7 @@ public class CommandReader extends Reader {
           case QUOTE:
             switch (c) {
               case '\"':
+              	allowEmpty = true;
                 state = ENTER;
                 break;
               case '\\':
@@ -193,9 +180,8 @@ public class CommandReader extends Reader {
         }
         
       }
-      line = line.trim();
       commandargs = args;
-      return line;
+      return line.toString().trim();
     }
   }
   
