@@ -2,7 +2,7 @@
  * Created on 27 juin 2003
  *
  */
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.util;
 
 /**
  * @author Olivier
