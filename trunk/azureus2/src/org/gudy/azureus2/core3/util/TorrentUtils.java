@@ -130,6 +130,16 @@ TorrentUtils
 	
 		throws TOTorrentException 
 	{
+		writeToFile( torrent, false );
+	}
+	
+	public static void
+	writeToFile(
+		TOTorrent		torrent,
+		boolean			force_backup )
+	
+		throws TOTorrentException 
+	{
 	   try{
 	   		torrent.getMonitor().enter();
 	    	
@@ -147,7 +157,8 @@ TorrentUtils
 	    		    	
 	    	File torrent_file = new File(str);
 	    	
-	    	if (COConfigurationManager.getBooleanParameter("Save Torrent Backup", false) && torrent_file.exists()) {
+	    	if ( 	( force_backup ||COConfigurationManager.getBooleanParameter("Save Torrent Backup", false)) &&
+	    			torrent_file.exists()) {
 	    		
 	    		File torrent_file_bak = new File(str + ".bak");
 	    		
@@ -180,10 +191,21 @@ TorrentUtils
 		File			file )
 	
 		throws TOTorrentException 
+	{
+		writeToFile( torrent, file, false );
+	}
+	
+	public static void
+	writeToFile(
+		TOTorrent		torrent,
+		File			file,
+		boolean			force_backup )
+	
+		throws TOTorrentException 
 	{		
 		torrent.setAdditionalStringProperty("torrent filename", file.toString());
 		
-		writeToFile( torrent );
+		writeToFile( torrent, force_backup );
 	}
 	
 	public static void

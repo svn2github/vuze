@@ -26,6 +26,7 @@ FEATURE: Core | Can now specify that password protected tracker web is only avai
 FEATURE: Core | Can now specify comment to be added to share torrents [Parg]
 FEATURE: Plug | Status mailer support for SMTP port, user + password [Parg]
 FEATURE: UI   | Telnet UI added [Fatal]
+FEATURE: Core | resume data no longer saved to torrent files, stored in %user-dir%/active instead [Parg]
 
 CHANGE: Core | Support azureus.install.path parameter, used by new linux launcher script [Nolar]
 CHANGE: UI   | Create torrent wizard now initially defaults torrent save path from "save to" default [Parg]

@@ -152,7 +152,7 @@ DownloadManagerStateImpl
 		
 			saved_state = original_torrent;
 			
-			TorrentUtils.writeToFile( saved_state, saved_file );
+			TorrentUtils.writeToFile( saved_state, saved_file, true );
 		}
 
 		return( getDownloadState( null, original_torrent, saved_state ));
@@ -214,7 +214,7 @@ DownloadManagerStateImpl
 				
 				saved_state = original_torrent;
 				
-				TorrentUtils.writeToFile( saved_state, saved_file );
+				TorrentUtils.writeToFile( saved_state, saved_file, true );
 			}
 		}
 
@@ -374,7 +374,7 @@ DownloadManagerStateImpl
 	  		try{
 	  			// System.out.println( "writing download state for '" + new String(torrent.getName()));
 	  		
-	  			TorrentUtils.writeToFile( torrent );
+	  			TorrentUtils.writeToFile( torrent, true );
 	  		
 	  		}catch( Throwable e ){
 	  		
