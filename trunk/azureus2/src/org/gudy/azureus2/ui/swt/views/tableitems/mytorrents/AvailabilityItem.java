@@ -64,7 +64,7 @@ public class AvailabilityItem
     PEPeerManager pm = dm.getPeerManager();
     if (pm != null) {
       float f = pm.getMinAvailability();
-      if (!cell.setSortValue((long)f * 1000) && cell.isValid())
+      if (!cell.setSortValue((long)(f * 1000)) && cell.isValid())
         return;
       if (f != 0) {
         int numZeros = zeros.length();
