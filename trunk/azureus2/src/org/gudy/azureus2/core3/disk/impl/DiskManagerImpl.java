@@ -69,7 +69,6 @@ DiskManagerImpl
 
 	//  private int[] _priorityPieces;
 
-	ArrayList btFileList = new ArrayList();
 	private byte[][] piecesHash;
 	private int nbPieces;
 	private long totalLength;
@@ -79,6 +78,7 @@ DiskManagerImpl
 
 	private long remaining;
 
+	private String rootPath = null;
 	private String path;
 	private String fileName = "";
     
@@ -90,21 +90,21 @@ DiskManagerImpl
 	
 	private RDResumeHandler			resume_handler;
 	private DMPiecePicker			piece_picker;
+	private DiskManagerPieceMapper	piece_mapper;
 	
 	
-	private String rootPath = null;
-
-	//The map that associate
+	
 	private PieceList[] pieceMap;
 
 	private DiskManagerFileInfoImpl[] files;
+	
     private DownloadManager dmanager;
 
     private PEPeerManager manager;
 
 	private boolean alreadyMoved = false;
 
-	// DiskManager listeners
+		// DiskManager listeners
 	
 	private static final int LDT_STATECHANGED		= 1;
 	
@@ -120,10 +120,12 @@ DiskManagerImpl
 				{
 					DiskManagerListener	listener = (DiskManagerListener)_listener;
 					
-					if (type == LDT_STATECHANGED) {
-					  int params[] = (int[])value;
-  					listener.stateChanged(params[0], params[1]);
-  				}
+					if (type == LDT_STATECHANGED){
+						
+						int params[] = (int[])value;
+						
+  						listener.stateChanged(params[0], params[1]);
+					}
 				}
 			});		
 	
@@ -133,38 +135,41 @@ DiskManagerImpl
 		String 				_path, 
 		DownloadManager 	_dmanager) 
 	{
-    torrent 	= _torrent;
-    path 		= _path;
-    dmanager 	= _dmanager;
- 
-    setState( INITIALIZING );
+	    torrent 	= _torrent;
+	    path 		= _path;
+	    dmanager 	= _dmanager;
+	 
+	    setState( INITIALIZING );
+	    
+	    percentDone = 0;
+	    
+		if ( torrent == null ){
+			
+			setState( FAULTY );
+			
+			return;
+		}
     
-    percentDone = 0;
-    
-	if (torrent == null) {
-		setState( FAULTY );
-		return;
-	}
-    
-    //Insure that save folder exists
-    /*
-    File testPath = new File(path);
-    if(testPath.isFile()) {
-      testPath = testPath.getParentFile();
-      if(!testPath.exists()) {
-        this.errorMessage = MessageText.getString("DiskManager.saveNotFound");
-        setState( FAULTY );
-        return;
-      }
-    } else if(testPath.isDirectory()) {
-      if(!testPath.exists()) {
-        this.errorMessage = MessageText.getString("DiskManager.saveNotFound");
-        setState( FAULTY );
-        return;
-      }
-    }*/
+		    //Insure that save folder exists
+		    /*
+		    File testPath = new File(path);
+		    if(testPath.isFile()) {
+		      testPath = testPath.getParentFile();
+		      if(!testPath.exists()) {
+		        this.errorMessage = MessageText.getString("DiskManager.saveNotFound");
+		        setState( FAULTY );
+		        return;
+		      }
+		    } else if(testPath.isDirectory()) {
+		      if(!testPath.exists()) {
+		        this.errorMessage = MessageText.getString("DiskManager.saveNotFound");
+		        setState( FAULTY );
+		        return;
+		      }
+		    }*/
    
 		LocaleUtilDecoder	locale_decoder = null;
+		
 		try{
 			locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 	
@@ -172,11 +177,15 @@ DiskManagerImpl
 		
 			File f = new File(path);
 			
-			if (f.isDirectory()) {
+			if (f.isDirectory()){
+				
 				fileName = locale_decoder.decodeString( torrent.getName());
-			} else {
-			  fileName = f.getName();
-			  path = f.getParent();
+				
+			}else{
+				
+				fileName = f.getName();
+			  
+				path = f.getParent();
 			}
 			
 			fileName = FileUtil.convertOSSpecificChars( fileName );
@@ -184,16 +193,26 @@ DiskManagerImpl
 			dm_name	= ByteFormatter.nicePrint(torrent.getHash(),true);
 			
 		}catch( TOTorrentException e ){
-			this.errorMessage = TorrentUtils.exceptionToText(e) + " (Initialize1)";
+			
+			this.errorMessage = TorrentUtils.exceptionToText(e) + " (Constructor)";
+			
 			setState( FAULTY );
+			
 			return;
+			
 		}catch( UnsupportedEncodingException e ){
-			this.errorMessage = e.getMessage() + " (Initialize1)";
+			
+			this.errorMessage = e.getMessage() + " (Constructor)";
+			
 			setState( FAULTY );
+			
 			return;
 		}
+		
+		piece_mapper	= new DiskManagerPieceMapper( this );
 
-		//build something to hold the filenames/sizes
+			//build something to hold the filenames/sizes
+		
 		TOTorrentFile[] torrent_files = torrent.getFiles();
 
 		if ( torrent.isSimpleTorrent()){
@@ -201,12 +220,12 @@ DiskManagerImpl
 			totalLength = torrent_files[0].getLength();
   				
 			rootPath = "";
+				
+			piece_mapper.buildFileLookupTables( torrent_files[0], fileName );
+
+		}else{
 			
-			btFileList.add(new BtFile("", fileName, totalLength));
-			
-		} else {
-			
-			char separator = System.getProperty("file.separator").charAt(0);
+			char separator = File.separatorChar;
 
 				//get the root
 			
@@ -224,7 +243,7 @@ DiskManagerImpl
 				rootPath = ""; //null out rootPath
 			}
 
-			buildFileLookupTables( torrent_files, btFileList, locale_decoder, separator);
+			piece_mapper.buildFileLookupTables( torrent_files, locale_decoder );
 			
 			if (getState() == FAULTY){
 			
@@ -232,6 +251,8 @@ DiskManagerImpl
 			}
 		}
 
+		totalLength	= piece_mapper.getTotalLength();
+		
 		remaining 	= totalLength;
 
 		piecesHash 	= torrent.getPieces();        
@@ -240,9 +261,10 @@ DiskManagerImpl
 		
 		pieceLength		 	= (int)torrent.getPieceLength();
 		
-		lastPieceLength  	= (int) (totalLength - ((long) (nbPieces - 1) * (long)pieceLength));
+		lastPieceLength  	= piece_mapper.getLastPieceLength();
 		
 		reader 				= DMAccessFactory.createReader(this);
+		
 		writer_and_checker 	= DMAccessFactory.createWriterAndChecker(this,reader);
 		
 		resume_handler		= new RDResumeHandler( this, writer_and_checker );
@@ -250,43 +272,52 @@ DiskManagerImpl
 		piece_picker		= DMPiecePickerFactory.create( this );
 	}
 
-	public void start() {
-		if (started)
+	public void 
+	start() 
+	{
+		if (started){
+			
 			return;
-
+		}
+		
 		started = true;
-
        
-    Thread init = new AEThread("DiskManager:start") {
-			public void run() {
-				startSupport();
-				if (DiskManagerImpl.this.getState() == DiskManager.FAULTY) {
-					stopIt();
+	    Thread init = new AEThread("DiskManager:start") {
+				public void run() 
+				{
+					startSupport();
+					
+					if (DiskManagerImpl.this.getState() == DiskManager.FAULTY) {
+						stopIt();
+					}
 				}
-			}
-		};
+			};
+			
 		init.setPriority(Thread.MIN_PRIORITY);
+		
 		init.start();
 	}
 
-	private void startSupport() {
-		//  create the pieces map
-		pieceMap = new PieceList[nbPieces];
-
+	private void 
+	startSupport() 
+	{
 		pieceDone = new boolean[nbPieces];
 		
-		//if the data file is already in the completed files dir, we want to use it
+			//if the data file is already in the completed files dir, we want to use it
+		
 		boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
+		
 		String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
    
 		if (moveWhenDone && completedDir.length() > 0) {
-		  //if the data file already resides in the completed files dir
+		
+				//if the data file already resides in the completed files dir
 			
 			String	path_copy = path;
 			
 			path = FileUtil.smartPath(completedDir, fileName);
 			
-			if (filesExist()){
+			if ( filesExist()){
 				
 				alreadyMoved = true;
 				
@@ -296,14 +327,13 @@ DiskManagerImpl
 		  }
 		}
 
-
 		writer_and_checker.start();
 		
 		reader.start();
 		
-		//allocate / check every file
-		//fileArray = new RandomAccessFile[btFileList.size()];
-		files = new DiskManagerFileInfoImpl[btFileList.size()];
+			//allocate / check every file
+
+		files = new DiskManagerFileInfoImpl[piece_mapper.getFileList().size()];
       
 		int newFiles = allocateFiles();
       
@@ -311,7 +341,7 @@ DiskManagerImpl
     
         path = FileUtil.smartPath(path, fileName);
 
-		constructPieceMap(btFileList);
+        pieceMap = piece_mapper.constructPieceMap();
 
 		constructFilesPieces();
 		
@@ -323,7 +353,7 @@ DiskManagerImpl
 			
 			resume_handler.checkAllPieces(false);
 			
-		}else if (newFiles != btFileList.size()){
+		}else if ( newFiles != files.length ){
 			
 				//	if not a fresh torrent, check pieces ignoring fast resume data
 			
@@ -333,249 +363,6 @@ DiskManagerImpl
 			//3.Change State   
 		
 		setState( READY );
-	}
-
-	// no changes made here, just refactored the code out from initialize() - Moti
-	private void constructPieceMap(ArrayList btFileList) {
-		//for every piece, except the last one
-		//add files to the piece list until we have built enough space to hold the piece
-		//see how much space is available in the file
-		//if the space available isnt 0
-		//add the file to the piece->file mapping list
-		//if there is enough space available, stop  
-
-		//fix for 1 piece torrents
-		if (totalLength < pieceLength) {
-			pieceLength = (int)totalLength; //ok to convert
-		}
-
-		long fileOffset = 0;
-		int currentFile = 0;
-		for (int i = 0;(1 == nbPieces && i < nbPieces) || i < nbPieces - 1; i++) {
-			ArrayList pieceToFileList = new ArrayList();
-			int usedSpace = 0;
-			while (pieceLength > usedSpace) {
-				BtFile tempFile = (BtFile)btFileList.get(currentFile);
-				long length = tempFile.getLength();
-
-				//get the available space
-				long availableSpace = length - fileOffset;
-
-				PieceMapEntry tempPieceEntry = null;
-
-				//how much space do we need to use?                               
-				if (availableSpace < (pieceLength - usedSpace)) {
-					//use the rest of the file's space
-						tempPieceEntry =
-							new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int)availableSpace //safe to convert here
-	);
-
-					//update the used space
-					usedSpace += availableSpace;
-					//update the file offset
-					fileOffset = 0;
-					//move the the next file
-					currentFile++;
-				} else //we don't need to use the whole file
-					{
-					tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, pieceLength - usedSpace);
-
-					//update the file offset
-					fileOffset += pieceLength - usedSpace;
-					//udate the used space
-					usedSpace += pieceLength - usedSpace;
-				}
-
-				//add the temp pieceEntry to the piece list
-				pieceToFileList.add(tempPieceEntry);
-			}
-
-			//add the list to the map
-			pieceMap[i] = PieceList.convert(pieceToFileList);
-		}
-
-		//take care of final piece if there was more than 1 piece in the torrent
-		if (nbPieces > 1) {
-			pieceMap[nbPieces - 1] =
-				PieceList.convert(this.buildPieceToFileList(btFileList, currentFile, fileOffset, lastPieceLength));
-		}
-	}
-
-	// refactored out of initialize() - Moti
-	private void 
-	buildFileLookupTables(
-		TOTorrentFile[]	torrent_files, 
-		ArrayList btFileList, 
-		LocaleUtilDecoder locale_decoder, 
-		final char separator) {
- 
-		 //for each file
-         
-		for (int i = 0; i < torrent_files.length; i++) {
-        	
-			long fileLength = buildFileLookupTable(torrent_files[i], btFileList, locale_decoder, separator);
-
-			if (getState() == FAULTY)
-				return;
-
-			//increment the global length 
-			totalLength += fileLength;
-		}
-	}
-
-	/**
-	 * Builds the path stored in fileDictionay, saving it in btFileList
-	 * @param fileDictionay
-	 * @param btFileList
-	 * @param localeUtil
-	 * @param separator
-	 * @return the length of the file as stored in fileDictionay
-	 */
-	// refactored out of initialize() - Moti
-	// code further refactored for readibility
-	private long 
-	buildFileLookupTable(
-		TOTorrentFile		torrent_file, 
-		ArrayList 			btFileList, 
-		LocaleUtilDecoder 	locale_decoder, 
-		final char 			separator) 
-	{
-		long fileLength  = torrent_file.getLength();
-
-		//build the path
-        
-		byte[][]	path_components = torrent_file.getPathComponents();
-
-		/* replaced the following two calls:
-		StringBuffer pathBuffer = new StringBuffer(256);
-		pathBuffer.setLength(0);
-		*/
-		StringBuffer pathBuffer = new StringBuffer(0);
-
-	    try{
-
-			int lastIndex = path_components.length - 1;
-			for (int j = 0; j < lastIndex; j++) {
-				//attach every element  
-				
-				String	comp = locale_decoder.decodeString( path_components[j]);
-				
-				comp = FileUtil.convertOSSpecificChars( comp );
-				
-				pathBuffer.append(comp);
-				pathBuffer.append(separator);
-			}
-	
-			//no, then we must be a part of the path
-			//add the file entry to the file holder list      
-			
-			String	last_comp = locale_decoder.decodeString(path_components[lastIndex]);
-			
-			last_comp = FileUtil.convertOSSpecificChars( last_comp );
-			
-			btFileList.add(
-				new BtFile(
-					pathBuffer.toString(),
-					last_comp,
-					fileLength));
-		}catch( UnsupportedEncodingException e ){
-			this.errorMessage = e.getMessage() + " (buildFileLookupTable)";
-			setState( FAULTY );
-		}
- 
-		return fileLength;
-	}
-
-  
-	private List buildPieceToFileList(List btFileList, int currentFile, long fileOffset, int pieceSize) {
-		ArrayList pieceToFileList = new ArrayList();
-		int usedSpace = 0;
-		while (pieceSize > usedSpace) {
-			BtFile tempFile = (BtFile)btFileList.get(currentFile);
-			long length = tempFile.getLength();
-
-			//get the available space
-			long availableSpace = length - fileOffset;
-
-			PieceMapEntry tempPieceEntry = null;
-
-			//how much space do we need to use?                               
-			if (availableSpace < (pieceLength - usedSpace)) {
-				//use the rest of the file's space
-				tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int)availableSpace);
-
-				//update the used space
-				usedSpace += availableSpace;
-				//update the file offset
-				fileOffset = 0;
-				//move the the next file
-				currentFile++;
-			} else //we don't need to use the whole file
-				{
-				tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, pieceSize - usedSpace);
-
-				//update the file offset
-				fileOffset += pieceLength - usedSpace;
-				//udate the used space
-				usedSpace += pieceLength - usedSpace;
-			}
-
-			//add the temp pieceEntry to the piece list
-			pieceToFileList.add(tempPieceEntry);
-		}
-
-		return pieceToFileList;
-	}
-
-
-
-	private static class BtFile {
-		private DiskManagerFileInfoImpl _file;
-		private String _path;
-		private String _name;
-		private String _originalName = null;
-		private long _length;
-		private static final String[] unsupportedChars = { "[\\/:?*]" };
-		// 0 = Windows: \ / : ? * and any other Unicode letters ('?')
-
-		public BtFile(String path, String name, long length) {
-			_path = path;
-			_length = length;
-			_name = name;
-
-			String newName = name.replace('"', '\'');
-
-			if ( Constants.isWindows ){
-				newName = newName.replaceAll(unsupportedChars[0], "_");
-			}
-
-			if (!name.equals(newName)) {
-				_name = newName;
-				_originalName = name;
-			}
-
-		}
-		public long getLength() {
-			return _length;
-		}
-		public String getPath() {
-			return _path;
-		}
-		public boolean isNameOriginal() {
-			return _originalName == null;
-		}
-		public String getOriginalName() {
-			return _originalName == null ? _name : _originalName;
-		}
-		public String getName() {
-			return _name;
-		}
-		public DiskManagerFileInfoImpl getFileInfo() {
-			return _file;
-		}
-		public void setFileInfo(DiskManagerFileInfoImpl file) {
-			_file = file;
-		}
 	}
 
 
@@ -610,9 +397,11 @@ DiskManagerImpl
 		
 		//System.out.println( "path=" + path + ", root=" + rootPath + ", base = " + basePath );
 		
+		List btFileList	= piece_mapper.getFileList();
+		
 		for (int i = 0; i < btFileList.size(); i++) {
 			//get the BtFile
-			BtFile tempFile = (BtFile)btFileList.get(i);
+			DiskManagerPieceMapper.fileInfo tempFile = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
 			//get the path
 			String tempPath = basePath + tempFile.getPath();
 			//get file name
@@ -661,9 +450,11 @@ DiskManagerImpl
 			basePath += File.separator;
 		}
 		
+		List btFileList	= piece_mapper.getFileList();
+	
 		for (int i = 0; i < btFileList.size(); i++) {
 			//get the BtFile
-			final BtFile tempFile = (BtFile)btFileList.get(i);
+			final DiskManagerPieceMapper.fileInfo tempFile = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
 			//get the path
 			final String tempPath = basePath + tempFile.getPath();
 			//get file name
@@ -956,60 +747,15 @@ DiskManagerImpl
 			}
 		}
 	}
-
-	public String[][] getFilesStatus() {
-		String[][] result = new String[files.length][2];
-		for (int i = 0; i < result.length; i++) {
-			
-			DiskManagerFileInfoImpl	this_file = files[i];
-			
-			try {
-        result[i][0] = this_file.getFile().getCanonicalPath();
-      }
-      catch (Exception e) { Debug.out("Unable to resolve canonical path for " + this_file.getName()); }
-
-			result[i][1] = "";
-			
-			long length = this_file.getLength();
-			
-			long done = 0;
-			
-			for (int j = 0; j < nbPieces; j++) {
-				if (!pieceDone[j])
-					continue;
-				//get the piece list
-				PieceList pieceList = pieceMap[j];
-				//for each piece
-
-				for (int k = 0; k < pieceList.size(); k++) {
-					
-					//get the piece and the file
-					
-					PieceMapEntry tempPiece = pieceList.get(k);
-					
-					if (this_file == tempPiece.getFile()) {
-						
-						done += tempPiece.getLength();
-					}
-				}
-			}
-			int percent = 1000;
-			if (length != 0)
-				percent = (int) ((1000 * done) / length);
-			result[i][1] = done + "/" + length + " : " + (percent / 10) + "." + (percent % 10) + " % ";
-		}
-		return result;
-	}
-
-	/**
-	 * @return
-	 */
+	
 	public DiskManagerFileInfo[] getFiles() {
 		return files;
 	}
 
 
-	private void constructFilesPieces() {
+	private void 
+	constructFilesPieces() 
+	{
 		for (int i = 0; i < pieceMap.length; i++) {
 			PieceList pieceList = pieceMap[i];
 			//for each piece
@@ -1024,16 +770,11 @@ DiskManagerImpl
 		}
 	}
 
-	/**
-	 * @return
-	 */
+
 	public String getPath() {
 		return path;
 	}
 
-	/**
-	 * @return
-	 */
 	public String getErrorMessage() {
 		return errorMessage;
 	}
@@ -1044,11 +785,6 @@ DiskManagerImpl
 	{
 		errorMessage	= str;
 	}
-	
- 
-	/**
-	 * @return
-	 */
 	
 	public PieceList
 	getPieceList(
@@ -1088,56 +824,56 @@ DiskManagerImpl
 	}
 	
   
-	  public void 
-	   aSyncCheckPiece(
-	   		int pieceNumber) 
-	  {
+	public void 
+	aSyncCheckPiece(
+		int pieceNumber) 
+	{
 	  	writer_and_checker.aSyncCheckPiece( pieceNumber );
-	  }
+	}
 	  
-	  public boolean isChecking() {
-	    return ( writer_and_checker.isChecking());
-	  }
-	  
-	 
-		public void 
-		writeBlock(
-			int pieceNumber, 
-			int offset, 
-			DirectByteBuffer data,
-			PEPeer sender)
-		{
-			writer_and_checker.writeBlock( pieceNumber, offset, data, sender );
+	public boolean isChecking() 
+	{
+	  return ( writer_and_checker.isChecking());
+	}
+  
+	public void 
+	writeBlock(
+		int pieceNumber, 
+		int offset, 
+		DirectByteBuffer data,
+		PEPeer sender)
+	{
+		writer_and_checker.writeBlock( pieceNumber, offset, data, sender );
+	}
+	
+	public boolean 
+	checkBlock(
+		int pieceNumber, 
+		int offset, 
+		DirectByteBuffer data) 
+	{
+		return( writer_and_checker.checkBlock( pieceNumber, offset, data ));
+	}
+	
+	public boolean 
+	checkBlock(
+		int pieceNumber, 
+		int offset, 
+		int length) 
+	{
+		return( writer_and_checker.checkBlock( pieceNumber, offset, length ));
+	}
+	
+	public void 
+	dumpResumeDataToDisk(
+		boolean savePartialPieces, 
+		boolean invalidate )
+	{
+		if ( resume_handler != null ){
+			
+			resume_handler.dumpResumeDataToDisk( savePartialPieces, invalidate );
 		}
-		
-		public boolean 
-		checkBlock(
-			int pieceNumber, 
-			int offset, 
-			DirectByteBuffer data) 
-		{
-			return( writer_and_checker.checkBlock( pieceNumber, offset, data ));
-		}
-		
-		public boolean 
-		checkBlock(
-			int pieceNumber, 
-			int offset, 
-			int length) 
-		{
-			return( writer_and_checker.checkBlock( pieceNumber, offset, length ));
-		}
-		
-		public void 
-		dumpResumeDataToDisk(
-			boolean savePartialPieces, 
-			boolean invalidate )
-		{
-			if ( resume_handler != null ){
-				
-				resume_handler.dumpResumeDataToDisk( savePartialPieces, invalidate );
-			}
-		}
+	}
 		
   /**
    * Moves files to the CompletedFiles directory.
@@ -1322,11 +1058,11 @@ DiskManagerImpl
    
     
  
-  public String
-  getName()
-  {
-  	return( dm_name );
-  }
+  	public String
+	getName()
+  	{
+  		return( dm_name );
+  	}
   
 	public TOTorrent
 	getTorrent()
@@ -1335,31 +1071,31 @@ DiskManagerImpl
 	}
 
 
-  public void
-  addListener(
-  	DiskManagerListener	l )
-  {
- 	listeners.addListener( l );
+	public void
+	addListener(
+			DiskManagerListener	l )
+	{
+		listeners.addListener( l );
 
-	  int params[] = {getState(), getState()};
+		int params[] = {getState(), getState()};
   		
-  	listeners.dispatch( l, LDT_STATECHANGED, params);
-  }
+		listeners.dispatch( l, LDT_STATECHANGED, params);
+	}
   
-  public void
-  removeListener(
-  	DiskManagerListener	l )
-  {
-  	listeners.removeListener(l);
-  }
+	public void
+	removeListener(
+		DiskManagerListener	l )
+	{
+		listeners.removeListener(l);
+	}
 
-  /** Deletes all data files associated with torrent.
-   * Currently, deletes all files, then tries to delete the path recursively
-   * if the paths are empty.  An unexpected result may be that a empty
-   * directory that the user created will be removed.
-   *
-   * TODO: only remove empty directories that are created for the torrent
-   */
+		  /** Deletes all data files associated with torrent.
+		   * Currently, deletes all files, then tries to delete the path recursively
+		   * if the paths are empty.  An unexpected result may be that a empty
+		   * directory that the user created will be removed.
+		   *
+		   * TODO: only remove empty directories that are created for the torrent
+		   */
   
 	public static void 
 	deleteDataFiles(
@@ -1426,7 +1162,8 @@ DiskManagerImpl
   
     
   
-  private void loadFilePriorities() {
+  private void loadFilePriorities() 
+  {
   	//  TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
     try {
     	if ( files == null ) return;
@@ -1444,7 +1181,8 @@ DiskManagerImpl
   }
   
   
-  public void storeFilePriorities() {
+  public void 
+  storeFilePriorities() {
     if ( files == null ) return;
     List file_priorities = new ArrayList();
     for (int i=0; i < files.length; i++) {

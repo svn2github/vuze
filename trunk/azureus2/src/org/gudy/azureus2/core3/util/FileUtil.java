@@ -187,9 +187,20 @@ public class FileUtil {
   convertOSSpecificChars(
   	String	file_name_in )
   {
-  	String	file_name_out	= file_name_in;
-	 	
+  		// this rule originally from DiskManager
+ 
+	String file_name_out = file_name_in.replace('"', '\'');
+
   	if ( !Constants.isOSX ){
+  		
+  		if ( Constants.isWindows ){
+  			
+  				//  this rule originally from DiskManager
+  			
+  			final String unsupportedChars = "[\\/:?*]";
+  			
+  			file_name_out = file_name_out.replaceAll(unsupportedChars, "_");
+  		}
   		
   			// '/' is valid in mac file names, replace with space
   			// so it seems are cr/lf
