@@ -11,6 +11,7 @@ import java.util.*;
 import java.lang.ref.*;
 import java.math.*;
 
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 
@@ -23,9 +24,12 @@ public class DirectByteBufferPool {
 
 	private static final boolean DEBUG = true;
 	
+	static{
+		if ( DEBUG ){
+			System.out.println( "**** DirectByteBufferPool debugging on ****" );
+		}
+	}
 	
-  private static final DirectByteBufferPool pool = new DirectByteBufferPool();
-  
   // There is no point in allocating buffers smaller than 4K,
   // as direct ByteBuffers are page-aligned to the underlying
   // system, which is 4096 byte pages under most OS's.
@@ -35,8 +39,18 @@ public class DirectByteBufferPool {
   private static final int START_POWER = 12;    // 4096
   private static final int END_POWER   = 25;    // 33554432
   
+  	// without an extra bucket here we get lots of wastage with the file cache as typically
+  	// 16K data reads result in a buffer slightly bigger than 16K due to protocol header
+  	// This means we would bump up to 32K pool entries, hence wasting 16K per 16K entry
+  	
+  private static final int[]	EXTRA_BUCKETS = { PEPeerManager.BLOCK_SIZE + 128 };
+  
+  
   public static final int MAX_SIZE = BigInteger.valueOf(2).pow(END_POWER).intValue();
   
+  private static final DirectByteBufferPool pool = new DirectByteBufferPool();
+  
+
   private final Map buffersMap = new LinkedHashMap(END_POWER - START_POWER + 1);
   private final Object poolsLock = new Object();
   private final Timer compactionTimer;
@@ -54,11 +68,30 @@ public class DirectByteBufferPool {
   
   
   private DirectByteBufferPool() {
+  	
     //create the buffer pool for each buffer size
+  	
+  	ArrayList	list = new ArrayList();
+  	
     for (int p=START_POWER; p <= END_POWER; p++) {
-        Integer size = new Integer(BigInteger.valueOf(2).pow(p).intValue());
-        ArrayList bufferPool = new ArrayList();
-        buffersMap.put(size, bufferPool);
+    	
+    	list.add( new Integer(BigInteger.valueOf(2).pow(p).intValue()));
+    }
+    
+    for (int i=0;i<EXTRA_BUCKETS.length;i++){
+    	       
+        list.add( new Integer(EXTRA_BUCKETS[i]));
+    }
+    
+    Integer[]	sizes = new Integer[ list.size() ];
+    list.toArray( sizes );
+    Arrays.sort( sizes);
+    
+    for (int i=0;i<sizes.length;i++){
+    	
+    	ArrayList bufferPool = new ArrayList();
+    	
+    	buffersMap.put(sizes[i], bufferPool);
     }
     
     //initiate periodic timer to check free memory usage
@@ -444,6 +477,8 @@ public class DirectByteBufferPool {
 		ByteBuffer	_b )
   	{
   		b		= _b;
+  		
+  		// System.out.println( "Allocated " + b + ", waste = " + ( b.capacity() - b.limit()));
   	}
   	
   	public int
