@@ -1055,49 +1055,67 @@ DiskManagerImpl
    * Moves files to the CompletedFiles directory.
    * Returns a string path to the new torrent file.
    */
-  public String moveCompletedFiles() 
+	
+  public void 
+  downloadEnded() 
   {
     try{
     	this_mon.enter();
+    	
 	    String fullPath;
+	    
 	    String subPath;
+	    
 	    String rPath = download_manager.getTorrentSaveDir();
+	    
 	    File destDir;
-	    String returnName = "";
+	    
+	    //String returnName = "";
 	    
 	    	// don't move non-persistent files as these aren't managed by us
 	    
 	    if (!download_manager.isPersistent()){
 	    	
-	    	return( returnName );
+	    	return;
 	    }
 	    
 	    //make sure the torrent hasn't already been moved
 	
 	    	
-	    	if (alreadyMoved) return returnName;
+	  	if (alreadyMoved){
+	  		
+	  		return;
+	  	}
 	    	
-	    	alreadyMoved = true;
-	    	
+	  	alreadyMoved = true;	
 	 
-	    
 	    boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
-	    if (!moveWhenDone) return returnName;
+	    
+	    if (!moveWhenDone){
+	    	
+	    	return;
+	    }
 	    
 	    String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
-	    if (moveToDir.length() == 0) return returnName;
+	    
+	    if (moveToDir.length() == 0){
+	    	
+	    	return;
+	    }
 	
-	    try {
+	    try{
 	
-	      
 	      boolean moveOnlyInDefault = COConfigurationManager.getBooleanParameter("Move Only When In Default Save Dir");
+	      
 	      if (moveOnlyInDefault) {
+	      	
 	        String defSaveDir = COConfigurationManager.getStringParameter("Default save path");
-	
-	        
-	        if (!rPath.equals(defSaveDir)) {
+
+	        if (!rPath.equals(defSaveDir)){
+	        	
 	          LGLogger.log(LGLogger.INFORMATION, "Not moving-on-complete since data is not within default save dir");
-	          return returnName;
+	          
+	          return;
 	        }
 	      }
 	      
@@ -1140,7 +1158,7 @@ DiskManagerImpl
 	            
 	            Debug.out(msg);
 	            
-	            return returnName;
+	            return;
 	          }
 	      }
 	      
@@ -1164,7 +1182,7 @@ DiskManagerImpl
 	            
 	            LGLogger.logAlertUsingResource( 
 	            		LGLogger.AT_ERROR, "DiskManager.alert.movefilefails", 
-	            		new String[]{ old_file.getName(),
+	            		new String[]{ old_file.toString(),
 	            		Debug.getNestedExceptionMessage(e)});
 	
 	            Debug.out(msg);
@@ -1188,11 +1206,11 @@ DiskManagerImpl
 	            	}
 	            }
 	            
-	            return returnName;
+	            return;
 	          }
 	      }
 	      
-	      //remove the old dir
+	      	//remove the old dir
 	      
 	      File tFile = new File(download_manager.getTorrentSaveDir(), download_manager.getTorrentSaveFile());
 	      
@@ -1204,28 +1222,71 @@ DiskManagerImpl
 	        
 	      download_manager.setTorrentSaveDir( moveToDir );
 	      
-	      //move the torrent file as well
+	      	//move the torrent file as well
+	      
 	      boolean moveTorrent = COConfigurationManager.getBooleanParameter("Move Torrent When Done", true);
-	      if (moveTorrent) {
-	          String oldFullName = torrent.getAdditionalStringProperty("torrent filename");
+	      
+	      if ( moveTorrent ){
+	      	
+	          String oldFullName = download_manager.getTorrentFileName();
+	          
 	          File oldTorrentFile = new File(oldFullName);
+	          
 	          String oldFileName = oldTorrentFile.getName();
+	          
 	          File newTorrentFile = new File(moveToDir, oldFileName);
-	          if (!newTorrentFile.equals(oldTorrentFile)) {
-	            //save torrent to new file
-	            torrent.serialiseToBEncodedFile(newTorrentFile);
-	            //remove old torrent file
-	            oldTorrentFile.delete();
-	            //update torrent meta-info to point to new torrent file
-	            torrent.setAdditionalStringProperty("torrent filename", newTorrentFile.getCanonicalPath());
-	            returnName = newTorrentFile.getCanonicalPath();
+	          
+	          if (!newTorrentFile.equals(oldTorrentFile)){
+	          	
+	          	if ( TorrentUtils.move( oldTorrentFile, newTorrentFile )){
+	            	            
+	          		download_manager.setTorrentFileName(newTorrentFile.getCanonicalPath());
+	          		
+	          	}else{
+	          
+		            String msg = "Failed to move " + oldTorrentFile.toString() + " to " + newTorrentFile.toString();
+		            
+		            LGLogger.log(LGLogger.ERROR,msg);
+		            
+		            LGLogger.logAlertUsingResource( 
+		            		LGLogger.AT_ERROR, "DiskManager.alert.movefilefails", 
+		            		new String[]{ 	oldTorrentFile.toString(),
+		            						newTorrentFile.toString()});
+		
+		            Debug.out(msg);
+	          	}
 	          }
 	      }
-	    } catch (Exception e) { Debug.printStackTrace( e ); }
-	
-	    return returnName;
-	    
+	    }catch( Exception e){
+	    	
+	    	Debug.printStackTrace( e ); 
+	    }	    
     }finally{
+    	
+    	try{
+            boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", true);
+            
+            	//update resume data
+            
+            if (resumeEnabled){
+            	
+            	try{
+            		dumpResumeDataToDisk(true, false);
+            		
+            	}catch( Exception e ){
+            		
+            			// won't go wrong here due to cache write fails as these must have completed
+            			// prior to the files being moved. Possible problems with torrent save but
+            			// if this fails we can live with it (just means that on restart we'll do
+            			// a recheck )
+            		
+            		Debug.out( "dumpResumeDataToDisk fails" );
+            	}
+            }
+    	}catch( Throwable e ){
+    		
+    		Debug.printStackTrace(e);
+    	}
     	
     	this_mon.exit();
     }

@@ -788,8 +788,6 @@ PEPeerControlImpl
 	      }
       }
       
-      boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", true);
-      
       _downloadManager.setState(DownloadManager.STATE_FINISHING);
       
       _timeFinished = SystemTime.getCurrentTime();
@@ -806,6 +804,7 @@ PEPeerControlImpl
         }
       
       //Disconnect seeds
+        
       checkSeeds(true);
       
       boolean checkPieces = COConfigurationManager.getBooleanParameter("Check Pieces on Completion", true);
@@ -817,37 +816,10 @@ PEPeerControlImpl
       	_diskManager.enqueueCompleteRecheckRequest( this, new Boolean( true ));
       }
       
-      boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
-      
-      if (moveWhenDone) {
-      	
-        String newName = _diskManager.moveCompletedFiles();
-        
-        if (newName.length() > 0){
-        	
-        	_downloadManager.setTorrentFileName(newName);
-        }
-      }
-      
-      //update resume data
-      if (resumeEnabled){
-      	
-      	try{
-      		_diskManager.dumpResumeDataToDisk(true, false);
-      		
-      	}catch( Exception e ){
-      		
-      			// won't go wrong here due to cache write fails as these must have completed
-      			// prior to the files being moved. Possible problems with torrent save but
-      			// if this fails we can live with it (just means that on restart we'll do
-      			// a recheck )
-      		
-      		Debug.out( "dumpResumeDataToDisk fails" );
-      	}
-      }
-      
+      _diskManager.downloadEnded();
       
       _timeStartedSeeding = SystemTime.getCurrentTime();
+      
       _downloadManager.setState(DownloadManager.STATE_SEEDING);
       
       if ( !start_of_day ){

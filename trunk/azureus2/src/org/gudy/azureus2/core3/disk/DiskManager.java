@@ -165,8 +165,8 @@ DiskManager
 	public String
 	getErrorMessage();
   
-	public String
-	moveCompletedFiles();
+	public void
+	downloadEnded();
 
 		/**
 		 * returns true if a complete recheck is in progress

@@ -272,6 +272,26 @@ TorrentUtils
     	new File( torrent_file.toString() + ".bak" ).delete();
 	}
 	
+	public static boolean
+	move(
+		File		from_torrent,
+		File		to_torrent )
+	{
+		if ( !FileUtil.renameFile(from_torrent, to_torrent )){
+			
+			return( false );
+		}
+		
+		if ( new File( from_torrent.toString() + ".bak").exists()){
+			
+			FileUtil.renameFile( 
+				new File( from_torrent.toString() + ".bak"),
+				new File( to_torrent.toString() + ".bak"));
+		}
+		
+		return( true );
+	}
+	
 	public static String
 	exceptionToText(
 		TOTorrentException	e )
