@@ -38,12 +38,12 @@ public class ConsoleView extends AbstractIView {
   private static final int MAX_LINES = 4096 + PREFERRED_LINES;
   private static final int COLORS_NUM = 4;
 
-  private static final LinkedList logHistory;
+  private static final List logHistory;
   private static final SimpleDateFormat dateFormatter;
   private static final FieldPosition formatPos;
 
   static {
-      logHistory = new LinkedList();
+      logHistory = Collections.synchronizedList(new LinkedList());
       dateFormatter = new SimpleDateFormat("[h:mm:ss]  ");
       formatPos = new FieldPosition(0);
   }
@@ -61,7 +61,7 @@ public class ConsoleView extends AbstractIView {
    * @param view ConsoleView instance
    * @throws IllegalStateException If this method is called when the singleton instance has already been set
    */
-  private static void setInstance(ConsoleView view) throws IllegalStateException {
+  private static synchronized void setInstance(ConsoleView view) throws IllegalStateException {
       if(ConsoleView.instance != null)
           throw new IllegalStateException("Only one ConsoleView is allowed");
       ConsoleView.instance = view;
@@ -176,10 +176,13 @@ public class ConsoleView extends AbstractIView {
    */
   private static void appendLogHistory(LogInfo info)
   {
-      if(logHistory.size() > MAX_LINES - 1)
-          logHistory.removeFirst();
+      synchronized(logHistory)
+      {
+          if(logHistory.size() > MAX_LINES - 1)
+              logHistory.remove(0);
 
-      logHistory.add(info);
+          logHistory.add(info);
+      }
   }
 
   /**
