@@ -13,7 +13,7 @@ package org.gudy.azureus2.ui.web;
 import java.util.Properties;
 
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.ui.console.ConsoleInput;
@@ -38,7 +38,7 @@ public class Main implements ILocaleUtilChooser {
     server = new Jhttpp2Server(gm, true);
     ci = new ConsoleInput(gm, server, System.in, System.out);
     new Thread(server, "Webinterface Server").start();
-    System.out.println("Running on port " + ConfigurationManager.getInstance().getIntParameter("Server_iPort"));
+    System.out.println("Running on port " + COConfigurationManager.getIntParameter("Server_iPort"));
   }
   
   public static void main(String args[]) {

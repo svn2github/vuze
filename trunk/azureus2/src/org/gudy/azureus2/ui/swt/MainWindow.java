@@ -67,13 +67,13 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Widget;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.ui.swt.maketorrent.Wizard;
 import org.gudy.azureus2.ui.systray.SystemTray;
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.BDecoder;
@@ -243,7 +243,7 @@ public class MainWindow implements IComponentListener {
                   showUpgradeWindow();
                 }
               });
-              if (ConfigurationManager.getInstance().getBooleanParameter("Auto Update", true)) {
+              if (COConfigurationManager.getBooleanParameter("Auto Update", true)) {
                 showUpgradeWindow();
               }
             }
@@ -299,7 +299,7 @@ public class MainWindow implements IComponentListener {
       display = new Display();
     }
 
-    if (ConfigurationManager.getInstance().getBooleanParameter("Show Splash", true)) {
+    if (COConfigurationManager.getBooleanParameter("Show Splash", true)) {
       showSplashWindow();
     }
 
@@ -511,9 +511,9 @@ public class MainWindow implements IComponentListener {
     });
 
     mytorrents = new Tab(new MyTorrentsView(globalManager));
-    if (ConfigurationManager.getInstance().getBooleanParameter("Open Console", false))
+    if (COConfigurationManager.getBooleanParameter("Open Console", false))
       console = new Tab(new ConsoleView());
-    if (ConfigurationManager.getInstance().getBooleanParameter("Open Config", false))
+    if (COConfigurationManager.getBooleanParameter("Open Config", false))
       config = new Tab(new ConfigView());
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -551,7 +551,7 @@ public class MainWindow implements IComponentListener {
 
     globalManager.addListener(this);
 
-    String windowRectangle = ConfigurationManager.getInstance().getStringParameter("window.rectangle", null);
+    String windowRectangle = COConfigurationManager.getStringParameter("window.rectangle", null);
     if (null != windowRectangle) {
       int i = 0;
       int[] values = new int[4];
@@ -590,7 +590,7 @@ public class MainWindow implements IComponentListener {
 
     mainWindow.addShellListener(new ShellAdapter() {
       public void shellClosed(ShellEvent event) {
-        if (ConfigurationManager.getInstance().getBooleanParameter("Close To Tray", true)) { //$NON-NLS-1$
+        if (COConfigurationManager.getBooleanParameter("Close To Tray", true)) { //$NON-NLS-1$
           minimizeToTray(event);
         }
         else {
@@ -599,16 +599,16 @@ public class MainWindow implements IComponentListener {
       }
 
       public void shellIconified(ShellEvent event) {
-        if (ConfigurationManager.getInstance().getBooleanParameter("Minimize To Tray", false)) { //$NON-NLS-1$
+        if (COConfigurationManager.getBooleanParameter("Minimize To Tray", false)) { //$NON-NLS-1$
           minimizeToTray(event);
         }
       }
     });
 
-    if (ConfigurationManager.getInstance().getBooleanParameter("Start Minimized", false))
+    if (COConfigurationManager.getBooleanParameter("Start Minimized", false))
       minimizeToTray(null);
 
-    if (ConfigurationManager.getInstance().getBooleanParameter("Password enabled", false)) {
+    if (COConfigurationManager.getBooleanParameter("Password enabled", false)) {
       mainWindow.setVisible(false);
       PasswordWindow.showPasswordWindow(display);
     }
@@ -637,7 +637,7 @@ public class MainWindow implements IComponentListener {
     languageItem.setMenu(languageMenu);
 
     Locale[] locales = MessageText.getLocales();
-    String savedLocaleString = ConfigurationManager.getInstance().getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
+    String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
     Locale savedLocale =
       savedLocaleString.length() > 4
         ? new Locale(savedLocaleString.substring(0, 2), savedLocaleString.substring(3, 5))
@@ -681,8 +681,8 @@ public class MainWindow implements IComponentListener {
       public void handleEvent(Event e) {
         if (isSelectedLanguageDifferent(e.widget)) {
           if (MessageText.changeLocale(locale)) {
-            ConfigurationManager.getInstance().setParameter("locale", locale.toString()); //$NON-NLS-1$
-            ConfigurationManager.getInstance().save();
+            COConfigurationManager.setParameter("locale", locale.toString()); //$NON-NLS-1$
+            COConfigurationManager.save();
             setSelectedLanguageItem((MenuItem) e.widget);
           }
           else {
@@ -1338,9 +1338,9 @@ public class MainWindow implements IComponentListener {
       return;
     if (((DownloadManager) created).getState() == DownloadManager.STATE_STOPPED)
       return;
-    if (ConfigurationManager.getInstance().getBooleanParameter("Open Details", true)) //$NON-NLS-1$
+    if (COConfigurationManager.getBooleanParameter("Open Details", true)) //$NON-NLS-1$
       openManagerView((DownloadManager) created);
-    if (ConfigurationManager.getInstance().getBooleanParameter("Open Bar", false)) { //$NON-NLS-1$
+    if (COConfigurationManager.getBooleanParameter("Open Bar", false)) { //$NON-NLS-1$
       synchronized (downloadBars) {
         MinimizedWindow mw = new MinimizedWindow((DownloadManager) created, mainWindow);
         downloadBars.put(created, mw);
@@ -1421,10 +1421,10 @@ public class MainWindow implements IComponentListener {
     globalManager.stopAll();
 
     Rectangle windowRectangle = mainWindow.getBounds();
-    ConfigurationManager.getInstance().setParameter(
+    COConfigurationManager.setParameter(
       "window.rectangle",
       windowRectangle.x + "," + windowRectangle.y + "," + windowRectangle.width + "," + windowRectangle.height);
-    ConfigurationManager.getInstance().save();
+    COConfigurationManager.save();
 
     mainWindow.dispose();
 
@@ -1520,7 +1520,7 @@ public class MainWindow implements IComponentListener {
   }
 
   public String getSavePath(String fileName) {
-    String savePath = ConfigurationManager.getInstance().getStringParameter("Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    String savePath = COConfigurationManager.getStringParameter("Default save path", ""); //$NON-NLS-1$ //$NON-NLS-2$
     if (savePath.length() == 0) {
       mainWindow.setActive();
       boolean singleFile = false;
@@ -1537,21 +1537,21 @@ public class MainWindow implements IComponentListener {
 
       if (singleFile) {
         FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL);
-        fDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
+        fDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
         fDialog.setFileName(singleFileName);
         fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         savePath = fDialog.open();
       }
       else {
         DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
-        dDialog.setFilterPath(ConfigurationManager.getInstance().getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
+        dDialog.setFilterPath(COConfigurationManager.getStringParameter("Default Path", "")); //$NON-NLS-1$ //$NON-NLS-2$
         dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         savePath = dDialog.open();
       }
       if (savePath == null)
         return null;
-      ConfigurationManager.getInstance().setParameter("Default Path", savePath); //$NON-NLS-1$
-      ConfigurationManager.getInstance().save();
+      COConfigurationManager.setParameter("Default Path", savePath); //$NON-NLS-1$
+      COConfigurationManager.save();
     }
     return savePath;
   }

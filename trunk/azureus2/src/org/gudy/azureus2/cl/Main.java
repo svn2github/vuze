@@ -4,8 +4,8 @@
  */
 package org.gudy.azureus2.cl;
 
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 
 /**
@@ -96,14 +96,13 @@ public class Main {
     if ((args.length % 2) != 0)
       return false;
     try {
-      ConfigurationManager config = ConfigurationManager.getInstance();
-      for (int i = 0; i < args.length - 2; i += 2) {
+       for (int i = 0; i < args.length - 2; i += 2) {
         String param = args[i];
         String value = args[i + 1];
         if (param.equals("--maxUploads"))
-          config.setParameter("Max Uploads", Integer.parseInt(value));
+			COConfigurationManager.setParameter("Max Uploads", Integer.parseInt(value));
         else if (param.equals("--maxSpeed"))
-          config.setParameter("Max Upload Speed", Integer.parseInt(value));
+			COConfigurationManager.setParameter("Max Upload Speed", Integer.parseInt(value));
         else
           return false;
       }

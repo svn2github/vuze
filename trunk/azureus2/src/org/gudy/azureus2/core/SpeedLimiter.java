@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.gudy.azureus2.core2.PeerSocket;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * 
@@ -117,7 +118,7 @@ public class SpeedLimiter {
    * @return true if speed is limited
    */
   public boolean isLimited(PeerSocket wt) {
-    limit = ConfigurationManager.getInstance().getIntParameter("Max Upload Speed", 0);
+    limit = COConfigurationManager.getIntParameter("Max Upload Speed", 0);
     return (this.limit != 0 && uploaders.contains(wt));
   }
 

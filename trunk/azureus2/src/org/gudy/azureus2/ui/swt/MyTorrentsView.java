@@ -32,10 +32,10 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * @author Olivier
@@ -91,7 +91,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
     int[] columnsSize = { 25, 250, 70, 55, 80, 45, 45, 70, 70, 70, 70, 70 };
     for (int i = 0; i < columnsHeader.length; i++) {
       columnsSize[i] =
-        ConfigurationManager.getInstance().getIntParameter("MyTorrentsView." + columnsHeader[i], columnsSize[i]);
+        COConfigurationManager.getIntParameter("MyTorrentsView." + columnsHeader[i], columnsSize[i]);
     }
 
     ControlListener resizeListener = new ControlAdapter() {
@@ -303,7 +303,7 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
           TableItem ti = tis[i];
           DownloadManager dm = (DownloadManager) managers.get(ti);
           if (dm != null) {
-            if(dm.getState() == DownloadManager.STATE_SEEDING && dm.getShareRatio() >= 0 && dm.getShareRatio() < 1000 && ConfigurationManager.getInstance().getBooleanParameter("Alert on close",true)) {
+            if(dm.getState() == DownloadManager.STATE_SEEDING && dm.getShareRatio() >= 0 && dm.getShareRatio() < 1000 && COConfigurationManager.getBooleanParameter("Alert on close",true)) {
               MessageBox mb = new MessageBox(panel.getShell(),SWT.ICON_WARNING | SWT.YES | SWT.NO);
               mb.setText(MessageText.getString("seedmore.title"));
               mb.setMessage(MessageText.getString("seedmore.shareratio") + (dm.getShareRatio()/10) + "% ." + MessageText.getString("seedmore.uploadmore"));
@@ -497,8 +497,8 @@ public class MyTorrentsView extends AbstractIView implements IComponentListener 
   }
 
   private void saveTableColumns(TableColumn t) {
-    ConfigurationManager.getInstance().setParameter((String) t.getData(), t.getWidth());
-    ConfigurationManager.getInstance().save();
+    COConfigurationManager.setParameter((String) t.getData(), t.getWidth());
+    COConfigurationManager.save();
   }
 
   /* (non-Javadoc)

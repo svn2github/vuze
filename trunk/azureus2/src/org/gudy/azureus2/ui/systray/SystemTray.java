@@ -10,9 +10,9 @@ import java.net.URL;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Display;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.gudy.azureus2.ui.swt.PasswordWindow;
 
@@ -121,7 +121,7 @@ public class SystemTray extends SysTrayMenuAdapter {
 			 * @see java.lang.Runnable#run()
 			 */
 			public void run() {
-        if (!ConfigurationManager.getInstance().getBooleanParameter("Password enabled",false))          
+        if (!COConfigurationManager.getBooleanParameter("Password enabled",false))          
 				  main.setVisible(true);
         else
           PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());

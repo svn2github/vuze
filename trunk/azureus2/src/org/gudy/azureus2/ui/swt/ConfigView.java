@@ -17,8 +17,8 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * @author Olivier
@@ -73,7 +73,6 @@ public class ConfigView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
-    final ConfigurationManager config = ConfigurationManager.getInstance();
     gConfig = new Composite(composite, SWT.NONE);
     ((ScrolledComposite) composite).setContent(gConfig);
     GridLayout configLayout = new GridLayout();
@@ -397,8 +396,8 @@ public class ConfigView extends AbstractIView {
 
     enter.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
-        config.setParameter("updated", 1); //$NON-NLS-1$
-        config.save();
+        COConfigurationManager.setParameter("updated", 1); //$NON-NLS-1$
+		COConfigurationManager.save();
       }
     });
 
@@ -416,14 +415,14 @@ public class ConfigView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-  byte[] password = ConfigurationManager.getInstance().getByteParameter("Password","".getBytes());
-  ConfigurationManager.getInstance().setParameter("Password enabled",false);
+  byte[] password = COConfigurationManager.getByteParameter("Password","".getBytes());
+  COConfigurationManager.setParameter("Password enabled",false);
   if(password.length == 0)
     {
       passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchnone"));
     }
     else {
-      byte[] confirm = ConfigurationManager.getInstance().getByteParameter("Password Confirm","".getBytes());     
+      byte[] confirm = COConfigurationManager.getByteParameter("Password Confirm","".getBytes());     
       if(confirm.length == 0)
         {
           passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchno"));
@@ -435,7 +434,7 @@ public class ConfigView extends AbstractIView {
           }
           if(same) {
             passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchyes"));
-            ConfigurationManager.getInstance().setParameter("Password enabled",true);
+			COConfigurationManager.setParameter("Password enabled",true);
           } else {
             passwordMatch.setText(MessageText.getString("ConfigView.label.passwordmatchno"));
           }

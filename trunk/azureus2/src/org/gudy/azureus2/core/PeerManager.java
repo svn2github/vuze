@@ -14,6 +14,7 @@ import org.gudy.azureus2.core2.PeerSocket;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.*;
 
 
@@ -417,7 +418,7 @@ PeerManager
           }
         }
       }
-      boolean checkPieces = ConfigurationManager.getInstance().getBooleanParameter("Check Pieces on Completion",false);
+      boolean checkPieces = COConfigurationManager.getBooleanParameter("Check Pieces on Completion",false);
       if(checkPieces && (_timeFinished - _timeStarted) > 10) {
         for(int i = 0 ; i < _downloaded.length ;i++) {
           //check the piece from the disk
@@ -741,7 +742,7 @@ PeerManager
     */
   private synchronized void insertPeerSocket(PeerSocket pc) {
     //Get the max number of connections allowed
-    int maxConnections = ConfigurationManager.getInstance().getIntParameter("Max Clients", 0); //$NON-NLS-1$
+    int maxConnections = COConfigurationManager.getIntParameter("Max Clients", 0); //$NON-NLS-1$
 
     synchronized (_connections) {
       //does our list already contain this PeerConnection?  
@@ -1028,7 +1029,7 @@ PeerManager
   //Methods that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds() {
     //If we are not ourself a seed, return
-    if (!_finished || !ConfigurationManager.getInstance().getBooleanParameter("Disconnect Seed", false)) //$NON-NLS-1$
+    if (!_finished || !COConfigurationManager.getBooleanParameter("Disconnect Seed", false)) //$NON-NLS-1$
       return;
     synchronized (_connections) {
       for (int i = 0; i < _connections.size(); i++) {

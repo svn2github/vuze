@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * @author Olivier
@@ -27,7 +27,7 @@ public class IntListParameter {
     final int values[]) {
       if(labels.length != values.length)
         return;
-      int value = ConfigurationManager.getInstance().getIntParameter(name,defaultValue);
+      int value = COConfigurationManager.getIntParameter(name,defaultValue);
       int index = findIndex(value,values);
       list = new Combo(composite,SWT.SINGLE | SWT.READ_ONLY);
       for(int i = 0 ; i < labels.length  ;i++) {
@@ -38,7 +38,7 @@ public class IntListParameter {
       
       list.addListener(SWT.Selection, new Listener() {
            public void handleEvent(Event e) {
-             ConfigurationManager.getInstance().setParameter(name, values[list.getSelectionIndex()]);
+			COConfigurationManager.setParameter(name, values[list.getSelectionIndex()]);
            }
          });
       

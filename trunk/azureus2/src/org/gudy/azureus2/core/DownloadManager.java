@@ -12,6 +12,7 @@ import java.util.List;
 import org.gudy.azureus2.core2.PeerSocket;
 import org.gudy.azureus2.ui.swt.IComponentListener;
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -101,7 +102,7 @@ public class DownloadManager extends Component {
 
   public DownloadManager(GlobalManager gm, String torrentFileName, String savePath) {
     this.globalManager = gm;
-    this.maxUploads = ConfigurationManager.getInstance().getIntParameter("Max Uploads", 4); //$NON-NLS-1$
+    this.maxUploads = COConfigurationManager.getIntParameter("Max Uploads", 4); //$NON-NLS-1$
     this.state = STATE_WAITING;
     this.priority = HIGH_PRIORITY;
     this.torrentFileName = torrentFileName;

@@ -29,10 +29,10 @@ import java.util.Vector;
 import org.apache.log4j.spi.LoggingEvent;
 
 import HTML.Template;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.MessageText;
 import org.gudy.azureus2.core.PeerStats;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -219,7 +219,7 @@ public class Jhttpp2HTTPSession extends Thread {
     String statuscode = sendHeader(a);
     String localhost = "localhost";
     try {
-      localhost = InetAddress.getLocalHost().getHostName() + ":" + ConfigurationManager.getInstance().getIntParameter("Server_iPort");
+      localhost = InetAddress.getLocalHost().getHostName() + ":" + COConfigurationManager.getIntParameter("Server_iPort");
     }
     catch(UnknownHostException e_unknown_host ) {}
     String msg = "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"><html>\r"
@@ -276,7 +276,6 @@ public class Jhttpp2HTTPSession extends Thread {
   public void handleRequest() throws Exception {
     InetAddress remote_host;
     Jhttpp2Read remote_in=null;
-    ConfigurationManager cm = ConfigurationManager.getInstance();
     int remote_port;
     byte[] b=new byte[65536];
     int numread=in.read(b);
@@ -315,13 +314,13 @@ public class Jhttpp2HTTPSession extends Thread {
             catch (IOException e_close_socket) {}
           }
           numread=in.getHeaderLength(); // get the header length
-          if (!cm.getBooleanParameter("Server_bUseDownstreamProxy")) {// sets up hostname and port
+          if (!COConfigurationManager.getBooleanParameter("Server_bUseDownstreamProxy")) {// sets up hostname and port
             remote_host=in.getRemoteHost();
             remote_port=in.remote_port;
           }
           else {
-            remote_host=InetAddress.getByName(cm.getStringParameter("Server_sDownstreamProxyHost"));
-            remote_port=cm.getIntParameter("Server_iDownstreamProxyPort");
+            remote_host=InetAddress.getByName(COConfigurationManager.getStringParameter("Server_sDownstreamProxyHost"));
+            remote_port=COConfigurationManager.getIntParameter("Server_iDownstreamProxyPort");
           }
           //if (server.debug)server.writeLog("Connect: " + remote_host + ":" + remote_port);
           try {
@@ -337,7 +336,7 @@ public class Jhttpp2HTTPSession extends Thread {
             sendErrorMSG(500,"Error: " + e.toString());
             break;
           }
-          if (!in.isTunnel()  || (in.isTunnel() && cm.getBooleanParameter("Server_bUseDownstreamProxy"))) { // no SSL-Tunnel or SSL-Tunnel with another remote proxy: simply forward the request
+          if (!in.isTunnel()  || (in.isTunnel() && COConfigurationManager.getBooleanParameter("Server_bUseDownstreamProxy"))) { // no SSL-Tunnel or SSL-Tunnel with another remote proxy: simply forward the request
             HTTP_out.write(b, 0, numread);
             HTTP_out.flush();
           }
@@ -384,14 +383,14 @@ public class Jhttpp2HTTPSession extends Thread {
     String po = MessageText.getString("ConfigView.label."+messagetextmap.get(name.substring(name.indexOf('_')+2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_"+name+"_D", po);
-    tmpl.setParam("Options_"+name, ConfigurationManager.getInstance().getIntParameter(parameterlegacy.get(name).toString()));
+    tmpl.setParam("Options_"+name, COConfigurationManager.getIntParameter(parameterlegacy.get(name).toString()));
   }
   
   private void handleConfigBool(Template tmpl, String name) {
     String po = MessageText.getString("ConfigView.label."+messagetextmap.get(name.substring(name.indexOf('_')+2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_"+name+"_D", po);
-    if (ConfigurationManager.getInstance().getBooleanParameter(parameterlegacy.get(name).toString()))
+    if (COConfigurationManager.getBooleanParameter(parameterlegacy.get(name).toString()))
       tmpl.setParam("Options_"+name, 1);
   }
   
@@ -399,11 +398,10 @@ public class Jhttpp2HTTPSession extends Thread {
     String po = MessageText.getString("ConfigView.label."+messagetextmap.get(name.substring(name.indexOf('_')+2).toLowerCase()));
     if (!po.startsWith("!"))
       tmpl.setParam("Options_"+name+"_D", po);
-    tmpl.setParam("Options_"+name, ConfigurationManager.getInstance().getStringParameter(parameterlegacy.get(name).toString()));
+    tmpl.setParam("Options_"+name, COConfigurationManager.getStringParameter(parameterlegacy.get(name).toString()));
   }
   
   private void handleConfig(Template tmpl) {
-    ConfigurationManager config = ConfigurationManager.getInstance();
     handleConfigStr(tmpl, "General_sDefaultSave_Directory");
     handleConfigStr(tmpl, "General_sDefaultTorrent_Directory");
     handleConfigStr(tmpl, "Core_sOverrideIP");
@@ -529,7 +527,7 @@ public class Jhttpp2HTTPSession extends Thread {
         h.put("Torrents_Torrent_SizeDown", dm.getDownloaded());
         h.put("Torrents_Torrent_SizeUp", dm.getUploaded());
         h.put("Torrents_Torrent_Hash", ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
-        if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || ConfigurationManager.getInstance().getBooleanParameter("Server_bNoJavaScript"))
+        if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || COConfigurationManager.getBooleanParameter("Server_bNoJavaScript"))
           h.put("Global_NoJavaScript", Boolean.TRUE);
         v.addElement(h);
       }
@@ -575,7 +573,6 @@ public class Jhttpp2HTTPSession extends Thread {
   private void ProcessConfigVars(HashMap URIvars) {
     Set keys = URIvars.keySet();
     Iterator key = keys.iterator();
-    ConfigurationManager cm = ConfigurationManager.getInstance();
     File temp;
     while (key.hasNext()) {
       String k = (String) key.next();
@@ -592,12 +589,12 @@ public class Jhttpp2HTTPSession extends Thread {
           }
         }
         if (option.substring(option.indexOf('_')+1).startsWith("s"))
-          cm.setParameter(parameterlegacy.get(option).toString(), value);
+			COConfigurationManager.setParameter(parameterlegacy.get(option).toString(), value);
         else
-          cm.setParameter(parameterlegacy.get(option).toString(), Integer.parseInt(value));
+			COConfigurationManager.setParameter(parameterlegacy.get(option).toString(), Integer.parseInt(value));
       }
     }
-    cm.save();
+	COConfigurationManager.save();
     server.initLoggers();
     server.initAccess();
   }
@@ -605,9 +602,9 @@ public class Jhttpp2HTTPSession extends Thread {
   private void ProcessAdd(HashMap URIvars) {
     if (URIvars.containsKey("Add_torrent") && !((String) URIvars.get("Add_torrent")).equals("")) {
       try {
-        HTTPDownloader dl = new HTTPDownloader((String) URIvars.get("Add_torrent"), ConfigurationManager.getInstance().getDirectoryParameter("General_sDefaultTorrent_Directory"));
+        HTTPDownloader dl = new HTTPDownloader((String) URIvars.get("Add_torrent"), COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
         String file = dl.download();
-        server.gm.addDownloadManager(file, ConfigurationManager.getInstance().getDirectoryParameter("General_sDefaultSave_Directory"));
+        server.gm.addDownloadManager(file, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
         server.loggerWeb.info("Download of "+(String)URIvars.get("Add_torrent")+" succeeded");
       } catch (Exception e) {
         server.loggerWeb.error("Download of "+(String)URIvars.get("Add_torrent")+" failed", e);
@@ -691,7 +688,7 @@ public class Jhttpp2HTTPSession extends Thread {
     else if (filename.startsWith("/")) filename=filename.substring(1);
     if (filename.endsWith("/")) filename+="index"; // add index.html, if ending with /
     File file = null;
-    File fileuser = new File(ConfigurationManager.getInstance().getDirectoryParameter("Server_sTemplate_Directory")+ sep + filename); // access only files in "htdocs"
+    File fileuser = new File(COConfigurationManager.getDirectoryParameter("Server_sTemplate_Directory")+ sep + filename); // access only files in "htdocs"
     String fileres = "org/gudy/azureus2/ui/web/template/"+filename;
     //    File filedef = new File("org/gudy/azureus2/server/template/"+filename);
     boolean useres = false;
@@ -814,10 +811,10 @@ public class Jhttpp2HTTPSession extends Thread {
       file_in.close(); // finished!
       in_st.close();
     } else {
-      tmpl.setParam("Global_ServerName", ConfigurationManager.getInstance().getStringParameter("Server_sName"));
-      if (ConfigurationManager.getInstance().getIntParameter("Server_iRefresh")!=0)
-        tmpl.setParam("Global_Refresh", ConfigurationManager.getInstance().getIntParameter("Server_iRefresh"));
-      if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || ConfigurationManager.getInstance().getBooleanParameter("Server_bNoJavaScript"))
+      tmpl.setParam("Global_ServerName", COConfigurationManager.getStringParameter("Server_sName"));
+      if (COConfigurationManager.getIntParameter("Server_iRefresh")!=0)
+        tmpl.setParam("Global_Refresh", COConfigurationManager.getIntParameter("Server_iRefresh"));
+      if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || COConfigurationManager.getBooleanParameter("Server_bNoJavaScript"))
         tmpl.setParam("Global_NoJavaScript", Boolean.TRUE);
       TemplateCache tc = TemplateCache.getInstance();
       if (tc.needs(filename, "Options"))
@@ -841,17 +838,17 @@ public class Jhttpp2HTTPSession extends Thread {
   public void torrent_handler() throws IOException {
       String fwd;
       try {
-        HTTPDownloader dl = new HTTPDownloader("http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url, ConfigurationManager.getInstance().getDirectoryParameter("General_sDefaultTorrent_Directory"));
+        HTTPDownloader dl = new HTTPDownloader("http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url, COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
         String file = dl.download();
-        server.gm.addDownloadManager(file, ConfigurationManager.getInstance().getDirectoryParameter("General_sDefaultSave_Directory"));
+        server.gm.addDownloadManager(file, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
         server.loggerWeb.info("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" succeeded");
-        fwd=ConfigurationManager.getInstance().getStringParameter("Server_sProxySuccessRedirect");
+        fwd=COConfigurationManager.getStringParameter("Server_sProxySuccessRedirect");
       } catch (Exception e) {
         server.loggerWeb.error("Download of "+"http://"+this.in.getRemoteHostName()+":"+Integer.toString(in.remote_port)+in.url+" failed", e);
         fwd="dl_fail";
       }
       sendHeader(301);
-      write(out,"Location: http://" + ConfigurationManager.getInstance().getStringParameter("Server_sAccessHost")+"/"+fwd + "\r\n");
+      write(out,"Location: http://" + COConfigurationManager.getStringParameter("Server_sAccessHost")+"/"+fwd + "\r\n");
       endHeader();
       out.flush();
   }

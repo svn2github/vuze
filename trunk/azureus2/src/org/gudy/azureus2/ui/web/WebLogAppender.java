@@ -15,7 +15,7 @@ import java.util.List;
 import org.apache.log4j.Appender;
 import org.apache.log4j.AppenderSkeleton;
 
-import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  *
@@ -32,7 +32,7 @@ public class WebLogAppender extends AppenderSkeleton implements Appender {
   
   public void append(org.apache.log4j.spi.LoggingEvent loggingEvent) {
     log.add(loggingEvent);
-    while (log.size() > ConfigurationManager.getInstance().getIntParameter("Server_iLogCount"))
+    while (log.size() > COConfigurationManager.getIntParameter("Server_iLogCount"))
       log.remove(0);
   }
  

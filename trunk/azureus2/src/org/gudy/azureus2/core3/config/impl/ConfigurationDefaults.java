@@ -8,7 +8,7 @@
  * Created on 31. Juli 2003, 21:31
  */
 
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.config.impl;
 
 import java.util.HashMap;
 

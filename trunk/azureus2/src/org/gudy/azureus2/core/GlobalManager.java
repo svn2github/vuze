@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.IComponentListener;
@@ -46,7 +47,7 @@ public class GlobalManager extends Component {
     }
 
     private void determineSaveResumeDataInterval() {
-      int saveResumeInterval = ConfigurationManager.getInstance().getIntParameter("Save Resume Interval", 5);
+      int saveResumeInterval = COConfigurationManager.getIntParameter("Save Resume Interval", 5);
       if(saveResumeInterval > 1 && saveResumeInterval < 21)
         saveResumeLoopCount = saveResumeInterval * 60000 / waitTime;
     }
@@ -82,7 +83,7 @@ public class GlobalManager extends Component {
             else if (manager.getState() == DownloadManager.STATE_SEEDING) {
               nbStarted++;
               //Checks if any condition to stop seeding is met
-              int minShareRatio = 1000 * ConfigurationManager.getInstance().getIntParameter("Stop Ratio",0);
+              int minShareRatio = 1000 * COConfigurationManager.getIntParameter("Stop Ratio",0);
               //0 means unlimited
               if(minShareRatio != 0) {
                 int shareRatio = manager.getShareRatio();
@@ -91,7 +92,7 @@ public class GlobalManager extends Component {
               }
               
               
-              int minSeedsPerPeersRatio = ConfigurationManager.getInstance().getIntParameter("Stop Peers Ratio",0);    
+              int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Stop Peers Ratio",0);    
               //0 means never stop
               if(minSeedsPerPeersRatio != 0) {
                 TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();    
@@ -108,7 +109,7 @@ public class GlobalManager extends Component {
               }         
             } else if(manager.getState() == DownloadManager.STATE_STOPPED && manager.getCompleted() == 1000) {
               //Checks if any condition to start seeding is met
-              int minSeedsPerPeersRatio = ConfigurationManager.getInstance().getIntParameter("Start Peers Ratio",0); 
+              int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Start Peers Ratio",0); 
               //0 means never start
               if(minSeedsPerPeersRatio != 0) {
                 TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();  
@@ -146,8 +147,8 @@ public class GlobalManager extends Component {
               manager.initialize();
               alreadyOneAllocatingOrChecking = true;
             }
-            int nbMax = ConfigurationManager.getInstance().getIntParameter("max active torrents", 4);
-            int nbMaxDownloads = ConfigurationManager.getInstance().getIntParameter("max downloads", 4);
+            int nbMax = COConfigurationManager.getIntParameter("max active torrents", 4);
+            int nbMaxDownloads = COConfigurationManager.getIntParameter("max downloads", 4);
             if (manager.getState() == DownloadManager.STATE_READY
               && ((nbMax == 0) || (nbStarted < nbMax))
               && (manager.getCompleted() == 1000 ||  ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads)))) {
@@ -165,7 +166,7 @@ public class GlobalManager extends Component {
 
             if ((manager.getState() == DownloadManager.STATE_SEEDING)
               && (manager.getPriority() == DownloadManager.HIGH_PRIORITY)
-              && ConfigurationManager.getInstance().getBooleanParameter("Switch Priority", true)) {
+              && COConfigurationManager.getBooleanParameter("Switch Priority", true)) {
               manager.setPriority(DownloadManager.LOW_PRIORITY);
             }
 

@@ -16,8 +16,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
@@ -73,7 +73,7 @@ public class PasswordWindow {
                  SHA1Hasher hasher = new SHA1Hasher();
                  byte[] passwordText = password.getText().getBytes();
                  byte[] encoded = hasher.calculateHash(passwordText);
-                 byte[] correct = ConfigurationManager.getInstance().getByteParameter("Password","".getBytes());
+                 byte[] correct = COConfigurationManager.getByteParameter("Password","".getBytes());
                  boolean same=true;
                  for(int i=0; i<correct.length;i++)
                    {

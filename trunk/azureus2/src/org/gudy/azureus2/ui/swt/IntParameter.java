@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * @author Olivier
@@ -21,7 +21,7 @@ public class IntParameter {
 
   public IntParameter(Composite composite, final String name, int defaultValue) {
     inputField = new Text(composite, SWT.BORDER);
-    int value = ConfigurationManager.getInstance().getIntParameter(name, defaultValue);
+    int value = COConfigurationManager.getIntParameter(name, defaultValue);
     inputField.setText("" + value);
     inputField.addListener(SWT.Verify, new Listener() {
       public void handleEvent(Event e) {
@@ -41,7 +41,7 @@ public class IntParameter {
       public void handleEvent(Event event) {
         try {
           int value = Integer.parseInt(inputField.getText());
-          ConfigurationManager.getInstance().setParameter(name, value);
+		  COConfigurationManager.setParameter(name, value);
         }
         catch (Exception e) {}
       }

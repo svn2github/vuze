@@ -15,7 +15,7 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.StringTokenizer;
 
-import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * File: Jhttpp2BufferedFilterStream.java
@@ -69,7 +69,6 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
    * @exception IOException
    */
   public int read(byte[] a)throws IOException {
-    ConfigurationManager cm = ConfigurationManager.getInstance();
     statuscode = Jhttpp2HTTPSession.SC_OK;
     if (ssl) return super.read(a);
     boolean cookies_enabled=server.enableCookiesByDefault();
@@ -91,12 +90,12 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
             InetAddress host = parseRequest(buf,methodID);
             if (statuscode != Jhttpp2HTTPSession.SC_OK) break; // error occured, go on with the next line
             
-            if (!cm.getBooleanParameter("Server_bUseDownstreamProxy") && !ssl) {
+            if (!COConfigurationManager.getBooleanParameter("Server_bUseDownstreamProxy") && !ssl) {
               /* creates a new request without the hostname */
               buf = method + " " + url + " " + server.getHttpVersion() + "\r\n";
               lread = buf.length();
             }
-            if ((cm.getBooleanParameter("Server_bUseDownstreamProxy") && connection.notConnected()) || !host.equals(remote_host)) {
+            if ((COConfigurationManager.getBooleanParameter("Server_bUseDownstreamProxy") && connection.notConnected()) || !host.equals(remote_host)) {
               server.loggerWeb.debug("read_f: STATE_CONNECT_TO_NEW_HOST");
               statuscode = Jhttpp2HTTPSession.SC_CONNECTING_TO_HOST;
               remote_host = host;
@@ -104,7 +103,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
                                         /* -------------------------
                                          * url blocking (only "GET" method)
                                          * -------------------------*/
-            if (cm.getBooleanParameter("Server_bProxyBlockURLs") && methodID==0 && statuscode!=Jhttpp2HTTPSession.SC_FILE_REQUEST) {
+            if (COConfigurationManager.getBooleanParameter("Server_bProxyBlockURLs") && methodID==0 && statuscode!=Jhttpp2HTTPSession.SC_FILE_REQUEST) {
               server.loggerWeb.debug("Searching match...");
               Jhttpp2URLMatch match=server.findMatch(this.remote_host_name+url);
               if (match!=null){
@@ -144,7 +143,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
           if (!ssl) body=true; // Note: in HTTP/1.1 any method can have a body, not only "POST"
         }
         else if (server.startsWith(buf,"Proxy-Connection:")) {
-          if (!cm.getBooleanParameter("Server_bUseDownstreamProxy")) buf=null;
+          if (!COConfigurationManager.getBooleanParameter("Server_bUseDownstreamProxy")) buf=null;
           else {
             buf="Proxy-Connection: Keep-Alive\r\n";
             lread=buf.length();
@@ -168,7 +167,7 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
               /*------------------------------------------------
                * Http-Header filtering section
                *------------------------------------------------*/
-        else if (cm.getBooleanParameter("Server_bProxyFilterHTTP")) {
+        else if (COConfigurationManager.getBooleanParameter("Server_bProxyFilterHTTP")) {
           if(server.startsWith(buf,"Referer:")) {// removes "Referer"
             buf=null;
           } else if(server.startsWith(buf,"User-Agent")) // changes User-Agent
@@ -256,7 +255,6 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
    * @return an InetAddress for the hostname, null on errors with a statuscode!=SC_OK
    */
   public InetAddress parseRequest(String a,int method_index)  {
-    ConfigurationManager cm = ConfigurationManager.getInstance();
     server.loggerWeb.debug(a);
     String f; int pos; url="";
     if (ssl) {
@@ -304,19 +302,19 @@ public class Jhttpp2ClientInputStream extends BufferedInputStream {
     remote_host_name = f;
     InetAddress address = null;
     server.loggerWeb.log(SLevel.HTTP, connection.getLocalSocket().getInetAddress().getHostAddress() + " " + method + " " + getFullURL());
-    if (f.equals(cm.getStringParameter("Server_sAccessHost"))) {
+    if (f.equals(COConfigurationManager.getStringParameter("Server_sAccessHost"))) {
       statuscode = Jhttpp2HTTPSession.SC_FILE_REQUEST;
       return null;
     }
     try {
       address = InetAddress.getByName(f);
-      if (remote_port == cm.getIntParameter("Server_iPort") && address.equals(InetAddress.getLocalHost()))
+      if (remote_port == COConfigurationManager.getIntParameter("Server_iPort") && address.equals(InetAddress.getLocalHost()))
         statuscode = Jhttpp2HTTPSession.SC_FILE_REQUEST;
     }
     catch (UnknownHostException e_u_host) {
-      if (!cm.getBooleanParameter("Server_bUseDownstreamProxy")) statuscode = Jhttpp2HTTPSession.SC_HOST_NOT_FOUND;
+      if (!COConfigurationManager.getBooleanParameter("Server_bUseDownstreamProxy")) statuscode = Jhttpp2HTTPSession.SC_HOST_NOT_FOUND;
     }
-    if ((cm.getBooleanParameter("Server_bProxyGrabTorrents")) && (url.toUpperCase().endsWith(".TORRENT")))
+    if ((COConfigurationManager.getBooleanParameter("Server_bProxyGrabTorrents")) && (url.toUpperCase().endsWith(".TORRENT")))
       statuscode = Jhttpp2HTTPSession.SC_GRABBED_TORRENT;
     return address;
   }

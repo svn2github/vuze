@@ -8,9 +8,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import org.gudy.azureus2.core.ConfigurationChecker;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.GlobalManager;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.ILocaleUtilChooser;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 
@@ -71,7 +70,7 @@ public class Main implements ILocaleUtilChooser {
       startServer.start();
       gm = new GlobalManager();
       mainWindow = new MainWindow(gm, startServer);
-      ConfigurationChecker.checkConfiguration();
+      COConfigurationManager.checkConfiguration();
       if (args.length != 0) {
         // Sometimes Windows use filename in 8.3 form and cannot
         // match .torrent extension. To solve this, canonical path
@@ -113,7 +112,7 @@ public class Main implements ILocaleUtilChooser {
     if(mainWindow != null) {
       mainWindow.getDisplay().asyncExec(new Runnable() {
         public void run() {
-          if (!ConfigurationManager.getInstance().getBooleanParameter("Password enabled",false) || mainWindow.isVisible())          
+          if (!COConfigurationManager.getBooleanParameter("Password enabled",false) || mainWindow.isVisible())          
             mainWindow.setVisible(true);
           else
             PasswordWindow.showPasswordWindow(MainWindow.getWindow().getDisplay());

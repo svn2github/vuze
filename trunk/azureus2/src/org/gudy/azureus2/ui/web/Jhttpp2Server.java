@@ -27,8 +27,8 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.ILoggerListener;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
@@ -96,7 +96,6 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
   void init(GlobalManager _gm) {
     
     gm = _gm;
-    ConfigurationManager cm = ConfigurationManager.getInstance();
     initLoggers();
     initAccess();
     /*
@@ -116,16 +115,16 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
       loggerWeb.error("Error while resoring settings", e_load);
     }
     try {
-      if (cm.getStringParameter("Server_sBindIP").equals(""))
-        listen = new ServerSocket(cm.getIntParameter("Server_iPort"));
+      if (COConfigurationManager.getStringParameter("Server_sBindIP").equals(""))
+        listen = new ServerSocket(COConfigurationManager.getIntParameter("Server_iPort"));
       else
-        listen = new ServerSocket(cm.getIntParameter("Server_iPort"),0,InetAddress.getByName(cm.getStringParameter("Server_sBindIP")));
+        listen = new ServerSocket(COConfigurationManager.getIntParameter("Server_iPort"),0,InetAddress.getByName(COConfigurationManager.getStringParameter("Server_sBindIP")));
     } catch (BindException e_bind_socket) {
-      loggerWeb.fatal("Socket " + cm.getIntParameter("Server_iPort") + " is already in use (Another jHTTPp2 proxy running?)", e_bind_socket);
+      loggerWeb.fatal("Socket " + COConfigurationManager.getIntParameter("Server_iPort") + " is already in use (Another jHTTPp2 proxy running?)", e_bind_socket);
       shutdownServer();
     }
     catch (IOException e_io_socket) {
-      loggerWeb.fatal("IO Exception while creating server socket on port " + cm.getIntParameter("Server_iPort") + ".", e_io_socket);
+      loggerWeb.fatal("IO Exception while creating server socket on port " + COConfigurationManager.getIntParameter("Server_iPort") + ".", e_io_socket);
       shutdownServer();
     }
     
@@ -137,7 +136,6 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     //remote_debug=false;
   }
   public void initLoggers() {
-    ConfigurationManager cm = ConfigurationManager.getInstance();
     Logger.getRootLogger().removeAllAppenders();
     //BasicConfigurator.configure();
     Appender app;
@@ -147,22 +145,22 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     app = new WebLogAppender(logList);
     app.setName("WebLogAppender");
     Logger.getRootLogger().addAppender(app);
-    if (cm.getBooleanParameter("Server_bLogFile")) {
+    if (COConfigurationManager.getBooleanParameter("Server_bLogFile")) {
       try{
-        app = new FileAppender(new PatternLayout(), cm.getStringParameter("Server_sLogFile"),true);
+        app = new FileAppender(new PatternLayout(), COConfigurationManager.getStringParameter("Server_sLogFile"),true);
         app.setName("LogFileAppender");
         Logger.getRootLogger().addAppender(app);
       }catch (Exception e){}
     }
     org.gudy.azureus2.core.Logger.getLogger().setListener(this);
-    loggerCore.setLevel(SLevel.toLevel(cm.getIntParameter("Server_iLogLevelCore")));
-    loggerWeb.setLevel(SLevel.toLevel(cm.getIntParameter("Server_iLogLevelWebinterface")));
+    loggerCore.setLevel(SLevel.toLevel(COConfigurationManager.getIntParameter("Server_iLogLevelCore")));
+    loggerWeb.setLevel(SLevel.toLevel(COConfigurationManager.getIntParameter("Server_iLogLevelWebinterface")));
   }
   
   public void initAccess() {
     staticIPs = new LinkedList();
     String theip = "";
-    StringTokenizer tok = new StringTokenizer(ConfigurationManager.getInstance().getStringParameter("Server_sAllowStatic"), " ");
+    StringTokenizer tok = new StringTokenizer(COConfigurationManager.getStringParameter("Server_sAllowStatic"), " ");
     while (tok.hasMoreTokens()) {
       try {
         theip = tok.nextToken();
@@ -171,7 +169,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
         loggerWeb.error("Host "+theip+" not found while updating allowed static hosts.", e);
       }
     }
-    tok = new StringTokenizer(ConfigurationManager.getInstance().getStringParameter("Server_sAllowDynamic"), " ");
+    tok = new StringTokenizer(COConfigurationManager.getStringParameter("Server_sAllowDynamic"), " ");
     if (tok.hasMoreTokens()) {
       dynamicHosts = new LinkedList();
       while (tok.hasMoreTokens()) {
@@ -231,7 +229,7 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
       while(true) {
         Socket client = listen.accept();
         
-        if ((dynamicHosts != null) && ((new Date()).getTime() > (dynamicHostUpdate.getTime()+(ConfigurationManager.getInstance().getIntParameter("Server_iRecheckDynamic")*60000)))) {
+        if ((dynamicHosts != null) && ((new Date()).getTime() > (dynamicHostUpdate.getTime()+(COConfigurationManager.getIntParameter("Server_iRecheckDynamic")*60000)))) {
           rebuildAccess();
         }
         
@@ -369,10 +367,10 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
    * @return User-Agent String
    */
   public String getUserAgent() {
-    return ConfigurationManager.getInstance().getStringParameter("Server_sProxyUserAgent");
+    return COConfigurationManager.getStringParameter("Server_sProxyUserAgent");
   }
   public void setUserAgent(String ua) {
-    ConfigurationManager.getInstance().setParameter("Server_sProxyUserAgent", ua);
+	COConfigurationManager.setParameter("Server_sProxyUserAgent", ua);
   }
   public void log(int componentId,int event,int color,String text) {
     if (event == org.gudy.azureus2.core.Logger.ERROR)
@@ -465,10 +463,10 @@ public class Jhttpp2Server implements Runnable, ILoggerListener {
     return urlactions;
   }
   public boolean enableCookiesByDefault() {
-    return ConfigurationManager.getInstance().getBooleanParameter("Server_bProxyEnableCookies");
+    return COConfigurationManager.getBooleanParameter("Server_bProxyEnableCookies");
   }
   public void enableCookiesByDefault(boolean a) {
-    ConfigurationManager.getInstance().setParameter("Server_bProxyEnableCookies", a);
+	COConfigurationManager.setParameter("Server_bProxyEnableCookies", a);
   }
   public void resetStat() {
     bytesread=0;

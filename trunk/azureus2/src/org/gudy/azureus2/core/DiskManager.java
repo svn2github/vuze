@@ -20,6 +20,7 @@ import java.util.Vector;
 
 import org.gudy.azureus2.core2.DataQueueItem;
 
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
@@ -371,7 +372,7 @@ public class DiskManager {
 
     private void checkAllPieces() {
         state = CHECKING;
-        boolean resumeEnabled = ConfigurationManager.getInstance().getBooleanParameter("Use Resume", false);
+        boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", false);
         boolean resumeValid = false;
         byte[] resumeArray = null;
         Map partialPieces = null;
@@ -674,7 +675,7 @@ public class DiskManager {
             //Test if files exists
             RandomAccessFile raf = null;
 
-			boolean bDynamicFile=ConfigurationManager.getInstance().getBooleanParameter("Enable incremental file creation", false);
+			boolean bDynamicFile=COConfigurationManager.getBooleanParameter("Enable incremental file creation", false);
 			boolean bCreateFile=false;
 			
 			if (!f.exists()) { bCreateFile = true; }
@@ -703,7 +704,7 @@ public class DiskManager {
                     return false;
                 }
 
-                if (ConfigurationManager.getInstance().getBooleanParameter("Allocate New", true)) {
+                if (COConfigurationManager.getBooleanParameter("Allocate New", true)) {
                 	try {
                 		raf.setLength(length);
                 	}
@@ -744,7 +745,7 @@ public class DiskManager {
             //Added for Feature Request
             //[ 807483 ] Prioritize .nfo files in new torrents
             //Implemented a more general way of dealing with it.
-            String extensions = ConfigurationManager.getInstance().getStringParameter("priorityExtensions","");
+            String extensions = COConfigurationManager.getStringParameter("priorityExtensions","");
             if(!extensions.equals("")) {
                 StringTokenizer st = new StringTokenizer(extensions,";");
                 while(st.hasMoreTokens()) {

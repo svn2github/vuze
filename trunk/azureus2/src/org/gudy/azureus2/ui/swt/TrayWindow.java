@@ -21,9 +21,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * @author Olivier
@@ -147,7 +147,7 @@ public class TrayWindow implements IComponentListener {
   }
 
   public void restore() {
-    if (!ConfigurationManager.getInstance().getBooleanParameter("Password enabled", false)) {
+    if (!COConfigurationManager.getBooleanParameter("Password enabled", false)) {
       minimized.setVisible(false);
       main.setVisible(true);
       moving = false;

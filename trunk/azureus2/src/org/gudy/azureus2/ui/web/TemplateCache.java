@@ -19,7 +19,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import HTML.Template;
-import org.gudy.azureus2.core.ConfigurationManager;
+
+import org.gudy.azureus2.core3.config.*;
 
 /**
  *
@@ -40,7 +41,7 @@ public class TemplateCache {
   }
   
   public Template get(String path) throws FileNotFoundException, IOException {
-    if (!cacheddir.equals(ConfigurationManager.getInstance().getStringParameter("Server_sTemplate_Directory")))
+    if (!cacheddir.equals(COConfigurationManager.getStringParameter("Server_sTemplate_Directory")))
       UpdatePersistantArgs();
     Template t;
     if (cache.containsKey(path)) {
@@ -79,7 +80,7 @@ public class TemplateCache {
     cache.clear();
     cache_need.clear();
     
-    cacheddir=ConfigurationManager.getInstance().getStringParameter("Server_sTemplate_Directory");
+    cacheddir=COConfigurationManager.getStringParameter("Server_sTemplate_Directory");
     paths[0]=cacheddir;
     paths[1]="RES:org/gudy/azureus2/ui/web/template";
     //paths[2]="template";

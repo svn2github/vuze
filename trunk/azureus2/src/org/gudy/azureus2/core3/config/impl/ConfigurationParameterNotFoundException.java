@@ -4,7 +4,7 @@
  * Created on 22. August 2003, 19:18
  */
 
-package org.gudy.azureus2.core;
+package org.gudy.azureus2.core3.config.impl;
 
 /**
  *

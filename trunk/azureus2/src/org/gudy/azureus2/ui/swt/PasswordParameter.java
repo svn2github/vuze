@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
@@ -25,7 +25,7 @@ public class PasswordParameter {
     this.name = name;
     inputField = new Text(composite, SWT.BORDER);
     inputField.setEchoChar('*');
-    byte[] value = ConfigurationManager.getInstance().getByteParameter(name, "".getBytes());
+    byte[] value = COConfigurationManager.getByteParameter(name, "".getBytes());
     if(value.length > 0)
       inputField.setText("***");
     inputField.addListener(SWT.Modify, new Listener() {
@@ -38,7 +38,7 @@ public class PasswordParameter {
             encoded = hasher.calculateHash(password);
           else
             encoded = password;
-          ConfigurationManager.getInstance().setParameter(name, encoded);
+          COConfigurationManager.setParameter(name, encoded);
         } catch(Exception e) {
           e.printStackTrace();
         }
@@ -52,7 +52,7 @@ public class PasswordParameter {
   
   public void setValue(String value) {
     inputField.setText(value);
-    ConfigurationManager.getInstance().setParameter(name, value);         
+    COConfigurationManager.setParameter(name, value);         
   }
   
   public String getValue() {

@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.gudy.azureus2.core.ConfigurationManager;
+import org.gudy.azureus2.core3.config.*;
 
 /**
  * @author Olivier
@@ -21,7 +21,7 @@ public class BooleanParameter {
   Button checkBox;
  
   public BooleanParameter(Composite composite, final String name, boolean defaultValue) {
-    boolean value = ConfigurationManager.getInstance().getBooleanParameter(name,defaultValue);
+    boolean value = COConfigurationManager.getBooleanParameter(name,defaultValue);
     checkBox = new Button(composite,SWT.CHECK);
     checkBox.setSelection(value);
     checkBox.addListener(SWT.Selection,new Listener() {
@@ -29,7 +29,7 @@ public class BooleanParameter {
      * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
      */
     public void handleEvent(Event event) {
-      ConfigurationManager.getInstance().setParameter(name,checkBox.getSelection());
+		COConfigurationManager.setParameter(name,checkBox.getSelection());
     }
   });
   }

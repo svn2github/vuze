@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.config.*;
+
 /**
  * The Bittorrent server to accept incoming connections.
  * 
@@ -27,8 +29,8 @@ public class Server extends Thread {
   public Server() {
     super("Bt Server");
     //Will create a Server on any socket from 6881 to 6889
-    int lowPort = ConfigurationManager.getInstance().getIntParameter("Low Port", 6881);
-    int highPort = ConfigurationManager.getInstance().getIntParameter("High Port", 6889);
+    int lowPort = COConfigurationManager.getIntParameter("Low Port", 6881);
+    int highPort = COConfigurationManager.getIntParameter("High Port", 6889);
     lowPort = Math.min(lowPort, highPort);
     highPort = Math.max(lowPort, highPort);
     port = lowPort;
@@ -116,8 +118,8 @@ public class Server extends Thread {
 
   public static boolean portsFree() {
     return Math.abs(
-      ConfigurationManager.getInstance().getIntParameter("Low Port", 6881)
-        - ConfigurationManager.getInstance().getIntParameter("High Port", 6889))
+      COConfigurationManager.getIntParameter("Low Port", 6881)
+        - COConfigurationManager.getIntParameter("High Port", 6889))
       + 1
       > instanceCount;
   }

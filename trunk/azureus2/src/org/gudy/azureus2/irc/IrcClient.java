@@ -4,8 +4,8 @@
  */
 package org.gudy.azureus2.irc;
 
-import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.MessageText;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.swt.MainWindow;
 import org.jibble.pircbot.Colors;
 import org.jibble.pircbot.PircBot;
@@ -24,9 +24,9 @@ public class IrcClient extends PircBot {
   private String userName;
 
   public IrcClient(IrcListener _listener){    
-    this.srvName = ConfigurationManager.getInstance().getStringParameter("Irc Server", "irc.freenode.net");
-    this.channel = ConfigurationManager.getInstance().getStringParameter("Irc Channel", "#azureus-users");
-    this.userName = ConfigurationManager.getInstance().getStringParameter("Irc Login", "");    
+    this.srvName = COConfigurationManager.getStringParameter("Irc Server", "irc.freenode.net");
+    this.channel = COConfigurationManager.getStringParameter("Irc Channel", "#azureus-users");
+    this.userName = COConfigurationManager.getStringParameter("Irc Login", "");    
     this.setName(userName);
     this.listener = _listener;
     if(userName.equals("")) {
