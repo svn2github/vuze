@@ -246,6 +246,7 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iMinSeedingTime", new Long(60*3));
     def.put("StartStopManager_bIgnore0Peers", new Long(1));
     def.put("StartStopManager_bPreferLargerSwarms", new Long(1));
+    def.put("StartStopManager_bDebugLog", new Long(0));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
