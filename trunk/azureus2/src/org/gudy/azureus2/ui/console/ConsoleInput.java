@@ -143,7 +143,8 @@ public class ConsoleInput extends Thread {
               out.println(" * Seeding");
               out.println(" ! Stopped");
               out.println(" . Waiting (for allocation/checking)");
-              out.println(" : Ready (waiting for a free download slot)");
+              out.println(" : Ready");
+              out.println(" - Queued");
               out.println(" A Allocating");
               out.println(" C Checking");
               out.println(" E Error");
@@ -252,6 +253,8 @@ public class ConsoleInput extends Thread {
                     tstate += ".";
                   else if (dmstate == DownloadManager.STATE_READY)
                     tstate += ":";
+                  else if (dmstate == DownloadManager.STATE_QUEUED)
+                  	tstate += "-";
                   else
                     tstate += "?";
                   tstate += "] ";
@@ -310,6 +313,8 @@ public class ConsoleInput extends Thread {
             				TRTrackerClient trackerclient = dm.getTrackerClient();
             				out.println("> -----");
             				out.println("Info on Torrent #" + subcommand + " (" + name + ")");
+            				out.println("- General Info -");
+            				out.println("State: "+Integer.toString(dm.getState()));
             				out.println("- Tracker Info -");
             				if (trackerclient != null) {
             					out.println("URL: " + trackerclient.getTrackerUrl());
