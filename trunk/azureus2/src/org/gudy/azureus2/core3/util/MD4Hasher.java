@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: MD4Hasher.java,v 1.1 2004-02-16 10:01:01 parg Exp $
+ * $Id: MD4Hasher.java,v 1.2 2004-02-16 15:56:18 parg Exp $
  *
  ********************************************************************************/
 
@@ -36,8 +36,8 @@ import java.nio.ByteOrder;
  * use final, it will reset the MD4 instance for a new calculation.
  *
  * @author emarant
- * @version $Revision: 1.1 $
- * <br>Last changed by $Author: parg $ on $Date: 2004-02-16 10:01:01 $
+ * @version $Revision: 1.2 $
+ * <br>Last changed by $Author: parg $ on $Date: 2004-02-16 15:56:18 $
  */
 public final class MD4Hasher{
     
@@ -72,13 +72,22 @@ public final class MD4Hasher{
     
     public void
     update(
-    	byte[]		data )
+    	byte[]		data,
+		int			pos,
+		int			len )
     {
-    	ByteBuffer bb = ByteBuffer.wrap( data );
+    	ByteBuffer bb = ByteBuffer.wrap( data, pos, len );
     	
     	bb.order( ByteOrder.LITTLE_ENDIAN );
     	
     	update( bb );
+    }    
+    
+    public void
+    update(
+    	byte[]		data )
+    {
+    	update( data, 0, data.length );
     }
     
     public byte[]

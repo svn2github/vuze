@@ -39,12 +39,15 @@ TOTorrentFileHasher
 	protected byte[]	buffer;
 	protected int		buffer_pos;
 	 
-	protected SHA1Hasher					overall_sha_hash;
+	protected SHA1Hasher					overall_sha1_hash;
 	protected MD4Hasher						overall_md4_hash;
 	protected Md5Hasher						overall_md5_hash;
+	protected ED2KHasher					overall_ed2k_hash;
+	
 	protected byte[]						md4_digest;
 	protected byte[]						md5_digest;
 	protected byte[]						sha1_digest;
+	protected byte[]						ed2k_digest;
 	
 	protected TOTorrentFileHasherListener	listener;
 		
@@ -54,11 +57,13 @@ TOTorrentFileHasher
 		TOTorrentFileHasherListener		_listener )
 	{
 		try{
-			overall_sha_hash = new SHA1Hasher();
+			overall_sha1_hash 	= new SHA1Hasher();
 			
-			overall_md4_hash = new MD4Hasher();
+			overall_md4_hash 	= new MD4Hasher();
 			
-			overall_md5_hash = new Md5Hasher();
+			overall_md5_hash 	= new Md5Hasher();
+			
+			overall_ed2k_hash 	= new ED2KHasher();
 			
 		}catch( NoSuchAlgorithmException e ){
 			
@@ -101,9 +106,10 @@ TOTorrentFileHasher
 						
 						byte[] hash = new SHA1Hasher().calculateHash(buffer);
 
-						overall_sha_hash.update( buffer );
+						overall_sha1_hash.update( buffer );
 						overall_md4_hash.update( buffer );
 						overall_md5_hash.update( buffer );
+						overall_ed2k_hash.update( buffer );
 						
 						pieces.add( hash );
 						
@@ -151,9 +157,10 @@ TOTorrentFileHasher
 				
 				pieces.addElement(new SHA1Hasher().calculateHash(rem));
 				
-				overall_sha_hash.update( rem );
+				overall_sha1_hash.update( rem );
 				overall_md4_hash.update( rem );
 				overall_md5_hash.update( rem );
+				overall_ed2k_hash.update( rem );
 				
 				if ( listener != null ){
 							
@@ -167,7 +174,8 @@ TOTorrentFileHasher
 				
 				md5_digest	= overall_md5_hash.getDigest();
 				md4_digest	= overall_md4_hash.getDigest();			
-				sha1_digest	= overall_sha_hash.getDigest();
+				sha1_digest	= overall_sha1_hash.getDigest();
+				ed2k_digest	= overall_ed2k_hash.getDigest();
 			}
 			
 			byte[][] res = new byte[pieces.size()][];
@@ -209,6 +217,18 @@ TOTorrentFileHasher
 		return( md4_digest );
 	}
 	
+	protected byte[]
+	getED2KDigest()
+	
+		throws TOTorrentException
+	{
+		if ( ed2k_digest == null ){
+			
+			getPieces();
+		}
+		
+		return( ed2k_digest );
+	}
 	
 	protected byte[]
 	getSHA1Digest()
