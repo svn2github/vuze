@@ -63,9 +63,6 @@ PEPeerControlImpl
   private PEPiece[] 				_pieces;
   private PEPeerServerHelper 			_server;
   private PEPeerManagerStatsImpl 		_stats;
-  private long _timeLastUpdate;
-  private int timeToWait;
-  private int origTimeToWait = 120;
   private TRTrackerClient _tracker;
    //  private int _maxUploads;
   private int _seeds, _peers;
@@ -360,12 +357,8 @@ PEPeerControlImpl
   		TRTrackerResponse	tracker_response )
   	{
   		// tracker_response.print();
-  		
-  		int	status = tracker_response.getStatus();
-  		
-		origTimeToWait	= (int)tracker_response.getTimeToWait();
-		
-    	if ( status == TRTrackerResponse.ST_ONLINE ){
+  		 				
+    	if ( tracker_response.getStatus() == TRTrackerResponse.ST_ONLINE ){
       	    	
         	addPeersFromTracker( tracker_response.getPeers());       	        	
     	}
@@ -594,13 +587,18 @@ PEPeerControlImpl
    * This method will check the tracker. It creates a new thread so requesting the url won't freeze the program.
    *
    */
-  private void checkTracker(long time) {
+  private void 
+  checkTracker(
+  	long time) 
+  {
+  	int		percentage 			= 100;
+  	boolean	use_minimum_delay	= false;
+  	
     //if we're not downloading, use normal re-check rate
     if (_manager.getState() != DownloadManager.STATE_DOWNLOADING) {
-      timeToWait = origTimeToWait;
-    }
-    //otherwise calculate a new rate...
-    else {
+    }else{
+    	// calculate new rate
+    	
       int swarmPeers = 0;
       int swarmSeeds = 0;
       int tempMaxConnections = COConfigurationManager.getIntParameter("Max Clients", 0);
@@ -625,44 +623,25 @@ PEPeerControlImpl
       tempMaxConnections = (int)(tempMaxConnections * .75);
 
       //if already over the limit, don't shorten the time
-      if (currentConnectionCount >= tempMaxConnections) timeToWait = origTimeToWait;
+      if (currentConnectionCount >= tempMaxConnections){
       //if no connections, recheck in 1 minute
-      else if (currentConnectionCount == 0) timeToWait = 60;
+      }else if (currentConnectionCount == 0){
+      
+      	use_minimum_delay	= true;
       //otherwise...
-      else {
+      }else {
         //calculate the new wait time
         float currentConnectionPercent = ((float)currentConnectionCount) / tempMaxConnections;
-        timeToWait =  (int)(currentConnectionPercent * origTimeToWait);
-      
-        //make sure the new wait time is sane
-        if (timeToWait > origTimeToWait) timeToWait = origTimeToWait;
-        if (timeToWait < 60) timeToWait = 60;
+        
+		percentage = (int)(currentConnectionPercent*100);
+ 
       }
     }
-    
-    //has the timeout expired?
-    if ((time - _timeLastUpdate) > timeToWait) //if so...
-      {
-      checkTracker( false );
-    }
+   
+   	_tracker.setRefreshDelayOverrides( use_minimum_delay, percentage );
   }
   	
-  	public void
-  	checkTracker(
-  		boolean		force )
-  	{
-		long time = System.currentTimeMillis() / 1000;
-		
-    	if (	(!force) &&
-    			(time - _timeLastUpdate < 60)){
-    		
-      		return;
-    	}
-    	
-    	_timeLastUpdate = time; //update last checked time
-    	
- 		_tracker.update();
-  }
+ 
 
   /**
    * This methd will compute the overall availability (inluding yourself)
@@ -1517,10 +1496,6 @@ PEPeerControlImpl
 
   public String getElapsedTime() {
     return TimeFormater.format(System.currentTimeMillis() / 1000 - _timeStarted);
-  }
-
-  public int getTrackerTime() {
-    return timeToWait - (int) (System.currentTimeMillis() / 1000 - _timeLastUpdate);
   }
 
   public void pieceChecked(int pieceNumber, boolean result) {

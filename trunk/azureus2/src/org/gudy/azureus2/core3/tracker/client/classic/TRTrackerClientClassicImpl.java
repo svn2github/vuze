@@ -49,13 +49,20 @@ public class
 TRTrackerClientClassicImpl
 	implements TRTrackerClient 
 {
-	private static Timer	tracker_timer = new Timer( "Tracker Timer", 10);
+	private static final int REFRESH_ERROR_SECS			= 120;
+	private static final int OVERRIDE_PERIOD			= 30*1000;
+	 
+	private static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
 	
-	private TOTorrent		torrent;
-	private TimerEvent		current_timer_event;
+	private TOTorrent				torrent;
+	private TimerEvent				current_timer_event;
+	private TimerEventPerformer		timer_event_action;
 	
 	private int				tracker_state 			= TS_INITIALISED;
 	private String			tracker_status_str		= "";
+	
+	private int				last_update_time_secs;
+	private int				current_time_to_wait_secs;
 	
 	private boolean			stopped;
 	private boolean			completed;
@@ -63,30 +70,31 @@ TRTrackerClientClassicImpl
 	
 	private boolean			update_in_progress	= false;
 	
+	private long			rd_last_override;
+	private boolean			rd_override_use_minimum;
+	private int				rd_override_percentage	= 100;
+
   	private List trackerUrlLists;
      
   	private String lastUsedUrl;
   
   	private String trackerUrlListString;
   
-  private String info_hash = "?info_hash=";
-  private byte[] peerId;
-  private byte[] version;
-  private String peer_id = "&peer_id=";
-  private String port;
-  private String ip_override;
+	private String info_hash = "?info_hash=";
+	private byte[] peerId;
+	private String peer_id = "&peer_id=";
+	private String port;
+	private String ip_override;
   
-  private PEPeerManager manager;
+	private PEPeerManager manager;
 
   
-  public final static int componentID = 2;
-  public final static int evtLifeCycle = 0;
-  public final static int evtFullTrace = 1;
-  public final static int evtErrors = 2;
+	public final static int componentID = 2;
+	public final static int evtLifeCycle = 0;
+	public final static int evtFullTrace = 1;
+	public final static int evtErrors = 2;
 
-  private static final byte[] azureus = "Azureus".getBytes();
-
-  private Vector	listeners = new Vector();
+	private Vector	listeners = new Vector();
   
   public 
   TRTrackerClientClassicImpl(
@@ -97,25 +105,32 @@ TRTrackerClientClassicImpl
   {
   	torrent		= _torrent;
 
-	//Get the Tracker url
+		//Get the Tracker url
+		
 	constructTrackerUrlLists();     
 
-	//Create our unique peerId
+		//Create our unique peerId
+		
 	peerId = new byte[20];
-   version = Constants.VERSION_ID;
+	
+    byte[] version = Constants.VERSION_ID;
+    
 	for (int i = 0; i < 8; i++) {
 	  peerId[i] = version[i];
-   }
+    }
+    
 	for (int i = 8; i < 20; i++) {
 	  peerId[i] = (byte)(Math.random() * 254);
 	}
 
-	// System.out.println("TrackerClient: new peer - " + ByteFormatter.nicePrint(peerId));
+		// System.out.println("TrackerClient: new peer - " + ByteFormatter.nicePrint(peerId));
 	
 	try {
-	  //1.4 Version
+	
 	  this.info_hash += URLEncoder.encode(new String(_torrent.getHash(), Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+	  
 	  this.peer_id += URLEncoder.encode(new String(peerId, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+	  
 	}catch (UnsupportedEncodingException e){
 		
 		LGLogger.log(componentID, evtLifeCycle,"URL encode fails", e );
@@ -129,10 +144,96 @@ TRTrackerClientClassicImpl
 		throw( new TRTrackerClientException( "TRTrackerClient: URL encode fails"));	
 	}
 	
-	this.port = "&port=" + _port;    
+	this.port = "&port=" + _port;
+	   
+	timer_event_action =  
+		new TimerEventPerformer()
+		{
+			public void
+			perform(
+				TimerEvent	this_event )
+			{
+				int	secs_to_wait = REFRESH_MINIMUM_SECS;
+							
+				try{
+															
+					secs_to_wait = requestUpdateSupport();
+								
+				}finally{
+						
+					current_time_to_wait_secs	= secs_to_wait;
+							
+					if ( tracker_state == TS_STOPPED ){
+						
+						// System.out.println( "\tperform: stopped so no more events");
+						
+					}else{
+						
+					
+						synchronized( TRTrackerClientClassicImpl.this ){
+						
+								// it is possible that the current event was being processed
+								// when another thread cancelled it and created a further timer
+								// event. if this is the case we don't want to go ahead and
+								// create another timer as one already exists 
+								
+							if ( this_event.isCancelled()){
+								
+								// System.out.println( "\tperform: cancelled so no new event");
+								
+							}else{
+								
+								
+								secs_to_wait = getAdjustedSecsToWait();
+								
+								long target_time = System.currentTimeMillis() + (secs_to_wait*1000);
+								
+								if ( current_timer_event != null && !current_timer_event.isCancelled()){
+									
+									if ( 	current_timer_event != this_event &&
+											current_timer_event.getWhen() < target_time ){
+									
+											// existing event is earlier then current target, use it
+												
+										return;
+									}
+									
+									current_timer_event.cancel();
+								}
+								
+								current_timer_event = 
+									tracker_timer.addEvent( target_time, this );
+							}
+						}
+					}
+				}
+			}
+		};
+			
 	LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client Created using url : " + trackerUrlListString);
   }
 	
+	protected int
+	getAdjustedSecsToWait()
+	{
+  		int		secs_to_wait = current_time_to_wait_secs;
+													
+  		if ( rd_override_use_minimum ){
+								
+	  		secs_to_wait = REFRESH_MINIMUM_SECS;
+										
+  		}else{
+							
+	  		secs_to_wait = (secs_to_wait*rd_override_percentage)/100;
+									
+	  		if ( secs_to_wait < REFRESH_MINIMUM_SECS ){
+										
+		  		secs_to_wait = REFRESH_MINIMUM_SECS;
+	  		}
+  		}
+  		
+  		return( secs_to_wait );
+	}
 	
 	public int
   	getStatus()
@@ -147,9 +248,79 @@ TRTrackerClientClassicImpl
   	}
   	
 	public void
-	update()
+	setRefreshDelayOverrides(
+		boolean	use_minimum,
+		int		percentage )
 	{
-		requestUpdate();
+		if ( percentage > 100 ){
+			
+			percentage = 100;
+			
+		}else if ( percentage <= 0 ){
+			
+			percentage	= 1;
+		}
+		
+		long	now = System.currentTimeMillis();
+		
+		if ( now - rd_last_override > OVERRIDE_PERIOD &&
+				(	rd_override_use_minimum != use_minimum ||
+					rd_override_percentage != percentage )){
+		
+			synchronized(this){
+			
+				// System.out.println( "TRTrackerClient::setRefreshDelayOverrides(" + use_minimum + "/" + percentage + ")");
+				
+				rd_last_override	= now;
+				
+				rd_override_use_minimum	= use_minimum;
+				rd_override_percentage	= percentage;
+				
+				if ( current_timer_event != null && !current_timer_event.isCancelled()){
+					
+					long	start 	= current_timer_event.getCreatedTime();
+					long	expiry	= current_timer_event.getWhen();
+					
+					int	secs_to_wait = getAdjustedSecsToWait();
+								
+					long target_time = start + (secs_to_wait*1000);
+
+					if ( target_time < expiry ){
+						
+						current_timer_event.cancel();
+						
+						current_timer_event = 
+							tracker_timer.addEvent( 
+								target_time,
+								timer_event_action );					
+					}			
+				}
+			}
+		}
+	}
+	
+	public synchronized int
+	getTimeUntilNextUpdate()
+	{
+		if ( current_timer_event == null ){
+			
+			return( REFRESH_MINIMUM_SECS );
+		}
+		
+		return( (int)((current_timer_event.getWhen() - System.currentTimeMillis())/1000));
+	}
+
+	public void
+	update(
+		boolean		force )
+	{
+		long time = System.currentTimeMillis() / 1000;
+		
+		if  ( 	force ||
+			 	( time - last_update_time_secs >= REFRESH_MINIMUM_SECS )){
+    		
+			requestUpdate();
+		}
 	}
 	
 	public void
@@ -182,24 +353,17 @@ TRTrackerClientClassicImpl
 		current_timer_event = 
 			tracker_timer.addEvent( 
 				System.currentTimeMillis(),
-				new Runnable()
-				{
-					public void
-					run()
-					{
-						requestUpdateSupport();
-					}
-				});
+				timer_event_action );
 	}
 	
-	protected void
+	protected int
 	requestUpdateSupport()
 	{
 		synchronized( this ){
 		
 			if ( update_in_progress ){
 			
-				return;
+				return( REFRESH_MINIMUM_SECS );
 			}
 		}
 		
@@ -209,6 +373,8 @@ TRTrackerClientClassicImpl
 				update_in_progress = true;
 			}
 	
+			last_update_time_secs	= (int)(System.currentTimeMillis()/1000);
+			
 			tracker_status_str = MessageText.getString("PeerManager.status.checking") + "..."; //$NON-NLS-1$ //$NON-NLS-2$      
 		
 			TRTrackerResponse	response = null;
@@ -226,7 +392,13 @@ TRTrackerClientClassicImpl
 					response = stopSupport();
 					
 					if ( response.getStatus() == TRTrackerResponse.ST_ONLINE ){
+												
+						tracker_state = TS_STOPPED;
+					}else{
 						
+							// just have one go at sending a stop event as we don't want to sit here
+							// forever trying to send stop to a stuffed tracker
+							
 						tracker_state = TS_STOPPED;
 					}
 				}	
@@ -290,10 +462,20 @@ TRTrackerClientClassicImpl
 					
 					((TRTrackerClientListener)listeners.get(i)).receivedTrackerResponse( response );	
 				}
+				
+				return((int) response.getTimeToWait());
 			}else{
 				
 				tracker_status_str = "";
+				
+				return( REFRESH_MINIMUM_SECS );
 			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			return( REFRESH_MINIMUM_SECS );
+			
 		}finally{
 			
 			synchronized( this ){
@@ -308,6 +490,8 @@ TRTrackerClientClassicImpl
   	{
 		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a start Request");
 	
+		// System.out.println( "started");
+		
 		return(update("started"));
   	}
 
@@ -316,6 +500,8 @@ TRTrackerClientClassicImpl
   	{	
 		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a completed Request");
 		
+		// System.out.println( "complete");
+		
 		return(update("completed"));
   	}
 
@@ -323,6 +509,8 @@ TRTrackerClientClassicImpl
   	stopSupport() 
   	{
 		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending a stopped Request");
+
+		// System.out.println( "stop");		
 	
 		return( update("stopped"));
   	}
@@ -332,6 +520,8 @@ TRTrackerClientClassicImpl
   	{
 		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Client is sending an update Request");
 	
+		// System.out.println( "update");
+		
 		return update("");
   	}
   
@@ -399,7 +589,7 @@ TRTrackerClientClassicImpl
 		}
 	  } 
 	   
-	  return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, 60, last_failure_reason ));
+	  return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, REFRESH_MINIMUM_SECS, last_failure_reason ));
   }
 
  	private byte[] 
@@ -783,7 +973,7 @@ TRTrackerClientClassicImpl
 							
 							System.out.println("Problems with Tracker, will retry in 1 minute");
 													
-							time_to_wait = 60;
+							time_to_wait = REFRESH_MINIMUM_SECS;
 	
 							return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, time_to_wait ));
 	
@@ -791,7 +981,7 @@ TRTrackerClientClassicImpl
 							
 							failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
 	
-							time_to_wait = 120;
+							time_to_wait = REFRESH_ERROR_SECS;
 						
 							return( new TRTrackerResponseImpl( TRTrackerResponse.ST_REPORTED_ERROR, time_to_wait, failure_reason ));
 						}
@@ -849,7 +1039,7 @@ TRTrackerClientClassicImpl
 			}
   		}
 
-		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, 60, failure_reason ));
+		return( new TRTrackerResponseImpl( TRTrackerResponse.ST_OFFLINE, REFRESH_MINIMUM_SECS, failure_reason ));
   	}
   	
 	protected synchronized void

@@ -28,41 +28,65 @@ package org.gudy.azureus2.core3.util;
 
 public class 
 TimerEvent
-	implements Comparable
+	implements Comparable, Runnable
 {
-	protected Timer			timer;
-	protected long			when;
-	protected Runnable		runnable;
+	protected Timer					timer;
+	protected long					created;
+	protected long					when;
+	protected TimerEventPerformer	performer;
+	
+	protected boolean		cancelled;
 	
 	protected
 	TimerEvent(
-		Timer			_timer,
-		long			_when,
-		Runnable		_runnable )
+		Timer					_timer,
+		long					_when,
+		TimerEventPerformer		_performer )
 	{
 		timer		= _timer;
 		when		= _when;
-		runnable	= _runnable;
+		performer	= _performer;
+		
+		created 	= System.currentTimeMillis();
 	}
 		
+	public long
+	getCreatedTime()
+	{
+		return( created );
+	}
+	
 	public long
 	getWhen()
 	{
 		return( when );
 	}
 	
-	public Runnable
+	protected Runnable
 	getRunnable()
 	{
-		return( runnable );
+		return( this );
 	}
 	
 	public void
+	run()
+	{
+		performer.perform( this );
+	}
+	
+	public synchronized void
 	cancel()
 	{
+		cancelled	= true;
+		
 		timer.cancelEvent( this );
 	}
 	
+	public synchronized boolean
+	isCancelled()
+	{
+		return( cancelled );
+	}
 	public int
 	compareTo(
 		Object		other )

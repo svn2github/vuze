@@ -76,10 +76,6 @@ PEPeerManager
 	processTrackerResponse(
 		TRTrackerResponse	response );
 		
-	public void 
-	checkTracker(
-		boolean	force );
-	
 	public int getNbPeers();
 
 	public int getNbSeeds();
@@ -91,9 +87,7 @@ PEPeerManager
 	public int getPiecesNumber();
 
 	public int getPieceLength();
-	
-	public int getTrackerTime();
-	
+		
 	public long getRemaining();
 
 	public int getDownloadPriority();

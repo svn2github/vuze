@@ -27,6 +27,8 @@ import org.gudy.azureus2.core3.peer.*;
 public interface 
 TRTrackerClient 
 {
+	public static final int REFRESH_MINIMUM_SECS		= 60;
+
 	public static final int TS_INITIALISED		= 1;
 	public static final int TS_DOWNLOADING		= 2;
 	public static final int TS_COMPLETED		= 3;
@@ -63,9 +65,18 @@ TRTrackerClient
 		
 	public byte[]
 	getPeerId();
-		
+	
 	public void
-	update();
+	setRefreshDelayOverrides(
+		boolean	use_minimum,
+		int		percentage );
+	
+	public int
+	getTimeUntilNextUpdate();
+			
+	public void
+	update(
+		boolean	force );
 	
 	public void
 	complete(

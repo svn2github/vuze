@@ -101,6 +101,8 @@ public class Timer
 				
 				for (int i=0;i<events_to_run.size();i++){
 					
+					// System.out.println( "firing event");
+					
 					thread_pool.run(((TimerEvent)events_to_run.get(i)).getRunnable());
 				}
 				
@@ -113,13 +115,15 @@ public class Timer
 	
 	public synchronized TimerEvent
 	addEvent(
-		long		when,
-		Runnable	runnable )
+		long				when,
+		TimerEventPerformer	performer )
 	{
-		TimerEvent	event = new TimerEvent( this, when, runnable );
+		TimerEvent	event = new TimerEvent( this, when, performer );
 		
 		events.add( event );
 		
+		// System.out.println( "event added (" + when + ") - queue = " + events.size());
+				
 		notify();
 		
 		return( event );
@@ -129,8 +133,13 @@ public class Timer
 	cancelEvent(
 		TimerEvent	event )
 	{
-		events.remove( event );
+		if ( events.contains( event )){
+			
+			events.remove( event );
+		
+			// System.out.println( "event cancelled (" + event.getWhen() + ") - queue = " + events.size());
 	
-		notify();
+			notify();
+		}
 	}
 }

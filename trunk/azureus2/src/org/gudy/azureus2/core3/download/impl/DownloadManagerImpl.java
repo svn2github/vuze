@@ -186,7 +186,7 @@ DownloadManagerImpl
   public void startDownload() {
 	this.state = STATE_DOWNLOADING;
 	
-	peerManager = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
+	PEPeerManager temp = PEPeerManagerFactory.create(this, server, tracker_client, diskManager);
 
 	peer_manager_listener = 	
 		new PEPeerManagerListener()
@@ -198,9 +198,13 @@ DownloadManagerImpl
 			}
 		};
 		
-	peerManager.addListener( peer_manager_listener );
+	temp.addListener( peer_manager_listener );
 		
-	peerManager.start();
+	temp.start();
+	
+	peerManager = temp;		// delay this so peerManager var not available to other threads until it is started
+	
+	tracker_client.update( true );
   }
 
 	private void 
@@ -442,9 +446,12 @@ DownloadManagerImpl
 
 
   public int getTrackerTime() {
-	if (peerManager != null)
-	  return peerManager.getTrackerTime();
-	return 60;
+	if (tracker_client != null){
+	
+	  return tracker_client.getTimeUntilNextUpdate();
+	}
+	
+	return TRTrackerClient.REFRESH_MINIMUM_SECS;
   }
 
   /**
@@ -604,8 +611,8 @@ DownloadManagerImpl
   checkTracker(
   	boolean	force )
   {
-	if(peerManager != null)
-	  peerManager.checkTracker( force );
+	if( tracker_client != null)
+	tracker_client.update( force );
   }
 
   /**
