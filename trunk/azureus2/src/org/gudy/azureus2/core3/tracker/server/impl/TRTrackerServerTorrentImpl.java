@@ -41,7 +41,7 @@ TRTrackerServerTorrentImpl
 	
 	public static final int	MIN_CACHE_ENTRY_SIZE		= 10;
 	
-	public static final int MAX_UPLOAD_BYTES_PER_SEC	= 1024*1024;
+	public static final int MAX_UPLOAD_BYTES_PER_SEC	= 3*1024*1024;  //3MBs
 	public static final int MAX_DOWNLOAD_BYTES_PER_SEC	= MAX_UPLOAD_BYTES_PER_SEC;
 	
 	public static final boolean	USE_LIGHTWEIGHT_SEEDS	= true;
@@ -298,18 +298,18 @@ TRTrackerServerTorrentImpl
 					
 				if ( ul_rate > MAX_UPLOAD_BYTES_PER_SEC ){
 					
-					Debug.out( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
+					System.out.println( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
 									new String(peer.getPeerId().getHash()) + 
-									" reported an upload rate of " + ul_rate + " bytes per second" );
+									" reported an upload rate of " + ul_rate/1024 + " KiB/s per second" );
 					
 					ul_diff	= 0;
 				}
 				
 				if ( dl_rate > MAX_DOWNLOAD_BYTES_PER_SEC ){
 					
-					Debug.out( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
+          System.out.println( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
 									new String(peer.getPeerId().getHash()) + 
-									" reported a download rate of " + dl_rate + " bytes per second" );
+									" reported a download rate of " + dl_rate/1024 + " KiB/s per second" );
 					
 					dl_diff	= 0;
 				}
