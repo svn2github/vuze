@@ -36,6 +36,7 @@ public class
 LoggerChannelImpl 
 	implements LoggerChannel
 {
+	private Logger		logger;
 	private String		name;
 	private boolean		timestamp;
 	private boolean		no_output;
@@ -43,15 +44,23 @@ LoggerChannelImpl
 	
 	protected
 	LoggerChannelImpl(
+		Logger		_logger,
 		String		_name,
 		boolean		_timestamp,
 		boolean		_no_output )
 	{
+		logger		= _logger;
 		name		= _name;
 		timestamp	= _timestamp;
 		no_output	= _no_output;
 	}
 		
+	public Logger
+	getLogger()
+	{
+		return( logger );
+	}
+	
 	public String
 	getName()
 	{

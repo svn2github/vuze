@@ -28,24 +28,35 @@ package org.gudy.azureus2.pluginsimpl.local.logging;
 
 import java.util.*;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.*;
 
 public class 
 LoggerImpl
 	implements Logger
 {
-	protected List		channels = new ArrayList();
+	private PluginInterface	pi;
+	
+	private List		channels = new ArrayList();
 	
 	public
-	LoggerImpl()
+	LoggerImpl(
+		PluginInterface	_pi )
 	{
+		pi	= _pi;
+	}
+	
+	public PluginInterface
+	getPluginInterface()
+	{
+		return( pi );
 	}
 	
 	public LoggerChannel
 	getChannel(
 		String		name )
 	{
-		LoggerChannel	channel = new LoggerChannelImpl( name, false, false );
+		LoggerChannel	channel = new LoggerChannelImpl( this, name, false, false );
 		
 		channels.add( channel );
 		
@@ -56,7 +67,7 @@ LoggerImpl
 	getTimeStampedChannel(
 		String		name )
 	{
-		LoggerChannel	channel = new LoggerChannelImpl( name, true, false );
+		LoggerChannel	channel = new LoggerChannelImpl( this, name, true, false );
 		
 		channels.add( channel );
 		
@@ -67,7 +78,7 @@ LoggerImpl
 	getNullChannel(
 		String		name )
 	{
-		LoggerChannel	channel = new LoggerChannelImpl( name, true, true );
+		LoggerChannel	channel = new LoggerChannelImpl( this, name, true, true );
 		
 		channels.add( channel );
 		

@@ -340,7 +340,7 @@ PluginInterfaceImpl
   {
   	if ( logger == null ){
   		
-  		logger = new LoggerImpl();
+  		logger = new LoggerImpl( this );
   	}
   	
   	return( logger );

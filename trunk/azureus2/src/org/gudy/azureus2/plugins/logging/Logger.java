@@ -21,6 +21,8 @@
 
 package org.gudy.azureus2.plugins.logging;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+
 /**
  * @author parg
  *
@@ -50,4 +52,7 @@ Logger
 	
 	public LoggerChannel[]
 	getChannels();
+	
+	public PluginInterface
+	getPluginInterface();
 }

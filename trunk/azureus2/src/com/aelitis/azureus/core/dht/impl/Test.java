@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 
@@ -85,6 +86,12 @@ Test
 	public static LoggerChannel	logger = 
 		new LoggerChannel()
 		{
+			public Logger
+			getLogger()
+			{
+				return( null );
+			}
+			
 			public String
 			getName()
 			{

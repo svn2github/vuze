@@ -27,10 +27,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
-import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
-import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
-import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -42,7 +38,6 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
-import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.net.udp.*;
 
 /**
@@ -298,81 +293,11 @@ DHTTransportUDPImpl
 					
 					if ( new_external_address == null ){
 				
-						String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress();
-						
-						if ( vc_ip != null && vc_ip.length() > 0 ){
-							
-							log.log( "    External IP address obtained from version-check: " + vc_ip );
-							
-							new_external_address	= vc_ip;
-						}
-					}
-					
-					if ( new_external_address == null ){
-						
-						ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
-						
-						ExternalIPCheckerService[]	services = checker.getServices();
-						
-						final String[]	ip = new String[]{ null };
-						
-						for (int i=0;i<services.length && ip[0] == null;i++){
-							
-							final ExternalIPCheckerService	service = services[i];
-							
-							if ( service.supportsCheck()){
-			
-								final AESemaphore	sem = new AESemaphore("DHTUDP:getExtIP");
+						new_external_address = logger.getLogger().getPluginInterface().getUtilities().getPublicAddress().getHostAddress();
+									
+						if ( new_external_address != null ){
 								
-								ExternalIPCheckerServiceListener	listener = 
-									new ExternalIPCheckerServiceListener()
-									{
-										public void
-										checkComplete(
-											ExternalIPCheckerService	_service,
-											String						_ip )
-										{
-											log.log( "    External IP address obtained from " + service.getName() + ": " + _ip );
-	
-											ip[0]	= _ip;
-											
-											sem.release();
-										}
-											
-										public void
-										checkFailed(
-											ExternalIPCheckerService	_service,
-											String						_reason )
-										{
-											sem.release();
-										}
-											
-										public void
-										reportProgress(
-											ExternalIPCheckerService	_service,
-											String						_message )
-										{
-										}
-									};
-									
-								services[i].addListener( listener );
-								
-								try{
-									
-									services[i].initiateCheck( 60000 );
-									
-									sem.reserve( 60000 );
-									
-								}finally{
-									
-									services[i].removeListener( listener );
-								}
-							}
-						}
-						
-						if ( ip[0] != null ){
-							
-							new_external_address	= ip[0];
+							log.log( "    External IP address obtained: " + new_external_address );
 						}
 					}
 					

@@ -101,4 +101,7 @@ LoggerChannel
 	removeListener(
 		LoggerChannelListener	l );
 	
+	public Logger
+	getLogger();
+	
 }
