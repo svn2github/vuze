@@ -327,9 +327,9 @@ public class ImageRepository {
             newImage = new Image(Display.getCurrent(), canvasSize.x, canvasSize.y);
             GC gc = new GC(newImage);
 
-            int width = Math.max(0, (canvasSize.x - oldImage.getBounds().width)/2);
-            int height = Math.max(0, (canvasSize.y - oldImage.getBounds().height)/2);
-            gc.drawImage(oldImage, width, height);
+            int x = Math.max(0, (canvasSize.x - oldImage.getBounds().width)/2);
+            int y = Math.max(0, (canvasSize.y - oldImage.getBounds().height)/2);
+            gc.drawImage(oldImage, x, y);
 
             gc.dispose();
 
