@@ -106,6 +106,8 @@ IPAddressRangeManager
 				entries.put( user_data, new entry( start_int, end_int, user_data ));
 			}	
 			
+			rebuild_required	= true;
+			
 		}finally{
 			
 			this_mon.exit();
@@ -155,30 +157,48 @@ IPAddressRangeManager
 		}
 	}
 	
-	public Object
+	public boolean
 	isInRange(
-		long	ip_int )
+		Object		user_data,
+		String		address )
 	{
-		return( isInRange( ip_int, false ));
+		try{
+			this_mon.enter();
+			
+			int	address_int	= PRHelpers.addressToInt( address );
+				
+			entry	e = (entry)entries.get( user_data );
+			
+			if ( e == null ){
+				
+				return( false );
+			}
+			
+			return( address_int >= e.start && address_int <= e.end );
+
+		}catch( UnknownHostException e ){
+			
+			return( false );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	protected Object
 	isInRange(
-		long	ip_int,
-		boolean	ignore_rebuilds )
+		long	ip_int )
 	{
 		try{
 			this_mon.enter();
-		
-			if ( !ignore_rebuilds ){
+			
+			if ( rebuild_required ){
 				
-				if ( rebuild_required ){
-					
-					rebuild_required	= false;
-					
-					rebuild();
-				}
-			}
+				rebuild_required	= false;
+				
+				rebuild();
+			}	
 					
 			if ( merged_entries.length == 0 ){
 				
@@ -287,6 +307,8 @@ IPAddressRangeManager
 	protected void
 	rebuild()
 	{
+		System.out.println( "IPAddressManager: rebuilding " + entries.size() + " entries" );
+		
 		Collection col = entries.values();
 		
 		entry[]	ents = new entry[col.size()];

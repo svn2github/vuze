@@ -213,6 +213,13 @@ IpFilterImpl
 		}
 	}
   
+	protected boolean
+	isInRange(
+		IpRangeImpl	range,
+		String		address )
+	{
+		return( range_manager.isInRange( range, address ));
+	}
   
   public boolean isInRange(String ipAddress) {
     return isInRange( ipAddress, "" );

@@ -21,9 +21,10 @@
  
 package org.gudy.azureus2.core3.ipfilter.impl;
 
-import java.util.StringTokenizer;
+import java.net.UnknownHostException;
 
 import org.gudy.azureus2.core3.ipfilter.*;
+import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 
 /**
  * @author Olivier
@@ -34,17 +35,11 @@ public class
 IpRangeImpl
 	implements IpRange 
 {
+   private byte[] description;
     
-   public String description;
-    
-   public String startIp;
-   public String endIp;
-    
-   private int[] start;
-   private int[] end;
-    
-   private boolean valid;
-   
+   private Object startIp;		// Integer if value, String/null otherwise
+   private Object endIp;			// Integer if value, String/null otherwise
+          
    private boolean sessionOnly;
     
   public 
@@ -62,9 +57,7 @@ IpRangeImpl
 	String 	_startIp, 
 	String 	_endIp,
 	boolean _sessionOnly) 
-   {
-     valid = false;
-     description = _description;
+   {     
      sessionOnly = _sessionOnly;
      
      if(_startIp == null || _endIp == null) {
@@ -76,97 +69,128 @@ IpRangeImpl
      
      endIp = _endIp.trim();
      
+     internDescription(_description);
+     
      checkValid(); 
    }
     
    public void 
    checkValid() 
-   {
-   	try{
-     this.valid = false;   
-     StringTokenizer stStart = new StringTokenizer(startIp,".");
-     StringTokenizer stEnd = new StringTokenizer(endIp,".");
-     if(stStart.countTokens() != 4 || stEnd.countTokens() != 4) {      
-       return;
-     }   
-     start = new int[4];
-     end = new int[4];
-     int i = 0;
-     while(stStart.hasMoreTokens() && i < start.length) {
-       try {
-         start[i++] = Integer.parseInt(stStart.nextToken());
-       } catch(Exception e) {
-         return;
-       }
-     }
-     i = 0;
-     while(stEnd.hasMoreTokens() && i < end.length) {
-       try {
-         end[i++] = Integer.parseInt(stEnd.nextToken());
-       } catch(Exception e) {
-         return;
-       }
-     }
-     this.valid = true;
-   	}finally{
+   {  	
+	if ( startIp != null && endIp != null ){
+				
+		if ( startIp instanceof String ){
+
+			try{
+				startIp = new Integer( PRHelpers.addressToInt((String)startIp ));
+				
+			}catch( UnknownHostException e ){
+				
+			}
+		}
+		
+		if ( endIp instanceof String ){
+
+			try{
+				endIp = new Integer( PRHelpers.addressToInt((String)endIp ));
+				
+			}catch( UnknownHostException e ){
+				
+			}
+		}
+	}
 	
-   		((IpFilterImpl)IpFilterImpl.getInstance()).setValidOrNot( this, valid );
-   	}
+   	((IpFilterImpl)IpFilterImpl.getInstance()).setValidOrNot( this, isValid());
+   	
    }
     
-   public boolean isValid() {
-     return this.valid;
+   public boolean 
+   isValid() 
+   {
+   	return(	startIp instanceof Integer && 
+   			endIp instanceof Integer &&
+			((Integer)startIp).compareTo( endIp ) <= 0 );
    }
     
-   public boolean isInRange(String ipAddress) {
-     if(!valid)
+   public boolean 
+   isInRange(
+     String ipAddress ) 
+   {
+     if(!isValid()){
+     	
        return false;
-     StringTokenizer st = new StringTokenizer(ipAddress,".");
-     if(st.countTokens() != 4)
-       return false;
-     int n[] = new int[4];
-     for(int i = 0 ; i < 4 ; i++) {       
-       try {
-         n[i] = Integer.parseInt(st.nextToken());
-       } catch(Exception e) {
-         return false;
-       }
      }
      
-     boolean testStart,testEnd;
-     testStart = true; testEnd = true;
-     for(int i = 0 ; i < 4 ; i++) {
-       //Outside range is immediately wrong     
-       if(testStart && n[i] < start[i])
-         return false;
-       if(testEnd && n[i] > end[i])
-         return false;
-       //Strictly inside a range is immediately right
-       if(n[i] > start[i])
-         testStart = false;
-       if(n[i] < end[i])
-         testEnd = false;     
-       }          
-     return true;
+     return(((IpFilterImpl)IpFilterImpl.getInstance()).isInRange( this, ipAddress));
    }
     
    public String
    getDescription()
    {
-   	return( description );
+   	return( externDescription());
    }
 
    public void
    setDescription(
    	String	str )
-   {
-   	description = str;
+   {  	
+   	internDescription(str);
    }
    
+    protected void
+	internDescription(
+		String	desc )
+    {
+    	if ( desc == null ){
+    		
+    		description = null;
+    		
+    		return;
+    	}
+    	
+    	char[]	chars = desc.toLowerCase().toCharArray();
+    	
+    	description = new byte[chars.length];
+    	
+    	int	pos = 0;
+    	
+    	for (int i=0;i<chars.length;i++){
+    		
+    		byte	b = (byte)chars[i];
+    		
+    		if ( b > 200 ){
+    			
+    			b = (byte)'_';
+    		}
+    		
+    		description[pos++] = b;
+    	}
+    }
+   
+    protected String
+	externDescription()
+    {
+    	if ( description == null ){
+    		
+    		return( null );
+    	}
+    	
+    	StringBuffer	res = new StringBuffer();
+    	
+    	for (int i=0;i<description.length;i++){
+    		
+    		byte	b = description[i];
+    		
+    		res.append((char)b);
+    	}
+    	
+    	return( res.toString());
+    }
+    
    public String
    getStartIp()
    {
-   	return( startIp );
+   	return( startIp instanceof Integer?PRHelpers.intToAddress(((Integer)startIp).intValue()):(String)startIp);
    }
 	
 	public void
@@ -177,7 +201,7 @@ IpRangeImpl
 	   		throw( new RuntimeException( "Invalid start value - null not supported" ));
 	   	}
 
-	   	if ( str.equals( startIp )){
+	   	if ( str.equals( getStartIp())){
 	   		
 	   		return;
 	   	}
@@ -190,7 +214,7 @@ IpRangeImpl
    public String
    getEndIp()
    {
-   	return( endIp );
+   	return( endIp instanceof Integer?PRHelpers.intToAddress(((Integer)endIp).intValue()):(String)endIp);
    }
    
    public void
@@ -199,10 +223,11 @@ IpRangeImpl
    
    {
    	if ( str == null ){
+   		
    		throw( new RuntimeException( "Invalid end value - null not supported" ));
    	}
 
-   	if ( str.equals( endIp )){
+   	if ( str.equals( getEndIp())){
    		
    		return;
    	}
@@ -212,16 +237,22 @@ IpRangeImpl
 	checkValid();
    }
    
-   public String toString() {
-     return description.concat(" : ").concat(startIp).concat(" - ").concat(endIp); 
+   public String 
+   toString() 
+   {
+     return( getDescription() + " : " + getStartIp() + " - "+ getEndIp()); 
    }
 
-  public boolean isSessionOnly() {
-    return sessionOnly;
+  public boolean 
+  isSessionOnly() 
+  {
+    return( sessionOnly );
   }
 
   public void 
-  setSessionOnly(boolean _sessionOnly) {
+  setSessionOnly(
+  	boolean _sessionOnly) 
+  {
     sessionOnly = _sessionOnly;
   }
 

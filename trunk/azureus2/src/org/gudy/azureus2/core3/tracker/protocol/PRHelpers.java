@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.tracker.protocol;
 
 import java.net.*;
 
+import org.gudy.azureus2.core3.util.*;
+
 public class 
 PRHelpers 
 {
@@ -51,16 +53,24 @@ PRHelpers
 	public static String
 	intToAddress(
 		int		value )
-	
-		throws UnknownHostException
 	{
 		byte[]	bytes = { (byte)(value>>24), (byte)(value>>16),(byte)(value>>8),(byte)value };
 		
-		String	res = InetAddress.getByAddress(bytes).getHostAddress();
-		
-		// System.out.println( "intToAddress: " + Integer.toHexString(value) + " -> " + res );
-		
-		return( res );
+		try{
+			String	res = InetAddress.getByAddress(bytes).getHostAddress();
+			
+			// System.out.println( "intToAddress: " + Integer.toHexString(value) + " -> " + res );
+			
+			return( res );
+			
+		}catch( UnknownHostException e ){
+			
+				// should never get here as always valid byte array (4 long)
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
 	}
 	
 	public static void
