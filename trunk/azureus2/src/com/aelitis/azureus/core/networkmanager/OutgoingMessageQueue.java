@@ -560,7 +560,6 @@ public class OutgoingMessageQueue {
             MessageQueueListener listener = (MessageQueueListener)listeners_ref.get( i );
             listener.messageSent( item.message );
           }
-          LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +item.message.getDescription()+ " message to " + item.transport.getDescription() );
           item.message.destroy();
           break;
           
