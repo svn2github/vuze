@@ -39,7 +39,7 @@ public class ConnectionImpl implements Connection {
   private final TCPTransportImpl tcp_transport;
   
   
-  protected ConnectionImpl( com.aelitis.azureus.core.networkmanager.Connection core_connection ) {
+  public ConnectionImpl( com.aelitis.azureus.core.networkmanager.Connection core_connection ) {
     this.core_connection = core_connection;
     this.out_queue = new OutgoingMessageQueueImpl( core_connection.getOutgoingMessageQueue() );
     this.in_queue = new IncomingMessageQueueImpl( core_connection.getIncomingMessageQueue() );
@@ -78,5 +78,10 @@ public class ConnectionImpl implements Connection {
   public IncomingMessageQueue getIncomingMessageQueue() {  return in_queue;  }
 
   public Transport getTransport() {  return tcp_transport;  }
+  
+  
+  public com.aelitis.azureus.core.networkmanager.Connection getCoreConnection() {
+    return core_connection;
+  }
   
 }

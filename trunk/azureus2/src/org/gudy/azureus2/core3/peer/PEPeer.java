@@ -25,6 +25,8 @@
  */
 package org.gudy.azureus2.core3.peer;
 
+import com.aelitis.azureus.core.networkmanager.Connection;
+
 
 /**
  * @author Olivier
@@ -131,5 +133,12 @@ PEPeer
   public Object getData (String key);
   /** To store arbitrary objects against a peer. */
   public void setData (String key, Object value);
+  
+  
+  /**
+   * Get the network connection that backs this peer.
+   * @return connection
+   */
+  public Connection getConnection();
   
 }

@@ -38,6 +38,9 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.peers.*;
 
 import org.gudy.azureus2.pluginsimpl.local.disk.*;
+import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
+
+import com.aelitis.azureus.core.networkmanager.Connection;
 
 public class 
 PeerForeignDelegate
@@ -362,6 +365,10 @@ PeerForeignDelegate
 	public void setUploadHint(int timeToSpread) {}  
 	
 
+  public Connection getConnection() {
+    return ((ConnectionImpl)foreign.getConnection()).getCoreConnection();
+  }
+  
   
     
 	 /** To retreive arbitrary objects against a peer. */

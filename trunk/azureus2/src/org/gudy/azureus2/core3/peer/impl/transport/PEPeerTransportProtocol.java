@@ -1328,4 +1328,11 @@ PEPeerTransportProtocol
     connection.getIncomingMessageQueue().startQueueProcessing();
   }
   
+  
+  
+  public Connection getConnection() {
+    return connection;
+  }
+  
+  
 }

@@ -29,6 +29,7 @@ package org.gudy.azureus2.plugins.peers;
 import java.util.List;
 
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
+import org.gudy.azureus2.plugins.network.Connection;
 
 public interface 
 Peer 
@@ -123,4 +124,11 @@ Peer
 	public void
 	removeListener(
 		PeerListener	l );
+  
+  
+  /**
+   * Get the network connection that backs this peer.
+   * @return connection
+   */
+  public Connection getConnection();
 }
