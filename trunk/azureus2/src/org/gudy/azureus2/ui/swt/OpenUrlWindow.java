@@ -21,14 +21,7 @@
  
 package org.gudy.azureus2.ui.swt;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.dnd.Clipboard;
-import org.eclipse.swt.dnd.TextTransfer;
-import org.eclipse.swt.graphics.FontMetrics;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -39,8 +32,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
-
-import sun.security.krb5.internal.crypto.d;
 
 /**
  * @author Olivier
@@ -69,7 +60,6 @@ public class OpenUrlWindow {
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint=300;
-    url.setText("http://");
     Utils.setTextLinkFromClipboard(shell, gridData, url);
     url.setSelection(url.getText().length());
     gridData.horizontalSpan = 2;

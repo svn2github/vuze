@@ -43,7 +43,6 @@ public class TrackerChangerWindow {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     url.setLayoutData(gridData);
-    url.setText("http://");
     Utils.setTextLinkFromClipboard(shell, gridData, url);
     
     Button ok = new Button(shell, SWT.PUSH);

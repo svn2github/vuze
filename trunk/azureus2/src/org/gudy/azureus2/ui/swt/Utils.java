@@ -76,6 +76,9 @@ public class Utils {
     }
 
   /**
+   * Initializes the URL dialog with http://
+   * If a valid link is found in the clipboard, it will be inserted
+   * and the size (and location) of the dialog is adjusted.
    * @param shell to set the dialog location if needed
    * @param gridData to adjust the dialog with
    * @param url the URL text control
@@ -83,6 +86,7 @@ public class Utils {
    * @author Rene Leonhardt
    */
   public static void setTextLinkFromClipboard(final Shell shell, final GridData gridData, final Text url) {
+    url.setText("http://");
     Clipboard cb = new Clipboard(shell.getDisplay());
     TextTransfer transfer = TextTransfer.getInstance();
     String data = (String) cb.getContents(transfer);
