@@ -179,9 +179,12 @@ DHTTransportUDPImpl
 	testExternalAddressChange()
 	{
 		try{
-			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact_history.values().iterator().next();
+			Iterator	it = contact_history.values().iterator();
 			
-			externalAddressChange( c, c.getExternalAddress());
+			DHTTransportUDPContactImpl c1 = (DHTTransportUDPContactImpl)it.next();
+			DHTTransportUDPContactImpl c2 = (DHTTransportUDPContactImpl)it.next();
+			
+			externalAddressChange( c1, c2.getExternalAddress());
 			//externalAddressChange( c, new InetSocketAddress( "192.168.0.7", 6881 ));
 			
 		}catch( Throwable e ){
