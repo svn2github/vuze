@@ -3,7 +3,8 @@ CHANGELOG
 
 xx.xx.04 | Azureus 2.0.8.1
 
-FEATURE:  
+FEATURE: Show last time IPFilter list was updated in status area [Parg]
+FEATURE: Prelimary support for "compact" announce protocol [Parg]
 
 CHANGE: 
 
