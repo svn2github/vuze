@@ -40,6 +40,7 @@ UPnPPluginService
 	protected UPnPWANConnection		connection;
 	protected BooleanParameter 		alert_success;
 	protected BooleanParameter 		grab_ports;
+	protected BooleanParameter 		alert_other_port_param;
 	
 	protected List	service_mappings = new ArrayList();
 	
@@ -48,11 +49,13 @@ UPnPPluginService
 		UPnPWANConnection				_connection,
 		UPnPWANConnectionPortMapping[]	_ports,
 		BooleanParameter				_alert_success,
-		BooleanParameter				_grab_ports )
+		BooleanParameter				_grab_ports,
+		BooleanParameter				_alert_other_port_param)
 	{
-		connection		= _connection;
-		alert_success	= _alert_success;
-		grab_ports		= _grab_ports;
+		connection				= _connection;
+		alert_success			= _alert_success;
+		grab_ports				= _grab_ports;
+		alert_other_port_param	= _alert_other_port_param;
 		
 		for (int i=0;i<_ports.length;i++){
 
@@ -137,7 +140,10 @@ UPnPPluginService
 							
 								log.log( text );
 							
-								log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+								if ( alert_other_port_param.getValue()){
+								
+									log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+								}
 							}
 							
 							return;
@@ -191,7 +197,10 @@ UPnPPluginService
 				
 				log.log( text );
 				
-				log.logAlertRepeatable( LoggerChannel.LT_ERROR, text );
+				if ( alert_other_port_param.getValue()){
+				
+					log.logAlertRepeatable( LoggerChannel.LT_ERROR, text );
+				}
 			}
 			
 			if ( grab_in_progress == null ){

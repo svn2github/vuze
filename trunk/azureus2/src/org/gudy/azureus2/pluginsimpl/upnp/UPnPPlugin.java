@@ -52,7 +52,9 @@ UPnPPlugin
 	
 	protected BooleanParameter	alert_success_param;
 	protected BooleanParameter	grab_ports_param;
-		
+	protected BooleanParameter	alert_other_port_param;
+	protected BooleanParameter	alert_device_probs_param;
+	
 	protected List	mappings	= new ArrayList();
 	protected List	services	= new ArrayList();
 	
@@ -97,8 +99,6 @@ UPnPPlugin
 		final BooleanParameter enable_param = 
 			config.addBooleanParameter2( "upnp.enable", "upnp.enable", true );
 		
-		alert_success_param = config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", true );
-		
 		grab_ports_param = config.addBooleanParameter2( "upnp.grabports", "upnp.grabports", false );
 		
 		ActionParameter refresh_param = config.addActionParameter2( "upnp.refresh.label", "upnp.refresh.button" );
@@ -113,10 +113,21 @@ UPnPPlugin
 					upnp.reset();
 				}
 			});
+
+		config.addLabelParameter2( "blank.resource" );
 		
+		alert_success_param = config.addBooleanParameter2( "upnp.alertsuccess", "upnp.alertsuccess", true );
+		
+		alert_other_port_param = config.addBooleanParameter2( "upnp.alertothermappings", "upnp.alertothermappings", true );
+		
+		alert_device_probs_param = config.addBooleanParameter2( "upnp.alertdeviceproblems", "upnp.alertdeviceproblems", true );
+		
+
 		enable_param.addEnabledOnSelection( alert_success_param );
 		enable_param.addEnabledOnSelection( grab_ports_param );
 		enable_param.addEnabledOnSelection( refresh_param );
+		enable_param.addEnabledOnSelection( alert_other_port_param );
+		enable_param.addEnabledOnSelection( alert_device_probs_param );
 		
 		boolean	enabled = enable_param.getValue();
 		
@@ -177,6 +188,10 @@ UPnPPlugin
 	startUp()
 	{
 		if ( upnp != null ){
+			
+				// already started up, must have been re-enabled
+			
+			upnp.reset();
 			
 			return;
 		}
@@ -331,7 +346,7 @@ UPnPPlugin
 							(ports[j].isTCP()?"TCP":"UDP" ) + " -> " + ports[j].getInternalHost());
 		}
 		
-		services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param ));
+		services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param, alert_other_port_param ));
 		
 		checkState();
 	}
@@ -350,7 +365,7 @@ UPnPPlugin
 		
 		log.log( text );
 		
-		if ( !replaced ){
+		if ( (!replaced) && alert_device_probs_param.getValue()){
 			
 			log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
 		}
