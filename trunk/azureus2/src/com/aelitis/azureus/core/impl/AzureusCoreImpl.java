@@ -90,6 +90,8 @@ AzureusCoreImpl
 		COConfigurationManager.checkConfiguration();
 		
 		LGLogger.initialise();
+		
+		AEDiagnostics.startup();
 	}
 	
 	public LocaleUtil
@@ -202,6 +204,8 @@ AzureusCoreImpl
 		}
 			
 		NonDaemonTaskRunner.waitUntilIdle();
+		
+		AEDiagnostics.shutdown();
 	}
 	
 	

@@ -28,9 +28,8 @@ package org.gudy.azureus2.core3.util;
  */
 public class 
 AESemaphore 
+	extends AEMonSem
 {
-	protected String	name;
-	protected int		waiting		= 0;
 	protected int		dont_wait	= 0;
 
 	protected int		total_reserve	= 0;
@@ -42,7 +41,7 @@ AESemaphore
 	AESemaphore(
 		String		_name )
 	{
-		name		= _name;
+		this( _name, 0 );
 	}
 
 	public
@@ -50,10 +49,9 @@ AESemaphore
 		String		_name,
 		int			count )
 	{
-		name		= _name;
+		super( _name, false );
 		
-		dont_wait	= count;
-
+		dont_wait		= count;
 		total_release	= count;
 	}
 
@@ -82,8 +80,15 @@ AESemaphore
 		long	millis,
 		int		max_to_reserve )
 	{
+		if ( DEBUG ){
+			
+			super.debugEntry();
+		}
+		
 		synchronized(this){
 
+			entry_count++;
+			
 			//System.out.println( name + "::reserve");
 			
 			if ( released_forever ){
@@ -139,19 +144,27 @@ AESemaphore
 	public void
 	release()
 	{
-		synchronized(this){
-			//System.out.println( name + "::release");
-
-			total_release++;
-
-			if ( waiting != 0 ){
-
-				waiting--;
-
-				notify();
-
-			}else{
-				dont_wait++;
+		try{
+			synchronized(this){
+				//System.out.println( name + "::release");
+	
+				total_release++;
+	
+				if ( waiting != 0 ){
+	
+					waiting--;
+	
+					notify();
+	
+				}else{
+					dont_wait++;
+				}
+			}
+		}finally{
+			
+			if ( DEBUG ){
+				
+				debugExit();
 			}
 		}
 	}
