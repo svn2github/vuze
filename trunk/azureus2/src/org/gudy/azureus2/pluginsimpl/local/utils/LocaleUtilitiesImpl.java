@@ -59,6 +59,14 @@ LocaleUtilitiesImpl
 		return( MessageText.getString( key ));
 	}
 	
+	public String
+	getLocalisedMessageText(
+		String		key,
+		String[]	params )
+	{
+		return( MessageText.getString( key, params ));
+	}
+	
 	public LocaleDecoder[]
 	getDecoders()
 	{

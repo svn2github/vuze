@@ -43,6 +43,11 @@ LocaleUtilities
 	getLocalisedMessageText(
 		String		key );
 	
+	public String
+	getLocalisedMessageText(
+		String		key,
+		String[]	params );
+	
 	public LocaleDecoder[]
 	getDecoders();
 }

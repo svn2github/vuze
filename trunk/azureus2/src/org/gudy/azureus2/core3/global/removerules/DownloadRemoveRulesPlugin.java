@@ -29,22 +29,47 @@ package org.gudy.azureus2.core3.global.removerules;
 
 import java.util.*;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.ui.config.*;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.*;
 
 public class 
 DownloadRemoveRulesPlugin 
 	implements Plugin, DownloadManagerListener
 {
-	protected boolean	closing;
+	protected PluginInterface		plugin_interface;
+	protected boolean				closing;
 	
 	protected Map		dm_listener_map	= new HashMap(10);
 	
+	protected LoggerChannel 		log;
+
+	protected BooleanParameter 	remove_unauthorised; 
+	protected BooleanParameter 	remove_unauthorised_seeding_only; 
+
 	public void
 	initialize(
-		PluginInterface 	plugin_interface )
+		PluginInterface 	_plugin_interface )
 	{
+		plugin_interface	= _plugin_interface;
+		
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Download Remove Rules" );
 
+		log = plugin_interface.getLogger().getChannel("DLRemRules");
+
+		BasicPluginConfigModel	config = plugin_interface.getUIManager().createBasicPluginConfigModel( "torrents", "download.removerules.name" );
+			
+		config.addLabelParameter2( "download.removerules.unauthorised.info" );
+		
+		remove_unauthorised = 
+			config.addBooleanParameter2( "download.removerules.unauthorised", "download.removerules.unauthorised", false );
+		
+		remove_unauthorised_seeding_only = 
+			config.addBooleanParameter2( "download.removerules.unauthorised.seedingonly", "download.removerules.unauthorised.seedingonly", true );
+		
+		remove_unauthorised.addEnabledOnSelection( remove_unauthorised_seeding_only );
+		
 		plugin_interface.getDownloadManager().addListener( this );
 	}
 	
@@ -81,9 +106,15 @@ DownloadRemoveRulesPlugin
 						
 						String	reason = response.getError();
 						
-						if ( reason != null && reason.toLowerCase().indexOf( "unauthori" ) != -1 ){
+						if ( reason != null ){
+							
+							reason = reason.toLowerCase();
+							
+							if ( 	reason.indexOf( "not authori" ) != -1 ||
+									reason.toLowerCase().indexOf( "unauthori" ) != -1 ){
 					
-							handleUnauthorised( dm );
+								handleUnauthorised( dm );
+							}
 						}
 					}
 				}
@@ -96,9 +127,68 @@ DownloadRemoveRulesPlugin
 		
 	protected void
 	handleUnauthorised(
-		Download	dm )
+		final Download	dm )
 	{
-		// System.out.println( "Unauthorised: " + dm.getName());
+		if ( !remove_unauthorised.getValue()){
+			
+			return;
+		}
+		
+		if ( remove_unauthorised_seeding_only.getValue() && dm.getState() != Download.ST_SEEDING ){
+			
+			return;
+		}
+		
+		log.log( "Download '" + dm.getName() + "' is unauthorised and removal triggered" );
+		
+		dm.addListener( 
+			new DownloadListener()
+			{
+				public void
+				stateChanged(
+					Download		download,
+					int				old_state,
+					int				new_state )
+				{
+					log.log( "download state changed to '" + new_state +"'" );
+					
+					if ( new_state == Download.ST_STOPPED ){
+						
+						try{
+							dm.remove();
+							
+							String msg = 
+								plugin_interface.getUtilities().getLocaleUtilities().getLocalisedMessageText(
+									"download.removerules.removed.ok",
+									new String[]{ dm.getName() });
+								
+							log.logAlert( 
+								LoggerChannel.LT_INFORMATION,
+								msg );
+						
+						}catch( Throwable e ){
+							
+							log.logAlert( "Automatic removal of download '" + dm.getName() + "' failed", e );
+						}
+					}
+				}
+
+				public void
+				positionChanged(
+					Download	download, 
+					int oldPosition,
+					int newPosition )
+				{
+				}
+			});
+		
+		try{
+			dm.stop();
+			
+		}catch( DownloadException e ){
+			
+			log.log( "Removal failed", e );
+		}
 	}
 	
 	public void
