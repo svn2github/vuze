@@ -30,7 +30,13 @@ LGLogger
 	public static final int	AT_COMMENT		= 0;
 	public static final int	AT_WARNING		= 1;
 	public static final int	AT_ERROR		= 3;
-	
+  
+  //categories
+  public static final int CORE_SYSTEM   = 10;
+  public static final int CORE_NETWORK  = 11;
+  public static final int CORE_DISK     = 12;
+  
+  
 
 	public static void
 	initialise()
