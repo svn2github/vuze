@@ -7,7 +7,6 @@ package org.gudy.azureus2.cl;
 import org.gudy.azureus2.core.ConfigurationManager;
 import org.gudy.azureus2.core.DownloadManager;
 import org.gudy.azureus2.core.GlobalManager;
-import org.gudy.azureus2.ui.swt.Messages;
 
 /**
  * @author Olivier
@@ -32,37 +31,37 @@ public class Main {
       int state = manager.getState();
       switch (state) {
         case DownloadManager.STATE_WAITING :
-          buf.append(Messages.getString("Main.download.state.waiting")); //$NON-NLS-1$
+          buf.append("Waiting");
           break;
         case DownloadManager.STATE_ALLOCATING :
-          buf.append(Messages.getString("Main.download.state.allocating")); //$NON-NLS-1$
+          buf.append("Allocating");
           break;
         case DownloadManager.STATE_CHECKING :
-          buf.append(Messages.getString("Main.download.state.checking")); //$NON-NLS-1$
+          buf.append("Checking");
           break;
         case DownloadManager.STATE_READY :
-          buf.append(Messages.getString("Main.download.state.ready")); //$NON-NLS-1$
+          buf.append("Ready");
           break;
         case DownloadManager.STATE_DOWNLOADING :
-          buf.append(Messages.getString("Main.download.state.downloading")); //$NON-NLS-1$
+          buf.append("Downloading");
           break;
         case DownloadManager.STATE_SEEDING :
-          buf.append(Messages.getString("Main.download.state.seeding")); //$NON-NLS-1$
+          buf.append("Seeding");
           break;
         case DownloadManager.STATE_STOPPED :
-          buf.append(Messages.getString("Main.download.state.stopped")); //$NON-NLS-1$
+          buf.append("Stopped");
           break;
         case DownloadManager.STATE_ERROR :
-          buf.append(Messages.getString("Main.download.state.error") + " : " + manager.getErrorDetails()); //$NON-NLS-1$
+          buf.append("Error : " + manager.getErrorDetails());
           break;
       }
       
       buf.append(" C:");
       int completed = manager.getCompleted();
       buf.append(completed/10);
-      buf.append('.'); //$NON-NLS-1$
+      buf.append(".");
       buf.append(completed%10);
-      buf.append('%'); //$NON-NLS-1$
+      buf.append("%");
       buf.append(" S:");
       buf.append(manager.getNbSeeds());
       buf.append(" P:");
@@ -78,9 +77,9 @@ public class Main {
       buf.append(" T:");
       buf.append(manager.getTrackerStatus());
       while(buf.length() < 80) {
-       buf.append(' '); //$NON-NLS-1$
+       buf.append(" ");
       }
-      System.out.print("\r" + buf.toString()); //$NON-NLS-1$
+      System.out.print("\r" + buf.toString());
       
       try {
         Thread.sleep(500);
@@ -102,10 +101,10 @@ public class Main {
       for (int i = 0; i < args.length - 2; i += 2) {
         String param = args[i];
         String value = args[i + 1];
-        if (param.equals("--maxUploads")) //$NON-NLS-1$
-          config.setParameter("Max Uploads", Integer.parseInt(value)); //$NON-NLS-1$
-        else if (param.equals("--maxSpeed")) //$NON-NLS-1$
-          config.setParameter("Max Upload Speed", Integer.parseInt(value)); //$NON-NLS-1$
+        if (param.equals("--maxUploads"))
+          config.setParameter("Max Uploads", Integer.parseInt(value));
+        else if (param.equals("--maxSpeed"))
+          config.setParameter("Max Upload Speed", Integer.parseInt(value));
         else
           return false;
       }
@@ -117,9 +116,9 @@ public class Main {
   }
 
   private static void usage() {
-    System.out.println(Messages.getString("Main.parameter.usage")); //$NON-NLS-1$
-    System.out.println("--maxUploads :\t\t " + Messages.getString("Main.parameter.maxUploads")); //$NON-NLS-1$ //$NON-NLS-2$
-    System.out.println("--maxSpeed :\t\t " + Messages.getString("Main.parameter.maxSpeed")); //$NON-NLS-1$ //$NON-NLS-2$
+    System.out.println("Usage : java org.gudy.azureus2.cl.Main [parameters] \"file.torrent\" \"save path\"");
+    System.out.println("--maxUploads :\t\t Max number of simultaneous uploads");
+    System.out.println("--maxSpeed :\t\t Max upload speed in bytes/sec");
     System.exit(0);
   }
 }
