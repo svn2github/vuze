@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.messaging;
 
+import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.messaging.MessageStreamEncoder;
 import org.gudy.azureus2.plugins.network.RawMessage;
 import org.gudy.azureus2.pluginsimpl.local.network.RawMessageAdapter;
@@ -40,7 +41,16 @@ public class MessageStreamEncoderAdapter implements com.aelitis.azureus.core.pee
   }
   
   public com.aelitis.azureus.core.networkmanager.RawMessage encodeMessage( com.aelitis.azureus.core.peermanager.messaging.Message message ) {
-    RawMessage raw_plug = plug_encoder.encodeMessage( new MessageAdapter( message ) );
+    Message plug_msg;
+    
+    if( message instanceof MessageAdapter ) {  //original message created by plugin, unwrap
+      plug_msg = ((MessageAdapter)message).getPluginMessage();
+    }
+    else {
+      plug_msg = new MessageAdapter( message );  //core created
+    }
+    
+    RawMessage raw_plug = plug_encoder.encodeMessage( plug_msg );
     return new RawMessageAdapter( raw_plug );
   }
   
