@@ -9,6 +9,7 @@ package org.gudy.azureus2.core3.util;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 import java.io.*;
+import java.util.*;
 
 /**
  * Used for identifying clients by their peerID.
@@ -21,7 +22,10 @@ public class Identification {
   /**
    * Decodes the given peerID, returning an identification string.
    */  
-  public static String decode(byte[] peerID) {
+  public static String decode(byte[] peer_id) {
+    byte[] peerID = new byte[peer_id.length];
+    System.arraycopy(peer_id, 0, peerID, 0, peer_id.length);
+         
     final boolean LOG_UNKNOWN = System.getProperty("log.unknown.peerids") != null;
     FileWriter log = null;
     File logFile = FileUtil.getUserFile("identification.log");
