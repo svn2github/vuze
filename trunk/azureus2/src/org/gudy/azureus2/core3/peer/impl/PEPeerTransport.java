@@ -34,6 +34,12 @@ public interface
 PEPeerTransport
 	extends PEPeer
 {	
+
+  public static final int CONNECTION_WAITING_FOR_HANDSHAKE =  0;
+  public static final int CONNECTION_WAITING_FOR_BITFIELD =   1;
+  public static final int CONNECTION_FULLY_ESTABLISHED =      2;
+  
+
 	public int
 	processRead();
   	
@@ -100,5 +106,12 @@ PEPeerTransport
 	 * A keep-alive is sent if no other message has been sent within the last 2min.
 	 */
 	public void doKeepAliveCheck();
+  
+  
+  /**
+   * Get the specific post-socket-establishment connection state.
+   * @return connection state
+   */
+  public int getConnectionState();
   
 }

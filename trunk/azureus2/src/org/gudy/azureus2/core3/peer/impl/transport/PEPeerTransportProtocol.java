@@ -99,6 +99,11 @@ PEPeerTransportProtocol
   
   private boolean identityAdded = false;  //needed so we don't remove id's in closeAll() on duplicate connection attempts
   
+  
+  private int connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE;
+  
+  
+  
   //The client name identification	
 	private String client = "";
 
@@ -998,6 +1003,9 @@ PEPeerTransportProtocol
     sendBitField();
     manager.peerAdded( this );
     handshake_data.returnToPool();
+    
+    connection_state = PEPeerTransport.CONNECTION_WAITING_FOR_BITFIELD;
+    
     currentState = new StateTransfering();
   }
   
@@ -1197,6 +1205,9 @@ StateTransfering
     boolean logging_is_on = LGLogger.isLoggingOn();
     
     message_buff.position( DirectByteBuffer.SS_PEER, 0 );
+    
+    //*any* message received at this point means we're established, even though 99/100 it'll be the optional bitfield message
+    connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
     
     int pieceNumber, pieceOffset, pieceLength;
     byte cmd = message_buff.get( DirectByteBuffer.SS_PEER );
@@ -1929,6 +1940,11 @@ StateTransfering
       sendKeepAlive();
       last_message_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
     }
+  }
+  
+  
+  public int getConnectionState() {
+    return connection_state;
   }
   
 }

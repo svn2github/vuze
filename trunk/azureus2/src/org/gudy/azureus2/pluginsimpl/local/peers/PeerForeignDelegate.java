@@ -173,6 +173,9 @@ PeerForeignDelegate
 
 	 //nothing to process
 	public int processRead(){ return 0;}
+  
+  
+  public int getConnectionState() {  return 0;  }
 	  
 	  //used for process() timing...not needed
 	public int getReadSleepTime(){ return 0; }
