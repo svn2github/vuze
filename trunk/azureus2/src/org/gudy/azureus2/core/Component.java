@@ -17,19 +17,23 @@ public class Component implements IComponent, IComponentListener {
 
   private Vector listeners;
 
+  private Object listenerLock = new Object();
+
   public Component() {
     listeners = new Vector();
   }
 
   public void addListener(IComponentListener listener) {
-    synchronized (listeners) {
+    synchronized (listenerLock) {
       listeners.add(listener);
+      listenerLock.notifyAll();
     }
   }
 
   public void removeListener(IComponentListener listener) {
-    synchronized (listeners) {
+    synchronized (listenerLock) {
       listeners.remove(listener);
+      listenerLock.notifyAll();
     }
   }
 
@@ -37,8 +41,8 @@ public class Component implements IComponent, IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectAdded(java.lang.Object, java.lang.Object)
    */
   public void objectAdded(Object created) {
-    //Notify all general listeners
-    synchronized (listeners) {
+    synchronized (listenerLock) {
+      //Notify all general listeners
       for (int i = 0; i < listeners.size(); i++) {
         IComponentListener listener = (IComponentListener) listeners.get(i);
         listener.objectAdded(created);
@@ -50,8 +54,8 @@ public class Component implements IComponent, IComponentListener {
    * @see org.gudy.azureus2.ui.swt.IComponentListener#objectRemoved(java.lang.Object, java.lang.Object)
    */
   public void objectRemoved(Object removed) {
-    //Notify all general listeners
-    synchronized (listeners) {
+    synchronized (listenerLock) {
+      //Notify all general listeners
       for (int i = 0; i < listeners.size(); i++) {
         IComponentListener listener = (IComponentListener) listeners.get(i);
         listener.objectRemoved(removed);
