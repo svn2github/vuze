@@ -10,21 +10,19 @@
 
 package org.gudy.azureus2.core3.config.impl;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -350,9 +348,9 @@ public class ConfigurationDefaults {
     def.put( "confirm_torrent_removal", new Long(0) );
     def.put( "add_torrents_silently", new Long(0) );
     def.put( "enable_small_osx_fonts", new Long(1) );
-    
-    
-    
+    def.put("Message Popup Autoclose in Seconds", new Long(5));
+    def.put("Play Download Finished Announcement", new Long(0));
+    def.put("Play Download Finished Announcement Text", "Download Complete");
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

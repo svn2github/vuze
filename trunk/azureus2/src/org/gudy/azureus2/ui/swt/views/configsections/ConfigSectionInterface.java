@@ -24,34 +24,29 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
-import java.io.File;
-import java.applet.Applet;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Text;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Control;
-
+import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerException;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.platform.*;
+import org.gudy.azureus2.ui.swt.config.*;
+
+import java.applet.Applet;
+import java.io.File;
 
 public class ConfigSectionInterface implements ConfigSectionSWT {
   Label passwordMatch;
@@ -109,12 +104,42 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     layout.numColumns = 4;
     cArea.setLayout(layout);
     cArea.setLayoutData(new GridData());
-    
-    //Option disabled on OS X, as impossible to make it work correctly
-    if(! Constants.isOSX) {      
+
     	
-    	BooleanParameter play_sound = new BooleanParameter(cArea, "Play Download Finished",false, "ConfigView.label.playdownloadfinished");
-        
+    BooleanParameter play_sound = new BooleanParameter(cArea, "Play Download Finished",false, "ConfigView.label.playdownloadfinished");
+
+    // OS X counterpart for alerts (see below for what is disabled)
+    if(Constants.isOSX) {
+        gridData = new GridData();
+        gridData.horizontalSpan = 3;
+        gridData.widthHint = 0;
+        gridData.heightHint = 0;
+        Composite filler = new Composite(cArea, SWT.NONE);
+        filler.setSize(0, 0);
+        filler.setLayoutData(gridData);
+
+        final BooleanParameter speechEnabledParameter = new BooleanParameter(cArea, "Play Download Finished Announcement", "ConfigView.label.playdownloadspeech");
+
+        final StringParameter speechParameter = new StringParameter(cArea, "Play Download Finished Announcement Text");
+        gridData = new GridData();
+        gridData.horizontalSpan = 3;
+        gridData.widthHint = 150;
+        speechParameter.setLayoutData(gridData);
+        ((Text)speechParameter.getControl()).setTextLimit(40);
+
+        speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(speechParameter.getControls()));
+
+        final Label speechInfo = new Label(cArea, SWT.NONE);
+        gridData = new GridData();
+        gridData.horizontalSpan = 4;
+        gridData.horizontalIndent = 24;
+        speechInfo.setLayoutData(gridData);
+
+        Messages.setLanguageText(speechInfo, "ConfigView.label.playdownloadspeech.info");
+    }
+
+     //Option disabled on OS X, as impossible to make it work correctly
+    if(!Constants.isOSX) {
     	Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
 	    
 	    gridData = new GridData();
@@ -183,7 +208,7 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 	  gridData.horizontalSpan	= 4;
 	  confirm.setLayoutData( gridData );
     }
-    
+
     BooleanParameter confirm_removal = new BooleanParameter(cArea, "confirm_torrent_removal", "ConfigView.section.interface.confirm_torrent_removal" );
     gridData = new GridData();
     gridData.horizontalSpan = 4;

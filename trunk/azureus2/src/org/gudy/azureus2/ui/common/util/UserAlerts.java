@@ -6,21 +6,21 @@
  */
 package org.gudy.azureus2.ui.common.util;
 
-import java.applet.Applet;
-import java.applet.AudioClip;
-import java.net.*;
-import java.io.*;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.logging.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
+import java.applet.Applet;
+import java.applet.AudioClip;
+import java.io.File;
+import java.net.URL;
 
 /**
  * Contains methods to alert the user of certain events.
@@ -75,67 +75,84 @@ UserAlerts
   	{
   		try{
   			this_mon.enter();
-  		
-	    	if( COConfigurationManager.getBooleanParameter("Play Download Finished", false)){
-	    
+
+            if(Constants.isOSX) { // OS X cannot concurrently use SWT and AWT
+                new AEThread("DownloadSound") {
+                    public void runSupport()
+                    {
+                        try {
+                            if(COConfigurationManager.getBooleanParameter("Play Download Finished Announcement"))
+                                Runtime.getRuntime().exec(new String[]{"say", COConfigurationManager.getStringParameter("Play Download Finished Announcement Text")}); // Speech Synthesis services
+
+                            if(COConfigurationManager.getBooleanParameter("Play Download Finished"))
+                                Runtime.getRuntime().exec(new String[]{"osascript", "-e" ,"beep"}); // Beep alert type is in accordance with System Preferences
+
+                            Thread.sleep(2500);
+                        }
+                        catch(Throwable e) {}
+                    }
+                }.start();
+            }
+	    	else if( COConfigurationManager.getBooleanParameter("Play Download Finished", false)){
+
 	    		String	file = COConfigurationManager.getStringParameter( "Play Download Finished File" );
-	    		
+
     			file = file.trim();
 
 	    			// turn "<default>" into blank
-	    		
+
 	    		if ( file.startsWith( "<" )){
-	    			
+
 	    			file	= "";
 	    		}
-	    		
+
 	    		if ( audio_clip == null || !file.equals( audio_resource )){
-	    			    
+
 	    			audio_clip	= null;
-	    			
+
 	    				// try explicit file
-	    			
+
 	    			if ( file.length() != 0 ){
-	    				
+
 	    				File	f = new File( file );
-	    				
+
 	    				try{
-		    					
+
 			    			if ( f.exists()){
-			    					
+
 		    					URL	file_url = f.toURL();
-		    							    					
+
 		    					audio_clip = Applet.newAudioClip( file_url );
 			    			}
-			    			
+
 	    				}catch( Throwable  e ){
-	    					
+
 	    					Debug.printStackTrace(e);
-	    					
+
 	    				}finally{
-	    					
+
 	    					if ( audio_clip == null ){
-	    						
-	    						LGLogger.logUnrepeatableAlert( 
+
+	    						LGLogger.logUnrepeatableAlert(
 	    								LGLogger.AT_ERROR,
 	    								"Failed to load audio file '" + file + "'" );
 	    					}
 	    				}
 	    			}
-	    			
+
 	    				// either non-explicit or explicit missing
-	    			
+
 	    			if ( audio_clip == null ){
-	    				
+
 	    				audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource("org/gudy/azureus2/ui/icons/downloadFinished.wav"));
-	    					    				
+
 	    			}
-	    			
+
 	    			audio_resource	= file;
 	    		}
-	    		
+
 	    		if ( audio_clip != null ){
-	    		    			
+
 	            	new AEThread("DownloadSound")
 					{
 		        		public void
@@ -143,14 +160,14 @@ UserAlerts
 		        		{
 		        			try{
 		        				audio_clip.play();
-		        			
+
 		        				Thread.sleep(2500);
-		        				
+
 		        			}catch( Throwable e ){
-		        				
+
 		        			}
 		        		}
-		        	}.start();	    		
+		        	}.start();
 		        }
 	    	}
   		}catch( Throwable e ){
