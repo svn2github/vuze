@@ -69,12 +69,14 @@ public class PiecesView
     super.createLegendComposite(
         	new Color[] {
         		Colors.blues[Colors.BLUES_MIDLIGHT],
-        		Colors.blues[Colors.BLUES_DARKEST],        			
-    			Colors.red },
+        		Colors.blues[Colors.BLUES_DARKEST],        		
+    			Colors.red,
+    			Colors.grey},
     		new String[] {
         			"PiecesView.legend.requested",
-        			"PiecesView.legend.written",    				
-    				"PiecesView.legend.downloaded"}
+        			"PiecesView.legend.written",        			
+    				"PiecesView.legend.downloaded",
+    				"PiecesView.legend.incache"}
         	);
     
     manager.addPeerListener(this);

@@ -25,11 +25,16 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.peer.impl.PEPieceImpl;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
 
 /**
  *
@@ -40,6 +45,7 @@ public class BlocksItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
+  
   /** Default Constructor */
   public BlocksItem() {
     super("blocks", TableManager.TABLE_TORRENT_PIECES);
@@ -53,10 +59,17 @@ public class BlocksItem
   private class Cell
           implements TableCellRefreshListener, TableCellDisposeListener
   {
+    
+    CacheFileManagerStats cacheStats; 
     public Cell(TableCell cell) {
       cell.setFillCell(true);
       cell.addRefreshListener(this);
       cell.addDisposeListener(this);
+      try {
+        cacheStats = CacheFileManagerFactory.getSingleton().getStats();
+      } catch(Exception e) {
+        e.printStackTrace();
+      }
     }
 
     public void dispose(TableCell cell) {
@@ -92,11 +105,15 @@ public class BlocksItem
       Color blue = Colors.blues[Colors.BLUES_DARKEST];
       Color green = Colors.blues[Colors.BLUES_MIDLIGHT];
       Color downloaded = Colors.red;
+      Color cache = Colors.grey;
       Color color;
       GC gcImage = new GC(image);
       gcImage.setForeground(Colors.grey);
       gcImage.drawRectangle(0, 0, x1 + 1, y1 + 1);
       int iPixelsPerBlock = (int) ((x1 + 1) / lNumBlocks);
+            
+      TOTorrent torrent = piece.getManager().getDownloadManager().getTorrent();
+      
       for (int i = 0; i < lNumBlocks; i++) {
         int nextWidth = iPixelsPerBlock;
         if (i == lNumBlocks - 1) {
@@ -118,6 +135,17 @@ public class BlocksItem
   
         gcImage.setBackground(color);
         gcImage.fillRectangle(i * iPixelsPerBlock + 1,1,nextWidth,y1);
+        
+        int pieceNumber = piece.getPieceNumber();
+        int length = piece.getBlockSize(i);
+        int offset = PEPeerControl.BLOCK_SIZE * i;        
+        long bytes = cacheStats == null ? 0 : cacheStats.getBytesInCache(torrent,pieceNumber,offset,length);
+        System.out.println(pieceNumber + "," + offset + " : "  + bytes + " / " + length);
+        if(bytes == length) {
+          gcImage.setBackground(cache);
+          gcImage.fillRectangle(i * iPixelsPerBlock + 1,1,nextWidth,4);
+        }
+        
       }
       gcImage.dispose();
 

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -38,6 +39,7 @@ public class
 PEPieceImpl
 	implements PEPiece
 {  
+  
   public int length;
   public int nbBlocs;
   public int pieceNumber;
@@ -332,4 +334,10 @@ PEPieceImpl
     return slowPiece;
   }
 
+  /**
+   * @return Returns the manager.
+   */
+  public PEPeerManager getManager() {
+    return manager;
+  }
 }
