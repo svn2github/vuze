@@ -29,6 +29,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -193,32 +194,38 @@ public class VersionCheckClient {
       long  max_mem = Runtime.getRuntime().maxMemory()/(1024*1024);
       message.put( "javamx", new Long( max_mem ) );
       
+      OverallStats	stats = StatsFactory.getStats();
       
-      long total_bytes_downloaded = StatsFactory.getStats().getDownloadedBytes();
-      long total_bytes_uploaded = StatsFactory.getStats().getUploadedBytes();
-      long total_uptime = StatsFactory.getStats().getTotalUpTime();
-
-      message.put( "total_bytes_downloaded", new Long( total_bytes_downloaded ) );
-      message.put( "total_bytes_uploaded", new Long( total_bytes_uploaded ) );
-      message.put( "total_uptime", new Long( total_uptime ) );
-      
-      
-      //installed plugin IDs
-      PluginInterface[] plugins = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaces();
-      List pids = new ArrayList();
-      for (int i=0;i<plugins.length;i++){
-        String  pid = plugins[i].getPluginID();
-        
-          // filter out built-in and core ones
-        if (  !pid.startsWith( "<" ) && 
-            !pid.startsWith( "azupdater" ) &&
-            !pid.startsWith( "azplatform" ) &&
-            !pids.contains( pid )){
-        
-          pids.add( pid );
-        }
+      if ( stats != null ){
+      	
+	      long total_bytes_downloaded = StatsFactory.getStats().getDownloadedBytes();
+	      long total_bytes_uploaded = StatsFactory.getStats().getUploadedBytes();
+	      long total_uptime = StatsFactory.getStats().getTotalUpTime();
+	
+	      message.put( "total_bytes_downloaded", new Long( total_bytes_downloaded ) );
+	      message.put( "total_bytes_uploaded", new Long( total_bytes_uploaded ) );
+	      message.put( "total_uptime", new Long( total_uptime ) );
       }
-      message.put( "plugins", pids );
+      
+      if ( AzureusCoreFactory.isCoreAvailable()){
+      	
+	      //installed plugin IDs
+	      PluginInterface[] plugins = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaces();
+	      List pids = new ArrayList();
+	      for (int i=0;i<plugins.length;i++){
+	        String  pid = plugins[i].getPluginID();
+	        
+	          // filter out built-in and core ones
+	        if (  !pid.startsWith( "<" ) && 
+	            !pid.startsWith( "azupdater" ) &&
+	            !pid.startsWith( "azplatform" ) &&
+	            !pids.contains( pid )){
+	        
+	          pids.add( pid );
+	        }
+	      }
+	      message.put( "plugins", pids );
+      }
     }
     
     
