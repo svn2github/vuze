@@ -65,13 +65,13 @@ public class AdapterMessageImpl implements Message, com.aelitis.azureus.core.pee
     return bbs;
   }
   
-  public Message create( String id, byte version, ByteBuffer data ) throws MessageException  {
+  public Message create( ByteBuffer data ) throws MessageException  {
     if( core_msg == null ) {
-      return plug_msg.create( id, version, data );
+      return plug_msg.create( data );
     }
     
     try{
-      return new AdapterMessageImpl( core_msg.deserialize( id, version, new DirectByteBuffer( data ) ) );
+      return new AdapterMessageImpl( core_msg.deserialize( new DirectByteBuffer( data ) ) );
     }
     catch( com.aelitis.azureus.core.peermanager.messaging.MessageException e ) {
       throw new MessageException( e.getMessage() );
@@ -118,13 +118,13 @@ public class AdapterMessageImpl implements Message, com.aelitis.azureus.core.pee
     return dbbs;
   }
   
-  public com.aelitis.azureus.core.peermanager.messaging.Message deserialize( String id, byte version, DirectByteBuffer data ) throws com.aelitis.azureus.core.peermanager.messaging.MessageException {
+  public com.aelitis.azureus.core.peermanager.messaging.Message deserialize( DirectByteBuffer data ) throws com.aelitis.azureus.core.peermanager.messaging.MessageException {
     if( plug_msg == null ) {
-      return core_msg.deserialize( id, version, data );
+      return core_msg.deserialize( data );
     }
     
     try{
-      return new AdapterMessageImpl( plug_msg.create( id, version, data.getBuffer( DirectByteBuffer.SS_MSG ) ) );
+      return new AdapterMessageImpl( plug_msg.create( data.getBuffer( DirectByteBuffer.SS_MSG ) ) );
     }
     catch( MessageException e ) {
       throw new com.aelitis.azureus.core.peermanager.messaging.MessageException( e.getMessage() );

@@ -101,8 +101,8 @@ public class IncomingMessageQueue {
           handled = handled || mql.messageReceived( msg );
         }
         
-        if( !handled ) {  //this should not happen
-          Debug.out( "no registered listeners [out of " +listeners_ref.size()+ "] handled decoded message [" +msg.getDescription()+ "]" );
+        if( !handled ) {
+          System.out.println( "no registered listeners [out of " +listeners_ref.size()+ "] handled decoded message [" +msg.getDescription()+ "]" );
           DirectByteBuffer[] buffs = msg.getData();
           for( int x=0; x < buffs.length; x++ ) {
             buffs[ x ].returnToPool();

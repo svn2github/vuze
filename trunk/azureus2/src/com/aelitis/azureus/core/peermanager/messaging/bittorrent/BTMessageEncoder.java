@@ -69,7 +69,7 @@ public class BTMessageEncoder implements MessageStreamEncoder {
     LegacyData ld = (LegacyData)legacy_data.get( message.getID() );
     
     if( ld == null ) {
-      Debug.out( "legacy message type id not found!" );
+      Debug.out( "legacy message type id not found for [" +message.getID()+ "]" );
       return null;  //message id type not found
     }
     

@@ -45,15 +45,7 @@ public class Ping implements Message {
   
   public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{};  } 
   
-  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
-    if( !id.equals( getID() ) ) {
-      throw new MessageException( "decode error: invalid id" );
-    }
-    
-    if( version != getVersion()  ) {
-      throw new MessageException( "decode error: invalid version" );
-    }
-    
+  public Message deserialize( DirectByteBuffer data ) throws MessageException {   
     if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
       throw new MessageException( "decode error: payload not empty" );
     }

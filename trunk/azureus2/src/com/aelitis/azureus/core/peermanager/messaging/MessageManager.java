@@ -106,7 +106,7 @@ public class MessageManager {
       throw new MessageException( "message id[" +id+ "] / version[" +version+ "] not registered" );
     }
     
-    return message.deserialize( id, version, message_data );    
+    return message.deserialize( message_data );    
   }
   
 

@@ -29,6 +29,7 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 
 
 /**
+ *
  * Basic raw message implementation used internally for
  * Message-->RawMessage conversions.
  */
@@ -38,6 +39,8 @@ public class RawMessageImpl implements RawMessage {
   private final int priority;
   private final boolean is_no_delay;
   private final Message[] to_remove;
+  
+  //TODO turn this into bt-specific raw message impl?
   
   
   /**
@@ -71,8 +74,8 @@ public class RawMessageImpl implements RawMessage {
   
   public DirectByteBuffer[] getData() {  return message.getData();  }
   
-  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
-    return message.deserialize( id, version, data );
+  public Message deserialize( DirectByteBuffer data ) throws MessageException {
+    return message.deserialize( data );
   }
   
   

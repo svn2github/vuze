@@ -1,5 +1,5 @@
 /*
- * Created on Jan 8, 2005
+ * Created on Feb 16, 2005
  * Created by Alon Rohter
  * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
  *
@@ -24,36 +24,18 @@ package com.aelitis.azureus.core.peermanager.messaging.core;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.messaging.MessageException;
-
+import com.aelitis.azureus.core.peermanager.messaging.*;
 
 /**
  *
  */
-public class Pong implements Message {
-  private static final String msg_id = "PONG";
-  private static final byte msg_version = (byte)1;
-  
-  public String getID() {  return msg_id;  }
+public class CoreMessageCreator {
 
-  public byte getVersion() {  return msg_version;  }
-  
-  public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
 
-  public String getDescription() {  return msg_id;  }
-  
-  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{};  } 
-  
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {   
-    if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
-      throw new MessageException( "decode error: payload not empty" );
-    }
-    
-    if( data != null )  data.returnToPool();
-    
-    return new Pong();
+  public Message createMessage( DirectByteBuffer stream_payload ) throws MessageException {
+    return null;  //TODO
   }
   
-  public void destroy() { /*nothing*/ } 
+  
+  
 }

@@ -86,15 +86,7 @@ public class BTPiece implements BTMessage {
   
   public DirectByteBuffer[] getData() {  return buffer;  }
   
-  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException {
-    if( !id.equals( getID() ) ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid id" );
-    }
-    
-    if( version != getVersion()  ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid version" );
-    }
-    
+  public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
     }

@@ -39,10 +39,10 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
   private static final int HANDSHAKE_FAKE_LENGTH = 323119476;  //(byte)19 + "Bit" readInt() value of header
       
-  private final ByteBuffer type_buffer = ByteBuffer.allocate( 1 );
+  private final ByteBuffer type_buffer = ByteBuffer.allocateDirect( 1 );
   private ByteBuffer payload_buffer = null;
   private DirectByteBuffer direct_payload_buffer = null;
-  private final ByteBuffer length_buffer = ByteBuffer.allocate( 4 );
+  private final ByteBuffer length_buffer = ByteBuffer.allocateDirect( 4 );
   
   private final ByteBuffer[] decode_array = new ByteBuffer[] { type_buffer, payload_buffer, length_buffer };
   
@@ -333,7 +333,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           }
         }
         else {  //normal message
-          if( message_length > 1024 ) {
+          if( message_length > 1023 ) {
             direct_payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length - 1 );
             payload_buffer = direct_payload_buffer.getBuffer( DirectByteBuffer.SS_NET );
           }

@@ -78,13 +78,11 @@ public interface Message {
   
   /**
    * Create a new instance of this message by decoding the given byte serialization.
-   * @param id of message
-   * @param version of message
    * @param data to deserialize
    * @return decoded message instance
    * @throws MessageException if the decoding process fails
    */
-  public Message deserialize( String id, byte version, DirectByteBuffer data ) throws MessageException;
+  public Message deserialize( DirectByteBuffer data ) throws MessageException;
     
   
   /**

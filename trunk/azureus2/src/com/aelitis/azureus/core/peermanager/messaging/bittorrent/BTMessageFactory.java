@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
+import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 
 /**
@@ -89,6 +90,13 @@ public class BTMessageFactory {
       default:
         throw new MessageException( "unknown legacy message id [" +bt_id+ "]" );
     }
+  }
+  
+  
+  
+  public static RawMessage createBTRawMessage( Message base_message ) {
+    //TODO
+    return null;
   }
   
   
