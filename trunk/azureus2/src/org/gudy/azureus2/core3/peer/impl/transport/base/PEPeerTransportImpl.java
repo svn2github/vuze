@@ -155,6 +155,7 @@ PEPeerTransportImpl
   	
   		throws IOException
   	{
+      if (!socket.finishConnect()) return -1;
 		return(socket.read(buffer));
   	}
   
@@ -164,6 +165,7 @@ PEPeerTransportImpl
   	
 		throws IOException
   	{
+      if (!socket.finishConnect()) return -1;
 		return(socket.write(buffer));
   	}
 }
