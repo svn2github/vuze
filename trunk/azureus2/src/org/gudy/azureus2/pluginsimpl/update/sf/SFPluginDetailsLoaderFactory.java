@@ -35,6 +35,6 @@ SFPluginDetailsLoaderFactory
 	public static SFPluginDetailsLoader
 	create()
 	{
-		return( new SFPluginDetailsLoaderImpl());
+		return( SFPluginDetailsLoaderImpl.getSingleton());
 	}
 }

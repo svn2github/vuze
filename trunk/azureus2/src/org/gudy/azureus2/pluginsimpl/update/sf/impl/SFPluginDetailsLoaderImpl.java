@@ -42,15 +42,32 @@ SFPluginDetailsLoaderImpl
 	
 	public static final String	page_url 	= site_prefix + "plugin_list.php";
 
-	protected List		plugin_details	= new ArrayList();
+	protected static SFPluginDetailsLoaderImpl		singleton;
 	
-	public
+	
+	public static synchronized SFPluginDetailsLoader
+	getSingleton()
+	{
+		if ( singleton == null ){
+			
+			singleton	= new SFPluginDetailsLoaderImpl();
+		}
+		
+		return( singleton );
+	}
+	
+	protected boolean	plugin_names_loaded	= false;
+	
+	protected List		plugin_names		= new ArrayList();
+	protected Map		plugin_map			= new HashMap();
+	
+	protected
 	SFPluginDetailsLoaderImpl()
 	{
 	}
 	
-	public void
-	load()
+	protected void
+	loadPluginList()
 	
 		throws SFPluginDetailsException
 	{
@@ -69,25 +86,15 @@ SFPluginDetailsLoaderImpl
 				
 				String	link = links[i];
 				
-				if ( link.startsWith("plugin_details.php?" )){
+				if ( link.startsWith("plugin_details.php?plugin=" )){
 	
-					String	plugin_name = link.substring( 19 );
+					String	plugin_name = link.substring( 26 );
 
-					try{
-						ResourceDownloader p_dl = ResourceDownloaderFactory.create( site_prefix + link );
-					
-						p_dl = ResourceDownloaderFactory.getRetryDownloader( p_dl, 5 );
-					
-						HTMLPage	plugin_page = HTMLPageFactory.loadPage( p_dl.download());
-						
-						processPluginPage( plugin_name, plugin_page );
-							
-					}catch( Throwable e ){
-						
-						e.printStackTrace();
-					}
-				}
+					plugin_names.add( plugin_name );
+				}					
 			}
+			
+			plugin_names_loaded	= true;
 			
 		}catch( Throwable e ){
 			
@@ -97,17 +104,47 @@ SFPluginDetailsLoaderImpl
 		}
 	}
 	
-	protected void
+	protected SFPluginDetailsImpl
+	loadPluginDetails(
+		String		plugin_name )
+	
+		throws SFPluginDetailsException
+	{
+		try{
+			ResourceDownloader p_dl = ResourceDownloaderFactory.create( site_prefix + "plugin_details.php?plugin=" + plugin_name );
+		
+			p_dl = ResourceDownloaderFactory.getRetryDownloader( p_dl, 5 );
+		
+			HTMLPage	plugin_page = HTMLPageFactory.loadPage( p_dl.download());
+			
+			SFPluginDetailsImpl res = processPluginPage( plugin_name, plugin_page );
+			
+			if ( res == null ){
+				
+				throw( new SFPluginDetailsException( "Plugin details load fails: data not found" ));
+			}
+			
+			return( res );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+			
+			throw( new SFPluginDetailsException( "Plugin details load fails", e ));
+		}
+	}
+	
+	protected SFPluginDetailsImpl
 	processPluginPage(
 		String			name,
 		HTMLPage		page )
 	
 		throws SFPluginDetailsException
 	{
-		processPluginPage( name, page.getTables());
+		return( processPluginPage( name, page.getTables()));
 	}
 	
-	protected boolean
+	protected SFPluginDetailsImpl
 	processPluginPage(
 		String			name,
 		HTMLTable[]		tables )
@@ -152,26 +189,25 @@ SFPluginDetailsLoaderImpl
 					
 					System.out.println( "got plugin:" + plugin_name + "/" + plugin_version + "/" + plugin_download + "/" + plugin_auth );
 					
-					plugin_details.add(
-							new SFPluginDetailsImpl(
+					return(	new SFPluginDetailsImpl(
 									plugin_name,
 									plugin_version,
 									plugin_download,
-									plugin_auth ));
-							
-					return( true );
+									plugin_auth ));							
 				}
 			}
 			
 			HTMLTable[]	sub_tables = table.getTables();
 			
-			if (processPluginPage( name, sub_tables )){
-					
-				return( true );
+			SFPluginDetailsImpl	res = processPluginPage( name, sub_tables );
+			
+			if( res != null ){
+				
+				return( res );
 			}
 		}
 		
-		return( false );
+		return( null );
 	}
 	
 	protected void
@@ -206,12 +242,52 @@ SFPluginDetailsLoaderImpl
 		}
 	}
 	
+	public String[]
+	getPluginNames()
+		
+		throws SFPluginDetailsException
+	{
+		if ( !plugin_names_loaded ){
+			
+			loadPluginList();
+		}
+		
+		String[]	res = new String[plugin_names.size()];
+		
+		plugin_names.toArray( res );
+		
+		return( res );
+	}
+	
+	public SFPluginDetails
+	getPluginDetails(
+		String		name )
+	
+		throws SFPluginDetailsException
+	{
+		SFPluginDetails details = (SFPluginDetails)plugin_map.get(name); 
+		
+		if ( details == null ){
+			
+			details = loadPluginDetails( name );
+			
+			plugin_map.put( name, details );
+		}
+		
+		return( details );
+	}
+	
 	public SFPluginDetails[]
 	getPluginDetails()
+	
+		throws SFPluginDetailsException	
 	{
-		SFPluginDetails[]	res = new SFPluginDetails[plugin_details.size()];
-		
-		plugin_details.toArray( res );
+		SFPluginDetails[]	res = new SFPluginDetails[plugin_names.size()];
+	
+		for (int i=0;i<plugin_names.size();i++){
+			
+			res[i] = getPluginDetails((String)plugin_names.get(i));
+		}
 		
 		return( res );
 	}

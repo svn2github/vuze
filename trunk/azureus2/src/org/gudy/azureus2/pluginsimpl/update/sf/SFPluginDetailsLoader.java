@@ -30,11 +30,19 @@ package org.gudy.azureus2.pluginsimpl.update.sf;
 public interface 
 SFPluginDetailsLoader 
 {
-	public void
-	load()
+	public String[]
+	getPluginNames()
+	
+		throws SFPluginDetailsException;
+	
+	public SFPluginDetails
+	getPluginDetails(
+		String		name )
 	
 		throws SFPluginDetailsException;
 	
 	public SFPluginDetails[]
-	getPluginDetails();
+	getPluginDetails()
+	
+		throws SFPluginDetailsException;
 }

@@ -30,6 +30,7 @@ package org.gudy.azureus2.pluginsimpl.update;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.model.*;
+import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
 public class 
 PluginUpdatePlugin
@@ -106,6 +107,25 @@ PluginUpdatePlugin
 			String	version = pi.getPluginVersion();
 			
 			log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + (version==null?"":(", version = " + pi.getPluginVersion())));
+		}
+		
+		try{
+			SFPluginDetailsLoader loader = SFPluginDetailsLoaderFactory.create();
+			
+			String[]	names = loader.getPluginNames();
+			
+			String	name_list = "";
+			
+			for (int i=0;i<names.length;i++){
+				
+				name_list += (i==0?"":",") + names[i];
+			}
+			
+			log.log( LoggerChannel.LT_INFORMATION, "Downloaded plugin names = " + name_list );
+			
+		}catch( SFPluginDetailsException e ){
+			
+			log.log("Failed to load plugin details", e ); 
 		}
 	}
 }
