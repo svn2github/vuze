@@ -85,9 +85,13 @@ ResourceDownloaderRetryImpl
 			
 			done_sem.release();
 			
+			informFailed((ResourceDownloaderException)result);
+			
 		}else{
 		
 			done_count++;
+			
+			informActivity( "download attempt " + done_count + " of " + retry_count );
 			
 			current_downloader = delegate.getClone();
 			
