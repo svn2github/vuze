@@ -59,6 +59,7 @@ public class MainWindow implements IComponentListener {
 
   private Tab mytorrents;
   private Tab console;
+  private Tab config;
 
   private TrayWindow tray;
 
@@ -122,6 +123,7 @@ public class MainWindow implements IComponentListener {
     this.globalManager = gm;
     mytorrents = null;
     console = null;
+    config = null;
     downloadViews = new HashMap();
     downloadBars = new HashMap();
     Logger.createLogger();
@@ -225,7 +227,10 @@ public class MainWindow implements IComponentListener {
     view_config.setText("Configuration");
     view_config.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        new Tab(new ConfigView());
+        if(config == null)
+          config = new Tab(new ConfigView());
+        else
+          config.setFocus();
       }
     });
 
@@ -463,6 +468,20 @@ public class MainWindow implements IComponentListener {
    */
   public HashMap getDownloadBars() {
     return downloadBars;
+  }
+
+  /**
+   * @return
+   */
+  public Tab getConfig() {
+    return config;
+  }
+
+  /**
+   * @param tab
+   */
+  public void setConfig(Tab tab) {
+    config = tab;
   }
 
 }

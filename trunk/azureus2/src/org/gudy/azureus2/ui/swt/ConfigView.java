@@ -167,8 +167,7 @@ public class ConfigView implements IView {
    * @see org.gudy.azureus2.ui.swt.IView#delete()
    */
   public void delete() {
-    // TODO Auto-generated method stub
-
+    MainWindow.getWindow().setConfig(null);
   }
 
   /* (non-Javadoc)

@@ -13,6 +13,8 @@ import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
@@ -72,7 +74,7 @@ public class MyTorrentsView implements IView, IComponentListener {
     layout.verticalSpacing = 0;
     panel.setLayout(layout);
 
-    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);    
+    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 
     gridData = new GridData(GridData.FILL_BOTH);
     table = new Table(panel, SWT.SINGLE | SWT.FULL_SELECTION | SWT.BORDER);
@@ -85,19 +87,18 @@ public class MyTorrentsView implements IView, IComponentListener {
       column.setText(columnsHeader[i]);
       column.setWidth(columnsSize[i]);
     }
-    table.getColumn(0).addListener(SWT.Selection,new StringColumnListener("name"));
-    table.getColumn(1).addListener(SWT.Selection,new IntColumnListener("size"));
-    table.getColumn(2).addListener(SWT.Selection,new IntColumnListener("done"));
-    table.getColumn(3).addListener(SWT.Selection,new IntColumnListener("status"));
-    table.getColumn(4).addListener(SWT.Selection,new IntColumnListener("seeds"));
-    table.getColumn(5).addListener(SWT.Selection,new IntColumnListener("peers"));
-    table.getColumn(6).addListener(SWT.Selection,new StringColumnListener("ds"));
-    table.getColumn(7).addListener(SWT.Selection,new StringColumnListener("us"));
-    table.getColumn(8).addListener(SWT.Selection,new StringColumnListener("eta"));
-    table.getColumn(9).addListener(SWT.Selection,new StringColumnListener("tracker"));
-    table.getColumn(10).addListener(SWT.Selection,new IntColumnListener("priority"));
-    
-    
+    table.getColumn(0).addListener(SWT.Selection, new StringColumnListener("name"));
+    table.getColumn(1).addListener(SWT.Selection, new IntColumnListener("size"));
+    table.getColumn(2).addListener(SWT.Selection, new IntColumnListener("done"));
+    table.getColumn(3).addListener(SWT.Selection, new IntColumnListener("status"));
+    table.getColumn(4).addListener(SWT.Selection, new IntColumnListener("seeds"));
+    table.getColumn(5).addListener(SWT.Selection, new IntColumnListener("peers"));
+    table.getColumn(6).addListener(SWT.Selection, new StringColumnListener("ds"));
+    table.getColumn(7).addListener(SWT.Selection, new StringColumnListener("us"));
+    table.getColumn(8).addListener(SWT.Selection, new StringColumnListener("eta"));
+    table.getColumn(9).addListener(SWT.Selection, new StringColumnListener("tracker"));
+    table.getColumn(10).addListener(SWT.Selection, new IntColumnListener("priority"));
+
     table.setHeaderVisible(true);
     final Menu menu = new Menu(composite.getShell(), SWT.POP_UP);
 
@@ -206,7 +207,7 @@ public class MyTorrentsView implements IView, IComponentListener {
         TableItem[] tis = table.getSelection();
         if (tis.length == 0) {
           return;
-        }        
+        }
         TableItem ti = tis[0];
         DownloadManager dm = (DownloadManager) managers.get(ti);
         if (dm != null && dm.getState() == DownloadManager.STATE_STOPPED) {
@@ -217,6 +218,21 @@ public class MyTorrentsView implements IView, IComponentListener {
 
     itemDetails.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
+        TableItem[] tis = table.getSelection();
+        if (tis.length == 0) {
+          return;
+        }
+        TableItem ti = tis[0];
+        DownloadManager dm = (DownloadManager) managers.get(ti);
+        MainWindow.getWindow().openManagerView(dm);
+      }
+    });
+
+    table.addMouseListener(new MouseAdapter() {
+      /* (non-Javadoc)
+       * @see org.eclipse.swt.events.MouseAdapter#mouseDoubleClick(org.eclipse.swt.events.MouseEvent)
+       */
+      public void mouseDoubleClick(MouseEvent mEvent) {
         TableItem[] tis = table.getSelection();
         if (tis.length == 0) {
           return;
@@ -348,7 +364,7 @@ public class MyTorrentsView implements IView, IComponentListener {
       if (item == null)
         item = new ManagerItem(table, (DownloadManager) manager);
       managerItems.put(manager, item);
-      managers.put(item.getTableItem(),manager);
+      managers.put(item.getTableItem(), manager);
     }
   }
 
@@ -443,53 +459,51 @@ public class MyTorrentsView implements IView, IComponentListener {
           else {
             if (valuei <= value)
               break;
-          }          
-        }    
-        ordered.add(i,manager);
+          }
+        }
+        ordered.add(i, manager);
       }
-      
-          
-      
-      for(int i = 0 ; i < ordered.size() ; i++) {
+
+      for (int i = 0; i < ordered.size(); i++) {
         DownloadManager manager = (DownloadManager) ordered.get(i);
         //ManagerItem item = (ManagerItem) managerItems.get(manager);
         //DownloadManager oldManager = items[i].getManager();
-        
+
         items[i].setManager(manager);
         //item.setManager(oldManager);
-                        
-        managerItems.put(manager,items[i]);
-        managers.put(items[i].getTableItem(),manager);
+
+        managerItems.put(manager, items[i]);
+        managers.put(items[i].getTableItem(), manager);
       }
     }
   }
-  
+
   private class IntColumnListener implements Listener {
-    
+
     private String field;
-    
+
     public IntColumnListener(String field) {
       this.field = field;
     }
-    
+
     public void handleEvent(Event e) {
       orderInt(field);
-    }        
-  }
-  
-  private class StringColumnListener implements Listener {
-    
-      private String field;
-    
-      public StringColumnListener(String field) {
-        this.field = field;
-      }
-    
-      public void handleEvent(Event e) {
-        orderString(field);
-      }        
     }
-  
+  }
+
+  private class StringColumnListener implements Listener {
+
+    private String field;
+
+    public StringColumnListener(String field) {
+      this.field = field;
+    }
+
+    public void handleEvent(Event e) {
+      orderString(field);
+    }
+  }
+
   private void orderString(String field) {
     if (lastField.equals(field))
       ascending = !ascending;
@@ -518,23 +532,21 @@ public class MyTorrentsView implements IView, IComponentListener {
           else {
             if (collator.compare(valuei, value) >= 0)
               break;
-          }          
-        }    
-        ordered.add(i,manager);
+          }
+        }
+        ordered.add(i, manager);
       }
-      
-          
-      
-      for(int i = 0 ; i < ordered.size() ; i++) {
+
+      for (int i = 0; i < ordered.size(); i++) {
         DownloadManager manager = (DownloadManager) ordered.get(i);
         //ManagerItem item = (ManagerItem) managerItems.get(manager);
         //DownloadManager oldManager = items[i].getManager();
-        
+
         items[i].setManager(manager);
         //item.setManager(oldManager);
-                        
-        managerItems.put(manager,items[i]);
-        managers.put(items[i].getTableItem(),manager);
+
+        managerItems.put(manager, items[i]);
+        managers.put(items[i].getTableItem(), manager);
       }
     }
   }
