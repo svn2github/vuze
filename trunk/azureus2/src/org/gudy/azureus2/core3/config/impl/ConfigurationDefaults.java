@@ -358,6 +358,8 @@ public class ConfigurationDefaults {
     def.put("Message Popup Autoclose in Seconds", new Long(5));
     def.put("Play Download Finished Announcement", new Long(0));
     def.put("Play Download Finished Announcement Text", "Download Complete");
+    
+    def.put( "BT Request Max Block Size", new Long(65536));
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

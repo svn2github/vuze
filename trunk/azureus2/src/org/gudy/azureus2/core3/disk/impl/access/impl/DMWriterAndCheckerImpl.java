@@ -67,8 +67,6 @@ DMWriterAndCheckerImpl
 	private static AESemaphore	global_check_queue_block_sem;
 	private static int			global_check_queue_block_sem_next_report_size;
   
-  private static boolean friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
-  
 	static{
 		int	write_limit_blocks = COConfigurationManager.getIntParameter("DiskManager Write Queue Block Limit", 0);
 
@@ -97,11 +95,29 @@ DMWriterAndCheckerImpl
 		}
 	}
   
-  private static final ParameterListener param_listener = new ParameterListener() {
-    public void parameterChanged( String  str ) {
-      friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );        
+	private static boolean 	friendly_hashing;
+	private static int		max_read_block_size;
+
+    static{
+    	
+    	 ParameterListener param_listener = new ParameterListener() {
+    	    public void 
+			parameterChanged( 
+				String  str ) 
+    	    {
+    	      friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
+    	      
+    	  	  max_read_block_size	= COConfigurationManager.getIntParameter( "BT Request Max Block Size" );
+
+    	    }
+    	 };
+
+ 		COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", param_listener );
+		COConfigurationManager.addParameterListener( "BT Request Max Block Size", param_listener );
+		
+		param_listener.parameterChanged("");	// pick up initial values
     }
-  };
+
   
 
 	private DiskManagerHelper		disk_manager;
@@ -162,8 +178,6 @@ DMWriterAndCheckerImpl
 
 			started	= true;
       
-			COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", param_listener );
-			
 			writeThread = new DiskWriteThread();
 			
 			writeThread.start();
@@ -191,9 +205,7 @@ DMWriterAndCheckerImpl
 				// i.e. writes and checks (checks being doubly async)
 			
 			bOverallContinue	= false;
-      
-			COConfigurationManager.removeParameterListener( "diskmanager.friendly.hashchecking", param_listener );
-      
+         
 		}finally{
 			
 			this_mon.exit();
@@ -770,39 +782,49 @@ DMWriterAndCheckerImpl
 	}
 
   
-	public boolean checkBlock(int pieceNumber, int offset, DirectByteBuffer data) {
+	public boolean 
+	checkBlock(
+		int pieceNumber, 
+		int offset, 
+		DirectByteBuffer data ) 
+	{
 		if (pieceNumber < 0) {
-      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" < 0");
+			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" < 0");
 			return false;
-    }
+		}
 		if (pieceNumber >= this.nbPieces) {
-      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
+			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
 			return false;
-    }
+		}
 		int length = this.pieceLength;
 		if (pieceNumber == nbPieces - 1) {
 			length = this.lastPieceLength;
-    }
+		}
 		if (offset < 0) {
-      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" < 0");
+			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" < 0");
 			return false;
-    }
+		}
 		if (offset > length) {
-      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" > length="+length);
+			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" > length="+length);
 			return false;
-    }
+		}
 		int size = data.remaining(DirectByteBuffer.SS_DW);
 		if (offset + size > length) {
-      LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
+			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
 			return false;
-    }
+		}
 		return true;
 	}
   
 
-	public boolean checkBlock(int pieceNumber, int offset, int length) {
-		if (length > 65536) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: length="+length+" > 65536");
+	public boolean 
+	checkBlock(
+		int pieceNumber, 
+		int offset, 
+		int length) 
+	{
+		if (length > max_read_block_size) {
+		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: length="+length+" > " + max_read_block_size );
 		  return false;
 		}
 		if (pieceNumber < 0) {
