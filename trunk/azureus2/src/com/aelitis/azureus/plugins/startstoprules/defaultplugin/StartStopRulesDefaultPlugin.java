@@ -135,6 +135,8 @@ public class StartStopRulesDefaultPlugin
   int iFirstPriorityType;
   int iFirstPrioritySeedingMinutes;
   int iFirstPriorityDLMinutes;
+  int iFirstPriorityIgnoreSPRatio;
+  boolean bFirstPriorityIgnore0Peer;
   
   boolean bAutoStart0Peers;
   int iMaxUploadSpeed;
@@ -489,6 +491,8 @@ public class StartStopRulesDefaultPlugin
 	    iFirstPriorityType = plugin_config.getIntParameter("StartStopManager_iFirstPriority_Type");
 	    iFirstPrioritySeedingMinutes = plugin_config.getIntParameter("StartStopManager_iFirstPriority_SeedingMinutes");
 	    iFirstPriorityDLMinutes = plugin_config.getIntParameter("StartStopManager_iFirstPriority_DLMinutes");
+		iFirstPriorityIgnoreSPRatio = plugin_config.getIntParameter("StartStopManager_iFirstPriority_IgnoreSPRatio");
+		bFirstPriorityIgnore0Peer = plugin_config.getBooleanParameter("StartStopManager_bFirstPriority_Ignore0Peer");
 	    
 	    bAutoStart0Peers = plugin_config.getBooleanParameter("StartStopManager_bAutoStart0Peers");
 	    iMaxUploadSpeed = plugin_config.getIntParameter("Max Upload Speed KBs",0);
@@ -1631,16 +1635,16 @@ public class StartStopRulesDefaultPlugin
         return false;
       }
       
-      // FP doesn't apply when S:P >= 10:1
+      // FP doesn't apply when S:P >= set SPratio (SPratio = 0 means ignore)
       int numPeers = calcPeersNoUs(dl);
       int numSeeds = calcSeedsNoUs(dl);
-      if (numPeers > 0 && numSeeds > 0 && (numSeeds / numPeers) >= 10) {
-        if (bDebugLog) sExplainFP += "Not FP: P:S >= 10:1\n";
+      if (numPeers > 0 && numSeeds > 0 && (numSeeds / numPeers) >= iFirstPriorityIgnoreSPRatio && iFirstPriorityIgnoreSPRatio != 0) {
+        if (bDebugLog) sExplainFP += "Not FP: P:S >= "+iFirstPriorityIgnoreSPRatio+":1\n";
         return false;
       }
 
-      //not FP if no peers  //Nolar, 2105
-      if( numPeers == 0 && scrapeResultOk(dl) ) {
+      //not FP if no peers  //Nolar, 2105 - Gouss, 2203
+      if( numPeers == 0 && scrapeResultOk(dl) && bFirstPriorityIgnore0Peer) {
         if (bDebugLog) sExplainFP += "Not FP: 0 peers\n";
         return false;
       }

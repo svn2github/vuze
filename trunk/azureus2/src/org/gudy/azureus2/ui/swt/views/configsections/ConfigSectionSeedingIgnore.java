@@ -22,6 +22,7 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
@@ -59,19 +60,29 @@ public class ConfigSectionSeedingIgnore implements ConfigSectionSWT {
     GridLayout layout;
     Label label;
 
-    Composite cIgnore = new Composite(parent, SWT.NULL);
-    cIgnore.addControlListener(new Utils.LabelWrapControlListener());
+    Composite cIgnoreRules = new Composite(parent, SWT.NULL);
+    cIgnoreRules.addControlListener(new Utils.LabelWrapControlListener());
 
     layout = new GridLayout();
     layout.numColumns = 3;
     layout.marginHeight = 0;
-    cIgnore.setLayout(layout);
+    cIgnoreRules.setLayout(layout);
 
-    label = new Label(cIgnore, SWT.WRAP);
+    label = new Label(cIgnoreRules, SWT.WRAP);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.autoSeedingIgnoreInfo"); //$NON-NLS-1$
+	
+	Composite cIgnore = new Group(cIgnoreRules, SWT.NULL);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    layout.verticalSpacing = 6;
+	cIgnore.setLayout(layout);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+	cIgnore.setLayoutData(gridData);
+	Messages.setLanguageText(cIgnore, "ConfigView.label.seeding.ignore");
+
 
     label = new Label(cIgnore, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.ignoreSeeds"); //$NON-NLS-1$
@@ -157,7 +168,7 @@ public class ConfigSectionSeedingIgnore implements ConfigSectionSWT {
                          "StartStopManager_bIgnore0Peers",
                          "ConfigView.label.seeding.ignore0Peers").setLayoutData(gridData);
 
-    return cIgnore;
+    return cIgnoreRules;
   }
 }
 
