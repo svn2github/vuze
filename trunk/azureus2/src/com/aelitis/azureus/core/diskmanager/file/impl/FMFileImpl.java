@@ -40,15 +40,15 @@ public abstract class
 FMFileImpl
 	implements FMFile
 {
-	protected static final long REOPEN_EVERY_BYTES 		= 50 * 1024 * 1024;
+	//protected static final long REOPEN_EVERY_BYTES 		= 50 * 1024 * 1024;
 	protected static final int 	WRITE_RETRY_LIMIT		= 10;
 	protected static final int	WRITE_RETRY_DELAY		= 100;
 	
 	protected static final boolean	DEBUG			= true;
 	protected static final boolean	DEBUG_VERBOSE	= false;
 	
-	protected long lBytesRead = 0;
-	protected long lClosedAt = 0;
+	//protected long lBytesRead = 0;
+	//protected long lClosedAt = 0;
 
 	protected static Map			file_map = new HashMap();
 	protected static AEMonitor		file_map_mon	= new AEMonitor( "FMFile:map");
@@ -171,12 +171,15 @@ FMFileImpl
 	
 			if ( raf != null )
 			  return;
-			long lTimeToWait = lClosedAt + 1000 - SystemTime.getCurrentTime();
+			
+      /*
+      long lTimeToWait = lClosedAt + 1000 - SystemTime.getCurrentTime();
 			if (lTimeToWait > 0) {
 	      try {
 	        Thread.sleep(lTimeToWait);
 	      } catch (Exception ignore) { Debug.printStackTrace( ignore ); }
 	    }
+      */
 	
 			if (raf == null)
 	  		openSupport();
@@ -292,7 +295,7 @@ FMFileImpl
 			
 		}finally{
 			
-  	  lClosedAt = SystemTime.getCurrentTime();
+  	  //lClosedAt = SystemTime.getCurrentTime();
   	  
 			raf	= null;
 			
@@ -342,11 +345,11 @@ FMFileImpl
 		}
 
     // Recycle handle to clear OS cache
-	  lBytesRead += lRemainingBeforeRead - buffer.remaining(DirectByteBuffer.SS_FILE);
-	  if (lBytesRead >= REOPEN_EVERY_BYTES) {
-	    lBytesRead = 0;
-  	  close();
-  	}
+	  //lBytesRead += lRemainingBeforeRead - buffer.remaining(DirectByteBuffer.SS_FILE);
+	  //if (lBytesRead >= REOPEN_EVERY_BYTES) {
+	  //  lBytesRead = 0;
+  	//  close();
+  	//}
 	}
 	
 	protected void
