@@ -18,6 +18,14 @@ import java.io.*;
  */
 public class PeerIDByteDecoder {
 	
+	final static boolean LOG_UNKNOWN;
+	
+	static{
+		String	prop = System.getProperty("log.unknown.peerids");
+		
+		LOG_UNKNOWN = prop != null && prop.equals("1");
+	}
+	 
   /**
    * Decodes the given peerID, returning an identification string.
    */  
@@ -25,8 +33,7 @@ public class PeerIDByteDecoder {
     String decoded = null;
     byte[] peerID = new byte[peer_id.length];
     System.arraycopy(peer_id, 0, peerID, 0, peer_id.length);
-         
-    final boolean LOG_UNKNOWN = System.getProperty("log.unknown.peerids").equals( "1" );
+            
     FileWriter log = null;
     File logFile = FileUtil.getUserFile("identification.log");
     

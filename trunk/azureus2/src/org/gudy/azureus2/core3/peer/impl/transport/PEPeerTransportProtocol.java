@@ -158,7 +158,14 @@ PEPeerTransportProtocol
   };
   
   
-  private static final boolean SHOW_DISCARD_RATE_STATS = System.getProperty( "show.discard.rate.stats" ).equals( "1" );
+  private static final boolean SHOW_DISCARD_RATE_STATS;
+  
+  static {
+  	String	prop = System.getProperty( "show.discard.rate.stats" );
+  	
+  	SHOW_DISCARD_RATE_STATS = prop != null && prop.equals( "1" );
+  }
+  
   private static int requests_discarded = 0;
   private static int requests_recovered = 0;
   private static int requests_completed = 0;
