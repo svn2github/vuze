@@ -405,7 +405,6 @@ public class TorrentOpener {
         COConfigurationManager.setParameter( "previous.filter.dir.data", now );
         COConfigurationManager.save();
       }
-      return now;
     }
     return path;
   }
