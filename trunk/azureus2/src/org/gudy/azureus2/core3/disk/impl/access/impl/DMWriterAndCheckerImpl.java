@@ -49,7 +49,10 @@ DMWriterAndCheckerImpl
 {
 	protected static final boolean	CONCURRENT_CHECKING	= true;
 	
-	protected static final int	QUEUE_REPORT_CHUNK	= 32;
+	protected static final int	DEFAULT_WRITE_QUEUE_MAX	= 256;
+	protected static final int	DEFAULT_CHECK_QUEUE_MAX	= 128;
+	
+	protected static final int	QUEUE_REPORT_CHUNK		= 32;
 	
 		// global limit on size of write queue
 	
@@ -66,7 +69,7 @@ DMWriterAndCheckerImpl
 	static{
 		int	write_limit_blocks = COConfigurationManager.getIntParameter("DiskManager Write Queue Block Limit", 0);
 
-		global_write_queue_block_sem_size	= write_limit_blocks==0?256:write_limit_blocks;
+		global_write_queue_block_sem_size	= write_limit_blocks==0?DEFAULT_WRITE_QUEUE_MAX:write_limit_blocks;
 		
 		global_write_queue_block_sem_next_report_size	= global_write_queue_block_sem_size - QUEUE_REPORT_CHUNK;
 		
@@ -79,7 +82,7 @@ DMWriterAndCheckerImpl
 		
 		int	check_limit_pieces = COConfigurationManager.getIntParameter("DiskManager Check Queue Piece Limit", 0);
 
-		global_check_queue_block_sem_size	= check_limit_pieces==0?128:check_limit_pieces;
+		global_check_queue_block_sem_size	= check_limit_pieces==0?DEFAULT_CHECK_QUEUE_MAX:check_limit_pieces;
 		
 		global_check_queue_block_sem_next_report_size	= global_check_queue_block_sem_size - QUEUE_REPORT_CHUNK;
 		

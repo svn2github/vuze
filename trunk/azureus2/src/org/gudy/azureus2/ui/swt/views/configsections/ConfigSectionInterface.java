@@ -24,28 +24,33 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
+import java.io.File;
+import java.applet.Applet;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.*;
 
 public class ConfigSectionInterface implements ConfigSectionSWT {
@@ -96,20 +101,91 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     
     new BooleanParameter(cDisplay, "Send Version Info",true, "ConfigView.label.allowSendVersion");
     
-    //Option disabled on OS X, as impossible to make it work correctly
-    if(! Constants.isOSX) {      
-      new BooleanParameter(cDisplay, "Play Download Finished",false, "ConfigView.label.playdownloadfinished");
-        
-      new BooleanParameter(cDisplay, "confirmationOnExit",false, "ConfigView.section.style.confirmationOnExit");
-    }
-    
+
     Composite cArea = new Composite(cDisplay, SWT.NULL);
     layout = new GridLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;
-    layout.numColumns = 2;
+    layout.numColumns = 4;
     cArea.setLayout(layout);
     cArea.setLayoutData(new GridData());
+    
+    //Option disabled on OS X, as impossible to make it work correctly
+    if(! Constants.isOSX) {      
+    	
+    	BooleanParameter play_sound = new BooleanParameter(cArea, "Play Download Finished",false, "ConfigView.label.playdownloadfinished");
+        
+    	Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
+	    
+	    gridData = new GridData();
+	    
+	    gridData.widthHint = 150;
+	    
+	    final StringParameter pathParameter = new StringParameter(cArea, "Play Download Finished File", "");
+	    
+	    if ( pathParameter.getValue().length() == 0 ){
+	    	
+	    	pathParameter.setValue("<default>");
+	    }
+	    
+	    pathParameter.setLayoutData(gridData);
+	    
+
+	    Button browse = new Button(cArea, SWT.PUSH);
+	    
+	    browse.setImage(imgOpenFolder);
+	    
+	    imgOpenFolder.setBackground(browse.getBackground());
+	    
+	    browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+	    
+	    browse.addListener(SWT.Selection, new Listener() {
+	      public void handleEvent(Event event) {
+	        FileDialog dialog = new FileDialog(parent.getShell(), SWT.APPLICATION_MODAL);
+	        dialog.setFilterExtensions(new String[] { "*.wav" });
+	        dialog.setFilterNames(new String[] { "*.wav" }); 
+	      
+	        dialog.setText(MessageText.getString("ConfigView.section.interface.wavlocation"));
+	      
+	        final String path = dialog.open();
+	      
+	        if (path != null){
+	        	
+	        	pathParameter.setValue(path);
+	        	
+	        	new AEThread("SoundTest")
+				{
+	        		public void
+					runSupport()
+	        		{
+	        			try{
+	        				Applet.newAudioClip( new File( path ).toURL()).play();
+	        			
+	        				Thread.sleep(2500);
+	        				
+	        			}catch( Throwable e ){
+	        				
+	        			}
+	        		}
+	        	}.start();
+	        }
+	      }
+	    });
+	    
+	  Label sound_info = new Label(cArea, SWT.NULL);
+	  Messages.setLanguageText(sound_info, "ConfigView.section.interface.wavlocation.info");
+
+	  play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( pathParameter.getControls()));
+	  play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( new Control[]{browse,sound_info }));
+
+	  BooleanParameter	confirm = new BooleanParameter(cArea, "confirmationOnExit",false, "ConfigView.section.style.confirmationOnExit");
+	  gridData = new GridData();
+	  gridData.horizontalSpan	= 4;
+	  confirm.setLayoutData( gridData );
+    }
+    
+    
+    // password
     
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.password");
@@ -120,6 +196,10 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     pw1.setLayoutData(gridData);
     Text t1 = (Text)pw1.getControl();
     
+    label = new Label(cArea, SWT.NULL);
+    label = new Label(cArea, SWT.NULL);
+    
+    //password confirm
 
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.passwordconfirm");
@@ -128,7 +208,11 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     PasswordParameter pw2 = new PasswordParameter(cArea, "Password Confirm");
     pw2.setLayoutData(gridData);
     Text t2 = (Text)pw2.getControl();
-
+    label = new Label(cArea, SWT.NULL);
+    label = new Label(cArea, SWT.NULL);
+   
+    // password activated
+    
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.passwordmatch");
     passwordMatch = new Label(cArea, SWT.NULL);
@@ -136,7 +220,8 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     gridData.widthHint = 150;
     passwordMatch.setLayoutData(gridData);
     refreshPWLabel();
-
+    label = new Label(cArea, SWT.NULL);
+    label = new Label(cArea, SWT.NULL);
 
     t1.addModifyListener(new ModifyListener() {
       public void modifyText(ModifyEvent e) {
@@ -149,6 +234,8 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
       }
     });
 
+    // drag-drop
+    
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.style.dropdiraction");
 
@@ -168,7 +255,9 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     }
     new StringListParameter(cArea, "config.style.dropdiraction", "", dropLabels, dropValues);
     
-    
+    label = new Label(cArea, SWT.NULL);
+    label = new Label(cArea, SWT.NULL);
+
     	// reset associations
  
     try{
@@ -190,10 +279,6 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 		    Button reset = new Button(cResetAssoc, SWT.PUSH);
 		    Messages.setLanguageText(reset, "ConfigView.section.interface.resetassocbutton"); //$NON-NLS-1$
 
-		    //browse.setImage(imgOpenFolder);
-		    //imgOpenFolder.setBackground(browse.getBackground());
-		    //browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
-		
 		    reset.addListener(SWT.Selection, new Listener() {
 		      public void handleEvent(Event event) {
 		      	
@@ -208,6 +293,10 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 		    });
 		    
 		    new BooleanParameter(cArea, "config.interface.checkassoc",true, "ConfigView.section.interface.checkassoc");
+		    
+		    label = new Label(cArea, SWT.NULL);
+		    label = new Label(cArea, SWT.NULL);
+		
 	    }
     }catch( PlatformManagerException e ){
     	

@@ -96,12 +96,12 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.common"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.xml.schemas"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.uploadmanager"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.util"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.tables.mytorrents"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.stats.transfer"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.update.sf.impl2"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.ipchecker.natchecker"/>
-<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.webplugin.util"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.disk"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.peer.impl.transport.sharedport"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.peers.protocol"/>
@@ -125,6 +125,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.webplugin.remoteui.xml.client"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.utils.security"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.test"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.util.jar"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.update"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.asn1"/>
@@ -269,6 +270,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.torrent.test"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.torrentdownloader"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.upnp.services"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.ipfilter.impl.tests"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.tableitems.pieces"/>
 <javaElement handleIdentifier="=azuis/&lt;HTML.Tmpl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.table.utils"/>

@@ -217,6 +217,7 @@ public class ConfigurationDefaults {
     //misc
     def.put( "ID", "" );
     def.put( "Play Download Finished", new Long(0) );
+    def.put( "Play Download Finished File", "" );
     def.put( "Close To Tray", new Long(1) );
     def.put( "Minimize To Tray", new Long(0) );
     def.put( "Watch Torrent Folder", new Long(0) );

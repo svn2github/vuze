@@ -8,13 +8,17 @@ package org.gudy.azureus2.ui.common.util;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
+import java.net.*;
+import java.io.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.logging.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
@@ -26,7 +30,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 public class 
 UserAlerts 
 {
-  	private AudioClip 	audio_clip 	= null;
+  	private AudioClip 	audio_clip 		= null;
+  	private String		audio_resource	= "";
+  	
     private AEMonitor	this_mon 	= new AEMonitor( "UserAlerts" );
     
 	public 
@@ -72,15 +78,80 @@ UserAlerts
   		
 	    	if( COConfigurationManager.getBooleanParameter("Play Download Finished", false)){
 	    
-	    		if ( audio_clip == null ){
+	    		String	file = COConfigurationManager.getStringParameter( "Play Download Finished File" );
 	    		
-					audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource("org/gudy/azureus2/ui/icons/downloadFinished.wav"));
+    			file = file.trim();
+
+	    			// turn "<default>" into blank
+	    		
+	    		if ( file.startsWith( "<" )){
+	    			
+	    			file	= "";
+	    		}
+	    		
+	    		if ( audio_clip == null || !file.equals( audio_resource )){
+	    			    
+	    			audio_clip	= null;
+	    			
+	    				// try explicit file
+	    			
+	    			if ( file.length() != 0 ){
+	    				
+	    				File	f = new File( file );
+	    				
+	    				try{
+		    					
+			    			if ( f.exists()){
+			    					
+		    					URL	file_url = f.toURL();
+		    							    					
+		    					audio_clip = Applet.newAudioClip( file_url );
+			    			}
+			    			
+	    				}catch( Throwable  e ){
+	    					
+	    					Debug.printStackTrace(e);
+	    					
+	    				}finally{
+	    					
+	    					if ( audio_clip == null ){
+	    						
+	    						LGLogger.logAlert( 
+	    								LGLogger.AT_ERROR,
+	    								"Failed to load audio file '" + file + "'" );
+	    					}
+	    				}
+	    			}
+	    			
+	    				// either non-explicit or explicit missing
+	    			
+	    			if ( audio_clip == null ){
+	    				
+	    				audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource("org/gudy/azureus2/ui/icons/downloadFinished.wav"));
+	    					    				
+	    			}
+	    			
+	    			audio_resource	= file;
 	    		}
 	    		
 	    		if ( audio_clip != null ){
 	    		    			
-					audio_clip.play();
-	    		}
+	            	new AEThread("DownloadSound")
+					{
+		        		public void
+						runSupport()
+		        		{
+		        			try{
+		        				audio_clip.play();
+		        			
+		        				Thread.sleep(2500);
+		        				
+		        			}catch( Throwable e ){
+		        				
+		        			}
+		        		}
+		        	}.start();	    		
+		        }
 	    	}
   		}catch( Throwable e ){
   			

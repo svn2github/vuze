@@ -380,9 +380,9 @@ public class TorrentOpener {
   public static void openTorrent() {
     FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
     fDialog.setFilterPath( getFilterPathTorrent() );
-    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
-    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
-    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
+    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", "*.*" });
+    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", "*.*" }); 
+    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); 
     String path = setFilterPathTorrent( fDialog.open() );
     if( path == null ) return;
     TorrentOpener.openTorrents( path, fDialog.getFileNames() );
@@ -392,9 +392,9 @@ public class TorrentOpener {
   public static void openTorrentNoDefaultSave(boolean forSeeding) {
     FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
     fDialog.setFilterPath( getFilterPathTorrent() );
-    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
-    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor" }); //$NON-NLS-1$
-    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); //$NON-NLS-1$
+    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", "*.*" }); 
+    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", "*.*" }); 
+    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); 
     String path = setFilterPathTorrent( fDialog.open() );
     if( path == null ) return;
     TorrentOpener.openTorrents( path, fDialog.getFileNames(), false, forSeeding );
