@@ -196,7 +196,7 @@ DownloadManagerImpl
 	public void 
 	addDownload(
 		final URL	url,
-		final URL 	referer) 
+		final URL 	referrer) 
 	{
 		Display	display = MainWindow.getWindow().getDisplay();
 		
@@ -206,7 +206,7 @@ DownloadManagerImpl
 					public void
 					runSupport()
 					{
-						new FileDownloadWindow(azureus_core,MainWindow.getWindow().getDisplay(),url.toString(), referer.toString());
+						new FileDownloadWindow(azureus_core,MainWindow.getWindow().getDisplay(),url.toString(), referrer==null?null:referrer.toString());
 					}
 				});
 	}
