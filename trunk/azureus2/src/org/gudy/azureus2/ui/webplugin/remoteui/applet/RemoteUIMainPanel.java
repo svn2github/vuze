@@ -236,39 +236,60 @@ RemoteUIMainPanel
 						}
 					});
 			
-			open.addActionListener(
-					new ActionListener()
+			
+			AbstractAction open_action = 
+				new AbstractAction()
+				{
+					public void
+					actionPerformed(
+							ActionEvent	ev )
 					{
-						public void
-						actionPerformed(
-								ActionEvent	ev )
-						{
-							try{
-								URL	url = new URL( tf.getText());
+						try{
+							String	url_str = tf.getText().trim();
 							
-								String protocol = url.getProtocol().toLowerCase();
+							if ( url_str.length() == 0 ){
 								
-								if ( !protocol.startsWith( "http" )){
-									
-									throw( new Exception( "Unsupported URL protocol" ));
-								}
-								
-								TorrentDownloader dl = _pi.getTorrentManager().getURLDownloader( url );
-								
-								Torrent torrent = dl.download();
-								
-								logMessage( "Downloaded torrent: " + torrent.getName());
-								
-								download_manager.addDownload( torrent );
-							
-								refresh();
-								
-							}catch( Throwable e ){
-								
-								reportError( e );
+								throw( new Exception( "URL required" ));
 							}
+							
+							if ( !url_str.toLowerCase().startsWith( "http" )){
+								
+								throw( new Exception( "Unsupported URL protocol" ));
+							}
+							
+							URL	url = new URL( url_str );
+						
+							String protocol = url.getProtocol().toLowerCase();
+							
+							if ( !protocol.toLowerCase().startsWith( "http" )){
+								
+								throw( new Exception( "Unsupported URL protocol" ));
+							}
+							
+							TorrentDownloader dl = _pi.getTorrentManager().getURLDownloader( url );
+							
+							Torrent torrent = dl.download();
+							
+							logMessage( "Downloaded torrent: " + torrent.getName());
+							
+							download_manager.addDownload( torrent );
+						
+							refresh();
+							
+						}catch( Throwable e ){
+							
+							reportError( e );
 						}
-					});
+					}
+				};
+				
+			tf.registerKeyboardAction(
+						open_action,
+						KeyStroke.getKeyStroke( KeyEvent.VK_ENTER, 0 ),
+						JComponent.WHEN_FOCUSED );
+			
+			open.addActionListener( open_action );
+
 			
 			new Thread("RemoteUIMainPanel::refresh")
 			{
@@ -295,16 +316,21 @@ RemoteUIMainPanel
 		while( !destroyed ){
 		
 			if ( ticks >= refresh_period ){
+			
+					// 0 -> don't refresh
 				
-				SwingUtilities.invokeLater(
-						new Runnable()
-						{
-							public void
-							run()
+				if ( refresh_period > 0 ){	
+			
+					SwingUtilities.invokeLater(
+							new Runnable()
 							{
-								refresh();
-							}
-						});
+								public void
+								run()
+								{
+									refresh();
+								}
+							});
+				}
 				
 				ticks = 0;
 			}

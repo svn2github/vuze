@@ -81,6 +81,7 @@ RemoteUIServlet
 		"ui/webplugin/remoteui/applet/view/VWLabel.class",
 		"ui/webplugin/remoteui/applet/model/MDStatusAreaModel.class",
 		"ui/webplugin/remoteui/applet/view/VWStatusEntryBorder.class",
+		"ui/webplugin/remoteui/applet/model/MDConfigModelPropertyChangeEvent.class",
 		
 		"core3/config/COConfigurationManager.class",
 		"core3/config/impl/ConfigurationManager.class",
