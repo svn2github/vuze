@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.animations.Animator;
@@ -75,7 +76,9 @@ public class MessagePopupShell implements AnimableShell {
     
     shell = new Shell(display,SWT.ON_TOP);
     shell.setSize(250,150);
-    shell.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      shell.setImage(ImageRepository.getImage("azureus"));
+    }
     FormLayout layout = new FormLayout();
     layout.marginHeight = 0; layout.marginWidth = 0; 
     try {

@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -97,7 +98,9 @@ public class Wizard {
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     wizardWindow.setLayout(layout);
-    wizardWindow.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      wizardWindow.setImage(ImageRepository.getImage("azureus"));
+    }
     Composite cTitle = new Composite(wizardWindow, SWT.NULL);
     Color white = display.getSystemColor(SWT.COLOR_WHITE);
     cTitle.setBackground(white);

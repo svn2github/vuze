@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.eclipse.swt.widgets.Button;
 
@@ -82,7 +83,9 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     this.display = display;
     this.shell = new Shell(display,SWT.CLOSE | SWT.BORDER | SWT.TITLE);
     shell.setText(MessageText.getString("fileDownloadWindow.title"));
-    shell.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      shell.setImage(ImageRepository.getImage("azureus"));
+    }
     final FormLayout formLayout = new FormLayout();
     formLayout.marginHeight = 5;
     formLayout.marginWidth = 5;

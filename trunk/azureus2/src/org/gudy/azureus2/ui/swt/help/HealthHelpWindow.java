@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 
 /**
@@ -46,7 +47,9 @@ public class HealthHelpWindow {
   
   public static void show(Display display) {    
     final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-    window.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      window.setImage(ImageRepository.getImage("azureus"));
+    }
     window.setText(MessageText.getString("MyTorrentsView.menu.health"));
     
     disposeImages();

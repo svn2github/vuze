@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 
@@ -43,7 +44,9 @@ public class OpenTorrentWindow {
     shell = new Shell(display, SWT.RESIZE | SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     
     shell.setText(MessageText.getString("OpenTorrentWindow.title"));
-    shell.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      shell.setImage(ImageRepository.getImage("azureus"));
+    }
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     shell.setLayout(layout);

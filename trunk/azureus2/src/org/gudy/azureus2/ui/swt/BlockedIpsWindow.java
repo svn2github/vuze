@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 /**
@@ -57,8 +58,9 @@ BlockedIpsWindow
   	
     final Shell window = new Shell(display,SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL);
     Messages.setLanguageText(window,"ConfigView.section.ipfilter.list.title");
-    window.setImage(ImageRepository.getImage("azureus"));
-    
+    if(! Constants.isOSX) {
+      window.setImage(ImageRepository.getImage("azureus"));
+    }
     FormLayout layout = new FormLayout();
     try {
       layout.spacing = 5;

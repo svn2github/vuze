@@ -106,7 +106,9 @@ public class DonationWindow2 {
     FormLayout layout = new FormLayout();
     shell.setLayout(layout);
     
-    shell.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      shell.setImage(ImageRepository.getImage("azureus"));
+    }
     shell.setText(MessageText.getString("DonationWindow.title"));
     shell.setBackground(Colors.white);
     

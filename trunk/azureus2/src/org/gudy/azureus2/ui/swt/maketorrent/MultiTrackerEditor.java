@@ -53,6 +53,7 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.TreeItem;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -109,7 +110,9 @@ public class MultiTrackerEditor {
     this.display = Display.getCurrent();
     this.shell = new Shell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     Messages.setLanguageText(this.shell,"wizard.multitracker.edit.title");
-    shell.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      shell.setImage(ImageRepository.getImage("azureus"));
+    }
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     shell.setLayout(layout);

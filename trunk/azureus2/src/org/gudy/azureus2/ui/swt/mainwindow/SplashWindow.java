@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -57,7 +58,9 @@ public class SplashWindow implements AzureusCoreListener {
     white = new Color(display,255,255,255);
     splash = new Shell(display, SWT.NULL);
     splash.setText("Azureus");
-    splash.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    if(! Constants.isOSX) {
+      splash.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    }
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;

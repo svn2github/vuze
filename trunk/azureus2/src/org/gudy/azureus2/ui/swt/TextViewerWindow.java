@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -24,7 +25,11 @@ public class TextViewerWindow {
     final Shell shell = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 
     if (sTitleID != null) shell.setText(MessageText.getString(sTitleID));
-    shell.setImage(ImageRepository.getImage("azureus"));
+    
+    if(! Constants.isOSX) {
+      shell.setImage(ImageRepository.getImage("azureus"));
+    }
+    
     GridLayout layout = new GridLayout();
     shell.setLayout(layout);
 

@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 import org.eclipse.swt.*;
@@ -100,7 +101,9 @@ AssociationChecker
 	{
  		shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
  	
- 		shell.setImage(ImageRepository.getImage("azureus"));
+ 		if(! Constants.isOSX) {
+ 		  shell.setImage(ImageRepository.getImage("azureus"));
+ 		}
 	 	shell.setText(MessageText.getString("dialog.associations.title"));
 		
 	 	GridLayout layout = new GridLayout();

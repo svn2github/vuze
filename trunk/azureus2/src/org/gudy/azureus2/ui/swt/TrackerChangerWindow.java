@@ -28,7 +28,9 @@ public class TrackerChangerWindow {
   public TrackerChangerWindow(final Display display, final TRTrackerClient trackerConnection) {
     final Shell shell = new Shell(display);
     shell.setText(MessageText.getString("TrackerChangerWindow.title"));
-    shell.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      shell.setImage(ImageRepository.getImage("azureus"));
+    }
     GridLayout layout = new GridLayout();
     shell.setLayout(layout);
 

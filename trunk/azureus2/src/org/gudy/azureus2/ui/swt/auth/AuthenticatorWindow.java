@@ -291,7 +291,9 @@ AuthenticatorWindow
 			
 	 		shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 	 	
-	 		shell.setImage(ImageRepository.getImage("azureus"));
+	 		if(! Constants.isOSX) {
+	 		  shell.setImage(ImageRepository.getImage("azureus"));
+	 		}
 		 	shell.setText(MessageText.getString("authenticator.title"));
     		
 		 	GridLayout layout = new GridLayout();

@@ -60,7 +60,9 @@ public class MinimizedWindow {
     splash = new Shell(main, SWT.ON_TOP);
     this.screen = main.getDisplay().getClientArea();
     lDrag = new Label(splash, SWT.NULL);
-    lDrag.setImage(ImageRepository.getImage("dragger")); //$NON-NLS-1$
+    if(! Constants.isOSX) {
+      lDrag.setImage(ImageRepository.getImage("dragger")); //$NON-NLS-1$
+    }
     lDrag.pack();
     int hSizeImage = lDrag.getSize().y;
     int xSize = lDrag.getSize().x + 3;

@@ -51,6 +51,7 @@ import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
@@ -131,7 +132,9 @@ UpdateWindow
       }
     });
     
-    updateWindow.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      updateWindow.setImage(ImageRepository.getImage("azureus"));
+    }
     Messages.setLanguageText(updateWindow,"swt.update.window.title");
     
     FormLayout layout = new FormLayout();

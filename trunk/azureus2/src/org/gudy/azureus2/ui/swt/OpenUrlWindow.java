@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Text;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 
 /**
  * @author Olivier
@@ -62,7 +63,9 @@ OpenUrlWindow
   {
     final Shell shell = new Shell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
     shell.setText(MessageText.getString("openUrl.title"));
-    shell.setImage(ImageRepository.getImage("azureus"));
+    if(! Constants.isOSX) {
+      shell.setImage(ImageRepository.getImage("azureus"));
+    }
     
     GridData gridData;
     GridLayout layout = new GridLayout();

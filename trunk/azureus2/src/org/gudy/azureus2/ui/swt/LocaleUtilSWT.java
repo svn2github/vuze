@@ -203,7 +203,9 @@ LocaleUtilSWT
 		final 				LocaleUtilDecoderCandidate[]	selected_candidate ) 
   {
     final Shell s = new Shell(shell, SWT.TITLE | SWT.RESIZE | SWT.PRIMARY_MODAL );
-    s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    if(! Constants.isOSX) {
+      s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    }
     s.setText(MessageText.getString("LocaleUtil.title")); //$NON-NLS-1$
     GridData gridData;
     s.setLayout(new GridLayout(1, true));

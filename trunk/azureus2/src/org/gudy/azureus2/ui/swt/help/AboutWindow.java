@@ -67,7 +67,9 @@ public class AboutWindow {
     }
         
     final Shell window = new Shell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
-    window.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    if(! Constants.isOSX) {
+      window.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
+    }
     window.setText(MessageText.getString("MainWindow.about.title") + " " + Constants.AZUREUS_VERSION); //$NON-NLS-1$
     GridData gridData;
     window.setLayout(new GridLayout(3, false));

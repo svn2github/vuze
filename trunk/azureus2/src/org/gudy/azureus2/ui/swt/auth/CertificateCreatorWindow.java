@@ -29,6 +29,7 @@ package org.gudy.azureus2.ui.swt.auth;
 
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.logging.*;
@@ -94,7 +95,9 @@ CertificateCreatorWindow
 			
 			shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 			
-			shell.setImage(ImageRepository.getImage("azureus"));
+			if(! Constants.isOSX) {
+			  shell.setImage(ImageRepository.getImage("azureus"));
+			}
 			shell.setText(MessageText.getString("security.certcreate.title"));
 			
 			GridLayout layout = new GridLayout();
