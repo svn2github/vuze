@@ -42,7 +42,7 @@ public class PEPeerTransportSpeedLimiter {
   private long lastComputationTime;
   
   //Cache expiration in ms
-  private static final long CACHE_EXPIRES = 50;
+  private static final long CACHE_EXPIRES = 20;
   
   //The limit per peer
   private Map peerToLimit;

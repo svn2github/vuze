@@ -75,7 +75,8 @@ public class SuperSeedPiece {
   }
   
   public void peerLeft() {
-    level = 0;
+    if(level == 1)
+      level = 0;
   }
   
   public void updateTime() {
