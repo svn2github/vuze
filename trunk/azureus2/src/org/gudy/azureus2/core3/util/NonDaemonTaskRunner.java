@@ -34,23 +34,33 @@ NonDaemonTaskRunner
 	public static final int	LINGER_PERIOD	= 2500;
 	
 	protected static NonDaemonTaskRunner	singleton;
+	protected static AEMonitor				class_mon		= new AEMonitor( "NonDaemonTaskRunner:class" );
 	
 	protected Stack			tasks		= new Stack();
+	protected AEMonitor		tasks_mon	= new AEMonitor( "NonDaemonTaskRunner:tasks" );
 	protected AESemaphore	task_sem	= new AESemaphore("NonDaemonTaskRunner");
 	
 	protected List		wait_until_idle_list	= new ArrayList();
 	
 	protected Thread	current_thread;
 	
-	protected synchronized static NonDaemonTaskRunner
+	protected static NonDaemonTaskRunner
 	getSingleton()
 	{
-		if ( singleton == null ){
-			
-			singleton = new NonDaemonTaskRunner();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				singleton = new NonDaemonTaskRunner();
+			}
+			
+			return( singleton );
+
+		}finally{
+		
+			class_mon.exit();
+		}
 	}
 	
 	public static Object
@@ -77,7 +87,8 @@ NonDaemonTaskRunner
 		
 		taskWrapper	wrapper = new taskWrapper( target );
 		
-		synchronized( tasks ){
+		try{
+			tasks_mon.enter();
 			
 			tasks.push( wrapper );
 			
@@ -102,7 +113,8 @@ NonDaemonTaskRunner
 								
 								taskWrapper t			= null;
 								
-								synchronized( tasks ){
+								try{
+									tasks_mon.enter();
 									
 									if ( tasks.isEmpty()){
 	
@@ -121,6 +133,9 @@ NonDaemonTaskRunner
 										
 										t = (taskWrapper)tasks.pop();
 									}
+								}finally{
+									
+									tasks_mon.exit();
 								}
 								
 								t.run();
@@ -136,6 +151,9 @@ NonDaemonTaskRunner
 				
 				wait_sem.reserve();
 			}
+		}finally{
+			
+			tasks_mon.exit();
 		}
 		
 		return( wrapper.waitForResult());
@@ -201,7 +219,8 @@ NonDaemonTaskRunner
 	{
 		AESemaphore	sem;
 		
-		synchronized( tasks ){
+		try{
+			tasks_mon.enter();
 			
 			if ( current_thread == null ){
 				
@@ -211,7 +230,11 @@ NonDaemonTaskRunner
 			sem = new AESemaphore("NDTR::idleWaiter");
 			
 			wait_until_idle_list.add( sem );
-		}	
+			
+		}finally{
+			
+			tasks_mon.exit();
+		}
 		
 		sem.reserve();
 	}

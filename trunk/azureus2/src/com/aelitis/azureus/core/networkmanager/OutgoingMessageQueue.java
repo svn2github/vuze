@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
@@ -37,11 +38,16 @@ import com.aelitis.azureus.core.peermanager.messages.ProtocolMessage;
  * Priority-based outbound peer message queue.
  */
 public class OutgoingMessageQueue {
-  private final List queue = new LinkedList();
+  private final List 		queue		= new LinkedList();
+  private final AEMonitor	queue_mon	= new AEMonitor( "OutgoingMessageQueue:Q");
+
   private int total_size = 0;
-  private final ArrayList add_listeners = new ArrayList();
-  private final ArrayList sent_listeners = new ArrayList();
-  private final ArrayList byte_listeners = new ArrayList();
+  private final ArrayList add_listeners 		= new ArrayList();
+  private final AEMonitor add_listeners_mon		= new AEMonitor( "OutgoingMessageQueue:AL");
+  private final ArrayList sent_listeners 		= new ArrayList();
+  private final AEMonitor sent_listeners_mon	= new AEMonitor( "OutgoingMessageQueue:SL");
+  private final ArrayList byte_listeners		= new ArrayList();
+  private final AEMonitor byte_listeners_mon	= new AEMonitor( "OutgoingMessageQueue:BL");
   private ProtocolMessage urgent_message = null;
   private volatile boolean destroyed = false;
   
@@ -59,10 +65,14 @@ public class OutgoingMessageQueue {
    */
   protected void destroy() {
     destroyed = true;
-    synchronized( queue ) {
+    try{
+      queue_mon.enter();
+    
       while( !queue.isEmpty() ) {
       	((ProtocolMessage)queue.remove( 0 )).destroy();
       }
+    }finally{
+      queue_mon.exit();
     }
     total_size = 0;
   }
@@ -91,7 +101,9 @@ public class OutgoingMessageQueue {
     if( destroyed ) System.out.println("addMessage:: already destroyed");
     
     removeMessagesOfType( message.typesToRemove() );
-    synchronized( queue ) {
+    try{
+      queue_mon.enter();
+    
       int pos = 0;
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
         ProtocolMessage msg = (ProtocolMessage)i.next();
@@ -106,7 +118,9 @@ public class OutgoingMessageQueue {
       }
       queue.add( pos, message );
       total_size += message.getPayload().remaining(DirectByteBuffer.SS_NET);
-    } 
+    }finally{
+      queue_mon.exit();
+    }
     notifyAddListeners( message );
   }
   
@@ -117,7 +131,9 @@ public class OutgoingMessageQueue {
    */
   public void removeMessagesOfType( int[] message_types ) {
     if( message_types == null ) return;
-    synchronized( queue ) {
+    try{
+      queue_mon.enter();
+    
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
         ProtocolMessage msg = (ProtocolMessage)i.next();
         for( int t=0; t < message_types.length; t++ ) {
@@ -130,6 +146,8 @@ public class OutgoingMessageQueue {
         	}
         }
       }
+    }finally{
+      queue_mon.exit();
     }
   }
   
@@ -140,7 +158,9 @@ public class OutgoingMessageQueue {
    * @return true if the message was removed, false otherwise
    */
   public boolean removeMessage( ProtocolMessage message ) {
-    synchronized( queue ) {
+    try{
+      queue_mon.enter();
+    
       int index = queue.indexOf( message );
       if( index != -1 ) {
         ProtocolMessage msg = (ProtocolMessage)queue.get( index );
@@ -152,6 +172,8 @@ public class OutgoingMessageQueue {
           return true;
         }
       }
+    }finally{
+      queue_mon.exit();
     }
     return false;
   }
@@ -166,7 +188,9 @@ public class OutgoingMessageQueue {
    */
   protected int deliverToTransport( Transport transport, int max_bytes ) throws IOException {    
     int written = 0;
-    synchronized( queue ) {
+    try{
+      queue_mon.enter();
+   
     	if( !queue.isEmpty() ) {
         ByteBuffer[] buffers = new ByteBuffer[ queue.size() ];
         int[] starting_pos = new int[ queue.size() ];
@@ -206,6 +230,8 @@ public class OutgoingMessageQueue {
           pos++;
         }
     	}
+    }finally{
+      queue_mon.exit();
     }
     return written;
   }
@@ -253,8 +279,13 @@ public class OutgoingMessageQueue {
    * @param listener
    */
   public void registerAddedListener( AddedMessageListener listener ) {
-    synchronized( add_listeners ) {
+    try{
+      add_listeners_mon.enter();
+    
       add_listeners.add( listener );
+    }finally{
+    
+      add_listeners_mon.exit();
     }
   }
   
@@ -264,8 +295,14 @@ public class OutgoingMessageQueue {
    * @param listener
    */
   public void registerSentListener( SentMessageListener listener ) {
-    synchronized( sent_listeners ) {
+    try{
+      sent_listeners_mon.enter();
+   
       sent_listeners.add( listener );
+      
+    }finally{
+    	
+      sent_listeners_mon.exit();
     }
   }
   
@@ -275,38 +312,54 @@ public class OutgoingMessageQueue {
    * @param listener
    */
   public void registerByteListener( ByteListener listener ) {
-    synchronized( byte_listeners ) {
+    try{
+      byte_listeners_mon.enter();
+    
       byte_listeners.add( listener );
+    }finally{
+      byte_listeners_mon.exit();
     }
   }
   
   
   private void notifyAddListeners( ProtocolMessage msg ) {
-    synchronized( add_listeners ) {
+    try{
+      add_listeners_mon.enter();
+    
       for( int i=0; i < add_listeners.size(); i++ ) {
         AddedMessageListener listener = (AddedMessageListener)add_listeners.get( i );
         listener.messageAdded( msg );
       }
+    }finally{
+      add_listeners_mon.exit();
     }
   }
   
   
   private void notifySentListeners( ProtocolMessage msg ) {
-    synchronized( sent_listeners ) {
+    try{
+      sent_listeners_mon.enter();
+    
       for( int i=0; i < sent_listeners.size(); i++ ) {
         SentMessageListener listener = (SentMessageListener)sent_listeners.get( i );
         listener.messageSent( msg );
       }
+    }finally{
+      sent_listeners_mon.exit();
     }
   }
   
   
   private void notifyByteListeners( int byte_count ) {
-    synchronized( byte_listeners ) {
+    try{
+      byte_listeners_mon.enter();
+    
       for( int i=0; i < byte_listeners.size(); i++ ) {
         ByteListener listener = (ByteListener)byte_listeners.get( i );
         listener.bytesSent( byte_count );
       }
+    }finally{
+      byte_listeners_mon.exit();
     }
   }
   

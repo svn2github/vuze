@@ -43,13 +43,15 @@ SESecurityManagerImpl
 {
 	protected static SESecurityManagerImpl	singleton = new SESecurityManagerImpl();
 	
-	protected String	keystore;
-	protected String	truststore;
+	protected String	keystore_name;
+	protected String	truststore_name;
 	
 	protected List	certificate_listeners 	= new ArrayList();
 	protected List	password_listeners 		= new ArrayList();
 	
 	protected Map	password_handlers		= new HashMap();
+	
+	protected AEMonitor	this_mon	= new AEMonitor( "SESecurityManager" );
 	
 	public static SESecurityManagerImpl
 	getSingleton()
@@ -68,10 +70,10 @@ SESecurityManagerImpl
 	
 		// debug SSL with -Djavax.net.debug=ssl
 	
-		keystore 	= FileUtil.getUserFile(SESecurityManager.SSL_KEYS).getAbsolutePath();
-		truststore 	= FileUtil.getUserFile(SESecurityManager.SSL_CERTS).getAbsolutePath();
+		keystore_name 	= FileUtil.getUserFile(SESecurityManager.SSL_KEYS).getAbsolutePath();
+		truststore_name 	= FileUtil.getUserFile(SESecurityManager.SSL_CERTS).getAbsolutePath();
 		
-		System.setProperty( "javax.net.ssl.trustStore", truststore );
+		System.setProperty( "javax.net.ssl.trustStore", truststore_name );
 	
 		System.setProperty( "javax.net.ssl.trustStorePassword", SESecurityManager.SSL_PASSWORD );
 		
@@ -102,31 +104,41 @@ SESecurityManagerImpl
 		Authenticator.setDefault(
 				new Authenticator()
 				{
-					protected synchronized PasswordAuthentication
+					protected AEMonitor	auth_mon = new AEMonitor( "SESecurityManager:auth");
+					
+					protected PasswordAuthentication
 					getPasswordAuthentication()
-					{					
-						PasswordAuthentication	res =  
-							getAuthentication( 
-									getRequestingPrompt(),
-									getRequestingProtocol(),
-									getRequestingHost(),
-									getRequestingPort());
+					{			
+						try{
+							auth_mon.enter();
 						
-						/*
-						System.out.println( "Authenticator:getPasswordAuth: res = " + res );
-						
-						if ( res != null ){
+							PasswordAuthentication	res =  
+								getAuthentication( 
+										getRequestingPrompt(),
+										getRequestingProtocol(),
+										getRequestingHost(),
+										getRequestingPort());
 							
-							System.out.println( "    user = '" + res.getUserName() + "', pw = '" + new String(res.getPassword()) + "'" );
+							/*
+							System.out.println( "Authenticator:getPasswordAuth: res = " + res );
+							
+							if ( res != null ){
+								
+								System.out.println( "    user = '" + res.getUserName() + "', pw = '" + new String(res.getPassword()) + "'" );
+							}
+							*/
+							
+							return( res );
+							
+						}finally{
+							
+							auth_mon.exit();
 						}
-						*/
-						
-						return( res );
 					}
 				});
 	}
 	
-	public synchronized PasswordAuthentication
+	public PasswordAuthentication
 	getAuthentication(
 		String		realm,
 		String		protocol,
@@ -134,6 +146,8 @@ SESecurityManagerImpl
 		int			port )
 	{
 		try{
+			this_mon.enter();
+			
 			URL	tracker_url = new URL( protocol + "://" + host + ":" + port + "/" );
 		
 			return( getPasswordAuthentication( realm, tracker_url ));
@@ -143,20 +157,24 @@ SESecurityManagerImpl
 			e.printStackTrace();
 			
 			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
 	protected boolean
 	checkKeyStoreHasEntry()
 	{
-		File	f  = new File(keystore);
+		File	f  = new File(keystore_name);
 		
 		if ( !f.exists()){
 			
 			LGLogger.logAlertUsingResource( 
 					LGLogger.AT_ERROR,
 					"Security.keystore.empty",
-					new String[]{ keystore });
+					new String[]{ keystore_name });
 			
 			return( false );
 		}
@@ -171,7 +189,7 @@ SESecurityManagerImpl
 				LGLogger.logAlertUsingResource( 
 						LGLogger.AT_ERROR,
 						"Security.keystore.empty",
-						new String[]{ keystore });
+						new String[]{ keystore_name });
 				
 				return( false );			
 			}
@@ -181,7 +199,7 @@ SESecurityManagerImpl
 			LGLogger.logAlertUsingResource( 
 					LGLogger.AT_ERROR,
 					"Security.keystore.corrupt",
-					new String[]{ keystore });
+					new String[]{ keystore_name });
 			
 			return( false );			
 		}
@@ -207,7 +225,7 @@ SESecurityManagerImpl
 	{
 		KeyStore key_store = KeyStore.getInstance("JKS");
 		
-		if ( !new File(keystore).exists()){
+		if ( !new File(keystore_name).exists()){
 			
 			key_store.load(null,null);
 			
@@ -216,7 +234,7 @@ SESecurityManagerImpl
 			InputStream kis = null;
 			
 			try{
-				kis = new FileInputStream(keystore);
+				kis = new FileInputStream(keystore_name);
 			
 				key_store.load(kis, SESecurityManager.SSL_PASSWORD.toCharArray());
 				
@@ -250,7 +268,7 @@ SESecurityManagerImpl
 		
 		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
 		
-		KeyStore key_store = loadKeyStore(keyManagerFactory);
+		loadKeyStore(keyManagerFactory);
 		
 		// Initialize the context with the key managers
 		
@@ -322,114 +340,121 @@ SESecurityManagerImpl
 		SESecurityManagerBC.createSelfSignedCertificate( this, alias, cert_dn, strength );
 	}
 	
-	public synchronized boolean
+	public boolean
 	installServerCertificates(
 		URL		https_url )
 	{
-		String	host	= https_url.getHost();
-		int		port	= https_url.getPort();
-		
-		if ( port == -1 ){
-			port = 443;
-		}
-		
-		SSLSocket	socket = null;
-		
 		try{
-	
-				// to get the server certs we have to use an "all trusting" trust manager
-			
-			TrustManager[] trustAllCerts = new TrustManager[]{
-						new X509TrustManager() {
-							public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-								return null;
-							}
-							public void checkClientTrusted(
-									java.security.cert.X509Certificate[] certs, String authType) {
-							}
-							public void checkServerTrusted(
-									java.security.cert.X509Certificate[] certs, String authType) {
-							}
-						}
-					};
-			
-			SSLContext sc = SSLContext.getInstance("SSL");
-			
-			sc.init(null, trustAllCerts, new java.security.SecureRandom());
-			
-			SSLSocketFactory factory = sc.getSocketFactory();
-					
-			socket = (SSLSocket)factory.createSocket(host, port);
+			this_mon.enter();
 		
-			socket.startHandshake();
+			String	host	= https_url.getHost();
+			int		port	= https_url.getPort();
 			
-			java.security.cert.Certificate[] serverCerts = socket.getSession().getPeerCertificates();
-			
-			if ( serverCerts.length == 0 ){
-								
-				return( false );
+			if ( port == -1 ){
+				port = 443;
 			}
 			
-			java.security.cert.Certificate	cert = serverCerts[0];
+			SSLSocket	socket = null;
+			
+			try{
+		
+					// to get the server certs we have to use an "all trusting" trust manager
+				
+				TrustManager[] trustAllCerts = new TrustManager[]{
+							new X509TrustManager() {
+								public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+									return null;
+								}
+								public void checkClientTrusted(
+										java.security.cert.X509Certificate[] certs, String authType) {
+								}
+								public void checkServerTrusted(
+										java.security.cert.X509Certificate[] certs, String authType) {
+								}
+							}
+						};
+				
+				SSLContext sc = SSLContext.getInstance("SSL");
+				
+				sc.init(null, trustAllCerts, new java.security.SecureRandom());
+				
+				SSLSocketFactory factory = sc.getSocketFactory();
 						
-			java.security.cert.X509Certificate x509_cert;
+				socket = (SSLSocket)factory.createSocket(host, port);
 			
-			if ( cert instanceof java.security.cert.X509Certificate ){
+				socket.startHandshake();
 				
-				x509_cert = (java.security.cert.X509Certificate)cert;
+				java.security.cert.Certificate[] serverCerts = socket.getSession().getPeerCertificates();
 				
-			}else{
+				if ( serverCerts.length == 0 ){
+									
+					return( false );
+				}
 				
-				java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+				java.security.cert.Certificate	cert = serverCerts[0];
+							
+				java.security.cert.X509Certificate x509_cert;
 				
-				x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
-			}
-				
-			String	resource = https_url.toString();
-			
-			int	param_pos = resource.indexOf("?");
-			
-			if ( param_pos != -1 ){
-				
-				resource = resource.substring(0,param_pos);
-			}
-			
-			for (int i=0;i<certificate_listeners.size();i++){
-				
-				if (((SECertificateListener)certificate_listeners.get(i)).trustCertificate( resource, x509_cert )){
+				if ( cert instanceof java.security.cert.X509Certificate ){
 					
-					String	alias = host.concat(":").concat(String.valueOf(port));
-			
-					addCertToTrustStore( alias, cert );
-			
-					return( true );
+					x509_cert = (java.security.cert.X509Certificate)cert;
+					
+				}else{
+					
+					java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+					
+					x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
+				}
+					
+				String	resource = https_url.toString();
+				
+				int	param_pos = resource.indexOf("?");
+				
+				if ( param_pos != -1 ){
+					
+					resource = resource.substring(0,param_pos);
+				}
+				
+				for (int i=0;i<certificate_listeners.size();i++){
+					
+					if (((SECertificateListener)certificate_listeners.get(i)).trustCertificate( resource, x509_cert )){
+						
+						String	alias = host.concat(":").concat(String.valueOf(port));
+				
+						addCertToTrustStore( alias, cert );
+				
+						return( true );
+					}
+				}
+				
+				return( false );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+				
+				return( false );
+				
+			}finally{
+				
+				if ( socket != null ){
+					
+					try{
+						socket.close();
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
 				}
 			}
-			
-			return( false );
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
-			return( false );
-			
 		}finally{
 			
-			if ( socket != null ){
-				
-				try{
-					socket.close();
-					
-				}catch( Throwable e ){
-					
-					e.printStackTrace();
-				}
-			}
+			this_mon.exit();
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	addCertToKeyStore(
 		String								alias,
 		Key									public_key,
@@ -437,102 +462,117 @@ SESecurityManagerImpl
 	
 		throws Exception
 	{
-		KeyStore key_store = loadKeyStore();
-		
-		if( key_store.containsAlias( alias )){
-			
-			key_store.deleteEntry( alias );
-		}
-		
-		key_store.setKeyEntry( alias, public_key, SESecurityManager.SSL_PASSWORD.toCharArray(), certChain );
-		
-		FileOutputStream	out = null;
-		
 		try{
-			out = new FileOutputStream(keystore);
+			this_mon.enter();
 		
-			key_store.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
+			KeyStore key_store = loadKeyStore();
 			
-		}catch( Throwable e ){
+			if( key_store.containsAlias( alias )){
+				
+				key_store.deleteEntry( alias );
+			}
 			
-			e.printStackTrace();
+			key_store.setKeyEntry( alias, public_key, SESecurityManager.SSL_PASSWORD.toCharArray(), certChain );
 			
+			FileOutputStream	out = null;
+			
+			try{
+				out = new FileOutputStream(keystore_name);
+			
+				key_store.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+				
+			}finally{
+				
+				if ( out != null ){
+					
+					out.close();
+				}
+			}
 		}finally{
 			
-			if ( out != null ){
-				
-				out.close();
-			}
+			this_mon.exit();
 		}
 	}
 	
-	protected synchronized void
+	protected void
 	addCertToTrustStore(
 		String							alias,
 		java.security.cert.Certificate	cert )
 	
 		throws Exception
 	{
-		KeyStore keystore = KeyStore.getInstance("JKS");
+		try{
+			this_mon.enter();
 		
-		if ( !new File(truststore).exists()){
-	
-			keystore.load(null,null);
+			KeyStore keystore = KeyStore.getInstance("JKS");
 			
-		}else{
+			if ( !new File(truststore_name).exists()){
 		
-			FileInputStream		in 	= null;
-
-			try{
-				in = new FileInputStream(truststore);
-		
-				keystore.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());
+				keystore.load(null,null);
 				
-			}finally{
-				
-				if ( in != null ){
+			}else{
+			
+				FileInputStream		in 	= null;
+	
+				try{
+					in = new FileInputStream(truststore_name);
+			
+					keystore.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());
 					
-					in.close();
+				}finally{
+					
+					if ( in != null ){
+						
+						in.close();
+					}
 				}
 			}
-		}
-		
-		if ( cert != null ){
 			
-			if ( keystore.containsAlias( alias )){
-			
-				keystore.deleteEntry( alias );
-			}
-						
-			keystore.setCertificateEntry(alias, cert);
-
-			FileOutputStream	out = null;
-			
-			try{
-				out = new FileOutputStream(truststore);
-		
-				keystore.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
-		
-			}finally{
+			if ( cert != null ){
 				
-				if ( out != null ){
+				if ( keystore.containsAlias( alias )){
+				
+					keystore.deleteEntry( alias );
+				}
+							
+				keystore.setCertificateEntry(alias, cert);
+	
+				FileOutputStream	out = null;
+				
+				try{
+					out = new FileOutputStream(truststore_name);
+			
+					keystore.store(out, SESecurityManager.SSL_PASSWORD.toCharArray());
+			
+				}finally{
 					
-					out.close();
-				}						
+					if ( out != null ){
+						
+						out.close();
+					}						
+				}
 			}
+			
+				// pick up the changed trust store
+			
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			
+			tmf.init(keystore);
+			
+			SSLContext ctx = SSLContext.getInstance("SSL");
+			
+			ctx.init(null, tmf.getTrustManagers(), null);
+						
+			HttpsURLConnection.setDefaultSSLSocketFactory(ctx.getSocketFactory());
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-			// pick up the changed trust store
-		
-		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-		
-		tmf.init(keystore);
-		
-		SSLContext ctx = SSLContext.getInstance("SSL");
-		
-		ctx.init(null, tmf.getTrustManagers(), null);
-					
-		HttpsURLConnection.setDefaultSSLSocketFactory(ctx.getSocketFactory());
 	}
 	
 	public PasswordAuthentication
@@ -572,18 +612,34 @@ SESecurityManagerImpl
 		}
 	}
 		
-	public synchronized void
+	public void
 	addPasswordListener(
 		SEPasswordListener	l )
 	{
-		password_listeners.add(l);
+		try{
+			this_mon.enter();
+		
+			password_listeners.add(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}	
 	
-	public synchronized void
+	public void
 	removePasswordListener(
 		SEPasswordListener	l )
 	{
-		password_listeners.remove(l);
+		try{
+			this_mon.enter();
+		
+			password_listeners.remove(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public void
@@ -601,23 +657,41 @@ SESecurityManagerImpl
 		URL						url,
 		SEPasswordListener		l )
 	{
+		Ignore.ignore( l );
+		
 		String url_s	= url.getProtocol() + "://" + url.getHost() + ":" + url.getPort() + "/";
 		
 		password_handlers.remove( url_s );
 	}
 	
-	public synchronized void
+	public void
 	addCertificateListener(
 		SECertificateListener	l )
 	{
-		certificate_listeners.add(l);
+		try{
+			this_mon.enter();
+		
+			certificate_listeners.add(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}	
 	
-	public synchronized void
+	public void
 	removeCertificateListener(
 		SECertificateListener	l )
 	{
-		certificate_listeners.remove(l);
+		try{
+			this_mon.enter();
+			
+			certificate_listeners.remove(l);
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public static void

@@ -36,6 +36,7 @@ import org.gudy.azureus2.pluginsimpl.update.sf.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
 import org.gudy.azureus2.core3.html.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 public class 
 SFPluginDetailsLoaderImpl 
@@ -46,17 +47,25 @@ SFPluginDetailsLoaderImpl
 	public static final String	page_url 	= site_prefix + "update/pluginlist.php?type=release";
 
 	protected static SFPluginDetailsLoaderImpl		singleton;
+  	protected static AEMonitor		class_mon		= new AEMonitor( "SFPluginDetailsLoader:class" );
+
 	
-	
-	public static synchronized SFPluginDetailsLoader
+	public static SFPluginDetailsLoader
 	getSingleton()
 	{
-		if ( singleton == null ){
-			
-			singleton	= new SFPluginDetailsLoaderImpl();
-		}
+		try{
+			class_mon.enter();
 		
-		return( singleton );
+			if ( singleton == null ){
+				
+				singleton	= new SFPluginDetailsLoaderImpl();
+			}
+			
+			return( singleton );
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	protected boolean	plugin_names_loaded;
@@ -67,6 +76,8 @@ SFPluginDetailsLoaderImpl
 	protected List		listeners			= new ArrayList();
 	
 	protected ResourceDownloaderFactory rd_factory = ResourceDownloaderFactoryImpl.getSingleton();
+
+	protected AEMonitor		this_mon		= new AEMonitor( "SFPluginDetailsLoader" );
 
 	protected
 	SFPluginDetailsLoaderImpl()
@@ -276,41 +287,56 @@ SFPluginDetailsLoaderImpl
 		}
 	}
 	
-	public synchronized String[]
+	public String[]
 	getPluginNames()
 		
 		throws SFPluginDetailsException
 	{
-		if ( !plugin_names_loaded ){
+		try{
+			this_mon.enter();
+		
+			if ( !plugin_names_loaded ){
+				
+				loadPluginList();
+			}
 			
-			loadPluginList();
+			String[]	res = new String[plugin_names.size()];
+			
+			plugin_names.toArray( res );
+			
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		String[]	res = new String[plugin_names.size()];
-		
-		plugin_names.toArray( res );
-		
-		return( res );
 	}
 	
-	public synchronized SFPluginDetails
+	public SFPluginDetails
 	getPluginDetails(
 		String		name )
 	
 		throws SFPluginDetailsException
 	{
-			// make sure details are loaded
+		try{
+			this_mon.enter();
 		
-		getPluginNames();
-		
-		SFPluginDetails details = (SFPluginDetails)plugin_map.get(name.toLowerCase()); 
-		
-		if ( details == null ){
+				// make sure details are loaded
 			
-			throw( new SFPluginDetailsException( "Plugin '" + name + "' not found" ));
+			getPluginNames();
+			
+			SFPluginDetails details = (SFPluginDetails)plugin_map.get(name.toLowerCase()); 
+			
+			if ( details == null ){
+				
+				throw( new SFPluginDetailsException( "Plugin '" + name + "' not found" ));
+			}
+			
+			return( details );
+			
+		}finally{
+			this_mon.exit();
 		}
-		
-		return( details );
 	}
 	
 	public SFPluginDetails[]
@@ -371,13 +397,21 @@ SFPluginDetailsLoaderImpl
 		}
 	}
 	
-	public synchronized void
+	public void
 	reset()
 	{
-		plugin_names_loaded	= false;
+		try{
+			this_mon.enter();
 		
-		plugin_names		= new ArrayList();
-		plugin_map			= new HashMap();
+			plugin_names_loaded	= false;
+			
+			plugin_names		= new ArrayList();
+			plugin_map			= new HashMap();
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public void

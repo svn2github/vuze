@@ -32,7 +32,10 @@ import java.util.*;
 public class 
 AEMonitor 
 {
-	private static boolean	DEBUG		= true;
+	private static boolean	DEBUG					= true;
+	private static boolean	DEBUG_CHECK_DUPLICATES	= true;
+	
+	private static long		DEBUG_TIMER				= 30000;
 	
 	static{
 		if ( DEBUG ){
@@ -51,10 +54,64 @@ AEMonitor
 			}
 		};
 	
-	private static	Map debug_traces	= new HashMap();
+	private static long	monitor_id_next;
 	
+	private static Map 	debug_traces	= new HashMap();
+	
+	private static Map	debug_name_mapping		= new WeakHashMap();
+	private static Map	debug_monitors			= new WeakHashMap();
+
+	private static long		last_total_entry;
+	
+	protected long			monitor_id;
+	protected long			entry_count;
+	
+	static{
+		new Timer("AEMonitor").addPeriodicEvent(
+				DEBUG_TIMER,
+				new TimerEventPerformer()
+				{
+					public void
+					perform(
+						TimerEvent	event )
+					{
+						checkMonitors();
+					}
+				});
+	}
+	
+	protected static void
+	checkMonitors()
+	{
+		synchronized( AEMonitor.class ){
+
+			System.out.println( "AEMonitor: id = " + monitor_id_next + ", monitors = " + debug_monitors.size() + ", names = " + debug_name_mapping.size());
+
 		
+			Iterator 	it = debug_monitors.keySet().iterator();
+			
+			long	total_entry	= 0;
+			
+			while (it.hasNext()){
+				
+				monitorData	data = (monitorData)it.next();
+				
+				AEMonitor	monitor = data.monitor;
+				
+				total_entry += monitor.entry_count;
+			}
+			
+			
+			System.out.println( "    total in = " + total_entry + " - " + ((total_entry - last_total_entry ) / (DEBUG_TIMER/1000)) + "/sec" );
+			
+			last_total_entry	= total_entry;
+		}
+	}
+		// non-debug stuff
+	
+	
 	protected String		name;
+	
 	
 	protected int			waiting		= 0;
 	protected int			dont_wait	= 1;
@@ -66,6 +123,42 @@ AEMonitor
 		String			_name )
 	{
 		name		= _name;
+		
+		if ( DEBUG ){
+			
+			synchronized( AEMonitor.class ){
+				
+				monitor_id	= monitor_id_next++;
+								
+				StackTraceElement	elt = new Exception().getStackTrace()[1];
+				
+				String	class_name 	= elt.getClassName();
+				int		line_number	= elt.getLineNumber(); 
+			
+				monitorData new_entry	= new monitorData( this, class_name, line_number);
+
+				debug_monitors.put( new_entry, new_entry );
+				
+				if ( DEBUG_CHECK_DUPLICATES ){
+					
+					monitorData		existing_name_entry	= (monitorData)debug_name_mapping.get( name );
+					
+					if ( existing_name_entry == null ){
+						
+						debug_name_mapping.put( name, new_entry );
+						
+					}else{
+						
+						if ( 	( !existing_name_entry.owning_class.getName().equals( class_name )) ||
+								existing_name_entry.line_number != line_number ){
+							
+							new Exception("Duplicate AEMonitor name '" + name + "'").printStackTrace();
+						}
+					}
+				}
+			}
+			
+		}
 	}
 	
 	public void
@@ -80,25 +173,22 @@ AEMonitor
 			
 			Stack	stack = (Stack)tls.get();
 			
-			stack.push( name );
-			
-			if ( !name.equals( "LGLogger" )){
-		
-				String	str = "";
-	
-				for (int i=0;i<stack.size();i++){
-				
-					str += (i==0?"":",") + stack.get(i);
-				}
-				
-				synchronized( debug_traces ){
+			stack.push( this );
 					
-					if ( debug_traces.get(str) == null ){
+			String	str = "";
+
+			for (int i=0;i<stack.size();i++){
+			
+				str += (i==0?"":",") + ((AEMonitor)stack.get(i)).name;
+			}
+			
+			synchronized( debug_traces ){
 				
-						System.out.println( "AEMonitor: " + str );
-						
-						debug_traces.put( str, str );
-					}
+				if ( debug_traces.get(str) == null ){
+			
+					// System.out.println( "AEMonitor: " + str );
+					
+					debug_traces.put( str, str );
 				}
 			}
 		}
@@ -126,6 +216,8 @@ AEMonitor
 	protected synchronized void
 	reserve()
 	{
+		entry_count++;
+		
 		if ( owner == Thread.currentThread()){
 			
 			nests++;
@@ -137,6 +229,11 @@ AEMonitor
 				try{
 					waiting++;
 
+					if ( waiting > 1 ){
+						
+						System.out.println( "AEMonitor: " + name + " contended" );
+					}
+					
 					wait();
 
 				}catch( Throwable e ){
@@ -194,5 +291,33 @@ AEMonitor
 		Map	m )
 	{
 		return( Collections.synchronizedMap(m));
+	}
+	
+	protected static class
+	monitorData
+	{
+		protected AEMonitor		monitor;
+		protected Class			owning_class;
+		protected int			line_number;
+		
+		
+		protected
+		monitorData(
+			AEMonitor		_monitor,
+			String			_class_name,
+			int				_line_number )
+		{
+			monitor			= _monitor;
+			
+			try{
+				owning_class	= Class.forName( _class_name );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+			
+			line_number		= _line_number;
+		}
 	}
 }

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
@@ -55,6 +56,10 @@ PEPieceImpl
   public boolean isBeingChecked = false;
 
   public PEPeerManager manager;
+
+  	// experimental class level lock
+  
+  protected static AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
 
   public PEPieceImpl(PEPeerManager manager, int length) {
 	this.manager = manager;
@@ -142,28 +147,49 @@ PEPieceImpl
 
   // This method will return the first non requested bloc and
   // will mark it as requested
-  public synchronized int getAndMarkBlock() {
-	int blocNumber = -1;
-	for (int i = 0; i < nbBlocs; i++) {
-	  if (!requested[i] && !written[i]) {
-		blocNumber = i;
-		requested[i] = true;
-
-		//To quit loop.
-		i = nbBlocs;
-	  }
-	}
-	return blocNumber;
+  public int getAndMarkBlock() {
+  	try{
+	  	class_mon.enter();
+	  	
+		int blocNumber = -1;
+		for (int i = 0; i < nbBlocs; i++) {
+		  if (!requested[i] && !written[i]) {
+			blocNumber = i;
+			requested[i] = true;
+	
+			//To quit loop.
+			i = nbBlocs;
+		  }
+		}
+		return blocNumber;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
 
-  public synchronized void unmarkBlock(int blocNumber) {
-	if (!downloaded[blocNumber])
-	  requested[blocNumber] = false;
+  public void unmarkBlock(int blocNumber) {
+  	try{
+  		class_mon.enter();
+  	
+  		if (!downloaded[blocNumber])
+  			requested[blocNumber] = false;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
-  public synchronized void markBlock(int blocNumber) {
-    if (!downloaded[blocNumber])
-      requested[blocNumber] = true;
+  public void markBlock(int blocNumber) {
+  	try{
+  		class_mon.enter();
+  	
+  		if (!downloaded[blocNumber])
+  			requested[blocNumber] = true;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
 
   public int getBlockSize(int blocNumber) {
@@ -206,8 +232,13 @@ PEPieceImpl
 
   public List getPieceWrites() {
     List result;
-    synchronized(writes) {
-      result = new ArrayList(writes);
+    try{
+    	class_mon.enter();
+    
+    	result = new ArrayList(writes);
+    }finally{
+    	
+    	class_mon.exit();
     }
     return result;
   }
@@ -215,8 +246,14 @@ PEPieceImpl
 
   public List getPieceWrites(int blockNumber) {
     List result;
-    synchronized(writes) {
-      result = new ArrayList(writes);
+    try{
+    	class_mon.enter();
+    
+    	result = new ArrayList(writes);
+      
+    }finally{
+    	
+    	class_mon.exit();
     }
     Iterator iter = result.iterator();
     while(iter.hasNext()) {
@@ -230,8 +267,12 @@ PEPieceImpl
 
   public List getPieceWrites(PEPeer peer) {
     List result;
-     synchronized(writes) {
-       result = new ArrayList(writes);
+     try{
+     	class_mon.enter();
+     
+     	result = new ArrayList(writes);
+     }finally{
+     	class_mon.exit();
      }
     Iterator iter = result.iterator();
     while(iter.hasNext()) {
@@ -252,7 +293,15 @@ PEPieceImpl
   }
   
   protected void addWrite(PEPieceWriteImpl write) {
-    writes.add(write);
+  	try{
+  		class_mon.enter();
+  
+  		writes.add(write);
+  		
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
   public void 

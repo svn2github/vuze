@@ -41,7 +41,9 @@ public class VirtualChannelSelector {
     
     private Selector selector;
     private final SelectorGuard selector_guard;
-    private final ArrayList register_list = new ArrayList();
+    private final ArrayList register_list 		= new ArrayList();
+    private final AEMonitor register_list_mon	= new AEMonitor( "VirtualChannelSelector:RL");
+
     private final int interest_op;
 
 
@@ -68,8 +70,13 @@ public class VirtualChannelSelector {
      * @param attachment object to be passed back with listener notification
      */
     protected void register( SocketChannel channel, VirtualSelectorListener listener, Object attachment ) {
-      synchronized( register_list ) {
+      try{
+      	register_list_mon.enter();
+      
         register_list.add( new RegistrationData( channel, listener, attachment ) );
+      }finally{
+      	
+      	register_list_mon.exit();
       }
     }
     
@@ -115,7 +122,9 @@ public class VirtualChannelSelector {
       }
       
       //process new registrations  
-      synchronized( register_list ) {
+      try{
+      	register_list_mon.enter();
+      
         if( !register_list.isEmpty() ) {
           for( int i=0; i < register_list.size(); i++ ) {
             RegistrationData data = (RegistrationData)register_list.get( i );
@@ -135,6 +144,8 @@ public class VirtualChannelSelector {
           }
           register_list.clear();
         }
+      }finally{
+      	register_list_mon.exit();
       }
       
       return count;

@@ -32,10 +32,10 @@ Ignore
 {
 	public static void
 	ignore(
-		Throwable e )
+		Object obj )
 	{
 		if ( false ){
-			e.printStackTrace();
+			obj.toString();
 		}
 	}
 }

@@ -64,69 +64,60 @@ LGLoggerImpl
 	private static int				log_file_max	= 1;		// MB
 	private static int        		log_types[] = new int[components.length];
 	
-	private static AEMonitor		class_mon	= new AEMonitor( "LGLogger" );
-
-	public static void
+	public static synchronized void
 	initialise()
 	{
-		try{
-			class_mon.enter();
-		
-			if ( !initialised ){
-				
-				initialised	= true;
-				
-		  	  	boolean overrideLog = System.getProperty("azureus.overridelog") != null;
-		  	  	
-		  	  	if (!overrideLog) {
-		  			COConfigurationManager.addListener(
-		  				new COConfigurationListener()
-		  				{
-		  					public void
-		  					configurationSaved()
-		  					{
-		  						checkLoggingConfig();
-		  					}
-		  				});
-				}
-		  	  	
-				checkLoggingConfig();
-				
-	 			doRedirects();
-				
-				LGLogger.log( "**** Logging starts: " + Constants.AZUREUS_VERSION + " ****" );
-				
-				LGLogger.log( "java.home=" + System.getProperty("java.home"));
-				
-				LGLogger.log( "java.version=" + System.getProperty("java.version"));
-				
-				LGLogger.log( "os=" + 	System.getProperty("os.arch") + "/" + 
-										System.getProperty("os.name") + "/" + 
-										System.getProperty("os.version" ));
-				
-				LGLogger.log( "user.dir=" + System.getProperty("user.dir"));
-				
-				LGLogger.log( "user.home=" + System.getProperty("user.home"));
-				
-				if ( log_to_file ){
-					
-					for (int i=0;i<log_history.size();i++){
-						
-						Object[]	entry = (Object[])log_history.get(i);
-						
-						log(	((Integer)entry[0]).intValue(),
-								((Integer)entry[1]).intValue(),
-								((Integer)entry[2]).intValue(),
-								(String)entry[3] );
-					}
-				}
-				
-				log_history.clear();
-		
+		if ( !initialised ){
+			
+			initialised	= true;
+			
+	  	  	boolean overrideLog = System.getProperty("azureus.overridelog") != null;
+	  	  	
+	  	  	if (!overrideLog) {
+	  			COConfigurationManager.addListener(
+	  				new COConfigurationListener()
+	  				{
+	  					public void
+	  					configurationSaved()
+	  					{
+	  						checkLoggingConfig();
+	  					}
+	  				});
 			}
-		}finally{
-		
-			class_mon.exit();
+	  	  	
+			checkLoggingConfig();
+			
+ 			doRedirects();
+			
+			LGLogger.log( "**** Logging starts: " + Constants.AZUREUS_VERSION + " ****" );
+			
+			LGLogger.log( "java.home=" + System.getProperty("java.home"));
+			
+			LGLogger.log( "java.version=" + System.getProperty("java.version"));
+			
+			LGLogger.log( "os=" + 	System.getProperty("os.arch") + "/" + 
+									System.getProperty("os.name") + "/" + 
+									System.getProperty("os.version" ));
+			
+			LGLogger.log( "user.dir=" + System.getProperty("user.dir"));
+			
+			LGLogger.log( "user.home=" + System.getProperty("user.home"));
+			
+			if ( log_to_file ){
+				
+				for (int i=0;i<log_history.size();i++){
+					
+					Object[]	entry = (Object[])log_history.get(i);
+					
+					log(	((Integer)entry[0]).intValue(),
+							((Integer)entry[1]).intValue(),
+							((Integer)entry[2]).intValue(),
+							(String)entry[3] );
+				}
+			}
+			
+			log_history.clear();
+	
 		}
 	}
 	
@@ -204,44 +195,37 @@ LGLoggerImpl
 		
 	}
 
-	public static void 
+	public static synchronized void 
 	log(
 		int componentId, 
 		int event, 
 		int color, 
 		String text) 
 	{
-		try{
-			class_mon.enter();
-		
-			if ( initialised ){
-				if ( log_to_file ){
-				  int logTypeIndex = 0;
-		  		for (int i = 0; i < components.length; i++) {
-		  		  if (components[i] == componentId) {
-		  		    logTypeIndex = i;
-		  		    break;
-		  		  }
-		  		}
-		  		if ((log_types[logTypeIndex] & (1 << color)) != 0)
-		  			logToFile("{" + componentId + ":" + event + ":" + color + "}  " + text + NL);
-				}
-				
-				if( listener !=  null ){
-				
-					listener.log(componentId,event,color,text);
-				} 
-			}else{
-				
-				log_history.add( new Object[]{	new Integer(componentId),
-												new Integer(event),
-												new Integer( color ),
-												text  });
-										
+		if ( initialised ){
+			if ( log_to_file ){
+			  int logTypeIndex = 0;
+	  		for (int i = 0; i < components.length; i++) {
+	  		  if (components[i] == componentId) {
+	  		    logTypeIndex = i;
+	  		    break;
+	  		  }
+	  		}
+	  		if ((log_types[logTypeIndex] & (1 << color)) != 0)
+	  			logToFile("{" + componentId + ":" + event + ":" + color + "}  " + text + NL);
 			}
-		}finally{
 			
-			class_mon.exit();
+			if( listener !=  null ){
+			
+				listener.log(componentId,event,color,text);
+			} 
+		}else{
+			
+			log_history.add( new Object[]{	new Integer(componentId),
+											new Integer(event),
+											new Integer( color ),
+											text  });
+									
 		}
 	}
   
@@ -251,29 +235,16 @@ LGLoggerImpl
 		return( listener != null || log_to_file );
 	}
 	
-	public static void 
-	setListener(ILoggerListener _listener) {
-		try{
-			class_mon.enter();
-		
-			listener = _listener;
-		}finally{
-			
-			class_mon.exit();
-		}
+	public static synchronized void 
+	setListener(ILoggerListener _listener) 
+	{
+		listener = _listener;
 	}
   
-	public static void 
-	removeListener() {
-		try{
-			class_mon.enter();
-		
-			listener = null;
-			
-		}finally{
-			
-			class_mon.exit();
-		}
+	public static synchronized void 
+	removeListener() 
+	{		
+		listener = null;
 	}
 	
 	public static void
@@ -366,8 +337,8 @@ LGLoggerImpl
 		String	str )
 	{
 		if ( log_to_file ){
-			try{
-				class_mon.enter();
+
+			synchronized( LGLogger.class ){
 			
 				Calendar now = GregorianCalendar.getInstance();
 				        
@@ -425,9 +396,6 @@ LGLoggerImpl
 						}
 					}
 				}
-			}finally{
-				
-				class_mon.exit();
 			}
 		}
 	}

@@ -22,7 +22,7 @@ package org.gudy.azureus2.core3.peer.impl.control;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 
 /**
  * @author Olivier
@@ -40,33 +40,49 @@ public class SuperSeedPiece {
   //private int numberOfPeersWhenFirstReceived;
   private int timeToReachAnotherPeer;
   
+  private AEMonitor	this_mon	= new AEMonitor( "SuperSeedPiece" );
   
-  public SuperSeedPiece(PEPeerControl manager,int pieceNumber) {
-    //this.manager = manager;
-    this.pieceNumber = pieceNumber;
+  
+  public SuperSeedPiece(PEPeerControl manager,int _pieceNumber) {
+    Ignore.ignore( manager );
+    pieceNumber = _pieceNumber;
     level = 0;
   }
   
-  public synchronized void peerHasPiece(PEPeer peer) {
-    if(level < 2) {
-      firstReceiver = peer;
-      timeFirstDistributed = SystemTime.getCurrentTime();
-      //numberOfPeersWhenFirstReceived = manager.getNbPeers();
-    } else {
-      if(peer != null && firstReceiver != null) {
-        timeToReachAnotherPeer = (int) (SystemTime.getCurrentTime() - timeFirstDistributed);
-        firstReceiver.setUploadHint(timeToReachAnotherPeer);
-      }
-    }
-    level = 2;
+  public void peerHasPiece(PEPeer peer) {
+  	try{
+  		this_mon.enter();
+  	
+	    if(level < 2) {
+	      firstReceiver = peer;
+	      timeFirstDistributed = SystemTime.getCurrentTime();
+	      //numberOfPeersWhenFirstReceived = manager.getNbPeers();
+	    } else {
+	      if(peer != null && firstReceiver != null) {
+	        timeToReachAnotherPeer = (int) (SystemTime.getCurrentTime() - timeFirstDistributed);
+	        firstReceiver.setUploadHint(timeToReachAnotherPeer);
+	      }
+	    }
+	    level = 2;
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   
   public int getLevel() {
     return level;
   }
   
-  public synchronized void pieceRevealedToPeer() {
-    level = 1;
+  public void pieceRevealedToPeer() {
+  	try{
+  		this_mon.enter();
+  
+  		level = 1;
+  	}finally{
+  		
+  		this_mon.exit();
+  	}
   }
   /**
    * @return Returns the pieceNumber.

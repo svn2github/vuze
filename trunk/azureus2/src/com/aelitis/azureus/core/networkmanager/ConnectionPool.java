@@ -26,6 +26,7 @@ package com.aelitis.azureus.core.networkmanager;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 
@@ -36,12 +37,16 @@ public class ConnectionPool {
   private static final int FLUSH_WAIT_TIME = 3*1000;  //3sec no-new-data wait before forcing write flush
   
   private final ConnectionPool parent_pool;
-  private final LinkedList children_pools = new LinkedList();
-  
-  private final LinkedList connections = new LinkedList();
-  private final ArrayList added_connections = new ArrayList();
-  private final ArrayList removed_connections = new ArrayList();
+  private final LinkedList 	children_pools 		= new LinkedList();
+  private final AEMonitor 	children_pools_mon	= new AEMonitor( "ConnectionPool:CP");
 
+  private final LinkedList connections = new LinkedList();
+  private final ArrayList added_connections 		= new ArrayList();
+  private final AEMonitor added_connections_mon		= new AEMonitor( "ConnectionPool:AC");
+  
+  private final ArrayList removed_connections 		= new ArrayList();
+  private final AEMonitor removed_connections_mon	= new AEMonitor( "ConnectionPool:RC");
+  
   private final ByteBucket write_bytebucket;
   private float write_percent_of_max;
   
@@ -91,8 +96,13 @@ public class ConnectionPool {
    * @param connection
    */
   public void addConnection( Connection connection ) {    
-    synchronized( added_connections ) {
-      added_connections.add( connection );
+    try{
+    	added_connections_mon.enter();
+    
+    	added_connections.add( connection );
+    }finally{
+    	
+    	added_connections_mon.exit();
     }
   }
   
@@ -102,8 +112,13 @@ public class ConnectionPool {
    * @param connection
    */
   public void removeConnection( Connection connection ) {
-    synchronized( removed_connections ) {
-      removed_connections.add( connection );
+    try{
+    	removed_connections_mon.enter();
+    
+    	removed_connections.add( connection );
+    }finally{
+    	
+    	removed_connections_mon.exit();
     }
   }
   
@@ -117,7 +132,9 @@ public class ConnectionPool {
    * @return the newly created child pool
    */
   public ConnectionPool createChildConnectionPool() {
-    synchronized( children_pools ) {
+    try{
+      children_pools_mon.enter();
+    
       int curr_num_children = children_pools.size();
       float given_write_percentage = write_percent_of_max / (curr_num_children + 1);
       
@@ -133,6 +150,9 @@ public class ConnectionPool {
       ConnectionPool new_child = new ConnectionPool( this, given_write_percentage );
       children_pools.add( new_child );
       return new_child;
+    }finally{
+    	
+    	children_pools_mon.exit();
     }
   }
   
@@ -152,12 +172,17 @@ public class ConnectionPool {
    * @param inform_parent tell the parent pool of the destroy
    */
   protected void destroy( boolean inform_parent ) {
-    synchronized( children_pools ) {
+    try{
+      children_pools_mon.enter();
+    
       for( Iterator i = children_pools.iterator(); i.hasNext(); ) {
         ConnectionPool child = (ConnectionPool)i.next();
         child.destroy( false );
         i.remove();
       }
+    }finally{
+    	
+      children_pools_mon.exit();
     }
     if( parent_pool != null ) {  //root pool parent is null, and we don't want to destroy the root
       connections.clear();
@@ -175,7 +200,9 @@ public class ConnectionPool {
    * @param destroyed_child
    */
   protected void informChildDestroyed( ConnectionPool destroyed_child ) {
-    synchronized( children_pools ) {
+    try{
+      children_pools_mon.enter();
+    
       children_pools.remove( destroyed_child );
       int num_children = children_pools.size();
       if( num_children > 0 ) {
@@ -186,6 +213,9 @@ public class ConnectionPool {
           child.setWritePercentOfMax( old_write_percentage + indiv_write_percentage_change, false );
         }
       }
+    }finally{
+    	
+    	children_pools_mon.exit();
     }
   }
   
@@ -230,7 +260,9 @@ public class ConnectionPool {
     else {
       write_percent_of_max = new_percentage;
     }
-    synchronized( children_pools ) {
+    try{
+      children_pools_mon.enter();
+    
       int num_children = children_pools.size();
       if( num_children > 0 ) {
         float indiv_percentage_change = percent_change / num_children;
@@ -240,6 +272,8 @@ public class ConnectionPool {
           child.setWritePercentOfMax( old_percentage + indiv_percentage_change, false );
         }
       }
+    }finally{
+    	children_pools_mon.exit();
     }
     updateBucketRates();
     if( parent_pool != null && inform_parent ) { //root pool does not have a parent
@@ -255,7 +289,9 @@ public class ConnectionPool {
    * @param percent_change
    */
   protected void informOfChildWritePercentageChange( ConnectionPool changed_child, float percent_change ) {
-    synchronized( children_pools ) {
+    try{
+      children_pools_mon.enter();
+    
       int num_children = children_pools.size();
       if( num_children > 1 ) {  //if there are other children that need adjustment
         float indiv_percentage_change = percent_change / (num_children - 1);
@@ -267,6 +303,9 @@ public class ConnectionPool {
           }
         }
       }
+    }finally{
+    	
+    	children_pools_mon.exit();
     }
   }
   
@@ -276,11 +315,15 @@ public class ConnectionPool {
    * global max and local percentage-of rates.
    */
   protected void updateBucketRates() {
-    synchronized( children_pools ) {
+    try{
+      children_pools_mon.enter();
+    
       for( Iterator i = children_pools.iterator(); i.hasNext(); ) {
         ConnectionPool child = (ConnectionPool)i.next();
         child.updateBucketRates();
       }
+    }finally{
+    	children_pools_mon.exit();
     }
     int new_rate = new Float( NetworkManager.getSingleton().getMaxWriteRateBytesPerSec() * write_percent_of_max ).intValue();
     if( parent_pool == null ) { //root pool doesn't burst
@@ -323,7 +366,9 @@ public class ConnectionPool {
     
     final int mss_size = NetworkManager.getSingleton().getTcpMssSize();
     
-    synchronized( children_pools ) {
+    try{
+      children_pools_mon.enter();
+    
       int num_children = children_pools.size();
       int num_checked = 0;
       while( num_checked < num_children && write_bytebucket.getAvailableByteCount() >= mss_size ) {
@@ -337,6 +382,9 @@ public class ConnectionPool {
         children_pools.addLast( child );
         num_checked++;
       }
+    }finally{
+    	
+    	children_pools_mon.exit();
     }
     
     int remaining = write_bytebucket.getAvailableByteCount();
@@ -359,7 +407,9 @@ public class ConnectionPool {
     int total_bytes_used = 0;
     int mss_size = NetworkManager.getSingleton().getTcpMssSize();
     
-    synchronized( children_pools ) {
+    try{
+      children_pools_mon.enter();
+    
       int num_children = children_pools.size();
       int num_checked = 0;
       while( num_checked < num_children && max_bytes_allowed - total_bytes_used >= mss_size ) {
@@ -368,6 +418,9 @@ public class ConnectionPool {
         children_pools.addLast( child );
         num_checked++;
       }
+    }finally{
+    	
+    	children_pools_mon.exit();
     }
     
     int remaining = max_bytes_allowed - total_bytes_used;
@@ -382,21 +435,31 @@ public class ConnectionPool {
   
   private int doConnectionWrites( int max_bytes_allowed ) {    
     //add new connections
-    synchronized( added_connections ) {
+    try{
+      added_connections_mon.enter();
+    
       for( int i=0; i < added_connections.size(); i++ ) {
         Connection conn = (Connection)added_connections.get( i );
         connections.addLast( conn );
       }
       added_connections.clear();
+    }finally{
+    	
+    	added_connections_mon.exit();
     }
     
     //remove removed connections
-    synchronized( removed_connections ) {
+    try{
+      removed_connections_mon.enter();
+    
       for( int i=0; i < removed_connections.size(); i++ ) {
         Connection conn = (Connection)removed_connections.get( i );
         connections.remove( conn );
       }
       removed_connections.clear();
+    }finally{
+    	
+    	removed_connections_mon.exit();
     }
     
     int total_bytes_used = 0;

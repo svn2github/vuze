@@ -57,7 +57,13 @@ TimerEventPeriodic
 	{
 		if ( !cancelled ){
 			
-			performer.perform( event );
+			try{
+				performer.perform( event );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
 		
 			synchronized( this ){
 				

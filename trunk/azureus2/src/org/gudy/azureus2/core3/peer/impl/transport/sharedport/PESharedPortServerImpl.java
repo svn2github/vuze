@@ -42,6 +42,8 @@ public class
 PESharedPortServerImpl
 	implements PEPeerServerHelper
 {
+	private static final AEMonitor 		class_mon	= new AEMonitor( "PESharedPortServerImpl:class");
+
 	protected static PEPeerServerHelper		server_delegate;
 	protected static PESharedPortSelector	selector;
 	
@@ -52,7 +54,8 @@ PESharedPortServerImpl
 	public
 	PESharedPortServerImpl()
 	{
-		synchronized( PESharedPortServerImpl.class ){
+		try{
+			class_mon.enter();
 			
 			if ( server_delegate == null ){
 				
@@ -94,9 +97,7 @@ PESharedPortServerImpl
 						server_delegate.startServer();
 					}
 				}catch( IOException e ){
-					
-					String	message = e.getMessage();
-					
+										
 					LGLogger.log(0, 0, LGLogger.INFORMATION, "PESharedPortServer: failed to establish selector" + e.toString());
 					
 					LGLogger.logAlertUsingResource(	LGLogger.AT_ERROR, "SharedPortServer.alert.selectorfailed" ); 
@@ -104,6 +105,9 @@ PESharedPortServerImpl
 					e.printStackTrace();
 				}
 			}
+		}finally{
+			
+			class_mon.exit();
 		}
 	}
 	
@@ -154,9 +158,7 @@ PESharedPortServerImpl
 	public PEPeerTransport
 	createPeerTransport(
 		Object		param )
-	{
-		PEPeerServerAdapter	a = adapter;
-	
+	{	
 		Object[]	temp = (Object[])param;
 		
 		SocketChannel	channel = (SocketChannel)temp[0];

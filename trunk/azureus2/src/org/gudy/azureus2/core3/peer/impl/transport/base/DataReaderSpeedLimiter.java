@@ -47,7 +47,8 @@ DataReaderSpeedLimiter
 	protected long	current_slot;			// current (last) slot used
 	protected int	bytes_available;		// bytes available unused by current slot
 	
-	
+	protected AEMonitor	this_mon		= new AEMonitor( "DataReaderSpeedLimiter");
+	 
 	
 	protected static DataReaderSpeedLimiter		singleton = new DataReaderSpeedLimiter();
 	
@@ -147,7 +148,8 @@ DataReaderSpeedLimiter
 			int debug_limit		= -1;
 			
 			try{
-				synchronized( DataReaderSpeedLimiter.this ){
+				try{
+					this_mon.enter();
 					
 					long	now = SystemTime.getCurrentTime();
 					
@@ -286,6 +288,9 @@ DataReaderSpeedLimiter
 						
 						bytes_available	= 0;
 					}
+				}finally{
+					
+					this_mon.exit();
 				}
 							
 				int	bytes_read = 0;
@@ -300,10 +305,15 @@ DataReaderSpeedLimiter
 									
 					if ( bytes_read < bytes_allocated ){
 						
-						synchronized( DataReaderSpeedLimiter.this ){
+						try{
+							this_mon.enter();
 	
 							bytes_available 	+= ( bytes_allocated - bytes_read );
 							my_bytes_available 	+= ( bytes_allocated - bytes_read );
+							
+						}finally{
+							
+							this_mon.exit();
 						}
 					}
 					

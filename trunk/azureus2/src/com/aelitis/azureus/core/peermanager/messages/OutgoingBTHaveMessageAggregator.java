@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.peermanager.messages;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
+
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
 
@@ -36,7 +38,9 @@ import com.aelitis.azureus.core.peermanager.messages.bittorrent.*;
  */
 public class OutgoingBTHaveMessageAggregator {
   
-  private final ArrayList pending_haves = new ArrayList();
+  private final ArrayList 	pending_haves 		= new ArrayList();
+  private final AEMonitor	pending_haves_mon	= new AEMonitor( "OutgoingBTHaveMessageAggregator:PH");
+
   private final OutgoingMessageQueue outgoing_message_q;
     
   private final OutgoingMessageQueue.AddedMessageListener added_message_listener = new OutgoingMessageQueue.AddedMessageListener() {
@@ -65,7 +69,9 @@ public class OutgoingBTHaveMessageAggregator {
    * @param force if true, send this and any other pending haves right away
    */
   public void queueHaveMessage( int piece_number, boolean force ) {
-    synchronized( pending_haves ) {
+    try{
+      pending_haves_mon.enter();
+    
       pending_haves.add( new Integer( piece_number ) );
       if( force ) {
         sendPendingHaves();
@@ -78,6 +84,9 @@ public class OutgoingBTHaveMessageAggregator {
           sendPendingHaves();
         }
       }
+    }finally{
+    	
+    	pending_haves_mon.exit();
     }
   }
   
@@ -86,8 +95,13 @@ public class OutgoingBTHaveMessageAggregator {
    * Destroy the aggregator, along with any pending messages.
    */
   public void destroy() {
-    synchronized( pending_haves ) {
+    try{
+      pending_haves_mon.enter();
+    
       pending_haves.clear();
+    }finally{
+    	
+      pending_haves_mon.exit();
     }
   }
   
@@ -101,12 +115,17 @@ public class OutgoingBTHaveMessageAggregator {
   
   
   private void sendPendingHaves() {    
-    synchronized( pending_haves ) {
+    try{
+      pending_haves_mon.enter();
+    
       for( int i=0; i < pending_haves.size(); i++ ) {
         Integer piece_num = (Integer)pending_haves.get( i ); 
         outgoing_message_q.addMessage( new BTHave( piece_num.intValue() ) );
       }
       pending_haves.clear();
+    }finally{
+    	
+      pending_haves_mon.exit();
     }
   }
 

@@ -1429,8 +1429,11 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     if(display != null && ! display.isDisposed())
       display.asyncExec(new Runnable() {
         public void run() {
-          layoutStatusAera.topControl = statusUpdate;
-          statusArea.layout();
+           	if ( statusArea == null || statusArea.isDisposed()){
+        		return;
+        	}
+           	layoutStatusAera.topControl = statusUpdate;
+           	statusArea.layout();
         }
       });
   }
@@ -1439,8 +1442,11 @@ public class MainWindow implements GlobalManagerListener, DownloadManagerListene
     if(display != null && ! display.isDisposed())
       display.asyncExec(new Runnable() {
         public void run() {
-          layoutStatusAera.topControl = statusText;
-          statusArea.layout();
+        	if ( statusArea == null || statusArea.isDisposed()){
+        		return;
+        	}
+        	layoutStatusAera.topControl = statusText;
+        	statusArea.layout();
         }
       });
   }

@@ -7,6 +7,7 @@
 package org.gudy.azureus2.core3.peer.util;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
 
 
 /**
@@ -14,40 +15,49 @@ import org.gudy.azureus2.core3.config.*;
  */
 public class PeerUtils {
 
+   private static final AEMonitor 		class_mon	= new AEMonitor( "PeerUtils:class");
+
   /**
    * Get the number of new peer connections allowed for the given data item,
    * within the configured per-torrent and global connection limits.
    * @return max number of new connections allowed, or -1 if there is no limit
    */
-  public static synchronized int numNewConnectionsAllowed( byte[] data_id ) {
-    int maxConnPerTorrent = COConfigurationManager.getIntParameter("Max.Peer.Connections.Per.Torrent");
-    int maxConnTotal = COConfigurationManager.getIntParameter("Max.Peer.Connections.Total");
-    int curConnPerTorrent = PeerIdentityManager.getIdentityCount( data_id );
-    int curConnTotal = PeerIdentityManager.getTotalIdentityCount();
-    
-    int perTorrentAllowed = -1;  //default unlimited
-    if ( maxConnPerTorrent != 0 ) {  //if limited
-      int allowed = maxConnPerTorrent - curConnPerTorrent;
-      if ( allowed < 0 )  allowed = 0;
-      perTorrentAllowed = allowed;
-    }
-    
-    int totalAllowed = -1;  //default unlimited
-    if ( maxConnTotal != 0 ) {  //if limited
-      int allowed = maxConnTotal - curConnTotal;
-      if ( allowed < 0 )  allowed = 0;
-      totalAllowed = allowed;
-    }
-    
-    int allowed = -1;  //default unlimited
-    if ( perTorrentAllowed > -1 && totalAllowed > -1 ) {  //if both limited
-      allowed = Math.min( perTorrentAllowed, totalAllowed );
-    }
-    else if ( perTorrentAllowed == -1 || totalAllowed == -1 ) {  //if either unlimited
-    	allowed = Math.max( perTorrentAllowed, totalAllowed );
-    }
-    
-    return allowed;
+  public static int numNewConnectionsAllowed( byte[] data_id ) {
+  	try{
+	  	class_mon.enter();
+	  	
+	    int maxConnPerTorrent = COConfigurationManager.getIntParameter("Max.Peer.Connections.Per.Torrent");
+	    int maxConnTotal = COConfigurationManager.getIntParameter("Max.Peer.Connections.Total");
+	    int curConnPerTorrent = PeerIdentityManager.getIdentityCount( data_id );
+	    int curConnTotal = PeerIdentityManager.getTotalIdentityCount();
+	    
+	    int perTorrentAllowed = -1;  //default unlimited
+	    if ( maxConnPerTorrent != 0 ) {  //if limited
+	      int allowed = maxConnPerTorrent - curConnPerTorrent;
+	      if ( allowed < 0 )  allowed = 0;
+	      perTorrentAllowed = allowed;
+	    }
+	    
+	    int totalAllowed = -1;  //default unlimited
+	    if ( maxConnTotal != 0 ) {  //if limited
+	      int allowed = maxConnTotal - curConnTotal;
+	      if ( allowed < 0 )  allowed = 0;
+	      totalAllowed = allowed;
+	    }
+	    
+	    int allowed = -1;  //default unlimited
+	    if ( perTorrentAllowed > -1 && totalAllowed > -1 ) {  //if both limited
+	      allowed = Math.min( perTorrentAllowed, totalAllowed );
+	    }
+	    else if ( perTorrentAllowed == -1 || totalAllowed == -1 ) {  //if either unlimited
+	    	allowed = Math.max( perTorrentAllowed, totalAllowed );
+	    }
+	    
+	    return allowed;
+  	}finally{
+  		
+  		class_mon.exit();
+  	}
   }
   
 

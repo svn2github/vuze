@@ -9,14 +9,19 @@ package org.gudy.azureus2.core3.peer.util;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
+
 
 /**
  * Maintains peer identity information.
  */
 public class PeerIdentityManager {
 
-  private static PeerIdentityManager peerIDManager = new PeerIdentityManager();
-  private final Map dataIdMap;
+  private static PeerIdentityManager	peerIDManager = new PeerIdentityManager();
+  private static final AEMonitor 		class_mon	= new AEMonitor( "PeerIdentityManager:class");
+
+  private final Map 		dataIdMap;
+
   private static int totalIDs = 0;
   
   
@@ -88,7 +93,9 @@ public class PeerIdentityManager {
    */
   public static void addIdentity( byte[] data_id, byte[] peer_id, String ip ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
-    synchronized( dataMap ) {
+    try{
+      class_mon.enter();
+    
       DataID dataID = new DataID( data_id );
       if ( !dataMap.containsKey( dataID )) {
         dataMap.put( dataID, new HashMap());
@@ -99,6 +106,8 @@ public class PeerIdentityManager {
         peerMap.put( peerID, ip );
         totalIDs++;
       }
+    }finally{
+      class_mon.exit();
     }
   }
   
@@ -110,7 +119,9 @@ public class PeerIdentityManager {
    */
   public static void removeIdentity( byte[] data_id, byte[] peer_id ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
-    synchronized( dataMap ) {
+    try{
+    	class_mon.enter();
+    
       DataID dataID = new DataID( data_id );
       if ( dataMap.containsKey( dataID )) {
         Map peerMap = (Map)dataMap.get( dataID );
@@ -120,6 +131,8 @@ public class PeerIdentityManager {
           totalIDs--;
         }
       }
+    }finally{
+    	class_mon.exit();
     }
   }
   
@@ -132,7 +145,9 @@ public class PeerIdentityManager {
    */
   public static boolean containsIdentity( byte[] data_id, byte[] peer_id ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
-    synchronized( dataMap ) {
+    try{
+    	class_mon.enter();
+  
       DataID dataID = new DataID( data_id );
       if ( dataMap.containsKey( dataID )) {
         Map peerMap = (Map)dataMap.get( dataID );
@@ -141,6 +156,8 @@ public class PeerIdentityManager {
         	return true;
         }
       }
+    }finally{
+    	class_mon.exit();
     }
     return false;
   }
@@ -162,12 +179,16 @@ public class PeerIdentityManager {
    */
   public static int getIdentityCount( byte[] data_id ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
-    synchronized( dataMap ) {
+    try{
+    	class_mon.enter();
+    
       DataID dataID = new DataID( data_id );
       if ( dataMap.containsKey( dataID )) {
         Map peerMap = (Map)dataMap.get( dataID );
         return peerMap.size();
       }
+    }finally{
+    	class_mon.exit();
     }
     return 0;
   }
@@ -183,7 +204,9 @@ public class PeerIdentityManager {
    */
   public static boolean containsIPAddress( byte[] data_id, String ip ) {
     Map dataMap = PeerIdentityManager.getInstance().dataIdMap;
-    synchronized( dataMap ) {
+    try{
+    	class_mon.enter();
+   	  
       DataID dataID = new DataID( data_id );
       if ( dataMap.containsKey( dataID )) {
         Map peerMap = (Map)dataMap.get( dataID );
@@ -191,6 +214,8 @@ public class PeerIdentityManager {
           return true;
         }
       }
+    }finally{
+    	class_mon.exit();
     }
     return false;
   }

@@ -43,8 +43,9 @@ PESharedPortSelector
 	
 	protected Selector	  selector;
 	
-	protected List		register_list		= new ArrayList(16);
-			
+	protected List			register_list		= new ArrayList(16);
+	protected AEMonitor 	register_list_mon	= new AEMonitor( "PESharedPortSelector:RL");
+		
 	protected Map		hash_map			= new HashMap();
 	
 	protected
@@ -89,7 +90,8 @@ PESharedPortSelector
 					// fact that the registration occurred when the selector was selecting. Hence
 					// the move to stick them on a list and pick them up here
 				
-				synchronized( register_list ){
+				try{
+					register_list_mon.enter();
 					
 					if ( register_list.size() > 0 ){
 						
@@ -119,6 +121,9 @@ PESharedPortSelector
 						
 						register_list.clear();
 					}
+				}finally{
+					
+					register_list_mon.exit();
 				}
 				
 				int select_res = selector.select(500);
@@ -350,11 +355,16 @@ PESharedPortSelector
 	addSocket(
 		SocketChannel		_socket )
 	{		
-		synchronized( register_list ){
+		try{
+			register_list_mon.enter();
 			
 			socketData	sd = new socketData( _socket );
      
 			register_list.add( sd );
+			
+		}finally{
+			
+			register_list_mon.exit();
 		}
 		
 		selector.wakeup();

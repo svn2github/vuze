@@ -29,6 +29,7 @@ import java.util.*;
 import java.security.*;
 import java.lang.reflect.Method;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 /**
@@ -160,8 +161,10 @@ public class MemoryMappedFile {
     private static long MAX_SIZE = 100*1024*1024; //100MB
     private static final MemoryMapPool instance = new MemoryMapPool();
     private long total_size = 0;
-    
-    private final Map buffers = new LinkedHashMap( new Float(MAX_SIZE/BLOCK_SIZE).intValue(), .75F, true ) {
+  	private final AEMonitor		buffers_mon		= new AEMonitor( "MemoryMappedFile:buffers" );
+
+    private final Map buffers = new LinkedHashMap( new Float(MAX_SIZE/BLOCK_SIZE).intValue(), .75F, true ){
+    	
     	//This method is called just after a new entry has been added
       public boolean removeEldestEntry(Map.Entry eldest) {
         boolean remove = total_size > MAX_SIZE;
@@ -177,18 +180,28 @@ public class MemoryMappedFile {
     //may return null despite a previously-valid key, because the buffer was GC'd
     //note: the buffer is removed from the pool
     private static MappedByteBuffer getBuffer( Object key ) {
-      synchronized( instance.buffers ) {
+      try{
+      	instance.buffers_mon.enter();
+      
         MappedByteBuffer mbb = (MappedByteBuffer)instance.buffers.remove( key );
         if ( mbb != null ) instance.total_size -= mbb.capacity();
         return mbb;
+      }finally{
+      	
+      	instance.buffers_mon.exit();
       }
     }
        
     private static Object addBuffer( MappedByteBuffer buffer ) {
       Object key = new Object();
-      synchronized( instance.buffers ) {
+      try{
+      	instance.buffers_mon.enter();
+      
         instance.total_size += buffer.capacity();
         instance.buffers.put( key, buffer );
+      }finally{
+      	
+      	instance.buffers_mon.exit();
       }
       return key;
     }

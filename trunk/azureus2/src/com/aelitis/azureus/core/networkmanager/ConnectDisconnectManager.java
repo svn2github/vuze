@@ -41,10 +41,15 @@ public class ConnectDisconnectManager {
   private static final int CONNECT_ATTEMPT_STALL_TIME = 3*1000;  //3sec
   
   private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT );
-  private final LinkedList new_requests = new LinkedList();
-  private final HashMap pending_attempts = new HashMap();
-  private final HashMap canceled_requests = new HashMap();
-  private final LinkedList pending_closes = new LinkedList();
+  
+  private final LinkedList 	new_requests 			= new LinkedList();
+  private final AEMonitor	new_requests_mon		= new AEMonitor( "ConnectDisconnectManager:NR");
+  private final HashMap 	pending_attempts 		= new HashMap();
+  private final HashMap 	canceled_requests 		= new HashMap();
+  private final AEMonitor	canceled_requests_mon	= new AEMonitor( "ConnectDisconnectManager:CR");
+  private final LinkedList 	pending_closes 			= new LinkedList();
+  private final AEMonitor	pending_closes_mon		= new AEMonitor( "ConnectDisconnectManager:PC");
+     
   private final Random random = new Random();
   
   private static final boolean SHOW_CONNECT_STATS = false;
@@ -74,9 +79,15 @@ public class ConnectDisconnectManager {
   private void addNewOutboundRequests() {    
     while( pending_attempts.size() < MIN_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
       ConnectionRequest cr;
-      synchronized( new_requests ) {
+      try{
+      	new_requests_mon.enter();
+      
         if( new_requests.isEmpty() )  break;
+        
         cr = (ConnectionRequest)new_requests.removeFirst();
+      }finally{
+      	
+      	new_requests_mon.exit();
       }
       addNewRequest( cr );
     }
@@ -85,11 +96,16 @@ public class ConnectDisconnectManager {
   
 
   private void addNewRequest( final ConnectionRequest request ) {
-    synchronized( canceled_requests ) {
+    try{
+    	canceled_requests_mon.enter();
+    
       if( canceled_requests.containsKey( request.listener ) ) {  //it's been canceled
         canceled_requests.remove( request.listener );
         return;
       }
+    }finally{
+    	
+    	canceled_requests_mon.exit();
     }
     
     try {
@@ -114,7 +130,9 @@ public class ConnectDisconnectManager {
       
       connect_selector.register( request.channel, new VirtualChannelSelector.VirtualSelectorListener() {
         public void selectSuccess( Object attachment ) {
-          synchronized( canceled_requests ) {
+          try{
+          	canceled_requests_mon.enter();
+          
             if( !canceled_requests.containsKey( request.listener ) ) { //check if canceled
               try {
                 if( request.channel.finishConnect() ) {
@@ -136,8 +154,12 @@ public class ConnectDisconnectManager {
                 else { //should never happen
                   System.out.println( "finishConnect() failed" );
                   request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
-                  synchronized( pending_closes ) {
+                  try{
+                  	pending_closes_mon.enter();
+                  
                     pending_closes.addLast( request.channel );
+                  }finally{
+                  	pending_closes_mon.exit();
                   }
                 }
               }
@@ -156,34 +178,60 @@ public class ConnectDisconnectManager {
                 }
                 
                 request.listener.connectFailure( t );
-                synchronized( pending_closes ) {
-                  pending_closes.addLast( request.channel );
+                try{
+                	pending_closes_mon.enter();
+                
+                	pending_closes.addLast( request.channel );
+                }finally{
+                	
+                	pending_closes_mon.exit();
                 }
               }
             }
             else {  //if already canceled, no need to invoke listener
               canceled_requests.remove( request.listener );
-              synchronized( pending_closes ) {
+              try{
+              	pending_closes_mon.enter();
+              
                 pending_closes.addLast( request.channel );
+              }finally{
+              	
+              	pending_closes_mon.exit();
               }
             }
+          }finally{
+          	
+          	canceled_requests_mon.exit();
           }
           pending_attempts.remove( request );
         }
         
         public void selectFailure( Throwable msg ) {
           System.out.println( "selectFailure" );
-          synchronized( pending_closes ) {
+          
+          try{
+          	pending_closes_mon.enter();
+          
             pending_closes.addLast( request.channel );
+          }finally{
+          	
+          	pending_closes_mon.exit();
           }
-          synchronized( canceled_requests ) {
+          
+          try{
+          	canceled_requests_mon.enter();
+          
             if( !canceled_requests.containsKey( request.listener ) ) { //check if canceled
               request.listener.connectFailure( msg );
             }
             else {  //if already canceled, no need to invoke listener
               canceled_requests.remove( request.listener );
             }
+          }finally{
+          	
+          	canceled_requests_mon.exit();
           }
+          
           pending_attempts.remove( request );
         }
       }, null );
@@ -194,8 +242,13 @@ public class ConnectDisconnectManager {
     catch( Throwable t ) {
       t.printStackTrace();
       if( request.channel != null ) {
-        synchronized( pending_closes ) {
-          pending_closes.addLast( request.channel );
+        try{
+        	pending_closes_mon.enter();
+        
+        	pending_closes.addLast( request.channel );
+        }finally{
+        	
+        	pending_closes_mon.exit();
         }
       }
       request.listener.connectFailure( t );
@@ -214,12 +267,23 @@ public class ConnectDisconnectManager {
       long waiting_time = SystemTime.getCurrentTime() - request.connect_start_time;
       if( waiting_time > CONNECT_ATTEMPT_TIMEOUT ) {
         i.remove();
-        synchronized( canceled_requests ) {  //cancel it for when it finally gets selected
-          canceled_requests.put( request.listener, null );
+        try{
+        	canceled_requests_mon.enter();  //cancel it for when it finally gets selected
+        
+        	canceled_requests.put( request.listener, null );
+        }finally{
+        	canceled_requests_mon.exit();
         }
-        synchronized( pending_closes ) {
-          pending_closes.addLast( request.channel );
+        
+        try{
+        	pending_closes_mon.enter();
+        
+        	pending_closes.addLast( request.channel );
+        }finally{
+        	
+        	pending_closes_mon.exit();
         }
+        
         request.listener.connectFailure( new Throwable( "Connection attempt aborted: timed out after " +CONNECT_ATTEMPT_TIMEOUT/1000+ "sec" ) );
       }
       else if( waiting_time >= CONNECT_ATTEMPT_STALL_TIME ) {
@@ -230,10 +294,14 @@ public class ConnectDisconnectManager {
     //check if our connect queue is stalled, and expand if so
     if( num_stalled_requests == pending_attempts.size() && pending_attempts.size() < MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
       ConnectionRequest cr = null;
-      synchronized( new_requests ) {
+      try{
+      	new_requests_mon.enter();
+      
         if( !new_requests.isEmpty() ) {
           cr = (ConnectionRequest)new_requests.removeFirst();
         }
+      }finally{
+      	new_requests_mon.exit();
       }
       if( cr != null )  addNewRequest( cr );
     }
@@ -241,7 +309,9 @@ public class ConnectDisconnectManager {
   
   
   private void doClosings() {
-    synchronized( pending_closes ) {
+    try{
+    	pending_closes_mon.enter();
+    
       while( !pending_closes.isEmpty() ) {
         SocketChannel channel = (SocketChannel)pending_closes.removeFirst();
         if( channel != null ) {
@@ -251,6 +321,9 @@ public class ConnectDisconnectManager {
           catch( Throwable t ) {  t.printStackTrace();  }
         }
       }
+    }finally{
+    	
+    	pending_closes_mon.exit();
     }
   }
   
@@ -262,7 +335,9 @@ public class ConnectDisconnectManager {
    */
   protected void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {
     ConnectionRequest cr = new ConnectionRequest( address, listener );
-    synchronized( new_requests ) {
+    try{
+    	new_requests_mon.enter();
+    
       //insert at a random position because new connections are usually added in 50-peer
       //chunks, i.e. from a tracker announce reply, and we want to evenly distribute the
       //connect attempts if there are multiple torrents running
@@ -271,6 +346,9 @@ public class ConnectDisconnectManager {
         insert_pos = random.nextInt( new_requests.size() );
       }
       new_requests.add( insert_pos, cr );
+    }finally{
+    	
+    	new_requests_mon.exit();
     }
   }
   
@@ -280,8 +358,13 @@ public class ConnectDisconnectManager {
    * @param channel to close
    */
   protected void closeConnection( SocketChannel channel ) {
-    synchronized( pending_closes ) {
-      pending_closes.addLast( channel );
+    try{
+    	pending_closes_mon.enter();
+    
+    	pending_closes.addLast( channel );
+    }finally{
+    	
+    	pending_closes_mon.exit();
     }
   }
   
@@ -291,7 +374,9 @@ public class ConnectDisconnectManager {
    * @param listener_key used in the initial connect request
    */
   protected void cancelRequest( ConnectListener listener_key ) {
-    synchronized( new_requests ) {
+    try{
+    	new_requests_mon.enter();
+    
       for( Iterator i = new_requests.iterator(); i.hasNext(); ) {
         ConnectionRequest request = (ConnectionRequest)i.next();
         if( request.listener == listener_key ) {
@@ -299,9 +384,17 @@ public class ConnectDisconnectManager {
           return;
         }
       }
+    }finally{
+    	new_requests_mon.exit();
     }
-    synchronized( canceled_requests ) {
-      canceled_requests.put( listener_key, null );
+    
+    try{
+    	canceled_requests_mon.enter();
+    
+    	canceled_requests.put( listener_key, null );
+    }finally{
+    	
+    	canceled_requests_mon.exit();
     }
   }
   
