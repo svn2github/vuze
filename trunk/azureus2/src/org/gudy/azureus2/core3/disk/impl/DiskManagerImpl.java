@@ -934,7 +934,7 @@ DiskManagerImpl
 						fileInfo.getFMFile().close();
 	
 					} catch (FMFileManagerException ex) { ex.printStackTrace(); }
-					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles)";
+					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles new:" + f.toString() + ")";
 					setState( FAULTY );
 					return -1;
 				}
@@ -944,7 +944,7 @@ DiskManagerImpl
 				try {
 					fileInfo.setAccessMode( DiskManagerFileInfo.READ );
 				} catch (FMFileManagerException e) {
-					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles:2)";
+					this.errorMessage = (e.getCause()!=null?e.getCause().getMessage():e.getMessage()) + " (allocateFiles existing:" + f.toString() + ")";
 					setState( FAULTY );
 					return -1;
 				}
