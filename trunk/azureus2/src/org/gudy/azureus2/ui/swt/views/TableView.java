@@ -360,80 +360,109 @@ public class TableView
   	final Listener labelListener = new Listener () {
   		public void handleEvent (Event event) {
   			Label label = (Label)event.widget;
-  			Shell shell = label.getShell ();
+  			Shell shell = label.getShell();
   			switch (event.type) {
   				case SWT.MouseDown:
   					Event e = new Event ();
-  					e.item = (TableItem) label.getData ("_TABLEITEM");
+  					e.item = (TableItem)label.getData("_TABLEITEM");
   					// Assuming table is single select, set the selection as if
   					// the mouse down event went through to the table
-  					table.setSelection (new TableItem [] {(TableItem) e.item});
-  					table.notifyListeners (SWT.Selection, e);
+  					table.setSelection(new TableItem [] {(TableItem) e.item});
+  					table.notifyListeners(SWT.Selection, e);
   					// fall through
   				case SWT.MouseExit:
-  					shell.dispose ();
+  				  TableCellCore cell = (TableCellCore)label.getData("TableCellCore");
+            cell.invokeToolTipListeners(TableCellCore.TOOLTIPLISTENER_HOVERCOMPLETE);
+  					shell.dispose();
   					break;
   			}
   		}
   	};
   
   	Listener tableListener = new Listener () {
-  		Shell tip = null;
+  		Shell shell = null;
   		Label label = null;
   		public void handleEvent (Event event) {
   			switch (event.type) {
   				case SWT.Dispose:
   				case SWT.KeyDown:
   				case SWT.MouseMove: {
-  					if (tip == null) break;
-  					tip.dispose ();
-  					tip = null;
+  					if (shell == null) break;
+  					shell.dispose ();
+  					shell = null;
   					label = null;
   					break;
   				}
   				case SWT.MouseHover: {
-  					TableItem item = table.getItem (new Point (event.x, event.y));
-  					if (item != null) {
-  						if (tip != null  && !tip.isDisposed ()) tip.dispose ();
-              TableRowCore row = (TableRowCore)item.getData("TableRow");
-              if (row == null)
-                return;
-              int iColumn = getColumnNo(event.x);
-              if (iColumn < 0)
-                return;
-              TableColumn tcColumn = table.getColumn(iColumn);
-              String sCellName = (String)tcColumn.getData("Name");
-              if (sCellName == null)
-                return;
-              
-              TableCellCore cell = row.getTableCellCore(sCellName);
-              if (cell == null)
-                return;
-              Object oToolTip = cell.getToolTip();
-              
-              // TODO: support composite, image, etc
-              if (oToolTip == null || !(oToolTip instanceof String))
-                return;
-              String sToolTip = (String)oToolTip;
+						if (shell != null  && !shell.isDisposed())
+						  shell.dispose();
 
-  						tip = new Shell (table.getShell(), SWT.ON_TOP);
-  						tip.setLayout (new FillLayout ());
-  						label = new Label (tip, SWT.NONE);
-  						label.setForeground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_FOREGROUND));
-  						label.setBackground (table.getDisplay().getSystemColor (SWT.COLOR_INFO_BACKGROUND));
-  						label.setData ("_TABLEITEM", item);
-  						label.setText (sToolTip);
-  						label.addListener (SWT.MouseExit, labelListener);
-  						label.addListener (SWT.MouseDown, labelListener);
-  						Point size = tip.computeSize (SWT.DEFAULT, SWT.DEFAULT);
-  						if (size.x > 400)
-    						size = tip.computeSize (400, SWT.DEFAULT);
-  						Point pt = table.toDisplay (event.x, event.y + 30);
-  						tip.setBounds (pt.x, pt.y, size.x, size.y);
-  						tip.setVisible (true);
-  					}
-  				}
-  			}
+  					TableItem item = table.getItem (new Point (event.x, event.y));
+  					if (item == null)
+  					  return;
+            TableRowCore row = (TableRowCore)item.getData("TableRow");
+            if (row == null)
+              return;
+            int iColumn = getColumnNo(event.x);
+            if (iColumn < 0)
+              return;
+            TableColumn tcColumn = table.getColumn(iColumn);
+            String sCellName = (String)tcColumn.getData("Name");
+            if (sCellName == null)
+              return;
+            
+            TableCellCore cell = row.getTableCellCore(sCellName);
+            if (cell == null)
+              return;
+            cell.invokeToolTipListeners(TableCellCore.TOOLTIPLISTENER_HOVER);
+            Object oToolTip = cell.getToolTip();
+            
+            // TODO: support composite, image, etc
+            if (oToolTip == null || !(oToolTip instanceof String))
+              return;
+            String sToolTip = (String)oToolTip;
+
+						Display d = table.getDisplay();
+						if (d == null)
+						  return;
+
+						shell = new Shell (table.getShell(), SWT.ON_TOP);
+            FillLayout f = new FillLayout();
+            f.marginWidth = 1;
+            f.marginHeight = 1;
+						shell.setLayout(f);
+						shell.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+						label = new Label(shell, SWT.WRAP);
+						label.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+						label.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+						label.setData("_TABLEITEM", item);
+						label.setData("TableCellCore", cell);
+						label.setText(sToolTip);
+						label.addListener(SWT.MouseExit, labelListener);
+						label.addListener(SWT.MouseDown, labelListener);
+						// compute size on label instead of shell because label
+						// calculates wrap, while shell doesn't
+						Point size = label.computeSize (SWT.DEFAULT, SWT.DEFAULT);
+						if (size.x > 600) {
+  						size = label.computeSize (600, SWT.DEFAULT, true);
+						}
+						size.x += shell.getBorderWidth() * 2 + 2;
+						size.y += shell.getBorderWidth() * 2 + 2;
+						Point pt = table.toDisplay (event.x, event.y - size.y + 2);
+            Rectangle displayRect;
+            try {
+            	displayRect = shell.getMonitor().getClientArea();
+            } catch (NoSuchMethodError e) {
+              displayRect = shell.getDisplay().getClientArea();
+            }
+            if (pt.x + size.x > displayRect.x + displayRect.width) {
+              pt.x = displayRect.x + displayRect.width - size.x;
+            }
+
+						shell.setBounds(pt.x, (pt.y < 0) ? 0 : pt.y, size.x, size.y);
+						shell.setVisible(true);
+					}
+				}
   		}
   	};
   	table.addListener (SWT.Dispose, tableListener);
