@@ -28,6 +28,9 @@ package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridData;
 
 public class 
@@ -88,6 +91,18 @@ BufferedLabel
 
   public String getText() {
     return label.getText();
+  }
+  
+  public void addMouseListener(MouseListener listener) {
+    label.addMouseListener(listener);
+  }
+  
+  public void setForeground(Color color) {
+    label.setForeground(color);
+  }
+  
+  public void setCursor(Cursor cursor) {
+    label.setCursor(cursor);
   }
       
 }

@@ -19,6 +19,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Combo;
@@ -316,6 +317,20 @@ public class GeneralView extends AbstractIView {
       }
     });
     trackerUrlValue = new BufferedLabel(gInfo, SWT.LEFT);
+    trackerUrlValue.setForeground(MainWindow.blue);
+    trackerUrlValue.setCursor(MainWindow.handCursor);
+    trackerUrlValue.addMouseListener(new MouseAdapter() {
+      public void mouseUp(MouseEvent event) {
+        String url = trackerUrlValue.getText();
+        if(url.startsWith("http://")) {
+          int pos = -1;
+          if((pos = url.indexOf("/announce")) != -1) {
+            url = url.substring(0,pos);
+            Program.launch(url);
+          }
+        }
+      }
+    });
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     trackerUrlValue.setLayoutData(gridData);
