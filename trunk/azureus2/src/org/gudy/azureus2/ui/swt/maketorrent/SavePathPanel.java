@@ -21,27 +21,21 @@
  
 package org.gudy.azureus2.ui.swt.maketorrent;
 
-import java.io.File;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.wizard.*;
+import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
+import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
+
+import java.io.File;
 
 /**
  * @author Olivier
@@ -79,8 +73,8 @@ public class SavePathPanel extends AbstractWizardPanel {
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
     panel.setLayout(layout);
-    Label label = new Label(panel,SWT.NULL);    
-    Messages.setLanguageText(label,"wizard.file");
+    Label label;/* = new Label(panel,SWT.NULL);
+    Messages.setLanguageText(label,"wizard.file");*/
     final Text file = new Text(panel,SWT.BORDER);
     
     file.addModifyListener(new ModifyListener() {
@@ -137,6 +131,7 @@ public class SavePathPanel extends AbstractWizardPanel {
     
     file.setText(((NewTorrentWizard)wizard).savePath);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
     file.setLayoutData(gridData);
     Button browse = new Button(panel,SWT.PUSH);
     browse.addListener(SWT.Selection,new Listener() {
@@ -177,7 +172,7 @@ public class SavePathPanel extends AbstractWizardPanel {
     gridData.horizontalSpan = 3;
     gFileStuff.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 4;	
+    layout.numColumns = 4;
     gFileStuff.setLayout(layout);
     
     	// file size
