@@ -81,7 +81,7 @@ public class CommandReader extends Reader {
   public String fetchCommand() throws java.io.IOException {
     synchronized(lock) {
       ensureOpen();
-      line = new String();
+      line = "";
       StringBuffer current = new StringBuffer();
       Vector args = new Vector();
       boolean bailout = false;
