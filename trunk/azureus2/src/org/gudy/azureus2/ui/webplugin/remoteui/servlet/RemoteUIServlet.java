@@ -29,6 +29,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.servlet;
 import org.gudy.azureus2.ui.webplugin.*;
 
 import java.io.*;
+import java.util.zip.*;
 
 import org.gudy.azureus2.plugins.tracker.web.*;
 
@@ -52,7 +53,7 @@ RemoteUIServlet
 			ObjectInputStream	dis = null;
 			
 			try{
-				dis = new ObjectInputStream( request.getInputStream());
+				dis = new ObjectInputStream( new GZIPInputStream(request.getInputStream()));
 								
 				RPRequest	rp_request = (RPRequest)dis.readObject();
 				
@@ -67,7 +68,7 @@ RemoteUIServlet
 				
 				response.setContentType( "application/octet-stream" );
 				
-				ObjectOutputStream	oos = new ObjectOutputStream(response.getOutputStream());
+				ObjectOutputStream	oos = new ObjectOutputStream(new GZIPOutputStream(response.getOutputStream()));
 				
 				try{
 					oos.writeObject( reply );

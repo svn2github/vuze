@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet;
  */
 
 import java.util.*;
+import java.util.zip.*;
 import java.net.*;
 import java.io.*;
 
@@ -38,9 +39,9 @@ import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.ui.webplugin.remoteui.plugins.*;
-import org.gudy.azureus2.ui.webplugin.remoteui.plugins.download.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.download.*;
 
 public class 
 RemoteUIApplet
@@ -77,13 +78,13 @@ RemoteUIApplet
 		try{
 			final PluginInterface pi = RPFactory.getPlugin( this );
 			
-			System.out.println( "got pi:" + pi );
+			//System.out.println( "got pi:" + pi );
+			//Properties props = pi.getPluginProperties();
+			//System.out.println( "props = " + props );
 			
-			Properties props = pi.getPluginProperties();
-			
-			System.out.println( "props = " + props );
-			
-			RemoteUIMainPanel	panel = new RemoteUIMainPanel( pi );
+			final DownloadManager		download_manager	= pi.getDownloadManager();
+				
+			RemoteUIMainPanel	panel = new RemoteUIMainPanel( download_manager );
 			
 			panel.addListener(
 				new RemoteUIMainPanelListener()
@@ -91,7 +92,7 @@ RemoteUIApplet
 					public void
 					refresh()
 					{
-						((RPDownloadManager)pi.getDownloadManager())._refresh();
+						
 					}
 					
 					public void
@@ -179,7 +180,7 @@ RemoteUIApplet
 			ObjectOutputStream dos = null;
 			
 			try{
-				dos = new ObjectOutputStream(con.getOutputStream());
+				dos = new ObjectOutputStream(new GZIPOutputStream(con.getOutputStream()));
 			
 				dos.writeObject( request );
 				
@@ -235,7 +236,7 @@ RemoteUIApplet
 					}
 				}
 				
-				ObjectInputStream	ois = new ObjectInputStream(new ByteArrayInputStream( baos.toByteArray()));
+				ObjectInputStream	ois = new ObjectInputStream(new GZIPInputStream( new ByteArrayInputStream( baos.toByteArray())));
 				
 				try{
 					return((RPReply)ois.readObject());

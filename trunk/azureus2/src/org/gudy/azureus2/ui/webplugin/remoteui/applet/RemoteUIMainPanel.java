@@ -33,7 +33,7 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
-import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.download.*;
 
 
 import org.gudy.azureus2.ui.webplugin.remoteui.applet.model.*;
@@ -43,16 +43,16 @@ public class
 RemoteUIMainPanel
 	extends JPanel
 {
-	protected PluginInterface		pi;
+	protected DownloadManager		download_manager;
 	
 	protected ArrayList					listeners = new ArrayList();
 	
 	public
 	RemoteUIMainPanel(
-		PluginInterface	_pi )
+			DownloadManager	_dm )
 	{
 		try{
-			pi		= _pi;
+			download_manager		= _dm;
 		
 			setLayout( new BorderLayout());
 			
@@ -86,7 +86,7 @@ RemoteUIMainPanel
 			
 			add( tb, BorderLayout.NORTH );
 			
-			final MDDownloadModel	model 	= new MDDownloadModel( pi.getDownloadManager());
+			final MDDownloadModel	model 	= new MDDownloadModel( download_manager );
 			
 			final VWDownloadView 	view 	= new VWDownloadView(model);
 			
@@ -186,7 +186,7 @@ RemoteUIMainPanel
 							try{
 								URL	url = new URL( tf.getText());
 							
-								pi.getDownloadManager().addDownload( url );
+								download_manager.addDownload( url );
 							
 								model.refresh();
 								

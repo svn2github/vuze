@@ -169,6 +169,8 @@ TRTrackerServerProcessorTCP
 					}
 										
 					data = new ByteArrayInputStream(baos.toByteArray());
+					
+					// System.out.println( "TRTrackerServerProcessorTCP: request data = " + baos.size());
 				}else{
 					
 					throw( new TRTrackerServerException( "header doesn't start with GET or POST ('" + (header.length()>256?header.substring(0,256):header)+"')" ));

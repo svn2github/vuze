@@ -48,6 +48,13 @@ DownloadAnnounceResultImpl
 		response	= _response;
 	}
 	
+	protected void
+	setContent(
+		TRTrackerResponse	_response )
+	{
+		response = _response;
+	}
+	
 	public Download
 	getDownload()
 	{

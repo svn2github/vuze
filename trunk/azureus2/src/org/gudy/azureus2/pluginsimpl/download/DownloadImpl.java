@@ -56,8 +56,8 @@ DownloadImpl
 	
 	protected int		latest_state		= ST_STOPPED;
 	
-	protected DownloadAnnounceResult	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
-	protected DownloadScrapeResult		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
+	protected DownloadAnnounceResultImpl	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
+	protected DownloadScrapeResultImpl		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
 	
 	protected List		listeners 			= new ArrayList();
 	protected List		tracker_listeners	= new ArrayList();
@@ -421,7 +421,7 @@ DownloadImpl
 	{		
 		TRTrackerScraperResponse response = download_manager.getTrackerScrapeResponse();
 	
-		last_scrape_result = new DownloadScrapeResultImpl( this, response );
+		last_scrape_result.setContent( response );
 		
 		return( last_scrape_result );
 	}
@@ -431,7 +431,7 @@ DownloadImpl
 	scrapeResult(
 		TRTrackerScraperResponse	response )
 	{
-		last_scrape_result		= new DownloadScrapeResultImpl( this, response );
+		last_scrape_result.setContent( response );
 		
 		synchronized( tracker_listeners ){
 			
@@ -452,9 +452,8 @@ DownloadImpl
 	announceResult(
 		TRTrackerResponse			response )
 	{
-		last_announce_result = new DownloadAnnounceResultImpl(this, response);
+		last_announce_result.setContent( response );
 		
-
 		synchronized( tracker_listeners ){
 			
 			for (int i=0;i<tracker_listeners.size();i++){

@@ -47,6 +47,13 @@ DownloadScrapeResultImpl
 		response	= _response;
 	}
 	
+	protected void
+	setContent(
+		TRTrackerScraperResponse	_response )
+	{
+		response = _response;
+	}
+	
 	public Download
 	getDownload()
 	{

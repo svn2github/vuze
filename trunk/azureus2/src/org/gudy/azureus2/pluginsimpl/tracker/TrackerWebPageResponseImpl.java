@@ -97,6 +97,8 @@ TrackerWebPageResponseImpl
 	{
 		byte[]	reply_bytes = baos.toByteArray();
 		
+		// System.out.println( "TrackerWebPageResponse::complete: data = " + reply_bytes.length );
+		
 		String reply_header = "HTTP/1.1 " + reply_status + (reply_status == 200 || reply_status == 204?" OK":" BAD") + NL;
 		
 		for (int i=0;i<header_names.size();i++){
