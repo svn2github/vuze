@@ -169,6 +169,40 @@ DownloadStatsImpl
 	public int
 	getHealth()
 	{
-		return( dm.getHealthStatus());
+		switch( dm.getHealthStatus()){
+		
+			case DownloadManager.WEALTH_STOPPED:
+			{
+				return( DownloadStats.HEALTH_STOPPED );
+			
+			}
+			case DownloadManager.WEALTH_NO_TRACKER:
+			{
+				return( DownloadStats.HEALTH_NO_TRACKER );
+			
+			}
+			case DownloadManager.WEALTH_NO_REMOTE:
+			{
+				return( DownloadStats.HEALTH_NO_REMOTE );
+			
+			}
+			case DownloadManager.WEALTH_OK:
+			{
+				return( DownloadStats.HEALTH_OK );
+			
+			}
+			case DownloadManager.WEALTH_KO:
+			{
+				return( DownloadStats.HEALTH_KO );
+			
+			}
+			default:
+			{
+				Debug.out( "Invalid health status" );
+				
+				return( dm.getHealthStatus());
+			
+			}
+		}
 	}
 }
