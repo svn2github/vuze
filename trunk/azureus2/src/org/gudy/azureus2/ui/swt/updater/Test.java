@@ -20,43 +20,63 @@
  */
 package org.gudy.azureus2.ui.swt.updater;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 
 
 /**
  * @author Olivier Chalouhi
  *
  */
-public class TestSnippet {
+public class Test {
   
   public static void main(String args[]) throws Exception{
-    try {
-    //String[] exec =  {"java"}; //,"-version"};
-    String exec = "java -version";
+    String classPath = System.getProperty("java.class.path"); //$NON-NLS-1$
+    String libraryPath = System.getProperty("java.library.path"); //$NON-NLS-1$
+    String userPath = System.getProperty("user.dir"); //$NON-NLS-1$
+    String javaPath = System.getProperty("java.home")
+                    + System.getProperty("file.separator")
+                    + "bin"
+                    + System.getProperty("file.separator");
+    /*
+    String[] exec = {
+        javaPath + "java" ,
+        	"-classpath" ,
+        	"\"" + classPath + "\"" ,
+        	"-Duser.dir=\"" + userPath + "\"" ,
+        	"org.gudy.azureus2.ui.swt.updater.UpdateSWT" ,
+        	"\"" + "carbon" + "\"" ,
+        	"\"swtTemp.zip\"",
+        	"\"" + userPath + "\"",
+        	"\"" + libraryPath + "\"" };
+    */
+    String exec = javaPath + "java -classpath \"" + classPath
+    + "\" -Duser.dir=\"" + userPath + "\" org.gudy.azureus2.ui.swt.updater.UpdateSWT \"" + "carbon" + "\" \"swtTemp.zip\" \""
+    + userPath + "\" \"" + libraryPath + "\"";
+    
+    //String[] exec =  {"java","-version"};
     
     System.out.println("About to exec : " + exec );
     
     Process p = Runtime.getRuntime().exec(exec);
+    BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
     
     int exitCode = p.waitFor();
-    
-    BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
     String line = null;
     while((line = br.readLine()) != null ) {
       System.out.println(line);
     }
-    
     br = new BufferedReader(new InputStreamReader(p.getErrorStream()));
     line = null;
     while((line = br.readLine()) != null ) {
       System.out.println(line);
     }
     
+//  p.waitFor();
     System.out.println("Exited with code : " + exitCode);
-    } catch(Exception e) {
-      e.printStackTrace();
-    }
   }
   
 }
