@@ -5,7 +5,7 @@
 package org.gudy.azureus2.core3.tracker.client.classic;
 
 import java.util.*;
-
+import java.net.*;
 
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -139,26 +139,25 @@ public class TrackerChecker implements TRTrackerScraperListener {
     return data;
   }
   
-
-  /** Removes the scrape task and data associated with the TRTrackerClient's 
-   * current url (announce-list entry or announce) and its torrent's hash 
-   */
-  protected void removeHash(TRTrackerClient tracker_client) {
-    try{
-      removeHash(tracker_client.getTrackerUrl(), 
-                 tracker_client.getTorrent().getHashWrapper());
-      
-    } catch (TOTorrentException e) {
-    	Debug.printStackTrace( e );
-    }
-  } 
-  
   /** Removes the scrape task and data associated with the TOTorrent's
-   * Announce URL (not announce-list) and hash.
+   * Announce URL, announce-list data and hash.
    */
   protected void removeHash(TOTorrent torrent) {
     try{
       removeHash(torrent.getAnnounceURL().toString(), torrent.getHashWrapper());
+      
+      TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+      
+      for (int i=0;i<sets.length;i++){
+      	
+      	URL[]	urls = sets[i].getAnnounceURLs();
+      	
+      	for (int j=0;j<urls.length;j++){
+      		
+      		removeHash(urls[j].toString(), torrent.getHashWrapper());
+      	}
+      }
+      
       
     } catch (TOTorrentException e) {
     	Debug.printStackTrace( e );
@@ -169,7 +168,6 @@ public class TrackerChecker implements TRTrackerScraperListener {
    * URL and torrent hash.
    */
   protected void removeHash(String trackerUrl, HashWrapper hash) {
-    // TODO: this doesn't handle multiple tracker torrents yet
 
     TrackerStatus ts = (TrackerStatus) trackers.get(trackerUrl);
     if (ts != null){

@@ -549,12 +549,7 @@ public class GlobalManagerImpl
     
     saveDownloads();
 
-    if (manager.getTrackerClient() != null) {
-
-      trackerScraper.remove(manager.getTrackerClient());
-
-    }
-    else if (manager.getTorrent() != null) {
+    if (manager.getTorrent() != null) {
 
       trackerScraper.remove(manager.getTorrent());
     }

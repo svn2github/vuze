@@ -47,11 +47,7 @@ TRTrackerScraper
 	public void
 	remove(
 		TOTorrent		torrent );
-		
-	public void
-	remove(
-		TRTrackerClient	tracker_client );
-		
+				
 	public void
 	setClientResolver(
 		TRTrackerScraperClientResolver	resolver );

@@ -129,13 +129,6 @@ TRTrackerScraperImpl
 		tracker_checker.removeHash( torrent );
 	}
 		
-	public void
-	remove(
-		TRTrackerClient	tracker_client )
-	{
-		tracker_checker.removeHash( tracker_client );
-	}
-		
 	protected void
 	scrapeReceived(
 		TRTrackerScraperResponse		response )
