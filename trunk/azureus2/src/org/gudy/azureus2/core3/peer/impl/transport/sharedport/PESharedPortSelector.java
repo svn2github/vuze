@@ -75,7 +75,7 @@ PESharedPortSelector
 		
 		List	sockets_to_handover = new ArrayList();
         
-      SelectorGuard selectorGuard = new SelectorGuard(50, 10);
+      SelectorGuard selectorGuard = new SelectorGuard(50, 100);
 		
 		while (true){
 			
