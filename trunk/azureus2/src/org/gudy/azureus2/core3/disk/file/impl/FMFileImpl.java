@@ -304,7 +304,7 @@ FMFileImpl
 		try{
 			fc.position(offset);
 			
-			while (fc.position() < (fc.size() - 1) && buffer.hasRemaining()){
+			while (fc.position() < fc.size() && buffer.hasRemaining()){
 				
 				buffer.read(fc);
 			}
