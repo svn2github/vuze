@@ -125,7 +125,7 @@ PESharedPortSelector
                 
             //make sure the selector is OK
             if (!selectorGuard.isSelectorOK(select_res)) {
-            	selector = SelectorGuard.repairSelector(selector);
+            	selector = selectorGuard.repairSelector(selector);
             }
 			 			
 					// make sure that any socket removed in the previous loop are now handed over

@@ -78,7 +78,7 @@ public class SelectorGuard {
   /**
    * Cleanup bad selector and return a fresh new one.
    */
-  public static Selector repairSelector( Selector bad_selector ) {
+  public Selector repairSelector( Selector bad_selector ) {
     Debug.out("Likely network disconnect/reconnect: Repairing 1 selector, " +bad_selector.keys().size()+ " keys");
     
     try {
