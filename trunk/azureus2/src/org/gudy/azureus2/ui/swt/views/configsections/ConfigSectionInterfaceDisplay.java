@@ -84,9 +84,8 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     BooleanParameter bpCustomTab = new BooleanParameter(cLook, "useCustomTab",
                                                         true, 
                                                         "ConfigView.section.style.useCustomTabs");
-    Control cFancyTab = (Control)new BooleanParameter(cLook, 
-                                                      "GUI_SWT_bFancyTab", true,
-                                                      "ConfigView.section.style.useFancyTabs").getControl();
+    Control cFancyTab = new BooleanParameter(cLook, "GUI_SWT_bFancyTab", true,
+                                                    "ConfigView.section.style.useFancyTabs").getControl();
 
     Control[] controls = { cFancyTab };
     bpCustomTab.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
@@ -234,7 +233,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate");
     int[] values = { 100 , 250 , 500 , 1000 , 2000 , 5000 };
     String[] labels = { "100 ms" , "250 ms" , "500 ms" , "1 s" , "2 s" , "5 s" };
-    new IntListParameter(cArea, "GUI Refresh", 250, labels, values);
+    new IntListParameter(cArea, "GUI Refresh", 1000, labels, values);
 
     
     label = new Label(cArea, SWT.NULL);
