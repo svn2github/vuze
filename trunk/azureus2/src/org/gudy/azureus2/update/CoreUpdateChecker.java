@@ -181,7 +181,6 @@ CoreUpdateChecker
 			boolean	latest_is_cvs	= Constants.isCVSVersion( latest_version );
 			String	latest_base		= Constants.getBaseVersion( latest_version );
 			
-			boolean	current_is_cvs	= Constants.isCVSVersion();
 			String	current_base	= Constants.getBaseVersion();
 				
 				// currently we upgrade from, for example
@@ -344,9 +343,12 @@ CoreUpdateChecker
 		
 		if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
 			
+			String	java_version = System.getProperty("java.version");
+			
 			url_str += "?id=" + id + 
 							"&version=" + Constants.AZUREUS_VERSION + 
-							"&os=" + URLEncoder.encode( Constants.OSName, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
+							"&os=" + URLEncoder.encode( Constants.OSName, Constants.BYTE_ENCODING).replaceAll("\\+", "%20") +
+							"&java=" + URLEncoder.encode( java_version, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 		}
 		
 		return( new URL( url_str ));
