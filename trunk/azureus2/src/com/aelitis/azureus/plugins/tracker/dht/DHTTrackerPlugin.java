@@ -737,7 +737,7 @@ DHTTrackerPlugin
 												public long
 												getTimeToWait()
 												{
-													return( retry );
+													return( retry/1000 );
 												}
 											});
 								}

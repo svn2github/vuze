@@ -147,7 +147,9 @@ TRTrackerDHTAnnouncerImpl
 	public int
 	getTimeUntilNextUpdate()
 	{
-		return( (int)last_response.getTimeToWait());
+		long elapsed = (SystemTime.getCurrentTime() - last_update_time)/1000;
+		
+		return( (int)(last_response.getTimeToWait()-elapsed));
 	}
 	
 	public int
