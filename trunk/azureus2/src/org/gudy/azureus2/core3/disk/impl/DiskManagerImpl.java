@@ -2156,25 +2156,31 @@ DiskManagerImpl
         if(fTest.isDirectory()) rPath = fTest.getParent();
       }
       
+      boolean moveOnlyInDefault = COConfigurationManager.getBooleanParameter("Move Only When In Default Save Dir", true);
+      if (moveOnlyInDefault) {
+        String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
+        if (!rPath.equals(defSaveDir)) {
+          LGLogger.log(LGLogger.INFORMATION, "Not moving-on-complete since data is not within default save dir");
+          return returnName;
+        }
+      }
+      
+      	// first of all check that no destination files already exist
+      
+      File[]	new_files 	= new File[files.length];
+      File[]	old_files	= new File[files.length];
+      
       for (int i=0; i < files.length; i++) {
         synchronized (files[i]) {
-          //get old file pointer
           
-          File oldFile = files[i].getFile();
+          File old_file = files[i].getFile();
+          
+          old_files[i]	= old_file;
           
           //get old file's parent path
-          fullPath = oldFile.getParent();
+          fullPath = old_file.getParent();
           
-          boolean moveOnlyInDefault = COConfigurationManager.getBooleanParameter("Move Only When In Default Save Dir", true);
-          if (moveOnlyInDefault) {
-            String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
-            if (!rPath.equals(defSaveDir)) {
-              LGLogger.log(LGLogger.INFORMATION, "Not moving-on-complete since data is not within default save dir");
-              return returnName;
-            }
-          }
-          
-          //compute the file's sub-path off from the default save path
+           //compute the file's sub-path off from the default save path
           subPath = fullPath.substring(fullPath.indexOf(rPath) + rPath.length());
     
           //create the destination dir
@@ -2183,28 +2189,73 @@ DiskManagerImpl
           destDir.mkdirs();
           
           //create the destination file pointer
-          File newFile = new File(destDir, oldFile.getName());
+          File newFile = new File(destDir, old_file.getName());
 
+          new_files[i]	= newFile;
+          
           if (newFile.exists()) {
-            String msg = "" + oldFile.getName() + " already exists in MoveTo destination dir";
+          	
+            String msg = "" + old_file.getName() + " already exists in MoveTo destination dir";
+            
             LGLogger.log(LGLogger.ERROR,msg);
-            LGLogger.logAlert( LGLogger.AT_ERROR, msg );
+            
+            LGLogger.logAlertUsingResource( 
+            		LGLogger.AT_ERROR, "DiskManager.alert.movefileexists", 
+            		new String[]{ old_file.getName() } );
             
             Debug.out(msg);
+            
             return returnName;
           }
+        }
+      }
+      
+      for (int i=0; i < files.length; i++){
+      	
+        synchronized (files[i]) {          
+ 
+          File old_file = files[i].getFile();
+
+          File new_file = new_files[i];
           
           try{
           	
-          	files[i].moveFile( newFile );
+          	files[i].moveFile( new_file );
            	
             files[i].setAccessMode(DiskManagerFileInfo.READ);
             
           }catch( FMFileManagerException e ){
           	
-            String msg = "Failed to move " + oldFile.getName() + " to destination dir";
+            String msg = "Failed to move " + old_file.getName() + " to destination dir";
+            
             LGLogger.log(LGLogger.ERROR,msg);
+            
+            LGLogger.logAlertUsingResource( 
+            		LGLogger.AT_ERROR, "DiskManager.alert.movefilefails", 
+            		new String[]{ old_file.getName(),
+            		e.getCause()==null?e.getMessage():e.getCause().getMessage()} );
+
             Debug.out(msg);
+            
+            	// try some recovery by moving any moved files back...
+            
+            for (int j=0;j<i;j++){
+            
+            	try{
+            		files[j].moveFile( old_files[j]);
+
+            		files[j].setAccessMode(DiskManagerFileInfo.READ);
+         		
+            	}catch( FMFileManagerException f ){
+              
+            		LGLogger.logAlertUsingResource( 
+                    		LGLogger.AT_ERROR, "DiskManager.alert.movefilerecoveryfails", 
+                    		new String[]{ files[j].toString(),
+                    		f.getCause()==null?f.getMessage():f.getCause().getMessage()} );
+           		
+            	}
+            }
+            
             return returnName;
           }
         }
