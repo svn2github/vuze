@@ -49,6 +49,8 @@ CHANGE: Updated/additional menu buttons [Gudy]
 CHANGE: Some speed optimizations with piece-picking [Nolar]
 CHANGE: Generated PeerID only uses chars that don't need to be escaped, saving bandwidth for tracker communications [Nolar]
 CHANGE: Can now identify BitComet, TurboBT, LibTorrent clients [Nolar]
+CHANGE: Support for SI byte units (KiB,MiB,GiB) and more well known, but incorrect KB/MB/GB via config Interface param [Parg]
+CHANGE: locale choice can force prompt via new config param on "File" tab [Parg]
 
 BUGFIX: 'Re-check pieces when done' now always ignores fast-resume data: Bug #825881 [Nolar]
 BUGFIX: Fix some decoding bugs in Chinese torrent files due to missing locale encodings in dialog box [Akilgard]
