@@ -360,6 +360,8 @@ DownloadImpl
     if (category == null)
       category = CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED);
 
+    if (category == null)
+      return null;
     return category.getName();
   }
     
