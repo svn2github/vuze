@@ -328,7 +328,7 @@ PEPeerControlImpl
       try {
         long timeStart = SystemTime.getCurrentTime();
 
-        checkTracker(); //check the tracker status, update peers
+        updateTrackerAnnounceInterval();
         
         doConnectionChecks();
 
@@ -914,7 +914,7 @@ PEPeerControlImpl
 
  
   private void 
-  checkTracker() 
+  updateTrackerAnnounceInterval() 
   {
   	if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL != 0 ){
   		
@@ -928,18 +928,23 @@ PEPeerControlImpl
     if (_downloadManager.getState() == DownloadManager.STATE_DOWNLOADING ||
         _downloadManager.getState() == DownloadManager.STATE_SEEDING ) {
       
-      int maxAllowed = PeerUtils.numNewConnectionsAllowed( _hash );
+      int num_wanted = PeerUtils.numNewConnectionsAllowed( _hash );
       
       boolean has_remote = _downloadManager.getHealthStatus() == DownloadManager.WEALTH_OK;
       if( has_remote ) {
         //is not firewalled, so can accept incoming connections,
         //which means no need to continually keep asking the tracker for peers
-        maxAllowed = (int)(maxAllowed / 1.5);
+        num_wanted = (int)(num_wanted / 1.5);
       }
       
-      if ( maxAllowed < 0 || maxAllowed > LIMIT ) {
-      	maxAllowed = LIMIT;
+      if ( num_wanted < 0 || num_wanted > LIMIT ) {
+        num_wanted = LIMIT;
       }
+      
+      //include number of pending connection establishments in calculation
+      int num_pending = peer_info_storage.getStoredCount();
+      num_wanted -= num_pending;
+      if( num_wanted < 0 )  num_wanted = 0;
 
       TRTrackerScraperResponse tsr = _downloadManager.getTrackerScrapeResponse();
 
@@ -953,16 +958,16 @@ PEPeerControlImpl
       
       //lower limit to swarm size if necessary
       int swarmSize = _finished ? swarmPeers : swarmPeers + swarmSeeds;  //if seeding, only use peer count
-      if (swarmSize > 0 && maxAllowed > swarmSize) {
-        maxAllowed = swarmSize;
+      if (swarmSize > 0 && num_wanted > swarmSize) {
+        num_wanted = swarmSize;
       }
       
       int currConnectionCount = PeerIdentityManager.getIdentityCount( _hash );
       if ( currConnectionCount == 0 ) {
         percentage = 0;  //no current connections, recheck in 1 min
       }
-      else if( maxAllowed >= 0 ) {
-        float currConnectionPercent = ((float)currConnectionCount) / (currConnectionCount + maxAllowed);
+      else if( num_wanted >= 0 ) {
+        float currConnectionPercent = ((float)currConnectionCount) / (currConnectionCount + num_wanted);
         percentage = (int)(currConnectionPercent * 100);
       }
       

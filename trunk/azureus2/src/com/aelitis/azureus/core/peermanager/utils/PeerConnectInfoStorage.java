@@ -88,6 +88,18 @@ public class PeerConnectInfoStorage {
   
   
   /**
+   * Get the number of infos currently stored.
+   * @return number in storage
+   */
+  public int getStoredCount() {
+    try {  peer_infos_mon.enter();
+      return peer_infos.size();
+    }
+    finally {  peer_infos_mon.exit();  }
+  }
+  
+  
+  /**
    * Holds peer connection info.
    */
   public static class PeerInfo {
