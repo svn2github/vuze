@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
@@ -152,7 +153,7 @@ public class ConfigSectionStats implements ConfigSectionSWT {
     Label lxslDetails = new Label(gStats, SWT.NULL);
     Messages.setLanguageText(lxslDetails, "ConfigView.section.stats.xslfiledetails"); //$NON-NLS-1$
     final String linkFAQ = "http://azureus.sourceforge.net/faq.php#20";
-    lxslDetails.setCursor(MainWindow.handCursor);
+    lxslDetails.setCursor(Cursors.handCursor);
     lxslDetails.setForeground(Colors.blue);
     lxslDetails.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {

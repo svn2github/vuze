@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.components.*;
@@ -314,7 +315,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     hash.setLayoutData(gridData);
     	// click on hash -> copy to clipboard
-    hash.setCursor(MainWindow.handCursor);
+    hash.setCursor(Cursors.handCursor);
     hash.setForeground(Colors.blue);
     label.addMouseListener(new MouseAdapter() {
     	public void mouseDoubleClick(MouseEvent arg0) {
@@ -355,7 +356,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
-    label.setCursor(MainWindow.handCursor);
+    label.setCursor(Cursors.handCursor);
     label.setForeground(Colors.blue);
     label.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
@@ -946,7 +947,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 				trackerUrlValue.setText( trackerURL);
 				if((trackerURL.startsWith("http://")||trackerURL.startsWith("https://")) && (trackerURL.indexOf("/announce") != -1)) {
 				  trackerUrlValue.setForeground(Colors.blue);
-				  trackerUrlValue.setCursor(MainWindow.handCursor);
+				  trackerUrlValue.setCursor(Cursors.handCursor);
 				  Messages.setLanguageText(trackerUrlValue, "GeneralView.label.trackerurlopen.tooltip", true);
 				} else {
 				  trackerUrlValue.setForeground(null);

@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 public class ConfigSectionTracker implements ConfigSectionSWT {
@@ -285,7 +286,7 @@ public class ConfigSectionTracker implements ConfigSectionSWT {
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.sslport.info");
     final String linkFAQ = "http://azureus.sourceforge.net/faq.php#19";
-    label.setCursor(MainWindow.handCursor);
+    label.setCursor(Cursors.handCursor);
     label.setForeground(Colors.blue);
     label.addMouseListener(new MouseAdapter() {
        public void mouseDoubleClick(MouseEvent arg0) {
