@@ -78,7 +78,7 @@ PESharedPortSelector
         				
 				int select_res = selector.select(1000);
 
-LGLogger.log(LGLogger.INFORMATION,"SELECTLOOP:: after select");
+LGLogger.log(LGLogger.INFORMATION,"SELECTLOOP:: after select, count = " + select_res);
 			 			   
 				for (int i=0;i<sockets_to_handover.size();i++){
 			  	
@@ -309,6 +309,8 @@ LGLogger.log(LGLogger.INFORMATION,"SELECTLOOP:: after select");
 			socketData	sd = new socketData( _socket );
       
 			outstanding_sockets.put( _socket, sd );
+      
+      LGLogger.log(LGLogger.INFORMATION,"ADDSOCKET:: starting registration");
       			
 			_socket.register(selector,SelectionKey.OP_READ);
       
