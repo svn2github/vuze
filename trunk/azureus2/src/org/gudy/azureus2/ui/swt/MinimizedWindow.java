@@ -223,14 +223,15 @@ public class MinimizedWindow {
       currentLoc.y = 0;
     MinimizedWindow mw = this;
     int height = 0;
-    while(mw != null) {
+    while (mw != null) {
       Shell s = mw.getShell();
-      if(s.isDisposed())
+      if (s.isDisposed())
         mw = null;
-      else
-      {
+      else {
         height += s.getBounds().height - 1;
         mw = mw.getStucked();
+        if (mw == this)
+          mw = null;
       }
     }
     if (currentLoc.y > screen.height - height - 10)
@@ -249,7 +250,7 @@ public class MinimizedWindow {
             currentLoc.y = downloadBar.getShell().getLocation().y + downloadBar.getShell().getBounds().height - 1;
           }
         }
-        //Un stucking from someone
+        //Un-stucking from someone
         if (downloadBar != this && downloadBar.getStucked() == this) {
           int x = downloadBar.getShell().getLocation().x;
           int y = downloadBar.getShell().getLocation().y + downloadBar.getShell().getBounds().height;
@@ -264,7 +265,7 @@ public class MinimizedWindow {
     while (mwCurrent != null) {
       currentLoc.y += mwCurrent.getShell().getBounds().height - 1;
       MinimizedWindow mwChild = mwCurrent.getStucked();
-      if (mwChild != null) {
+      if (mwChild != null && mwChild != this) {
         Shell s = mwChild.getShell();
         if (s.isDisposed()) {
           mwCurrent.setStucked(null);
@@ -273,9 +274,11 @@ public class MinimizedWindow {
         else {
           mwCurrent = mwChild;
           mwCurrent.getShell().setLocation(currentLoc);
-          
+
         }
-      } else mwCurrent = null;
+      }
+      else
+        mwCurrent = null;
     }
   }
 
