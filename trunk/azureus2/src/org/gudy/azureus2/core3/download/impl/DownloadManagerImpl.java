@@ -513,11 +513,6 @@ DownloadManagerImpl
 			 		
 			 		throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + save_dir_file.toString()));
 			 	}
-			 	
-			 	if ( !save_dir_file.mkdirs()){
-			 	
-			 		throw( new Exception( "Directory '" + torrent_save_dir + "' creation fails" ));
-			 	}
 			 }	
 			 
 			 	// if this is a newly introduced torrent trash the tracker cache. We do this to
@@ -959,7 +954,24 @@ DownloadManagerImpl
       } else if (state == STATE_QUEUED) {
         if (onlySeeding && !filesExist())
           return;
+      }else if ( state == STATE_ERROR ){
+      
+      		// the process of attempting to start the torrent may have left some empty
+      		// directories created, some users take exception to this.
+      		// the most straight forward way of remedying this is to delete such empty
+      		// folders here
+      	
+      	if ( torrent != null && !torrent.isSimpleTorrent()){
+
+      		File	save_dir_file	= new File( torrent_save_dir, torrent_save_file );
+
+	      	if ( save_dir_file.exists() && save_dir_file.isDirectory()){
+	      		
+	      		FileUtil.recursiveEmptyDirDelete( save_dir_file );
+	      	}
+      	}
       }
+      
       informStateChanged( state );
     }
   }
