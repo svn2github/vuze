@@ -360,6 +360,20 @@ SSDPImpl
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace( e );
+				
+					// get out of here - on some systems we seem to get a screaming loop here
+					// complaining about "socket operation on non-socket":
+					/*
+					[2:11:31]  DEBUG::Tue Dec 07 02:11:31 EST 2004
+					[2:11:31]    java.net.SocketException: Socket operation on nonsocket: timeout in datagram socket peek
+					[2:11:31]  	at java.net.PlainDatagramSocketImpl.peekData(Native Method)
+					[2:11:31]  	at java.net.DatagramSocket.receive(Unknown Source)
+					[2:11:31]  	at com.aelitis.net.upnp.impl.ssdp.SSDPImpl.handleSocket(SSDPImpl.java:356)
+					[2:11:31]  	at com.aelitis.net.upnp.impl.ssdp.SSDPImpl$2.runSupport(SSDPImpl.java:196)
+					[2:11:31]  	at org.gudy.azureus2.core3.util.AEThread.run(AEThread.java:45)
+					*/
+				
+				break;
 			}
 		}
 	}
