@@ -80,17 +80,28 @@ UpdateInstallerImpl
 		}
 	}
 	
+  public void
+  addResource(
+    String      resource_name,
+    InputStream   is )
+  
+    throws UpdateException
+  {
+  addResource(resource_name,is,true);
+  }
+  
 	public void
 	addResource(
 		String			resource_name,
-		InputStream		is )
+		InputStream		is,
+    boolean closeInputStream)
 	
 		throws UpdateException
 	{
 		try{
 			File	target_file = new File(install_dir, resource_name );
 		
-			FileUtil.copyFile( is, new FileOutputStream( target_file ));
+			FileUtil.copyFile( is, new FileOutputStream( target_file ),closeInputStream);
 			
 		}catch( Throwable e ){
 			

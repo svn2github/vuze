@@ -39,6 +39,9 @@ public class
 ResourceDownloaderImpl
 	extends ResourceDownloaderBaseImpl
 {
+  
+  private static final int BUFFER_SIZE = 32768;
+  
 	protected URL		original_url;
 	
 	protected InputStream 	input_stream;
@@ -290,7 +293,7 @@ ResourceDownloaderImpl
 				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 
 				try{
-					byte[] buf = new byte[8192];
+					byte[] buf = new byte[BUFFER_SIZE];
 					
 					int	total_read	= 0;
 					
