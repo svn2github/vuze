@@ -50,12 +50,16 @@ AuthenticatorWindow
 	public
 	AuthenticatorWindow()
 	{
+		// System.out.println( "AuthenticatorWindow");
+		
 		Authenticator.setDefault(
 			new Authenticator()
 			{
 				protected synchronized PasswordAuthentication
 				getPasswordAuthentication()
 				{
+					// System.out.println( "getPasswordAuthentication");
+					
 					String	realm = getRequestingPrompt();
 					
 					String	tracker = getRequestingProtocol() + "://" + 

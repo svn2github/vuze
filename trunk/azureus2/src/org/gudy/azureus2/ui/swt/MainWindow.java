@@ -361,6 +361,8 @@ public class MainWindow implements GlobalManagerListener {
       return;
     }
     
+	COConfigurationManager.checkConfiguration();
+
     auth_window = new AuthenticatorWindow();
     
     useCustomTab = COConfigurationManager.getBooleanParameter("useCustomTab");
