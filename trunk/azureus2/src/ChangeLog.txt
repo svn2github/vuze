@@ -8,6 +8,7 @@ CHANGE: Client identification now includes Experimental [Nolar]
 BUGFIX: Torrent hosting - resetting of tracker url to original after hosting cancelled [Parg]
 BUGFIX: Allow for torrent files with '.tor' extention [Nolar]
 
+FEATURE: Full scrape of tracker now supported as SN requires this for hosting [Parg]
 
 13.11.03 | Azureus 2.0.4.0
 
