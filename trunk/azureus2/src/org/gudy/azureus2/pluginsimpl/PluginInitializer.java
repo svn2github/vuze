@@ -40,8 +40,8 @@ import org.gudy.azureus2.ui.swt.SplashWindow;
 import org.gudy.azureus2.plugins.*;
 
 import org.gudy.azureus2.core3.sharing.hoster.ShareHosterPlugin;
-import org.gudy.azureus2.ui.tracker.TrackerWebDefaultTrackerPlugin;
-import org.gudy.azureus2.ui.tracker.TrackerWebDefaultStaticPlugin;
+//import org.gudy.azureus2.ui.tracker.TrackerWebDefaultStaticPlugin;
+//import org.gudy.azureus2.ui.tracker.TrackerWebDefaultTrackerPlugin;
 import org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin;
 
 /**
@@ -56,8 +56,8 @@ PluginInitializer
   private Class[]	builtin_plugins = 
     new Class[]{ org.gudy.azureus2.core3.global.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.class,
                  ShareHosterPlugin.class,
-                 TrackerWebDefaultStaticPlugin.class,
-                 TrackerWebDefaultTrackerPlugin.class,
+             //    TrackerWebDefaultStaticPlugin.class,
+             //    TrackerWebDefaultTrackerPlugin.class,
                  UpdateLanguagePlugin.class,
                 };
   
