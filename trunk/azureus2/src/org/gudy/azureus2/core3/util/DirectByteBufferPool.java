@@ -8,8 +8,6 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.math.*;
 
-import org.gudy.azureus2.core3.util.*;
-
 
 /**
  * This class handles allocation of direct ByteBuffers.
