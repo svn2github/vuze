@@ -42,16 +42,18 @@ public class
 UPnPRootDeviceImpl 
 	implements  UPnPRootDevice
 {
-	protected UPnPImpl			upnp;
-	protected NetworkInterface	network_interface;
-	protected InetAddress		local_address;
+	private UPnPImpl			upnp;
+	private NetworkInterface	network_interface;
+	private InetAddress			local_address;
 	
-	protected URL			location;
-	protected URL			url_base_for_relative_urls;
+	private URL			location;
+	private URL			url_base_for_relative_urls;
 	
-	protected UPnPDevice	root_device;
+	private UPnPDevice	root_device;
 	
-	protected List			listeners	= new ArrayList();
+	private boolean		destroyed;
+	
+	private List		listeners	= new ArrayList();
 	
 	public
 	UPnPRootDeviceImpl(
@@ -183,10 +185,18 @@ UPnPRootDeviceImpl
 	destroy(
 		boolean		replaced )
 	{
+		destroyed	= true;
+		
 		for (int i=0;i<listeners.size();i++){
 			
 			((UPnPRootDeviceListener)listeners.get(i)).lost( this, replaced);
 		}
+	}
+	
+	public boolean
+	isDestroyed()
+	{
+		return( destroyed );
 	}
 	
 	public void

@@ -46,6 +46,9 @@ UPnPRootDevice
 	public UPnPDevice
 	getDevice();
 	
+	public boolean
+	isDestroyed();
+	
 	public void
 	addListener(
 		UPnPRootDeviceListener	l );

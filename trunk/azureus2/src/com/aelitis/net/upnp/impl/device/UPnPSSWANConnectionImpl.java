@@ -24,6 +24,10 @@ package com.aelitis.net.upnp.impl.device;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
+
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.services.UPnPWANConnectionPortMapping;
@@ -36,19 +40,151 @@ import com.aelitis.net.upnp.services.UPnPWANConnectionPortMapping;
 public class 
 UPnPSSWANConnectionImpl 
 {
-	protected UPnPServiceImpl		service;
+	private static AEMonitor	class_mon 	= new AEMonitor( "UPnPSSWANConnection" );
+	private static List			services	= new ArrayList();
+	
+	static{
+		AEThread	t = 
+			new AEThread( "UPnPSSWANConnection:mappingChecker" )
+			{
+				public void
+				runSupport()
+				{
+					while( true ){
+						
+						try{
+							Thread.sleep( 5*60*1000 );
+							
+							List	to_check = new ArrayList();
+							
+							try{
+								class_mon.enter();
+								
+								Iterator	it = services.iterator();
+								
+								while( it.hasNext()){
+									
+									UPnPSSWANConnectionImpl	s = (UPnPSSWANConnectionImpl)it.next();
+								
+									if ( s.getGenericService().getDevice().getRootDevice().isDestroyed()){
+										
+										it.remove();
+										
+									}else{
+										
+										to_check.add( s );
+									}
+								}
+																
+							}finally{
+								
+								class_mon.exit();
+							}
+							
+							for (int i=0;i<to_check.size();i++){
+		
+								try{
+									((UPnPSSWANConnectionImpl)to_check.get(i)).checkMappings();
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+							}
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				}
+			};
+		
+		t.setDaemon( true );
+		
+		t.start();
+	}
+	
+	private UPnPServiceImpl		service;
+	private List				mappings	= new ArrayList();
 	
 	protected
 	UPnPSSWANConnectionImpl(
 		UPnPServiceImpl		_service )
 	{
 		service	= _service;
+		
+		try{
+			class_mon.enter();
+
+			services.add( this );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public UPnPService
 	getGenericService()
 	{
 		return( service );
+	}
+	
+	protected void
+	checkMappings()
+	
+		throws UPnPException
+	{
+		List	mappings_copy;
+		
+		try{
+			class_mon.enter();
+
+			mappings_copy = new ArrayList( mappings );
+		
+		}finally{
+			
+			class_mon.exit();
+		}
+		
+		UPnPWANConnectionPortMapping[]	current = getPortMappings();
+
+		Iterator	it = mappings_copy.iterator();
+				
+		while( it.hasNext()){
+		
+			portMapping	mapping = (portMapping)it.next();
+			
+			for (int j=0;j<current.length;j++){
+				
+				UPnPWANConnectionPortMapping	c = current[j];
+				
+				if ( 	c.getExternalPort() == mapping.getExternalPort() &&
+						c.isTCP() 			== mapping.isTCP()){
+							
+					it.remove();
+					
+					break;
+				}
+			}
+		}
+		
+		it = mappings_copy.iterator();
+		
+		while( it.hasNext()){
+			
+			portMapping	mapping = (portMapping)it.next();
+		
+			try{
+				service.getDevice().getRootDevice().getUPnP().log( "Re-establishing mapping " + mapping.getString());
+
+				addPortMapping(  mapping.isTCP(), mapping.getExternalPort(), mapping.getDescription());
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	public void
@@ -79,6 +215,28 @@ UPnPSSWANConnectionImpl
 			inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)
 			
 			inv.invoke();
+			
+			try{
+				class_mon.enter();
+			
+				Iterator	it = mappings.iterator();
+				
+				while( it.hasNext()){
+					
+					portMapping	m = (portMapping)it.next();
+					
+					if ( m.getExternalPort() == port && m.isTCP() == tcp ){
+						
+						it.remove();
+					}
+				}
+				
+				mappings.add( new portMapping( port, tcp, "", description ));
+				
+			}finally{
+				
+				class_mon.exit();
+			}
 		}
 	}
 	
@@ -104,6 +262,28 @@ UPnPSSWANConnectionImpl
 			inv.addArgument( "NewExternalPort", 			"" + port );
 			
 			inv.invoke();
+			
+			try{
+				class_mon.enter();
+
+				Iterator	it = mappings.iterator();
+				
+				while( it.hasNext()){
+					
+					portMapping	mapping = (portMapping)it.next();
+					
+					if ( 	mapping.getExternalPort() == port && 
+							mapping.isTCP() == tcp ){
+						
+						it.remove();
+						
+						break;
+					}
+				}
+			}finally{
+				
+				class_mon.exit();
+			}
 		}
 	}
 	
@@ -253,6 +433,12 @@ UPnPSSWANConnectionImpl
 		getDescription()
 		{
 			return( description );
+		}
+		
+		protected String
+		getString()
+		{
+			return( getDescription() + " [" + getExternalPort() + ":" + (isTCP()?"TCP":"UDP") + "]");
 		}
 	}
 }
