@@ -127,6 +127,9 @@ TRTrackerClientClassicImpl
 
 	private static final boolean	socks_peer_inform;
 
+	private boolean	destroyed;
+	
+	
 	static{
 	 	socks_peer_inform	= 	
 	  		COConfigurationManager.getBooleanParameter("Proxy.Data.Enable", false)&&
@@ -330,8 +333,11 @@ TRTrackerClientClassicImpl
 									current_timer_event.cancel();
 								}
 								
-								current_timer_event = 
-									tracker_timer.addEvent( target_time, this );
+								if ( !destroyed ){
+									
+									current_timer_event = 
+										tracker_timer.addEvent( target_time, this );
+								}
 							}
 						}finally{
 							
@@ -468,11 +474,14 @@ TRTrackerClientClassicImpl
 						
 						current_timer_event.cancel();
 						
-						current_timer_event = 
-							tracker_timer.addEvent( 
-								start,
-								target_time,
-								timer_event_action );					
+						if ( !destroyed ){ 
+							
+							current_timer_event = 
+								tracker_timer.addEvent( 
+									start,
+									target_time,
+									timer_event_action );	
+						}
 					}			
 				}
 			}finally{
@@ -552,12 +561,15 @@ TRTrackerClientClassicImpl
 				current_timer_event.cancel();
 			}
       
-      rd_last_override = SystemTime.getCurrentTime();  //"pause" overrides for 10s
+			rd_last_override = SystemTime.getCurrentTime();  //"pause" overrides for 10s
       
-			current_timer_event = 
-				tracker_timer.addEvent( 
-					SystemTime.getCurrentTime(),
-					timer_event_action );
+			if ( !destroyed ){
+				
+				current_timer_event = 
+					tracker_timer.addEvent( 
+						SystemTime.getCurrentTime(),
+						timer_event_action );
+			}
 		}
     finally{
 			this_mon.exit();
@@ -766,7 +778,9 @@ TRTrackerClientClassicImpl
   update(String evt) 
   {
   	TRTrackerResponseImpl	last_failure_resp = null;
-		
+	
+  outer:
+  	
 	for (int i = 0 ; i < trackerUrlLists.size() ; i++) {
 	  	
 		List urls = (List) trackerUrlLists.get(i);
@@ -800,9 +814,10 @@ TRTrackerClientClassicImpl
 	            	//and return the result
 	            		
 	            return( resp );
+	            
 			 }else{
-			  				  		
-			 	last_failure_resp = resp;
+			  			  	
+			 	last_failure_resp = resp;	
 			 }
 		  }catch( MalformedURLException e ){
 		  	
@@ -824,6 +839,11 @@ TRTrackerClientClassicImpl
 						getErrorRetryInterval(), 
 						e.getMessage());
 		  }
+		
+	  	  if ( destroyed ){
+	  		
+	  		break outer;
+	  	  }
 		}
 	  } 
 	   
@@ -1977,6 +1997,8 @@ TRTrackerClientClassicImpl
 	public void
 	destroy()
 	{       
+		destroyed	= true;
+		
 		peer_server.removeListener( this );
     
 		COConfigurationManager.removeParameterListener("TCP.Announce.Port",this);
@@ -1988,7 +2010,14 @@ TRTrackerClientClassicImpl
 			
 			if ( current_timer_event != null ){
 				
-				current_timer_event.cancel();
+					// cancel any events that are a way off being triggered. note that
+					// we don't want to cancel all events as the "stopped" event that
+					// is scheduled on stop of a download may still be lurking
+				
+				if ( current_timer_event.getWhen() - SystemTime.getCurrentTime() > 10*1000 ){
+					
+					current_timer_event.cancel();
+				}
 			}
 		}finally{
 			

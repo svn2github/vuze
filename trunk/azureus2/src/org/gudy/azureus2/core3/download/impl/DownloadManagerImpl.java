@@ -801,22 +801,7 @@ DownloadManagerImpl
 					int	stateAfterStopping = _stateAfterStopping;
 					
 					try{
-			  	
-							// kill tracker client first so it doesn't report to peer manager
-							// after its been deleted 
-							
-						if ( tracker_client != null ){
-						
-							tracker_client.removeListener( tracker_client_listener );
-					
-							download_manager_state.setTrackerResponseCache(
-									tracker_client.getTrackerResponseCache());
-							
-							tracker_client.destroy();
-							
-							tracker_client = null;
-						}
-						
+			  								
 						if (peerManager != null){
 						  stats.setSavedDownloadedUploaded( 
 								  stats.getSavedDownloaded() + peerManager.getStats().getTotalReceived(),
@@ -845,6 +830,21 @@ DownloadManagerImpl
 						  server	  = null;	// clear down ref
 						}      
 						
+							// kill the tracker client after the peer manager so that the
+							// peer manager's "stopped" event has a chance to get through
+						
+						if ( tracker_client != null ){
+							
+							tracker_client.removeListener( tracker_client_listener );
+						
+							download_manager_state.setTrackerResponseCache(
+										tracker_client.getTrackerResponseCache());
+								
+							tracker_client.destroy();
+								
+							tracker_client = null;
+						}							
+
 						if (diskManager != null){
 							stats.setCompleted(stats.getCompleted());
 							stats.setDownloadCompleted(stats.getDownloadCompleted(true));

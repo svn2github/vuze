@@ -389,24 +389,21 @@ PEPeerControlImpl
 
   
   
-  public void stopAll() {
+  public void 
+  stopAll() 
+  {
+  		// send stopped event
+  	
+    _tracker.stop();
     
-  	//Asynchronous cleaner
-    Thread t = new AEThread("Cleaner - Tracker Ender") {
-      public void runSupport() {
-          //1. Send disconnect to Tracker
-        _tracker.stop();
-      }
-    };
-    t.setDaemon(true);
-    t.start();
-
+    	//  Stop the server
     
-    //  Stop the server
     _server.stopServer();
+    
     _server.clearServerAdapter();
     
-    // Close all clients
+    	// Close all clients
+    
     try{
     	peer_transports_mon.enter();
       
@@ -476,7 +473,12 @@ PEPeerControlImpl
 	processTrackerResponse(
 		TRTrackerResponse	response )
 	{
-		analyseTrackerResponse( response );
+			// only process new peers if we're still running
+		
+		if ( _bContinue ){
+			
+			analyseTrackerResponse( response );
+		}
 	}
 
 	private void
