@@ -576,11 +576,11 @@ public class GeneralView extends AbstractIView {
     updateOverall();
     setTime(manager.getStats().getElapsedTime(), DisplayFormatters.formatETA(manager.getStats().getETA()));
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
-    String seeds = "" + manager.getNbSeeds();
-    String peers = "" + manager.getNbPeers();
+    String seeds = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
+    String peers = manager.getNbPeers() +" "+ MessageText.getString("GeneralView.label.connected");
     if(hd != null && hd.isValid()) {
-      seeds += " (" + hd.getSeeds() + ")";
-      peers += " (" + hd.getPeers() + ")";
+      seeds += " (" + hd.getSeeds() +" "+ MessageText.getString("GeneralView.label.in_swarm") + ")";
+      peers += " (" + hd.getPeers() +" "+ MessageText.getString("GeneralView.label.in_swarm") + ")";
     } else {
       //seeds += " (?)";
       //peers += " (?)";
