@@ -360,6 +360,14 @@ PEPeerTransportProtocol
   this.id = otherPeerId;
   
   
+  
+  //make sure we are not connected to ourselves
+  if ( Arrays.equals( manager.getPeerId(), otherPeerId )) {
+    closeAll("peerID matches myself", false, false);
+    return;
+  }
+  
+  
   //make sure we haven't reached our connection limit
   int maxAllowed = PeerUtils.numNewConnectionsAllowed( otherHash );
   if ( maxAllowed == 0 ) {
