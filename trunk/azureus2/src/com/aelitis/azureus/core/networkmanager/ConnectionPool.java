@@ -219,7 +219,7 @@ public class ConnectionPool {
    * @param inform_parent tell the parent pool of the change
    */
   protected void setWritePercentOfMax( float new_percentage, boolean inform_parent ) {
-    System.out.println("old=" + write_percent_of_max + ", new=" + new_percentage);
+    //System.out.println("old=" + write_percent_of_max + ", new=" + new_percentage);
     float percent_change = new_percentage - write_percent_of_max;
     if( parent_pool == null ) {
       write_percent_of_max = 1.0F;  //make sure the root pool is always 100%
