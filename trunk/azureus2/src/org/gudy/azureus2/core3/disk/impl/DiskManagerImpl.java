@@ -408,8 +408,7 @@ DiskManagerImpl
 					resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
 					resumeDirectory.put("valid", new Long(0));
 					saveTorrent();
-				} catch (Exception ignore) {
-				}
+				} catch (Exception ignore) { /* ignore */ }
 			}
 		}
 
@@ -716,9 +715,10 @@ DiskManagerImpl
 					//test: throws Exception if filename is not supported by os
 					f.getCanonicalPath();
 					//create the new file
-					raf = new RandomAccessFile(f, "rw");
+					raf = new RandomAccessFile(f, "rwd");
 					//if we don't want incremental file creation, pre-allocate file
 					if (!incremental) raf.setLength(length);
+					
 					/*
 					//if we want to fill file with zeros - formerly "Allocate new files"
 					if (preZero) {
@@ -744,7 +744,7 @@ DiskManagerImpl
 			//the file exists
 			} else {               
 				try {
-					raf = new RandomAccessFile(f, "rw");
+					raf = new RandomAccessFile(f, "rwd");
 					newFiles = false;
 				} catch (FileNotFoundException e) {
 					this.state = FAULTY;
@@ -1000,7 +1000,7 @@ DiskManagerImpl
 
 		ByteBuffer buffer = ByteBufferPool.getInstance().getFreeBuffer(length+13);
 
-		if (buffer == null) { // Fix for bug #804874 - why no free buffers?
+		if (buffer == null) { // Fix for bug #804874
 			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
 			return buffer;
 		}
@@ -1281,34 +1281,6 @@ DiskManagerImpl
 		return fileName;
 	}
 
-	/*public void changeToReadOnly() {
-	  for (int i = 0; i < files.length; i++) {
-		synchronized (files[i]) {
-		  try {
-			RandomAccessFile oldRaf = files[i].getRaf();
-			oldRaf.close();
-			files[i].setRaf(new RandomAccessFile(files[i].getFile(), "r"));
-			files[i].setAccessmode(FileInfo.READ);
-			//Now changes all pieces ...
-			for (int j = 0; j < nbPieces; j++) {
-			  //Get the piece list for this piece
-			  List pieceList = pieceMap[j];
-			  //for each piece
-			  for (int k = 0; k < pieceList.size(); k++) {
-				//get the piece and the file 
-				PieceMapEntry tempPiece = (PieceMapEntry) pieceList.get(k);
-				RandomAccessFile raf = tempPiece.getFile().getRaf();
-				if (raf == oldRaf)
-				  tempPiece.setFile(files[i]);
-			  }
-			}
-		  }
-		  catch (Exception e) {
-			e.printStackTrace();
-		  }
-		}
-	  }
-	}*/
 
 	public void setPeerManager(PEPeerManager manager) {
 		this.manager = manager;
@@ -1348,7 +1320,7 @@ DiskManagerImpl
 					if (done == files[i].getLength())
 						try {
 							synchronized (files[i]) {
-								RandomAccessFile newRaf = new RandomAccessFile(files[i].getFile(), "r");
+							  RandomAccessFile newRaf = new RandomAccessFile(files[i].getFile(), "r");
 								files[i].setRaf(newRaf);
 								raf.close();
 								files[i].setAccessmode(DiskManagerFileInfoImpl.READ);
