@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.control.impl;
 
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
@@ -118,6 +119,6 @@ DHTControlValueImpl
 	{
 		long	now = SystemTime.getCurrentTime();
 		
-		return( new String(value) + "{ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+"}" );
+		return( DHTLog.getString( value ) + " - " + new String(value) + "{ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+"}" );
 	}
 }

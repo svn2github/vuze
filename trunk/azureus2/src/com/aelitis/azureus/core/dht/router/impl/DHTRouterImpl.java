@@ -751,7 +751,7 @@ DHTRouterImpl
 		
 		for (int i=0;i<ids.size();i++){
 			
-			requestLookup((byte[])ids.get(i));
+			requestLookup((byte[])ids.get(i) );
 		}
 	}
 	
@@ -828,7 +828,7 @@ DHTRouterImpl
 	
 	protected void
 	requestLookup(
-		byte[]	id )
+		byte[]		id )
 	{
 		DHTLog.log( "DHTRouter: requestLookup:" + DHTLog.getString( id ));
 		

@@ -31,6 +31,8 @@ import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerService;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerServiceListener;
+import org.gudy.azureus2.core3.ipfilter.IpFilter;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
@@ -78,9 +80,24 @@ DHTTransportUDPImpl
 	
 	private List listeners	= new ArrayList();
 	
+	private IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
+
 	
 	private DHTTransportUDPStatsImpl	stats;
 
+	private static final int CONTACT_HISTORY_MAX = 100;
+	
+	private Map	contact_history = 
+		new LinkedHashMap(CONTACT_HISTORY_MAX,0.75f,true)
+		{
+		   protected boolean 
+		   removeEldestEntry(
+		   		Map.Entry eldest) 
+		   {
+		   	return size() > CONTACT_HISTORY_MAX;
+		   }
+		};
+		
 		// TODO: secure enough?
 	
 	private	Random		random = new Random( SystemTime.getCurrentTime());
@@ -155,6 +172,20 @@ DHTTransportUDPImpl
 		}
 	}
 	
+	public void
+	testExternalAddressChange()
+	{
+		try{
+			DHTTransportUDPContactImpl c = (DHTTransportUDPContactImpl)contact_history.values().iterator().next();
+			
+			externalAddressChange( c, new InetSocketAddress( "192.168.0.7", 6881 ));
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
 	protected String
 	getExternalAddress(
 		boolean				force,
@@ -166,32 +197,95 @@ DHTTransportUDPImpl
 		
 		synchronized( DHTTransportUDPImpl.class ){
 			
-	
 			if ( force || external_address == null ){
 				
-				external_address = null;
-				
-				if ( TEST_EXTERNAL_IP ){
-					
-					external_address	= "192.168.0.2";
-					
-					return( external_address );
-				}
+				String new_external_address = null;
 				
 				try{
-						// First attempt is via other contacts we know about. Select three
 					
-					
-					
-					String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress();
-					
-					if ( vc_ip != null && vc_ip.length() > 0 ){
+					if ( TEST_EXTERNAL_IP ){
 						
-						log.log( "External IP address obtained from version-check: " + vc_ip );
+						new_external_address	= "192.168.0.2";
 						
-						external_address	= vc_ip;
+					}
+										
+					if ( new_external_address == null ){
+
+							// First attempt is via other contacts we know about. Select three
 						
-					}else{
+						List	contacts;
+						
+						synchronized( contact_history ){
+							
+							contacts = new ArrayList( contact_history.values());
+						}
+						
+							// randomly select up to 10 entries to ping until we 
+							// get three replies
+						
+						String	returned_address 	= null;
+						int		returned_matches	= 0;
+						
+						int		search_lim = Math.min(10, contacts.size());
+						
+						log.log( "    : contacts to search = " + search_lim );
+						
+						for (int i=0;i<search_lim;i++){
+							
+							DHTTransportUDPContactImpl	contact = (DHTTransportUDPContactImpl)contacts.remove((int)(contacts.size()*Math.random()));
+														
+							InetSocketAddress a = askContactForExternalAddress( contact );
+							
+							if ( a != null && a.getAddress() != null && a.getPort() == port ){
+								
+								String	ip = a.getAddress().getHostAddress();
+								
+								if ( returned_address == null ){
+									
+									returned_address = ip;
+									
+									log.log( "    : contact " + contact.getString() + " reported external address as '" + ip + "'" );
+									
+									returned_matches++;
+									
+								}else if ( returned_address.equals( ip )){
+									
+									returned_matches++;
+									
+									log.log( "    : contact " + contact.getString() + " also reported external address as '" + ip + "'" );
+									
+									if ( returned_matches == 3 ){
+										
+										new_external_address	= returned_address;
+										
+										log.log( "External IP address obtained from contacts: "  + returned_address );
+										
+										break;
+									}
+								}else{
+									
+										// mismatch - give up
+									
+									break;
+								}
+							}
+						}
+
+					}
+					
+					if ( new_external_address == null ){
+				
+						String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress();
+						
+						if ( vc_ip != null && vc_ip.length() > 0 ){
+							
+							log.log( "External IP address obtained from version-check: " + vc_ip );
+							
+							new_external_address	= vc_ip;
+						}
+					}
+					
+					if ( new_external_address == null ){
 						
 						ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
 						
@@ -255,7 +349,7 @@ DHTTransportUDPImpl
 						
 						if ( ip[0] != null ){
 							
-							external_address	= ip[0];
+							new_external_address	= ip[0];
 						}
 					}
 					
@@ -263,13 +357,15 @@ DHTTransportUDPImpl
 					
 					Debug.printStackTrace( e );
 				}
+			
+				if ( new_external_address == null ){
 				
-				if ( external_address == null ){
-					
-					external_address =	default_address;
-					
-					log.log( "External IP address defaulted:  " + default_address );
+					new_external_address =	default_address;
+				
+					log.log( "External IP address defaulted:  " + new_external_address );
 				}
+				
+				external_address = new_external_address;
 			}
 			
 			return( external_address );
@@ -372,7 +468,10 @@ DHTTransportUDPImpl
 	contactAlive(
 		DHTTransportUDPContactImpl	contact )
 	{
-		
+		synchronized( contact_history ){
+			
+			contact_history.put( contact.getAddress(), contact );
+		}
 	}
 	
 	protected int
@@ -448,6 +547,18 @@ DHTTransportUDPImpl
 	}
 	
 	protected void
+	checkAddress(
+		DHTTransportUDPContactImpl		contact )
+	
+		throws PRUDPPacketHandlerException
+	{
+		if ( ip_filter.isInRange( contact.getAddress().getAddress().getHostAddress(), "DHT" )){
+			
+			throw( new PRUDPPacketHandlerException( "IPFilter check fails" ));
+		}
+	}
+	
+	protected void
 	sendPing(
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler )
@@ -478,6 +589,8 @@ DHTTransportUDPImpl
 			new DHTUDPPacketRequestPing( connection_id, local_contact );
 			
 		try{
+			checkAddress( contact );
+			
 			packet_handler.sendAndReceive(
 				request,
 				contact.getAddress(),
@@ -554,7 +667,87 @@ DHTTransportUDPImpl
 			handler.failed( contact );
 		}
 	}
+	
+		// PING for deducing external IP address
+	
+	protected InetSocketAddress
+	askContactForExternalAddress(
+		DHTTransportUDPContactImpl	contact )
+	{
+		stats.pingSent();
+
+		final long	connection_id = getConnectionID();
+	
+		final DHTUDPPacketRequestPing	request = 
+			new DHTUDPPacketRequestPing( connection_id, local_contact );
 		
+		try{
+			checkAddress( contact );
+		
+			final AESemaphore	sem = new AESemaphore( "DHTTransUDP:extping" );
+
+			final InetSocketAddress[]	result = new InetSocketAddress[1];
+			
+			packet_handler.sendAndReceive(
+				request,
+				contact.getAddress(),
+				new PRUDPPacketReceiver()
+				{
+					public void
+					packetReceived(
+						PRUDPPacket			_packet,
+						InetSocketAddress	from_address )
+					{
+						try{
+							
+							if ( _packet instanceof DHTUDPPacketReplyPing ){
+								
+								// ping was OK so current address is OK
+								
+								result[0] = local_contact.getAddress();
+								
+							}else if ( _packet instanceof DHTUDPPacketReplyError ){
+								
+								DHTUDPPacketReplyError	packet = (DHTUDPPacketReplyError)_packet;
+								
+								if ( packet.getErrorType() == DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG ){
+									
+									result[0] = packet.getOriginatingAddress();
+								}
+							}
+						}finally{
+							
+							sem.release();
+						}
+					}
+					
+					public void
+					error(
+						PRUDPPacketHandlerException	e )
+					{
+						try{
+							stats.pingFailed();
+							
+						}finally{
+						
+							sem.release();
+						}
+					}
+				},
+				request_timeout );
+			
+			sem.reserve( request_timeout );
+			
+			return( result[0] );
+			
+		}catch( Throwable e ){
+			
+			stats.pingFailed();
+
+			return( null );
+		}
+	}
+	
 		// STORE
 	
 	public void
@@ -589,6 +782,8 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 		
 		try{
+			checkAddress( contact );
+			
 			final DHTUDPPacketRequestStore	request = 
 				new DHTUDPPacketRequestStore( connection_id, local_contact );
 			
@@ -706,6 +901,8 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 		
 		try{
+			checkAddress( contact );
+			
 			final DHTUDPPacketRequestFindNode	request = 
 				new DHTUDPPacketRequestFindNode( connection_id, local_contact );
 			
@@ -822,6 +1019,8 @@ DHTTransportUDPImpl
 		final long	connection_id = getConnectionID();
 		
 		try{
+			checkAddress( contact );
+			
 			final DHTUDPPacketRequestFindValue	request = 
 				new DHTUDPPacketRequestFindValue( connection_id, local_contact );
 			
@@ -909,9 +1108,12 @@ DHTTransportUDPImpl
 			
 		}catch( Throwable e ){
 			
-			stats.findValueFailed();
+			if ( !(e instanceof PRUDPPacketHandlerException )){
+				
+				stats.findValueFailed();
 			
-			handler.failed( contact );
+				handler.failed( contact );
+			}
 		}
 	}
 	
@@ -931,6 +1133,14 @@ DHTTransportUDPImpl
 			
 			DHTTransportUDPContactImpl	originating_contact = new DHTTransportUDPContactImpl( this, request.getAddress(), request.getOriginatorInstanceID());
 			
+			try{
+				checkAddress( originating_contact);
+					
+			}catch( PRUDPPacketHandlerException e ){
+				
+				return;
+			}
+
 			if ( !Arrays.equals( request.getOriginatorID(), originating_contact.getID())){
 				
 				logger.log( "Node " + originating_contact.getString() + " has incorrect ID, reporting it to them" );

@@ -66,7 +66,11 @@ DHTControlImpl
 	private int			max_rep_per_node;
 	
 	private int			original_republish_interval;
-	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 120000;
+	
+		// the grace period gives the originator time to republish their data as this could involve
+		// some work on their behalf to find closest nodes etc. There's no real urgency here anyway
+	
+	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 30*60*1000;
 	
 	private int			cache_republish_interval;
 	
@@ -227,9 +231,9 @@ DHTControlImpl
 				
 				public void
 				requestLookup(
-					byte[]	id )
+					byte[]		id )
 				{
-					lookup( id, false, 0, null );
+					lookup( id, false, 0, search_concurrency, null );
 				}
 				
 				public void
@@ -335,6 +339,7 @@ DHTControlImpl
 		lookup( router.getID(), 
 				false, 
 				0,
+				search_concurrency*4,
 				new lookupResultHandler()
 				{
 					public void
@@ -394,6 +399,7 @@ DHTControlImpl
 		lookup( encoded_key, 
 				false, 
 				timeout,
+				search_concurrency,
 				new lookupResultHandler()
 				{
 					public void
@@ -478,9 +484,11 @@ DHTControlImpl
 		final DHTTransportValue[]	value 	= new DHTTransportValue[1];
 		
 		final AESemaphore			sem		= new AESemaphore( "DHTControl:get" );
+		
 		lookup( encoded_key, 
 				true, 
 				timeout,
+				search_concurrency,
 				new lookupResultHandler()
 				{
 					public void
@@ -591,12 +599,13 @@ DHTControlImpl
 		final byte[]				lookup_id,
 		final boolean				value_search,
 		final long					timeout,
+		final int					concurrency,
 		final lookupResultHandler	handler )
 	{
 		if ( lookup_pool == null ){
 			
 			try{
-				List	res = lookupSupport( lookup_id, value_search, timeout );
+				List	res = lookupSupport( lookup_id, value_search, timeout, concurrency );
 				
 				if ( handler != null ){
 					
@@ -620,7 +629,7 @@ DHTControlImpl
 					runSupport()
 					{
 						try{
-							List	res = lookupSupport( lookup_id, value_search, timeout );
+							List	res = lookupSupport( lookup_id, value_search, timeout, concurrency );
 							
 							if ( handler != null ){
 								
@@ -644,7 +653,8 @@ DHTControlImpl
 	lookupSupport(
 		final byte[]	lookup_id,
 		boolean			value_search,
-		long			timeout )
+		long			timeout,
+		int				concurrency )
 	{
 		try{		
 			DHTLog.indent( router );
@@ -687,7 +697,7 @@ DHTControlImpl
 
 				// this handles the search concurrency
 			
-			final AESemaphore	search_sem = new AESemaphore( "DHTControl:search", search_concurrency );
+			final AESemaphore	search_sem = new AESemaphore( "DHTControl:search", concurrency );
 				
 			final int[]	idle_searches	= { 0 };
 			final int[]	active_searches	= { 0 };
@@ -986,7 +996,7 @@ DHTControlImpl
 		try{		
 			DHTLog.indent( router );
 
-			DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID()));
+			DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ":key=" + DHTLog.getString(key) + ", value=" + value.getString());
 
 			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 	
@@ -1199,6 +1209,8 @@ DHTControlImpl
 					
 			Iterator	it = republish.entrySet().iterator();
 			
+			List	stop_caching = new ArrayList();
+			
 			while( it.hasNext()){
 				
 				Map.Entry	entry = (Map.Entry)it.next();
@@ -1211,6 +1223,27 @@ DHTControlImpl
 				
 				List	contacts = getClosestKContactsList( lookup_id );
 							
+					// if we are no longer one of the K closest contacts then we shouldn't
+					// cache the value
+				
+				boolean	keep_caching	= false;
+				
+				for (int i=0;i<contacts.size();i++){
+				
+					if ( router.isID(((DHTTransportContact)contacts.get(i)).getID())){
+						
+						keep_caching	= true;
+						
+						break;
+					}
+				}
+				
+				if ( !keep_caching ){
+					
+					logger.log( "Dropping cache entry for " + DHTLog.getString( lookup_id ) + " as now too far away" );
+					
+					stop_caching.add( key );
+				}
 					// we reduce the cache distance by 1 here as it is incremented by the
 					// recipients
 				
@@ -1218,6 +1251,14 @@ DHTControlImpl
 						lookup_id, 
 						new DHTControlValueImpl(value,-1), 
 						contacts );
+			}
+			
+			synchronized( stored_values ){
+				
+				for (int i=0;i<stop_caching.size();i++){
+					
+					stored_values.remove( stop_caching.get(i));
+				}
 			}
 		}
 	}
@@ -1495,62 +1536,6 @@ DHTControlImpl
 		}
 	}
 	
-	public void
-	print()
-	{
-		router.print();
-		
-		Map	count = new TreeMap();
-		
-		synchronized( stored_values ){
-			
-			DHTLog.log( "Stored values = " + stored_values.size()); 
-
-			Iterator	it = stored_values.values().iterator();
-			
-			while( it.hasNext()){
-				
-				DHTTransportValue	value = (DHTTransportValue)it.next();
-				
-				Integer key = new Integer( value.getCacheDistance());
-				
-				Object[]	data = (Object[])count.get( key );
-								
-				if ( data == null ){
-					
-					data = new Object[2];
-					
-					data[0] = new Integer(1);
-					
-					data[1] = "";
-								
-					count.put( key, data );
-
-				}else{
-					
-					data[0] = new Integer(((Integer)data[0]).intValue() + 1 );
-				}
-				
-				String	s = (String)data[1];
-				
-				s += (s.length()==0?"":", ") + value.getString();
-				
-				data[1]	= s;
-			}
-		}
-				
-		Iterator	it = count.keySet().iterator();
-		
-		while( it.hasNext()){
-			
-			Integer	k = (Integer)it.next();
-			
-			Object[]	data = (Object[])count.get(k);
-			
-			DHTLog.log( "    " + k + " -> " + data[0] + ": " + data[1]);
-		}
-	}
-	
 	protected Set
 	getClosestContactsSet(
 		byte[]	id )
@@ -1638,18 +1623,67 @@ DHTControlImpl
 		return( 0 );
 	}
 	
-	protected String
-	bytesToString(
-		byte[]	b )
+	public void
+	print()
 	{
-		return( ByteFormatter.nicePrint( b ));
+		router.print();
+		
+		Map	count = new TreeMap();
+		
+		synchronized( stored_values ){
+			
+			DHTLog.log( "Stored values = " + stored_values.size()); 
+
+			Iterator	it = stored_values.entrySet().iterator();
+			
+			while( it.hasNext()){
+						
+				Map.Entry			entry = (Map.Entry)it.next();
+				
+				HashWrapper			value_key	= (HashWrapper)entry.getKey();
+				
+				DHTTransportValue	value		= (DHTTransportValue)entry.getValue();
+				
+				Integer key = new Integer( value.getCacheDistance());
+				
+				Object[]	data = (Object[])count.get( key );
+								
+				if ( data == null ){
+					
+					data = new Object[2];
+					
+					data[0] = new Integer(1);
+					
+					data[1] = "";
+								
+					count.put( key, data );
+
+				}else{
+					
+					data[0] = new Integer(((Integer)data[0]).intValue() + 1 );
+				}
+				
+				String	s = (String)data[1];
+				
+				s += (s.length()==0?"":", ") + "key=" + DHTLog.getString(value_key.getHash()) + ",val=" + value.getString();
+				
+				data[1]	= s;
+			}
+		}
+				
+		Iterator	it = count.keySet().iterator();
+		
+		while( it.hasNext()){
+			
+			Integer	k = (Integer)it.next();
+			
+			Object[]	data = (Object[])count.get(k);
+			
+			DHTLog.log( "    " + k + " -> " + data[0] + ": " + data[1]);
+		}
 	}
 	
-	protected String
-	getIndent()
-	{
-		return( "" );
-	}
+	
 	
 	protected class
 	sortedContactSet

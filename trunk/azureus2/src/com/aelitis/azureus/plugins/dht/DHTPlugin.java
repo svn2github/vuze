@@ -27,6 +27,7 @@ import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
@@ -45,6 +46,7 @@ import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDPStats;
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
 /**
  * @author parg
@@ -58,6 +60,7 @@ DHTPlugin
 	private PluginInterface		plugin_interface;
 	
 	private DHT					dht;
+	private DHTTransportUDP		transport;
 	
 	private LoggerChannel		log;
 	
@@ -102,6 +105,10 @@ DHTPlugin
 								if ( lc.equals("print")){
 									
 									dht.print();
+									
+								}else if ( lc.equals( "test" )){
+									
+									((DHTTransportUDPImpl)transport).testExternalAddressChange();
 									
 								}else{
 									
@@ -172,7 +179,7 @@ DHTPlugin
 					try{
 						int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 						
-						final DHTTransportUDP transport = 
+						transport = 
 							DHTTransportFactory.createUDP( 
 									port, 
 									5,
@@ -217,13 +224,17 @@ DHTPlugin
 						
 						// props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
 						
+						long	start = SystemTime.getCurrentTime();
+						
 						dht = DHTFactory.create( transport, props, log );
 						
 						transport.importContact(new InetSocketAddress( "213.186.46.164", 6881 ));
 						
 						dht.integrate();
 						
-						log.log( "DHT integration complete" );
+						long	end = SystemTime.getCurrentTime();
+
+						log.log( "DHT integration complete: elapsed = " + (end-start));
 						
 						dht.print();
 						
