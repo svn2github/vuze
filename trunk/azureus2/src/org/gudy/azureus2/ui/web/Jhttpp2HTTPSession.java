@@ -94,7 +94,7 @@ public class Jhttpp2HTTPSession extends Thread {
         parameterlegacy = new LegacyHashtable();
         parameterlegacy.put("Core_sOverrideIP", "Override Ip");
         parameterlegacy.put("Core_bAllocateNew", "Zero New");
-        parameterlegacy.put("Core_iLowPort", "Low Port");
+        parameterlegacy.put("Core_iLowPort", "TCP.Listen.Port");
         parameterlegacy.put("Core_iHighPort", "High Port");
         parameterlegacy.put("Core_iMaxActiveTorrents", "max active torrents");
         parameterlegacy.put("Core_iMaxDownloads", "max downloads");

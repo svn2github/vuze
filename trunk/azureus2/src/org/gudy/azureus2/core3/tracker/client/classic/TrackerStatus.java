@@ -259,9 +259,9 @@ public class TrackerStatus {
   
   		throws Exception
   {
-	int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
+	int port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
 	
-	PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( lp );
+	PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( port );
 	
 	InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
 	

@@ -77,7 +77,7 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     parameterlegacy = new LegacyHashtable();
     parameterlegacy.put("Core_sOverrideIP", "Override Ip");
     parameterlegacy.put("Core_bAllocateNew", "Zero New");
-    parameterlegacy.put("Core_iLowPort", "Low Port");
+    parameterlegacy.put("Core_iLowPort", "TCP.Listen.Port");
     parameterlegacy.put("Core_iHighPort", "High Port");
     parameterlegacy.put("Core_iMaxActiveTorrents", "max active torrents");
     parameterlegacy.put("Core_iMaxDownloads", "max downloads");
