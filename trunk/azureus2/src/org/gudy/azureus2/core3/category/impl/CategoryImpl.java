@@ -47,7 +47,7 @@ public class CategoryImpl implements Category, Comparable {
                Object		value )
 			{
 				CategoryListener target = (CategoryListener)_listener;
-		
+
 				if ( type == LDT_CATEGORY_DMADDED )
 					target.downloadManagerAdded((Category) CategoryImpl.this, (DownloadManager)value);
 				else if ( type == LDT_CATEGORY_DMREMOVED )
@@ -103,7 +103,7 @@ public class CategoryImpl implements Category, Comparable {
       // we will be called again by CategoryManager.categoryChange
       return;
     }
-    if (managers.contains(manager)) {
+    if (managers.contains(manager) || type != Category.TYPE_USER) {
       managers.remove(manager);
       category_listeners.dispatch( LDT_CATEGORY_DMREMOVED, manager );
     }

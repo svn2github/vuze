@@ -40,7 +40,7 @@ import org.gudy.azureus2.core3.tracker.util.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.*;
 
 import org.gudy.azureus2.core3.logging.*;
 
@@ -1365,15 +1365,15 @@ DownloadManagerImpl
 	  if (cat != null && cat.getType() != Category.TYPE_USER)
 	    cat = null;
 
-	  Category oldCategory = category;
+	  Category oldCategory = (category == null)
+	                         ? CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED) 
+	                         : category;
 	  category = cat;
 	  if (oldCategory != null) {
-	    if (oldCategory.getType() != Category.TYPE_ALL)
-    	  oldCategory.removeManager(this);
+  	  oldCategory.removeManager(this);
   	}
   	if (category != null) {
-	    if (category.getType() != Category.TYPE_ALL)
-    	  category.addManager(this);
+   	  category.addManager(this);
    	}
 	}
 
