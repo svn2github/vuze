@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerClient;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -223,10 +224,10 @@ public class GeneralView extends AbstractIView {
       maxUploads.add(" " + i); //$NON-NLS-1$
     maxUploads.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        manager.setMaxUploads(2 + maxUploads.getSelectionIndex());
+        manager.getStats().setMaxUploads(2 + maxUploads.getSelectionIndex());
       }
     });
-    maxUploads.select(manager.getMaxUploads() - 2);
+    maxUploads.select(manager.getStats().getMaxUploads() - 2);
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.seeds"); //$NON-NLS-1$
@@ -355,7 +356,7 @@ public class GeneralView extends AbstractIView {
     updateAvailability();
     updatePiecesInfo();
     updateOverall();
-    setTime(manager.getElapsed(), manager.getETA());
+    setTime(manager.getStats().getElapsed(), manager.getStats().getETA());
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds = "" + manager.getNbSeeds();
     String peers = "" + manager.getNbPeers();
@@ -367,7 +368,7 @@ public class GeneralView extends AbstractIView {
       //peers += " (?)";
     }
     String _shareRatio = "";
-    int sr = manager.getShareRatio();
+    int sr = manager.getStats().getShareRatio();
     
     if(sr == -1) _shareRatio = "oo";
     if(sr >  0){ 
@@ -376,16 +377,17 @@ public class GeneralView extends AbstractIView {
       _shareRatio = (sr/1000) + "." + partial;
     
     }
+    DownloadManagerStats	stats = manager.getStats();
     
     setStats(
-      manager.getDownloaded(),
-      manager.getUploaded(),
-      manager.getDownloadSpeed(),
-      manager.getUploadSpeed(),
-      manager.getTotalSpeed(),
-      seeds,
-      peers,
-      manager.getHashFails(),
+		stats.getDownloaded(),
+		stats.getUploaded(),
+		stats.getDownloadSpeed(),
+		stats.getUploadSpeed(),
+		stats.getTotalSpeed(),
+      	seeds,
+      	peers,
+		stats.getHashFails(),
       _shareRatio);
     setTracker(manager.getTrackerStatus(), manager.getTrackerTime(),manager.getTrackerClient());
     setInfos(
@@ -601,7 +603,7 @@ public class GeneralView extends AbstractIView {
   public synchronized void updateOverall() {
     if (display == null || display.isDisposed())
       return;
-    final int total = manager.getCompleted();
+    final int total = manager.getStats().getCompleted();
     //    String percent = (total / 10) + "." + (total % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
 
     if (fileImage == null || fileImage.isDisposed())

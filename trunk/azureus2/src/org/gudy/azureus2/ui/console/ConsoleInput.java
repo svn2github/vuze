@@ -26,6 +26,7 @@ import org.apache.log4j.varia.DenyAllFilter;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -165,7 +166,10 @@ public class ConsoleInput extends Thread {
                     tstate+="?";
                   tstate+="] ";
                   DecimalFormat df = new DecimalFormat("000.0%");
-                  tstate+=df.format(dm.getCompleted()/1000.0);
+                  
+                  DownloadManagerStats stats = dm.getStats();
+                  
+                  tstate+=df.format(stats.getCompleted()/1000.0);
                   tstate+="\t";
                   if (dmstate == DownloadManager.STATE_ERROR)
                     tstate+=dm.getErrorDetails();
@@ -175,11 +179,11 @@ public class ConsoleInput extends Thread {
                     else
                       tstate+=dm.getName();
                   }
-                  tstate+=" ("+DisplayFormatters.formatByteCountToKBEtc(dm.getSize())+") ETA:"+dm.getETA()+"\r\n\t\tSpeed: ";
-                  tstate+=dm.getDownloadSpeed()+" / ";
-                  tstate+=dm.getUploadSpeed()+"\tAmount: ";
-                  tstate+=dm.getDownloaded()+" / ";
-                  tstate+=dm.getUploaded()+"\tConnections: ";
+                  tstate+=" ("+DisplayFormatters.formatByteCountToKBEtc(dm.getSize())+") ETA:"+stats.getETA()+"\r\n\t\tSpeed: ";
+                  tstate+=stats.getDownloadSpeed()+" / ";
+                  tstate+=stats.getUploadSpeed()+"\tAmount: ";
+                  tstate+=stats.getDownloaded()+" / ";
+                  tstate+=stats.getUploaded()+"\tConnections: ";
                   if (hd == null || ! hd.isValid()) {
                     tstate+=Integer.toString(dm.getNbSeeds())+"(?) / ";
                     tstate+=Integer.toString(dm.getNbPeers())+"(?)";

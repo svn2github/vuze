@@ -48,7 +48,7 @@ import org.gudy.azureus2.core3.download.*;
 
 public class 
 DownloadManagerImpl 
-	implements DownloadManager
+	implements DownloadManager, DownloadManagerStats
 {
 	private Vector	listeners 		= new Vector();
 	private Vector	current_peers 	= new Vector();
@@ -756,4 +756,9 @@ DownloadManagerImpl
 	}
  }
 
+	public DownloadManagerStats
+	getStats()
+	{
+		return( this );
+	}
 }

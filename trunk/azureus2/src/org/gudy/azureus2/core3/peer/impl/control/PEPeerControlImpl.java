@@ -892,7 +892,7 @@ PEPeerControlImpl
     Vector nonChoking = getNonChokingPeers();
 
     //2. Determine how many uploads we should consider    
-    int nbUnchoke = _manager.getMaxUploads();
+    int nbUnchoke = _manager.getStats().getMaxUploads();
 
     //System.out.println(nbUnchoke);
 
@@ -1255,21 +1255,21 @@ PEPeerControlImpl
       _stats.received(length);
       _averageReceptionSpeed.addValue(length);
     }
-    _manager.received(length);
+    _manager.getStats().received(length);
   }
 
   public void discarded(int length) {
     if (length > 0) {
       _stats.discarded(length);
     }
-    _manager.discarded(length);
+    _manager.getStats().discarded(length);
   }
   //::possibly update to setSent() -Tyler
   //set the send value
   public void sent(int length) {
     if (length > 0)
       _stats.sent(length);
-    _manager.sent(length);
+    _manager.getStats().sent(length);
   }
 
   //setup the diskManager

@@ -165,16 +165,18 @@ public class TrayWindow implements GlobalManagerListener {
     synchronized (managers) {
       for (int i = 0; i < managers.size(); i++) {
         DownloadManager manager = (DownloadManager) managers.get(i);
+		DownloadManagerStats	stats = manager.getStats();
+		
         String name = manager.getName();
-        String completed = (manager.getCompleted() / 10) + "." + (manager.getCompleted() % 10) + "%"; //$NON-NLS-1$ //$NON-NLS-2$
+        String completed = (stats.getCompleted() / 10) + "." + (stats.getCompleted() % 10) + "%"; //$NON-NLS-1$ //$NON-NLS-2$
         toolTip.append(separator);
         toolTip.append(name);
         toolTip.append(" -- C: ");
         toolTip.append(completed);
         toolTip.append(", D : ");
-        toolTip.append(manager.getDownloadSpeed());
+        toolTip.append(stats.getDownloadSpeed());
         toolTip.append(", U : ");
-        toolTip.append(manager.getUploadSpeed());
+        toolTip.append(stats.getUploadSpeed());
         separator = "\n"; //$NON-NLS-1$
       }
     }

@@ -31,6 +31,7 @@ import org.apache.log4j.spi.LoggingEvent;
 import HTML.Template;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -496,17 +497,20 @@ public class Jhttpp2HTTPSession extends Thread {
           h.put("Torrents_Torrent_Allocating", Boolean.TRUE);
         else if (dmstate == DownloadManager.STATE_CHECKING)
           h.put("Torrents_Torrent_Checking", Boolean.TRUE);
+        
+        DownloadManagerStats stats = dm.getStats();
+        
         try {
-          h.put("Torrents_Torrent_PercentDone", Integer.toString(dm.getCompleted()/10));
-          h.put("Torrents_Torrent_PercentLeft", Integer.toString((1000-dm.getCompleted())/10));
-          h.put("Torrents_Torrent_PercentDonePrec", Float.toString(((float) dm.getCompleted())/10));
-          h.put("Torrents_Torrent_PercentLeftPrec", Float.toString((1000- (float) dm.getCompleted())/10));
+          h.put("Torrents_Torrent_PercentDone", Integer.toString(stats.getCompleted()/10));
+          h.put("Torrents_Torrent_PercentLeft", Integer.toString((1000-stats.getCompleted())/10));
+          h.put("Torrents_Torrent_PercentDonePrec", Float.toString(((float) stats.getCompleted())/10));
+          h.put("Torrents_Torrent_PercentLeftPrec", Float.toString((1000- (float) stats.getCompleted())/10));
         } catch (ArithmeticException e) {}
-        h.put("Torrents_Torrent_SpeedDown", dm.getDownloadSpeed());
-        h.put("Torrents_Torrent_SpeedUp", dm.getUploadSpeed());
+        h.put("Torrents_Torrent_SpeedDown", stats.getDownloadSpeed());
+        h.put("Torrents_Torrent_SpeedUp", stats.getUploadSpeed());
         h.put("Torrents_Torrent_FileSize", DisplayFormatters.formatByteCountToKBEtc(dm.getSize()));
         try {
-          h.put("Torrents_Torrent_FileSizeDone", DisplayFormatters.formatByteCountToKBEtc((((long) dm.getCompleted())*((long) dm.getSize()))/1000));
+          h.put("Torrents_Torrent_FileSizeDone", DisplayFormatters.formatByteCountToKBEtc((((long) stats.getCompleted())*((long) dm.getSize()))/1000));
         } catch (ArithmeticException e) {}
         if (dm.getName()==null)
           h.put("Torrents_Torrent_FileName", "?");
@@ -524,9 +528,9 @@ public class Jhttpp2HTTPSession extends Thread {
         }
         h.put("Torrents_Torrent_SeedsConnected", Integer.toString(dm.getNbSeeds()));
         h.put("Torrents_Torrent_PeersConnected", Integer.toString(dm.getNbPeers()));
-        h.put("Torrents_Torrent_ETA", (dm.getETA()=="")?"&nbsp;":dm.getETA());
-        h.put("Torrents_Torrent_SizeDown", dm.getDownloaded());
-        h.put("Torrents_Torrent_SizeUp", dm.getUploaded());
+        h.put("Torrents_Torrent_ETA", (stats.getETA()=="")?"&nbsp;":stats.getETA());
+        h.put("Torrents_Torrent_SizeDown", stats.getDownloaded());
+        h.put("Torrents_Torrent_SizeUp", stats.getUploaded());
         h.put("Torrents_Torrent_Hash", ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
         if ((in.useragent.toUpperCase().indexOf("LYNX")!=-1) || (in.useragent.toUpperCase().indexOf("LINKS")!=-1) || COConfigurationManager.getBooleanParameter("Server_bNoJavaScript"))
           h.put("Global_NoJavaScript", Boolean.TRUE);

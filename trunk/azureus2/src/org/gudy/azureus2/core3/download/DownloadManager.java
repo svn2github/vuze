@@ -130,45 +130,7 @@ DownloadManager
 	setPriority(
 		int		priority );
 		
-	public int
-	getMaxUploads();
-	
-	public void
-	setMaxUploads(
-		int		max );
-		
-	public void
-	setCompleted(
-		int		c );
-		
-	public int
-	getCompleted();
-	
-	public void
-	setDownloadedUploaded(
-		long	d,
-		long	u );
-		
-	public String
-	getDownloaded();
-	
-	public String
-	getUploaded();
-	
-	public long
-	getDownloadedRaw();
-	
-	public long
-	getUploadedRaw();
-	
-	public int
-	getShareRatio();
-	
-	public String
-	getDownloadSpeed();
-	
-	public String
-	getUploadSpeed();
+
 	
 	public String
 	getTrackerStatus();
@@ -194,17 +156,6 @@ DownloadManager
 	public int
 	getNbPeers();
 	
-	public String
-	getElapsed();
-	
-	public String
-	getETA();
-	
-	public String
-	getTotalSpeed();
-	
-	public String
-	getHashFails();
 	
 	public String
 	getErrorDetails();
@@ -212,21 +163,7 @@ DownloadManager
 	public void
 	setErrorDetail(
 		String	str );
-		
-		// sdsd
-		
-	public void
-	received(
-		int		l );
-		
-	public void
-	discarded(
-		int		l );
-		
-	public void
-	sent(
-		int		l );
-		
+				
 		// what are these doing here?
 		
 	public int
@@ -243,4 +180,7 @@ DownloadManager
 	
 	public void
 	moveUp();
+	
+	public DownloadManagerStats
+	getStats();
 }

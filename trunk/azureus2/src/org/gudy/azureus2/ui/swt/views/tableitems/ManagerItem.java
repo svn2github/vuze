@@ -115,7 +115,7 @@ public class ManagerItem {
     }
 
     tmp = ""; //$NON-NLS-1$
-    int done = manager.getCompleted();
+    int done = manager.getStats().getCompleted();
     tmp = (done / 10) + "." + (done % 10) + " %"; //$NON-NLS-1$ //$NON-NLS-2$
     if (!(tmp.equals(this.done))) {
       this.done = tmp;
@@ -185,19 +185,19 @@ public class ManagerItem {
       item.setText(6, tmp);
     }
 
-    tmp = "" + manager.getDownloadSpeed(); //$NON-NLS-1$
+    tmp = "" + manager.getStats().getDownloadSpeed(); //$NON-NLS-1$
     if (!(tmp.equals(this.downSpeed))) {
       downSpeed = tmp;
       item.setText(7, tmp);
     }
 
-    tmp = "" + manager.getUploadSpeed(); //$NON-NLS-1$
+    tmp = "" + manager.getStats().getUploadSpeed(); //$NON-NLS-1$
     if (!(tmp.equals(this.upSpeed))) {
       upSpeed = tmp;
       item.setText(8, tmp);
     }
 
-    tmp = "" + manager.getETA(); //$NON-NLS-1$
+    tmp = "" + manager.getStats().getETA(); //$NON-NLS-1$
     if (!(tmp.equals(this.eta))) {
       eta = tmp;
       item.setText(9, tmp);

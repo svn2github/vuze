@@ -55,7 +55,9 @@ public class Main {
       }
       
       buf.append(" C:");
-      int completed = manager.getCompleted();
+      DownloadManagerStats	stats = manager.getStats();
+      
+      int completed = stats.getCompleted();
       buf.append(completed/10);
       buf.append(".");
       buf.append(completed%10);
@@ -65,13 +67,13 @@ public class Main {
       buf.append(" P:");
       buf.append(manager.getNbPeers());
       buf.append(" D:");
-      buf.append(manager.getDownloaded());
+      buf.append(stats.getDownloaded());
       buf.append(" U:");
-      buf.append(manager.getUploaded());
+      buf.append(stats.getUploaded());
       buf.append(" DS:");
-      buf.append(manager.getDownloadSpeed());
+      buf.append(stats.getDownloadSpeed());
       buf.append(" US:");
-      buf.append(manager.getUploadSpeed());
+      buf.append(stats.getUploadSpeed());
       buf.append(" T:");
       buf.append(manager.getTrackerStatus());
       while(buf.length() < 80) {

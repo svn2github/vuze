@@ -305,14 +305,14 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
           DownloadManager dm = (DownloadManager) managers.get(ti);
           if (dm != null) {
             if (dm.getState() == DownloadManager.STATE_SEEDING
-              && dm.getShareRatio() >= 0
-              && dm.getShareRatio() < 1000
+              && dm.getStats().getShareRatio() >= 0
+              && dm.getStats().getShareRatio() < 1000
               && COConfigurationManager.getBooleanParameter("Alert on close", true)) {
               MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
               mb.setText(MessageText.getString("seedmore.title"));
               mb.setMessage(
                 MessageText.getString("seedmore.shareratio")
-                  + (dm.getShareRatio() / 10)
+                  + (dm.getStats().getShareRatio() / 10)
                   + "%.\n"
                   + MessageText.getString("seedmore.uploadmore"));
               int action = mb.open();
@@ -683,13 +683,13 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       return manager.getName();
 
     if (field.equals("ds")) //$NON-NLS-1$
-      return manager.getDownloadSpeed();
+      return manager.getStats().getDownloadSpeed();
 
     if (field.equals("us")) //$NON-NLS-1$
-      return manager.getUploadSpeed();
+      return manager.getStats().getUploadSpeed();
 
     if (field.equals("eta")) //$NON-NLS-1$
-      return manager.getETA();
+      return manager.getStats().getETA();
 
     if (field.equals("tracker")) //$NON-NLS-1$
       return manager.getTrackerStatus();
@@ -706,7 +706,7 @@ public class MyTorrentsView extends AbstractIView implements GlobalManagerListen
       return manager.getSize();
 
     if (field.equals("done")) //$NON-NLS-1$
-      return manager.getCompleted();
+      return manager.getStats().getCompleted();
 
     if (field.equals("status")) //$NON-NLS-1$
       return manager.getState();

@@ -132,7 +132,7 @@ public class GlobalManagerImpl
 
               //Checks if any condition to stop seeding is met
               int minShareRatio = 1000 * COConfigurationManager.getIntParameter("Stop Ratio", 0);
-              int shareRatio = manager.getShareRatio();
+              int shareRatio = manager.getStats().getShareRatio();
               //0 means unlimited
               if (minShareRatio != 0 && shareRatio > minShareRatio && mayStop) {
                 manager.stopIt();
@@ -155,7 +155,7 @@ public class GlobalManagerImpl
                 }
               }
             }
-            else if (manager.getState() == DownloadManager.STATE_STOPPED && manager.getCompleted() == 1000) {
+            else if (manager.getState() == DownloadManager.STATE_STOPPED && manager.getStats().getCompleted() == 1000) {
               //Checks if any condition to start seeding is met
               int nbMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", 0);
               int minSeedsPerPeersRatio = COConfigurationManager.getIntParameter("Start Peers Ratio", 0);
@@ -210,10 +210,10 @@ public class GlobalManagerImpl
             int nbMaxDownloads = COConfigurationManager.getIntParameter("max downloads", 4);
             if (manager.getState() == DownloadManager.STATE_READY
               && ((nbMax == 0) || (nbStarted < nbMax))
-              && (manager.getCompleted() == 1000 || ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads)))) {
+              && (manager.getStats().getCompleted() == 1000 || ((nbMaxDownloads == 0) || (nbDownloading < nbMaxDownloads)))) {
               manager.startDownload();
               nbStarted++;
-              if (manager.getCompleted() != 1000)
+              if (manager.getStats().getCompleted() != 1000)
                 nbDownloading++;
             }
 
@@ -428,15 +428,15 @@ public class GlobalManagerImpl
           Long lUploaded = (Long) mDownload.get("uploaded");
           Long lCompleted = (Long) mDownload.get("completed");
           DownloadManager dm = DownloadManagerFactory.create(this, fileName, savePath, stopped == 1);
-          dm.setMaxUploads(nbUploads);
+          dm.getStats().setMaxUploads(nbUploads);
           if (lPriority != null) {
             dm.setPriority(lPriority.intValue());
           }
           if (lDownloaded != null && lUploaded != null) {
-            dm.setDownloadedUploaded(lDownloaded.longValue(), lUploaded.longValue());
+            dm.getStats().setDownloadedUploaded(lDownloaded.longValue(), lUploaded.longValue());
           }
           if (lCompleted != null) {
-            dm.setCompleted(lCompleted.intValue());
+            dm.getStats().setCompleted(lCompleted.intValue());
           }
           this.addDownloadManager(dm);
         }
@@ -475,7 +475,7 @@ public class GlobalManagerImpl
       Map dmMap = new HashMap();
       dmMap.put("torrent", dm.getTorrentFileName());
       dmMap.put("path", dm.getSavePathForSave());
-      dmMap.put("uploads", new Long(dm.getMaxUploads()));
+      dmMap.put("uploads", new Long(dm.getStats().getMaxUploads()));
       int stopped = 0;
       if (dm.getState() == DownloadManager.STATE_STOPPED)
         stopped = 1;
@@ -483,9 +483,9 @@ public class GlobalManagerImpl
       int priority = dm.getPriority();
       dmMap.put("priority", new Long(priority));
       dmMap.put("position", new Long(i));
-      dmMap.put("downloaded", new Long(dm.getDownloadedRaw()));
-      dmMap.put("uploaded", new Long(dm.getUploadedRaw()));
-      dmMap.put("completed", new Long(dm.getCompleted()));
+      dmMap.put("downloaded", new Long(dm.getStats().getDownloadedRaw()));
+      dmMap.put("uploaded", new Long(dm.getStats().getUploadedRaw()));
+      dmMap.put("completed", new Long(dm.getStats().getCompleted()));
       list.add(dmMap);
     }
     map.put("downloads", list);

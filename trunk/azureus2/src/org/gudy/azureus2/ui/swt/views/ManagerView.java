@@ -69,7 +69,7 @@ public class ManagerView extends AbstractIView {
    * @see org.gudy.azureus2.ui.swt.IView#getShortTitle()
    */
   public String getShortTitle() {
-    int completed = manager.getCompleted();
+    int completed = manager.getStats().getCompleted();
     return (completed / 10) + "." + (completed % 10) + "% : " + manager.getName();
   }
 
