@@ -47,8 +47,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
-import sun.awt.windows.WWindowPeer;
-
 /**
  * 
  * The disk Wrapper.
