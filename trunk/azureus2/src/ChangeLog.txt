@@ -37,6 +37,7 @@ FEATURE: Option to move-on-complete only when data is inside the default save di
 FEATURE: Auto-import new .torrents from a chosen folder regularly [Rele]
 FEATURE: Create torrent allows manual piece size selection [Parg]
 FEATURE: New 'Activity' view (download and upload speed graphics) [Gudy]
+FEATURE: gzip encoding support for tracker announces [Parg]
 
 CHANGE: 'Bind to local IP address' now binds outbound sockets as well [Nolar]
 CHANGE: Status now shows when it is re-checking pieces on download completion [Nolar]
