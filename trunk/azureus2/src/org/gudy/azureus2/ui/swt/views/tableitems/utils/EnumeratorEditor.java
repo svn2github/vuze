@@ -21,6 +21,8 @@ import org.eclipse.swt.custom.*;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -89,7 +91,16 @@ public class EnumeratorEditor {
     Font f = table.getFont();
     FontData fd = f.getFontData()[0];
     fd.setHeight(9);
-    table.setFont(new Font(display, fd));
+    final Font fontNew = new Font(display, fd); 
+    table.setFont(fontNew);
+
+    shell.addDisposeListener(new DisposeListener() {
+      public void widgetDisposed(DisposeEvent de) {
+        if (fontNew != null && !fontNew.isDisposed()) {
+          fontNew.dispose();
+        }
+      }
+    });
     
     Composite cButtonArea = new Composite(shell, SWT.NULL);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);

@@ -109,6 +109,7 @@ public class ConfigView extends AbstractIView {
   Composite cConfigSection;
   StackLayout layoutConfigSection;
   Label lHeader;
+  Font headerFont;
   Tree tree;
   TreeItem treePlugins;
   Table table;
@@ -184,7 +185,8 @@ public class ConfigView extends AbstractIView {
     fontData[0].setStyle(SWT.BOLD);
     int fontHeight = (int)(fontData[0].getHeight() * 1.2);
     fontData[0].setHeight(fontHeight);
-    lHeader.setFont(new Font(d, fontData));
+    headerFont = new Font(d, fontData);
+    lHeader.setFont(headerFont);
     gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_CENTER);
     lHeader.setLayoutData(gridData);
 
@@ -2273,6 +2275,11 @@ public class ConfigView extends AbstractIView {
     for (int i = 0; i < items.length; i++)
       items[i].setData("Panel", null);
     Utils.disposeComposite(cConfig);
+
+  	if (headerFont != null && !headerFont.isDisposed()) {
+  		headerFont.dispose();
+  		headerFont = null;
+  	}
   }
 
   public String getFullTitle() {

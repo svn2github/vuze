@@ -56,7 +56,8 @@ public class Main {
     Font f = table.getFont();
     FontData fd = f.getFontData()[0];
     fd.setHeight(9);
-    table.setFont(new Font(display, fd));
+    Font font = new Font(display, fd);
+    table.setFont(font);
     
     Button bOk = new Button(shell,SWT.PUSH);
     bOk.setText("Ok");
@@ -165,6 +166,9 @@ public class Main {
       if (!display.readAndDispatch ()) display.sleep ();
     }
     display.dispose ();
+    if (font != null && !font.isDisposed()) {
+      font.dispose();
+    }
 }
   
   private void createTableRow(int index,String name,boolean selected) {

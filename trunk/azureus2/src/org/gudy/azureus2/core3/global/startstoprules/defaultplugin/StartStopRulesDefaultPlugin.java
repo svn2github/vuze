@@ -569,27 +569,32 @@ StartStopRulesDefaultPlugin
           }
         }
 
-        if (state == Download.ST_QUEUED || state == Download.ST_READY)
-        {
-          if ((maxDownloads == 0) || ((numWaitingOrDLing < maxDownloads - iExtraFPs) &&
-                                      (activeDLCount < maxDownloads - iExtraFPs))) {
+        if (state == Download.ST_QUEUED) {
+          if ((maxDownloads == 0) || (numWaitingOrDLing < maxDownloads - iExtraFPs)) {
             try {
-              if (state == Download.ST_QUEUED) {
-                if (bDebugLog)
-                  log.log(LoggerChannel.LT_INFORMATION, "   restart()");
-                download.restart();
+              if (bDebugLog)
+                log.log(LoggerChannel.LT_INFORMATION, "   restart()");
+              download.restart();
 
-                // increase counts
-                totalWaitingToDL++;
-              } else {
-                if (bDebugLog)
-                  log.log(LoggerChannel.LT_INFORMATION, "   start() activeDLCount < maxDownloads");
-                download.start();
+              // increase counts
+              totalWaitingToDL++;
+              numWaitingOrDLing++;
+              maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
+            } catch (Exception ignore) {/*ignore*/}
+            state = download.getState();
+          }
+        }
 
-                // adjust counts
-                totalWaitingToDL--;
-                activeDLCount++;
-              }
+        if (state == Download.ST_READY) {
+          if ((maxDownloads == 0) || (activeDLCount < maxDownloads - iExtraFPs)) {
+            try {
+              if (bDebugLog)
+                log.log(LoggerChannel.LT_INFORMATION, "   start() activeDLCount < maxDownloads");
+              download.start();
+
+              // adjust counts
+              totalWaitingToDL--;
+              activeDLCount++;
               numWaitingOrDLing++;
               maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
             } catch (Exception ignore) {/*ignore*/}

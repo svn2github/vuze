@@ -1347,7 +1347,8 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
     for (int i = 0; i < fontData.length; i++) {
       fontData[i].setStyle(SWT.BOLD);
     }
-    label.setFont(new Font(display, fontData));
+    Font fontLastestVer = new Font(display, fontData);
+    label.setFont(fontLastestVer);
     label.setLayoutData(gridData = new GridData());
     gridData.horizontalSpan = 3;
 
@@ -1515,6 +1516,9 @@ public class MainWindow implements GlobalManagerListener, ParameterListener, Ico
         display.sleep();
       }
     } //end while
+    if (fontLastestVer != null && !fontLastestVer.isDisposed()) {
+      fontLastestVer.dispose();
+    }
   }
 
   private void updateJar() {
