@@ -43,6 +43,8 @@ public class TemplateCache {
   }
   
   public Template get(String path) throws FileNotFoundException, IOException {
+    if (path.startsWith("/"))
+      path = path.substring(1);
     if (!CACHE) {
       cache.remove(path);
       cache_need.remove(path);

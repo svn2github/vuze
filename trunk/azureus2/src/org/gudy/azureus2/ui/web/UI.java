@@ -50,15 +50,20 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplate implements ILocal
   }
   
   public void openTorrent(String fileName) {
-    if (!FileUtil.getCanonicalFileName(fileName).endsWith(".torrent")) {//$NON-NLS-1$
-      Logger.getLogger("azureus2.webinterface").error(fileName+" doesn't seem to be a torrent file. Not added.");
+    try {
+      if (!FileUtil.isTorrentFile(fileName)) {//$NON-NLS-1$
+        Logger.getLogger("azureus2.ui.web").error(fileName+" doesn't seem to be a torrent file. Not added.");
+        return;
+      }
+    } catch (Exception e) {
+      Logger.getLogger("azureus2.ui.web").error("Something is wrong with "+fileName+". Not added. (Reason: "+e.getMessage()+")");
       return;
     }
     if (org.gudy.azureus2.ui.common.Main.GM!=null) {
       try {
         org.gudy.azureus2.ui.common.Main.GM.addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("General_sDefaultSave_Directory"));
       } catch (Exception e) {
-        Logger.getLogger("azureus2.webinterface").error("The torrent "+fileName+" could not be added.", e);
+        Logger.getLogger("azureus2.ui.web").error("The torrent "+fileName+" could not be added.", e);
       }
     }
   }

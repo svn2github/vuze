@@ -86,6 +86,7 @@ body {
 
 .clickable:hover {
   color: #FFD700;
+  cursor: pointer;
 }
 
 .iframe {

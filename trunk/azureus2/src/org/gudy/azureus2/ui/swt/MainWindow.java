@@ -1682,8 +1682,12 @@ public class MainWindow implements GlobalManagerListener {
   }
 
   public void openTorrent(final String fileName) {
-    if (!FileUtil.getCanonicalFileName(fileName).endsWith(".torrent")) //$NON-NLS-1$
+    try {
+      if (!FileUtil.isTorrentFile(fileName)) //$NON-NLS-1$
+        return;
+    } catch (Exception e) {
       return;
+    }
     display.asyncExec(new Runnable() {
       public void run() {
         String savePath = getSavePath(fileName);
