@@ -1340,10 +1340,16 @@ CacheFileWithCache
 	
 		throws CacheFileManagerException
 	{
+			// we've got to always close the file here, even if the flush fails
+		
+		boolean	fm_file_closed = false;
+		
 		try{
 			flushCache( true, -1 );
 			
 			file.close();
+			
+			fm_file_closed	= true;
 			
 		}catch( FMFileManagerException e ){
 			
@@ -1351,6 +1357,19 @@ CacheFileWithCache
 			
 		}finally{
 			
+			if ( !fm_file_closed ){
+				
+				try{
+					file.close();
+					
+				}catch( Throwable e ){
+					
+						// we're already on our way out via exception, no need to
+						// throw a new one
+					
+					Debug.printStackTrace( e );
+				}
+			}
 			manager.closeFile( this );
 		}
 	}
