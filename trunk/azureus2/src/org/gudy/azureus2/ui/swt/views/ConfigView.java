@@ -5,13 +5,8 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
+
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
@@ -247,7 +242,7 @@ public class ConfigView extends AbstractIView {
         String name;
         try {
           name = section.configSectionGetName();
-        } catch (Exception e) {
+         } catch (Exception e) {
           LGLogger.log(LGLogger.ERROR, "A ConfigSection plugin caused an error while trying to call its configSectionGetName function");
           name = "Bad Plugin";
           e.printStackTrace();
@@ -510,6 +505,20 @@ public class ConfigView extends AbstractIView {
     });
     
     List pluginIFs = PluginInitializer.getPluginInterfaces();
+    
+    Collections.sort( 
+    		pluginIFs,
+			new Comparator()
+			{
+    			public int
+				compare(
+					Object	o1,
+					Object	o2 )
+    			{
+    				return( ((PluginInterface)o1).getPluginName().compareTo(((PluginInterface)o2).getPluginName()));
+    			}
+			});
+    
     Label labelInfo = new Label(infoGroup, SWT.WRAP);
     labelInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
     
@@ -560,6 +569,8 @@ public class ConfigView extends AbstractIView {
     String[] names = repository.getNames();
 
 
+    Arrays.sort( names );
+    
     for(int i = 0; i < names.length; i++)
     {
       String pluginName = names[i];

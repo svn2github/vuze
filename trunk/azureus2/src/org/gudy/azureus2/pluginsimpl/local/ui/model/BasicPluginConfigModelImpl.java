@@ -30,20 +30,25 @@ package org.gudy.azureus2.pluginsimpl.local.ui.model;
 import java.util.*;
 
 import org.eclipse.swt.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.*;
 
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.plugins.*;
 
 import org.gudy.azureus2.plugins.ui.model.*;
+import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 
 public class 
 BasicPluginConfigModelImpl
@@ -174,11 +179,18 @@ BasicPluginConfigModelImpl
 		Composite gMainTab = new Composite(parent, SWT.NULL);
 		
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		
 		gMainTab.setLayoutData(gridData);
+		
 		layout = new GridLayout();
+		
 		layout.numColumns = 2;
+		
 		layout.marginHeight = 0;
+		
 		gMainTab.setLayout(layout);
+		
+		Map	comp_map	= new HashMap();
 		
 		for (int i=0;i<parameters.size();i++){
 			
@@ -195,25 +207,93 @@ BasicPluginConfigModelImpl
 						
 			//System.out.println( "key = " + key );
 			
+			IParameter	swt_param;
+			
 			if ( param instanceof BooleanParameterImpl ){
 				
-				new BooleanParameter(gMainTab, key, ((BooleanParameterImpl)param).getDefaultValue());
+				swt_param = new BooleanParameter(gMainTab, key, ((BooleanParameterImpl)param).getDefaultValue());
 					
 			}else if ( param instanceof IntParameterImpl ){
 						
-				IntParameter intp = new IntParameter(gMainTab, key, ((IntParameterImpl)param).getDefaultValue());
+				swt_param = new IntParameter(gMainTab, key, ((IntParameterImpl)param).getDefaultValue());
 				
 				gridData = new GridData();
 				gridData.widthHint = 100;
 				
-				intp.setLayoutData( gridData );
+				swt_param.setLayoutData( gridData );
 							
 			}else{
 				gridData = new GridData();
 				
 				gridData.widthHint = 150;
 
-				new StringParameter(gMainTab, key, ((StringParameterImpl)param).getDefaultValue() ).setLayoutData( gridData );
+				swt_param = new StringParameter(gMainTab, key, ((StringParameterImpl)param).getDefaultValue());
+				
+				swt_param.setLayoutData( gridData );
+			}
+			
+			comp_map.put( param, new Object[]{swt_param, swt_param.getControl(), label });
+		}
+		
+		for (int i=0;i<parameters.size();i++){
+			
+			ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
+			
+			if ( param instanceof EnablerParameter ){
+				
+				List controlsToEnable = new ArrayList();
+				
+				Iterator iter = param.getEnabledOnSelectionParameters().iterator();
+				
+				while(iter.hasNext()){
+					
+					ParameterImpl enable_param = (ParameterImpl) iter.next();
+					
+				    Object[] stuff = (Object[])comp_map.get( enable_param );
+				    
+				    if ( stuff != null ){
+				    	
+					    for(int k = 1 ; k < stuff.length ; k++) {
+					    	
+					    	controlsToEnable.add(stuff[k]);
+					    }
+				    }
+				}
+				
+				List controlsToDisable = new ArrayList();
+
+				iter = param.getDisabledOnSelectionParameters().iterator();
+				
+				while(iter.hasNext()){
+					
+					ParameterImpl disable_param = (ParameterImpl)iter.next();
+					
+				    Object[] stuff = (Object[])comp_map.get( disable_param );
+				    
+				    if ( stuff != null ){
+				    	
+					    for(int k = 1 ; k < stuff.length ; k++) {
+					    	
+					    	controlsToDisable.add(stuff[k]);
+					    }
+				    }
+				}
+
+				Control[] ce = new Control[controlsToEnable.size()];
+				Control[] cd = new Control[controlsToDisable.size()];
+
+				if ( ce.length + cd.length > 0 ){
+				
+				    IAdditionalActionPerformer ap = 
+				    	new DualChangeSelectionActionPerformer(
+				    			(Control[]) controlsToEnable.toArray(ce),
+								(Control[]) controlsToDisable.toArray(cd));
+				    
+	
+				    BooleanParameter	target = (BooleanParameter)((Object[])comp_map.get(param))[0];
+				    
+				    target.setAdditionalActionPerformer(ap);
+				}
 			}
 		}
 		

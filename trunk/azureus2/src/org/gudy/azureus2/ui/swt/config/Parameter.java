@@ -29,6 +29,7 @@ package org.gudy.azureus2.ui.swt.config;
 
 public interface 
 Parameter 
+	extends IParameter
 {
 	public void
 	addChangeListener(
