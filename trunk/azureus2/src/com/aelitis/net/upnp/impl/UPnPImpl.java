@@ -54,6 +54,7 @@ UPnPImpl
 	implements 	UPnP, SSDPListener
 {
 	public static final boolean	USE_HTTP_CONNECTION		= true;
+	
 	public static final String	NL	= "\r\n";
 	
 	protected static UPnPImpl	singleton;
@@ -399,18 +400,55 @@ UPnPImpl
 		
 			String	url_target = control.toString();
 			
+			int	p1 	= url_target.indexOf( "://" ) + 3;
+			p1		= url_target.indexOf( "/", p1 );
 			
-			/*
-pw.print( "POST " + url_target + " HTTP/1.1" + NL );
-Content-Type: text/xml; charset="utf-8"
-SOAPAction: "urn:schemas-upnp-org:service:WANIPConnection:1#GetNATRSIPStatus"
-User-Agent: Mozilla/4.0 (compatible; UPnP/1.0; Windows 9x)
-Host: 192.168.0.1
-Content-Length: 299
-Connection: Keep-Alive
-Pragma: no-cache
-*/
-			return( parseXML( socket.getInputStream()));
+			url_target = url_target.substring( p1 );
+			
+			pw.print( "POST " + url_target + " HTTP/1.1" + NL );
+			pw.print( "Content-Type: text/xml; charset=\"utf-8\"" + NL );
+			pw.print( "SOAPAction: \"" + soap_action + "\"" + NL );
+			pw.print( "User-Agent: Azureus (UPnP/1.0)" + NL );
+			pw.print( "Host: " + control.getHost() + NL );
+			pw.print( "Content-Length: " + request.getBytes( "UTF8" ).length + NL );
+			pw.print( "Connection: Keep-Alive" + NL );
+			pw.print( "Pragma: no-cache" + NL + NL );
+
+			pw.print( request );
+			
+			pw.flush();
+			
+			InputStream	is = socket.getInputStream();
+			
+			String	reply_header = "";
+			
+			while(true){
+				
+				byte[]	buffer = new byte[1];
+				
+				if ( is.read( buffer ) <= 0 ){
+					
+					throw( new IOException( "Premature end of input stream" ));
+				}
+				
+				reply_header += (char)buffer[0];
+				
+				if ( reply_header.endsWith( NL+NL )){
+					
+					break;
+				}
+			}
+			
+			p1 = reply_header.indexOf( NL );
+			
+			String	first_line = reply_header.substring( 0, p1 ).trim();
+			
+			if ( first_line.indexOf( "200" ) == -1 ){
+				
+				throw( new IOException( "HTTP request failed:" + first_line ));
+			}
+			
+			return( parseXML( is ));
 		}
 	}
 	
