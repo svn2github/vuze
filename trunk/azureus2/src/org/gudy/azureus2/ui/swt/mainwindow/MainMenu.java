@@ -279,29 +279,6 @@ public class MainMenu {
         }
       });
   
-      MenuItem view_irc = new MenuItem(viewMenu, SWT.NULL);
-      Messages.setLanguageText(view_irc, "MainWindow.menu.view.irc"); //$NON-NLS-1$
-      view_irc.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-        	String msg = MessageText.getString( "MainWindow.menu.view.irc.moved");
-        	Alerts.showAlert( LGLogger.AT_COMMENT, msg );
-        	/*
-          if (irc == null)
-          	try{
-          		Class cla = Class.forName( "org.gudy.azureus2.ui.swt.views.IrcView" );
-          
-          		AbstractIView irc_view = (AbstractIView)cla.newInstance();
-          		
-          		irc = new Tab( irc_view );
-          	}catch( Throwable f ){
-          		f.printStackTrace();
-          	}
-          else
-            irc.setFocus();
-            */
-        }
-      });
-  
       MenuItem view_stats = new MenuItem(viewMenu, SWT.NULL);
       Messages.setLanguageText(view_stats, "MainWindow.menu.view.stats"); //$NON-NLS-1$
       view_stats.addListener(SWT.Selection, new Listener() {
