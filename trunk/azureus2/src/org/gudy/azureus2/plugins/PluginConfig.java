@@ -129,5 +129,13 @@ public interface PluginConfig {
    * @param value the parameter value
    */
   public void setPluginParameter(String key,boolean value);
+
+  /**
+   * make sure you save it after making changes!
+   *
+   */
   
+	public void
+	save()
+		throws PluginException;
 }

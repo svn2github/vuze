@@ -89,6 +89,22 @@ RPPluginConfig
 		if ( method.equals( "getPluginIntParameter")){
 			
 			return( new RPReply( new Integer( delegate.getPluginIntParameter((String)params[0],((Integer)params[1]).intValue()))));
+			
+		}else if ( method.equals( "setPluginParameter[int]")){
+				
+			delegate.setPluginParameter((String)params[0],((Integer)params[1]).intValue());
+				
+		}else if ( method.equals( "save")){
+			
+			try{ 
+				delegate.save();
+				
+				return( null );
+				
+			}catch( PluginException e ){
+				
+				return( new RPReply( e ));
+			}
 		}			
 	
 			
@@ -176,7 +192,7 @@ RPPluginConfig
 	    
 	  public void setPluginParameter(String key,int value)
 	  {
-	  	notSupported();
+		dispatcher.dispatch( new RPRequest( this, "setPluginParameter[int]", new Object[]{key,new Integer(value)} ));
 	  }
 	  
 	  public void setPluginParameter(String key,String value)
@@ -188,5 +204,25 @@ RPPluginConfig
 	  public void setPluginParameter(String key,boolean value)
 	  {  	
 	  	notSupported();
+	  }
+	  
+	  public void
+	  save()
+	  	throws PluginException
+	  {
+	  	try{
+	  		dispatcher.dispatch( new RPRequest( this, "save", null)).getResponse();
+	  		
+		}catch( RPException e ){
+			
+			Throwable cause = e.getCause();
+			
+			if ( cause instanceof PluginException ){
+				
+				throw((PluginException)cause);
+			}
+			
+			throw( e );
+		}
 	  }
 }

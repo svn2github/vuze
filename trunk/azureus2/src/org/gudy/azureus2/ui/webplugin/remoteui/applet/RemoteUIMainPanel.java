@@ -104,7 +104,7 @@ RemoteUIMainPanel
 			
 			MDConfigModel			config_model	= new MDConfigModel( _pi );
 			
-			VWConfigView			config_view 	= new VWConfigView( config_model );
+			VWConfigView			config_view 	= new VWConfigView( this, config_model );
 			
 			refresh_period = config_model.getRefreshPeriod();
 			
@@ -117,7 +117,9 @@ RemoteUIMainPanel
 						{
 							if ( ev.getPropertyType() == MDConfigModelPropertyChangeEvent.PT_REFRESH_PERIOD ){
 							
-								refresh_period = ((Integer)ev.getPropertyValue()).intValue();								
+								refresh_period = ((Integer)ev.getPropertyValue()).intValue();
+								
+								logMessage( "Refresh period changed to " + refresh_period + " sec");
 							}
 						}
 					});

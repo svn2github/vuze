@@ -145,4 +145,10 @@ public class PluginConfigImpl
 	{
 		config.setParameter(this.key+key, value);
 	}
+	
+	public void
+	save()
+	{
+		config.save();
+	}
 }

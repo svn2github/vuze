@@ -29,6 +29,7 @@ package org.gudy.azureus2.ui.webplugin.remoteui.applet.model;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.ui.webplugin.remoteui.plugins.RPException;
 
 public class 
 MDConfigModel 
@@ -65,6 +66,14 @@ MDConfigModel
 		PluginConfig	plugin_config = pi.getPluginconfig();
 		
 		plugin_config.setPluginParameter( "MDConfigModel:refresh_period", refresh_period );
+		
+		try{
+			plugin_config.save();
+			
+		}catch( PluginException e ){
+			
+			throw( new RPException("setRefreshPeriod Fails", e ));
+		}
 		
 		fireEvent( MDConfigModelPropertyChangeEvent.PT_REFRESH_PERIOD, new Integer( refresh_period ));
 	}
