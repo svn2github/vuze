@@ -48,6 +48,7 @@ Constants
   
   public static final boolean isWindows	= !(isOSX || isLinux); 
  
+  public static final String	JAVA_VERSION = System.getProperty("java.version");
   
   	/**
   	 * Gets the current version, or if a CVS version, the one on which it is based 

@@ -82,9 +82,13 @@ ClientIDPlugin
 	doHTTPProperties(
 		Properties	properties )
 	{
-		properties.put( 
-			ClientIDGenerator.PR_USER_AGENT,
-			Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION );
+		String	agent = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
+		
+		agent += ";" + Constants.OSName;
+		
+		agent += ";Java " + Constants.JAVA_VERSION;
+		
+		properties.put( ClientIDGenerator.PR_USER_AGENT, agent );
 	}
 	
 	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
