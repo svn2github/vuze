@@ -22,6 +22,10 @@
 
 package org.gudy.azureus2.core3.upnp.impl.device;
 
+import org.gudy.azureus2.core3.upnp.UPnPAction;
+import org.gudy.azureus2.core3.upnp.UPnPActionInvocation;
+import org.gudy.azureus2.core3.upnp.UPnPException;
+
 /**
  * @author parg
  *
@@ -37,5 +41,30 @@ UPnPSSWANConnectionImpl
 		UPnPServiceImpl		_service )
 	{
 		service	= _service;
+	}
+	
+	public void
+	addPortMapping(
+		boolean		tcp,			// false -> UDP
+		int			port,
+		String		description )
+	
+		throws UPnPException
+	{
+		UPnPAction act = service.getAction( "AddPortMapping" );
+		
+		UPnPActionInvocation inv = act.getInvocation();
+		
+		inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
+		inv.addArgument( "NewExternalPort", 			"" + port );
+		inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
+		inv.addArgument( "NewInternalPort", 			"" + port );
+		inv.addArgument( "NewInternalClient",			service.getDevice().getLocalAddress().getHostAddress());
+		inv.addArgument( "NewEnabled", 					"1" );
+		inv.addArgument( "NewPortMappingDescription", 	description );
+		inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)
+		
+		inv.invoke();
+		
 	}
 }

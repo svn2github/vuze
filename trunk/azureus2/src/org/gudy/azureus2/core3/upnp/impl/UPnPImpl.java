@@ -31,7 +31,10 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
+import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.core3.upnp.*;
+import org.gudy.azureus2.core3.upnp.services.UPnPWANIPConnection;
 import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.core3.xml.simpleparser.SimpleXMLParserDocumentFactory;
@@ -63,6 +66,9 @@ UPnPImpl
 	protected List		log_history		= new ArrayList();
 	
 	protected List		rd_listeners	= new ArrayList();
+	
+	protected int		trace_index		= 0;
+	
 	
 	protected
 	UPnPImpl()
@@ -116,15 +122,42 @@ UPnPImpl
 	
 	public SimpleXMLParserDocument
 	parseXML(
-		InputStream		is )
+		InputStream		_is )
 	
 		throws SimpleXMLParserDocumentException, IOException
 	{
 			// ASSUME UTF-8
 		
-		StringBuffer	data = new StringBuffer(1024);
+		ByteArrayOutputStream		baos = null;
 		
 		try{
+			baos = new ByteArrayOutputStream(1024);
+			
+			byte[]	buffer = new byte[8192];
+			
+			while(true){
+				
+				int	len = _is.read( buffer );
+				
+				if ( len <= 0 ){
+					
+					break;
+				}
+				
+				baos.write( buffer, 0, len );
+			}
+		}finally{
+			
+			baos.close();
+		}
+		
+		byte[]	bytes_in = baos.toByteArray();
+		
+		InputStream	is = new ByteArrayInputStream( bytes_in );
+		
+		try{
+			StringBuffer	data = new StringBuffer(1024);
+			
 			LineNumberReader	lnr = new LineNumberReader( new InputStreamReader( is, "UTF-8" ));
 			
 			while( true ){
@@ -138,12 +171,38 @@ UPnPImpl
 				
 				data.append( line.trim());	
 			}
-		}catch( UnsupportedEncodingException e ){
+					
+			return( SimpleXMLParserDocumentFactory.create( data.toString()));
 			
-			throw( new IOException( "Unsupported encoding" ));
+		}catch( Throwable e ){
+			
+			try{
+				FileOutputStream	trace = new FileOutputStream( getTraceFile());
+				
+				trace.write( bytes_in );
+				
+				trace.close();
+				
+			}catch( Throwable f ){
+				
+				f.printStackTrace();
+			}
+			
+			throw( new SimpleXMLParserDocumentException(e ));
+		}
+	}
+	
+	protected synchronized File
+	getTraceFile()
+	{
+		trace_index++;
+		
+		if ( trace_index == 6 ){
+			
+			trace_index = 1;
 		}
 		
-		return( SimpleXMLParserDocumentFactory.create( data.toString()));	
+		return( FileUtil.getUserFile( "upnp_trace" + trace_index + ".log" ));
 	}
 	
 	public void
@@ -298,24 +357,14 @@ UPnPImpl
 						System.out.println( actions[j].getName());
 					}
 					
-					UPnPAction act = s.getAction( "AddPortMapping" );
+					UPnPWANIPConnection wan_ip = (UPnPWANIPConnection)s.getSpecificService();
+					
+
+					wan_ip.addPortMapping( true, 7007, "Moo!" );
+	
+					UPnPAction act	= s.getAction( "GetGenericPortMappingEntry" );
 					
 					UPnPActionInvocation inv = act.getInvocation();
-					
-					inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
-					inv.addArgument( "NewExternalPort", 			"7007" );
-					inv.addArgument( "NewProtocol", 				"TCP" );
-					inv.addArgument( "NewInternalPort", 			"7007" );
-					inv.addArgument( "NewInternalClient",			device.getLocalAddress().getHostAddress());
-					inv.addArgument( "NewEnabled", 					"1" );
-					inv.addArgument( "NewPortMappingDescription", 	"AZTest" );
-					inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)
-					
-					inv.invoke();
-					
-					act	= s.getAction( "GetGenericPortMappingEntry" );
-					
-					inv = act.getInvocation();
 
 					inv.addArgument( "NewPortMappingIndex", "0" );
 					

@@ -84,10 +84,10 @@ UPnPRootDeviceImpl
 			root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
 			
 		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
+						
 			upnp.log( e );
+			
+			throw( new UPnPException( "Root device location '" + _location + "' - data read failed", e ));
 		}
 	}
 
