@@ -33,7 +33,7 @@ import java.nio.channels.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.transport.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.ByteFormatter;;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 
 
 
@@ -222,5 +222,17 @@ PEPeerTransportImpl
 			
 			return(  socket.write(buffer.buff ));
 		}
-	}  
+	}
+  
+  
+  protected int doubleSendBufferSize() {
+    try {
+      int size = socket.socket().getSendBufferSize();
+      if ( size >= 64*1024 ) return size;
+      size = size*2 > 64*1024 ? 64*1024 : size*2;
+      socket.socket().setSendBufferSize( size );
+      return socket.socket().getSendBufferSize();
+    }
+    catch (Throwable t) { t.printStackTrace(); return 0; }
+  }
 }

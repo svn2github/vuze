@@ -124,10 +124,11 @@ PEPeerTransportProtocol
 		
 	int maxUpload = 1024 * 1024;
   
-  private static final int CACHE_SIZE = 1460;
+  private static final int MSS_SIZE = COConfigurationManager.getIntParameter("MTU.Size") - 52;
   private DirectByteBuffer cache_buffer;
-  private boolean force_flush = true;
-
+  private boolean queues_empty = true;
+  private boolean actively_writing = false;
+  private boolean WRITE_DEBUG = System.getProperty("socket.write.debug") == null ? false : true;
 		//The client
 		
 	String client = "";
@@ -248,7 +249,7 @@ PEPeerTransportProtocol
   protected void allocateAll() {
   	allocateAllSupport();
     
-    cache_buffer = DirectByteBufferPool.getBuffer( CACHE_SIZE );
+    cache_buffer = DirectByteBufferPool.getBuffer( MSS_SIZE );
 
   	this.closing = false;
   	//TODO
@@ -1185,46 +1186,79 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   	//If we are already sending something, we simply continue
   	if (writeBuffer != null && cache_buffer != null ) {
   		try {
-  			int realLimit = writeBuffer.buff.limit();
-  			int limit = realLimit;
+        ByteBuffer w_buff = writeBuffer.buff;
+        ByteBuffer c_buff = cache_buffer.buff;
+        
+  			int realLimit = w_buff.limit();
   			int uploadAllowed = 0;
+        int written = 0;
+        
+        //compute allowed limited upload bytes
+        int new_limit = realLimit;
   			if (writeData && PEPeerTransportSpeedLimiter.getLimiter().isLimited(this)) {
   				if ((loopFactor % 10) == 0) {
   					allowed = PEPeerTransportSpeedLimiter.getLimiter().getLimitPer100ms(this);
   					used = 0;
   				}
   				uploadAllowed = allowed - used;
-  				limit = writeBuffer.buff.position() + uploadAllowed;
-  				if ((limit > realLimit) || (limit < 0))
-  					limit = realLimit;
+          new_limit = w_buff.position() + uploadAllowed;
+  				if ((new_limit > realLimit) || (new_limit < 0)) new_limit = realLimit;
   			}
-  			
-        int written = 0;
-        writeBuffer.buff.limit( limit );
+        w_buff.limit( new_limit );
           
-        int to_write = writeBuffer.buff.remaining();
-        if ( to_write > cache_buffer.buff.remaining() ) {
-          to_write = cache_buffer.buff.remaining();
-          writeBuffer.buff.limit( writeBuffer.buff.position() + to_write );
+        //copy write-buffer data into cache buffer
+        if ( w_buff.hasRemaining() ) {
+          if ( !actively_writing ) { // do a normal append
+            int copy_len = w_buff.remaining() > c_buff.remaining() ? c_buff.remaining() : w_buff.remaining();
+            w_buff.limit( w_buff.position() + copy_len );
+            c_buff.put( w_buff );
+            written = copy_len;
+          }
+          else {  //we're in the middle of a write, so append new data only at the end of existing data
+            int orig_pos = c_buff.position();
+            int orig_lim = c_buff.limit();
+            c_buff.position( orig_lim );
+            c_buff.limit( MSS_SIZE );
+            
+            int copy_len = w_buff.remaining() > c_buff.remaining() ? c_buff.remaining() : w_buff.remaining();
+            w_buff.limit( w_buff.position() + copy_len );
+            c_buff.put( w_buff );
+            written = copy_len;
+            
+            c_buff.position( orig_pos );
+            c_buff.limit( orig_lim + copy_len );
+          }
         }
-        cache_buffer.buff.put( writeBuffer.buff );
-        written = to_write;
+        
+        w_buff.limit( realLimit );
+        boolean force_flush = queues_empty && !w_buff.hasRemaining();
+                
+        if ( actively_writing || force_flush || c_buff.position() == MSS_SIZE ) {
+          if ( !actively_writing ) c_buff.flip();
+
+          int poss = c_buff.remaining();
           
-        if ( cache_buffer.buff.position() == CACHE_SIZE || force_flush ) {
-          cache_buffer.buff.flip();
           int wrote = writeData( cache_buffer );
-          //System.out.println(wrote+ " " +force_flush);
-          cache_buffer.buff.clear();
-          cache_buffer.buff.limit( CACHE_SIZE );
-          force_flush = false;
+                   
+          if ( WRITE_DEBUG ) {
+            //System.out.println( wrote + " [" +poss+ "] F:" + force_flush + " A:" + actively_writing );
+          }
+          
+          if ( wrote == 0 ) {
+          	int size = doubleSendBufferSize();
+          	if (WRITE_DEBUG) System.out.println("increasing send buffer size: " +size);
+          }
+
+          if ( !c_buff.hasRemaining() ) { //done writing the cache buffer
+            c_buff.position( 0 );
+            c_buff.limit( MSS_SIZE );
+            actively_writing = false;
+          }
+          else actively_writing = true;
         }
-        
-        //written = writeData( writeBuffer );
-        
-  			
+
   			if (written < 0)
   				throw new IOException("End of Stream Reached");
-  			writeBuffer.buff.limit(realLimit);
   			
   			if (writeData && written > 0 ) {
   				stats.sent(written);
@@ -1281,6 +1315,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
   			
       		writeBuffer.buff.position(0);
   			  writeData = false;
+          if ( !protocolQueue.isEmpty() ) queues_empty = false;
   			  //and loop
   			  write();
   			  return PEPeerControl.NO_SLEEP;
@@ -1327,6 +1362,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       				
       				writeBuffer.buff.position(0);
       				writeData = true;
+              if ( !dataQueue.isEmpty() ) queues_empty = false;
       				PEPeerTransportSpeedLimiter.getLimiter().addUploader(this);
       				// and loop
       				write();
@@ -1351,13 +1387,16 @@ private class StateTransfering implements PEPeerTransportProtocolState {
       synchronized( protocolQueue ) {
         synchronized( dataQueue ) {
         	if ((protocolQueue.size() == 0) && (dataQueue.size() == 0)) {
-            force_flush = true;
+            queues_empty = true;
         		keepAlive++;
         		if (keepAlive == 50 * 60 * 3) {
         			keepAlive = 0;
         			sendKeepAlive();
         		}
         	}
+          else {
+            queues_empty = false;
+          }
         }
       }
     
@@ -1811,5 +1850,7 @@ private class StateTransfering implements PEPeerTransportProtocolState {
 			  }
 	    }
 	}
+    
+  protected abstract int doubleSendBufferSize();
 		
 }
