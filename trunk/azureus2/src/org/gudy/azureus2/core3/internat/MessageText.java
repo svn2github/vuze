@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
  */
 public class MessageText {
 
-  public static final Locale LOCALE_ENGLISH = new Locale("en", "US");
+  public static final Locale LOCALE_ENGLISH = new Locale("en", "");
   public static final Locale LOCALE_DEFAULT = new Locale("", ""); // == english
   private static Locale LOCALE_CURRENT = LOCALE_DEFAULT;
   private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
@@ -238,6 +238,26 @@ public class MessageText {
         URL[] urls = {bundleFile.toURL(), jarURL};
         newResourceBundle = ResourceBundle.getBundle("MessagesBundle", newLocale, 
                                                       new URLClassLoader(urls));
+        if (newResourceBundle == null || 
+            !newResourceBundle.getLocale().getLanguage().equals(newLocale.getLanguage())) {
+          // try it without the country
+          Locale localeJustLang = new Locale(newLocale.getLanguage());
+          newResourceBundle = ResourceBundle.getBundle("MessagesBundle", localeJustLang, 
+                                                        new URLClassLoader(urls));
+          
+          if (newResourceBundle == null ||
+              !newResourceBundle.getLocale().getLanguage().equals(localeJustLang.getLanguage())) {
+            // find first language we have in our list
+            Locale[] locales = getLocales();
+            for (int i = 0; i < locales.length; i++) {
+              if (locales[i].getLanguage() == newLocale.getLanguage()) {
+                newResourceBundle = ResourceBundle.getBundle("MessagesBundle", locales[i], 
+                                                              new URLClassLoader(urls));
+                break;
+              }
+            }
+          }
+        }
       } catch (MissingResourceException e) {
         System.out.println("changeLocale: no resource bundle for " + newLocale);
         e.printStackTrace();
@@ -246,13 +266,24 @@ public class MessageText {
         e.printStackTrace();
       }
 
-      if (newResourceBundle != null && newResourceBundle.getLocale().equals(newLocale)) {
+      if (newResourceBundle != null) {
+        if (!newLocale.getLanguage().equals("en") && 
+            !newResourceBundle.getLocale().equals(newLocale))
+        {
+          String sNewLanguage = newResourceBundle.getLocale().getDisplayName();
+          if (sNewLanguage == null || sNewLanguage.trim().equals(""))
+            sNewLanguage = "default (English)";
+          System.out.println("changeLocale: no message properties for Locale '"+ 
+                             newLocale.getDisplayName() +
+                             "', using '" + sNewLanguage + "'");
+        }
+        newLocale = newResourceBundle.getLocale();
         Locale.setDefault(newLocale);
         LOCALE_CURRENT = newLocale;
         RESOURCE_BUNDLE = new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths);
         return true;
       } else
-        System.out.println("changeLocale: no message properties for Locale " + newLocale.getDisplayName());
+        return false;
     }
     return false;
   }
