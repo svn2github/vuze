@@ -30,5 +30,10 @@ DiskManagerListener
 {
 	public void
 	stateChanged(int oldState, int	newState );
+	
+	public void
+	filePriorityChanged();
 
+	public void
+	pieceDoneChanged();
 }

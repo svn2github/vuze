@@ -102,7 +102,9 @@ DiskManagerImpl
 	
 		// DiskManager listeners
 	
-	private static final int LDT_STATECHANGED		= 1;
+	private static final int LDT_STATECHANGED			= 1;
+	private static final int LDT_PRIOCHANGED			= 2;
+	private static final int LDT_PIECE_DONE_CHANGED		= 3;
 	
 	private ListenerManager	listeners 	= ListenerManager.createManager(
 			"DiskM:ListenDispatcher",
@@ -121,6 +123,14 @@ DiskManagerImpl
 						int params[] = (int[])value;
 						
   						listener.stateChanged(params[0], params[1]);
+  						
+					}else if (type == LDT_PRIOCHANGED) {
+						
+					    listener.filePriorityChanged();
+					    
+					}else if (type == LDT_PIECE_DONE_CHANGED) {
+						
+					    listener.pieceDoneChanged();
 					}
 				}
 			});		
@@ -881,6 +891,8 @@ DiskManagerImpl
 				
 			incrementRemaining( piece_length );
 		}
+		
+		listeners.dispatch(LDT_PIECE_DONE_CHANGED, null);
 	}
 	
 	public DiskManagerPiece[]
@@ -1464,6 +1476,11 @@ DiskManagerImpl
     skippedFileSetChanged()
     {
     	skipped_file_set_changed	= true;
+	    listeners.dispatch(LDT_PRIOCHANGED, null);
+    }
+
+	protected void priorityChanged() {
+	    listeners.dispatch(LDT_PRIOCHANGED, null);
     }
   
   private void loadFilePriorities() 

@@ -247,6 +247,7 @@ DiskManagerFileInfoImpl
    */
   public void setPriority(boolean b) {
 	priority = b;
+	diskManager.priorityChanged();
   }
 
   /**

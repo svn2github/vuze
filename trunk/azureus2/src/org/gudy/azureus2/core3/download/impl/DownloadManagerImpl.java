@@ -1692,6 +1692,16 @@ DownloadManagerImpl
   						informStateChanged( dl_state );
   					}
   				}
+
+                public void 
+				filePriorityChanged() 
+                {                    
+                }
+                
+               	public void
+            	pieceDoneChanged()
+            	{           		
+            	}
   			};
   		
   		diskManager.addListener( disk_manager_listener );

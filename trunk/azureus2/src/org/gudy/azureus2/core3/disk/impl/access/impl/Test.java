@@ -246,6 +246,16 @@ Test
 							Debug.printStackTrace( e );
 						}
 					}
+
+                    public void 
+					filePriorityChanged() 
+                    {
+                     }
+
+                	public void
+                	pieceDoneChanged()
+                	{           		
+                	}
 				});
 			
 	

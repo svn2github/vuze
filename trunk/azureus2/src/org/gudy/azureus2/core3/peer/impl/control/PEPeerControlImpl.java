@@ -308,15 +308,15 @@ PEPeerControlImpl
         
         if( !seeding_mode ) { //if we're not finished
 
-          _diskManager.computePriorityIndicator();
+          // if we have no downloadable pieces (due to "do not download")
+          // then we disconnect seeds and avoid calling these methods
+          // to save CPU.
+        	
+           _diskManager.computePriorityIndicator();
 
-          checkRequests(); //check the requests
-
-          	// if we have no downloadable pieces (due to "do not download")
-          	// then we disconnect seeds and avoid calling checkDLPossible
-          	// to save CPU
-          
           if (_diskManager.hasDownloadablePiece()) {
+
+              checkRequests(); //check the requests
           	
               checkDLPossible(); //look for downloadable pieces
               

@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.piecepicker.*;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
  * @author parg
@@ -40,19 +41,25 @@ public class
 DMPiecePickerImpl
 	implements DMPiecePicker, ParameterListener
 {
+	private static final long PRIORITY_COMPUTE_MIN	= 30*60*1000;
+	
 	private DiskManagerHelper		disk_manager;
 	
 	private boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
 	private boolean completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
 	private int		nbPieces;
 	private int 	pieceCompletion[];
-	private boolean	has_piece_to_download;
 	
+	private boolean	has_piece_to_download;
+	private boolean	compute_priority_recalc_outstanding;
+	private long	last_priority_computation;
 	
 	private BitSet[] priorityLists;
 	
 	//private int[][] priorityLists;
 
+	private MyDiskManagerListener myDiskManListener;
+	
 	public
 	DMPiecePickerImpl(
 		DiskManagerHelper		_disk_manager )
@@ -60,6 +67,32 @@ DMPiecePickerImpl
 		disk_manager	= _disk_manager;
 		
 		nbPieces	= disk_manager.getNumberOfPieces();
+		
+		myDiskManListener = new MyDiskManagerListener();
+	}
+	
+	/**
+	 * An instance of this listener is registered at disk_manager.
+	 * It updates the value returned by hasDownloadablePiece to reflect
+	 * changes in file/piece priority values.
+	 * @author Balazs Poka
+	 */
+	private class MyDiskManagerListener implements DiskManagerListener {
+
+        public void stateChanged(int oldState, int newState) {
+        }
+
+        public void filePriorityChanged() {
+            
+        	compute_priority_recalc_outstanding	= true;
+        }
+
+
+    	public void
+    	pieceDoneChanged()
+    	{
+    		compute_priority_recalc_outstanding	= true;
+    	}
 	}
 	
 	public void
@@ -68,6 +101,8 @@ DMPiecePickerImpl
 		COConfigurationManager.addParameterListener("Prioritize First Piece", this);
 		COConfigurationManager.addParameterListener("Prioritize Most Completed Files", this);
     
+		disk_manager.addListener(myDiskManListener);
+		
 		pieceCompletion = new int[nbPieces];
 		
 		has_piece_to_download	= true;
@@ -86,6 +121,7 @@ DMPiecePickerImpl
 	{
 		COConfigurationManager.removeParameterListener("Prioritize First Piece", this);
 		COConfigurationManager.removeParameterListener("Prioritize Most Completed Files", this);
+		disk_manager.removeListener(myDiskManListener);
 	}
 	
 	public void 
@@ -99,88 +135,104 @@ DMPiecePickerImpl
 	public void 
 	computePriorityIndicator() 
 	{
-		DiskManagerPiece[]	pieces	= disk_manager.getPieces();
+			// this has been changed to be driven by explicit changes in file priority
+			// and piece status rather than calculating every time.
+			// however, it is unsynchronised so there is a very small chance that we'll
+			// miss a recalc indication, hence the timer
 		
-		for (int i = 0; i < pieceCompletion.length; i++) {
-		  
-		   //if the piece is already complete, skip computation
-		   if (pieces[i].getDone()) {
-		     pieceCompletion[i] = -1;
-		     continue;
-		   }
-      
-			PieceList pieceList = disk_manager.getPieceList(i);
-			int completion = -1;
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( 	compute_priority_recalc_outstanding ||
+				now - last_priority_computation >= PRIORITY_COMPUTE_MIN ||
+				now < last_priority_computation ){	// clock changed
+						
+			last_priority_computation			= now;
+			compute_priority_recalc_outstanding	= false;
 			
-			for (int k = 0; k < pieceList.size(); k++) {
-				//get the piece and the file 
-				DiskManagerFileInfoImpl fileInfo = (pieceList.get(k)).getFile();
+			DiskManagerPiece[]	pieces	= disk_manager.getPieces();
+			
+			for (int i = 0; i < pieceCompletion.length; i++) {
+			  
+			   //if the piece is already complete, skip computation
+			   if (pieces[i].getDone()) {
+			     pieceCompletion[i] = -1;
+			     continue;
+			   }
+	      
+				PieceList pieceList = disk_manager.getPieceList(i);
+				int completion = -1;
 				
-				//If the file isn't skipped
-				if(fileInfo.isSkipped()) {
-					continue;
-				}
-
-				//if this is the first or last piece of the file
-				if( firstPiecePriority && (i == fileInfo.getFirstPieceNumber() || i == fileInfo.getLastPieceNumber() ) ) {
-				  if (fileInfo.isPriority()) completion = 99;
-				  else if (completion < 97) completion = 97;
-				}
-        
-				//if the file is high-priority
-				else if (fileInfo.isPriority()) {
-				  if (completion < 98) completion = 98;
-				}
-				
-				//If the file is started but not completed
-				else if(completionPriority) {
-				  int percent = 0;
-				  if (fileInfo.getLength() != 0) {
-				    percent = (int) ((fileInfo.getDownloaded() * 100) / fileInfo.getLength());
-				  }
-				  //if percent is less than 100 AND higher than current completion level
-				  if (percent < 100 && completion < percent) {
-				    completion = percent;
-				  }
-				}
-				else {
-				  if(completion < 0) completion = 0;
-				}
-			}
-      
-			pieceCompletion[i] = completion;
-		}
-
-		// this clears and resizes all priorityLists to the
-		// length of pieceCompletion
-		for (int i = 0; i < priorityLists.length; i++) {
-			BitSet list = priorityLists[i];
-			if (list == null) {
-				list = new BitSet(pieceCompletion.length);
-			} else {
-				list.clear();
-			}
-			priorityLists[i]=list;
-		}
-		
+				int size=pieceList.size();
+				for (int k = 0; k < size; k++) {
+					//get the piece and the file 
+					DiskManagerFileInfoImpl fileInfo = (pieceList.get(k)).getFile();
+					
+					//If the file isn't skipped
+					if(fileInfo.isSkipped()) {
+						continue;
+					}
 	
-		has_piece_to_download	= false;
-		
-			// for all pieces, set the priority bits accordingly
-		
-		for (int i = 0; i < pieceCompletion.length; i++) {
+					//if this is the first or last piece of the file
+					if( firstPiecePriority && (i == fileInfo.getFirstPieceNumber() || i == fileInfo.getLastPieceNumber() ) ) {
+					  if (fileInfo.isPriority()) completion = 99;
+					  else if (completion < 97) completion = 97;
+					}
+	        
+					//if the file is high-priority
+					else if (fileInfo.isPriority()) {
+					  if (completion < 98) completion = 98;
+					}
+					
+					//If the file is started but not completed
+					else if(completionPriority) {
+					  int percent = 0;
+					  if (fileInfo.getLength() != 0) {
+					    percent = (int) ((fileInfo.getDownloaded() * 100) / fileInfo.getLength());
+					  }
+					  //if percent is less than 100 AND higher than current completion level
+					  if (percent < 100 && completion < percent) {
+					    completion = percent;
+					  }
+					}
+					else {
+					  if(completion < 0) completion = 0;
+					}
+				}
+	      
+				pieceCompletion[i] = completion;
+			}
+	
+			// this clears and resizes all priorityLists to the
+			// length of pieceCompletion
+			for (int i = 0; i < priorityLists.length; i++) {
+				BitSet list = priorityLists[i];
+				if (list == null) {
+					list = new BitSet(pieceCompletion.length);
+				} else {
+					list.clear();
+				}
+				priorityLists[i]=list;
+			}
 			
-			int priority = pieceCompletion[i];
+		
+			has_piece_to_download	= false;
 			
-			if ( priority >= 0 ){
+				// for all pieces, set the priority bits accordingly
+			
+			for (int i = 0; i < pieceCompletion.length; i++) {
 				
-				has_piece_to_download	= true;
+				int priority = pieceCompletion[i];
 				
-				priorityLists[priority].set(i);
+				if ( priority >= 0 ){
+					
+					has_piece_to_download	= true;
+					
+					priorityLists[priority].set(i);
+				}
 			}
 		}
 	}
-
+	
 	 /*
 	// searches from 0 to searchLength-1
     public static int binarySearch(int[] a, int key, int searchLength) {
