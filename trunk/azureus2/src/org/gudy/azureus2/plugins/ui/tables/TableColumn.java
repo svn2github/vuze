@@ -174,4 +174,8 @@ public interface TableColumn {
    * @param listener Previously added listener
    */
   public void removeCellRefreshListener(TableCellRefreshListener listener);
+
+
+  public void addCellAddedListener(TableCellAddedListener listener);
+  public void removeCellAddedListener(TableCellAddedListener listener);
 }
