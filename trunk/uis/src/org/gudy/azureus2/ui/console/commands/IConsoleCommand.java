@@ -23,9 +23,12 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 public abstract class IConsoleCommand {
 	private final Set commandNames = new HashSet();
 	
-	public IConsoleCommand(String []commandNames)
+	public IConsoleCommand(String []_commandNames)
 	{
-		Collections.addAll(this.commandNames, commandNames);
+		for (int i=0;i<_commandNames.length;i++){
+			
+			commandNames.add( _commandNames[i] );
+		}
 	}
 	
 	public IConsoleCommand()
