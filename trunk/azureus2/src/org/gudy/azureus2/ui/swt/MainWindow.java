@@ -624,6 +624,8 @@ public class MainWindow implements IComponentListener {
   private void showSplashWindow() {
     if(splash == null) {
       splash = new Shell(display, SWT.ON_TOP);
+      splash.setText("Azureus");
+      splash.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/icons/azureus.png", "azureus")); //$NON-NLS-1$
       Label label = new Label(splash, SWT.NONE);
       label.setImage(ImageRepository.loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash"));
       splash.setLayout(new FormLayout());
@@ -647,7 +649,7 @@ public class MainWindow implements IComponentListener {
   private void showAboutWindow() {
     final Shell s = new Shell(mainWindow, SWT.CLOSE | SWT.PRIMARY_MODAL);
     s.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
-    s.setText(MessageText.getString("MainWindow.about.title")); //$NON-NLS-1$
+    s.setText(MessageText.getString("MainWindow.about.title") + " " + VERSION); //$NON-NLS-1$
     GridData gridData;
     s.setLayout(new GridLayout(1, true));
     s.setLayoutData(gridData = new GridData());
@@ -871,14 +873,16 @@ public class MainWindow implements IComponentListener {
     child.y = parent.y + (parent.height - child.height) / 2;
     s.setBounds(child);
 
+    closeSplashWindow();
     s.open();
     s.setFocus();
 
     while (!s.isDisposed()) {
-      if (!display.readAndDispatch())
-      display.sleep();
+      if (!display.readAndDispatch()) {
+        display.sleep();
+      }
     } //end while
-}
+  }
 
   private void updateJar() {
     FileOutputStream out = null;
@@ -895,10 +899,12 @@ public class MainWindow implements IComponentListener {
         con.connect();
         in = con.getInputStream();
         out = new FileOutputStream(updaterJar);
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[2048];
         int c;
-        while ((c = in.read(buffer)) != -1)
+        while ((c = in.read(buffer)) != -1) {
           out.write(buffer, 0, c);
+          display.readAndDispatch();
+        }
       }
 
       String exec = "java -classpath \"" + updaterJar.getAbsolutePath() + "\" org.gudy.azureus2.update.Updater \"" //$NON-NLS-1$ //$NON-NLS-2$
@@ -954,7 +960,7 @@ public class MainWindow implements IComponentListener {
       final FileOutputStream output = fos;
 
       final long length = con.getContentLength();
-      final byte[] buffer = new byte[32768];
+      final byte[] buffer = new byte[8192];
       int c;
       long bytesDownloaded = 0L;
       while ((c = input.read(buffer)) != -1) {
@@ -963,10 +969,7 @@ public class MainWindow implements IComponentListener {
         int progress = (int) Math.round(((double) bytesDownloaded / length) * 100);
         progressBar.setSelection(progress <= 100 ? progress : 100);
         progressBar.update();
-        try {
-          Thread.sleep(1000);
-        } catch (InterruptedException e1) {
-        }
+        display.readAndDispatch();
       }
       jarDownloaded = true;
     } catch (MalformedURLException e) {
