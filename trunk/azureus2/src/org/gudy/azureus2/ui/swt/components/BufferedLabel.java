@@ -85,4 +85,9 @@ BufferedLabel
 		
 		label.setText( value==null?"":value );	
 	}
+
+  public String getText() {
+    return label.getText();
+  }
+      
 }

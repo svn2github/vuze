@@ -7,6 +7,11 @@ package org.gudy.azureus2.ui.swt.views;
 import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
@@ -296,6 +301,20 @@ public class GeneralView extends AbstractIView {
 
     label = new Label(gInfo, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.trackerurl"); //$NON-NLS-1$
+    label.setCursor(MainWindow.handCursor);
+    label.setForeground(MainWindow.blue);
+    label.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+        String announce = trackerUrlValue.getText();
+        if(announce != null && announce.length() != 0)
+          new Clipboard(display).setContents(new Object[] {announce, new Transfer[] {TextTransfer.getInstance()});
+      }
+      public void mouseDown(MouseEvent arg0) {
+        String announce = trackerUrlValue.getText();
+        if(announce != null && announce.length() != 0)
+          new Clipboard(display).setContents(new Object[] {announce, new Transfer[] {TextTransfer.getInstance()});
+      }
+    });
     trackerUrlValue = new BufferedLabel(gInfo, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
