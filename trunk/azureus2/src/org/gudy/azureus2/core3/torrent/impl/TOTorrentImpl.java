@@ -121,8 +121,12 @@ TOTorrentImpl
 						
 						try{
 							os = new FileOutputStream( output_file );
+                            
+                     os.getChannel().force(true);
 							
 							os.write( res );
+                            
+                     os.flush();
 						
 							os.close();
 							
