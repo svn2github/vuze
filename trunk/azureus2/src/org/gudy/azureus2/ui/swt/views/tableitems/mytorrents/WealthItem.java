@@ -24,6 +24,8 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
@@ -55,21 +57,43 @@ public class WealthItem extends TorrentItem  {
     if(bounds == null)
       return;
     
+    Table	table = row.getTable();
+    
     //Get the table GC
-    GC gc = new GC(row.getTable());
+    GC gc = new GC(table);
     gc.setClipping(bounds);
-    Image image = ImageRepository.getImage("st_stopped");   
+        
+    String	image_name = "st_stopped";
+    
     DownloadManager manager = torrentRow.getManager();
     int wealth = manager.getWealthyStatus();
     if(wealth == DownloadManager.WEALTH_KO) {
-      image = ImageRepository.getImage("st_ko");   
+    	image_name = "st_ko";   
     } else if (wealth == DownloadManager.WEALTH_OK) {
-      image = ImageRepository.getImage("st_ok");   
+    	image_name = "st_ok";   
     } else if (wealth == DownloadManager.WEALTH_NO_TRACKER) {
-      image = ImageRepository.getImage("st_no_tracker");   
+    	image_name = "st_no_tracker";   
     }else if (wealth == DownloadManager.WEALTH_NO_REMOTE) {
-      image = ImageRepository.getImage("st_no_remote");   
+    	image_name = "st_no_remote";   
     }
+    
+    if ( table.getSelectionCount() > 0 ){
+    	
+    	TableItem[]	rows = table.getSelection();
+    	
+    	for (int i=0;i<rows.length;i++){
+    		
+    		if ( rows[i] == row.getItem()){
+    			
+    			image_name += "_selected";
+    			
+    			break;
+    		}
+    	}
+    }
+    
+    Image image = ImageRepository.getImage(image_name);
+    
     if(image != null)
       gc.drawImage(image, bounds.x + 1, bounds.y + 1);      
     gc.dispose();    
