@@ -175,7 +175,7 @@ public class Identification {
       if ((iFirstNonZeroPos == 12) && (peerID[12] == (byte)0) && (peerID[13] == (byte)0)) {
         return "Experimental 3.1";
       }
-      if (iFirstNonZeroPos == 12) return "Bram's Original";
+      if (iFirstNonZeroPos == 12) return "Mainline";
       
     }
     catch (Exception e) { Debug.out(e.toString()); }
