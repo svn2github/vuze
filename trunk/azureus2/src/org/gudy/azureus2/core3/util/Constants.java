@@ -16,6 +16,7 @@ public class
 Constants 
 {
   public static final String SF_WEB_SITE		= "http://azureus.sourceforge.net/";
+  public static final String AELITIS_WEB_SITE    = "http://azureus.aelitis.com/";
   
   public static final String DEFAULT_ENCODING 	= "UTF8";
   public static final String BYTE_ENCODING 		= "ISO-8859-1";

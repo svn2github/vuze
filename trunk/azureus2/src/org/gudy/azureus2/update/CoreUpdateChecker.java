@@ -97,7 +97,7 @@ CoreUpdateChecker
 	getVersionURL()
 		throws MalformedURLException, UnsupportedEncodingException
 	{
-		String url_str = Constants.SF_WEB_SITE + "version.php";
+		String url_str = Constants.AELITIS_WEB_SITE + "version.php";
 		
 		String id = COConfigurationManager.getStringParameter("ID",null);
 		
