@@ -120,6 +120,10 @@ RPPluginConfig
 			
 			return( new RPReply( new Integer( delegate.getPluginIntParameter((String)params[0],((Integer)params[1]).intValue()))));
 			
+		}else if ( method.equals( "getPluginStringParameter[String,String]")){
+				
+			return( new RPReply( delegate.getPluginStringParameter((String)params[0],(String)params[1])));
+		
 		}else if ( method.equals( "setPluginParameter[String,int]")){
 				
 			delegate.setPluginParameter((String)params[0],((Integer)params[1]).intValue());
@@ -257,9 +261,9 @@ RPPluginConfig
 	  
 	  public String getPluginStringParameter(String key,String defaultValue)
 	  {
-	  	notSupported();
-	  	
-	  	return(null);
+		String	res = (String)_dispatcher.dispatch( new RPRequest( this, "getPluginStringParameter[String,String]", new Object[]{key,defaultValue} )).getResponse();
+		
+		return( res );
 	  }
 	  
 	  public boolean getPluginBooleanParameter(String key)

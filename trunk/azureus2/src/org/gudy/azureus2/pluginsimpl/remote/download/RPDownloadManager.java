@@ -83,7 +83,8 @@ RPDownloadManager
 	_process(
 		RPRequest	request	)
 	{
-		String	method = request.getMethod();
+		String		method 	= request.getMethod();
+		Object[]	params	= request.getParams();
 		
 		if ( method.equals( "getDownloads")){
 			
@@ -125,6 +126,22 @@ RPDownloadManager
 				throw( new RPException("DownloadManager::addDownload failed", e ));
 			}
 		
+		}else if ( method.equals( "addDownload[Torrent,String,String]" )){
+			
+			try{
+				RPTorrent	torrent = (RPTorrent)request.getParams()[0];
+				File		f1 = params[1]==null?null:new File((String)params[1]);
+				File		f2 = params[2]==null?null:new File((String)params[2]);
+				
+				Download res = delegate.addDownload((Torrent)torrent._setLocal(), f1, f2 );
+				
+				return( new RPReply( RPDownload.create(res)));
+				
+			}catch( DownloadException e ){
+				
+				throw( new RPException("DownloadManager::addDownload failed", e ));
+			}
+			
 		}else if ( method.equals( "addDownload[URL]" )){
 				
 			try{
@@ -195,10 +212,29 @@ RPDownloadManager
 	
 		throws DownloadException
 	{
-		notSupported();
+		try{
+			RPDownload	res = (RPDownload)_dispatcher.dispatch( 
+					new RPRequest( this, "addDownload[Torrent,String,String]", 
+							new Object[]{
+								torrent,
+								torrent_location==null?null:torrent_location.toString(),
+								data_location==null?null:data_location.toString(),
+							})).getResponse();
+			
+			res._setRemote( _dispatcher );
 		
-		return( null );
-	}	
+			return( res );
+			
+		}catch( RPException e ){
+			
+			if ( e.getCause() instanceof DownloadException ){
+				
+				throw((DownloadException)e.getCause());
+			}
+			
+			throw( e );
+		}	
+	}
 	
 	public Download
 	addNonPersistentDownload(
