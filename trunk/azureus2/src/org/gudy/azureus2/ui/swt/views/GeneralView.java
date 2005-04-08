@@ -230,7 +230,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 
     GridLayout layoutInfo = new GridLayout();
     layoutInfo.numColumns = 4;
-    layoutInfo.horizontalSpacing = 3;
+    layoutInfo.horizontalSpacing = 5;
     
     layoutInfo.marginHeight = 0;
     layoutInfo.marginWidth = 0;
@@ -242,7 +242,6 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     gridData = new GridData();
     if( Constants.isLinux )  gridData.widthHint = 40;
     else gridData.widthHint = 35;
-    
     
     maxUploads.setLayoutData(gridData);
     maxUploads.setText(String.valueOf(manager.getStats().getMaxUploads()));
@@ -290,7 +289,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     label = new Label(culdl, SWT.LEFT);
     label.setText( MessageText.getString( "GeneralView.label.maxuploadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+":");
     Messages.setLanguageText(label, "GeneralView.label.maxuploadspeed.tooltip", true);
-    
+     
     maxULSpeed = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
     
@@ -329,14 +328,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 
     
     label = new Label(culdl, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.totalspeed"); //$NON-NLS-1$
-    totalSpeed = new BufferedLabel(culdl, SWT.LEFT);
-    gridData = new GridData();
-    
-    if( Constants.isLinux )  gridData.widthHint = 70;
-    else gridData.widthHint = 65;
-
-    totalSpeed.setLayoutData(gridData);
+    label = new Label(culdl, SWT.LEFT);
     
 //  dl speed
     
@@ -383,19 +375,27 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     	// blah
     
     label = new Label(gTransfer, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.seeds"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.seeds");
     seeds = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     seeds.setLayoutData(gridData);
 
     label = new Label(gTransfer, SWT.LEFT);
-    Messages.setLanguageText(label, "GeneralView.label.peers"); //$NON-NLS-1$
+    Messages.setLanguageText(label, "GeneralView.label.peers"); 
     peers = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     peers.setLayoutData(gridData);
 
+    
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.totalspeed"); 
+    totalSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    totalSpeed.setLayoutData(gridData);
+    
+
     gInfo = new Group(genComposite, SWT.SHADOW_OUT);
-    Messages.setLanguageText(gInfo, "GeneralView.section.info"); //$NON-NLS-1$
+    Messages.setLanguageText(gInfo, "GeneralView.section.info"); 
     gridData = new GridData(GridData.FILL_BOTH);
     gInfo.setLayoutData(gridData);
 
@@ -722,8 +722,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     String seeds_str = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
     String peers_str = manager.getNbPeers() +" "+ MessageText.getString("GeneralView.label.connected");
     if(hd != null && hd.isValid()) {
-      seeds_str += " (" + hd.getSeeds() +" "+ MessageText.getString("GeneralView.label.in_swarm") + ")";
-      peers_str += " (" + hd.getPeers() +" "+ MessageText.getString("GeneralView.label.in_swarm") + ")";
+      seeds_str += " ( " + hd.getSeeds() +" "+ MessageText.getString("GeneralView.label.in_swarm") + " )";
+      peers_str += " ( " + hd.getPeers() +" "+ MessageText.getString("GeneralView.label.in_swarm") + " )";
     } else {
       //seeds += " (?)";
       //peers += " (?)";
@@ -740,12 +740,16 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     }
     DownloadManagerStats	stats = manager.getStats();
     
+    long average = manager.getNbPeers() < 1 ? 0 : stats.getTotalAverage() / manager.getNbPeers();
+    String swarm_speed = DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getTotalAverage() ) + " ( " +DisplayFormatters.formatByteCountToKiBEtcPerSec( average )+ " " +MessageText.getString("GeneralView.label.averagespeed") + " )";
+    
+    
     setStats(
 		DisplayFormatters.formatDownloaded(stats),
 		DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesSent()),
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()),
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()),
-		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getTotalAverage()),
+		swarm_speed,
 		""+manager.getStats().getMaxDownloadKBSpeed(),
 		""+(manager.getStats().getUploadRateLimitBytesPerSecond()/1024),
       	seeds_str,
