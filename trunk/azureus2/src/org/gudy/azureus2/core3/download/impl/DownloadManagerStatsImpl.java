@@ -478,5 +478,14 @@ DownloadManagerStatsImpl
 	public int getUploadRateLimitBytesPerSecond() {  return max_upload_rate_bps;  }
 
 	public void setUploadRateLimitBytesPerSecond( int max_rate_bps ) {  max_upload_rate_bps = max_rate_bps;  }
+  
+  
+  public int getDownloadRateLimitBytesPerSecond() {
+    return getMaxDownloadKBSpeed() * 1024;
+  }
+  
+  public void setDownloadRateLimitBytesPerSecond( int max_rate_bps ) {
+    setMaxDownloadKBSpeed( max_rate_bps / 1024 );
+  }
     
 }
