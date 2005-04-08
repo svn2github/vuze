@@ -150,6 +150,12 @@ public class DownloadingUnchoker implements Unchoker {
         best_peers.add( peer );
         if( force_refresh )  peer.setOptimisticUnchoke( true );
       }
+      else {
+        //we're here because the given optimistic peer is already "best", but is choked still,
+        //which means it will continually get picked by the getNextOptimisticPeer() method,
+        //and we'll loop forever if there are no other peers to choose from
+        peer.sendUnChoke();  //send unchoke immediately, so it won't get picked optimistically anymore
+      }
     }
     
 

@@ -106,10 +106,6 @@ public class UnchokerUtil {
     
     PEPeerTransport peer = (PEPeerTransport)optimistics.get( rand_pos );
     
-    if( peer.isSnubbed() ) {
-      System.out.println( "["+(System.currentTimeMillis()/1000)+"] getNextOptimisticPeer():: returned snubbed peer " +peer.getConnection() );
-    }
-    
     return peer;
     
     //TODO:
