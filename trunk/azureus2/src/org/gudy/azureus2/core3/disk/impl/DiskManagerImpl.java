@@ -22,27 +22,34 @@
 
 package org.gudy.azureus2.core3.disk.impl;
 
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.access.DMAccessFactory;
+import org.gudy.azureus2.core3.disk.impl.access.DMReader;
+import org.gudy.azureus2.core3.disk.impl.access.DMWriterAndChecker;
+import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePicker;
+import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePickerFactory;
+import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
+import org.gudy.azureus2.core3.internat.LocaleUtilEncodingException;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerException;
+
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
-
-
-import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.piecepicker.*;
-import org.gudy.azureus2.core3.disk.impl.access.*;
-import org.gudy.azureus2.core3.disk.impl.resume.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.internat.*;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
-import org.gudy.azureus2.core3.util.*;
-
-import com.aelitis.azureus.core.diskmanager.cache.*;
 
 /**
  * 
@@ -1419,59 +1426,83 @@ DiskManagerImpl
 			if (torrent.isSimpleTorrent()){
 
 				FileUtil.deleteWithRecycle(new File( torrent_save_dir, torrent_save_file ));
-				
+
 			}else{
-				
-				LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
-	
-				TOTorrentFile[] files = torrent.getFiles();
-	
-					// delete all files, then empty directories
-	
-				for (int i=0;i<files.length;i++){
-				
-					byte[][]path_comps = files[i].getPathComponents();
-				
-					String	path_str = torrent_save_dir + File.separator + torrent_save_file + File.separator;
-					
-					for (int j=0;j<path_comps.length;j++){
-						
-						try{
-							
-							String comp = locale_decoder.decodeString( path_comps[j] );
-							
-							comp = FileUtil.convertOSSpecificChars( comp );
-							
-							path_str += (j==0?"":File.separator) + comp;
-						
-						}catch( UnsupportedEncodingException e ){
-							
-							System.out.println( "file - unsupported encoding!!!!");	
-						}
-					}
-				
-					File file = new File(path_str);
-					
-					if (file.exists() && !file.isDirectory()){
-				  
-						try{
-							FileUtil.deleteWithRecycle( file );
-							
-						}catch (Exception e){
-							
-							Debug.out(e.toString());
-						}
-					}
-				}
-							
-				FileUtil.recursiveEmptyDirDelete(new File( torrent_save_dir, torrent_save_file ));
-			}
+
+                PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
+                if( Constants.isOSX &&
+                      torrent_save_file.length() > 0 &&
+                      COConfigurationManager.getBooleanParameter("Move Deleted Data To Recycle Bin" ) &&
+                      mgr.hasCapability(PlatformManagerCapabilities.RecoverableFileDelete) ) {
+
+                    try
+                    {
+                        mgr.performRecoverableFileDelete(torrent_save_dir + File.separatorChar + torrent_save_file + File.separatorChar);
+                    }
+                    catch(PlatformManagerException ex)
+                    {
+                        deleteDataFileContents( torrent, torrent_save_dir, torrent_save_file );
+                    }
+                }
+                else{
+                    deleteDataFileContents(torrent, torrent_save_dir, torrent_save_file);
+                }
+
+            }
 		}catch( Throwable e ){
 		
 			Debug.printStackTrace( e );
 		}
 	}
-  
+
+    private static void deleteDataFileContents(TOTorrent torrent, String torrent_save_dir, String torrent_save_file)
+            throws TOTorrentException, UnsupportedEncodingException, LocaleUtilEncodingException
+    {
+        LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+
+        TOTorrentFile[] files = torrent.getFiles();
+
+        // delete all files, then empty directories
+
+        for (int i=0;i<files.length;i++){
+
+            byte[][]path_comps = files[i].getPathComponents();
+
+            String	path_str = torrent_save_dir + File.separator + torrent_save_file + File.separator;
+
+            for (int j=0;j<path_comps.length;j++){
+
+                try{
+
+                    String comp = locale_decoder.decodeString( path_comps[j] );
+
+                    comp = FileUtil.convertOSSpecificChars( comp );
+
+                    path_str += (j==0?"":File.separator) + comp;
+
+                }catch( UnsupportedEncodingException e ){
+
+                    System.out.println( "file - unsupported encoding!!!!");
+                }
+            }
+
+            File file = new File(path_str);
+
+            if (file.exists() && !file.isDirectory()){
+
+                try{
+                    FileUtil.deleteWithRecycle( file );
+
+                }catch (Exception e){
+
+                    Debug.out(e.toString());
+                }
+            }
+        }
+
+        FileUtil.recursiveEmptyDirDelete(new File( torrent_save_dir, torrent_save_file ));
+    }
+
     protected void
     skippedFileSetChanged()
     {

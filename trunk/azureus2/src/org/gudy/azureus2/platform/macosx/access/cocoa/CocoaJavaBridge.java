@@ -26,10 +26,11 @@ import com.apple.cocoa.foundation.NSAppleEventDescriptor;
 import com.apple.cocoa.foundation.NSAppleScript;
 import com.apple.cocoa.foundation.NSAutoreleasePool;
 import com.apple.cocoa.foundation.NSMutableDictionary;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.platform.macosx.NativeInvocationBridge;
 
 import java.io.File;
@@ -39,7 +40,7 @@ import java.text.MessageFormat;
  * <p>Performs PlatformManager tasks using Cocoa-Java (FoundationKit only)</p>
  * <p>For now, operations are performed using NSAppleScript, rather than using NSWorkspace.
  * This is still significantly faster than calling the cmd-line osascript.</p>
- * @version 2.0
+ * @version 2.1 Apr 2, 2005
  */
 public final class CocoaJavaBridge extends NativeInvocationBridge
 {
@@ -66,6 +67,8 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
 
     protected boolean isDisposed = false;
 
+    protected RunnableDispatcher scriptDispatcher;
+
     public CocoaJavaBridge()
     {
         try
@@ -75,6 +78,8 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
 
             PF_SCRIPT = new NSAppleScript(PF_SCRIPT_SRC);
             USE_PF = PF_SCRIPT.compile(new NSMutableDictionary());
+
+            scriptDispatcher = new RunnableDispatcher();
         }
         finally
         {
@@ -92,7 +97,7 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
         if(!path.exists())
             return false;
 
-        NSAppleEventDescriptor result =  executeScriptWithNewThread(DEL_SCRIPT_FORMAT, new Object[]{path.getAbsolutePath()});
+        NSAppleEventDescriptor result =  executeScriptWithAsync(DEL_SCRIPT_FORMAT, new Object[]{path.getAbsolutePath()});
         return (result != null);
     }
 
@@ -114,7 +119,7 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
                 fb = "Path Finder";
         }
 
-        NSAppleEventDescriptor result =  executeScriptWithNewThread(REVEAL_SCRIPT_FORMAT, new Object[]{fb, path.getAbsolutePath()});
+        NSAppleEventDescriptor result =  executeScriptWithAsync(REVEAL_SCRIPT_FORMAT, new Object[]{fb, path.getAbsolutePath()});
 
         NSAutoreleasePool.pop(pool);
         return (result != null);
@@ -209,7 +214,8 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
                 NSMutableDictionary errorInfo = new NSMutableDictionary();
                 if(new NSAppleScript(src).execute(errorInfo) == null)
                 {
-                    logWarning(String.valueOf(errorInfo.objectForKey(NSAppleScript.AppleScriptErrorBriefMessage)));
+                    Debug.out(String.valueOf(errorInfo.objectForKey(NSAppleScript.AppleScriptErrorMessage)));
+                    //logWarning(String.valueOf(errorInfo.objectForKey(NSAppleScript.AppleScriptErrorBriefMessage)));
                 }
 
                 Debug.outNoStack(MessageFormat.format("Elapsed time: {0}ms\n", new Object[]{new Long(System.currentTimeMillis() - start)}));
@@ -219,6 +225,64 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
 
         worker.setPriority(Thread.NORM_PRIORITY - 1);
         worker.start();
+
+        return NSAppleEventDescriptor.descriptorWithBoolean(true);
+    }
+
+    /**
+     * <p>Asynchronously executes a new instance of NSAppleScript</p>
+     * <p>This method always returns a "true" event descriptor. Callbacks are currently unsupported
+     * , so in the event of an error, the logger is autuomatically notified.</p>
+     * <p>The thread's runSupport method is wrapped in an autorelease pool. If there are
+     * no format parameters, MessageFormat is not used to parse the format string, and
+     * the format string will be treated as the source itself.</p>
+     * @see org.gudy.azureus2.core3.util.AEThread#runSupport()
+     * @see MessageFormat#format(String, Object...)
+     * @see NSAppleScript#execute(com.apple.cocoa.foundation.NSMutableDictionary)
+     * @return NSAppleEventDescriptor.descriptorWithBoolean(true)
+     */
+    protected final NSAppleEventDescriptor executeScriptWithAsync(final String scriptFormat, final Object[] params)
+    {
+        final AERunnable worker = new AERunnable()
+        {
+            public void runSupport()
+            {
+                int pool = NSAutoreleasePool.push();
+                long start = System.currentTimeMillis();
+
+                String src;
+                if(params == null || params.length == 0)
+                {
+                    src = scriptFormat;
+                }
+                else
+                {
+                    src = MessageFormat.format(scriptFormat, params);
+                }
+
+                Debug.outNoStack("Executing: \n" + src);
+
+                NSMutableDictionary errorInfo = new NSMutableDictionary();
+                if(new NSAppleScript(src).execute(errorInfo) == null)
+                {
+                    Debug.out(String.valueOf(errorInfo.objectForKey(NSAppleScript.AppleScriptErrorMessage)));
+                    //logWarning(String.valueOf(errorInfo.objectForKey(NSAppleScript.AppleScriptErrorBriefMessage)));
+                }
+
+                Debug.outNoStack(MessageFormat.format("Elapsed time: {0}ms\n", new Object[]{new Long(System.currentTimeMillis() - start)}));
+                NSAutoreleasePool.pop(pool);
+            }
+        };
+
+        AEThread t = new AEThread("ScriptObject", true)
+        {
+            public void runSupport()
+            {
+                scriptDispatcher.exec(worker);
+            }
+        };
+        t.setPriority(Thread.NORM_PRIORITY - 1);
+        t.start();
 
         return NSAppleEventDescriptor.descriptorWithBoolean(true);
     }
@@ -252,7 +316,7 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
             classMon.enter();
             if(!isDisposed)
             {
-                Debug.outNoStack("Disposing Native PlatformManager\u2026");
+                Debug.outNoStack("Disposing Native PlatformManager...");
                 NSAutoreleasePool.pop(mainPool);
                 isDisposed = true;
                 Debug.outNoStack("Done");
@@ -271,5 +335,24 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
     {
         dispose();
         super.finalize();
+    }
+
+    /**
+     * A dispatch object to help facilitate asychronous script execution (from the main thread) in a more
+     * predictable fashion.
+     */
+    private static class RunnableDispatcher
+    {
+        /**
+         * Executes a Runnable object while synchronizing the RunnableDispatcher instance.
+         * @param runnable A Runnable
+         */
+        private void exec(Runnable runnable)
+        {
+            synchronized(this)
+            {
+                runnable.run();
+            }
+        }
     }
 }
