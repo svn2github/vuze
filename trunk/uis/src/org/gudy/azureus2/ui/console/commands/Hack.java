@@ -96,7 +96,7 @@ public class Hack extends TorrentCommand {
 		}
 		
 		public String getCommandDescriptions() {
-			return "downloadspeed\td\tModify max download speed of a torrent [kbps] (0 for unlimited).";
+			return "downloadspeed\td\tSet max download speed [in kbps]of a torrent (0 for unlimited).";
 		}
 		
 		/**
@@ -122,7 +122,7 @@ public class Hack extends TorrentCommand {
 		}
 		
 		public String getCommandDescriptions() {
-			return "uploadspeed\tu\tModify max upload speed of a torrent [kbps] (0 for unlimited).";
+			return "uploadspeed\tu\tSet max upload speed [in kbps] of a torrent (0 for unlimited).";
 		}
 		
 		/**
