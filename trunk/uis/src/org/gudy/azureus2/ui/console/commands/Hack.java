@@ -31,6 +31,8 @@ public class Hack extends TorrentCommand {
 		super(new String[] { "hack", "#" }, "Hacking");
 		addSubCommand(new HackFile());
 		addSubCommand(new HackTracker());
+		addSubCommand(new HackDownloadSpeed());
+		addSubCommand(new HackUploadSpeed());
 	}
 	
 	public String getCommandDescriptions()
@@ -83,6 +85,58 @@ public class Hack extends TorrentCommand {
 		{
 			ci.out.println("> Command 'hack': Command parameter '" + subCommandName + "' unknown.");
 			return false;
+		}
+	}
+	
+	private static class HackDownloadSpeed extends TorrentSubCommand
+	{
+		public HackDownloadSpeed()
+		{
+			super(new String[] { "downloadspeed", "d" });
+		}
+		
+		public String getCommandDescriptions() {
+			return "downloadspeed\td\tModify max download speed of a torrent [kbps] (0 for unlimited).";
+		}
+		
+		/**
+		 * locate the appropriate subcommand and execute it 
+		 */
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
+		{
+			if (args.isEmpty()) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand '" + getCommandName() + "'");
+				return false;
+			}
+			int newSpeed = Math.max(-1, Integer.parseInt((String) args.get(0)));
+			dm.getStats().setDownloadRateLimitBytesPerSecond(newSpeed*1024);
+			return true;
+		}
+	}
+	
+	private static class HackUploadSpeed extends TorrentSubCommand
+	{
+		public HackUploadSpeed()
+		{
+			super(new String[] { "uploadspeed", "u" });
+		}
+		
+		public String getCommandDescriptions() {
+			return "uploadspeed\tu\tModify max upload speed of a torrent [kbps] (0 for unlimited).";
+		}
+		
+		/**
+		 * locate the appropriate subcommand and execute it 
+		 */
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
+		{
+			if (args.isEmpty()) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand '" + getCommandName() + "'");
+				return false;
+			}
+			int newSpeed = Math.max(-1, Integer.parseInt((String) args.get(0)));
+			dm.getStats().setUploadRateLimitBytesPerSecond(newSpeed*1024);
+			return true;
 		}
 	}
 	
