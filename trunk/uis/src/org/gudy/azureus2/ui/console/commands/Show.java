@@ -287,7 +287,18 @@ public class Show extends IConsoleCommand {
 			case 's':
 				return Integer.toString(dm.getNbSeeds());
 			case 'p':
-				return Integer.toString(dm.getNbPeers());
+				return Integer.toString(dm.getNbPeers());	
+			case 'I':
+				int downloadSpeed = dm.getStats().getDownloadRateLimitBytesPerSecond();
+				if( downloadSpeed <= 0 )
+					return "";
+				return "(max " + DisplayFormatters.formatByteCountToKiBEtcPerSec(downloadSpeed) + ")";
+			case 'O':
+				int uploadSpeed = dm.getStats().getUploadRateLimitBytesPerSecond();
+				if( uploadSpeed <= 0 )
+					return "";
+				return "(max " + DisplayFormatters.formatByteCountToKiBEtcPerSec(uploadSpeed) + ")";
+				
 			case 'S':
 			case 'P':
 				TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
@@ -311,7 +322,7 @@ public class Show extends IConsoleCommand {
 	 */
 	protected String getDefaultSummaryFormat()
 	{
-		return "[%a] %c\t%t (%z) ETA: %e\r\n%r\tSpeed: %d / %u\tAmount: %D / %U\tConnections: %s(%S) / %p(%P)";
+		return "[%a] %c\t%t (%z) ETA: %e\r\n%r\tSpeed: %d%I / %u%O\tAmount: %D / %U\tConnections: %s(%S) / %p(%P)";
 	}
 	
 	/**
