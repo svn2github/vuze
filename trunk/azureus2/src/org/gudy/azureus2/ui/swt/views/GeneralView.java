@@ -223,14 +223,14 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     	// editable bit
     
     Composite culdl = new Composite(gTransfer, SWT.NULL);
-    gridData = new GridData(GridData.FILL_BOTH);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    gridData.verticalSpan = 2;
+    gridData.verticalSpan = 4;
     culdl.setLayoutData(gridData);
 
     GridLayout layoutInfo = new GridLayout();
-    layoutInfo.numColumns = 4;
-    layoutInfo.horizontalSpacing = 5;
+    layoutInfo.numColumns = 2;
+    layoutInfo.horizontalSpacing = 2;
     
     layoutInfo.marginHeight = 0;
     layoutInfo.marginWidth = 0;
@@ -287,7 +287,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     // ul speed
   
     label = new Label(culdl, SWT.LEFT);
-    label.setText( MessageText.getString( "GeneralView.label.maxuploadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+":");
+    label.setText( MessageText.getString( "GeneralView.label.maxuploadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+" :");
     Messages.setLanguageText(label, "GeneralView.label.maxuploadspeed.tooltip", true);
      
     maxULSpeed = new Text(culdl, SWT.BORDER);
@@ -327,13 +327,11 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     maxULSpeed.addListener(SWT.FocusOut, maxULSpeedListener);
 
     
-    label = new Label(culdl, SWT.LEFT);
-    label = new Label(culdl, SWT.LEFT);
     
 //  dl speed
     
       label = new Label(culdl, SWT.LEFT);
-      label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+":");
+      label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+" :");
       Messages.setLanguageText(label, "GeneralView.label.maxdownloadspeed.tooltip", true);
       
       maxDLSpeed = new Text(culdl, SWT.BORDER);
@@ -740,7 +738,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     }
     DownloadManagerStats	stats = manager.getStats();
     
-    long average = manager.getNbPeers() < 1 ? 0 : stats.getTotalAverage() / manager.getNbPeers();
+    int num_peers = manager.getNbPeers();
+    long average = num_peers < 1 ? 0 : stats.getTotalAverage() / num_peers;
     String swarm_speed = DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getTotalAverage() ) + " ( " +DisplayFormatters.formatByteCountToKiBEtcPerSec( average )+ " " +MessageText.getString("GeneralView.label.averagespeed") + " )";
     
     
