@@ -40,6 +40,9 @@ FMFile
 	public File
 	getFile();
 
+	public FMFileOwner
+	getOwner();
+	
 	public void
 	moveFile(
 		File		new_file )

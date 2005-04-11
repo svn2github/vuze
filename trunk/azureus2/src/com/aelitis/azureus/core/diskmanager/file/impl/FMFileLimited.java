@@ -60,7 +60,7 @@ FMFileLimited
 		try{
 			this_mon.enter();
 		
-			if ( raf != null ){
+			if ( isOpen()){
 			
 				usedSlot();
 			
@@ -74,7 +74,7 @@ FMFileLimited
 					
 				}finally{
 					
-					if ( raf == null ){
+					if ( !isOpen()){
 						
 						releaseSlot();
 					}
@@ -113,12 +113,12 @@ FMFileLimited
 		try{
 			this_mon.enter();
 		
-			if ( mode != access_mode ){
+			if ( mode != getAccessMode()){
 		
 				close(false);
 			}
 		
-			access_mode		= mode;
+			setAccessModeSupport( mode );
 			
 		}finally{
 			
@@ -267,7 +267,7 @@ FMFileLimited
 		try{
 			this_mon.enter();
 		
-			boolean	was_open = raf != null;
+			boolean	was_open = isOpen();
 		
 			try{
 				closeSupport( explicit );
@@ -279,20 +279,6 @@ FMFileLimited
 					releaseSlot();
 				}
 			}
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	protected boolean
-	isOpen()
-	{
-		try{
-			this_mon.enter();
-		
-			return( raf != null );
-			
 		}finally{
 			
 			this_mon.exit();

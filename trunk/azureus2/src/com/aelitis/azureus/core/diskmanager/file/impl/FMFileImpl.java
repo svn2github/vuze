@@ -42,23 +42,26 @@ FMFileImpl
 	implements FMFile
 {
 	//protected static final long REOPEN_EVERY_BYTES 		= 50 * 1024 * 1024;
-	protected static final int 	WRITE_RETRY_LIMIT		= 10;
-	protected static final int	WRITE_RETRY_DELAY		= 100;
+	private static final int 	WRITE_RETRY_LIMIT		= 10;
+	private static final int	WRITE_RETRY_DELAY		= 100;
 	
-	protected static final boolean	DEBUG			= true;
-	protected static final boolean	DEBUG_VERBOSE	= false;
+	private static final boolean	DEBUG			= true;
+	private static final boolean	DEBUG_VERBOSE	= false;
+	
+	private static final String		READ_ACCESS_MODE	= "r";
+	private static final String		WRITE_ACCESS_MODE	= "rwd";
 	
 	//protected long lBytesRead = 0;
 	//protected long lClosedAt = 0;
 
-	protected static Map			file_map = new HashMap();
-	protected static AEMonitor		file_map_mon	= new AEMonitor( "FMFile:map");
+	private static Map			file_map = new HashMap();
+	private static AEMonitor	file_map_mon	= new AEMonitor( "FMFile:map");
 	
-	protected FMFileOwner			owner;
-	protected int					access_mode			= FM_READ;
-	protected File					file;
-	protected String				canonical_path;
-	protected RandomAccessFile		raf;
+	private FMFileOwner			owner;
+	private int					access_mode			= FM_READ;
+	private File				file;
+	private String				canonical_path;
+	private RandomAccessFile	raf;
 	
 	protected AEMonitor				this_mon	= new AEMonitor( "FMFile" );
 	
@@ -75,25 +78,30 @@ FMFileImpl
 		
 		try{
       
-      try {
-        canonical_path = file.getCanonicalPath();
-      }
-      catch( IOException ioe ) {
-        String msg = ioe.getMessage();
-        if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
-          String abs_path = file.getAbsolutePath();
-          String error = "Caught 'There are no more files' exception during file.getCanonicalPath(). " +
-                         "os=[" +Constants.OSName+ "], file.getPath()=[" +file.getPath()+ "], file.getAbsolutePath()=[" +abs_path+ "]. ";
-                         //"canonical_path temporarily set to [" +abs_path+ "]";
-          Debug.out( error, ioe );
-        }
-        throw ioe;
-      }
+			try {
+				canonical_path = file.getCanonicalPath();
+				
+			}catch( IOException ioe ) {
+				
+				String msg = ioe.getMessage();
+				
+		        if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
+					
+		          String abs_path = file.getAbsolutePath();
+				  
+		          String error = "Caught 'There are no more files' exception during file.getCanonicalPath(). " +
+		                         "os=[" +Constants.OSName+ "], file.getPath()=[" +file.getPath()+ "], file.getAbsolutePath()=[" +abs_path+ "]. ";
+		                         //"canonical_path temporarily set to [" +abs_path+ "]";
+				  
+		          Debug.out( error, ioe );
+		        }
+				
+		        throw ioe;
+			}
 			
 			reserveFile();
 			
-		}
-    catch( Throwable e ){
+		}catch( Throwable e ){
 			
 			throw( new FMFileManagerException( "getCanonicalPath fails", e ));
 		}
@@ -105,10 +113,23 @@ FMFileImpl
 		return( file );
 	}
 	
+	public FMFileOwner
+	getOwner()
+	{
+		return( owner );
+	}
+	
 	public int
 	getAccessMode()
 	{
 		return( access_mode );
+	}
+	
+	protected void
+	setAccessModeSupport(
+		int		mode )
+	{
+		access_mode	= mode;
 	}
 	
 	public void
@@ -124,21 +145,24 @@ FMFileImpl
 	
 			try{
         
-        try {
-          new_canonical_path = new_file.getCanonicalPath();
-        }
-        catch( IOException ioe ) {
-          String msg = ioe.getMessage();
-          if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
-            String abs_path = new_file.getAbsolutePath();
-            String error = "Caught 'There are no more files' exception during new_file.getCanonicalPath(). " +
-                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";
-                           //"new_canonical_path temporarily set to [" +abs_path+ "]";
-            Debug.out( error, ioe );
-          }
-          throw ioe;
-        }
-				
+		        try {
+					
+		          new_canonical_path = new_file.getCanonicalPath();
+				  
+		        }catch( IOException ioe ) {
+					
+		          String msg = ioe.getMessage();
+				  
+		          if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
+		            String abs_path = new_file.getAbsolutePath();
+		            String error = "Caught 'There are no more files' exception during new_file.getCanonicalPath(). " +
+		                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";
+		                           //"new_canonical_path temporarily set to [" +abs_path+ "]";
+		            Debug.out( error, ioe );
+		          }
+		          throw ioe;
+		        }
+						
 			}catch( Throwable e ){
 				
 				throw( new FMFileManagerException( "getCanonicalPath fails", e ));
@@ -199,8 +223,10 @@ FMFileImpl
 		try{
 			this_mon.enter();
 	
-			if ( raf != null )
+			if ( raf != null ){
+				
 			  return;
+			}
 			
       /*
       long lTimeToWait = lClosedAt + 1000 - SystemTime.getCurrentTime();
@@ -211,9 +237,10 @@ FMFileImpl
 	    }
       */
 	
-			if (raf == null)
-	  		openSupport();
-			
+			if ( raf == null ){
+	  		
+				openSupport();
+			}
 		}finally{
 			
 			this_mon.exit();
@@ -283,12 +310,15 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-	  if (raf != null) {
-	    closeSupport(true);
-	  }
+		if (raf != null){
+			
+			closeSupport(true);
+		}
 
+		reserveAccess();
+		
 		try{		
-			raf = new RandomAccessFile( file, access_mode==FM_READ?"r":"rwd");
+			raf = new RandomAccessFile( file, access_mode==FM_READ?READ_ACCESS_MODE:WRITE_ACCESS_MODE);
 			
 		}catch( Throwable e ){
 			
@@ -525,7 +555,22 @@ FMFileImpl
 		}		
 	}
 	
-	protected void
+	protected boolean
+	isOpen()
+	{
+		return( raf != null );
+	}
+	
+		// file reservation is used to manage the possibility of multiple torrents
+		// refering to the same file. Initially introduced to stop a common problem
+		// whereby different torrents contain the same files (DVD rips) - without 
+		// this code the torrents could interfere resulting in all sorts of problems
+		// The original behavior was to completely prevent the sharing of files.
+		// However, better behaviour is to allow sharing of a file as long as only
+		// read access is required.
+		// we store a list of owners against each canonical file with a boolean "write" marker
+	
+	private void
 	reserveFile()
 	
 		throws FMFileManagerException
@@ -535,32 +580,137 @@ FMFileImpl
 			
 			// System.out.println( "FMFile::reserveFile:" + canonical_path + "("+ owner.getName() + ")" );
 			
-			FMFileOwner	existing_owner = (FMFileOwner)file_map.get(canonical_path);
+			List	owners = (List)file_map.get(canonical_path);
 			
-			if ( existing_owner == null ){
+			if ( owners == null ){
 				
-				file_map.put( canonical_path, owner );
+				owners = new ArrayList();
 				
-			}else if ( !existing_owner.getName().equals( owner.getName())){
-				
-				throw( new FMFileManagerException( "File '"+canonical_path+"' is in use by '" + existing_owner.getName()+"'"));
+				file_map.put( canonical_path, owners );				
 			}
+			
+			for (Iterator it=owners.iterator();it.hasNext();){
+				
+				Object[]	entry = (Object[])it.next();
+			
+				if ( owner.getName().equals(entry[0])){
+				
+						// already present, start off read-access
+					
+					entry[1] = new Boolean( false );
+					
+					return;	
+				}
+			}
+			
+			owners.add( new Object[]{ owner.getName(), new Boolean( false )});
+			
 		}finally{
 			
 			file_map_mon.exit();
 		}
 	}
 	
-	protected void
+	private void
+	reserveAccess()
+	
+		throws FMFileManagerException
+	{
+		try{
+			file_map_mon.enter();
+			
+			// System.out.println( "FMFile::reserveAccess:" + canonical_path + "("+ owner.getName() + ")" + " [" + (access_mode==FM_WRITE?"write":"read") + "]" );
+			
+			List	owners = (List)file_map.get( canonical_path );
+			
+			Object[]	my_entry = null;
+					
+			if ( owners == null ){
+				
+				throw( new FMFileManagerException( "File '"+canonical_path+"' has not been reserved (no entries), '" + owner.getName()+"'"));
+			}
+			
+			for (Iterator it=owners.iterator();it.hasNext();){
+					
+				Object[]	entry = (Object[])it.next();
+				
+				if ( owner.getName().equals(entry[0])){
+					
+					my_entry	= entry;
+				}
+			}				
+			
+			if ( my_entry == null ){
+				
+				throw( new FMFileManagerException( "File '"+canonical_path+"' has not been reserved (not found), '" + owner.getName()+"'"));
+			}
+		
+			my_entry[1] = new Boolean( access_mode==FM_WRITE );
+			
+			int	read_access 	= 0;
+			int write_access	= 0;
+			
+			String	users = "";
+				
+			for (Iterator it=owners.iterator();it.hasNext();){
+				
+				Object[]	entry = (Object[])it.next();
+								
+				if (((Boolean)entry[1]).booleanValue()){
+					
+					write_access++;
+					
+					users += (users.length()==0?"":",") + entry[0] + " [write]";
+
+				}else{
+					
+					read_access++;
+					
+					users += (users.length()==0?"":",") + entry[0] + " [read]";
+				}
+			}
+
+			if ( 	write_access > 1 ||
+					( write_access == 1 && read_access > 0 )){
+				
+				throw( new FMFileManagerException( "File '"+canonical_path+"' is in use by '" + users +"'"));
+			}
+			
+		}finally{
+			
+			file_map_mon.exit();
+		}
+	}
+	
+	private void
 	releaseFile()
 	{
 		try{
 			file_map_mon.enter();
 		
-				// System.out.println( "FMFile::releaseFile:" + canonical_path );
+			// System.out.println( "FMFile::releaseFile:" + canonical_path + "("+ owner.getName() + ")" );
 					
-			file_map.remove( canonical_path );
+			List	owners = (List)file_map.get( canonical_path );
 			
+			if ( owners != null ){
+				
+				for (Iterator it=owners.iterator();it.hasNext();){
+					
+					Object[]	entry = (Object[])it.next();
+					
+					if ( owner.getName().equals(entry[0])){
+						
+						it.remove();
+						
+						break;
+					}
+				}
+				
+				if ( owners.size() == 0 ){
+					
+					file_map.remove( canonical_path );
+				}
+			}
 		}finally{
 			
 			file_map_mon.exit();

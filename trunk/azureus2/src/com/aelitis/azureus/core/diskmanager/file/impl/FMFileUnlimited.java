@@ -56,14 +56,14 @@ FMFileUnlimited
 		try{
 			this_mon.enter();
 		
-			if ( mode == access_mode && raf != null ){
+			if ( mode == getAccessMode() && isOpen()){
 				
 				return;
 			}
 			
-			access_mode		= mode;
+			setAccessModeSupport( mode );
 			
-			if ( raf != null ){
+			if ( isOpen()){
 				
 				closeSupport( false );
 			}

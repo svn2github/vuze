@@ -51,7 +51,7 @@ FMFileTestImpl
 	{	
 		super( _owner, _file );
 		
-		TOTorrentFile	torrent_file = owner.getTorrentFile();
+		TOTorrentFile	torrent_file = getOwner().getTorrentFile();
 		
 		TOTorrent	torrent = torrent_file.getTorrent();
 							
