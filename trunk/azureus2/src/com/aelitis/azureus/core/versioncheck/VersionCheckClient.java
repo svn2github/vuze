@@ -133,6 +133,22 @@ public class VersionCheckClient {
   }
   
   
+  /**
+   * Is the DHT allowed to be used by external plugins.
+   * @return true if extended DHT use is allowed, false if not allowed
+   */
+  public boolean DHTExtendedUseAllowed() {
+    Map reply = getVersionCheckInfo();
+    
+    byte[] value = (byte[])reply.get( "enable_dht_extended_use" );
+    if( value != null ) {
+      return( new String( value ).equalsIgnoreCase( "true" ));
+    }
+    
+    return false;
+  }
+  
+
   
   /**
    * Perform the actual version check by connecting to the version server.
