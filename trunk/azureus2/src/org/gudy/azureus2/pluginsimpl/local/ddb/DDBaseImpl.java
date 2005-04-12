@@ -157,6 +157,17 @@ DDBaseImpl
 		return( dht.isEnabled());
 	}
 	
+	public boolean
+	isExtendedUseAllowed()
+	{
+		if ( dht == null ){
+			
+			return( false );
+		}
+		
+		return( dht.isExtendedUseAllowed());	
+	}
+	
 	protected void
 	throwIfNotAvailable()
 	

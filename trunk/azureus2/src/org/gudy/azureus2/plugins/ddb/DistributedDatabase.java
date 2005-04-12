@@ -32,6 +32,9 @@ DistributedDatabase
 {
 	public boolean
 	isAvailable();
+
+	public boolean
+	isExtendedUseAllowed();
 	
 	public DistributedDatabaseKey
 	createKey(

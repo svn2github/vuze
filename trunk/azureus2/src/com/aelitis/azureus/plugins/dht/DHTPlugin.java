@@ -601,6 +601,17 @@ DHTPlugin
 		return( enabled );
 	}
 	
+	public boolean
+	isExtendedUseAllowed()
+	{
+		if ( !isEnabled()){
+			
+			return( false );
+		}
+		
+		return( VersionCheckClient.getSingleton().DHTExtendedUseAllowed());
+	}
+	
 	public int
 	getPort()
 	{
