@@ -23,6 +23,7 @@ FEATURE: UI   | New file icon for Mac OS X [CrazyAlchemist]
 FEATURE: Plug | Generic Messaging API: inter-client message passing [Nolar]
 FEATURE: Core | Separate protocol payload and overhead stats [Nolar]
 FEATURE: Core | Data deletion can now defer to Recycle Bin and Trash under Windows and Mac OS X, respectively [Parg, CrazyAlchemist]
+FEATURE: Plug | Joltid Peer Cache plugin is now bundled with Azureus [Nolar, Parg, Gudy]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 CHANGE: Core | Added many new peerid identifications [Nolar, Gouss]
