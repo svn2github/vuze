@@ -58,6 +58,7 @@ public class DownloadingUnchoker implements Unchoker {
         PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true );
         if( peer == null )  break;  //no more new unchokes avail
         to_unchoke.add( peer );
+        peer.setOptimisticUnchoke( true );
       }
     }
     
@@ -70,7 +71,7 @@ public class DownloadingUnchoker implements Unchoker {
     int max_optimistic = ((max_to_unchoke - 1) / 10) + 1;  //one optimistic unchoke for every 10 upload slots
     
     ArrayList optimistic_unchokes = new ArrayList();
-    List best_peers = new ArrayList();
+    ArrayList best_peers = new ArrayList();
     long[] bests = new long[ max_to_unchoke ];  //ensure we never pick more slots than allowed to unchoke
     
     
@@ -95,8 +96,13 @@ public class DownloadingUnchoker implements Unchoker {
     if( !force_refresh ) {  //ensure current optimistic unchokes remain unchoked
       for( int i=0; i < optimistic_unchokes.size(); i++ ) {
         PEPeerTransport peer = (PEPeerTransport)optimistic_unchokes.get( i );
-        if( i >= max_optimistic )  break;
-        best_peers.add( peer );  //add them to the front of the "best" list
+        
+        if( i < max_optimistic ) {
+          best_peers.add( peer );  //add them to the front of the "best" list
+        }
+        else { //too many optimistics
+          peer.setOptimisticUnchoke( false );
+        }
       }
     }
     
@@ -142,13 +148,14 @@ public class DownloadingUnchoker implements Unchoker {
     }
     
     
-    //if we still havent yet picked enough slots
+    //if we still have remaining slots
     while( best_peers.size() < max_to_unchoke ) { 
       PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true );  //just pick one optimistically
       if( peer == null )  break;  //no more new unchokes avail
+      
       if( !best_peers.contains( peer ) ) {
         best_peers.add( peer );
-        if( force_refresh )  peer.setOptimisticUnchoke( true );
+        peer.setOptimisticUnchoke( true );
       }
       else {
         //we're here because the given optimistic peer is already "best", but is choked still,
@@ -164,8 +171,13 @@ public class DownloadingUnchoker implements Unchoker {
       PEPeerTransport peer = (PEPeerTransport)it.next();
 
       if( !best_peers.contains( peer ) ) {  //should be choked
-        chokes.add( peer );
-        it.remove();
+        if( best_peers.size() < max_to_unchoke ) {  //but there are still slots needed (no optimistics avail), so don't bother choking them
+          best_peers.add( peer );
+        }
+        else {
+          chokes.add( peer );
+          it.remove();
+        }
       }
     }
     

@@ -57,6 +57,7 @@ public class SeedingUnchoker implements Unchoker {
         PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false );
         if( peer == null )  break;  //no more new unchokes avail
         to_unchoke.add( peer );
+        peer.setOptimisticUnchoke( true );
       }
     }
     
