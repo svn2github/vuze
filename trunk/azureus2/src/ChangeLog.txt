@@ -40,6 +40,7 @@ CHANGE: UI   | Console view will now display information logged (for the duratio
 CHANGE: Core | Network IP_TOS option now sets required registry setting under Win2K/XP [Parg, Nolar]
 CHANGE: Core | Favor establishing inbound peer connections, to increase the health of swarms with firewalled clients [Nolar]
 CHANGE: Core | Improved seeding unchoking algorithm: distributes data more evenly [Nolar]
+CHANGE: Core | Anti-leech code to prevent optimistic unchoke leechers [Nolar]
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
