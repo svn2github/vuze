@@ -145,11 +145,14 @@ public class TrackerStatus {
   }
 
   protected void updateSingleHash(byte[] hash, boolean force, boolean async) {      
-    //LGLogger.log("updateSingleHash:" + force + " " + scrapeURL + " : " + ByteFormatter.nicePrint(hash, true));
+    LGLogger.log( "updateSingleHash():: force=" + force + ", async=" +async+ ", url=" +scrapeURL+ ", hash=" +ByteFormatter.nicePrint(hash, true) );
+    
     if (scrapeURL == null)  {
       return;
     }
     
+    
+    try {
     ArrayList responsesToUpdate = new ArrayList();
 
     TRTrackerScraperResponseImpl response;
@@ -211,6 +214,10 @@ public class TrackerStatus {
     }
     
     new ThreadedScrapeRunner(responsesToUpdate,  force, async);
+    }
+    catch( Throwable t ) {
+      Debug.out( "updateSingleHash() exception", t );
+    }
   }
   
   /** Does the scrape and decoding asynchronously.
@@ -243,6 +250,8 @@ public class TrackerStatus {
         return;
       }
       
+      try{
+        
       LGLogger.log( "TrackerStatus: scraping '" + scrapeURL + "', number of hashes = " +responses.size()+ ", single_hash_scrapes = " +bSingleHashScrapes );
             
       boolean	original_bSingleHashScrapes = bSingleHashScrapes;
@@ -623,7 +632,13 @@ public class TrackerStatus {
           scraper.scrapeReceived( response );
         }
       }
+      
+      }
+      catch( Throwable t ) {
+        Debug.out( "ThreadedScrapeRunner::runSupport() exception", t );
+      }
     }
+      
   }
   
   protected void 

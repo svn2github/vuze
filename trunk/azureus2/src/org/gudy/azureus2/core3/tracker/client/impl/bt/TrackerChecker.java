@@ -229,8 +229,9 @@ public class TrackerChecker implements TRTrackerScraperListener {
       	
       	trackers_mon.exit();
       }
-    } catch (TOTorrentException e) {
-    	Debug.printStackTrace( e );
+    }
+    catch (Throwable e) {
+      Debug.out( "scrape syncUpdate() exception", e );
     }
   }
     
