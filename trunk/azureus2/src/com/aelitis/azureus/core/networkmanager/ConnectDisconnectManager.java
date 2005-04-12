@@ -439,10 +439,7 @@ public class ConnectDisconnectManager {
       //insert at a random position because new connections are usually added in 50-peer
       //chunks, i.e. from a tracker announce reply, and we want to evenly distribute the
       //connect attempts if there are multiple torrents running
-      int insert_pos = 0;
-      if( new_requests.size() > 0 ) {
-        insert_pos = random.nextInt( new_requests.size() );
-      }
+      int insert_pos = random.nextInt( new_requests.size() + 1 );
       new_requests.add( insert_pos, cr );
     }finally{
     	
