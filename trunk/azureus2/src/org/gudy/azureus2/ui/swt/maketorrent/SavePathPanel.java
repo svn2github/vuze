@@ -286,6 +286,13 @@ public class SavePathPanel extends AbstractWizardPanel {
       }
     });
     
+    final Button bPrivateTorrent = new Button(panel,SWT.CHECK);
+    Messages.setLanguageText(bPrivateTorrent,"ConfigView.section.sharing.privatetorrent");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+	bPrivateTorrent.setLayoutData(gridData);
+   
+		
     final Button bAllowDHT = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(bAllowDHT,"ConfigView.section.sharing.permitdht");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -299,6 +306,15 @@ public class SavePathPanel extends AbstractWizardPanel {
         }
       });
       
+	
+	bPrivateTorrent.addListener(SWT.Selection,new Listener() {
+        public void handleEvent(Event event) {
+          _wizard.privateTorrent = bPrivateTorrent.getSelection();
+		  
+		  bAllowDHT.setEnabled( !_wizard.privateTorrent );
+        }
+      });
+
   }
   
   public IWizardPanel getFinishPanel() {

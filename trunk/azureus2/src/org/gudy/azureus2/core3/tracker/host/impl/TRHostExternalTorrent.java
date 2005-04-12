@@ -189,6 +189,20 @@ TRHostExternalTorrent
 	}
 	
 	public boolean
+	getPrivate()
+	{
+		return( false );
+	}
+	
+	public void
+	setPrivate(
+		boolean	_private )
+	
+		throws TOTorrentException
+	{
+	}
+	
+	public boolean
 	hasSameHashAs(
 		TOTorrent		other )
 	{

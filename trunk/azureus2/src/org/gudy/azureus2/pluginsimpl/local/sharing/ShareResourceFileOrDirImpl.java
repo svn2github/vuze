@@ -189,6 +189,10 @@ ShareResourceFileOrDirImpl
 			
 			TorrentUtils.setDHTBackupEnabled( to_torrent, dht_backup_enabled );
 			
+			boolean	private_torrent = COConfigurationManager.getBooleanParameter( "Sharing Torrent Private" );
+
+			TorrentUtils.setPrivate( to_torrent, private_torrent );
+			
 			File	save_dir;
 			
 			if ( type == ST_FILE ){

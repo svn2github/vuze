@@ -729,11 +729,38 @@ DownloadManagerStateImpl
 		return( x );
 	}
 	
-  public boolean isPeerSourceEnabled(String peerSource) {
-    List	values = getListAttributeSupport( AT_PEER_SOURCES );
-    return values.contains(peerSource);
-  }
-					
+	public boolean 
+	isPeerSourceEnabled(
+		String peerSource ) 
+	{
+		List	values = getListAttributeSupport( AT_PEER_SOURCES );
+		
+		return values.contains(peerSource);
+	}
+	
+	public boolean
+	isPeerSourcePermitted(
+		String	peerSource )
+	{
+		if ( TorrentUtils.getPrivate( torrent )){
+			
+			if ( 	peerSource == PEPeerSource.PS_DHT ||
+					peerSource == PEPeerSource.PS_OTHER_PEER ){
+				
+				return( false );
+			}
+			
+		}else if ( !TorrentUtils.getDHTBackupEnabled( torrent )){
+			
+			if ( peerSource == PEPeerSource.PS_DHT ){
+				
+				return( false );
+			}
+		}
+		
+		return( true );
+	}
+  	
 	public void
 	setPeerSources(
 		String[]		ps )
@@ -747,7 +774,12 @@ DownloadManagerStateImpl
 		
 		for (int i=0;i<ps.length;i++){
 			
-			l.add( ps[i]);
+			String	p = ps[i];
+			
+			if ( isPeerSourcePermitted(p)){
+				
+				l.add( ps[i]);
+			}
 		}
 		
 		setListAttribute( AT_PEER_SOURCES, l );
@@ -1334,6 +1366,12 @@ DownloadManagerStateImpl
 		getPeerSources()
 		{
 			return( new String[0] );
+		}
+		public boolean
+		isPeerSourcePermitted(
+			String	peerSource )
+		{
+			return( false );
 		}
 		
 	    public boolean

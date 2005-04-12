@@ -70,13 +70,26 @@ public class ConfigSectionSharing implements ConfigSectionSWT {
     Label protocol_lab = new Label(gSharing, SWT.NULL);
     Messages.setLanguageText(protocol_lab, "ConfigView.section.sharing.protocol");
 
+	// row
+    
+	BooleanParameter private_torrent = 
+		new BooleanParameter(gSharing, 	"Sharing Torrent Private", false, 
+                         			"ConfigView.section.sharing.privatetorrent");
+    
+	GridData grid_data = new GridData();
+	grid_data.horizontalSpan = 2;
+	private_torrent.setLayoutData(grid_data);
+	
 
 	// row
     
-    new BooleanParameter(gSharing, "Sharing Permit DHT", true, 
+	final BooleanParameter permit_dht = 
+		new BooleanParameter(gSharing, "Sharing Permit DHT", true, 
                          "ConfigView.section.sharing.permitdht");
     
     new Label(gSharing, SWT.NULL);
+
+	private_torrent.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( permit_dht.getControls(), true ));
 
     	// row
     

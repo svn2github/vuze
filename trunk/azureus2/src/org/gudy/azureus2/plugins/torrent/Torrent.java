@@ -96,11 +96,31 @@ Torrent
 	public Torrent
 	removeAdditionalProperties();
 	
+		/**
+		 * A decentralised torrent uses the DHT only as a "tracker"
+		 * @return
+		 */
+	
 	public boolean
 	isDecentralised();
 	
+		/**
+		 * Decentralised backup permits the DHT to be used as a tracker when the
+		 * "real" tracker is unavailable
+		 * @return
+		 */
+	
 	public boolean
 	isDecentralisedBackupEnabled();
+	
+		/**
+		 * A private torrent is either explicitly private via info/private or
+		 * has decentralised backup disabled and peer exchange disabled
+		 * @return
+		 */
+	
+	public boolean
+	isPrivate();
 	
 	public Map
 	writeToMap()

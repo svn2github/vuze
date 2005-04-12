@@ -307,7 +307,8 @@ public class ConfigurationDefaults {
     def.put( "Sharing Rescan Period", new Long(60));
     def.put( "Sharing Torrent Comment", "" );
     def.put( "Sharing Permit DHT", new Long(1));
-    
+    def.put( "Sharing Torrent Private", new Long(0));
+	
     def.put( "File.Decoder.Prompt", new Long(0) );
     def.put( "File.Decoder.Default", "" );
     def.put( "File.Decoder.ShowLax", new Long(0));

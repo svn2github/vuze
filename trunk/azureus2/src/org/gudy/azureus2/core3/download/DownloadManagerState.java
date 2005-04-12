@@ -100,6 +100,10 @@ DownloadManagerState
 	getPeerSources();
 	
 	public boolean
+	isPeerSourcePermitted(
+		String	peerSource );
+	
+	public boolean
 	isPeerSourceEnabled(
 	    String		peerSource); // from PEPeerSource constants
 	

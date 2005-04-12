@@ -181,6 +181,20 @@ TOTorrent
 	hasSameHashAs(
 		TOTorrent		other );
 	
+	public boolean
+	getPrivate();
+	
+		/**
+		 * Note - changing the private attribute CHANGES THE TORRENT HASH 
+		 * @param _private
+		 */
+	
+	public void
+	setPrivate(
+		boolean	_private )
+	
+		throws TOTorrentException;
+	
 	/**
 	 * The additional properties are used for holding non-core data for Azureus' own user
 	 * @param name		name of the property (e.g. "encoding")

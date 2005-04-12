@@ -769,6 +769,7 @@ TorrentUtils
 		return( isDecentralised( torrent.getAnnounceURL()));
 	}
 	
+
 	public static boolean
 	isDecentralised(
 		URL		url )
@@ -817,6 +818,37 @@ TorrentUtils
 		}
 		
 		return( l.longValue() == 1 );
+	}
+	
+	public static boolean
+	getPrivate(
+		TOTorrent		torrent )
+	{
+		if ( torrent == null ){
+			
+			return( false );
+		}	
+			
+		return( torrent.getPrivate());
+	}
+	
+	public static void
+	setPrivate(
+		TOTorrent		torrent,
+		boolean			_private )
+	{
+		if ( torrent == null ){
+			
+			return;
+		}
+		
+		try{
+			torrent.setPrivate( _private );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 	}
 	
 		// this class exists to minimise memory requirements by discarding the piece hash values
@@ -1049,6 +1081,23 @@ TorrentUtils
 			throws TOTorrentException
 		{
 			return( delegate.getHashWrapper());
+		}
+		
+		public boolean
+		getPrivate()
+		{
+			return( delegate.getPrivate());
+		}
+		
+		public void
+		setPrivate(
+			boolean	_private )
+		
+			throws TOTorrentException
+		{
+				// don't support this as it changes teh torrent hash
+			
+			throw( new TOTorrentException( "Can't amend private attribute", TOTorrentException.RT_WRITE_FAILS ));
 		}
 		
 		public boolean

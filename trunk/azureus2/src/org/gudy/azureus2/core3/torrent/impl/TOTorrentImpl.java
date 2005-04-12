@@ -47,6 +47,8 @@ TOTorrentImpl
 	protected static final String TK_PIECE_LENGTH		= "piece length";
 	protected static final String TK_PIECES				= "pieces";
 		
+	protected static final String TK_PRIVATE			= "private";
+
 	protected static final String TK_NAME_UTF8			= "name.utf-8";
 	protected static final String TK_PATH_UTF8			= "path.utf-8";
 	protected static final String TK_COMMENT_UTF8		= "comment.utf-8";
@@ -552,7 +554,35 @@ TOTorrentImpl
 											TOTorrentException.RT_HASH_FAILS ));
 		}
 	}
+	
+	public void
+	setPrivate(
+		boolean	_private_torrent )
+	
+		throws TOTorrentException
+	{
+		additional_info_properties.put( TK_PRIVATE, new Long(_private_torrent?1:0));
 		
+			// update torrent hash
+		
+		torrent_hash	= null;
+		
+		getHash();
+	}
+	
+	public boolean
+	getPrivate()
+	{
+		Object o = additional_info_properties.get( TK_PRIVATE );
+		
+		if ( o != null && o instanceof Long ){
+			
+			return(((Long)o).intValue() != 0 );
+		}
+		
+		return( false );
+	}
+	
 	public TOTorrentAnnounceURLGroup
 	getAnnounceURLGroup()
 	{

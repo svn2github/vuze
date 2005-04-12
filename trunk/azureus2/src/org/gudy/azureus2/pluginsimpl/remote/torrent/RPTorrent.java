@@ -154,6 +154,13 @@ RPTorrent
 		return( false );
 	}
 	
+	public boolean
+	isPrivate()
+	{
+		notSupported();
+		
+		return( false );
+	}
 	public byte[]
 	getHash()
 	{

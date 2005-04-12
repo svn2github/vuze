@@ -109,6 +109,12 @@ TorrentImpl
 		return( TorrentUtils.getDHTBackupEnabled( torrent ));
 	}
 	
+	public boolean
+	isPrivate()
+	{
+		return( TorrentUtils.getPrivate( torrent ));
+	}
+	
 	public byte[]
 	getHash()
 	{

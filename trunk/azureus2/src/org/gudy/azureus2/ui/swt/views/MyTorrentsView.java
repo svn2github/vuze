@@ -743,16 +743,16 @@ public class MyTorrentsView
                           
             for(int j=0;j<itemsNetwork.length;j++) {
               String network = (String) itemsNetwork[j].getData("network");
-              if(! dm.getDownloadState().isNetworkEnabled(network)) {
-                itemsNetwork[j].setSelection(false);
-              }
+			  
+              itemsNetwork[j].setSelection(dm.getDownloadState().isNetworkEnabled(network));   
             }
             
             for(int j=0;j<itemsPeersource.length;j++) {
               String ps = (String) itemsPeersource[j].getData("peerSource");
-              if(! dm.getDownloadState().isPeerSourceEnabled(ps)) {
-                itemsPeersource[j].setSelection(false);
-              }
+			  
+			  itemsPeersource[j].setEnabled( dm.getDownloadState().isPeerSourcePermitted(ps) );
+	              
+	          itemsPeersource[j].setSelection(dm.getDownloadState().isPeerSourceEnabled(ps));
             }            
           }
           
