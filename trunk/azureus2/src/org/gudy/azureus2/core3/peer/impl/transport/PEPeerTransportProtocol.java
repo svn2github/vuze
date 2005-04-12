@@ -260,9 +260,9 @@ PEPeerTransportProtocol
     other_peer_has_pieces = new boolean[ manager.getPiecesNumber() ];
     Arrays.fill( other_peer_has_pieces, false );
 
-    recent_outgoing_requests = new LinkedHashMap( 100, .75F, true ) {
+    recent_outgoing_requests = new LinkedHashMap( 16, .75F, true ) {
       public boolean removeEldestEntry(Map.Entry eldest) {
-        return size() > 100;
+        return size() > 16;
       }
     };
     recent_outgoing_requests_mon  = new AEMonitor( "PEPeerTransportProtocol:ROR" );
@@ -1426,6 +1426,9 @@ PEPeerTransportProtocol
         }
         else {
           LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but expired piece block discarded as never requested." );
+          
+          System.out.println( error_msg + "but expired piece block discarded as never requested." );
+          
           peer_stats.bytesDiscarded( length );
           manager.discarded( length );
           requests_discarded++;
