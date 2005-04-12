@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +42,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
@@ -70,7 +72,10 @@ DHTPluginStorageManager
 	public static final int			LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES	= 3;
 	public static final int			LOCAL_DIVERSIFICATION_READS_PER_MIN			= 30;
 	
-	private File	data_dir;
+	public static final int			MAX_STORAGE_KEYS	= 65536;
+	
+	private LoggerChannel	log;
+	private File			data_dir;
 	
 	private AEMonitor	address_mon	= new AEMonitor( "DHTPluginStorageManager:address" );
 	private AEMonitor	contact_mon	= new AEMonitor( "DHTPluginStorageManager:contact" );
@@ -84,8 +89,10 @@ DHTPluginStorageManager
 
 	public
 	DHTPluginStorageManager(
+		LoggerChannel		_log,
 		File				_data_dir )
 	{
+		log			= _log;
 		data_dir	= _data_dir;
 		
 		data_dir.mkdirs();
@@ -466,14 +473,17 @@ DHTPluginStorageManager
 			storage_mon.enter();
 		
 			byte[][]	res = followDivChain( wrapper, put_operation );
+			
+			if ( !Arrays.equals( res[0], key )){
 				
-			/*
-			String	trace = "";
-			for (int i=0;i<res.length;i++){
-				trace += (i==0?"":",") + DHTLog.getString2( res[i] );
+				String	trace = "";
+				
+				for (int i=0;i<res.length;i++){
+					trace += (i==0?"":",") + DHTLog.getString2( res[i] );
+				}
+				
+				log.log( "SM: get div: " + DHTLog.getString2(key) + ", put = " + put_operation + " -> " + trace );
 			}
-			System.out.println( "DHT get div: " + DHTLog.getString2(key) + ", put = " + put_operation + " -> " + trace );
-			*/
 			
 			return( res );
 			
@@ -509,14 +519,16 @@ DHTPluginStorageManager
 			}
 		
 			byte[][] res = followDivChain( wrapper, put_operation );
-			
-			/*
+		
 			String	trace = "";
+			
 			for (int i=0;i<res.length;i++){
+				
 				trace += (i==0?"":",") + DHTLog.getString2( res[i] );
 			}
-			System.out.println( "DHT create div: " + DHTLog.getString2(key) + ", new = " + created + ", put = " + put_operation + ", type = " + diversification_type + " -> " + trace );
-			*/
+			
+			log.log( "SM: create div: " + DHTLog.getString2(key) + ", new = " + created + ", put = " + put_operation + ", type = " + diversification_type + " -> " + trace );
+			
 
 			return( res );
 			
@@ -598,9 +610,23 @@ DHTPluginStorageManager
 		
 		if ( res == null ){
 			
-			res = new storageKey( this, DHT.DT_NONE, key ); 
+				// someout could be spamming us with crap, prevent things from getting
+				// out of control
 			
-			local_storage_keys.put( key, res );
+			if ( local_storage_keys.size() >= MAX_STORAGE_KEYS ){
+				
+				res = new storageKey( this, DHT.DT_SIZE, key ); 
+
+				Debug.out( "DHTStorageManager: max key limit exceeded" );
+				
+				log.log( "SM: max storage key limit exceeded - " + DHTLog.getString2( key.getBytes()));
+				
+			}else{
+
+				res = new storageKey( this, DHT.DT_NONE, key ); 
+			
+				local_storage_keys.put( key, res );
+			}
 		}
 		
 		return( res );
@@ -610,9 +636,13 @@ DHTPluginStorageManager
 	deleteStorageKey(
 		storageKey		key )
 	{
-		local_storage_keys.remove( key );
+		if ( local_storage_keys.remove( key ) != null ){
 		
-		writeDiversifications();
+			if ( key.getDiversificationType() != DHT.DT_NONE ){
+				
+				writeDiversifications();
+			}
+		}
 	}
 	
 	protected void
@@ -647,7 +677,7 @@ DHTPluginStorageManager
 				
 				for (int i=0;i<divs.size();i++){
 					
-					diversification d = diversification.deserialise((Map)divs.get(i));
+					diversification d = diversification.deserialise( this, (Map)divs.get(i));
 										
 					if ( d.getExpiry() > now ){
 					
@@ -733,7 +763,7 @@ DHTPluginStorageManager
 		HashWrapper		wrapper,
 		byte			type )
 	{
-		diversification	div = new diversification( wrapper, type );
+		diversification	div = new diversification( this, wrapper, type );
 			
 		remote_diversifications.put( wrapper, div );
 		
@@ -745,19 +775,23 @@ DHTPluginStorageManager
 	protected static class
 	diversification
 	{
-		protected HashWrapper		key;
-		protected byte				type;
+		private DHTPluginStorageManager	manager;	
+
+		private HashWrapper			key;
+		private byte				type;
 		
-		protected long				expiry;
+		private long				expiry;
 		
-		protected int[]				fixed_put_offsets;
+		private int[]				fixed_put_offsets;
 		
 		protected
 		diversification(
-			HashWrapper	_key,
-			byte		_type )
+			DHTPluginStorageManager	_manager,
+			HashWrapper				_key,
+			byte					_type )
 		
 		{
+			manager	= _manager;
 			key		= _key;
 			type	= _type;
 			
@@ -792,11 +826,13 @@ DHTPluginStorageManager
 		
 		protected
 		diversification(
-			HashWrapper	_key,
-			byte		_type,
-			long		_expiry,
-			int[]		_fixed_put_offsets )
+			DHTPluginStorageManager	_manager,
+			HashWrapper				_key,
+			byte					_type,
+			long					_expiry,
+			int[]					_fixed_put_offsets )
 		{
+			manager				= _manager;
 			key					= _key;
 			type				= _type;
 			expiry				= _expiry;
@@ -821,18 +857,21 @@ DHTPluginStorageManager
 			
 			map.put( "fpo", offsets );
 			
+			manager.log.log( "SM: serialised div: " + DHTLog.getString2( key.getBytes()) + ", " + type + ", " + expiry );
+
 			return( map );
 		}
 		
 		protected static diversification
 		deserialise(
-			Map		map )
+			DHTPluginStorageManager	_manager,
+			Map						_map )
 		{
-			HashWrapper	key 	= new HashWrapper((byte[])map.get("key"));
-			int			type 	= ((Long)map.get("type")).intValue(); 
-			long		exp 	= ((Long)map.get("exp")).longValue();
+			HashWrapper	key 	= new HashWrapper((byte[])_map.get("key"));
+			int			type 	= ((Long)_map.get("type")).intValue(); 
+			long		exp 	= ((Long)_map.get("exp")).longValue();
 			
-			List	offsets = (List)map.get("fpo");
+			List	offsets = (List)_map.get("fpo");
 			
 			int[]	fops = new int[offsets.size()];
 			
@@ -841,7 +880,9 @@ DHTPluginStorageManager
 				fops[i] = ((Long)offsets.get(i)).intValue();
 			}
 			
-			return( new diversification( key, (byte)type, exp, fops ));
+			_manager.log.log( "SM: deserialised div: " + DHTLog.getString2( key.getBytes()) + ", " + type + ", " + exp );
+
+			return( new diversification( _manager, key, (byte)type, exp, fops ));
 		}
 		
 		protected HashWrapper
@@ -990,6 +1031,8 @@ DHTPluginStorageManager
 			map.put( "type", new Long(type));
 			map.put( "exp", new Long(expiry));
 			
+			manager.log.log( "SM: serialised sk: " + DHTLog.getString2( key.getBytes()) + ", " + type + ", " + expiry );
+			
 			return( map );
 		}
 		protected static storageKey
@@ -1001,6 +1044,8 @@ DHTPluginStorageManager
 			int			type 	= ((Long)map.get("type")).intValue(); 
 			long		exp 	= ((Long)map.get("exp")).longValue();
 			
+			_manager.log.log( "SM: deserialised sk: " + DHTLog.getString2( key.getBytes()) + ", " + type + ", " + exp );
+
 			return( new storageKey( _manager, (byte)type, key, exp ));
 		}
 		
@@ -1055,6 +1100,8 @@ DHTPluginStorageManager
 					
 						type = DHT.DT_FREQUENCY;
 						
+						manager.log.log( "SM: sk freq created (" + read_count + "reads ) - " + DHTLog.getString2( key.getBytes()));
+						
 						manager.writeDiversifications();
 					}
 					
@@ -1088,12 +1135,16 @@ DHTPluginStorageManager
 				
 					type	= DHT.DT_SIZE;
 					
+					manager.log.log( "SM: sk size total created (size " + size + ") - " + DHTLog.getString2( key.getBytes()));
+
 					manager.writeDiversifications();
 					
 				}else if ( entries > LOCAL_DIVERSIFICATION_ENTRIES_LIMIT ){
 					
 					type 	= DHT.DT_SIZE;
 					
+					manager.log.log( "SM: sk size entries created (" + entries + " entries) - " + DHTLog.getString2( key.getBytes()));
+
 					manager.writeDiversifications();
 				}
 			}

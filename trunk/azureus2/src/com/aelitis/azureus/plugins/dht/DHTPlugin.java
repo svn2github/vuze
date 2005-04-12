@@ -332,7 +332,7 @@ DHTPlugin
 								model.getStatus().setText( "Initialising" );
 								
 								try{
-									storage_manager = new DHTPluginStorageManager( getDataDir());
+									storage_manager = new DHTPluginStorageManager( log, getDataDir());
 									
 									transport = 
 										DHTTransportFactory.createUDP( 

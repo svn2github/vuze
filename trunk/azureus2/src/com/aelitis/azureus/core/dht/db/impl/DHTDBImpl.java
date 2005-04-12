@@ -64,8 +64,6 @@ DHTDBImpl
 	
 	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60000;
 	private long		last_cache_expiry_check;
-
-	private long		max_values_stored;
 	
 	private Map			stored_values = new HashMap();
 	
@@ -82,13 +80,11 @@ DHTDBImpl
 		DHTStorageAdapter	_adapter,
 		int					_original_republish_interval,
 		int					_cache_republish_interval,
-		int					_max_values_stored,
 		LoggerChannel		_logger )
 	{
 		adapter							= _adapter;
 		original_republish_interval		= _original_republish_interval;
 		cache_republish_interval		= _cache_republish_interval;
-		max_values_stored				= _max_values_stored;
 		logger							= _logger;
 		
 		Timer	timer = new Timer("DHT refresher");
@@ -294,39 +290,29 @@ DHTDBImpl
 		try{
 			this_mon.enter();
 						
-			if ( getSize() >= max_values_stored ){
+			checkCacheExpiration( false );
 				
-					// just drop it
+			DHTDBMapping	mapping = (DHTDBMapping)stored_values.get( key );
+			
+			if ( mapping == null ){
 				
-				logger.log( "Max entries exceeded" );
+				mapping = new DHTDBMapping( adapter, key, false );
 				
-				return( DHT.DT_NONE );
-				
-			}else{
-				
-				checkCacheExpiration( false );
-				
-				DHTDBMapping	mapping = (DHTDBMapping)stored_values.get( key );
-				
-				if ( mapping == null ){
-					
-					mapping = new DHTDBMapping( adapter, key, false );
-					
-					stored_values.put( key, mapping );
-				}
-				
-					// we carry on an update as its ok to replace existing entries
-					// even if diversified
-				
-				for (int i=0;i<values.length;i++){
-					
-					DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, values[i], 1 );
-					
-					mapping.add( mapping_value );
-				}
-				
-				return( mapping.getDiversificationType());
+				stored_values.put( key, mapping );
 			}
+			
+				// we carry on an update as its ok to replace existing entries
+				// even if diversified
+			
+			for (int i=0;i<values.length;i++){
+				
+				DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, values[i], 1 );
+				
+				mapping.add( mapping_value );
+			}
+			
+			return( mapping.getDiversificationType());
+	
 		}finally{
 			
 			this_mon.exit();

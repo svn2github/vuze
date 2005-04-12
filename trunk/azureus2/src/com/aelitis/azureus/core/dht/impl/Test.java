@@ -78,7 +78,6 @@ Test
 	static{
 		dht_props.put( DHT.PR_CONTACTS_PER_NODE, new Integer(K));
 		dht_props.put( DHT.PR_NODE_SPLIT_FACTOR, new Integer(B));
-		dht_props.put( DHT.PR_MAX_VALUES_STORED, new Integer(MAX_VALUES));
 		dht_props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer(30000));
 		dht_props.put( DHT.PR_ORIGINAL_REPUBLISH_INTERVAL, new Integer(60000));
 	}
@@ -624,7 +623,7 @@ Test
 		
 		check.put(id,"");
 		
-		DHTStorageAdapter	storage_adapter = new DHTPluginStorageManager(new File( "C:\\temp\\dht\\" + i));
+		DHTStorageAdapter	storage_adapter = new DHTPluginStorageManager( logger, new File( "C:\\temp\\dht\\" + i));
 
 		DHT	dht = DHTFactory.create( transport, dht_props, storage_adapter, logger );
 		

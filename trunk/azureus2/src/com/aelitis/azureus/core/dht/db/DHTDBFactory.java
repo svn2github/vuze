@@ -40,14 +40,12 @@ DHTDBFactory
 		DHTStorageAdapter	adapter,
 		int					original_republish_interval,
 		int					cache_republish_interval,
-		int					max_values,
 		LoggerChannel		logger )
 	{
 		return( new DHTDBImpl( 
 					adapter,
 					original_republish_interval, 
 					cache_republish_interval, 
-					max_values,
 					logger ));
 	}
 }

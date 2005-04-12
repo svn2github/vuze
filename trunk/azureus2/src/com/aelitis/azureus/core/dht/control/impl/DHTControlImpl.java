@@ -102,7 +102,6 @@ DHTControlImpl
 		int					_original_republish_interval,
 		int					_cache_republish_interval,
 		int					_cache_at_closest_n,
-		int					_max_values_stored,
 		LoggerChannel		_logger )
 	{
 		adapter		= _adapter;
@@ -120,7 +119,6 @@ DHTControlImpl
 						adapter.getStorageAdapter(),
 						_original_republish_interval,
 						_cache_republish_interval,
-						_max_values_stored,
 						logger );
 					
 		internal_lookup_pool 	= new ThreadPool("DHTControl:internallookups", lookup_concurrency );

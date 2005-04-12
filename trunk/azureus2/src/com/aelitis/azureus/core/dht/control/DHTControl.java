@@ -48,7 +48,6 @@ DHTControl
 	public static final int		CACHE_AT_CLOSEST_N_DEFAULT				= 1;
 	public static final int		ORIGINAL_REPUBLISH_INTERVAL_DEFAULT		= 8*60*60*1000;
 	public static final int		CACHE_REPUBLISH_INTERVAL_DEFAULT		=   30*60*1000; 
-	public static final int		MAX_VALUES_STORED_DEFAULT				= 10000;
 	
 	public void
 	seed();

@@ -70,7 +70,6 @@ DHTImpl
 		int		o_rep 	= getProp( PR_ORIGINAL_REPUBLISH_INTERVAL, 	DHTControl.ORIGINAL_REPUBLISH_INTERVAL_DEFAULT );
 		int		c_rep 	= getProp( PR_CACHE_REPUBLISH_INTERVAL, 	DHTControl.CACHE_REPUBLISH_INTERVAL_DEFAULT );
 		int		c_n 	= getProp( PR_CACHE_AT_CLOSEST_N, 			DHTControl.CACHE_AT_CLOSEST_N_DEFAULT );
-		int		max_v 	= getProp( PR_MAX_VALUES_STORED, 			DHTControl.MAX_VALUES_STORED_DEFAULT );
 		
 		control = DHTControlFactory.create( 
 				new DHTControlAdapter()
@@ -114,7 +113,7 @@ DHTImpl
 				_transport, 
 				K, B, max_r,
 				s_conc, l_conc, 
-				o_rep, c_rep, c_n, max_v,
+				o_rep, c_rep, c_n,
 				logger );
 	}
 	
