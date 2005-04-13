@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 	
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 
@@ -200,45 +201,9 @@ CorePatchChecker
 				
 				LGLogger.log( "Core Patcher: applying patch '" + highest_p_file.toString() + "'" );
 				
-				UpdateInstaller	installer = instance.createInstaller();
-				
-				File	tmp = AETemporaryFileHandler.createTempFile("AZU", null );
-								
-				OutputStream	os = new FileOutputStream( tmp );
-				
-				String	az2_jar;
-
-				if( Constants.isOSX ){
-  
-					az2_jar = installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/";
-					
-				}else{
-
-					az2_jar = installer.getInstallDir() + File.separator;
-				}
-				
-				az2_jar	+= "Azureus2.jar";				
-				
-				InputStream	is 	= new FileInputStream( az2_jar );
-				
 				InputStream pis = new FileInputStream( highest_p_file );
-				
-				new UpdateJarPatcher( is, pis, os );
-				
-				is.close();
-				
-				pis.close();
-				
-				os.close();
-				
-				String	resource_name = "Azureus2_P" + highest_p + ".jar";
-				
-				installer.addResource(  resource_name,
-										new FileInputStream( tmp ));
-				
-				tmp.delete();
-				
-				installer.addMoveAction( resource_name, az2_jar );
+								
+				patchAzureus2( instance, pis, "P" + highest_p, plugin_interface.getLogger().getChannel( "CorePatcher" ));
 				
 				LGLogger.logUnrepeatableAlert( 	LGLogger.AT_COMMENT,
 									"Patch " + highest_p_file.getName() + " ready to be applied" );
@@ -259,5 +224,53 @@ CorePatchChecker
 			
 			LGLogger.logUnrepeatableAlert( 	"Core Patcher failed", e );
 		}
+	}
+	
+	public static void
+	patchAzureus2(
+		UpdateCheckInstance	instance,
+		InputStream			pis,
+		String				resource_tag,
+		LoggerChannel		log )
+		
+		throws Exception
+	{
+		String resource_name = "Azureus2_" + resource_tag + ".jar";
+
+		UpdateInstaller	installer = instance.createInstaller();
+		
+		File	tmp = AETemporaryFileHandler.createTempFile("AZU", null );
+						
+		OutputStream	os = new FileOutputStream( tmp );
+		
+		String	az2_jar;
+
+		if( Constants.isOSX ){
+
+			az2_jar = installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/";
+			
+		}else{
+
+			az2_jar = installer.getInstallDir() + File.separator;
+		}
+		
+		az2_jar	+= "Azureus2.jar";				
+		
+		InputStream	is 	= new FileInputStream( az2_jar );
+		
+		new UpdateJarPatcher( is, pis, os, log );
+		
+		is.close();
+		
+		pis.close();
+		
+		os.close();
+		
+		installer.addResource(  resource_name,
+								new FileInputStream( tmp ));
+		
+		tmp.delete();
+		
+		installer.addMoveAction( resource_name, az2_jar );		
 	}
 }

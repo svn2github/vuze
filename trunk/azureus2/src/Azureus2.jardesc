@@ -24,6 +24,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.server.impl.dht"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.web2.http.response"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.utils.security"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform.macosx.access.cocoa"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.clientid"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.messaging"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.icons.toolbar"/>
@@ -75,7 +76,6 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.systray"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.telnet"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.global.impl"/>
-<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.messaging.core"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.db.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.tableitems"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.predicate"/>
@@ -121,7 +121,6 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.common"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.xml.schemas"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.db"/>
-<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.uploadmanager"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.util"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.tables.mytorrents"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.stats.transfer"/>
@@ -318,6 +317,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.menus"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.update"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.host"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.unchoker"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.peer.impl.transport"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.transport.loopback"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.web2.stages.cache"/>

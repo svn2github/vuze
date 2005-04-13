@@ -777,6 +777,14 @@ PluginInitializer
 		 		 				
   				}catch( Throwable e ){
 	  			
+					try{
+							// replace it with a "broken" plugin instance
+						
+						initializePluginFromClass( loadFailedPlugin.class, id, key );
+						
+					}catch( Throwable f ){
+					}
+					
  					if ( builtin_plugins[i][0] != PluginManagerDefaults.PID_JPC ){
 						
 	 					Debug.printStackTrace( e );
@@ -1332,17 +1340,26 @@ PluginInitializer
   		return( res_array );
   	}
   	
-  	protected class
+  	protected static class
 	loadFailedPlugin
 		implements UnloadablePlugin
 	{
-  		 public void 
-		  initialize(
-		  	PluginInterface pluginInterface )
+		public
+		loadFailedPlugin()
+		{	
+		}
+		
+  		public void 
+		initialize(
+		  	PluginInterface pi )
 		  
 		  	throws PluginException
-		{
-  		 	
+		{ 	
+			Properties props = pi.getPluginProperties();
+			
+			props.setProperty( "plugin.name", pi.getPluginID() + " load failed" );
+			
+			props.setProperty( "plugin.version", "0.0" );
   		}
   		 
   		public void

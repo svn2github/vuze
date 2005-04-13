@@ -79,6 +79,9 @@ Update
 	public void
 	cancel();
 	
+	public UpdateCheckInstance
+	getCheckInstance();
+	
 	public void
 	addListener(
 		UpdateListener	l );

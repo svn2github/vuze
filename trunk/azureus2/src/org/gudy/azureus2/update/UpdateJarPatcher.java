@@ -31,18 +31,21 @@ import java.io.*;
 import java.util.*;
 import java.util.jar.*;
 
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 public class 
 UpdateJarPatcher 
 {
+	private static String MANIFEST_NAME = "META-INF/MANIFEST.MF";
+	
 	protected Map		patch_entries	= new HashMap();
 
 	protected
 	UpdateJarPatcher(
 		InputStream		input_file,
 		InputStream		patch_file,
-		OutputStream	output_file )
+		OutputStream	output_file,
+		LoggerChannel	log )
 	
 		throws IOException
 	{
@@ -52,6 +55,8 @@ UpdateJarPatcher
 		
 		JarOutputStream	jos = new JarOutputStream(output_file);
 
+		boolean 	manifest_found	= false;
+		
 		while( true ){
 			
 			JarEntry is_entry = jis.getNextJarEntry();
@@ -68,12 +73,16 @@ UpdateJarPatcher
 			
 			String	name = is_entry.getName();
 			
+			if ( name.equalsIgnoreCase( MANIFEST_NAME )){
+				
+				manifest_found	= true;
+			}
+			
 			InputStream	eis = getPatch( name);
 			
 			if ( eis != null ){
 				
-				LGLogger.log( 	LGLogger.INFORMATION,
-								"patch - replace: " + name);
+				log.log( "patch - replace: " + name );
 				
 			}else{
 				
@@ -93,8 +102,12 @@ UpdateJarPatcher
 			
 			String	name = (String)it.next();
 			
-			LGLogger.log( 	LGLogger.INFORMATION,
-							"patch - add: " + name);
+			if ( name.equalsIgnoreCase( MANIFEST_NAME )){
+				
+				manifest_found = true;
+			}
+		
+			log.log( "patch - add: " + name);
 		
 			InputStream	eis = (InputStream)patch_entries.get(name);
 			
@@ -103,11 +116,14 @@ UpdateJarPatcher
 			writeEntry( jos, os_entry, eis );			
 		}
 		
-		JarEntry entry = new JarEntry("META-INF/MANIFEST.MF");
+		if ( !manifest_found ){
+			
+			JarEntry entry = new JarEntry( MANIFEST_NAME );
 		
-		ByteArrayInputStream bais = new ByteArrayInputStream("Manifest-Version: 1.0\r\n\r\n".getBytes());
+			ByteArrayInputStream bais = new ByteArrayInputStream("Manifest-Version: 1.0\r\n\r\n".getBytes());
 		
-		writeEntry( jos, entry, bais );
+			writeEntry( jos, entry, bais );
+		}
 		
 		jos.finish();	// FLUSH is not sufficient!!!!
 	}

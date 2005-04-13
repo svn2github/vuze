@@ -259,7 +259,7 @@ UpdateCheckInstanceImpl
 			this_mon.enter();
 		
 			UpdateImpl	update = 
-				new UpdateImpl( update_name, desc, new_version, 
+				new UpdateImpl( this, update_name, desc, new_version, 
 								downloaders, comp.isMandatory(), restart_required );
 			
 			updates.add( update );

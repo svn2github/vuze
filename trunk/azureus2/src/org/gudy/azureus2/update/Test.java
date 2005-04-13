@@ -44,7 +44,7 @@ Test
 			
 			OutputStream os = new FileOutputStream( "test.jar" );
 			
-			new UpdateJarPatcher( is, pis, os );
+			new UpdateJarPatcher( is, pis, os, null );
 			
 			is.close();
 			

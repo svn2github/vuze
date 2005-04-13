@@ -38,19 +38,21 @@ public class
 UpdateImpl 
 	implements Update
 {
-	protected String					name;
-	protected String[]					description;
-	protected String					new_version;
-	protected ResourceDownloader[]		downloaders;
-	protected boolean					mandatory;
-	protected int						restart_required;
+	private UpdateCheckInstance		instance;
+	private String					name;
+	private String[]				description;
+	private String					new_version;
+	private ResourceDownloader[]	downloaders;
+	private boolean					mandatory;
+	private int						restart_required;
 
-	protected Object					user_object;
+	private Object					user_object;
 	
-	protected List						listeners = new ArrayList();
+	private List					listeners = new ArrayList();
 	
 	protected
 	UpdateImpl(
+		UpdateCheckInstance		_instance,
 		String					_name,
 		String[]				_desc,
 		String					_new_version,
@@ -58,6 +60,7 @@ UpdateImpl
 		boolean					_mandatory,
 		int						_restart_required )
 	{
+		instance			= _instance;
 		name				= _name;
 		description			= _desc;
 		new_version			= _new_version;
@@ -83,6 +86,12 @@ UpdateImpl
 			}
 		}
 		*/
+	}
+	
+	public UpdateCheckInstance
+	getCheckInstance()
+	{
+		return( instance );
 	}
 	
 	public String
