@@ -214,17 +214,77 @@ AzureusCoreImpl
 		   
 	}
 	
+	private void
+	runNonDaemon(
+		final Runnable	r )
+	
+		throws AzureusCoreException
+	{
+		if ( !Thread.currentThread().isDaemon()){
+			
+			r.run();
+			
+		}else{
+			
+			final AESemaphore	sem = new AESemaphore( "AzureusCore:runNonDaemon" );
+			
+			final Throwable[]	error = {null};
+			
+			new AEThread( "AzureusCore:runNonDaemon" )
+			{
+				public void
+				runSupport()
+				{
+					try{
+			
+						r.run();
+						
+					}catch( Throwable e ){
+						
+						error[0]	= e;
+						
+					}finally{
+						
+						sem.release();
+					}
+				}
+			}.start();
+			
+			sem.reserve();
+			
+			if ( error[0] != null ){
+	
+				if ( error[0] instanceof AzureusCoreException ){
+					
+					throw((AzureusCoreException)error[0]);
+					
+				}else{
+					
+					throw( new AzureusCoreException( "Operation failed", error[0] ));
+				}			
+			}
+		}
+	}
+	
 	public void
 	stop()
 	
 		throws AzureusCoreException
 	{
-		LGLogger.log("Core: Stop operation starts");
-		
-		stopSupport( true );
+		runNonDaemon( 
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					LGLogger.log("Core: Stop operation starts");
+					
+					stopSupport( true );
+				}
+			});
 	}
 	
-	public void
+	private void
 	stopSupport(
 		boolean		apply_updates )
 	
@@ -273,17 +333,26 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		for (int i=0;i<lifecycle_listeners.size();i++){
-			
-			if ( !((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopRequested( this )){
+		runNonDaemon( 
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
 				
-				LGLogger.log("Core: Request to stop the core has been denied");
-				
-				return;
-			}
-		}
-			
-		stop();
+						for (int i=0;i<lifecycle_listeners.size();i++){
+							
+							if ( !((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopRequested( AzureusCoreImpl.this )){
+								
+								LGLogger.log("Core: Request to stop the core has been denied");
+								
+								return;
+							}
+						}
+							
+						stop();
+					}
+				});
 	}
 	
 	public void
@@ -291,15 +360,23 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		LGLogger.log("Core: Restart operation starts");
-			
-		checkRestartSupported();
-		
-		stopSupport( false );
-		
-		LGLogger.log("Core: Restart operation: stop complete, restart initiated" );
-
-		AzureusRestarterFactory.create( this ).restart( false );
+		runNonDaemon( 
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						LGLogger.log("Core: Restart operation starts");
+							
+						checkRestartSupported();
+						
+						stopSupport( false );
+						
+						LGLogger.log("Core: Restart operation: stop complete, restart initiated" );
+				
+						AzureusRestarterFactory.create( AzureusCoreImpl.this ).restart( false );
+					}
+				});
 	}
 	
 	public void
@@ -307,19 +384,27 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		checkRestartSupported();
+		runNonDaemon( 
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						checkRestartSupported();
 		
-		for (int i=0;i<lifecycle_listeners.size();i++){
-			
-			if (!((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).restartRequested( this )){
-				
-				LGLogger.log("Core: Request to restart the core has been denied");
-				
-				return;
-			}
-		}
-		
-		restart();
+						for (int i=0;i<lifecycle_listeners.size();i++){
+							
+							if (!((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).restartRequested( AzureusCoreImpl.this )){
+								
+								LGLogger.log("Core: Request to restart the core has been denied");
+								
+								return;
+							}
+						}
+						
+						restart();
+					}
+				});
 	}
 	
 	public void
