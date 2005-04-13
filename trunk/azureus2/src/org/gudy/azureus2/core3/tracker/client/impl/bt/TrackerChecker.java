@@ -137,16 +137,20 @@ public class TrackerChecker implements TRTrackerScraperListener {
       }
     } else {
       //System.out.println( "adding hash for " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
-      final TrackerStatus ts = new TrackerStatus(scraper.getScraper(),trackerUrl);
-      try{
-      	trackers_mon.enter();
+      TrackerStatus ts = new TrackerStatus(scraper.getScraper(),trackerUrl);
+      
+      if( ts.isTrackerScrapeUrlValid() ) {
+        try{
+          trackers_mon.enter();
       	
-        trackers.put(url_str, ts);
-      }finally{
+          trackers.put(url_str, ts);
+        }finally{
       	
-      	trackers_mon.exit();
+          trackers_mon.exit();
+        }
+      
+        data = ts.addHash(hashBytes);
       }
-      data = ts.addHash(hashBytes);
     }
     
     return data;

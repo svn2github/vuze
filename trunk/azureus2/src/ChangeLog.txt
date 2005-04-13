@@ -57,6 +57,8 @@ BUGFIX: UI   | Download bars should no longer disappear when the main window is 
 BUGFIX: UI   | Certain table column contents no longer 'disappear' when a row is selected (Mac OS X) [CrazyAlchemist]
 BUGFIX: Core | Send uninterested message when complete while using do-not-download feature [Nolar]
 BUGFIX: Core | Optimistic Connect, when seeding, no longer drops just random connections [Nolar]
+BUGFIX: Core | Fix scrape processing stall bug when scrape url was invalid [Nolar]
+
 
 
 

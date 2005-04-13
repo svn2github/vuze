@@ -106,13 +106,20 @@ public class TrackerStatus {
        	
     }else {
         LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
-                     "can't scrape using '" + trackerUrl + "' as it doesn't end in '/announce'");		
+                     "Can't scrape using url '" + trackerUrl + "' as it doesn't end in '/announce', skipping.");		
        }
     } catch (Exception e) {
     	Debug.printStackTrace( e );
     } 
   }
 
+  
+  protected boolean isTrackerScrapeUrlValid() {
+    return scrapeURL != null;
+  }
+  
+  
+  
   protected TRTrackerScraperResponseImpl getHashData(HashWrapper hash) {
   	try{
   		hashes_mon.enter();
@@ -145,7 +152,7 @@ public class TrackerStatus {
   }
 
   protected void updateSingleHash(byte[] hash, boolean force, boolean async) {      
-    LGLogger.log( "updateSingleHash():: force=" + force + ", async=" +async+ ", url=" +scrapeURL+ ", hash=" +ByteFormatter.nicePrint(hash, true) );
+    //LGLogger.log( "updateSingleHash():: force=" + force + ", async=" +async+ ", url=" +scrapeURL+ ", hash=" +ByteFormatter.nicePrint(hash, true) );
     
     if (scrapeURL == null)  {
       return;
