@@ -60,7 +60,7 @@ AzureusRestarterImpl
 	{
 		if ( restarted ){
 			
-			LGLogger.log( "AzureusRestarted: already restarted!!!!");
+			LGLogger.log( "AzureusRestarter: already restarted!!!!");
 			
 			return;
 		}
@@ -142,13 +142,17 @@ AzureusRestarterImpl
 	  	
 	  	String[]	properties = { "-Duser.dir=\"" + app_path + "\"" };
 	  	
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		
 	  	restartAzureus(
-	  		new PrintWriter(new ByteArrayOutputStream())
+	  		new PrintWriter(os)
 			{
 	  			public void
 				println(
 					String	str )
 				{
+						// we intercept these logs and log immediately
+					
 	  				LGLogger.log( str );
 	  			}
 					
@@ -156,6 +160,15 @@ AzureusRestarterImpl
 			MAIN_CLASS,
 			properties,
 			parameters );
+		
+			// just check if any non-logged data exists
+		
+		byte[]	bytes = os.toByteArray();
+		
+		if ( bytes.length > 0 ){
+			
+			LGLogger.log( "AzureusRestarter: extra log - " + new String( bytes ));
+		}
 	}
   
 	

@@ -297,6 +297,8 @@ AzureusCoreImpl
 		
 		stopSupport( false );
 		
+		LGLogger.log("Core: Restart operation: stop complete, restart initiated" );
+
 		AzureusRestarterFactory.create( this ).restart( false );
 	}
 	
