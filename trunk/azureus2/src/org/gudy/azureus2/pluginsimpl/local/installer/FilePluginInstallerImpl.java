@@ -163,13 +163,34 @@ FilePluginInstallerImpl
 					
 				if ( properties == null ){
 					
-					throw( new PluginException( "Mandatory file 'plugin.properties' not found in plugin file" ));
-				}
+						// one valid possibility here, this is a built-in plugin. this doesn't have
+						// a plugin.properties
+										
+					pos = prefix.lastIndexOf("_");
+					
+					if ( pos != -1 ){
+					
+						id 			= prefix.substring(0,pos);							
+						version		= prefix.substring(pos+1);
+					
+						PluginInterface pi = installer.getPluginManager().getPluginInterfaceByID( id );
+
+						ok =  	pi != null &&
+								(	pi.getPluginDirectoryName() == null || 
+								    pi.getPluginDirectoryName().length() == 0 ); 
+					}
+					
+					if ( !ok ){
+					
+						throw( new PluginException( "Mandatory file 'plugin.properties' not found in plugin file" ));
+					}
+				}else{
 				
 					// unfortunately plugin.id isn't mandatory for the properties, and neither is plugin.version
 				
-				id		= properties.getProperty( "plugin.id" );
-				version	= properties.getProperty( "plugin.version" );
+					id		= properties.getProperty( "plugin.id" );
+					version	= properties.getProperty( "plugin.version" );
+				}
 				
 				if ( id == null ){
 					
