@@ -27,37 +27,34 @@ public class URLTransfer extends ByteArrayTransfer {
 	// Mozilla link (text)=13, Mozilla bookmark=13
   // Opera 7 LINK DRAG & DROP IMPOSSIBLE (just inside Opera)
   private static final String[] supportedTypes = new String[] { "UniformResourceLocator", "UniformResourceLocator", "CF_UNICODETEXT", "CF_TEXT" };
-  private static final int[] supportedTypeIds = new int[] { 49367, 49362, 13, registerType("CF_TEXT") }; // 15="CF_HDROP" (File), 49368="UniformResourceLocator" (File+IE bookmark), 49458="UniformResourceLocatorW" (IE bookmark)
+  private static final int[] supportedTypeIds = new int[] { 49367, 49362, 13, 1 }; // 15="CF_HDROP" (File), 49368="UniformResourceLocator" (File+IE bookmark), 49458="UniformResourceLocatorW" (IE bookmark)
 
   public static URLTransfer getInstance() {
     return _instance;
   }
-  
   public void javaToNative(Object object, TransferData transferData) {
-    if (!checkURLType(object) || !isSupportedType (transferData)) {
-      DND.error(DND.ERROR_INVALID_DATA);
+    if (object == null || !(object instanceof URLType[]))
+      return;
+
+    if (isSupportedType(transferData)) {
+      URLType[] myTypes = (URLType[]) object;
+      try {
+        // write data to a byte array and then ask super to convert to pMedium
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        DataOutputStream writeOut = new DataOutputStream(out);
+        for (int i = 0, length = myTypes.length; i < length; i++) {
+          writeOut.writeBytes(myTypes[i].linkURL);
+          writeOut.writeBytes("\n");
+          writeOut.writeBytes(myTypes[i].linkText);
+        }
+        byte[] buffer = out.toByteArray();
+        writeOut.close();
+
+        super.javaToNative(buffer, transferData);
+
+      } catch (IOException e) {}
     }
-    
-    URLType[] myTypes = (URLType[]) object;
-    
-    try {
-      // write data to a byte array and then ask super to convert to pMedium
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      DataOutputStream writeOut = new DataOutputStream(out);
-      for (int i = 0, length = myTypes.length; i < length; i++) {
-        writeOut.writeBytes(myTypes[i].linkURL);
-        writeOut.writeBytes("\n");
-        writeOut.writeBytes(myTypes[i].linkText);
-      }
-      byte[] buffer = out.toByteArray();
-      writeOut.close();
-
-      super.javaToNative(buffer, transferData);
-
-    } catch (IOException e) {}    
   }
-  
-  
   public Object nativeToJava(TransferData transferData) {
 
     if (isSupportedType(transferData)) {
@@ -105,30 +102,13 @@ public class URLTransfer extends ByteArrayTransfer {
 	 * @return
 	 */
   public boolean isSupportedType(TransferData transferData) {
-    /*if (transferData != null) {
+    if (transferData != null) {
       for (int i = 0; i < supportedTypeIds.length; i++) {
         if (transferData.type == supportedTypeIds[i])
           return true;
       }
-    }*/
+    }
     return super.isSupportedType(transferData);
-  }
-  
-  boolean checkURLType(Object object) {
-    if (object == null || 
-      !(object instanceof URLType[]) || 
-      ((URLType[])object).length == 0) {
-      return false;
-    }
-    URLType[] myTypes = (URLType[])object;
-    for (int i = 0; i < myTypes.length; i++) {
-      if (myTypes[i] == null || 
-        myTypes[i].linkURL == null || 
-        myTypes[i].linkText == null) {
-        return false;
-      }
-    }
-    return true;
   }
 
   public class URLType {
