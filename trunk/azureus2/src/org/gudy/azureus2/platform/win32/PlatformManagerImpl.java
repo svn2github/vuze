@@ -497,8 +497,7 @@ PlatformManagerImpl
     {
         try
         {
-            System.out.println("Here");
-            Runtime.getRuntime().exec("explorer.exe /e,/select," + file_name);
+            Runtime.getRuntime().exec("explorer.exe /e,/select,\"" + file_name + "\"");
         }
         catch (IOException e)
         {
