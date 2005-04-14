@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.predicate.shell.ShellCanMaximizePredicate;
@@ -341,6 +342,15 @@ public class MainMenu {
             view_config.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event e) {
             mainWindow.showConfig();
+            }
+            });
+            
+            MenuItem nat_test = new MenuItem(toolsMenu, SWT.NULL);
+            //KeyBindings.setAccelerator(nat_test, "MainWindow.menu.tools.nattest");
+            Messages.setLanguageText(nat_test, "MainWindow.menu.tools.nattest"); //$NON-NLS-1$
+            nat_test.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+             new NatTestWindow();
             }
             });
 
