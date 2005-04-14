@@ -141,7 +141,6 @@ public class VirtualChannelSelector {
     public void pauseSelects( SocketChannel channel ) {
       
       if( channel == null ) {
-        Debug.printStackTrace( new Exception( "pauseSelects():: channel == null" ) );
         return;
       }
       
