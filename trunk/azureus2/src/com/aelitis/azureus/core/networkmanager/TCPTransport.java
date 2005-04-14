@@ -302,7 +302,6 @@ public class TCPTransport {
     }
     
     if( socket_channel == null ) {
-      Debug.out( "socket_channel == null" );
       return 0;
     }
     
