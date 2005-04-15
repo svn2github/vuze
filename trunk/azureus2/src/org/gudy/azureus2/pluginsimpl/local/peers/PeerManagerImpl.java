@@ -28,8 +28,6 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.download.*;
 
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.download.*;
@@ -49,9 +47,9 @@ PeerManagerImpl
 	
 	protected static AEMonitor	pm_map_mon	= new AEMonitor( "PeerManager:Map" );
 
-	protected Map		foreign_map	= new WeakHashMap();
+	protected Map		foreign_map		= new HashMap();
 	
-	protected Map		listener_map = new HashMap();
+	protected Map		listener_map 	= new HashMap();
 	
 	 protected AEMonitor	this_mon	= new AEMonitor( "PeerManager" );
 
@@ -132,9 +130,13 @@ PeerManagerImpl
 	}
 	
   
-  public void addPeer( String ip_address, int port ) {
-    manager.addPeer( ip_address, port );
-  }
+	public void 
+	addPeer( 
+		String 	ip_address, 
+		int 	port ) 
+	{
+		manager.addPeer( ip_address, port );
+	}
   
   
 	public void
@@ -144,6 +146,24 @@ PeerManagerImpl
 		manager.removePeer(mapForeignPeer( peer ));
 	}
 	
+	public Peer[]
+	getPeers()
+	{
+		List	l = manager.getPeers();
+		
+		Peer[]	res= new Peer[l.size()];
+		
+			// this is all a bit shagged as we should maintain the PEPeer -> Peer link rather
+			// than continually creating new PeerImpls...
+		
+		for (int i=0;i<res.length;i++){
+			
+			res[i] = new PeerImpl((PEPeer)l.get(i));
+		}
+		
+		return( res );
+	}
+
 	protected  void
 	peerAdded(
 		Peer		peer )
@@ -157,15 +177,11 @@ PeerManagerImpl
 	{
 		manager.peerRemoved( mapForeignPeer( peer ));
 	}
-		
+	
 	public PEPeer
 	mapForeignPeer(
 		Peer	_foreign )
 	{
-			// TODO: foreign map weak hash map won't work because key appears in value
-		
-		Debug.out( "Fix this!!!!" );
-		
 		PEPeer	local = (PEPeer)foreign_map.get( _foreign );
 		
 		if( local == null ){

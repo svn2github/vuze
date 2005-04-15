@@ -41,19 +41,25 @@ PeerManager
 		Peer		peer );
   
   
-  /**
-   * Add a new peer, using the default internal Peer implementation
-   * (like for peers given in announce reply), using the given address
-   * and port.
-   * @param ip_address of peer to inject
-   * @param port of peer to inject
-   */
-  public void addPeer( String ip_address, int port );
-  
+	  /**
+	   * Add a new peer, using the default internal Peer implementation
+	   * (like for peers given in announce reply), using the given address
+	   * and port.
+	   * @param ip_address of peer to inject
+	   * @param port of peer to inject
+	   */
 	
+	public void 
+	addPeer( 
+		String ip_address, 
+		int port );
+  
 	public void
 	removePeer(
 		Peer		peer );
+	
+	public Peer[]
+	getPeers();
 	
 	public DiskManager
 	getDiskManager();

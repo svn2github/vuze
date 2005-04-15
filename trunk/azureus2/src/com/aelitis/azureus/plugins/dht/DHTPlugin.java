@@ -34,8 +34,11 @@ import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
+import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
@@ -87,6 +90,9 @@ DHTPlugin
 	private static final String	SEED_ADDRESS	= "aelitis.com";
 	private static final int	SEED_PORT		= 6881;
 		
+	private static final long	MIN_ROOT_SEED_IMPORT_PERIOD	= 8*60*60*1000;
+	
+		
 	private PluginInterface		plugin_interface;
 	
 	private DHT					dht;
@@ -95,6 +101,8 @@ DHTPlugin
 	
 	private DHTPluginStorageManager storage_manager;
 
+	private long				last_root_seed_import_time;
+	
 	private boolean				enabled;
 	private int					dht_data_port;
 	
@@ -460,7 +468,7 @@ DHTPlugin
 									
 									dht.setLogging( logging.getValue());
 									
-									importSeed();
+									importRootSeed();
 									
 									storage_manager.importContacts( dht );
 									
@@ -550,15 +558,69 @@ DHTPlugin
 	protected void
 	checkForReSeed()
 	{
+		int	seed_limit = 32;
+		
 		try{
 			
 			long[]	router_stats = dht.getRouter().getStats().getStats();
 		
-			if ( router_stats[ DHTRouterStats.ST_CONTACTS_LIVE] < 10 ){
+			if ( router_stats[ DHTRouterStats.ST_CONTACTS_LIVE] < seed_limit ){
 				
-				log.log( "Less the 10 live contacts, reseeding" );
+				log.log( "Less the 32 live contacts, reseeding" );
 				
-				importSeed();
+					// first look for peers to directly import
+				
+				Download[]	downloads = plugin_interface.getDownloadManager().getDownloads();
+				
+				int	peers_imported	= 0;
+				
+				for (int i=0;i<downloads.length;i++){
+					
+					Download	download = downloads[i];
+					
+					PeerManager pm = download.getPeerManager();
+					
+					if ( pm == null ){
+						
+						continue;
+					}
+					
+					Peer[] 	peers = pm.getPeers();
+					
+outer:
+					for (int j=0;j<peers.length;j++){
+						
+						Peer	p = peers[j];
+						
+						if ( false ){ // TODO:
+						
+							String	ip 		= p.getIp();
+							int		port	= 0; // TODO:
+							
+							try{
+								transport.importContact(
+										new InetSocketAddress( ip, port ),
+										DHTTransportUDP.PROTOCOL_VERSION );
+								
+								peers_imported++;
+								
+								
+								if ( peers_imported > seed_limit ){
+									
+									break outer;
+								}
+
+							}catch( Throwable e ){
+								
+							}
+						}	
+					}
+				}
+				
+				if ( peers_imported == 0 ){
+				
+					importRootSeed();
+				}
 				
 				dht.integrate();
 			}
@@ -570,13 +632,23 @@ DHTPlugin
 	}
 		
 	protected void
-	importSeed()
+	importRootSeed()
 	{
 		try{
-			transport.importContact(
-					new InetSocketAddress( getSeedAddress(), SEED_PORT ),
-					DHTTransportUDP.PROTOCOL_VERSION );
+			long	 now = SystemTime.getCurrentTime();
 			
+			if ( now - last_root_seed_import_time > MIN_ROOT_SEED_IMPORT_PERIOD ){
+		
+				last_root_seed_import_time	= now;
+				
+				transport.importContact(
+						new InetSocketAddress( getSeedAddress(), SEED_PORT ),
+						DHTTransportUDP.PROTOCOL_VERSION );
+			
+			}else{
+				
+				log.log( "    root seed imported too recently, ignoring" );
+			}
 		}catch( Throwable e ){
 			
 			log.log(e);
