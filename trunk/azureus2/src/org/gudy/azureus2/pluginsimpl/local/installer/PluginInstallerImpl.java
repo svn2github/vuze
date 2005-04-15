@@ -96,7 +96,18 @@ PluginInstallerImpl
 				SFPluginDetails	detail = details[i];
 				
 				String	name 	= detail.getId();
-				String	version	= detail.getVersion();
+				
+				String	version = "";
+				
+				if ( Constants.isCVSVersion()){
+					
+					version = detail.getCVSVersion();
+				}
+				
+				if ( version == null || version.length() == 0 || !Character.isDigit(version.charAt(0))){
+					
+					version = detail.getVersion();
+				}
 				
 				if ( name.startsWith( "azplatform" ) || name.equals( "azupdater" )){
 					
@@ -108,7 +119,7 @@ PluginInstallerImpl
 						// dodgy version
 				}else{
 					
-					res.add( new StandardPluginImpl( this, details[i] ));
+					res.add( new StandardPluginImpl( this, details[i], version ));
 				}
 			}
 			

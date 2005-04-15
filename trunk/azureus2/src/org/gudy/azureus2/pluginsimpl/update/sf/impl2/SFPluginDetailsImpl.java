@@ -52,11 +52,13 @@ SFPluginDetailsImpl
 		SFPluginDetailsLoaderImpl	_loader,
 		String						_id,
 		String						_version,
+		String						_cvs_version,
 		String						_name )
 	{
 		loader				= _loader;
 		id					= _id;
 		version				= _version;
+		cvs_version			= _cvs_version;
 		name				= _name;
 	}
 	
@@ -64,7 +66,6 @@ SFPluginDetailsImpl
 	setDetails(
 		String	_download_url,
 		String	_author,
-		String	_cvs_version,
 		String	_cvs_download_url,
 		String	_desc,
 		String	_comment )
@@ -73,7 +74,6 @@ SFPluginDetailsImpl
 		
 		download_url		= _download_url;
 		author				= _author;
-		cvs_version			= _cvs_version;
 		cvs_download_url	= _cvs_download_url;
 		desc				= _desc;
 		comment				= _comment;
@@ -138,9 +138,7 @@ SFPluginDetailsImpl
 	getCVSVersion()
 	
 		throws SFPluginDetailsException
-	{
-		checkLoaded();
-		
+	{		
 		return( cvs_version );
 	}
 	

@@ -47,7 +47,7 @@ SFPluginDetailsLoaderImpl
 {
 
 	public static final String	site_prefix = "http://azureus.sourceforge.net/";
-	public static final String	page_url 	= site_prefix + "update/pluginlist2.php?type=release";
+	public static final String	page_url 	= site_prefix + "update/pluginlist3.php?type=";
 
 	protected static SFPluginDetailsLoaderImpl		singleton;
   	protected static AEMonitor		class_mon		= new AEMonitor( "SFPluginDetailsLoader:class" );
@@ -135,13 +135,14 @@ SFPluginDetailsLoaderImpl
 					}
 				}
 				
-				String	version = (String)bits.get(0);
-				String	name	= (String)bits.get(1);
+				String	version 	= (String)bits.get(0);
+				String	cvs_version = (String)bits.get(1);
+				String	name		= (String)bits.get(2);
 				
 				plugin_ids.add( plugin_id );
 				
 				plugin_map.put(plugin_id.toLowerCase(), 
-				               new SFPluginDetailsImpl( this, plugin_id, version, name ));
+				               new SFPluginDetailsImpl( this, plugin_id, version, cvs_version, name ));
 			}
 			
 			plugin_ids_loaded	= true;
@@ -224,8 +225,8 @@ SFPluginDetailsLoaderImpl
 				
 					HTMLTableCell[]	detail_cells = rows[2].getCells();
 					
-					String	plugin_name			= detail_cells[0].getContent();
-					String	plugin_version		= detail_cells[1].getContent();
+					//String	plugin_name			= detail_cells[0].getContent();
+					//String	plugin_version		= detail_cells[1].getContent();
 					String	plugin_auth			= detail_cells[4].getContent();
 					
 					String[]	dl_links = detail_cells[2].getLinks();
@@ -243,7 +244,7 @@ SFPluginDetailsLoaderImpl
 					
 					HTMLTableCell[]	cvs_detail_cells = rows[3].getCells();
 
-					String	plugin_cvs_version		= cvs_detail_cells[1].getContent();
+					// String	plugin_cvs_version		= cvs_detail_cells[1].getContent();
 
 					String[]	cvs_dl_links 		= cvs_detail_cells[2].getLinks();
 					
@@ -263,7 +264,6 @@ SFPluginDetailsLoaderImpl
 					details.setDetails(
 									plugin_download,
 									plugin_auth,
-									plugin_cvs_version,
 									plugin_cvs_download,
 									rows[6].getCells()[0].getContent(),
 									rows[9].getCells()[0].getContent());

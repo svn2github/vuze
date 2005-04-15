@@ -41,16 +41,19 @@ public class
 StandardPluginImpl 
 	implements StandardPlugin, InstallablePluginImpl
 {
-	protected PluginInstallerImpl	installer;
-	protected SFPluginDetails		details;
+	private PluginInstallerImpl	installer;
+	private SFPluginDetails		details;
+	private String				version;
 	
 	protected
 	StandardPluginImpl(
 		PluginInstallerImpl	_installer,
-		SFPluginDetails		_details )
+		SFPluginDetails		_details,
+		String				_version )
 	{
 		installer	= _installer;
 		details		= _details;
+		version		= _version==null?"":_version;
 	}
 	
 	public String
@@ -62,9 +65,7 @@ StandardPluginImpl
 	public String
 	getVersion()
 	{
-		String	version = details.getVersion();
-		
-		return( version==null?"":version );
+		return( version );
 	}
 	
 	public String
