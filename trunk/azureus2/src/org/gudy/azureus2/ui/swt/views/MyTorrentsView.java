@@ -1201,7 +1201,7 @@ public class MyTorrentsView
                                            DND.DROP_DEFAULT | DND.DROP_MOVE |
                                            DND.DROP_COPY | DND.DROP_LINK |
                                            DND.DROP_TARGET_MOVE);
-    dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(),
+    dropTarget.setTransfer(new Transfer[] { /*URLTransfer.getInstance(),*/
                                             FileTransfer.getInstance(),
                                             TextTransfer.getInstance()});
     dropTarget.addDropListener(new DropTargetAdapter() {
