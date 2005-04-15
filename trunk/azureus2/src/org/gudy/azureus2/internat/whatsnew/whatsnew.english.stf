@@ -21,17 +21,35 @@ $
 +2. Upgrade Advice
 
 !2.1 Java 5.0
-
+ Azureus uses the Java Engine. The Best Java you use, the Best Azureus will run. Java 5.0 (1.5.0) provides better performances, so we advise all our users to upgrade.
+ You'll find torrents to update Java here : http://azureus.sourceforge.net/download.php
+ Download the one for your system, close Azureus, execute the downloaded file, then restart Azureus.
+ WinXP users will have to go to Tools > Config > Interface > Display, and re-check the "Enable XP Style" option.
+ 
 !2.2 NOD32
-
+ NOD32 (http://www.nod32.com) is an antivirus which is known to be incompatible with Azureus. If you use this anti-virus, you'll certainly end-up with 100% CPU usage in Azureus.
+ We believe that the bug is on their side, so we can't fix this issue.
+ 
 +
 +3. Common Issues
 
 !3.1 NAT "error"
-
+ NAT means "Network Address Translation". The NAT test in Azureus tells you if you are, or not, connectable from people on the internet. You'll get better speeds if you ARE connectable.
+ Please don't contact us in order to solve NAT issues, as plenty resources are available on the internet about it. First check :
+ - http://azureus.aelitis.com/wiki/index.php/PortForwarding
+ - http://www.portforward.com
+ 
+ 
 !3.2 Azureus Crashing
+ If your Azureus is crashing, then, the most likely reason is an issue with your network components (card, drivers, OS). We highly recommend that you update all network related components. If this doesn't help, then the reason is probably that your system can't handle that many connections.
+ Lower the number of connections in Azureus (Tools > Options > Transfer > Maximum number of connections per torrent / globally), try a low value like 30 first.
 
 !3.3 Support
+ Before contacting the support team, be sure and check the available resources at :
+ - The official WebSite     : http://azureus.sourceforge.net/
+ - The official Wiki        : http://azureus.aelitis.com/wiki/
+ - The official IRC Channel : #azureus-users on irc.freenode.net
+ - IF (and only IF) you can't solve your issue after trying ALL those mediums, you can contact us at azureus@gmail.com
 
 +
 +4. Full ChangeLog
