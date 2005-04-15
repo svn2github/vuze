@@ -5,8 +5,10 @@ $
 + 
 +1. What's new in Azureus 2.3.0.0
 
-!1.1 DHT
-
+!1.1 Distributed Database
+ Azureus now has a distributed, decentralised database that can be used to track decentralised torrents. This permits both "trackerless" torrents and the maintenance of swarms for torrents where the tracker has either become unavailable or the torrent removed from it.
+ It uses the UDP protocol, if you have firewall/router software you will need to open the UDP port in the same way that you need to for download data.
+ 
 !1.2 Extended Protocol
 
 !1.3 JPC
