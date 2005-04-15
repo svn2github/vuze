@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.IntParameter;
+import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
@@ -99,6 +100,8 @@ DHTPlugin
 	private DHTTransportUDP		transport;
 	private long				integrated_time;
 	
+	private ActionParameter		reseed;
+	
 	private DHTPluginStorageManager storage_manager;
 
 	private long				last_root_seed_import_time;
@@ -149,6 +152,18 @@ DHTPlugin
 		final StringParameter	command = config.addStringParameter2( "dht.execute.command", "dht.execute.command", "print" );
 		
 		ActionParameter	execute = config.addActionParameter2( "dht.execute.info", "dht.execute");
+		
+		LabelParameter	reseed_label = config.addLabelParameter2( "dht.reseed.label" );
+		
+		final StringParameter	reseed_ip	= config.addStringParameter2( "dht.reseed.ip", "dht.reseed.ip", "" );
+		final IntParameter		reseed_port	= config.addIntParameter2( "dht.reseed.port", "dht.reseed.port", 0 );
+		
+		reseed = config.addActionParameter2( "dht.reseed.info", "dht.reseed");
+
+		reseed.setEnabled( false );
+		
+		config.createGroup( "dht.reseed.group",
+				new Parameter[]{ reseed_label, reseed_ip, reseed_port, reseed });
 		
 		final BooleanParameter	logging = config.addBooleanParameter2( "dht.logging", "dht.logging", false );
 
@@ -270,6 +285,56 @@ DHTPlugin
 					t.start();
 				}
 			});
+		
+		reseed.addListener(
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						Parameter	param )
+					{
+						reseed.setEnabled( false );						
+
+						Thread t = 
+							new AEThread( "DHT:reseeder" )
+							{
+								public void
+								runSupport()
+								{
+									try{
+										String	ip 	= reseed_ip.getValue().trim();
+
+										if ( dht == null ){
+											
+											return;
+										}
+									
+										int		port = reseed_port.getValue();
+										
+										if ( ip.length() == 0 || port == 0 ){
+											
+											checkForReSeed( true );
+											
+										}else{
+											
+											if ( importSeed( ip, port )){
+												
+												integrateDHT( false );
+											}
+										}
+										
+									}finally{
+										
+										reseed.setEnabled( true );
+									}
+								}
+							};
+							
+						t.setDaemon( true );
+						
+						t.start();
+					}
+				});
 		
 		model.getActivity().setVisible( false );
 		model.getProgress().setVisible( false );
@@ -457,9 +522,7 @@ DHTPlugin
 									
 									props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
 									*/
-									
-									long	start = SystemTime.getCurrentTime();
-									
+																		
 									dht = DHTFactory.create( 
 												transport, 
 												props,
@@ -480,21 +543,13 @@ DHTPlugin
 												perform(
 													UTTimerEvent		event )
 												{
-													checkForReSeed();
+													checkForReSeed(false);
 													
 													storage_manager.exportContacts( dht );
 												}
 											});
-									
-									dht.integrate();
-									
-									long	end = SystemTime.getCurrentTime();
-			
-									integrated_time	= end;
-									
-									log.log( "DHT integration complete: elapsed = " + (end-start));
-									
-									dht.print();
+
+									integrateDHT( true );
 									
 									model.getStatus().setText( "Running" );
 																		
@@ -556,7 +611,35 @@ DHTPlugin
 	}
 	
 	protected void
-	checkForReSeed()
+	integrateDHT(
+		boolean	first )
+	{
+		try{
+			reseed.setEnabled( false );						
+
+			log.log( "DHT " + (first?"":"re-") + "integration starts" );
+		
+			long	start = SystemTime.getCurrentTime();
+			
+			dht.integrate();
+			
+			long	end = SystemTime.getCurrentTime();
+	
+			integrated_time	= end;
+			
+			log.log( "DHT " + (first?"":"re-") + "integration complete: elapsed = " + (end-start));
+			
+			dht.print();
+			
+		}finally{
+			
+			reseed.setEnabled( true );						
+		}
+	}
+	
+	protected void
+	checkForReSeed(
+		boolean	force )
 	{
 		int	seed_limit = 32;
 		
@@ -564,9 +647,16 @@ DHTPlugin
 			
 			long[]	router_stats = dht.getRouter().getStats().getStats();
 		
-			if ( router_stats[ DHTRouterStats.ST_CONTACTS_LIVE] < seed_limit ){
+			if ( router_stats[ DHTRouterStats.ST_CONTACTS_LIVE] < seed_limit || force ){
 				
-				log.log( "Less the 32 live contacts, reseeding" );
+				if ( force ){
+					
+					log.log( "Reseeding" );
+					
+				}else{
+					
+					log.log( "Less the 32 live contacts, reseeding" );
+				}
 				
 					// first look for peers to directly import
 				
@@ -597,21 +687,14 @@ outer:
 							String	ip 		= p.getIp();
 							int		port	= 0; // TODO:
 							
-							try{
-								transport.importContact(
-										new InetSocketAddress( ip, port ),
-										DHTTransportUDP.PROTOCOL_VERSION );
+							if ( importSeed( ip, port )){
 								
 								peers_imported++;
-								
-								
+															
 								if ( peers_imported > seed_limit ){
 									
 									break outer;
 								}
-
-							}catch( Throwable e ){
-								
 							}
 						}	
 					}
@@ -619,10 +702,16 @@ outer:
 				
 				if ( peers_imported == 0 ){
 				
-					importRootSeed();
+					if ( importRootSeed()){
+						
+						peers_imported++;
+					}
 				}
 				
-				dht.integrate();
+				if ( peers_imported > 0 ){
+					
+					integrateDHT( false );
+				}
 			}
 			
 		}catch( Throwable e ){
@@ -631,7 +720,7 @@ outer:
 		}
 	}
 		
-	protected void
+	protected boolean
 	importRootSeed()
 	{
 		try{
@@ -641,9 +730,7 @@ outer:
 		
 				last_root_seed_import_time	= now;
 				
-				transport.importContact(
-						new InetSocketAddress( getSeedAddress(), SEED_PORT ),
-						DHTTransportUDP.PROTOCOL_VERSION );
+				return( importSeed( getSeedAddress(), SEED_PORT ));
 			
 			}else{
 				
@@ -652,6 +739,46 @@ outer:
 		}catch( Throwable e ){
 			
 			log.log(e);
+		}
+		
+		return( false );
+	}
+	
+	protected boolean
+	importSeed(
+		String		ip,
+		int			port )
+	{
+		try{
+			
+			return( importSeed( InetAddress.getByName( ip ), port ));
+			
+		}catch( Throwable e ){
+			
+			log.log(e);
+			
+			return( false );
+		}
+	}
+	
+	protected boolean
+	importSeed(
+		InetAddress		ia,
+		int				port )
+	
+	{
+		try{
+			transport.importContact(
+					new InetSocketAddress(ia, port ),
+					DHTTransportUDP.PROTOCOL_VERSION );
+		
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			log.log(e);
+			
+			return( false );
 		}
 	}
 	

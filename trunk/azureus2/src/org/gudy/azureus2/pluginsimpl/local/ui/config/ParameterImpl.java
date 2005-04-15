@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.config.*;
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
@@ -117,10 +118,16 @@ ParameterImpl
 		boolean	e )
 	{
 		enabled	= e;
-		
+				
 		for (int i=0;i<impl_listeners.size();i++){
 
-			((ParameterImplListener)impl_listeners.get(i)).enabledChanged( this );
+			try{
+				((ParameterImplListener)impl_listeners.get(i)).enabledChanged( this );
+				
+			}catch( Throwable f ){
+				
+				Debug.printStackTrace(f);
+			}
 		}
 	}
 	

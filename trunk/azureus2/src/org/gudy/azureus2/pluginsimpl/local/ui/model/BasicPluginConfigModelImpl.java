@@ -31,6 +31,7 @@ import java.util.*;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Composite;
@@ -252,7 +253,7 @@ BasicPluginConfigModelImpl
 	
 	public Composite 
 	configSectionCreate(
-		Composite parent ) 
+		final Composite parent ) 
 	{
 		
 			// main tab set up
@@ -453,23 +454,52 @@ BasicPluginConfigModelImpl
 		
 		for (int i=0;i<parameters.size();i++){
 			
-			ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
+			final ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
 			
 			param.addImplListener( 
 				new ParameterImplListener()
 				{
 					public void
 					enabledChanged(
-						ParameterImpl	p )
+						final ParameterImpl	p )
 					{
-					    Object[] stuff = (Object[])comp_map.get( p );
+					    final Object[] stuff = (Object[])comp_map.get( p );
 					    
 					    if ( stuff != null ){
 					    	
-						    for(int k = 1 ; k < stuff.length ; k++) {
-						    	
-						    	((Control)stuff[k]).setEnabled(p.isEnabled());
-						    }
+								// lazy tidyup
+							
+							if ( ((Control)stuff[1]).isDisposed()){
+								
+								param.removeImplListener( this );
+								
+							}else{
+								
+								Runnable target = 
+									new Runnable()
+									{
+										public void
+										run()
+										{
+										    for(int k = 1 ; k < stuff.length ; k++) {
+										    	
+										    	((Control)stuff[k]).setEnabled(p.isEnabled());
+										    }
+		
+										}
+									};
+									
+								Display	display = parent.getDisplay();
+								
+								if ( display.getThread() == Thread.currentThread()){
+									
+									target.run();
+									
+								}else{
+									
+									display.asyncExec( target );
+								}
+							}
 					    }
 					}
 				});
