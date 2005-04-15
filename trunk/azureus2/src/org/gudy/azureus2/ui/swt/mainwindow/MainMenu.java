@@ -58,6 +58,7 @@ import org.gudy.azureus2.ui.swt.predicate.shellmanager.ShellManagerIsEmptyPredic
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.plugins.PluginView;
 
 import java.util.Iterator;
@@ -429,6 +430,14 @@ public class MainMenu {
       help_health.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
           HealthHelpWindow.show( display );
+        }
+      });
+      
+      MenuItem help_whatsnew = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_whatsnew, "MyTorrentsView.menu.whatsnew");
+      help_whatsnew.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          new WelcomeWindow();
         }
       });
 
