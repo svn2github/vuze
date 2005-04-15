@@ -216,7 +216,17 @@ PluginConfig
    * @since 2.0.4.2
    */
   public boolean getPluginBooleanParameter(String key,boolean defaultValue);
-    
+
+  /**
+   * @since 2.2.0.3
+   * @param key
+   * @param defaultValue
+   * @return
+   */
+  
+  public byte[] getPluginByteParameter( String key, byte[] defaultValue );
+  
+
   /**
    * sets a plugin int parameter value
    * @param key the parameter name
@@ -224,7 +234,8 @@ PluginConfig
    *
    * @since 2.0.4.2
    */
-  public void setPluginParameter(String key,int value);
+  
+   public void setPluginParameter(String key,int value);
   
   /**
    * sets a plugin String parameter value

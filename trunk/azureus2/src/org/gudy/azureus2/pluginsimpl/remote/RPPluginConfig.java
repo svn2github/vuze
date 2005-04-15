@@ -280,6 +280,13 @@ RPPluginConfig
 	  	return(false);
 	  }
 	  
+	  public byte[] getPluginByteParameter(String key, byte[] defaultValue )
+	  {
+	  	notSupported();
+	  	
+	  	return(null);
+	  }
+	  
 	  public boolean getPluginBooleanParameter(String key,boolean defaultValue)
 	  {
 	  	notSupported();

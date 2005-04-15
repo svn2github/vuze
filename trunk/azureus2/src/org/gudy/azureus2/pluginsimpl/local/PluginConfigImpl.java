@@ -197,6 +197,12 @@ PluginConfigImpl
 		return COConfigurationManager.getBooleanParameter(this.key+key, defaultValue);
 	}
 
+	public byte[] getPluginByteParameter(String key, byte[] defaultValue )
+	{
+		return COConfigurationManager.getByteParameter(this.key+key, defaultValue);
+	}
+
+
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, int)
 	 */
