@@ -401,10 +401,21 @@ DHTPlugin
 															
 															if ( incoming_average <= 2 ){
 																
-																log.logAlert(
-																	LoggerChannel.LT_WARNING,
-																	"If you have a router/firewall, please check that you have port " + f_dht_data_port + 
-																	" UDP open.\nDecentralised tracking requires this." );
+																String msg = "If you have a router/firewall, please check that you have port " + f_dht_data_port + 
+																				" UDP open.\nDecentralised tracking requires this." ;
+
+																int	warned_port = plugin_interface.getPluginconfig().getPluginIntParameter( "udp_warned_port", 0 );
+																
+																if ( warned_port == f_dht_data_port  ){
+																	
+																	log.log( msg );
+																	
+																}else{
+																	
+																	plugin_interface.getPluginconfig().setPluginParameter( "udp_warned_port", f_dht_data_port );
+																	
+																	log.logAlert( LoggerChannel.LT_WARNING, msg );
+																}
 															}
 														}
 														
