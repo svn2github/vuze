@@ -150,6 +150,10 @@ TorrentAttributeCategoryImpl
 		
 		v.toArray( res );
 		
+			// make it nice for clients
+		
+		Arrays.sort( res );
+		
 		return( res );
 	}
 	
