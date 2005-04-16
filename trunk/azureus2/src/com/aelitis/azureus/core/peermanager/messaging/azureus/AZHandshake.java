@@ -47,8 +47,8 @@ public class AZHandshake implements AZMessage {
   private final String client_version;
   private final String[] avail_ids;
   private final byte[] avail_versions;
-  private final int tcp_port;
-  private final int udp_port;
+  private int tcp_port;
+  private int udp_port;
   
   
   public AZHandshake( byte[] peer_identity,
@@ -66,14 +66,26 @@ public class AZHandshake implements AZMessage {
     this.tcp_port = tcp_listen_port;
     this.udp_port = udp_listen_port;
     
+    //verify given port info is ok
+    if( tcp_port < 0 || tcp_port > 65535 ) {
+      System.out.println( "AZHandshake:: given TCP listen port is invalid: " +tcp_port );
+      tcp_port = 0;
+    }
+    
+    if( udp_port < 0 || udp_port > 65535 ) {
+      System.out.println( "AZHandshake:: given UDP listen port is invalid: " +udp_port );
+      udp_port = 0;
+    }
+    
+    
     Map payload_map = new HashMap();
     
     //client info
     payload_map.put( "identity", peer_identity );
     payload_map.put( "client", client );
     payload_map.put( "version", version );
-    payload_map.put( "tcp_port", new Long( tcp_listen_port ) );
-    payload_map.put( "udp_port", new Long( udp_listen_port ) );
+    payload_map.put( "tcp_port", new Long( tcp_port ) );
+    payload_map.put( "udp_port", new Long( udp_port ) );
         
     //available message list
     List message_list = new ArrayList();
