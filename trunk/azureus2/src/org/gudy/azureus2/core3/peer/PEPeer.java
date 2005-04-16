@@ -69,15 +69,34 @@ PEPeer
 	public byte[] getId();
 
 	public String getIp();
+  
+  /**
+   * Get the peer's local TCP connection port.
+   * @return local port
+   */
+  public int getPort();
  
 	/**
 	 * Gets the host name for the IP, if possible, IP as string otherwise
    * @return hostname or IP
    */
 	public String getIPHostName();
-	
-	public int getPort();
-	
+
+  
+  /**
+   * Get the TCP port this peer is listening for incoming connections on.
+   * @return TCP port, or 0 if port is unknown
+   */
+  public int getTCPListenPort();
+  
+  /**
+   * Get the UDP port this peer is listening for incoming connections on.
+   * @return UDP port, or 0 if port is unknown
+   */
+  public int getUDPListenPort();
+
+  
+  
 	public boolean[] getAvailable();
  
 	public void setSnubbed(boolean b);	// explicit un-snub

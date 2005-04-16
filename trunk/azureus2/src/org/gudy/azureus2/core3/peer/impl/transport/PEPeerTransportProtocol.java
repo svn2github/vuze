@@ -59,6 +59,9 @@ PEPeerTransportProtocol
 	private IPToHostNameResolverRequest	ip_resolver_request;
 	
 	private int port;
+  
+  private int tcp_listen_port = 0;
+  private int udp_listen_port = 0;
 	
 	private final PEPeerStats peer_stats;
   
@@ -655,6 +658,11 @@ PEPeerTransportProtocol
   public byte[] getId() {  return peer_id;  }
   public String getIp() {  return ip;  }
   public int getPort() {  return port;  }
+  
+  public int getTCPListenPort() {  return tcp_listen_port;  }
+  public int getUDPListenPort() {  return udp_listen_port;  }
+  
+  
   public String getClient() {  return client;  }
   
   public boolean isIncoming() {  return incoming;  }  
@@ -1177,6 +1185,10 @@ PEPeerTransportProtocol
   
   private void decodeAZHandshake( AZHandshake handshake ) {
     client = handshake.getClient()+ " " +handshake.getClientVersion();
+    
+    tcp_listen_port = handshake.getTCPListenPort();
+    udp_listen_port = handshake.getUDPListenPort();
+    
     
     //find mutually available message types
     ArrayList messages = new ArrayList();

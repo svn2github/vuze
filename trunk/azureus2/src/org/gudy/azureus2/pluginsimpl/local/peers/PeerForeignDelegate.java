@@ -243,6 +243,10 @@ PeerForeignDelegate
 	}
 
 	
+  public int getTCPListenPort() {  return foreign.getTCPListenPort();  }
+  public int getUDPListenPort() {  return foreign.getUDPListenPort();  }
+  
+  
 	public boolean[] 
 	getAvailable()
 	{

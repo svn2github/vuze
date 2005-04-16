@@ -49,8 +49,27 @@ Peer
 	public int getState();	// from above set
 
 	public byte[] getId();
-
+  
+  
+  /**
+   * Get the peer's local TCP connection port.
+   * @return local port
+   */
 	public String getIp();
+  
+  
+  /**
+   * Get the TCP port this peer is listening for incoming connections on.
+   * @return TCP port, or 0 if port is unknown
+   */
+  public int getTCPListenPort();
+  
+  /**
+   * Get the UDP port this peer is listening for incoming connections on.
+   * @return UDP port, or 0 if port is unknown
+   */
+  public int getUDPListenPort();
+  
  
 	public int getPort();
 	

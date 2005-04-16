@@ -179,12 +179,12 @@ public class AZHandshake implements AZMessage {
       //////////////////////////////////////////////
       Long tcp_lport = (Long)root.get( "tcp_port" );
       if( tcp_lport == null ) {  //old handshake
-        tcp_lport = new Long( -1 );
+        tcp_lport = new Long( 0 );
       }
       //////////////////////////////////////////////
       Long udp_lport = (Long)root.get( "udp_port" );
       if( udp_lport == null ) {  //old handshake
-        udp_lport = new Long( -1 );
+        udp_lport = new Long( 0 );
       }
       //////////////////////////////////////////////
       

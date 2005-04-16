@@ -135,6 +135,10 @@ PeerImpl
 	{
 		return( delegate.getPort());
 	}
+  
+  public int getTCPListenPort() {  return delegate.getTCPListenPort();  }
+  public int getUDPListenPort() {  return delegate.getUDPListenPort();  }
+  
 	
 	public boolean[] getAvailable()
 	{
