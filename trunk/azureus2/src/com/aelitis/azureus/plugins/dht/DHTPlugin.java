@@ -149,10 +149,6 @@ DHTPlugin
 		
 		final int f_dht_data_port	= dht_data_port;
 		
-		final StringParameter	command = config.addStringParameter2( "dht.execute.command", "dht.execute.command", "print" );
-		
-		ActionParameter	execute = config.addActionParameter2( "dht.execute.info", "dht.execute");
-		
 		LabelParameter	reseed_label = config.addLabelParameter2( "dht.reseed.label" );
 		
 		final StringParameter	reseed_ip	= config.addStringParameter2( "dht.reseed.ip", "dht.reseed.ip", "" );
@@ -165,7 +161,14 @@ DHTPlugin
 		config.createGroup( "dht.reseed.group",
 				new Parameter[]{ reseed_label, reseed_ip, reseed_port, reseed });
 		
+		final StringParameter	command = config.addStringParameter2( "dht.execute.command", "dht.execute.command", "print" );
+		
+		ActionParameter	execute = config.addActionParameter2( "dht.execute.info", "dht.execute");
+		
 		final BooleanParameter	logging = config.addBooleanParameter2( "dht.logging", "dht.logging", false );
+
+		config.createGroup( "dht.diagnostics.group",
+				new Parameter[]{ command, execute, logging });
 
 		logging.addListener(
 			new ParameterListener()
@@ -390,9 +393,7 @@ DHTPlugin
 					public void
 					runSupport()
 					{
-						try{
-							// TODO: When DHT is known to work OK remove this feature!!!! 
-							
+						try{							
 								// we take the view that if the version check failed then we go ahead
 								// and enable the DHT (i.e. we're being optimistic)
 							
@@ -682,12 +683,11 @@ outer:
 						
 						Peer	p = peers[j];
 						
-						if ( false ){ // TODO:
+						int	peer_udp_port = p.getUDPListenPort();
 						
-							String	ip 		= p.getIp();
-							int		port	= 0; // TODO:
-							
-							if ( importSeed( ip, port )){
+						if ( peer_udp_port != 0 ){
+													
+							if ( importSeed( p.getIp(), peer_udp_port )){
 								
 								peers_imported++;
 															
