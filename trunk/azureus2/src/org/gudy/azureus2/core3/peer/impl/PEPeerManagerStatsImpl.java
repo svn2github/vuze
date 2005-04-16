@@ -128,6 +128,6 @@ PEPeerManagerStatsImpl
 	public long 
 	getTotalAverage() 
 	{
-	  return( overallSpeed.getAverage());
+	  return( overallSpeed.getAverage() + getDataReceiveRate() );
 	}
 }

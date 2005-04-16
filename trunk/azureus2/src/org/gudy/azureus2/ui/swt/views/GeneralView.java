@@ -738,8 +738,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     }
     DownloadManagerStats	stats = manager.getStats();
     
-    int num_peers = manager.getNbPeers();
-    long average = num_peers < 1 ? 0 : stats.getTotalAverage() / num_peers;
+    long average = stats.getTotalAverage() / (manager.getNbPeers() + 1);  //since total speed includes our own speed
     String swarm_speed = DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getTotalAverage() ) + " ( " +DisplayFormatters.formatByteCountToKiBEtcPerSec( average )+ " " +MessageText.getString("GeneralView.label.averagespeed") + " )";
     
     
