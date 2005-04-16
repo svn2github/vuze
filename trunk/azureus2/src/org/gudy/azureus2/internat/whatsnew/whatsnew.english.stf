@@ -23,14 +23,14 @@ $
 +2. Upgrade Advice
 
 !2.1 Java 5.0
- Azureus uses the Java Engine. The Best Java you use, the Best Azureus will run. Java 5.0 (1.5.0) provides better performances, so we advise all our users to upgrade.
+ Azureus is written in Java and requires the Java runtime. We recommend Java 5.0 (also known as 1.5) as it has better performance and reliability - please upgrade if necessary.
  You'll find torrents to update Java here : http://azureus.sourceforge.net/download.php
  Download the one for your system, close Azureus, execute the downloaded file, then restart Azureus.
  WinXP users will have to go to Tools > Config > Interface > Display, and re-check the "Enable XP Style" option.
  
 !2.2 NOD32
- NOD32 (http://www.nod32.com) is an antivirus which is known to be incompatible with Azureus. If you use this anti-virus, you'll certainly end-up with 100% CPU usage in Azureus.
- We believe that the bug is on their side, so we can't fix this issue.
+ NOD32 (http://www.nod32.com/) is an antivirus which is known to be incompatible with Azureus, causing 100% CPU usage.
+ See http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
 + 
 +3. Common Issues
@@ -47,7 +47,7 @@ $
  Lower the number of connections in Azureus (Tools > Options > Transfer > Maximum number of connections per torrent / globally), try a low value like 30 first.
 
 !3.3 Support
- Before contacting the support team, be sure and check the available resources at :
+ Before contacting the support team, be sure to check the available resources at :
  - The official WebSite : http://azureus.sourceforge.net/
  - The official Wiki : http://azureus.aelitis.com/wiki/
  - The official IRC Channel : #azureus-users on irc.freenode.net

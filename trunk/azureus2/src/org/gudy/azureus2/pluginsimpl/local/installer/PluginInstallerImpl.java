@@ -107,6 +107,18 @@ PluginInstallerImpl
 				if ( version == null || version.length() == 0 || !Character.isDigit(version.charAt(0))){
 					
 					version = detail.getVersion();
+					
+				}else{
+					
+						// if cvs version and non-cvs version are the same then show the
+						// non-cvs version
+					
+					String	non_cvs_version = detail.getVersion();
+					
+					if ( version.equals( non_cvs_version + "_CVS" )){
+						
+						version = non_cvs_version;
+					}
 				}
 				
 				if ( name.startsWith( "azplatform" ) || name.equals( "azupdater" )){
