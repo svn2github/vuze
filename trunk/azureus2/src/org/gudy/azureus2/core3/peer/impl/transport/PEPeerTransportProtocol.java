@@ -212,6 +212,8 @@ PEPeerTransportProtocol
     peer_source	= _peer_source;
     ip    = _ip;
     port  = _port;
+    tcp_listen_port = _port;
+    
     incoming = false;
     
     peer_stats = manager.createPeerStats();
@@ -359,7 +361,7 @@ PEPeerTransportProtocol
     LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Peer connection [" +toString()+ "] closed: " +reason );
 
     if( !externally_closed ) {  //if closed internally, notify manager, otherwise we assume it already knows
-      if( reconnect && !incoming ) {  //TODO we can reconnect even incoming connections if we received their listen port in az handshake!
+      if( reconnect && tcp_listen_port > 0 ) {
         manager.peerConnectionClosed( this, true );
       }
       else{
@@ -392,13 +394,13 @@ PEPeerTransportProtocol
       avail_vers[i] = avail_msgs[i].getVersion();
     }
     
-    int udp_listen_port = -1;
+    int local_udp_port = 0;
     try{  //TODO udp port value should be in the core someday
       DHTPlugin dht = (DHTPlugin)AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin();
-      udp_listen_port = dht.getPort();
+      local_udp_port = dht.getPort();
     }
     catch( Throwable t ) {
-      Debug.out( "Exception while obtaining udp listen port from DHTPlugin:", t );
+      Debug.out( "Exception while obtaining local udp listen port from DHTPlugin:", t );
     }
     
     AZHandshake az_handshake = new AZHandshake(
@@ -406,7 +408,7 @@ PEPeerTransportProtocol
         Constants.AZUREUS_NAME,
         Constants.AZUREUS_VERSION,
         COConfigurationManager.getIntParameter( "TCP.Listen.Port" ),
-        udp_listen_port,
+        local_udp_port,
         avail_ids,
         avail_vers );        
 
@@ -1185,10 +1187,13 @@ PEPeerTransportProtocol
   
   private void decodeAZHandshake( AZHandshake handshake ) {
     client = handshake.getClient()+ " " +handshake.getClientVersion();
-    
+
     tcp_listen_port = handshake.getTCPListenPort();
     udp_listen_port = handshake.getUDPListenPort();
     
+    if( !incoming && tcp_listen_port != port ) {
+      System.out.println( "[" +(incoming ? "R:" : "L:")+" " +ip+":"+port+" "+client+ "] handshake TCP listen port [" +tcp_listen_port+ "] and actual port [" +port+ "] differ!" );
+    }    
     
     //find mutually available message types
     ArrayList messages = new ArrayList();

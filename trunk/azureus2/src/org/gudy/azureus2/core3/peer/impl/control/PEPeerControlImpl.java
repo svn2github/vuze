@@ -557,8 +557,8 @@ PEPeerControlImpl
       for( int i=0; i < peer_transports.size(); i++ ) {
         PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
         
-        if( !peer.isIncoming() ) {  //TODO we can reconnect even incoming connections if we received their listen port in az handshake!
-          PEPeerTransport new_conn = PEPeerTransportFactory.createTransport( this, peer.getPeerSource(), peer.getIp(), peer.getPort() );
+        if( peer.getTCPListenPort() > 0 ) {
+          PEPeerTransport new_conn = PEPeerTransportFactory.createTransport( this, peer.getPeerSource(), peer.getIp(), peer.getTCPListenPort() );
           addToPeerTransports( new_conn );
         }
       }
@@ -1839,7 +1839,7 @@ PEPeerControlImpl
     }
     
 	    
-    String key = peer.getIp() + ":" + peer.getPort();
+    String key = peer.getIp() + ":" + peer.getTCPListenPort();
     
     if( reconnect ) {
       boolean reconnect_allowed = false;
@@ -1864,7 +1864,7 @@ PEPeerControlImpl
       }
 
       if( reconnect_allowed ) {
-        makeNewOutgoingConnection( peer.getPeerSource(), peer.getIp(), peer.getPort() );
+        makeNewOutgoingConnection( peer.getPeerSource(), peer.getIp(), peer.getTCPListenPort() );
       }
     }
     else { // cleanup any reconnect count
