@@ -35,23 +35,30 @@ public class
 TRTrackerDHTScraperResponseImpl 
 	extends TRTrackerScraperResponseImpl
 {
+	private URL		url;
+	
 	protected
 	TRTrackerDHTScraperResponseImpl(
 		byte[]		hash,
 		URL			_url )
 	{
-		super(hash, _url );
+		super(hash );
+		
+		url		= _url;
 	}
 	
 	public void
 	setSeedsPeers(
-		URL		url,
-		int		s,
-		int		p )
+		int	s,
+		int	p )
 	{
-		setURL( url );
-		
 		setSeeds( s );
 		setPeers( p );
+	}
+	
+	public URL
+	getURL()
+	{
+		return( url );
 	}
 }
