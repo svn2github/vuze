@@ -76,7 +76,7 @@ DHTTrackerPlugin
 	private static final int	ANNOUNCE_MIN		= 2*60*1000;
 	private static final int	ANNOUNCE_MAX		= 60*60*1000;
 	
-	private static final boolean	TRACK_NORMAL_DEFAULT	= false;
+	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
 	
 	private static final int	NUM_WANT			= 35;	// Limit to ensure replies fit in 1 packet
 
@@ -117,7 +117,8 @@ DHTTrackerPlugin
 	{
 		plugin_interface	= _plugin_interface;
 				
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", PLUGIN_NAME );
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
 
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 
@@ -576,9 +577,9 @@ DHTTrackerPlugin
 										
 										DownloadAnnounceResult result = download.getLastAnnounceResult();
 										
-										if (	result != null &&
-												(	result.getResponseType() == DownloadAnnounceResult.RT_ERROR ||
-													TorrentUtils.isDecentralised(result.getURL()))){
+										if (	result == null ||
+												result.getResponseType() == DownloadAnnounceResult.RT_ERROR ||
+												TorrentUtils.isDecentralised(result.getURL())){
 											
 											register_it	= true;
 											
@@ -586,15 +587,15 @@ DHTTrackerPlugin
 											
 										}else{	
 											
-											register_reason = "tracker available (announce)";								
+											register_reason = "tracker available (announce: " + result.getURL() + ")";								
 										}
 									}else{
 										
 										DownloadScrapeResult result = download.getLastScrapeResult();
 										
-										if (	result != null &&
-												(	result.getResponseType() == DownloadScrapeResult.RT_ERROR ||
-													TorrentUtils.isDecentralised(result.getURL()))){
+										if (	result == null || 
+												result.getResponseType() == DownloadScrapeResult.RT_ERROR ||
+												TorrentUtils.isDecentralised(result.getURL())){
 											
 											register_it	= true;
 											
@@ -602,7 +603,7 @@ DHTTrackerPlugin
 											
 										}else{
 											
-											register_reason = "tracker available (scrape)";								
+											register_reason = "tracker available (scrape: " + result.getURL() + ")";								
 										}
 									}
 								}else{

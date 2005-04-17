@@ -75,6 +75,7 @@ DownloadRemoveRulesPlugin
 		
 		HostNameToIPResolver.addResolverRequest( AELITIS_HOST, this );
 		
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Download Remove Rules" );
 
 		log = plugin_interface.getLogger().getChannel("DLRemRules");

@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.plugins.magnet;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.URL;
@@ -72,7 +71,8 @@ MagnetPlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Magnet URI Handler" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Magnet URI Handler" );
 		
 		MenuItemListener	listener = 
 			new MenuItemListener()

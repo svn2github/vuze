@@ -87,6 +87,7 @@ DHTPlugin
 	
 	public static final int			MAX_VALUE_SIZE		= DHT.MAX_VALUE_SIZE;
 
+	private static final String	PLUGIN_VERSION	= "1.0";
 	private static final String	PLUGIN_NAME		= "Distributed DB";
 	private static final String	SEED_ADDRESS	= "aelitis.com";
 	private static final int	SEED_PORT		= 6881;
@@ -119,7 +120,8 @@ DHTPlugin
 	{
 		plugin_interface	= _plugin_interface;
 				
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", PLUGIN_NAME );
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	PLUGIN_VERSION );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
 
 		dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 

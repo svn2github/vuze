@@ -62,7 +62,8 @@ PluginUpdatePlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Plugin Updater" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Plugin Updater" );
 
 		log = plugin_interface.getLogger().getChannel("Plugin Update");
 
@@ -141,19 +142,13 @@ PluginUpdatePlugin
 						
 			boolean	pi_mandatory = pi.isMandatory();
 						
-			String	id 		= pi.getPluginID();
-			String	version = pi.getPluginVersion();
-			
-			if ( version != null && !id.startsWith("<")){
-
-				if ( pi_mandatory ){
+			if ( pi_mandatory ){
 					
-					mandatory_count++;
+				mandatory_count++;
 					
-				}else{
+			}else{
 					
-					non_mandatory_count++;
-				}
+				non_mandatory_count++;
 			}
 		}
 		
@@ -297,7 +292,7 @@ PluginUpdatePlugin
 					}
 				}
 				
-				if ( version != null && !id.startsWith("<")){
+				if ( version != null ){
 					
 					if ( plugins_to_check_ids.contains( id )){
 						
@@ -363,7 +358,10 @@ PluginUpdatePlugin
 				
 				if ( !found ){
 					
-					log.log( LoggerChannel.LT_INFORMATION, "Skipping " + plugin_id + " as not listed on web site");
+					if ( !pi_being_checked.isBuiltIn()){
+						
+						log.log( LoggerChannel.LT_INFORMATION, "Skipping " + plugin_id + " as not listed on web site");
+					}
 
 					continue;
 				}

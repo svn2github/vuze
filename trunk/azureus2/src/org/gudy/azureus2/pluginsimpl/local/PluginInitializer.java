@@ -63,38 +63,78 @@ PluginInitializer
 	
 	// IF YOU ADD TO THE BUILTIN PLUGINS, AMEND PluginManagerDefault appropriately!!!!
 
+		// Plugin ID constant
+		// class
+		// plugin id
+		// plugin key for prefixing config data
+		// report if not present
+	
   private String[][]	builtin_plugins = { 
    			{	 PluginManagerDefaults.PID_START_STOP_RULES, 
-   					"com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin", "<internal>", "" },
+   					"com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin", 
+   					"azbpstartstoprules", 
+   					"", 
+   					"true" },
    			{	 PluginManagerDefaults.PID_REMOVE_RULES, 
-   					"com.aelitis.azureus.plugins.removerules.DownloadRemoveRulesPlugin", "<internal>", "" },
+   					"com.aelitis.azureus.plugins.removerules.DownloadRemoveRulesPlugin", 
+   					"azbpremovalrules", 
+   					"",
+					"true" },
     		{	 PluginManagerDefaults.PID_SHARE_HOSTER, 
-   					"com.aelitis.azureus.plugins.sharing.hoster.ShareHosterPlugin", "<internal>", "ShareHoster" },
-    		//{    PluginManagerDefaults.PID_DEFAULT_TRACKER_WEB, 
-   			//		"org.gudy.azureus2.ui.tracker.TrackerDefaultWeb", "<internal>", "TrackerDefault", },
-    		//{    PluginManagerDefaults.PID_UPDATE_LANGUAGE, 
-   			//		"org.gudy.azureus2.core3.internat.update.UpdateLanguagePlugin", "<internal>", "UpdateLanguagePlugin" },
-    		{	 PluginManagerDefaults.PID_PLUGIN_UPDATE_CHECKER, 
-   					"org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin", "<internal>", "PluginUpdate" },
+   					"com.aelitis.azureus.plugins.sharing.hoster.ShareHosterPlugin", 
+   					"azbpsharehoster", 
+   					"ShareHoster",
+					"true" },
+   			{	 PluginManagerDefaults.PID_PLUGIN_UPDATE_CHECKER, 
+   					"org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin", 
+   					"azbppluginupdate", 
+   					"PluginUpdate",
+					"true" },
 			{	 PluginManagerDefaults.PID_CLIENT_ID, 
-				    "com.aelitis.azureus.plugins.clientid.ClientIDPlugin", "<internal>", "Client ID" },
+				    "com.aelitis.azureus.plugins.clientid.ClientIDPlugin", 
+				    "azbpclientid", 
+				    "Client ID",
+					"true" },
 			{	 PluginManagerDefaults.PID_UPNP, 
-				    "com.aelitis.azureus.plugins.upnp.UPnPPlugin", "<internal>", "UPnP" },
+				    "com.aelitis.azureus.plugins.upnp.UPnPPlugin", 
+				    "azbpupnp", 
+				    "UPnP",
+					"true" },
 			{	 PluginManagerDefaults.PID_DHT, 
-					"com.aelitis.azureus.plugins.dht.DHTPlugin", "<internal>", "DHT" },			
+					"com.aelitis.azureus.plugins.dht.DHTPlugin", 
+					"azbpdht", 
+					"DHT",
+					"true" },
 			{	 PluginManagerDefaults.PID_DHT_TRACKER, 
-					"com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin", "<internal>", "DHT Tracker" },
+					"com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin", 
+					"azbpdhdtracker", 
+					"DHT Tracker",
+					"true" },
 			{	 PluginManagerDefaults.PID_MAGNET, 
-					"com.aelitis.azureus.plugins.magnet.MagnetPlugin", "<internal>", "Magnet URI Handler" },
+					"com.aelitis.azureus.plugins.magnet.MagnetPlugin", 
+					"azbpmagnet", 
+					"Magnet URI Handler",
+					"true" },
 			{	 PluginManagerDefaults.PID_CORE_UPDATE_CHECKER, 
-   					"org.gudy.azureus2.update.CoreUpdateChecker", "<internal>", "CoreUpdater" },
+   					"org.gudy.azureus2.update.CoreUpdateChecker", 
+   					"azbpcoreupdater", 
+   					"CoreUpdater",
+					"true" },
 			{	 PluginManagerDefaults.PID_CORE_PATCH_CHECKER, 
-   					"org.gudy.azureus2.update.CorePatchChecker", "<internal>", "CorePatcher" },
+   					"org.gudy.azureus2.update.CorePatchChecker", 
+   					"azbpcorepatcher", 
+   					"CorePatcher",
+					"true" },
 	   		{	 PluginManagerDefaults.PID_PLATFORM_CHECKER, 
-   					"org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", "azplatform2", "azplatform2" },
+   					"org.gudy.azureus2.platform.win32.PlatformManagerUpdateChecker", 
+   					"azplatform2", 
+   					"azplatform2",
+					"true" },
 	   		{	 PluginManagerDefaults.PID_JPC, 
-					"com.aelitis.azureus.plugins.jpc.JPCPlugin", "azjpc", "azjpc" },
-					
+					"com.aelitis.azureus.plugins.jpc.JPCPlugin", 
+					"azjpc", 
+					"azjpc",
+					"false" },
         };
  
   
@@ -308,7 +348,7 @@ PluginInitializer
   			      	
   			      }catch( Throwable e ){
   			      	
-					if ( builtin_plugins[i][0] != PluginManagerDefaults.PID_JPC ){
+					if ( builtin_plugins[i][4].equalsIgnoreCase("true" )){
 							
 						Debug.printStackTrace( e );
 	  			
@@ -785,7 +825,7 @@ PluginInitializer
 					}catch( Throwable f ){
 					}
 					
- 					if ( builtin_plugins[i][0] != PluginManagerDefaults.PID_JPC ){
+ 					if ( builtin_plugins[i][4].equalsIgnoreCase("true")){
 						
 	 					Debug.printStackTrace( e );
 			  			

@@ -69,7 +69,8 @@ UPnPPlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Universal Plug and Play (UPnP)" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Universal Plug and Play (UPnP)" );
 		
 		plugin_interface.addListener(
 			new PluginListener()

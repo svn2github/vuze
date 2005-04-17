@@ -421,7 +421,7 @@ CoreUpdateChecker
 				
 					// filter out built-in and core ones
 				
-				if ( 	!pid.startsWith( "<" ) &&
+				if ( 	!plugins[i].isBuiltIn() &&
 						!pid.startsWith( "azupdater" ) &&
 						!pid.startsWith( "azplatform" ) &&
 						!pids.contains( pid )){

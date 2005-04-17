@@ -89,9 +89,10 @@ TRTrackerDHTScraperImpl
 				TRTrackerScraperResponseImpl resp = 
 					new TRTrackerDHTScraperResponseImpl( torrent.getHash(), result.getURL());
 							
-				resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
+				resp.setSeedsPeers( result.getURL(), result.getSeedCount(), result.getNonSeedCount());
 				
 				resp.setStatus( 
+						result.getURL(),
 						result.getResponseType()==DownloadScrapeResult.RT_SUCCESS?
 								TRTrackerScraperResponse.ST_ONLINE:
 								TRTrackerScraperResponse.ST_ERROR,
