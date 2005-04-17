@@ -847,7 +847,7 @@ DHTTrackerPlugin
 				
 				final long	start = SystemTime.getCurrentTime();
 					
-				Torrent	torrent = dl.getTorrent();
+				final Torrent	torrent = dl.getTorrent();
 				
 				final URL	url_to_report = torrent.isDecentralised()?torrent.getAnnounceURL():DEFAULT_URL;
 				
@@ -1026,64 +1026,72 @@ DHTTrackerPlugin
 											});
 								}
 									
-								dl.setScrapeResult(
-									new DownloadScrapeResult()
-									{
-										public Download
-										getDownload()
+									// only inject the scrape result if the torrent is decentralised. If we do this for
+									// "normal" torrents then it can have unwanted side-effects, such as stopping the torrent
+									// due to ignore rules if there are no downloaders in the DHT - bthub backup, for example,
+									// isn't scrapable...
+								
+								if ( torrent.isDecentralised()){
+									
+									dl.setScrapeResult(
+										new DownloadScrapeResult()
 										{
-											return( dl );
-										}
-										
-										public int
-										getResponseType()
-										{
-											return( RT_SUCCESS );
-										}
-										
-										public int
-										getSeedCount()
-										{
-											return( seed_count );
-										}
-										
-										public int
-										getNonSeedCount()
-										{
-											return( peer_count );
-										}
-
-										public long
-										getScrapeStartTime()
-										{
-											return( start );
-										}
+											public Download
+											getDownload()
+											{
+												return( dl );
+											}
 											
-										public void 
-										setNextScrapeStartTime(
-											long nextScrapeStartTime)
-										{
+											public int
+											getResponseType()
+											{
+												return( RT_SUCCESS );
+											}
 											
-										}
-										public long
-										getNextScrapeStartTime()
-										{
-											return( SystemTime.getCurrentTime() + retry );
-										}
-										
-										public String
-										getStatus()
-										{
-											return( "OK" );
-										}
-
-										public URL
-										getURL()
-										{
-											return( url_to_report );
-										}
-									});
-								}
+											public int
+											getSeedCount()
+											{
+												return( seed_count );
+											}
+											
+											public int
+											getNonSeedCount()
+											{
+												return( peer_count );
+											}
+	
+											public long
+											getScrapeStartTime()
+											{
+												return( start );
+											}
+												
+											public void 
+											setNextScrapeStartTime(
+												long nextScrapeStartTime)
+											{
+												
+											}
+											public long
+											getNextScrapeStartTime()
+											{
+												return( SystemTime.getCurrentTime() + retry );
+											}
+											
+											public String
+											getStatus()
+											{
+												return( "OK" );
+											}
+	
+											public URL
+											getURL()
+											{
+												return( url_to_report );
+											}
+										});
+									}	
+							}
 						});
 			}
 		}
