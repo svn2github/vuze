@@ -166,8 +166,8 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iFirstPriority_DLMinutes", new Long(0));
     def.put("StartStopManager_bAutoStart0Peers", new Long(0));
 	// for ignore FP rules
-	def.put("StartStopManager_iFirstPriority_ignoreSPRatio", new Long(10));
-	def.put("StartStopManager_bFirstPriority_ignore0Peer", new Long(1));
+	def.put("StartStopManager_iFirstPriority_ignoreSPRatio", new Long(0));
+	def.put("StartStopManager_bFirstPriority_ignore0Peer", new Long(0));
     // for "Stop Peers Ratio" ignore rule
     def.put("StartStopManager_iIgnoreRatioPeersSeedStart", new Long(0));
     // for "Stop Ratio" ignore rule
