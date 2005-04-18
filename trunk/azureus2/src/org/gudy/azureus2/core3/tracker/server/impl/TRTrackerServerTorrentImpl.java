@@ -107,7 +107,7 @@ TRTrackerServerTorrentImpl
 		long		left,
 		long		interval_requested )
 	
-		throws Exception
+		throws TRTrackerServerException
 	{
 		try{
 			this_mon.enter();
@@ -209,7 +209,7 @@ TRTrackerServerTorrentImpl
 					
 				if ( existing_tracker_key_hash_code != tracker_key_hash_code ){
 			
-					throw( new Exception( "Unauthorised: key mismatch "));
+					throw( new TRTrackerServerException( "Unauthorised: key mismatch "));
 					
 				}
 				
@@ -307,7 +307,7 @@ TRTrackerServerTorrentImpl
 				
 				if ( dl_rate > MAX_DOWNLOAD_BYTES_PER_SEC ){
 					
-          System.out.println( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
+					System.out.println( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
 									new String(peer.getPeerId().getHash()) + 
 									" reported a download rate of " + dl_rate/1024 + " KiB/s per second" );
 					
@@ -402,6 +402,10 @@ TRTrackerServerTorrentImpl
 			}
 			
 			return( peer );
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			throw( new TRTrackerServerException( "Encoding fails", e ));
 			
 		}finally{
 			

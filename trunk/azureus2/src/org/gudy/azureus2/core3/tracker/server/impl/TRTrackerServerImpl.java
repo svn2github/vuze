@@ -55,6 +55,13 @@ TRTrackerServerImpl
 	public static boolean	all_networks_permitted		= true;
 	public static String[]	permitted_networks			= {};
 	
+		// torrent map is static across all protocol servers
+	
+	private static Map		torrent_map = new HashMap(); 
+	
+	protected AEMonitor class_mon 	= new AEMonitor( "TRTrackerServer:class" );
+
+
 	static{
 
 		COConfigurationManager.addListener(
@@ -160,8 +167,6 @@ TRTrackerServerImpl
 	
 	protected IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
 	
-	protected Map		torrent_map = new HashMap(); 
-	
 	protected long		current_announce_retry_interval;
 	protected long		current_scrape_retry_interval;
 	protected long		current_total_clients;
@@ -184,10 +189,10 @@ TRTrackerServerImpl
 	protected Vector	listeners 			= new Vector();
 	protected List		auth_listeners		= new ArrayList();
 	
-	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServer" );
-
 	private Vector	request_listeners 	= new Vector();
 	
+	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServer" );
+
 	public
 	TRTrackerServerImpl(
 		String		_name )
@@ -409,7 +414,7 @@ TRTrackerServerImpl
 		int							bytes_out )
 	{
 		try{
-			this_mon.enter();
+			class_mon.enter();
 		
 			stats.update( bytes_in, bytes_out );
 			
@@ -451,7 +456,7 @@ TRTrackerServerImpl
 			}
 		}finally{
 			
-			this_mon.exit();
+			class_mon.exit();
 		}
 	}
 	
@@ -483,7 +488,7 @@ TRTrackerServerImpl
 				int	clients = 0;
 				
 				try{
-					this_mon.enter();
+					class_mon.enter();
 					
 					Iterator	it = torrent_map.values().iterator();
 					
@@ -495,7 +500,7 @@ TRTrackerServerImpl
 					}
 				}finally{
 					
-					this_mon.exit();
+					class_mon.exit();
 				}
 				
 				if ( inc_by > 0 && inc_per > 0 ){
@@ -526,7 +531,7 @@ TRTrackerServerImpl
 					time_to_go = TIMEOUT_CHECK;
 					
 					try{
-						this_mon.enter();
+						class_mon.enter();
 						
 						Iterator	it = torrent_map.values().iterator();
 						
@@ -538,7 +543,7 @@ TRTrackerServerImpl
 						}
 					}finally{
 						
-						this_mon.exit();
+						class_mon.exit();
 					}
 				}
 				
@@ -563,7 +568,17 @@ TRTrackerServerImpl
 		
 			// don't invoke listeners when synched, deadlock possible
 		
-		TRTrackerServerTorrentImpl	entry = (TRTrackerServerTorrentImpl)torrent_map.get( hash );
+		TRTrackerServerTorrentImpl	entry;
+		
+		try{
+			class_mon.enter();
+			
+			entry = (TRTrackerServerTorrentImpl)torrent_map.get( hash );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 		
 		if ( entry == null ){
 			
@@ -574,22 +589,24 @@ TRTrackerServerImpl
 					throw( new TRTrackerServerException( "operation denied"));			
 				}
 			}
-		}
 		
-		try{
-			this_mon.enter();
-		
-			entry = (TRTrackerServerTorrentImpl)torrent_map.get( hash );
+			try{
+				class_mon.enter();
 			
-			if ( entry == null ){
-			
-				entry = new TRTrackerServerTorrentImpl( hash );
-			
-				torrent_map.put( hash, entry );
+					// double check in-case added in parallel
+				
+				entry = (TRTrackerServerTorrentImpl)torrent_map.get( hash );
+				
+				if ( entry == null ){
+				
+					entry = new TRTrackerServerTorrentImpl( hash );
+				
+					torrent_map.put( hash, entry );
+				}
+			}finally{
+				
+				class_mon.exit();
 			}
-		}finally{
-			
-			this_mon.exit();
 		}
 		
 		return( entry );
@@ -615,7 +632,7 @@ TRTrackerServerImpl
 		}
 
 		try{
-			this_mon.enter();
+			class_mon.enter();
 			
 			TRTrackerServerTorrentImpl	entry = (TRTrackerServerTorrentImpl)torrent_map.get( hash );
 	
@@ -628,7 +645,7 @@ TRTrackerServerImpl
 			
 		}finally{
 			
-			this_mon.exit();
+			class_mon.exit();
 		}
 	}
 	
@@ -636,14 +653,22 @@ TRTrackerServerImpl
 	getTorrent(
 		byte[]		hash )
 	{
-		return((TRTrackerServerTorrentImpl)torrent_map.get(new HashWrapper(hash)));
+		try{
+			class_mon.enter();
+		
+			return((TRTrackerServerTorrentImpl)torrent_map.get(new HashWrapper(hash)));
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public TRTrackerServerTorrentImpl[]
 	getTorrents()
 	{
 		try{
-			this_mon.enter();
+			class_mon.enter();
 		
 			TRTrackerServerTorrentImpl[]	res = new TRTrackerServerTorrentImpl[torrent_map.size()];
 			
@@ -652,7 +677,7 @@ TRTrackerServerImpl
 			return( res );	
 		}finally{
 			
-			this_mon.exit();
+			class_mon.exit();
 		}
 	}
 	

@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
  *
  */
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.tracker.server.*;
@@ -59,7 +60,7 @@ TRTrackerServerProcessor
 		long						left,
 		int							num_want )
 	
-		throws Exception
+		throws TRTrackerServerException
 	{
 		server	= _server;
 				
@@ -87,7 +88,7 @@ TRTrackerServerProcessor
 			
 			if ( !ok ){
 				
-				throw( new Exception( "Network '" + network + "' not supported" ));
+				throw( new TRTrackerServerException( "Network '" + network + "' not supported" ));
 			}
 		}
 		
@@ -99,7 +100,7 @@ TRTrackerServerProcessor
 			
 			if ( hash == null ){
 				
-				throw( new Exception( "Hash missing from request "));
+				throw( new TRTrackerServerException( "Hash missing from request "));
 			}
 						
 			// System.out.println( "TRTrackerServerProcessor::request:" + request_type + ",event:" + event + " - " + client_ip_address + ":" + port );
@@ -112,19 +113,17 @@ TRTrackerServerProcessor
 				
 				if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
 					
-					throw( new Exception( "Torrent unauthorised "));
+					throw( new TRTrackerServerException( "Torrent unauthorised" ));
 					
 				}else{
 					
 					try{
 						
-						server.permit( hash, false );
-						
-						torrent = server.getTorrent( hash );
-						
+						torrent = (TRTrackerServerTorrentImpl)server.permit( hash, false );
+												
 					}catch( Throwable e ){
 						
-						throw( new Exception( "Torrent unauthorised "));								
+						throw( new TRTrackerServerException( "Torrent unauthorised", e ));								
 					}
 				}
 			}
@@ -133,7 +132,7 @@ TRTrackerServerProcessor
 				
 				if ( peer_id == null ){
 					
-					throw( new Exception( "peer_id missing from request"));
+					throw( new TRTrackerServerException( "peer_id missing from request"));
 				}
 				
 				long	interval = server.getAnnounceRetryInterval( torrent );
@@ -169,19 +168,25 @@ TRTrackerServerProcessor
 				
 				byte[]	torrent_hash = torrent.getHash().getHash();
 				
-				String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
-				
-				// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
-				
-				files.put( str_hash, hash_entry );
-				
-				Map	root = new HashMap();
-				
-				root_out[0] = root;
-				
-				addScrapeInterval( torrent, root );
-				
-				root.put( "files", files );
+				try{
+					String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
+					
+					// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
+					
+					files.put( str_hash, hash_entry );
+					
+					Map	root = new HashMap();
+					
+					root_out[0] = root;
+					
+					addScrapeInterval( torrent, root );
+					
+					root.put( "files", files );
+					
+				}catch( UnsupportedEncodingException e ){
+					
+					throw( new TRTrackerServerException( "Encoding error", e ));
+				}
 			}
 		}else{
 			
@@ -195,15 +200,22 @@ TRTrackerServerProcessor
 								
 				byte[]	torrent_hash = this_torrent.getHash().getHash();
 				
-				String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
-				
-				// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
-				
-				Map	hash_entry = this_torrent.exportScrapeToMap( true );
-				
-				files.put( str_hash, hash_entry );
+				try{
+					String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
+					
+					// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
+					
+					Map	hash_entry = this_torrent.exportScrapeToMap( true );
+					
+					files.put( str_hash, hash_entry );
+					
+				}catch( UnsupportedEncodingException e ){
+			
+					throw( new TRTrackerServerException( "Encoding error", e ));
+
+				}
 			}
-	
+			
 			Map	root = new HashMap();
 			
 			root_out[0] = root;
