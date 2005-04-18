@@ -123,15 +123,20 @@ PRUDPPacketHandlerImpl
 		PRUDPRequestHandler		_request_handler )
 	{
 		if ( request_handler != null ){
-			
-				// if we need to support this then the handler will have to be associated
-				// with a message type map, or we chain together and give each handler
-				// a bite at processing the message
-			
-			throw( new RuntimeException( "Multiple handlers per endpoing not supported" ));
-		}
 		
-		request_handler	= _request_handler;
+			if ( _request_handler != null ){
+				
+					// if we need to support this then the handler will have to be associated
+					// with a message type map, or we chain together and give each handler
+					// a bite at processing the message
+				
+				throw( new RuntimeException( "Multiple handlers per endpoint not supported" ));
+			}
+			
+		}else{
+		
+			request_handler	= _request_handler;
+		}
 	}
 	
 	public PRUDPRequestHandler
