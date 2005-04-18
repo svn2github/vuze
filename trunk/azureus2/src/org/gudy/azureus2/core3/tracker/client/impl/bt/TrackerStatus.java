@@ -278,8 +278,9 @@ public class TrackerStatus {
       try {
       		// if URL already includes a query component then just append our params
       	
-      	byte[]	one_of_the_hashes	= null;
-      	
+      	byte[]							one_of_the_hashes		= null;
+		TRTrackerScraperResponseImpl	one_of_the_responses	= null;
+		
       	char	first_separator = scrapeURL.indexOf('?')==-1?'?':'&';
       	
         String info_hash = "";
@@ -326,7 +327,8 @@ public class TrackerStatus {
 	          info_hash += URLEncoder.encode(new String(hash, Constants.BYTE_ENCODING), 
 	                                         Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	          
-	          one_of_the_hashes	= hash;
+			  one_of_the_responses	= response;
+	          one_of_the_hashes		= hash;
           }
         }
 
@@ -354,7 +356,7 @@ public class TrackerStatus {
 
         		// TODO: support multi hash scrapes on UDP
         	
-        	scrapeUDP( reqUrl, message, one_of_the_hashes );
+        	scrapeUDP( reqUrl, message, one_of_the_hashes, one_of_the_responses );
         	
         	bSingleHashScrapes = true;
         	
@@ -791,9 +793,10 @@ public class TrackerStatus {
   
   protected void
   scrapeUDP(
-  	URL						reqUrl,
-	ByteArrayOutputStream	message,
-	byte[]					hash )
+  	URL								reqUrl,
+	ByteArrayOutputStream			message,
+	byte[]							hash,
+	TRTrackerScraperResponseImpl	current_response )
   
   		throws Exception
   {
@@ -807,6 +810,30 @@ public class TrackerStatus {
         LGLogger.log(	componentID, evtLifeCycle, LGLogger.SENT,
         				"Scrape of " + reqUrl + " skipped as torrent running and therefore scrape data available in announce replies");
 
+			// easiest approach here is to brew up a response that looks like the current one
+		
+		Map	map = new HashMap();
+
+		Map	files = new ByteEncodedKeyHashMap();
+		
+		map.put( "files", files );
+									
+		Map	file = new HashMap();
+			
+		byte[]	resp_hash = hash;
+		
+		// System.out.println("got hash:" + ByteFormatter.nicePrint( resp_hash, true ));
+	
+		files.put( new String(resp_hash, Constants.BYTE_ENCODING), file );
+		
+		file.put( "complete", new Long( current_response.getSeeds()));
+		file.put( "downloaded", new Long(-1));	// unknown
+		file.put( "incomplete", new Long(current_response.getPeers()));
+		
+		byte[] data = BEncoder.encode( map );
+		
+		message.write( data );
+		
   		return;
   	}
   	
