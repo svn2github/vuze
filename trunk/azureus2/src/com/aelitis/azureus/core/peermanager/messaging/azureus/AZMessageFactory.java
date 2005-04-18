@@ -67,7 +67,7 @@ public class AZMessageFactory {
    */
   public static void init() {
     try {
-      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", -1, -1, new String[0], new byte[0]) );
+      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, new String[0], new byte[0]) );
       MessageManager.getSingleton().registerMessageType( new AZPing() );
       MessageManager.getSingleton().registerMessageType( new AZPong() );
     }
