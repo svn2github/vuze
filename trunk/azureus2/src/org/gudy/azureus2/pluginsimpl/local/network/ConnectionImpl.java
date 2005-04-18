@@ -53,9 +53,10 @@ public class ConnectionImpl implements Connection {
       
       public void connectSuccess() {
         //register for central write processing
-        PeerManager.getSingleton().getUploadManager().registerUpgradedConnection( core_connection, new LimitedRateGroup() {
+        PeerManager.getSingleton().getUploadManager().registerPeerConnection( core_connection, new LimitedRateGroup() {
           public int getRateLimitBytesPerSecond() {  return 0;  }  //no write limit for now
-        });  //CHEAP HACK ALERT :)
+        });
+        PeerManager.getSingleton().getUploadManager().upgradePeerConnection( core_connection );  //auto-upgrade connection
         
         listener.connectSuccess();
       }
@@ -69,7 +70,7 @@ public class ConnectionImpl implements Connection {
   
   
   public void close() {
-    PeerManager.getSingleton().getUploadManager().cancelUpgradedConnection( core_connection );  //cancel central write processing
+    PeerManager.getSingleton().getUploadManager().cancelPeerConnection( core_connection );  //cancel central write processing
     core_connection.close();
   }
 

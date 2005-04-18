@@ -336,7 +336,7 @@ PEPeerTransportProtocol
     }
     
     if( connection_registered ) {
-      PeerManager.getSingleton().getUploadManager().cancelStandardPeerConnection( connection );
+      PeerManager.getSingleton().getUploadManager().cancelPeerConnection( connection );
     }
     
     if( connection != null ) {  //can be null if close is called within ::<init>::, like when the given port is invalid
@@ -1573,15 +1573,27 @@ PEPeerTransportProtocol
     //OUTGOING MESSAGES
     connection.getOutgoingMessageQueue().registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
       public boolean messageAdded( Message message ) {  return true;  }
-      public void messageQueued( Message message ) { /*ignore*/ }
+      
+      public void messageQueued( Message message ) {
+        if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) { // is sending piece data
+          PeerManager.getSingleton().getUploadManager().upgradePeerConnection( connection );  //so make sure we use a fast handler
+        }
+      }
+      
       public void messageRemoved( Message message ) { /*ignore*/ }
         
       public void messageSent( Message message ) {
         //update keep-alive info
         last_message_sent_time = SystemTime.getCurrentTime();
+        
         if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
           last_data_message_sent_time = SystemTime.getCurrentTime();
         }
+        
+        if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) { // is done sending piece data
+          PeerManager.getSingleton().getUploadManager().downgradePeerConnection( connection );  //so downgrade back to normal handler
+        }
+        
         LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " +PEPeerTransportProtocol.this );
       }
   
@@ -1599,7 +1611,7 @@ PEPeerTransportProtocol
     });
 
     //register the new connection with the upload manager so that outgoing peer messages get written
-    PeerManager.getSingleton().getUploadManager().registerStandardPeerConnection( connection, manager.getUploadLimitedRateGroup() );
+    PeerManager.getSingleton().getUploadManager().registerPeerConnection( connection, manager.getUploadLimitedRateGroup() );
     
     connection_registered = true;
   }

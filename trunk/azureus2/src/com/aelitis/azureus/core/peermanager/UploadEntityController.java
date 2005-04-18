@@ -73,9 +73,6 @@ public class UploadEntityController {
       if( upload_entity != null ) {
         NetworkManager.getSingleton().removeWriteEntity( upload_entity );  //cancel from write processing
       }
-      else {
-        Debug.out( "upload_entity == null" );
-      }
     }
   }
   

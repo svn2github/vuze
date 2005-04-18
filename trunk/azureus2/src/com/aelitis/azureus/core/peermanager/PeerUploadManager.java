@@ -28,8 +28,6 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.messaging.*;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
 
 
 /**
@@ -74,71 +72,22 @@ public class PeerUploadManager {
     });
   }
   
+
+    
   
-  
-  private void registerConnection( final NetworkConnection connection, final LimitedRateGroup group, final boolean force_upgrade ) {
+  /**
+   * Register peer connection for upload handling.
+   * @param connection to register
+   * @param group rate limit group
+   */
+  public void registerPeerConnection( NetworkConnection connection, LimitedRateGroup group ) {
     final ConnectionData conn_data = new ConnectionData();
-        
-    OutgoingMessageQueue.MessageQueueListener listener = new OutgoingMessageQueue.MessageQueueListener() {
-      public boolean messageAdded( Message message ) {  return true;  }
-      
-      public void messageQueued( Message message ) {
-        if( message.getID().equals( BTMessage.ID_BT_PIECE ) || force_upgrade ) {  //is sending piece data
-          if( conn_data.state == ConnectionData.STATE_NORMAL ) {  //so upgrade it
-            
-            standard_entity_controller.upgradePeerConnection( connection, new RateHandler() {
-              public int getCurrentNumBytesAllowed() {                
-                //sync global rate
-                if( standard_bucket.getRate() != standard_max_rate_bps ) {
-                  standard_bucket.setRate( standard_max_rate_bps );
-                }
-                //sync group rate
-                int group_rate = getTranslatedLimit( group );
-                if( conn_data.group_bucket.getRate() != group_rate ) {
-                  conn_data.group_bucket.setRate( group_rate );
-                }
-                
-                int group_allowed = conn_data.group_bucket.getAvailableByteCount();
-                int global_allowed = standard_bucket.getAvailableByteCount();
-                
-                //reserve bandwidth for the general pool if needed
-                if( standard_entity_controller.isGeneralPoolWriteNeeded() ) {
-                  global_allowed -= NetworkManager.getSingleton().getTcpMssSize();
-                  if( global_allowed < 0 )  global_allowed = 0;
-                }
-                
-                int allowed = group_allowed > global_allowed ? global_allowed : group_allowed;
-                return allowed;
-              }
 
-              public void bytesWritten( int num_bytes_written ) {
-                conn_data.group_bucket.setBytesUsed( num_bytes_written );
-                standard_bucket.setBytesUsed( num_bytes_written );
-              }
-            });
-            conn_data.state = ConnectionData.STATE_UPGRADED;
-          }
-        }
-      }
-
-      public void messageSent( Message message ) {
-        if( message.getID().equals( BTMessage.ID_BT_CHOKE ) && !force_upgrade ) {  //is done sending piece data
-          if( conn_data.state == ConnectionData.STATE_UPGRADED ) {  //so downgrade it
-            standard_entity_controller.downgradePeerConnection( connection );
-            conn_data.state = ConnectionData.STATE_NORMAL;
-          }
-        }
-      }
-
-      public void messageRemoved( Message message ) {/*nothing*/}
-      public void protocolBytesSent( int byte_count ) {/*ignore*/}
-      public void dataBytesSent( int byte_count ) {/*ignore*/}
-    };
-    
-    
-    //do group registration
+    // do group registration
     GroupData group_data;
-    try {  group_buckets_mon.enter(); 
+    try {
+      group_buckets_mon.enter();
+      
       group_data = (GroupData)group_buckets.get( group );
       if( group_data == null ) {
         int limit = getTranslatedLimit( group );
@@ -147,53 +96,30 @@ public class PeerUploadManager {
       }
       group_data.group_size++;
     }
-    finally {  group_buckets_mon.exit();  } 
-    
-    conn_data.group_bucket = group_data.bucket;
-    conn_data.queue_listener = listener;
-    conn_data.state = ConnectionData.STATE_NORMAL;
+    finally {  group_buckets_mon.exit();  }
+
     conn_data.group = group;
-    
-    try{ standard_peer_connections_mon.enter();
+    conn_data.group_data = group_data;
+    conn_data.state = ConnectionData.STATE_NORMAL;
+
+    try {
+      standard_peer_connections_mon.enter();
       standard_peer_connections.put( connection, conn_data );
     }
-    finally{ standard_peer_connections_mon.exit(); }
-    
-    connection.getOutgoingMessageQueue().registerQueueListener( listener );
+    finally {
+      standard_peer_connections_mon.exit();
+    }
+
     standard_entity_controller.registerPeerConnection( connection );
   }
   
   
   
   /**
-   * Register connection that will be automatically upgraded upon registration and never downgraded.
-   * @param connection
-   * @param group
+   * Cancel upload handling for the given peer connection.
+   * @param connection to cancel
    */
-  public void registerUpgradedConnection( NetworkConnection connection, LimitedRateGroup group ) {
-    registerConnection( connection, group, true );
-  }
-  
-  
-  public void cancelUpgradedConnection( NetworkConnection connection ) {
-    cancelStandardPeerConnection( connection );
-  }
-  
-  
-  
-  
-  /**
-   * Register connection that will be auto-upgraded upon addition of bt piece message,
-   * and auto-downgraded upon sending of bt choke message.
-   * @param connection
-   * @param group
-   */
-  public void registerStandardPeerConnection( NetworkConnection connection, LimitedRateGroup group ) {
-    registerConnection( connection, group, false );
-  }
-  
-  
-  public void cancelStandardPeerConnection( NetworkConnection connection ) {
+  public void cancelPeerConnection( NetworkConnection connection ) {
     ConnectionData conn_data = null;
     
     try{ standard_peer_connections_mon.enter();
@@ -202,23 +128,94 @@ public class PeerUploadManager {
     finally{ standard_peer_connections_mon.exit(); }
     
     if( conn_data != null ) {
-      connection.getOutgoingMessageQueue().cancelQueueListener( conn_data.queue_listener );
-      
       //do group de-registration
-      try {  group_buckets_mon.enter(); 
-        GroupData group_data = (GroupData)group_buckets.get( conn_data.group );
-        if( group_data.group_size == 1 ) { //last of the group
+      if( conn_data.group_data.group_size == 1 ) {  //last of the group
+        try {  group_buckets_mon.enter();
           group_buckets.remove( conn_data.group ); //so remove
         }
-        else {
-          group_data.group_size--;
-        }
+        finally {  group_buckets_mon.exit();  }
       }
-      finally {  group_buckets_mon.exit();  }
+      else {
+        conn_data.group_data.group_size--;
+      }
     }
     
     standard_entity_controller.cancelPeerConnection( connection );
   }
+  
+  
+  
+
+  /**
+   * Upgrade the given connection to a high-speed transfer handler.
+   * @param connection to upgrade
+   */
+  public void upgradePeerConnection( NetworkConnection connection ) {
+    ConnectionData connection_data = null;
+    
+    try{ standard_peer_connections_mon.enter();
+      connection_data = (ConnectionData)standard_peer_connections.get( connection );
+    }
+    finally{ standard_peer_connections_mon.exit(); }
+    
+    if( connection_data != null && connection_data.state == ConnectionData.STATE_NORMAL ) {
+      final ConnectionData conn_data = connection_data;
+      
+      standard_entity_controller.upgradePeerConnection( connection, new RateHandler() {
+        public int getCurrentNumBytesAllowed() {
+          // sync global rate
+          if( standard_bucket.getRate() != standard_max_rate_bps ) {
+            standard_bucket.setRate( standard_max_rate_bps );
+          }
+          // sync group rate
+          int group_rate = getTranslatedLimit( conn_data.group );
+          if( conn_data.group_data.bucket.getRate() != group_rate ) {
+            conn_data.group_data.bucket.setRate( group_rate );
+          }
+
+          int group_allowed = conn_data.group_data.bucket.getAvailableByteCount();
+          int global_allowed = standard_bucket.getAvailableByteCount();
+
+          // reserve bandwidth for the general pool if needed
+          if( standard_entity_controller.isGeneralPoolWriteNeeded() ) {
+            global_allowed -= NetworkManager.getSingleton().getTcpMssSize();
+            if( global_allowed < 0 ) global_allowed = 0;
+          }
+
+          int allowed = group_allowed > global_allowed ? global_allowed : group_allowed;
+          return allowed;
+        }
+
+        public void bytesWritten( int num_bytes_written ) {
+          conn_data.group_data.bucket.setBytesUsed( num_bytes_written );
+          standard_bucket.setBytesUsed( num_bytes_written );
+        }
+      });
+      
+      conn_data.state = ConnectionData.STATE_UPGRADED;
+    }
+  }
+  
+  
+  /**
+   * Downgrade the given connection back to a normal-speed transfer handler.
+   * @param connection to downgrade
+   */
+  public void downgradePeerConnection( NetworkConnection connection ) {
+    ConnectionData conn_data = null;
+    
+    try{ standard_peer_connections_mon.enter();
+      conn_data = (ConnectionData)standard_peer_connections.get( connection );
+    }
+    finally{ standard_peer_connections_mon.exit(); }
+    
+    if( conn_data != null && conn_data.state == ConnectionData.STATE_UPGRADED ) {
+      standard_entity_controller.downgradePeerConnection( connection );
+      conn_data.state = ConnectionData.STATE_NORMAL;
+    }
+  }
+  
+  
   
   
   private int getTranslatedLimit( LimitedRateGroup group ) {
@@ -238,16 +235,16 @@ public class PeerUploadManager {
     private static final int STATE_NORMAL   = 0;
     private static final int STATE_UPGRADED = 1;
     
-    private OutgoingMessageQueue.MessageQueueListener queue_listener;
     private int state;
     private LimitedRateGroup group;
-    private ByteBucket group_bucket;
+    private GroupData group_data;
   }
 
     
   private static class GroupData {
     private final ByteBucket bucket;
     private int group_size = 0;
+    
     private GroupData( ByteBucket bucket ) {
       this.bucket = bucket;
     }
