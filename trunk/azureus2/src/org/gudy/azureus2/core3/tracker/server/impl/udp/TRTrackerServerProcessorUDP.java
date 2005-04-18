@@ -52,7 +52,7 @@ TRTrackerServerProcessorUDP
 	
 	protected TRTrackerServerUDP		server;
 	protected DatagramSocket			socket;
-	protected DatagramPacket			packet;
+	protected DatagramPacket			request_dg;
 	
 	protected static Map				connection_id_map 	= new LinkedHashMap();
 	protected static SecureRandom		random				= new SecureRandom();
@@ -68,21 +68,19 @@ TRTrackerServerProcessorUDP
 		DatagramSocket			_socket,
 		DatagramPacket			_packet )
 	{
-		server	= _server;
-		socket	= _socket;
-		packet	= _packet;
+		server			= _server;
+		socket			= _socket;
+		request_dg		= _packet;
 	}
 	
 	public void
 	runSupport()
-	{		
-		byte[]	_data = packet.getData();
+	{				
+		byte[]	input_buffer = new byte[request_dg.getLength()];
 		
-		byte[]	data = new byte[packet.getLength()];
+		System.arraycopy( request_dg.getData(), 0, input_buffer, 0, input_buffer.length );
 		
-		System.arraycopy( _data, 0, data, 0, data.length );
-		
-		int	packet_data_length = data.length;
+		int	packet_data_length = input_buffer.length;
 		
 		String	auth_user			= null;
 		byte[] 	auth_user_bytes		= null;
@@ -94,7 +92,7 @@ TRTrackerServerProcessorUDP
 				// auth detail should be attached to the packet. Auth details are 16
 				// bytes
 			
-			if ( data.length < 17 ){
+			if ( input_buffer.length < 17 ){
 				
 				LGLogger.log( "TRTrackerServerProcessorUDP: packet received but authorisation missing" ); 
 
@@ -107,7 +105,7 @@ TRTrackerServerProcessorUDP
 			
 			auth_hash = new byte[8];
 			
-			System.arraycopy( data, packet_data_length, auth_user_bytes, 0, 8 );
+			System.arraycopy( input_buffer, packet_data_length, auth_user_bytes, 0, 8 );
 			
 			int	user_len = 0;
 			
@@ -118,19 +116,20 @@ TRTrackerServerProcessorUDP
 			
 			auth_user = new String( auth_user_bytes, 0, user_len );
 			
-			System.arraycopy( data, packet_data_length+8, auth_hash, 0, 8 );
+			System.arraycopy( input_buffer, packet_data_length+8, auth_hash, 0, 8 );
 		}
 				
-		DataInputStream is = new DataInputStream(new ByteArrayInputStream(data, 0, packet_data_length ));
+		DataInputStream is = new DataInputStream(new ByteArrayInputStream(input_buffer, 0, packet_data_length ));
 		
 		try{
-			String	client_ip_address = packet.getAddress().getHostAddress();
+			String	client_ip_address = request_dg.getAddress().getHostAddress();
 			
 			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( null, is );
 			
 			LGLogger.log( "TRTrackerServerProcessorUDP: packet received: " + request.getString()); 
-			
-			PRUDPPacket	reply = null;
+				
+			PRUDPPacket					reply 	= null;
+			TRTrackerServerTorrentImpl	torrent	= null;
 			
 			if ( auth_user_bytes != null ){
 				
@@ -173,7 +172,7 @@ TRTrackerServerProcessorUDP
 					
 					SHA1Hasher	hasher = new SHA1Hasher();
 					
-					hasher.update( data, 0, packet_data_length);
+					hasher.update( input_buffer, 0, packet_data_length);
 					hasher.update( auth_user_bytes );
 					hasher.update( sha1_pw );
 					
@@ -204,12 +203,18 @@ TRTrackerServerProcessorUDP
 						
 					}else if (type == PRUDPPacketTracker.ACT_REQUEST_ANNOUNCE ){
 						
-						reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_ANNOUNCE );
+						Object[] x = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_ANNOUNCE );
 						
+						reply 	= (PRUDPPacket)x[0];
+						torrent	= (TRTrackerServerTorrentImpl)x[1];
+				
 					}else if ( type == PRUDPPacketTracker.ACT_REQUEST_SCRAPE ){
 						
-						reply = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
+						Object[] x = handleAnnounceAndScrape( client_ip_address, request, TRTrackerServerRequest.RT_SCRAPE );
 						
+						reply 	= (PRUDPPacket)x[0];
+						torrent	= (TRTrackerServerTorrentImpl)x[1];
+	
 					}else{
 						
 						reply = new PRUDPPacketReplyError( request.getTransactionId(), "unsupported action");
@@ -231,7 +236,7 @@ TRTrackerServerProcessorUDP
 			
 			if ( reply != null ){
 				
-				InetAddress address = packet.getAddress();
+				InetAddress address = request_dg.getAddress();
 				
 				ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 				
@@ -239,11 +244,16 @@ TRTrackerServerProcessorUDP
 										
 				reply.serialise(os);
 				
-				byte[]	buffer = baos.toByteArray();
+				byte[]	output_buffer = baos.toByteArray();
 				
-				DatagramPacket reply_packet = new DatagramPacket(buffer, buffer.length,address,packet.getPort());
+				DatagramPacket reply_packet = new DatagramPacket(output_buffer, output_buffer.length,address,request_dg.getPort());
 							
 				socket.send( reply_packet );
+				
+				if ( torrent != null ){
+					
+					server.updateStats( torrent, input_buffer.length, output_buffer.length );
+				}
 			}
 			
 		}catch( Throwable e ){
@@ -352,7 +362,9 @@ TRTrackerServerProcessorUDP
 		return( reply );
 	}
 	
-	protected PRUDPPacket
+		// returns reply packet and associated torrent if exists
+	
+	protected Object[]
 	handleAnnounceAndScrape(
 		String				client_ip_address,
 		PRUDPPacketRequest	request,
@@ -516,7 +528,8 @@ TRTrackerServerProcessorUDP
 				
 				reply.setPeers( addresses, ports );
 				
-				return( reply );
+				return( new Object[]{ reply, torrent });
+				
 			}else{
 				
 				PRUDPPacketReplyAnnounce2 reply = new PRUDPPacketReplyAnnounce2(request.getTransactionId());
@@ -548,7 +561,7 @@ TRTrackerServerProcessorUDP
 				
 				reply.setPeers( addresses, ports );
 				
-				return( reply );
+				return( new Object[]{ reply, torrent });
 			}
 			
 		}else{
@@ -594,7 +607,7 @@ TRTrackerServerProcessorUDP
 				
 				reply.setDetails( hashes, s_complete, s_downloaded, s_incomplete );
 				
-				return( reply );
+				return( new Object[]{ reply, torrent });
 				
 			}else{
 				
@@ -634,7 +647,7 @@ TRTrackerServerProcessorUDP
 				
 				reply.setDetails( s_complete, s_downloaded, s_incomplete );
 				
-				return( reply );				
+				return( new Object[]{ reply, torrent });				
 			}
 		}
 	}
