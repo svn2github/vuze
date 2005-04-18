@@ -91,6 +91,13 @@ TRTrackerScraperResponseImpl
   	status	= s;
   }
   
+  protected void
+  setStatus(
+	String	str )
+  {
+	  sStatus	= str;
+  }
+  
   public void setStatus(int iNewStatus, String sNewStatus) {
     if (last_status != status && iNewStatus != status)
       last_status = status;

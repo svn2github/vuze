@@ -12,6 +12,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.zip.GZIPInputStream;
@@ -57,6 +58,9 @@ public class TrackerStatus {
   static{
   	PRUDPTrackerCodecs.registerCodecs();
   }
+  
+  private static List	logged_invalid_urls	= new ArrayList();
+  
   private URL		tracker_url;
   
   private String 	scrapeURL = null;
@@ -105,10 +109,15 @@ public class TrackerStatus {
        	scrapeURL = trackerUrl + (trackerUrl.endsWith("/")?"":"/") + "scrape";
        	
     }else {
-        LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
+		if ( !logged_invalid_urls.contains( trackerUrl )){
+			
+			logged_invalid_urls.add( trackerUrl );
+			
+			LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
                      "Can't scrape using url '" + trackerUrl + "' as it doesn't end in '/announce', skipping.");		
        }
-    } catch (Exception e) {
+    }
+    } catch (Throwable e) {
     	Debug.printStackTrace( e );
     } 
   }

@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
 import java.net.URL;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
 
@@ -71,7 +72,11 @@ TRTrackerBTScraperResponseImpl
 		setPeers( iPeers );
 		
 		setStatus((isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE );
-		    
+		  
+		if ( isValid()){
+			
+			setStatus( MessageText.getString("Scrape.status.ok"));
+		}
 		    // XXX Is this a good idea?
 		ts.scrapeReceived(this);
 	}
