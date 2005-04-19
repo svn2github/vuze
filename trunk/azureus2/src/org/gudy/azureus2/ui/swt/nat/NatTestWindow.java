@@ -39,6 +39,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipchecker.natchecker.NatChecker;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -92,7 +94,10 @@ public class NatTestWindow {
     
     final Shell shell = ShellFactory.createShell(SWT.BORDER | SWT.TITLE | SWT.CLOSE);        
     shell.setText(MessageText.getString("configureWizard.nat.title"));
-    
+	if(! Constants.isOSX) {
+		shell.setImage(ImageRepository.getImage("azureus"));
+	}
+
     display = shell.getDisplay();
     
     GridLayout layout = new GridLayout();
@@ -200,6 +205,16 @@ public class NatTestWindow {
       }      
     });
     
+	shell.setDefaultButton( bApply );
+	
+	shell.addListener(SWT.Traverse, new Listener() {	
+		public void handleEvent(Event e) {
+			if ( e.character == SWT.ESC){
+				shell.close();
+			}
+		}
+	});
+	
     shell.pack();
     Utils.centreWindow(shell);
     shell.open();

@@ -184,6 +184,16 @@ public class WelcomeWindow {
     bClose.addListener(SWT.Selection, closeListener);
     shell.addListener(SWT.Close,closeListener);
     
+	shell.setDefaultButton( bClose );
+	
+	shell.addListener(SWT.Traverse, new Listener() {	
+		public void handleEvent(Event e) {
+			if ( e.character == SWT.ESC){
+				close();
+			}
+		}
+	});
+	
     shell.setSize(500,400);
     Utils.centreWindow(shell);
     shell.layout();
