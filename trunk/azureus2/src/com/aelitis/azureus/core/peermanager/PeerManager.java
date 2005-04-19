@@ -160,7 +160,7 @@ public class PeerManager {
    */
   public void deregisterLegacyManager( final PEPeerControl manager ) {
     //remove incoming routing registration 
-    NetworkManager.ByteMatcher matcher = (NetworkManager.ByteMatcher)legacy_managers.get( manager );
+    NetworkManager.ByteMatcher matcher = (NetworkManager.ByteMatcher)legacy_managers.remove( manager );
     if( matcher != null ) {
       NetworkManager.getSingleton().getIncomingSocketChannelManager().deregisterMatchBytes( matcher );
     }
