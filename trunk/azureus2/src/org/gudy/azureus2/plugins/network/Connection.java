@@ -23,8 +23,6 @@
 package org.gudy.azureus2.plugins.network;
 
 
-
-
 /**
  * Represents a managed peer connection, over which messages can be sent and received.
  */
@@ -61,9 +59,8 @@ public interface Connection {
   
   
   /**
-   * Get the connection's underyling transport.
-   * @return data transport
+   * Begin processing incoming and outgoing message queues.
    */
-  //public Transport getTransport();  //TODO remove this functionality?
+  public void startMessageProcessing();
 
 }

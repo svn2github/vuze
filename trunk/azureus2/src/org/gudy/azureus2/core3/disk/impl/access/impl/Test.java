@@ -56,7 +56,7 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
-import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 
 
 /**
@@ -872,7 +872,7 @@ Test
 	 	}
 	 
     public LimitedRateGroup getUploadLimitedRateGroup() {  return null;  }
-    
+    public LimitedRateGroup getDownloadLimitedRateGroup() {  return null;  }
     
 		public void
 		start()

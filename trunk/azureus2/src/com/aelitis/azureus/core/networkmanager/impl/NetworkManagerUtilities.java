@@ -1,7 +1,7 @@
 /*
- * Created on Oct 9, 2004
+ * Created on Apr 19, 2005
  * Created by Alon Rohter
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,15 +20,31 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager;
+package com.aelitis.azureus.core.networkmanager.impl;
+
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 
 /**
- * Allows for grouping of connections under a singular limit.
+ *
  */
-public interface LimitedRateGroup {
+public class NetworkManagerUtilities {
+
   /**
-   * Get the current rate limit.
-   * @return rate in bytes per second, 0 for unlimited, -1 for disabled
+   * Translate the group speed limit to a proper real rate.
+   * @param group to use
+   * @return rate real limit in bytes per second
    */
-  public int getRateLimitBytesPerSecond();
+  public static int getGroupRateLimit( LimitedRateGroup group ) {
+    int limit = group.getRateLimitBytesPerSecond();
+    if( limit == 0 ) {  //unlimited
+      limit = NetworkManager.UNLIMITED_RATE;
+    }
+    else if( limit < 0 ) {  //disabled
+      limit = 0;
+    }
+    return limit;
+  }
+  
+  
 }

@@ -24,8 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.network;
 
 import org.gudy.azureus2.plugins.network.*;
 
-import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
-import com.aelitis.azureus.core.peermanager.PeerManager;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 
 
 /**
@@ -51,33 +50,38 @@ public class ConnectionImpl implements Connection {
     core_connection.connect( new com.aelitis.azureus.core.networkmanager.NetworkConnection.ConnectionListener() {
       public void connectStarted() { listener.connectStarted();  }
       
-      public void connectSuccess() {
-        //register for central write processing
-        PeerManager.getSingleton().getUploadManager().registerPeerConnection( core_connection, new LimitedRateGroup() {
-          public int getRateLimitBytesPerSecond() {  return 0;  }  //no write limit for now
-        });
-        PeerManager.getSingleton().getUploadManager().upgradePeerConnection( core_connection );  //auto-upgrade connection
-        
-        listener.connectSuccess();
-      }
+      public void connectSuccess() { listener.connectSuccess();  }
       
       public void connectFailure( Throwable failure_msg ) {  listener.connectFailure( failure_msg );  }
       public void exceptionThrown( Throwable error ) {  listener.exceptionThrown( error );  }
     });
-    
-    
   }
   
   
   public void close() {
-    PeerManager.getSingleton().getUploadManager().cancelPeerConnection( core_connection );  //cancel central write processing
     core_connection.close();
   }
 
+  
   public OutgoingMessageQueue getOutgoingMessageQueue() {  return out_queue;  }
 
   public IncomingMessageQueue getIncomingMessageQueue() {  return in_queue;  }
 
+  
+  public void startMessageProcessing() {
+    core_connection.startMessageProcessing(
+        new LimitedRateGroup() {
+          public int getRateLimitBytesPerSecond() {  return 0;  }  //no specific write limit for now
+        },
+        new LimitedRateGroup() {
+          public int getRateLimitBytesPerSecond() {  return 0;  }  //no specific read limit for now
+        }
+    );     
+    
+    core_connection.enableEnhancedMessageProcessing( true );  //auto-upgrade connection
+  }
+  
+  
   public Transport getTransport() {  return tcp_transport;  }
   
   

@@ -1114,13 +1114,13 @@ DownloadImpl
 	setMaximumDownloadKBPerSecond(
 		int		kb )
  	{
- 		download_manager.getStats().setMaxDownloadKBSpeed( kb<0?0:kb );
+ 		download_manager.getStats().setDownloadRateLimitBytesPerSecond( kb < 0 ? 0 : kb*1024 );
  	}
   	
   	public int
 	getMaximumDownloadKBPerSecond()
   	{
-  		return( download_manager.getStats().getMaxDownloadKBSpeed());
+  		return( download_manager.getStats().getDownloadRateLimitBytesPerSecond() /1024 );
   	}
     
   	public int getUploadRateLimitBytesPerSecond() {

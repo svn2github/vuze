@@ -139,7 +139,7 @@ public class SelectorGuard {
           channel.register(newSelector, key.interestOps(), key.attachment());
         }
         catch( Throwable t ) {
-          Debug.out( t );
+          Debug.out( "repairSelector() exception caught on channel re-register:", t );
         }
       }
         

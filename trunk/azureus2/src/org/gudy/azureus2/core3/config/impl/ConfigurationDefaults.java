@@ -101,7 +101,9 @@ public class ConfigurationDefaults {
     def.put("File Max Open", new Long(50));
 
     def.put("Max Uploads", new Long(4));
-    def.put("Max Upload Speed KBs", new Long(0));
+    def.put( "Max Upload Speed KBs", new Long(0));
+    def.put( "Max Download Speed KBs", new Long(0) );
+    
     def.put("Use Resume", new Long(1));
     def.put("Save Resume Interval", new Long(5));
     def.put("Check Pieces on Completion", new Long(1));
@@ -226,7 +228,7 @@ public class ConfigurationDefaults {
     def.put( "Save Torrent Files", new Long(1) );
     def.put("General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");
 
-    def.put( "Max Download Speed KBs", new Long(0) );
+  
     def.put( "Bind IP", "" );
     def.put( "Stats Export Peer Details", new Long(0) );
     def.put( "Stats XSL File", "" );

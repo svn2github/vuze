@@ -33,13 +33,8 @@ import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
-import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
-import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
-import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTHandshake;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageDecoder;
-import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageEncoder;
+import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 /**
  *
@@ -47,17 +42,13 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageEncode
 public class PeerManager {
 
   private static final PeerManager instance = new PeerManager();
-  
-  private final PeerUploadManager upload_manager = new PeerUploadManager();
-  private final PeerDownloadManager download_manager = new PeerDownloadManager();
-  
+
   private final HashMap legacy_managers = new HashMap();
   
   private final ByteBuffer legacy_handshake_header;
   
   
-  
-  
+
   private PeerManager() {
     legacy_handshake_header = ByteBuffer.allocate( 20 );
     legacy_handshake_header.put( (byte)BTHandshake.PROTOCOL.length() );
@@ -75,20 +66,7 @@ public class PeerManager {
    */
   public static PeerManager getSingleton() {  return instance;  }
   
-  
-  /**
-   * Get the peer upload manager.
-   * @return upload manager
-   */
-  public PeerUploadManager getUploadManager() {  return upload_manager;  }
-  
-  
-  /**
-   * Get the peer download manager.
-   * @return download manager
-   */
-  public PeerDownloadManager getDownloadManager() {  return download_manager;  }
-  
+    
   
   
   /**

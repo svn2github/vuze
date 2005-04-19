@@ -31,9 +31,6 @@ DownloadManagerStats
 	public int
 	getMaxUploads();
 	
-	public int
-	getMaxDownloadKBSpeed();
-	
   /** Find out percentage done of current state
    * Use getDownloadCompleted() if you wish to find out a torrents download completion level
    *
@@ -158,10 +155,6 @@ DownloadManagerStats
 	public void
 	setMaxUploads(
 		int		max );
-		
-	public void
-	setMaxDownloadKBSpeed(
-		int	max );
 	
 	public void
 	setCompleted(

@@ -35,7 +35,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
-import com.aelitis.azureus.core.peermanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 
 
 public interface 
@@ -235,6 +235,13 @@ PEPeerManager
    * @return upload limit group
    */
   public LimitedRateGroup getUploadLimitedRateGroup();
+  
+  /**
+   * Get the limited rate group used for download limiting.
+   * @return download limit group
+   */
+  public LimitedRateGroup getDownloadLimitedRateGroup();
+  
   
   /** To retreive arbitrary objects against this object. */
   public Object getData (String key);

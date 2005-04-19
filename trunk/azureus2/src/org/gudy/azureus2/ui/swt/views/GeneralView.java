@@ -341,7 +341,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       else gridData.widthHint = 35;
       
       maxDLSpeed.setLayoutData(gridData);
-      maxDLSpeed.setText(String.valueOf(manager.getStats().getMaxDownloadKBSpeed()));
+      maxDLSpeed.setText(String.valueOf( manager.getStats().getDownloadRateLimitBytesPerSecond() /1024 ));
       maxDLSpeed.addListener(SWT.Verify, new Listener() {
         public void handleEvent(Event e) {
           String text = e.text;
@@ -361,7 +361,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
           try {
             int value = Integer.parseInt(maxDLSpeed.getText());
      
-            manager.getStats().setMaxDownloadKBSpeed(value);
+            manager.getStats().setDownloadRateLimitBytesPerSecond( value *1024 );
           }
           catch (Exception e) {}
         }
@@ -748,8 +748,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()),
 		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()),
 		swarm_speed,
-		""+manager.getStats().getMaxDownloadKBSpeed(),
-		""+(manager.getStats().getUploadRateLimitBytesPerSecond()/1024),
+		""+manager.getStats().getDownloadRateLimitBytesPerSecond() /1024,
+		""+(manager.getStats().getUploadRateLimitBytesPerSecond() /1024),
       	seeds_str,
       	peers_str,
 		DisplayFormatters.formatHashFails(manager),

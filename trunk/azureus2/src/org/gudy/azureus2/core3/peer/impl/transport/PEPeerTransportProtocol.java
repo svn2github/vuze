@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.config.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
@@ -77,8 +76,6 @@ PEPeerTransportProtocol
   private boolean snubbed = false;
   private boolean[] other_peer_has_pieces;
   private boolean seed = false;
-  
-  private boolean connection_registered = false;
  
   private boolean incoming;
   private volatile boolean closing = false;
@@ -335,10 +332,6 @@ PEPeerTransportProtocol
       outgoing_have_message_aggregator.destroy();
     }
     
-    if( connection_registered ) {
-      PeerManager.getSingleton().getUploadManager().cancelPeerConnection( connection );
-    }
-    
     if( connection != null ) {  //can be null if close is called within ::<init>::, like when the given port is invalid
       connection.close();
     }
@@ -411,8 +404,6 @@ PEPeerTransportProtocol
         local_udp_port,
         avail_ids,
         avail_vers );        
-
-    //System.out.println( "Sending " +az_handshake.getDescription() );
     
     connection.getOutgoingMessageQueue().addMessage( az_handshake, false );
   }
@@ -1172,7 +1163,7 @@ PEPeerTransportProtocol
 
     if( !az_messaging_mode ) {  //otherwise we'll do this after receiving az handshake
      
-      connection.getIncomingMessageQueue().startQueueProcessing();  //since BT decoder is auto-paused after initial handshake
+      connection.getIncomingMessageQueue().startQueueProcessing();  //HACK: because BT decoder is auto-paused after initial handshake, so it doesn't accidentally decode the next AZ message
              
       changePeerState( PEPeer.TRANSFERING );
       
@@ -1197,41 +1188,16 @@ PEPeerTransportProtocol
     
     //find mutually available message types
     ArrayList messages = new ArrayList();
-    
-    String mutual = "";
-    
+
     for( int i=0; i < handshake.getMessageIDs().length; i++ ) {
       Message msg = MessageManager.getSingleton().lookupMessage( handshake.getMessageIDs()[i], handshake.getMessageVersions()[i] );
       
       if( msg != null ) {  //mutual support!
         messages.add( msg );
-        
-        String id = msg.getID();
-        
-        if( !id.equals( BTMessage.ID_BT_BITFIELD ) &&   //filter out obvious mutual messages
-            !id.equals( BTMessage.ID_BT_CANCEL ) &&
-            !id.equals( BTMessage.ID_BT_CHOKE ) &&
-            !id.equals( BTMessage.ID_BT_HANDSHAKE ) &&
-            !id.equals( BTMessage.ID_BT_HAVE ) &&
-            !id.equals( BTMessage.ID_BT_INTERESTED ) &&
-            !id.equals( BTMessage.ID_BT_KEEP_ALIVE ) &&
-            !id.equals( BTMessage.ID_BT_PIECE ) &&
-            !id.equals( BTMessage.ID_BT_REQUEST ) &&
-            !id.equals( BTMessage.ID_BT_UNCHOKE ) &&
-            !id.equals( BTMessage.ID_BT_UNINTERESTED ) &&
-            !id.equals( AZMessage.ID_AZ_PING ) &&
-            !id.equals( AZMessage.ID_AZ_PONG ) )
-        {
-          mutual += "[" +id+ "] ";
-        }
       }
     }
     
     supported_messages = (Message[])messages.toArray( new Message[0] );
-
-    if( mutual.length() > 2 ) {
-      System.out.println( "[" +(incoming ? "R:" : "L:")+" " +ip+":"+port+" "+client+ "] Mutually supported messages: " +mutual );
-    }
      
     changePeerState( PEPeer.TRANSFERING );
     
@@ -1566,9 +1532,6 @@ PEPeerTransportProtocol
       }
     });
     
-    connection.getIncomingMessageQueue().startQueueProcessing();  //start reading incoming messages
-    
-    
     
     //OUTGOING MESSAGES
     connection.getOutgoingMessageQueue().registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
@@ -1576,7 +1539,7 @@ PEPeerTransportProtocol
       
       public void messageQueued( Message message ) {
         if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) { // is sending piece data
-          PeerManager.getSingleton().getUploadManager().upgradePeerConnection( connection );  //so make sure we use a fast handler
+          connection.enableEnhancedMessageProcessing( true );  //so make sure we use a fast handler
         }
       }
       
@@ -1591,7 +1554,7 @@ PEPeerTransportProtocol
         }
         
         if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) { // is done sending piece data
-          PeerManager.getSingleton().getUploadManager().downgradePeerConnection( connection );  //so downgrade back to normal handler
+          connection.enableEnhancedMessageProcessing( false );  //so downgrade back to normal handler
         }
         
         LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " +PEPeerTransportProtocol.this );
@@ -1610,10 +1573,9 @@ PEPeerTransportProtocol
       }
     });
 
-    //register the new connection with the upload manager so that outgoing peer messages get written
-    PeerManager.getSingleton().getUploadManager().registerPeerConnection( connection, manager.getUploadLimitedRateGroup() );
     
-    connection_registered = true;
+    //start message processing
+    connection.startMessageProcessing( manager.getUploadLimitedRateGroup(), manager.getDownloadLimitedRateGroup() );
   }
   
   

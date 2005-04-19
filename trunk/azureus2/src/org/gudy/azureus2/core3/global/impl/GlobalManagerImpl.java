@@ -553,8 +553,8 @@ public class GlobalManagerImpl
 	
 	
 	        dm_stats.setMaxUploads(nbUploads);
-	        dm_stats.setMaxDownloadKBSpeed( maxDL );
-	        dm_stats.setUploadRateLimitBytesPerSecond(maxUL);
+	        dm_stats.setDownloadRateLimitBytesPerSecond( maxDL );
+	        dm_stats.setUploadRateLimitBytesPerSecond( maxUL );
 	        
 	        if (lCompleted != null) {
 	          dm_stats.setDownloadCompleted(lCompleted.intValue());
@@ -1231,8 +1231,8 @@ public class GlobalManagerImpl
 		      	dmMap.put("path", new File( dm.getTorrentSaveDir(), dm.getTorrentSaveFile() ).getAbsolutePath() );
 		      }
 		      dmMap.put("uploads", new Long(dm_stats.getMaxUploads()));
-		      dmMap.put("maxdl", new Long(dm_stats.getMaxDownloadKBSpeed()));
-		      dmMap.put("maxul", new Long(dm_stats.getUploadRateLimitBytesPerSecond()));
+		      dmMap.put("maxdl", new Long( dm_stats.getDownloadRateLimitBytesPerSecond() ));
+		      dmMap.put("maxul", new Long( dm_stats.getUploadRateLimitBytesPerSecond() ));
           int state = dm.getState();
           if (dm.getOnlySeeding() && !dm.isForceStart() && 
               state != DownloadManager.STATE_STOPPED) {

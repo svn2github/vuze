@@ -29,9 +29,8 @@ import java.nio.channels.SocketChannel;
 import org.gudy.azureus2.core3.config.*;
 
 
-import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
-import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
-import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
+import com.aelitis.azureus.core.networkmanager.impl.*;
+import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
 
@@ -39,21 +38,31 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageStreamFactory;
  *
  */
 public class NetworkManager {
+  public static final int UNLIMITED_RATE = 1024 * 1024 * 100; //100 mbyte/s
+  
   private static final NetworkManager instance = new NetworkManager();
 
-  private int tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
+  private static int tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
+  static {
+    COConfigurationManager.addParameterListener( "network.tcp.mtu.size", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
+      }
+    });
+  }
+  
   private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
   private final IncomingSocketChannelManager incoming_socketchannel_manager = new IncomingSocketChannelManager();
   private final WriteController write_controller = new WriteController();
   private final ReadController read_controller = new ReadController();
 
+  private final UploadProcessor upload_processor = new UploadProcessor();
+  private final DownloadProcessor download_processor = new DownloadProcessor();
+  
+  
   
   private NetworkManager() {
-    COConfigurationManager.addParameterListener( "network.tcp.mtu.size", new ParameterListener() {
-      public void parameterChanged( String parameterName ) {
-        tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
-      }
-    });    
+    /* nothing */    
   }
   
   
@@ -162,6 +171,20 @@ public class NetworkManager {
   public ReadController getReadController() {  return read_controller;  }
   
   
+  /**
+   * Get the upload message processor.
+   * @return processor
+   */
+  public UploadProcessor getUploadProcessor() {  return upload_processor;  }
+  
+  
+  /**
+   * Get the download message processor.
+   * @return processor
+   */
+  public DownloadProcessor getDownloadProcessor() {  return download_processor;  }
+  
+  
   
   /**
    * Get the configured TCP MSS (Maximum Segment Size) unit, i.e. the max (preferred) packet payload size.
@@ -169,7 +192,7 @@ public class NetworkManager {
    * connections, or 1452 (1492-40) for PPPOE connections.
    * @return mss size in bytes
    */
-  public int getTcpMssSize() {  return tcp_mss_size;  }
+  public static int getTcpMssSize() {  return tcp_mss_size;  }
   
   
   

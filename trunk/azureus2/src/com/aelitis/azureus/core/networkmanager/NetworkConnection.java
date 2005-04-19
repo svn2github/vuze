@@ -69,7 +69,20 @@ public interface NetworkConnection {
   public IncomingMessageQueue getIncomingMessageQueue();
   
   
-
+  /**
+   * Begin processing incoming and outgoing message queues.
+   * @param upload_group upload rate limit group to use
+   * @param download_group download rate limit group to use
+   */
+  public void startMessageProcessing( LimitedRateGroup upload_group, LimitedRateGroup download_group );
+  
+  
+  /**
+   * Upgrade the connection to high-speed transfer processing.
+   * @param enable true for high-speed processing, false for normal processing
+   */
+  public void enableEnhancedMessageProcessing( boolean enable );
+  
   
   /**
    * Get the connection's data tcp transport interface.

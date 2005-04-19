@@ -145,7 +145,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
    * @param peer_connection to be write managed
    */
   public void addPeerConnection( NetworkConnection peer_connection ) {
-    int mss_size = NetworkManager.getSingleton().getTcpMssSize();
+    int mss_size = NetworkManager.getTcpMssSize();
     boolean has_urgent_data = peer_connection.getOutgoingMessageQueue().hasUrgentMessage();
     int num_bytes_ready = peer_connection.getOutgoingMessageQueue().getTotalSize();
     
@@ -204,7 +204,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
             return;  //stop further processing
           }
           
-          int mss_size = NetworkManager.getSingleton().getTcpMssSize();
+          int mss_size = NetworkManager.getTcpMssSize();
           boolean has_urgent_data = conn.getOutgoingMessageQueue().hasUrgentMessage();
           int num_bytes_ready = conn.getOutgoingMessageQueue().getTotalSize();
         
@@ -290,7 +290,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
           continue;  //move on to the next connection
         }
         
-        int mss_size = NetworkManager.getSingleton().getTcpMssSize();
+        int mss_size = NetworkManager.getTcpMssSize();
         int num_bytes_allowed = num_bytes_remaining > mss_size ? mss_size : num_bytes_remaining;  //allow a single full packet at most
         int num_bytes_available = total_size > mss_size ? mss_size : total_size;  //allow a single full packet at most
         

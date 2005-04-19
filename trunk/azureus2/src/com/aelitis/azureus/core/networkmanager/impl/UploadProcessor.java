@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.util.*;
 
@@ -30,29 +30,28 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import com.aelitis.azureus.core.networkmanager.*;
 
 
+
 /**
  *
  */
-public class PeerUploadManager {
-  private static final int UNLIMITED_WRITE_RATE = 1024 * 1024 * 100; //100 mbyte/s
-    
+public class UploadProcessor {
   private int standard_max_rate_bps;
   private final ByteBucket standard_bucket;
   private final HashMap standard_peer_connections = new HashMap();
-  private final AEMonitor standard_peer_connections_mon = new AEMonitor( "PeerUploadManager:SPC" );
+  private final AEMonitor standard_peer_connections_mon = new AEMonitor( "UploadProcessor:SPC" );
   private final UploadEntityController standard_entity_controller;
   
   private final HashMap group_buckets = new HashMap();
-  private final AEMonitor group_buckets_mon = new AEMonitor( "PeerUploadManager:GB" );
+  private final AEMonitor group_buckets_mon = new AEMonitor( "UploadProcessor:GB" );
   
   
-  protected PeerUploadManager() {
+  public UploadProcessor() {
     int max_rateKBs = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" );
-    standard_max_rate_bps = max_rateKBs == 0 ? UNLIMITED_WRITE_RATE : max_rateKBs * 1024;
+    standard_max_rate_bps = max_rateKBs == 0 ? NetworkManager.UNLIMITED_RATE : max_rateKBs * 1024;
     COConfigurationManager.addParameterListener( "Max Upload Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         int rateKBs = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" );
-        standard_max_rate_bps = rateKBs == 0 ? UNLIMITED_WRITE_RATE : rateKBs * 1024;
+        standard_max_rate_bps = rateKBs == 0 ? NetworkManager.UNLIMITED_RATE : rateKBs * 1024;
       }
     });
     
@@ -77,6 +76,7 @@ public class PeerUploadManager {
   
   /**
    * Register peer connection for upload handling.
+   * NOTE: The given max rate limit is ignored until the connection is upgraded.
    * @param connection to register
    * @param group rate limit group
    */
@@ -90,7 +90,7 @@ public class PeerUploadManager {
       
       group_data = (GroupData)group_buckets.get( group );
       if( group_data == null ) {
-        int limit = getTranslatedLimit( group );
+        int limit = NetworkManagerUtilities.getGroupRateLimit( group );
         group_data = new GroupData( new ByteBucket( limit ) );
         group_buckets.put( group, group_data );
       }
@@ -119,7 +119,7 @@ public class PeerUploadManager {
    * Cancel upload handling for the given peer connection.
    * @param connection to cancel
    */
-  public void cancelPeerConnection( NetworkConnection connection ) {
+  public void deregisterPeerConnection( NetworkConnection connection ) {
     ConnectionData conn_data = null;
     
     try{ standard_peer_connections_mon.enter();
@@ -168,7 +168,7 @@ public class PeerUploadManager {
             standard_bucket.setRate( standard_max_rate_bps );
           }
           // sync group rate
-          int group_rate = getTranslatedLimit( conn_data.group );
+          int group_rate = NetworkManagerUtilities.getGroupRateLimit( conn_data.group );
           if( conn_data.group_data.bucket.getRate() != group_rate ) {
             conn_data.group_data.bucket.setRate( group_rate );
           }
@@ -178,7 +178,7 @@ public class PeerUploadManager {
 
           // reserve bandwidth for the general pool if needed
           if( standard_entity_controller.isGeneralPoolWriteNeeded() ) {
-            global_allowed -= NetworkManager.getSingleton().getTcpMssSize();
+            global_allowed -= NetworkManager.getTcpMssSize();
             if( global_allowed < 0 ) global_allowed = 0;
           }
 
@@ -216,20 +216,7 @@ public class PeerUploadManager {
   }
   
   
-  
-  
-  private int getTranslatedLimit( LimitedRateGroup group ) {
-    int limit = group.getRateLimitBytesPerSecond();
-    if( limit == 0 ) {  //unlimited
-      limit = UNLIMITED_WRITE_RATE;
-    }
-    else if( limit < 0 ) {  //disabled
-      limit = 0;
-    }
-    return limit;
-  }
-  
-  
+
   
   private static class ConnectionData {
     private static final int STATE_NORMAL   = 0;

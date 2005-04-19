@@ -115,6 +115,9 @@ public class NetworkConnectionImpl implements NetworkConnection {
 
   
   public void close() {
+    NetworkManager.getSingleton().getUploadProcessor().deregisterPeerConnection( this );
+    NetworkManager.getSingleton().getDownloadProcessor().deregisterPeerConnection( this );
+    
     tcp_transport.close();
     incoming_message_queue.destroy();
     outgoing_message_queue.destroy();  
@@ -135,6 +138,22 @@ public class NetworkConnectionImpl implements NetworkConnection {
   public OutgoingMessageQueue getOutgoingMessageQueue() {  return outgoing_message_queue;  }
 
   public IncomingMessageQueue getIncomingMessageQueue() {  return incoming_message_queue;  }
+  
+
+  public void startMessageProcessing( LimitedRateGroup upload_group, LimitedRateGroup download_group ) {
+    NetworkManager.getSingleton().getUploadProcessor().registerPeerConnection( this, upload_group );
+    NetworkManager.getSingleton().getDownloadProcessor().registerPeerConnection( this, download_group );
+  }
+  
+  
+  public void enableEnhancedMessageProcessing( boolean enable ) {
+    if( enable ) {
+      NetworkManager.getSingleton().getUploadProcessor().upgradePeerConnection( this );
+    }
+    else {
+      NetworkManager.getSingleton().getUploadProcessor().downgradePeerConnection( this );
+    }
+  }
   
 
   public TCPTransport getTCPTransport() {  return tcp_transport;  }

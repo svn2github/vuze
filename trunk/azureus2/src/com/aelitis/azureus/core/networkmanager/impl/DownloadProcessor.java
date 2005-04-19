@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.util.HashMap;
 
@@ -29,54 +29,62 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.networkmanager.*;
 
+
 /**
  *
  */
-public class PeerDownloadManager {
-  
-  private static final int UNLIMITED_READ_RATE = 1024 * 1024 * 100; //100 mbyte/s
-  
+public class DownloadProcessor {  
   private int global_max_rate_bps;
   private final ByteBucket global_bucket;
   
   private final HashMap peer_connections = new HashMap();
-  private final AEMonitor peer_connections_mon = new AEMonitor( "PeerDownloadManager:PC" );
+  private final AEMonitor peer_connections_mon = new AEMonitor( "DownloadProcessor:PC" );
   
   private final HashMap group_buckets = new HashMap();
-  private final AEMonitor group_buckets_mon = new AEMonitor( "PeerDownloadManager:GB" );
+  private final AEMonitor group_buckets_mon = new AEMonitor( "DownloadProcessor:GB" );
   
   
   
   
-  protected PeerDownloadManager() {
+  public DownloadProcessor() {
     int max_rateKBs = COConfigurationManager.getIntParameter( "Max Download Speed KBs" );
-    global_max_rate_bps = max_rateKBs == 0 ? UNLIMITED_READ_RATE : max_rateKBs * 1024;
+    global_max_rate_bps = max_rateKBs == 0 ? NetworkManager.UNLIMITED_RATE : max_rateKBs * 1024;
     COConfigurationManager.addParameterListener( "Max Download Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         int rateKBs = COConfigurationManager.getIntParameter( "Max Download Speed KBs" );
-        global_max_rate_bps = rateKBs == 0 ? UNLIMITED_READ_RATE : rateKBs * 1024;
+        global_max_rate_bps = rateKBs == 0 ? NetworkManager.UNLIMITED_RATE : rateKBs * 1024;
       }
     });
     
     global_bucket = new ByteBucket( global_max_rate_bps ); 
+  }
+  
+  
+  
+  /**
+   * Register peer connection for download handling.
+   * @param connection to register
+   * @param group rate limit group
+   */
+  public void registerPeerConnection( NetworkConnection connection, LimitedRateGroup group ) {
+  
     
-    /*
-    RateHandler rate_handler = new RateHandler() {
-      public int getCurrentNumBytesAllowed() {
-        if( global_bucket.getRate() != global_max_rate_bps ) { //sync rate
-          global_bucket.setRate( global_max_rate_bps );
-        }
-        return global_bucket.getAvailableByteCount();
-      }
-      
-      public void bytesWritten( int num_bytes_written ) {
-        global_bucket.setBytesUsed( num_bytes_written );
-      }
-    };
-    */
+    connection.getIncomingMessageQueue().startQueueProcessing();  //start reading incoming messages
+  }
+  
+  
+  /**
+   * Cancel download handling for the given peer connection.
+   * @param connection to cancel
+   */
+  public void deregisterPeerConnection( NetworkConnection connection ) {
+    connection.getIncomingMessageQueue().stopQueueProcessing();  //stop reading incoming messages
     
     
   }
+  
+  
+
   
 
 }

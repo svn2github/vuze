@@ -47,7 +47,7 @@ implements TableCellRefreshListener
 
 	public void refresh(TableCell cell) {
 	  DownloadManager dm = (DownloadManager)cell.getDataSource();
-	  long value = (dm == null) ? 0 : dm.getStats().getMaxDownloadKBSpeed()*1024;
+	  long value = (dm == null) ? 0 : dm.getStats().getDownloadRateLimitBytesPerSecond();
 	  if (!cell.setSortValue(value) && cell.isValid())
 	    return;
 	  

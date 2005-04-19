@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 
 import com.aelitis.azureus.core.networkmanager.ConnectDisconnectManager;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.*;
 import com.aelitis.azureus.core.peermanager.unchoker.*;
 import com.aelitis.azureus.core.peermanager.utils.PeerConnectInfoStorage;
@@ -137,6 +138,12 @@ PEPeerControlImpl
   private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
     public int getRateLimitBytesPerSecond() {
       return _downloadManager.getStats().getUploadRateLimitBytesPerSecond();
+    }
+  };
+  
+  private final LimitedRateGroup download_limited_rate_group = new LimitedRateGroup() {
+    public int getRateLimitBytesPerSecond() {
+      return _downloadManager.getStats().getDownloadRateLimitBytesPerSecond();
     }
   };
   
@@ -2630,6 +2637,8 @@ PEPeerControlImpl
   
   
   public LimitedRateGroup getUploadLimitedRateGroup() {  return upload_limited_rate_group;  }
+  
+  public LimitedRateGroup getDownloadLimitedRateGroup() {  return download_limited_rate_group;  }
   
   
   /** To retreive arbitrary objects against this object. */
