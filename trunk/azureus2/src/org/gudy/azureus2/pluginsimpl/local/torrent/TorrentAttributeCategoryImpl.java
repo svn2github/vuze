@@ -30,6 +30,7 @@ package org.gudy.azureus2.pluginsimpl.local.torrent;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.util.Debug;
@@ -152,7 +153,7 @@ TorrentAttributeCategoryImpl
 		
 			// make it nice for clients
 		
-		Arrays.sort( res );
+		Arrays.sort( res, StaticUtilities.getFormatters().getAlphanumericComparator( true ));
 		
 		return( res );
 	}
