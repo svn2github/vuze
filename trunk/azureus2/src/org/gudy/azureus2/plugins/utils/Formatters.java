@@ -22,6 +22,7 @@
 package org.gudy.azureus2.plugins.utils;
 
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.Map;
 
 /**
@@ -83,4 +84,8 @@ Formatters
 	public byte[]
 	base32Decode(
 		String		data );
+	
+	public Comparator
+	getAlphanumericComparator(
+		boolean	ignore_case );
 }
