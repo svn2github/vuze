@@ -54,7 +54,7 @@ public final class TransferSpeedValidator
      */
     private static Object validate(final String configKey, final Object value)
     {
-        assert value instanceof Number;
+        //assert value instanceof Number;
 
         int newValue = ((Number)value).intValue();
 
