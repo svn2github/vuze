@@ -89,6 +89,9 @@ DownloadManager
 	public DiskManager
 	getDiskManager();
 	
+	public DiskManagerFileInfo[]
+	getDiskManagerFileInfo();
+	
 	public PEPeerManager
 	getPeerManager();
 	

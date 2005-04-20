@@ -252,6 +252,7 @@ DownloadManagerImpl
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
 	
 	private DiskManager 			diskManager;
+	private DiskManagerFileInfo[]	skeleton_files;
 	private DiskManagerListener		disk_manager_listener;
   
 	private PEPeerManager 			peerManager;
@@ -1446,6 +1447,34 @@ DownloadManagerImpl
   	return( diskManager );
   }
   
+	public DiskManagerFileInfo[]
+   	getDiskManagerFileInfo()
+	{
+		DiskManager	dm = diskManager;
+		
+		DiskManagerFileInfo[]	res;
+		
+		if ( dm != null ){
+			
+			skeleton_files	= null;
+			
+			res = dm.getFiles();
+			
+		}else{
+			
+			res = skeleton_files;
+			
+			if ( res == null ){
+
+				res = DiskManagerFactory.getFileInfoSkeleton( this );
+				
+				skeleton_files	= res;
+			}
+		}
+		
+		return( res );
+	}
+	
   public PEPeerManager
   getPeerManager()
   {

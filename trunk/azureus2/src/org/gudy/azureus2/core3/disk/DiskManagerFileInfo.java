@@ -22,6 +22,7 @@ package org.gudy.azureus2.core3.disk;
 import java.io.File;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 
 /**
  * @author Olivier
@@ -65,6 +66,8 @@ DiskManagerFileInfo
 	
 	public DiskManager getDiskManager();
 
+	public DownloadManager getDownloadManager();
+	
 	public File getFile();
 	
 	public void

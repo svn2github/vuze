@@ -29,7 +29,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -62,7 +61,7 @@ public class FilesView
     new PriorityItem()
   };
   
-  private DownloadManager manager;
+  private DownloadManager download_manager;
   
   public static boolean show_full_path = COConfigurationManager.getBooleanParameter( "FilesView.show.full.path", false );
   private MenuItem path_item;
@@ -73,7 +72,7 @@ public class FilesView
           basicItems, "firstpiece", SWT.MULTI | SWT.FULL_SELECTION);
     bSkipFirstColumn = true;
     ptIconSize = new Point(16, 16);
-    this.manager = manager;
+	download_manager = manager;
   }
 
   public void initialize(Composite composite) {
@@ -178,10 +177,8 @@ public class FilesView
 
     removeInvalidFileItems();
 
-    DiskManager diskManager = manager.getDiskManager();
-    if (diskManager == null)
-      return;      
-    DiskManagerFileInfo files[] = diskManager.getFiles();
+    DiskManagerFileInfo files[] = getFileInfo();
+	
     if (files != null && getTable().getItemCount() != files.length) {
       for (int i = 0; i < files.length; i++) {
         if (files[i] != null) {
@@ -194,8 +191,8 @@ public class FilesView
   }
   
   private void removeInvalidFileItems() {
-    DiskManager diskManager = manager.getDiskManager();
-    final DiskManagerFileInfo files[] = (diskManager != null) ? diskManager.getFiles() : null;
+    
+    final DiskManagerFileInfo files[] = getFileInfo();
 
     runForAllRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
@@ -254,4 +251,9 @@ public class FilesView
     super.refresh();
   }
   
+  private DiskManagerFileInfo[]
+  getFileInfo()
+  {
+	  return( download_manager.getDiskManagerFileInfo());
+  }
 }

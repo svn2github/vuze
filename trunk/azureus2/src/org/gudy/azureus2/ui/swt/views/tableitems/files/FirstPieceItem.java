@@ -46,6 +46,8 @@ public class FirstPieceItem
       return;
     }
     
-    cell.setText(""+value);
+		// < 0 -> unknown skeleton value 
+	
+    cell.setText( value<0?"":(""+value));
   }
 }

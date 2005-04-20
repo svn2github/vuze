@@ -48,6 +48,8 @@ public class DoneItem
       return;
     }
     
-    cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
+		// value < 0 -> unknown skeleton value
+	
+    cell.setText(value<0?"":DisplayFormatters.formatByteCountToKiBEtc(value));
   }
 }

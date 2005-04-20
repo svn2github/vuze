@@ -20,6 +20,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -41,23 +42,30 @@ public class RemainingPiecesItem
   }
 
   public void refresh(TableCell cell) {
-    DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    
+    DiskManagerFileInfo fileInfo 	= (DiskManagerFileInfo)cell.getDataSource();
+	
+		//	 dm may be null if this is a skeleton file view
+	
+    DiskManager			dm			= fileInfo.getDiskManager();
+	
     int remaining = 0;
     
-    if( fileInfo != null ) {
+    if( fileInfo != null && dm != null ) {
       int start = fileInfo.getFirstPieceNumber();
       int end = start + fileInfo.getNbPieces();
-      DiskManagerPiece[] pieces = fileInfo.getDiskManager().getPieces();
+      DiskManagerPiece[] pieces = dm.getPieces();
       for( int i = start; i < end; i++ ) {
         if( !pieces[ i ].getDone() )  remaining++;
       }
+    }else{
+		
+		remaining	= -1;	// unknown
     }
 
     if( !cell.setSortValue( remaining ) && cell.isValid() ) {
       return;
     }
     
-    cell.setText( "" + remaining );
+    cell.setText( "" + ( remaining<0?"":(""+remaining)));
   }
 }

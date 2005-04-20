@@ -58,7 +58,7 @@ public class PathItem
         }
       }
       else {  //display as relative torrent path
-        DownloadManager dm = fileInfo.getDiskManager().getDownloadManager();
+        DownloadManager dm = fileInfo.getDownloadManager();
 
         String root = dm.getTorrentSaveDir();
         if( !dm.getTorrent().isSimpleTorrent() ) {

@@ -1514,7 +1514,16 @@ DiskManagerImpl
 	    listeners.dispatch(LDT_PRIOCHANGED, null);
     }
   
-  private void loadFilePriorities() 
+  private void 
+  loadFilePriorities() 
+  {
+	  loadFilePriorities( download_manager, files );
+  }
+  
+  private static void 
+  loadFilePriorities(
+	DownloadManager			download_manager,
+	DiskManagerFileInfo[]	files )
   {
   	//  TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
     try {
@@ -1532,9 +1541,17 @@ DiskManagerImpl
     catch (Throwable t) {Debug.printStackTrace( t );}
   }
   
-  
   public void 
-  storeFilePriorities() {
+  storeFilePriorities() 
+  {
+	  storeFilePriorities( download_manager, files );
+  }
+  
+  private static void 
+  storeFilePriorities(
+	DownloadManager			download_manager,
+	DiskManagerFileInfo[]	files )
+  {
     if ( files == null ) return;
     List file_priorities = new ArrayList();
     for (int i=0; i < files.length; i++) {
@@ -1569,5 +1586,191 @@ DiskManagerImpl
 	
 	public boolean hasDownloadablePiece() {
 	    return piece_picker.hasDownloadablePiece();
+	}
+	
+	public static DiskManagerFileInfo[]
+	getFileInfoSkeleton(
+		final DownloadManager		download_manager )
+	{
+		TOTorrent	torrent = download_manager.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return( new DiskManagerFileInfo[0]);
+		}
+		
+		String	root_dir = download_manager.getTorrentSaveDir();
+		
+		if ( !torrent.isSimpleTorrent()){
+			
+			root_dir += File.separator + download_manager.getTorrentSaveFile();
+		}
+		
+		root_dir	+= File.separator;	
+
+		try{
+		    LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+			
+			TOTorrentFile[]	torrent_files = torrent.getFiles();
+			
+			final DiskManagerFileInfo[]	res = new DiskManagerFileInfo[ torrent_files.length ];
+			
+			for (int i=0;i<res.length;i++){
+			
+				final TOTorrentFile	torrent_file	= torrent_files[i];
+				
+		        byte[][]path_comps = torrent_file.getPathComponents();
+	
+				String	path_str = root_dir + File.separator;
+	
+		        for (int j=0;j<path_comps.length;j++){
+	
+					String comp = locale_decoder.decodeString( path_comps[j] );
+	
+		            comp = FileUtil.convertOSSpecificChars( comp );
+	
+		            path_str += (j==0?"":File.separator) + comp;
+		        }
+				
+				final File		data_file	= new File( path_str );
+	
+				final String	data_name 	= data_file.getName();
+				final String	data_path	= data_file.getParent().toString() + File.separator;
+							
+				int separator = data_name.lastIndexOf(".");
+				
+				if (separator == -1){
+					
+					separator = 0;
+				}
+				
+				final String	data_extension	= data_name.substring(separator);
+				
+				DiskManagerFileInfo	info = 
+					new DiskManagerFileInfo()
+					{		
+						private boolean	priority;
+						private boolean	skipped;
+						
+						public void 
+						setPriority(boolean b)
+						{
+							priority	= b;
+							
+							storeFilePriorities( download_manager, res );
+						}
+				
+						public void 
+						setSkipped(boolean b)
+						{
+							skipped	= b;
+							
+							storeFilePriorities( download_manager, res );
+						}
+				 		 	
+						public int 
+						getAccessMode()
+						{
+							return( READ );
+						}
+						
+						public long 
+						getDownloaded()
+						{
+							return( -1 );
+						}
+						
+						public String 
+						getExtension()
+						{
+							return( data_extension );
+						}
+							
+						public int 
+						getFirstPieceNumber()
+						{
+							return( -1 );
+						}
+					  
+						public int 
+						getLastPieceNumber()
+						{
+							return( -1 );
+						}
+						
+						public long 
+						getLength()
+						{
+							return( torrent_file.getLength());
+						}
+						
+						public String 
+						getName()
+						{
+							return( data_name );
+						}
+						
+						public int 
+						getNbPieces()
+						{
+							return( -1 );
+						}
+							
+						public String 
+						getPath()
+						{
+							return( data_path );
+						}
+						
+						public boolean 
+						isPriority()
+						{
+							return( priority );
+						}
+						
+						public boolean 
+						isSkipped()
+						{
+							return( skipped );
+						}
+						
+						public DiskManager 
+						getDiskManager()
+						{
+							return( null );
+						}
+			
+						public DownloadManager 
+						getDownloadManager()
+						{
+							return( download_manager );
+						}
+	
+						public File 
+						getFile()
+						{
+							return( data_file );
+						}
+						
+						public void
+						flushCache()
+						{
+						}
+					};
+					
+				res[i]	= info;
+			}
+			
+			loadFilePriorities( download_manager, res );
+			
+			return( res );
+
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( new DiskManagerFileInfo[0]);
+	
+		}
 	}
 }

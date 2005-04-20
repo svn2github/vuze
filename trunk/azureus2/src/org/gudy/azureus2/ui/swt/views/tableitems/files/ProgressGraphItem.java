@@ -117,7 +117,11 @@ public class ProgressGraphItem
 
       GC gcImage = new GC(piecesImage);
 
-      if (fileInfo != null) {
+	  	// dm may be null if this is a skeleton file view
+	  
+	  DiskManager			manager			= fileInfo.getDiskManager();
+
+      if (fileInfo != null && manager != null ) {
         if (percentDone == 1000) {
           gcImage.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
           gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);
@@ -125,9 +129,7 @@ public class ProgressGraphItem
         } else {
           int firstPiece = fileInfo.getFirstPieceNumber();
           int nbPieces = fileInfo.getNbPieces();
-    
-          DiskManager manager = fileInfo.getDiskManager();
-    
+       
           DiskManagerPiece[] dm_pieces = manager.getPieces();
     
           PEPeerManager pm = manager.getDownloadManager().getPeerManager();
@@ -191,7 +193,11 @@ public class ProgressGraphItem
       } else {
         gcImage.setForeground(Colors.grey);
       }
-      gcImage.drawRectangle(0, 0, newWidth - 1, newHeight - 1);
+	  
+	  if ( manager != null ){
+		  
+		  gcImage.drawRectangle(0, 0, newWidth - 1, newHeight - 1);
+	  }
 
       gcImage.dispose();
       last_draw_time = SystemTime.getCurrentTime();

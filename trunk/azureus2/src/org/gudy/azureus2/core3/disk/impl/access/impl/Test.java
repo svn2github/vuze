@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
 
@@ -351,6 +352,12 @@ Test
 			return( null );
 		}
 		
+		public DiskManagerFileInfo[]
+       	getDiskManagerFileInfo()
+		{
+			return( null );
+		}
+
 		public PEPeerManager
 		getPeerManager()
 		{

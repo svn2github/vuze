@@ -40,15 +40,32 @@ public class PercentItem
   }
 
   public void refresh(TableCell cell) {
+	  
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
+	
     long percent = 0;
-    if (fileInfo != null && fileInfo.getLength() != 0)
-      percent = (1000 * fileInfo.getDownloaded()) / fileInfo.getLength();
+	
+    if (fileInfo != null ){
+		
+		if ( fileInfo.getDownloaded() < 0 ){
+			
+			percent = -1; // unknown skeleton value
+			
+		}else if ( fileInfo.getLength() != 0 ){
 
+			percent = (1000 * fileInfo.getDownloaded()) / fileInfo.getLength();
+		}
+	  
+    }else{
+		
+		percent = -1;	// unknown skeleton value
+    }
+	
     if( !cell.setSortValue( percent ) && cell.isValid() ) {
+		
       return;
     }
     
-    cell.setText((percent / 10) + "." + (percent % 10) + "%");
+    cell.setText( percent < 0?"":((percent / 10) + "." + (percent % 10) + "%"));
   }
 }

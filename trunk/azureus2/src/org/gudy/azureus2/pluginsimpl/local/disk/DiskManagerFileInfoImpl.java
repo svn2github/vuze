@@ -85,7 +85,6 @@ public class DiskManagerFileInfoImpl
 	public Download getDownload()
          throws DownloadException
   {
-	  DiskManager coreDM = core.getDiskManager();
-		return DownloadManagerImpl.getDownloadStatic( coreDM.getDownloadManager());
-	}
+	return DownloadManagerImpl.getDownloadStatic( core.getDownloadManager());
+  }
 }

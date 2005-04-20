@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.disk.impl;
 import java.io.File;
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 
@@ -268,4 +269,11 @@ DiskManagerFileInfoImpl
   public DiskManager getDiskManager() {
     return diskManager;
   }
+  
+	public DownloadManager 
+	getDownloadManager()
+	{
+		return( diskManager.getDownloadManager());
+	}
+
 }

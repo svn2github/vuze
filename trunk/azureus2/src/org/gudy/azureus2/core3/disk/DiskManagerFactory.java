@@ -107,4 +107,12 @@ DiskManagerFactory
 	{
 	  DiskManagerImpl.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
 	}
+	
+	public static DiskManagerFileInfo[]
+   	getFileInfoSkeleton(
+		DownloadManager		download_manager )
+	{
+		return( DiskManagerImpl.getFileInfoSkeleton( download_manager ));
+	}
+
 }
