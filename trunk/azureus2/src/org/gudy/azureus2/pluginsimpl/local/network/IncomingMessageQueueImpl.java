@@ -72,10 +72,6 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
     registrations.put( listener, core_listener );  //save this mapping for later
     
     core_queue.registerQueueListener( core_listener );
-    
-    if( registrations.size() == 1 ) {
-      core_queue.startQueueProcessing();
-    }
   }
     
 
@@ -86,10 +82,6 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
     
     if( core_listener != null ) {
       core_queue.cancelQueueListener( core_listener );
-    }
-    
-    if( registrations.size() < 1 ) {
-      core_queue.stopQueueProcessing();
     }
   }
   
