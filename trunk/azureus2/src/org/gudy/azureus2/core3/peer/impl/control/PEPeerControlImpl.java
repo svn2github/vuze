@@ -25,8 +25,8 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 
-import com.aelitis.azureus.core.networkmanager.ConnectDisconnectManager;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.networkmanager.impl.ConnectDisconnectManager;
 import com.aelitis.azureus.core.peermanager.*;
 import com.aelitis.azureus.core.peermanager.unchoker.*;
 import com.aelitis.azureus.core.peermanager.utils.PeerConnectInfoStorage;

@@ -20,11 +20,13 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 /**
  * Processes writes of write-entities and handles the write selector.
@@ -44,7 +46,7 @@ public class WriteController {
   /**
    * Create a new write controller.
    */
-  protected WriteController() {
+  public WriteController() {
     //start write selector processing
     Thread write_selector_thread = new AEThread( "WriteController:WriteSelector" ) {
       public void runSupport() {
@@ -172,7 +174,7 @@ public class WriteController {
    * Add the given entity to the controller for write processing.
    * @param entity to process writes for
    */
-  protected void addWriteEntity( RateControlledWriteEntity entity ) {
+  public void addWriteEntity( RateControlledWriteEntity entity ) {
     try {  entities_mon.enter();
       if( entity.getPriority() == RateControlledWriteEntity.PRIORITY_HIGH ) {
         //copy-on-write
@@ -197,7 +199,7 @@ public class WriteController {
    * Remove the given entity from the controller.
    * @param entity to remove from write processing
    */
-  protected void removeWriteEntity( RateControlledWriteEntity entity ) {
+  public void removeWriteEntity( RateControlledWriteEntity entity ) {
     try {  entities_mon.enter();
       if( entity.getPriority() == RateControlledWriteEntity.PRIORITY_HIGH ) {
         //copy-on-write
@@ -220,6 +222,6 @@ public class WriteController {
    * Get the virtual selector for socket channel write readiness.
    * @return selector
    */
-  protected VirtualChannelSelector getWriteSelector() {  return write_selector;  }
+  public VirtualChannelSelector getWriteSelector() {  return write_selector;  }
   
 }

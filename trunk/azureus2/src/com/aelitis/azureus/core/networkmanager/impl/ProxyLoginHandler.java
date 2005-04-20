@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.networkmanager.TCPTransport;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 
@@ -80,7 +81,7 @@ public class ProxyLoginHandler {
    * @param remote_address address to proxy to
    * @param listener for proxy login success or faulure
    */
-  protected ProxyLoginHandler( TCPTransport proxy_connection, InetSocketAddress remote_address, ProxyListener listener ) {
+  public ProxyLoginHandler( TCPTransport proxy_connection, InetSocketAddress remote_address, ProxyListener listener ) {
     this.proxy_connection = proxy_connection;
     this.remote_address = remote_address;
     this.proxy_listener = listener;
@@ -488,7 +489,7 @@ public class ProxyLoginHandler {
   
 
   
-  protected interface ProxyListener {
+  public interface ProxyListener {
     /**
      * The proxied connection attempt succeeded.
      */

@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 /**
  * Handler to allow external control of an upload entity's write rate.

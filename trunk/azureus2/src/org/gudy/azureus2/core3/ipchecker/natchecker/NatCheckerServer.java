@@ -23,13 +23,14 @@ package org.gudy.azureus2.core3.ipchecker.natchecker;
 
 import java.net.*;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 
 
 
@@ -70,16 +71,16 @@ public class NatCheckerServer extends AEThread {
           }
         };
         
-        NetworkManager.getSingleton().getIncomingSocketChannelManager().registerMatchBytes( 
+        NetworkManager.getSingleton().requestIncomingConnectionRouting(
             matcher,
-            new IncomingSocketChannelManager.MatchListener() {
-              public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
-                LGLogger.log( "Incoming connection from [" +channel+ "] successfully routed to NAT CHECKER" );
+            new NetworkManager.RoutingListener() {
+              public void connectionRouted( NetworkConnection connection ) {
+                LGLogger.log( "Incoming connection from [" +connection+ "] successfully routed to NAT CHECKER" );
                 
                 try{
                   ByteBuffer msg = ByteBuffer.wrap( check.getBytes() );
                   while( msg.hasRemaining() ) {
-                    channel.write( msg );
+                    connection.getTCPTransport().getSocketChannel().write( msg );
                     Thread.sleep( 20 );
                   }
                 }
@@ -87,8 +88,12 @@ public class NatCheckerServer extends AEThread {
                   Debug.out( "Nat check write failed", t );
                 }
                 
-                NetworkManager.getSingleton().closeSocketChannel( channel ); 
+                connection.close();
               }
+            },
+            new MessageStreamFactory() {
+              public MessageStreamEncoder createEncoder() {  return new AZMessageEncoder();  /* unused */}
+              public MessageStreamDecoder createDecoder() {  return new AZMessageDecoder();  /* unused */}
             }
         );
         
@@ -147,7 +152,7 @@ public class NatCheckerServer extends AEThread {
       bContinue = false;
       
       if( use_incoming_router ) {
-        NetworkManager.getSingleton().getIncomingSocketChannelManager().deregisterMatchBytes( matcher );
+        NetworkManager.getSingleton().cancelIncomingConnectionRouting( matcher );
       }
       else if( server != null ) {
         try {

@@ -125,7 +125,8 @@ public class PeerManager {
         new MessageStreamFactory() {
           public MessageStreamEncoder createEncoder() {  return new BTMessageEncoder();  }
           public MessageStreamDecoder createDecoder() {  return new BTMessageDecoder();  }
-        });
+        }
+    );
     
     legacy_managers.put( manager, matcher );
   }
@@ -140,7 +141,7 @@ public class PeerManager {
     //remove incoming routing registration 
     NetworkManager.ByteMatcher matcher = (NetworkManager.ByteMatcher)legacy_managers.remove( manager );
     if( matcher != null ) {
-      NetworkManager.getSingleton().getIncomingSocketChannelManager().deregisterMatchBytes( matcher );
+      NetworkManager.getSingleton().cancelIncomingConnectionRouting( matcher );
     }
     else {
       Debug.out( "matcher == null" );

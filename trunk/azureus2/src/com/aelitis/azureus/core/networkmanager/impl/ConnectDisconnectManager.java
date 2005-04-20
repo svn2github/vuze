@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.net.*;
 import java.nio.channels.*;
@@ -30,6 +30,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 
 
@@ -75,7 +77,7 @@ public class ConnectDisconnectManager {
   
   
   
-  protected ConnectDisconnectManager() {
+  public ConnectDisconnectManager() {
     AEThread loop = new AEThread( "ConnectDisconnectManager" ) {
       public void runSupport() {
         mainLoop();
@@ -425,7 +427,7 @@ public class ConnectDisconnectManager {
    * @param address remote ip+port to connect to
    * @param listener to receive notification of connect attempt success/failure
    */
-  protected void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {
+  public void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {
     if( MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0 ) { //outbound connects are disabled, so fail immediately
       LGLogger.log( "Aborting connect attempt to [" +address+ "]: Outbound connects disabled in config." );
       listener.connectFailure( new Throwable( "Outbound connects disabled in config: MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0" ) );
@@ -452,7 +454,7 @@ public class ConnectDisconnectManager {
    * Close the given connection.
    * @param channel to close
    */
-  protected void closeConnection( SocketChannel channel ) {
+  public void closeConnection( SocketChannel channel ) {
     try{
     	pending_closes_mon.enter();
     
@@ -468,7 +470,7 @@ public class ConnectDisconnectManager {
    * Cancel a pending new connection request.
    * @param listener_key used in the initial connect request
    */
-  protected void cancelRequest( ConnectListener listener_key ) {
+  public void cancelRequest( ConnectListener listener_key ) {
     try{
       new_canceled_mon.enter();
     
@@ -510,7 +512,7 @@ public class ConnectDisconnectManager {
   /**
    * Listener for notification of connection establishment.
    */
-   protected interface ConnectListener {
+  public interface ConnectListener {
      /**
       * The connection establishment process has started,
       * i.e. the connection is actively being attempted.

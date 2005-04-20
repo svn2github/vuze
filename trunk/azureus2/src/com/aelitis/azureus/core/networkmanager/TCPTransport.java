@@ -31,6 +31,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.networkmanager.impl.ConnectDisconnectManager;
+import com.aelitis.azureus.core.networkmanager.impl.ProxyLoginHandler;
+
 
 
 /**
@@ -122,7 +125,7 @@ public class TCPTransport {
    * i.e. will a write request result in >0 bytes written.
    * @return true if the transport is write ready, false if not yet ready
    */
-  protected boolean isReadyForWrite() {  return is_ready_for_write;  }
+  public boolean isReadyForWrite() {  return is_ready_for_write;  }
   
     
   /**
@@ -213,7 +216,7 @@ public class TCPTransport {
 
   private void requestWriteSelect() {
     is_ready_for_write = false;
-    NetworkManager.getSingleton().getWriteController().getWriteSelector().resumeSelects( socket_channel );
+    NetworkManager.getSingleton().getWriteSelector().resumeSelects( socket_channel );
   }
   
   
@@ -226,7 +229,7 @@ public class TCPTransport {
     read_listener = listener;
     
     if( socket_channel != null ) {
-      NetworkManager.getSingleton().getReadController().getReadSelector().resumeSelects( socket_channel );
+      NetworkManager.getSingleton().getReadSelector().resumeSelects( socket_channel );
     }
     
     if( data_already_read != null && data_already_read.hasRemaining() ) {
@@ -240,7 +243,7 @@ public class TCPTransport {
    */
   public void stopReadSelects() {
     if( socket_channel != null ){
-      NetworkManager.getSingleton().getReadController().getReadSelector().pauseSelects( socket_channel );
+      NetworkManager.getSingleton().getReadSelector().pauseSelects( socket_channel );
     }
   }
   
@@ -253,7 +256,7 @@ public class TCPTransport {
     }
 
     //read selection
-    NetworkManager.getSingleton().getReadController().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+    NetworkManager.getSingleton().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
         read_listener.readyToRead();
         return true;
@@ -265,11 +268,11 @@ public class TCPTransport {
       }
     }, null );
 
-    NetworkManager.getSingleton().getReadController().getReadSelector().pauseSelects( socket_channel );
+    NetworkManager.getSingleton().getReadSelector().pauseSelects( socket_channel );
     
     
     //write selection
-    NetworkManager.getSingleton().getWriteController().getWriteSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+    NetworkManager.getSingleton().getWriteSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
         is_ready_for_write = true;
         return true;
@@ -537,8 +540,8 @@ public class TCPTransport {
     is_ready_for_write = false;
 
     if( socket_channel != null ){
-      NetworkManager.getSingleton().getReadController().getReadSelector().cancel( socket_channel );
-      NetworkManager.getSingleton().getWriteController().getWriteSelector().cancel( socket_channel );
+      NetworkManager.getSingleton().getReadSelector().cancel( socket_channel );
+      NetworkManager.getSingleton().getWriteSelector().cancel( socket_channel );
       NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
       socket_channel = null;
     }

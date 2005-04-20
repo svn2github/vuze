@@ -154,21 +154,22 @@ public class NetworkManager {
   public void closeSocketChannel( SocketChannel channel ) {
     connect_disconnect_manager.closeConnection( channel );
   }
-  
-  
-  
-  /**
-   * Get the socket write controller.
-   * @return controller
-   */
-  public WriteController getWriteController() {  return write_controller;  }
+
   
   
   /**
-   * Get the socket read controller.
-   * @return controller
+   * Get the virtual selector used for socket channel read readiness.
+   * @return read readiness selector
    */
-  public ReadController getReadController() {  return read_controller;  }
+  public VirtualChannelSelector getReadSelector() {  return read_controller.getReadSelector();  }
+  
+  
+  /**
+   * Get the virtual selector used for socket channel write readiness.
+   * @return write readiness selector
+   */
+  public VirtualChannelSelector getWriteSelector() {  return write_controller.getWriteSelector();  }
+  
   
   
   /**
@@ -195,6 +196,11 @@ public class NetworkManager {
   public static int getTcpMssSize() {  return tcp_mss_size;  }
   
   
+  /**
+   * Get port that the TCP server socket is listening for incoming connections on.
+   * @return port number
+   */
+  public int getTCPListeningPortNumber() {  return incoming_socketchannel_manager.getTCPListeningPortNumber();  }
   
   
   

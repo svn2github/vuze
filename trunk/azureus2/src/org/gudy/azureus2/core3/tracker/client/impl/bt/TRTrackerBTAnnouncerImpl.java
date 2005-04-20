@@ -330,7 +330,7 @@ TRTrackerBTAnnouncerImpl
   			
   		}else{
   		
-  			port_num	= NetworkManager.getSingleton().getIncomingSocketChannelManager().getTCPListeningPortNumber();
+  			port_num	= NetworkManager.getSingleton().getTCPListeningPortNumber();
   		}
   		
   		String portOverride = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
@@ -1191,7 +1191,7 @@ TRTrackerBTAnnouncerImpl
  				 auth = SESecurityManager.getPasswordAuthentication( UDP_REALM, reqUrl );
  			}
  						
- 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( NetworkManager.getSingleton().getIncomingSocketChannelManager().getTCPListeningPortNumber() );
+ 			PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( NetworkManager.getSingleton().getTCPListeningPortNumber() );
  			
  			InetSocketAddress destination = new InetSocketAddress(reqUrl.getHost(),reqUrl.getPort()==-1?80:reqUrl.getPort());
  			

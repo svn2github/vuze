@@ -28,6 +28,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.networkmanager.impl.SelectorGuard;
+
 
 /**
  * Provides a simplified and safe (selectable-channel) socket single-op selector.

@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.net.*;
@@ -31,6 +31,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.networkmanager.*;
 
 
 /**
@@ -60,7 +62,7 @@ public class IncomingSocketChannelManager {
   /**
    * Create manager and begin accepting and routing new connections.
    */
-  protected IncomingSocketChannelManager() {    
+  public IncomingSocketChannelManager() {    
     //allow dynamic port number changes
     COConfigurationManager.addParameterListener( "TCP.Listen.Port", new ParameterListener() {
       public void parameterChanged(String parameterName) {
@@ -187,7 +189,7 @@ public class IncomingSocketChannelManager {
 	          
 	          if( match_buffers.isEmpty() ) {  //no match registrations, just close
 	            LGLogger.log( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] dropped because zero routing handlers registered" );
-	            NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
+	            NetworkManager.getSingleton().closeSocketChannel( channel );
 	            return;
 	          }
 	          
@@ -209,7 +211,7 @@ public class IncomingSocketChannelManager {
 	
 	            connections.add( ic );
 	            
-	            NetworkManager.getSingleton().getReadController().getReadSelector().register( channel, new VirtualChannelSelector.VirtualSelectorListener() {
+	            NetworkManager.getSingleton().getReadSelector().register( channel, new VirtualChannelSelector.VirtualSelectorListener() {
 	              //SUCCESS
 	              public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {
 	                try {                 
@@ -296,13 +298,13 @@ public class IncomingSocketChannelManager {
   private void removeConnection( IncomingConnection connection, boolean close_as_well ) {
     try{  connections_mon.enter();
     
-      NetworkManager.getSingleton().getReadController().getReadSelector().cancel( connection.channel );  //cancel read op
+      NetworkManager.getSingleton().getReadSelector().cancel( connection.channel );  //cancel read op
       connections.remove( connection );   //remove from connection list
       
     } finally {  connections_mon.exit();  }
     
     if( close_as_well ) {
-      NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( connection.channel );  //async close it
+      NetworkManager.getSingleton().closeSocketChannel( connection.channel );  //async close it
     }
   }
   

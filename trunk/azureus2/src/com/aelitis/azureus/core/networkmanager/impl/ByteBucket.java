@@ -20,10 +20,12 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 
 /**
  * Byte-bucket implementation based on the token bucket algorithm.

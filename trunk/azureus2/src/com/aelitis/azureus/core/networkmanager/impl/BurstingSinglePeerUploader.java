@@ -20,11 +20,14 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 
 import org.gudy.azureus2.core3.util.Debug;
+
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 
 
 /**

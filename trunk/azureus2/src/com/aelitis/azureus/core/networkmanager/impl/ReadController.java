@@ -20,9 +20,11 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 
 /**
@@ -32,7 +34,7 @@ public class ReadController {
   private final VirtualChannelSelector read_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_READ );
 
   
-  protected ReadController() {
+  public ReadController() {
     //start read processing
     Thread read_thread = new AEThread( "ReadController:ReadProcessor" ) {
       public void runSupport() {

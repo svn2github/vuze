@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 /**
  * Interface designation for rate-limited entities handled by a write controller.
