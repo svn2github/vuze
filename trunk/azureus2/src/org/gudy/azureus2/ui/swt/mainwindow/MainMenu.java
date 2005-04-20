@@ -333,6 +333,16 @@ public class MainMenu {
             addBlockedIPsMenuItem(toolsMenu);
             addConsoleMenuItem(toolsMenu);
             addStatisticsMenuItem(toolsMenu);
+            
+            MenuItem nat_test = new MenuItem(toolsMenu, SWT.NULL);
+            //KeyBindings.setAccelerator(nat_test, "MainWindow.menu.tools.nattest");
+            Messages.setLanguageText(nat_test, "MainWindow.menu.tools.nattest"); //$NON-NLS-1$
+            nat_test.addListener(SWT.Selection, new Listener() {
+              public void handleEvent(Event e) {
+                new NatTestWindow();
+              }
+            });
+            
             new MenuItem(toolsMenu, SWT.SEPARATOR);
 
             addConfigWizardMenuItem(toolsMenu);
@@ -343,15 +353,6 @@ public class MainMenu {
             view_config.addListener(SWT.Selection, new Listener() {
             public void handleEvent(Event e) {
             mainWindow.showConfig();
-            }
-            });
-            
-            MenuItem nat_test = new MenuItem(toolsMenu, SWT.NULL);
-            //KeyBindings.setAccelerator(nat_test, "MainWindow.menu.tools.nattest");
-            Messages.setLanguageText(nat_test, "MainWindow.menu.tools.nattest"); //$NON-NLS-1$
-            nat_test.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event e) {
-             new NatTestWindow();
             }
             });
 
