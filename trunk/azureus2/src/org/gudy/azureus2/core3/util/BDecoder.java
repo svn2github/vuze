@@ -217,4 +217,74 @@ public class BDecoder {
     
     return tempArray;
   }
+  
+  public static void
+  print(
+	Object	obj )
+  {
+	  print( obj, "", false );
+  }
+  
+  private static void
+  print(
+	Object	obj,
+	String	indent,
+	boolean	skip_indent )
+  {
+	  String	use_indent = skip_indent?"":indent;
+	  
+	  if ( obj instanceof Long ){
+		  
+		  System.out.println( use_indent + obj );
+		  
+	  }else if ( obj instanceof byte[]){
+		  
+		  byte[]	b = (byte[])obj;
+		  
+		  System.out.println( use_indent + (b.length==20?(" { "+ ByteFormatter.nicePrint( b )+ " }"):new String(b) ));
+		
+	  }else if ( obj instanceof String ){
+		  
+		  System.out.println( use_indent + obj );
+
+	  }else if ( obj instanceof List ){
+		  
+		  List	l = (List)obj;
+		  
+		  System.out.println( use_indent + "[" );
+		  
+		  for (int i=0;i<l.size();i++){
+			
+			  System.out.print( indent + "  (" + i + ") " );
+			  
+			  print( l.get(i), indent + "    ", true );
+		  }
+		  
+		  System.out.println( indent + "]" );
+
+	  }else{
+		  
+		  Map	m = (Map)obj;
+		  
+		  Iterator	it = m.keySet().iterator();
+		  
+		  while( it.hasNext()){
+			  
+			  String	key = (String)it.next();
+			  
+			  System.out.print( indent + key + " = " );
+			  
+			  print( m.get(key), indent + "  ", true );
+		  }
+	  }
+  }
+  
+  public static void
+  print(
+		File		f )
+  
+  	throws IOException
+  {
+	  print( decode( new BufferedInputStream( new FileInputStream( f ))));
+  }
 }
