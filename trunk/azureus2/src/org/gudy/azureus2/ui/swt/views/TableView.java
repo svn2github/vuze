@@ -889,27 +889,32 @@ public class TableView
    *
    * @param dataSource data source to add to the table
    */
+  
   public void addDataSource(final Object dataSource) {
   	try{
   		this_mon.enter();
  
 	    try {
-	      if ( 	objectToSortableItem.containsKey(dataSource) ||
-	      		panel.isDisposed() ||
-				table.isDisposed()){
-
-	        return;
-	      }
-	      
 	      try{
-	      	objectToSortableItem_mon.enter();
-	        // Since adding to objectToSortableItem is async, there's a chance
-	        // the item will not be stored in objectToSortableItem before another
-	        // call here.  So, add it now and null it
-	        objectToSortableItem.put(dataSource, null);
+			  objectToSortableItem_mon.enter();
+			
+		      if ( 	objectToSortableItem.containsKey(dataSource) ||
+			      	panel.isDisposed() ||
+					table.isDisposed()){
+
+			        return;
+			  }
+			      
+
+			  	// Since adding to objectToSortableItem is async, there's a chance
+			  	// the item will not be stored in objectToSortableItem before another
+			  	// call here.  So, add it now and null it
+			  
+			  objectToSortableItem.put(dataSource, null);
+			  
 	      }finally{
 	      	
-	      	objectToSortableItem_mon.exit();
+			  objectToSortableItem_mon.exit();
 	      }
 	      
 	      final Display display = panel.getDisplay();
@@ -933,23 +938,37 @@ public class TableView
 	            row.setImage(0, image);
 	            row.setImage(0, null);
 	            image.dispose();
-	          } else if (iCellHeight > 0)
+	          } else if (iCellHeight > 0){
 	            row.setHeight(iCellHeight);
-	
-	          if (objectToSortableItem.containsKey(dataSource)) {
-	            try{
-	            	objectToSortableItem_mon.enter();
+	          }
+			  
+			  boolean	found = true;
+			  
+	          try{
+				  objectToSortableItem_mon.enter();
 	            
-	            	objectToSortableItem.put(dataSource, row);
-	            }finally{
+		          if (objectToSortableItem.containsKey(dataSource)) {
+
+					  objectToSortableItem.put(dataSource, row);
+					  
+		          }else{
+					  
+					  found	= false;
+		          }  
+	          }finally{
 	            	
-	            	objectToSortableItem_mon.exit();
-	            }
+				  objectToSortableItem_mon.exit();
+	          }
+			  
+			  if ( found ){
+				  
 	            TableCellCore cell = row.getTableCellCore(sorter.getLastField());
-	            if (cell != null)
+				
+	            if (cell != null){
 	              cell.refresh();
-	          } else {
-	            row.delete();
+				} 
+			  }else {
+				  row.delete();
 	          }
 	          	          
 	          bSortScheduled = true;
@@ -1025,15 +1044,16 @@ public class TableView
         row.delete();
       }
     });
-    objectToSortableItem.clear();
-/* Old Way.  DELME after new way is verified working :)
-    Iterator iter = objectToSortableItem.values().iterator();
-    while(iter.hasNext()) {
-      TableRowCore row = (TableRowCore) iter.next();
-      if (row != null) row.delete();
-      iter.remove();
-    }
-*/
+	
+	try{
+		objectToSortableItem_mon.enter();
+	
+		objectToSortableItem.clear();
+		
+	}finally{
+	
+		objectToSortableItem_mon.exit();
+	}
   }
     
   public Table getTable() {
@@ -1164,7 +1184,15 @@ public class TableView
    * @return TableRowCore objects.  May contain null entries.
    */
   public TableRowCore[] getRowsUnordered() {
-    return (TableRowCore[])objectToSortableItem.values().toArray(new TableRowCore[0]);
+	  try{
+		  objectToSortableItem_mon.enter();
+	 
+		  return (TableRowCore[])objectToSortableItem.values().toArray(new TableRowCore[0]);
+		  
+	  }finally{
+		  
+		  objectToSortableItem_mon.exit();
+	  }
   }
 
   public TableRowCore getRow(int rowIndex) {
@@ -1293,8 +1321,18 @@ public class TableView
 
   public void runForAllRows(GroupTableRowRunner runner) {
     // put to array instead of synchronised iterator, so that runner can remove
-    TableRowCore[] rows = 
-      (TableRowCore[])objectToSortableItem.values().toArray(new TableRowCore[0]);
+    TableRowCore[] rows;
+	
+	try{
+		objectToSortableItem_mon.enter();
+		
+		rows = (TableRowCore[])objectToSortableItem.values().toArray(new TableRowCore[0]);
+		
+	}finally{
+		
+		objectToSortableItem_mon.exit();
+		
+	}
     for (int i = 0; i < rows.length; i++) {
       if (rows[i] != null)
         runner.run(rows[i]);
