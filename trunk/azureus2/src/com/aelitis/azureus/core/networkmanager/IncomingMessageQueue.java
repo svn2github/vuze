@@ -43,34 +43,7 @@ public class IncomingMessageQueue {
   private MessageStreamDecoder stream_decoder;
   private final NetworkConnection connection;
 
-  private final TCPTransport.ReadListener read_listener = new TCPTransport.ReadListener() {
-    public void readyToRead() {
-      try {
-        receiveFromTransport( 1024*1024 );  //TODO do limited rate read op
-      }
-      catch( Throwable e ) {
-        if( e.getMessage() == null ) {
-          Debug.out( "null read exception message: ", e );
-        }
-        else {
-          if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
-              e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-              e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
-              e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
-              
-            System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
-          }
-          
-          if( e.getMessage().indexOf( "Direct buffer memory" ) != -1 ) {
-            Debug.out( "Direct buffer memory exception", e );
-          }
-        }
-            
-        connection.notifyOfException( e );
-      }
-    }
-  };
-  
+  private TCPTransport.ReadListener transport_read_listener;
   
   
   
@@ -98,7 +71,7 @@ public class IncomingMessageQueue {
     
     stream_decoder = new_stream_decoder;
     
-    startQueueProcessing();
+    resumeQueueProcessing();
   }
   
   
@@ -119,7 +92,7 @@ public class IncomingMessageQueue {
    * @return number of bytes received
    * @throws IOException on receive error
    */
-  private int receiveFromTransport( int max_bytes ) throws IOException {
+  public int receiveFromTransport( int max_bytes ) throws IOException {
     if( max_bytes < 1 ) {
       Debug.out( "max_bytes < 1: " +max_bytes );
       return 0;
@@ -228,12 +201,23 @@ public class IncomingMessageQueue {
   
   /**
    * Start processing (reading) incoming messages.
+   * @param read_listener
    */
-  public void startQueueProcessing() {
+  public void startQueueProcessing( TCPTransport.ReadListener read_listener ) {
+    transport_read_listener = read_listener;
     stream_decoder.resumeDecoding();  //this allows us to resume docoding externally, in case it was auto-paused internally
-    
-    connection.getTCPTransport().startReadSelects( read_listener );
+    connection.getTCPTransport().startReadSelects( transport_read_listener );
   }
+  
+  
+  
+  /**
+   * Resume processing of incoming messages.
+   */
+  public void resumeQueueProcessing() {
+    startQueueProcessing( transport_read_listener );
+  }
+  
   
   
   /**

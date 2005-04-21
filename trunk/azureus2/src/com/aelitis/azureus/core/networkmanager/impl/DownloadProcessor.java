@@ -26,6 +26,7 @@ import java.util.HashMap;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.*;
 
@@ -44,7 +45,7 @@ public class DownloadProcessor {
   private final AEMonitor group_buckets_mon = new AEMonitor( "DownloadProcessor:GB" );
   
   
-  
+
   
   public DownloadProcessor() {
     int max_rateKBs = COConfigurationManager.getIntParameter( "Max Download Speed KBs" );
@@ -66,10 +67,40 @@ public class DownloadProcessor {
    * @param connection to register
    * @param group rate limit group
    */
-  public void registerPeerConnection( NetworkConnection connection, LimitedRateGroup group ) {
-  
+  public void registerPeerConnection( final NetworkConnection connection, LimitedRateGroup group ) {
     
-    connection.getIncomingMessageQueue().startQueueProcessing();  //start reading incoming messages
+
+    
+    connection.getIncomingMessageQueue().startQueueProcessing( new TCPTransport.ReadListener() {  //start reading incoming messages
+      public void readyToRead() {
+        try {
+          
+          //TODO
+          int bytes_read = connection.getIncomingMessageQueue().receiveFromTransport( 1024*1024 );
+          
+        }
+        catch( Throwable e ) {
+          if( e.getMessage() == null ) {
+            Debug.out( "null read exception message: ", e );
+          }
+          else {
+            if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
+                e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+                e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
+                e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
+                
+              System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+            }
+            
+            if( e.getMessage().indexOf( "Direct buffer memory" ) != -1 ) {
+              Debug.out( "Direct buffer memory exception", e );
+            }
+          }
+              
+          connection.notifyOfException( e );
+        }
+      }
+    });
   }
   
   
@@ -85,6 +116,8 @@ public class DownloadProcessor {
   
   
 
+  
+  
   
 
 }
