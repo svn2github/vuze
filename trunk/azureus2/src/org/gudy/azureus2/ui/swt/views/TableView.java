@@ -50,6 +50,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.*;
 
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 
@@ -1453,5 +1454,30 @@ public class TableView
       }
     }
     return iColumn;
+  }
+  
+  public void
+  generateDiagnostics(
+	PrintWriter	writer )
+  {
+	  super.generateDiagnostics( writer );
+	  
+	  try{
+		  objectToSortableItem_mon.enter();
+		  
+		  writer.println( "    TableView: " + objectToSortableItem.size());
+		  
+		  Iterator	it = objectToSortableItem.keySet().iterator();
+		  
+		  while( it.hasNext()){
+			  
+			  Object key = it.next();
+			  
+			  writer.println( "      " + key + " -> " + objectToSortableItem.get(key));
+		  }
+	  }finally{
+		  
+		  objectToSortableItem_mon.exit();
+	  }
   }
 }

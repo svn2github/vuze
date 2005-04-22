@@ -1,5 +1,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
+import java.io.PrintWriter;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
@@ -12,7 +14,6 @@ import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -24,7 +25,6 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 public class MyTorrentsSuperView extends AbstractIView  {
   private AzureusCore	azureus_core;
   
-  private GlobalManager globalManager;
   private MyTorrentsView torrentview;
   private MyTorrentsView seedingview;
   private SashForm form;
@@ -102,7 +102,6 @@ public class MyTorrentsSuperView extends AbstractIView  {
 
   public MyTorrentsSuperView(AzureusCore	_azureus_core) {
   	azureus_core		= _azureus_core;
-    this.globalManager = azureus_core.getGlobalManager();
 
     TableColumnManager tcExtensions = TableColumnManager.getInstance();
     for (int i = 0; i < tableCompleteItems.length; i++) {
@@ -202,4 +201,14 @@ public class MyTorrentsSuperView extends AbstractIView  {
    seedingview.removeDownloadBar(manager);
   }
 
+  public void
+  generateDiagnostics(
+	PrintWriter	writer )
+  {
+	  super.generateDiagnostics( writer );
+
+	  torrentview.generateDiagnostics( writer );
+	  
+	  seedingview.generateDiagnostics( writer );
+  }
 }

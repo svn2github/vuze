@@ -57,7 +57,7 @@ import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
  * 
  */
 public class GlobalManagerImpl 
-	implements 	GlobalManager, DownloadManagerListener
+	implements 	GlobalManager, DownloadManagerListener, AEDiagnosticsEvidenceGenerator
 {
 		// GlobalManagerListener support
 		// Must be an async listener to support the non-synchronised invocation of
@@ -247,6 +247,8 @@ public class GlobalManagerImpl
   	
   	LGLogger.initialise();
   	
+	AEDiagnostics.addEvidenceGenerator( this );
+	
     stats = new GlobalManagerStatsImpl();
        
     try{
@@ -1623,5 +1625,30 @@ public class GlobalManagerImpl
   public void completionChanged(DownloadManager manager, boolean bCompleted) { }
   
   public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
-  };
+  }
+  
+	public void
+	generate(
+		PrintWriter		writer )
+	{
+		writer.println( "Global Manager" );
+		writer.println( "---------------------" );
+		
+	    try{
+	    	managers_mon.enter();
+	    	
+			writer.println( "  managers: " + managers_cow.size());
+		
+			for (int i=0;i<managers_cow.size();i++){
+				
+				DownloadManager	manager = (DownloadManager)managers_cow.get(i);
+				
+				writer.println( "    " + manager.getDisplayName() + " (" + manager + ")");
+			}
+
+	    }finally{
+			
+			managers_mon.exit();
+	    }
+	}
 }

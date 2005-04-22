@@ -487,7 +487,23 @@ ConfigurationManager
 				
 			}else if ( value instanceof byte[] ){
 				
-				writer.println( key + "=" + new String((byte[])value));
+				byte[]	b = (byte[])value;
+			
+				boolean	hex	= false;
+				
+				for (int i=0;i<b.length;i++){
+					
+					byte	c = b[i];
+					
+					if ( !	( 	Character.isLetterOrDigit(c) ||
+								"`¬\"£$%^&*()-_=+[{]};:'@#~,<.>/?'".indexOf(c) != -1 )){
+						
+						hex	= true;
+						
+						break;
+					}
+				}
+				writer.println( key + "=" + (hex?ByteFormatter.nicePrint(b):new String((byte[])value)));
 				
 			}else{
 				

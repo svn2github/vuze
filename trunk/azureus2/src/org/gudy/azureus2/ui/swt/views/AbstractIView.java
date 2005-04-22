@@ -4,6 +4,8 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.io.PrintWriter;
+
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -69,4 +71,10 @@ public abstract class AbstractIView implements IView {
   public void itemActivated(String itemKey) {   
   }
 
+  public void
+  generateDiagnostics(
+	PrintWriter	writer )
+  {
+	  writer.println( "  Diagnostics for " + this + " (" + getFullTitle()+ ")");
+  }
 }

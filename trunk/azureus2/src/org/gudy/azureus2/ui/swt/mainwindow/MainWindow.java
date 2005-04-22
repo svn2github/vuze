@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
+import java.io.PrintWriter;
 import java.util.*;
 
 /**
@@ -58,7 +59,10 @@ import java.util.*;
 public class 
 MainWindow
 	extends AERunnable
-	implements GlobalManagerListener, DownloadManagerListener, ParameterListener, IconBarEnabler, AzureusCoreListener {
+	implements 	GlobalManagerListener, DownloadManagerListener, 
+				ParameterListener, IconBarEnabler, AzureusCoreListener,
+				AEDiagnosticsEvidenceGenerator
+{
   
   private static MainWindow window;
 
@@ -138,6 +142,8 @@ MainWindow
   	try{
 	    LGLogger.log("MainWindow start");
 	    
+		AEDiagnostics.addEvidenceGenerator( this );
+		
 	    azureus_core	= _azureus_core;
 	    
 	    globalManager = azureus_core.getGlobalManager();
@@ -1763,4 +1769,20 @@ MainWindow
   		this_mon.exit();
   	}
   }
+  
+	public void
+	generate(
+		PrintWriter		writer )
+	{
+		writer.println( "SWT UI" );
+		writer.println( "---------------------" );
+		writer.println( "**** MyTorrents" );
+		
+		Tab	t = mytorrents;
+		
+		if ( t != null ){
+			
+			t.generateDiagnostics( writer );
+		}
+	}
 }

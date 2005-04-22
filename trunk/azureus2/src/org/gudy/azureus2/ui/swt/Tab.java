@@ -19,6 +19,7 @@ import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -626,5 +627,12 @@ public class Tab {
       Event e = new Event();
       e.widget = sender;
       return e;
+  }
+  
+  public void
+  generateDiagnostics(
+	PrintWriter	writer )
+  {
+	  view.generateDiagnostics( writer );
   }
 }
