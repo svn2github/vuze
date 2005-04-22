@@ -54,22 +54,10 @@ public class VirtualChannelSelector {
     private final boolean	pause_after_select;
 
     
-    
     /**
-     * Create a new virtual selectable-channel selector, selecting over the given interest-op(s).
-     * OP_READ will be left enabled after select, all others disabled.
-     * @param interest_op operation set of OP_CONNECT, OP_READ, OP_WRITE
-     */
-    
-    public VirtualChannelSelector( int interest_op ) {
-    	this( interest_op, interest_op != OP_READ );
-    }
-    
-    /**
-     * Create a new virtual selectable-channel selector,
-     * selecting over the given interest-op(s).
-     * @param _interest_op operation set of OP_CONNECT, OP_READ, OP_WRITE
-     * @param _pause_after_select	whether or not to disable op after select  
+     * Create a new virtual selectable-channel selector, selecting over the given interest-op.
+     * @param _interest_op operation set of OP_CONNECT, OP_READ, or OP_WRITE
+     * @param _pause_after_select	whether or not to auto-disable interest op after select  
      */
     public 
 	VirtualChannelSelector( 

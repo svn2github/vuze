@@ -22,40 +22,199 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import java.util.ArrayList;
+
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 
 /**
- * Processes the read selector.
+ * Processes reads of read-entities and handles the read selector.
  */
 public class ReadController {
-  private final VirtualChannelSelector read_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_READ );
+  private final VirtualChannelSelector read_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_READ, true );
 
+  private volatile ArrayList normal_priority_entities = new ArrayList();  //copied-on-write
+  private volatile ArrayList high_priority_entities = new ArrayList();  //copied-on-write
+  private final AEMonitor entities_mon = new AEMonitor( "ReadController:EM" );
+  private int next_normal_position = 0;
+  private int next_high_position = 0;
+  
+  private static final int PROCESSOR_SLEEP_TIME = 20;
+  
   
   public ReadController() {
-    //start read processing
-    Thread read_thread = new AEThread( "ReadController:ReadProcessor" ) {
+    //start read selector processing
+    Thread read_selector_thread = new AEThread( "ReadController:ReadSelector" ) {
       public void runSupport() {
-        readLoop();
+        readSelectorLoop();
       }
     };
-    read_thread.setDaemon( true );
-    read_thread.setPriority( Thread.MAX_PRIORITY - 1 );
-    read_thread.start();
+    read_selector_thread.setDaemon( true );
+    read_selector_thread.setPriority( Thread.MAX_PRIORITY - 2 );
+    read_selector_thread.start();
+    
+    
+    //start read handler processing
+    Thread read_processor_thread = new AEThread( "ReadController:ReadProcessor" ) {
+      public void runSupport() {
+        readProcessorLoop();
+      }
+    };
+    read_processor_thread.setDaemon( true );
+    read_processor_thread.setPriority( Thread.MAX_PRIORITY - 1 );
+    read_processor_thread.start();
   }
   
-  private void readLoop() {
+
+  
+  private void readSelectorLoop() {
     while( true ) {
       try {
         read_selector.select( 100 );
       }
       catch( Throwable t ) {
-        Debug.out( "readLoop() EXCEPTION: ", t );
+        Debug.out( "readSelectorLoop() EXCEPTION: ", t );
       }
     }
   }
+  
+  
+  private void readProcessorLoop() {
+    boolean check_high_first = true;
+    
+    while( true ) {
+      try {
+        if( check_high_first ) {
+          check_high_first = false;
+          if( !doHighPriorityRead() ) {
+            if( !doNormalPriorityRead() ) {
+              try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+            }
+          }
+        }
+        else {
+          check_high_first = true;
+          if( !doNormalPriorityRead() ) {
+            if( !doHighPriorityRead() ) {
+              try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+            }
+          }
+        }
+      }
+      catch( Throwable t ) {
+        Debug.out( "readProcessorLoop() EXCEPTION: ", t );
+      }
+    }
+  }
+  
+  
+  private boolean doNormalPriorityRead() {
+    RateControlledReadEntity ready_entity = getNextReadyNormalPriorityEntity();
+    if( ready_entity != null && ready_entity.doRead() ) {
+      return true;
+    }
+    return false;
+  }
+  
+  private boolean doHighPriorityRead() {
+    RateControlledReadEntity ready_entity = getNextReadyHighPriorityEntity();
+    if( ready_entity != null && ready_entity.doRead() ) {
+      return true;
+    }
+    return false;
+  }
+  
+  
+  private RateControlledReadEntity getNextReadyNormalPriorityEntity() {
+    ArrayList ref = normal_priority_entities;
+    
+    int size = ref.size();
+    int num_checked = 0;
+
+    while( num_checked < size ) {
+      next_normal_position = next_normal_position >= size ? 0 : next_normal_position;  //make circular
+      RateControlledReadEntity entity = (RateControlledReadEntity)ref.get( next_normal_position );
+      next_normal_position++;
+      num_checked++;
+      if( entity.canRead() ) {  //is ready
+        return entity;
+      }
+    }
+
+    return null;  //none found ready
+  }
+  
+  
+  private RateControlledReadEntity getNextReadyHighPriorityEntity() {
+    ArrayList ref = high_priority_entities;
+    
+    int size = ref.size();
+    int num_checked = 0;
+
+    while( num_checked < size ) {
+      next_high_position = next_high_position >= size ? 0 : next_high_position;  //make circular
+      RateControlledReadEntity entity = (RateControlledReadEntity)ref.get( next_high_position );
+      next_high_position++;
+      num_checked++;
+      if( entity.canRead() ) {  //is ready
+        return entity;
+      }
+    }
+
+    return null;  //none found ready
+  }
+  
+  
+  
+  /**
+   * Add the given entity to the controller for read processing.
+   * @param entity to process reads for
+   */
+  public void addReadEntity( RateControlledReadEntity entity ) {
+    try {  entities_mon.enter();
+      if( entity.getPriority() == RateControlledReadEntity.PRIORITY_HIGH ) {
+        //copy-on-write
+        ArrayList high_new = new ArrayList( high_priority_entities.size() + 1 );
+        high_new.addAll( high_priority_entities );
+        high_new.add( entity );
+        high_priority_entities = high_new;
+      }
+      else {
+        //copy-on-write
+        ArrayList norm_new = new ArrayList( normal_priority_entities.size() + 1 );
+        norm_new.addAll( normal_priority_entities );
+        norm_new.add( entity );
+        normal_priority_entities = norm_new;
+      }
+    }
+    finally {  entities_mon.exit();  }
+  }
+  
+  
+  /**
+   * Remove the given entity from the controller.
+   * @param entity to remove from read processing
+   */
+  public void removeReadEntity( RateControlledReadEntity entity ) {
+    try {  entities_mon.enter();
+      if( entity.getPriority() == RateControlledReadEntity.PRIORITY_HIGH ) {
+        //copy-on-write
+        ArrayList high_new = new ArrayList( high_priority_entities );
+        high_new.remove( entity );
+        high_priority_entities = high_new;
+      }
+      else {
+        //copy-on-write
+        ArrayList norm_new = new ArrayList( normal_priority_entities );
+        norm_new.remove( entity );
+        normal_priority_entities = norm_new;
+      }
+    }
+    finally {  entities_mon.exit();  }
+  }
+
   
   /**
    * Get the virtual selector for socket channel read readiness.

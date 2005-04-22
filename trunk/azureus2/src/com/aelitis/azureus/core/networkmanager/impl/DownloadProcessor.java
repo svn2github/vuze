@@ -26,7 +26,6 @@ import java.util.HashMap;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.*;
 
@@ -37,16 +36,16 @@ import com.aelitis.azureus.core.networkmanager.*;
 public class DownloadProcessor {  
   private int global_max_rate_bps;
   private final ByteBucket global_bucket;
-  
-  private final HashMap peer_connections = new HashMap();
-  private final AEMonitor peer_connections_mon = new AEMonitor( "DownloadProcessor:PC" );
+  private final MultiPeerDownloader downloader;
   
   private final HashMap group_buckets = new HashMap();
-  private final AEMonitor group_buckets_mon = new AEMonitor( "DownloadProcessor:GB" );
+  private final HashMap peer_connections = new HashMap();
+  private final AEMonitor peer_connections_mon = new AEMonitor( "DownloadProcessor" );
+  
+  private boolean downloader_registered = false;
   
   
 
-  
   public DownloadProcessor() {
     int max_rateKBs = COConfigurationManager.getIntParameter( "Max Download Speed KBs" );
     global_max_rate_bps = max_rateKBs == 0 ? NetworkManager.UNLIMITED_RATE : max_rateKBs * 1024;
@@ -58,6 +57,19 @@ public class DownloadProcessor {
     });
     
     global_bucket = new ByteBucket( global_max_rate_bps ); 
+    
+    downloader = new MultiPeerDownloader( new RateHandler() {
+      public int getCurrentNumBytesAllowed() {
+        if( global_bucket.getRate() != global_max_rate_bps ) { //sync rate
+          global_bucket.setRate( global_max_rate_bps );
+        }
+        return global_bucket.getAvailableByteCount();
+      }
+      
+      public void bytesProcessed( int num_bytes_written ) {
+        global_bucket.setBytesUsed( num_bytes_written );
+      }
+    });
   }
   
   
@@ -67,41 +79,51 @@ public class DownloadProcessor {
    * @param connection to register
    * @param group rate limit group
    */
-  public void registerPeerConnection( final NetworkConnection connection, LimitedRateGroup group ) {
+  public void registerPeerConnection( NetworkConnection connection, LimitedRateGroup group ) {
+    final ConnectionData conn_data = new ConnectionData();
     
+    try{  peer_connections_mon.enter();
+      if( !downloader_registered ) {
+        NetworkManager.getSingleton().addReadEntity( downloader );  //register main download entity
+        downloader_registered = true;
+      }
+    
+      //do group registration
+      GroupData group_data = (GroupData)group_buckets.get( group );
+      if( group_data == null ) {
+        int limit = NetworkManagerUtilities.getGroupRateLimit( group );
+        group_data = new GroupData( new ByteBucket( limit ) );
+        group_buckets.put( group, group_data );
+      }
+      group_data.group_size++;
+      conn_data.group = group;
+      conn_data.group_data = group_data;
+      //conn_data.state = ConnectionData.STATE_NORMAL;
+    
+      peer_connections.put( connection, conn_data );
+    }
+    finally {  peer_connections_mon.exit();  }
+    
+    downloader.addPeerConnection( connection, new RateHandler() {
+      public int getCurrentNumBytesAllowed() {
+        // sync group rate
+        int group_rate = NetworkManagerUtilities.getGroupRateLimit( conn_data.group );
+        if( conn_data.group_data.bucket.getRate() != group_rate ) {
+          conn_data.group_data.bucket.setRate( group_rate );
+        }
+        
+        return conn_data.group_data.bucket.getAvailableByteCount();
+      }
 
-    
-    connection.getIncomingMessageQueue().startQueueProcessing( new TCPTransport.ReadListener() {  //start reading incoming messages
-      public void readyToRead() {
-        try {
-          
-          //TODO
-          int bytes_read = connection.getIncomingMessageQueue().receiveFromTransport( 1024*1024 );
-          
-        }
-        catch( Throwable e ) {
-          if( e.getMessage() == null ) {
-            Debug.out( "null read exception message: ", e );
-          }
-          else {
-            if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
-                e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-                e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
-                e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
-                
-              System.out.println( "read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
-            }
-            
-            if( e.getMessage().indexOf( "Direct buffer memory" ) != -1 ) {
-              Debug.out( "Direct buffer memory exception", e );
-            }
-          }
-              
-          connection.notifyOfException( e );
-        }
+      public void bytesProcessed( int num_bytes_written ) {
+        conn_data.group_data.bucket.setBytesUsed( num_bytes_written );
       }
     });
+    
+    //start read processing
+    connection.getIncomingMessageQueue().startQueueProcessing();
   }
+  
   
   
   /**
@@ -110,14 +132,43 @@ public class DownloadProcessor {
    */
   public void deregisterPeerConnection( NetworkConnection connection ) {
     connection.getIncomingMessageQueue().stopQueueProcessing();  //stop reading incoming messages
+
+    try{  peer_connections_mon.enter();
+      ConnectionData conn_data = (ConnectionData)peer_connections.remove( connection );
     
+      if( conn_data != null ) {
+        //do group de-registration
+        if( conn_data.group_data.group_size == 1 ) {  //last of the group
+          group_buckets.remove( conn_data.group ); //so remove
+        }
+        else {
+          conn_data.group_data.group_size--;
+        }
+      }
+    }
+    finally{  peer_connections_mon.exit();  }
+  }
+
+  
+
+  
+  private static class ConnectionData {
+    //private static final int STATE_NORMAL   = 0;
+    //private static final int STATE_UPGRADED = 1;
     
+    //private int state;
+    private LimitedRateGroup group;
+    private GroupData group_data;
+  }
+
+    
+  private static class GroupData {
+    private final ByteBucket bucket;
+    private int group_size = 0;
+    
+    private GroupData( ByteBucket bucket ) {
+      this.bucket = bucket;
+    }
   }
   
-  
-
-  
-  
-  
-
 }

@@ -43,9 +43,6 @@ public class IncomingMessageQueue {
   private MessageStreamDecoder stream_decoder;
   private final NetworkConnection connection;
 
-  private TCPTransport.ReadListener transport_read_listener;
-  
-  
   
   /**
    * Create a new incoming message queue.
@@ -71,7 +68,7 @@ public class IncomingMessageQueue {
     
     stream_decoder = new_stream_decoder;
     
-    resumeQueueProcessing();
+    startQueueProcessing();
   }
   
   
@@ -201,24 +198,15 @@ public class IncomingMessageQueue {
   
   /**
    * Start processing (reading) incoming messages.
-   * @param read_listener
    */
-  public void startQueueProcessing( TCPTransport.ReadListener read_listener ) {
-    transport_read_listener = read_listener;
+  public void startQueueProcessing() {
     stream_decoder.resumeDecoding();  //this allows us to resume docoding externally, in case it was auto-paused internally
-    connection.getTCPTransport().startReadSelects( transport_read_listener );
+    connection.getTCPTransport().startReadSelects( new TCPTransport.ReadListener(){
+      public void readyToRead(){ /* ignore */ }
+    });
   }
   
-  
-  
-  /**
-   * Resume processing of incoming messages.
-   */
-  public void resumeQueueProcessing() {
-    startQueueProcessing( transport_read_listener );
-  }
-  
-  
+
   
   /**
    * Stop processing (reading) incoming messages.

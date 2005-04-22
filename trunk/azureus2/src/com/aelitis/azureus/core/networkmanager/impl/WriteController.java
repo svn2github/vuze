@@ -32,7 +32,7 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  * Processes writes of write-entities and handles the write selector.
  */
 public class WriteController {
-  private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
+  private final VirtualChannelSelector write_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
   
   private volatile ArrayList normal_priority_entities = new ArrayList();  //copied-on-write
   private volatile ArrayList high_priority_entities = new ArrayList();  //copied-on-write

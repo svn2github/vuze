@@ -131,6 +131,24 @@ public class NetworkManager {
   }
   
   
+  /**
+   * Add a download entity for read processing.
+   * @param entity to add
+   */
+  public void addReadEntity( RateControlledReadEntity entity ) {
+    read_controller.addReadEntity( entity );
+  }
+  
+  
+  /**
+   * Remove a download entity from read processing.
+   * @param entity to remove
+   */
+  public void removeReadEntity( RateControlledReadEntity entity ) {
+    read_controller.removeReadEntity( entity );
+  }  
+  
+  
   
 
   /**

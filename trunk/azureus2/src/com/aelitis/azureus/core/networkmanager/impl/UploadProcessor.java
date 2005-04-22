@@ -37,13 +37,12 @@ import com.aelitis.azureus.core.networkmanager.*;
 public class UploadProcessor {
   private int standard_max_rate_bps;
   private final ByteBucket standard_bucket;
-  private final HashMap standard_peer_connections = new HashMap();
-  private final AEMonitor standard_peer_connections_mon = new AEMonitor( "UploadProcessor:SPC" );
   private final UploadEntityController standard_entity_controller;
   
   private final HashMap group_buckets = new HashMap();
-  private final AEMonitor group_buckets_mon = new AEMonitor( "UploadProcessor:GB" );
-  
+  private final HashMap standard_peer_connections = new HashMap();
+  private final AEMonitor standard_peer_connections_mon = new AEMonitor( "UploadProcessor" );
+
   
   public UploadProcessor() {
     int max_rateKBs = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" );
@@ -65,7 +64,7 @@ public class UploadProcessor {
         return standard_bucket.getAvailableByteCount();
       }
       
-      public void bytesWritten( int num_bytes_written ) {
+      public void bytesProcessed( int num_bytes_written ) {
         standard_bucket.setBytesUsed( num_bytes_written );
       }
     });
@@ -83,32 +82,22 @@ public class UploadProcessor {
   public void registerPeerConnection( NetworkConnection connection, LimitedRateGroup group ) {
     final ConnectionData conn_data = new ConnectionData();
 
-    // do group registration
-    GroupData group_data;
-    try {
-      group_buckets_mon.enter();
-      
-      group_data = (GroupData)group_buckets.get( group );
+    try {  standard_peer_connections_mon.enter();
+      //do group registration
+      GroupData group_data = (GroupData)group_buckets.get( group );
       if( group_data == null ) {
         int limit = NetworkManagerUtilities.getGroupRateLimit( group );
         group_data = new GroupData( new ByteBucket( limit ) );
         group_buckets.put( group, group_data );
       }
       group_data.group_size++;
-    }
-    finally {  group_buckets_mon.exit();  }
+      conn_data.group = group;
+      conn_data.group_data = group_data;
+      conn_data.state = ConnectionData.STATE_NORMAL;
 
-    conn_data.group = group;
-    conn_data.group_data = group_data;
-    conn_data.state = ConnectionData.STATE_NORMAL;
-
-    try {
-      standard_peer_connections_mon.enter();
       standard_peer_connections.put( connection, conn_data );
     }
-    finally {
-      standard_peer_connections_mon.exit();
-    }
+    finally {  standard_peer_connections_mon.exit();  }
 
     standard_entity_controller.registerPeerConnection( connection );
   }
@@ -120,26 +109,22 @@ public class UploadProcessor {
    * @param connection to cancel
    */
   public void deregisterPeerConnection( NetworkConnection connection ) {
-    ConnectionData conn_data = null;
-    
     try{ standard_peer_connections_mon.enter();
-      conn_data = (ConnectionData)standard_peer_connections.remove( connection );
+      ConnectionData conn_data = (ConnectionData)standard_peer_connections.remove( connection );
+      
+      if( conn_data != null ) {
+        //do group de-registration
+        if( conn_data.group_data.group_size == 1 ) {  //last of the group
+          group_buckets.remove( conn_data.group ); //so remove
+        }
+        else {
+          conn_data.group_data.group_size--;
+        }
+      }
     }
     finally{ standard_peer_connections_mon.exit(); }
     
-    if( conn_data != null ) {
-      //do group de-registration
-      if( conn_data.group_data.group_size == 1 ) {  //last of the group
-        try {  group_buckets_mon.enter();
-          group_buckets.remove( conn_data.group ); //so remove
-        }
-        finally {  group_buckets_mon.exit();  }
-      }
-      else {
-        conn_data.group_data.group_size--;
-      }
-    }
-    
+
     standard_entity_controller.cancelPeerConnection( connection );
   }
   
@@ -162,7 +147,7 @@ public class UploadProcessor {
       final ConnectionData conn_data = connection_data;
       
       standard_entity_controller.upgradePeerConnection( connection, new RateHandler() {
-        public int getCurrentNumBytesAllowed() {
+        public int getCurrentNumBytesAllowed() {          
           // sync global rate
           if( standard_bucket.getRate() != standard_max_rate_bps ) {
             standard_bucket.setRate( standard_max_rate_bps );
@@ -186,7 +171,7 @@ public class UploadProcessor {
           return allowed;
         }
 
-        public void bytesWritten( int num_bytes_written ) {
+        public void bytesProcessed( int num_bytes_written ) {
           conn_data.group_data.bucket.setBytesUsed( num_bytes_written );
           standard_bucket.setBytesUsed( num_bytes_written );
         }

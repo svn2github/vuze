@@ -31,8 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.networkmanager.impl.ConnectDisconnectManager;
-import com.aelitis.azureus.core.networkmanager.impl.ProxyLoginHandler;
+import com.aelitis.azureus.core.networkmanager.impl.*;
 
 
 
@@ -49,7 +48,9 @@ public class TCPTransport {
   private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
   private SocketChannel socket_channel;
 
-  private boolean is_ready_for_write = false;  
+  private boolean is_ready_for_write = false;
+  private boolean is_ready_for_read = false;
+  
   private Throwable write_select_failure = null;
   
   private Throwable read_select_failure = null;
@@ -62,9 +63,7 @@ public class TCPTransport {
   
   private int transport_mode = TRANSPORT_MODE_NORMAL;
   
-  
-  private int zero_read_count = 0;
-  
+
   
   public volatile boolean has_been_closed = false;
   public String has_been_closed_error = null;
@@ -127,7 +126,15 @@ public class TCPTransport {
    */
   public boolean isReadyForWrite() {  return is_ready_for_write;  }
   
+  
+  /**
+   * Is the transport ready to read,
+   * i.e. will a read request result in >0 bytes read.
+   * @return true if the transport is read ready, false if not yet ready
+   */
+  public boolean isReadyForRead() {  return is_ready_for_read;  }
     
+  
   /**
    * Write data to the transport from the given buffers.
    * NOTE: Works like GatheringByteChannel.
@@ -220,6 +227,12 @@ public class TCPTransport {
   }
   
   
+  private void requestReadSelect() {
+    is_ready_for_read = false;
+    NetworkManager.getSingleton().getReadSelector().resumeSelects( socket_channel );
+  } 
+  
+  
   
   /**
    * Enable transport read selection.
@@ -232,9 +245,9 @@ public class TCPTransport {
       NetworkManager.getSingleton().getReadSelector().resumeSelects( socket_channel );
     }
     
-    if( data_already_read != null && data_already_read.hasRemaining() ) {
-      //read_listener.readyToRead();  //force an initial read op
-    }
+    //if( data_already_read != null && data_already_read.hasRemaining() ) {
+      //read_listener.readyToRead();  //force an initial read op   //TODO why does this cause failure?
+    //}
   }
 
   
@@ -258,12 +271,14 @@ public class TCPTransport {
     //read selection
     NetworkManager.getSingleton().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
+        is_ready_for_read = true;
         read_listener.readyToRead();
         return true;
       }
       
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
         read_select_failure = msg;
+        is_ready_for_read = true;
         read_listener.readyToRead();  //so that the resulting read attempt will throw an exception
       }
     }, null );
@@ -300,9 +315,12 @@ public class TCPTransport {
    */
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
     if( read_select_failure != null ) {
-      stopReadSelects();  //once an exception is thrown on read, disable any future reading  //TODO: disable permanently?
+      is_ready_for_read = false;
+      stopReadSelects();  //once an exception is thrown on read, disable any future reading
       throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
     }
+    
+    if( !is_ready_for_read )  return 0;
     
     if( socket_channel == null ) {
       return 0;
@@ -372,24 +390,24 @@ public class TCPTransport {
       bytes_read = socket_channel.read( buffers, array_offset, length );
     }
     catch( IOException ioe ) {
-      stopReadSelects();  //once an exception is thrown on read, disable any future reading  //TODO: disable permanently?
+      is_ready_for_read = false;
+      stopReadSelects();  //once an exception is thrown on read, disable any future reading
       throw ioe;
     }
     catch( Throwable t ) {
+      is_ready_for_read = false;
       Debug.out( "Caught Throwable on TCPTransport::read()", t );
       throw new IOException( "Caught Throwable on TCPTransport::read(): " +t.getMessage() );
     }
     
     if( bytes_read < 0 ) {
-      stopReadSelects();  //once an exception is thrown on read, disable any future reading  //TODO: disable permanently?
+      is_ready_for_read = false;
+      stopReadSelects();  //once an exception is thrown on read, disable any future reading
       throw new IOException( "end of stream on socket read" );
     }
     
     if( bytes_read == 0 ) {
-      zero_read_count++;
-      if( zero_read_count % 10 == 0 ) {
-        System.out.println( "[" +System.currentTimeMillis()+ "] [" +description+ "] 0-byte-reads=" +zero_read_count );
-      }
+      requestReadSelect();
     }
     
     return bytes_read;
@@ -537,6 +555,7 @@ public class TCPTransport {
       NetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
     }
     
+    is_ready_for_read = false;
     is_ready_for_write = false;
 
     if( socket_channel != null ){

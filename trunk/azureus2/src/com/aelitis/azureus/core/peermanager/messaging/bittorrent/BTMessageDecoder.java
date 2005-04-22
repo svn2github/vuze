@@ -189,17 +189,18 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
   public ByteBuffer destroy() {
     try{
-      throw new Exception( "btmessagedecoder::destroyed()" );
+      throw new Exception( "btmessagedecoder::destroyed()" );  //TODO remove
     }
     catch( Throwable t ) {
       destroyed_trace = t;
     }
-    
+
     destroyed = true;
 
     int lbuff_read = 0;
     int pbuff_read = 0;
-
+    length_buffer.limit( 4 );
+    
     if( reading_length_mode ) {
       lbuff_read = length_buffer.position();
     }

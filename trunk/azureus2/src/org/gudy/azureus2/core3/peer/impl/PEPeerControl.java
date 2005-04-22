@@ -35,13 +35,9 @@ public interface
 PEPeerControl
 	extends PEPeerManager
 {
-  
-  public static final int WAITING_SLEEP        = 100;
-  public static final int DATA_EXPECTED_SLEEP  = 50;
-  public static final int NO_SLEEP             = 20;
-   		
 
-	public boolean 
+  
+  public boolean 
 	checkBlock(
 		int pieceNumber, 
 		int offset, 

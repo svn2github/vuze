@@ -53,8 +53,8 @@ TRNonBlockingServer
 {
 	private static final int TIMEOUT_CHECK_INTERVAL = 10*1000;  //10sec
 	
-	private final VirtualChannelSelector read_selector	 	= new VirtualChannelSelector( VirtualChannelSelector.OP_READ );
-	private final VirtualChannelSelector write_selector 	= new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE );
+	private final VirtualChannelSelector read_selector	 	= new VirtualChannelSelector( VirtualChannelSelector.OP_READ, false );
+	private final VirtualChannelSelector write_selector 	= new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
 	
 	private 	  List			connections_to_close 		= new ArrayList();
 	private final AESemaphore	connections_to_close_sem	= new AESemaphore( "TRNonBlockingServer:close");

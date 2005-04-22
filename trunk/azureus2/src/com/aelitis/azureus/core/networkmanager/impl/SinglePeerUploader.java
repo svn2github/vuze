@@ -33,12 +33,12 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 /**
  * A fast write entity backed by a single peer connection.
  */
-public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
+public class SinglePeerUploader implements RateControlledWriteEntity {
   
   private final NetworkConnection connection;
   private final RateHandler rate_handler;
   
-  public BurstingSinglePeerUploader( NetworkConnection connection, RateHandler rate_handler ) {
+  public SinglePeerUploader( NetworkConnection connection, RateHandler rate_handler ) {
     this.connection = connection;
     this.rate_handler = rate_handler;
   }
@@ -93,7 +93,7 @@ public class BurstingSinglePeerUploader implements RateControlledWriteEntity {
       return false;
     }
     
-    rate_handler.bytesWritten( written );
+    rate_handler.bytesProcessed( written );
     return true;
   }
   

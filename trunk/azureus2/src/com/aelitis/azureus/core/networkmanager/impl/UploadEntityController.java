@@ -40,7 +40,7 @@ import com.aelitis.azureus.core.networkmanager.*;
 public class UploadEntityController {
   private final HashMap upgraded_connections = new HashMap();
   private final AEMonitor lock = new AEMonitor( "UploadEntityController:lock" );
-  private final PacketFillingMultiPeerUploader global_uploader;
+  private final MultiPeerUploader global_uploader;
   private boolean global_registered = false;
   
   
@@ -49,7 +49,7 @@ public class UploadEntityController {
    * @param rate_handler global write rate handler
    */
   public UploadEntityController( RateHandler rate_handler ) {
-    global_uploader = new PacketFillingMultiPeerUploader( rate_handler );
+    global_uploader = new MultiPeerUploader( rate_handler );
   }
   
 
@@ -77,7 +77,7 @@ public class UploadEntityController {
    */
   public void cancelPeerConnection( NetworkConnection connection ) {
     if( !global_uploader.removePeerConnection( connection ) ) {  //if not found in the pool entity
-      BurstingSinglePeerUploader upload_entity = (BurstingSinglePeerUploader)upgraded_connections.remove( connection );  //check for it in the upgraded list
+      SinglePeerUploader upload_entity = (SinglePeerUploader)upgraded_connections.remove( connection );  //check for it in the upgraded list
       if( upload_entity != null ) {
         NetworkManager.getSingleton().removeWriteEntity( upload_entity );  //cancel from write processing
       }
@@ -91,7 +91,7 @@ public class UploadEntityController {
    * @param handler connection write rate handler
    */
   public void upgradePeerConnection( NetworkConnection connection, RateHandler handler ) {
-    BurstingSinglePeerUploader upload_entity = new BurstingSinglePeerUploader( connection, handler );      
+    SinglePeerUploader upload_entity = new SinglePeerUploader( connection, handler );      
     try {  lock.enter();
       if( !global_uploader.removePeerConnection( connection ) ) {  //remove it from the general upload pool
         Debug.out( "upgradePeerConnection:: connection not found/removed !" );
@@ -111,7 +111,7 @@ public class UploadEntityController {
    */
   public void downgradePeerConnection( NetworkConnection connection ) {
     try {  lock.enter();
-      BurstingSinglePeerUploader upload_entity = (BurstingSinglePeerUploader)upgraded_connections.remove( connection );  //remove from the upgraded list  
+      SinglePeerUploader upload_entity = (SinglePeerUploader)upgraded_connections.remove( connection );  //remove from the upgraded list  
 
       if( upload_entity != null ) {
         NetworkManager.getSingleton().removeWriteEntity( upload_entity );  //cancel from write processing

@@ -39,9 +39,11 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  * round-robin write scheduling, where connections each take turns writing a
  * single full packet per round.
  */
-public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity {
-  private static final int FLUSH_CHECK_LOOP_TIME = 250;  //250ms
+public class MultiPeerUploader implements RateControlledWriteEntity {
+  private static final int FLUSH_CHECK_LOOP_TIME = 500;  //500ms
   private static final int FLUSH_WAIT_TIME = 3*1000;  //3sec no-new-data wait before forcing write flush
+  private long last_flush_check_time = 0;
+  
   
   private final RateHandler rate_handler;
   private boolean destroyed = false;
@@ -56,26 +58,18 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
    * rate-controlled by the given handler.
    * @param rate_handler listener to handle upload rate limits
    */
-  public PacketFillingMultiPeerUploader( RateHandler rate_handler ) {
+  public MultiPeerUploader( RateHandler rate_handler ) {
     this.rate_handler = rate_handler;
-    
-    Thread flush_checker = new AEThread( "PacketFillingMultiPeerUploader:FlushChecker" ) {
-      public void runSupport() {
-        flushCheckLoop();
-      }
-    };
-    flush_checker.setDaemon( true );
-    flush_checker.start();
   }
   
   
   /**
    * Checks the connections in the waiting list to see if it's time to be force-flushed.
    */
-  private void flushCheckLoop() {
-    while( !destroyed ) {
-      long start_time = SystemTime.getCurrentTime();
-      
+  private void flushCheck() {
+    long diff = SystemTime.getCurrentTime() - last_flush_check_time;
+    
+    if( !destroyed && (diff > FLUSH_CHECK_LOOP_TIME || diff < 0 ) ) {
       try {  lists_lock.enter();
         long current_time = SystemTime.getCurrentTime();
         
@@ -101,11 +95,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
       }
       finally {  lists_lock.exit();  }
       
-      long total_time = SystemTime.getCurrentTime() - start_time;
-      
-      if( total_time < FLUSH_CHECK_LOOP_TIME && total_time >= 0 ) {
-        try {  Thread.sleep( FLUSH_CHECK_LOOP_TIME - total_time );  }catch( Exception e ) { Debug.printStackTrace( e ); }
-      }
+      last_flush_check_time = SystemTime.getCurrentTime();
     }
   }
   
@@ -259,7 +249,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   
   
   
-  private int write( int num_bytes_to_write ) {
+  private int write( int num_bytes_to_write ) {  //TODO: model this class after the simplicity of MultiPeerDownloader
     if( num_bytes_to_write < 1 ) {
       Debug.out( "num_bytes_to_write < 1" );
       return 0;  //not allowed to write
@@ -349,7 +339,7 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
     
     int num_bytes_written = num_bytes_to_write - num_bytes_remaining;
     if( num_bytes_written > 0 ) {
-      rate_handler.bytesWritten( num_bytes_written );
+      rate_handler.bytesProcessed( num_bytes_written );
     }
     
     return num_bytes_written;
@@ -376,6 +366,8 @@ public class PacketFillingMultiPeerUploader implements RateControlledWriteEntity
   //////////////// RateControlledWriteEntity implementation ////////////////////
   
   public boolean canWrite() {
+    flushCheck();  //since this method is called repeatedly from a loop, we can use it to check flushes
+
     if( ready_connections.isEmpty() )  return false;  //no data to send
     if( rate_handler.getCurrentNumBytesAllowed() < 1 )  return false;  //not allowed to send
     return true;

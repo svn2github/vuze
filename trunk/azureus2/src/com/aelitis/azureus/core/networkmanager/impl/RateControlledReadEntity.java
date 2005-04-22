@@ -1,7 +1,7 @@
 /*
- * Created on Oct 6, 2004
+ * Created on Apr 21, 2005
  * Created by Alon Rohter
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,19 +22,37 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+
 /**
- * Handler to allow external control of an entity's byte processing rate.
+ * Interface designation for rate-limited entities handled by a read controller.
  */
-public interface RateHandler {
-  /**
-   * Get the current number of bytes allowed to be processed by the entity.
-   * @return number of bytes allowed
-   */
-  public int getCurrentNumBytesAllowed();
+public interface RateControlledReadEntity {
+
+    /**
+     * Uses fair round-robin scheduling of read ops.
+     */
+    public static final int PRIORITY_NORMAL = 0;
     
-  /**
-   * Notification of any bytes processed by the entity.
-   * @param num_bytes_processed 
-   */
-  public void bytesProcessed( int num_bytes_processed );
+    /**
+     * Guaranteed scheduling of read ops, with preference over normal-priority entities.
+     */
+    public static final int PRIORITY_HIGH   = 1;
+    
+    /**
+     * Is ready for a read op.
+     * @return true if it can read >0 bytes, false if not ready
+     */
+    public boolean canRead();
+    
+    /**
+     * Attempt to do a read operation.
+     * @return true if >0 bytes were read (success), false if 0 bytes were read (failure)
+     */
+    public boolean doRead();
+    
+    /**
+     * Get this entity's priority level.
+     * @return priority
+     */
+    public int getPriority();
 }

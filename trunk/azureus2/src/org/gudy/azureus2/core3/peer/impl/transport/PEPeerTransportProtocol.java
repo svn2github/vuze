@@ -1163,7 +1163,7 @@ PEPeerTransportProtocol
 
     if( !az_messaging_mode ) {  //otherwise we'll do this after receiving az handshake
      
-      connection.getIncomingMessageQueue().resumeQueueProcessing();  //HACK: because BT decoder is auto-paused after initial handshake, so it doesn't accidentally decode the next AZ message
+      connection.getIncomingMessageQueue().startQueueProcessing();  //HACK: because BT decoder is auto-paused after initial handshake, so it doesn't accidentally decode the next AZ message
              
       changePeerState( PEPeer.TRANSFERING );
       
