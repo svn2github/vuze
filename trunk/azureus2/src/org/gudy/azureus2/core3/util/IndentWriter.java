@@ -1,7 +1,7 @@
 /*
- * Created on 29-Mar-2005
+ * Created on 22-Apr-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,10 +24,40 @@ package org.gudy.azureus2.core3.util;
 
 import java.io.PrintWriter;
 
-public interface 
-AEDiagnosticsEvidenceGenerator 
+public class 
+IndentWriter 
 {
+	private static final String	INDENT_STRING	= "    ";
+	
+	private PrintWriter		pw;
+	private String			indent	= "";
+	
+	public
+	IndentWriter(
+		PrintWriter	_pw )
+	{
+		pw	= _pw;
+	}
+	
 	public void
-	generate(
-		IndentWriter		writer );
+	println(
+		String	str )
+	{
+		pw.println( indent + str );
+	}
+	
+	public void
+	indent()
+	{
+		indent += INDENT_STRING;
+	}
+	
+	public void
+	exdent()
+	{
+		if ( indent.length() > 0 ){
+			
+			indent = indent.substring(INDENT_STRING.length());
+		}
+	}
 }

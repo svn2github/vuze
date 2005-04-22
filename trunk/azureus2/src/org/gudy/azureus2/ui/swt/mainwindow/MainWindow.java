@@ -48,7 +48,6 @@ import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
-import java.io.PrintWriter;
 import java.util.*;
 
 /**
@@ -1772,17 +1771,63 @@ MainWindow
   
 	public void
 	generate(
-		PrintWriter		writer )
+		IndentWriter		writer )
 	{
 		writer.println( "SWT UI" );
-		writer.println( "---------------------" );
-		writer.println( "**** MyTorrents" );
 		
-		Tab	t = mytorrents;
+		try{
+			writer.indent();
 		
-		if ( t != null ){
+			writer.println( "MyTorrents" );
+		
+			try{
+				writer.indent();
+
+				Tab	t = mytorrents;
+				
+				if ( t != null ){
+					
+					t.generateDiagnostics( writer );
+				}
+			}finally{
+				
+				writer.exdent();
+			}
 			
-			t.generateDiagnostics( writer );
+			writer.println( "MyTracker" );
+			
+			try{
+				writer.indent();
+
+				Tab	t = my_tracker_tab;
+				
+				if ( t != null ){
+					
+					t.generateDiagnostics( writer );
+				}
+			}finally{
+				
+				writer.exdent();
+			}
+			
+			writer.println( "MyShares" );
+			
+			try{
+				writer.indent();
+
+				Tab	t = my_shares_tab;
+				
+				if ( t != null ){
+					
+					t.generateDiagnostics( writer );
+				}
+			}finally{
+				
+				writer.exdent();
+			}
+		}finally{
+			
+			writer.exdent();
 		}
 	}
 }

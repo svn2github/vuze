@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -50,7 +51,6 @@ import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.*;
 
-import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
 
@@ -1458,14 +1458,14 @@ public class TableView
   
   public void
   generateDiagnostics(
-	PrintWriter	writer )
+	IndentWriter	writer )
   {
 	  super.generateDiagnostics( writer );
 	  
 	  try{
 		  objectToSortableItem_mon.enter();
 		  
-		  writer.println( "    TableView: " + objectToSortableItem.size());
+		  writer.println( "TableView: " + objectToSortableItem.size());
 		  
 		  Iterator	it = objectToSortableItem.keySet().iterator();
 		  
@@ -1473,7 +1473,7 @@ public class TableView
 			  
 			  Object key = it.next();
 			  
-			  writer.println( "      " + key + " -> " + objectToSortableItem.get(key));
+			  writer.println( "  " + key + " -> " + objectToSortableItem.get(key));
 		  }
 	  }finally{
 		  

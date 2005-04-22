@@ -15,11 +15,11 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 
-import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -631,7 +631,7 @@ public class Tab {
   
   public void
   generateDiagnostics(
-	PrintWriter	writer )
+	IndentWriter	writer )
   {
 	  view.generateDiagnostics( writer );
   }

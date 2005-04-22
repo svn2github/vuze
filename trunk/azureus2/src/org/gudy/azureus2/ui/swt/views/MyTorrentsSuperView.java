@@ -1,7 +1,5 @@
 package org.gudy.azureus2.ui.swt.views;
 
-import java.io.PrintWriter;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
@@ -15,6 +13,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
@@ -203,12 +202,40 @@ public class MyTorrentsSuperView extends AbstractIView  {
 
   public void
   generateDiagnostics(
-	PrintWriter	writer )
+	IndentWriter	writer )
   {
 	  super.generateDiagnostics( writer );
 
-	  torrentview.generateDiagnostics( writer );
+	  try{
+		  writer.indent();
 	  
-	  seedingview.generateDiagnostics( writer );
+		  writer.println( "Downloading" );
+		  
+		  writer.indent();
+
+		  torrentview.generateDiagnostics( writer );
+	  
+	  }finally{
+		  
+		  writer.exdent();
+		  
+		  writer.exdent();
+	  }
+	  
+	  try{
+		  writer.indent();
+	  
+		  writer.println( "Seeding" );
+		  
+		  writer.indent();
+
+		  seedingview.generateDiagnostics( writer );
+	  
+	  }finally{
+		  
+		  writer.exdent();
+
+		  writer.exdent();
+	  }
   }
 }

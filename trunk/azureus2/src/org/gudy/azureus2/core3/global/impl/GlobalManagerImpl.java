@@ -1629,12 +1629,13 @@ public class GlobalManagerImpl
   
 	public void
 	generate(
-		PrintWriter		writer )
+		IndentWriter		writer )
 	{
 		writer.println( "Global Manager" );
-		writer.println( "---------------------" );
+
+		try{
+			writer.indent();
 		
-	    try{
 	    	managers_mon.enter();
 	    	
 			writer.println( "  managers: " + managers_cow.size());
@@ -1649,6 +1650,8 @@ public class GlobalManagerImpl
 	    }finally{
 			
 			managers_mon.exit();
+			
+			writer.exdent();
 	    }
 	}
 }

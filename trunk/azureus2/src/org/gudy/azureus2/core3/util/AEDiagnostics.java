@@ -316,8 +316,10 @@ AEDiagnostics
 	
 	public static synchronized void
 	generateEvidence(
-		PrintWriter		writer )
+		PrintWriter		_writer )
 	{
+		IndentWriter	writer = new IndentWriter( _writer );
+		
 		for (int i=0;i<evidence_generators.size();i++){
 			
 			try{
@@ -325,7 +327,7 @@ AEDiagnostics
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace( writer );
+				e.printStackTrace( _writer );
 			}
 		}
 	}

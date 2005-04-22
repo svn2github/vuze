@@ -4,9 +4,8 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.io.PrintWriter;
-
 import org.eclipse.swt.widgets.Composite;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.IconBarEnabler;
 
 /**
@@ -69,5 +68,5 @@ public interface IView extends IconBarEnabler {
   
   public void
   generateDiagnostics(
-		PrintWriter	writer );
+		IndentWriter	writer );
 }

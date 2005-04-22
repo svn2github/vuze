@@ -447,68 +447,89 @@ ConfigurationManager
   
 	public void
 	generate(
-		PrintWriter		writer )
+		IndentWriter		writer )
 	{
 		writer.println( "Configuration Details" );
-		writer.println( "---------------------" );
-		writer.println( "**** System Properties" );
 		
-		Properties props = System.getProperties();
+		try{
+			writer.indent();
 		
-		Iterator	it = new TreeSet( props.keySet()).iterator();
-		
-		while(it.hasNext()){
+			writer.println( "System Properties" );
 			
-			String	key = (String)it.next();
+			try{
+				writer.indent();
 			
-			writer.println( key + "=" + props.get( key ));
-		}
-		
-		writer.println( "**** Azureus Config" );
+				Properties props = System.getProperties();
+				
+				Iterator	it = new TreeSet( props.keySet()).iterator();
+				
+				while(it.hasNext()){
+					
+					String	key = (String)it.next();
+					
+					writer.println( key + "=" + props.get( key ));
+				}
+			}finally{
+				
+				writer.exdent();
+			}
+			
+			writer.println( "Azureus Config" );
 
-		it = new TreeSet(propertiesMap.keySet()).iterator();
-		
-		while( it.hasNext()){
+			try{
+				writer.indent();
 			
-			Object	key 	= it.next();
-			Object	value	= propertiesMap.get(key);
+				Iterator it = new TreeSet(propertiesMap.keySet()).iterator();
 			
-			if ( value instanceof Long ){
-				
-				writer.println( key + "=" + value );
-				
-			}else if ( value instanceof List ){
-				
-				writer.println( key + "=" + value + "[list]" );
-				
-			}else if ( value instanceof Map ){
-				
-				writer.println( key + "=" + value + "[map]" );
-				
-			}else if ( value instanceof byte[] ){
-				
-				byte[]	b = (byte[])value;
-			
-				boolean	hex	= false;
-				
-				for (int i=0;i<b.length;i++){
+				while( it.hasNext()){
 					
-					byte	c = b[i];
+					Object	key 	= it.next();
+					Object	value	= propertiesMap.get(key);
 					
-					if ( !	( 	Character.isLetterOrDigit(c) ||
-								"`¬\"£$%^&*()-_=+[{]};:'@#~,<.>/?'".indexOf(c) != -1 )){
+					if ( value instanceof Long ){
 						
-						hex	= true;
+						writer.println( key + "=" + value );
 						
-						break;
+					}else if ( value instanceof List ){
+						
+						writer.println( key + "=" + value + "[list]" );
+						
+					}else if ( value instanceof Map ){
+						
+						writer.println( key + "=" + value + "[map]" );
+						
+					}else if ( value instanceof byte[] ){
+						
+						byte[]	b = (byte[])value;
+					
+						boolean	hex	= false;
+						
+						for (int i=0;i<b.length;i++){
+							
+							byte	c = b[i];
+							
+							if ( !	( 	Character.isLetterOrDigit(c) ||
+										"`¬\"£$%^&*()-_=+[{]};:'@#~,<.>/?'".indexOf(c) != -1 )){
+								
+								hex	= true;
+								
+								break;
+							}
+						}
+						writer.println( key + "=" + (hex?ByteFormatter.nicePrint(b):new String((byte[])value)));
+						
+					}else{
+						
+						writer.println( key + "=" + value + "[unknown]" );
 					}
 				}
-				writer.println( key + "=" + (hex?ByteFormatter.nicePrint(b):new String((byte[])value)));
+			}finally{
 				
-			}else{
-				
-				writer.println( key + "=" + value + "[unknown]" );
+				writer.exdent();
 			}
+		}finally{
+			
+			writer.exdent();
 		}
 	}
 }
