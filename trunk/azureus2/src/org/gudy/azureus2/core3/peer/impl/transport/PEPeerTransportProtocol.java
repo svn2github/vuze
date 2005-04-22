@@ -1134,14 +1134,14 @@ PEPeerTransportProtocol
     //extended protocol processing
     if( (handshake.getReserved()[0] & 128) == 128 ) {  //if first (high) bit is set
       if( !manager.getDownloadManager().isAZMessagingEnabled() ) {
-        System.out.println( "Ignoring peer " +ip+ " [" +client+ "]'s extended AZ messaging support, as disabled for this download." );
+        LGLogger.log( "Ignoring peer [" +toString()+ "]'s extended AZ messaging support, as disabled for this download." );
       }
       else if( client.indexOf( "Plus!" ) != -1 ) {
-        System.out.println( "Peer " +ip+ " [" +client+ "] handshake mistakingly indicates extended AZ messaging support....ignoring." );
+        LGLogger.log( toString() + " handshake mistakingly indicates extended AZ messaging support....ignoring." );
       }
       else {
         if( client.indexOf( "Azureus" ) == -1 ) {
-          System.out.println( "Peer " +ip+ " [" +client+ "] handshake claims extended AZ messaging support....enabling AZ mode." );
+          LGLogger.log( toString() + " handshake claims extended AZ messaging support....enabling AZ mode." );
         }
         
         az_messaging_mode = true;
