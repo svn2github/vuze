@@ -74,6 +74,6 @@ public abstract class AbstractIView implements IView {
   generateDiagnostics(
 	IndentWriter	writer )
   {
-	  writer.println( "  Diagnostics for " + this + " (" + getFullTitle()+ ")");
+	  writer.println( "Diagnostics for " + this + " (" + getFullTitle()+ ")");
   }
 }
