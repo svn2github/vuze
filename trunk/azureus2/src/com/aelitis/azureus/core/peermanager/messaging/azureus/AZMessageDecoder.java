@@ -151,7 +151,8 @@ public class AZMessageDecoder implements MessageStreamDecoder {
 
     int lbuff_read = 0;
     int pbuff_read = 0;
-
+    length_buffer.limit( 4 );
+    
     if( reading_length_mode ) {
       lbuff_read = length_buffer.position();
     }
