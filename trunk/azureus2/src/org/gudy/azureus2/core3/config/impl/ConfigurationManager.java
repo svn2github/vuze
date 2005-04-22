@@ -506,7 +506,7 @@ ConfigurationManager
 						
 						for (int i=0;i<b.length;i++){
 							
-							byte	c = b[i];
+							char	c = (char)b[i];
 							
 							if ( !	( 	Character.isLetterOrDigit(c) ||
 										"`¬\"£$%^&*()-_=+[{]};:'@#~,<.>/?'".indexOf(c) != -1 )){
