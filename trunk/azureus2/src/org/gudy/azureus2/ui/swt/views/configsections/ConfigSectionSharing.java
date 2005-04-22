@@ -52,68 +52,75 @@ public class ConfigSectionSharing implements ConfigSectionSWT {
 
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
+	GridLayout layout;
 
-    Composite gSharing = new Composite(parent, SWT.NULL);
+    Composite gSharing = new Composite(parent, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gSharing.setLayoutData(gridData);
-    GridLayout layout = new GridLayout();
+    layout = new GridLayout();
     layout.numColumns = 2;
+    layout.marginHeight = 0;
     gSharing.setLayout(layout);
 
     	// row
     
-    String[]	protocols = {"HTTP","HTTPS","UDP","DHT" };
-    String[]	descs = {"HTTP","HTTPS (SSL)", "UDP", "Decentralised" };
-    
-    new StringListParameter(gSharing, "Sharing Protocol", "HTTP", descs, protocols );
-    
+	gridData = new GridData();
     Label protocol_lab = new Label(gSharing, SWT.NULL);
     Messages.setLanguageText(protocol_lab, "ConfigView.section.sharing.protocol");
+	protocol_lab.setLayoutData( gridData );
+	
+	String[]	protocols = {"HTTP","HTTPS","UDP","DHT" };
+    String[]	descs = {"HTTP","HTTPS (SSL)", "UDP", "Decentralised" };
+    
+	new StringListParameter(gSharing, "Sharing Protocol", "HTTP", descs, protocols );
 
 	// row
     
+	GridData grid_data = new GridData();
+	grid_data.horizontalSpan = 2;
 	BooleanParameter private_torrent = 
 		new BooleanParameter(gSharing, 	"Sharing Torrent Private", false, 
                          			"ConfigView.section.sharing.privatetorrent");
-    
-	GridData grid_data = new GridData();
-	grid_data.horizontalSpan = 2;
 	private_torrent.setLayoutData(grid_data);
 	
 
 	// row
-    
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
 	final BooleanParameter permit_dht = 
 		new BooleanParameter(gSharing, "Sharing Permit DHT", true, 
                          "ConfigView.section.sharing.permitdht");
-    
-    new Label(gSharing, SWT.NULL);
+	permit_dht.setLayoutData( gridData );
 
 	private_torrent.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( permit_dht.getControls(), true ));
 
     	// row
-    
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
     new BooleanParameter(gSharing, "Sharing Add Hashes", true, 
-                         "wizard.createtorrent.extrahashes");
+                         "wizard.createtorrent.extrahashes").setLayoutData( gridData );
     
-    new Label(gSharing, SWT.NULL);
 
     	// row
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
     BooleanParameter rescan_enable = 
     	new BooleanParameter(gSharing, "Sharing Rescan Enable", false, 
     						"ConfigView.section.sharing.rescanenable");
     
-    new Label(gSharing, SWT.NULL);
+	rescan_enable.setLayoutData( gridData );
 
     	//row
-    
+    gridData = new GridData();
+	gridData.horizontalIndent = 25;
     Label period_label = new Label(gSharing, SWT.NULL );
     Messages.setLanguageText(period_label, "ConfigView.section.sharing.rescanperiod");
+	period_label.setLayoutData( gridData );
 
-    IntParameter rescan_period = new IntParameter(gSharing, "Sharing Rescan Period", 60 );
-    rescan_period.setMinimumValue(1);
     gridData = new GridData();
     gridData.widthHint = 30;
+	IntParameter rescan_period = new IntParameter(gSharing, "Sharing Rescan Period", 60 );
+    rescan_period.setMinimumValue(1);
     rescan_period.setLayoutData( gridData );
     
     rescan_enable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( rescan_period.getControls() ));
@@ -123,9 +130,13 @@ public class ConfigSectionSharing implements ConfigSectionSWT {
     
     Label comment_label = new Label(gSharing, SWT.NULL );
     Messages.setLanguageText(comment_label, "ConfigView.section.sharing.torrentcomment");
-
+	
+	new Label(gSharing, SWT.NULL);
+	
+	gridData = new GridData(GridData.FILL_HORIZONTAL);
+	gridData.horizontalIndent = 25;
+	gridData.horizontalSpan = 2;
     StringParameter torrent_comment = new StringParameter(gSharing, "Sharing Torrent Comment", "" ); 
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
     torrent_comment.setLayoutData(gridData);
     
     return gSharing;
