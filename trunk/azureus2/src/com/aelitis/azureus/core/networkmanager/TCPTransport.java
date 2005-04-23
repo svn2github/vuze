@@ -223,13 +223,17 @@ public class TCPTransport {
 
   private void requestWriteSelect() {
     is_ready_for_write = false;
-    NetworkManager.getSingleton().getWriteSelector().resumeSelects( socket_channel );
+    if( socket_channel != null ){
+      NetworkManager.getSingleton().getWriteSelector().resumeSelects( socket_channel );
+    }
   }
   
   
   private void requestReadSelect() {
     is_ready_for_read = false;
-    NetworkManager.getSingleton().getReadSelector().resumeSelects( socket_channel );
+    if( socket_channel != null ){
+      NetworkManager.getSingleton().getReadSelector().resumeSelects( socket_channel );
+    }
   } 
   
   
