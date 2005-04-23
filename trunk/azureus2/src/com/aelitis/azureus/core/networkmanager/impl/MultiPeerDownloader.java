@@ -76,8 +76,7 @@ public class MultiPeerDownloader implements RateControlledReadEntity {
     try {  connections_mon.enter();
       //copy-on-write
       ArrayList conn_new = new ArrayList( connections_cow );
-      boolean removed = conn_new.remove( new PeerData( connection, null ) );
-      if( !removed )  System.out.println( "!removed" );
+      conn_new.remove( new PeerData( connection, null ) );
       connections_cow = conn_new;
     }
     finally{ connections_mon.exit();  }

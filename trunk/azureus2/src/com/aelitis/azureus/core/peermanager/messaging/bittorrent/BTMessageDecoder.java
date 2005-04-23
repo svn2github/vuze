@@ -70,8 +70,6 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private long paused_loop_count = 0;
   
   private Throwable destroyed_trace;
-
-  private TCPTransport orig_transport = null;
   
   private int percent_complete = -1;
   
@@ -85,15 +83,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
   
   
-  public int performStreamDecode( TCPTransport transport, int max_bytes ) throws IOException {
-    
-    if( orig_transport == null )  orig_transport = transport;
-    if( orig_transport != transport ) {
-      Debug.out( "performStreamDecode():: orig_transport != transport" );
-    }
-    
-    
-    
+  public int performStreamDecode( TCPTransport transport, int max_bytes ) throws IOException {    
     protocol_bytes_last_read = 0;
     data_bytes_last_read = 0;
     
@@ -103,31 +93,21 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       
       if( destroyed ) {
         destroyed_loop_count++;
-        
         if( destroyed_loop_count % 50 == 0 ) {
-          
-          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] channel is null=" +(transport.getSocketChannel() == null)+ ", has_been_closed=" +transport.has_been_closed+ ", closed_error_msg=" +transport.has_been_closed_error+ ", original destroy() trace:", destroyed_trace );
-          
+          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] channel is null=" +(transport.getSocketChannel() == null)+ ", has_been_closed=" +transport.has_been_closed+ ", closed_error_msg=" +transport.has_been_closed_error+ ", original destroy() trace:", destroyed_trace );          
           //try{  Thread.sleep( 100 );  }catch(Throwable t){}
-          
           throw new IOException( "BTMessageDecoder:: already destroyed" );
         }
-        
-        break;
+        return 0;
       }
       
       
       if( is_paused ) {
         paused_loop_count++;
-        
-        if( paused_loop_count > 50 ) {
-          throw new IOException( "BTMessageDecoder:: already paused loop!" );
-        }
-        
-        break;
+        if( paused_loop_count > 50 ) throw new IOException( "BTMessageDecoder:: already paused loop!" );
+        return 0;
       }
       
-
       int bytes_possible = preReadProcess( bytes_remaining );
       
       if( bytes_possible < 1 ) {
