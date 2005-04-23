@@ -132,6 +132,8 @@ public class DownloadProcessor {
    */
   public void deregisterPeerConnection( NetworkConnection connection ) {
     connection.getIncomingMessageQueue().stopQueueProcessing();  //stop reading incoming messages
+    
+    downloader.removePeerConnection( connection );
 
     try{  peer_connections_mon.enter();
       ConnectionData conn_data = (ConnectionData)peer_connections.remove( connection );

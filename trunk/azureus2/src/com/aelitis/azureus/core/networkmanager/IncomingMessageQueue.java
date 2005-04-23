@@ -201,9 +201,7 @@ public class IncomingMessageQueue {
    */
   public void startQueueProcessing() {
     stream_decoder.resumeDecoding();  //this allows us to resume docoding externally, in case it was auto-paused internally
-    connection.getTCPTransport().startReadSelects( new TCPTransport.ReadListener(){
-      public void readyToRead(){ /* ignore */ }
-    });
+    connection.getTCPTransport().startReadSelects( null );
   }
   
 

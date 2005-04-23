@@ -239,8 +239,10 @@ public class TCPTransport {
    * @param listener to handle readiness
    */
   public void startReadSelects( ReadListener listener ) {
-    read_listener = listener;
-    
+    if( listener != null ) {
+      read_listener = listener;
+    }
+
     if( socket_channel != null ) {
       NetworkManager.getSingleton().getReadSelector().resumeSelects( socket_channel );
     }
@@ -272,14 +274,14 @@ public class TCPTransport {
     NetworkManager.getSingleton().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
         is_ready_for_read = true;
-        read_listener.readyToRead();
+        if( read_listener != null )  read_listener.readyToRead();
         return true;
       }
       
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
         read_select_failure = msg;
         is_ready_for_read = true;
-        read_listener.readyToRead();  //so that the resulting read attempt will throw an exception
+        if( read_listener != null )  read_listener.readyToRead();  //so that the resulting read attempt will throw an exception
       }
     }, null );
 

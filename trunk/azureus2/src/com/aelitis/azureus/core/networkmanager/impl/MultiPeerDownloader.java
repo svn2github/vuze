@@ -76,7 +76,8 @@ public class MultiPeerDownloader implements RateControlledReadEntity {
     try {  connections_mon.enter();
       //copy-on-write
       ArrayList conn_new = new ArrayList( connections_cow );
-      conn_new.remove( new PeerData( connection, null ) );
+      boolean removed = conn_new.remove( new PeerData( connection, null ) );
+      if( !removed )  System.out.println( "!removed" );
       connections_cow = conn_new;
     }
     finally{ connections_mon.exit();  }
@@ -121,7 +122,7 @@ public class MultiPeerDownloader implements RateControlledReadEntity {
         
         if( allowed > 0 ) {
           if( allowed > num_bytes_remaining )  allowed = num_bytes_remaining;
-          if( allowed > NetworkManager.getTcpMssSize() )  allowed = NetworkManager.getTcpMssSize();   //TODO: allow bigger reads for "fast" xfers? 
+          if( allowed > NetworkManager.getTcpMssSize() )  allowed = NetworkManager.getTcpMssSize(); 
           
           int bytes_read = 0;
           
