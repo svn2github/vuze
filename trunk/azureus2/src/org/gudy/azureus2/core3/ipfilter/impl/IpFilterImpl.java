@@ -42,6 +42,8 @@ IpFilterImpl
 	implements IpFilter
 {
 
+  private final static int MAX_BLOCKS_TO_REMEMBER = 500;
+  
 	private static IpFilterImpl ipFilter;
 	private static AEMonitor	class_mon	= new AEMonitor( "IpFilter:class" );
  
@@ -269,7 +271,7 @@ IpFilterImpl
       ipsBlocked.addLast( ip );
       num_ips_blocked++;
       
-      if( ipsBlocked.size() > 300 ) {  //only "remember" the last 300 blocks
+      if( ipsBlocked.size() > MAX_BLOCKS_TO_REMEMBER ) {  //only "remember" the last few blocks occurrences
         ipsBlocked.removeFirst();
       }
     }
