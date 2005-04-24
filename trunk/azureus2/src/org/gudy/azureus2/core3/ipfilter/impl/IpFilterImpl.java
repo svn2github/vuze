@@ -53,9 +53,10 @@ IpFilterImpl
 	 
     //Map ip blocked -> matching range
 	
-    private List		ipsBlocked;
+	private LinkedList		ipsBlocked;
+  private int num_ips_blocked = 0;
 
-    private long	last_update_time;
+	private long	last_update_time;
     
   
 	private IpFilterImpl() 
@@ -66,7 +67,7 @@ IpFilterImpl
 	  
 	  bannedIps = new HashMap();
 	  
-	  ipsBlocked = new ArrayList();
+	  ipsBlocked = new LinkedList();
 	  
 	  try{
 	  	
@@ -243,40 +244,40 @@ IpFilterImpl
 
 	  if(match != null) {
 	    if(!allow) {
-	      try{
-	      	class_mon.enter();
-	     
-	        ipsBlocked.add(new BlockedIpImpl(ipAddress,match, torrent_name));
-	        
-		  }finally{
-		  	class_mon.exit();
-		  }
-		  
+	      addBlockedIP( new BlockedIpImpl(ipAddress,match, torrent_name) );
 	      LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + match);
-		  return true;
-	    }else {		      
-	      return false;
+	      return true;
 	    }
+      
+	    return false;  
 	  }
 
 	
 	  if(allow) {
-	    try{
-	    	class_mon.enter();
-	      
-	    	ipsBlocked.add(new BlockedIpImpl(ipAddress,null, torrent_name));
-	    	
-	    }finally{
-	    	
-	    	class_mon.exit();
-	    }
-	    
+	    addBlockedIP( new BlockedIpImpl(ipAddress,null, torrent_name) );
 	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
 	    return true;
 	  }
 	  return false;
 	}
 	
+  
+  
+  private void addBlockedIP( BlockedIp ip ) {
+    try{  class_mon.enter();
+   
+      ipsBlocked.addLast( ip );
+      num_ips_blocked++;
+      
+      if( ipsBlocked.size() > 300 ) {  //only "remember" the last 300 blocks
+        ipsBlocked.removeFirst();
+      }
+    }
+    finally{  class_mon.exit();  }
+  }
+  
+  
+  
 	private boolean isBanned(String ipAddress) {
 	  try{
 	  	class_mon.enter();
@@ -431,7 +432,7 @@ IpFilterImpl
 	public int 
 	getNbIpsBlocked() 
 	{
-	  return ipsBlocked.size();
+	  return num_ips_blocked;
 	}
 	
 	public void 
@@ -513,6 +514,7 @@ IpFilterImpl
 			class_mon.enter();
 			
 			ipsBlocked.clear();
+      num_ips_blocked = 0;
 			
 		}finally{
 			
