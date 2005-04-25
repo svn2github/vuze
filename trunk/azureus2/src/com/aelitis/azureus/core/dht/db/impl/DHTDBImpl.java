@@ -416,7 +416,7 @@ DHTDBImpl
 	public boolean
 	isEmpty()
 	{
-		return( getSize() == 0 );
+		return( getKeyCount() == 0 );
 	}
 	
 	public int
@@ -433,13 +433,13 @@ DHTDBImpl
 		}
 	}
 	
-	public long
-	getSize()
+	public int[]
+	getValueDetails()
 	{
 		try{
 			this_mon.enter();
 			
-			int	res = 0;
+			int[]	res = new int[6];
 			
 			Iterator	it = stored_values.values().iterator();
 			
@@ -447,7 +447,21 @@ DHTDBImpl
 				
 				DHTDBMapping	mapping = (DHTDBMapping)it.next();
 				
-				res += mapping.getSize();
+				res[DHTDBStats.VD_VALUE_COUNT] += mapping.getValueCount();
+				res[DHTDBStats.VD_LOCAL_SIZE] += mapping.getLocalSize();
+				res[DHTDBStats.VD_DIRECT_SIZE] += mapping.getDirectSize();
+				res[DHTDBStats.VD_INDIRECT_SIZE] += mapping.getIndirectSize();
+				
+				int	dt = mapping.getDiversificationType();
+				
+				if ( dt == DHT.DT_FREQUENCY ){
+					
+					res[DHTDBStats.VD_DIV_FREQ]++;
+					
+				}else if ( dt == DHT.DT_SIZE ){
+					
+					res[DHTDBStats.VD_DIV_SIZE]++;
+				}
 			}
 			
 			return( res );
@@ -793,7 +807,7 @@ DHTDBImpl
 				
 				DHTDBMapping	mapping = (DHTDBMapping)it.next();
 	
-				if ( mapping.getSize() == 0 ){
+				if ( mapping.getValueCount() == 0 ){
 					
 					it.remove();
 					
@@ -862,7 +876,7 @@ DHTDBImpl
 		try{
 			this_mon.enter();
 			
-			logger.log( "Stored keys = " + stored_values.size() + ", values = " + getSize()); 
+			logger.log( "Stored keys = " + stored_values.size() + ", values = " + getValueDetails()[DHTDBStats.VD_VALUE_COUNT]); 
 
 			Iterator	it = stored_values.entrySet().iterator();
 			
@@ -942,7 +956,7 @@ DHTDBImpl
 				
 				str_entries++;
 				
-				str += (str_entries==1?"":", ") + DHTLog.getString2(value_key.getHash()) + " -> " + mapping.getSize() + "/" + mapping.getHits()+"["+mapping.getLocalSize()+","+mapping.getDirectSize()+","+mapping.getIndirectSize() + "]";
+				str += (str_entries==1?"":", ") + DHTLog.getString2(value_key.getHash()) + " -> " + mapping.getValueCount() + "/" + mapping.getHits()+"["+mapping.getLocalSize()+","+mapping.getDirectSize()+","+mapping.getIndirectSize() + "]";
 			}
 			
 			if ( str_entries > 0 ){

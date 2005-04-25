@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
+import com.aelitis.azureus.core.dht.db.DHTDBStats;
 import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -188,9 +189,8 @@ DHTControlStatsImpl
 	public long
 	getDBValuesStored()
 	{
-		return( control.getDataBase().getSize());
+		return( control.getDataBase().getStats().getValueDetails()[ DHTDBStats.VD_VALUE_COUNT ]);
 	}
-	
 	
 		// Router
 	
@@ -228,6 +228,12 @@ DHTControlStatsImpl
 	getVersion()
 	{
 		return( Constants.AZUREUS_VERSION );
+	}
+	
+	public long
+	getEstimatedDHTSize()
+	{
+		return( control.getEstimatedDHTSize());
 	}
 	
 	public String

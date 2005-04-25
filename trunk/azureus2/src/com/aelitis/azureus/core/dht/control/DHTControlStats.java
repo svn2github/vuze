@@ -45,4 +45,7 @@ DHTControlStats
 	
 	public int
 	getRouterCount();
+	
+	public long
+	getEstimatedDHTSize();
 }

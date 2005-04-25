@@ -55,6 +55,8 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
+import com.aelitis.azureus.core.dht.control.DHTControlStats;
+import com.aelitis.azureus.core.dht.db.DHTDBStats;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
@@ -495,12 +497,14 @@ DHTPlugin
 															}
 														}
 														
+														DHTDBStats		d_stats	= dht.getDataBase().getStats();
+														DHTControlStats	c_stats = dht.getControl().getStats();
 														DHTRouterStats	r_stats = dht.getRouter().getStats();
 														
 														long[]	rs = r_stats.getStats();
 					
 
-														log.log( "Router" +
+														log.log( 	"Router" +
 																	":nodes=" + rs[DHTRouterStats.ST_NODES] +
 																	",leaves=" + rs[DHTRouterStats.ST_LEAVES] +
 																	",contacts=" + rs[DHTRouterStats.ST_CONTACTS] +
@@ -511,9 +515,17 @@ DHTPlugin
 											
 														log.log( 	"Transport" + 
 																	":" + t_stats.getString()); 
-																	
-														log.log( 	"Database" +
-																	":values=" + dht.getDataBase().getSize());
+																
+														int[]	dbv_details = d_stats.getValueDetails();
+														
+														log.log(    "Control:dht=" + c_stats.getEstimatedDHTSize() + 
+																   	", Database:keys=" + d_stats.getKeyCount() +
+																   	",vals=" + dbv_details[DHTDBStats.VD_VALUE_COUNT]+
+																   	",loc=" + dbv_details[DHTDBStats.VD_LOCAL_SIZE]+
+																   	",dir=" + dbv_details[DHTDBStats.VD_DIRECT_SIZE]+
+																   	",ind=" + dbv_details[DHTDBStats.VD_INDIRECT_SIZE]+
+																   	",div_f=" + dbv_details[DHTDBStats.VD_DIV_FREQ]+
+																   	",div_s=" + dbv_details[DHTDBStats.VD_DIV_SIZE] );
 													}
 												}
 											});

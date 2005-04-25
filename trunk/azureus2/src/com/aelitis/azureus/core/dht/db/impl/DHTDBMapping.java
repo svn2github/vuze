@@ -417,7 +417,7 @@ DHTDBMapping
 		
 	
 	protected int
-	getSize()
+	getValueCount()
 	{
 		return( direct_originator_map.size() + indirect_originator_value_map.size());
 	}

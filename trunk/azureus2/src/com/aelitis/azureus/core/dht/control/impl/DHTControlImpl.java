@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.control.impl;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -1900,6 +1901,76 @@ DHTControlImpl
 		res.toArray( x );
 		
 		return( x );
+	}
+	
+	public long
+	getEstimatedDHTSize()
+	{
+		List	l = getClosestKContactsList( router.getID(), false );
+				
+		/*
+		<Gudy> if you call N0 yourself, N1 the nearest peer, N2 the 2nd nearest peer ... Np the pth nearest peer that you know (for example, N1 .. N20)
+		<Gudy> and if you call D1 the Kad distance between you and N1, D2 between you and N2 ...
+		<Gudy> then you have to compute :
+		<Gudy> Dc = sum(i * Di) / sum( i * i)
+		<Gudy> and then :
+		<Gudy> NbPeers = 2^160 / Dc
+		*/
+		
+		BigInteger	sum1 = new BigInteger("0");
+		BigInteger	sum2 = new BigInteger("0");
+		
+			// first entry should be us
+		
+		byte[]	our_id = router.getID();
+		
+		for (int i=1;i<l.size();i++){
+			
+			DHTTransportContact	node = (DHTTransportContact)l.get(i);
+			
+			byte[]	dist = computeDistance( our_id, node.getID());
+			
+			BigInteger b_dist = IDToBigInteger( dist );
+			
+			BigInteger	b_i = new BigInteger(""+i);
+			
+			sum1 = sum1.add( b_i.multiply(b_dist));
+			
+			sum2 = sum2.add( b_i.multiply( b_i ));
+		}
+		
+		byte[]	max = new byte[our_id.length+1];
+		
+		max[0] = 0x01;
+		
+		long	res = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
+		
+		// System.out.println( "getEstimatedDHTSize: " + res );
+
+		return( res );
+	}
+	
+	protected BigInteger
+	IDToBigInteger(
+		byte[]		data )
+	{
+		String	str_key = "";
+		
+		for (int i=0;i<data.length;i++){
+			
+			String	hex = Integer.toHexString( data[i]&0xff );
+			
+			while( hex.length() < 2 ){
+				
+				hex = "0" + hex;
+			}
+				
+			str_key += hex;
+		}
+				
+		BigInteger	res		= new BigInteger( str_key, 16 );	
+		
+		return( res );
 	}
 	
 	public void
