@@ -1472,7 +1472,9 @@ PEPeerTransportProtocol
          
         if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) {
           decodeChoke( (BTChoke)message );
-          connection.enableEnhancedMessageProcessing( false );  //downgrade back to normal handler
+          if( choking_other_peer ) {
+            connection.enableEnhancedMessageProcessing( false );  //downgrade back to normal handler
+          }
           return true;
         }
         
@@ -1555,7 +1557,9 @@ PEPeerTransportProtocol
           connection.enableEnhancedMessageProcessing( true );  //so make sure we use a fast handler
         }
         else if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) { // is done sending piece data
-          connection.enableEnhancedMessageProcessing( false );  //so downgrade back to normal handler
+          if( choked_by_other_peer ) {
+            connection.enableEnhancedMessageProcessing( false );  //so downgrade back to normal handler
+          }
         }
         
         LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " +PEPeerTransportProtocol.this );
