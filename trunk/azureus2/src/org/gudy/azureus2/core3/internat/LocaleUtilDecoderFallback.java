@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.internat;
 
+import java.io.File;
 import java.io.UnsupportedEncodingException;
 import org.gudy.azureus2.core3.util.*;
 
@@ -35,11 +36,18 @@ LocaleUtilDecoderFallback
 	implements LocaleUtilDecoder
 {
 	public static String	NAME	= "Fallback";
+
+	private static volatile int		max_ok_name_length	= 64;
+	private static volatile boolean max_ok_name_length_determined;
 	
-	protected static final String VALID_CHARS = "abcdefghijklmnopqrstuvwxyz1234567890_-.";
+		// don't change these, it'll stuff up people with torrents that are using the 
+		// fallback encoding
 	
-	protected int		index;
+	private static final String VALID_CHARS = "abcdefghijklmnopqrstuvwxyz1234567890_-.";
 	
+	private int		index;
+	
+
 	protected
 	LocaleUtilDecoderFallback(
 		int		_index )
@@ -101,6 +109,74 @@ LocaleUtilDecoderFallback
 			}
 		}
 		
+			// more often that not these decoded values are used for filenames. Windows has a limit
+			// of 250 (ish) chars, so we do something sensible with longer values
+		
+		int	len = res.length();
+		
+		if ( len > max_ok_name_length ){
+		
+				// could be a file system out there that supports arbitarily long names, so
+				// we can't pre-calculate the max
+			
+			if ( 	( !max_ok_name_length_determined )&&
+					fileLengthOK( len )){
+			
+					// this length is ok, bump up the known limit
+				
+				max_ok_name_length = len;
+				
+			}else{
+				
+					// won't fit
+				
+				if ( !max_ok_name_length_determined ){
+					
+					for (int i=max_ok_name_length+16;i<len;i+=16 ){
+						
+						if ( fileLengthOK( i )){
+							
+							max_ok_name_length	= i;
+						}
+					}
+					
+					max_ok_name_length_determined	= true;
+				}
+				
+					// replace the end of the string with a hash value to ensure uniqueness
+				
+				byte[] hash = new SHA1Hasher().calculateHash( data );
+				
+				String	hash_str = ByteFormatter.nicePrint( hash, true );
+				
+				res = res.substring( 0, max_ok_name_length-hash_str.length()) + hash_str;
+			}
+		}
+		
 		return( res );
+	}
+	
+	protected boolean
+	fileLengthOK(
+		int		len )
+	{
+		String n = "";
+		
+		for (int i=0;i<len;i++){
+			
+			n += "A";
+		}
+		
+		try{
+			File f = File.createTempFile( n, "" );
+						
+			f.delete();
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
 	}
 }

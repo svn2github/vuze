@@ -184,12 +184,12 @@ LocaleUtil
 	  }
 	}
     
-    /*
+	/*
 	System.out.println( "getCandidates: = " + candidates.length );
 	
 	for (int i=0;i<candidates.length;i++){
 		
-		Candidate	cand = candidates[i];
+		LocaleUtilDecoderCandidate	cand = candidates[i];
 		
 		if ( cand != null ){
 		
@@ -257,7 +257,15 @@ LocaleUtil
   		
   			// get canonical name
   		
-		String canonical_name = Charset.forName(encoding).name();
+		String canonical_name;
+		
+		try{
+			canonical_name = Charset.forName(encoding).name();
+			
+		}catch( Throwable e ){
+			
+			canonical_name	= encoding;
+		}
 
   		for (int i=0;i<all_decoders.length;i++){
   			
