@@ -392,7 +392,7 @@ DHTPluginStorageManager
 		try{
 			storage_mon.enter();
 		
-			((storageKey)key).read();
+			((storageKey)key).read( contact );
 			
 		}finally{
 			
@@ -995,6 +995,7 @@ DHTPluginStorageManager
 		
 		private long			read_count_start;
 		private int				read_count;
+		private int[]			read_history	= new int[8];
 		
 		protected
 		storageKey(
@@ -1080,33 +1081,76 @@ DHTPluginStorageManager
 		}
 		
 		protected void
-		read()
+		read(
+			DHTTransportContact	contact )
 		{
 			// System.out.println( "read: " + DHTLog.getString2( key.getBytes()));
+			
 			
 			if ( type == DHT.DT_NONE ){
 				
 				read_count++;
 				
-				long	now = SystemTime.getCurrentTime();
+					// simple flood detection to prevent a single IP from causing diversification
+					// via repeated reads.
 				
-				long	diff = now - read_count_start;
+				byte[]	address_bytes = contact.getAddress().getAddress().getAddress();
 				
-				if ( diff > LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES*60*1000 ){
+				int	address_int = 	(address_bytes[0] << 24)&0xff000000 | 
+									(address_bytes[1] << 16)&0x00ff0000 | 
+									(address_bytes[2] << 8 )&0x0000ff00 | 
+									 address_bytes[3]       &0x000000ff;
 					
-					// System.out.println( "read rate = " + read_count );
+				boolean	found	= false;
+				
+				for (int i=0;i<read_history.length;i++){
 					
-					if ( read_count > LOCAL_DIVERSIFICATION_READS_PER_MIN * LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES ){
-					
-						type = DHT.DT_FREQUENCY;
+					if ( read_history[i] == address_int ){
+				
+						found	= true;
 						
-						manager.log.log( "SM: sk freq created (" + read_count + "reads ) - " + DHTLog.getString2( key.getBytes()));
+						if ( i != 0 ){
+							
+							int	temp = read_history[0];
+							
+							read_history[0] = address_int;
+							
+							read_history[i]	= temp;
+						}
 						
-						manager.writeDiversifications();
+						break;
+					}
+				}
+				
+				if ( !found ){
+					
+					for (int i=read_history.length-1;i>0;i++){
+						
+						read_history[i] = read_history[i-1];
+						
+						read_history[0]	= address_int;
 					}
 					
-					read_count_start	= now;
-					read_count			= 0;
+					long	now = SystemTime.getCurrentTime();
+					
+					long	diff = now - read_count_start;
+					
+					if ( diff > LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES*60*1000 ){
+						
+						// System.out.println( "read rate = " + read_count );
+						
+						if ( read_count > LOCAL_DIVERSIFICATION_READS_PER_MIN * LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES ){
+						
+							type = DHT.DT_FREQUENCY;
+							
+							manager.log.log( "SM: sk freq created (" + read_count + "reads ) - " + DHTLog.getString2( key.getBytes()));
+							
+							manager.writeDiversifications();
+						}
+						
+						read_count_start	= now;
+						read_count			= 0;
+					}
 				}
 			}
 		}
