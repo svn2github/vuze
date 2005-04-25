@@ -1124,7 +1124,7 @@ DHTPluginStorageManager
 				
 				if ( !found ){
 					
-					for (int i=read_history.length-1;i>0;i++){
+					for (int i=read_history.length-1;i>0;i--){
 						
 						read_history[i] = read_history[i-1];
 						
