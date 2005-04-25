@@ -143,13 +143,37 @@ LocaleUtilDecoderFallback
 					max_ok_name_length_determined	= true;
 				}
 				
+					// try and preserve extension
+				
+				String	extension = null;
+				
+				int	pos = res.lastIndexOf(".");
+				
+				if ( pos != -1 ){
+					
+						// include the "."
+					
+					extension = res.substring( pos );
+					
+					if ( extension.length() == 1 || extension.length() > 4 ){
+						
+						extension = null;
+					}
+				}
 					// replace the end of the string with a hash value to ensure uniqueness
 				
 				byte[] hash = new SHA1Hasher().calculateHash( data );
 				
 				String	hash_str = ByteFormatter.nicePrint( hash, true );
 				
-				res = res.substring( 0, max_ok_name_length-hash_str.length()) + hash_str;
+				res = res.substring( 
+							0, 
+							max_ok_name_length - hash_str.length() - (extension == null?0:extension.length())) + hash_str;
+				
+				if ( extension != null ){
+					
+					res += extension;
+				}
 			}
 		}
 		
