@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
+import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -37,8 +38,8 @@ import com.aelitis.azureus.core.dht.transport.*;
  */
 
 public class 
-DHTControlStats 
-	implements DHTTransportFullStats
+DHTControlStatsImpl 
+	implements DHTTransportFullStats, DHTControlStats
 {
 	private static final int	UPDATE_INTERVAL	= 10*1000;
 	private static final int	UPDATE_PERIOD	= 120;
@@ -55,7 +56,7 @@ DHTControlStats
 	private long[]				router_snapshot;
 		
 	protected
-	DHTControlStats(
+	DHTControlStatsImpl(
 		DHTControlImpl		_control )
 	{
 		control	= _control;

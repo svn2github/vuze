@@ -1,7 +1,7 @@
 /*
- * Created on 21-Mar-2005
+ * Created on 25-Apr-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,29 +20,14 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.control;
-
-/**
- * @author parg
- *
- */
+package com.aelitis.azureus.core.dht.db;
 
 public interface 
-DHTControlStats 
+DHTDBStats 
 {
-		/**
-		 * Uptime of the latest router instance
-		 * @return
-		 */
-	
 	public long
-	getRouterUptime();
-	
-		/**
-		 * Number of routers instantiated - new one created if our external IP changes
-		 * @return
-		 */
+	getSize();
 	
 	public int
-	getRouterCount();
+	getKeyCount();
 }

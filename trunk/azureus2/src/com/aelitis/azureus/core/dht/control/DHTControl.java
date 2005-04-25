@@ -76,6 +76,9 @@ DHTControl
 		byte[]					key,
 		DHTOperationListener	listener );
 	
+	public DHTControlStats
+	getStats();
+	
 	public DHTTransport
 	getTransport();
 	

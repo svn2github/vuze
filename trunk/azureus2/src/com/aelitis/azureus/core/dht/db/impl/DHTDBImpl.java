@@ -49,10 +49,8 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 public class 
 DHTDBImpl
-	implements DHTDB
-{
-	private static final int	MAX_ENTRIES_PER_MAPPING	= 1;
-	
+	implements DHTDB, DHTDBStats
+{	
 	private int			original_republish_interval;
 	
 		// the grace period gives the originator time to republish their data as this could involve
@@ -86,7 +84,7 @@ DHTDBImpl
 		original_republish_interval		= _original_republish_interval;
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
-		
+				
 		Timer	timer = new Timer("DHT refresher");
 		
 		timer.addPeriodicEvent(
@@ -419,6 +417,20 @@ DHTDBImpl
 	isEmpty()
 	{
 		return( getSize() == 0 );
+	}
+	
+	public int
+	getKeyCount()
+	{
+		try{
+			this_mon.enter();
+
+			return( stored_values.size());
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public long
@@ -834,6 +846,12 @@ DHTDBImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	public DHTDBStats
+	getStats()
+	{
+		return( this );
 	}
 	
 	public void

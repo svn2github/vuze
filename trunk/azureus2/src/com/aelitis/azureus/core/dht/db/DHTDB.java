@@ -108,6 +108,9 @@ DHTDB
 	public Iterator
 	getKeys();
 	
+	public DHTDBStats
+	getStats();
+	
 	public void
 	print();
 }

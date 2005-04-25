@@ -66,7 +66,7 @@ DHTControlImpl
 	
 	private DHTDB			database;
 	
-	private DHTControlStats	stats;
+	private DHTControlStatsImpl	stats;
 	
 	private LoggerChannel	logger;
 	
@@ -133,7 +133,7 @@ DHTControlImpl
 
 		node_id_byte_count	= router.getID().length;
 
-		stats = new DHTControlStats( this );
+		stats = new DHTControlStatsImpl( this );
 		
 		transport.setRequestHandler( this );
 	
@@ -257,6 +257,12 @@ DHTControlImpl
 	getRouterCount()
 	{
 		return( router_count );
+	}
+	
+	public DHTControlStats
+	getStats()
+	{
+		return( stats );
 	}
 	
 	public DHTTransport
