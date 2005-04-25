@@ -1539,11 +1539,7 @@ PEPeerTransportProtocol
     connection.getOutgoingMessageQueue().registerQueueListener( new OutgoingMessageQueue.MessageQueueListener() {
       public boolean messageAdded( Message message ) {  return true;  }
       
-      public void messageQueued( Message message ) {
-        if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) { // is sending piece data
-          connection.enableEnhancedMessageProcessing( true );  //so make sure we use a fast handler
-        }
-      }
+      public void messageQueued( Message message ) { /* ignore */ }
       
       public void messageRemoved( Message message ) { /*ignore*/ }
         
@@ -1554,8 +1550,11 @@ PEPeerTransportProtocol
         if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
           last_data_message_sent_time = SystemTime.getCurrentTime();
         }
-        
-        if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) { // is done sending piece data
+
+        if( message.getID().equals( BTMessage.ID_BT_UNCHOKE ) ) { // is about to send piece data
+          connection.enableEnhancedMessageProcessing( true );  //so make sure we use a fast handler
+        }
+        else if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) { // is done sending piece data
           connection.enableEnhancedMessageProcessing( false );  //so downgrade back to normal handler
         }
         
