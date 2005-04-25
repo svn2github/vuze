@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
+import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
@@ -768,6 +769,9 @@ MainWindow
     }
     COConfigurationManager.addParameterListener("Show Download Basket", this);
     COConfigurationManager.addParameterListener("GUI_SWT_bFancyTab", this);
+    
+    checkForWhatsNewWindow();
+        
     
     Tab.addTabKeyListenerToComposite(folder);
     
@@ -1830,4 +1834,20 @@ MainWindow
 			writer.exdent();
 		}
 	}
+  
+  private void checkForWhatsNewWindow() {
+    try {
+      String versionStr  = MessageText.getString("window.welcome.version");
+      int version = Integer.parseInt(versionStr);
+      int latestDisplayed = COConfigurationManager.getIntParameter("welcome.version.lastshown",0);
+      if(latestDisplayed < version) {
+        new WelcomeWindow();
+        COConfigurationManager.setParameter("welcome.version.lastshown",version);
+        COConfigurationManager.save();
+      }      
+    } catch(Exception e) {
+      //DOo Nothing
+    }    
+  }
+  
 }

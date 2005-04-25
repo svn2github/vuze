@@ -435,7 +435,7 @@ public class MainMenu {
       });
       
       MenuItem help_whatsnew = new MenuItem(helpMenu, SWT.NULL);
-      Messages.setLanguageText(help_whatsnew, "MyTorrentsView.menu.whatsnew");
+      Messages.setLanguageText(help_whatsnew, "MainWindow.menu.help.releasenotes");
       help_whatsnew.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
           new WelcomeWindow();
