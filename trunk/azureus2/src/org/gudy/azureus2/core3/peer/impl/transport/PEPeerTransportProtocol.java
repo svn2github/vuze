@@ -148,7 +148,7 @@ PEPeerTransportProtocol
   
   
   private boolean is_optimistic_unchoke = false;
-  
+  private long consecutive_keep_alives = 0;
   
   
   
@@ -1455,6 +1455,17 @@ PEPeerTransportProtocol
           last_data_message_received_time = SystemTime.getCurrentTime();
         }
         
+        if( message.getID().equals( BTMessage.ID_BT_KEEP_ALIVE ) ) {
+          message.destroy();
+          consecutive_keep_alives++;
+          if( consecutive_keep_alives > 10 ) {  //TODO proper limit?
+            System.out.println( PEPeerTransportProtocol.this.toString()+ " dropped: Too many consecutive keep-alive messages received." );
+            closeConnection( "Too many consecutive keep-alive messages received.", false );
+          }
+          return true;
+        }
+        consecutive_keep_alives = 0;
+        
         if( message.getID().equals( BTMessage.ID_BT_HANDSHAKE ) ) {
           decodeBTHandshake( (BTHandshake)message );
           return true;
@@ -1513,13 +1524,7 @@ PEPeerTransportProtocol
           decodeCancel( (BTCancel)message );
           return true;
         }
-        
-        if( message.getID().equals( BTMessage.ID_BT_KEEP_ALIVE ) ) {
-          //do nothing
-          message.destroy();
-          return true;
-        }       
-        
+
         return false;
       }
       
