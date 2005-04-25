@@ -776,6 +776,13 @@ public class GlobalManagerImpl
   
   	throws GlobalManagerDownloadRemovalVetoException
   {
+	  	// simple protection against people calling this twice
+	  
+	  if ( !managers_cow.contains( manager )){
+		  
+		  return;
+	  }
+	  
   	canDownloadManagerBeRemoved( manager );
   	
     try{
