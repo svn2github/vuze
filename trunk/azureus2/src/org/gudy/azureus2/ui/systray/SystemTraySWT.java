@@ -270,7 +270,7 @@ public class SystemTraySWT {
                 }
               }
 
-              delta += (valuePair[0] >= 100) ? 50 : (delta >= 10) ? 10 : (delta >= 6) ? 2 : 1;
+              delta += (delta >= 50) ? 50 : (delta >= 10) ? 10 : (delta >= 5) ? 5 : (delta >= 2) ? 3 : 1;
         }
     }
 

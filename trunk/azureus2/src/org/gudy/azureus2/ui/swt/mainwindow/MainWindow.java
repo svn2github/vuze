@@ -531,7 +531,7 @@ MainWindow
             }
           }
           
-          iRel += (iRel >= 10) ? 10 : (iRel >= 6) ? 2 : 1;
+          iRel += (iRel >= 50) ? 50 : (iRel >= 10) ? 10 : (iRel >= 5) ? 5 : (iRel >= 2) ? 3 : 1;
         }
         
       }
@@ -592,7 +592,7 @@ MainWindow
             }
           }
           
-          iRel += (iAboveBelow[0] >= 100) ? 50 : (iRel >= 10) ? 10 : (iRel >= 6) ? 2 : 1;
+          iRel += (iRel >= 50) ? 50 : (iRel >= 10) ? 10 : (iRel >= 5) ? 5 : (iRel >= 2) ? 3 : 1;
         }
         
       }
