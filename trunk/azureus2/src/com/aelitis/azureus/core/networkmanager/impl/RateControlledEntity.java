@@ -1,7 +1,7 @@
 /*
- * Created on Apr 21, 2005
+ * Created on Sep 27, 2004
  * Created by Alon Rohter
- * Copyright (C) 2005 Aelitis, All Rights Reserved.
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,37 +22,35 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
-
 /**
- * Interface designation for rate-limited entities handled by a read controller.
+ * Interface designation for rate-limited entities controlled by a handler.
  */
-public interface RateControlledReadEntity {
-
-    /**
-     * Uses fair round-robin scheduling of read ops.
-     */
-    public static final int PRIORITY_NORMAL = 0;
-    
-    /**
-     * Guaranteed scheduling of read ops, with preference over normal-priority entities.
-     */
-    public static final int PRIORITY_HIGH   = 1;
-    
-    /**
-     * Is ready for a read op.
-     * @return true if it can read >0 bytes, false if not ready
-     */
-    public boolean canRead();
-    
-    /**
-     * Attempt to do a read operation.
-     * @return true if >0 bytes were read (success), false if 0 bytes were read (failure)
-     */
-    public boolean doRead();
-    
-    /**
-     * Get this entity's priority level.
-     * @return priority
-     */
-    public int getPriority();
+public interface RateControlledEntity {
+  /**
+   * Uses fair round-robin scheduling of processing ops.
+   */
+  public static final int PRIORITY_NORMAL = 0;
+  
+  /**
+   * Guaranteed scheduling of processing ops, with preference over normal-priority entities.
+   */
+  public static final int PRIORITY_HIGH   = 1;
+  
+  /**
+   * Is ready for a processing op.
+   * @return true if it can process >0 bytes, false if not ready
+   */
+  public boolean canProcess();
+  
+  /**
+   * Attempt to do a processing operation.
+   * @return true if >0 bytes were processed (success), false if 0 bytes were processed (failure)
+   */
+  public boolean doProcessing();
+  
+  /**
+   * Get this entity's priority level.
+   * @return priority
+   */
+  public int getPriority();
 }

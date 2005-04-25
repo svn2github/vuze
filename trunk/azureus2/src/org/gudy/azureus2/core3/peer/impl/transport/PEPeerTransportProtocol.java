@@ -1163,7 +1163,7 @@ PEPeerTransportProtocol
 
     if( !az_messaging_mode ) {  //otherwise we'll do this after receiving az handshake
      
-      connection.getIncomingMessageQueue().startQueueProcessing();  //HACK: because BT decoder is auto-paused after initial handshake, so it doesn't accidentally decode the next AZ message
+      connection.getIncomingMessageQueue().resumeQueueProcessing();  //HACK: because BT decoder is auto-paused after initial handshake, so it doesn't accidentally decode the next AZ message
              
       changePeerState( PEPeer.TRANSFERING );
       
@@ -1455,62 +1455,64 @@ PEPeerTransportProtocol
           last_data_message_received_time = SystemTime.getCurrentTime();
         }
         
-        if( message.getID().equals( BTMessage.ID_BT_HANDSHAKE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_HANDSHAKE ) ) {
           decodeBTHandshake( (BTHandshake)message );
           return true;
         }
         
-        if( message.getID().equals( AZMessage.ID_AZ_HANDSHAKE ) && message.getVersion() == AZMessage.AZ_DEFAULT_VERSION ) {
+        if( message.getID().equals( AZMessage.ID_AZ_HANDSHAKE ) ) {
           decodeAZHandshake( (AZHandshake)message );
           return true;
         }
 
-        if( message.getID().equals( BTMessage.ID_BT_BITFIELD ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_BITFIELD ) ) {
           decodeBitfield( (BTBitfield)message );
           return true;
         }
          
-        if( message.getID().equals( BTMessage.ID_BT_CHOKE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_CHOKE ) ) {
           decodeChoke( (BTChoke)message );
+          connection.enableEnhancedMessageProcessing( false );  //downgrade back to normal handler
           return true;
         }
         
-        if( message.getID().equals( BTMessage.ID_BT_UNCHOKE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_UNCHOKE ) ) {
           decodeUnchoke( (BTUnchoke)message );
+          connection.enableEnhancedMessageProcessing( true );  //make sure we use a fast handler for the resulting download
           return true;
         }
         
-        if( message.getID().equals( BTMessage.ID_BT_INTERESTED ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_INTERESTED ) ) {
           decodeInterested( (BTInterested)message );
           return true;
         }
         
-        if( message.getID().equals( BTMessage.ID_BT_UNINTERESTED ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_UNINTERESTED ) ) {
           decodeUninterested( (BTUninterested)message );
           return true;
         }
         
-        if( message.getID().equals( BTMessage.ID_BT_HAVE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_HAVE ) ) {
           decodeHave( (BTHave)message );
           return true;
         }
         
-        if( message.getID().equals( BTMessage.ID_BT_REQUEST ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_REQUEST ) ) {
           decodeRequest( (BTRequest)message );
           return true;
         }
         
-        if( message.getID().equals( BTMessage.ID_BT_PIECE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
           decodePiece( (BTPiece)message );
           return true;
         }
         
-        if( message.getID().equals( BTMessage.ID_BT_CANCEL ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_CANCEL ) ) {
           decodeCancel( (BTCancel)message );
           return true;
         }
         
-        if( message.getID().equals( BTMessage.ID_BT_KEEP_ALIVE ) && message.getVersion() == BTMessage.BT_DEFAULT_VERSION ) {
+        if( message.getID().equals( BTMessage.ID_BT_KEEP_ALIVE ) ) {
           //do nothing
           message.destroy();
           return true;

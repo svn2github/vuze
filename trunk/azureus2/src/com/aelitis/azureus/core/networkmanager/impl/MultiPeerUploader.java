@@ -39,7 +39,7 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  * round-robin write scheduling, where connections each take turns writing a
  * single full packet per round.
  */
-public class MultiPeerUploader implements RateControlledWriteEntity {
+public class MultiPeerUploader implements RateControlledEntity {
   private static final int FLUSH_CHECK_LOOP_TIME = 500;  //500ms
   private static final int FLUSH_WAIT_TIME = 3*1000;  //3sec no-new-data wait before forcing write flush
   private long last_flush_check_time = 0;
@@ -365,20 +365,23 @@ public class MultiPeerUploader implements RateControlledWriteEntity {
   
   //////////////// RateControlledWriteEntity implementation ////////////////////
   
-  public boolean canWrite() {
+  public boolean canProcess() {
     flushCheck();  //since this method is called repeatedly from a loop, we can use it to check flushes
 
     if( ready_connections.isEmpty() )  return false;  //no data to send
-    if( rate_handler.getCurrentNumBytesAllowed() < 1 )  return false;  //not allowed to send
+    if( rate_handler.getCurrentNumBytesAllowed() < 1/*NetworkManager.getTcpMssSize()*/ )  return false;
     return true;
   }
   
-  public boolean doWrite() {
-    return write( rate_handler.getCurrentNumBytesAllowed() ) > 0 ? true : false;
+  public boolean doProcessing() {
+    int num_bytes_allowed = rate_handler.getCurrentNumBytesAllowed();
+    if( num_bytes_allowed < 1 )  return false;
+    
+    return write( num_bytes_allowed ) > 0 ? true : false;
   }
 
   public int getPriority() {
-    return RateControlledWriteEntity.PRIORITY_HIGH;
+    return RateControlledEntity.PRIORITY_HIGH;
   }
   
  ///////////////////////////////////////////////////////////////////////////////

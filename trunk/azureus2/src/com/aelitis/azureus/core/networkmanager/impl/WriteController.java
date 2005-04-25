@@ -113,23 +113,23 @@ public class WriteController {
   
   
   private boolean doNormalPriorityWrite() {
-    RateControlledWriteEntity ready_entity = getNextReadyNormalPriorityEntity();
-    if( ready_entity != null && ready_entity.doWrite() ) {
+    RateControlledEntity ready_entity = getNextReadyNormalPriorityEntity();
+    if( ready_entity != null && ready_entity.doProcessing() ) {
       return true;
     }
     return false;
   }
   
   private boolean doHighPriorityWrite() {
-    RateControlledWriteEntity ready_entity = getNextReadyHighPriorityEntity();
-    if( ready_entity != null && ready_entity.doWrite() ) {
+    RateControlledEntity ready_entity = getNextReadyHighPriorityEntity();
+    if( ready_entity != null && ready_entity.doProcessing() ) {
       return true;
     }
     return false;
   }
   
   
-  private RateControlledWriteEntity getNextReadyNormalPriorityEntity() {
+  private RateControlledEntity getNextReadyNormalPriorityEntity() {
     ArrayList ref = normal_priority_entities;
     
     int size = ref.size();
@@ -137,10 +137,10 @@ public class WriteController {
 
     while( num_checked < size ) {
       next_normal_position = next_normal_position >= size ? 0 : next_normal_position;  //make circular
-      RateControlledWriteEntity entity = (RateControlledWriteEntity)ref.get( next_normal_position );
+      RateControlledEntity entity = (RateControlledEntity)ref.get( next_normal_position );
       next_normal_position++;
       num_checked++;
-      if( entity.canWrite() ) {  //is ready
+      if( entity.canProcess() ) {  //is ready
         return entity;
       }
     }
@@ -149,7 +149,7 @@ public class WriteController {
   }
   
   
-  private RateControlledWriteEntity getNextReadyHighPriorityEntity() {
+  private RateControlledEntity getNextReadyHighPriorityEntity() {
     ArrayList ref = high_priority_entities;
     
     int size = ref.size();
@@ -157,10 +157,10 @@ public class WriteController {
 
     while( num_checked < size ) {
       next_high_position = next_high_position >= size ? 0 : next_high_position;  //make circular
-      RateControlledWriteEntity entity = (RateControlledWriteEntity)ref.get( next_high_position );
+      RateControlledEntity entity = (RateControlledEntity)ref.get( next_high_position );
       next_high_position++;
       num_checked++;
-      if( entity.canWrite() ) {  //is ready
+      if( entity.canProcess() ) {  //is ready
         return entity;
       }
     }
@@ -174,9 +174,9 @@ public class WriteController {
    * Add the given entity to the controller for write processing.
    * @param entity to process writes for
    */
-  public void addWriteEntity( RateControlledWriteEntity entity ) {
+  public void addWriteEntity( RateControlledEntity entity ) {
     try {  entities_mon.enter();
-      if( entity.getPriority() == RateControlledWriteEntity.PRIORITY_HIGH ) {
+      if( entity.getPriority() == RateControlledEntity.PRIORITY_HIGH ) {
         //copy-on-write
         ArrayList high_new = new ArrayList( high_priority_entities.size() + 1 );
         high_new.addAll( high_priority_entities );
@@ -199,9 +199,9 @@ public class WriteController {
    * Remove the given entity from the controller.
    * @param entity to remove from write processing
    */
-  public void removeWriteEntity( RateControlledWriteEntity entity ) {
+  public void removeWriteEntity( RateControlledEntity entity ) {
     try {  entities_mon.enter();
-      if( entity.getPriority() == RateControlledWriteEntity.PRIORITY_HIGH ) {
+      if( entity.getPriority() == RateControlledEntity.PRIORITY_HIGH ) {
         //copy-on-write
         ArrayList high_new = new ArrayList( high_priority_entities );
         high_new.remove( entity );

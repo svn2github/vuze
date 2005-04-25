@@ -111,23 +111,23 @@ public class ReadController {
   
   
   private boolean doNormalPriorityRead() {
-    RateControlledReadEntity ready_entity = getNextReadyNormalPriorityEntity();
-    if( ready_entity != null && ready_entity.doRead() ) {
+    RateControlledEntity ready_entity = getNextReadyNormalPriorityEntity();
+    if( ready_entity != null && ready_entity.doProcessing() ) {
       return true;
     }
     return false;
   }
   
   private boolean doHighPriorityRead() {
-    RateControlledReadEntity ready_entity = getNextReadyHighPriorityEntity();
-    if( ready_entity != null && ready_entity.doRead() ) {
+    RateControlledEntity ready_entity = getNextReadyHighPriorityEntity();
+    if( ready_entity != null && ready_entity.doProcessing() ) {
       return true;
     }
     return false;
   }
   
   
-  private RateControlledReadEntity getNextReadyNormalPriorityEntity() {
+  private RateControlledEntity getNextReadyNormalPriorityEntity() {
     ArrayList ref = normal_priority_entities;
     
     int size = ref.size();
@@ -135,10 +135,10 @@ public class ReadController {
 
     while( num_checked < size ) {
       next_normal_position = next_normal_position >= size ? 0 : next_normal_position;  //make circular
-      RateControlledReadEntity entity = (RateControlledReadEntity)ref.get( next_normal_position );
+      RateControlledEntity entity = (RateControlledEntity)ref.get( next_normal_position );
       next_normal_position++;
       num_checked++;
-      if( entity.canRead() ) {  //is ready
+      if( entity.canProcess() ) {  //is ready
         return entity;
       }
     }
@@ -147,7 +147,7 @@ public class ReadController {
   }
   
   
-  private RateControlledReadEntity getNextReadyHighPriorityEntity() {
+  private RateControlledEntity getNextReadyHighPriorityEntity() {
     ArrayList ref = high_priority_entities;
     
     int size = ref.size();
@@ -155,10 +155,10 @@ public class ReadController {
 
     while( num_checked < size ) {
       next_high_position = next_high_position >= size ? 0 : next_high_position;  //make circular
-      RateControlledReadEntity entity = (RateControlledReadEntity)ref.get( next_high_position );
+      RateControlledEntity entity = (RateControlledEntity)ref.get( next_high_position );
       next_high_position++;
       num_checked++;
-      if( entity.canRead() ) {  //is ready
+      if( entity.canProcess() ) {  //is ready
         return entity;
       }
     }
@@ -172,9 +172,9 @@ public class ReadController {
    * Add the given entity to the controller for read processing.
    * @param entity to process reads for
    */
-  public void addReadEntity( RateControlledReadEntity entity ) {
+  public void addReadEntity( RateControlledEntity entity ) {
     try {  entities_mon.enter();
-      if( entity.getPriority() == RateControlledReadEntity.PRIORITY_HIGH ) {
+      if( entity.getPriority() == RateControlledEntity.PRIORITY_HIGH ) {
         //copy-on-write
         ArrayList high_new = new ArrayList( high_priority_entities.size() + 1 );
         high_new.addAll( high_priority_entities );
@@ -197,9 +197,9 @@ public class ReadController {
    * Remove the given entity from the controller.
    * @param entity to remove from read processing
    */
-  public void removeReadEntity( RateControlledReadEntity entity ) {
+  public void removeReadEntity( RateControlledEntity entity ) {
     try {  entities_mon.enter();
-      if( entity.getPriority() == RateControlledReadEntity.PRIORITY_HIGH ) {
+      if( entity.getPriority() == RateControlledEntity.PRIORITY_HIGH ) {
         //copy-on-write
         ArrayList high_new = new ArrayList( high_priority_entities );
         high_new.remove( entity );

@@ -168,14 +168,15 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
   
   public ByteBuffer destroy() {
+    is_paused = true;
+    destroyed = true;
+    
     try{
       throw new Exception( "btmessagedecoder::destroyed()" );  //TODO remove
     }
     catch( Throwable t ) {
       destroyed_trace = t;
     }
-
-    destroyed = true;
 
     int lbuff_read = 0;
     int pbuff_read = 0;

@@ -22,46 +22,40 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
-import java.io.IOException;
-
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.networkmanager.NetworkConnection;
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.*;
 
 
 /**
- * A fast write entity backed by a single peer connection.
+ * A fast read entity backed by a single peer connection.
  */
-public class SinglePeerUploader implements RateControlledEntity {
+public class SinglePeerDownloader implements RateControlledEntity {
   
   private final NetworkConnection connection;
   private final RateHandler rate_handler;
   
-  public SinglePeerUploader( NetworkConnection connection, RateHandler rate_handler ) {
+  public SinglePeerDownloader( NetworkConnection connection, RateHandler rate_handler ) {
     this.connection = connection;
     this.rate_handler = rate_handler;
   }
   
   
-////////////////RateControlledWriteEntity implementation ////////////////////
-  
+
   public boolean canProcess() {
-    if( !connection.getTCPTransport().isReadyForWrite() )  {
+    if( !connection.getTCPTransport().isReadyForRead() )  {
       return false;  //underlying transport not ready
     }
-    if( connection.getOutgoingMessageQueue().getTotalSize() < 1 ) {
-      return false;  //no data to send
-    }
     if( rate_handler.getCurrentNumBytesAllowed() < 1 ) {
-      return false;  //not allowed to send any bytes
+      return false;  //not allowed to receive any bytes
     }
     return true;
   }
   
+  
   public boolean doProcessing() {
-    if( !connection.getTCPTransport().isReadyForWrite() )  {
-      Debug.out("dW:not ready");
+    if( !connection.getTCPTransport().isReadyForRead() )  {
+      Debug.out("dR:not ready");
       return false;
     }
     
@@ -70,37 +64,46 @@ public class SinglePeerUploader implements RateControlledEntity {
       return false;
     }
     
-    int num_bytes_available = connection.getOutgoingMessageQueue().getTotalSize();
-    if( num_bytes_available < 1 ) {
-      Debug.out("dW:not avail");
-      return false;
-    }
+    if( num_bytes_allowed > NetworkManager.getTcpMssSize() )  num_bytes_allowed = NetworkManager.getTcpMssSize();
+
+    int bytes_read = 0;
     
-    int num_bytes_to_write = num_bytes_allowed > num_bytes_available ? num_bytes_available : num_bytes_allowed;
-    
-    int mss = NetworkManager.getTcpMssSize();
-    if( num_bytes_to_write > mss )  num_bytes_to_write = mss;
-    
-    int written = 0;
     try {
-      written = connection.getOutgoingMessageQueue().deliverToTransport( num_bytes_to_write, false );
+      bytes_read = connection.getIncomingMessageQueue().receiveFromTransport( num_bytes_allowed );
     }
-    catch( IOException e ) {
+    catch( Throwable e ) {
+      if( e.getMessage() == null ) {
+        Debug.out( "null read exception message: ", e );
+      }
+      else {
+        if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
+            e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+            e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
+            e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
+            
+          System.out.println( "SP: read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+        }
+        
+        if( e.getMessage().indexOf( "Direct buffer memory" ) != -1 ) {
+          Debug.out( "Direct buffer memory exception", e );
+        }
+      }
+          
       connection.notifyOfException( e );
     }
-    
-    if( written < 1 )  {
+
+    if( bytes_read < 1 )  {
       return false;
     }
     
-    rate_handler.bytesProcessed( written );
+    rate_handler.bytesProcessed( bytes_read );
     return true;
   }
+  
   
   public int getPriority() {
     return RateControlledEntity.PRIORITY_NORMAL;
   }
 
-/////////////////////////////////////////////////////////////////////////////
   
 }

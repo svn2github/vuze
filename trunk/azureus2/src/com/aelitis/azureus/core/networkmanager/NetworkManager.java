@@ -42,22 +42,48 @@ public class NetworkManager {
   
   private static final NetworkManager instance = new NetworkManager();
 
-  private static int tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
+  private static int tcp_mss_size;
+  private static int max_upload_rate_bps;
+  private static int max_download_rate_bps;
   static {
+    tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
     COConfigurationManager.addParameterListener( "network.tcp.mtu.size", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
       }
     });
+    
+    max_upload_rate_bps = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
+    if( max_upload_rate_bps <= 0 )  max_upload_rate_bps = UNLIMITED_RATE;
+    COConfigurationManager.addParameterListener( "Max Upload Speed KBs", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        max_upload_rate_bps = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
+        if( max_upload_rate_bps <= 0 )  max_upload_rate_bps = UNLIMITED_RATE;
+      }
+    });
+    
+    max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
+    if( max_download_rate_bps <= 0 )  max_download_rate_bps = UNLIMITED_RATE;
+    COConfigurationManager.addParameterListener( "Max Download Speed KBs", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
+        if( max_download_rate_bps <= 0 )  max_download_rate_bps = UNLIMITED_RATE;
+      }
+    });
   }
-  
+
   private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
   private final IncomingSocketChannelManager incoming_socketchannel_manager = new IncomingSocketChannelManager();
   private final WriteController write_controller = new WriteController();
   private final ReadController read_controller = new ReadController();
 
-  private final UploadProcessor upload_processor = new UploadProcessor();
-  private final DownloadProcessor download_processor = new DownloadProcessor();
+  
+  private final TransferProcessor upload_processor = new TransferProcessor( TransferProcessor.TYPE_UPLOAD, new LimitedRateGroup(){
+    public int getRateLimitBytesPerSecond() {  return max_upload_rate_bps;  }
+  });
+  private final TransferProcessor download_processor = new TransferProcessor( TransferProcessor.TYPE_DOWNLOAD, new LimitedRateGroup(){
+    public int getRateLimitBytesPerSecond() {  return max_download_rate_bps;  }
+  });
   
   
   
@@ -117,7 +143,7 @@ public class NetworkManager {
    * Add an upload entity for write processing.
    * @param entity to add
    */
-  public void addWriteEntity( RateControlledWriteEntity entity ) {
+  public void addWriteEntity( RateControlledEntity entity ) {
     write_controller.addWriteEntity( entity );
   }
   
@@ -126,7 +152,7 @@ public class NetworkManager {
    * Remove an upload entity from write processing.
    * @param entity to remove
    */
-  public void removeWriteEntity( RateControlledWriteEntity entity ) {
+  public void removeWriteEntity( RateControlledEntity entity ) {
     write_controller.removeWriteEntity( entity );
   }
   
@@ -135,7 +161,7 @@ public class NetworkManager {
    * Add a download entity for read processing.
    * @param entity to add
    */
-  public void addReadEntity( RateControlledReadEntity entity ) {
+  public void addReadEntity( RateControlledEntity entity ) {
     read_controller.addReadEntity( entity );
   }
   
@@ -144,7 +170,7 @@ public class NetworkManager {
    * Remove a download entity from read processing.
    * @param entity to remove
    */
-  public void removeReadEntity( RateControlledReadEntity entity ) {
+  public void removeReadEntity( RateControlledEntity entity ) {
     read_controller.removeReadEntity( entity );
   }  
   
@@ -194,14 +220,14 @@ public class NetworkManager {
    * Get the upload message processor.
    * @return processor
    */
-  public UploadProcessor getUploadProcessor() {  return upload_processor;  }
+  public TransferProcessor getUploadProcessor() {  return upload_processor;  }
   
   
   /**
    * Get the download message processor.
    * @return processor
    */
-  public DownloadProcessor getDownloadProcessor() {  return download_processor;  }
+  public TransferProcessor getDownloadProcessor() {  return download_processor;  }
   
   
   

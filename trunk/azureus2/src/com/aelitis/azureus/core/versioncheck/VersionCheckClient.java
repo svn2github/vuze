@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.versioncheck;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -35,7 +36,9 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.TCPTransport;
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 
 /**
@@ -191,23 +194,34 @@ public class VersionCheckClient {
       final StreamDecoder decoder = new StreamDecoder( "AZR" );
       final ByteBuffer[] reply = new ByteBuffer[1];
          
-      transport.startReadSelects( new TCPTransport.ReadListener() {
-        public void readyToRead() {
+      NetworkManager.getSingleton().getReadSelector().register( transport.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+        public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
           try {
             reply[0] = decoder.decode( transport );
             
             if( reply[0] != null ) {  //reading complete
+              NetworkManager.getSingleton().getReadSelector().cancel( transport.getSocketChannel() );
               block.release();
+            }
+            else {
+              NetworkManager.getSingleton().getReadSelector().resumeSelects( transport.getSocketChannel() );
             }
           }
           catch( Throwable t ) {
             errors[0] = t;
+            NetworkManager.getSingleton().getReadSelector().cancel( transport.getSocketChannel() );
             block.release();
           }
+          return true;
         }
-      });
-      
-      
+        
+        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
+          errors[0] = msg;
+          NetworkManager.getSingleton().getReadSelector().cancel( transport.getSocketChannel() );
+          block.release();
+        }
+      }, null );
+
       ByteBuffer message = ByteBuffer.wrap( BEncoder.encode( data_to_send ) );
       StreamEncoder encoder = new StreamEncoder( "AZH", message );
       

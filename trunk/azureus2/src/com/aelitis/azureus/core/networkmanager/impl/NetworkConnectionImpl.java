@@ -149,9 +149,11 @@ public class NetworkConnectionImpl implements NetworkConnection {
   public void enableEnhancedMessageProcessing( boolean enable ) {
     if( enable ) {
       NetworkManager.getSingleton().getUploadProcessor().upgradePeerConnection( this );
+      NetworkManager.getSingleton().getDownloadProcessor().upgradePeerConnection( this );
     }
     else {
       NetworkManager.getSingleton().getUploadProcessor().downgradePeerConnection( this );
+      NetworkManager.getSingleton().getDownloadProcessor().downgradePeerConnection( this );
     }
   }
   

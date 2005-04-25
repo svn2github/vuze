@@ -50,11 +50,9 @@ public class TCPTransport {
 
   private boolean is_ready_for_write = false;
   private boolean is_ready_for_read = false;
-  
   private Throwable write_select_failure = null;
-  
   private Throwable read_select_failure = null;
-  private ReadListener read_listener = null;
+
   
   private ConnectDisconnectManager.ConnectListener connect_request_key = null;
   private String description = "<disconnected>";
@@ -62,9 +60,7 @@ public class TCPTransport {
   private final boolean is_inbound_connection;
   
   private int transport_mode = TRANSPORT_MODE_NORMAL;
-  
 
-  
   public volatile boolean has_been_closed = false;
   public String has_been_closed_error = null;
 
@@ -236,41 +232,11 @@ public class TCPTransport {
     }
   } 
   
-  
-  
-  /**
-   * Enable transport read selection.
-   * @param listener to handle readiness
-   */
-  public void startReadSelects( ReadListener listener ) {
-    if( listener != null ) {
-      read_listener = listener;
-    }
 
-    if( socket_channel != null ) {
-      NetworkManager.getSingleton().getReadSelector().resumeSelects( socket_channel );
-    }
-    
-    //if( data_already_read != null && data_already_read.hasRemaining() ) {
-      //read_listener.readyToRead();  //force an initial read op   //TODO why does this cause failure?
-    //}
-  }
-
-  
-  /**
-   * Disable transport read selection.
-   */
-  public void stopReadSelects() {
-    if( socket_channel != null ){
-      NetworkManager.getSingleton().getReadSelector().pauseSelects( socket_channel );
-    }
-  }
-  
-  
   
   private void registerSelectHandling() {
     if( socket_channel == null ) {
-      Debug.out( "ERROR: registerSelectHandling():: socket_channel == null", new Exception("traceme") );
+      Debug.out( "ERROR: registerSelectHandling():: socket_channel == null" );
       return;
     }
 
@@ -278,18 +244,14 @@ public class TCPTransport {
     NetworkManager.getSingleton().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
         is_ready_for_read = true;
-        if( read_listener != null )  read_listener.readyToRead();
         return true;
       }
       
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
         read_select_failure = msg;
-        is_ready_for_read = true;
-        if( read_listener != null )  read_listener.readyToRead();  //so that the resulting read attempt will throw an exception
+        is_ready_for_read = true;  //set to true so that the next read attempt will throw an exception
       }
     }, null );
-
-    NetworkManager.getSingleton().getReadSelector().pauseSelects( socket_channel );
     
     
     //write selection
@@ -322,7 +284,6 @@ public class TCPTransport {
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
     if( read_select_failure != null ) {
       is_ready_for_read = false;
-      stopReadSelects();  //once an exception is thrown on read, disable any future reading
       throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
     }
     
@@ -397,7 +358,6 @@ public class TCPTransport {
     }
     catch( IOException ioe ) {
       is_ready_for_read = false;
-      stopReadSelects();  //once an exception is thrown on read, disable any future reading
       throw ioe;
     }
     catch( Throwable t ) {
@@ -408,7 +368,6 @@ public class TCPTransport {
     
     if( bytes_read < 0 ) {
       is_ready_for_read = false;
-      stopReadSelects();  //once an exception is thrown on read, disable any future reading
       throw new IOException( "end of stream on socket read" );
     }
     
@@ -460,14 +419,13 @@ public class TCPTransport {
         connect_request_key = null;
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
-        registerSelectHandling();
-
         if( use_proxy ) {  //proxy server connection established, login
           LGLogger.log( "Socket connection established to proxy server [" +description+ "], login initiated..." );
           
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
               LGLogger.log( "Proxy [" +description+ "] login successful." );
+              registerSelectHandling();
               listener.connectSuccess();
             }
             
@@ -477,6 +435,7 @@ public class TCPTransport {
           });
         }
         else {  //direct connection established, notify
+          registerSelectHandling();
           listener.connectSuccess();
         }
       }

@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -31,7 +32,9 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.TCPTransport;
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 
@@ -87,21 +90,30 @@ public class ProxyLoginHandler {
     this.proxy_listener = listener;
        
     if ( remote_address.isUnresolved() || remote_address.getAddress() == null ){
-    	
-    		// deal with long "hostnames" that we get for, e.g., I2P destinations
-    	
-    	mapped_ip = AEProxyFactory.getAddressMapper().internalise( remote_address.getHostName() );
-    
-    }else{
-    	
+      // deal with long "hostnames" that we get for, e.g., I2P destinations
+    	mapped_ip = AEProxyFactory.getAddressMapper().internalise( remote_address.getHostName() ); 
+    }
+    else{
     	mapped_ip = remote_address.getAddress().getHostName();
     }
     
     if( socks_version.equals( "V4" ) ) {
-      doSocks4Login();
+      try{
+        doSocks4Login( createSocks4Message() );
+      }
+      catch( Throwable t ) {
+        Debug.out( t );
+        proxy_listener.connectFailure( t );
+      }
     }
     else if( socks_version.equals( "V4a" ) ) {
-      doSocks4aLogin();
+      try{
+        doSocks4Login( createSocks4aMessage() );
+      }
+      catch( Throwable t ) {
+        Debug.out( t );
+        proxy_listener.connectFailure( t );
+      }
     }
     else {  //"V5"
       doSocks5Login();
@@ -109,68 +121,44 @@ public class ProxyLoginHandler {
     
   }
 
-  
-  
-  
-  
-  private void doSocks4Login() {
+
+  private void doSocks4Login( final ByteBuffer[] data ) {
     try {
-      final ByteBuffer[] data = createSocks4Message();
-      
-      proxy_connection.startReadSelects( new TCPTransport.ReadListener() {
-        public void readyToRead() {
+      //register for read ops
+      NetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+        public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
           try {
             boolean finished = readMessage( data[1] );
             
             if( finished ) {
-              proxy_connection.stopReadSelects();
+              NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
               parseSocks4Reply( data[1] );  //will throw exception on error
               proxy_listener.connectSuccess();
+            }
+            else {
+              NetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
             }
           }
           catch( Throwable t ) {
             Debug.out( t );
+            NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
           }
+          return true;
         }
-      });
-      
+        
+        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
+          Debug.out( msg );
+          NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+          proxy_listener.connectFailure( msg );
+        }
+      }, null );
+
       sendMessage( data[0] );
     }
     catch( Throwable t ) {
       Debug.out( t );
-      proxy_listener.connectFailure( t );
-    }
-  }
-  
-  
-  
-  private void doSocks4aLogin() {
-    try {
-      final ByteBuffer[] data = createSocks4aMessage();
-            
-      proxy_connection.startReadSelects( new TCPTransport.ReadListener() {
-        public void readyToRead() {
-          try {
-            boolean finished = readMessage( data[1] );
-            
-            if( finished ) {
-              proxy_connection.stopReadSelects();
-              parseSocks4Reply( data[1] );  //will throw exception on error
-              proxy_listener.connectSuccess();
-            }
-          }
-          catch( Throwable t ) {
-            Debug.out( t );
-            proxy_listener.connectFailure( t );
-          }
-        }
-      });
-      
-      sendMessage( data[0] );
-    }
-    catch( Throwable t ) {
-      Debug.out( t );
+      NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
       proxy_listener.connectFailure( t );
     }
   }
@@ -185,8 +173,9 @@ public class ProxyLoginHandler {
       data.add( header[0] );  //message
       data.add( header[1] );  //reply buff
       
-      proxy_connection.startReadSelects( new TCPTransport.ReadListener() {
-        public void readyToRead() {  //new reply came in
+      //register for read ops
+      NetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+        public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
           try {
             boolean finished = readMessage( (ByteBuffer)data.get(1) );  
             
@@ -194,7 +183,7 @@ public class ProxyLoginHandler {
               boolean done = parseSocks5Reply( (ByteBuffer)data.get(1) );  //will throw exception on error
 
               if( done ) {
-                proxy_connection.stopReadSelects();
+                NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
                 proxy_listener.connectSuccess();
               }
               else {
@@ -203,20 +192,33 @@ public class ProxyLoginHandler {
                 data.set( 1, raw[1] );                
                 
                 if( raw[0] != null )  sendMessage( raw[0] );
+                NetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
               }
+            }
+            else {
+              NetworkManager.getSingleton().getReadSelector().resumeSelects( proxy_connection.getSocketChannel() );  //resume read ops
             }
           }
           catch( Throwable t ) {
             Debug.out( t );
+            NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
           }
+          return true;
         }
-      });
-      
+        
+        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
+          Debug.out( msg );
+          NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+          proxy_listener.connectFailure( msg );
+        }
+      }, null );
+
       sendMessage( (ByteBuffer)data.get(0) );  //send initial handshake to get things started
     }
     catch( Throwable t ) {
       Debug.out( t );
+      NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
       proxy_listener.connectFailure( t );
     }
   }

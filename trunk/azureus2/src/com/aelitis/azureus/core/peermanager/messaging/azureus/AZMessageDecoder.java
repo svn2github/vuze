@@ -147,6 +147,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
 
 
   public ByteBuffer destroy() {
+    is_paused = true;
     destroyed = true;
 
     int lbuff_read = 0;

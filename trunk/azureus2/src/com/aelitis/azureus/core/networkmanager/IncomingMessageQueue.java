@@ -60,15 +60,10 @@ public class IncomingMessageQueue {
    * @param new_stream_decoder to use
    */
   public void setDecoder( MessageStreamDecoder new_stream_decoder ) {
-    stopQueueProcessing();
-    
     ByteBuffer already_read = stream_decoder.destroy();
-    
     connection.getTCPTransport().setAlreadyRead( already_read );
-    
     stream_decoder = new_stream_decoder;
-    
-    startQueueProcessing();
+    stream_decoder.resumeDecoding();
   }
   
   
@@ -193,29 +188,17 @@ public class IncomingMessageQueue {
     }
   }
   
-  
-  
+ 
   
   /**
-   * Start processing (reading) incoming messages.
+   * Manually resume processing (reading) incoming messages.
+   * NOTE: Allows us to resume docoding externally, in case it was auto-paused internally.
    */
-  public void startQueueProcessing() {
-    stream_decoder.resumeDecoding();  //this allows us to resume docoding externally, in case it was auto-paused internally
-    connection.getTCPTransport().startReadSelects( null );
+  public void resumeQueueProcessing() {
+    stream_decoder.resumeDecoding();
   }
   
 
-  
-  /**
-   * Stop processing (reading) incoming messages.
-   */
-  public void stopQueueProcessing() {
-    connection.getTCPTransport().stopReadSelects();
-    stream_decoder.pauseDecoding();  //disallow decoding
-  }
-  
-  
-  
   
   /**
    * Add a listener to be notified of queue events.
@@ -254,15 +237,11 @@ public class IncomingMessageQueue {
    * Destroy this queue.
    */
   public void destroy() {
-    stopQueueProcessing();
     stream_decoder.destroy();
   }
   
   
-  
 
-  
-  
   
   /**
    * For notification of queue events.
