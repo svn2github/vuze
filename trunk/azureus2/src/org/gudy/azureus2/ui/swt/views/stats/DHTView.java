@@ -90,8 +90,13 @@ public class DHTView extends AbstractIView {
   DHTControlActivity[] activities;
 
   public DHTView() {
+    init();
+  }
+  
+  private void init() {
     try {
       dht = ((DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin()).getDHT();
+      if(dht == null) return;
       
       controlStats = dht.getControl().getStats();
       dbStats = dht.getDataBase().getStats();
@@ -387,7 +392,10 @@ public class DHTView extends AbstractIView {
   }
   
   public void refresh() {    
-    if(dht == null) return;
+    if(dht == null) { 
+      init();
+      return;
+    }
     
     inGraph.refresh();
     outGraph.refresh();

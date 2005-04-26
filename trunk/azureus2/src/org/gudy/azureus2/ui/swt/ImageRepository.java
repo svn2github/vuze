@@ -78,7 +78,9 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/speed.gif", "speed");
     loadImage(display, "org/gudy/azureus2/ui/icons/openFolder16x12.gif", "openFolderButton");
     loadImage(display, "org/gudy/azureus2/ui/icons/forcestart.gif", "forcestart");
-
+    loadImage(display, "org/gudy/azureus2/ui/icons/greenled.gif", "greenled");
+    loadImage(display, "org/gudy/azureus2/ui/icons/redled.gif", "redled");
+    loadImage(display, "org/gudy/azureus2/ui/icons/yellowled.gif", "yellowled");
     //ToolBar Icons
 
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open.gif", "cb_open");

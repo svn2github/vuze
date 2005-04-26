@@ -104,6 +104,7 @@ MainWindow
   
   //Package visibility for GUIUpdater
   CLabel ipBlocked;
+  CLabel dhtStatus;
   CLabel statusDown;
   CLabel statusUp;
   
@@ -348,7 +349,7 @@ MainWindow
     
 
     GridLayout layout_status = new GridLayout();
-    layout_status.numColumns = 4;
+    layout_status.numColumns = 5;
     layout_status.horizontalSpacing = 1;
     layout_status.verticalSpacing = 0;
     layout_status.marginHeight = 0;
@@ -443,12 +444,18 @@ MainWindow
     
     layoutStatusAera.topControl = statusText;
     
-    
+ 
+    dhtStatus = new CLabel(statusBar,borderFlag);
+    dhtStatus.setText("");
+    gridData = new GridData();
+    gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
+    dhtStatus.setLayoutData(gridData);
+    dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.tooltip"));
     
     gridData = new GridData();
 
     if( Constants.isLinux ) gridData.widthHint = 255;
-    else gridData.widthHint = 225;
+    else gridData.widthHint = 225;        
     
     ipBlocked = new CLabel(statusBar, borderFlag);
     ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
@@ -482,7 +489,8 @@ MainWindow
 
     statusDown.addListener(SWT.MouseDoubleClick,lStats);
     statusUp.addListener(SWT.MouseDoubleClick,lStats);
-
+    dhtStatus.addListener(SWT.MouseDoubleClick,lStats);
+    
     final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);
     menuUpSpeed.addListener(SWT.Show,new Listener() {
       public void handleEvent(Event e) {

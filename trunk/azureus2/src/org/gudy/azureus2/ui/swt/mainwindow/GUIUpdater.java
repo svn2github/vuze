@@ -22,11 +22,14 @@
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.text.NumberFormat;
 import java.util.Iterator;
 
 import org.eclipse.swt.widgets.Display;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -34,6 +37,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Tab;
 import org.gudy.azureus2.ui.swt.views.IView;
@@ -45,6 +49,8 @@ import org.gudy.azureus2.ui.swt.views.IView;
 public class GUIUpdater extends AEThread implements ParameterListener {
   
   private AzureusCore		azureus_core;
+  private DHTPlugin     dhtPlugin;
+  private NumberFormat  numberFormat;
   private MainWindow 		mainWindow;
   private Display 			display;
   
@@ -62,7 +68,8 @@ public class GUIUpdater extends AEThread implements ParameterListener {
     azureus_core		= _azureus_core;
     this.mainWindow = mainWindow;
     this.display = mainWindow.getDisplay();
-    
+    this.numberFormat = NumberFormat.getInstance();
+    this.dhtPlugin = (DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin();      
     setPriority(Thread.MAX_PRIORITY -2);
     COConfigurationManager.addParameterListener("GUI Refresh", this);
   }
@@ -110,18 +117,40 @@ public class GUIUpdater extends AEThread implements ParameterListener {
             		"{"+
 					DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime()) + 
 					"} IPs: " + 
-					ip_filter.getNbRanges() + 
+          numberFormat.format(ip_filter.getNbRanges()) + 
 					" - " + 
-					ip_filter.getNbIpsBlocked() + 
+          numberFormat.format(ip_filter.getNbIpsBlocked()) + 
 					"/" +
-					ip_filter.getNbBannedIps() +
+          numberFormat.format(ip_filter.getNbBannedIps()) +
 					"/" + 
-					azureus_core.getIpFilterManager().getBadIps().getNbBadIps());
+          numberFormat.format(azureus_core.getIpFilterManager().getBadIps().getNbBadIps()));
 					
-            int	ul_limit = COConfigurationManager.getIntParameter("Max Upload Speed KBs");
-            int	dl_limit = COConfigurationManager.getIntParameter("Max Download Speed KBs");
             
-       
+               
+        if(dhtPlugin.getStatus() == DHTPlugin.STATUS_DISABLED) {
+          mainWindow.dhtStatus.setImage(ImageRepository.getImage("redled"));
+          mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.disabled"));
+        } else
+        if(dhtPlugin.getStatus() == DHTPlugin.STATUS_INITALISING) {
+          mainWindow.dhtStatus.setImage(ImageRepository.getImage("yellowled"));
+          mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.initializing"));
+        } else
+        if(dhtPlugin.getStatus() == DHTPlugin.STATUS_FAILED) {
+          mainWindow.dhtStatus.setImage(ImageRepository.getImage("redled"));
+          mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.failed"));
+        } else
+        if(dhtPlugin.getStatus() == DHTPlugin.STATUS_RUNNING) {
+          mainWindow.dhtStatus.setImage(ImageRepository.getImage("greenled"));
+          if(dhtPlugin.getDHT() == null) {
+            mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.running"));
+          } else {
+            mainWindow.dhtStatus.setText(numberFormat.format(dhtPlugin.getDHT().getControl().getStats().getEstimatedDHTSize()) + " " + MessageText.getString("MainWindow.dht.status.users"));
+          }            
+        }
+        
+        int ul_limit = COConfigurationManager.getIntParameter("Max Upload Speed KBs");
+        int dl_limit = COConfigurationManager.getIntParameter("Max Download Speed KBs");
+        
 		    mainWindow.statusDown.setText(
 		    		MessageText.getString("ConfigView.download.abbreviated") + " " + 
 					(dl_limit==0?"":"[" + dl_limit + "K] " ) +
