@@ -427,7 +427,7 @@ public class DHTView extends AbstractIView {
     colType.setWidth(70);
     
     TableColumn colName =  new TableColumn(activityTable,SWT.LEFT);
-    Messages.setLanguageText(colName,"DHTView.activity.name");
+    Messages.setLanguageText(colName,"DHTView.activity.target");
     colName.setWidth(150);
     
     TableColumn colDetails =  new TableColumn(activityTable,SWT.LEFT);
