@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -44,7 +43,6 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import sun.management.StringFlag;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
@@ -54,8 +52,6 @@ import com.aelitis.azureus.core.dht.db.DHTDBStats;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
-import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
-import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 /**
@@ -64,11 +60,6 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 public class DHTView extends AbstractIView {
   
   DHT dht;
-  DHTControlStats controlStats;
-  DHTDBStats dbStats;
-  DHTTransportStats transportStats;
-  DHTRouterStats routerStats;
-  DHTTransportFullStats fullStats;
   
   Composite panel;
   
@@ -103,12 +94,6 @@ public class DHTView extends AbstractIView {
     try {
       dht = ((DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin()).getDHT();
       if(dht == null) return;
-      
-      controlStats = dht.getControl().getStats();
-      dbStats = dht.getDataBase().getStats();
-      transportStats = dht.getTransport().getStats();
-      routerStats = dht.getRouter().getStats();
-      fullStats = dht.getTransport().getLocalContact().getStats();
       
     } catch(Exception e) {
       Debug.printStackTrace( e );
@@ -479,6 +464,8 @@ public class DHTView extends AbstractIView {
   }  
   
   private void refreshGeneral() {
+    DHTControlStats controlStats = dht.getControl().getStats();
+    DHTRouterStats routerStats = dht.getRouter().getStats();
     lblUpTime.setText(TimeFormatter.format(controlStats.getRouterUptime() / 1000));
     lblNumberOfUsers.setText("" + controlStats.getEstimatedDHTSize());
     long[] stats = routerStats.getStats();
@@ -495,6 +482,7 @@ public class DHTView extends AbstractIView {
   
   private void refreshDB() {    
     if(refreshIter == 0) {
+	  DHTDBStats    dbStats = dht.getDataBase().getStats();
       lblKeys.setText("" + dbStats.getKeyCount());  
       int[] stats = dbStats.getValueDetails();
       lblValues.setText("" + stats[DHTDBStats.VD_VALUE_COUNT]);
@@ -511,13 +499,15 @@ public class DHTView extends AbstractIView {
   }
 
   private void refreshTransportDetails() {
+    DHTTransportStats   transportStats = dht.getTransport().getStats();
     lblReceivedBytes.setText(DisplayFormatters.formatByteCountToKiBEtc(transportStats.getBytesReceived()));
     lblSentBytes.setText(DisplayFormatters.formatByteCountToKiBEtc(transportStats.getBytesSent()));
     lblReceivedPackets.setText("" + transportStats.getPacketsReceived());
     lblSentPackets.setText("" + transportStats.getPacketsSent());
   }
   
-  private void refreshOperationDetails() {    
+  private void refreshOperationDetails() {   
+    DHTTransportStats   transportStats = dht.getTransport().getStats();
     long[] pings = transportStats.getPings();
     for(int i = 0 ; i < 4 ; i++) {
       lblPings[i].setText("" + pings[i]);
@@ -547,6 +537,8 @@ public class DHTView extends AbstractIView {
   
   public void periodicUpdate() {
     if(dht == null) return;
+    
+    DHTTransportFullStats fullStats = dht.getTransport().getLocalContact().getStats();
     inGraph.addIntValue((int)fullStats.getAverageBytesReceived());
     outGraph.addIntValue((int)fullStats.getAverageBytesSent());
   }

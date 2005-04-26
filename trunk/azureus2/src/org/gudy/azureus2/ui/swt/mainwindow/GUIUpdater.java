@@ -28,7 +28,6 @@ import java.util.Iterator;
 import org.eclipse.swt.widgets.Display;
 
 import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -127,7 +126,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 					
             
                
-        if(dhtPlugin.getStatus() == DHTPlugin.STATUS_DISABLED) {
+        if( dhtPlugin == null || dhtPlugin.getStatus() == DHTPlugin.STATUS_DISABLED) {
           mainWindow.dhtStatus.setImage(ImageRepository.getImage("redled"));
           mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.disabled"));
         } else
@@ -141,7 +140,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
         } else
         if(dhtPlugin.getStatus() == DHTPlugin.STATUS_RUNNING) {
           mainWindow.dhtStatus.setImage(ImageRepository.getImage("greenled"));
-          if(dhtPlugin.getDHT() == null) {
+          if(dhtPlugin.getDHT() == null || dhtPlugin.getDHT().getControl().getStats().getEstimatedDHTSize() == 0 ) {
             mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.running"));
           } else {
             mainWindow.dhtStatus.setText(numberFormat.format(dhtPlugin.getDHT().getControl().getStats().getEstimatedDHTSize()) + " " + MessageText.getString("MainWindow.dht.status.users"));

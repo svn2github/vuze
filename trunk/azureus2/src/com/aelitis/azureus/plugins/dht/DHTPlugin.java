@@ -1204,14 +1204,6 @@ outer:
 	public int
 	getStatus()
 	{
-			// keep the status as initialising until we have a value to report for the estimated
-			// dht size
-		
-		if ( status == STATUS_RUNNING && dht.getControl().getStats().getEstimatedDHTSize() == 0 ){
-		
-			return( STATUS_INITALISING );
-		}
-		
 		return( status );
 	}
 	
