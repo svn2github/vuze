@@ -1460,7 +1460,7 @@ PEPeerTransportProtocol
           consecutive_keep_alives++;
           if( consecutive_keep_alives > 50 ) {  //TODO proper limit?
             System.out.println( PEPeerTransportProtocol.this.toString()+ " dropped: Too many consecutive keep-alive messages received." );
-            closeConnection( "Too many consecutive keep-alive messages received.", false );
+            closeConnection( "Too many [>50] consecutive keep-alive messages received.", false );
           }
           return true;
         }
