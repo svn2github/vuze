@@ -51,6 +51,7 @@ import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
+import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
@@ -66,6 +67,7 @@ public class DHTView extends AbstractIView {
   DHTDBStats dbStats;
   DHTTransportStats transportStats;
   DHTRouterStats routerStats;
+  DHTTransportFullStats fullStats;
   
   Composite panel;
   
@@ -95,6 +97,7 @@ public class DHTView extends AbstractIView {
       dbStats = dht.getDataBase().getStats();
       transportStats = dht.getTransport().getStats();
       routerStats = dht.getRouter().getStats();
+      fullStats = dht.getTransport().getLocalContact().getStats();
       
     } catch(Exception e) {
       Debug.printStackTrace( e );
@@ -441,6 +444,12 @@ public class DHTView extends AbstractIView {
     activities = dht.getControl().getActivities();
     activityTable.setItemCount(activities.length);
     activityTable.redraw();
+  }
+  
+  public void periodicUpdate() {
+    if(dht == null) return;
+    inGraph.addIntValue((int)fullStats.getAverageBytesReceived());
+    outGraph.addIntValue((int)fullStats.getAverageBytesSent());
   }
   
   public String getData() {

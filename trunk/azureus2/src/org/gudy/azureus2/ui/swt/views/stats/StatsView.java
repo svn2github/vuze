@@ -71,7 +71,8 @@ public class StatsView extends AbstractIView {
         bContinue = true;
         while(bContinue) {   
           ((ActivityView)viewActivity).periodicUpdate();
-          ((CacheView)viewCache).periodicUpdate();          
+          ((CacheView)viewCache).periodicUpdate(); 
+          ((DHTView)viewDHT).periodicUpdate();
           Thread.sleep(1000);
         }
       } catch(Exception e) {
