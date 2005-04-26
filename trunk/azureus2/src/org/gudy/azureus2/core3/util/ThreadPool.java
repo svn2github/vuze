@@ -330,7 +330,23 @@ outer:
 											}
 										}
 										
-										runnable.run();
+										if ( runnable instanceof ThreadPoolTask ){
+										
+											ThreadPoolTask	tpt = (ThreadPoolTask)runnable;
+											
+											try{
+												tpt.taskStarted();
+												
+												runnable.run();
+												
+											}finally{
+												
+												tpt.taskCompleted();
+											}
+										}else{
+											
+											runnable.run();
+										}
 										
 									}catch( Throwable e ){
 										

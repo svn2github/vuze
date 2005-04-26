@@ -134,5 +134,13 @@ DHTControl
 		byte[]		n2 );
 	
 	public void
+	addListener(
+		DHTControlListener	l );
+	
+	public void
+	removeListener(
+		DHTControlListener	l );
+	
+	public void
 	print();
 }

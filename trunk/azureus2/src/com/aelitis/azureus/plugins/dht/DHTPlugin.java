@@ -82,6 +82,11 @@ public class
 DHTPlugin
 	implements Plugin
 {
+	public static final int			STATUS_DISABLED			= 1;
+	public static final int			STATUS_INITALISING		= 2;
+	public static final int			STATUS_RUNNING			= 3;
+	public static final int			STATUS_FAILED			= 4;
+	
 	public static final byte		FLAG_SINGLE_VALUE	= DHT.FLAG_SINGLE_VALUE;
 	public static final byte		FLAG_DOWNLOADING	= DHT.FLAG_DOWNLOADING;
 	public static final byte		FLAG_SEEDING		= DHT.FLAG_SEEDING;
@@ -99,6 +104,7 @@ DHTPlugin
 		
 	private PluginInterface		plugin_interface;
 	
+	private int					status		= STATUS_INITALISING;
 	private DHT					dht;
 	private DHTTransportUDP		transport;
 	private long				integrated_time;
@@ -370,6 +376,8 @@ DHTPlugin
 			
 			model.getStatus().setText( "Disabled" );
 
+			status	= STATUS_DISABLED;
+			
 			init_sem.releaseForever();
 			
 			return;
@@ -566,6 +574,8 @@ DHTPlugin
 
 									integrateDHT( true );
 									
+									status = STATUS_RUNNING;
+									
 									model.getStatus().setText( "Running" );
 																		
 								}catch( Throwable e ){
@@ -575,9 +585,13 @@ DHTPlugin
 									log.log( "DHT integrtion fails", e );
 									
 									model.getStatus().setText( "DHT Integration fails: " + Debug.getNestedExceptionMessage( e ));
+									
+									status	= STATUS_FAILED;
 								}
 							}else{
 								
+								status	= STATUS_DISABLED;
+
 								model.getStatus().setText( "Disabled administratively due to network problems" );
 							}
 						}finally{
@@ -1181,6 +1195,12 @@ outer:
 		}
 	}
 
+	public int
+	getStatus()
+	{
+		return( status );
+	}
+	
 	public DHT
 	getDHT()
 	{

@@ -1,7 +1,7 @@
 /*
- * Created on 11-Jul-2004
+ * Created on 26-Apr-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,42 +20,18 @@
  *
  */
 
-package org.gudy.azureus2.core3.util;
+package com.aelitis.azureus.core.dht.control;
 
-/**
- * @author parg
- *
- */
-
-public abstract class 
-ThreadPoolTask
-	extends AERunnable
+public interface 
+DHTControlListener 
 {
-	protected ThreadPool.threadPoolWorker		worker;
+	public static final int	CT_ADDED	= 1;
+	public static final int	CT_CHANGED	= 2;
+	public static final int	CT_REMOVED	= 3;
 	
 	public void
-	setTaskState(
-		String		state )
-	{
-		worker.setState( state );
-	}
-	
-	public String
-	getTaskState()
-	{
-		return( worker.getState());
-	}
-	
-	public abstract void
-	interruptTask();
-	
-	public void
-	taskStarted()
-	{
-	}
-	
-	public void
-	taskCompleted()
-	{
-	}
+	activityChanged(
+		DHTControlActivity	activity,
+		int					type );
+
 }

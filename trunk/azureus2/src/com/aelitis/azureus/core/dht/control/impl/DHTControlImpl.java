@@ -27,13 +27,15 @@ import java.math.BigInteger;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.ListenerManager;
+import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.ThreadPool;
+import org.gudy.azureus2.core3.util.ThreadPoolTask;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
@@ -90,6 +92,28 @@ DHTControlImpl
 	private Map			imported_state	= new HashMap();
 	
 	private long		last_lookup;
+	
+	private long		last_dht_estimate_time;
+	private long		dht_estimate;
+
+	private ListenerManager	listeners 	= ListenerManager.createAsyncManager(
+			"DHTControl:listenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		_listener,
+					int			type,
+					Object		value )
+				{
+					DHTControlListener	target = (DHTControlListener)_listener;
+			
+					target.activityChanged((DHTControlActivity)value, type );
+				}
+			});
+
+	private List		activities		= new ArrayList();
+	private AEMonitor	activity_mon	= new AEMonitor( "DHTControl:activities" );
 	
 	public
 	DHTControlImpl(
@@ -509,7 +533,7 @@ DHTControlImpl
 				// we don't want this to be blocking as it'll stuff the stats
 			
 			external_lookup_pool.run(
-				new task()
+				new task(external_lookup_pool)
 				{
 					public void
 					runSupport()
@@ -960,7 +984,7 @@ DHTControlImpl
 		final lookupResultHandler	handler )
 	{
 		thread_pool.run(
-			new task()
+			new task(thread_pool)
 			{
 				public void
 				runSupport()
@@ -1862,38 +1886,47 @@ DHTControlImpl
 		return( 0 );
 	}
 	
+	public void
+	addListener(
+		DHTControlListener	l )
+	{
+		try{
+			activity_mon.enter();
+			
+			listeners.addListener( l );
+			
+			for (int i=0;i<activities.size();i++){
+				
+				listeners.dispatch( DHTControlListener.CT_ADDED, activities.get(i));
+			}
+			
+		}finally{
+			
+			activity_mon.exit();
+		}
+	}
+	
+	public void
+	removeListener(
+		DHTControlListener	l )
+	{
+		listeners.removeListener( l );	
+	}
+		
 	public DHTControlActivity[]
 	getActivities()
 	{
-		List	res = new ArrayList();
+		List	res;
 		
-		ThreadPool[]	pools = 
-			new ThreadPool[]{ 
-					internal_lookup_pool, 
-					internal_put_pool,
-					external_lookup_pool,
-					external_put_pool };
+		try{
+			
+			activity_mon.enter();
+			
+			res = new ArrayList( activities );
+			
+		}finally{
 		
-		
-		for (int i=0;i<pools.length;i++){
-			
-				// running tasks first so we don't possibly get the same task twice
-				// due to it starting between calls
-			
-			AERunnable[]	tasks = pools[i].getRunningTasks();
-			
-			for (int j=0;j<tasks.length;j++){
-				
-				res.add( new controlActivity(pools[i], (task)tasks[j], false));
-			}
-			
-			tasks = pools[i].getQueuedTasks();
-			
-			for (int j=0;j<tasks.length;j++){
-				
-				res.add( new controlActivity(pools[i], (task)tasks[j], true));
-			}
-
+			activity_mon.exit();
 		}
 		
 		DHTControlActivity[]	x = new DHTControlActivity[res.size()];
@@ -1906,48 +1939,57 @@ DHTControlImpl
 	public long
 	getEstimatedDHTSize()
 	{
-		List	l = getClosestKContactsList( router.getID(), false );
+		long	now = SystemTime.getCurrentTime();
+		
+		long	diff = now - last_dht_estimate_time;
+		
+		if ( diff < 0 || diff > 60*1000 ){
+			
+			last_dht_estimate_time	= now;
+		
+			List	l = getClosestKContactsList( router.getID(), false );
+					
+			/*
+			<Gudy> if you call N0 yourself, N1 the nearest peer, N2 the 2nd nearest peer ... Np the pth nearest peer that you know (for example, N1 .. N20)
+			<Gudy> and if you call D1 the Kad distance between you and N1, D2 between you and N2 ...
+			<Gudy> then you have to compute :
+			<Gudy> Dc = sum(i * Di) / sum( i * i)
+			<Gudy> and then :
+			<Gudy> NbPeers = 2^160 / Dc
+			*/
+			
+			BigInteger	sum1 = new BigInteger("0");
+			BigInteger	sum2 = new BigInteger("0");
+			
+				// first entry should be us
+			
+			byte[]	our_id = router.getID();
+			
+			for (int i=1;i<l.size();i++){
 				
-		/*
-		<Gudy> if you call N0 yourself, N1 the nearest peer, N2 the 2nd nearest peer ... Np the pth nearest peer that you know (for example, N1 .. N20)
-		<Gudy> and if you call D1 the Kad distance between you and N1, D2 between you and N2 ...
-		<Gudy> then you have to compute :
-		<Gudy> Dc = sum(i * Di) / sum( i * i)
-		<Gudy> and then :
-		<Gudy> NbPeers = 2^160 / Dc
-		*/
-		
-		BigInteger	sum1 = new BigInteger("0");
-		BigInteger	sum2 = new BigInteger("0");
-		
-			// first entry should be us
-		
-		byte[]	our_id = router.getID();
-		
-		for (int i=1;i<l.size();i++){
+				DHTTransportContact	node = (DHTTransportContact)l.get(i);
+				
+				byte[]	dist = computeDistance( our_id, node.getID());
+				
+				BigInteger b_dist = IDToBigInteger( dist );
+				
+				BigInteger	b_i = new BigInteger(""+i);
+				
+				sum1 = sum1.add( b_i.multiply(b_dist));
+				
+				sum2 = sum2.add( b_i.multiply( b_i ));
+			}
 			
-			DHTTransportContact	node = (DHTTransportContact)l.get(i);
+			byte[]	max = new byte[our_id.length+1];
 			
-			byte[]	dist = computeDistance( our_id, node.getID());
+			max[0] = 0x01;
 			
-			BigInteger b_dist = IDToBigInteger( dist );
+			dht_estimate = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
 			
-			BigInteger	b_i = new BigInteger(""+i);
-			
-			sum1 = sum1.add( b_i.multiply(b_dist));
-			
-			sum2 = sum2.add( b_i.multiply( b_i ));
+			// System.out.println( "getEstimatedDHTSize: " + res );
 		}
 		
-		byte[]	max = new byte[our_id.length+1];
-		
-		max[0] = 0x01;
-		
-		long	res = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
-		
-		// System.out.println( "getEstimatedDHTSize: " + res );
-
-		return( res );
+		return( dht_estimate );
 	}
 	
 	protected BigInteger
@@ -2214,8 +2256,64 @@ DHTControlImpl
 	
 	protected abstract class
 	task
-		extends AERunnable
+		extends ThreadPoolTask
 	{
+		private controlActivity	activity;
+		
+		protected 
+		task(
+			ThreadPool	thread_pool )
+		{
+			activity = new controlActivity( thread_pool, this, true );
+
+			try{
+				
+				activity_mon.enter();
+				
+				activities.add( activity );
+								
+				listeners.dispatch( DHTControlListener.CT_ADDED, activity );
+
+				System.out.println( "activity added:" + activities.size());
+				
+			}finally{
+			
+				activity_mon.exit();
+			}
+		}
+		
+		public void
+		taskStarted()
+		{
+			listeners.dispatch( DHTControlListener.CT_CHANGED, activity );
+			
+			System.out.println( "activity changed:" + activities.size());
+
+		}
+		
+		public void
+		taskCompleted()
+		{
+			try{		
+				activity_mon.enter();
+				
+				activities.remove( activity );
+
+				listeners.dispatch( DHTControlListener.CT_REMOVED, activity );
+			
+				System.out.println( "activity removed:" + activities.size());
+
+			}finally{
+				
+				activity_mon.exit();
+			}	
+		}
+		
+		public void
+		interruptTask()
+		{
+		}
+		
 		public abstract String
 		getName();
 	}
