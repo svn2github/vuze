@@ -147,8 +147,8 @@ public class TransferStatsView extends AbstractIView {
     sessionTime.setText( DisplayFormatters.formatETA( totalStats.getSessionUpTime() ) );
     totalTime.setText( DisplayFormatters.formatETA( totalStats.getTotalUpTime() ) );
     
-    long t_ratio_raw = (1000* totalStats.getUploadedBytes() / totalStats.getDownloadedBytes() );
-    long s_ratio_raw = (1000* session_total_sent / session_total_received );
+    long t_ratio_raw = (1000* totalStats.getUploadedBytes() / (totalStats.getDownloadedBytes()+1) );
+    long s_ratio_raw = (1000* session_total_sent / (session_total_received+1) );
     
     String t_ratio = "";
     String s_ratio = "";
