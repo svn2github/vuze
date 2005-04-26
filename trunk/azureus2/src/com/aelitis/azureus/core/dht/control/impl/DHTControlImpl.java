@@ -140,6 +140,10 @@ DHTControlImpl
 		lookup_concurrency				= _lookup_concurrency;
 		cache_at_closest_n				= _cache_at_closest_n;
 		
+			// set this so we don't do initial calculation until reasonably populated
+		
+		last_dht_estimate_time	= SystemTime.getCurrentTime();
+		
 		database = DHTDBFactory.create( 
 						adapter.getStorageAdapter(),
 						_original_republish_interval,
@@ -2018,6 +2022,13 @@ DHTControlImpl
 			max[0] = 0x01;
 			
 			dht_estimate = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
+			
+				// there's always us!!!!
+			
+			if ( dht_estimate < 1 ){
+				
+				dht_estimate	= 1;
+			}
 			
 			// System.out.println( "getEstimatedDHTSize: " + res );
 		}

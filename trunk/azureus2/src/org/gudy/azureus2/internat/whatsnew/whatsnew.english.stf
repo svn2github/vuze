@@ -20,14 +20,14 @@ $
  Joltid Peer Cache (JPC) is now integrated into Azureus. For users whose ISP support this, JPC should allow faster downloads, while helping the ISP reduce its bandwidth costs. The JPC Plugin is safe in the way that your ISP won't know what you are downloading, and can't use it to spy on you. The JPC plugin can be disabled through Tools > Options > Plugins > JPC.
   
 !1.4 Featured Plugins
- The DHT and the Extended Protocol allowed us to develop some new plugins, which we believe are nice. We won't auto install them for you, but we recommend all users who might be interested in them to install them using the Plugins > Installation Wizard menu.
+ The Distributed Database and the Extended Protocol allowed us to develop some new plugins. We won't auto install them for you, but we recommend all users who might be interested in them to install them using the Plugins > Installation Wizard menu.
  
 *1.4.1 Chat
  This plugin will create a discussion channel for each torrent you are downloading. Each channel is independent, and you are free to discuss whatever you want inside the channel. This plugin makes use of the Extended Protocol. Developers of other clients willing to implement the chat functionality in their client are welcome to take a look at the very simple protocol used and described here : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
- You can also create/join an arbitrary channel by typing in its name inside the plugin. This will have the effect of creating a "virtual" torrent, with no seeds, in order to allow users to create connections to chat. The "virtual" torrents make use of the DHT as their tracker, so while you can use the Chat Plugin without the DHT, you won't be able to use the virtual channel feature if you disable the DHT.
+ You can also create/join an arbitrary channel by typing in its name inside the plugin. This will have the effect of creating a "virtual" torrent, with no seeds, in order to allow users to create connections to chat. The "virtual" torrents make use of the Distributed Database as their tracker, so while you can use the Chat Plugin without the Distributed Database, you won't be able to use the virtual channel feature if you disable the Distributed Database.
  
 *1.4.2 Ratings & Comments
- This plugin will allow you to see ratings & comments from other users, as well as rate and comment a torrent yourself (right click the torrent in "My Torrents" then choose "ratings & comments". This plugin uses the DHT, so you need to have the DHT enabled for it to work.
+ This plugin will allow you to see ratings & comments from other users, as well as rate and comment a torrent yourself (right click the torrent in "My Torrents" then choose "ratings & comments". This plugin uses the Distributed Database, so you need to have the Distributed Database enabled for it to work.
  
 
 +2. Upgrade Advice
