@@ -2274,7 +2274,7 @@ DHTControlImpl
 								
 				listeners.dispatch( DHTControlListener.CT_ADDED, activity );
 
-				System.out.println( "activity added:" + activities.size());
+				// System.out.println( "activity added:" + activities.size());
 				
 			}finally{
 			
@@ -2287,8 +2287,7 @@ DHTControlImpl
 		{
 			listeners.dispatch( DHTControlListener.CT_CHANGED, activity );
 			
-			System.out.println( "activity changed:" + activities.size());
-
+			//System.out.println( "activity changed:" + activities.size());
 		}
 		
 		public void
@@ -2301,7 +2300,7 @@ DHTControlImpl
 
 				listeners.dispatch( DHTControlListener.CT_REMOVED, activity );
 			
-				System.out.println( "activity removed:" + activities.size());
+				// System.out.println( "activity removed:" + activities.size());
 
 			}finally{
 				
