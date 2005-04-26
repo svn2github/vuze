@@ -141,8 +141,6 @@ public class TCPTransport {
    * @throws IOException on write error
    */
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-    if( !is_ready_for_write )  return 0;
-    
     if( socket_channel == null ) {
       Debug.out( "socket_channel == null" );
       return 0;
@@ -286,10 +284,9 @@ public class TCPTransport {
       is_ready_for_read = false;
       throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
     }
-    
-    if( !is_ready_for_read )  return 0;
-    
+
     if( socket_channel == null ) {
+      Debug.out( "socket_channel == null" );
       return 0;
     }
     

@@ -22,19 +22,16 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.HostNameToIPResolver;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.TCPTransport;
-import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
+import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 
@@ -226,12 +223,12 @@ public class ProxyLoginHandler {
   
   
   
-  private void parseSocks4Reply( ByteBuffer reply ) throws Exception {
+  private void parseSocks4Reply( ByteBuffer reply ) throws IOException {
       byte ver = reply.get();
       byte resp = reply.get();
 
       if( ver != 0 || resp != 90 ) {
-        throw new Exception( "SOCKS4(a) connection declined [" +ver+ "/" + resp + "]" );
+        throw new IOException( "SOCKS4(a) connection declined [" +ver+ "/" + resp + "]" );
       }
   }
   
@@ -239,7 +236,7 @@ public class ProxyLoginHandler {
   
   
 
-  private void sendMessage( ByteBuffer msg ) throws Exception {
+  private void sendMessage( ByteBuffer msg ) throws IOException {
     long start_time = SystemTime.getCurrentTime();
     
     while( msg.hasRemaining() ) {
@@ -247,7 +244,7 @@ public class ProxyLoginHandler {
         if( SystemTime.getCurrentTime() - start_time > 30*1000 ) {
           String error = "proxy message send timed out after 30sec";
           Debug.out( error );
-          throw new Exception( error );
+          throw new IOException( error );
         }
         
         try {   Thread.sleep( 10 );   }catch( Throwable t ) {t.printStackTrace();}
@@ -257,7 +254,7 @@ public class ProxyLoginHandler {
   
   
   
-  private boolean readMessage( ByteBuffer msg ) throws Exception {
+  private boolean readMessage( ByteBuffer msg ) throws IOException {
     if( read_start_time == 0 )  read_start_time = SystemTime.getCurrentTime();
     
     proxy_connection.read( new ByteBuffer[]{ msg }, 0, 1 );
@@ -271,7 +268,7 @@ public class ProxyLoginHandler {
     if( SystemTime.getCurrentTime() - read_start_time > 30*1000 ) {
       String error = "proxy message read timed out after 30sec";
       Debug.out( error );
-      throw new Exception( error );
+      throw new IOException( error );
     }
     
     return false;
@@ -338,7 +335,7 @@ public class ProxyLoginHandler {
     ByteBuffer handshake = ByteBuffer.allocate( 256 + mapped_ip.length() );
 
     if( socks5_handshake_phase == 0 ) {  // say hello
-      System.out.println( "socks5 write phase 0" );
+      //System.out.println( "socks5 write phase 0" );
       
       handshake.put( (byte)5 ); // socks 5
       handshake.put( (byte)2 ); // 2 methods
@@ -352,7 +349,7 @@ public class ProxyLoginHandler {
     }
     
     if( socks5_handshake_phase == 1 ) {  // user/password auth
-      System.out.println( "socks5 write phase 1" );
+      //System.out.println( "socks5 write phase 1" );
       
       handshake.put( (byte)1 ); // user/pw version
       handshake.put( (byte)socks_user.length() ); // user length
@@ -367,7 +364,7 @@ public class ProxyLoginHandler {
     }
     
     if( socks5_handshake_phase == 2 ) {  // request
-      System.out.println( "socks5 write phase 2" );
+      //System.out.println( "socks5 write phase 2" );
       
       handshake.put( (byte)5 ); // version
       handshake.put( (byte)1 ); // connect
@@ -400,7 +397,7 @@ public class ProxyLoginHandler {
       return new ByteBuffer[] { handshake, ByteBuffer.allocate( 5 ) };
     }
     
-    System.out.println( "socks5 write phase 3..." );
+    //System.out.println( "socks5 write phase 3..." );
     
     //reply has to be processed in two parts as it has variable length component at the end
     //socks5_handshake_phase == 3, part two
@@ -410,15 +407,15 @@ public class ProxyLoginHandler {
   
   
   
-  private boolean parseSocks5Reply( ByteBuffer reply ) throws Exception {
+  private boolean parseSocks5Reply( ByteBuffer reply ) throws IOException {
     if( socks5_handshake_phase == 1 ) { // reply from hello
-      System.out.println( "socks5 read phase 1" );
+      //System.out.println( "socks5 read phase 1" );
       
       reply.get();  // version byte
       byte method = reply.get();
 
       if( method != 0 && method != 2 ) {
-        throw new Exception( "SOCKS5 no valid method [" + method + "]" );
+        throw new IOException( "SOCKS5 no valid method [" + method + "]" );
       }
 
       // no auth -> go to request phase
@@ -430,13 +427,13 @@ public class ProxyLoginHandler {
     }
     
     if( socks5_handshake_phase == 2 ) {  // reply from auth
-      System.out.println( "socks5 read phase 2" );
+      //System.out.println( "socks5 read phase 2" );
       
       reply.get();  // version byte
       byte status = reply.get();
 
       if( status != 0 ) {
-        throw new Exception( "SOCKS authentication fails [" +status+ "]" );
+        throw new IOException( "SOCKS authentication fails [" +status+ "]" );
       }
 
       return false;
@@ -444,7 +441,7 @@ public class ProxyLoginHandler {
     
     
     if( socks5_handshake_phase == 3 ) {   // reply from request, first part
-      System.out.println( "socks5 read phase 3" );
+      //System.out.println( "socks5 read phase 3" );
       
       reply.get();  // version byte
       byte rep = reply.get();
@@ -461,7 +458,7 @@ public class ProxyLoginHandler {
             "Command not supported",
             "Address type not supported" };
         String error_msg = rep < error_msgs.length ? error_msgs[ rep ] : "Unknown error";
-        throw new Exception( "SOCKS request failure [" + error_msg + "/" + rep + "]" );
+        throw new IOException( "SOCKS request failure [" + error_msg + "/" + rep + "]" );
       }
 
       reply.get();  // reserved byte
@@ -482,7 +479,8 @@ public class ProxyLoginHandler {
       return false;
     }
     
-    System.out.println( "socks5 read phase 4..." );
+    //System.out.println( "socks5 read phase 4..." );
+    
     //socks5_handshake_phase 4
     //reply from request, last part
     return true;  //only done AFTER last part of request reply has been read from stream
