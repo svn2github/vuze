@@ -148,8 +148,9 @@ DHTTransportUDPImpl
 		
 		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
 		
-		InetSocketAddress	address = 
-			new InetSocketAddress( getExternalAddress(false,"127.0.0.1", logger), port );
+		getExternalAddress( "127.0.0.1", logger );
+		
+		InetSocketAddress	address = new InetSocketAddress( external_address, port );
 
 		logger.log( "Initial external address: " + address );
 		
@@ -211,9 +212,8 @@ DHTTransportUDPImpl
 		}
 	}
 	
-	protected String
+	protected void
 	getExternalAddress(
-		boolean				force,
 		String				default_address,
 		final LoggerChannel	log )
 	{
@@ -223,126 +223,120 @@ DHTTransportUDPImpl
 		try{
 			class_mon.enter();
 			
-			if ( force || external_address == null ){
+			String new_external_address = null;
+			
+			try{				
+				log.log( "Obtaining external address" );
 				
-				String new_external_address = null;
-				
-				try{
+				if ( TEST_EXTERNAL_IP ){
 					
-					log.log( "Obtaining external address" );
+					new_external_address	= "192.168.0.2";
 					
-					if ( TEST_EXTERNAL_IP ){
-						
-						new_external_address	= "192.168.0.2";
-						
-						log.log( "    External IP address obtained from test data: " + new_external_address );
-					}
-										
-					if ( new_external_address == null ){
+					log.log( "    External IP address obtained from test data: " + new_external_address );
+				}
+									
+				if ( new_external_address == null ){
 
-							// First attempt is via other contacts we know about. Select three
+						// First attempt is via other contacts we know about. Select three
+					
+					List	contacts;
+					
+					try{
+						this_mon.enter();
 						
-						List	contacts;
+						contacts = new ArrayList( contact_history.values());
 						
-						try{
-							this_mon.enter();
+					}finally{
+						
+						this_mon.exit();
+					}
+					
+						// randomly select up to 10 entries to ping until we 
+						// get three replies
+					
+					String	returned_address 	= null;
+					int		returned_matches	= 0;
+					
+					int		search_lim = Math.min(10, contacts.size());
+					
+					log.log( "    Contacts to search = " + search_lim );
+					
+					for (int i=0;i<search_lim;i++){
+						
+						DHTTransportUDPContactImpl	contact = (DHTTransportUDPContactImpl)contacts.remove((int)(contacts.size()*Math.random()));
+													
+						InetSocketAddress a = askContactForExternalAddress( contact );
+						
+						if ( a != null && a.getAddress() != null ){
 							
-							contacts = new ArrayList( contact_history.values());
+							String	ip = a.getAddress().getHostAddress();
 							
-						}finally{
-							
-							this_mon.exit();
-						}
-						
-							// randomly select up to 10 entries to ping until we 
-							// get three replies
-						
-						String	returned_address 	= null;
-						int		returned_matches	= 0;
-						
-						int		search_lim = Math.min(10, contacts.size());
-						
-						log.log( "    Contacts to search = " + search_lim );
-						
-						for (int i=0;i<search_lim;i++){
-							
-							DHTTransportUDPContactImpl	contact = (DHTTransportUDPContactImpl)contacts.remove((int)(contacts.size()*Math.random()));
-														
-							InetSocketAddress a = askContactForExternalAddress( contact );
-							
-							if ( a != null && a.getAddress() != null ){
+							if ( returned_address == null ){
 								
-								String	ip = a.getAddress().getHostAddress();
+								returned_address = ip;
+																	
+								log.log( "    : contact " + contact.getString() + " reported external address as '" + ip + "'" );
 								
-								if ( returned_address == null ){
+								returned_matches++;
+								
+							}else if ( returned_address.equals( ip )){
+								
+								returned_matches++;
+								
+								log.log( "    : contact " + contact.getString() + " also reported external address as '" + ip + "'" );
+								
+								if ( returned_matches == 3 ){
 									
-									returned_address = ip;
-																		
-									log.log( "    : contact " + contact.getString() + " reported external address as '" + ip + "'" );
+									new_external_address	= returned_address;
 									
-									returned_matches++;
-									
-								}else if ( returned_address.equals( ip )){
-									
-									returned_matches++;
-									
-									log.log( "    : contact " + contact.getString() + " also reported external address as '" + ip + "'" );
-									
-									if ( returned_matches == 3 ){
-										
-										new_external_address	= returned_address;
-										
-										log.log( "    External IP address obtained from contacts: "  + returned_address );
-										
-										break;
-									}
-								}else{
-									
-									log.log( "    : contact " + contact.getString() + " reported external address as '" + ip + "', abandoning due to mismatch" );
-									
-										// mismatch - give up
+									log.log( "    External IP address obtained from contacts: "  + returned_address );
 									
 									break;
 								}
 							}else{
 								
-								log.log( "    : contact " + contact.getString() + " didn't reply" );
-							}
-						}
-
-					}
-					
-					if ( new_external_address == null ){
-				
-						new_external_address = logger.getLogger().getPluginInterface().getUtilities().getPublicAddress().getHostAddress();
-									
-						if ( new_external_address != null ){
+								log.log( "    : contact " + contact.getString() + " reported external address as '" + ip + "', abandoning due to mismatch" );
 								
-							log.log( "    External IP address obtained: " + new_external_address );
+									// mismatch - give up
+								
+								break;
+							}
+						}else{
+							
+							log.log( "    : contact " + contact.getString() + " didn't reply" );
 						}
 					}
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace( e );
+
 				}
-			
+				
 				if ( new_external_address == null ){
-				
-					new_external_address =	default_address;
-				
-					log.log( "    External IP address defaulted:  " + new_external_address );
+			
+					new_external_address = logger.getLogger().getPluginInterface().getUtilities().getPublicAddress().getHostAddress();
+								
+					if ( new_external_address != null ){
+							
+						log.log( "    External IP address obtained: " + new_external_address );
+					}
 				}
 				
-				if ( external_address == null || !external_address.equals( new_external_address )){
-					
-					informLocalAddress( new_external_address );
-				}
+			}catch( Throwable e ){
 				
-				external_address = new_external_address;
+				Debug.printStackTrace( e );
+			}
+		
+			if ( new_external_address == null ){
+			
+				new_external_address =	default_address;
+			
+				log.log( "    External IP address defaulted:  " + new_external_address );
 			}
 			
-			return( external_address );
+			if ( external_address == null || !external_address.equals( new_external_address )){
+				
+				informLocalAddress( new_external_address );
+			}
+			
+			external_address = new_external_address;
 			
 		}finally{
 			
@@ -447,9 +441,11 @@ DHTTransportUDPImpl
 			this_mon.exit();
 		}
 		
-		String	a = getExternalAddress( true, new_ip, logger );
+		String	old_external_address = external_address;
 		
-		if ( a.equals( external_address )){
+		getExternalAddress( new_ip, logger );
+		
+		if ( old_external_address.equals( external_address )){
 			
 				// address hasn't changed, notifier must be perceiving different address
 				// due to proxy or something
@@ -457,7 +453,7 @@ DHTTransportUDPImpl
 			return( true );
 		}
 		
-		InetSocketAddress	s_address = new InetSocketAddress( a, port );
+		InetSocketAddress	s_address = new InetSocketAddress( external_address, port );
 		
 		logger.log( "External address changed: " + s_address );
 		
