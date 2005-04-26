@@ -76,9 +76,14 @@ public class DHTView extends AbstractIView {
   Label lblNodes,lblLeaves;
   Label lblContacts,lblReplacements,lblLive,lblUnknown,lblDying;
 
+  Label lblKeys,lblValues;
+  Label lblLocal,lblDirect,lblIndirect;
+  Label lblDivFreq,lblDivSize;
+  
   Label lblReceivedPackets,lblReceivedBytes;
   Label lblSentPackets,lblSentBytes;
     
+  
   Label lblPings[] = new Label[4];
   Label lblFindNodes[] = new Label[4];
   Label lblFindValues[] = new Label[4];
@@ -117,8 +122,11 @@ public class DHTView extends AbstractIView {
     panel.setLayout(layout);
     
     initialiseGeneralGroup();
+    initialiseDBGroup();
+    
     initialiseTransportDetailsGroup();
     initialiseOperationDetailsGroup();
+    
     initialiseActivityGroup();
   }
   
@@ -126,8 +134,9 @@ public class DHTView extends AbstractIView {
     Group gGeneral = new Group(panel,SWT.NONE);
     Messages.setLanguageText(gGeneral,"DHTView.general.title");
     
-    GridData data = new GridData(GridData.FILL_HORIZONTAL);
+    GridData data = new GridData();
     data.verticalAlignment = SWT.BEGINNING;
+    data.widthHint = 350;
     gGeneral.setLayoutData(data);
     
     GridLayout layout = new GridLayout();
@@ -201,13 +210,74 @@ public class DHTView extends AbstractIView {
     lblDying.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));    
   }
   
+  private void initialiseDBGroup() {
+    Group gDB = new Group(panel,SWT.NONE);
+    Messages.setLanguageText(gDB,"DHTView.db.title");
+    
+    GridData data = new GridData(GridData.FILL_HORIZONTAL);
+    data.verticalAlignment = SWT.FILL;
+    gDB.setLayoutData(data);
+    
+    GridLayout layout = new GridLayout();
+    layout.numColumns = 6;    
+    layout.makeColumnsEqualWidth = true;
+    gDB.setLayout(layout);
+    
+    Label label = new Label(gDB,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.db.keys");    
+    
+    lblKeys = new Label(gDB,SWT.NONE);
+    lblKeys.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    
+    label = new Label(gDB,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.db.values");    
+    
+    lblValues = new Label(gDB,SWT.NONE);
+    lblValues.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    
+    label = new Label(gDB,SWT.NONE);
+    label = new Label(gDB,SWT.NONE);
+    
+    
+    label = new Label(gDB,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.db.local");    
+    
+    lblLocal = new Label(gDB,SWT.NONE);
+    lblLocal.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    
+    label = new Label(gDB,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.db.direct");    
+    
+    lblDirect = new Label(gDB,SWT.NONE);
+    lblDirect.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    
+    label = new Label(gDB,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.db.indirect");    
+    
+    lblIndirect = new Label(gDB,SWT.NONE);
+    lblIndirect.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false)); 
+    
+    
+    label = new Label(gDB,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.db.divfreq");    
+    
+    lblDivFreq = new Label(gDB,SWT.NONE);
+    lblDivFreq.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    
+    label = new Label(gDB,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.db.divsize");    
+    
+    lblDivSize = new Label(gDB,SWT.NONE);
+    lblDivSize.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+  }
+  
   private void initialiseTransportDetailsGroup() {
     Group gTransport = new Group(panel,SWT.NONE);
     Messages.setLanguageText(gTransport,"DHTView.transport.title");
     
     GridData data = new GridData(GridData.FILL_VERTICAL);
-    data.widthHint = 300;
-    data.verticalSpan = 3;
+    data.widthHint = 350;
+    data.verticalSpan = 2;
     gTransport.setLayoutData(data);
     
     GridLayout layout = new GridLayout();
@@ -370,8 +440,8 @@ public class DHTView extends AbstractIView {
       public void handleEvent(Event event) {
         TableItem item = (TableItem) event.item;
         int index = activityTable.indexOf (item);
-        item.setText (0,activities[index].isQueued() + "");
-        item.setText (1,activities[index].getType() + "");
+        item.setText (0,MessageText.getString("DHTView.activity.status." + activities[index].isQueued()));
+        item.setText (1,MessageText.getString("DHTView.activity.type." + activities[index].getType()));
         item.setText (2,ByteFormatter.nicePrint(activities[index].getTarget()));
         item.setText (3,activities[index].getDescription());
       }
@@ -402,6 +472,7 @@ public class DHTView extends AbstractIView {
     outGraph.refresh();
     
     refreshGeneral();
+    refreshDB();
     refreshTransportDetails();
     refreshOperationDetails();
     refreshActivity();
@@ -418,6 +489,25 @@ public class DHTView extends AbstractIView {
     lblLive.setText("" + stats[DHTRouterStats.ST_CONTACTS_LIVE]);
     lblUnknown.setText("" + stats[DHTRouterStats.ST_CONTACTS_UNKNOWN]);
     lblDying.setText("" + stats[DHTRouterStats.ST_CONTACTS_DEAD]);
+  }
+  
+  private int refreshIter = 0;
+  
+  private void refreshDB() {    
+    if(refreshIter == 0) {
+      lblKeys.setText("" + dbStats.getKeyCount());  
+      int[] stats = dbStats.getValueDetails();
+      lblValues.setText("" + stats[DHTDBStats.VD_VALUE_COUNT]);
+      lblDirect.setText("" + stats[DHTDBStats.VD_DIRECT_SIZE]);
+      lblIndirect.setText("" + stats[DHTDBStats.VD_INDIRECT_SIZE]);
+      lblLocal.setText("" + stats[DHTDBStats.VD_LOCAL_SIZE]);
+      lblDivFreq.setText("" + stats[DHTDBStats.VD_DIV_FREQ]);
+      lblDivSize.setText("" + stats[DHTDBStats.VD_DIV_SIZE]);
+    } else {
+      refreshIter++;
+      if(refreshIter == 100) refreshIter = 0;
+    }
+
   }
 
   private void refreshTransportDetails() {
