@@ -552,7 +552,7 @@ DHTDBImpl
 				
 				values_published++;
 				
-				control.put( key.getHash(), (DHTDBValueImpl)values.get(i), 0 );
+				control.putEncodedKey( key.getHash(), "Republish", (DHTDBValueImpl)values.get(i), 0 );
 			}
 		}
 		
@@ -753,8 +753,9 @@ DHTDBImpl
 				
 				republish_ops++;
 				
-				control.putDirect( 
+				control.putDirectEncodedKeys( 
 						store_keys, 
+						"Republish cache",
 						store_values,
 						contacts );
 			}

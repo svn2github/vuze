@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
 
@@ -36,6 +37,7 @@ DDBaseKeyImpl
 {
 	private Object		key;
 	private byte[]		key_bytes;
+	private String		description;
 	
 	protected 
 	DDBaseKeyImpl(
@@ -43,9 +45,32 @@ DDBaseKeyImpl
 	
 		throws DistributedDatabaseException
 	{
-		key		= _key;
-		
+		this( _key, null );
+	}
+	
+	protected 
+	DDBaseKeyImpl(
+		Object		_key,
+		String		_description )
+	
+		throws DistributedDatabaseException
+	{
+		key			= _key;
+		description	= _description;
+				
 		key_bytes	= DDBaseHelpers.encode( key );
+
+		if ( description == null ){
+			
+			if ( key instanceof String ){
+				
+				description = (String)key;
+				
+			}else{
+				
+				description = "[" + ByteFormatter.nicePrint(key_bytes) + "]";
+			}
+		}
 	}
 	
 	public Object
@@ -58,5 +83,11 @@ DDBaseKeyImpl
 	getBytes()
 	{
 		return( key_bytes );
+	}
+	
+	public String
+	getDescription()
+	{
+		return( description );
 	}
 }

@@ -35,8 +35,11 @@ DHTControlActivity
 	public static final int	AT_INTERNAL_PUT		= 3;
 	public static final int	AT_EXTERNAL_PUT		= 4;
 	
+	public byte[]
+	getTarget();
+	
 	public String
-	getName();
+	getDescription();
 	
 	public int
 	getType();

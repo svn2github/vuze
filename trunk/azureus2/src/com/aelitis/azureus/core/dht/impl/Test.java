@@ -213,7 +213,7 @@ Test
 				
 				DHT	dht = dhts[dht_index];
 
-				dht.put( (""+i).getBytes(), new byte[4], (byte)0, new DHTOperationAdapter());
+				dht.put( (""+i).getBytes(), "", new byte[4], (byte)0, new DHTOperationAdapter());
 			
 				store_index.put( ""+i, dht );
 				
@@ -293,7 +293,7 @@ Test
 							String	key = rhs.substring(0,pos);
 							String	val = rhs.substring(pos+1);
 							
-							dht.put( key.getBytes(), val.getBytes(), (byte)(Math.random()*255), new DHTOperationAdapter() );
+							dht.put( key.getBytes(), "", val.getBytes(), (byte)(Math.random()*255), new DHTOperationAdapter() );
 						}
 					}else if ( command == 'x' ){
 						
@@ -307,7 +307,7 @@ Test
 							
 							stats_before = dht.getTransport().getStats().snapshot();
 							
-							byte[]	res = dht.remove( rhs.getBytes(), new DHTOperationAdapter());
+							byte[]	res = dht.remove( rhs.getBytes(), "", new DHTOperationAdapter());
 							
 							if ( res != null ){
 								
@@ -339,7 +339,7 @@ Test
 						stats_before = dht.getTransport().getStats().snapshot();
 					
 						dht.get( 
-								rhs.getBytes(), (byte)0, 32, 0,
+								rhs.getBytes(), "", (byte)0, 32, 0,
 								new DHTOperationAdapter()
 								{
 									public void
@@ -366,7 +366,7 @@ Test
 						
 						stats_before = dht.getTransport().getStats().snapshot();
 						
-						byte[]	res = dht.remove( rhs.getBytes(), new DHTOperationAdapter());
+						byte[]	res = dht.remove( rhs.getBytes(), "", new DHTOperationAdapter());
 						
 						System.out.println( "-> " + (res==null?"null":new String(res)));
 						
@@ -376,7 +376,7 @@ Test
 						
 						stats_before = dht.getTransport().getStats().snapshot();
 						
-						dht.get( rhs.getBytes(), (byte)0, 10, 0,
+						dht.get( rhs.getBytes(), "", (byte)0, 10, 0,
 								new DHTOperationListener()
 								{
 									public void

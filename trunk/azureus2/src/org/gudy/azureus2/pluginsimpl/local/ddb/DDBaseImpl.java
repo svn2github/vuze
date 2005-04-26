@@ -200,6 +200,18 @@ DDBaseImpl
 		return( new DDBaseKeyImpl( key ));
 	}
 	
+	public DistributedDatabaseKey
+	createKey(
+		Object			key,
+		String			description )
+	
+		throws DistributedDatabaseException
+	{
+		throwIfNotAvailable();
+		
+		return( new DDBaseKeyImpl( key, description ));
+	}
+	
 	public DistributedDatabaseValue
 	createValue(
 		Object			value )
@@ -248,6 +260,7 @@ DDBaseImpl
 			
 			dht.put(	
 					((DDBaseKeyImpl)key).getBytes(),
+					key.getDescription(),
 					((DDBaseValueImpl)values[0]).getBytes(),
 					DHTPlugin.FLAG_SINGLE_VALUE,
 					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
@@ -315,6 +328,7 @@ DDBaseImpl
 					
 					dht.put(	
 							f_current_key,
+							key.getDescription(),
 							copy,
 							DHTPlugin.FLAG_MULTI_VALUE,
 							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
@@ -337,6 +351,7 @@ DDBaseImpl
 				
 				dht.put(	
 						f_current_key,
+						key.getDescription(),
 						copy,
 						DHTPlugin.FLAG_MULTI_VALUE,
 						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0 ));
@@ -359,6 +374,7 @@ DDBaseImpl
 		
 		dht.get(	
 			((DDBaseKeyImpl)key).getBytes(), 
+			key.getDescription(),
 			(byte)0, 
 			256, 
 			timeout, 
@@ -374,7 +390,9 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
-		dht.remove( ((DDBaseKeyImpl)key).getBytes(), new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0 ));
+		dht.remove( ((DDBaseKeyImpl)key).getBytes(),
+					key.getDescription(),
+					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_DELETED, key, 0 ));
 	}
 	
 	public void
@@ -539,6 +557,7 @@ DDBaseImpl
 	
 					dht.get(	
 						next_key_bytes, 
+						key.getDescription(),
 						(byte)0, 
 						16, 
 						timeout, 

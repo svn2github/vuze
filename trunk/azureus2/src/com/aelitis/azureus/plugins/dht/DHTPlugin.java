@@ -241,6 +241,7 @@ DHTPlugin
 												
 												DHTPlugin.this.put( 
 														rhs.substring(0,pos).getBytes(),
+														"DHT Plugin: set",
 														rhs.substring(pos+1).getBytes(),
 														(byte)0,
 														null );
@@ -248,7 +249,7 @@ DHTPlugin
 										}else if ( lhs.equals( "get" )){
 											
 											DHTPlugin.this.get(
-												rhs.getBytes(), (byte)0, 1, 10000, null );
+												rhs.getBytes(), "DHT Plugin: get", (byte)0, 1, 10000, null );
 
 										}else if ( lhs.equals( "stats" )){
 											
@@ -859,6 +860,7 @@ outer:
 	public void
 	put(
 		final byte[]						key,
+		final String						description,
 		final byte[]						value,
 		final byte							flags,
 		final DHTPluginOperationListener	listener)
@@ -869,6 +871,7 @@ outer:
 		}
 				
 		dht.put( 	key, 
+					description,
 					value,
 					flags,
 					new DHTOperationListener()
@@ -961,6 +964,7 @@ outer:
 	public void
 	get(
 		final byte[]								key,
+		final String								description,
 		final byte									flags,
 		final int									max_values,
 		final long									timeout,
@@ -971,7 +975,7 @@ outer:
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 				
-		dht.get( 	key, flags, max_values, timeout,
+		dht.get( 	key, description, flags, max_values, timeout,
 					new DHTOperationListener()
 					{
 						public void
@@ -1034,6 +1038,7 @@ outer:
 	public void
 	remove(
 		final byte[]						key,
+		final String						description,
 		final DHTPluginOperationListener	listener )
 	{
 		if ( !isEnabled()){
@@ -1042,6 +1047,7 @@ outer:
 		}
 				
 		dht.remove( 	key,
+						description,
 						new DHTOperationListener()
 						{
 							public void

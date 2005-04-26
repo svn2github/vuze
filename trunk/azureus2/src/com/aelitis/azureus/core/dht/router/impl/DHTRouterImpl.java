@@ -690,7 +690,7 @@ DHTRouterImpl
 		
 		for (int i=0;i<ids.size();i++){
 			
-			requestLookup((byte[])ids.get(i));
+			requestLookup((byte[])ids.get(i), "Seeding DHT" );
 		}
 	}
 	
@@ -817,7 +817,7 @@ DHTRouterImpl
 		
 		for (int i=0;i<ids.size();i++){
 			
-			requestLookup((byte[])ids.get(i) );
+			requestLookup((byte[])ids.get(i), "Idle leaf refresh" );
 		}
 	}
 	
@@ -919,23 +919,26 @@ DHTRouterImpl
 		}
 	}
 
-	public void
+	public byte[]
 	refreshRandom()
 	{
 		byte[]	id = new byte[router_node_id.length];
 		
 		random.nextBytes( id );
 	
-		requestLookup( id );
+		requestLookup( id, "Random Refresh" );
+		
+		return( id );
 	}
 	
 	protected void
 	requestLookup(
-		byte[]		id )
+		byte[]		id,
+		String		description )
 	{
 		DHTLog.log( "DHTRouter: requestLookup:" + DHTLog.getString( id ));
 		
-		adapter.requestLookup( id );
+		adapter.requestLookup( id, description );
 	}
 	
 	protected void

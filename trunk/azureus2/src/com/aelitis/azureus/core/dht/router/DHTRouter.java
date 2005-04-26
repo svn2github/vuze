@@ -116,7 +116,7 @@ DHTRouter
 	refreshIdleLeaves(
 		long	idle_max );
 	
-	public void
+	public byte[]
 	refreshRandom();
 	
 		/**

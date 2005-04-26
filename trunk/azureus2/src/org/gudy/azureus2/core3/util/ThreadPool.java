@@ -163,6 +163,16 @@ ThreadPool
 		}
 	}
 	
+	public boolean
+	isQueued(
+		AERunnable	task )
+	{
+		synchronized( this ){
+
+			return( task_queue.contains( task ));
+		}
+	}
+	
 	public AERunnable[]
 	getRunningTasks()
 	{

@@ -144,11 +144,12 @@ DHTImpl
 	public void
 	put(
 		byte[]					key,
+		String					description,
 		byte[]					value,
 		byte					flags,
 		DHTOperationListener	listener )
 	{
-		control.put( key, value, flags, listener );
+		control.put( key, description, value, flags, listener );
 	}
 	
 	public DHTTransportValue
@@ -161,20 +162,22 @@ DHTImpl
 	public void
 	get(
 		byte[]					key,
+		String					description,
 		byte					flags,
 		int						max_values,
 		long					timeout,
 		DHTOperationListener	listener )
 	{
-		control.get( key, flags, max_values, timeout, listener );
+		control.get( key, description, flags, max_values, timeout, listener );
 	}
 		
 	public byte[]
 	remove(
-		byte[]			key,
+		byte[]					key,
+		String					description,
 		DHTOperationListener	listener )
 	{
-		return( control.remove( key, listener ));
+		return( control.remove( key, description, listener ));
 	}
 	
 	public DHTTransport

@@ -235,10 +235,12 @@ DHTControlImpl
 				
 				public void
 				requestLookup(
-					byte[]		id )
+					byte[]		id,
+					String		description )
 				{
 					lookup( internal_lookup_pool, 
 							id, 
+							description,
 							(byte)0,
 							false, 
 							0, 
@@ -490,6 +492,7 @@ DHTControlImpl
 		
 		lookup( internal_lookup_pool,
 				router.getID(), 
+				"Seeding DHT",
 				(byte)0,
 				false, 
 				0,
@@ -535,14 +538,22 @@ DHTControlImpl
 			external_lookup_pool.run(
 				new task(external_lookup_pool)
 				{
+					private byte[]	target = {};
+					
 					public void
 					runSupport()
 					{
-						router.refreshRandom();
+						target = router.refreshRandom();
+					}
+					
+					public byte[]
+					getTarget()
+					{
+						return( target );
 					}
 					
 					public String
-					getName()
+					getDescription()
 					{
 						return( "Random Query" ); 
 					}
@@ -553,6 +564,7 @@ DHTControlImpl
 	public void
 	put(
 		byte[]					_unencoded_key,
+		String					_description,
 		byte[]					_value,
 		byte					_flags,
 		DHTOperationListener	_listener )
@@ -572,6 +584,7 @@ DHTControlImpl
 		
 		put( 	external_put_pool,
 				encoded_key, 
+				_description,
 				value, 
 				0, 
 				_listener instanceof DHTOperationListenerDemuxer?
@@ -580,12 +593,13 @@ DHTControlImpl
 	}
 	
 	public void
-	put(
+	putEncodedKey(
 		final byte[]			encoded_key,
+		final String			description,
 		final DHTTransportValue	value,
 		final long				timeout )
 	{
-		put( internal_put_pool, encoded_key, value, timeout, new DHTOperationListenerDemuxer( new DHTOperationAdapter()));
+		put( internal_put_pool, encoded_key, description, value, timeout, new DHTOperationListenerDemuxer( new DHTOperationAdapter()));
 	}
 	
 	
@@ -593,17 +607,19 @@ DHTControlImpl
 	put(
 		final ThreadPool					thread_pool,
 		final byte[]						initial_encoded_key,
+		final String						description,
 		final DHTTransportValue				value,
 		final long							timeout,
 		final DHTOperationListenerDemuxer	listener )
 	{
-		put( thread_pool, initial_encoded_key, new DHTTransportValue[]{ value }, timeout, listener );
+		put( thread_pool, initial_encoded_key, description, new DHTTransportValue[]{ value }, timeout, listener );
 	}
 	
 	protected void
 	put(
 		final ThreadPool					thread_pool,
 		final byte[]						initial_encoded_key,
+		final String						description,
 		final DHTTransportValue[]			values,
 		final long							timeout,
 		final DHTOperationListenerDemuxer	listener )
@@ -620,7 +636,8 @@ DHTControlImpl
 			final byte[]	encoded_key	= encoded_keys[i];
 						
 			lookup( thread_pool,
-					encoded_key, 
+					encoded_key,
+					description,
 					(byte)0,
 					false, 
 					timeout,
@@ -642,6 +659,7 @@ DHTControlImpl
 						{
 							put( 	thread_pool,
 									new byte[][]{ encoded_key }, 
+									"Cache store of " + description,
 									new DHTTransportValue[][]{ values }, 
 									_closest, 
 									timeout, 
@@ -653,8 +671,9 @@ DHTControlImpl
 	}
 	
 	public void
-	putDirect(
+	putDirectEncodedKeys(
 		byte[][]				encoded_keys,
+		String					description,
 		DHTTransportValue[][]	value_sets,
 		List					contacts )
 	{
@@ -664,6 +683,7 @@ DHTControlImpl
 		
 		put( 	internal_put_pool,
 				encoded_keys, 
+				description,
 				value_sets, 
 				contacts, 
 				0, 
@@ -675,6 +695,7 @@ DHTControlImpl
 	put(
 		final ThreadPool						thread_pool,
 		final byte[][]							encoded_keys,
+		final String							description,
 		final DHTTransportValue[][]				value_sets,
 		final List								contacts,
 		final long								timeout,
@@ -740,6 +761,7 @@ DHTControlImpl
 												
 													put( 	thread_pool,
 															diversified_keys[k], 
+															"Diversification of " + description,
 															value_sets[j], 
 															timeout, listener );
 												}
@@ -801,6 +823,7 @@ DHTControlImpl
 	public void
 	get(
 		byte[]						unencoded_key,
+		String						description,
 		byte						flags,
 		int							max_values,
 		long						timeout,
@@ -810,12 +833,13 @@ DHTControlImpl
 
 		DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
 		
-		getSupport( encoded_key, flags, max_values, timeout, new DHTOperationListenerDemuxer( get_listener ));
+		getSupport( encoded_key, description, flags, max_values, timeout, new DHTOperationListenerDemuxer( get_listener ));
 	}
 	
 	public void
 	getSupport(
 		final byte[]						initial_encoded_key,
+		final String						description,
 		final byte							flags,
 		final int							max_values,
 		final long							timeout,
@@ -833,6 +857,7 @@ DHTControlImpl
 			
 			lookup( external_lookup_pool,
 					encoded_key, 
+					description,
 					flags,
 					true, 
 					timeout,
@@ -864,7 +889,7 @@ DHTControlImpl
 									
 									for (int j=0;j<diversified_keys.length;j++){
 										
-										getSupport( diversified_keys[j], flags, rem,  timeout, get_listener );
+										getSupport( diversified_keys[j], "Diversification of " + description, flags, rem,  timeout, get_listener );
 									}
 								}								
 							}
@@ -939,6 +964,7 @@ DHTControlImpl
 	public byte[]
 	remove(
 		byte[]					unencoded_key,
+		String					description,
 		DHTOperationListener	listener )
 	{		
 		final byte[]	encoded_key = encodeKey( unencoded_key );
@@ -959,7 +985,7 @@ DHTControlImpl
 			
 			res.setValue( new byte[0] );
 			
-			put( external_put_pool, encoded_key, res, 0, new DHTOperationListenerDemuxer( listener ));
+			put( external_put_pool, encoded_key, description, res, 0, new DHTOperationListenerDemuxer( listener ));
 			
 			return( res.getValue());
 		}
@@ -975,6 +1001,7 @@ DHTControlImpl
 	lookup(
 		ThreadPool					thread_pool,
 		final byte[]				lookup_id,
+		final String				description,
 		final byte					flags,
 		final boolean				value_search,
 		final long					timeout,
@@ -998,10 +1025,16 @@ DHTControlImpl
 					}
 				}
 				
-				public String
-				getName()
+				public byte[]
+				getTarget()
 				{
-					return( DHTLog.getString2(lookup_id)); 
+					return( lookup_id ); 
+				}
+				
+				public String
+				getDescription()
+				{
+					return( description );
 				}
 			});
 	}
@@ -2264,7 +2297,7 @@ DHTControlImpl
 		task(
 			ThreadPool	thread_pool )
 		{
-			activity = new controlActivity( thread_pool, this, true );
+			activity = new controlActivity( thread_pool, this );
 
 			try{
 				
@@ -2313,25 +2346,28 @@ DHTControlImpl
 		{
 		}
 		
+		public abstract byte[]
+		getTarget();
+		
 		public abstract String
-		getName();
+		getDescription();
 	}
 	
 	protected class
 	controlActivity
 		implements DHTControlActivity
 	{
-		protected String		name;
+		protected ThreadPool	tp;
+		protected task			task;
 		protected int			type;
-		protected boolean		queued;
 		
 		protected
 		controlActivity(
 			ThreadPool	_tp,
-			task		_t,
-			boolean		_q )
+			task		_task )
 		{
-			name	= _t.getName();
+			tp		= _tp;
+			task	= _task;
 			
 			if ( _tp == internal_lookup_pool ){
 				
@@ -2349,14 +2385,18 @@ DHTControlImpl
 
 				type	= DHTControlActivity.AT_EXTERNAL_PUT;
 			}
-			
-			queued	= _q;
+		}
+		
+		public byte[]
+		getTarget()
+		{
+			return( task.getTarget());
 		}
 		
 		public String
-		getName()
+		getDescription()
 		{
-			return( name );
+			return( task.getDescription());
 		}
 		
 		public int
@@ -2368,13 +2408,13 @@ DHTControlImpl
 		public boolean
 		isQueued()
 		{
-			return( queued );
+			return( tp.isQueued( task ));
 		}
 		
 		public String
 		getString()
 		{
-			return( type + ":" + getName() + ", q = " + isQueued());
+			return( type + ":" + DHTLog.getString( getTarget()) + "/" + getDescription() + ", q = " + isQueued());
 		}
 	}
 }

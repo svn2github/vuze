@@ -42,6 +42,14 @@ DistributedDatabase
 	
 		throws DistributedDatabaseException;
 	
+	public DistributedDatabaseKey
+	createKey(
+		Object			key,
+		String			description )
+	
+		throws DistributedDatabaseException;
+	
+
 	public DistributedDatabaseValue
 	createValue(
 		Object			value )

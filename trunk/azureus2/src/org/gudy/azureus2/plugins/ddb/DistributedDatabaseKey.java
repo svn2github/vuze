@@ -34,4 +34,7 @@ DistributedDatabaseKey
 	getKey()
 	
 		throws DistributedDatabaseException;
+	
+	public String
+	getDescription();
 }

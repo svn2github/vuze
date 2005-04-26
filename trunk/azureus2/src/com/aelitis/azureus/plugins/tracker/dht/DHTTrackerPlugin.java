@@ -719,6 +719,7 @@ DHTTrackerPlugin
 
 				dht.put( 
 						dl.getTorrent().getHash(),
+						"Tracker registration of '" + dl.getName() + "'",
 						String.valueOf( port ).getBytes(),
 						new_flags,
 						new DHTPluginOperationListener()
@@ -787,6 +788,7 @@ DHTTrackerPlugin
 				
 				dht.remove( 
 						dl.getTorrent().getHash(),
+						"Tracker deregistration of '" + dl.getName() + "'",
 						new DHTPluginOperationListener()
 						{
 							public void
@@ -852,6 +854,7 @@ DHTTrackerPlugin
 				final URL	url_to_report = torrent.isDecentralised()?torrent.getAnnounceURL():DEFAULT_URL;
 				
 				dht.get(dl.getTorrent().getHash(), 
+						"Tracker announce for '" + dl.getName() + "'",
 						dl.isComplete()?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 						NUM_WANT, 
 						ANNOUNCE_TIMEOUT,

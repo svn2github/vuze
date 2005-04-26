@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.TimeFormatter;
@@ -371,8 +372,8 @@ public class DHTView extends AbstractIView {
         int index = activityTable.indexOf (item);
         item.setText (0,activities[index].isQueued() + "");
         item.setText (1,activities[index].getType() + "");
-        item.setText (2,activities[index].getName());
-        item.setText (3,activities[index].getString());
+        item.setText (2,ByteFormatter.nicePrint(activities[index].getTarget()));
+        item.setText (3,activities[index].getDescription());
       }
     });
     

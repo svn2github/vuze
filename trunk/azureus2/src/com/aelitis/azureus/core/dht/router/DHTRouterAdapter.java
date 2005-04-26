@@ -40,6 +40,7 @@ DHTRouterAdapter
 	
 	public void
 	requestLookup(
-		byte[]	id );
+		byte[]	id,
+		String	description );
 
 }

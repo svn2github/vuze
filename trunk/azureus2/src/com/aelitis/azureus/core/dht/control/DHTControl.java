@@ -55,6 +55,7 @@ DHTControl
 	public void
 	put(
 		byte[]					key,
+		String					description,
 		byte[]					value,
 		byte					flags,
 		DHTOperationListener	listener );
@@ -66,6 +67,7 @@ DHTControl
 	public void
 	get(
 		byte[]					key,
+		String					description,
 		byte					flags,
 		int						max_values,
 		long					timeout,
@@ -74,6 +76,7 @@ DHTControl
 	public byte[]
 	remove(
 		byte[]					key,
+		String					description,
 		DHTOperationListener	listener );
 	
 	public DHTControlStats
@@ -112,14 +115,16 @@ DHTControl
 		boolean		live_only );
 	
 	public void
-	put(
+	putEncodedKey(
 		byte[]				key,
+		String				description,
 		DHTTransportValue	value,
 		long				timeout );
 	
 	public void
-	putDirect(
+	putDirectEncodedKeys(
 		byte[][]				keys,
+		String					description,
 		DHTTransportValue[][]	value_sets,
 		List					contacts );
 	

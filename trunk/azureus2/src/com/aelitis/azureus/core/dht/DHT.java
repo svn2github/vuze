@@ -66,6 +66,7 @@ DHT
 	public void
 	put(
 		byte[]					key,
+		String					description,
 		byte[]					value,
 		byte					flags,
 		DHTOperationListener	listener );
@@ -91,6 +92,7 @@ DHT
 	public void
 	get(
 		byte[]					key,
+		String					description,
 		byte					flags,
 		int						max_values,
 		long					timeout,
@@ -99,7 +101,8 @@ DHT
 		
 	public byte[]
 	remove(
-		byte[]			key,
+		byte[]					key,
+		String					description,
 		DHTOperationListener	listener );
 	
 	public int
