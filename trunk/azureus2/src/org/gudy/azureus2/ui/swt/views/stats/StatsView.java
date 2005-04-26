@@ -50,10 +50,12 @@ public class StatsView extends AbstractIView {
   TabItem itemActivity;
   TabItem itemStats;
   TabItem itemCache;
+  TabItem itemDHT;
 
   IView viewActivity;
   IView viewStats;
   IView viewCache;
+  IView viewDHT;
   
   UpdateThread updateThread;
   
@@ -89,23 +91,32 @@ public class StatsView extends AbstractIView {
     itemActivity = new TabItem(folder, SWT.NULL);
     itemStats = new TabItem(folder, SWT.NULL);
     itemCache  = new TabItem(folder, SWT.NULL);
+    itemDHT  = new TabItem(folder, SWT.NULL);
 
     viewActivity = new ActivityView(manager);
     viewStats = new TransferStatsView(manager);
     viewCache = new CacheView();
+    viewDHT = new DHTView();
     
     Messages.setLanguageText(itemActivity, viewActivity.getData());
     Messages.setLanguageText(itemStats, viewStats.getData());
     Messages.setLanguageText(itemCache, viewCache.getData());
+    Messages.setLanguageText(itemDHT, viewDHT.getData());
     
     TabItem items[] = {itemActivity};
     folder.setSelection(items);
+    
     viewActivity.initialize(folder);
     itemActivity.setControl(viewActivity.getComposite());
+    
     viewStats.initialize(folder);
     itemStats.setControl(viewStats.getComposite());
+    
     viewCache.initialize(folder);
     itemCache.setControl(viewCache.getComposite());
+    
+    viewDHT.initialize(folder);
+    itemDHT.setControl(viewDHT.getComposite());
 
     
     folder.addSelectionListener(new SelectionListener() {
@@ -142,7 +153,11 @@ public class StatsView extends AbstractIView {
         case 2 :
         if (viewCache != null && !itemCache.isDisposed())
           viewCache.refresh();
-          break;        
+          break;
+        case 3 :
+        if (viewDHT != null && !itemDHT.isDisposed())
+          viewDHT.refresh();
+          break;   
       }
     } catch (Exception e) {
     	Debug.printStackTrace( e );
