@@ -1458,7 +1458,7 @@ PEPeerTransportProtocol
         if( message.getID().equals( BTMessage.ID_BT_KEEP_ALIVE ) ) {
           message.destroy();
           consecutive_keep_alives++;
-          if( consecutive_keep_alives > 10 ) {  //TODO proper limit?
+          if( consecutive_keep_alives > 50 ) {  //TODO proper limit?
             System.out.println( PEPeerTransportProtocol.this.toString()+ " dropped: Too many consecutive keep-alive messages received." );
             closeConnection( "Too many consecutive keep-alive messages received.", false );
           }
