@@ -137,9 +137,12 @@ public class TransferStatsView extends AbstractIView {
   public void refresh() {
     long session_total_received = stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived();
     long session_total_sent = stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent();
+   
+    long session_total_received_protocol = stats.getTotalProtocolBytesReceived();
+    long session_total_sent_protocol =  stats.getTotalProtocolBytesSent();
     
-    sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_received ));
-    sessionUp.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_sent ));
+    sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_received ) + " (" + DisplayFormatters.formatByteCountToKiBEtc( session_total_received_protocol) + ")");
+    sessionUp.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_sent ) + " (" + DisplayFormatters.formatByteCountToKiBEtc( session_total_sent_protocol) + ")");   
     
     totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getDownloadedBytes() ));
     totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getUploadedBytes() ));
