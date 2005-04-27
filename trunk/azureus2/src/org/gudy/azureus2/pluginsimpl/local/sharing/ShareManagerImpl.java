@@ -380,14 +380,7 @@ ShareManagerImpl
 		throws ShareException
 	{
 		if ( announce_url == null ){
-			
-			String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
-			
-			if ( tracker_ip.length() == 0 ){
-				
-				throw( new ShareException( "ShareManager: Tracker must be configured"));
-			}
-			
+						
 			String	protocol = COConfigurationManager.getStringParameter( "Sharing Protocol", "HTTP" );
 			
 			int		port;
@@ -424,6 +417,13 @@ ShareManagerImpl
 
 				}else{
 					
+					String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
+					
+					if ( tracker_ip.length() == 0 ){
+						
+						throw( new ShareException( "ShareManager: Tracker must be configured"));
+					}
+
 					announce_url = new URL( url_protocol + "://" + tracker_ip + ":"+ port + "/announce" );
 				}
 				
