@@ -54,7 +54,7 @@ public class SeedingUnchoker implements Unchoker {
     int needed = max_to_unchoke - num_unchoked;
     if( needed > 0 ) {
       for( int i=0; i < needed; i++ ) {
-        PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false );
+        PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false, false );
         if( peer == null )  break;  //no more new unchokes avail
         to_unchoke.add( peer );
         peer.setOptimisticUnchoke( true );
@@ -73,7 +73,7 @@ public class SeedingUnchoker implements Unchoker {
       PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
       
       if( !peer.isChokedByMe() ) { 
-        if( UnchokerUtil.isUnchokable( peer, true ) ) {
+        if( UnchokerUtil.isUnchokable( peer, false ) ) {
           unchokes.add( peer );
         }
         else {  //should be immediately choked
@@ -148,7 +148,7 @@ public class SeedingUnchoker implements Unchoker {
         
         if( !peers_ordered_by_rank.contains( peer ) ) {  //should be choked
           //we assume that any/all chokes are to be replace by optimistics
-          PEPeerTransport optimistic_peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false );
+          PEPeerTransport optimistic_peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false, false );
           
           if( optimistic_peer != null ) {  //only choke if we've got a peer to replace it with
             chokes.add( peer );

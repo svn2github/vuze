@@ -55,7 +55,7 @@ public class DownloadingUnchoker implements Unchoker {
     int needed = max_to_unchoke - num_unchoked;
     if( needed > 0 ) {
       for( int i=0; i < needed; i++ ) {
-        PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true );
+        PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, true );
         if( peer == null )  break;  //no more new unchokes avail
         to_unchoke.add( peer );
         peer.setOptimisticUnchoke( true );
@@ -150,7 +150,7 @@ public class DownloadingUnchoker implements Unchoker {
     
     //if we still have remaining slots
     while( best_peers.size() < max_to_unchoke ) { 
-      PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true );  //just pick one optimistically
+      PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, true );  //just pick one optimistically
       if( peer == null )  break;  //no more new unchokes avail
       
       if( !best_peers.contains( peer ) ) {

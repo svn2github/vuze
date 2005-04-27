@@ -78,9 +78,10 @@ public class UnchokerUtil {
    * Choose the next peer, optimistically, that should be unchoked.
    * @param all_peers list of peer to choose from
    * @param factor_reciprocated if true, factor in how much (if any) this peer has reciprocated when choosing
+   * @param allow_snubbed allow the picking of snubbed-state peers as last resort
    * @return the next peer to optimistically unchoke, or null if there are no peers available
    */
-  public static PEPeerTransport getNextOptimisticPeer( ArrayList all_peers, boolean factor_reciprocated ) {
+  public static PEPeerTransport getNextOptimisticPeer( ArrayList all_peers, boolean factor_reciprocated, boolean allow_snubbed ) {
     //find all potential optimistic peers
     ArrayList optimistics = new ArrayList();
     for( int i=0; i < all_peers.size(); i++ ) {
