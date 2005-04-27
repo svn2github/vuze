@@ -1066,7 +1066,7 @@ DHTControlImpl
 		long						timeout,
 		int							concurrency,
 		int							max_values,
-		int							search_accuracy,
+		final int					search_accuracy,
 		final lookupResultHandler	result_handler )
 	{
 		boolean		timeout_occurred	= false;
@@ -1276,7 +1276,7 @@ DHTControlImpl
 												
 										ok_contacts.add( target_contact );
 										
-										if ( ok_contacts.size() > router.getK()){
+										if ( ok_contacts.size() > search_accuracy ){
 											
 												// delete the furthest away
 											
