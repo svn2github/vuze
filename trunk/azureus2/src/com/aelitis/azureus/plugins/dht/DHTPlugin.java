@@ -194,6 +194,34 @@ DHTPlugin
 				}
 			});
 		
+		final DHTPluginOperationListener log_polistener =
+			new DHTPluginOperationListener()
+			{
+				public void
+				valueRead(
+					DHTPluginContact	originator,
+					byte[]				value,
+					byte				flags )
+				{
+					log.log( "valueRead: " + new String(value) + " from " + originator.getName());
+				}
+				
+				public void
+				valueWritten(
+					DHTPluginContact	target,
+					byte[]				value )
+				{
+					log.log( "valueWritten:" + new String( value) + " to " + target.getName());
+				}
+				
+				public void
+				complete(
+					boolean	timeout_occurred )
+				{
+					log.log( "complete: timeout = " + timeout_occurred );
+				}
+			};
+			
 		execute.addListener(
 			new ParameterListener()
 			{
@@ -244,12 +272,12 @@ DHTPlugin
 														"DHT Plugin: set",
 														rhs.substring(pos+1).getBytes(),
 														(byte)0,
-														null );
+														log_polistener );
 											}
 										}else if ( lhs.equals( "get" )){
 											
 											DHTPlugin.this.get(
-												rhs.getBytes(), "DHT Plugin: get", (byte)0, 1, 10000, null );
+												rhs.getBytes(), "DHT Plugin: get", (byte)0, 1, 10000, log_polistener );
 
 										}else if ( lhs.equals( "stats" )){
 											
