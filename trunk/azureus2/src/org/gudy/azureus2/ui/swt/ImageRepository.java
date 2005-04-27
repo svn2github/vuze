@@ -42,19 +42,12 @@ public class ImageRepository {
   }
 
   public static void loadImages(Display display) {
-    loadImage(display, "org/gudy/azureus2/ui/icons/close.png", "close");
     loadImage(display, "org/gudy/azureus2/ui/icons/a32.png", "azureus32");
     loadImage(display, "org/gudy/azureus2/ui/icons/a64.png", "azureus64");
     loadImage(display, "org/gudy/azureus2/ui/icons/a128.png", "azureus128");
     loadImage(display, "org/gudy/azureus2/ui/icons/Azureus_big.png", "tray");
     loadImage(display, "org/gudy/azureus2/ui/icons/dragger.gif", "dragger");
     loadImage(display, "org/gudy/azureus2/ui/icons/folder.gif", "folder");
-    loadImage(display, "org/gudy/azureus2/ui/icons/root.png", "root");
-    loadImage(display, "org/gudy/azureus2/ui/icons/dictionary.png", "dict");
-    loadImage(display, "org/gudy/azureus2/ui/icons/list.png", "list");
-    loadImage(display, "org/gudy/azureus2/ui/icons/integer.png", "int");
-    loadImage(display, "org/gudy/azureus2/ui/icons/string.png", "string");
-    loadImage(display, "org/gudy/azureus2/ui/icons/data.png", "data");
     loadImage(display, "org/gudy/azureus2/ui/icons/ipfilter.png", "ipfilter");
     loadImage(display, "org/gudy/azureus2/ui/icons/start.gif", "start");
     loadImage(display, "org/gudy/azureus2/ui/icons/stop.gif", "stop");
@@ -81,6 +74,13 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/greenled.gif", "greenled");
     loadImage(display, "org/gudy/azureus2/ui/icons/redled.gif", "redled");
     loadImage(display, "org/gudy/azureus2/ui/icons/yellowled.gif", "yellowled");
+    loadImage(display, "org/gudy/azureus2/ui/icons/donation.jpg","donation");
+    loadImage(display, "org/gudy/azureus2/ui/icons/popup.png","popup");
+    loadImage(display, "org/gudy/azureus2/ui/icons/error.gif","error");
+    loadImage(display, "org/gudy/azureus2/ui/icons/info.gif","info");
+    loadImage(display, "org/gudy/azureus2/ui/icons/warning.gif","warning");
+    loadImage(display, "org/gudy/azureus2/ui/icons/subitem.gif","subitem");
+    
     //ToolBar Icons
 
     loadImage(display, "org/gudy/azureus2/ui/icons/toolbar/open.gif", "cb_open");
@@ -117,13 +117,7 @@ public class ImageRepository {
 
     loadImage(display, "org/gudy/azureus2/ui/icons/statusbar/status_warning.gif", "sb_warning");
 
-    loadImage(display, "org/gudy/azureus2/ui/icons/donation.jpg","donation");
-    loadImage(display, "org/gudy/azureus2/ui/icons/popup.png","popup");
-    loadImage(display, "org/gudy/azureus2/ui/icons/error.gif","error");
-    loadImage(display, "org/gudy/azureus2/ui/icons/info.gif","info");
-    loadImage(display, "org/gudy/azureus2/ui/icons/warning.gif","warning");
 
-    loadImage(display, "org/gudy/azureus2/ui/icons/subitem.gif","subitem");
     }
 
 
