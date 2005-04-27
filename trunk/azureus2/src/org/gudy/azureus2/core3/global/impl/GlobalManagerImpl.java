@@ -598,10 +598,15 @@ public class GlobalManagerImpl
 	          long lUploadedValue = lUploaded.longValue();
 	          long lDownloadedValue = lDownloaded.longValue();
 	          if (bCompleted && (lDownloadedValue == 0)) {
+              //Gudy : I say if the torrent is complete, let's simply set downloaded
+              //to size in order to see a meaningfull share-ratio
 	            lDownloadedValue = download_manager.getSize();
 	            	
+              //Gudy : Bypass this horrible hack, and I don't care of first priority seeding...
+              /*
 	            if (lDownloadedValue != 0 && ((lUploadedValue * 1000) / lDownloadedValue < minQueueingShareRatio) )
 	              lUploadedValue = ( download_manager.getSize()+999) * minQueueingShareRatio / 1000;
+                */
 	          }
 	          dm_stats.setSavedDownloadedUploaded(lDownloadedValue, lUploadedValue);
 	        }
@@ -652,8 +657,11 @@ public class GlobalManagerImpl
            
         	if ( dm_stats.getDownloadCompleted(false) == 1000 ){
 
-	            long lUploadedValue = ( download_manager.getSize()+999 ) * minQueueingShareRatio / 1000;
-	                  
+             // Gudy : I don't like that !
+	           // long lUploadedValue = ( download_manager.getSize()+999 ) * minQueueingShareRatio / 1000;
+	               
+            long lUploadedValue = 0;
+            
 		        dm_stats.setSavedDownloadedUploaded(download_manager.getSize(), lUploadedValue);
 	        }
         }
