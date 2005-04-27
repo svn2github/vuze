@@ -93,8 +93,6 @@ DHTControlImpl
 	
 	private long		last_lookup;
 	
-	private long		last_dht_estimate_time;
-	private long		dht_estimate;
 
 	private ListenerManager	listeners 	= ListenerManager.createAsyncManager(
 			"DHTControl:listenDispatcher",
@@ -115,6 +113,21 @@ DHTControlImpl
 	private List		activities		= new ArrayList();
 	private AEMonitor	activity_mon	= new AEMonitor( "DHTControl:activities" );
 	
+	protected AEMonitor	estimate_mon		= new AEMonitor( "DHTControl:estimate" );
+	private long		last_dht_estimate_time;
+	private long		dht_estimate;
+	
+	private Map	estimate_values = 
+		new LinkedHashMap(10,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry eldest) 
+			{
+				return( size() > 10 );
+			}
+		};
+		
 	public
 	DHTControlImpl(
 		DHTControlAdapter	_adapter,
@@ -921,9 +934,9 @@ DHTControlImpl
 								
 									// cache the values at the 'n' closest seen locations
 								
-								for (int i=0;i<Math.min(cache_at_closest_n,closest.size());i++){
+								for (int k=0;k<Math.min(cache_at_closest_n,closest.size());k++){
 									
-									DHTTransportContact	contact = (DHTTransportContact)(DHTTransportContact)closest.get(i);
+									DHTTransportContact	contact = (DHTTransportContact)(DHTTransportContact)closest.get(k);
 									
 									for (int j=0;j<values.length;j++){
 										
@@ -1208,7 +1221,7 @@ DHTControlImpl
 					
 					contacts_to_query.remove( closest );
 	
-					contacts_queried.put( new HashWrapper( closest.getID()), "" );
+					contacts_queried.put( new HashWrapper( closest.getID()), closest );
 								
 						// never search ourselves!
 					
@@ -1284,7 +1297,7 @@ DHTControlImpl
 											}
 																						
 											if (	contacts_queried.get( new HashWrapper( contact.getID())) == null &&
-													!contacts_to_query.contains( contact )){
+													(!contacts_to_query.contains( contact ))){
 												
 												DHTLog.log( "    new contact for query: " + DHTLog.getString( contact ));
 												
@@ -1497,6 +1510,13 @@ DHTControlImpl
 					// the end
 			
 				Collections.reverse( closest_res );
+				
+				if ( timeout <= 0 && !value_search ){
+				
+						// we can use the results of this to estimate the DHT size
+					
+					estimateDHTSize( lookup_id, contacts_queried, search_accuracy );
+				}
 				
 			}finally{
 				
@@ -1976,16 +1996,71 @@ DHTControlImpl
 	public long
 	getEstimatedDHTSize()
 	{
+			// public method, trigger actual computation periodically
+		
 		long	now = SystemTime.getCurrentTime();
 		
 		long	diff = now - last_dht_estimate_time;
 		
 		if ( diff < 0 || diff > 60*1000 ){
-			
-			last_dht_estimate_time	= now;
+
+			estimateDHTSize( router.getID(), null, router.getK());
+		}
 		
-			List	l = getClosestKContactsList( router.getID(), false );
+		return( dht_estimate );
+	}
+	
+	protected void
+	estimateDHTSize(
+		byte[]	id,
+		Map		contacts,
+		int		contacts_to_use )
+	{
+			// if called with contacts then this is in internal estimation based on lookup values
+		
+		try{
+			estimate_mon.enter();
+		
+			last_dht_estimate_time	= SystemTime.getCurrentTime();
+		
+			List	l;
+			
+			if ( contacts == null ){
+				
+				l = getClosestKContactsList( id, false );
+				
+			}else{
+				
+				Set	sorted_set	= new sortedContactSet( id, true ).getSet(); 
+	
+				sorted_set.addAll( contacts.values());
+				
+				l = new ArrayList( sorted_set );
+				
+				if ( l.size() > 0 ){
+			
+						// algorithm works relative to a starting point in the ID space so we grab
+						// the first here rather than using the initial lookup target
 					
+					id = ((DHTTransportContact)l.get(0)).getID();
+				}
+				
+				/*
+				String	str = "";
+				for (int i=0;i<l.size();i++){
+					str += (i==0?"":",") + DHTLog.getString2( ((DHTTransportContact)l.get(i)).getID());
+				}
+				System.out.println( "XXX: " + str );
+				*/
+			}
+			
+				// can't estimate with less than 2
+			
+			if ( l.size() < 2 ){
+				
+				return;
+			}
+			
 			/*
 			<Gudy> if you call N0 yourself, N1 the nearest peer, N2 the 2nd nearest peer ... Np the pth nearest peer that you know (for example, N1 .. N20)
 			<Gudy> and if you call D1 the Kad distance between you and N1, D2 between you and N2 ...
@@ -1999,14 +2074,12 @@ DHTControlImpl
 			BigInteger	sum2 = new BigInteger("0");
 			
 				// first entry should be us
-			
-			byte[]	our_id = router.getID();
-			
-			for (int i=1;i<l.size();i++){
+					
+			for (int i=1;i<Math.min( l.size(), contacts_to_use );i++){
 				
 				DHTTransportContact	node = (DHTTransportContact)l.get(i);
 				
-				byte[]	dist = computeDistance( our_id, node.getID());
+				byte[]	dist = computeDistance( id, node.getID());
 				
 				BigInteger b_dist = IDToBigInteger( dist );
 				
@@ -2017,23 +2090,44 @@ DHTControlImpl
 				sum2 = sum2.add( b_i.multiply( b_i ));
 			}
 			
-			byte[]	max = new byte[our_id.length+1];
+			byte[]	max = new byte[id.length+1];
 			
 			max[0] = 0x01;
 			
-			dht_estimate = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
+			long this_estimate = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
 			
 				// there's always us!!!!
 			
-			if ( dht_estimate < 1 ){
+			if ( this_estimate < 1 ){
 				
-				dht_estimate	= 1;
+				this_estimate	= 1;
 			}
 			
-			// System.out.println( "getEstimatedDHTSize: " + res );
+			estimate_values.put( new HashWrapper( id ), new Long( this_estimate ));
+			
+			long	new_estimate	= 0;
+			
+			Iterator	it = estimate_values.values().iterator();
+			
+			String	sizes = "";
+				
+			while( it.hasNext()){
+				
+				long	estimate = ((Long)it.next()).longValue();
+				
+				sizes += (sizes.length()==0?"":",") + estimate;
+				
+				new_estimate += estimate;
+			}
+			
+			dht_estimate = new_estimate/estimate_values.size();
+			
+			// System.out.println( "getEstimatedDHTSize: " + sizes + "->" + dht_estimate + " (id=" + DHTLog.getString2(id) + ",cont=" + (contacts==null?"null":(""+contacts.size())) + ",use=" + contacts_to_use );
+			
+		}finally{
+			
+			estimate_mon.exit();
 		}
-		
-		return( dht_estimate );
 	}
 	
 	protected BigInteger
