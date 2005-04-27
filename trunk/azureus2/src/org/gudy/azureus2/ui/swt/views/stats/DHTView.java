@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.stats;
 
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -47,6 +48,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
+import com.aelitis.azureus.core.dht.control.DHTControlListener;
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
@@ -83,6 +85,8 @@ public class DHTView extends AbstractIView {
   Canvas  in,out;  
   SpeedGraphic inGraph,outGraph;
   
+  boolean activityChanged;
+  DHTControlListener controlListener;
   Table activityTable;
   DHTControlActivity[] activities;
 
@@ -94,6 +98,12 @@ public class DHTView extends AbstractIView {
     try {
       dht = ((DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin()).getDHT();
       if(dht == null) return;
+      controlListener = new DHTControlListener() {
+        public void activityChanged(DHTControlActivity activity,int type) {
+          activityChanged = true;
+        }                
+      };
+      dht.getControl().addListener(controlListener);
       
     } catch(Exception e) {
       Debug.printStackTrace( e );
@@ -403,23 +413,41 @@ public class DHTView extends AbstractIView {
     activityTable = new Table(gActivity,SWT.VIRTUAL | SWT.BORDER);
     activityTable.setLayoutData(new GridData(GridData.FILL_BOTH));
     
-    TableColumn colStatus =  new TableColumn(activityTable,SWT.LEFT);
+    final TableColumn colStatus =  new TableColumn(activityTable,SWT.LEFT);
     Messages.setLanguageText(colStatus,"DHTView.activity.status");
-    colStatus.setWidth(70);
+    colStatus.setWidth(80);
     
-    TableColumn colType =  new TableColumn(activityTable,SWT.LEFT);
+    final TableColumn colType =  new TableColumn(activityTable,SWT.LEFT);
     Messages.setLanguageText(colType,"DHTView.activity.type");
-    colType.setWidth(70);
+    colType.setWidth(80);
     
-    TableColumn colName =  new TableColumn(activityTable,SWT.LEFT);
+    final TableColumn colName =  new TableColumn(activityTable,SWT.LEFT);
     Messages.setLanguageText(colName,"DHTView.activity.target");
-    colName.setWidth(150);
+    colName.setWidth(80);
     
-    TableColumn colDetails =  new TableColumn(activityTable,SWT.LEFT);
+    final TableColumn colDetails =  new TableColumn(activityTable,SWT.LEFT);
     Messages.setLanguageText(colDetails,"DHTView.activity.details");
     colDetails.setWidth(300);
+    colDetails.setResizable(false);
+    
     
     activityTable.setHeaderVisible(true);
+    Listener computeLastRowWidthListener = new Listener() {
+      public void handleEvent(Event event) {
+        if(activityTable == null || activityTable.isDisposed()) return;
+        int totalWidth = activityTable.getClientArea().width;
+        int remainingWidth = totalWidth 
+                               - colStatus.getWidth()
+                               - colType.getWidth()
+                               - colName.getWidth();
+        if(remainingWidth > 0)
+          colDetails.setWidth(remainingWidth);
+      }
+    };
+    activityTable.addListener(SWT.Resize, computeLastRowWidthListener);    
+    colStatus.addListener(SWT.Resize,computeLastRowWidthListener);
+    colType.addListener(SWT.Resize,computeLastRowWidthListener);
+    colName.addListener(SWT.Resize,computeLastRowWidthListener);
     
     activityTable.addListener(SWT.SetData, new Listener() {
       public void handleEvent(Event event) {
@@ -437,6 +465,9 @@ public class DHTView extends AbstractIView {
 
   public void delete() {
     Utils.disposeComposite(panel);
+    if (dht != null) {
+      dht.getControl().removeListener(controlListener);
+    }
   }
 
   public String getFullTitle() {
@@ -530,9 +561,12 @@ public class DHTView extends AbstractIView {
   }
   
   private void refreshActivity() {
-    activities = dht.getControl().getActivities();
-    activityTable.setItemCount(activities.length);
-    activityTable.redraw();
+    if(activityChanged) {
+      activityChanged = false;
+      activities = dht.getControl().getActivities();
+      activityTable.setItemCount(activities.length);
+      activityTable.redraw();  
+    }    
   }
   
   public void periodicUpdate() {
