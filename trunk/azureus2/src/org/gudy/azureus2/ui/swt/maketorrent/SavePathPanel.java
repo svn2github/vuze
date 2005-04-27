@@ -315,6 +315,11 @@ public class SavePathPanel extends AbstractWizardPanel {
         }
       });
 
+    if ( _wizard.tracker_type == NewTorrentWizard.TT_DECENTRAL ){
+
+		bAllowDHT.setEnabled( false );
+		bPrivateTorrent.setEnabled( false );
+    }
   }
   
   public IWizardPanel getFinishPanel() {
