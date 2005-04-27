@@ -117,14 +117,16 @@ DHTControlImpl
 	private long		last_dht_estimate_time;
 	private long		dht_estimate;
 	
+	private static final int	ESTIMATE_HISTORY	= 32;
+	
 	private Map	estimate_values = 
-		new LinkedHashMap(10,0.75f,true)
+		new LinkedHashMap(ESTIMATE_HISTORY,0.75f,true)
 		{
 			protected boolean 
 			removeEldestEntry(
 		   		Map.Entry eldest) 
 			{
-				return( size() > 10 );
+				return( size() > ESTIMATE_HISTORY );
 			}
 		};
 		
