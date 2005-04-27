@@ -360,7 +360,7 @@ public class IncomingSocketChannelManager {
             ic.last_read_time = now;
           }
           else if( now - ic.last_read_time > 10*1000 ) {  //10s read timeout
-            System.out.println( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out due to socket read inactivity [" +ic.buffer.position()+ " bytes read]" );
+            System.out.println( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out due to socket read inactivity [" +ic.buffer.position()+ " bytes read: " + new String( ic.buffer.array() )+ "]" );
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );
           }
