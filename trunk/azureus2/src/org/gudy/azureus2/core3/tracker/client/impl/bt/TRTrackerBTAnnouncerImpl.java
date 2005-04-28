@@ -82,6 +82,10 @@ TRTrackerBTAnnouncerImpl
     static{
 	  	PRUDPTrackerCodecs.registerCodecs();
 	}
+	
+	private static AEMonitor 	class_mon 			= new AEMonitor( "TRTrackerBTAnnouncer:class" );
+	private static Map			tracker_report_map	= new HashMap();
+	
     
 	private TOTorrent				torrent;
 	
@@ -135,9 +139,7 @@ TRTrackerBTAnnouncerImpl
 	private String 		port;
 	private String 		ip_override;
 	private String[]	peer_networks;
-	
-	private String	last_warning_message	= "";
-	
+		
 	private TRTrackerAnnouncerDataProvider 	announce_data_provider;
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerBTAnnouncer" );
@@ -1865,9 +1867,28 @@ TRTrackerBTAnnouncerImpl
 	 						
 	 						String	warning_message = new String(b_warning_message);
 	 						
-	 						if ( !warning_message.equals( last_warning_message )){
+							boolean	log_it = false;
+							
+								// only report a given message once per tracker
+							
+							try{
+								class_mon.enter();
+							
+								String last_warning_message = (String)tracker_report_map.get( url.getHost());
+								
+								if ( 	last_warning_message != null &&
+										!warning_message.equals( last_warning_message )){
 	 							
-	 							last_warning_message	= warning_message;
+									log_it	= true;
+									
+									tracker_report_map.put( url.getHost(), warning_message );
+								}
+							}finally{
+								
+								class_mon.exit();
+							}
+							
+							if ( log_it ){
 	 							
 	 							String	expanded_message = 
 	 								MessageText.getString(
