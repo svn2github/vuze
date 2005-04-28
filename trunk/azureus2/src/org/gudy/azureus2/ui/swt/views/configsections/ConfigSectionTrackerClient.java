@@ -143,7 +143,16 @@ ConfigSectionTrackerClient
     enableUDP.setLayoutData(gridData); 
     
     label = new Label(gMainTab, SWT.NULL);
+  
+//////////////////////
     
+    BooleanParameter showWarnings = new BooleanParameter(gMainTab, "Tracker Client Show Warnings", true, "ConfigView.section.tracker.client.showwarnings" );
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+	showWarnings.setLayoutData(gridData); 
+    
+    label = new Label(gMainTab, SWT.NULL);
+
 //////////////////////OVERRIDE GROUP ///////////////////
     
     Group overrideGroup = new Group(gMainTab,SWT.NULL);

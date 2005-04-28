@@ -1862,11 +1862,13 @@ TRTrackerBTAnnouncerImpl
 	 				Map metaData = BDecoder.decode(data); //$NON-NLS-1$
 						
 	 					// handle any user warnings in the response
+					
 	 				try{
 	 					byte[]	b_warning_message = (byte[])metaData.get( "warning message" );
 	 				
-	 					if ( b_warning_message != null ){
-	 						
+	 					if ( 	b_warning_message != null && 
+								COConfigurationManager.getBooleanParameter( "Tracker Client Show Warnings" )){
+
 	 						String	warning_message = new String(b_warning_message);
 	 						
 								// don't report the same message twice per torrent
