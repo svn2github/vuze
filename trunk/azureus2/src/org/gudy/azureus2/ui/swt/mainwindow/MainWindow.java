@@ -295,7 +295,7 @@ MainWindow
       //try {
       ///  TabFolder2ListenerAdder.add((CTabFolder)folder);
       //} catch (NoClassDefFoundError e) {
-        ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {
+        ((CTabFolder)folder).addCTabFolderListener(new CTabFolderAdapter() {          
           public void itemClosed(CTabFolderEvent event) {
             Tab.closed((CTabItem) event.item);
             event.doit = true;

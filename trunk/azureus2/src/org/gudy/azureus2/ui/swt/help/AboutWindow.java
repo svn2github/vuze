@@ -75,9 +75,7 @@ public class AboutWindow {
     window.setText(MessageText.getString("MainWindow.about.title") + " " + Constants.AZUREUS_VERSION); //$NON-NLS-1$
     GridData gridData;
     window.setLayout(new GridLayout(3, false));
-    
-    disposeImage();
-    
+
     image = new Image(display,ImageRepository.getImage("azureus_splash"),SWT.IMAGE_GRAY);
     
     Group gDevelopers = new Group(window, SWT.NULL);
@@ -158,6 +156,7 @@ public class AboutWindow {
     window.addDisposeListener(new DisposeListener() {
         public void widgetDisposed(DisposeEvent event) {
             instance = null;
+            disposeImage();
         }
     });
 
@@ -210,7 +209,7 @@ public class AboutWindow {
   {
   	try{
   		class_mon.enter();
-  	
+      ImageRepository.unloadImage("azureus_splash");
 	    if(image != null && ! image.isDisposed())
 	      image.dispose();
 	    image = null;

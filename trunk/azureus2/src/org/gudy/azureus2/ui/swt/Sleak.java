@@ -303,8 +303,11 @@ public class Sleak {
 	}
 
 	public static void main(String[] args) {
-		Display display = new Display();
+    DeviceData data = new DeviceData();
+    data.tracking = true;
+    Display display = new Display (data);
 		Sleak sleak = new Sleak();
+    new Main(args);
 		sleak.open();
 		while (!sleak.shell.isDisposed()) {
 			if (!display.readAndDispatch())

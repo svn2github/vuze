@@ -80,6 +80,7 @@ public class ScaledGraphic extends BackGroundGraphic {
   }   
   
   public void dispose() {
+    super.dispose();
     if(bufferScale != null && ! bufferScale.isDisposed())
       bufferScale.dispose();
   }   

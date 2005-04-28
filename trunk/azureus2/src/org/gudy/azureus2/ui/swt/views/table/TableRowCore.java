@@ -43,6 +43,9 @@ public interface TableRowCore
 
   /** Delete the row */
   public void delete();
+  
+  /** Delete the row but without deleting the table item associated with it*/
+  public void delete(boolean deleteItem);
 
   /** Refresh all the cells in the row 
    *

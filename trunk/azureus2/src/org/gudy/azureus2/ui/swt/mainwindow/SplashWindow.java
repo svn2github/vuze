@@ -102,13 +102,14 @@ public class SplashWindow implements AzureusCoreListener {
   /*
    * Should be called by the GUI thread
    */
-  private void closeSplash() {
+  private void closeSplash() {    
     if(initializer != null)
       initializer.removeListener(this);
     if(splash != null && !splash.isDisposed())
       splash.dispose();
     if(white != null && ! white.isDisposed())
       white.dispose();
+    ImageRepository.unloadImage("azureus_splash");
   }
   
   

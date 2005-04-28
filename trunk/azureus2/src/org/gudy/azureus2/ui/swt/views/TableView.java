@@ -1002,7 +1002,13 @@ public class TableView
     
     if (item == null)
       return;
-    item.delete();
+    final TableRowCore _item = item;
+    table.getDisplay().asyncExec(new AERunnable() {
+     public void runSupport() {
+       _item.delete();
+      } 
+    });
+    
   }
 
   /**
@@ -1035,16 +1041,25 @@ public class TableView
   /** Remove all the data sources (table rows) from the table.
    */
   public void removeAllTableRows() {
+    
     // clear all table items first, so that TableRowCore.delete() doesn't remove
     // them one by one (slow)
-    if (table != null && !table.isDisposed())
+    // Gudy : THIS PREVENTS DISPOSAL OF IMAGES ... DO NOT UNCOMMENT
+    /*
+    if (table != null && !table.isDisposed()) {
       table.removeAll();
+    }*/
 
     runForAllRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
-        row.delete();
+        row.delete(false);
       }
     });
+    
+    if (table != null && !table.isDisposed()) {
+      table.removeAll();
+    }
+      
 	
 	try{
 		objectToSortableItem_mon.enter();

@@ -26,17 +26,21 @@ import java.util.*;
  */
 public class ImageRepository {
 
+  private static Display display;
+  private static final HashMap imagesToPath;
   private static final HashMap images;
-  private static final WeakHashMap weakRegistry;
+  private static final HashMap registry;
   private static final String[] noCacheExtList = new String[] {".exe"};
   private static final boolean doNotUseAWTIcon = Constants.isOSX || (Constants.isWindows && !Constants.isWindowsXP);
 
     static {
     images = new HashMap();
-    weakRegistry = new WeakHashMap();
+    imagesToPath = new HashMap();
+    registry = new HashMap();
   }
 
   public static void loadImagesForSplashWindow(Display display) {
+    ImageRepository.display = display; 
     loadImage(display, "org/gudy/azureus2/ui/icons/a16.png", "azureus");
     loadImage(display, "org/gudy/azureus2/ui/splash/azureus.jpg", "azureus_splash");
   }
@@ -74,7 +78,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/greenled.gif", "greenled");
     loadImage(display, "org/gudy/azureus2/ui/icons/redled.gif", "redled");
     loadImage(display, "org/gudy/azureus2/ui/icons/yellowled.gif", "yellowled");
-    loadImage(display, "org/gudy/azureus2/ui/icons/donation.jpg","donation");
+    imagesToPath.put("donation","org/gudy/azureus2/ui/icons/donation.jpg");
     loadImage(display, "org/gudy/azureus2/ui/icons/popup.png","popup");
     loadImage(display, "org/gudy/azureus2/ui/icons/error.gif","error");
     loadImage(display, "org/gudy/azureus2/ui/icons/info.gif","info");
@@ -130,7 +134,8 @@ public class ImageRepository {
   }
 
   public static Image loadImage(ClassLoader loader,Display display, String res, String name,int alpha) {
-    Image im = getImage(name);
+    imagesToPath.put(name,res);
+    Image im = getImage(name,false);
     if(null == im) {
       InputStream is = loader.getResourceAsStream(res);
       if(null != is) {
@@ -157,7 +162,7 @@ public class ImageRepository {
       im.dispose();
     }
 
-    iter = weakRegistry.values().iterator();
+    iter = registry.values().iterator();
     while (iter.hasNext()) {
       Image im = (Image) iter.next();
       if(im != null)
@@ -166,7 +171,18 @@ public class ImageRepository {
   }
 
   public static Image getImage(String name) {
-    return (Image) images.get(name);
+    return getImage(name,true);
+  }
+  
+  private static Image getImage(String name,boolean allowLoading) {
+    Image result = (Image) images.get(name);
+    if(allowLoading && result == null) {
+      String path = (String) imagesToPath.get(name);
+      if(path != null) {
+        return loadImage(display,path,name);
+      }
+    }
+    return result;
   }
 
   /**
@@ -271,7 +287,7 @@ public class ImageRepository {
             // custom icons (unless user sets a custom icon in a later session)
 
             // other platforms - try sun.awt
-            Image image = (Image)weakRegistry.get(key);
+            Image image = (Image)registry.get(key);
             if(image != null)
                 return image;
 
@@ -292,7 +308,7 @@ public class ImageRepository {
             gc.drawImage(image, 0, 0);
             gc.dispose();
 
-            weakRegistry.put(key, dstImage);
+            registry.put(key, dstImage);
             image.dispose();
 
             return dstImage;
@@ -364,4 +380,59 @@ public class ImageRepository {
 
         return newImage;
     }
+    
+    public static void unloadImage(String name) {
+      Image img = (Image) images.get(name);
+      if(img != null) {
+        images.remove(name);
+        if(! img.isDisposed())
+          img.dispose();        
+      }
+    }
+    
+    public static void unloadPathIcon(String path) {
+     String key = getKey(path);
+     Image img = (Image) registry.get(key);
+     if(img != null) {
+       registry.remove(key);
+       if(! img.isDisposed())
+         img.dispose();       
+     }
+    }
+    
+    private static String getKey(String path) {
+      final File file = new File(path);
+
+      String key;
+      if(file.isDirectory())
+      {
+          key = file.getPath();
+      }
+      else
+      {
+          final int lookIndex = file.getName().lastIndexOf(".");
+  
+          if(lookIndex == -1)
+          {
+              key = "?!blank";
+          }
+          else
+          {
+              final String ext =  file.getName().substring(lookIndex);
+              key = ext;
+              
+              // case-insensitive file systems
+              for (int i = 0; i < noCacheExtList.length; i++)
+              {
+                  if(noCacheExtList[i].equalsIgnoreCase(ext))
+                  {
+                      key = file.getPath();
+                  }
+              }
+          }
+      } 
+      
+      return key;
+    }
+    
 }

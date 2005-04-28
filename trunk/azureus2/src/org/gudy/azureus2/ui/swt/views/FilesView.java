@@ -72,7 +72,7 @@ public class FilesView
           basicItems, "firstpiece", SWT.MULTI | SWT.FULL_SELECTION);
     bSkipFirstColumn = true;
     ptIconSize = new Point(16, 16);
-	download_manager = manager;
+    download_manager = manager;
   }
 
   public void initialize(Composite composite) {
@@ -255,5 +255,9 @@ public class FilesView
   getFileInfo()
   {
 	  return( download_manager.getDiskManagerFileInfo());
+  }
+  
+  public void delete() {
+    super.delete();
   }
 }

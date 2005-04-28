@@ -32,7 +32,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
  * @author Olivier
  *
  */
-public class BackGroundGraphic implements Graphic{
+public class BackGroundGraphic implements Graphic {
     
   protected Canvas drawCanvas;    
   

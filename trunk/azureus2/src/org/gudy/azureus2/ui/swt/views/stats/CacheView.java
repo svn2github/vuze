@@ -368,6 +368,10 @@ public class CacheView extends AbstractIView {
 
   public void delete() {
     Utils.disposeComposite(panel);
+    rfcGraph.dispose();
+    rffGraph.dispose();
+    wtcGraph.dispose();
+    wtfGraph.dispose();
   }
 
   public String getFullTitle() {

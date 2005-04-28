@@ -193,6 +193,7 @@ public class StatsView extends AbstractIView {
     viewActivity.delete();
     viewStats.delete();
     viewCache.delete();
+    viewDHT.delete();
     if(! folder.isDisposed()) {
       Utils.disposeComposite(folder);
     }

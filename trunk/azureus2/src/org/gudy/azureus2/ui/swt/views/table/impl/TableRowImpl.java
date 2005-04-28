@@ -138,13 +138,17 @@ public class TableRowImpl
         cell.setValid(valid);
     }
   }
-
+  
   public void delete() {
-    Display display = SWTThread.getInstance().getDisplay();
+    delete(true);
+  }
+  
+  public void delete(boolean deleteItem) {
+    /*Display display = SWTThread.getInstance().getDisplay();
     if (display == null || display.isDisposed())
       return;
     display.asyncExec(new AERunnable() {
-      public void runSupport() {
+      public void runSupport() {*/
         // Manually dispose of TableCellImpl objects, since row does
         // not contain a list of them.
         Iterator iter = mTableCells.values().iterator();
@@ -157,10 +161,11 @@ public class TableRowImpl
         if (ti != null && !ti.isDisposed()) {
           ti.setData("TableRow", null);
         }
+        
         // Dispose of row
         dispose();
-      }
-    });
+    //  }
+    //});
   }
 
   public void refresh(boolean bDoGraphics) {

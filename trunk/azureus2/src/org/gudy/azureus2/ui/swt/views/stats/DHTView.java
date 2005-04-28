@@ -468,6 +468,8 @@ public class DHTView extends AbstractIView {
     if (dht != null) {
       dht.getControl().removeListener(controlListener);
     }
+    outGraph.dispose();
+    inGraph.dispose();
   }
 
   public String getFullTitle() {

@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -40,7 +41,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class NameItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellRefreshListener , TableCellDisposeListener
 {
   /** Default Constructor */
   public NameItem() {
@@ -64,5 +65,10 @@ public class NameItem
       // those special functions not available to Plugins
       ((TableCellCore)cell).setImage(icon);
     }
+  }
+  
+  public void dispose(TableCell cell) {
+    DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
+    ImageRepository.unloadPathIcon(fileInfo.getFile().getPath());
   }
 }

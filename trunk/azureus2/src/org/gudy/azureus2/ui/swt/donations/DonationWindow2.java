@@ -244,6 +244,7 @@ public class DonationWindow2 {
    smallFont.dispose();
    workingImage.dispose();
    shell.dispose();
+   ImageRepository.unloadImage("donation");
   }
   
   private void paint() {

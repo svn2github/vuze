@@ -45,7 +45,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
  */
 public class PiecesItem
        extends CoreTableColumn 
-       implements TableCellAddedListener
+       implements TableCellAddedListener, TableCellRefreshListener, TableCellDisposeListener
 {
   private final static int INDEX_COLOR_FADEDSTARTS = Colors.BLUES_DARKEST + 1;
   // only supports 0 or 1 border width
@@ -61,219 +61,214 @@ public class PiecesItem
   }
 
   public void cellAdded(TableCell cell) {
-    new Cell(cell);
+    //No need to create a new class per cell instance
+    //new Cell(cell);
+    cell.setFillCell(true);
+    cell.addRefreshListener(this);
+    cell.addDisposeListener(this);
   }
 
-  private class Cell
-          implements TableCellRefreshListener, TableCellDisposeListener
-  {
-    public Cell(TableCell cell) {
-      cell.setFillCell(true);
-      cell.addRefreshListener(this);
-      cell.addDisposeListener(this);
+  public void dispose(TableCell cell) {
+    cell.setGraphic(null);
+    // Named infoObj so code can be copied easily to the other PiecesItem
+    PEPeer infoObj = (PEPeer)cell.getDataSource();
+    if (infoObj == null)
+      return;
+
+    Image img = (Image)infoObj.getData("PiecesImage");
+    if (img != null && !img.isDisposed())
+      img.dispose();
+
+    infoObj.setData("PiecesImageBuffer", null);
+    infoObj.setData("PiecesImage", null);
+  }
+  
+  public void refresh(TableCell cell) {
+    /* Notes:
+     * We store our image and imageBufer in PEPeer using
+     * setData & getData.
+     */
+
+    // Named infoObj so code can be copied easily to the other PiecesItem
+    PEPeer infoObj = (PEPeer)cell.getDataSource();
+    long lCompleted = (infoObj == null) ? 0 : infoObj.getPercentDoneInThousandNotation();
+    
+    if( !cell.setSortValue( lCompleted ) && cell.isValid() ) {
+      return;
+    }
+    
+    if (infoObj == null)
+      return;
+
+    //Compute bounds ...
+    int newWidth = cell.getWidth();
+    if (newWidth <= 0)
+      return;
+    int newHeight = cell.getHeight();
+
+    DownloadManager dm = infoObj.getManager().getDownloadManager();
+
+    int x0 = borderVerticalSize;
+    int x1 = newWidth - 1 - borderVerticalSize;
+    int y0 = completionHeight + borderHorizontalSize + borderSplit;
+    int y1 = newHeight - 1 - borderHorizontalSize;
+    int drawWidth = x1 - x0 + 1;
+    if (drawWidth < 10 || y1 < 3)
+      return;
+    boolean bImageBufferValid = true;
+    int[] imageBuffer = (int [])infoObj.getData("PiecesImageBuffer");
+    if (imageBuffer == null || imageBuffer.length != drawWidth) {
+      imageBuffer = new int[drawWidth];
+      bImageBufferValid = false;
     }
 
-    public void dispose(TableCell cell) {
-      cell.setGraphic(null);
-      // Named infoObj so code can be copied easily to the other PiecesItem
-      PEPeer infoObj = (PEPeer)cell.getDataSource();
-      if (infoObj == null)
-        return;
-  
-      Image img = (Image)infoObj.getData("PiecesImage");
-      if (img != null && !img.isDisposed())
-        img.dispose();
-  
-      infoObj.setData("PiecesImageBuffer", null);
-      infoObj.setData("PiecesImage", null);
+    Image image = (Image)infoObj.getData("PiecesImage");
+    GC gcImage;
+    boolean bImageChanged;
+    Rectangle imageBounds;
+    if (image == null || image.isDisposed()) {
+      bImageChanged = true;
+    } else {
+      imageBounds = image.getBounds();
+      bImageChanged = imageBounds.width != newWidth ||
+                      imageBounds.height != newHeight;
+    }
+    if (bImageChanged) {
+      if (image != null && !image.isDisposed()) {
+        image.dispose();
+      }
+      image = new Image(SWTManagerImpl.getSingleton().getDisplay(),
+                        newWidth, newHeight);
+      imageBounds = image.getBounds();
+      bImageBufferValid = false;
+
+      // draw border
+      gcImage = new GC(image);
+      gcImage.setForeground(Colors.grey);
+      if (borderHorizontalSize > 0) {
+        if (borderVerticalSize > 0) {
+          gcImage.drawRectangle(0, 0, newWidth - 1, newHeight - 1);
+        } else {
+          gcImage.drawLine(0, 0, newWidth - 1, 0);
+          gcImage.drawLine(0, newHeight -1, newWidth - 1, newHeight - 1);
+        }
+      } else if (borderVerticalSize > 0) {
+        gcImage.drawLine(0, 0, 0, newHeight - 1);
+        gcImage.drawLine(newWidth - 1, 0, newWidth - 1, newHeight - 1);
+      }
+
+      if (borderSplit > 0) {
+        gcImage.setForeground(Colors.white);
+        gcImage.drawLine(x0, completionHeight + borderHorizontalSize,
+                         x1, completionHeight + borderHorizontalSize);
+      }
+    } else {
+      gcImage = new GC(image);
     }
 
-    public void refresh(TableCell cell) {
-      /* Notes:
-       * We store our image and imageBufer in PEPeer using
-       * setData & getData.
-       */
+    boolean available[] = infoObj.getAvailable();
+    
+    if (available != null && available.length > 0) {
+    try {
+      DiskManager disk_manager = dm.getDiskManager();
+      
+      DiskManagerPiece[]  pieces = disk_manager==null?null:disk_manager.getPieces();
+              
+      int nbComplete = 0;
+      int nbPieces = available.length;
+      int a0;
+      int a1 = 0;
+      for (int i = 0; i < drawWidth; i++) {
+        if (i == 0) {
+          // always start out with one piece
+          a0 = 0;
+          a1 = nbPieces / drawWidth;
+          if (a1 == 0)
+            a1 = 1;
+        } else {
+          // the last iteration, a1 will be nbPieces
+          a0 = a1;
+          a1 = ((i + 1) * nbPieces) / (drawWidth);
+        }
 
-      // Named infoObj so code can be copied easily to the other PiecesItem
-      PEPeer infoObj = (PEPeer)cell.getDataSource();
-      long lCompleted = (infoObj == null) ? 0 : infoObj.getPercentDoneInThousandNotation();
-      
-      if( !cell.setSortValue( lCompleted ) && cell.isValid() ) {
-        return;
-      }
-      
-      if (infoObj == null)
-        return;
-  
-      //Compute bounds ...
-      int newWidth = cell.getWidth();
-      if (newWidth <= 0)
-        return;
-      int newHeight = cell.getHeight();
-  
-      DownloadManager dm = infoObj.getManager().getDownloadManager();
-  
-      int x0 = borderVerticalSize;
-      int x1 = newWidth - 1 - borderVerticalSize;
-      int y0 = completionHeight + borderHorizontalSize + borderSplit;
-      int y1 = newHeight - 1 - borderHorizontalSize;
-      int drawWidth = x1 - x0 + 1;
-      if (drawWidth < 10 || y1 < 3)
-        return;
-      boolean bImageBufferValid = true;
-      int[] imageBuffer = (int [])infoObj.getData("PiecesImageBuffer");
-      if (imageBuffer == null || imageBuffer.length != drawWidth) {
-        imageBuffer = new int[drawWidth];
-        bImageBufferValid = false;
-      }
-  
-      Image image = (Image)infoObj.getData("PiecesImage");
-      GC gcImage;
-      boolean bImageChanged;
-      Rectangle imageBounds;
-      if (image == null || image.isDisposed()) {
-        bImageChanged = true;
-      } else {
-        imageBounds = image.getBounds();
-        bImageChanged = imageBounds.width != newWidth ||
-                        imageBounds.height != newHeight;
-      }
-      if (bImageChanged) {
-        if (image != null && !image.isDisposed()) {
-          image.dispose();
-        }
-        image = new Image(SWTManagerImpl.getSingleton().getDisplay(),
-                          newWidth, newHeight);
-        imageBounds = image.getBounds();
-        bImageBufferValid = false;
-  
-        // draw border
-        gcImage = new GC(image);
-        gcImage.setForeground(Colors.grey);
-        if (borderHorizontalSize > 0) {
-          if (borderVerticalSize > 0) {
-            gcImage.drawRectangle(0, 0, newWidth - 1, newHeight - 1);
-          } else {
-            gcImage.drawLine(0, 0, newWidth - 1, 0);
-            gcImage.drawLine(0, newHeight -1, newWidth - 1, newHeight - 1);
-          }
-        } else if (borderVerticalSize > 0) {
-          gcImage.drawLine(0, 0, 0, newHeight - 1);
-          gcImage.drawLine(newWidth - 1, 0, newWidth - 1, newHeight - 1);
-        }
-  
-        if (borderSplit > 0) {
-          gcImage.setForeground(Colors.white);
-          gcImage.drawLine(x0, completionHeight + borderHorizontalSize,
-                           x1, completionHeight + borderHorizontalSize);
-        }
-      } else {
-        gcImage = new GC(image);
-      }
-  
-      boolean available[] = infoObj.getAvailable();
-      
-      if (available != null && available.length > 0) {
-      try {
-      	DiskManager	disk_manager = dm.getDiskManager();
-      	
-      	DiskManagerPiece[]	pieces = disk_manager==null?null:disk_manager.getPieces();
-      	        
-        int nbComplete = 0;
-        int nbPieces = available.length;
-        int a0;
-        int a1 = 0;
-        for (int i = 0; i < drawWidth; i++) {
-          if (i == 0) {
-            // always start out with one piece
-            a0 = 0;
-            a1 = nbPieces / drawWidth;
-            if (a1 == 0)
-              a1 = 1;
-          } else {
-            // the last iteration, a1 will be nbPieces
-            a0 = a1;
-            a1 = ((i + 1) * nbPieces) / (drawWidth);
-          }
-  
-          int index;
-          int nbNeeded = 0;
-  
-          if (a1 <= a0) {
-            index = imageBuffer[i - 1];
-          } else {
-            int nbAvailable = 0;
-            for (int j = a0; j < a1; j++) {
-              if (available[j]) {
-              	if (pieces==null|!pieces[j].getDone()) {
-              	  nbNeeded++;
-              	}
-                nbAvailable++;
+        int index;
+        int nbNeeded = 0;
+
+        if (a1 <= a0) {
+          index = imageBuffer[i - 1];
+        } else {
+          int nbAvailable = 0;
+          for (int j = a0; j < a1; j++) {
+            if (available[j]) {
+              if (pieces==null|!pieces[j].getDone()) {
+                nbNeeded++;
               }
-            }
-            nbComplete += nbAvailable;
-            index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
-            if (nbNeeded <= nbAvailable / 2)
-              index += INDEX_COLOR_FADEDSTARTS;
-          }
-  
-          if (imageBuffer[i] != index) {
-            imageBuffer[i] = index;
-            if (bImageBufferValid) {
-              bImageChanged = true;
-              if (imageBuffer[i] >= INDEX_COLOR_FADEDSTARTS)
-                gcImage.setForeground(Colors.faded[index - INDEX_COLOR_FADEDSTARTS]);
-              else
-                gcImage.setForeground(Colors.blues[index]);
-              gcImage.drawLine(i + x0, y0, i + x0, y1);
+              nbAvailable++;
             }
           }
+          nbComplete += nbAvailable;
+          index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);
+          if (nbNeeded <= nbAvailable / 2)
+            index += INDEX_COLOR_FADEDSTARTS;
         }
-        if (!bImageBufferValid) {
-          int iLastIndex = imageBuffer[0];
-          int iWidth = 1;
-          for (int i = 1; i < drawWidth; i++) {
-            if (iLastIndex == imageBuffer[i]) {
-              iWidth++;
-            } else {
-              if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
-                gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
-              else
-                gcImage.setBackground(Colors.blues[iLastIndex]);
-              gcImage.fillRectangle(i - iWidth + x0, y0, iWidth, y1 - y0 + 1);
-              iWidth = 1;
-              iLastIndex = imageBuffer[i];
-            }
+
+        if (imageBuffer[i] != index) {
+          imageBuffer[i] = index;
+          if (bImageBufferValid) {
+            bImageChanged = true;
+            if (imageBuffer[i] >= INDEX_COLOR_FADEDSTARTS)
+              gcImage.setForeground(Colors.faded[index - INDEX_COLOR_FADEDSTARTS]);
+            else
+              gcImage.setForeground(Colors.blues[index]);
+            gcImage.drawLine(i + x0, y0, i + x0, y1);
           }
-          if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
-            gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
-          else
-            gcImage.setBackground(Colors.blues[iLastIndex]);
-          gcImage.fillRectangle(x1 - iWidth + 1, y0, iWidth, y1 - y0 + 1);
-          bImageChanged = true;
         }
-  
-        int limit = (drawWidth * nbComplete) / nbPieces;
-        if (limit < drawWidth) {
-          gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
-          gcImage.fillRectangle(limit+x0, borderHorizontalSize,
-                                x1-limit, completionHeight);
-        }
-        gcImage.setBackground(Colors.colorProgressBar);
-        gcImage.fillRectangle(x0, borderHorizontalSize,
-                              limit, completionHeight);
-      } catch (Exception e) {
-        System.out.println("Error Drawing PiecesItem");
-        Debug.printStackTrace( e );
-      } }
-      gcImage.dispose();
-  
-      Image oldImage = ((TableCellCore)cell).getGraphicSWT();
-      if (bImageChanged || image != oldImage || !cell.isValid()) {
-        ((TableCellCore)cell).setGraphic(image);
-        infoObj.setData("PiecesImage", image);
-        infoObj.setData("PiecesImageBuffer", imageBuffer);
       }
+      if (!bImageBufferValid) {
+        int iLastIndex = imageBuffer[0];
+        int iWidth = 1;
+        for (int i = 1; i < drawWidth; i++) {
+          if (iLastIndex == imageBuffer[i]) {
+            iWidth++;
+          } else {
+            if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
+              gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
+            else
+              gcImage.setBackground(Colors.blues[iLastIndex]);
+            gcImage.fillRectangle(i - iWidth + x0, y0, iWidth, y1 - y0 + 1);
+            iWidth = 1;
+            iLastIndex = imageBuffer[i];
+          }
+        }
+        if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
+          gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
+        else
+          gcImage.setBackground(Colors.blues[iLastIndex]);
+        gcImage.fillRectangle(x1 - iWidth + 1, y0, iWidth, y1 - y0 + 1);
+        bImageChanged = true;
+      }
+
+      int limit = (drawWidth * nbComplete) / nbPieces;
+      if (limit < drawWidth) {
+        gcImage.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+        gcImage.fillRectangle(limit+x0, borderHorizontalSize,
+                              x1-limit, completionHeight);
+      }
+      gcImage.setBackground(Colors.colorProgressBar);
+      gcImage.fillRectangle(x0, borderHorizontalSize,
+                            limit, completionHeight);
+    } catch (Exception e) {
+      System.out.println("Error Drawing PiecesItem");
+      Debug.printStackTrace( e );
+    } }
+    gcImage.dispose();
+
+    Image oldImage = ((TableCellCore)cell).getGraphicSWT();
+    if (bImageChanged || image != oldImage || !cell.isValid()) {
+      ((TableCellCore)cell).setGraphic(image);
+      infoObj.setData("PiecesImage", image);
+      infoObj.setData("PiecesImageBuffer", imageBuffer);
     }
   }
+  
 }

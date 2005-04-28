@@ -61,6 +61,7 @@ public class SWTThread {
   
   
   Display display;
+  private boolean sleak;
   private boolean terminated;
   private Thread runner;
   
@@ -70,8 +71,13 @@ public class SWTThread {
   { 
     
     instance = this;
-    
-    display = new Display();
+    try {
+      display = Display.getCurrent();
+      sleak = true;
+    } catch(Exception e) { 
+      display = new Display();
+      sleak = false;
+    }
     
     Display.setAppName("Azureus");
     
@@ -96,30 +102,34 @@ public class SWTThread {
     runner = new Thread( new AERunnable(){ public void runSupport(){app.run();}},"Main Thread");
     runner.start();   
     
-    while(!display.isDisposed() && !terminated) {
-      try {
-          if (!display.readAndDispatch())
-            display.sleep();
+    
+    if(!sleak) {
+      while(!display.isDisposed() && !terminated) {
+        try {
+            if (!display.readAndDispatch())
+              display.sleep();
+        }
+        catch (Exception e) {
+          Debug.printStackTrace( e );
+        }
       }
-      catch (Exception e) {
-      	Debug.printStackTrace( e );
+      
+     
+      if(!terminated) {
+        
+        // if we've falled out of the loop without being explicitly terminated then
+        // this appears to have been caused by a non-specific exit/restart request (as the
+        // specific ones should terminate us before disposing of the window...)
+        
+        app.stopIt( false, false );
       }
+
+      display.dispose();
+
+       // dispose platform manager here
+      PlatformManagerFactory.getPlatformManager().dispose();
     }
     
-   
-    if(!terminated) {
-    	
-    	// if we've falled out of the loop without being explicitly terminated then
-    	// this appears to have been caused by a non-specific exit/restart request (as the
-    	// specific ones should terminate us before disposing of the window...)
-    	
-      app.stopIt( false, false );
-    }
-
-    display.dispose();
-
-     // dispose platform manager here
-    PlatformManagerFactory.getPlatformManager().dispose();
   }
   
   
