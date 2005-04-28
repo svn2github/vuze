@@ -1599,8 +1599,6 @@ public class StartStopRulesDefaultPlugin
 	                   ((bPreferLargerSwarms ? 4 : 3) * num_peers_excluding_us * 2);
 	          if (num_seeds_excluding_us == 0 && num_peers_excluding_us >= minPeersToBoostNoSeeds)
 	            newSR += limit;
-			  System.out.println(num_seeds_excluding_us);
-			  System.out.println(iRankTypeSeedFallback);
 	        }
 	
 	      } else { // iRankType == RANK_SPRATIO or we are falling back
