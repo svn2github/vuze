@@ -121,6 +121,8 @@ TRTrackerBTAnnouncerImpl
   	private byte[]				torrent_hash;
   	private PeerIdentityDataID	peer_data_id;
   	
+	private String	last_tracker_message;		// per torrent memory
+	
 	private String info_hash = "info_hash=";
 	private byte[] tracker_peer_id;
 	private String tracker_peer_id_str = "&peer_id=";
@@ -1867,40 +1869,47 @@ TRTrackerBTAnnouncerImpl
 	 						
 	 						String	warning_message = new String(b_warning_message);
 	 						
-							boolean	log_it = false;
+								// don't report the same message twice per torrent
 							
-								// only report a given message once per tracker
-							
-							try{
-								class_mon.enter();
-							
-								String last_warning_message = (String)tracker_report_map.get( url.getHost());
+							if ( !warning_message.equals( last_tracker_message )){
 								
-								if ( 	last_warning_message != null &&
-										!warning_message.equals( last_warning_message )){
-	 							
-									log_it	= true;
+								last_tracker_message	= warning_message;
+							
+								boolean	log_it = false;
+								
+									// only report a given message once per tracker
+								
+								try{
+									class_mon.enter();
+								
+									String last_warning_message = (String)tracker_report_map.get( url.getHost());
 									
-									tracker_report_map.put( url.getHost(), warning_message );
+									if ( 	last_warning_message != null &&
+											!warning_message.equals( last_warning_message )){
+		 							
+										log_it	= true;
+										
+										tracker_report_map.put( url.getHost(), warning_message );
+									}
+								}finally{
+									
+									class_mon.exit();
 								}
-							}finally{
 								
-								class_mon.exit();
+								if ( log_it ){
+		 							
+		 							String	expanded_message = 
+		 								MessageText.getString(
+		 										"TrackerClient.announce.warningmessage",
+												new String[]{
+		 												announce_data_provider.getName(),
+														warning_message });
+		 									
+		 							LGLogger.logUnrepeatableAlert(
+		 								LGLogger.AT_WARNING,
+										expanded_message );
+		 						}
 							}
-							
-							if ( log_it ){
-	 							
-	 							String	expanded_message = 
-	 								MessageText.getString(
-	 										"TrackerClient.announce.warningmessage",
-											new String[]{
-	 												announce_data_provider.getName(),
-													warning_message });
-	 									
-	 							LGLogger.logUnrepeatableAlert(
-	 								LGLogger.AT_WARNING,
-									expanded_message );
-	 						}
 	 					}
 	 				}catch( Throwable e ){
 	 					
