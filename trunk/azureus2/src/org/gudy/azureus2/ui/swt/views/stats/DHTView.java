@@ -410,7 +410,7 @@ public class DHTView extends AbstractIView {
     gActivity.setLayoutData(new GridData(SWT.FILL,SWT.FILL,true,true));
     gActivity.setLayout(new GridLayout());
     
-    activityTable = new Table(gActivity,SWT.VIRTUAL | SWT.BORDER);
+    activityTable = new Table(gActivity,SWT.VIRTUAL | SWT.BORDER | SWT.FULL_SELECTION | SWT.SINGLE);
     activityTable.setLayoutData(new GridData(GridData.FILL_BOTH));
     
     final TableColumn colStatus =  new TableColumn(activityTable,SWT.LEFT);
@@ -565,6 +565,8 @@ public class DHTView extends AbstractIView {
       activityChanged = false;
       activities = dht.getControl().getActivities();
       activityTable.setItemCount(activities.length);
+      activityTable.clearAll();
+      //Dunno if still needed?
       activityTable.redraw();  
     }    
   }
