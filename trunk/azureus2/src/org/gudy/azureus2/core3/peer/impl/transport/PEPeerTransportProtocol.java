@@ -39,8 +39,7 @@ import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
-import com.aelitis.azureus.core.peermanager.peerdb.PeerConnectionItem;
-import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
+import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
@@ -61,6 +60,7 @@ PEPeerTransportProtocol
 	
 	private int port;
   
+  private PeerItem peer_item_identity;
   private int tcp_listen_port = 0;
   private int udp_listen_port = 0;
 	
@@ -164,6 +164,9 @@ PEPeerTransportProtocol
     peer_source	= _peer_source;
     ip    = _connection.getAddress().getAddress().getHostAddress();
     port  = _connection.getAddress().getPort();
+    
+    peer_item_identity = PeerItemFactory.createPeerItem( ip.getBytes(), port, PeerItem.convertSourceID( _peer_source ) );
+    
     incoming = true;
     connection = _connection;
     
@@ -214,6 +217,8 @@ PEPeerTransportProtocol
     ip    = _ip;
     port  = _port;
     tcp_listen_port = _port;
+    
+    peer_item_identity = PeerItemFactory.createPeerItem( ip.getBytes(), tcp_listen_port, PeerItem.convertSourceID( _peer_source ) );
     
     incoming = false;
     
@@ -1192,7 +1197,12 @@ PEPeerTransportProtocol
     
     if( !incoming && tcp_listen_port != port ) {
       System.out.println( "[" +(incoming ? "R:" : "L:")+" " +ip+":"+port+" "+client+ "] handshake TCP listen port [" +tcp_listen_port+ "] and actual port [" +port+ "] differ!" );
-    }    
+    }
+    
+    if( incoming ) {
+      //remake the id using the peer's remote listen port instead of their random local port
+      peer_item_identity = PeerItemFactory.createPeerItem( ip.getBytes(), tcp_listen_port, PeerItem.convertSourceID( peer_source ) );
+    }
     
     //find mutually available message types
     ArrayList messages = new ArrayList();
@@ -1721,4 +1731,7 @@ PEPeerTransportProtocol
   }
   
   
+  
+  public PeerItem getPeerItemIdentity() {  return peer_item_identity;  }
+
 }

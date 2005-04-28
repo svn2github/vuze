@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.peermanager.peerdb;
 
-import java.net.InetAddress;
 
 /**
  *
@@ -34,31 +33,15 @@ public class PeerItemFactory {
   public static final int PEER_SOURCE_PLUGIN        = 3;
   public static final int PEER_SOURCE_INCOMING      = 4;
   
-  
-  /**
-   * Create a peer item using the given peer ip and port and source information.
-   * NOTE: For creating IPv4 and IPv6 peers.
-   * @param address ip of peer
-   * @param port of peer
-   * @param source this peer info was obtained from
-   * @return peer
-   */
-  public static PeerItem createPeerItem( InetAddress address, int port, int source ) {
-    return createPeerItem( address.getAddress(), port, source );
-  }
 
-  
-  
   /**
    * Create a peer item using the given peer raw byte address and port and source information.
-   * NOTE: For creating non-IPv4/6 peers, i.e. I2P/Tor/non-dns-resolvable addresses.
    * @param raw_address of peer
    * @param port of peer
    * @param source this peer info was obtained from
    * @return peer
    */
   public static PeerItem createPeerItem( byte[] raw_address, int port, int source ) {
-    //TODO use this to create "lightweight" re-used peer items, since many exchanged peer connections will be duplicates, using weak hashmap?
     return new PeerItem( raw_address, port, source );
   }
   

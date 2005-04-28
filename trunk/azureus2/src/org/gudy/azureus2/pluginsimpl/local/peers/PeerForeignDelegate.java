@@ -44,6 +44,8 @@ import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 
 public class 
 PeerForeignDelegate
@@ -172,6 +174,11 @@ PeerForeignDelegate
   public void updatePeerExchange(){}
   
   
+  public PeerItem getPeerItemIdentity() {
+    return PeerItemFactory.createPeerItem( foreign.getIp().getBytes(), foreign.getPort(), PeerItemFactory.PEER_SOURCE_PLUGIN );
+  }
+  
+  
   public int getConnectionState() {  return 0;  }
 	  
   
@@ -246,6 +253,9 @@ PeerForeignDelegate
 	
   public int getTCPListenPort() {  return foreign.getTCPListenPort();  }
   public int getUDPListenPort() {  return foreign.getUDPListenPort();  }
+  
+  
+  
   
   
 	public boolean[] 

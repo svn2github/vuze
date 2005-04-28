@@ -30,6 +30,8 @@ import java.util.List;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.disk.*;
 
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
+
 public interface
 PEPeerTransport
 	extends PEPeer
@@ -144,5 +146,12 @@ PEPeerTransport
    * Do any peer exchange processing/updating.
    */
   public void updatePeerExchange();
+  
+  
+  /**
+   * Get the peer's address + port identification item.
+   * @return id
+   */
+  public PeerItem getPeerItemIdentity();
   
 }

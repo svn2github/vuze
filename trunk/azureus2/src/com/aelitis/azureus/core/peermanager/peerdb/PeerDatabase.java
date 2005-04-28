@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.util.*;
  *
  */
 public class PeerDatabase {
-  private static final int MIN_REBUILD_TIME = 30*1000;  //30sec
+  private static final int MIN_REBUILD_WAIT_TIME = 120*1000;  //2min
   
   private final HashMap peer_connections = new HashMap();
   private final LinkedList discovered_peers = new LinkedList();
@@ -106,7 +106,7 @@ public class PeerDatabase {
 
         if( discovered_peers.size() > 1000 ) {
           System.out.println( "discovered_peers.size():" + discovered_peers.size());
-          //discovered_peers.removeFirst();
+          //TODO: discovered_peers.removeFirst();
         }
       }
       else {
@@ -143,8 +143,8 @@ public class PeerDatabase {
         cached_peer_popularities = null;  //clear cache
         
         long time_since_rebuild = SystemTime.getCurrentTime() - last_rebuild_time;
-        //only allow exchange list rebuild every 30s, otherwise we'll loop endlessly
-        if( time_since_rebuild > MIN_REBUILD_TIME || time_since_rebuild < 0 ) {
+        //only allow exchange list rebuild every few min, otherwise we'll spam attempts endlessly
+        if( time_since_rebuild > MIN_REBUILD_WAIT_TIME || time_since_rebuild < 0 ) {
           cached_peer_popularities = getExchangedPeersSortedByLeastPopularFirst();
           popularity_pos = 0;
           last_rebuild_time = SystemTime.getCurrentTime();
@@ -155,11 +155,12 @@ public class PeerDatabase {
         peer = cached_peer_popularities[ popularity_pos ];
         type = "PEX";
         popularity_pos++;
+        last_rebuild_time = SystemTime.getCurrentTime();  //ensure rebuild waits min rebuild time after the cache is depleted before trying attempts again
       }
     }
 
     String addy = peer==null ? "" : new String( peer.getAddress() ) +":" +peer.getPort();
-//  TODO: if( !type.equals("<none found>") )  System.out.println( System.currentTimeMillis()+ " next optimistic peer [" +addy+ "] came via " +type );
+    //TODO if( !type.equals("<none found>") )  System.out.println( System.currentTimeMillis()+ " next optimistic peer [" +addy+ "] came via " +type );
 
     return peer;
   }
@@ -213,7 +214,7 @@ public class PeerDatabase {
       sorted_peers[i] = (PeerItem)entry.getKey();
 
       
-//    TODO: System.out.println( new String( sorted_peers[i].getAddress() )+":" +sorted_peers[i].getPort()+ ": popularity=" +((Integer)entry.getValue()).intValue() );
+//    TODO System.out.println( new String( sorted_peers[i].getAddress() )+":" +sorted_peers[i].getPort()+ ": popularity=" +((Integer)entry.getValue()).intValue() );
     } 
     
     return sorted_peers;

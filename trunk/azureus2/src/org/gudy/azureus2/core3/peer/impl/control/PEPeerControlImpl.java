@@ -109,7 +109,7 @@ PEPeerControlImpl
   private static final int MAINLOOP_FIVE_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 5;
   private static final int MAINLOOP_TEN_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 10;
   private static final int MAINLOOP_THIRTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 30;
-  
+  private static final int MAINLOOP_SIXTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 60;
   
 
   private volatile ArrayList peer_manager_listeners_cow = new ArrayList();  //copy on write
@@ -2747,18 +2747,18 @@ PEPeerControlImpl
         while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
           if( peer_database != null ) {
             PeerItem item = peer_database.getNextOptimisticConnectPeer();
-            //TODO count connect failures so we dont keep trying the same peers over and over?      
             
             if( item == null || !is_running )  break;
 
-            String source = PeerItem.convertSourceString( item.getSource() );
-            String address = new String( item.getAddress() );
-            
-            
-            //TODO make sure we're not already connected?
-            
-            if( makeNewOutgoingConnection( source, address, item.getPort() ) ) {
-              num_waiting_establishments++;
+            if( !isAlreadyConnected( item ) ) {
+              String source = PeerItem.convertSourceString( item.getSource() );
+              String address = new String( item.getAddress() );
+
+              if( makeNewOutgoingConnection( source, address, item.getPort() ) ) {
+                num_waiting_establishments++;
+              }
+              
+              //TODO count connect failures so we dont keep trying the same peers over and over
             }
           }
         }
@@ -2835,14 +2835,17 @@ PEPeerControlImpl
           closeAndRemovePeer( max_transport, "timed out by optimistic-connect" );
         }
       }
-      
+    }
+    
+    
+    //every 60 seconds
+    if ( mainloop_loop_count % MAINLOOP_SIXTY_SECOND_INTERVAL == 0 ) {
       //do peer exchange volleys
       ArrayList peer_transports = peer_transports_cow;
       for( int i=0; i < peer_transports.size(); i++ ) {
         PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
         peer.updatePeerExchange();
       }
-      
     }
   }
   
@@ -2854,6 +2857,17 @@ PEPeerControlImpl
     }
     
     return null;
+  }
+  
+  
+  
+  private boolean isAlreadyConnected( PeerItem peer_id ) {
+    ArrayList peer_transports = peer_transports_cow;
+    for( int i=0; i < peer_transports.size(); i++ ) {
+      PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+      if( peer.getPeerItemIdentity().equals( peer_id ) )  return true;
+    }
+    return false;
   }
   
  
