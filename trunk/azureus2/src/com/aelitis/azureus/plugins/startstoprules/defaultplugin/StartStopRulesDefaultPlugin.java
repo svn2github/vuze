@@ -1595,10 +1595,12 @@ public class StartStopRulesDefaultPlugin
 	      {
 	        if (bScrapeResultsOk) {
 	          int limit = SR_FIRST_PRIORITY_STARTS_AT / 2 - 10000;
-	          newSR += limit/(num_seeds_excluding_us + 1) +
-	                   ((bPreferLargerSwarms ? 1 : -1) * num_peers_excluding_us * 5);
+	          newSR += (limit + 5000) /(num_seeds_excluding_us + 1) +
+	                   ((bPreferLargerSwarms ? 4 : 3) * num_peers_excluding_us * 2);
 	          if (num_seeds_excluding_us == 0 && num_peers_excluding_us >= minPeersToBoostNoSeeds)
 	            newSR += limit;
+			  System.out.println(num_seeds_excluding_us);
+			  System.out.println(iRankTypeSeedFallback);
 	        }
 	
 	      } else { // iRankType == RANK_SPRATIO or we are falling back
@@ -1620,7 +1622,7 @@ public class StartStopRulesDefaultPlugin
 	          if (bPreferLargerSwarms)
 	            newSR += num_peers_excluding_us * 5;
 	          else
-	            newSR -= num_peers_excluding_us * 5;
+	            newSR += num_peers_excluding_us * 3;
 	        }
 	      }
 	
