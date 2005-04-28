@@ -33,6 +33,7 @@ FEATURE: Core | added option to move newly completed seeds to the end of the see
 FEATURE: Core | Support for I2P plugin [Parg]
 FEATURE: Plug | I2P plugin [Parg]
 FEATURE: Core | Network selection support (public, i2p, tor) [Parg]
+FEATURE: Core | Inter-client peer exchange [Nolar]
 
 CHANGE: Core | Smarter re-announce interval handling, especially for lopsided swarms [Nolar]
 CHANGE: Core | Added many new peerid identifications [Nolar, Gouss]

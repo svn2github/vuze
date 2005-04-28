@@ -169,7 +169,8 @@ PeerForeignDelegate
 	}
   
 	
-
+  public void updatePeerExchange(){}
+  
   
   public int getConnectionState() {  return 0;  }
 	  

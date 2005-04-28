@@ -28,8 +28,8 @@ import org.gudy.azureus2.core3.peer.util.*;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.impl.ConnectDisconnectManager;
 import com.aelitis.azureus.core.peermanager.*;
+import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.unchoker.*;
-import com.aelitis.azureus.core.peermanager.utils.PeerConnectInfoStorage;
 
 
 public class 
@@ -123,8 +123,6 @@ PEPeerControlImpl
   private int superSeedModeNumberOfAnnounces;
   private SuperSeedPiece[] superSeedPieces;
   
-  private final PeerConnectInfoStorage peer_info_storage = new PeerConnectInfoStorage( 200 );  //size will be updated later on
-  
   private final HashMap 	reconnect_counts 		= new HashMap();
   private final AEMonitor	reconnect_counts_mon	= new AEMonitor( "PEPeerControl:RC");
 
@@ -149,6 +147,9 @@ PEPeerControlImpl
   
 
   private Unchoker unchoker = null;
+  
+  private PeerDatabase peer_database = null;
+  
   
   
   
@@ -240,7 +241,6 @@ PEPeerControlImpl
     //The peer connections
     peer_transports_cow = new ArrayList();
 
-
     //BtManager is threaded, this variable represents the
     // current loop iteration. It's used by some components only called
     // at some specific times.
@@ -276,16 +276,21 @@ PEPeerControlImpl
     }
     
     
-    new AEThread( "Peer Manager"){
+    peer_database = PeerDatabaseFactory.createPeerDatabase();
+    
+    //register as legacy controller
+    PeerManager.getSingleton().registerLegacyManager( this );
+    
+    
+    
+    new AEThread( "PEPeerControlImpl"){
       public void
       runSupport()
       {
         mainLoop();
       }
     }.start();
-    
-    //register as legacy controller
-    PeerManager.getSingleton().registerLegacyManager( this );
+
   }
 
   
@@ -374,6 +379,9 @@ PEPeerControlImpl
     
     // send stopped event
     _tracker.stop();
+    
+    
+    peer_database = null;
     
     //remove legacy controller registration
     PeerManager.getSingleton().deregisterLegacyManager( this );
@@ -619,7 +627,10 @@ PEPeerControlImpl
       
       if( already_connected )  continue;
       
-      	peer_info_storage.addPeerInfo( new PeerConnectInfoStorage.PeerInfo( peer.getSource(), peer.getAddress(), peer.getPort() ) );
+      if( peer_database != null ) {
+        PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress().getBytes(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ) );
+        peer_database.addDiscoveredPeer( item );
+      }
 	  }
  	}
   
@@ -960,10 +971,6 @@ PEPeerControlImpl
       if ( num_wanted < 0 || num_wanted > WANT_LIMIT ) {
         num_wanted = WANT_LIMIT;
       }
-      
-      //include number of pending connection establishments in calculation
-      int num_pending = peer_info_storage.getStoredCount();
-      num_wanted -= num_pending;
       
       int current_connection_count = PeerIdentityManager.getIdentityCount( _hash );
       
@@ -2738,11 +2745,21 @@ PEPeerControlImpl
            
         //load stored peer-infos to be established
         while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
-          PeerConnectInfoStorage.PeerInfo peer_info = peer_info_storage.getPeerInfo();
-          if( peer_info == null )  break;
-          if( !is_running )  break;
-          if( makeNewOutgoingConnection( peer_info.getPeerSource(), peer_info.getAddress(), peer_info.getPort() ) ) {
-            num_waiting_establishments++;
+          if( peer_database != null ) {
+            PeerItem item = peer_database.getNextOptimisticConnectPeer();
+            //TODO count connect failures so we dont keep trying the same peers over and over            
+            
+            if( item == null || !is_running )  break;
+
+            String source = PeerItem.convertSourceString( item.getSource() );
+            String address = new String( item.getAddress() );
+            
+            
+            //TODO make sure we're not already connected
+            
+            if( makeNewOutgoingConnection( source, address, item.getPort() ) ) {
+              num_waiting_establishments++;
+            }
           }
         }
       }
@@ -2768,7 +2785,6 @@ PEPeerControlImpl
       //update storage capacity
       int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
       if( allowed == -1 )  allowed = 100;
-      peer_info_storage.setMaxCapacity( allowed * 2 );
     }
     
     //every 30 seconds
@@ -2819,8 +2835,25 @@ PEPeerControlImpl
           closeAndRemovePeer( max_transport, "timed out by optimistic-connect" );
         }
       }
+      
+      //do peer exchange volleys
+      ArrayList peer_transports = peer_transports_cow;
+      for( int i=0; i < peer_transports.size(); i++ ) {
+        PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+        peer.updatePeerExchange();
+      }
+      
+    }
+  }
+  
+  
+  public PeerConnectionItem createPeerExchangeConnection( PEPeer base_peer ) {
+    if( base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
+      PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp().getBytes(), base_peer.getTCPListenPort(), PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE );
+      return peer_database.registerPeerConnection( peer );
     }
     
+    return null;
   }
   
  
