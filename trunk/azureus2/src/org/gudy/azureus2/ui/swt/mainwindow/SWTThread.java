@@ -73,7 +73,12 @@ public class SWTThread {
     instance = this;
     try {
       display = Display.getCurrent();
-      sleak = true;
+	  if ( display == null ){
+		  display = new Display();
+	      sleak = false;
+	  }else{
+		  sleak = true;
+	  }
     } catch(Exception e) { 
       display = new Display();
       sleak = false;
