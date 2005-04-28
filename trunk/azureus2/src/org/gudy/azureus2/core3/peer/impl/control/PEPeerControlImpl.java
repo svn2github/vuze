@@ -2848,7 +2848,7 @@ PEPeerControlImpl
   
   
   public PeerConnectionItem createPeerExchangeConnection( PEPeer base_peer ) {
-    if( base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
+    if( peer_database != null && base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
       PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp().getBytes(), base_peer.getTCPListenPort(), PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE );
       return peer_database.registerPeerConnection( peer );
     }
