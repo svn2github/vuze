@@ -139,4 +139,10 @@ PEPeerTransport
    */
   public long getTimeSinceLastDataMessageSent();
   
+  
+  /**
+   * Do any peer exchange processing/updating.
+   */
+  public void updatePeerExchange();
+  
 }

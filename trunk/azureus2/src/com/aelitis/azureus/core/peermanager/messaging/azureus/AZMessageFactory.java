@@ -32,6 +32,7 @@ import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 
 
 
@@ -68,8 +69,7 @@ public class AZMessageFactory {
   public static void init() {
     try {
       MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, new String[0], new byte[0]) );
-      MessageManager.getSingleton().registerMessageType( new AZPing() );
-      MessageManager.getSingleton().registerMessageType( new AZPong() );
+      MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null ) );
     }
     catch( MessageException me ) {  me.printStackTrace();  }
   }

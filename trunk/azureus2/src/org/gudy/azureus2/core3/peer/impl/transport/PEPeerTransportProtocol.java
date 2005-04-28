@@ -39,6 +39,8 @@ import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerConnectionItem;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.peermanager.utils.*;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
@@ -151,6 +153,8 @@ PEPeerTransportProtocol
   private long consecutive_keep_alives = 0;
   
   
+  private PeerConnectionItem peer_exchange_item = null;
+  private boolean peer_exchange_supported = false;
   
   
   
@@ -330,6 +334,10 @@ PEPeerTransportProtocol
     
     if( outgoing_have_message_aggregator != null ) {
       outgoing_have_message_aggregator.destroy();
+    }
+    
+    if( peer_exchange_item != null ) {
+      peer_exchange_item.destroy();
     }
     
     if( connection != null ) {  //can be null if close is called within ::<init>::, like when the given port is invalid
@@ -1204,8 +1212,13 @@ PEPeerTransportProtocol
     connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
 
     sendBitField();
+    
+    handshake.destroy();
   }
   
+  
+  
+
   
   
   
@@ -1459,7 +1472,7 @@ PEPeerTransportProtocol
           message.destroy();
           consecutive_keep_alives++;
           if( consecutive_keep_alives > 50 ) {
-            System.out.println( PEPeerTransportProtocol.this.toString()+ " dropped: Too many consecutive keep-alive messages received." );
+            consecutive_keep_alives = 0;
             closeConnection( "Too many [50] consecutive keep-alive messages received.", false );
           }
           return true;
@@ -1525,6 +1538,11 @@ PEPeerTransportProtocol
           return true;
         }
 
+        if( message.getID().equals( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
+          decodeAZPeerExchange( (AZPeerExchange)message );
+          return true;
+        }
+        
         return false;
       }
       
@@ -1620,6 +1638,10 @@ PEPeerTransportProtocol
   private void changePeerState( int new_state ) {
     current_peer_state = new_state;
     
+    if( current_peer_state == PEPeer.TRANSFERING ) {
+      doPostHandshakeProcessing();
+    }
+
     if( peer_listeners != null ) {
       for( int i=0; i < peer_listeners.size(); i++ ) {
         PEPeerListener l = (PEPeerListener)peer_listeners.get( i );
@@ -1630,6 +1652,73 @@ PEPeerTransportProtocol
   }
   
   
+  
+  
+  private void doPostHandshakeProcessing() {
+    //try and register all connections for their peer exchange info
+    peer_exchange_item = manager.createPeerExchangeConnection( this );
+    
+    if( peer_exchange_item != null ) {
+      //check for peer exchange support
+      if( peerSupportsMessageType( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
+        peer_exchange_supported = true;
+        updatePeerExchange();  //send initial volley
+      }
+      else {  //no need to maintain internal states as we wont be sending/receiving peer exchange messages
+        peer_exchange_item.disableStateMaintenance();
+      }
+    }
+  }
+  
+  
+  
+  private boolean peerSupportsMessageType( String message_id ) {
+    if( supported_messages != null ) {
+      for( int i=0; i < supported_messages.length; i++ ) {
+        if( supported_messages[i].getID().equals( message_id ) )  return true;        
+      }
+    }
+    return false;
+  }
+  
+  
+  
+  public void updatePeerExchange() {
+    if ( getPeerState() != TRANSFERING ) return;
+    if( !peer_exchange_supported )  return;
+    
+    if( peer_exchange_item != null ) {
+      PeerItem[] adds = peer_exchange_item.getNewlyAddedPeerConnections();
+      PeerItem[] drops = peer_exchange_item.getNewlyDroppedPeerConnections();  
+      
+      if( (adds != null && adds.length > 0) || (drops != null && drops.length > 0) ) {
+        connection.getOutgoingMessageQueue().addMessage( new AZPeerExchange( manager.getHash(), adds, drops ), false );
+      }
+    }
+  }
+ 
+  
+  
+  private void decodeAZPeerExchange( AZPeerExchange exchange ) {
+    if( peer_exchange_supported && peer_exchange_item != null ) {
+      PeerItem[] added = exchange.getAddedPeers();
+      PeerItem[] dropped = exchange.getDroppedPeers();
+      
+      if( added != null ) {
+        for( int i=0; i < added.length; i++ ) {
+          peer_exchange_item.addConnectedPeer( added[i] );
+        }
+      }
+      
+      if( dropped != null ) {
+        for( int i=0; i < dropped.length; i++ ) {
+          peer_exchange_item.dropConnectedPeer( dropped[i] );
+        }
+      }
+    }
+    
+    exchange.destroy();
+  }
   
   
 }

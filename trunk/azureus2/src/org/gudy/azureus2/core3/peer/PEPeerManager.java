@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerConnectionItem;
 
 
 public interface 
@@ -228,6 +229,17 @@ PEPeerManager
    * @param reconnect if true, attempt to reestablish this peer connection
    */
   public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect );
+  
+  
+  
+  /**
+   * Register a peer connection for peer exchange handling.
+   * NOTE: Creation could fail if the peer is not eligible for peer exchange (like if it's remote port is unknown).
+   * @param base_peer exchaning with
+   * @return peer database connection item, or null if creation failed
+   */
+  public PeerConnectionItem createPeerExchangeConnection( PEPeer base_peer );
+  
   
   
   /**

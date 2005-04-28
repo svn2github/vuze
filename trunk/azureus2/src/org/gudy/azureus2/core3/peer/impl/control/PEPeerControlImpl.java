@@ -2747,7 +2747,7 @@ PEPeerControlImpl
         while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
           if( peer_database != null ) {
             PeerItem item = peer_database.getNextOptimisticConnectPeer();
-            //TODO count connect failures so we dont keep trying the same peers over and over            
+            //TODO count connect failures so we dont keep trying the same peers over and over?      
             
             if( item == null || !is_running )  break;
 
@@ -2755,7 +2755,7 @@ PEPeerControlImpl
             String address = new String( item.getAddress() );
             
             
-            //TODO make sure we're not already connected
+            //TODO make sure we're not already connected?
             
             if( makeNewOutgoingConnection( source, address, item.getPort() ) ) {
               num_waiting_establishments++;

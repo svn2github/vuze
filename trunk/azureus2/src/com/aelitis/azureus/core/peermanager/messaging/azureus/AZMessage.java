@@ -29,9 +29,8 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
  */
 public interface AZMessage extends Message {
 
-  public static final String ID_AZ_HANDSHAKE  = "AZ_HANDSHAKE";
-  public static final String ID_AZ_PING       = "AZ_PING";
-  public static final String ID_AZ_PONG       = "AZ_PONG";
+  public static final String ID_AZ_HANDSHAKE     = "AZ_HANDSHAKE";
+  public static final String ID_AZ_PEER_EXCHANGE = "AZ_PEER_EXCHANGE";
   
   
   public static final byte AZ_DEFAULT_VERSION = (byte)1;

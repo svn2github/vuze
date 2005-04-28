@@ -171,21 +171,21 @@ public class AZHandshake implements AZMessage {
       //////////////////////////////////////////////
       byte[] id = (byte[])root.get( "identity" );
       if( id == null ) {
-        throw new Exception( "id == null" );
+        throw new MessageException( "id == null" );
       }
       if( id.length != 20 ) {
-        throw new Exception( "id.length != 20" );
+        throw new MessageException( "id.length != 20: " +id.length );
       }
       //////////////////////////////////////////////
       byte[] raw_name = (byte[])root.get( "client" );
       if( raw_name == null ) {
-        throw new Exception( "raw_name == null" );
+        throw new MessageException( "raw_name == null" );
       }
       String name = new String( raw_name );
       //////////////////////////////////////////////
       byte[] raw_ver = (byte[])root.get( "version" );
       if( raw_ver == null ) {
-        throw new Exception( "raw_ver == null" );
+        throw new MessageException( "raw_ver == null" );
       }
       String version = new String( raw_ver );
       //////////////////////////////////////////////
@@ -202,7 +202,7 @@ public class AZHandshake implements AZMessage {
       
       List raw_msgs = (List)root.get( "messages" );
       if( raw_msgs == null ) {
-        throw new Exception( "raw_msgs == null" );
+        throw new MessageException( "raw_msgs == null" );
       }
       
       String[] ids = new String[ raw_msgs.size() ];
@@ -215,16 +215,16 @@ public class AZHandshake implements AZMessage {
         
         byte[] mid = (byte[])msg.get( "id" );
         if( mid == null ) {
-          throw new Exception( "mid == null" );
+          throw new MessageException( "mid == null" );
         }
         ids[ pos ] = new String( mid );
         
         byte[] ver = (byte[])msg.get( "ver" );
         if( ver == null ) {
-          throw new Exception( "ver == null" );
+          throw new MessageException( "ver == null" );
         }
         if( ver.length != 1 ) {
-          throw new Exception( "ver.length != 1" );
+          throw new MessageException( "ver.length != 1" );
         }
         vers[ pos ] = ver[ 0 ];
         
