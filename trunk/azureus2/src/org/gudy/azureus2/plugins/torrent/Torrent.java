@@ -122,6 +122,10 @@ Torrent
 	public boolean
 	isPrivate();
 	
+	public void
+	setPrivate(
+		boolean	priv );
+	
 	public Map
 	writeToMap()
 	

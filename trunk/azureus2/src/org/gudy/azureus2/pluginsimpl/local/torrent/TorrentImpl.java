@@ -115,6 +115,13 @@ TorrentImpl
 		return( TorrentUtils.getPrivate( torrent ));
 	}
 	
+	public void
+	setPrivate(
+		boolean	priv )
+	{
+		TorrentUtils.setPrivate( torrent, priv );
+	}
+	
 	public byte[]
 	getHash()
 	{
