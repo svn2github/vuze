@@ -37,6 +37,7 @@ BloomFilterImpl
 	
 	private static final int	HASH_NUM	= 5;
 	
+	private static final BigInteger	bi_zero		= new BigInteger("0");
 	private static final BigInteger	bi_a2		= new BigInteger("2");
 	private static final BigInteger	bi_a3		= new BigInteger("3");
 	private static final BigInteger	bi_a4		= new BigInteger("5");
@@ -46,18 +47,21 @@ BloomFilterImpl
 	private static final BigInteger	bi_b4		= new BigInteger("216");
 	
 
-	private BigInteger	max_entries;
+	private int			max_entries;
+	private BigInteger	bi_max_entries;
 	private byte[]		map;
 	
 	public 
 	BloomFilterImpl(
 		int		_max_entries )
 	{
-		max_entries	= new BigInteger( ""+_max_entries );
+		bi_max_entries	= new BigInteger( ""+_max_entries ).nextProbablePrime();
+				
+		max_entries	= bi_max_entries.intValue();
 		
 			// 4 bits per entry
 		
-		map	= new byte[(_max_entries+1)/2];
+		map	= new byte[(max_entries+1)/2];
 	}
 	
 	public void
@@ -248,11 +252,28 @@ BloomFilterImpl
 			}
 		}
 		
-		int	r = res.mod( max_entries ).intValue();
+		int	r = 0;
+		
+		while(true){
+			
+			BigInteger	x = res.divide( bi_max_entries );
+			
+			if ( x.compareTo( bi_zero) == 0 ){
+				
+				r += res.mod( bi_max_entries ).intValue();
+				
+				break;
+			}
+			
+			r += x.mod( bi_max_entries ).intValue();
+
+			res = x;
+		}
+		
 		
 		// System.out.println( "hash[" + function + "] " + value + "->" + r );
 		
-		return( r );
+		return( r % max_entries );
 	}
 	
 	protected BigInteger
@@ -277,49 +298,54 @@ BloomFilterImpl
 	main(
 		String[]	args )
 	{
-		BloomFilter b = new BloomFilterImpl(10000);
-		
-		long	start = System.currentTimeMillis();
-		
 		Random	rand = new Random();
 		
-		for (int i=0;i<1000;i++){
+		for (int j=0;j<100;j++){
 			
-			//String	key = "" + rand.nextInt();
+			long	start = System.currentTimeMillis();
 			
-			byte[]	key = new byte[4];
+			BloomFilter b = new BloomFilterImpl(10000);
 			
-			rand.nextBytes( key );
+			int	fp = 0;
 			
-			if ( i%2 == 0 ){
+			for (int i=0;i<1000;i++){
 				
-				b.add( key  );
-			
-				if ( !b.contains( key )){
-					
-					System.out.println( "false negative on add!!!!" );
-				}
-			}else{
+				String	key = "" + rand.nextInt();
 				
-				if ( b.contains( key )){
+				//byte[]	key = new byte[4];
+				
+				//rand.nextBytes( key );
+				
+				if ( i%2 == 0 ){
 					
-					System.out.println( "false positive" );
+					b.add( key  );
+				
+					if ( !b.contains( key )){
+						
+						System.out.println( "false negative on add!!!!" );
+					}
+				}else{
+					
+					if ( b.contains( key )){
+						
+						fp++;
+					}
 				}
+				
+				/*
+				if ( i%2 == 0 ){
+					
+					b.remove( key  );
+				
+					if ( b.contains( key )){
+					
+						System.out.println( "false positive" );
+					}
+				}
+				*/
 			}
 			
-			/*
-			if ( i%2 == 0 ){
-				
-				b.remove( key  );
-			
-				if ( b.contains( key )){
-				
-					System.out.println( "false positive" );
-				}
-			}
-			*/
+			System.out.println( "" + (System.currentTimeMillis() - start + ", fp = " + fp ));
 		}
-		
-		System.out.println( "" + (System.currentTimeMillis() - start ));
 	}
 }
