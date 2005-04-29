@@ -92,7 +92,7 @@ public class UnchokerUtil {
       }
     }
     
-    if( optimistics.isEmpty() ) {  //try again, allowing snubbed peers as last resort
+    if( optimistics.isEmpty() && allow_snubbed ) {  //try again, allowing snubbed peers as last resort
       for( int i=0; i < all_peers.size(); i++ ) {
         PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
         
