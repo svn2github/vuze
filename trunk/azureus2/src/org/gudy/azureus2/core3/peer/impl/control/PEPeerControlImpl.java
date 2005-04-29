@@ -251,20 +251,6 @@ PEPeerControlImpl
 
     _averageReceptionSpeed = Average.getInstance(1000, 30);
 
-
-    /*
-				DataReaderSpeedLimiter.getSingleton().getDataReader(
-						new DataReaderOwner()
-					{
-							public int
-							getMaximumBytesPerSecond()
-							{
-								return( _downloadManager.getStats().getMaxDownloadKBSpeed() * 1024 );
-							}
-					});
-  */
-  
-    
     setDiskManager(_diskManager);
     
     superSeedMode = (COConfigurationManager.getBooleanParameter("Use Super Seeding") && this.getRemaining() == 0);
@@ -2758,7 +2744,7 @@ PEPeerControlImpl
                 num_waiting_establishments++;
               }
               
-              //TODO count connect failures so we dont keep trying the same peers over and over
+              //TODO count connect failures so we dont keep trying the same peers over and over: long-term remembering
             }
           }
         }

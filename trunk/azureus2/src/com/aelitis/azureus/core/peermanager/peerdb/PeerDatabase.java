@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.peermanager.peerdb;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -104,13 +105,15 @@ public class PeerDatabase {
       if( !discovered_peers.contains( peer ) ) {
         discovered_peers.addLast( peer );  //add unknown peer
 
-        if( discovered_peers.size() > 1000 ) {
-          System.out.println( "discovered_peers.size():" + discovered_peers.size());
-          //TODO: discovered_peers.removeFirst();
+        int max_cache_size = PeerUtils.MAX_CONNECTIONS_PER_TORRENT;
+        if( max_cache_size < 1 || max_cache_size > 500 )  max_cache_size = 500;
+        
+        if( discovered_peers.size() > max_cache_size ) {
+          discovered_peers.removeFirst();
         }
       }
       else {
-//      TODO: System.out.println( "discovered peer already known via PEX: " +new String(peer.getAddress()) );
+        System.out.println( "discovered peer already known via PEX: " +new String(peer.getAddress()) );
       }
     }
     finally{  map_mon.exit();  }
@@ -125,14 +128,11 @@ public class PeerDatabase {
    */
   public PeerItem getNextOptimisticConnectPeer() {
     PeerItem peer = null;
-    
-    String type = "<none found>";
-    
+
     //first see if there are any unknown peers to try
     try{  map_mon.enter();
       if( !discovered_peers.isEmpty() ) {
-        peer = (PeerItem)discovered_peers.removeLast();
-        type = "discovered";
+        peer = (PeerItem)discovered_peers.removeFirst();
       }
     }
     finally{  map_mon.exit();  }
@@ -153,14 +153,10 @@ public class PeerDatabase {
       
       if( cached_peer_popularities != null && cached_peer_popularities.length > 0 ) {
         peer = cached_peer_popularities[ popularity_pos ];
-        type = "PEX";
         popularity_pos++;
         last_rebuild_time = SystemTime.getCurrentTime();  //ensure rebuild waits min rebuild time after the cache is depleted before trying attempts again
       }
     }
-
-    String addy = peer==null ? "" : new String( peer.getAddress() ) +":" +peer.getPort();
-    //TODO if( !type.equals("<none found>") )  System.out.println( System.currentTimeMillis()+ " next optimistic peer [" +addy+ "] came via " +type );
 
     return peer;
   }
@@ -209,12 +205,15 @@ public class PeerDatabase {
     
     PeerItem[] sorted_peers = new PeerItem[ sorted_entries.length ];
     
+    
+    System.out.println( "Total known PEX peers: " +sorted_entries.length );
+        
     for( int i=0; i < sorted_entries.length; i++ ) {
       Map.Entry entry = sorted_entries[i];
       sorted_peers[i] = (PeerItem)entry.getKey();
 
       
-//    TODO System.out.println( new String( sorted_peers[i].getAddress() )+":" +sorted_peers[i].getPort()+ ": popularity=" +((Integer)entry.getValue()).intValue() );
+      //System.out.println( new String( sorted_peers[i].getAddress() )+":" +sorted_peers[i].getPort()+ ": popularity=" +((Integer)entry.getValue()).intValue() );
     } 
     
     return sorted_peers;

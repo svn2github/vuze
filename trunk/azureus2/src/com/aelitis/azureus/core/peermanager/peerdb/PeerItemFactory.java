@@ -42,6 +42,7 @@ public class PeerItemFactory {
    * @return peer
    */
   public static PeerItem createPeerItem( byte[] raw_address, int port, int source ) {
+    //TODO make lightweight
     return new PeerItem( raw_address, port, source );
   }
   

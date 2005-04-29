@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.peermanager.peerdb;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 /**
@@ -53,16 +54,15 @@ public class PeerConnectionItem {
   public void addConnectedPeer( PeerItem peer ) {
     try{  peers_mon.enter();
       if( !maintain_peers_state )  return;
-    
-      connected_peers.put( peer, peer );
+
+      System.out.println( "ADDED exchanged peer: " +new String(peer.getAddress())+":" +peer.getPort() );
       
-//    TODO: System.out.println( "added exchanged peer: " +new String(peer.getAddress())+":" +peer.getPort() );
-      
-      if( connected_peers.size() > 1000 ) {
-        System.out.println( "connected_peers.size():" + connected_peers.size());
-        //TODO we'll need to limit the max size somehow
+      int max_cache_size = PeerUtils.MAX_CONNECTIONS_PER_TORRENT;
+      if( max_cache_size < 1 || max_cache_size > 500 )  max_cache_size = 500;
+
+      if( connected_peers.size() < max_cache_size ) {
+        connected_peers.put( peer, null );
       }
-      
     }
     finally{  peers_mon.exit();  }
   }
@@ -75,7 +75,7 @@ public class PeerConnectionItem {
   public void dropConnectedPeer( PeerItem peer ) {
     try{  peers_mon.enter();
     
-//  TODO: System.out.println( "dropped exchanged peer: " +new String(peer.getAddress())+":" +peer.getPort() );
+      System.out.println( "DROPPED exchanged peer: " +new String(peer.getAddress())+":" +peer.getPort() );
       connected_peers.remove( peer );
     }
     finally{  peers_mon.exit();  }
