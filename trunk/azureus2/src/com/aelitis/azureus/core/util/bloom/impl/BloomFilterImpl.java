@@ -31,6 +31,8 @@ public class
 BloomFilterImpl
 	implements BloomFilter
 {
+	private static final char[]	HEX_CHARS = "0123456789ABCDEF".toCharArray();
+	
 		// change the hash num and you gotta change the hash function below!!!!
 	
 	private static final int	HASH_NUM	= 5;
@@ -38,6 +40,7 @@ BloomFilterImpl
 	private static final BigInteger	bi_a2		= new BigInteger("2");
 	private static final BigInteger	bi_a3		= new BigInteger("3");
 	private static final BigInteger	bi_a4		= new BigInteger("5");
+	
 	private static final BigInteger	bi_b2		= new BigInteger("51");
 	private static final BigInteger	bi_b3		= new BigInteger("145");
 	private static final BigInteger	bi_b4		= new BigInteger("216");
@@ -256,21 +259,16 @@ BloomFilterImpl
 	bytesToBigInteger(
 		byte[]		data )
 	{
-		String	str_key = "";
+		StringBuffer	buffer = new StringBuffer(data.length*2);
 		
 		for (int i=0;i<data.length;i++){
 			
-			String	hex = Integer.toHexString( data[i]&0xff );
+			buffer.append( HEX_CHARS[(data[i]>>4)&0x0f] );
 			
-			while( hex.length() < 2 ){
-				
-				hex = "0" + hex;
-			}
-				
-			str_key += hex;
+			buffer.append( HEX_CHARS[data[i]&0x0f] );
 		}
 				
-		BigInteger	res		= new BigInteger( str_key, 16 );	
+		BigInteger	res		= new BigInteger( new String(buffer), 16 );	
 		
 		return( res );
 	}
@@ -287,7 +285,11 @@ BloomFilterImpl
 		
 		for (int i=0;i<1000;i++){
 			
-			String	key = "" + rand.nextInt();
+			//String	key = "" + rand.nextInt();
+			
+			byte[]	key = new byte[4];
+			
+			rand.nextBytes( key );
 			
 			if ( i%2 == 0 ){
 				

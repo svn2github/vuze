@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.util.bloom;
 public interface 
 BloomFilter 
 {
+		// String operations
+	
 	public void
 	add(
 		String		value );
@@ -36,5 +38,19 @@ BloomFilter
 	public boolean
 	contains(
 		String		value );
+	
+		// byte[] operations
+	
+	public void
+	add(
+		byte[]		value );
+	
+	public void
+	remove(
+		byte[]		value );
+	
+	public boolean
+	contains(
+		byte[]		value );
 	
 }
