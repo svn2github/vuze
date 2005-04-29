@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.logging.LGLogger;
 
 
 import com.aelitis.azureus.core.networkmanager.impl.*;
@@ -54,7 +55,8 @@ public class NetworkManager {
     });
     
     max_upload_rate_bps = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
-    if( max_upload_rate_bps <= 0 )  max_upload_rate_bps = UNLIMITED_RATE;
+    if( max_upload_rate_bps <= 1024 )  max_upload_rate_bps = UNLIMITED_RATE;
+    LGLogger.log( "Global max upload rate: " +max_upload_rate_bps+ " bytes/s");
     COConfigurationManager.addParameterListener( "Max Upload Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         max_upload_rate_bps = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
@@ -63,7 +65,8 @@ public class NetworkManager {
     });
     
     max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
-    if( max_download_rate_bps <= 0 )  max_download_rate_bps = UNLIMITED_RATE;
+    if( max_download_rate_bps <= 1024 )  max_download_rate_bps = UNLIMITED_RATE;
+    LGLogger.log( "Global max download rate: " +max_download_rate_bps+ " bytes/s");
     COConfigurationManager.addParameterListener( "Max Download Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
