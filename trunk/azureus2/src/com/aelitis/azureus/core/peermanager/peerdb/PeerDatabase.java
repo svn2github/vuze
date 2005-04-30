@@ -211,9 +211,6 @@ public class PeerDatabase {
     for( int i=0; i < sorted_entries.length; i++ ) {
       Map.Entry entry = sorted_entries[i];
       sorted_peers[i] = (PeerItem)entry.getKey();
-
-      
-      System.out.println( sorted_peers[i].getAddressString()+":" +sorted_peers[i].getPort()+ ": popularity=" +((Integer)entry.getValue()).intValue() );
     } 
     
     return sorted_peers;

@@ -1665,17 +1665,20 @@ PEPeerTransportProtocol
   
   
   private void doPostHandshakeProcessing() {
-    //try and register all connections for their peer exchange info
-    peer_exchange_item = manager.createPeerExchangeConnection( this );
+    //peer exchange registration
+    if( manager.getDownloadManager().getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ) ) {
+      //try and register all connections for their peer exchange info
+      peer_exchange_item = manager.createPeerExchangeConnection( this );
     
-    if( peer_exchange_item != null ) {
-      //check for peer exchange support
-      if( peerSupportsMessageType( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
-        peer_exchange_supported = true;
-        updatePeerExchange();  //send initial volley
-      }
-      else {  //no need to maintain internal states as we wont be sending/receiving peer exchange messages
-        peer_exchange_item.disableStateMaintenance();
+      if( peer_exchange_item != null ) {
+        //check for peer exchange support
+        if( peerSupportsMessageType( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
+          peer_exchange_supported = true;
+          updatePeerExchange();  //send initial volley
+        }
+        else {  //no need to maintain internal states as we wont be sending/receiving peer exchange messages
+          peer_exchange_item.disableStateMaintenance();
+        }
       }
     }
   }
@@ -1696,8 +1699,8 @@ PEPeerTransportProtocol
   public void updatePeerExchange() {
     if ( getPeerState() != TRANSFERING ) return;
     if( !peer_exchange_supported )  return;
-    
-    if( peer_exchange_item != null ) {
+
+    if( peer_exchange_item != null && manager.getDownloadManager().getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ) ) {
       PeerItem[] adds = peer_exchange_item.getNewlyAddedPeerConnections();
       PeerItem[] drops = peer_exchange_item.getNewlyDroppedPeerConnections();  
       
@@ -1710,7 +1713,7 @@ PEPeerTransportProtocol
   
   
   private void decodeAZPeerExchange( AZPeerExchange exchange ) {
-    if( peer_exchange_supported && peer_exchange_item != null ) {
+    if( peer_exchange_supported && peer_exchange_item != null && manager.getDownloadManager().getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ) ) {
       PeerItem[] added = exchange.getAddedPeers();
       PeerItem[] dropped = exchange.getDroppedPeers();
       
@@ -1725,6 +1728,9 @@ PEPeerTransportProtocol
           peer_exchange_item.dropConnectedPeer( dropped[i] );
         }
       }
+    }
+    else {
+      LGLogger.log( "Peer Exchange disabled for this download, dropping received exchange message." );
     }
     
     exchange.destroy();
