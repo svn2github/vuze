@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class PeerDatabase {
   private static final int MIN_REBUILD_WAIT_TIME = 120*1000;  //2min
+  private static final int MAX_DISCOVERED_PEERS = 500;
   
   private final HashMap peer_connections = new HashMap();
   private final LinkedList discovered_peers = new LinkedList();
@@ -106,7 +107,7 @@ public class PeerDatabase {
         discovered_peers.addLast( peer );  //add unknown peer
 
         int max_cache_size = PeerUtils.MAX_CONNECTIONS_PER_TORRENT;
-        if( max_cache_size < 1 || max_cache_size > 500 )  max_cache_size = 500;
+        if( max_cache_size < 1 || max_cache_size > MAX_DISCOVERED_PEERS )  max_cache_size = MAX_DISCOVERED_PEERS;
         
         if( discovered_peers.size() > max_cache_size ) {
           discovered_peers.removeFirst();

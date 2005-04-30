@@ -32,10 +32,14 @@ import org.gudy.azureus2.core3.util.AEMonitor;
  *
  */
 public class PeerConnectionItem {
+  private static final int MAX_PEERS_PER_VOLLEY = 50;
+  private static final int MAX_KNOWN_PER_PEER = 500;
+  
+  
   private final PeerDatabase parent_db;
   private final PeerItem base_peer;
-  private final ArrayList connections_added = new ArrayList();
-  private final ArrayList connections_dropped = new ArrayList();
+  private final LinkedList connections_added = new LinkedList();
+  private final LinkedList connections_dropped = new LinkedList();
   private final HashMap connected_peers = new HashMap();
   private final AEMonitor peers_mon = new AEMonitor( "PeerConnectionItem" );
   private boolean maintain_peers_state = true;  //assume we do until explicitly disabled
@@ -56,7 +60,7 @@ public class PeerConnectionItem {
       if( !maintain_peers_state )  return;
 
       int max_cache_size = PeerUtils.MAX_CONNECTIONS_PER_TORRENT;
-      if( max_cache_size < 1 || max_cache_size > 500 )  max_cache_size = 500;
+      if( max_cache_size < 1 || max_cache_size > MAX_KNOWN_PER_PEER )  max_cache_size = MAX_KNOWN_PER_PEER;
 
       if( connected_peers.size() < max_cache_size ) {
         connected_peers.put( peer, null );
@@ -87,7 +91,7 @@ public class PeerConnectionItem {
     
       if( !connections_dropped.contains( peer_connection ) ) {
         if( !connections_added.contains( peer_connection ) ) {
-          connections_added.add( peer_connection );  //register new add
+          connections_added.addLast( peer_connection );  //register new add
         }
       }
       else {  //was dropped and then re-added
@@ -104,7 +108,7 @@ public class PeerConnectionItem {
       
       if( !connections_added.contains( peer_connection ) ) {
         if( !connections_dropped.contains( peer_connection ) ) {
-          connections_dropped.add( peer_connection );  //register new drop
+          connections_dropped.addLast( peer_connection );  //register new drop
         }
       }
       else {  //was added and then re-dropped
@@ -123,9 +127,15 @@ public class PeerConnectionItem {
   public PeerItem[] getNewlyAddedPeerConnections() {
     try{  peers_mon.enter();
       if( connections_added.isEmpty() )  return null;
-      PeerItem[] peers = new PeerItem[ connections_added.size() ];
-      connections_added.toArray( peers );
-      connections_added.clear();  //reset adds
+      
+      int num_to_send = connections_added.size() > MAX_PEERS_PER_VOLLEY ? MAX_PEERS_PER_VOLLEY : connections_added.size();
+
+      PeerItem[] peers = new PeerItem[ num_to_send ];
+      
+      for( int i=0; i < num_to_send; i++ ) {
+        peers[i] = (PeerItem)connections_added.removeFirst();       
+      }
+
       return peers;
     }
     finally{  peers_mon.exit();  }
@@ -140,9 +150,14 @@ public class PeerConnectionItem {
   public PeerItem[] getNewlyDroppedPeerConnections() {
     try{  peers_mon.enter();
       if( connections_dropped.isEmpty() )  return null;
-      PeerItem[] peers = new PeerItem[ connections_dropped.size() ];
-      connections_dropped.toArray( peers );
-      connections_dropped.clear();  //reset drops
+      
+      int num_to_send = connections_dropped.size() > MAX_PEERS_PER_VOLLEY ? MAX_PEERS_PER_VOLLEY : connections_dropped.size();
+
+      PeerItem[] peers = new PeerItem[ num_to_send ];
+      
+      for( int i=0; i < num_to_send; i++ ) {
+        peers[i] = (PeerItem)connections_dropped.removeFirst();       
+      }
       return peers;
     }
     finally{  peers_mon.exit();  }
