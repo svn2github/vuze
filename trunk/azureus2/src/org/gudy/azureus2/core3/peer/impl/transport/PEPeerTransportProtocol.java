@@ -1404,8 +1404,7 @@ PEPeerTransportProtocol
           printRequestStats();
         }
       }
-      else {  //successfully received piece!
-        manager.dataBytesReceived( length );
+      else {  //successfully received block!
         manager.writeBlock( number, offset, payload, this );
         requests_completed++;
         piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
@@ -1422,7 +1421,6 @@ PEPeerTransportProtocol
         
         if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
           LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "expired piece block data recovered as useful." );
-          manager.dataBytesReceived( length );
           setSnubbed( false );
           reSetRequestsTime();
           manager.writeBlockAndCancelOutstanding( number, offset, payload, this );
@@ -1565,7 +1563,7 @@ PEPeerTransportProtocol
       public void dataBytesReceived( int byte_count ) {
         //update stats
         peer_stats.dataBytesReceived( byte_count );
-        //we dont call manager.dataBytesReceived(byte_count) here, as piece message handler will do it if piece is ok
+        manager.dataBytesReceived( byte_count );
       }
     });
     
