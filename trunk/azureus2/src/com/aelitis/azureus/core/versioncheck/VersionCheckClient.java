@@ -92,6 +92,8 @@ public class VersionCheckClient {
     }
     finally {  check_mon.exit();  }
     
+    if( last_check_data == null )  last_check_data = new HashMap();
+    
     return last_check_data;
   }
   
