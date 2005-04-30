@@ -71,7 +71,7 @@ public class AZPeerExchange implements AZMessage {
     
     this.buffer = new DirectByteBuffer( ByteBuffer.wrap( raw_payload ) );
     
-    if( raw_payload.length > 1200 )  System.out.println( "Generated AZPeerExchange size = " +raw_payload.length+ " bytes" );
+    if( raw_payload.length > 1000 )  System.out.println( "Generated AZPeerExchange size = " +raw_payload.length+ " bytes" );
 
     int add_count = peers_added == null ? 0 : peers_added.length;
     int drop_count = peers_dropped == null ? 0 : peers_dropped.length;
@@ -148,6 +148,10 @@ public class AZPeerExchange implements AZMessage {
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 10" );
     }
 
+    int size = data.remaining( bss );
+    if( size > 1000 )  System.out.println( "Received PEX msg byte size = " +size );
+    
+    
     try {
       byte[] raw = new byte[ data.remaining( bss ) ];
       data.get( bss, raw );

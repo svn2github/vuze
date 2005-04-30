@@ -56,6 +56,10 @@ public class PeerItem {
     this.port = port;
     this.source = source;
     this.hashcode = new String( address ).hashCode() + port;
+    
+    if( address.length != 4 ) {
+      System.out.println( "PeerItem OUT: address byte size=" +address.length);
+    }
   }
   
 
@@ -70,6 +74,10 @@ public class PeerItem {
     
     this.source = source;
     this.hashcode = new String( address ).hashCode() + port;
+    
+    if( address.length > 15 ) {
+      System.out.println( "PeerItem IN: address byte size=" +address.length);
+    }
   }
     
   

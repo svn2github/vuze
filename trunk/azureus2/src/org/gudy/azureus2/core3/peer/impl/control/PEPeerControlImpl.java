@@ -2835,10 +2835,13 @@ PEPeerControlImpl
   }
   
   
-  public PeerConnectionItem createPeerExchangeConnection( PEPeer base_peer ) {
+  public PeerConnectionItem createPeerExchangeConnection( final PEPeer base_peer ) {
     if( peer_database != null && base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
       PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp(), base_peer.getTCPListenPort(), PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE );
-      return peer_database.registerPeerConnection( peer );
+      
+      return peer_database.registerPeerConnection( peer, new PeerConnectionItem.Helper(){
+        public boolean isSeed(){  return base_peer.isSeed();  }
+      });
     }
     
     return null;

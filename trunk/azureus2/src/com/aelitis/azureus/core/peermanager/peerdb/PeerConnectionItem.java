@@ -43,14 +43,20 @@ public class PeerConnectionItem {
   private final HashMap connected_peers = new HashMap();
   private final AEMonitor peers_mon = new AEMonitor( "PeerConnectionItem" );
   private boolean maintain_peers_state = true;  //assume we do until explicitly disabled
+  private final Helper helper;
   
 
-  protected PeerConnectionItem( PeerDatabase parent_db, PeerItem peer ) {
+  protected PeerConnectionItem( PeerDatabase parent_db, PeerItem peer, Helper helper ) {
     this.parent_db = parent_db;
     this.base_peer = peer;
+    this.helper = helper;
   }
   
 
+  
+  protected Helper getHelper() {  return helper;  }
+  
+  
   /**
    * Add peer info obtained via peer exchange.
    * @param peer to add
@@ -210,6 +216,15 @@ public class PeerConnectionItem {
       connected_peers.clear();
     }
     finally{  peers_mon.exit();  }
+  }
+  
+  
+  public interface Helper {
+    /**
+     * Does this connection item represent a seed peer?
+     * @return true if seeding, false if not
+     */
+    public boolean isSeed();
   }
   
 }

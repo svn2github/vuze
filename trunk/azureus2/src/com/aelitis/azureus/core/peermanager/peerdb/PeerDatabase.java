@@ -55,15 +55,20 @@ public class PeerDatabase {
    * @param base_peer_item key
    * @return registered connection
    */
-  public PeerConnectionItem registerPeerConnection( PeerItem base_peer_item ) {
+  public PeerConnectionItem registerPeerConnection( PeerItem base_peer_item, PeerConnectionItem.Helper helper ) {
     try{  map_mon.enter();
-      PeerConnectionItem new_connection = new PeerConnectionItem( this, base_peer_item );
+      PeerConnectionItem new_connection = new PeerConnectionItem( this, base_peer_item, helper );
       
       //update connection adds
       for( Iterator it = peer_connections.entrySet().iterator(); it.hasNext(); ) {  //go through all existing connections
         Map.Entry entry = (Map.Entry)it.next();
         PeerItem old_key = (PeerItem)entry.getKey();
         PeerConnectionItem old_connection = (PeerConnectionItem)entry.getValue();
+        
+        if( old_connection.getHelper().isSeed() && new_connection.getHelper().isSeed() ) {
+          continue;  //dont exchange seed peers to other seeds
+        }
+        
         old_connection.notifyAdded( base_peer_item );  //notify existing connection of new one
         new_connection.notifyAdded( old_key );  //notify new connection of existing one for initial exchange
       }
@@ -72,7 +77,6 @@ public class PeerDatabase {
       return new_connection;
     }
     finally{  map_mon.exit();  }
-    
   }
   
   
@@ -83,6 +87,8 @@ public class PeerDatabase {
       //update connection drops
       for( Iterator it = peer_connections.values().iterator(); it.hasNext(); ) {  //go through all remaining connections
         PeerConnectionItem old_connection = (PeerConnectionItem)it.next();
+        
+        //dont skip seed2seed drop notification, as the dropped peer may not have been seeding initially
         old_connection.notifyDropped( base_peer_key );  //notify existing connection of drop
       } 
     }
