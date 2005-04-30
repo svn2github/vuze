@@ -86,15 +86,7 @@ public class AZPeerExchange implements AZMessage {
       ArrayList raw_peers = new ArrayList();
 
       for( int i=0; i < peers.length; i++ ) {
-        PeerItem peer = peers[i];
-        
-        //combine address and port bytes into one
-        byte[] full_address = new byte[ peer.getAddress().length +2 ];
-        System.arraycopy( peer.getAddress(), 0, full_address, 0, peer.getAddress().length );
-        full_address[ peer.getAddress().length ] = (byte)(peer.getPort() >> 8);
-        full_address[ peer.getAddress().length +1 ] = (byte)(peer.getPort() & 0xff);
-
-        raw_peers.add( full_address );
+        raw_peers.add( peers[i].getSerialization() );
       }
 
       root_map.put( key_name, raw_peers );
@@ -111,16 +103,7 @@ public class AZPeerExchange implements AZMessage {
     if( raw_peers != null ) {
       for( Iterator it = raw_peers.iterator(); it.hasNext(); ) {
         byte[] full_address = (byte[])it.next();
-        
-        //extract address and port
-        byte[] address = new byte[ full_address.length -2 ];
-        System.arraycopy( full_address, 0, address, 0, full_address.length -2 );
-        
-        byte p0 = full_address[ full_address.length -2 ];
-        byte p1 = full_address[ full_address.length -1 ];
-        
-        int port = (p1 & 0xFF) + ((p0 & 0xFF) << 8);
-        PeerItem peer = PeerItemFactory.createPeerItem( address, port, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE );
+        PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE );
         peers.add( peer );
       }
     }

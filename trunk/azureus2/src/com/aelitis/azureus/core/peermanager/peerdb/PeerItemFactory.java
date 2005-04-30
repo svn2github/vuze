@@ -35,15 +35,25 @@ public class PeerItemFactory {
   
 
   /**
-   * Create a peer item using the given peer raw byte address and port and source information.
-   * @param raw_address of peer
+   * Create a peer item using the given peer address and port information.
+   * @param address of peer
    * @param port of peer
    * @param source this peer info was obtained from
    * @return peer
    */
-  public static PeerItem createPeerItem( byte[] raw_address, int port, int source ) {
-    //TODO make lightweight
-    return new PeerItem( raw_address, port, source );
+  public static PeerItem createPeerItem( String address, int port, int source ) {
+    return new PeerItem( address, port, source );  //TODO make lightweight
   }
+  
+  /**
+   * Create a peer item using the given peer raw byte serialization (address and port).
+   * @param serialization bytes
+   * @param source this peer info was obtained from
+   * @return peer
+   */
+  public static PeerItem createPeerItem( byte[] serialization, int source ) {
+    return new PeerItem( serialization, source );
+  }
+  
   
 }

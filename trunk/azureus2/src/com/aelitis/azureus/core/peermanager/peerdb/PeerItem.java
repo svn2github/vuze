@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.peerdb;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import org.gudy.azureus2.core3.peer.PEPeerSource;
@@ -38,15 +40,61 @@ public class PeerItem {
   private final int source;
   private final int hashcode;
   
-  protected PeerItem( byte[] address, int port, int source ) {
-    this.address = address;
+  protected PeerItem( String _address, int port, int source ) {
+    byte[] raw;
+    try{
+      //see if we can resolve the address into a compact raw IPv4/6 byte array (4 or 16 bytes)
+      InetAddress ip = InetAddress.getByName( _address );
+      raw = ip.getAddress();
+    }
+    catch( UnknownHostException e ) {
+      //not a standard IPv4/6 address, so just use the full string bytes
+      raw = _address.getBytes();
+    }
+
+    this.address = raw;
     this.port = port;
     this.source = source;
     this.hashcode = new String( address ).hashCode() + port;
   }
   
 
-  public byte[] getAddress() {  return address;  }
+  protected PeerItem( byte[] serialization, int source ) {
+    //extract address and port
+    address = new byte[ serialization.length -2 ];
+    System.arraycopy( serialization, 0, address, 0, serialization.length -2 );
+    
+    byte p0 = serialization[ serialization.length -2 ];
+    byte p1 = serialization[ serialization.length -1 ];  
+    port = (p1 & 0xFF) + ((p0 & 0xFF) << 8);
+    
+    this.source = source;
+    this.hashcode = new String( address ).hashCode() + port;
+  }
+    
+  
+  
+  public byte[] getSerialization() {
+    //combine address and port bytes into one
+    byte[] full_address = new byte[ address.length +2 ];
+    System.arraycopy( address, 0, full_address, 0, address.length );
+    full_address[ address.length ] = (byte)(port >> 8);
+    full_address[ address.length +1 ] = (byte)(port & 0xff);
+    return full_address;
+  }
+  
+  
+  public String getAddressString() {
+    try{
+      //see if it's an IPv4/6 address (4 or 16 bytes)
+      return InetAddress.getByAddress( address ).getHostAddress();
+    }
+    catch( UnknownHostException e ) {
+      //not a standard IPv4/6 address, so just return as full string
+      return new String( address );
+    }
+  }
+  
   
   public int getPort() {  return port;  }
   

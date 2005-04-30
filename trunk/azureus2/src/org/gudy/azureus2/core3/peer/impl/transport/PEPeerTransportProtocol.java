@@ -165,7 +165,7 @@ PEPeerTransportProtocol
     ip    = _connection.getAddress().getAddress().getHostAddress();
     port  = _connection.getAddress().getPort();
     
-    peer_item_identity = PeerItemFactory.createPeerItem( ip.getBytes(), port, PeerItem.convertSourceID( _peer_source ) );
+    peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ) );
     
     incoming = true;
     connection = _connection;
@@ -218,7 +218,7 @@ PEPeerTransportProtocol
     port  = _port;
     tcp_listen_port = _port;
     
-    peer_item_identity = PeerItemFactory.createPeerItem( ip.getBytes(), tcp_listen_port, PeerItem.convertSourceID( _peer_source ) );
+    peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( _peer_source ) );
     
     incoming = false;
     
@@ -1201,7 +1201,7 @@ PEPeerTransportProtocol
     
     if( incoming ) {
       //remake the id using the peer's remote listen port instead of their random local port
-      peer_item_identity = PeerItemFactory.createPeerItem( ip.getBytes(), tcp_listen_port, PeerItem.convertSourceID( peer_source ) );
+      peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ) );
     }
     
     //find mutually available message types

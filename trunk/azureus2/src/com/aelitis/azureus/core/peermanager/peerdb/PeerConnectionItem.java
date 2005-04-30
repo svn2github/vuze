@@ -55,8 +55,6 @@ public class PeerConnectionItem {
     try{  peers_mon.enter();
       if( !maintain_peers_state )  return;
 
-      System.out.println( "ADDED exchanged peer: " +new String(peer.getAddress())+":" +peer.getPort() );
-      
       int max_cache_size = PeerUtils.MAX_CONNECTIONS_PER_TORRENT;
       if( max_cache_size < 1 || max_cache_size > 500 )  max_cache_size = 500;
 
@@ -74,8 +72,7 @@ public class PeerConnectionItem {
    */
   public void dropConnectedPeer( PeerItem peer ) {
     try{  peers_mon.enter();
-    
-      System.out.println( "DROPPED exchanged peer: " +new String(peer.getAddress())+":" +peer.getPort() );
+
       connected_peers.remove( peer );
     }
     finally{  peers_mon.exit();  }

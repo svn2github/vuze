@@ -113,7 +113,7 @@ public class PeerDatabase {
         }
       }
       else {
-        System.out.println( "discovered peer already known via PEX: " +new String(peer.getAddress()) );
+        System.out.println( "discovered peer already known via PEX: " +peer.getAddressString() );
       }
     }
     finally{  map_mon.exit();  }
@@ -213,7 +213,7 @@ public class PeerDatabase {
       sorted_peers[i] = (PeerItem)entry.getKey();
 
       
-      //System.out.println( new String( sorted_peers[i].getAddress() )+":" +sorted_peers[i].getPort()+ ": popularity=" +((Integer)entry.getValue()).intValue() );
+      System.out.println( sorted_peers[i].getAddressString()+":" +sorted_peers[i].getPort()+ ": popularity=" +((Integer)entry.getValue()).intValue() );
     } 
     
     return sorted_peers;

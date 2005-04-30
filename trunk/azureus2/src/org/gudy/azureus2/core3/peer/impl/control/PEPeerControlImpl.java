@@ -614,7 +614,7 @@ PEPeerControlImpl
       if( already_connected )  continue;
       
       if( peer_database != null ) {
-        PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress().getBytes(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ) );
+        PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ) );
         peer_database.addDiscoveredPeer( item );
       }
 	  }
@@ -2738,9 +2738,8 @@ PEPeerControlImpl
 
             if( !isAlreadyConnected( item ) ) {
               String source = PeerItem.convertSourceString( item.getSource() );
-              String address = new String( item.getAddress() );
 
-              if( makeNewOutgoingConnection( source, address, item.getPort() ) ) {
+              if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort() ) ) {
                 num_waiting_establishments++;
               }
               
@@ -2838,7 +2837,7 @@ PEPeerControlImpl
   
   public PeerConnectionItem createPeerExchangeConnection( PEPeer base_peer ) {
     if( peer_database != null && base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
-      PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp().getBytes(), base_peer.getTCPListenPort(), PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE );
+      PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp(), base_peer.getTCPListenPort(), PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE );
       return peer_database.registerPeerConnection( peer );
     }
     
