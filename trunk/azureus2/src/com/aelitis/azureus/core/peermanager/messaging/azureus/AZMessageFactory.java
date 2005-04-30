@@ -32,7 +32,6 @@ import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
-import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 
 
 
