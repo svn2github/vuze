@@ -48,12 +48,18 @@ IntParameter
   }
   
   
-  public IntParameter(Composite composite, final String name, int minValue, int maxValue, boolean allowZero) {
+  public IntParameter(Composite composite,
+                      final String name,
+                      int minValue,
+                      int maxValue,
+                      boolean allowZero,
+                      boolean generateIntermediateEvents ) {
     iDefaultValue = COConfigurationManager.getIntParameter(name);
-    initialize(composite,name);
     iMinValue = minValue;
     iMaxValue = maxValue;
     this.allowZero = allowZero;
+    this.generateIntermediateEvents = generateIntermediateEvents;
+    initialize(composite,name);
   }
   
     
@@ -150,13 +156,17 @@ IntParameter
         		inputField.setText(String.valueOf(new_val));
         	}
         	
-        	for (int i=0;i<change_listeners.size();i++){
-        		
-        		((ParameterChangeListener)change_listeners.get(i)).parameterChanged(this,value_is_changing_internally);
-        	}
+        	if( change_listeners != null ) {
+            for (int i=0;i<change_listeners.size();i++){
+              ((ParameterChangeListener)change_listeners.get(i)).parameterChanged(this,value_is_changing_internally);
+            }
+          }
         }
       }
-      catch (Exception e) {}
+      catch (Exception e) {
+        inputField.setText( String.valueOf( iMinValue ) );
+        COConfigurationManager.setParameter( sParamName, iMinValue );
+      }
   }
 
   public void

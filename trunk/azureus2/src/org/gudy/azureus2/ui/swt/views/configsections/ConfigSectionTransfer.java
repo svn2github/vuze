@@ -78,7 +78,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     
     final int[]	manual_max_download_speed = { COConfigurationManager.getIntParameter( "Max Download Speed KBs" )};
     
-    final IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", 1, -1, true);    
+    final IntParameter paramMaxUploadSpeed = new IntParameter(cTransfer, "Max Upload Speed KBs", 1, -1, true, true);    
     formData = new FormData();
     formData.top = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
@@ -114,7 +114,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     
     	// max download speed
     
-    final IntParameter paramMaxDownSpeed = new IntParameter(cTransfer, "Max Download Speed KBs", 0, -1, true);    
+    final IntParameter paramMaxDownSpeed = new IntParameter(cTransfer, "Max Download Speed KBs", 0, -1, true, true);    
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxUploadSpeed.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
@@ -191,7 +191,7 @@ public class ConfigSectionTransfer implements ConfigSectionSWT {
     
     	// max uploads
 
-    IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false); 
+    IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false, false); 
     formData = new FormData();
     formData.top = new FormAttachment(paramMaxDownSpeed.getControl());
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0

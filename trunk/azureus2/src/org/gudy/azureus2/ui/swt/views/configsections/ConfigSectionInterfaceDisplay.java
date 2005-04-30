@@ -246,7 +246,7 @@ public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
     Messages.setLanguageText(label, "ConfigView.section.style.graphicsUpdate");
     gridData = new GridData();
     gridData.widthHint = 15;
-    IntParameter graphicUpdate = new IntParameter(cArea, "Graphics Update", 1, -1, false);
+    IntParameter graphicUpdate = new IntParameter(cArea, "Graphics Update", 1, -1, false, false );
     graphicUpdate.setLayoutData(gridData);
     
     
