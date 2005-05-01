@@ -119,9 +119,6 @@ public class PeerDatabase {
           discovered_peers.removeFirst();
         }
       }
-      else {
-        System.out.println( "discovered peer already known via PEX: " +peer.getAddressString() );
-      }
     }
     finally{  map_mon.exit();  }
   }
