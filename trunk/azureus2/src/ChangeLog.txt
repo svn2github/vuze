@@ -1,6 +1,11 @@
 AZUREUS CHANGELOG
 ---------
 
+2005.05.02 | Azureus 2.3.0.1
+
+
+
+
 2005.05.02 | Azureus 2.3.0.0
 
 FEATURE: Core | Client support for the 'trackerid' announce extension [Nolar]
