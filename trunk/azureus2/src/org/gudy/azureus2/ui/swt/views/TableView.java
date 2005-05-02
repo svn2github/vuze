@@ -1003,12 +1003,13 @@ public class TableView
     if (item == null)
       return;
     final TableRowCore _item = item;
-    table.getDisplay().asyncExec(new AERunnable() {
-     public void runSupport() {
-       _item.delete();
-      } 
-    });
-    
+    if(table != null && !table.isDisposed()) {
+      table.getDisplay().asyncExec(new AERunnable() {
+        public void runSupport() {
+          _item.delete();
+         } 
+       });
+    }
   }
 
   /**
