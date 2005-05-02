@@ -55,7 +55,6 @@ public class SinglePeerDownloader implements RateControlledEntity {
   
   public boolean doProcessing() {
     if( !connection.getTCPTransport().isReadyForRead() )  {
-      Debug.out("dR:not ready");
       return false;
     }
     
@@ -72,6 +71,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
       bytes_read = connection.getIncomingMessageQueue().receiveFromTransport( num_bytes_allowed );
     }
     catch( Throwable e ) {
+      /*
       if( e.getMessage() == null ) {
         Debug.out( "null read exception message: ", e );
       }
@@ -88,6 +88,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
           Debug.out( "Direct buffer memory exception", e );
         }
       }
+      */
           
       connection.notifyOfException( e );
     }

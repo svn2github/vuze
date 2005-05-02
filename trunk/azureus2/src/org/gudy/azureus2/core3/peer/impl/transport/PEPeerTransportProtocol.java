@@ -1192,18 +1192,14 @@ PEPeerTransportProtocol
   private void decodeAZHandshake( AZHandshake handshake ) {
     client = handshake.getClient()+ " " +handshake.getClientVersion();
 
-    tcp_listen_port = handshake.getTCPListenPort();
-    udp_listen_port = handshake.getUDPListenPort();
-    
-    if( !incoming && tcp_listen_port != port ) {
-      System.out.println( "[" +(incoming ? "R:" : "L:")+" " +ip+":"+port+" "+client+ "] handshake TCP listen port [" +tcp_listen_port+ "] and actual port [" +port+ "] differ!" );
-    }
-    
-    if( incoming ) {
+    if( incoming && handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
+      tcp_listen_port = handshake.getTCPListenPort();
+      udp_listen_port = handshake.getUDPListenPort();
+      
       //remake the id using the peer's remote listen port instead of their random local port
       peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ) );
     }
-    
+
     //find mutually available message types
     ArrayList messages = new ArrayList();
 

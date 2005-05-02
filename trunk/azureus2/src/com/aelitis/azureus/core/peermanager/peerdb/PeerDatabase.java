@@ -208,10 +208,7 @@ public class PeerDatabase {
     });
     
     PeerItem[] sorted_peers = new PeerItem[ sorted_entries.length ];
-    
-    
-    System.out.println( "Total known PEX peers: " +sorted_entries.length );
-        
+      
     for( int i=0; i < sorted_entries.length; i++ ) {
       Map.Entry entry = sorted_entries[i];
       sorted_peers[i] = (PeerItem)entry.getKey();

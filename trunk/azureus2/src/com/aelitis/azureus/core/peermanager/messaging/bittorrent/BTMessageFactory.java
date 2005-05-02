@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
@@ -120,7 +121,7 @@ public class BTMessageFactory {
       case 20:
         //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
         //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
-        System.out.println( "Old extended messaging hello received, ignoring and faking as keep-alive." );
+        LGLogger.log( "Old extended messaging hello received, ignoring and faking as keep-alive." );
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
         
       default:
