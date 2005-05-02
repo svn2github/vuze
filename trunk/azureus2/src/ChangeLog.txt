@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 ---------
 
-2005.02.xx | Azureus 2.2.0.3
+2005.05.02 | Azureus 2.3.0.0
 
 FEATURE: Core | Client support for the 'trackerid' announce extension [Nolar]
 FEATURE: Core | Client support for the 'min interval' announce extension [Nolar]
@@ -59,7 +59,6 @@ CHANGE: UI   | Main menu bar should now be more streamlined in its arrangement [
 CHANGE: UI   | Console view will now display information logged (for the duration of the application session) when the Console view is closed [CrazyAlchemist]
 CHANGE: UI   | ETA and remaining now take into account DHD files [Parg]
 CHANGE: Plug | More choices in First Priority ShareRatio [Gouss]
-
 
 BUGFIX: Core | IPFilters loaded from static config file weren't working [Parg]
 BUGFIX: Core | Fix re-announce interval bug when zero peers in swarm [Nolar]
