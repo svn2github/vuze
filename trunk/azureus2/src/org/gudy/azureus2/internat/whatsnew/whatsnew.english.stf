@@ -12,18 +12,18 @@ $
 *1.1.1 Magnet Links
  For torrents that are tracked decentrally, Azureus can export a "Magnet Link". This is of the form "magnet:?xt=urn:btih:..." and can be used to download the torrent from the distributed database via the "open->url" menu item.
  
-!1.2 Extended Protocol
- Azureus now supports an extended protocol, which is aimed at allowing plugins to use the connections created by Azureus to add functionality to the program. Other clients developers can see the specifications of this extension protocol at http://azureus.aelitis.com/wiki/XXXX . Plugin developers can check the plugin javadocs to see how to use it.
- For example, the JPC and Chat plugins make use of this extension protocol.
+!1.2 Enhanced Protocol
+ Azureus now supports an enhanced inter-client messaging protocol, which is aimed at allowing plugins to use the connections created by Azureus to add functionality to the program. Other clients developers can see the specifications for this protocol at http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Plugin developers can check the plugin javadocs to see how to use it.
+ For example, the JPC and Chat plugins make use of this messaging extension.
 
 !1.3 JPC
  Joltid Peer Cache (JPC) is now integrated into Azureus. For users whose ISP support this, JPC should allow faster downloads, while helping the ISP reduce its bandwidth costs. The JPC Plugin is safe in the way that your ISP won't know what you are downloading, and can't use it to spy on you. The JPC plugin can be disabled through Tools > Options > Plugins > JPC.
   
 !1.4 Featured Plugins
- The Distributed Database and the Extended Protocol allowed us to develop some new plugins. We won't auto install them for you, but we recommend all users who might be interested in them to install them using the Plugins > Installation Wizard menu.
+ The Distributed Database and the Enhanced Protocol allowed us to develop some new plugins. We won't auto install them for you, but we recommend all users who might be interested in them to install them using the Plugins > Installation Wizard menu.
  
 *1.4.1 Chat
- This plugin will create a discussion channel for each torrent you are downloading. Each channel is independent, and you are free to discuss whatever you want inside the channel. This plugin makes use of the Extended Protocol. Developers of other clients willing to implement the chat functionality in their client are welcome to take a look at the very simple protocol used and described here : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
+ This plugin will create a discussion channel for each torrent you are downloading. Each channel is independent, and you are free to discuss whatever you want inside the channel. This plugin makes use of the Enhanced Protocol. Developers of other clients willing to implement the chat functionality in their client are welcome to take a look at the very simple protocol used and described here : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
  You can also create/join an arbitrary channel by typing in its name inside the plugin. This will have the effect of creating a "virtual" torrent, with no seeds, in order to allow users to create connections to chat. The "virtual" torrents make use of the Distributed Database as their tracker, so while you can use the Chat Plugin without the Distributed Database, you won't be able to use the virtual channel feature if you disable the Distributed Database.
  
 *1.4.2 Ratings & Comments
@@ -39,7 +39,7 @@ $
  WinXP users will have to go to Tools > Config > Interface > Display, and re-check the "Enable XP Style" option.
  
 !2.2 NOD32
- NOD32 (http://www.nod32.com/) is an antivirus which is known to be incompatible with Azureus, causing 100% CPU usage.
+ NOD32 (http://www.nod32.com/) is an antivirus which is known to have problems with Azureus, causing 100% CPU usage.
  See http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
 
@@ -53,7 +53,7 @@ $
  
 
 !3.2 Azureus Crashing
- If your Azureus is crashing, the most likely reason is an issue with your network components (card, drivers, OS). We highly recommend that you update all network related components. If this doesn't help, then the reason is that your system probably can't handle that many connections.
+ If your Azureus is crashing, the most likely reason is an issue with your network components (card, drivers, OS). We highly recommend that you update all network related components. If this doesn't help, then the reason is probably that your system can't handle that many peer connections.
  Lower the number of connections in Azureus (Tools > Options > Transfer > Maximum number of connections per torrent / globally), try a low value like 30 first.
 
 !3.3 Support
