@@ -22,16 +22,22 @@
 
 package org.gudy.azureus2.plugins.utils;
 
-import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
-
 /**
  * Plugin utility class for easy access to static helper methods,
  * without the need for a plugin interface instance.
  */
 public class StaticUtilities {
 
-  private static final Formatters formatters = new FormattersImpl();
+  private static Formatters formatters;
   
+  static {
+    try {
+      Class c = Class.forName("org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl");
+      formatters = (Formatters) c.newInstance();
+    } catch (Exception e) {
+     e.printStackTrace();
+    }
+  }
   
   /**
    * Get display and byte format utilities.
