@@ -241,6 +241,12 @@ PEPeerManager
   public PeerConnectionItem createPeerExchangeConnection( PEPeer base_peer );
   
   
+  /**
+   * Notify that the given peer connection represents our own client.
+   * @param self peer
+   */
+  public void peerVerifiedAsSelf( PEPeer self );
+  
   
   /**
    * Get the limited rate group used for upload limiting.

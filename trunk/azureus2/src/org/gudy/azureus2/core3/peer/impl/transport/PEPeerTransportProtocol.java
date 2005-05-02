@@ -1085,6 +1085,7 @@ PEPeerTransportProtocol
 
     //make sure we are not connected to ourselves
     if( Arrays.equals( manager.getPeerId(), peer_id ) ) {
+      manager.peerVerifiedAsSelf( this );  //make sure we dont do it again
       closeConnection( "given peer id matches myself", false );
       handshake.destroy();
       return;

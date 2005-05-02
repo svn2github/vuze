@@ -2736,6 +2736,11 @@ PEPeerControlImpl
             
             if( item == null || !is_running )  break;
 
+            PeerItem self = peer_database.getSelfPeer();
+            if( self != null && self.equals( item ) ) {
+              continue;
+            }
+            
             if( !isAlreadyConnected( item ) ) {
               String source = PeerItem.convertSourceString( item.getSource() );
 
@@ -2858,5 +2863,12 @@ PEPeerControlImpl
     return false;
   }
   
+  
+  public void peerVerifiedAsSelf( PEPeer self ) {
+    if( peer_database != null && self.getTCPListenPort() > 0 ) {  //only accept self if remote port is known
+      PeerItem peer = PeerItemFactory.createPeerItem( self.getIp(), self.getTCPListenPort(), PeerItem.convertSourceID( self.getPeerSource() ) );
+      peer_database.setSelfPeer( peer );
+    }
+  }
  
  }

@@ -27,6 +27,9 @@ import java.util.*;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+
 
 
 /**
@@ -35,7 +38,7 @@ import org.gudy.azureus2.core3.util.*;
 public class PeerDatabase {
   private static final int MIN_REBUILD_WAIT_TIME = 120*1000;  //2min
   private static final int MAX_DISCOVERED_PEERS = 500;
-  
+
   private final HashMap peer_connections = new HashMap();
   private final LinkedList discovered_peers = new LinkedList();
   private final AEMonitor map_mon = new AEMonitor( "PeerDatabase" );
@@ -43,6 +46,8 @@ public class PeerDatabase {
   private PeerItem[] cached_peer_popularities = null;
   private int popularity_pos = 0;
   private long last_rebuild_time = 0;
+  
+  private PeerItem self_peer;
   
   
   protected PeerDatabase() {
@@ -123,6 +128,31 @@ public class PeerDatabase {
     finally{  map_mon.exit();  }
   }
 
+  
+  /**
+   * Mark the given peer as ourself.
+   * @param self peer
+   */
+  public void setSelfPeer( PeerItem self ) {  self_peer = self;  }
+
+  /**
+   * Get the peer item that represents ourself.
+   * @return self peer, or null if unknown
+   */
+  public PeerItem getSelfPeer() {
+    /*
+    //disabled for now, as getExternalIpAddress() will potential run a full version check every 60s
+    if( self_peer == null ) {
+      //determine our 'self' info from config
+      String ip = VersionCheckClient.getSingleton().getExternalIpAddress();
+      if( ip != null && ip.length() > 0 ) {
+        self_peer = PeerItemFactory.createPeerItem( ip, NetworkManager.getSingleton().getTCPListeningPortNumber(), 0 );
+      }
+    }
+    */
+    
+    return self_peer;
+  }
   
   
   

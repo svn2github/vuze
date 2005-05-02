@@ -890,6 +890,8 @@ Test
 			
     public PeerConnectionItem createPeerExchangeConnection( PEPeer base_peer ) {  return null;  }
     
+    public void peerVerifiedAsSelf( PEPeer self ){}
+    
 		public void
 		stopAll()
 		{
