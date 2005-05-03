@@ -35,6 +35,8 @@ UITextAreaImpl
 	extends		UIComponentImpl
 	implements 	UITextArea
 {
+	private int	max_size		= DEFAULT_MAX_SIZE;
+	
 	public
 	UITextAreaImpl()
 	{
@@ -45,9 +47,16 @@ UITextAreaImpl
 	setText(
 		String		text )
 	{
-		if ( text.length() > 60000 ){
-						
-			text = text.substring( text.length() - 50000 );
+		if ( text.length() > max_size ){
+				
+			int	size_to_show = max_size - 10000;
+			
+			if ( size_to_show < 0 ){
+				
+				size_to_show	= max_size;
+			}
+			
+			text = text.substring( text.length() - size_to_show );
 		}
 		
 		setProperty( PT_VALUE, text );
@@ -73,5 +82,12 @@ UITextAreaImpl
 	getText()
 	{
 		return((String)getProperty( PT_VALUE ));
+	}
+	
+	public void
+	setMaximumSize(
+		int	_max_size )
+	{
+		max_size	= _max_size;
 	}
 }

@@ -156,6 +156,8 @@ DHTTrackerPlugin
 		model.getActivity().setVisible( false );
 		model.getProgress().setVisible( false );
 		
+		model.getLogArea().setMaximumSize( 80000 );
+		
 		log.addListener(
 				new LoggerChannelListener()
 				{

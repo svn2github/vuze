@@ -31,6 +31,8 @@ UITextArea
 	extends UIComponent
 
 {
+	public static final int	DEFAULT_MAX_SIZE	= 60000;
+	
 	/**
 	 * Setting values results in a PT_VALUE property change with a String value
 	 * @param precentage
@@ -51,4 +53,14 @@ UITextArea
 	
 	public String
 	getText();
+	
+	/**
+	 * Limits the maximum size of text held by the area. When then size is exceeded the text
+	 * will be truncated (text at the start of the string is removed, NOT the end)
+	 * All areas have a default max size as defined by the constant above
+	 */
+	
+	public void
+	setMaximumSize(
+		int	max_size );
 }
