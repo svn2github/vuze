@@ -122,6 +122,8 @@ DHTTransportUDPImpl
 		int				_max_fails_for_live,
 		int				_max_fails_for_unknown,
 		long			_timeout,
+		int				_dht_send_delay,
+		int				_dht_receive_delay,
 		LoggerChannel	_logger )
 	
 		throws DHTTransportException
@@ -144,7 +146,9 @@ DHTTransportUDPImpl
 			// limit send and receive rates. Receive rate is lower as we want a stricter limit
 			// on the max speed we generate packets than those we're willing to process.
 		
-		packet_handler.setDelays( 50, 25 );
+		// logger.log( "send delay = " + _dht_send_delay + ", recv = " + _dht_receive_delay );
+		
+		packet_handler.setDelays( _dht_send_delay, _dht_receive_delay );
 		
 		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
 		

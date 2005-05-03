@@ -449,6 +449,11 @@ DHTPlugin
 								try{
 									storage_manager = new DHTPluginStorageManager( log, getDataDir());
 									
+									PluginConfig conf = plugin_interface.getPluginconfig();
+									
+									int	send_delay = conf.getPluginIntParameter( "dht.senddelay", 50 );
+									int	recv_delay	= conf.getPluginIntParameter( "dht.recvdelay", 25 );
+									
 									transport = 
 										DHTTransportFactory.createUDP( 
 												f_dht_data_port, 
@@ -456,6 +461,7 @@ DHTPlugin
 												2,
 												20000, 	// udp timeout - tried less but a significant number of 
 														// premature timeouts occurred
+												send_delay, recv_delay, 
 												log );
 									
 									transport.addListener(
