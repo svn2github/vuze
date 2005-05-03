@@ -35,11 +35,20 @@ public class
 PRUDPPacketHandlerStatsImpl
 	implements PRUDPPacketHandlerStats, Cloneable
 {
+	private PRUDPPacketHandlerImpl	packet_handler;
+	
 	private long packets_sent;
 	private long packets_received;
 	private long requests_timeout;
 	private long bytes_sent;
 	private long bytes_received;
+	
+	protected
+	PRUDPPacketHandlerStatsImpl(
+		PRUDPPacketHandlerImpl	_packet_handler )
+	{
+		packet_handler	= _packet_handler;
+	}
 	
 	public long
 	getPacketsSent()
@@ -91,6 +100,19 @@ PRUDPPacketHandlerStatsImpl
 	getBytesReceived()
 	{
 		return( bytes_received );
+	}
+	
+	public long
+	getSendQueueLength()
+	{
+		return( packet_handler.getSendQueueLength());
+	}
+	
+	public long
+	getReceiveQueueLength()
+	{
+		return( packet_handler.getReceiveQueueLength());
+		
 	}
 	
 	public PRUDPPacketHandlerStats

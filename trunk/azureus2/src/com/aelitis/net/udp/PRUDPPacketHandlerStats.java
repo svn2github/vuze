@@ -44,6 +44,12 @@ PRUDPPacketHandlerStats
 	public long
 	getBytesReceived();
 	
+	public long
+	getSendQueueLength();
+	
+	public long
+	getReceiveQueueLength();
+	
 	public PRUDPPacketHandlerStats
 	snapshot();
 }

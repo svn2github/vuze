@@ -92,6 +92,8 @@ DHTTransportUDPStatsImpl
 				"packrecv:" + getPacketsReceived() + "," +
 				"bytesent:" + getBytesSent() + "," +
 				"byterecv:" + getBytesReceived() + "," + 
-				"timeout:" + getRequestsTimedOut());
+				"timeout:" + getRequestsTimedOut() + "," +
+				"sendq:" + stats.getSendQueueLength() + "," +
+				"recvq:" + stats.getReceiveQueueLength());
 	}
 }

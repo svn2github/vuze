@@ -59,7 +59,7 @@ PRUDPPacketHandlerImpl
 	
 	private PRUDPRequestHandler	request_handler;
 	
-	private PRUDPPacketHandlerStatsImpl	stats = new PRUDPPacketHandlerStatsImpl();
+	private PRUDPPacketHandlerStatsImpl	stats = new PRUDPPacketHandlerStatsImpl( this );
 	
 	
 	private Map			requests = new HashMap();
@@ -794,6 +794,18 @@ PRUDPPacketHandlerImpl
 		receive_delay	= _receive_delay;
 	}
 	
+	public long
+	getSendQueueLength()
+	{
+		return( send_queue_hp.size() + send_queue_lp.size());
+	}
+	
+	public long
+	getReceiveQueueLength()
+	{
+		return( recv_queue.size());
+		
+	}
 	public PRUDPPacketHandlerStats
 	getStats()
 	{
