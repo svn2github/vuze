@@ -360,6 +360,12 @@ TRTrackerServerImpl
 	}
 	
 	public long
+	getMinAnnounceRetryInterval()
+	{
+		return( current_min_poll_interval );
+	}
+	
+	public long
 	getAnnounceRetryInterval(
 		TRTrackerServerTorrentImpl	torrent )
 	{		

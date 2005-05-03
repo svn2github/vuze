@@ -508,6 +508,7 @@ TRTrackerServerTorrentImpl
 		boolean						include_seeds,
 		int							num_want,
 		long						interval,
+		long						min_interval,
 		boolean						no_peer_id,
 		boolean						compact )
 	{
@@ -894,6 +895,8 @@ TRTrackerServerTorrentImpl
 			
 			root.put( "interval", new Long( interval ));
 		
+			root.put( "min interval", new Long( min_interval ));
+			
 			if ( nat_warning ){
 				
 				requesting_peer.setNATStatus( TRTrackerServerPeerImpl.NAT_CHECK_FAILED_AND_REPORTED );
