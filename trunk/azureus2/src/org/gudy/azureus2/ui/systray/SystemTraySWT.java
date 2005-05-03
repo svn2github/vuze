@@ -325,11 +325,22 @@ public class SystemTraySWT {
           seeding++;
       }
  
-    
+	  	// something went funny here across Java versions, leading " " got lost
+	  
+    String	seeding_text 		= MessageText.getString("SystemTray.tooltip.seeding");
+	String	downloading_text 	= MessageText.getString("SystemTray.tooltip.downloading");
+	
+	if ( !seeding_text.startsWith(" " )){
+		seeding_text = " " + seeding_text;
+	}
+	if ( !downloading_text.startsWith(" " )){
+		downloading_text = " " + downloading_text;
+	}
+	
     toolTip.append(seeding);
-    toolTip.append(MessageText.getString("SystemTray.tooltip.seeding"));
+    toolTip.append(seeding_text);
     toolTip.append(downloading);
-    toolTip.append(MessageText.getString("SystemTray.tooltip.downloading") + MessageText.getString("ConfigView.download.abbreviated") + " "); 
+    toolTip.append(downloading_text + MessageText.getString("ConfigView.download.abbreviated") + " "); 
     toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDataReceiveRate() + mainWindow.getGlobalManager().getStats().getProtocolReceiveRate() ));
     toolTip.append(", " + MessageText.getString("ConfigView.upload.abbreviated") + " ");
     toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDataSendRate() + mainWindow.getGlobalManager().getStats().getProtocolSendRate()));
