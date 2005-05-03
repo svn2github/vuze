@@ -28,7 +28,15 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.console.ConsoleInput;
+
+import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.control.DHTControlStats;
+import com.aelitis.azureus.core.dht.db.DHTDBStats;
+import com.aelitis.azureus.core.dht.router.DHTRouterStats;
+import com.aelitis.azureus.core.dht.transport.*;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 /**
  * @author Tobias Minich
@@ -68,6 +76,7 @@ public class Show extends IConsoleCommand {
 		out.println("\t\tactive\t\ta\tShow only active torrents.");
 		out.println("\t\tcomplete\tc\tShow only complete torrents.");
 		out.println("\t\tincomplete\ti\tShow only incomplete torrents.");
+		out.println("dht\t\t\td\tShow distributed database statistics");
 		out.println("> -----");
 	}
 
@@ -153,6 +162,10 @@ public class Show extends IConsoleCommand {
 			ci.out.println("Transferred Volume (down/up/discarded): " + DisplayFormatters.formatByteCountToKiBEtc(totalReceived) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalSent) + " / " + DisplayFormatters.formatByteCountToKiBEtc(totalDiscarded));
 			ci.out.println("Total Connected Peers (seeds/peers): " + Integer.toString(connectedSeeds) + " / " + Integer.toString(connectedPeers));
 			ci.out.println("> -----");
+		} else if (subCommand.equalsIgnoreCase("dht") || subCommand.equalsIgnoreCase("d")) {
+
+			showDHTStats( ci );
+			
 		} else {
 			if ((ci.torrents == null) || (ci.torrents != null) && ci.torrents.isEmpty()) {
 				ci.out.println("> Command 'show': No torrents in list (try 'show torrents' first).");
@@ -442,5 +455,69 @@ public class Show extends IConsoleCommand {
 		} else
 			out.println("  Info not available.");
 		out.println("> -----");
+	}
+	
+	protected void
+	showDHTStats(
+		ConsoleInput	ci )
+	{
+		try{
+			PluginInterface	def = ci.azureus_core.getPluginManager().getDefaultPluginInterface();
+			
+			final PluginInterface dht_pi = 
+				def.getPluginManager().getPluginInterfaceByClass(
+							DHTPlugin.class );
+			
+			DHTPlugin	dht_plugin = (DHTPlugin)dht_pi.getPlugin();
+			
+			if ( dht_plugin.getStatus() != DHTPlugin.STATUS_RUNNING ){
+				
+				ci.out.println( "\tDHT isn't running yet (disabled or initialising)" );
+				
+				return;
+			}
+			
+			DHT	dht = dht_plugin.getDHT();
+			
+			DHTTransport transport = dht.getTransport();
+			
+			DHTTransportStats	t_stats = transport.getStats();
+			DHTDBStats			d_stats	= dht.getDataBase().getStats();
+			DHTControlStats		c_stats = dht.getControl().getStats();
+			DHTRouterStats		r_stats = dht.getRouter().getStats();
+			
+			long[]	rs = r_stats.getStats();
+
+
+			ci.out.println( 	
+						"Router" +
+						":nodes=" + rs[DHTRouterStats.ST_NODES] +
+						",leaves=" + rs[DHTRouterStats.ST_LEAVES] +
+						",contacts=" + rs[DHTRouterStats.ST_CONTACTS] +
+						",replacement=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
+						",live=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
+						",unknown=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
+						",failing=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
+
+			ci.out.println( 
+						"Transport" + 
+						":" + t_stats.getString()); 
+					
+			int[]	dbv_details = d_stats.getValueDetails();
+			
+			ci.out.println( 
+						"Control:dht=" + c_stats.getEstimatedDHTSize() + 
+					   	", Database:keys=" + d_stats.getKeyCount() +
+					   	",vals=" + dbv_details[DHTDBStats.VD_VALUE_COUNT]+
+					   	",loc=" + dbv_details[DHTDBStats.VD_LOCAL_SIZE]+
+					   	",dir=" + dbv_details[DHTDBStats.VD_DIRECT_SIZE]+
+					   	",ind=" + dbv_details[DHTDBStats.VD_INDIRECT_SIZE]+
+					   	",div_f=" + dbv_details[DHTDBStats.VD_DIV_FREQ]+
+					   	",div_s=" + dbv_details[DHTDBStats.VD_DIV_SIZE] );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace( ci.out );
+		}
 	}
 }
