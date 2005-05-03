@@ -32,10 +32,39 @@ public class MessageText {
   private static Locale LOCALE_CURRENT = LOCALE_DEFAULT;
   private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
   private static Map pluginLocalizationPaths = new HashMap();
-  private static ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader());
-//  private static ResourceBundle RESOURCE_BUNDLE = new IntegratedResourceBundle(ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT), pluginLocalizationPaths);
-  private static ResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
+  private static ResourceBundle RESOURCE_BUNDLE;
+  private static Set			platform_specific_keys	= new HashSet();
 
+  static{
+	  setResourceBundle( ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()));
+  }
+  
+  private static ResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
+  
+  private static void
+  setResourceBundle(
+	  ResourceBundle	bundle )
+  {
+	  RESOURCE_BUNDLE	= bundle;
+	  
+	  Enumeration	keys = RESOURCE_BUNDLE.getKeys();
+	  
+	  String	platform_suffix = getPlatformSuffix();
+	  
+	  platform_specific_keys.clear();
+	  
+	  while( keys.hasMoreElements()){
+		  
+		  String	key = (String)keys.nextElement();
+		  
+		  if ( key.endsWith( platform_suffix )){
+			  			  
+			  platform_specific_keys.add( key );
+		  }
+	  }
+  }
+  
+ 
   public static boolean keyExists(String key) {
     try {
       RESOURCE_BUNDLE.getString(key);
@@ -59,20 +88,47 @@ public class MessageText {
    * @param key
    * @return
    */
-  public static String getString(String key, String sDefault) {
-    try {
-      return RESOURCE_BUNDLE.getString(key + getPlatformSuffix());
-    } catch (MissingResourceException e) {
-      return getPlatformNeutralString(key, sDefault);
-    }
+  public static String 
+  getString(
+	String key, 
+	String sDefault) 
+  {
+	  String	target_key = key + getPlatformSuffix();
+	  
+	  if ( !platform_specific_keys.contains( target_key )){
+		  
+		  target_key	= key;
+	  }
+    
+	  try {
+      
+		  return RESOURCE_BUNDLE.getString( target_key );
+    
+	  }catch (MissingResourceException e) {
+		  
+		  return getPlatformNeutralString(key, sDefault);
+	  }
   }
 
-  public static String getString(String key) {
-    try {
-      return RESOURCE_BUNDLE.getString(key + getPlatformSuffix());
-    } catch (MissingResourceException e) {
-      return getPlatformNeutralString(key);
-    }
+  public static String 
+  getString(
+	String key) 
+  {
+	  String	target_key = key + getPlatformSuffix();
+	  
+	  if ( !platform_specific_keys.contains( target_key )){
+		  
+		  target_key	= key;
+	  }
+
+	  try {
+	 
+		  return RESOURCE_BUNDLE.getString( target_key );
+		  
+	  } catch (MissingResourceException e) {
+		  
+	      return getPlatformNeutralString(key);
+	  }
   }
 
   public static String getPlatformNeutralString(String key) {
@@ -104,7 +160,7 @@ public class MessageText {
      else if(Constants.isWindows)
        return "._windows";
      else
-       return "";
+       return "._unknown";
   }
 
   /**
@@ -444,7 +500,7 @@ public class MessageText {
         newLocale = newResourceBundle.getLocale();
         Locale.setDefault(newLocale);
         LOCALE_CURRENT = newLocale;
-        RESOURCE_BUNDLE = new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths);
+		setResourceBundle( new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths));
         return true;
       } else
         return false;
@@ -466,7 +522,7 @@ public class MessageText {
     boolean integratedSuccessfully = false;
     if (null != localizationPath && localizationPath.length() != 0 && !pluginLocalizationPaths.containsKey(localizationPath)) {
       pluginLocalizationPaths.put(localizationPath,classLoader);
-      RESOURCE_BUNDLE = new IntegratedResourceBundle(RESOURCE_BUNDLE, pluginLocalizationPaths);
+	  setResourceBundle( new IntegratedResourceBundle(RESOURCE_BUNDLE, pluginLocalizationPaths));
       integratedSuccessfully = true;
     }
     return integratedSuccessfully;
