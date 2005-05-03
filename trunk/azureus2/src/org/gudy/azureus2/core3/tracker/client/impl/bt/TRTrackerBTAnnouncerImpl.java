@@ -1922,12 +1922,12 @@ TRTrackerBTAnnouncerImpl
 										
 					try {
 													
-            if( announce_data_provider.getRemaining() == 0 ) { //is a seed
-              time_to_wait = ((Long) metaData.get("interval")).longValue();
-            }
-            else { // slightly shorten the wait so we don't time out
-              time_to_wait = (6 * ((Long) metaData.get("interval")).intValue()) / 7;
-            }
+			            if( announce_data_provider.getRemaining() == 0 ) { //is a seed
+			              time_to_wait = ((Long) metaData.get("interval")).longValue();
+			            }
+			            else { // slightly shorten the wait so we don't time out
+			              time_to_wait = (6 * ((Long) metaData.get("interval")).intValue()) / 7;
+			            }
 						
 							// guard against crazy return values
 						
@@ -1936,15 +1936,15 @@ TRTrackerBTAnnouncerImpl
 							time_to_wait = 0xffffffffL;
 						}
             
-            
-            Long raw_min_interval = (Long)metaData.get("min interval");
-            if( raw_min_interval != null ) {
-              min_interval = raw_min_interval.longValue();
-              
-              if( min_interval < 1 || min_interval >= time_to_wait ) {  //ignore useless values
-                min_interval = 0;
-              }
-            }            
+			            
+			            Long raw_min_interval = (Long)metaData.get("min interval");
+			            if( raw_min_interval != null ) {
+			              min_interval = raw_min_interval.longValue();
+			              
+			              if( min_interval < 1 || min_interval >= time_to_wait ) {  //ignore useless values
+			                min_interval = 0;
+			              }
+			            }            
             
 									
 				   }catch( Exception e ){
@@ -1979,15 +1979,15 @@ TRTrackerBTAnnouncerImpl
 				   }
            
            
-           //TrackerID extension, used by phpbt trackers.
-           //We reply with '&trackerid=1234' when we receive
-           //'10:tracker id4:1234e' on announce reply.
-           //NOTE: we receive as 'tracker id' but reply as 'trackerid'
-           byte[] trackerid = (byte[])metaData.get( "tracker id" );
-           if( trackerid != null ) {
-             tracker_id = new String( trackerid );
-           }
-           
+			           //TrackerID extension, used by phpbt trackers.
+			           //We reply with '&trackerid=1234' when we receive
+			           //'10:tracker id4:1234e' on announce reply.
+			           //NOTE: we receive as 'tracker id' but reply as 'trackerid'
+			           byte[] trackerid = (byte[])metaData.get( "tracker id" );
+			           if( trackerid != null ) {
+			             tracker_id = new String( trackerid );
+			           }
+			           
            						
 						//build the list of peers
 					List valid_meta_peers = new ArrayList();
@@ -2063,7 +2063,7 @@ TRTrackerBTAnnouncerImpl
 								}
 							} 
 						}
-				    }else{
+				    }else if ( meta_peers_peek instanceof byte[] ){
 				    	
 				    		// byte[] for compact returns
 				    	
@@ -2102,6 +2102,9 @@ TRTrackerBTAnnouncerImpl
                 				valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
                 			}
 				    	}
+				    }else{
+						
+						throw( new IOException( "peers missing from response" ));
 				    }
 				    
 					TRTrackerAnnouncerResponsePeer[] peers=new TRTrackerAnnouncerResponsePeer[valid_meta_peers.size()];
