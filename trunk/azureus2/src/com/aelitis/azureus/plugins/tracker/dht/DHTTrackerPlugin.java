@@ -28,7 +28,9 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -73,6 +75,8 @@ DHTTrackerPlugin
 	private static final String	PLUGIN_NAME			= "Distributed Tracker";
 	
 	private static final int	ANNOUNCE_TIMEOUT	= 2*60*1000;
+	private static final int	SCRAPE_TIMEOUT		= 30*1000;
+	
 	private static final int	ANNOUNCE_MIN		= 2*60*1000;
 	private static final int	ANNOUNCE_MAX		= 60*60*1000;
 	
@@ -1151,5 +1155,113 @@ DHTTrackerPlugin
 			
 			checkDownloadForRegistration(downloads[i], false );
 		}
+	}
+	
+	public DownloadScrapeResult
+	scrape(
+		byte[]		hash )
+	{
+		final int[]	seeds 		= {0};
+		final int[] leechers 	= {0};
+		
+		final AESemaphore	sem = new AESemaphore( "DHTTrackerPlugin:scrape" );
+		
+		dht.get(hash, 
+				"Scrape for '" + ByteFormatter.nicePrint( hash ) + "'",
+				DHTPlugin.FLAG_DOWNLOADING,
+				NUM_WANT, 
+				SCRAPE_TIMEOUT,
+				new DHTPluginOperationListener()
+				{
+					public void
+					valueRead(
+						DHTPluginContact	originator,
+						byte[]				value,
+						byte				flags )
+					{						
+						if (( flags & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+							
+							leechers[0]++;
+							
+						}else{
+							
+							seeds[0]++;
+						}
+					}
+					
+					public void
+					valueWritten(
+						DHTPluginContact	target,
+						byte[]				value )
+					{
+					}
+
+					public void
+					complete(
+						boolean	timeout_occurred )
+					{
+						sem.release();
+					}
+				});
+
+		sem.reserve();
+		
+		return(
+				new DownloadScrapeResult()
+				{
+					public Download
+					getDownload()
+					{
+						return( null );
+					}
+					
+					public int
+					getResponseType()
+					{
+						return( RT_SUCCESS );
+					}
+					
+					public int
+					getSeedCount()
+					{
+						return( seeds[0] );
+					}
+					
+					public int
+					getNonSeedCount()
+					{
+						return( leechers[0] );
+					}
+
+					public long
+					getScrapeStartTime()
+					{
+						return( 0 );
+					}
+						
+					public void 
+					setNextScrapeStartTime(
+						long nextScrapeStartTime)
+					{
+					}
+					
+					public long
+					getNextScrapeStartTime()
+					{
+						return( 0 );
+					}
+					
+					public String
+					getStatus()
+					{
+						return( "OK" );
+					}
+
+					public URL
+					getURL()
+					{
+						return( null );
+					}
+				});
 	}
 }
