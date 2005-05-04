@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import java.util.*;
 import java.io.*;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -298,7 +299,7 @@ TRTrackerServerTorrentImpl
 					
 				if ( ul_rate > MAX_UPLOAD_BYTES_PER_SEC ){
 					
-					System.out.println( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
+					LGLogger.log( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
 									new String(peer.getPeerId().getHash()) + 
 									" reported an upload rate of " + ul_rate/1024 + " KiB/s per second" );
 					
@@ -307,7 +308,7 @@ TRTrackerServerTorrentImpl
 				
 				if ( dl_rate > MAX_DOWNLOAD_BYTES_PER_SEC ){
 					
-					System.out.println( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
+          LGLogger.log( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
 									new String(peer.getPeerId().getHash()) + 
 									" reported a download rate of " + dl_rate/1024 + " KiB/s per second" );
 					
