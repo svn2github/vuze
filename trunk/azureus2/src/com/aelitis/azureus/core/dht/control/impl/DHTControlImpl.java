@@ -933,6 +933,7 @@ DHTControlImpl
 						closest(
 							List	closest )
 						{
+							/* we don't use teh cache-at-closest kad feature
 							if ( found_values.size() > 0 ){
 									
 								DHTTransportValue[]	values = new DHTTransportValue[found_values.size()];
@@ -980,6 +981,7 @@ DHTControlImpl
 											new DHTTransportValue[][]{ values });
 								}
 							}
+							*/
 						}
 					});
 		}
