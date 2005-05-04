@@ -48,8 +48,8 @@ public class TCPTransport {
   private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
   private SocketChannel socket_channel;
 
-  private boolean is_ready_for_write = false;
-  private boolean is_ready_for_read = false;
+  private volatile boolean is_ready_for_write = false;
+  private volatile boolean is_ready_for_read = false;
   private Throwable write_select_failure = null;
   private Throwable read_select_failure = null;
 
