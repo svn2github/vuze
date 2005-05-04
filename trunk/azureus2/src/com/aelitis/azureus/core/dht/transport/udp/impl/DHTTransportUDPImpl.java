@@ -55,7 +55,7 @@ DHTTransportUDPImpl
 		
 	private static String	external_address;
 	
-	
+	private String				ip_override;
 	private int					port;
 	private int					max_fails_for_live;
 	private int					max_fails_for_unknown;
@@ -121,6 +121,7 @@ DHTTransportUDPImpl
 
 	public
 	DHTTransportUDPImpl(
+		String			_ip,
 		int				_port,
 		int				_max_fails_for_live,
 		int				_max_fails_for_unknown,
@@ -132,6 +133,7 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
+		ip_override				= _ip;
 		port					= _port;
 		max_fails_for_live		= _max_fails_for_live;
 		max_fails_for_unknown	= _max_fails_for_unknown;
@@ -243,7 +245,14 @@ DHTTransportUDPImpl
 					
 					log.log( "    External IP address obtained from test data: " + new_external_address );
 				}
-									
+					
+				if ( ip_override != null ){
+					
+					new_external_address	= ip_override;
+					
+					log.log( "    External IP address explicitly overridden: " + new_external_address );
+				}
+				
 				if ( new_external_address == null ){
 
 						// First attempt is via other contacts we know about. Select three

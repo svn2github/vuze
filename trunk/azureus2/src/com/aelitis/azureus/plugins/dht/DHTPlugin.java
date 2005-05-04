@@ -171,6 +171,18 @@ DHTPlugin
 		config.createGroup( "dht.reseed.group",
 				new Parameter[]{ reseed_label, reseed_ip, reseed_port, reseed });
 		
+		final BooleanParameter	advanced = config.addBooleanParameter2( "dht.advanced", "dht.advanced", false );
+
+		LabelParameter	advanced_label = config.addLabelParameter2( "dht.advanced.label" );
+
+		final StringParameter	override_ip	= config.addStringParameter2( "dht.override.ip", "dht.override.ip", "" );
+
+		config.createGroup( "dht.advanced.group",
+				new Parameter[]{ advanced_label, override_ip });
+
+		advanced.addEnabledOnSelection( advanced_label );
+		advanced.addEnabledOnSelection( override_ip );
+		
 		final StringParameter	command = config.addStringParameter2( "dht.execute.command", "dht.execute.command", "print" );
 		
 		ActionParameter	execute = config.addActionParameter2( "dht.execute.info", "dht.execute");
@@ -456,8 +468,21 @@ DHTPlugin
 									
 									boolean	bootstrap	= conf.getPluginBooleanParameter( "dht.bootstrapnode", false );
 									
+									String	ip = null;
+									
+									if ( advanced.getValue()){
+										
+										ip = override_ip.getValue().trim();
+										
+										if ( ip.length() == 0 ){
+											
+											ip = null;
+										}
+									}
+									
 									transport = 
 										DHTTransportFactory.createUDP( 
+												ip,
 												f_dht_data_port, 
 												4,
 												2,
