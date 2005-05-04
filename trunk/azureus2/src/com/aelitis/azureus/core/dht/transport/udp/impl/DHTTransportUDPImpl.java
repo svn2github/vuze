@@ -81,6 +81,9 @@ DHTTransportUDPImpl
 	
 	private DHTTransportUDPStatsImpl	stats;
 
+	private boolean		bootstrap_node	= false;
+	
+	
 	private static final int CONTACT_HISTORY_MAX = 32;
 	
 	private Map	contact_history = 
@@ -124,6 +127,7 @@ DHTTransportUDPImpl
 		long			_timeout,
 		int				_dht_send_delay,
 		int				_dht_receive_delay,
+		boolean			_bootstrap_node,
 		LoggerChannel	_logger )
 	
 		throws DHTTransportException
@@ -132,6 +136,7 @@ DHTTransportUDPImpl
 		max_fails_for_live		= _max_fails_for_live;
 		max_fails_for_unknown	= _max_fails_for_unknown;
 		request_timeout			= _timeout;
+		bootstrap_node			= _bootstrap_node;
 		logger					= _logger;
 				
 		store_timeout			= request_timeout * 2;
@@ -1844,17 +1849,19 @@ DHTTransportUDPImpl
 				
 				if ( request instanceof DHTUDPPacketRequestPing ){
 					
-					request_handler.pingRequest( originating_contact );
-					
-					DHTUDPPacketReplyPing	reply = 
-						new DHTUDPPacketReplyPing(
-								request.getTransactionId(),
-								request.getConnectionId(),
-								local_contact,
-								originating_contact );
-					
-					packet_handler.send( reply, request.getAddress());
-					
+					if ( !bootstrap_node ){
+						
+						request_handler.pingRequest( originating_contact );
+						
+						DHTUDPPacketReplyPing	reply = 
+							new DHTUDPPacketReplyPing(
+									request.getTransactionId(),
+									request.getConnectionId(),
+									local_contact,
+									originating_contact );
+						
+						packet_handler.send( reply, request.getAddress());
+					}
 				}else if ( request instanceof DHTUDPPacketRequestStats ){
 					
 					DHTTransportFullStats	full_stats = request_handler.statsRequest( originating_contact );
@@ -1872,128 +1879,152 @@ DHTTransportUDPImpl
 
 				}else if ( request instanceof DHTUDPPacketRequestStore ){
 					
-					DHTUDPPacketRequestStore	store_request = (DHTUDPPacketRequestStore)request;
-					
-					byte[] diversify = 
-						request_handler.storeRequest(
-							originating_contact, 
-							store_request.getKeys(), 
-							store_request.getValueSets());
-					
-					DHTUDPPacketReplyStore	reply = 
-						new DHTUDPPacketReplyStore(
-								request.getTransactionId(),
-								request.getConnectionId(),
-								local_contact,
-								originating_contact );
-					
-					reply.setDiversificationTypes( diversify );
-					
-					packet_handler.send( reply, request.getAddress());
+					if ( !bootstrap_node ){
+
+						DHTUDPPacketRequestStore	store_request = (DHTUDPPacketRequestStore)request;
+						
+						byte[] diversify = 
+							request_handler.storeRequest(
+								originating_contact, 
+								store_request.getKeys(), 
+								store_request.getValueSets());
+						
+						DHTUDPPacketReplyStore	reply = 
+							new DHTUDPPacketReplyStore(
+									request.getTransactionId(),
+									request.getConnectionId(),
+									local_contact,
+									originating_contact );
+						
+						reply.setDiversificationTypes( diversify );
+						
+						packet_handler.send( reply, request.getAddress());
+					}
 					
 				}else if ( request instanceof DHTUDPPacketRequestFindNode ){
 					
 					DHTUDPPacketRequestFindNode	find_request = (DHTUDPPacketRequestFindNode)request;
 					
-					DHTTransportContact[] res = 
-						request_handler.findNodeRequest(
-									originating_contact,
-									find_request.getID());
+					boolean	acceptable;
 					
-					DHTUDPPacketReplyFindNode	reply = 
-						new DHTUDPPacketReplyFindNode(
-								request.getTransactionId(),
-								request.getConnectionId(),
-								local_contact,
-								originating_contact );
-								
-					reply.setContacts( res );
+						// as a bootstrap node we only accept find-node requests for the originator's
+						// ID
 					
-					packet_handler.send( reply, request.getAddress());
-					
-				}else if ( request instanceof DHTUDPPacketRequestFindValue ){
-					
-					DHTUDPPacketRequestFindValue	find_request = (DHTUDPPacketRequestFindValue)request;
-				
-					DHTTransportFindValueReply res = 
-						request_handler.findValueRequest(
-									originating_contact,
-									find_request.getID(),
-									find_request.getMaximumValues(),
-									find_request.getFlags());
-					
-					DHTUDPPacketReplyFindValue	reply = 
-						new DHTUDPPacketReplyFindValue(
-							request.getTransactionId(),
-							request.getConnectionId(),
-							local_contact,
-							originating_contact );
-					
-					if ( res.hit()){
+					if ( bootstrap_node ){
 						
-						DHTTransportValue[]	res_values = res.getValues();
-						
-						int		max_size = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_HEADER_SIZE;
-						
-						List	values 		= new ArrayList();
-						int		values_size	= 0;
-						
-						int	pos = 0;
-						
-						while( pos < res_values.length ){
-					
-							DHTTransportValue	v = res_values[pos];
-							
-							int	v_len = v.getValue().length + DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_TV_HEADER_SIZE;
-							
-							if ( 	values_size > 0 && // if value too big, cram it in anyway 
-									values_size + v_len > max_size ){
-								
-									// won't fit, send what we've got
-								
-								DHTTransportValue[]	x = new DHTTransportValue[values.size()];
-								
-								values.toArray( x );
-								
-								reply.setValues( x, res.getDiversificationType(), true );	// continuation = true
-																
-								packet_handler.send( reply, request.getAddress());
-								
-								values_size	= 0;
-								
-								values		= new ArrayList();
-								
-							}else{
-								
-								values.add(v);
-								
-								values_size	+= v_len;
-								
-								pos++;
-							}
-						}
-						
-							// send the remaining (possible zero length) non-continuation values
-							
-						DHTTransportValue[]	x = new DHTTransportValue[values.size()];
-							
-						values.toArray( x );
-							
-						reply.setValues( x, res.getDiversificationType(), false );
-							
-						packet_handler.send( reply, request.getAddress());
-					
+						acceptable = Arrays.equals( find_request.getID(), originating_contact.getID());
+												
 					}else{
 						
-						reply.setContacts(res.getContacts());
+						acceptable	= true;
+					}
+					
+					if ( acceptable ){
+						
+						DHTTransportContact[] res = 
+							request_handler.findNodeRequest(
+										originating_contact,
+										find_request.getID());
+						
+						DHTUDPPacketReplyFindNode	reply = 
+							new DHTUDPPacketReplyFindNode(
+									request.getTransactionId(),
+									request.getConnectionId(),
+									local_contact,
+									originating_contact );
+									
+						reply.setContacts( res );
 						
 						packet_handler.send( reply, request.getAddress());
 					}
 					
+				}else if ( request instanceof DHTUDPPacketRequestFindValue ){
+					
+					if ( !bootstrap_node ){
+
+						DHTUDPPacketRequestFindValue	find_request = (DHTUDPPacketRequestFindValue)request;
+					
+						DHTTransportFindValueReply res = 
+							request_handler.findValueRequest(
+										originating_contact,
+										find_request.getID(),
+										find_request.getMaximumValues(),
+										find_request.getFlags());
+						
+						DHTUDPPacketReplyFindValue	reply = 
+							new DHTUDPPacketReplyFindValue(
+								request.getTransactionId(),
+								request.getConnectionId(),
+								local_contact,
+								originating_contact );
+						
+						if ( res.hit()){
+							
+							DHTTransportValue[]	res_values = res.getValues();
+							
+							int		max_size = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_HEADER_SIZE;
+							
+							List	values 		= new ArrayList();
+							int		values_size	= 0;
+							
+							int	pos = 0;
+							
+							while( pos < res_values.length ){
+						
+								DHTTransportValue	v = res_values[pos];
+								
+								int	v_len = v.getValue().length + DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_TV_HEADER_SIZE;
+								
+								if ( 	values_size > 0 && // if value too big, cram it in anyway 
+										values_size + v_len > max_size ){
+									
+										// won't fit, send what we've got
+									
+									DHTTransportValue[]	x = new DHTTransportValue[values.size()];
+									
+									values.toArray( x );
+									
+									reply.setValues( x, res.getDiversificationType(), true );	// continuation = true
+																	
+									packet_handler.send( reply, request.getAddress());
+									
+									values_size	= 0;
+									
+									values		= new ArrayList();
+									
+								}else{
+									
+									values.add(v);
+									
+									values_size	+= v_len;
+									
+									pos++;
+								}
+							}
+							
+								// send the remaining (possible zero length) non-continuation values
+								
+							DHTTransportValue[]	x = new DHTTransportValue[values.size()];
+								
+							values.toArray( x );
+								
+							reply.setValues( x, res.getDiversificationType(), false );
+								
+							packet_handler.send( reply, request.getAddress());
+						
+						}else{
+							
+							reply.setContacts(res.getContacts());
+							
+							packet_handler.send( reply, request.getAddress());
+						}
+					}
 				}else if ( request instanceof DHTUDPPacketData ){
 					
-					dataRequest(originating_contact, (DHTUDPPacketData)request );
-					
+					if ( !bootstrap_node ){
+						
+						dataRequest(originating_contact, (DHTUDPPacketData)request );
+					}
 				}else{
 					
 					Debug.out( "Unexpected packet:" + request.toString());

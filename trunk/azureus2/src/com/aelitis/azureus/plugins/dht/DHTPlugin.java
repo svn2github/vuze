@@ -454,6 +454,8 @@ DHTPlugin
 									int	send_delay = conf.getPluginIntParameter( "dht.senddelay", 50 );
 									int	recv_delay	= conf.getPluginIntParameter( "dht.recvdelay", 25 );
 									
+									boolean	bootstrap	= conf.getPluginBooleanParameter( "dht.bootstrapnode", false );
+									
 									transport = 
 										DHTTransportFactory.createUDP( 
 												f_dht_data_port, 
@@ -462,6 +464,7 @@ DHTPlugin
 												20000, 	// udp timeout - tried less but a significant number of 
 														// premature timeouts occurred
 												send_delay, recv_delay, 
+												bootstrap,
 												log );
 									
 									transport.addListener(

@@ -51,10 +51,11 @@ DHTTransportFactory
 		long			timeout,
 		int				send_delay,
 		int				receive_delay,
+		boolean			bootstrap_node,
 		LoggerChannel	logger )
 	
 		throws DHTTransportException
 	{
-		return( new DHTTransportUDPImpl( port, max_fails_for_live, max_fails_for_unknown, timeout, send_delay, receive_delay, logger ));
+		return( new DHTTransportUDPImpl( port, max_fails_for_live, max_fails_for_unknown, timeout, send_delay, receive_delay, bootstrap_node, logger ));
 	}
 }
