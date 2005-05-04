@@ -187,7 +187,7 @@ public class TCPTransport {
           //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
           else if( e.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
             enable_efficient_write = false;
-            Debug.out( "ERROR: Multi-buffer socket write failed; switching to single-buffer mode. Upgrade to JRE 1.5 series to fix." );
+            LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket write failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem." );
           }
           throw e;
         }
