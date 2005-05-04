@@ -165,6 +165,12 @@ DHTTransportLoopbackContactImpl
 		transport.exportContact( this, os );
 	}
 	
+	public void
+	remove()
+	{
+		transport.removeContact( this );
+	}
+	
 	public String
 	getString()
 	{

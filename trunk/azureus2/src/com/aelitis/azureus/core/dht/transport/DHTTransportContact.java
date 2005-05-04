@@ -99,6 +99,9 @@ DHTTransportContact
 	
 		throws IOException, DHTTransportException;
 	
+	public void
+	remove();
+	
 	public String
 	getString();
 }

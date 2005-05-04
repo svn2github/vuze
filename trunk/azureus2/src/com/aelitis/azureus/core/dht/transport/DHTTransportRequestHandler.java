@@ -64,4 +64,8 @@ DHTTransportRequestHandler
 	public void
 	contactImported(
 		DHTTransportContact	contact );
+	
+	public void
+	contactRemoved(
+		DHTTransportContact	contact );
 }

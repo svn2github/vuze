@@ -359,9 +359,9 @@ DHTPlugin
 											
 										}else{
 											
-											if ( importSeed( ip, port )){
+											if ( importSeed( ip, port ) != null ){
 												
-												integrateDHT( false );
+												integrateDHT( false, null );
 											}
 										}
 										
@@ -592,7 +592,7 @@ DHTPlugin
 									
 									dht.setLogging( logging.getValue());
 									
-									importRootSeed();
+									DHTTransportContact root_seed = importRootSeed();
 									
 									storage_manager.importContacts( dht );
 									
@@ -610,7 +610,7 @@ DHTPlugin
 												}
 											});
 
-									integrateDHT( true );
+									integrateDHT( true, root_seed );
 									
 									status = STATUS_RUNNING;
 									
@@ -679,7 +679,8 @@ DHTPlugin
 	
 	protected void
 	integrateDHT(
-		boolean	first )
+		boolean				first,
+		DHTTransportContact	remove_afterwards )
 	{
 		try{
 			reseed.setEnabled( false );						
@@ -689,6 +690,13 @@ DHTPlugin
 			long	start = SystemTime.getCurrentTime();
 			
 			dht.integrate();
+			
+			if ( remove_afterwards != null ){
+				
+				log.log( "Removing seed " + remove_afterwards.getString());
+				
+				remove_afterwards.remove();
+			}
 			
 			long	end = SystemTime.getCurrentTime();
 	
@@ -753,7 +761,7 @@ outer:
 						
 						if ( peer_udp_port != 0 ){
 													
-							if ( importSeed( p.getIp(), peer_udp_port )){
+							if ( importSeed( p.getIp(), peer_udp_port ) != null ){
 								
 								peers_imported++;
 															
@@ -766,9 +774,13 @@ outer:
 					}
 				}
 				
+				DHTTransportContact	root_to_remove = null;
+				
 				if ( peers_imported == 0 ){
 				
-					if ( importRootSeed()){
+					root_to_remove = importRootSeed();
+					
+					if ( root_to_remove != null ){
 						
 						peers_imported++;
 					}
@@ -776,7 +788,7 @@ outer:
 				
 				if ( peers_imported > 0 ){
 					
-					integrateDHT( false );
+					integrateDHT( false, root_to_remove );
 				}
 			}
 			
@@ -786,7 +798,7 @@ outer:
 		}
 	}
 		
-	protected boolean
+	protected DHTTransportContact
 	importRootSeed()
 	{
 		try{
@@ -807,10 +819,10 @@ outer:
 			log.log(e);
 		}
 		
-		return( false );
+		return( null );
 	}
 	
-	protected boolean
+	protected DHTTransportContact
 	importSeed(
 		String		ip,
 		int			port )
@@ -823,28 +835,27 @@ outer:
 			
 			log.log(e);
 			
-			return( false );
+			return( null );
 		}
 	}
 	
-	protected boolean
+	protected DHTTransportContact
 	importSeed(
 		InetAddress		ia,
 		int				port )
 	
 	{
 		try{
-			transport.importContact(
+			return(
+				transport.importContact(
 					new InetSocketAddress(ia, port ),
-					DHTTransportUDP.PROTOCOL_VERSION );
+					DHTTransportUDP.PROTOCOL_VERSION ));
 		
-			return( true );
-			
 		}catch( Throwable e ){
 			
 			log.log(e);
 			
-			return( false );
+			return( null );
 		}
 	}
 	

@@ -277,6 +277,12 @@ Test
 		
 	}
 	
+	public void
+	contactRemoved(
+		DHTTransportContact	contact )
+	{
+	}
+	
 	public DHTTransportFullStats
 	statsRequest(
 		DHTTransportContact	contact )

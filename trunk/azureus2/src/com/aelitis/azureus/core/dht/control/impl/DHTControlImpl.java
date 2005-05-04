@@ -332,10 +332,15 @@ DHTControlImpl
 	public void
 	contactImported(
 		DHTTransportContact	contact )
+	{		
+		router.contactKnown( contact.getID(), new DHTControlContactImpl(contact));
+	}
+	
+	public void
+	contactRemoved(
+		DHTTransportContact	contact )
 	{
-		byte[]	id = contact.getID();
-		
-		router.contactKnown( id, new DHTControlContactImpl(contact));
+		router.contactDead( contact.getID(), true );
 	}
 	
 	public void
@@ -801,7 +806,7 @@ DHTControlImpl
 								try{
 									DHTLog.log( "Store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
 																			
-									router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
+									router.contactDead( _contact.getID(), false );
 									
 								}finally{
 									
@@ -968,7 +973,7 @@ DHTControlImpl
 												{
 													DHTLog.log( "Cache store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
 													
-													router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
+													router.contactDead( _contact.getID(), false );
 												}
 											},
 											new byte[][]{ encoded_key }, 
@@ -1447,7 +1452,7 @@ DHTControlImpl
 										
 										DHTLog.log( "findNode/findValue " + DHTLog.getString( target_contact ) + " -> failed: " + error.getMessage());
 									
-										router.contactDead( target_contact.getID(), new DHTControlContactImpl(target_contact));
+										router.contactDead( target_contact.getID(), false );
 									}
 		
 								}finally{
@@ -1642,7 +1647,7 @@ DHTControlImpl
 					{
 						DHTLog.log( "ping " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
 									
-						router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
+						router.contactDead( _contact.getID(), false );
 					}
 				});
 	}
@@ -1824,7 +1829,7 @@ DHTControlImpl
 						{
 							DHTLog.log( "add store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
 																	
-							router.contactDead( _contact.getID(), new DHTControlContactImpl(_contact));
+							router.contactDead( _contact.getID(), false);
 						}
 					},
 					keys, 

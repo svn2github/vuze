@@ -106,4 +106,11 @@ DHTTransportRequestCounter
 	{
 		delegate.contactImported( contact );
 	}
+	
+	public void
+	contactRemoved(
+		DHTTransportContact	contact )
+	{
+		delegate.contactRemoved( contact );
+	}
 }

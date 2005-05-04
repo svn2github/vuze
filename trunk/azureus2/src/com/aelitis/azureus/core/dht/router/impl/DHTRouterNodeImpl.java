@@ -353,14 +353,15 @@ DHTRouterNodeImpl
 	
 	protected void
 	dead(
-		DHTRouterContactImpl	contact )
+		DHTRouterContactImpl	contact,
+		boolean					force )
 	{
 		// DHTLog.log( DHTLog.getString( contact.getID()) + ": dead" );
 		
 		contact.setPingOutstanding( false );
-
-		if ( contact.setFailed()){
-			
+		
+		if ( contact.setFailed() || force ){
+						
 				// check the contact is still present
 			
 			if ( buckets.remove( contact )){

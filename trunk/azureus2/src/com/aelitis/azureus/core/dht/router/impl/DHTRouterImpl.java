@@ -186,7 +186,7 @@ DHTRouterImpl
 	public DHTRouterContact
 	contactDead(
 		byte[]						node_id,
-		DHTRouterContactAttachment	attachment )
+		boolean						force )
 	{
 		try{
 			try{
@@ -199,7 +199,7 @@ DHTRouterImpl
 				
 				if ( contact != null ){
 				
-					node.dead( contact );
+					node.dead( contact, force );
 				}
 				
 				return( contact );
@@ -214,6 +214,13 @@ DHTRouterImpl
 			
 			dispatchNodeAdds();
 		}
+	}
+	
+	public void
+	contactRemoved(
+		byte[]						node_id )
+	{
+		
 	}
 	
 	public DHTRouterContact

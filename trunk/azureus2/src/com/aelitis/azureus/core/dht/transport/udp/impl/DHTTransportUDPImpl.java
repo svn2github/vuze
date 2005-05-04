@@ -568,6 +568,13 @@ DHTTransportUDPImpl
 	}
 	
 	public void
+	removeContact(
+		DHTTransportContact	contact )
+	{
+		request_handler.contactRemoved( contact );
+	}
+	
+	public void
 	setRequestHandler(
 		DHTTransportRequestHandler	_request_handler )
 	{

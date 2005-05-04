@@ -245,6 +245,12 @@ DHTTransportLoopbackImpl
 		return( contact );
 	}
 	
+	public void
+	removeContact(
+		DHTTransportContact	contact )
+	{
+	}
+	
 	protected void
 	run(
 		final AERunnable	r )

@@ -93,7 +93,7 @@ DHTRouter
 	public DHTRouterContact
 	contactDead(
 		byte[]						node_id,
-		DHTRouterContactAttachment	attachment );
+		boolean						force );
 	
 	public DHTRouterContact
 	findContact(
