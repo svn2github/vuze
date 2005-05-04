@@ -61,7 +61,7 @@ PEPeerSource
 			PS_DHT,
 			PS_OTHER_PEER,
 			PS_PLUGIN,
-			PS_INCOMING,
+			//PS_INCOMING,	remove this as we don't currently enforce
 	};
 
 	public static String[]
