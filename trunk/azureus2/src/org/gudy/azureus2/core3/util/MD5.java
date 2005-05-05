@@ -36,7 +36,7 @@ public class MD5 {
   private ByteBuffer finalBuffer;
   
   public MD5() {
-    finalBuffer = ByteBuffer.allocateDirect(64);
+    finalBuffer = ByteBuffer.allocate(64);
     finalBuffer.position(0);
     finalBuffer.limit(64);
     
