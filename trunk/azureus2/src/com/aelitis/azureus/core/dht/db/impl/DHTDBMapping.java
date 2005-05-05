@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -178,8 +179,6 @@ DHTDBMapping
 
 		HashWrapper	originator_id = new HashWrapper( originator.getID());
 		
-		HashWrapper	originator_value_id = getOriginatorValueID( new_value );
-
 		boolean	direct = Arrays.equals( originator.getID(), sender.getID());
 		
 		if ( direct ){
@@ -223,7 +222,9 @@ DHTDBMapping
 			}
 						
 				// rule (b) - one entry per originator/value pair
-								
+				
+			HashWrapper	originator_value_id = getOriginatorValueID( new_value );
+
 			DHTDBValueImpl existing_value = (DHTDBValueImpl)indirect_originator_value_map.get( originator_value_id );
 			
 			if ( existing_value != null ){
@@ -280,7 +281,7 @@ DHTDBMapping
 		System.arraycopy( originator_id, 0, x, 0, originator_id.length );
 		System.arraycopy( value_bytes, 0, x, originator_id.length, value_bytes.length );
 		
-		HashWrapper	originator_value_id = new HashWrapper( x );
+		HashWrapper	originator_value_id = new HashWrapper( new SHA1Hasher().calculateHash( x ));
 		
 		return( originator_value_id );
 	}
@@ -472,11 +473,11 @@ DHTDBMapping
 	removeDirectValue(
 		HashWrapper		value_key )
 	{
-		DHTDBValueImpl	old = (DHTDBValueImpl)indirect_originator_value_map.remove( value_key );
+		DHTDBValueImpl	old = (DHTDBValueImpl)direct_originator_map.remove( value_key );
 		
 		if ( old != null ){
 			
-			indirect_data_size -= old.getValue().length;
+			direct_data_size -= old.getValue().length;
 			
 			if ( old.getCacheDistance() == 0 ){
 				
