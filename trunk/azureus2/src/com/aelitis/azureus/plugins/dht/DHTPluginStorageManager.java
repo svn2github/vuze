@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -662,10 +663,16 @@ DHTPluginStorageManager
 				for (int i=0;i<keys.size();i++){
 					
 					storageKey d = storageKey.deserialise(this, (Map)keys.get(i));
-										
-					if ( d.getExpiry() > now ){
+						
+					long	time_left = d.getExpiry() - now;
+					
+					if ( time_left > 0 ){
 					
 						local_storage_keys.put( d.getKey(), d );
+						
+					}else{
+						
+						log.log( "SM: serialised sk: " + DHTLog.getString2( d.getKey().getBytes()) + " expired" );
 					}
 				}
 			}
@@ -678,10 +685,16 @@ DHTPluginStorageManager
 				for (int i=0;i<divs.size();i++){
 					
 					diversification d = diversification.deserialise( this, (Map)divs.get(i));
-										
-					if ( d.getExpiry() > now ){
+						
+					long	time_left = d.getExpiry() - now;
+
+					if ( time_left > 0 ){
 					
 						remote_diversifications.put( d.getKey(), d );
+						
+					}else{
+						
+						log.log( "SM: serialised div: " + DHTLog.getString2( d.getKey().getBytes()) + " expired" );
 					}
 				}
 			}
@@ -749,6 +762,8 @@ DHTPluginStorageManager
 			
 			if ( div.getExpiry() < SystemTime.getCurrentTime()){
 				
+				log.log( "SM: div: " + DHTLog.getString2( div.getKey().getBytes()) + " expired" );
+
 				remote_diversifications.remove( wrapper );
 				
 				div = null;
@@ -770,6 +785,15 @@ DHTPluginStorageManager
 		writeDiversifications();
 		
 		return( div );
+	}
+	
+	protected static String
+	formatExpiry(
+		long	l )
+	{
+		long	diff = l - SystemTime.getCurrentTime();
+		
+		return( (diff<0?"-":"") + DisplayFormatters.formatTime(Math.abs(diff)));
 	}
 	
 	protected static class
@@ -857,7 +881,7 @@ DHTPluginStorageManager
 			
 			map.put( "fpo", offsets );
 			
-			manager.log.log( "SM: serialised div: " + DHTLog.getString2( key.getBytes()) + ", " + type + ", " + expiry );
+			manager.log.log( "SM: serialised div: " + DHTLog.getString2( key.getBytes()) + ", " + DHT.DT_STRINGS[type] + ", " + formatExpiry(expiry));
 
 			return( map );
 		}
@@ -880,7 +904,7 @@ DHTPluginStorageManager
 				fops[i] = ((Long)offsets.get(i)).intValue();
 			}
 			
-			_manager.log.log( "SM: deserialised div: " + DHTLog.getString2( key.getBytes()) + ", " + type + ", " + exp );
+			_manager.log.log( "SM: deserialised div: " + DHTLog.getString2( key.getBytes()) + ", " + DHT.DT_STRINGS[type] + ", " + formatExpiry(exp));
 
 			return( new diversification( _manager, key, (byte)type, exp, fops ));
 		}
@@ -1032,7 +1056,7 @@ DHTPluginStorageManager
 			map.put( "type", new Long(type));
 			map.put( "exp", new Long(expiry));
 			
-			manager.log.log( "SM: serialised sk: " + DHTLog.getString2( key.getBytes()) + ", " + type + ", " + expiry );
+			manager.log.log( "SM: serialised sk: " + DHTLog.getString2( key.getBytes()) + ", " + DHT.DT_STRINGS[type] + ", " + formatExpiry(expiry) );
 			
 			return( map );
 		}
@@ -1045,7 +1069,7 @@ DHTPluginStorageManager
 			int			type 	= ((Long)map.get("type")).intValue(); 
 			long		exp 	= ((Long)map.get("exp")).longValue();
 			
-			_manager.log.log( "SM: deserialised sk: " + DHTLog.getString2( key.getBytes()) + ", " + type + ", " + exp );
+			_manager.log.log( "SM: deserialised sk: " + DHTLog.getString2( key.getBytes()) + ", " + DHT.DT_STRINGS[type] + ", " + formatExpiry(exp));
 
 			return( new storageKey( _manager, (byte)type, key, exp ));
 		}
@@ -1073,6 +1097,8 @@ DHTPluginStorageManager
 
 					type	= DHT.DT_NONE;
 					
+					manager.log.log( "SM: sk: " + DHTLog.getString2( getKey().getBytes()) + " expired" );
+
 					manager.writeDiversifications();
 				}
 			}
@@ -1088,8 +1114,6 @@ DHTPluginStorageManager
 			
 			
 			if ( type == DHT.DT_NONE ){
-				
-				read_count++;
 				
 					// simple flood detection to prevent a single IP from causing diversification
 					// via repeated reads.
@@ -1130,6 +1154,8 @@ DHTPluginStorageManager
 						
 						read_history[0]	= address_int;
 					}
+					
+					read_count++;
 					
 					long	now = SystemTime.getCurrentTime();
 					

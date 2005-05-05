@@ -659,9 +659,14 @@ DHTControlImpl
 			
 			final byte[]	encoded_key	= encoded_keys[i];
 						
+			final String	this_description = 
+				Arrays.equals( encoded_key, initial_encoded_key )?
+						description:
+						("Diversification of [" + description + "]" );
+			
 			lookup( thread_pool,
 					encoded_key,
-					description,
+					this_description,
 					(byte)0,
 					false, 
 					timeout,
@@ -683,7 +688,7 @@ DHTControlImpl
 						{
 							put( 	thread_pool,
 									new byte[][]{ encoded_key }, 
-									"Cache store of " + description,
+									"Store of [" + this_description + "]",
 									new DHTTransportValue[][]{ values }, 
 									_closest, 
 									timeout, 
@@ -785,7 +790,7 @@ DHTControlImpl
 												
 													put( 	thread_pool,
 															diversified_keys[k], 
-															"Diversification of " + description,
+															"Diversification of [" + description + "]",
 															value_sets[j], 
 															timeout, listener );
 												}
@@ -878,10 +883,15 @@ DHTControlImpl
 			final boolean[]	diversified = { false };
 
 			final byte[]	encoded_key	= encoded_keys[i];
-			
+						
+			final String	this_description = 
+				Arrays.equals( encoded_key, initial_encoded_key )?
+						description:
+						("Diversification of [" + description + "]" );
+
 			lookup( external_lookup_pool,
 					encoded_key, 
-					description,
+					this_description,
 					flags,
 					true, 
 					timeout,
@@ -913,7 +923,7 @@ DHTControlImpl
 									
 									for (int j=0;j<diversified_keys.length;j++){
 										
-										getSupport( diversified_keys[j], "Diversification of " + description, flags, rem,  timeout, get_listener );
+										getSupport( diversified_keys[j], "Diversification of [" + this_description + "]", flags, rem,  timeout, get_listener );
 									}
 								}								
 							}
@@ -2088,7 +2098,7 @@ DHTControlImpl
 					for (int i=0;i<l.size();i++){
 						str += (i==0?"":",") + DHTLog.getString2( ((DHTTransportContact)l.get(i)).getID());
 					}
-					System.out.println( "XXX: " + str );
+					System.out.println( "trace: " + str );
 					*/
 				}
 				

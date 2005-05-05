@@ -56,12 +56,13 @@ DHT
 
 	public static final int 	MAX_VALUE_SIZE		= 256;
 
-		// diversification types
+		// diversification types, don't change as serialised!!!!
 	
 	public static final byte	DT_NONE			= 1;
 	public static final byte	DT_FREQUENCY	= 2;
 	public static final byte	DT_SIZE			= 3;
 	
+	public static final String[]	DT_STRINGS = { "", "None", "Freq", "Size" };
 	
 	public void
 	put(
