@@ -30,11 +30,11 @@ public final class SHA1 {
    * Create a new SHA-1 message digest hasher.
    */
   public SHA1() {
-    finalBuffer = ByteBuffer.allocateDirect(64);
+    finalBuffer = ByteBuffer.allocate(64);
     finalBuffer.position(0);
     finalBuffer.limit(64);
     
-    saveBuffer = ByteBuffer.allocateDirect(64);
+    saveBuffer = ByteBuffer.allocate(64);
     saveBuffer.position(0);
     saveBuffer.limit(64);
     
