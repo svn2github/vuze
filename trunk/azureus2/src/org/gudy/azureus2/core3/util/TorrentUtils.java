@@ -821,6 +821,44 @@ TorrentUtils
 	}
 	
 	public static boolean
+	isDHTBackupRequested(
+		TOTorrent	torrent )
+	{
+		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
+		
+		if ( m == null ){
+			
+			return( true );
+		}
+		
+		Long	l = (Long)m.get( "dht_backup_requested" );
+		
+		if ( l == null ){
+			
+			return( true );
+		}
+		
+		return( l.longValue() == 1 );
+	}
+	
+	public static void
+	setDHTBackupRequested(
+		TOTorrent		torrent,
+		boolean			requested )
+	{
+		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
+		
+		if ( m == null ){
+			
+			m = new HashMap();
+			
+			torrent.setAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES, m );
+		}
+		
+		m.put( "dht_backup_requested", new Long(requested?1:0));
+	}
+	
+	public static boolean
 	getPrivate(
 		TOTorrent		torrent )
 	{

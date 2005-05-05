@@ -114,6 +114,19 @@ Torrent
 	isDecentralisedBackupEnabled();
 	
 		/**
+		 * By default torrents with OK trackers are not tracked in the DHT. This allows a specific
+		 * torrent to be marked so that it will be 
+		 * @param requested
+		 */
+	
+	public void
+	setDecentralisedBackupRequested(
+		boolean	requested );
+	
+	public boolean
+	isDecentralisedBackupRequested();
+	
+		/**
 		 * A private torrent is either explicitly private via info/private or
 		 * has decentralised backup disabled and peer exchange disabled
 		 * @return

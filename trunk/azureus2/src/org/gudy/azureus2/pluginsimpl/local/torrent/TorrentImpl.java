@@ -109,6 +109,19 @@ TorrentImpl
 		return( TorrentUtils.getDHTBackupEnabled( torrent ));
 	}
 	
+	public void
+	setDecentralisedBackupRequested(
+		boolean	requested )
+	{
+		TorrentUtils.setDHTBackupRequested( torrent, requested );
+	}
+	
+	public boolean
+	isDecentralisedBackupRequested()
+	{
+		return( TorrentUtils.isDHTBackupRequested( torrent ));
+
+	}
 	public boolean
 	isPrivate()
 	{

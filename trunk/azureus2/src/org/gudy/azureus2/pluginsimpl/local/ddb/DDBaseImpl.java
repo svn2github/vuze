@@ -118,6 +118,11 @@ DDBaseImpl
 										
 										torrent = torrent.removeAdditionalProperties();
 										
+											// when clients get a torrent from the DHT they take on
+											// responsibility for tracking it too
+										
+										torrent.setDecentralisedBackupRequested( true );
+										
 										return( createValue( torrent.writeToBEncodedData()));
 										
 									}catch( Throwable e ){

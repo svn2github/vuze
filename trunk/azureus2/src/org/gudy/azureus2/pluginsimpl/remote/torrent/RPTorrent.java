@@ -152,8 +152,23 @@ RPTorrent
 		notSupported();
 		
 		return( false );
+	}	
+	
+	public void
+	setDecentralisedBackupRequested(
+		boolean	requested )
+	{
+		notSupported();		
 	}
 	
+	public boolean
+	isDecentralisedBackupRequested()
+	{
+		notSupported();
+		
+		return( false );	
+	}
+
 	public boolean
 	isPrivate()
 	{
