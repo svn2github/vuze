@@ -45,7 +45,7 @@ public class TCPTransport {
   public static final int TRANSPORT_MODE_TURBO  = 2;
   
   
-  private static boolean enable_efficient_write = System.getProperty("java.version").startsWith("1.5") ? true : false;
+  private static boolean enable_efficient_io = System.getProperty("java.version").startsWith("1.5") ? true : false;
   private SocketChannel socket_channel;
 
   private volatile boolean is_ready_for_write = false;
@@ -173,7 +173,7 @@ public class TCPTransport {
     try { 
       if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
     
-      if( enable_efficient_write ) {
+      if( enable_efficient_io ) {
         try {
           long written = socket_channel.write( buffers, array_offset, length );		
           if( written < 1 )  requestWriteSelect();
@@ -186,8 +186,8 @@ public class TCPTransport {
           //a bug only fixed in Tiger (1.5 series):
           //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
           else if( e.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
-            enable_efficient_write = false;
-            LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket write failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem." );
+            enable_efficient_io = false;
+            LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket write failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem!" );
           }
           throw e;
         }
@@ -350,19 +350,38 @@ public class TCPTransport {
     
     long bytes_read = 0;
     
-    try{
-      bytes_read = socket_channel.read( buffers, array_offset, length );
+    if( enable_efficient_io ) {
+      try{
+        bytes_read = socket_channel.read( buffers, array_offset, length );
+      }
+      catch( IOException ioe ) {
+        is_ready_for_read = false;
+        
+        if( ioe.getMessage() == null ) {
+          Debug.out( "CAUGHT EXCEPTION WITH NULL MESSAGE", ioe );
+        }
+        //a bug only fixed in Tiger (1.5 series):
+        //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
+        else if( ioe.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
+          enable_efficient_io = false;
+          LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket read failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem!" );
+        }
+        
+        throw ioe;
+      }
     }
-    catch( IOException ioe ) {
-      is_ready_for_read = false;
-      throw ioe;
-    }
-    catch( Throwable t ) {
-      is_ready_for_read = false;
-      Debug.out( "Caught Throwable on TCPTransport::read()", t );
-      throw new IOException( "Caught Throwable on TCPTransport::read(): " +t.getMessage() );
-    }
-    
+    else {
+      //single-buffer mode
+      for( int i=array_offset; i < (array_offset + length); i++ ) {
+        int data_length = buffers[ i ].remaining();
+        int read = socket_channel.read( buffers[ i ] );
+        bytes_read += read;
+        if( read < data_length ) {
+          break;
+        }
+      }
+    }    
+
     if( bytes_read < 0 ) {
       is_ready_for_read = false;
       throw new IOException( "end of stream on socket read" );
