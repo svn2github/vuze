@@ -886,9 +886,7 @@ DHTTransportUDPImpl
 		DHTTransportValue[][]				value_sets )
 	{
 		stats.storeSent();
-		
-		final boolean[]	store_outcome_reported = { false };
-		
+
 		final long	connection_id = getConnectionID();
 		
 		if ( false ){
@@ -1017,6 +1015,13 @@ DHTTransportUDPImpl
 				}
 				
 				// System.out.println( "    packet " + packet_count + ": keys = " + packet_entries + ", values = " + packet_value_count );
+
+					// first packet sending recorded on entry
+				
+				if ( packet_count > 1 ){
+				
+					stats.storeSent();
+				}
 				
 				final DHTUDPPacketRequestStore	request = 
 					new DHTUDPPacketRequestStore( connection_id, local_contact, contact );
@@ -1070,13 +1075,8 @@ DHTTransportUDPImpl
 								}else{
 
 									DHTUDPPacketReplyStore	reply = (DHTUDPPacketReplyStore)packet;
-
-									if ( !store_outcome_reported[0] ){
-										
-										store_outcome_reported[0]	= true;
 									
-										stats.storeOK();
-									}
+									stats.storeOK();
 									
 									if ( f_packet_count == 1 ){
 										
@@ -1100,12 +1100,7 @@ DHTTransportUDPImpl
 						error(
 							PRUDPPacketHandlerException	e )
 						{
-							if ( !store_outcome_reported[0] ){
-								
-								store_outcome_reported[0]	= true;
-							
-								stats.storeFailed();
-							}
+							stats.storeFailed();
 							
 							if ( f_packet_count == 1 ){
 								
@@ -1118,13 +1113,8 @@ DHTTransportUDPImpl
 
 			}
 		}catch( Throwable e ){
-							
-			if ( !store_outcome_reported[0] ){
-				
-				store_outcome_reported[0]	= true;
-			
-				stats.storeFailed();
-			}
+										
+			stats.storeFailed();
 			
 			if ( packet_count <= 1 ){
 								
