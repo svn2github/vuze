@@ -57,13 +57,14 @@ Test
 		final byte[]	t1 		= { (byte)0x76, (byte)0x1f, (byte)0x22, (byte)0xb2 };
 		final byte[]	t2 		= { (byte)0x47, (byte)0x2b, (byte)0x07, (byte)0xb9 };
 				   		
-		byte[]	d1 = DHTControlImpl.computeDistance2( target, t1 );
-		byte[]	d2 = DHTControlImpl.computeDistance2( target, t2 );
+		byte[]	d1 = DHTControlImpl.computeDistance2( t1, target );
+		byte[]	d2 = DHTControlImpl.computeDistance2( t2, target );
 		
 		System.out.println( "d1 = " + ByteFormatter.nicePrint( d1 ));
 		System.out.println( "d2 = " + ByteFormatter.nicePrint( d2 ));
 		
-		System.out.println( "comp = " + DHTControlImpl.compareDistances2( d1, d2 ));
+		System.out.println( "comp1 = " + DHTControlImpl.compareDistances2( d1, d2 ));
+		System.out.println( "comp2 = " + DHTControlImpl.computeAndCompareDistances( t1, t2, target ));
 		
 		final Set			set = 
 			new TreeSet(

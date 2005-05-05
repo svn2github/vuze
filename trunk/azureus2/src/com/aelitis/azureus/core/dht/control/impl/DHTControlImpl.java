@@ -1217,10 +1217,9 @@ DHTControlImpl
 						
 						DHTTransportContact	furthest_ok = (DHTTransportContact)ok_contacts.iterator().next();
 						
-						byte[]	furthest_ok_distance 	= computeDistance( furthest_ok.getID(), lookup_id );
-						byte[]	closest_distance		= computeDistance( closest.getID(), lookup_id );
+						int	distance = computeAndCompareDistances( furthest_ok.getID(), closest.getID(), lookup_id );
 						
-						if ( compareDistances( furthest_ok_distance, closest_distance) <= 0 ){
+						if ( distance <= 0 ){
 							
 							DHTLog.log( "lookup: terminates - we've searched the closest " + search_accuracy + " contacts" );
 	
@@ -1896,6 +1895,28 @@ DHTControlImpl
 		return( result );
 	}
 	
+	protected static int
+	computeAndCompareDistances(
+		byte[]		t1,
+		byte[]		t2,
+		byte[]		pivot )
+	{
+		for (int i=0;i<t1.length;i++){
+
+			byte d1 = (byte)( t1[i] ^ pivot[i] );
+			byte d2 = (byte)( t2[i] ^ pivot[i] );
+
+			int diff = (d1&0xff) - (d2&0xff);
+			
+			if ( diff != 0 ){
+				
+				return( diff );
+			}
+		}
+		
+		return( 0 );
+	}
+	
 	public byte[]
 	computeDistance(
 		byte[]		n1,
@@ -2212,11 +2233,8 @@ DHTControlImpl
 					
 						DHTTransportContact	t1 = (DHTTransportContact)o1;
 						DHTTransportContact t2 = (DHTTransportContact)o2;
-						
-						byte[] d1 = computeDistance( t1.getID(), pivot);
-						byte[] d2 = computeDistance( t2.getID(), pivot);
-						
-						int	distance = compareDistances( d1, d2 );
+											
+						int	distance = computeAndCompareDistances( t1.getID(), t2.getID(), pivot );
 						
 						if ( ascending ){
 							
