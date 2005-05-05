@@ -190,7 +190,10 @@ DirectByteBufferPool
         return null;
     }
 
-    return pool.getBufferHelper(_allocator,_length);
+    
+    return new DirectByteBuffer( ByteBuffer.allocate( _length ) );
+    
+    //return pool.getBufferHelper(_allocator,_length);
   }
   
   
@@ -428,6 +431,7 @@ DirectByteBufferPool
   returnBuffer(
   	ByteBuffer		buffer )
   {
+    /*
     bytesIn += buffer.capacity();
     
   	if ( DEBUG_TRACK_HANDEDOUT ){
@@ -447,7 +451,8 @@ DirectByteBufferPool
   	
     // remInUse( buffer.capacity() );
     
-    free( buffer ); 
+    free( buffer );
+    */
   }
   
   
