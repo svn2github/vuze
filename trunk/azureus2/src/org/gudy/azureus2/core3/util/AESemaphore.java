@@ -90,6 +90,14 @@ AESemaphore
 	
 	public int
 	reserveSet(
+		int		max_to_reserve,
+		long	millis )
+	{
+		return( reserveSupport( millis, max_to_reserve));
+	}
+	
+	public int
+	reserveSet(
 		int	max_to_reserve )
 	{
 		return( reserveSupport( 0, max_to_reserve));
