@@ -887,6 +887,8 @@ DHTTransportUDPImpl
 	{
 		stats.storeSent();
 		
+		final boolean[]	store_outcome_reported = { false };
+		
 		final long	connection_id = getConnectionID();
 		
 		if ( false ){
@@ -1069,7 +1071,12 @@ DHTTransportUDPImpl
 
 									DHTUDPPacketReplyStore	reply = (DHTUDPPacketReplyStore)packet;
 
-									stats.storeOK();
+									if ( !store_outcome_reported[0] ){
+										
+										store_outcome_reported[0]	= true;
+									
+										stats.storeOK();
+									}
 									
 									if ( f_packet_count == 1 ){
 										
@@ -1093,7 +1100,12 @@ DHTTransportUDPImpl
 						error(
 							PRUDPPacketHandlerException	e )
 						{
-							stats.storeFailed();
+							if ( !store_outcome_reported[0] ){
+								
+								store_outcome_reported[0]	= true;
+							
+								stats.storeFailed();
+							}
 							
 							if ( f_packet_count == 1 ){
 								
@@ -1107,7 +1119,12 @@ DHTTransportUDPImpl
 			}
 		}catch( Throwable e ){
 							
-			stats.storeFailed();
+			if ( !store_outcome_reported[0] ){
+				
+				store_outcome_reported[0]	= true;
+			
+				stats.storeFailed();
+			}
 			
 			if ( packet_count <= 1 ){
 								
