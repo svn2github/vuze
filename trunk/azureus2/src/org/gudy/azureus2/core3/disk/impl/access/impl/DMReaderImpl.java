@@ -41,6 +41,8 @@ public class
 DMReaderImpl
 	implements DMReader
 {
+	private static final long	READ_THREAD_IDLE_LIMIT	= 120*1000;
+	
 	protected static final int	QUEUE_REPORT_CHUNK	= 32;
 	
 	protected DiskManagerHelper	disk_manager;
@@ -55,7 +57,6 @@ DMReaderImpl
 	private int			next_report_size	= QUEUE_REPORT_CHUNK;
 	
 	private boolean			started;
-	private AESemaphore		stop_sem	= new AESemaphore( "DMReader::stop");
 
 	private DiskReadThread readThread;
 
@@ -83,11 +84,7 @@ DMReaderImpl
 			}
 			
 			started	= true;
-					
-			readThread = new DiskReadThread();
-			
-			readThread.start();
-			
+								
 		}finally{
 			
 			this_mon.exit();
@@ -97,6 +94,8 @@ DMReaderImpl
 	public void
 	stop()
 	{
+		DiskReadThread	current_read_thread;
+		
 		try{
 			this_mon.enter();
 
@@ -109,16 +108,17 @@ DMReaderImpl
 			
 			bOverallContinue	= false;
 			
+			current_read_thread	= readThread;
+			
 		}finally{
 			
 			this_mon.exit();
 		}
 		
-		readThread.stopIt();
-		
-			// wait until the thread has stopped
-		
-		stop_sem.reserve();
+		if ( current_read_thread != null ){
+			
+			current_read_thread.stopIt();
+		}
 	}
 	
 	public DiskManagerReadRequest
@@ -147,12 +147,17 @@ DMReaderImpl
 	  		
 	   		readQueue.add( drr );
 	   		
+		    readQueueSem.release();
+
+			if ( readThread == null ){
+				
+				startReadThread();
+			}
 	    }finally{
 	    	
 	    	this_mon.exit();
 	    }
 	    
-	    readQueueSem.release();
 	    
 	    int	queue_size = readQueueSem.getValue();
 	    
@@ -271,13 +276,25 @@ DMReaderImpl
 		}
 	}
 
+	protected void
+	startReadThread()
+	{
+		readThread = new DiskReadThread();
+		
+		readThread.start();
+	}
+	
 	public class 
 	DiskReadThread 
 		extends AEThread 
 	{
+		private AESemaphore		stop_sem	= new AESemaphore( "DMReader::stop");
+
 		private boolean bReadContinue = true;
 
-		public DiskReadThread() {
+		public 
+		DiskReadThread() 
+		{
 			super("Disk Reader");
 			
 			setDaemon(true);
@@ -290,13 +307,30 @@ DMReaderImpl
 				while ( bReadContinue ){	
 			
 					try{
-						int	entry_count = readQueueSem.reserveSet( 10 );
+						int	entry_count = readQueueSem.reserveSet( 10, READ_THREAD_IDLE_LIMIT );
 						
 						if ( !bReadContinue){
 							
 							break;
 						}
 
+						if ( entry_count == 0 ){
+							
+							try{
+								this_mon.enter();
+								
+								if ( readQueueSem.getValue() == 0 ){
+																			
+									readThread	= null;
+																		
+									break;
+								}
+							}finally{
+								
+								this_mon.exit();
+							}
+						}
+						
 						for (int i=0;i<entry_count;i++){
 							
 							DiskReadRequest drr;
@@ -344,27 +378,33 @@ DMReaderImpl
 				}
 			}finally{
 				
-				stop_sem.release();
+				stop_sem.releaseForever();
 			}
 		}
 
-		public void stopIt() {
-
+		protected void 
+		stopIt() 
+		{
 			try{
-				this_mon.enter();
+				try{
+					this_mon.enter();
+					
+					bReadContinue = false;
+					
+				}finally{
+					
+					this_mon.exit();
+				}
 				
-				bReadContinue = false;
-				
+				readQueueSem.releaseForever();
+							
+				while (readQueue.size() != 0){
+					
+					readQueue.remove(0);
+				}
 			}finally{
-				
-				this_mon.exit();
-			}
 			
-			readQueueSem.releaseForever();
-						
-			while (readQueue.size() != 0){
-				
-				readQueue.remove(0);
+				stop_sem.reserve();
 			}
 		}
 	}
