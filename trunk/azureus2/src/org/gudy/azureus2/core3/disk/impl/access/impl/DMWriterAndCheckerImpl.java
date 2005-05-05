@@ -48,6 +48,8 @@ public class
 DMWriterAndCheckerImpl 
 	implements DMWriterAndChecker
 {
+	private static final long WRITE_THREAD_IDLE_LIMIT	= 60*1000;
+	
 	protected static final boolean	CONCURRENT_CHECKING	= true;
 	
 	protected static final int	DEFAULT_WRITE_QUEUE_MAX	= 256;
@@ -142,9 +144,7 @@ DMWriterAndCheckerImpl
 	protected boolean	complete_recheck_in_progress;
 	
 	protected AEMonitor		this_mon	= new AEMonitor( "DMW&C" );
-	
-	protected AESemaphore	stop_sem	= new AESemaphore( "DMW&C::stop");
-	
+		
 	public
 	DMWriterAndCheckerImpl(
 		DiskManagerHelper	_disk_manager )
@@ -177,11 +177,7 @@ DMWriterAndCheckerImpl
 			}
 
 			started	= true;
-      
-			writeThread = new DiskWriteThread();
-			
-			writeThread.start();
-			
+ 			
 		}finally{
 			
 			this_mon.exit();
@@ -191,6 +187,8 @@ DMWriterAndCheckerImpl
 	public void
 	stop()
 	{
+		DiskWriteThread	current_write_thread;
+		
 		try{
 			this_mon.enter();
 
@@ -206,17 +204,18 @@ DMWriterAndCheckerImpl
 			
 			bOverallContinue	= false;
          
+			current_write_thread	= writeThread;
+			
 		}finally{
 			
 			this_mon.exit();
 		}
-					
-		writeThread.stopWriteThread();
-		
-			// wait until the thread has stopped
-		
-		stop_sem.reserve();
-		
+			
+		if ( current_write_thread != null ){
+			
+			current_write_thread.stopWriteThread();
+		}
+				
 			// now wait until any outstanding piece checks have completed
 		
 		for (int i=0;i<total_async_check_requests;i++){
@@ -423,13 +422,17 @@ DMWriterAndCheckerImpl
 	  		}
 	  		
 	   		checkQueue.add(new QueueElement(pieceNumber, 0, null, user_data, listener ));
-	   		
+	   			   		
+		   	writeCheckQueueSem.release();
+
+			if ( writeThread == null ){
+				
+				startDiskWriteThread();
+			}
 	    }finally{
 	    	
 	    	this_mon.exit();
 	    }
-	   		
-	   	writeCheckQueueSem.release();
 	}  
 	  
 	public void
@@ -773,12 +776,18 @@ DMWriterAndCheckerImpl
 	  		}
 			
 			writeQueue.add(new QueueElement(pieceNumber, offset, data, user_data, listener ));
+			
+			writeCheckQueueSem.release();
+			
+			if ( writeThread == null ){
+				
+				startDiskWriteThread();
+			}
+
 		}finally{
 			
 			this_mon.exit();
 		}
-		
-		writeCheckQueueSem.release();
 	}
 
   
@@ -857,13 +866,21 @@ DMWriterAndCheckerImpl
 		return true;
 	}
 
-
+	protected void
+	startDiskWriteThread()
+	{	     
+		writeThread = new DiskWriteThread();
+		
+		writeThread.start();
+	}
 
 	public class 
 	DiskWriteThread 
 		extends AEThread 
 	{
 		private boolean bWriteContinue = true;
+		
+		private AESemaphore	stop_sem	= new AESemaphore( "DMW&C::stop");
 
 		public DiskWriteThread() 
 		{
@@ -876,16 +893,33 @@ DMWriterAndCheckerImpl
 		runSupport() 
 		{
 			try{
-				while (bWriteContinue){
+				while( bWriteContinue ){
 					
 					try{
-						int	entry_count = writeCheckQueueSem.reserveSet( 64 );
+						int	entry_count = writeCheckQueueSem.reserveSet( 64, WRITE_THREAD_IDLE_LIMIT );
 							
-						if ( !bWriteContinue){
+						if ( !bWriteContinue ){
 							
 							break;
 						}
 
+						if ( entry_count == 0 ){
+						
+							try{
+								this_mon.enter();
+								
+								if ( writeCheckQueueSem.getValue() == 0 ){
+																			
+									writeThread	= null;
+									
+									break;
+								}
+							}finally{
+								
+								this_mon.exit();
+							}
+						}
+						
 						for (int i=0;i<entry_count;i++){
 							
 							final QueueElement	elt;
@@ -1010,39 +1044,44 @@ DMWriterAndCheckerImpl
 		}
 
 		protected void 
-		stopWriteThread(){
-			
+		stopWriteThread()
+		{
 			try{
-				this_mon.enter();
+				try{
+					this_mon.enter();
+					
+					bWriteContinue = false;
+				}finally{
+					
+					this_mon.exit();
+				}
 				
-				bWriteContinue = false;
+				writeCheckQueueSem.releaseForever();
+				
+				while (writeQueue.size() != 0){
+					
+					// System.out.println( "releasing global write slot (tidy up)" );
+	
+					global_write_queue_block_sem.release();
+					
+					QueueElement elt = (QueueElement)writeQueue.remove(0);
+					
+					elt.data.returnToPool();
+					
+					elt.data = null;
+				}
+				
+				while (checkQueue.size() != 0){
+					
+					// System.out.println( "releasing global write slot (tidy up)" );
+	
+					global_check_queue_block_sem.release();
+					
+					checkQueue.remove(0);
+				}
 			}finally{
 				
-				this_mon.exit();
-			}
-			
-			writeCheckQueueSem.releaseForever();
-			
-			while (writeQueue.size() != 0){
-				
-				// System.out.println( "releasing global write slot (tidy up)" );
-
-				global_write_queue_block_sem.release();
-				
-				QueueElement elt = (QueueElement)writeQueue.remove(0);
-				
-				elt.data.returnToPool();
-				
-				elt.data = null;
-			}
-			
-			while (checkQueue.size() != 0){
-				
-				// System.out.println( "releasing global write slot (tidy up)" );
-
-				global_check_queue_block_sem.release();
-				
-				checkQueue.remove(0);
+				stop_sem.reserve();
 			}
 		}
 	}
