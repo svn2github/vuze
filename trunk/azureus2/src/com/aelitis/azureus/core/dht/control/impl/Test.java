@@ -64,7 +64,7 @@ Test
 		System.out.println( "d2 = " + ByteFormatter.nicePrint( d2 ));
 		
 		System.out.println( "comp1 = " + DHTControlImpl.compareDistances2( d1, d2 ));
-		System.out.println( "comp2 = " + DHTControlImpl.computeAndCompareDistances( t1, t2, target ));
+		System.out.println( "comp2 = " + DHTControlImpl.computeAndCompareDistances2( t1, t2, target ));
 		
 		final Set			set = 
 			new TreeSet(

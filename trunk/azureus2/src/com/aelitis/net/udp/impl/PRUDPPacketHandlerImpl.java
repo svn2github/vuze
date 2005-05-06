@@ -79,8 +79,10 @@ PRUDPPacketHandlerImpl
 	private AESemaphore	recv_queue_sem	= new AESemaphore( "PRUDPPH:rq" );
 	private AEThread	recv_thread;
 	
-	private int			send_delay		= 0;
-	private int			receive_delay	= 0;
+	private int			send_delay				= 0;
+	private int			receive_delay			= 0;
+	private int			queued_request_timeout	= 0;
+	
 	
 	protected
 	PRUDPPacketHandlerImpl(
@@ -347,7 +349,14 @@ PRUDPPacketHandlerImpl
 						
 						if ( recv_queue_data_size > MAX_RECV_QUEUE_DATA_SIZE ){
 							
-							Debug.out( "Receive queue max limit exceeded, dropping request packet" );
+							Debug.out( "Receive queue size limit exceeded, dropping request packet" );
+							
+						}else if ( receive_delay * recv_queue.size() > queued_request_timeout ){
+							
+								// by the time this request gets processed it'll have timed out
+								// in the caller anyway, so discard it
+							
+							Debug.out( "Receive queue entry limit exceeded, dropping request packet" );
 							
 						}else{
 							
@@ -787,11 +796,20 @@ PRUDPPacketHandlerImpl
 	public void
 	setDelays(
 		int		_send_delay,
-		int		_receive_delay )
+		int		_receive_delay,
+		int		_queued_request_timeout )
 	{
-		send_delay		= _send_delay;
+		send_delay				= _send_delay;
+		receive_delay			= _receive_delay;
 		
-		receive_delay	= _receive_delay;
+			// trim a bit off this limit to include processing time
+		
+		queued_request_timeout	= _queued_request_timeout-5000;
+		
+		if ( queued_request_timeout < 5000 ){
+			
+			queued_request_timeout = 5000;
+		}
 	}
 	
 	public long

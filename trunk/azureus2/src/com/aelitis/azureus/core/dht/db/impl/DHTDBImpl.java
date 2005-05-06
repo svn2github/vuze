@@ -268,11 +268,8 @@ DHTDBImpl
 			closest_contacts = control.getClosestKContactsList( my_id, true );
 			
 			DHTTransportContact	furthest = (DHTTransportContact)closest_contacts.get( closest_contacts.size()-1);
-			
-			byte[]	furthest_ok_distance 	= control.computeDistance( furthest.getID(), my_id );
-			byte[]	sender_distance			= control.computeDistance( sender.getID(), my_id );
-			
-			if ( control.compareDistances( furthest_ok_distance, sender_distance) < 0 ){
+						
+			if ( control.computeAndCompareDistances( furthest.getID(), sender.getID(), my_id ) < 0 ){
 
 				store_it	= false;
 			}

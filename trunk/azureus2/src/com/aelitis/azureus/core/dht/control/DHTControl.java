@@ -129,14 +129,10 @@ DHTControl
 		List					contacts );
 	
 	public int
-	compareDistances(
+	computeAndCompareDistances(
 		byte[]		n1,
-		byte[]		n2 );
-	
-	public byte[]
-	computeDistance(
-		byte[]		n1,
-		byte[]		n2 );
+		byte[]		n2,
+		byte[]		pivot );
 	
 	public void
 	addListener(

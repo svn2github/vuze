@@ -108,6 +108,8 @@ DHTDBMapping
 				
 				changed.add( value );
 				
+				direct_data_size -= value.getValue().length;
+
 				local_size	-= value.getValue().length;
 				
 				it.remove();
@@ -274,6 +276,16 @@ DHTDBMapping
 		DHTTransportContact	originator	= value.getOriginator();
 		
 		byte[]	originator_id	= originator.getID();
+		
+			// relaxed this due to problems caused by multiple publishes by an originator
+			// with the same key but variant values (e.g. seed/peer counts). Seeing as we
+			// only accept cache-forwards from contacts that are "close" enough to us to
+			// be performing such a forward, the DOS possibilities here are limited (a nasty
+			// contact can only trash originator values for things it happens to be close to)
+		
+		return( new HashWrapper( originator_id ));
+		
+		/*
 		byte[]	value_bytes 	= value.getValue();
 
 		byte[]	x = new byte[originator_id.length + value_bytes.length];
@@ -284,6 +296,7 @@ DHTDBMapping
 		HashWrapper	originator_value_id = new HashWrapper( new SHA1Hasher().calculateHash( x ));
 		
 		return( originator_value_id );
+		*/
 	}
 	
 	protected void

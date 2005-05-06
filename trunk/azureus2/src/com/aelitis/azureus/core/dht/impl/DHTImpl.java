@@ -82,10 +82,11 @@ DHTImpl
 					
 					public byte[][]
 					diversify(
-						boolean		put_operation,
-						boolean		existing,
-						byte[]		key,
-						byte		type )
+						DHTTransportContact	cause,
+						boolean				put_operation,
+						boolean				existing,
+						byte[]				key,
+						byte				type )
 					{
 						if ( storage_adapter != null ){
 							
@@ -95,7 +96,7 @@ DHTImpl
 								
 							}else{
 								
-								return( storage_adapter.createNewDiversification( key, put_operation, type ));						
+								return( storage_adapter.createNewDiversification( cause, key, put_operation, type ));						
 							}
 						}else{
 							

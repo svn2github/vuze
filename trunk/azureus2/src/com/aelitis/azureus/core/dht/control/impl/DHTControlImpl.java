@@ -270,7 +270,8 @@ DHTControlImpl
 							{
 								public void
 								diversify(
-									byte	diversification_type )
+									DHTTransportContact	cause,
+									byte				diversification_type )
 								{
 								}
 								
@@ -527,7 +528,8 @@ DHTControlImpl
 				{
 					public void
 					diversify(
-						byte	diversification_type )
+						DHTTransportContact	cause,
+						byte				diversification_type )
 					{
 					}
 										
@@ -651,7 +653,7 @@ DHTControlImpl
 
 			// get the initial starting point for the put - may have previously been diversified
 		
-		byte[][]	encoded_keys	= adapter.diversify( true, true, initial_encoded_key, DHT.DT_NONE );
+		byte[][]	encoded_keys	= adapter.diversify( null, true, true, initial_encoded_key, DHT.DT_NONE );
 		
 			// may be > 1 if diversification is replicating (for load balancing) 
 		
@@ -677,7 +679,8 @@ DHTControlImpl
 					{						
 						public void
 						diversify(
-							byte		diversification_type )
+							DHTTransportContact	cause,
+							byte				diversification_type )
 						{
 							Debug.out( "Shouldn't get a diversify on a lookup-node" );
 						}
@@ -784,7 +787,7 @@ DHTControlImpl
 												diversified[j]	= true;
 												
 												byte[][]	diversified_keys = 
-													adapter.diversify( true, false, encoded_keys[j], _diversifications[j] );
+													adapter.diversify( _contact, true, false, encoded_keys[j], _diversifications[j] );
 											
 												for (int k=0;k<diversified_keys.length;k++){
 												
@@ -876,7 +879,7 @@ DHTControlImpl
 	{
 			// get the initial starting point for the get - may have previously been diversified
 		
-		byte[][]	encoded_keys	= adapter.diversify( false, true, initial_encoded_key, DHT.DT_NONE );
+		byte[][]	encoded_keys	= adapter.diversify( null, false, true, initial_encoded_key, DHT.DT_NONE );
 
 		for (int i=0;i<encoded_keys.length;i++){
 			
@@ -904,7 +907,8 @@ DHTControlImpl
 							
 						public void
 						diversify(
-							byte	diversification_type )
+							DHTTransportContact	cause,
+							byte				diversification_type )
 						{
 								// we only want to follow one diversification
 							
@@ -916,7 +920,7 @@ DHTControlImpl
 								
 								if ( max_values == 0 || rem > 0 ){
 									
-									byte[][]	diversified_keys = adapter.diversify( false, false, encoded_key, diversification_type );
+									byte[][]	diversified_keys = adapter.diversify( cause, false, false, encoded_key, diversification_type );
 									
 										// should return a max of 1 (0 if diversification refused)
 										// however, could change one day to search > 1 
@@ -1370,7 +1374,7 @@ DHTControlImpl
 										
 											// diversification instruction									
 	
-										result_handler.diversify( diversification_type );									
+										result_handler.diversify( contact, diversification_type );									
 									}
 									
 									value_reply_received	= true;
@@ -1905,8 +1909,17 @@ DHTControlImpl
 		return( result );
 	}
 	
-	protected static int
+	public int
 	computeAndCompareDistances(
+		byte[]		t1,
+		byte[]		t2,
+		byte[]		pivot )
+	{
+		return( computeAndCompareDistances2( t1, t2, pivot ));
+	}
+	
+	protected static int
+	computeAndCompareDistances2(
 		byte[]		t1,
 		byte[]		t2,
 		byte[]		pivot )
@@ -2386,7 +2399,8 @@ DHTControlImpl
 		
 		public abstract void
 		diversify(
-			byte		diversification_type );
+			DHTTransportContact	cause,
+			byte				diversification_type );
 		
 	}
 	

@@ -86,7 +86,8 @@ PRUDPPacketHandler
 	public void
 	setDelays(
 		int		send_delay,
-		int		receive_delay );
+		int		receive_delay,
+		int		queued_request_timeout );
 	
 	public PRUDPPacketHandlerStats
 	getStats();

@@ -155,7 +155,7 @@ DHTTransportUDPImpl
 		
 		// logger.log( "send delay = " + _dht_send_delay + ", recv = " + _dht_receive_delay );
 		
-		packet_handler.setDelays( _dht_send_delay, _dht_receive_delay );
+		packet_handler.setDelays( _dht_send_delay, _dht_receive_delay, (int)request_timeout );
 		
 		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
 		

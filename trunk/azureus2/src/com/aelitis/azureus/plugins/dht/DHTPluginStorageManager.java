@@ -496,9 +496,10 @@ DHTPluginStorageManager
 	
 	public byte[][]
 	createNewDiversification(
-		byte[]			key,
-		boolean			put_operation,
-		byte			diversification_type )
+		DHTTransportContact	cause,
+		byte[]				key,
+		boolean				put_operation,
+		byte				diversification_type )
 	{
 		//System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
 		
@@ -513,10 +514,9 @@ DHTPluginStorageManager
 			
 			if ( div == null ){
 				
-				div = createDiversification( wrapper, diversification_type );
+				div = createDiversification( cause, wrapper, diversification_type );
 				
-				created	= true;
-				
+				created	= true;			
 			}
 		
 			byte[][] res = followDivChain( wrapper, put_operation );
@@ -528,7 +528,10 @@ DHTPluginStorageManager
 				trace += (i==0?"":",") + DHTLog.getString2( res[i] );
 			}
 			
-			log.log( "SM: create div: " + DHTLog.getString2(key) + ", new = " + created + ", put = " + put_operation + ", type = " + diversification_type + " -> " + trace );
+			log.log( "SM: create div: " + DHTLog.getString2(key) + 
+						", new = " + created + ", put = " + put_operation + 
+						", type = " + DHT.DT_STRINGS[diversification_type] + " -> " + trace +
+						", cause = " + (cause==null?"<unknown>":cause.getString()));
 			
 
 			return( res );
@@ -775,8 +778,9 @@ DHTPluginStorageManager
 	
 	protected diversification
 	createDiversification(
-		HashWrapper		wrapper,
-		byte			type )
+		DHTTransportContact	cause,
+		HashWrapper			wrapper,
+		byte				type )
 	{
 		diversification	div = new diversification( this, wrapper, type );
 			

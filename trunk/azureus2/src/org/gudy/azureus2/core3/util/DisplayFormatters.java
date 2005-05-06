@@ -515,9 +515,11 @@ DisplayFormatters
 
     	// 24 hour clock, no point in including AM/PM
 
-    SimpleDateFormat temp = new SimpleDateFormat("HH:mm:ss");
+	SimpleDateFormat temp = new SimpleDateFormat("HH:mm:ss");;
+	
+	long	days = time/(24*60*60*1000);
 
-    return( temp.format(new Date(time)));
+    return( (days==0?"":(days+":")) + temp.format(new Date(time)));
   }
 
   public static String

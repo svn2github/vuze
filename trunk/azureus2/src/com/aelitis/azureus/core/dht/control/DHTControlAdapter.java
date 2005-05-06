@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.dht.control;
 
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
 /**
  * @author parg
@@ -37,8 +38,9 @@ DHTControlAdapter
 
 	public byte[][]
 	diversify(
-		boolean		put_operation,
-		boolean		existing,
-		byte[]		key,
-		byte		type );
+		DHTTransportContact	cause,
+		boolean				put_operation,
+		boolean				existing,
+		byte[]				key,
+		byte				type );
 }
