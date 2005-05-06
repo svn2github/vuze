@@ -1022,10 +1022,8 @@ DHTControlImpl
 		}else{
 			
 				// we remove a key by pushing it back out again with zero length value 
-			
-			res.setValue( new byte[0] );
-			
-			put( external_put_pool, encoded_key, description, res, 0, new DHTOperationListenerDemuxer( listener ));
+						
+			put( external_put_pool, encoded_key, description, res.getValueForDeletion(), 0, new DHTOperationListenerDemuxer( listener ));
 			
 			return( res.getValue());
 		}

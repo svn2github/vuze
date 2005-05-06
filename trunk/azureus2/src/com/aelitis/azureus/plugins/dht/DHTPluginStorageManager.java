@@ -68,8 +68,8 @@ DHTPluginStorageManager
 	private static final long		DIV_EXPIRY_RAND			= 1*24*60*60*1000;
 		
 	
-	public static final int			LOCAL_DIVERSIFICATION_SIZE_LIMIT			= 2048;
-	public static final int			LOCAL_DIVERSIFICATION_ENTRIES_LIMIT			= 256;
+	public static final int			LOCAL_DIVERSIFICATION_SIZE_LIMIT			= 4096;
+	public static final int			LOCAL_DIVERSIFICATION_ENTRIES_LIMIT			= 512;
 	public static final int			LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES	= 3;
 	public static final int			LOCAL_DIVERSIFICATION_READS_PER_MIN			= 30;
 	

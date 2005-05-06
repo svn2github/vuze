@@ -150,13 +150,6 @@ DHTDBValueImpl
 		return( value );
 	}
 	
-	public void
-	setValue(
-		byte[]		_value )
-	{
-		value	= _value;
-	}
-	
 	public DHTTransportContact
 	getOriginator()
 	{
@@ -194,6 +187,17 @@ DHTDBValueImpl
 		DHTTransportContact	_sender )
 	{
 		return( new DHTDBValueImpl( _sender, this, -1 ));
+	}
+	public DHTDBValue
+	getValueForDeletion()
+	{
+		DHTDBValueImpl	res = new DHTDBValueImpl( originator, this, 0 );
+		
+		res.value = new byte[0];	// delete -> 0 length value
+		
+		res.creation_time++;		// increase creation time so it supercedes existing values
+		
+		return( res );
 	}
 	
 	public String

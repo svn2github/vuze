@@ -980,15 +980,23 @@ PluginInitializer
   	
     if( listener != null ){
 	      	
-    	String	plugin_name = plugin_class.getName();
+    	String	plugin_name;
+		
+		if ( plugin_config_key.length() == 0 ){
+			
+			plugin_name = plugin_class.getName();
     	
-    	int	pos = plugin_name.lastIndexOf(".");
-    	
-    	if ( pos != -1 ){
-    		
-    		plugin_name = plugin_name.substring( pos+1 );
-    		
-    	}
+	    	int	pos = plugin_name.lastIndexOf(".");
+	    	
+	    	if ( pos != -1 ){
+	    		
+	    		plugin_name = plugin_name.substring( pos+1 );
+	    		
+	    	}
+		}else{
+		
+			plugin_name = plugin_config_key;
+		}
     	
         listener.reportCurrentTask(MessageText.getString("splash.plugin.init") + plugin_name );
     }

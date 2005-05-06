@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.db.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
@@ -35,6 +36,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
+import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.db.*;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
@@ -71,6 +73,10 @@ DHTDBImpl
 	private DHTTransportContact		local_contact;
 	private LoggerChannel			logger;
 	
+	protected long		total_size;
+	protected long		total_values;
+	protected long		total_keys;
+	
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
 	public
@@ -80,7 +86,7 @@ DHTDBImpl
 		int					_cache_republish_interval,
 		LoggerChannel		_logger )
 	{
-		adapter							= _adapter;
+		adapter							= new adapterFacade( _adapter );
 		original_republish_interval		= _original_republish_interval;
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
@@ -301,9 +307,18 @@ DHTDBImpl
 			
 			for (int i=0;i<values.length;i++){
 				
-				DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, values[i], 1 );
+				DHTTransportValue	t_value = values[i];
 				
-				mapping.add( mapping_value );
+				if ( t_value.getCacheDistance() > 1 ){
+					
+					DHTLog.log( "Not storing " + t_value.getString() + " as cache distance > 1" );
+
+				}else{
+					
+					DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, values[i], 1 );
+				
+					mapping.add( mapping_value );
+				}
 			}
 			
 			return( mapping.getDiversificationType());
@@ -338,7 +353,7 @@ DHTDBImpl
 				mapping.addHit();
 			}
 			
-			final DHTDBValue[]	values = mapping.get( reader, max_values, true );
+			final DHTDBValue[]	values = mapping.get( reader, max_values );
 						
 			return(
 				new DHTDBLookupResult()
@@ -385,6 +400,7 @@ DHTDBImpl
 			this_mon.exit();
 		}
 	}
+	
 	public DHTDBValue
 	remove(
 		DHTTransportContact 	originator,
@@ -809,6 +825,8 @@ DHTDBImpl
 					
 					it.remove();
 					
+					mapping.destroy();
+					
 				}else{
 					
 					Iterator	it2 = mapping.getValues();
@@ -835,6 +853,8 @@ DHTDBImpl
 							}
 							
 						}else if ( distance > 1 ){
+							
+								// remove one day, not using this caching strategy
 							
 								// distance 2 get 1/2 time, 3 get 1/4 etc.
 								// these are indirectly cached at the nearest location traversed
@@ -886,7 +906,7 @@ DHTDBImpl
 				
 				DHTDBMapping	mapping = (DHTDBMapping)entry.getValue();
 				
-				DHTDBValue[]	values = mapping.get(null,0,false);
+				DHTDBValue[]	values = mapping.get(null,0);
 					
 				for (int i=0;i<values.length;i++){
 					
@@ -964,6 +984,176 @@ DHTDBImpl
 		}finally{
 			
 			this_mon.exit();
+		}
+	}
+	
+	protected void
+	reportSizes(
+		String	op )
+	{
+		/*
+		if ( !this_mon.isHeld()){
+			
+			Debug.out( "Monitor not held" );
+		}
+		
+		int	actual_keys 	= stored_values.size();
+		int	actual_values 	= 0;
+		int actual_size		= 0;
+		
+		Iterator it = stored_values.values().iterator();
+		
+		while( it.hasNext()){
+		
+			DHTDBMapping	mapping = (DHTDBMapping)it.next();
+			
+			int	reported_size = mapping.getDirectSize() + mapping.getIndirectSize();
+			
+			actual_values += mapping.getValueCount();
+			
+			Iterator	it2 = mapping.getValues();
+			
+			int	sz = 0;
+			
+			while( it2.hasNext()){
+				
+				DHTDBValue	val = (DHTDBValue)it2.next();
+				
+				sz += val.getValue().length;
+			}
+			
+			if ( sz != reported_size ){
+				
+				Debug.out( "Reported mapping size != actual: " + reported_size + "/" + sz );
+			}
+			
+			actual_size += sz;
+		}
+		
+		if ( actual_keys != total_keys ){
+			
+			Debug.out( "Actual keys != total: " + actual_keys + "/" + total_keys );
+		}
+		
+		if ( actual_values != total_values ){
+			
+			Debug.out( "Actual values != total: " + actual_values + "/" + total_values );
+		}
+		
+		if ( actual_size != total_size ){
+			
+			Debug.out( "Actual size != total: " + actual_size + "/" + total_size );
+		}
+		
+		System.out.println( "DHTDB: " + op + " - keys=" + total_keys + ", values=" + total_values + ", size=" + total_size );
+		*/
+	}
+	
+	protected class
+	adapterFacade
+		implements DHTStorageAdapter
+	{
+		private DHTStorageAdapter		delegate;
+		
+		protected
+		adapterFacade(
+			DHTStorageAdapter	_delegate )
+		{
+			delegate = _delegate;
+		}
+		
+		public DHTStorageKey
+		keyCreated(
+			HashWrapper		key,
+			boolean			local )
+		{
+				// report *before* incrementing as this occurs before the key is locally added
+			
+			reportSizes( "keyAdded" );
+			
+			total_keys++;
+			
+			return( delegate.keyCreated( key, local ));
+		}
+		
+		public void
+		keyDeleted(
+			DHTStorageKey	adapter_key )
+		{
+			total_keys--;
+			
+			reportSizes( "keyDeleted" );
+			
+			delegate.keyDeleted( adapter_key );
+		}
+		
+		public void
+		keyRead(
+			DHTStorageKey			adapter_key,
+			DHTTransportContact		contact )
+		{
+			reportSizes( "keyRead" );
+			
+			delegate.keyRead( adapter_key, contact );
+		}
+		
+		public void
+		valueAdded(
+			DHTStorageKey		key,
+			DHTTransportValue	value )
+		{
+			total_values++;
+			total_size += value.getValue().length;
+			
+			reportSizes( "valueAdded");
+			
+			delegate.valueAdded( key, value );
+		}
+		
+		public void
+		valueUpdated(
+			DHTStorageKey		key,
+			DHTTransportValue	old_value,
+			DHTTransportValue	new_value )
+		{
+			total_size += (new_value.getValue().length - old_value.getValue().length );
+			
+			reportSizes("valueUpdated");
+			
+			delegate.valueUpdated( key, old_value, new_value );
+		}
+		
+		public void
+		valueDeleted(
+			DHTStorageKey		key,
+			DHTTransportValue	value )
+		{
+			total_values--;
+			total_size -= value.getValue().length;
+		
+			reportSizes("valueDeleted");
+			
+			delegate.valueDeleted( key, value );
+		}
+		
+			// local lookup/put operations
+		
+		public byte[][]
+		getExistingDiversification(
+			byte[]			key,
+			boolean			put_operation )
+		{
+			return( delegate.getExistingDiversification( key, put_operation ));
+		}
+		
+		public byte[][]
+		createNewDiversification(
+			DHTTransportContact	cause,
+			byte[]				key,
+			boolean				put_operation,
+			byte				diversification_type )
+		{
+			return( delegate.createNewDiversification( cause, key, put_operation, diversification_type ));
 		}
 	}
 }

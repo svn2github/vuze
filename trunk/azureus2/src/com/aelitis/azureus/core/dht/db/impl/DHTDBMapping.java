@@ -26,7 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.SHA1Hasher;
+// import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -332,8 +332,7 @@ DHTDBMapping
 	protected DHTDBValueImpl[]
 	get(
 		DHTTransportContact		by_who,
-		int						max,
-		boolean					remove_secondary_caches )
+		int						max )
 	{
 		List	res 		= new ArrayList();
 		
@@ -365,17 +364,7 @@ DHTDBMapping
 				}
 				
 				duplicate_check.add( x );
-				
-				// TODO: think more on this - secondary caching is open to exploitation for DOS as a single
-				// contact could spam all contacts surrounding the target with bogus information 
-				// current approach is to only allow usage of a secondary cache entry ONCE before
-				// we delete it :P
-			
-				if ( remove_secondary_caches && entry_value.getCacheDistance() > 1 ){
-					
-					it.remove();
-				}
-				
+								
 					// zero length values imply deleted values so don't return them
 				
 				if ( entry_value.getValue().length > 0 ){
@@ -562,6 +551,15 @@ DHTDBMapping
 		try{
 			if ( adapter_key != null ){
 				
+				Iterator	it = getValues();
+				
+				while( it.hasNext()){
+					
+					it.next();
+					
+					it.remove();
+				}
+				
 				adapter.keyDeleted( adapter_key );
 			}
 			
@@ -711,10 +709,16 @@ DHTDBMapping
 					direct_data_size -= value.getValue().length;
 				}
 				
+					// remove before informing
+				
+				it.remove();
+				
 				informDeleted( value );
-			}
+				
+			}else{
 			
-			it.remove();
+				it.remove();
+			}
 		}
 	}
 }

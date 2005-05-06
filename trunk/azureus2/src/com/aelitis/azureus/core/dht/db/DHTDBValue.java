@@ -34,14 +34,13 @@ DHTDBValue
 	extends DHTTransportValue
 {
 	public void
-	setValue(
-		byte[]	value );
-
-	public void
 	setFlags(
 		byte	flags );
 	
 	public DHTDBValue
 	getValueForRelay(
 		DHTTransportContact	new_originator );
+	
+	public DHTDBValue
+	getValueForDeletion();
 }

@@ -155,6 +155,12 @@ AEMonitor
 		}
 	}
 	
+	public boolean
+	isHeld()
+	{
+		return( owner == Thread.currentThread());
+	}
+	
 	public static Map
 	getSynchronisedMap(
 		Map	m )
