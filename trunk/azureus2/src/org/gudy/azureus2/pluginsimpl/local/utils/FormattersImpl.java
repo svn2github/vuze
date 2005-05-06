@@ -92,7 +92,7 @@ FormattersImpl
 	formatTimeFromSeconds(
 		long		seconds )
 	{
-		return( DisplayFormatters.formatTime( seconds ));
+		return( DisplayFormatters.formatTime( seconds*1000 ));
 	}
 	
 	public byte[]
