@@ -57,7 +57,7 @@ DirectByteBufferPool
   
   private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents, hence IdentityHashMap)
   
-  private static final long COMPACTION_CHECK_PERIOD = 10*60*1000; //10 min
+  private static final long COMPACTION_CHECK_PERIOD = 2*60*1000; //2 min
   private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
   
   private long bytesIn = 0;
@@ -142,7 +142,7 @@ DirectByteBufferPool
    */
   private ByteBuffer allocateNewBuffer(final int _size) {
     try {
-      return ByteBuffer.allocateDirect(_size);
+      return ByteBuffer.allocate(_size);
     }
     catch (OutOfMemoryError e) {
        //Debug.out("Running garbage collector...");
@@ -152,16 +152,13 @@ DirectByteBufferPool
        runGarbageCollection();
 
        try {
-       		return ByteBuffer.allocateDirect(_size);
+       		return ByteBuffer.allocate(_size);
        	
        }catch (OutOfMemoryError ex) {
-       	
-         String msg = "Memory allocation failed: Out of direct memory space.\n"
-                    + "To fix: Use the -XX:MaxDirectMemorySize=512m command line option,\n"
-                    + "or upgrade your Java JRE to version 1.4.2_05 or 1.5 series or newer.";
-       	 Debug.out( msg );
+
+       	 Debug.out( ex );
        	 
-         LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, msg );
+         LGLogger.logUnrepeatableAlert( "OUT OF MEMORY ERROR", ex );
          
          printInUse( true );
          
@@ -189,11 +186,8 @@ DirectByteBufferPool
         Debug.out("requested length [" +_length+ "] > MAX_SIZE [" +MAX_SIZE+ "]");
         return null;
     }
-
     
-    return new DirectByteBuffer( ByteBuffer.allocate( _length ) );
-    
-    //return pool.getBufferHelper(_allocator,_length);
+    return pool.getBufferHelper(_allocator,_length);
   }
   
   
@@ -431,7 +425,7 @@ DirectByteBufferPool
   returnBuffer(
   	ByteBuffer		buffer )
   {
-    /*
+    
     bytesIn += buffer.capacity();
     
   	if ( DEBUG_TRACK_HANDEDOUT ){
@@ -452,7 +446,6 @@ DirectByteBufferPool
     // remInUse( buffer.capacity() );
     
     free( buffer );
-    */
   }
   
   
