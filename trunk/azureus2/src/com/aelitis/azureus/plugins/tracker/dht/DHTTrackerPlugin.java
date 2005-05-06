@@ -573,8 +573,14 @@ DHTTrackerPlugin
 								register_reason = "decentralised peer source disabled";
 								
 							}else{
-														
-								if ( track_normal_when_offline.getValue()){
+										
+								if( torrent.isDecentralisedBackupRequested()){
+									
+									register_it	= true;
+									
+									register_reason = "torrent requests decentralised tracking";
+									
+								}else if ( track_normal_when_offline.getValue()){
 									
 										// only track if torrent's tracker is not available
 																

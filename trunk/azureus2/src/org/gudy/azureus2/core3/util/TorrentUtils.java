@@ -803,6 +803,8 @@ TorrentUtils
 	getDHTBackupEnabled(
 		TOTorrent	torrent )
 	{
+			// missing -> true
+		
 		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
 		
 		if ( m == null ){
@@ -824,18 +826,20 @@ TorrentUtils
 	isDHTBackupRequested(
 		TOTorrent	torrent )
 	{
+			// missing -> false
+		
 		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
 		
 		if ( m == null ){
 			
-			return( true );
+			return( false );
 		}
 		
 		Long	l = (Long)m.get( "dht_backup_requested" );
 		
 		if ( l == null ){
 			
-			return( true );
+			return( false );
 		}
 		
 		return( l.longValue() == 1 );
