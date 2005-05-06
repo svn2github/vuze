@@ -42,7 +42,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
 
   private ByteBuffer payload_buffer = null;
   private DirectByteBuffer direct_payload_buffer = null;
-  private final ByteBuffer length_buffer = ByteBuffer.allocate( 4 );
+  private final ByteBuffer length_buffer = ByteBuffer.allocateDirect( 4 );
   
   private final ByteBuffer[] decode_array = new ByteBuffer[] { payload_buffer, length_buffer };
   

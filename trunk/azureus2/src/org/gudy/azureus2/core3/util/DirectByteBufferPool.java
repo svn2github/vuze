@@ -142,7 +142,7 @@ DirectByteBufferPool
    */
   private ByteBuffer allocateNewBuffer(final int _size) {
     try {
-      return ByteBuffer.allocate(_size);
+      return ByteBuffer.allocateDirect(_size);
     }
     catch (OutOfMemoryError e) {
        //Debug.out("Running garbage collector...");
@@ -152,13 +152,16 @@ DirectByteBufferPool
        runGarbageCollection();
 
        try {
-       		return ByteBuffer.allocate(_size);
+       		return ByteBuffer.allocateDirect(_size);
        	
        }catch (OutOfMemoryError ex) {
-
-       	 Debug.out( ex );
+       	
+         String msg = "Memory allocation failed: Out of direct memory space.\n"
+                    + "To fix: Use the -XX:MaxDirectMemorySize=512m command line option,\n"
+                    + "or upgrade your Java JRE to version 1.4.2_05 or 1.5 series or newer.";
+       	 Debug.out( msg );
        	 
-         LGLogger.logUnrepeatableAlert( "OUT OF MEMORY ERROR", ex );
+         LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, msg );
          
          printInUse( true );
          
@@ -186,7 +189,7 @@ DirectByteBufferPool
         Debug.out("requested length [" +_length+ "] > MAX_SIZE [" +MAX_SIZE+ "]");
         return null;
     }
-    
+
     return pool.getBufferHelper(_allocator,_length);
   }
   
@@ -425,7 +428,6 @@ DirectByteBufferPool
   returnBuffer(
   	ByteBuffer		buffer )
   {
-    
     bytesIn += buffer.capacity();
     
   	if ( DEBUG_TRACK_HANDEDOUT ){
@@ -445,7 +447,7 @@ DirectByteBufferPool
   	
     // remInUse( buffer.capacity() );
     
-    free( buffer );
+    free( buffer ); 
   }
   
   
