@@ -40,7 +40,7 @@ public class WriteController {
   private int next_normal_position = 0;
   private int next_high_position = 0;
   
-  private static final int PROCESSOR_SLEEP_TIME = 20;
+  private static final int IDLE_SLEEP_TIME = 50;
   
   
   /**
@@ -92,7 +92,7 @@ public class WriteController {
           check_high_first = false;
           if( !doHighPriorityWrite() ) {
             if( !doNormalPriorityWrite() ) {
-              try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+              try {  Thread.sleep( IDLE_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
             }
           }
         }
@@ -100,7 +100,7 @@ public class WriteController {
           check_high_first = true;
           if( !doNormalPriorityWrite() ) {
             if( !doHighPriorityWrite() ) {
-              try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+              try {  Thread.sleep( IDLE_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
             }
           }
         }

@@ -346,14 +346,17 @@ public class MultiPeerUploader implements RateControlledEntity {
   }
   
   
+  
   /**
    * Does this entity have data ready for writing.
    * @return true if it has data to send, false if empty
    */
+  /*
   public boolean hasWriteDataAvailable() {
     if( ready_connections.isEmpty() )  return false;
     return true;
   }
+  */
   
   
   

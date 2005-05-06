@@ -185,10 +185,13 @@ public class EntityHandler {
    * determine if it should reserve the necessary MSS bytes for the general pool's needs.
    * @return true of it has data to transfer, false if not
    */
+  /*
   public boolean isGeneralPoolReserveNeeded() {
     if( handler_type == TransferProcessor.TYPE_UPLOAD ) {
       return global_uploader.hasWriteDataAvailable();
     }
     return global_downloader.hasReadDataAvailable();
   }
+  */
+  
 }

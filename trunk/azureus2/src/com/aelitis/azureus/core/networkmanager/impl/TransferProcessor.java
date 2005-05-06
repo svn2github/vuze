@@ -164,12 +164,10 @@ public class TransferProcessor {
           int group_allowed = conn_data.group_data.bucket.getAvailableByteCount();
           int global_allowed = main_bucket.getAvailableByteCount();
 
-          // reserve bandwidth for the general pool if needed
-          if( main_controller.isGeneralPoolReserveNeeded() ) {
-            global_allowed -= NetworkManager.getTcpMssSize();
-            if( global_allowed < 0 ) global_allowed = 0;
-          }
-
+          // reserve bandwidth for the general pool
+          global_allowed -= NetworkManager.getTcpMssSize();
+          if( global_allowed < 0 ) global_allowed = 0;
+          
           int allowed = group_allowed > global_allowed ? global_allowed : group_allowed;
           return allowed;
         }

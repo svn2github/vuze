@@ -41,7 +41,7 @@ public class ReadController {
   private int next_normal_position = 0;
   private int next_high_position = 0;
   
-  private static final int PROCESSOR_SLEEP_TIME = 20;
+  private static final int IDLE_SLEEP_TIME = 50;
   
   
   public ReadController() {
@@ -90,7 +90,7 @@ public class ReadController {
           check_high_first = false;
           if( !doHighPriorityRead() ) {
             if( !doNormalPriorityRead() ) {
-              try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+              try {  Thread.sleep( IDLE_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
             }
           }
         }
@@ -98,7 +98,7 @@ public class ReadController {
           check_high_first = true;
           if( !doNormalPriorityRead() ) {
             if( !doHighPriorityRead() ) {
-              try {  Thread.sleep( PROCESSOR_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
+              try {  Thread.sleep( IDLE_SLEEP_TIME );  }catch(Exception e) { Debug.printStackTrace(e); }
             }
           }
         }
