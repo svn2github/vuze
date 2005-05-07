@@ -55,7 +55,7 @@ BloomFilterImpl
 	BloomFilterImpl(
 		int		_max_entries )
 	{
-		//bi_max_entries	= new BigInteger( ""+_max_entries ).nextProbablePrime();
+		bi_max_entries	= new BigInteger( ""+(((_max_entries/2)*2)+1));
 				
 		max_entries	= bi_max_entries.intValue();
 		
