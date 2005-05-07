@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -378,7 +379,7 @@ DHTTransportUDPImpl
 		}		
 	}
 		
-	protected boolean
+	protected void
 	externalAddressChange(
 		DHTTransportUDPContactImpl	reporter,
 		InetSocketAddress			new_address )
@@ -410,14 +411,14 @@ DHTTransportUDPImpl
 			throw( new DHTTransportException( "Address '" + new_address + "' is unresolved" ));
 		}
 		
-		String	new_ip = ia.getHostAddress();
+		final String	new_ip = ia.getHostAddress();
 		
 		if ( new_ip.equals( external_address )){
 			
 				// probably just be a second notification of an address change, return
 				// "ok to retry" as it should now work
 							
-			return( true );
+			return;
 		}
 		
 		try{
@@ -427,7 +428,7 @@ DHTTransportUDPImpl
 	
 			if ( now - last_address_change < 5*60*1000 ){
 				
-				return( false );
+				return;
 			}
 			
 			logger.log( "Node " + reporter.getString() + " has reported that the external IP address is '" + new_address + "'" );
@@ -438,7 +439,7 @@ DHTTransportUDPImpl
 				
 				logger.log( "     This is invalid as it is a private address." );
 	
-				return( false );
+				return;
 			}
 	
 				// another situation to ignore is where the reported address is the same as
@@ -449,7 +450,7 @@ DHTTransportUDPImpl
 				
 				logger.log( "     This is invalid as it is the same as the reporter's address." );
 	
-				return( false );		
+				return;		
 			}
 			
 			last_address_change	= now;
@@ -459,36 +460,51 @@ DHTTransportUDPImpl
 			this_mon.exit();
 		}
 		
-		String	old_external_address = external_address;
+		final String	old_external_address = external_address;
 		
-		getExternalAddress( new_ip, logger );
-		
-		if ( old_external_address.equals( external_address )){
+			// we need to perform this test on a separate thread otherwise we'll block in the UDP handling
+			// code because we're already running on the "process" callback from the UDP handler
+			// (the test attempts to ping contacts)
 			
-				// address hasn't changed, notifier must be perceiving different address
-				// due to proxy or something
+		
+		new AEThread( "DHTTransportUDP:getAddress", true )
+		{
+			public void
+			runSupport()
+			{
+				getExternalAddress( new_ip, logger );
+				
+				if ( old_external_address.equals( external_address )){
+					
+						// address hasn't changed, notifier must be perceiving different address
+						// due to proxy or something
+									
+					return;
+				}
+				
+				InetSocketAddress	s_address = new InetSocketAddress( external_address, port );
+		
+				try{
+					local_contact = new DHTTransportUDPContactImpl( DHTTransportUDPImpl.this, s_address, s_address, DHTUDPPacket.VERSION, random.nextInt(), 0);
+			
+					logger.log( "External address changed: " + s_address );
+					
+					for (int i=0;i<listeners.size();i++){
+						
+						try{
+							((DHTTransportListener)listeners.get(i)).localContactChanged( local_contact );
 							
-			return( true );
-		}
-		
-		InetSocketAddress	s_address = new InetSocketAddress( external_address, port );
-		
-		logger.log( "External address changed: " + s_address );
-		
-		local_contact = new DHTTransportUDPContactImpl( this, s_address, s_address, DHTUDPPacket.VERSION, random.nextInt(), 0);
-
-		for (int i=0;i<listeners.size();i++){
-			
-			try{
-				((DHTTransportListener)listeners.get(i)).localContactChanged( local_contact );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
-		}
-		
-		return( true );
+		}.start();
 	}
 	
 	protected void
@@ -628,8 +644,6 @@ DHTTransportUDPImpl
 				contact.getTransportAddress(),
 				new PRUDPPacketReceiver()
 				{
-					private int	retry_count	= 0;
-					
 					public void
 					packetReceived(
 						PRUDPPacket			_packet,
@@ -645,30 +659,12 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceID( packet.getTargetInstanceID());
 							
-							if ( handleErrorReply( contact, packet )){
+							handleErrorReply( contact, packet );							
 								
-								retry_count++;
-								
-								if ( retry_count > 1 ){
-									
-									error( new PRUDPPacketHandlerException("retry limit exceeded"));
-									
-								}else{
-									
-									request.setOriginatorAddress(local_contact.getExternalAddress());
-									
-									packet_handler.sendAndReceive(
-											request,
-											contact.getTransportAddress(),
-											this,
-											request_timeout, false );
-								}
-							}else{
-								
-								stats.pingOK();
+							stats.pingOK();
 							
-								handler.pingReply( contact );
-							}
+							handler.pingReply( contact );
+						
 						}catch( PRUDPPacketHandlerException e ){
 							
 							error( e );
@@ -721,9 +717,7 @@ DHTTransportUDPImpl
 				request,
 				contact.getTransportAddress(),
 				new PRUDPPacketReceiver()
-				{
-					private int	retry_count	= 0;
-					
+				{					
 					public void
 					packetReceived(
 						PRUDPPacket			_packet,
@@ -739,32 +733,14 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceID( packet.getTargetInstanceID());
 							
-							if ( handleErrorReply( contact, packet )){
-								
-								retry_count++;
-								
-								if ( retry_count > 1 ){
-									
-									error( new PRUDPPacketHandlerException("retry limit exceeded"));
-									
-								}else{
-									
-									request.setOriginatorAddress(local_contact.getExternalAddress());
-									
-									packet_handler.sendAndReceive(
-											request,
-											contact.getTransportAddress(),
-											this,
-											request_timeout, true );
-								}
-							}else{
-								
-								DHTUDPPacketReplyStats	reply = (DHTUDPPacketReplyStats)packet;
+							handleErrorReply( contact, packet );
+										
+							DHTUDPPacketReplyStats	reply = (DHTUDPPacketReplyStats)packet;
 
-								stats.statsOK();
+							stats.statsOK();
 							
-								handler.statsReply( contact, reply.getStats());
-							}
+							handler.statsReply( contact, reply.getStats());
+						
 						}catch( PRUDPPacketHandlerException e ){
 							
 							error( e );
@@ -1037,8 +1013,6 @@ DHTTransportUDPImpl
 					contact.getTransportAddress(),
 					new PRUDPPacketReceiver()
 					{
-						private int	retry_count	= 0;
-						
 						public void
 						packetReceived(
 							PRUDPPacket			_packet,
@@ -1054,34 +1028,15 @@ DHTTransportUDPImpl
 								
 								contact.setInstanceID( packet.getTargetInstanceID());
 								
-								if ( handleErrorReply( contact, packet )){
-									
-									retry_count++;
-									
-									if ( retry_count > 1 ){
-										
-										error( new PRUDPPacketHandlerException("retry limit exceeded"));
-										
-									}else{
-										
-										request.setOriginatorAddress(local_contact.getExternalAddress());
-										
-										packet_handler.sendAndReceive(
-												request,
-												contact.getTransportAddress(),
-												this,
-												store_timeout, true );
-									}
-								}else{
+								handleErrorReply( contact, packet );
 
-									DHTUDPPacketReplyStore	reply = (DHTUDPPacketReplyStore)packet;
+								DHTUDPPacketReplyStore	reply = (DHTUDPPacketReplyStore)packet;
 									
-									stats.storeOK();
+								stats.storeOK();
 									
-									if ( f_packet_count == 1 ){
+								if ( f_packet_count == 1 ){
 										
-										handler.storeReply( contact, reply.getDiversificationTypes());
-									}
+									handler.storeReply( contact, reply.getDiversificationTypes());
 								}
 								
 							}catch( PRUDPPacketHandlerException e ){
@@ -1147,9 +1102,7 @@ DHTTransportUDPImpl
 				request,
 				contact.getTransportAddress(),
 				new PRUDPPacketReceiver()
-				{
-					private int	retry_count	= 0;
-					
+				{					
 					public void
 					packetReceived(
 						PRUDPPacket			_packet,
@@ -1165,32 +1118,14 @@ DHTTransportUDPImpl
 
 							contact.setInstanceID( packet.getTargetInstanceID());
 							
-							if ( handleErrorReply( contact, packet )){
+							handleErrorReply( contact, packet );
 								
-								retry_count++;
-								
-								if ( retry_count > 1 ){
-									
-									error( new PRUDPPacketHandlerException("retry limit exceeded"));
-									
-								}else{
-									
-									request.setOriginatorAddress(local_contact.getExternalAddress());
-									
-									packet_handler.sendAndReceive(
-											request,
-											contact.getTransportAddress(),
-											this,
-											request_timeout, false );
-								}
-							}else{
-								
-								DHTUDPPacketReplyFindNode	reply = (DHTUDPPacketReplyFindNode)packet;
+							DHTUDPPacketReplyFindNode	reply = (DHTUDPPacketReplyFindNode)packet;
 							
-								stats.findNodeOK();
+							stats.findNodeOK();
 								
-								handler.findNodeReply( contact, reply.getContacts());
-							}
+							handler.findNodeReply( contact, reply.getContacts());
+							
 						}catch( PRUDPPacketHandlerException e ){
 							
 							error( e );
@@ -1253,8 +1188,6 @@ DHTTransportUDPImpl
 				contact.getTransportAddress(),
 				new PRUDPPacketReceiver()
 				{
-					private int	retry_count	= 0;
-					
 					public void
 					packetReceived(
 						PRUDPPacket			_packet,
@@ -1270,40 +1203,21 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceID( packet.getTargetInstanceID());
 							
-							if ( handleErrorReply( contact, packet )){
+							handleErrorReply( contact, packet );
 								
-								retry_count++;
+							DHTUDPPacketReplyFindValue	reply = (DHTUDPPacketReplyFindValue)packet;
 								
-								if ( retry_count > 1 ){
+							stats.findValueOK();
+								
+							DHTTransportValue[]	res = reply.getValues();
+								
+							if ( res != null ){
 									
-									error( new PRUDPPacketHandlerException("retry limit exceeded"));
+								handler.findValueReply( contact, res, reply.getDiversificationType(), reply.hasContinuation());
 									
-								}else{
-									
-									request.setOriginatorAddress(local_contact.getExternalAddress());
-									
-									packet_handler.sendAndReceive(
-											request,
-											contact.getTransportAddress(),
-											this,
-											request_timeout, false );
-								}
 							}else{
-								
-								DHTUDPPacketReplyFindValue	reply = (DHTUDPPacketReplyFindValue)packet;
-								
-								stats.findValueOK();
-								
-								DHTTransportValue[]	res = reply.getValues();
-								
-								if ( res != null ){
 									
-									handler.findValueReply( contact, res, reply.getDiversificationType(), reply.hasContinuation());
-									
-								}else{
-									
-									handler.findValueReply( contact, reply.getContacts());
-								}
+								handler.findValueReply( contact, reply.getContacts());
 							}
 						}catch( PRUDPPacketHandlerException e ){
 							
@@ -2071,7 +1985,7 @@ DHTTransportUDPImpl
 		 * @throws PRUDPPacketHandlerException
 		 */
 	
-	protected boolean
+	protected void
 	handleErrorReply(
 		DHTTransportUDPContactImpl	contact,
 		DHTUDPPacketReply			reply )
@@ -2081,21 +1995,19 @@ DHTTransportUDPImpl
 		if ( reply.getAction() == DHTUDPPacket.ACT_REPLY_ERROR ){
 			
 			DHTUDPPacketReplyError	error = (DHTUDPPacketReplyError)reply;
-			
-			boolean	ok_to_retry = false;
-			
+						
 			switch( error.getErrorType()){
 			
 				case DHTUDPPacketReplyError.ET_ORIGINATOR_ADDRESS_WRONG:
 				{
 					try{
-						ok_to_retry = externalAddressChange( contact, error.getOriginatingAddress());
+						externalAddressChange( contact, error.getOriginatingAddress());
 						
 					}catch( DHTTransportException e ){
 						
 						Debug.printStackTrace(e);
 					}
-					
+											
 					break;
 				}
 				default:
@@ -2105,21 +2017,12 @@ DHTTransportUDPImpl
 					break;
 				}
 			}
-			
-			if ( ok_to_retry ){
 				
-				return( true );
-				
-			}else{
-				
-				throw( new PRUDPPacketHandlerException( "retry not permitted" ));
-			}
+			throw( new PRUDPPacketHandlerException( "retry not permitted" ));
 			
 		}else{
 			
 			contactAlive( contact );
-			
-			return( false );
 		}
 	}
 	

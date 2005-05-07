@@ -73,6 +73,8 @@ DHTDBImpl
 	private DHTTransportContact		local_contact;
 	private LoggerChannel			logger;
 	
+	private static final long	MAX_TOTAL_SIZE	= 4*1024*1024;
+	
 	protected long		total_size;
 	protected long		total_values;
 	protected long		total_keys;
@@ -219,6 +221,13 @@ DHTDBImpl
 		HashWrapper				key,
 		DHTTransportValue[]		values )
 	{
+		if ( total_size > MAX_TOTAL_SIZE ){
+			
+			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as maximum storage limit exceeded" );
+
+			return( DHT.DT_SIZE );
+		}
+		
 			// remote store for cache values
 		
 			// Make sure that we only accept values for storing that are reasonable.
@@ -429,21 +438,13 @@ DHTDBImpl
 	public boolean
 	isEmpty()
 	{
-		return( getKeyCount() == 0 );
+		return( total_keys == 0 );
 	}
 	
 	public int
 	getKeyCount()
 	{
-		try{
-			this_mon.enter();
-
-			return( stored_values.size());
-			
-		}finally{
-			
-			this_mon.exit();
-		}
+		return( (int)total_keys );
 	}
 	
 	public int[]
@@ -823,10 +824,10 @@ DHTDBImpl
 	
 				if ( mapping.getValueCount() == 0 ){
 					
-					it.remove();
-					
 					mapping.destroy();
 					
+					it.remove();
+										
 				}else{
 					
 					Iterator	it2 = mapping.getValues();
@@ -1007,7 +1008,7 @@ DHTDBImpl
 		
 			DHTDBMapping	mapping = (DHTDBMapping)it.next();
 			
-			int	reported_size = mapping.getDirectSize() + mapping.getIndirectSize();
+			int	reported_size = mapping.getLocalSize() + mapping.getDirectSize() + mapping.getIndirectSize();
 			
 			actual_values += mapping.getValueCount();
 			

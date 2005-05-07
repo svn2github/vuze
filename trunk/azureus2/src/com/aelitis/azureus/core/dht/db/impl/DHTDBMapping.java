@@ -320,7 +320,9 @@ DHTDBMapping
 	protected int
 	getDirectSize()
 	{
-		return( direct_data_size );
+			// our direct count includes local so remove that here
+		
+		return( direct_data_size - local_size );
 	}
 	
 	protected int
