@@ -179,17 +179,15 @@ public class TCPTransport {
           if( written < 1 )  requestWriteSelect();
           return written;
         }
-        catch( IOException e ) {
-          if( e.getMessage() == null ) {
-            Debug.out( "CAUGHT EXCEPTION WITH NULL MESSAGE", e );
-          }
+        catch( IOException ioe ) {
           //a bug only fixed in Tiger (1.5 series):
           //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-          else if( e.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
+          String msg = ioe.getMessage();
+          if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
             enable_efficient_io = false;
             LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket write failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem!" );
           }
-          throw e;
+          throw ioe;
         }
       }
     
@@ -357,12 +355,10 @@ public class TCPTransport {
       catch( IOException ioe ) {
         is_ready_for_read = false;
         
-        if( ioe.getMessage() == null ) {
-          Debug.out( "CAUGHT EXCEPTION WITH NULL MESSAGE", ioe );
-        }
         //a bug only fixed in Tiger (1.5 series):
         //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-        else if( ioe.getMessage().equals( "A non-blocking socket operation could not be completed immediately" ) ) {
+        String msg = ioe.getMessage();
+        if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
           enable_efficient_io = false;
           LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket read failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem!" );
         }
