@@ -51,6 +51,13 @@ DHTTransportContact
 	public long
 	getClockSkew();
 	
+	public void
+	setRandomID(
+		int	id );
+	
+	public int
+	getRandomID();
+	
 	public String
 	getName();
 	

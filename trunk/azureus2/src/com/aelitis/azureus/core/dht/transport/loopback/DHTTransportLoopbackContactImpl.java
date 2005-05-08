@@ -40,6 +40,7 @@ DHTTransportLoopbackContactImpl
 	private DHTTransportLoopbackImpl	transport;
 	
 	private byte[]		id;
+	private int			random_id;
 	
 	protected
 	DHTTransportLoopbackContactImpl(
@@ -66,6 +67,20 @@ DHTTransportLoopbackContactImpl
 	{
 		return( 0 );
 	}
+	
+	public int
+	getRandomID()
+	{
+		return( random_id );
+	}
+	
+	public void
+	setRandomID(
+		int	_random_id )
+	{
+		random_id	= _random_id;
+	}
+	
 	public boolean
 	isValid()
 	{

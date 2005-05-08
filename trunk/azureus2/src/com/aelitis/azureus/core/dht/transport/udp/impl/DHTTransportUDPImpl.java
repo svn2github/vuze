@@ -1002,7 +1002,8 @@ DHTTransportUDPImpl
 				final DHTUDPPacketRequestStore	request = 
 					new DHTUDPPacketRequestStore( connection_id, local_contact, contact );
 			
-				//request.setRandomID( random_id );
+				
+				request.setRandomID( contact.getRandomID());
 				
 				request.setKeys( packet_keys );
 				
@@ -1123,6 +1124,11 @@ DHTTransportUDPImpl
 							handleErrorReply( contact, packet );
 								
 							DHTUDPPacketReplyFindNode	reply = (DHTUDPPacketReplyFindNode)packet;
+							
+								// copy out the random id in preparation for a possible subsequent
+								// store operation
+							
+							contact.setRandomID( reply.getRandomID());
 							
 							stats.findNodeOK();
 								
@@ -1822,6 +1828,8 @@ DHTTransportUDPImpl
 
 						DHTUDPPacketRequestStore	store_request = (DHTUDPPacketRequestStore)request;
 						
+						originating_contact.setRandomID( store_request.getRandomID());
+						
 						byte[] diversify = 
 							request_handler.storeRequest(
 								originating_contact, 
@@ -1860,7 +1868,7 @@ DHTTransportUDPImpl
 					
 					if ( acceptable ){
 						
-						DHTTransportContact[] res = 
+						DHTTransportContact[]	res = 
 							request_handler.findNodeRequest(
 										originating_contact,
 										find_request.getID());
@@ -1872,7 +1880,7 @@ DHTTransportUDPImpl
 									local_contact,
 									originating_contact );
 								
-						//reply.setRandomID( random_id );
+						reply.setRandomID( originating_contact.getRandomID());
 						
 						reply.setContacts( res );
 						

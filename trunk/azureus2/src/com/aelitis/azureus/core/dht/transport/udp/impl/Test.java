@@ -229,7 +229,7 @@ Test
 	{
 		System.out.println( "TransportHandler: findNode" );
 		
-		return( new DHTTransportContact[]{ contact } );
+		return(new DHTTransportContact[]{ contact });
 	}
 	
 	public DHTTransportFindValueReply

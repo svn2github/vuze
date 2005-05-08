@@ -409,9 +409,13 @@ DHTTransportLoopbackImpl
 			
 			stats.storeOK();
 			
+			DHTTransportContact	temp = new DHTTransportLoopbackContactImpl( target, node_id );
+			
+			temp.setRandomID( contact.getRandomID());
+			
 			byte[] diversifies = 
 				target.getRequestHandler().storeRequest( 
-					new DHTTransportLoopbackContactImpl( target, node_id ),
+					temp,
 					keys, value_sets );
 			
 			handler.storeReply( contact, diversifies );
@@ -459,10 +463,14 @@ DHTTransportLoopbackImpl
 			
 			stats.findNodeOK();
 			
+			DHTTransportContact temp = new DHTTransportLoopbackContactImpl( target, node_id );
+			
 			DHTTransportContact[] res =
 				target.getRequestHandler().findNodeRequest( 
-					new DHTTransportLoopbackContactImpl( target, node_id ),
+					temp,
 					nid );
+			
+			contact.setRandomID( temp.getRandomID());
 			
 			DHTTransportContact[] trans_res = new DHTTransportContact[res.length];
 																	  														  

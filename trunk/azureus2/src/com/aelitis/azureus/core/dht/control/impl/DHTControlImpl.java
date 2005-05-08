@@ -1577,6 +1577,8 @@ DHTControlImpl
 
 		byte[]	diverse_res = new byte[ keys.length];
 		
+		// System.out.println( "storeRequest: received " + originating_contact.getRandomID() + " from " + originating_contact.getAddress());
+		
 		for (int i=0;i<keys.length;i++){
 			
 			HashWrapper			key		= new HashWrapper( keys[i] );
@@ -1602,9 +1604,15 @@ DHTControlImpl
 		
 		List	l = getClosestKContactsList( id, false );
 		
-		DHTTransportContact[]	res = new DHTTransportContact[l.size()];
+		final DHTTransportContact[]	res = new DHTTransportContact[l.size()];
 		
 		l.toArray( res );
+		
+		int	rand = (int)(Math.random()*1234567);
+		
+		// System.out.println( "findNodeRequest: returning " + rand + " to " + originating_contact.getAddress());
+
+		originating_contact.setRandomID( rand );
 		
 		return( res );
 	}

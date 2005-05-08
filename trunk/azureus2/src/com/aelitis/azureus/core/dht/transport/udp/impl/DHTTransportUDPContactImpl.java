@@ -50,6 +50,7 @@ DHTTransportUDPContactImpl
 	private byte				protocol_version;
 	private int					instance_id;
 	private long				skew;
+	private int					random_id;
 	
 	protected
 	DHTTransportUDPContactImpl(
@@ -92,6 +93,19 @@ DHTTransportUDPContactImpl
 	getClockSkew()
 	{
 		return( skew );
+	}
+	
+	public void
+	setRandomID(
+		int		_random_id )
+	{
+		random_id	= _random_id;
+	}
+	
+	public int
+	getRandomID()
+	{
+		return( random_id );
 	}
 	
 	public boolean
