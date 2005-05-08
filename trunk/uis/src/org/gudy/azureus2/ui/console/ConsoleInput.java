@@ -22,6 +22,8 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,6 +32,8 @@ import java.util.Properties;
 import java.util.Vector;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.logging.LGAlertListener;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.commands.AddFind;
@@ -106,6 +110,7 @@ public class ConsoleInput extends Thread {
 		this.gm  			= _azureus_core.getGlobalManager();
 		this.controlling = _controlling.booleanValue();
 		this.br = new CommandReader(_in);
+		registerAlertHandler();
 		registerCommands();
 		registerPluginCommands();
 		try {
@@ -138,6 +143,56 @@ public class ConsoleInput extends Thread {
 		}
 	}
 
+	protected void
+	registerAlertHandler()
+	{
+		LGLogger.addAlertListener(
+			new LGAlertListener()
+			{
+				private java.util.Set	history = Collections.synchronizedSet( new HashSet());
+				
+				
+				public void
+				alertRaised(
+					int		type,
+					String	message,
+					boolean	repeatable )
+				{
+					if ( !repeatable ){
+						
+						if ( history.contains( message )){
+							
+							return;
+						}
+						
+						history.add( message );
+					}
+					
+					out.println( message );
+				}
+				
+				public void
+				alertRaised(
+					String		message,
+					Throwable	exception,
+					boolean		repeatable )
+				{
+					if ( !repeatable ){
+						
+						if ( history.contains( message )){
+							
+							return;
+						}
+						
+						history.add( message );
+					}
+					
+					out.println( message );
+
+					exception.printStackTrace( out );
+				}
+			});
+	}
 	/**
 	 * registers the commands available to be executed from this console 
 	 */
