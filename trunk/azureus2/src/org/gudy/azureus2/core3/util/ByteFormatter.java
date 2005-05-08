@@ -9,6 +9,8 @@ package org.gudy.azureus2.core3.util;
  * 
  */
 
+import java.nio.ByteBuffer;
+
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 
@@ -47,9 +49,23 @@ public class ByteFormatter
   {
   	return( nicePrint(str.getBytes(),true));
   }
+  
   public static String nicePrint(byte[] data) {
-	 return( nicePrint( data, false ));
-   }
+    return( nicePrint( data, false ));
+  }
+  
+  
+  public static String nicePrint( ByteBuffer data ) {
+    byte[] raw = new byte[ data.limit() ];
+    
+    for( int i=0; i < raw.length; i++ ) {
+      raw[i] = data.get( i );
+    }
+    
+    return nicePrint( raw );
+  }
+  
+  
     
   public static String 
   nicePrint(
