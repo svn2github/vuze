@@ -1142,9 +1142,10 @@ DHTDBImpl
 		public byte[][]
 		getExistingDiversification(
 			byte[]			key,
-			boolean			put_operation )
+			boolean			put_operation,
+			boolean			exhaustive_get )
 		{
-			return( delegate.getExistingDiversification( key, put_operation ));
+			return( delegate.getExistingDiversification( key, put_operation, exhaustive_get ));
 		}
 		
 		public byte[][]
@@ -1152,9 +1153,10 @@ DHTDBImpl
 			DHTTransportContact	cause,
 			byte[]				key,
 			boolean				put_operation,
-			byte				diversification_type )
+			byte				diversification_type,
+			boolean				exhaustive_get )
 		{
-			return( delegate.createNewDiversification( cause, key, put_operation, diversification_type ));
+			return( delegate.createNewDiversification( cause, key, put_operation, diversification_type, exhaustive_get ));
 		}
 	}
 }

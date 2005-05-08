@@ -30,6 +30,9 @@ package org.gudy.azureus2.plugins.ddb;
 public interface 
 DistributedDatabase 
 {
+	public static final int	OP_NONE				= 0;
+	public static final int	OP_EXHAUSTIVE_READ	= 1;
+	
 	public boolean
 	isAvailable();
 
@@ -80,6 +83,16 @@ DistributedDatabase
 	
 		throws DistributedDatabaseException;
 	
+	public void
+	read(
+		DistributedDatabaseListener		listener,
+		DistributedDatabaseKey			key,
+		long							timeout,
+		int								options )
+	
+		throws DistributedDatabaseException;
+	
+
 	public void
 	delete(
 		DistributedDatabaseListener		listener,

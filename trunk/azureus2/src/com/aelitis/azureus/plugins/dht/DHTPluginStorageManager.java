@@ -462,7 +462,8 @@ DHTPluginStorageManager
 	public byte[][]
 	getExistingDiversification(
 		byte[]			key,
-		boolean			put_operation )
+		boolean			put_operation,
+		boolean			exhaustive_get )
 	{
 		//System.out.println( "DHT get existing diversification: put = " + put_operation  );
 		
@@ -473,7 +474,7 @@ DHTPluginStorageManager
 		try{
 			storage_mon.enter();
 		
-			byte[][]	res = followDivChain( wrapper, put_operation );
+			byte[][]	res = followDivChain( wrapper, put_operation, exhaustive_get );
 			
 			if ( !Arrays.equals( res[0], key )){
 				
@@ -499,7 +500,8 @@ DHTPluginStorageManager
 		DHTTransportContact	cause,
 		byte[]				key,
 		boolean				put_operation,
-		byte				diversification_type )
+		byte				diversification_type,
+		boolean				exhaustive_get )
 	{
 		//System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
 		
@@ -519,7 +521,7 @@ DHTPluginStorageManager
 				created	= true;			
 			}
 		
-			byte[][] res = followDivChain( wrapper, put_operation );
+			byte[][] res = followDivChain( wrapper, put_operation, exhaustive_get );
 		
 			String	trace = "";
 			
@@ -545,13 +547,14 @@ DHTPluginStorageManager
 	protected byte[][]
 	followDivChain(
 		HashWrapper	wrapper,
-		boolean		put_operation )
+		boolean		put_operation,
+		boolean		exhaustive_get )
 	{
 		List	list = new ArrayList();
 		
 		list.add( wrapper );
 		
-		list	= followDivChain( list, put_operation, 0 );
+		list	= followDivChain( list, put_operation, 0, exhaustive_get );
 		
 		byte[][]	res = new byte[list.size()][];
 		
@@ -567,7 +570,8 @@ DHTPluginStorageManager
 	followDivChain(
 		List		list_in,
 		boolean		put_operation,
-		int			depth )
+		int			depth,
+		boolean		exhaustive_get )
 	{
 		List	list_out = new ArrayList();
 	
@@ -593,7 +597,7 @@ DHTPluginStorageManager
 				
 					// replace this entry with the diversified keys 
 				
-				List	new_list = followDivChain( div.getKeys( put_operation ), put_operation, depth+1 );
+				List	new_list = followDivChain( div.getKeys( put_operation, exhaustive_get ), put_operation, depth+1, exhaustive_get );
 				
 				for (int j=0;j<new_list.size();j++){
 					
@@ -927,7 +931,8 @@ DHTPluginStorageManager
 		
 		protected List
 		getKeys(
-			boolean		put )
+			boolean		put,
+			boolean		exhaustive )
 		{
 			List	keys = new ArrayList();
 			
@@ -966,23 +971,33 @@ DHTPluginStorageManager
 				}else{
 					
 						// diversification has fragmented across 'n' places
-						// select 2 to search
+						// select 2 to search or all if exhaustive
 					
-					List	randoms = new ArrayList();
-					
-					while( randoms.size() < DIV_FRAG_GET_SIZE ){
+					if ( exhaustive ){
 						
-						Integer	i = new Integer((int)(Math.random()*DIV_WIDTH));
-						
-						if ( !randoms.contains(i)){
+						for (int i=0;i<DIV_WIDTH;i++){
 							
-							randoms.add( i );
+							keys.add( diversifyKey( key, i ));
 						}
-					}
-										
-					for (int i=0;i<DIV_FRAG_GET_SIZE;i++){
+
+					}else{
 						
-						keys.add( diversifyKey( key, ((Integer) randoms.get(i)).intValue()));
+						List	randoms = new ArrayList();
+						
+						while( randoms.size() < DIV_FRAG_GET_SIZE ){
+							
+							Integer	i = new Integer((int)(Math.random()*DIV_WIDTH));
+							
+							if ( !randoms.contains(i)){
+								
+								randoms.add( i );
+							}
+						}
+											
+						for (int i=0;i<DIV_FRAG_GET_SIZE;i++){
+							
+							keys.add( diversifyKey( key, ((Integer) randoms.get(i)).intValue()));
+						}
 					}
 				}
 			}

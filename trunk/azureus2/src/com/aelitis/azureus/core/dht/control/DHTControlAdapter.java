@@ -42,5 +42,6 @@ DHTControlAdapter
 		boolean				put_operation,
 		boolean				existing,
 		byte[]				key,
-		byte				type );
+		byte				type,
+		boolean				exhaustive_get );
 }

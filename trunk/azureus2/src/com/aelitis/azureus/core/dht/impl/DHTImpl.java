@@ -86,17 +86,18 @@ DHTImpl
 						boolean				put_operation,
 						boolean				existing,
 						byte[]				key,
-						byte				type )
+						byte				type,
+						boolean				exhaustive_get )
 					{
 						if ( storage_adapter != null ){
 							
 							if ( existing ){
 								
-								return( storage_adapter.getExistingDiversification( key, put_operation ));
+								return( storage_adapter.getExistingDiversification( key, put_operation, exhaustive_get ));
 								
 							}else{
 								
-								return( storage_adapter.createNewDiversification( cause, key, put_operation, type ));						
+								return( storage_adapter.createNewDiversification( cause, key, put_operation, type, exhaustive_get ));
 							}
 						}else{
 							
@@ -167,9 +168,10 @@ DHTImpl
 		byte					flags,
 		int						max_values,
 		long					timeout,
+		boolean					exhaustive,
 		DHTOperationListener	listener )
 	{
-		control.get( key, description, flags, max_values, timeout, listener );
+		control.get( key, description, flags, max_values, timeout, exhaustive, listener );
 	}
 		
 	public byte[]

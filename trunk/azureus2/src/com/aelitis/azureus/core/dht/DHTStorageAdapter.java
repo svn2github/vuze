@@ -77,12 +77,14 @@ DHTStorageAdapter
 	public byte[][]
 	getExistingDiversification(
 		byte[]			key,
-		boolean			put_operation );
+		boolean			put_operation,
+		boolean			exhaustive_get );
 	
 	public byte[][]
 	createNewDiversification(
 		DHTTransportContact	cause,
 		byte[]				key,
 		boolean				put_operation,
-		byte				diversification_type );
+		byte				diversification_type,
+		boolean				exhaustive_get );
 }

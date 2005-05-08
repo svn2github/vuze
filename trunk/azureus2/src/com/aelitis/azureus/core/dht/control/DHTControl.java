@@ -71,6 +71,7 @@ DHTControl
 		byte					flags,
 		int						max_values,
 		long					timeout,
+		boolean					exhaustive,
 		DHTOperationListener	listener );
 		
 	public byte[]

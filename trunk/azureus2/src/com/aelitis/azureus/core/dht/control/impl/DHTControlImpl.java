@@ -653,7 +653,7 @@ DHTControlImpl
 
 			// get the initial starting point for the put - may have previously been diversified
 		
-		byte[][]	encoded_keys	= adapter.diversify( null, true, true, initial_encoded_key, DHT.DT_NONE );
+		byte[][]	encoded_keys	= adapter.diversify( null, true, true, initial_encoded_key, DHT.DT_NONE, false );
 		
 			// may be > 1 if diversification is replicating (for load balancing) 
 		
@@ -787,7 +787,7 @@ DHTControlImpl
 												diversified[j]	= true;
 												
 												byte[][]	diversified_keys = 
-													adapter.diversify( _contact, true, false, encoded_keys[j], _diversifications[j] );
+													adapter.diversify( _contact, true, false, encoded_keys[j], _diversifications[j], false );
 											
 												for (int k=0;k<diversified_keys.length;k++){
 												
@@ -859,13 +859,14 @@ DHTControlImpl
 		byte						flags,
 		int							max_values,
 		long						timeout,
+		boolean						exhaustive,
 		final DHTOperationListener	get_listener )
 	{
 		final byte[]	encoded_key = encodeKey( unencoded_key );
 
 		DHTLog.log( "get for " + DHTLog.getString( encoded_key ));
 		
-		getSupport( encoded_key, description, flags, max_values, timeout, new DHTOperationListenerDemuxer( get_listener ));
+		getSupport( encoded_key, description, flags, max_values, timeout, exhaustive, new DHTOperationListenerDemuxer( get_listener ));
 	}
 	
 	public void
@@ -875,11 +876,12 @@ DHTControlImpl
 		final byte							flags,
 		final int							max_values,
 		final long							timeout,
+		final boolean						exhaustive,
 		final DHTOperationListenerDemuxer	get_listener )
 	{
 			// get the initial starting point for the get - may have previously been diversified
 		
-		byte[][]	encoded_keys	= adapter.diversify( null, false, true, initial_encoded_key, DHT.DT_NONE );
+		byte[][]	encoded_keys	= adapter.diversify( null, false, true, initial_encoded_key, DHT.DT_NONE, exhaustive );
 
 		for (int i=0;i<encoded_keys.length;i++){
 			
@@ -920,14 +922,14 @@ DHTControlImpl
 								
 								if ( max_values == 0 || rem > 0 ){
 									
-									byte[][]	diversified_keys = adapter.diversify( cause, false, false, encoded_key, diversification_type );
+									byte[][]	diversified_keys = adapter.diversify( cause, false, false, encoded_key, diversification_type, exhaustive );
 									
 										// should return a max of 1 (0 if diversification refused)
 										// however, could change one day to search > 1 
 									
 									for (int j=0;j<diversified_keys.length;j++){
 										
-										getSupport( diversified_keys[j], "Diversification of [" + this_description + "]", flags, rem,  timeout, get_listener );
+										getSupport( diversified_keys[j], "Diversification of [" + this_description + "]", flags, rem,  timeout, exhaustive, get_listener );
 									}
 								}								
 							}
