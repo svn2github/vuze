@@ -52,7 +52,7 @@ public class OutgoingBTPieceMessageHandler {
   private int num_messages_in_queue = 0;
   private final AEMonitor	lock_mon	= new AEMonitor( "OutgoingBTPieceMessageHandler:lock");
   private boolean destroyed = false;
-  private int request_read_ahead = 16;
+  private int request_read_ahead = 8;
   
   
   private final DiskManagerReadRequestListener read_req_listener = new DiskManagerReadRequestListener() {
