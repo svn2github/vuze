@@ -22,11 +22,11 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
 import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
@@ -116,7 +116,7 @@ public class AZMessageFactory {
     }
     
     //create and fill header buffer
-    DirectByteBuffer header = new DirectByteBuffer( ByteBuffer.allocate( 9 + id_bytes.length ) );
+    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_MSG, 9 + id_bytes.length );
     header.putInt( bss, 5 + id_bytes.length + payload_size );
     header.putInt( bss, id_bytes.length );
     header.put( bss, id_bytes );

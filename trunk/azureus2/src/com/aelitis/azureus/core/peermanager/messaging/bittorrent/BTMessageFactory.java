@@ -22,13 +22,13 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
 import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
@@ -155,7 +155,7 @@ public class BTMessageFactory {
       payload_size += payload[i].remaining( DirectByteBuffer.SS_MSG );
     }  
         
-    DirectByteBuffer header = new DirectByteBuffer( ByteBuffer.allocate( 5 ) );
+    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_MSG, 5 );
     header.putInt( DirectByteBuffer.SS_MSG, 1 + payload_size );
     header.put( DirectByteBuffer.SS_MSG, ld.bt_id );
     header.flip( DirectByteBuffer.SS_MSG );

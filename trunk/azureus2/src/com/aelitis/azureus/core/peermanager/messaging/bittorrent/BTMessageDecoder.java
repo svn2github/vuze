@@ -40,12 +40,13 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private static final int MAX_MESSAGE_LENGTH = 16393;  //should never be > 16KB+9B, as we never request chunks > 16KB
   private static final int HANDSHAKE_FAKE_LENGTH = 323119476;  //(byte)19 + "Bit" readInt() value of header
 
-  private ByteBuffer payload_buffer = null;
-  private DirectByteBuffer direct_payload_buffer = null;
-  private final ByteBuffer length_buffer = ByteBuffer.allocateDirect( 4 );
+  private static final byte SS = DirectByteBuffer.SS_NET;
   
-  private final ByteBuffer[] decode_array = new ByteBuffer[] { payload_buffer, length_buffer };
+  private DirectByteBuffer payload_buffer = null;
+  private final DirectByteBuffer length_buffer = DirectByteBufferPool.getBuffer( SS, 4 );
+  private final ByteBuffer[] decode_array = new ByteBuffer[] { null, length_buffer.getBuffer( SS ) };
   
+
   private boolean reading_length_mode = true;
   private boolean reading_handshake_message = false;
   
@@ -56,21 +57,12 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private boolean last_received_was_keepalive = false;
 
   private volatile boolean destroyed = false;
+  private volatile boolean is_paused = false;
   
   private ArrayList messages_last_read = new ArrayList();
   private int protocol_bytes_last_read = 0;
   private int data_bytes_last_read = 0;
-  
-  private int data_bytes_owed = 0;
-  
-  private volatile boolean is_paused = false;
-
-  
-  private long destroyed_loop_count = 0;
-  private long paused_loop_count = 0;
-  
-  private Throwable destroyed_trace;
-  
+  private int data_bytes_owed = 0;  
   private int percent_complete = -1;
   
   
@@ -89,30 +81,20 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
     int bytes_remaining = max_bytes;
     
-    while( bytes_remaining > 0 ) {
-      
+    while( bytes_remaining > 0 ) {  
       if( destroyed ) {
-        destroyed_loop_count++;
-        if( destroyed_loop_count % 50 == 0 ) {
-          Debug.out( "BTMessageDecoder:: already destroyed [" +destroyed_loop_count+ "x] loop!:: [" +transport.getDescription()+ "] channel is null=" +(transport.getSocketChannel() == null)+ ", has_been_closed=" +transport.has_been_closed+ ", closed_error_msg=" +transport.has_been_closed_error+ ", original destroy() trace:", destroyed_trace );          
-          //try{  Thread.sleep( 100 );  }catch(Throwable t){}
-          throw new IOException( "BTMessageDecoder:: already destroyed" );
-        }
-        return 0;
+        Debug.out( "BT decoder already destroyed: " +transport.getDescription() );
+        break;
       }
-      
-      
+
       if( is_paused ) {
-        paused_loop_count++;
-        if( paused_loop_count > 50 ) throw new IOException( "BTMessageDecoder:: already paused loop!" );
-        return 0;
+        break;
       }
       
       int bytes_possible = preReadProcess( bytes_remaining );
       
       if( bytes_possible < 1 ) {
-        System.out.println( "ERROR BT: bytes_possible < 1" );
-        try {  Thread.sleep( 20 );  }catch(Throwable t) {}
+        Debug.out( "ERROR BT: bytes_possible < 1" );
         break;
       }
 
@@ -170,42 +152,37 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   public ByteBuffer destroy() {
     is_paused = true;
     destroyed = true;
-    
-    try{
-      throw new Exception( "btmessagedecoder::destroyed()" );  //TODO remove
-    }
-    catch( Throwable t ) {
-      destroyed_trace = t;
-    }
 
     int lbuff_read = 0;
     int pbuff_read = 0;
-    length_buffer.limit( 4 );
+    length_buffer.limit( SS, 4 );
     
     if( reading_length_mode ) {
-      lbuff_read = length_buffer.position();
+      lbuff_read = length_buffer.position( SS );
     }
     else { //reading payload
-      length_buffer.position( 4 );
+      length_buffer.position( SS, 4 );
       lbuff_read = 4;
-      pbuff_read = payload_buffer == null ? 0 : payload_buffer.position();
+      pbuff_read = payload_buffer == null ? 0 : payload_buffer.position( SS );
     }
     
     ByteBuffer unused = ByteBuffer.allocate( lbuff_read + pbuff_read );
     
-    length_buffer.flip();
-    unused.put( length_buffer );
+    length_buffer.flip( SS );
+    unused.put( length_buffer.getBuffer( SS ) );
     
     if ( payload_buffer != null ) {
-      payload_buffer.flip();
-      unused.put( payload_buffer );
+      payload_buffer.flip( SS );
+      unused.put( payload_buffer.getBuffer( SS ) );
     }
     
     unused.flip();
 
-    if( direct_payload_buffer != null ) {
-      direct_payload_buffer.returnToPool();
-      direct_payload_buffer = null;
+    length_buffer.returnToPool();
+    
+    if( payload_buffer != null ) {
+      payload_buffer.returnToPool();
+      payload_buffer = null;
     }
  
     for( int i=0; i < messages_last_read.size(); i++ ) {
@@ -218,15 +195,13 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   }
   
   
-  
-  
-  
+
   private int preReadProcess( int allowed ) {
     if( allowed < 1 ) {
-      System.out.println( "allowed < 1" );
+      Debug.out( "allowed < 1" );
     }
     
-    decode_array[ 0 ] = payload_buffer;  //ensure the decode array has the latest payload pointer
+    decode_array[ 0 ] = payload_buffer == null ? null : payload_buffer.getBuffer( SS );  //ensure the decode array has the latest payload pointer
     
     int bytes_available = 0;
     boolean shrink_remaining_buffers = false;
@@ -237,9 +212,8 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       ByteBuffer bb = decode_array[ i ];
       
       if( bb == null ) {
-        System.out.println( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed );
+        Debug.out( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed );
       }
-      
       
       if( shrink_remaining_buffers ) {
         bb.limit( 0 );  //ensure no read into this next buffer is possible
@@ -278,26 +252,29 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     
     if( !reading_length_mode ) {  //reading payload data mode
       //ensure-restore proper buffer limits
-      payload_buffer.limit( message_length );
-      length_buffer.limit( 4 );
+      payload_buffer.limit( SS, message_length );
+      length_buffer.limit( SS, 4 );
       
-      int read = payload_buffer.position() - pre_read_start_position;
+      int read = payload_buffer.position( SS ) - pre_read_start_position;
       
       bytes_read += read;
 
-      if( !payload_buffer.hasRemaining() && !is_paused ) {  //full message received!        
-        payload_buffer.position( 0 );
+      if( !payload_buffer.hasRemaining( SS ) && !is_paused ) {  //full message received!        
+        payload_buffer.position( SS, 0 );
         
         if( reading_handshake_message ) {  //decode handshake
           reading_handshake_message = false;
           
-          ByteBuffer handshake_data = ByteBuffer.allocate( 68 );
-          handshake_data.putInt( HANDSHAKE_FAKE_LENGTH );
-          handshake_data.put( payload_buffer );
-          handshake_data.flip();
+          DirectByteBuffer handshake_data = DirectByteBufferPool.getBuffer( SS, 68 );
+          handshake_data.putInt( SS, HANDSHAKE_FAKE_LENGTH );
+          handshake_data.put( SS, payload_buffer );
+          handshake_data.flip( SS );
+          
+          payload_buffer.returnToPool();
+          payload_buffer = null;
           
           try {
-            Message handshake = MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HANDSHAKE, BTMessage.BT_DEFAULT_VERSION, new DirectByteBuffer( handshake_data ) );
+            Message handshake = MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HANDSHAKE, BTMessage.BT_DEFAULT_VERSION, handshake_data );
             messages_last_read.add( handshake );
           }
           catch( MessageException me ) {
@@ -309,10 +286,8 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           pauseDecoding();
         }
         else {  //decode normal message
-          DirectByteBuffer payload = direct_payload_buffer == null ? new DirectByteBuffer( payload_buffer ) : direct_payload_buffer;  
-          
           try {
-            Message msg = BTMessageFactory.createBTMessage( payload );
+            Message msg = BTMessageFactory.createBTMessage( payload_buffer );
             messages_last_read.add( msg );
             
             //we only learn what type of message it is AFTER we are done decoding it, so we probably need to work off the count post-hoc
@@ -321,42 +296,38 @@ public class BTMessageDecoder implements MessageStreamDecoder {
             }
           }
           catch( MessageException me ) {
-            if( direct_payload_buffer != null ) {
-              direct_payload_buffer.returnToPool();
-            }
             throw new IOException( "BT message decode failed: " +me.getMessage() );
           }
         }
      
         payload_buffer = null;
-        direct_payload_buffer = null;
         reading_length_mode = true;  //see if we've already read the next message's length
         percent_complete = -1;  //reset receive percentage
       }
       else {  //only partial received so far
-        percent_complete = (payload_buffer.position() * 100) / message_length;  //compute receive percentage
+        percent_complete = (payload_buffer.position( SS ) * 100) / message_length;  //compute receive percentage
       }
     }
     
     
     if( reading_length_mode ) {
-      length_buffer.limit( 4 );  //ensure proper buffer limit
+      length_buffer.limit( SS, 4 );  //ensure proper buffer limit
       
-      int read = (pre_read_start_buffer == 1) ? length_buffer.position() - pre_read_start_position : length_buffer.position();
+      int read = (pre_read_start_buffer == 1) ? length_buffer.position( SS ) - pre_read_start_position : length_buffer.position( SS );
       bytes_read += read;
       
-      if( !length_buffer.hasRemaining() ) {  //done reading the length
+      if( !length_buffer.hasRemaining( SS ) ) {  //done reading the length
         reading_length_mode = false;
         
-        length_buffer.position( 0 );
-        message_length = length_buffer.getInt();
+        length_buffer.position( SS, 0 );
+        message_length = length_buffer.getInt( SS );
         
-        length_buffer.position( 0 );  //reset it for next length read       
+        length_buffer.position( SS, 0 );  //reset it for next length read       
 
         if( message_length == HANDSHAKE_FAKE_LENGTH ) {  //handshake message
           reading_handshake_message = true;
           message_length = 64;  //restore 'real' length
-          payload_buffer = ByteBuffer.allocate( message_length );
+          payload_buffer = DirectByteBufferPool.getBuffer( SS, message_length );
         }
         else if( message_length == 0 ) {  //keep-alive message         
           reading_length_mode = true;
@@ -374,13 +345,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           throw new IOException( "Invalid message length given for BT message decode: " + message_length );
         }
         else {  //normal message
-          if( message_length > 4095 ) {
-            direct_payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length );
-            payload_buffer = direct_payload_buffer.getBuffer( DirectByteBuffer.SS_NET );
-          }
-          else {
-            payload_buffer = ByteBuffer.allocate( message_length );
-          }
+          payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length );
         }
       }
     }
