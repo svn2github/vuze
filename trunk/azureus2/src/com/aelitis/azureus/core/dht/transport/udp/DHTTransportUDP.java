@@ -37,7 +37,7 @@ public interface
 DHTTransportUDP
 	extends DHTTransport
 {
-	public static final byte PROTOCOL_VERSION		= 6;
+	public static final byte PROTOCOL_VERSION		= 7;
 	
 	public DHTTransportContact
 	importContact(

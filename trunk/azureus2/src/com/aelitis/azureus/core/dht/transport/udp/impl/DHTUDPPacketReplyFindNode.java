@@ -35,6 +35,7 @@ DHTUDPPacketReplyFindNode
 	extends DHTUDPPacketReply
 {	
 	private DHTTransportContact[]	contacts;
+	private int						random_id;
 	
 	public
 	DHTUDPPacketReplyFindNode(
@@ -56,6 +57,11 @@ DHTUDPPacketReplyFindNode
 	{
 		super( is, DHTUDPPacket.ACT_REPLY_FIND_NODE, trans_id );
 		
+		if ( getVersion() >= 7 ){
+			
+			random_id	= is.readInt();
+		}
+		
 		contacts = DHTUDPUtils.deserialiseContacts( transport, is );
 	}
 	
@@ -67,6 +73,11 @@ DHTUDPPacketReplyFindNode
 	{
 		super.serialise(os);
 		
+		if ( getVersion() >= 7 ){
+			
+			os.writeInt( random_id );
+		}
+
 		DHTUDPUtils.serialiseContacts( os, contacts );
 	}
 	
@@ -75,6 +86,19 @@ DHTUDPPacketReplyFindNode
 		DHTTransportContact[]	_contacts )
 	{
 		contacts	= _contacts;
+	}
+
+	protected void
+	setRandomID(
+		int	_random_id )
+	{
+		random_id	= _random_id;
+	}
+	
+	protected int
+	getRandomID()
+	{
+		return( random_id );
 	}
 	
 	protected DHTTransportContact[]

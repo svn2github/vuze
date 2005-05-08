@@ -1002,6 +1002,8 @@ DHTTransportUDPImpl
 				final DHTUDPPacketRequestStore	request = 
 					new DHTUDPPacketRequestStore( connection_id, local_contact, contact );
 			
+				//request.setRandomID( random_id );
+				
 				request.setKeys( packet_keys );
 				
 				request.setValueSets( packet_value_sets );
@@ -1869,7 +1871,9 @@ DHTTransportUDPImpl
 									request.getConnectionId(),
 									local_contact,
 									originating_contact );
-									
+								
+						//reply.setRandomID( random_id );
+						
 						reply.setContacts( res );
 						
 						packet_handler.send( reply, request.getAddress());

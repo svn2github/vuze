@@ -42,6 +42,7 @@ DHTUDPPacketRequestStore
 	public static final int	MAX_KEYS_PER_PACKET		= 255; // 1 byte DHTUDPPacket.PACKET_MAX_BYTES / 20;
 	public static final int	MAX_VALUES_PER_KEY		= 255; // 1 byte DHTUDPPacket.PACKET_MAX_BYTES / DHTUDPUtils.DHTTRANSPORTVALUE_SIZE_WITHOUT_VALUE;
 	
+	private int						random_id;
 	private byte[][]				keys;
 	private	DHTTransportValue[][]	value_sets;
 	
@@ -65,6 +66,11 @@ DHTUDPPacketRequestStore
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_STORE, con_id, trans_id );
 		
+		if ( getVersion() >= 7 ){
+			
+			random_id	= is.readInt();
+		}
+
 		keys		= DHTUDPUtils.deserialiseByteArrayArray( is, MAX_KEYS_PER_PACKET );
 		
 			// times receieved are adjusted by + skew
@@ -80,6 +86,11 @@ DHTUDPPacketRequestStore
 	{
 		super.serialise(os);
 		
+		if ( getVersion() >= 7 ){
+			
+			os.writeInt( random_id );
+		}
+		
 		DHTUDPUtils.serialiseByteArrayArray( os, keys, MAX_KEYS_PER_PACKET );
 		
 		try{
@@ -91,6 +102,19 @@ DHTUDPPacketRequestStore
 		}
 	}
 
+	protected void
+	setRandomID(
+		int	_random_id )
+	{
+		random_id	= _random_id;
+	}
+	
+	protected int
+	getRandomID()
+	{
+		return( random_id );
+	}
+	
 	protected void
 	setValueSets(
 		DHTTransportValue[][]	_values )

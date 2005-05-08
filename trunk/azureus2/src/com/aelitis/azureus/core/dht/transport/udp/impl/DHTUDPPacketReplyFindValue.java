@@ -70,7 +70,7 @@ DHTUDPPacketReplyFindValue
 		
 		if ( getVersion() >= 6 ){
 						
-			diversification_type	= is.readByte();
+			has_continuation	= is.readBoolean();
 		}
 		
 		boolean	is_value = is.readBoolean();

@@ -1049,7 +1049,7 @@ outer:
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 				
-		dht.get( 	key, description, flags, max_values, timeout, false, 
+		dht.get( 	key, description, flags, max_values, timeout, exhaustive, 
 					new DHTOperationListener()
 					{
 						public void
