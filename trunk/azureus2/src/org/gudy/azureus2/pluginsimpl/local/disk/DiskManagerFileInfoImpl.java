@@ -23,7 +23,6 @@
 package org.gudy.azureus2.pluginsimpl.local.disk;
 
 import java.io.File;
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;

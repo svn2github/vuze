@@ -28,11 +28,15 @@ package org.gudy.azureus2.pluginsimpl.remote.download;
 
 import java.util.Map;
 
+import org.gudy.azureus2.plugins.disk.DiskManager;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.*;
 
 import org.gudy.azureus2.pluginsimpl.remote.*;
+import org.gudy.azureus2.pluginsimpl.remote.disk.RPDiskManagerFileInfo;
+import org.gudy.azureus2.pluginsimpl.remote.ipfilter.RPIPRange;
 import org.gudy.azureus2.pluginsimpl.remote.torrent.*;
 
 
@@ -261,6 +265,19 @@ RPDownload
 			delegate.requestTrackerAnnounce();
 			
 			return( null );
+		
+		}else if ( method.equals( "getDiskManagerFileInfo")){
+			
+			DiskManagerFileInfo[] info = delegate.getDiskManagerFileInfo();
+					
+			RPDiskManagerFileInfo[] rp_info = new RPDiskManagerFileInfo[info.length];
+			
+			for (int i=0;i<rp_info.length;i++){
+				
+				rp_info[i] = RPDiskManagerFileInfo.create( info[i] );
+			}
+			
+			return( new RPReply( rp_info ));
 		}
 		
 		throw( new RPException( "Unknown method: " + method ));
@@ -727,6 +744,32 @@ RPDownload
 		notSupported();
 		
 		return( null );
+	}
+	
+	public DiskManager
+	getDiskManager()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
+	
+	public DiskManagerFileInfo[]
+	getDiskManagerFileInfo()
+	{
+		RPDiskManagerFileInfo[] resp = (RPDiskManagerFileInfo[])_dispatcher.dispatch( 
+				new RPRequest( 
+						this, 
+						"getDiskManagerFileInfo", 
+						null)).getResponse();
+
+		for (int i=0;i<resp.length;i++){
+			
+			resp[i]._setRemote( _dispatcher );
+		}
+		
+		return( resp );
 	}
 	
 	public long

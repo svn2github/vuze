@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.xml.simpleparser.*;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
 public class 
 XMLHTTPClient 
@@ -374,7 +375,7 @@ XMLHTTPClient
 				res.print();
 				
 				
-				/*
+			
 				SimpleXMLParserDocumentNode[]	kids = res.getChildren();
 				
 				for (int i=0;i<kids.length;i++){
@@ -386,7 +387,7 @@ XMLHTTPClient
 					res = sendRequest( 
 							"<REQUEST>" +
 								"<OBJECT><_object_id>" + dl_oid + "</_object_id></OBJECT>" +
-								"<METHOD>stop</METHOD>"+
+								"<METHOD>getDiskManagerFileInfo</METHOD>"+
 								"<CONNECTION_ID>" + connection_id + "</CONNECTION_ID>"+
 								"<REQUEST_ID>" + (req_id++) + "</REQUEST_ID>"+
 							"</REQUEST>");
@@ -394,7 +395,7 @@ XMLHTTPClient
 					res.print();
 						
 				}
-				*/
+				
 			}
 
 		}catch( Throwable e ){

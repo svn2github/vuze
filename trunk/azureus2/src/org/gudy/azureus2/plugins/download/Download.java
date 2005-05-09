@@ -25,6 +25,8 @@ import java.util.Map;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.disk.DiskManager;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 
 /** Management of a Torrent's activity.
@@ -512,6 +514,25 @@ Download
   	public PeerManager
 	getPeerManager();
   	
+		/**
+		 * Return the disk manager, null if its not running
+		 * @return
+		 * @since 2.3.0.1
+		 */
+	
+	public DiskManager
+	getDiskManager();
+	
+		/**
+		 * Returns info about the torrent's files. Note that this will return "stub" values if the 
+		 * download isn't running (not including info such as completion status)
+		 * @return
+		 * @since 2.3.0.1
+		 */
+	
+	public DiskManagerFileInfo[]
+	getDiskManagerFileInfo();
+	
   		/**
   		 * request a tracker announce 
   		 * @since 2.1.0.5

@@ -470,9 +470,9 @@ XMLRequestProcessor
 			writeLineEscaped( "" + ((Integer)obj).intValue());
 				
 		}else if ( cla == Boolean.class ){
-		
+			
 			writeLineEscaped( "" + ((Boolean)obj).booleanValue());
-				
+					
 		}else{
 			
 			while( cla != null ){
@@ -502,6 +502,10 @@ XMLRequestProcessor
 									
 									writeLineEscaped( (String)field.get( obj ));
 									
+								}else if ( type == File.class ){
+									
+									writeLineEscaped( "" + ((File)field.get( obj )).toString());
+											
 								}else if ( type == Integer.class ){
 									
 									writeLineEscaped( ""+((Integer)field.get( obj )).intValue());

@@ -40,9 +40,12 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
+import org.gudy.azureus2.plugins.disk.DiskManager;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
@@ -1082,6 +1085,41 @@ DownloadImpl
  		return( PeerManagerImpl.getPeerManager( pm));
  	}
  	
+	public DiskManager
+	getDiskManager()
+	{
+		PeerManager	pm = getPeerManager();
+		
+		if ( pm != null ){
+			
+			return( pm.getDiskManager());
+		}
+		
+		return( null );
+	}
+	
+	
+	
+	public DiskManagerFileInfo[]
+	getDiskManagerFileInfo()
+	{
+		org.gudy.azureus2.core3.disk.DiskManagerFileInfo[] info = download_manager.getDiskManagerFileInfo();
+		
+		if ( info == null ){
+			
+			return( new DiskManagerFileInfo[0] );
+		}
+		
+		DiskManagerFileInfo[]	res = new DiskManagerFileInfo[info.length];
+		
+		for (int i=0;i<res.length;i++){
+			
+			res[i] = new DiskManagerFileInfoImpl( info[i] );
+		}
+		
+		return( res );
+	}
+	
 	public void
 	peerAdded(
 		PEPeer 	peer )
