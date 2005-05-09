@@ -1221,7 +1221,9 @@ DHTTransportUDPImpl
 								
 							if ( res != null ){
 									
-								handler.findValueReply( contact, res, reply.getDiversificationType(), reply.hasContinuation());
+								boolean	continuation = reply.hasContinuation();
+																
+								handler.findValueReply( contact, res, reply.getDiversificationType(), continuation);
 									
 							}else{
 									
@@ -1912,7 +1914,7 @@ DHTTransportUDPImpl
 							DHTTransportValue[]	res_values = res.getValues();
 							
 							int		max_size = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_HEADER_SIZE;
-							
+														
 							List	values 		= new ArrayList();
 							int		values_size	= 0;
 							
@@ -1932,7 +1934,7 @@ DHTTransportUDPImpl
 									DHTTransportValue[]	x = new DHTTransportValue[values.size()];
 									
 									values.toArray( x );
-									
+																		
 									reply.setValues( x, res.getDiversificationType(), true );	// continuation = true
 																	
 									packet_handler.send( reply, request.getAddress());
@@ -1958,7 +1960,7 @@ DHTTransportUDPImpl
 							values.toArray( x );
 								
 							reply.setValues( x, res.getDiversificationType(), false );
-								
+															
 							packet_handler.send( reply, request.getAddress());
 						
 						}else{

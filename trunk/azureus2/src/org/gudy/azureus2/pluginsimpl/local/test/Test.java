@@ -117,11 +117,11 @@ Test
 								public void
 								runSupport()
 								{
-									//test();
+									testDDB();
 									
 									try{
-										//PlatformManagerFactory.getPlatformManager().performRecoverableFileDelete( "C:\\temp\\recycle.txt" );
-										PlatformManagerFactory.getPlatformManager().setTCPTOSEnabled( false );
+										// PlatformManagerFactory.getPlatformManager().performRecoverableFileDelete( "C:\\temp\\recycle.txt" );
+										// PlatformManagerFactory.getPlatformManager().setTCPTOSEnabled( false );
 										
 									}catch( Throwable e ){
 										
@@ -148,7 +148,7 @@ Test
 	}
 	
 	protected void
-	test()
+	testDDB()
 	{
 		try{
 			DistributedDatabase	db = plugin_interface.getDistributedDatabase();
@@ -159,7 +159,7 @@ Test
 			
 			if ( do_write ){
 				
-				DistributedDatabaseValue[] values = new DistributedDatabaseValue[50];
+				DistributedDatabaseValue[] values = new DistributedDatabaseValue[500];
 				
 				for (int i=0;i<values.length;i++){
 					

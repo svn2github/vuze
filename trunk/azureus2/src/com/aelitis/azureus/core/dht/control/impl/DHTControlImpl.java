@@ -219,28 +219,44 @@ DHTControlImpl
 				{
 					logger.log( "Transport ID changed, recreating router" );
 					
-					List	contacts = router.findBestContacts( 0 );
+					List	old_contacts = router.findBestContacts( 0 );
 					
-					DHTRouter	old_router = router;
+					byte[]	old_router_id = router.getID();
 					
 					createRouter( new_local_contact );
-				
-					for (int i=0;i<contacts.size();i++){
 						
-						DHTRouterContact	contact = (DHTRouterContact)contacts.get(i);
+						// sort for closeness to new router id
 					
-						if ( !old_router.isID( contact.getID())){
+					Set	sorted_contacts = new sortedContactSet( router.getID(), true ).getSet(); 
+
+					for (int i=0;i<old_contacts.size();i++){
+						
+						DHTRouterContact	contact = (DHTRouterContact)old_contacts.get(i);
+					
+						if ( !Arrays.equals( old_router_id, contact.getID())){
 							
 							if ( contact.isAlive()){
 								
-								router.contactAlive( contact.getID(), contact.getAttachment());
-								
-							}else{
-								
-								router.contactKnown( contact.getID(), contact.getAttachment());
+								sorted_contacts.add( contact );
 							}
 						}
+					}
+					
+					Iterator	it = sorted_contacts.iterator();
+					
+					int	added = 0;
+					
+						// don't add them all otherwise we can skew the smallest-subtree. better
+						// to seed with some close ones and then let the normal seeding process
+						// populate it correctly
+					
+					while( it.hasNext() && added < 128 ){
 						
+						DHTRouterContact	contact = (DHTRouterContact)it.next();
+						
+						router.contactAlive( contact.getID(), contact.getAttachment());
+						
+						added++;
 					}
 					
 					seed();
