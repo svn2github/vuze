@@ -26,6 +26,10 @@ import java.io.*;
 import java.math.BigInteger;
 import java.util.*;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
@@ -130,6 +134,12 @@ DHTControlImpl
 			}
 		};
 		
+		
+	protected AEMonitor	spoof_mon		= new AEMonitor( "DHTControl:spoof" );
+
+	private Cipher 			spoof_cipher;
+	private SecretKey		spoof_key;
+	
 	public
 	DHTControlImpl(
 		DHTControlAdapter	_adapter,
@@ -144,6 +154,8 @@ DHTControlImpl
 		int					_cache_at_closest_n,
 		LoggerChannel		_logger )
 	{
+		System.out.println( "**** DHT: Anti-spoof currently disabled for old clients ****" );
+		
 		adapter		= _adapter;
 		transport	= _transport;
 		logger		= _logger;
@@ -178,6 +190,23 @@ DHTControlImpl
 		node_id_byte_count	= router.getID().length;
 
 		stats = new DHTControlStatsImpl( this );
+
+			// don't bother computing anti-spoof stuff if we don't support value storage
+		
+		if ( transport.supportsStorage()){
+			
+			try{
+				spoof_cipher = Cipher.getInstance("DESede/ECB/PKCS5Padding"); 
+			
+				KeyGenerator keyGen = KeyGenerator.getInstance("DESede");
+			
+				spoof_key = keyGen.generateKey();
+	
+			}catch( Throwable e ){
+				
+				logger.log( e );
+			}
+		}
 		
 		transport.setRequestHandler( this );
 	
@@ -1607,11 +1636,9 @@ DHTControlImpl
 		final DHTTransportContact[]	res = new DHTTransportContact[l.size()];
 		
 		l.toArray( res );
+				
+		int	rand = generateSpoofID( originating_contact );
 		
-		int	rand = (int)(Math.random()*1234567);
-		
-		// System.out.println( "findNodeRequest: returning " + rand + " to " + originating_contact.getAddress());
-
 		originating_contact.setRandomID( rand );
 		
 		return( res );
@@ -2221,6 +2248,69 @@ DHTControlImpl
 		BigInteger	res		= new BigInteger( str_key, 16 );	
 		
 		return( res );
+	}
+	
+	protected int
+	generateSpoofID(
+		DHTTransportContact	contact )
+	{
+			// TODO: remove version check when 2.3.x version rolledout
+		
+		if ( spoof_cipher == null || contact.getProtocolVersion() < 7 ){
+			
+			return( 0 );
+		}
+		
+		try{
+			spoof_mon.enter();
+			
+			spoof_cipher.init(Cipher.ENCRYPT_MODE, spoof_key ); 
+		
+			byte[]	address = contact.getAddress().getAddress().getAddress();
+					
+			byte[]	data_out = spoof_cipher.doFinal( address );
+	
+			int	res =  	(data_out[0]<<24)&0xff000000 |
+						(data_out[1] << 16)&0x00ff0000 | 
+						(data_out[2] << 8)&0x0000ff00 | 
+						data_out[3]&0x000000ff;
+			
+			// System.out.println( "anti-spoof: generating " + res + " for " + contact.getAddress());
+
+			return( res );
+
+		}catch( Throwable e ){
+			
+			logger.log(e);
+			
+		}finally{
+			
+			spoof_mon.exit();
+		}
+		
+		return( 0 );
+	}
+	
+	public boolean
+	verifyContact(
+		DHTTransportContact c )
+	{
+		// TODO: remove version check when 2.3.x version rolledout
+
+		if ( c.getProtocolVersion() >= 7 ){
+			
+			boolean	ok = c.getRandomID() == generateSpoofID( c );
+		
+			// System.out.println( "    verify " + c.getName() + " -> " + ok );
+		
+			return( ok );
+			
+		}else{
+			
+			// System.out.println( "anti-spoof: verify for " + c.getName() + " -> true, version < 7" );
+
+			return( true );
+		}
 	}
 	
 	public void

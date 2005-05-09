@@ -593,6 +593,12 @@ DHTTransportLoopbackImpl
 		throw( new DHTTransportException("not imp"));
 	}
 	
+	public boolean
+	supportsStorage()
+	{
+		return( true );
+	}
+	
 	public void
 	addListener(
 		DHTTransportListener	l )

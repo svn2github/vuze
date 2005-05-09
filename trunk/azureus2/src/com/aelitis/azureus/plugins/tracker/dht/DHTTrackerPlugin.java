@@ -48,6 +48,8 @@ import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
+import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
@@ -1049,6 +1051,35 @@ DHTTrackerPlugin
 								
 								if ( torrent.isDecentralised()){
 									
+										// make sure that the injected scrape values are consistent
+										// with our currently connected peers
+									
+									PeerManager	pm = dl.getPeerManager();
+									
+									int	local_seeds 	= 0;
+									int	local_leechers 	= 0;
+									
+									if ( pm != null ){
+										
+										Peer[]	dl_peers = pm.getPeers();
+										
+										for (int i=0;i<dl_peers.length;i++){
+											
+											Peer	dl_peer = dl_peers[i];
+											
+											if ( dl_peer.getPercentDone() == 100 ){
+												
+												local_seeds++;
+												
+											}else{
+												local_leechers++;
+											}
+										}							
+									}
+									
+									final int f_local_seeds 	= local_seeds;
+									final int f_local_leechers	= local_leechers;
+									
 									dl.setScrapeResult(
 										new DownloadScrapeResult()
 										{
@@ -1067,13 +1098,13 @@ DHTTrackerPlugin
 											public int
 											getSeedCount()
 											{
-												return( seed_count );
+												return( Math.max( seed_count, f_local_seeds ));
 											}
 											
 											public int
 											getNonSeedCount()
 											{
-												return( peer_count );
+												return( Math.max( peer_count, f_local_leechers ));
 											}
 	
 											public long

@@ -259,7 +259,8 @@ DHTDBImpl
 		
 			// next, for cache forwards (rather then values coming directly from 
 			// originators) we ensure that the contact sending the values to us is
-			// close enough.
+			// close enough. If any values are coming indirect then we can safely assume
+			// that they all are
 		
 		boolean	cache_forward = false;
 		
@@ -311,6 +312,9 @@ DHTDBImpl
 				stored_values.put( key, mapping );
 			}
 			
+			boolean contact_checked = false;
+			boolean	contact_ok		= false;
+			
 				// we carry on an update as its ok to replace existing entries
 				// even if diversified
 			
@@ -324,9 +328,42 @@ DHTDBImpl
 
 				}else{
 					
-					DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, values[i], 1 );
+						// last check, verify that the contact is who they say they are, only for non-forwards
+						// as cache forwards are only accepted if they are "close enough" and we can't 
+						// rely on their identify due to the way that cache republish works (it doesn't
+						// guarantee a "lookup_node" prior to "store".
+
+					DHTTransportValue	value = values[i];
+					
+					boolean	ok_to_store = false;
+					
+					if ( Arrays.equals( sender.getID(), value.getOriginator().getID())){
+							
+						if ( !contact_checked ){
+								
+							contact_ok =  control.verifyContact( sender );
+								
+							if ( !contact_ok ){
+								
+								logger.log( "DB: verification of contact '" + sender.getName() + "' failed for store operation" );
+							}
+							
+							contact_checked	= true;
+						}
+					
+						ok_to_store	= contact_ok;
+					
+					}else{
+						
+						ok_to_store	= true;
+					}
+
+					if ( ok_to_store ){
+						
+						DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, value, 1 );
 				
-					mapping.add( mapping_value );
+						mapping.add( mapping_value );
+					}
 				}
 			}
 			

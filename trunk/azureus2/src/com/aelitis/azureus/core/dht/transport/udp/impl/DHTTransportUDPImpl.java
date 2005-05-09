@@ -2053,6 +2053,12 @@ DHTTransportUDPImpl
 		return( 0x8000000000000000L | random.nextLong());
 	}
 	
+	public boolean
+	supportsStorage()
+	{
+		return( !bootstrap_node );
+	}
+	
 	public void
 	addListener(
 		DHTTransportListener	l )

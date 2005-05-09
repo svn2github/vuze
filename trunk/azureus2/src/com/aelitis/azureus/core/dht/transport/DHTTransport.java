@@ -85,6 +85,9 @@ DHTTransport
 	
 		throws DHTTransportException;
 	
+	public boolean
+	supportsStorage();
+	
 	public void
 	addListener(
 		DHTTransportListener	l );

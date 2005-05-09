@@ -135,6 +135,10 @@ DHTControl
 		byte[]		n2,
 		byte[]		pivot );
 	
+	public boolean
+	verifyContact(
+		DHTTransportContact c );
+	
 	public void
 	addListener(
 		DHTControlListener	l );
