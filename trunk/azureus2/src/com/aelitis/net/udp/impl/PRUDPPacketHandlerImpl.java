@@ -83,6 +83,7 @@ PRUDPPacketHandlerImpl
 	private int			receive_delay			= 0;
 	private int			queued_request_timeout	= 0;
 	
+	private long		last_error_report;
 	
 	protected
 	PRUDPPacketHandlerImpl(
@@ -349,14 +350,28 @@ PRUDPPacketHandlerImpl
 						
 						if ( recv_queue_data_size > MAX_RECV_QUEUE_DATA_SIZE ){
 							
-							Debug.out( "Receive queue size limit exceeded, dropping request packet" );
+							long	now = SystemTime.getCurrentTime();
+							
+							if ( now - last_error_report > 30000 ){
+								
+								last_error_report	= now;
+								
+								Debug.out( "Receive queue size limit exceeded (" + MAX_RECV_QUEUE_DATA_SIZE + "), dropping request packet" );
+							}
 							
 						}else if ( receive_delay * recv_queue.size() > queued_request_timeout ){
 							
 								// by the time this request gets processed it'll have timed out
 								// in the caller anyway, so discard it
 							
-							Debug.out( "Receive queue entry limit exceeded, dropping request packet" );
+							long	now = SystemTime.getCurrentTime();
+							
+							if ( now - last_error_report > 30000 ){
+								
+								last_error_report	= now;
+
+								Debug.out( "Receive queue entry limit exceeded (" + recv_queue.size() + ", dropping request packet" );
+							}
 							
 						}else{
 							
