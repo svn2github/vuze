@@ -175,8 +175,7 @@ public class ConsoleView extends AbstractIView {
         consoleText.append(String.valueOf(buf));
         nbLines = consoleText.getLineCount();
         consoleText.setLineBackground(nbLines - 2, 1, colors[info.color]);
-        if (autoScroll)
-          consoleText.setTopIndex(nbLines-1);
+        if (autoScroll)  consoleText.setSelection(consoleText.getText().length());
       }
     });
   }
