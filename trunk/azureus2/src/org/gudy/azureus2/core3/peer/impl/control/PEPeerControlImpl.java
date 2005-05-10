@@ -2711,24 +2711,21 @@ PEPeerControlImpl
       
       //pass from storage to connector
       int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
+      
+      if( allowed < 0 || allowed > 2000 )  allowed = 2000;  //ensure a very upper limit so it doesnt get out of control when using PEX
 
       if( _downloadManager.getHealthStatus() == DownloadManager.WEALTH_OK ) {  //if unfirewalled, leave slots avail for remote connections
-        if( allowed != -1 ) {
-          int free = PeerUtils.MAX_CONNECTIONS_PER_TORRENT / 20;  //leave 5%
-          allowed = allowed - free;
-          if( allowed < 0 )  allowed = 0;
-        }
+        int free = PeerUtils.MAX_CONNECTIONS_PER_TORRENT / 20;  //leave 5%
+        allowed = allowed - free;
       }
       
-      if( allowed != 0 ) {
+      if( allowed > 0 ) {
         //try and connect only as many as necessary
-        if( allowed != -1 ) {
-          int wanted = ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
-          if( wanted > allowed ) {
-            num_waiting_establishments += wanted - allowed;
-          }
+        int wanted = ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
+        if( wanted > allowed ) {
+          num_waiting_establishments += wanted - allowed;
         }
-           
+        
         //load stored peer-infos to be established
         while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
           if( peer_database != null ) {
