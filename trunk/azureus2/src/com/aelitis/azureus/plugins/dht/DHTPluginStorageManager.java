@@ -484,7 +484,7 @@ DHTPluginStorageManager
 					trace += (i==0?"":",") + DHTLog.getString2( res[i] );
 				}
 				
-				log.log( "SM: get div: " + DHTLog.getString2(key) + ", put = " + put_operation + " -> " + trace );
+				log.log( "SM: get div: " + DHTLog.getString2(key) + ", put = " + put_operation + ", exh = " + exhaustive + " -> " + trace );
 			}
 			
 			return( res );
@@ -516,7 +516,7 @@ DHTPluginStorageManager
 			
 			if ( div == null ){
 				
-				div = createDiversification( cause, wrapper, diversification_type );
+				div = createDiversification( wrapper, diversification_type );
 				
 				created	= true;			
 			}
@@ -532,6 +532,7 @@ DHTPluginStorageManager
 			
 			log.log( "SM: create div: " + DHTLog.getString2(key) + 
 						", new = " + created + ", put = " + put_operation + 
+						", exh = " + exhaustive + 
 						", type = " + DHT.DT_STRINGS[diversification_type] + " -> " + trace +
 						", cause = " + (cause==null?"<unknown>":cause.getString()));
 			
@@ -576,6 +577,9 @@ DHTPluginStorageManager
 	{
 		List	list_out = new ArrayList();
 	
+		if ( put_operation && exhaustive ){
+			int d = 12;
+		}
 		/*
 		String	indent = "";
 		for(int i=0;i<depth;i++){
@@ -584,17 +588,14 @@ DHTPluginStorageManager
 		System.out.println( indent + "->" );
 		*/
 		
+			// for each entry, if there are no diversifications then we just return the value
+			// for those with divs we replace their entry with the diversified set (which can
+			// include the entry itself under some circumstances )
+		
 		for (int i=0;i<list_in.size();i++){
 			
 			HashWrapper	wrapper = (HashWrapper)list_in.get(i);
 		
-			if ( keys_done.contains( wrapper )){
-				
-				continue;
-			}
-			
-			keys_done.add( wrapper );
-			
 			diversification	div = lookupDiversification( wrapper );
 
 			if ( div == null ){
@@ -605,6 +606,21 @@ DHTPluginStorageManager
 				}
 				
 			}else{
+				
+				if ( keys_done.contains( wrapper )){
+					
+						// we've recursed on the key, this means that a prior diversification wanted
+						// the key included, so include it now
+					
+					if ( !list_out.contains( wrapper )){
+						
+						list_out.add(wrapper);
+					}
+					
+					continue;
+				}
+				
+				keys_done.add( wrapper );
 				
 					// replace this entry with the diversified keys 
 				
@@ -798,7 +814,6 @@ DHTPluginStorageManager
 	
 	protected diversification
 	createDiversification(
-		DHTTransportContact	cause,
 		HashWrapper			wrapper,
 		byte				type )
 	{

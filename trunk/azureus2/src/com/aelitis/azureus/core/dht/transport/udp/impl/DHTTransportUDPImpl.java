@@ -528,7 +528,7 @@ DHTTransportUDPImpl
 	{
 		return(	ia.isLinkLocalAddress() ||
 				ia.isLoopbackAddress() ||
-				ia.getHostAddress().startsWith( "192.168." ));
+				ia.isSiteLocalAddress()); 
 	}
 	
 	protected int

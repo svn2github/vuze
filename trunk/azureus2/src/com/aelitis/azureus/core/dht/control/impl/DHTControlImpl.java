@@ -640,6 +640,8 @@ DHTControlImpl
 		byte					_flags,
 		DHTOperationListener	_listener )
 	{
+			// public entry point for explicit publishes
+		
 		if ( _value.length == 0 ){
 			
 				// zero length denotes value removal
@@ -719,7 +721,14 @@ DHTControlImpl
 
 			// get the initial starting point for the put - may have previously been diversified
 		
-		byte[][]	encoded_keys	= adapter.diversify( null, true, true, initial_encoded_key, DHT.DT_NONE, original_mappings );
+		byte[][]	encoded_keys	= 
+			adapter.diversify( 
+					null, 
+					true, 
+					true, 
+					initial_encoded_key, 
+					DHT.DT_NONE, 
+					original_mappings );
 		
 			// may be > 1 if diversification is replicating (for load balancing) 
 		
@@ -731,7 +740,7 @@ DHTControlImpl
 			
 			if ( keys_written.contains( hw )){
 				
-				System.out.println( "put: skipping key as already written" );
+				// System.out.println( "put: skipping key as already written" );
 				
 				continue;
 			}
