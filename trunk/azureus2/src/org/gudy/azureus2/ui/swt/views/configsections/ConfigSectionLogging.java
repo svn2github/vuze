@@ -86,9 +86,15 @@ public class ConfigSectionLogging implements ConfigSectionSWT {
     layout.numColumns = 2;
     gLogging.setLayout(layout);
 
+    
+    BooleanParameter enable_logger = new BooleanParameter(gLogging, "Logger.Enabled", "ConfigView.section.logging.loggerenable");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    enable_logger.setLayoutData(gridData);
+
     // row
 
-    BooleanParameter enableLogging = 
+    final BooleanParameter enableLogging = 
       new BooleanParameter(gLogging, 
                            "Logging Enable", 
                            "ConfigView.section.logging.enable");
@@ -177,8 +183,28 @@ public class ConfigSectionLogging implements ConfigSectionSWT {
       }
     }
     
-    Control[] controls = { cArea, cLogTypes };
-    enableLogging.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
+    
+    final Control[] controls_main = { cArea, cLogTypes };
+    enable_logger.setAdditionalActionPerformer(
+        new IAdditionalActionPerformer() {
+          ChangeSelectionActionPerformer p1 = new ChangeSelectionActionPerformer(new Control[] {enableLogging.getControl() } );
+          ChangeSelectionActionPerformer p2 = new ChangeSelectionActionPerformer( controls_main );
+          
+          public void performAction() {
+            p1.performAction();
+            if( enableLogging.isSelected() )  p2.performAction();
+          }
+          public void setSelected(boolean selected) {
+            p1.setSelected( selected );
+            p2.setSelected( selected );
+          }
+          public void setIntValue(int value) { /*nothing*/ }
+          public void setStringValue(String value) { /*nothing*/ }
+        }
+        );
+        
+    final Control[] controls_file = { cArea, cLogTypes };
+    enableLogging.setAdditionalActionPerformer( new ChangeSelectionActionPerformer(controls_file) );
 	
 		// diagnostics
 	
