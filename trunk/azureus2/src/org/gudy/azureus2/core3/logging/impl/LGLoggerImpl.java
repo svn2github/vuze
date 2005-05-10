@@ -64,6 +64,22 @@ LGLoggerImpl
 	private static int				log_file_max	= 1;		// MB
 	private static int        		log_types[] = new int[components.length];
 	
+  
+  private static boolean is_logger_enabled = false;
+  static{
+    is_logger_enabled = COConfigurationManager.getBooleanParameter( "Logger.Enabled" );
+    COConfigurationManager.addParameterListener( "Logger.Enabled", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        is_logger_enabled = COConfigurationManager.getBooleanParameter( "Logger.Enabled" );
+      }
+    });
+    
+  }
+  
+  
+  
+  
+  
 	public static synchronized void
 	initialise()
 	{
@@ -234,6 +250,12 @@ LGLoggerImpl
 	{
 		return( listener != null || log_to_file );
 	}
+  
+  
+  public static boolean isEnabled() {
+    return is_logger_enabled;
+  }
+  
 	
 	public static synchronized void 
 	setListener(ILoggerListener _listener) 

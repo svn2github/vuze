@@ -126,7 +126,17 @@ LGLogger
 	{
 		return( LGLoggerImpl.isLoggingOn());
 	}
+  
+  
+  /**
+   * Is the logger component enabled.
+   * @return true if logger is enabled, false if disabled
+   */
+  public static boolean isEnabled() {   
+    return LGLoggerImpl.isEnabled();
+  }
 	
+  
 	public static void
 	setListener(
 		ILoggerListener	listener )

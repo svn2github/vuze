@@ -140,7 +140,9 @@ public class ConfigurationDefaults {
     def.put("update.opendialog",new Long(1));
     def.put("Colors.progressBar.override", new Long(0));
     
-    def.put("Logging Enable", new Long(0));
+    
+    def.put("Logger.Enabled", new Long(0));  //logging in general
+    def.put("Logging Enable", new Long(0));  //file logging
     def.put("Logging Dir", "");
     def.put("Logging Max Size", new Long(5));
     int[] logComponents = { 0, 1, 2, 4 };
