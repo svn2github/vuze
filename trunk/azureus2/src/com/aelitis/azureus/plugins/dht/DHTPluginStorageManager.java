@@ -463,7 +463,7 @@ DHTPluginStorageManager
 	getExistingDiversification(
 		byte[]			key,
 		boolean			put_operation,
-		boolean			exhaustive_get )
+		boolean			exhaustive )
 	{
 		//System.out.println( "DHT get existing diversification: put = " + put_operation  );
 		
@@ -474,7 +474,7 @@ DHTPluginStorageManager
 		try{
 			storage_mon.enter();
 		
-			byte[][]	res = followDivChain( wrapper, put_operation, exhaustive_get );
+			byte[][]	res = followDivChain( wrapper, put_operation, exhaustive );
 			
 			if ( !Arrays.equals( res[0], key )){
 				
@@ -501,7 +501,7 @@ DHTPluginStorageManager
 		byte[]				key,
 		boolean				put_operation,
 		byte				diversification_type,
-		boolean				exhaustive_get )
+		boolean				exhaustive )
 	{
 		//System.out.println( "DHT create new diversification: put = " + put_operation +", type = " + diversification_type );
 		
@@ -521,7 +521,7 @@ DHTPluginStorageManager
 				created	= true;			
 			}
 		
-			byte[][] res = followDivChain( wrapper, put_operation, exhaustive_get );
+			byte[][] res = followDivChain( wrapper, put_operation, exhaustive );
 		
 			String	trace = "";
 			
@@ -548,13 +548,13 @@ DHTPluginStorageManager
 	followDivChain(
 		HashWrapper	wrapper,
 		boolean		put_operation,
-		boolean		exhaustive_get )
+		boolean		exhaustive )
 	{
 		List	list = new ArrayList();
 		
 		list.add( wrapper );
 		
-		list	= followDivChain( list, put_operation, 0, exhaustive_get );
+		list	= followDivChain( list, put_operation, 0, exhaustive, new ArrayList());
 		
 		byte[][]	res = new byte[list.size()][];
 		
@@ -571,7 +571,8 @@ DHTPluginStorageManager
 		List		list_in,
 		boolean		put_operation,
 		int			depth,
-		boolean		exhaustive_get )
+		boolean		exhaustive,
+		List		keys_done )
 	{
 		List	list_out = new ArrayList();
 	
@@ -587,21 +588,36 @@ DHTPluginStorageManager
 			
 			HashWrapper	wrapper = (HashWrapper)list_in.get(i);
 		
+			if ( keys_done.contains( wrapper )){
+				
+				continue;
+			}
+			
+			keys_done.add( wrapper );
+			
 			diversification	div = lookupDiversification( wrapper );
 
 			if ( div == null ){
 				
-				list_out.add( wrapper );
+				if ( !list_out.contains( wrapper )){
+					
+					list_out.add(wrapper);
+				}
 				
 			}else{
 				
 					// replace this entry with the diversified keys 
 				
-				List	new_list = followDivChain( div.getKeys( put_operation, exhaustive_get ), put_operation, depth+1, exhaustive_get );
+				List	new_list = followDivChain( div.getKeys( put_operation, exhaustive ), put_operation, depth+1, exhaustive, keys_done );
 				
 				for (int j=0;j<new_list.size();j++){
 					
-					list_out.add( new_list.get(j));
+					Object	entry =  new_list.get(j);
+					
+					if ( !list_out.contains( entry )){
+						
+						list_out.add(entry);
+					}
 				}
 			}
 		}
@@ -946,7 +962,15 @@ DHTPluginStorageManager
 						
 						keys.add( diversifyKey( key, i ));
 					}
-										
+					
+					if ( exhaustive ){
+						
+							// include original key
+						
+						// System.out.println( "followDivs:put:freq adding original" );
+						
+						keys.add( key );
+					}				
 				}else{
 					
 						// put to a fixed subset. has to be fixed else over time we'll put to
@@ -956,7 +980,16 @@ DHTPluginStorageManager
 					for (int i=0;i<fixed_put_offsets.length;i++){
 						
 						keys.add( diversifyKey( key, fixed_put_offsets[i]));
-					}					
+					}	
+					
+					if ( exhaustive ){
+						
+							// include original key
+						
+						// System.out.println( "followDivs:put:size adding original" );
+
+						keys.add( key );
+					}
 				}
 			}else{
 				
@@ -979,6 +1012,8 @@ DHTPluginStorageManager
 							
 							keys.add( diversifyKey( key, i ));
 						}
+
+						// System.out.println( "followDivs:get:size adding all" );
 
 					}else{
 						

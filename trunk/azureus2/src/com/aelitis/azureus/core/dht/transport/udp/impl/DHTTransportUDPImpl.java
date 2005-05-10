@@ -612,12 +612,73 @@ DHTTransportUDPImpl
 		return( stats );
 	}
 	
+	//protected HashMap	port_map = new HashMap();
+	//protected long		last_portmap_dump	= SystemTime.getCurrentTime();
+	
 	protected void
 	checkAddress(
 		DHTTransportUDPContactImpl		contact )
 	
 		throws PRUDPPacketHandlerException
 	{
+		/*
+		int	port = contact.getExternalAddress().getPort();
+		
+		try{
+			this_mon.enter();
+		
+			int	count;
+			
+			Integer i = (Integer)port_map.get(new Integer(port));
+			
+			if ( i != null ){
+				
+				count 	= i.intValue() + 1;
+				
+			}else{
+				
+				count	= 1;
+			}
+			
+			port_map.put( new Integer(port), new Integer(count));
+			
+			long	now = SystemTime.getCurrentTime();
+			
+			if ( now - last_portmap_dump > 60000 ){
+				
+				last_portmap_dump	= now;
+				
+				Iterator	it = port_map.keySet().iterator();
+				
+				Map	rev = new TreeMap();
+				
+				while( it.hasNext()){
+					
+					Integer	key = (Integer)it.next();
+					
+					Integer	val = (Integer)port_map.get(key);
+					
+					rev.put( val, key );
+				}
+				
+				it = rev.keySet().iterator();
+				
+				while( it.hasNext()){
+					
+					Integer	val = (Integer)it.next();
+					
+					Integer	key = (Integer)rev.get(val);
+					
+					System.out.println( "port:" + key + "->" + val );
+				}
+			}
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		*/
+		
 		if ( ip_filter.isInRange( contact.getTransportAddress().getAddress().getHostAddress(), "DHT" )){
 			
 			throw( new PRUDPPacketHandlerException( "IPFilter check fails" ));

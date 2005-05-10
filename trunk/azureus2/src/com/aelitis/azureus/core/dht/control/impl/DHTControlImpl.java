@@ -658,6 +658,8 @@ DHTControlImpl
 				_description,
 				value, 
 				0, 
+				true,
+				new HashSet(),
 				_listener instanceof DHTOperationListenerDemuxer?
 						(DHTOperationListenerDemuxer)_listener:
 						new DHTOperationListenerDemuxer(_listener));		
@@ -665,25 +667,42 @@ DHTControlImpl
 	
 	public void
 	putEncodedKey(
-		final byte[]			encoded_key,
-		final String			description,
-		final DHTTransportValue	value,
-		final long				timeout )
+		byte[]				encoded_key,
+		String				description,
+		DHTTransportValue	value,
+		long				timeout,
+		boolean				original_mappings )
 	{
-		put( internal_put_pool, encoded_key, description, value, timeout, new DHTOperationListenerDemuxer( new DHTOperationAdapter()));
+		put( 	internal_put_pool, 
+				encoded_key, 
+				description, 
+				value, 
+				timeout, 
+				original_mappings,
+				new HashSet(),
+				new DHTOperationListenerDemuxer( new DHTOperationAdapter()));
 	}
 	
 	
 	protected void
 	put(
-		final ThreadPool					thread_pool,
-		final byte[]						initial_encoded_key,
-		final String						description,
-		final DHTTransportValue				value,
-		final long							timeout,
-		final DHTOperationListenerDemuxer	listener )
+		ThreadPool					thread_pool,
+		byte[]						initial_encoded_key,
+		String						description,
+		DHTTransportValue			value,
+		long						timeout,
+		boolean						original_mappings,
+		Set							keys_written,
+		DHTOperationListenerDemuxer	listener )
 	{
-		put( thread_pool, initial_encoded_key, description, new DHTTransportValue[]{ value }, timeout, listener );
+		put( 	thread_pool, 
+				initial_encoded_key, 
+				description, 
+				new DHTTransportValue[]{ value }, 
+				timeout,
+				original_mappings,
+				keys_written,
+				listener );
 	}
 	
 	protected void
@@ -693,19 +712,32 @@ DHTControlImpl
 		final String						description,
 		final DHTTransportValue[]			values,
 		final long							timeout,
+		final boolean						original_mappings,
+		final Set							keys_written,
 		final DHTOperationListenerDemuxer	listener )
 	{
 
 			// get the initial starting point for the put - may have previously been diversified
 		
-		byte[][]	encoded_keys	= adapter.diversify( null, true, true, initial_encoded_key, DHT.DT_NONE, false );
+		byte[][]	encoded_keys	= adapter.diversify( null, true, true, initial_encoded_key, DHT.DT_NONE, original_mappings );
 		
 			// may be > 1 if diversification is replicating (for load balancing) 
 		
 		for (int i=0;i<encoded_keys.length;i++){
 			
 			final byte[]	encoded_key	= encoded_keys[i];
-						
+				
+			HashWrapper	hw = new HashWrapper( encoded_key );
+			
+			if ( keys_written.contains( hw )){
+				
+				System.out.println( "put: skipping key as already written" );
+				
+				continue;
+			}
+			
+			keys_written.add( hw );
+			
 			final String	this_description = 
 				Arrays.equals( encoded_key, initial_encoded_key )?
 						description:
@@ -741,7 +773,8 @@ DHTControlImpl
 									_closest, 
 									timeout, 
 									listener, 
-									true );		
+									true,
+									keys_written );		
 						}
 					});
 		}
@@ -765,7 +798,8 @@ DHTControlImpl
 				contacts, 
 				0, 
 				new DHTOperationListenerDemuxer( new DHTOperationAdapter()),
-				false );
+				false,
+				new HashSet());
 	}
 		
 	protected void
@@ -777,7 +811,8 @@ DHTControlImpl
 		final List								contacts,
 		final long								timeout,
 		final DHTOperationListenerDemuxer		listener,
-		final boolean							consider_diversification )
+		final boolean							consider_diversification,
+		final Set								keys_written )
 	{		
 			// only diversify on one hit as we're storing at closest 'n' so we only need to
 			// do it once for each key
@@ -840,7 +875,10 @@ DHTControlImpl
 															diversified_keys[k], 
 															"Diversification of [" + description + "]",
 															value_sets[j], 
-															timeout, listener );
+															timeout,
+															false,
+															keys_written,
+															listener );
 												}
 											}
 										}
@@ -1070,7 +1108,14 @@ DHTControlImpl
 			
 				// we remove a key by pushing it back out again with zero length value 
 						
-			put( external_put_pool, encoded_key, description, res.getValueForDeletion(), 0, new DHTOperationListenerDemuxer( listener ));
+			put( 	external_put_pool, 
+					encoded_key, 
+					description, 
+					res.getValueForDeletion(), 
+					0, 
+					true, 
+					new HashSet(),
+					new DHTOperationListenerDemuxer( listener ));
 			
 			return( res.getValue());
 		}

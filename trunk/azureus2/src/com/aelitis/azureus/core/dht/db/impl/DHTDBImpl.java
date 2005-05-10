@@ -603,7 +603,7 @@ DHTDBImpl
 				
 				values_published++;
 				
-				control.putEncodedKey( key.getHash(), "Republish", (DHTDBValueImpl)values.get(i), 0 );
+				control.putEncodedKey( key.getHash(), "Republish", (DHTDBValueImpl)values.get(i), 0, true );
 			}
 		}
 		
@@ -640,6 +640,16 @@ DHTDBImpl
 				HashWrapper			key		= (HashWrapper)entry.getKey();
 				
 				DHTDBMapping		mapping	= (DHTDBMapping)entry.getValue();
+				
+					// assume that if we've diversified then the other k-1 locations are under similar
+					// stress and will have done likewise - no point in republishing cache values to them
+					// New nodes joining will have had stuff forwarded to them regardless of diversification
+					// status
+				
+				if ( mapping.getDiversificationType() != DHT.DT_NONE ){
+					
+					continue;
+				}
 				
 				Iterator	it2 = mapping.getValues();
 				

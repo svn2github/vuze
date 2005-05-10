@@ -43,5 +43,5 @@ DHTControlAdapter
 		boolean				existing,
 		byte[]				key,
 		byte				type,
-		boolean				exhaustive_get );
+		boolean				exhaustive );
 }

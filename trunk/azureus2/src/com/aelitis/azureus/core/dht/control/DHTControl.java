@@ -120,7 +120,8 @@ DHTControl
 		byte[]				key,
 		String				description,
 		DHTTransportValue	value,
-		long				timeout );
+		long				timeout,
+		boolean				original_mappings );
 	
 	public void
 	putDirectEncodedKeys(
