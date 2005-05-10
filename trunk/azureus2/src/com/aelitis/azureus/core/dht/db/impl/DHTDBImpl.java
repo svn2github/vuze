@@ -25,7 +25,6 @@ package com.aelitis.azureus.core.dht.db.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
@@ -75,9 +74,11 @@ DHTDBImpl
 	
 	private static final long	MAX_TOTAL_SIZE	= 4*1024*1024;
 	
-	protected long		total_size;
-	protected long		total_values;
-	protected long		total_keys;
+	private long		total_size;
+	private long		total_values;
+	private long		total_keys;
+	
+	private boolean force_original_republish;
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
@@ -138,7 +139,22 @@ DHTDBImpl
 
 						logger.log( "Republish of cached mappings completed in " + (end-start) + ": " +
 									"values = " + stats[0] + ", keys = " + stats[1] + ", ops = " + stats[2]);
+						
+						if ( force_original_republish ){
+							
+							force_original_republish	= false;
+							
+							logger.log( "Force republish of original mappings due to router change starts" );
+							
+							start 	= SystemTime.getCurrentTime();
+							
+							int stats2 = republishOriginalMappings();
+							
+							end 	= SystemTime.getCurrentTime();
 
+							logger.log( "Force republish of original mappings due to router change completed in " + (end-start) + ": " +
+										"values = " + stats2 );
+						}
 					}
 				});
 	}
@@ -149,6 +165,10 @@ DHTDBImpl
 		DHTControl		_control )
 	{
 		control			= _control;
+		
+			// trigger an "original value republish" if router has changed
+		
+		force_original_republish = router != null;
 		
 		router			= control.getRouter();
 		local_contact	= control.getTransport().getLocalContact(); 
