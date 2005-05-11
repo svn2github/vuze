@@ -39,14 +39,14 @@ public class ConsoleView extends AbstractIView {
   private static final int MAX_LINES = 1024 + PREFERRED_LINES;
   private static final int COLORS_NUM = 4;
 
-  private static final List logHistory;
+  // private static final List logHistory;
   private static final SimpleDateFormat dateFormatter;
   private static final FieldPosition formatPos;
 
   private static final AEMonitor classMon = new AEMonitor("ConsoleView:S");
 
   static {
-      logHistory = new LinkedList();
+      // logHistory = new LinkedList();
       dateFormatter = new SimpleDateFormat("[h:mm:ss]  ");
       formatPos = new FieldPosition(0);
   }
@@ -84,6 +84,7 @@ public class ConsoleView extends AbstractIView {
           }
 
           // prefill history text
+		  /*
           Iterator iter = logHistory.iterator();
           for(int i = 0; i < logHistory.size(); i++)
           {
@@ -101,7 +102,8 @@ public class ConsoleView extends AbstractIView {
                   }
               });
           }
-
+          */
+		  
           // reset state
           ConsoleView.instance.consoleText.addDisposeListener(new DisposeListener() {
               public void widgetDisposed(DisposeEvent event)
@@ -153,7 +155,7 @@ public class ConsoleView extends AbstractIView {
     return MessageText.getString("ConsoleView.title.full"); //$NON-NLS-1$
   }
 
-  private void doLog(final LogInfo info, final boolean supressScrolling) {
+  private void doLog(final int color,final String text,final Date timestamp, final boolean supressScrolling) {
     if(display == null || display.isDisposed())
       return;
     display.asyncExec(new AERunnable() {
@@ -169,12 +171,12 @@ public class ConsoleView extends AbstractIView {
           consoleText.replaceTextRange(0, consoleText.getOffsetAtLine(PREFERRED_LINES), ""); //$NON-NLS-1$
 
         StringBuffer buf = new StringBuffer();
-        dateFormatter.format(info.timestamp, buf, formatPos);
-        buf.append(info.text).append('\n');
+        dateFormatter.format(timestamp, buf, formatPos);
+        buf.append(text).append('\n');
 
         consoleText.append(String.valueOf(buf));
         nbLines = consoleText.getLineCount();
-        consoleText.setLineBackground(nbLines - 2, 1, colors[info.color]);
+        consoleText.setLineBackground(nbLines - 2, 1, colors[color]);
         if (autoScroll)  consoleText.setSelection(consoleText.getText().length());
       }
     });
@@ -186,6 +188,7 @@ public class ConsoleView extends AbstractIView {
    * the first element in the list is removed before the append happens.</p>
    * @param info Log info
    */
+  /*
   private static void appendLogHistory(LogInfo info)
   {
       try
@@ -202,7 +205,8 @@ public class ConsoleView extends AbstractIView {
           classMon.exit();
       }
   }
-
+  */
+  
   /**
    * Event handler used to remember the logging history of a session and logs it on screen when the view is opened
    */
@@ -215,12 +219,13 @@ public class ConsoleView extends AbstractIView {
       {
           if (color >= 0 && color < COLORS_NUM)
           {
-              LogInfo info = new LogInfo(color, text, new Date());
-              appendLogHistory(info);
+             //  appendLogHistory(info);
 
               if(ConsoleView.instance != null && ConsoleView.instance.display != null && !ConsoleView.instance.display.isDisposed())
               {
-                  ConsoleView.instance.doLog(info, false);
+		          // LogInfo info = new LogInfo(color, text, new Date());
+					 
+                  ConsoleView.instance.doLog(color,text,new Date(), false);
               }
           }
       }
@@ -229,18 +234,14 @@ public class ConsoleView extends AbstractIView {
   /**
    * Basic immutable log info model to store color code, timestamp, and the message contents
    */
+  /*
   private static class LogInfo
   {
       private final int color;
       private final String text;
       private final Date timestamp;
 
-      /**
-       * Creates a new LogInfo
-       * @param color Color code (see ConsoleView.colors)
-       * @param text Log message
-       * @param timestamp The timestamp when the log is logged
-       */
+  
       public LogInfo(int color, String text, Date timestamp)
       {
           this.color = color;
@@ -248,4 +249,5 @@ public class ConsoleView extends AbstractIView {
           this.timestamp = timestamp;
       }
   }
+*/
 }
