@@ -250,7 +250,7 @@ LGLoggerImpl
 	public static boolean
 	isLoggingOn()
 	{
-		return( listener != null || log_to_file );
+		return is_logger_enabled && (listener != null || log_to_file);
 	}
   
   
