@@ -51,8 +51,8 @@ NewTorrentWizard
 	extends Wizard 
 {
 
-	static String	default_open_dir = COConfigurationManager.getStringParameter( "CreateTorrent.default.open", "" );
-	static String	default_save_dir = COConfigurationManager.getStringParameter( "CreateTorrent.default.save", "" );
+	static String	default_open_dir 	= COConfigurationManager.getStringParameter( "CreateTorrent.default.open", "" );
+	static String	default_save_dir 	= COConfigurationManager.getStringParameter( "CreateTorrent.default.save", "" );
 	
 	static{
 			// default the default to the "save torrents to" location
@@ -81,8 +81,10 @@ NewTorrentWizard
   boolean computed_piece_size = true;
   long	  manual_piece_size;
   
-  boolean useMultiTracker 	= false;
-  boolean addOtherHashes	= true;
+  boolean 			useMultiTracker = false;
+  
+  private boolean 	addOtherHashes	= 	COConfigurationManager.getBooleanParameter( "CreateTorrent.default.addhashes", true );
+
   
   String multiTrackerConfig = "";
   List trackers = new ArrayList();
@@ -218,8 +220,18 @@ NewTorrentWizard
   	return( manual_piece_size );
   }
   
+  protected void
+  setAddOtherHashes(
+	boolean	o )
+  {
+	  addOtherHashes = o;
+	  
+	  COConfigurationManager.setParameter( "CreateTorrent.default.addhashes", addOtherHashes );
+		 
+  }
+  
   protected boolean
-  getAddHashes()
+  getAddOtherHashes()
   {
   	return( addOtherHashes );
   }

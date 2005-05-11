@@ -133,7 +133,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       	
         _wizard.creator = 
       		TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(
-      					f, url, _wizard.getAddHashes());
+      					f, url, _wizard.getAddOtherHashes());
       	
         _wizard.creator.addListener( this );
       	
@@ -142,7 +142,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       }else{
       	TOTorrentCreator c = 
       		TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(
-      					f, url, _wizard.getAddHashes(), _wizard.getPieceSizeManual());
+      					f, url, _wizard.getAddOtherHashes(), _wizard.getPieceSizeManual());
       	
     	c.addListener( this );
       	

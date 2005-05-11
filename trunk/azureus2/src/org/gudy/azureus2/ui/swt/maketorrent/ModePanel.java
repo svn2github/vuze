@@ -269,10 +269,10 @@ public class ModePanel extends AbstractWizardPanel {
     btnExtraHashes.addListener(SWT.Selection, new Listener() {
 
     	public void handleEvent(Event arg0) {
-    		((NewTorrentWizard) wizard).addOtherHashes = btnExtraHashes.getSelection();
+    		((NewTorrentWizard) wizard).setAddOtherHashes( btnExtraHashes.getSelection());
     	}
     });
-    btnExtraHashes.setSelection(((NewTorrentWizard) wizard).addOtherHashes);
+    btnExtraHashes.setSelection(((NewTorrentWizard) wizard).getAddOtherHashes());
 
     // add another panel due to control oversize issues
     // the "hack" is staying until a more satisfactory solution can be found
