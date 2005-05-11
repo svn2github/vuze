@@ -83,7 +83,7 @@ NewTorrentWizard
   
   boolean 			useMultiTracker = false;
   
-  private boolean 	addOtherHashes	= 	COConfigurationManager.getBooleanParameter( "CreateTorrent.default.addhashes", true );
+  private boolean 	addOtherHashes	= 	COConfigurationManager.getBooleanParameter( "CreateTorrent.default.addhashes", false );
 
   
   String multiTrackerConfig = "";

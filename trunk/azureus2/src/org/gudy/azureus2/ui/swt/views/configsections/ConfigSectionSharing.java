@@ -97,7 +97,7 @@ public class ConfigSectionSharing implements ConfigSectionSWT {
     	// row
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(gSharing, "Sharing Add Hashes", true, 
+    new BooleanParameter(gSharing, "Sharing Add Hashes", false, 
                          "wizard.createtorrent.extrahashes").setLayoutData( gridData );
     
 
