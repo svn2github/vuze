@@ -197,7 +197,7 @@ LGLoggerImpl
       		log_types[i] |= true ? (1 << j) : 0;
     	}
 	  } else {
-  		log_to_file 	= COConfigurationManager.getBooleanParameter("Logging Enable", false );
+  		log_to_file = is_logger_enabled ? COConfigurationManager.getBooleanParameter("Logging Enable", false ) : false;
   		
   		log_dir			= COConfigurationManager.getStringParameter("Logging Dir", "" );
   		
@@ -248,7 +248,7 @@ LGLoggerImpl
 	public static boolean
 	isLoggingOn()
 	{
-		return( listener != null || log_to_file );
+		return is_logger_enabled && (listener != null || log_to_file);
 	}
   
   
@@ -358,7 +358,7 @@ LGLoggerImpl
 	logToFile(
 		String	str )
 	{
-		if ( log_to_file ){
+		if ( is_logger_enabled && log_to_file ){
 
 			synchronized( LGLogger.class ){
 			
