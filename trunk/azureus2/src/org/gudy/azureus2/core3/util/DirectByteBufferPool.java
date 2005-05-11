@@ -26,7 +26,7 @@ DirectByteBufferPool
 
 	protected static final boolean 	DEBUG_TRACK_HANDEDOUT 	= AEDiagnostics.TRACE_DBB_POOL_USAGE;
 	protected static final boolean 	DEBUG_PRINT_MEM 		= AEDiagnostics.PRINT_DBB_POOL_USAGE;
-	protected static final int		DEBUG_PRINT_TIME		= 300*1000;
+	protected static final int		DEBUG_PRINT_TIME		= 60*1000;
 	
   // There is no point in allocating buffers smaller than 4K,
   // as direct ByteBuffers are page-aligned to the underlying
@@ -53,10 +53,19 @@ DirectByteBufferPool
   
   private final Object poolsLock = new Object();
 
+  private static final int	SLICE_ENTRY_SIZE 			= 	16;		// bytes per entry
+  private static final int	SLICE_ENTRIES_ALLOC_SIZE	=  	1000;	// number of entries allocated per go
+  private static final int	SLICE_ALLOC_MAX				= 	10;		// max allocs
+  
+  private final List		slice_entries			= new LinkedList();
+  private int				slice_allocs			= 0;
+  private long				slice_use_count			= 0;
+  
   private final Timer compactionTimer;
   
   private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents, hence IdentityHashMap)
-  
+  private final Map	size_counts	= new TreeMap();
+ 
   private static final long COMPACTION_CHECK_PERIOD = 2*60*1000; //2 min
   private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
   
@@ -198,50 +207,114 @@ DirectByteBufferPool
    * Retrieve an appropriate buffer from the free pool, or
    * create a new one if the pool is empty.
    */
-  private DirectByteBuffer 
-  getBufferHelper(
-  	byte	_allocator,
-  	int 	_length) 
-  {
-    
-    Integer reqVal = new Integer(_length);
-    
-    //loop through the buffer pools to find a buffer big enough
-    
-    Iterator it = buffersMap.keySet().iterator();
-    
-    while (it.hasNext()) {
-    	
-      Integer keyVal = (Integer)it.next();
-
-      	//check if the buffers in this pool are big enough
+  
+  
+  	private DirectByteBuffer 
+  	getBufferHelper(
+		byte	_allocator,
+		int 	_length) 
+	{
+		ByteBuffer buff	= null;
       
-      if (reqVal.compareTo(keyVal) <= 0) {
-      	
-   
-        ArrayList bufferPool = (ArrayList)buffersMap.get(keyVal);
-            
-        ByteBuffer buff;
-        
-        synchronized ( poolsLock ) { 
-        
-        	//make sure we don't remove a buffer when running compaction
-        	//if there are no free buffers in the pool, create a new one.
-        	//otherwise use one from the pool
-        	
-          if (bufferPool.isEmpty()) {
-          	
-            buff = allocateNewBuffer(keyVal.intValue());
-            
-          }else{
-          	
-            synchronized ( bufferPool ) {
-            	
-              buff = (ByteBuffer)bufferPool.remove(bufferPool.size() - 1);
-            }
-          }
-        }
-
+		if ( _length <= SLICE_ENTRY_SIZE ){
+		
+			synchronized( slice_entries ){
+				
+				if ( slice_entries.size() > 0 ){
+					
+					buff = (ByteBuffer)slice_entries.remove(0);
+					
+					slice_use_count++;
+					
+				}else{
+					
+					if ( slice_allocs < SLICE_ALLOC_MAX ){
+						
+						ByteBuffer	chunk = ByteBuffer.allocateDirect( SLICE_ENTRY_SIZE * SLICE_ENTRIES_ALLOC_SIZE );
+						
+						slice_allocs++;
+						
+						for (int i=0;i<SLICE_ENTRIES_ALLOC_SIZE;i++){
+							
+							chunk.limit((i+1)*SLICE_ENTRY_SIZE);
+							chunk.position(i*SLICE_ENTRY_SIZE);
+							
+							ByteBuffer	slice = chunk.slice();
+							
+							if ( i == 0 ){
+								
+								buff = slice;
+								
+								slice_use_count++;
+								
+							}else{
+								
+								slice_entries.add( slice );
+							}
+						}
+					}else{
+						
+						if ( slice_allocs == SLICE_ALLOC_MAX ){
+							
+							slice_allocs++;
+							
+							Debug.out( "Run out of slice space, reverting to normal allocation" );
+						}
+					}
+				}
+			}
+		}
+		
+		if ( buff == null ){
+		
+			Integer reqVal = new Integer(_length);
+	    
+				//loop through the buffer pools to find a buffer big enough
+	    
+			Iterator it = buffersMap.keySet().iterator();
+	    
+			while (it.hasNext()) {
+	    	
+				Integer keyVal = (Integer)it.next();
+	
+					//	check if the buffers in this pool are big enough
+	      
+				if (reqVal.compareTo(keyVal) <= 0) {
+	      	
+	   
+					ArrayList bufferPool = (ArrayList)buffersMap.get(keyVal);
+	            
+					synchronized ( poolsLock ) { 
+	        
+						//	make sure we don't remove a buffer when running compaction
+						//if there are no free buffers in the pool, create a new one.
+						//otherwise use one from the pool
+	        	
+						if (bufferPool.isEmpty()) {
+	          	
+							buff = allocateNewBuffer(keyVal.intValue());
+	            
+						}else{
+	          	
+							synchronized ( bufferPool ) {
+	            	
+								buff = (ByteBuffer)bufferPool.remove(bufferPool.size() - 1);
+							}
+						}
+					}
+			
+					break;
+				}
+			}
+		}
+		
+		if ( buff == null ){
+					      
+		    Debug.out("Unable to find an appropriate buffer pool");
+		    
+		    throw( new RuntimeException( "Unable to find an appropriate buffer pool" ));
+		}
+		
         	// clear doesn't actually zero the data, it just sets pos to 0 etc.
         
         buff.clear();   //scrub the buffer
@@ -256,6 +329,19 @@ DirectByteBufferPool
         	
         	synchronized( handed_out ){
         	        	
+				int	trim = ((_length+15)/16)*16;
+				
+				Long count = (Long)size_counts.get(new Integer(trim));
+				
+				if ( count == null ){
+					
+					size_counts.put( new Integer( trim ), new Long(1));
+					
+				}else{
+					
+					size_counts.put( new Integer( trim), new Long( count.longValue() + 1 ));
+				}
+				
         		if ( handed_out.put( buff, dbb ) != null ){
           		
         			Debug.out( "buffer handed out twice!!!!");
@@ -270,37 +356,41 @@ DirectByteBufferPool
         // addInUse( dbb.capacity() );
         
         return dbb;
-      }
     }
-    
-    	//we should never get here
-      
-    Debug.out("Unable to find an appropriate buffer pool");
-    
-    throw( new RuntimeException( "Unable to find an appropriate buffer pool" ));	 
-  }
   
   
-  /**
-   * Return the given buffer to the appropriate pool.
-   */
-  private void 
-  free(ByteBuffer _buffer) 
-  {
-    Integer buffSize = new Integer(_buffer.capacity());
-    
-    ArrayList bufferPool = (ArrayList)buffersMap.get(buffSize);
-    
-    if (bufferPool != null) {
-      //no need to sync around 'poolsLock', as adding during compaction is ok
-      synchronized ( bufferPool ) {
-        bufferPool.add(_buffer);
-      }
-    }
-    else {
-      Debug.out("Invalid buffer given; could not find proper buffer pool");
-    }
-  }
+	  /**
+	   * Return the given buffer to the appropriate pool.
+	   */
+	
+	private void 
+	free(
+		ByteBuffer _buffer ) 
+	{
+		int	capacity = _buffer.capacity();
+		
+		if ( capacity <= SLICE_ENTRY_SIZE ){
+			
+			synchronized( slice_entries ){
+				
+				slice_entries.add( 0, _buffer );
+			}
+		}else{
+		    Integer buffSize = new Integer(capacity);
+		    
+		    ArrayList bufferPool = (ArrayList)buffersMap.get(buffSize);
+		    
+		    if (bufferPool != null) {
+		      //no need to sync around 'poolsLock', as adding during compaction is ok
+		      synchronized ( bufferPool ) {
+		        bufferPool.add(_buffer);
+		      }
+		    }
+		    else {
+		      Debug.out("Invalid buffer given; could not find proper buffer pool");
+		    }
+		}
+	}
   
   
   /**
@@ -615,6 +705,21 @@ DirectByteBufferPool
 	  			}
 	  			
 	  			System.out.println();
+				
+				it = size_counts.entrySet().iterator();
+				
+				String	str = "";
+					
+				while( it.hasNext()){
+					
+					Map.Entry	entry = (Map.Entry)it.next();
+					
+					str += (str.length()==0?"":",") + entry.getKey() + "=" + entry.getValue();
+				}
+				
+				System.out.println( str );
+				
+				System.out.println( "slices: free=" +slice_entries.size()+", alloc=" + (slice_allocs*SLICE_ENTRIES_ALLOC_SIZE) + ", used=" +slice_use_count );
 	  		}
   		}
   	}
