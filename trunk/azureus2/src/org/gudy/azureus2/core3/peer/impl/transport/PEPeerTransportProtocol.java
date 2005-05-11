@@ -618,10 +618,10 @@ PEPeerTransportProtocol
 		//In case we're in super seed mode, we don't send our bitfield
 		if ( manager.isSuperSeedMode() ) return;
     
-    ArrayList lazies = new ArrayList();
+    ArrayList lazies = null;
     
     //create bitfield
-		ByteBuffer buffer = ByteBuffer.allocate( (manager.getPiecesNumber() + 7) / 8 );
+		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, (manager.getPiecesNumber() + 7) / 8 );
 		
 		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
 		
@@ -633,6 +633,7 @@ PEPeerTransportProtocol
 			if ( pieces[i].getDone()) {
         if( ENABLE_LAZY_BITFIELD ) {
           if( i < 8 || i >= (pieces.length - (pieces.length % 8)) ) {  //first and last bytes
+            if( lazies == null ) lazies = new ArrayList();
             lazies.add( new Integer( i ) );  //send as a Have message instead
           }
           else {
@@ -643,21 +644,23 @@ PEPeerTransportProtocol
           bToSend += 1;
         }
 			}
-			if ( (i % 8) == 7 ) buffer.put( (byte)bToSend );
+			if ( (i % 8) == 7 ) buffer.put( DirectByteBuffer.SS_BT, (byte)bToSend );
 		}
 		if ( (i % 8) != 0 ) {
 			bToSend = bToSend << (8 - (i % 8));
-			buffer.put( (byte)bToSend );
+			buffer.put( DirectByteBuffer.SS_BT, (byte)bToSend );
 		}
 
-    buffer.flip();
+    buffer.flip( DirectByteBuffer.SS_BT );
     
-    connection.getOutgoingMessageQueue().addMessage( new BTBitfield( new DirectByteBuffer( buffer ) ), false );
+    connection.getOutgoingMessageQueue().addMessage( new BTBitfield( buffer ), false );
     
-    for( int x=0; x < lazies.size(); x++ ) {
-      Integer num = (Integer)lazies.get( x );
+    if( lazies != null ) {
+      for( int x=0; x < lazies.size(); x++ ) {
+        Integer num = (Integer)lazies.get( x );
       
-      connection.getOutgoingMessageQueue().addMessage( new BTHave( num.intValue() ), false );
+        connection.getOutgoingMessageQueue().addMessage( new BTHave( num.intValue() ), false );
+      }
     }
                                    
 	}
@@ -873,6 +876,7 @@ PEPeerTransportProtocol
 	    	}
 	    	BTRequest msg = new BTRequest( request.getPieceNumber(), request.getOffset(), request.getLength() );
 	    	connection.getOutgoingMessageQueue().removeMessage( msg, false );
+        msg.destroy();
 		}
 		
 		protected void 

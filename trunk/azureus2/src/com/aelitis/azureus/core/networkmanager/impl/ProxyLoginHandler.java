@@ -278,7 +278,7 @@ public class ProxyLoginHandler {
   
   
   private ByteBuffer[] createSocks4Message() throws Exception {
-    ByteBuffer handshake = ByteBuffer.allocate( 256 + mapped_ip.length() );
+    ByteBuffer handshake = ByteBuffer.allocate( 256 + mapped_ip.length() );   //TODO convert to direct?
 
     handshake.put( (byte)4 ); // socks 4(a)
     handshake.put( (byte)1 ); // command = CONNECT
@@ -299,13 +299,13 @@ public class ProxyLoginHandler {
     
     handshake.flip();
    
-    return new ByteBuffer[] { handshake, ByteBuffer.allocate( 8 ) };
+    return new ByteBuffer[] { handshake, ByteBuffer.allocate( 8 ) };     //TODO convert to direct?
   }
   
   
   
   private ByteBuffer[] createSocks4aMessage() {
-    ByteBuffer handshake = ByteBuffer.allocate( 256 + mapped_ip.length() );
+    ByteBuffer handshake = ByteBuffer.allocate( 256 + mapped_ip.length() );   //TODO convert to direct?
 
     handshake.put( (byte)4 ); // socks 4(a)
     handshake.put( (byte)1 ); // command = CONNECT
@@ -325,14 +325,14 @@ public class ProxyLoginHandler {
 
     handshake.flip();
      
-    return new ByteBuffer[] { handshake, ByteBuffer.allocate( 8 ) };
+    return new ByteBuffer[] { handshake, ByteBuffer.allocate( 8 ) };   //TODO convert to direct?
   }
   
   
    
   
   private ByteBuffer[] createSocks5Message() {
-    ByteBuffer handshake = ByteBuffer.allocate( 256 + mapped_ip.length() );
+    ByteBuffer handshake = ByteBuffer.allocate( 256 + mapped_ip.length() );   //TODO convert to direct?
 
     if( socks5_handshake_phase == 0 ) {  // say hello
       //System.out.println( "socks5 write phase 0" );
@@ -345,7 +345,7 @@ public class ProxyLoginHandler {
       handshake.flip();
       socks5_handshake_phase = 1;
 
-      return new ByteBuffer[] { handshake, ByteBuffer.allocate( 2 ) };
+      return new ByteBuffer[] { handshake, ByteBuffer.allocate( 2 ) };   //TODO convert to direct?
     }
     
     if( socks5_handshake_phase == 1 ) {  // user/password auth
@@ -360,7 +360,7 @@ public class ProxyLoginHandler {
       handshake.flip();
       socks5_handshake_phase = 2;
 
-      return new ByteBuffer[] { handshake, ByteBuffer.allocate( 2 ) };
+      return new ByteBuffer[] { handshake, ByteBuffer.allocate( 2 ) };   //TODO convert to direct?
     }
     
     if( socks5_handshake_phase == 2 ) {  // request
@@ -394,7 +394,7 @@ public class ProxyLoginHandler {
       handshake.flip();
       socks5_handshake_phase = 3;
 
-      return new ByteBuffer[] { handshake, ByteBuffer.allocate( 5 ) };
+      return new ByteBuffer[] { handshake, ByteBuffer.allocate( 5 ) };   //TODO convert to direct?
     }
     
     //System.out.println( "socks5 write phase 3..." );
@@ -402,7 +402,7 @@ public class ProxyLoginHandler {
     //reply has to be processed in two parts as it has variable length component at the end
     //socks5_handshake_phase == 3, part two
     socks5_handshake_phase = 4;
-    return new ByteBuffer[] { null, ByteBuffer.allocate( socks5_address_length ) };    
+    return new ByteBuffer[] { null, ByteBuffer.allocate( socks5_address_length ) };       //TODO convert to direct?
   }
   
   

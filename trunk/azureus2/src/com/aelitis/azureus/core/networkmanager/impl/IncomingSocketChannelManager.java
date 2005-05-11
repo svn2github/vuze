@@ -400,7 +400,7 @@ public class IncomingSocketChannelManager {
     
     private IncomingConnection( SocketChannel channel, int buff_size ) {
       this.channel = channel;
-      this.buffer = ByteBuffer.allocate( buff_size );
+      this.buffer = ByteBuffer.allocate( buff_size );   //TODO convert to direct?
       this.initial_connect_time = SystemTime.getCurrentTime();
     }
   }

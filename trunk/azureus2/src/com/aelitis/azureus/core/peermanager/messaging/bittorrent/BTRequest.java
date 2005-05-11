@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
-import java.nio.ByteBuffer;
-
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
@@ -49,7 +47,7 @@ public class BTRequest implements BTMessage {
     this.length = length;
     this.hashcode = piece_number + piece_offset + length;
     
-    buffer = new DirectByteBuffer( ByteBuffer.allocate( 12 ) );  //MUST BE NON-DIRECT!
+    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 12 );
     buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
     buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
     buffer.putInt( DirectByteBuffer.SS_BT, length );
@@ -119,7 +117,9 @@ public class BTRequest implements BTMessage {
   }
   
   
-  public void destroy() { /*nothing*/ } 
+  public void destroy() {
+    if( buffer != null )  buffer.returnToPool();
+  } 
   
   
   //used for removing individual requests from the message queue

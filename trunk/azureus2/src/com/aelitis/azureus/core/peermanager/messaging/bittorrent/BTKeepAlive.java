@@ -23,8 +23,6 @@
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
 
-import java.nio.ByteBuffer;
-
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.RawMessage;
@@ -69,7 +67,7 @@ public class BTKeepAlive implements BTMessage, RawMessage {
   // raw message
   public DirectByteBuffer[] getRawData() {
     if( buffer == null ) {
-      DirectByteBuffer dbb = new DirectByteBuffer( ByteBuffer.allocate( 4 ) );
+      DirectByteBuffer dbb = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_MSG, 4 );
       dbb.putInt( DirectByteBuffer.SS_BT, 0 );
       dbb.flip( DirectByteBuffer.SS_BT );
       buffer =  new DirectByteBuffer[]{ dbb };
@@ -83,7 +81,11 @@ public class BTKeepAlive implements BTMessage, RawMessage {
  
   public Message[] messagesToRemove() {  return null;  }
 
-  public void destroy() {  }
+  public void destroy() {
+    if( buffer != null ) {
+      buffer[0].returnToPool();
+    }
+  }
 
   public Message getBaseMessage() {  return this;  }
   

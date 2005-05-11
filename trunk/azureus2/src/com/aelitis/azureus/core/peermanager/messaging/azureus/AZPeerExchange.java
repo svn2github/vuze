@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
-import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -69,7 +68,9 @@ public class AZPeerExchange implements AZMessage {
       raw_payload = new byte[0];
     }
     
-    this.buffer = new DirectByteBuffer( ByteBuffer.wrap( raw_payload ) );
+    this.buffer = DirectByteBufferPool.getBuffer( bss, raw_payload.length );
+    this.buffer.put( bss, raw_payload );
+    this.buffer.flip( bss );
     
     if( raw_payload.length > 1000 )  System.out.println( "Generated AZPeerExchange size = " +raw_payload.length+ " bytes" );
 
@@ -183,5 +184,8 @@ public class AZPeerExchange implements AZMessage {
   }
   
   
-  public void destroy() { /*nothing*/ }
+  public void destroy() {
+    if( buffer != null )  buffer.returnToPool();
+  }
+  
 }

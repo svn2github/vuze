@@ -158,7 +158,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
       pbuff_read = payload_buffer == null ? 0 : payload_buffer.position( SS );
     }
     
-    ByteBuffer unused = ByteBuffer.allocate( lbuff_read + pbuff_read );
+    ByteBuffer unused = ByteBuffer.allocate( lbuff_read + pbuff_read );   //TODO convert to direct?
     
     length_buffer.flip( SS );
     unused.put( length_buffer.getBuffer( SS ) );

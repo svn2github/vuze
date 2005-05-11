@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 
-import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -42,7 +41,7 @@ public class BTPiece implements BTMessage {
   
   
   public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
-    DirectByteBuffer header = new DirectByteBuffer( ByteBuffer.allocate( 8 ) );
+    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_MSG, 8 );
     header.putInt( DirectByteBuffer.SS_BT, piece_number );
     header.putInt( DirectByteBuffer.SS_BT, piece_offset );
     header.flip( DirectByteBuffer.SS_BT );
@@ -109,6 +108,9 @@ public class BTPiece implements BTMessage {
   }
   
   public void destroy() {
-    if( buffer != null )  buffer[1].returnToPool();
+    if( buffer != null ) {
+      buffer[0].returnToPool();
+      buffer[1].returnToPool();
+    }
   }
 }
