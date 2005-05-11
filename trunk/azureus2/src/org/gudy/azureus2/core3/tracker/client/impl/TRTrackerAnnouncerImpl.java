@@ -232,18 +232,11 @@ TRTrackerAnnouncerImpl
 					byte[]	peer_peer_id	= getAnonymousPeerId( peer_ip_address, peer_port );
 						
 					//System.out.println( "recovered " + ip_address + ":" + port );
+
+          tracker_peer_cache.put( 
+              peer_ip_address, 
+              new TRTrackerAnnouncerResponsePeerImpl(peer_source, peer_peer_id, peer_ip_address, peer_port ));
 					
-					if ( PeerUtils.ignorePeerPort( peer_port )){
-						
-				    		LGLogger.log(
-			    				componentID, evtFullTrace, LGLogger.INFORMATION, 
-			    				"Ignoring " + peer_ip_address + ":" + peer_port + " as peer port is in ignore list" );
-	
-					}else{
-						tracker_peer_cache.put( 
-							peer_ip_address, 
-							new TRTrackerAnnouncerResponsePeerImpl(peer_source, peer_peer_id, peer_ip_address, peer_port ));
-					}
 				}
 				
 				return( tracker_peer_cache.size());

@@ -2047,20 +2047,11 @@ TRTrackerBTAnnouncerImpl
 								
 									peer_peer_id = (byte[])s_peerid ; 
 								}
-								
-								if ( PeerUtils.ignorePeerPort( peer_port )){
-								
-			 			    		LGLogger.log(
-						    				componentID, evtFullTrace, LGLogger.INFORMATION, 
-						    				"Ignoring " + ip + ":" + peer_port + " as peer port is in ignore list" );
+																	
+                LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "NON-COMPACT PEER: ip=" +ip+ " port=" +peer_port);
 
-								}else{
-									
-						    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-						    				"NON-COMPACT PEER: ip=" +ip+ " port=" +peer_port);
-
-									valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
-								}
+                valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
+								
 							} 
 						}
 				    }else if ( meta_peers_peek instanceof byte[] ){
@@ -2089,18 +2080,10 @@ TRTrackerBTAnnouncerImpl
                 
 				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
-				    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-				    				"COMPACT PEER: ip=" +ip+ " port=" +peer_port);
-							
-                			if ( PeerUtils.ignorePeerPort( peer_port )){
-					
-        			    		LGLogger.log(
-        			    				componentID, evtFullTrace, LGLogger.INFORMATION, 
-    				    				"    Ignoring as peer port is in ignore list" );
-    	
-                			}else{
-                				valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
-                			}
+				    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "COMPACT PEER: ip=" +ip+ " port=" +peer_port);
+
+                valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
+                			
 				    	}
 				    }else{
 						

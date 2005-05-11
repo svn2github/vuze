@@ -648,6 +648,11 @@ PEPeerControlImpl
       return false;
     }
 
+    if( PeerUtils.ignorePeerPort( port ) ) {
+      LGLogger.log( "Skipping connect with " +address+ ":" +port+ " as peer port is in ignore list." );
+      return false;
+    }
+    
     //start the connection
     PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, port );
     
