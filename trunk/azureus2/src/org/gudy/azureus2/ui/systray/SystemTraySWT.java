@@ -346,8 +346,11 @@ public class SystemTraySWT {
     toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDataSendRate() + mainWindow.getGlobalManager().getStats().getProtocolSendRate()));
     
     
-    trayItem.setToolTipText(toolTip.toString());      
-    trayItem.setImage(ImageRepository.getImage("azureus"));   
+    trayItem.setToolTipText(toolTip.toString());    
+    
+    //Why should we refresh the image? it never changes ...
+    //and is a memory bottleneck for some non-obvious reasons.
+    //trayItem.setImage(ImageRepository.getImage("azureus"));   
     trayItem.setVisible(true);    
   }
   
