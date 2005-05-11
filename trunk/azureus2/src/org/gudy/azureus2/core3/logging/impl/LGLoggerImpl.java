@@ -52,7 +52,8 @@ LGLoggerImpl
 	private static List				alert_history	= new ArrayList();
 	
 	
-	private static boolean			log_to_file		= false;
+	private static boolean log_to_file = false;
+  private static boolean is_logger_enabled = false;
   
     private static boolean      log_to_stdout = System.getProperty("azureus.log.stdout") != null;
     private static PrintStream  old_system_out = null;
@@ -63,20 +64,7 @@ LGLoggerImpl
 	private static String			log_dir			= "";
 	private static int				log_file_max	= 1;		// MB
 	private static int        		log_types[] = new int[components.length];
-	
-  
-  private static boolean is_logger_enabled = false;
-  static{
-    is_logger_enabled = COConfigurationManager.getBooleanParameter( "Logger.Enabled" );
-    COConfigurationManager.addParameterListener( "Logger.Enabled", new ParameterListener() {
-      public void parameterChanged( String parameterName ) {
-        is_logger_enabled = COConfigurationManager.getBooleanParameter( "Logger.Enabled" );
-      }
-    });
-    
-  }
-  
-  
+
   
   
   
@@ -197,7 +185,9 @@ LGLoggerImpl
       		log_types[i] |= true ? (1 << j) : 0;
     	}
 	  } else {
-  		log_to_file = is_logger_enabled ? COConfigurationManager.getBooleanParameter("Logging Enable", false ) : false;
+      is_logger_enabled = COConfigurationManager.getBooleanParameter( "Logger.Enabled" );
+      
+      log_to_file 	= COConfigurationManager.getBooleanParameter( "Logging Enable" );
   		
   		log_dir			= COConfigurationManager.getStringParameter("Logging Dir", "" );
   		
@@ -207,6 +197,18 @@ LGLoggerImpl
         for (int j = 0; j <= 3; j++)
       		log_types[i] |= COConfigurationManager.getBooleanParameter("bLog" + components[i] + "-" + j) ? (1 << j) : 0;
     	}
+      
+      COConfigurationManager.addParameterListener( "Logger.Enabled", new ParameterListener() {
+        public void parameterChanged( String parameterName ) {
+          is_logger_enabled = COConfigurationManager.getBooleanParameter( "Logger.Enabled" );
+        }
+      });
+      
+      COConfigurationManager.addParameterListener( "Logging Enable", new ParameterListener() {
+        public void parameterChanged( String parameterName ) {
+          log_to_file = COConfigurationManager.getBooleanParameter( "Logging Enable" );
+        }
+      });
 		}
 		
 	}
@@ -248,7 +250,7 @@ LGLoggerImpl
 	public static boolean
 	isLoggingOn()
 	{
-		return is_logger_enabled && (listener != null || log_to_file);
+		return( listener != null || log_to_file );
 	}
   
   
@@ -357,7 +359,7 @@ LGLoggerImpl
 	protected static void
 	logToFile(
 		String	str )
-	{
+	{    
 		if ( is_logger_enabled && log_to_file ){
 
 			synchronized( LGLogger.class ){
