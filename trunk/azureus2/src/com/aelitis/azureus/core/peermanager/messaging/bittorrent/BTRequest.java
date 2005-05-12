@@ -34,7 +34,9 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * NOTE: Overrides equals()
  */
 public class BTRequest implements BTMessage {
-  private final DirectByteBuffer buffer;
+  private DirectByteBuffer buffer = null;
+  private String description = null;
+  
   private final int piece_number;
   private final int piece_offset;
   private final int length;
@@ -46,26 +48,8 @@ public class BTRequest implements BTMessage {
     this.piece_offset = piece_offset;
     this.length = length;
     this.hashcode = piece_number + piece_offset + length;
-    
-    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 12 );
-    buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
-    buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
-    buffer.putInt( DirectByteBuffer.SS_BT, length );
-    buffer.flip( DirectByteBuffer.SS_BT );
   }
-  
-  
-  /**
-   * Used for creating a lightweight message-type comparison message.
-   */
-  public BTRequest() {
-    buffer = null;
-    piece_number = -1;
-    piece_offset = -1;
-    length = -1;
-    hashcode = -1;
-  }
-  
+
   
   public int getPieceNumber() {  return piece_number;  }
   
@@ -82,10 +66,26 @@ public class BTRequest implements BTMessage {
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
   public String getDescription() {
-    return BTMessage.ID_BT_REQUEST + " piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
+    if( description == null ) {
+      description = BTMessage.ID_BT_REQUEST + " piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
+    }
+    
+    return description;
   }
   
-  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{ buffer };  }
+  
+  public DirectByteBuffer[] getData() {
+    if( buffer == null ) {
+      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 12 );
+      buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
+      buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
+      buffer.putInt( DirectByteBuffer.SS_BT, length );
+      buffer.flip( DirectByteBuffer.SS_BT );
+    }
+    
+    return new DirectByteBuffer[]{ buffer };
+  }
+  
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {   
     if( data == null ) {

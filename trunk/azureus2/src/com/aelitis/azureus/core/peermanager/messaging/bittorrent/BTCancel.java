@@ -33,8 +33,8 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent cancel message.
  */
 public class BTCancel implements BTMessage {
-  private final DirectByteBuffer buffer;
-  private final String description;
+  private DirectByteBuffer buffer = null;
+  private String description = null;
   
   private final int piece_number;
   private final int piece_offset;
@@ -45,13 +45,6 @@ public class BTCancel implements BTMessage {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
     this.length = length;
-    description = BTMessage.ID_BT_CANCEL + " piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
-    
-    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 12 );
-    buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
-    buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
-    buffer.putInt( DirectByteBuffer.SS_BT, length );
-    buffer.flip( DirectByteBuffer.SS_BT );
   }
   
   
@@ -70,9 +63,27 @@ public class BTCancel implements BTMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  public String getDescription() {  return description;  }
+  public String getDescription() {
+    if( description == null ) {
+      description = BTMessage.ID_BT_CANCEL + " piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
+    }
+    
+    return description; 
+  }
   
-  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{ buffer };  }
+  
+  public DirectByteBuffer[] getData() {
+    if( buffer == null ) {
+      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 12 );
+      buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
+      buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
+      buffer.putInt( DirectByteBuffer.SS_BT, length );
+      buffer.flip( DirectByteBuffer.SS_BT );
+    }
+    
+    return new DirectByteBuffer[]{ buffer };
+  }
+  
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {
     if( data == null ) {

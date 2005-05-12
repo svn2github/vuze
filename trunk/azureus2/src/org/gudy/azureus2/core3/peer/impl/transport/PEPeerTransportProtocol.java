@@ -22,7 +22,6 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 
 
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -790,7 +789,7 @@ PEPeerTransportProtocol
 	  }
 	  if( !closing ) {
 	    //cancel any unsent requests in the queue
-	    Message[] type = { new BTRequest() };
+	    Message[] type = { new BTRequest( -1, -1, -1 ) };
 	    connection.getOutgoingMessageQueue().removeMessagesOfType( type, false );
 	  }
 	}

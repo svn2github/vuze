@@ -38,9 +38,9 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 public class AZHandshake implements AZMessage {
   private static final byte bss = DirectByteBuffer.SS_MSG;
 
-
-  private final DirectByteBuffer buffer;
-  private final String description;
+  private DirectByteBuffer buffer = null;
+  private String description = null;
+  
   private final byte[] identity;
   private final String client;
   private final String client_version;
@@ -57,6 +57,7 @@ public class AZHandshake implements AZMessage {
                       int udp_listen_port,
                       String[] avail_msg_ids,
                       byte[] avail_msg_versions ) {
+    
     this.identity = peer_identity;
     this.client = client;
     this.client_version = version;
@@ -67,65 +68,14 @@ public class AZHandshake implements AZMessage {
     
     //verify given port info is ok
     if( tcp_port < 0 || tcp_port > 65535 ) {
-      System.out.println( "AZHandshake:: given TCP listen port is invalid: " +tcp_port );
+      Debug.out( "given TCP listen port is invalid: " +tcp_port );
       tcp_port = 0;
     }
     
     if( udp_port < 0 || udp_port > 65535 ) {
-      System.out.println( "AZHandshake:: given UDP listen port is invalid: " +udp_port );
+      Debug.out( "given UDP listen port is invalid: " +udp_port );
       udp_port = 0;
     }
-    
-    
-    Map payload_map = new HashMap();
-    
-    //client info
-    payload_map.put( "identity", peer_identity );
-    payload_map.put( "client", client );
-    payload_map.put( "version", version );
-    payload_map.put( "tcp_port", new Long( tcp_port ) );
-    payload_map.put( "udp_port", new Long( udp_port ) );
-        
-    //available message list
-    List message_list = new ArrayList();
-    String msgs_desc = "";
-    for( int i=0; i < avail_msg_ids.length; i++ ) {
-      String id = avail_msg_ids[ i ];
-      byte ver = avail_msg_versions[ i ];
-      
-      if( id.equals( getID() ) && ver == getVersion() ) {
-        continue;  //skip ourself
-      }
-
-      Map msg = new HashMap();
-      msg.put( "id", id );
-      msg.put( "ver", new byte[]{ ver } );
-        
-      message_list.add( msg );
-      
-      msgs_desc += "[" +id+ ":" +ver+ "]";
-    }
-    payload_map.put( "messages", message_list );
-
-    
-    
-    //convert to bytestream
-    byte[] raw_payload;
-    try {
-      raw_payload = BEncoder.encode( payload_map );
-    }
-    catch( Throwable t ) {
-      t.printStackTrace();
-      raw_payload = new byte[0];
-    }
-    
-    this.buffer = DirectByteBufferPool.getBuffer( bss, raw_payload.length );
-    this.buffer.put( bss, raw_payload );
-    this.buffer.flip( bss );
-    
-    if( raw_payload.length > 1200 )  System.out.println( "Generated AZHandshake size = " +raw_payload.length+ " bytes" );
-
-    this.description = getID()+ " from [" +ByteFormatter.nicePrint( peer_identity, true )+ ", " +client+ " " +version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+ "] supports " +msgs_desc;
   }
 
   
@@ -151,9 +101,69 @@ public class AZHandshake implements AZMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  public String getDescription() {  return description;  }
+  public String getDescription() {
+    if( description == null ) {
+      String msgs_desc = "";
+      for( int i=0; i < avail_ids.length; i++ ) {
+        String id = avail_ids[ i ];
+        byte ver = avail_versions[ i ];
+        if( id.equals( getID() ) && ver == getVersion() )  continue;  //skip ourself
+        msgs_desc += "[" +id+ ":" +ver+ "]";
+      }
+      description = getID()+ " from [" +ByteFormatter.nicePrint( identity, true )+ ", " +client+ " " +client_version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+ "] supports " +msgs_desc;
+    }
+    
+    return description;
+  }
   
-  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{ buffer };  }
+  
+  public DirectByteBuffer[] getData() {
+    if( buffer == null ) {
+      Map payload_map = new HashMap();
+      
+      //client info
+      payload_map.put( "identity", identity );
+      payload_map.put( "client", client );
+      payload_map.put( "version", client_version );
+      payload_map.put( "tcp_port", new Long( tcp_port ) );
+      payload_map.put( "udp_port", new Long( udp_port ) );
+          
+      //available message list
+      List message_list = new ArrayList();
+      for( int i=0; i < avail_ids.length; i++ ) {
+        String id = avail_ids[ i ];
+        byte ver = avail_versions[ i ];
+        
+        if( id.equals( getID() ) && ver == getVersion() )  continue;  //skip ourself
+
+        Map msg = new HashMap();
+        msg.put( "id", id );
+        msg.put( "ver", new byte[]{ ver } );
+          
+        message_list.add( msg );
+      }
+      payload_map.put( "messages", message_list );
+
+      //convert to bytestream
+      byte[] raw_payload;
+      try {
+        raw_payload = BEncoder.encode( payload_map );
+      }
+      catch( Throwable t ) {
+        t.printStackTrace();
+        raw_payload = new byte[0];
+      }
+      
+      buffer = DirectByteBufferPool.getBuffer( bss, raw_payload.length );
+      buffer.put( bss, raw_payload );
+      buffer.flip( bss );
+      
+      if( raw_payload.length > 1200 )  System.out.println( "Generated AZHandshake size = " +raw_payload.length+ " bytes" );
+    }
+    
+    return new DirectByteBuffer[]{ buffer };
+  }
+  
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {   
     if( data == null ) {

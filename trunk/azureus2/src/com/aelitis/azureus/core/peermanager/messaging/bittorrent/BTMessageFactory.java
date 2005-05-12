@@ -52,7 +52,7 @@ public class BTMessageFactory {
       MessageManager.getSingleton().registerMessageType( new BTHave( -1 ) );
       MessageManager.getSingleton().registerMessageType( new BTInterested() );
       MessageManager.getSingleton().registerMessageType( new BTKeepAlive() );
-      MessageManager.getSingleton().registerMessageType( new BTPiece() );
+      MessageManager.getSingleton().registerMessageType( new BTPiece( -1, -1, null ) );
       MessageManager.getSingleton().registerMessageType( new BTRequest( -1, -1 , -1 ) );
       MessageManager.getSingleton().registerMessageType( new BTUnchoke() );
       MessageManager.getSingleton().registerMessageType( new BTUninterested() );
@@ -65,7 +65,7 @@ public class BTMessageFactory {
   
   private static final Map legacy_data = new HashMap();
   static {
-    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke(), new BTPiece()}, (byte)0 ) );
+    legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke(), new BTPiece( -1, -1, null )}, (byte)0 ) );
     legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke()}, (byte)1 ) );
     legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested()}, (byte)2 ) );
     legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested()}, (byte)3 ) );

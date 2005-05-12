@@ -33,38 +33,19 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent piece message.
  */
 public class BTPiece implements BTMessage {
-  private final DirectByteBuffer[] buffer;
-  private final String description;
+  private final DirectByteBuffer[] buffer = new DirectByteBuffer[ 2 ];
+  private String description;
   
   private final int piece_number;
   private final int piece_offset;
   
   
   public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
-    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_MSG, 8 );
-    header.putInt( DirectByteBuffer.SS_BT, piece_number );
-    header.putInt( DirectByteBuffer.SS_BT, piece_offset );
-    header.flip( DirectByteBuffer.SS_BT );
-    
-    buffer = new DirectByteBuffer[] { header, data };
-    
-    int length = data.remaining( DirectByteBuffer.SS_BT );
-    description = BTMessage.ID_BT_PIECE + " data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
+    buffer[1] = data;
   }
   
-  
-  
-  /**
-   * Used for creating a lightweight message-type comparison message.
-   */
-  public BTPiece() {
-    buffer = null;
-    description = null;
-    piece_number = -1;
-    piece_offset = -1;
-  }
   
   
   public int getPieceNumber() {  return piece_number;  }
@@ -81,9 +62,27 @@ public class BTPiece implements BTMessage {
   
   public int getType() {  return Message.TYPE_DATA_PAYLOAD;  }
     
-  public String getDescription() {  return description;  }
+  public String getDescription() {
+    if( description == null ) {
+      description = BTMessage.ID_BT_PIECE + " data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + buffer[1].remaining( DirectByteBuffer.SS_BT ) -1);
+    }
+    
+    return description;
+  }
   
-  public DirectByteBuffer[] getData() {  return buffer;  }
+  
+  public DirectByteBuffer[] getData() {
+    if( buffer[0] == null ) {
+      buffer[0] = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_MSG, 8 );
+      buffer[0].putInt( DirectByteBuffer.SS_BT, piece_number );
+      buffer[0].putInt( DirectByteBuffer.SS_BT, piece_offset );
+      buffer[0].flip( DirectByteBuffer.SS_BT );
+    }
+    
+    return buffer;
+  }
+  
+  
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data == null ) {
@@ -107,10 +106,9 @@ public class BTPiece implements BTMessage {
     return new BTPiece( number, offset, data );
   }
   
+  
   public void destroy() {
-    if( buffer != null ) {
-      buffer[0].returnToPool();
-      buffer[1].returnToPool();
-    }
+    if( buffer[0] != null ) buffer[0].returnToPool();
+    if( buffer[1] != null ) buffer[1].returnToPool();
   }
 }

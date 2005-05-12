@@ -32,16 +32,13 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
  * BitTorrent have message.
  */
 public class BTHave implements BTMessage {
-  private final DirectByteBuffer buffer;
-  private final String description;
+  private DirectByteBuffer buffer = null;
+  private String description = null;
+  
   private final int piece_number;
 
+  
   public BTHave( int piece_number ) {
-    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 4 );
-    buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
-    buffer.flip( DirectByteBuffer.SS_BT );
-    
-    description = BTMessage.ID_BT_HAVE + " piece #" + piece_number;
     this.piece_number = piece_number;
   }
   
@@ -55,9 +52,26 @@ public class BTHave implements BTMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  public String getDescription() {  return description;  }
   
-  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{ buffer };  }
+  public String getDescription() {
+    if( description == null ) {
+      description = BTMessage.ID_BT_HAVE + " piece #" + piece_number;
+    }
+    
+    return description;
+  }
+  
+  
+  public DirectByteBuffer[] getData() {
+    if( buffer == null ) {
+      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 4 );
+      buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
+      buffer.flip( DirectByteBuffer.SS_BT );
+    }
+    
+    return new DirectByteBuffer[]{ buffer };
+  }
+  
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data == null ) {

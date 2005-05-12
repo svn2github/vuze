@@ -38,10 +38,10 @@ import com.aelitis.azureus.core.peermanager.peerdb.*;
 public class AZPeerExchange implements AZMessage {
   private static final byte bss = DirectByteBuffer.SS_MSG;
 
-  private final DirectByteBuffer buffer;
-  private final String description;
-  private final byte[] infohash;
+  private DirectByteBuffer buffer = null;
+  private String description = null;
   
+  private final byte[] infohash;
   private final PeerItem[] peers_added;
   private final PeerItem[] peers_dropped;
   
@@ -51,37 +51,10 @@ public class AZPeerExchange implements AZMessage {
     this.infohash = infohash;
     this.peers_added = peers_added;
     this.peers_dropped = peers_dropped;
-
-    Map payload_map = new HashMap();
-    
-    payload_map.put( "infohash", infohash );
-    insertPeers( "added", payload_map, peers_added );
-    insertPeers( "dropped", payload_map, peers_dropped );
-
-    //convert to bytestream
-    byte[] raw_payload;
-    try {
-      raw_payload = BEncoder.encode( payload_map );
-    }
-    catch( Throwable t ) {
-      t.printStackTrace();
-      raw_payload = new byte[0];
-    }
-    
-    this.buffer = DirectByteBufferPool.getBuffer( bss, raw_payload.length );
-    this.buffer.put( bss, raw_payload );
-    this.buffer.flip( bss );
-    
-    if( raw_payload.length > 1000 )  System.out.println( "Generated AZPeerExchange size = " +raw_payload.length+ " bytes" );
-
-    int add_count = peers_added == null ? 0 : peers_added.length;
-    int drop_count = peers_dropped == null ? 0 : peers_dropped.length;
-    
-    this.description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " with " +add_count+ " added and " +drop_count+ " dropped peers";
   }
+  
 
-
-
+  
   private void insertPeers( String key_name, Map root_map, PeerItem[] peers ) {
     if( peers != null && peers.length > 0 ) {
       ArrayList raw_peers = new ArrayList();
@@ -135,9 +108,46 @@ public class AZPeerExchange implements AZMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  public String getDescription() {  return description;  }
   
-  public DirectByteBuffer[] getData() {  return new DirectByteBuffer[]{ buffer };  }
+  public String getDescription() {
+    if( description == null ) {
+      int add_count = peers_added == null ? 0 : peers_added.length;
+      int drop_count = peers_dropped == null ? 0 : peers_dropped.length;
+      
+      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " with " +add_count+ " added and " +drop_count+ " dropped peers";
+    }
+    
+    return description;
+  }
+  
+  
+  public DirectByteBuffer[] getData() {
+    if( buffer == null ) {
+      Map payload_map = new HashMap();
+      
+      payload_map.put( "infohash", infohash );
+      insertPeers( "added", payload_map, peers_added );
+      insertPeers( "dropped", payload_map, peers_dropped );
+
+      //convert to bytestream
+      byte[] raw_payload;
+      try {
+        raw_payload = BEncoder.encode( payload_map );
+      }
+      catch( Throwable t ) {
+        t.printStackTrace();
+        raw_payload = new byte[0];
+      }
+      
+      buffer = DirectByteBufferPool.getBuffer( bss, raw_payload.length );
+      buffer.put( bss, raw_payload );
+      buffer.flip( bss );
+      
+      if( raw_payload.length > 1000 )  System.out.println( "Generated AZPeerExchange size = " +raw_payload.length+ " bytes" );
+    }
+    
+    return new DirectByteBuffer[]{ buffer };
+  }
   
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {   

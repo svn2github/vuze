@@ -37,8 +37,8 @@ public class BTHandshake implements BTMessage, RawMessage {
   public static final byte[] BT_RESERVED = new byte[]{ 0, 0, 0, 0, 0, 0, 0, 0 };  //no reserve bit set
   public static final byte[] AZ_RESERVED = new byte[]{ (byte)128, 0, 0, 0, 0, 0, 0, 0 };  //set high bit of first byte to indicate advanced AZ messaging support
   
-  private final DirectByteBuffer[] buffer;
-  private final String description;
+  private DirectByteBuffer buffer = null;
+  private String description = null;
   
   private final byte[] reserved_bytes;
   private final byte[] datahash_bytes;
@@ -58,30 +58,32 @@ public class BTHandshake implements BTMessage, RawMessage {
   
   
   private BTHandshake( byte[] reserved, byte[] data_hash, byte[] peer_id ) {
-    DirectByteBuffer dbb = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 68 );
-    dbb.put( DirectByteBuffer.SS_BT, (byte)PROTOCOL.length() );
-    dbb.put( DirectByteBuffer.SS_BT, PROTOCOL.getBytes() );
-    dbb.put( DirectByteBuffer.SS_BT, reserved );
-    dbb.put( DirectByteBuffer.SS_BT, data_hash );
-    dbb.put( DirectByteBuffer.SS_BT, peer_id );
-    dbb.flip( DirectByteBuffer.SS_BT );
-    buffer = new DirectByteBuffer[] { dbb };    
-      
     this.reserved_bytes = reserved;
     this.datahash_bytes = data_hash;
     this.peer_id_bytes = peer_id;
-    
-    description = BTMessage.ID_BT_HANDSHAKE + " of dataID: " +ByteFormatter.nicePrint( data_hash, true ) + " peerID: " +PeerClassifier.getPrintablePeerID( peer_id );
-    
-      /* for( int i=7; i >= 0; i-- ) {
-           byte b = (byte) (RESERVED[0] >> i);
-           int val = b & 0x01;
-           System.out.print( val == 1 ? "x" : "." );
-         }
-         System.out.println(); */
+
+    /* 
+     for( int i=7; i >= 0; i-- ) {
+       byte b = (byte) (RESERVED[0] >> i);
+       int val = b & 0x01;
+       System.out.print( val == 1 ? "x" : "." );
+     }
+     System.out.println();
+     */
   }
   
 
+  private void constructBuffer() {
+    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 68 );
+    buffer.put( DirectByteBuffer.SS_BT, (byte)PROTOCOL.length() );
+    buffer.put( DirectByteBuffer.SS_BT, PROTOCOL.getBytes() );
+    buffer.put( DirectByteBuffer.SS_BT, reserved_bytes );
+    buffer.put( DirectByteBuffer.SS_BT, datahash_bytes );
+    buffer.put( DirectByteBuffer.SS_BT, peer_id_bytes );
+    buffer.flip( DirectByteBuffer.SS_BT );
+  }
+  
+  
   
   public byte[] getReserved() {  return reserved_bytes;  }
   
@@ -100,10 +102,25 @@ public class BTHandshake implements BTMessage, RawMessage {
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
-  public String getDescription() {  return description;  }
   
-  public DirectByteBuffer[] getData() {  return buffer;  }
+  public String getDescription() {
+    if( description == null ) {
+      description = BTMessage.ID_BT_HANDSHAKE + " of dataID: " +ByteFormatter.nicePrint( datahash_bytes, true ) + " peerID: " +PeerClassifier.getPrintablePeerID( peer_id_bytes );
+    }
+    
+    return description; 
+  }
+  
+  
+  public DirectByteBuffer[] getData() { 
+    if( buffer == null ) {
+      constructBuffer();
+    }
+    
+    return new DirectByteBuffer[]{ buffer };
+  }
 
+  
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data == null ) {
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
@@ -141,7 +158,13 @@ public class BTHandshake implements BTMessage, RawMessage {
   
   
   // raw message
-  public DirectByteBuffer[] getRawData() {  return buffer;  }
+  public DirectByteBuffer[] getRawData() {
+    if( buffer == null ) {
+      constructBuffer();
+    }
+    
+    return new DirectByteBuffer[]{ buffer };
+  }
   
   public int getPriority() {  return RawMessage.PRIORITY_HIGH;  }
 
@@ -150,7 +173,7 @@ public class BTHandshake implements BTMessage, RawMessage {
   public Message[] messagesToRemove() {  return null;  }
 
   public void destroy() {
-    if( buffer != null )  buffer[0].returnToPool();    
+    if( buffer != null )  buffer.returnToPool();    
   }
   
   public Message getBaseMessage() {  return this;  }
