@@ -305,7 +305,22 @@ public class MultiPeerUploader implements RateControlledEntity {
               addToWaitingList( conn );
             }
           }
-          catch( IOException e ) {  //write exception, so move to waiting list while it waits for removal
+          catch( Throwable e ) {  //write exception, so move to waiting list while it waits for removal
+            
+            if( e.getMessage() == null ) {
+              Debug.out( "null write exception message: ", e );
+            }
+            else {
+              if( //e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
+                  //e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+                  //e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
+                  e.getMessage().indexOf( "blah blah blah" ) == -1 ) {
+                  
+                System.out.println( "MP: write exception [" +conn.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+              }
+            }
+            
+            
             connections_to_notify_of_exception.put( conn, e );  //do exception notification outside of sync'd block
             addToWaitingList( conn );
           }

@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.*;
 
@@ -86,25 +87,6 @@ public class MultiPeerDownloader implements RateControlledEntity {
 
 
   
-  
-  /**
-   * Does this entity have data ready for reading.
-   * @return true if it has data to receive, false if not
-   */
-  /*
-  public boolean hasReadDataAvailable() {
-    ArrayList connections = connections_cow;
-    for( int i=0; i < connections.size(); i++ ) {  //TODO replace with running tally
-      NetworkConnection connection = (NetworkConnection)connections.get( i );
-      if( connection.getTCPTransport().isReadyForRead() )  return true;
-    }
-    
-    return false;
-  }
-  */
-  
-  
-  
   public boolean canProcess() {
     if( main_handler.getCurrentNumBytesAllowed() < 1/*NetworkManager.getTcpMssSize()*/ )  return false;
 
@@ -138,7 +120,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
           bytes_read = connection.getIncomingMessageQueue().receiveFromTransport( allowed );
         }
         catch( Throwable e ) {
-          /*
+          
           if( e.getMessage() == null ) {
             Debug.out( "null read exception message: ", e );
           }
@@ -155,7 +137,7 @@ public class MultiPeerDownloader implements RateControlledEntity {
               Debug.out( "Direct buffer memory exception", e );
             }
           }
-          */
+          
           
           connection.notifyOfException( e );
         }

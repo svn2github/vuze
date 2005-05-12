@@ -22,8 +22,6 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
-import java.io.IOException;
-
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
@@ -85,7 +83,20 @@ public class SinglePeerUploader implements RateControlledEntity {
     try {
       written = connection.getOutgoingMessageQueue().deliverToTransport( num_bytes_to_write, false );
     }
-    catch( IOException e ) {
+    catch( Throwable e ) {
+      
+      if( e.getMessage() == null ) {
+        Debug.out( "null write exception message: ", e );
+      }
+      else {
+        if( e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+            e.getMessage().indexOf( "blah blah blah" ) == -1 ) {
+            
+          System.out.println( "SP: write exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+        }
+      }
+      
+      
       connection.notifyOfException( e );
     }
     
