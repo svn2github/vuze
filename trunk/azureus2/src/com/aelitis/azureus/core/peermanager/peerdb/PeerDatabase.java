@@ -27,10 +27,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
-
-
 
 /**
  *
