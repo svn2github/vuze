@@ -154,7 +154,7 @@ public class AZHandshake implements AZMessage {
         raw_payload = new byte[0];
       }
       
-      buffer = DirectByteBufferPool.getBuffer( bss, raw_payload.length );
+      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, raw_payload.length );
       buffer.put( bss, raw_payload );
       buffer.flip( bss );
       

@@ -67,7 +67,7 @@ public class BTKeepAlive implements BTMessage, RawMessage {
   // raw message
   public DirectByteBuffer[] getRawData() {
     if( buffer == null ) {
-      DirectByteBuffer dbb = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_MSG, 4 );
+      DirectByteBuffer dbb = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 4 );
       dbb.putInt( DirectByteBuffer.SS_BT, 0 );
       dbb.flip( DirectByteBuffer.SS_BT );
       buffer = new DirectByteBuffer[]{ dbb };
