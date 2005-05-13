@@ -39,70 +39,91 @@ public class SystemProperties {
    * Under Windows, this is usually .../Documents and Settings/username/Application Data/Azureus/
    * Under OSX, this is usually /Users/username/Library/Application Support/Azureus/
    */
-  public static String getUserPath() {
-    
+  public static String 
+  getUserPath() 
+  {  
     if ( user_path != null ) {
       return user_path;
     }
     
-    // Super Override -- no AZ_DIR or xxx_DEFAULT added at all.
-    user_path = System.getProperty( SYS_PROP_CONFIG_OVERRIDE );
-    if (user_path != null) {
-      if (!user_path.endsWith(SEP))
-        user_path += SEP;
-      File dir = new File( user_path );
-      if (!dir.exists()) {
-        dir.mkdirs();
-      }
-      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Custom): user_path = " + user_path );
-      return user_path;
-    }
-    
-    String userhome = System.getProperty("user.home");
-        
-    if ( Constants.isWindows ) {   	
-      try { 
-        user_path = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
-        LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from registry: " + user_path  );
-      }
-      catch ( Throwable e ){
-        LGLogger.log( LGLogger.CORE_SYSTEM, "Unable to retrieve user config path from registry. Make sure aereg.dll is present." );
-        
-        user_path = getEnvironmentalVariable( "APPDATA" );
-        
-        if ( user_path != null && user_path.length() > 0 ) {
-          LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from APPDATA env var instead: " + user_path  );
-        }
-        else {
-          user_path = userhome + SEP + WIN_DEFAULT;
-          LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from java user.home var instead: " + user_path  );
-        }
-      }
-    	
-      user_path = user_path + SEP + AZ_DIR + SEP;
-      
-      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Win): user_path = " + user_path );
-      
-    }else if ( Constants.isOSX ) {
-    	
-      user_path = userhome + SEP + OSX_DEFAULT + SEP + AZ_DIR + SEP;
-      
-      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Mac): user_path = " + user_path );
-    
-    }else{
-    	
-      user_path = userhome + SEP + "." + AZ_DIR + SEP;
-      
-      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Unix): user_path = " + user_path );
-    }
-    
-    //if the directory doesn't already exist, create it
-    File dir = new File( user_path );
-    if (!dir.exists()) {
-      dir.mkdirs();
-    }
-    
-    return user_path;
+		// WATCH OUT!!!! possible recursion here if logging is changed so that it messes with
+		// config initialisation - that's why we don't assign the user_path variable until it
+		// is complete - an earlier bug resulted in us half-assigning it and using it due to 
+		// recursion. At least with this approach we'll get (worst case) stack overflow if
+		// a similar change is made, and we'll spot it!!!!
+	
+    	// Super Override -- no AZ_DIR or xxx_DEFAULT added at all.
+	
+    String	temp_user_path = System.getProperty( SYS_PROP_CONFIG_OVERRIDE );
+	
+	try{
+	    if ( temp_user_path != null ){
+			
+	      if (!temp_user_path.endsWith(SEP)){
+			  
+	        temp_user_path += SEP;
+	      }
+		  
+	      File dir = new File( temp_user_path );
+		  
+	      if (!dir.exists()) {
+	        dir.mkdirs();
+	      }
+		  
+	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Custom): user_path = " + temp_user_path );
+		  
+	      return temp_user_path;
+	    }
+	    
+	    String userhome = System.getProperty("user.home");
+	        
+	    if ( Constants.isWindows ) {   	
+	      try { 
+	        temp_user_path = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
+	        LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from registry: " + temp_user_path  );
+	      }
+	      catch ( Throwable e ){
+	        LGLogger.log( LGLogger.CORE_SYSTEM, "Unable to retrieve user config path from registry. Make sure aereg.dll is present." );
+	        
+	        temp_user_path = getEnvironmentalVariable( "APPDATA" );
+	        
+	        if ( temp_user_path != null && temp_user_path.length() > 0 ) {
+	          LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from APPDATA env var instead: " + temp_user_path  );
+	        }
+	        else {
+	          temp_user_path = userhome + SEP + WIN_DEFAULT;
+	          LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from java user.home var instead: " + temp_user_path  );
+	        }
+	      }
+	    	
+	      temp_user_path = temp_user_path + SEP + AZ_DIR + SEP;
+	      
+	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Win): user_path = " + temp_user_path );
+	      
+	    }else if ( Constants.isOSX ) {
+	    	
+	      temp_user_path = userhome + SEP + OSX_DEFAULT + SEP + AZ_DIR + SEP;
+	      
+	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Mac): user_path = " + temp_user_path );
+	    
+	    }else{
+	    	
+	      temp_user_path = userhome + SEP + "." + AZ_DIR + SEP;
+	      
+	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Unix): user_path = " + temp_user_path );
+	    }
+	    
+	    //if the directory doesn't already exist, create it
+	    File dir = new File( temp_user_path );
+	    if (!dir.exists()) {
+	      dir.mkdirs();
+	    }
+	    
+	    return temp_user_path;
+	}finally{
+		
+		user_path = temp_user_path;
+	}
   }
   
   
