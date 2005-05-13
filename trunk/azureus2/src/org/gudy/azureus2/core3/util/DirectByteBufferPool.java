@@ -55,7 +55,8 @@ DirectByteBufferPool
 	private final Object poolsLock = new Object();
 
 	private static final int	SLICE_END_SIZE				= 2048;	
-	private static final short	SLICE_ALLOC_MAX				= 	64;		// max allocs
+	private static final short	SLICE_ALLOC_MAX				= 64;		
+	private static final int    SLICE_ALLOC_CHUNK_SIZE		= 4096;
   
 	private static final short[]		SLICE_ENTRY_SIZES		= { 16, 32, 64, 128, 256, 512, 1024, SLICE_END_SIZE };
 	private static final short[]		SLICE_ENTRY_ALLOC_SIZES = new short[SLICE_ENTRY_SIZES.length];
@@ -66,8 +67,8 @@ DirectByteBufferPool
 	static{
 		for (int i=0;i<SLICE_ENTRY_SIZES.length;i++){
 			
-			SLICE_ENTRY_ALLOC_SIZES[i] = (short)(4096/SLICE_ENTRY_SIZES[i]);
-		
+			SLICE_ENTRY_ALLOC_SIZES[i] = (short)(SLICE_ALLOC_CHUNK_SIZE/SLICE_ENTRY_SIZES[i]);
+					
 			slice_entries[i] = new LinkedList();
 		}
 	}
@@ -437,110 +438,9 @@ DirectByteBufferPool
       
     }
 	
-	synchronized( slice_entries ){
-
-			// we don't maintain the buffers in sorted order as this is too costly. however, we
-			// always allocate and free from the start of the free list, so unused buffer space
-			// will be at the end of the list. we periodically sort this list into allocate block
-			// order so that if an entire block isn't used for one compaction cycle all of
-			// its elements will end up together, if you see what I mean :P
-		
-			// when we find an entire block is unused then we just drop them from the list to
-			// permit them (and the underlying block) to be garbage collected
-		
-		for (int i=0;i<slice_entries.length;i++){
-			
-			List	l = slice_entries[i];
-			
-			Collections.sort( l,
-				new Comparator()
-				{
-					public int
-					compare(
-						Object	o1,
-						Object	o2 )
-					{
-						sliceBuffer	sb1 = (sliceBuffer)o1;
-						sliceBuffer	sb2 = (sliceBuffer)o2;
-						
-						int	res = sb1.getAllocID() - sb2.getAllocID();
-						
-						if ( res == 0 ){
-							
-							res = sb1.getSliceID() - sb2.getSliceID();
-						}
-						
-						return( res );
-					}
-				});
-			
-			int			entries_per_alloc 	= SLICE_ENTRY_ALLOC_SIZES[i];
-			boolean[]	allocs				= slice_allocs[i];
-
-			Iterator	it = l.iterator();
-			
-			int	current_alloc 	= -1;
-			int entry_count		= 0;
-
-			boolean	freed_one	= false;
-			
-			while( it.hasNext()){
-				
-				sliceBuffer	sb = (sliceBuffer)it.next();
-				
-				int	aid = sb.getAllocID();
-				
-				if ( aid != current_alloc ){
-					
-					if ( entry_count == entries_per_alloc ){
-						
-						System.out.println( "CompactSlices[" + SLICE_ENTRY_SIZES[i]+"] freeing " + aid );
-						
-						freed_one	= true;
-						
-						allocs[aid]	= false;					
-					}
-					
-					current_alloc	= aid;
-					
-					entry_count		= 1;
-					
-				}else{
-					
-					entry_count++;
-				}
-			}
-			
-			if ( entry_count == entries_per_alloc ){
-				
-				System.out.println( "CompactSlices[" + SLICE_ENTRY_SIZES[i]+"] freeing " + current_alloc );
-				
-				freed_one	= true;
-				
-				allocs[current_alloc]	= false;					
-			}
-			
-			if ( freed_one ){
-				
-				it = l.iterator();
-				
-				while( it.hasNext()){
-					
-					sliceBuffer	sb = (sliceBuffer)it.next();
-					
-					if ( !allocs[ sb.getAllocID()]){
-						
-						it.remove();
-					}
-				}
-			}
-		}
-	}
+	compactSlices();
   }
-  
-  
-  
-  
+ 
   
   
   /**
@@ -815,11 +715,12 @@ DirectByteBufferPool
 		byte		_allocator,
 		int			_length )
 	{
-		synchronized( slice_entries ){
+		int	slice_index = getSliceIndex( _length );
+		
+		List		my_slice_entries 	= slice_entries[slice_index];
+
+		synchronized( my_slice_entries ){
 	
-			int	slice_index = getSliceIndex( _length );
-			
-			List		my_slice_entries 	= slice_entries[slice_index];
 			boolean[]	my_allocs			= slice_allocs[slice_index];
 			
 			sliceBuffer	sb = null;
@@ -905,9 +806,121 @@ DirectByteBufferPool
 			
 			int	slice_index = getSliceIndex( ddb.getBufferInternal().capacity());
 
-			synchronized( slice_entries ){
+			List		my_slice_entries 	= slice_entries[slice_index];
+
+			synchronized( my_slice_entries ){
 			
-				slice_entries[slice_index].add( 0, new sliceBuffer((sliceDBB)ddb ));
+				my_slice_entries.add( 0, new sliceBuffer((sliceDBB)ddb ));
+			}
+		}
+	}
+	
+	protected void
+	compactSlices()
+	{
+			// we don't maintain the buffers in sorted order as this is too costly. however, we
+			// always allocate and free from the start of the free list, so unused buffer space
+			// will be at the end of the list. we periodically sort this list into allocate block
+			// order so that if an entire block isn't used for one compaction cycle all of
+			// its elements will end up together, if you see what I mean :P
+		
+			// when we find an entire block is unused then we just drop them from the list to
+			// permit them (and the underlying block) to be garbage collected
+		
+		for (int i=0;i<slice_entries.length;i++){
+			
+			int			entries_per_alloc 	= SLICE_ENTRY_ALLOC_SIZES[i];
+			boolean[]	allocs				= slice_allocs[i];
+	
+			List	l = slice_entries[i];
+	
+				// no point in trying gc if not enough entries
+			
+			if ( l.size() >= entries_per_alloc ){
+			
+				synchronized( l ){
+					
+					Collections.sort( l,
+						new Comparator()
+						{
+							public int
+							compare(
+								Object	o1,
+								Object	o2 )
+							{
+								sliceBuffer	sb1 = (sliceBuffer)o1;
+								sliceBuffer	sb2 = (sliceBuffer)o2;
+								
+								int	res = sb1.getAllocID() - sb2.getAllocID();
+								
+								if ( res == 0 ){
+									
+									res = sb1.getSliceID() - sb2.getSliceID();
+								}
+								
+								return( res );
+							}
+						});
+					
+			
+					Iterator	it = l.iterator();
+					
+					int	current_alloc 	= -1;
+					int entry_count		= 0;
+			
+					boolean	freed_one	= false;
+					
+					while( it.hasNext()){
+						
+						sliceBuffer	sb = (sliceBuffer)it.next();
+						
+						int	aid = sb.getAllocID();
+						
+						if ( aid != current_alloc ){
+							
+							if ( entry_count == entries_per_alloc ){
+								
+								// System.out.println( "CompactSlices[" + SLICE_ENTRY_SIZES[i]+"] freeing " + aid );
+								
+								freed_one	= true;
+								
+								allocs[aid]	= false;					
+							}
+							
+							current_alloc	= aid;
+							
+							entry_count		= 1;
+							
+						}else{
+							
+							entry_count++;
+						}
+					}
+					
+					if ( entry_count == entries_per_alloc ){
+						
+						// System.out.println( "CompactSlices[" + SLICE_ENTRY_SIZES[i]+"] freeing " + current_alloc );
+						
+						freed_one	= true;
+						
+						allocs[current_alloc]	= false;					
+					}
+					
+					if ( freed_one ){
+						
+						it = l.iterator();
+						
+						while( it.hasNext()){
+							
+							sliceBuffer	sb = (sliceBuffer)it.next();
+							
+							if ( !allocs[ sb.getAllocID()]){
+								
+								it.remove();
+							}
+						}
+					}
+				}
 			}
 		}
 	}
