@@ -51,7 +51,7 @@ DirectByteBuffer
 	public static final byte		AL_BT_PIECE    = 9;
 	public static final byte		AL_CACHE_WRITE  = 10;
 	public static final byte		AL_PROXY_RELAY  = 11;
-  public static final byte    AL_MSG          = 12;
+	public static final byte    	AL_MSG          = 12;
 	
 	public static final String[] AL_DESCS =
 	{ "None", "Ext", "Other", "PeerRead", "PeerLen",
@@ -71,7 +71,7 @@ DirectByteBuffer
 	public static final byte		SS_DW			= 8;
 	public static final byte		SS_PEER			= 9;
 	public static final byte		SS_PROXY		= 10;
-  public static final byte    SS_MSG     = 11;
+	public static final byte   		SS_MSG     		= 11;
 	
 	public static final String[] SS_DESCS = 
 	{ "None", "Ext", "Other", "Cache", "File",
@@ -612,7 +612,7 @@ DirectByteBuffer
 						
 					}else{
 		    	
-						pool.returnBuffer( buffer );
+						pool.returnBuffer( this );
 						
 						buffer	= null;
 					}
@@ -625,7 +625,7 @@ DirectByteBuffer
 					
 				}else{
 	    	
-					pool.returnBuffer( buffer );
+					pool.returnBuffer( this );
 					
 					buffer	= null;
 				}

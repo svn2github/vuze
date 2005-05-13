@@ -55,7 +55,7 @@ DirectByteBufferPool
 
   private static final int	SLICE_ENTRY_SIZE 			= 	16;		// bytes per entry
   private static final int	SLICE_ENTRIES_ALLOC_SIZE	=  	1000;	// number of entries allocated per go
-  private static final int	SLICE_ALLOC_MAX				= 	10;		// max allocs
+  private static final int	SLICE_ALLOC_MAX				= 	20;		// max allocs
   
   private final List		slice_entries			= new LinkedList();
   private int				slice_allocs			= 0;
@@ -214,59 +214,16 @@ DirectByteBufferPool
 		byte	_allocator,
 		int 	_length) 
 	{
-		ByteBuffer buff	= null;
-      
+		DirectByteBuffer	res;
+		
 		if ( _length <= SLICE_ENTRY_SIZE ){
-		
-			synchronized( slice_entries ){
+
+			res = getSliceBuffer( _allocator, _length );
+			
+		}else{
 				
-				if ( slice_entries.size() > 0 ){
-					
-					buff = (ByteBuffer)slice_entries.remove(0);
-					
-					slice_use_count++;
-					
-				}else{
-					
-					if ( slice_allocs < SLICE_ALLOC_MAX ){
-						
-						ByteBuffer	chunk = ByteBuffer.allocateDirect( SLICE_ENTRY_SIZE * SLICE_ENTRIES_ALLOC_SIZE );
-						
-						slice_allocs++;
-						
-						for (int i=0;i<SLICE_ENTRIES_ALLOC_SIZE;i++){
-							
-							chunk.limit((i+1)*SLICE_ENTRY_SIZE);
-							chunk.position(i*SLICE_ENTRY_SIZE);
-							
-							ByteBuffer	slice = chunk.slice();
-							
-							if ( i == 0 ){
-								
-								buff = slice;
-								
-								slice_use_count++;
-								
-							}else{
-								
-								slice_entries.add( slice );
-							}
-						}
-					}else{
-						
-						if ( slice_allocs == SLICE_ALLOC_MAX ){
-							
-							slice_allocs++;
-							
-							Debug.out( "Run out of slice space, reverting to normal allocation" );
-						}
-					}
-				}
-			}
-		}
-		
-		if ( buff == null ){
-		
+			ByteBuffer	buff = null;
+			
 			Integer reqVal = new Integer(_length);
 	    
 				//loop through the buffer pools to find a buffer big enough
@@ -306,25 +263,27 @@ DirectByteBufferPool
 					break;
 				}
 			}
-		}
 		
-		if ( buff == null ){
-					      
-		    Debug.out("Unable to find an appropriate buffer pool");
-		    
-		    throw( new RuntimeException( "Unable to find an appropriate buffer pool" ));
+			if ( buff == null ){
+						      
+			    Debug.out("Unable to find an appropriate buffer pool");
+			    
+			    throw( new RuntimeException( "Unable to find an appropriate buffer pool" ));
+			}
+			
+			res = new DirectByteBuffer( _allocator, buff, this );		   
 		}
-		
+			
         	// clear doesn't actually zero the data, it just sets pos to 0 etc.
         
+		ByteBuffer buff = res.getBufferInternal();
+		
         buff.clear();   //scrub the buffer
         
-        buff.limit( _length );
-
+		buff.limit( _length );
+		
         bytesOut += buff.capacity();
-              
-        DirectByteBuffer dbb = new DirectByteBuffer( _allocator, buff, this );
-                    
+                                
         if ( DEBUG_PRINT_MEM || DEBUG_TRACK_HANDEDOUT ){
         	
         	synchronized( handed_out ){
@@ -342,7 +301,7 @@ DirectByteBufferPool
 					size_counts.put( new Integer( trim), new Long( count.longValue() + 1 ));
 				}
 				
-        		if ( handed_out.put( buff, dbb ) != null ){
+        		if ( handed_out.put( buff, res ) != null ){
           		
         			Debug.out( "buffer handed out twice!!!!");
           		
@@ -355,7 +314,7 @@ DirectByteBufferPool
         
         // addInUse( dbb.capacity() );
         
-        return dbb;
+        return( res );
     }
   
   
@@ -363,30 +322,52 @@ DirectByteBufferPool
 	   * Return the given buffer to the appropriate pool.
 	   */
 	
-	private void 
-	free(
-		ByteBuffer _buffer ) 
+	protected void 
+	returnBuffer(
+		DirectByteBuffer ddb ) 
 	{
-		int	capacity = _buffer.capacity();
+		ByteBuffer	buff = ddb.getBufferInternal();
+		
+		int	capacity = buff.capacity();
+
+		bytesIn += capacity;
+		    
+	  	if ( DEBUG_TRACK_HANDEDOUT ){
+	  		
+	  		synchronized( handed_out ){
+
+	  			if ( handed_out.remove( buff ) == null ){
+	  				
+	  				Debug.out( "buffer not handed out" );
+	  				
+	  				throw( new RuntimeException( "Buffer not handed out" ));
+	  			}
+	  			
+	       		// System.out.println( "[" + handed_out.size() + "] <- " + buffer + ", bytesIn = " + bytesIn + ", bytesOut = " + bytesOut );
+	  		}
+	  	}
+	  	
+	    // remInUse( buffer.capacity() );
 		
 		if ( capacity <= SLICE_ENTRY_SIZE ){
 			
-			synchronized( slice_entries ){
-				
-				slice_entries.add( 0, _buffer );
-			}
+			freeSliceBuffer( ddb );
+			
 		}else{
 		    Integer buffSize = new Integer(capacity);
 		    
 		    ArrayList bufferPool = (ArrayList)buffersMap.get(buffSize);
 		    
 		    if (bufferPool != null) {
-		      //no need to sync around 'poolsLock', as adding during compaction is ok
-		      synchronized ( bufferPool ) {
-		        bufferPool.add(_buffer);
+				
+				//no need to sync around 'poolsLock', as adding during compaction is ok
+				
+		      synchronized ( bufferPool ){
+				  
+		        bufferPool.add(buff);
 		      }
-		    }
-		    else {
+		    }else{
+				
 		      Debug.out("Invalid buffer given; could not find proper buffer pool");
 		    }
 		}
@@ -512,32 +493,6 @@ DirectByteBufferPool
     }
     
     runGarbageCollection();
-  }
-  
-  protected void
-  returnBuffer(
-  	ByteBuffer		buffer )
-  {
-    bytesIn += buffer.capacity();
-    
-  	if ( DEBUG_TRACK_HANDEDOUT ){
-  		
-  		synchronized( handed_out ){
-
-  			if ( handed_out.remove( buffer ) == null ){
-  				
-  				Debug.out( "buffer not handed out" );
-  				
-  				throw( new RuntimeException( "Buffer not handed out" ));
-  			}
-  			
-       		// System.out.println( "[" + handed_out.size() + "] <- " + buffer + ", bytesIn = " + bytesIn + ", bytesOut = " + bytesOut );
-  		}
-  	}
-  	
-    // remInUse( buffer.capacity() );
-    
-    free( buffer ); 
   }
   
   
@@ -724,6 +679,84 @@ DirectByteBufferPool
   		}
   	}
   	
+	
+		// Slice buffer management
+	
+	protected DirectByteBuffer
+	getSliceBuffer(
+		byte		_allocator,
+		int			_length )
+	{
+		synchronized( slice_entries ){
+	
+			ByteBuffer	buff = null;
+			
+			if ( slice_entries.size() > 0 ){
+				
+				buff = (ByteBuffer)slice_entries.remove(0);
+				
+				slice_use_count++;
+				
+			}else{
+				
+				if ( slice_allocs < SLICE_ALLOC_MAX ){
+					
+					ByteBuffer	chunk = ByteBuffer.allocateDirect( SLICE_ENTRY_SIZE * SLICE_ENTRIES_ALLOC_SIZE );
+					
+					slice_allocs++;
+					
+					for (int i=0;i<SLICE_ENTRIES_ALLOC_SIZE;i++){
+						
+						chunk.limit((i+1)*SLICE_ENTRY_SIZE);
+						chunk.position(i*SLICE_ENTRY_SIZE);
+						
+						ByteBuffer	slice = chunk.slice();
+						
+						if ( i == 0 ){
+							
+							buff = slice;
+							
+							slice_use_count++;
+							
+						}else{
+							
+							slice_entries.add( slice );
+						}
+					}
+				}else{
+					
+					if ( slice_allocs == SLICE_ALLOC_MAX ){
+						
+						slice_allocs++;
+						
+						Debug.out( "Run out of slice space, reverting to normal allocation" );
+					}
+					
+					buff = ByteBuffer.allocate( _length );
+				}
+			}
+			
+		    DirectByteBuffer dbb = new DirectByteBuffer( _allocator, buff, this );
+
+			return( dbb );
+		}
+	}
+	
+	protected void
+	freeSliceBuffer(
+		DirectByteBuffer	ddb )
+	{
+		ByteBuffer	buff = ddb.getBufferInternal();
+		
+		if ( buff.isDirect()){
+			
+			synchronized( slice_entries ){
+			
+				slice_entries.add( 0, buff );
+			}
+		}
+	}
+	
   	protected static class
 	myInteger
   	{
