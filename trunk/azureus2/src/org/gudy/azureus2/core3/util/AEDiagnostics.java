@@ -46,7 +46,7 @@ AEDiagnostics
 	
 	public static final boolean	DEBUG_MONITOR_SEM_USAGE			= false;
 	
-	public static final boolean	TRACE_DIRECT_BYTE_BUFFERS		= true;
+	public static final boolean	TRACE_DIRECT_BYTE_BUFFERS		= false;
 	public static final boolean	TRACE_DBB_POOL_USAGE			= true;
 	public static final boolean	PRINT_DBB_POOL_USAGE			= true;
 	
