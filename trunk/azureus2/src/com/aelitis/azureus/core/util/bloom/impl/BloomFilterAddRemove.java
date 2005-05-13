@@ -23,13 +23,13 @@
 package com.aelitis.azureus.core.util.bloom.impl;
 
 public class 
-BloomFilterReadWrite
+BloomFilterAddRemove
 	extends BloomFilterImpl
 {
 	private byte[]		map;
 
 	public
-	BloomFilterReadWrite(
+	BloomFilterAddRemove(
 		int		_max_entries )
 	{
 		super( _max_entries );

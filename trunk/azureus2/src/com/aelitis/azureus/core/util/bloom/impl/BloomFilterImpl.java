@@ -279,7 +279,7 @@ BloomFilterImpl
 			
 			long	start = System.currentTimeMillis();
 			
-			BloomFilter b = new BloomFilterReadOnly(10000);
+			BloomFilter b = new BloomFilterAddOnly(10000);
 			
 			int	fp = 0;
 			
@@ -318,7 +318,7 @@ BloomFilterImpl
 					}
 				}
 				*/
-			}
+			}	
 			
 			System.out.println( "" + (System.currentTimeMillis() - start + ", fp = " + fp ));
 		}

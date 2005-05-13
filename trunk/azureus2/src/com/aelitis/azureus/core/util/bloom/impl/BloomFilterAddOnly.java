@@ -23,13 +23,13 @@
 package com.aelitis.azureus.core.util.bloom.impl;
 
 public class 
-BloomFilterReadOnly
+BloomFilterAddOnly
 	extends BloomFilterImpl
 {
 	private byte[]		map;
 
 	public
-	BloomFilterReadOnly(
+	BloomFilterAddOnly(
 		int		_max_entries )
 	{
 		super( _max_entries );
@@ -57,8 +57,10 @@ BloomFilterReadOnly
 		if ( value == 0 ){
 			
 			
-			b = (byte)(b&~(0x01<<(index%8)));
+			// b = (byte)(b&~(0x01<<(index%8)));
 			
+			throw( new RuntimeException( "remove not supported" ));
+
 		}else{
 			
 			b = (byte)(b|(0x01<<(index%8)));
@@ -67,19 +69,5 @@ BloomFilterReadOnly
 		// System.out.println( "setValue[" + index + "]:" + Integer.toHexString( map[index/2]&0xff) + "->" + Integer.toHexString( b&0xff ));
 		
 		map[index/8] = b;
-	}
-	
-	public void
-	remove(
-		String		value )
-	{
-		throw( new RuntimeException( "not supported" ));
-	}
-	
-	public void
-	remove(
-		byte[]		value )
-	{
-		throw( new RuntimeException( "not supported" ));
 	}
 }

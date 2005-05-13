@@ -40,16 +40,16 @@ BloomFilterFactory
 		 */
 	
 	public static BloomFilter
-	createReadWrite(
+	createAddRemove(
 		int		filter_size )
 	{
-		return( new BloomFilterReadWrite( filter_size ));
+		return( new BloomFilterAddRemove( filter_size ));
 	}
 	
 	public static BloomFilter
-	createReadOnly(
+	createAddOnly(
 		int		filter_size )
 	{
-		return( new BloomFilterReadOnly( filter_size ));
+		return( new BloomFilterAddOnly( filter_size ));
 	}
 }
