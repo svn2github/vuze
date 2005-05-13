@@ -22,6 +22,13 @@
 
 package com.aelitis.azureus.core.peermanager.peerdb;
 
+import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
+
+import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+
 
 /**
  *
@@ -34,6 +41,24 @@ public class PeerItemFactory {
   public static final int PEER_SOURCE_INCOMING      = 4;
   
 
+  private static final WeakHashMap peer_items = new WeakHashMap();
+
+
+  private final static Timer printer = new Timer("peeritemp");
+  static{
+    printer.addPeriodicEvent(
+      60*1000,
+      new TimerEventPerformer() {
+        public void perform( TimerEvent ev ) {
+          System.out.println( "lightweights=" + peer_items.size() );
+        }
+      }
+    );
+  }
+  
+  
+  
+  
   /**
    * Create a peer item using the given peer address and port information.
    * @param address of peer
@@ -42,7 +67,7 @@ public class PeerItemFactory {
    * @return peer
    */
   public static PeerItem createPeerItem( String address, int port, int source ) {
-    return new PeerItem( address, port, source );  //TODO make lightweight
+    return getLightweight( new PeerItem( address, port, source ) );
   }
   
   /**
@@ -52,8 +77,30 @@ public class PeerItemFactory {
    * @return peer
    */
   public static PeerItem createPeerItem( byte[] serialization, int source ) {
-    return new PeerItem( serialization, source );
+    return getLightweight( new PeerItem( serialization, source ) );
   }
+  
+  
+  
+  private static PeerItem getLightweight( PeerItem key ) {
+    WeakReference ref = (WeakReference)peer_items.get( key );
+
+    if( ref == null ) {
+      peer_items.put( key, new WeakReference( key ) );
+      return key;
+    }
+ 
+    PeerItem item = (PeerItem)ref.get();
+    
+    if( item == null ) {
+      System.out.println( "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOPS: ref.get() == null" );
+      peer_items.put( key, new WeakReference( key ) );
+      return key;
+    }
+
+    return item;
+  }
+  
   
   
 }
