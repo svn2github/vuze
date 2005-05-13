@@ -25,9 +25,7 @@ package com.aelitis.azureus.core.peermanager.peerdb;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
-import org.gudy.azureus2.core3.util.Timer;
-import org.gudy.azureus2.core3.util.TimerEvent;
-import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.Debug;
 
 
 /**
@@ -43,21 +41,6 @@ public class PeerItemFactory {
 
   private static final WeakHashMap peer_items = new WeakHashMap();
 
-
-  private final static Timer printer = new Timer("peeritemp");
-  static{
-    printer.addPeriodicEvent(
-      60*1000,
-      new TimerEventPerformer() {
-        public void perform( TimerEvent ev ) {
-          System.out.println( "lightweights=" + peer_items.size() );
-        }
-      }
-    );
-  }
-  
-  
-  
   
   /**
    * Create a peer item using the given peer address and port information.
@@ -93,7 +76,7 @@ public class PeerItemFactory {
     PeerItem item = (PeerItem)ref.get();
     
     if( item == null ) {
-      System.out.println( "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOPS: ref.get() == null" );
+      Debug.out( "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOPS: ref.get() == null" );
       peer_items.put( key, new WeakReference( key ) );
       return key;
     }
