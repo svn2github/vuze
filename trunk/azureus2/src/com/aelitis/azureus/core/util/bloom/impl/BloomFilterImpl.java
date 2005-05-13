@@ -27,7 +27,7 @@ import java.util.Random;
 
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 
-public class 
+public abstract class 
 BloomFilterImpl
 	implements BloomFilter
 {
@@ -49,7 +49,6 @@ BloomFilterImpl
 
 	private int			max_entries;
 	private BigInteger	bi_max_entries;
-	private byte[]		map;
 	
 	public 
 	BloomFilterImpl(
@@ -58,10 +57,12 @@ BloomFilterImpl
 		bi_max_entries	= new BigInteger( ""+(((_max_entries/2)*2)+1));
 				
 		max_entries	= bi_max_entries.intValue();
-		
-			// 4 bits per entry
-		
-		map	= new byte[(max_entries+1)/2];
+	}
+	
+	protected int
+	getMaxEntries()
+	{
+		return( max_entries );
 	}
 	
 	public void
@@ -159,41 +160,15 @@ BloomFilterImpl
 		return( true );		
 	}
 	
-	protected byte
+	protected abstract byte
 	getValue(
-		int		index )
-	{
-		byte	b = map[index/2];
-				
-		if ( index % 2 == 0 ){
-			
-			return((byte)( b&0x0f ));
-		}else{
-			
-			return((byte)((b>>4)&0x0f));
-		}
-	}
+		int		index );
+
 	
-	protected void
+	protected abstract void
 	setValue(
 		int		index,
-		byte	value )
-	{
-		byte	b = map[index/2];
-				
-		if ( index % 2 == 0 ){
-			
-			b = (byte)((b&0xf0) | value );
-			
-		}else{
-			
-			b = (byte)((b&0x0f) | (value<<4)&0xf0 );
-		}
-		
-		// System.out.println( "setValue[" + index + "]:" + Integer.toHexString( map[index/2]&0xff) + "->" + Integer.toHexString( b&0xff ));
-		
-		map[index/2] = b;
-	}
+		byte	value );
 	
 	protected int
 	getHash(
@@ -304,7 +279,7 @@ BloomFilterImpl
 			
 			long	start = System.currentTimeMillis();
 			
-			BloomFilter b = new BloomFilterImpl(10000);
+			BloomFilter b = new BloomFilterReadOnly(10000);
 			
 			int	fp = 0;
 			

@@ -1,5 +1,5 @@
 /*
- * Created on 29-Apr-2005
+ * Created on 13-May-2005
  * Created by Paul Gardner
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -20,36 +20,66 @@
  *
  */
 
-package com.aelitis.azureus.core.util.bloom;
-
-import com.aelitis.azureus.core.util.bloom.impl.*;
+package com.aelitis.azureus.core.util.bloom.impl;
 
 public class 
-BloomFilterFactory 
+BloomFilterReadOnly
+	extends BloomFilterImpl
 {
-		/**
-		 * Creates a new bloom filter. 
-		 * @param max_entries The filter size.
-		 * 	a size of 10 * expected entries gives a false-positive of around 0.01%
-		 *  17* -> 0.001
-		 *  29* -> 0.0001
-		 * Each entry takes 4 bits  
-		 * So, if 0.01% is acceptable and expected max entries is 100, use a filter
-		 * size of 1000.
-		 * @return
-		 */
-	
-	public static BloomFilter
-	createReadWrite(
-		int		filter_size )
+	private byte[]		map;
+
+	public
+	BloomFilterReadOnly(
+		int		_max_entries )
 	{
-		return( new BloomFilterReadWrite( filter_size ));
+		super( _max_entries );
+			
+		map	= new byte[(getMaxEntries()+7)/8];
 	}
 	
-	public static BloomFilter
-	createReadOnly(
-		int		filter_size )
+	protected byte
+	getValue(
+		int		index )
 	{
-		return( new BloomFilterReadOnly( filter_size ));
+		byte	b = map[index/8];
+			
+		return((byte)((b>>(index%8))&0x01));
+
+	}
+	
+	protected void
+	setValue(
+		int		index,
+		byte	value )
+	{
+		byte	b = map[index/8];
+				
+		if ( value == 0 ){
+			
+			
+			b = (byte)(b&~(0x01<<(index%8)));
+			
+		}else{
+			
+			b = (byte)(b|(0x01<<(index%8)));
+		}
+		
+		// System.out.println( "setValue[" + index + "]:" + Integer.toHexString( map[index/2]&0xff) + "->" + Integer.toHexString( b&0xff ));
+		
+		map[index/8] = b;
+	}
+	
+	public void
+	remove(
+		String		value )
+	{
+		throw( new RuntimeException( "not supported" ));
+	}
+	
+	public void
+	remove(
+		byte[]		value )
+	{
+		throw( new RuntimeException( "not supported" ));
 	}
 }
