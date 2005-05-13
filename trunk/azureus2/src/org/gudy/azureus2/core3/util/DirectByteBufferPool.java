@@ -28,122 +28,134 @@ DirectByteBufferPool
 	protected static final boolean 	DEBUG_PRINT_MEM 		= AEDiagnostics.PRINT_DBB_POOL_USAGE;
 	protected static final int		DEBUG_PRINT_TIME		= 60*1000;
 	
-  // There is no point in allocating buffers smaller than 4K,
-  // as direct ByteBuffers are page-aligned to the underlying
-  // system, which is 4096 byte pages under most OS's.
-  // If we want to save memory, we can distribute smaller-than-4K
-  // buffers by using the slice() method to break up a standard buffer
-  // into smaller chunks, but that's more work.
-  private static final int START_POWER = 12;    // 4096
-  private static final int END_POWER   = 25;    // 33554432
+	  // There is no point in allocating buffers smaller than 4K,
+	  // as direct ByteBuffers are page-aligned to the underlying
+	  // system, which is 4096 byte pages under most OS's.
+	  // If we want to save memory, we can distribute smaller-than-4K
+	  // buffers by using the slice() method to break up a standard buffer
+	  // into smaller chunks, but that's more work.
+	
+	private static final int START_POWER = 12;    // 4096
+	private static final int END_POWER   = 25;    // 33554432
   
-  	// without an extra bucket here we get lots of wastage with the file cache as typically
-  	// 16K data reads result in a buffer slightly bigger than 16K due to protocol header
-  	// This means we would bump up to 32K pool entries, hence wasting 16K per 16K entry
+  		// without an extra bucket here we get lots of wastage with the file cache as typically
+  		// 16K data reads result in a buffer slightly bigger than 16K due to protocol header
+  		// This means we would bump up to 32K pool entries, hence wasting 16K per 16K entry
   	
-  private static final int[]	EXTRA_BUCKETS = { 128, DiskManager.BLOCK_SIZE + 128 };
+	private static final int[]	EXTRA_BUCKETS = { DiskManager.BLOCK_SIZE + 128 };
   
   
-  public static final int MAX_SIZE = BigInteger.valueOf(2).pow(END_POWER).intValue();
+	public static final int MAX_SIZE = BigInteger.valueOf(2).pow(END_POWER).intValue();
   
-  private static final DirectByteBufferPool pool = new DirectByteBufferPool();
+	private static final DirectByteBufferPool pool = new DirectByteBufferPool();
   
 
-  private final Map buffersMap = new LinkedHashMap(END_POWER - START_POWER + 1);
+	private final Map buffersMap = new LinkedHashMap(END_POWER - START_POWER + 1);
   
-  private final Object poolsLock = new Object();
+	private final Object poolsLock = new Object();
 
-  private static final int	SLICE_ENTRY_SIZE 			= 	16;		// bytes per entry
-  private static final int	SLICE_ENTRIES_ALLOC_SIZE	=  	1000;	// number of entries allocated per go
-  private static final int	SLICE_ALLOC_MAX				= 	20;		// max allocs
+	private static final int	SLICE_END_SIZE				= 2048;	
+	private static final short	SLICE_ALLOC_MAX				= 	20;		// max allocs
   
-  private final List		slice_entries			= new LinkedList();
-  private int				slice_allocs			= 0;
-  private long				slice_use_count			= 0;
+	private static final short[]	SLICE_ENTRY_SIZES		= { 16, 32, 64, 128, 256, 512, 1024, SLICE_END_SIZE };
+	private static final short[]	SLICE_ENTRY_ALLOC_SIZES = new short[SLICE_ENTRY_SIZES.length];
+	private static final List[]		slice_entries 		= new List[SLICE_ENTRY_SIZES.length];
+
+	static{
+		for (int i=0;i<SLICE_ENTRY_SIZES.length;i++){
+			
+			SLICE_ENTRY_ALLOC_SIZES[i] = (short)(4096/SLICE_ENTRY_SIZES[i]);
+		
+			slice_entries[i] = new LinkedList();
+		}
+	}
+	
+	private static final short[]	slice_allocs 		= new short[SLICE_ENTRY_SIZES.length];
+	private static final long[]		slice_use_count 	= new long[SLICE_ENTRY_SIZES.length];
+	  
+	private final Timer compactionTimer;
   
-  private final Timer compactionTimer;
-  
-  private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents, hence IdentityHashMap)
-  private final Map	size_counts	= new TreeMap();
+	private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents, hence IdentityHashMap)
+	private final Map	size_counts	= new TreeMap();
  
-  private static final long COMPACTION_CHECK_PERIOD = 2*60*1000; //2 min
-  private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
+	private static final long COMPACTION_CHECK_PERIOD = 2*60*1000; //2 min
+	private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
   
-  private long bytesIn = 0;
-  private long bytesOut = 0;
+	private long bytesIn = 0;
+	private long bytesOut = 0;
   
   
-  private DirectByteBufferPool() {
-  	
-    //create the buffer pool for each buffer size
-  	
-  	ArrayList	list = new ArrayList();
-  	
-    for (int p=START_POWER; p <= END_POWER; p++) {
-    	
-    	list.add( new Integer(BigInteger.valueOf(2).pow(p).intValue()));
-    }
-    
-    for (int i=0;i<EXTRA_BUCKETS.length;i++){
-    	       
-        list.add( new Integer(EXTRA_BUCKETS[i]));
-    }
-    
-    Integer[]	sizes = new Integer[ list.size() ];
-    list.toArray( sizes );
-    Arrays.sort( sizes);
-    
-    for (int i=0;i<sizes.length;i++){
-    	
-    	ArrayList bufferPool = new ArrayList();
-    	
-    	buffersMap.put(sizes[i], bufferPool);
-    }
-    
-    //initiate periodic timer to check free memory usage
-    compactionTimer = new Timer("BufferPool Checker");
-    compactionTimer.addPeriodicEvent(
-        COMPACTION_CHECK_PERIOD,
-        new TimerEventPerformer() {
-          public void perform( TimerEvent ev ) {
-       
-            checkMemoryUsage();
-          }
-        }
-     );
-    
-    if( DEBUG_PRINT_MEM ) {
-      Timer printer = new Timer("printer");
-      printer.addPeriodicEvent(
-          DEBUG_PRINT_TIME,
-          new TimerEventPerformer() {
-            public void perform( TimerEvent ev ) {
-              System.out.print("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, ");
-              
-              long in_use = bytesOut - bytesIn;
-              if( in_use < 1024*1024 ) System.out.print( "in use=" +in_use+ "B, " );
-              else System.out.print( "in use=" +in_use/1024/1024+ "MB, " );
-              
-              long free = bytesFree();
-              if( free < 1024*1024 ) System.out.print( "free=" +free+ "B" );
-              else System.out.print( "free=" +free/1024/1024+ "MB" );
-
-              System.out.println();
-              
-              printInUse( false );
-              
-              long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
-              long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
-              long total_mem = Runtime.getRuntime().totalMemory() /1024/1024;
-              System.out.println("HEAP: max=" +max_mem+ "MB, total=" +total_mem+ "MB, free=" +free_mem+ "MB");
-              System.out.println();
-            }
-          }
-      );
-    }
-     
-
-  }
+	private 
+	DirectByteBufferPool() 
+	{
+	  	
+	    //create the buffer pool for each buffer size
+	  	
+	  	ArrayList	list = new ArrayList();
+	  	
+	    for (int p=START_POWER; p <= END_POWER; p++) {
+	    	
+	    	list.add( new Integer(BigInteger.valueOf(2).pow(p).intValue()));
+	    }
+	    
+	    for (int i=0;i<EXTRA_BUCKETS.length;i++){
+	    	       
+	        list.add( new Integer(EXTRA_BUCKETS[i]));
+	    }
+	    
+	    Integer[]	sizes = new Integer[ list.size() ];
+	    list.toArray( sizes );
+	    Arrays.sort( sizes);
+	    
+	    for (int i=0;i<sizes.length;i++){
+	    	
+	    	ArrayList bufferPool = new ArrayList();
+	    	
+	    	buffersMap.put(sizes[i], bufferPool);
+	    }
+	    
+	    //initiate periodic timer to check free memory usage
+	    compactionTimer = new Timer("BufferPool Checker");
+	    compactionTimer.addPeriodicEvent(
+	        COMPACTION_CHECK_PERIOD,
+	        new TimerEventPerformer() {
+	          public void perform( TimerEvent ev ) {
+	       
+	            checkMemoryUsage();
+	          }
+	        }
+	     );
+	    
+	    if( DEBUG_PRINT_MEM ) {
+	      Timer printer = new Timer("printer");
+	      printer.addPeriodicEvent(
+	          DEBUG_PRINT_TIME,
+	          new TimerEventPerformer() {
+	            public void perform( TimerEvent ev ) {
+	              System.out.print("DIRECT: given=" +bytesOut/1024/1024+ "MB, returned=" +bytesIn/1024/1024+ "MB, ");
+	              
+	              long in_use = bytesOut - bytesIn;
+	              if( in_use < 1024*1024 ) System.out.print( "in use=" +in_use+ "B, " );
+	              else System.out.print( "in use=" +in_use/1024/1024+ "MB, " );
+	              
+	              long free = bytesFree();
+	              if( free < 1024*1024 ) System.out.print( "free=" +free+ "B" );
+	              else System.out.print( "free=" +free/1024/1024+ "MB" );
+	
+	              System.out.println();
+	              
+	              printInUse( false );
+	              
+	              long free_mem = Runtime.getRuntime().freeMemory() /1024/1024;
+	              long max_mem = Runtime.getRuntime().maxMemory() /1024/1024;
+	              long total_mem = Runtime.getRuntime().totalMemory() /1024/1024;
+	              System.out.println("HEAP: max=" +max_mem+ "MB, total=" +total_mem+ "MB, free=" +free_mem+ "MB");
+	              System.out.println();
+	            }
+	          }
+	      );
+	    }
+	}
 
   
   /**
@@ -216,7 +228,7 @@ DirectByteBufferPool
 	{
 		DirectByteBuffer	res;
 		
-		if ( _length <= SLICE_ENTRY_SIZE ){
+		if ( _length <= SLICE_END_SIZE ){
 
 			res = getSliceBuffer( _allocator, _length );
 			
@@ -349,7 +361,7 @@ DirectByteBufferPool
 	  	
 	    // remInUse( buffer.capacity() );
 		
-		if ( capacity <= SLICE_ENTRY_SIZE ){
+		if ( capacity <= SLICE_END_SIZE ){
 			
 			freeSliceBuffer( ddb );
 			
@@ -674,7 +686,15 @@ DirectByteBufferPool
 				
 				System.out.println( str );
 				
-				System.out.println( "slices: free=" +slice_entries.size()+", alloc=" + (slice_allocs*SLICE_ENTRIES_ALLOC_SIZE) + ", used=" +slice_use_count );
+				str = "";
+				
+				for (int i=0;i<slice_entries.length;i++){
+				
+					str += (i==0?"":",") + "["+SLICE_ENTRY_SIZES[i]+"]f=" +slice_entries[i].size()+",a=" + (slice_allocs[i]*SLICE_ENTRY_ALLOC_SIZES[i]) + ",u=" +slice_use_count[i];
+				}
+				
+				System.out.println( "slices: " + str );
+
 	  		}
   		}
   	}
@@ -689,54 +709,66 @@ DirectByteBufferPool
 	{
 		synchronized( slice_entries ){
 	
-			ByteBuffer	buff = null;
+			int	slice_index = getSliceIndex( _length );
 			
-			if ( slice_entries.size() > 0 ){
+			List	my_slice_entries = slice_entries[slice_index];
+			
+			sliceBuffer	sb = null;
+			
+			if ( my_slice_entries.size() > 0 ){
 				
-				buff = (ByteBuffer)slice_entries.remove(0);
+				sb = (sliceBuffer)my_slice_entries.remove(0);
 				
-				slice_use_count++;
+				slice_use_count[slice_index]++;
 				
 			}else{
 				
-				if ( slice_allocs < SLICE_ALLOC_MAX ){
+				if ( slice_allocs[slice_index] < SLICE_ALLOC_MAX ){
 					
-					ByteBuffer	chunk = ByteBuffer.allocateDirect( SLICE_ENTRY_SIZE * SLICE_ENTRIES_ALLOC_SIZE );
+					short	slice_entry_size 	= SLICE_ENTRY_SIZES[slice_index];
+					short	slice_entry_count	= SLICE_ENTRY_ALLOC_SIZES[slice_index];
 					
-					slice_allocs++;
+					ByteBuffer	chunk = ByteBuffer.allocateDirect(  slice_entry_size*slice_entry_count  );
 					
-					for (int i=0;i<SLICE_ENTRIES_ALLOC_SIZE;i++){
+					slice_allocs[slice_index]++;
+					
+					for (short i=0;i<slice_entry_count;i++){
 						
-						chunk.limit((i+1)*SLICE_ENTRY_SIZE);
-						chunk.position(i*SLICE_ENTRY_SIZE);
+						chunk.limit((i+1)*slice_entry_size);
+						chunk.position(i*slice_entry_size);
 						
 						ByteBuffer	slice = chunk.slice();
 						
+						sliceBuffer new_buffer = new sliceBuffer( slice, slice_allocs[slice_index], i );
+						
 						if ( i == 0 ){
 							
-							buff = slice;
+							sb = new_buffer;
 							
-							slice_use_count++;
+							slice_use_count[slice_index]++;
 							
 						}else{
 							
-							slice_entries.add( slice );
+							my_slice_entries.add( new_buffer );
 						}
 					}
 				}else{
 					
-					if ( slice_allocs == SLICE_ALLOC_MAX ){
+					if ( slice_allocs[slice_index] == SLICE_ALLOC_MAX ){
 						
-						slice_allocs++;
+						slice_allocs[slice_index]++;
 						
 						Debug.out( "Run out of slice space, reverting to normal allocation" );
 					}
 					
-					buff = ByteBuffer.allocate( _length );
+					ByteBuffer buff = ByteBuffer.allocate( _length );
+					
+				    return( new DirectByteBuffer( _allocator, buff, this ));
+
 				}
 			}
 			
-		    DirectByteBuffer dbb = new DirectByteBuffer( _allocator, buff, this );
+			sliceDBB dbb = new sliceDBB( _allocator, sb );
 
 			return( dbb );
 		}
@@ -745,19 +777,113 @@ DirectByteBufferPool
 	protected void
 	freeSliceBuffer(
 		DirectByteBuffer	ddb )
-	{
-		ByteBuffer	buff = ddb.getBufferInternal();
-		
-		if ( buff.isDirect()){
+	{		
+		if ( ddb instanceof sliceDBB ){
 			
+			int	slice_index = getSliceIndex( ddb.getBufferInternal().capacity());
+
 			synchronized( slice_entries ){
 			
-				slice_entries.add( 0, buff );
+				slice_entries[slice_index].add( 0, new sliceBuffer((sliceDBB)ddb ));
 			}
 		}
 	}
 	
-  	protected static class
+	protected int
+	getSliceIndex( 
+		int	_length )
+	{
+		for (int i=0;i<SLICE_ENTRY_SIZES.length;i++){
+			
+			if ( _length <= SLICE_ENTRY_SIZES[i] ){
+				
+				return( i );
+			}
+		}
+		
+		Debug.out( "eh?");
+		
+		return( 0 );
+	}
+	
+ 	protected static class
+	sliceBuffer
+	{
+		private ByteBuffer	buffer;
+		private short		alloc_id;
+		private short		slice_id;
+		
+		protected
+		sliceBuffer(
+			ByteBuffer	_buffer,
+			short		_alloc_id,
+			short		_slice_id )
+		{
+			buffer		= _buffer;
+			alloc_id	= _alloc_id;
+			slice_id	= _slice_id;
+		}
+		
+		protected
+		sliceBuffer(
+			sliceDBB	dbb  )
+		{
+			buffer		= dbb.getBufferInternal();
+			alloc_id	= dbb.getAllocID();
+			slice_id	= dbb.getSliceID();		
+		}
+		
+		protected ByteBuffer
+		getBuffer()
+		{
+			return( buffer );
+		}
+		
+		protected short
+		getAllocID()
+		{
+			return( alloc_id );
+		}
+		
+		protected short
+		getSliceID()
+		{
+			return( slice_id );
+		}
+	}
+	
+	protected static class
+	sliceDBB
+		extends DirectByteBuffer
+	{
+		private short		alloc_id;
+		private short		slice_id;
+
+		protected
+		sliceDBB(
+			byte		_allocator,
+			sliceBuffer	_sb )
+		{	
+			super( _allocator, _sb.getBuffer(), pool );
+			
+			alloc_id		= _sb.getAllocID();
+			slice_id		= _sb.getSliceID();
+		}
+		
+		protected short
+		getAllocID()
+		{
+			return( alloc_id );
+		}
+		
+		protected short
+		getSliceID()
+		{
+			return( slice_id );
+		}
+	}
+	
+ 	protected static class
 	myInteger
   	{
   		int	value;
