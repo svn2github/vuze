@@ -27,7 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 
-import java.util.*;
+//import java.util.*;
 
 /**
  * Virtual direct byte buffer given out and tracker
@@ -120,8 +120,8 @@ DirectByteBuffer
 	private byte					allocator;
   
 	
-	private byte[]					trace_buffer;
-	private int						trace_buffer_pos;
+	//private byte[]					trace_buffer;
+	//private int						trace_buffer_pos;
 	
 	public 
 	DirectByteBuffer( 
@@ -141,10 +141,11 @@ DirectByteBuffer
 		pool		= _pool;
 		
 		if ( TRACE ){
-			
+			/*
 			trace_buffer	= new byte[TRACE_BUFFER_SIZE];
 			
 			Arrays.fill(trace_buffer,(byte)0);
+			*/
 		}
 	}
   
@@ -154,7 +155,7 @@ DirectByteBuffer
 		byte		operation )
 	{
 		if ( TRACE ){
-			
+			/*
 			trace_buffer[trace_buffer_pos++]	= subsystem;
 			trace_buffer[trace_buffer_pos++]	= operation;	
 		
@@ -162,6 +163,7 @@ DirectByteBuffer
 				
 				trace_buffer_pos	= 0;
 			}
+			*/
 		}
 	}
 	
@@ -169,7 +171,7 @@ DirectByteBuffer
 	getTraceString()
 	{
 		if ( TRACE ){
-			
+			/*
 			StringBuffer	sb = new StringBuffer();
 			
 			sb.append( AL_DESCS[allocator]);
@@ -218,11 +220,10 @@ DirectByteBuffer
 			}
 			
 			return( sb.toString());
-			
-		}else{
-			
-			return( null );
+			*/
 		}
+			
+		return( null );
 	}
 	
 	protected void

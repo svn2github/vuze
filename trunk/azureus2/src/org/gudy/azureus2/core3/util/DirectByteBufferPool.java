@@ -78,7 +78,8 @@ DirectByteBufferPool
 	private final Timer compactionTimer;
   
 	private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents, hence IdentityHashMap)
-	private final Map	size_counts	= new TreeMap();
+	
+	//private final Map	size_counts	= new TreeMap();
  
 	private static final long COMPACTION_CHECK_PERIOD = 2*60*1000; //2 min
 	private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
@@ -302,6 +303,7 @@ DirectByteBufferPool
         	
         	synchronized( handed_out ){
         	        	
+				/*
 				int	trim = ((_length+15)/16)*16;
 				
 				Long count = (Long)size_counts.get(new Integer(trim));
@@ -314,6 +316,7 @@ DirectByteBufferPool
 					
 					size_counts.put( new Integer( trim), new Long( count.longValue() + 1 ));
 				}
+				*/
 				
         		if ( handed_out.put( buff, res ) != null ){
           		
@@ -674,6 +677,7 @@ DirectByteBufferPool
 	  			
 	  			System.out.println();
 				
+				/*
 				it = size_counts.entrySet().iterator();
 				
 				String	str = "";
@@ -686,8 +690,9 @@ DirectByteBufferPool
 				}
 				
 				System.out.println( str );
+				*/
 				
-				str = "";
+				String str = "";
 				
 				for (int i=0;i<slice_entries.length;i++){
 				
