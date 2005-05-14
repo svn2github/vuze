@@ -226,9 +226,8 @@ PEPeerManager
   /**
    * Notify the manager that the given peer connection has been closed.
    * @param peer closed
-   * @param reconnect if true, attempt to reestablish this peer connection
    */
-  public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect );
+  public void peerConnectionClosed( PEPeerTransport peer );
   
   
   

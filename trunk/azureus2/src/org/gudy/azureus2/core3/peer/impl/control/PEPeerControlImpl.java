@@ -122,9 +122,6 @@ PEPeerControlImpl
   private int superSeedModeCurrentPiece;
   private int superSeedModeNumberOfAnnounces;
   private SuperSeedPiece[] superSeedPieces;
-  
-  private final HashMap 	reconnect_counts 		= new HashMap();
-  private final AEMonitor	reconnect_counts_mon	= new AEMonitor( "PEPeerControl:RC");
 
   private AEMonitor	this_mon	= new AEMonitor( "PEPeerControl");
   
@@ -1818,7 +1815,7 @@ PEPeerControlImpl
   
   
   //the peer calls this method itself in closeConnection() to notify this manager
-  public void peerConnectionClosed( PEPeerTransport peer,	boolean reconnect ) {
+  public void peerConnectionClosed( PEPeerTransport peer ) {
   	boolean	connection_found = false;
   
     try{
@@ -1831,8 +1828,8 @@ PEPeerControlImpl
 	     	new_peer_transports.remove(peer);
 	      	 
 	     	peer_transports_cow = new_peer_transports;
-        
-        connection_found  = true;
+	     	
+	     	connection_found  = true;
      	}
     }
     finally{
@@ -1841,46 +1838,6 @@ PEPeerControlImpl
 
     if ( connection_found ){
       peerRemoved( peer );  //notify listeners
-    }
-    
-	    
-    String key = peer.getIp() + ":" + peer.getTCPListenPort();
-    
-    if( reconnect ) {
-      boolean reconnect_allowed = false;
-      
-      try {
-        reconnect_counts_mon.enter(); // only allow 3 reconnect attempts
-
-        Integer reconnect_count = (Integer)reconnect_counts.get( key );
-        int count = 0;
-        if( reconnect_count != null ) count = reconnect_count.intValue();
-        if( count < 3 ) {
-          reconnect_counts.put( key, new Integer( count + 1 ) );
-          reconnect_allowed = true;
-        }
-        else { // don't reconnect this time, but allow at some later time if needed
-          LGLogger.log( LGLogger.INFORMATION, "Reconnect aborted: already reconnected 3 times this session." );
-          reconnect_counts.remove( key );
-        }
-      }
-      finally {
-        reconnect_counts_mon.exit();
-      }
-
-      if( reconnect_allowed ) {
-        makeNewOutgoingConnection( peer.getPeerSource(), peer.getIp(), peer.getTCPListenPort() );
-      }
-    }
-    else { // cleanup any reconnect count
-      try {
-        reconnect_counts_mon.enter();
-
-        reconnect_counts.remove( key );
-      }
-      finally {
-        reconnect_counts_mon.exit();
-      }
     }
   }
   

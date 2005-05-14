@@ -898,7 +898,7 @@ Test
 			
 		}
     
-    public void peerConnectionClosed( PEPeerTransport peer, boolean reconnect ) {
+    public void peerConnectionClosed( PEPeerTransport peer ) {
       
     }
     

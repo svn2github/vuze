@@ -200,11 +200,11 @@ PEPeerTransportProtocol
       
       public void connectFailure( Throwable failure_msg ) {  //should never happen
         Debug.out( "ERROR: incoming connect failure: ", failure_msg );
-        closeConnection( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage(), false );
+        closeConnectionInternally( "ERROR: incoming connect failure [" + PEPeerTransportProtocol.this + "] : " + failure_msg.getMessage() );
       }
       
       public void exceptionThrown( Throwable error ) {
-        closeConnection( "connection exception: " + error.getMessage(), true );
+        closeConnectionInternally( "connection exception: " + error.getMessage() );
       }
     });
   }
@@ -226,7 +226,7 @@ PEPeerTransportProtocol
     peer_stats = manager.createPeerStats();
     
     if( port < 0 || port > 65535 ) {
-      closeConnection( "given remote port is invalid: " + port, false );
+      closeConnectionInternally( "given remote port is invalid: " + port );
       return;
     }
 
@@ -252,11 +252,11 @@ PEPeerTransportProtocol
       }
         
       public void connectFailure( Throwable failure_msg ) {
-        closeConnection( "failed to establish outgoing connection: " + failure_msg.getMessage(), false );
+        closeConnectionInternally( "failed to establish outgoing connection: " + failure_msg.getMessage() );
       }
         
       public void exceptionThrown( Throwable error ) {
-        closeConnection( "connection exception: " + error.getMessage(), true );
+        closeConnectionInternally( "connection exception: " + error.getMessage() );
       }
     });
       
@@ -306,18 +306,18 @@ PEPeerTransportProtocol
 
 
   //close the peer connection internally
-  private void closeConnection( String reason, boolean reconnect ) {
-    performClose( reason, reconnect, false );
+  private void closeConnectionInternally( String reason ) {
+    performClose( reason, false );
   }
   
   
   //close the peer connection externally
   public void closeConnection( String reason ) {
-    performClose( reason, false, true );
+    performClose( reason, true );
   }
 
   
-  private void performClose( String reason, boolean reconnect, boolean externally_closed ) {
+  private void performClose( String reason, boolean externally_closed ) {
     try{
       closing_mon.enter();
     
@@ -368,12 +368,7 @@ PEPeerTransportProtocol
     if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Peer connection [" +toString()+ "] closed: " +reason );
 
     if( !externally_closed ) {  //if closed internally, notify manager, otherwise we assume it already knows
-      if( reconnect && tcp_listen_port > 0 ) {
-        manager.peerConnectionClosed( this, true );
-      }
-      else{
-        manager.peerConnectionClosed( this, false );
-      }
+      manager.peerConnectionClosed( this );
     }
   }
   
@@ -941,7 +936,7 @@ PEPeerTransportProtocol
       }
       
       if( dead_time > 5*60*1000 ) { //5min timeout
-        closeConnection( "timed out while waiting for messages", true );
+        closeConnectionInternally( "timed out while waiting for messages" );
         return true;
       }
     }
@@ -955,7 +950,7 @@ PEPeerTransportProtocol
       }
       
       if( wait_time > 3*60*1000 ) { //3min timeout
-        closeConnection( "timed out while waiting for handshake", true );
+        closeConnectionInternally( "timed out while waiting for handshake" );
         return true;
       }
     }
@@ -1071,7 +1066,7 @@ PEPeerTransportProtocol
     PeerIdentityDataID  my_peer_data_id = manager.getPeerIdentityDataID();
       
     if( !Arrays.equals( manager.getHash(), handshake.getDataHash() ) ) {
-      closeConnection( "handshake has wrong infohash", false );
+      closeConnectionInternally( "handshake has wrong infohash" );
       handshake.destroy();
       return;
     }
@@ -1083,7 +1078,7 @@ PEPeerTransportProtocol
 
     //make sure the client type is not banned
     if( !PeerClassifier.isClientTypeAllowed( client ) ) {
-      closeConnection( client+ " client type not allowed to connect, banned", false );
+      closeConnectionInternally( client+ " client type not allowed to connect, banned" );
       handshake.destroy();
       return;
     }
@@ -1091,7 +1086,7 @@ PEPeerTransportProtocol
     //make sure we are not connected to ourselves
     if( Arrays.equals( manager.getPeerId(), peer_id ) ) {
       manager.peerVerifiedAsSelf( this );  //make sure we dont do it again
-      closeConnection( "given peer id matches myself", false );
+      closeConnectionInternally( "given peer id matches myself" );
       handshake.destroy();
       return;
     }
@@ -1110,13 +1105,13 @@ PEPeerTransportProtocol
     }
       
     if( sameIdentity ) {
-      closeConnection( "peer matches already-connected peer id", false );
+      closeConnectionInternally( "peer matches already-connected peer id" );
       handshake.destroy();
       return;
     }
     
     if( sameIP ) {
-      closeConnection( "peer matches already-connected IP address, duplicate connections not allowed", false );
+      closeConnectionInternally( "peer matches already-connected IP address, duplicate connections not allowed" );
       handshake.destroy();
       return;
     }
@@ -1124,7 +1119,7 @@ PEPeerTransportProtocol
     //make sure we haven't reached our connection limit
     int maxAllowed = PeerUtils.numNewConnectionsAllowed( my_peer_data_id );
     if( maxAllowed == 0 ) {
-      closeConnection( "too many existing peer connections [" +PeerIdentityManager.getIdentityCount( my_peer_data_id )+ " / " +maxAllowed+ "]", false );
+      closeConnectionInternally( "too many existing peer connections [" +PeerIdentityManager.getIdentityCount( my_peer_data_id )+ " / " +maxAllowed+ "]" );
       handshake.destroy();
       return;
     }
@@ -1306,7 +1301,7 @@ PEPeerTransportProtocol
     int piece_number = have.getPieceNumber();
     
     if ((piece_number >= other_peer_has_pieces.length) || (piece_number < 0)) {
-      closeConnection( "invalid piece_number: " + piece_number, true );
+      closeConnectionInternally( "invalid piece_number: " + piece_number );
       have.destroy();
       return;
     }
@@ -1333,7 +1328,7 @@ PEPeerTransportProtocol
     int length = request.getLength();
     
     if( !manager.checkBlock( number, offset, length ) ) {
-      closeConnection( "request #" + number + ":" + offset + "->" + (offset + length) + " is an invalid request", true );
+      closeConnectionInternally( "request #" + number + ":" + offset + "->" + (offset + length) + " is an invalid request" );
       request.destroy();
       return;
     }
@@ -1483,7 +1478,7 @@ PEPeerTransportProtocol
           consecutive_keep_alives++;
           if( consecutive_keep_alives > 50 ) {
             consecutive_keep_alives = 0;
-            closeConnection( "Too many [50] consecutive keep-alive messages received.", false );
+            closeConnectionInternally( "Too many [50] consecutive keep-alive messages received" );
           }
           return true;
         }
