@@ -27,14 +27,20 @@ import java.util.*;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.bloom.*;
+
 
 /**
  *
  */
 public class PeerDatabase {
-  private static final int MIN_REBUILD_WAIT_TIME = 120*1000;  //2min
+  private static final int MIN_REBUILD_WAIT_TIME = 60*1000;
   private static final int MAX_DISCOVERED_PEERS = 500;
-
+  
+  private static final int BLOOM_ROTATION_PERIOD = 5*60*1000;
+  private static final int BLOOM_FILTER_SIZE = 100000;
+  
+  
   private final HashMap peer_connections = new HashMap();
   private final LinkedList discovered_peers = new LinkedList();
   private final AEMonitor map_mon = new AEMonitor( "PeerDatabase" );
@@ -42,8 +48,13 @@ public class PeerDatabase {
   private PeerItem[] cached_peer_popularities = null;
   private int popularity_pos = 0;
   private long last_rebuild_time = 0;
+  private long last_rotation_time = 0;
   
   private PeerItem self_peer;
+  
+  private BloomFilter filter_one = null;
+  private BloomFilter filter_two = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
+  
   
   
   protected PeerDatabase() {
@@ -188,10 +199,34 @@ public class PeerDatabase {
       }
     }
 
+    //to reduce the number of wasted outgoing attempts, we limit how frequently we hand out the same optimistic peer in a given time period
+    if( peer != null ) {
+      //check if it's time to rotate the bloom filters
+      long diff = SystemTime.getCurrentTime() - last_rotation_time;
+      if( diff < 0 || diff > BLOOM_ROTATION_PERIOD ) {
+        filter_one = filter_two;
+        filter_two = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
+        last_rotation_time = SystemTime.getCurrentTime();
+      }
+      
+      //check to see if we've already given this peer out optimistically in the last 5-10min
+      if( filter_one.contains( peer.getSerialization() ) ) {
+        //we've recently given this peer, so recursively find another peer to try
+        peer = getNextOptimisticConnectPeer();
+      }
+      
+      if( peer != null ) {  //we've found a suitable peer
+        byte[] raw = peer.getSerialization();
+        filter_one.add( raw );
+        filter_two.add( raw );
+      }
+    }
+
     return peer;
   }
   
 
+  
   
   private PeerItem[] getExchangedPeersSortedByLeastPopularFirst() {
     HashMap popularity_counts = new HashMap();

@@ -113,12 +113,12 @@ public class PeerManager {
             String address = connection.getAddress().getAddress().getHostAddress();
             boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
             if( !same_allowed && PeerIdentityManager.containsIPAddress( manager.getPeerIdentityDataID(), address ) ){  
-              LGLogger.log( "Incoming TCP connection from [" +connection+ "] dropped as IP address already connected for [" +manager.getDownloadManager().getDisplayName()+ "]" );
+              if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP connection from [" +connection+ "] dropped as IP address already connected for [" +manager.getDownloadManager().getDisplayName()+ "]" );
               connection.close();
               return;
             }
             
-            LGLogger.log( "Incoming TCP connection from [" +connection+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
+            if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP connection from [" +connection+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
             manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
           }
         },

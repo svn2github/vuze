@@ -188,7 +188,7 @@ public class IncomingSocketChannelManager {
 	          }
 	          
 	          if( match_buffers.isEmpty() ) {  //no match registrations, just close
-	            LGLogger.log( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] dropped because zero routing handlers registered" );
+	            if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP connection from [" +channel.socket().getInetAddress().getHostAddress()+ ":" +channel.socket().getPort()+ "] dropped because zero routing handlers registered" );
 	            NetworkManager.getSingleton().closeSocketChannel( channel );
 	            return;
 	          }
@@ -232,20 +232,20 @@ public class IncomingSocketChannelManager {
 	                  if( listener == null ) {  //no match found
 	                    if( ic.buffer.position() >= max_match_buffer_size ) { //we've already read in enough bytes to have compared against all potential match buffers
 	                      ic.buffer.flip();
-	                      LGLogger.log( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] does not match any known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
+	                      if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] does not match any known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
 	                      removeConnection( ic, true );
 	                    }
 	                  }
 	                  else {  //match found!
 	                    ic.buffer.flip();
-	                    LGLogger.log( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] recognized as known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
+	                    if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP stream from [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] recognized as known byte pattern: " + ByteFormatter.nicePrint( ic.buffer.array() ) );
 	                    removeConnection( ic, false );
 	                    listener.connectionMatched( sc, ic.buffer );
 	                  }
 	                }
 	                catch( Throwable t ) {
 	                  try {
-	                    LGLogger.log( "Incoming TCP connection [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] socket read exception: " +t.getMessage() );
+	                    if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP connection [" +sc.socket().getInetAddress().getHostAddress()+ ":" +sc.socket().getPort()+ "] socket read exception: " +t.getMessage() );
 	                  }
 	                  catch( Throwable x ) {
 	                    Debug.out( "Caught exception on incoming exception log:" );
@@ -262,7 +262,7 @@ public class IncomingSocketChannelManager {
 	              
 	              //FAILURE
 	              public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
-	                LGLogger.log( "Incoming TCP connection [" +sc+ "] socket select op failure: " +msg.getMessage() );
+	                if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP connection [" +sc+ "] socket select op failure: " +msg.getMessage() );
 	                removeConnection( ic, true );
 	              }
 	            }, null );
@@ -360,7 +360,7 @@ public class IncomingSocketChannelManager {
             ic.last_read_time = now;
           }
           else if( now - ic.last_read_time > 10*1000 ) {  //10s read timeout
-            LGLogger.log( "Incoming TCP connection [" +ic.channel.socket().getInetAddress().getHostAddress()+ ":" +ic.channel.socket().getPort()+ "] forcibly timed out due to socket read inactivity [" +ic.buffer.position()+ " bytes read: " + new String( ic.buffer.array() )+ "]" );
+            if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP connection [" +ic.channel.socket().getInetAddress().getHostAddress()+ ":" +ic.channel.socket().getPort()+ "] forcibly timed out due to socket read inactivity [" +ic.buffer.position()+ " bytes read: " + new String( ic.buffer.array() )+ "]" );
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );
           }
@@ -370,7 +370,7 @@ public class IncomingSocketChannelManager {
             ic.initial_connect_time = now;
           }
           else if( now - ic.initial_connect_time > 60*1000 ) {  //60s connect timeout
-            LGLogger.log( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out after 60sec due to socket inactivity" );
+            if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP connection [" +ic.channel+ "] forcibly timed out after 60sec due to socket inactivity" );
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );
           }
