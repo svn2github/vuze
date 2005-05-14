@@ -2717,7 +2717,7 @@ PEPeerControlImpl
       //pass from storage to connector
       int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
       
-      if( allowed < 0 || allowed > 2000 )  allowed = 2000;  //ensure a very upper limit so it doesnt get out of control when using PEX
+      if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
 
       if( _downloadManager.getHealthStatus() == DownloadManager.WEALTH_OK ) {  //if unfirewalled, leave slots avail for remote connections
         int free = PeerUtils.MAX_CONNECTIONS_PER_TORRENT / 20;  //leave 5%
@@ -2749,8 +2749,6 @@ PEPeerControlImpl
               if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort() ) ) {
                 num_waiting_establishments++;
               }
-              
-              //TODO count connect failures so we dont keep trying the same peers over and over: long-term remembering
             }
           }
         }
