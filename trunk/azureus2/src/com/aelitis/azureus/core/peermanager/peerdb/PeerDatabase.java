@@ -38,7 +38,7 @@ public class PeerDatabase {
   private static final int MAX_DISCOVERED_PEERS = 500;
   
   private static final int BLOOM_ROTATION_PERIOD = 5*60*1000;
-  private static final int BLOOM_FILTER_SIZE = 100000;
+  private static final int BLOOM_FILTER_SIZE = 10000;
   
   
   private final HashMap peer_connections = new HashMap();
