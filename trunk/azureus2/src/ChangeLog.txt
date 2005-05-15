@@ -1,7 +1,15 @@
 AZUREUS CHANGELOG
 ---------
 
-2005.05.02 | Azureus 2.3.0.1
+2005.05.xx | Azureus 2.3.0.1
+
+CHANGE: Core | CPU usage reductions when connected to many idle peers [Nolar]
+CHANGE: Core | Disable console view logging by default [Nolar]
+CHANGE: Core | Memory usage reductions and optimizations [Gudy, Parg, Nolar]
+CHANGE: Core | Improved long-term connection-attempt management [Nolar]
+
+BUGFIX: Core | Re-enable JRE 1.4 series compatibility under Win32 due to NIO bug [Nolar]
+BUGFIX: Core | Ignore peers with these data ports config option didn't work the DHT and PEX obtained peers [Nolar]
 
 
 
