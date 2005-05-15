@@ -250,7 +250,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private int postReadProcess() throws IOException {
     int bytes_read = 0;
     
-    if( !reading_length_mode ) {  //reading payload data mode
+    if( !reading_length_mode && !destroyed ) {  //reading payload data mode
       //ensure-restore proper buffer limits
       payload_buffer.limit( SS, message_length );
       length_buffer.limit( SS, 4 );
@@ -310,7 +310,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     }
     
     
-    if( reading_length_mode ) {
+    if( reading_length_mode && !destroyed ) {
       length_buffer.limit( SS, 4 );  //ensure proper buffer limit
       
       int read = (pre_read_start_buffer == 1) ? length_buffer.position( SS ) - pre_read_start_position : length_buffer.position( SS );
