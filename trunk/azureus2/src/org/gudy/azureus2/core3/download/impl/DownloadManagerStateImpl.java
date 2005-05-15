@@ -438,7 +438,7 @@ DownloadManagerStateImpl
 	  		try{
 	  			// System.out.println( "writing download state for '" + new String(torrent.getName()));
 	  		
-	  			LGLogger.log( "Saving state for download '" + TorrentUtils.getLocalisedName( torrent ) + "'" );
+	  		  if( LGLogger.isEnabled() )  LGLogger.log( "Saving state for download '" + TorrentUtils.getLocalisedName( torrent ) + "'" );
 				
 	  			TorrentUtils.writeToFile( torrent, true );
 	  		

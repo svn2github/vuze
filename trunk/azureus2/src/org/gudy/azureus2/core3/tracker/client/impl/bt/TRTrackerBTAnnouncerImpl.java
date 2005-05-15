@@ -222,13 +222,13 @@ TRTrackerBTAnnouncerImpl
 	  
 	}catch (UnsupportedEncodingException e){
 		
-		LGLogger.log(componentID, evtLifeCycle,"URL encode fails", e );
+	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle,"URL encode fails", e );
 	  
 	  throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));
 	  
 	}catch( TOTorrentException e ){
 	
-		LGLogger.log(componentID, evtLifeCycle,"Torrent hash retrieval fails", e );
+	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle,"Torrent hash retrieval fails", e );
 		
 		throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));	
 	}
@@ -309,7 +309,7 @@ TRTrackerBTAnnouncerImpl
 			}
 		};
     
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Announcer Created using url : " + trackerUrlListString);
+		if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Announcer Created using url : " + trackerUrlListString);
   }
 	
 	public void
@@ -711,7 +711,7 @@ TRTrackerBTAnnouncerImpl
 	protected TRTrackerAnnouncerResponse 
   	startSupport() 
   	{
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a start Request");
+	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a start Request");
 	
 		// System.out.println( "started");
 		
@@ -721,7 +721,7 @@ TRTrackerBTAnnouncerImpl
   	protected TRTrackerAnnouncerResponse 
   	completeSupport() 
   	{	
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a completed Request");
+  	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a completed Request");
 		
 		// System.out.println( "complete");
 		
@@ -731,7 +731,7 @@ TRTrackerBTAnnouncerImpl
   	protected TRTrackerAnnouncerResponse 
   	stopSupport() 
   	{
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a stopped Request");
+  	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a stopped Request");
 
 		// System.out.println( "stop");		
 	
@@ -741,7 +741,7 @@ TRTrackerBTAnnouncerImpl
   	protected TRTrackerAnnouncerResponse 
   	updateSupport() 
   	{
-		LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending an update Request");
+  	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending an update Request");
 	
 		// System.out.println( "update");
 		
@@ -925,7 +925,7 @@ TRTrackerBTAnnouncerImpl
 			try{  
 				String	protocol = reqUrl.getProtocol();
 				
-		  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Announcer is Requesting : " + reqUrl);
+				if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Announcer is Requesting : " + reqUrl);
 		  
 		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
 		  				
@@ -988,7 +988,7 @@ TRTrackerBTAnnouncerImpl
 				failure_reason = "Tracker authentication failed";
 			}
 		
-			LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while processing the Tracker Request : " + failure_reason);
+			if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while processing the Tracker Request : " + failure_reason);
 			
 			throw( new Exception( failure_reason));
  		}
@@ -1137,9 +1137,9 @@ TRTrackerBTAnnouncerImpl
  						
  					}catch (Exception e){
  						
- 						LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
+ 					  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
  						
- 						LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
+ 					  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
  						
  						failure_reason = exceptionToString( e );
  						
@@ -1147,7 +1147,7 @@ TRTrackerBTAnnouncerImpl
  					}
  				}
  				
- 				LGLogger.log(componentID, evtFullTrace, LGLogger.RECEIVED, "Tracker Announcer ["+lastUsedUrl+"] has received : " + message);
+ 				if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.RECEIVED, "Tracker Announcer ["+lastUsedUrl+"] has received : " + message);
  				
  				
  			}catch (Exception e){
@@ -1640,7 +1640,7 @@ TRTrackerBTAnnouncerImpl
     		
     		}catch( UnknownHostException e){
     		    			
-    			LGLogger.log( LGLogger.ERROR, "IP Override host resolution of '" + ip + "' fails, using unresolved address" );
+    		  if( LGLogger.isEnabled() )  LGLogger.log( LGLogger.ERROR, "IP Override host resolution of '" + ip + "' fails, using unresolved address" );
     		}
     	}
     	    	
@@ -1953,7 +1953,7 @@ TRTrackerBTAnnouncerImpl
 						
 				     if ( failure_reason_bytes == null ){
 							
-				       System.out.println("Problems with Tracker, will retry in 1 minute");
+				       if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Problems with Tracker, will retry in 1 minute");
 											   			
 				       return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval() ));
 	
@@ -1974,8 +1974,7 @@ TRTrackerBTAnnouncerImpl
 				   
 				   if ( incomplete_l != null || complete_l != null  ){
 				   
-				   	LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-                         "ANNOUNCE SCRAPE1: seeds=" +complete_l+ " peers=" +incomplete_l);
+				     if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "ANNOUNCE SCRAPE1: seeds=" +complete_l+ " peers=" +incomplete_l);
 				   }
            
            
@@ -2048,9 +2047,9 @@ TRTrackerBTAnnouncerImpl
 									peer_peer_id = (byte[])s_peerid ; 
 								}
 																	
-                LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "NON-COMPACT PEER: ip=" +ip+ " port=" +peer_port);
+								if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "NON-COMPACT PEER: ip=" +ip+ " port=" +peer_port);
 
-                valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
+								valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
 								
 							} 
 						}
@@ -2074,15 +2073,15 @@ TRTrackerBTAnnouncerImpl
 				    		int		peer_port 	= po1*256+po2;
 				    		
 			                if( peer_port < 0 || peer_port > 65535 ) {
-			                  LGLogger.log( LGLogger.ERROR, "Invalid compact peer port given: " +ip+ ": " +peer_port );
+			                  if( LGLogger.isEnabled() )  LGLogger.log( LGLogger.ERROR, "Invalid compact peer port given: " +ip+ ": " +peer_port );
 			                  continue;
 			                }
                 
 				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
-				    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "COMPACT PEER: ip=" +ip+ " port=" +peer_port);
+				    		if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "COMPACT PEER: ip=" +ip+ " port=" +peer_port);
 
-                valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
+				    		valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
                 			
 				    	}
 				    }else{
@@ -2116,8 +2115,7 @@ TRTrackerBTAnnouncerImpl
 							incomplete_l = (Long)extensions.get("incomplete");
 						}
 					
-						LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-			                           "ANNOUNCE SCRAPE2: seeds=" +complete_l+ " peers=" +incomplete_l);
+						if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "ANNOUNCE SCRAPE2: seeds=" +complete_l+ " peers=" +incomplete_l);
 			            
 					}
 
@@ -2164,7 +2162,7 @@ TRTrackerBTAnnouncerImpl
 	 				 				
 	 				String	trace_data = new String(data);
 	 				
-	 				LGLogger.log("TRTrackerAnnouncer::invalid reply: " + trace_data );
+	 				if( LGLogger.isEnabled() )  LGLogger.log("TRTrackerAnnouncer::invalid reply: " + trace_data );
 	 				
 	 				if ( trace_data.length() > 150 ){
 	 					
@@ -2332,8 +2330,7 @@ TRTrackerBTAnnouncerImpl
 				
 			for (int i=0;i<ext_peers.length;i++){
 				
-	    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-	    				"EXTERNAL PEER: ip=" +ext_peers[i].getAddress() + " port=" +ext_peers[i].getPort());
+			  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "EXTERNAL PEER: ip=" +ext_peers[i].getAddress() + " port=" +ext_peers[i].getPort());
 
 				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
 									ext_peers[i].getSource(),

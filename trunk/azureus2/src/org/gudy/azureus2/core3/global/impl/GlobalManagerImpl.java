@@ -1212,7 +1212,7 @@ public class GlobalManagerImpl
   	try{
   		managers_mon.enter();
   	
-      LGLogger.log("Saving Download List (" + managers_cow.size() + " items)");
+      if( LGLogger.isEnabled() )  LGLogger.log("Saving Download List (" + managers_cow.size() + " items)");
 	    Map map = new HashMap();
 	    List list = new ArrayList(managers_cow.size());
 	    for (int i = 0; i < managers_cow.size(); i++) {

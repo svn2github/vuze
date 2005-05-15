@@ -113,8 +113,7 @@ public class TrackerStatus {
 			
 			logged_invalid_urls.add( trackerUrl );
 			
-			LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
-                     "Can't scrape using url '" + trackerUrl + "' as it doesn't end in '/announce', skipping.");		
+			if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Can't scrape using url '" + trackerUrl + "' as it doesn't end in '/announce', skipping.");		
        }
     }
     } catch (Throwable e) {
@@ -268,7 +267,7 @@ public class TrackerStatus {
       
       try{
         
-      LGLogger.log( "TrackerStatus: scraping '" + scrapeURL + "', number of hashes = " +responses.size()+ ", single_hash_scrapes = " +bSingleHashScrapes );
+      if( LGLogger.isEnabled() )  LGLogger.log( "TrackerStatus: scraping '" + scrapeURL + "', number of hashes = " +responses.size()+ ", single_hash_scrapes = " +bSingleHashScrapes );
             
       boolean	original_bSingleHashScrapes = bSingleHashScrapes;
       
@@ -345,8 +344,7 @@ public class TrackerStatus {
         
         URL reqUrl = new URL(scrapeURL + info_hash);
         
-        LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT,
-                     "Accessing scrape interface using url : " + reqUrl);
+        if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Accessing scrape interface using url : " + reqUrl);
    
         ByteArrayOutputStream message = new ByteArrayOutputStream();
         
@@ -369,7 +367,7 @@ public class TrackerStatus {
         
         Map mapFiles = map==null?null:(Map) map.get("files");
 
-        LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED,
+        if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED,
                      "Response from scrape interface " + scrapeURL + ": " + 
                      ((mapFiles == null) ? "null" : ""+mapFiles.size()) +
                      " returned");
@@ -404,8 +402,7 @@ public class TrackerStatus {
 	          if (responses.size() > 1) {
 	            // multi were requested, 0 returned.  Therefore, multi not supported
 	            bSingleHashScrapes = true;
-	            LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION,
-	                         scrapeURL + " doesn't properly support multi-hash scrapes");
+	            if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, scrapeURL + " doesn't properly support multi-hash scrapes");
 	            for (int i = 0; i < responses.size(); i++) {
 			          TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl)responses.get(i);
 	              response.setStatus(TRTrackerScraperResponse.ST_ERROR,
@@ -436,7 +433,7 @@ public class TrackerStatus {
         */
         if (!bSingleHashScrapes && responses.size() > 1 && mapFiles.size() == 1) {
           bSingleHashScrapes = true;
-          LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION,
+          if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION,
                        scrapeURL + " only returned " + mapFiles.size() + 
                        " hash scrape(s), but we asked for " + responses.size());
         }
@@ -470,7 +467,7 @@ public class TrackerStatus {
 
               if (response.getStatus() == TRTrackerScraperResponse.ST_SCRAPING) {
               	
-                System.out.println("Hash " + ByteFormatter.nicePrint(response.getHash(), true) + " mysteriously reverted to ST_SCRAPING!");
+                //System.out.println("Hash " + ByteFormatter.nicePrint(response.getHash(), true) + " mysteriously reverted to ST_SCRAPING!");
                 
                 //response.setStatus(TRTrackerScraperResponse.ST_ONLINE, "");
 
@@ -637,7 +634,7 @@ public class TrackerStatus {
       		bSingleHashScrapes	= true;
       	}
       	
-        LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
+      	if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
   									"Error from scrape interface " + scrapeURL + " : " + Debug.getNestedExceptionMessage(e));
    
         for (int i = 0; i < responses.size(); i++) {
@@ -776,7 +773,7 @@ public class TrackerStatus {
 				}
 	  		} catch (Exception e) {
 	  			
-				LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
+	  		  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, 
 						"Error from scrape interface " + scrapeURL + " : " + Debug.getNestedExceptionMessage(e));
 
 	  			return;
@@ -807,7 +804,7 @@ public class TrackerStatus {
   	if ( 	PRUDPPacketTracker.VERSION == 2 &&
   			scraper.isTorrentDownloading( hash )){
   	
-        LGLogger.log(	componentID, evtLifeCycle, LGLogger.SENT,
+  	  if( LGLogger.isEnabled() )  LGLogger.log(	componentID, evtLifeCycle, LGLogger.SENT,
         				"Scrape of " + reqUrl + " skipped as torrent running and therefore scrape data available in announce replies");
 
 			// easiest approach here is to brew up a response that looks like the current one
@@ -964,7 +961,7 @@ public class TrackerStatus {
 						
 						failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
 						
-						LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
+						if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
 	    									"Response from scrape interface : " + failure_reason );
 						
 						break;
@@ -973,7 +970,7 @@ public class TrackerStatus {
 	
 					failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
 					
-					LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
+					if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtErrors, LGLogger.ERROR,
 							"Response from scrape interface : " +
 							((PRUDPPacketReplyError)reply).getMessage());
 					

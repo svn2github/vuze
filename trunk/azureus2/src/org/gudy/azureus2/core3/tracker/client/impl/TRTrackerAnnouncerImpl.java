@@ -116,7 +116,7 @@ TRTrackerAnnouncerImpl
 	{
 		int	num = importTrackerCache( map );
 		
-		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+		if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 	             "TRTrackerClient: imported " + num + " cached peers" );
 	}
 
@@ -147,7 +147,7 @@ TRTrackerAnnouncerImpl
 				peers.add( entry );
 			}
 		
-			LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+			if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 			             "TRTrackerClient: exported " + tracker_peer_cache.size() + " cached peers" );
 		}finally{
 			
@@ -323,7 +323,7 @@ TRTrackerAnnouncerImpl
 		
 		if ( p2 != null ){
 			
-	  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+		  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 			             "TRTrackerClient: merged peer sets: p1 = " + peers.size() + ", p2 = " + p2.size());
 		
 			for (int i=0;i<p2.size();i++){
@@ -350,7 +350,7 @@ TRTrackerAnnouncerImpl
 				
 				tracker_peer_cache.values().toArray( res );
 				
-			    LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+				if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 		                   "TRTrackerClient: returned " + res.length + " cached peers" );
 			    
 				return( res );
@@ -377,7 +377,7 @@ TRTrackerAnnouncerImpl
 				tracker_peer_cache.put( res[i].getAddress(), res[i] );
 			}
 			
-		    LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
+			if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
 	                   "TRTrackerClient: returned " + res.length + " cached peers" );
 		    
 			return( res );
