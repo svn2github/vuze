@@ -121,7 +121,7 @@ public class BTMessageFactory {
       case 20:
         //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
         //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
-        LGLogger.log( "Old extended messaging hello received, ignoring and faking as keep-alive." );
+        if( LGLogger.isEnabled() )  LGLogger.log( "Old extended messaging hello received, ignoring and faking as keep-alive." );
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
         
       default:
