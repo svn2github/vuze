@@ -162,7 +162,7 @@ CacheFileManagerImpl
 			
 		t.start();
 			
-		LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", read = " + cache_read_enabled + ", write = " + cache_write_enabled + ", size = " + cache_size + " B" );
+		if( LGLogger.isEnabled() )  LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", read = " + cache_read_enabled + ", write = " + cache_write_enabled + ", size = " + cache_size + " B" );
 	}
 	
 	protected boolean
@@ -326,7 +326,7 @@ CacheFileManagerImpl
 				
 				long	flushed = cache_space_free - old_free;
 				
-				LGLogger.log( "DiskCache: cache full, flushed " + ( flushed ) + " from " + oldest_file.getName());
+				if( LGLogger.isEnabled() )  LGLogger.log( "DiskCache: cache full, flushed " + ( flushed ) + " from " + oldest_file.getName());
 				
 				if ( flushed == 0 ){
 				
@@ -353,9 +353,7 @@ CacheFileManagerImpl
 			
 		if ( log ){
 				
-			LGLogger.log( 
-					"DiskCache: cr=" + cache_bytes_read + ",cw=" + cache_bytes_written+
-					",fr=" + file_bytes_read + ",fw=" + file_bytes_written ); 
+		  if( LGLogger.isEnabled() )  LGLogger.log( "DiskCache: cr=" + cache_bytes_read + ",cw=" + cache_bytes_written+	",fr=" + file_bytes_read + ",fw=" + file_bytes_written ); 
 		}
 			
 		return( entry );

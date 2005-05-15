@@ -1005,15 +1005,15 @@ DMWriterAndCheckerImpl
 							  			{
 							  				if ( result == CheckPieceResultHandler.OP_SUCCESS ){
 										  								  	
-							  					LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + pieceNumber + " passed hash check.");
+							  					if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + pieceNumber + " passed hash check.");
 										   
 							  				}else if ( result == CheckPieceResultHandler.OP_FAILURE ){
 	
-								  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " failed hash check.");
+							  				  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " failed hash check.");
 	
 							  				}else{
 							  					
-								  				LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " hash check cancelled.");
+							  				  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " hash check cancelled.");
 							  					
 							  				}
 			
