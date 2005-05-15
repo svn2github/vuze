@@ -35,6 +35,16 @@ LoggerChannel
 	public String
 	getName();
 	
+		/**
+		 * Indicates whether or not logging is enabled - use to optimise calls to the log methods that
+		 * require resources to construct the message to be logged
+		 * Note that this doesn't apply to alerts - these will always be handled
+		 * @return
+		 */
+		
+	public boolean
+	isEnabled();
+	
 	public void
 	log(
 		int		log_type,

@@ -67,6 +67,12 @@ LoggerChannelImpl
 		return( name );
 	}
 	
+	public boolean
+	isEnabled()
+	{
+		return( LGLogger.isEnabled());
+	}
+	
 	public void
 	log(
 		int		log_type,
@@ -83,7 +89,7 @@ LoggerChannelImpl
 			}
 		}
 		
-		if ( !no_output ){
+		if ( LGLogger.isEnabled() && !no_output ){
 			
 			data = "[".concat(name).concat("] ").concat(data);
 			
