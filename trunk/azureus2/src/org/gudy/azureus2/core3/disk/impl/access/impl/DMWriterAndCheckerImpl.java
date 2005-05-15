@@ -676,7 +676,7 @@ DMWriterAndCheckerImpl
 	
 				if (current_piece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
 		
-					LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + current_piece.getFile().getName() + " to read/write");
+					if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + current_piece.getFile().getName() + " to read/write");
 						
 					current_piece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
 				}
@@ -756,7 +756,7 @@ DMWriterAndCheckerImpl
 		
 		if ( global_write_queue_block_sem.getValue() < global_write_queue_block_sem_next_report_size ){
 			
-			LGLogger.log( "Disk Manager write queue size exceeds " + ( global_write_queue_block_sem_size - global_write_queue_block_sem_next_report_size ));
+		  if( LGLogger.isEnabled() )  LGLogger.log( "Disk Manager write queue size exceeds " + ( global_write_queue_block_sem_size - global_write_queue_block_sem_next_report_size ));
 
 			global_write_queue_block_sem_next_report_size -= QUEUE_REPORT_CHUNK;
 		}
@@ -798,11 +798,11 @@ DMWriterAndCheckerImpl
 		DirectByteBuffer data ) 
 	{
 		if (pieceNumber < 0) {
-			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" < 0");
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" < 0");
 			return false;
 		}
 		if (pieceNumber >= this.nbPieces) {
-			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
 			return false;
 		}
 		int length = this.pieceLength;
@@ -810,16 +810,16 @@ DMWriterAndCheckerImpl
 			length = this.lastPieceLength;
 		}
 		if (offset < 0) {
-			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" < 0");
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" < 0");
 			return false;
 		}
 		if (offset > length) {
-			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" > length="+length);
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" > length="+length);
 			return false;
 		}
 		int size = data.remaining(DirectByteBuffer.SS_DW);
 		if (offset + size > length) {
-			LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
 			return false;
 		}
 		return true;
@@ -833,34 +833,34 @@ DMWriterAndCheckerImpl
 		int length) 
 	{
 		if (length > max_read_block_size) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: length="+length+" > " + max_read_block_size );
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: length="+length+" > " + max_read_block_size );
 		  return false;
 		}
 		if (pieceNumber < 0) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" < 0");
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" < 0");
 		  return false;
       }
 		if (pieceNumber >= this.nbPieces) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
 		  return false;
       }
 		int pLength = this.pieceLength;
 		if (pieceNumber == this.nbPieces - 1)
 			pLength = this.lastPieceLength;
 		if (offset < 0) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" < 0");
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" < 0");
 		  return false;
 		}
 		if (offset > pLength) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" > pLength="+pLength);
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" > pLength="+pLength);
 		  return false;
 		}
 		if (offset + length > pLength) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" + length="+length+" > pLength="+pLength);
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" + length="+length+" > pLength="+pLength);
 		  return false;
 		}
 		if(!disk_manager.getPieces()[pieceNumber].getDone()) {
-		  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" not done");
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" not done");
 		  return false;
 		}
 		return true;
