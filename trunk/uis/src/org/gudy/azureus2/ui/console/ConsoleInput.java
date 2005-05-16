@@ -31,10 +31,15 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Vector;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LGAlertListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.update.Update;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
+import org.gudy.azureus2.plugins.update.UpdateManager;
 import org.gudy.azureus2.ui.common.UIConst;
 import org.gudy.azureus2.ui.console.commands.AddFind;
 import org.gudy.azureus2.ui.console.commands.Alias;
@@ -113,6 +118,7 @@ public class ConsoleInput extends Thread {
 		registerAlertHandler();
 		registerCommands();
 		registerPluginCommands();
+		registerUpdateChecker();
 		try {
 			loadAliases();
 		} catch (IOException e) {
@@ -517,5 +523,55 @@ public class ConsoleInput extends Thread {
 		} catch (IOException e) {
 			out.println("> Error saving aliases to " + aliasesFile.getPath() + ":" + e.getMessage());
 		}
+	}
+	
+	protected void
+	registerUpdateChecker()
+	{
+		boolean check_at_start	= COConfigurationManager.getBooleanParameter( "update.start", true );
+
+		if ( !check_at_start ){
+			
+			return;
+		}
+		
+		UpdateManager update_manager = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager();
+		
+		UpdateCheckInstance	checker = update_manager.createUpdateCheckInstance();
+		
+		checker.addListener(
+			new UpdateCheckInstanceListener()
+			{
+				public void
+				cancelled(
+					UpdateCheckInstance		instance )
+				{
+					
+				}
+				
+				public void
+				complete(
+					UpdateCheckInstance		instance )
+				{
+					Update[] 	updates = instance.getUpdates();
+					
+					for (int i=0;i<updates.length;i++){
+						
+						Update	update = updates[i];
+						
+						out.println( "Update available for '" + update.getName() + ", new version = " + update.getNewVersion());
+						
+						String[]	descs = update.getDescription();
+						
+						for (int j=0;j<descs.length;j++){
+							
+							out.println( "\t" + descs[j] );
+						}
+					}
+				}
+			});
+		
+		checker.start();
+		
 	}
 }
