@@ -313,6 +313,7 @@ public class MultiPeerUploader implements RateControlledEntity {
             else {
               if( e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
                   e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
+                  e.getMessage().indexOf( "Broken pipe" ) == -1 &&
                   e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
                   
                 System.out.println( "MP: write exception [" +conn.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
