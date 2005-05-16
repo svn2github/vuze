@@ -264,8 +264,11 @@ DownloadManagerImpl
   
 	private long	creation_time	= SystemTime.getCurrentTime();
   
-  private boolean az_messaging_enabled = true;
+	private boolean az_messaging_enabled = true;
    
+	private boolean	dl_identity_obtained;
+	private byte[]	dl_identity;
+	
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
 	
@@ -438,6 +441,24 @@ DownloadManagerImpl
 				 			this, torrentFileName, torrent_hash );
 			 
 			 torrent	= download_manager_state.getTorrent();
+			 
+			 	// We can't have the identity of this download changing as this will screw up
+			 	// anyone who tries to maintain a unique set of downloads (e.g. the GlobalManager)
+			 	//
+			 
+			 if ( !dl_identity_obtained ){
+				 
+				 	// flag set true below
+				 
+				 dl_identity			= torrent.getHash();
+				 
+			 }else{
+				 
+				 if ( !Arrays.equals( dl_identity, torrent.getHash())){
+					 
+					 throw( new Exception( "Download identity changed - please remove and re-add the download" ));
+				 }
+			 }
 			 
 			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 					 
@@ -623,7 +644,11 @@ DownloadManagerImpl
 			
 			nbPieces = 0;
     					
-			setFailed( e );		
+			setFailed( e );
+			
+		}finally{
+			
+			 dl_identity_obtained	= true;			 
 		}
 		
 		if ( download_manager_state == null ){
@@ -1327,6 +1352,12 @@ DownloadManagerImpl
 	}
   }
 
+  private byte[]
+  getIdentity()
+  {
+	  return( dl_identity );
+  }
+  
   /** @retun true, if the other DownloadManager has the same size and hash 
    * @see java.lang.Object#equals(java.lang.Object)
    */
@@ -1339,29 +1370,20 @@ DownloadManagerImpl
 		return( true );
 	}
   	
-	if(null != obj && obj instanceof DownloadManager) {
+	if( obj instanceof DownloadManagerImpl ) {
     	
-	  DownloadManager other = (DownloadManager) obj;
+	  DownloadManagerImpl other = (DownloadManagerImpl) obj;
           
-	  TOTorrent t1 = getTorrent();
-	  TOTorrent t2 = other.getTorrent();
+	  byte[] id1 = getIdentity();
+	  byte[] id2 = other.getIdentity();
       
-	  if ( t1 == null || t2 == null ){
+	  if ( id2 == null || id2 == null ){
       	
 		return( false );	// broken torrents - treat as different so shown
 							// as broken
 	  }
       
-	  try{
-      	
-		return( Arrays.equals(t1.getHash(), t2.getHash()));
-     
-	  }catch( TOTorrentException e ){
-      	
-			// only get here is serious problem with hashing process
-      		
-	  	Debug.printStackTrace( e );
-	  }
+	  return( Arrays.equals( id1, id2 ));
 	}
     
 	return false;
