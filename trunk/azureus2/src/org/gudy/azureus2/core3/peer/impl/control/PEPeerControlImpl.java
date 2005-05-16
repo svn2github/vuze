@@ -2363,7 +2363,7 @@ PEPeerControlImpl
 		
 	    computeEndGameModeChunks();
 	    endGameMode = true;
-	    LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _downloadManager.getDisplayName());
+	    if( LGLogger.isEnabled() )  LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _downloadManager.getDisplayName());
 	    //System.out.println("End-Game Mode activated");
     }
   }
