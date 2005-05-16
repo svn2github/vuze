@@ -96,8 +96,7 @@ public class SinglePeerUploader implements RateControlledEntity {
           System.out.println( "SP: write exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
         }
       }
-      
-      
+
       connection.notifyOfException( e );
     }
     

@@ -63,7 +63,9 @@ public class SinglePeerDownloader implements RateControlledEntity {
       return false;
     }
     
-    if( num_bytes_allowed > NetworkManager.getTcpMssSize() )  num_bytes_allowed = NetworkManager.getTcpMssSize();
+    int mss = NetworkManager.getTcpMssSize();
+    
+    if( num_bytes_allowed > mss )  num_bytes_allowed = mss;
 
     int bytes_read = 0;
     
@@ -83,13 +85,8 @@ public class SinglePeerDownloader implements RateControlledEntity {
             
           System.out.println( "SP: read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
         }
-        
-        if( e.getMessage().indexOf( "Direct buffer memory" ) != -1 ) {
-          Debug.out( "Direct buffer memory exception", e );
-        }
       }
       
-          
       connection.notifyOfException( e );
     }
 
@@ -98,6 +95,11 @@ public class SinglePeerDownloader implements RateControlledEntity {
     }
     
     rate_handler.bytesProcessed( bytes_read );
+    
+    if( bytes_read == mss ) {  //we've read in a full packet, so give the socket another chance to read to allow for bursting
+      doProcessing();
+    }
+    
     return true;
   }
   
