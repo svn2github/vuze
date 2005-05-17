@@ -41,6 +41,8 @@ import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.net.udp.*;
 
 /**
@@ -116,6 +118,8 @@ DHTTransportUDPImpl
 	
 	private	Random		random = new Random( SystemTime.getCurrentTime());
 	
+	private static final int	BAD_IP_BLOOM_FILTER_SIZE	= 32000;
+	private BloomFilter			bad_ip_bloom_filter;
 	
 	private static AEMonitor	class_mon	= new AEMonitor( "DHTTransportUDP:class" );
 	
@@ -702,9 +706,35 @@ DHTTransportUDPImpl
 		}
 		*/
 		
-		if ( ip_filter.isInRange( contact.getTransportAddress().getAddress().getHostAddress(), "DHT" )){
+		if ( ip_filter.isEnabled()){
 			
-			throw( new PRUDPPacketHandlerException( "IPFilter check fails" ));
+			try{
+				this_mon.enter();
+
+				byte[]	addr = contact.getTransportAddress().getAddress().getAddress();
+				
+				if ( bad_ip_bloom_filter == null ){
+					
+					bad_ip_bloom_filter = BloomFilterFactory.createAddOnly( BAD_IP_BLOOM_FILTER_SIZE );
+					
+				}else{
+					
+					if ( bad_ip_bloom_filter.contains( addr )){
+						
+						throw( new PRUDPPacketHandlerException( "IPFilter check fails (repeat)" ));
+					}
+				}
+				
+				if ( ip_filter.isInRange( contact.getTransportAddress().getAddress().getHostAddress(), "DHT" )){
+					
+					bad_ip_bloom_filter.add( addr );
+					
+					throw( new PRUDPPacketHandlerException( "IPFilter check fails" ));
+				}
+			}finally{
+				
+				this_mon.exit();
+			}
 		}
 	}
 	
