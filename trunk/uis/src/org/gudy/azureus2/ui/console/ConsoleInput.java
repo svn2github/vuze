@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LGAlertListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
@@ -58,6 +59,8 @@ import org.gudy.azureus2.ui.console.commands.TorrentRemove;
 import org.gudy.azureus2.ui.console.commands.TorrentStart;
 import org.gudy.azureus2.ui.console.commands.TorrentStop;
 import org.gudy.azureus2.ui.console.commands.XML;
+import org.gudy.azureus2.update.CorePatchChecker;
+import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -535,6 +538,24 @@ public class ConsoleInput extends Thread {
 			return;
 		}
 		
+			// we've got to disable the auto-update components as we're not using them (yet...)
+		
+		PluginManager	pm = azureus_core.getPluginManager();
+		
+		PluginInterface	pi = pm.getPluginInterfaceByClass( CorePatchChecker.class );
+		
+		if ( pi != null ){
+			
+			pi.setDisabled( true );
+		}
+		
+		pi = pm.getPluginInterfaceByClass( UpdaterUpdateChecker.class );
+		
+		if ( pi != null ){
+			
+			pi.setDisabled( true );
+		}
+		
 		UpdateManager update_manager = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager();
 		
 		UpdateCheckInstance	checker = update_manager.createUpdateCheckInstance();
@@ -558,9 +579,9 @@ public class ConsoleInput extends Thread {
 					for (int i=0;i<updates.length;i++){
 						
 						Update	update = updates[i];
-						
-						out.println( "Update available for '" + update.getName() + ", new version = " + update.getNewVersion());
-						
+												
+						out.println( "Update available for '" + update.getName() + "', new version = " + update.getNewVersion());
+												
 						String[]	descs = update.getDescription();
 						
 						for (int j=0;j<descs.length;j++){
