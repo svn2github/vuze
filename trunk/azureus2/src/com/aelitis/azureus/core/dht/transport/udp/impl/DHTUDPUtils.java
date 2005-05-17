@@ -48,6 +48,16 @@ DHTUDPUtils
 {
 	protected static final int	CT_UDP		= 1;
 	
+	private static ThreadLocal		tls	= 
+		new ThreadLocal()
+		{
+			public Object
+			initialValue()
+			{
+				return( new SHA1Hasher());
+			}
+		};
+		
 	protected static byte[]
 	getNodeID(
 		InetSocketAddress	address )
@@ -64,7 +74,9 @@ DHTUDPUtils
 			
 		}else{
 			
-			byte[]	res = new SHA1Hasher().calculateHash(
+			SHA1Hasher	hasher = (SHA1Hasher)tls.get();
+			
+			byte[]	res = hasher.calculateHash(
 						(	ia.getHostAddress() + ":" + address.getPort()).getBytes());
 			
 			//System.out.println( "NodeID: " + address + " -> " + DHTLog.getString( res ));
