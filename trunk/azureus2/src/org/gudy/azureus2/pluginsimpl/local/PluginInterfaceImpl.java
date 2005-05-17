@@ -81,20 +81,21 @@ public class
 PluginInterfaceImpl 
 	implements PluginInterface 
 {
-  protected Plugin				plugin;
-  protected PluginInitializer	initialiser;
-  protected Object				initialiser_key;
-  protected ClassLoader			class_loader;
-  protected List				listeners 		= new ArrayList();
-  protected List				event_listeners	= new ArrayList();
-  protected String 				pluginConfigKey;
-  protected Properties 			props;
-  protected String 				pluginDir;
-  protected PluginConfig 		config;
-  protected String				plugin_id;
-  protected String				plugin_version;
-  protected boolean				operational;
-  protected Logger				logger;
+  private Plugin				plugin;
+  private PluginInitializer		initialiser;
+  private Object				initialiser_key;
+  private ClassLoader			class_loader;
+  private List					listeners 		= new ArrayList();
+  private List					event_listeners	= new ArrayList();
+  private String 				pluginConfigKey;
+  private Properties 			props;
+  private String 				pluginDir;
+  private PluginConfig 			config;
+  private String				plugin_id;
+  private String				plugin_version;
+  private boolean				operational;
+  private boolean				disabled;
+  private Logger				logger;
    
   public 
   PluginInterfaceImpl(
@@ -270,6 +271,19 @@ PluginInterfaceImpl
   	return( getPluginDirectoryName().length() == 0 );
   }
   
+	public void
+	setDisabled(
+		boolean	_disabled )
+	{
+		disabled	= _disabled;
+	}
+	  
+	public boolean
+	isDisabled()
+	{
+		return( disabled );
+	}
+	
   public Properties getPluginProperties() 
   {
     return(props);

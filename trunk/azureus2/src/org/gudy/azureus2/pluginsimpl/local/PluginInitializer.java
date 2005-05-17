@@ -609,7 +609,7 @@ PluginInitializer
   				
   			}else{
   			
-  				LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class + "' is already loaded" );
+  				LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "Error loading '" + plugin_name_string + "', plugin class '" + plugin_class + "' is already loaded" );
   			}
 
   		}else{
@@ -973,7 +973,7 @@ PluginInitializer
   
   	if ( getPluginFromClass( plugin_class ) != null ){
   	
-  		LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "plugin class '" + plugin_class.getName() + "' is already loaded" );
+  		LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "Error loading '" + plugin_id + "', plugin class '" + plugin_class.getName() + "' is already loaded" );
   		
   		return;
   	}

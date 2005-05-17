@@ -366,6 +366,18 @@ public interface PluginInterface {
   isUnloadable();
 
   /**
+   * @since 2.3.0.1
+   * @param disabled
+   */
+  
+  public void
+  setDisabled(
+	boolean	disabled );
+  
+  public boolean
+  isDisabled();
+  
+  /**
    *
    * @since 2.1.0.0
    */  

@@ -408,6 +408,21 @@ RPPluginInterface
 		return( false );
 	}
     
+	public void
+	setDisabled(
+		boolean	disabled )
+	{
+		notSupported();
+	}
+	  
+	public boolean
+	isDisabled()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
     public String getPluginVersion()
 	{
 		notSupported();

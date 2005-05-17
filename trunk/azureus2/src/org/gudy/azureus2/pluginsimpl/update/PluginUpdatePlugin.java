@@ -259,6 +259,11 @@ PluginUpdatePlugin
 				
 				PluginInterface	pi = plugins[i];
 				
+				if ( pi.isDisabled()){
+					
+					continue;
+				}
+				
 				String	mand = pi.getPluginProperties().getProperty( "plugin.mandatory");
 				
 				boolean	pi_mandatory = mand != null && mand.trim().toLowerCase().equals("true");
