@@ -55,13 +55,13 @@ DirectByteBufferPool
 	private final Object poolsLock = new Object();
 
 	private static final int	SLICE_END_SIZE				= 2048;	
-	private static final short	SLICE_ALLOC_MAX				= 64;		
 	private static final int    SLICE_ALLOC_CHUNK_SIZE		= 4096;
   
-	private static final short[]		SLICE_ENTRY_SIZES		= { 16, 32, 64, 128, 256, 512, 1024, SLICE_END_SIZE };
+	private static final short[]		SLICE_ENTRY_SIZES		= { 16,  32,  64, 128, 256, 512, 1024, SLICE_END_SIZE };
+	private static final short[]		SLICE_ALLOC_MAXS		= { 256, 128, 64, 64,  64,  64,  64,   64 };
 	private static final short[]		SLICE_ENTRY_ALLOC_SIZES = new short[SLICE_ENTRY_SIZES.length];
 	private static final List[]			slice_entries 			= new List[SLICE_ENTRY_SIZES.length];
-	private static final boolean[][]	slice_allocs 			= new boolean[SLICE_ENTRY_SIZES.length][SLICE_ALLOC_MAX];
+	private static final boolean[][]	slice_allocs 			= new boolean[SLICE_ENTRY_SIZES.length][];
 	private static final boolean[]		slice_alloc_fails		= new boolean[SLICE_ENTRY_SIZES.length];
 	
 	static{
@@ -69,6 +69,8 @@ DirectByteBufferPool
 			
 			SLICE_ENTRY_ALLOC_SIZES[i] = (short)(SLICE_ALLOC_CHUNK_SIZE/SLICE_ENTRY_SIZES[i]);
 					
+			slice_allocs[i] = new boolean[SLICE_ALLOC_MAXS[i]];
+			
 			slice_entries[i] = new LinkedList();
 		}
 	}
@@ -835,7 +837,6 @@ DirectByteBufferPool
 		for (int i=0;i<slice_entries.length;i++){
 			
 			int			entries_per_alloc 	= SLICE_ENTRY_ALLOC_SIZES[i];
-			boolean[]	allocs				= slice_allocs[i];
 	
 			List	l = slice_entries[i];
 	
@@ -866,7 +867,8 @@ DirectByteBufferPool
 								return( res );
 							}
 						});
-					
+			
+					boolean[]	allocs				= slice_allocs[i];
 			
 					Iterator	it = l.iterator();
 					
