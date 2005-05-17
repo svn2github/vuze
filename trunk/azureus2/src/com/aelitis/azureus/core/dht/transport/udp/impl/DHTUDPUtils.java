@@ -319,7 +319,7 @@ DHTUDPUtils
 		}
 	}
 	
-	protected static DHTTransportContact
+	protected static DHTTransportUDPContactImpl
 	deserialiseContact(
 		DHTTransportUDPImpl		transport,	// TODO: multiple transport support
 		DataInputStream			is )

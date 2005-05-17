@@ -242,6 +242,22 @@ DHTControlImpl
 						}
 					}
 					
+						// fill up with non-alive ones to lower limit in case this is a start-of-day
+						// router change and we only have imported contacts in limbo state
+					
+					for (int i=0;sorted_contacts.size() < 32 && i<old_contacts.size();i++){
+						
+						DHTRouterContact	contact = (DHTRouterContact)old_contacts.get(i);
+					
+						if ( !Arrays.equals( old_router_id, contact.getID())){
+							
+							if ( !contact.isAlive()){
+								
+								sorted_contacts.add( contact );
+							}
+						}
+					}
+		
 					Iterator	it = sorted_contacts.iterator();
 					
 					int	added = 0;
@@ -268,8 +284,6 @@ DHTControlImpl
 				{
 				}
 			});
-		
-
 	}
 	
 	protected void

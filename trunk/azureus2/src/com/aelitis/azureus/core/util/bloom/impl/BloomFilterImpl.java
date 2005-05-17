@@ -451,7 +451,9 @@ BloomFilterImpl
 	{
 		Random	rand = new Random();
 		
-		for (int j=0;j<100;j++){
+		int	fp_count = 0;
+		
+		for (int j=0;j<1000;j++){
 			
 			long	start = System.currentTimeMillis();
 			
@@ -463,11 +465,11 @@ BloomFilterImpl
 				
 				//String	key = "" + rand.nextInt();
 				
-				byte[]	key = new byte[4];
+				byte[]	key = new byte[6];
 				
 				rand.nextBytes( key );
 				
-				key = getSerialization( key, 6881 );
+				//key  = getSerialization( key, 6881 );
 				
 				if ( i%2 == 0 ){
 					
@@ -499,6 +501,13 @@ BloomFilterImpl
 			}	
 			
 			System.out.println( "" + (System.currentTimeMillis() - start + ", fp = " + fp ));
+			
+			if ( fp > 0 ){
+				
+				fp_count++;
+			}
 		}
+		
+		System.out.println( fp_count );
 	}
 }

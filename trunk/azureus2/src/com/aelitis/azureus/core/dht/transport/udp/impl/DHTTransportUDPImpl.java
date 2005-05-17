@@ -85,7 +85,8 @@ DHTTransportUDPImpl
 	private boolean		bootstrap_node	= false;
 	
 	
-	private static final int CONTACT_HISTORY_MAX = 32;
+	private static final int CONTACT_HISTORY_MAX 		= 32;
+	private static final int CONTACT_HISTORY_PING_SIZE	= 16;
 	
 	private Map	contact_history = 
 		new LinkedHashMap(CONTACT_HISTORY_MAX,0.75f,true)
@@ -270,13 +271,13 @@ DHTTransportUDPImpl
 						this_mon.exit();
 					}
 					
-						// randomly select up to 10 entries to ping until we 
+						// randomly select a number of entries to ping until we 
 						// get three replies
 					
 					String	returned_address 	= null;
 					int		returned_matches	= 0;
 					
-					int		search_lim = Math.min(10, contacts.size());
+					int		search_lim = Math.min( CONTACT_HISTORY_PING_SIZE, contacts.size());
 					
 					log.log( "    Contacts to search = " + search_lim );
 					
@@ -555,12 +556,10 @@ DHTTransportUDPImpl
 	
 		throws IOException, DHTTransportException
 	{
-		DHTTransportContact	contact = DHTUDPUtils.deserialiseContact( this, is );
+		DHTTransportUDPContactImpl	contact = DHTUDPUtils.deserialiseContact( this, is );
 		
-		request_handler.contactImported( contact );
-				
-		logger.log( "Imported contact " + contact.getString());
-		
+		importContact( contact );
+			
 		return( contact );
 	}
 	
@@ -573,13 +572,37 @@ DHTTransportUDPImpl
 	{
 			// instance id of 0 means "unknown"
 		
-		DHTTransportContact	contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, 0, 0 );
+		DHTTransportUDPContactImpl	contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, 0, 0 );
+		
+		importContact( contact );
+
+		return( contact );
+	}
+	
+	protected void
+	importContact(
+		DHTTransportUDPContactImpl	contact )
+	{
+		try{
+			this_mon.enter();
+			
+				// consider newly imported contacts as potential contacts for IP address queries if we've
+				// got space (in particular, at start of day we may be able to get an address off these if
+				// they're still alive )
+			
+			if ( contact_history.size() < CONTACT_HISTORY_MAX ){
+				
+				contact_history.put( contact.getTransportAddress(), contact );
+			}
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 		
 		request_handler.contactImported( contact );
 		
 		logger.log( "Imported contact " + contact.getString());
-
-		return( contact );
 	}
 	
 	public void
