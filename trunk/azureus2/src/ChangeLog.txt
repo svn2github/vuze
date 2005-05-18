@@ -3,14 +3,27 @@ AZUREUS CHANGELOG
 
 2005.05.xx | Azureus 2.3.0.1
 
-CHANGE: Core | CPU usage reductions when connected to many idle peers [Nolar]
-CHANGE: Core | Disable console view logging by default [Nolar]
-CHANGE: Core | Memory usage reductions and optimizations [Gudy, Parg, Nolar]
-CHANGE: Core | Improved long-term connection-attempt management [Nolar]
+FEATURE: UI   | Console UI now has update check, alerting and DHT stats [Parg]
+FEATURE: Plug | Availability column added to webui + some alignment changes [Parg]
+FEATURE: UI   | SWT make torrent wizard remembers value for "add other hashes" [Parg]
+FEATURE: Plug | XML/http interface access to individual torrent file stats added [Parg]
+FEATURE: UI   | Console UI logging config [Fatal]
+FEATURE: Plug | added progress indicator and torrent stats to tracker web templates [Parg, Gouss]
 
-BUGFIX: Core | Fix compatibility with JRE 1.4 series under Win32 due to NIO bug [Nolar]
-BUGFIX: Core | Ignore peers with these data ports config option didn't work the DHT and PEX obtained peers [Nolar]
+CHANGE: Core  | CPU usage reductions when connected to many idle peers [Nolar]
+CHANGE: Core  | Disable console view logging by default [Nolar]
+CHANGE: Core  | Memory usage reductions and optimizations [Gudy, Parg, Nolar]
+CHANGE: Core  | Improved long-term connection-attempt management [Nolar]
+CHANGE: Core  | DHT bootstrap in absence of version-check server improved [Parg]
+CHANGE: Core  | DHT IP filter reports reduced [Parg]
+CHANGE: UI    | Default for "add other hashes" in make torrent wizard and sharing config changed to false [Parg]
+CHANGE: UI    | retention of log history removed as taking up to 1MB mem [Parg]
+CHANGE: Core  | Disk manager read/write threads now started on demand [Parg]
+CHANGE: UI    | Added missing spaces back into SWT dock item's tooltip [Parg]
 
+BUGFIX: Core  | Fix compatibility with JRE 1.4 series under Win32 due to NIO bug [Nolar]
+BUGFIX: Core  | Ignore peers with these data ports config option didn't work the DHT and PEX obtained peers [Nolar]
+BUGFIX: Core  | DHT IP derivation from contacts fixed [Parg]
 
 
 
