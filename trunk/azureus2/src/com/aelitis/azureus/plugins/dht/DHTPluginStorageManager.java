@@ -41,7 +41,7 @@ import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
@@ -1092,7 +1092,7 @@ DHTPluginStorageManager
 			
 			bytes[old_bytes.length] = (byte)offset;
 			
-			return( new HashWrapper( new SHA1Hasher().calculateHash( bytes )));
+			return( new HashWrapper( new SHA1Simple().calculateHash( bytes )));
 		}
 	}
 	

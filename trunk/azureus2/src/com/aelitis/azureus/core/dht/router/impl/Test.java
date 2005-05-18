@@ -31,7 +31,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 
 import com.aelitis.azureus.core.dht.router.*;
 
@@ -105,7 +105,7 @@ Test
 	protected static byte[]
 	getSHA1()
 	{
-		return( new SHA1Hasher().calculateHash( ( "" + ( next_sha1_seed++ )).getBytes()));
+		return( new SHA1Simple().calculateHash( ( "" + ( next_sha1_seed++ )).getBytes()));
 	}
 	
 	protected static byte

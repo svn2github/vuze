@@ -151,7 +151,7 @@ DHTTransportLoopbackImpl
 		try{
 			class_mon.enter();
 			
-			byte[]	temp = new SHA1Hasher().calculateHash( ( "" + ( node_id_seed_next++ )).getBytes());
+			byte[]	temp = new SHA1Simple().calculateHash( ( "" + ( node_id_seed_next++ )).getBytes());
 			
 			node_id	= new byte[id_byte_length];
 			

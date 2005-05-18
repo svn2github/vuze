@@ -36,7 +36,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
-import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.ThreadPoolTask;
@@ -2019,7 +2019,7 @@ DHTControlImpl
 	encodeKey(
 		byte[]		key )
 	{
-		byte[]	temp = new SHA1Hasher().calculateHash( key );
+		byte[]	temp = new SHA1Simple().calculateHash( key );
 		
 		byte[]	result =  new byte[node_id_byte_count];
 		

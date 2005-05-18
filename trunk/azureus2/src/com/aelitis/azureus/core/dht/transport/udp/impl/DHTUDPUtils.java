@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SHA1Hasher;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 
 
 import com.aelitis.azureus.core.dht.DHT;
@@ -54,7 +54,7 @@ DHTUDPUtils
 			public Object
 			initialValue()
 			{
-				return( new SHA1Hasher());
+				return( new SHA1Simple());
 			}
 		};
 		
@@ -74,7 +74,7 @@ DHTUDPUtils
 			
 		}else{
 			
-			SHA1Hasher	hasher = (SHA1Hasher)tls.get();
+			SHA1Simple	hasher = (SHA1Simple)tls.get();
 			
 			byte[]	res = hasher.calculateHash(
 						(	ia.getHostAddress() + ":" + address.getPort()).getBytes());
