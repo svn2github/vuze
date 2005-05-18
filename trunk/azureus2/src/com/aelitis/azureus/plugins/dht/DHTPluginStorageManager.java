@@ -185,6 +185,11 @@ DHTPluginStorageManager
 			
 			contact_mon.exit();
 		}
+		
+			// this is a good point to save diversifications - useful when they've expired
+			// as writing isn't triggered at expiry time 
+		
+		writeDiversifications();
 	}
 	
 	protected void
@@ -206,6 +211,7 @@ DHTPluginStorageManager
 	{
 		try{
 			address_mon.enter();
+			
 				// remove any old crud
 			
 			Iterator	it = recent_addresses.keySet().iterator();
@@ -214,11 +220,14 @@ DHTPluginStorageManager
 				
 				String	key = (String)it.next();
 				
-				Long	time = (Long)recent_addresses.get(key);
-				
-				if ( SystemTime.getCurrentTime() - time.longValue() > ADDRESS_EXPIRY ){
+				if ( !key.equals( "most_recent" )){
 					
-					it.remove();
+					Long	time = (Long)recent_addresses.get(key);
+					
+					if ( SystemTime.getCurrentTime() - time.longValue() > ADDRESS_EXPIRY ){
+						
+						it.remove();
+					}
 				}
 			}
 			
@@ -243,12 +252,27 @@ DHTPluginStorageManager
 
 			recent_addresses.put( address, new Long( SystemTime.getCurrentTime()));
 		
+			recent_addresses.put( "most_recent", address.getBytes());
+			
 			writeRecentAddresses();
 			
 		}finally{
 			
 			address_mon.exit();
 		}
+	}
+	
+	protected String
+	getMostRecentAddress()
+	{
+		byte[]	addr = (byte[])recent_addresses.get( "most_recent" );
+		
+		if ( addr == null ){
+			
+			return( null );
+		}
+		
+		return( new String( addr ));
 	}
 	
 	protected boolean

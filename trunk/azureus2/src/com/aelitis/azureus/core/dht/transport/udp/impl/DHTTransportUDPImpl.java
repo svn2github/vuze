@@ -128,6 +128,7 @@ DHTTransportUDPImpl
 	public
 	DHTTransportUDPImpl(
 		String			_ip,
+		String			_default_ip,
 		int				_port,
 		int				_max_fails_for_live,
 		int				_max_fails_for_unknown,
@@ -165,7 +166,9 @@ DHTTransportUDPImpl
 		
 		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
 		
-		getExternalAddress( "127.0.0.1", logger );
+		String	default_ip = _default_ip==null?"127.0.0.1":_default_ip;
+				
+		getExternalAddress( default_ip, logger );
 		
 		InetSocketAddress	address = new InetSocketAddress( external_address, port );
 

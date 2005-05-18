@@ -483,6 +483,7 @@ DHTPlugin
 									transport = 
 										DHTTransportFactory.createUDP( 
 												ip,
+												storage_manager.getMostRecentAddress(),
 												f_dht_data_port, 
 												4,
 												2,
