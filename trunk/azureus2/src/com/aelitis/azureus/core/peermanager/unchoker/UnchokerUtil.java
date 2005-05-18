@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
  */
 public class UnchokerUtil {
   
-  private static final int FREE_BYTES = 256*1024;  // 256KB free optimistic unchoke bytes
+  private static final int FREE_BYTES = 512*1024;  // 512KB free optimistic unchoke bytes
   
   
   /**
