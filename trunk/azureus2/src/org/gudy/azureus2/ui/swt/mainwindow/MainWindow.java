@@ -845,16 +845,18 @@ MainWindow
     this.statusTextKey = keyedSentence==null?"":keyedSentence;
     statusImageKey = null;
     if(statusTextKey.length() == 0) { // reset
-        final int index = Constants.AZUREUS_VERSION.indexOf('_');
-
-        if(index > -1 && index < Constants.AZUREUS_VERSION.length()) {
-            statusTextKey =  "MainWindow.status.unofficialversion (" + Constants.AZUREUS_VERSION.substring(index + 1) + ")";
-            statusImageKey = STATUS_ICON_WARN;
-        }
+      if( Constants.isCVSVersion() ) {
+        statusTextKey =  "MainWindow.status.unofficialversion (" +Constants.AZUREUS_VERSION+ ")";
+        statusImageKey = STATUS_ICON_WARN;
+      }
+      else if( !Constants.isOSX ) {  //don't show official version numbers for OSX L&F
+        statusTextKey = Constants.AZUREUS_NAME+ " " +Constants.AZUREUS_VERSION;
+      }
     }
 
     updateStatusText();
   }
+  
   
   private void updateStatusText() {
     if (display == null || display.isDisposed())
