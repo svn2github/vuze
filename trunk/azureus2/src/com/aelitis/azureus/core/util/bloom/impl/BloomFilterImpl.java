@@ -60,6 +60,8 @@ BloomFilterImpl
 	private int			max_entries;
 	private BigInteger	bi_max_entries;
 	
+	private int			entry_count;
+	
 	public 
 	BloomFilterImpl(
 		int		_max_entries )
@@ -142,6 +144,8 @@ BloomFilterImpl
 	add(
 		BigInteger		value )
 	{
+		entry_count++;
+
 		for (int i=0;i<HASH_NUM;i++){
 			
 			int	index = getHash( i, value );
@@ -159,6 +163,13 @@ BloomFilterImpl
 	remove(
 		BigInteger		value )
 	{
+		entry_count--;
+		
+		if ( entry_count < 0 ){
+			
+			entry_count	= 0;
+		}
+		
 		for (int i=0;i<HASH_NUM;i++){
 			
 			int	index = getHash( i, value );
@@ -195,6 +206,8 @@ BloomFilterImpl
 	add(
 		int		value )
 	{
+		entry_count++;
+		
 		for (int i=0;i<HASH_NUM;i++){
 			
 			int	index = getHash( i, value );
@@ -212,6 +225,13 @@ BloomFilterImpl
 	remove(
 		int		value )
 	{
+		entry_count--;
+		
+		if ( entry_count < 0 ){
+			
+			entry_count	= 0;
+		}
+		
 		for (int i=0;i<HASH_NUM;i++){
 			
 			int	index = getHash( i, value );
@@ -430,6 +450,18 @@ BloomFilterImpl
 		BigInteger	res		= new BigInteger( new String(buffer), 16 );	
 		
 		return( res );
+	}
+	
+	public int
+	getEntryCount()
+	{
+		return( entry_count );
+	}
+	
+	public int
+	getSize()
+	{
+		return( max_entries );
 	}
 	
 	 protected static byte[] 

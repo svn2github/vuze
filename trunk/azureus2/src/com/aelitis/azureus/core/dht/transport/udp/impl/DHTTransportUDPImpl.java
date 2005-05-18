@@ -708,32 +708,36 @@ DHTTransportUDPImpl
 		
 		if ( ip_filter.isEnabled()){
 			
-			try{
-				this_mon.enter();
-
-				byte[]	addr = contact.getTransportAddress().getAddress().getAddress();
+				// don't need to synchronize access to the bloom filter as it works fine
+				// without protection (especially as its add only)
+			
+			byte[]	addr = contact.getTransportAddress().getAddress().getAddress();
+			
+			if ( bad_ip_bloom_filter == null ){
 				
-				if ( bad_ip_bloom_filter == null ){
+				bad_ip_bloom_filter = BloomFilterFactory.createAddOnly( BAD_IP_BLOOM_FILTER_SIZE );
+				
+			}else{
+				
+				if ( bad_ip_bloom_filter.contains( addr )){
+					
+					throw( new PRUDPPacketHandlerException( "IPFilter check fails (repeat)" ));
+				}
+			}
+			
+			if ( ip_filter.isInRange( contact.getTransportAddress().getAddress().getHostAddress(), "DHT" )){
+				
+					// don't let an attacker deliberately fill up our filter so we start
+					// rejecting valid addresses
+				
+				if ( bad_ip_bloom_filter.getEntryCount() >= BAD_IP_BLOOM_FILTER_SIZE/10 ){
 					
 					bad_ip_bloom_filter = BloomFilterFactory.createAddOnly( BAD_IP_BLOOM_FILTER_SIZE );
-					
-				}else{
-					
-					if ( bad_ip_bloom_filter.contains( addr )){
-						
-						throw( new PRUDPPacketHandlerException( "IPFilter check fails (repeat)" ));
-					}
 				}
 				
-				if ( ip_filter.isInRange( contact.getTransportAddress().getAddress().getHostAddress(), "DHT" )){
-					
-					bad_ip_bloom_filter.add( addr );
-					
-					throw( new PRUDPPacketHandlerException( "IPFilter check fails" ));
-				}
-			}finally{
+				bad_ip_bloom_filter.add( addr );
 				
-				this_mon.exit();
+				throw( new PRUDPPacketHandlerException( "IPFilter check fails" ));
 			}
 		}
 	}

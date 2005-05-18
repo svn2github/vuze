@@ -53,4 +53,9 @@ BloomFilter
 	contains(
 		byte[]		value );
 	
+	public int
+	getEntryCount();
+	
+	public int
+	getSize();
 }
