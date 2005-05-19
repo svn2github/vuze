@@ -20,6 +20,7 @@ CHANGE: UI    | Default for "add other hashes" in make torrent wizard and sharin
 CHANGE: UI    | retention of log history removed as taking up to 1MB mem [Parg]
 CHANGE: Core  | Disk manager read/write threads now started on demand [Parg]
 CHANGE: UI    | Added missing spaces back into SWT dock item's tooltip [Parg]
+CHANGE: UI    | Restore version number on status bar and add protocol rate to the stats view [Nolar]
 
 BUGFIX: Core  | Fix compatibility with JRE 1.4 series under Win32 due to NIO bug [Nolar]
 BUGFIX: Core  | Ignore peers with these data ports config option didn't work the DHT and PEX obtained peers [Nolar]

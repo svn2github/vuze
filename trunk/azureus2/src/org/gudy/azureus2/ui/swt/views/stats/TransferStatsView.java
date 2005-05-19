@@ -21,6 +21,9 @@
  */
 package org.gudy.azureus2.ui.swt.views.stats;
 
+
+import java.text.DecimalFormat;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -31,7 +34,6 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -50,7 +52,11 @@ public class TransferStatsView extends AbstractIView {
   
   Composite panel;
   
-  BufferedLabel sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
+  BufferedLabel nowUp, nowDown, sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
+  
+  private final DecimalFormat formatter = new DecimalFormat( "##.#" );
+  
+  
   
   public TransferStatsView(GlobalManager manager) {
     this.manager = manager;
@@ -82,7 +88,29 @@ public class TransferStatsView extends AbstractIView {
     lbl = new Label(panel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.uptime");
     
+    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(panel,SWT.NULL);
     
+    /////// NOW /////////
+    lbl = new Label(panel,SWT.NULL);
+    Messages.setLanguageText(lbl,"SpeedView.stats.now");
+    
+    nowDown = new BufferedLabel(panel,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    nowDown.setLayoutData(gridData);
+    
+    nowUp = new BufferedLabel(panel,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    nowUp.setLayoutData(gridData);
+    
+    lbl = new Label(panel,SWT.NULL);
+    lbl = new Label(panel,SWT.NULL);
+    
+    
+    //////// SESSION ////////
     lbl = new Label(panel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.session");
     sessionDown = new BufferedLabel(panel,SWT.NULL);
@@ -101,6 +129,8 @@ public class TransferStatsView extends AbstractIView {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionTime.setLayoutData(gridData);
     
+    
+    ///////// TOTOAL ///////////
     lbl = new Label(panel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.total");
     
@@ -134,15 +164,47 @@ public class TransferStatsView extends AbstractIView {
     return panel;
   }
   
+  
+  
   public void refresh() {
-    long session_total_received = stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived();
-    long session_total_sent = stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent();
-   
-    long session_total_received_protocol = stats.getTotalProtocolBytesReceived();
-    long session_total_sent_protocol =  stats.getTotalProtocolBytesSent();
+
+    int now_prot_down_rate = stats.getProtocolReceiveRate();
+    int now_prot_up_rate = stats.getProtocolSendRate();
     
-    sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_received ) + " (" + DisplayFormatters.formatByteCountToKiBEtc( session_total_received_protocol) + ")");
-    sessionUp.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_sent ) + " (" + DisplayFormatters.formatByteCountToKiBEtc( session_total_sent_protocol) + ")");   
+    int now_total_down_rate = stats.getDataReceiveRate() + now_prot_down_rate;
+    int now_total_up_rate = stats.getDataSendRate() + now_prot_up_rate;
+    
+    float now_perc_down = (float)(now_prot_down_rate *100) / (now_total_down_rate +1);
+    float now_perc_up = (float)(now_prot_up_rate *100) / (now_total_up_rate +1);
+
+    nowDown.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec( now_total_down_rate ) +
+                    "  (" + DisplayFormatters.formatByteCountToKiBEtcPerSec( now_prot_down_rate ) +
+                    ", " +formatter.format( now_perc_down )+ "%)" );
+    
+    nowUp.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec( now_total_up_rate ) +
+                  "  (" + DisplayFormatters.formatByteCountToKiBEtcPerSec( now_prot_up_rate ) +
+                  ", " +formatter.format( now_perc_up )+ "%)" );
+
+    ///////////////////////////////////////////////////////////////////////
+
+    long session_prot_received = stats.getTotalProtocolBytesReceived();
+    long session_prot_sent = stats.getTotalProtocolBytesSent();
+      
+    long session_total_received = stats.getTotalDataBytesReceived() + session_prot_received;
+    long session_total_sent = stats.getTotalDataBytesSent() + session_prot_sent;
+
+    float session_perc_received = (float)(session_prot_received *100) / (session_total_received +1);
+    float session_perc_sent = (float)(session_prot_sent *100) / (session_total_sent +1);
+
+    sessionDown.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_received ) +
+                        "  (" + DisplayFormatters.formatByteCountToKiBEtc( session_prot_received ) +
+                        ", " +formatter.format( session_perc_received )+ "%)" );
+    
+    sessionUp.setText(DisplayFormatters.formatByteCountToKiBEtc( session_total_sent ) +
+                      "  (" + DisplayFormatters.formatByteCountToKiBEtc( session_prot_sent ) +
+                      ", " +formatter.format( session_perc_sent )+ "%)" );
+    
+    ////////////////////////////////////////////////////////////////////////
     
     totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getDownloadedBytes() ));
     totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getUploadedBytes() ));
@@ -155,8 +217,7 @@ public class TransferStatsView extends AbstractIView {
     
     String t_ratio = "";
     String s_ratio = "";
-    
-    
+
     String partial = String.valueOf(t_ratio_raw % 1000);
     while (partial.length() < 3) {
       partial = "0" + partial;
