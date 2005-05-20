@@ -402,7 +402,9 @@ MagnetURIHandlerImpl
 				pw.flush();
 				
 				String	base_32 = urn.substring(9);
-								
+					
+	        	LGLogger.log("MagentURIHandler: download of '" + base_32 + "' starts" );
+
 				byte[] sha1 = Base32.decode( base_32 );
 				
 				byte[]	data = null;
@@ -449,6 +451,8 @@ MagnetURIHandlerImpl
 					}
 				}
 				
+	        	LGLogger.log("MagentURIHandler: download of '" + base_32 + "' completes, data " + (data==null?"not found":("found, length = "+data.length )));
+
 				if ( data != null ){
 					
 					pw.print( "Content-Length: " + data.length + NL + NL );
@@ -465,7 +469,9 @@ MagnetURIHandlerImpl
 					
 					pw.flush();
 					
-					return( false );
+						// pause on error
+					
+					return( !params.containsKey( "pause_on_error" ));
 				}
 			}catch( Throwable e ){
 				
@@ -475,7 +481,9 @@ MagnetURIHandlerImpl
 				
 				Debug.printStackTrace(e);
 				
-				return( false );
+					// pause on error
+				
+				return( !params.containsKey( "pause_on_error" ));
 			}
 		}
 		

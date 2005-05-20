@@ -112,10 +112,20 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     try {      
       url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str));
       
+	  String	protocol = url.getProtocol().toLowerCase();
+	  
+	  	// hack here - the magnet download process requires an additional paramter to cause it to
+	  	// stall on error so the error can be reported
+	  
+	  if ( protocol.equals( "magnet" )){
+		  
+	      url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str+"&pause_on_error=true"));
+	  }
+	  
       for (int i=0;i<2;i++){
       	try{
       
-	      if ( url.getProtocol().equalsIgnoreCase("https")){
+	      if ( protocol.equals("https")){
 	      	
 	      	// see ConfigurationChecker for SSL client defaults
 	      	

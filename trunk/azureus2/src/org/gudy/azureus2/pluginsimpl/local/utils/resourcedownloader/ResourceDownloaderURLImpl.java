@@ -336,11 +336,13 @@ ResourceDownloaderURLImpl
 			      
 					// some authentications screw up without an explicit port number here
 				
-				if ( url.getPort() == -1 ){
+				String	protocol = url.getProtocol().toLowerCase();
+				
+				if ( url.getPort() == -1 && !protocol.equals( "magnet" )){
 					
 					int	target_port;
 					
-					if ( url.getProtocol().toLowerCase().equals( "http" )){
+					if ( protocol.equals( "http" )){
 						
 						target_port = 80;
 						
