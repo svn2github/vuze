@@ -49,6 +49,10 @@ AEDiagnostics
 	public static final boolean	TRACE_DIRECT_BYTE_BUFFERS		= false;
 	public static final boolean	TRACE_DBB_POOL_USAGE			= false;
 	public static final boolean	PRINT_DBB_POOL_USAGE			= false;
+  
+  
+    public static final boolean TRACE_TCP_TRANSPORT_STATS = true;
+    
 	
 	static{
 		if ( ALWAYS_PASS_HASH_CHECKS ){
@@ -71,6 +75,9 @@ AEDiagnostics
 		}
 		if ( PRINT_DBB_POOL_USAGE ){
 			System.out.println( "**** DirectByteBufferPool printing on ****" );
+		}
+		if ( TRACE_TCP_TRANSPORT_STATS ){
+		  System.out.println( "**** TCP_TRANSPORT_STATS tracing on ****" );
 		}
 	}
 	

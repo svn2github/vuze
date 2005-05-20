@@ -29,6 +29,7 @@ import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.impl.*;
@@ -64,6 +65,10 @@ public class TCPTransport {
   public volatile boolean has_been_closed = false;
   public String has_been_closed_error = null;
 
+  
+  private static final TransportStats stats = AEDiagnostics.TRACE_TCP_TRANSPORT_STATS ? new TransportStats() : null;
+  
+  
   
   
   /**
@@ -176,6 +181,11 @@ public class TCPTransport {
       if( enable_efficient_io ) {
         try {
           long written = socket_channel.write( buffers, array_offset, length );		
+          
+          
+          if( stats != null )  stats.bytesWritten( (int)written );  //TODO
+          
+          
           if( written < 1 )  requestWriteSelect();
           return written;
         }
@@ -201,6 +211,10 @@ public class TCPTransport {
           break;
         }
       }
+      
+      
+      if( stats != null )  stats.bytesWritten( (int)written_sofar );  //TODO
+      
       
       if( written_sofar < 1 )  requestWriteSelect();
       
@@ -382,6 +396,10 @@ public class TCPTransport {
       is_ready_for_read = false;
       throw new IOException( "end of stream on socket read" );
     }
+    
+    
+    if( stats != null )  stats.bytesRead( (int)bytes_read );  //TODO
+    
     
     if( bytes_read == 0 ) {
       requestReadSelect();
