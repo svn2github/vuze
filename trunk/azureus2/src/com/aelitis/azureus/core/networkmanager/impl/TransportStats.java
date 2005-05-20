@@ -88,10 +88,10 @@ public class TransportStats {
   
   private void printStats() {
     System.out.println( "\n------------------------------" );
-    System.out.println( "***** TCP SOCKET READ STATS *****" );
+    System.out.println( "***** TCP SOCKET READ SIZE STATS *****" );
     printSizes( read_sizes, total_reads );
     
-    System.out.println( "\n***** TCP SOCKET WRITE STATS *****" );
+    System.out.println( "\n***** TCP SOCKET WRITE SIZE STATS *****" );
     printSizes( write_sizes, total_writes );
     System.out.println( "------------------------------" );
   }

@@ -51,7 +51,7 @@ AEDiagnostics
 	public static final boolean	PRINT_DBB_POOL_USAGE			= false;
   
   
-    public static final boolean TRACE_TCP_TRANSPORT_STATS = true;
+    public static final boolean TRACE_TCP_TRANSPORT_STATS = false;
     
 	
 	static{
