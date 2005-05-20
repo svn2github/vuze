@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.peermanager.peerdb;
 import java.lang.ref.WeakReference;
 import java.util.WeakHashMap;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
 
@@ -41,6 +42,8 @@ public class PeerItemFactory {
 
   private static final WeakHashMap peer_items = new WeakHashMap();
 
+  private static final AEMonitor item_mon = new AEMonitor( "PeerItemFactory" );
+  
   
   /**
    * Create a peer item using the given peer address and port information.
@@ -66,22 +69,25 @@ public class PeerItemFactory {
   
   
   private static PeerItem getLightweight( PeerItem key ) {
-    WeakReference ref = (WeakReference)peer_items.get( key );
+    try{  item_mon.enter();
+      WeakReference ref = (WeakReference)peer_items.get( key );
 
-    if( ref == null ) {
-      peer_items.put( key, new WeakReference( key ) );
-      return key;
-    }
+      if( ref == null ) {
+        peer_items.put( key, new WeakReference( key ) );
+        return key;
+      }
  
-    PeerItem item = (PeerItem)ref.get();
+      PeerItem item = (PeerItem)ref.get();
     
-    if( item == null ) {
-      Debug.out( "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOPS: ref.get() == null" );
-      peer_items.put( key, new WeakReference( key ) );
-      return key;
-    }
+      if( item == null ) {
+        Debug.out( "OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOPS: ref.get() == null" );
+        peer_items.put( key, new WeakReference( key ) );
+        return key;
+      }
 
-    return item;
+      return item;
+    }
+    finally{  item_mon.exit();  }
   }
   
   
