@@ -137,7 +137,19 @@ ResourceDownloaderTorrentImpl
 			
 				addReportListener( x );
 			
-				torrent_holder[0] = TOTorrentFactory.deserialiseFromBEncodedInputStream( x.download());
+				InputStream	is = x.download();
+				
+				try{
+					torrent_holder[0] = TOTorrentFactory.deserialiseFromBEncodedInputStream( is );
+					
+				}finally{
+					
+					try{
+						is.close();
+						
+					}catch( IOException e ){
+					}
+				}
 				
 				if( !torrent_holder[0].isSimpleTorrent()){
 					
@@ -479,6 +491,14 @@ ResourceDownloaderTorrentImpl
 		}catch( TOTorrentException e ){
 			
 			failed( downloader, new ResourceDownloaderException( "Torrent deserialisation failed", e ));
+			
+		}finally{
+			
+			try{
+				data.close();
+				
+			}catch( IOException e ){
+			}
 		}
 		
 		return( true );
