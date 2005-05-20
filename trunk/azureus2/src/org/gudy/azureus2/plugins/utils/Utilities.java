@@ -64,6 +64,8 @@ Utilities
 	
 	public Semaphore
 	getSemaphore();
+  
+    public Monitor getMonitor();
 	
 	public ByteBuffer
 	allocateDirectByteBuffer(

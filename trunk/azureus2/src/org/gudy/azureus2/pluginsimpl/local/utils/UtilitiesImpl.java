@@ -146,6 +146,11 @@ UtilitiesImpl
 	{
 		return( new SemaphoreImpl());
 	}
+  
+    public Monitor getMonitor(){
+      return new MonitorImpl();
+    }
+    
 	
 	public ByteBuffer
 	allocateDirectByteBuffer(
