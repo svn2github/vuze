@@ -33,7 +33,9 @@ DHTPluginValue
 	public byte[]
 	getValue();
 
+	public long
+	getCreationTime();
+	
 	public int
 	getFlags();
-
 }

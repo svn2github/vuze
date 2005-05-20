@@ -36,6 +36,9 @@ DistributedDatabaseValue
 	
 		throws DistributedDatabaseException;
 		
+	public long
+	getCreationTime();
+	
 	public DistributedDatabaseContact
 	getContact();
 }

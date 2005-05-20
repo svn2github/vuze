@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.ddb;
 
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
@@ -128,6 +129,6 @@ DDBaseContactImpl
 			return( null );
 		}
 		
-		return( new DDBaseValueImpl( new DDBaseContactImpl( ddb, contact ),data));
+		return( new DDBaseValueImpl( new DDBaseContactImpl( ddb, contact ),data, SystemTime.getCurrentTime()));
 	}
 }

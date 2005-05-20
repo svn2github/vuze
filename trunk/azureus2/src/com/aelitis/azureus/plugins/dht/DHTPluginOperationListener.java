@@ -33,13 +33,12 @@ DHTPluginOperationListener
 	public void
 	valueRead(
 		DHTPluginContact	originator,
-		byte[]				value,
-		byte				flags );
+		DHTPluginValue		value );
 	
 	public void
 	valueWritten(
 		DHTPluginContact	target,
-		byte[]				value );
+		DHTPluginValue		value );
 	
 	public void
 	complete(

@@ -212,18 +212,17 @@ DHTPlugin
 				public void
 				valueRead(
 					DHTPluginContact	originator,
-					byte[]				value,
-					byte				flags )
+					DHTPluginValue		value )
 				{
-					log.log( "valueRead: " + new String(value) + " from " + originator.getName());
+					log.log( "valueRead: " + new String(value.getValue()) + " from " + originator.getName());
 				}
 				
 				public void
 				valueWritten(
 					DHTPluginContact	target,
-					byte[]				value )
+					DHTPluginValue		value )
 				{
-					log.log( "valueWritten:" + new String( value) + " to " + target.getName());
+					log.log( "valueWritten:" + new String( value.getValue()) + " to " + target.getName());
 				}
 				
 				public void
@@ -989,7 +988,7 @@ outer:
 							
 							if ( listener != null ){
 								
-								listener.valueWritten( new DHTPluginContactImpl(_contact ), _value.getValue());
+								listener.valueWritten( new DHTPluginContactImpl(_contact ), mapValue( _value ));
 							}
 
 						}
@@ -1018,21 +1017,8 @@ outer:
 			
 			return( null );
 		}
-		return( 
-				new DHTPluginValue()
-				{
-					public byte[]
-					getValue()
-					{
-						return( val.getValue());
-					}
-					
-					public int
-					getFlags()
-					{
-						return( val.getFlags()&0xff);
-					}
-				});
+		
+		return( mapValue( val ));
 	}
 	
 	public void
@@ -1084,7 +1070,7 @@ outer:
 							
 							if ( listener != null ){
 								
-								listener.valueRead( new DHTPluginContactImpl( value.getOriginator()), value.getValue(), (byte)value.getFlags());
+								listener.valueRead( new DHTPluginContactImpl( value.getOriginator()), mapValue( value ));
 							}
 						}
 						
@@ -1163,7 +1149,7 @@ outer:
 								// log.log( "Remove: wrote " + value.getString() + " to " + contact.getString());
 								if ( listener != null ){
 									
-									listener.valueWritten( new DHTPluginContactImpl( contact ), value.getValue());
+									listener.valueWritten( new DHTPluginContactImpl( contact ), mapValue( value ));
 								}
 							}
 							
@@ -1331,5 +1317,37 @@ outer:
 		{
 			return( storage_manager.isRecentAddress( contact.getAddress().getAddress().getHostAddress()));
 		}
+	}
+	
+	protected DHTPluginValue
+	mapValue(
+		final DHTTransportValue	value )
+	{
+		if ( value == null ){
+			
+			return( null );
+		}
+		
+		return(
+			new DHTPluginValue()
+			{
+				public byte[]
+				getValue()
+				{
+					return( value.getValue());
+				}
+				
+				public long
+				getCreationTime()
+				{
+					return( value.getCreationTime());
+				}
+				
+				public int
+				getFlags()
+				{
+					return( value.getFlags()&0xff);
+				}
+			});
 	}
 }

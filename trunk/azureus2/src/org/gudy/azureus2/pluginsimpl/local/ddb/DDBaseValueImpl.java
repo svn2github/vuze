@@ -40,6 +40,8 @@ DDBaseValueImpl
 	private Object			value;
 	private byte[]			value_bytes;
 	
+	private long			creation_time;
+	
 		// we reserve 3 bytes for overflow marker and length encoding for multi-value values
 
 	protected static int MAX_VALUE_SIZE 	= DHTPlugin.MAX_VALUE_SIZE -3;
@@ -47,13 +49,15 @@ DDBaseValueImpl
 	protected 
 	DDBaseValueImpl(
 		DDBaseContactImpl	_contact,
-		Object				_value )
+		Object				_value,
+		long				_creation_time )
 	
 		throws DistributedDatabaseException
 	{
-		contact		= _contact;
-		value		= _value;
-				
+		contact			= _contact;
+		value			= _value;
+		creation_time	= _creation_time;
+		
 		value_bytes	= DDBaseHelpers.encode( value );
 		
 		// don't police value size limit here as temporary large objects can be 
@@ -63,10 +67,12 @@ DDBaseValueImpl
 	protected 
 	DDBaseValueImpl(
 		DDBaseContactImpl	_contact,
-		byte[]				_value_bytes )
+		byte[]				_value_bytes,
+		long				_creation_time )
 	{
 		contact			= _contact;
 		value_bytes		= _value_bytes;
+		creation_time	= _creation_time;
 	}
 	
 	public Object
@@ -89,6 +95,12 @@ DDBaseValueImpl
 		return( value_bytes );
 	}
 	
+	public long
+	getCreationTime()
+	{
+		return( creation_time );
+	}
+
 	public DistributedDatabaseContact
 	getContact()
 	{		

@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Simple;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
 import org.gudy.azureus2.plugins.download.Download;
@@ -40,6 +41,7 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
+import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 
 /**
  * @author parg
@@ -223,7 +225,7 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 		
-		return( new DDBaseValueImpl( new DDBaseContactImpl( this, dht.getLocalAddress()), value ));
+		return( new DDBaseValueImpl( new DDBaseContactImpl( this, dht.getLocalAddress()), value, SystemTime.getCurrentTime()));
 	}
 	
 	public void
@@ -469,7 +471,7 @@ DDBaseImpl
 							contact,
 							type,
 							new DDBaseKeyImpl( xfer_key ),
-							new DDBaseValueImpl( contact, value ));
+							new DDBaseValueImpl( contact, value, SystemTime.getCurrentTime()));
 						
 					}catch( Throwable e ){
 						
@@ -539,10 +541,11 @@ DDBaseImpl
 		public void
 		valueRead(
 			DHTPluginContact	originator,
-			byte[]				value,
-			byte				flags )
+			DHTPluginValue		_value )
 		{
-			if ( flags == DHTPlugin.FLAG_MULTI_VALUE ){
+			byte[]	value = _value.getValue();
+			
+			if ( _value.getFlags() == DHTPlugin.FLAG_MULTI_VALUE ){
 
 				int	pos = 1;
 				
@@ -562,7 +565,7 @@ DDBaseImpl
 					
 					System.arraycopy( value, pos, d, 0, len );
 					
-					listener.event( new dbEvent( type, key, originator, d ));
+					listener.event( new dbEvent( type, key, originator, d, _value.getCreationTime()));
 					
 					pos += len;
 				}				
@@ -586,14 +589,14 @@ DDBaseImpl
 				}
 			}else{
 				
-				listener.event( new dbEvent( type, key, originator, value ));
+				listener.event( new dbEvent( type, key, originator, _value ));
 			}
 		}
 		
 		public void
 		valueWritten(
 			DHTPluginContact	target,
-			byte[]				value )
+			DHTPluginValue		value )
 		{
 			listener.event( new dbEvent( type, key, target, value ));
 		}
@@ -635,14 +638,30 @@ DDBaseImpl
 			int						_type,
 			DistributedDatabaseKey	_key,
 			DHTPluginContact		_contact,
-			byte[]					_value )
+			DHTPluginValue			_value )
 		{
 			type		= _type;
 			key			= _key;
 			
 			contact	= new DDBaseContactImpl( DDBaseImpl.this, _contact );
 			
-			value	= new DDBaseValueImpl( contact, _value ); 
+			value	= new DDBaseValueImpl( contact, _value.getValue(), _value.getCreationTime()); 
+		}
+		
+		protected
+		dbEvent(
+			int						_type,
+			DistributedDatabaseKey	_key,
+			DHTPluginContact		_contact,
+			byte[]					_value,
+			long					_ct )
+		{
+			type		= _type;
+			key			= _key;
+			
+			contact	= new DDBaseContactImpl( DDBaseImpl.this, _contact );
+			
+			value	= new DDBaseValueImpl( contact, _value, _ct ); 
 		}
 		
 		public int

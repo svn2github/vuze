@@ -61,9 +61,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
-import com.aelitis.azureus.plugins.dht.DHTPluginContact;
-import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
+import com.aelitis.azureus.plugins.dht.*;
 
 /**
  * @author parg
@@ -741,17 +739,15 @@ DHTTrackerPlugin
 							public void
 							valueRead(
 								DHTPluginContact	originator,
-								byte[]				value,
-								byte				flags )
-							{
-								
+								DHTPluginValue		value )
+							{							
 							}
+							
 							public void
 							valueWritten(
 								DHTPluginContact	target,
-								byte[]				value )
-							{
-								
+								DHTPluginValue		value )
+							{	
 							}
 
 							public void
@@ -808,16 +804,14 @@ DHTTrackerPlugin
 							public void
 							valueRead(
 								DHTPluginContact	originator,
-								byte[]				value,
-								byte				flags )
-							{
-								
+								DHTPluginValue		value )
+							{								
 							}
 							
 							public void
 							valueWritten(
 								DHTPluginContact	target,
-								byte[]				value )
+								DHTPluginValue		value )
 							{
 							}	
 
@@ -914,10 +908,9 @@ DHTTrackerPlugin
 								public void
 								valueRead(
 									DHTPluginContact	originator,
-									byte[]				value,
-									byte				flags )
+									DHTPluginValue		value )
 								{
-									String	str_val = new String(value);
+									String	str_val = new String(value.getValue());
 									
 									try{
 										int	port = Integer.parseInt( str_val );
@@ -926,7 +919,7 @@ DHTTrackerPlugin
 										
 										ports.add(new Integer(port));
 										
-										if (( flags & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+										if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
 											
 											peer_count++;
 											
@@ -943,7 +936,7 @@ DHTTrackerPlugin
 								public void
 								valueWritten(
 									DHTPluginContact	target,
-									byte[]				value )
+									DHTPluginValue		value )
 								{
 								}
 	
@@ -1246,10 +1239,9 @@ DHTTrackerPlugin
 					public void
 					valueRead(
 						DHTPluginContact	originator,
-						byte[]				value,
-						byte				flags )
+						DHTPluginValue		value )
 					{						
-						if (( flags & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+						if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
 							
 							leechers[0]++;
 							
@@ -1262,7 +1254,7 @@ DHTTrackerPlugin
 					public void
 					valueWritten(
 						DHTPluginContact	target,
-						byte[]				value )
+						DHTPluginValue		value )
 					{
 					}
 
