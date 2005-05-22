@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.plugins.PluginConfig;
+import org.gudy.azureus2.plugins.PluginConfigListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.config.ConfigParameter;
 import org.gudy.azureus2.pluginsimpl.local.config.*;
@@ -294,5 +295,20 @@ PluginConfigImpl
 		file.mkdirs();
 		
 		return( new File( file, name ));
+	}
+	
+	public void
+	addListener(
+		final PluginConfigListener	l )
+	{
+		COConfigurationManager.addListener(
+			new COConfigurationListener()
+			{
+				public void
+				configurationSaved()
+				{
+					l.configSaved();
+				}
+			});
 	}
 }

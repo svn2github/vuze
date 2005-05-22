@@ -2274,7 +2274,16 @@ DHTControlImpl
 				
 				max[0] = 0x01;
 				
-				long this_estimate = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
+				long this_estimate;
+				
+				if ( sum1.compareTo( new BigInteger("0")) == 0 ){
+					
+					this_estimate = 0;
+					
+				}else{
+					
+					this_estimate = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
+				}
 				
 					// there's always us!!!!
 				

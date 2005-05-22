@@ -300,4 +300,8 @@ PluginConfig
 	public File
 	getPluginUserFile(
 		String	name );
+	
+	public void
+	addListener(
+		PluginConfigListener	l );
 }

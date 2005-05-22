@@ -362,4 +362,11 @@ RPPluginConfig
 			
 			return( null );
 		}
+		
+		public void
+		addListener(
+			final PluginConfigListener	l )
+		{
+			notSupported();
+		}
 }

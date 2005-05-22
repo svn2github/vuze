@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
@@ -279,6 +280,35 @@ MagnetPlugin
 			});
 	}
 	
+	public URL
+	getMagnetURL(
+		Download		d )
+	{
+		Torrent	torrent = d.getTorrent();
+		
+		if ( torrent == null ){
+			
+			return( null );
+		}
+		
+		return( getMagnetURL( torrent.getHash()));
+	}
+	
+	public URL
+	getMagnetURL(
+		byte[]		hash )
+	{
+		try{
+			return( new URL( "magnet:?xt=urn:btih:" + Base32.encode(hash)));
+		
+		}catch( Throwable e ){
+		
+			Debug.printStackTrace(e);
+		
+			return( null );
+		}
+	}
+	
 	public byte[]
 	badge()
 	{
@@ -372,7 +402,7 @@ MagnetPlugin
 						}
 					}
 				},
-				db.createKey( hash ),
+				db.createKey( hash, "Torrent download lookup for '" + ByteFormatter.encodeString( hash ) + "'" ),
 				timeout );
 			
 			long	remaining	= timeout;
@@ -438,7 +468,7 @@ MagnetPlugin
 									}
 								},
 								db.getStandardTransferType( DistributedDatabaseTransferType.ST_TORRENT ),
-								db.createKey( hash ),
+								db.createKey ( hash , "Torrent download content for '" + ByteFormatter.encodeString( hash ) + "'"),
 								timeout );
 										
 					if ( value != null ){
