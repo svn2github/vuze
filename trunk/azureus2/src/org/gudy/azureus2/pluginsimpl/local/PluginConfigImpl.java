@@ -215,6 +215,18 @@ PluginConfigImpl
 		 COConfigurationManager.setParameter(this.key+key, value);
 	 }
 
+	 public Map
+	 getPluginMapParameter( String key, Map	default_value )
+	 {
+		return COConfigurationManager.getMapParameter(this.key+key, default_value); 
+	 }
+	 
+	 public void
+	 setPluginMapParameter( String key, Map	value )
+	 {
+		 COConfigurationManager.setParameter(this.key+key, value);
+	 }
+	 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, int)
 	 */

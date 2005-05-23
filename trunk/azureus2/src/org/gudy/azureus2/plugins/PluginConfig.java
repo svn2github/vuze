@@ -28,6 +28,7 @@ package org.gudy.azureus2.plugins;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.config.*;
 
@@ -228,7 +229,7 @@ PluginConfig
   public byte[] getPluginByteParameter( String key, byte[] defaultValue );
  
   /**
-   * Get a list paramete.r List contents must conform to bencodable rules (Map,Long,byte[],List) 
+   * Get a list parameter List contents must conform to bencodable rules (Map,Long,byte[],List) 
    * @param key
    * @param default_value
    * @return
@@ -241,6 +242,20 @@ PluginConfig
   public void
   setPluginListParameter( String key, List	value );
  
+  /**
+   * Get a list parameter Map contents must conform to bencodable rules (Map,Long,byte[],List) 
+   * @param key
+   * @param default_value
+   * @return
+   * @since 2301
+   */
+  
+  public Map
+  getPluginMapParameter( String key, Map	default_value );
+ 
+  public void
+  setPluginMapParameter( String key, Map	value );
+  
   /**
    * sets a plugin int parameter value
    * @param key the parameter name

@@ -200,7 +200,19 @@ COConfigurationManager
 	{
 		return( ConfigurationManager.getInstance().getListParameter( parameter, def ));
 	}
-  public static void
+	
+	public static boolean
+	setParameter(String parameter,Map value) {
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
+	}
+	
+	public static Map
+	getMapParameter(String parameter, Map def)
+	{
+		return( ConfigurationManager.getInstance().getMapParameter( parameter, def ));
+	}
+	
+	public static void
 	save()
 	{
 		ConfigurationManager.getInstance().save();

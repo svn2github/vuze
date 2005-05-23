@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.remote;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.config.ConfigParameter;
@@ -260,6 +261,19 @@ RPPluginConfig
 		  notSupported();
 	  }
 	  
+	  public Map
+	  getPluginMapParameter( String key, Map	default_value )
+	  {
+		  	notSupported();
+		  	
+		  	return( null );		  
+	  }
+	 
+	  public void
+	  setPluginMapParameter( String key, Map	value )
+	  {
+		  notSupported();
+	  }
 	  public int getPluginIntParameter(String key)
 	  {	
 	  	notSupported();

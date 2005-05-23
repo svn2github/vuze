@@ -275,6 +275,31 @@ ConfigurationManager
   	return true;
   }
 
+  public Map 
+  getMapParameter(String parameter, Map def) 
+  {
+  	try {  		
+		Map map = (Map) propertiesMap.get(parameter);
+  		if(map == null)
+  			return def;
+  		return map;	
+  	} catch(Exception e) {
+  		Debug.printStackTrace(e);
+  		return def;
+  	}
+  }
+  
+  public boolean setParameter(String parameter,Map value) {
+  	try {
+  		propertiesMap.put(parameter,value);
+  	} catch(Exception e) {
+  		Debug.printStackTrace(e);
+  		return false;
+  	}
+  	return true;
+  }
+  
+  
   public String getDirectoryParameter(String parameter) throws IOException {
     String dir = getStringParameter(parameter);
     
