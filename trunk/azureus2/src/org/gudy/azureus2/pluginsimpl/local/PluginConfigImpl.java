@@ -203,6 +203,17 @@ PluginConfigImpl
 		return COConfigurationManager.getByteParameter(this.key+key, defaultValue);
 	}
 
+	 public List
+	 getPluginListParameter( String key, List	default_value )
+	 {
+		return COConfigurationManager.getListParameter(this.key+key, default_value); 
+	 }
+	 
+	 public void
+	 setPluginListParameter( String key, List	value )
+	 {
+		 COConfigurationManager.setParameter(this.key+key, value);
+	 }
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.PluginConfig#setPluginParameter(java.lang.String, int)

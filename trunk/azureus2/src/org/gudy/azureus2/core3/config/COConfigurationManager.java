@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.core3.config;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.io.IOException;
@@ -189,6 +190,16 @@ COConfigurationManager
 		return( ConfigurationManager.getInstance().getStringListParameter( parameter ));
 	}
 
+	public static boolean
+	setParameter(String parameter,List value) {
+		return ConfigurationManager.getInstance().setParameter( parameter, value );
+	}
+	
+	public static List
+	getListParameter(String parameter, List def)
+	{
+		return( ConfigurationManager.getInstance().getListParameter( parameter, def ));
+	}
   public static void
 	save()
 	{

@@ -238,6 +238,8 @@ ConfigurationManager
   		return new StringListImpl();
   	}
   }
+	  
+
   
   public boolean setParameter(String parameter,StringList value) {
   	try {
@@ -249,6 +251,30 @@ ConfigurationManager
   	return true;
   }
    
+  public List 
+  getListParameter(String parameter, List def) 
+  {
+  	try {  		
+  		List rawList = (List) propertiesMap.get(parameter);
+  		if(rawList == null)
+  			return def;
+  		return rawList;	
+  	} catch(Exception e) {
+  		Debug.printStackTrace(e);
+  		return def;
+  	}
+  }
+  
+  public boolean setParameter(String parameter,List value) {
+  	try {
+  		propertiesMap.put(parameter,value);
+  	} catch(Exception e) {
+  		Debug.printStackTrace(e);
+  		return false;
+  	}
+  	return true;
+  }
+
   public String getDirectoryParameter(String parameter) throws IOException {
     String dir = getStringParameter(parameter);
     
