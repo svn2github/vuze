@@ -100,31 +100,42 @@ BEncoder
             	
             	Map.Entry	entry = (Map.Entry)it.next();
 			
-            	String key = (String)entry.getKey();
+            	Object o_key = entry.getKey();
    			   		           	
    			   	Object value = entry.getValue();
 
    			   	if ( value != null ){
-   			   		
-	                if ( byte_keys ){
-	                		   		
-	   					try{
-	  					
-	   				 		encode( baos, byte_charset.encode(key));
+   			   	
+					if ( o_key instanceof byte[]){
+						
+   				 		encode( baos, (byte[])o_key);
 	      				
-	      					encode( baos, tempMap.get(key));
-	      		
-	    				}catch( UnsupportedEncodingException e ){
-	                		
-	    					throw( new IOException( "BEncoder: unsupport encoding: " + e.getMessage()));
-	    				}
-	
-	                }else{                 
+	      				encode( baos, value );
 
-	                	encode(baos, key );	// Key goes in as UTF-8
-	      				
-	      				encode(baos, value);
-    				}      
+					}else{
+						
+						String	key = (String)o_key;
+					
+		                if ( byte_keys ){
+		                		   		
+		   					try{
+		  					
+		   				 		encode( baos, byte_charset.encode(key));
+		      				
+		      					encode( baos, tempMap.get(key));
+		      		
+		    				}catch( UnsupportedEncodingException e ){
+		                		
+		    					throw( new IOException( "BEncoder: unsupport encoding: " + e.getMessage()));
+		    				}
+		
+		                }else{                 
+	
+		                	encode(baos, key );	// Key goes in as UTF-8
+		      				
+		      				encode(baos, value);
+	    				}   
+					}
                 }     
             }
             
