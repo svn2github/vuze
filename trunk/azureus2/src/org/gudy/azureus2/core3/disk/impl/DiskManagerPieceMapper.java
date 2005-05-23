@@ -207,7 +207,7 @@ DiskManagerPieceMapper
 				PieceMapEntry tempPieceEntry = null;
 
 				//how much space do we need to use?                               
-				if (availableSpace < (modified_piece_length - usedSpace)) {
+				if (availableSpace <= (modified_piece_length - usedSpace)) {
 					//use the rest of the file's space
 						tempPieceEntry =
 							new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int)availableSpace //safe to convert here
@@ -271,7 +271,7 @@ DiskManagerPieceMapper
 			PieceMapEntry tempPieceEntry = null;
 
 			//how much space do we need to use?                               
-			if (availableSpace < (piece_length - usedSpace)) {
+			if (availableSpace <= (piece_length - usedSpace)) {
 				//use the rest of the file's space
 				tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int)availableSpace);
 
