@@ -201,7 +201,12 @@ MainWindow
     
     mainMenu = new MainMenu(this);
 
-    createDropTarget(mainWindow);
+    try {
+      createDropTarget(mainWindow);
+    } catch (Exception e) {
+      LGLogger.log(LGLogger.ERROR,"Drag and Drop not available");
+    }
+    
 
     FormLayout mainLayout = new FormLayout(); 
     FormData formData;
