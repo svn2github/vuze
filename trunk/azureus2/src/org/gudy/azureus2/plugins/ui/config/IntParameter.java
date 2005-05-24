@@ -33,4 +33,8 @@ IntParameter
 {
 	public int
 	getValue();
+	
+	public void
+	setValue(
+		int	v );
 }

@@ -55,4 +55,11 @@ public class IntParameterImpl extends ParameterImpl implements IntParameter
 	{
 		return( config.getIntParameter( getKey(), getDefaultValue()));
 	}
+	
+	public void
+	setValue(
+		int	b )
+	{
+		COConfigurationManager.setParameter( getKey(), b );
+	}
 }
