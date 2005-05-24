@@ -90,7 +90,11 @@ DDBaseImpl
 			azureus_core.getPluginManager().getPluginInterfaceByClass(
 						DHTPlugin.class );
 				
-		if ( dht_pi != null ){
+		if ( dht_pi == null ){
+			
+			Debug.out( "DHTPlugin unavailable - if this is unexpected consider revising the plugin initialisation sequence" );
+			
+		}else{
 			
 			dht = (DHTPlugin)dht_pi.getPlugin();
 			
