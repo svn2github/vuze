@@ -11,7 +11,6 @@ $
     Memory usage reduced
     Thread usage for idle torrents reduced
     Connection management improved for long-term connections and peer exchange
-    
     Console UI now supports alerting and version update checking
  
     Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.2

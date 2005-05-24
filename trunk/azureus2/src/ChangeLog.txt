@@ -1,14 +1,14 @@
 AZUREUS CHANGELOG
 ---------
 
-2005.05.xx | Azureus 2.3.0.1
+2005.05.25 | Azureus 2.3.0.2
 
 FEATURE: UI   | Console UI now has update check, alerting and DHT stats [Parg]
-FEATURE: Plug | Availability column added to webui + some alignment changes [Parg]
 FEATURE: UI   | SWT make torrent wizard remembers value for "add other hashes" [Parg]
-FEATURE: Plug | XML/http interface access to individual torrent file stats added [Parg]
 FEATURE: UI   | Console UI logging config [Fatal]
-FEATURE: Plug | added progress indicator and torrent stats to tracker web templates [Parg, Gouss]
+FEATURE: Plug | Added progress indicator and torrent stats to tracker web templates [Parg, Gouss]
+FEATURE: Plug | Availability column added to webui + some alignment changes [Parg]
+FEATURE: Plug | XML/http interface access to individual torrent file stats added [Parg]
 
 CHANGE: Core  | CPU usage reductions when connected to many idle peers [Nolar]
 CHANGE: Core  | Disable console view logging by default [Nolar]
@@ -16,9 +16,9 @@ CHANGE: Core  | Memory usage reductions and optimizations [Gudy, Parg, Nolar]
 CHANGE: Core  | Improved long-term connection-attempt management [Nolar]
 CHANGE: Core  | DHT bootstrap in absence of version-check server improved [Parg]
 CHANGE: Core  | DHT IP filter reports reduced [Parg]
-CHANGE: UI    | Default for "add other hashes" in make torrent wizard and sharing config changed to false [Parg]
-CHANGE: UI    | retention of log history removed as taking up to 1MB mem [Parg]
 CHANGE: Core  | Disk manager read/write threads now started on demand [Parg]
+CHANGE: UI    | Default for "add other hashes" in make torrent wizard and sharing config changed to false [Parg]
+CHANGE: UI    | Retention of log history removed as taking up to 1MB mem [Parg]
 CHANGE: UI    | Added missing spaces back into SWT dock item's tooltip [Parg]
 CHANGE: UI    | Restore version number on status bar and add protocol rate to the stats view [Nolar]
 CHANGE: Plug  | JPC plugin refactoring to help reduce cache server load [Nolar]
