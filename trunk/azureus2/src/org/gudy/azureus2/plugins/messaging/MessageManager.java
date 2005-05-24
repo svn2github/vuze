@@ -54,4 +54,11 @@ public interface MessageManager {
    * @param listener to notify
    */
   public void locateCompatiblePeers( PluginInterface plug_interface, Message message, MessageManagerListener listener );
+  
+  
+  /**
+   * Cancel registration for compatible-peer notification.
+   * @param orig_listener listener used for registration
+   */
+  public void cancelCompatiblePeersLocation( MessageManagerListener orig_listener );
 }

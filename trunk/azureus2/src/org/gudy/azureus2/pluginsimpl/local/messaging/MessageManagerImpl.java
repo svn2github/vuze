@@ -128,4 +128,16 @@ public class MessageManagerImpl implements MessageManager {
       plug_interface.getDownloadManager().addListener( download_manager_listener );
     }
   }
+  
+  
+  public void cancelCompatiblePeersLocation( MessageManagerListener orig_listener ) {
+    for( Iterator it = compat_checks.values().iterator(); it.hasNext(); ) {
+      MessageManagerListener listener = (MessageManagerListener)it.next();
+      
+      if( listener == orig_listener ) {
+        it.remove();
+        break;
+      }
+    }
+  }
 }
