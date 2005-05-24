@@ -52,6 +52,7 @@ AEDiagnostics
   
   
     public static final boolean TRACE_TCP_TRANSPORT_STATS = false;
+    public static final boolean TRACE_CONNECTION_DROPS = false;
     
 	
 	static{

@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -121,16 +122,18 @@ public class MultiPeerDownloader implements RateControlledEntity {
         }
         catch( Throwable e ) {
           
-          if( e.getMessage() == null ) {
-            Debug.out( "null read exception message: ", e );
-          }
-          else {
-            if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
-                e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-                e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
-                e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
+          if( AEDiagnostics.TRACE_CONNECTION_DROPS ) {
+            if( e.getMessage() == null ) {
+              Debug.out( "null read exception message: ", e );
+            }
+            else {
+              if( e.getMessage().indexOf( "end of stream on socket read" ) == -1 &&
+                  e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+                  e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
+                  e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
                   
-              System.out.println( "MP: read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+                System.out.println( "MP: read exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+              }
             }
           }
 

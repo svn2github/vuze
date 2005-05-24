@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
@@ -85,16 +86,18 @@ public class SinglePeerUploader implements RateControlledEntity {
     }
     catch( Throwable e ) {
       
-      if( e.getMessage() == null ) {
-        Debug.out( "null write exception message: ", e );
-      }
-      else {
-        if( e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
-            e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
-            e.getMessage().indexOf( "Broken pipe" ) == -1 &&
-            e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
+      if( AEDiagnostics.TRACE_CONNECTION_DROPS ) {
+        if( e.getMessage() == null ) {
+          Debug.out( "null write exception message: ", e );
+        }
+        else {
+          if( e.getMessage().indexOf( "An existing connection was forcibly closed by the remote host" ) == -1 &&
+              e.getMessage().indexOf( "Connection reset by peer" ) == -1 &&
+              e.getMessage().indexOf( "Broken pipe" ) == -1 &&
+              e.getMessage().indexOf( "An established connection was aborted by the software in your host machine" ) == -1 ) {
             
-          System.out.println( "SP: write exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+            System.out.println( "SP: write exception [" +connection.getTCPTransport().getDescription()+ "]: " +e.getMessage() );
+          }
         }
       }
 
