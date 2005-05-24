@@ -56,7 +56,11 @@ public class WelcomeWindow {
     if(! Constants.isOSX) {
       shell.setImage(ImageRepository.getImage("azureus"));
     }
-    shell.setText(MessageText.getString("window.welcome.title.2300"));
+	
+    String versionStr  = MessageText.getString("window.welcome.version");
+    int version = Integer.parseInt(versionStr);
+
+    shell.setText(MessageText.getString("window.welcome.title."+version));
     
     display = shell.getDisplay();
     

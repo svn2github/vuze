@@ -1,6 +1,18 @@
 $ 
-$    Bienvenido a Azureus 2.3.0.0
+$    Bienvenido a Azureus 2.3.0.2
 $ 
+
++1. Lo nuevo en Azureus 2.3.0.2
+
+ This is primarily a bug/performance fix release. Of notable interest are:
+ 
+    JDK 1.4 compatability restored on Windows
+    Distributed Database bootstrap and IP change handling improved
+    Memory usage reduced
+    Thread usage for idle torrents reduced
+    Connection management improved for long-term connections and peer exchange
+    
+    Console UI now supports alerting and version update checking
 
 
 +1. Lo nuevo en Azureus 2.3.0.0
