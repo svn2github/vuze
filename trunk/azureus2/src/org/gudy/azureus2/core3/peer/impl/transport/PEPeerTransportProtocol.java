@@ -1643,7 +1643,7 @@ PEPeerTransportProtocol
   private void changePeerState( int new_state ) {
     current_peer_state = new_state;
     
-    if( current_peer_state == PEPeer.TRANSFERING ) {
+    if( current_peer_state == PEPeer.TRANSFERING ) {   //YUCK!
       doPostHandshakeProcessing();
     }
 
