@@ -173,12 +173,14 @@ IntParameter
   setValue(
   	int		value )
   {
-  	if ( getValue() != value ){
+	String	str_val = String.valueOf( value );
+	  
+  	if ( getValue() != value || !str_val.equals( inputField.getText())){
   		
 	  	try{
 	  		value_is_changing_internally	= true;
 	  		
-	  		inputField.setText(String.valueOf(value));
+	  		inputField.setText( str_val );
 	  		
 	  	}finally{
 	  		

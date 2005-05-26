@@ -346,7 +346,31 @@ BasicPluginConfigModelImpl
 				
 			}else if ( param instanceof IntParameterImpl ){
 						
-				swt_param = new IntParameter(current_composite, key, ((IntParameterImpl)param).getDefaultValue());
+				swt_param = 
+					new IntParameter(
+						current_composite, 
+						key, 
+						((IntParameterImpl)param).getDefaultValue(),
+						false );	// don't want intermediate values
+				
+				param.addListener(
+						new ParameterListener()
+						{
+							public void
+							parameterChanged(
+								org.gudy.azureus2.plugins.ui.config.Parameter	p )
+							{
+								if ( swt_param.getControls()[0].isDisposed()){
+						
+									param.removeListener( this );
+									
+								}else{
+									
+									((IntParameter)swt_param).setValue(((IntParameterImpl)param).getValue());
+								}
+							}
+						});
+				
 				
 				GridData gridData = new GridData();
 				gridData.widthHint = 100;

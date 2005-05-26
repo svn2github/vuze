@@ -362,7 +362,7 @@ ResourceDownloaderURLImpl
 						
 						if ( pos == -1 ){
 							
-							url = new URL( str.substring(0,pos) + ":" + target_port + "/" );
+							url = new URL( str + ":" + target_port + "/" );
 							
 						}else{
 						
