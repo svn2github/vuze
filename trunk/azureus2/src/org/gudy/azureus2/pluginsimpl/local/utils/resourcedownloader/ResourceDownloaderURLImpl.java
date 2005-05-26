@@ -358,7 +358,16 @@ ResourceDownloaderURLImpl
 						
 						pos = str.indexOf( "/", pos+4 );
 						
-						url = new URL( str.substring(0,pos) + ":" + target_port + str.substring(pos));
+							// might not have a trailing "/"
+						
+						if ( pos == -1 ){
+							
+							url = new URL( str.substring(0,pos) + ":" + target_port + "/" );
+							
+						}else{
+						
+							url = new URL( str.substring(0,pos) + ":" + target_port + str.substring(pos));
+						}
 												
 					}catch( Throwable e ){
 						
