@@ -165,7 +165,7 @@ SFPluginDetailsLoaderImpl
 		throws SFPluginDetailsException
 	{
 		try{
-			ResourceDownloader p_dl = rd_factory.create( new URL( site_prefix + "plugin_details.php?plugin=" + details.getId() ));
+			ResourceDownloader p_dl = rd_factory.create( new URL( site_prefix + "plugin_details.php?plugin=" + details.getId() + "&version=" + Constants.AZUREUS_VERSION ));
 		
 			p_dl = rd_factory.getRetryDownloader( p_dl, 5 );
 		
