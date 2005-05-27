@@ -37,6 +37,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
 import org.gudy.azureus2.core3.html.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.logging.*;
@@ -47,7 +48,7 @@ SFPluginDetailsLoaderImpl
 {
 
 	public static final String	site_prefix = "http://azureus.sourceforge.net/";
-	public static final String	page_url 	= site_prefix + "update/pluginlist3.php?type=";
+	public static final String	page_url 	= site_prefix + "update/pluginlist3.php?type=&version=" + Constants.AZUREUS_VERSION ;
 
 	protected static SFPluginDetailsLoaderImpl		singleton;
   	protected static AEMonitor		class_mon		= new AEMonitor( "SFPluginDetailsLoader:class" );
