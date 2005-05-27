@@ -81,6 +81,20 @@ DHTUDPPacketRequest
 		
 		protocol_version	= is.readByte();
 		
+		if ( protocol_version >= 8 ){
+			
+			originator_version = is.readByte();
+			
+				// if the originator is a higher version than us then we can't do anything sensible
+				// working at their version (e.g. we can't reply to them using that version). 
+				// Therefore trim their perceived version back to something we can deal with
+
+			if ( originator_version > DHTUDPPacket.VERSION ){
+				
+				originator_version = DHTUDPPacket.VERSION;
+			}
+		}
+		
 		DHTUDPPacket.checkVersion( protocol_version );
 		
 		originator_address		= DHTUDPUtils.deserialiseAddress( is );
@@ -111,22 +125,25 @@ DHTUDPPacketRequest
 	
 		throws IOException
 	{
-		if ( is.available() > 0 ){
+		if ( protocol_version < 8 ){
+
+			if ( is.available() > 0 ){
+				
+				originator_version	= is.readByte();
+							
+			}else{
+				
+				originator_version = protocol_version;
+			}
 			
-			originator_version	= is.readByte();
-						
-		}else{
+				// if the originator is a higher version than us then we can't do anything sensible
+				// working at their version (e.g. we can't reply to them using that version). 
+				// Therefore trim their perceived version back to something we can deal with
 			
-			originator_version = protocol_version;
-		}
-		
-			// if the originator is a higher version than us then we can't do anything sensible
-			// working at their version (e.g. we can't reply to them using that version). 
-			// Therefore trim their perceived version back to something we can deal with
-		
-		if ( originator_version > DHTUDPPacket.VERSION ){
-			
-			originator_version = DHTUDPPacket.VERSION;
+			if ( originator_version > DHTUDPPacket.VERSION ){
+				
+				originator_version = DHTUDPPacket.VERSION;
+			}
 		}
 	}
 	
@@ -179,6 +196,13 @@ DHTUDPPacketRequest
 		
 		os.writeByte( protocol_version );		
 		
+		if ( protocol_version >= 8 ){
+		
+				// originator version
+			
+			os.writeByte( DHTUDPPacket.VERSION );
+		}
+		
 		try{
 			DHTUDPUtils.serialiseAddress( os, originator_address );
 			
@@ -198,6 +222,9 @@ DHTUDPPacketRequest
 	
 		throws IOException
 	{
-		os.writeByte( DHTUDPPacket.VERSION );
+		if ( protocol_version < 8 ){
+			
+			os.writeByte( DHTUDPPacket.VERSION );
+		}
 	}
 }
