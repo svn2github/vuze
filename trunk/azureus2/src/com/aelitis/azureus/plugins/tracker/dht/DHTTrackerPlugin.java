@@ -210,17 +210,23 @@ DHTTrackerPlugin
 									
 										if ( dht.isEnabled()){
 										
+											log.log( "DDB Available" );
+												
 											model.getStatus().setText( "Running" );
 											
 											initialise();
 											
 										}else{
 											
+											log.log( "DDB Disabled" );
+											
 											model.getStatus().setText( "Disabled, Distributed database not available" );
 											
 											notRunning();
 										}
 									}catch( Throwable e ){
+										
+										log.log( "DDB Failed", e );
 										
 										model.getStatus().setText( "Failed" );
 										
@@ -232,7 +238,14 @@ DHTTrackerPlugin
 						t.setDaemon( true );
 						
 						t.start();
+
+					}else{
 						
+						log.log( "DDB Plugin missing" );
+						
+						model.getStatus().setText( "Failed" );
+						
+						notRunning();
 					}
 				}
 				
