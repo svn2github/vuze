@@ -89,6 +89,13 @@ DHTTransportUDPContactImpl
 		return( protocol_version );
 	}
 	
+	protected void
+	setProtocolVersion(
+		byte		v )
+	{
+		protocol_version 	= v;
+	}
+		
 	public long
 	getClockSkew()
 	{
@@ -164,10 +171,18 @@ DHTTransportUDPContactImpl
 	}
 	
 	protected void
-	setInstanceID(
-		int		_instance_id )
+	setInstanceIDAndVersion(
+		int		_instance_id,
+		byte	_protocol_version )
 	{
 		instance_id	= _instance_id;
+		
+			// target supports a higher version than we thought, update
+		
+		if ( _protocol_version > protocol_version ){
+						
+			protocol_version = _protocol_version;
+		}
 	}
 	
 	public boolean

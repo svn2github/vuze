@@ -565,6 +565,8 @@ DHTTransportUDPImpl
 	{
 		DHTTransportUDPContactImpl	contact = DHTUDPUtils.deserialiseContact( this, is );
 		
+		contact.setProtocolVersion((byte)5);
+		
 		importContact( contact );
 			
 		return( contact );
@@ -778,7 +780,7 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 							
-							contact.setInstanceID( packet.getTargetInstanceID());
+							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
 							
 							handleErrorReply( contact, packet );							
 								
@@ -852,7 +854,7 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 							
-							contact.setInstanceID( packet.getTargetInstanceID());
+							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
 							
 							handleErrorReply( contact, packet );
 										
@@ -1150,7 +1152,7 @@ DHTTransportUDPImpl
 									throw( new Exception( "connection id mismatch" ));
 								}
 								
-								contact.setInstanceID( packet.getTargetInstanceID());
+								contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
 								
 								handleErrorReply( contact, packet );
 
@@ -1240,7 +1242,7 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 
-							contact.setInstanceID( packet.getTargetInstanceID());
+							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
 							
 							handleErrorReply( contact, packet );
 								
@@ -1330,7 +1332,7 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 							
-							contact.setInstanceID( packet.getTargetInstanceID());
+							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
 							
 							handleErrorReply( contact, packet );
 								
@@ -1875,7 +1877,7 @@ DHTTransportUDPImpl
 						this, 
 						transport_address, 
 						request.getOriginatorAddress(), 
-						request.getVersion(),
+						request.getOriginatorVersion(),
 						request.getOriginatorInstanceID(),
 						request.getClockSkew());
 			

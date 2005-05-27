@@ -66,7 +66,7 @@ DHTUDPPacketRequestStore
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_STORE, con_id, trans_id );
 		
-		if ( getVersion() >= 7 ){
+		if ( getProtocolVersion() >= 7 ){
 			
 			random_id	= is.readInt();
 		}
@@ -76,6 +76,8 @@ DHTUDPPacketRequestStore
 			// times receieved are adjusted by + skew
 				
 		value_sets 	= DHTUDPUtils.deserialiseTransportValuesArray( transport, is, getClockSkew(), MAX_VALUES_PER_KEY );
+		
+		super.postDeserialise(is);
 	}
 	
 	public void
@@ -86,7 +88,7 @@ DHTUDPPacketRequestStore
 	{
 		super.serialise(os);
 		
-		if ( getVersion() >= 7 ){
+		if ( getProtocolVersion() >= 7 ){
 			
 			os.writeInt( random_id );
 		}
@@ -100,6 +102,8 @@ DHTUDPPacketRequestStore
 			
 			throw( new IOException( e.getMessage()));
 		}
+		
+		super.postSerialise( os );
 	}
 
 	protected void

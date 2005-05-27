@@ -54,6 +54,8 @@ DHTUDPPacketRequestPing
 		throws IOException
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_PING, con_id, trans_id );
+		
+		super.postDeserialise(is);
 	}
 	
 	public void
@@ -63,6 +65,8 @@ DHTUDPPacketRequestPing
 		throws IOException
 	{
 		super.serialise(os);
+		
+		super.postSerialise( os );
 	}
 	
 	public String

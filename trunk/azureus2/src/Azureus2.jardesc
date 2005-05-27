@@ -99,9 +99,9 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.torrentdownloader.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.components.shell"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.remote.ipfilter"/>
-<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.util.bloom"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.internat"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.host.impl"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.util.bloom"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.sharing"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.upnp.impl.ssdp"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.predicate.shellmanager"/>
@@ -227,8 +227,8 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.pluginsinstaller"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.pluginsuninstaller"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.disk"/>
-<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.peerdb"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ipfilter"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.peerdb"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.dht"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.console"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.crypto.generators"/>
@@ -283,6 +283,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.internat.whatsnew"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.console.commands"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.utils.xml.rss"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.remote.disk"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.peers"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.update"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.web2.stages.hdapi.impl"/>

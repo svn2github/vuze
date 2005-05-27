@@ -82,6 +82,8 @@ DHTUDPPacketData
 		length			= is.readInt();
 		total_length	= is.readInt();
 		data			= DHTUDPUtils.deserialiseByteArray( is, 65535 );
+		
+		super.postDeserialise(is);
 	}
 	
 	public void
@@ -107,6 +109,8 @@ DHTUDPPacketData
 			
 			DHTUDPUtils.serialiseByteArray( os, data,  65535 );
 		}
+		
+		super.postSerialise( os );
 	}
 	
 	public void

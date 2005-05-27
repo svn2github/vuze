@@ -44,7 +44,9 @@ DHTUDPPacketRequest
 	public static final int	DHT_HEADER_SIZE	= PRUDPPacketRequest.PR_HEADER_SIZE + 13 + DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
 	
 
-	private byte				version;
+	private byte				protocol_version;
+	
+	private byte				originator_version;
 	private long				originator_time;
 	private InetSocketAddress	originator_address;
 	private int					originator_instance_id;
@@ -60,8 +62,7 @@ DHTUDPPacketRequest
 	{
 		super( _type, _connection_id );
 		
-		version	= _remote_contact.getProtocolVersion();
-		
+		protocol_version		= _remote_contact.getProtocolVersion();		
 		originator_address		= _local_contact.getExternalAddress();
 		originator_instance_id	= _local_contact.getInstanceID();
 		originator_time			= SystemTime.getCurrentTime();
@@ -78,9 +79,9 @@ DHTUDPPacketRequest
 	{
 		super( type, con_id, trans_id );
 		
-		version	= is.readByte();
+		protocol_version	= is.readByte();
 		
-		DHTUDPPacket.checkVersion( version );
+		DHTUDPPacket.checkVersion( protocol_version );
 		
 		originator_address		= DHTUDPUtils.deserialiseAddress( is );
 		
@@ -104,6 +105,31 @@ DHTUDPPacketRequest
 		skew = SystemTime.getCurrentTime() - originator_time;
 	}
 	
+	protected void
+	postDeserialise(
+		DataInputStream	is )
+	
+		throws IOException
+	{
+		if ( is.available() > 0 ){
+			
+			originator_version	= is.readByte();
+						
+		}else{
+			
+			originator_version = protocol_version;
+		}
+		
+			// if the originator is a higher version than us then we can't do anything sensible
+			// working at their version (e.g. we can't reply to them using that version). 
+			// Therefore trim their perceived version back to something we can deal with
+		
+		if ( originator_version > DHTUDPPacket.VERSION ){
+			
+			originator_version = DHTUDPPacket.VERSION;
+		}
+	}
+	
 	protected long
 	getClockSkew()
 	{
@@ -111,11 +137,17 @@ DHTUDPPacketRequest
 	}
 	
 	protected byte
-	getVersion()
+	getProtocolVersion()
 	{
-		return( version );
+		return( protocol_version );
 	}
 	
+	protected byte
+	getOriginatorVersion()
+	{
+		return( originator_version );
+	}
+
 	protected InetSocketAddress
 	getOriginatorAddress()
 	{
@@ -145,7 +177,7 @@ DHTUDPPacketRequest
 
 			// add to this and you need to amend HEADER_SIZE above
 		
-		os.writeByte( version );		
+		os.writeByte( protocol_version );		
 		
 		try{
 			DHTUDPUtils.serialiseAddress( os, originator_address );
@@ -158,5 +190,14 @@ DHTUDPPacketRequest
 		os.writeInt( originator_instance_id );
 		
 		os.writeLong( originator_time );
+	}
+	
+	protected void
+	postSerialise(
+		DataOutputStream	os )
+	
+		throws IOException
+	{
+		os.writeByte( DHTUDPPacket.VERSION );
 	}
 }

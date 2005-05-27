@@ -58,6 +58,8 @@ DHTUDPPacketRequestFindNode
 		super( is,  DHTUDPPacket.ACT_REQUEST_FIND_NODE, con_id, trans_id );
 		
 		id = DHTUDPUtils.deserialiseByteArray( is, 64 );
+		
+		super.postDeserialise(is);
 	}
 	
 	public void
@@ -69,6 +71,8 @@ DHTUDPPacketRequestFindNode
 		super.serialise(os);
 		
 		DHTUDPUtils.serialiseByteArray( os, id, 64 );
+		
+		super.postSerialise( os );
 	}
 	
 	protected void
