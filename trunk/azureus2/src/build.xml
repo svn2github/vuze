@@ -10,9 +10,9 @@
    <property name="libs.dir" location="libs/" />
    <property name="dist.dir" location="dist/" />
 
-   <property name="aereg.excludes" value="**/aereg.lib **/aereg.dll" />
-   <property name="dist.jar.excludes" value="**/*.java **/*.jar ${aereg.excludes}" />
-   <property name="dist.source.excludes" value="**/*.class **/*.jar ${aereg.excludes}" />
+   <property name="generic.excludes" value="**/*.jar **/aereg.lib **/aereg.dll" />
+   <property name="dist.jar.excludes" value="${generic.excludes} **/*.java " />
+   <property name="dist.source.excludes" value="${generic.excludes} **/*.class" />
    
 
    <path id="libs.classpath">
