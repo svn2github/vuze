@@ -10,21 +10,44 @@
    <property name="libs.dir" location="libs/" />
    <property name="dist.dir" location="dist/" />
 
-   <property name="generic.excludes" value="**/*.jar **/aereg.lib **/aereg.dll" />
+   <property name="generic.excludes" value="**/*.jar **/*.txt **/*.jardesc **/.classpath **/.project **/aereg.lib **/aereg.dll" />
    <property name="dist.jar.excludes" value="${generic.excludes} **/*.java " />
    <property name="dist.source.excludes" value="${generic.excludes} **/*.class" />
    
-
+   <property name="cvsroot.anon" value=":pserver:anonymous@cvs.sourceforge.net:/cvsroot/azureus"/>
+   <property name="cvsroot.auth" value=":ext:${cvs.user}@cvs.sourceforge.net:/cvsroot/azureus"/>
+   
    <path id="libs.classpath">
       <fileset dir="${libs.dir}" includes="**/*.jar" />
    </path>
 
+
    
+   <!-- BUILD HELP -->
+   <target name="help" depends="usage" />
+   <target name="usage">
+      <echo message="Execute 'ant -projecthelp' for build file help." />
+      <echo message="Execute 'ant -help' for Ant help." />
+   </target>
+   
+   
+   <!-- BUILD INITIALIZATION -->
    <target name="init" description="Initialize build">
       <mkdir dir="${dist.dir}" />
    </target>
 
+   
+   <!-- EXTRACT SOURCE FROM CVS -->
+   <target name="extract" depends="init" description="Extract source code from CVS repositories">
+      <cvs cvsRoot="${cvsroot.anon}" package="azureus2/com" dest="${source.dir}" compression="true" quiet="true" failonerror="true" />
+      <!-- <cvs cvsRoot="${cvsroot.anon}" package="azureus2/libs" dest="${source.dir}" compression="true" quiet="true" failonerror="true" /> -->
+      <cvs cvsRoot="${cvsroot.anon}" package="azureus2/org" dest="${source.dir}" compression="true" quiet="true" failonerror="true" />
+      <!-- <cvs cvsRoot="${cvsroot.anon}" package="uis/org" dest="${source.dir}" compression="true" quiet="true" failonerror="true" /> -->
+      <cvs cvsRoot="${cvsroot.anon}" package="plugins/jpc" dest="${source.dir}" compression="true" quiet="true" failonerror="true" />
+   </target>
 
+   
+   <!-- COMPILE SOURCE CODE -->
    <target name="compile" depends="init" description="Compile source code to .class files">
       <javac srcdir="${source.dir}" destdir="${source.dir}" nowarn="yes">
          <classpath refid="libs.classpath" />
@@ -32,20 +55,20 @@
    </target>
 
 
+   <!-- PACKAGE MAIN JAR AND SOURCE ZIP -->
    <target name="dist" depends="compile" description="Build runtime jar and source zip">
-      <!-- PACKAGE UP RUNTIME JAR -->
       <jar destfile="${dist.dir}/${dist.name}${dist.version}.jar" basedir="${source.dir}" excludes="${dist.jar.excludes}">
          <manifest>
             <attribute name="Main-Class" value="org.gudy.azureus2.ui.common.Main" />
          </manifest>
       </jar>
       
-      <!-- PACKAGE UP SOURCE ZIP -->
       <zip destfile="${dist.dir}/${dist.name}_${dist.version}_source.zip" basedir="${source.dir}" excludes="${dist.source.excludes}" />
    </target>
 
 
-   <target name="clean" description="Clean build directories and files">
+   <!-- CLEANUP BUILD FILES -->
+   <target name="clean" description="Clean class files and dist directory">
       <delete>
          <fileset dir="${source.dir}" includes="**/*.class"/>
       </delete>
@@ -54,12 +77,13 @@
    </target>
 
 
-   <!-- BUILD HELP -->
-   <target name="help" depends="usage" />
-   <target name="usage">
-      <echo message="Execute 'ant -projecthelp' for build file help." />
-      <echo message="Execute 'ant -help' for Ant help." />
+   <!-- CLEANUP CVS FILES -->
+   <target name="cvsclean" description="Clean class files and dist directory">
+      <delete dir="${source.dir}/azureus2" />
+      <delete dir="${source.dir}/plugins" />
+      <delete dir="${dist.dir}" />
    </target>
+   
 
 </project>
 
@@ -77,5 +101,29 @@
     javadocs          Generate the Javadoc pages. 
     printerdocs       Generate printable documents. 
     test              Run the unit tests. 
-    uninstall         Remove a local installation. 
+    uninstall         Remove a local installation.
+    
+    
+    <?xml version="1.0"?>
+<project default="showMessage">
+    <target name="showMessage">
+        <echo message="Message=${message}"/>
+    </target>
+</project>
+
+(We haven't come across the echo task before; it simply outputs the given message.)
+
+And here is a second build file that calls out to the first, passing in the message property:
+
+
+<?xml version="1.0"?>
+<project default="callSub">
+    <target name="callSub">
+        <ant antfile="sub.xml" target="showMessage" inheritAll="false">
+            <property name="message" value="Hello from parent build"/>
+        </ant>
+    </target>
+</project>
+
+    
 -->
