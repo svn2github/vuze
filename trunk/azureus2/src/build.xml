@@ -1,0 +1,81 @@
+<?xml version="1.0"?>
+
+<project default="dist" name="Azureus" basedir=".">
+   <description>The Azureus Project</description>
+
+   <property name="dist.name" value="Azureus" />
+   <property name="dist.version" value="2.3.0.3" />
+   
+   <property name="source.dir" location="." />
+   <property name="libs.dir" location="libs/" />
+   <property name="dist.dir" location="dist/" />
+
+   <property name="aereg.excludes" value="**/aereg.lib **/aereg.dll" />
+   <property name="dist.jar.excludes" value="**/*.java **/*.jar ${aereg.excludes}" />
+   <property name="dist.source.excludes" value="**/*.class **/*.jar ${aereg.excludes}" />
+   
+
+   <path id="libs.classpath">
+      <fileset dir="${libs.dir}" includes="**/*.jar" />
+   </path>
+
+   
+   <target name="init" description="Initialize build">
+      <mkdir dir="${dist.dir}" />
+   </target>
+
+
+   <target name="compile" depends="init" description="Compile source code to .class files">
+      <javac srcdir="${source.dir}" destdir="${source.dir}" nowarn="yes">
+         <classpath refid="libs.classpath" />
+      </javac>
+   </target>
+
+
+   <target name="dist" depends="compile" description="Build runtime jar and source zip">
+      <!-- PACKAGE UP RUNTIME JAR -->
+      <jar destfile="${dist.dir}/${dist.name}${dist.version}.jar" basedir="${source.dir}" excludes="${dist.jar.excludes}">
+         <manifest>
+            <attribute name="Main-Class" value="org.gudy.azureus2.ui.common.Main" />
+         </manifest>
+      </jar>
+      
+      <!-- PACKAGE UP SOURCE ZIP -->
+      <zip destfile="${dist.dir}/${dist.name}_${dist.version}_source.zip" basedir="${source.dir}" excludes="${dist.source.excludes}" />
+   </target>
+
+
+   <target name="clean" description="Clean build directories and files">
+      <delete>
+         <fileset dir="${source.dir}" includes="**/*.class"/>
+      </delete>
+      
+      <delete dir="${dist.dir}" />
+   </target>
+
+
+   <!-- BUILD HELP -->
+   <target name="help" depends="usage" />
+   <target name="usage">
+      <echo message="Execute 'ant -projecthelp' for build file help." />
+      <echo message="Execute 'ant -help' for Ant help." />
+   </target>
+
+</project>
+
+
+
+<!--
+    all               Build and test everything; create a distribution, optionally install. 
+    clean             Delete all generated files and directories. 
+    deploy            Deploy the code, usually to a remote server. 
+    dist              Produce the distributables. 
+    distclean         Clean up the distribution files only. 
+    docs              Generate all documentation. 
+    init              Initialize the build: create directories, call <tstamp> and other common actions. 
+    install           Perform a local installation. 
+    javadocs          Generate the Javadoc pages. 
+    printerdocs       Generate printable documents. 
+    test              Run the unit tests. 
+    uninstall         Remove a local installation. 
+-->
