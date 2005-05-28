@@ -123,7 +123,7 @@ public class UnchokerUtil {
           ratio = (float)uploaded / (peer.getStats().getTotalDataBytesReceived() + 1);
         }
 
-        UnchokerUtil.updateLargestValueFirstSort( (long)(ratio * 1000), ratios, peer, ratioed_peers, 0 );  //higher value = worse raio
+        UnchokerUtil.updateLargestValueFirstSort( (long)(ratio * 1000), ratios, peer, ratioed_peers, 0 );  //higher value = worse ratio
       }
       
       //pick out a random subset of the optimistic peers, penalizing those peers who have have reciprocated the least

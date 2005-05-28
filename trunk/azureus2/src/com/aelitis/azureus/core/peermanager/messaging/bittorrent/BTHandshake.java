@@ -62,14 +62,24 @@ public class BTHandshake implements BTMessage, RawMessage {
     this.datahash_bytes = data_hash;
     this.peer_id_bytes = peer_id;
 
-    /* 
-     for( int i=7; i >= 0; i-- ) {
-       byte b = (byte) (RESERVED[0] >> i);
-       int val = b & 0x01;
-       System.out.print( val == 1 ? "x" : "." );
-     }
-     System.out.println();
-     */
+    /*
+    for( int i=0; i < reserved.length; i++ ) {  //locate any reserved bits
+      for( int x=7; x >= 0; x-- ) {
+        byte b = (byte) (reserved[i] >> x);
+        int val = b & 0x01;
+        if( val == 1 ) {
+          String id = new String(peer_id);
+          
+          if( id.startsWith( "-AZ23" ) )  break;
+          if( id.startsWith( "exbc" ) )  break;
+          if( id.startsWith( "FUTB" ) )  break;
+          
+          System.out.println( "BT_HANDSHAKE:: reserved bit @ [" +i+ "/" +(7 - x)+ "] for [" +id+ "]" );
+        }
+      }
+    }
+    */
+    
   }
   
 
