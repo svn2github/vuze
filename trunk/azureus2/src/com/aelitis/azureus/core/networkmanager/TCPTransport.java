@@ -63,8 +63,6 @@ public class TCPTransport {
   private int transport_mode = TRANSPORT_MODE_NORMAL;
 
   public volatile boolean has_been_closed = false;
-  public String has_been_closed_error = null;
-
   
   private static final TransportStats stats = AEDiagnostics.TRACE_TCP_TRANSPORT_STATS ? new TransportStats() : null;
   
@@ -418,10 +416,7 @@ public class TCPTransport {
    * @param listener establishment failure/success listener
    */
   public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ) {
-    if( has_been_closed ) {
-      has_been_closed_error = "establishOutboundConnection():: transport has already been closed";
-      Debug.out( has_been_closed_error );
-    }
+    if( has_been_closed )  return;
     
     if( socket_channel != null ) {  //already connected
       Debug.out( "socket_channel != null" );
@@ -439,9 +434,7 @@ public class TCPTransport {
       
       public void connectSuccess( SocketChannel channel ) {
         if( has_been_closed ) {  //closed between select ops
-          has_been_closed_error = "connectSuccess():: transport has already been closed";
-          Debug.out( has_been_closed_error );
-          NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );  //just close it
+          NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
           return;
         }
         
