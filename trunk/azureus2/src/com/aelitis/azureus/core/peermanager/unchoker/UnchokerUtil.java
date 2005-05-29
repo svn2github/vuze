@@ -25,14 +25,13 @@ package com.aelitis.azureus.core.peermanager.unchoker;
 import java.util.*;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
 /**
  * Utility collection for unchokers.
  */
 public class UnchokerUtil {
   
-  private static final int FREE_BYTES = 512*1024;  // 512KB free optimistic unchoke bytes
+  private static final int FREE_BYTES = 128*1024;  // 128KB free optimistic unchoke bytes
   
   
   /**
@@ -41,7 +40,7 @@ public class UnchokerUtil {
    * @param allow_snubbed if true, ignore snubbed state
    * @return true if peer is allowed to be unchoked, false if not
    */
-  public static boolean isUnchokable( PEPeerTransport peer, boolean allow_snubbed ) {
+  public static boolean isUnchokable( PEPeer peer, boolean allow_snubbed ) {
     return peer.getPeerState() == PEPeer.TRANSFERING && !peer.isSeed() && peer.isInterestedInMe() && ( !peer.isSnubbed() || allow_snubbed );
   }
   
@@ -54,7 +53,7 @@ public class UnchokerUtil {
    * @param items existing items
    * @param start_pos index at which to start compare
    */
-  public static void updateLargestValueFirstSort( long new_value, long[] values, PEPeerTransport new_item, List items, int start_pos ) {  
+  public static void updateLargestValueFirstSort( long new_value, long[] values, PEPeer new_item, List items, int start_pos ) {  
     for( int i=start_pos; i < values.length; i++ ) {
       if( new_value >= values[ i ] ) {
         for( int j = values.length - 2; j >= i; j-- ) {  //shift displaced values to the right
@@ -81,11 +80,11 @@ public class UnchokerUtil {
    * @param allow_snubbed allow the picking of snubbed-state peers as last resort
    * @return the next peer to optimistically unchoke, or null if there are no peers available
    */
-  public static PEPeerTransport getNextOptimisticPeer( ArrayList all_peers, boolean factor_reciprocated, boolean allow_snubbed ) {
+  public static PEPeer getNextOptimisticPeer( ArrayList all_peers, boolean factor_reciprocated, boolean allow_snubbed ) {
     //find all potential optimistic peers
     ArrayList optimistics = new ArrayList();
     for( int i=0; i < all_peers.size(); i++ ) {
-      PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+      PEPeer peer = (PEPeer)all_peers.get( i );
       
       if( isUnchokable( peer, false ) && peer.isChokedByMe() ) {
         optimistics.add( peer );
@@ -94,7 +93,7 @@ public class UnchokerUtil {
     
     if( optimistics.isEmpty() && allow_snubbed ) {  //try again, allowing snubbed peers as last resort
       for( int i=0; i < all_peers.size(); i++ ) {
-        PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+        PEPeer peer = (PEPeer)all_peers.get( i );
         
         if( isUnchokable( peer, true ) && peer.isChokedByMe() ) {
           optimistics.add( peer );
@@ -112,7 +111,7 @@ public class UnchokerUtil {
         
       //order by upload ratio
       for( int i=0; i < optimistics.size(); i++ ) {
-        PEPeerTransport peer = (PEPeerTransport)optimistics.get( i );
+        PEPeer peer = (PEPeer)optimistics.get( i );
 
         float ratio = 1F;  // >1 means we've uploaded more, <1 means we've downloaded more, so =1 means yet undetermined
         long uploaded = peer.getStats().getTotalDataBytesSent();
@@ -157,7 +156,7 @@ public class UnchokerUtil {
     
 
     int rand_pos = new Random().nextInt( optimistics.size() );
-    PEPeerTransport peer = (PEPeerTransport)optimistics.get( rand_pos );
+    PEPeer peer = (PEPeer)optimistics.get( rand_pos );
 
     return peer;
     

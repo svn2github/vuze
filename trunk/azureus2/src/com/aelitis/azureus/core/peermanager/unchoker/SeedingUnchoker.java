@@ -24,7 +24,8 @@ package com.aelitis.azureus.core.peermanager.unchoker;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.PEPeer;
+
 
 
 /**
@@ -46,7 +47,7 @@ public class SeedingUnchoker implements Unchoker {
     //count all the currently unchoked peers
     int num_unchoked = 0;
     for( int i=0; i < all_peers.size(); i++ ) {
-      PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+      PEPeer peer = (PEPeer)all_peers.get( i );
       if( !peer.isChokedByMe() )  num_unchoked++;
     }
     
@@ -54,7 +55,7 @@ public class SeedingUnchoker implements Unchoker {
     int needed = max_to_unchoke - num_unchoked;
     if( needed > 0 ) {
       for( int i=0; i < needed; i++ ) {
-        PEPeerTransport peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false, false );
+        PEPeer peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false, false );
         if( peer == null )  break;  //no more new unchokes avail
         to_unchoke.add( peer );
         peer.setOptimisticUnchoke( true );
@@ -70,7 +71,7 @@ public class SeedingUnchoker implements Unchoker {
     
     //get all the currently unchoked peers
     for( int i=0; i < all_peers.size(); i++ ) {
-      PEPeerTransport peer = (PEPeerTransport)all_peers.get( i );
+      PEPeer peer = (PEPeer)all_peers.get( i );
       
       if( !peer.isChokedByMe() ) { 
         if( UnchokerUtil.isUnchokable( peer, false ) ) {
@@ -102,7 +103,7 @@ public class SeedingUnchoker implements Unchoker {
         
       //calculate factor rankings
       for( int i=0; i < unchokes.size(); i++ ) {
-        PEPeerTransport peer = (PEPeerTransport)unchokes.get( i );
+        PEPeer peer = (PEPeer)unchokes.get( i );
 
         long rate = peer.getStats().getDataSendRate();
         if( rate > 256 ) {  //filter out really slow peers
@@ -121,7 +122,7 @@ public class SeedingUnchoker implements Unchoker {
       
       //combine factor rankings to get best
       for( int i=0; i < unchokes.size(); i++ ) {
-        PEPeerTransport peer = (PEPeerTransport)unchokes.get( i );
+        PEPeer peer = (PEPeer)unchokes.get( i );
         
         //"better" peers have high indexes (toward the end of each list)
         long rate_factor = peers_ordered_by_rate.indexOf( peer );
@@ -142,13 +143,13 @@ public class SeedingUnchoker implements Unchoker {
       //update choke list with drops and unchoke list with optimistic unchokes
       ArrayList to_unchoke = new ArrayList();
       for( Iterator it = unchokes.iterator(); it.hasNext(); ) {
-        PEPeerTransport peer = (PEPeerTransport)it.next();
+        PEPeer peer = (PEPeer)it.next();
         
         peer.setOptimisticUnchoke( false ); 
         
         if( !peers_ordered_by_rank.contains( peer ) ) {  //should be choked
           //we assume that any/all chokes are to be replace by optimistics
-          PEPeerTransport optimistic_peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false, false );
+          PEPeer optimistic_peer = UnchokerUtil.getNextOptimisticPeer( all_peers, false, false );
           
           if( optimistic_peer != null ) {  //only choke if we've got a peer to replace it with
             chokes.add( peer );
