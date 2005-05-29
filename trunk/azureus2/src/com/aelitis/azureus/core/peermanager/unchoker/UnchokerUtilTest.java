@@ -32,9 +32,9 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 public class UnchokerUtilTest {
   
-  private static final int NUM_PEERS_TO_TEST = 100;
-  private static final int BYTE_RANGE = 128*1024*1024;
-  private static final int TEST_ROUNDS = NUM_PEERS_TO_TEST * 2000;
+  private static final int NUM_PEERS_TO_TEST = 200;
+  private static final int BYTE_RANGE = 200*1024*1024;
+  private static final int TEST_ROUNDS = NUM_PEERS_TO_TEST * 5000;
   
   private static final Random rand = new Random();
   
@@ -57,6 +57,8 @@ public class UnchokerUtilTest {
     ArrayList test_peers = generateTestPeers();
      
     for( int i=0; i < TEST_ROUNDS; i++ ) {
+      if( i % 10000 == 0 )  System.out.println( "round=" +i );
+      
       PEPeer opt_peer = UnchokerUtil.getNextOptimisticPeer( test_peers, true, false );
       Integer count = (Integer)counts.get( opt_peer );
       if( count == null )  count = new Integer( 0 );
