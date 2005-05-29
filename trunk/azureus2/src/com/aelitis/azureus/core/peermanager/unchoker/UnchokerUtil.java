@@ -118,7 +118,7 @@ public class UnchokerUtil {
         UnchokerUtil.updateLargestValueFirstSort( (long)(ratio * 1000), ratios, peer, ratioed_peers, 0 );  //higher value = worse ratio
       }
       
-      double factor = 1 / ( 0.8 + 0.2 * Math.pow( random.nextFloat(), -1 ) );
+      double factor = 1F / ( 0.8 + 0.2 * Math.pow( random.nextFloat(), -1 ) );
       
       int pos = (int)(factor * ratioed_peers.size());
 
