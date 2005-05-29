@@ -4,6 +4,8 @@ AZUREUS CHANGELOG
 2005.xx.xx | Azureus 2.3.0.3
 
 
+BUGFIX: Core  | Fixed biased randomness for optimistic unchoke picking [Nolar]
+
 
 2005.05.25 | Azureus 2.3.0.2
 
