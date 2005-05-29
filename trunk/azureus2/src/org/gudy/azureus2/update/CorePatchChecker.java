@@ -55,7 +55,7 @@ CorePatchChecker
 		plugin_interface	= _plugin_interface;
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
-		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Core Patcher" );
+		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"Core Patcher (level=" + CorePatchLevel.getCurrentPatchLevel() + ")" );
 
 		if ( TESTING || !Constants.isCVSVersion()){
 		
