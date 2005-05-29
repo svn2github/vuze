@@ -31,8 +31,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
  */
 public class UnchokerUtil {
   
-  private static final int FREE_BYTES = 128*1024;  // 128KB free optimistic unchoke bytes
-  
+  private static final Random random = new Random();
   
   /**
    * Test whether or not the given peer is allowed to be unchoked.
@@ -113,48 +112,20 @@ public class UnchokerUtil {
       for( int i=0; i < optimistics.size(); i++ ) {
         PEPeer peer = (PEPeer)optimistics.get( i );
 
-        float ratio = 1F;  // >1 means we've uploaded more, <1 means we've downloaded more, so =1 means yet undetermined
-        long uploaded = peer.getStats().getTotalDataBytesSent();
-        
-        if( uploaded > FREE_BYTES ) {
-          //if we've uploaded more than freely allowed, use their upload-to-download ratio,
-          //otherwise we haven't yet uploaded enough to penalize them
-          ratio = (float)uploaded / (peer.getStats().getTotalDataBytesReceived() + 1);
-        }
+        //ratio of >1 means we've uploaded more, <1 means we've downloaded more
+        float ratio = (float)(peer.getStats().getTotalDataBytesSent() +1) / (peer.getStats().getTotalDataBytesReceived() +1);
 
         UnchokerUtil.updateLargestValueFirstSort( (long)(ratio * 1000), ratios, peer, ratioed_peers, 0 );  //higher value = worse ratio
       }
       
-      //pick out a random subset of the optimistic peers, penalizing those peers who have have reciprocated the least
-      optimistics.clear();
+      double factor = 1 / ( 0.8 + 0.2 * Math.pow( random.nextFloat(), -1 ) );
       
-      Random rand = new Random();
-      LinkedList randomized = new LinkedList();
-      
-      int num_to_pick = 1;
-      int round_reset_pos = 2;
-      
-      for( int i=0; i < ratioed_peers.size(); ) {
-        //randomly insert peer into temp list
-        int insert_pos = rand.nextInt( randomized.size() + 1 );
-        randomized.add( insert_pos, ratioed_peers.get( i ) );
-        
-        i++;
-        
-        if( i == round_reset_pos || i == ratioed_peers.size() ) {  //time to make our picks for this round
-          for( int x=0; x < num_to_pick; x++ ) {
-            if( randomized.isEmpty() )  break;  //might be less peers than num_to_pick at the very end
-            optimistics.add( randomized.removeFirst() );
-          }
+      int pos = (int)(factor * ratioed_peers.size());
 
-          randomized.clear();
-          num_to_pick = num_to_pick * 2;   
-          round_reset_pos = round_reset_pos + num_to_pick * 2;
-        }
-      }
+      return (PEPeer)ratioed_peers.get( pos );
     }
-    
 
+    
     int rand_pos = new Random().nextInt( optimistics.size() );
     PEPeer peer = (PEPeer)optimistics.get( rand_pos );
 

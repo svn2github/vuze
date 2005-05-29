@@ -32,9 +32,9 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 public class UnchokerUtilTest {
   
-  private static final int NUM_PEERS_TO_TEST = 200;
-  private static final int BYTE_RANGE = 200*1024*1024;
-  private static final int TEST_ROUNDS = NUM_PEERS_TO_TEST * 5000;
+  private static final int NUM_PEERS_TO_TEST = 128;
+  private static final int BYTE_RANGE = 1024*1024*1024;
+  private static final int TEST_ROUNDS = 500000;
   
   private static final Random rand = new Random();
   
@@ -57,7 +57,7 @@ public class UnchokerUtilTest {
     ArrayList test_peers = generateTestPeers();
      
     for( int i=0; i < TEST_ROUNDS; i++ ) {
-      if( i % 10000 == 0 )  System.out.println( "round=" +i );
+      if( i % 100000 == 0 )  System.out.println( "round=" +i );
       
       PEPeer opt_peer = UnchokerUtil.getNextOptimisticPeer( test_peers, true, false );
       Integer count = (Integer)counts.get( opt_peer );
@@ -73,6 +73,7 @@ public class UnchokerUtilTest {
       if( count > max_picked )  max_picked = count;
     }
     
+    int pos = 0;
     
     for( Iterator it = counts.entrySet().iterator(); it.hasNext(); ) {
       Map.Entry entry = (Map.Entry)it.next();
@@ -83,7 +84,8 @@ public class UnchokerUtilTest {
 
       int percentile = (count *100) / max_picked;      
       
-      System.out.println( "upload ratio=" +ratio+ ", times picked=" +count+ ", percentile=" +percentile+ "%" );
+      System.out.println( "[" +pos+ "] ratio=" +ratio+ ", picked=" +count+ "x, percentile=" +percentile+ "%" );
+      pos++;
     }
   }
 
