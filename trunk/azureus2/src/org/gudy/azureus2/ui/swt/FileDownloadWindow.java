@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.eclipse.swt.widgets.Button;
 
@@ -55,7 +56,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
   Display display;
   Shell shell;
   ProgressBar progressBar;
-  Label status;
+  BufferedLabel status;
   Button retry;
   Button cancel;  
   TorrentDownloader downloader;
@@ -133,7 +134,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     data.top = new FormAttachment(progressBar);
     lStatus.setLayoutData(data);
     
-    status = new Label(shell, SWT.NONE);    
+    status = new BufferedLabel(shell, SWT.NONE);    
     
     data = new FormData();
     data.top = new FormAttachment(progressBar);

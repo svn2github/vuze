@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 
 public class 
@@ -60,6 +61,13 @@ BufferedLabel
 	public void
 	setLayoutData(
 		GridData	gd )
+	{
+		label.setLayoutData( gd );
+	}
+	
+	public void
+	setLayoutData(
+		FormData	gd )
 	{
 		label.setLayoutData( gd );
 	}
