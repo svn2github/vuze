@@ -3,9 +3,10 @@ AZUREUS CHANGELOG
 
 2005.xx.xx | Azureus 2.3.0.3
 
+FEATURE: Core | DHT torrent lookup now based on sha1(hash) and torrent xfer encrypted using hash-derived key [Parg]
 
 BUGFIX: Core  | Fixed biased randomness for optimistic unchoke picking [Nolar]
-
+BUGFIX: Core  | DHT protocol version logic fixes [Parg]
 
 2005.05.25 | Azureus 2.3.0.2
 
