@@ -29,6 +29,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
 public class 
 DHTUDPPacketReplyStore
@@ -55,7 +56,7 @@ DHTUDPPacketReplyStore
 	{
 		super( is, DHTUDPPacket.ACT_REPLY_STORE, trans_id );
 		
-		if ( getVersion() >= 6 ){
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){
 			
 			diversify = DHTUDPUtils.deserialiseByteArray( is, DHTUDPPacketRequestStore.MAX_KEYS_PER_PACKET );
 		}
@@ -69,7 +70,7 @@ DHTUDPPacketReplyStore
 	{
 		super.serialise(os);
 		
-		if ( getVersion() >= 6 ){
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){
 			
 			DHTUDPUtils.serialiseByteArray( os, diversify, DHTUDPPacketRequestStore.MAX_KEYS_PER_PACKET );
 		}

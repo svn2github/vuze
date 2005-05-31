@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
 
 /**
@@ -66,7 +67,7 @@ DHTUDPPacketRequestStore
 	{
 		super( is,  DHTUDPPacket.ACT_REQUEST_STORE, con_id, trans_id );
 		
-		if ( getProtocolVersion() >= 7 ){
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			random_id	= is.readInt();
 		}
@@ -88,7 +89,7 @@ DHTUDPPacketRequestStore
 	{
 		super.serialise(os);
 		
-		if ( getProtocolVersion() >= 7 ){
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			os.writeInt( random_id );
 		}

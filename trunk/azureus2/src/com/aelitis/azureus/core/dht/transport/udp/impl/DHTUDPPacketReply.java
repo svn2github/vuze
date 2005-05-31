@@ -26,7 +26,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.net.udp.PRUDPPacketReply;
 
 /**
@@ -42,7 +45,7 @@ DHTUDPPacketReply
 	
 	
 	private long	connection_id;
-	private byte	version;
+	private byte	protocol_version;
 	private int		target_instance_id;
 	
 	private long	skew;
@@ -59,7 +62,20 @@ DHTUDPPacketReply
 		
 		connection_id	= _conn_id;
 		
-		version			= _remote_contact.getProtocolVersion();
+		protocol_version			= _remote_contact.getProtocolVersion();
+		
+			// the target might be at a higher protocol version that us, so trim back if necessary
+			// as we obviously can't talk a higher version than what we are!
+			// this *should* have already been done when we received the corresponding request
+			// packet as it modified the originator version accordingly. However, do it here
+			// just in case
+	
+		if ( protocol_version > DHTTransportUDP.PROTOCOL_VERSION ){
+			
+			Debug.out( "Trimming protocol version" );
+			
+			protocol_version = DHTTransportUDP.PROTOCOL_VERSION;
+		}
 		
 		target_instance_id	= _local_contact.getInstanceID();
 		
@@ -78,9 +94,14 @@ DHTUDPPacketReply
 		
 		connection_id 	= _is.readLong();
 		
-		version			= _is.readByte();
+		protocol_version			= _is.readByte();
 			
-		DHTUDPPacket.checkVersion( version );
+		if ( protocol_version > DHTTransportUDP.PROTOCOL_VERSION ){
+
+			Debug.out( "Received too high protocol version!" );
+		}
+		
+		DHTUDPPacket.checkVersion( protocol_version );
 	
 		target_instance_id	= _is.readInt();
 	}
@@ -104,9 +125,9 @@ DHTUDPPacketReply
 	}
 	
 	protected byte
-	getVersion()
+	getProtocolVersion()
 	{
-		return( version );
+		return( protocol_version );
 	}
 	
 	public void
@@ -121,7 +142,7 @@ DHTUDPPacketReply
 		
 		os.writeLong( connection_id );
 		
-		os.writeByte( version );
+		os.writeByte( protocol_version );
 		
 		os.writeInt( target_instance_id );
 	}

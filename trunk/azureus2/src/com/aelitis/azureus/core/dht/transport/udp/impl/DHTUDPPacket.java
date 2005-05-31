@@ -25,9 +25,6 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
-
 
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.net.udp.*;
@@ -40,9 +37,7 @@ import com.aelitis.net.udp.*;
 
 public class 
 DHTUDPPacket 
-{
-	public static final byte	VERSION					= DHTTransportUDP.PROTOCOL_VERSION;
-	
+{	
 	public static final int		PACKET_MAX_BYTES		= 1400;
 	
 		// these actions have to co-exist with the tracker ones when the connection
@@ -63,15 +58,9 @@ DHTUDPPacket
 	
 	
 	private static boolean	registered				= false;
-	private static boolean	version_fail_reported	= false;
-	
-	private static LoggerChannel	logger;
-	
-	private static AEMonitor	class_mon	= new AEMonitor( "DHTUDPPacket:class" );
 	
 	protected static void
-	registerCodecs(
-		LoggerChannel	_logger )
+	registerCodecs()
 	{
 		if ( registered ){
 			
@@ -79,9 +68,7 @@ DHTUDPPacket
 		}
 	
 		registered	= true;
-		
-		logger		= _logger;
-			
+					
 		PRUDPPacketRequestDecoder	request_decoder =
 			new PRUDPPacketRequestDecoder()
 			{
@@ -218,30 +205,7 @@ DHTUDPPacket
 	
 		throws IOException
 	{
-		if ( version < 4 ){
-		
-			// relax the version checking as from version 4 onwards we aim
-			// to support backwards compatability
-			
-			/*
-			if ( version > DHTUDPPacket.VERSION ){
-				
-				try{
-					class_mon.enter();
-			
-					if ( !version_fail_reported ){
-						
-						version_fail_reported	= true;
-						
-						logger.log(
-							"DHT protocol version is too old, please update Azureus" );
-					}
-				}finally{
-					
-					class_mon.exit();
-				}
-			}
-			*/
+		if ( version < DHTTransportUDP.PROTOCOL_VERSION_MIN ){
 			
 			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
 		}

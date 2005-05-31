@@ -23,6 +23,8 @@
 package com.aelitis.azureus.core.dht.transport.util;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
 
 /**
  * @author parg
@@ -33,6 +35,14 @@ public abstract class
 DHTTransportStatsImpl
 	implements DHTTransportStats
 {
+	private static final boolean	TRACE_VERSIONS = false;
+	
+	static{
+		if ( TRACE_VERSIONS ){
+			System.out.println( "**** DHTTransportStats: tracing protocol versions ****" );
+		}
+	}
+	
 	private long[]	pings		= new long[4];
 	private long[]	find_nodes	= new long[4];
 	private long[]	find_values	= new long[4];
@@ -40,6 +50,13 @@ DHTTransportStatsImpl
 	private long[]	stats		= new long[4];
 	
 	private long	incoming_requests;
+	private long	outgoing_requests;
+	
+	
+	private long	incoming_version_requests;
+	private long[]	incoming_request_versions = new long[DHTTransportUDP.PROTOCOL_VERSION+1];
+	private long	outgoing_version_requests;
+	private long[]	outgoing_request_versions = new long[DHTTransportUDP.PROTOCOL_VERSION+1];
 	
 	public void
 	add(
@@ -78,10 +95,14 @@ DHTTransportStatsImpl
 		// ping
 	
 	public void
-	pingSent()
+	pingSent(
+		DHTUDPPacketRequest	request )
 	{
 		pings[STAT_SENT]++;
+					
+		outgoingRequestSent( request );
 	}
+	
 	public void
 	pingOK()
 	{
@@ -107,9 +128,12 @@ DHTTransportStatsImpl
 		// find node
 	
 	public void
-	findNodeSent()
+	findNodeSent(
+		DHTUDPPacketRequest	request )
 	{
 		find_nodes[STAT_SENT]++;
+					
+		outgoingRequestSent( request );
 	}
 	public void
 	findNodeOK()
@@ -135,9 +159,12 @@ DHTTransportStatsImpl
 		// find value
 	
 	public void
-	findValueSent()
+	findValueSent(
+		DHTUDPPacketRequest	request )
 	{
 		find_values[STAT_SENT]++;
+					
+		outgoingRequestSent( request );
 	}
 	public void
 	findValueOK()
@@ -163,10 +190,14 @@ DHTTransportStatsImpl
 		// store
 	
 	public void
-	storeSent()
+	storeSent(
+		DHTUDPPacketRequest	request )
 	{
 		stores[STAT_SENT]++;
+		
+		outgoingRequestSent( request );
 	}
+	
 	public void
 	storeOK()
 	{
@@ -190,10 +221,14 @@ DHTTransportStatsImpl
 		//stats
 	
 	public void
-	statsSent()
+	statsSent(
+		DHTUDPPacketRequest	request )
 	{
 		stats[STAT_SENT]++;
+		
+		outgoingRequestSent( request );
 	}
+	
 	public void
 	statsOK()
 	{
@@ -210,10 +245,98 @@ DHTTransportStatsImpl
 		stats[STAT_RECEIVED]++;
 	}
 	
+	protected void
+	outgoingRequestSent(
+		DHTUDPPacketRequest	request )
+	{
+		outgoing_requests++;		
+
+		if ( TRACE_VERSIONS ){
+			
+			byte protocol_version = request.getProtocolVersion();
+			
+			if ( protocol_version >= 0 && protocol_version <= DHTTransportUDP.PROTOCOL_VERSION ){
+				
+				outgoing_request_versions[ protocol_version ]++;
+				
+				outgoing_version_requests++;
+				
+				if ( outgoing_version_requests%100 == 0 ){
+					
+					String	str= "";
+					
+					for (int i=0;i<outgoing_request_versions.length;i++){
+						
+						long	count = outgoing_request_versions[i];
+						
+						if ( count > 0 ){
+							
+							str += (str.length()==0?"":", ") + i + "=" +  count + "[" +
+										((outgoing_request_versions[i]*100)/outgoing_version_requests) + "]";
+						}
+					}
+					
+					System.out.println( "Outgoing versions: tot = " + outgoing_requests +"/" + outgoing_version_requests + ": " + str );
+				}
+				
+				if ( outgoing_version_requests%1000 == 0 ){
+					
+					for (int i=0;i<outgoing_request_versions.length;i++){
+						
+						outgoing_request_versions[i] = 0;
+					}
+	
+					outgoing_version_requests	= 0;
+				}
+			}
+		}
+	}
+	
 	public void
-	incomingRequestReceived()
+	incomingRequestReceived(
+		DHTUDPPacketRequest	request )
 	{
 		incoming_requests++;
+		
+		if ( TRACE_VERSIONS ){
+			
+			byte protocol_version = request.getProtocolVersion();
+			
+			if ( protocol_version >= 0 && protocol_version <= DHTTransportUDP.PROTOCOL_VERSION ){
+				
+				incoming_request_versions[ protocol_version ]++;
+				
+				incoming_version_requests++;
+				
+				if ( incoming_version_requests%100 == 0 ){
+					
+					String	str= "";
+					
+					for (int i=0;i<incoming_request_versions.length;i++){
+						
+						long	count = incoming_request_versions[i];
+						
+						if ( count > 0 ){
+							
+							str += (str.length()==0?"":", ") + i + "=" +  count + "[" +
+										((incoming_request_versions[i]*100)/incoming_version_requests) + "]";
+						}
+					}
+					
+					System.out.println( "Incoming versions: tot = " + incoming_requests +"/" + incoming_version_requests + ": " + str );
+				}
+				
+				if ( incoming_version_requests%1000 == 0 ){
+					
+					for (int i=0;i<incoming_request_versions.length;i++){
+						
+						incoming_request_versions[i] = 0;
+					}
+	
+					incoming_version_requests	= 0;
+				}
+			}
+		}
 	}
 	
 	public long

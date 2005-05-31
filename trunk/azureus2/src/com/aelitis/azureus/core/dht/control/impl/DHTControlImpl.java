@@ -50,6 +50,7 @@ import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.db.*;
 import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.*;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
 /**
  * @author parg
@@ -1689,6 +1690,15 @@ DHTControlImpl
 		DHTLog.log( "storeRequest from " + DHTLog.getString( originating_contact.getID())+ ", keys = " + keys.length );
 
 		byte[]	diverse_res = new byte[ keys.length];
+
+		Arrays.fill( diverse_res, DHT.DT_NONE );
+		
+		if ( keys.length != value_sets.length ){
+			
+			Debug.out( "DHTControl:storeRequest - invalid request received from " + originating_contact.getName() + ", keys and values length mismatch");
+			
+			return( diverse_res );
+		}
 		
 		// System.out.println( "storeRequest: received " + originating_contact.getRandomID() + " from " + originating_contact.getAddress());
 		
@@ -2349,7 +2359,7 @@ DHTControlImpl
 	{
 			// TODO: remove version check when 2.3.x version rolledout
 		
-		if ( spoof_cipher == null || contact.getProtocolVersion() < 7 ){
+		if ( spoof_cipher == null || contact.getProtocolVersion() < DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			return( 0 );
 		}
@@ -2390,7 +2400,7 @@ DHTControlImpl
 	{
 		// TODO: remove version check when 2.3.x version rolledout
 
-		if ( c.getProtocolVersion() >= 7 ){
+		if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			boolean	ok = c.getRandomID() == generateSpoofID( c );
 		
@@ -2400,7 +2410,7 @@ DHTControlImpl
 			
 		}else{
 			
-			// System.out.println( "anti-spoof: verify for " + c.getName() + " -> true, version < 7" );
+			// System.out.println( "anti-spoof: verify for " + c.getName() + " -> true, version = " + c.getProtocolVersion());
 
 			return( true );
 		}

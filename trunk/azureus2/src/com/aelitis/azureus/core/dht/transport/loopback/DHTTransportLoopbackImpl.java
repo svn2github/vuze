@@ -303,7 +303,7 @@ DHTTransportLoopbackImpl
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
-		stats.pingSent();
+		stats.pingSent(null);
 		
 		if ( target == null || triggerFailure()){
 		
@@ -348,7 +348,7 @@ DHTTransportLoopbackImpl
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
-		stats.statsSent();
+		stats.statsSent(null);
 		
 		if ( target == null || triggerFailure()){
 		
@@ -397,7 +397,7 @@ DHTTransportLoopbackImpl
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
-		stats.storeSent();
+		stats.storeSent(null);
 		
 		if ( target == null  || triggerFailure()){
 		
@@ -451,7 +451,7 @@ DHTTransportLoopbackImpl
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
-		stats.findNodeSent();
+		stats.findNodeSent(null);
 		
 		if ( target == null  || triggerFailure() ){
 		
@@ -516,7 +516,7 @@ DHTTransportLoopbackImpl
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		
-		stats.findValueSent();
+		stats.findValueSent(null);
 		
 		if ( target == null  || triggerFailure()){
 		

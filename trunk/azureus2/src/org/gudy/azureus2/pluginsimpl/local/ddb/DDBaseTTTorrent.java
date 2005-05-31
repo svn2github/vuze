@@ -54,8 +54,15 @@ public class
 DDBaseTTTorrent
 	implements DistributedDatabaseTransferType, DistributedDatabaseTransferHandler
 {
+	public static final boolean	TRACE			= true;
+	
 	public static final byte	CRYPTO_VERSION	= 1;
 	
+	static{
+		if ( TRACE ){
+			System.out.println( "**** Torrent xfer tracing on ****" );
+		}
+	}
 	private AzureusCore		azureus_core;
 	private DDBaseImpl		ddb;
 		
@@ -93,7 +100,9 @@ DDBaseTTTorrent
 				
 			PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
 			
-			if ( protocol_version >= 8 ){
+			boolean	encrypt	= false;
+			
+			if ( protocol_version >= 8 ){	// DHTTransportUDP.PROTOCOL_VERSION_ENCRYPT_TT
 				
 				String	search_sha1 = pi.getUtilities().getFormatters().encodeBytesToString( search_key );
 				
@@ -129,22 +138,47 @@ DDBaseTTTorrent
 						
 						download	= dl;
 						
+						encrypt	= true;
+						
 						break;
 					}
 				}
 				
-				System.out.println( "TorrentXfer: received lookup via sha1(hash) -> " + download );
+					// there's a bug whereby 2.3.0.2 + below clients, given a contact indirectly at, say, version 8
+					// will send a request claiming to be version 8, whereas it really is version 7
+					// to continue to work correctly with these we fall back to 
+					
+				if ( download == null ){
+					
+					download = pi.getShortCuts().getDownload( search_key );
+					
+					if (TRACE ){
+						
+						System.out.println( "TorrentXfer: received lookup via hash, fallback to V7 -> " + download );
+					}
+				}else{
+					
+					if ( TRACE ){
+						
+						System.out.println( "TorrentXfer: received lookup via sha1(hash) -> " + download );
+					}
+				}
 				
 			}else{
 				
 				download = pi.getShortCuts().getDownload( search_key );
 				
-				System.out.println( "TorrentXfer: received lookup via hash -> " + download );
+				if ( TRACE ){
+					
+					System.out.println( "TorrentXfer: received lookup via hash -> " + download );
+				}
 			}
 			
 			if ( download == null ){
 				
-				throw( new Exception( "Torrent not found" ));
+					// torrent not found - probably been removed whilst info still published in DHT
+				
+				return( null );
 			}
 			
 			Torrent	torrent = download.getTorrent();
@@ -158,7 +192,7 @@ DDBaseTTTorrent
 			
 			byte[] data = torrent.writeToBEncodedData();
 			
-			if ( protocol_version >= 8 ){
+			if ( encrypt ){
 				
 				data = encrypt( torrent.getHash(), data );
 			}
@@ -205,15 +239,19 @@ DDBaseTTTorrent
 		
 		byte[]	lookup_key;
 		
-		if ( protocol_version >= 8 ){
+		if ( protocol_version >= 8 ){	// DHTTransportUDP.PROTOCOL_VERSION_ENCRYPT_TT
 			
-			System.out.println( "TorrentXfer: sending via sha1(hash)" );
+			if ( TRACE ){
+				System.out.println( "TorrentXfer: sending via sha1(hash)" );
+			}
 
 			lookup_key	= new SHA1Simple().calculateHash( torrent_hash );
 			
 		}else{
 			
-			System.out.println( "TorrentXfer: sending via hash" );
+			if (TRACE ){
+				System.out.println( "TorrentXfer: sending via hash" );
+			}
 
 			lookup_key	= torrent_hash;
 		}
@@ -252,7 +290,7 @@ DDBaseTTTorrent
 			return( null );
 		}
 		
-		if ( protocol_version >= 8 ){
+		if ( protocol_version >= 8 ){	// DHTTransportUDP.PROTOCOL_VERSION_ENCRYPT_TT
 
 			data = decrypt( torrent_hash, data );
 		}
@@ -269,7 +307,10 @@ DDBaseTTTorrent
 		
 		if ( enc == null ){
 			
-			System.out.println( "TorrentXfer: encryption failed, using plain" );
+			if ( TRACE ){
+				
+				System.out.println( "TorrentXfer: encryption failed, using plain" );
+			}
 			
 			byte[]	res = new byte[data.length+2];
 			
@@ -282,7 +323,10 @@ DDBaseTTTorrent
 			
 		}else{
 		
-			System.out.println( "TorrentXfer: encryption ok" );
+			if ( TRACE ){
+				
+				System.out.println( "TorrentXfer: encryption ok" );
+			}
 
 			byte[]	res = new byte[enc.length+2];
 			
@@ -311,7 +355,9 @@ DDBaseTTTorrent
 			
 				// encryption failed, in plain
 			
-			System.out.println( "TorrentXfer: encryption failed, retrieving plain" );
+			if ( TRACE ){
+				System.out.println( "TorrentXfer: encryption failed, retrieving plain" );
+			}
 
 			byte[]	res = new byte[data.length-2];
 			
@@ -321,7 +367,9 @@ DDBaseTTTorrent
 			
 		}else{
   		
-			System.out.println( "TorrentXfer: encryption ok, decrypting" );
+			if ( TRACE ){
+				System.out.println( "TorrentXfer: encryption ok, decrypting" );
+			}
 
 			byte[]	res =  doCrypt( Cipher.DECRYPT_MODE, hash, data, 2 );
 			

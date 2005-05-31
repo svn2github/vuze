@@ -150,7 +150,7 @@ DHTTransportUDPImpl
 				
 		store_timeout			= request_timeout * 2;
 		
-		DHTUDPPacket.registerCodecs( logger );
+		DHTUDPPacket.registerCodecs();
 
 			// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
 			// if you change it :)
@@ -174,7 +174,7 @@ DHTTransportUDPImpl
 
 		logger.log( "Initial external address: " + address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTUDPPacket.VERSION, random.nextInt(), 0);
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTTransportUDP.PROTOCOL_VERSION, random.nextInt(), 0);
 	}
 	
 	public void
@@ -182,7 +182,7 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
-		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), DHTUDPPacket.VERSION, random.nextInt(), 0);		
+		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), DHTTransportUDP.PROTOCOL_VERSION, random.nextInt(), 0);		
 	}
 	
 	public void
@@ -200,7 +200,7 @@ DHTTransportUDPImpl
 		
 		InetSocketAddress	address = new InetSocketAddress( external_address, port );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTUDPPacket.VERSION, local_contact.getInstanceID(), 0 );		
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTTransportUDP.PROTOCOL_VERSION, local_contact.getInstanceID(), 0 );		
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -493,7 +493,7 @@ DHTTransportUDPImpl
 				InetSocketAddress	s_address = new InetSocketAddress( external_address, port );
 		
 				try{
-					local_contact = new DHTTransportUDPContactImpl( DHTTransportUDPImpl.this, s_address, s_address, DHTUDPPacket.VERSION, random.nextInt(), 0);
+					local_contact = new DHTTransportUDPContactImpl( DHTTransportUDPImpl.this, s_address, s_address, DHTTransportUDP.PROTOCOL_VERSION, random.nextInt(), 0);
 			
 					logger.log( "External address changed: " + s_address );
 					
@@ -752,16 +752,16 @@ DHTTransportUDPImpl
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler )
 	{
-		stats.pingSent();
-
-		final long	connection_id = getConnectionID();
-		
-		final DHTUDPPacketRequestPing	request = 
-			new DHTUDPPacketRequestPing( connection_id, local_contact, contact );
-			
 		try{
 			checkAddress( contact );
 			
+			final long	connection_id = getConnectionID();			
+
+			final DHTUDPPacketRequestPing	request = 
+				new DHTUDPPacketRequestPing( connection_id, local_contact, contact );
+				
+			stats.pingSent( request );
+
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
@@ -780,7 +780,7 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 							
-							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
+							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
 							handleErrorReply( contact, packet );							
 								
@@ -826,16 +826,16 @@ DHTTransportUDPImpl
 		final DHTTransportUDPContactImpl	contact,
 		final DHTTransportReplyHandler		handler )
 	{
-		stats.statsSent();
-
-		final long	connection_id = getConnectionID();
-		
-		final DHTUDPPacketRequestStats	request = 
-			new DHTUDPPacketRequestStats( connection_id, local_contact, contact );
-			
 		try{
 			checkAddress( contact );
 			
+			final long	connection_id = getConnectionID();
+			
+			final DHTUDPPacketRequestStats	request = 
+				new DHTUDPPacketRequestStats( connection_id, local_contact, contact );
+				
+			stats.statsSent( request );
+
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
@@ -854,7 +854,7 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 							
-							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
+							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
 							handleErrorReply( contact, packet );
 										
@@ -901,16 +901,16 @@ DHTTransportUDPImpl
 	askContactForExternalAddress(
 		DHTTransportUDPContactImpl	contact )
 	{
-		stats.pingSent();
-
-		final long	connection_id = getConnectionID();
-	
-		final DHTUDPPacketRequestPing	request = 
-			new DHTUDPPacketRequestPing( connection_id, local_contact, contact );
-		
 		try{
 			checkAddress( contact );
 		
+			final long	connection_id = getConnectionID();
+			
+			final DHTUDPPacketRequestPing	request = 
+					new DHTUDPPacketRequestPing( connection_id, local_contact, contact );
+				
+			stats.pingSent( request );
+
 			final AESemaphore	sem = new AESemaphore( "DHTTransUDP:extping" );
 
 			final InetSocketAddress[]	result = new InetSocketAddress[1];
@@ -984,8 +984,6 @@ DHTTransportUDPImpl
 		byte[][]							keys,
 		DHTTransportValue[][]				value_sets )
 	{
-		stats.storeSent();
-
 		final long	connection_id = getConnectionID();
 		
 		if ( false ){
@@ -1114,18 +1112,13 @@ DHTTransportUDPImpl
 				}
 				
 				// System.out.println( "    packet " + packet_count + ": keys = " + packet_entries + ", values = " + packet_value_count );
-
-					// first packet sending recorded on entry
-				
-				if ( packet_count > 1 ){
-				
-					stats.storeSent();
-				}
+								
 				
 				final DHTUDPPacketRequestStore	request = 
 					new DHTUDPPacketRequestStore( connection_id, local_contact, contact );
 			
-				
+				stats.storeSent( request );
+
 				request.setRandomID( contact.getRandomID());
 				
 				request.setKeys( packet_keys );
@@ -1152,7 +1145,7 @@ DHTTransportUDPImpl
 									throw( new Exception( "connection id mismatch" ));
 								}
 								
-								contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
+								contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 								
 								handleErrorReply( contact, packet );
 
@@ -1212,15 +1205,15 @@ DHTTransportUDPImpl
 		final DHTTransportReplyHandler		handler,
 		byte[]								nid )
 	{
-		stats.findNodeSent();
-		
-		final long	connection_id = getConnectionID();
-		
 		try{
 			checkAddress( contact );
 			
+			final long	connection_id = getConnectionID();
+			
 			final DHTUDPPacketRequestFindNode	request = 
 				new DHTUDPPacketRequestFindNode( connection_id, local_contact, contact );
+			
+			stats.findNodeSent( request );
 			
 			request.setID( nid );
 			
@@ -1242,7 +1235,7 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 
-							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
+							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
 							handleErrorReply( contact, packet );
 								
@@ -1298,16 +1291,16 @@ DHTTransportUDPImpl
 		int									max_values,
 		byte								flags )
 	{
-		stats.findValueSent();
-
-		final long	connection_id = getConnectionID();
-		
 		try{
 			checkAddress( contact );
+			
+			final long	connection_id = getConnectionID();
 			
 			final DHTUDPPacketRequestFindValue	request = 
 				new DHTUDPPacketRequestFindValue( connection_id, local_contact, contact );
 			
+			stats.findValueSent( request );
+
 			request.setID( key );
 			
 			request.setMaximumValues( max_values );
@@ -1332,7 +1325,7 @@ DHTTransportUDPImpl
 								throw( new Exception( "connection id mismatch" ));
 							}
 							
-							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getVersion());
+							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
 							handleErrorReply( contact, packet );
 								
@@ -1866,9 +1859,9 @@ DHTTransportUDPImpl
 		}
 		
 		try{
-			stats.incomingRequestReceived();
-			
 			DHTUDPPacketRequest	request = (DHTUDPPacketRequest)_request;
+			
+			stats.incomingRequestReceived( request );
 			
 			InetSocketAddress	transport_address = request.getAddress();
 			

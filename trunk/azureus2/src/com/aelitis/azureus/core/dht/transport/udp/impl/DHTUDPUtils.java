@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
 /**
  * @author parg
@@ -575,7 +576,7 @@ DHTUDPUtils
 		
 		os.writeLong( stats.getIncomingRequests());
 		
-		String	azversion = stats.getVersion() + "["+DHTUDPPacket.VERSION+"]";
+		String	azversion = stats.getVersion() + "["+DHTTransportUDP.PROTOCOL_VERSION+"]";
 		
 		serialiseByteArray( os, azversion.getBytes(), 64);
 		

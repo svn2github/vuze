@@ -29,6 +29,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
 public class 
 DHTUDPPacketReplyFindNode
@@ -57,7 +58,7 @@ DHTUDPPacketReplyFindNode
 	{
 		super( is, DHTUDPPacket.ACT_REPLY_FIND_NODE, trans_id );
 		
-		if ( getVersion() >= 7 ){
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			random_id	= is.readInt();
 		}
@@ -73,7 +74,7 @@ DHTUDPPacketReplyFindNode
 	{
 		super.serialise(os);
 		
-		if ( getVersion() >= 7 ){
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			os.writeInt( random_id );
 		}

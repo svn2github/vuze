@@ -31,8 +31,8 @@ import java.io.*;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
-import com.aelitis.azureus.core.dht.transport.DHTTransportFindValueReply;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
 public class 
 DHTUDPPacketReplyFindValue
@@ -68,7 +68,7 @@ DHTUDPPacketReplyFindValue
 	{
 		super( is, DHTUDPPacket.ACT_REPLY_FIND_VALUE, trans_id );
 		
-		if ( getVersion() >= 6 ){
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){
 						
 			has_continuation	= is.readBoolean();
 		}
@@ -77,7 +77,7 @@ DHTUDPPacketReplyFindValue
 		
 		if ( is_value ){
 			
-			if ( getVersion() >= 6 ){
+			if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){
 								
 				diversification_type	= is.readByte();
 			}
@@ -98,7 +98,7 @@ DHTUDPPacketReplyFindValue
 	{
 		super.serialise(os);
 		
-		if ( getVersion() >= 6 ){
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){
 			
 			os.writeBoolean( has_continuation );
 		}
@@ -111,7 +111,7 @@ DHTUDPPacketReplyFindValue
 			
 		}else{
 			
-			if ( getVersion() >= 6 ){
+			if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){
 								
 				os.writeByte( diversification_type );
 			}

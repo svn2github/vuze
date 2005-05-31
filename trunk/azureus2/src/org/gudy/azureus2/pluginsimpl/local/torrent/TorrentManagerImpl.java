@@ -236,7 +236,16 @@ TorrentManagerImpl
 		try{
 			class_mon.enter();
 		
-			return((TorrentAttribute)attribute_map.get(name));
+			TorrentAttribute	res = (TorrentAttribute)attribute_map.get(name);
+			
+			if ( res == null && name.startsWith( "Plugin." )){
+				
+				res = new TorrentAttributePluginImpl( name );
+				
+				attribute_map.put( name, res );
+			}
+
+			return( res );
 			
 		}finally{
 			

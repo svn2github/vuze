@@ -56,7 +56,7 @@ DHTUDPPacketReplyStats
 	{
 		super( is, DHTUDPPacket.ACT_REPLY_STATS, trans_id );
 		
-		stats = DHTUDPUtils.deserialiseStats( getVersion(), is );
+		stats = DHTUDPUtils.deserialiseStats( getProtocolVersion(), is );
 	}
 	
 	public DHTTransportFullStats
@@ -80,6 +80,6 @@ DHTUDPPacketReplyStats
 	{
 		super.serialise(os);
 		
-		DHTUDPUtils.serialiseStats( getVersion(), os, stats );
+		DHTUDPUtils.serialiseStats( getProtocolVersion(), os, stats );
 	}
 }

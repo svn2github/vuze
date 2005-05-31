@@ -37,7 +37,18 @@ public interface
 DHTTransportUDP
 	extends DHTTransport
 {
-	public static final byte PROTOCOL_VERSION		= 8;
+	public static final byte PROTOCOL_VERSION_MIN					= 4;
+	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
+	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
+	public static final byte PROTOCOL_VERSION_ENCRYPT_TT			= 8;	// refed from DDBase
+
+	public static final byte PROTOCOL_VERSION						= 8;
+	
+		// we can't fix the originator position until a previous fix regarding the incorrect
+		// use of a contact's version > sender's version is fixed. This will be done at 2.3.0.4
+		// We can therefore only apply this fix after then
+	
+	public static final byte PROTOCOL_VERSION_FIX_ORIGINATOR		= 100;
 	
 	public DHTTransportContact
 	importContact(

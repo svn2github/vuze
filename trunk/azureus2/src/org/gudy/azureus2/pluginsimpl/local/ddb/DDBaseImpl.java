@@ -411,6 +411,11 @@ DDBaseImpl
 									type,
 									new DDBaseKeyImpl( xfer_key ));
 						
+						if ( res == null ){
+							
+							return( null );
+						}
+						
 						return( res.getBytes());
 						
 					}catch( Throwable e ){

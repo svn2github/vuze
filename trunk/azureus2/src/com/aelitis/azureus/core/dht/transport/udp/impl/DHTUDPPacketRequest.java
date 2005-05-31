@@ -27,9 +27,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.net.udp.PRUDPPacketRequest;
 
 /**
@@ -41,7 +43,7 @@ public class
 DHTUDPPacketRequest 
 	extends PRUDPPacketRequest
 {
-	public static final int	DHT_HEADER_SIZE	= PRUDPPacketRequest.PR_HEADER_SIZE + 13 + DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
+	public static final int	DHT_HEADER_SIZE	= PRUDPPacketRequest.PR_HEADER_SIZE + 14 + DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
 	
 
 	private byte				protocol_version;
@@ -62,7 +64,18 @@ DHTUDPPacketRequest
 	{
 		super( _type, _connection_id );
 		
+			// serialisation constructor
+		
 		protocol_version		= _remote_contact.getProtocolVersion();		
+		
+			// the target might be at a higher protocol version that us, so trim back if necessary
+			// as we obviously can't talk a higher version than what we are!
+		
+		if ( protocol_version > DHTTransportUDP.PROTOCOL_VERSION ){
+			
+			protocol_version = DHTTransportUDP.PROTOCOL_VERSION;
+		}
+		
 		originator_address		= _local_contact.getExternalAddress();
 		originator_instance_id	= _local_contact.getInstanceID();
 		originator_time			= SystemTime.getCurrentTime();
@@ -79,9 +92,16 @@ DHTUDPPacketRequest
 	{
 		super( type, con_id, trans_id );
 		
+			// deserialisation constructor
+		
 		protocol_version	= is.readByte();
 		
-		if ( protocol_version >= 8 ){
+		if ( protocol_version > DHTTransportUDP.PROTOCOL_VERSION ){
+
+			Debug.out( "Received too high protocol version!" );
+		}
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_FIX_ORIGINATOR ){
 			
 			originator_version = is.readByte();
 			
@@ -89,9 +109,9 @@ DHTUDPPacketRequest
 				// working at their version (e.g. we can't reply to them using that version). 
 				// Therefore trim their perceived version back to something we can deal with
 
-			if ( originator_version > DHTUDPPacket.VERSION ){
+			if ( originator_version > DHTTransportUDP.PROTOCOL_VERSION ){
 				
-				originator_version = DHTUDPPacket.VERSION;
+				originator_version = DHTTransportUDP.PROTOCOL_VERSION;
 			}
 		}
 		
@@ -125,7 +145,7 @@ DHTUDPPacketRequest
 	
 		throws IOException
 	{
-		if ( protocol_version < 8 ){
+		if ( protocol_version < DHTTransportUDP.PROTOCOL_VERSION_FIX_ORIGINATOR ){
 
 			if ( is.available() > 0 ){
 				
@@ -140,10 +160,56 @@ DHTUDPPacketRequest
 				// working at their version (e.g. we can't reply to them using that version). 
 				// Therefore trim their perceived version back to something we can deal with
 			
-			if ( originator_version > DHTUDPPacket.VERSION ){
+			if ( originator_version > DHTTransportUDP.PROTOCOL_VERSION ){
 				
-				originator_version = DHTUDPPacket.VERSION;
+				originator_version = DHTTransportUDP.PROTOCOL_VERSION;
 			}
+		}
+	}
+	
+	public void
+	serialise(
+		DataOutputStream	os )
+	
+		throws IOException
+	{
+		super.serialise(os);
+
+			// add to this and you need to amend HEADER_SIZE above
+		
+		os.writeByte( protocol_version );		
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_FIX_ORIGINATOR ){
+		
+				// originator version
+			
+			os.writeByte( DHTTransportUDP.PROTOCOL_VERSION );
+		}
+		
+		try{
+			DHTUDPUtils.serialiseAddress( os, originator_address );
+			
+		}catch( DHTTransportException	e ){
+			
+			throw( new IOException( e.getMessage()));
+		}
+		
+		os.writeInt( originator_instance_id );
+		
+		os.writeLong( originator_time );
+	}
+	
+	protected void
+	postSerialise(
+		DataOutputStream	os )
+	
+		throws IOException
+	{
+		if ( protocol_version < DHTTransportUDP.PROTOCOL_VERSION_FIX_ORIGINATOR ){
+			
+				// originator version is at tail so it works with older versions
+			
+			os.writeByte( DHTTransportUDP.PROTOCOL_VERSION );
 		}
 	}
 	
@@ -153,7 +219,7 @@ DHTUDPPacketRequest
 		return( skew );
 	}
 	
-	protected byte
+	public byte
 	getProtocolVersion()
 	{
 		return( protocol_version );
@@ -182,49 +248,5 @@ DHTUDPPacketRequest
 	getOriginatorInstanceID()
 	{
 		return( originator_instance_id );
-	}
-	
-	public void
-	serialise(
-		DataOutputStream	os )
-	
-		throws IOException
-	{
-		super.serialise(os);
-
-			// add to this and you need to amend HEADER_SIZE above
-		
-		os.writeByte( protocol_version );		
-		
-		if ( protocol_version >= 8 ){
-		
-				// originator version
-			
-			os.writeByte( DHTUDPPacket.VERSION );
-		}
-		
-		try{
-			DHTUDPUtils.serialiseAddress( os, originator_address );
-			
-		}catch( DHTTransportException	e ){
-			
-			throw( new IOException( e.getMessage()));
-		}
-		
-		os.writeInt( originator_instance_id );
-		
-		os.writeLong( originator_time );
-	}
-	
-	protected void
-	postSerialise(
-		DataOutputStream	os )
-	
-		throws IOException
-	{
-		if ( protocol_version < 8 ){
-			
-			os.writeByte( DHTUDPPacket.VERSION );
-		}
 	}
 }
