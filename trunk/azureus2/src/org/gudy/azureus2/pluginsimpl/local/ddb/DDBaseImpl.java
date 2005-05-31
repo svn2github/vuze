@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
+import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 
@@ -58,7 +59,7 @@ DDBaseImpl
 
 	protected static Map			transfer_map = new HashMap();
 	
-	private static final DistributedDatabaseTransferType	torrent_transfer = new DDBaseTTTorrent();
+	private static DDBaseTTTorrent	torrent_transfer;
 	
 	public static DistributedDatabase
 	getSingleton(
@@ -86,6 +87,8 @@ DDBaseImpl
 	DDBaseImpl(
 		final AzureusCore	azureus_core )
 	{
+		torrent_transfer =  new DDBaseTTTorrent( azureus_core, this );
+		
 		PluginInterface dht_pi = 
 			azureus_core.getPluginManager().getPluginInterfaceByClass(
 						DHTPlugin.class );
@@ -101,52 +104,8 @@ DDBaseImpl
 			if ( dht.isEnabled()){
 				
 				try{
-					addTransferHandler(
-							torrent_transfer,
-							new DistributedDatabaseTransferHandler()
-							{
-								public DistributedDatabaseValue
-								read(
-									DistributedDatabaseContact			contact,
-									DistributedDatabaseTransferType		type,
-									DistributedDatabaseKey				key )
-								
-									throws DistributedDatabaseException
-								{
-									try{
-										byte[]	hash = ((DDBaseKeyImpl)key).getBytes();
-										
-										Download dl = azureus_core.getPluginManager().getDefaultPluginInterface().getShortCuts().getDownload( hash );
-										
-										Torrent	torrent = dl.getTorrent();
-										
-										torrent = torrent.removeAdditionalProperties();
-										
-											// when clients get a torrent from the DHT they take on
-											// responsibility for tracking it too
-										
-										torrent.setDecentralisedBackupRequested( true );
-										
-										return( createValue( torrent.writeToBEncodedData()));
-										
-									}catch( Throwable e ){
-										
-										throw( new DistributedDatabaseException("Torrent write fails", e ));
-									}
-								}
-								
-								public void
-								write(
-									DistributedDatabaseContact			contact,
-									DistributedDatabaseTransferType		type,
-									DistributedDatabaseKey				key,
-									DistributedDatabaseValue			value )
-								
-									throws DistributedDatabaseException
-								{
-									throw( new DistributedDatabaseException( "not supported" ));
-								}
-							});
+					addTransferHandler(	torrent_transfer, torrent_transfer );
+
 				}catch( Throwable e ){
 					
 					Debug.printStackTrace(e);
@@ -497,6 +456,60 @@ DDBaseImpl
 		}
 		
 		throw( new DistributedDatabaseException( "unknown type" ));
+	}
+	
+	protected DistributedDatabaseValue
+	read(
+		DDBaseContactImpl							contact,
+		final DistributedDatabaseProgressListener	listener,
+		DistributedDatabaseTransferType				type,
+		DistributedDatabaseKey						key,
+		long										timeout )
+	
+		throws DistributedDatabaseException
+	{
+		if ( type == torrent_transfer ){
+			
+			return( torrent_transfer.read( contact, listener, type, key, timeout ));
+			
+		}else{
+			
+			byte[]	data = getDHT().read( 
+								new DHTPluginProgressListener()
+								{
+									public void
+									reportSize(
+										long	size )
+									{
+										listener.reportSize( size );
+									}
+									
+									public void
+									reportActivity(
+										String	str )
+									{
+										listener.reportActivity( str );
+									}
+									
+									public void
+									reportCompleteness(
+										int		percent )
+									{
+										listener.reportCompleteness( percent );
+									}
+								},
+								contact.getContact(),
+								DDBaseHelpers.getKey(type.getClass()).getHash(),
+								((DDBaseKeyImpl)key).getBytes(),
+								timeout );
+								
+			if ( data == null ){
+				
+				return( null );
+			}
+			
+			return( new DDBaseValueImpl( contact, data, SystemTime.getCurrentTime()));
+		}
 	}
 	
 	protected class

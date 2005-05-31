@@ -38,6 +38,9 @@ DHTPluginContact
 	public InetSocketAddress
 	getAddress();
 	
+	public byte
+	getProtocolVersion();
+	
 	public boolean
 	isAlive(
 		long		timeout );

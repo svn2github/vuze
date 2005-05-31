@@ -22,9 +22,6 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
-import java.net.InetSocketAddress;
-
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
@@ -33,7 +30,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
-import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
+
 
 /**
  * @author parg
@@ -95,40 +92,12 @@ DDBaseContactImpl
 	
 		throws DistributedDatabaseException
 	{
-		byte[]	data = ddb.getDHT().read( 
-							new DHTPluginProgressListener()
-							{
-								public void
-								reportSize(
-									long	size )
-								{
-									listener.reportSize( size );
-								}
-								
-								public void
-								reportActivity(
-									String	str )
-								{
-									listener.reportActivity( str );
-								}
-								
-								public void
-								reportCompleteness(
-									int		percent )
-								{
-									listener.reportCompleteness( percent );
-								}
-							},
-							contact,
-							DDBaseHelpers.getKey(type.getClass()).getHash(),
-							((DDBaseKeyImpl)key).getBytes(),
-							timeout );
-							
-		if ( data == null ){
-			
-			return( null );
-		}
-		
-		return( new DDBaseValueImpl( new DDBaseContactImpl( ddb, contact ),data, SystemTime.getCurrentTime()));
+		return( ddb.read( this, listener, type, key, timeout ));
+	}
+	
+	protected DHTPluginContact
+	getContact()
+	{
+		return( contact );
 	}
 }

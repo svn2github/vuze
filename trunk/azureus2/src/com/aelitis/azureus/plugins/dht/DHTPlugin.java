@@ -1299,6 +1299,12 @@ outer:
 			return( contact.getName());
 		}
 		
+		public byte
+		getProtocolVersion()
+		{
+			return( contact.getProtocolVersion());
+		}
+
 		public InetSocketAddress
 		getAddress()
 		{
