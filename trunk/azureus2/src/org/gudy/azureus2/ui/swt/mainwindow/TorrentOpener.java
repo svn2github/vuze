@@ -88,10 +88,17 @@ public class TorrentOpener {
 	  final boolean   startInStoppedState,
 	  boolean     from_drag_and_drop ) 
   {
-    //catch a http url
+    //catch a http url - who wrote this shite code?
+	  
     int http_index = fileName.toUpperCase().lastIndexOf( "HTTP:" );
+	
     int https_index = fileName.toUpperCase().lastIndexOf( "HTTPS:" );
-    int index = Math.max( http_index, https_index );
+	
+	int	magnet_index = fileName.toUpperCase().lastIndexOf( "MAGNET:" );
+	
+	int index = Math.max( http_index, https_index );
+	index = Math.max( index, magnet_index );
+	
     if( index > -1 ) {
       String url = fileName.substring( index );
       
@@ -104,8 +111,14 @@ public class TorrentOpener {
       url = url.substring( root_index );
       
       String protocol;
-      if( http_index > -1 )  protocol = "http://";
-      else  protocol = "https://";
+	  
+      if( http_index > -1 ){
+		  protocol = "http://";
+      }else if ( https_index > -1 ){
+		  protocol = "https://";
+      }else{
+		  protocol = "magnet://";
+      }
       
       final String full_url = protocol + url;
       
