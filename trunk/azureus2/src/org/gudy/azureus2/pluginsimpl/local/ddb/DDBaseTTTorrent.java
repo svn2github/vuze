@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferHandler;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
@@ -207,6 +208,12 @@ DDBaseTTTorrent
 			}
 			
 			return( ddb.createValue( data ));
+			
+		}catch( DownloadException e ){
+			
+				// torrent not found in shortcut stuff
+			
+			return( null );
 			
 		}catch( Throwable e ){
 			
