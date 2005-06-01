@@ -27,6 +27,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -67,6 +68,9 @@ DDBaseTTTorrent
 	private DDBaseImpl		ddb;
 		
 	private TorrentAttribute	ta_sha1;
+	
+	private boolean				crypto_tested;
+	private boolean				crypto_available;
 	
 	protected
 	DDBaseTTTorrent(
@@ -195,6 +199,11 @@ DDBaseTTTorrent
 			if ( encrypt ){
 				
 				data = encrypt( torrent.getHash(), data );
+				
+				if ( data == null ){
+					
+					return( null );
+				}
 			}
 			
 			return( ddb.createValue( data ));
@@ -293,6 +302,11 @@ DDBaseTTTorrent
 		if ( protocol_version >= 8 ){	// DHTTransportUDP.PROTOCOL_VERSION_ENCRYPT_TT
 
 			data = decrypt( torrent_hash, data );
+			
+			if ( data == null ){
+				
+				return( null );
+			}
 		}
 		
 		return( new DDBaseValueImpl( contact, data, SystemTime.getCurrentTime()));
@@ -303,6 +317,11 @@ DDBaseTTTorrent
    		byte[]		hash,
    		byte[]		data )
    	{
+		if ( !testCrypto()){
+			
+			return( null );
+		}
+		
    		byte[]	enc = doCrypt( Cipher.ENCRYPT_MODE, hash, data, 0 );
 		
 		if ( enc == null ){
@@ -344,6 +363,11 @@ DDBaseTTTorrent
   		byte[]		hash,
   		byte[]		data )
   	{
+		if ( !testCrypto()){
+			
+			return( null );
+		}
+		
 		if ( data[0] != CRYPTO_VERSION ){
 			
 			Debug.out( "Invalid crypto version received" );
@@ -405,5 +429,28 @@ DDBaseTTTorrent
 			
 			return( null );
 		}
+	}
+	
+	protected boolean
+	testCrypto()
+	{
+		if ( !crypto_tested ){
+			
+			crypto_tested	= true;
+		
+			try{
+				Cipher.getInstance("DESede");  // Triple-DES encryption
+	
+				crypto_available	= true;
+				
+			}catch( Throwable e ){
+				
+				LGLogger.logUnrepeatableAlert( 
+						"Unable to initialise cryptographic framework for magnet-based torrent downloads, please re-install Java",
+						e);
+			}
+		}
+		
+		return( crypto_available );
 	}
 }
