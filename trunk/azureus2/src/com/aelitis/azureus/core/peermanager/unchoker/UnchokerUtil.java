@@ -46,6 +46,7 @@ public class UnchokerUtil {
 
   /**
    * Update (if necessary) the given list with the given value while maintaining a largest-value-first (as seen so far) sort order.
+   * NOTE: You will need to initialize the values array to Long.MIN_VALUE if you want to store negative values!
    * @param new_value to use
    * @param values existing values array
    * @param new_item to insert
@@ -102,20 +103,20 @@ public class UnchokerUtil {
 
     if( optimistics.isEmpty() )  return null;  //no unchokable peers avail
     
-
     //factor in peer reciprocation ratio when picking optimistic peers
     if( factor_reciprocated ) {
-      ArrayList ratioed_peers = new ArrayList();
+      ArrayList ratioed_peers = new ArrayList( optimistics.size() );
       long[] ratios = new long[ optimistics.size() ];
+      Arrays.fill( ratios, Long.MIN_VALUE );
         
       //order by upload ratio
       for( int i=0; i < optimistics.size(); i++ ) {
         PEPeer peer = (PEPeer)optimistics.get( i );
 
-        //ratio of >1 means we've uploaded more, <1 means we've downloaded more
-        float ratio = (float)(peer.getStats().getTotalDataBytesSent() +1) / (peer.getStats().getTotalDataBytesReceived() +1);
+        //score of >0 means we've uploaded more, <0 means we've downloaded more
+        long score = peer.getStats().getTotalDataBytesSent() - peer.getStats().getTotalDataBytesReceived();
 
-        UnchokerUtil.updateLargestValueFirstSort( (long)(ratio * 1000), ratios, peer, ratioed_peers, 0 );  //higher value = worse ratio
+        UnchokerUtil.updateLargestValueFirstSort( score, ratios, peer, ratioed_peers, 0 );  //higher value = worse score
       }
       
       double factor = 1F / ( 0.8 + 0.2 * Math.pow( random.nextFloat(), -1 ) );  //map to sorted list using a logistic curve 

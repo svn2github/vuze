@@ -32,9 +32,9 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 public class UnchokerUtilTest {
   
-  private static final int NUM_PEERS_TO_TEST = 128;
-  private static final int BYTE_RANGE = 1024*1024*1024;
-  private static final int TEST_ROUNDS = 500000;
+  private static final int NUM_PEERS_TO_TEST = 100;
+  private static final int BYTE_RANGE = 100*1024*1024;
+  private static final int TEST_ROUNDS = 1000000;
   
   private static final Random rand = new Random();
   
@@ -44,13 +44,11 @@ public class UnchokerUtilTest {
       public int compare( Object  o1, Object  o2 ) {
         PEPeer peer1 = (PEPeer)o1;
         PEPeer peer2 = (PEPeer)o2;
-      
-        float ratio1 = (float)peer1.getStats().getTotalDataBytesSent() / (peer1.getStats().getTotalDataBytesReceived() + 1);
-        float ratio2 = (float)peer2.getStats().getTotalDataBytesSent() / (peer2.getStats().getTotalDataBytesReceived() + 1);
         
-        if( ratio1 == ratio2 )  return 0;
-        if( ratio1 > ratio2 )  return 1;
-        return -1;
+        long score1 = peer1.getStats().getTotalDataBytesSent() - peer1.getStats().getTotalDataBytesReceived();
+        long score2 = peer2.getStats().getTotalDataBytesSent() - peer2.getStats().getTotalDataBytesReceived();
+        
+        return (int)(score1 - score2);
       }
     });
     
@@ -80,11 +78,13 @@ public class UnchokerUtilTest {
       PEPeer peer = (PEPeer)entry.getKey();
       int count = ((Integer)entry.getValue()).intValue();
       
+      long score = peer.getStats().getTotalDataBytesSent() - peer.getStats().getTotalDataBytesReceived();
+      
       float ratio = (float)peer.getStats().getTotalDataBytesSent() / (peer.getStats().getTotalDataBytesReceived() + 1);
 
       int percentile = (count *100) / max_picked;      
       
-      System.out.println( "[" +pos+ "] ratio=" +ratio+ ", picked=" +count+ "x, percentile=" +percentile+ "%" );
+      System.out.println( "[" +pos+ "] score=" +score+ ", ratio=" +ratio+ ", picked=" +count+ "x, percentile=" +percentile+ "%" );
       pos++;
     }
   }
