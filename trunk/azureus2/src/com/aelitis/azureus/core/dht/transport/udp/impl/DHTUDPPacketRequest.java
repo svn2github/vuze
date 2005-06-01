@@ -96,10 +96,7 @@ DHTUDPPacketRequest
 		
 		protocol_version	= is.readByte();
 		
-		if ( protocol_version > DHTTransportUDP.PROTOCOL_VERSION ){
-
-			Debug.out( "Received too high protocol version!" );
-		}
+		DHTUDPPacket.checkVersion( protocol_version );
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_FIX_ORIGINATOR ){
 			
@@ -114,8 +111,6 @@ DHTUDPPacketRequest
 				originator_version = DHTTransportUDP.PROTOCOL_VERSION;
 			}
 		}
-		
-		DHTUDPPacket.checkVersion( protocol_version );
 		
 		originator_address		= DHTUDPUtils.deserialiseAddress( is );
 		

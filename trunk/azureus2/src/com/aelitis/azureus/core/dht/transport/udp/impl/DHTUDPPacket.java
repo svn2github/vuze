@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.net.udp.*;
@@ -208,6 +210,11 @@ DHTUDPPacket
 		if ( version < DHTTransportUDP.PROTOCOL_VERSION_MIN ){
 			
 			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
+		}
+		
+		if ( version > DHTTransportUDP.PROTOCOL_VERSION ){
+
+			Debug.out( "Received protocol version is too high (" + version + " > " + DHTTransportUDP.PROTOCOL_VERSION + ")" );
 		}
 	}
 }

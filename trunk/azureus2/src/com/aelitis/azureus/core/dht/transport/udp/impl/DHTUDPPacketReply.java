@@ -95,12 +95,7 @@ DHTUDPPacketReply
 		connection_id 	= _is.readLong();
 		
 		protocol_version			= _is.readByte();
-			
-		if ( protocol_version > DHTTransportUDP.PROTOCOL_VERSION ){
-
-			Debug.out( "Received too high protocol version!" );
-		}
-		
+					
 		DHTUDPPacket.checkVersion( protocol_version );
 	
 		target_instance_id	= _is.readInt();
