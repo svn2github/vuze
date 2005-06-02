@@ -861,7 +861,7 @@ DHTDBImpl
 								DHTTransportContact[]	_contacts )
 							{	
 								try{
-									System.out.println( "cacheForward: pre-store findNode OK" );
+									// System.out.println( "cacheForward: pre-store findNode OK" );
 								
 									List				keys	= (List)data[1];
 										
@@ -916,7 +916,7 @@ DHTDBImpl
 								Throwable				_error )
 							{
 								try{
-									System.out.println( "cacheForward: pre-store findNode Failed" );
+									// System.out.println( "cacheForward: pre-store findNode Failed" );
 	
 									DHTLog.log( "cacheForward: pre-store findNode failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
 																			
