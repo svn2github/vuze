@@ -50,7 +50,8 @@ DHTControl
 	public static final int		CACHE_REPUBLISH_INTERVAL_DEFAULT		=   30*60*1000; 
 	
 	public void
-	seed();
+	seed(
+		boolean		full_wait );
 		
 	public void
 	put(
@@ -138,7 +139,8 @@ DHTControl
 	
 	public boolean
 	verifyContact(
-		DHTTransportContact c );
+		DHTTransportContact c,
+		boolean				direct );
 	
 	public void
 	addListener(

@@ -31,9 +31,18 @@ public abstract class
 BloomFilterImpl
 	implements BloomFilter
 {
+	/*
 	private static final boolean	USE_BIG_INTS	= false;
-	
 	private static final char[]	HEX_CHARS = "0123456789ABCDEF".toCharArray();
+	private static final BigInteger	bi_zero		= new BigInteger("0");
+	private static final BigInteger	bi_a2		= new BigInteger(""+a2);
+	private static final BigInteger	bi_a3		= new BigInteger(""+a3);
+	private static final BigInteger	bi_a4		= new BigInteger(""+a4);
+	
+	private static final BigInteger	bi_b2		= new BigInteger(""+b2);
+	private static final BigInteger	bi_b3		= new BigInteger(""+b3);
+	private static final BigInteger	bi_b4		= new BigInteger(""+b4);
+	*/
 	
 		// change the hash num and you gotta change the hash function below!!!!
 	
@@ -47,14 +56,7 @@ BloomFilterImpl
 	private static final int	b3		= 145;
 	private static final int	b4		= 216;
 	
-	private static final BigInteger	bi_zero		= new BigInteger("0");
-	private static final BigInteger	bi_a2		= new BigInteger(""+a2);
-	private static final BigInteger	bi_a3		= new BigInteger(""+a3);
-	private static final BigInteger	bi_a4		= new BigInteger(""+a4);
-	
-	private static final BigInteger	bi_b2		= new BigInteger(""+b2);
-	private static final BigInteger	bi_b3		= new BigInteger(""+b3);
-	private static final BigInteger	bi_b4		= new BigInteger(""+b4);
+
 	
 
 	private int			max_entries;
@@ -77,175 +79,110 @@ BloomFilterImpl
 		return( max_entries );
 	}
 	
-	public void
-	add(
-		String		value )
-	{
-		add( value.getBytes());
-	}
-	
-	public void
-	remove(
-		String		value )
-	{
-		remove( value.getBytes());
-	}
-	
-	public boolean
-	contains(
-		String		value )
-	{
-		return( contains( value.getBytes()));
-	}
-	
-	public void
+	public int
 	add(
 		byte[]		value )
 	{
-		if ( USE_BIG_INTS ){
-			
-			add( bytesToBigInteger( value ));
-			
-		}else{
-			
-			add( bytesToInteger( value ));
-		}
+		return( add( bytesToInteger( value )));
 	}
 	
-	public void
+	public int
 	remove(
 		byte[]		value )
 	{
-		if ( USE_BIG_INTS ){
-			
-			remove( bytesToBigInteger( value ));
-			
-		}else{
-			
-			remove( bytesToInteger( value ));
-		}
+		return( remove( bytesToInteger( value )));
+	}
+	
+	public int
+	count(
+		byte[]		value )
+	{
+		return( count( bytesToInteger( value )));
 	}
 	
 	public boolean
 	contains(
 		byte[]		value )
 	{
-		if ( USE_BIG_INTS ){
-		
-			return( contains( bytesToBigInteger( value )));
-			
-		}else{
-			
-			return( contains( bytesToInteger( value )));
-		}
+		return( contains( bytesToInteger( value )));
 	}
+
+
 	
-	public void
+	protected int
 	add(
-		BigInteger		value )
+		int		value )
 	{
-		entry_count++;
+		int	count = 0xffff;
 
 		for (int i=0;i<HASH_NUM;i++){
 			
 			int	index = getHash( i, value );
+						
+			int	v = incValue( index );
 			
-			byte	v = getValue( index );
-			
-			if ( v < 15 ){
+			if ( v < count ){
 				
-				setValue( index, (byte)(v+1));
+				count = v;
 			}
 		}
+		
+		if ( count == 1 ){
+			
+			entry_count++;
+		}
+		
+		return( count );
 	}
 	
-	public void
+	protected int
 	remove(
-		BigInteger		value )
+		int		value )
 	{
-		entry_count--;
-		
-		if ( entry_count < 0 ){
-			
-			entry_count	= 0;
-		}
+		int	count = 0xffff;
 		
 		for (int i=0;i<HASH_NUM;i++){
 			
 			int	index = getHash( i, value );
+										
+			int	v = decValue( index );
 			
-			byte	v = getValue( index );
-			
-			if ( v > 0 ){
+			if ( v < count ){
 				
-				setValue( index, (byte)(v-1));
+				count = v;
 			}
 		}		
+		
+		if ( count == 0 && entry_count > 0 ){
+			
+			entry_count--;
+		}
+		
+		return( count );
 	}
 	
-	public boolean
-	contains(
-		BigInteger		value )
+	protected int
+	count(
+		int		value )
 	{
+		int	count = 0xffff;
+		
 		for (int i=0;i<HASH_NUM;i++){
 			
 			int	index = getHash( i, value );
 			
 			int	v = getValue( index );
 				
-			if ( v == 0 ){
+			if ( v < count ){
 				
-				return( false );
+				count	= v;
 			}
 		}
 		
-		return( true );		
+		return( count );	
 	}
 	
-	public void
-	add(
-		int		value )
-	{
-		entry_count++;
-		
-		for (int i=0;i<HASH_NUM;i++){
-			
-			int	index = getHash( i, value );
-			
-			byte	v = getValue( index );
-			
-			if ( v < 15 ){
-				
-				setValue( index, (byte)(v+1));
-			}
-		}
-	}
-	
-	public void
-	remove(
-		int		value )
-	{
-		entry_count--;
-		
-		if ( entry_count < 0 ){
-			
-			entry_count	= 0;
-		}
-		
-		for (int i=0;i<HASH_NUM;i++){
-			
-			int	index = getHash( i, value );
-			
-			byte	v = getValue( index );
-			
-			if ( v > 0 ){
-				
-				setValue( index, (byte)(v-1));
-			}
-		}		
-	}
-	
-	public boolean
+	protected boolean
 	contains(
 		int		value )
 	{
@@ -265,17 +202,163 @@ BloomFilterImpl
 	}
 	
 	
-	protected abstract byte
+	protected abstract int
 	getValue(
 		int		index );
 
 	
-	protected abstract void
-	setValue(
-		int		index,
-		byte	value );
+	protected abstract int
+	incValue(
+		int		index );
+	
+	protected abstract int
+	decValue(
+		int		index );
+	
+
+	protected int
+	getHash(
+		int			function,
+		int			value )
+	{
+		long	res;
+		
+		switch( function ){
+			case 0:
+			{
+					// x mod p
+				
+				res = value;
+				
+				break;
+			}
+			case 1:
+			{
+				 	// x^2 mod p
+				
+				res	= value * value;
+				
+				break;
+			}
+			case 2:
+			{
+					// bx + a mod p
+				
+				res = value *  a2 + b2;
+				
+				break;
+			}
+			case 3:
+			{
+					// cx + d mod p
+				
+				res = value * a3 + b3;
+				
+				break;
+
+			}
+			case 4:
+			{
+					// ex + f mod p
+				
+				res = value * a4 + b4;
+				
+				break;
+			}
+			default:
+			{
+				System.out.println( "**** BloomFilter hash function doesn't exist ****" );
+				
+				res = 0;
+			}
+		}
+		
+		// System.out.println( "hash[" + function + "] " + value + "->" + r );
+		
+		return( Math.abs( (int)res % max_entries ));
+	}
 	
 	protected int
+	bytesToInteger(
+		byte[]		data )
+	{
+		int	res = 0x51f7ac81;
+		
+		for (int i=0;i<data.length;i++){
+			
+			//res ^= (data[i]&0xff)<<((i%4)*8);
+			
+			res = res * 191 + (data[i]&0xff);
+		}
+		
+		return( res );
+	}
+	
+	
+	/*
+	protected int
+	add(
+		BigInteger		value )
+	{
+		entry_count++;
+		
+		for (int i=0;i<HASH_NUM;i++){
+			
+			int	index = getHash( i, value );
+			
+			byte	v = getValue( index );
+			
+			if ( v < 15 ){
+				
+				setValue( index, (byte)(v+1));
+			}
+		}
+	}
+	
+	public void
+	remove(
+		BigInteger		value )
+	{
+		entry_count--;
+		
+		if ( entry_count < 0 ){
+			
+			entry_count	= 0;
+		}
+		
+		for (int i=0;i<HASH_NUM;i++){
+			
+			int	index = getHash( i, value );
+			
+			byte	v = getValue( index );
+			
+			if ( v > 0 ){
+				
+				setValue( index, (byte)(v-1));
+			}
+		}		
+	}
+	
+	public boolean
+	contains(
+		BigInteger		value )
+	{
+		for (int i=0;i<HASH_NUM;i++){
+			
+			int	index = getHash( i, value );
+			
+			int	v = getValue( index );
+				
+			if ( v == 0 ){
+				
+				return( false );
+			}
+		}
+		
+		return( true );		
+	}
+	
+		protected int
 	getHash(
 		int			function,
 		BigInteger	value )
@@ -356,84 +439,6 @@ BloomFilterImpl
 		return( r % max_entries );
 	}
 	
-	protected int
-	getHash(
-		int			function,
-		int			value )
-	{
-		long	res;
-		
-		switch( function ){
-			case 0:
-			{
-					// x mod p
-				
-				res = value;
-				
-				break;
-			}
-			case 1:
-			{
-				 	// x^2 mod p
-				
-				res	= value * value;
-				
-				break;
-			}
-			case 2:
-			{
-					// bx + a mod p
-				
-				res = value *  a2 + b2;
-				
-				break;
-			}
-			case 3:
-			{
-					// cx + d mod p
-				
-				res = value * a3 + b3;
-				
-				break;
-
-			}
-			case 4:
-			{
-					// ex + f mod p
-				
-				res = value * a4 + b4;
-				
-				break;
-			}
-			default:
-			{
-				System.out.println( "**** BloomFilter hash function doesn't exist ****" );
-				
-				res = 0;
-			}
-		}
-		
-		// System.out.println( "hash[" + function + "] " + value + "->" + r );
-		
-		return( Math.abs( (int)res % max_entries ));
-	}
-	
-	protected int
-	bytesToInteger(
-		byte[]		data )
-	{
-		int	res = 0x51f7ac81;
-		
-		for (int i=0;i<data.length;i++){
-			
-			//res ^= (data[i]&0xff)<<((i%4)*8);
-			
-			res = res * 191 + (data[i]&0xff);
-		}
-		
-		return( res );
-	}
-	
 	protected BigInteger
 	bytesToBigInteger(
 		byte[]		data )
@@ -451,6 +456,8 @@ BloomFilterImpl
 		
 		return( res );
 	}
+	*/
+	
 	
 	public int
 	getEntryCount()
@@ -481,6 +488,23 @@ BloomFilterImpl
 	main(
 		String[]	args )
 	{
+		
+		BloomFilter b1 = new BloomFilterAddRemove8Bit(10000);
+
+		for (int i=0;i<260;i++){
+			
+			System.out.println( b1.add( "parp".getBytes()) + ", count = " + b1.count( "parp".getBytes()) + ", ent = " + b1.getEntryCount());
+			
+		}
+		
+		for (int i=0;i<260;i++){
+			
+			System.out.println( b1.remove( "parp".getBytes())+ ", count = " + b1.count( "parp".getBytes()) + ", ent = " + b1.getEntryCount());
+		}
+		
+		System.exit(0);
+		
+		
 		Random	rand = new Random();
 		
 		int	fp_count = 0;
@@ -489,7 +513,8 @@ BloomFilterImpl
 			
 			long	start = System.currentTimeMillis();
 			
-			BloomFilter b = new BloomFilterAddRemove(10000);
+			BloomFilter b = new BloomFilterAddRemove8Bit(10000);
+			//BloomFilter b = new BloomFilterAddOnly(10000);
 			
 			int	fp = 0;
 			

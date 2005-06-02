@@ -25,27 +25,11 @@ package com.aelitis.azureus.core.util.bloom;
 public interface 
 BloomFilter 
 {
-		// String operations
-	
-	public void
-	add(
-		String		value );
-	
-	public void
-	remove(
-		String		value );
-	
-	public boolean
-	contains(
-		String		value );
-	
-		// byte[] operations
-	
-	public void
+	public int
 	add(
 		byte[]		value );
 	
-	public void
+	public int
 	remove(
 		byte[]		value );
 	
@@ -54,7 +38,21 @@ BloomFilter
 		byte[]		value );
 	
 	public int
+	count(
+		byte[]		value );
+	
+		/**
+		 * Returns number of unique entries
+		 * @return
+		 */
+	
+	public int
 	getEntryCount();
+	
+		/**
+		 * Returns overall capacity
+		 * @return
+		 */
 	
 	public int
 	getSize();

@@ -714,7 +714,7 @@ DHTPlugin
 		
 			long	start = SystemTime.getCurrentTime();
 			
-			dht.integrate();
+			dht.integrate( false );
 			
 			if ( remove_afterwards != null ){
 				

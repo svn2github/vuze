@@ -33,17 +33,24 @@ BloomFilterFactory
 		 * 	a size of 10 * expected entries gives a false-positive of around 0.01%
 		 *  17* -> 0.001
 		 *  29* -> 0.0001
-		 * Each entry takes 4 bits  
+		 * Each entry takes 1, 4 or 8 bits depending on type  
 		 * So, if 0.01% is acceptable and expected max entries is 100, use a filter
 		 * size of 1000.
 		 * @return
 		 */
 	
 	public static BloomFilter
-	createAddRemove(
+	createAddRemove4Bit(
 		int		filter_size )
 	{
-		return( new BloomFilterAddRemove( filter_size ));
+		return( new BloomFilterAddRemove4Bit( filter_size ));
+	}
+	
+	public static BloomFilter
+	createAddRemove8Bit(
+		int		filter_size )
+	{
+		return( new BloomFilterAddRemove8Bit( filter_size ));
 	}
 	
 	public static BloomFilter

@@ -110,6 +110,12 @@ DHTUDPPacketRequest
 				
 				originator_version = DHTTransportUDP.PROTOCOL_VERSION;
 			}
+		}else{
+			
+				// this should be set correctly in the post-deserialise code, however default
+				// it for now
+			
+			originator_version = protocol_version;
 		}
 		
 		originator_address		= DHTUDPUtils.deserialiseAddress( is );

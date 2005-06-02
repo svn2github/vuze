@@ -41,6 +41,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
 	public static final byte PROTOCOL_VERSION_ENCRYPT_TT			= 8;	// refed from DDBase
+	public static final byte PROTOCOL_VERSION_ANTI_SPOOF2			= 8;
 
 	public static final byte PROTOCOL_VERSION						= 8;
 	

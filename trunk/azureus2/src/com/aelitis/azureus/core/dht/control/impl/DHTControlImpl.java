@@ -61,6 +61,14 @@ public class
 DHTControlImpl 
 	implements DHTControl, DHTTransportRequestHandler
 {
+	private static final boolean	CONTACT_VERIFY_TRACE	= false;
+	
+	static{
+		if ( CONTACT_VERIFY_TRACE ){
+			System.out.println( "**** DHTControlImpl: contact verify trace on ****" );
+		}
+	}
+	
 	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 32;
 	private static final int EXTERNAL_PUT_CONCURRENCY		= 16;
 	
@@ -276,7 +284,7 @@ DHTControlImpl
 						added++;
 					}
 					
-					seed();
+					seed( false );
 				}
 				
 				public void
@@ -571,7 +579,8 @@ DHTControlImpl
 	}
 	
 	public void
-	seed()
+	seed(
+		final boolean		full_wait )
 	{
 		final AESemaphore	sem = new AESemaphore( "DHTControl:seed" );
 		
@@ -597,17 +606,45 @@ DHTControlImpl
 					closest(
 						List		res )
 					{
+						if ( !full_wait ){
+							
+							sem.release();
+						}
+						
 						try{
+							
 							router.seed();
 							
 						}finally{
 							
-							sem.release();
+							if ( full_wait ){
+								
+								sem.release();
+							}
 						}
 					}
 				});
 		
+			// we always wait at least a minute before returning
+		
+		long	start = SystemTime.getCurrentTime();
+		
 		sem.reserve();
+		
+		long	remaining = 60*1000 - ( SystemTime.getCurrentTime() - start );
+
+		if ( remaining > 0 && !full_wait ){
+			
+			logger.log( "Initial integration completed, waiting " + remaining + " for second phase to start" );
+			
+			try{
+				Thread.sleep( remaining );
+				
+			}catch( Throwable e ){
+				
+				Debug.out(e);
+			}
+		}
 	}
 	
 	protected void
@@ -1695,7 +1732,7 @@ DHTControlImpl
 		
 		if ( keys.length != value_sets.length ){
 			
-			Debug.out( "DHTControl:storeRequest - invalid request received from " + originating_contact.getName() + ", keys and values length mismatch");
+			Debug.out( "DHTControl:storeRequest - invalid request received from " + originating_contact.getString() + ", keys and values length mismatch");
 			
 			return( diverse_res );
 		}
@@ -1724,8 +1761,20 @@ DHTControlImpl
 		DHTLog.log( "findNodeRequest from " + DHTLog.getString( originating_contact.getID()));
 
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
+
+		List	l;
 		
-		List	l = getClosestKContactsList( id, false );
+		if ( id.length == router.getID().length ){
+			
+			l = getClosestKContactsList( id, false );
+			
+		}else{
+			
+				// this helps both protect against idiot queries and also saved bytes when we use findNode
+				// to just get a random ID prior to cache-forwards
+			
+			l = new ArrayList();
+		}
 		
 		final DHTTransportContact[]	res = new DHTTransportContact[l.size()];
 		
@@ -1799,13 +1848,20 @@ DHTControlImpl
 	protected void
 	nodeAddedToRouter(
 		DHTRouterContact	new_contact )
-	{		
+	{	
+			// ignore ourselves
+		
+		if ( router.isID( new_contact.getID())){
+
+			return;
+		}
+		
 		// when a new node is added we must check to see if we need to transfer
 		// any of our values to it.
 		
 		Map	keys_to_store	= new HashMap();
 		
-		if( database.isEmpty()){
+		if ( database.isEmpty()){
 							
 			// nothing to do, ping it if it isn't known to be alive
 				
@@ -1922,10 +1978,10 @@ DHTControlImpl
 			
 			it = keys_to_store.entrySet().iterator();
 			
-			DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getContact();
+			final DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getContact();
 	
-			byte[][]				keys 		= new byte[keys_to_store.size()][];
-			DHTTransportValue[][]	value_sets = new DHTTransportValue[keys.length][];
+			final byte[][]				keys 		= new byte[keys_to_store.size()][];
+			final DHTTransportValue[][]	value_sets 	= new DHTTransportValue[keys.length][];
 			
 			int		index = 0;
 			
@@ -1949,37 +2005,68 @@ DHTControlImpl
 				index++;
 			}
 			
-			t_contact.sendStore( 
+				// move to anti-spoof for cache forwards. we gotta do a findNode to update the
+				// contact's latest random id
+			
+			t_contact.sendFindNode(
 					new DHTTransportReplyHandlerAdapter()
 					{
 						public void
-						storeReply(
-							DHTTransportContact _contact,
-							byte[]				_diversifications )
-						{
-								// don't consider diversifications for node additions as they're not interested
-								// in getting values from us, they need to get them from nodes 'near' to the 
-								// diversification targets or the originator
+						findNodeReply(
+							DHTTransportContact 	contact,
+							DHTTransportContact[]	contacts )
+						{	
+							// System.out.println( "nodeAdded: pre-store findNode OK" );
 							
-							DHTLog.log( "add store ok" );
-							
-							router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
-						}	
+							t_contact.sendStore( 
+									new DHTTransportReplyHandlerAdapter()
+									{
+										public void
+										storeReply(
+											DHTTransportContact _contact,
+											byte[]				_diversifications )
+										{
+											// System.out.println( "nodeAdded: store OK" );
+
+												// don't consider diversifications for node additions as they're not interested
+												// in getting values from us, they need to get them from nodes 'near' to the 
+												// diversification targets or the originator
+											
+											DHTLog.log( "add store ok" );
+											
+											router.contactAlive( _contact.getID(), new DHTControlContactImpl(_contact));
+										}	
+										
+										public void
+										failed(
+											DHTTransportContact 	_contact,
+											Throwable				_error )
+										{
+											// System.out.println( "nodeAdded: store Failed" );
+
+											DHTLog.log( "add store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+																					
+											router.contactDead( _contact.getID(), false);
+										}
+									},
+									keys, 
+									value_sets );
+						}
 						
 						public void
 						failed(
 							DHTTransportContact 	_contact,
 							Throwable				_error )
 						{
-							DHTLog.log( "add store failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+							// System.out.println( "nodeAdded: pre-store findNode Failed" );
+
+							DHTLog.log( "pre-store findNode failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
 																	
 							router.contactDead( _contact.getID(), false);
 						}
 					},
-					keys, 
-					value_sets );
+					t_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
 						
-			
 		}else{
 			
 			if ( !new_contact.hasBeenAlive()){
@@ -2357,9 +2444,7 @@ DHTControlImpl
 	generateSpoofID(
 		DHTTransportContact	contact )
 	{
-			// TODO: remove version check when 2.3.x version rolledout
-		
-		if ( spoof_cipher == null || contact.getProtocolVersion() < DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
+		if ( spoof_cipher == null  ){
 			
 			return( 0 );
 		}
@@ -2396,22 +2481,30 @@ DHTControlImpl
 	
 	public boolean
 	verifyContact(
-		DHTTransportContact c )
+		DHTTransportContact 	c,
+		boolean					direct )
 	{
 		// TODO: remove version check when 2.3.x version rolledout
 
-		if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
+		if (	(direct && c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ) ||
+				((!direct) && c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2 )){ 
 			
 			boolean	ok = c.getRandomID() == generateSpoofID( c );
 		
-			// System.out.println( "    verify " + c.getName() + " -> " + ok );
-		
+			if ( CONTACT_VERIFY_TRACE ){
+				
+				System.out.println( "    " + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> " + ok + ", version = " + c.getProtocolVersion());
+			}
+			
 			return( ok );
 			
 		}else{
 			
-			// System.out.println( "anti-spoof: verify for " + c.getName() + " -> true, version = " + c.getProtocolVersion());
+			if ( CONTACT_VERIFY_TRACE ){
 
+				System.out.println( "    [ " + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> true, version = " + c.getProtocolVersion() + "]" );
+			}
+			
 			return( true );
 		}
 	}

@@ -303,9 +303,9 @@ DHTTransportUDPContactImpl
 	{
 		if ( transport_address.equals( external_address )){
 			
-			return( DHTLog.getString2(id) + "["+transport_address.toString()+"]");
+			return( DHTLog.getString2(id) + "["+transport_address.toString()+",V" + getProtocolVersion() +"]");
 		}
 		
-		return( DHTLog.getString2(id) + "[tran="+transport_address.toString()+",ext="+external_address+"]");
+		return( DHTLog.getString2(id) + "[tran="+transport_address.toString()+",ext="+external_address+",V" + getProtocolVersion() +"]");
 	}
 }

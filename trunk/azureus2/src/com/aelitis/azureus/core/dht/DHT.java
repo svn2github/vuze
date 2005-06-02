@@ -156,7 +156,8 @@ DHT
 		 */
 	
 	public void
-	integrate();
+	integrate(
+		boolean		full_wait );
 
 	public void
 	setLogging(

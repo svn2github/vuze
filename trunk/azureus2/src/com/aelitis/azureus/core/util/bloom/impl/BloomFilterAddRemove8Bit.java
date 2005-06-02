@@ -23,54 +23,68 @@
 package com.aelitis.azureus.core.util.bloom.impl;
 
 public class 
-BloomFilterAddRemove
+BloomFilterAddRemove8Bit
 	extends BloomFilterImpl
 {
 	private byte[]		map;
 
 	public
-	BloomFilterAddRemove(
+	BloomFilterAddRemove8Bit(
 		int		_max_entries )
 	{
 		super( _max_entries );
-		
-		// 4 bits per entry
-	
-		map	= new byte[(getMaxEntries()+1)/2];
+			
+		map	= new byte[getMaxEntries()];
 	}
-	protected byte
+	
+	protected int
 	getValue(
 		int		index )
 	{
-		byte	b = map[index/2];
-				
-		if ( index % 2 == 0 ){
-			
-			return((byte)( b&0x0f ));
-		}else{
-			
-			return((byte)((b>>4)&0x0f));
-		}
+		return( map[index] & 0xff );
 	}
 	
-	protected void
+	protected int
+	incValue(
+		int		index )
+	{
+		int	value = getValue( index );
+		
+		if ( value >= 255 ){
+			
+			return( 255 );
+		}
+		
+		value++;
+		
+		setValue( index, (byte)value );
+		
+		return( value );
+	}
+	
+	protected int
+	decValue(
+		int		index )
+	{
+		int	value = getValue( index );
+
+		if ( value <= 0 ){
+			
+			return( 0 );
+		}
+		
+		value--;
+		
+		setValue( index, (byte)value );
+		
+		return( value );
+	}
+	
+	private void
 	setValue(
 		int		index,
 		byte	value )
 	{
-		byte	b = map[index/2];
-				
-		if ( index % 2 == 0 ){
-			
-			b = (byte)((b&0xf0) | value );
-			
-		}else{
-			
-			b = (byte)((b&0x0f) | (value<<4)&0xf0 );
-		}
-		
-		// System.out.println( "setValue[" + index + "]:" + Integer.toHexString( map[index/2]&0xff) + "->" + Integer.toHexString( b&0xff ));
-		
-		map[index/2] = b;
+		map[index] = value;
 	}
 }

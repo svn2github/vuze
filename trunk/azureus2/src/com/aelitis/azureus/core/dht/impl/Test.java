@@ -162,7 +162,7 @@ Test
 					transports[i+1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
 				}
 					
-				dhts[i].integrate();
+				dhts[i].integrate(true);
 					
 				if ( i > 0 && i%10 == 0 ){
 						
@@ -188,7 +188,7 @@ Test
 			}
 			
 			
-			dhts[num_dhts-1].integrate();
+			dhts[num_dhts-1].integrate( true );
 			
 			DHTTransportLoopbackImpl.setFailPercentage(fail_percentage);
 			
@@ -455,7 +455,7 @@ Test
 							
 							((DHTTransportUDPImpl)transports[index]).testInstanceIDChange();
 							
-							dht.integrate();
+							dht.integrate( true );
 	
 						}catch( Throwable e ){
 							
@@ -494,7 +494,7 @@ Test
 						
 						transports[num_dhts-1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
 						
-						dht.integrate();
+						dht.integrate( true );
 	
 						dht.print();
 						

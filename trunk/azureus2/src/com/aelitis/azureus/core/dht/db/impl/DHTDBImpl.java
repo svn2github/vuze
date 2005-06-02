@@ -24,7 +24,12 @@ package com.aelitis.azureus.core.dht.db.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.ipfilter.IpFilter;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
@@ -41,7 +46,11 @@ import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.control.DHTControl;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportReplyHandlerAdapter;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 /**
  * @author parg
@@ -52,6 +61,14 @@ public class
 DHTDBImpl
 	implements DHTDB, DHTDBStats
 {	
+	private static final boolean	GLOBAL_BLOOM_TRACE	= false;
+	
+	static{
+		if ( GLOBAL_BLOOM_TRACE ){
+			System.out.println( "**** DHTDBImpl: global bloom trace on ****" );
+		}
+	}
+	
 	private int			original_republish_interval;
 	
 		// the grace period gives the originator time to republish their data as this could involve
@@ -64,6 +81,12 @@ DHTDBImpl
 	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60000;
 	private long		last_cache_expiry_check;
 	
+	private static final long	IP_BLOOM_FILTER_REBUILD_PERIOD		= 30*60*1000;
+	private static final int	IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK	= 1000;
+	
+	private BloomFilter	ip_count_bloom_filter = BloomFilterFactory.createAddRemove8Bit( IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
+	
+
 	private Map			stored_values = new HashMap();
 	
 	private DHTControl				control;
@@ -80,6 +103,8 @@ DHTDBImpl
 	
 	private boolean force_original_republish;
 	
+	private IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
+
 	private AEMonitor	this_mon	= new AEMonitor( "DHTDB" );
 
 	public
@@ -157,6 +182,27 @@ DHTDBImpl
 						}
 					}
 				});
+		
+		timer.addPeriodicEvent(
+				IP_BLOOM_FILTER_REBUILD_PERIOD,
+				new TimerEventPerformer()
+				{
+					public void
+					perform(
+						TimerEvent	event )
+					{
+						try{
+							this_mon.enter();
+							
+							rebuildIPBloomFilter( false );
+							
+						}finally{
+							
+							this_mon.exit();
+						}
+					}
+				});
+						
 	}
 	
 	
@@ -241,7 +287,10 @@ DHTDBImpl
 		HashWrapper				key,
 		DHTTransportValue[]		values )
 	{
-		if ( total_size > MAX_TOTAL_SIZE ){
+			// allow 4 bytes per value entry to deal with overhead (prolly should be more but we're really
+			// trying to deal with 0-length value stores)
+		
+		if ( total_size + ( total_values*4 ) > MAX_TOTAL_SIZE ){
 			
 			DHTLog.log( "Not storing " + DHTLog.getString2(key.getHash()) + " as maximum storage limit exceeded" );
 
@@ -357,26 +406,21 @@ DHTDBImpl
 					
 					boolean	ok_to_store = false;
 					
-					if ( Arrays.equals( sender.getID(), value.getOriginator().getID())){
+					boolean	direct =Arrays.equals( sender.getID(), value.getOriginator().getID());
+									
+					if ( !contact_checked ){
 							
-						if ( !contact_checked ){
-								
-							contact_ok =  control.verifyContact( sender );
-								
-							if ( !contact_ok ){
-								
-								logger.log( "DB: verification of contact '" + sender.getName() + "' failed for store operation" );
-							}
+						contact_ok =  control.verifyContact( sender, direct );
 							
-							contact_checked	= true;
+						if ( !contact_ok ){
+							
+							logger.log( "DB: verification of contact '" + sender.getName() + "' failed for store operation" );
 						}
-					
-						ok_to_store	= contact_ok;
-					
-					}else{
 						
-						ok_to_store	= true;
+						contact_checked	= true;
 					}
+				
+					ok_to_store	= contact_ok;
 
 					if ( ok_to_store ){
 						
@@ -633,16 +677,12 @@ DHTDBImpl
 	protected int[]
 	republishCachedMappings()
 	{		
-		int	values_published	= 0;
-		int keys_published		= 0;
-		int	republish_ops		= 0;
-		
 			// first refresh any leaves that have not performed at least one lookup in the
 			// last period
 		
 		router.refreshIdleLeaves( cache_republish_interval );
 		
-		Map	republish = new HashMap();
+		final Map	republish = new HashMap();
 		
 		long	now = System.currentTimeMillis();
 		
@@ -713,12 +753,15 @@ DHTDBImpl
 			this_mon.exit();
 		}
 		
+		final int[]	values_published	= {0};
+		final int[]	keys_published		= {0};
+		final int[]	republish_ops		= {0};
+		
 		if ( republish.size() > 0 ){
 			
 			// System.out.println( "cache replublish" );
 			
-				// not sure I really understand this re-publish optimisation, however the approach
-				// is to refresh all leaves in the smallest subtree, thus populating the tree with
+				// The approach is to refresh all leaves in the smallest subtree, thus populating the tree with
 				// sufficient information to directly know which nodes to republish the values
 				// to.
 			
@@ -778,6 +821,11 @@ DHTDBImpl
 					
 					DHTTransportContact	contact = (DHTTransportContact)contacts.get(j);
 					
+					if ( router.isID( contact.getID())){
+						
+						continue;	// ignore ourselves
+					}
+					
 					Object[]	data = (Object[])contact_map.get( new HashWrapper(contact.getID()));
 					
 					if ( data == null ){
@@ -795,52 +843,96 @@ DHTDBImpl
 			
 			while( it.hasNext()){
 				
-				Object[]	data = (Object[])it.next();
+				final Object[]	data = (Object[])it.next();
 				
-				DHTTransportContact	contact = (DHTTransportContact)data[0];
-				List				keys	= (List)data[1];
-					
-				byte[][]				store_keys 		= new byte[keys.size()][];
-				DHTTransportValue[][]	store_values 	= new DHTTransportValue[store_keys.length][];
+				final DHTTransportContact	contact = (DHTTransportContact)data[0];
 				
-				keys_published += store_keys.length;
+					// move to anti-spoof on cache forwards - gotta do a find-node first
+					// to get the random id
 				
-				for (int i=0;i<store_keys.length;i++){
-					
-					HashWrapper	wrapper = (HashWrapper)keys.get(i);
-					
-					store_keys[i] = wrapper.getHash();
-					
-					List		values	= (List)republish.get( wrapper );
-					
-					store_values[i] = new DHTTransportValue[values.size()];
-		
-					values_published += store_values[i].length;
-					
-					for (int j=0;j<values.size();j++){
-					
-						DHTDBValueImpl	value	= (DHTDBValueImpl)values.get(j);
+				final AESemaphore	sem = new AESemaphore( "DHTDB:cacheForward" );
+				
+				contact.sendFindNode(
+						new DHTTransportReplyHandlerAdapter()
+						{
+							public void
+							findNodeReply(
+								DHTTransportContact 	_contact,
+								DHTTransportContact[]	_contacts )
+							{	
+								try{
+									System.out.println( "cacheForward: pre-store findNode OK" );
+								
+									List				keys	= (List)data[1];
+										
+									byte[][]				store_keys 		= new byte[keys.size()][];
+									DHTTransportValue[][]	store_values 	= new DHTTransportValue[store_keys.length][];
+									
+									keys_published[0] += store_keys.length;
+									
+									for (int i=0;i<store_keys.length;i++){
+										
+										HashWrapper	wrapper = (HashWrapper)keys.get(i);
+										
+										store_keys[i] = wrapper.getHash();
+										
+										List		values	= (List)republish.get( wrapper );
+										
+										store_values[i] = new DHTTransportValue[values.size()];
 							
-							// we reduce the cache distance by 1 here as it is incremented by the
-							// recipients
-						
-						store_values[i][j] = value.getValueForRelay(local_contact);
-					}
-				}
-					
-				List	contacts = new ArrayList();
+										values_published[0] += store_values[i].length;
+										
+										for (int j=0;j<values.size();j++){
+										
+											DHTDBValueImpl	value	= (DHTDBValueImpl)values.get(j);
+												
+												// we reduce the cache distance by 1 here as it is incremented by the
+												// recipients
+											
+											store_values[i][j] = value.getValueForRelay(local_contact);
+										}
+									}
+										
+									List	contacts = new ArrayList();
+									
+									contacts.add( contact );
+									
+									republish_ops[0]++;
+									
+									control.putDirectEncodedKeys( 
+											store_keys, 
+											"Republish cache",
+											store_values,
+											contacts );
+								}finally{
+									
+									sem.release();
+								}
+							} 
+							
+							public void
+							failed(
+								DHTTransportContact 	_contact,
+								Throwable				_error )
+							{
+								try{
+									System.out.println( "cacheForward: pre-store findNode Failed" );
+	
+									DHTLog.log( "cacheForward: pre-store findNode failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+																			
+									router.contactDead( _contact.getID(), false);
+									
+								}finally{
+									
+									sem.release();
+								}
+							}
+						},
+						contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
 				
-				contacts.add( contact );
-				
-				republish_ops++;
-				
-				control.putDirectEncodedKeys( 
-						store_keys, 
-						"Republish cache",
-						store_values,
-						contacts );
+				sem.reserve();
 			}
-		
+			
 			try{
 				this_mon.enter();
 				
@@ -859,7 +951,7 @@ DHTDBImpl
 			}
 		}
 		
-		return( new int[]{ values_published, keys_published, republish_ops });
+		return( new int[]{ values_published[0], keys_published[0], republish_ops[0] });
 	}
 		
 	protected void
@@ -1056,6 +1148,150 @@ DHTDBImpl
 	}
 	
 	protected void
+	incrementValueAdds(
+		final DHTTransportContact	contact )
+	{
+			// assume a node stores 1000 values at 20 (K) locations -> 20,000 values
+			// assume a DHT size of 100,000 nodes
+			// that is, on average, 1 value per 5 nodes
+			// assume NAT of up to 30 ports per address
+			// this gives 6 values per address
+			// with a factor of 10 error this is still only 60 per address
+		
+		int	hit_count = ip_count_bloom_filter.add( contact.getAddress().getAddress().getAddress());
+		
+		if ( GLOBAL_BLOOM_TRACE ){
+		
+			System.out.println( "direct add from " + contact.getAddress() + ", hit count = " + hit_count );
+		}
+
+			// allow up to 10% bloom filter utilisation
+		
+		if ( ip_count_bloom_filter.getSize() / ip_count_bloom_filter.getEntryCount() < 10 ){
+			
+			rebuildIPBloomFilter( true );
+		}
+		
+		if ( hit_count > 64 ){
+			
+			// obviously being spammed, drop all data originated by this IP and ban it
+			
+			new AEThread( "DHTDBImpl:delayed flood delete", true )
+				{
+					public void
+					runSupport()
+					{
+							// delete their data on a separate thread so as not to 
+							// interfere with the current action
+						
+						try{
+							this_mon.enter();
+							
+							Iterator	it = stored_values.values().iterator();
+														
+							while( it.hasNext()){
+								
+								DHTDBMapping	mapping = (DHTDBMapping)it.next();
+
+								Iterator	it2 = mapping.getDirectValues();
+								
+								while( it2.hasNext()){
+									
+									DHTDBValueImpl	val = (DHTDBValueImpl)it2.next();
+									
+									if ( val.getCacheDistance() > 0 ){
+										
+										if ( Arrays.equals( val.getOriginator().getID(), contact.getID())){
+											
+											it.remove();
+										}
+									}
+								}
+							}
+
+						}finally{
+							
+							this_mon.exit();
+							
+						}
+					}
+				}.start();
+			
+			logger.log( "Banning " + contact.getString() + " due to store flooding" );
+			
+			ip_filter.ban( 
+					contact.getAddress().getAddress().getHostAddress(),
+					"DHT: Sender stored excessive entries at this node" );
+		}
+	}
+	
+	protected void
+	decrementValueAdds(
+		DHTTransportContact	contact )
+	{
+		int	hit_count = ip_count_bloom_filter.remove( contact.getAddress().getAddress().getAddress());
+
+		if ( GLOBAL_BLOOM_TRACE ){
+			
+			System.out.println( "direct remove from " + contact.getAddress() + ", hit count = " + hit_count );
+		}
+	}
+
+	protected void
+	rebuildIPBloomFilter(
+		boolean	increase_size )
+	{
+		BloomFilter	new_filter;
+		
+		if ( increase_size ){
+			
+			new_filter = BloomFilterFactory.createAddRemove8Bit( ip_count_bloom_filter.getSize() + IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
+			
+		}else{
+			
+			new_filter = BloomFilterFactory.createAddRemove8Bit( ip_count_bloom_filter.getSize());
+			
+		}
+		
+		try{
+			
+			Iterator	it = stored_values.values().iterator();
+			
+			int	max_hits = 0;
+			
+			while( it.hasNext()){
+				
+				DHTDBMapping	mapping = (DHTDBMapping)it.next();
+
+				Iterator	it2 = mapping.getDirectValues();
+				
+				while( it2.hasNext()){
+					
+					DHTDBValueImpl	val = (DHTDBValueImpl)it2.next();
+					
+					if ( val.getCacheDistance() > 0 ){
+						
+						// logger.log( "    adding " + val.getOriginator().getAddress());
+						
+						int	hits = new_filter.add( val.getOriginator().getAddress().getAddress().getAddress());
+						
+						if ( hits > max_hits ){
+							
+							max_hits = hits;
+						}
+					}
+				}
+			}
+			
+			logger.log( "Rebuilt global IP bloom filter, size = " + new_filter.getSize() + ", entries =" + new_filter.getEntryCount()+", max hits = " + max_hits );
+			
+		}finally{
+			
+			ip_count_bloom_filter	= new_filter;
+		}
+	}
+	
+	protected void
 	reportSizes(
 		String	op )
 	{
@@ -1175,6 +1411,18 @@ DHTDBImpl
 			
 			reportSizes( "valueAdded");
 			
+			if ( value.getCacheDistance() != 0 ){
+				
+				DHTDBValueImpl	val = (DHTDBValueImpl)value;
+				
+				boolean	direct = Arrays.equals( value.getOriginator().getID(), val.getSender().getID());
+				
+				if ( direct ){
+					
+					incrementValueAdds( value.getOriginator());
+				}
+			}
+				
 			delegate.valueAdded( key, value );
 		}
 		
@@ -1201,6 +1449,18 @@ DHTDBImpl
 		
 			reportSizes("valueDeleted");
 			
+			if ( value.getCacheDistance() != 0 ){
+				
+				DHTDBValueImpl	val = (DHTDBValueImpl)value;
+				
+				boolean	direct = Arrays.equals( value.getOriginator().getID(), val.getSender().getID());
+				
+				if ( direct ){
+					
+					decrementValueAdds( value.getOriginator());
+				}
+			}
+
 			delegate.valueDeleted( key, value );
 		}
 		

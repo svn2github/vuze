@@ -564,9 +564,7 @@ DHTTransportUDPImpl
 		throws IOException, DHTTransportException
 	{
 		DHTTransportUDPContactImpl	contact = DHTUDPUtils.deserialiseContact( this, is );
-		
-		contact.setProtocolVersion((byte)5);
-		
+				
 		importContact( contact );
 			
 		return( contact );

@@ -430,7 +430,13 @@ DHTDBMapping
 	protected Iterator
 	getValues()
 	{
-		return( new valueIterator());
+		return( new valueIterator( true, true ));
+	}
+	
+	protected Iterator
+	getDirectValues()
+	{
+		return( new valueIterator( true, false ));
 	}
 	
 	protected byte
@@ -589,7 +595,7 @@ DHTDBMapping
 	}
 	
 	private void
-	informAdded(
+	informAdded(	
 		DHTDBValueImpl		value ){
 		
 		try{
@@ -644,12 +650,26 @@ DHTDBMapping
 	valueIterator
 		implements Iterator
 	{
-		private Map[]	maps 		= new Map[]{ direct_originator_map, indirect_originator_value_map };
+		private List	maps 		=	new ArrayList(2); 
 		private int		map_index 	= 0;
 		
 		private Map				map;
 		private Iterator		it;
 		private DHTDBValueImpl	value;
+		
+		protected
+		valueIterator(
+			boolean		direct,
+			boolean		indirect )
+		{
+			if ( direct ){
+				maps.add( direct_originator_map );
+			}
+			
+			if ( indirect ){
+				maps.add( indirect_originator_value_map );
+			}
+		}
 		
 		public boolean
 		hasNext()
@@ -659,9 +679,9 @@ DHTDBMapping
 				return( true );
 			}
 			
-			while( map_index < maps.length ){
+			while( map_index < maps.size() ){
 				
-				map = maps[map_index++];
+				map = (Map)maps.get(map_index++);
 				
 				it = map.values().iterator();
 				

@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.impl;
 import java.io.*;
 import java.util.Properties;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
@@ -89,7 +90,20 @@ DHTImpl
 						byte				type,
 						boolean				exhaustive )
 					{
-						if ( storage_adapter != null ){
+						boolean	valid;
+						
+						if ( existing ){
+							
+							valid =	 	type == DHT.DT_FREQUENCY ||
+										type == DHT.DT_SIZE ||
+										type == DHT.DT_NONE;
+						}else{
+							
+							valid = 	type == DHT.DT_FREQUENCY ||
+										type == DHT.DT_SIZE;
+						}
+						
+						if ( storage_adapter != null && valid ){
 							
 							if ( existing ){
 								
@@ -100,6 +114,11 @@ DHTImpl
 								return( storage_adapter.createNewDiversification( cause, key, put_operation, type, exhaustive ));
 							}
 						}else{
+							
+							if ( !valid ){
+								
+								Debug.out( "Invalid diversification received: type = " + type );
+							}
 							
 							if ( existing ){
 								
@@ -208,9 +227,10 @@ DHTImpl
 	}
 	
 	public void
-	integrate()
+	integrate(
+		boolean		full_wait )
 	{
-		control.seed();	
+		control.seed( full_wait );	
 	}
 	
 	public void

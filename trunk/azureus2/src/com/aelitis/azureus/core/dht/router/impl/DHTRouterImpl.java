@@ -188,6 +188,17 @@ DHTRouterImpl
 		byte[]						node_id,
 		boolean						force )
 	{
+		if ( Arrays.equals( router_node_id, node_id )){
+			
+				// we should never become dead ourselves as this screws up things like
+				// checking that stored values are close enough to the K livest nodes (as if we are
+				// dead we don't return ourselves and it all goes doo daa )
+			
+			Debug.out( "DHTRouter: contactDead called on router node!" );
+			
+			return( local_contact );
+		}
+		
 		try{
 			try{
 				this_mon.enter();
