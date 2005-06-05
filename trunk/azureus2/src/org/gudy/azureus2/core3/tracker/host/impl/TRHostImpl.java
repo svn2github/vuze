@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 
@@ -287,6 +288,11 @@ TRHostImpl
 		try{
 			this_mon.enter();
 		
+			if ( state != TRHostTorrent.TS_PUBLISHED ){
+
+				addTrackerAnnounce( torrent );
+			}
+			
 			TRHostTorrent	ht = lookupHostTorrent( torrent );
 			
 			if ( ht != null ){
@@ -1176,6 +1182,34 @@ TRHostImpl
 		}finally{
 			
 			this_mon.exit();
+		}
+	}
+	
+	protected void
+	addTrackerAnnounce(
+		TOTorrent	torrent )
+	{
+		if ( TorrentUtils.isDecentralised( torrent )){
+	
+			return;
+		}
+		
+			// ensure that the tracker's announce details are in the torrent
+		
+		URL[]	tracker_urls = TRTrackerUtils.getAnnounceURLs();
+
+		if ( tracker_urls.length == 0 ){
+			
+				// fall back to decentralised, no tracker defined
+			
+			TorrentUtils.setDecentralised( torrent );
+			
+		}else{			
+		
+			if ( !TorrentUtils.announceGroupsContainsURL( torrent, tracker_urls[0].toString() )){
+			
+				TorrentUtils.announceGroupsInsertFirst( torrent, tracker_urls[0].toString() );
+			}
 		}
 	}
 }

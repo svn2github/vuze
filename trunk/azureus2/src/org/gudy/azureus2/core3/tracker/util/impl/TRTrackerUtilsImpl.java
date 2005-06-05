@@ -32,6 +32,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
+import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
@@ -107,6 +108,65 @@ TRTrackerUtilsImpl
 	getTrackerIP()
 	{
 		return( tracker_ip );
+	}
+	
+	public static URL[]
+	getAnnounceURLs()
+	{
+		String	tracker_host = COConfigurationManager.getStringParameter( "Tracker IP", "" );
+
+		List	urls = new ArrayList();
+		
+		if ( tracker_host.length() > 0 ){
+			
+			if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", false )){
+										
+				int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+				
+				try{
+					urls.add( new URL( "http://" + tracker_host + ":" + port + "/announce" ));
+					
+				}catch( MalformedURLException e ){
+					
+					Debug.printStackTrace( e );
+				}
+			}
+			
+			if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable", false )){
+				
+				int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
+				
+				try{
+					urls.add( new URL( "https://" + tracker_host + ":" + port + "/announce" ));
+				
+				}catch( MalformedURLException e ){
+				
+					Debug.printStackTrace( e );
+				}
+			}
+			
+			if ( COConfigurationManager.getBooleanParameter( "Tracker Port UDP Enable" )){
+				
+				int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+				
+				boolean	auth = COConfigurationManager.getBooleanParameter( "Tracker Password Enable Torrent" );
+					
+				try{
+					urls.add( new URL( "udp://" + tracker_host + ":" + port + "/announce" +
+										(auth?"?auth":"" )));
+				
+				}catch( MalformedURLException e ){
+				
+					Debug.printStackTrace( e );
+				}
+			}
+		}
+		
+		URL[]	res = new URL[urls.size()];
+		
+		urls.toArray( res );
+		
+		return( res );		
 	}
 	
 	public static URL

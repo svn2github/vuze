@@ -26,7 +26,6 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  *
  */
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
@@ -34,8 +33,8 @@ import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -44,14 +43,14 @@ TrackerImpl
 	extends		TrackerWCHelper
 	implements 	Tracker, TRHostListener, TRHostAuthenticationListener
 {
-	protected static TrackerImpl	tracker;
-	protected static AEMonitor 		class_mon 	= new AEMonitor( "Tracker" );
+	private static TrackerImpl	singleton;
+	private static AEMonitor 		class_mon 	= new AEMonitor( "Tracker" );
 
-	protected List	listeners	= new ArrayList();
+	private List	listeners	= new ArrayList();
 	
-	protected TRHost		host;
+	private TRHost		host;
 	
-	protected List	auth_listeners	= new ArrayList();
+	private List	auth_listeners	= new ArrayList();
 	
 	
 	public static Tracker
@@ -60,12 +59,12 @@ TrackerImpl
 		try{
 			class_mon.enter();
 		
-			if ( tracker == null ){
+			if ( singleton == null ){
 							
-				tracker	= new TrackerImpl( TRHostFactory.getSingleton());
+				singleton	= new TrackerImpl( TRHostFactory.getSingleton());
 			}		
 			
-			return( tracker );
+			return( singleton );
 			
 		}finally{
 			
@@ -93,60 +92,7 @@ TrackerImpl
 	public URL[]
 	getURLs()
 	{
-		String	tracker_host = COConfigurationManager.getStringParameter( "Tracker IP", "" );
-
-		List	urls = new ArrayList();
-		
-		if ( tracker_host.length() > 0 ){
-			
-			if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", false )){
-										
-				int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-				
-				try{
-					urls.add( new URL( "http://" + tracker_host + ":" + port + "/announce" ));
-					
-				}catch( MalformedURLException e ){
-					
-					Debug.printStackTrace( e );
-				}
-			}
-			
-			if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable", true )){
-				
-				int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
-				
-				try{
-					urls.add( new URL( "https://" + tracker_host + ":" + port + "/announce" ));
-				
-				}catch( MalformedURLException e ){
-				
-					Debug.printStackTrace( e );
-				}
-			}
-			
-			if ( COConfigurationManager.getBooleanParameter( "Tracker Port UDP Enable" )){
-				
-				int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-				
-				boolean	auth = COConfigurationManager.getBooleanParameter( "Tracker Password Enable Torrent" );
-					
-				try{
-					urls.add( new URL( "udp://" + tracker_host + ":" + port + "/announce" +
-										(auth?"?auth":"" )));
-				
-				}catch( MalformedURLException e ){
-				
-					Debug.printStackTrace( e );
-				}
-			}
-		}
-		
-		URL[]	res = new URL[urls.size()];
-		
-		urls.toArray( res );
-		
-		return( res );
+		return( TRTrackerUtils.getAnnounceURLs());
 	}
 
 	public TrackerTorrent

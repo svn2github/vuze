@@ -50,6 +50,12 @@ TRTrackerUtils
 		return( TRTrackerUtilsImpl.getTrackerIP());
 	}
 	
+	public static URL[]
+	getAnnounceURLs()
+	{
+		return( TRTrackerUtilsImpl.getAnnounceURLs());
+	}
+	
 	public static URL
 	adjustURLForHosting(
 		URL		url_in )

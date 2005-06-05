@@ -37,8 +37,7 @@ import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerFactory;
+
 
 public class 
 TorrentUtils 
@@ -582,6 +581,29 @@ TorrentUtils
 		}
 		
 		listToAnnounceGroups( groups, torrent );
+	}
+	
+	public static boolean
+	announceGroupsContainsURL(
+		TOTorrent	torrent,
+		String		url )
+	{
+		List	groups = announceGroupsToList( torrent );
+		
+		for (int i=0;i<groups.size();i++){
+			
+			List	set = (List)groups.get(i);
+			
+			for (int j=0;j<set.size();j++){
+		
+				if ( url.equals(set.get(j))){
+			
+					return( true );
+				}
+			}
+		}
+		
+		return( false );
 	}
 	
 	public static boolean
