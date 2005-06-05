@@ -35,8 +35,8 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
-import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.proxy.*;
 
 /**
@@ -246,7 +246,7 @@ AEProxyImpl
 	
 	protected void
 	selectLoop(
-		VirtualChannelSelector	selector )
+      VirtualChannelSelector	selector )
 	{
 		long	last_time	= 0;
 		
@@ -402,7 +402,7 @@ AEProxyImpl
 	
     public boolean 
 	selectSuccess( 
-		VirtualChannelSelector	selector, 
+      VirtualChannelSelector	selector, 
 		SocketChannel 			sc,
 		Object 					attachment )
     {
@@ -424,7 +424,7 @@ AEProxyImpl
     
     public void 
 	selectFailure( 
-		VirtualChannelSelector	selector, 
+      VirtualChannelSelector	selector, 
 		SocketChannel 			sc,
 		Object 					attachment,
 		Throwable 				msg )

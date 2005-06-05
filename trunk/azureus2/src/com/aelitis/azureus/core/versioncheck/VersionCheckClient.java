@@ -25,7 +25,7 @@ package com.aelitis.azureus.core.versioncheck;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+import java.nio.channels.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;

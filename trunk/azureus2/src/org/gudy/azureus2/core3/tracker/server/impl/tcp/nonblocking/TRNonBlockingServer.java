@@ -159,7 +159,7 @@ TRNonBlockingServer
 	
 	protected void
 	selectLoop(
-		VirtualChannelSelector	selector )
+      VirtualChannelSelector	selector )
 	{
 		long	last_time	= 0;
 		
@@ -226,12 +226,12 @@ TRNonBlockingServer
         	
         }else{
 
-	        VirtualChannelSelector.VirtualSelectorListener read_listener = 
+          VirtualChannelSelector.VirtualSelectorListener read_listener = 
 	        	new VirtualChannelSelector.VirtualSelectorListener() 
 				{
 	        		public boolean 
 					selectSuccess( 
-						VirtualChannelSelector 	selector, 
+              VirtualChannelSelector 	selector, 
 						SocketChannel 			sc, 
 						Object 					attachment ) 
 	        		{
@@ -258,7 +258,7 @@ TRNonBlockingServer
 	
 	        		public void 
 					selectFailure( 
-						VirtualChannelSelector 	selector, 
+              VirtualChannelSelector 	selector, 
 						SocketChannel 			sc, 
 						Object 					attachment, 
 						Throwable 				msg ) 
@@ -280,7 +280,7 @@ TRNonBlockingServer
 			{
             	public boolean 
 				selectSuccess( 
-					VirtualChannelSelector 	selector, 
+            VirtualChannelSelector 	selector, 
 					SocketChannel 			sc, 
 					Object 					attachment ) 
             	{
@@ -311,7 +311,7 @@ TRNonBlockingServer
 
             	public void 
 				selectFailure( 
-					VirtualChannelSelector 	selector, 
+            VirtualChannelSelector 	selector, 
 					SocketChannel 			sc, 
 					Object 					attachment, 
 					Throwable 				msg ) 
