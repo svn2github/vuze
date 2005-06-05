@@ -288,7 +288,10 @@ TRHostImpl
 		try{
 			this_mon.enter();
 		
-			if ( state != TRHostTorrent.TS_PUBLISHED ){
+				// non-persistent additions should know what they're doing regarding
+				// announce URL
+			
+			if ( persistent && state != TRHostTorrent.TS_PUBLISHED ){
 
 				addTrackerAnnounce( torrent );
 			}
