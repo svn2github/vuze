@@ -29,7 +29,10 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 // import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 import com.aelitis.azureus.core.dht.*;
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 /**
  * @author parg
@@ -39,8 +42,8 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 public class 
 DHTDBMapping 
 {
+	private DHTDBImpl			db;
 	private HashWrapper			key;
-	private DHTStorageAdapter	adapter;
 	private DHTStorageKey		adapter_key;
 	
 		// maps are access order, most recently used at tail, so we cycle values
@@ -55,20 +58,26 @@ DHTDBMapping
 	private int				local_size;
 	
 	private byte			diversification_state	= DHT.DT_NONE;
+
+	private static final int		IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK	= 50;
+
+		// 4 bit filter - counts up to 15
 	
+	private BloomFilter 	ip_count_bloom_filter = BloomFilterFactory.createAddRemove4Bit( IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
+
 	protected
 	DHTDBMapping(
-		DHTStorageAdapter	_adapter,
+		DHTDBImpl			_db,
 		HashWrapper			_key,
 		boolean				_local )
 	{
-		adapter		= _adapter;
+		db			= _db;
 		key			= _key;
 		
 		try{
-			if ( adapter != null ){
+			if ( db.getAdapter() != null ){
 				
-				adapter_key = adapter.keyCreated( key, _local );
+				adapter_key = db.getAdapter().keyCreated( key, _local );
 				
 				if ( adapter_key != null ){
 					
@@ -451,7 +460,7 @@ DHTDBMapping
 		DHTDBValueImpl	value )
 	{
 		DHTDBValueImpl	old = (DHTDBValueImpl)direct_originator_map.put( value_key, value );
-		
+				
 		if ( old != null ){
 			
 			direct_data_size -= old.getValue().length;
@@ -568,7 +577,7 @@ DHTDBMapping
 					it.remove();
 				}
 				
-				adapter.keyDeleted( adapter_key );
+				db.getAdapter().keyDeleted( adapter_key );
 			}
 			
 		}catch( Throwable e ){
@@ -579,12 +588,21 @@ DHTDBMapping
 	
 	private void
 	informDeleted(
-		DHTDBValueImpl		value ){
+		DHTDBValueImpl		value )
+	{
+		boolean	direct = 
+			value.getCacheDistance() > 0 &&				
+			Arrays.equals( value.getOriginator().getID(), value.getSender().getID());
+			
+		if ( direct ){
+				
+			removeFromBloom( value );
+		}
 		
 		try{
 			if ( adapter_key != null ){
 				
-				adapter.valueDeleted( adapter_key, value );
+				db.getAdapter().valueDeleted( adapter_key, value );
 				
 				diversification_state	= adapter_key.getDiversificationType();
 			}
@@ -596,12 +614,21 @@ DHTDBMapping
 	
 	private void
 	informAdded(	
-		DHTDBValueImpl		value ){
-		
+		DHTDBValueImpl		value )
+	{	
+		boolean	direct = 
+			value.getCacheDistance() > 0 &&				
+			Arrays.equals( value.getOriginator().getID(), value.getSender().getID());
+			
+		if ( direct ){
+				
+			addToBloom( value );
+		}
+
 		try{
 			if ( adapter_key != null ){
 				
-				adapter.valueAdded( adapter_key, value );
+				db.getAdapter().valueAdded( adapter_key, value );
 				
 				diversification_state	= adapter_key.getDiversificationType();
 			}
@@ -614,12 +641,25 @@ DHTDBMapping
 	private void
 	informUpdated(
 		DHTDBValueImpl		old_value,
-		DHTDBValueImpl		new_value){
+		DHTDBValueImpl		new_value)
+	{
+		boolean	old_direct = 
+			old_value.getCacheDistance() > 0 &&				
+			Arrays.equals( old_value.getOriginator().getID(), old_value.getSender().getID());
+	
+		boolean	new_direct = 
+			new_value.getCacheDistance() > 0 &&				
+			Arrays.equals( new_value.getOriginator().getID(), new_value.getSender().getID());
+			
+		if ( new_direct && !old_direct ){
+			
+			addToBloom( new_value );
+		}
 		
 		try{
 			if ( adapter_key != null ){
 				
-				adapter.valueUpdated( adapter_key, old_value, new_value );
+				db.getAdapter().valueUpdated( adapter_key, old_value, new_value );
 				
 				diversification_state	= adapter_key.getDiversificationType();
 			}
@@ -636,13 +676,109 @@ DHTDBMapping
 		try{
 			if ( adapter_key != null && contact != null ){
 				
-				adapter.keyRead( adapter_key, contact );
+				db.getAdapter().keyRead( adapter_key, contact );
 				
 				diversification_state	= adapter_key.getDiversificationType();
 			}
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+		}
+	}
+	
+	protected void
+	addToBloom(
+		DHTDBValueImpl	value )
+	{
+		// we don't check for flooding on indirect stores as this could be used to force a
+		// direct store to be bounced (flood a node with indirect stores before the direct
+		// store occurs)
+	
+
+		DHTTransportContact	originator = value.getOriginator();
+		
+		int	hit_count = ip_count_bloom_filter.add( originator.getAddress().getAddress().getAddress());
+		
+		if ( DHTLog.LOCAL_BLOOM_TRACE ){
+		
+			System.out.println( "direct local add from " + originator.getAddress() + ", hit count = " + hit_count );
+		}
+
+			// allow up to 10% bloom filter utilisation
+		
+		if ( ip_count_bloom_filter.getSize() / ip_count_bloom_filter.getEntryCount() < 10 ){
+			
+			rebuildIPBloomFilter( true );
+		}
+		
+		if ( hit_count >= 15 ){
+		
+		}
+	}
+	
+	protected void
+	removeFromBloom(
+		DHTDBValueImpl	value )
+	{
+		DHTTransportContact	originator = value.getOriginator();
+		
+		int	hit_count = ip_count_bloom_filter.remove( originator.getAddress().getAddress().getAddress());
+		
+		if (  DHTLog.LOCAL_BLOOM_TRACE ){
+		
+			System.out.println( "direct local remove from " + originator.getAddress() + ", hit count = " + hit_count );
+		}	
+	}
+	
+	protected void
+	rebuildIPBloomFilter(
+		boolean	increase_size )
+	{
+		BloomFilter	new_filter;
+		
+		if ( increase_size ){
+			
+			new_filter = BloomFilterFactory.createAddRemove8Bit( ip_count_bloom_filter.getSize() + IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
+			
+		}else{
+			
+			new_filter = BloomFilterFactory.createAddRemove8Bit( ip_count_bloom_filter.getSize());
+			
+		}
+		
+		try{
+				// only do flood prevention on direct stores as we can't trust the originator
+				// details for indirect and this can be used to DOS a direct store later
+			
+			Iterator	it = getDirectValues();
+			
+			int	max_hits	= 0;
+			
+			while( it.hasNext()){
+				
+				DHTDBValueImpl	val = (DHTDBValueImpl)it.next();
+				
+				if ( val.getCacheDistance() > 0 ){
+					
+					// logger.log( "    adding " + val.getOriginator().getAddress());
+					
+					int	hits = new_filter.add( val.getOriginator().getAddress().getAddress().getAddress());
+	
+					if ( hits > max_hits ){
+						
+						max_hits	= hits;
+					}
+				}
+			}
+			
+			if (  DHTLog.LOCAL_BLOOM_TRACE ){
+
+				db.log( "Rebuilt local IP bloom filter, size = " + new_filter.getSize() + ", entries =" + new_filter.getEntryCount()+", max hits = " + max_hits );
+			}
+
+		}finally{
+			
+			ip_count_bloom_filter = new_filter;
 		}
 	}
 	

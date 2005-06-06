@@ -40,6 +40,27 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 public class 
 DHTLog 
 {
+	public static final boolean		GLOBAL_BLOOM_TRACE		= false;
+	public static final boolean		LOCAL_BLOOM_TRACE		= false;
+	public static final boolean		CONTACT_VERIFY_TRACE	= false;
+	public static final boolean		TRACE_VERSIONS 			= false;
+	
+	static{
+		if ( GLOBAL_BLOOM_TRACE ){
+			System.out.println( "**** DHTLog: global bloom trace on ****" );
+		}
+		if ( LOCAL_BLOOM_TRACE ){
+			System.out.println( "**** DHTLog: local bloom trace on ****" );
+		}
+		if ( CONTACT_VERIFY_TRACE ){
+			System.out.println( "**** DHTLog: contact verify trace on ****" );
+		}
+		if ( TRACE_VERSIONS ){
+			System.out.println( "**** DHTTransportStats: tracing protocol versions ****" );
+		}
+	}
+	
+	
 	public static boolean	logging_on	= false;
 			
 	private static LoggerChannel	logger;

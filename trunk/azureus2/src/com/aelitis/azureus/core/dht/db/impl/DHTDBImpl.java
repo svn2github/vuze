@@ -61,14 +61,6 @@ public class
 DHTDBImpl
 	implements DHTDB, DHTDBStats
 {	
-	private static final boolean	GLOBAL_BLOOM_TRACE	= false;
-	
-	static{
-		if ( GLOBAL_BLOOM_TRACE ){
-			System.out.println( "**** DHTDBImpl: global bloom trace on ****" );
-		}
-	}
-	
 	private int			original_republish_interval;
 	
 		// the grace period gives the originator time to republish their data as this could involve
@@ -81,7 +73,7 @@ DHTDBImpl
 	private long		MIN_CACHE_EXPIRY_CHECK_INTERVAL		= 60000;
 	private long		last_cache_expiry_check;
 	
-	private static final long	IP_BLOOM_FILTER_REBUILD_PERIOD		= 30*60*1000;
+	private static final long	IP_BLOOM_FILTER_REBUILD_PERIOD		= 15*60*1000;
 	private static final int	IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK	= 1000;
 	
 	private BloomFilter	ip_count_bloom_filter = BloomFilterFactory.createAddRemove8Bit( IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
@@ -119,9 +111,9 @@ DHTDBImpl
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
 				
-		Timer	timer = new Timer("DHT refresher");
+		Timer	op_timer = new Timer("DHT:originalRepublisher");
 		
-		timer.addPeriodicEvent(
+		op_timer.addPeriodicEvent(
 			original_republish_interval,
 			new TimerEventPerformer()
 			{
@@ -146,7 +138,9 @@ DHTDBImpl
 				// random skew here so that cache refresh isn't very synchronised, as the optimisations
 				// regarding non-republising benefit from this 
 			
-		timer.addPeriodicEvent(
+		Timer	cp_timer = new Timer("DHT:cacheRepublisher");
+
+		cp_timer.addPeriodicEvent(
 				cache_republish_interval + 10000 - (int)(Math.random()*20000),
 				new TimerEventPerformer()
 				{
@@ -183,7 +177,9 @@ DHTDBImpl
 					}
 				});
 		
-		timer.addPeriodicEvent(
+		Timer	rb_timer = new Timer("DHT:bloomRebuilder");
+
+		rb_timer.addPeriodicEvent(
 				IP_BLOOM_FILTER_REBUILD_PERIOD,
 				new TimerEventPerformer()
 				{
@@ -266,7 +262,7 @@ DHTDBImpl
 			
 			if ( mapping == null ){
 				
-				mapping = new DHTDBMapping( adapter, key, true );
+				mapping = new DHTDBMapping( this, key, true );
 				
 				stored_values.put( key, mapping );
 			}
@@ -376,7 +372,7 @@ DHTDBImpl
 			
 			if ( mapping == null ){
 				
-				mapping = new DHTDBMapping( adapter, key, false );
+				mapping = new DHTDBMapping( this, key, false );
 				
 				stored_values.put( key, mapping );
 			}
@@ -1040,6 +1036,19 @@ DHTDBImpl
 		}
 	}
 	
+	protected DHTStorageAdapter
+	getAdapter()
+	{
+		return( adapter );
+	}
+	
+	protected void
+	log(
+		String	str )
+	{
+		logger.log( str );
+	}
+	
 	public DHTDBStats
 	getStats()
 	{
@@ -1160,7 +1169,7 @@ DHTDBImpl
 		
 		int	hit_count = ip_count_bloom_filter.add( contact.getAddress().getAddress().getAddress());
 		
-		if ( GLOBAL_BLOOM_TRACE ){
+		if ( DHTLog.GLOBAL_BLOOM_TRACE ){
 		
 			System.out.println( "direct add from " + contact.getAddress() + ", hit count = " + hit_count );
 		}
@@ -1231,7 +1240,7 @@ DHTDBImpl
 	{
 		int	hit_count = ip_count_bloom_filter.remove( contact.getAddress().getAddress().getAddress());
 
-		if ( GLOBAL_BLOOM_TRACE ){
+		if ( DHTLog.GLOBAL_BLOOM_TRACE ){
 			
 			System.out.println( "direct remove from " + contact.getAddress() + ", hit count = " + hit_count );
 		}
@@ -1263,6 +1272,8 @@ DHTDBImpl
 				
 				DHTDBMapping	mapping = (DHTDBMapping)it.next();
 
+				mapping.rebuildIPBloomFilter( false );
+				
 				Iterator	it2 = mapping.getDirectValues();
 				
 				while( it2.hasNext()){

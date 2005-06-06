@@ -51,6 +51,8 @@ import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 /**
  * @author parg
@@ -601,9 +603,6 @@ DHTPluginStorageManager
 	{
 		List	list_out = new ArrayList();
 	
-		if ( put_operation && exhaustive ){
-			int d = 12;
-		}
 		/*
 		String	indent = "";
 		for(int i=0;i<depth;i++){
@@ -1111,8 +1110,10 @@ DHTPluginStorageManager
 		private long			expiry;
 		
 		private long			read_count_start;
-		private int				read_count;
-		private int[]			read_history	= new int[8];
+		//private int			read_count;
+		//private int[]			read_history	= new int[8];
+		
+		private BloomFilter		ip_bloom_filter;
 		
 		protected
 		storageKey(
@@ -1204,72 +1205,50 @@ DHTPluginStorageManager
 			DHTTransportContact	contact )
 		{
 			// System.out.println( "read: " + DHTLog.getString2( key.getBytes()));
-			
-			
-			if ( type == DHT.DT_NONE ){
-				
-					// simple flood detection to prevent a single IP from causing diversification
-					// via repeated reads.
-				
-				byte[]	address_bytes = contact.getAddress().getAddress().getAddress();
-				
-				int	address_int = 	(address_bytes[0] << 24)&0xff000000 | 
-									(address_bytes[1] << 16)&0x00ff0000 | 
-									(address_bytes[2] << 8 )&0x0000ff00 | 
-									 address_bytes[3]       &0x000000ff;
-					
-				boolean	found	= false;
-				
-				for (int i=0;i<read_history.length;i++){
-					
-					if ( read_history[i] == address_int ){
-				
-						found	= true;
 						
-						if ( i != 0 ){
-							
-							int	temp = read_history[0];
-							
-							read_history[0] = address_int;
-							
-							read_history[i]	= temp;
-						}
-						
-						break;
-					}
-				}
+			if ( type == DHT.DT_NONE ){				
+
+				long	now = SystemTime.getCurrentTime();
 				
-				if ( !found ){
-					
-					for (int i=read_history.length-1;i>0;i--){
+				long	diff = now - read_count_start;
+
+				if ( diff > LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES*60*1000 ){
+
+					if ( ip_bloom_filter != null ){
 						
-						read_history[i] = read_history[i-1];
+						int	ip_entries = ip_bloom_filter.getEntryCount();
 						
-						read_history[0]	= address_int;
-					}
-					
-					read_count++;
-					
-					long	now = SystemTime.getCurrentTime();
-					
-					long	diff = now - read_count_start;
-					
-					if ( diff > LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES*60*1000 ){
-						
-						// System.out.println( "read rate = " + read_count );
-						
-						if ( read_count > LOCAL_DIVERSIFICATION_READS_PER_MIN * LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES ){
+						if ( ip_entries > LOCAL_DIVERSIFICATION_READS_PER_MIN * LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES ){
 						
 							type = DHT.DT_FREQUENCY;
 							
-							manager.log.log( "SM: sk freq created (" + read_count + "reads ) - " + DHTLog.getString2( key.getBytes()));
+							manager.log.log( "SM: sk freq created (" + ip_entries + "reads ) - " + DHTLog.getString2( key.getBytes()));
 							
 							manager.writeDiversifications();
 						}
-						
-						read_count_start	= now;
-						read_count			= 0;
 					}
+										
+					read_count_start	= now;
+
+					ip_bloom_filter	= null;	// just null it and drop this read, doesn't matter
+											// and means that we don't bother creating a filter for
+											// infrequently accessed data
+					
+				}else{
+					
+					if ( ip_bloom_filter == null ){
+						
+							// we want to hold enough IPs to detect a hit rate of reads_per_min*min
+							// with a reasonable accuracy (sized to 10/3 to save space - this gives
+							// an average of 100 adds required to detect 90 unique)
+						
+						ip_bloom_filter = BloomFilterFactory.createAddOnly(
+								( LOCAL_DIVERSIFICATION_READS_PER_MIN * LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES *10 ) / 3 );
+					}
+					
+					byte[]	address_bytes = contact.getAddress().getAddress().getAddress();
+					
+					ip_bloom_filter.add( address_bytes );
 				}
 			}
 		}

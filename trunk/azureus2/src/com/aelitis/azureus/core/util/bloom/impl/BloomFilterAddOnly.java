@@ -38,6 +38,19 @@ BloomFilterAddOnly
 	}
 	
 	protected int
+	trimValue(
+		int	value )
+	{
+		if ( value < 0 ){
+			return( 0 );
+		}else if ( value > 1 ){
+			return( 1);
+		}else{
+			return( value );
+		}
+	}
+	
+	protected int
 	getValue(
 		int		index )
 	{
@@ -47,40 +60,44 @@ BloomFilterAddOnly
 
 	}
 	
+		/**
+		 * returns the value BEFORE increment
+		 */
+	
 	protected int
 	incValue(
 		int		index )
 	{
-		int	value = getValue( index );
+		int	original_value = getValue( index );
 		
-		if ( value >= 1 ){
+		if ( original_value >= 1 ){
 			
 			return( 1 );
 		}
+				
+		setValue( index, (byte)(original_value+1) );
 		
-		value++;
-		
-		setValue( index, (byte)value );
-		
-		return( value );
+		return( original_value );
 	}
+	
+		/**
+		 * returns the value BEFORE decrement
+		 */
 	
 	protected int
 	decValue(
 		int		index )
 	{
-		int	value = getValue( index );
+		int	original_value = getValue( index );
 
-		if ( value <= 0 ){
+		if ( original_value <= 0 ){
 			
 			return( 0 );
 		}
+				
+		setValue( index, (byte)(original_value-1) );
 		
-		value--;
-		
-		setValue( index, (byte)value );
-		
-		return( value );
+		return( original_value );
 	}
 	
 	private void

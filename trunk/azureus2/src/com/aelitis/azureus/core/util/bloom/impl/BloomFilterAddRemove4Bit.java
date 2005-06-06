@@ -40,6 +40,19 @@ BloomFilterAddRemove4Bit
 	}
 	
 	protected int
+	trimValue(
+		int	value )
+	{
+		if ( value < 0 ){
+			return( 0 );
+		}else if ( value > 15 ){
+			return( 15 );
+		}else{
+			return( value );
+		}
+	}
+	
+	protected int
 	getValue(
 		int		index )
 	{
@@ -58,36 +71,32 @@ BloomFilterAddRemove4Bit
 	incValue(
 		int		index )
 	{
-		int	value = getValue( index );
+		int	original_value = getValue( index );
 		
-		if ( value >= 15 ){
+		if ( original_value >= 15 ){
 			
 			return( 15 );
 		}
+				
+		setValue( index, (byte)(original_value+1) );
 		
-		value++;
-		
-		setValue( index, (byte)value );
-		
-		return( value );
+		return( original_value );
 	}
 	
 	protected int
 	decValue(
 		int		index )
 	{
-		int	value = getValue( index );
+		int	original_value = getValue( index );
 
-		if ( value <= 0 ){
+		if ( original_value <= 0 ){
 			
 			return( 0 );
 		}
+				
+		setValue( index, (byte)(original_value-1));
 		
-		value--;
-		
-		setValue( index, (byte)value );
-		
-		return( value );
+		return( original_value );
 	}
 	
 	private void

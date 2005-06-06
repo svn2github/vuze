@@ -61,14 +61,6 @@ public class
 DHTControlImpl 
 	implements DHTControl, DHTTransportRequestHandler
 {
-	private static final boolean	CONTACT_VERIFY_TRACE	= false;
-	
-	static{
-		if ( CONTACT_VERIFY_TRACE ){
-			System.out.println( "**** DHTControlImpl: contact verify trace on ****" );
-		}
-	}
-	
 	private static final int EXTERNAL_LOOKUP_CONCURRENCY	= 32;
 	private static final int EXTERNAL_PUT_CONCURRENCY		= 16;
 	
@@ -409,7 +401,12 @@ DHTControlImpl
 	contactRemoved(
 		DHTTransportContact	contact )
 	{
-		router.contactDead( contact.getID(), true );
+			// obviously we don't want to remove ourselves 
+		
+		if ( !router.isID( contact.getID())){
+			
+			router.contactDead( contact.getID(), true );
+		}
 	}
 	
 	public void
@@ -2491,7 +2488,7 @@ DHTControlImpl
 			
 			boolean	ok = c.getRandomID() == generateSpoofID( c );
 		
-			if ( CONTACT_VERIFY_TRACE ){
+			if ( DHTLog.CONTACT_VERIFY_TRACE ){
 				
 				System.out.println( "    " + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> " + ok + ", version = " + c.getProtocolVersion());
 			}
@@ -2500,7 +2497,7 @@ DHTControlImpl
 			
 		}else{
 			
-			if ( CONTACT_VERIFY_TRACE ){
+			if ( DHTLog.CONTACT_VERIFY_TRACE ){
 
 				System.out.println( "    [ " + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> true, version = " + c.getProtocolVersion() + "]" );
 			}

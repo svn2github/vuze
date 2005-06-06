@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.dht.transport.util;
 
+import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
@@ -35,14 +36,6 @@ public abstract class
 DHTTransportStatsImpl
 	implements DHTTransportStats
 {
-	private static final boolean	TRACE_VERSIONS = false;
-	
-	static{
-		if ( TRACE_VERSIONS ){
-			System.out.println( "**** DHTTransportStats: tracing protocol versions ****" );
-		}
-	}
-	
 	private long[]	pings		= new long[4];
 	private long[]	find_nodes	= new long[4];
 	private long[]	find_values	= new long[4];
@@ -251,7 +244,7 @@ DHTTransportStatsImpl
 	{
 		outgoing_requests++;		
 
-		if ( TRACE_VERSIONS ){
+		if ( DHTLog.TRACE_VERSIONS ){
 			
 			byte protocol_version = request.getProtocolVersion();
 			
@@ -298,7 +291,7 @@ DHTTransportStatsImpl
 	{
 		incoming_requests++;
 		
-		if ( TRACE_VERSIONS ){
+		if ( DHTLog.TRACE_VERSIONS ){
 			
 			byte protocol_version = request.getProtocolVersion();
 			

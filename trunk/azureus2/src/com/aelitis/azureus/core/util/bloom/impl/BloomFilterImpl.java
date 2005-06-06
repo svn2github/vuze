@@ -118,7 +118,9 @@ BloomFilterImpl
 		for (int i=0;i<HASH_NUM;i++){
 			
 			int	index = getHash( i, value );
-						
+					
+				// v = value BEFORE inc
+			
 			int	v = incValue( index );
 			
 			if ( v < count ){
@@ -127,12 +129,14 @@ BloomFilterImpl
 			}
 		}
 		
-		if ( count == 1 ){
+		if ( count == 0 ){
 			
 			entry_count++;
 		}
 		
-		return( count );
+			// count is the smallest val found *before* incrementing
+				
+		return( trimValue( count + 1 ));
 	}
 	
 	protected int
@@ -144,7 +148,9 @@ BloomFilterImpl
 		for (int i=0;i<HASH_NUM;i++){
 			
 			int	index = getHash( i, value );
-										
+				
+				// v = value BEFORE dec
+			
 			int	v = decValue( index );
 			
 			if ( v < count ){
@@ -153,12 +159,14 @@ BloomFilterImpl
 			}
 		}		
 		
-		if ( count == 0 && entry_count > 0 ){
+		if ( count == 1 && entry_count > 0 ){
 			
 			entry_count--;
 		}
 		
-		return( count );
+			// count is the value BEFORE dec, decrease one further
+		
+		return( trimValue( count - 1 ));
 	}
 	
 	protected int
@@ -215,6 +223,9 @@ BloomFilterImpl
 	decValue(
 		int		index );
 	
+	protected abstract int
+	trimValue(
+		int		value );
 
 	protected int
 	getHash(
@@ -488,7 +499,9 @@ BloomFilterImpl
 	main(
 		String[]	args )
 	{
-		
+		Random	rand = new Random();
+
+		/*
 		BloomFilter b1 = new BloomFilterAddRemove8Bit(10000);
 
 		for (int i=0;i<260;i++){
@@ -501,11 +514,29 @@ BloomFilterImpl
 			
 			System.out.println( b1.remove( "parp".getBytes())+ ", count = " + b1.count( "parp".getBytes()) + ", ent = " + b1.getEntryCount());
 		}
+		*/
+		
+		/*
+
+		BloomFilter b1 = new BloomFilterAddOnly(90*10/3);
+
+		byte[]	key1 = new byte[4];
+
+		for (int i=0;i<200;i++){
+			
+			
+			if ( i%2==0){
+				rand.nextBytes( key1 );
+			}
+			
+			b1.add( key1 );
+			
+			System.out.println( "entries = " + b1.getEntryCount() + ", act = " + i );
+		}
 		
 		System.exit(0);
+		*/
 		
-		
-		Random	rand = new Random();
 		
 		int	fp_count = 0;
 		
