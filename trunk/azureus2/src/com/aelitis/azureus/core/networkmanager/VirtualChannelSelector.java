@@ -99,7 +99,7 @@ public class VirtualChannelSelector {
           VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)entry.getKey();
           ArrayList channels = (ArrayList)entry.getValue();
           
-          if( channels.size() < 30 ) {  //there's room in the current selector //TODO size
+          if( channels.size() < 60 ) {  //there's room in the current selector
             sel.register( channel, listener, attachment );
             channels.add( channel );
             return;
@@ -227,8 +227,6 @@ public class VirtualChannelSelector {
       finally{ selectors_mon.exit();  }
 
       int count = 0;
-      
-      //System.out.println( "xxxxxxx = " +sels.size() );
       
       for( Iterator it = sels.iterator(); it.hasNext(); ) {
         VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)it.next();
