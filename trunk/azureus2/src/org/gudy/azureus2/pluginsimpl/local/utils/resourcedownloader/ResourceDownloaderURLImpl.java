@@ -168,6 +168,13 @@ ResourceDownloaderURLImpl
 		// System.out.println("ResourceDownloader:getSize - " + getName());
 		
 		try{
+			String	protocol = original_url.getProtocol().toLowerCase();
+			
+			if ( protocol.equals( "magnet" )){
+				
+				return( -1 );
+			}
+			
 			reportActivity(this, "getting size of " + original_url );
 
 			try{
