@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
+import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerWebPageResponseImpl;
 import org.gudy.azureus2.pluginsimpl.local.*;
 
 public class 
@@ -125,6 +126,16 @@ ResourceDownloaderTorrentImpl
 		}
 	}
 	
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		setPropertySupport( name, value );
+		
+		delegate.setProperty( name, value );
+	}
+	
 	protected long
 	getSizeSupport()
 	
@@ -157,6 +168,30 @@ ResourceDownloaderTorrentImpl
 				}
 			}
 			
+			try{
+				String	file_str = new String( torrent_holder[0].getName());
+				
+				int	pos = file_str.lastIndexOf( "." );
+				
+				String	file_type;
+				
+				if ( pos != -1 ){
+				
+					file_type = file_str.substring(pos+1);
+					
+				}else{
+					
+					file_type = null;
+				}
+				
+				setProperty( 	ResourceDownloader.PR_STRING_CONTENT_TYPE,
+								TrackerWebPageResponseImpl.guessContentTypeFromFileType( file_type ));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+			
 			return( torrent_holder[0].getSize());
 			
 		}catch( TOTorrentException e ){
@@ -174,7 +209,7 @@ ResourceDownloaderTorrentImpl
 		torrent_holder	= _torrent_holder;
 	}
 	
-	public ResourceDownloader
+	public ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
@@ -182,6 +217,8 @@ ResourceDownloaderTorrentImpl
 		
 		c.setSizeAndTorrent( size, torrent_holder );
 		
+		c.setProperties( this );
+
 		return( c );
 	}
 	

@@ -53,7 +53,7 @@ ResourceDownloaderErrorImpl
 		return( "<error>:" + error.getMessage());
 	}
 	
-	public ResourceDownloader
+	public ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
@@ -78,6 +78,14 @@ ResourceDownloaderErrorImpl
 	setSize(
 		long	size )
 	{
+	}
+	
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		setPropertySupport( name, value );
 	}
 	
 	public long

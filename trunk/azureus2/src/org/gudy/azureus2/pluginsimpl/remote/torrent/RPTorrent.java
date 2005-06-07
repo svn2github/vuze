@@ -274,6 +274,23 @@ RPTorrent
 		return( null );
 	}
 
+	public void
+	setPluginStringProperty(
+		String		name,
+		String		value )
+	{
+		notSupported();
+	}
+	
+	public String
+	getPluginStringProperty(
+		String		name )
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public Map
 	writeToMap()
 	

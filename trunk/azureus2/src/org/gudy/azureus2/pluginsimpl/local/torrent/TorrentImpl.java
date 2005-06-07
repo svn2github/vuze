@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.download.*;
@@ -44,13 +45,23 @@ public class
 TorrentImpl
 	implements Torrent
 {
-	protected TOTorrent				torrent;
-	protected LocaleUtilDecoder		decoder;
+	private PluginInterface			pi;
+	private TOTorrent				torrent;
+	private LocaleUtilDecoder		decoder;
 	
 	public
 	TorrentImpl(
-		TOTorrent	_torrent )
+		TOTorrent		_torrent )
 	{
+		this( null, _torrent );
+	}
+	
+	public
+	TorrentImpl(
+		PluginInterface	_pi,
+		TOTorrent		_torrent )
+	{
+		pi		= _pi;
 		torrent	= _torrent;
 		
 		try{
@@ -280,6 +291,39 @@ TorrentImpl
 		}
 	}
 
+	public void
+	setPluginStringProperty(
+		String		name,
+		String		value )
+	{
+		if ( pi == null ){
+			
+			name = "<internal>." + name;
+			
+		}else{
+			
+			name = pi.getPluginID() + "." + name;
+		}
+		
+		TorrentUtils.setPluginStringProperty( torrent, name, value );
+	}
+	
+	public String
+	getPluginStringProperty(
+		String		name )
+	{
+		if ( pi == null ){
+			
+			name = "<internal>." + name;
+			
+		}else{
+			
+			name = pi.getPluginID() + "." + name;
+		}
+		
+		return( TorrentUtils.getPluginStringProperty( torrent, name ));
+	}
+	
 	public Map
 	writeToMap()
 	

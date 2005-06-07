@@ -91,7 +91,7 @@ ResourceDownloaderDelayedImpl
 		return( delegate.getName());
 	}
 	
-	public ResourceDownloader
+	public ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{		
@@ -99,6 +99,8 @@ ResourceDownloaderDelayedImpl
 		
 		c.setSize( size );
 		
+		c.setProperties( this );
+
 		return( c );
 	}
 	
@@ -130,6 +132,19 @@ ResourceDownloaderDelayedImpl
 		if ( delegate != null && size >= 0){
 					
 			delegate.setSize( size );
+		}
+	}
+	
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		setPropertySupport( name, value );
+		
+		if ( delegate != null ){
+			
+			delegate.setProperty( name, value );
 		}
 	}
 	

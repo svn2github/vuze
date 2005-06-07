@@ -131,6 +131,8 @@ ResourceDownloaderURLImpl
 				
 				size = c.getSizeSupport();
 				
+				setProperties(  c );
+				
 			}finally{
 				
 				if ( size == -2 ){
@@ -148,6 +150,14 @@ ResourceDownloaderURLImpl
 		long	l )
 	{
 		size	= l;
+	}
+	
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		setPropertySupport( name, value );
 	}
 	
 	protected long
@@ -216,7 +226,9 @@ ResourceDownloaderURLImpl
 								
 								throw( new ResourceDownloaderException("Error on connect for '" + url.toString() + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
-								
+															
+							setProperty( ResourceDownloader.PR_STRING_CONTENT_TYPE, con.getContentType() );
+							
 							return( con.getContentLength());
 							
 						}catch( SSLException e ){
@@ -273,13 +285,15 @@ ResourceDownloaderURLImpl
 		}		
 	}
 	
-	public ResourceDownloader
+	public ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
 		ResourceDownloaderURLImpl c = new ResourceDownloaderURLImpl( parent, original_url, auth_supplied, user_name, password );
 		
 		c.setSize( size );
+		
+		c.setProperties( this );
 		
 		return( c );
 	}

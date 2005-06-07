@@ -108,6 +108,16 @@ ResourceDownloaderMetaRefreshImpl
 		}
 	}
 	
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		setPropertySupport( name, value );
+		
+		delegate.setProperty( name, value );
+	}
+	
 	protected long
 	getSizeSupport()
 	
@@ -124,18 +134,26 @@ ResourceDownloaderMetaRefreshImpl
 	
 			if ( redirect == null ){
 				
-				ResourceDownloader c = delegate.getClone( this );
+				ResourceDownloaderBaseImpl c = delegate.getClone( this );
 				
 				addReportListener( c );
 				
-				return( c.getSize());
+				long res = c.getSize();
+				
+				setProperties( c );
+				
+				return( res );
 			}else{
 				
 				ResourceDownloaderURLImpl c =  new ResourceDownloaderURLImpl( getParent(), redirect );
 				
 				addReportListener( c );
 				
-				return( c.getSize());
+				long res = c.getSize();
+				
+				setProperties( c );
+				
+				return( res );
 			}
 		}catch( HTMLException e ){
 			
@@ -144,7 +162,7 @@ ResourceDownloaderMetaRefreshImpl
 	}	
 	
 
-	public ResourceDownloader
+	public ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
@@ -152,6 +170,8 @@ ResourceDownloaderMetaRefreshImpl
 		
 		c.setSize( size );
 		
+		c.setProperties( this );
+
 		return( c );
 	}
 	

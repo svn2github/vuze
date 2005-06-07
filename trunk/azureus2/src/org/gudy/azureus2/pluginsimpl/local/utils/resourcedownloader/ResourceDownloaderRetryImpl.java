@@ -83,12 +83,14 @@ ResourceDownloaderRetryImpl
 			for (int i=0;i<retry_count;i++){
 				
 				try{
-					ResourceDownloader c =  delegate.getClone( this );
+					ResourceDownloaderBaseImpl c =  delegate.getClone( this );
 					
 					addReportListener( c );
 					
 					size = c.getSize();
 				
+					setProperties( c );
+					
 					return( size );
 					
 				}catch( ResourceDownloaderException e ){
@@ -124,7 +126,17 @@ ResourceDownloaderRetryImpl
 		}
 	}
 	
-	public ResourceDownloader
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		setPropertySupport( name, value );
+		
+		delegate.setProperty( name, value );
+	}
+	
+	public ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl parent )
 	{
@@ -132,6 +144,8 @@ ResourceDownloaderRetryImpl
 		
 		c.setSize(size);
 		
+		c.setProperties( this );
+
 		return( c );
 	}
 	

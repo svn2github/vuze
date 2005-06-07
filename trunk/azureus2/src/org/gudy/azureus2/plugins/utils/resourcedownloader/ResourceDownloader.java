@@ -31,6 +31,8 @@ import java.io.InputStream;
 public interface 
 ResourceDownloader 
 {
+	public static final String	PR_STRING_CONTENT_TYPE		= "ContentType";
+	
 		/**
 		 * Get a sensible name for the download based on its details (e.g. URL)
 		 * @return
@@ -66,6 +68,12 @@ ResourceDownloader
 	
 	public long
 	getSize()
+	
+		throws ResourceDownloaderException;
+
+	public Object
+	getProperty(
+		String		name )
 	
 		throws ResourceDownloaderException;
 	

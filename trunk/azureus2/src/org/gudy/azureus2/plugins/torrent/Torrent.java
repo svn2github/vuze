@@ -89,12 +89,44 @@ Torrent
 	public String
 	getEncoding();
 	
+		/**
+		 * Access to top-level properties in the torrent
+		 * @param name
+		 * @return
+		 */
+	
 	public Object
 	getAdditionalProperty(
 		String		name );
 
+		/**
+		 * Removal all non-standard properties (excluding plugin-properties below)
+		 * @return
+		 */
+	
 	public Torrent
 	removeAdditionalProperties();
+	
+		/**
+		 * Set a property specific to this plugin
+		 * @param name
+		 * @param value
+		 */
+	
+	public void
+	setPluginStringProperty(
+		String		name,
+		String		value );
+	
+		/**
+		 * Get a property specific to this plugin
+		 * @param name
+		 * @return
+		 */
+	
+	public String
+	getPluginStringProperty(
+		String		name );
 	
 		/**
 		 * A decentralised torrent uses the DHT only as a "tracker"

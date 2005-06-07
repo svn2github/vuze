@@ -36,15 +36,17 @@ public abstract class
 ResourceDownloaderBaseImpl
 	implements ResourceDownloader
 {
-	protected List			listeners		= new ArrayList();
+	private List			listeners		= new ArrayList();
 	
-	protected boolean		result_informed;
-	protected Object		result_informed_data;
+	private boolean		result_informed;
+	private Object		result_informed_data;
 	
-	protected ResourceDownloaderBaseImpl	parent;
-	protected List							children = new ArrayList();
+	private ResourceDownloaderBaseImpl		parent;
+	private List							children = new ArrayList();
 	
-	protected boolean		download_cancelled;
+	private boolean		download_cancelled;
+	
+	private Map			properties	= new HashMap();
 	
 	protected AEMonitor		this_mon	= new AEMonitor( "ResourceDownloader" );
 
@@ -60,7 +62,7 @@ ResourceDownloaderBaseImpl
 		}
 	}
 	
-	public abstract ResourceDownloader
+	public abstract ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	_parent );
 
@@ -68,6 +70,49 @@ ResourceDownloaderBaseImpl
 	setSize(
 		long	size );
 	
+	public Object
+	getProperty(
+		String		name )
+	
+		throws ResourceDownloaderException
+	{
+			// hack this, properties are read during size acquisition - should treat size as a property
+			// too....
+		
+		getSize();
+		
+		return( properties.get( name ));
+	}
+	
+	protected void
+	setPropertySupport(
+		String	name,
+		Object	value )
+	{
+		properties.put( name, value );
+	}
+
+	protected void
+	setProperties(
+		ResourceDownloaderBaseImpl	other )
+	{
+		Map p = other.properties;
+		
+		Iterator it = p.keySet().iterator();
+		
+		while( it.hasNext()){
+			
+			String	key = (String)it.next();
+			
+			setProperty( key, p.get(key));
+		}
+	}
+	
+	protected abstract void
+	setProperty(
+		String	name,
+		Object	value );
+
 	protected void
 	setParent(
 		ResourceDownloader		_parent )

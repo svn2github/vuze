@@ -128,12 +128,14 @@ ResourceDownloaderAlternateImpl
 			for (int i=0;i<max_to_try;i++){
 				
 				try{
-					ResourceDownloader c = ((ResourceDownloaderBaseImpl)delegates[i]).getClone( this );
+					ResourceDownloaderBaseImpl c = ((ResourceDownloaderBaseImpl)delegates[i]).getClone( this );
 					
 					addReportListener( c );
 					
 					size = c.getSize();
 					
+					setProperties( c );
+
 					break;
 					
 				}catch( ResourceDownloaderException e ){
@@ -172,7 +174,20 @@ ResourceDownloaderAlternateImpl
 		}
 	}
 	
-	public ResourceDownloader
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		setPropertySupport( name, value );
+		
+		for (int i=0;i<delegates.length;i++){
+			
+			((ResourceDownloaderBaseImpl)delegates[i]).setProperty( name, value );
+		}
+	}
+	
+	public ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
@@ -188,6 +203,8 @@ ResourceDownloaderAlternateImpl
 		
 		c.setSize(size);
 		
+		c.setProperties( this );
+
 		return( c );
 	}
 	

@@ -127,7 +127,7 @@ TorrentManagerImpl
 		throws TorrentException
 	{
 		try{
-			return( new TorrentImpl(TorrentUtils.readFromFile( file, false )));
+			return( new TorrentImpl(plugin_interface,TorrentUtils.readFromFile( file, false )));
 			
 		}catch( TOTorrentException e ){
 			
@@ -142,7 +142,7 @@ TorrentManagerImpl
 		throws TorrentException
 	{
 		try{
-			return( new TorrentImpl(TOTorrentFactory.deserialiseFromBEncodedInputStream( data )));
+			return( new TorrentImpl(plugin_interface,TOTorrentFactory.deserialiseFromBEncodedInputStream( data )));
 				
 		}catch( TOTorrentException e ){
 				
@@ -161,7 +161,7 @@ TorrentManagerImpl
 		try{
 			is = new ByteArrayInputStream( data );
 			
-			return( new TorrentImpl(TOTorrentFactory.deserialiseFromBEncodedInputStream(is)));
+			return( new TorrentImpl(plugin_interface,TOTorrentFactory.deserialiseFromBEncodedInputStream(is)));
 			
 		}catch( TOTorrentException e ){
 			
@@ -202,7 +202,7 @@ TorrentManagerImpl
 			
 			c.addListener( this );
 			
-			return( new TorrentImpl(c.create()));
+			return( new TorrentImpl(plugin_interface,c.create()));
 			
 		}catch( TOTorrentException e ){
 			

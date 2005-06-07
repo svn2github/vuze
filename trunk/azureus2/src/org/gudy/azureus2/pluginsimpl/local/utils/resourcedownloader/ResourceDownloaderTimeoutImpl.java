@@ -41,8 +41,8 @@ ResourceDownloaderTimeoutImpl
 	
 	protected int						timeout_millis;
 	
-	protected boolean					cancelled;
-	protected ResourceDownloader		current_downloader;
+	protected boolean						cancelled;
+	protected ResourceDownloaderBaseImpl	current_downloader;
 
 	protected Object					result;
 	protected AESemaphore				done_sem	= new AESemaphore("RDTimeout");
@@ -87,6 +87,8 @@ ResourceDownloaderTimeoutImpl
 			
 			size = x.getSizeSupport();
 			
+			setProperties( x );
+			
 		}finally{
 			
 			if ( size == -2 ){
@@ -112,7 +114,17 @@ ResourceDownloaderTimeoutImpl
 		}
 	}
 	
-	public ResourceDownloader
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		setPropertySupport( name, value );
+		
+		delegate.setProperty( name, value );
+	}
+	
+	public ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
@@ -120,6 +132,8 @@ ResourceDownloaderTimeoutImpl
 		
 		c.setSize( size );
 		
+		c.setProperties( this );
+
 		return( c );
 	}
 	
@@ -219,6 +233,8 @@ ResourceDownloaderTimeoutImpl
 								long	res = current_downloader.getSize();
 								
 								result	= new Long(res);
+								
+								setProperties( current_downloader );
 								
 								done_sem.release();
 								

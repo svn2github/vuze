@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerWebPageResponseImpl;
 
 /**
  * @author parg
@@ -74,11 +75,36 @@ ResourceDownloaderFileImpl
 	
 		throws ResourceDownloaderException
 	{	
+		String	file_str = file.toString();
+		
+		int	pos = file_str.lastIndexOf( "." );
+		
+		String	file_type;
+		
+		if ( pos != -1 ){
+		
+			file_type = file_str.substring(pos+1);
+			
+		}else{
+			
+			file_type = null;
+		}
+		
+		setProperty( 	ResourceDownloader.PR_STRING_CONTENT_TYPE,
+						TrackerWebPageResponseImpl.guessContentTypeFromFileType( file_type ));
+		
 		return( FileUtil.getFileOrDirectorySize( file ));
 	}
 	
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		setPropertySupport( name, value );
+	}
 	
-	public ResourceDownloader
+	public ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	parent )
 	{
