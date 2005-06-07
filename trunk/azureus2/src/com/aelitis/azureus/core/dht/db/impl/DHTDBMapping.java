@@ -448,6 +448,12 @@ DHTDBMapping
 		return( new valueIterator( true, false ));
 	}
 	
+	protected Iterator
+	getIndirectValues()
+	{
+		return( new valueIterator( false, true ));
+	}
+	
 	protected byte
 	getDiversificationType()
 	{
@@ -713,6 +719,7 @@ DHTDBMapping
 		
 		if ( hit_count >= 15 ){
 		
+			db.banContact( originator, "local flood on '" + DHTLog.getFullString( key.getBytes()) + "'" );
 		}
 	}
 	

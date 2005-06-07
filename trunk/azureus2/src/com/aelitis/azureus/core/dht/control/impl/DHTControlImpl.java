@@ -2516,7 +2516,16 @@ DHTControlImpl
 		database.print();
 	}
 	
-	
+	public List
+	sortContactsByDistance(
+		List		contacts )
+	{
+		Set	sorted_contacts = new sortedContactSet( router.getID(), true ).getSet(); 
+
+		sorted_contacts.addAll( contacts );
+		
+		return( new ArrayList( sorted_contacts ));
+	}
 	
 	protected class
 	sortedContactSet

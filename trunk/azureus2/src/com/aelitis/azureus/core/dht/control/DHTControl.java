@@ -116,6 +116,10 @@ DHTControl
 		byte[]		id,
 		boolean		live_only );
 	
+	public List
+	sortContactsByDistance(
+		List		contacts );
+	
 	public void
 	putEncodedKey(
 		byte[]				key,

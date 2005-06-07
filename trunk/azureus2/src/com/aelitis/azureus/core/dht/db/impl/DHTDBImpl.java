@@ -1157,8 +1157,61 @@ DHTDBImpl
 	}
 	
 	protected void
+	banContact(
+		final DHTTransportContact	contact,
+		final String				reason )
+	{
+		new AEThread( "DHTDBImpl:delayed flood delete", true )
+		{
+			public void
+			runSupport()
+			{
+					// delete their data on a separate thread so as not to 
+					// interfere with the current action
+				
+				try{
+					this_mon.enter();
+					
+					Iterator	it = stored_values.values().iterator();
+												
+					while( it.hasNext()){
+						
+						DHTDBMapping	mapping = (DHTDBMapping)it.next();
+
+						Iterator	it2 = mapping.getDirectValues();
+						
+						while( it2.hasNext()){
+							
+							DHTDBValueImpl	val = (DHTDBValueImpl)it2.next();
+							
+							if ( val.getCacheDistance() > 0 ){
+								
+								if ( Arrays.equals( val.getOriginator().getID(), contact.getID())){
+									
+									it.remove();
+								}
+							}
+						}
+					}
+
+				}finally{
+					
+					this_mon.exit();
+					
+				}
+			}
+		}.start();
+	
+		logger.log( "Banning " + contact.getString() + " due to store flooding (" + reason + ")" );
+		
+		ip_filter.ban( 
+				contact.getAddress().getAddress().getHostAddress(),
+				"DHT: Sender stored excessive entries at this node (" + reason + ")" );		
+	}
+	
+	protected void
 	incrementValueAdds(
-		final DHTTransportContact	contact )
+		DHTTransportContact	contact )
 	{
 			// assume a node stores 1000 values at 20 (K) locations -> 20,000 values
 			// assume a DHT size of 100,000 nodes
@@ -1185,52 +1238,7 @@ DHTDBImpl
 			
 			// obviously being spammed, drop all data originated by this IP and ban it
 			
-			new AEThread( "DHTDBImpl:delayed flood delete", true )
-				{
-					public void
-					runSupport()
-					{
-							// delete their data on a separate thread so as not to 
-							// interfere with the current action
-						
-						try{
-							this_mon.enter();
-							
-							Iterator	it = stored_values.values().iterator();
-														
-							while( it.hasNext()){
-								
-								DHTDBMapping	mapping = (DHTDBMapping)it.next();
-
-								Iterator	it2 = mapping.getDirectValues();
-								
-								while( it2.hasNext()){
-									
-									DHTDBValueImpl	val = (DHTDBValueImpl)it2.next();
-									
-									if ( val.getCacheDistance() > 0 ){
-										
-										if ( Arrays.equals( val.getOriginator().getID(), contact.getID())){
-											
-											it.remove();
-										}
-									}
-								}
-							}
-
-						}finally{
-							
-							this_mon.exit();
-							
-						}
-					}
-				}.start();
-			
-			logger.log( "Banning " + contact.getString() + " due to store flooding" );
-			
-			ip_filter.ban( 
-					contact.getAddress().getAddress().getHostAddress(),
-					"DHT: Sender stored excessive entries at this node" );
+			banContact( contact, "global flood" );
 		}
 	}
 	
@@ -1264,6 +1272,9 @@ DHTDBImpl
 		
 		try{
 			
+			//Map		sender_map	= new HashMap();
+			//List	senders		= new ArrayList();
+			
 			Iterator	it = stored_values.values().iterator();
 			
 			int	max_hits = 0;
@@ -1292,9 +1303,69 @@ DHTDBImpl
 						}
 					}
 				}
+				
+					// survey our neighbourhood
+				
+				/*
+				 * its is non-trivial to do anything about nodes that get "close" to us and then
+				 * spam us with crap. Ultimately, of course, to take a key out you "just" create
+				 * the 20 closest nodes to the key and then run nodes that swallow all registrations
+				 * and return nothing.  
+				 * Protecting against one or two such nodes that flood crap requires crap to be
+				 * identified. Tracing shows a large disparity between number of values registered
+				 * per neighbour (factors of 100), so an approach based on number of registrations
+				 * is non-trivial (assuming future scaling of the DHT, what do we consider crap?)
+				 * A further approach would be to query the claimed originators of values (obviously
+				 * a low bandwith approach, e.g. query 3 values from the contact with highest number
+				 * of forwarded values). This requires originators to support long term knowledge of
+				 * what they've published (we don't want to blacklist a neighbour because an originator
+				 * has deleted a value/been restarted). We also then have to consider how to deal with
+				 * non-responses to queries (assuming an affirmative Yes -> value has been forwarded
+				 * correnctly, No -> probably crap). We can't treat non-replies as No. Thus a bad
+				 * neighbour only has to forward crap with originators that aren't AZ nodes (very
+				 * easy to do!) to break this aproach. 
+				 * 
+				 * 
+				it2 = mapping.getIndirectValues();
+				
+				while( it2.hasNext()){
+					
+					DHTDBValueImpl	val = (DHTDBValueImpl)it2.next();
+					
+					DHTTransportContact sender = val.getSender();
+					
+					HashWrapper	hw = new HashWrapper( sender.getID());
+					
+					Integer	sender_count = (Integer)sender_map.get( hw );
+					
+					if ( sender_count == null ){
+						
+						sender_count = new Integer(1);
+						
+						senders.add( sender );
+						
+					}else{
+						
+						sender_count = new Integer( sender_count.intValue() + 1 );						
+					}
+					
+					sender_map.put( hw, sender_count );
+				}	
+				*/
 			}
 			
 			logger.log( "Rebuilt global IP bloom filter, size = " + new_filter.getSize() + ", entries =" + new_filter.getEntryCount()+", max hits = " + max_hits );
+				
+			/*
+			senders = control.sortContactsByDistance( senders );
+			
+			for (int i=0;i<senders.size();i++){
+				
+				DHTTransportContact	sender = (DHTTransportContact)senders.get(i);
+				
+				System.out.println( i + ":" + sender.getString() + " -> " + sender_map.get(new HashWrapper(sender.getID())));	
+			}
+			*/
 			
 		}finally{
 			
