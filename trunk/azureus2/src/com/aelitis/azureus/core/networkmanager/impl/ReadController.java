@@ -71,15 +71,34 @@ public class ReadController {
 
   
   private void readSelectorLoop() {
+    int rounds = 0;    
+    long start = System.currentTimeMillis();
+    
     while( true ) {
       try {
         read_selector.select( 100 );
       }
       catch( Throwable t ) {
         Debug.out( "readSelectorLoop() EXCEPTION: ", t );
+        try {  Thread.sleep( 1000 );  }catch(Exception e) { Debug.printStackTrace(e); }
       }
+      
+      rounds++;
+      
+      if( rounds > 1000 ) {
+        long time = System.currentTimeMillis() - start;
+        
+        if( time < 3000 ) {
+          Debug.out( "readSelectorLoop() spin detected, time=" +time );
+        }
+        rounds = 0;
+        start = System.currentTimeMillis();
+      }
+      
     }
   }
+  
+  
   
   
   private void readProcessorLoop() {

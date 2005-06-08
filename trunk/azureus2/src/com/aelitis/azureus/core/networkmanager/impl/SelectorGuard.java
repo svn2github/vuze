@@ -56,6 +56,10 @@ public class SelectorGuard {
   
   
   
+  private static long max_consec = 0;
+  
+  
+  
   
   /**
    * Create a new SelectorGuard with the given failed count threshold.
@@ -100,6 +104,11 @@ public class SelectorGuard {
     
     //if we've gotten here, then we have a potential selector anomalie
     consecutiveZeroSelects++;
+        
+    if( consecutiveZeroSelects > max_consec ) {
+      max_consec = consecutiveZeroSelects;
+      if( max_consec % 10 == 0 )  Debug.out( "max_consec= " +max_consec );
+    }    
     
     if (consecutiveZeroSelects > countThreshold) {
       //we're over the threshold: reset stats and report error

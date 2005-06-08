@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.networkmanager;
 import java.nio.channels.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 
@@ -36,8 +38,13 @@ public class VirtualChannelSelector {
   /**
    * TODO
    */
-  private static final boolean ENABLE_FAULTY_SELECTOR_MODE = true;
-
+  private static final boolean ENABLE_FAULTY_SELECTOR_MODE = COConfigurationManager.getBooleanParameter( "network.tcp.enable_faulty_selector_mode" );
+  static{
+    if( ENABLE_FAULTY_SELECTOR_MODE )  LGLogger.log( LGLogger.INFORMATION, "**** FAULTY SELECTOR COMPATIBILITY MODE ENABLED ****" );
+  }
+  
+  
+  
   public static final int OP_CONNECT  = SelectionKey.OP_CONNECT;
   public static final int OP_READ   = SelectionKey.OP_READ;
   public static final int OP_WRITE  = SelectionKey.OP_WRITE;

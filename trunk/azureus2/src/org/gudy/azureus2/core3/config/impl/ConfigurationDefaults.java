@@ -373,6 +373,7 @@ public class ConfigurationDefaults {
     def.put("Play Download Finished Announcement Text", "Download Complete");
     
     def.put( "BT Request Max Block Size", new Long(65536));
+    def.put( "network.tcp.enable_faulty_selector_mode", new Long(0) );
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

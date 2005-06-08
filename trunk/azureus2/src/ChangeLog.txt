@@ -8,6 +8,7 @@ FEATURE: Core | DHT torrent lookup now based on sha1(hash) and torrent xfer encr
 CHANGE: Core  | Improved optimistic unchoke anti-leech algorithms [Nolar]
 
 BUGFIX: Core  | DHT protocol version logic fixes [Parg]
+BUGFIX: Core  | Fix for 100% cpu when more than 60 connections are registered with a selector under buggy network stacks [Nolar]
 
 
 

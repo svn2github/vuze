@@ -359,6 +359,7 @@ public class VirtualChannelSelectorImpl {
       }
       
       
+      /*
       if( selector_guard.detectSpinningKeys( selector.selectedKeys() ) ) {
         String op_type = "OP_CONNECT";
         if( INTEREST_OP == VirtualChannelSelector.OP_READ )  op_type = "OP_READ";
@@ -366,6 +367,7 @@ public class VirtualChannelSelectorImpl {
         
         Debug.out( "Possible spinning keys detected for " +op_type+ ": " +selector_guard.getSpinningKeyReport() );
       }
+      */
       
       
       //notification of ready keys via listener callback
