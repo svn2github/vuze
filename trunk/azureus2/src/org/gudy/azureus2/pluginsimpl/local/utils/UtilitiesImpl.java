@@ -61,6 +61,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.IPToHostNameResolver;
 import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -75,8 +76,19 @@ public class
 UtilitiesImpl
 	implements Utilities
 {
-	protected PluginInterface			pi;
+	private PluginInterface			pi;
 	
+	private static ThreadLocal		tls	= 
+		new ThreadLocal()
+		{
+			public Object
+			initialValue()
+			{
+				return( null );
+			}
+		};
+		
+		
 	public
 	UtilitiesImpl(
 		PluginInterface		_pi )
@@ -197,6 +209,8 @@ UtilitiesImpl
 				public void
 				runSupport()
 				{
+					setPluginThreadContext( pi );
+					
 					target.run();
 				}
 			};
@@ -611,5 +625,18 @@ UtilitiesImpl
 					timer.destroy();
 				}
 			});
+	}
+	
+	public static final void
+	setPluginThreadContext(
+		PluginInterface		pi )
+	{
+		tls.set( pi );
+	}
+	
+	public static PluginInterface
+	getPluginThreadContext()
+	{
+		return((PluginInterface)tls.get());
 	}
 }

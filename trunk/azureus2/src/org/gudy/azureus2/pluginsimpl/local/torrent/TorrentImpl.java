@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.download.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 public class 
 TorrentImpl
@@ -296,13 +297,20 @@ TorrentImpl
 		String		name,
 		String		value )
 	{
-		if ( pi == null ){
+		PluginInterface	p = pi;
+		
+		if ( p == null ){
+		
+			p = UtilitiesImpl.getPluginThreadContext();	
+		}
+		
+		if ( p == null ){
 			
 			name = "<internal>." + name;
 			
 		}else{
 			
-			name = pi.getPluginID() + "." + name;
+			name = p.getPluginID() + "." + name;
 		}
 		
 		TorrentUtils.setPluginStringProperty( torrent, name, value );
@@ -312,13 +320,20 @@ TorrentImpl
 	getPluginStringProperty(
 		String		name )
 	{
-		if ( pi == null ){
+		PluginInterface	p = pi;
+		
+		if ( p == null ){
+		
+			p = UtilitiesImpl.getPluginThreadContext();	
+		}
+		
+		if ( p == null ){
 			
 			name = "<internal>." + name;
 			
 		}else{
 			
-			name = pi.getPluginID() + "." + name;
+			name = p.getPluginID() + "." + name;
 		}
 		
 		return( TorrentUtils.getPluginStringProperty( torrent, name ));

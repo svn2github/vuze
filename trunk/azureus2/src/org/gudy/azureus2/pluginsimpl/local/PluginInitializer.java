@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
@@ -885,6 +886,8 @@ PluginInitializer
   			
   			try{
       	
+				UtilitiesImpl.setPluginThreadContext( plugin_interface );
+				
   				plugin.initialize(plugin_interface);
       	
   			}catch( Throwable e ){
@@ -1016,6 +1019,8 @@ PluginInitializer
 						plugin_id,
 						null );
   		
+		UtilitiesImpl.setPluginThreadContext( plugin_interface );
+
   		plugin.initialize(plugin_interface);
   		
    		plugins.add( plugin );
@@ -1057,6 +1062,8 @@ PluginInitializer
 						plugin_id,
 						null );
   		
+		UtilitiesImpl.setPluginThreadContext( plugin_interface );
+
   		plugin.initialize(plugin_interface);
   		
    		plugins.add( plugin );

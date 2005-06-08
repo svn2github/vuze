@@ -31,8 +31,10 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
 import java.util.*;
 import java.io.*;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -41,14 +43,17 @@ public abstract class
 TrackerWCHelper 
 	implements TrackerWebContext, TRHostAuthenticationListener, TRTrackerServerAuthenticationListener
 {
-	protected Tracker	tracker;
-	protected List		generators 	= new ArrayList();
+	private PluginInterface		plugin_interface;
+	
+	private Tracker		tracker;
+	private List		generators 	= new ArrayList();
 
 	protected AEMonitor this_mon 	= new AEMonitor( "TrackerWCHelper" );
 
 	protected
 	TrackerWCHelper()
 	{
+		plugin_interface = UtilitiesImpl.getPluginThreadContext();
 	}
 	
 	protected void
@@ -68,6 +73,8 @@ TrackerWCHelper
 	
 		throws IOException
 	{	
+		UtilitiesImpl.setPluginThreadContext( plugin_interface );
+		
 		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, this, _client_address, _url, _header, _is );
 		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os );
 		
