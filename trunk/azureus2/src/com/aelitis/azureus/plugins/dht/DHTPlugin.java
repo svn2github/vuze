@@ -509,9 +509,9 @@ DHTPlugin
 											}
 										});
 										
-									final int sample_frequency	= 60000;
-									final int sample_duration	= 10*60;
-									
+									final int sample_frequency		= 60*1000;
+									final int sample_duration		= 10*60;
+									final int sample_stats_ticks	= 15;	// every 15 mins
 				
 									plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
 											sample_frequency,
@@ -521,10 +521,14 @@ DHTPlugin
 												
 												long	last_incoming;
 												
+												int	ticks = 0;
+												
 												public void
 												perform(
 													UTTimerEvent		event )
 												{
+													ticks++;
+													
 													if ( dht != null ){
 														
 														DHTTransportStats t_stats = transport.getStats();
@@ -568,35 +572,38 @@ DHTPlugin
 															}
 														}
 														
-														DHTDBStats		d_stats	= dht.getDataBase().getStats();
-														DHTControlStats	c_stats = dht.getControl().getStats();
-														DHTRouterStats	r_stats = dht.getRouter().getStats();
-														
-														long[]	rs = r_stats.getStats();
-					
-
-														log.log( 	"Router" +
-																	":nodes=" + rs[DHTRouterStats.ST_NODES] +
-																	",leaves=" + rs[DHTRouterStats.ST_LEAVES] +
-																	",contacts=" + rs[DHTRouterStats.ST_CONTACTS] +
-																	",replacement=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
-																	",live=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
-																	",unknown=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
-																	",failing=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
-											
-														log.log( 	"Transport" + 
-																	":" + t_stats.getString()); 
-																
-														int[]	dbv_details = d_stats.getValueDetails();
-														
-														log.log(    "Control:dht=" + c_stats.getEstimatedDHTSize() + 
-																   	", Database:keys=" + d_stats.getKeyCount() +
-																   	",vals=" + dbv_details[DHTDBStats.VD_VALUE_COUNT]+
-																   	",loc=" + dbv_details[DHTDBStats.VD_LOCAL_SIZE]+
-																   	",dir=" + dbv_details[DHTDBStats.VD_DIRECT_SIZE]+
-																   	",ind=" + dbv_details[DHTDBStats.VD_INDIRECT_SIZE]+
-																   	",div_f=" + dbv_details[DHTDBStats.VD_DIV_FREQ]+
-																   	",div_s=" + dbv_details[DHTDBStats.VD_DIV_SIZE] );
+														if ( ticks % sample_stats_ticks == 0 ){
+															
+															DHTDBStats		d_stats	= dht.getDataBase().getStats();
+															DHTControlStats	c_stats = dht.getControl().getStats();
+															DHTRouterStats	r_stats = dht.getRouter().getStats();
+															
+															long[]	rs = r_stats.getStats();
+						
+	
+															log.log( 	"Router" +
+																		":nodes=" + rs[DHTRouterStats.ST_NODES] +
+																		",leaves=" + rs[DHTRouterStats.ST_LEAVES] +
+																		",contacts=" + rs[DHTRouterStats.ST_CONTACTS] +
+																		",replacement=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
+																		",live=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
+																		",unknown=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
+																		",failing=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
+												
+															log.log( 	"Transport" + 
+																		":" + t_stats.getString()); 
+																	
+															int[]	dbv_details = d_stats.getValueDetails();
+															
+															log.log(    "Control:dht=" + c_stats.getEstimatedDHTSize() + 
+																	   	", Database:keys=" + d_stats.getKeyCount() +
+																	   	",vals=" + dbv_details[DHTDBStats.VD_VALUE_COUNT]+
+																	   	",loc=" + dbv_details[DHTDBStats.VD_LOCAL_SIZE]+
+																	   	",dir=" + dbv_details[DHTDBStats.VD_DIRECT_SIZE]+
+																	   	",ind=" + dbv_details[DHTDBStats.VD_INDIRECT_SIZE]+
+																	   	",div_f=" + dbv_details[DHTDBStats.VD_DIV_FREQ]+
+																	   	",div_s=" + dbv_details[DHTDBStats.VD_DIV_SIZE] );
+														}
 													}
 												}
 											});
@@ -1272,6 +1279,13 @@ outer:
 	getDHT()
 	{
 		return( dht );
+	}
+	
+	public void
+	log(
+		String	str )
+	{
+		log.log( str );
 	}
 	
 	protected class

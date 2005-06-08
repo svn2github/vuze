@@ -32,8 +32,6 @@ import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -155,6 +153,16 @@ DDBaseImpl
 		throwIfNotAvailable();
 		
 		return( dht );
+	}
+	
+	protected void
+	log(
+		String	str )
+	{
+		if ( dht != null ){
+			
+			dht.log( str );
+		}
 	}
 	
 	public DistributedDatabaseKey

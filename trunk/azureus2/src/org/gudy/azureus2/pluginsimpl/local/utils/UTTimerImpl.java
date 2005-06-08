@@ -36,15 +36,18 @@ public class
 UTTimerImpl
 	implements UTTimer
 {
-	protected Timer		timer;
+	private PluginInterface		plugin_interface;
+	private Timer				timer;
 
-	protected boolean		destroyed;
+	private boolean				destroyed;
 	
 	protected
 	UTTimerImpl(
 		PluginInterface		pi,
 		String				name )
 	{
+		plugin_interface	= pi;
+		
 		timer = new Timer( "Plugin " + pi.getPluginID() + ":" + name );
 	}
 	
@@ -69,6 +72,8 @@ UTTimerImpl
 				perform(
 					TimerEvent		ev )
 				{
+					UtilitiesImpl.setPluginThreadContext( plugin_interface );
+					
 					res.perform( performer );
 				}
 			});

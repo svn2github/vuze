@@ -181,12 +181,31 @@ DDBaseTTTorrent
 			
 			if ( download == null ){
 				
+				String msg = "TorrentDownload: " + (encrypt?"secure":"insecure") + " request for '" + pi.getUtilities().getFormatters().encodeBytesToString( search_key ) + "' not found";
+				
+				if ( TRACE ){
+					
+					System.out.println( msg );
+				}
+				
+				ddb.log( msg );
+				
 					// torrent not found - probably been removed whilst info still published in DHT
 				
 				return( null );
+				
 			}
 			
 			Torrent	torrent = download.getTorrent();
+			
+			String	msg = "TorrentDownload: " + (encrypt?"secure":"insecure") + " request for '" + download.getName() + "' OK";		
+
+			if ( TRACE ){
+				
+				System.out.println( msg );
+			}
+			
+			ddb.log( msg );
 			
 			torrent = torrent.removeAdditionalProperties();
 			
