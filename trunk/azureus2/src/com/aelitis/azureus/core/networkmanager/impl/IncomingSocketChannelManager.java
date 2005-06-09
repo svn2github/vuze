@@ -162,6 +162,11 @@ public class IncomingSocketChannelManager {
   private void start() {
   	try{
   		this_mon.enter();
+      
+        if( listen_port < 0 || listen_port > 65535 || listen_port == 6880 ) {
+          Debug.out( "Invalid incoming connection listen port configured: " +listen_port );
+          listen_port = 6881;
+        }
   	
 	    if( server_selector == null ) {
 	      InetSocketAddress address;
