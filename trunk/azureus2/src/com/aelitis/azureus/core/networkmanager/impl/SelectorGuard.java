@@ -107,7 +107,7 @@ public class SelectorGuard {
         
     if( consecutiveZeroSelects > max_consec ) {
       max_consec = consecutiveZeroSelects;
-      if( max_consec % 10 == 0 )  Debug.out( "max_consec= " +max_consec );
+      if( max_consec % 50 == 0 )  Debug.out( "max_consec zero selects= " +max_consec );
     }    
     
     if (consecutiveZeroSelects > countThreshold) {

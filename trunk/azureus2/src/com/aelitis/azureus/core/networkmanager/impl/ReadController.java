@@ -80,16 +80,16 @@ public class ReadController {
       }
       catch( Throwable t ) {
         Debug.out( "readSelectorLoop() EXCEPTION: ", t );
-        try {  Thread.sleep( 1000 );  }catch(Exception e) { Debug.printStackTrace(e); }
       }
       
       rounds++;
       
-      if( rounds > 1000 ) {
+      if( rounds > 5000 ) {
         long time = System.currentTimeMillis() - start;
         
-        if( time < 3000 ) {
-          Debug.out( "readSelectorLoop() spin detected, time=" +time );
+        if( time < 1000 ) {
+          Debug.out( "readSelectorLoop() possible spin detected, time=" +time );
+          try {  Thread.sleep( 1000 );  }catch(Exception e) { Debug.printStackTrace(e); }
         }
         rounds = 0;
         start = System.currentTimeMillis();
