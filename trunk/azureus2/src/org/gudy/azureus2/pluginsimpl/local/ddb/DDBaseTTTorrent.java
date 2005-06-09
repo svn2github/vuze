@@ -56,7 +56,7 @@ public class
 DDBaseTTTorrent
 	implements DistributedDatabaseTransferType, DistributedDatabaseTransferHandler
 {
-	public static final boolean	TRACE			= true;
+	public static final boolean	TRACE			= false;
 	
 	public static final byte	CRYPTO_VERSION	= 1;
 	
