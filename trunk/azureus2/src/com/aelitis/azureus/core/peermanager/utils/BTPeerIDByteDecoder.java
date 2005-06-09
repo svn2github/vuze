@@ -53,6 +53,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "BS", "BTSlave" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "BX", "BittorrentX" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "TN", "Torrent.NET" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "BC", "BitComet" )) != null ) return decoded;
       
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
