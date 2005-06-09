@@ -164,7 +164,9 @@ public class IncomingSocketChannelManager {
   		this_mon.enter();
       
         if( listen_port < 0 || listen_port > 65535 || listen_port == 6880 ) {
-          LGLogger.logUnrepeatableAlert( LGLogger.ERROR, "Invalid incoming connection listen port configured: " +listen_port+ " Port reset to default." );
+          String msg = "Invalid incoming listen port configured, " +listen_port+ ". Port reset to default. Please check your config!";
+          Debug.out( msg );
+          LGLogger.logUnrepeatableAlert( LGLogger.ERROR, msg );
           listen_port = 6881;
           COConfigurationManager.setParameter( "TCP.Listen.Port", listen_port );
         }
@@ -406,7 +408,7 @@ public class IncomingSocketChannelManager {
     
     private IncomingConnection( SocketChannel channel, int buff_size ) {
       this.channel = channel;
-      this.buffer = ByteBuffer.allocate( buff_size );   //TODO convert to direct?
+      this.buffer = ByteBuffer.allocate( buff_size );
       this.initial_connect_time = SystemTime.getCurrentTime();
     }
   }
