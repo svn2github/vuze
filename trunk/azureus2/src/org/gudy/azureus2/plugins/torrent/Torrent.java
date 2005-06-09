@@ -83,6 +83,9 @@ Torrent
 	public long
 	getPieceCount();
 	
+	public byte[][]
+    getPieces();
+	
 	public TorrentFile[]
 	getFiles();
 	

@@ -241,6 +241,14 @@ RPTorrent
 		return(0);
 	}	
 	
+	public byte[][]
+	getPieces()
+	{
+		notSupported();
+		
+		return(null);
+	}	
+	
 	public String
 	getEncoding()
 	{

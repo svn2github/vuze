@@ -204,6 +204,20 @@ TorrentImpl
 		return( torrent.getNumberOfPieces());
 	}
 	
+	public byte[][]
+  	getPieces()
+  	{
+		try{
+			return( torrent.getPieces());
+			
+		}catch( TOTorrentException e ){
+			
+			Debug.printStackTrace( e );
+			
+			return( new byte[0][0] );
+		}
+  	}	
+	          	
 	public TorrentFile[]
 	getFiles()
 	{
