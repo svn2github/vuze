@@ -425,7 +425,7 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		if ( !running ){
+		if ( global_manager == null ){
 			
 			throw( new AzureusCoreException( "Core not running" ));
 		}
@@ -438,12 +438,6 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{	
-		if ( !running ){
-	
-			throw( new AzureusCoreException( "Core not running" ));
-
-		}
-		
 		return( TRHostFactory.getSingleton());
 	}
 	
@@ -479,7 +473,13 @@ AzureusCoreImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((AzureusCoreListener)listeners.get(i)).reportCurrentTask( currentTask ); 
+			try{
+				((AzureusCoreListener)listeners.get(i)).reportCurrentTask( currentTask );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	  
@@ -489,7 +489,13 @@ AzureusCoreImpl
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((AzureusCoreListener)listeners.get(i)).reportPercent( percent ); 
+			try{
+				((AzureusCoreListener)listeners.get(i)).reportPercent( percent );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
