@@ -164,8 +164,9 @@ public class IncomingSocketChannelManager {
   		this_mon.enter();
       
         if( listen_port < 0 || listen_port > 65535 || listen_port == 6880 ) {
-          Debug.out( "Invalid incoming connection listen port configured: " +listen_port );
+          LGLogger.logUnrepeatableAlert( LGLogger.ERROR, "Invalid incoming connection listen port configured: " +listen_port+ " Port reset to default." );
           listen_port = 6881;
+          COConfigurationManager.setParameter( "TCP.Listen.Port", listen_port );
         }
   	
 	    if( server_selector == null ) {
