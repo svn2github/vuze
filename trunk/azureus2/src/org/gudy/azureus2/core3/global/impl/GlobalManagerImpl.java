@@ -481,7 +481,7 @@ public class GlobalManagerImpl
     
       	// now do the creation!
       
-      DownloadManager new_manager = DownloadManagerFactory.create(this, torrent_hash, fName, savePath, initialState, persistent, false, for_seeding );
+      DownloadManager new_manager = DownloadManagerFactory.create(this, torrent_hash, fName, savePath, initialState, persistent, for_seeding );
       
       DownloadManager manager = addDownloadManager(new_manager, true);
       
@@ -499,12 +499,12 @@ public class GlobalManagerImpl
     catch (IOException e) {
       System.out.println( "DownloadManager::addDownloadManager: fails - td = " + torrentDir + ", fd = " + fDest );
       Debug.printStackTrace( e );
-      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, false, for_seeding );
+      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, for_seeding );
       return addDownloadManager(manager, true);
     }
     catch (Exception e) {
     	// get here on duplicate files, no need to treat as error
-      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, false, for_seeding );
+      DownloadManager manager = DownloadManagerFactory.create(this, torrent_hash, torrent_file_name, savePath, initialState, persistent, for_seeding );
       return addDownloadManager(manager, true);
     }
   }
@@ -1144,6 +1144,10 @@ public class GlobalManagerImpl
             } 
           }        
 
+	      Long seconds_downloading = (Long)mDownload.get("secondsDownloading");
+
+		  boolean	has_ever_been_started = seconds_downloading != null && seconds_downloading.longValue() > 0;
+		  
           saved_download_manager_state.put( fileName, mDownload );
           
           	// for non-persistent downloads the state will be picked up if the download is re-added
@@ -1151,7 +1155,7 @@ public class GlobalManagerImpl
           
           if ( persistent ){
           	
-          	DownloadManager dm = DownloadManagerFactory.create(this, torrent_hash, fileName, torrent_save_dir, torrent_save_file, state, true, true );
+          	DownloadManager dm = DownloadManagerFactory.create(this, torrent_hash, fileName, torrent_save_dir, torrent_save_file, state, true, true, has_ever_been_started );
           	
             addDownloadManager(dm, false);
           }

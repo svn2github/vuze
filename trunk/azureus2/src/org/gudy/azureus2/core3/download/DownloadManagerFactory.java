@@ -31,37 +31,8 @@ import org.gudy.azureus2.core3.global.*;
 
 public class 
 DownloadManagerFactory 
-{
- 	public static DownloadManager
- 	create(
- 		GlobalManager 	gm, 
-		byte[]			torrent_hash,
- 		String 			torrentFileName, 
- 		String 			savePath, 
-		boolean 		stopped,
- 		boolean			persistent,
-		boolean			recovered )
- 	{
- 		int state = (stopped) ? DownloadManager.STATE_STOPPED : DownloadManager.STATE_WAITING;
- 		
-		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, state, persistent, recovered, false ));
- 	}	
-
-	public static DownloadManager
- 	create(
- 		GlobalManager 	gm, 
-		byte[]			torrent_hash,
- 		String 			torrentFileName, 
- 		String 			torrent_save_dir,
-		String			torrent_save_file, 
-		boolean 		stopped,
- 		boolean			persistent,
-		boolean			recovered )
- 	{
- 		int state = (stopped) ? DownloadManager.STATE_STOPPED : DownloadManager.STATE_WAITING;
- 		
-		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, state, persistent, recovered, false ));
- 	}
+{	
+		// new downloads
 	
 	public static DownloadManager
 	create(
@@ -71,11 +42,12 @@ DownloadManagerFactory
 		String 			savePath, 
 		int      		initialState,
 		boolean			persistent,
-		boolean			recovered,
 		boolean			for_seeding )
 	{
-		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, initialState, persistent, recovered, for_seeding ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, initialState, persistent, false, for_seeding, false ));
 	}
+	
+		// recovery method
 	
 	public static DownloadManager
 	create(
@@ -86,8 +58,9 @@ DownloadManagerFactory
 		String			torrent_save_file, 
 		int      		initialState,
 		boolean			persistent,
-		boolean			recovered )
+		boolean			recovered,
+		boolean			has_ever_been_started )
 	{
-		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, initialState, persistent, recovered, false ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, initialState, persistent, recovered, false, has_ever_been_started ));
 	}
 }

@@ -124,7 +124,41 @@ TRHostExternalTorrent
 	public TOTorrentAnnounceURLGroup
 	getAnnounceURLGroup()
 	{
-		return( null );
+		return( 
+			new TOTorrentAnnounceURLGroup()
+			{
+				public TOTorrentAnnounceURLSet[]
+               	getAnnounceURLSets()
+				{
+					return( new TOTorrentAnnounceURLSet[0] );
+				}
+ 
+               	public void
+               	setAnnounceURLSets(
+               		TOTorrentAnnounceURLSet[]	sets )
+				{
+				}
+               		
+               	public TOTorrentAnnounceURLSet
+               	createAnnounceURLSet(
+               		URL[]	urls )
+				{
+					return( new TOTorrentAnnounceURLSet()
+							{
+								public URL[]
+						       	getAnnounceURLs()
+								{
+									return( new URL[0]);
+								}
+						       	
+						       	public void
+						       	setAnnounceURLs(
+						       		URL[]		urls )
+								{
+								}
+							});
+				}
+			});
 	}
   
 	public void

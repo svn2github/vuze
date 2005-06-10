@@ -282,7 +282,8 @@ DownloadManagerImpl
 		int   			_initialState,
 		boolean			_persistent,
 		boolean			_recovered,
-		boolean			_open_for_seeding ) 
+		boolean			_open_for_seeding,
+		boolean			_has_ever_been_started ) 
 	{
 		persistent	= _persistent;
   	
@@ -301,7 +302,7 @@ DownloadManagerImpl
 	
 			// readTorrent adjusts the save dir and file to be sensible values
 			
-		readTorrent( _torrent_hash, persistent && !_recovered, _open_for_seeding );
+		readTorrent( _torrent_hash, persistent && !_recovered, _open_for_seeding, _has_ever_been_started );
 		
 			// must be after readTorrent, so that any listeners have a TOTorrent
 		
@@ -426,10 +427,10 @@ DownloadManagerImpl
 	readTorrent(
 		byte[]		torrent_hash,		// can be null for initial torrents
 		boolean		new_torrent,		// probably equivalend to (torrent_hash == null)????
-		boolean		open_for_seeding )
+		boolean		open_for_seeding,
+		boolean		has_ever_been_started )
 	{
 		display_name				= torrentFileName;	// default if things go wrong decoding it
-		//trackerUrl				= "";
 		torrent_comment				= "";
 		torrent_created_by			= "";
 		nbPieces					= 0;
@@ -566,7 +567,13 @@ DownloadManagerImpl
 			 	
 			 	if ( !(new_torrent || Constants.isWindows )){
 			 		
-			 		throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + save_dir_file.toString()));
+						// another exception here - if the torrent has never been started then we can
+						// fairly safely continue as its in a stopped state
+					
+					if ( has_ever_been_started ){
+			 		
+						throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + save_dir_file.toString()));
+					}
 			 	}
 			 }	
 			 
@@ -1325,7 +1332,7 @@ DownloadManagerImpl
 	    	
 	      diskManager.dumpResumeDataToDisk(false, true);
 	      
-	      readTorrent( torrent==null?null:torrent.getHash(),false, false );
+	      readTorrent( torrent==null?null:torrent.getHash(),false, false, true );
 	    }
 	    
 	    stopIt( DownloadManager.STATE_STOPPED, false, false );
