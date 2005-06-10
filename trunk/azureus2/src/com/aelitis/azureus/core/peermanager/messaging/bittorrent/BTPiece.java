@@ -38,11 +38,13 @@ public class BTPiece implements BTMessage {
   
   private final int piece_number;
   private final int piece_offset;
+  private final int piece_length;
   
   
   public BTPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
     this.piece_number = piece_number;
     this.piece_offset = piece_offset;
+    this.piece_length = data.remaining( DirectByteBuffer.SS_BT );
     buffer[1] = data;
   }
   
@@ -64,7 +66,7 @@ public class BTPiece implements BTMessage {
     
   public String getDescription() {
     if( description == null ) {
-      description = BTMessage.ID_BT_PIECE + " data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + buffer[1].remaining( DirectByteBuffer.SS_BT ) -1);
+      description = BTMessage.ID_BT_PIECE + " data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + piece_length -1);
     }
     
     return description;
