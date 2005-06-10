@@ -511,8 +511,7 @@ public class TrackerStatus {
               
             //make sure we dont use invalid replies
             if ( seeds < 0 || peers < 0 ){
-            	
-              Debug.out("Invalid scrape response from '" + reqUrl + "': map = "+scrapeMap);
+              if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Invalid scrape response from '" + reqUrl + "': map = "+scrapeMap);
               
               // We requested multiple hashes, but tracker didn't support
               // multiple hashes and returned 1 hash.  However, that hash is
