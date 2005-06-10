@@ -151,12 +151,12 @@ public class VirtualChannelSelectorImpl {
         finally{  register_cancel_list_mon.exit();  }
       }
       
-      try{
-        selector.wakeup();
-      }
-      catch( Throwable t ) {
-        Debug.out( "selector.wakeup():: caught exception: ", t );
-      }
+      //try{
+      //  selector.wakeup();  //TODO ?
+      //}
+      //catch( Throwable t ) {
+      //  Debug.out( "selector.wakeup():: caught exception: ", t );
+      //}
     }
 
 
