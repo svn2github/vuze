@@ -228,7 +228,7 @@ DHTControlImpl
 						
 						// sort for closeness to new router id
 					
-					Set	sorted_contacts = new sortedContactSet( router.getID(), true ).getSet(); 
+					Set	sorted_contacts = new sortedTransportContactSet( router.getID(), true ).getSet(); 
 
 					for (int i=0;i<old_contacts.size();i++){
 						
@@ -238,7 +238,9 @@ DHTControlImpl
 							
 							if ( contact.isAlive()){
 								
-								sorted_contacts.add( contact );
+								DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
+
+								sorted_contacts.add( t_contact );
 							}
 						}
 					}
@@ -254,7 +256,9 @@ DHTControlImpl
 							
 							if ( !contact.isAlive()){
 								
-								sorted_contacts.add( contact );
+								DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
+
+								sorted_contacts.add( t_contact );
 							}
 						}
 					}
@@ -269,9 +273,9 @@ DHTControlImpl
 					
 					while( it.hasNext() && added < 128 ){
 						
-						DHTRouterContact	contact = (DHTRouterContact)it.next();
+						DHTTransportContact	contact = (DHTTransportContact)it.next();
 						
-						router.contactAlive( contact.getID(), contact.getAttachment());
+						router.contactAlive( contact.getID(), new DHTControlContactImpl( contact ));
 						
 						added++;
 					}
@@ -1293,7 +1297,7 @@ DHTControlImpl
 				// record the set of contacts that we've had a reply from
 				// furthest away at front
 			
-			final Set			ok_contacts = new sortedContactSet( lookup_id, false ).getSet(); 
+			final Set			ok_contacts = new sortedTransportContactSet( lookup_id, false ).getSet(); 
 			
 	
 				// this handles the search concurrency
@@ -2080,7 +2084,7 @@ DHTControlImpl
 	{
 		List	l = router.findClosestContacts( id, live_only );
 		
-		Set	sorted_set	= new sortedContactSet( id, true ).getSet(); 
+		Set	sorted_set	= new sortedTransportContactSet( id, true ).getSet(); 
 
 		for (int i=0;i<l.size();i++){
 			
@@ -2305,7 +2309,7 @@ DHTControlImpl
 					
 				}else{
 					
-					Set	sorted_set	= new sortedContactSet( id, true ).getSet(); 
+					Set	sorted_set	= new sortedTransportContactSet( id, true ).getSet(); 
 		
 					sorted_set.addAll( contacts.values());
 					
@@ -2520,7 +2524,7 @@ DHTControlImpl
 	sortContactsByDistance(
 		List		contacts )
 	{
-		Set	sorted_contacts = new sortedContactSet( router.getID(), true ).getSet(); 
+		Set	sorted_contacts = new sortedTransportContactSet( router.getID(), true ).getSet(); 
 
 		sorted_contacts.addAll( contacts );
 		
@@ -2528,7 +2532,7 @@ DHTControlImpl
 	}
 	
 	protected class
-	sortedContactSet
+	sortedTransportContactSet
 	{
 		private TreeSet	tree_set;
 		
@@ -2536,7 +2540,7 @@ DHTControlImpl
 		private boolean	ascending;
 		
 		protected
-		sortedContactSet(
+		sortedTransportContactSet(
 			byte[]		_pivot,
 			boolean		_ascending )
 		{
