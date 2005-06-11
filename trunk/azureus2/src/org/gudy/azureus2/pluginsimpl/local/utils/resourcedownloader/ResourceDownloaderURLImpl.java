@@ -175,7 +175,7 @@ ResourceDownloaderURLImpl
 				return( -1 );
 			}
 			
-			reportActivity(this, "getting size of " + original_url );
+			reportActivity(this, "Getting size of " + original_url );
 
 			try{
 				URL	url = new URL( original_url.toString().replaceAll( " ", "%20" ));
