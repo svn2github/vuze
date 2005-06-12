@@ -83,7 +83,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
 
  ///////////////////////
     
-    IntParameter tcplisten = new IntParameter(cServer, "TCP.Listen.Port", 1, 65535, false, false);
+    final IntParameter tcplisten = new IntParameter(cServer, "TCP.Listen.Port", 1, 65535, false, false);
     formData = new FormData();
     formData.top = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
@@ -97,6 +97,16 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData.left = new FormAttachment(tcplisten.getControl());
     label.setLayoutData(formData);
      
+    tcplisten.addChangeListener( new ParameterChangeListener() {
+      public void parameterChanged( Parameter p, boolean caused_internally ) {
+        int val = tcplisten.getValue();
+        
+        if( val == 6880 || val == 6881 ) {
+          tcplisten.setValue( 6881 );
+        }
+      }
+    });
+    
     
     
  ///////////////////////
