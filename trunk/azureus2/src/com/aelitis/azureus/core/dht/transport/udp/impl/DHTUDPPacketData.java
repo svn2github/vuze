@@ -53,7 +53,7 @@ DHTUDPPacketData
 	
 		// assume keys are 20 bytes + 1 len, data len is 2 bytes
 	
-	public static int	MAX_DATA_SIZE = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketReply.DHT_HEADER_SIZE -
+	public static int	MAX_DATA_SIZE = DHTUDPPacketHelper.PACKET_MAX_BYTES - DHTUDPPacketReply.DHT_HEADER_SIZE -
 											1- 21 - 21 - 14;
 	
 	public
@@ -62,7 +62,7 @@ DHTUDPPacketData
 		DHTTransportUDPContactImpl		_local_contact,
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacket.ACT_DATA, _connection_id, _local_contact, _remote_contact );
+		super( DHTUDPPacketHelper.ACT_DATA, _connection_id, _local_contact, _remote_contact );
 	}
 	
 	protected
@@ -73,7 +73,7 @@ DHTUDPPacketData
 	
 		throws IOException
 	{
-		super( is,  DHTUDPPacket.ACT_REQUEST_PING, con_id, trans_id );
+		super( is,  DHTUDPPacketHelper.ACT_REQUEST_PING, con_id, trans_id );
 		
 		packet_type		= is.readByte();
 		transfer_key	= DHTUDPUtils.deserialiseByteArray( is, 64 );

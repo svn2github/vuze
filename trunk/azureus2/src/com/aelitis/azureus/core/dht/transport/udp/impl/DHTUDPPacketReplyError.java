@@ -52,7 +52,7 @@ DHTUDPPacketReplyError
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REPLY_ERROR, trans_id, conn_id, local_contact, remote_contact );
+		super( DHTUDPPacketHelper.ACT_REPLY_ERROR, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected
@@ -62,7 +62,7 @@ DHTUDPPacketReplyError
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacket.ACT_REPLY_ERROR, trans_id );
+		super( is, DHTUDPPacketHelper.ACT_REPLY_ERROR, trans_id );
 		
 		error_type = is.readInt();
 		

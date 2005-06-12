@@ -20,8 +20,21 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport.udp.impl;
+package com.aelitis.azureus.core.dht.transport.udp.impl.packethandler;
 
-public interface DHTUDPPacket {
+import java.net.InetSocketAddress;
 
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketReply;
+
+public interface 
+DHTUDPPacketReceiver 
+{
+	public void
+	packetReceived(
+		DHTUDPPacketReply		packet,
+		InetSocketAddress		from_address );
+	
+	public void
+	error(
+		DHTUDPPacketHandlerException	e );
 }

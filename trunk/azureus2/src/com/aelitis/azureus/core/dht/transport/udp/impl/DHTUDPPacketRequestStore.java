@@ -29,6 +29,7 @@ import java.io.IOException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 
 /**
@@ -53,20 +54,22 @@ DHTUDPPacketRequestStore
 		DHTTransportUDPContactImpl		_local_contact,
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REQUEST_STORE, _connection_id, _local_contact, _remote_contact );
+		super( DHTUDPPacketHelper.ACT_REQUEST_STORE, _connection_id, _local_contact, _remote_contact );
 	}
 
 	protected
 	DHTUDPPacketRequestStore(
-		DHTTransportUDPImpl		transport,
-		DataInputStream			is,
-		long					con_id,
-		int						trans_id )
+		DHTUDPPacketNetworkHandler		network_handler,
+		DataInputStream					is,
+		long							con_id,
+		int								trans_id )
 	
 		throws IOException
 	{
-		super( is,  DHTUDPPacket.ACT_REQUEST_STORE, con_id, trans_id );
+		super( is,  DHTUDPPacketHelper.ACT_REQUEST_STORE, con_id, trans_id );
 		
+		DHTTransportUDPImpl	transport = (DHTTransportUDPImpl)network_handler.getRequestHandler( this );
+
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			random_id	= is.readInt();

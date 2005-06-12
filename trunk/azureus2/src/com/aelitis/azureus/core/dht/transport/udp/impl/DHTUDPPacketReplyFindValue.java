@@ -33,6 +33,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 public class 
 DHTUDPPacketReplyFindValue
@@ -55,19 +56,23 @@ DHTUDPPacketReplyFindValue
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REPLY_FIND_VALUE, trans_id, conn_id, local_contact, remote_contact );
+		super( DHTUDPPacketHelper.ACT_REPLY_FIND_VALUE, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected
 	DHTUDPPacketReplyFindValue(
-		DHTTransportUDPImpl		transport,
-		DataInputStream			is,
-		int						trans_id )
+		DHTUDPPacketNetworkHandler		network_handler,
+		DataInputStream					is,
+		int								trans_id )
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacket.ACT_REPLY_FIND_VALUE, trans_id );
+		super( is, DHTUDPPacketHelper.ACT_REPLY_FIND_VALUE, trans_id );
 		
+		// we can only get the correct transport after decoding the network...
+
+		DHTTransportUDPImpl	transport = (DHTTransportUDPImpl)network_handler.getRequestHandler( this );
+
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){
 						
 			has_continuation	= is.readBoolean();

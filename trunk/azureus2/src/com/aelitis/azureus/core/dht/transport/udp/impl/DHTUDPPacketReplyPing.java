@@ -41,7 +41,7 @@ DHTUDPPacketReplyPing
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REPLY_PING, trans_id, conn_id, local_contact, remote_contact );
+		super( DHTUDPPacketHelper.ACT_REPLY_PING, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected
@@ -51,7 +51,7 @@ DHTUDPPacketReplyPing
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacket.ACT_REPLY_PING, trans_id );
+		super( is, DHTUDPPacketHelper.ACT_REPLY_PING, trans_id );
 	}
 	
 	public void

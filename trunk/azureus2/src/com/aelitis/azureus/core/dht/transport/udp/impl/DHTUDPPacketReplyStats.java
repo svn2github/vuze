@@ -44,7 +44,7 @@ DHTUDPPacketReplyStats
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REPLY_STATS, trans_id, conn_id, local_contact, remote_contact );
+		super( DHTUDPPacketHelper.ACT_REPLY_STATS, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected
@@ -54,7 +54,7 @@ DHTUDPPacketReplyStats
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacket.ACT_REPLY_STATS, trans_id );
+		super( is, DHTUDPPacketHelper.ACT_REPLY_STATS, trans_id );
 		
 		stats = DHTUDPUtils.deserialiseStats( getProtocolVersion(), is );
 	}

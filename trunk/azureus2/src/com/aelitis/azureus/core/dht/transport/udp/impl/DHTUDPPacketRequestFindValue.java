@@ -46,7 +46,7 @@ DHTUDPPacketRequestFindValue
 		DHTTransportUDPContactImpl		_local_contact,
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REQUEST_FIND_VALUE, _connection_id, _local_contact, _remote_contact );
+		super( DHTUDPPacketHelper.ACT_REQUEST_FIND_VALUE, _connection_id, _local_contact, _remote_contact );
 	}
 	
 	protected
@@ -57,7 +57,7 @@ DHTUDPPacketRequestFindValue
 	
 		throws IOException
 	{
-		super( is,  DHTUDPPacket.ACT_REQUEST_FIND_VALUE, con_id, trans_id );
+		super( is,  DHTUDPPacketHelper.ACT_REQUEST_FIND_VALUE, con_id, trans_id );
 		
 		id = DHTUDPUtils.deserialiseByteArray( is, 64 );
 		

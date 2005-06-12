@@ -30,6 +30,7 @@ import java.io.*;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 public class 
 DHTUDPPacketReplyFindNode
@@ -45,23 +46,27 @@ DHTUDPPacketReplyFindNode
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REPLY_FIND_NODE, trans_id, conn_id, local_contact, remote_contact );
+		super( DHTUDPPacketHelper.ACT_REPLY_FIND_NODE, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected
 	DHTUDPPacketReplyFindNode(
-		DHTTransportUDPImpl		transport,	// TODO: multiple transport support
-		DataInputStream			is,
-		int						trans_id )
+		DHTUDPPacketNetworkHandler		network_handler,
+		DataInputStream					is,
+		int								trans_id )
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacket.ACT_REPLY_FIND_NODE, trans_id );
+		super( is, DHTUDPPacketHelper.ACT_REPLY_FIND_NODE, trans_id );
 		
+			// we can only get the correct transport after decoding the network...
+		
+		DHTTransportUDPImpl	transport = (DHTTransportUDPImpl)network_handler.getRequestHandler( this );
+
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			random_id	= is.readInt();
-		}
+		}		
 		
 		contacts = DHTUDPUtils.deserialiseContacts( transport, is );
 	}

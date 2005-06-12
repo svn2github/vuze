@@ -51,6 +51,10 @@ DHTTransportUDP
 	
 	public static final byte PROTOCOL_VERSION_FIX_ORIGINATOR		= 100;
 	
+		// multiple networks reformats the requests and therefore needs the above fix to work
+	
+	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
+	
 	public DHTTransportContact
 	importContact(
 		InetSocketAddress	address,

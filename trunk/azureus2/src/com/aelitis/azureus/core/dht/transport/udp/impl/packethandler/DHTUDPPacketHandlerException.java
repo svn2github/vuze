@@ -20,8 +20,31 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport.udp.impl;
+package com.aelitis.azureus.core.dht.transport.udp.impl.packethandler;
 
-public interface DHTUDPPacket {
-
+public class 
+DHTUDPPacketHandlerException
+	extends Exception
+{
+	public
+	DHTUDPPacketHandlerException(
+		String		str )
+	{
+		super( str );
+	}
+	
+	public
+	DHTUDPPacketHandlerException(
+		Throwable	cause )
+	{
+		super( cause.getMessage()==null?cause.toString():cause.getMessage());
+	}
+	
+	public
+	DHTUDPPacketHandlerException(
+		String		str,
+		Throwable	cause )
+	{
+		super( str, cause );
+	}
 }

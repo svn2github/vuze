@@ -44,7 +44,7 @@ DHTUDPPacketRequestFindNode
 		DHTTransportUDPContactImpl		_local_contact,
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REQUEST_FIND_NODE, _connection_id, _local_contact, _remote_contact );
+		super( DHTUDPPacketHelper.ACT_REQUEST_FIND_NODE, _connection_id, _local_contact, _remote_contact );
 	}
 	
 	protected
@@ -55,7 +55,7 @@ DHTUDPPacketRequestFindNode
 	
 		throws IOException
 	{
-		super( is,  DHTUDPPacket.ACT_REQUEST_FIND_NODE, con_id, trans_id );
+		super( is,  DHTUDPPacketHelper.ACT_REQUEST_FIND_NODE, con_id, trans_id );
 		
 		id = DHTUDPUtils.deserialiseByteArray( is, 64 );
 		

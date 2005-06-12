@@ -481,6 +481,7 @@ DHTPlugin
 									
 									transport = 
 										DHTTransportFactory.createUDP( 
+												0,		// main network
 												ip,
 												storage_manager.getMostRecentAddress(),
 												f_dht_data_port, 

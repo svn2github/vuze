@@ -39,13 +39,20 @@ import com.aelitis.net.udp.PRUDPPacketReply;
 
 public class 
 DHTUDPPacketReply
-	extends PRUDPPacketReply
+	extends 	PRUDPPacketReply
+	implements 	DHTUDPPacket
 {
-	public static final int	DHT_HEADER_SIZE	= PRUDPPacketReply.PR_HEADER_SIZE + 13;
+	public static final int	DHT_HEADER_SIZE	= 
+		PRUDPPacketReply.PR_HEADER_SIZE +
+		8 +		// con id
+		1 +		// ver
+		1 +		// net 
+		4;		// instance
 	
 	
 	private long	connection_id;
 	private byte	protocol_version;
+	private int		network;
 	private int		target_instance_id;
 	
 	private long	skew;
@@ -84,21 +91,26 @@ DHTUDPPacketReply
 	
 	protected
 	DHTUDPPacketReply(
-		DataInputStream		_is,
-		int					_type,
-		int					_trans_id )
+		DataInputStream		is,
+		int					type,
+		int					trans_id )
 	
 		throws IOException
 	{
-		super( _type, _trans_id );
+		super( type, trans_id );
 		
-		connection_id 	= _is.readLong();
+		connection_id 	= is.readLong();
 		
-		protocol_version			= _is.readByte();
+		protocol_version			= is.readByte();
 					
-		DHTUDPPacket.checkVersion( protocol_version );
+		DHTUDPPacketHelper.checkVersion( protocol_version );
 	
-		target_instance_id	= _is.readInt();
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
+			
+			network	= is.readInt();
+		}
+
+		target_instance_id	= is.readInt();
 	}
 	
 	protected int
@@ -125,6 +137,19 @@ DHTUDPPacketReply
 		return( protocol_version );
 	}
 	
+	public int
+	getNetwork()
+	{
+		return( network );
+	}
+	
+	public void
+	setNetwork(
+		int		_network )
+	{
+		network	= _network;
+	}
+	
 	public void
 	serialise(
 		DataOutputStream	os )
@@ -138,6 +163,11 @@ DHTUDPPacketReply
 		os.writeLong( connection_id );
 		
 		os.writeByte( protocol_version );
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
+			
+			os.writeInt( network );
+		}
 		
 		os.writeInt( target_instance_id );
 	}

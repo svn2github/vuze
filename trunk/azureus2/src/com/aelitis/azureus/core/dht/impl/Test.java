@@ -580,7 +580,7 @@ Test
 		
 		if ( udp_protocol ){
 			
-			transport = DHTTransportFactory.createUDP( null, null, 6890 + i, 5, 3, udp_timeout, 50, 25, false, logger );
+			transport = DHTTransportFactory.createUDP( 0, null, null, 6890 + i, 5, 3, udp_timeout, 50, 25, false, logger );
 			
 		}else{
 			

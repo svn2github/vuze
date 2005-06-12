@@ -42,7 +42,7 @@ DHTUDPPacketRequestPing
 		DHTTransportUDPContactImpl		_local_contact,
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacket.ACT_REQUEST_PING, _connection_id, _local_contact, _remote_contact );
+		super( DHTUDPPacketHelper.ACT_REQUEST_PING, _connection_id, _local_contact, _remote_contact );
 	}
 	
 	protected
@@ -53,7 +53,7 @@ DHTUDPPacketRequestPing
 	
 		throws IOException
 	{
-		super( is,  DHTUDPPacket.ACT_REQUEST_PING, con_id, trans_id );
+		super( is,  DHTUDPPacketHelper.ACT_REQUEST_PING, con_id, trans_id );
 		
 		super.postDeserialise(is);
 	}

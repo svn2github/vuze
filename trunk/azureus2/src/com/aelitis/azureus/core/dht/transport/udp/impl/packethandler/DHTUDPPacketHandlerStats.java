@@ -1,7 +1,7 @@
 /*
- * Created on 25-Jan-2005
+ * Created on 12-Jun-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,27 +20,29 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport.udp.impl;
+package com.aelitis.azureus.core.dht.transport.udp.impl.packethandler;
 
-import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
-import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandlerStats;
-import com.aelitis.azureus.core.dht.transport.util.DHTTransportStatsImpl;
+import com.aelitis.net.udp.PRUDPPacketHandler;
+import com.aelitis.net.udp.PRUDPPacketHandlerStats;
 
-
-/**
- * @author parg
- *
- */
 
 public class 
-DHTTransportUDPStatsImpl
-	extends 	DHTTransportStatsImpl
+DHTUDPPacketHandlerStats 
 {
-	private DHTUDPPacketHandlerStats		stats;
+	private PRUDPPacketHandlerStats		stats;
 	
 	protected
-	DHTTransportUDPStatsImpl(
-		DHTUDPPacketHandlerStats		_stats )
+	DHTUDPPacketHandlerStats(
+		PRUDPPacketHandler		_handler )
+	{
+			// TODO: can't easily do per-network stats here...
+		
+		stats	= _handler.getStats();
+	}
+	
+	protected
+	DHTUDPPacketHandlerStats(
+		PRUDPPacketHandlerStats	_stats )
 	{
 		stats	= _stats;
 	}
@@ -75,26 +77,21 @@ DHTTransportUDPStatsImpl
 		return( stats.getBytesReceived());
 	}
 	
-	public DHTTransportStats
-	snapshot()
+	public long
+	getSendQueueLength()
 	{
-		DHTTransportStatsImpl	res = new DHTTransportUDPStatsImpl( stats.snapshot());
-		
-		snapshotSupport( res );
-		
-		return( res );
+		return( stats.getSendQueueLength());
 	}
 	
-	public String
-	getString()
+	public long
+	getReceiveQueueLength()
 	{
-		return( super.getString() + "," +
-				"packsent:" + getPacketsSent() + "," +
-				"packrecv:" + getPacketsReceived() + "," +
-				"bytesent:" + getBytesSent() + "," +
-				"byterecv:" + getBytesReceived() + "," + 
-				"timeout:" + getRequestsTimedOut() + "," +
-				"sendq:" + stats.getSendQueueLength() + "," +
-				"recvq:" + stats.getReceiveQueueLength());
+		return( stats.getReceiveQueueLength());
+	}
+	
+	public DHTUDPPacketHandlerStats
+	snapshot()
+	{
+		return( new DHTUDPPacketHandlerStats( stats.snapshot()));
 	}
 }

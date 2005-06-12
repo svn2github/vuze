@@ -40,10 +40,14 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandler;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandlerException;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandlerFactory;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketReceiver;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPRequestHandler;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
-import com.aelitis.net.udp.*;
 
 /**
  * @author parg
@@ -52,7 +56,7 @@ import com.aelitis.net.udp.*;
 
 public class 
 DHTTransportUDPImpl 
-	implements DHTTransportUDP, PRUDPRequestHandler
+	implements DHTTransportUDP, DHTUDPRequestHandler
 {
 	public static boolean TEST_EXTERNAL_IP	= false;
 		
@@ -66,7 +70,7 @@ DHTTransportUDPImpl
 	private long				store_timeout;
 	private LoggerChannel		logger;
 	
-	private PRUDPPacketHandler			packet_handler;
+	private DHTUDPPacketHandler			packet_handler;
 	
 	private DHTTransportRequestHandler	request_handler;
 	
@@ -127,6 +131,7 @@ DHTTransportUDPImpl
 
 	public
 	DHTTransportUDPImpl(
+		int				_network,
 		String			_ip,
 		String			_default_ip,
 		int				_port,
@@ -150,12 +155,18 @@ DHTTransportUDPImpl
 				
 		store_timeout			= request_timeout * 2;
 		
-		DHTUDPPacket.registerCodecs();
+		DHTUDPPacketHelper.registerCodecs();
 
 			// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
 			// if you change it :)
 		
-		packet_handler = PRUDPPacketHandlerFactory.getHandler( _port, this );		
+		try{
+			packet_handler = DHTUDPPacketHandlerFactory.getHandler( _network, _port, this );
+			
+		}catch( Throwable e ){
+			
+			throw( new DHTTransportException( "Failed to get packet handler", e ));
+		}
 
 			// limit send and receive rates. Receive rate is lower as we want a stricter limit
 			// on the max speed we generate packets than those we're willing to process.
@@ -649,7 +660,7 @@ DHTTransportUDPImpl
 	checkAddress(
 		DHTTransportUDPContactImpl		contact )
 	
-		throws PRUDPPacketHandlerException
+		throws DHTUDPPacketHandlerException
 	{
 		/*
 		int	port = contact.getExternalAddress().getPort();
@@ -724,7 +735,7 @@ DHTTransportUDPImpl
 				
 				if ( bad_ip_bloom_filter.contains( addr )){
 					
-					throw( new PRUDPPacketHandlerException( "IPFilter check fails (repeat)" ));
+					throw( new DHTUDPPacketHandlerException( "IPFilter check fails (repeat)" ));
 				}
 			}
 			
@@ -740,7 +751,7 @@ DHTTransportUDPImpl
 				
 				bad_ip_bloom_filter.add( addr );
 				
-				throw( new PRUDPPacketHandlerException( "IPFilter check fails" ));
+				throw( new DHTUDPPacketHandlerException( "IPFilter check fails" ));
 			}
 		}
 	}
@@ -763,16 +774,14 @@ DHTTransportUDPImpl
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
-				new PRUDPPacketReceiver()
+				new DHTUDPPacketReceiver()
 				{
 					public void
 					packetReceived(
-						PRUDPPacket			_packet,
+						DHTUDPPacketReply	packet,
 						InetSocketAddress	from_address )
 					{
-						try{
-							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
-							
+						try{							
 							if ( packet.getConnectionId() != connection_id ){
 								
 								throw( new Exception( "connection id mismatch" ));
@@ -786,7 +795,7 @@ DHTTransportUDPImpl
 							
 							handler.pingReply( contact );
 						
-						}catch( PRUDPPacketHandlerException e ){
+						}catch( DHTUDPPacketHandlerException e ){
 							
 							error( e );
 							
@@ -794,13 +803,13 @@ DHTTransportUDPImpl
 							
 							Debug.printStackTrace(e);
 							
-							error( new PRUDPPacketHandlerException( "ping failed", e ));
+							error( new DHTUDPPacketHandlerException( "ping failed", e ));
 						}
 					}
 					
 					public void
 					error(
-						PRUDPPacketHandlerException	e )
+						DHTUDPPacketHandlerException	e )
 					{
 						stats.pingFailed();
 						
@@ -837,16 +846,14 @@ DHTTransportUDPImpl
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
-				new PRUDPPacketReceiver()
+				new DHTUDPPacketReceiver()
 				{					
 					public void
 					packetReceived(
-						PRUDPPacket			_packet,
+						DHTUDPPacketReply	packet,
 						InetSocketAddress	from_address )
 					{
-						try{
-							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
-							
+						try{							
 							if ( packet.getConnectionId() != connection_id ){
 								
 								throw( new Exception( "connection id mismatch" ));
@@ -862,7 +869,7 @@ DHTTransportUDPImpl
 							
 							handler.statsReply( contact, reply.getStats());
 						
-						}catch( PRUDPPacketHandlerException e ){
+						}catch( DHTUDPPacketHandlerException e ){
 							
 							error( e );
 							
@@ -870,13 +877,13 @@ DHTTransportUDPImpl
 							
 							Debug.printStackTrace(e);
 							
-							error( new PRUDPPacketHandlerException( "stats failed", e ));
+							error( new DHTUDPPacketHandlerException( "stats failed", e ));
 						}
 					}
 					
 					public void
 					error(
-						PRUDPPacketHandlerException	e )
+						DHTUDPPacketHandlerException	e )
 					{
 						stats.statsFailed();
 						
@@ -916,11 +923,11 @@ DHTTransportUDPImpl
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
-				new PRUDPPacketReceiver()
+				new DHTUDPPacketReceiver()
 				{
 					public void
 					packetReceived(
-						PRUDPPacket			_packet,
+						DHTUDPPacketReply	_packet,
 						InetSocketAddress	from_address )
 					{
 						try{
@@ -948,7 +955,7 @@ DHTTransportUDPImpl
 					
 					public void
 					error(
-						PRUDPPacketHandlerException	e )
+						DHTUDPPacketHandlerException	e )
 					{
 						try{
 							stats.pingFailed();
@@ -1006,7 +1013,7 @@ DHTTransportUDPImpl
 			
 				packet_count++;
 								
-				int	space = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketRequest.DHT_HEADER_SIZE;
+				int	space = DHTUDPPacketHelper.PACKET_MAX_BYTES - DHTUDPPacketRequest.DHT_HEADER_SIZE;
 								
 				List	key_list	= new ArrayList();
 				List	values_list	= new ArrayList();
@@ -1128,16 +1135,14 @@ DHTTransportUDPImpl
 				packet_handler.sendAndReceive(
 					request,
 					contact.getTransportAddress(),
-					new PRUDPPacketReceiver()
+					new DHTUDPPacketReceiver()
 					{
 						public void
 						packetReceived(
-							PRUDPPacket			_packet,
+							DHTUDPPacketReply	packet,
 							InetSocketAddress	from_address )
 						{
-							try{
-								DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
-								
+							try{								
 								if ( packet.getConnectionId() != connection_id ){
 									
 									throw( new Exception( "connection id mismatch" ));
@@ -1156,7 +1161,7 @@ DHTTransportUDPImpl
 									handler.storeReply( contact, reply.getDiversificationTypes());
 								}
 								
-							}catch( PRUDPPacketHandlerException e ){
+							}catch( DHTUDPPacketHandlerException e ){
 								
 								error( e );
 								
@@ -1164,13 +1169,13 @@ DHTTransportUDPImpl
 								
 								Debug.printStackTrace(e);
 								
-								error( new PRUDPPacketHandlerException( "store failed", e ));
+								error( new DHTUDPPacketHandlerException( "store failed", e ));
 							}
 						}
 						
 						public void
 						error(
-							PRUDPPacketHandlerException	e )
+							DHTUDPPacketHandlerException	e )
 						{
 							stats.storeFailed();
 							
@@ -1218,16 +1223,14 @@ DHTTransportUDPImpl
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
-				new PRUDPPacketReceiver()
+				new DHTUDPPacketReceiver()
 				{					
 					public void
 					packetReceived(
-						PRUDPPacket			_packet,
+						DHTUDPPacketReply	packet,
 						InetSocketAddress	from_address )
 					{
-						try{
-							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
-														
+						try{														
 							if ( packet.getConnectionId() != connection_id ){
 								
 								throw( new Exception( "connection id mismatch" ));
@@ -1248,7 +1251,7 @@ DHTTransportUDPImpl
 								
 							handler.findNodeReply( contact, reply.getContacts());
 							
-						}catch( PRUDPPacketHandlerException e ){
+						}catch( DHTUDPPacketHandlerException e ){
 							
 							error( e );
 							
@@ -1256,13 +1259,13 @@ DHTTransportUDPImpl
 							
 							Debug.printStackTrace(e);
 							
-							error( new PRUDPPacketHandlerException( "findNode failed", e ));
+							error( new DHTUDPPacketHandlerException( "findNode failed", e ));
 						}
 					}
 					
 					public void
 					error(
-						PRUDPPacketHandlerException	e )
+						DHTUDPPacketHandlerException	e )
 					{
 						stats.findNodeFailed();
 						
@@ -1308,16 +1311,14 @@ DHTTransportUDPImpl
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
-				new PRUDPPacketReceiver()
+				new DHTUDPPacketReceiver()
 				{
 					public void
 					packetReceived(
-						PRUDPPacket			_packet,
+						DHTUDPPacketReply	packet,
 						InetSocketAddress	from_address )
 					{
-						try{
-							DHTUDPPacketReply	packet = (DHTUDPPacketReply)_packet;
-							
+						try{							
 							if ( packet.getConnectionId() != connection_id ){
 								
 								throw( new Exception( "connection id mismatch" ));
@@ -1343,7 +1344,7 @@ DHTTransportUDPImpl
 									
 								handler.findValueReply( contact, reply.getContacts());
 							}
-						}catch( PRUDPPacketHandlerException e ){
+						}catch( DHTUDPPacketHandlerException e ){
 							
 							error( e );
 							
@@ -1351,13 +1352,13 @@ DHTTransportUDPImpl
 							
 							Debug.printStackTrace(e);
 							
-							error( new PRUDPPacketHandlerException( "findValue failed", e ));
+							error( new DHTUDPPacketHandlerException( "findValue failed", e ));
 						}
 					}
 					
 					public void
 					error(
-						PRUDPPacketHandlerException	e )
+						DHTUDPPacketHandlerException	e )
 					{
 						stats.findValueFailed();
 						
@@ -1368,7 +1369,7 @@ DHTTransportUDPImpl
 			
 		}catch( Throwable e ){
 			
-			if ( !(e instanceof PRUDPPacketHandlerException )){
+			if ( !(e instanceof DHTUDPPacketHandlerException )){
 				
 				stats.findValueFailed();
 			
@@ -1847,7 +1848,7 @@ DHTTransportUDPImpl
 	
 	public void
 	process(
-		PRUDPPacketRequest	_request )
+		DHTUDPPacketRequest	request )
 	{
 		if ( request_handler == null ){
 			
@@ -1856,9 +1857,7 @@ DHTTransportUDPImpl
 			return;
 		}
 		
-		try{
-			DHTUDPPacketRequest	request = (DHTUDPPacketRequest)_request;
-			
+		try{			
 			stats.incomingRequestReceived( request );
 			
 			InetSocketAddress	transport_address = request.getAddress();
@@ -1875,7 +1874,7 @@ DHTTransportUDPImpl
 			try{
 				checkAddress( originating_contact );
 					
-			}catch( PRUDPPacketHandlerException e ){
+			}catch( DHTUDPPacketHandlerException e ){
 				
 				return;
 			}
@@ -2027,7 +2026,7 @@ DHTTransportUDPImpl
 							
 							DHTTransportValue[]	res_values = res.getValues();
 							
-							int		max_size = DHTUDPPacket.PACKET_MAX_BYTES - DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_HEADER_SIZE;
+							int		max_size = DHTUDPPacketHelper.PACKET_MAX_BYTES - DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_HEADER_SIZE;
 														
 							List	values 		= new ArrayList();
 							int		values_size	= 0;
@@ -2095,7 +2094,7 @@ DHTTransportUDPImpl
 					Debug.out( "Unexpected packet:" + request.toString());
 				}
 			}
-		}catch( PRUDPPacketHandlerException e ){
+		}catch( DHTUDPPacketHandlerException e ){
 			
 			// not interesting, send packet fail or something
 			
@@ -2110,7 +2109,6 @@ DHTTransportUDPImpl
 		 * performed, throws an exception otherwise
 		 * @param reply
 		 * @return
-		 * @throws PRUDPPacketHandlerException
 		 */
 	
 	protected void
@@ -2118,9 +2116,9 @@ DHTTransportUDPImpl
 		DHTTransportUDPContactImpl	contact,
 		DHTUDPPacketReply			reply )
 	
-		throws PRUDPPacketHandlerException
+		throws DHTUDPPacketHandlerException
 	{
-		if ( reply.getAction() == DHTUDPPacket.ACT_REPLY_ERROR ){
+		if ( reply.getAction() == DHTUDPPacketHelper.ACT_REPLY_ERROR ){
 			
 			DHTUDPPacketReplyError	error = (DHTUDPPacketReplyError)reply;
 						
@@ -2146,7 +2144,7 @@ DHTTransportUDPImpl
 				}
 			}
 				
-			throw( new PRUDPPacketHandlerException( "retry not permitted" ));
+			throw( new DHTUDPPacketHandlerException( "retry not permitted" ));
 			
 		}else{
 			

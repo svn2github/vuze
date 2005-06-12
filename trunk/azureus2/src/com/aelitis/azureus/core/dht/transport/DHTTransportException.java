@@ -37,4 +37,12 @@ DHTTransportException
 	{
 		super( str );
 	}
+	
+	public 
+	DHTTransportException(
+		String		str,
+		Throwable 	cause )
+	{
+		super( str, cause );
+	}
 }

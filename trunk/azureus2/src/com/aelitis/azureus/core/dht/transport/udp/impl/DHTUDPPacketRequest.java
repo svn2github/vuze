@@ -27,7 +27,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
@@ -41,12 +40,22 @@ import com.aelitis.net.udp.PRUDPPacketRequest;
 
 public class 
 DHTUDPPacketRequest 
-	extends PRUDPPacketRequest
+	extends 	PRUDPPacketRequest
+	implements 	DHTUDPPacket
 {
-	public static final int	DHT_HEADER_SIZE	= PRUDPPacketRequest.PR_HEADER_SIZE + 14 + DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
+	public static final int	DHT_HEADER_SIZE	= 
+		PRUDPPacketRequest.PR_HEADER_SIZE + 
+		1 + 		// protocol version
+		1 + 		// originator version
+		4 + 		// network
+		4 +			// instance id
+		8 +			// time
+		DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
 	
 
 	private byte				protocol_version;
+	
+	private int					network;
 	
 	private byte				originator_version;
 	private long				originator_time;
@@ -96,8 +105,13 @@ DHTUDPPacketRequest
 		
 		protocol_version	= is.readByte();
 		
-		DHTUDPPacket.checkVersion( protocol_version );
+		DHTUDPPacketHelper.checkVersion( protocol_version );
 		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
+			
+			network	= is.readInt();
+		}
+
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_FIX_ORIGINATOR ){
 			
 			originator_version = is.readByte();
@@ -180,6 +194,11 @@ DHTUDPPacketRequest
 		
 		os.writeByte( protocol_version );		
 		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
+			
+			os.writeInt( network );
+		}
+
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_FIX_ORIGINATOR ){
 		
 				// originator version
@@ -224,6 +243,19 @@ DHTUDPPacketRequest
 	getProtocolVersion()
 	{
 		return( protocol_version );
+	}
+	
+	public int
+	getNetwork()
+	{
+		return( network );
+	}
+	
+	public void
+	setNetwork(
+		int		_network )
+	{
+		network	= _network;
 	}
 	
 	protected byte

@@ -20,8 +20,14 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport.udp.impl;
+package com.aelitis.azureus.core.dht.transport.udp.impl.packethandler;
 
-public interface DHTUDPPacket {
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
 
+public interface 
+DHTUDPRequestHandler 
+{
+	public void
+	process(
+		DHTUDPPacketRequest	request );
 }
