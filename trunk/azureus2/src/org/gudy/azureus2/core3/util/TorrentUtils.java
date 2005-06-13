@@ -31,12 +31,14 @@ import java.net.*;
 import java.util.*;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.plugins.PluginInterface;
 
 
 public class 
@@ -945,6 +947,25 @@ TorrentUtils
 		}
 		
 		m.put( "dht_backup_requested", new Long(requested?1:0));
+	}
+	
+	public static boolean
+	getDHTTrackerEnabled()
+	{
+		PluginInterface dht_pi = 
+			AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(
+						DHTPlugin.class );
+				
+		if ( dht_pi == null ){
+			
+			return( false );
+			
+		}else{
+			
+			DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();		
+			
+			return( dht.peekEnabled());
+		}
 	}
 	
 	public static boolean

@@ -742,6 +742,14 @@ DownloadManagerStateImpl
 	isPeerSourcePermitted(
 		String	peerSource )
 	{
+		if ( peerSource == PEPeerSource.PS_DHT ){
+			
+			if ( !TorrentUtils.getDHTTrackerEnabled()){
+				
+				return( false );
+			}
+		}
+		
 		if ( TorrentUtils.getPrivate( torrent )){
 			
 			if ( 	peerSource == PEPeerSource.PS_DHT ||

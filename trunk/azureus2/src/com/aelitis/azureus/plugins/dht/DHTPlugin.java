@@ -922,6 +922,17 @@ outer:
 	}
 	
 	public boolean
+	peekEnabled()
+	{
+		if ( init_sem.isReleasedForever()){
+			
+			return( enabled );
+		}
+		
+		return( true );	// don't know yet
+	}
+	
+	public boolean
 	isExtendedUseAllowed()
 	{
 		if ( !isEnabled()){

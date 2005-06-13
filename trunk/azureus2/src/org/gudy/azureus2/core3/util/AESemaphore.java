@@ -230,6 +230,12 @@ AESemaphore
 		}
 	}
 	
+	public boolean
+	isReleasedForever()
+	{
+		return( released_forever );
+	}
+	
 	public int
 	getValue()
 	{
