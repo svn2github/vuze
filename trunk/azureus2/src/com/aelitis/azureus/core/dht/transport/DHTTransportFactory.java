@@ -45,6 +45,7 @@ DHTTransportFactory
 	
 	public static DHTTransportUDP
 	createUDP(
+		byte			protocol_version,
 		int				network,
 		String			ip,
 		String			default_ip,
@@ -59,6 +60,18 @@ DHTTransportFactory
 	
 		throws DHTTransportException
 	{
-		return( new DHTTransportUDPImpl( network, ip, default_ip, port, max_fails_for_live, max_fails_for_unknown, timeout, send_delay, receive_delay, bootstrap_node, logger ));
+		return( new DHTTransportUDPImpl(
+					protocol_version,
+					network, 
+					ip, 
+					default_ip, 
+					port, 
+					max_fails_for_live, 
+					max_fails_for_unknown, 
+					timeout, 
+					send_delay, 
+					receive_delay, 
+					bootstrap_node, 
+					logger ));
 	}
 }

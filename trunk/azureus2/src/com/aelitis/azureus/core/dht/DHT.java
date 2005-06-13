@@ -64,6 +64,9 @@ DHT
 	
 	public static final String[]	DT_STRINGS = { "", "None", "Freq", "Size" };
 	
+	public static final int		NW_MAIN			= 0;
+	public static final int		NW_CVS_TEST		= 1;
+	
 	public void
 	put(
 		byte[]					key,

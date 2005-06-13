@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 public class 
 DHTUDPPacketReplyError
@@ -47,22 +48,24 @@ DHTUDPPacketReplyError
 
 	public
 	DHTUDPPacketReplyError(
+		DHTTransportUDPImpl		transport,
 		int						trans_id,
 		long					conn_id,
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacketHelper.ACT_REPLY_ERROR, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_ERROR, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected
 	DHTUDPPacketReplyError(
-		DataInputStream		is,
-		int					trans_id )
+		DHTUDPPacketNetworkHandler		network_handler,		
+		DataInputStream					is,
+		int								trans_id )
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacketHelper.ACT_REPLY_ERROR, trans_id );
+		super( network_handler, is, DHTUDPPacketHelper.ACT_REPLY_ERROR, trans_id );
 		
 		error_type = is.readInt();
 		

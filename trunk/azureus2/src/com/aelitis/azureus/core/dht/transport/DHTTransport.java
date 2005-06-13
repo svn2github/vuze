@@ -32,6 +32,12 @@ import java.io.*;
 public interface 
 DHTTransport 
 {	
+	public byte
+	getProtocolVersion();
+	
+	public int
+	getNetwork();
+
 		/**
 		 * Gives access to the node ID for this transport 
 		 * @return

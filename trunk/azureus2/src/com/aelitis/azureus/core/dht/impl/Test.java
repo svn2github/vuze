@@ -129,6 +129,9 @@ Test
 		new Test();
 	}
 	
+	
+	Map	port_map = new HashMap();
+	
 	protected
 	Test()
 	{
@@ -141,14 +144,14 @@ Test
 			
 			for (int i=0;i<num_dhts;i++){
 				
-				createDHT( dhts, transports, i );
+				createDHT( dhts, transports, DHT.NW_MAIN, i );
 			}
 
 			for (int i=0;i<num_dhts-1;i++){
 			
 				if ( AELITIS_TEST ){
 					
-					((DHTTransportUDP)transports[i]).importContact( AELITIS_ADDRESS, DHTTransportUDP.PROTOCOL_VERSION );
+					((DHTTransportUDP)transports[i]).importContact( AELITIS_ADDRESS, DHTTransportUDP.PROTOCOL_VERSION_MAIN );
 					
 				}else{
 					ByteArrayOutputStream	baos = new ByteArrayOutputStream();
@@ -172,7 +175,7 @@ Test
 			
 			if ( AELITIS_TEST ){
 				
-				((DHTTransportUDP)transports[num_dhts-1]).importContact( AELITIS_ADDRESS, DHTTransportUDP.PROTOCOL_VERSION );
+				((DHTTransportUDP)transports[num_dhts-1]).importContact( AELITIS_ADDRESS, DHTTransportUDP.PROTOCOL_VERSION_MAIN );
 
 			}else{
 				
@@ -478,7 +481,16 @@ Test
 						}
 					}else if ( command == 'a' ){
 						
-						createDHT( dhts, transports, num_dhts++ );
+						int	net = DHT.NW_MAIN;
+						
+						try{
+							net = Integer.parseInt( rhs );
+							
+						}catch( Throwable e ){
+							
+						}
+						
+						createDHT( dhts, transports, net, num_dhts++ );
 						
 						dht	= dhts[num_dhts-1];
 						
@@ -488,11 +500,32 @@ Test
 						
 						DataOutputStream	daos = new DataOutputStream( baos );
 						
-						transports[(int)(Math.random()*(num_dhts-1))].getLocalContact().exportContact( daos );
+						List	ok_t = new ArrayList();
 						
-						daos.close();
+						for (int i=0;i<num_dhts-1;i++){
+							
+							DHTTransport	t = transports[i];
+							
+							if ( t.getNetwork() == net ){
+								
+								ok_t.add( t );
+							}
+						}
 						
-						transports[num_dhts-1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
+						if ( ok_t.size() > 0 ){
+							
+							DHTTransport	r_t = (DHTTransport)ok_t.get((int)(Math.random()*(ok_t.size()-1)));
+						
+							r_t.getLocalContact().exportContact( daos );
+							
+							daos.close();
+						
+							transports[num_dhts-1].importContact( new DataInputStream( new ByteArrayInputStream( baos.toByteArray())));
+						}else{
+							
+							System.out.println( "No comaptible networks found" );
+							
+						}
 						
 						dht.integrate( true );
 	
@@ -572,6 +605,7 @@ Test
 	createDHT(
 		DHT[]			dhts,
 		DHTTransport[]	transports,
+		int				network,
 		int				i )
 	
 		throws DHTTransportException
@@ -580,7 +614,32 @@ Test
 		
 		if ( udp_protocol ){
 			
-			transport = DHTTransportFactory.createUDP( 0, null, null, 6890 + i, 5, 3, udp_timeout, 50, 25, false, logger );
+			Integer	next_port = (Integer)port_map.get( new Integer( network ));
+			
+			if ( next_port == null ){
+				
+				next_port = new Integer(0);
+				
+			}else{
+				
+				next_port = new Integer( next_port.intValue() + 1 );
+			}
+			
+			port_map.put( new Integer( network ), next_port );
+			
+			transport = DHTTransportFactory.createUDP( 
+							network==0?DHTTransportUDP.PROTOCOL_VERSION_MAIN:DHTTransportUDP.PROTOCOL_VERSION_CVS, 
+							network, 
+							null, 
+							null, 
+							6890 + next_port.intValue(), 
+							5, 
+							3, 
+							udp_timeout, 
+							50, 
+							25, 
+							false, 
+							logger );
 			
 		}else{
 			
@@ -612,6 +671,7 @@ Test
 				}
 			});
 		
+		/*
 		HashWrapper	id = new HashWrapper( transport.getLocalContact().getID());
 		
 		if ( check.get(id) != null ){
@@ -622,6 +682,7 @@ Test
 		}
 		
 		check.put(id,"");
+		*/
 		
 		DHTStorageAdapter	storage_adapter = new DHTPluginStorageManager( logger, new File( "C:\\temp\\dht\\" + i));
 

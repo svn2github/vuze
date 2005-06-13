@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl.packethandler;
 
 import java.io.IOException;
 
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacket;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketReply;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
@@ -46,22 +47,21 @@ DHTUDPPacketNetworkHandler
 		port		= _port;
 	}
 	
-	public DHTUDPRequestHandler 
-	getRequestHandler(
+	
+	public DHTTransportUDPImpl
+	getTransport(
 		DHTUDPPacket		packet )
 	
 		throws IOException
 	{
-			// use the network to find the correct request handler
-		
 		if ( packet instanceof DHTUDPPacketRequest ){
 			
-			return( factory.getRequestHandler( port, ((DHTUDPPacketRequest)packet).getNetwork()));
+			return( factory.getTransport( port, ((DHTUDPPacketRequest)packet).getNetwork()));
 		
 		}else{
 			
-			return( factory.getRequestHandler( port, ((DHTUDPPacketReply)packet).getNetwork()));
-		}
+			return( factory.getTransport( port, ((DHTUDPPacketReply)packet).getNetwork()));
+		}	
 	}
 	
 	public void

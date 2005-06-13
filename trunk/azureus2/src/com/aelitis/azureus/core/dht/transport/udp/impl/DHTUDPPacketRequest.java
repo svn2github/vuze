@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 import com.aelitis.net.udp.PRUDPPacketRequest;
 
 /**
@@ -51,8 +52,9 @@ DHTUDPPacketRequest
 		4 +			// instance id
 		8 +			// time
 		DHTUDPUtils.INETSOCKETADDRESS_IPV4_SIZE;
+		
+	private DHTTransportUDPImpl	transport;
 	
-
 	private byte				protocol_version;
 	
 	private int					network;
@@ -66,12 +68,15 @@ DHTUDPPacketRequest
 	
 	public
 	DHTUDPPacketRequest(
+		DHTTransportUDPImpl				_transport,	
 		int								_type,
 		long							_connection_id,
 		DHTTransportUDPContactImpl		_local_contact,
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
 		super( _type, _connection_id );
+		
+		transport	= _transport;
 		
 			// serialisation constructor
 		
@@ -80,9 +85,9 @@ DHTUDPPacketRequest
 			// the target might be at a higher protocol version that us, so trim back if necessary
 			// as we obviously can't talk a higher version than what we are!
 		
-		if ( protocol_version > DHTTransportUDP.PROTOCOL_VERSION ){
+		if ( protocol_version > _transport.getProtocolVersion() ){
 			
-			protocol_version = DHTTransportUDP.PROTOCOL_VERSION;
+			protocol_version = _transport.getProtocolVersion();
 		}
 		
 		originator_address		= _local_contact.getExternalAddress();
@@ -92,10 +97,11 @@ DHTUDPPacketRequest
 	
 	protected
 	DHTUDPPacketRequest(
-		DataInputStream		is,
-		int					type,
-		long				con_id,
-		int					trans_id )
+		DHTUDPPacketNetworkHandler		network_handler,
+		DataInputStream					is,
+		int								type,
+		long							con_id,
+		int								trans_id )
 	
 		throws IOException
 	{
@@ -105,12 +111,19 @@ DHTUDPPacketRequest
 		
 		protocol_version	= is.readByte();
 		
-		DHTUDPPacketHelper.checkVersion( protocol_version );
+		if ( protocol_version < DHTTransportUDP.PROTOCOL_VERSION_MIN ){
+			
+			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
+		}
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
 			
 			network	= is.readInt();
 		}
+
+			// we can only get the correct transport after decoding the network...
+	
+		transport = network_handler.getTransport( this );
 
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_FIX_ORIGINATOR ){
 			
@@ -120,9 +133,9 @@ DHTUDPPacketRequest
 				// working at their version (e.g. we can't reply to them using that version). 
 				// Therefore trim their perceived version back to something we can deal with
 
-			if ( originator_version > DHTTransportUDP.PROTOCOL_VERSION ){
+			if ( originator_version > getTransport().getProtocolVersion() ){
 				
-				originator_version = DHTTransportUDP.PROTOCOL_VERSION;
+				originator_version = getTransport().getProtocolVersion();
 			}
 		}else{
 			
@@ -175,9 +188,9 @@ DHTUDPPacketRequest
 				// working at their version (e.g. we can't reply to them using that version). 
 				// Therefore trim their perceived version back to something we can deal with
 			
-			if ( originator_version > DHTTransportUDP.PROTOCOL_VERSION ){
+			if ( originator_version > getTransport().getProtocolVersion() ){
 				
-				originator_version = DHTTransportUDP.PROTOCOL_VERSION;
+				originator_version = getTransport().getProtocolVersion();
 			}
 		}
 	}
@@ -203,7 +216,7 @@ DHTUDPPacketRequest
 		
 				// originator version
 			
-			os.writeByte( DHTTransportUDP.PROTOCOL_VERSION );
+			os.writeByte( getTransport().getProtocolVersion());
 		}
 		
 		try{
@@ -229,8 +242,14 @@ DHTUDPPacketRequest
 			
 				// originator version is at tail so it works with older versions
 			
-			os.writeByte( DHTTransportUDP.PROTOCOL_VERSION );
+			os.writeByte( getTransport().getProtocolVersion());
 		}
+	}
+	
+	public DHTTransportUDPImpl
+	getTransport()
+	{
+		return( transport );
 	}
 	
 	protected long

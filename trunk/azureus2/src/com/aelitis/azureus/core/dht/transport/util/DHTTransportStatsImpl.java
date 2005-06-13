@@ -36,6 +36,8 @@ public abstract class
 DHTTransportStatsImpl
 	implements DHTTransportStats
 {
+	private byte	protocol_version;
+	
 	private long[]	pings		= new long[4];
 	private long[]	find_nodes	= new long[4];
 	private long[]	find_values	= new long[4];
@@ -47,9 +49,25 @@ DHTTransportStatsImpl
 	
 	
 	private long	incoming_version_requests;
-	private long[]	incoming_request_versions = new long[DHTTransportUDP.PROTOCOL_VERSION+1];
+	private long[]	incoming_request_versions;
 	private long	outgoing_version_requests;
-	private long[]	outgoing_request_versions = new long[DHTTransportUDP.PROTOCOL_VERSION+1];
+	private long[]	outgoing_request_versions;
+	
+	protected
+	DHTTransportStatsImpl(
+		byte	_protocol_version )
+	{
+		protocol_version	= _protocol_version;
+		
+		incoming_request_versions = new long[protocol_version+1];
+		outgoing_request_versions = new long[protocol_version+1];
+	}
+	
+	protected byte
+	getProtocolVersion()
+	{
+		return( protocol_version );
+	}
 	
 	public void
 	add(
@@ -248,7 +266,7 @@ DHTTransportStatsImpl
 			
 			byte protocol_version = request.getProtocolVersion();
 			
-			if ( protocol_version >= 0 && protocol_version <= DHTTransportUDP.PROTOCOL_VERSION ){
+			if ( protocol_version >= 0 && protocol_version < outgoing_request_versions.length ){
 				
 				outgoing_request_versions[ protocol_version ]++;
 				
@@ -295,7 +313,7 @@ DHTTransportStatsImpl
 			
 			byte protocol_version = request.getProtocolVersion();
 			
-			if ( protocol_version >= 0 && protocol_version <= DHTTransportUDP.PROTOCOL_VERSION ){
+			if ( protocol_version >= 0 && protocol_version < incoming_request_versions.length ){
 				
 				incoming_request_versions[ protocol_version ]++;
 				

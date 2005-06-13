@@ -50,11 +50,12 @@ DHTUDPPacketRequestStore
 	
 	public
 	DHTUDPPacketRequestStore(
+		DHTTransportUDPImpl				_transport,
 		long							_connection_id,
 		DHTTransportUDPContactImpl		_local_contact,
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacketHelper.ACT_REQUEST_STORE, _connection_id, _local_contact, _remote_contact );
+		super( _transport, DHTUDPPacketHelper.ACT_REQUEST_STORE, _connection_id, _local_contact, _remote_contact );
 	}
 
 	protected
@@ -66,10 +67,8 @@ DHTUDPPacketRequestStore
 	
 		throws IOException
 	{
-		super( is,  DHTUDPPacketHelper.ACT_REQUEST_STORE, con_id, trans_id );
+		super( network_handler, is,  DHTUDPPacketHelper.ACT_REQUEST_STORE, con_id, trans_id );
 		
-		DHTTransportUDPImpl	transport = (DHTTransportUDPImpl)network_handler.getRequestHandler( this );
-
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			random_id	= is.readInt();
@@ -79,7 +78,7 @@ DHTUDPPacketRequestStore
 		
 			// times receieved are adjusted by + skew
 				
-		value_sets 	= DHTUDPUtils.deserialiseTransportValuesArray( transport, is, getClockSkew(), MAX_VALUES_PER_KEY );
+		value_sets 	= DHTUDPUtils.deserialiseTransportValuesArray( getTransport(), is, getClockSkew(), MAX_VALUES_PER_KEY );
 		
 		super.postDeserialise(is);
 	}

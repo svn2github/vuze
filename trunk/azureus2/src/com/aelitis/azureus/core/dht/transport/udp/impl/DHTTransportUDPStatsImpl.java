@@ -40,8 +40,11 @@ DHTTransportUDPStatsImpl
 	
 	protected
 	DHTTransportUDPStatsImpl(
+		byte							_pv,
 		DHTUDPPacketHandlerStats		_stats )
 	{
+		super( _pv );
+		
 		stats	= _stats;
 	}
 	
@@ -78,7 +81,7 @@ DHTTransportUDPStatsImpl
 	public DHTTransportStats
 	snapshot()
 	{
-		DHTTransportStatsImpl	res = new DHTTransportUDPStatsImpl( stats.snapshot());
+		DHTTransportStatsImpl	res = new DHTTransportUDPStatsImpl( getProtocolVersion(), stats.snapshot());
 		
 		snapshotSupport( res );
 		

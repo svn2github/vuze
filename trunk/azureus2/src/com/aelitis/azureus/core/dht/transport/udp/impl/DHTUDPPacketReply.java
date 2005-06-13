@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 import com.aelitis.net.udp.PRUDPPacketReply;
 
 /**
@@ -50,6 +51,8 @@ DHTUDPPacketReply
 		4;		// instance
 	
 	
+	private DHTTransportUDPImpl 	transport;
+	
 	private long	connection_id;
 	private byte	protocol_version;
 	private int		network;
@@ -59,6 +62,7 @@ DHTUDPPacketReply
 	
 	public
 	DHTUDPPacketReply(
+		DHTTransportUDPImpl	_transport,
 		int					_type,
 		int					_trans_id,
 		long				_conn_id,
@@ -66,6 +70,8 @@ DHTUDPPacketReply
 		DHTTransportContact	_remote_contact )
 	{
 		super( _type, _trans_id );
+		
+		transport	= _transport;
 		
 		connection_id	= _conn_id;
 		
@@ -77,11 +83,11 @@ DHTUDPPacketReply
 			// packet as it modified the originator version accordingly. However, do it here
 			// just in case
 	
-		if ( protocol_version > DHTTransportUDP.PROTOCOL_VERSION ){
+		if ( protocol_version > _transport.getProtocolVersion()){
 			
 			Debug.out( "Trimming protocol version" );
 			
-			protocol_version = DHTTransportUDP.PROTOCOL_VERSION;
+			protocol_version = _transport.getProtocolVersion();
 		}
 		
 		target_instance_id	= _local_contact.getInstanceID();
@@ -91,9 +97,10 @@ DHTUDPPacketReply
 	
 	protected
 	DHTUDPPacketReply(
-		DataInputStream		is,
-		int					type,
-		int					trans_id )
+		DHTUDPPacketNetworkHandler		network_handler,
+		DataInputStream					is,
+		int								type,
+		int								trans_id )
 	
 		throws IOException
 	{
@@ -103,14 +110,27 @@ DHTUDPPacketReply
 		
 		protocol_version			= is.readByte();
 					
-		DHTUDPPacketHelper.checkVersion( protocol_version );
-	
+		if ( protocol_version < DHTTransportUDP.PROTOCOL_VERSION_MIN ){
+			
+			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
+		}
+		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
 			
 			network	= is.readInt();
 		}
 
+			// we can only get the correct transport after decoding the network...
+		
+		transport = network_handler.getTransport( this );
+
 		target_instance_id	= is.readInt();
+	}
+	
+	public DHTTransportUDPImpl
+	getTransport()
+	{
+		return( transport );
 	}
 	
 	protected int

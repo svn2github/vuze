@@ -43,18 +43,20 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_ENCRYPT_TT			= 8;	// refed from DDBase
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF2			= 8;
 
-	public static final byte PROTOCOL_VERSION						= 8;
-	
 		// we can't fix the originator position until a previous fix regarding the incorrect
 		// use of a contact's version > sender's version is fixed. This will be done at 2.3.0.4
 		// We can therefore only apply this fix after then
 	
-	public static final byte PROTOCOL_VERSION_FIX_ORIGINATOR		= 100;
+	public static final byte PROTOCOL_VERSION_FIX_ORIGINATOR		= 9;
 	
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
 	
+	public static final byte PROTOCOL_VERSION_MAIN						= 8;
+	public static final byte PROTOCOL_VERSION_CVS						= 9;
+	
+
 	public DHTTransportContact
 	importContact(
 		InetSocketAddress	address,

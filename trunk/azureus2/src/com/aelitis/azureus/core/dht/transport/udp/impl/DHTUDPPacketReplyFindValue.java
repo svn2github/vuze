@@ -51,12 +51,13 @@ DHTUDPPacketReplyFindValue
 	
 	public
 	DHTUDPPacketReplyFindValue(
+		DHTTransportUDPImpl		transport,
 		int						trans_id,
 		long					conn_id,
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacketHelper.ACT_REPLY_FIND_VALUE, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_FIND_VALUE, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected
@@ -67,12 +68,8 @@ DHTUDPPacketReplyFindValue
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacketHelper.ACT_REPLY_FIND_VALUE, trans_id );
+		super( network_handler, is, DHTUDPPacketHelper.ACT_REPLY_FIND_VALUE, trans_id );
 		
-		// we can only get the correct transport after decoding the network...
-
-		DHTTransportUDPImpl	transport = (DHTTransportUDPImpl)network_handler.getRequestHandler( this );
-
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){
 						
 			has_continuation	= is.readBoolean();
@@ -87,11 +84,11 @@ DHTUDPPacketReplyFindValue
 				diversification_type	= is.readByte();
 			}
 
-			values = DHTUDPUtils.deserialiseTransportValues( transport, is, 0 );
+			values = DHTUDPUtils.deserialiseTransportValues( getTransport(), is, 0 );
 			
 		}else{
 			
-			contacts = DHTUDPUtils.deserialiseContacts( transport, is );
+			contacts = DHTUDPUtils.deserialiseContacts( getTransport(), is );
 		}
 	}
 	

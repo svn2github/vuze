@@ -2513,7 +2513,7 @@ DHTControlImpl
 	public void
 	print()
 	{
-		logger.log( "DHT Details: external IP = " + transport.getLocalContact().getAddress());
+		logger.log( "DHT Details: external IP = " + transport.getLocalContact().getAddress() + ", net = " + transport.getNetwork());
 		
 		router.print();
 		

@@ -62,6 +62,8 @@ DHTTransportUDPImpl
 		
 	private static String	external_address;
 	
+	private byte				protocol_version;
+	private int					network;
 	private String				ip_override;
 	private int					port;
 	private int					max_fails_for_live;
@@ -131,6 +133,7 @@ DHTTransportUDPImpl
 
 	public
 	DHTTransportUDPImpl(
+		byte			_protocol_version,
 		int				_network,
 		String			_ip,
 		String			_default_ip,
@@ -145,6 +148,8 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
+		protocol_version		= _protocol_version;
+		network					= _network;
 		ip_override				= _ip;
 		port					= _port;
 		max_fails_for_live		= _max_fails_for_live;
@@ -161,7 +166,7 @@ DHTTransportUDPImpl
 			// if you change it :)
 		
 		try{
-			packet_handler = DHTUDPPacketHandlerFactory.getHandler( _network, _port, this );
+			packet_handler = DHTUDPPacketHandlerFactory.getHandler( this, this );
 			
 		}catch( Throwable e ){
 			
@@ -175,7 +180,7 @@ DHTTransportUDPImpl
 		
 		packet_handler.setDelays( _dht_send_delay, _dht_receive_delay, (int)request_timeout );
 		
-		stats =  new DHTTransportUDPStatsImpl( packet_handler.getStats());
+		stats =  new DHTTransportUDPStatsImpl( protocol_version, packet_handler.getStats());
 		
 		String	default_ip = _default_ip==null?"127.0.0.1":_default_ip;
 				
@@ -185,7 +190,25 @@ DHTTransportUDPImpl
 
 		logger.log( "Initial external address: " + address );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTTransportUDP.PROTOCOL_VERSION, random.nextInt(), 0);
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, random.nextInt(), 0);
+	}
+	
+	public byte
+	getProtocolVersion()
+	{
+		return( protocol_version );
+	}
+	
+	public int
+	getPort()
+	{
+		return( port );
+	}
+	
+	public int
+	getNetwork()
+	{
+		return( network );
 	}
 	
 	public void
@@ -193,7 +216,7 @@ DHTTransportUDPImpl
 	
 		throws DHTTransportException
 	{
-		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), DHTTransportUDP.PROTOCOL_VERSION, random.nextInt(), 0);		
+		local_contact = new DHTTransportUDPContactImpl( this, local_contact.getTransportAddress(), local_contact.getExternalAddress(), protocol_version, random.nextInt(), 0);		
 	}
 	
 	public void
@@ -211,7 +234,7 @@ DHTTransportUDPImpl
 		
 		InetSocketAddress	address = new InetSocketAddress( external_address, port );
 		
-		local_contact = new DHTTransportUDPContactImpl( this, address, address, DHTTransportUDP.PROTOCOL_VERSION, local_contact.getInstanceID(), 0 );		
+		local_contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, local_contact.getInstanceID(), 0 );		
 
 		for (int i=0;i<listeners.size();i++){
 			
@@ -504,7 +527,7 @@ DHTTransportUDPImpl
 				InetSocketAddress	s_address = new InetSocketAddress( external_address, port );
 		
 				try{
-					local_contact = new DHTTransportUDPContactImpl( DHTTransportUDPImpl.this, s_address, s_address, DHTTransportUDP.PROTOCOL_VERSION, random.nextInt(), 0);
+					local_contact = new DHTTransportUDPContactImpl( DHTTransportUDPImpl.this, s_address, s_address, protocol_version, random.nextInt(), 0);
 			
 					logger.log( "External address changed: " + s_address );
 					
@@ -583,14 +606,14 @@ DHTTransportUDPImpl
 	
 	public DHTTransportContact
 	importContact(
-		InetSocketAddress	address,
-		byte				protocol_version )
+		InetSocketAddress	_address,
+		byte				_protocol_version )
 	
 		throws DHTTransportException
 	{
 			// instance id of 0 means "unknown"
 		
-		DHTTransportUDPContactImpl	contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, 0, 0 );
+		DHTTransportUDPContactImpl	contact = new DHTTransportUDPContactImpl( this, _address, _address, _protocol_version, 0, 0 );
 		
 		importContact( contact );
 
@@ -767,7 +790,7 @@ DHTTransportUDPImpl
 			final long	connection_id = getConnectionID();			
 
 			final DHTUDPPacketRequestPing	request = 
-				new DHTUDPPacketRequestPing( connection_id, local_contact, contact );
+				new DHTUDPPacketRequestPing( this, connection_id, local_contact, contact );
 				
 			stats.pingSent( request );
 
@@ -839,7 +862,7 @@ DHTTransportUDPImpl
 			final long	connection_id = getConnectionID();
 			
 			final DHTUDPPacketRequestStats	request = 
-				new DHTUDPPacketRequestStats( connection_id, local_contact, contact );
+				new DHTUDPPacketRequestStats( this, connection_id, local_contact, contact );
 				
 			stats.statsSent( request );
 
@@ -912,7 +935,7 @@ DHTTransportUDPImpl
 			final long	connection_id = getConnectionID();
 			
 			final DHTUDPPacketRequestPing	request = 
-					new DHTUDPPacketRequestPing( connection_id, local_contact, contact );
+					new DHTUDPPacketRequestPing( this, connection_id, local_contact, contact );
 				
 			stats.pingSent( request );
 
@@ -1120,7 +1143,7 @@ DHTTransportUDPImpl
 								
 				
 				final DHTUDPPacketRequestStore	request = 
-					new DHTUDPPacketRequestStore( connection_id, local_contact, contact );
+					new DHTUDPPacketRequestStore( this, connection_id, local_contact, contact );
 			
 				stats.storeSent( request );
 
@@ -1214,7 +1237,7 @@ DHTTransportUDPImpl
 			final long	connection_id = getConnectionID();
 			
 			final DHTUDPPacketRequestFindNode	request = 
-				new DHTUDPPacketRequestFindNode( connection_id, local_contact, contact );
+				new DHTUDPPacketRequestFindNode( this, connection_id, local_contact, contact );
 			
 			stats.findNodeSent( request );
 			
@@ -1298,7 +1321,7 @@ DHTTransportUDPImpl
 			final long	connection_id = getConnectionID();
 			
 			final DHTUDPPacketRequestFindValue	request = 
-				new DHTUDPPacketRequestFindValue( connection_id, local_contact, contact );
+				new DHTUDPPacketRequestFindValue( this, connection_id, local_contact, contact );
 			
 			stats.findValueSent( request );
 
@@ -1441,7 +1464,7 @@ DHTTransportUDPImpl
 		int							len )
 	{
 		final DHTUDPPacketData	request = 
-			new DHTUDPPacketData( connection_id, local_contact, contact );
+			new DHTUDPPacketData( this, connection_id, local_contact, contact );
 			
 		request.setDetails( DHTUDPPacketData.PT_READ_REQUEST, transfer_key, key, new byte[0], start_pos, len, 0 );
 				
@@ -1471,7 +1494,7 @@ DHTTransportUDPImpl
 		int							total_length )
 	{
 		final DHTUDPPacketData	request = 
-			new DHTUDPPacketData( connection_id, local_contact, contact );
+			new DHTUDPPacketData( this, connection_id, local_contact, contact );
 			
 		request.setDetails( DHTUDPPacketData.PT_READ_REPLY, transfer_key, key, data, start_position, length, total_length );
 		
@@ -1892,6 +1915,7 @@ DHTTransportUDPImpl
 				
 				DHTUDPPacketReplyError	reply = 
 					new DHTUDPPacketReplyError(
+							this,
 							request.getTransactionId(),
 							request.getConnectionId(),
 							local_contact,
@@ -1915,6 +1939,7 @@ DHTTransportUDPImpl
 						
 						DHTUDPPacketReplyPing	reply = 
 							new DHTUDPPacketReplyPing(
+									this,
 									request.getTransactionId(),
 									request.getConnectionId(),
 									local_contact,
@@ -1928,6 +1953,7 @@ DHTTransportUDPImpl
 					
 					DHTUDPPacketReplyStats	reply = 
 						new DHTUDPPacketReplyStats(
+								this,
 								request.getTransactionId(),
 								request.getConnectionId(),
 								local_contact,
@@ -1953,6 +1979,7 @@ DHTTransportUDPImpl
 						
 						DHTUDPPacketReplyStore	reply = 
 							new DHTUDPPacketReplyStore(
+									this,
 									request.getTransactionId(),
 									request.getConnectionId(),
 									local_contact,
@@ -1990,6 +2017,7 @@ DHTTransportUDPImpl
 						
 						DHTUDPPacketReplyFindNode	reply = 
 							new DHTUDPPacketReplyFindNode(
+									this,
 									request.getTransactionId(),
 									request.getConnectionId(),
 									local_contact,
@@ -2017,6 +2045,7 @@ DHTTransportUDPImpl
 						
 						DHTUDPPacketReplyFindValue	reply = 
 							new DHTUDPPacketReplyFindValue(
+								this,
 								request.getTransactionId(),
 								request.getConnectionId(),
 								local_contact,

@@ -34,6 +34,13 @@ public class
 DHTTransportLoopbackStatsImpl
 	extends DHTTransportStatsImpl
 {
+	protected
+	DHTTransportLoopbackStatsImpl(
+		byte		pv )
+	{
+		super( pv );
+	}
+	
 	public long
 	getPacketsSent()
 	{
@@ -67,7 +74,7 @@ DHTTransportLoopbackStatsImpl
 	public DHTTransportStats
 	snapshot()
 	{
-		DHTTransportStatsImpl	res = new DHTTransportLoopbackStatsImpl();
+		DHTTransportStatsImpl	res = new DHTTransportLoopbackStatsImpl(getProtocolVersion());
 		
 		snapshotSupport( res );
 		

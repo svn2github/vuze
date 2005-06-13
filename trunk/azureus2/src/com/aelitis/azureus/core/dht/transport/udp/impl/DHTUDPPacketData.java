@@ -27,6 +27,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 
 /**
@@ -58,22 +59,24 @@ DHTUDPPacketData
 	
 	public
 	DHTUDPPacketData(
+		DHTTransportUDPImpl				_transport,
 		long							_connection_id,
 		DHTTransportUDPContactImpl		_local_contact,
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
-		super( DHTUDPPacketHelper.ACT_DATA, _connection_id, _local_contact, _remote_contact );
+		super( _transport, DHTUDPPacketHelper.ACT_DATA, _connection_id, _local_contact, _remote_contact );
 	}
 	
 	protected
 	DHTUDPPacketData(
-		DataInputStream		is,
-		long				con_id,
-		int					trans_id )
+		DHTUDPPacketNetworkHandler		network_handler,
+		DataInputStream					is,
+		long							con_id,
+		int								trans_id )
 	
 		throws IOException
 	{
-		super( is,  DHTUDPPacketHelper.ACT_REQUEST_PING, con_id, trans_id );
+		super( network_handler, is,  DHTUDPPacketHelper.ACT_REQUEST_PING, con_id, trans_id );
 		
 		packet_type		= is.readByte();
 		transfer_key	= DHTUDPUtils.deserialiseByteArray( is, 64 );

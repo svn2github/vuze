@@ -41,12 +41,13 @@ DHTUDPPacketReplyFindNode
 	
 	public
 	DHTUDPPacketReplyFindNode(
+		DHTTransportUDPImpl		transport,
 		int						trans_id,
 		long					conn_id,
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacketHelper.ACT_REPLY_FIND_NODE, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_FIND_NODE, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected
@@ -57,18 +58,14 @@ DHTUDPPacketReplyFindNode
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacketHelper.ACT_REPLY_FIND_NODE, trans_id );
+		super( network_handler, is, DHTUDPPacketHelper.ACT_REPLY_FIND_NODE, trans_id );
 		
-			// we can only get the correct transport after decoding the network...
-		
-		DHTTransportUDPImpl	transport = (DHTTransportUDPImpl)network_handler.getRequestHandler( this );
-
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ){
 			
 			random_id	= is.readInt();
 		}		
 		
-		contacts = DHTUDPUtils.deserialiseContacts( transport, is );
+		contacts = DHTUDPUtils.deserialiseContacts( getTransport(), is );
 	}
 	
 	public void

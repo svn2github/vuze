@@ -309,7 +309,7 @@ DHTPlugin
 													contact = 
 															transport.importContact(
 																	new InetSocketAddress( host, port ),
-																	DHTTransportUDP.PROTOCOL_VERSION );
+																	DHTTransportUDP.PROTOCOL_VERSION_MAIN );
 												}
 												
 												DHTTransportFullStats stats = contact.getStats();
@@ -481,7 +481,8 @@ DHTPlugin
 									
 									transport = 
 										DHTTransportFactory.createUDP( 
-												0,		// main network
+												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
+												DHT.NW_MAIN,
 												ip,
 												storage_manager.getMostRecentAddress(),
 												f_dht_data_port, 
@@ -882,7 +883,7 @@ outer:
 			return(
 				transport.importContact(
 					new InetSocketAddress(ia, port ),
-					DHTTransportUDP.PROTOCOL_VERSION ));
+					DHTTransportUDP.PROTOCOL_VERSION_MAIN ));
 		
 		}catch( Throwable e ){
 			

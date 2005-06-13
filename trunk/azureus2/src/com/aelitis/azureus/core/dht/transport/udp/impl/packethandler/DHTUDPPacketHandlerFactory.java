@@ -28,6 +28,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
 import com.aelitis.net.udp.*;
 
@@ -44,25 +45,26 @@ DHTUDPPacketHandlerFactory
 	
 	public static DHTUDPPacketHandler 
 	getHandler(
-		int						network,
-		int						port,
+		DHTTransportUDPImpl		transport,
 		DHTUDPRequestHandler	request_handler )
 	
 		throws DHTUDPPacketHandlerException
 	{
-		return( singleton.getHandlerSupport( network, port, request_handler ));
+		return( singleton.getHandlerSupport( transport, request_handler ));
 	}
 	
 	protected DHTUDPPacketHandler 
 	getHandlerSupport(
-		int						network,
-		int						port,
+		DHTTransportUDPImpl		transport,
 		DHTUDPRequestHandler	request_handler )
 	
 		throws DHTUDPPacketHandlerException
 	{
 		try{
 			this_mon.enter();
+			
+			int	port	= transport.getPort();
+			int	network = transport.getNetwork();
 			
 			Object[]	port_details = (Object[])port_map.get( new Integer( port ));
 			
@@ -81,16 +83,16 @@ DHTUDPPacketHandlerFactory
 			
 			Map					network_map 	= (Map)port_details[1];
 			
-			DHTUDPPacketHandler	ph = (DHTUDPPacketHandler)network_map.get( new Integer( network ));
-			
-			if ( ph != null ){
+			Object[]	network_details = (Object[])network_map.get( new Integer( network ));
+						
+			if ( network_details != null ){
 				
 				throw( new DHTUDPPacketHandlerException( "Network already added" ));
 			}
 			
-			ph = new DHTUDPPacketHandler( network, (PRUDPPacketHandler)port_details[0], request_handler );
+			DHTUDPPacketHandler ph = new DHTUDPPacketHandler( network, (PRUDPPacketHandler)port_details[0], request_handler );
 			
-			network_map.put( new Integer( network ), ph );
+			network_map.put( new Integer( network ), new Object[]{ transport, ph });
 			
 			return( ph );
 			
@@ -128,13 +130,43 @@ DHTUDPPacketHandlerFactory
 			throw( new IOException( "Port '" + port + "' not registered" ));
 		}
 		
-		DHTUDPPacketHandler	res = (DHTUDPPacketHandler)((Map)port_details[1]).get( new Integer( network ));
+		Map network_map = (Map)port_details[1];
 		
-		if ( res == null ){
+		Object[]	network_details = (Object[])network_map.get( new Integer( network ));
+
+		if ( network_details == null ){
 			
 			throw( new IOException( "Network '" + network + "' not registered" ));
 		}
 		
+		DHTUDPPacketHandler	res = (DHTUDPPacketHandler)network_details[1];
+		
 		return( res.getRequestHandler());
+	}
+	
+	public DHTTransportUDPImpl
+	getTransport(
+		int		port,
+		int		network )
+	
+		throws IOException
+	{
+		Object[]	port_details = (Object[])port_map.get( new Integer( port ));
+
+		if ( port_details == null ){
+			
+			throw( new IOException( "Port '" + port + "' not registered" ));
+		}
+		
+		Map network_map = (Map)port_details[1];
+		
+		Object[]	network_details = (Object[])network_map.get( new Integer( network ));
+
+		if ( network_details == null ){
+			
+			throw( new IOException( "Network '" + network + "' not registered" ));
+		}
+		
+		return((DHTTransportUDPImpl)network_details[0]);
 	}
 }

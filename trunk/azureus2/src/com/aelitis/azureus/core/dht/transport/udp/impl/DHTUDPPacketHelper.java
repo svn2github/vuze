@@ -25,10 +25,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.Debug;
 
-
-import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 import com.aelitis.net.udp.*;
 
@@ -98,7 +95,7 @@ DHTUDPPacketHelper
 					switch( action ){
 						case ACT_REQUEST_PING:
 						{
-							return( new DHTUDPPacketRequestPing(is, connection_id,transaction_id));
+							return( new DHTUDPPacketRequestPing(network_handler,is, connection_id,transaction_id));
 						}
 						case ACT_REQUEST_STORE:
 						{
@@ -106,19 +103,19 @@ DHTUDPPacketHelper
 						}
 						case ACT_REQUEST_FIND_NODE:
 						{
-							return( new DHTUDPPacketRequestFindNode(is, connection_id,transaction_id));
+							return( new DHTUDPPacketRequestFindNode(network_handler,is, connection_id,transaction_id));
 						}
 						case ACT_REQUEST_FIND_VALUE:
 						{
-							return( new DHTUDPPacketRequestFindValue(is, connection_id,transaction_id));
+							return( new DHTUDPPacketRequestFindValue(network_handler,is, connection_id,transaction_id));
 						}
 						case ACT_REQUEST_STATS:
 						{
-							return( new DHTUDPPacketRequestStats(is, connection_id, transaction_id));
+							return( new DHTUDPPacketRequestStats(network_handler,is, connection_id, transaction_id));
 						}
 						case ACT_DATA:
 						{
-							return( new DHTUDPPacketData(is, connection_id, transaction_id));
+							return( new DHTUDPPacketData(network_handler,is, connection_id, transaction_id));
 						}
 						default:
 						{
@@ -160,11 +157,11 @@ DHTUDPPacketHelper
 					
 						case ACT_REPLY_PING:
 						{
-							return( new DHTUDPPacketReplyPing(is, transaction_id));
+							return( new DHTUDPPacketReplyPing(network_handler,is, transaction_id));
 						}
 						case ACT_REPLY_STORE:
 						{
-							return( new DHTUDPPacketReplyStore(is, transaction_id));
+							return( new DHTUDPPacketReplyStore(network_handler,is, transaction_id));
 						}
 						case ACT_REPLY_FIND_NODE:
 						{
@@ -176,11 +173,11 @@ DHTUDPPacketHelper
 						}
 						case ACT_REPLY_ERROR:
 						{
-							return( new DHTUDPPacketReplyError( is, transaction_id));
+							return( new DHTUDPPacketReplyError(network_handler, is, transaction_id));
 						}
 						case ACT_REPLY_STATS:
 						{
-							return( new DHTUDPPacketReplyStats( is, transaction_id));
+							return( new DHTUDPPacketReplyStats( network_handler, is, transaction_id));
 						}
 						default:
 						{
@@ -200,22 +197,5 @@ DHTUDPPacketHelper
 		reply_decoders.put( new Integer( ACT_REPLY_STATS ), reply_decoder );
 		
 		PRUDPPacketReply.registerDecoders( reply_decoders );
-	}
-	
-	protected static void
-	checkVersion(
-		int		version )
-	
-		throws IOException
-	{
-		if ( version < DHTTransportUDP.PROTOCOL_VERSION_MIN ){
-			
-			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
-		}
-		
-		if ( version > DHTTransportUDP.PROTOCOL_VERSION ){
-
-			Debug.out( "Received protocol version is too high (" + version + " > " + DHTTransportUDP.PROTOCOL_VERSION + ")" );
-		}
 	}
 }

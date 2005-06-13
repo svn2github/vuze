@@ -30,6 +30,7 @@ import java.io.*;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 public class 
 DHTUDPPacketReplyStore
@@ -39,22 +40,24 @@ DHTUDPPacketReplyStore
 	
 	public
 	DHTUDPPacketReplyStore(
+		DHTTransportUDPImpl		transport,
 		int						trans_id,
 		long					conn_id,
 		DHTTransportContact		local_contact,
 		DHTTransportContact		remote_contact )
 	{
-		super( DHTUDPPacketHelper.ACT_REPLY_STORE, trans_id, conn_id, local_contact, remote_contact );
+		super( transport, DHTUDPPacketHelper.ACT_REPLY_STORE, trans_id, conn_id, local_contact, remote_contact );
 	}
 	
 	protected
 	DHTUDPPacketReplyStore(
-		DataInputStream		is,
-		int					trans_id )
+		DHTUDPPacketNetworkHandler		network_handler,
+		DataInputStream					is,
+		int								trans_id )
 	
 		throws IOException
 	{
-		super( is, DHTUDPPacketHelper.ACT_REPLY_STORE, trans_id );
+		super( network_handler, is, DHTUDPPacketHelper.ACT_REPLY_STORE, trans_id );
 		
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_DIV_AND_CONT ){
 			

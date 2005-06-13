@@ -27,6 +27,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportStatsImpl;
@@ -40,11 +41,23 @@ public class
 DHTTransportLoopbackImpl
 	implements DHTTransport
 {
-	public static		int		VERSION			= 1;
+	public static		byte	VERSION			= 1;
 	
 	public static 		int		LATENCY			= 0;
 	public static		int		FAIL_PERCENTAGE	= 0;
-		
+	
+	public byte
+	getProtocolVersion()
+	{
+		return( VERSION );
+	}
+	
+	public int
+	getNetwork()
+	{
+		return( DHT.NW_MAIN );
+	}
+	
 	public static void
 	setLatency(
 		int	_latency )
@@ -115,7 +128,7 @@ DHTTransportLoopbackImpl
 	
 	private DHTTransportRequestHandler		request_handler;
 	
-	private DHTTransportStatsImpl	stats = new DHTTransportLoopbackStatsImpl();
+	private DHTTransportStatsImpl	stats = new DHTTransportLoopbackStatsImpl( VERSION );
 
 	private List	listeners = new ArrayList();
 	
@@ -125,7 +138,7 @@ DHTTransportLoopbackImpl
 		try{
 			class_mon.enter();
 		
-			DHTTransportStatsImpl	overall_stats = new DHTTransportLoopbackStatsImpl();
+			DHTTransportStatsImpl	overall_stats = new DHTTransportLoopbackStatsImpl( VERSION );
 			
 			Iterator	it = node_map.values().iterator();
 			
