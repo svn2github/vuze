@@ -23,22 +23,20 @@
 package com.aelitis.azureus.plugins.dht;
 
 
-import java.io.File;
-import java.net.InetAddress;
+
 import java.net.InetSocketAddress;
-import java.util.Properties;
+
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Average;
+
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.download.Download;
+
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
-import org.gudy.azureus2.plugins.peers.Peer;
-import org.gudy.azureus2.plugins.peers.PeerManager;
+
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
@@ -48,29 +46,19 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.*;
-import org.gudy.azureus2.plugins.utils.UTTimerEvent;
-import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
+
 
 import com.aelitis.azureus.core.dht.DHT;
-import com.aelitis.azureus.core.dht.DHTFactory;
-import com.aelitis.azureus.core.dht.DHTOperationListener;
+
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
-import com.aelitis.azureus.core.dht.control.DHTControlStats;
-import com.aelitis.azureus.core.dht.db.DHTDBStats;
-import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
-import com.aelitis.azureus.core.dht.transport.DHTTransportException;
-import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
-import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
-import com.aelitis.azureus.core.dht.transport.DHTTransportProgressListener;
-import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
-import com.aelitis.azureus.core.dht.transport.DHTTransportTransferHandler;
-import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
+
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 /**
@@ -96,25 +84,15 @@ DHTPlugin
 
 	private static final String	PLUGIN_VERSION	= "1.0";
 	private static final String	PLUGIN_NAME		= "Distributed DB";
-	private static final String	SEED_ADDRESS	= "aelitis.com";
-	private static final int	SEED_PORT		= 6881;
-		
-	private static final long	MIN_ROOT_SEED_IMPORT_PERIOD	= 8*60*60*1000;
 	
 		
 	private PluginInterface		plugin_interface;
 	
 	private int					status		= STATUS_INITALISING;
-	private DHT					dht;
-	private DHTTransportUDP		transport;
-	private long				integrated_time;
+	private DHTPluginImpl[]		dhts;
 	
 	private ActionParameter		reseed;
-	
-	private DHTPluginStorageManager storage_manager;
-
-	private long				last_root_seed_import_time;
-	
+		
 	private boolean				enabled;
 	private int					dht_data_port;
 	
@@ -156,9 +134,7 @@ DHTPlugin
 		
 			dht_data_port	= dht_port_param.getValue();
 		}
-		
-		final int f_dht_data_port	= dht_data_port;
-		
+				
 		LabelParameter	reseed_label = config.addLabelParameter2( "dht.reseed.label" );
 		
 		final StringParameter	reseed_ip	= config.addStringParameter2( "dht.reseed.ip", "dht.reseed.ip", "" );
@@ -199,9 +175,12 @@ DHTPlugin
 				parameterChanged(
 					Parameter	param )
 				{
-					if ( dht != null ){
+					if ( dhts != null ){
 						
-						dht.setLogging( logging.getValue());
+						for (int i=0;i<dhts.length;i++){
+							
+							dhts[i].setLogging( logging.getValue());
+						}
 					}
 				}
 			});
@@ -246,86 +225,93 @@ DHTPlugin
 							public void
 							runSupport()
 							{
-								if ( dht == null ){
+								if ( dhts == null ){
 									
 									return;
 								}
 								
-								String	c = command.getValue().trim();
-								
-								String	lc = c.toLowerCase();
-								
-								if ( lc.equals("print")){
-									
-									dht.print();
-									
-								}else if ( lc.equals( "test" )){
-									
-									((DHTTransportUDPImpl)transport).testExternalAddressChange();
-									
-								}else{
-									
-									int pos = c.indexOf( ' ' );
-									
-									if ( pos != -1 ){
-										
-										String	lhs = lc.substring(0,pos);
-										String	rhs = c.substring(pos+1);
-										
-										if ( lhs.equals( "set" )){
-											
-											pos	= rhs.indexOf( '=' );
-											
-											if ( pos != -1 ){
-												
-												DHTPlugin.this.put( 
-														rhs.substring(0,pos).getBytes(),
-														"DHT Plugin: set",
-														rhs.substring(pos+1).getBytes(),
-														(byte)0,
-														log_polistener );
-											}
-										}else if ( lhs.equals( "get" )){
-											
-											DHTPlugin.this.get(
-												rhs.getBytes(), "DHT Plugin: get", (byte)0, 1, 10000, true, log_polistener );
+								for (int i=0;i<dhts.length;i++){
 
-										}else if ( lhs.equals( "stats" )){
-											
-											try{
-												pos = rhs.indexOf( ":" );
-												
-												DHTTransportContact	contact;
-												
-												if ( pos == -1 ){
-												
-													contact = transport.getLocalContact();
-													
-												}else{
-													
-													String	host = rhs.substring(0,pos);
-													int		port = Integer.parseInt( rhs.substring(pos+1));
-													
-													contact = 
-															transport.importContact(
-																	new InetSocketAddress( host, port ),
-																	DHTTransportUDP.PROTOCOL_VERSION_MAIN );
-												}
-												
-												DHTTransportFullStats stats = contact.getStats();
-													
-												log.log( "Stats:" + (stats==null?"<null>":stats.getString()));
-													
-												DHTControlActivity[] activities = dht.getControl().getActivities();
-													
-												for (int i=0;i<activities.length;i++){
-														
-													log.log( "    act:" + activities[i].getString());
-												}
+									DHT	dht = dhts[i].getDHT();
+									
+									DHTTransportUDP	transport = (DHTTransportUDP)dht.getTransport();
+									
+									String	c = command.getValue().trim();
+									
+									String	lc = c.toLowerCase();
+									
+									if ( lc.equals("print")){
 										
-											}catch( Throwable e ){
+										dht.print();
+										
+									}else if ( lc.equals( "test" )){
+										
+										((DHTTransportUDPImpl)transport).testExternalAddressChange();
+										
+									}else{
+										
+										int pos = c.indexOf( ' ' );
+										
+										if ( pos != -1 ){
+											
+											String	lhs = lc.substring(0,pos);
+											String	rhs = c.substring(pos+1);
+											
+											if ( lhs.equals( "set" )){
 												
-												Debug.printStackTrace(e);
+												pos	= rhs.indexOf( '=' );
+												
+												if ( pos != -1 ){
+													
+													DHTPlugin.this.put( 
+															rhs.substring(0,pos).getBytes(),
+															"DHT Plugin: set",
+															rhs.substring(pos+1).getBytes(),
+															(byte)0,
+															log_polistener );
+												}
+											}else if ( lhs.equals( "get" )){
+												
+												DHTPlugin.this.get(
+													rhs.getBytes(), "DHT Plugin: get", (byte)0, 1, 10000, true, log_polistener );
+	
+											}else if ( lhs.equals( "stats" )){
+												
+												try{
+													pos = rhs.indexOf( ":" );
+													
+													DHTTransportContact	contact;
+													
+													if ( pos == -1 ){
+													
+														contact = transport.getLocalContact();
+														
+													}else{
+														
+														String	host = rhs.substring(0,pos);
+														int		port = Integer.parseInt( rhs.substring(pos+1));
+														
+														contact = 
+																transport.importContact(
+																		new InetSocketAddress( host, port ),
+																		DHTTransportUDP.PROTOCOL_VERSION_MAIN );
+													}
+													
+													DHTTransportFullStats stats = contact.getStats();
+														
+													log.log( "Stats:" + (stats==null?"<null>":stats.getString()));
+														
+													DHTControlActivity[] activities = dht.getControl().getActivities();
+														
+													for (int j=0;j<activities.length;j++){
+															
+														log.log( "    act:" + activities[j].getString());
+													}
+											
+												}catch( Throwable e ){
+													
+													Debug.printStackTrace(e);
+												}
 											}
 										}
 									}
@@ -357,22 +343,27 @@ DHTPlugin
 									try{
 										String	ip 	= reseed_ip.getValue().trim();
 
-										if ( dht == null ){
+										if ( dhts == null ){
 											
 											return;
 										}
 									
 										int		port = reseed_port.getValue();
+									
+										for (int i=0;i<dhts.length;i++){
+											
+											DHTPluginImpl	dht = dhts[i];
 										
-										if ( ip.length() == 0 || port == 0 ){
-											
-											checkForReSeed( true );
-											
-										}else{
-											
-											if ( importSeed( ip, port ) != null ){
+											if ( ip.length() == 0 || port == 0 ){
 												
-												integrateDHT( false, null );
+												dht.checkForReSeed( true );
+												
+											}else{
+												
+												if ( dht.importSeed( ip, port ) != null ){
+													
+													dht.integrateDHT( false, null );
+												}
 											}
 										}
 										
@@ -440,7 +431,7 @@ DHTPlugin
 
 		
 		Thread t = 
-				new AEThread( "DTDPlugin.init" )
+				new AEThread( "DHDPlugin.init" )
 				{
 					public void
 					runSupport()
@@ -457,209 +448,31 @@ DHTPlugin
 								
 								model.getStatus().setText( "Initialising" );
 								
-								try{
-									storage_manager = new DHTPluginStorageManager( log, getDataDir());
+								String	ip = null;
+								
+								if ( advanced.getValue()){
 									
-									PluginConfig conf = plugin_interface.getPluginconfig();
+									ip = override_ip.getValue().trim();
 									
-									int	send_delay = conf.getPluginIntParameter( "dht.senddelay", 50 );
-									int	recv_delay	= conf.getPluginIntParameter( "dht.recvdelay", 25 );
-									
-									boolean	bootstrap	= conf.getPluginBooleanParameter( "dht.bootstrapnode", false );
-									
-									String	ip = null;
-									
-									if ( advanced.getValue()){
+									if ( ip.length() == 0 ){
 										
-										ip = override_ip.getValue().trim();
-										
-										if ( ip.length() == 0 ){
-											
-											ip = null;
-										}
+										ip = null;
 									}
-									
-									transport = 
-										DHTTransportFactory.createUDP( 
-												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
-												DHT.NW_MAIN,
-												ip,
-												storage_manager.getMostRecentAddress(),
-												f_dht_data_port, 
-												4,
-												2,
-												20000, 	// udp timeout - tried less but a significant number of 
-														// premature timeouts occurred
-												send_delay, recv_delay, 
-												bootstrap,
-												log );
-									
-									transport.addListener(
-										new DHTTransportListener()
-										{
-											public void
-											localContactChanged(
-												DHTTransportContact	local_contact )
-											{
-											}
-											
-											public void
-											currentAddress(
-												String		address )
-											{
-												storage_manager.recordCurrentAddress( address );
-											}
-										});
-										
-									final int sample_frequency		= 60*1000;
-									final int sample_duration		= 10*60;
-									final int sample_stats_ticks	= 15;	// every 15 mins
-				
-									plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
-											sample_frequency,
-											new UTTimerEventPerformer()
-											{
-												Average	incoming_packet_average = Average.getInstance(sample_frequency,sample_duration);
-												
-												long	last_incoming;
-												
-												int	ticks = 0;
-												
-												public void
-												perform(
-													UTTimerEvent		event )
-												{
-													ticks++;
-													
-													if ( dht != null ){
-														
-														DHTTransportStats t_stats = transport.getStats();
-																			
-														long	current_incoming = t_stats.getIncomingRequests();
-														
-														incoming_packet_average.addValue( (current_incoming-last_incoming)*sample_frequency/1000);
-														
-														last_incoming	= current_incoming;
-														
-														long	incoming_average = incoming_packet_average.getAverage();
-														
-														// System.out.println( "incoming average = " + incoming_average );
-														
-														long	now = SystemTime.getCurrentTime();
-														
-															// give some time for thing to generate reasonable stats
-														
-														if ( 	integrated_time > 0 &&
-																now - integrated_time >= 5*60*1000 ){
-														
-																// 1 every 30 seconds indicates problems
-															
-															if ( incoming_average <= 2 ){
-																
-																String msg = "If you have a router/firewall, please check that you have port " + f_dht_data_port + 
-																				" UDP open.\nDecentralised tracking requires this." ;
-
-																int	warned_port = plugin_interface.getPluginconfig().getPluginIntParameter( "udp_warned_port", 0 );
-																
-																if ( warned_port == f_dht_data_port  ){
-																	
-																	log.log( msg );
-																	
-																}else{
-																	
-																	plugin_interface.getPluginconfig().setPluginParameter( "udp_warned_port", f_dht_data_port );
-																	
-																	log.logAlert( LoggerChannel.LT_WARNING, msg );
-																}
-															}
-														}
-														
-														if ( ticks % sample_stats_ticks == 0 ){
-															
-															DHTDBStats		d_stats	= dht.getDataBase().getStats();
-															DHTControlStats	c_stats = dht.getControl().getStats();
-															DHTRouterStats	r_stats = dht.getRouter().getStats();
-															
-															long[]	rs = r_stats.getStats();
-						
-	
-															log.log( 	"Router" +
-																		":nodes=" + rs[DHTRouterStats.ST_NODES] +
-																		",leaves=" + rs[DHTRouterStats.ST_LEAVES] +
-																		",contacts=" + rs[DHTRouterStats.ST_CONTACTS] +
-																		",replacement=" + rs[DHTRouterStats.ST_REPLACEMENTS] +
-																		",live=" + rs[DHTRouterStats.ST_CONTACTS_LIVE] +
-																		",unknown=" + rs[DHTRouterStats.ST_CONTACTS_UNKNOWN] +
-																		",failing=" + rs[DHTRouterStats.ST_CONTACTS_DEAD]);
-												
-															log.log( 	"Transport" + 
-																		":" + t_stats.getString()); 
-																	
-															int[]	dbv_details = d_stats.getValueDetails();
-															
-															log.log(    "Control:dht=" + c_stats.getEstimatedDHTSize() + 
-																	   	", Database:keys=" + d_stats.getKeyCount() +
-																	   	",vals=" + dbv_details[DHTDBStats.VD_VALUE_COUNT]+
-																	   	",loc=" + dbv_details[DHTDBStats.VD_LOCAL_SIZE]+
-																	   	",dir=" + dbv_details[DHTDBStats.VD_DIRECT_SIZE]+
-																	   	",ind=" + dbv_details[DHTDBStats.VD_INDIRECT_SIZE]+
-																	   	",div_f=" + dbv_details[DHTDBStats.VD_DIV_FREQ]+
-																	   	",div_s=" + dbv_details[DHTDBStats.VD_DIV_SIZE] );
-														}
-													}
-												}
-											});
-									
-									Properties	props = new Properties();
-									
-									/*
-									System.out.println( "FRIGGED REFRESH PERIOD" );
-									
-									props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
-									*/
-																		
-									dht = DHTFactory.create( 
-												transport, 
-												props,
-												storage_manager,
-												log );
-									
-									dht.setLogging( logging.getValue());
-									
-									DHTTransportContact root_seed = importRootSeed();
-									
-									storage_manager.importContacts( dht );
-									
-									plugin_interface.getUtilities().createTimer( "DHTExport" ).addPeriodicEvent(
-											10*60*1000,
-											new UTTimerEventPerformer()
-											{
-												public void
-												perform(
-													UTTimerEvent		event )
-												{
-													checkForReSeed(false);
-													
-													storage_manager.exportContacts( dht );
-												}
-											});
-
-									integrateDHT( true, root_seed );
-									
-									status = STATUS_RUNNING;
-									
-									model.getStatus().setText( "Running" );
-																		
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace(e);
-									
-									log.log( "DHT integrtion fails", e );
-									
-									model.getStatus().setText( "DHT Integration fails: " + Debug.getNestedExceptionMessage( e ));
-									
-									status	= STATUS_FAILED;
 								}
+								
+								dhts = new DHTPluginImpl[]{ 
+										new DHTPluginImpl(
+												plugin_interface,
+												ip,
+												dht_data_port,
+												reseed,
+												logging.getValue(),
+												log )};
+	
+								status = dhts[0].getStatus();
+								
+								model.getStatus().setText( dhts[0].getStatusText());
+							
 							}else{
 								
 								status	= STATUS_DISABLED;
@@ -688,9 +501,12 @@ DHTPlugin
 				public void
 				closedownInitiated()
 				{
-					if ( dht != null ){
+					if ( dhts != null ){
 						
-						storage_manager.exportContacts( dht );
+						for (int i=0;i<dhts.length;i++){
+							
+							dhts[i].closedownInitiated();
+						}
 					}
 				}
 				
@@ -701,217 +517,6 @@ DHTPlugin
 			});
 	}
 	
-	protected File
-	getDataDir()
-	{
-		File	dir = new File( plugin_interface.getUtilities().getAzureusUserDir(), "dht" );
-		
-		dir.mkdirs();
-		
-		return( dir );
-	}
-	
-	protected void
-	integrateDHT(
-		boolean				first,
-		DHTTransportContact	remove_afterwards )
-	{
-		try{
-			reseed.setEnabled( false );						
-
-			log.log( "DHT " + (first?"":"re-") + "integration starts" );
-		
-			long	start = SystemTime.getCurrentTime();
-			
-			dht.integrate( false );
-			
-			if ( remove_afterwards != null ){
-				
-				log.log( "Removing seed " + remove_afterwards.getString());
-				
-				remove_afterwards.remove();
-			}
-			
-			long	end = SystemTime.getCurrentTime();
-	
-			integrated_time	= end;
-			
-			log.log( "DHT " + (first?"":"re-") + "integration complete: elapsed = " + (end-start));
-			
-			dht.print();
-			
-		}finally{
-			
-			reseed.setEnabled( true );						
-		}
-	}
-	
-	protected void
-	checkForReSeed(
-		boolean	force )
-	{
-		int	seed_limit = 32;
-		
-		try{
-			
-			long[]	router_stats = dht.getRouter().getStats().getStats();
-		
-			if ( router_stats[ DHTRouterStats.ST_CONTACTS_LIVE] < seed_limit || force ){
-				
-				if ( force ){
-					
-					log.log( "Reseeding" );
-					
-				}else{
-					
-					log.log( "Less the 32 live contacts, reseeding" );
-				}
-				
-					// first look for peers to directly import
-				
-				Download[]	downloads = plugin_interface.getDownloadManager().getDownloads();
-				
-				int	peers_imported	= 0;
-				
-				for (int i=0;i<downloads.length;i++){
-					
-					Download	download = downloads[i];
-					
-					PeerManager pm = download.getPeerManager();
-					
-					if ( pm == null ){
-						
-						continue;
-					}
-					
-					Peer[] 	peers = pm.getPeers();
-					
-outer:
-					for (int j=0;j<peers.length;j++){
-						
-						Peer	p = peers[j];
-						
-						int	peer_udp_port = p.getUDPListenPort();
-						
-						if ( peer_udp_port != 0 ){
-													
-							if ( importSeed( p.getIp(), peer_udp_port ) != null ){
-								
-								peers_imported++;
-															
-								if ( peers_imported > seed_limit ){
-									
-									break outer;
-								}
-							}
-						}	
-					}
-				}
-				
-				DHTTransportContact	root_to_remove = null;
-				
-				if ( peers_imported == 0 ){
-				
-					root_to_remove = importRootSeed();
-					
-					if ( root_to_remove != null ){
-						
-						peers_imported++;
-					}
-				}
-				
-				if ( peers_imported > 0 ){
-					
-					integrateDHT( false, root_to_remove );
-				}
-			}
-			
-		}catch( Throwable e ){
-			
-			log.log(e);
-		}
-	}
-		
-	protected DHTTransportContact
-	importRootSeed()
-	{
-		try{
-			long	 now = SystemTime.getCurrentTime();
-			
-			if ( now - last_root_seed_import_time > MIN_ROOT_SEED_IMPORT_PERIOD ){
-		
-				last_root_seed_import_time	= now;
-				
-				return( importSeed( getSeedAddress(), SEED_PORT ));
-			
-			}else{
-				
-				log.log( "    root seed imported too recently, ignoring" );
-			}
-		}catch( Throwable e ){
-			
-			log.log(e);
-		}
-		
-		return( null );
-	}
-	
-	protected DHTTransportContact
-	importSeed(
-		String		ip,
-		int			port )
-	{
-		try{
-			
-			return( importSeed( InetAddress.getByName( ip ), port ));
-			
-		}catch( Throwable e ){
-			
-			log.log(e);
-			
-			return( null );
-		}
-	}
-	
-	protected DHTTransportContact
-	importSeed(
-		InetAddress		ia,
-		int				port )
-	
-	{
-		try{
-			return(
-				transport.importContact(
-					new InetSocketAddress(ia, port ),
-					DHTTransportUDP.PROTOCOL_VERSION_MAIN ));
-		
-		}catch( Throwable e ){
-			
-			log.log(e);
-			
-			return( null );
-		}
-	}
-	
-	protected InetAddress
-	getSeedAddress()
-	{
-		try{
-			return( InetAddress.getByName( SEED_ADDRESS ));
-			
-		}catch( Throwable e ){
-			
-			try{
-				return( InetAddress.getByName("213.186.46.164"));
-				
-			}catch( Throwable f ){
-				
-				log.log(f);
-				
-				return( null );
-			}
-		}
-	}
 	
 
 	public boolean
@@ -963,82 +568,19 @@ outer:
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 				
-		dht.put( 	key, 
-					description,
-					value,
-					flags,
-					new DHTOperationListener()
-					{
-						public void
-						searching(
-							DHTTransportContact	contact,
-							int					level,
-							int					active_searches )
-						{
-							String	indent = "";
-							
-							for (int i=0;i<level;i++){
-								
-								indent += "  ";
-							}
-							
-							// log.log( indent + "Put: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
-						}
-						
-						public void
-						found(
-							DHTTransportContact	contact )
-						{
-						}
-
-						public void
-						read(
-							DHTTransportContact	_contact,
-							DHTTransportValue	_value )
-						{
-							Debug.out( "read operation not supported for puts" );
-						}
-						
-						public void
-						wrote(
-							DHTTransportContact	_contact,
-							DHTTransportValue	_value )
-						{
-							// log.log( "Put: wrote " + _value.getString() + " to " + _contact.getString());
-							
-							if ( listener != null ){
-								
-								listener.valueWritten( new DHTPluginContactImpl(_contact ), mapValue( _value ));
-							}
-
-						}
-						
-						public void
-						complete(
-							boolean				timeout )
-						{
-							// log.log( "Put: complete, timeout = " + timeout );
-						
-							if ( listener != null ){
-								
-								listener.complete( timeout );
-							}
-						}
-					});
+		dhts[0].put( key, description, value, flags, listener );
 	}
 	
 	public DHTPluginValue
 	getLocalValue(
 		byte[]		key )
 	{
-		final DHTTransportValue	val = dht.getLocalValue( key );
-		
-		if ( val == null ){
+		if ( !isEnabled()){
 			
-			return( null );
+			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 		
-		return( mapValue( val ));
+		return( dhts[0].getLocalValue( key ));
 	}
 	
 	public void
@@ -1056,64 +598,7 @@ outer:
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 				
-		dht.get( 	key, description, flags, max_values, timeout, exhaustive, 
-					new DHTOperationListener()
-					{
-						public void
-						searching(
-							DHTTransportContact	contact,
-							int					level,
-							int					active_searches )
-						{
-							String	indent = "";
-							
-							for (int i=0;i<level;i++){
-								
-								indent += "  ";
-							}
-							
-							// log.log( indent + "Get: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
-						}
-						
-						public void
-						found(
-							DHTTransportContact	contact )
-						{
-						}
-
-						public void
-						read(
-							final DHTTransportContact	contact,
-							final DHTTransportValue		value )
-						{
-							// log.log( "Get: read " + value.getString() + " from " + contact.getString() + ", originator = " + value.getOriginator().getString());
-							
-							if ( listener != null ){
-								
-								listener.valueRead( new DHTPluginContactImpl( value.getOriginator()), mapValue( value ));
-							}
-						}
-						
-						public void
-						wrote(
-							final DHTTransportContact	contact,
-							final DHTTransportValue		value )
-						{
-							// log.log( "Get: wrote " + value.getString() + " to " + contact.getString());
-						}
-						
-						public void
-						complete(
-							boolean				_timeout )
-						{
-							// log.log( "Get: complete, timeout = " + _timeout );
-							
-							if ( listener != null ){
-								
-								listener.complete( _timeout );
-							}
-						}
-					});
+		dhts[0].get( key, description, flags, max_values, timeout, exhaustive, listener );
 	}
 	
 	public void
@@ -1127,64 +612,7 @@ outer:
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 				
-		dht.remove( 	key,
-						description,
-						new DHTOperationListener()
-						{
-							public void
-							searching(
-								DHTTransportContact	contact,
-								int					level,
-								int					active_searches )
-							{
-								String	indent = "";
-								
-								for (int i=0;i<level;i++){
-									
-									indent += "  ";
-								}
-								
-								// log.log( indent + "Remove: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
-							}
-							
-							public void
-							found(
-								DHTTransportContact	contact )
-							{
-							}
-
-							public void
-							read(
-								DHTTransportContact	contact,
-								DHTTransportValue	value )
-							{
-								// log.log( "Remove: read " + value.getString() + " from " + contact.getString());
-							}
-							
-							public void
-							wrote(
-								DHTTransportContact	contact,
-								DHTTransportValue	value )
-							{
-								// log.log( "Remove: wrote " + value.getString() + " to " + contact.getString());
-								if ( listener != null ){
-									
-									listener.valueWritten( new DHTPluginContactImpl( contact ), mapValue( value ));
-								}
-							}
-							
-							public void
-							complete(
-								boolean				timeout )
-							{
-								// log.log( "Remove: complete, timeout = " + timeout );
-							
-								if ( listener != null ){
-								
-									listener.complete( timeout );
-								}
-							}			
-						});
+		dhts[0].remove( key, description, listener );
 	}
 	
 	public DHTPluginContact
@@ -1194,8 +622,8 @@ outer:
 			
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
-		
-		return( new DHTPluginContactImpl( dht.getTransport().getLocalContact()));
+
+		return( dhts[0].getLocalAddress());
 	}
 	
 		// direct read/write support
@@ -1210,27 +638,7 @@ outer:
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 		
-		dht.getTransport().registerTransferHandler( 
-				handler_key,
-				new DHTTransportTransferHandler()
-				{
-					public byte[]
-					handleRead(
-						DHTTransportContact	originator,
-						byte[]				key )
-					{
-						return( handler.handleRead( new DHTPluginContactImpl( originator ), key ));
-					}
-					
-					public void
-					handleWrite(
-							DHTTransportContact	originator,
-						byte[]				key,
-						byte[]				value )
-					{
-						handler.handleWrite( new DHTPluginContactImpl( originator ), key, value );
-					}
-				});
+		dhts[0].registerHandler( handler_key, handler );
 	}
 	
 	public byte[]
@@ -1246,40 +654,7 @@ outer:
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 		
-		try{
-			return( dht.getTransport().readTransfer(
-						new DHTTransportProgressListener()
-						{
-							public void
-							reportSize(
-								long	size )
-							{
-								listener.reportSize( size );
-							}
-							
-							public void
-							reportActivity(
-								String	str )
-							{
-								listener.reportActivity( str );
-							}
-							
-							public void
-							reportCompleteness(
-								int		percent )
-							{
-								listener.reportCompleteness( percent );
-							}
-						},
-						((DHTPluginContactImpl)target).getContact(), 
-						handler_key, 
-						key, 
-						timeout ));
-			
-		}catch( DHTTransportException e ){
-			
-			throw( new RuntimeException( e ));
-		}
+		return( dhts[0].read( listener, target, handler_key, key, timeout ));
 	}
 
 	public int
@@ -1291,7 +666,12 @@ outer:
 	public DHT
 	getDHT()
 	{
-		return( dht );
+		if ( dhts == null ){
+			
+			return( null );
+		}
+		
+		return( dhts[0].getDHT());
 	}
 	
 	public void
@@ -1299,88 +679,5 @@ outer:
 		String	str )
 	{
 		log.log( str );
-	}
-	
-	protected class
-	DHTPluginContactImpl
-		implements DHTPluginContact
-	{
-		protected DHTTransportContact	contact;
-		
-		protected
-		DHTPluginContactImpl(
-			DHTTransportContact	_contact )
-		{
-			contact	= _contact;
-		}
-		
-		protected DHTTransportContact
-		getContact()
-		{
-			return( contact );
-		}
-		
-		public String
-		getName()
-		{
-			return( contact.getName());
-		}
-		
-		public byte
-		getProtocolVersion()
-		{
-			return( contact.getProtocolVersion());
-		}
-
-		public InetSocketAddress
-		getAddress()
-		{
-			return( contact.getAddress());
-		}
-		
-		public boolean
-		isAlive(
-			long		timeout )
-		{
-			return( contact.isAlive( timeout ));
-		}
-		
-		public boolean
-		isOrHasBeenLocal()
-		{
-			return( storage_manager.isRecentAddress( contact.getAddress().getAddress().getHostAddress()));
-		}
-	}
-	
-	protected DHTPluginValue
-	mapValue(
-		final DHTTransportValue	value )
-	{
-		if ( value == null ){
-			
-			return( null );
-		}
-		
-		return(
-			new DHTPluginValue()
-			{
-				public byte[]
-				getValue()
-				{
-					return( value.getValue());
-				}
-				
-				public long
-				getCreationTime()
-				{
-					return( value.getCreationTime());
-				}
-				
-				public int
-				getFlags()
-				{
-					return( value.getFlags()&0xff);
-				}
-			});
 	}
 }

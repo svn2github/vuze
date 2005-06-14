@@ -28,7 +28,7 @@ import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
-import com.aelitis.azureus.plugins.dht.DHTPluginStorageManager;
+import com.aelitis.azureus.plugins.dht.impl.DHTPluginStorageManager;
 
 import java.io.*;
 import java.net.InetSocketAddress;

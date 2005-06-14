@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.plugins.dht;
+package com.aelitis.azureus.plugins.dht.impl;
 
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
