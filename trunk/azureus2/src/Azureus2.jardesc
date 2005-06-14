@@ -95,6 +95,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.router"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.ipchecker.extipchecker.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.util.encoders"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.transport.udp.impl.packethandler"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.messaging.bittorrent"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.torrentdownloader.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.components.shell"/>
@@ -319,6 +320,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.model"/>
 <javaElement handleIdentifier="=azuis/&lt;HTML.Tmpl.Element"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.dht.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.disk"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.applet"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.menus"/>

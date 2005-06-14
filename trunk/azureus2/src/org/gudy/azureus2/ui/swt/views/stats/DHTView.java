@@ -96,8 +96,14 @@ public class DHTView extends AbstractIView {
   
   private void init() {
     try {
-      dht = ((DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin()).getDHT();
-      if(dht == null) return;
+      DHT[] dhts = ((DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin()).getDHTs();
+	  
+      if (dhts.length == 0){
+		  return;
+      }
+	  
+	  dht	= dhts[0];
+	  
       controlListener = new DHTControlListener() {
         public void activityChanged(DHTControlActivity activity,int type) {
           activityChanged = true;

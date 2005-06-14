@@ -25,10 +25,13 @@ package com.aelitis.azureus.plugins.dht;
 
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
 
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -294,7 +297,7 @@ DHTPlugin
 														contact = 
 																transport.importContact(
 																		new InetSocketAddress( host, port ),
-																		DHTTransportUDP.PROTOCOL_VERSION_MAIN );
+																		transport.getProtocolVersion());
 													}
 													
 													DHTTransportFullStats stats = contact.getStats();
@@ -460,15 +463,35 @@ DHTPlugin
 									}
 								}
 								
-								dhts = new DHTPluginImpl[]{ 
-										new DHTPluginImpl(
+								List	plugins = new ArrayList();
+								
+								plugins.add( new DHTPluginImpl(
 												plugin_interface,
+												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
+												DHT.NW_MAIN,
 												ip,
 												dht_data_port,
 												reseed,
 												logging.getValue(),
-												log )};
-	
+												log ));
+								
+								if ( Constants.isCVSVersion()){
+									
+									plugins.add( new DHTPluginImpl(
+											plugin_interface,
+											DHTTransportUDP.PROTOCOL_VERSION_CVS,
+											DHT.NW_CVS,
+											ip,
+											dht_data_port,
+											reseed,
+											logging.getValue(),
+											log ));
+								}
+								
+								dhts = new DHTPluginImpl[plugins.size()];
+								
+								plugins.toArray( dhts );
+														
 								status = dhts[0].getStatus();
 								
 								model.getStatus().setText( dhts[0].getStatusText());
@@ -663,15 +686,22 @@ DHTPlugin
 		return( status );
 	}
 	
-	public DHT
-	getDHT()
+	public DHT[]
+	getDHTs()
 	{
 		if ( dhts == null ){
 			
-			return( null );
+			return( new DHT[0] );
 		}
 		
-		return( dhts[0].getDHT());
+		DHT[]	res = new DHT[ dhts.length ];
+		
+		for (int i=0;i<res.length;i++){
+			
+			res[i] = dhts[i].getDHT();
+		}
+		
+		return( res );
 	}
 	
 	public void

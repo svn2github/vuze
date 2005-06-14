@@ -90,6 +90,7 @@ DHTPluginImpl
 	private ActionParameter		reseed;
 	
 	private DHT					dht;
+	private byte				protocol_version;
 	private DHTTransportUDP		transport;
 	private long				integrated_time;
 		
@@ -103,18 +104,21 @@ DHTPluginImpl
 	public
 	DHTPluginImpl(
 		PluginInterface			_plugin_interface,
-		final String			ip,
-		final int				port,
+		byte					_protocol_version,
+		int						_network,
+		String					_ip,
+		int						_port,
 		ActionParameter			_reseed,
 		boolean					_logging,
 		LoggerChannel			_log )
 	{
 		plugin_interface	= _plugin_interface;
+		protocol_version	= _protocol_version;
 		reseed				= _reseed;
 		log					= _log;
 		
 		try{
-			storage_manager = new DHTPluginStorageManager( log, getDataDir());
+			storage_manager = new DHTPluginStorageManager( log, getDataDir( _network ));
 			
 			PluginConfig conf = plugin_interface.getPluginconfig();
 			
@@ -123,14 +127,15 @@ DHTPluginImpl
 			
 			boolean	bootstrap	= conf.getPluginBooleanParameter( "dht.bootstrapnode", false );
 			
+			final int f_port	= _port;
 
 			transport = 
 				DHTTransportFactory.createUDP( 
-						DHTTransportUDP.PROTOCOL_VERSION_MAIN,
-						DHT.NW_MAIN,
-						ip,
+						_protocol_version,
+						_network,
+						_ip,
 						storage_manager.getMostRecentAddress(),
-						port, 
+						_port, 
 						4,
 						2,
 						20000, 	// udp timeout - tried less but a significant number of 
@@ -201,18 +206,18 @@ DHTPluginImpl
 									
 									if ( incoming_average <= 2 ){
 										
-										String msg = "If you have a router/firewall, please check that you have port " + port + 
+										String msg = "If you have a router/firewall, please check that you have port " + f_port + 
 														" UDP open.\nDecentralised tracking requires this." ;
 
 										int	warned_port = plugin_interface.getPluginconfig().getPluginIntParameter( "udp_warned_port", 0 );
 										
-										if ( warned_port == port  ){
+										if ( warned_port == f_port  ){
 											
 											log.log( msg );
 											
 										}else{
 											
-											plugin_interface.getPluginconfig().setPluginParameter( "udp_warned_port", port );
+											plugin_interface.getPluginconfig().setPluginParameter( "udp_warned_port", f_port );
 											
 											log.logAlert( LoggerChannel.LT_WARNING, msg );
 										}
@@ -227,6 +232,9 @@ DHTPluginImpl
 									
 									long[]	rs = r_stats.getStats();
 
+									log.log( "DHT:ip=" + transport.getLocalContact().getAddress() + 
+												",net=" + transport.getNetwork() +
+												",prot=V" + transport.getProtocolVersion());
 
 									log.log( 	"Router" +
 												":nodes=" + rs[DHTRouterStats.ST_NODES] +
@@ -326,9 +334,12 @@ DHTPluginImpl
 		dht.setLogging( l );
 	}
 	protected File
-	getDataDir()
+	getDataDir(
+		int		network )
 	{
-		File	dir = new File( plugin_interface.getUtilities().getAzureusUserDir(), "dht" );
+		String	term = network==0?"":"." + network;
+		
+		File	dir = new File( plugin_interface.getUtilities().getAzureusUserDir(), "dht" + term );
 		
 		dir.mkdirs();
 		
@@ -388,7 +399,7 @@ DHTPluginImpl
 					
 				}else{
 					
-					log.log( "Less the 32 live contacts, reseeding" );
+					log.log( "Less than 32 live contacts, reseeding" );
 				}
 				
 					// first look for peers to directly import
@@ -505,9 +516,7 @@ outer:
 	{
 		try{
 			return(
-				transport.importContact(
-					new InetSocketAddress(ia, port ),
-					DHTTransportUDP.PROTOCOL_VERSION_MAIN ));
+				transport.importContact( new InetSocketAddress(ia, port ), protocol_version ));
 		
 		}catch( Throwable e ){
 			

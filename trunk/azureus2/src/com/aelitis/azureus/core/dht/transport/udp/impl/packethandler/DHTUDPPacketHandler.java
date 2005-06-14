@@ -66,7 +66,7 @@ DHTUDPPacketHandler
 	
 	public void
 	sendAndReceive(
-		DHTUDPPacketRequest					request_packet,
+		DHTUDPPacketRequest					request,
 		InetSocketAddress					destination_address,
 		final DHTUDPPacketReceiver			receiver,
 		long								timeout,
@@ -75,10 +75,17 @@ DHTUDPPacketHandler
 		throws DHTUDPPacketHandlerException
 	{
 		try{
-			request_packet.setNetwork( network );
+			request.setNetwork( network );
+			
+			/*
+			if ( network != 0 ){
+
+				System.out.println( "sendAndReceive(out):" + network + ":" + request.getString());
+			}
+			*/
 			
 			packet_handler.sendAndReceive( 
-				request_packet, 
+				request, 
 				destination_address, 
 				new PRUDPPacketReceiver()
 				{
@@ -89,6 +96,13 @@ DHTUDPPacketHandler
 					{
 						DHTUDPPacketReply	reply = (DHTUDPPacketReply)packet;
 						
+						/*
+						if ( network != 0 ){
+
+							System.out.println( "sendAndReceive(in):" + reply.getNetwork() + ":" + reply.getString());
+						}
+						*/
+						
 						if ( reply.getNetwork() == network ){
 							
 							receiver.packetReceived(reply, from_address );
@@ -96,6 +110,8 @@ DHTUDPPacketHandler
 						}else{
 							
 							Debug.out( "Non-matching network reply received" );
+							
+							receiver.error( new DHTUDPPacketHandlerException( new Exception( "Non-matching network reply received" )));
 						}
 					}
 		
@@ -117,16 +133,23 @@ DHTUDPPacketHandler
 	
 	public void
 	send(
-		DHTUDPPacketRequest			request_packet,
+		DHTUDPPacketRequest			request,
 		InetSocketAddress			destination_address )
 	
 		throws DHTUDPPacketHandlerException
 
 	{
 		try{
-			request_packet.setNetwork( network );
+			/*
+			if ( network != 0 ){
+
+				System.out.println( "send(request):" + network + ":" + request.getString());
+			}
+			*/
 			
-			packet_handler.send( request_packet, destination_address );
+			request.setNetwork( network );
+			
+			packet_handler.send( request, destination_address );
 			
 		}catch( PRUDPPacketHandlerException e ){
 			
@@ -136,15 +159,22 @@ DHTUDPPacketHandler
 	
 	public void
 	send(
-		DHTUDPPacketReply			reply_packet,
+		DHTUDPPacketReply			reply,
 		InetSocketAddress			destination_address )
 	
 		throws DHTUDPPacketHandlerException
 	{
 		try{
-			reply_packet.setNetwork( network );
+			/*
+			if ( network != 0 ){
+				
+				System.out.println( "send(reply):" + network + ":" + reply.getString());
+			}
+			*/
 			
-			packet_handler.send( reply_packet, destination_address );
+			reply.setNetwork( network );
+			
+			packet_handler.send( reply, destination_address );
 			
 		}catch( PRUDPPacketHandlerException e ){
 			

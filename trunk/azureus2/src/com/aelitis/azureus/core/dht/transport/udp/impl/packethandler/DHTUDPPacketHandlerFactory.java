@@ -108,7 +108,16 @@ DHTUDPPacketHandlerFactory
 		DHTUDPPacketRequest	request )
 	{
 		try{
-			getRequestHandler( port, request.getNetwork()).process( request );
+			int	network = request.getNetwork();
+			
+			/*
+			if ( network != 0 ){
+				
+				System.out.println( "process:" + network + ":" + request.getString());
+			}
+			*/
+			
+			getRequestHandler( port, network ).process( request );
 			
 		}catch( IOException e ){
 			
