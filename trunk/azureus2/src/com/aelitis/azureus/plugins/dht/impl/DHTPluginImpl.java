@@ -270,7 +270,16 @@ DHTPluginImpl
 			
 			props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 5*60*1000 ));
 			*/
-												
+				
+			if ( _network == DHT.NW_CVS ){
+				
+					// reduce network usage
+				
+				System.out.println( "CVS DHT cache republish interval modified" );
+
+				props.put( DHT.PR_CACHE_REPUBLISH_INTERVAL, new Integer( 1*60*60*1000 ));
+			}
+			
 			dht = DHTFactory.create( 
 						transport, 
 						props,
@@ -337,9 +346,12 @@ DHTPluginImpl
 	getDataDir(
 		int		network )
 	{
-		String	term = network==0?"":"." + network;
+		File	dir = new File( plugin_interface.getUtilities().getAzureusUserDir(), "dht" );
 		
-		File	dir = new File( plugin_interface.getUtilities().getAzureusUserDir(), "dht" + term );
+		if ( network != 0 ){
+			
+			dir = new File( dir, "net" + network );
+		}
 		
 		dir.mkdirs();
 		

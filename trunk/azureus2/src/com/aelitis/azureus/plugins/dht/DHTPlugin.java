@@ -88,6 +88,15 @@ DHTPlugin
 	private static final String	PLUGIN_VERSION	= "1.0";
 	private static final String	PLUGIN_NAME		= "Distributed DB";
 	
+	private static final boolean	TRACE_NON_MAIN = false;
+	
+	static{
+		
+		if ( TRACE_NON_MAIN ){
+			
+			System.out.println( "**** DHTPlugin - tracing non-main network actions ****" );
+		}
+	}
 		
 	private PluginInterface		plugin_interface;
 	
@@ -592,18 +601,51 @@ DHTPlugin
 		}
 				
 		dhts[0].put( key, description, value, flags, listener );
-	}
-	
-	public DHTPluginValue
-	getLocalValue(
-		byte[]		key )
-	{
-		if ( !isEnabled()){
-			
-			throw( new RuntimeException( "DHT isn't enabled" ));
-		}
 		
-		return( dhts[0].getLocalValue( key ));
+		for (int i=1;i<dhts.length;i++){
+
+			final int f_i	= i;
+			
+			new AEThread( "mutli-dht: put", true )
+			{
+				public void
+				runSupport()
+				{
+					dhts[f_i].put( key, description, value, flags, 
+							new DHTPluginOperationListener()
+							{
+								public void
+								valueRead(
+									DHTPluginContact	originator,
+									DHTPluginValue		value )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":put valueRead" );
+									}
+								}
+								
+								public void
+								valueWritten(
+									DHTPluginContact	target,
+									DHTPluginValue		value )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":put valueWritten" );
+									}
+								}
+								
+								public void
+								complete(
+									boolean	timeout_occurred )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":put complete, timeout=" + timeout_occurred );
+									}
+								}
+							});
+				}
+			}.start();
+		}
 	}
 	
 	public void
@@ -622,6 +664,52 @@ DHTPlugin
 		}
 				
 		dhts[0].get( key, description, flags, max_values, timeout, exhaustive, listener );
+		
+		for (int i=1;i<dhts.length;i++){
+
+			final int f_i	= i;
+			
+			new AEThread( "mutli-dht: get", true )
+			{
+				public void
+				runSupport()
+				{
+					dhts[f_i].get( 
+							key, description, flags, max_values, timeout, exhaustive, 
+							new DHTPluginOperationListener()
+							{
+								public void
+								valueRead(
+									DHTPluginContact	originator,
+									DHTPluginValue		value )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":get valueRead" );
+									}
+								}
+								
+								public void
+								valueWritten(
+									DHTPluginContact	target,
+									DHTPluginValue		value )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":get valueWritten" );
+									}
+								}
+								
+								public void
+								complete(
+									boolean	timeout_occurred )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":get complete, timeout=" + timeout_occurred );
+									}
+								}
+							});
+				}
+			}.start();
+		}
 	}
 	
 	public void
@@ -636,6 +724,52 @@ DHTPlugin
 		}
 				
 		dhts[0].remove( key, description, listener );
+		
+		for (int i=1;i<dhts.length;i++){
+
+			final int f_i	= i;
+			
+			new AEThread( "mutli-dht: remove", true )
+			{
+				public void
+				runSupport()
+				{
+					dhts[f_i].remove( 
+							key, description, 
+							new DHTPluginOperationListener()
+							{
+								public void
+								valueRead(
+									DHTPluginContact	originator,
+									DHTPluginValue		value )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":remove valueRead" );
+									}
+								}
+								
+								public void
+								valueWritten(
+									DHTPluginContact	target,
+									DHTPluginValue		value )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":remove valueWritten" );
+									}
+								}
+								
+								public void
+								complete(
+									boolean	timeout_occurred )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":remove complete, timeout=" + timeout_occurred );
+									}
+								}
+							});
+				}
+			}.start();
+		}
 	}
 	
 	public DHTPluginContact
@@ -646,6 +780,8 @@ DHTPlugin
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 
+			// first DHT will do here
+		
 		return( dhts[0].getLocalAddress());
 	}
 	
@@ -661,20 +797,67 @@ DHTPlugin
 			throw( new RuntimeException( "DHT isn't enabled" ));
 		}
 		
-		dhts[0].registerHandler( handler_key, handler );
+		for (int i=0;i<dhts.length;i++){
+			
+			dhts[i].registerHandler( handler_key, handler );
+		}
 	}
 	
 	public byte[]
 	read(
 		final DHTPluginProgressListener	listener,
-		DHTPluginContact				target,
-		byte[]							handler_key,
-		byte[]							key,
-		long							timeout )
+		final DHTPluginContact			target,
+		final byte[]					handler_key,
+		final byte[]					key,
+		final long						timeout )
 	{
 		if ( !isEnabled()){
 			
 			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+		
+		for (int i=1;i<dhts.length;i++){
+
+			final int f_i	= i;
+			
+			new AEThread( "mutli-dht: readXfer", true )
+			{
+				public void
+				runSupport()
+				{
+					dhts[f_i].read( 
+							new DHTPluginProgressListener()
+							{
+								public void
+								reportSize(
+									long	size )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":readXfer: size = " + size );
+									}
+								}
+								
+								public void
+								reportActivity(
+									String	str )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":readXfer: act = " + str );
+									}
+								}
+								
+								public void
+								reportCompleteness(
+									int		percent )
+								{
+									if ( TRACE_NON_MAIN ){
+										System.out.println( "DHT_" + f_i + ":readXfer: % = " + percent );
+									}
+								}
+							},
+							target, handler_key, key, timeout );
+				}
+			}.start();
 		}
 		
 		return( dhts[0].read( listener, target, handler_key, key, timeout ));
