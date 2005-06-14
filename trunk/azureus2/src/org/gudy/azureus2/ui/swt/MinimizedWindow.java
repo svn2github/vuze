@@ -6,6 +6,8 @@ package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
@@ -18,6 +20,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsSuperView;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
+import org.eclipse.swt.widgets.ProgressBar;
 
 import java.util.Vector;
 /**
@@ -41,11 +44,17 @@ public class MinimizedWindow {
 
   private int hSize;
 
+  
+  
   private Label splashFile;
-  private Label splashPercent;
   private Label splashDown;
   private Label splashUp;
+  private Label splashTime;
 
+  public ProgressBar pb1;
+  
+  public GC gc;
+  
   private DownloadManager manager;
 
   public MinimizedWindow(DownloadManager manager, Shell main) {
@@ -60,8 +69,9 @@ public class MinimizedWindow {
             close();
         }
     });
-
+    
     this.screen = main.getDisplay().getClientArea();
+   
     lDrag = new Label(splash, SWT.NULL);
     if(! Constants.isOSX) {
       lDrag.setImage(ImageRepository.getImage("dragger")); //$NON-NLS-1$
@@ -124,29 +134,21 @@ public class MinimizedWindow {
     splashFile.setText(""); //$NON-NLS-1$
     splashFile.addMouseListener(mListener);
     splashFile.addMouseMoveListener(mMoveListener);
-    splashFile.setSize(250, hSize);
+    splashFile.setSize(200, hSize);
     splashFile.setLocation(xSize, 0);
-    xSize += 250 + 3;
-
-    Label l2 = new Label(splash, SWT.NONE);
-    l2.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
-    l2.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
-    l2.setText(MessageText.getString("ConfigView.complete.abbreviated"));
-    l2.addMouseListener(mListener);
-    l2.addMouseMoveListener(mMoveListener);
-    l2.pack();
-    l2.setLocation(xSize, 0);
-    xSize += l2.getSize().x + 3;
-
-    splashPercent = new Label(splash, SWT.NONE);
-    splashPercent.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
-    splashPercent.setText(""); //$NON-NLS-1$
-    splashPercent.addMouseListener(mListener);
-    splashPercent.addMouseMoveListener(mMoveListener);
-    splashPercent.setSize(45, hSize);
-    splashPercent.setLocation(xSize, 0);
-    xSize += 45 + 3;
-
+    xSize += 200 + 3;
+    
+    pb1 = new ProgressBar(splash ,SWT.SMOOTH);
+    pb1.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+    pb1.setForeground(Colors.blues[Colors.BLUES_MIDLIGHT]);
+    pb1.setMinimum(0);
+    pb1.setMaximum(1000);
+    pb1.addMouseListener(mListener);
+    pb1.addMouseMoveListener(mMoveListener);
+    pb1.setSize(100, hSize);
+    pb1.setLocation(xSize, 0);
+    xSize += 100 + 5;
+    
     Label l3 = new Label(splash, SWT.NONE);
     l3.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
     l3.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
@@ -185,6 +187,28 @@ public class MinimizedWindow {
     splashUp.setLocation(xSize, 0);
     xSize += 65 + 3;
 
+    Label l5 = new Label(splash, SWT.NONE);
+    l5.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+    l5.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
+    l5.setText(MessageText.getString("MyTorrentsView.eta") + ":");
+    l5.addMouseListener(mListener);
+    l5.addMouseMoveListener(mMoveListener);
+    l5.pack();
+    l5.setLocation(xSize, 0);
+    xSize += l5.getSize().x + 3;
+
+    splashTime = new Label(splash, SWT.NONE);
+    splashTime.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
+    splashTime.setText(""); //$NON-NLS-1$
+    splashTime.addMouseListener(mListener);
+    splashTime.addMouseMoveListener(mMoveListener);
+    splashTime.setSize(65, hSize);
+    splashTime.setLocation(xSize, 0);
+    xSize += 65 + 3;
+
+    
+    
+    
     splash.addListener(SWT.Deiconify, new Listener() {
       public void handleEvent(Event e) {
         splash.setVisible(true);
@@ -210,11 +234,14 @@ public class MinimizedWindow {
     splash.setMenu(menu);
     lDrag.setMenu(menu);
     l1.setMenu(menu);
-    l2.setMenu(menu);
+    l3.setMenu(menu);
+    l4.setMenu(menu);
+    l5.setMenu(menu);
+    pb1.setMenu(menu);
     splashDown.setMenu(menu);
     splashFile.setMenu(menu);
-    splashPercent.setMenu(menu);
     splashUp.setMenu(menu);
+    splashTime.setMenu(menu);
     
     
     downloadBars.add(this);        
@@ -337,14 +364,36 @@ public class MinimizedWindow {
     downloadBars.remove(this);
   }
 
+
   public void refresh() {
     if (splash.isDisposed())
       return;
     splashFile.setText(manager.getDisplayName());
-    int percent = manager.getStats().getCompleted();
-    splashPercent.setText((percent / 10) + "." + (percent % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
+    final int percent = manager.getStats().getCompleted();
     splashDown.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(manager.getStats().getDataReceiveRate()));
     splashUp.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(manager.getStats().getDataSendRate()));
+    splashTime.setText(DisplayFormatters.formatETA(manager.getStats().getETA()));
+    
+    pb1.setSelection(percent);
+    //final String oldPerc = 
+    Listener listener = new Listener() {
+      public void handleEvent(Event event) {
+        int perc = manager.getStats().getCompleted();
+        Color old = event.gc.getForeground(); 
+        event.gc.setForeground(Colors.black);
+        event.gc.drawText(DisplayFormatters.formatPercentFromThousands(perc), 110, -1, true);
+        
+        event.gc.setForeground(old);
+        event.gc.dispose();
+      }
+    };
+    pb1.addListener(SWT.Paint,listener);
+    
+
+    
+    
+    pb1.redraw();
+  
   }
 
   public void setVisible(boolean visible) {

@@ -85,6 +85,8 @@ PEPiece
   
   public void setBeingChecked();
   
+  public void setBeingChecked(boolean checking);
+  
   public boolean isBeingChecked();
   
   public int getAndMarkBlock();
@@ -94,4 +96,13 @@ PEPiece
   public boolean isWritten(int blockNumber);
   
   public void setBlockWritten(int blockNumber);
+  
+  //A Piece can be reserved by a peer, so that only him can
+  //contribute to it.
+  public void setReservedBy(PEPeer peer);
+  
+  public PEPeer getReservedBy();
+  
+  public void reDownloadBlock(int blockNumber);
+  
 }

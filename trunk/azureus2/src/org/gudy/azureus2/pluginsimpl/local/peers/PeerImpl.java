@@ -211,24 +211,6 @@ PeerImpl
   public void setOptimisticUnchoke( boolean is_optimistic ) {
     delegate.setOptimisticUnchoke( is_optimistic );
   }
-  
-  
-	public int getNumberOfBadChunks()
-	{
-	  return( delegate.getNbBadChunks());
-	}
-	
-	public void
-  hasSentABadChunk( int piece_number )
-	{
-		delegate.hasSentABadChunk( piece_number );
-	}
-	
-	public void
-	resetNbBadChunks()
-	{
-		delegate.resetNbBadChunks();
-	}
 	
 	public void
 	initialize()

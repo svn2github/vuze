@@ -71,5 +71,8 @@ DiskManagerPiece
 	
 	public long
 	getLastWriteTime();
+  
+  public void
+  reDownloadBlock(int blockNumber);
 
 }

@@ -203,7 +203,6 @@ public class TableView
    */
   public void initialize(Composite composite) {
     panel = createMainPanel(composite);
-
     menu = createMenu();
     fillMenu(menu);
     table = createTable();

@@ -51,7 +51,9 @@ public class PiecesView
     new BlocksItem(),
     new CompletedItem(),
     new AvailabilityItem(),
-    new TypeItem()
+    new TypeItem(),
+    new ReservedByItem(),
+    new WritersItem()
   };
 
   DownloadManager manager;

@@ -101,12 +101,6 @@ Peer
   
   public void setOptimisticUnchoke( boolean is_optimistic );
 	
-  public void hasSentABadChunk( int piece_number );
-	
-	public int getNumberOfBadChunks();
-	
-	public void resetNbBadChunks();
-	
 	public void
 	initialize();
 	

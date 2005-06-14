@@ -45,8 +45,7 @@ PEPeerControlImpl
   private static final int SLOPE_REQUESTS = 4 * 1024;
   
   
-  private static final int BAD_CHUNKS_LIMIT = 3;
-  private static final int WARNINGS_LIMIT = 3;
+  private static final int WARNINGS_LIMIT = 2;
   
   private static boolean disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
   
@@ -309,6 +308,8 @@ PEPeerControlImpl
         updateStats();
 
         checkFastPieces();
+        
+        checkReservedPieces();
 
         boolean forcenoseeds = disconnect_seeds_when_seeding;
         
@@ -697,8 +698,28 @@ PEPeerControlImpl
       
       //if piece is loaded, fast 
       if (currentPiece != null && !currentPiece.isSlowPiece() && ((currentTime - currentPiece.getLastWriteTime()) > (30 * 1000) ) ) {
-        //System.out.println("fast > slow : " + currentTime + " - " + currentPiece.getLastWriteTime());
+        //System.out.println("fast > slow : " + currentTime + " - " + currentPiece.getLastWriteTime());        
         currentPiece.setSlowPiece(true);
+        
+      }
+    }
+  }
+  
+  
+  private void checkReservedPieces() {
+    long currentTime = SystemTime.getCurrentTime();
+    //for every piece
+    for (int i = 0; i < _nbPieces; i++) {
+      PEPiece currentPiece = _pieces[i]; //get the piece
+
+      
+      //if piece is loaded, fast 
+      if (currentPiece != null && currentPiece.getReservedBy() != null && ((currentTime - currentPiece.getLastWriteTime()) > (120 * 1000) ) ) {
+        //Peer is too slow, let's ban him anyway
+        badPeerDetected((PEPeerTransport) currentPiece.getReservedBy());
+        
+        currentPiece.reset();
+        _downloading[i] = false;
       }
     }
   }
@@ -1064,6 +1085,29 @@ PEPeerControlImpl
    */
   private boolean findPieceToDownload(PEPeerTransport pc) {
     
+    //0. if a piece is linked to this peer, let's assign it to him
+    if(pc.getReservedPieceNumber() != -1) {
+      int pieceNumber = pc.getReservedPieceNumber();
+      PEPiece piece = _pieces[pieceNumber];
+      if(piece == null) {
+        pc.setReservedPieceNumber(-1);
+      } else {
+        int blockNumber = piece.getAndMarkBlock();
+        if(blockNumber == -1) {
+          //No blocks left to request on that piece,
+          //Unallocate the piece from that peer
+          pc.setReservedPieceNumber(-1);
+        } else {
+          //We really send the request to the peer
+          pc.request(pieceNumber, blockNumber * DiskManager.BLOCK_SIZE, _pieces[pieceNumber].getBlockSize(blockNumber));
+
+          //and return true as we have found a block to request
+          return true;
+        }
+      }
+    }
+    
+    
     //Slower than 2KB/s is a slow peer
     boolean slowPeer = pc.getStats().getDataReceiveRate() < 2 * 1024;
     
@@ -1092,7 +1136,8 @@ PEPeerControlImpl
     //For every piece
     for (int i = 0; i < _nbPieces; i++) {
       //If we're not downloading the piece and if it's available from that peer 
-      if (_piecesRarest[i] && (_pieces[i] != null) && !_downloading[i]) {
+      //And it's not reserved by any specific peer
+      if (_piecesRarest[i] && (_pieces[i] != null) && !_downloading[i] && _pieces[i].getReservedBy() == null) {
         //We get and mark the next block number to dl
         //We will either get -1 if no more blocks need to be requested
         //Or a number >= 0 otherwise
@@ -2033,7 +2078,7 @@ PEPeerControlImpl
 	      	}
  
 	        List list = piece.getPieceWrites();
-	        if(list.size() > 0) {                  
+	        if(list.size() > 0) {
 	          //For each Block
 	          for(int i = 0 ; i < piece.getNbBlocs() ; i++) {
 	            //System.out.println("Processing block " + i);
@@ -2059,7 +2104,7 @@ PEPeerControlImpl
 	                if(! Arrays.equals(write.getHash(),correctHash)) {
 	                  //Bad peer found here
 	                  PEPeer peer = write.getSender();
-	                  peer.hasSentABadChunk( pieceNumber );
+	                  badPeerDetected((PEPeerTransport) peer);
 	                  if(!peersToDisconnect.contains(peer))
 	                    peersToDisconnect.add(peer);                  
 	              }
@@ -2087,35 +2132,70 @@ PEPeerControlImpl
 
 	       if (piece != null) {
 	       	
-		    MD5CheckPiece(piece,false);
+		      MD5CheckPiece(piece,false);
 
 	        PEPeer[] writers = piece.getWriters();
-	        if((writers.length > 0) && writers[0] != null) {
-	          PEPeerTransport writer = (PEPeerTransport)writers[0];
-	          boolean uniqueWriter = true;
-	          for(int i = 1 ; i < writers.length ; i++) {
-	            uniqueWriter = uniqueWriter && writer.equals(writers[i]);            
-	          }
-	          if(uniqueWriter) {
-	          	
-	          		// we don't know how many chunks are invalid, assume all were invalid
-	          	
-	          	for (int i=0;i<writers.length;i++){
-	          		
-	          		writer.hasSentABadChunk( pieceNumber );
-	          	}
-	          	
-	            badPeerDetected(writer);
-	          }
-	        }
+          List uniqueWriters = new ArrayList();
+          int[] writesPerWriter = new int[writers.length];
+          for(int i = 0 ; i < writers.length;i++) {
+            PEPeer writer = writers[i];
+            if(writer != null) {
+              int writerId = uniqueWriters.indexOf(writer);
+              if(writerId == -1) {
+                uniqueWriters.add(writer);
+                writerId = uniqueWriters.size() - 1;
+              }
+              writesPerWriter[writerId]++;
+            }
+          }
+          int nbWriters = uniqueWriters.size();
+          if(nbWriters == 1) {
+            //Very simple case, only 1 peer contributed for that piece,
+            //so, let's mark it as a bad peer
+            badPeerDetected((PEPeerTransport) uniqueWriters.get(0));
+            
+            //and let's reset the whole piece
+            piece.reset();  
+            // Mark this piece as non downloading      
+            _downloading[pieceNumber] = false;
+          } else if(nbWriters > 1) {
+            int maxWrites = 0;
+            PEPeer bestWriter = null;
+            for(int i = 0 ; i < uniqueWriters.size() ; i++) {              
+              int writes = writesPerWriter[i];
+              PEPeer writer = (PEPeer) uniqueWriters.get(i);
+              if(writes > maxWrites && writer.getReservedPieceNumber() == -1) {
+                bestWriter = writer;
+                maxWrites = writes;
+              }
+            }
+            if(bestWriter != null) {
+              piece.setReservedBy(bestWriter);
+              bestWriter.setReservedPieceNumber(piece.getPieceNumber());
+              piece.setBeingChecked(false);
+              for(int i = 0 ; i < piece.getNbBlocs() ; i++) {
+                //If the block was contirbuted by someone else            
+                if(writers[i] == null || !writers[i].equals(bestWriter)) {
+                  piece.reDownloadBlock(i);
+                }
+              }
+            } else {
+              //In all cases, reset the piece
+              piece.reset();
+              //Mark this piece as non downloading      
+              _downloading[pieceNumber] = false;
+            }            
+          } else {
+            //In all cases, reset the piece
+            piece.reset();
+            //Mark this piece as non downloading      
+            _downloading[pieceNumber] = false;
+          } 
+            
+  
 	        
-	        piece.reset();
 	      }
-	       
-	       		//Mark this piece as non downloading
-	       
-	      _downloading[pieceNumber] = false;
-	            
+	           
 	      	//if we are in end-game mode, we need to re-add all the piece chunks
 	      	//to the list of chunks needing to be downloaded
 	      
@@ -2154,43 +2234,33 @@ PEPeerControlImpl
   {
     String ip = peer.getIp();
     
-    	//Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");
-    
-    int nbBadChunks = peer.getNbBadChunks();
-    
-    if (  nbBadChunks > BAD_CHUNKS_LIMIT) {
-    	
-      IpFilterManager	filter_manager = IpFilterManagerFactory.getSingleton();
-    	
-      	//Ban fist to avoid a fast reco of the bad peer
-      
-      int nbWarnings = filter_manager.getBadIps().addWarningForIp(ip);
-      
-      	// no need to reset the bad chunk count as the peer is going to be disconnected and
-      	// if it comes back it'll start afresh
-      
-      if(	nbWarnings > WARNINGS_LIMIT ){
-      	
-      	if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning")){
-      	
-	      	ip_filter.ban(ip, _downloadManager.getDisplayName());                    
-	      
-	      		//	Close connection in 2nd
-	      	
-          closeAndRemovePeer( peer, "has sent too many bad blocks (" + nbBadChunks + " , " + BAD_CHUNKS_LIMIT + " max)" );
-	      	
-	      		//Trace the ban in third
-	      		      		
-	      	LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
-	      	
-      	}else{
-      		
-	      	LGLogger.log(LGLogger.ERROR,ip + " : has not been banned as this is disabled. Bad data count has been reset" );
+  	//Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");
 
-      		peer.resetNbBadChunks();
-      	}
-      }
-    }
+    IpFilterManager	filter_manager = IpFilterManagerFactory.getSingleton();
+  	
+    	//Ban fist to avoid a fast reco of the bad peer
+    
+    int nbWarnings = filter_manager.getBadIps().addWarningForIp(ip);
+    
+    	// no need to reset the bad chunk count as the peer is going to be disconnected and
+    	// if it comes back it'll start afresh
+    
+    if(	nbWarnings > WARNINGS_LIMIT ){
+    	
+    	if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning")){
+    	
+      	ip_filter.ban(ip, _downloadManager.getDisplayName());                    
+      
+      		//	Close connection in 2nd
+      	
+        closeAndRemovePeer( peer, "has sent too many bad pieces, " + WARNINGS_LIMIT + " max." );
+      	
+      		//Trace the ban in third
+      		      		
+      	LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
+      	
+    	}
+    }    
   }
 
 

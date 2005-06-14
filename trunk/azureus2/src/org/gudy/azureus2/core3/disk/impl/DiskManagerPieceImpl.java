@@ -221,4 +221,9 @@ DiskManagerPieceImpl
 	{
 		last_write_time = SystemTime.getCurrentTime();		
 	}
+  
+  public void reDownloadBlock(int blockNumber) {
+    written[blockNumber] = false;
+    setDone(false);
+  }
 }

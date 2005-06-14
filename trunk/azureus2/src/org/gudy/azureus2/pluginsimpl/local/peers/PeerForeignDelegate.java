@@ -350,25 +350,6 @@ PeerForeignDelegate
   public void setOptimisticUnchoke( boolean is_optimistic ) {
     foreign.setOptimisticUnchoke( is_optimistic );
   }
-
-	
-	public void 
-	hasSentABadChunk( int piece_number )
-	{
-		foreign.hasSentABadChunk( piece_number );
-	}
-	
-	public int 
-	getNbBadChunks()
-	{
-		return( foreign.getNumberOfBadChunks());
-	}
-	
-	public void
-	resetNbBadChunks()
-	{
-		foreign.resetNbBadChunks();
-	}
 	
 	public int getUniqueAnnounce() 
 	{
@@ -459,5 +440,16 @@ PeerForeignDelegate
 	{
 		return( foreign.hashCode());
 	}
+  
+  
+  
+  public int getReservedPieceNumber() {
+    //TODO : Really implement it (Gudy)
+    return -1;
+ }
+ 
+  public void setReservedPieceNumber(int pieceNumber) {
+    //TODO : Really implement it (Gudy)
+  }
 	
 }

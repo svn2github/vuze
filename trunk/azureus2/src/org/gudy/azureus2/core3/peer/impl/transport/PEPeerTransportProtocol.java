@@ -95,12 +95,12 @@ PEPeerTransportProtocol
 
   //The client name identification	
 	private String client = "";
-    
-	//Number of bad chunks received from this peer
-	private int nbBadChunks;
-	
+    	
 	//When superSeeding, number of unique piece announced
 	private int uniquePiece = -1;
+  
+  //When downloading a piece in exclusivity mode the piece number being downloaded
+  private int reservedPiece = -1;
 	
 	//Spread time (0 secs , fake default)
 	private int spreadTimeHint = 0 * 1000;
@@ -690,23 +690,6 @@ PEPeerTransportProtocol
   public boolean isSeed() {  return seed;  }
   public boolean isSnubbed() {  return snubbed;  }
   public void setSnubbed(boolean b) {  snubbed = b;  }
-
-
-  public void hasSentABadChunk( int piece_number ) {
-    nbBadChunks++;
-    
-    if( peer_listeners != null ) {
-      for( int i=0; i < peer_listeners.size(); i++ ) {
-        PEPeerListener l = (PEPeerListener)peer_listeners.get( i );
-      
-        l.sentBadChunk( piece_number, nbBadChunks );
-      }
-    }
-  }
-  
-  public int getNbBadChunks() {  return nbBadChunks;  }
-  public void resetNbBadChunks(){ nbBadChunks = 0; }
-  
   public void setUploadHint(int spreadTime) {  spreadTimeHint = spreadTime;  }
   public int getUploadHint() {  return spreadTimeHint;  }
   public void setUniqueAnnounce(int _uniquePiece) {  uniquePiece = _uniquePiece;  }
@@ -1734,5 +1717,13 @@ PEPeerTransportProtocol
   
   
   public PeerItem getPeerItemIdentity() {  return peer_item_identity;  }
+  
+  public int getReservedPieceNumber() {
+    return reservedPiece;
+  }
+  
+  public void setReservedPieceNumber(int pieceNumber) {
+    reservedPiece = pieceNumber;
+  }
 
 }

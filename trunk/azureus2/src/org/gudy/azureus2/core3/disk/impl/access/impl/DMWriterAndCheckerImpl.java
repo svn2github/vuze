@@ -462,8 +462,7 @@ DMWriterAndCheckerImpl
 						
 					}finally{
 												
-						if ( _result_handler != null ){
-							
+						if ( _result_handler != null ){							
 							_result_handler.processResult( pieceNumber, result, _user_data );
 						}
 					}

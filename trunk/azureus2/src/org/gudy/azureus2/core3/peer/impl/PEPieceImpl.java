@@ -49,6 +49,7 @@ PEPieceImpl
   private PEPeer[] 	writers;
   private List 		writes;
 
+  private PEPeer reservedBy;
     
    public boolean isBeingChecked = false;
 
@@ -208,6 +209,10 @@ PEPieceImpl
   public void setBeingChecked() {
 	this.isBeingChecked = true;
   }
+  
+  public void setBeingChecked(boolean checking) {
+  this.isBeingChecked = checking;
+  }
 
   public boolean isBeingChecked() {
 	return this.isBeingChecked;
@@ -289,6 +294,7 @@ PEPieceImpl
     writers 	= new PEPeer[nbBlocs];
     
     isBeingChecked = false;
+    reservedBy = null;
  
   }
   
@@ -365,4 +371,19 @@ PEPieceImpl
   public PEPeerManager getManager() {
     return manager;
   }
+  
+  public void setReservedBy(PEPeer peer) {
+   this.reservedBy = peer;   
+  }
+  
+  public PEPeer getReservedBy() {
+    return this.reservedBy;
+  }
+  
+  public void reDownloadBlock(int blockNumber) {
+    downloaded[blockNumber] = false;
+    requested[blockNumber] = false;
+    dm_piece.reDownloadBlock(blockNumber);
+  }
+  
 }

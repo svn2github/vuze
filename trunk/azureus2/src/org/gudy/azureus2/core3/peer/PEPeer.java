@@ -147,16 +147,6 @@ PEPeer
 	public boolean isOptimisticUnchoke();
   public void setOptimisticUnchoke( boolean is_optimistic );
 	
-  /**
-   * Peer sent bad piece data chunk.
-   * @param piece_number that failed hash check
-   */
-	public void hasSentABadChunk( int piece_number );
-	
-	public int getNbBadChunks();
-	
-	public void resetNbBadChunks();
-	
 	//Used in super-seed mode
 	//The lower the better
 	public void setUploadHint(int timeToSpread);
@@ -193,5 +183,14 @@ PEPeer
    * @return messages available for use, or null of supported is yet unknown or unavailable
    */
   public Message[] getSupportedMessages();
-
+  
+  /**
+   * Sets the reserved piece for piece picking by this peer
+   */
+  public void setReservedPieceNumber(int pieceNumber);
+  
+  /**
+   * Get the reserved piece for piece picking by this peer
+   */
+  public int getReservedPieceNumber();
 }
