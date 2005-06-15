@@ -4,14 +4,22 @@ AZUREUS CHANGELOG
 2005.xx.xx | Azureus 2.3.0.3
 
 FEATURE: Core | DHT torrent lookup now based on sha1(hash) and torrent xfer encrypted using hash-derived key [Parg]
+FEATURE: Core | More aggressive banning of peers sending bad data - algorithm change and block-banning feature [Gudy,Parg]
+FEATURE: Core | Support for multiple DHT networks on same port [Parg]
+FEATURE: Plug | Plugin interface extension to allow per-plugin torrent-attributes [Parg]
+FEATURE: Plug | Plugin ResourceDownload feature for accessing content-type [Parg]
 
 CHANGE: Core  | Improved optimistic unchoke anti-leech algorithms [Nolar]
+CHANGE: Core  | CVS versions run multiple DHTs to permit validations of changes [Parg]
+CHANGE: Core  | DHT anti-spoof for cache forwards [Parg]
+CHANGE: Core  | DHT mechanisms for flood prevention [Parg]
+CHANGE: Core  | Added local tracker url to torrents when hosting external torrents [Parg]
 
 BUGFIX: Core  | DHT protocol version logic fixes [Parg]
 BUGFIX: Core  | Fix for 100% cpu when more than 60 connections are registered with a selector under buggy network stacks [Nolar]
 BUGFIX: Core  | Invalid listen port configuration would prevent Azureus from starting [Nolar]
 BUGFIX: Core  | Added hooks to catch Windows shutdown events to allow graceful Azureus exit [Nolar]
-
+BUGFIX: Core  | Fix for start-stopped non-simple torrents showing data-missing error on restart [Parg]
 
 
 
