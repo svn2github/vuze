@@ -73,30 +73,13 @@ public class WriteController {
   
   
   private void writeSelectorLoop() {
-    int rounds = 0;    
-    long start = System.currentTimeMillis();
-    
     while( true ) {
       try {
         write_selector.select( 100 );
       }
       catch( Throwable t ) {
         Debug.out( "writeSelectorLoop() EXCEPTION: ", t );
-      }
-      
-      rounds++;
-      
-      if( rounds > 5000 ) {
-        long time = System.currentTimeMillis() - start;
-        
-        if( time < 1000 ) {
-          Debug.out( "writeSelectorLoop() possible spin detected, time=" +time );
-          try {  Thread.sleep( 100 );  }catch(Exception e) { Debug.printStackTrace(e); }
-        }
-        rounds = 0;
-        start = System.currentTimeMillis();
-      }
-      
+      }      
     }
   }
   
