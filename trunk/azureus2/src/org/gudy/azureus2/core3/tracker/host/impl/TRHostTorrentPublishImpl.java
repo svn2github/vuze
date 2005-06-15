@@ -121,6 +121,12 @@ TRHostTorrentPublishImpl
 		persistent	= _persistent;
 	}
 	
+	public boolean
+	isPassive()
+	{
+		return( false );
+	}
+	
 	public TOTorrent
 	getTorrent()
 	{

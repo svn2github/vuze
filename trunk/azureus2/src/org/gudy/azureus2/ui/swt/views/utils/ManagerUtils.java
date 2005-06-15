@@ -128,7 +128,7 @@ public class ManagerUtils {
     TOTorrent torrent = dm.getTorrent();
     if (torrent != null) {
       try {
-      	azureus_core.getTrackerHost().hostTorrent(torrent);
+      	azureus_core.getTrackerHost().hostTorrent(torrent, true, false );
       } catch (TRHostException e) {
         MessageBox mb = new MessageBox(panel.getShell(), SWT.ICON_ERROR | SWT.OK);
         mb.setText(MessageText.getString("MyTorrentsView.menu.host.error.title"));

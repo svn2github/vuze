@@ -90,6 +90,10 @@ TRHostConfigImpl
 		   		
 		   		boolean	persistent =  persistent_l==null || persistent_l.longValue() == 1;
 	
+		   		Long	passive_l = (Long)t_map.get("passive");
+		   		
+		   		boolean	passive =  passive_l!=null && passive_l.longValue() == 1;
+
 				byte[]	hash = (byte[])t_map.get("hash");
 
 		   		if ( persistent ){	
@@ -105,7 +109,7 @@ TRHostConfigImpl
 				 	
 				 	if ( torrent != null ){
 				 		
-				 		TRHostTorrent	ht = host.addTorrent( torrent, state, true );
+				 		TRHostTorrent	ht = host.addTorrent( torrent, state, true, passive );
 				 		
 				 		if ( ht instanceof TRHostTorrentHostImpl ){
 				 			
@@ -246,6 +250,7 @@ TRHostConfigImpl
 					Map t_map = new HashMap();
 				
 					t_map.put("persistent",new Long(torrent.isPersistent()?1:0));
+					t_map.put("passive",new Long(torrent.isPassive()?1:0));
 					
 					t_map.put("hash", hash );
 				

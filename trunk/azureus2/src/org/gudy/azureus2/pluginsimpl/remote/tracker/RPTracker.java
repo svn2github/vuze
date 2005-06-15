@@ -153,6 +153,19 @@ RPTracker
 		}		
 	}
 	
+	public TrackerTorrent
+	host(
+		Torrent		torrent,
+		boolean		persistent,
+		boolean		passive )
+		
+		throws TrackerException
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
     public TrackerTorrent[]
     getTorrents()
     {

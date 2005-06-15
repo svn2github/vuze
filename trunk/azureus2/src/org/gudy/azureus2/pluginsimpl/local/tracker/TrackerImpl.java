@@ -102,10 +102,21 @@ TrackerImpl
 	
 		throws TrackerException
 	{
+		return( host( _torrent, _persistent, false ));
+	}
+	
+	public TrackerTorrent
+	host(
+		Torrent		_torrent,
+		boolean		_persistent,
+		boolean		_passive )
+	
+		throws TrackerException
+	{
 		TorrentImpl	torrent = (TorrentImpl)_torrent;
 		
 		try{
-			return( new TrackerTorrentImpl( host.hostTorrent( torrent.getTorrent(), _persistent )));
+			return( new TrackerTorrentImpl( host.hostTorrent( torrent.getTorrent(), _persistent, _passive )));
 			
 		}catch( Throwable e ){
 			

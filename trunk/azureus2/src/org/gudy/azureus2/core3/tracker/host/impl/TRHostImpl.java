@@ -248,24 +248,16 @@ TRHostImpl
 	{
 		return( TRTrackerServer.DEFAULT_NAME );
 	}
-	
-	public TRHostTorrent
-	hostTorrent(
-		TOTorrent		torrent )
-		
-		throws TRHostException
-	{
-		return( hostTorrent( torrent, true ));
-	}
 
 	public TRHostTorrent
 	hostTorrent(
 		TOTorrent		torrent,
-		boolean			persistent )
+		boolean			persistent,
+		boolean			passive )
 	
 		throws TRHostException
 	{
-		return( addTorrent( torrent, TRHostTorrent.TS_STARTED, persistent ));
+		return( addTorrent( torrent, TRHostTorrent.TS_STARTED, persistent, passive ));
 	}
 	
 	public TRHostTorrent
@@ -274,14 +266,15 @@ TRHostImpl
 		
 		throws TRHostException
 	{
-		return( addTorrent( torrent, TRHostTorrent.TS_PUBLISHED, true ));
+		return( addTorrent( torrent, TRHostTorrent.TS_PUBLISHED, true, false ));
 	}
 	
 	protected TRHostTorrent
 	addTorrent(
 		TOTorrent		torrent,
 		int				state,
-		boolean			persistent )
+		boolean			persistent,
+		boolean			passive )
 		
 		throws TRHostException
 	{
@@ -318,6 +311,11 @@ TRHostImpl
 							if ( persistent && !hti.isPersistent()){
 								
 								hti.setPersistent( true );
+							}
+							
+							if ( passive && !hti.isPassive()){
+								
+								hti.setPassive( true );
 							}
 							
 							if ( state != TRHostTorrent.TS_PUBLISHED ){
@@ -402,15 +400,22 @@ TRHostImpl
 		
 			if ( state == TRHostTorrent.TS_PUBLISHED ){
 	
-				host_torrent = new TRHostTorrentPublishImpl( this, torrent );
+				TRHostTorrentPublishImpl new_torrent = new TRHostTorrentPublishImpl( this, torrent );
 	
+				new_torrent.setPersistent( persistent );
+				
+				host_torrent	= new_torrent;
 			}else{
 			
-				host_torrent = new TRHostTorrentHostImpl( this, server, torrent, port );
+				TRHostTorrentHostImpl	new_torrent = new TRHostTorrentHostImpl( this, server, torrent, port );
+				
+				new_torrent.setPersistent( persistent );
+				
+				new_torrent.setPassive( passive );
+
+				host_torrent	= new_torrent;
 			}
-			
-			host_torrent.setPersistent( persistent );
-			
+						
 			host_torrents.add( host_torrent );
 			
 			try{
@@ -880,7 +885,7 @@ TRHostImpl
 			try{
 				TOTorrent	external_torrent = new TRHostExternalTorrent(hash, new URL( "http://" + tracker_ip + ":" + port + "/announce"));
 			
-				addTorrent( external_torrent, state, true );	
+				addTorrent( external_torrent, state, true, false );	
 				
 			}catch( Throwable e ){
 				

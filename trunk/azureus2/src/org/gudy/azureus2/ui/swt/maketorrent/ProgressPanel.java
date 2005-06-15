@@ -214,7 +214,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
                 if ( ((NewTorrentWizard)wizard).autoHost &&  ((NewTorrentWizard)wizard).tracker_type != NewTorrentWizard.TT_EXTERNAL ){
                 	
                 	try{
-                		((NewTorrentWizard)wizard).getAzureusCore().getTrackerHost().hostTorrent( torrent, true );
+                		((NewTorrentWizard)wizard).getAzureusCore().getTrackerHost().hostTorrent( torrent, true, false );
                 		
                 	}catch( TRHostException e ){
                 		

@@ -43,6 +43,14 @@ Tracker
 		
 		throws TrackerException;
 	
+	public TrackerTorrent
+	host(
+		Torrent		torrent,
+		boolean		persistent,
+		boolean		passive )
+		
+		throws TrackerException;
+
     public TrackerTorrent[]
     getTorrents();
         

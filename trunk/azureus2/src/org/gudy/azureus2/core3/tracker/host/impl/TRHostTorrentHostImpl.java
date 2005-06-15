@@ -48,6 +48,7 @@ TRHostTorrentHostImpl
 	
 	protected int				status	= TS_STOPPED;
 	protected boolean			persistent;
+	protected boolean			passive;
 	
 	protected long				sos_uploaded;
 	protected long				sos_downloaded;
@@ -243,11 +244,24 @@ TRHostTorrentHostImpl
 		return( persistent );
 	}
 	
-	public void
+	protected void
 	setPersistent(
 		boolean		_persistent )
 	{
 		persistent	= _persistent;
+	}
+	
+	public boolean
+	isPassive()
+	{
+		return( passive );
+	}
+	
+	protected void
+	setPassive(
+		boolean		b )
+	{
+		passive	= b;
 	}
 	
 	public TOTorrent

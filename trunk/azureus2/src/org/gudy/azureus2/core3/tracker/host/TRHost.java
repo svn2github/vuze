@@ -53,14 +53,9 @@ TRHost
 	
 	public TRHostTorrent
 	hostTorrent(
-		TOTorrent		torrent )
-	
-		throws TRHostException;
-	
-	public TRHostTorrent
-	hostTorrent(
 		TOTorrent		torrent,
-		boolean			persistent )
+		boolean			persistent,
+		boolean			passive )
 	
 		throws TRHostException;
 	

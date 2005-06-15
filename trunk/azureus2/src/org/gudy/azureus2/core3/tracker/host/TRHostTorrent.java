@@ -64,9 +64,8 @@ TRHostTorrent
 	public boolean
 	isPersistent();
 	
-	public void
-	setPersistent(
-		boolean	persistent );
+	public boolean
+	isPassive();
 	
 	public TOTorrent
 	getTorrent();
