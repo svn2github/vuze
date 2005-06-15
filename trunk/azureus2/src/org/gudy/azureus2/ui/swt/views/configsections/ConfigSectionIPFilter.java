@@ -135,7 +135,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 
     Composite gFilter = new Composite(parent, SWT.NULL);
     GridLayout layout = new GridLayout();
-    layout.numColumns = 1;
+    layout.numColumns = 2;
     gFilter.setLayout(layout);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gFilter.setLayoutData(gridData);
@@ -147,11 +147,19 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     setPercentageBlocked();
     
     // start controls
-    BooleanParameter enabled = new BooleanParameter(gFilter, "Ip Filter Enabled",true); //$NON-NLS-1$
-    Messages.setLanguageText(enabled.getControl(), "ConfigView.section.ipfilter.enable"); //$NON-NLS-1$
+	
+	gridData = new GridData();
+	gridData.horizontalSpan = 2;
 
+    BooleanParameter enabled = new BooleanParameter(gFilter, "Ip Filter Enabled",true);
+	enabled.setLayoutData( gridData ); 
+    Messages.setLanguageText(enabled.getControl(), "ConfigView.section.ipfilter.enable");
 
-    BooleanParameter deny = new BooleanParameter(gFilter, "Ip Filter Allow",false); //$NON-NLS-1$
+	gridData = new GridData();
+	gridData.horizontalSpan = 2;
+
+    BooleanParameter deny = new BooleanParameter(gFilter, "Ip Filter Allow",false);
+	deny.setLayoutData( gridData ); 
     Messages.setLanguageText(deny.getControl(), "ConfigView.section.ipfilter.allow");
 
     deny.addChangeListener(
@@ -166,9 +174,23 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 			}
 		});
     
+	gridData = new GridData();
+	gridData.horizontalSpan = 2;
+	
     BooleanParameter enable_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Enable Banning",true);
+	enable_bad_data_banning.setLayoutData( gridData );
     Messages.setLanguageText(enable_bad_data_banning.getControl(), "ConfigView.section.ipfilter.enablebanning");
 
+	Label	block_label = new Label(gFilter, SWT.NULL);
+	Messages.setLanguageText(block_label, "ConfigView.section.ipfilter.blockbanning");
+	IntParameter block_banning = new IntParameter(gFilter, "Ip Filter Ban Block Limit" );
+	gridData = new GridData();
+	gridData.widthHint = 30;
+	block_banning.setLayoutData( gridData );
+	
+	enable_bad_data_banning.setAdditionalActionPerformer(
+	    		new ChangeSelectionActionPerformer( new Control[]{ block_banning.getControl(), block_label }));
+	
     table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
     String[] headers = { "ConfigView.section.ipfilter.description", "ConfigView.section.ipfilter.start", "ConfigView.section.ipfilter.end" };
     int[] sizes = { 200, 110, 110 };
@@ -208,7 +230,11 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
 
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.heightHint = 400;
+	gridData.horizontalSpan = 2;
     table.setLayoutData(gridData);
+
+	gridData = new GridData();
+	gridData.horizontalSpan = 2;
 
     Composite cArea = new Composite(gFilter, SWT.NULL);
     layout = new GridLayout();
@@ -216,7 +242,7 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
     layout.marginWidth = 0;
     layout.numColumns = 3;
     cArea.setLayout(layout);
-    cArea.setLayoutData(new GridData());
+    cArea.setLayoutData(gridData);
 
     Button add = new Button(cArea, SWT.PUSH);
     gridData = new GridData(GridData.CENTER);

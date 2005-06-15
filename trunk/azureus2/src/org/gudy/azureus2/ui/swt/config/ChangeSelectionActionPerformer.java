@@ -21,6 +21,9 @@
  
 package org.gudy.azureus2.ui.swt.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
 
@@ -38,6 +41,33 @@ public class ChangeSelectionActionPerformer implements IAdditionalActionPerforme
   public ChangeSelectionActionPerformer(Control[] controls) {
 	this.controls = controls;
   } 
+  
+  public ChangeSelectionActionPerformer(Control control) {
+		this.controls = new Control[]{ control };
+  } 
+  
+  public ChangeSelectionActionPerformer(Parameter p) {
+		this.controls = p.getControls();
+  } 
+  public ChangeSelectionActionPerformer(Parameter p1, Parameter p2) {
+	  this( new Parameter[]{ p1, p2 });
+  }
+  public ChangeSelectionActionPerformer(Parameter[] params ) {
+
+	  List	c = new ArrayList();
+	  
+	  for (int i=0;i<params.length;i++){
+		  Control[] x = params[i].getControls();
+		  
+		  for (int j=0;j<x.length;j++){
+			  c.add( x[j] );
+		  }
+	  }
+	  
+	  controls = new Control[c.size()];
+	  
+	  c.toArray( controls );
+  }
   
   public ChangeSelectionActionPerformer(Control[] controls, boolean _reverse_sense) {
   	this.controls = controls;

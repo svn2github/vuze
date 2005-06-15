@@ -30,11 +30,13 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.net.UnknownHostException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -284,8 +286,17 @@ IpFilterImpl
 	  try{
 	  	class_mon.enter();
 	  
-	    return( bannedIps.get(ipAddress) != null );
+		int	address = PRHelpers.addressToInt( ipAddress );
+		
+		Integer	i_address = new Integer( address );
+		
+	    return( bannedIps.get(i_address) != null );
 	    
+	  }catch( UnknownHostException e ){
+		  
+		  Debug.printStackTrace( e );
+		  
+		  return( false );
 	  }finally{
 	  	
 	  	class_mon.exit();
@@ -445,10 +456,57 @@ IpFilterImpl
 		try{
 			class_mon.enter();
 			
-			if( bannedIps.get(ipAddress) == null ){
+			int	address = PRHelpers.addressToInt( ipAddress );
+			
+			Integer	i_address = new Integer( address );
+			
+			if ( bannedIps.get(i_address) == null ){
 				
-				bannedIps.put( ipAddress, new BannedIpImpl( ipAddress, torrent_name ));
+				bannedIps.put( i_address, new BannedIpImpl( ipAddress, torrent_name ));
+				
+				// check for block-banning
+				
+				long	l_address = address;
+				
+		    	if ( l_address < 0 ){
+		     		
+					l_address += 0x100000000L;
+		     	}
+				
+				long	start 	= l_address & 0xffffff00;
+				long	end		= start+256;
+				
+				int	hits = 0;
+				
+				for (long i=start;i<end;i++){
+					
+					Integer	a = new Integer((int)i);
+					
+					if ( bannedIps.get(a) != null ){
+						
+						hits++;
+					}
+				}
+								
+				int	hit_limit = COConfigurationManager.getIntParameter("Ip Filter Ban Block Limit");
+				
+				if ( hits >= hit_limit ){
+					
+					for (long i=start;i<end;i++){
+						
+						Integer	a = new Integer((int)i);
+						
+						if ( bannedIps.get(a) == null ){
+							
+							bannedIps.put( a, new BannedIpImpl( PRHelpers.intToAddress((int)i), torrent_name + " [block ban]" ));
+						}
+					}
+				}
 			}
+			
+		}catch( UnknownHostException e ){
+			
+			Debug.printStackTrace( e );
 		}finally{
 			
 			class_mon.exit();
@@ -553,5 +611,18 @@ IpFilterImpl
 	getTotalAddressesInRange()
 	{
 		return( range_manager.getTotalSpan());
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		IpFilterImpl	filter = new IpFilterImpl();
+		
+		filter.ban( "255.1.1.1", "parp" );
+		filter.ban( "255.1.1.2", "parp" );
+		filter.ban( "255.1.2.2", "parp" );
+		
+		System.out.println( "is banned:" + filter.isBanned( "255.1.1.4" ));
 	}
 }
