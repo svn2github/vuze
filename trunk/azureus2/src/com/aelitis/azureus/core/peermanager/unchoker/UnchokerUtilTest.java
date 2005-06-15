@@ -161,6 +161,8 @@ public class UnchokerUtilTest {
         public NetworkConnection getConnection(){ return null; }
         public boolean supportsMessaging(){ return false;  }
         public Message[] getSupportedMessages(){ return null; }
+        public void setReservedPieceNumber(int pieceNumber){}
+        public int getReservedPieceNumber(){ return 0;  }
       };
       
       peers.add( peer );
