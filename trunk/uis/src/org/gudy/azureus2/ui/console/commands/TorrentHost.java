@@ -43,7 +43,7 @@ public class TorrentHost extends TorrentCommand {
 		TOTorrent torrent = dm.getTorrent();
         if (torrent != null) {
           try {
-            ci.azureus_core.getTrackerHost().hostTorrent(torrent);
+            ci.azureus_core.getTrackerHost().hostTorrent(torrent,true, false);
           } catch (TRHostException e) {
             e.printStackTrace(ci.out);
             return false;
