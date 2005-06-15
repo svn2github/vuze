@@ -149,9 +149,6 @@ public class UnchokerUtilTest {
         public String getClient(){ return null; }
         public boolean isOptimisticUnchoke(){ return false;  }
         public void setOptimisticUnchoke( boolean is_optimistic ){}
-        public void hasSentABadChunk( int piece_number ){}        
-        public int getNbBadChunks(){ return 0; }        
-        public void resetNbBadChunks(){}
         public void setUploadHint(int timeToSpread){}        
         public int getUploadHint(){ return 0; }        
         public void setUniqueAnnounce(int uniquePieceNumber){}        
@@ -161,8 +158,8 @@ public class UnchokerUtilTest {
         public NetworkConnection getConnection(){ return null; }
         public boolean supportsMessaging(){ return false;  }
         public Message[] getSupportedMessages(){ return null; }
-        public void setReservedPieceNumber(int pieceNumber){}
-        public int getReservedPieceNumber(){ return 0;  }
+        public int getReservedPieceNumber() { return -1; }
+        public void setReservedPieceNumber(int pieceNumber) {}
       };
       
       peers.add( peer );
