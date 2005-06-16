@@ -37,7 +37,7 @@ public class Timer
 		
 	protected long	unique_id_next	= 0;
 	
-	protected boolean	destroyed;
+	protected volatile boolean	destroyed;
 	
 	public
 	Timer(
