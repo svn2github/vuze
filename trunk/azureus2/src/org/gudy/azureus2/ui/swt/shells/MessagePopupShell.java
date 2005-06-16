@@ -74,7 +74,11 @@ public class MessagePopupShell implements AnimableShell {
     this.icon = icon;
     detailsShell = new Shell(display,SWT.BORDER | SWT.ON_TOP);
     if(! Constants.isOSX) {
-      detailsShell.setImage(ImageRepository.getImage("azureus"));
+		// this code here in case image load fails
+	  Image az_image = ImageRepository.getImage("azureus");
+	  if ( az_image != null ){
+		  detailsShell.setImage(az_image);
+	  }
     }
     
     detailsShell.setLayout(new FillLayout());
@@ -88,7 +92,10 @@ public class MessagePopupShell implements AnimableShell {
     shell = new Shell(display,SWT.ON_TOP);
     shell.setSize(250,150);
     if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
+	  Image az_image = ImageRepository.getImage("azureus");
+	  if ( az_image != null ){
+		  shell.setImage(ImageRepository.getImage("azureus"));
+	  }
     }
     FormLayout layout = new FormLayout();
     layout.marginHeight = 0; layout.marginWidth = 0; 
@@ -99,37 +106,50 @@ public class MessagePopupShell implements AnimableShell {
     }
     shell.setLayout(layout);
     
-    
-    shellImg = new Image(display,ImageRepository.getImage("popup"),SWT.IMAGE_COPY);
-    GC gcImage = new GC(shellImg);
-    
-    Image imgIcon = ImageRepository.getImage(icon);
-    imgIcon.setBackground(shell.getBackground());
-    
-    gcImage.drawImage(imgIcon,5,5);
-    
-    Font tempFont = shell.getFont();
-    FontData[] fontDataMain = tempFont.getFontData();
-    for(int i=0 ; i < fontDataMain.length ; i++) {             
-      fontDataMain[i].setStyle(SWT.BOLD);
-      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.2));
-    }
-    
-    Font fontTitle = new Font(display,fontDataMain);
-    gcImage.setFont(fontTitle);
-    
-    GCStringPrinter.printString(gcImage,title,new Rectangle(59,11,182,43));
-    
-    gcImage.setFont(tempFont);
-    fontTitle.dispose();
-    
-    
-    boolean bItFit = GCStringPrinter.printString(gcImage,errorMessage, 
-                                                 new Rectangle(5,40,240,60));
-    
-    gcImage.dispose();            
-    if (!bItFit && details == null)
-      details = errorMessage;
+    Image popup_image = ImageRepository.getImage("popup");
+	
+		// this code is here to ensure that we can still show error messages even if images
+		// are failing to load (e.g. coz there's a ! in AZ install dir... )
+	
+	if ( popup_image != null ){
+		
+	    shellImg = new Image(display,popup_image,SWT.IMAGE_COPY);
+	    GC gcImage = new GC(shellImg);
+	    
+	    Image imgIcon = ImageRepository.getImage(icon);
+	    imgIcon.setBackground(shell.getBackground());
+	    
+	    gcImage.drawImage(imgIcon,5,5);
+	    
+	    Font tempFont = shell.getFont();
+	    FontData[] fontDataMain = tempFont.getFontData();
+	    for(int i=0 ; i < fontDataMain.length ; i++) {             
+	      fontDataMain[i].setStyle(SWT.BOLD);
+	      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.2));
+	    }
+	    
+	    Font fontTitle = new Font(display,fontDataMain);
+	    gcImage.setFont(fontTitle);
+	    
+	    GCStringPrinter.printString(gcImage,title,new Rectangle(59,11,182,43));
+	    
+	    gcImage.setFont(tempFont);
+	    fontTitle.dispose();
+	    
+	    
+	    boolean bItFit = GCStringPrinter.printString(gcImage,errorMessage, 
+	                                                 new Rectangle(5,40,240,60));
+	    
+	    gcImage.dispose(); 
+		if (!bItFit && details == null)
+			details = errorMessage;
+	}else{
+		
+		if ( details == null ){
+			
+			details = errorMessage;
+		}
+	}
     
     if(details != null)
       textDetails.setText(details);
@@ -142,7 +162,10 @@ public class MessagePopupShell implements AnimableShell {
     Messages.setLanguageText(btnHide,"popup.error.hide");    
     
     Label lblImage = new Label(shell,SWT.NULL);
-    lblImage.setImage(shellImg);
+	
+	if ( shellImg != null ){
+		lblImage.setImage(shellImg);
+	}
     
     FormData formData;
     
@@ -223,7 +246,9 @@ public class MessagePopupShell implements AnimableShell {
           viewStack.removeFirst();
           shell.dispose();
           detailsShell.dispose();
-          shellImg.dispose();          
+		  if ( shellImg != null ){
+			  shellImg.dispose();
+		  }
         }
       });     
     }

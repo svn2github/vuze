@@ -6,6 +6,7 @@
  */
 package org.gudy.azureus2.core3.internat;
 
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -35,8 +36,54 @@ public class MessageText {
   private static ResourceBundle RESOURCE_BUNDLE;
   private static Set			platform_specific_keys	= new HashSet();
 
+  private static int bundle_fail_count	= 0;
+  
   static{
-	  setResourceBundle( ResourceBundle.getBundle(BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()));
+	  setResourceBundle( getResourceBundle(BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()));
+  }
+  
+  static ResourceBundle
+  getResourceBundle(
+	String		name,
+	Locale		loc,
+	ClassLoader	cl )
+  {
+	  try{
+		  return( ResourceBundle.getBundle(name, loc, cl ));
+		  
+	  }catch( Throwable e ){
+		  
+		  bundle_fail_count++;
+			  
+		  if ( bundle_fail_count == 1 ){
+			  
+			  e.printStackTrace();
+			  
+			  LGLogger.logRepeatableAlert( LGLogger.AT_ERROR, "Failed to load resource bundle. One possible cause is that you have installed Azureus into a directory with a '!' in it. If so, please remove the '!'.");
+		  }
+		  
+		  return(
+			  new ResourceBundle()
+			  {
+				  public Locale
+				  getLocale()
+				  {
+					return( LOCALE_DEFAULT );
+				  }
+
+				  protected Object 
+				  handleGetObject(String key)
+				  {
+						return( null );
+				  }
+	
+				  public Enumeration
+				  getKeys()
+				  {
+					return( new Vector().elements());
+				  }
+			  });
+	  } 
   }
   
   private static ResourceBundle DEFAULT_BUNDLE = RESOURCE_BUNDLE;
@@ -447,7 +494,7 @@ public class MessageText {
         }
         */
         
-        newResourceBundle = ResourceBundle.getBundle("MessagesBundle", newLocale, 
+        newResourceBundle = getResourceBundle("MessagesBundle", newLocale, 
                                                       new URLClassLoader(urls));
         // do more searches if getBundle failed, or if the language is not the 
         // same and the user wanted a specific country
@@ -460,7 +507,7 @@ public class MessageText {
                              " != "+newLocale.getDisplayName()+". Searching without country..");
           // try it without the country
           Locale localeJustLang = new Locale(newLocale.getLanguage());
-          newResourceBundle = ResourceBundle.getBundle("MessagesBundle", localeJustLang, 
+          newResourceBundle = getResourceBundle("MessagesBundle", localeJustLang, 
                                                         new URLClassLoader(urls));
           
           if (newResourceBundle == null ||
@@ -470,7 +517,7 @@ public class MessageText {
             Locale[] locales = getLocales();
             for (int i = 0; i < locales.length; i++) {
               if (locales[i].getLanguage() == newLocale.getLanguage()) {
-                newResourceBundle = ResourceBundle.getBundle("MessagesBundle", locales[i], 
+                newResourceBundle = getResourceBundle("MessagesBundle", locales[i], 
                                                               new URLClassLoader(urls));
                 break;
               }
