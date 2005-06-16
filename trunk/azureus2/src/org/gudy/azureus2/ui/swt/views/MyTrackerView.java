@@ -64,6 +64,7 @@ MyTrackerView
     new NameItem(),
     new TrackerItem(),
     new StatusItem(),
+    new PassiveItem(),
     new SeedCountItem(),
     new PeerCountItem(),
     new BadNATCountItem(),
