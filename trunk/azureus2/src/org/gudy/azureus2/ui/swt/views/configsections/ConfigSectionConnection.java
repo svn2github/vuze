@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Control;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
@@ -141,11 +142,14 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData.left = new FormAttachment(max_connects.getControl());
     label.setLayoutData(formData);
 
-    BooleanParameter faulty_selector = new BooleanParameter(cServer, "network.tcp.enable_faulty_selector_mode", false, "ConfigView.section.connection.faulty_selector_mode");
-    formData = new FormData();
-    formData.top = new FormAttachment(max_connects.getControl());
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    faulty_selector.setLayoutData(formData);
+    BooleanParameter faulty_selector = null;
+    if( Constants.isWindows ) {    
+      faulty_selector = new BooleanParameter(cServer, "network.tcp.enable_faulty_selector_mode", false, "ConfigView.section.connection.faulty_selector_mode");
+      formData = new FormData();
+      formData.top = new FormAttachment(max_connects.getControl());
+      formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+      faulty_selector.setLayoutData(formData);
+    }
 
  //////////////////////  PROXY GROUP /////////////////
     
@@ -158,7 +162,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData = new FormData();
     formData.left = new FormAttachment( 0, 0 );
     formData.right = new FormAttachment( 100, -5 );
-    formData.top = new FormAttachment( faulty_selector.getControl(), 5 );
+    formData.top = new FormAttachment( faulty_selector != null ? faulty_selector.getControl() : max_connects.getControl(), 5 );
     proxy_group.setLayoutData( formData );
     
     GridData grid_data;
