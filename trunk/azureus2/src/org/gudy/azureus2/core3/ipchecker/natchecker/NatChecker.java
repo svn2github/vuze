@@ -63,6 +63,8 @@ public class NatChecker {
     
     if( !server.isValid() )  return NAT_UNABLE;
     
+    if( port < 0 || port > 65535 || port == 6880 )  return NAT_UNABLE;
+    
 
     //do UPnP if necessary
     PluginInterface pi_upnp = azureus_core.getPluginManager().getPluginInterfaceByClass( UPnPPlugin.class );
