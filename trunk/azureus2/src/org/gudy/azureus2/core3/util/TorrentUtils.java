@@ -55,6 +55,16 @@ TorrentUtils
 		};
 		
 	
+	public static TOTorrent
+	readFromFile(
+		File		file,
+		boolean		create_delegate )
+		
+		throws TOTorrentException
+	{
+		return( readFromFile( file, create_delegate, false ));
+	}
+	
 		/**
 		 * If you set "create_delegate" to true then you must understand that this results
 		 * is piece hashes being discarded and then re-read from the torrent file if needed
@@ -62,6 +72,7 @@ TorrentUtils
 		 * if you access the pieces after this (and they've been discarded)
 		 * @param file
 		 * @param create_delegate
+		 * @param force_initial_discard - use to get rid of pieces immediately
 		 * @return
 		 * @throws TOTorrentException
 		 */
@@ -69,7 +80,8 @@ TorrentUtils
 	public static TOTorrent
 	readFromFile(
 		File		file,
-		boolean		create_delegate )
+		boolean		create_delegate,
+		boolean		force_initial_discard )
 		
 		throws TOTorrentException
 	{
@@ -119,7 +131,14 @@ TorrentUtils
 		
 		if ( create_delegate ){
 			
-			return( new torrentDelegate( torrent, file ));
+			torrentDelegate	res = new torrentDelegate( torrent, file );
+			
+			if ( force_initial_discard ){
+				
+				res.discardPieces( SystemTime.getCurrentTime(), true );
+			}
+			
+			return( res );
 			
 		}else{
 			
@@ -209,6 +228,22 @@ TorrentUtils
 		torrent.setAdditionalStringProperty("torrent filename", file.toString());
 		
 		writeToFile( torrent, force_backup );
+	}
+	
+	public static String
+	getTorrentFileName(
+		TOTorrent		torrent )
+	
+		throws TOTorrentException 
+	{
+    	String str = torrent.getAdditionalStringProperty("torrent filename");
+    	
+    	if ( str == null ){
+    		
+    		throw( new TOTorrentException("TorrentUtils::getTorrentFileName: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
+    	}
+
+		return( str );
 	}
 	
 	public static void
@@ -1023,7 +1058,7 @@ TorrentUtils
 						
 						while( it.hasNext()){
 							
-							((torrentDelegate)it.next()).checkTimeout(now);
+							((torrentDelegate)it.next()).discardPieces(now,false);
 						}
 					}
 				}
@@ -1118,19 +1153,20 @@ TorrentUtils
 		}
 		 
 		protected void
-		checkTimeout(
-			long		now )
+		discardPieces(
+			long		now,
+			boolean		force )
 		{
 				// handle clock changes backwards
 			
-			if ( now < last_pieces_read_time ){
+			if ( now < last_pieces_read_time && !force ){
 				
 				last_pieces_read_time	= now;
 				
 			}else{
 			
 				try{
-					if(		now - last_pieces_read_time > PIECE_HASH_TIMEOUT &&
+					if(		( now - last_pieces_read_time > PIECE_HASH_TIMEOUT || force ) &&
 							delegate.getPieces() != null ){
 						
 						try{

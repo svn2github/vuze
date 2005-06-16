@@ -107,6 +107,24 @@ TRHostConfigImpl
 				 	
 				 	TOTorrent	torrent = finder.lookupTorrent( hash );
 				 	
+					if ( torrent == null && passive ){
+						
+						byte[]	file_b = (byte[])t_map.get( "torrent_file" );
+					
+						if ( file_b != null ){
+							
+							try{
+								File	file = new File( new String( file_b, Constants.BYTE_ENCODING ));
+								
+								torrent = TorrentUtils.readFromFile( file, true, true );
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace( e );
+							}
+						}
+					}
+					
 				 	if ( torrent != null ){
 				 		
 				 		TRHostTorrent	ht = host.addTorrent( torrent, state, true, passive );
@@ -119,6 +137,7 @@ TRHostConfigImpl
 				 		}
 				 	
 				 	}else{
+						
 						if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
 			 		
 				 			host.addExternalTorrent( hash, state );
@@ -251,6 +270,19 @@ TRHostConfigImpl
 				
 					t_map.put("persistent",new Long(torrent.isPersistent()?1:0));
 					t_map.put("passive",new Long(torrent.isPassive()?1:0));
+					
+					if ( torrent.isPassive()){
+						
+						try{
+							String	file = TorrentUtils.getTorrentFileName( torrent.getTorrent());
+							
+							t_map.put( "torrent_file", file.getBytes( Constants.BYTE_ENCODING ));
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
 					
 					t_map.put("hash", hash );
 				
