@@ -21,6 +21,7 @@ BUGFIX: Core  | Fix for 100% cpu when more than 60 connections are registered wi
 BUGFIX: Core  | Invalid listen port configuration would prevent Azureus from starting [Nolar]
 BUGFIX: Core  | Added hooks to catch Windows shutdown events to allow graceful Azureus exit [Nolar]
 BUGFIX: Core  | Fix for start-stopped non-simple torrents showing data-missing error on restart [Parg]
+BUGFIX: Core  | Fix for drag-n-drop SWT exceptions blocking Azureus startup [Nolar]
 
 
 

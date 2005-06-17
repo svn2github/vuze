@@ -1265,6 +1265,8 @@ public class MyTorrentsView
   }
 
   private void createDragDrop() {
+    try{
+      
     Transfer[] types = new Transfer[] { TextTransfer.getInstance()};
 
     DragSource dragSource = new DragSource(getTable(), DND.DROP_MOVE);
@@ -1352,6 +1354,11 @@ public class MyTorrentsView
         }
       }
     });
+    
+    }
+    catch( Throwable t ) {
+      LGLogger.log( "failed to init drag-n-drop", t );
+    }
   }
 
   private void moveSelectedTorrents(int drag_drop_line_start, int drag_drop_line_end) {

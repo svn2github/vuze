@@ -203,8 +203,9 @@ MainWindow
 
     try {
       createDropTarget(mainWindow);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       LGLogger.log(LGLogger.ERROR,"Drag and Drop not available");
+      LGLogger.log( e );
     }
     
 
