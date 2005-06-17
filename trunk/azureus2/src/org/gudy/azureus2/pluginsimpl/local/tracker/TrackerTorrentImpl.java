@@ -234,6 +234,12 @@ TrackerTorrentImpl
 		host_torrent.disableReplyCaching();
 	}
 	
+	public boolean
+	isPassive()
+	{
+		return( host_torrent.isPassive());
+	}
+	
 	public void
 	preProcess(
 		TRHostTorrentRequest	request )

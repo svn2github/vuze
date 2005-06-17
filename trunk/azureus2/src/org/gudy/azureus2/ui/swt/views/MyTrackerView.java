@@ -29,12 +29,23 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.core3.category.CategoryManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostListener;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrentRemovalVetoException;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.plugins.sharing.ShareResource;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
+import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -46,6 +57,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 
 
 /**
@@ -58,12 +70,13 @@ import java.io.OutputStream;
 public class 
 MyTrackerView 
 	extends TableView
-	implements TRHostListener
+	implements TRHostListener, CategoryManagerListener
 {
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
     new TrackerItem(),
     new StatusItem(),
+    new CategoryItem(),
     new PassiveItem(),
     new SeedCountItem(),
     new PeerCountItem(),
@@ -80,7 +93,12 @@ MyTrackerView
     new AverageBytesOutItem()
   };
 
+	protected static final TorrentAttribute	category_attribute = 
+		TorrentManagerImpl.getSingleton().getAttribute( TorrentAttribute.TA_CATEGORY );
+
 	private AzureusCore	azureus_core;
+
+	private Menu			menuCategory;
 
 	public 
 	MyTrackerView(
@@ -126,6 +144,17 @@ MyTrackerView
   }
 
   public void fillMenu(final Menu menu) {
+	  
+	    menuCategory = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+	    final MenuItem itemCategory = new MenuItem(menu, SWT.CASCADE);
+	    Messages.setLanguageText(itemCategory, "MyTorrentsView.menu.setCategory"); //$NON-NLS-1$
+	    //itemCategory.setImage(ImageRepository.getImage("speed"));
+	    itemCategory.setMenu(menuCategory);
+
+	    addCategorySubMenu();
+	    
+	    new MenuItem(menu, SWT.SEPARATOR);
+
 	   final MenuItem itemStart = new MenuItem(menu, SWT.PUSH);
 	   Messages.setLanguageText(itemStart, "MyTorrentsView.menu.start"); //$NON-NLS-1$
 	   Utils.setMenuItemImage(itemStart, "start");
@@ -388,4 +417,142 @@ MyTrackerView
     });
   }
 
+  private void addCategorySubMenu() {
+    MenuItem[] items = menuCategory.getItems();
+    int i;
+    for (i = 0; i < items.length; i++) {
+      items[i].dispose();
+    }
+
+    Category[] categories = CategoryManager.getCategories();
+    Arrays.sort(categories);
+
+    if (categories.length > 0) {
+      Category catUncat = CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED);
+      if (catUncat != null) {
+        final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
+        Messages.setLanguageText(itemCategory, catUncat.getName());
+        itemCategory.setData("Category", catUncat);
+        itemCategory.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event event) {
+            MenuItem item = (MenuItem)event.widget;
+            assignSelectedToCategory((Category)item.getData("Category"));
+          }
+        });
+
+        new MenuItem(menuCategory, SWT.SEPARATOR);
+      }
+
+      for (i = 0; i < categories.length; i++) {
+        if (categories[i].getType() == Category.TYPE_USER) {
+          final MenuItem itemCategory = new MenuItem(menuCategory, SWT.PUSH);
+          itemCategory.setText(categories[i].getName());
+          itemCategory.setData("Category", categories[i]);
+
+          itemCategory.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event event) {
+              MenuItem item = (MenuItem)event.widget;
+              assignSelectedToCategory((Category)item.getData("Category"));
+            }
+          });
+        }
+      }
+
+      new MenuItem(menuCategory, SWT.SEPARATOR);
+    }
+
+    final MenuItem itemAddCategory = new MenuItem(menuCategory, SWT.PUSH);
+    Messages.setLanguageText(itemAddCategory,
+                             "MyTorrentsView.menu.setCategory.add");
+
+    itemAddCategory.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+        addCategory();
+      }
+    });
+
+  }
+
+  public void 
+  categoryAdded(Category category) 
+  {
+  	MainWindow.getWindow().getDisplay().asyncExec(
+	  		new AERunnable() 
+			{
+	  			public void 
+				runSupport() 
+	  			{
+	  				addCategorySubMenu();
+	  			}
+			});
+  }
+
+  public void 
+  categoryRemoved(
+  	Category category) 
+  {
+  	MainWindow.getWindow().getDisplay().asyncExec(
+  		new AERunnable() 
+		{
+  			public void 
+			runSupport() 
+  			{
+  				addCategorySubMenu();
+  			}
+		});
+  }
+
+  
+  private void addCategory() {
+    CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
+    Category newCategory = adderWindow.getNewCategory();
+    if (newCategory != null)
+      assignSelectedToCategory(newCategory);
+  }
+  
+  private void assignSelectedToCategory(final Category category) {
+    runForSelectedRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
+      	
+	    TRHostTorrent	tr_torrent = (TRHostTorrent)row.getDataSource(true);
+		
+		TOTorrent	torrent = tr_torrent.getTorrent();
+		
+		DownloadManager dm = azureus_core.getGlobalManager().getDownloadManager( torrent );
+
+		if ( dm != null ){
+			
+			dm.getDownloadState().setCategory( category );
+			
+		}else{
+			
+	     	String cat_str;
+	      	
+	      	if ( category == null ){
+	      		
+				cat_str = null;
+	      		
+	      	}else if ( category == CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED)){
+	      		
+				cat_str = null;
+	      		
+	      	}else{
+	      		
+				cat_str = category.getName();
+	      	}
+				// bit of a hack-alert here
+			
+			TorrentUtils.setPluginStringProperty( torrent, "azcoreplugins.category", cat_str );
+			
+			try{
+				TorrentUtils.writeToFile( torrent );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		}
+      }
+    });
+  }
 }

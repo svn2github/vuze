@@ -139,6 +139,9 @@ TrackerTorrent
 	public void
 	disableReplyCaching();
 	
+	public boolean
+	isPassive();
+	
 	public void
 	addListener(
 		TrackerTorrentListener	listener );

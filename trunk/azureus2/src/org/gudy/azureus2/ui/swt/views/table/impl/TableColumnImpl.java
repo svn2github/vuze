@@ -63,7 +63,7 @@ public class TableColumnImpl
 	private int iConsecutiveErrCount;
   private ArrayList menuItems;
   
-  private AEMonitor 		this_mon 	= new AEMonitor( "TableColumn" );
+  protected AEMonitor 		this_mon 	= new AEMonitor( "TableColumn" );
 
 
   /** Create a column object for the specified table.

@@ -904,6 +904,27 @@ TorrentUtils
 		return( new String(v));
 	}
 	
+	public static List
+	getPluginStringProperties(
+		TOTorrent		torrent )
+	{
+		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
+		
+		if ( m == null ){
+			
+			return( new ArrayList());
+		}
+		
+		Map p = (Map)m.get( "plugins" );
+		
+		if ( p == null ){
+	
+			return( new ArrayList() );
+		}
+	
+		return( new ArrayList( p.keySet()));
+	
+	}
 	public static void
 	setDHTBackupEnabled(
 		TOTorrent		torrent,

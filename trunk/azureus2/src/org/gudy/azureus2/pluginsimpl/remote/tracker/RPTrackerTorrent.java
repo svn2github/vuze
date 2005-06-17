@@ -308,6 +308,14 @@ RPTrackerTorrent
 		notSupported();
 	}
 	
+	public boolean
+	isPassive()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
 	public void
 	addListener(
 		TrackerTorrentListener	listener )
