@@ -129,68 +129,30 @@ public class AZPeerExchange implements AZMessage {
       insertPeers( "added", payload_map, peers_added );
       insertPeers( "dropped", payload_map, peers_dropped );
 
-      //convert to bytestream
-      byte[] raw_payload;
-      try {
-        raw_payload = BEncoder.encode( payload_map );
-      }
-      catch( Throwable t ) {
-        t.printStackTrace();
-        raw_payload = new byte[0];
-      }
-      
-      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, raw_payload.length );
-      buffer.put( bss, raw_payload );
-      buffer.flip( bss );
-      
-      if( raw_payload.length > 1000 )  System.out.println( "Generated AZPeerExchange size = " +raw_payload.length+ " bytes" );
+      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map );
+
+      if( buffer.remaining( bss ) > 1000 )  System.out.println( "Generated AZPeerExchange size = " +buffer.remaining( bss )+ " bytes" );
     }
     
     return new DirectByteBuffer[]{ buffer };
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {   
-    if( data == null ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
-    }
+  public Message deserialize( DirectByteBuffer data ) throws MessageException {
+    if( data.remaining( bss ) > 1000 )  Debug.out( "Received PEX msg byte size = " +data.remaining( bss ) );
     
-    if( data.remaining( bss ) < 10 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 10" );
-    }
+    Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 10, getID(), getVersion() );
 
-    int size = data.remaining( bss );
-    if( size > 1000 )  System.out.println( "Received PEX msg byte size = " +size );
-    
-    
-    try {
-      byte[] raw = new byte[ data.remaining( bss ) ];
-      data.get( bss, raw );
-      
-      Map root = BDecoder.decode( raw );
+    byte[] hash = (byte[])root.get( "infohash" );
+    if( hash == null )  throw new MessageException( "hash == null" );
+    if( hash.length != 20 )  throw new MessageException( "hash.length != 20: " +hash.length );
 
-      byte[] hash = (byte[])root.get( "infohash" );
-      if( hash == null ) {
-        throw new MessageException( "hash == null" );
-      }
-      if( hash.length != 20 ) {
-        throw new MessageException( "hash.length != 20: " +hash.length );
-      }
+    PeerItem[] added = extractPeers( "added", root );
+    PeerItem[] dropped = extractPeers( "dropped", root );
       
-      PeerItem[] added = extractPeers( "added", root );
-      PeerItem[] dropped = extractPeers( "dropped", root );
-      
-      if( added == null && dropped == null ) {
-        throw new MessageException( "[" +getID() + ":" +getVersion()+ "] received exchange message without any adds or drops" );
-      }
+    if( added == null && dropped == null )  throw new MessageException( "[" +getID() + ":" +getVersion()+ "] received exchange message without any adds or drops" );
 
-      data.returnToPool();
-      
-      return new AZPeerExchange( hash, added, dropped );
-    }
-    catch( Throwable t ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] payload b-decode error: " +t.getMessage() );
-    }  
+    return new AZPeerExchange( hash, added, dropped );
   }
   
   

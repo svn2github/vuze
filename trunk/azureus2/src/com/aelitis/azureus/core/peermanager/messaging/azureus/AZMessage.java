@@ -30,8 +30,9 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 public interface AZMessage extends Message {
 
   public static final String ID_AZ_HANDSHAKE     = "AZ_HANDSHAKE";
+  public static final String ID_AZ_TORRENT_SYN   = "AZ_TORRENT_SYN";
+  public static final String ID_AZ_TORRENT_ACK   = "AZ_TORRENT_ACK";
   public static final String ID_AZ_PEER_EXCHANGE = "AZ_PEER_EXCHANGE";
-  
   
   public static final byte AZ_DEFAULT_VERSION = (byte)1;
 }

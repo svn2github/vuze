@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
+import com.aelitis.azureus.core.peermanager.messaging.MessagingUtil;
 
 
 
@@ -144,112 +145,66 @@ public class AZHandshake implements AZMessage {
       }
       payload_map.put( "messages", message_list );
 
-      //convert to bytestream
-      byte[] raw_payload;
-      try {
-        raw_payload = BEncoder.encode( payload_map );
-      }
-      catch( Throwable t ) {
-        t.printStackTrace();
-        raw_payload = new byte[0];
-      }
-      
-      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, raw_payload.length );
-      buffer.put( bss, raw_payload );
-      buffer.flip( bss );
-      
-      if( raw_payload.length > 1200 )  System.out.println( "Generated AZHandshake size = " +raw_payload.length+ " bytes" );
+      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map );
+
+      if( buffer.remaining( bss ) > 1200 )  System.out.println( "Generated AZHandshake size = " +buffer.remaining( bss )+ " bytes" );
     }
     
     return new DirectByteBuffer[]{ buffer };
   }
   
   
-  public Message deserialize( DirectByteBuffer data ) throws MessageException {   
-    if( data == null ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
-    }
-    
-    if( data.remaining( bss ) < 100 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 100" );
+  public Message deserialize( DirectByteBuffer data ) throws MessageException {
+    Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 100, getID(), getVersion() );
+
+    byte[] id = (byte[])root.get( "identity" );
+    if( id == null )  throw new MessageException( "id == null" );
+    if( id.length != 20 )  throw new MessageException( "id.length != 20: " +id.length );
+      
+    byte[] raw_name = (byte[])root.get( "client" );
+    if( raw_name == null )  throw new MessageException( "raw_name == null" );
+    String name = new String( raw_name );
+
+    byte[] raw_ver = (byte[])root.get( "version" );
+    if( raw_ver == null )  throw new MessageException( "raw_ver == null" );
+    String version = new String( raw_ver );
+
+    Long tcp_lport = (Long)root.get( "tcp_port" );
+    if( tcp_lport == null ) {  //old handshake
+      tcp_lport = new Long( 0 );
     }
 
-    try {
-      byte[] raw = new byte[ data.remaining( bss ) ];
-      data.get( bss, raw );
-      
-      Map root = BDecoder.decode( raw );
-      //////////////////////////////////////////////
-      byte[] id = (byte[])root.get( "identity" );
-      if( id == null ) {
-        throw new MessageException( "id == null" );
-      }
-      if( id.length != 20 ) {
-        throw new MessageException( "id.length != 20: " +id.length );
-      }
-      //////////////////////////////////////////////
-      byte[] raw_name = (byte[])root.get( "client" );
-      if( raw_name == null ) {
-        throw new MessageException( "raw_name == null" );
-      }
-      String name = new String( raw_name );
-      //////////////////////////////////////////////
-      byte[] raw_ver = (byte[])root.get( "version" );
-      if( raw_ver == null ) {
-        throw new MessageException( "raw_ver == null" );
-      }
-      String version = new String( raw_ver );
-      //////////////////////////////////////////////
-      Long tcp_lport = (Long)root.get( "tcp_port" );
-      if( tcp_lport == null ) {  //old handshake
-        tcp_lport = new Long( 0 );
-      }
-      //////////////////////////////////////////////
-      Long udp_lport = (Long)root.get( "udp_port" );
-      if( udp_lport == null ) {  //old handshake
-        udp_lport = new Long( 0 );
-      }
-      //////////////////////////////////////////////
-      
-      List raw_msgs = (List)root.get( "messages" );
-      if( raw_msgs == null ) {
-        throw new MessageException( "raw_msgs == null" );
-      }
-      
-      String[] ids = new String[ raw_msgs.size() ];
-      byte[] vers = new byte[ raw_msgs.size() ];
-      
-      int pos = 0;
-      
-      for( Iterator i = raw_msgs.iterator(); i.hasNext(); ) {
-        Map msg = (Map)i.next();
-        
-        byte[] mid = (byte[])msg.get( "id" );
-        if( mid == null ) {
-          throw new MessageException( "mid == null" );
-        }
-        ids[ pos ] = new String( mid );
-        
-        byte[] ver = (byte[])msg.get( "ver" );
-        if( ver == null ) {
-          throw new MessageException( "ver == null" );
-        }
-        if( ver.length != 1 ) {
-          throw new MessageException( "ver.length != 1" );
-        }
-        vers[ pos ] = ver[ 0 ];
-        
-        pos++;
-      }
-      //////////////////////////////////////////////  
-      
-      data.returnToPool();
-      
-      return new AZHandshake( id, name, version, tcp_lport.intValue(), udp_lport.intValue(), ids, vers );
+    Long udp_lport = (Long)root.get( "udp_port" );
+    if( udp_lport == null ) {  //old handshake
+      udp_lport = new Long( 0 );
     }
-    catch( Throwable t ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] payload b-decode error: " +t.getMessage() );
-    }  
+
+
+    List raw_msgs = (List) root.get("messages");
+    if (raw_msgs == null)  throw new MessageException("raw_msgs == null");
+
+    String[] ids = new String[raw_msgs.size()];
+    byte[] vers = new byte[raw_msgs.size()];
+
+    int pos = 0;
+
+    for (Iterator i = raw_msgs.iterator(); i.hasNext();) {
+      Map msg = (Map) i.next();
+
+      byte[] mid = (byte[]) msg.get("id");
+      if (mid == null)  throw new MessageException("mid == null");
+      ids[pos] = new String(mid);
+
+      byte[] ver = (byte[]) msg.get("ver");
+      if (ver == null)  throw new MessageException("ver == null");
+      
+      if (ver.length != 1)  throw new MessageException("ver.length != 1");
+      vers[pos] = ver[0];
+
+      pos++;
+    }
+
+    return new AZHandshake( id, name, version, tcp_lport.intValue(), udp_lport.intValue(), ids, vers );
   }
   
   
