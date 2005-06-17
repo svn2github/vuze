@@ -384,13 +384,9 @@ public class MinimizedWindow {
         event.gc.drawText(DisplayFormatters.formatPercentFromThousands(perc), 110, -1, true);
         
         event.gc.setForeground(old);
-        event.gc.dispose();
       }
     };
     pb1.addListener(SWT.Paint,listener);
-    
-
-    
     
     pb1.redraw();
   
