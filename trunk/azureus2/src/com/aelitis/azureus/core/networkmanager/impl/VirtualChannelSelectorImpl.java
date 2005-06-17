@@ -59,7 +59,17 @@ public class VirtualChannelSelectorImpl {
       
       pause_after_select	= _pause_after_select;
       
-      selector_guard = new SelectorGuard( SELECTOR_FAIL_COUNT_MAX );
+      String type;
+      switch( INTEREST_OP ) {
+        case VirtualChannelSelector.OP_CONNECT:
+          type = "OP_CONNECT";  break;
+        case VirtualChannelSelector.OP_READ:
+          type = "OP_READ";  break;
+        default:
+          type = "OP_WRITE";  break;
+      }
+      
+      selector_guard = new SelectorGuard( SELECTOR_FAIL_COUNT_MAX, type );
     	try {
     		selector = Selector.open();
     	}
