@@ -56,7 +56,7 @@ public class SelectorGuard {
   
   
   
-  private static long max_consec = 0;
+  private long max_consec = 0;
   
   private final String type;
   

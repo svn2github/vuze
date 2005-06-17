@@ -367,6 +367,10 @@ public class VirtualChannelSelectorImpl {
       }
       
       
+      if( count != selector.selectedKeys().size() ) {
+        Debug.out( "count[" +count+ "] != selector.selectedKeys().size()[" +selector.selectedKeys().size()+ "]" );
+      }
+      
       /*
       if( selector_guard.detectSpinningKeys( selector.selectedKeys() ) ) {
         String op_type = "OP_CONNECT";
