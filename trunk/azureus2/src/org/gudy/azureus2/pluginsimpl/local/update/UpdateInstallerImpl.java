@@ -201,6 +201,29 @@ UpdateInstallerImpl
 			from_file_or_resource = install_dir.toString() + File.separator + from_file_or_resource;
 		}
 		
+		try{
+				// see if this action has a chance of succeeding
+			
+			File	to_f = new File( to_file );
+			
+			File	parent = to_f.getParentFile();
+			
+			if ( parent != null ){
+				
+				// we're going to need write access to the parent, let's try
+				
+				if ( !parent.canWrite()){
+					
+					LGLogger.logUnrepeatableAlert(
+							LGLogger.AT_WARNING,
+							"The location '" + parent.toString() + "' isn't writable, this update will probably fail. Check permissions and rety the update" );
+				}
+			}
+			
+		}catch( Throwable e ){
+			
+		}
+		
 		appendAction( "move," + from_file_or_resource  + "," + to_file );
 	}
   
