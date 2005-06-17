@@ -92,16 +92,19 @@ public class BTPiece implements BTMessage {
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) < 8 ) {
+      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 8" );
     }
     
     int number = data.getInt( DirectByteBuffer.SS_MSG );
     if( number < 0 ) {
+      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: number < 0" );
     }
     
     int offset = data.getInt( DirectByteBuffer.SS_MSG );
     if( offset < 0 ) {
+      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: offset < 0" );
     }
     
