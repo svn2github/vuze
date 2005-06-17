@@ -149,6 +149,10 @@ public class ImageRepository {
         images.put(name, im);
       } else {
         System.out.println("ImageRepository:loadImage:: Resource not found: " + res);
+		
+		im = new Image( display, 1, 1 );
+		
+		images.put(name, im);
       }
     }
     return im;
