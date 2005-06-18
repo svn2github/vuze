@@ -159,107 +159,33 @@ public class ConnectDisconnectManager {
       }
       
       request.channel.configureBlocking( false );
-      request.channel.connect( request.address );
-      
-      connect_selector.register( request.channel, new VirtualChannelSelector.VirtualSelectorListener() {
-        public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {         
-          try {
-            if( request.channel.finishConnect() ) {
-                  
-              if( SHOW_CONNECT_STATS ) {
-                long queue_wait_time = request.connect_start_time - request.request_start_time;
-                long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
-                int num_queued = new_requests.size();
-                int num_connecting = pending_attempts.size();
-                System.out.println("S: queue_wait_time="+queue_wait_time+
-                                    ", connect_time="+connect_time+
-                                    ", num_queued="+num_queued+
-                                    ", num_connecting="+num_connecting);
-              }
-              
-              
-              //ensure the request hasn't been canceled during the select op
-              boolean canceled = false;
-              try{  new_canceled_mon.enter();
-                canceled = canceled_requests.contains( request.listener );
-              }
-              finally{ new_canceled_mon.exit(); }
-              
-              if( canceled ) {
-                //Debug.out( "Connect request for ["+request.channel+"] already canceled, just closing." );
-                
-                try{  pending_closes_mon.enter();
-                  pending_closes.addLast( request.channel );  //just close it
-                }
-                finally{ pending_closes_mon.exit();  }
-              }
-              else {
-                request.listener.connectSuccess( request.channel );
-              }
-            }
-            else { //should never happen
-              Debug.out( "finishConnect() failed" );
-              request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
-              
-              try{
-                pending_closes_mon.enter();
-                  
-                pending_closes.addLast( request.channel );
-              }finally{
-                pending_closes_mon.exit();
-              }
-            }
-          }
-          catch( Throwable t ) {
-                
-            if( SHOW_CONNECT_STATS ) {
-              long queue_wait_time = request.connect_start_time - request.request_start_time;
-              long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
-              int num_queued = new_requests.size();
-              int num_connecting = pending_attempts.size();
-              System.out.println("F: queue_wait_time="+queue_wait_time+
-                                  ", connect_time="+connect_time+
-                                  ", num_queued="+num_queued+
-                                  ", num_connecting="+num_connecting);
-            }
-                
-            request.listener.connectFailure( t );
-            try{
-              pending_closes_mon.enter();
-                
-              pending_closes.addLast( request.channel );
-            }finally{
-                	
-              pending_closes_mon.exit();
-            }
-          }
-            
-          pending_attempts.remove( request );
-          
-          return( true );	// for the moment
-        }
-        
-        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-          Debug.out( "selectFailure" );
-          
-          try{
-          	pending_closes_mon.enter();
-          
-            pending_closes.addLast( request.channel );
-          }finally{
-          	
-          	pending_closes_mon.exit();
-          }
-
-          request.listener.connectFailure( msg );
-
-          pending_attempts.remove( request );
-          
-        }
-      }, null );
-
       request.connect_start_time = SystemTime.getCurrentTime();
-      pending_attempts.put( request, null );
+      
+      if( request.channel.connect( request.address ) ) {  //already connected
+        System.out.println( "connect() returned true!" );
+        finishConnect( request );
+      }
+      else {  //not yet connected, so register for connect selection
+        pending_attempts.put( request, null );
+        
+        connect_selector.register( request.channel, new VirtualChannelSelector.VirtualSelectorListener() {
+          public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {         
+            pending_attempts.remove( request );
+            finishConnect( request );
+            return true;
+          }
+          
+          public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
+            Debug.out( "selectFailure" );
+            pending_attempts.remove( request );
+            try{  pending_closes_mon.enter();
+              pending_closes.addLast( request.channel );
+            }
+            finally{   pending_closes_mon.exit();  }
+            request.listener.connectFailure( msg );
+          }
+        }, null );
+      }
     }
     catch( Throwable t ) {
       
@@ -304,6 +230,79 @@ public class ConnectDisconnectManager {
   }
   
   
+  
+  
+  private void finishConnect( ConnectionRequest request ) {
+    try {
+      if( request.channel.finishConnect() ) {
+            
+        if( SHOW_CONNECT_STATS ) {
+          long queue_wait_time = request.connect_start_time - request.request_start_time;
+          long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+          int num_queued = new_requests.size();
+          int num_connecting = pending_attempts.size();
+          System.out.println("S: queue_wait_time="+queue_wait_time+
+                              ", connect_time="+connect_time+
+                              ", num_queued="+num_queued+
+                              ", num_connecting="+num_connecting);
+        }
+        
+        //ensure the request hasn't been canceled during the select op
+        boolean canceled = false;
+        try{  new_canceled_mon.enter();
+          canceled = canceled_requests.contains( request.listener );
+        }
+        finally{ new_canceled_mon.exit(); }
+        
+        if( canceled ) {
+          try{  pending_closes_mon.enter();
+            pending_closes.addLast( request.channel );  //just close it
+          }
+          finally{ pending_closes_mon.exit();  }
+        }
+        else {
+          request.listener.connectSuccess( request.channel );
+        }
+      }
+      else { //should never happen
+        Debug.out( "finishConnect() failed" );
+        request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
+        
+        try{
+          pending_closes_mon.enter();
+            
+          pending_closes.addLast( request.channel );
+        }finally{
+          pending_closes_mon.exit();
+        }
+      }
+    }
+    catch( Throwable t ) {
+          
+      if( SHOW_CONNECT_STATS ) {
+        long queue_wait_time = request.connect_start_time - request.request_start_time;
+        long connect_time = SystemTime.getCurrentTime() - request.connect_start_time;
+        int num_queued = new_requests.size();
+        int num_connecting = pending_attempts.size();
+        System.out.println("F: queue_wait_time="+queue_wait_time+
+                            ", connect_time="+connect_time+
+                            ", num_queued="+num_queued+
+                            ", num_connecting="+num_connecting);
+      }
+          
+      request.listener.connectFailure( t );
+      try{
+        pending_closes_mon.enter();
+          
+        pending_closes.addLast( request.channel );
+      }finally{
+            
+        pending_closes_mon.exit();
+      }
+    }
+  }
+  
+
   
   private void runSelect() {
     //do cancellations
