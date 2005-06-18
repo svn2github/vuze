@@ -55,20 +55,20 @@ public class NetworkManager {
     });
     
     max_upload_rate_bps = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
-    if( max_upload_rate_bps <= 1024 )  max_upload_rate_bps = UNLIMITED_RATE;
+    if( max_upload_rate_bps < 1024 )  max_upload_rate_bps = UNLIMITED_RATE;
     COConfigurationManager.addParameterListener( "Max Upload Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         max_upload_rate_bps = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
-        if( max_upload_rate_bps <= 0 )  max_upload_rate_bps = UNLIMITED_RATE;
+        if( max_upload_rate_bps < 1024 )  max_upload_rate_bps = UNLIMITED_RATE;
       }
     });
     
     max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
-    if( max_download_rate_bps <= 1024 )  max_download_rate_bps = UNLIMITED_RATE;
+    if( max_download_rate_bps < 1024 )  max_download_rate_bps = UNLIMITED_RATE;
     COConfigurationManager.addParameterListener( "Max Download Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
-        if( max_download_rate_bps <= 0 )  max_download_rate_bps = UNLIMITED_RATE;
+        if( max_download_rate_bps < 1024 )  max_download_rate_bps = UNLIMITED_RATE;
       }
     });
   }
