@@ -1214,9 +1214,15 @@ TRHostImpl
 			
 		}else{			
 		
-			if ( !TorrentUtils.announceGroupsContainsURL( torrent, tracker_urls[0].toString() )){
+			String	primary_url = tracker_urls[0].toString();
 			
-				TorrentUtils.announceGroupsInsertFirst( torrent, tracker_urls[0].toString() );
+			if ( TorrentUtils.announceGroupsContainsURL( torrent, primary_url )){
+			
+				TorrentUtils.announceGroupsSetFirst( torrent, primary_url );
+				
+			}else{
+				
+				TorrentUtils.announceGroupsInsertFirst( torrent, primary_url );
 			}
 		}
 	}

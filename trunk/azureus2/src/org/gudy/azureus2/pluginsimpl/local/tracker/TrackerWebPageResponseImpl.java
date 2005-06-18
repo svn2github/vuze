@@ -34,6 +34,7 @@ import java.net.*;
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
@@ -265,26 +266,25 @@ TrackerWebPageResponseImpl
 			torrent_to_send.removeAdditionalProperties();
 			
 			if ( !TorrentUtils.isDecentralised( torrent_to_send )){
+								
+				URL[]	urls = TRTrackerUtils.getAnnounceURLs();
+									
+					// if tracker ip not set then assume they know what they're doing
+
+				if ( host_torrent.getStatus() != TRHostTorrent.TS_PUBLISHED && urls.length > 0 ){
 				
-				// override the announce url but not port (as this is already fixed)
-				
-				String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
-				
-				// if tracker ip not set then assume they know what they're doing
-				
-				if ( host_torrent.getStatus() != TRHostTorrent.TS_PUBLISHED ){
-					
-					if ( tracker_ip.length() > 0 ){
+					String protocol = torrent_to_send.getAnnounceURL().getProtocol();
+
+					for (int i=0;i<urls.length;i++){
+																
+						if ( urls[i].getProtocol().equalsIgnoreCase( protocol )){
+							
+							torrent_to_send.setAnnounceURL( urls[i] );
 						
-						int	 	tracker_port 	= host_torrent.getPort();
-						
-						String protocol = torrent_to_send.getAnnounceURL().getProtocol();
-						
-						URL announce_url = new URL( protocol + "://" + tracker_ip + ":" + tracker_port + "/announce" );
-						
-						torrent_to_send.setAnnounceURL( announce_url );
-						
-						torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+							torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+							
+							break;
+						}
 					}
 				}
 			}

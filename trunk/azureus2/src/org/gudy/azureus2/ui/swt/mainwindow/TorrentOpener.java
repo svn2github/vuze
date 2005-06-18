@@ -62,12 +62,12 @@ public class TorrentOpener {
   
   private static Display display;
   private static Shell mainWindow;
-  private static GlobalManager globalManager;
+  private static AzureusCore azureus_core;
   
-  public static void init(Shell _mainWindow,GlobalManager gm) {
+  public static void init(Shell _mainWindow, AzureusCore	core ) {
     display = SWTThread.getInstance().getDisplay();
     mainWindow = _mainWindow;
-    globalManager = gm;
+	azureus_core	= core;
   }
   
   
@@ -169,7 +169,7 @@ public class TorrentOpener {
                 LGLogger.log( "MainWindow::openTorrent: adding download '" + fileName + "' --> '" + savePath + "'" );
  
                 try{
-	                globalManager.addDownloadManager(fileName, savePath, 
+	                azureus_core.getGlobalManager().addDownloadManager(fileName, savePath, 
 	                                                 startInStoppedState ? DownloadManager.STATE_STOPPED 
 	                                                                     : DownloadManager.STATE_WAITING);
                 }catch( Throwable e ){
@@ -313,7 +313,7 @@ public class TorrentOpener {
               }
               
               try{
-	              globalManager.addDownloadManager(
+				  azureus_core.getGlobalManager().addDownloadManager(
 	              				path + separator + fileNames[i], 
 								savePath,
 								default_start_stopped ? DownloadManager.STATE_STOPPED 
@@ -331,6 +331,38 @@ public class TorrentOpener {
   });
   }
 
+  protected static void 
+  openTorrentsForTracking(
+    final String path, 
+    final String fileNames[] )
+  {
+		  display.asyncExec(new AERunnable(){
+		     public void runSupport()
+		     {
+
+		       new AEThread("TorrentOpener"){
+		          public void runSupport() {
+
+		            String separator = System.getProperty("file.separator");
+					
+		            for (int i = 0; i < fileNames.length; i++) {
+
+		              try{
+						  TOTorrent	t = TorrentUtils.readFromFile( new File( path, fileNames[i]), true );
+						  
+						  azureus_core.getTrackerHost().hostTorrent( t, true, true );
+	
+			          }catch( Throwable e ){
+			          	
+		   	          	LGLogger.logUnrepeatableAlert("Torrent open fails for '" + path + separator + fileNames[i] + "'", e );
+			          }
+		            }
+		          }
+		        }.start();
+		     }
+		  });
+  }
+  
   public static void openTorrentsFromDirectory(String directoryName) {
     boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
     
@@ -363,7 +395,7 @@ public class TorrentOpener {
       public void runSupport() {
         for (int i = 0; i < files.length; i++)
         	try{
-	          globalManager.addDownloadManager(files[i].getAbsolutePath(), path, 
+	          azureus_core.getGlobalManager().addDownloadManager(files[i].getAbsolutePath(), path, 
 	                                           startInStoppedState ? DownloadManager.STATE_STOPPED 
 	                                                               : DownloadManager.STATE_QUEUED);
             }catch( Throwable e ){
@@ -409,8 +441,22 @@ public class TorrentOpener {
     TorrentOpener.openTorrents( path, fDialog.getFileNames(), false, forSeeding );
   }
   
+  public static void 
+  openTorrentTrackingOnly() 
+  {
+	  FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
+	  fDialog.setFilterPath( getFilterPathTorrent() );
+	  fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", "*.*" }); 
+	  fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", "*.*" }); 
+	  fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); 
+	  String path = setFilterPathTorrent( fDialog.open() );
+	  if( path == null ) return;
+		
+	  TorrentOpener.openTorrentsForTracking( path, fDialog.getFileNames() );
+  }
+  
   public static void openTorrentWindow() {
-    new OpenTorrentWindow(display, globalManager);
+    new OpenTorrentWindow(display, azureus_core.getGlobalManager());
   }
 
 

@@ -197,7 +197,7 @@ MainWindow
     ShellManager.sharedManager().addWindow(mainWindow);
 
     //The Torrent Opener
-    TorrentOpener.init(mainWindow,globalManager);
+    TorrentOpener.init(mainWindow,azureus_core);
     
     mainMenu = new MainMenu(this);
 

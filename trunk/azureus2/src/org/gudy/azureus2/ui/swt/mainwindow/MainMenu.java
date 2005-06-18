@@ -227,7 +227,7 @@ public class MainMenu {
         }      
       });
   
-      MenuItem file_new_torrent_for_seeding = new MenuItem(newMenu, SWT.NULL);
+    MenuItem file_new_torrent_for_seeding = new MenuItem(newMenu, SWT.NULL);
       KeyBindings.setAccelerator(file_new_torrent_for_seeding, "MainWindow.menu.file.open.torrentforseeding");
       Messages.setLanguageText(file_new_torrent_for_seeding, "MainWindow.menu.file.open.torrentforseeding"); //$NON-NLS-1$
       file_new_torrent_for_seeding.addListener(SWT.Selection, new Listener() {
@@ -236,6 +236,15 @@ public class MainMenu {
         }      
       });
   
+    MenuItem file_new_torrent_for_tracking = new MenuItem(newMenu, SWT.NULL);
+      KeyBindings.setAccelerator(file_new_torrent_for_tracking, "MainWindow.menu.file.open.torrentfortracking");
+      Messages.setLanguageText(file_new_torrent_for_tracking, "MainWindow.menu.file.open.torrentfortracking");
+	  file_new_torrent_for_tracking.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          TorrentOpener.openTorrentTrackingOnly();
+        }      
+      });
+		  
       MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
       KeyBindings.setAccelerator(file_new_url, "MainWindow.menu.file.open.url");
       Messages.setLanguageText(file_new_url, "MainWindow.menu.file.open.url"); //$NON-NLS-1$
