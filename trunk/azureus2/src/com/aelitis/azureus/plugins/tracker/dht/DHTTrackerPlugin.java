@@ -1085,7 +1085,20 @@ DHTTrackerPlugin
 										// due to ignore rules if there are no downloaders in the DHT - bthub backup, for example,
 										// isn't scrapable...
 									
-									if ( torrent.isDecentralised()){
+										// hmm, ok, try being a bit more relaxed about this, inject the scrape if
+										// we have any peers
+									
+									boolean	inject_scrape = false;
+									
+									DownloadScrapeResult result = dl.getLastScrapeResult();
+									
+									if (	result == null || 
+											result.getResponseType() == DownloadScrapeResult.RT_ERROR ){
+										
+										inject_scrape = peer_count > 0;
+									}
+									
+									if ( torrent.isDecentralised() || inject_scrape ){
 										
 											// make sure that the injected scrape values are consistent
 											// with our currently connected peers
