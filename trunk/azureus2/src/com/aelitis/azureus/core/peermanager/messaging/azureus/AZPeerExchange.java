@@ -33,7 +33,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.*;
 
 
 /**
- * AZ handshake message.
+ * AZ peer exchange message.
  */
 public class AZPeerExchange implements AZMessage {
   private static final byte bss = DirectByteBuffer.SS_MSG;
