@@ -365,73 +365,56 @@ public class VirtualChannelSelectorImpl {
       if( !selector_guard.isSelectorOK( count, 30 ) ) {
         selector = selector_guard.repairSelector( selector );
       }
-      
-      
-      if( count != selector.selectedKeys().size() ) {
-        Debug.out( "count[" +count+ "] != selector.selectedKeys().size()[" +selector.selectedKeys().size()+ "]" );
-      }
-      
-      /*
-      if( selector_guard.detectSpinningKeys( selector.selectedKeys() ) ) {
-        String op_type = "OP_CONNECT";
-        if( INTEREST_OP == VirtualChannelSelector.OP_READ )  op_type = "OP_READ";
-        if( INTEREST_OP == VirtualChannelSelector.OP_WRITE ) op_type = "OP_WRITE";
-        
-        Debug.out( "Possible spinning keys detected for " +op_type+ ": " +selector_guard.getSpinningKeyReport() );
-      }
-      */
-      
+
       
       //notification of ready keys via listener callback
-      if( count > 0 ) {
-        for( Iterator i = selector.selectedKeys().iterator(); i.hasNext(); ) {
-          SelectionKey key = (SelectionKey)i.next();
-          i.remove();
-          RegistrationData data = (RegistrationData)key.attachment();
+      for( Iterator i = selector.selectedKeys().iterator(); i.hasNext(); ) {
+        SelectionKey key = (SelectionKey)i.next();
+        i.remove();
+        RegistrationData data = (RegistrationData)key.attachment();
 
-          if( key.isValid() ) {
-            if( (key.interestOps() & INTEREST_OP) == 0 ) {  //it must have been paused between select and notification
-              continue;
-            }            
+        if( key.isValid() ) {
+          if( (key.interestOps() & INTEREST_OP) == 0 ) {  //it must have been paused between select and notification
+            continue;
+          }            
             
-            if( pause_after_select ) { 
-              key.interestOps( key.interestOps() & ~INTEREST_OP );
-            }
+          if( pause_after_select ) { 
+            key.interestOps( key.interestOps() & ~INTEREST_OP );
+          }
                         
-            boolean	progress_made = data.listener.selectSuccess( parent, data.channel, data.attachment );
+          boolean	progress_made = data.listener.selectSuccess( parent, data.channel, data.attachment );
             
-            if ( progress_made ){
+          if ( progress_made ){
+            
+            data.non_progress_count = 0;
+          }else{
             	
-            	data.non_progress_count = 0;
-            }else{
+            data.non_progress_count++;
             	
-            	data.non_progress_count++;
-            	
-            	if ( data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
+            if ( data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
             		
-            		System.out.println( 
-            				"VirtualChannelSelector: No progress for op " + INTEREST_OP + ": " + data.non_progress_count +
-            				", socket: open = " + data.channel.isOpen() + ", connected = " + data.channel.isConnected());
+              System.out.println( 
+                  "VirtualChannelSelector: No progress for op " + INTEREST_OP + ": " + data.non_progress_count +
+                  ", socket: open = " + data.channel.isOpen() + ", connected = " + data.channel.isConnected());
             		
-            		if ( data.non_progress_count == 1000 ){
+              if ( data.non_progress_count == 1000 ){
+                
+                Debug.out( "No progress for " + data.non_progress_count + ", closing connection" );
             			
-            			Debug.out( "No progress for " + data.non_progress_count + ", closing connection" );
-            			
-            			try{
-            				data.channel.close();
+                try{
+                  data.channel.close();
             				
-            			}catch( Throwable e ){
+                }catch( Throwable e ){
             				
-            			}
-            		}
-            	}
+                }
+              }
             }
           }
-          else {
-            key.cancel();
-            data.listener.selectFailure( parent, data.channel, data.attachment, new Throwable( "key is invalid" ) );
-            // can get this if socket has been closed between select and here
-          }
+        }
+        else {
+          key.cancel();
+          data.listener.selectFailure( parent, data.channel, data.attachment, new Throwable( "key is invalid" ) );
+          // can get this if socket has been closed between select and here
         }
       }
       

@@ -54,7 +54,8 @@ public class SelectorGuard {
   private HashMap conseq_keys = new HashMap();
   private static final int CONSEQ_SELECT_THRESHOLD = 1000;
   
-  
+  private long zero_select_sum = 0;
+  private int zero_select_count = 0;
   
   private long max_consec = 0;
   
@@ -75,7 +76,7 @@ public class SelectorGuard {
    * mark the start time.
    */
   public void markPreSelectTime() {
-    beforeSelectTime = SystemTime.getCurrentTime();
+    beforeSelectTime = System.currentTimeMillis();//TODO
     marked = true;
   }
   
@@ -95,7 +96,7 @@ public class SelectorGuard {
     if (marked) marked = false;
     else Debug.out("Error: You must run markPreSelectTime() before calling isSelectorOK");
     
-    select_op_time = SystemTime.getCurrentTime() - beforeSelectTime;
+    select_op_time = System.currentTimeMillis() - beforeSelectTime;  //TODO
     
     if( select_op_time > _time_threshold || select_op_time < 0 ) {
       //zero-select, but over the time threshold, so OK
@@ -105,17 +106,24 @@ public class SelectorGuard {
     
     //if we've gotten here, then we have a potential selector anomalie
     consecutiveZeroSelects++;
-        
+    
+    zero_select_count++;
+    zero_select_sum += select_op_time;
     
     if( consecutiveZeroSelects > max_consec ) {
       max_consec = consecutiveZeroSelects;
-      if( max_consec % 100 == 0 )  Debug.out( type+ ": max_consec zero selects= " +max_consec );
+      if( max_consec % 100 == 0 ) {
+        long average = zero_select_sum / zero_select_count;
+        zero_select_sum = 0;
+        zero_select_count = 0;
+        System.out.println( type+ ": max_consec zero selects=" +max_consec+ ", average select time=" +average );
+      }
     }
     
     
     if (consecutiveZeroSelects > countThreshold) {
       //we're over the threshold: reset stats and report error
-      consecutiveZeroSelects = 0;      
+      consecutiveZeroSelects = 0;
       return false;
     }
     
