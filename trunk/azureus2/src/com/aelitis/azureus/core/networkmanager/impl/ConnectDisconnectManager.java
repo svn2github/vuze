@@ -162,7 +162,6 @@ public class ConnectDisconnectManager {
       request.connect_start_time = SystemTime.getCurrentTime();
       
       if( request.channel.connect( request.address ) ) {  //already connected
-        System.out.println( "connect() returned true!" );
         finishConnect( request );
       }
       else {  //not yet connected, so register for connect selection
