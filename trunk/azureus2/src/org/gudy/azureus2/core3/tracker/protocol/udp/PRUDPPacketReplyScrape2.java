@@ -140,6 +140,11 @@ PRUDPPacketReplyScrape2
 	public String
 	getString()
 	{
-		return( super.getString()+"[entries="+complete.length+"]");
+		String	data = "";
+		
+		for (int i=0;i<complete.length;i++){
+			data += (i==0?"":",") + complete[i] + "/" + incomplete[i] + "/" + downloaded[i];
+		}
+		return( super.getString()+"[entries="+complete.length+"=" + data +"]");
 	}
 }
