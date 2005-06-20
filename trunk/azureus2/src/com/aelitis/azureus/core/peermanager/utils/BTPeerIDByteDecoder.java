@@ -278,11 +278,18 @@ public class BTPeerIDByteDecoder {
       if( (id[0] == (byte)45) && (id[7] == (byte)45) ) {
         String decoded = new String( id, 1, 2, Constants.BYTE_ENCODING );
         if( decoded.equals( ident ) ) {
-          String v1 = new String( id, 3, 1, Constants.BYTE_ENCODING );
-          String v2 = new String( id, 4, 1, Constants.BYTE_ENCODING );
-          String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
-          String v4 = new String( id, 6, 1, Constants.BYTE_ENCODING );
-          return name + " " + v1 + "." + v2 + "." + v3 + "." + v4;
+        	if ( ident == "BC") {
+          		String v2 = new String( id, 4, 1, Constants.BYTE_ENCODING );
+          		String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
+          		String v4 = new String( id, 6, 1, Constants.BYTE_ENCODING );
+          		return name + " " + v2 + "." + v3 + v4;
+        	} else {
+          		String v1 = new String( id, 3, 1, Constants.BYTE_ENCODING );
+          		String v2 = new String( id, 4, 1, Constants.BYTE_ENCODING );
+          		String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
+          		String v4 = new String( id, 6, 1, Constants.BYTE_ENCODING );
+          		return name + " " + v1 + "." + v2 + "." + v3 + "." + v4;
+        	}
         }
       }
     }
