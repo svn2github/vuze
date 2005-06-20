@@ -128,7 +128,7 @@ public class StartStopRulesDefaultPlugin
   int iRankTypeSeedFallback;
   boolean bAutoReposition;
   long minTimeAlive;
-  long minTimeAlive1 = 60 * 1000;
+  long minTimeAlive1 = 29 * 1000;
   
   boolean bPreferLargerSwarms;
   boolean bDebugLog;
@@ -845,8 +845,8 @@ public class StartStopRulesDefaultPlugin
 	
 	          // Stop torrent if over limit
 	          if ((maxDownloads != 0) &&
-	              (numWaitingOrDLing >= maxDownloads - iExtraFPs) &&
-	              (bActivelyDownloading || state != Download.ST_DOWNLOADING)) {
+	              (numWaitingOrDLing >= maxDownloads - iExtraFPs + totalStalledSeeders - total0PeerSeeders) &&
+	              ((bActivelyDownloading || state != Download.ST_DOWNLOADING) || (!bActivelyDownloading && activeSeedingCount >= maxActive))) {
 	            try {
 	              if (bDebugLog) {
 	                String s = "   stopAndQueue() > maxDownloads";
@@ -872,7 +872,7 @@ public class StartStopRulesDefaultPlugin
 	        }
 	
 	        if (state == Download.ST_QUEUED) { 
-	          if ((maxDownloads == 0) || (numWaitingOrDLing < maxDownloads - iExtraFPs)) {
+	          if ((maxDownloads == 0) || (numWaitingOrDLing < maxDownloads - iExtraFPs + totalStalledSeeders - total0PeerSeeders)) {
 	            try {
 	              if (bDebugLog) {
 	                String s = "   restart()";
@@ -891,7 +891,7 @@ public class StartStopRulesDefaultPlugin
 	        }
 	
 	        if (state == Download.ST_READY) {
-	          if ((maxDownloads == 0) || (activeDLCount < maxDownloads - iExtraFPs)) {
+	          if ((maxDownloads == 0) || (activeDLCount < maxDownloads - iExtraFPs + totalStalledSeeders - total0PeerSeeders)) {
 	            try {
 	              if (bDebugLog) {
 	                String s = "   start() activeDLCount < maxDownloads";
@@ -972,12 +972,18 @@ public class StartStopRulesDefaultPlugin
 	          }
 	          continue;
 	        }
-	
+			
+//			System.out.println("numWaitingOrSeeding " + numWaitingOrSeeding);
+//			System.out.println("maxActive " + maxActive);
+
+			
 	        int shareRatio = download.getStats().getShareRatio();
 	        boolean bActivelySeeding = dlData.getActivelySeeding();
 	        boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING) &&
-								(!isFP || (isFP && numWaitingOrSeeding >= maxSeeders)) &&
+								(!isFP || (isFP && ((numWaitingOrSeeding >= maxActive) || higherQueued )) ) &&
+	//							(!isFP || (isFP && ((numWaitingOrSeeding >= maxSeeders) || (!bActivelySeeding && (numWaitingOrSeeding + totalStalledSeeders) >= maxSeeders))) ) &&
 								(!download.isForceStart());
+
 	        // in RANK_TIMED mode, we use minTimeAlive for rotation time, so
 	        // skip check
 			// XXX do we want changes to take effect immediately  ?
@@ -1048,10 +1054,10 @@ public class StartStopRulesDefaultPlugin
 	            }
 	          }
 	
-	        // Change to waiting if queued and we have an open slot
+	        // XXX Change to waiting if queued and we have an open slot
 	        } else if ((state == Download.ST_QUEUED) &&
-	                   (numWaitingOrSeeding < maxSeeders) && 
-	                   ((activeSeedingCount + totalStalledSeeders - total0PeerSeeders + totalDownloading) < maxTorrents) &&
+	                   ((numWaitingOrSeeding) < maxSeeders) && 
+	                   ((activeSeedingCount + activeDLCount) < maxActive) &&
 	                   (dlData.getSeedingRank() > -2) && 
 	                   !higherQueued) {
 	          try {
@@ -1095,7 +1101,6 @@ public class StartStopRulesDefaultPlugin
 	            state = download.getState();
 	          }
 	        }
-	
 	
 	        // if there's more torrents waiting/seeding than our max, or if
 	        // there's a higher ranked torrent queued, stop this one
