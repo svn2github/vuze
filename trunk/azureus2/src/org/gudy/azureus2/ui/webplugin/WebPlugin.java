@@ -46,6 +46,14 @@ public class
 WebPlugin
 	implements Plugin, TrackerWebPageGenerator
 {
+	public static final String	PR_PORT						= "Port";						// Integer
+	public static final String	PR_ROOT_RESOURCE			= "Root Resource";				// String
+	public static final String	PR_LOG						= "DefaultLoggerChannel";		// LoggerChannel
+	public static final String	PR_CONFIG_MODEL				= "DefaultConfigModel";			// BasicPluginConfigModel
+	public static final String	PR_VIEW_MODEL				= "DefaultViewModel";			// BasicPluginViewModel
+	public static final String	PR_HIDE_RESOURCE_CONFIG		= "DefaultHideResourceConfig";	// Boolean
+	
+	
 	public static final String	PROPERTIES_MIGRATED		= "Properties Migrated";
 	public static final String	CONFIG_MIGRATED			= "Config Migrated";
 	
@@ -58,7 +66,7 @@ WebPlugin
 	public static final String	CONFIG_PASSWORD			= "Password";
 	public        final byte[]	CONFIG_PASSWORD_DEFAULT	= {};
 	
-	public static final String 	CONFIG_PORT						= "Port";
+	public static final String 	CONFIG_PORT						= PR_PORT;
 	public int			 		CONFIG_PORT_DEFAULT				= 8089;
 	
 	public static final String 	CONFIG_PROTOCOL					= "Protocol";
@@ -73,7 +81,7 @@ WebPlugin
 	public static final String 	CONFIG_ROOT_DIR					= "Root Dir";
 	public        final String 	CONFIG_ROOT_DIR_DEFAULT			= "";
 	
-	public static final String 	CONFIG_ROOT_RESOURCE			= "Root Resource";
+	public static final String 	CONFIG_ROOT_RESOURCE			= PR_ROOT_RESOURCE;
 	public              String 	CONFIG_ROOT_RESOURCE_DEFAULT	= "";
 	
 	public static final String 	CONFIG_MODE						= "Mode";
@@ -88,40 +96,32 @@ WebPlugin
 	protected static final String[]		welcome_pages = {"index.html", "index.htm", "index.php", "index.tmpl" };
 	protected static File[]				welcome_files;
 	
-	protected PluginInterface			plugin_interface;
-	protected LoggerChannel				log;
-	protected Tracker					tracker;
-	protected BasicPluginConfigModel	config_model;
+	private PluginInterface			plugin_interface;
+	private LoggerChannel			log;
+	private Tracker					tracker;
+	private BasicPluginViewModel 	view_model;
+	private BasicPluginConfigModel	config_model;
 	
-	protected String				home_page;
-	protected String				file_root;
-	protected String				resource_root;
+	private String				home_page;
+	private String				file_root;
+	private String				resource_root;
 	
-	protected boolean				ip_range_all	= false;
-	protected IPRange				ip_range;
+	private boolean				ip_range_all	= false;
+	private IPRange				ip_range;
+	
+	private Properties	properties;
 	
 	public 
 	WebPlugin()
 	{
+		properties	= new Properties();
 	}
 	
 	public 
 	WebPlugin(
 		Properties		defaults )
 	{	
-		Integer	i = (Integer)defaults.get(CONFIG_PORT);
-		
-		if ( i != null ){
-		
-			CONFIG_PORT_DEFAULT	= i.intValue();
-		}
-		
-		String	s = (String)defaults.get( CONFIG_ROOT_RESOURCE );
-		
-		if( s != null ){
-			
-			CONFIG_ROOT_RESOURCE_DEFAULT	= s;
-		}
+		properties	= defaults;
 	}
 	
 	public void 
@@ -132,15 +132,41 @@ WebPlugin
 	{	
 		plugin_interface	= _plugin_interface;
 		
-		log = plugin_interface.getLogger().getChannel("WebPlugin");
-
+		Integer	pr_port = (Integer)properties.get(PR_PORT);
+		
+		if ( pr_port != null ){
+		
+			CONFIG_PORT_DEFAULT	= pr_port.intValue();
+		}
+		
+		String	pr_root_resource = (String)properties.get( PR_ROOT_RESOURCE );
+		
+		if( pr_root_resource != null ){
+			
+			CONFIG_ROOT_RESOURCE_DEFAULT	= pr_root_resource;
+		}
+		
+		Boolean	pr_hide_resource_config = (Boolean)properties.get( PR_HIDE_RESOURCE_CONFIG );
+		
+		log = (LoggerChannel)properties.get( PR_LOG );
+		
+		if ( log == null ){
+			
+			log = plugin_interface.getLogger().getChannel("WebPlugin");
+		}
+		
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
-		final BasicPluginViewModel model = ui_manager.createBasicPluginViewModel( plugin_interface.getPluginName());
+		view_model = (BasicPluginViewModel)properties.get( PR_VIEW_MODEL );
+
+		if ( view_model == null ){
+			
+			view_model = ui_manager.createBasicPluginViewModel( plugin_interface.getPluginName());
+		}
 		
-		model.getStatus().setText( "Running" );
-		model.getActivity().setVisible( false );
-		model.getProgress().setVisible( false );
+		view_model.getStatus().setText( "Running" );
+		view_model.getActivity().setVisible( false );
+		view_model.getProgress().setVisible( false );
 		
 		log.addListener(
 			new LoggerChannelListener()
@@ -150,7 +176,7 @@ WebPlugin
 					int		type,
 					String	message )
 				{
-					model.getLogArea().appendText( message+"\n");
+					view_model.getLogArea().appendText( message+"\n");
 				}
 				
 				public void
@@ -158,13 +184,19 @@ WebPlugin
 					String		str,
 					Throwable	error )
 				{
-					model.getLogArea().appendText( error.toString()+"\n");
+					view_model.getLogArea().appendText( str + "\n" );
+					view_model.getLogArea().appendText( error.toString() + "\n" );
 				}
 			});
 		
 		PluginConfig	plugin_config = plugin_interface.getPluginconfig();
 		
-		config_model = ui_manager.createBasicPluginConfigModel( "plugins", "plugins." + plugin_interface.getPluginID());
+		config_model = (BasicPluginConfigModel)properties.get( PR_CONFIG_MODEL );
+
+		if ( config_model == null ){
+			
+			config_model = ui_manager.createBasicPluginConfigModel( "plugins", "plugins." + plugin_interface.getPluginID());
+		}
 		
 		boolean	save_needed = false;
 		
@@ -290,6 +322,13 @@ WebPlugin
 		StringParameter	param_rootdir 	= config_model.addStringParameter2(	CONFIG_ROOT_DIR, "webui.rootdir", CONFIG_ROOT_DIR_DEFAULT );
 		StringParameter	param_rootres	= config_model.addStringParameter2(	CONFIG_ROOT_RESOURCE, "webui.rootres", CONFIG_ROOT_RESOURCE_DEFAULT );
 		
+		if ( pr_hide_resource_config != null && pr_hide_resource_config.booleanValue()){
+			
+			param_home.setVisible( false );
+			param_rootdir.setVisible( false );
+			param_rootres.setVisible( false );
+		}
+		
 		config_model.addLabelParameter2( "webui.mode.info" );
 		StringListParameter	param_mode		= 
 			config_model.addStringListParameter2(	
@@ -406,7 +445,7 @@ WebPlugin
 		int	protocol = protocol_str.equalsIgnoreCase( "HTTP")?
 							Tracker.PR_HTTP:Tracker.PR_HTTPS;
 	
-		log.log( LoggerChannel.LT_INFORMATION, "WebPlugin Initialisation: port = " + port + ", protocol = " + protocol_str + ", root = " + root_dir );
+		log.log( LoggerChannel.LT_INFORMATION, "Initialisation: port = " + port + ", protocol = " + protocol_str + (root_dir.length()==0?"":(", root = " + root_dir )));
 		
 		String	access_str = param_access.getValue().trim();
 		

@@ -541,6 +541,29 @@ BasicPluginConfigModelImpl
 			    }
 			}
 			
+			if ( !param.isVisible()){
+				
+			    Object[] stuff = (Object[])comp_map.get( param );
+			    
+			    if ( stuff != null ){
+			    	
+				    for(int k = 1 ; k < stuff.length ; k++) {
+				    	
+				    	Control	con = (Control)stuff[k];
+				    	
+				    	con.setVisible(false);
+				    	
+				    	GridData gridData = new GridData();
+						
+						gridData.heightHint 				= 0;
+						gridData.verticalSpan				= 0;
+						gridData.grabExcessVerticalSpace	= false;
+						
+						con.setLayoutData( gridData );
+				    }
+			    }
+			}
+			
 			if ( param instanceof EnablerParameter ){
 				
 				List controlsToEnable = new ArrayList();

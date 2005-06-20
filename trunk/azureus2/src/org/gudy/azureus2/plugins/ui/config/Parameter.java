@@ -41,6 +41,13 @@ Parameter
 	isEnabled();
 	
 	public void
+	setVisible(
+		boolean	visible );
+	
+	public boolean
+	isVisible();
+	
+	public void
 	addListener(
 		ParameterListener	l );
 	
