@@ -106,7 +106,7 @@ public class VirtualChannelSelector {
           VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)entry.getKey();
           ArrayList channels = (ArrayList)entry.getValue();
           
-          if( channels.size() < 60 ) {  //there's room in the current selector
+          if( channels.size() < 55 ) {  //there's room in the current selector
             sel.register( channel, listener, attachment );
             channels.add( channel );
             return;
