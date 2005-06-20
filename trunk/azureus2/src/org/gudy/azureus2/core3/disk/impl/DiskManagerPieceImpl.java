@@ -35,9 +35,10 @@ public class
 DiskManagerPieceImpl
 	implements DiskManagerPiece
 {
-	protected DiskManagerImpl	disk_manager;
-	protected int				piece_index;
-	protected boolean			done;
+	private DiskManagerImpl		disk_manager;
+	private int					piece_index;
+	private boolean				done;
+	private boolean				needed;
 	
 		// to save memory the "written" field is only maintained for pieces that are
 		// downloading. A value of "null" means that either the piece hasn't started 
@@ -60,6 +61,8 @@ DiskManagerPieceImpl
 	{
 		disk_manager	= _disk_manager;
 		piece_index		= _piece_index;
+		
+		needed	= true;	// starting position is that all pieces are needed
 	}
 	  
 	public int
@@ -108,6 +111,19 @@ DiskManagerPieceImpl
 				written = null;
 			}
 		}
+	}
+	
+	public boolean
+	isNeeded()
+	{
+		return( needed );
+	}
+	
+	public void
+	setNeeded(
+		boolean	_needed )
+	{
+		needed	= _needed;
 	}
 	
 	public void 

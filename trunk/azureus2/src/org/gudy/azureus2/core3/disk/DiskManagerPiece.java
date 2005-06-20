@@ -43,6 +43,13 @@ DiskManagerPiece
 	setDone(
 		boolean		done );
 	
+	public boolean
+	isNeeded();
+	
+	public void
+	setNeeded(
+		boolean		needed );
+	
 	public int
 	getBlockCount();
 	

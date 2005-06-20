@@ -58,8 +58,6 @@ DMPiecePickerImpl
 	
 	private BitSet[] priorityLists;
 	
-	//private int[][] priorityLists;
-
 	private MyDiskManagerListener myDiskManListener;
 	
 	public
@@ -111,11 +109,7 @@ DMPiecePickerImpl
 		
 		priorityLists = new BitSet[100];
 		
-		//    priorityLists = new int[10][nbPieces + 1];
-
-		// the piece numbers for getPiecenumberToDownload
-		//    _priorityPieces = new int[nbPieces + 1];
-
+		computePriorityIndicator();
 	}
 	
 	public void
@@ -218,7 +212,7 @@ DMPiecePickerImpl
 			
 		
 			has_piece_to_download	= false;
-			
+						
 				// for all pieces, set the priority bits accordingly
 			
 			for (int i = 0; i < pieceCompletion.length; i++) {
@@ -227,9 +221,15 @@ DMPiecePickerImpl
 				
 				if ( priority >= 0 ){
 					
+					pieces[i].setNeeded( true );
+					
 					has_piece_to_download	= true;
 					
 					priorityLists[priority].set(i);
+					
+				}else{
+					
+					pieces[i].setNeeded( false );
 				}
 			}
 		}
