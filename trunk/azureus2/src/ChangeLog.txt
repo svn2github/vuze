@@ -15,6 +15,7 @@ CHANGE: Core  | CVS versions run multiple DHTs to permit validations of changes 
 CHANGE: Core  | DHT anti-spoof for cache forwards [Parg]
 CHANGE: Core  | DHT mechanisms for flood prevention [Parg]
 CHANGE: Core  | Added local tracker url to torrents when hosting external torrents [Parg]
+CHANGE: Plug  | More JPC plugin enhancements to help reduce cache server load [Nolar]
 
 BUGFIX: Core  | DHT protocol version logic fixes [Parg]
 BUGFIX: Core  | Fix for 100% cpu when more than 60 connections are registered with a selector under buggy network stacks [Nolar]

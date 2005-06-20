@@ -43,7 +43,8 @@ public class BTMessageManager {
   public static final String ID_BTMESSAGE_REQUEST = BTMessage.ID_BT_REQUEST;
   public static final String ID_BTMESSAGE_CANCEL  = BTMessage.ID_BT_CANCEL;
   public static final String ID_BTMESSAGE_PIECE   = BTMessage.ID_BT_PIECE;
-
+  public static final String ID_BTMESSAGE_UNCHOKE = BTMessage.ID_BT_UNCHOKE;
+  
 
   /**
    * Translate the given core-made BT Request message into a specific plugin message adaptation.
