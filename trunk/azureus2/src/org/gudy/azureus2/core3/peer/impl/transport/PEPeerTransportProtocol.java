@@ -558,7 +558,7 @@ PEPeerTransportProtocol
       DiskManagerPiece[]  pieces = manager.getDiskManager().getPieces();
       
       for (int i = 0; i < pieces.length; i++) {
-        if ( !pieces[i].getDone() && other_peer_has_pieces[i] ) {
+        if ( pieces[i].isNeeded() && other_peer_has_pieces[i] ) {
           is_interesting = true;
           break;
         }
@@ -587,7 +587,7 @@ PEPeerTransportProtocol
     boolean is_interesting = false;
     
     if( manager.getDiskManager().hasDownloadablePiece() ) {  //there is a piece worth being interested in
-      is_interesting = !manager.getDiskManager().getPieces()[ pieceNumber ].getDone();  //we dont have that piece yet
+      is_interesting = manager.getDiskManager().getPieces()[ pieceNumber ].isNeeded();  //we dont have that piece yet
     }
     
 		if ( is_interesting && !interested_in_other_peer ) {
