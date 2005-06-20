@@ -44,6 +44,7 @@ ParameterImpl
 	private 	String 			label;
 	
 	private	boolean	enabled	= true;
+	private boolean	visible	= true;
 	
 	private List toDisable	= new ArrayList();
 	private List toEnable	= new ArrayList();
@@ -135,6 +136,19 @@ ParameterImpl
 	isEnabled()
 	{
 		return( enabled );
+	}
+	
+	public void
+	setVisible(
+		boolean	_visible )
+	{
+		visible	= _visible;
+	}
+	
+	public boolean
+	isVisible()
+	{
+		return( visible );
 	}
 	
 	public void

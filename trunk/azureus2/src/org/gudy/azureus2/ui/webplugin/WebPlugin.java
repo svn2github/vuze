@@ -96,7 +96,7 @@ WebPlugin
 	protected static final String[]		welcome_pages = {"index.html", "index.htm", "index.php", "index.tmpl" };
 	protected static File[]				welcome_files;
 	
-	private PluginInterface			plugin_interface;
+	protected PluginInterface			plugin_interface;	// unfortunately this is accessed by webui - fix sometime
 	private LoggerChannel			log;
 	private Tracker					tracker;
 	private BasicPluginViewModel 	view_model;
