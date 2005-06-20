@@ -838,6 +838,11 @@ public class GlobalManagerImpl
 
       trackerScraper.remove(manager.getTorrent());
     }
+    
+    if ( host_support != null ){
+    	
+    	host_support.torrentRemoved( manager.getTorrentFileName(), manager.getTorrent());
+    }
   }
 
   /* Puts GlobalManager in a stopped state.

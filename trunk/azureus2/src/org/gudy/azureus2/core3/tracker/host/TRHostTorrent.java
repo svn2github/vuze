@@ -67,6 +67,10 @@ TRHostTorrent
 	public boolean
 	isPassive();
 	
+	public void
+	setPassive(
+		boolean		passive );
+	
 	public TOTorrent
 	getTorrent();
 	

@@ -257,7 +257,7 @@ TRHostTorrentHostImpl
 		return( passive );
 	}
 	
-	protected void
+	public void
 	setPassive(
 		boolean		b )
 	{

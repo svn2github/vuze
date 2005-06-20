@@ -38,6 +38,7 @@ public class PassiveItem
   /** Default Constructor */
   public PassiveItem() {
     super("passive", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTRACKER);
+    setRefreshInterval(INTERVAL_LIVE);
   }
 
   public void refresh(TableCell cell) {

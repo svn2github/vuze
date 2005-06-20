@@ -669,7 +669,15 @@ TRHostImpl
 			
 		if ( host_torrent instanceof TRHostTorrentHostImpl ){
 			
-			stopHosting( (TRHostTorrentHostImpl)host_torrent, tracker_client );
+				// we only "connect" the announcer and the hosted torrent if it isn't passive. This allows
+				// us to make a torrent passive without losing the tracker stats by
+				// 1) making it passive
+				// 2) removing the Download
+			
+			//if ( !host_torrent.isPassive()){
+			
+				stopHosting( (TRHostTorrentHostImpl)host_torrent, tracker_client );
+			//}
 		}
 	}
 	

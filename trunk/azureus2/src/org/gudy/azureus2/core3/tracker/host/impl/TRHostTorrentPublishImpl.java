@@ -127,6 +127,12 @@ TRHostTorrentPublishImpl
 		return( false );
 	}
 	
+	public void
+	setPassive(
+		boolean		passive )
+	{
+	}
+	
 	public TOTorrent
 	getTorrent()
 	{

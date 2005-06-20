@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.global.impl;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,6 +33,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 
 
 class
@@ -79,6 +81,33 @@ GlobalManagerHostSupport
 		}
 		
 		return( null );
+	}
+	
+	protected void
+	torrentRemoved(
+		String			torrent_file,
+		TOTorrent		torrent )
+	{
+		TRHostTorrent	host_torrent = host.getHostTorrent( torrent );
+		
+		if ( host_torrent != null ){
+			
+				// it we remove a torrent while it is hosted then we flip it into passive mode to
+				// keep it around in a sensible state
+			
+				// we've got to ensure that the torrent's file location is available in the torrent itself
+				// as we're moving from download-managed persistence to host managed :(
+			
+			try{
+				TorrentUtils.writeToFile( host_torrent.getTorrent(), new File( torrent_file ), false );
+			
+				host_torrent.setPassive( true );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Failed to make torrent '" + torrent_file + "' passive: " + Debug.getNestedExceptionMessage(e));
+			}
+		}
 	}
 	
 	protected void
