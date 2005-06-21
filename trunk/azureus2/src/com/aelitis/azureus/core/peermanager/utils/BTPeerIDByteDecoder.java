@@ -40,8 +40,10 @@ public class BTPeerIDByteDecoder {
     
     int iFirstNonZeroPos = 0;
     try {
-      if( (decoded = decodeAzStyle( peerID, "AZ", "Azureus" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "AZ", "Azureus" )) != null ) return decoded;      
+      if( (decoded = decodeAzStyle( peerID, "BC", "BitComet" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "LT", "libtorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "AR", "Arctic Torrent" )) != null ) return decoded; //based on libtorrent so I assume it works ;)
       if( (decoded = decodeAzStyle( peerID, "TS", "TorrentStorm" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "MT", "MoonlightTorrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "XT", "XanTorrent" )) != null ) return decoded;
@@ -53,7 +55,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "BS", "BTSlave" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "BX", "BittorrentX" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "TN", "Torrent.NET" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "BC", "BitComet" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "ZT", "ZipTorrent" )) != null ) return decoded;    
       
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
@@ -68,10 +70,13 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeSimpleStyle( peerID, 0, "S587Plus", "BitTorrent Plus!" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 5, "Azureus", "Azureus 2.0.3.2" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "-G3", "G3 Torrent" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "-AR", "Arctic Torrent" )) != null ) return decoded; //just to be sure (see above) will be removed if necessary
       if( (decoded = decodeSimpleStyle( peerID, 4, "btfans", "SimpleBT" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "btuga", "BTugaXP" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "DansClient", "XanTorrent" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "Deadman Walking-", "Deadman" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "346-", "TorrentTopia" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "271-", "GreedBT 2.7.1" )) != null ) return decoded;
       
       if( (decoded = decodeSimpleStyle( peerID, 0, "a00---0", "Swarmy" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "a02---0", "Swarmy" )) != null ) return decoded;
@@ -169,14 +174,41 @@ public class BTPeerIDByteDecoder {
       
       
       String bitcomet = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
-      if (bitcomet.equals("exbc")) {
-        String name = "BitComet ";
-        name = name.concat(String.valueOf(peerID[4]) + ".");
-        name = name.concat(String.valueOf(peerID[5]/10));
-        name = name.concat(String.valueOf(peerID[5]%10));
+      if (bitcomet.equals("exbc") || bitcomet.equals("FUTB") || bitcomet.equals("xUTB")) {
+      	String lord = new String(peerID, 6, 4, Constants.BYTE_ENCODING);
+      	String name;
+		if ( lord.equals( "LORD" ) ) {
+			name = "BitLord ";
+			String versionNumber = String.valueOf(peerID[4]);
+			name = name.concat(versionNumber + ".");
+			if (versionNumber.equals( "0" )) { // still follows the old BitComet decoding
+				name = name.concat(String.valueOf(peerID[5]/10));
+        		name = name.concat(String.valueOf(peerID[5]%10));
+			} else {
+				name = name.concat(String.valueOf(peerID[5]%10));
+			}
+        	
+		} else {
+			name = "BitComet ";
+        	if ( bitcomet.equals("FUTB")) name = name.concat("Mod1 ");
+        	if ( bitcomet.equals("xUTB")) name = name.concat("Mod2 ");
+        	name = name.concat(String.valueOf(peerID[4]) + ".");
+        	name = name.concat(String.valueOf(peerID[5]/10));
+        	name = name.concat(String.valueOf(peerID[5]%10));
+        }
+
         return name;
       }
       
+      String rufus = new String(peerID, 2, 2, Constants.BYTE_ENCODING);
+      if (rufus.equals("RS")) {
+        String name = "Rufus ";
+        name = name.concat(String.valueOf(peerID[0]) + ".");
+        name = name.concat(String.valueOf(peerID[1]/10) + ".");
+        name = name.concat(String.valueOf(peerID[1]%10));
+        return name;
+      }
+    
       
             
       iFirstNonZeroPos = 20;
