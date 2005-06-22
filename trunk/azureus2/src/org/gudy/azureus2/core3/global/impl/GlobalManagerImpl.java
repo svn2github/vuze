@@ -1259,28 +1259,40 @@ public class GlobalManagerImpl
 		      dmMap.put("uploads", new Long(dm_stats.getMaxUploads()));
 		      dmMap.put("maxdl", new Long( dm_stats.getDownloadRateLimitBytesPerSecond() ));
 		      dmMap.put("maxul", new Long( dm_stats.getUploadRateLimitBytesPerSecond() ));
+		      
           int state = dm.getState();
-          if (dm.getOnlySeeding() && !dm.isForceStart() && 
-              state != DownloadManager.STATE_STOPPED) {
-            state = DownloadManager.STATE_QUEUED;
-          } else if (state == DownloadManager.STATE_ERROR)
-            state = DownloadManager.STATE_STOPPED;
-          else if (state != DownloadManager.STATE_STOPPED &&
-                  state != DownloadManager.STATE_QUEUED &&
-                  state != DownloadManager.STATE_WAITING)
-            state = DownloadManager.STATE_WAITING;
-          dmMap.put("state", new Long(state));		      
-		      dmMap.put("position", new Long(dm.getPosition()));
-		      dmMap.put("downloaded", new Long(dm_stats.getTotalDataBytesReceived()));
-		      dmMap.put("uploaded", new Long(dm_stats.getTotalDataBytesSent()));
-		      dmMap.put("completed", new Long(dm_stats.getDownloadCompleted(true)));
-		      dmMap.put("discarded", new Long(dm_stats.getDiscarded()));
-		      dmMap.put("hashfails", new Long(dm_stats.getHashFails()));
-		      dmMap.put("forceStart", new Long(dm.isForceStart() && (dm.getState() != DownloadManager.STATE_CHECKING) ? 1 : 0));
-		      dmMap.put("secondsDownloading", new Long(dm_stats.getSecondsDownloading()));
-		      dmMap.put("secondsOnlySeeding", new Long(dm_stats.getSecondsOnlySeeding()));
           
-		      dmMap.put( "creationTime", new Long( dm.getCreationTime()));
+          if (state == DownloadManager.STATE_ERROR ){
+          
+        	  	// torrents in error state always come back stopped
+        	  
+            state = DownloadManager.STATE_STOPPED;
+            
+	      }else if (	dm.getOnlySeeding() && !dm.isForceStart() && 
+	    		  		state != DownloadManager.STATE_STOPPED) {
+	    	  
+	    	state = DownloadManager.STATE_QUEUED;
+	    	  	
+	      }else if (	state != DownloadManager.STATE_STOPPED &&
+                  		state != DownloadManager.STATE_QUEUED &&
+                  		state != DownloadManager.STATE_WAITING){
+	    	  
+            state = DownloadManager.STATE_WAITING;
+            
+	      }
+          
+          dmMap.put("state", new Long(state));		      
+	      dmMap.put("position", new Long(dm.getPosition()));
+	      dmMap.put("downloaded", new Long(dm_stats.getTotalDataBytesReceived()));
+	      dmMap.put("uploaded", new Long(dm_stats.getTotalDataBytesSent()));
+	      dmMap.put("completed", new Long(dm_stats.getDownloadCompleted(true)));
+	      dmMap.put("discarded", new Long(dm_stats.getDiscarded()));
+	      dmMap.put("hashfails", new Long(dm_stats.getHashFails()));
+	      dmMap.put("forceStart", new Long(dm.isForceStart() && (dm.getState() != DownloadManager.STATE_CHECKING) ? 1 : 0));
+	      dmMap.put("secondsDownloading", new Long(dm_stats.getSecondsDownloading()));
+	      dmMap.put("secondsOnlySeeding", new Long(dm_stats.getSecondsOnlySeeding()));
+      
+	      dmMap.put( "creationTime", new Long( dm.getCreationTime()));
 		      
 		      //save file priorities
  
