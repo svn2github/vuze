@@ -35,14 +35,14 @@ import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 public class VivaldiPositionImpl implements VivaldiPosition{
   
   private static final float cc = 0.25f;
-  private static final float ce = 0.50f;
+  private static final float ce = 1.00f;
   
   private Coordinates coordinates;
   private float error;
   
   public VivaldiPositionImpl(Coordinates coordinates) {
     this.coordinates = coordinates;
-    error = 1;
+    error = 100f;
   }
   
   public Coordinates getCoordinates() {
