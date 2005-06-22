@@ -36,9 +36,6 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  * Provides a simplified and safe (selectable-channel) socket single-op selector.
  */
 public class VirtualChannelSelectorImpl {
-
-    private static final int SELECTOR_FAIL_COUNT_MAX = 20000;  // a real selector spin will easily reach this
-    
     private Selector selector;
     private final SelectorGuard selector_guard;
     
@@ -69,7 +66,7 @@ public class VirtualChannelSelectorImpl {
           type = "OP_WRITE";  break;
       }
       
-      selector_guard = new SelectorGuard( SELECTOR_FAIL_COUNT_MAX, type );
+      selector_guard = new SelectorGuard( type );
     	try {
     		selector = Selector.open();
     	}

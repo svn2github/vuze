@@ -43,8 +43,8 @@ import org.gudy.azureus2.core3.util.*;
  * Fixed in JVM 1.4.2_05+ and 1.5b2+
  */
 public class SelectorGuard {
+  private static final int SELECTOR_FAIL_COUNT_MAX = 50000;  // a real selector spin will easily reach this
   
-  private final int countThreshold;
   private boolean marked = false;
   private int consecutiveZeroSelects = 0;
   private long beforeSelectTime;
@@ -65,8 +65,7 @@ public class SelectorGuard {
   /**
    * Create a new SelectorGuard with the given failed count threshold.
    */
-  public SelectorGuard( int _count_threshold, String type ) {
-    this.countThreshold = _count_threshold;
+  public SelectorGuard( String type ) {
     this.type = type;
   }
   
@@ -112,7 +111,7 @@ public class SelectorGuard {
     
     if( consecutiveZeroSelects > max_consec ) {
       max_consec = consecutiveZeroSelects;
-      if( max_consec % 100 == 0 ) {
+      if( max_consec % 500 == 0 ) {
         long average = zero_select_sum / zero_select_count;
         zero_select_sum = 0;
         zero_select_count = 0;
@@ -121,7 +120,7 @@ public class SelectorGuard {
     }
     
     
-    if (consecutiveZeroSelects > countThreshold) {
+    if( consecutiveZeroSelects > SELECTOR_FAIL_COUNT_MAX ) {
       //we're over the threshold: reset stats and report error
       consecutiveZeroSelects = 0;
       return false;
@@ -137,7 +136,7 @@ public class SelectorGuard {
    * Cleanup bad selector and return a fresh new one.
    */
   public Selector repairSelector( Selector _bad_selector ) {
-    String msg = "Likely network disconnect/reconnect: Repairing 1 selector, " +_bad_selector.keys().size()+ " keys. [JRE " +System.getProperty("java.version")+"]\n";
+    String msg = "Likely network disconnect/reconnect: Repairing socketchannel selector. [JRE " +System.getProperty("java.version")+"]\n";
     msg += "Please see " +Constants.AZUREUS_WIKI+ "LikelyNetworkDisconnectReconnect for help.";
     Debug.out( msg );
     LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
@@ -164,12 +163,12 @@ public class SelectorGuard {
       }
         
     	//close old
-    	_bad_selector.close();
+      _bad_selector.close();
         
       Thread.sleep(2000);
         
     	//return new
-    	return newSelector;
+      return newSelector;
         
     }
     catch( Exception e ) {
