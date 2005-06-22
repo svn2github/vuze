@@ -329,8 +329,15 @@ public class MyTorrentsView
                 for (int i = 0; i < dms.length; i++) {
                   dms[i].getDownloadState().setCategory(null);
                 }
-                if (currentCategory == catToDelete)
+                if (currentCategory == catToDelete){
+                	
                    activateCategory(CategoryManager.getCategory(Category.TYPE_ALL));
+                   
+                }else{
+                		// always activate as deletion of this one might have
+                		// affected the current view 
+                	activateCategory(  currentCategory );
+                }
                 CategoryManager.removeCategory(catToDelete);
               }
             }
@@ -1876,10 +1883,37 @@ public class MyTorrentsView
   
   public void completionChanged(final DownloadManager manager, boolean bCompleted) {
     // manager has moved lists
+	  
     if ((isSeedingView && bCompleted) || (!isSeedingView && !bCompleted)) {
-      addDataSource(manager);
-    } else if ((isSeedingView && !bCompleted) || (!isSeedingView && bCompleted)) {
-      removeDataSource(manager);
+    	
+    		// only make the download visible if it satisfies the category selection
+    	
+    	if ( currentCategory == null ){
+    		
+    		addDataSource(manager);
+    		
+    	}else{
+    	
+    		int catType = currentCategory.getType();
+    	
+    		Category	manager_category = manager.getDownloadState().getCategory();
+    		
+   	        if ( manager_category == null ){
+   	         
+   	        	if ( catType == Category.TYPE_UNCATEGORIZED){
+  	
+    	        	addDataSource(manager);
+    	        }
+    		}else{
+    			
+    			if ( currentCategory.getName().equals( manager_category.getName()))
+   
+    				addDataSource(manager);
+    		}
+    	}
+    }else if ((isSeedingView && !bCompleted) || (!isSeedingView && bCompleted)) {
+     
+    	removeDataSource(manager);
     }
   }
 
@@ -1896,12 +1930,14 @@ public class MyTorrentsView
   }
 
   private void activateCategory(Category category) {
-    if (currentCategory != null)
-      currentCategory.removeCategoryListener(this);
-    if (category != null)
-      category.addCategoryListener(this);
-
-    currentCategory = category;
+	if ( category != currentCategory ){
+	    if (currentCategory != null)
+	      currentCategory.removeCategoryListener(this);
+	    if (category != null)
+	      category.addCategoryListener(this);
+	
+	    currentCategory = category;
+	}
 
     int catType = (currentCategory == null) ? Category.TYPE_ALL : currentCategory.getType();
     java.util.List managers;

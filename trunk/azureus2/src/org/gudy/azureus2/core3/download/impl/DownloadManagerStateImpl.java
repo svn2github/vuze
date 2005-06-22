@@ -569,6 +569,11 @@ DownloadManagerStateImpl
 	setCategory(
 		Category 	cat ) 
 	{
+		if ( cat == CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED)){
+			
+			cat	= null;
+		}
+		
 		if ( cat == category ){
 			
 			return;
