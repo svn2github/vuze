@@ -42,12 +42,12 @@ public class HeightCoordinatesImpl implements Coordinates {
   
   public Coordinates add(Coordinates other) {
     HeightCoordinatesImpl o = (HeightCoordinatesImpl) other;
-    return new HeightCoordinatesImpl(x+o.x,y+o.y,h+o.h);
+    return new HeightCoordinatesImpl(x+o.x,y+o.y,Math.abs(h+o.h));
   }
   
   public Coordinates sub(Coordinates other) {
     HeightCoordinatesImpl o = (HeightCoordinatesImpl) other;
-    return new HeightCoordinatesImpl(x-o.x,y-o.y,h+o.h);
+    return new HeightCoordinatesImpl(x-o.x,y-o.y,Math.abs(h+o.h));
   }
   
   public Coordinates scale(float scale) {
@@ -68,8 +68,13 @@ public class HeightCoordinatesImpl implements Coordinates {
       //Special Vivaldi Case, when u(0) = random unity vector
       float x = (float)Math.random();
       float y = (float)Math.random();
-      return new HeightCoordinatesImpl(x,y,0).unity();      
+      float h = (float)Math.random();
+      return new HeightCoordinatesImpl(x,y,h).unity();      
     }
     return this.scale(1/measure);
+  }
+  
+  public String toString() {
+    return (int)x + "," + (int)y + "," + (int)h;
   }
 }

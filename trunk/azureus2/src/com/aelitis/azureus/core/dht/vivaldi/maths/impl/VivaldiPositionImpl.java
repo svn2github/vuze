@@ -35,7 +35,7 @@ import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 public class VivaldiPositionImpl implements VivaldiPosition{
   
   private static final float cc = 0.25f;
-  private static final float ce = 1.00f;
+  private static final float ce = 1f;
   
   private Coordinates coordinates;
   private float error;
@@ -79,6 +79,10 @@ public class VivaldiPositionImpl implements VivaldiPosition{
   
   public float estimateRTT(Coordinates coordinates) {
     return this.coordinates.distance(coordinates);
+  }
+  
+  public String toString() {
+    return coordinates +  " : " + error;
   }
   
 }
