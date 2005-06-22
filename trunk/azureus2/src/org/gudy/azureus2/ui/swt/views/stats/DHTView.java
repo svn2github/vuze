@@ -101,7 +101,7 @@ public class DHTView extends AbstractIView {
 		  return;
       }
 	  
-	  dht	= dhts[0];
+	  dht	= dhts[dhts.length-1];
 	  
       controlListener = new DHTControlListener() {
         public void activityChanged(DHTControlActivity activity,int type) {

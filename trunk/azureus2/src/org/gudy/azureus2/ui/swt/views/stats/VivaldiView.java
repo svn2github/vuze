@@ -51,7 +51,7 @@ public class VivaldiView extends AbstractIView {
       if (dhts.length == 0){
       return;
       }    
-    dht = dhts[0];
+    dht = dhts[dhts.length-1];
     } catch(Exception e) {
       Debug.printStackTrace( e );
     }
