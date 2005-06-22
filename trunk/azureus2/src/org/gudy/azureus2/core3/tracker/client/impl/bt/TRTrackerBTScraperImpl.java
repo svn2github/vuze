@@ -88,12 +88,11 @@ TRTrackerBTScraperImpl
 	{
 		if ( torrent != null ){
 			
-			TRTrackerScraperResponseImpl resp =
-				tracker_checker.getHashData( torrent, url );
+			TRTrackerScraperResponseImpl resp =	tracker_checker.getHashData( torrent, url );
 			
 				// only override details if underlying scrape is failing
 			
-			if ( resp.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
+			if ( resp != null && resp.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
 				
 				resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
 			
