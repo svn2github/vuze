@@ -28,6 +28,8 @@ public interface VivaldiPosition {
   
   public float getErrorEstimate();
   
+  public void  setErrorEstimate(float error);
+  
   public void update(float rtt,Coordinates coordinates,float error);
   
   public void update(float rtt, float[] serialised_data );

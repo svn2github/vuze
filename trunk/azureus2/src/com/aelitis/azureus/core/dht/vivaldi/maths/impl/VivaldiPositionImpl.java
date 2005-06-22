@@ -35,7 +35,7 @@ import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 public class VivaldiPositionImpl implements VivaldiPosition{
   
   private static final float cc = 0.25f;
-  private static final float ce = 1f;
+  private static final float ce = 0.5f;
   
   private HeightCoordinatesImpl coordinates;
   private float error;
@@ -52,6 +52,10 @@ public class VivaldiPositionImpl implements VivaldiPosition{
   public float getErrorEstimate() {
    return error;
   }
+  
+  public void setErrorEstimate(float error) {
+    this.error = error;
+   }
   
   public void update(float rtt,Coordinates cj,float ej) {   
     //Insure we have valid data in input

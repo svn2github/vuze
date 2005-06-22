@@ -35,12 +35,12 @@ import com.aelitis.azureus.core.dht.vivaldi.maths.impl.VivaldiPositionImpl;
 
 public class VivaldiVisualTest {
   
-  private static final int MAX_HEIGHT = 50;
-  private static final int ELEMENTS_X = 50;
-  private static final int ELEMENTS_Y = 50;
-  private static final int DISTANCE   = 10;
-  private static final int MAX_ITERATIONS = 1000;
-  private static final int NB_CONTACTS = 7;
+  private static final int MAX_HEIGHT = 20;
+  private static final int ELEMENTS_X = 20;
+  private static final int ELEMENTS_Y = 20;
+  private static final int DISTANCE   = 40;
+  private static final int MAX_ITERATIONS = 10000;
+  private static final int NB_CONTACTS = 5;
   
   public VivaldiVisualTest() {
     final Display display = new Display();
@@ -59,14 +59,33 @@ public class VivaldiVisualTest {
         //Init all
         for(int i = 0 ; i < ELEMENTS_X ; i++) {
           for(int j = 0 ; j < ELEMENTS_Y ; j++) {
-            realCoordinates[i][j] = new HeightCoordinatesImpl(i*DISTANCE,j*DISTANCE,MAX_HEIGHT);
-            positions[i][j] = new VivaldiPositionImpl(new HeightCoordinatesImpl(0,0,0));
+            realCoordinates[i][j] = new HeightCoordinatesImpl(i*DISTANCE-ELEMENTS_X * DISTANCE/2,j*DISTANCE-ELEMENTS_Y*DISTANCE/2,MAX_HEIGHT);
+            if(i == ELEMENTS_X / 2 && 1 == 0) {
+              positions[i][j] = new VivaldiPositionImpl(realCoordinates[i][j]);
+              positions[i][j].setErrorEstimate(0.0f);
+            } else {
+              positions[i][j] = new VivaldiPositionImpl(new HeightCoordinatesImpl(0,0,0)); 
+            }
+            
             lPos.add(positions[i][j]);
           }
         }
         
         //Main loop
         for(int iter = 0 ; iter < MAX_ITERATIONS ; iter++) {
+          System.out.println(iter);
+          if(display.isDisposed()) return;
+          display.syncExec( new Runnable() {
+            public void run() {
+              panel.refresh(lPos);
+            }
+          });
+          try {
+            //Thread.sleep(100);
+          } catch (Exception e) {
+            // TODO: handle exception
+          }
+          
           //For each node :
           for(int i = 0 ; i < ELEMENTS_X ; i++) {
             for(int j = 0 ; j < ELEMENTS_Y ; j++) {
@@ -78,17 +97,13 @@ public class VivaldiVisualTest {
                 if(i1 == i && j1 ==j) continue;
                 VivaldiPosition position1 = positions[i1][j1];
                 float rtt = realCoordinates[i1][j1].distance(realCoordinates[i][j]);
+                rtt *= (Math.random() - 0.5)/10 + 1;  
                 position.update(rtt,position1.getCoordinates(),position1.getErrorEstimate());
               }
               
             }
           }
-          System.out.println(iter);
-          display.syncExec( new Runnable() {
-            public void run() {
-              panel.refresh(lPos);
-            }
-          });
+          
         }
       }
     };
