@@ -20,10 +20,12 @@
  * AELITIS, SARL au capital de 30,000 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
-package com.aelitis.azureus.core.dht.vivaldi.maths.impl;
+package com.aelitis.azureus.core.dht.vivaldi.maths.impl.tests;
 
 import com.aelitis.azureus.core.dht.vivaldi.maths.Coordinates;
 import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
+import com.aelitis.azureus.core.dht.vivaldi.maths.impl.HeightCoordinatesImpl;
+import com.aelitis.azureus.core.dht.vivaldi.maths.impl.VivaldiPositionImpl;
 
 public class VivaldiTest {
   

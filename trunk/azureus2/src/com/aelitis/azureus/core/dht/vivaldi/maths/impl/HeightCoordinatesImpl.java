@@ -77,4 +77,29 @@ public class HeightCoordinatesImpl implements Coordinates {
   public String toString() {
     return (int)x + "," + (int)y + "," + (int)h;
   }
+
+  /**
+   * @return Returns the h.
+   */
+  public float getH() {
+    return h;
+  }
+  
+
+  /**
+   * @return Returns the x.
+   */
+  public float getX() {
+    return x;
+  }
+  
+
+  /**
+   * @return Returns the y.
+   */
+  public float getY() {
+    return y;
+  }
+  
+  
 }
