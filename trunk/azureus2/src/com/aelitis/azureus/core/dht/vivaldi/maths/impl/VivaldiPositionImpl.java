@@ -42,7 +42,7 @@ public class VivaldiPositionImpl implements VivaldiPosition{
   
   public VivaldiPositionImpl(HeightCoordinatesImpl coordinates) {
     this.coordinates = coordinates;
-    error = 100f;
+    error = 10f;
   }
   
   public Coordinates getCoordinates() {

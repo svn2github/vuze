@@ -51,12 +51,13 @@ public class StatsView extends AbstractIView {
   TabItem itemStats;
   TabItem itemCache;
   TabItem itemDHT;
-
+  TabItem itemVivaldi;
+  
   IView viewActivity;
   IView viewStats;
   IView viewCache;
   IView viewDHT;
-  
+  IView viewVivaldi;
   UpdateThread updateThread;
   
   public StatsView(GlobalManager manager) {
@@ -93,11 +94,13 @@ public class StatsView extends AbstractIView {
     itemStats = new TabItem(folder, SWT.NULL);
     itemCache  = new TabItem(folder, SWT.NULL);
     itemDHT  = new TabItem(folder, SWT.NULL);
+    itemVivaldi = new TabItem(folder,SWT.NULL);
 
     viewActivity = new ActivityView(manager);
     viewStats = new TransferStatsView(manager);
     viewCache = new CacheView();
     viewDHT = new DHTView();
+    viewVivaldi = new VivaldiView();
     
     Messages.setLanguageText(itemActivity, viewActivity.getData());
     Messages.setLanguageText(itemStats, viewStats.getData());
@@ -119,6 +122,8 @@ public class StatsView extends AbstractIView {
     viewDHT.initialize(folder);
     itemDHT.setControl(viewDHT.getComposite());
 
+    viewVivaldi.initialize(folder);
+    itemVivaldi.setControl(viewVivaldi.getComposite());
     
     folder.addSelectionListener(new SelectionListener() {
       public void widgetSelected(SelectionEvent e) {
@@ -131,6 +136,7 @@ public class StatsView extends AbstractIView {
     
     refresh();
     viewActivity.getComposite().layout(true);
+    viewVivaldi.getComposite().layout(true);
     
     updateThread = new UpdateThread(); 
     updateThread.setDaemon(true);
@@ -158,7 +164,11 @@ public class StatsView extends AbstractIView {
         case 3 :
         if (viewDHT != null && !itemDHT.isDisposed())
           viewDHT.refresh();
-          break;   
+          break;
+        case 4 :
+          if (viewVivaldi != null && !itemVivaldi.isDisposed())
+            viewVivaldi.refresh();
+            break;
       }
     } catch (Exception e) {
     	Debug.printStackTrace( e );

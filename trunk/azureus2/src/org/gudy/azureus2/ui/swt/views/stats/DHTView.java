@@ -23,7 +23,6 @@ package org.gudy.azureus2.ui.swt.views.stats;
 
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;

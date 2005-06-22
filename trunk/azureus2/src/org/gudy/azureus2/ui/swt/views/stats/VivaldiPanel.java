@@ -22,6 +22,7 @@
  */
 package org.gudy.azureus2.ui.swt.views.stats;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.eclipse.swt.SWT;
@@ -32,6 +33,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 import com.aelitis.azureus.core.dht.vivaldi.maths.impl.HeightCoordinatesImpl;
 
@@ -93,7 +95,18 @@ public class VivaldiPanel {
     canvas.setLayoutData(data);
   }
   
+  public void refreshContacts(List contacts) {
+    List positions = new ArrayList(contacts.size());
+    Iterator iter = contacts.iterator();
+    while(iter.hasNext()) {
+      DHTControlContact contact = (DHTControlContact) iter.next();
+      positions.add(contact.getTransportContact().getVivaldiPosition());
+    }
+    refresh(positions);
+  }
+  
   public void refresh(List vivaldiPositions) {
+    if(canvas.isDisposed()) return;
     Rectangle size = canvas.getBounds();
     
     scale.width = size.width;
@@ -117,7 +130,6 @@ public class VivaldiPanel {
     }
     
     gc.dispose();
-    
     gc = new GC(canvas);
     gc.drawImage(img,0,0);
     gc.dispose();
@@ -129,7 +141,8 @@ public class VivaldiPanel {
   private void draw(GC gc,float x,float y,float h) {
     int x0 = scale.getX(x,y);
     int y0 = scale.getY(x,y);   
-    gc.fillRectangle(x0-1,y0-1,3,3);    
+    gc.fillRectangle(x0-1,y0-1,3,3);   
+    gc.drawLine(x0,y0,x0,(int)(y0-h));
   }
   
   private void drawBorder(GC gc) {
