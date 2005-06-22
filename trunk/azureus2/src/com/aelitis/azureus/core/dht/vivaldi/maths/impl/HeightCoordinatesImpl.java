@@ -64,7 +64,12 @@ public class HeightCoordinatesImpl implements Coordinates {
   
   public Coordinates unity() {
     float measure = this.measure();
-    if(measure == 0) return new HeightCoordinatesImpl(0,0,0);
+    if(measure == 0) {
+      //Special Vivaldi Case, when u(0) = random unity vector
+      float x = (float)Math.random();
+      float y = (float)Math.random();
+      return new HeightCoordinatesImpl(x,y,0).unity();      
+    }
     return this.scale(1/measure);
   }
 }
