@@ -29,6 +29,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 public class 
@@ -55,6 +56,11 @@ DHTUDPPacketReplyPing
 		throws IOException
 	{
 		super( network_handler, is, DHTUDPPacketHelper.ACT_REPLY_PING, trans_id );
+		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
+
+			DHTUDPUtils.deserialiseVivaldi( is, this );
+		}
 	}
 	
 	public void
@@ -64,5 +70,10 @@ DHTUDPPacketReplyPing
 		throws IOException
 	{
 		super.serialise(os);
+		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
+
+			DHTUDPUtils.serialiseVivaldi( os, this );
+		}
 	}
 }

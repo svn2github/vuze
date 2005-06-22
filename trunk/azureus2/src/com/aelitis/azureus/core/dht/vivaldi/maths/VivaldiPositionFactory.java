@@ -1,7 +1,7 @@
 /*
- * Created on 21-Jan-2005
+ * Created on 22-Jun-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,30 +20,17 @@
  *
  */
 
-package com.aelitis.net.udp;
+package com.aelitis.azureus.core.dht.vivaldi.maths;
 
-import java.net.InetSocketAddress;
+import com.aelitis.azureus.core.dht.vivaldi.maths.impl.HeightCoordinatesImpl;
+import com.aelitis.azureus.core.dht.vivaldi.maths.impl.VivaldiPositionImpl;
 
-/**
- * @author parg
- *
- */
-
-public interface 
-PRUDPPacketReceiver 
+public class 
+VivaldiPositionFactory 
 {
-	public void
-	packetReceived(
-		PRUDPPacketHandlerRequest	request,
-		PRUDPPacket					packet,
-		InetSocketAddress			from_address );
-	
-		/**
-		 * receive failed - timeout
-		 * @param e
-		 */
-	
-	public void
-	error(
-		PRUDPPacketHandlerException	e );
+	public static VivaldiPosition
+	createPosition()
+	{
+		return( new VivaldiPositionImpl(new HeightCoordinatesImpl(0,0,0)));
+	}
 }

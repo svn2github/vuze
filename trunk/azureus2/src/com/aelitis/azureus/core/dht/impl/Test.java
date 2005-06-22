@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.impl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.*;
+import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
@@ -443,6 +444,14 @@ Test
 							
 							dht.print();
 	
+							List	l = dht.getControl().getContacts();
+							
+							for (int i=0;i<l.size();i++){
+								
+								DHTControlContact	c = (DHTControlContact)l.get(i);
+								
+								System.out.println( "  contact:" + c.getRouterContact().getString() + "/" + c.getTransportContact().getString());
+							}
 						}catch( Throwable e ){
 							
 							e.printStackTrace();

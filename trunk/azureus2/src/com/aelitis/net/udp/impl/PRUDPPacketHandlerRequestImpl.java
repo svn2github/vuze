@@ -32,10 +32,12 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.net.udp.PRUDPPacket;
 import com.aelitis.net.udp.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.PRUDPPacketHandlerRequest;
 import com.aelitis.net.udp.PRUDPPacketReceiver;
 
 public class 
-PRUDPPacketHandlerRequest 
+PRUDPPacketHandlerRequestImpl 
+	implements PRUDPPacketHandlerRequest
 {
 	private AESemaphore		sem = new AESemaphore("PRUDPPacketHandlerRequest");
 	
@@ -46,9 +48,10 @@ PRUDPPacketHandlerRequest
 	private PRUDPPacket					reply;
 	
 	private long						send_time;
+	private long						reply_time;
 	
 	protected
-	PRUDPPacketHandlerRequest(
+	PRUDPPacketHandlerRequestImpl(
 		PRUDPPacketReceiver	_receiver,
 		long				_timeout )
 	{
@@ -74,12 +77,32 @@ PRUDPPacketHandlerRequest
 		return( timeout );
 	}
 	
+	public long
+	getElapsedTime()
+	{
+		if ( send_time == 0 || reply_time == 0 ){
+			
+			return( -1 );
+		}
+		
+		long	res = reply_time - send_time;
+		
+		if ( res < 0 ){
+			
+			res	= 0;
+		}
+		
+		return( res );
+	}
+	
 	protected void
 	setReply(
 		PRUDPPacket			packet,
 		InetSocketAddress	originator )
 	{
 		if ( reply == null ){
+	
+			reply_time	= SystemTime.getCurrentTime();
 			
 			reply	= packet;
 			
@@ -97,7 +120,7 @@ PRUDPPacketHandlerRequest
 		
 		if ( receiver != null ){
 			
-			receiver.packetReceived( packet, originator );
+			receiver.packetReceived( this, packet, originator );
 		}
 	}
 	
@@ -110,6 +133,8 @@ PRUDPPacketHandlerRequest
 		
 		if ( reply == null ){
 			
+			reply_time	= SystemTime.getCurrentTime();
+
 			exception	= e;
 		}
 		

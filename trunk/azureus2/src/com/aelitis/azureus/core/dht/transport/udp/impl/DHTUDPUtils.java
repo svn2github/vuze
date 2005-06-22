@@ -545,7 +545,39 @@ DHTUDPUtils
 		
 		return( res );
 	}
-				
+			
+	protected static void
+	serialiseVivaldi(
+		DataOutputStream	os,
+		DHTUDPPacketReply	reply )
+	
+		throws IOException
+	{
+		float[]	data = reply.getVivaldiData();
+		
+		for (int i=0;i<data.length;i++){
+			
+			os.writeFloat( data[i] );
+		}
+	}
+	
+	protected static void
+	deserialiseVivaldi(
+		DataInputStream		is,
+		DHTUDPPacketReply	reply )
+	
+		throws IOException
+	{
+		float[]	data	= new float[DHTUDPPacketReply.VIVALDI_DATA_LENGTH];
+		
+		for (int i=0;i<data.length;i++){
+			
+			data[i] = is.readFloat();
+		}
+		
+		reply.setVivaldiData( data );
+	}
+	
 	protected static void
 	serialiseStats(
 		int						version,

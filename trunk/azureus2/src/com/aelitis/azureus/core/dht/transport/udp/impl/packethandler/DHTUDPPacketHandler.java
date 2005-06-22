@@ -91,8 +91,9 @@ DHTUDPPacketHandler
 				{
 					public void
 					packetReceived(
-						PRUDPPacket			packet,
-						InetSocketAddress	from_address )
+						PRUDPPacketHandlerRequest	request,
+						PRUDPPacket					packet,
+						InetSocketAddress			from_address )
 					{
 						DHTUDPPacketReply	reply = (DHTUDPPacketReply)packet;
 						
@@ -105,7 +106,7 @@ DHTUDPPacketHandler
 						
 						if ( reply.getNetwork() == network ){
 							
-							receiver.packetReceived(reply, from_address );
+							receiver.packetReceived(reply, from_address, request.getElapsedTime());
 							
 						}else{
 							

@@ -1,7 +1,7 @@
 /*
- * Created on 21-Jan-2005
+ * Created on 22-Jun-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,28 +22,9 @@
 
 package com.aelitis.net.udp;
 
-import java.net.InetSocketAddress;
-
-/**
- * @author parg
- *
- */
-
 public interface 
-PRUDPPacketReceiver 
+PRUDPPacketHandlerRequest 
 {
-	public void
-	packetReceived(
-		PRUDPPacketHandlerRequest	request,
-		PRUDPPacket					packet,
-		InetSocketAddress			from_address );
-	
-		/**
-		 * receive failed - timeout
-		 * @param e
-		 */
-	
-	public void
-	error(
-		PRUDPPacketHandlerException	e );
+	public long
+	getElapsedTime();
 }

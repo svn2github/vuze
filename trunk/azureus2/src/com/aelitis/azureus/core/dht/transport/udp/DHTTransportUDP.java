@@ -48,13 +48,14 @@ DHTTransportUDP
 		// We can therefore only apply this fix after then
 	
 	public static final byte PROTOCOL_VERSION_FIX_ORIGINATOR		= 9;
+	public static final byte PROTOCOL_VERSION_VIVALDI				= 10;
 	
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
 	
 	public static final byte PROTOCOL_VERSION_MAIN						= 8;
-	public static final byte PROTOCOL_VERSION_CVS						= 9;
+	public static final byte PROTOCOL_VERSION_CVS						= PROTOCOL_VERSION_VIVALDI;
 	
 
 	public DHTTransportContact

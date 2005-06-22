@@ -30,6 +30,8 @@ package com.aelitis.azureus.core.dht.transport;
 import java.io.*;
 import java.net.InetSocketAddress;
 
+import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
+
 public interface 
 DHTTransportContact
 {
@@ -108,6 +110,9 @@ DHTTransportContact
 	
 	public void
 	remove();
+	
+	public VivaldiPosition
+	getVivaldiPosition();
 	
 	public String
 	getString();

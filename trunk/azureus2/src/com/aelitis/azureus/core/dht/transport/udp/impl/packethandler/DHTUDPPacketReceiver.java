@@ -32,7 +32,8 @@ DHTUDPPacketReceiver
 	public void
 	packetReceived(
 		DHTUDPPacketReply		packet,
-		InetSocketAddress		from_address );
+		InetSocketAddress		from_address,
+		long					elapsed_time );
 	
 	public void
 	error(

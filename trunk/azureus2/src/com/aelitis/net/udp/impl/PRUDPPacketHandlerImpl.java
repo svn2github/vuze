@@ -251,7 +251,7 @@ PRUDPPacketHandlerImpl
 			
 			while( it.hasNext()){
 				
-				PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)it.next();
+				PRUDPPacketHandlerRequestImpl	request = (PRUDPPacketHandlerRequestImpl)it.next();
 				
 				long	sent_time = request.getSendTime();
 				
@@ -272,7 +272,7 @@ PRUDPPacketHandlerImpl
 		
 		for (int i=0;i<timed_out.size();i++){
 			
-			PRUDPPacketHandlerRequest	request = (PRUDPPacketHandlerRequest)timed_out.get(i);
+			PRUDPPacketHandlerRequestImpl	request = (PRUDPPacketHandlerRequestImpl)timed_out.get(i);
 			
 			if ( TRACE_REQUESTS ){
 				
@@ -443,7 +443,7 @@ PRUDPPacketHandlerImpl
 					LGLogger.log( "PRUDPPacketHandler: reply packet received: " + packet.getString()); 
 				}
 				
-				PRUDPPacketHandlerRequest	request;
+				PRUDPPacketHandlerRequestImpl	request;
 				
 				try{
 					requests_mon.enter();
@@ -452,11 +452,11 @@ PRUDPPacketHandlerImpl
 					
 							// don't remove the request if there are more replies to come
 						
-						request = (PRUDPPacketHandlerRequest)requests.get(new Integer(packet.getTransactionId()));
+						request = (PRUDPPacketHandlerRequestImpl)requests.get(new Integer(packet.getTransactionId()));
 
 					}else{
 					
-						request = (PRUDPPacketHandlerRequest)requests.remove(new Integer(packet.getTransactionId()));
+						request = (PRUDPPacketHandlerRequestImpl)requests.remove(new Integer(packet.getTransactionId()));
 					}
 
 				}finally{
@@ -503,7 +503,7 @@ PRUDPPacketHandlerImpl
 	
 		throws PRUDPPacketHandlerException
 	{
-		PRUDPPacketHandlerRequest	request = 
+		PRUDPPacketHandlerRequestImpl	request = 
 			sendAndReceive( auth, request_packet,destination_address, null, PRUDPPacket.DEFAULT_UDP_TIMEOUT, false );
 		
 		return( request.getReply());
@@ -522,7 +522,7 @@ PRUDPPacketHandlerImpl
 		sendAndReceive( null, request_packet, destination_address, receiver, timeout, low_priority );
 	}
 	
-	public PRUDPPacketHandlerRequest
+	public PRUDPPacketHandlerRequestImpl
 	sendAndReceive(
 		PasswordAuthentication		auth,
 		PRUDPPacket					request_packet,
@@ -591,7 +591,7 @@ PRUDPPacketHandlerImpl
 			
 			DatagramPacket dg_packet = new DatagramPacket(buffer, buffer.length, destination_address );
 			
-			PRUDPPacketHandlerRequest	request = new PRUDPPacketHandlerRequest( receiver, timeout );
+			PRUDPPacketHandlerRequestImpl	request = new PRUDPPacketHandlerRequestImpl( receiver, timeout );
 		
 			try{
 				requests_mon.enter();
@@ -681,7 +681,7 @@ PRUDPPacketHandlerImpl
 													}
 																									
 													DatagramPacket				p	= (DatagramPacket)data[0];
-													PRUDPPacketHandlerRequest	r	= (PRUDPPacketHandlerRequest)data[1];
+													PRUDPPacketHandlerRequestImpl	r	= (PRUDPPacketHandlerRequestImpl)data[1];
 
 														// mark as sent before sending in case send fails
 														// and we then rely on timeout to pick this up

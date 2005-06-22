@@ -129,6 +129,14 @@ DHTRouter
 	findBestContacts(
 		int		max );
 	
+		/**
+		 * Returns a list of DHTRouterContact objects
+		 * @return
+		 */
+	
+	public List
+	getAllContacts();
+	
 	public DHTRouterStats
 	getStats();
 	

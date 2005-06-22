@@ -238,7 +238,7 @@ DHTControlImpl
 							
 							if ( contact.isAlive()){
 								
-								DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
+								DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getTransportContact();
 
 								sorted_contacts.add( t_contact );
 							}
@@ -256,7 +256,7 @@ DHTControlImpl
 							
 							if ( !contact.isAlive()){
 								
-								DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
+								DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getTransportContact();
 
 								sorted_contacts.add( t_contact );
 							}
@@ -512,7 +512,7 @@ DHTControlImpl
 			
 			DHTRouterContact	contact	= (DHTRouterContact)it.next();
 			
-			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
+			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getTransportContact();
 			
 			if ( !t_contact.isValid()){
 				
@@ -534,7 +534,7 @@ DHTControlImpl
 			
 			daos.writeLong( contact.getTimeAlive());
 			
-			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getContact();
+			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getTransportContact();
 			
 			try{
 									
@@ -1822,7 +1822,7 @@ DHTControlImpl
 	requestPing(
 		DHTRouterContact	contact )
 	{
-		((DHTControlContactImpl)contact.getAttachment()).getContact().sendPing(
+		((DHTControlContactImpl)contact.getAttachment()).getTransportContact().sendPing(
 				new DHTTransportReplyHandlerAdapter()
 				{
 					public void
@@ -1979,7 +1979,7 @@ DHTControlImpl
 			
 			it = keys_to_store.entrySet().iterator();
 			
-			final DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getContact();
+			final DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getTransportContact();
 	
 			final byte[][]				keys 		= new byte[keys_to_store.size()][];
 			final DHTTransportValue[][]	value_sets 	= new DHTTransportValue[keys.length][];
@@ -2088,7 +2088,7 @@ DHTControlImpl
 
 		for (int i=0;i<l.size();i++){
 			
-			sorted_set.add(((DHTControlContactImpl)((DHTRouterContact)l.get(i)).getAttachment()).getContact());
+			sorted_set.add(((DHTControlContactImpl)((DHTRouterContact)l.get(i)).getAttachment()).getTransportContact());
 		}
 		
 		return( sorted_set );
@@ -2494,7 +2494,7 @@ DHTControlImpl
 		
 			if ( DHTLog.CONTACT_VERIFY_TRACE ){
 				
-				System.out.println( "    " + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> " + ok + ", version = " + c.getProtocolVersion());
+				System.out.println( "    net " + transport.getNetwork() +"," + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> " + ok + ", version = " + c.getProtocolVersion());
 			}
 			
 			return( ok );
@@ -2503,11 +2503,28 @@ DHTControlImpl
 			
 			if ( DHTLog.CONTACT_VERIFY_TRACE ){
 
-				System.out.println( "    [ " + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> true, version = " + c.getProtocolVersion() + "]" );
+				System.out.println("    net " + transport.getNetwork() +",[" + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> true, version = " + c.getProtocolVersion() + "]" );
 			}
 			
 			return( true );
 		}
+	}
+	
+	public List
+	getContacts()
+	{
+		List	contacts = router.getAllContacts();
+		
+		List	res = new ArrayList( contacts.size());
+		
+		for (int i=0;i<contacts.size();i++){
+			
+			DHTRouterContact	rc = (DHTRouterContact)contacts.get(i);
+			
+			res.add( rc.getAttachment());
+		}
+		
+		return( res );
 	}
 	
 	public void
@@ -2515,7 +2532,8 @@ DHTControlImpl
 	{
 		logger.log( "DHT Details: external IP = " + transport.getLocalContact().getAddress() + 
 						", network = " + transport.getNetwork() +
-						", protocol = V" + transport.getProtocolVersion());
+						", protocol = V" + transport.getProtocolVersion() + 
+						", vp = " + local_contact.getVivaldiPosition());
 		
 		router.print();
 		

@@ -65,6 +65,11 @@ DHTUDPPacketReplyFindNode
 			random_id	= is.readInt();
 		}		
 		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
+
+			DHTUDPUtils.deserialiseVivaldi( is, this );
+		}
+		
 		contacts = DHTUDPUtils.deserialiseContacts( getTransport(), is );
 	}
 	
@@ -81,6 +86,11 @@ DHTUDPPacketReplyFindNode
 			os.writeInt( random_id );
 		}
 
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
+
+			DHTUDPUtils.serialiseVivaldi( os, this );
+		}
+		
 		DHTUDPUtils.serialiseContacts( os, contacts );
 	}
 	

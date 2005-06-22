@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.dht.control.impl;
 
+import com.aelitis.azureus.core.dht.control.DHTControlContact;
+import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 import com.aelitis.azureus.core.dht.router.DHTRouterContactAttachment;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
@@ -32,38 +34,52 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 
 public class 
 DHTControlContactImpl
-	implements DHTRouterContactAttachment
+	implements DHTControlContact, DHTRouterContactAttachment
 {
-	private DHTTransportContact		contact;
+	private DHTTransportContact		t_contact;
+	private DHTRouterContact		r_contact;
 	
 	protected
 	DHTControlContactImpl(
-		DHTTransportContact		_contact )
+		DHTTransportContact		_t_contact )
 	{
-		contact	= _contact;
+		t_contact	= _t_contact;
+	}
+	public void
+	setRouterContact(
+		DHTRouterContact		_r_contact )
+	{
+		r_contact	= _r_contact;
 	}
 	
 	public int
 	getMaxFailForLiveCount()
 	{
-		return( contact.getMaxFailForLiveCount());
+		return( t_contact.getMaxFailForLiveCount());
 	}
 	
 	public int
 	getMaxFailForUnknownCount()
 	{
-		return( contact.getMaxFailForUnknownCount());
+		return( t_contact.getMaxFailForUnknownCount());
 	}
 	
 	public int
 	getInstanceID()
 	{
-		return( contact.getInstanceID());
+		return( t_contact.getInstanceID());
 	}
 	
 	public DHTTransportContact
-	getContact()
+	getTransportContact()
 	{
-		return( contact );
+		return( t_contact );
 	}
+	
+	public DHTRouterContact
+	getRouterContact()
+	{
+		return( r_contact );
+	}
+	
 }

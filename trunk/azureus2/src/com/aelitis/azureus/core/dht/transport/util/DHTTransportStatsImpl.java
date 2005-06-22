@@ -287,7 +287,7 @@ DHTTransportStatsImpl
 						}
 					}
 					
-					System.out.println( "Outgoing versions: tot = " + outgoing_requests +"/" + outgoing_version_requests + ": " + str );
+					System.out.println( "net " + request.getTransport().getNetwork() + ": Outgoing versions: tot = " + outgoing_requests +"/" + outgoing_version_requests + ": " + str );
 				}
 				
 				if ( outgoing_version_requests%1000 == 0 ){
@@ -334,7 +334,7 @@ DHTTransportStatsImpl
 						}
 					}
 					
-					System.out.println( "Incoming versions: tot = " + incoming_requests +"/" + incoming_version_requests + ": " + str );
+					System.out.println( "net " + request.getTransport().getNetwork() + ": Incoming versions: tot = " + incoming_requests +"/" + incoming_version_requests + ": " + str );
 				}
 				
 				if ( incoming_version_requests%1000 == 0 ){

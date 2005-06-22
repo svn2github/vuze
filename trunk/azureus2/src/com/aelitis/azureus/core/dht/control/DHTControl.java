@@ -146,6 +146,14 @@ DHTControl
 		DHTTransportContact c,
 		boolean				direct );
 	
+	/**
+	 * Returns a list of DHTContact objects
+	 * @return
+	 */
+	
+	public List
+	getContacts();
+	
 	public void
 	addListener(
 		DHTControlListener	l );

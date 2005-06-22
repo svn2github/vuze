@@ -46,6 +46,7 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacke
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketReceiver;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPRequestHandler;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
+import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
@@ -794,6 +795,8 @@ DHTTransportUDPImpl
 				
 			stats.pingSent( request );
 
+			requestSendRequestProcessor( contact, request );
+			
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
@@ -802,7 +805,8 @@ DHTTransportUDPImpl
 					public void
 					packetReceived(
 						DHTUDPPacketReply	packet,
-						InetSocketAddress	from_address )
+						InetSocketAddress	from_address,
+						long				elapsed_time )
 					{
 						try{							
 							if ( packet.getConnectionId() != connection_id ){
@@ -812,7 +816,7 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
-							handleErrorReply( contact, packet );							
+							requestSendReplyProcessor( contact, packet, elapsed_time );							
 								
 							stats.pingOK();
 							
@@ -866,6 +870,8 @@ DHTTransportUDPImpl
 				
 			stats.statsSent( request );
 
+			requestSendRequestProcessor( contact, request );
+
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
@@ -874,7 +880,8 @@ DHTTransportUDPImpl
 					public void
 					packetReceived(
 						DHTUDPPacketReply	packet,
-						InetSocketAddress	from_address )
+						InetSocketAddress	from_address,
+						long				elapsed_time )
 					{
 						try{							
 							if ( packet.getConnectionId() != connection_id ){
@@ -884,7 +891,7 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
-							handleErrorReply( contact, packet );
+							requestSendReplyProcessor( contact, packet, elapsed_time );
 										
 							DHTUDPPacketReplyStats	reply = (DHTUDPPacketReplyStats)packet;
 
@@ -951,7 +958,8 @@ DHTTransportUDPImpl
 					public void
 					packetReceived(
 						DHTUDPPacketReply	_packet,
-						InetSocketAddress	from_address )
+						InetSocketAddress	from_address,
+						long				elapsed_time )
 					{
 						try{
 							
@@ -1155,6 +1163,8 @@ DHTTransportUDPImpl
 				
 				final int f_packet_count	= packet_count;
 				
+				requestSendRequestProcessor( contact, request );
+
 				packet_handler.sendAndReceive(
 					request,
 					contact.getTransportAddress(),
@@ -1163,7 +1173,8 @@ DHTTransportUDPImpl
 						public void
 						packetReceived(
 							DHTUDPPacketReply	packet,
-							InetSocketAddress	from_address )
+							InetSocketAddress	from_address,
+							long				elapsed_time )
 						{
 							try{								
 								if ( packet.getConnectionId() != connection_id ){
@@ -1173,7 +1184,7 @@ DHTTransportUDPImpl
 								
 								contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 								
-								handleErrorReply( contact, packet );
+								requestSendReplyProcessor( contact, packet, elapsed_time );
 
 								DHTUDPPacketReplyStore	reply = (DHTUDPPacketReplyStore)packet;
 									
@@ -1243,6 +1254,8 @@ DHTTransportUDPImpl
 			
 			request.setID( nid );
 			
+			requestSendRequestProcessor( contact, request );
+
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
@@ -1251,7 +1264,8 @@ DHTTransportUDPImpl
 					public void
 					packetReceived(
 						DHTUDPPacketReply	packet,
-						InetSocketAddress	from_address )
+						InetSocketAddress	from_address,
+						long				elapsed_time )
 					{
 						try{														
 							if ( packet.getConnectionId() != connection_id ){
@@ -1261,7 +1275,7 @@ DHTTransportUDPImpl
 
 							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
-							handleErrorReply( contact, packet );
+							requestSendReplyProcessor( contact, packet, elapsed_time );
 								
 							DHTUDPPacketReplyFindNode	reply = (DHTUDPPacketReplyFindNode)packet;
 							
@@ -1331,6 +1345,8 @@ DHTTransportUDPImpl
 			
 			request.setFlags( flags );
 			
+			requestSendRequestProcessor( contact, request );
+
 			packet_handler.sendAndReceive(
 				request,
 				contact.getTransportAddress(),
@@ -1339,7 +1355,8 @@ DHTTransportUDPImpl
 					public void
 					packetReceived(
 						DHTUDPPacketReply	packet,
-						InetSocketAddress	from_address )
+						InetSocketAddress	from_address,
+						long				elapsed_time )
 					{
 						try{							
 							if ( packet.getConnectionId() != connection_id ){
@@ -1349,7 +1366,7 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
-							handleErrorReply( contact, packet );
+							requestSendReplyProcessor( contact, packet, elapsed_time );
 								
 							DHTUDPPacketReplyFindValue	reply = (DHTUDPPacketReplyFindValue)packet;
 								
@@ -1902,6 +1919,8 @@ DHTTransportUDPImpl
 				return;
 			}
 
+			requestReceiveRequestProcessor( originating_contact, request );
+			
 			if ( !originating_contact.addressMatchesID()){
 				
 				String	contact_string = originating_contact.getString();
@@ -1925,6 +1944,8 @@ DHTTransportUDPImpl
 				
 				reply.setOriginatingAddress( originating_contact.getTransportAddress());
 				
+				requestReceiveReplyProcessor( originating_contact, reply );
+				
 				packet_handler.send( reply, request.getAddress());
 
 			}else{
@@ -1945,6 +1966,8 @@ DHTTransportUDPImpl
 									local_contact,
 									originating_contact );
 						
+						requestReceiveReplyProcessor( originating_contact, reply );
+
 						packet_handler.send( reply, request.getAddress());
 					}
 				}else if ( request instanceof DHTUDPPacketRequestStats ){
@@ -1961,6 +1984,8 @@ DHTTransportUDPImpl
 					
 					reply.setStats( full_stats );
 					
+					requestReceiveReplyProcessor( originating_contact, reply );
+
 					packet_handler.send( reply, request.getAddress());
 
 				}else if ( request instanceof DHTUDPPacketRequestStore ){
@@ -1987,6 +2012,8 @@ DHTTransportUDPImpl
 						
 						reply.setDiversificationTypes( diversify );
 						
+						requestReceiveReplyProcessor( originating_contact, reply );
+
 						packet_handler.send( reply, request.getAddress());
 					}
 					
@@ -2027,6 +2054,8 @@ DHTTransportUDPImpl
 						
 						reply.setContacts( res );
 						
+						requestReceiveReplyProcessor( originating_contact, reply );
+
 						packet_handler.send( reply, request.getAddress());
 					}
 					
@@ -2102,13 +2131,17 @@ DHTTransportUDPImpl
 							values.toArray( x );
 								
 							reply.setValues( x, res.getDiversificationType(), false );
-															
+								
+							requestReceiveReplyProcessor( originating_contact, reply );
+
 							packet_handler.send( reply, request.getAddress());
 						
 						}else{
 							
 							reply.setContacts(res.getContacts());
 							
+							requestReceiveReplyProcessor( originating_contact, reply );
+
 							packet_handler.send( reply, request.getAddress());
 						}
 					}
@@ -2133,6 +2166,39 @@ DHTTransportUDPImpl
 		}
 	}
 	
+	protected void
+	requestReceiveRequestProcessor( 
+		DHTTransportUDPContactImpl	contact, 
+		DHTUDPPacketRequest			request )
+	{
+		// called when request received
+	}
+
+	protected void
+	requestReceiveReplyProcessor( 
+		DHTTransportUDPContactImpl	contact, 
+		DHTUDPPacketReply			reply )
+	{
+		// called before sending reply to request 
+		
+		int	action = reply.getAction();
+		
+		if ( 	action == DHTUDPPacketHelper.ACT_REPLY_PING ||
+				action == DHTUDPPacketHelper.ACT_REPLY_FIND_NODE ){
+						
+			reply.setVivaldiData( local_contact.getVivaldiPosition().toFloatArray());
+		}
+	}
+	
+	protected void
+	requestSendRequestProcessor(
+		DHTTransportUDPContactImpl	contact,
+		DHTUDPPacketRequest 		request )
+	{
+		// called before sending request
+		
+	}
+	
 		/**
 		 * Returns false if this isn't an error reply, true if it is and a retry can be
 		 * performed, throws an exception otherwise
@@ -2141,12 +2207,30 @@ DHTTransportUDPImpl
 		 */
 	
 	protected void
-	handleErrorReply(
+	requestSendReplyProcessor(
 		DHTTransportUDPContactImpl	contact,
-		DHTUDPPacketReply			reply )
+		DHTUDPPacketReply			reply,
+		long						elapsed_time )
 	
 		throws DHTUDPPacketHandlerException
 	{
+			// called after receiving reply to request
+		
+		// System.out.println( "request:" + contact.getAddress() + " = " + elapsed_time );
+		
+		float[]	vivaldi_data = reply.getVivaldiData();
+		
+		if ( vivaldi_data != null ){
+			
+				// update local position
+			
+			local_contact.getVivaldiPosition().update( (float)elapsed_time, vivaldi_data );
+			
+				// save current position of target
+			
+			contact.getVivaldiPosition().fromFloatArray( vivaldi_data );
+		}
+		
 		if ( reply.getAction() == DHTUDPPacketHelper.ACT_REPLY_ERROR ){
 			
 			DHTUDPPacketReplyError	error = (DHTUDPPacketReplyError)reply;

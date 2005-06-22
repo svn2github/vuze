@@ -32,6 +32,8 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
+import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
+import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPositionFactory;
 
 /**
  * @author parg
@@ -51,6 +53,8 @@ DHTTransportUDPContactImpl
 	private int					instance_id;
 	private long				skew;
 	private int					random_id;
+	
+	private VivaldiPosition		vivaldi_position;
 	
 	protected
 	DHTTransportUDPContactImpl(
@@ -81,6 +85,8 @@ DHTTransportUDPContactImpl
 			
 			id = DHTUDPUtils.getNodeID( external_address );
 		}
+		
+		vivaldi_position	= VivaldiPositionFactory.createPosition();
 	}
 	
 	public byte
@@ -296,6 +302,12 @@ DHTTransportUDPContactImpl
 	remove()
 	{
 		transport.removeContact( this );
+	}
+	
+	public VivaldiPosition
+	getVivaldiPosition()
+	{
+		return( vivaldi_position );
 	}
 	
 	public String

@@ -37,10 +37,10 @@ public class VivaldiPositionImpl implements VivaldiPosition{
   private static final float cc = 0.25f;
   private static final float ce = 1f;
   
-  private Coordinates coordinates;
+  private HeightCoordinatesImpl coordinates;
   private float error;
   
-  public VivaldiPositionImpl(Coordinates coordinates) {
+  public VivaldiPositionImpl(HeightCoordinatesImpl coordinates) {
     this.coordinates = coordinates;
     error = 100f;
   }
@@ -73,12 +73,28 @@ public class VivaldiPositionImpl implements VivaldiPosition{
     //Update local coordinates. (4)
     float delta = cc * w;
     float scale = delta * re;
-    coordinates = coordinates.add(coordinates.sub(cj).unity().scale(scale));
+    coordinates = (HeightCoordinatesImpl)coordinates.add(coordinates.sub(cj).unity().scale(scale));
     
+  }
+  
+  public void update(float rtt, float[] data ){
+	  
+	  update( rtt, new HeightCoordinatesImpl( data[0], data[1], data[2] ), data[3] );
   }
   
   public float estimateRTT(Coordinates coordinates) {
     return this.coordinates.distance(coordinates);
+  }
+  
+  public float[] toFloatArray(){
+	  return( new float[]{ coordinates.getX(), coordinates.getY(), coordinates.getH(), error });
+  }
+  
+  public void fromFloatArray( float[] data ){
+	  
+	  coordinates = new HeightCoordinatesImpl( data[0], data[1], data[2] );
+	  
+	  error			= data[3];
   }
   
   public String toString() {

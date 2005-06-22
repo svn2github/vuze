@@ -56,6 +56,8 @@ DHTRouterContactImpl
 		node_id			= _node_id;
 		attachment		= _attachment;
 		has_been_alive	= _has_been_alive;
+		
+		attachment.setRouterContact( this );
 	}
 	
 	public byte[]

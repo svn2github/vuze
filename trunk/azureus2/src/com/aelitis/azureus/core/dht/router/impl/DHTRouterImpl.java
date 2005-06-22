@@ -589,7 +589,7 @@ DHTRouterImpl
 		}
 	}
 	
-	public long
+	protected long
 	getNodeCount()
 	{
 		return( getNodeCount( root ));
@@ -650,7 +650,15 @@ DHTRouterImpl
 					});
 		
 		
-		findBestContacts( set, root );
+		try{
+			this_mon.enter();
+
+			findAllContacts( set, root );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 		
 		List	result = new ArrayList( max );
 	
@@ -664,8 +672,26 @@ DHTRouterImpl
 		return( result );
 	}
 	
+	public List
+	getAllContacts()
+	{
+		try{
+			this_mon.enter();
+
+			List	l = new ArrayList();
+			
+			findAllContacts( l, root );
+			
+			return( l );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
 	protected void
-	findBestContacts(
+	findAllContacts(
 		Set					set,
 		DHTRouterNodeImpl	node )
 	{
@@ -673,9 +699,9 @@ DHTRouterImpl
 		
 		if ( buckets == null ){
 			
-			findBestContacts( set, node.getLeft());
+			findAllContacts( set, node.getLeft());
 			
-			findBestContacts( set, node.getRight());
+			findAllContacts( set, node.getRight());
 		}else{
 			
 			for (int i=0;i<buckets.size();i++){
@@ -683,6 +709,29 @@ DHTRouterImpl
 				DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(i);
 								
 				set.add( contact );
+			}
+		}
+	}
+	
+	protected void
+	findAllContacts(
+		List				list,
+		DHTRouterNodeImpl	node )
+	{
+		List	buckets = node.getBuckets();
+		
+		if ( buckets == null ){
+			
+			findAllContacts( list, node.getLeft());
+			
+			findAllContacts( list, node.getRight());
+		}else{
+			
+			for (int i=0;i<buckets.size();i++){
+				
+				DHTRouterContactImpl	contact = (DHTRouterContactImpl)buckets.get(i);
+								
+				list.add( contact );
 			}
 		}
 	}

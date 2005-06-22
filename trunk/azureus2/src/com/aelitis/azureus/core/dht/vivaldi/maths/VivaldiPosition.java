@@ -30,6 +30,15 @@ public interface VivaldiPosition {
   
   public void update(float rtt,Coordinates coordinates,float error);
   
+  public void update(float rtt, float[] serialised_data );
+  
   public float estimateRTT(Coordinates coordinates);
   
+  	// serialisation stuff
+
+  public static final int	FLOAT_ARRAY_SIZE	= 4;	// size of float-serialisation array size
+  
+  public float[] toFloatArray();
+  
+  public void fromFloatArray( float[] data );
 }

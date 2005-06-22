@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
+import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 import com.aelitis.net.udp.PRUDPPacketReply;
 
 /**
@@ -59,6 +60,10 @@ DHTUDPPacketReply
 	private int		target_instance_id;
 	
 	private long	skew;
+	
+	public static final int	VIVALDI_DATA_LENGTH	= VivaldiPosition.FLOAT_ARRAY_SIZE;
+	
+	private float[]	vivaldi_data;
 	
 	public
 	DHTUDPPacketReply(
@@ -168,6 +173,19 @@ DHTUDPPacketReply
 		int		_network )
 	{
 		network	= _network;
+	}
+	
+	protected float[]
+	getVivaldiData()
+	{
+		return( vivaldi_data );
+	}
+	
+	protected void
+	setVivaldiData(
+		float[]	data )
+	{
+		vivaldi_data = data;
 	}
 	
 	public void
