@@ -180,6 +180,12 @@ public class VivaldiPanel {
     
     Image img = new Image(display,size);
     GC gc = new GC(img);
+    try {
+      gc.setAntialias(1);
+    } catch (Throwable e) {
+      //Probably a method not supported
+    }
+    
     Color white = new Color(display,255,255,255);
     gc.setForeground(white);
     gc.setBackground(white);
@@ -216,8 +222,11 @@ public class VivaldiPanel {
     int x0 = scale.getX(x,y);
     int y0 = scale.getY(x,y);   
     gc.fillRectangle(x0-1,y0-1,3,3);   
-    gc.drawLine(x0,y0,x0,(int)(y0-200*h/(scale.maxY-scale.minY)));
-    gc.drawText(contact.getTransportContact().getName(),x0,y0,true);
+    int elevation =(int) ( 200*h/(scale.maxY-scale.minY));
+    gc.drawLine(x0,y0,x0,y0-elevation);
+    String text = contact.getTransportContact().getAddress().getAddress().getHostAddress();
+    int xOffset = gc.getFontMetrics().getAverageCharWidth() * text.length() / 2;
+    gc.drawText(text,x0-xOffset,y0,true);
   }
   
   private void drawBorder(GC gc) {
