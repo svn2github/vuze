@@ -106,6 +106,7 @@ public class StatsView extends AbstractIView {
     Messages.setLanguageText(itemStats, viewStats.getData());
     Messages.setLanguageText(itemCache, viewCache.getData());
     Messages.setLanguageText(itemDHT, viewDHT.getData());
+    Messages.setLanguageText(itemVivaldi, viewVivaldi.getData());
     
     TabItem items[] = {itemActivity};
     folder.setSelection(items);
