@@ -98,7 +98,7 @@ public class SelectorGuard {
     
     if( consecutiveZeroSelects > max_consec ) {
       max_consec = consecutiveZeroSelects;
-      if( max_consec % 10 == 0 ) {
+      if( max_consec % 25 == 0 ) {
         System.out.println( type+ ": max_consec zero selects=" +max_consec );
       }
     }
@@ -119,9 +119,9 @@ public class SelectorGuard {
         }
       }
       else {
-        //under linux, it seems that selector spin is somewhat common, but normal??? behavior, so just sleep
+        //under linux, it seems that selector spin is somewhat common, but normal??? behavior, so just sleep a bit
         consecutiveZeroSelects = 0;
-        try{  Thread.sleep( 20 );  }catch( Throwable t) {t.printStackTrace();}
+        try{  Thread.sleep( 50 );  }catch( Throwable t) {t.printStackTrace();}
         return;
       }
     }
