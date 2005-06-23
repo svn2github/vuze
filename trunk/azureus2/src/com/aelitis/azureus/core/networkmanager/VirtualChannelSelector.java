@@ -204,7 +204,7 @@ public class VirtualChannelSelector {
       finally{ selectors_mon.exit();  }
     }
     else {
-      selector_impl.cancel( channel );
+      if( selector_impl != null )  selector_impl.cancel( channel );
     }
   }
 

@@ -143,13 +143,13 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     label.setLayoutData(formData);
 
     BooleanParameter faulty_selector = null;
-    if( Constants.isWindows ) {    
+    /*if( Constants.isWindows ) {    
       faulty_selector = new BooleanParameter(cServer, "network.tcp.enable_faulty_selector_mode", false, "ConfigView.section.connection.faulty_selector_mode");
       formData = new FormData();
       formData.top = new FormAttachment(max_connects.getControl());
       formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
       faulty_selector.setLayoutData(formData);
-    }
+    }*/
 
  //////////////////////  PROXY GROUP /////////////////
     
