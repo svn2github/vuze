@@ -200,8 +200,6 @@ public class VirtualChannelSelector {
             return;
           }
         }
-        
-        System.out.println( "cancel():: channel not found!" );
       }
       finally{ selectors_mon.exit();  }
     }
