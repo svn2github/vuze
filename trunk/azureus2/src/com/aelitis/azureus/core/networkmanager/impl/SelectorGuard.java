@@ -81,13 +81,14 @@ public class SelectorGuard {
    */
   public void verifySelectorIntegrity( int num_keys_ready, long time_threshold ) {
     
+    /*
     if( SystemTime.getCurrentTime() - start > 2*60*1000 ) {  //TODO
       start = SystemTime.getCurrentTime()*2;
       consecutiveZeroSelects = SELECTOR_SPIN_THRESHOLD + 1;
       num_keys_ready = 0;
       time_threshold = 9999999999L;
     }
-    
+    */
     
     if (num_keys_ready > 0) {
       //non-zero select, so OK

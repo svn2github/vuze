@@ -66,26 +66,53 @@ public class VirtualChannelSelectorImpl {
           type = "OP_WRITE";  break;
       }
       
-      selector_guard = new SelectorGuard( type );
-    	try {
-    		selector = Selector.open();
-    	}
+      
+      selector_guard = new SelectorGuard( type, new SelectorGuard.GuardListener() {
+        public boolean safeModeSelectEnabled() {
+          return parent.isSafeSelectionModeEnabled();
+        }
+        
+        public void spinDetected() {
+          destroy();
+          try {  Thread.sleep( 1000 );  }catch( Throwable x ) {x.printStackTrace();}
+          parent.enableSafeSelectionMode();
+        }
+        
+        public void failureDetected() {
+          try {  Thread.sleep( 10000 );  }catch( Throwable x ) {x.printStackTrace();}
+          destroy();
+          try {  Thread.sleep( 1000 );  }catch( Throwable x ) {x.printStackTrace();}
+          selector = openNewSelector();
+        }
+      });
+      
+      selector = openNewSelector();
+    }
+    
+  
+    
+    private Selector openNewSelector() {
+      Selector sel = null;
+      
+      try {
+        sel = Selector.open();
+      }
       catch (Throwable t) {
         Debug.out( "ERROR: caught exception on Selector.open()", t );
         
-        try {  Thread.sleep( 1000 );  }catch( Throwable x ) {x.printStackTrace();}
+        try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
         
         int fail_count = 1;
         
         while( fail_count < 10 ) {
           try {
-            selector = Selector.open();
+            sel = Selector.open();
             break;
           }
           catch( Throwable f ) {
             Debug.out( f );
             fail_count++;
-            try {  Thread.sleep( 1000 );  }catch( Throwable x ) {x.printStackTrace();}
+            try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
           }
         }
         
@@ -93,13 +120,17 @@ public class VirtualChannelSelectorImpl {
           Debug.out( "NOTICE: socket Selector successfully opened after " +fail_count+ " failures." );
         }
         else {  //failure
-          LGLogger.logRepeatableAlert( LGLogger.AT_ERROR ,"ERROR: socket Selector.open() failed 10 times, aborting.\nSomething is very wrong!" );
+          LGLogger.logRepeatableAlert( LGLogger.AT_ERROR ,"ERROR: socket Selector.open() failed 10 times, aborting.\nSomething is very wrong!!!" );
         }
-        
       }
+      
+      return sel;
     }
     
-  
+    
+    
+    
+    
 
 
     public void 
@@ -239,8 +270,8 @@ public class VirtualChannelSelectorImpl {
     public int select( long timeout ) {
       
       if( selector == null ) {
-        System.out.println( "VirtualChannelSelector.select() op called with null selector, sleeping " +timeout+ " ms..." );
-        try {  Thread.sleep( timeout );  }catch( Throwable x ) {x.printStackTrace();}
+        Debug.out( "VirtualChannelSelector.select() op called with null selector" );
+        try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
         return 0;
       }      
       
@@ -359,10 +390,9 @@ public class VirtualChannelSelectorImpl {
         try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
       
-      if( !selector_guard.isSelectorOK( count, 30 ) ) {
-        selector = selector_guard.repairSelector( selector );
-      }
-
+      selector_guard.verifySelectorIntegrity( count, 30 );
+      
+      if( selector == null )  return 0;
       
       //notification of ready keys via listener callback
       for( Iterator i = selector.selectedKeys().iterator(); i.hasNext(); ) {
@@ -420,6 +450,24 @@ public class VirtualChannelSelectorImpl {
     
     
     
+    private void destroy() {
+      for( Iterator i = selector.keys().iterator(); i.hasNext(); ) {
+        SelectionKey key = (SelectionKey)i.next();
+        RegistrationData data = (RegistrationData)key.attachment();
+        data.listener.selectFailure( parent, data.channel, data.attachment, new Throwable( "selector destroyed" ) );
+      }
+      
+      try{
+        selector.close();
+      }
+      catch( Throwable t ) { t.printStackTrace(); }
+      
+      selector = null;
+    }
+    
+    
+    
+    
     private static class RegistrationData {
         private final SocketChannel channel;
         private final VirtualChannelSelector.VirtualSelectorListener listener;
@@ -433,8 +481,5 @@ public class VirtualChannelSelectorImpl {
       		attachment 		= _attachment;
       	}
       }
-      
-      
-      
-    
+          
 }
