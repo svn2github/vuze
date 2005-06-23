@@ -65,13 +65,37 @@ public class ConfigSectionQueue implements ConfigSectionSWT {
     Messages.setLanguageText(label, "ConfigView.label.maxdownloads"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
-    new IntParameter(gMainTab, "max downloads").setLayoutData(gridData); //$NON-NLS-1$
+    final IntParameter maxDLs = new IntParameter(gMainTab, "max downloads");
+    maxDLs.setLayoutData(gridData); //$NON-NLS-1$
 
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
-    new IntParameter(gMainTab, "max active torrents").setLayoutData(gridData); //$NON-NLS-1$
+    final IntParameter maxActiv = new IntParameter(gMainTab, "max active torrents");
+    maxActiv.setLayoutData(gridData); //$NON-NLS-1$
+    
+    maxDLs.addChangeListener( new ParameterChangeListener() {
+      public void parameterChanged( Parameter p, boolean caused_internally ) {
+        int val1 = maxDLs.getValue();
+        int val2 = maxActiv.getValue();
+        
+        if( (val1 == 0 || val1 > val2) && val2 != 0) {
+          maxActiv.setValue( val1 );
+        }
+      }
+    });
+    
+    maxActiv.addChangeListener( new ParameterChangeListener() {
+      public void parameterChanged( Parameter p, boolean caused_internally ) {
+        int val1 = maxDLs.getValue();
+        int val2 = maxActiv.getValue();
+        
+        if( (val1 == 0 || val1 > val2) && val2 != 0) {
+          maxDLs.setValue( val2 );
+        }
+      }
+    });
 
     String	bytes_per_sec 	= DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_B );
     String	k_per_sec 		= DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
