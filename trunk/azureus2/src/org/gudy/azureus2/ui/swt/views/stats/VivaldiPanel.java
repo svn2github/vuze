@@ -136,13 +136,39 @@ public class VivaldiPanel {
   }
   
   public void refreshContacts(List contacts) {
-    List positions = new ArrayList(contacts.size());
+    
+    if(canvas.isDisposed()) return;
+    Rectangle size = canvas.getBounds();
+    
+    scale.width = size.width;
+    scale.height = size.height;
+    
+    Image img = new Image(display,size);
+    GC gc = new GC(img);
+    Color white = new Color(display,255,255,255);
+    gc.setForeground(white);
+    gc.setBackground(white);
+    gc.fillRectangle(size);
+    
+    Color blue = new Color(display,66,87,104);
+    gc.setForeground(blue);
+    gc.setBackground(blue);       
+    
     Iterator iter = contacts.iterator();
     while(iter.hasNext()) {
       DHTControlContact contact = (DHTControlContact) iter.next();
-      positions.add(contact.getTransportContact().getVivaldiPosition());
+      VivaldiPosition position = contact.getTransportContact().getVivaldiPosition();
+      HeightCoordinatesImpl coord = (HeightCoordinatesImpl) position.getCoordinates();
+      draw(gc,coord.getX(),coord.getY(),coord.getH(),contact);      
     }
-    refresh(positions);
+    
+    gc.dispose();
+    gc = new GC(canvas);
+    gc.drawImage(img,0,0);
+    gc.dispose();
+    img.dispose();
+    white.dispose();
+    blue.dispose();
   }
   
   public void refresh(List vivaldiPositions) {
@@ -161,7 +187,7 @@ public class VivaldiPanel {
     
     Color blue = new Color(display,66,87,104);
     gc.setForeground(blue);
-    gc.setBackground(blue);
+    gc.setBackground(blue);       
     
     Iterator iter = vivaldiPositions.iterator();
     while(iter.hasNext()) {
@@ -182,7 +208,16 @@ public class VivaldiPanel {
     int x0 = scale.getX(x,y);
     int y0 = scale.getY(x,y);   
     gc.fillRectangle(x0-1,y0-1,3,3);   
-    gc.drawLine(x0,y0,x0,(int)(y0-h/10));
+    gc.drawLine(x0,y0,x0,(int)(y0-200*h/(scale.maxY-scale.minY)));
+  }
+  
+  private void draw(GC gc,float x,float y,float h,DHTControlContact contact) {
+    if(x == 0 && y == 0) return;
+    int x0 = scale.getX(x,y);
+    int y0 = scale.getY(x,y);   
+    gc.fillRectangle(x0-1,y0-1,3,3);   
+    gc.drawLine(x0,y0,x0,(int)(y0-200*h/(scale.maxY-scale.minY)));
+    gc.drawText(contact.getTransportContact().getName(),x0,y0,true);
   }
   
   private void drawBorder(GC gc) {
