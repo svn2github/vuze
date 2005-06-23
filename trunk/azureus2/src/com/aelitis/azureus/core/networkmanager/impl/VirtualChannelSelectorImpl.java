@@ -392,7 +392,7 @@ public class VirtualChannelSelectorImpl {
       
       selector_guard.verifySelectorIntegrity( count, 30 );
       
-      if( selector == null )  return 0;
+      if( !selector.isOpen() )  return count;
       
       //notification of ready keys via listener callback
       for( Iterator i = selector.selectedKeys().iterator(); i.hasNext(); ) {
@@ -461,8 +461,6 @@ public class VirtualChannelSelectorImpl {
         selector.close();
       }
       catch( Throwable t ) { t.printStackTrace(); }
-      
-      selector = null;
     }
     
     
