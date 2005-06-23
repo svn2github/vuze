@@ -37,6 +37,9 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
+import com.aelitis.azureus.core.dht.router.DHTRouterContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.vivaldi.maths.Coordinates;
 import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 import com.aelitis.azureus.core.dht.vivaldi.maths.impl.HeightCoordinatesImpl;
 
@@ -135,7 +138,7 @@ public class VivaldiPanel {
     canvas.setLayoutData(data);
   }
   
-  public void refreshContacts(List contacts) {
+  public void refreshContacts(List contacts,DHTTransportContact self) {
     
     if(canvas.isDisposed()) return;
     Rectangle size = canvas.getBounds();
@@ -154,12 +157,14 @@ public class VivaldiPanel {
     gc.setForeground(blue);
     gc.setBackground(blue);       
     
+    Coordinates ownCoords = self.getVivaldiPosition().getCoordinates();    
+    
     Iterator iter = contacts.iterator();
     while(iter.hasNext()) {
       DHTControlContact contact = (DHTControlContact) iter.next();
       VivaldiPosition position = contact.getTransportContact().getVivaldiPosition();
       HeightCoordinatesImpl coord = (HeightCoordinatesImpl) position.getCoordinates();
-      draw(gc,coord.getX(),coord.getY(),coord.getH(),contact);      
+      draw(gc,coord.getX(),coord.getY(),coord.getH(),contact,(int)ownCoords.distance(coord));      
     }
     
     gc.dispose();
@@ -180,11 +185,6 @@ public class VivaldiPanel {
     
     Image img = new Image(display,size);
     GC gc = new GC(img);
-    try {
-      gc.setAntialias(1);
-    } catch (Throwable e) {
-      //Probably a method not supported
-    }
     
     Color white = new Color(display,255,255,255);
     gc.setForeground(white);
@@ -217,14 +217,14 @@ public class VivaldiPanel {
     gc.drawLine(x0,y0,x0,(int)(y0-200*h/(scale.maxY-scale.minY)));
   }
   
-  private void draw(GC gc,float x,float y,float h,DHTControlContact contact) {
+  private void draw(GC gc,float x,float y,float h,DHTControlContact contact,int distance) {
     if(x == 0 && y == 0) return;
     int x0 = scale.getX(x,y);
     int y0 = scale.getY(x,y);   
     gc.fillRectangle(x0-1,y0-1,3,3);   
     int elevation =(int) ( 200*h/(scale.maxY-scale.minY));
     gc.drawLine(x0,y0,x0,y0-elevation);
-    String text = contact.getTransportContact().getAddress().getAddress().getHostAddress();
+    String text = contact.getTransportContact().getAddress().getAddress().getHostAddress() + " (" + distance + " ms)";
     int xOffset = gc.getFontMetrics().getAverageCharWidth() * text.length() / 2;
     gc.drawText(text,x0-xOffset,y0,true);
   }

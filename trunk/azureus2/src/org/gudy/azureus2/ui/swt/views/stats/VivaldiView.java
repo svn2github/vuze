@@ -70,7 +70,7 @@ public class VivaldiView extends AbstractIView {
   public void refresh() {
     if(dht != null) {
       List l = dht.getControl().getContacts();
-      drawPanel.refreshContacts(l);
+      drawPanel.refreshContacts(l,dht.getControl().getTransport().getLocalContact());
     } else { 
       init();
     }
