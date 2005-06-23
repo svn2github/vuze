@@ -142,15 +142,6 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData.left = new FormAttachment(max_connects.getControl());
     label.setLayoutData(formData);
 
-    BooleanParameter faulty_selector = null;
-    /*if( Constants.isWindows ) {    
-      faulty_selector = new BooleanParameter(cServer, "network.tcp.enable_faulty_selector_mode", false, "ConfigView.section.connection.faulty_selector_mode");
-      formData = new FormData();
-      formData.top = new FormAttachment(max_connects.getControl());
-      formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-      faulty_selector.setLayoutData(formData);
-    }*/
-
  //////////////////////  PROXY GROUP /////////////////
     
     Group proxy_group = new Group( cServer, SWT.NULL );
@@ -162,7 +153,7 @@ public class ConfigSectionConnection implements ConfigSectionSWT {
     formData = new FormData();
     formData.left = new FormAttachment( 0, 0 );
     formData.right = new FormAttachment( 100, -5 );
-    formData.top = new FormAttachment( faulty_selector != null ? faulty_selector.getControl() : max_connects.getControl(), 5 );
+    formData.top = new FormAttachment( max_connects.getControl(), 5 );
     proxy_group.setLayoutData( formData );
     
     GridData grid_data;

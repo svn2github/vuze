@@ -21,8 +21,6 @@
  */
 package com.aelitis.azureus.core.networkmanager.impl;
 
-import java.util.Random;
-
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
@@ -52,10 +50,7 @@ public class SelectorGuard {
   private long max_consec = 0;
   private final String type;
   private final GuardListener listener;
-  
-  
-  private long start = SystemTime.getCurrentTime() + new Random().nextInt( 30*1000);
-  
+
   
   /**
    * Create a new SelectorGuard with the given failed count threshold.
@@ -79,17 +74,7 @@ public class SelectorGuard {
   /**
    * Checks whether selector is still OK, and not spinning.
    */
-  public void verifySelectorIntegrity( int num_keys_ready, long time_threshold ) {
-    
-    /*
-    if( SystemTime.getCurrentTime() - start > 2*60*1000 ) {  //TODO
-      start = SystemTime.getCurrentTime()*2;
-      consecutiveZeroSelects = SELECTOR_SPIN_THRESHOLD + 1;
-      num_keys_ready = 0;
-      time_threshold = 9999999999L;
-    }
-    */
-    
+  public void verifySelectorIntegrity( int num_keys_ready, long time_threshold ) {    
     if (num_keys_ready > 0) {
       //non-zero select, so OK
       consecutiveZeroSelects = 0;

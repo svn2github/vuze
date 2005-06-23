@@ -38,7 +38,7 @@ public class VirtualChannelSelector {
   public static final int OP_READ   = SelectionKey.OP_READ;
   public static final int OP_WRITE  = SelectionKey.OP_WRITE;
 
-  private boolean SAFE_SELECTOR_MODE_ENABLED = false;//COConfigurationManager.getBooleanParameter( "network.tcp.enable_faulty_selector_mode" );
+  private boolean SAFE_SELECTOR_MODE_ENABLED = COConfigurationManager.getBooleanParameter( "network.tcp.enable_safe_selector_mode" );
 
   private VirtualChannelSelectorImpl selector_impl;
   
@@ -247,16 +247,14 @@ public class VirtualChannelSelector {
   
   public void enableSafeSelectionMode() {
     if( !SAFE_SELECTOR_MODE_ENABLED ) {
-      initSafeMode();
-      //TODO save config
       SAFE_SELECTOR_MODE_ENABLED = true;
+      //COConfigurationManager.setParameter( "network.tcp.enable_safe_selector_mode", true );  //TODO enable permanently
+      initSafeMode();
     }
   }
   
   
-  
 
-  
   /**
    * Listener for notification upon socket channel selection.
    */
