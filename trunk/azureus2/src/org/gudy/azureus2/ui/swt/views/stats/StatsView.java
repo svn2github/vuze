@@ -168,32 +168,45 @@ public class StatsView extends AbstractIView {
       return;
 
     try {
-      switch (folder.getSelectionIndex()) {
-        case 0 :
-          if (viewActivity != null && !itemActivity.isDisposed())
-            viewActivity.refresh();
-          break;
-        case 1 :
-        if (viewStats != null && !itemStats.isDisposed())
-          viewStats.refresh();
-          break;
-        case 2 :
-        if (viewCache != null && !itemCache.isDisposed())
-          viewCache.refresh();
-          break;
-        case 3 :
-        if (viewDHT != null && !itemDHT.isDisposed())
-          viewDHT.refresh();
-          break;
-        case 4 :
-          if (viewVivaldi != null && !itemVivaldi.isDisposed())
-            viewVivaldi.refresh();
-            break;
-        default :
-          if (viewDHTcvs != null && !itemDHTcvs.isDisposed())
-            viewDHTcvs.refresh();
-            break;
+      int index = folder.getSelectionIndex();
+      
+      if( index == 0 ) {
+        if (viewActivity != null && !itemActivity.isDisposed())   viewActivity.refresh();
+        return;
       }
+      
+      if( index == 1 ) {
+        if (viewStats != null && !itemStats.isDisposed())  viewStats.refresh();
+        return;
+      }
+      
+      if( index == 2 ) {
+        if (viewCache != null && !itemCache.isDisposed())  viewCache.refresh();
+        return;
+      }
+      
+      if( index == 3 ) {
+        if (viewDHT != null && !itemDHT.isDisposed())  viewDHT.refresh();
+        return;
+      }
+      
+      if( Constants.isCVSVersion() ) {
+        if( index == 4 ) {
+          if (viewDHTcvs != null && !itemDHTcvs.isDisposed())  viewDHTcvs.refresh();
+          return;
+        }
+        
+        if( index == 5 ) {
+          if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
+          return;
+        }
+      }
+      
+      if( index == 4 ) {
+        if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
+        return;
+      }
+
     } catch (Exception e) {
     	Debug.printStackTrace( e );
     }
