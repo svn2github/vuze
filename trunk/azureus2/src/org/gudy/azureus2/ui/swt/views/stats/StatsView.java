@@ -42,7 +42,7 @@ import org.gudy.azureus2.ui.swt.views.IView;
  * 
  */
 public class StatsView extends AbstractIView {
-
+  
   GlobalManager manager;
   
   TabFolder folder;
@@ -51,12 +51,14 @@ public class StatsView extends AbstractIView {
   TabItem itemStats;
   TabItem itemCache;
   TabItem itemDHT;
+  TabItem itemDHTcvs;
   TabItem itemVivaldi;
   
   IView viewActivity;
   IView viewStats;
   IView viewCache;
   IView viewDHT;
+  IView viewDHTcvs;
   IView viewVivaldi;
   UpdateThread updateThread;
   
@@ -74,6 +76,11 @@ public class StatsView extends AbstractIView {
           ((ActivityView)viewActivity).periodicUpdate();
           ((CacheView)viewCache).periodicUpdate(); 
           ((DHTView)viewDHT).periodicUpdate();
+          
+          if( viewDHTcvs != null ) {
+            ((DHTView)viewDHTcvs).periodicUpdate();
+          }
+          
           Thread.sleep(1000);
         }
       } catch(Exception e) {
@@ -94,18 +101,25 @@ public class StatsView extends AbstractIView {
     itemStats = new TabItem(folder, SWT.NULL);
     itemCache  = new TabItem(folder, SWT.NULL);
     itemDHT  = new TabItem(folder, SWT.NULL);
+    if( Constants.isCVSVersion() )  itemDHTcvs  = new TabItem(folder, SWT.NULL);
     itemVivaldi = new TabItem(folder,SWT.NULL);
 
     viewActivity = new ActivityView(manager);
     viewStats = new TransferStatsView(manager);
     viewCache = new CacheView();
-    viewDHT = new DHTView();
+    viewDHT = new DHTView( DHTView.DHT_TYPE_MAIN );  
+    if( Constants.isCVSVersion() )  viewDHTcvs = new DHTView( DHTView.DHT_TYPE_CVS );
     viewVivaldi = new VivaldiView();
     
     Messages.setLanguageText(itemActivity, viewActivity.getData());
     Messages.setLanguageText(itemStats, viewStats.getData());
     Messages.setLanguageText(itemCache, viewCache.getData());
     Messages.setLanguageText(itemDHT, viewDHT.getData());
+    
+    if( viewDHTcvs != null ) {
+      Messages.setLanguageText(itemDHTcvs, viewDHTcvs.getData());
+    }
+    
     Messages.setLanguageText(itemVivaldi, viewVivaldi.getData());
     
     TabItem items[] = {itemActivity};
@@ -123,6 +137,11 @@ public class StatsView extends AbstractIView {
     viewDHT.initialize(folder);
     itemDHT.setControl(viewDHT.getComposite());
 
+    if( viewDHTcvs != null ) {
+      viewDHTcvs.initialize(folder);
+      itemDHTcvs.setControl(viewDHTcvs.getComposite());
+    }
+    
     viewVivaldi.initialize(folder);
     itemVivaldi.setControl(viewVivaldi.getComposite());
     
@@ -170,6 +189,10 @@ public class StatsView extends AbstractIView {
           if (viewVivaldi != null && !itemVivaldi.isDisposed())
             viewVivaldi.refresh();
             break;
+        default :
+          if (viewDHTcvs != null && !itemDHTcvs.isDisposed())
+            viewDHTcvs.refresh();
+            break;
       }
     } catch (Exception e) {
     	Debug.printStackTrace( e );
@@ -205,6 +228,7 @@ public class StatsView extends AbstractIView {
     viewStats.delete();
     viewCache.delete();
     viewDHT.delete();
+    if( viewDHTcvs != null )  viewDHTcvs.delete();
     if(! folder.isDisposed()) {
       Utils.disposeComposite(folder);
     }

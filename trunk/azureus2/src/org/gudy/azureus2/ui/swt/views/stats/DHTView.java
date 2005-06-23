@@ -60,6 +60,9 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
  */
 public class DHTView extends AbstractIView {
   
+  public static final int DHT_TYPE_MAIN = 0;
+  public static final int DHT_TYPE_CVS  = 1;
+  
   DHT dht;
   
   Composite panel;
@@ -88,8 +91,12 @@ public class DHTView extends AbstractIView {
   DHTControlListener controlListener;
   Table activityTable;
   DHTControlActivity[] activities;
+  
+  private final int dht_type;
+  
 
-  public DHTView() {
+  public DHTView( int dht_type ) {
+    this.dht_type = dht_type;
     init();
   }
   
@@ -97,11 +104,11 @@ public class DHTView extends AbstractIView {
     try {
       DHT[] dhts = ((DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin()).getDHTs();
 	  
-      if (dhts.length == 0){
-		  return;
+      if( dhts.length <= dht_type ){
+        return;
       }
 	  
-	  dht	= dhts[0];
+	  dht	= dhts[ dht_type ];
 	  
       controlListener = new DHTControlListener() {
         public void activityChanged(DHTControlActivity activity,int type) {
@@ -132,7 +139,7 @@ public class DHTView extends AbstractIView {
   
   private void initialiseGeneralGroup() {
     Group gGeneral = new Group(panel,SWT.NONE);
-    Messages.setLanguageText(gGeneral,"DHTView.general.title");
+    Messages.setLanguageText(gGeneral, "DHTView.general.title" );
     
     GridData data = new GridData();
     data.verticalAlignment = SWT.BEGINNING;
@@ -478,7 +485,7 @@ public class DHTView extends AbstractIView {
   }
 
   public String getFullTitle() {
-    return MessageText.getString("DHTView.title.full"); //$NON-NLS-1$
+    return dht_type == DHT_TYPE_MAIN ? MessageText.getString("DHTView.title.full") : MessageText.getString("DHTView.title.fullcvs");
   }
   
   public Composite getComposite() {
@@ -587,7 +594,7 @@ public class DHTView extends AbstractIView {
   }
   
   public String getData() {
-    return "DHTView.title.full";
+    return dht_type == DHT_TYPE_MAIN ? "DHTView.title.full" :"DHTView.title.fullcvs";
   }
     
 }
