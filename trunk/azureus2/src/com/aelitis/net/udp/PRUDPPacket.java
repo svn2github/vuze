@@ -39,7 +39,7 @@ PRUDPPacket
 	public static final int	MAX_PACKET_SIZE			= 8192;
 	public static final int DEFAULT_UDP_TIMEOUT		= 30000;
 
-	private static int			next_id 	= new Random(SystemTime.getCurrentTime()).nextInt();
+	private static int				next_id 	= new Random(SystemTime.getCurrentTime()).nextInt();
 	private static AEMonitor		class_mon	= new AEMonitor( "PRUDPPacket" );
 
 	private	InetSocketAddress	address;
@@ -48,6 +48,8 @@ PRUDPPacket
 	private int		transaction_id;
 	
 	private PRUDPPacket	previous_packet;
+	
+	private int			serialised_size;
 	
 	protected
 	PRUDPPacket(
@@ -73,6 +75,19 @@ PRUDPPacket
 			
 			class_mon.exit();
 		}
+	}
+	
+	public void
+	setSerialisedSize(
+		int		len )
+	{
+		serialised_size	= len;
+	}
+	
+	public int
+	getSerialisedSize()
+	{
+		return( serialised_size );
 	}
 	
 	public boolean

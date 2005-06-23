@@ -77,13 +77,6 @@ DHTUDPPacketHandler
 		try{
 			request.setNetwork( network );
 			
-			/*
-			if ( network != 0 ){
-
-				System.out.println( "sendAndReceive(out):" + network + ":" + request.getString());
-			}
-			*/
-			
 			packet_handler.sendAndReceive( 
 				request, 
 				destination_address, 
@@ -97,12 +90,7 @@ DHTUDPPacketHandler
 					{
 						DHTUDPPacketReply	reply = (DHTUDPPacketReply)packet;
 						
-						/*
-						if ( network != 0 ){
-
-							System.out.println( "sendAndReceive(in):" + reply.getNetwork() + ":" + reply.getString());
-						}
-						*/
+						stats.packetReceived( packet.getSerialisedSize());
 						
 						if ( reply.getNetwork() == network ){
 							
@@ -129,6 +117,10 @@ DHTUDPPacketHandler
 		}catch( PRUDPPacketHandlerException e ){
 			
 			throw( new DHTUDPPacketHandlerException(e ));
+			
+		}finally{
+			
+			stats.packetSent( request.getSerialisedSize() );
 		}
 	}
 	
@@ -141,12 +133,6 @@ DHTUDPPacketHandler
 
 	{
 		try{
-			/*
-			if ( network != 0 ){
-
-				System.out.println( "send(request):" + network + ":" + request.getString());
-			}
-			*/
 			
 			request.setNetwork( network );
 			
@@ -155,6 +141,10 @@ DHTUDPPacketHandler
 		}catch( PRUDPPacketHandlerException e ){
 			
 			throw( new DHTUDPPacketHandlerException( e ));
+			
+		}finally{
+			
+			stats.packetSent( request.getSerialisedSize() );
 		}
 	}
 	
@@ -166,21 +156,31 @@ DHTUDPPacketHandler
 		throws DHTUDPPacketHandlerException
 	{
 		try{
-			/*
-			if ( network != 0 ){
-				
-				System.out.println( "send(reply):" + network + ":" + reply.getString());
-			}
-			*/
-			
 			reply.setNetwork( network );
 			
+				// outgoing request
+						
 			packet_handler.send( reply, destination_address );
-			
+				
 		}catch( PRUDPPacketHandlerException e ){
 			
 			throw( new DHTUDPPacketHandlerException( e ));
-		}
+		
+		}finally{
+			
+			stats.packetSent( reply.getSerialisedSize() );
+		}	
+	}
+	
+	protected void
+	process(
+		DHTUDPPacketRequest	request )
+	{
+			// incoming request
+		
+		stats.packetReceived( request.getSerialisedSize() );
+		
+		request_handler.process( request );
 	}
 	
 	public void

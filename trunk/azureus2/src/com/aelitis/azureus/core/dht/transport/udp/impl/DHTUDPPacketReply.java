@@ -61,7 +61,8 @@ DHTUDPPacketReply
 	
 	private long	skew;
 	
-	public static final int	VIVALDI_DATA_LENGTH	= VivaldiPosition.FLOAT_ARRAY_SIZE;
+	public static final int	VIVALDI_DATA_LENGTH		= VivaldiPosition.FLOAT_ARRAY_SIZE;
+	public static final int	VIVALDI_DATA_LENGTH_V1	= 4;
 	
 	private float[]	vivaldi_data;
 	

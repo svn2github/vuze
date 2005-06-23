@@ -329,6 +329,8 @@ PRUDPPacketHandlerImpl
 		
 			}
 			
+			packet.setSerialisedSize( packet_len );
+			
 			packet.setAddress( (InetSocketAddress)dg_packet.getSocketAddress());
 			
 			if ( request_packet ){
@@ -541,6 +543,8 @@ PRUDPPacketHandlerImpl
 			request_packet.serialise(os);
 			
 			byte[]	buffer = baos.toByteArray();
+			
+			request_packet.setSerialisedSize( buffer.length );
 			
 			if ( auth != null ){
 				
@@ -785,6 +789,8 @@ PRUDPPacketHandlerImpl
 			
 			byte[]	buffer = baos.toByteArray();
 			
+			request_packet.setSerialisedSize( buffer.length );
+
 			DatagramPacket dg_packet = new DatagramPacket(buffer, buffer.length, destination_address );
 			
 			// System.out.println( "Outgoing to " + dg_packet.getAddress());	

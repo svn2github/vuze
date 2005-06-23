@@ -2538,6 +2538,17 @@ DHTControlImpl
 		router.print();
 		
 		database.print();
+		
+		/*
+		List	c = getContacts();
+		
+		for (int i=0;i<c.size();i++){
+			
+			DHTControlContact	cc = (DHTControlContact)c.get(i);
+			
+			System.out.println( "    " + cc.getTransportContact().getVivaldiPosition());
+		}
+		*/
 	}
 	
 	public List

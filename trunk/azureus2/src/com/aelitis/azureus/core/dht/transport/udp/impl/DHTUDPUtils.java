@@ -554,6 +554,13 @@ DHTUDPUtils
 		throws IOException
 	{
 		float[]	data = reply.getVivaldiData();
+	
+		if ( data.length != DHTUDPPacketReply.VIVALDI_DATA_LENGTH_V1 ){
+		
+			Debug.out( "Vivaldi serialisation length changed!!!!" );
+			
+			throw( new IOException( "argh!!" ));
+		}
 		
 		for (int i=0;i<data.length;i++){
 			
@@ -569,6 +576,13 @@ DHTUDPUtils
 		throws IOException
 	{
 		float[]	data	= new float[DHTUDPPacketReply.VIVALDI_DATA_LENGTH];
+		
+		if ( data.length != DHTUDPPacketReply.VIVALDI_DATA_LENGTH_V1 ){
+			
+			Debug.out( "Vivaldi serialisation length changed!!!!" );
+			
+			throw( new IOException( "argh!!" ));
+		}
 		
 		for (int i=0;i<data.length;i++){
 			

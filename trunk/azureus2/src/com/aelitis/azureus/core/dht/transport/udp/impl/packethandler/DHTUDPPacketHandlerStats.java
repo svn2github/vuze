@@ -29,52 +29,88 @@ import com.aelitis.net.udp.PRUDPPacketHandlerStats;
 public class 
 DHTUDPPacketHandlerStats 
 {
+	private long	packets_sent;
+	private long	packets_received;
+	private long	bytes_sent;
+	private long	bytes_received;
+	private long	timeouts;
+	
 	private PRUDPPacketHandlerStats		stats;
 	
 	protected
 	DHTUDPPacketHandlerStats(
 		PRUDPPacketHandler		_handler )
 	{
-			// TODO: can't easily do per-network stats here...
-		
 		stats	= _handler.getStats();
 	}
 	
 	protected
 	DHTUDPPacketHandlerStats(
-		PRUDPPacketHandlerStats	_stats )
+		DHTUDPPacketHandlerStats	_originator,
+		PRUDPPacketHandlerStats		_stats )
 	{
+		packets_sent		= _originator.packets_sent;
+		packets_received	= _originator.packets_received;
+		bytes_sent			= _originator.bytes_sent;
+		bytes_received		= _originator.bytes_received;
+		timeouts			= _originator.timeouts;
+
 		stats	= _stats;
 	}
+	
+		// update
+	
+	protected void
+	timeout()
+	{
+		timeouts++;
+	}
+	
+	protected void
+	packetSent(
+		long		bytes )
+	{
+		packets_sent++;
+		bytes_sent	+= bytes;
+	}
+	
+	protected void
+	packetReceived(
+		long		bytes )
+	{
+		packets_received++;
+		bytes_received	+= bytes;
+	}
+		// access
 	
 	public long
 	getPacketsSent()
 	{
-		return( stats.getPacketsSent());
+		return( packets_sent );
 	}
 	
 	public long
 	getPacketsReceived()
 	{
-		return( stats.getPacketsReceived());
+		return( packets_received );
 	}
 	
 	public long
 	getRequestsTimedOut()
 	{
-		return( stats.getRequestsTimedOut());
+		return( timeouts );
 	}
 	
 	public long
 	getBytesSent()
 	{
-		return( stats.getBytesSent());
+		return( bytes_sent );
 	}
 	
 	public long
 	getBytesReceived()
 	{
-		return( stats.getBytesReceived());
+		return( bytes_received );
 	}
 	
 	public long
@@ -92,6 +128,6 @@ DHTUDPPacketHandlerStats
 	public DHTUDPPacketHandlerStats
 	snapshot()
 	{
-		return( new DHTUDPPacketHandlerStats( stats.snapshot()));
+		return( new DHTUDPPacketHandlerStats( this, stats.snapshot()));
 	}
 }

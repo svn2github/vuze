@@ -117,40 +117,30 @@ DHTUDPPacketHandlerFactory
 			}
 			*/
 			
-			getRequestHandler( port, network ).process( request );
+			Object[]	port_details = (Object[])port_map.get( new Integer( port ));
+
+			if ( port_details == null ){
+				
+				throw( new IOException( "Port '" + port + "' not registered" ));
+			}
+			
+			Map network_map = (Map)port_details[1];
+			
+			Object[]	network_details = (Object[])network_map.get( new Integer( network ));
+
+			if ( network_details == null ){
+				
+				throw( new IOException( "Network '" + network + "' not registered" ));
+			}
+			
+			DHTUDPPacketHandler	res = (DHTUDPPacketHandler)network_details[1];
+			
+			res.process( request );
 			
 		}catch( IOException e ){
 			
 			Debug.printStackTrace( e );
 		}
-	}
-	
-	protected DHTUDPRequestHandler
-	getRequestHandler(
-		int		port,
-		int		network )
-	
-		throws IOException
-	{
-		Object[]	port_details = (Object[])port_map.get( new Integer( port ));
-
-		if ( port_details == null ){
-			
-			throw( new IOException( "Port '" + port + "' not registered" ));
-		}
-		
-		Map network_map = (Map)port_details[1];
-		
-		Object[]	network_details = (Object[])network_map.get( new Integer( network ));
-
-		if ( network_details == null ){
-			
-			throw( new IOException( "Network '" + network + "' not registered" ));
-		}
-		
-		DHTUDPPacketHandler	res = (DHTUDPPacketHandler)network_details[1];
-		
-		return( res.getRequestHandler());
 	}
 	
 	public DHTTransportUDPImpl
