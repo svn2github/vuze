@@ -26,6 +26,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -45,42 +48,32 @@ public class VivaldiPanel {
   Canvas canvas;
   Scale scale;
   
+  private boolean mouseLeftDown = false;
+  private boolean mouseRightDown = false;
+  private int xDown;
+  private int yDown;
+  
   private class Scale {
     int width;
     int height;
     
-    float minX;
-    float minY;
+    float minX = -1000;
+    float maxX = 1000;
+    float minY = -1000;
+    float maxY = 1000;
     
-    float maxX;
-    float maxY;    
-    float maxH;      
-    
-    float sin45 = (float) Math.sin(Math.PI/4);
-    float cos45 = (float) Math.cos(Math.PI/4);
-    
-    float vMinX;
-    float vMinY;
-    float vRatioX;
-    float vRatioY;
-    float xMinY;
-    float yminX;
-    
-    public void refreshScaleParams() {
-      xMinY = cos45 * (maxY - minY);
-      vMinX = minX - xMinY;
-      vMinY = minY - maxH / cos45;
-      vRatioX = (float)width /(maxX - vMinX);
-      vRatioY = (float)height / (maxY - vMinY);
-    }
+    float saveMinX;
+    float saveMaxX;
+    float saveMinY;
+    float saveMaxY;    
     
     public int getX(float x,float y) {
       //return (int) ((x-vMinX) * vRatioX - xMinY * (y-maxY) / (maxY-minY)); 
-      return (int) ((x+1000)/(2000) * width);
+      return (int) ((x-minX)/(maxX - minX) * width);
     }
     
     public int getY(float x,float y) {
-      return (int) ((y+1000)/(2000) * height);
+      return (int) ((y-minY)/(maxY-minY) * height);
     }
   }
   
@@ -89,6 +82,53 @@ public class VivaldiPanel {
     this.display = parent.getDisplay();
     this.canvas = new Canvas(parent,SWT.NULL);   
     this.scale = new Scale();
+    
+    canvas.addMouseListener(new MouseAdapter() {
+
+      public void mouseDown(MouseEvent event) {
+        if(event.button == 1) mouseLeftDown = true;
+        if(event.button == 3) mouseRightDown = true;
+        xDown = event.x;
+        yDown = event.y;
+        scale.saveMinX = scale.minX;
+        scale.saveMaxX = scale.maxX;
+        scale.saveMinY = scale.minY;
+        scale.saveMaxY = scale.maxY;
+      }
+      
+      public void mouseUp(MouseEvent event) {
+        if(event.button == 1) mouseLeftDown = false;
+        if(event.button == 3) mouseRightDown = false;
+      }                  
+    });
+    
+    canvas.addMouseMoveListener(new MouseMoveListener() {
+      public void mouseMove(MouseEvent event) {
+        if(mouseLeftDown) {
+          int deltaX = event.x - xDown;
+          int deltaY = event.y - yDown;
+          int width = scale.width;
+          int height = scale.height;
+          float ratioX = (float) (scale.saveMaxX - scale.saveMinX) / (float) width;
+          float ratioY = (float) (scale.saveMaxY - scale.saveMinY) / (float) height;
+          float realDeltaX = deltaX * ratioX;
+          float realDeltaY  = deltaY * ratioY;
+          scale.minX = scale.saveMinX - realDeltaX;
+          scale.maxX = scale.saveMaxX - realDeltaX;
+          scale.minY = scale.saveMinY - realDeltaY;
+          scale.maxY = scale.saveMaxY - realDeltaY;
+        }
+        if(mouseRightDown) {
+          int deltaY = event.y - yDown;
+          float scaleFactor = 1 + (float) deltaY / 100;
+          if(scaleFactor <= 0) scaleFactor = 0.01f;
+          scale.minX = scale.saveMinX * scaleFactor;
+          scale.maxX = scale.saveMaxX * scaleFactor;
+          scale.minY = scale.saveMinY * scaleFactor;
+          scale.maxY = scale.saveMaxY * scaleFactor;
+        }
+      }
+    });
   }
   
   public void setLayoutData(Object data) {
@@ -142,7 +182,7 @@ public class VivaldiPanel {
     int x0 = scale.getX(x,y);
     int y0 = scale.getY(x,y);   
     gc.fillRectangle(x0-1,y0-1,3,3);   
-    gc.drawLine(x0,y0,x0,(int)(y0-h));
+    gc.drawLine(x0,y0,x0,(int)(y0-h/10));
   }
   
   private void drawBorder(GC gc) {
