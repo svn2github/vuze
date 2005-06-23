@@ -76,11 +76,11 @@ public class VivaldiPanel {
     
     public int getX(float x,float y) {
       //return (int) ((x-vMinX) * vRatioX - xMinY * (y-maxY) / (maxY-minY)); 
-      return (int) ((x+500)/(1000) * width);
+      return (int) ((x+1000)/(2000) * width);
     }
     
     public int getY(float x,float y) {
-      return (int) ((y+500)/(1000) * height);
+      return (int) ((y+1000)/(2000) * height);
     }
   }
   
