@@ -1888,7 +1888,7 @@ public class MyTorrentsView
     	
     		// only make the download visible if it satisfies the category selection
     	
-    	if ( currentCategory == null ){
+    	if ( currentCategory == null || currentCategory.getType() == Category.TYPE_ALL ){
     		
     		addDataSource(manager);
     		
