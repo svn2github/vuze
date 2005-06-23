@@ -30,6 +30,7 @@ import java.nio.channels.SocketChannel;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.impl.*;
@@ -46,7 +47,7 @@ public class TCPTransport {
   public static final int TRANSPORT_MODE_TURBO  = 2;
   
   
-  private static boolean enable_efficient_io = System.getProperty("java.version").startsWith("1.5") ? true : false;
+  private static boolean enable_efficient_io = Constants.JAVA_VERSION.startsWith("1.5");
   private SocketChannel socket_channel;
 
   private volatile boolean is_ready_for_write = false;

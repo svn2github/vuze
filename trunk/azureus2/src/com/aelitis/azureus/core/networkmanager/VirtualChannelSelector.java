@@ -34,27 +34,17 @@ import com.aelitis.azureus.core.networkmanager.impl.VirtualChannelSelectorImpl;
 
 
 public class VirtualChannelSelector {
-  
-  /**
-   * TODO
-   */
-  private static final boolean ENABLE_FAULTY_SELECTOR_MODE = COConfigurationManager.getBooleanParameter( "network.tcp.enable_faulty_selector_mode" );
-  static{
-    if( ENABLE_FAULTY_SELECTOR_MODE )  LGLogger.log( LGLogger.INFORMATION, "**** FAULTY SELECTOR COMPATIBILITY MODE ENABLED ****" );
-  }
-  
-  
-  
   public static final int OP_CONNECT  = SelectionKey.OP_CONNECT;
   public static final int OP_READ   = SelectionKey.OP_READ;
   public static final int OP_WRITE  = SelectionKey.OP_WRITE;
 
+  private boolean SAFE_SELECTOR_MODE_ENABLED = false;//COConfigurationManager.getBooleanParameter( "network.tcp.enable_faulty_selector_mode" );
 
-  private final VirtualChannelSelectorImpl selector_impl;
+  private VirtualChannelSelectorImpl selector_impl;
   
   //ONLY USED IN FAULTY MODE
-  private final HashMap selectors;
-  private final AEMonitor selectors_mon;
+  private HashMap selectors;
+  private AEMonitor selectors_mon;
   private final int op;
   private final boolean pause;
   
@@ -70,21 +60,27 @@ public class VirtualChannelSelector {
     this.op = interest_op;
     this.pause = pause_after_select;
     
-    VirtualChannelSelectorImpl sel = new VirtualChannelSelectorImpl( this, op, pause );
-    
-    if( ENABLE_FAULTY_SELECTOR_MODE ) {
-      selector_impl = null;
-      selectors = new HashMap();
-      selectors_mon = new AEMonitor( "VirtualChannelSelector:FM" );
-      selectors.put( sel, new ArrayList() );
+    if( SAFE_SELECTOR_MODE_ENABLED ) {
+      initSafeMode();
     }
     else {
-      selector_impl = sel;
+      selector_impl = new VirtualChannelSelectorImpl( this, op, pause );
       selectors = null;
       selectors_mon = null;
     }
   }
 
+  
+  
+  private void initSafeMode() {
+    LGLogger.log( "*** SAFE SOCKET SELECTOR MODE ENABLED ***" );
+    selector_impl = null;
+    selectors = new HashMap();
+    selectors_mon = new AEMonitor( "VirtualChannelSelector:FM" );
+    selectors.put( new VirtualChannelSelectorImpl( this, op, pause ), new ArrayList() );
+  }
+  
+  
   
   
   /**
@@ -99,7 +95,7 @@ public class VirtualChannelSelector {
    * @param attachment object to be passed back with listener notification
    */
   public void register( SocketChannel channel, VirtualSelectorListener listener, Object attachment ) {
-    if( ENABLE_FAULTY_SELECTOR_MODE ) {
+    if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
           Map.Entry entry = (Map.Entry)it.next();          
@@ -134,7 +130,7 @@ public class VirtualChannelSelector {
    * @param channel to pause
    */
   public void pauseSelects( SocketChannel channel ) {
-    if( ENABLE_FAULTY_SELECTOR_MODE ) {
+    if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
           Map.Entry entry = (Map.Entry)it.next();          
@@ -163,7 +159,7 @@ public class VirtualChannelSelector {
    * @param channel to resume
    */
   public void resumeSelects( SocketChannel channel ) {
-    if( ENABLE_FAULTY_SELECTOR_MODE ) {
+    if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
           Map.Entry entry = (Map.Entry)it.next();          
@@ -192,16 +188,15 @@ public class VirtualChannelSelector {
    * @param channel channel originally registered
    */
   public void cancel( SocketChannel channel ) {
-    if( ENABLE_FAULTY_SELECTOR_MODE ) {
+    if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
           Map.Entry entry = (Map.Entry)it.next();          
           VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)entry.getKey();
           ArrayList channels = (ArrayList)entry.getValue();
           
-          if( channels.contains( channel ) ) {
+          if( channels.remove( channel ) ) {
             sel.cancel( channel );
-            channels.remove( channel );
             return;
           }
         }
@@ -225,7 +220,7 @@ public class VirtualChannelSelector {
    * @return number of sockets selected
    */
   public int select(long timeout) {
-    if( ENABLE_FAULTY_SELECTOR_MODE ) {
+    if( SAFE_SELECTOR_MODE_ENABLED ) {
       HashSet sels = null;
       
       try{  selectors_mon.enter();
@@ -249,6 +244,20 @@ public class VirtualChannelSelector {
 
   
   
+  
+  public boolean isSafeSelectionModeEnabled() {  return SAFE_SELECTOR_MODE_ENABLED;  }
+  
+  public void enableSafeSelectionMode() {
+    if( !SAFE_SELECTOR_MODE_ENABLED ) {
+      initSafeMode();
+      //TODO save config
+      SAFE_SELECTOR_MODE_ENABLED = true;
+    }
+  }
+  
+  
+  
+
   
   /**
    * Listener for notification upon socket channel selection.

@@ -175,7 +175,6 @@ public class ConnectDisconnectManager {
           }
           
           public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-            Debug.out( "selectFailure" );
             pending_attempts.remove( request );
             try{  pending_closes_mon.enter();
               pending_closes.addLast( request.channel );
@@ -345,8 +344,12 @@ public class ConnectDisconnectManager {
     
     
     //run select
-    connect_selector.select( 100 );
-    
+    try{
+      connect_selector.select( 100 );
+    }
+    catch( Throwable t ) {
+      Debug.out( "connnectSelectLoop() EXCEPTION: ", t );
+    }
 
     //do connect attempt timeout checks
     int num_stalled_requests = 0;

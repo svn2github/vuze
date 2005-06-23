@@ -21,9 +21,7 @@
  */
 package com.aelitis.azureus.core.networkmanager.impl;
 
-
-import java.util.*;
-import java.nio.channels.*;
+import java.util.Random;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
@@ -43,30 +41,28 @@ import org.gudy.azureus2.core3.util.*;
  * Fixed in JVM 1.4.2_05+ and 1.5b2+
  */
 public class SelectorGuard {
-  private static final int SELECTOR_FAIL_COUNT_MAX = 50000;  // a real selector spin will easily reach this
+  private static final int SELECTOR_SPIN_THRESHOLD    = 100;
+  private static final int SELECTOR_FAILURE_THRESHOLD = 10000;
   
   private boolean marked = false;
   private int consecutiveZeroSelects = 0;
   private long beforeSelectTime;
   private long select_op_time;
-  private int num_keys_selected;
-  
-  private HashMap conseq_keys = new HashMap();
-  private static final int CONSEQ_SELECT_THRESHOLD = 1000;
-  
-  private long zero_select_sum = 0;
-  private int zero_select_count = 0;
-  
+
   private long max_consec = 0;
-  
   private final String type;
+  private final GuardListener listener;
+  
+  
+  private long start = SystemTime.getCurrentTime() + new Random().nextInt( 30*1000);
   
   
   /**
    * Create a new SelectorGuard with the given failed count threshold.
    */
-  public SelectorGuard( String type ) {
+  public SelectorGuard( String type, GuardListener listener ) {
     this.type = type;
+    this.listener = listener;
   }
   
   
@@ -75,7 +71,7 @@ public class SelectorGuard {
    * mark the start time.
    */
   public void markPreSelectTime() {
-    beforeSelectTime = System.currentTimeMillis();//TODO
+    beforeSelectTime = SystemTime.getCurrentTime();
     marked = true;
   }
   
@@ -83,165 +79,88 @@ public class SelectorGuard {
   /**
    * Checks whether selector is still OK, and not spinning.
    */
-  public boolean isSelectorOK(final int _num_keys_ready, final long _time_threshold ) {
-    num_keys_selected = _num_keys_ready;
+  public void verifySelectorIntegrity( int num_keys_ready, long time_threshold ) {
     
-    if (_num_keys_ready > 0) {
+    if( SystemTime.getCurrentTime() - start > 2*60*1000 ) {  //TODO
+      start = SystemTime.getCurrentTime()*2;
+      consecutiveZeroSelects = SELECTOR_SPIN_THRESHOLD + 1;
+      num_keys_ready = 0;
+      time_threshold = 9999999999L;
+    }
+    
+    
+    if (num_keys_ready > 0) {
       //non-zero select, so OK
       consecutiveZeroSelects = 0;
-      return true;
+      return;
     }
     
     if (marked) marked = false;
     else Debug.out("Error: You must run markPreSelectTime() before calling isSelectorOK");
     
-    select_op_time = System.currentTimeMillis() - beforeSelectTime;  //TODO
+    select_op_time = SystemTime.getCurrentTime() - beforeSelectTime;
     
-    if( select_op_time > _time_threshold || select_op_time < 0 ) {
+    if( select_op_time > time_threshold || select_op_time < 0 ) {
       //zero-select, but over the time threshold, so OK
       consecutiveZeroSelects = 0;
-      return true;
+      return;
     }
     
     //if we've gotten here, then we have a potential selector anomalie
     consecutiveZeroSelects++;
     
-    zero_select_count++;
-    zero_select_sum += select_op_time;
     
     if( consecutiveZeroSelects > max_consec ) {
       max_consec = consecutiveZeroSelects;
-      if( max_consec % 500 == 0 ) {
-        long average = zero_select_sum / zero_select_count;
-        zero_select_sum = 0;
-        zero_select_count = 0;
-        System.out.println( type+ ": max_consec zero selects=" +max_consec+ ", average select time=" +average );
+      if( max_consec % 10 == 0 ) {
+        System.out.println( type+ ": max_consec zero selects=" +max_consec );
       }
     }
     
     
-    if( consecutiveZeroSelects > SELECTOR_FAIL_COUNT_MAX ) {
-      //we're over the threshold: reset stats and report error
+    if( consecutiveZeroSelects > SELECTOR_SPIN_THRESHOLD ) {
+      if( Constants.isWindows ) {
+        //under windows, it seems that selector spin can sometimes appear when >63 socket channels are registered with a selector
+        if( !listener.safeModeSelectEnabled() ) {
+          String msg = "Likely faulty socket selector detected: reverting to safe-mode socket selection. [JRE " +Constants.JAVA_VERSION+"]\n";
+          msg += "Please see " +Constants.AZUREUS_WIKI+ "LikelyFaultySocketSelector for help.";
+          Debug.out( msg );
+          LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
+        
+          consecutiveZeroSelects = 0;
+          listener.spinDetected();
+          return;
+        }
+      }
+      else {
+        //under linux, it seems that selector spin is somewhat common, but normal??? behavior, so just sleep
+        consecutiveZeroSelects = 0;
+        try{  Thread.sleep( 20 );  }catch( Throwable t) {t.printStackTrace();}
+        return;
+      }
+    }
+    
+    
+    if( consecutiveZeroSelects > SELECTOR_FAILURE_THRESHOLD ) {  //should only happen under Windows + JRE 1.4
+      String msg = "Likely network disconnect/reconnect: Repairing socket channel selector. [JRE " +Constants.JAVA_VERSION+"]\n";
+      msg += "Please see " +Constants.AZUREUS_WIKI+ "LikelyNetworkDisconnectReconnect for help.";
+      Debug.out( msg );
+      LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
+      
       consecutiveZeroSelects = 0;
-      return false;
+      listener.failureDetected();
+      return;
     }
     
     //not yet over the count threshold
-    return true;
   }
   
 
   
-  /**
-   * Cleanup bad selector and return a fresh new one.
-   */
-  public Selector repairSelector( Selector _bad_selector ) {
-    String msg = "Likely network disconnect/reconnect: Repairing socketchannel selector. [JRE " +System.getProperty("java.version")+"]\n";
-    msg += "Please see " +Constants.AZUREUS_WIKI+ "LikelyNetworkDisconnectReconnect for help.";
-    Debug.out( msg );
-    LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
-    
-    try {
-      //sleep a bit to allow underlying network recovery
-      Thread.sleep(5000);
-        
-    	//open new
-    	Selector newSelector = Selector.open();
-      
-    	//register old selector's keyset with new selector
-      for (Iterator i = _bad_selector.keys().iterator(); i.hasNext();) {
-        SelectionKey key = (SelectionKey)i.next();
-
-        SelectableChannel channel = key.channel();
-        
-        try{
-          channel.register(newSelector, key.interestOps(), key.attachment());
-        }
-        catch( Throwable t ) {
-          Debug.out( "repairSelector() exception caught on channel re-register:", t );
-        }
-      }
-        
-    	//close old
-      _bad_selector.close();
-        
-      Thread.sleep(2000);
-        
-    	//return new
-      return newSelector;
-        
-    }
-    catch( Exception e ) {
-      Debug.out( "repairSelector() exception caught:", e );
-    }
-      
-    Debug.out("Unable to repair bad selector; returning original as still-bad");
-    return _bad_selector;
-  }
-  
-  
-  
-  /**
-   * Detect if any selection keys seem to be select-spinning.
-   * @param selected_keys for the latest select op
-   * @return true if spinning has been detected, false if ok
-   */
-  public boolean detectSpinningKeys( Set selected_keys ) {
-    HashMap new_keys = new HashMap();
-    boolean spin_detected = false;
-    
-    if( select_op_time > 30 || num_keys_selected >= 10 ) {
-      //the select op didnt return immediately (must have blocked),
-      //or there were many keys also selected
-    }
-    else {
-      for( Iterator i = selected_keys.iterator(); i.hasNext(); ) {
-        Object key = i.next();
-        
-        Integer count = (Integer)conseq_keys.get( key );
-        
-        if( count == null ) {
-          new_keys.put( key, new Integer(1) );
-        }
-        else {
-          int conseq_selects = count.intValue() + 1;
-          
-          new_keys.put( key, new Integer( conseq_selects ) );
-          
-          if( conseq_selects >= CONSEQ_SELECT_THRESHOLD && conseq_selects % CONSEQ_SELECT_THRESHOLD == 0 ) {
-            spin_detected = true;
-          }
-        }
-      }
-    }
-
-    conseq_keys = new_keys;    
-    
-    return spin_detected;
-  }
-  
-  
-  
-  /**
-   * Get a report of any detected spinning keys.
-   * @return spin report
-   */
-  public String getSpinningKeyReport() {
-    String report = "Channels with more than " +CONSEQ_SELECT_THRESHOLD+ " consecutive selects: ";
-    
-    for( Iterator i = conseq_keys.entrySet().iterator(); i.hasNext(); ) {
-      Map.Entry entry = (Map.Entry)i.next();
-      
-      Integer count = (Integer)entry.getValue();
-      
-      if( count.intValue() >= CONSEQ_SELECT_THRESHOLD ) {
-        SelectionKey key = (SelectionKey)entry.getKey();
-        
-        report += "[" +count.intValue()+ "X, " +key.channel()+ "] ";
-      }
-    }
-    
-    return report;
+  public interface GuardListener {
+    public boolean safeModeSelectEnabled();
+    public void spinDetected();
+    public void failureDetected();
   }
   
 }
