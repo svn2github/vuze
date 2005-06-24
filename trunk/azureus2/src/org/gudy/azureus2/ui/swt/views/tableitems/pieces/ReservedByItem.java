@@ -36,7 +36,7 @@ public class ReservedByItem
 {
   /** Default Constructor */
   public ReservedByItem() {
-    super("reservedby", ALIGN_TRAIL, POSITION_LAST, 80, TableManager.TABLE_TORRENT_PIECES);
+    super("reservedby", ALIGN_TRAIL, CoreTableColumn.POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PIECES);
     setRefreshInterval(INTERVAL_LIVE);
   }
 

@@ -36,7 +36,7 @@ public class WritersItem
 {
   /** Default Constructor */
   public WritersItem() {
-    super("writers", ALIGN_TRAIL, POSITION_LAST, 80, TableManager.TABLE_TORRENT_PIECES);
+    super("writers", ALIGN_TRAIL, CoreTableColumn.POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PIECES);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
