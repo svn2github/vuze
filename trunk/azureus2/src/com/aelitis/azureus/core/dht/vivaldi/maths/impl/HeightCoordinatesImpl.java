@@ -58,6 +58,12 @@ public class HeightCoordinatesImpl implements Coordinates {
     return (float) (Math.sqrt(x * x + y * y) + h);
   }
   
+  public boolean
+  atOrigin()
+  {
+	  return( x==0&&y==0&&h==0);
+  }
+  
   public float distance(Coordinates other) {
     return this.sub(other).measure();
   }

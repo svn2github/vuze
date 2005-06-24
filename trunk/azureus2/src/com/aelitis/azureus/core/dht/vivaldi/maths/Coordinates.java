@@ -36,4 +36,6 @@ public interface Coordinates {
   
   public Coordinates unity();
   
+  public boolean
+  atOrigin();
 }

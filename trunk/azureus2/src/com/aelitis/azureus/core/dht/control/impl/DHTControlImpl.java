@@ -51,6 +51,8 @@ import com.aelitis.azureus.core.dht.db.*;
 import com.aelitis.azureus.core.dht.router.*;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.vivaldi.maths.Coordinates;
+import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 
 /**
  * @author parg
@@ -1390,6 +1392,59 @@ DHTControlImpl
 							DHTLog.log( "lookup: terminates - we've searched the closest " + search_accuracy + " contacts" );
 	
 							break;
+						}
+					}
+					
+					// we optimise the first few entries based on their Vivaldi distance. Only a few
+					// however as we don't want to start too far away from the target.
+						
+					if ( contacts_queried.size() < concurrency ){
+						
+						VivaldiPosition	loc_vp = local_contact.getVivaldiPosition();
+						
+						if ( !loc_vp.getCoordinates().atOrigin()){
+							
+							DHTTransportContact	vp_closest = null;
+							
+							Iterator vp_it = contacts_to_query.iterator();
+							
+							int	vp_count_limit = (concurrency*2) - contacts_queried.size();
+							
+							int	vp_count = 0;
+							
+							float	best_dist = Float.MAX_VALUE;
+							
+							while( vp_it.hasNext() && vp_count < vp_count_limit ){
+								
+								vp_count++;
+								
+								DHTTransportContact	entry	= (DHTTransportContact)vp_it.next();
+								
+								VivaldiPosition	vp = entry.getVivaldiPosition();
+								
+								Coordinates	coords = vp.getCoordinates();
+								
+								if ( !coords.atOrigin()){
+									
+									float	dist = loc_vp.estimateRTT( coords );
+									
+									if ( dist < best_dist ){
+										
+										best_dist	= dist;
+										
+										vp_closest	= entry;
+										
+										// System.out.println( start + ": lookup for " + DHTLog.getString2( lookup_id ) + ": vp override (dist = " + dist + ")");
+									}
+								}
+							}
+						
+							if ( vp_closest != null ){
+								
+									// override ID closest with VP closes
+								
+								closest = vp_closest;
+							}
 						}
 					}
 					
