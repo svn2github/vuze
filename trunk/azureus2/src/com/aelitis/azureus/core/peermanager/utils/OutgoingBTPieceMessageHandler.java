@@ -65,7 +65,7 @@ public class OutgoingBTPieceMessageHandler {
       	lock_mon.enter();
         
         String id = " piece_number="+request.getPieceNumber()+ ", piece_offset="+request.getOffset()+ ", length="+request.getLength();
-        LGLogger.log( "readCompleted::" +id);
+        if( LGLogger.isEnabled() )  LGLogger.log( "readCompleted::" +id);
 
       	if( !loading_messages.contains( request ) || destroyed ) { //was canceled
           Debug.out( "!loading_messages.contains( request )" );
@@ -96,7 +96,7 @@ public class OutgoingBTPieceMessageHandler {
       if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
         BTPiece p = (BTPiece)message;   
         String id = " piece_number="+p.getPieceNumber()+ ", piece_offset="+p.getPieceOffset();    
-        LGLogger.log( "messageAdded::" +id);
+        if( LGLogger.isEnabled() )  LGLogger.log( "messageAdded::" +id);
       }
       return true;
     }
@@ -106,7 +106,7 @@ public class OutgoingBTPieceMessageHandler {
         
         BTPiece p = (BTPiece)message; 
         String id = " piece_number="+p.getPieceNumber()+ ", piece_offset="+p.getPieceOffset();
-        LGLogger.log( "messageSent::" +id);
+        if( LGLogger.isEnabled() )  LGLogger.log( "messageSent::" +id);
         
         try{
           lock_mon.enter();
@@ -123,7 +123,7 @@ public class OutgoingBTPieceMessageHandler {
       if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
         BTPiece p = (BTPiece)message;   
         String id = " piece_number="+p.getPieceNumber()+ ", piece_offset="+p.getPieceOffset();    
-        LGLogger.log( "messageQueued::" +id);
+        if( LGLogger.isEnabled() )  LGLogger.log( "messageQueued::" +id);
       }
     }
     public void messageRemoved( Message message ) {/*nothing*/}
@@ -158,7 +158,7 @@ public class OutgoingBTPieceMessageHandler {
   public void addPieceRequest( int piece_number, int piece_offset, int length ) {
     String id = " piece_number="+piece_number+ ", piece_offset="+piece_offset+ ", length="+length;
     
-    LGLogger.log( "addPieceRequest::" +id);
+    if( LGLogger.isEnabled() )  LGLogger.log( "addPieceRequest::" +id);
 
     
     if( destroyed ) {
@@ -282,7 +282,7 @@ public class OutgoingBTPieceMessageHandler {
       loading_messages.add( dmr );
       
       String id = " piece_number="+dmr.getPieceNumber()+ ", piece_offset="+dmr.getOffset()+ ", length="+dmr.getLength();
-      LGLogger.log( "disk_manager.enqueueReadRequest::" +id);
+      if( LGLogger.isEnabled() )  LGLogger.log( "disk_manager.enqueueReadRequest::" +id);
       
       disk_manager.enqueueReadRequest( dmr, read_req_listener );
       num_messages_loading++;
