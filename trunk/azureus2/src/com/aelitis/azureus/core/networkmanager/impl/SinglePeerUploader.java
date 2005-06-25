@@ -102,6 +102,7 @@ public class SinglePeerUploader implements RateControlledEntity {
       }
 
       connection.notifyOfException( e );
+      return false;
     }
     
     if( written < 1 )  {
