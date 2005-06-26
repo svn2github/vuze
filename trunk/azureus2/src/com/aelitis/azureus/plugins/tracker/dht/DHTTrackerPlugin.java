@@ -24,10 +24,15 @@ package com.aelitis.azureus.plugins.tracker.dht;
 
 
 import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
+import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -742,34 +747,99 @@ DHTTrackerPlugin
 				
 				int	port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 
-				dht.put( 
-						dl.getTorrent().getHash(),
-						"Tracker registration of '" + dl.getName() + "'",
-						String.valueOf( port ).getBytes(),
-						new_flags,
-						new DHTPluginOperationListener()
-						{
-							public void
-							valueRead(
-								DHTPluginContact	originator,
-								DHTPluginValue		value )
-							{							
-							}
-							
-							public void
-							valueWritten(
-								DHTPluginContact	target,
-								DHTPluginValue		value )
-							{	
-							}
+		 		String port_override = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
+		 		
+		  		if( !port_override.equals("")){
+		 
+		  			try{
+		  				port	= Integer.parseInt( port_override );
+		  				
+		  			}catch( Throwable e ){
+		  			}
+		  		}
+		  		
+		  		if ( port == 0 ){
+		  			
+		  			log.log( "    port = 0, registration not performed" );
+		  			
+		  		}else{
+		  			
+		  		    String override_ips = COConfigurationManager.getStringParameter( "Override Ip", "" );
 
-							public void
-							complete(
-								boolean	timeout_occurred )
+		  		    String override_ip	= null;
+		  		    
+		  		  	if ( override_ips.length() > 0 ){
+		  	    		
+		  	   				// gotta select an appropriate override based on network type
+		  		  			
+		  		  		StringTokenizer	tok = new StringTokenizer( override_ips, ";" );
+		  					
+		  		  		while( tok.hasMoreTokens()){
+		  				
+		  		  			String	this_address = (String)tok.nextToken().trim();
+		  				
+		  		  			if ( this_address.length() > 0 ){
+		  					
+		  		  				String	cat = AENetworkClassifier.categoriseAddress( this_address );
+		  					
+		  		  				if ( cat == AENetworkClassifier.AT_PUBLIC ){
+		  						
+		  		  					override_ip	= this_address;
+		  		  					
+		  		  					break;
+		  		  				}
+		  		  			}
+		  				}
+		  			}	
+		  	    
+			  	    if ( override_ip != null ){
+			  	     	   	
+		  	    		try{
+		  	    			override_ip = PRHelpers.DNSToIPAddress( override_ip );
+			  	    		
+		  	    		}catch( UnknownHostException e){
+
+		  	    			log.log( "    Can't resolve IP override '" + override_ip + "'" );
+		  	    			
+		  	    			override_ip	= null;
+		  	    		}
+		  	    	}
+			  	    
+			  	    	// format is [ip_override:]port
+			  	    
+			  	    String	value_to_put = override_ip==null?"":(override_ip+":");
+			  	    
+			  	    value_to_put += port;
+			  	    			  	    
+					dht.put( 
+							dl.getTorrent().getHash(),
+							"Tracker registration of '" + dl.getName() + "' -> " + value_to_put,
+							value_to_put.getBytes(),
+							new_flags,
+							new DHTPluginOperationListener()
 							{
-								log.log( "Registration of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + ")");
-							}
-						});
+								public void
+								valueRead(
+									DHTPluginContact	originator,
+									DHTPluginValue		value )
+								{							
+								}
+								
+								public void
+								valueWritten(
+									DHTPluginContact	target,
+									DHTPluginValue		value )
+								{	
+								}
+	
+								public void
+								complete(
+									boolean	timeout_occurred )
+								{
+									log.log( "Registration of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + ")");
+								}
+							});
+		  		}
 			}
 		}
 		
@@ -925,10 +995,36 @@ DHTTrackerPlugin
 								{
 									String	str_val = new String(value.getValue());
 									
-									try{
-										int	port = Integer.parseInt( str_val );
+										// for future hacks we trim anything after a ';'
 									
-										addresses.add( originator.getAddress().getAddress().getHostAddress());
+									int sep = str_val.indexOf(';');
+									
+									if ( sep != -1 ){
+										
+										str_val = str_val.substring(0,sep);
+									}
+									
+									try{
+										sep = str_val.indexOf(':');
+									
+										String	ip_str		= null;
+										String	port_str;
+										
+										if ( sep == -1 ){
+											
+											port_str = str_val;
+											
+										}else{
+											
+											ip_str 		= str_val.substring( 0, sep );
+											
+											port_str	= str_val.substring( sep+1 );	
+										}
+										
+										int	port = Integer.parseInt( port_str );
+																			
+										addresses.add( 
+												ip_str==null?originator.getAddress().getAddress().getHostAddress():ip_str);
 										
 										ports.add(new Integer(port));
 										
@@ -943,6 +1039,8 @@ DHTTrackerPlugin
 										
 									}catch( Throwable e ){
 										
+										// in case we get crap back (someone spamming the DHT) just
+										// silently ignore
 									}
 								}
 								
