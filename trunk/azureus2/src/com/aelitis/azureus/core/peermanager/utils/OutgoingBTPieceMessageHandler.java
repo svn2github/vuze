@@ -22,13 +22,12 @@
 
 package com.aelitis.azureus.core.peermanager.utils;
 
+import java.io.FileWriter;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
 import com.aelitis.azureus.core.peermanager.messaging.*;
@@ -58,18 +57,18 @@ public class OutgoingBTPieceMessageHandler {
 
 
   
+  
+  
+  
   private final DiskManagerReadRequestListener read_req_listener = new DiskManagerReadRequestListener() {
     public void readCompleted( DiskManagerReadRequest request, DirectByteBuffer data ) {
       BTPiece msg;
       try{
       	lock_mon.enter();
         
-        String id = " piece_number="+request.getPieceNumber()+ ", piece_offset="+request.getOffset()+ ", length="+request.getLength();
-        if( LGLogger.isEnabled() )  LGLogger.log( "readCompleted::" +id);
+        logit( READ_COMP, request.getPieceNumber(), request.getOffset() );
 
       	if( !loading_messages.contains( request ) || destroyed ) { //was canceled
-          Debug.out( "!loading_messages.contains( request )" );
-          
       	  data.returnToPool();
       	  return;
       	}
@@ -95,8 +94,7 @@ public class OutgoingBTPieceMessageHandler {
     public boolean messageAdded( Message message ) {
       if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
         BTPiece p = (BTPiece)message;   
-        String id = " piece_number="+p.getPieceNumber()+ ", piece_offset="+p.getPieceOffset();    
-        if( LGLogger.isEnabled() )  LGLogger.log( "messageAdded::" +id);
+        logit( MSG_ADDED, p.getPieceNumber(), p.getPieceOffset() );
       }
       return true;
     }
@@ -105,8 +103,7 @@ public class OutgoingBTPieceMessageHandler {
       if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
         
         BTPiece p = (BTPiece)message; 
-        String id = " piece_number="+p.getPieceNumber()+ ", piece_offset="+p.getPieceOffset();
-        if( LGLogger.isEnabled() )  LGLogger.log( "messageSent::" +id);
+        logit( MSG_SENT, p.getPieceNumber(), p.getPieceOffset() );
         
         try{
           lock_mon.enter();
@@ -121,9 +118,8 @@ public class OutgoingBTPieceMessageHandler {
     }
     public void messageQueued( Message message ) {
       if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
-        BTPiece p = (BTPiece)message;   
-        String id = " piece_number="+p.getPieceNumber()+ ", piece_offset="+p.getPieceOffset();    
-        if( LGLogger.isEnabled() )  LGLogger.log( "messageQueued::" +id);
+        BTPiece p = (BTPiece)message;
+        logit( MSG_QUEUED, p.getPieceNumber(), p.getPieceOffset() );
       }
     }
     public void messageRemoved( Message message ) {/*nothing*/}
@@ -156,13 +152,11 @@ public class OutgoingBTPieceMessageHandler {
    * @param length
    */
   public void addPieceRequest( int piece_number, int piece_offset, int length ) {
-    String id = " piece_number="+piece_number+ ", piece_offset="+piece_offset+ ", length="+length;
-    
-    if( LGLogger.isEnabled() )  LGLogger.log( "addPieceRequest::" +id);
 
-    
+    logit( ADD_REQ, piece_number, piece_offset );
+
     if( destroyed ) {
-      Debug.out( "already destroyed" );
+      logit( "already destroyed", -1, -1 );
       return;
     }
     
@@ -273,6 +267,8 @@ public class OutgoingBTPieceMessageHandler {
     finally{
       lock_mon.exit();
     }
+    
+    if( LOG_ENABLED )  dumpLogs();
   }
   
   
@@ -281,13 +277,86 @@ public class OutgoingBTPieceMessageHandler {
       DiskManagerReadRequest dmr = (DiskManagerReadRequest)requests.removeFirst();
       loading_messages.add( dmr );
       
-      String id = " piece_number="+dmr.getPieceNumber()+ ", piece_offset="+dmr.getOffset()+ ", length="+dmr.getLength();
-      if( LGLogger.isEnabled() )  LGLogger.log( "disk_manager.enqueueReadRequest::" +id);
+      logit( ENQ_READ_REQ, dmr.getPieceNumber(), dmr.getOffset() );
       
       disk_manager.enqueueReadRequest( dmr, read_req_listener );
       num_messages_loading++;
     }
   }
 
+  
+  
+  
+  private final boolean LOG_ENABLED = true;  //TODO
+  private final boolean LIGHT_LOG = false;
+  private LinkedList entries;
+  private final int MAX_ENTRIES = 100;
+  
+  private static final String ADD_REQ = "add";
+  private static final String ENQ_READ_REQ = "enq";
+  private static final String READ_COMP = "com";
+  private static final String MSG_ADDED = "ma";
+  private static final String MSG_QUEUED = "mq";
+  private static final String MSG_SENT = "ms";
+  
+  
+  private void logit( String header, int piece, int offset ) {
+    if( !LOG_ENABLED )  return;
+    
+    String entry = header + ":" + piece + "-" + offset;
+    
+    if( !LIGHT_LOG ) {
+      LGLogger.log( entry );
+      return;
+    }
+    
+    if( entries == null ) entries = new LinkedList();
+
+    try{
+      lock_mon.enter();
+      
+      entries.addLast( entry );
+    
+    if( entries.size() > MAX_ENTRIES ) {
+      entries.removeFirst();
+    }
+    
+    }
+    finally{
+      lock_mon.exit();
+    }
+  }
+  
+  
+  private void dumpLogs() {
+    if( entries == null )  return;
+    
+    FileWriter log = null;
+    
+    try{
+      log = new FileWriter( "f:\\requestsdump.log", true );
+
+      try{
+        lock_mon.enter();
+        
+      for( Iterator it = entries.iterator(); it.hasNext(); ) {
+        String entry = (String)it.next();
+        log.write( entry );
+        log.write("\n");
+      }
+      
+      entries.clear();
+      
+      }
+      finally{
+        lock_mon.exit();
+      }
+    }
+    catch( Throwable t ) { t.printStackTrace(); }
+    finally{
+      if( log != null )  try{ log.close();  }catch( Throwable t ) {t.printStackTrace();}
+    }
+  }
+  
   
 }
