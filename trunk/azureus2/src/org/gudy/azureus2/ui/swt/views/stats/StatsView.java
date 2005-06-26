@@ -52,7 +52,7 @@ public class StatsView extends AbstractIView {
   TabItem itemCache;
   TabItem itemDHT;
   TabItem itemDHTcvs;
-  //TabItem itemVivaldi;
+  //TabItem itemVivaldi; //TODO
   
   IView viewActivity;
   IView viewStats;
