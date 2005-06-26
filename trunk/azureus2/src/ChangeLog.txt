@@ -1,26 +1,26 @@
 AZUREUS CHANGELOG
 ---------
 
-2005.06.xx | Azureus 2.3.0.3
+2005.06.27 | Azureus 2.3.0.4
 
 FEATURE: Core | DHT torrent lookup now based on sha1(hash) and torrent xfer encrypted using hash-derived key [Parg]
 FEATURE: Core | More aggressive banning of peers sending bad data - algorithm change and block-banning feature [Gudy,Parg]
 FEATURE: Core | Support for multiple DHT networks on same port [Parg]
-FEATURE: UI   | Average peer speed for swarm column added [Nolar]
-FEATURE: Plug | Plugin interface extension to allow per-plugin torrent-attributes [Parg]
-FEATURE: Plug | Plugin ResourceDownload feature for accessing content-type [Parg]
 FEATURE: Core | Introduced "passive torrents" - these are tracked but not downloaded [Parg]
 FEATURE: Core | Category setting functions added to "My Tracker" [Parg]
 FEATURE: Core | Added ability to make plugin config ui components invisible [Parg]
+FEATURE: UI   | Average peer speed for swarm column added [Nolar]
+FEATURE: Plug | Plugin interface extension to allow per-plugin torrent-attributes [Parg]
+FEATURE: Plug | Plugin ResourceDownload feature for accessing content-type [Parg]
 
 CHANGE: Core  | Improved optimistic unchoke anti-leech algorithms [Nolar]
 CHANGE: Core  | CVS versions run multiple DHTs to permit validations of changes [Parg]
 CHANGE: Core  | DHT anti-spoof for cache forwards [Parg]
 CHANGE: Core  | DHT mechanisms for flood prevention [Parg]
 CHANGE: Core  | Added local tracker url to torrents when hosting external torrents [Parg]
-CHANGE: Plug  | More JPC plugin enhancements to help reduce cache server load [Nolar]
 CHANGE: Core  | Hosted torrents now become "passively tracked" when their corresponding download is removed [Parg]
 CHANGE: Core  | More pro-active injection of DHT scrapes for torrents with failing trackers [Parg]
+CHANGE: Plug  | More JPC plugin enhancements to help reduce cache server load [Nolar]
 
 BUGFIX: Core  | DHT protocol version logic fixes [Parg]
 BUGFIX: Core  | Fix for 100% cpu when more than 60 connections are registered with a selector under buggy network stacks [Nolar]
@@ -28,8 +28,10 @@ BUGFIX: Core  | Invalid listen port configuration would prevent Azureus from sta
 BUGFIX: Core  | Added hooks to catch Windows shutdown events to allow graceful Azureus exit [Nolar]
 BUGFIX: Core  | Fix for start-stopped non-simple torrents showing data-missing error on restart [Parg]
 BUGFIX: Core  | Fix for drag-n-drop SWT exceptions blocking Azureus startup [Nolar]
-BUGFIX: UI    | Categories not being correctly displayed when torrents transit between downloading and seeding [Parg]
 BUGFIX: Core  | Fixed up "interested" message for downloads with "do not download" files [Parg,Nolar]
+BUGFIX: UI    | Categories not being correctly displayed when torrents transit between downloading and seeding [Parg]
+
+
 
 2005.05.25 | Azureus 2.3.0.2
 
