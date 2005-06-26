@@ -39,17 +39,18 @@ import org.gudy.azureus2.core3.util.*;
  * Fixed in JVM 1.4.2_05+ and 1.5b2+
  */
 public class SelectorGuard {
-  private static final int SELECTOR_SPIN_THRESHOLD    = 100;
-  private static final int SELECTOR_FAILURE_THRESHOLD = 10000;
+  private static final int SELECTOR_SPIN_THRESHOLD    = 50;
+  private static final int SELECTOR_FAILURE_THRESHOLD = 5000;
+  private static final int MAX_IGNORES = 5;
   
   private boolean marked = false;
   private int consecutiveZeroSelects = 0;
   private long beforeSelectTime;
   private long select_op_time;
 
-  private long max_consec = 0;
   private final String type;
   private final GuardListener listener;
+  private int ignores = 0;
 
   
   /**
@@ -75,9 +76,12 @@ public class SelectorGuard {
    * Checks whether selector is still OK, and not spinning.
    */
   public void verifySelectorIntegrity( int num_keys_ready, long time_threshold ) {    
-    if (num_keys_ready > 0) {
-      //non-zero select, so OK
-      consecutiveZeroSelects = 0;
+    if( num_keys_ready > 0 ) {  //non-zero select, so OK
+      ignores++;      
+      if( ignores > MAX_IGNORES ) {  //allow MAX_IGNORES / SELECTOR_SPIN_THRESHOLD to be successful select ops and still trigger a spin alert
+        ignores = 0;
+        consecutiveZeroSelects = 0;
+      }
       return;
     }
     
@@ -95,15 +99,6 @@ public class SelectorGuard {
     //if we've gotten here, then we have a potential selector anomalie
     consecutiveZeroSelects++;
     
-    
-    if( consecutiveZeroSelects > max_consec ) {
-      max_consec = consecutiveZeroSelects;
-      if( max_consec % 25 == 0 ) {
-        System.out.println( type+ ": max_consec zero selects=" +max_consec );
-      }
-    }
-    
-    
     if( consecutiveZeroSelects > SELECTOR_SPIN_THRESHOLD ) {
       if( Constants.isWindows ) {
         //under windows, it seems that selector spin can sometimes appear when >63 socket channels are registered with a selector
@@ -114,7 +109,7 @@ public class SelectorGuard {
           LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
         
           consecutiveZeroSelects = 0;
-          listener.spinDetected();
+          listener.spinDetected();  //TODO
           return;
         }
       }
