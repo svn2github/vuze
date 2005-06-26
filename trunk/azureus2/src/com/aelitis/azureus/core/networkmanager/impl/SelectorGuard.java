@@ -109,7 +109,7 @@ public class SelectorGuard {
           LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
         
           consecutiveZeroSelects = 0;
-          listener.spinDetected();  //TODO
+          listener.spinDetected();
           return;
         }
       }

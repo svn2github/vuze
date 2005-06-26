@@ -292,12 +292,12 @@ public class OutgoingBTPieceMessageHandler {
   private LinkedList entries;
   private final int MAX_ENTRIES = 100;
   
-  private static final String ADD_REQ = "add";
-  private static final String ENQ_READ_REQ = "enq";
-  private static final String READ_COMP = "com";
-  private static final String MSG_ADDED = "ma";
-  private static final String MSG_QUEUED = "mq";
-  private static final String MSG_SENT = "ms";
+  private static final String ADD_REQ       = "add";
+  private static final String ENQ_READ_REQ  = "enq";
+  private static final String READ_COMP     = "com";
+  private static final String MSG_ADDED     = "ma";
+  private static final String MSG_QUEUED    = "mq";
+  private static final String MSG_SENT      = "ms";
   
   
   private void logit( String header, int piece, int offset ) {
