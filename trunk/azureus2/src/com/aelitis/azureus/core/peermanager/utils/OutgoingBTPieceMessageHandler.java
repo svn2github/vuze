@@ -287,7 +287,7 @@ public class OutgoingBTPieceMessageHandler {
   
   
   
-  private final boolean LOG_ENABLED = true;  //TODO
+  private final boolean LOG_ENABLED = false;  //TODO
   private final boolean LIGHT_LOG = false;
   private LinkedList entries;
   private final int MAX_ENTRIES = 100;
@@ -306,7 +306,7 @@ public class OutgoingBTPieceMessageHandler {
     String entry = header + ":" + piece + "-" + offset;
     
     if( !LIGHT_LOG ) {
-      LGLogger.log( entry );
+      if( LGLogger.isEnabled() )  LGLogger.log( entry );
       return;
     }
     
