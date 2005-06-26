@@ -248,7 +248,7 @@ public class VirtualChannelSelector {
   public void enableSafeSelectionMode() {
     if( !SAFE_SELECTOR_MODE_ENABLED ) {
       SAFE_SELECTOR_MODE_ENABLED = true;
-      //COConfigurationManager.setParameter( "network.tcp.enable_safe_selector_mode", true );  //TODO enable permanently
+      COConfigurationManager.setParameter( "network.tcp.enable_safe_selector_mode", true );
       initSafeMode();
     }
   }
