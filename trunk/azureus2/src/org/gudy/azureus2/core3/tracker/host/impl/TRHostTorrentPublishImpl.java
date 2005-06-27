@@ -46,6 +46,8 @@ TRHostTorrentPublishImpl
 	private int				status	= TS_PUBLISHED;
 	private boolean			persistent;
 	
+	private int					seed_count;
+	private int					peer_count;
 	private TRHostPeer[]		peers = new TRHostPeer[0];
 	
 	private List				listeners_cow		= new ArrayList();
@@ -220,8 +222,8 @@ TRHostTorrentPublishImpl
 		
 			if ( resp != null && resp.isValid()){
 						
-				int peer_count 	= resp.getPeers();
-				int seed_count	= resp.getSeeds();
+				peer_count 	= resp.getPeers();
+				seed_count	= resp.getSeeds();
 				
 				peers = new TRHostPeer[ peer_count + seed_count ];
 				
@@ -242,13 +244,13 @@ TRHostTorrentPublishImpl
 	public int
 	getSeedCount()
 	{
-		return( 0 );
+		return( seed_count );
 	}
 	
 	public int
 	getLeecherCount()
 	{
-		return( 0 );
+		return( peer_count );
 	}
 	
 	public int
