@@ -257,7 +257,7 @@ TRHostImpl
 	
 		throws TRHostException
 	{
-		return( addTorrent( torrent, TRHostTorrent.TS_STARTED, persistent, passive ));
+		return( addTorrent( torrent, TRHostTorrent.TS_STARTED, persistent, passive, SystemTime.getCurrentTime() ));
 	}
 	
 	public TRHostTorrent
@@ -266,7 +266,7 @@ TRHostImpl
 		
 		throws TRHostException
 	{
-		return( addTorrent( torrent, TRHostTorrent.TS_PUBLISHED, true, false ));
+		return( addTorrent( torrent, TRHostTorrent.TS_PUBLISHED, true, false, SystemTime.getCurrentTime()));
 	}
 	
 	protected TRHostTorrent
@@ -274,7 +274,8 @@ TRHostImpl
 		TOTorrent		torrent,
 		int				state,
 		boolean			persistent,
-		boolean			passive )
+		boolean			passive,
+		long			date_added )
 		
 		throws TRHostException
 	{
@@ -400,14 +401,14 @@ TRHostImpl
 		
 			if ( state == TRHostTorrent.TS_PUBLISHED ){
 	
-				TRHostTorrentPublishImpl new_torrent = new TRHostTorrentPublishImpl( this, torrent );
+				TRHostTorrentPublishImpl new_torrent = new TRHostTorrentPublishImpl( this, torrent, date_added );
 	
 				new_torrent.setPersistent( persistent );
 				
 				host_torrent	= new_torrent;
 			}else{
 			
-				TRHostTorrentHostImpl	new_torrent = new TRHostTorrentHostImpl( this, server, torrent, port );
+				TRHostTorrentHostImpl	new_torrent = new TRHostTorrentHostImpl( this, server, torrent, port, date_added );
 				
 				new_torrent.setPersistent( persistent );
 				
@@ -861,7 +862,7 @@ TRHostImpl
 				return( true );
 			}
 			
-			addExternalTorrent( hash, TRHostTorrent.TS_STARTED );
+			addExternalTorrent( hash, TRHostTorrent.TS_STARTED, SystemTime.getCurrentTime());
 			
 			return( true );
 			
@@ -874,7 +875,8 @@ TRHostImpl
 	protected void
 	addExternalTorrent(
 		byte[]		hash,
-		int			state )
+		int			state,
+		long		date_added )
 	{
 		try{
 			this_mon.enter();
@@ -893,7 +895,7 @@ TRHostImpl
 			try{
 				TOTorrent	external_torrent = new TRHostExternalTorrent(hash, new URL( "http://" + tracker_ip + ":" + port + "/announce"));
 			
-				addTorrent( external_torrent, state, true, false );	
+				addTorrent( external_torrent, state, true, false, date_added );	
 				
 			}catch( Throwable e ){
 				

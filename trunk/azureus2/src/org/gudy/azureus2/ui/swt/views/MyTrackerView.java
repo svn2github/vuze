@@ -90,7 +90,8 @@ MyTrackerView
     new TotalBytesInItem(),
     new AverageBytesInItem(),
     new TotalBytesOutItem(),
-    new AverageBytesOutItem()
+    new AverageBytesOutItem(),
+    new DateAddedItem(),
   };
 
 	protected static final TorrentAttribute	category_attribute = 

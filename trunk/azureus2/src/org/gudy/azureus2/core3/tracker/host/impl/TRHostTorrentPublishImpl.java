@@ -38,16 +38,18 @@ public class
 TRHostTorrentPublishImpl
 	implements TRHostTorrent 
 {
-	protected TRHostImpl		host;
-	protected TOTorrent			torrent;
+	private TRHostImpl		host;
+	private TOTorrent		torrent;
 
-	protected int				status	= TS_PUBLISHED;
-	protected boolean			persistent;
+	private long			date_added;
 	
-	protected TRHostPeer[]		peers = new TRHostPeer[0];
+	private int				status	= TS_PUBLISHED;
+	private boolean			persistent;
 	
-	protected List				listeners_cow		= new ArrayList();
-	protected List				removal_listeners	= new ArrayList();
+	private TRHostPeer[]		peers = new TRHostPeer[0];
+	
+	private List				listeners_cow		= new ArrayList();
+	private List				removal_listeners	= new ArrayList();
 	
 	private HashMap data;
 
@@ -56,10 +58,12 @@ TRHostTorrentPublishImpl
 	protected
 	TRHostTorrentPublishImpl(
 		TRHostImpl		_host,
-		TOTorrent		_torrent )
+		TOTorrent		_torrent,
+		long			_date_added )
 	{
 		host		= _host;
 		torrent		= _torrent;
+		date_added	= _date_added;
 	}
 
 	public void
@@ -131,6 +135,12 @@ TRHostTorrentPublishImpl
 	setPassive(
 		boolean		passive )
 	{
+	}
+	
+	public long
+	getDateAdded()
+	{
+		return( date_added );
 	}
 	
 	public TOTorrent

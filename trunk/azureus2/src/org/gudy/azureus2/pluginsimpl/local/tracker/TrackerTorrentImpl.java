@@ -240,6 +240,12 @@ TrackerTorrentImpl
 		return( host_torrent.isPassive());
 	}
 	
+	public long
+	getDateAdded()
+	{
+		return( host_torrent.getDateAdded());
+	}
+	
 	public void
 	preProcess(
 		TRHostTorrentRequest	request )

@@ -94,6 +94,10 @@ TRHostConfigImpl
 		   		
 		   		boolean	passive =  passive_l!=null && passive_l.longValue() == 1;
 
+		   		Long	dateadded_l = (Long)t_map.get("dateadded");
+
+		   		long	date_added = dateadded_l==null?SystemTime.getCurrentTime():dateadded_l.longValue();
+		   		
 				byte[]	hash = (byte[])t_map.get("hash");
 
 		   		if ( persistent ){	
@@ -127,7 +131,7 @@ TRHostConfigImpl
 					
 				 	if ( torrent != null ){
 				 		
-				 		TRHostTorrent	ht = host.addTorrent( torrent, state, true, passive );
+				 		TRHostTorrent	ht = host.addTorrent( torrent, state, true, passive, date_added );
 				 		
 				 		if ( ht instanceof TRHostTorrentHostImpl ){
 				 			
@@ -140,7 +144,7 @@ TRHostConfigImpl
 						
 						if ( COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
 			 		
-				 			host.addExternalTorrent( hash, state );
+				 			host.addExternalTorrent( hash, state, date_added );
 						}
 				 	}
 		   		}else{
@@ -261,6 +265,7 @@ TRHostConfigImpl
 					long	downloaded	= torrent.getTotalDownloaded();
 					long	bytes_in	= torrent.getTotalBytesIn();
 					long	bytes_out	= torrent.getTotalBytesOut();
+					long	date_added	= torrent.getDateAdded();
 										
 					int	seed_count 		= torrent.getSeedCount();
 					int non_seed_count	= torrent.getLeecherCount();
@@ -285,7 +290,7 @@ TRHostConfigImpl
 					}
 					
 					t_map.put("hash", hash );
-				
+					t_map.put("dateadded", new Long(date_added));
 					t_map.put("status", new Long(status ));
 	
 					list.add(t_map);

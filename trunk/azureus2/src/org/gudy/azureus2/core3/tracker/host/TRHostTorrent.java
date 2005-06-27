@@ -71,6 +71,9 @@ TRHostTorrent
 	setPassive(
 		boolean		passive );
 	
+	public long
+	getDateAdded();
+	
 	public TOTorrent
 	getTorrent();
 	

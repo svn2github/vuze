@@ -142,6 +142,14 @@ TrackerTorrent
 	public boolean
 	isPassive();
 	
+		/**
+		 * @since 2.3.0.5
+		 * @return
+		 */
+	
+	public long
+	getDateAdded();
+	
 	public void
 	addListener(
 		TrackerTorrentListener	listener );

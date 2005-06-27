@@ -316,6 +316,14 @@ RPTrackerTorrent
 		return( false );
 	}
 	
+	public long
+	getDateAdded()
+	{
+		notSupported();
+		
+		return( 0 );		
+	}
+	
 	public void
 	addListener(
 		TrackerTorrentListener	listener )
