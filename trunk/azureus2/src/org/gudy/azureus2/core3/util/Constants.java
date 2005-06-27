@@ -34,8 +34,8 @@ Constants
     //      2.0.8.3_Bnn       // incremental build
   
   public static final String AZUREUS_NAME	  = "Azureus";
-  public static final String AZUREUS_VERSION  = "2.3.0.4";  //2.3.0.5_CVS
-  public static final byte[] VERSION_ID       = ("-" + "AZ" + "2304" + "-").getBytes();  //MUST be 8 chars long!
+  public static final String AZUREUS_VERSION  = "2.3.0.5_CVS";  //2.3.0.5_CVS
+  public static final byte[] VERSION_ID       = ("-" + "AZ" + "2305" + "-").getBytes();  //MUST be 8 chars long!
   
   
   public static final String  OSName = System.getProperty("os.name");

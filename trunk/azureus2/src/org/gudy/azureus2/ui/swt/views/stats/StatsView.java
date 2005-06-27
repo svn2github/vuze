@@ -52,14 +52,14 @@ public class StatsView extends AbstractIView {
   TabItem itemCache;
   TabItem itemDHT;
   TabItem itemDHTcvs;
-  //TabItem itemVivaldi; //TODO
+  TabItem itemVivaldi;
   
   IView viewActivity;
   IView viewStats;
   IView viewCache;
   IView viewDHT;
   IView viewDHTcvs;
-  //IView viewVivaldi;
+  IView viewVivaldi;
   UpdateThread updateThread;
   
   public StatsView(GlobalManager manager) {
@@ -102,14 +102,14 @@ public class StatsView extends AbstractIView {
     itemCache  = new TabItem(folder, SWT.NULL);
     itemDHT  = new TabItem(folder, SWT.NULL);
     if( Constants.isCVSVersion() )  itemDHTcvs  = new TabItem(folder, SWT.NULL);
-    //itemVivaldi = new TabItem(folder,SWT.NULL);
+    itemVivaldi = new TabItem(folder,SWT.NULL);
 
     viewActivity = new ActivityView(manager);
     viewStats = new TransferStatsView(manager);
     viewCache = new CacheView();
     viewDHT = new DHTView( DHTView.DHT_TYPE_MAIN );  
     if( Constants.isCVSVersion() )  viewDHTcvs = new DHTView( DHTView.DHT_TYPE_CVS );
-    //viewVivaldi = new VivaldiView();
+    viewVivaldi = new VivaldiView();
     
     Messages.setLanguageText(itemActivity, viewActivity.getData());
     Messages.setLanguageText(itemStats, viewStats.getData());
@@ -120,7 +120,7 @@ public class StatsView extends AbstractIView {
       Messages.setLanguageText(itemDHTcvs, viewDHTcvs.getData());
     }
     
-    //Messages.setLanguageText(itemVivaldi, viewVivaldi.getData());
+    Messages.setLanguageText(itemVivaldi, viewVivaldi.getData());
     
     TabItem items[] = {itemActivity};
     folder.setSelection(items);
@@ -142,8 +142,8 @@ public class StatsView extends AbstractIView {
       itemDHTcvs.setControl(viewDHTcvs.getComposite());
     }
     
-   // viewVivaldi.initialize(folder);
-    //itemVivaldi.setControl(viewVivaldi.getComposite());
+    viewVivaldi.initialize(folder);
+    itemVivaldi.setControl(viewVivaldi.getComposite());
     
     folder.addSelectionListener(new SelectionListener() {
       public void widgetSelected(SelectionEvent e) {
@@ -156,7 +156,7 @@ public class StatsView extends AbstractIView {
     
     refresh();
     viewActivity.getComposite().layout(true);
-    //viewVivaldi.getComposite().layout(true);
+    viewVivaldi.getComposite().layout(true);
     
     updateThread = new UpdateThread(); 
     updateThread.setDaemon(true);
@@ -197,13 +197,13 @@ public class StatsView extends AbstractIView {
         }
         
         if( index == 5 ) {
-          //if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
+          if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
           return;
         }
       }
       
       if( index == 4 ) {
-        //if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
+        if (viewVivaldi != null && !itemVivaldi.isDisposed())  viewVivaldi.refresh();
         return;
       }
 

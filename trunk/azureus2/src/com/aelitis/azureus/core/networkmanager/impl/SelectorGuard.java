@@ -99,6 +99,11 @@ public class SelectorGuard {
     //if we've gotten here, then we have a potential selector anomalie
     consecutiveZeroSelects++;
     
+    if( consecutiveZeroSelects % 5 == 0 && Constants.isWindows ) {
+      Debug.out( "consecutiveZeroSelects=" +consecutiveZeroSelects );
+    }
+    
+    
     if( consecutiveZeroSelects > SELECTOR_SPIN_THRESHOLD ) {
       if( Constants.isWindows ) {
         //under windows, it seems that selector spin can sometimes appear when >63 socket channels are registered with a selector
