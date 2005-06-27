@@ -391,7 +391,7 @@ TRHostTorrentHostImpl
 				ul_diff = 0;
 			}
 			
-			average_uploaded.addValue((int)ul_diff);
+			average_uploaded.addValue(ul_diff);
 			
 			last_uploaded = current_uploaded;
 			
@@ -406,7 +406,7 @@ TRHostTorrentHostImpl
 				dl_diff = 0;
 			}
 			
-			average_downloaded.addValue((int)dl_diff);
+			average_downloaded.addValue(dl_diff);
 			
 			last_downloaded = current_downloaded;
 			
@@ -421,7 +421,7 @@ TRHostTorrentHostImpl
 				bi_diff = 0;
 			}
 			
-			average_bytes_in.addValue((int)bi_diff);
+			average_bytes_in.addValue(bi_diff);
 			
 			last_bytes_in = current_bytes_in;
 
@@ -436,7 +436,7 @@ TRHostTorrentHostImpl
 				bo_diff = 0;
 			}
 			
-			average_bytes_out.addValue((int)bo_diff);
+			average_bytes_out.addValue(bo_diff);
 			
 			last_bytes_out = current_bytes_out;
 		
@@ -451,7 +451,7 @@ TRHostTorrentHostImpl
 				an_diff = 0;
 			}
 			
-			average_announce.addValue((int)an_diff);
+			average_announce.addValue(an_diff);
 			
 			last_announce = current_announce;
 			
@@ -466,7 +466,7 @@ TRHostTorrentHostImpl
 				sc_diff = 0;
 			}
 			
-			average_scrape.addValue((int)sc_diff);
+			average_scrape.addValue(sc_diff);
 			
 			last_scrape = current_scrape;
 		}
