@@ -185,27 +185,26 @@ public class ConfigSectionLogging implements ConfigSectionSWT {
     
     
     final Control[] controls_main = { cArea, cLogTypes };
+    final ChangeSelectionActionPerformer perf2 = new ChangeSelectionActionPerformer( controls_main );
+    
+    enableLogging.setAdditionalActionPerformer( perf2 );
+    
     enable_logger.setAdditionalActionPerformer(
         new IAdditionalActionPerformer() {
           ChangeSelectionActionPerformer p1 = new ChangeSelectionActionPerformer(new Control[] {enableLogging.getControl() } );
-          ChangeSelectionActionPerformer p2 = new ChangeSelectionActionPerformer( controls_main );
-          
+
           public void performAction() {
             p1.performAction();
-            if( enableLogging.isSelected() )  p2.performAction();
           }
           public void setSelected(boolean selected) {
             p1.setSelected( selected );
-            p2.setSelected( selected );
+            if( !selected && enableLogging.isSelected() )  enableLogging.setSelected( false );
           }
           public void setIntValue(int value) { /*nothing*/ }
           public void setStringValue(String value) { /*nothing*/ }
         }
-        );
-        
-    final Control[] controls_file = { cArea, cLogTypes };
-    enableLogging.setAdditionalActionPerformer( new ChangeSelectionActionPerformer(controls_file) );
-	
+    );
+
 		// diagnostics
 	
 	Label generate_info = new Label(gLogging, SWT.NULL);
