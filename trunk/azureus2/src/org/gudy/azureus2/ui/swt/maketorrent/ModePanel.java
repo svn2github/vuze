@@ -258,6 +258,9 @@ public class ModePanel extends AbstractWizardPanel {
 	    }
     });
     btnMultiTracker.setSelection(((NewTorrentWizard) wizard).useMultiTracker);
+    
+    btnMultiTracker.setEnabled(((NewTorrentWizard) wizard).tracker_type != NewTorrentWizard.TT_DECENTRAL);
+    
     //Line:
     // include hashes for other networks (
 
