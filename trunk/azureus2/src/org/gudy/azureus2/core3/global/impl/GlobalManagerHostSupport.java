@@ -85,7 +85,7 @@ GlobalManagerHostSupport
 	
 	protected void
 	torrentRemoved(
-		String			torrent_file,
+		String			torrent_file_str,
 		TOTorrent		torrent )
 	{
 		TRHostTorrent	host_torrent = host.getHostTorrent( torrent );
@@ -98,14 +98,22 @@ GlobalManagerHostSupport
 				// we've got to ensure that the torrent's file location is available in the torrent itself
 				// as we're moving from download-managed persistence to host managed :(
 			
-			try{
-				TorrentUtils.writeToFile( host_torrent.getTorrent(), new File( torrent_file ), false );
+				// check file already exists - might have already been deleted as in the
+				// case of shared resources
 			
-				host_torrent.setPassive( true );
+			File	torrent_file = new File( torrent_file_str );
+			
+			if ( torrent_file.exists()){
 				
-			}catch( Throwable e ){
+				try{
+					TorrentUtils.writeToFile( host_torrent.getTorrent(), torrent_file, false );
 				
-				Debug.out( "Failed to make torrent '" + torrent_file + "' passive: " + Debug.getNestedExceptionMessage(e));
+					host_torrent.setPassive( true );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( "Failed to make torrent '" + torrent_file_str + "' passive: " + Debug.getNestedExceptionMessage(e));
+				}
 			}
 		}
 	}
