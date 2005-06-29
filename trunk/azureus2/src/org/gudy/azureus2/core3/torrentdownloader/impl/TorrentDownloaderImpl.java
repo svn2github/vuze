@@ -290,24 +290,23 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     } catch( Throwable e ){
         this.error("Exception while initializing download of '" + url + "':" + e.toString());   	
     }
-    if (this.state != STATE_ERROR) {
-      this.state = STATE_START;
+    
+    if ( this.state == STATE_ERROR ){
+    	
+    	return;
+    }
+    
+    try{
+		final boolean	status_reader_run[] = { true };
+    
+    	this.state = STATE_START;
       
-      notifyListener();
+    	notifyListener();
       
-      this.state = STATE_DOWNLOADING;
+    	this.state = STATE_DOWNLOADING;
       
-      notifyListener();
-      
-      try {
-        this.file = new File(this.directoryname, this.filename);
-        
-        this.file.createNewFile();
-        
-        FileOutputStream fileout = new FileOutputStream(this.file, false);
-        
-        final boolean	status_reader_run[] = { true };
-        
+    	notifyListener();
+  
         Thread	status_reader = 
         	new AEThread( "TorrentDownloader:statusreader" )
 			{
@@ -337,7 +336,14 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         					        					
         					if ( !s.equals( getStatus())){
         						
-        						setStatus(s);
+        						if ( s.toLowerCase().indexOf( "no sources found" ) == -1 ){
+        							
+        							setStatus(s);
+        							
+        						}else{
+        							
+        							error(s);
+        						}
         						
         						changed_status	= true;
         					}
@@ -357,87 +363,114 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 		status_reader.setDaemon( true );
 		
 		status_reader.start();
-		
+  
 		InputStream in;
-		
+			
 		try{
 			in = this.con.getInputStream();
-			
+				
 		}finally{
 			
 			try{ 
 				this_mon.enter();
-				
+					
 				status_reader_run[0]	= false;
 				
 			}finally{
-				
+					
 				this_mon.exit();
 			}
 		}
-		
-        byte[] buf = new byte[1020];
-        int read = 0;
-        int size = this.con.getContentLength();
-		this.percentDone = -1;
-        do {
-          if (this.cancel)
-            break;
-          try {
-            read = in.read(buf);
-            this.readTotal += read;
-            if (size != 0)
-              this.percentDone = (100 * this.readTotal) / size;
-            notifyListener();
-          } catch (IOException e) {
-          }
-          if (read > 0)
-            fileout.write(buf, 0, read);
-        } while (read > 0);
-        in.close();
-        fileout.flush();
-        fileout.close();
-        if (this.cancel) {
-          this.state = STATE_CANCELLED;
-          this.cleanUpFile();
-        } else {
-          if (this.readTotal <= 0) {
-            this.error("No data contained in '" + this.url.toString() + "'");
-            return;
-          }
-          
-          	// if the file has come down with a not-so-useful name then we try to rename
-          	// it to something more useful
-          
-          try{
-          	if ( !filename.toLowerCase().endsWith(".torrent" )){
-
-          		TOTorrent	torrent = TorrentUtils.readFromFile( file, false );
-          		
-          		String	name = TorrentUtils.getLocalisedName( torrent ) + ".torrent";
-          		
-          		File	new_file	= new File( directoryname, name );
-          		
-          		if ( file.renameTo( new_file )){
-          			
-          			filename	= name;
-				
-          			file	= new_file;
-          		}
-          	}
-          }catch( Throwable e ){
-          		
-          	Debug.printStackTrace( e );
-          }
-          
-          this.state = STATE_FINISHED;
-        }
-        this.notifyListener();
+			
+	    if ( this.state != STATE_ERROR ){
+		    	
+	    	this.file = new File(this.directoryname, this.filename);
+	        
+	    	this.file.createNewFile();
+	        
+	        FileOutputStream fileout = new FileOutputStream(this.file, false);
+	        
+	        byte[] buf = new byte[1020];
+	        
+	        int read = 0;
+	        
+	        int size = this.con.getContentLength();
+	        
+			this.percentDone = -1;
+			
+	        do {
+	          if (this.cancel){
+	            break;
+	          }
+	          
+	          try {
+	            read = in.read(buf);
+	            
+	            this.readTotal += read;
+	            
+	            if (size != 0){
+	              this.percentDone = (100 * this.readTotal) / size;
+	            }
+	            
+	            notifyListener();
+	            
+	          } catch (IOException e) {
+	          }
+	          
+	          if (read > 0){
+	            fileout.write(buf, 0, read);
+	          }
+	        } while (read > 0);
+	        
+	        in.close();
+	        
+	        fileout.flush();
+	        
+	        fileout.close();
+	        
+	        if (this.cancel) {
+	          this.state = STATE_CANCELLED;
+	          this.cleanUpFile();
+	        } else {
+	          if (this.readTotal <= 0) {
+	            this.error("No data contained in '" + this.url.toString() + "'");
+	            return;
+	          }
+	          
+	          	// if the file has come down with a not-so-useful name then we try to rename
+	          	// it to something more useful
+	          
+	          try{
+	          	if ( !filename.toLowerCase().endsWith(".torrent" )){
+	
+	          		TOTorrent	torrent = TorrentUtils.readFromFile( file, false );
+	          		
+	          		String	name = TorrentUtils.getLocalisedName( torrent ) + ".torrent";
+	          		
+	          		File	new_file	= new File( directoryname, name );
+	          		
+	          		if ( file.renameTo( new_file )){
+	          			
+	          			filename	= name;
+					
+	          			file	= new_file;
+	          		}
+	          	}
+	          }catch( Throwable e ){
+	          		
+	          	Debug.printStackTrace( e );
+	          }
+	          
+	          this.state = STATE_FINISHED;
+	        }
+	        this.notifyListener();
+	      }
       } catch (Exception e) {
+    	  
       	Debug.printStackTrace( e );
+      	
         this.error("Exception while downloading '" + this.url.toString() + "':" + e.getMessage());
       }
-    }
   }
 
   public boolean equals(Object obj) {

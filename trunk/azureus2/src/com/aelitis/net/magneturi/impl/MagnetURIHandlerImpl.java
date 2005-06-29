@@ -465,7 +465,10 @@ MagnetURIHandlerImpl
 					
 				}else{
 					
-					pw.print( "X-Report: error - no sources found for torrent" + NL );
+						// HACK: don't change this message below, it is used by TorrentDownloader to detect this
+						// condition
+					
+					pw.print( "X-Report: no sources found for torrent" + NL );
 					
 					pw.flush();
 					
