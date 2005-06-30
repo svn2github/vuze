@@ -435,8 +435,11 @@ PEPeerTransportProtocol
       }
     }
 
-    sum = (sum * 1000) / other_peer_has_pieces.length;
-    return sum;
+    int length = other_peer_has_pieces.length;
+    
+    if( length < 1 )  return 0;
+    
+    return (sum * 1000) / length;
   }
   
 
