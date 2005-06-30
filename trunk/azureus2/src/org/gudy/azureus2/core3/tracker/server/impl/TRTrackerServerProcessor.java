@@ -180,6 +180,23 @@ TRTrackerServerProcessor
 					
 					byte[]	hash = hashes[i];
 					
+					String	str_hash;
+					
+					try{
+						str_hash = new String( hash, Constants.BYTE_ENCODING );
+
+							// skip duplicates
+						
+						if ( i > 0 && files.get( str_hash ) != null ){
+							
+							continue;
+						}
+						
+					}catch( UnsupportedEncodingException e ){
+						
+						continue;
+					}
+					
 					torrent = server.getTorrent( hash );
 					
 					if ( torrent == null ){
@@ -199,9 +216,9 @@ TRTrackerServerProcessor
 							}
 						}
 					}
-							
-					long	interval = server.getScrapeRetryInterval( torrent );
 					
+					long	interval = server.getScrapeRetryInterval( torrent );				
+				
 					if ( interval > max_interval ){
 						
 						max_interval	= interval;
@@ -212,20 +229,10 @@ TRTrackerServerProcessor
 					// the best behaviour as the (local) seed isn't initially visible.
 				
 					Map	hash_entry = torrent.exportScrapeToMap( !local_scrape );
-					
-					byte[]	torrent_hash = torrent.getHash().getHash();
-					
-					try{
-						String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
-						
+										
 						// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
-						
-						files.put( str_hash, hash_entry );
-														
-					}catch( UnsupportedEncodingException e ){
-						
-						continue;
-					}
+					
+					files.put( str_hash, hash_entry );
 				}
 				
 				if ( hashes.length > 1 ){
