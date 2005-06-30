@@ -42,10 +42,15 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.download.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
+
 public class 
 TorrentImpl
 	implements Torrent
 {
+	private static MagnetPlugin		magnet_plugin;
+	
 	private PluginInterface			pi;
 	private TOTorrent				torrent;
 	private LocaleUtilDecoder		decoder;
@@ -145,6 +150,37 @@ TorrentImpl
 		boolean	priv )
 	{
 		TorrentUtils.setPrivate( torrent, priv );
+	}
+	
+	public URL
+	getMagnetURI()
+	
+		throws TorrentException
+	{
+		if ( magnet_plugin == null ){
+			
+			PluginInterface magnet_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( MagnetPlugin.class );
+			
+			if ( magnet_pi != null ){
+			
+				 magnet_plugin = (MagnetPlugin)magnet_pi.getPlugin();
+			}
+		}
+		
+		if ( magnet_plugin == null ){
+			
+			throw( new TorrentException( "MegnetPlugin unavailable" ));
+		}
+		
+		try{
+			URL	res = magnet_plugin.getMagnetURL(  torrent.getHash());
+			
+			return( res );
+				
+		}catch( TOTorrentException e ){
+			
+			throw( new TorrentException(e ));
+		}
 	}
 	
 	public byte[]

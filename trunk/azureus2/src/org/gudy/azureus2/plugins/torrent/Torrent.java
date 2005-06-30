@@ -174,6 +174,16 @@ Torrent
 	setPrivate(
 		boolean	priv );
 	
+		/** 
+		 * Gets the magnet URI for the torrent - throws exception if not available
+		 * @return
+		 */
+	
+	public URL
+	getMagnetURI()
+	
+		throws TorrentException;
+	
 	public Map
 	writeToMap()
 	

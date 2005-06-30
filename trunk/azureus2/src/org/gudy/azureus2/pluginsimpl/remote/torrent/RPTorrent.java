@@ -249,6 +249,14 @@ RPTorrent
 		return(null);
 	}	
 	
+	public URL
+	getMagnetURI()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public String
 	getEncoding()
 	{
