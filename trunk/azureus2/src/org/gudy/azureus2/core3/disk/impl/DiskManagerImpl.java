@@ -1619,18 +1619,26 @@ DiskManagerImpl
 			
 				final TOTorrentFile	torrent_file	= torrent_files[i];
 				
-		        byte[][]path_comps = torrent_file.getPathComponents();
-	
 				String	path_str = root_dir + File.separator;
-	
-		        for (int j=0;j<path_comps.length;j++){
-	
-					String comp = locale_decoder.decodeString( path_comps[j] );
-	
-		            comp = FileUtil.convertOSSpecificChars( comp );
-	
-		            path_str += (j==0?"":File.separator) + comp;
-		        }
+				
+					// for a simple torrent the target file can be changed 
+				
+				if ( torrent.isSimpleTorrent()){
+					
+					path_str = path_str + download_manager.getTorrentSaveFile();
+					
+				}else{
+			        byte[][]path_comps = torrent_file.getPathComponents();
+		
+			        for (int j=0;j<path_comps.length;j++){
+		
+						String comp = locale_decoder.decodeString( path_comps[j] );
+		
+			            comp = FileUtil.convertOSSpecificChars( comp );
+		
+			            path_str += (j==0?"":File.separator) + comp;
+			        }
+				}
 				
 				final File		data_file	= new File( path_str );
 	
