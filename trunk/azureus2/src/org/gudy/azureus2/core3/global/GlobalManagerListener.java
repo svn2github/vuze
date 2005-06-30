@@ -44,4 +44,11 @@ GlobalManagerListener
 		
 	public void
 	destroyed();
+    
+    
+    /**
+     * Notification of global seeding status changes.
+     * @param seeding_only_mode true if only seeding torrents (no downloads), false otherwise
+     */
+    public void seedingStatusChanged( boolean seeding_only_mode );
 }

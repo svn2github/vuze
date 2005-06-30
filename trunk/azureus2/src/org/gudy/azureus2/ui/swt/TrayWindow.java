@@ -247,7 +247,10 @@ public class TrayWindow implements GlobalManagerListener {
 	public void
 	destroyInitiated()
 	{
-	}				
+	}
+
+    public void seedingStatusChanged( boolean seeding_only_mode ){
+    }
 	
   public void updateLanguage() {
     MainWindow.getWindow().getMenu().updateMenuText(menu);

@@ -42,4 +42,5 @@ public class GlobalManagerAdpater implements GlobalManagerListener{
 	public void downloadManagerRemoved(DownloadManager dm) {
 	}
 
+    public void seedingStatusChanged( boolean seeding_only_mode ){}
 }

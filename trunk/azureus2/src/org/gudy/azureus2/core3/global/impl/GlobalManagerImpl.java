@@ -68,6 +68,7 @@ public class GlobalManagerImpl
 	private static final int LDT_MANAGER_REMOVED		= 2;
 	private static final int LDT_DESTROY_INITIATED		= 3;
 	private static final int LDT_DESTROYED				= 4;
+    private static final int LDT_SEEDING_ONLY           = 5;
 	
 	private ListenerManager	listeners 	= ListenerManager.createAsyncManager(
 		"GM:ListenDispatcher",
@@ -96,8 +97,11 @@ public class GlobalManagerImpl
 				}else if ( type == LDT_DESTROYED ){
 					
 					target.destroyed();
-					
-				}
+                    
+				}else if ( type == LDT_SEEDING_ONLY ){
+                    
+                    target.seedingStatusChanged( ((Boolean)value).booleanValue() );
+                }
 			}
 		});
 	
@@ -149,6 +153,9 @@ public class GlobalManagerImpl
   private boolean 	isStopping;
   private boolean	destroyed;
   private boolean 	needsSaving = false;
+  
+  private boolean seeding_only_mode = false;
+  
   
   public class Checker extends AEThread {
     boolean finished = false;
@@ -1649,14 +1656,50 @@ public class GlobalManagerImpl
     return -1;
   }
 
+  
   // DownloadManagerListener
+  public void stateChanged(DownloadManager manager, int state) {
+    needsSaving = true;  //make sure we update 'downloads.config' on state changes
+    
+    //run seeding-only-mode check
+    boolean seeding = false;
+    
+    if( state == DownloadManager.STATE_DOWNLOADING && !manager.isDownloadComplete() && manager.getDiskManager().hasDownloadablePiece() ) {
+      //the new state is downloading, so can skip the full check
+    }
+    else {
+      List managers = managers_cow;
+      
+      for( int i=0; i < managers.size(); i++ ) {
+        DownloadManager dm = (DownloadManager)managers.get( i );
 
-  //make sure we update 'downloads.config' on state changes
-	public void stateChanged(DownloadManager manager, int state) {
-	  needsSaving = true;
-	}
+        if( dm.getState() == DownloadManager.STATE_DOWNLOADING && !dm.isDownloadComplete() ) {
+          if( dm.getDiskManager().hasDownloadablePiece() ) {
+            seeding = false;  //we cant possibly be seeding-only
+            break;  //so break early
+          }
+          
+          seeding = true;  //a completed DND torrent
+          continue;  //check next
+        }
+
+        if( dm.getState() == DownloadManager.STATE_SEEDING ) {
+          seeding = true;  //a seeding torrent
+          continue;  //check next
+        }
+      }
+    }
+
+    if( seeding != seeding_only_mode ) {
+      seeding_only_mode = seeding;
+      listeners.dispatch( LDT_SEEDING_ONLY, new Boolean( seeding_only_mode ) );
+    }
+  }
 		
-	public void downloadComplete(DownloadManager manager) { }
+  
+  
+  
+  public void downloadComplete(DownloadManager manager) { }
 
   public void completionChanged(DownloadManager manager, boolean bCompleted) { }
   

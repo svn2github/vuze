@@ -152,6 +152,11 @@ DownloadManagerImpl
 				destroyed()
 				{	
 				}
+                
+                
+                public void seedingStatusChanged( boolean seeding_only_mode ){
+                  //TODO
+                }           
 			});
 		
 		global_manager.addDownloadWillBeRemovedListener(

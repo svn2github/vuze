@@ -2016,6 +2016,7 @@ public class MyTorrentsView
 
   public void destroyInitiated() {  }
   public void destroyed() { }
+  public void seedingStatusChanged( boolean seeding_only_mode ){}       
 
   // End of globalmanagerlistener Functions
   
