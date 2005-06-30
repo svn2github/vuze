@@ -407,6 +407,12 @@ TRTrackerServerImpl
 		return( res );
 	}
 	
+	public long
+	getMinScrapeRetryInterval()
+	{
+		return( current_min_poll_interval );
+	}
+	
 	public TRTrackerServerStats
 	getStats()
 	{

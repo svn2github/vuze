@@ -47,7 +47,7 @@ TRTrackerServerProcessor
 		Map[]						root_out,		// output
 		TRTrackerServerPeerImpl[]	peer_out,		// output
 		int							request_type,
-		byte[]						hash,
+		byte[][]					hashes,
 		HashWrapper					peer_id,
 		boolean						no_peer_id,
 		boolean						compact,
@@ -98,7 +98,7 @@ TRTrackerServerProcessor
 		
 		if ( request_type != TRTrackerServerRequest.RT_FULL_SCRAPE ){
 			
-			if ( hash == null ){
+			if ( hashes == null || hashes.length == 0 ){
 				
 				throw( new TRTrackerServerException( "Hash missing from request "));
 			}
@@ -107,28 +107,35 @@ TRTrackerServerProcessor
 			
 			// System.out.println( "    hash = " + ByteFormatter.nicePrint(hash));
 			
-			torrent = server.getTorrent( hash );
-			
-			if ( torrent == null ){
+			if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
 				
-				if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+				if ( hashes.length != 1 ){
 					
-					throw( new TRTrackerServerException( "Torrent unauthorised" ));
+					throw( new TRTrackerServerException( "Too many hashes for announce"));
+				}
+				
+				byte[]	hash = hashes[0];
+				
+				torrent = server.getTorrent( hash );
+				
+				if ( torrent == null ){
 					
-				}else{
-					
-					try{
+					if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
 						
-						torrent = (TRTrackerServerTorrentImpl)server.permit( hash, false );
-												
-					}catch( Throwable e ){
+						throw( new TRTrackerServerException( "Torrent unauthorised" ));
 						
-						throw( new TRTrackerServerException( "Torrent unauthorised", e ));								
+					}else{
+						
+						try{
+							
+							torrent = (TRTrackerServerTorrentImpl)server.permit( hash, false );
+													
+						}catch( Throwable e ){
+							
+							throw( new TRTrackerServerException( "Torrent unauthorised", e ));								
+						}
 					}
 				}
-			}
-			
-			if ( request_type == TRTrackerServerRequest.RT_ANNOUNCE ){
 				
 				if ( peer_id == null ){
 					
@@ -153,40 +160,82 @@ TRTrackerServerProcessor
 				
 				root_out[0] = torrent.exportAnnounceToMap( pre_map, peer, left > 0, stopped?0:num_want, interval, server.getMinAnnounceRetryInterval(), no_peer_id, compact );
 				
-				peer_out[0]	= peer;				
+				peer_out[0]	= peer;	
+				
 			}else{
+				
+				boolean	local_scrape = client_ip_address.equals( "127.0.0.1" );
+				
+				long	max_interval	= server.getMinScrapeRetryInterval();
+				
+				Map	root = new HashMap();
+				
+				root_out[0] = root;
 				
 				Map	files = new ByteEncodedKeyHashMap();
 				
+				root.put( "files", files );
+
+				for (int i=0;i<hashes.length;i++){
+					
+					byte[]	hash = hashes[i];
+					
+					torrent = server.getTorrent( hash );
+					
+					if ( torrent == null ){
+						
+						if ( !COConfigurationManager.getBooleanParameter( "Tracker Public Enable", false )){
+							
+							continue;
+							
+						}else{
+							
+							try{							
+								torrent = (TRTrackerServerTorrentImpl)server.permit( hash, false );
+									
+							}catch( Throwable e ){
+								
+								continue;							
+							}
+						}
+					}
+							
+					long	interval = server.getScrapeRetryInterval( torrent );
+					
+					if ( interval > max_interval ){
+						
+						max_interval	= interval;
+					}
+					
 					// we don't cache local scrapes as if we do this causes the hosting of
 					// torrents to retrieve old values initially. Not a fatal error but not
 					// the best behaviour as the (local) seed isn't initially visible.
 				
-				boolean	local_scrape = client_ip_address.equals( "127.0.0.1" );
-								
-				Map	hash_entry = torrent.exportScrapeToMap( !local_scrape );
-				
-				byte[]	torrent_hash = torrent.getHash().getHash();
-				
-				try{
-					String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
+					Map	hash_entry = torrent.exportScrapeToMap( !local_scrape );
 					
-					// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
+					byte[]	torrent_hash = torrent.getHash().getHash();
 					
-					files.put( str_hash, hash_entry );
-					
-					Map	root = new HashMap();
-					
-					root_out[0] = root;
-					
-					addScrapeInterval( torrent, root );
-					
-					root.put( "files", files );
-					
-				}catch( UnsupportedEncodingException e ){
-					
-					throw( new TRTrackerServerException( "Encoding error", e ));
+					try{
+						String	str_hash = new String( torrent_hash,Constants.BYTE_ENCODING );
+						
+						// System.out.println( "tracker - encoding: " + ByteFormatter.nicePrint(torrent_hash) + " -> " + ByteFormatter.nicePrint( str_hash.getBytes( Constants.BYTE_ENCODING )));
+						
+						files.put( str_hash, hash_entry );
+														
+					}catch( UnsupportedEncodingException e ){
+						
+						continue;
+					}
 				}
+				
+				if ( hashes.length > 1 ){
+					
+					torrent	= null;	// no specific torrent
+				}
+				
+				// System.out.println( "scrape: hashes = " + hashes.length + ", files = " + files.size() + ", tim = " + max_interval );
+				
+				addScrapeInterval( max_interval, root );
 			}
 		}else{
 			
@@ -234,7 +283,15 @@ TRTrackerServerProcessor
 		Map							root )
 	{
 		long interval = server.getScrapeRetryInterval( torrent );
-		
+
+		addScrapeInterval( interval, root );
+	}
+	
+	protected void
+	addScrapeInterval(
+		long		interval,
+		Map			root )
+	{
 		if ( interval > 0 ){
 			
 			Map	flags = new HashMap();

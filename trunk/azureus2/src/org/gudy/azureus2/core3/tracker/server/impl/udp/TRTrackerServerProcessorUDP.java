@@ -495,7 +495,7 @@ TRTrackerServerProcessorUDP
 			processTrackerRequest( 
 				server, "", root_out, peer_out, 
 				request_type,
-				hash_bytes,
+				new byte[][]{ hash_bytes },
 				peer_id, false,	false, key, // currently no "no_peer_id" / "compact" in the packet and anyway they aren't returned / key
 				event,
 				port,

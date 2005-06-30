@@ -183,7 +183,9 @@ TRTrackerServerProcessorTCP
 
 				int	pos = 0;
 					
-				String		hash_str	= null;
+				byte[]		hash		= null;
+				List		hash_list	= null;
+				
 				HashWrapper	peer_id		= null;
 				int			port		= 0;
 				String		event		= null;
@@ -227,7 +229,23 @@ TRTrackerServerProcessorTCP
 						
 					if ( lhs.equals( "info_hash" )){
 							
-						hash_str	= rhs;
+						byte[] b = rhs.getBytes(Constants.BYTE_ENCODING);
+						
+						if ( hash == null ){
+							
+							hash = b;
+							
+						}else{
+							
+							if ( hash_list == null ){
+								
+								hash_list = new ArrayList();
+								
+								hash_list.add( hash );
+							}
+							
+							hash_list.add( b );
+						}
 							
 					}else if ( lhs.equals( "peer_id" )){
 						
@@ -285,11 +303,17 @@ TRTrackerServerProcessorTCP
 					}
 				}
 				
-				byte[]	hash_bytes = null;
+				byte[][]	hashes = null;
 				
-				if ( hash_str != null ){
+				if ( hash_list != null ){
+						
+					hashes = new byte[hash_list.size()][];
+						
+					hash_list.toArray( hashes );
+						
+				}else if ( hash != null ){
 					
-					hash_bytes = hash_str.getBytes(Constants.BYTE_ENCODING);
+					hashes = new byte[][]{ hash };
 				}
 				
 				Map[]						root_out = new Map[1];
@@ -300,7 +324,7 @@ TRTrackerServerProcessorTCP
 							server, str,
 							root_out, peer_out,
 							request_type,
-							hash_bytes,
+							hashes,
 							peer_id, no_peer_id, compact, key, 
 							event,
 							port,
