@@ -50,7 +50,7 @@ TRTrackerUtils
 		return( TRTrackerUtilsImpl.getTrackerIP());
 	}
 	
-	public static URL[]
+	public static URL[][]
 	getAnnounceURLs()
 	{
 		return( TRTrackerUtilsImpl.getAnnounceURLs());

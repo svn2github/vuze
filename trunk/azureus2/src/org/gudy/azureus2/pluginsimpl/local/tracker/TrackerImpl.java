@@ -92,7 +92,16 @@ TrackerImpl
 	public URL[]
 	getURLs()
 	{
-		return( TRTrackerUtils.getAnnounceURLs());
+		URL[][]	url_sets = TRTrackerUtils.getAnnounceURLs();
+		
+		URL[]	res = new URL[url_sets.length];
+		     	          
+		for (int i=0;i<res.length;i++){
+			
+			res[i] = url_sets[i][0];
+		}
+		
+		return( res );
 	}
 
 	public TrackerTorrent

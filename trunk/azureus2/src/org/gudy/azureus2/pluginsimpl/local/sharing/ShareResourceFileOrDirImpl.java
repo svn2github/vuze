@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.sharing;
  */
 
 import java.io.*;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.sharing.*;
@@ -152,9 +153,11 @@ ShareResourceFileOrDirImpl
 		try{
 			manager.reportCurrentTask( (item==null?"Creating":"Re-creating").concat(" torrent for '").concat(file.toString()).concat("'" ));
 			
+			URL[]	urls = manager.getAnnounceURLs();
+			
 			TOTorrentCreator creator = TOTorrentFactory.createFromFileOrDirWithComputedPieceLength( 
 										file,
-										manager.getAnnounceURL(),
+										urls[0],
 										manager.getAddHashes());
 										
 			creator.addListener( manager );
@@ -172,6 +175,11 @@ ShareResourceFileOrDirImpl
 			}
 			
 			LocaleUtil.getSingleton().setDefaultTorrentEncoding( to_torrent );
+							
+			for (int i=1;i<urls.length;i++){
+				
+				TorrentUtils.announceGroupsInsertLast( to_torrent, new URL[]{ urls[i]});
+			}
 			
 			String	comment = COConfigurationManager.getStringParameter( "Sharing Torrent Comment" ).trim();
 			

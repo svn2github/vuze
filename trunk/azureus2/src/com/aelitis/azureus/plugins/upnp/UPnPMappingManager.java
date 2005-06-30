@@ -30,6 +30,7 @@ package com.aelitis.azureus.plugins.upnp;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 UPnPMappingManager 
@@ -63,7 +64,11 @@ UPnPMappingManager
 		
 		addConfigPort( "upnp.mapping.tcptrackerport", true, "Tracker Port Enable", "Tracker Port" );
 		
+		addConfigPortX( "upnp.mapping.tcptrackerport", true, "Tracker Port Enable", "Tracker Port Backups" );
+		
 		addConfigPort( "upnp.mapping.tcpssltrackerport", true, "Tracker Port SSL Enable", "Tracker Port SSL" );
+		
+		addConfigPortX( "upnp.mapping.tcpssltrackerport", true, "Tracker Port SSL Enable", "Tracker Port SSL Backups" );
 		
 			// tracker UDP
 
@@ -96,7 +101,7 @@ UPnPMappingManager
 		return( mapping );
 	}
 	
-	protected UPnPMapping
+	protected void
 	addConfigPort(
 		String			name_resource,
 		boolean			tcp,
@@ -118,8 +123,103 @@ UPnPMappingManager
 						mapping.setEnabled( COConfigurationManager.getBooleanParameter(enabler_param_name));
 					}
 				});
+	}
+	
+	protected void
+	addConfigPortX(
+		final String	name_resource,
+		final boolean	tcp,
+		final String	enabler_param_name,
+		final String	string_param_name )
+	{
+		final List	config_mappings = new ArrayList();
+				
+		ParameterListener	l1 = 
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						String	name )
+					{
+						boolean	enabled = COConfigurationManager.getBooleanParameter(enabler_param_name);
+
+						List ports = stringToPorts( COConfigurationManager.getStringParameter( string_param_name ));
+						
+						for (int i=0;i<ports.size();i++){
+
+							int		port = ((Integer)ports.get(i)).intValue();
+							
+							if ( config_mappings.size() < (i-1)){
+							
+								UPnPMapping	mapping = 
+									addMapping( name_resource + "[" + i + "]", tcp, port, enabled );
+								
+								mapping.setEnabled( enabled );
+								
+								config_mappings.add( mapping );
+								
+							}else{
+								
+								((UPnPMapping)config_mappings.get(i)).setPort( port );
+							}
+						}
+						
+						for (int i=ports.size();i<config_mappings.size();i++){
+	
+							((UPnPMapping)config_mappings.get(i)).setEnabled( false );
+						}
+					}
+				};
+				
+		COConfigurationManager.addParameterListener( string_param_name, l1 );
+				
+		ParameterListener	l2 = 
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						String	name )
+					{
+						List ports = stringToPorts( COConfigurationManager.getStringParameter( string_param_name ));
+					
+						boolean	enabled = COConfigurationManager.getBooleanParameter(enabler_param_name);
+						
+						for (int i=0;i<(enabled?ports.size():config_mappings.size());i++){
+							
+							((UPnPMapping)config_mappings.get(i)).setEnabled( enabled );
+						}
+					}
+				};
+
+		COConfigurationManager.addParameterListener( enabler_param_name, l2 );
+
+
+		l1.parameterChanged( null );
+		l2.parameterChanged( null );
+	}
+	
+	protected List
+	stringToPorts(
+		String	str )
+	{
+		str = str.replace(',', ';' );
 		
-		return( mapping );
+		StringTokenizer	tok = new StringTokenizer( str, ";" );
+		
+		List	res = new ArrayList();
+		
+		while( tok.hasMoreTokens()){
+			
+			try{
+				res.add( new Integer( tok.nextToken().trim()));
+				
+			}catch( Throwable e ){
+				
+				Debug.out("Invalid port entry in '" + str + "'", e);
+			}
+		}
+		
+		return( res );
 	}
 	
 	public UPnPMapping

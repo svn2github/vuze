@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.*;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 
 public class 
 ShareManagerImpl
@@ -81,7 +82,7 @@ ShareManagerImpl
 	protected boolean			initialised;
 	protected File				share_dir;
 	
-	protected URL				announce_url;
+	protected URL[]				announce_urls;
 	protected ShareConfigImpl	config;
 	
 	protected Map				shares 		= new HashMap();
@@ -101,7 +102,7 @@ ShareManagerImpl
 				public void
 				configurationSaved()
 				{
-					announce_url	= null;
+					announce_urls	= null;
 				}
 			});
 	}
@@ -374,67 +375,48 @@ ShareManagerImpl
 		return( new File(share_dir+File.separator+item.getTorrentLocation()));
 	}
 	
-	protected URL
-	getAnnounceURL()
+	protected URL[]
+	getAnnounceURLs()
 	
 		throws ShareException
 	{
-		if ( announce_url == null ){
+		if ( announce_urls == null ){
 						
 			String	protocol = COConfigurationManager.getStringParameter( "Sharing Protocol", "HTTP" );
 			
-			int		port;
-			String	url_protocol;
-			
-			if ( protocol.equals( "HTTPS" ) ){
+			if ( protocol.equalsIgnoreCase( "DHT" )){
 				
-				port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
-				
-				url_protocol	= "https";
-				
-			}else if ( protocol.equals( "HTTP" )){
-				
-				port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-				
-				url_protocol 	= "http";
-				
-			}else if ( protocol.equals( "UDP" )){
-				
-				port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-
-				url_protocol	= "udp";
+				announce_urls	= new URL[]{ TorrentUtils.getDecentralisedEmptyURL()};
 				
 			}else{
-				
-				port 			= -1;
-				url_protocol	= null;
-			}
 			
-			try{
-				if ( url_protocol == null ){
+				URL[][]	tracker_url_sets = TRTrackerUtils.getAnnounceURLs();
+				
+				if ( tracker_url_sets.length == 0 ){
 					
-					announce_url	= TorrentUtils.getDecentralisedEmptyURL();
-
-				}else{
+					throw( new ShareException( "ShareManager: Tracker must be configured"));
+				}
+			
+				for (int i=0;i<tracker_url_sets.length;i++){
+				
+					URL[]	tracker_urls = tracker_url_sets[i];
+			
+					if ( tracker_urls[0].getProtocol().equalsIgnoreCase( protocol )){
 					
-					String 	tracker_ip 		= COConfigurationManager.getStringParameter("Tracker IP", "");
-					
-					if ( tracker_ip.length() == 0 ){
+						announce_urls = tracker_urls;
 						
-						throw( new ShareException( "ShareManager: Tracker must be configured"));
+						break;
 					}
-
-					announce_url = new URL( url_protocol + "://" + tracker_ip + ":"+ port + "/announce" );
 				}
 				
-			}catch( MalformedURLException e ){
-				
-				throw( new ShareException( "ShareManager: Announce URL invalid", e ));
+				if ( announce_urls == null ){
+					
+					throw( new ShareException( "ShareManager: Tracker must be configured for protocol '" + protocol + "'" ));
+				}
 			}
-			
 		}
 		
-		return( announce_url );
+		return( announce_urls );
 	}
 	
 	protected boolean

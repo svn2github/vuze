@@ -36,7 +36,6 @@ import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.torrent.*;
-import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
@@ -267,21 +266,28 @@ TrackerWebPageResponseImpl
 			
 			if ( !TorrentUtils.isDecentralised( torrent_to_send )){
 								
-				URL[]	urls = TRTrackerUtils.getAnnounceURLs();
+				URL[][]	url_sets = TRTrackerUtils.getAnnounceURLs();
 									
 					// if tracker ip not set then assume they know what they're doing
 
-				if ( host_torrent.getStatus() != TRHostTorrent.TS_PUBLISHED && urls.length > 0 ){
+				if ( host_torrent.getStatus() != TRHostTorrent.TS_PUBLISHED && url_sets.length > 0 ){
 				
 					String protocol = torrent_to_send.getAnnounceURL().getProtocol();
 
-					for (int i=0;i<urls.length;i++){
-																
-						if ( urls[i].getProtocol().equalsIgnoreCase( protocol )){
+					for (int i=0;i<url_sets.length;i++){
+											
+						URL[]	urls = url_sets[i];
+						
+						if ( urls[0].getProtocol().equalsIgnoreCase( protocol )){
 							
-							torrent_to_send.setAnnounceURL( urls[i] );
+							torrent_to_send.setAnnounceURL( urls[0] );
 						
 							torrent_to_send.getAnnounceURLGroup().setAnnounceURLSets( new TOTorrentAnnounceURLSet[0]);
+							
+							for (int j=1;j<urls.length;j++){
+								
+								TorrentUtils.announceGroupsInsertLast( torrent_to_send, new URL[]{ urls[j] });
+							}
 							
 							break;
 						}

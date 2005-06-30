@@ -1214,9 +1214,9 @@ TRHostImpl
 		
 			// ensure that the tracker's announce details are in the torrent
 		
-		URL[]	tracker_urls = TRTrackerUtils.getAnnounceURLs();
+		URL[][]	url_sets = TRTrackerUtils.getAnnounceURLs();
 
-		if ( tracker_urls.length == 0 ){
+		if ( url_sets.length == 0 ){
 			
 				// fall back to decentralised, no tracker defined
 			
@@ -1224,15 +1224,22 @@ TRHostImpl
 			
 		}else{			
 		
-			String	primary_url = tracker_urls[0].toString();
+			URL[]	primary_urls = url_sets[0];
 			
-			if ( TorrentUtils.announceGroupsContainsURL( torrent, primary_url )){
+				// backwards so that they end up in right order
 			
-				TorrentUtils.announceGroupsSetFirst( torrent, primary_url );
+			for (int i=primary_urls.length-1;i>=0;i--){
+			
+				String	url_str = primary_urls[i].toString();
 				
-			}else{
+				if ( TorrentUtils.announceGroupsContainsURL( torrent, url_str )){
+			
+					TorrentUtils.announceGroupsSetFirst( torrent, url_str );
 				
-				TorrentUtils.announceGroupsInsertFirst( torrent, primary_url );
+				}else{
+				
+					TorrentUtils.announceGroupsInsertFirst( torrent, url_str );
+				}
 			}
 		}
 	}

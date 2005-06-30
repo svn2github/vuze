@@ -110,13 +110,13 @@ TRTrackerUtilsImpl
 		return( tracker_ip );
 	}
 	
-	public static URL[]
+	public static URL[][]
 	getAnnounceURLs()
 	{
 		String	tracker_host = COConfigurationManager.getStringParameter( "Tracker IP", "" );
 
 		List	urls = new ArrayList();
-		
+				
 		if ( tracker_host.length() > 0 ){
 			
 			if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", false )){
@@ -124,7 +124,18 @@ TRTrackerUtilsImpl
 				int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
 				
 				try{
-					urls.add( new URL( "http://" + tracker_host + ":" + port + "/announce" ));
+					List	l = new ArrayList();
+					
+					l.add( new URL( "http://" + tracker_host + ":" + port + "/announce" ));
+					
+					List	ports = stringToPorts( COConfigurationManager.getStringParameter("Tracker Port Backups" ));
+					
+					for (int i=0;i<ports.size();i++){
+						
+						l.add( new URL( "http://" + tracker_host + ":" + ((Integer)ports.get(i)).intValue() + "/announce" ));
+					}
+
+					urls.add( l );
 					
 				}catch( MalformedURLException e ){
 					
@@ -137,8 +148,20 @@ TRTrackerUtilsImpl
 				int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
 				
 				try{
-					urls.add( new URL( "https://" + tracker_host + ":" + port + "/announce" ));
-				
+					List	l = new ArrayList();
+					
+					l.add( new URL( "https://" + tracker_host + ":" + port + "/announce" ));
+					
+					List	ports = stringToPorts( COConfigurationManager.getStringParameter("Tracker Port SSL Backups" ));
+					
+					for (int i=0;i<ports.size();i++){
+						
+						l.add( new URL( "https://" + tracker_host + ":" + ((Integer)ports.get(i)).intValue() + "/announce" ));
+					}
+
+					urls.add( l );
+					
+
 				}catch( MalformedURLException e ){
 				
 					Debug.printStackTrace( e );
@@ -152,9 +175,13 @@ TRTrackerUtilsImpl
 				boolean	auth = COConfigurationManager.getBooleanParameter( "Tracker Password Enable Torrent" );
 					
 				try{
-					urls.add( new URL( "udp://" + tracker_host + ":" + port + "/announce" +
+					List	l = new ArrayList();
+					
+					l.add( new URL( "udp://" + tracker_host + ":" + port + "/announce" +
 										(auth?"?auth":"" )));
 				
+					urls.add( l );
+					
 				}catch( MalformedURLException e ){
 				
 					Debug.printStackTrace( e );
@@ -162,11 +189,44 @@ TRTrackerUtilsImpl
 			}
 		}
 		
-		URL[]	res = new URL[urls.size()];
+		URL[][]	res = new URL[urls.size()][];
 		
-		urls.toArray( res );
-		
+		for (int i=0;i<urls.size();i++){
+			
+			List	l = (List)urls.get(i);
+			
+			URL[]	u = new URL[l.size()];
+			
+			l.toArray( u );
+			
+			res[i] = u;
+		}
+				
 		return( res );		
+	}
+	
+	protected static List
+	stringToPorts(
+		String	str )
+	{
+		str = str.replace(',', ';' );
+		
+		StringTokenizer	tok = new StringTokenizer( str, ";" );
+		
+		List	res = new ArrayList();
+		
+		while( tok.hasMoreTokens()){
+			
+			try{
+				res.add( new Integer( tok.nextToken().trim()));
+				
+			}catch( Throwable e ){
+				
+				Debug.out("Invalid port entry in '" + str + "'", e);
+			}
+		}
+		
+		return( res );
 	}
 	
 	public static URL
