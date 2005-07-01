@@ -1909,16 +1909,38 @@ DownloadManagerImpl
       boolean isSeed = (state == STATE_SEEDING);
       
       if( (nbSeeds + nbPeers) == 0) {
-        if(isSeed)
-          return WEALTH_NO_TRACKER;        
-        return WEALTH_KO;        
+    	  
+        if( isSeed ){
+        	
+          return WEALTH_NO_TRACKER;	// not connected to any peer and seeding
+        }
+        
+        return WEALTH_KO;        // not connected to any peer and downloading
       }
-      if( trackerStatus == TRTrackerAnnouncerResponse.ST_OFFLINE || trackerStatus == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR)
-        return WEALTH_NO_TRACKER;
-      if( nbRemotes == 0 )
-        return WEALTH_NO_REMOTE;
+      
+      	// read the spec for this!!!!
+      	// no_tracker =
+      	//	1) if downloading -> no tracker
+      	//	2) if seeding -> no connections		(dealt with above)
+      
+      if ( !isSeed ){
+    	  
+	      if( 	trackerStatus == TRTrackerAnnouncerResponse.ST_OFFLINE || 
+	    		trackerStatus == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR){
+	    	  
+	        return WEALTH_NO_TRACKER;
+	      }
+      }
+      
+      if( nbRemotes == 0 ){
+       
+    	  return WEALTH_NO_REMOTE;
+      }
+      
       return WEALTH_OK;
+      
     } else {
+    	
       return WEALTH_STOPPED;
     }
   }
