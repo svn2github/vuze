@@ -1,6 +1,17 @@
 AZUREUS CHANGELOG
 ---------
 
+????.??.?? | Azureus 2.3.0.6
+
+FEATURE: Core | Built in tracker support for multiple listen ports [Parg]
+FEATURE: Core | "date added" field added for hosted torrents [Parg]
+FEATURE: Plug | Magnet URI accessor method added to Torrent [Parg]
+
+BUGFIX: UI    | Create-torrent wizard fix for multi-torrent checkbox enabling error [Parg]
+BUGFIX: Core  | Wrong file name returned for stopped simple torrents [Parg]
+BUGFIX: Core  | seeder/leecher counts missing for published torrents [Parg]
+BUGFIX: Core  | stats going negative for hosted torrent average up/down [Parg]
+
 2005.06.27 | Azureus 2.3.0.4
 
 FEATURE: Core | DHT torrent lookup now based on sha1(hash) and torrent xfer encrypted using hash-derived key [Parg]
