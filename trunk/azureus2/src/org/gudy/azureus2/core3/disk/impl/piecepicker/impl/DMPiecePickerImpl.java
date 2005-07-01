@@ -105,7 +105,8 @@ DMPiecePickerImpl
 		
 		pieceCompletion = new int[nbPieces];
 		
-		has_piece_to_download	= true;
+		has_piece_to_download	= false;
+        compute_priority_recalc_outstanding = true;
 		
 		priorityLists = new BitSet[100];
 		

@@ -559,24 +559,24 @@ PEPeerTransportProtocol
     
     if( manager.getDiskManager().hasDownloadablePiece() ) {  //there is a piece worth being interested in
       DiskManagerPiece[]  pieces = manager.getDiskManager().getPieces();
-      
+
       for (int i = 0; i < pieces.length; i++) {
-        if ( pieces[i].isNeeded() && other_peer_has_pieces[i] ) {
+        if ( !pieces[i].getDone() && pieces[i].isNeeded() && other_peer_has_pieces[i] ) {
           is_interesting = true;
           break;
         }
       }
     }
     
-		if ( is_interesting && !interested_in_other_peer ) {
+    if ( is_interesting && !interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTInterested(), false );
-		}
+    }
     else if ( !is_interesting && interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTUninterested(), false );
-		}
+    }
     
-		interested_in_other_peer = is_interesting;
-	}
+    interested_in_other_peer = is_interesting;
+  }
 
   
   
@@ -590,18 +590,20 @@ PEPeerTransportProtocol
     boolean is_interesting = false;
     
     if( manager.getDiskManager().hasDownloadablePiece() ) {  //there is a piece worth being interested in
-      is_interesting = manager.getDiskManager().getPieces()[ pieceNumber ].isNeeded();  //we dont have that piece yet
+      DiskManagerPiece piece = manager.getDiskManager().getPieces()[ pieceNumber ];
+      
+      is_interesting = !piece.getDone() && piece.isNeeded();  //we dont have that piece yet
     }
     
-		if ( is_interesting && !interested_in_other_peer ) {
+    if ( is_interesting && !interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTInterested(), false );
-		}
+    }
     else if ( !is_interesting && interested_in_other_peer ) {
       connection.getOutgoingMessageQueue().addMessage( new BTUninterested(), false );
-		}
+    }
     
-		interested_in_other_peer = is_interesting;
-	}
+    interested_in_other_peer = is_interesting;
+  }
   
 
 
