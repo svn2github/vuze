@@ -27,9 +27,12 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 
 
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.impl.*;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 
@@ -44,8 +47,12 @@ public class NetworkManager {
   private static final NetworkManager instance = new NetworkManager();
 
   private static int tcp_mss_size;
-  private static int max_upload_rate_bps;
   private static int max_download_rate_bps;
+  
+  private static int max_upload_rate_bps_normal;
+  private static int max_upload_rate_bps_seeding_only;
+  private static int max_upload_rate_bps = max_upload_rate_bps_normal;
+  
   static {
     tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
     COConfigurationManager.addParameterListener( "network.tcp.mtu.size", new ParameterListener() {
@@ -54,12 +61,21 @@ public class NetworkManager {
       }
     });
     
-    max_upload_rate_bps = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
-    if( max_upload_rate_bps < 1024 )  max_upload_rate_bps = UNLIMITED_RATE;
+    max_upload_rate_bps_normal = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
+    if( max_upload_rate_bps_normal < 1024 )  max_upload_rate_bps_normal = UNLIMITED_RATE;
     COConfigurationManager.addParameterListener( "Max Upload Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
-        max_upload_rate_bps = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
-        if( max_upload_rate_bps < 1024 )  max_upload_rate_bps = UNLIMITED_RATE;
+        max_upload_rate_bps_normal = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
+        if( max_upload_rate_bps_normal < 1024 )  max_upload_rate_bps_normal = UNLIMITED_RATE;
+      }
+    });
+    
+    max_upload_rate_bps_seeding_only = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
+    if( max_upload_rate_bps_seeding_only < 1024 )  max_upload_rate_bps_seeding_only = UNLIMITED_RATE;
+    COConfigurationManager.addParameterListener( "Max Upload Speed Seeding KBs", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        max_upload_rate_bps_seeding_only = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
+        if( max_upload_rate_bps_seeding_only < 1024 )  max_upload_rate_bps_seeding_only = UNLIMITED_RATE;
       }
     });
     
@@ -73,6 +89,7 @@ public class NetworkManager {
     });
   }
 
+  
   private final ConnectDisconnectManager connect_disconnect_manager = new ConnectDisconnectManager();
   private final IncomingSocketChannelManager incoming_socketchannel_manager = new IncomingSocketChannelManager();
   private final WriteController write_controller = new WriteController();
@@ -91,6 +108,27 @@ public class NetworkManager {
   private NetworkManager() {
     /* nothing */    
   }
+  
+  
+  
+  public void initialize() {
+    AzureusCoreFactory.getSingleton().getGlobalManager().addListener( new GlobalManagerListener() {
+      public void downloadManagerAdded( DownloadManager dm ){}
+      public void downloadManagerRemoved( DownloadManager dm ){}
+      public void destroyInitiated(){}
+      public void destroyed(){}
+
+      public void seedingStatusChanged( boolean seeding_only_mode ) {
+        if( seeding_only_mode && COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" ) ) {
+          max_upload_rate_bps = max_upload_rate_bps_seeding_only;
+        }
+        else {
+          max_upload_rate_bps = max_upload_rate_bps_normal;
+        }
+      }
+    });
+  }
+  
   
   
   /**

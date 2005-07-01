@@ -182,6 +182,10 @@ AzureusCoreImpl
 	        	}
 	       }.start();
          
+           
+       //late inits
+	   NetworkManager.getSingleton().initialize(); 
+           
             
 	   //Catch non-user-initiated VM shutdown
        ShutdownHook.install( new ShutdownHook.Handler() {

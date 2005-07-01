@@ -100,9 +100,11 @@ public class ConfigurationDefaults {
 
     def.put("File Max Open", new Long(50));
 
-    def.put("Max Uploads", new Long(4));
-    def.put( "Max Upload Speed KBs", new Long(0));
+    def.put( "Max Uploads", new Long(4) );
     def.put( "Max Download Speed KBs", new Long(0) );
+    def.put( "Max Upload Speed KBs", new Long(0));
+    def.put( "Max Upload Speed Seeding KBs", new Long(0) );
+    def.put( "enable.seedingonly.upload.rate", new Long(0) );
     
     def.put("Use Resume", new Long(1));
     def.put("Save Resume Interval", new Long(5));
