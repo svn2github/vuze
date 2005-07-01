@@ -95,7 +95,7 @@ ConfigSectionTrackerServer
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gMainTab.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 3;
+    layout.numColumns = 4;
     gMainTab.setLayout(layout);
     
       // MAIN TAB DATA
@@ -112,7 +112,10 @@ ConfigSectionTrackerServer
     tracker_ip.setLayoutData( gridData );
 
     Button check_button = new Button(gMainTab, SWT.PUSH);
-
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    check_button.setLayoutData(gridData);
+    
     Messages.setLanguageText(check_button, "ConfigView.section.tracker.checkip"); //$NON-NLS-1$
 
     final Display display = gMainTab.getDisplay();
@@ -148,16 +151,23 @@ ConfigSectionTrackerServer
     gridData.widthHint = 50;
     tracker_port.setLayoutData( gridData );
 
-    Control[] non_ssl_controls = new Control[1];
+    final StringParameter tracker_port_backup = new StringParameter(gMainTab, "Tracker Port Backups", "" );
+
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    tracker_port_backup.setLayoutData( gridData );
+    
+    Label tracker_port_backup_label = new Label(gMainTab, SWT.NULL );
+    Messages.setLanguageText(tracker_port_backup_label, "ConfigView.section.tracker.portbackup");
+
+    Control[] non_ssl_controls = new Control[3];
     non_ssl_controls[0] = tracker_port.getControl();
+    non_ssl_controls[1] = tracker_port_backup.getControl();
+    non_ssl_controls[2] = tracker_port_backup_label;
 
     nonsslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( non_ssl_controls ));
 
-    BooleanParameter forcePortDetails = 
-        new BooleanParameter(gMainTab,  "Tracker Port Force External", false, 
-                             "ConfigView.section.tracker.forceport");
-
-
+ 
     // row
 
     final BooleanParameter sslEnable = 
@@ -170,24 +180,17 @@ ConfigSectionTrackerServer
     gridData.widthHint = 50;
     tracker_port_ssl.setLayoutData( gridData );
 
-    Label ssl_faq_label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(ssl_faq_label, "ConfigView.section.tracker.sslport.info");
-    final String linkFAQ = "http://azureus.sourceforge.net/faq.php#19";
-    ssl_faq_label.setCursor(Cursors.handCursor);
-    ssl_faq_label.setForeground(Colors.blue);
-    ssl_faq_label.addMouseListener(new MouseAdapter() {
-       public void mouseDoubleClick(MouseEvent arg0) {
-         Program.launch(linkFAQ);
-       }
-       public void mouseDown(MouseEvent arg0) {
-         Program.launch(linkFAQ);
-       }
-    });
+    final StringParameter tracker_port_ssl_backup = new StringParameter(gMainTab, "Tracker Port SSL Backups", "" );
+
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    tracker_port_ssl_backup.setLayoutData( gridData );
+    
+    Label tracker_port_ssl_backup_label = new Label(gMainTab, SWT.NULL );
+    Messages.setLanguageText(tracker_port_ssl_backup_label, "ConfigView.section.tracker.portbackup");
 
     	// create cert row
 
-    label = new Label(gMainTab, SWT.NULL );
-    
     Label cert_label = new Label(gMainTab, SWT.NULL );
     Messages.setLanguageText(cert_label, "ConfigView.section.tracker.createcert");
 
@@ -205,13 +208,47 @@ ConfigSectionTrackerServer
 		        }
 		    });
     
+    Label ssl_faq_label = new Label(gMainTab, SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    ssl_faq_label.setLayoutData(gridData);
+    Messages.setLanguageText(ssl_faq_label, "ConfigView.section.tracker.sslport.info");
+    final String linkFAQ = "http://azureus.sourceforge.net/faq.php#19";
+    ssl_faq_label.setCursor(Cursors.handCursor);
+    ssl_faq_label.setForeground(Colors.blue);
+    ssl_faq_label.addMouseListener(new MouseAdapter() {
+       public void mouseDoubleClick(MouseEvent arg0) {
+         Program.launch(linkFAQ);
+       }
+       public void mouseDown(MouseEvent arg0) {
+         Program.launch(linkFAQ);
+       }
+    });
     
-    Control[] ssl_controls = { 	tracker_port_ssl.getControl(),ssl_faq_label,
-    							cert_label, cert_button };
+    Control[] ssl_controls = { 	
+    		tracker_port_ssl.getControl(),
+    		tracker_port_ssl_backup.getControl(),
+    		tracker_port_ssl_backup_label,
+    		ssl_faq_label,
+    		cert_label, 
+    		cert_button };
  
 
     sslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( ssl_controls ));
 
+
+    // row
+    
+    BooleanParameter forcePortDetails = 
+        new BooleanParameter(gMainTab,  "Tracker Port Force External", false, 
+                             "ConfigView.section.tracker.forceport");
+
+    label = new Label(gMainTab, SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    label.setLayoutData(gridData);
+    
+    
     Control[] f_controls = new Control[1];
     f_controls[0] = forcePortDetails.getControl();
 
@@ -228,8 +265,7 @@ ConfigSectionTrackerServer
 
     nonsslEnable.setAdditionalActionPerformer(f_enabler);
     sslEnable.setAdditionalActionPerformer(f_enabler);
-
-
+    
     // row
 
     gridData = new GridData();
@@ -240,7 +276,7 @@ ConfigSectionTrackerServer
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable.info");
     gridData = new GridData();
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 3;
     label.setLayoutData(gridData);
     
     // row
@@ -253,7 +289,7 @@ ConfigSectionTrackerServer
     passwordEnableWeb.setLayoutData( gridData );
     
     gridData = new GridData();
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 3;
     final BooleanParameter passwordWebHTTPSOnly = 
         new BooleanParameter(gMainTab, "Tracker Password Web HTTPS Only", false, 
                              "ConfigView.section.tracker.passwordwebhttpsonly");
@@ -279,16 +315,15 @@ ConfigSectionTrackerServer
 
     // row
 
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    final BooleanParameter passwordEnableTorrent = 
+     final BooleanParameter passwordEnableTorrent = 
       new BooleanParameter(gMainTab, "Tracker Password Enable Torrent", false, 
                            "ConfigView.section.tracker.passwordenabletorrent");
-    passwordEnableTorrent.setLayoutData( gridData );
-
+ 
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.passwordenabletorrent.info");
-
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    label.setLayoutData( gridData );
 
      // row
 
@@ -302,7 +337,7 @@ ConfigSectionTrackerServer
     tracker_username.setLayoutData( gridData );
 
     label = new Label(gMainTab, SWT.NULL);
-
+    label = new Label(gMainTab, SWT.NULL);
      // row
 
     label = new Label(gMainTab, SWT.NULL);
@@ -315,7 +350,7 @@ ConfigSectionTrackerServer
     tracker_password.setLayoutData( gridData );
 
     label = new Label(gMainTab, SWT.NULL);
-
+    label = new Label(gMainTab, SWT.NULL);
 
     Control[] x_controls = new Control[2];
     x_controls[0] = tracker_username.getControl();
@@ -344,7 +379,7 @@ ConfigSectionTrackerServer
     Group gPollStuff = new Group(gMainTab, SWT.NULL);
     Messages.setLanguageText(gPollStuff, "ConfigView.section.tracker.pollinterval");
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
     gPollStuff.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 4;
@@ -402,7 +437,7 @@ ConfigSectionTrackerServer
     Group gScrapeCache = new Group(gMainTab, SWT.NULL);
     Messages.setLanguageText(gScrapeCache, "ConfigView.section.tracker.scrapeandcache");
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
     gScrapeCache.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 4;
@@ -458,7 +493,7 @@ ConfigSectionTrackerServer
     Group gProcessing = new Group(gMainTab, SWT.NULL);
     Messages.setLanguageText(gProcessing, "ConfigView.section.tracker.processinglimits");
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
     gProcessing.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
@@ -518,7 +553,7 @@ ConfigSectionTrackerServer
     Group gNBTracker = new Group(gMainTab, SWT.NULL);
     Messages.setLanguageText(gNBTracker, "ConfigView.section.tracker.nonblocking");
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
     gNBTracker.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
@@ -566,6 +601,7 @@ ConfigSectionTrackerServer
     maxPeersReturned.setLayoutData( gridData );
 
     label = new Label(gMainTab, SWT.NULL);
+    label = new Label(gMainTab, SWT.NULL);
 
     	// seed retention limit
     
@@ -582,7 +618,10 @@ ConfigSectionTrackerServer
 
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.seedretention.info");
-  
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    label.setLayoutData( gridData );
+
     	// row
 
     gridData = new GridData();
@@ -592,7 +631,7 @@ ConfigSectionTrackerServer
     
     Composite gNATDetails = new Composite(gMainTab, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 1;
+    gridData.horizontalSpan = 2;
     gNATDetails.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
@@ -617,7 +656,7 @@ ConfigSectionTrackerServer
     // row
     
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
  
     new BooleanParameter(gMainTab, "Tracker Send Peer IDs", true, 
                          "ConfigView.section.tracker.sendpeerids").setLayoutData(gridData);
@@ -625,7 +664,7 @@ ConfigSectionTrackerServer
     // row
  
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
  
     BooleanParameter	enable_udp = 
     	new BooleanParameter(gMainTab, "Tracker Port UDP Enable", false, 
@@ -642,6 +681,7 @@ ConfigSectionTrackerServer
     IntParameter	udp_version = new IntParameter(gMainTab, "Tracker Port UDP Version", 2);
     udp_version.setLayoutData(gridData);
     label = new Label(gMainTab, SWT.NULL);
+    label = new Label(gMainTab, SWT.NULL);
 
     enable_udp.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( new Control[]{ udp_version_label, udp_version.getControl() }));
@@ -649,7 +689,7 @@ ConfigSectionTrackerServer
     // row
     
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
  
     new BooleanParameter(gMainTab, "Tracker Compact Enable", true,
                          "ConfigView.section.tracker.enablecompact").setLayoutData(gridData);
@@ -657,7 +697,7 @@ ConfigSectionTrackerServer
     // row
 
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
  
     new BooleanParameter(gMainTab, "Tracker Key Enable Server", true,
                          "ConfigView.section.tracker.enablekey").setLayoutData(gridData);
@@ -667,7 +707,7 @@ ConfigSectionTrackerServer
     // row
 
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 4;
     BooleanParameter log_enable = 
     	new BooleanParameter(gMainTab, "Tracker Log Enable", false, 
                          "ConfigView.section.tracker.logenable");
@@ -677,7 +717,7 @@ ConfigSectionTrackerServer
     Group networks_group = new Group( gMainTab, SWT.NULL );
     Messages.setLanguageText( networks_group, "ConfigView.section.tracker.server.group.networks" );
     GridData    networks_layout = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    networks_layout.horizontalSpan = 3;
+    networks_layout.horizontalSpan = 4;
     networks_group.setLayoutData( networks_layout );
     layout = new GridLayout();
     layout.numColumns = 2;

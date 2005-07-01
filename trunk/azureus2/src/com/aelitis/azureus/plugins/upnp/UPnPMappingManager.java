@@ -149,10 +149,10 @@ UPnPMappingManager
 
 							int		port = ((Integer)ports.get(i)).intValue();
 							
-							if ( config_mappings.size() < (i-1)){
+							if ( config_mappings.size() <= i ){
 							
 								UPnPMapping	mapping = 
-									addMapping( name_resource + "[" + i + "]", tcp, port, enabled );
+									addMapping( name_resource, tcp, port, enabled );
 								
 								mapping.setEnabled( enabled );
 								

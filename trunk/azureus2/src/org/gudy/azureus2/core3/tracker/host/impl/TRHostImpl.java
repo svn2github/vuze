@@ -142,48 +142,51 @@ TRHostImpl
 							{
 								while(true){
 									
-									try{											
-										if ( COConfigurationManager.getBooleanParameter( "Tracker Port Enable", false )){
+									try{	
 										
-											try{
-													
-												int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
+										URL[][]	url_sets = TRTrackerUtils.getAnnounceURLs();
+										
+										for (int i=0;i<url_sets.length;i++){
+											
+											URL[]	urls = url_sets[i];
+											
+											for (int j=0;j<urls.length;j++){
 												
-												startServer( TRTrackerServerFactory.PR_TCP, port, false );
-													
-											}catch( Throwable e ){
+												URL	url = urls[j];
+														
+												int port = url.getPort();
 												
-												Debug.printStackTrace( e );
+												if ( port == -1 ){
+													
+													port = url.getDefaultPort();
+												}
+												
+												String	protocol = url.getProtocol().toLowerCase();
+												
+												try{
+													if ( protocol.equals( "http" )){
+												
+														startServer( TRTrackerServerFactory.PR_TCP, port, false );
+													
+													}else if ( protocol.equals( "udp" )){
+														
+														startServer( TRTrackerServerFactory.PR_UDP, port, false );
+
+													}else if ( protocol.equals( "https" )){
+														
+														startServer( TRTrackerServerFactory.PR_TCP, port, true );
+
+													}else{
+														
+														Debug.out( "Unknown protocol '" + protocol + "'" );
+													}
+													
+												}catch( Throwable e ){
+											
+													Debug.printStackTrace( e );
+												}
 											}
 										}
-										
-										if ( COConfigurationManager.getBooleanParameter( "Tracker Port UDP Enable", false )){
-											
-											try{
-														
-												int port = COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
-													
-												startServer( TRTrackerServerFactory.PR_UDP, port, false );
-														
-											}catch( Throwable e ){
-													
-												Debug.printStackTrace( e );
-											}
-										}
-											
-										if ( COConfigurationManager.getBooleanParameter( "Tracker Port SSL Enable", false )){
-										
-											try{
-													
-												int port = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
-												
-												startServer( TRTrackerServerFactory.PR_TCP, port, true );
-														
-											}catch( Throwable e ){
-												
-												Debug.printStackTrace( e );
-											}
-										}						
 										
 										Thread.sleep( STATS_PERIOD_SECS*1000 );
 										
