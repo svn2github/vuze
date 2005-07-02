@@ -7,7 +7,12 @@
 package org.gudy.azureus2.ui.common.util;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerListener;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
@@ -39,27 +44,94 @@ UserAlerts
 	UserAlerts(
 		GlobalManager	global_manager ) 
  	{	
-		final DownloadManagerAdapter download_manager_listener = new
-			DownloadManagerAdapter()
+		final DownloadManagerAdapter download_manager_listener = 
+			new DownloadManagerAdapter()
 			{
 				public void
 				downloadComplete(DownloadManager manager)
 				{
-					downloadFinished();
+					activityFinished( true );
 				}
 			}; 
+		
+		final DiskManagerListener	disk_listener = 
+			new DiskManagerListener()
+			{
+				public void
+				stateChanged(
+					int oldState, 
+					int	newState )
+				{	
+				}
+				
+				public void
+				filePriorityChanged(
+					DiskManagerFileInfo		file )
+				{
+				}
+	
+				public void
+				pieceDoneChanged(
+					DiskManagerPiece		piece )
+				{
+				}
+				
+				public void
+				fileAccessModeChanged(
+					DiskManagerFileInfo		file,
+					int						old_mode,
+					int						new_mode )
+				{
+					if ( 	old_mode == DiskManagerFileInfo.WRITE &&
+							new_mode == DiskManagerFileInfo.READ ){
+						
+						activityFinished( false );
+					}
+				
+					/*
+					System.out.println( 
+						"amc:" + 
+						file.getDownloadManager().getDisplayName() + "/" + 
+						file.getName() + ":" + old_mode + " -> " + new_mode );
+					*/
+				}
+			};
 			
+		final DownloadManagerDiskListener dm_disk_listener = 
+			new DownloadManagerDiskListener()
+			{
+				public void
+				diskManagerAdded(
+					DiskManager	dm )
+				{
+					dm.addListener( disk_listener );
+				}
+				
+				public void
+				diskManagerRemoved(
+					DiskManager	dm )
+				{
+					dm.removeListener( disk_listener );
+				}
+			};
+
     	global_manager.addListener(
     		new GlobalManagerAdpater()
     		{
-				public void downloadManagerAdded(DownloadManager manager) 
+				public void 
+				downloadManagerAdded(DownloadManager manager) 
 				{
 					manager.addListener( download_manager_listener );
+					
+					manager.addDiskListener( dm_disk_listener );
 				}
 
-				public void downloadManagerRemoved(DownloadManager removed) 
+				public void 
+				downloadManagerRemoved(DownloadManager manager) 
 				{
-					removed.removeListener(download_manager_listener);
+					manager.removeListener(download_manager_listener);
+					
+					manager.removeDiskListener( dm_disk_listener );
 				}  
 				
 				public void
@@ -71,8 +143,30 @@ UserAlerts
      }
 
   	protected void
-  	downloadFinished()
+  	activityFinished(
+  		boolean		download )
   	{
+  		final String sound_enabler;
+  		final String sound_file;
+  		final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
+  		
+  		final String speech_enabler;
+  		final String speech_text;
+  		
+  		if ( download ){
+	 		sound_enabler 	= "Play Download Finished";
+	  		sound_file		= "Play Download Finished File";
+	  		
+	  		speech_enabler 	= "Play Download Finished Announcement";
+	  		speech_text		= "Play Download Finished Announcement Text";
+  		}else{
+	 		sound_enabler 	= "Play File Finished";
+	  		sound_file		= "Play File Finished File";
+	  		
+	  		speech_enabler 	= "Play File Finished Announcement";
+	  		speech_text		= "Play File Finished Announcement Text";
+  		}
+  		
   		try{
   			this_mon.enter();
 
@@ -81,10 +175,10 @@ UserAlerts
                     public void runSupport()
                     {
                         try {
-                            if(COConfigurationManager.getBooleanParameter("Play Download Finished Announcement"))
-                                Runtime.getRuntime().exec(new String[]{"say", COConfigurationManager.getStringParameter("Play Download Finished Announcement Text")}); // Speech Synthesis services
+                            if(COConfigurationManager.getBooleanParameter( speech_enabler ))
+                                Runtime.getRuntime().exec(new String[]{"say", COConfigurationManager.getStringParameter( speech_text )}); // Speech Synthesis services
 
-                            if(COConfigurationManager.getBooleanParameter("Play Download Finished"))
+                            if(COConfigurationManager.getBooleanParameter( sound_enabler ))
                                 Runtime.getRuntime().exec(new String[]{"osascript", "-e" ,"beep"}); // Beep alert type is in accordance with System Preferences
 
                             Thread.sleep(2500);
@@ -93,9 +187,9 @@ UserAlerts
                     }
                 }.start();
             }
-	    	else if( COConfigurationManager.getBooleanParameter("Play Download Finished", false)){
+	    	else if( COConfigurationManager.getBooleanParameter( sound_enabler, false)){
 
-	    		String	file = COConfigurationManager.getStringParameter( "Play Download Finished File" );
+	    		String	file = COConfigurationManager.getStringParameter( sound_file );
 
     			file = file.trim();
 
@@ -144,7 +238,7 @@ UserAlerts
 
 	    			if ( audio_clip == null ){
 
-	    				audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource("org/gudy/azureus2/ui/icons/downloadFinished.wav"));
+	    				audio_clip = Applet.newAudioClip(UserAlerts.class.getClassLoader().getResource( default_sound ));
 
 	    			}
 

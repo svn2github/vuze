@@ -107,65 +107,69 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
     cArea.setLayoutData(new GridData());
 
     	
-    BooleanParameter play_sound = new BooleanParameter(cArea, "Play Download Finished",false, "ConfigView.label.playdownloadfinished");
+    BooleanParameter d_play_sound = new BooleanParameter(cArea, "Play Download Finished",false, "ConfigView.label.playdownloadfinished");
 
     // OS X counterpart for alerts (see below for what is disabled)
     if(Constants.isOSX) {
+    		// download info 
+    	
         gridData = new GridData();
         gridData.horizontalSpan = 3;
         gridData.widthHint = 0;
         gridData.heightHint = 0;
-        Composite filler = new Composite(cArea, SWT.NONE);
-        filler.setSize(0, 0);
-        filler.setLayoutData(gridData);
+        Composite d_filler = new Composite(cArea, SWT.NONE);
+        d_filler.setSize(0, 0);
+        d_filler.setLayoutData(gridData);
 
-        final BooleanParameter speechEnabledParameter = new BooleanParameter(cArea, "Play Download Finished Announcement", "ConfigView.label.playdownloadspeech");
+        final BooleanParameter d_speechEnabledParameter = new BooleanParameter(cArea, "Play Download Finished Announcement", "ConfigView.label.playdownloadspeech");
 
-        final StringParameter speechParameter = new StringParameter(cArea, "Play Download Finished Announcement Text");
+        final StringParameter d_speechParameter = new StringParameter(cArea, "Play Download Finished Announcement Text");
         gridData = new GridData();
         gridData.horizontalSpan = 3;
         gridData.widthHint = 150;
-        speechParameter.setLayoutData(gridData);
-        ((Text)speechParameter.getControl()).setTextLimit(40);
+        d_speechParameter.setLayoutData(gridData);
+        ((Text)d_speechParameter.getControl()).setTextLimit(40);
 
-        speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(speechParameter.getControls()));
+        d_speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(d_speechParameter.getControls()));
 
-        final Label speechInfo = new Label(cArea, SWT.NONE);
+        final Label d_speechInfo = new Label(cArea, SWT.NONE);
         gridData = new GridData();
         gridData.horizontalSpan = 4;
         gridData.horizontalIndent = 24;
-        speechInfo.setLayoutData(gridData);
+        d_speechInfo.setLayoutData(gridData);
 
-        Messages.setLanguageText(speechInfo, "ConfigView.label.playdownloadspeech.info");
+        Messages.setLanguageText(d_speechInfo, "ConfigView.label.playdownloadspeech.info");
     }
+ 
 
      //Option disabled on OS X, as impossible to make it work correctly
     if(!Constants.isOSX) {
     	Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
 	    
+    		// download info
+    	
 	    gridData = new GridData();
 	    
 	    gridData.widthHint = 150;
 	    
-	    final StringParameter pathParameter = new StringParameter(cArea, "Play Download Finished File", "");
+	    final StringParameter d_pathParameter = new StringParameter(cArea, "Play Download Finished File", "");
 	    
-	    if ( pathParameter.getValue().length() == 0 ){
+	    if ( d_pathParameter.getValue().length() == 0 ){
 	    	
-	    	pathParameter.setValue("<default>");
+	    	d_pathParameter.setValue("<default>");
 	    }
 	    
-	    pathParameter.setLayoutData(gridData);
-	    
+	    d_pathParameter.setLayoutData(gridData);
 
-	    Button browse = new Button(cArea, SWT.PUSH);
+	    Button d_browse = new Button(cArea, SWT.PUSH);
 	    
-	    browse.setImage(imgOpenFolder);
+	    d_browse.setImage(imgOpenFolder);
 	    
-	    imgOpenFolder.setBackground(browse.getBackground());
+	    imgOpenFolder.setBackground(d_browse.getBackground());
 	    
-	    browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+	    d_browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
 	    
-	    browse.addListener(SWT.Selection, new Listener() {
+	    d_browse.addListener(SWT.Selection, new Listener() {
 	      public void handleEvent(Event event) {
 	        FileDialog dialog = new FileDialog(parent.getShell(), SWT.APPLICATION_MODAL);
 	        dialog.setFilterExtensions(new String[] { "*.wav" });
@@ -177,7 +181,7 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 	      
 	        if (path != null){
 	        	
-	        	pathParameter.setValue(path);
+	        	d_pathParameter.setValue(path);
 	        	
 	        	new AEThread("SoundTest")
 				{
@@ -198,18 +202,138 @@ public class ConfigSectionInterface implements ConfigSectionSWT {
 	      }
 	    });
 	    
-	  Label sound_info = new Label(cArea, SWT.NULL);
-	  Messages.setLanguageText(sound_info, "ConfigView.section.interface.wavlocation.info");
+	    Label d_sound_info = new Label(cArea, SWT.NULL);
+	    Messages.setLanguageText(d_sound_info, "ConfigView.section.interface.wavlocation.info");
 
-	  play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( pathParameter.getControls()));
-	  play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( new Control[]{browse,sound_info }));
+	    d_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( d_pathParameter.getControls()));
+	    d_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( new Control[]{d_browse,d_sound_info }));
 
+	  
+	  
+	  
+	  	// 
+    }
+    
+    
+    BooleanParameter f_play_sound = new BooleanParameter(cArea, "Play File Finished",false, "ConfigView.label.playfilefinished");
+
+    // OS X counterpart for alerts (see below for what is disabled)
+    
+    if(Constants.isOSX) {
+
+			// per-file info
+		
+		gridData = new GridData();
+		gridData.horizontalSpan = 3;
+		gridData.widthHint = 0;
+		gridData.heightHint = 0;
+		Composite f_filler = new Composite(cArea, SWT.NONE);
+		f_filler.setSize(0, 0);
+		f_filler.setLayoutData(gridData);
+		
+		final BooleanParameter f_speechEnabledParameter = new BooleanParameter(cArea, "Play File Finished Announcement", "ConfigView.label.playfilespeech");
+		
+		final StringParameter f_speechParameter = new StringParameter(cArea, "Play File Finished Announcement Text");
+		gridData = new GridData();
+		gridData.horizontalSpan = 3;
+		gridData.widthHint = 150;
+		f_speechParameter.setLayoutData(gridData);
+		((Text)f_speechParameter.getControl()).setTextLimit(40);
+		
+		f_speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(f_speechParameter.getControls()));
+		
+		final Label speechInfo = new Label(cArea, SWT.NONE);
+		gridData = new GridData();
+		gridData.horizontalSpan = 4;
+		gridData.horizontalIndent = 24;
+		speechInfo.setLayoutData(gridData);
+		
+		Messages.setLanguageText(speechInfo, "ConfigView.label.playfilespeech.info");
+	}
+    
+    //Option disabled on OS X, as impossible to make it work correctly
+    if(!Constants.isOSX) {
+    	Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
+ 
+	  	// file info
+  	  
+  	  
+	  	gridData = new GridData();
+	    
+	  	gridData.widthHint = 150;
+	    
+	    final StringParameter 	f_pathParameter = new StringParameter(cArea, "Play File Finished File", "");
+	    
+	    if ( f_pathParameter.getValue().length() == 0 ){
+	    	
+	    	f_pathParameter.setValue("<default>");
+	    }
+	    
+	    f_pathParameter.setLayoutData(gridData);
+	    
+
+	    Button f_browse = new Button(cArea, SWT.PUSH);
+	    
+	    f_browse.setImage(imgOpenFolder);
+	    
+	    imgOpenFolder.setBackground(f_browse.getBackground());
+	    
+	    f_browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+	    
+	    f_browse.addListener(SWT.Selection, new Listener() {
+	      public void handleEvent(Event event) {
+	        FileDialog dialog = new FileDialog(parent.getShell(), SWT.APPLICATION_MODAL);
+	        dialog.setFilterExtensions(new String[] { "*.wav" });
+	        dialog.setFilterNames(new String[] { "*.wav" }); 
+	      
+	        dialog.setText(MessageText.getString("ConfigView.section.interface.wavlocation"));
+	      
+	        final String path = dialog.open();
+	      
+	        if (path != null){
+	        	
+	        	f_pathParameter.setValue(path);
+	        	
+	        	new AEThread("SoundTest")
+				{
+	        		public void
+					runSupport()
+	        		{
+	        			try{
+	        				Applet.newAudioClip( new File( path ).toURL()).play();
+	        			
+	        				Thread.sleep(2500);
+	        				
+	        			}catch( Throwable e ){
+	        				
+	        			}
+	        		}
+	        	}.start();
+	        }
+	      }
+	    });
+	    
+	  Label f_sound_info = new Label(cArea, SWT.NULL);
+	  Messages.setLanguageText(f_sound_info, "ConfigView.section.interface.wavlocation.info");
+
+	  f_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( f_pathParameter.getControls()));
+	  f_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( new Control[]{f_browse,f_sound_info }));
+    }
+
+    
+    
+    if(!Constants.isOSX) {	  
+    	
 	  BooleanParameter	confirm = new BooleanParameter(cArea, "confirmationOnExit",false, "ConfigView.section.style.confirmationOnExit");
 	  gridData = new GridData();
 	  gridData.horizontalSpan	= 4;
 	  confirm.setLayoutData( gridData );
     }
 
+    
+    
+    
+    
     BooleanParameter confirm_removal = new BooleanParameter(cArea, "confirm_torrent_removal", "ConfigView.section.interface.confirm_torrent_removal" );
     gridData = new GridData();
     gridData.horizontalSpan = 4;

@@ -373,9 +373,13 @@ public class ConfigurationDefaults {
     def.put( "confirm_torrent_removal", new Long(0) );
     def.put( "add_torrents_silently", new Long(0) );
     def.put( "enable_small_osx_fonts", new Long(1) );
-    def.put("Message Popup Autoclose in Seconds", new Long(5));
-    def.put("Play Download Finished Announcement", new Long(0));
-    def.put("Play Download Finished Announcement Text", "Download Complete");
+    def.put( "Message Popup Autoclose in Seconds", new Long(5));
+    def.put( "Play Download Finished Announcement", new Long(0));
+    def.put( "Play Download Finished Announcement Text", "Download Complete");
+    def.put( "Play File Finished", new Long(0) );
+    def.put( "Play File Finished File", "" );
+    def.put( "Play File Finished Announcement", new Long(0));
+    def.put( "Play File Finished Announcement Text", "File Complete");
     
     def.put( "BT Request Max Block Size", new Long(65536));
     def.put( "network.tcp.enable_safe_selector_mode", new Long(0) );
