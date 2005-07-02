@@ -53,6 +53,7 @@ public class NetworkManager {
   private static int max_upload_rate_bps_seeding_only;
   private static int max_upload_rate_bps = max_upload_rate_bps_normal;
   private static boolean seeding_only_mode = false;
+  private static boolean seeding_only_mode_allowed = false;
   
   static {
     tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
@@ -81,6 +82,15 @@ public class NetworkManager {
         refreshUploadRate();
       }
     });
+    
+    
+    seeding_only_mode_allowed = COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" );
+    COConfigurationManager.addParameterListener( "enable.seedingonly.upload.rate", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        seeding_only_mode_allowed = COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" );
+      }
+    });
+    
     
     max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
     if( max_download_rate_bps < 1024 )  max_download_rate_bps = UNLIMITED_RATE;
@@ -116,12 +126,32 @@ public class NetworkManager {
 
   
   private static void refreshUploadRate() {
-    if( seeding_only_mode && COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" ) ) {
+    if( isSeedingOnlyUploadRate() ) {
       max_upload_rate_bps = max_upload_rate_bps_seeding_only;
     }
     else {
       max_upload_rate_bps = max_upload_rate_bps_normal;
     }
+  }
+  
+  
+  public static boolean isSeedingOnlyUploadRate() {
+    return seeding_only_mode_allowed && seeding_only_mode;
+  }
+  
+  public static int getMaxUploadRateBPSNormal() {
+    if( max_upload_rate_bps_normal == UNLIMITED_RATE )  return 0;
+    return max_upload_rate_bps_normal;
+  }
+  
+  public static int getMaxUploadRateBPSSeedingOnly() {
+    if( max_upload_rate_bps_seeding_only == UNLIMITED_RATE )  return 0;
+    return max_upload_rate_bps_seeding_only;
+  }
+  
+  public static int getMaxDownloadRateBPS() {
+    if( max_download_rate_bps == UNLIMITED_RATE )  return 0;
+    return max_download_rate_bps; 
   }
   
   
