@@ -474,7 +474,7 @@ MainWindow
     });
     
     gridData = new GridData();
-    gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
+    gridData.widthHint = Constants.isOSX ? 160 : ( Constants.isLinux ? 150 : 140 );
     statusDown = new CLabel(statusBar, borderFlag);
     statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/ "n/a");
     statusDown.setLayoutData(gridData);
@@ -487,7 +487,7 @@ MainWindow
     };
 
     gridData = new GridData();
-    gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
+    gridData.widthHint = Constants.isOSX ? 160 : ( Constants.isLinux ? 150 : 140 );
     statusUp = new CLabel(statusBar, borderFlag);
     statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
     statusUp.setLayoutData(gridData);

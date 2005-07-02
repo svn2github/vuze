@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Display;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -151,18 +152,28 @@ public class GUIUpdater extends AEThread implements ParameterListener {
           }            
         }
         
-        int ul_limit = COConfigurationManager.getIntParameter("Max Upload Speed KBs");
-        int dl_limit = COConfigurationManager.getIntParameter("Max Download Speed KBs");
+        int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
+        int dl_limit = NetworkManager.getMaxDownloadRateBPS() / 1024;
         
-		    mainWindow.statusDown.setText(
-		    		MessageText.getString("ConfigView.download.abbreviated") + " " + 
-					(dl_limit==0?"":"[" + dl_limit + "K] " ) +
-					DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDataReceiveRate() + mainWindow.globalManager.getStats().getProtocolReceiveRate() ));
-		    
-            mainWindow.statusUp.setText(
-            		MessageText.getString("ConfigView.upload.abbreviated") + " " + 
-					(ul_limit==0?"":"[" + ul_limit + "K] " ) +
-					DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDataSendRate() + mainWindow.globalManager.getStats().getProtocolSendRate() ));
+        String seeding_only;
+        if( NetworkManager.isSeedingOnlyUploadRate() ) {
+          int ul_limit_seed = NetworkManager.getMaxUploadRateBPSSeedingOnly() / 1024;
+          int diff = ul_limit_seed - ul_limit_norm;
+          seeding_only = (diff >= 0 ? "+" : "") +diff+ "K";
+        }
+        else {
+          seeding_only = "";
+        }
+        
+        mainWindow.statusDown.setText(
+            MessageText.getString("ConfigView.download.abbreviated") + " " + 
+            (dl_limit==0?"":"[" + dl_limit + "K] " ) +
+            DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDataReceiveRate() + mainWindow.globalManager.getStats().getProtocolReceiveRate() ));
+        
+        mainWindow.statusUp.setText(
+            MessageText.getString("ConfigView.upload.abbreviated") + " " + 
+            (ul_limit_norm==0?"":"[" + ul_limit_norm + "K" +seeding_only+ "] " ) +
+            DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDataSendRate() + mainWindow.globalManager.getStats().getProtocolSendRate() ));
           }
           
           if(mainWindow.systemTraySWT != null)
