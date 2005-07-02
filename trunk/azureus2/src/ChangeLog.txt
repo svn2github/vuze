@@ -1,16 +1,22 @@
 AZUREUS CHANGELOG
 ---------
 
-????.??.?? | Azureus 2.3.0.6
+2005.xx.xx | Azureus 2.3.0.5
 
 FEATURE: Core | Built in tracker support for multiple listen ports [Parg]
-FEATURE: Core | "date added" field added for hosted torrents [Parg]
+FEATURE: Core | Tracker support for multi-hash scrapes [Parg]
+FEATURE: Core | "Date added" field added for hosted torrents [Parg]
+FEATURE: Core | Alternate max upload rate limit when only seeding option [Nolar]
 FEATURE: Plug | Magnet URI accessor method added to Torrent [Parg]
 
-BUGFIX: UI    | Create-torrent wizard fix for multi-torrent checkbox enabling error [Parg]
+BUGFIX: Core  | Fix interested flag being set sometimes when seeding [Nolar]
 BUGFIX: Core  | Wrong file name returned for stopped simple torrents [Parg]
-BUGFIX: Core  | seeder/leecher counts missing for published torrents [Parg]
-BUGFIX: Core  | stats going negative for hosted torrent average up/down [Parg]
+BUGFIX: Core  | Seeder/leecher counts missing for published torrents [Parg]
+BUGFIX: Core  | Stats going negative for hosted torrent average up/down [Parg]
+BUGFIX: UI    | Create-torrent wizard fix for multi-torrent checkbox enabling error [Parg]
+
+
+
 
 2005.06.27 | Azureus 2.3.0.4
 
