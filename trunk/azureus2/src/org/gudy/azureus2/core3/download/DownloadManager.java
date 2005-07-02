@@ -120,6 +120,14 @@ DownloadManager
 		DownloadManagerPeerListener	listener );
 		
 	public void
+	addDiskListener(
+		DownloadManagerDiskListener	listener );
+		
+	public void
+	removeDiskListener(
+		DownloadManagerDiskListener	listener );
+	
+	public void
 	addPeer(
 		PEPeer 		peer );
 		

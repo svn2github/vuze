@@ -125,7 +125,14 @@ DiskManagerFileInfoImpl
   
   	throws CacheFileManagerException
   {
+	int	old_mode =  cache_file.getAccessMode();
+	
   	cache_file.setAccessMode( mode==DiskManagerFileInfo.READ?CacheFile.CF_READ:CacheFile.CF_WRITE );
+  	
+  	if ( old_mode != mode ){
+  		
+  		diskManager.fileAccessModeChanged( this, old_mode, mode );
+  	}
   }
   
   public int 
@@ -248,7 +255,7 @@ DiskManagerFileInfoImpl
    */
   public void setPriority(boolean b) {
 	priority = b;
-	diskManager.priorityChanged();
+	diskManager.priorityChanged( this );
   }
 
   /**
@@ -263,7 +270,7 @@ DiskManagerFileInfoImpl
    */
   public void setSkipped(boolean _skipped) {
 	skipped = _skipped;
-	diskManager.skippedFileSetChanged();
+	diskManager.skippedFileSetChanged( this );
   }
 
   public DiskManager getDiskManager() {

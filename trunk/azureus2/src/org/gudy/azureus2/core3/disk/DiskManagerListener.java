@@ -29,11 +29,21 @@ public interface
 DiskManagerListener 
 {
 	public void
-	stateChanged(int oldState, int	newState );
+	stateChanged(
+		int oldState, 
+		int	newState );
 	
 	public void
-	filePriorityChanged();
+	filePriorityChanged(
+		DiskManagerFileInfo		file );
 
 	public void
-	pieceDoneChanged();
+	pieceDoneChanged(
+		DiskManagerPiece		piece );
+	
+	public void
+	fileAccessModeChanged(
+		DiskManagerFileInfo		file,
+		int						old_mode,
+		int						new_mode );
 }

@@ -250,13 +250,24 @@ Test
 					}
 
                     public void 
-					filePriorityChanged() 
+					filePriorityChanged( 
+                    	DiskManagerFileInfo	file )
                     {
                      }
 
                 	public void
-                	pieceDoneChanged()
+                	pieceDoneChanged(
+                		DiskManagerPiece	piece )
                 	{           		
+                	}
+                	
+                	public void
+                	fileAccessModeChanged(
+                		DiskManagerFileInfo		file,
+                		int						old_mode,
+                		int						new_mode )
+                	{
+                		
                 	}
 				});
 			
@@ -403,6 +414,17 @@ Test
 			DownloadManagerTrackerListener	listener )
 		{
 			
+		}
+		public void
+		addDiskListener(
+			DownloadManagerDiskListener	listener )
+		{
+		}
+			
+		public void
+		removeDiskListener(
+			DownloadManagerDiskListener	listener )
+		{
 		}
 		
 		public void

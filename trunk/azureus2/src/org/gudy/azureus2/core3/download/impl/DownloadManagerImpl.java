@@ -119,6 +119,50 @@ DownloadManagerImpl
 				}
 			});	
 
+		// DISK listeners
+	
+	private static final int LDT_DL_ADDED		= 1;
+	private static final int LDT_DL_REMOVED		= 2;
+
+	private static ListenerManager	disk_listeners_agregator 	= ListenerManager.createAsyncManager(
+			"DMM:DiskListenAgregatorDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		_listener,
+					int			type,
+					Object		value )
+				{
+					DownloadManagerDiskListener	listener = (DownloadManagerDiskListener)_listener;
+					
+					if ( type == LDT_DL_ADDED ){
+						
+						listener.diskManagerAdded((DiskManager)value);
+						
+					}else if ( type == LDT_DL_REMOVED ){
+						
+						listener.diskManagerRemoved((DiskManager)value);
+					}
+				}
+			});	
+	
+	private ListenerManager	disk_listeners 	= ListenerManager.createManager(
+			"DMM:DiskListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		listener,
+					int			type,
+					Object		value )
+				{
+					disk_listeners_agregator.dispatch( listener, type, value );
+				}
+			});
+	
+	private AEMonitor	disk_listeners_mon	= new AEMonitor( "DownloadManager:DL" );
+
 	// PeerListeners
 	
 	private static final int LDT_PE_PEER_ADDED		= 1;
@@ -954,7 +998,7 @@ DownloadManagerImpl
 						  	
 						  diskManager.removeListener( disk_manager_listener );
 						  
-						  diskManager = null;
+						  setDiskManager( null );
 						}
 					
 					 }finally{
@@ -1594,7 +1638,60 @@ DownloadManagerImpl
   	peer_listeners.removeListener( listener );
   }
  
+  	protected void
+  	setDiskManager(
+  		DiskManager	_disk_manager )
+  	{
+	 	try{
+	  		disk_listeners_mon.enter();
+	  		
+	  		if ( _disk_manager == null && diskManager != null ){
+	  			
+	  			disk_listeners.dispatch( LDT_DL_REMOVED, diskManager );
+	  			
+	  		}else if ( _disk_manager != null && diskManager == null ){
+	  			
+	  			disk_listeners.dispatch( LDT_DL_ADDED, _disk_manager );
+	  			
+	  		}else{
+	  		
+	  			Debug.out( "inconsistent DiskManager state - " + _disk_manager + "/" + diskManager  );
+	  		}
+	  		
+	  		diskManager	= _disk_manager;
 
+	  	}finally{
+	  		
+	  		disk_listeners_mon.exit();
+	  	}	
+  	}
+  	
+	public void
+	addDiskListener(
+		DownloadManagerDiskListener	listener )
+	{
+	 	try{
+	  		disk_listeners_mon.enter();
+	  		
+	  		disk_listeners.addListener( listener );
+	  		
+			if ( diskManager != null ){
+		
+				disk_listeners.dispatch( listener, LDT_DL_ADDED, diskManager );
+			}
+	  	}finally{
+	  		
+	  		disk_listeners_mon.exit();
+	  	}		
+	}
+		
+	public void
+	removeDiskListener(
+		DownloadManagerDiskListener	listener )
+	{
+		disk_listeners.removeListener( listener );
+	}
+	
   public void
   addPeer(
 	  PEPeer 		peer )
@@ -1712,8 +1809,10 @@ DownloadManagerImpl
   	
   	if( res == null) {
 
-  		res = diskManager = DiskManagerFactory.create( torrent, this);
+  		res = DiskManagerFactory.create( torrent, this);
       
+  		setDiskManager( res );
+  		
   		disk_manager_listener = 
   			new DiskManagerListener()
   			{
@@ -1770,13 +1869,23 @@ DownloadManagerImpl
   				}
 
                 public void 
-				filePriorityChanged() 
+				filePriorityChanged(
+					DiskManagerFileInfo	file ) 
                 {                    
                 }
                 
                	public void
-            	pieceDoneChanged()
+            	pieceDoneChanged(
+            		DiskManagerPiece	piece )
             	{           		
+            	}
+               	
+            	public void
+            	fileAccessModeChanged(
+            		DiskManagerFileInfo		file,
+            		int						old_mode,
+            		int						new_mode )
+            	{
             	}
   			};
   		
@@ -1866,7 +1975,7 @@ DownloadManagerImpl
 						
 						setOnlySeeding(recheck_disk_manager.getRemaining() == 0);
 						
-						diskManager = null;
+						setDiskManager( null );
 						
 						if (start_state == STATE_ERROR){
 							
@@ -1887,7 +1996,7 @@ DownloadManagerImpl
 					
 				  	setOnlySeeding(false);
 					
-				  	diskManager = null;
+				  	setDiskManager( null );
 					
 					setFailed( recheck_disk_manager.getErrorMessage());	 
 				  }

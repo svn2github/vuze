@@ -112,6 +112,7 @@ DiskManagerImpl
 	private static final int LDT_STATECHANGED			= 1;
 	private static final int LDT_PRIOCHANGED			= 2;
 	private static final int LDT_PIECE_DONE_CHANGED		= 3;
+	private static final int LDT_ACCESS_MODE_CHANGED	= 4;
 	
 	private ListenerManager	listeners 	= ListenerManager.createManager(
 			"DiskM:ListenDispatcher",
@@ -133,11 +134,20 @@ DiskManagerImpl
   						
 					}else if (type == LDT_PRIOCHANGED) {
 						
-					    listener.filePriorityChanged();
+					    listener.filePriorityChanged((DiskManagerFileInfo)value);
 					    
 					}else if (type == LDT_PIECE_DONE_CHANGED) {
 						
-					    listener.pieceDoneChanged();
+					    listener.pieceDoneChanged((DiskManagerPiece)value);
+					    
+					}else if (type == LDT_ACCESS_MODE_CHANGED) {
+						
+						Object[]	o = (Object[])value;
+						
+					    listener.fileAccessModeChanged( 
+					    	(DiskManagerFileInfo)o[0],
+					    	((Integer)o[1]).intValue(),
+					    	((Integer)o[2]).intValue());
 					}
 				}
 			});		
@@ -899,7 +909,18 @@ DiskManagerImpl
 			incrementRemaining( piece_length );
 		}
 		
-		listeners.dispatch(LDT_PIECE_DONE_CHANGED, null);
+		listeners.dispatch(LDT_PIECE_DONE_CHANGED, piece);
+	}
+	
+	protected void
+	fileAccessModeChanged(
+		DiskManagerFileInfoImpl		file,
+		int							old_mode,
+		int							new_mode )
+	{
+		listeners.dispatch( 
+			LDT_ACCESS_MODE_CHANGED,
+			new Object[]{ file, new Integer(old_mode), new Integer(new_mode)});
 	}
 	
 	public DiskManagerPiece[]
@@ -1504,14 +1525,18 @@ DiskManagerImpl
     }
 
     protected void
-    skippedFileSetChanged()
+    skippedFileSetChanged(
+    	DiskManagerFileInfo	file )
     {
     	skipped_file_set_changed	= true;
-	    listeners.dispatch(LDT_PRIOCHANGED, null);
+	    listeners.dispatch(LDT_PRIOCHANGED, file);
     }
 
-	protected void priorityChanged() {
-	    listeners.dispatch(LDT_PRIOCHANGED, null);
+	protected void 
+	priorityChanged(
+		DiskManagerFileInfo	file ) 
+	{
+	    listeners.dispatch(LDT_PRIOCHANGED, file);
     }
   
   private void 

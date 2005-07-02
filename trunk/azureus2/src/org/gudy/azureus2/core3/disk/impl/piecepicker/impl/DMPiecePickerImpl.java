@@ -82,16 +82,27 @@ DMPiecePickerImpl
         public void stateChanged(int oldState, int newState) {
         }
 
-        public void filePriorityChanged() {
+        public void 
+        filePriorityChanged(
+        	DiskManagerFileInfo	file ) {
             
         	compute_priority_recalc_outstanding	= true;
         }
 
 
     	public void
-    	pieceDoneChanged()
+    	pieceDoneChanged(
+    		DiskManagerPiece	piece )
     	{
     		compute_priority_recalc_outstanding	= true;
+    	}
+    	
+     	public void
+    	fileAccessModeChanged(
+    		DiskManagerFileInfo		file,
+    		int						old_mode,
+    		int						new_mode )
+    	{	
     	}
 	}
 	
