@@ -46,7 +46,6 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacke
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketReceiver;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPRequestHandler;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
-import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
@@ -60,8 +59,19 @@ DHTTransportUDPImpl
 	implements DHTTransportUDP, DHTUDPRequestHandler
 {
 	public static boolean TEST_EXTERNAL_IP	= false;
+	
+	static{
+			// when 2304 out for a week or so change:
+			// min protocol to 2304
+			// main protocol to "vivaldi" (10)
 		
-	private static String	external_address;
+			// ALSO remove the anti-spoof disabling for old versions
+		
+		System.out.println( "**** mainline DHT version fix required" );
+	}	
+	
+	
+	private String				external_address;
 	
 	private byte				protocol_version;
 	private int					network;
