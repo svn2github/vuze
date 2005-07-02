@@ -158,8 +158,13 @@ public class GUIUpdater extends AEThread implements ParameterListener {
         String seeding_only;
         if( NetworkManager.isSeedingOnlyUploadRate() ) {
           int ul_limit_seed = NetworkManager.getMaxUploadRateBPSSeedingOnly() / 1024;
-          int diff = ul_limit_seed - ul_limit_norm;
-          seeding_only = (diff >= 0 ? "+" : "") +diff+ "K";
+          if( ul_limit_seed == 0 ) {
+            seeding_only = "+" +Constants.INFINITY_STRING+ "K";
+          }
+          else {
+            int diff = ul_limit_seed - ul_limit_norm;
+            seeding_only = (diff >= 0 ? "+" : "") +diff+ "K";
+          }
         }
         else {
           seeding_only = "";
