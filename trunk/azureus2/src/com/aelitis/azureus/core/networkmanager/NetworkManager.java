@@ -52,6 +52,7 @@ public class NetworkManager {
   private static int max_upload_rate_bps_normal;
   private static int max_upload_rate_bps_seeding_only;
   private static int max_upload_rate_bps = max_upload_rate_bps_normal;
+  private static boolean seeding_only_mode = false;
   
   static {
     tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
@@ -67,6 +68,7 @@ public class NetworkManager {
       public void parameterChanged( String parameterName ) {
         max_upload_rate_bps_normal = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
         if( max_upload_rate_bps_normal < 1024 )  max_upload_rate_bps_normal = UNLIMITED_RATE;
+        refreshUploadRate();
       }
     });
     
@@ -76,6 +78,7 @@ public class NetworkManager {
       public void parameterChanged( String parameterName ) {
         max_upload_rate_bps_seeding_only = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
         if( max_upload_rate_bps_seeding_only < 1024 )  max_upload_rate_bps_seeding_only = UNLIMITED_RATE;
+        refreshUploadRate();
       }
     });
     
@@ -110,6 +113,18 @@ public class NetworkManager {
   }
   
   
+
+  
+  private static void refreshUploadRate() {
+    if( seeding_only_mode && COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" ) ) {
+      max_upload_rate_bps = max_upload_rate_bps_seeding_only;
+    }
+    else {
+      max_upload_rate_bps = max_upload_rate_bps_normal;
+    }
+  }
+  
+  
   
   public void initialize() {
     AzureusCoreFactory.getSingleton().getGlobalManager().addListener( new GlobalManagerListener() {
@@ -118,13 +133,9 @@ public class NetworkManager {
       public void destroyInitiated(){}
       public void destroyed(){}
 
-      public void seedingStatusChanged( boolean seeding_only_mode ) {
-        if( seeding_only_mode && COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" ) ) {
-          max_upload_rate_bps = max_upload_rate_bps_seeding_only;
-        }
-        else {
-          max_upload_rate_bps = max_upload_rate_bps_normal;
-        }
+      public void seedingStatusChanged( boolean seeding_only ) {
+        seeding_only_mode = seeding_only;
+        refreshUploadRate();
       }
     });
   }
