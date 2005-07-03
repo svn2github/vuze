@@ -29,6 +29,7 @@ import java.nio.channels.SocketChannel;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.util.Debug;
 
 
 
@@ -51,9 +52,11 @@ public class NetworkManager {
   
   private static int max_upload_rate_bps_normal;
   private static int max_upload_rate_bps_seeding_only;
-  private static int max_upload_rate_bps = max_upload_rate_bps_normal;
+  private static int max_upload_rate_bps;
+  
+  private static boolean seeding_only_mode_allowed;
   private static boolean seeding_only_mode = false;
-  private static boolean seeding_only_mode_allowed = false;
+  
   
   static {
     tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
@@ -100,6 +103,8 @@ public class NetworkManager {
         if( max_download_rate_bps < 1024 )  max_download_rate_bps = UNLIMITED_RATE;
       }
     });
+    
+    refreshUploadRate();
   }
 
   
@@ -131,6 +136,10 @@ public class NetworkManager {
     }
     else {
       max_upload_rate_bps = max_upload_rate_bps_normal;
+    }
+    
+    if( max_upload_rate_bps < 1024 ) {
+      Debug.out( "max_upload_rate_bps < 1024=" +max_upload_rate_bps);
     }
   }
   
