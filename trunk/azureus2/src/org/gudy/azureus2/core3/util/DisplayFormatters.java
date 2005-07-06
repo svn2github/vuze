@@ -504,6 +504,19 @@ DisplayFormatters
 
     return( temp.format(new Date(date)));
   }
+  
+  public static String
+  formatDateNum(
+  	long		date )
+  {
+  	if ( date == 0 ){
+  		return( "" );
+  	}
+
+  	SimpleDateFormat temp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+  	return( temp.format(new Date(date)));
+  }
 
   public static String
   formatTime(
