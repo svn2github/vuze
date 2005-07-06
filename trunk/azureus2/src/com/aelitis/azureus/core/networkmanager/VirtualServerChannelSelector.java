@@ -86,7 +86,10 @@ public class VirtualServerChannelSelector {
 	        accept_thread.setDaemon( true );
 	        accept_thread.start();  
 	      }
-	      catch( Throwable t ) {  Debug.out( t );  }
+	      catch( Throwable t ) {
+            Debug.out( t );
+            LGLogger.logUnrepeatableAlert( "ERROR, unable to bind TCP incoming server socket to " +bind_address.getPort(), t );
+	      }
 	    }
   	}finally{
   		
