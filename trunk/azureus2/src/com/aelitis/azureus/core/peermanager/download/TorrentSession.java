@@ -59,7 +59,44 @@ public class TorrentSession {
    * @param syn_info bencode-able exchange map
    * @param handler for session events
    */
-  public void requestSession( Map syn_info, final TorrentSessionHandler handler ) {
+  public void requestSession( Map syn_info, TorrentSessionHandler handler ) {
+    attachHandler( handler );
+
+    //send out the session request
+    AZTorrentSessionSyn syn = new AZTorrentSessionSyn( type_id, infohash, syn_info );
+    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( syn, false );
+  }
+  
+
+  /**
+   * Acknowledge (ACK) and accept the session.
+   * @param ack_info bencode-able exchange map
+   * @param handler for session events
+   */
+  public void ackSession( Map ack_info, TorrentSessionHandler handler ) {
+    attachHandler( handler );
+    
+    //send out the session acceptance
+    AZTorrentSessionAck ack = new AZTorrentSessionAck( type_id, infohash, ack_info );
+    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( ack, false );
+    //TODO register session for piece management
+  }
+  
+  
+  
+  /**
+   * End this torrent session for the given reason.
+   * @param end_reason of end/error
+   */
+  public void endSession( String end_reason ){
+    AZTorrentSessionEnd end = new AZTorrentSessionEnd( type_id, infohash, end_reason );
+    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
+    destroy();
+  }
+  
+  
+  
+  private void attachHandler( final TorrentSessionHandler handler ) {
     //register for session ACK and END messages
     incoming_q_listener = new IncomingMessageQueue.MessageQueueListener() {
       public boolean messageReceived( Message message ) {
@@ -92,37 +129,6 @@ public class TorrentSession {
     };
     
     connection.getNetworkConnection().getIncomingMessageQueue().registerQueueListener( incoming_q_listener );
-
-    
-    //send out the session request
-    AZTorrentSessionSyn syn = new AZTorrentSessionSyn( type_id, infohash, syn_info );
-    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( syn, false );
-  }
-  
-  
-  
-  /**
-   * Acknowledge (ACK) and accept the session.
-   * @param ack_info bencode-able exchange map
-   * @param handler for session events
-   */
-  public void ackSession( Map ack_info, final TorrentSessionHandler handler ) {
-    //TODO attach handler
-    AZTorrentSessionAck ack = new AZTorrentSessionAck( type_id, infohash, ack_info );
-    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( ack, false );
-    //TODO register session for piece management
-  }
-  
-  
-  
-  /**
-   * End this torrent session for the given reason.
-   * @param end_reason of end/error
-   */
-  public void endSession( String end_reason ){
-    AZTorrentSessionEnd end = new AZTorrentSessionEnd( type_id, infohash, end_reason );
-    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
-    destroy();
   }
   
   
