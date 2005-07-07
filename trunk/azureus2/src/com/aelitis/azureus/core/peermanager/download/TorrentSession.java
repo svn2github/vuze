@@ -104,8 +104,10 @@ public class TorrentSession {
   /**
    * Acknowledge (ACK) and accept the session.
    * @param ack_info bencode-able exchange map
+   * @param handler for session events
    */
-  public void ackSession( Map ack_info ) {
+  public void ackSession( Map ack_info, final TorrentSessionHandler handler ) {
+    //TODO attach handler
     AZTorrentSessionAck ack = new AZTorrentSessionAck( type_id, infohash, ack_info );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( ack, false );
     //TODO register session for piece management
