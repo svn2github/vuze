@@ -1,7 +1,7 @@
 /*
- * Created on Feb 20, 2005
+ * Created on Jul 7, 2005
  * Created by Alon Rohter
- * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,20 +20,20 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.azureus;
+package com.aelitis.azureus.core.peermanager.download;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
 
-/**
- * A core AZ type peer message.
- */
-public interface AZMessage extends Message {
+public class TorrentSessionFactory {
 
-  public static final String ID_AZ_HANDSHAKE            = "AZ_HANDSHAKE";
-  public static final String ID_AZ_TORRENT_SESSION_SYN  = "AZ_TORRENT_SESSION_SYN";
-  public static final String ID_AZ_TORRENT_SESSION_ACK  = "AZ_TORRENT_SESSION_ACK";
-  public static final String ID_AZ_TORRENT_SESSION_END  = "AZ_TORRENT_SESSION_END";
-  public static final String ID_AZ_PEER_EXCHANGE        = "AZ_PEER_EXCHANGE";
+  private static final TorrentSessionFactory instance = new TorrentSessionFactory();
   
-  public static final byte AZ_DEFAULT_VERSION = (byte)1;
+  
+  public static TorrentSessionFactory getSingleton(){  return instance;  }
+  
+  
+  public TorrentSession createSession( String type_id, byte[] session_infohash, AZPeerConnection peer ) {
+    return new TorrentSession( type_id, session_infohash, peer );
+  }
+  
 }

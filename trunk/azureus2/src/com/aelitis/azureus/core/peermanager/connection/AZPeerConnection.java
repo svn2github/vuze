@@ -1,7 +1,7 @@
 /*
- * Created on Feb 20, 2005
+ * Created on Jul 4, 2005
  * Created by Alon Rohter
- * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,20 +20,26 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.azureus;
+package com.aelitis.azureus.core.peermanager.connection;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 
-/**
- * A core AZ type peer message.
- */
-public interface AZMessage extends Message {
+public class AZPeerConnection {
+  private final PeerItem peer_id;
+  private final NetworkConnection connection;
 
-  public static final String ID_AZ_HANDSHAKE            = "AZ_HANDSHAKE";
-  public static final String ID_AZ_TORRENT_SESSION_SYN  = "AZ_TORRENT_SESSION_SYN";
-  public static final String ID_AZ_TORRENT_SESSION_ACK  = "AZ_TORRENT_SESSION_ACK";
-  public static final String ID_AZ_TORRENT_SESSION_END  = "AZ_TORRENT_SESSION_END";
-  public static final String ID_AZ_PEER_EXCHANGE        = "AZ_PEER_EXCHANGE";
   
-  public static final byte AZ_DEFAULT_VERSION = (byte)1;
+  protected AZPeerConnection( PeerItem peer_id, NetworkConnection connection ) {
+    this.peer_id = peer_id;
+    this.connection = connection;
+  }
+  
+  
+  
+  public PeerItem getPeerIdentity() {  return peer_id;  }
+  
+  public NetworkConnection getNetworkConnection(){  return connection;  }
+  
+  
 }

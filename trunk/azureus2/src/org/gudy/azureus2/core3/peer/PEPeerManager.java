@@ -36,7 +36,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
-import com.aelitis.azureus.core.peermanager.peerdb.PeerConnectionItem;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
 
 
 public interface 
@@ -237,7 +237,7 @@ PEPeerManager
    * @param base_peer exchaning with
    * @return peer database connection item, or null if creation failed
    */
-  public PeerConnectionItem createPeerExchangeConnection( PEPeer base_peer );
+  public PeerExchangerItem createPeerExchangeConnection( PEPeer base_peer );
   
   
   /**

@@ -31,24 +31,30 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
 /**
- * Sent to initiate a torrent session.
+ * Sent as reply to torrent session initiation request.
  */
-public class AZTorrentSyn implements AZMessage {
+public class AZTorrentSessionAck implements AZMessage {
   private DirectByteBuffer buffer = null;
   private String description = null;
   
   private final byte[] infohash;
+  private final String session_type;
+  private final Map session_info;
+  
 
-
-  public AZTorrentSyn( byte[] infohash ) {
+  public AZTorrentSessionAck( String session_type, byte[] infohash, Map session_info ) {
     this.infohash = infohash;
+    this.session_type = session_type;
+    this.session_info = session_info;
   }
   
   
   public byte[] getInfoHash() {  return infohash;  }
+  public String getSessionType() {  return session_type;  }
+  public Map getSessionInfo() {  return session_info;  }
   
     
-  public String getID() {  return AZMessage.ID_AZ_TORRENT_SYN;  }
+  public String getID() {  return AZMessage.ID_AZ_TORRENT_SESSION_ACK;  }
   
   public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
   
@@ -57,7 +63,7 @@ public class AZTorrentSyn implements AZMessage {
   
   public String getDescription() {
     if( description == null ) {
-      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true );
+      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " type " +session_type;
     }
     return description;
   }
@@ -68,7 +74,9 @@ public class AZTorrentSyn implements AZMessage {
       Map payload_map = new HashMap();
       
       payload_map.put( "infohash", infohash );
-
+      payload_map.put( "type_id", session_type );
+      payload_map.put( "info", session_info );
+      
       buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map );
     }
     
@@ -83,7 +91,14 @@ public class AZTorrentSyn implements AZMessage {
     if( hash == null )  throw new MessageException( "hash == null" );
     if( hash.length != 20 )  throw new MessageException( "hash.length != 20: " +hash.length );
 
-    return new AZTorrentSyn( hash );
+    byte[] type_raw = (byte[])root.get( "type_id" );
+    if( type_raw == null )  throw new MessageException( "type_raw == null" );
+    String type_id = new String( type_raw );
+    
+    Map info = (Map)root.get( "info" );
+    if( info == null )  throw new MessageException( "info == null" );
+    
+    return new AZTorrentSessionAck( type_id, hash, info );
   }
   
   

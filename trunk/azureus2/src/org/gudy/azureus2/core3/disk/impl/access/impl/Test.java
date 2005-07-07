@@ -58,7 +58,7 @@ import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
-import com.aelitis.azureus.core.peermanager.peerdb.PeerConnectionItem;
+import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
 
 
 /**
@@ -910,7 +910,7 @@ Test
 			
 		}
 			
-    public PeerConnectionItem createPeerExchangeConnection( PEPeer base_peer ) {  return null;  }
+    public PeerExchangerItem createPeerExchangeConnection( PEPeer base_peer ) {  return null;  }
     
     public void peerVerifiedAsSelf( PEPeer self ){}
     

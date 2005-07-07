@@ -154,7 +154,7 @@ PEPeerTransportProtocol
   private long consecutive_keep_alives = 0;
   
   
-  private PeerConnectionItem peer_exchange_item = null;
+  private PeerExchangerItem peer_exchange_item = null;
   private boolean peer_exchange_supported = false;
   
   

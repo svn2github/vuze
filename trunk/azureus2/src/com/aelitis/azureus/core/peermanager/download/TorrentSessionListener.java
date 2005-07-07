@@ -1,7 +1,7 @@
 /*
- * Created on Feb 20, 2005
+ * Created on Jul 6, 2005
  * Created by Alon Rohter
- * Copyright (C) 2004-2005 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,20 +20,15 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.azureus;
+package com.aelitis.azureus.core.peermanager.download;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
+public interface TorrentSessionListener {
 
-/**
- * A core AZ type peer message.
- */
-public interface AZMessage extends Message {
-
-  public static final String ID_AZ_HANDSHAKE            = "AZ_HANDSHAKE";
-  public static final String ID_AZ_TORRENT_SESSION_SYN  = "AZ_TORRENT_SESSION_SYN";
-  public static final String ID_AZ_TORRENT_SESSION_ACK  = "AZ_TORRENT_SESSION_ACK";
-  public static final String ID_AZ_TORRENT_SESSION_END  = "AZ_TORRENT_SESSION_END";
-  public static final String ID_AZ_PEER_EXCHANGE        = "AZ_PEER_EXCHANGE";
+  /**
+   * The given torrent session has been requested.
+   * @param incoming session init
+   * @return handler that should be attached to this session
+   */
+  public TorrentSessionHandler torrentSessionRequested( TorrentSession incoming );
   
-  public static final byte AZ_DEFAULT_VERSION = (byte)1;
 }

@@ -31,24 +31,30 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
 /**
- * Sent as reply to torrent session initiation request.
+ * Sent when a torrent session ends/fails.
  */
-public class AZTorrentAck implements AZMessage {
+public class AZTorrentSessionEnd implements AZMessage {  
   private DirectByteBuffer buffer = null;
   private String description = null;
   
   private final byte[] infohash;
+  private final String session_type;
+  private final String reason;
+  
 
-
-  public AZTorrentAck( byte[] infohash ) {
+  public AZTorrentSessionEnd( String session_type, byte[] infohash, String reason ) {
     this.infohash = infohash;
+    this.session_type = session_type;
+    this.reason = reason;
   }
   
   
   public byte[] getInfoHash() {  return infohash;  }
+  public String getSessionType() {  return session_type;  }
+  public String getEndReason() {  return reason;  }
   
     
-  public String getID() {  return AZMessage.ID_AZ_TORRENT_ACK;  }
+  public String getID() {  return AZMessage.ID_AZ_TORRENT_SESSION_END;  }
   
   public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
   
@@ -57,7 +63,7 @@ public class AZTorrentAck implements AZMessage {
   
   public String getDescription() {
     if( description == null ) {
-      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true );
+      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " type " +session_type;
     }
     return description;
   }
@@ -68,7 +74,9 @@ public class AZTorrentAck implements AZMessage {
       Map payload_map = new HashMap();
       
       payload_map.put( "infohash", infohash );
-
+      payload_map.put( "type_id", session_type );
+      payload_map.put( "reason", reason );
+      
       buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map );
     }
     
@@ -83,7 +91,15 @@ public class AZTorrentAck implements AZMessage {
     if( hash == null )  throw new MessageException( "hash == null" );
     if( hash.length != 20 )  throw new MessageException( "hash.length != 20: " +hash.length );
 
-    return new AZTorrentAck( hash );
+    byte[] type_raw = (byte[])root.get( "type_id" );
+    if( type_raw == null )  throw new MessageException( "type_raw == null" );
+    String type_id = new String( type_raw );
+    
+    byte[] reason_raw = (byte[])root.get( "reason" );
+    if( reason_raw == null )  throw new MessageException( "reason_raw == null" );
+    String res = new String( reason_raw );
+    
+    return new AZTorrentSessionEnd( type_id, hash, res );
   }
   
   

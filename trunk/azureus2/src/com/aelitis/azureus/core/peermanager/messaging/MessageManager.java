@@ -92,8 +92,12 @@ public class MessageManager {
    * @param message type to remove
    */
   public void deregisterMessageType( Message message ) {
-    Object key = new String( message.getID() + message.getVersion() );
-    message_registrations.remove( key );
+    try{  this_mon.enter();
+    
+      Object key = new String( message.getID() + message.getVersion() );
+      message_registrations.remove( key );
+    }
+    finally{  this_mon.exit();  }
   }
   
   

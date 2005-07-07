@@ -39,6 +39,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
+import com.aelitis.azureus.core.peermanager.download.TorrentSessionManager;
 import com.aelitis.azureus.core.update.AzureusRestarterFactory;
 
 /**
@@ -121,6 +122,8 @@ AzureusCoreImpl
 		NetworkManager.getSingleton();
 		
 		PeerManager.getSingleton();
+        
+        TorrentSessionManager.getSingleton();
     
 		pi = PluginInitializer.getSingleton(this,this);
 	}

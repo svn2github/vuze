@@ -31,7 +31,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 /**
  *
  */
-public class PeerConnectionItem {
+public class PeerExchangerItem {
   private static final int MAX_PEERS_PER_VOLLEY = 50;
   private static final int MAX_KNOWN_PER_PEER = 500;
   
@@ -46,7 +46,7 @@ public class PeerConnectionItem {
   private final Helper helper;
   
 
-  protected PeerConnectionItem( PeerDatabase parent_db, PeerItem peer, Helper helper ) {
+  protected PeerExchangerItem( PeerDatabase parent_db, PeerItem peer, Helper helper ) {
     this.parent_db = parent_db;
     this.base_peer = peer;
     this.helper = helper;

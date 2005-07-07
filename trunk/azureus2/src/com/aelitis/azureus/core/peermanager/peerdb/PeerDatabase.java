@@ -67,15 +67,15 @@ public class PeerDatabase {
    * @param base_peer_item key
    * @return registered connection
    */
-  public PeerConnectionItem registerPeerConnection( PeerItem base_peer_item, PeerConnectionItem.Helper helper ) {
+  public PeerExchangerItem registerPeerConnection( PeerItem base_peer_item, PeerExchangerItem.Helper helper ) {
     try{  map_mon.enter();
-      PeerConnectionItem new_connection = new PeerConnectionItem( this, base_peer_item, helper );
+      PeerExchangerItem new_connection = new PeerExchangerItem( this, base_peer_item, helper );
       
       //update connection adds
       for( Iterator it = peer_connections.entrySet().iterator(); it.hasNext(); ) {  //go through all existing connections
         Map.Entry entry = (Map.Entry)it.next();
         PeerItem old_key = (PeerItem)entry.getKey();
-        PeerConnectionItem old_connection = (PeerConnectionItem)entry.getValue();
+        PeerExchangerItem old_connection = (PeerExchangerItem)entry.getValue();
         
         if( old_connection.getHelper().isSeed() && new_connection.getHelper().isSeed() ) {
           continue;  //dont exchange seed peers to other seeds
@@ -98,7 +98,7 @@ public class PeerDatabase {
 
       //update connection drops
       for( Iterator it = peer_connections.values().iterator(); it.hasNext(); ) {  //go through all remaining connections
-        PeerConnectionItem old_connection = (PeerConnectionItem)it.next();
+        PeerExchangerItem old_connection = (PeerExchangerItem)it.next();
         
         //dont skip seed2seed drop notification, as the dropped peer may not have been seeding initially
         old_connection.notifyDropped( base_peer_key );  //notify existing connection of drop
@@ -117,7 +117,7 @@ public class PeerDatabase {
   public void addDiscoveredPeer( PeerItem peer ) {
     try{  map_mon.enter();
       for( Iterator it = peer_connections.values().iterator(); it.hasNext(); ) {  //check to make sure we dont already know about this peer
-        PeerConnectionItem connection = (PeerConnectionItem)it.next();
+        PeerExchangerItem connection = (PeerExchangerItem)it.next();
         if( connection.isConnectedToPeer( peer ) )  return;  //we already know about this peer via exchange, so ignore discovery
       }
       
@@ -234,7 +234,7 @@ public class PeerDatabase {
     try{  map_mon.enter();
       //count popularity of all known peers
       for( Iterator it = peer_connections.values().iterator(); it.hasNext(); ) { 
-        PeerConnectionItem connection = (PeerConnectionItem)it.next();
+        PeerExchangerItem connection = (PeerExchangerItem)it.next();
         PeerItem[] peers = connection.getConnectedPeers();
         
         for( int i=0; i < peers.length; i++ ) {
