@@ -64,7 +64,7 @@ public class TorrentSessionManager {
               TorrentSessionListener listener = (TorrentSessionListener)registrations.get( syn.getSessionType() );
               
               if( listener != null ) {  
-                listener.torrentSessionRequested( session );
+                listener.torrentSessionRequested( session, syn.getSessionInfo() );
               }
               else {  //unknown session type
                 session.endSession( "unknown session type id" );  //return error

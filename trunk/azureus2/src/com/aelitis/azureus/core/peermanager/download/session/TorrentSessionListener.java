@@ -22,13 +22,15 @@
 
 package com.aelitis.azureus.core.peermanager.download.session;
 
+import java.util.Map;
+
 public interface TorrentSessionListener {
 
   /**
-   * The given torrent session has been requested.
+   * The given torrent session has been requested with the given session info.
    * @param incoming session init
-   * @return handler that should be attached to this session
+   * @param syn_info info of session syn
    */
-  public TorrentSessionHandler torrentSessionRequested( TorrentSession incoming );
+  public void torrentSessionRequested( TorrentSession incoming, Map syn_info );
   
 }
