@@ -50,7 +50,7 @@ Plugin
    * the rest of Azureus initialises.
    * The only framework guaranteed to be available is the plugin-configuration.  
    * 
-   * public void
+   * public static void
    * load(
    * 	PluginInterface	pluginInterface )
    * 

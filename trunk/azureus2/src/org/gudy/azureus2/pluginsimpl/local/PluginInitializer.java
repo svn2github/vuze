@@ -361,6 +361,50 @@ PluginInitializer
   				LGLogger.log( "Built-in plugin '" + builtin_plugins[i][0] + "' is disabled" );
   			}
   		}
+  		
+		LGLogger.log("Loading dynamically registered plugins");
+		 
+		for (int i=0;i<registration_queue.size();i++){
+			
+			Object	entry = registration_queue.get(i);
+				
+			Class	cla;
+			String	id;
+			
+			if ( entry instanceof Class ){
+				
+  				cla = (Class)entry;
+  				
+  				id	= cla.getName();			
+			}else{
+				
+				Object[]	x = (Object[])entry;
+				
+				Plugin	plugin = (Plugin)x[0];
+				
+				cla	= plugin.getClass();
+				
+				id	= (String)x[1];
+			}
+			
+			try{
+					// lazyness here, for dynamic we use static load method with default plugin interface
+					// if we need to improve on this then we'll have to move to a system more akin to
+					// the dir-loaded plugins
+										      
+				Method	load_method = cla.getMethod( "load", new Class[]{ PluginInterface.class });
+		      	
+		      	load_method.invoke( null, new Object[]{ getDefaultInterfaceSupport() });
+		      	
+		    }catch( NoSuchMethodException e ){
+		      	
+		    }catch( Throwable e ){
+		      	
+				Debug.printStackTrace( e );
+		
+				LGLogger.logUnrepeatableAlert( "Load of dynamic plugin '" + id + "' fails", e );
+			}
+		}
   	}
  
   private void
@@ -678,6 +722,8 @@ PluginInitializer
 	      
 	      Throwable	load_failure	= null;
 	      
+	      String pid = plugin_id[0]==null?directory.getName():plugin_id[0];
+	      
 	      try{
 		      Class c = classLoader.loadClass(plugin_class);
 		      
@@ -701,7 +747,7 @@ PluginInitializer
 							directory.getName(),	// key for config values
 							new_props,
 							directory.getAbsolutePath(),
-							plugin_id[0]==null?directory.getName():plugin_id[0],
+							pid,
 							plugin_version[0] );
 	      
 
@@ -721,14 +767,17 @@ PluginInitializer
 	      loaded_pis.add( plugin_interface );
 	      
 	      if ( load_failure != null ){
-	      	
-	      	Debug.printStackTrace( load_failure );
-	        
-	      	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
-	   	 
-	      	LGLogger.logUnrepeatableAlert( msg, load_failure );
-
-	      	System.out.println( msg + " : " + load_failure);
+	      		  
+	    	  	// don't complain about our internal one
+	    	  
+	    	  if ( !pid.equals(UpdaterUpdateChecker.getPluginID())){
+	    		  
+		      	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
+		   	 
+		      	LGLogger.logUnrepeatableAlert( msg, load_failure );
+	
+		      	System.out.println( msg + " : " + load_failure);
+		      }
 	      }
   		}
 	      
@@ -1005,6 +1054,7 @@ PluginInitializer
     }
     
   	try{
+  	
   		Plugin plugin = (Plugin) plugin_class.newInstance();
   		
   		PluginInterfaceImpl plugin_interface = 
@@ -1021,6 +1071,21 @@ PluginInitializer
   		
 		UtilitiesImpl.setPluginThreadContext( plugin_interface );
 
+		try{
+			
+			Method	load_method = plugin_class.getMethod( "load", new Class[]{ PluginInterface.class });
+		      	
+		   	load_method.invoke( plugin, new Object[]{ plugin_interface });
+		      	
+		 }catch( NoSuchMethodException e ){
+		      	
+		 }catch( Throwable e ){
+		      	
+			Debug.printStackTrace( e );
+			
+			LGLogger.logUnrepeatableAlert( "Load of built in plugin '" + plugin_id + "' fails", e );
+		}
+		 
   		plugin.initialize(plugin_interface);
   		
    		plugins.add( plugin );
@@ -1210,21 +1275,55 @@ PluginInitializer
   
   protected void
   fireEventSupport(
-  	final int	type )
+  	final int		type,
+  	final Object	value )
   {
-  	PluginEvent	ev = new PluginEvent(){ public int getType(){ return( type );}};
+  	PluginEvent	ev = 
+  		new PluginEvent()
+  		{ 
+  			public int 
+  			getType()
+  			{ 
+  				return( type );
+  			}
+  			
+  			public Object
+  			getValue()
+  			{
+  				return( value );
+  			}
+  		};
   	
   	for (int i=0;i<plugin_interfaces.size();i++){
   		
-  		((PluginInterfaceImpl)plugin_interfaces.get(i)).fireEvent(ev);
-  	}  	
+  		try{
+  			((PluginInterfaceImpl)plugin_interfaces.get(i)).fireEvent(ev);
+  			
+  		}catch(Throwable e ){
+  			
+  			Debug.printStackTrace(e);
+  		}
+  	} 
+  	
+ 	if ( default_plugin != null ){
+  		
+  		default_plugin.fireEvent(ev);
+  	}
   }
   
   public static void
   fireEvent(
   	int		type )
   {
-  	singleton.fireEventSupport(type);
+  	singleton.fireEventSupport(type, null);
+  }  
+  
+  public static void
+  fireEvent(
+	int		type,
+	Object	value )
+  {
+  	singleton.fireEventSupport(type, value);
   }
   
   public void

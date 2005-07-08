@@ -31,7 +31,12 @@ PluginEvent
 {
 	public static final int	PEV_CONFIGURATION_WIZARD_STARTS			= 1;
 	public static final int	PEV_CONFIGURATION_WIZARD_COMPLETES		= 2;
-	
+	public static final int	PEV_INITIALISATION_PROGRESS_TASK		= 3;
+	public static final int	PEV_INITIALISATION_PROGRESS_PERCENT		= 4;
+
 	public int
 	getType();
+	
+	public Object
+	getValue();
 }

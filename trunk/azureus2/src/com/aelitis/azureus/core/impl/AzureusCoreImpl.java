@@ -481,6 +481,8 @@ AzureusCoreImpl
 	reportCurrentTask(
 		String currentTask )
 	{
+		pi.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_TASK, currentTask );
+		
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
@@ -497,6 +499,8 @@ AzureusCoreImpl
 	reportPercent(
 		int percent )
 	{
+		pi.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_PERCENT, new Integer( percent ));
+
 		for (int i=0;i<listeners.size();i++){
 			
 			try{

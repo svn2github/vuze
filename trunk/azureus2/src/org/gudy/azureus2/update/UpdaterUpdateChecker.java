@@ -42,6 +42,8 @@ public class
 UpdaterUpdateChecker
 	implements UnloadablePlugin
 {
+	private static String PLUGIN_ID		= "azupdater";
+	
 	public static void
 	checkPlugin()
 	{
@@ -50,7 +52,7 @@ UpdaterUpdateChecker
 			
 		    File user_plugin_dir = FileUtil.getUserFile("plugins");
 
-		    File user_updater_plugin = new File( user_plugin_dir, "azupdater" );
+		    File user_updater_plugin = new File( user_plugin_dir, PLUGIN_ID );
 	
 		    File user_updater_props = new File( user_updater_plugin, "plugin.properties" );
 		    
@@ -61,7 +63,7 @@ UpdaterUpdateChecker
 		    
 		    File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
 
-		    File shared_updater_plugin = new File( shared_plugin_dir, "azupdater" );
+		    File shared_updater_plugin = new File( shared_plugin_dir, PLUGIN_ID );
 		    
 		    shared_updater_plugin.mkdirs();
 		    
@@ -97,6 +99,12 @@ UpdaterUpdateChecker
 
 			LGLogger.logUnrepeatableAlert( "azupdater plugin: initialisation error", e );
 		}
+	}
+	
+	public static String
+	getPluginID()
+	{
+		return( PLUGIN_ID );
 	}
 	
 	public void
