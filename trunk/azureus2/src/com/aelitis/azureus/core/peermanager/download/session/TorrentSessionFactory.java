@@ -1,5 +1,5 @@
 /*
- * Created on Jul 3, 2005
+ * Created on Jul 7, 2005
  * Created by Alon Rohter
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -20,23 +20,20 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.download;
+package com.aelitis.azureus.core.peermanager.download.session;
 
-import java.util.Map;
+import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
 
-public interface TorrentSessionHandler {
+public class TorrentSessionFactory {
 
-  /**
-   * The given bencoded map of information has been received from the torrent session ack message.
-   * @param info of session ack
-   */
-  public void sessionAcked( Map info );
+  private static final TorrentSessionFactory instance = new TorrentSessionFactory();
   
   
-  /**
-   * The session has been remotely ended for the given reason and destroyed.
-   * @param reason for end
-   */
-  public void sessionEnded( String reason );  
+  public static TorrentSessionFactory getSingleton(){  return instance;  }
+  
+  
+  public TorrentSession createSession( String type_id, byte[] session_infohash, AZPeerConnection peer ) {
+    return new TorrentSession( type_id, session_infohash, peer );
+  }
   
 }

@@ -20,10 +20,16 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.download;
+package com.aelitis.azureus.core.peermanager.download.session;
 
 import java.util.Arrays;
 import java.util.Map;
+
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
 import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
@@ -36,7 +42,17 @@ public class TorrentSession {
   private final byte[] infohash;
   private final AZPeerConnection connection;
   
+  
+  private static final int STATE_NEW  = 0;
+  private static final int STATE_SYN  = 1;
+  private static final int STATE_RUN  = 2;
+  private static final int STATE_END  = 3;
+  
+  private int session_state = STATE_NEW;
+
+  
   private IncomingMessageQueue.MessageQueueListener incoming_q_listener = null;
+  
   
   
   protected TorrentSession( String type_id, byte[] session_infohash, AZPeerConnection peer ) {
@@ -65,6 +81,16 @@ public class TorrentSession {
     //send out the session request
     AZTorrentSessionSyn syn = new AZTorrentSessionSyn( type_id, infohash, syn_info );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( syn, false );
+    session_state = STATE_SYN;
+    
+    //set a timeout timer in case the other peer forgets to send an ACK or END reply
+    SimpleTimer.addEvent( SystemTime.getCurrentTime() + 60*1000, new TimerEventPerformer() {
+      public void  perform( TimerEvent  event ) {
+        if( session_state == STATE_SYN ) {
+          endSession( "no session ACK received after 60sec, request timed out" );
+        }
+      }
+    });
   }
   
 
@@ -79,7 +105,8 @@ public class TorrentSession {
     //send out the session acceptance
     AZTorrentSessionAck ack = new AZTorrentSessionAck( type_id, infohash, ack_info );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( ack, false );
-    //TODO register session for piece management
+    
+    startSessionProcessing();
   }
   
   
@@ -93,6 +120,21 @@ public class TorrentSession {
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
     destroy();
   }
+
+  
+  
+  private void startSessionProcessing() {
+    session_state = STATE_RUN;
+    
+    //TODO
+  }
+  
+  
+  
+  private void stopSessionProcessing() {
+    //TODO
+  }
+  
   
   
   
@@ -104,7 +146,9 @@ public class TorrentSession {
           AZTorrentSessionAck ack = (AZTorrentSessionAck)message;
           
           if( ack.getSessionType().equals( type_id ) && Arrays.equals( ack.getInfoHash(), infohash ) ) {
-            handler.sessionAcked( ack.getSessionInfo() );
+            if( handler.sessionAcked( ack.getSessionInfo() ) ) {
+              startSessionProcessing();
+            }
             ack.destroy();
             return true;
           }
@@ -134,8 +178,17 @@ public class TorrentSession {
   
   
   private void destroy(){
-    if( incoming_q_listener != null ) {
-      connection.getNetworkConnection().getIncomingMessageQueue().cancelQueueListener( incoming_q_listener );
+    if( session_state != STATE_END ) {
+      session_state = STATE_END;
+      
+      stopSessionProcessing();
+      
+      if( incoming_q_listener != null ) {
+        connection.getNetworkConnection().getIncomingMessageQueue().cancelQueueListener( incoming_q_listener );
+      }
+    }
+    else {
+      Debug.out( "session_state == STATE_END" );
     }
   }
 }

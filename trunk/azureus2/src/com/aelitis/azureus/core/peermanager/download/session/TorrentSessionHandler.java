@@ -1,5 +1,5 @@
 /*
- * Created on Jul 6, 2005
+ * Created on Jul 3, 2005
  * Created by Alon Rohter
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -20,15 +20,25 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.download;
+package com.aelitis.azureus.core.peermanager.download.session;
 
-public interface TorrentSessionListener {
+import java.util.Map;
+
+public interface TorrentSessionHandler {
 
   /**
-   * The given torrent session has been requested.
-   * @param incoming session init
-   * @return handler that should be attached to this session
+   * The given bencoded map of information has been received from the torrent session ack message.
+   * @param info of session ack
+   * @return true if the session ack was accepted and session processing should commence,
+   *         false if not accepted (sessionEnded() should be called for reason)
    */
-  public TorrentSessionHandler torrentSessionRequested( TorrentSession incoming );
+  public boolean sessionAcked( Map info );
+  
+  
+  /**
+   * The session has been remotely ended for the given reason.
+   * @param reason for end
+   */
+  public void sessionEnded( String reason );  
   
 }

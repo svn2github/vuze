@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.download;
+package com.aelitis.azureus.core.peermanager.download.session;
 
 import java.util.HashMap;
 
@@ -43,6 +43,10 @@ public class TorrentSessionManager {
   protected AEMonitor this_mon = new AEMonitor( "TorrentSessionManager" );
   
  
+  //TODO ack wait timer...abort session attempt after say 60s 
+  
+  
+  
   public static TorrentSessionManager getSingleton(){  return instance;  }
 
   

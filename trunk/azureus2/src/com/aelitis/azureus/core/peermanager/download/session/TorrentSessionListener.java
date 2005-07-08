@@ -1,5 +1,5 @@
 /*
- * Created on Jul 7, 2005
+ * Created on Jul 6, 2005
  * Created by Alon Rohter
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -20,20 +20,15 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.download;
+package com.aelitis.azureus.core.peermanager.download.session;
 
-import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
+public interface TorrentSessionListener {
 
-public class TorrentSessionFactory {
-
-  private static final TorrentSessionFactory instance = new TorrentSessionFactory();
-  
-  
-  public static TorrentSessionFactory getSingleton(){  return instance;  }
-  
-  
-  public TorrentSession createSession( String type_id, byte[] session_infohash, AZPeerConnection peer ) {
-    return new TorrentSession( type_id, session_infohash, peer );
-  }
+  /**
+   * The given torrent session has been requested.
+   * @param incoming session init
+   * @return handler that should be attached to this session
+   */
+  public TorrentSessionHandler torrentSessionRequested( TorrentSession incoming );
   
 }
