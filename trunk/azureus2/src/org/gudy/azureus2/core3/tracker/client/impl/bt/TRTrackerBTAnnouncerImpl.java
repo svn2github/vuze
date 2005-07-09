@@ -423,10 +423,12 @@ TRTrackerBTAnnouncerImpl
 		}
 		
 		long	now = SystemTime.getCurrentTime();
-    //only start overriding once the tracker announce update has been called
-    boolean override_allowed = rd_last_override > 0 && now - rd_last_override > OVERRIDE_PERIOD;
+		//only start overriding once the tracker announce update has been called
+		boolean override_allowed = rd_last_override > 0 && now - rd_last_override > OVERRIDE_PERIOD;
     
-		if ( ( SystemTime.isErrorLast10sec() || override_allowed ) && rd_override_percentage != percentage ){
+		if( now < rd_last_override )  override_allowed = true;  //time went backwards
+    
+		if ( override_allowed && rd_override_percentage != percentage ){
 		
 			try{
 				this_mon.enter();
@@ -496,15 +498,16 @@ TRTrackerBTAnnouncerImpl
 	update(
 		boolean		force )
 	{
-		long time = SystemTime.getCurrentTime() / 1000;
+		long now = SystemTime.getCurrentTime() / 1000;
+        
+        if( now < last_update_time_secs )  force = true;  //time went backwards
 
-		if  ( SystemTime.isErrorLast1min() || force ||
-			 	( time - last_update_time_secs >= REFRESH_MINIMUM_SECS )){
-    		
-			requestUpdate();
+		if( force || ( now - last_update_time_secs >= REFRESH_MINIMUM_SECS )){
+		  requestUpdate();
 		}
 	}
 	
+    
 	public void
 	complete(
 		boolean	already_reported )
@@ -2246,10 +2249,10 @@ TRTrackerBTAnnouncerImpl
     
     long currentTime = SystemTime.getCurrentTime() /1000;
         
+    long diff = currentTime - failure_time_last_updated;
     
     //use previously calculated interval if it's not time to update
-    if ( !SystemTime.isErrorLast1min() &&
-        ((currentTime - failure_time_last_updated) < failure_added_time)) {
+    if( diff < failure_added_time && !(diff < 0) ) {
       return failure_added_time;
     }
 

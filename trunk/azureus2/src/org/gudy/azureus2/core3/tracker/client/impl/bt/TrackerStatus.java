@@ -186,11 +186,11 @@ public class TrackerStatus {
     }
 
     long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
-    
-    if (!SystemTime.isErrorLast1min() && !force && 
-        lMainNextScrapeStartTime >= SystemTime.getCurrentTime()) {
+
+    if( !force && lMainNextScrapeStartTime > SystemTime.getCurrentTime() ) {
       return;
     }
+    
     // Set status id to SCRAPING, but leave status string until we actually
     // do the scrape
     response.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);

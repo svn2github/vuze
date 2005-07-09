@@ -173,7 +173,7 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
   	
 	    long current_time = SystemTime.getCurrentTime() / 1000;
 	    
-	    if ( SystemTime.isErrorLast5min() ) {
+	    if ( current_time < lastUptime ) {  //time went backwards
 	      lastUptime = current_time;
 	      return;
 	    }

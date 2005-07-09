@@ -244,9 +244,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
    */
   private void runScrapes() {
     while (true) {
-      //System.out.println("Waiting for " + (lNextScrapeTime - SystemTime.getCurrentTime()) + "ms");
-      while (lNextScrapeTime == 0 || lNextScrapeTime > SystemTime.getCurrentTime()) {
-        if ( SystemTime.isErrorLast5sec() ) break;
+      while (lNextScrapeTime == 0 || lNextScrapeTime > SystemTime.getCurrentTime()) {        
         try { 
           Thread.sleep(1000); 
         } catch (Exception e) {/**/}

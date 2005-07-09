@@ -936,13 +936,13 @@ TRTrackerServerTorrentImpl
 		
 			stats.addScrape();
 			
-			long	now = SystemTime.getCurrentTime();
+			long now = SystemTime.getCurrentTime();
+            
+            long diff = now - last_scrape_calc_time;
 			
-			if ( 	allow_cache && !SystemTime.isErrorLast1min() &&
-					last_scrape != null && 
-					now - last_scrape_calc_time < TRTrackerServerImpl.getScrapeCachePeriod()){
+			if( allow_cache && last_scrape != null && diff < TRTrackerServerImpl.getScrapeCachePeriod() && !(diff < 0) ){
 				
-				return( last_scrape );
+			  return( last_scrape );
 			}
 			
 			last_scrape 			= new TreeMap();

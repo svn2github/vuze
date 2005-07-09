@@ -22,57 +22,32 @@
 
 package org.gudy.azureus2.core3.util;
 
-import java.util.Arrays;
-
-import org.gudy.azureus2.core3.logging.LGLogger;
-
-
 /**
  * Utility class to retrieve current system time,
  * and catch clock backward time changes.
  */
 public class SystemTime {
   
-  public static final long TIME_GRANULARITY_MILLIS = 20;   //internal update time ms
+  public static final long TIME_GRANULARITY_MILLIS = 30;   //internal update time ms
   
   private static final SystemTime instance = new SystemTime();
+  
+  
   private final Thread updater;
-  private volatile long currentTime = 0;
-  private long prevTime = 0;
-  private long errorStartTime = 0;
-  private final long errorTimes[] = { 1000, 5000, 10000, 30000, 60000, 300000, 600000 };
-  private volatile boolean errorStates[] = new boolean[errorTimes.length];
-  private volatile long lastTimeChange = 0;
+  private volatile long stepped_time;
+  private volatile long smoothed_time;  //we 'fake' sub-granularity by adding ticks each call
+  private volatile long next_time;
   
   
   private SystemTime() {
-    Arrays.fill( errorStates, false );
-    
-    	// don't use AEThread as this pulls in lots of crap in the webui
-    
-    currentTime = System.currentTimeMillis();
+    stepped_time = System.currentTimeMillis();
 
-    updater = new AEThread("SystemTime") {
-      public void runSupport() {
+    updater = new Thread("SystemTime") {
+      public void run() {
         while( true ) {
-          currentTime = System.currentTimeMillis();
-          
-          if ( currentTime < prevTime ) {   //oops, time went backwards!
-            lastTimeChange = prevTime - currentTime;
-            LGLogger.log(LGLogger.INFORMATION, "SystemTime: caught clock time set backwards "+lastTimeChange+" ms");
-            errorStartTime = currentTime;
-            for (int i=0; i < errorStates.length; i++) errorStates[i] = true;
-          }
-          prevTime = currentTime;
-          
-          if ( errorStartTime != 0 ) {  //update the errorStates values
-            for (int i=0; i < errorTimes.length; i++) {
-              if ( errorStates[i] == true && currentTime - errorStartTime > errorTimes[i] ) {
-                errorStates[i] = false;
-                if ( i == errorTimes.length - 1 ) errorStartTime = 0;
-              }
-            }
-          }
+          stepped_time = System.currentTimeMillis();
+          smoothed_time = stepped_time;
+          next_time = stepped_time + TIME_GRANULARITY_MILLIS;  //theoretical time at next real update
           
           try{  Thread.sleep( TIME_GRANULARITY_MILLIS );  }catch(Exception e) {Debug.printStackTrace( e );}
         }
@@ -80,9 +55,7 @@ public class SystemTime {
     };
     updater.setDaemon( true );
     
-    	// we don't want this thread to lag much as it'll stuff up the upload/download
-    	// rate mechanisms (for example)
-    
+    // we don't want this thread to lag much as it'll stuff up the upload/download rate mechanisms (for example)
     updater.setPriority(Thread.MAX_PRIORITY);
     
     updater.start();
@@ -94,78 +67,13 @@ public class SystemTime {
    * @return time like System.currentTimeMillis()
    */
   public static long getCurrentTime() {
-  	return instance.currentTime;
+    instance.smoothed_time++;  //fake tick
+
+    if( instance.smoothed_time > instance.next_time ) {  //ensure we haven't ticked beyond next real step
+      instance.smoothed_time = instance.next_time;
+    }
+    
+  	return instance.smoothed_time;
   }
-  
-  /**
-   * Check if there has been a time error (time went backwards)
-   * within the last 1 second.
-   * @return true if there has been an error, false if everything is normal
-   */
-  public static boolean isErrorLast1sec() {
-    return instance.errorStates[0];
-  }
-  
-  /**
-   * Check if there has been a time error (time went backwards)
-   * within the last 5 seconds.
-   * @return true if there has been an error, false if everything is normal
-   */
-  public static boolean isErrorLast5sec() {
-    return instance.errorStates[1];
-  }
-  
-  /**
-   * Check if there has been a time error (time went backwards)
-   * within the last 10 seconds.
-   * @return true if there has been an error, false if everything is normal
-   */
-  public static boolean isErrorLast10sec() {
-    return instance.errorStates[2];
-  }
-  
-  /**
-   * Check if there has been a time error (time went backwards)
-   * within the last 30 seconds.
-   * @return true if there has been an error, false if everything is normal
-   */
-  public static boolean isErrorLast30sec() {
-    return instance.errorStates[3];
-  }
-  
-  /**
-   * Check if there has been a time error (time went backwards)
-   * within the last 1 minute.
-   * @return true if there has been an error, false if everything is normal
-   */
-  public static boolean isErrorLast1min() {
-    return instance.errorStates[4];
-  }
-  
-  /**
-   * Check if there has been a time error (time went backwards)
-   * within the last 5 minutes.
-   * @return true if there has been an error, false if everything is normal
-   */
-  public static boolean isErrorLast5min() {
-    return instance.errorStates[5];
-  }
-  
-  /**
-   * Check if there has been a time error (time went backwards)
-   * within the last 10 minutes.
-   * @return true if there has been an error, false if everything is normal
-   */
-  public static boolean isErrorLast10min() {
-    return instance.errorStates[6];
-  }
-  
-  /**
-   * Get the time change (backwards) of the last time error.
-   * @return change in ms
-   */
-  public static long getErrorTimeChange() {
-    return instance.lastTimeChange;
-  }
-  
+
 }
