@@ -313,7 +313,7 @@ DownloadManagerImpl
 	private boolean	dl_identity_obtained;
 	private byte[]	dl_identity;
 	
-    private final int hashcode;
+    private int hashcode;
     
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
@@ -333,9 +333,7 @@ DownloadManagerImpl
 		boolean			_has_ever_been_started ) 
 	{
 		persistent	= _persistent;
-        
-        this.hashcode = new String( _torrent_hash ).hashCode();
-  	
+
 		stats = new DownloadManagerStatsImpl( this );
   	
 		globalManager = _gm;
@@ -501,6 +499,8 @@ DownloadManagerImpl
 				 	// flag set true below
 				 
 				 dl_identity			= torrent.getHash();
+                 
+                 this.hashcode = new String( dl_identity ).hashCode();
 				 
 			 }else{
 				 
