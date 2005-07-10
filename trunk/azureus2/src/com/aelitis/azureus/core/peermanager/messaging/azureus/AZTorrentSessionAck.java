@@ -104,7 +104,6 @@ public class AZTorrentSessionAck implements AZMessage {
     String type_id = new String( type_raw );
     
     Map info = (Map)root.get( "info" );
-    if( info == null )  throw new MessageException( "info == null" );
     
     return new AZTorrentSessionAck( sid, type_id, hash, info );
   }

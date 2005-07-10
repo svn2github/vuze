@@ -86,6 +86,10 @@ public class TorrentSession {
    * @param handler for session events
    */
   public void requestSession( Map syn_info, TorrentSessionHandler handler ) {
+    if( session_state != STATE_NEW ) {
+      Debug.out( "session_state[" +session_state+ "] != STATE_NEW" );
+    }    
+    
     attachHandler( handler );
 
     //send out the session request
@@ -110,6 +114,10 @@ public class TorrentSession {
    * @param handler for session events
    */
   public void ackSession( Map ack_info, TorrentSessionHandler handler ) {
+    if( session_state != STATE_NEW ) {
+      Debug.out( "session_state[" +session_state+ "] != STATE_NEW" );
+    }
+    
     attachHandler( handler );
     
     //send out the session acceptance
@@ -126,6 +134,10 @@ public class TorrentSession {
    * @param end_reason of end/error
    */
   public void endSession( String end_reason ){
+    if( session_state == STATE_END ) {
+      Debug.out( "session_state == STATE_END" );
+    }
+    
     AZTorrentSessionEnd end = new AZTorrentSessionEnd( type_id, infohash, end_reason );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
     destroy();
@@ -153,8 +165,12 @@ public class TorrentSession {
     incoming_q_listener = new IncomingMessageQueue.MessageQueueListener() {
       public boolean messageReceived( Message message ) {
         if( message.getID().equals( AZMessage.ID_AZ_TORRENT_SESSION_ACK ) ) {
-          AZTorrentSessionAck ack = (AZTorrentSessionAck)message;
+          if( session_state != STATE_SYN ) {
+            Debug.out( "session_state[" +session_state+ "] != STATE_SYN" );
+          }
           
+          AZTorrentSessionAck ack = (AZTorrentSessionAck)message;
+
           if( ack.getSessionType().equals( type_id ) && Arrays.equals( ack.getInfoHash(), infohash ) ) {
             remote_session_id = ack.getSessionID();
             if( handler.sessionAcked( ack.getSessionInfo() ) ) {
@@ -165,7 +181,7 @@ public class TorrentSession {
           }
         }
         
-        if( message.getID().equals( AZMessage.ID_AZ_TORRENT_SESSION_END ) ) {
+        if( message.getID().equals( AZMessage.ID_AZ_TORRENT_SESSION_END ) ) {          
           AZTorrentSessionEnd end = (AZTorrentSessionEnd)message;
           
           if( end.getSessionType().equals( type_id ) && Arrays.equals( end.getInfoHash(), infohash ) ) {

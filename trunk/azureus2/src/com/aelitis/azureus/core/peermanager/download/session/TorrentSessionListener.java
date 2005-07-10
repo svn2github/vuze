@@ -33,4 +33,16 @@ public interface TorrentSessionListener {
    */
   public void torrentSessionRequested( TorrentSession incoming, Map syn_info );
   
+  /**
+   * Add the given torrent infohash to the accept filter.
+   * @param infohash to add
+   */
+  public void registerSessionInfoHash( byte[] infohash );
+  
+  /**
+   * Remove the given torrent infohash from the accept filter.
+   * @param infohash to remove
+   */
+  public void deregisterSessionInfoHash( byte[] infohash );
+  
 }

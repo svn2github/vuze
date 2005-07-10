@@ -23,12 +23,15 @@
 package com.aelitis.azureus.core.peermanager.download.session;
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
 import com.aelitis.azureus.core.peermanager.connection.*;
+import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
+import com.aelitis.azureus.core.peermanager.download.session.standard.StandardSessionManager;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 
@@ -46,6 +49,10 @@ public class TorrentSessionManager {
 
   
   private TorrentSessionManager() {
+    //init "built-in" session type managers
+    StandardSessionManager.getSingleton();
+    
+    
     //register for new peer connection creation notification, so that we can catch torrent session syn messages
     PeerConnectionFactory.getSingleton().registerCreationListener( new PeerConnectionFactory.CreationListener() {
       public void connectionCreated( final AZPeerConnection connection ) {
@@ -57,7 +64,11 @@ public class TorrentSessionManager {
               TorrentSession session = TorrentSessionFactory.getSingleton().createSession( syn.getSessionType(), syn.getInfoHash(), connection );
               session.remote_session_id = syn.getSessionID();
               
-              TorrentSessionListener listener = (TorrentSessionListener)registrations.get( syn.getSessionType() );
+              TorrentSessionListener listener = null;
+              try{  this_mon.enter();
+                listener = (TorrentSessionListener)registrations.get( syn.getSessionType() );
+              }
+              finally{  this_mon.exit();  }
               
               if( listener != null ) {  
                 listener.torrentSessionRequested( session, syn.getSessionInfo() );
@@ -82,7 +93,11 @@ public class TorrentSessionManager {
   }
   
   
-
+  /**
+   * Register for incoming session requests of the given type.
+   * @param type_id of the listener
+   * @param listener to handle requests
+   */
   public void registerIncomingSessionListener( String type_id, TorrentSessionListener listener ) {
     try{  this_mon.enter();
       registrations.put( type_id, listener );
@@ -91,6 +106,10 @@ public class TorrentSessionManager {
   }
   
   
+  /**
+   * Remove registration for incoming session requests of the given type.
+   * @param type_id to remove
+   */
   public void deregisterIncomingSessionListener( String type_id ){
     try{  this_mon.enter();
       registrations.remove( type_id );
@@ -98,11 +117,48 @@ public class TorrentSessionManager {
     finally{  this_mon.exit();  }
   }
   
-
+  
+  /*
   public String[] getRegisteredSessionTypes() {
     return (String[])registrations.keySet().toArray( new String[0] );
   }
-  
+  */
 
+  
+  
+  /**
+   * Register the given download for torrent session management.
+   * @param download to add
+   */
+  public void registerForSessionManagement( TorrentDownload download ) {
+    //add infohash to incoming listeners
+    try{  this_mon.enter();
+      for( Iterator it = registrations.values().iterator(); it.hasNext(); ) {
+        TorrentSessionListener listener = (TorrentSessionListener)it.next();
+        listener.registerSessionInfoHash( download.getInfoHash() );
+      }
+    }
+    finally{  this_mon.exit();  }
+    
+    //TODO
+  }
+  
+  
+  /**
+   * Deregister the given download from torrent session management.
+   * @param download to remove
+   */
+  public void deregisterForSessionManagement( TorrentDownload download ) {
+    //remove infohash from incoming listeners
+    try{  this_mon.enter();
+      for( Iterator it = registrations.values().iterator(); it.hasNext(); ) {
+        TorrentSessionListener listener = (TorrentSessionListener)it.next();
+        listener.deregisterSessionInfoHash( download.getInfoHash() );
+      }
+    }
+    finally{  this_mon.exit();  }
+    
+    //TODO
+  }
   
 }
