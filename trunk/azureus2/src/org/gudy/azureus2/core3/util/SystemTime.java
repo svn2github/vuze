@@ -28,16 +28,13 @@ package org.gudy.azureus2.core3.util;
  */
 public class SystemTime {
   
-  public static final long TIME_GRANULARITY_MILLIS = 30;   //internal update time ms
+  public static final long TIME_GRANULARITY_MILLIS = 20;   //internal update time ms
   
   private static final SystemTime instance = new SystemTime();
   
   
   private final Thread updater;
   private volatile long stepped_time;
-  private volatile long smoothed_time;  //we 'fake' sub-granularity by adding ticks each call
-  private volatile long next_time;
-  
   
   private SystemTime() {
     stepped_time = System.currentTimeMillis();
@@ -46,8 +43,6 @@ public class SystemTime {
       public void run() {
         while( true ) {
           stepped_time = System.currentTimeMillis();
-          smoothed_time = stepped_time;
-          next_time = stepped_time + TIME_GRANULARITY_MILLIS;  //theoretical time at next real update
           
           try{  Thread.sleep( TIME_GRANULARITY_MILLIS );  }catch(Exception e) {Debug.printStackTrace( e );}
         }
@@ -67,13 +62,7 @@ public class SystemTime {
    * @return time like System.currentTimeMillis()
    */
   public static long getCurrentTime() {
-    instance.smoothed_time++;  //fake tick
-
-    if( instance.smoothed_time > instance.next_time ) {  //ensure we haven't ticked beyond next real step
-      instance.smoothed_time = instance.next_time;
-    }
-    
-  	return instance.smoothed_time;
+    return instance.stepped_time;
   }
 
 }
