@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.peermanager.download.session;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -38,16 +39,19 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 
 
 public class TorrentSession {
-  private final String type_id;
-  private final byte[] infohash;
-  private final AZPeerConnection connection;
-  
+  private static int next_session_id = 0;
+  private static final AEMonitor session_mon = new AEMonitor( "TorrentSession" );
   
   private static final int STATE_NEW  = 0;
   private static final int STATE_SYN  = 1;
   private static final int STATE_RUN  = 2;
   private static final int STATE_END  = 3;
   
+  private final int local_session_id;
+  protected int remote_session_id;
+  private final String type_id;
+  private final byte[] infohash;
+  private final AZPeerConnection connection;
   private int session_state = STATE_NEW;
 
   
@@ -59,6 +63,12 @@ public class TorrentSession {
     this.type_id = type_id;
     this.infohash = session_infohash;
     this.connection = peer;
+    
+    try{ session_mon.enter();
+      this.local_session_id = next_session_id;
+      next_session_id++;
+    }
+    finally{ session_mon.exit();  }
   }
   
   
@@ -79,7 +89,7 @@ public class TorrentSession {
     attachHandler( handler );
 
     //send out the session request
-    AZTorrentSessionSyn syn = new AZTorrentSessionSyn( type_id, infohash, syn_info );
+    AZTorrentSessionSyn syn = new AZTorrentSessionSyn( local_session_id, type_id, infohash, syn_info );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( syn, false );
     session_state = STATE_SYN;
     
@@ -103,7 +113,7 @@ public class TorrentSession {
     attachHandler( handler );
     
     //send out the session acceptance
-    AZTorrentSessionAck ack = new AZTorrentSessionAck( type_id, infohash, ack_info );
+    AZTorrentSessionAck ack = new AZTorrentSessionAck( local_session_id, type_id, infohash, ack_info );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( ack, false );
     
     startSessionProcessing();
@@ -146,6 +156,7 @@ public class TorrentSession {
           AZTorrentSessionAck ack = (AZTorrentSessionAck)message;
           
           if( ack.getSessionType().equals( type_id ) && Arrays.equals( ack.getInfoHash(), infohash ) ) {
+            remote_session_id = ack.getSessionID();
             if( handler.sessionAcked( ack.getSessionInfo() ) ) {
               startSessionProcessing();
             }

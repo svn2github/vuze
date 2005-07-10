@@ -37,17 +37,20 @@ public class AZTorrentSessionSyn implements AZMessage {
   private DirectByteBuffer buffer = null;
   private String description = null;
   
+  private final int session_id;
   private final byte[] infohash;
   private final String session_type;
   private final Map session_info;
 
-  public AZTorrentSessionSyn( String session_type, byte[] infohash, Map session_info ) {
+  public AZTorrentSessionSyn( int local_session_id, String session_type, byte[] infohash, Map session_info ) {
+    this.session_id = local_session_id;
     this.infohash = infohash;
     this.session_type = session_type;
     this.session_info = session_info;
   }
   
   
+  public int getSessionID(){  return session_id;  }
   public byte[] getInfoHash() {  return infohash;  }
   public String getSessionType() {  return session_type;  }
   public Map getSessionInfo() {  return session_info;  }
@@ -63,7 +66,7 @@ public class AZTorrentSessionSyn implements AZMessage {
   
   public String getDescription() {
     if( description == null ) {
-      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " type " +session_type;
+      description = getID()+ " session id " +session_id+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " type " +session_type;
     }
     return description;
   }
@@ -73,6 +76,7 @@ public class AZTorrentSessionSyn implements AZMessage {
     if( buffer == null ) {
       Map payload_map = new HashMap();
       
+      payload_map.put( "session_id", new Long(session_id) );
       payload_map.put( "infohash", infohash );
       payload_map.put( "type_id", session_type );
       payload_map.put( "info", session_info );
@@ -87,6 +91,10 @@ public class AZTorrentSessionSyn implements AZMessage {
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 20, getID(), getVersion() );
 
+    Long id = (Long)root.get( "session_id" );
+    if( id == null ) throw new MessageException( "id == null" );
+    int sid = id.intValue();
+    
     byte[] hash = (byte[])root.get( "infohash" );
     if( hash == null )  throw new MessageException( "hash == null" );
     if( hash.length != 20 )  throw new MessageException( "hash.length != 20: " +hash.length );
@@ -98,7 +106,7 @@ public class AZTorrentSessionSyn implements AZMessage {
     Map info = (Map)root.get( "info" );
     if( info == null )  throw new MessageException( "info == null" );
     
-    return new AZTorrentSessionSyn( type_id, hash, info );
+    return new AZTorrentSessionSyn( sid, type_id, hash, info );
   }
   
   

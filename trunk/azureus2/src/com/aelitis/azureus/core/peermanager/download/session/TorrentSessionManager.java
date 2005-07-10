@@ -41,12 +41,7 @@ public class TorrentSessionManager {
   private final HashMap registrations = new HashMap();
 
   protected AEMonitor this_mon = new AEMonitor( "TorrentSessionManager" );
-  
- 
-  //TODO ack wait timer...abort session attempt after say 60s 
-  
-  
-  
+    
   public static TorrentSessionManager getSingleton(){  return instance;  }
 
   
@@ -60,6 +55,7 @@ public class TorrentSessionManager {
               AZTorrentSessionSyn syn = (AZTorrentSessionSyn)message;
 
               TorrentSession session = TorrentSessionFactory.getSingleton().createSession( syn.getSessionType(), syn.getInfoHash(), connection );
+              session.remote_session_id = syn.getSessionID();
               
               TorrentSessionListener listener = (TorrentSessionListener)registrations.get( syn.getSessionType() );
               
