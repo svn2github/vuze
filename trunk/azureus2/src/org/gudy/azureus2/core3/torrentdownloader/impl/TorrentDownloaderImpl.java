@@ -484,6 +484,11 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     return false;
   }
 
+  
+  public int hashCode() {  return this.url.hashCode();  }
+  
+  
+  
   public String getError() {
     return this.error;
   }

@@ -313,6 +313,9 @@ DownloadManagerImpl
 	private boolean	dl_identity_obtained;
 	private byte[]	dl_identity;
 	
+    private final int hashcode;
+    
+    
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
 	
@@ -330,6 +333,8 @@ DownloadManagerImpl
 		boolean			_has_ever_been_started ) 
 	{
 		persistent	= _persistent;
+        
+        this.hashcode = new String( _torrent_hash ).hashCode();
   	
 		stats = new DownloadManagerStatsImpl( this );
   	
@@ -1409,7 +1414,7 @@ DownloadManagerImpl
 	  return( dl_identity );
   }
   
-  /** @retun true, if the other DownloadManager has the same size and hash 
+  /** @retun true, if the other DownloadManager has the same hash 
    * @see java.lang.Object#equals(java.lang.Object)
    */
   public boolean equals(Object obj)
@@ -1439,6 +1444,12 @@ DownloadManagerImpl
     
 	return false;
   }
+  
+  
+  public int hashCode() {  return hashcode;  }
+  
+  
+  
   
   public void 
   checkTracker() 
