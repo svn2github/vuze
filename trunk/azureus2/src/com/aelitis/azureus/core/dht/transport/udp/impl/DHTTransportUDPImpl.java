@@ -67,7 +67,7 @@ DHTTransportUDPImpl
 		
 			// ALSO remove the anti-spoof disabling for old versions
 		
-		System.out.println( "**** mainline DHT version fix required" );
+		// done - 10/07 System.out.println( "**** mainline DHT version fix required" );
 	}	
 	
 	

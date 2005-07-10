@@ -157,8 +157,6 @@ DHTControlImpl
 		int					_cache_at_closest_n,
 		LoggerChannel		_logger )
 	{
-		System.out.println( "**** DHT: Anti-spoof currently disabled for old clients ****" );
-		
 		adapter		= _adapter;
 		transport	= _transport;
 		logger		= _logger;
@@ -2540,29 +2538,14 @@ DHTControlImpl
 		DHTTransportContact 	c,
 		boolean					direct )
 	{
-		// TODO: remove version check when 2.3.x version rolledout
-
-		if (	(direct && c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF ) ||
-				((!direct) && c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2 )){ 
-			
-			boolean	ok = c.getRandomID() == generateSpoofID( c );
+		boolean	ok = c.getRandomID() == generateSpoofID( c );
 		
-			if ( DHTLog.CONTACT_VERIFY_TRACE ){
+		if ( DHTLog.CONTACT_VERIFY_TRACE ){
 				
-				System.out.println( "    net " + transport.getNetwork() +"," + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> " + ok + ", version = " + c.getProtocolVersion());
-			}
-			
-			return( ok );
-			
-		}else{
-			
-			if ( DHTLog.CONTACT_VERIFY_TRACE ){
-
-				System.out.println("    net " + transport.getNetwork() +",[" + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> true, version = " + c.getProtocolVersion() + "]" );
-			}
-			
-			return( true );
+			System.out.println( "    net " + transport.getNetwork() +"," + (direct?"direct":"indirect") + " verify for " + c.getName() + " -> " + ok + ", version = " + c.getProtocolVersion());
 		}
+			
+		return( ok );
 	}
 	
 	public List
