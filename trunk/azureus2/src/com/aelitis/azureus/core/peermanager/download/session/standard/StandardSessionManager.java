@@ -28,8 +28,8 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.download.session.*;
 
-public class StandardSessionManager {
-  private static final String SESSION_TYPE_ID = "STANDARD";
+public class StandardSessionManager implements TorrentSessionHandler {
+  public static final String SESSION_TYPE_ID = "STANDARD";
 
   private static final StandardSessionManager instance = new StandardSessionManager();
   
@@ -48,17 +48,7 @@ public class StandardSessionManager {
         
         if( found ) {
           //send back ack
-          incoming.ackSession( null, new TorrentSessionHandler() {
-            public boolean sessionAcked( Map info ) {
-              Debug.out( "this should never happen!!!" );
-              //if this did, we should send back a session close here
-              return false;
-            }
-
-            public void sessionEnded( String reason ){
-              System.out.println( "session [" +ByteFormatter.nicePrint( incoming.getInfoHash(), true )+ "] ended: " +reason );
-            }
-          });
+          incoming.ackSession( null, StandardSessionManager.this );
         }
         else {  //not found
           System.out.println( "unknown session infohash " +ByteFormatter.nicePrint( incoming.getInfoHash(), true ));
@@ -87,6 +77,16 @@ public class StandardSessionManager {
   public static StandardSessionManager getSingleton() {  return instance;  }
   
   
-  //TODO outgoing connection starting
+  
+  //TorrentSessionHandler implementation
+  
+  public boolean sessionAcked( TorrentSession session, Map info ) {
+    return true;  //always accept, as there's no need to verify any specific session info
+  }
+
+  
+  public void sessionEnded( TorrentSession session, String reason ){
+    System.out.println( "session [" +ByteFormatter.nicePrint( session.getInfoHash(), true )+ "] ended: " +reason );
+  }
   
 }

@@ -28,17 +28,19 @@ public interface TorrentSessionHandler {
 
   /**
    * The given bencoded map of information has been received from the torrent session ack message.
+   * @param session sending ack
    * @param info of session ack
    * @return true if the session ack was accepted and session processing should commence,
    *         false if not accepted (endSession() should be called next with reason)
    */
-  public boolean sessionAcked( Map info );
+  public boolean sessionAcked( TorrentSession session, Map info );
   
   
   /**
    * The session has been remotely ended for the given reason.
+   * @param session sending ended
    * @param reason for end
    */
-  public void sessionEnded( String reason );  
+  public void sessionEnded( TorrentSession session, String reason );  
   
 }

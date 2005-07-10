@@ -173,7 +173,7 @@ public class TorrentSession {
 
           if( ack.getSessionType().equals( type_id ) && Arrays.equals( ack.getInfoHash(), infohash ) ) {
             remote_session_id = ack.getSessionID();
-            if( handler.sessionAcked( ack.getSessionInfo() ) ) {
+            if( handler.sessionAcked( TorrentSession.this, ack.getSessionInfo() ) ) {
               startSessionProcessing();
             }
             ack.destroy();
@@ -185,7 +185,7 @@ public class TorrentSession {
           AZTorrentSessionEnd end = (AZTorrentSessionEnd)message;
           
           if( end.getSessionType().equals( type_id ) && Arrays.equals( end.getInfoHash(), infohash ) ) {
-            handler.sessionEnded( end.getEndReason() );
+            handler.sessionEnded( TorrentSession.this, end.getEndReason() );
             end.destroy();
             destroy();
             return true;

@@ -29,7 +29,7 @@ public class TorrentSessionFactory {
   private static final TorrentSessionFactory instance = new TorrentSessionFactory();
   
   
-  public static TorrentSessionFactory getSingleton(){  return instance;  }
+  protected static TorrentSessionFactory getSingleton(){  return instance;  }
   
   
   public TorrentSession createSession( String type_id, byte[] session_infohash, AZPeerConnection peer ) {

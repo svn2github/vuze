@@ -123,7 +123,7 @@ AzureusCoreImpl
 		
 		PeerManager.getSingleton();
         
-        TorrentSessionManager.getSingleton();
+        TorrentSessionManager.getSingleton().init();
     
 		pi = PluginInitializer.getSingleton(this,this);
 	}

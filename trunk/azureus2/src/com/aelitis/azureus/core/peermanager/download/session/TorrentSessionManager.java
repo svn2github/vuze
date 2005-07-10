@@ -49,6 +49,11 @@ public class TorrentSessionManager {
 
   
   private TorrentSessionManager() {
+    /*nothing*/
+  }
+  
+  
+  public void init() {
     //init "built-in" session type managers
     StandardSessionManager.getSingleton();
     
@@ -91,6 +96,7 @@ public class TorrentSessionManager {
       }
     });
   }
+  
   
   
   /**
@@ -159,6 +165,17 @@ public class TorrentSessionManager {
     finally{  this_mon.exit();  }
     
     //TODO
+  }
+  
+  
+  /**
+   * Initiate a standard torrent session for the given download with the given peer connection.
+   * @param download for session
+   * @param connection to send request to
+   */
+  public void requestStandardTorrentSession( TorrentDownload download, AZPeerConnection connection ) {
+    TorrentSession session = TorrentSessionFactory.getSingleton().createSession( StandardSessionManager.SESSION_TYPE_ID, download.getInfoHash(), connection );
+    session.requestSession( null, StandardSessionManager.getSingleton() );
   }
   
 }
