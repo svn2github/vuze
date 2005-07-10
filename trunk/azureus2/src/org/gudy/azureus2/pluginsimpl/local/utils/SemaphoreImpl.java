@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
  *
  */
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.core3.util.AESemaphore;
 
@@ -33,12 +34,18 @@ public class
 SemaphoreImpl
 	implements Semaphore
 {
-	protected AESemaphore		sem;
+	private static long	next_sem_id;
+
+	private AESemaphore		sem;
 	
 	protected
-	SemaphoreImpl()
+	SemaphoreImpl(
+		PluginInterface		pi )
 	{
-		sem	= new AESemaphore("PluginSem");
+		synchronized( SemaphoreImpl.class ){
+			
+			sem	= new AESemaphore("Plugin " + pi.getPluginID() + ":" + next_sem_id++ );
+		}
 	}
 	
 	public void

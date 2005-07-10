@@ -156,11 +156,11 @@ UtilitiesImpl
 	public Semaphore
 	getSemaphore()
 	{
-		return( new SemaphoreImpl());
+		return( new SemaphoreImpl( pi ));
 	}
   
     public Monitor getMonitor(){
-      return new MonitorImpl();
+      return new MonitorImpl( pi );
     }
     
 	

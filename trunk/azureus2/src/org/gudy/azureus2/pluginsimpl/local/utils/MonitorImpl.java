@@ -23,24 +23,32 @@
 package org.gudy.azureus2.pluginsimpl.local.utils;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.Monitor;
 
 
 public class MonitorImpl implements Monitor {
 
-  protected AEMonitor mon;
-  
-  protected  MonitorImpl() {
-    mon = new AEMonitor("PluginMon");
-  }
-  
+	private static long	next_mon_id;
+	
+	private AEMonitor mon;
+	  
+	protected  
+	MonitorImpl(
+		PluginInterface		pi ) 
+	{
+		synchronized( MonitorImpl.class ){
 
-  public void enter() {
-    mon.enter();
-  }
-  
-  public void exit(){
-    mon.exit();
-  }
-  
+		  mon = new AEMonitor("Plugin " + pi.getPluginID() + ":" + next_mon_id++ );
+		}
+	}
+	  
+	
+	public void enter() {
+	   mon.enter();
+	}
+	  
+	public void exit(){
+	    mon.exit();
+	}
 }
