@@ -55,4 +55,17 @@ Logger
 	
 	public PluginInterface
 	getPluginInterface();
+
+		/**
+		 * these methods give access to all alerts raised, not channel specific ones
+		 * @param listener
+		 */
+	
+	public void
+	addAlertListener(
+		LoggerAlertListener		listener );
+	
+	public void
+	removeAlertListener(
+		LoggerAlertListener		listener );
 }

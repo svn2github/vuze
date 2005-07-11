@@ -26,10 +26,12 @@ package org.gudy.azureus2.plugins.utils;
  *
  */
 
+import java.io.File;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -180,6 +182,19 @@ Utilities
 		AggregatedListAcceptor	acceptor,
 		long					idle_dispatch_time,
 		long					max_queue_size );
+ 	
+ 	public Map
+ 	readResilientBEncodedFile(
+ 		File	parent_dir,
+ 		String	file_name,
+ 		boolean	use_backup );
+ 	
+	public void
+ 	writeResilientBEncodedFile(
+ 		File	parent_dir,
+ 		String	file_name,
+ 		Map		data,
+ 		boolean	use_backup );	
 }
 
 

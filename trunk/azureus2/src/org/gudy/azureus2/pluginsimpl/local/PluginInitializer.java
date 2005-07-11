@@ -57,7 +57,8 @@ public class
 PluginInitializer
 	implements GlobalManagerListener
 {
-
+	public static final String	INTERNAL_PLUGIN_ID = "<internal>";
+	
 	// class name, plugin id, plugin key (key used for config props so if you change
 	// it you'll need to migrate the config)
 	// "id" is used when checking for updates
@@ -216,7 +217,7 @@ PluginInitializer
 	  	}else{
 	  		
 	  		try{
-	  			singleton.initializePluginFromClass( _class, "<internal>", _class.getName());
+	  			singleton.initializePluginFromClass( _class, INTERNAL_PLUGIN_ID, _class.getName());
 	  			
 			}catch(PluginException e ){
 	  				
@@ -899,7 +900,7 @@ PluginInitializer
 					
 	  				Class cla = (Class)entry;
 	  				
-	  				singleton.initializePluginFromClass(cla, "<internal>", cla.getName());
+	  				singleton.initializePluginFromClass(cla, INTERNAL_PLUGIN_ID, cla.getName());
 				
 				}else{
 					
@@ -1220,7 +1221,7 @@ PluginInitializer
 					"default",
 					new Properties(),
 					null,
-					"<internal>",
+					INTERNAL_PLUGIN_ID,
 					null );
   	}
   	

@@ -98,8 +98,9 @@ public class ConfigurationDefaults {
     def.put("Max.Peer.Connections.Per.Torrent", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT));
     def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
 
-    def.put("File Max Open", new Long(50));
-
+    def.put( "File Max Open", new Long(50));
+    def.put( "Use Config File Backups", new Long(0));
+    
     def.put( "Max Uploads", new Long(4) );
     def.put( "Max Download Speed KBs", new Long(0) );
     def.put( "Max Upload Speed KBs", new Long(0));

@@ -33,6 +33,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -58,6 +59,7 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.IPToHostNameResolver;
 import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
@@ -638,5 +640,24 @@ UtilitiesImpl
 	getPluginThreadContext()
 	{
 		return((PluginInterface)tls.get());
+	}
+	
+	public Map
+ 	readResilientBEncodedFile(
+ 		File	parent_dir,
+ 		String	file_name,
+ 		boolean	use_backup )
+	{
+		return( FileUtil.readResilientFile( parent_dir, file_name, use_backup ));
+	}
+ 	
+	public void
+ 	writeResilientBEncodedFile(
+ 		File	parent_dir,
+ 		String	file_name,
+ 		Map		data,
+ 		boolean	use_backup )
+	{
+		FileUtil.writeResilientFile( parent_dir, file_name, data, use_backup );
 	}
 }

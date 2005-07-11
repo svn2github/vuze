@@ -28,22 +28,28 @@ package org.gudy.azureus2.pluginsimpl.local.logging;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LGAlertListener;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.*;
 
 public class 
 LoggerImpl
-	implements Logger
+	implements Logger, LGAlertListener
 {
 	private PluginInterface	pi;
 	
-	private List		channels = new ArrayList();
+	private List		channels 		= new ArrayList();
+	private List		alert_listeners = new ArrayList();
 	
 	public
 	LoggerImpl(
 		PluginInterface	_pi )
 	{
 		pi	= _pi;
+		
+		LGLogger.addAlertListener( this );
 	}
 	
 	public PluginInterface
@@ -93,5 +99,64 @@ LoggerImpl
 		channels.toArray( res );
 		
 		return( res );
+	}
+	
+	public void
+	alertRaised(
+		int		_type,
+		String	message,
+		boolean	repeatable )
+	{
+		int	type;
+		
+		if ( _type == LGLogger.AT_COMMENT ){
+			type = LoggerChannel.LT_INFORMATION;
+		}else if ( _type == LGLogger.AT_WARNING ){
+			type = LoggerChannel.LT_WARNING;
+		}else{
+			type = LoggerChannel.LT_ERROR;
+		}
+		
+		for (int i=0;i<alert_listeners.size();i++){
+			
+			try{
+				((LoggerAlertListener)alert_listeners.get(i)).alertLogged( type, message, repeatable );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}	}
+	
+	public void
+	alertRaised(
+		String		message,
+		Throwable	exception,
+		boolean		repeatable )
+	{
+		for (int i=0;i<alert_listeners.size();i++){
+			
+			try{
+				((LoggerAlertListener)alert_listeners.get(i)).alertLogged( message, exception, repeatable );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public void
+	addAlertListener(
+		LoggerAlertListener		listener )
+	{
+		alert_listeners.add( listener );
+	}
+	
+	public void
+	removeAlertListener(
+		LoggerAlertListener		listener )
+	{
+		alert_listeners.remove( listener );
 	}
 }

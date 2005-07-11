@@ -342,6 +342,14 @@ public class ConfigSectionFile implements ConfigSectionSWT {
     	
     }
     
+    // check on complete
+    BooleanParameter backupConfig = 
+    	new BooleanParameter(gFile, "Use Config File Backups", false,
+                                    "ConfigView.label.backupconfigfiles");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    backupConfig.setLayoutData(gridData);
+
     return gFile;
   }
 }

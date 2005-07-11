@@ -97,7 +97,7 @@ ConfigurationManager
   
   public void load(String filename) 
   {
-  	propertiesMap = FileUtil.readResilientConfigFile( filename );
+  	propertiesMap = FileUtil.readResilientConfigFile( filename, false );
 
   }
   

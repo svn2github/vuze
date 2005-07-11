@@ -35,7 +35,7 @@ public class FileUtil {
   private static List		reserved_file_handles 	= new ArrayList();
   private static AEMonitor	class_mon				= new AEMonitor( "FileUtil:class" );
 
-
+  
   public static String getCanonicalFileName(String filename) {
     // Sometimes Windows use filename in 8.3 form and cannot
     // match .torrent extension. To solve this, canonical path
@@ -335,10 +335,43 @@ public class FileUtil {
 	return( file_name_out );
   }
   
-  	// synchronise it to prevent concurrent attempts to write the same file
-  
   public static void
   writeResilientConfigFile(
+  	String		file_name,
+	Map			data )
+  {
+	  File parent_dir = new File(SystemProperties.getUserPath());
+	  
+	  boolean use_backups = COConfigurationManager.getBooleanParameter("Use Config File Backups" );
+
+	  writeResilientFile( parent_dir, file_name, data, use_backups );
+  }
+  
+  public static void
+  writeResilientFile(
+    File		parent_dir,
+  	String		file_name,
+	Map			data,
+	boolean		use_backup )
+  {	  
+	  if ( use_backup ){
+		  
+		  File	originator = new File( parent_dir, file_name );
+		  
+		  if ( originator.exists()){
+			  
+			  backupFile( originator, true );
+		  }
+	  }
+	  
+	  writeResilientFile( parent_dir, file_name, data );
+  }
+  
+  	// synchronise it to prevent concurrent attempts to write the same file
+  
+  private static void
+  writeResilientFile(
+	File		parent_dir,
   	String		file_name,
 	Map			data )
   {
@@ -347,7 +380,7 @@ public class FileUtil {
   	
 	  	try{
 	  		getReservedFileHandles();
-	      File temp = new File( SystemProperties.getUserPath() + file_name + ".saving");
+	      File temp = new File(  parent_dir, file_name + ".saving");
 		    BufferedOutputStream	baos = null;
 		    
 		    try{
@@ -360,7 +393,7 @@ public class FileUtil {
 	           
 	        //only use newly saved file if it got this far, i.e. it saved successfully
 	        if ( temp.length() > 1L ) {
-	        	File file = new File( SystemProperties.getUserPath() + file_name );
+	        	File file = new File( parent_dir, file_name );
 	        	if ( file.exists() ){
 	        		file.delete();
 	        	}
@@ -393,28 +426,97 @@ public class FileUtil {
   	}
   }
   
-  	// synchronised against writes to make sure we get a consistent view
-  
-  	public static Map
+	public static Map
 	readResilientConfigFile(
 		String		file_name )
 	{
-  		try{
+ 		File parent_dir = new File(SystemProperties.getUserPath());
+  		
+ 		boolean use_backups = COConfigurationManager.getBooleanParameter("Use Config File Backups" );
+
+ 		return( readResilientFile( parent_dir, file_name, use_backups ));
+	}
+	
+	public static Map
+	readResilientConfigFile(
+		String		file_name,
+		boolean		use_backups )
+	{
+ 		File parent_dir = new File(SystemProperties.getUserPath());
+  		
+ 		if ( !use_backups ){
+ 			
+ 				// override if a backup file exists. This is needed to cope with backups
+ 				// of the main config file itself as when boostrapping we can't get the
+ 				// "use backups" 
+ 			
+ 			if ( new File( parent_dir, file_name + ".bak").exists()){
+ 				
+ 				use_backups = true;
+ 			}
+ 		}
+ 		
+ 		return( readResilientFile( parent_dir, file_name, use_backups ));
+	}
+	
+ 	public static Map
+	readResilientFile(
+		File		parent_dir,
+		String		file_name,
+		boolean		use_backup )
+ 	{
+ 		Map	res = readResilientFile( parent_dir, file_name );
+ 		
+ 		if ( res == null && use_backup ){
+ 			
+ 			File	backup_file = new File( parent_dir, file_name + ".bak" );
+ 			
+ 			if ( backup_file.exists()){
+ 				
+ 		 		res = readResilientFile( parent_dir, file_name + ".bak" );
+ 		 		
+ 		 		if ( res != null ){
+ 		 			
+ 					LGLogger.logUnrepeatableAlert( 	
+ 							LGLogger.AT_WARNING,
+							"Backup file '" + backup_file + "' has been used for recovery purposes" );
+ 					
+ 						// rewrite the good data, don't use backups here as we want to
+ 						// leave the original backup in place for the moment
+ 					
+ 					writeResilientFile( parent_dir, file_name, res, false );
+ 		 		}
+ 			}
+ 		}
+ 		
+ 		if ( res == null ){
+ 			
+ 			res = new HashMap();
+ 		}
+ 		
+ 		return( res );
+ 	}
+
+  	// synchronised against writes to make sure we get a consistent view
+  
+  	private static Map
+	readResilientFile(
+		File		parent_dir,
+		String		file_name )
+	{
+   		try{
   			class_mon.enter();
 	  	
 	  		try{
 	  			getReservedFileHandles();
 	  	
-	  			return(readResilientConfigFile( file_name, 0 ));
+	  			return(readResilientFile( parent_dir, file_name, 0 ));
 	  			
 	  		}catch( Throwable e ){
-	  			
-	  				// just in case something went wrong, make sure we just return a blank
-	  				// map
-	  			
+	  				  			
 	  			Debug.printStackTrace( e );
 	  			
-	  			return( new HashMap());
+	  			return( null );
 	  			
 	  		}finally{
 	  			
@@ -427,7 +529,8 @@ public class FileUtil {
   	}
   	
 	private static Map
-	readResilientConfigFile(
+	readResilientFile(
+		File		parent_dir,
 		String		file_name,
 		int			fail_count )
 	{	  
@@ -435,7 +538,7 @@ public class FileUtil {
   	
   		boolean	using_backup	= file_name.endsWith(".saving");
   		
-  		File file = new File( SystemProperties.getUserPath() + file_name );
+  		File file = new File(  parent_dir, file_name );
 	    
 	   		//make sure the file exists and isn't zero-length
 	    
@@ -457,12 +560,12 @@ public class FileUtil {
 				
   				}
 	       
-  				return( new HashMap());
+  				return( null );
   			}
         
   			LGLogger.log("Load of '" + file_name + "' failed, file not found or 0-sized." );
   			
-  			return( readResilientConfigFile( file_name + ".saving", 0 ));
+  			return( readResilientFile( parent_dir, file_name + ".saving", 0 ));
   		}
 
   		BufferedInputStream bin = null;
@@ -506,9 +609,12 @@ public class FileUtil {
 	    	// Occurs when file is there but b0rked
         
         //rename it in case it actually contains useful data, so it won't be overwritten next save
-        LGLogger.log("Read of '" + file_name + "' failed, b-decoding error. Renaming to *.bad" );      
-        File bad = new File( file.getParentFile(), file.getName() + ".bad" );
+        LGLogger.log("Read of '" + file_name + "' failed, b-decoding error. Renaming to *.bad" );
+        
+        File bad = new File( parent_dir, file.getName() + ".bad" );
+        
         try {  if (bin != null) bin.close();  } catch (Exception x) { Debug.printStackTrace( x ); }
+        
         file.renameTo( bad );
 	    	
 	    	if ( using_backup ){
@@ -516,10 +622,10 @@ public class FileUtil {
 	    		LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR,
 							"Load of '" + file_name + "' fails, no usable file or backup" ); 
 	    		
-	    		return( new HashMap());
+	    		return( null );
 	    	}
 	    	
-	    	return( readResilientConfigFile( file_name + ".saving", 1 ));
+	    	return( readResilientFile( parent_dir, file_name + ".saving", 1 ));
  			 
 	    }finally{
 	    	

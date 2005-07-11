@@ -301,19 +301,31 @@ PluginConfigImpl
 
 		String	p_dir = plugin_interface.getPluginDirectoryName();
 		
-		if ( p_dir.length() == 0 ){
+		if ( p_dir.length() != 0 ){
 			
-			throw( new RuntimeException( "Plugin was not loaded from a directory" ));
-		}
-		
-		int	lp = p_dir.lastIndexOf(File.separatorChar);
-		
-		if ( lp != -1 ){
+			int	lp = p_dir.lastIndexOf(File.separatorChar);
 			
-			p_dir = p_dir.substring(lp+1);
+			if ( lp != -1 ){
+				
+				p_dir = p_dir.substring(lp+1);
+			}
+			
+			file = new File( file, p_dir );
+			
+		}else{
+			
+			String	id = plugin_interface.getPluginID();
+			
+			if ( id.length() > 0 && !id.equals( PluginInitializer.INTERNAL_PLUGIN_ID )){
+			
+				file = new File( file, id );
+				
+			}else{
+				
+				throw( new RuntimeException( "Plugin was not loaded from a directory" ));
+			}
 		}
-		
-		file = new File( file, p_dir );
+	
 		
 		file.mkdirs();
 		
