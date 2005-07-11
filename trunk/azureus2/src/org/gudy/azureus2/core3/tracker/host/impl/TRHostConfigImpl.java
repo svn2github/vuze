@@ -201,6 +201,10 @@ TRHostConfigImpl
 	 	long	bytes_in	= 0;
 	 	long	bytes_out	= 0;
 	 	
+   		Long	dateadded_l = (Long)t_map.get("dateadded");
+
+   		long	date_added = dateadded_l==null?SystemTime.getCurrentTime():dateadded_l.longValue();
+
 	 	Map	s_map	= (Map)t_map.get( "stats" );
 	 	
 	 	if ( s_map != null ){
@@ -224,7 +228,7 @@ TRHostConfigImpl
 	 		}
 	 	}
 	 	
-	 	host_torrent.setStartOfDayValues( completed, announces, scrapes, total_up, total_down, bytes_in, bytes_out );
+	 	host_torrent.setStartOfDayValues( date_added, completed, announces, scrapes, total_up, total_down, bytes_in, bytes_out );
 	}
 	
 	protected void

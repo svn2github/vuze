@@ -327,6 +327,7 @@ TRHostTorrentHostImpl
 	
 	protected void
 	setStartOfDayValues(
+		long		_date_added,
 		long		completed,
 		long		announces,
 		long		scrapes,
@@ -335,7 +336,7 @@ TRHostTorrentHostImpl
 		long		bytes_in,
 		long		bytes_out )
 	{
-
+		date_added			= _date_added;
 		sos_complete		= completed;
 		sos_announce		= announces;
 		sos_scrape			= scrapes;
