@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
@@ -102,8 +103,15 @@ public class DHTView extends AbstractIView {
   
   private void init() {
     try {
-      DHT[] dhts = ((DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin()).getDHTs();
-	  
+      PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+        
+      if ( dht_pi == null ){
+      	   
+    	  return;
+      }
+         
+      DHT[] dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
+      
       if( dhts.length <= dht_type ){
         return;
       }

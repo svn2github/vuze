@@ -29,6 +29,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
@@ -46,12 +47,20 @@ public class VivaldiView extends AbstractIView {
   
   private void init() {
     try {
-      DHT[] dhts = ((DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin()).getDHTs();
+      PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+    
+      if ( dht_pi == null ){
+    	   
+    	return;
+      }
+       
+      DHT[] dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
     
       if (dhts.length == 0){
-      return;
-      }    
-    dht = dhts[dhts.length-1];
+    	  return;
+      }
+      
+      dht = dhts[dhts.length-1];
     } catch(Exception e) {
       Debug.printStackTrace( e );
     }

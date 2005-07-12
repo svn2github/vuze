@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.*;
@@ -398,8 +399,17 @@ PEPeerTransportProtocol
     
     int local_udp_port = 0;
     try{  //TODO udp port value should be in the core someday
-      DHTPlugin dht = (DHTPlugin)AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin();
-      local_udp_port = dht.getPort();
+    	
+        PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+        
+        	// may not be present
+        	
+        if ( dht_pi != null ){
+        	
+        	DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();
+             
+        	local_udp_port = dht.getPort();
+        }
     }
     catch( Throwable t ) {
       Debug.out( "Exception while obtaining local udp listen port from DHTPlugin:", t );

@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Tab;
@@ -70,7 +71,10 @@ public class GUIUpdater extends AEThread implements ParameterListener {
     this.mainWindow = mainWindow;
     this.display = mainWindow.getDisplay();
     this.numberFormat = NumberFormat.getInstance();
-    this.dhtPlugin = (DHTPlugin) AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class ).getPlugin();      
+    PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+    if ( dht_pi != null ){
+    	dhtPlugin = (DHTPlugin)dht_pi.getPlugin();
+    }
     setPriority(Thread.MAX_PRIORITY -2);
     COConfigurationManager.addParameterListener("GUI Refresh", this);
   }
