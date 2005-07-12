@@ -91,6 +91,7 @@ DHTPluginImpl
 	
 	private DHT					dht;
 	private byte				protocol_version;
+	private int					network;		
 	private DHTTransportUDP		transport;
 	private long				integrated_time;
 		
@@ -114,6 +115,7 @@ DHTPluginImpl
 	{
 		plugin_interface	= _plugin_interface;
 		protocol_version	= _protocol_version;
+		network				= _network;
 		reseed				= _reseed;
 		log					= _log;
 		
@@ -414,44 +416,51 @@ DHTPluginImpl
 					log.log( "Less than 32 live contacts, reseeding" );
 				}
 				
-					// first look for peers to directly import
-				
-				Download[]	downloads = plugin_interface.getDownloadManager().getDownloads();
-				
 				int	peers_imported	= 0;
+
+					// only try boostrapping off connected peers on the main network as it is unlikely
+					// any of them are running CVS and hence the boostrap will fail
 				
-				for (int i=0;i<downloads.length;i++){
+				if ( network == DHT.NW_MAIN ){
 					
-					Download	download = downloads[i];
+						// first look for peers to directly import
 					
-					PeerManager pm = download.getPeerManager();
-					
-					if ( pm == null ){
-						
-						continue;
-					}
-					
-					Peer[] 	peers = pm.getPeers();
-					
-outer:
-					for (int j=0;j<peers.length;j++){
-						
-						Peer	p = peers[j];
-						
-						int	peer_udp_port = p.getUDPListenPort();
-						
-						if ( peer_udp_port != 0 ){
-													
-							if ( importSeed( p.getIp(), peer_udp_port ) != null ){
-								
-								peers_imported++;
-															
-								if ( peers_imported > seed_limit ){
+					Download[]	downloads = plugin_interface.getDownloadManager().getDownloads();
 									
-									break outer;
+outer:
+	
+					for (int i=0;i<downloads.length;i++){
+						
+						Download	download = downloads[i];
+						
+						PeerManager pm = download.getPeerManager();
+						
+						if ( pm == null ){
+							
+							continue;
+						}
+						
+						Peer[] 	peers = pm.getPeers();
+						
+						for (int j=0;j<peers.length;j++){
+							
+							Peer	p = peers[j];
+							
+							int	peer_udp_port = p.getUDPListenPort();
+							
+							if ( peer_udp_port != 0 ){
+														
+								if ( importSeed( p.getIp(), peer_udp_port ) != null ){
+									
+									peers_imported++;
+																
+									if ( peers_imported > seed_limit ){
+										
+										break outer;
+									}
 								}
-							}
-						}	
+							}	
+						}
 					}
 				}
 				
@@ -470,6 +479,10 @@ outer:
 				if ( peers_imported > 0 ){
 					
 					integrateDHT( false, root_to_remove );
+					
+				}else{
+					
+					log.log( "No valid peers found to reseed from" );
 				}
 			}
 			
