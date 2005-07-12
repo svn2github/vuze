@@ -464,9 +464,15 @@ public class Show extends IConsoleCommand {
 		try{
 			PluginInterface	def = ci.azureus_core.getPluginManager().getDefaultPluginInterface();
 			
-			final PluginInterface dht_pi = 
-				def.getPluginManager().getPluginInterfaceByClass(
-							DHTPlugin.class );
+			PluginInterface dht_pi = 
+				def.getPluginManager().getPluginInterfaceByClass(DHTPlugin.class );
+			
+			if ( dht_pi == null ){
+			
+				ci.out.println( "\tDHT isn't present" );
+				
+				return;
+			}
 			
 			DHTPlugin	dht_plugin = (DHTPlugin)dht_pi.getPlugin();
 			
