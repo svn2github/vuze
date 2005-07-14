@@ -4,29 +4,29 @@ $
 
 +1. Lo nuevo en Azureus 2.3.0.4
 
- This is further bug fix release.
- 
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.4
+ Esta versión corrige fallos.
+  
+    Informe completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.3.0.4
 
 +2. Lo nuevo en Azureus 2.3.0.2
 
- This is primarily a bug/performance fix release. Of notable interest are:
- 
-    JDK 1.4 compatability restored on Windows
-    Distributed Database bootstrap and IP change handling improved
-    Memory usage reduced
-    Thread usage for idle torrents reduced
-    Connection management improved for long-term connections and peer exchange
-    
-    Console UI now supports alerting and version update checking
+ Esta versión corrige fallos/rendimiento. Los puntos más interesantes son:
+  
+    Recuperada la compatibilidad con JDK 1.4 bajo Windows
+    Mejorados el punto de arranque (bootstrap) de la Base de Datos Distribuída y la gestión de cambio de IP
+    Reducción en la memoria utilizada
+    Reducción de los hilos utilizados con los torrents inactivos
+    Mejoras en la gestión de la conexión (para conexiones a largo plazo) e intercambio de clientes.
+        
+    El IU de la Consola ya soporta el aviso y búsqueda de actualizaciones.
 
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.2
+    Informe completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.3.0.2
     
 +3. Lo nuevo en Azureus 2.3.0.0
 
 !3.1 Base de datos Distribuída
- Azureus tiene ahora una base datos descentralizada y distribuída, que puede utilizarse para rastrear torrents descentralizados. Esta característica permite los torrents "sin rastreador" y el mantenimiento de los enjambres (=total de clientes + semillas) donde el rastreador ya no esté accesible o cuyo torrent haya sido retirado de él.
- Se utiliza el protocolo UDP, así que si tienes un cortafuegos/enrutador, tendrás que abrirles/forward el puerto UDP al igual que tuviste que hacer con el TCP para descargar datos.
+ Azureus ahora tiene una base datos descentralizada y distribuída, que puede utilizarse para rastrear torrents descentralizados. Esta característica permite los torrents "sin rastreador" y el mantenimiento de los enjambres (=total de clientes + semillas) donde el rastreador ya no esté accesible o cuyo torrent haya sido retirado de él.
+ Se utiliza el protocolo UDP, así que si tienes un cortafuegos/enrutador, tendrás que abrirles/reenviar el puerto UDP al igual que tuviste que hacer con el TCP para descargar datos.
  
 *3.1.1 Enlaces Magnet (Imantados)
  Si los torrents están rastreados descentralizadamente, Azureus puede exportar un "Enlace Magnet". Su formato es "magnet:?xt=urn:btih:..." y pueden usarse para descargar el torrent desde la base de datos distribuída via el elemento de menú "abrir->url".
@@ -36,9 +36,9 @@ $
  Por ejemplo, los complementos JPC y Chat hacen uso de esta extensión para mensajería.
 
 !3.3 JPC
- El Joltid Peer Cache (JPC) ahora está integrado en Azureus. FPara usuarios cuyo ISP lo soporta, JPC debería acelerar las descargas, al tiempo que ayudará al ISP a reducir sus costos en ancho de banda. El complemento JPC es seguro en el sentido de que tu ISP no sabe lo que estás descargando, y por tanto no puede usarlo para espiarte. El complemento JPC puede desactivarse llendo a Herramientas > Opciones > Complementos > JPC.
+ El Joltid Peer Cache (JPC) ahora está integrado en Azureus. Para usuarios cuyo ISP lo soporta, JPC debería acelerar las descargas, al tiempo que ayudará al ISP a reducir sus costos en ancho de banda. El complemento JPC es seguro en el sentido de que tu ISP no sabe lo que estás descargando, y por tanto no puede usarlo para espiarte. El complemento JPC puede desactivarse en Herramientas > Opciones > Complementos > JPC.
   
-!3.4 Complemtos Destacados
+!3.4 Complementos Destacados
  La Base de datos Distribuída y el Protocolo Mejorado nos permiten desarrollar nuevos complementos, que creemos que son interesantes. No queremos autoinstalártelos, pero recomendamos a todos los usuarios que puedan estar interesados en ellos que los instalen mediante el menú Complementos > Asistente de instalación.
 
 *3.4.1 Chat
@@ -51,10 +51,10 @@ $
 +4. Consejos de Actualización
 
 !4.1 Java 5.0
- Azureus está escrito en Java y necesita el Java runtime. Recomendamos Java 5.0 (también conocido como 1.5) por su fiabilidad y mejor rendimiento - actualize por favor si fuere necesario.
+ Azureus está escrito en Java y necesita el Java runtime. Recomendamos Java 5.0 (también conocido como 1.5) por su fiabilidad y mejor rendimiento - actualice por favor si fuere necesario.
  Aquí encontrará los torrents para actualizar Java : http://azureus.sourceforge.net/download.php
  Descarga el de tu sistema, cierra Azureus, ejecuta el archivo descargado, y reinicia Azureus.
- Los usuarios de WindowsXP tienen que ir a Herramientas > Configuracion > Interface > Display, y re-marcar la opción "Activar Estilo XP".
+ Los usuarios de WindowsXP tienen que ir a Herramientas > Configuracion > Interfaz > Display, y re-marcar la opción "Activar Estilo XP".
 
 !4.2 NOD32
  NOD32 (http://www.nod32.com/) es un antivirus del que se sabe que tiene problemas con Azureus, llevando a usar el 100% de la CPU.
@@ -64,7 +64,7 @@ $
 +5. Sucesos Comunes
 
 !5.1 "error" NAT
- NAT significa "Network Address Translation" (Traducción de direcciones de red). La prueba NAT en Azureus te dice si eres o no, conectable desde los demás en internet. Tendrás mejores velocidades si ERES conectable.
+ NAT significa "Network Address Translation" (Traducción de direcciones de red). La prueba NAT en Azureus te dice si eres o no, conectable por los demás desde internet. Tendrás mejores velocidades si ERES conectable.
  Por favor no acuda a nosotros para resolver asuntos de NAT, ya que existen multitud de recursos sobre ello en internet. Puede probrar en:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
