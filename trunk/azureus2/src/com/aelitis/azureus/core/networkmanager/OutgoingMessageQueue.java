@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
+
 /**
  * Priority-based outbound peer message queue.
  */
@@ -151,6 +152,7 @@ public class OutgoingMessageQueue {
     }
     
     removeMessagesOfType( rmesg.messagesToRemove(), manual_listener_notify );
+    
     try{
       queue_mon.enter();
     
@@ -220,9 +222,11 @@ public class OutgoingMessageQueue {
     
       for( Iterator i = queue.iterator(); i.hasNext(); ) {
         RawMessage msg = (RawMessage)i.next();
+        
         for( int t=0; t < message_types.length; t++ ) {
           boolean same_type = message_types[t].getID().equals( msg.getID() ) && message_types[t].getVersion() == msg.getVersion();
-        	if( same_type && msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
+          
+          if( same_type && msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
             if( msg == urgent_message ) urgent_message = null;
             
             DirectByteBuffer[] payload = msg.getRawData();
@@ -297,7 +301,10 @@ public class OutgoingMessageQueue {
     try{
       queue_mon.enter();
     
-      int index = queue.indexOf( message );
+      //ensure we compare using RawMessage object, which then compares via Message objects internally
+      RawMessage rmesg = stream_encoder.encodeMessage( message );
+      
+      int index = queue.indexOf( rmesg );
       if( index != -1 ) {
         RawMessage msg = (RawMessage)queue.get( index );
         if( msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message

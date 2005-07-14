@@ -101,4 +101,20 @@ public class RawMessageImpl implements RawMessage {
     }
   }
   
+  
+  
+  public boolean equals( Object obj ) {
+    //ensure we are comparing the underlying Message (and its equals() override if exists)
+    if( obj instanceof RawMessage ) {
+      obj = ((RawMessage)obj).getBaseMessage();
+    }
+    
+    return message.equals( obj );
+  }
+  
+  
+  public int hashCode() {
+    return message.hashCode();
+  }
+  
 }

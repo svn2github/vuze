@@ -13,6 +13,7 @@ BUGFIX: Core  | Fix interested flag being set sometimes when seeding [Nolar]
 BUGFIX: Core  | Wrong file name returned for stopped simple torrents [Parg]
 BUGFIX: Core  | Seeder/leecher counts missing for published torrents [Parg]
 BUGFIX: Core  | Stats going negative for hosted torrent average up/down [Parg]
+BUGFIX: Core  | Fix piece request ignore bug [Nolar]
 BUGFIX: UI    | Create-torrent wizard fix for multi-torrent checkbox enabling error [Parg]
 
 

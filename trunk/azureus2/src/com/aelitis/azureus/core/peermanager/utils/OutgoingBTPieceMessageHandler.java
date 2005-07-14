@@ -22,11 +22,9 @@
 
 package com.aelitis.azureus.core.peermanager.utils;
 
-import java.io.FileWriter;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
@@ -65,8 +63,6 @@ public class OutgoingBTPieceMessageHandler {
       BTPiece msg;
       try{
       	lock_mon.enter();
-        
-        logit( READ_COMP, request.getPieceNumber(), request.getOffset() );
 
       	if( !loading_messages.contains( request ) || destroyed ) { //was canceled
       	  data.returnToPool();
@@ -91,20 +87,10 @@ public class OutgoingBTPieceMessageHandler {
   
   
   private final OutgoingMessageQueue.MessageQueueListener sent_message_listener = new OutgoingMessageQueue.MessageQueueListener() {
-    public boolean messageAdded( Message message ) {
-      if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
-        BTPiece p = (BTPiece)message;   
-        logit( MSG_ADDED, p.getPieceNumber(), p.getPieceOffset() );
-      }
-      return true;
-    }
+    public boolean messageAdded( Message message ) {   return true;   }
     
     public void messageSent( Message message ) {
       if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
-        
-        BTPiece p = (BTPiece)message; 
-        logit( MSG_SENT, p.getPieceNumber(), p.getPieceOffset() );
-        
         try{
           lock_mon.enter();
 
@@ -116,12 +102,7 @@ public class OutgoingBTPieceMessageHandler {
         }
       }
     }
-    public void messageQueued( Message message ) {
-      if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
-        BTPiece p = (BTPiece)message;
-        logit( MSG_QUEUED, p.getPieceNumber(), p.getPieceOffset() );
-      }
-    }
+    public void messageQueued( Message message ) {/*nothing*/}
     public void messageRemoved( Message message ) {/*nothing*/}
     public void protocolBytesSent( int byte_count ) {/*ignore*/}
     public void dataBytesSent( int byte_count ) {/*ignore*/}
@@ -140,8 +121,6 @@ public class OutgoingBTPieceMessageHandler {
     this.disk_manager = disk_manager;
     this.outgoing_message_queue = outgoing_message_q;
     outgoing_message_queue.registerQueueListener( sent_message_listener );
-    
-    
   }
   
   
@@ -152,17 +131,11 @@ public class OutgoingBTPieceMessageHandler {
    * @param length
    */
   public void addPieceRequest( int piece_number, int piece_offset, int length ) {
-
-    logit( ADD_REQ, piece_number, piece_offset );
-
     if( destroyed ) {
-      logit( "already destroyed", -1, -1 );
       return;
     }
-    
-    
+     
     DiskManagerReadRequest dmr = disk_manager.createReadRequest( piece_number, piece_offset, length );
-
 
     try{
       lock_mon.enter();
@@ -221,6 +194,7 @@ public class OutgoingBTPieceMessageHandler {
   }
   
   
+  
   /**
    * Remove all outstanding piece data requests.
    */
@@ -231,13 +205,21 @@ public class OutgoingBTPieceMessageHandler {
       requests.clear();
       loading_messages.clear();
       num_messages_loading = 0;
+
+      int num_queued = queued_messages.size();
+      int num_removed = 0;
       
       for( Iterator i = queued_messages.keySet().iterator(); i.hasNext(); ) {
         BTPiece msg = (BTPiece)i.next();
         if( outgoing_message_queue.removeMessage( msg, true ) ) {
           i.remove();
           num_messages_in_queue--;
+          num_removed++;
         }
+      }
+      
+      if( num_removed < num_queued - 1 ) {
+        Debug.out( "num_removed[" +num_removed+ "] < num_queued[" +num_queued+ "]" );
       }
     }
     finally{
@@ -267,8 +249,6 @@ public class OutgoingBTPieceMessageHandler {
     finally{
       lock_mon.exit();
     }
-    
-    if( LOG_ENABLED )  dumpLogs();
   }
   
   
@@ -276,87 +256,9 @@ public class OutgoingBTPieceMessageHandler {
     while( num_messages_loading + num_messages_in_queue < request_read_ahead && !requests.isEmpty() && !destroyed ) {
       DiskManagerReadRequest dmr = (DiskManagerReadRequest)requests.removeFirst();
       loading_messages.add( dmr );
-      
-      logit( ENQ_READ_REQ, dmr.getPieceNumber(), dmr.getOffset() );
-      
       disk_manager.enqueueReadRequest( dmr, read_req_listener );
       num_messages_loading++;
     }
   }
 
-  
-  
-  
-  private final boolean LOG_ENABLED = true;  //TODO
-  private final boolean LIGHT_LOG = false;
-  private LinkedList entries;
-  private final int MAX_ENTRIES = 100;
-  
-  private static final String ADD_REQ       = "add";
-  private static final String ENQ_READ_REQ  = "enq";
-  private static final String READ_COMP     = "com";
-  private static final String MSG_ADDED     = "ma";
-  private static final String MSG_QUEUED    = "mq";
-  private static final String MSG_SENT      = "ms";
-  
-  
-  private void logit( String header, int piece, int offset ) {
-    if( !LOG_ENABLED )  return;
-    
-    String entry = header + ":" + piece + "-" + offset;
-    
-    if( !LIGHT_LOG ) {
-      if( LGLogger.isEnabled() )  LGLogger.log( entry );
-      return;
-    }
-    
-    if( entries == null ) entries = new LinkedList();
-
-    try{
-      lock_mon.enter();
-      
-      entries.addLast( entry );
-    
-    if( entries.size() > MAX_ENTRIES ) {
-      entries.removeFirst();
-    }
-    
-    }
-    finally{
-      lock_mon.exit();
-    }
-  }
-  
-  
-  private void dumpLogs() {
-    if( entries == null )  return;
-    
-    FileWriter log = null;
-    
-    try{
-      log = new FileWriter( "f:\\requestsdump.log", true );
-
-      try{
-        lock_mon.enter();
-        
-      for( Iterator it = entries.iterator(); it.hasNext(); ) {
-        String entry = (String)it.next();
-        log.write( entry );
-        log.write("\n");
-      }
-      
-      entries.clear();
-      
-      }
-      finally{
-        lock_mon.exit();
-      }
-    }
-    catch( Throwable t ) { t.printStackTrace(); }
-    finally{
-      if( log != null )  try{ log.close();  }catch( Throwable t ) {t.printStackTrace();}
-    }
-  }
-  
-  
 }
