@@ -82,7 +82,7 @@ DHTTransportUDPImpl
 	private long				request_timeout;
 	private long				store_timeout;
 	private LoggerChannel		logger;
-	
+		
 	private DHTUDPPacketHandler			packet_handler;
 	
 	private DHTTransportRequestHandler	request_handler;
@@ -275,6 +275,13 @@ DHTTransportUDPImpl
 			
 			Debug.printStackTrace(e);
 		}
+	}
+	
+	public void
+	testNetworkAlive(
+		boolean		alive )
+	{
+		packet_handler.testNetworkAlive( alive );
 	}
 	
 	protected void

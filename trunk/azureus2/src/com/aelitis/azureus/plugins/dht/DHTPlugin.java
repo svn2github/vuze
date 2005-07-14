@@ -256,10 +256,18 @@ DHTPlugin
 										
 										dht.print();
 										
-									}else if ( lc.equals( "test" )){
-										
+									}else if ( lc.equals( "testca" )){
+																
 										((DHTTransportUDPImpl)transport).testExternalAddressChange();
 										
+									}else if ( lc.equals( "testnd" )){
+										
+										((DHTTransportUDPImpl)transport).testNetworkAlive( false );
+										
+									}else if ( lc.equals( "testna" )){
+										
+										((DHTTransportUDPImpl)transport).testNetworkAlive( true );
+				
 									}else{
 										
 										int pos = c.indexOf( ' ' );

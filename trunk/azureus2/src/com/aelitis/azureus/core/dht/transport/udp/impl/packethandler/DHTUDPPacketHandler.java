@@ -43,6 +43,8 @@ DHTUDPPacketHandler
 	
 	private DHTUDPPacketHandlerStats	stats;
 	
+	private boolean						test_network_alive	= true;
+	
 	protected AEMonitor		this_mon = new AEMonitor( "DHTUDPPacketHandler" );
 	
 	protected
@@ -56,6 +58,13 @@ DHTUDPPacketHandler
 		request_handler	= _request_handler;
 		
 		stats = new DHTUDPPacketHandlerStats( packet_handler );
+	}
+	
+	public void
+	testNetworkAlive(
+		boolean		alive )
+	{
+		test_network_alive	= alive;
 	}
 	
 	protected DHTUDPRequestHandler
@@ -77,42 +86,47 @@ DHTUDPPacketHandler
 		try{
 			request.setNetwork( network );
 			
-			packet_handler.sendAndReceive( 
-				request, 
-				destination_address, 
-				new PRUDPPacketReceiver()
-				{
-					public void
-					packetReceived(
-						PRUDPPacketHandlerRequest	request,
-						PRUDPPacket					packet,
-						InetSocketAddress			from_address )
+			if ( test_network_alive ){
+				packet_handler.sendAndReceive( 
+					request, 
+					destination_address, 
+					new PRUDPPacketReceiver()
 					{
-						DHTUDPPacketReply	reply = (DHTUDPPacketReply)packet;
-						
-						stats.packetReceived( packet.getSerialisedSize());
-						
-						if ( reply.getNetwork() == network ){
+						public void
+						packetReceived(
+							PRUDPPacketHandlerRequest	request,
+							PRUDPPacket					packet,
+							InetSocketAddress			from_address )
+						{
+							DHTUDPPacketReply	reply = (DHTUDPPacketReply)packet;
 							
-							receiver.packetReceived(reply, from_address, request.getElapsedTime());
+							stats.packetReceived( packet.getSerialisedSize());
 							
-						}else{
-							
-							Debug.out( "Non-matching network reply received" );
-							
-							receiver.error( new DHTUDPPacketHandlerException( new Exception( "Non-matching network reply received" )));
+							if ( reply.getNetwork() == network ){
+								
+								receiver.packetReceived(reply, from_address, request.getElapsedTime());
+								
+							}else{
+								
+								Debug.out( "Non-matching network reply received" );
+								
+								receiver.error( new DHTUDPPacketHandlerException( new Exception( "Non-matching network reply received" )));
+							}
 						}
-					}
-		
-					public void
-					error(
-						PRUDPPacketHandlerException	e )
-					{
-						receiver.error( new DHTUDPPacketHandlerException( e ));
-					}
-				}, 
-				timeout, 
-				low_priority );
+			
+						public void
+						error(
+							PRUDPPacketHandlerException	e )
+						{
+							receiver.error( new DHTUDPPacketHandlerException( e ));
+						}
+					}, 
+					timeout, 
+					low_priority );
+			}else{
+				
+				receiver.error( new DHTUDPPacketHandlerException( new Exception( "Test network disabled" )));
+			}
 			
 		}catch( PRUDPPacketHandlerException e ){
 			
@@ -136,7 +150,10 @@ DHTUDPPacketHandler
 			
 			request.setNetwork( network );
 			
-			packet_handler.send( request, destination_address );
+			if ( test_network_alive ){
+				
+				packet_handler.send( request, destination_address );
+			}
 			
 		}catch( PRUDPPacketHandlerException e ){
 			
@@ -159,8 +176,11 @@ DHTUDPPacketHandler
 			reply.setNetwork( network );
 			
 				// outgoing request
-						
-			packet_handler.send( reply, destination_address );
+					
+			if ( test_network_alive ){
+				
+				packet_handler.send( reply, destination_address );
+			}
 				
 		}catch( PRUDPPacketHandlerException e ){
 			
@@ -178,9 +198,12 @@ DHTUDPPacketHandler
 	{
 			// incoming request
 		
-		stats.packetReceived( request.getSerialisedSize() );
+		if ( test_network_alive ){
+			
+			stats.packetReceived( request.getSerialisedSize() );
 		
-		request_handler.process( request );
+			request_handler.process( request );
+		}
 	}
 	
 	public void

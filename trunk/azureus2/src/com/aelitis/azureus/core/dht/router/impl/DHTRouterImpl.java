@@ -59,6 +59,8 @@ DHTRouterImpl
 	private DHTRouterNodeImpl		root;
 	private DHTRouterNodeImpl		smallest_subtree;
 	
+	private int						consecutive_dead;
+	
 	private static long				random_seed	= SystemTime.getCurrentTime();
 	private Random					random;
 	
@@ -203,14 +205,29 @@ DHTRouterImpl
 			try{
 				this_mon.enter();
 
-				Object[]	res = findContactSupport( node_id );
+				consecutive_dead++;
 				
+				/*
+				if ( consecutive_dead != 0 && consecutive_dead % 10 == 0 ){
+					
+					System.out.println( "consecutive_dead: " + consecutive_dead );
+				}			
+				*/
+				
+				Object[]	res = findContactSupport( node_id );
+					
 				DHTRouterNodeImpl		node	= (DHTRouterNodeImpl)res[0];
 				DHTRouterContactImpl	contact = (DHTRouterContactImpl)res[1];
-				
+					
 				if ( contact != null ){
+
+					// some protection against network drop outs - start ignoring dead
+					// notifications if we're getting significant continous fails
 				
-					node.dead( contact, force );
+					if ( consecutive_dead < 100 || force ){
+
+						node.dead( contact, force );
+					}
 				}
 				
 				return( contact );
@@ -244,6 +261,11 @@ DHTRouterImpl
 			try{
 			
 				this_mon.enter();
+				
+				if ( known_to_be_alive ){
+					
+					consecutive_dead	= 0;
+				}
 				
 				return( addContactSupport( node_id, attachment, known_to_be_alive ));
 			}finally{
