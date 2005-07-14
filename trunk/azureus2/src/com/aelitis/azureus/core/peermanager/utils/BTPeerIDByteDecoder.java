@@ -74,11 +74,13 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeSimpleStyle( peerID, 0, "-AR", "Arctic Torrent" )) != null ) return decoded; //no way to know the version (see above)
       if( (decoded = decodeSimpleStyle( peerID, 4, "btfans", "SimpleBT" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "btuga", "BTugaXP" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 5, "BTuga", "BTugaXP" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "DansClient", "XanTorrent" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "Deadman Walking-", "Deadman" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "346-", "TorrentTopia" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "271-", "GreedBT 2.7.1" )) != null ) return decoded;
-      if( (decoded = decodeSimpleStyle( peerID, 0, "BG", "BTGetit" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 10, "BG", "BTGetit" )) != null ) return decoded;
+      if( (decoded = decodeSimpleStyle( peerID, 0, "OP", "Opera" )) != null ) return decoded;
       
       if( (decoded = decodeSimpleStyle( peerID, 0, "a00---0", "Swarmy" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "a02---0", "Swarmy" )) != null ) return decoded;
@@ -155,11 +157,11 @@ public class BTPeerIDByteDecoder {
         }
       }
       
-      String bitspirit = new String(peerID, 2, 2, Constants.BYTE_ENCODING);
-      if (bitspirit.equals("BS")) {
-        if (peerID[1] == (byte)0)  return "BitSpirit v1";
-        if (peerID[1] == (byte)2)  return "BitSpirit v2";
-      }
+	  	String bitspirit = new String(peerID, 2, 2, Constants.BYTE_ENCODING);
+	  	if (bitspirit.equals("BS")) {
+	  		if (peerID[1] == (byte)0)  return "BitSpirit v1";
+	        if (peerID[1] == (byte)2)  return "BitSpirit v2";
+      	}
             
       String upnp = new String(peerID, 0, 1, Constants.BYTE_ENCODING);
       if (upnp.equals("U")) {
