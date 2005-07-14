@@ -1464,7 +1464,7 @@ PEPeerTransportProtocol
     //INCOMING MESSAGES
     connection.getIncomingMessageQueue().registerQueueListener( new IncomingMessageQueue.MessageQueueListener() {
       public boolean messageReceived( Message message ) {      
-        if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, "Received message [" +message.getDescription()+ "] from " +PEPeerTransportProtocol.this );
+        if( LGLogger.isEnabled() )  LGLogger.log( LGLogger.CORE_NETWORK, "Received [" +message.getDescription()+ "] message from " +PEPeerTransportProtocol.this );
         
         last_message_received_time = SystemTime.getCurrentTime();
         if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
@@ -1588,7 +1588,7 @@ PEPeerTransportProtocol
           }
         }
         
-        if( LGLogger.isEnabled() )  LGLogger.log( LGLogger.CORE_NETWORK, "Sent " +message.getDescription()+ " message to " +PEPeerTransportProtocol.this );
+        if( LGLogger.isEnabled() )  LGLogger.log( LGLogger.CORE_NETWORK, "Sent [" +message.getDescription()+ "] message to " +PEPeerTransportProtocol.this );
       }
   
       public void protocolBytesSent( int byte_count ) {
