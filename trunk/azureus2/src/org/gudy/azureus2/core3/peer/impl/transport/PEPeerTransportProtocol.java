@@ -978,11 +978,17 @@ PEPeerTransportProtocol
         }
         outgoing_piece_message_handler.setRequestReadAhead( 32 );
       }
-      else if( send_rate >= 125000 ) {  // 500 Kbit/s
+      else if( send_rate >= 62500 ) {  // 500 Kbit/s
         outgoing_piece_message_handler.setRequestReadAhead( 16 );
       }
-      else {
+      else if( send_rate >= 31250 ) {  // 250 Kbit/s
         outgoing_piece_message_handler.setRequestReadAhead( 8 );
+      }
+      else if( send_rate >= 12500 ) {  // 100 Kbit/s
+        outgoing_piece_message_handler.setRequestReadAhead( 4 );
+      }
+      else {
+        outgoing_piece_message_handler.setRequestReadAhead( 2 );
       }
       
       
