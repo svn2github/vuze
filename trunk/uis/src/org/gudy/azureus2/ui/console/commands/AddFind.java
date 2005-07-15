@@ -11,6 +11,8 @@
 package org.gudy.azureus2.ui.console.commands;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.OptionBuilder;
@@ -78,14 +80,17 @@ public class AddFind extends OptionsConsoleCommand {
 		boolean finding = commands.hasOption('f');
 
 		String[] whatelse = commands.getArgs();
-		for (int j = 0; j < whatelse.length; j++) {
-			String arg = whatelse[j];
-			// firstly check if it is a URL
-			if (arg.toUpperCase().startsWith("HTTP://")) {
+		for (int i = 0; i < whatelse.length; i++) {
+			String arg = whatelse[i];
+			try {
+				// firstly check if it is a valid URL
+				new URL(arg);
 				addRemote(ci, arg, outputDir);
-			} 
-			else
-				addLocal(ci, arg, outputDir, scansubdir, finding);
+			} catch (MalformedURLException e)
+			{
+				// assume that it's a local file or file id from a previous find
+				addLocal(ci, arg, outputDir, scansubdir, finding);				
+			}
 		}
 	}
 
