@@ -63,7 +63,7 @@ public class AZTorrentSessionEnd implements AZMessage {
   
   public String getDescription() {
     if( description == null ) {
-      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " type " +session_type;
+      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " type " +session_type+ " because " +reason;
     }
     return description;
   }
