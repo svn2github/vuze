@@ -38,6 +38,7 @@ import org.gudy.azureus2.pluginsimpl.local.torrent.*;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadManagerStats;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 
 import org.gudy.azureus2.core3.torrent.*;
@@ -77,20 +78,24 @@ DownloadManagerImpl
 		}
 	}
 	
-	protected AzureusCore	azureus_core;
-	protected GlobalManager	global_manager;
-	protected List			listeners		= new ArrayList();
-	protected AEMonitor		listeners_mon	= new AEMonitor( "DownloadManager:L");
+	private AzureusCore				azureus_core;
+	private GlobalManager			global_manager;
+	private DownloadManagerStats	stats;
 	
-	protected List			downloads		= new ArrayList();
-	protected Map			download_map	= new HashMap();
+	private List			listeners		= new ArrayList();
+	private AEMonitor		listeners_mon	= new AEMonitor( "DownloadManager:L");
 	
+	private List			downloads		= new ArrayList();
+	private Map				download_map	= new HashMap();
+		
 	protected
 	DownloadManagerImpl(
 		AzureusCore	_azureus_core )
 	{
 		azureus_core	= _azureus_core;
 		global_manager	= _azureus_core.getGlobalManager();
+		
+		stats = new DownloadManagerStatsImpl( global_manager );
 		
 		global_manager.addListener(
 			new GlobalManagerListener()
@@ -562,6 +567,12 @@ DownloadManagerImpl
 	stopAllDownloads()
 	{
 		global_manager.stopAllDownloads();
+	}
+	
+	public DownloadManagerStats
+	getStats()
+	{
+		return( stats );
 	}
 	
 	public void

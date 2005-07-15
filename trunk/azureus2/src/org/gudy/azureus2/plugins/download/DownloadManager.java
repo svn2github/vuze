@@ -191,6 +191,9 @@ DownloadManager
 	public void
 	stopAllDownloads();
 	
+	public DownloadManagerStats
+	getStats();
+	
 	/**
 	 * Add a listener that will be informed when a download is added to/removed from Azureus
 	 * @param l

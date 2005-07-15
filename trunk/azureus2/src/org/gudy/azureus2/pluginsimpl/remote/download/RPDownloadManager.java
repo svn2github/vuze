@@ -345,6 +345,14 @@ RPDownloadManager
 		_dispatcher.dispatch( new RPRequest( this, "stopAllDownloads", null )).getResponse();
 	}
 	
+	public DownloadManagerStats
+	getStats()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public void
 	addListener(
 		DownloadManagerListener	l )
