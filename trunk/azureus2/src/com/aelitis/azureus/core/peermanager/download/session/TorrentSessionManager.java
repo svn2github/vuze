@@ -22,16 +22,14 @@
 
 package com.aelitis.azureus.core.peermanager.download.session;
 
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
 import com.aelitis.azureus.core.peermanager.connection.*;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
-import com.aelitis.azureus.core.peermanager.download.session.standard.StandardSessionManager;
+import com.aelitis.azureus.core.peermanager.download.session.auth.*;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 
@@ -41,10 +39,10 @@ public class TorrentSessionManager {
   
   private static final TorrentSessionManager instance = new TorrentSessionManager();
   
-  private final HashMap registrations = new HashMap();
+  private final HashMap hashes = new HashMap();
+  private final AEMonitor hashes_mon = new AEMonitor( "TorrentSessionManager" );
+  
 
-  protected AEMonitor this_mon = new AEMonitor( "TorrentSessionManager" );
-    
   public static TorrentSessionManager getSingleton(){  return instance;  }
 
   
@@ -54,10 +52,6 @@ public class TorrentSessionManager {
   
   
   public void init() {
-    //init "built-in" session type managers
-    StandardSessionManager.getSingleton();
-    
-    
     //register for new peer connection creation notification, so that we can catch torrent session syn messages
     PeerConnectionFactory.getSingleton().registerCreationListener( new PeerConnectionFactory.CreationListener() {
       public void connectionCreated( final AZPeerConnection connection ) {
@@ -66,21 +60,34 @@ public class TorrentSessionManager {
             if( message.getID().equals( AZMessage.ID_AZ_TORRENT_SESSION_SYN ) ) {
               AZTorrentSessionSyn syn = (AZTorrentSessionSyn)message;
 
-              TorrentSession session = TorrentSessionFactory.getSingleton().createSession( syn.getSessionType(), syn.getInfoHash(), connection );
-              session.remote_session_id = syn.getSessionID();
+              String type = syn.getSessionType();
+              byte[] hash = syn.getInfoHash();
               
-              TorrentSessionListener listener = null;
-              try{  this_mon.enter();
-                listener = (TorrentSessionListener)registrations.get( syn.getSessionType() );
-              }
-              finally{  this_mon.exit();  }
+              TorrentSessionAuthenticator auth = AuthenticatorFactory.createAuthenticator( type, hash );
               
-              if( listener != null ) {  
-                listener.torrentSessionRequested( session, syn.getSessionInfo() );
+              if( auth == null ) {
+                Debug.out( "unknown session type: " +type );
+                AZTorrentSessionEnd end = new AZTorrentSessionEnd( type, hash, "unknown session type id" );
+                connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
               }
-              else {  //unknown session type
-                session.endSession( "unknown session type id" );  //return error
-                Debug.out( "unknown incoming torrent session type: " +syn.getSessionType() );
+              else {
+                //check for valid session infohash
+                TorrentDownload download = null;
+                
+                try{ hashes_mon.enter();
+                  download = (TorrentDownload)hashes.get( new HashWrapper( hash ) );
+                }
+                finally{ hashes_mon.exit();  }
+                
+                if( download == null ) {
+                  System.out.println( "unknown session infohash " +ByteFormatter.nicePrint( hash, true ) );
+                  AZTorrentSessionEnd end = new AZTorrentSessionEnd( type, hash, "unknown session infohash" );
+                  connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
+                }
+                else { //success
+                  TorrentSession session = TorrentSessionFactory.getSingleton().createIncomingSession( auth, connection, download, syn.getSessionID() );
+                  session.authenticate( syn.getSessionInfo() );  //init processing
+                }
               }
               
               syn.destroy();
@@ -97,56 +104,17 @@ public class TorrentSessionManager {
     });
   }
   
-  
-  
-  /**
-   * Register for incoming session requests of the given type.
-   * @param type_id of the listener
-   * @param listener to handle requests
-   */
-  public void registerIncomingSessionListener( String type_id, TorrentSessionListener listener ) {
-    try{  this_mon.enter();
-      registrations.put( type_id, listener );
-    }
-    finally{  this_mon.exit();  }
-  }
-  
-  
-  /**
-   * Remove registration for incoming session requests of the given type.
-   * @param type_id to remove
-   */
-  public void deregisterIncomingSessionListener( String type_id ){
-    try{  this_mon.enter();
-      registrations.remove( type_id );
-    }
-    finally{  this_mon.exit();  }
-  }
-  
-  
-  /*
-  public String[] getRegisteredSessionTypes() {
-    return (String[])registrations.keySet().toArray( new String[0] );
-  }
-  */
-
-  
+    
   
   /**
    * Register the given download for torrent session management.
    * @param download to add
    */
   public void registerForSessionManagement( TorrentDownload download ) {
-    //add infohash to incoming listeners
-    try{  this_mon.enter();
-      for( Iterator it = registrations.values().iterator(); it.hasNext(); ) {
-        TorrentSessionListener listener = (TorrentSessionListener)it.next();
-        listener.registerSessionInfoHash( download.getInfoHash() );
-      }
+    try{ hashes_mon.enter();
+      hashes.put( new HashWrapper( download.getInfoHash() ), download );
     }
-    finally{  this_mon.exit();  }
-    
-    //TODO
+    finally{ hashes_mon.exit();  }
   }
   
   
@@ -155,16 +123,10 @@ public class TorrentSessionManager {
    * @param download to remove
    */
   public void deregisterForSessionManagement( TorrentDownload download ) {
-    //remove infohash from incoming listeners
-    try{  this_mon.enter();
-      for( Iterator it = registrations.values().iterator(); it.hasNext(); ) {
-        TorrentSessionListener listener = (TorrentSessionListener)it.next();
-        listener.deregisterSessionInfoHash( download.getInfoHash() );
-      }
+    try{ hashes_mon.enter();
+      hashes.remove( new HashWrapper( download.getInfoHash() ) );
     }
-    finally{  this_mon.exit();  }
-    
-    //TODO
+    finally{ hashes_mon.exit();  }
   }
   
   
@@ -174,8 +136,21 @@ public class TorrentSessionManager {
    * @param connection to send request to
    */
   public void requestStandardTorrentSession( TorrentDownload download, AZPeerConnection connection ) {
-    TorrentSession session = TorrentSessionFactory.getSingleton().createSession( StandardSessionManager.SESSION_TYPE_ID, download.getInfoHash(), connection );
-    session.requestSession( null, StandardSessionManager.getSingleton() );
+    TorrentSessionAuthenticator auth = AuthenticatorFactory.createAuthenticator( TorrentSessionAuthenticator.AUTH_TYPE_STANDARD, download.getInfoHash() );
+    TorrentSession session = TorrentSessionFactory.getSingleton().createOutgoingSession( auth, connection, download );
+    session.authenticate( null );  //init processing
+  }
+  
+  
+  /**
+   * Initiate a secure torrent session for the given download with the given peer connection.
+   * @param download for session
+   * @param connection to send request to
+   */
+  public void requestSecureTorrentSession( TorrentDownload download, AZPeerConnection connection ) {
+    TorrentSessionAuthenticator auth = AuthenticatorFactory.createAuthenticator( TorrentSessionAuthenticator.AUTH_TYPE_SECURE, download.getInfoHash() );
+    TorrentSession session = TorrentSessionFactory.getSingleton().createOutgoingSession( auth, connection, download );
+    session.authenticate( null );  //init processing
   }
   
 }

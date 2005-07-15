@@ -1,5 +1,5 @@
 /*
- * Created on Jul 6, 2005
+ * Created on Jul 10, 2005
  * Created by Alon Rohter
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -20,29 +20,40 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.download.session;
+package com.aelitis.azureus.core.peermanager.download.session.auth;
 
-import java.util.Map;
+import java.util.*;
 
-public interface TorrentSessionListener {
+import com.aelitis.azureus.core.peermanager.download.session.*;
 
-  /**
-   * The given torrent session has been requested with the given session info.
-   * @param incoming session init
-   * @param syn_info info of session syn
-   */
-  public void torrentSessionRequested( TorrentSession incoming, Map syn_info );
+
+
+public class StandardAuthenticator implements TorrentSessionAuthenticator {
+  private final byte[] infohash;
   
-  /**
-   * Add the given torrent infohash to the accept filter.
-   * @param infohash to add
-   */
-  public void registerSessionInfoHash( byte[] infohash );
+  protected StandardAuthenticator( byte[] infohash ) {
+    this.infohash = infohash;
+  }
+
+  public String getSessionTypeID() {  return TorrentSessionAuthenticator.AUTH_TYPE_STANDARD;  }
   
-  /**
-   * Remove the given torrent infohash from the accept filter.
-   * @param infohash to remove
-   */
-  public void deregisterSessionInfoHash( byte[] infohash );
   
+  public byte[] getSessionInfoHash() {
+    return infohash;
+  }
+  
+  public Map createSessionSyn() {
+    return null;  //no explicit syn info required
+  }
+  
+
+  public Map verifySessionSyn( Map syn_info ) throws AuthenticatorException {
+    return null;  //no explicit ack info required
+  }
+
+  
+  public void verifySessionAck( Map ack_info ) throws AuthenticatorException {
+    //do nothing, always accept ack
+  }
+
 }

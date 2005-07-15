@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
 import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
+import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 
@@ -48,35 +49,57 @@ public class TorrentSession {
   private static final int STATE_END  = 3;
   
   private final int local_session_id;
-  protected int remote_session_id;
-  private final String type_id;
-  private final byte[] infohash;
+  private int remote_session_id;
+  private final TorrentSessionAuthenticator authenticator;
   private final AZPeerConnection connection;
+  private final TorrentDownload download;
   private int session_state = STATE_NEW;
 
-  
   private IncomingMessageQueue.MessageQueueListener incoming_q_listener = null;
   
   
   
-  protected TorrentSession( String type_id, byte[] session_infohash, AZPeerConnection peer ) {
-    this.type_id = type_id;
-    this.infohash = session_infohash;
+  //INCOMING SESSION INIT
+  protected TorrentSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download, int remote_id ) {
+    this.authenticator = auth;
     this.connection = peer;
-    
+    this.download = download;
+    this.remote_session_id = remote_id;
+    this.local_session_id = getLocalSessionID();    
+  }
+  
+  
+  //OUTGOING SESSION INIT
+  protected TorrentSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download ) {
+    this.authenticator = auth;
+    this.connection = peer;
+    this.download = download;
+    this.local_session_id = getLocalSessionID();    
+  }
+
+  
+  private int getLocalSessionID() {
     try{ session_mon.enter();
-      this.local_session_id = next_session_id;
+      int id = next_session_id;
       next_session_id++;
+      return id;
     }
     finally{ session_mon.exit();  }
   }
   
   
-  public String getTypeID(){ return type_id;  }
   
-  public byte[] getInfoHash() {  return infohash;  }
   
-  public AZPeerConnection getConnection(){  return connection;  }
+  protected void authenticate( Map incoming_syn ) {
+    if( incoming_syn == null ) {  //outgoing session
+      Map outgoing_syn = authenticator.createSessionSyn();
+      
+    }
+    else {  //incoming session
+      
+    }
+  }
+  
   
   
   
@@ -85,7 +108,7 @@ public class TorrentSession {
    * @param syn_info bencode-able exchange map
    * @param handler for session events
    */
-  public void requestSession( Map syn_info, TorrentSessionHandler handler ) {
+  public void requestSession( Map syn_info, TorrentSessionAuthenticator handler ) {
     if( session_state != STATE_NEW ) {
       Debug.out( "session_state[" +session_state+ "] != STATE_NEW" );
     }    
@@ -93,7 +116,7 @@ public class TorrentSession {
     attachHandler( handler );
 
     //send out the session request
-    AZTorrentSessionSyn syn = new AZTorrentSessionSyn( local_session_id, type_id, infohash, syn_info );
+    AZTorrentSessionSyn syn = new AZTorrentSessionSyn( local_session_id, authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), syn_info );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( syn, false );
     session_state = STATE_SYN;
     
@@ -113,7 +136,7 @@ public class TorrentSession {
    * @param ack_info bencode-able exchange map
    * @param handler for session events
    */
-  public void ackSession( Map ack_info, TorrentSessionHandler handler ) {
+  public void ackSession( Map ack_info, TorrentSessionAuthenticator handler ) {
     if( session_state != STATE_NEW ) {
       Debug.out( "session_state[" +session_state+ "] != STATE_NEW" );
     }
@@ -121,7 +144,7 @@ public class TorrentSession {
     attachHandler( handler );
     
     //send out the session acceptance
-    AZTorrentSessionAck ack = new AZTorrentSessionAck( local_session_id, type_id, infohash, ack_info );
+    AZTorrentSessionAck ack = new AZTorrentSessionAck( local_session_id, authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), ack_info );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( ack, false );
     
     startSessionProcessing();
@@ -138,7 +161,7 @@ public class TorrentSession {
       Debug.out( "session_state == STATE_END" );
     }
     
-    AZTorrentSessionEnd end = new AZTorrentSessionEnd( type_id, infohash, end_reason );
+    AZTorrentSessionEnd end = new AZTorrentSessionEnd( authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), end_reason );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
     destroy();
   }
@@ -160,7 +183,7 @@ public class TorrentSession {
   
   
   
-  private void attachHandler( final TorrentSessionHandler handler ) {
+  private void attachHandler( final TorrentSessionAuthenticator handler ) {
     //register for session ACK and END messages
     incoming_q_listener = new IncomingMessageQueue.MessageQueueListener() {
       public boolean messageReceived( Message message ) {
@@ -171,11 +194,11 @@ public class TorrentSession {
           
           AZTorrentSessionAck ack = (AZTorrentSessionAck)message;
 
-          if( ack.getSessionType().equals( type_id ) && Arrays.equals( ack.getInfoHash(), infohash ) ) {
+          if( ack.getSessionType().equals( authenticator.getSessionTypeID() ) && Arrays.equals( ack.getInfoHash(), authenticator.getSessionInfoHash() ) ) {
             remote_session_id = ack.getSessionID();
-            if( handler.sessionAcked( TorrentSession.this, ack.getSessionInfo() ) ) {
-              startSessionProcessing();
-            }
+            //if( handler.sessionAcked( TorrentSession.this, ack.getSessionInfo() ) ) {
+            //  startSessionProcessing();
+            //}
             ack.destroy();
             return true;
           }
@@ -184,8 +207,8 @@ public class TorrentSession {
         if( message.getID().equals( AZMessage.ID_AZ_TORRENT_SESSION_END ) ) {          
           AZTorrentSessionEnd end = (AZTorrentSessionEnd)message;
           
-          if( end.getSessionType().equals( type_id ) && Arrays.equals( end.getInfoHash(), infohash ) ) {
-            handler.sessionEnded( TorrentSession.this, end.getEndReason() );
+          if( end.getSessionType().equals( authenticator.getSessionTypeID() ) && Arrays.equals( end.getInfoHash(), authenticator.getSessionInfoHash() ) ) {
+            //handler.sessionEnded( TorrentSession.this, end.getEndReason() );
             end.destroy();
             destroy();
             return true;

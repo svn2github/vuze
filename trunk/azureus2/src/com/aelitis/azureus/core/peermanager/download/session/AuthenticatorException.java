@@ -1,5 +1,5 @@
 /*
- * Created on Jul 3, 2005
+ * Created on Jul 12, 2005
  * Created by Alon Rohter
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -22,25 +22,10 @@
 
 package com.aelitis.azureus.core.peermanager.download.session;
 
-import java.util.Map;
+public class AuthenticatorException extends Exception {
 
-public interface TorrentSessionHandler {
-
-  /**
-   * The given bencoded map of information has been received from the torrent session ack message.
-   * @param session sending ack
-   * @param info of session ack
-   * @return true if the session ack was accepted and session processing should commence,
-   *         false if not accepted (endSession() should be called next with reason)
-   */
-  public boolean sessionAcked( TorrentSession session, Map info );
-  
-  
-  /**
-   * The session has been remotely ended for the given reason.
-   * @param session sending ended
-   * @param reason for end
-   */
-  public void sessionEnded( TorrentSession session, String reason );  
+  public AuthenticatorException( String reason ) {
+    super( reason );
+  }
   
 }

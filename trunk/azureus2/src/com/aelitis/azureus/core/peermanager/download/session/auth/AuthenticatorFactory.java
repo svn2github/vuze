@@ -1,5 +1,5 @@
 /*
- * Created on Jul 7, 2005
+ * Created on Jul 12, 2005
  * Created by Alon Rohter
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -20,25 +20,29 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.download.session;
+package com.aelitis.azureus.core.peermanager.download.session.auth;
 
-import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
-import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
+import com.aelitis.azureus.core.peermanager.download.session.TorrentSessionAuthenticator;
 
-public class TorrentSessionFactory {
+public class AuthenticatorFactory {
 
-  private static final TorrentSessionFactory instance = new TorrentSessionFactory();
-  
-  
-  protected static TorrentSessionFactory getSingleton(){  return instance;  }
-  
-  
-  public TorrentSession createIncomingSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download, int remote_session_id ) {
-    return new TorrentSession( auth, peer, download, remote_session_id );
+  /**
+   * Create a torrent session authenticator of the given type.
+   * @param type_id of authenticator
+   * @param infohash session infohash
+   * @return authenticator or null if unknown auth type
+   */
+  public static TorrentSessionAuthenticator createAuthenticator( String type_id, byte[] infohash ) {
+    
+    if( type_id.equals( TorrentSessionAuthenticator.AUTH_TYPE_STANDARD ) ) {
+      return new StandardAuthenticator( infohash );
+    }
+    
+    if( type_id.equals( TorrentSessionAuthenticator.AUTH_TYPE_SECURE ) ) {
+      return new SecureAuthenticator( infohash );
+    }
+    
+    return null;  //auth type not found
   }
   
-  
-  public TorrentSession createOutgoingSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download ) {
-    return new TorrentSession( auth, peer, download );
-  }
 }

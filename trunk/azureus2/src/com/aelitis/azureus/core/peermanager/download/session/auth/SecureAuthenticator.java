@@ -1,5 +1,5 @@
 /*
- * Created on Jul 7, 2005
+ * Created on Jul 12, 2005
  * Created by Alon Rohter
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -20,25 +20,40 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.download.session;
+package com.aelitis.azureus.core.peermanager.download.session.auth;
 
-import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
-import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
+import java.util.Map;
 
-public class TorrentSessionFactory {
+import com.aelitis.azureus.core.peermanager.download.session.*;
 
-  private static final TorrentSessionFactory instance = new TorrentSessionFactory();
+
+public class SecureAuthenticator implements TorrentSessionAuthenticator {
+  private final byte[] infohash;
   
-  
-  protected static TorrentSessionFactory getSingleton(){  return instance;  }
-  
-  
-  public TorrentSession createIncomingSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download, int remote_session_id ) {
-    return new TorrentSession( auth, peer, download, remote_session_id );
+  protected SecureAuthenticator( byte[] infohash ) {
+    this.infohash = infohash;
   }
   
   
-  public TorrentSession createOutgoingSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download ) {
-    return new TorrentSession( auth, peer, download );
+  public String getSessionTypeID() {  return TorrentSessionAuthenticator.AUTH_TYPE_SECURE;  }
+  
+  
+  public byte[] getSessionInfoHash() {
+    return infohash;
   }
+  
+  
+  public Map createSessionSyn() {
+    return null;
+  }
+  
+
+  public Map verifySessionSyn( Map syn_info ) throws AuthenticatorException {
+    throw new AuthenticatorException( "not implemented" );
+  }
+
+  public void verifySessionAck( Map ack_info ) throws AuthenticatorException {
+    throw new AuthenticatorException( "not implemented" );
+  }
+  
 }
