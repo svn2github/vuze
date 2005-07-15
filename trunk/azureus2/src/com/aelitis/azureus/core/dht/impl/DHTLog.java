@@ -43,7 +43,7 @@ DHTLog
 	public static final boolean		GLOBAL_BLOOM_TRACE		= false;
 	public static final boolean		LOCAL_BLOOM_TRACE		= false;
 	public static final boolean		CONTACT_VERIFY_TRACE	= false;
-	public static final boolean		TRACE_VERSIONS 			= true;
+	public static final boolean		TRACE_VERSIONS 			= false;
 	
 	static{
 		if ( GLOBAL_BLOOM_TRACE ){
