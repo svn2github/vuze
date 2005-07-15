@@ -161,6 +161,15 @@ AEMonitor
 		return( owner == Thread.currentThread());
 	}
 	
+	public boolean
+	hasWaiters()
+	{
+		synchronized( this ){
+			
+			return( waiting > 0 );
+		}
+	}
+	
 	public static Map
 	getSynchronisedMap(
 		Map	m )

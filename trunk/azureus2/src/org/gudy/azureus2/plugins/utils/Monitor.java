@@ -27,4 +27,8 @@ public interface Monitor {
   public void enter();
   
   public void exit();
+  
+  public boolean isOwned();
+  
+  public boolean hasWaiters();
 }

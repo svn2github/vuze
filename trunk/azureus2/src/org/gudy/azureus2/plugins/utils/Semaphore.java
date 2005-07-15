@@ -31,6 +31,9 @@ Semaphore
 	public void
 	reserve();
 	
+	public boolean
+	reserveIfAvailable();
+	
 	public void
 	release();
 }

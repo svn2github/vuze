@@ -51,4 +51,14 @@ public class MonitorImpl implements Monitor {
 	public void exit(){
 	    mon.exit();
 	}
+	
+	 public boolean isOwned()
+	 {
+		 return( mon.isHeld());
+	 }
+	  
+	 public boolean hasWaiters()
+	 {
+		 return( mon.hasWaiters());
+	 }
 }

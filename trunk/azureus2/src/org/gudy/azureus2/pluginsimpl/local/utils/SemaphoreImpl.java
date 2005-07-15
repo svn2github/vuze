@@ -54,6 +54,12 @@ SemaphoreImpl
 		sem.reserve();
 	}
 	
+	public boolean
+	reserveIfAvailable()
+	{
+		return( sem.reserveIfAvailable());
+	}
+	
 	public void
 	release()
 	{
