@@ -22,6 +22,9 @@
 
 package com.aelitis.azureus.core.peermanager.download;
 
+import com.aelitis.azureus.core.peermanager.download.session.TorrentSession;
+
+
 public class TorrentDownload {
   private final byte[] infohash;
   
@@ -34,4 +37,13 @@ public class TorrentDownload {
   public byte[] getInfoHash() {  return infohash;  }
   
   
+  
+  public void registerTorrentSession( TorrentSession session ) {
+    //TODO
+  }
+  
+  
+  public void deregisterTorrentSession( TorrentSession session ) {
+    //TODO
+  }
 }
