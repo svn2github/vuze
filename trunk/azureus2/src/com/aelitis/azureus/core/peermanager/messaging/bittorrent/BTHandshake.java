@@ -84,13 +84,13 @@ public class BTHandshake implements BTMessage, RawMessage {
   
 
   private void constructBuffer() {
-    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 68 );
-    buffer.put( DirectByteBuffer.SS_BT, (byte)PROTOCOL.length() );
-    buffer.put( DirectByteBuffer.SS_BT, PROTOCOL.getBytes() );
-    buffer.put( DirectByteBuffer.SS_BT, reserved_bytes );
-    buffer.put( DirectByteBuffer.SS_BT, datahash_bytes );
-    buffer.put( DirectByteBuffer.SS_BT, peer_id_bytes );
-    buffer.flip( DirectByteBuffer.SS_BT );
+    buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 68 );
+    buffer.put( DirectByteBuffer.SS_MSG, (byte)PROTOCOL.length() );
+    buffer.put( DirectByteBuffer.SS_MSG, PROTOCOL.getBytes() );
+    buffer.put( DirectByteBuffer.SS_MSG, reserved_bytes );
+    buffer.put( DirectByteBuffer.SS_MSG, datahash_bytes );
+    buffer.put( DirectByteBuffer.SS_MSG, peer_id_bytes );
+    buffer.flip( DirectByteBuffer.SS_MSG );
   }
   
   

@@ -76,11 +76,11 @@ public class BTRequest implements BTMessage {
   
   public DirectByteBuffer[] getData() {
     if( buffer == null ) {
-      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, 12 );
-      buffer.putInt( DirectByteBuffer.SS_BT, piece_number );
-      buffer.putInt( DirectByteBuffer.SS_BT, piece_offset );
-      buffer.putInt( DirectByteBuffer.SS_BT, length );
-      buffer.flip( DirectByteBuffer.SS_BT );
+      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 12 );
+      buffer.putInt( DirectByteBuffer.SS_MSG, piece_number );
+      buffer.putInt( DirectByteBuffer.SS_MSG, piece_offset );
+      buffer.putInt( DirectByteBuffer.SS_MSG, length );
+      buffer.flip( DirectByteBuffer.SS_MSG );
     }
     
     return new DirectByteBuffer[]{ buffer };

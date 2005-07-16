@@ -36,6 +36,9 @@ import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 public class BTUnchoke implements BTMessage {
   
   public BTUnchoke() {
+    
+    //TODO add unchoke id
+    
     /* nothing */
   }
     

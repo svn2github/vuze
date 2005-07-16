@@ -40,7 +40,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   private static final int MIN_MESSAGE_LENGTH = 6;  //4 byte id length + at least 1 byte for id + 1 byte version
   private static final int MAX_MESSAGE_LENGTH = 131072;  //128K arbitrary limit
   
-  private static final byte SS = DirectByteBuffer.SS_NET;
+  private static final byte SS = DirectByteBuffer.SS_MSG;
   
   
   private DirectByteBuffer payload_buffer = null;
@@ -298,7 +298,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
           throw new IOException( "Invalid message length given for AZ message decode: " + message_length );
         }
         
-        payload_buffer = DirectByteBufferPool.getBuffer( SS, message_length );
+        payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, message_length );
       }
     }
     

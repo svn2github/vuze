@@ -40,7 +40,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private static final int MAX_MESSAGE_LENGTH = 16393;  //should never be > 16KB+9B, as we never request chunks > 16KB
   private static final int HANDSHAKE_FAKE_LENGTH = 323119476;  //(byte)19 + "Bit" readInt() value of header
 
-  private static final byte SS = DirectByteBuffer.SS_NET;
+  private static final byte SS = DirectByteBuffer.SS_MSG;
   
   private DirectByteBuffer payload_buffer = null;
   private final DirectByteBuffer length_buffer = DirectByteBufferPool.getBuffer( SS, 4 );
@@ -265,7 +265,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         if( reading_handshake_message ) {  //decode handshake
           reading_handshake_message = false;
           
-          DirectByteBuffer handshake_data = DirectByteBufferPool.getBuffer( SS, 68 );
+          DirectByteBuffer handshake_data = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 68 );
           handshake_data.putInt( SS, HANDSHAKE_FAKE_LENGTH );
           handshake_data.put( SS, payload_buffer );
           handshake_data.flip( SS );
@@ -327,7 +327,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         if( message_length == HANDSHAKE_FAKE_LENGTH ) {  //handshake message
           reading_handshake_message = true;
           message_length = 64;  //restore 'real' length
-          payload_buffer = DirectByteBufferPool.getBuffer( SS, message_length );
+          payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, message_length );
         }
         else if( message_length == 0 ) {  //keep-alive message         
           reading_length_mode = true;
@@ -345,7 +345,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           throw new IOException( "Invalid message length given for BT message decode: " + message_length );
         }
         else {  //normal message
-          payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_NET, message_length );
+          payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, message_length );
         }
       }
     }
