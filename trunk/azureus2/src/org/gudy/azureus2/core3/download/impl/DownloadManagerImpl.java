@@ -61,8 +61,8 @@ DownloadManagerImpl
 	private static final int LDT_COMPLETIONCHANGED = 3;
 	private static final int LDT_POSITIONCHANGED = 4;
 	
-	private ListenerManager	listeners 	= ListenerManager.createManager(
-			"DMM:ListenDispatcher",
+	private ListenerManager	listeners_agregator 	= ListenerManager.createAsyncManager(
+			"DMM:ListenAgregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -82,14 +82,30 @@ DownloadManagerImpl
 						listener.downloadComplete(DownloadManagerImpl.this);
 
 					}else if ( type == LDT_COMPLETIONCHANGED ){
+						
 						listener.completionChanged(DownloadManagerImpl.this, ((Boolean)value).booleanValue());
 
 					}else if ( type == LDT_POSITIONCHANGED ){
+						
 						listener.positionChanged(DownloadManagerImpl.this,
 						                         ((Integer)value).intValue(), position);
 					}
 				}
 			});		
+	
+	private ListenerManager	listeners 	= ListenerManager.createManager(
+			"DMM:ListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		listener,
+					int			type,
+					Object		value )
+				{
+					listeners_agregator.dispatch( listener, type, value );
+				}
+			});	
 	
 		// TrackerListeners
 	
