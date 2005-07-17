@@ -126,7 +126,7 @@ public class AZMessageFactory {
     }
     
     //create and fill header buffer
-    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 9 + id_bytes.length );
+    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_AZ_HEADER, 9 + id_bytes.length );
     header.putInt( bss, 5 + id_bytes.length + payload_size );
     header.putInt( bss, id_bytes.length );
     header.put( bss, id_bytes );

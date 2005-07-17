@@ -298,7 +298,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
           throw new IOException( "Invalid message length given for AZ message decode: " + message_length );
         }
         
-        payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, message_length );
+        payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_AZ_PAYLOAD, message_length );
       }
     }
     

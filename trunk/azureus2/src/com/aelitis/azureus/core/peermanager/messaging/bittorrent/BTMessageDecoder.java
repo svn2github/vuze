@@ -265,7 +265,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         if( reading_handshake_message ) {  //decode handshake
           reading_handshake_message = false;
           
-          DirectByteBuffer handshake_data = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 68 );
+          DirectByteBuffer handshake_data = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_BT_HAND, 68 );
           handshake_data.putInt( SS, HANDSHAKE_FAKE_LENGTH );
           handshake_data.put( SS, payload_buffer );
           handshake_data.flip( SS );
@@ -327,7 +327,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         if( message_length == HANDSHAKE_FAKE_LENGTH ) {  //handshake message
           reading_handshake_message = true;
           message_length = 64;  //restore 'real' length
-          payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, message_length );
+          payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_BT_HAND, message_length );
         }
         else if( message_length == 0 ) {  //keep-alive message         
           reading_length_mode = true;
@@ -345,7 +345,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           throw new IOException( "Invalid message length given for BT message decode: " + message_length );
         }
         else {  //normal message
-          payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, message_length );
+          payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_BT_PAYLOAD, message_length );
         }
       }
     }

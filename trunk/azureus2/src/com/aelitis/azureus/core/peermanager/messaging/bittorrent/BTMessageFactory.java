@@ -155,7 +155,7 @@ public class BTMessageFactory {
       payload_size += payload[i].remaining( DirectByteBuffer.SS_MSG );
     }  
         
-    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 5 );
+    DirectByteBuffer header = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_BT_HEADER, 5 );
     header.putInt( DirectByteBuffer.SS_MSG, 1 + payload_size );
     header.put( DirectByteBuffer.SS_MSG, ld.bt_id );
     header.flip( DirectByteBuffer.SS_MSG );

@@ -53,14 +53,18 @@ DirectByteBuffer
 	public static final byte		AL_PROXY_RELAY  = 11;
 	public static final byte    	AL_MSG          = 12;
     
-    public static final byte        AL_MSG_AZ_HAND      = 13;
-    public static final byte        AL_MSG_AZ_PEX       = 14;
-    public static final byte        AL_MSG_BT_CANCEL    = 15;
-    public static final byte        AL_MSG_BT_HAND      = 16;
-    public static final byte        AL_MSG_BT_HAVE      = 17;
-    public static final byte        AL_MSG_BT_PIECE     = 18;
-    public static final byte        AL_MSG_BT_REQUEST   = 19;
-    
+    public static final byte        AL_MSG_AZ_HAND        = 13;
+    public static final byte        AL_MSG_AZ_PEX         = 14;
+    public static final byte        AL_MSG_BT_CANCEL      = 15;
+    public static final byte        AL_MSG_BT_HAND        = 16;
+    public static final byte        AL_MSG_BT_HAVE        = 17;
+    public static final byte        AL_MSG_BT_PIECE       = 18;
+    public static final byte        AL_MSG_BT_REQUEST     = 19;
+    public static final byte        AL_MSG_BT_KEEPALIVE   = 20;
+    public static final byte        AL_MSG_BT_HEADER      = 21;
+    public static final byte        AL_MSG_AZ_HEADER      = 22;
+    public static final byte        AL_MSG_BT_PAYLOAD     = 23;
+    public static final byte        AL_MSG_AZ_PAYLOAD     = 24;
     
 	public static final String[] AL_DESCS =
 	{ "None", "Ext", "Other", "PeerRead", "PeerLen",
@@ -72,8 +76,15 @@ DirectByteBuffer
     "BTHandshake",
     "BTHave",
     "BTPiece",
-    "BTRequest"};
+    "BTRequest",
+    "BTKeepAlive",
+    "BTHeader",
+    "AZHeader",
+    "BTPayload",
+    "AZPayload"};
 	
+    
+    
 		// subsystem ids
 	
 	public static final byte		SS_NONE			= 0;	// not used, required to id cycled buffers

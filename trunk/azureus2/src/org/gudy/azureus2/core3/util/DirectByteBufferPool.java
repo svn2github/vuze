@@ -649,7 +649,7 @@ DirectByteBufferPool
 	  		        }
 	  			}
 	  			
-	  			System.out.print( " - " );
+	  			System.out.println();
 	  			
 				it = alloc_map.keySet().iterator();
 	  			
