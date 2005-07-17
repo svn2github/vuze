@@ -997,13 +997,9 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	      gcImage.drawRectangle(0, 0, bounds.width-1, bounds.height-1);
 	      gcImage.drawLine(1,6,xMax,6);
 	
-	      int total = 0;
 	      if (pieces != null && pieces.length != 0) {
 	        int nbPieces = pieces.length;
-	        for (int i = 0; i < nbPieces; i++) {
-	          if (pieces[i])
-	            total++;
-	        }
+	        
 	        for (int i = 0; i < xMax; i++) {
 	          int a0 = (i * nbPieces) / xMax;
 	          int a1 = ((i + 1) * nbPieces) / xMax;
@@ -1021,17 +1017,9 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	            gcImage.fillRectangle(i+1,7,1,yMax);
 	          }
 	        }
-	  
-	        total = (total * 1000) / nbPieces;
 	      }
-	      
-	      	// no dm -> all pieces false -> total is not correct in above code
-	      	// so grab value from stats (download is in stopped state)
-	      
-	      if ( dm == null ){
-	      	
-	        total = manager.getStats().getDownloadCompleted(true);	
-	      }
+	          
+          int total = manager.getStats().getDownloadCompleted(false);
 	      
 	      // draw file % bar above
 	      int limit = (xMax * total) / 1000;
@@ -1046,7 +1034,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	      gcImage.dispose();
 	
 	      if (piecesPercent != null && !piecesPercent.isDisposed())
-	        piecesPercent.setText((total / 10) + "." + (total % 10) + " %"); //$NON-NLS-1$ //$NON-NLS-2$
+	        piecesPercent.setText(DisplayFormatters.formatPercentFromThousands(total));
 	
 	      if (pImage == null || pImage.isDisposed()) {
 	        gc.dispose();

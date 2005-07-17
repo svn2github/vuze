@@ -20,6 +20,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
@@ -112,7 +113,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
    */
   public String getFullTitle() {
     int completed = manager.getStats().getCompleted();
-    return String.valueOf(completed / 10).concat(".").concat(String.valueOf(completed % 10)).concat("% : ").concat(manager.getDisplayName());
+    return DisplayFormatters.formatPercentFromThousands(completed) + " : " + manager.getDisplayName();
   }
 
   /* (non-Javadoc)

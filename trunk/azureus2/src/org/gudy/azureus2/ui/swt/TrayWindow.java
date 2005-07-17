@@ -198,7 +198,7 @@ public class TrayWindow implements GlobalManagerListener {
 		DownloadManagerStats	stats = manager.getStats();
 		
         String name = manager.getDisplayName();
-        String completed = (stats.getCompleted() / 10) + "." + (stats.getCompleted() % 10) + "%"; //$NON-NLS-1$ //$NON-NLS-2$
+        String completed = DisplayFormatters.formatPercentFromThousands(stats.getCompleted());
         toolTip.append(separator);
         toolTip.append(name);
         toolTip.append(" -- C: ");

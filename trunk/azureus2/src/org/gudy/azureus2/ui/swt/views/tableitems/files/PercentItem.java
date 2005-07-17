@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -66,6 +67,6 @@ public class PercentItem
       return;
     }
     
-    cell.setText( percent < 0?"":((percent / 10) + "." + (percent % 10) + "%"));
+    cell.setText( percent < 0?"":DisplayFormatters.formatPercentFromThousands((int)percent));
   }
 }

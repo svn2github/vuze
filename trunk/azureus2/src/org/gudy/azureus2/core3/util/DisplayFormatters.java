@@ -114,6 +114,14 @@ DisplayFormatters
 		setUnits();
 	}
 
+	static NumberFormat	percentage_format;
+	
+	static{
+		percentage_format = NumberFormat.getPercentInstance();
+		percentage_format.setMinimumFractionDigits(1);
+		percentage_format.setMaximumFractionDigits(1);
+	}
+	
   protected static void
   setUnits()
   {
@@ -447,10 +455,8 @@ DisplayFormatters
 	}
 
   public static String formatPercentFromThousands(int thousands) {
-    NumberFormat nf = NumberFormat.getPercentInstance();
-    nf.setMinimumFractionDigits(1);
-    nf.setMaximumFractionDigits(1);
-    return nf.format(thousands / 1000.0);
+ 
+    return percentage_format.format(thousands / 1000.0);
   }
 
   public static String formatTimeStamp(long time) {

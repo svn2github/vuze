@@ -228,24 +228,50 @@ DownloadManagerStatsImpl
 	  completed = _completed;
 	}
 
-	public int getDownloadCompleted(boolean bLive) {
-	  if (!bLive)
-	    return downloadCompleted;
+	public int 
+	getDownloadCompleted(
+		boolean bLive ) 
+	{
+		DiskManager	dm = download_manager.getDiskManager();
+		
+			// no disk manager -> not running -> use stored value
+		
+		if ( dm == null ){
+			
+		   return downloadCompleted;
+		}
+		
+	    int state = dm.getState();
 
-    DiskManager	dm = download_manager.getDiskManager();
-    if (dm == null)
-      return downloadCompleted;
+	    boolean	transient_state = 
+	    		state == DiskManager.INITIALIZING ||
+	            state == DiskManager.ALLOCATING   ||
+	            state == DiskManager.CHECKING;
+	    
+	    long total = dm.getTotalLength();
+	    
+	    int computed_completion = (total == 0) ? 0 : (int) ((1000 * (total - dm.getRemaining())) / total);
 
-    long total = dm.getTotalLength();
-    int newValue = (total == 0) ? 0 : (int) ((1000 * (total - dm.getRemaining())) / total);
-    int state = dm.getState();
-    if (state != DiskManager.INITIALIZING &&
-        state != DiskManager.ALLOCATING   &&
-        state != DiskManager.CHECKING)
-      downloadCompleted = newValue;
-        
-    return newValue;
-  }
+	    	// use non-transient values to update the record of download completion
+	    
+	    if ( !transient_state ){
+	    	
+	    	downloadCompleted = computed_completion;
+	    }
+	    
+	    if ( bLive ){
+	    
+	    		// return the transient completion level
+	    	
+	    	return computed_completion;
+	    	
+	    }else{
+	    	
+	    		// return the non-transient one
+	    	
+	    	return( downloadCompleted );
+	    }
+	}
   
   public void setDownloadCompleted(int _completed) {
     downloadCompleted = _completed;
