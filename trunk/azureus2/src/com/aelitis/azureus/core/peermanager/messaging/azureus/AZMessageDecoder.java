@@ -44,7 +44,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   
   
   private DirectByteBuffer payload_buffer = null;
-  private final DirectByteBuffer length_buffer = DirectByteBufferPool.getBuffer( SS, 4 );
+  private final DirectByteBuffer length_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 4 );
   private final ByteBuffer[] decode_array = new ByteBuffer[] { null, length_buffer.getBuffer( SS ) };
   
   private boolean reading_length_mode = true;

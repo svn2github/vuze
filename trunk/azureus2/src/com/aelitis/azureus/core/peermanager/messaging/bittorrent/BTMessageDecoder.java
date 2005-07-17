@@ -43,7 +43,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   private static final byte SS = DirectByteBuffer.SS_MSG;
   
   private DirectByteBuffer payload_buffer = null;
-  private final DirectByteBuffer length_buffer = DirectByteBufferPool.getBuffer( SS, 4 );
+  private final DirectByteBuffer length_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 4 );
   private final ByteBuffer[] decode_array = new ByteBuffer[] { null, length_buffer.getBuffer( SS ) };
   
 

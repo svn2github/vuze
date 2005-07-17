@@ -630,7 +630,7 @@ PEPeerTransportProtocol
     ArrayList lazies = null;
     
     //create bitfield
-		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.SS_BT, (manager.getPiecesNumber() + 7) / 8 );
+		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, (manager.getPiecesNumber() + 7) / 8 );
 		
 		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
 		
