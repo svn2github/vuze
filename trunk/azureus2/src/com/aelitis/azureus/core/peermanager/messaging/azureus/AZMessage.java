@@ -29,11 +29,18 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
  */
 public interface AZMessage extends Message {
 
-  public static final String ID_AZ_HANDSHAKE            = "AZ_HANDSHAKE";
-  public static final String ID_AZ_TORRENT_SESSION_SYN  = "AZ_TORRENT_SESSION_SYN";
-  public static final String ID_AZ_TORRENT_SESSION_ACK  = "AZ_TORRENT_SESSION_ACK";
-  public static final String ID_AZ_TORRENT_SESSION_END  = "AZ_TORRENT_SESSION_END";
-  public static final String ID_AZ_PEER_EXCHANGE        = "AZ_PEER_EXCHANGE";
+  public static final String ID_AZ_HANDSHAKE        = "AZ_HANDSHAKE";
+  public static final String ID_AZ_PEER_EXCHANGE    = "AZ_PEER_EXCHANGE";
+  
+  public static final String ID_AZ_SESSION_SYN      = "AZ_SESSION_SYN";
+  public static final String ID_AZ_SESSION_ACK      = "AZ_SESSION_ACK";
+  public static final String ID_AZ_SESSION_END      = "AZ_SESSION_END";
+  public static final String ID_AZ_SESSION_BITFIELD = "AZ_SESSION_BITFIELD";
+  public static final String ID_AZ_SESSION_CANCEL   = "AZ_SESSION_CANCEL";
+  public static final String ID_AZ_SESSION_HAVE     = "AZ_SESSION_HAVE";
+  public static final String ID_AZ_SESSION_PIECE    = "AZ_SESSION_PIECE";
+  public static final String ID_AZ_SESSION_REQUEST  = "AZ_SESSION_REQUEST";
+  
   
   public static final byte AZ_DEFAULT_VERSION = (byte)1;
 }

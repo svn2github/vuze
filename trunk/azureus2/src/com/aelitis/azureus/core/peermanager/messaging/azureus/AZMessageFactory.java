@@ -22,15 +22,14 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
 import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.session.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
@@ -69,10 +68,17 @@ public class AZMessageFactory {
     try {
       MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, new String[0], new byte[0]) );
       MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null ) );
-      //TODO
-      //MessageManager.getSingleton().registerMessageType( new AZTorrentSessionSyn( "", new byte[20], null ) );
-      //MessageManager.getSingleton().registerMessageType( new AZTorrentSessionAck( "", new byte[20], null ) );
-      //MessageManager.getSingleton().registerMessageType( new AZTorrentSessionEnd( "", new byte[20], "" ) );
+
+      /*  //TODO
+      MessageManager.getSingleton().registerMessageType( new AZSessionSyn( 1, "", new byte[20], null) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionAck( 1, "", new byte[20], null) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionEnd( "", new byte[20], "" ) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionBitfield( -1, null ) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionCancel( -1, -1, -1, -1 ) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionHave( -1, new int[]{-1} ) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionPiece( -1, -1, -1, null ) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionRequest( -1, (byte)-1, -1, -1, -1 ) );
+      */
     }
     catch( MessageException me ) {  me.printStackTrace();  }
   }

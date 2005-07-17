@@ -20,20 +20,21 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.azureus;
+package com.aelitis.azureus.core.peermanager.messaging.azureus.session;
 
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
 
 
 
 /**
- * Sent as reply to torrent session initiation request.
+ * Sent to initiate a torrent session.
  */
-public class AZTorrentSessionAck implements AZMessage {
+public class AZSessionSyn implements AZMessage {
   private DirectByteBuffer buffer = null;
   private String description = null;
   
@@ -41,9 +42,8 @@ public class AZTorrentSessionAck implements AZMessage {
   private final byte[] infohash;
   private final String session_type;
   private final Map session_info;
-  
 
-  public AZTorrentSessionAck( int local_session_id, String session_type, byte[] infohash, Map session_info ) {
+  public AZSessionSyn( int local_session_id, String session_type, byte[] infohash, Map session_info ) {
     this.session_id = local_session_id;
     this.infohash = infohash;
     this.session_type = session_type;
@@ -56,8 +56,9 @@ public class AZTorrentSessionAck implements AZMessage {
   public String getSessionType() {  return session_type;  }
   public Map getSessionInfo() {  return session_info;  }
   
+  
     
-  public String getID() {  return AZMessage.ID_AZ_TORRENT_SESSION_ACK;  }
+  public String getID() {  return AZMessage.ID_AZ_SESSION_SYN;  }
   
   public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
   
@@ -80,7 +81,7 @@ public class AZTorrentSessionAck implements AZMessage {
       payload_map.put( "infohash", infohash );
       payload_map.put( "type_id", session_type );
       payload_map.put( "info", session_info );
-      
+
       buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map );
     }
     
@@ -105,7 +106,7 @@ public class AZTorrentSessionAck implements AZMessage {
     
     Map info = (Map)root.get( "info" );
     
-    return new AZTorrentSessionAck( sid, type_id, hash, info );
+    return new AZSessionSyn( sid, type_id, hash, info );
   }
   
   

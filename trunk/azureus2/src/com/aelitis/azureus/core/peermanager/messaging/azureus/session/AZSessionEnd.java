@@ -20,20 +20,21 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.azureus;
+package com.aelitis.azureus.core.peermanager.messaging.azureus.session;
 
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
 
 
 
 /**
  * Sent when a torrent session ends/fails.
  */
-public class AZTorrentSessionEnd implements AZMessage {  
+public class AZSessionEnd implements AZMessage {  
   private DirectByteBuffer buffer = null;
   private String description = null;
   
@@ -42,7 +43,7 @@ public class AZTorrentSessionEnd implements AZMessage {
   private final String reason;
   
 
-  public AZTorrentSessionEnd( String session_type, byte[] infohash, String reason ) {
+  public AZSessionEnd( String session_type, byte[] infohash, String reason ) {
     this.infohash = infohash;
     this.session_type = session_type;
     this.reason = reason;
@@ -54,7 +55,7 @@ public class AZTorrentSessionEnd implements AZMessage {
   public String getEndReason() {  return reason;  }
   
     
-  public String getID() {  return AZMessage.ID_AZ_TORRENT_SESSION_END;  }
+  public String getID() {  return AZMessage.ID_AZ_SESSION_END;  }
   
   public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
   
@@ -99,7 +100,7 @@ public class AZTorrentSessionEnd implements AZMessage {
     if( reason_raw == null )  throw new MessageException( "reason_raw == null" );
     String res = new String( reason_raw );
     
-    return new AZTorrentSessionEnd( type_id, hash, res );
+    return new AZSessionEnd( type_id, hash, res );
   }
   
   

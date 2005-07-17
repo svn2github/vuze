@@ -32,6 +32,7 @@ import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
 import com.aelitis.azureus.core.peermanager.download.session.auth.*;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.session.*;
 
 
 
@@ -57,8 +58,8 @@ public class TorrentSessionManager {
       public void connectionCreated( final AZPeerConnection connection ) {
         connection.getNetworkConnection().getIncomingMessageQueue().registerQueueListener( new IncomingMessageQueue.MessageQueueListener() {
           public boolean messageReceived( Message message ) {
-            if( message.getID().equals( AZMessage.ID_AZ_TORRENT_SESSION_SYN ) ) {
-              AZTorrentSessionSyn syn = (AZTorrentSessionSyn)message;
+            if( message.getID().equals( AZMessage.ID_AZ_SESSION_SYN ) ) {
+              AZSessionSyn syn = (AZSessionSyn)message;
 
               String type = syn.getSessionType();
               byte[] hash = syn.getInfoHash();
@@ -67,7 +68,7 @@ public class TorrentSessionManager {
               
               if( auth == null ) {
                 Debug.out( "unknown session type: " +type );
-                AZTorrentSessionEnd end = new AZTorrentSessionEnd( type, hash, "unknown session type id" );
+                AZSessionEnd end = new AZSessionEnd( type, hash, "unknown session type id" );
                 connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
               }
               else {
@@ -81,7 +82,7 @@ public class TorrentSessionManager {
                 
                 if( download == null ) {
                   System.out.println( "unknown session infohash " +ByteFormatter.nicePrint( hash, true ) );
-                  AZTorrentSessionEnd end = new AZTorrentSessionEnd( type, hash, "unknown session infohash" );
+                  AZSessionEnd end = new AZSessionEnd( type, hash, "unknown session infohash" );
                   connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
                 }
                 else { //success

@@ -31,6 +31,7 @@ import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.session.*;
 
 
 public class TorrentSession {
@@ -47,8 +48,8 @@ public class TorrentSession {
   
   private final IncomingMessageQueue.MessageQueueListener incoming_q_listener = new IncomingMessageQueue.MessageQueueListener() {
     public boolean messageReceived( Message message ) {
-      if( message.getID().equals( AZMessage.ID_AZ_TORRENT_SESSION_ACK ) ) {          
-        AZTorrentSessionAck ack = (AZTorrentSessionAck)message;
+      if( message.getID().equals( AZMessage.ID_AZ_SESSION_ACK ) ) {          
+        AZSessionAck ack = (AZSessionAck)message;
 
         if( ack.getSessionType().equals( authenticator.getSessionTypeID() ) && Arrays.equals( ack.getInfoHash(), authenticator.getSessionInfoHash() ) ) {
           remote_session_id = ack.getSessionID();  //capture send-to id
@@ -67,8 +68,8 @@ public class TorrentSession {
         }
       }
       
-      if( message.getID().equals( AZMessage.ID_AZ_TORRENT_SESSION_END ) ) {          
-        AZTorrentSessionEnd end = (AZTorrentSessionEnd)message;
+      if( message.getID().equals( AZMessage.ID_AZ_SESSION_END ) ) {          
+        AZSessionEnd end = (AZSessionEnd)message;
         
         if( end.getSessionType().equals( authenticator.getSessionTypeID() ) && Arrays.equals( end.getInfoHash(), authenticator.getSessionInfoHash() ) ) {
           System.out.println( "AZ_TORRENT_SESSION_END received: " +end.getEndReason() );
@@ -123,7 +124,7 @@ public class TorrentSession {
   protected void authenticate( Map incoming_syn ) {
     if( incoming_syn == null ) {  //outgoing session
       //send out the session request
-      AZTorrentSessionSyn syn = new AZTorrentSessionSyn( local_session_id, authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), authenticator.createSessionSyn() );
+      AZSessionSyn syn = new AZSessionSyn( local_session_id, authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), authenticator.createSessionSyn() );
       connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( syn, false );
       
       //set a timeout timer in case the other peer forgets to send an ACK or END reply
@@ -138,7 +139,7 @@ public class TorrentSession {
         Map ack_reply = authenticator.verifySessionSyn( incoming_syn );
         
         //send out the session acceptance
-        AZTorrentSessionAck ack = new AZTorrentSessionAck( local_session_id, authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), ack_reply );
+        AZSessionAck ack = new AZSessionAck( local_session_id, authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), ack_reply );
         connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( ack, false );
         
         startSessionProcessing();
@@ -155,7 +156,7 @@ public class TorrentSession {
     System.out.println( "endSession:: " +end_reason );
     
     //send end notice
-    AZTorrentSessionEnd end = new AZTorrentSessionEnd( authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), end_reason );
+    AZSessionEnd end = new AZSessionEnd( authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), end_reason );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
     
     destroy();
