@@ -1019,7 +1019,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	        }
 	      }
 	          
-          int total = manager.getStats().getDownloadCompleted(false);
+          int total = manager.getStats().getDownloadCompleted(true);
 	      
 	      // draw file % bar above
 	      int limit = (xMax * total) / 1000;
