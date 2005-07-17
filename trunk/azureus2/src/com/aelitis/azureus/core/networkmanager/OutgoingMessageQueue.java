@@ -300,23 +300,24 @@ public class OutgoingMessageQueue {
     
     try{
       queue_mon.enter();
-    
-      //ensure we compare using RawMessage object, which then compares via Message objects internally
-      RawMessage rmesg = stream_encoder.encodeMessage( message );
-      
-      int index = queue.indexOf( rmesg );
-      if( index != -1 ) {
-        RawMessage msg = (RawMessage)queue.get( index );
-        if( msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
-          if( msg == urgent_message ) urgent_message = null;  
-          
-          DirectByteBuffer[] payload = msg.getRawData();
-          for( int x=0; x < payload.length; x++ ) {
-            total_size -= payload[x].remaining(DirectByteBuffer.SS_NET);
-          }
 
-          queue.remove( index );
-          msg_removed = msg;
+      for( Iterator it = queue.iterator(); it.hasNext(); ) {
+        RawMessage raw = (RawMessage)it.next();
+        
+        if( message.equals( raw.getBaseMessage() ) ) {
+          if( raw.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {  //dont remove a half-sent message
+            if( raw == urgent_message ) urgent_message = null;  
+            
+            DirectByteBuffer[] payload = raw.getRawData();
+            for( int x=0; x < payload.length; x++ ) {
+              total_size -= payload[x].remaining(DirectByteBuffer.SS_NET);
+            }
+
+            queue.remove( raw );
+            msg_removed = raw;
+          }
+          
+          break;
         }
       }
     }finally{
