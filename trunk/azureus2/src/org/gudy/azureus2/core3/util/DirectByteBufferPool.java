@@ -28,6 +28,9 @@ DirectByteBufferPool
 	protected static final boolean 	DEBUG_PRINT_MEM 		= AEDiagnostics.PRINT_DBB_POOL_USAGE;
 	protected static final int		DEBUG_PRINT_TIME		= 120*1000;
 	
+	protected static final boolean 	DEBUG_HANDOUT_SIZES 	= false;
+
+	
 	  // There is no point in allocating buffers smaller than 4K,
 	  // as direct ByteBuffers are page-aligned to the underlying
 	  // system, which is 4096 byte pages under most OS's.
@@ -57,8 +60,11 @@ DirectByteBufferPool
 	private static final int	SLICE_END_SIZE				= 2048;	
 	private static final int    SLICE_ALLOC_CHUNK_SIZE		= 4096;
   
-	private static final short[]		SLICE_ENTRY_SIZES		= { 16,  32,  64, 128, 256, 512, 1024, SLICE_END_SIZE };
-	private static final short[]		SLICE_ALLOC_MAXS		= { 256, 128, 64, 64,  64,  64,  64,   64 };
+		// many buffers are 17 and 19 bytes, hence the introduction of the 20 byte slice size
+	
+	private static final short[]		SLICE_ENTRY_SIZES		= { 8,   16,  20,  32,  64, 128, 256, 512, 1024, SLICE_END_SIZE };
+	private static final short[]		SLICE_ALLOC_MAXS		= { 256, 256, 256, 128, 64, 64,  64,  64,  64,   64 };
+	
 	private static final short[]		SLICE_ENTRY_ALLOC_SIZES = new short[SLICE_ENTRY_SIZES.length];
 	private static final List[]			slice_entries 			= new List[SLICE_ENTRY_SIZES.length];
 	private static final boolean[][]	slice_allocs 			= new boolean[SLICE_ENTRY_SIZES.length][];
@@ -81,7 +87,7 @@ DirectByteBufferPool
   
 	private final Map handed_out	= new IdentityHashMap();	// for debugging (ByteBuffer has .equals defined on contents, hence IdentityHashMap)
 	
-	//private final Map	size_counts	= new TreeMap();
+	private final Map	size_counts	= new TreeMap();
  
 	private static final long COMPACTION_CHECK_PERIOD = 2*60*1000; //2 min
 	private static final long MAX_FREE_BYTES = 10*1024*1024; //10 MB
@@ -305,20 +311,31 @@ DirectByteBufferPool
         	
         	synchronized( handed_out ){
         	        	
-				/*
-				int	trim = ((_length+15)/16)*16;
-				
-				Long count = (Long)size_counts.get(new Integer(trim));
-				
-				if ( count == null ){
+				if ( DEBUG_HANDOUT_SIZES ){
 					
-					size_counts.put( new Integer( trim ), new Long(1));
+					int	trim_size;
 					
-				}else{
+					if ( _length < 32 ){
+						
+						trim_size = 4;
+					}else{
+						
+						trim_size = 16;
+					}
 					
-					size_counts.put( new Integer( trim), new Long( count.longValue() + 1 ));
+					int	trim = ((_length+trim_size-1)/trim_size)*trim_size;
+					
+					Long count = (Long)size_counts.get(new Integer(trim));
+					
+					if ( count == null ){
+						
+						size_counts.put( new Integer( trim ), new Long(1));
+						
+					}else{
+						
+						size_counts.put( new Integer( trim), new Long( count.longValue() + 1 ));
+					}
 				}
-				*/
 				
         		if ( handed_out.put( buff, res ) != null ){
           		
@@ -679,20 +696,20 @@ DirectByteBufferPool
 	  			
 	  			System.out.println();
 				
-				/*
-				it = size_counts.entrySet().iterator();
-				
-				String	str = "";
+				if ( DEBUG_HANDOUT_SIZES ){
+					it = size_counts.entrySet().iterator();
 					
-				while( it.hasNext()){
+					String	str = "";
+						
+					while( it.hasNext()){
+						
+						Map.Entry	entry = (Map.Entry)it.next();
+						
+						str += (str.length()==0?"":",") + entry.getKey() + "=" + entry.getValue();
+					}
 					
-					Map.Entry	entry = (Map.Entry)it.next();
-					
-					str += (str.length()==0?"":",") + entry.getKey() + "=" + entry.getValue();
+					System.out.println( str );
 				}
-				
-				System.out.println( str );
-				*/
 				
 				String str = "";
 				
