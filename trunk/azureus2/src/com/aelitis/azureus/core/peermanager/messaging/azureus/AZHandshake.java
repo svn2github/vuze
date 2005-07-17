@@ -145,7 +145,7 @@ public class AZHandshake implements AZMessage {
       }
       payload_map.put( "messages", message_list );
 
-      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map );
+      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG_AZ_HAND );
 
       if( buffer.remaining( bss ) > 1200 )  System.out.println( "Generated AZHandshake size = " +buffer.remaining( bss )+ " bytes" );
     }

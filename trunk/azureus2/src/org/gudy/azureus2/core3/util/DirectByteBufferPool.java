@@ -26,7 +26,7 @@ DirectByteBufferPool
 
 	protected static final boolean 	DEBUG_TRACK_HANDEDOUT 	= AEDiagnostics.TRACE_DBB_POOL_USAGE;
 	protected static final boolean 	DEBUG_PRINT_MEM 		= AEDiagnostics.PRINT_DBB_POOL_USAGE;
-	protected static final int		DEBUG_PRINT_TIME		= 60*1000;
+	protected static final int		DEBUG_PRINT_TIME		= 120*1000;
 	
 	  // There is no point in allocating buffers smaller than 4K,
 	  // as direct ByteBuffers are page-aligned to the underlying

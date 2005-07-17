@@ -64,7 +64,7 @@ public class BTHave implements BTMessage {
   
   public DirectByteBuffer[] getData() {
     if( buffer == null ) {
-      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 4 );
+      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_BT_HAVE, 4 );
       buffer.putInt( DirectByteBuffer.SS_MSG, piece_number );
       buffer.flip( DirectByteBuffer.SS_MSG );
     }

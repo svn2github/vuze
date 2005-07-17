@@ -78,7 +78,7 @@ public class AZSessionEnd implements AZMessage {
       payload_map.put( "type_id", session_type );
       payload_map.put( "reason", reason );
       
-      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map );
+      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG );
     }
     
     return new DirectByteBuffer[]{ buffer };

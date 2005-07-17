@@ -52,11 +52,27 @@ DirectByteBuffer
 	public static final byte		AL_CACHE_WRITE  = 10;
 	public static final byte		AL_PROXY_RELAY  = 11;
 	public static final byte    	AL_MSG          = 12;
-	
+    
+    public static final byte        AL_MSG_AZ_HAND      = 13;
+    public static final byte        AL_MSG_AZ_PEX       = 14;
+    public static final byte        AL_MSG_BT_CANCEL    = 15;
+    public static final byte        AL_MSG_BT_HAND      = 16;
+    public static final byte        AL_MSG_BT_HAVE      = 17;
+    public static final byte        AL_MSG_BT_PIECE     = 18;
+    public static final byte        AL_MSG_BT_REQUEST   = 19;
+    
+    
 	public static final String[] AL_DESCS =
 	{ "None", "Ext", "Other", "PeerRead", "PeerLen",
     "CacheRead", "DiskRead", "DiskZero", "DiskCheck",
-    "BTPiece", "CacheWrite", "ProxyRelay", "Messaging" };
+    "BTPiece", "CacheWrite", "ProxyRelay", "Messaging",
+    "AZHandshake",
+    "AZPEX",
+    "BTCancel",
+    "BTHandshake",
+    "BTHave",
+    "BTPiece",
+    "BTRequest"};
 	
 		// subsystem ids
 	

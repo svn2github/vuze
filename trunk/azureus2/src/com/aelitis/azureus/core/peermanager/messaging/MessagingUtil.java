@@ -35,7 +35,7 @@ public class MessagingUtil {
    * @param payload to convert
    * @return bencoded serialization
    */
-  public static DirectByteBuffer convertPayloadToBencodedByteStream( Map payload ) {
+  public static DirectByteBuffer convertPayloadToBencodedByteStream( Map payload, byte alloc_id ) {
     byte[] raw_payload;
     
     try {
@@ -46,7 +46,7 @@ public class MessagingUtil {
       raw_payload = new byte[0];
     }
     
-    DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, raw_payload.length );
+    DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( alloc_id, raw_payload.length );
     buffer.put( DirectByteBuffer.SS_MSG, raw_payload );
     buffer.flip( DirectByteBuffer.SS_MSG );
     

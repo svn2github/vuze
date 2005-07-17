@@ -74,7 +74,7 @@ public class BTCancel implements BTMessage {
   
   public DirectByteBuffer[] getData() {
     if( buffer == null ) {
-      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 12 );
+      buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_BT_CANCEL, 12 );
       buffer.putInt( DirectByteBuffer.SS_MSG, piece_number );
       buffer.putInt( DirectByteBuffer.SS_MSG, piece_offset );
       buffer.putInt( DirectByteBuffer.SS_MSG, length );

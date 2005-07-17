@@ -129,7 +129,7 @@ public class AZPeerExchange implements AZMessage {
       insertPeers( "added", payload_map, peers_added );
       insertPeers( "dropped", payload_map, peers_dropped );
 
-      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map );
+      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG_AZ_PEX );
 
       if( buffer.remaining( bss ) > 1000 )  System.out.println( "Generated AZPeerExchange size = " +buffer.remaining( bss )+ " bytes" );
     }

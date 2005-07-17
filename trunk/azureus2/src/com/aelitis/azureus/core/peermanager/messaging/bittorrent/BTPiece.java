@@ -75,7 +75,7 @@ public class BTPiece implements BTMessage {
   
   public DirectByteBuffer[] getData() {
     if( buffer[0] == null ) {
-      buffer[0] = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 8 );
+      buffer[0] = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_BT_PIECE, 8 );
       buffer[0].putInt( DirectByteBuffer.SS_MSG, piece_number );
       buffer[0].putInt( DirectByteBuffer.SS_MSG, piece_offset );
       buffer[0].flip( DirectByteBuffer.SS_MSG );

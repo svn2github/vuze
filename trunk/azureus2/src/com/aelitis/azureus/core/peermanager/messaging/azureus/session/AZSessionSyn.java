@@ -82,7 +82,7 @@ public class AZSessionSyn implements AZMessage {
       payload_map.put( "type_id", session_type );
       payload_map.put( "info", session_info );
 
-      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map );
+      buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG );
     }
     
     return new DirectByteBuffer[]{ buffer };
