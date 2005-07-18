@@ -75,15 +75,22 @@ PluginManagerDefaultsImpl
 	}
 	
 	public void
-	setApplicationName(
-		String		name )
+	setApplicationDetails(
+		String		name,
+		String		id )
 	{
-		SystemProperties.setApplicationName( name );
+		SystemProperties.setApplicationDetails( name, id );
 	}
 	
 	public String
 	getApplicationName()
 	{
 		return( SystemProperties.getApplicationName());
+	}
+	
+	public String
+	getApplicationIdentifier()
+	{
+		return( SystemProperties.getApplicationIdentifier());
 	}
 }

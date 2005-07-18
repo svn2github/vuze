@@ -273,6 +273,7 @@ public class VersionCheckClient {
     if( id != null && send_info ) {
       
       message.put( "id", id );
+      message.put( "appid", SystemProperties.getApplicationIdentifier());
       message.put( "version", Constants.AZUREUS_VERSION );
       message.put( "os", Constants.OSName );
       

@@ -84,14 +84,18 @@ PluginManagerDefaults
 		String		plugin_id );
 	
 		/**
-		 * Set the name of the application, default is "Azureus"
+		 * Set the name of the application, default is "Azureus", and an identifier for it, default is "az"
 		 * @param name
 		 */
 	
 	public void
-	setApplicationName(
-		String		name );
+	setApplicationDetails(
+		String		name,
+		String		application_id );
 	
 	public String
 	getApplicationName();
+	
+	public String
+	getApplicationIdentifier();
 }

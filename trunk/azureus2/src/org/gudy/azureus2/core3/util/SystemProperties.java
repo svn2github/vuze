@@ -26,7 +26,9 @@ public class SystemProperties {
    */
   public static final String SEP = System.getProperty("file.separator");
   
-  private static 		String AZ_DIR = "Azureus";
+  private static 		String APPLICATION_NAME = "Azureus";
+  private static 		String APPLICATION_ID 	= "az";
+  
   private static final 	String WIN_DEFAULT = "Application Data";
   private static final 	String OSX_DEFAULT = "Library" + SEP + "Application Support";
   
@@ -34,16 +36,24 @@ public class SystemProperties {
   
   
 	public static void
-	setApplicationName(
-		String		name )
+	setApplicationDetails(
+		String		name,
+		String		application_id )
 	{
-		AZ_DIR	= name;
+		APPLICATION_NAME	= name;
+		APPLICATION_ID		= application_id;
 	}
 	
 	public static String
 	getApplicationName()
 	{
-		return( AZ_DIR );
+		return( APPLICATION_NAME );
+	}
+	
+	public static String
+	getApplicationIdentifier()
+	{
+		return( APPLICATION_ID );
 	}
 	
   /**
@@ -109,19 +119,19 @@ public class SystemProperties {
 	        }
 	      }
 	    	
-	      temp_user_path = temp_user_path + SEP + AZ_DIR + SEP;
+	      temp_user_path = temp_user_path + SEP + APPLICATION_NAME + SEP;
 	      
 	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Win): user_path = " + temp_user_path );
 	      
 	    }else if ( Constants.isOSX ) {
 	    	
-	      temp_user_path = userhome + SEP + OSX_DEFAULT + SEP + AZ_DIR + SEP;
+	      temp_user_path = userhome + SEP + OSX_DEFAULT + SEP + APPLICATION_NAME + SEP;
 	      
 	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Mac): user_path = " + temp_user_path );
 	    
 	    }else{
 	    	
-	      temp_user_path = userhome + SEP + "." + AZ_DIR + SEP;
+	      temp_user_path = userhome + SEP + "." + APPLICATION_NAME + SEP;
 	      
 	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Unix): user_path = " + temp_user_path );
 	    }
