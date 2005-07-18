@@ -644,7 +644,7 @@ CoreUpdateChecker
 				
 				installer.addMoveAction( 
 					temp_jar_name,
-					installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/" + target_jar_name );        
+					installer.getInstallDir() + "/" + SystemProperties.getApplicationName() + ".app/Contents/Resources/Java/" + target_jar_name );        
 			}else{
 				
 				installer.addMoveAction( 

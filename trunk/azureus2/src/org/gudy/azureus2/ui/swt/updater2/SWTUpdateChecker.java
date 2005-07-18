@@ -34,6 +34,7 @@ import java.util.zip.ZipInputStream;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.update.UpdatableComponent;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateChecker;
@@ -133,11 +134,13 @@ public class SWTUpdateChecker implements UpdatableComponent
       while((entry = zip.getNextEntry()) != null) {
         String name = entry.getName();
         
+        String	osx_app = "/" + SystemProperties.getApplicationName() + ".app";
+        
         //swt.jar on all platforms ...
         if(name.equals("swt.jar")) {
           installer.addResource(name,zip,false);
           if(Constants.isOSX) {
-            installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/" + name);
+            installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/Resources/Java/" + name);
           } else {
             installer.addMoveAction(name,installer.getInstallDir() + File.separator + name);
           }
@@ -148,7 +151,7 @@ public class SWTUpdateChecker implements UpdatableComponent
         if(name.equals("swt-pi.jar")) {
           installer.addResource(name,zip,false);
           if(Constants.isOSX) {
-            installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/" + name);
+            installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/Resources/Java/" + name);
           } else {
             installer.addMoveAction(name,installer.getInstallDir() + File.separator + name);
           }
@@ -158,15 +161,15 @@ public class SWTUpdateChecker implements UpdatableComponent
         //on OS X, any .jnilib
         if(name.endsWith(".jnilib") && Constants.isOSX) {
           installer.addResource(name,zip,false);
-          installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/dll/" + name);
+          installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/Resources/Java/dll/" + name);
           continue;
         }
         
         //on OS X, java_swt (the launcher to start SWT applications)
         if(name.equals("java_swt")) {
           installer.addResource(name,zip,false);
-          installer.addMoveAction(name,installer.getInstallDir() + "/Azureus.app/Contents/MacOS/" + name);
-          installer.addChangeRightsAction("755",installer.getInstallDir() + "/Azureus.app/Contents/MacOS/" + name);
+          installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/MacOS/" + name);
+          installer.addChangeRightsAction("755",installer.getInstallDir() + osx_app + "/Contents/MacOS/" + name);
           continue;
         }
         

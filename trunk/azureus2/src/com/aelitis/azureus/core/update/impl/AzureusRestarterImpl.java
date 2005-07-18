@@ -116,6 +116,7 @@ AzureusRestarterImpl
 	  		long	max_mem = Runtime.getRuntime().maxMemory();
 	  			  			  			
 	  		restart_properties.put( "max_mem", ""+max_mem );
+	  		restart_properties.put( "app_name", SystemProperties.getApplicationName());
 	  		
 	  		fos	= new FileOutputStream( new File( user_path, UPDATE_PROPERTIES ));
 	  		
@@ -304,9 +305,11 @@ AzureusRestarterImpl
   {
     String userPath = System.getProperty("user.dir");
     
+    String	osx_app = "/" + SystemProperties.getApplicationName() + ".app";
+    
     String exec =   "#!/bin/bash\n" + 
                   	"ulimit -H -S -n 8192\n\"" +
-					userPath + "/Azureus.app/Contents/MacOS/java_swt\" " + getClassPath() +
+					userPath + osx_app + "/Contents/MacOS/java_swt\" " + getClassPath() +
 					getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
@@ -322,7 +325,7 @@ AzureusRestarterImpl
     if ( log != null ){
       log.println( "  " + exec );
     }
-    String fileName = userPath + "/Azureus.app/" + restartScriptName;
+    String fileName = userPath + osx_app + "/" + restartScriptName;
     
     File fUpdate = new File(fileName);
     
@@ -331,7 +334,7 @@ AzureusRestarterImpl
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
       chMod(fileName,"755",log);      
-      Runtime.getRuntime().exec("Azureus.app/" + restartScriptName);
+      Runtime.getRuntime().exec(osx_app + "/" + restartScriptName);
     } catch(Exception e) {
       log.println(e);
       e.printStackTrace(log);

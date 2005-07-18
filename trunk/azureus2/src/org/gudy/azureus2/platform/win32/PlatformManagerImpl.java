@@ -92,10 +92,11 @@ PlatformManagerImpl
 	}
 	
 	protected AEWin32Access		access;
-	
+
+	protected String			app_exe_name;
 	protected File				az_exe;
 	protected boolean			az_exe_checked;
-	
+
 	protected
 	PlatformManagerImpl(
 		AEWin32Access		_access )
@@ -104,6 +105,8 @@ PlatformManagerImpl
 	{
 		access	= _access;
 
+		app_exe_name	= SystemProperties.getApplicationName() + ".exe";
+		
         initializeCapabilities();
 
         applyPatches();
@@ -145,7 +148,7 @@ PlatformManagerImpl
 			
 				// only patch if Azureus.exe in there
 			
-			if ( current.indexOf( "Azureus.exe" ) != -1 && !current.equals(target)){
+			if ( current.indexOf( app_exe_name ) != -1 && !current.equals(target)){
 				
 				access.writeStringValue( 	
 						AEWin32Access.HKEY_CLASSES_ROOT,
@@ -198,11 +201,11 @@ PlatformManagerImpl
 				try{
 					az_home = access.getAzureusInstallDir();
 					
-					az_exe = new File( az_home + File.separator + "Azureus.exe" ).getAbsoluteFile();
+					az_exe = new File( az_home + File.separator + app_exe_name ).getAbsoluteFile();
 	
 					if ( !az_exe.exists()){
 						
-						throw( new PlatformManagerException( "Azureus.exe not found in " + az_home + ", please re-install"));
+						throw( new PlatformManagerException( app_exe_name + " not found in " + az_home + ", please re-install"));
 					}
 				}catch( Throwable e ){
 					
@@ -210,12 +213,12 @@ PlatformManagerImpl
 					
 					az_home = SystemProperties.getApplicationPath();		
 					
-					az_exe = new File( az_home + File.separator + "Azureus.exe" ).getAbsoluteFile();
+					az_exe = new File( az_home + File.separator + app_exe_name ).getAbsoluteFile();
 				}
 				
 				if ( !az_exe.exists()){
 					
-					String	msg = "Azureus.exe not found in " + az_home + " - can't check file associations. Please re-install Azureus";
+					String	msg = app_exe_name + " not found in " + az_home + " - can't check file associations. Please re-install Azureus";
 					
 					az_exe = null;
 					
@@ -319,7 +322,7 @@ PlatformManagerImpl
 					
 					//System.out.println( "mru = " + mru );
 					
-					return( mru.equalsIgnoreCase("Azureus.exe"));
+					return( mru.equalsIgnoreCase(app_exe_name));
 				}
 			}catch( Throwable e ){
 				

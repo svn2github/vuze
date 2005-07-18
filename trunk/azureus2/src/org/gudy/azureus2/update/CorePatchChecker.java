@@ -248,7 +248,7 @@ CorePatchChecker
 
 		if( Constants.isOSX ){
 
-			az2_jar = installer.getInstallDir() + "/Azureus.app/Contents/Resources/Java/";
+			az2_jar = installer.getInstallDir() + "/" + SystemProperties.getApplicationName() + ".app/Contents/Resources/Java/";
 			
 		}else{
 
