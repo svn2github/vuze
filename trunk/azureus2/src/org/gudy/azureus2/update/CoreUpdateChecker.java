@@ -49,6 +49,7 @@ CoreUpdateChecker
 	implements Plugin, UpdatableComponent
 {
 	public static final String	LATEST_VERSION_PROPERTY	= "latest_version";
+	public static final String	MESSAGE_PROPERTY		= "message";
 	
 	public static final int	RD_GET_DETAILS_RETRIES	= 3;
 	public static final int	RD_GET_MIRRORS_RETRIES	= 3;
@@ -146,7 +147,7 @@ CoreUpdateChecker
 					
 			Map	decoded = VersionCheckClient.getSingleton().getVersionCheckInfo();
       
-      displayUserMessage( decoded );
+			displayUserMessage( decoded );
 			
 			String latest_version 			= null;
 			String latest_file_name			= null;
@@ -339,6 +340,8 @@ CoreUpdateChecker
             alert_text = alert_text.substring(2);
           }
           
+		  plugin_interface.getPluginProperties().setProperty( MESSAGE_PROPERTY, alert_text );
+
           LGLogger.logUnrepeatableAlert( alert_type, alert_text );
           
           COConfigurationManager.setParameter( "CoreUpdateChecker.lastmessage", s_message );
