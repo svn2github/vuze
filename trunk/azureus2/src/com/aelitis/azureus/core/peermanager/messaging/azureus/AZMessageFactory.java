@@ -145,8 +145,10 @@ public class AZMessageFactory {
       return new RawMessageImpl( base_message, raw_buffs, ld.priority, ld.is_no_delay, ld.to_remove );
     }
     
-    //standard message, use default values
-    return new RawMessageImpl( base_message, raw_buffs, RawMessage.PRIORITY_NORMAL, true, null );
+    //standard message, ensure that protocol messages have wire priority over data payload messages
+    int priority = base_message.getType() == Message.TYPE_DATA_PAYLOAD ? RawMessage.PRIORITY_LOW : RawMessage.PRIORITY_NORMAL;
+    
+    return new RawMessageImpl( base_message, raw_buffs, priority, true, null );
   }
   
   
