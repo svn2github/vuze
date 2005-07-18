@@ -26,8 +26,10 @@ public class SystemProperties {
    */
   public static final String SEP = System.getProperty("file.separator");
   
-  private static 		String APPLICATION_NAME = "Azureus";
-  private static 		String APPLICATION_ID 	= "az";
+  private static 		String APPLICATION_NAME 		= "Azureus";
+  private static 		String APPLICATION_ID 			= "az";
+  	// TODO: fix for non-SWT entry points one day
+  private static 		String APPLICATION_ENTRY_POINT 	= "org.gudy.azureus2.ui.swt.Main";
   
   private static final 	String WIN_DEFAULT = "Application Data";
   private static final 	String OSX_DEFAULT = "Library" + SEP + "Application Support";
@@ -38,10 +40,23 @@ public class SystemProperties {
 	public static void
 	setApplicationDetails(
 		String		name,
-		String		application_id )
+		String		application_id,
+		String		entry_point )
 	{
-		APPLICATION_NAME	= name;
-		APPLICATION_ID		= application_id;
+		if ( name != null && name.trim().length() > 0 ){
+			
+			APPLICATION_NAME			= name.trim();
+		}
+		
+		if ( application_id != null && application_id.trim().length() > 0 ){
+			
+			APPLICATION_ID			= application_id.trim();
+		}
+		
+		if ( entry_point != null && entry_point.trim().length() > 0 ){
+
+			APPLICATION_ENTRY_POINT	= entry_point.trim();
+		}
 	}
 	
 	public static String
@@ -54,6 +69,12 @@ public class SystemProperties {
 	getApplicationIdentifier()
 	{
 		return( APPLICATION_ID );
+	}	
+	
+	public static String
+	getApplicationEntryPoint()
+	{
+		return( APPLICATION_ENTRY_POINT );
 	}
 	
   /**

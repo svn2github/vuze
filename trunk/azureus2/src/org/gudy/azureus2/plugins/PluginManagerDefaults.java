@@ -85,17 +85,22 @@ PluginManagerDefaults
 	
 		/**
 		 * Set the name of the application, default is "Azureus", and an identifier for it, default is "az"
+		 * default for entry point is the SWT UI
 		 * @param name
 		 */
 	
 	public void
 	setApplicationDetails(
 		String		name,
-		String		application_id );
+		String		application_id,
+		String		entry_point );
 	
 	public String
 	getApplicationName();
 	
 	public String
 	getApplicationIdentifier();
+	
+	public String
+	getApplicationEntryPoint();
 }

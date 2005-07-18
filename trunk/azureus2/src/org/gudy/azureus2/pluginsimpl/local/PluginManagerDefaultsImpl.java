@@ -77,9 +77,10 @@ PluginManagerDefaultsImpl
 	public void
 	setApplicationDetails(
 		String		name,
-		String		id )
+		String		id,
+		String		entry )
 	{
-		SystemProperties.setApplicationDetails( name, id );
+		SystemProperties.setApplicationDetails( name, id, entry );
 	}
 	
 	public String
@@ -92,5 +93,11 @@ PluginManagerDefaultsImpl
 	getApplicationIdentifier()
 	{
 		return( SystemProperties.getApplicationIdentifier());
+	}
+	
+	public String
+	getApplicationEntryPoint()
+	{
+		return( SystemProperties.getApplicationEntryPoint());
 	}
 }

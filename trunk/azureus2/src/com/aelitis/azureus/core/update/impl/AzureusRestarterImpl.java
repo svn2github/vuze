@@ -117,6 +117,7 @@ AzureusRestarterImpl
 	  			  			  			
 	  		restart_properties.put( "max_mem", ""+max_mem );
 	  		restart_properties.put( "app_name", SystemProperties.getApplicationName());
+	  		restart_properties.put( "app_entry", SystemProperties.getApplicationEntryPoint());
 	  		
 	  		fos	= new FileOutputStream( new File( user_path, UPDATE_PROPERTIES ));
 	  		
