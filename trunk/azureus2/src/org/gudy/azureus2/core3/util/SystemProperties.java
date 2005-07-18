@@ -26,13 +26,26 @@ public class SystemProperties {
    */
   public static final String SEP = System.getProperty("file.separator");
   
-  private static final String AZ_DIR = "Azureus";
-  private static final String WIN_DEFAULT = "Application Data";
-  private static final String OSX_DEFAULT = "Library" + SEP + "Application Support";
+  private static 		String AZ_DIR = "Azureus";
+  private static final 	String WIN_DEFAULT = "Application Data";
+  private static final 	String OSX_DEFAULT = "Library" + SEP + "Application Support";
   
   private static String user_path = null;
   
   
+	public static void
+	setApplicationName(
+		String		name )
+	{
+		AZ_DIR	= name;
+	}
+	
+	public static String
+	getApplicationName()
+	{
+		return( AZ_DIR );
+	}
+	
   /**
    * Returns the full path to the user's home azureus directory.
    * Under unix, this is usually ~/.Azureus/

@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.*;
 
 public class 
@@ -71,5 +72,18 @@ PluginManagerDefaultsImpl
 		String		plugin_id )
 	{
 		return( !disabled.contains( plugin_id));
+	}
+	
+	public void
+	setApplicationName(
+		String		name )
+	{
+		SystemProperties.setApplicationName( name );
+	}
+	
+	public String
+	getApplicationName()
+	{
+		return( SystemProperties.getApplicationName());
 	}
 }

@@ -82,4 +82,16 @@ PluginManagerDefaults
 	public boolean
 	isDefaultPluginEnabled(
 		String		plugin_id );
+	
+		/**
+		 * Set the name of the application, default is "Azureus"
+		 * @param name
+		 */
+	
+	public void
+	setApplicationName(
+		String		name );
+	
+	public String
+	getApplicationName();
 }
