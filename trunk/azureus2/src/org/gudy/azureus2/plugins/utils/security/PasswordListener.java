@@ -1,7 +1,7 @@
 /*
- * Created on 17-Jun-2004
+ * Created on 19-Jul-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,42 +22,20 @@
 
 package org.gudy.azureus2.plugins.utils.security;
 
-/**
- * @author parg
- *
- */
-
-import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URL;
 
 public interface 
-SESecurityManager 
+PasswordListener 
 {
-		// runs the given task with the supplied Authenticator. Note that the 
-		// scope of the authenticator is "vm-wide" so that if by chance another
-		// thread attempts to perform an operation that requires authentication
-		// which the supplied one is in force, the request will be directed to the
-		// authenticator
+	public PasswordAuthentication
+	getAuthentication(
+		String		realm,
+		URL			target );
 	
 	public void
-	runWithAuthenticator(
-		Authenticator	authenticator,
-		Runnable		task );
-	
-	public void
-	addPasswordListener(
-		PasswordListener	listener );
-		
-	public void
-	removePasswordListener(
-		PasswordListener	listener );
-	
-		/**
-		 * returns the SHA1 hash of the input data
-		 * @param data_in
-		 * @return
-		 */
-	
-	public byte[]
-	calculateSHA1(
-		byte[]		data_in );
+	setAuthenticationOutcome(
+		String		realm,
+		URL			target,
+		boolean		success );	
 }

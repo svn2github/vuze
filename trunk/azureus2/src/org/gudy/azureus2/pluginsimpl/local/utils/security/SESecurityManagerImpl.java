@@ -23,6 +23,10 @@
 package org.gudy.azureus2.pluginsimpl.local.utils.security;
 
 import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
@@ -33,13 +37,15 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
  */
 
 import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.plugins.utils.security.PasswordListener;
 
 
 public class 
 SESecurityManagerImpl 
 	implements org.gudy.azureus2.plugins.utils.security.SESecurityManager
 {
-
+	private Map	password_listeners	= new HashMap();
+	
 	public byte[]
 	calculateSHA1(
 		byte[]		data_in )
@@ -67,6 +73,48 @@ SESecurityManagerImpl
 		}finally{
 			
 			SESecurityManager.installAuthenticator();
+		}
+	}
+	
+	public void
+	addPasswordListener(
+		final PasswordListener	listener )
+	{
+		SEPasswordListener	sepl = 
+			new SEPasswordListener()
+			{
+				public PasswordAuthentication
+				getAuthentication(
+					String		realm,
+					URL			tracker )
+				{
+					return( listener.getAuthentication( realm, tracker ));
+				}
+				
+				public void
+				setAuthenticationOutcome(
+					String		realm,
+					URL			tracker,
+					boolean		success )
+				{
+					listener.setAuthenticationOutcome( realm, tracker, success );
+				}
+			};
+			
+		password_listeners.put( listener, sepl );
+		
+		SESecurityManager.addPasswordListener( sepl );
+	}
+		
+	public void
+	removePasswordListener(
+		PasswordListener	listener )
+	{
+		SEPasswordListener	sepl = (SEPasswordListener)password_listeners.get( listener );
+		
+		if ( sepl != null ){
+			
+			SESecurityManager.removePasswordListener( sepl );
 		}
 	}
 }
