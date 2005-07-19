@@ -19,6 +19,9 @@ import java.nio.charset.*;
  *
  */
 public class BDecoder {
+	
+	private static boolean FAIL_QUIETLY;
+	
   /** Creates a new instance of BeDecoder */
 	
 	  Charset	byte_charset;
@@ -95,7 +98,10 @@ public class BDecoder {
 
         if ( bais.available() < nesting ){
         	
-        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of dictionary"));
+        	if ( !FAIL_QUIETLY ){
+        		
+        		throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of dictionary"));
+        	}
         }
         
         //return the map
@@ -114,7 +120,10 @@ public class BDecoder {
         
         if ( bais.available() < nesting ){
         	
-        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of list"));
+        	if ( !FAIL_QUIETLY ){
+        		
+        		throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of list"));
+        	}
         }
                //return the list
         return tempList;
@@ -286,5 +295,28 @@ public class BDecoder {
   	throws IOException
   {
 	  print( decode( new BufferedInputStream( new FileInputStream( f ))));
+  }
+  
+  public static void
+  main(
+		 String[]	args )
+  {
+	  FAIL_QUIETLY = true;
+	  
+	  try{
+		 Map res = decode( new BufferedInputStream( new FileInputStream( new File( "C:\\temp\\downloads.config.630" ))));
+		  
+		 byte[] zzz = BEncoder.encode( res );
+		 
+		 FileOutputStream fos  = new FileOutputStream( new File( "C:\\temp\\downloads.config.630.recov" ));
+		 
+		 fos.write( zzz );
+		 
+		 fos.close();
+		 
+	  }catch( Throwable e ){
+		  
+		  e.printStackTrace();
+	  }
   }
 }
