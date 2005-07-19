@@ -48,6 +48,8 @@ LGLoggerImpl
 	
 	private static ILoggerListener listener;
 
+	private static AEDiagnosticsLogger	alert_logger;
+	
 	private static List				alert_listeners	= new ArrayList();
 	private static List				alert_history	= new ArrayList();
 	
@@ -93,6 +95,8 @@ LGLoggerImpl
 			
  			doRedirects();
 			
+ 			alert_logger = AEDiagnostics.getLogger( "alerts" );
+ 			
 			LGLogger.log( "**** Logging starts: " + Constants.AZUREUS_VERSION + " ****" );
 			
 			LGLogger.log( "java.home=" + System.getProperty("java.home"));
@@ -279,6 +283,11 @@ LGLoggerImpl
 	{
 		LGLogger.log( "Alert:" + type + ":" + message );
 		
+		if (alert_logger != null ){
+			
+			alert_logger.log( "Alert:" + type + ":" + message );
+		}
+		
 		alert_history.add( new Object[]{ new Integer(type), message, new Boolean(repeatable)});
 		
 		if ( alert_history.size() > 256 ){
@@ -307,6 +316,11 @@ LGLoggerImpl
 	{
 		LGLogger.log( "Alert:" + message, e );
 	
+		if (alert_logger != null ){
+			
+			alert_logger.log( "Alert:" + message + ":" + LGLogger.exceptionToString( e ));
+		}
+		
 		alert_history.add( new Object[]{ message, e, new Boolean( repeatable ) });
 		
 		if ( alert_history.size() > 256 ){
