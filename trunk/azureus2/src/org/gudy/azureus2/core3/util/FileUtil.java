@@ -497,7 +497,7 @@ public class FileUtil {
  		return( res );
  	}
 
-  	// synchronised against writes to make sure we get a consistent view
+  		// synchronised against writes to make sure we get a consistent view
   
   	private static Map
 	readResilientFile(
@@ -510,7 +510,29 @@ public class FileUtil {
 	  		try{
 	  			getReservedFileHandles();
 	  	
-	  			return(readResilientFile( parent_dir, file_name, 0 ));
+	  			Map	res = null;
+	  			
+	  			try{
+	  				res = readResilientFile( parent_dir, file_name, 0, false );
+	  			
+	  			}catch( Throwable e ){
+	  				
+	  				// ignore, it'll be rethrown if we can't recover below
+	  			}
+	  			
+	  			if ( res == null ){
+	  				
+	  				res = readResilientFile( parent_dir, file_name, 0, true );
+	  				
+	  				if ( res != null ){
+	  					
+	 					LGLogger.logUnrepeatableAlert( 	
+	 						LGLogger.AT_WARNING,
+							"File '" + file_name + "' has been partially recovered, information may have been lost!" );
+	  				}
+	  			}
+	  			
+	  			return( res );
 	  			
 	  		}catch( Throwable e ){
 	  				  			
@@ -532,10 +554,13 @@ public class FileUtil {
 	readResilientFile(
 		File		parent_dir,
 		String		file_name,
-		int			fail_count )
+		int			fail_count,
+		boolean		recovery_mode )
 	{	  
-  			// open the file
-  	
+			// logging in here is only done during "non-recovery" mode to prevent subsequent recovery
+			// attempts logging everything a second time.
+			// recovery-mode allows the decoding process to "succeed" with a partially recovered file
+		
   		boolean	using_backup	= file_name.endsWith(".saving");
   		
   		File file = new File(  parent_dir, file_name );
@@ -546,26 +571,34 @@ public class FileUtil {
 
   			if ( using_backup ){
 	     
-  				if ( fail_count == 1 ){
+  				if ( !recovery_mode ){
   					
-  						// we only alert the user if at least one file was found and failed
-  						// otherwise it could be start of day when neither file exists yet
-  					
-  					LGLogger.logUnrepeatableAlert( 	LGLogger.AT_ERROR,
-  										"Load of '" + file_name + "' fails, no usable file or backup" );
-  				}else{
-  					
-  					LGLogger.log( 	LGLogger.INFORMATION,
-									"Load of '" + file_name + "' fails, file not found" );
-				
+	  				if ( fail_count == 1 ){
+	  					
+	  						// we only alert the user if at least one file was found and failed
+	  						// otherwise it could be start of day when neither file exists yet
+	  					
+	  					LGLogger.logUnrepeatableAlert( 	
+	  							LGLogger.AT_ERROR,
+	  							"Load of '" + file_name + "' fails, no usable file or backup" );
+	  				}else{
+	  					
+	  					LGLogger.log( 	
+	  							LGLogger.INFORMATION,
+								"Load of '" + file_name + "' fails, file not found" );
+					
+	  				}
   				}
 	       
   				return( null );
   			}
         
-  			LGLogger.log("Load of '" + file_name + "' failed, file not found or 0-sized." );
+  			if ( !recovery_mode ){
+  				
+  				LGLogger.log("Load of '" + file_name + "' failed, file not found or 0-sized." );
+  			}
   			
-  			return( readResilientFile( parent_dir, file_name + ".saving", 0 ));
+  			return( readResilientFile( parent_dir, file_name + ".saving", 0, recovery_mode ));
   		}
 
   		BufferedInputStream bin = null;
@@ -593,9 +626,16 @@ public class FileUtil {
   				}
   			}
   			
-	    	Map	res = BDecoder.decode(bin);
+  			BDecoder	decoder = new BDecoder();
+  			
+  			if ( recovery_mode ){
+  				
+  				decoder.setRecoveryMode( true );
+  			}
+  			
+	    	Map	res = decoder.decodeStream(bin);
 	    	
-	    	if ( using_backup ){
+	    	if ( using_backup && !recovery_mode ){
   		
 	    		LGLogger.logUnrepeatableAlert( 
 	    					LGLogger.AT_WARNING,
@@ -605,27 +645,66 @@ public class FileUtil {
 	    	return( res );
 	    	
 	    }catch( Throwable e ){
+	    	
 	    	Debug.printStackTrace( e );
-	    	// Occurs when file is there but b0rked
-        
-        //rename it in case it actually contains useful data, so it won't be overwritten next save
-        LGLogger.log("Read of '" + file_name + "' failed, b-decoding error. Renaming to *.bad" );
-        
-        File bad = new File( parent_dir, file.getName() + ".bad" );
-        
-        try {  if (bin != null) bin.close();  } catch (Exception x) { Debug.printStackTrace( x ); }
-        
-        file.renameTo( bad );
+	    	
+	    	try {  
+	    		if (bin != null){
+	    			
+	    			bin.close();
+	    			
+	    			bin	= null;
+	    		}
+	    	} catch (Exception x) { 
+	    		
+	    		Debug.printStackTrace( x ); 
+	    	}
+	    	
+	    		// if we're not recovering then backup the file
+	    	
+	    	if ( !recovery_mode ){
+	    		
+	   			// Occurs when file is there but b0rked
+      			// copy it in case it actually contains useful data, so it won't be overwritten next save
+    	
+		    	File bad;
+		    	
+		    	int	bad_id = 0;
+		    	
+		    	while(true){
+		    		
+		    		File	test = new File( parent_dir, file.getName() + ".bad" + (bad_id==0?"":(""+bad_id)));
+		    		
+		    		if ( !test.exists()){
+		    			
+		    			bad	= test;
+		    			
+		    			break;
+		    		}
+		    		
+		    		bad_id++;
+		    	}
+
+		    	LGLogger.log( "Read of '" + file_name + "' failed, decoding error. Renaming to " + bad.getName());
+	
+		    		// copy it so its left in place for possible recovery
+		    	
+		    	copyFile( file, bad );
+	    	}
 	    	
 	    	if ( using_backup ){
 		
-	    		LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR,
+	    		if ( !recovery_mode ){
+	    			
+	    			LGLogger.logUnrepeatableAlert( 
+	    					LGLogger.AT_ERROR,
 							"Load of '" + file_name + "' fails, no usable file or backup" ); 
-	    		
+	    		}
+	    			
 	    		return( null );
 	    	}
 	    	
-	    	return( readResilientFile( parent_dir, file_name + ".saving", 1 ));
+	    	return( readResilientFile( parent_dir, file_name + ".saving", 1, recovery_mode ));
  			 
 	    }finally{
 	    	

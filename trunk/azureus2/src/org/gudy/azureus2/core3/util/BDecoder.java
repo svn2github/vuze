@@ -20,14 +20,32 @@ import java.nio.charset.*;
  */
 public class BDecoder {
 	
-	private static boolean FAIL_QUIETLY;
-	
-  /** Creates a new instance of BeDecoder */
-	
-	  Charset	byte_charset;
-	  Charset	default_charset;
+	private boolean recovery_mode;
+		
+	private Charset	byte_charset;
+	private Charset	default_charset;
 
-  private 
+	
+	public static Map
+	decode(
+		byte[]	data )
+	
+		throws IOException
+	{
+		return( new BDecoder().decodeByteArray( data ));
+	}
+	
+	public static Map
+	decode(
+		BufferedInputStream	is  )
+	
+		throws IOException
+	{
+		return( new BDecoder().decodeStream( is ));
+	}
+	
+	
+  public 
   BDecoder() 
   {	
   	try{
@@ -40,18 +58,29 @@ public class BDecoder {
 	}
   }
 
-  public static Map decode(byte[] data) throws IOException { 
-    return new BDecoder().decode(new ByteArrayInputStream(data));
-  }
-
-  public static Map decode(BufferedInputStream data) throws IOException 
-  {
-      return (Map) new BDecoder().decodeInputStream(data, 0);
-  }
-
+  public Map 
+  decodeByteArray(
+	byte[] data) 
   
+  	throws IOException 
+  { 
+    return( decode(new ByteArrayInputStream(data)));
+  }
+
+  public Map 
+  decodeStream(
+	BufferedInputStream data )  
+  
+  	throws IOException 
+  {
+      return((Map)decodeInputStream(data, 0));
+  }
+
   private Map 
-  decode(ByteArrayInputStream data) throws IOException 
+  decode(
+	ByteArrayInputStream data ) 
+  
+  	throws IOException 
   {
       return (Map) decodeInputStream(data, 0);
   }
@@ -64,6 +93,7 @@ public class BDecoder {
   	throws IOException 
   {
     if (!bais.markSupported()) {
+    	
       throw new IOException("InputStream must support the mark() method");
     }
 
@@ -79,28 +109,39 @@ public class BDecoder {
         //create a new dictionary object
         Map tempMap = new HashMap();
 
-        //get the key   
-        byte[] tempByteArray = null;
-        while ((tempByteArray = (byte[]) decodeInputStream(bais, nesting+1)) != null) {
+        try{
+	        //get the key   
+	        byte[] tempByteArray = null;
+	        
+	        while ((tempByteArray = (byte[]) decodeInputStream(bais, nesting+1)) != null) {
+	        	
+	        	//decode some more
+	        	
+	          Object value = decodeInputStream(bais,nesting+1);
+	          
+	          	//add the value to the map
+	          
+	          CharBuffer	cb = byte_charset.decode(ByteBuffer.wrap(tempByteArray));
+	          
+	          String	key = new String(cb.array(),0,cb.limit());
+	                    
+	          tempMap.put( key, value);
+	        }
+	
+	        if ( bais.available() < nesting ){
+	        		        		
+	        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of dictionary"));
+	        }
+        }catch( Throwable e ){
         	
-        	//decode some more
-        	
-          Object value = decodeInputStream(bais,nesting+1);
-          
-          	//add the value to the map
-          
-          CharBuffer	cb = byte_charset.decode(ByteBuffer.wrap(tempByteArray));
-          
-          String	key = new String(cb.array(),0,cb.limit());
-                    
-          tempMap.put( key, value);
-        }
+        	if ( !recovery_mode ){
 
-        if ( bais.available() < nesting ){
-        	
-        	if ( !FAIL_QUIETLY ){
+        		if ( e instanceof IOException ){
+        			
+        			throw((IOException)e);
+        		}
         		
-        		throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of dictionary"));
+        		throw( new IOException( Debug.getNestedExceptionMessage(e)));
         	}
         }
         
@@ -111,18 +152,28 @@ public class BDecoder {
         //create the list
         List tempList = new ArrayList();
 
-        //create the key
-        Object tempElement = null;
-        while ((tempElement = decodeInputStream(bais, nesting+1)) != null) {
-          //add the element
-          tempList.add(tempElement);
-        }
-        
-        if ( bais.available() < nesting ){
+        try{
+	        //create the key
+	        Object tempElement = null;
+	        while ((tempElement = decodeInputStream(bais, nesting+1)) != null) {
+	          //add the element
+	          tempList.add(tempElement);
+	        }
+	        
+	        if ( bais.available() < nesting ){
+	        		        		
+	        	throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of list"));
+	        }
+       }catch( Throwable e ){
         	
-        	if ( !FAIL_QUIETLY ){
+        	if ( !recovery_mode ){
+
+        		if ( e instanceof IOException ){
+        			
+        			throw((IOException)e);
+        		}
         		
-        		throw( new IOException( "BDecoder: invalid input data, 'e' missing from end of list"));
+        		throw( new IOException( Debug.getNestedExceptionMessage(e)));
         	}
         }
                //return the list
@@ -227,14 +278,21 @@ public class BDecoder {
     return tempArray;
   }
   
-  public static void
+  public void
+  setRecoveryMode(
+		boolean	r )
+  {
+	  recovery_mode	= r;
+  }
+  
+  public void
   print(
 	Object	obj )
   {
 	  print( obj, "", false );
   }
   
-  private static void
+  private void
   print(
 	Object	obj,
 	String	indent,
@@ -288,31 +346,36 @@ public class BDecoder {
 	  }
   }
   
-  public static void
+  public void
   print(
 		File		f )
   
   	throws IOException
   {
-	  print( decode( new BufferedInputStream( new FileInputStream( f ))));
+	  print( decodeStream( new BufferedInputStream( new FileInputStream( f ))));
   }
   
   public static void
   main(
-		 String[]	args )
-  {
-	  FAIL_QUIETLY = true;
-	  
+	 String[]	args )
+  {	  
 	  try{
-		 Map res = decode( new BufferedInputStream( new FileInputStream( new File( "C:\\temp\\downloads.config.630" ))));
 		  
-		 byte[] zzz = BEncoder.encode( res );
+		  BDecoder decoder = new BDecoder();
+		  
+		  decoder.setRecoveryMode( true );
+		  
+		  Map res = decoder.decodeStream( new BufferedInputStream( new FileInputStream( new File( "C:\\temp\\downloads.config.630" ))));
+		  
+		  decoder.print( res );
+		  
+		  byte[] zzz = BEncoder.encode( res );
 		 
-		 FileOutputStream fos  = new FileOutputStream( new File( "C:\\temp\\downloads.config.630.recov" ));
+		  FileOutputStream fos  = new FileOutputStream( new File( "C:\\temp\\downloads.config.630.recov" ));
 		 
-		 fos.write( zzz );
+		  fos.write( zzz );
 		 
-		 fos.close();
+		  fos.close();
 		 
 	  }catch( Throwable e ){
 		  
