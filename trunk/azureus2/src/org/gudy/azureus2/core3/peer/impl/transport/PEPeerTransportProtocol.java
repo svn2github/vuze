@@ -1493,7 +1493,7 @@ PEPeerTransportProtocol
           message.destroy();
           
           //make sure they're not spamming us
-          if( !message_limiter.countIncomingMessage( message.getID(), 5, 60*1000 ) ) {  //allow max 5 keep-alives per 60sec
+          if( !message_limiter.countIncomingMessage( message.getID(), 6, 60*1000 ) ) {  //allow max 6 keep-alives per 60sec
             Debug.out( "Incoming keep-alive message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
             closeConnectionInternally( "Incoming keep-alive message flood detected, dropping spamming peer connection." );
           }
@@ -1732,9 +1732,9 @@ PEPeerTransportProtocol
     exchange.destroy();
     
     //make sure they're not spamming us
-    if( !message_limiter.countIncomingMessage( exchange.getID(), 3, 150*1000 ) ) {  //allow max 3 pex per 150sec
-      Debug.out( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
-      closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
+    if( !message_limiter.countIncomingMessage( exchange.getID(), 5, 250*1000 ) ) {  //allow max 5 pex per 250sec
+      //Debug.out( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
+      //closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
       return;
     }
     
