@@ -89,7 +89,7 @@ IpFilter
 	public abstract void 
 	clearBlockedIPs();
 	
-	public abstract void 
+	public abstract boolean 
 	ban(
 		String 	ipAddress,
 		String	torrent_name );

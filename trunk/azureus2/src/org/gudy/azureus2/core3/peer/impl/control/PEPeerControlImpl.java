@@ -2249,7 +2249,12 @@ PEPeerControlImpl
     	
     	if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning")){
     	
-      	ip_filter.ban(ip, _downloadManager.getDisplayName());                    
+    			// if a block-ban occurred, check other connections
+    		
+      	if ( ip_filter.ban(ip, _downloadManager.getDisplayName())){
+      		
+      		checkForBannedConnections();
+      	}
       
       		//	Close connection in 2nd
       	

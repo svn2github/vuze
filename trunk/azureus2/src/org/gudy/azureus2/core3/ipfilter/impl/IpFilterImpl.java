@@ -448,11 +448,13 @@ IpFilterImpl
 	  return num_ips_blocked;
 	}
 	
-	public void 
+	public boolean 
 	ban(
 		String 	ipAddress,
 		String	torrent_name ) 
 	{
+		boolean	block_ban = false;
+		
 		try{
 			class_mon.enter();
 			
@@ -492,6 +494,8 @@ IpFilterImpl
 				
 				if ( hits >= hit_limit ){
 					
+					block_ban	= true;
+					
 					for (long i=start;i<end;i++){
 						
 						Integer	a = new Integer((int)i);
@@ -511,6 +515,8 @@ IpFilterImpl
 			
 			class_mon.exit();
 		}
+		
+		return( block_ban );
 	}
 	
 	public BannedIp[] 
