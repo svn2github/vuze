@@ -60,10 +60,9 @@ DirectByteBufferPool
 	private static final int	SLICE_END_SIZE				= 2048;	
 	private static final int    SLICE_ALLOC_CHUNK_SIZE		= 4096;
   
-		// many buffers are 17 and 19 bytes, hence the introduction of the 20 byte slice size
-	
-	private static final short[]		SLICE_ENTRY_SIZES		= { 8,   16,  20,  32,  64, 128, 256, 512, 1024, SLICE_END_SIZE };
-	private static final short[]		SLICE_ALLOC_MAXS		= { 256, 256, 256, 128, 64, 64,  64,  64,  64,   64 };
+
+	private static final short[]		SLICE_ENTRY_SIZES		= { 8, 16, 32, 64, 128, 256, 512, 1024, SLICE_END_SIZE };
+	private static final short[]		SLICE_ALLOC_MAXS		= { 256, 256, 128, 64, 64,  64,  64,  64,   64 };
 	
 	private static final short[]		SLICE_ENTRY_ALLOC_SIZES = new short[SLICE_ENTRY_SIZES.length];
 	private static final List[]			slice_entries 			= new List[SLICE_ENTRY_SIZES.length];
