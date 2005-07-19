@@ -264,7 +264,7 @@ ShareResourceFileOrDirImpl
 				}
 			}else{
 				
-				manager.addFileOrDir( file, getType(), true );
+				manager.addFileOrDir( null, file, getType(), true );
 			}
 		}catch( Throwable e ){
 						

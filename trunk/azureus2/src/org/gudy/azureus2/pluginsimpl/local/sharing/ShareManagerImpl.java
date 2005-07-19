@@ -455,10 +455,20 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
+		return( addFile( null, file ));
+	}
+	
+	protected ShareResourceFile
+	addFile(
+		ShareResourceDirContentsImpl	parent,
+		File							file )
+
+		throws ShareException, ShareResourceDeletionVetoException
+	{
 		LGLogger.log( "ShareManager: addFile '" + file.toString()+ "'" );
 
 		try{
-			return( (ShareResourceFile)addFileOrDir( file, ShareResource.ST_FILE, false ));
+			return( (ShareResourceFile)addFileOrDir( parent, file, ShareResource.ST_FILE, false ));
 			
 		}catch( ShareException e ){
 			
@@ -483,12 +493,22 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
+		return( addDir( null, dir ));
+	}
+	
+	public ShareResourceDir
+	addDir(
+		ShareResourceDirContentsImpl	parent,
+		File							dir )
+	
+		throws ShareException, ShareResourceDeletionVetoException
+	{
 		LGLogger.log( "ShareManager: addDir '" + dir.toString()+ "'" );
 
 		try{
 			this_mon.enter();
 			
-			return( (ShareResourceDir)addFileOrDir( dir, ShareResource.ST_DIR, false ));
+			return( (ShareResourceDir)addFileOrDir( parent, dir, ShareResource.ST_DIR, false ));
 			
 		}catch( ShareException e ){
 			
@@ -513,9 +533,10 @@ ShareManagerImpl
 	
 	protected ShareResource
 	addFileOrDir(
-		File		file,
-		int			type,
-		boolean		modified )
+		ShareResourceDirContentsImpl	parent,
+		File							file,
+		int								type,
+		boolean							modified )
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
@@ -549,6 +570,13 @@ ShareManagerImpl
 			shares.put(name, new_resource );
 			
 			config.saveConfig();
+			
+			if ( parent != null ){
+				
+				new_resource.setParent( parent );
+				
+				new_resource.inheritAttributes( parent );
+			}
 			
 			for (int i=0;i<listeners.size();i++){
 				

@@ -143,9 +143,7 @@ ShareResourceDirContentsImpl
 			manager.delete( this );
 			
 		}else{
-			
-			List	new_resources = new ArrayList();
-		
+					
 			for (int i=0;i<files.length;i++){
 				
 				File	file = files[i];
@@ -160,7 +158,7 @@ ShareResourceDirContentsImpl
 							
 							List	child = checkConsistency( file );
 							
-							kids.add( new shareNode( file, child ));
+							kids.add( new shareNode( this, file, child ));
 							
 						}else{
 							
@@ -169,9 +167,7 @@ ShareResourceDirContentsImpl
 								
 								if ( res == null ){
 								
-									res = manager.addDir( file );
-									
-									new_resources.add( res );
+									res = manager.addDir( this, file );
 								}
 								
 								kids.add( res );
@@ -188,9 +184,7 @@ ShareResourceDirContentsImpl
 							
 							if ( res == null ){
 								
-								res = manager.addFile( file );
-								
-								new_resources.add( res );
+								res = manager.addFile( this, file );
 							}
 							
 							kids.add( res );
@@ -214,13 +208,6 @@ ShareResourceDirContentsImpl
 					
 					((shareNode)o).setParent(this);
 				}
-			}
-			
-				// inherit parent attributes for any new resources
-			
-			for (int i=0;i<new_resources.size();i++){
-				
-				((ShareResourceImpl)new_resources.get(i)).inheritAttributes( this );
 			}
 		}
 		
@@ -323,10 +310,12 @@ ShareResourceDirContentsImpl
 		
 		protected
 		shareNode(
+			ShareResourceDirContents	_parent,
 			File						_node,
 			List						kids )
 		{
-			node	=_node;
+			node_parent	= _parent;
+			node		=_node;
 			
 			node_children = new ShareResource[kids.size()];
 			
