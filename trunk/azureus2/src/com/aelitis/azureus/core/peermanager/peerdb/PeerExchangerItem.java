@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
  *
  */
 public class PeerExchangerItem {
-  private static final int MAX_PEERS_PER_VOLLEY = 50;
+  public static final int MAX_PEERS_PER_VOLLEY = 50;
   private static final int MAX_KNOWN_PER_PEER = 500;
   
   

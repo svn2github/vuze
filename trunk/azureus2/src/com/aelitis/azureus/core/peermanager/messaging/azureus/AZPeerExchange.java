@@ -139,7 +139,7 @@ public class AZPeerExchange implements AZMessage {
   
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {
-    if( data.remaining( bss ) > 1000 )  Debug.out( "Received PEX msg byte size = " +data.remaining( bss ) );
+    if( data.remaining( bss ) > 1000 )  System.out.println( "Received PEX msg byte size = " +data.remaining( bss ) );
     
     Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 10, getID(), getVersion() );
 

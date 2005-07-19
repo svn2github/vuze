@@ -152,11 +152,13 @@ PEPeerTransportProtocol
   
   
   private boolean is_optimistic_unchoke = false;
-  private long consecutive_keep_alives = 0;
-  
-  
+
   private PeerExchangerItem peer_exchange_item = null;
   private boolean peer_exchange_supported = false;
+    
+  private PeerMessageLimiter message_limiter;
+  
+  
   
   
   
@@ -205,6 +207,10 @@ PEPeerTransportProtocol
       }
       
       public void exceptionThrown( Throwable error ) {
+        if( error.getMessage() == null ) {
+          Debug.out( error );
+        }
+        
         closeConnectionInternally( "connection exception: " + error.getMessage() );
       }
     });
@@ -257,6 +263,10 @@ PEPeerTransportProtocol
       }
         
       public void exceptionThrown( Throwable error ) {
+        if( error.getMessage() == null ) {
+          Debug.out( error );
+        }
+        
         closeConnectionInternally( "connection exception: " + error.getMessage() );
       }
     });
@@ -279,6 +289,8 @@ PEPeerTransportProtocol
       }
     };
     recent_outgoing_requests_mon  = new AEMonitor( "PEPeerTransportProtocol:ROR" );
+    
+    message_limiter = new PeerMessageLimiter();
 
     //link in outgoing piece handler
     outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler( manager.getDiskManager(), connection.getOutgoingMessageQueue() );
@@ -1479,14 +1491,16 @@ PEPeerTransportProtocol
         
         if( message.getID().equals( BTMessage.ID_BT_KEEP_ALIVE ) ) {
           message.destroy();
-          consecutive_keep_alives++;
-          if( consecutive_keep_alives > 50 ) {
-            consecutive_keep_alives = 0;
-            closeConnectionInternally( "Too many [50] consecutive keep-alive messages received" );
+          
+          //make sure they're not spamming us
+          if( !message_limiter.countIncomingMessage( message.getID(), 5, 60*1000 ) ) {  //allow max 5 keep-alives per 60sec
+            Debug.out( "Incoming keep-alive message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
+            closeConnectionInternally( "Incoming keep-alive message flood detected, dropping spamming peer connection." );
           }
+
           return true;
         }
-        consecutive_keep_alives = 0;
+
         
         if( message.getID().equals( BTMessage.ID_BT_HANDSHAKE ) ) {
           decodeBTHandshake( (BTHandshake)message );
@@ -1712,10 +1726,26 @@ PEPeerTransportProtocol
   
   
   private void decodeAZPeerExchange( AZPeerExchange exchange ) {
+    PeerItem[] added = exchange.getAddedPeers();
+    PeerItem[] dropped = exchange.getDroppedPeers();
+    
+    exchange.destroy();
+    
+    //make sure they're not spamming us
+    if( !message_limiter.countIncomingMessage( exchange.getID(), 3, 150*1000 ) ) {  //allow max 3 pex per 150sec
+      Debug.out( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
+      closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
+      return;
+    }
+    
+    if( added != null && added.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY || dropped != null && dropped.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY ) {
+      //drop these too-large messages as they seem to be used for DOS by swarm poisoners
+      Debug.out( "Invalid PEX message received: too large [" +added.length+ "/" +dropped.length+ "]" +PEPeerTransportProtocol.this );
+      closeConnectionInternally( "Invalid PEX message received: too large, dropping likely poisoner peer connection." );
+      return;
+    }
+
     if( peer_exchange_supported && peer_exchange_item != null && manager.getDownloadManager().getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ) ) {
-      PeerItem[] added = exchange.getAddedPeers();
-      PeerItem[] dropped = exchange.getDroppedPeers();
-      
       if( added != null ) {
         for( int i=0; i < added.length; i++ ) {
           peer_exchange_item.addConnectedPeer( added[i] );
@@ -1731,8 +1761,6 @@ PEPeerTransportProtocol
     else {
       if( LGLogger.isEnabled() )  LGLogger.log( "Peer Exchange disabled for this download, dropping received exchange message." );
     }
-    
-    exchange.destroy();
   }
   
   

@@ -9,6 +9,8 @@ FEATURE: Core | "Date added" field added for hosted torrents [Parg]
 FEATURE: Core | Alternate max upload rate limit when only seeding option [Nolar]
 FEATURE: Plug | Magnet URI accessor method added to Torrent [Parg]
 
+CHANGE: Core  | Countermeasures against swarm DOS/poisoning [Nolar]
+
 BUGFIX: Core  | Fix interested flag being set sometimes when seeding [Nolar]
 BUGFIX: Core  | Wrong file name returned for stopped simple torrents [Parg]
 BUGFIX: Core  | Seeder/leecher counts missing for published torrents [Parg]
