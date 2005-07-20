@@ -1731,7 +1731,7 @@ PEPeerTransportProtocol
     exchange.destroy();
     
     //make sure they're not spamming us
-    if( !message_limiter.countIncomingMessage( exchange.getID(), 4, 100*1000 ) ) {  //allow max 5 pex per 200sec  //TODO reduce to 3 max after 2306 release
+    if( !message_limiter.countIncomingMessage( exchange.getID(), 6, 230*1000 ) ) {  //allow max 5 pex per 4min  //TODO reduce to 5 max after 2306 release
       Debug.out( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
       closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
       return;
