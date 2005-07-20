@@ -50,7 +50,6 @@ public class BTUninterested implements BTMessage {
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload not empty" );
     }
     

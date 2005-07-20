@@ -72,7 +72,6 @@ public class AZSessionBitfield implements AZMessage {
     }
         
     if( data.remaining( DirectByteBuffer.SS_MSG ) < 4 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 4" );
     }
     

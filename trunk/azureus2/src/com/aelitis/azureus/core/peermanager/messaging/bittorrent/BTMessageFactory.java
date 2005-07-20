@@ -86,6 +86,7 @@ public class BTMessageFactory {
    * @param stream_payload data
    * @return decoded/deserialized BT message
    * @throws MessageException if message creation failed
+   * NOTE: Does not auto-return given direct buffer on thrown exception.
    */
   public static Message createBTMessage( DirectByteBuffer stream_payload ) throws MessageException {
     byte id = stream_payload.get( DirectByteBuffer.SS_MSG );

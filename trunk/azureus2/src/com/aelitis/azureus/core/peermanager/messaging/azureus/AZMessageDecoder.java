@@ -257,8 +257,11 @@ public class AZMessageDecoder implements MessageStreamDecoder {
       if( !payload_buffer.hasRemaining( SS ) && !is_paused ) {  //full message received!
         payload_buffer.position( SS, 0 );  //prepare for use
 
+        DirectByteBuffer ref_buff = payload_buffer;
+        payload_buffer = null;
+        
         try {
-          Message msg = AZMessageFactory.createAZMessage( payload_buffer );
+          Message msg = AZMessageFactory.createAZMessage( ref_buff );
           messages_last_read.add( msg );
 
           //we only learn what type of message it is AFTER we are done decoding it, so we probably need to work off the count post-hoc
@@ -267,10 +270,10 @@ public class AZMessageDecoder implements MessageStreamDecoder {
           }
         }
         catch( MessageException me ) {
+          ref_buff.returnToPool();
           throw new IOException( "AZ message decode failed: " + me.getMessage() );
         }
         
-        payload_buffer = null;
         reading_length_mode = true;  //see if we've already read the next message's length
         percent_complete = -1;  //reset receive percentage
       }

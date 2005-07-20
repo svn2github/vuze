@@ -79,14 +79,12 @@ public class BTHave implements BTMessage {
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) != 4 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 4" );
     }
     
     int number = data.getInt( DirectByteBuffer.SS_MSG );
     
     if( number < 0 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: number < 0" );
     }
     

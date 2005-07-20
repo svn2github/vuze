@@ -94,14 +94,12 @@ public class AZSessionHave implements AZMessage {
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) < 8 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 8" );
     }
     
     int id = data.getInt( DirectByteBuffer.SS_MSG );
 
     if( data.remaining( DirectByteBuffer.SS_MSG ) % 4 != 0 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] % 4 != 0" );
     }
     
@@ -111,7 +109,6 @@ public class AZSessionHave implements AZMessage {
       numbers[i] = data.getInt( DirectByteBuffer.SS_MSG );
       
       if( numbers[i] < 0 ) {
-        data.returnToPool();
         throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: number < 0" );
       }
     }

@@ -91,25 +91,21 @@ public class BTCancel implements BTMessage {
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) != 12 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 12" );
     }
     
     int num = data.getInt( DirectByteBuffer.SS_MSG );
     if( num < 0 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: num < 0" );
     }
     
     int offset = data.getInt( DirectByteBuffer.SS_MSG );
     if( offset < 0 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: offset < 0" );
     }
     
     int lngth = data.getInt( DirectByteBuffer.SS_MSG );
     if( lngth < 0 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: lngth < 0" );
     }
     

@@ -81,6 +81,7 @@ public interface Message {
    * @param data to deserialize
    * @return decoded message instance
    * @throws MessageException if the decoding process fails
+   * NOTE: Does not auto-return given direct buffer on thrown exception.
    */
   public Message deserialize( DirectByteBuffer data ) throws MessageException;
     

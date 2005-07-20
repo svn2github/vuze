@@ -137,12 +137,10 @@ public class BTHandshake implements BTMessage, RawMessage {
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) != 68 ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 68" );
     }
     
     if( data.get( DirectByteBuffer.SS_MSG ) != (byte)PROTOCOL.length() ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.get() != (byte)PROTOCOL.length()" );
     }
     
@@ -150,7 +148,6 @@ public class BTHandshake implements BTMessage, RawMessage {
     data.get( DirectByteBuffer.SS_MSG, header );
     
     if( !PROTOCOL.equals( new String( header ) ) ) {
-      data.returnToPool();
       throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid protocol given: " + new String( header ) );
     }
     

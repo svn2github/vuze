@@ -63,6 +63,7 @@ public class MessagingUtil {
    * @param version of message
    * @return mapped deserialization
    * @throws MessageException on convertion error
+   * NOTE: Does not auto-return given direct buffer on thrown exception.
    */
   public static Map convertBencodedByteStreamToPayload( DirectByteBuffer stream, int min_size, String id, byte version ) throws MessageException {
     if( stream == null ) {
@@ -70,7 +71,6 @@ public class MessagingUtil {
     }
     
     if( stream.remaining( DirectByteBuffer.SS_MSG ) < min_size ) {
-      stream.returnToPool();
       throw new MessageException( "[" +id + ":" +version+ "] decode error: stream.remaining[" +stream.remaining( DirectByteBuffer.SS_MSG )+ "] < " +min_size );
     }
 

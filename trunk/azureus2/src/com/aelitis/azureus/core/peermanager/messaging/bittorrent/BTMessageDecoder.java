@@ -262,22 +262,25 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       if( !payload_buffer.hasRemaining( SS ) && !is_paused ) {  //full message received!        
         payload_buffer.position( SS, 0 );
         
+        DirectByteBuffer ref_buff = payload_buffer;
+        payload_buffer = null;
+        
         if( reading_handshake_message ) {  //decode handshake
           reading_handshake_message = false;
           
           DirectByteBuffer handshake_data = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_BT_HAND, 68 );
           handshake_data.putInt( SS, HANDSHAKE_FAKE_LENGTH );
-          handshake_data.put( SS, payload_buffer );
+          handshake_data.put( SS, ref_buff );
           handshake_data.flip( SS );
           
-          payload_buffer.returnToPool();
-          payload_buffer = null;
+          ref_buff.returnToPool();
           
           try {
             Message handshake = MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HANDSHAKE, BTMessage.BT_DEFAULT_VERSION, handshake_data );
             messages_last_read.add( handshake );
           }
           catch( MessageException me ) {
+            handshake_data.returnToPool();
             throw new IOException( "BT message decode failed: " + me.getMessage() );
           }
           
@@ -287,7 +290,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
         }
         else {  //decode normal message
           try {
-            Message msg = BTMessageFactory.createBTMessage( payload_buffer );
+            Message msg = BTMessageFactory.createBTMessage( ref_buff );
             messages_last_read.add( msg );
             
             //we only learn what type of message it is AFTER we are done decoding it, so we probably need to work off the count post-hoc
@@ -296,11 +299,11 @@ public class BTMessageDecoder implements MessageStreamDecoder {
             }
           }
           catch( MessageException me ) {
+            ref_buff.returnToPool();
             throw new IOException( "BT message decode failed: " +me.getMessage() );
           }
         }
      
-        payload_buffer = null;
         reading_length_mode = true;  //see if we've already read the next message's length
         percent_complete = -1;  //reset receive percentage
       }
