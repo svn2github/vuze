@@ -465,28 +465,41 @@ public class FileUtil {
 		String		file_name,
 		boolean		use_backup )
  	{
- 		Map	res = readResilientFile( parent_dir, file_name );
+		File	backup_file = new File( parent_dir, file_name + ".bak" );
+		 
+ 		if ( use_backup ){	
+			
+ 			use_backup = backup_file.exists();
+ 		}
+ 			
+ 			// if we've got a backup, don't attempt recovery here as the .bak file may be
+ 			// fully OK
+ 		
+ 		Map	res = readResilientFileSupport( parent_dir, file_name, !use_backup );
  		
  		if ( res == null && use_backup ){
- 			
- 			File	backup_file = new File( parent_dir, file_name + ".bak" );
- 			
- 			if ( backup_file.exists()){
  				
- 		 		res = readResilientFile( parent_dir, file_name + ".bak" );
+ 				// try backup without recovery
+ 			
+ 		 	res = readResilientFileSupport( parent_dir, file_name + ".bak", false );
  		 		
- 		 		if ( res != null ){
- 		 			
- 					LGLogger.logUnrepeatableAlert( 	
- 							LGLogger.AT_WARNING,
-							"Backup file '" + backup_file + "' has been used for recovery purposes" );
- 					
- 						// rewrite the good data, don't use backups here as we want to
- 						// leave the original backup in place for the moment
- 					
- 					writeResilientFile( parent_dir, file_name, res, false );
- 		 		}
- 			}
+	 		if ( res != null ){
+	 			
+				LGLogger.logUnrepeatableAlert( 	
+						LGLogger.AT_WARNING,
+						"Backup file '" + backup_file + "' has been used for recovery purposes" );
+				
+					// rewrite the good data, don't use backups here as we want to
+					// leave the original backup in place for the moment
+				
+				writeResilientFile( parent_dir, file_name, res, false );
+				
+	 		}else{
+	 			
+	 				// neither main nor backup file ok, retry main file with recovery
+	 			
+	 			res = readResilientFileSupport( parent_dir, file_name, true );
+	 		}
  		}
  		
  		if ( res == null ){
@@ -500,9 +513,10 @@ public class FileUtil {
   		// synchronised against writes to make sure we get a consistent view
   
   	private static Map
-	readResilientFile(
+	readResilientFileSupport(
 		File		parent_dir,
-		String		file_name )
+		String		file_name,
+		boolean		attempt_recovery )
 	{
    		try{
   			class_mon.enter();
@@ -520,7 +534,7 @@ public class FileUtil {
 	  				// ignore, it'll be rethrown if we can't recover below
 	  			}
 	  			
-	  			if ( res == null ){
+	  			if ( res == null && attempt_recovery ){
 	  				
 	  				res = readResilientFile( parent_dir, file_name, 0, true );
 	  				
