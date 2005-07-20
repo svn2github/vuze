@@ -866,11 +866,14 @@ public class StartStopRulesDefaultPlugin
 	          // middle of resume-data building, or file allocating.
 	          numWaitingOrDLing++;
 	
-	        } else if (state == Download.ST_READY ||
-	                   state == Download.ST_DOWNLOADING ||
+	        } else if ( state == Download.ST_READY ||
+	        		   state == Download.ST_DOWNLOADING ||
 	                   state == Download.ST_WAITING) {
 	
 	          boolean bActivelyDownloading = dlData.getActivelyDownloading();
+	          
+//	          System.out.println(dlData.getDownloadObject().getName());
+//	          System.out.println( "Before: numWaitingOrDLing: " + numWaitingOrDLing + " / " + "activeDLCount: " + activeDLCount);
 	          
 	          // Stop torrent if over limit
 	          if ((maxDownloads != 0) &&
@@ -895,29 +898,12 @@ public class StartStopRulesDefaultPlugin
 	            } catch (Exception ignore) {/*ignore*/}
 	            
 	            state = download.getState();
-	          } else if (bActivelyDownloading) {
+	          } else if ( state == Download.ST_DOWNLOADING && bActivelyDownloading || state == Download.ST_READY) {
 	            numWaitingOrDLing++;
 	          }
 	        }
 	
-	        if (state == Download.ST_QUEUED) { 
-	          if ((maxDownloads == 0) || (numWaitingOrDLing < maxDLs)) {
-	            try {
-	              if (bDebugLog) {
-	                String s = "   restart()";
-	                log.log(LoggerChannel.LT_INFORMATION, s);
-	                dlData.sTrace += s + "\n";
-	              }
-	              download.restart();
-	
-	              // increase counts
-	              totalWaitingToDL++;
-	              numWaitingOrDLing++;
-	              maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
-	            } catch (Exception ignore) {/*ignore*/}
-	            state = download.getState();
-	          }
-	        }
+
 	
 	        if (state == Download.ST_READY) {
 	          if ((maxDownloads == 0) || (activeDLCount < maxDLs)) {
@@ -938,6 +924,27 @@ public class StartStopRulesDefaultPlugin
 	            state = download.getState();
 	          }
 	        }
+	        
+	        if (state == Download.ST_QUEUED) { 
+		          if ((maxDownloads == 0) || (numWaitingOrDLing < maxDLs)) {
+		            try {
+		              if (bDebugLog) {
+		                String s = "   restart()";
+		                log.log(LoggerChannel.LT_INFORMATION, s);
+		                dlData.sTrace += s + "\n";
+		              }
+		              download.restart();
+		
+		              // increase counts
+		              totalWaitingToDL++;
+		              numWaitingOrDLing++;
+		              maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
+		            } catch (Exception ignore) {/*ignore*/}
+		            state = download.getState();
+		          }
+		        }
+	        
+//	        System.out.println( "After: numWaitingOrDLing: " + numWaitingOrDLing + " / " + "activeDLCount: " + activeDLCount);
 	
 	        if (bDebugLog) {
 	          String s = "<< "+download.getTorrent().getName()+
