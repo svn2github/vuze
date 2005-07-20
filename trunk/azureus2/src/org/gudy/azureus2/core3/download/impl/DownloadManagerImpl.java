@@ -363,6 +363,11 @@ DownloadManagerImpl
 		torrent_save_dir	= _torrent_save_dir;	
 		torrent_save_file	= _torrent_save_file;
 	
+		while( torrent_save_dir.endsWith( File.separator )){
+			
+			torrent_save_dir = torrent_save_dir.substring(0, torrent_save_dir.length()-1 );
+		}
+		
 			// readTorrent adjusts the save dir and file to be sensible values
 			
 		readTorrent( _torrent_hash, persistent && !_recovered, _open_for_seeding, _has_ever_been_started );
