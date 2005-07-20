@@ -88,14 +88,16 @@ public class IncomingSocketChannelManager {
     });
     
     //allow dynamic bind address changes
-    COConfigurationManager.addParameterListener( "Bind IP", new ParameterListener() {
-      public void parameterChanged(String parameterName) {
-        String address = COConfigurationManager.getStringParameter( "Bind IP" );
-        if( !address.equals( bind_address ) ) {
-          bind_address = address;
-          stop();
-          start();
-        }
+    COConfigurationManager.addListener(
+    	new COConfigurationListener()
+    	{
+    		public void configurationSaved() {
+	        String address = COConfigurationManager.getStringParameter( "Bind IP" );
+	        if( !address.equals( bind_address ) ) {
+	          bind_address = address;
+	          stop();
+	          start();
+	        }
       }
     });
     
