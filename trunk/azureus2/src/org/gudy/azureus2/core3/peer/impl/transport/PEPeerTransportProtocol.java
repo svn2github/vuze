@@ -1687,7 +1687,6 @@ PEPeerTransportProtocol
         //check for peer exchange support
         if( peerSupportsMessageType( AZMessage.ID_AZ_PEER_EXCHANGE ) ) {
           peer_exchange_supported = true;
-          updatePeerExchange();  //send initial volley
         }
         else {  //no need to maintain internal states as we wont be sending/receiving peer exchange messages
           peer_exchange_item.disableStateMaintenance();
@@ -1732,9 +1731,9 @@ PEPeerTransportProtocol
     exchange.destroy();
     
     //make sure they're not spamming us
-    if( !message_limiter.countIncomingMessage( exchange.getID(), 5, 250*1000 ) ) {  //allow max 5 pex per 250sec
-      //Debug.out( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
-      //closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
+    if( !message_limiter.countIncomingMessage( exchange.getID(), 4, 100*1000 ) ) {  //allow max 5 pex per 200sec  //TODO reduce to 3 max after 2306 release
+      Debug.out( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
+      closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
       return;
     }
     
