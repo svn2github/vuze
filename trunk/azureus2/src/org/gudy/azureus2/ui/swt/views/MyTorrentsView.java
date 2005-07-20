@@ -172,7 +172,7 @@ public class MyTorrentsView
     layout.marginHeight = 0;
     layout.marginWidth = 0;
     panel.setLayout(layout);
-    panel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+    panel.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     cTablePanel = new Composite(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_BOTH);

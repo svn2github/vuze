@@ -4,6 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Event;
@@ -137,7 +138,13 @@ public class MyTorrentsSuperView extends AbstractIView  {
     form.setLayoutData(gridData);
     
     Composite child1 = new Composite(form,SWT.NULL);
-    child1.setLayout(new FillLayout());
+    GridLayout layout = new GridLayout();
+    layout.numColumns = 1;
+    layout.horizontalSpacing = 0;
+    layout.verticalSpacing = 0;
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    child1.setLayout(layout);
     torrentview = new MyTorrentsView(azureus_core, false, tableIncompleteItems);
     torrentview.initialize(child1);
     child1.addListener(SWT.Resize, new Listener() {
@@ -149,7 +156,13 @@ public class MyTorrentsSuperView extends AbstractIView  {
     });
 
     Composite child2 = new Composite(form,SWT.NULL);
-    child2.setLayout(new FillLayout());
+    layout = new GridLayout();
+    layout.numColumns = 1;
+    layout.horizontalSpacing = 0;
+    layout.verticalSpacing = 0;
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    child2.setLayout(layout);
     seedingview = new MyTorrentsView(azureus_core, true, tableCompleteItems);
     seedingview.initialize(child2);
     int weight = COConfigurationManager.getIntParameter("MyTorrents.SplitAt", 30);
