@@ -35,30 +35,18 @@ import org.gudy.azureus2.plugins.config.*;
 public interface 
 PluginConfig 
 {  
-  /**
-   *
-   * @since 2.0.8.2
-   */
-	public static final String CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC	= "Max Upload Speed KBs";
-  /**
-   *
-   * @since 2.1.0.0
-   */
-	public static final String CORE_PARAM_INT_MAX_DOWNLOAD_SPEED_KBYTES_PER_SEC	= "Max Download Speed KBs";
-  /**
-   *
-   * @since 2.1.0.0
-   */
-	public static final String CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT		= "Max Connections Per Torrent";
-  /**
-   *
-   * @since 2.1.0.0
-   */
-	public static final String CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL					= "Max Connections Global";
-	
+	public static final String CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC			= "Max Upload Speed KBs";
+ 	public static final String CORE_PARAM_INT_MAX_DOWNLOAD_SPEED_KBYTES_PER_SEC			= "Max Download Speed KBs";
+ 	public static final String CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT				= "Max Connections Per Torrent";
+ 	public static final String CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL					= "Max Connections Global";
+ 	
 	public static final String CORE_PARAM_BOOLEAN_SOCKS_PROXY_NO_INWARD_CONNECTION		= "SOCKS Proxy No Inward Connection";
-
 	public static final String CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP				= "Newly Seeding Torrents Get First Priority";
+	
+	/**
+	 * @since 2.3.0.5
+	 */
+	public static final String CORE_PARAM_STRING_LOCAL_BIND_IP							= "CORE_PARAM_STRING_LOCAL_BIND_IP";
 
   /**
    * returns the value of a core float parameter

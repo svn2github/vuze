@@ -25,11 +25,15 @@ package org.gudy.azureus2.pluginsimpl.local.clientid;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.UnknownHostException;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -66,6 +70,7 @@ ClientIDManagerImpl
 
 	private ClientIDGenerator		generator;
 	private boolean					use_filter;
+	private boolean					filter_override;
 	private ThreadPool				thread_pool;
 	
 	private int						filter_port;
@@ -77,6 +82,25 @@ ClientIDManagerImpl
 	{
 		generator	= _generator;
 		use_filter	= _use_filter;
+		
+			// we override the filter parameter here if we have a local bind IP set as
+			// this is the only simple solution to enforcing the local bind (Sun's
+			// HTTPConnection doesn't allow the network interface to be bound)
+		
+
+		if ( !use_filter ){
+			
+		    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+		    
+	        if ( bindIP.length() > 6 ){
+
+	        	filter_override	= true;
+	        	
+	        	use_filter	= true;
+	        	
+				LGLogger.log( "ClientIDManager: overriding filter option to support local bind IP" ); 
+	        }
+		}
 		
 		if ( use_filter ){
 			
@@ -243,6 +267,9 @@ ClientIDManagerImpl
 		public void
 		runSupport()
 		{
+			String		report_error	= null;
+			int			written			= 0;
+			
 			try{
 						
 				setTaskState( "reading header" );
@@ -340,7 +367,7 @@ ClientIDManagerImpl
 				
 				lines_in[0] = get;
 				
-				String[]	lines_out = generator.filterHTTP( lines_in );
+				String[]	lines_out = filter_override?lines_in:generator.filterHTTP( lines_in );
 				
 				String	header_out = "";
 				
@@ -351,8 +378,19 @@ ClientIDManagerImpl
 				
 				header_out += NL;
 				
-				Socket	target = new Socket( target_host, target_port );
+				Socket	target = new Socket();
 				
+			    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
+			    
+		        if ( bindIP.length() > 6 ){
+		        	
+		        	target.bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
+		        }
+
+		        // System.out.println( "filtering " + target_host + ":" + target_port );
+		        
+		        target.connect( new InetSocketAddress(  target_host, target_port  ));
+		        
 				target.getOutputStream().write( header_out.getBytes(Constants.BYTE_ENCODING ));
 				
 				target.getOutputStream().flush();
@@ -369,29 +407,40 @@ ClientIDManagerImpl
 					}
 					
 					socket.getOutputStream().write( buffer, 0,len );
+					
+					written += len;
 				}	
 				
 			}catch( ClientIDException e ){
-									
-				Map	failure = new HashMap();
+						
+				report_error = e.getMessage();
 				
-				failure.put("failure reason", e.getMessage());
+			}catch( UnknownHostException e ){
 				
-				try{
-					byte[] x = BEncoder.encode( failure );
-				
-					socket.getOutputStream().write( x );
-					
-				}catch( IOException f ){
-					
-					Debug.printStackTrace(f);
-				}
+				report_error = "Unknown host '" + e.getMessage() + "'";
 				
 			}catch( Throwable e ){
 				
 				// Debug.printStackTrace(e);
 					
 			}finally{
+				
+				if ( report_error != null && written == 0 ){
+					
+					Map	failure = new HashMap();
+					
+					failure.put("failure reason", report_error );
+					
+					try{
+						byte[] x = BEncoder.encode( failure );
+					
+						socket.getOutputStream().write( x );
+						
+					}catch( Throwable f ){
+						
+						Debug.printStackTrace(f);
+					}
+				}
 				
 				try{
 					socket.getOutputStream().flush();
