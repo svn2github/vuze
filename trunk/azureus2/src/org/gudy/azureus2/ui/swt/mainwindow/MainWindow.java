@@ -293,7 +293,7 @@ MainWindow
       ((TabFolder)folder).addSelectionListener(selectionAdapter);
     } else {
       try {
-        ((CTabFolder)folder).MIN_TAB_WIDTH = 75;
+        ((CTabFolder)folder).setMinimumCharacters( 75 );
       } catch (Exception e) {
         LGLogger.log(LGLogger.ERROR, "Can't set MIN_TAB_WIDTH");
         Debug.printStackTrace( e );
