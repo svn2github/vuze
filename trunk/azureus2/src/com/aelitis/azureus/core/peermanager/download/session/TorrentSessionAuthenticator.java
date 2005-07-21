@@ -24,6 +24,9 @@ package com.aelitis.azureus.core.peermanager.download.session;
 
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
+
 
 public interface TorrentSessionAuthenticator {
   
@@ -65,4 +68,19 @@ public interface TorrentSessionAuthenticator {
    */
   public void verifySessionAck( Map ack_info ) throws AuthenticatorException;
   
+  /**
+   * Decode the given (possibly encrypted) session data into clean form.
+   * @param encoded_data to decode
+   * @return decoded form of data
+   * @throws AuthenticatorException on decode error / failure
+   */
+  public DirectByteBuffer decodeSessionData( DirectByteBuffer encoded_data ) throws AuthenticatorException;
+  
+  /**
+   * Encode the given clean session data into (possibly encrypted) encoded form.
+   * @param decoded_data to encode
+   * @return encoded form of data
+   * @throws AuthenticatorException on encode error / failure
+   */
+  public DirectByteBuffer encodeSessionData( DirectByteBuffer decoded_data ) throws AuthenticatorException;
 }

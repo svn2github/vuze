@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.download;
 
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
 import com.aelitis.azureus.core.peermanager.download.session.TorrentSession;
 
 
@@ -39,11 +41,37 @@ public class TorrentDownload {
   
   
   public void registerTorrentSession( TorrentSession session ) {
-    //TODO
+
   }
   
   
   public void deregisterTorrentSession( TorrentSession session ) {
-    //TODO
+
+  }
+  
+  
+  
+  public void receivedSessionBitfield( TorrentSession session, DirectByteBuffer bitfield ) {
+    
+  }
+  
+  
+  public void receivedSessionRequest( TorrentSession session, byte unchoke_id, int piece_number, int piece_offset, int length ) {
+    
+  }
+  
+  
+  public void receivedSessionCancel( TorrentSession session, int piece_number, int piece_offset, int length ) {
+    
+  }
+  
+  
+  public void receivedSessionHave( TorrentSession session, int piece_number ) {
+    
+  }
+  
+  
+  public void receivedSessionPiece( TorrentSession session, int piece_number, int piece_offset, DirectByteBuffer data ) {
+    
   }
 }

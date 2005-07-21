@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.peermanager.download.session.auth;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
 import com.aelitis.azureus.core.peermanager.download.session.*;
 
 
@@ -56,4 +58,12 @@ public class StandardAuthenticator implements TorrentSessionAuthenticator {
     //do nothing, always accept ack
   }
 
+  public DirectByteBuffer decodeSessionData( DirectByteBuffer encoded_data ) throws AuthenticatorException {
+    return encoded_data;  //keep as is
+  }
+  
+
+  public DirectByteBuffer encodeSessionData( DirectByteBuffer decoded_data ) throws AuthenticatorException {
+    return decoded_data;  //keep as is
+  }
 }

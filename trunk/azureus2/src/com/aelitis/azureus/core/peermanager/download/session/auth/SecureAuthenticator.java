@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.peermanager.download.session.auth;
 
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
 import com.aelitis.azureus.core.peermanager.download.session.*;
 
 
@@ -53,6 +55,16 @@ public class SecureAuthenticator implements TorrentSessionAuthenticator {
   }
 
   public void verifySessionAck( Map ack_info ) throws AuthenticatorException {
+    throw new AuthenticatorException( "not implemented" );
+  }
+  
+  
+  public DirectByteBuffer decodeSessionData( DirectByteBuffer encoded_data ) throws AuthenticatorException {
+    throw new AuthenticatorException( "not implemented" );
+  }
+  
+  
+  public DirectByteBuffer encodeSessionData( DirectByteBuffer decoded_data ) throws AuthenticatorException {
     throw new AuthenticatorException( "not implemented" );
   }
   

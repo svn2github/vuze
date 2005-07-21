@@ -48,13 +48,12 @@ public class TorrentSession {
   
   private final IncomingMessageQueue.MessageQueueListener incoming_q_listener = new IncomingMessageQueue.MessageQueueListener() {
     public boolean messageReceived( Message message ) {
+      //ID_AZ_SESSION_ACK
       if( message.getID().equals( AZMessage.ID_AZ_SESSION_ACK ) ) {          
         AZSessionAck ack = (AZSessionAck)message;
-
         if( ack.getSessionType().equals( authenticator.getSessionTypeID() ) && Arrays.equals( ack.getInfoHash(), authenticator.getSessionInfoHash() ) ) {
           remote_session_id = ack.getSessionID();  //capture send-to id
           syn_timeout_timer.cancel();  //abort timeout check
-          
           try{
             authenticator.verifySessionAck( ack.getSessionInfo() );
             startSessionProcessing();
@@ -62,25 +61,82 @@ public class TorrentSession {
           catch( AuthenticatorException ae ) {
             endSession( "AuthenticatorException:: " +ae.getMessage() );
           }
-
           ack.destroy();
           return true;
         }
       }
       
+      //ID_AZ_SESSION_END
       if( message.getID().equals( AZMessage.ID_AZ_SESSION_END ) ) {          
         AZSessionEnd end = (AZSessionEnd)message;
-        
         if( end.getSessionType().equals( authenticator.getSessionTypeID() ) && Arrays.equals( end.getInfoHash(), authenticator.getSessionInfoHash() ) ) {
-          System.out.println( "AZ_TORRENT_SESSION_END received: " +end.getEndReason() );
-          
-          destroy();  //close session
-          
+          System.out.println( "AZ_TORRENT_SESSION_END received: " +end.getEndReason() );          
+          destroy();  //close session       
           end.destroy();
           return true;
         } 
       }
       
+      //ID_AZ_SESSION_BITFIELD
+      if( message.getID().equals( AZMessage.ID_AZ_SESSION_BITFIELD ) ) {          
+        AZSessionBitfield bitf = (AZSessionBitfield)message;
+        if( bitf.getSessionID() == local_session_id ) {
+          download.receivedSessionBitfield( TorrentSession.this, bitf.getBitfield() );       
+          bitf.destroy();
+          return true;
+        }
+      }
+      
+      //ID_AZ_SESSION_REQUEST
+      if( message.getID().equals( AZMessage.ID_AZ_SESSION_REQUEST ) ) {          
+        AZSessionRequest req = (AZSessionRequest)message;
+        if( req.getSessionID() == local_session_id ) {
+          download.receivedSessionRequest( TorrentSession.this, req.getUnchokeID(), req.getPieceNumber(), req.getPieceOffset(), req.getLength() );
+          req.destroy();
+          return true;
+        }
+      }
+      
+      //ID_AZ_SESSION_CANCEL
+      if( message.getID().equals( AZMessage.ID_AZ_SESSION_CANCEL ) ) {          
+        AZSessionCancel cancel = (AZSessionCancel)message;
+        if( cancel.getSessionID() == local_session_id ) {
+          download.receivedSessionCancel( TorrentSession.this, cancel.getPieceNumber(), cancel.getPieceOffset(), cancel.getLength() );
+          cancel.destroy();
+          return true;
+        }
+      }
+      
+      //ID_AZ_SESSION_HAVE
+      if( message.getID().equals( AZMessage.ID_AZ_SESSION_HAVE ) ) {          
+        AZSessionHave have = (AZSessionHave)message;
+        if( have.getSessionID() == local_session_id ) {
+          int[] piecenums = have.getPieceNumbers();
+          for( int i=0; i < piecenums.length; i++ ) {
+            download.receivedSessionHave( TorrentSession.this, piecenums[i] );
+          }     
+          have.destroy();
+          return true;
+        }
+      }
+      
+      //ID_AZ_SESSION_PIECE
+      if( message.getID().equals( AZMessage.ID_AZ_SESSION_PIECE ) ) {          
+        AZSessionPiece piece = (AZSessionPiece)message;
+        if( piece.getSessionID() == local_session_id ) {
+          try{
+            DirectByteBuffer data = authenticator.decodeSessionData( piece.getPieceData() );
+            download.receivedSessionPiece( TorrentSession.this, piece.getPieceNumber(), piece.getPieceOffset(), data );
+          }
+          catch( AuthenticatorException ae ) {
+            piece.getPieceData().returnToPool();
+            endSession( "AuthenticatorException:: " +ae.getMessage() );
+          }
+          piece.destroy();
+          return true;
+        }
+      }
+
       return false;
     }
 
