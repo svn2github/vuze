@@ -391,28 +391,43 @@ DownloadManagerStatsImpl
   }
   
 
-	public long getTotalAverage() {
+	public long 
+	getTotalAverage() 
+	{
 		PEPeerManager	pm = download_manager.getPeerManager();
-	  if (pm != null)
-		return pm.getStats().getTotalAverage();
-	  return( 0 );
+	
+		if (pm != null){
+			
+			return pm.getStats().getTotalAverage();
+		}
+		
+		return( 0 );
 	}
       
   
-	public int getShareRatio() {
+	public int 
+	getShareRatio() 
+	{
 	  long downloaded,uploaded;
+	  
 	  PEPeerManager	pm = download_manager.getPeerManager();
     
-	  if(pm != null) {
-	    downloaded = saved_data_bytes_downloaded + pm.getStats().getTotalDataBytesReceived();
-	    uploaded = saved_data_bytes_uploaded + pm.getStats().getTotalDataBytesSent();
-	  }
-    else {
-      downloaded = saved_data_bytes_downloaded;
-      uploaded = saved_data_bytes_uploaded;
+	  if (pm != null ){
+		  
+		  downloaded = saved_data_bytes_downloaded + pm.getStats().getTotalDataBytesReceived();
+	    
+		  uploaded = saved_data_bytes_uploaded + pm.getStats().getTotalDataBytesSent();
+	    
+	  }else{
+		  downloaded = saved_data_bytes_downloaded;
+		  
+		  uploaded = saved_data_bytes_uploaded;
 	  }
         
-	  if(downloaded == 0) {
+	  downloaded -= ( getHashFails() + getDiscarded());
+	  
+	  if( downloaded <= 0) {
+		  
 	    return -1;
 	  }
 
