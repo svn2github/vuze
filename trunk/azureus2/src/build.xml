@@ -4,10 +4,10 @@
    <description>The Azureus Project</description>
 
    <property name="dist.name" value="Azureus" />
-   <property name="dist.version" value="2.3.0.3" />
+   <property name="dist.version" value="2.3.0.5" />
    
    <property name="source.dir" location="." />
-   <property name="libs.dir" location="libs/" />
+   <property name="libs.dir" location="build/libs/" />
    <property name="dist.dir" location="dist/" />
 
    <property name="generic.excludes" value="**/*.jar **/*.txt **/*.jardesc **/.classpath **/.project **/aereg.lib **/aereg.dll" />
