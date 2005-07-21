@@ -1,6 +1,6 @@
 /*
- * Created on Jul 12, 2005
- * Created by Alon Rohter
+ * Created on 21-Jul-2005
+ * Created by Paul Gardner
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
@@ -20,15 +20,35 @@
  *
  */
 
-package org.gudy.azureus2.plugins.download.session;
+package org.gudy.azureus2.pluginsimpl.local.utils;
 
-public class SessionAuthenticatorException extends Exception {
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
-  public SessionAuthenticatorException( String reason ) {
-    super( reason );
-  }
-  
-  public SessionAuthenticatorException( String reason, Throwable cause ) {
-	super( reason, cause );
-  }	  
+public class 
+PooledByteBufferImpl 
+	implements PooledByteBuffer
+{
+	private DirectByteBuffer	buffer;
+	
+	public
+	PooledByteBufferImpl(
+		DirectByteBuffer	_buffer )
+	{
+		buffer	= _buffer;
+	}
+	
+	public
+	PooledByteBufferImpl(
+		int		size )
+	{
+		buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL, size );
+	}
+	
+	public void
+	returnToPool()
+	{
+		buffer.returnToPool();
+	}
 }

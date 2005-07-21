@@ -24,7 +24,8 @@ package org.gudy.azureus2.plugins.download.session;
 
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.DirectByteBuffer;  //TODO
+import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
 
 /**
@@ -34,16 +35,10 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;  //TODO
 public interface SessionAuthenticator {
   
   /**
-   * Get the session type id that this authenticator handles.
-   * @return type id
-   */
-  public String getSessionTypeID();
-
-  /**
    * Create bencode-able map info for outgoing session syn.
    * @return syn info
    */
-  public Map createSessionSyn();
+  public Map createSessionSyn( Peer	peer );
   
   /**
    * Decode and verify the given (bencoded) map of incoming session SYN information,
@@ -52,14 +47,14 @@ public interface SessionAuthenticator {
    * @return bencode-able map info for session ack reply
    * @throws SessionAuthenticatorException on verify error / failure
    */
-  public Map verifySessionSyn( Map syn_info ) throws SessionAuthenticatorException;
+  public Map verifySessionSyn( Peer	peer, Map syn_info ) throws SessionAuthenticatorException;
 
   /**
    * Decode and verify the given (bencoded) map of outgoing session ACK information.
    * @param ack_info incoming session ack info
    * @throws SessionAuthenticatorException on verify error / failure
    */
-  public void verifySessionAck( Map ack_info ) throws SessionAuthenticatorException;
+  public void verifySessionAck( Peer peer, Map ack_info ) throws SessionAuthenticatorException;
   
   /**
    * Decode the given (possibly encrypted) session data into clean form.
@@ -67,7 +62,7 @@ public interface SessionAuthenticator {
    * @return decoded form of data
    * @throws SessionAuthenticatorException on decode error / failure
    */
-  public DirectByteBuffer decodeSessionData( DirectByteBuffer encoded_data ) throws SessionAuthenticatorException;
+  public PooledByteBuffer decodeSessionData( Peer peer, PooledByteBuffer encoded_data ) throws SessionAuthenticatorException;
   
   /**
    * Encode the given clean session data into (possibly encrypted) encoded form.
@@ -75,5 +70,5 @@ public interface SessionAuthenticator {
    * @return encoded form of data
    * @throws SessionAuthenticatorException on encode error / failure
    */
-  public DirectByteBuffer encodeSessionData( DirectByteBuffer decoded_data ) throws SessionAuthenticatorException;
+  public PooledByteBuffer encodeSessionData( Peer peer, PooledByteBuffer decoded_data ) throws SessionAuthenticatorException;
 }

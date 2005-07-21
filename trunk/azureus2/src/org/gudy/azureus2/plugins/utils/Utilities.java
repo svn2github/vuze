@@ -77,6 +77,10 @@ Utilities
 	freeDirectByteBuffer(
 		ByteBuffer	buffer );
 	
+	public PooledByteBuffer
+	allocatePooledByteBuffer(
+		int		size );
+	
 	public Formatters
 	getFormatters();
 	

@@ -181,6 +181,13 @@ UtilitiesImpl
 		//DirectByteBufferPool.freeBuffer( buffer );
 	}
 	
+	public PooledByteBuffer
+	allocatePooledByteBuffer(
+		int		length )
+	{
+		return( new PooledByteBufferImpl( length ));
+	}
+	
 	public Formatters
 	getFormatters()
 	{
