@@ -811,7 +811,6 @@ RPDownload
     
     
     public void setSessionAuthenticator( SessionAuthenticator auth ) {
-      //TODO
-      notSupported();
+      notSupported();  //TODO ?
     }
 }
