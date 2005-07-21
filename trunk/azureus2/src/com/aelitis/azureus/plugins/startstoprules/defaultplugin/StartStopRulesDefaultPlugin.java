@@ -574,7 +574,8 @@ public class StartStopRulesDefaultPlugin
 	    int totalStalledSeeders = 0;
 	    int totalFPStalledSeeders = 0;
 	    int total0PeerSeeders = 0;
-//	    int total0PeernonFPSeeders = 0;
+	    
+	    boolean bDebugOn = false;
 	
 	    // pull the data into a local array, so we don't have to lock/synchronize
 	    downloadData[] dlDataArray;
@@ -588,7 +589,6 @@ public class StartStopRulesDefaultPlugin
 	    boolean bSeedHasRanking = (iRankType == RANK_NONE) || 
 	                              (iRankType == RANK_TIMED) || 
 	                              (SystemTime.getCurrentTime() - startedOn > 90000);
-	    boolean bIsFirstP = false;
 	
 	    // Loop 1 of 2:
 	    // - Build a SeedingRank list for sorting
@@ -600,6 +600,7 @@ public class StartStopRulesDefaultPlugin
 	      Download download = dlData.getDownloadObject();
 	      DownloadStats stats = download.getStats();
 	      int completionLevel = stats.getDownloadCompleted(false);
+	      boolean bIsFirstP = false;
 	
 	      // Count forced seedings as using a slot
 	      // Don't count forced downloading as using a slot
@@ -632,15 +633,10 @@ public class StartStopRulesDefaultPlugin
 	          } else if (state == Download.ST_SEEDING) {
 	        	  if (bIsFirstP) {
 	        		  totalFPStalledSeeders++;
-	        		  //System.out.println(download.getTorrentFileName() + " is FP and stalled!");
 	        	  }
 	        	  
 	            totalStalledSeeders++;
 	            if (bAutoStart0Peers && calcPeersNoUs(download) == 0 && scrapeResultOk(download))
-/*	              if (!bIsFirstP) {
-//	            	  total0PeernonFPSeeders++;
-	            	  //System.out.println(download.getTorrentFileName() + " is nonFP and 0 peer!");
-	              }*/
 	            	total0PeerSeeders++;
 	          }
 	          if (state == Download.ST_READY ||
@@ -667,9 +663,7 @@ public class StartStopRulesDefaultPlugin
 	    }
 	    
 	    int maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
-	    int iExtraFPs = (maxActive != 0) && (maxDownloads != 0) && 
-	                    (maxDownloads + totalFirstPriority - maxActive) > 0 ? (maxDownloads + totalFirstPriority - maxActive) 
-	                                                                        : 0;
+	    
 	    int maxTorrents;
 	    if (maxActive == 0) {
 	      maxTorrents = 9999;
@@ -847,19 +841,19 @@ public class StartStopRulesDefaultPlugin
 	          continue;
 	          
 	        int state = download.getState();
-//	        int maxDLs = maxDownloads - iExtraFPs + totalStalledSeeders - total0PeerSeeders > maxDownloads ? maxDownloads : maxDownloads - iExtraFPs + totalStalledSeeders - total0PeerSeeders;
-//	        int maxDLs = ( totalFirstPriority - totalFPStalledSeeders > maxActive ) ? 0 : maxActive - activeSeedingCount > maxDownloads ? maxDownloads :  maxActive - activeSeedingCount;
 	        int maxDLs = 0;
 	        int DLmax = 0;
 	        if (maxActive == 0) {
 	        	maxDLs = maxDownloads;
 	        } else {
 		        DLmax =  totalFPStalledSeeders + maxActive - totalFirstPriority;
-		        maxDLs = ( DLmax < 0 ) ? 0 : maxDownloads - DLmax < 0 ? maxDownloads :  DLmax;
+		        maxDLs = ( DLmax <= 0 ) ? 0 : maxDownloads - DLmax <= 0 ? maxDownloads :  DLmax;
 	        }
-
-//	        System.out.println( "maxActive: " + maxActive + "/activeSeedingCount: " + activeSeedingCount + "/maxDownloads: " + maxDownloads + "/ maxDLs: " + maxDLs + "/ DLmax: " + DLmax);
-//	        System.out.println("totalFirstPriority: " + totalFirstPriority + " / totalFPStalledSeeders: " + totalFPStalledSeeders + " / total0PeerSeeders: "  + total0PeerSeeders + " / total0PeernonFPSeeders: "  + total0PeernonFPSeeders);
+	        
+	        if (bDebugOn) {
+		        System.out.println( "maxActive: " + maxActive + " / activeSeedingCount: " + activeSeedingCount + " / maxDownloads: " + maxDownloads + " / maxDLs: " + maxDLs + " / DLmax: " + DLmax);
+		        System.out.println("totalFirstPriority: " + totalFirstPriority + " / totalFPStalledSeeders: " + totalFPStalledSeeders + " / total0PeerSeeders: "  + total0PeerSeeders);	        	
+	        }
 	        
 	        if (state == Download.ST_PREPARING) {
 	          // Don't mess with preparing torrents.  they could be in the 
@@ -872,9 +866,11 @@ public class StartStopRulesDefaultPlugin
 	
 	          boolean bActivelyDownloading = dlData.getActivelyDownloading();
 	          
-//	          System.out.println(dlData.getDownloadObject().getName());
-//	          System.out.println( "Before: numWaitingOrDLing: " + numWaitingOrDLing + " / " + "activeDLCount: " + activeDLCount);
-	          
+		      if (bDebugOn) {
+		    	  System.out.println(dlData.getDownloadObject().getName());
+		    	  System.out.println( "Before: numWaitingOrDLing: " + numWaitingOrDLing + " / " + "activeDLCount: " + activeDLCount);
+		      }
+		      
 	          // Stop torrent if over limit
 	          if ((maxDownloads != 0) &&
 	              (numWaitingOrDLing >= maxDLs) &&
@@ -944,8 +940,9 @@ public class StartStopRulesDefaultPlugin
 		          }
 		        }
 	        
-//	        System.out.println( "After: numWaitingOrDLing: " + numWaitingOrDLing + " / " + "activeDLCount: " + activeDLCount);
-	
+	        if (bDebugOn) {
+	        	System.out.println( "After: numWaitingOrDLing: " + numWaitingOrDLing + " / " + "activeDLCount: " + activeDLCount);
+	        }
 	        if (bDebugLog) {
 	          String s = "<< "+download.getTorrent().getName()+
 	                  "]: state="+sStates.charAt(download.getState())+
