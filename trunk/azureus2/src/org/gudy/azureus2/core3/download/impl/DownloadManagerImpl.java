@@ -1390,6 +1390,8 @@ DownloadManagerImpl
   	boolean use_fast_resume) 
   {
   	try{
+  		boolean	was_force_start = isForceStart();
+  		
 	    if (!use_fast_resume) {
 	      
 	    		//invalidate resume info
@@ -1407,6 +1409,10 @@ DownloadManagerImpl
 	    
 	    initialize();
 	    
+	    if ( was_force_start ){
+	    	
+	    	setForceStart(true);
+	    }
   	}catch( Exception e ){
   		
 		setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
