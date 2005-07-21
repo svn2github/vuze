@@ -52,9 +52,7 @@ public class
 UPnPImpl
 	extends 	ResourceDownloaderAdapter
 	implements 	UPnP, SSDPListener
-{
-	public static final boolean	USE_HTTP_CONNECTION		= true;
-	
+{	
 	public static final String	NL	= "\r\n";
 	
 	protected static UPnPImpl	singleton;
@@ -94,6 +92,9 @@ UPnPImpl
 	protected List		rd_listeners		= new ArrayList();
 	protected AEMonitor	rd_listeners_mon 	= new AEMonitor( "UPnP:L" );
 
+	protected int		http_calls_ok	= 0;
+	protected int		direct_calls_ok	= 0;
+	
 	protected int		trace_index		= 0;
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnP" );
@@ -382,11 +383,42 @@ UPnPImpl
 	
 		throws SimpleXMLParserDocumentException, UPnPException, IOException
 	{
+		SimpleXMLParserDocument	res;
+		
+		try{
+			res =  performSOAPRequest( service, soap_action, request, true );
+				
+			http_calls_ok++;
+			
+		}catch( IOException e ){
+			
+			res = performSOAPRequest( service, soap_action, request, false );
+			
+			direct_calls_ok++;
+			
+			if ( direct_calls_ok == 1 ){
+				
+				log.log( "Invocation via http connection failed (" + e.getMessage() + ") but socket connection succeeded" );
+			}
+		}
+		
+		return( res );
+	}
+	
+	public SimpleXMLParserDocument
+	performSOAPRequest(
+		UPnPService		service,
+		String			soap_action,
+		String			request,
+		boolean			use_http_connection )
+	
+		throws SimpleXMLParserDocumentException, UPnPException, IOException
+	{
 		log.log( "UPnP:Request:" + request );
 
 		URL	control = service.getControlURL();
 		
-		if ( USE_HTTP_CONNECTION ){
+		if ( use_http_connection ){
 			
 			HttpURLConnection	con = (HttpURLConnection)control.openConnection();
 			
