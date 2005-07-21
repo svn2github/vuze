@@ -47,7 +47,7 @@ public class DownItem
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
-    long value = (dm == null) ? 0 : dm.getStats().getTotalDataBytesReceived();
+    long value = (dm == null) ? 0 : dm.getStats().getTotalGoodDataBytesReceived();
     if (!cell.setSortValue(value) && cell.isValid())
       return;
     cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));

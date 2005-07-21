@@ -76,7 +76,14 @@ DownloadManagerStats
    * @return total bytes downloaded
    */
 	public long	getTotalDataBytesReceived();
-  
+	
+	/**
+	 * data bytes received minus discards and hashfails
+	 * @return
+	 */
+	
+	public long	getTotalGoodDataBytesReceived();
+	
 	public long getTotalProtocolBytesReceived();
 	
   

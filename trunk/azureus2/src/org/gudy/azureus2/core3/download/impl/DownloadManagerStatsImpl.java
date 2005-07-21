@@ -279,6 +279,21 @@ DownloadManagerStatsImpl
   
   
 	public long 
+	getTotalGoodDataBytesReceived() 
+	{
+		long downloaded	= getTotalDataBytesReceived();
+       
+		downloaded -= ( getHashFailBytes() + getDiscarded());
+		
+		if ( downloaded < 0 ){
+			
+			downloaded = 0;
+		}
+		
+		return( downloaded );
+	}
+	
+	public long 
 	getTotalProtocolBytesReceived() 
 	{
 		PEPeerManager pm = download_manager.getPeerManager();
@@ -382,14 +397,12 @@ DownloadManagerStatsImpl
 	public int 
 	getShareRatio() 
 	{
-		long downloaded	= getTotalDataBytesReceived();
+		long downloaded	= getTotalGoodDataBytesReceived();
 		long uploaded	= getTotalDataBytesSent();
         
-		downloaded -= ( getHashFailBytes() + getDiscarded());
-	  
-		if( downloaded <= 0) {
+		if ( downloaded <= 0 ){
 		  
-			return -1;
+			return( -1 );
 		}
 
 		return (int) ((1000 * uploaded) / downloaded);
