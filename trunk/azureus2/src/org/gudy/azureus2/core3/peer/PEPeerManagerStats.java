@@ -26,31 +26,32 @@ public interface
 PEPeerManagerStats 
 {
   
-  public void discarded(int length);
+	public void discarded(int length);
+	public void hashFailed(int length);
+	  
+	public void dataBytesReceived(int length);
+	public void protocolBytesReceived(int length);
   
-  public void dataBytesReceived(int length);
-  public void protocolBytesReceived(int length);
+	public void dataBytesSent(int length);
+	public void protocolBytesSent(int length);
   
-  public void dataBytesSent(int length);
-  public void protocolBytesSent(int length);
-  
-  public void haveNewPiece(int pieceLength);
+  	public void haveNewPiece(int pieceLength);
   
 	public long getDataReceiveRate();
-  public long getProtocolReceiveRate();
+	public long getProtocolReceiveRate();
   
 	public long getDataSendRate();
-  public long getProtocolSendRate();
+	public long getProtocolSendRate();
    
-  public long getTotalDataBytesSent();
-  public long getTotalProtocolBytesSent();
+	public long getTotalDataBytesSent();
+	public long getTotalProtocolBytesSent();
   
-  public long getTotalDataBytesReceived();
-  public long getTotalProtocolBytesReceived();
+  	public long getTotalDataBytesReceived();
+  	public long getTotalProtocolBytesReceived();
   
 	public long getTotalAverage();
-   
+
+	public long getTotalHashFailBytes();
 	public long getTotalDiscarded();
-	public void setTotalDiscarded(long total);
 
 }

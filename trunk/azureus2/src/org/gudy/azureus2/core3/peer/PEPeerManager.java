@@ -91,13 +91,9 @@ PEPeerManager
 
 	public int getNbSeeds();
 	
-	public int getNbHashFails();
-  
-	public void setNbHashFails(int fails);
-
 	public int getPiecesNumber();
 
-  public int getPieceLength(int pieceNumber);
+	public int getPieceLength(int pieceNumber);
 		
 	public long getRemaining();
 	

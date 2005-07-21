@@ -131,8 +131,8 @@ DownloadStatsImpl
 	
 	public long
 	getHashFails()
-	{
-		return( dm_stats.getHashFails());
+	{		
+		return( dm_stats.getHashFailCount());
 	}
 	
 	public int

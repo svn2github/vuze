@@ -35,6 +35,7 @@ import java.text.NumberFormat;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.internat.*;
 
@@ -299,21 +300,20 @@ DisplayFormatters
 	formatHashFails(
 		DownloadManager		download_manager )
 	{
-		PEPeerManager	pm = download_manager.getPeerManager();
-		DiskManager		dm = download_manager.getDiskManager();
-
-	  	if(pm != null){
-
-			long nbFails = pm.getNbHashFails();
-
-				// size can exceed int so ensure longs used in multiplication
-
-			long size = nbFails * (long)dm.getPieceLength();
-
-			String result = String.valueOf(nbFails).concat(" ( ~ ").concat(formatByteCountToKiBEtc(size)).concat(" )");
-
+		TOTorrent	torrent = download_manager.getTorrent();
+		
+		if ( torrent != null ){
+			
+			long bad = download_manager.getStats().getHashFailBytes();
+	
+					// size can exceed int so ensure longs used in multiplication
+	
+			long count = bad / (long)torrent.getPieceLength();
+	
+			String result = count + " ( " + formatByteCountToKiBEtc(bad) + " )";
+	
 			return result;
-  		}
+	  	}
 
   		return "";
 	}

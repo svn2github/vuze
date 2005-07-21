@@ -952,16 +952,10 @@ DownloadManagerImpl
 					
 					try{
 			  								
-						if (peerManager != null){
-						  stats.setSavedDownloadedUploaded( 
-								  stats.getSavedDownloaded() + peerManager.getStats().getTotalDataBytesReceived(),
-							 	  stats.getSavedUploaded() + peerManager.getStats().getTotalDataBytesSent());
-				      
-						  stats.saveDiscarded(stats.getDiscarded());
-						  stats.saveHashFails(stats.getHashFails());
-						  stats.setSecondsDownloading(stats.getSecondsDownloading());
-						  stats.setSecondsOnlySeeding(stats.getSecondsOnlySeeding());
-							 	  
+						if ( peerManager != null ){
+							
+						  stats.saveSessionTotals();
+						  
 						  peerManager.removeListener( peer_manager_listener );
 						  
 						  peerManager.stopAll(); 
@@ -1887,7 +1881,7 @@ DownloadManagerImpl
   								
   								long	amount_downloaded = (completed*diskManager.getTotalLength())/1000;
   								
- 								stats.setSavedDownloadedUploaded( amount_downloaded,amount_downloaded );
+ 								stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
    							}
   						}
   					}

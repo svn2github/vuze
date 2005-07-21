@@ -77,7 +77,7 @@ DownloadManagerStats
    */
 	public long	getTotalDataBytesReceived();
   
-  public long getTotalProtocolBytesReceived();
+	public long getTotalProtocolBytesReceived();
 	
   
   /**
@@ -86,36 +86,30 @@ DownloadManagerStats
    */
 	public long	getTotalDataBytesSent();
   
-  public long getTotalProtocolBytesSent();
+	public long getTotalProtocolBytesSent();
 	
   
 	public long
 	getDiscarded();
-  
-   public void saveDiscarded(long discarded);
-   
-   public void setSavedDiscarded();
+  	
+	public long
+	getHashFailBytes();
 	
 	public long
-	getHashFails();
-  
-	public void saveHashFails(long fails);
-  
-	public void setSavedHashFails();
+	getHashFailCount();
 	
 	public int
 	getShareRatio();
 	
-  
-
+ 
 	public long getDataReceiveRate();
   
-  public long getProtocolReceiveRate();
+	public long getProtocolReceiveRate();
   
 		
 	public long getDataSendRate();
 
-  public long getProtocolSendRate();
+	public long getProtocolSendRate();
   
   
 	public long
@@ -145,40 +139,13 @@ DownloadManagerStats
 	public long 
 	getSecondsOnlySeeding();
 
-		// set methods
-
-	public void
-	setSavedDownloadedUploaded(
-		long	d,
-		long	u );
-
 	public void
 	setMaxUploads(
 		int		max );
 	
 	public void
 	setCompleted(
-		int		c );
-		
-		
-	public void dataBytesReceived( int l );
-  public void protocolBytesReceived(int l );
-			
-  public void dataBytesSent( int l );
-  public void protocolBytesSent( int l );
-  
-  
-	public void
-	discarded(
-		int		l );
-			
-
-	public void 
-	setSecondsOnlySeeding(long seconds);
-	
-	public void 
-	setSecondsDownloading(long seconds);
-  
+		int		c );	 
   
   /**
    * Get the max upload rate allowed for this download.
@@ -204,4 +171,13 @@ DownloadManagerStats
    * @param max_rate_bps limit in bytes per second, 0 for unlimited, -1 for download disabled
    */
   public void setDownloadRateLimitBytesPerSecond( int max_rate_bps );
+  
+	public void
+	restoreSessionTotals(
+		long		_saved_data_bytes_downloaded,
+		long		_saved_data_bytes_uploaded,
+		long		_saved_discarded,
+		long		_saved_hashfails,
+		long		_saved_SecondsDownloading,
+		long		_saved_SecondsOnlySeeding );
 }

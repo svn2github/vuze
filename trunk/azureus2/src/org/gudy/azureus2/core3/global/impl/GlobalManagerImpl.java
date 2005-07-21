@@ -214,16 +214,6 @@ public class GlobalManagerImpl
 	        			manager.isForceStart()) {
             	
 	        		manager.startDownload();
-	              
-	        		if ( manager.getState() == DownloadManager.STATE_DOWNLOADING ){
-	            	
-			            	//set previous hash fails and discarded values
-			            	//parg - looks dodgy to me this - relies on synchronous change from
-			            	//ready->downloading
-		            	
-	        			manager.getStats().setSavedDiscarded();
-	        			manager.getStats().setSavedHashFails();
-		            }
 	           }
           }
 
@@ -544,6 +534,13 @@ public class GlobalManagerImpl
         
         Map	save_download_state	= (Map)saved_download_manager_state.get(torrent_file_name);
         
+      	long saved_data_bytes_downloaded	= 0;
+      	long saved_data_bytes_uploaded		= 0;
+      	long saved_discarded				= 0;
+      	long saved_hashfails				= 0;
+      	long saved_SecondsDownloading		= 0;
+      	long saved_SecondsOnlySeeding 		= 0;
+      	
         if ( save_download_state != null ){
         	
         		// once the state's been used we remove it
@@ -558,8 +555,8 @@ public class GlobalManagerImpl
 	        Long lUploaded = (Long) save_download_state.get("uploaded");
 	        Long lCompleted = (Long) save_download_state.get("completed");
 	        Long lDiscarded = (Long) save_download_state.get("discarded");
-	        Long lHashFails = (Long) save_download_state.get("hashfails");
-	
+	        Long lHashFailsCount = (Long) save_download_state.get("hashfails");	// old method, number of fails
+	        Long lHashFailsBytes = (Long) save_download_state.get("hashfailbytes");	// new method, bytes failed
 	
 	        dm_stats.setMaxUploads(nbUploads);
 	        dm_stats.setDownloadRateLimitBytesPerSecond( maxDL );
@@ -570,10 +567,21 @@ public class GlobalManagerImpl
 	        }
 	        
 	        if (lDiscarded != null) {
-	          dm_stats.saveDiscarded(lDiscarded.longValue());
+	          saved_discarded = lDiscarded.longValue();
 	        }
-	        if (lHashFails != null) {
-	          dm_stats.saveHashFails(lHashFails.longValue());
+	        
+	        if ( lHashFailsBytes != null ){
+	        	
+	        	saved_hashfails = lHashFailsBytes.longValue();
+	        	
+	        }else if ( lHashFailsCount != null) {
+	          
+	        	TOTorrent torrent = download_manager.getTorrent();
+	        	
+	        	if ( torrent != null ){
+	        	
+	        		saved_hashfails = lHashFailsCount.longValue() * torrent.getPieceLength();
+	        	}
 	        }
 	        
 	        Long lPosition = (Long) save_download_state.get("position");
@@ -615,7 +623,9 @@ public class GlobalManagerImpl
 	              lUploadedValue = ( download_manager.getSize()+999) * minQueueingShareRatio / 1000;
                 */
 	          }
-	          dm_stats.setSavedDownloadedUploaded(lDownloadedValue, lUploadedValue);
+	          
+	          saved_data_bytes_downloaded	= lDownloadedValue;
+	          saved_data_bytes_uploaded		= lUploadedValue;
 	        }
 	
 	        if (lPosition != null)
@@ -626,12 +636,12 @@ public class GlobalManagerImpl
 	
 	        Long lSecondsDLing = (Long)save_download_state.get("secondsDownloading");
 	        if (lSecondsDLing != null) {
-	          dm_stats.setSecondsDownloading(lSecondsDLing.longValue());
+	          saved_SecondsDownloading = lSecondsDLing.longValue();
 	        }
 	
 	        Long lSecondsOnlySeeding = (Long)save_download_state.get("secondsOnlySeeding");
 	        if (lSecondsOnlySeeding != null) {
-	          dm_stats.setSecondsOnlySeeding(lSecondsOnlySeeding.longValue());
+	          saved_SecondsOnlySeeding = lSecondsOnlySeeding.longValue();
 	        }
 	        
 	        Long already_allocated = (Long)save_download_state.get( "allocated" );
@@ -663,15 +673,20 @@ public class GlobalManagerImpl
         		// no stats, bodge the uploaded for seeds
            
         	if ( dm_stats.getDownloadCompleted(false) == 1000 ){
-
-             // Gudy : I don't like that !
-	           // long lUploadedValue = ( download_manager.getSize()+999 ) * minQueueingShareRatio / 1000;
 	               
-            long lUploadedValue = 0;
+        		long lUploadedValue = 0;
             
-		        dm_stats.setSavedDownloadedUploaded(download_manager.getSize(), lUploadedValue);
+        		saved_data_bytes_downloaded = download_manager.getSize();
 	        }
         }
+        
+        dm_stats.restoreSessionTotals(
+        	saved_data_bytes_downloaded,
+        	saved_data_bytes_uploaded,
+        	saved_discarded,
+        	saved_hashfails,
+        	saved_SecondsDownloading,
+        	saved_SecondsOnlySeeding );
         
         boolean isCompleted = download_manager.getStats().getDownloadCompleted(false) == 1000;
 	   
@@ -1294,7 +1309,7 @@ public class GlobalManagerImpl
 	      dmMap.put("uploaded", new Long(dm_stats.getTotalDataBytesSent()));
 	      dmMap.put("completed", new Long(dm_stats.getDownloadCompleted(true)));
 	      dmMap.put("discarded", new Long(dm_stats.getDiscarded()));
-	      dmMap.put("hashfails", new Long(dm_stats.getHashFails()));
+	      dmMap.put("hashfailbytes", new Long(dm_stats.getHashFailBytes()));
 	      dmMap.put("forceStart", new Long(dm.isForceStart() && (dm.getState() != DownloadManager.STATE_CHECKING) ? 1 : 0));
 	      dmMap.put("secondsDownloading", new Long(dm_stats.getSecondsDownloading()));
 	      dmMap.put("secondsOnlySeeding", new Long(dm_stats.getSecondsOnlySeeding()));

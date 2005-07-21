@@ -98,9 +98,6 @@ PEPeerControlImpl
   
   private DownloadManager _downloadManager;
   
-  private int nbHashFails;
-  
-
   
   private long mainloop_loop_count;
   private static final int MAINLOOP_INTERVAL   = 100;
@@ -196,8 +193,6 @@ PEPeerControlImpl
     	_hash = PeerIdentityManager.createDataID( new byte[20] ); 
     }
     
-    this.nbHashFails = 0;
-
     //The connection to the tracker
     _tracker.setAnnounceDataProvider(
     		new TRTrackerAnnouncerDataProvider()
@@ -211,12 +206,15 @@ PEPeerControlImpl
     			public long
     			getTotalSent()
     			{
-    				return(getStats().getTotalDataBytesSent());
+    				return(_stats.getTotalDataBytesSent());
     			}
     			public long
     			getTotalReceived()
     			{
-    				return(getStats().getTotalDataBytesReceived());
+    				long verified = 
+    					_stats.getTotalDataBytesReceived() - ( _stats.getTotalDiscarded() + _stats.getTotalHashFailBytes());
+    				
+    				return( verified < 0?0:verified );
     			}
     			
     			public long
@@ -1504,18 +1502,15 @@ PEPeerControlImpl
 
   
   public void discarded(int length) {
-    if (length > 0) {
+    if (length > 0){
       _stats.discarded(length);
     }
-    _downloadManager.getStats().discarded(length);
   }
   
-
-
   public void dataBytesReceived(int length) {
     if (length > 0) {
       _stats.dataBytesReceived(length);
-      _downloadManager.getStats().dataBytesReceived(length);
+      
       _averageReceptionSpeed.addValue(length);
     }
   }
@@ -1524,17 +1519,12 @@ PEPeerControlImpl
   public void protocolBytesReceived( int length ) {
     if (length > 0) {
       _stats.protocolBytesReceived(length);
-      _downloadManager.getStats().protocolBytesReceived(length);
     }
   }
   
-  
-  
-
   public void dataBytesSent(int length) {
     if (length > 0) {
       _stats.dataBytesSent(length);
-      _downloadManager.getStats().dataBytesSent(length);
     }
   }
 
@@ -1542,7 +1532,6 @@ PEPeerControlImpl
   public void protocolBytesSent( int length ) {
     if (length > 0) {
       _stats.protocolBytesSent(length);
-      _downloadManager.getStats().protocolBytesSent(length);
     }
   }
 
@@ -1588,7 +1577,7 @@ PEPeerControlImpl
     availability_cow = new int[_nbPieces];
 
     //the stats
-    _stats = new PEPeerManagerStatsImpl();
+    _stats = new PEPeerManagerStatsImpl( this );
   }
 
   public void blockWritten(int pieceNumber, int offset, Object _user_data) {
@@ -2216,7 +2205,7 @@ PEPeerControlImpl
 	        }
 	      }
 	      	         
-	      nbHashFails++;
+	      _stats.hashFailed( piece.getLength());
 	    }
   	}finally{
   		
@@ -2271,15 +2260,6 @@ PEPeerControlImpl
 
   public PEPiece[] getPieces() {
     return _pieces;
-  }
-
-  
-  public int getNbHashFails() {
-    return nbHashFails;
-  }
-  
-  public void setNbHashFails(int fails) {
-    this.nbHashFails = fails;
   }
   
   public PEPeerStats

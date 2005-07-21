@@ -247,12 +247,7 @@ DownloadImpl
 		if ( download_manager.getState() == DownloadManager.STATE_READY ){
 						
 			download_manager.startDownload();
-							
-				//set previous hash fails and discarded values
-				
-			download_manager.getStats().setSavedDiscarded();
-			download_manager.getStats().setSavedHashFails();
-			
+										
 		}else{
 			
 			throw( new DownloadException( "Download::start: download not ready" ));
