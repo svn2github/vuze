@@ -69,7 +69,7 @@ public class AZMessageFactory {
       MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, new String[0], new byte[0]) );
       MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null ) );
 
-      /*  //TODO
+	  /*  //TODO
       MessageManager.getSingleton().registerMessageType( new AZSessionSyn( 1, "", new byte[20], null) );
       MessageManager.getSingleton().registerMessageType( new AZSessionAck( 1, "", new byte[20], null) );
       MessageManager.getSingleton().registerMessageType( new AZSessionEnd( "", new byte[20], "" ) );
@@ -89,7 +89,8 @@ public class AZMessageFactory {
    * Construct a new AZ message instance from the given message raw byte stream.
    * @param stream_payload data
    * @return decoded/deserialized AZ message
-   * @throws MessageException if message creation failed
+   * @throws MessageException if message creation failed.
+   * NOTE: Does not auto-return given direct buffer on thrown exception.
    */
   public static Message createAZMessage( DirectByteBuffer stream_payload ) throws MessageException {
     int id_length = stream_payload.getInt( bss );
