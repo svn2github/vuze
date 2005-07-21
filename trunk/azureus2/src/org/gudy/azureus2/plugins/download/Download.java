@@ -27,6 +27,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 
 /** Management of a Torrent's activity.
@@ -649,4 +650,13 @@ Download
    * @param enabled true to enabled, false to disabled
    */
   public void setMessagingEnabled( boolean enabled );
+  
+  
+  /**
+   * Set the authenticator that will be used by this download to handle secure torrent session
+   * handshaking and data encryption/decryption.
+   * @param auth handler
+   */
+  public void setSessionAuthenticator( SessionAuthenticator auth );
+  
 }

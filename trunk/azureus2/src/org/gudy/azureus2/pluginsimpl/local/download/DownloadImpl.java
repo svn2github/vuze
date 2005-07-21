@@ -58,6 +58,7 @@ import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
+import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 
@@ -1196,6 +1197,9 @@ DownloadImpl
   }
   
   
+  public void setSessionAuthenticator( SessionAuthenticator auth ) {
+    //TODO
+  }
   
   
  	// Deprecated methods

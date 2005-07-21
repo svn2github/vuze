@@ -31,6 +31,7 @@ import java.util.Map;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.*;
 
@@ -807,4 +808,10 @@ RPDownload
 	{
 		notSupported();
 	}
+    
+    
+    public void setSessionAuthenticator( SessionAuthenticator auth ) {
+      //TODO
+      notSupported();
+    }
 }
