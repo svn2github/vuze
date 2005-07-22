@@ -348,7 +348,6 @@ PEPeerTransportProtocol
     changePeerState( PEPeer.CLOSING );
     
     if( outgoing_piece_message_handler != null ) {
-      outgoing_piece_message_handler.removeAllPieceRequests();
       outgoing_piece_message_handler.destroy();
     }
     
@@ -477,7 +476,7 @@ PEPeerTransportProtocol
       float discard_perc = (requests_discarded * 100F) / ((requests_completed + requests_recovered + requests_discarded) * 1F);
       float discard_perc_end = (requests_discarded_endgame * 100F) / ((requests_completed + requests_recovered + requests_discarded_endgame) * 1F);
       float recover_perc = (requests_recovered * 100F) / ((requests_recovered + requests_discarded) * 1F);
-      System.out.println( "c="+requests_completed+ " d="+requests_discarded+ " de="+requests_discarded_endgame+ " r="+requests_recovered+ " dp="+discard_perc+  " dpe="+discard_perc_end+ "% rp="+recover_perc+ "%" );
+      System.out.println( "c="+requests_completed+ " d="+requests_discarded+ " de="+requests_discarded_endgame+ " r="+requests_recovered+ " dp="+discard_perc+  "% dpe="+discard_perc_end+ "% rp="+recover_perc+ "%" );
     }
   }
   
