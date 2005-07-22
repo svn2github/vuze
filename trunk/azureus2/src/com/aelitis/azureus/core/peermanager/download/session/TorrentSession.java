@@ -240,4 +240,67 @@ public class TorrentSession {
   
 
   
+  /**
+   * Send the given session bitfield to the peer.
+   * @param bitfield to send
+   */
+  public void sendSessionBitfield( DirectByteBuffer bitfield ) {
+    AZSessionBitfield bitf = new AZSessionBitfield( remote_session_id, bitfield );
+    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( bitf, false );
+  }
+  
+  
+  /**
+   * Send the given session piece request info to the peer.
+   * @param unchoke_id given when the peer unchoked us
+   * @param piece_number of request
+   * @param piece_offset of request
+   * @param length of requested chunk
+   */
+  public void sendSessionRequest( byte unchoke_id, int piece_number, int piece_offset, int length ) {
+    AZSessionRequest req = new AZSessionRequest( remote_session_id, unchoke_id, piece_number, piece_offset, length );
+    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( req, false );
+  }
+  
+  
+  /**
+   * Send the given session piece request cancel info to the peer.
+   * @param piece_number of request
+   * @param piece_offset of request
+   * @param length of request
+   */
+  public void sendSessionCancel( int piece_number, int piece_offset, int length ) {
+    AZSessionCancel can = new AZSessionCancel( remote_session_id, piece_number, piece_offset, length );
+    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( can, false );
+  }
+  
+ 
+  /**
+   * Send the given session piece number haves to the peer.
+   * @param piece_numbers to notify have
+   */
+  public void sendSessionHave( int[] piece_numbers ) {
+    AZSessionHave have = new AZSessionHave( remote_session_id, piece_numbers );
+    connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( have, false );
+  }
+  
+  
+  /**
+   * Send the given requested session piece data chunk to the peer
+   * @param piece_number of chunk
+   * @param piece_offset of chunk
+   * @param data of piece chunk
+   */
+  public void sendSessionPiece( int piece_number, int piece_offset, DirectByteBuffer data ) {
+    try{
+      DirectByteBuffer encoded = download.getSessionAuthenticator().encodeSessionData( data );
+      AZSessionPiece piece = new AZSessionPiece( remote_session_id, piece_number, piece_offset, encoded );
+      connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( piece, false );
+    }
+    catch( AuthenticatorException ae ) {
+      data.returnToPool();
+      endSession( "AuthenticatorException:: " +ae.getMessage() );
+    }
+  }
+  
 }
