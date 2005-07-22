@@ -60,12 +60,16 @@ PooledByteBufferImpl
 	public byte[]
 	toByteArray()
 	{
-		int	len = buffer.remaining( DirectByteBuffer.SS_EXTERNAL );
+		buffer.position( DirectByteBuffer.SS_EXTERNAL, 0 );
+		
+		int	len = buffer.limit( DirectByteBuffer.SS_EXTERNAL );
 		
 		byte[]	res = new byte[len];
 		
 		buffer.get( DirectByteBuffer.SS_EXTERNAL, res );
 		
+		buffer.position( DirectByteBuffer.SS_EXTERNAL, 0 );
+
 		return( res );
 	}
 	
