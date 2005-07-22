@@ -33,12 +33,12 @@ public class TorrentSessionFactory {
   protected static TorrentSessionFactory getSingleton(){  return instance;  }
   
   
-  public TorrentSession createIncomingSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download, int remote_session_id ) {
-    return new TorrentSession( auth, peer, download, remote_session_id );
+  public TorrentSession createIncomingSession( TorrentDownload download, AZPeerConnection peer, int remote_session_id ) {
+    return new TorrentSession( download, peer, remote_session_id );
   }
   
   
-  public TorrentSession createOutgoingSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download ) {
-    return new TorrentSession( auth, peer, download );
+  public TorrentSession createOutgoingSession( TorrentDownload download, AZPeerConnection peer ) {
+    return new TorrentSession( download, peer );
   }
 }

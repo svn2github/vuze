@@ -40,9 +40,8 @@ public class TorrentSession {
 
   private int local_session_id;
   private int remote_session_id;
-  private TorrentSessionAuthenticator authenticator;
-  private AZPeerConnection connection;
   private TorrentDownload download;
+  private AZPeerConnection connection;
   private TimerEvent syn_timeout_timer;
 
   
@@ -51,11 +50,11 @@ public class TorrentSession {
       //ID_AZ_SESSION_ACK
       if( message.getID().equals( AZMessage.ID_AZ_SESSION_ACK ) ) {          
         AZSessionAck ack = (AZSessionAck)message;
-        if( ack.getSessionType().equals( authenticator.getSessionTypeID() ) && Arrays.equals( ack.getInfoHash(), authenticator.getSessionInfoHash() ) ) {
+        if( Arrays.equals( ack.getInfoHash(), download.getInfoHash() ) ) {
           remote_session_id = ack.getSessionID();  //capture send-to id
           syn_timeout_timer.cancel();  //abort timeout check
           try{
-            authenticator.verifySessionAck( ack.getSessionInfo() );
+            download.getSessionAuthenticator().verifySessionAck( ack.getSessionInfo() );
             startSessionProcessing();
           }
           catch( AuthenticatorException ae ) {
@@ -69,7 +68,7 @@ public class TorrentSession {
       //ID_AZ_SESSION_END
       if( message.getID().equals( AZMessage.ID_AZ_SESSION_END ) ) {          
         AZSessionEnd end = (AZSessionEnd)message;
-        if( end.getSessionType().equals( authenticator.getSessionTypeID() ) && Arrays.equals( end.getInfoHash(), authenticator.getSessionInfoHash() ) ) {
+        if( Arrays.equals( end.getInfoHash(), download.getInfoHash() ) ) {
           System.out.println( "AZ_TORRENT_SESSION_END received: " +end.getEndReason() );          
           destroy();  //close session       
           end.destroy();
@@ -125,7 +124,7 @@ public class TorrentSession {
         AZSessionPiece piece = (AZSessionPiece)message;
         if( piece.getSessionID() == local_session_id ) {
           try{
-            DirectByteBuffer data = authenticator.decodeSessionData( piece.getPieceData() );
+            DirectByteBuffer data = download.getSessionAuthenticator().decodeSessionData( piece.getPieceData() );
             download.receivedSessionPiece( TorrentSession.this, piece.getPieceNumber(), piece.getPieceOffset(), data );
           }
           catch( AuthenticatorException ae ) {
@@ -148,20 +147,19 @@ public class TorrentSession {
   
   
   //INCOMING SESSION INIT
-  protected TorrentSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download, int remote_id ) {
-    init( auth, peer, download, remote_id );  
+  protected TorrentSession( TorrentDownload download, AZPeerConnection peer, int remote_id ) {
+    init( download, peer, remote_id );  
   }
   
   
   //OUTGOING SESSION INIT
-  protected TorrentSession( TorrentSessionAuthenticator auth, AZPeerConnection peer, TorrentDownload download ) {
-    init( auth, peer, download, -1 );
+  protected TorrentSession( TorrentDownload download, AZPeerConnection peer ) {
+    init( download, peer, -1 );
   }
 
   
   
-  private void init( TorrentSessionAuthenticator a, AZPeerConnection p, TorrentDownload d, int r ) {
-    this.authenticator = a;
+  private void init( TorrentDownload d, AZPeerConnection p, int r ) {
     this.connection = p;
     this.download = d;
     this.remote_session_id = r;
@@ -180,7 +178,7 @@ public class TorrentSession {
   protected void authenticate( Map incoming_syn ) {
     if( incoming_syn == null ) {  //outgoing session
       //send out the session request
-      AZSessionSyn syn = new AZSessionSyn( local_session_id, authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), authenticator.createSessionSyn() );
+      AZSessionSyn syn = new AZSessionSyn( download.getInfoHash(), local_session_id, download.getSessionAuthenticator().createSessionSyn() );
       connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( syn, false );
       
       //set a timeout timer in case the other peer forgets to send an ACK or END reply
@@ -192,10 +190,10 @@ public class TorrentSession {
     }
     else {  //incoming session
       try{
-        Map ack_reply = authenticator.verifySessionSyn( incoming_syn );
+        Map ack_reply = download.getSessionAuthenticator().verifySessionSyn( incoming_syn );
         
         //send out the session acceptance
-        AZSessionAck ack = new AZSessionAck( local_session_id, authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), ack_reply );
+        AZSessionAck ack = new AZSessionAck( download.getInfoHash(), local_session_id, ack_reply );
         connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( ack, false );
         
         startSessionProcessing();
@@ -212,7 +210,7 @@ public class TorrentSession {
     System.out.println( "endSession:: " +end_reason );
     
     //send end notice
-    AZSessionEnd end = new AZSessionEnd( authenticator.getSessionTypeID(), authenticator.getSessionInfoHash(), end_reason );
+    AZSessionEnd end = new AZSessionEnd( download.getInfoHash(), end_reason );
     connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
     
     destroy();

@@ -31,17 +31,9 @@ import com.aelitis.azureus.core.peermanager.download.session.*;
 
 
 public class StandardAuthenticator implements TorrentSessionAuthenticator {
-  private final byte[] infohash;
-  
-  protected StandardAuthenticator( byte[] infohash ) {
-    this.infohash = infohash;
-  }
 
-  public String getSessionTypeID() {  return TorrentSessionAuthenticator.AUTH_TYPE_STANDARD;  }
-  
-  
-  public byte[] getSessionInfoHash() {
-    return infohash;
+  public StandardAuthenticator() {
+    /*nothing*/
   }
   
   public Map createSessionSyn() {

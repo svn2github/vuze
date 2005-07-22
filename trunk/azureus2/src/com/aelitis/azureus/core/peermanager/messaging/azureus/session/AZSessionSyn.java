@@ -38,22 +38,19 @@ public class AZSessionSyn implements AZMessage {
   private DirectByteBuffer buffer = null;
   private String description = null;
   
-  private final int session_id;
   private final byte[] infohash;
-  private final String session_type;
+  private final int session_id;
   private final Map session_info;
 
-  public AZSessionSyn( int local_session_id, String session_type, byte[] infohash, Map session_info ) {
+  public AZSessionSyn( byte[] infohash, int local_session_id, Map session_info ) {
     this.session_id = local_session_id;
     this.infohash = infohash;
-    this.session_type = session_type;
     this.session_info = session_info;
   }
   
   
-  public int getSessionID(){  return session_id;  }
   public byte[] getInfoHash() {  return infohash;  }
-  public String getSessionType() {  return session_type;  }
+  public int getSessionID(){  return session_id;  }
   public Map getSessionInfo() {  return session_info;  }
   
   
@@ -67,7 +64,7 @@ public class AZSessionSyn implements AZMessage {
   
   public String getDescription() {
     if( description == null ) {
-      description = getID()+ " session id " +session_id+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " type " +session_type;
+      description = getID()+ " session id " +session_id+ " for infohash " +ByteFormatter.nicePrint( infohash, true );
     }
     return description;
   }
@@ -79,7 +76,6 @@ public class AZSessionSyn implements AZMessage {
       
       payload_map.put( "session_id", new Long(session_id) );
       payload_map.put( "infohash", infohash );
-      payload_map.put( "type_id", session_type );
       payload_map.put( "info", session_info );
 
       buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG );
@@ -99,14 +95,10 @@ public class AZSessionSyn implements AZMessage {
     byte[] hash = (byte[])root.get( "infohash" );
     if( hash == null )  throw new MessageException( "hash == null" );
     if( hash.length != 20 )  throw new MessageException( "hash.length != 20: " +hash.length );
-
-    byte[] type_raw = (byte[])root.get( "type_id" );
-    if( type_raw == null )  throw new MessageException( "type_raw == null" );
-    String type_id = new String( type_raw );
     
     Map info = (Map)root.get( "info" );
     
-    return new AZSessionSyn( sid, type_id, hash, info );
+    return new AZSessionSyn( hash, sid, info );
   }
   
   

@@ -61,36 +61,26 @@ public class TorrentSessionManager {
             if( message.getID().equals( AZMessage.ID_AZ_SESSION_SYN ) ) {
               AZSessionSyn syn = (AZSessionSyn)message;
 
-              String type = syn.getSessionType();
               byte[] hash = syn.getInfoHash();
-              
-              TorrentSessionAuthenticator auth = AuthenticatorFactory.createAuthenticator( type, hash );
-              
-              if( auth == null ) {
-                Debug.out( "unknown session type: " +type );
-                AZSessionEnd end = new AZSessionEnd( type, hash, "unknown session type id" );
+
+              //check for valid session infohash
+              TorrentDownload download = null;
+                
+              try{ hashes_mon.enter();
+                download = (TorrentDownload)hashes.get( new HashWrapper( hash ) );
+              }
+              finally{ hashes_mon.exit();  }
+                
+              if( download == null ) {
+                System.out.println( "unknown session infohash " +ByteFormatter.nicePrint( hash, true ) );
+                AZSessionEnd end = new AZSessionEnd( hash, "unknown session infohash" );
                 connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
               }
-              else {
-                //check for valid session infohash
-                TorrentDownload download = null;
-                
-                try{ hashes_mon.enter();
-                  download = (TorrentDownload)hashes.get( new HashWrapper( hash ) );
-                }
-                finally{ hashes_mon.exit();  }
-                
-                if( download == null ) {
-                  System.out.println( "unknown session infohash " +ByteFormatter.nicePrint( hash, true ) );
-                  AZSessionEnd end = new AZSessionEnd( type, hash, "unknown session infohash" );
-                  connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
-                }
-                else { //success
-                  TorrentSession session = TorrentSessionFactory.getSingleton().createIncomingSession( auth, connection, download, syn.getSessionID() );
-                  session.authenticate( syn.getSessionInfo() );  //init processing
-                }
+              else { //success
+                TorrentSession session = TorrentSessionFactory.getSingleton().createIncomingSession( download, connection, syn.getSessionID() );
+                session.authenticate( syn.getSessionInfo() );  //init processing
               }
-              
+               
               syn.destroy();
               return true;
             }
@@ -132,26 +122,14 @@ public class TorrentSessionManager {
   
   
   /**
-   * Initiate a standard torrent session for the given download with the given peer connection.
+   * Initiate a torrent session for the given download with the given peer connection.
    * @param download for session
    * @param connection to send request to
    */
-  public void requestStandardTorrentSession( TorrentDownload download, AZPeerConnection connection ) {
-    TorrentSessionAuthenticator auth = AuthenticatorFactory.createAuthenticator( TorrentSessionAuthenticator.AUTH_TYPE_STANDARD, download.getInfoHash() );
-    TorrentSession session = TorrentSessionFactory.getSingleton().createOutgoingSession( auth, connection, download );
+  public void requestTorrentSession( TorrentDownload download, AZPeerConnection connection ) {
+    TorrentSession session = TorrentSessionFactory.getSingleton().createOutgoingSession( download, connection );
     session.authenticate( null );  //init processing
   }
-  
-  
-  /**
-   * Initiate a secure torrent session for the given download with the given peer connection.
-   * @param download for session
-   * @param connection to send request to
-   */
-  public void requestSecureTorrentSession( TorrentDownload download, AZPeerConnection connection ) {
-    TorrentSessionAuthenticator auth = AuthenticatorFactory.createAuthenticator( TorrentSessionAuthenticator.AUTH_TYPE_SECURE, download.getInfoHash() );
-    TorrentSession session = TorrentSessionFactory.getSingleton().createOutgoingSession( auth, connection, download );
-    session.authenticate( null );  //init processing
-  }
+
   
 }

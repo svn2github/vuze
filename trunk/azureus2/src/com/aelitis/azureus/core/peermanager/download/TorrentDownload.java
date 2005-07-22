@@ -24,11 +24,13 @@ package com.aelitis.azureus.core.peermanager.download;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.peermanager.download.session.TorrentSession;
+import com.aelitis.azureus.core.peermanager.download.session.*;
+import com.aelitis.azureus.core.peermanager.download.session.auth.StandardAuthenticator;
 
 
 public class TorrentDownload {
   private final byte[] infohash;
+  private TorrentSessionAuthenticator session_auth = new StandardAuthenticator();  //default to standard auth
   
   
   protected TorrentDownload( byte[] infohash ) {
@@ -37,6 +39,12 @@ public class TorrentDownload {
   
   
   public byte[] getInfoHash() {  return infohash;  }
+  
+  
+  public void setSessionAuthenticator( TorrentSessionAuthenticator auth ) {  session_auth = auth;  }
+  
+  public TorrentSessionAuthenticator getSessionAuthenticator() {  return session_auth;  }
+  
   
   
   

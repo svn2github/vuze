@@ -29,23 +29,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 
 public interface TorrentSessionAuthenticator {
-  
-  public static final String AUTH_TYPE_STANDARD = "STANDARD";
-  public static final String AUTH_TYPE_SECURE   = "SECURE";
-  
-  
-  /**
-   * Get the type id that this authenticator handles.
-   * @return type id
-   */
-  public String getSessionTypeID();
-  
-  /**
-   * Get the torrent infohash associated with this session.
-   * @return infohash
-   */
-  public byte[] getSessionInfoHash();
-  
+
   /**
    * Create bencode-able map info for outgoing session syn.
    * @return syn info
@@ -57,14 +41,14 @@ public interface TorrentSessionAuthenticator {
    * and create the session ACK reply.
    * @param syn_info incoming session syn info
    * @return bencode-able map info for session ack reply
-   * @throws AuthenticatorException on error / failure
+   * @throws AuthenticatorException on verify error / failure
    */
   public Map verifySessionSyn( Map syn_info ) throws AuthenticatorException;
 
   /**
    * Decode and verify the given (bencoded) map of outgoing session ACK information.
    * @param ack_info incoming session ack info
-   * @throws AuthenticatorException on error / failure
+   * @throws AuthenticatorException on verify error / failure
    */
   public void verifySessionAck( Map ack_info ) throws AuthenticatorException;
   

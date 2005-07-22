@@ -39,19 +39,16 @@ public class AZSessionEnd implements AZMessage {
   private String description = null;
   
   private final byte[] infohash;
-  private final String session_type;
   private final String reason;
   
 
-  public AZSessionEnd( String session_type, byte[] infohash, String reason ) {
+  public AZSessionEnd( byte[] infohash, String reason ) {
     this.infohash = infohash;
-    this.session_type = session_type;
     this.reason = reason;
   }
   
   
   public byte[] getInfoHash() {  return infohash;  }
-  public String getSessionType() {  return session_type;  }
   public String getEndReason() {  return reason;  }
   
     
@@ -64,7 +61,7 @@ public class AZSessionEnd implements AZMessage {
   
   public String getDescription() {
     if( description == null ) {
-      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " type " +session_type+ " because " +reason;
+      description = getID()+ " for infohash " +ByteFormatter.nicePrint( infohash, true )+ " because " +reason;
     }
     return description;
   }
@@ -75,7 +72,6 @@ public class AZSessionEnd implements AZMessage {
       Map payload_map = new HashMap();
       
       payload_map.put( "infohash", infohash );
-      payload_map.put( "type_id", session_type );
       payload_map.put( "reason", reason );
       
       buffer = MessagingUtil.convertPayloadToBencodedByteStream( payload_map, DirectByteBuffer.AL_MSG );
@@ -91,16 +87,12 @@ public class AZSessionEnd implements AZMessage {
     byte[] hash = (byte[])root.get( "infohash" );
     if( hash == null )  throw new MessageException( "hash == null" );
     if( hash.length != 20 )  throw new MessageException( "hash.length != 20: " +hash.length );
-
-    byte[] type_raw = (byte[])root.get( "type_id" );
-    if( type_raw == null )  throw new MessageException( "type_raw == null" );
-    String type_id = new String( type_raw );
     
     byte[] reason_raw = (byte[])root.get( "reason" );
     if( reason_raw == null )  throw new MessageException( "reason_raw == null" );
     String res = new String( reason_raw );
     
-    return new AZSessionEnd( type_id, hash, res );
+    return new AZSessionEnd( hash, res );
   }
   
   

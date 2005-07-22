@@ -69,16 +69,14 @@ public class AZMessageFactory {
       MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, new String[0], new byte[0]) );
       MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null ) );
 
-	  /*  //TODO
-      MessageManager.getSingleton().registerMessageType( new AZSessionSyn( 1, "", new byte[20], null) );
-      MessageManager.getSingleton().registerMessageType( new AZSessionAck( 1, "", new byte[20], null) );
-      MessageManager.getSingleton().registerMessageType( new AZSessionEnd( "", new byte[20], "" ) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionSyn( new byte[20], -1, null) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionAck( new byte[20], -1, null) );
+      MessageManager.getSingleton().registerMessageType( new AZSessionEnd( new byte[20], "" ) );
       MessageManager.getSingleton().registerMessageType( new AZSessionBitfield( -1, null ) );
       MessageManager.getSingleton().registerMessageType( new AZSessionCancel( -1, -1, -1, -1 ) );
       MessageManager.getSingleton().registerMessageType( new AZSessionHave( -1, new int[]{-1} ) );
       MessageManager.getSingleton().registerMessageType( new AZSessionPiece( -1, -1, -1, null ) );
       MessageManager.getSingleton().registerMessageType( new AZSessionRequest( -1, (byte)-1, -1, -1, -1 ) );
-      */
     }
     catch( MessageException me ) {  me.printStackTrace();  }
   }
