@@ -563,6 +563,7 @@ public class StartStopRulesDefaultPlugin
 	
 	    // total Forced Seeding doesn't include stalled torrents
 	    int totalForcedSeeding = 0;
+	    int totalForcedSeedingNonFP = 0;
 	    int totalWaitingToSeed = 0;
 	    int totalWaitingToDL = 0;
 	    int totalDownloading = 0;
@@ -628,8 +629,10 @@ public class StartStopRulesDefaultPlugin
 	          
 	          if (dlData.getActivelySeeding()) {
 	            activeSeedingCount++;
-	            if (download.isForceStart())
+	            if (download.isForceStart()) {
 	              totalForcedSeeding++;
+	              if (!bIsFirstP) totalForcedSeedingNonFP++;
+	            }
 	          } else if (state == Download.ST_SEEDING) {
 	        	  if (bIsFirstP) {
 	        		  totalFPStalledSeeders++;
@@ -846,7 +849,7 @@ public class StartStopRulesDefaultPlugin
 	        if (maxActive == 0) {
 	        	maxDLs = maxDownloads;
 	        } else {
-		        DLmax =  totalFPStalledSeeders + maxActive - totalFirstPriority;
+		        DLmax =  totalFPStalledSeeders + maxActive - totalFirstPriority - totalForcedSeedingNonFP;
 		        maxDLs = ( DLmax <= 0 ) ? 0 : maxDownloads - DLmax <= 0 ? maxDownloads :  DLmax;
 	        }
 	        
