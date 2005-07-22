@@ -46,6 +46,29 @@ PooledByteBufferImpl
 		buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL, size );
 	}
 	
+	public
+	PooledByteBufferImpl(
+		byte[]		data )
+	{
+		buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_EXTERNAL, data.length );
+		
+		buffer.put( DirectByteBuffer.AL_EXTERNAL, data );
+		
+		buffer.position( DirectByteBuffer.AL_EXTERNAL, 0 );
+	}
+	
+	public byte[]
+	toByteArray()
+	{
+		int	len = buffer.remaining( DirectByteBuffer.SS_EXTERNAL );
+		
+		byte[]	res = new byte[len];
+		
+		buffer.get( DirectByteBuffer.SS_EXTERNAL, res );
+		
+		return( res );
+	}
+	
 	public void
 	returnToPool()
 	{

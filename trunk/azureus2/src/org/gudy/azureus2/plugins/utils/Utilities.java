@@ -81,6 +81,10 @@ Utilities
 	allocatePooledByteBuffer(
 		int		size );
 	
+	public PooledByteBuffer
+	allocatePooledByteBuffer(
+		byte[]	data  );
+	
 	public Formatters
 	getFormatters();
 	

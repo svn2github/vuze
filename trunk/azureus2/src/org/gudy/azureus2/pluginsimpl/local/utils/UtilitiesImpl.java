@@ -188,6 +188,13 @@ UtilitiesImpl
 		return( new PooledByteBufferImpl( length ));
 	}
 	
+	public PooledByteBuffer
+	allocatePooledByteBuffer(
+		byte[]		data )
+	{
+		return( new PooledByteBufferImpl( data ));
+	}
+	
 	public Formatters
 	getFormatters()
 	{

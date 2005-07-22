@@ -25,7 +25,9 @@ package org.gudy.azureus2.plugins.utils;
 public interface 
 PooledByteBuffer 
 {
-
+	public byte[]
+	toByteArray();
+	
 	public void
 	returnToPool();
 }
