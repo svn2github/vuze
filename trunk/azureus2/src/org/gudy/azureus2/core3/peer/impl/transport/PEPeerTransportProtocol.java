@@ -136,6 +136,7 @@ PEPeerTransportProtocol
   }
   
   private static int requests_discarded = 0;
+  private static int requests_discarded_endgame = 0;
   private static int requests_recovered = 0;
   private static int requests_completed = 0;
 
@@ -473,9 +474,10 @@ PEPeerTransportProtocol
   
   private void printRequestStats() {
     if( SHOW_DISCARD_RATE_STATS ) {
-      float discard_percentage = (requests_discarded * 100F) / ((requests_completed + requests_recovered + requests_discarded) * 1F);
-      float recover_percentage = (requests_recovered * 100F) / ((requests_recovered + requests_discarded) * 1F);
-      System.out.println( "c="+requests_completed+ " d="+requests_discarded+ " r="+requests_recovered+ " dp="+discard_percentage+ "% rp="+recover_percentage+ "%" );
+      float discard_perc = (requests_discarded * 100F) / ((requests_completed + requests_recovered + requests_discarded) * 1F);
+      float discard_perc_end = (requests_discarded_endgame * 100F) / ((requests_completed + requests_recovered + requests_discarded_endgame) * 1F);
+      float recover_perc = (requests_recovered * 100F) / ((requests_recovered + requests_discarded) * 1F);
+      System.out.println( "c="+requests_completed+ " d="+requests_discarded+ " de="+requests_discarded_endgame+ " r="+requests_recovered+ " dp="+discard_perc+  " dpe="+discard_perc_end+ "% rp="+recover_perc+ "%" );
     }
   }
   
@@ -1404,18 +1406,19 @@ PEPeerTransportProtocol
       reSetRequestsTime();
         
       if( manager.isBlockAlreadyWritten( number, offset ) ) {  //oops, looks like this block has already been downloaded
-        //we're probably in end-game mode then
-        if( manager.isInEndGameMode() ) {
-          if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block ignored as already written in end-game mode." );
-          //we dont count end-game mode duplicates towards discarded, since this is a normal side-effect of the mode
+        peer_stats.bytesDiscarded( length );
+        manager.discarded( length );
+
+        if( manager.isInEndGameMode() ) {  //we're probably in end-game mode then
+          if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block ignored as already written in end-game mode." );      
+          requests_discarded_endgame++;
         }
         else {
           if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block discarded as already written." );
-          peer_stats.bytesDiscarded( length );
-          manager.discarded( length );
           requests_discarded++;
-          printRequestStats();
         }
+        
+        printRequestStats();
       }
       else {  //successfully received block!
         manager.writeBlock( number, offset, payload, this );
