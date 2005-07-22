@@ -389,4 +389,25 @@ TrackerTorrentImpl
 			this_mon.exit();
 		}
 	}
+	
+	public boolean
+	equals(
+		Object	other )
+	{
+			// as we're lazy and create new instances of this on demand we need to
+			// do something sensible about equivalence
+		
+		if ( other instanceof TrackerTorrentImpl ){
+			
+			return( host_torrent == ((TrackerTorrentImpl)other).host_torrent );
+		}
+		
+		return( false );
+	}
+	
+	public int
+	hashCode()
+	{
+		return( host_torrent.hashCode());
+	}
 }
