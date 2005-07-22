@@ -59,7 +59,7 @@ PeerImpl
 		
 		manager = PeerManagerImpl.getPeerManager( delegate.getManager());
 		
-    connection = new ConnectionImpl( delegate.getConnection() );
+		connection = new ConnectionImpl( delegate.getConnection() );
 	}
 
 	public PeerManager
@@ -259,30 +259,73 @@ PeerImpl
 	
 
 
-	public void addListener( final PeerListener	l ) {
-    PEPeerListener core_listener = new PEPeerListener() {
-      public void stateChanged( int new_state ) {
-        l.stateChanged( new_state );
-      }
+	public void 
+	addListener( 
+		final PeerListener	l ) 
+	{
+		PEPeerListener core_listener = 
+			new PEPeerListener() 
+			{
+				public void 
+				stateChanged( 
+					int new_state ) 
+				{
+					l.stateChanged( new_state );
+				}
       
-      public void sentBadChunk( int piece_num, int total_bad_chunks ){
-        l.sentBadChunk( piece_num, total_bad_chunks );
-      }
-    };
+				public void 
+				sentBadChunk( 
+					int piece_num, 
+					int total_bad_chunks )
+				{
+					l.sentBadChunk( piece_num, total_bad_chunks );
+				}
+			};
     
-    delegate.addListener( core_listener );
+		delegate.addListener( core_listener );
     
-    if( peer_listeners == null )  peer_listeners = new HashMap();
-    peer_listeners.put( l, core_listener );
+		if( peer_listeners == null ){
+			
+			peer_listeners = new HashMap();
+		}
+		
+		peer_listeners.put( l, core_listener );
 	}
 	
 
-	public void	removeListener( PeerListener	l ) {
-    PEPeerListener core_listener = (PEPeerListener)peer_listeners.get( l );
+	public void	
+	removeListener( 
+		PeerListener	l ) 
+	{
+		if ( peer_listeners != null ){
+			
+			PEPeerListener core_listener = (PEPeerListener)peer_listeners.remove( l );
     
-    if( core_listener != null ) {
-      delegate.removeListener( core_listener );
-    }
+			if( core_listener != null ) {
+      
+				delegate.removeListener( core_listener );
+			}
+		}
 	}
-  
+	
+		// as we don't maintain a 1-1 mapping between these and delegates make sure
+		// that "equals" etc works sensibly
+	
+	public boolean
+	equals(
+		Object	other )
+	{
+		if ( other instanceof PeerImpl ){
+			
+			return( delegate == ((PeerImpl)other).delegate );
+		}
+		
+		return( false );
+	}
+	
+	public int
+	hashCode()
+	{
+		return( delegate.hashCode());
+	}
 }

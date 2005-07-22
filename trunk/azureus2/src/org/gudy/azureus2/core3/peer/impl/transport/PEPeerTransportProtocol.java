@@ -140,8 +140,9 @@ PEPeerTransportProtocol
   private static int requests_recovered = 0;
   private static int requests_completed = 0;
 
-  private ArrayList peer_listeners;
-  
+  private List peer_listeners_cow;
+  private final AEMonitor	peer_listeners_mon = new AEMonitor( "PEPeerTransportProtocol:PL" );
+
   
   //certain Optimum Online networks block peer seeding via "complete" bitfield message filtering
   //lazy mode makes sure we never send a complete (seed) bitfield
@@ -1649,14 +1650,54 @@ PEPeerTransportProtocol
   
   
   
-  public void addListener( PEPeerListener listener ) {
-    if( peer_listeners == null )  peer_listeners = new ArrayList();
-    peer_listeners.add( listener );
+  public void 
+  addListener( 
+	 PEPeerListener listener ) 
+  {
+	  try{
+		peer_listeners_mon.enter();
+	  
+	    if( peer_listeners_cow == null ){
+	    	
+	    	peer_listeners_cow = new ArrayList();
+	    }
+	    
+	    List	new_listeners = new ArrayList( peer_listeners_cow );
+	    
+	    new_listeners.add( listener );
+	    
+	    peer_listeners_cow	= new_listeners;
+	    
+	  }finally{
+		  
+		  peer_listeners_mon.exit();
+	  }
   }
   
-  public void removeListener( PEPeerListener listener ) {
-    peer_listeners.remove( listener );
-    if( peer_listeners.isEmpty() )  peer_listeners = null;
+  public void 
+  removeListener( 
+		  PEPeerListener listener ) 
+  {
+	  try{
+		  peer_listeners_mon.enter();
+
+		  if ( peer_listeners_cow != null ){
+			  
+			   List	new_listeners = new ArrayList( peer_listeners_cow );
+			    
+			   new_listeners.remove( listener );
+			   
+			   if ( new_listeners.isEmpty()){
+				   
+				   new_listeners	= null;
+			   }
+			   
+			   peer_listeners_cow	= new_listeners;
+		  }
+	  }finally{
+		  
+		  peer_listeners_mon.exit();
+	  }
   }
   
   
@@ -1667,9 +1708,13 @@ PEPeerTransportProtocol
       doPostHandshakeProcessing();
     }
 
-    if( peer_listeners != null ) {
-      for( int i=0; i < peer_listeners.size(); i++ ) {
-        PEPeerListener l = (PEPeerListener)peer_listeners.get( i );
+    List	peer_listeners_ref = peer_listeners_cow;
+    
+    if ( peer_listeners_ref != null ){
+    	
+      for( int i=0; i < peer_listeners_ref.size(); i++ ) {
+    	  
+        PEPeerListener l = (PEPeerListener)peer_listeners_ref.get( i );
       
         l.stateChanged( current_peer_state );
       }
