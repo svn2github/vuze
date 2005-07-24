@@ -310,7 +310,7 @@ DiskManagerImpl
 		
 		String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
    
-		if ( moveWhenDone && moveToDir.length() > 0 ){
+		if ( moveWhenDone && moveToDir.length() > 0 && download_manager.isPersistent()){
 		
 				//if the data file already resides in the completed files dir
 					
@@ -1167,7 +1167,7 @@ DiskManagerImpl
 	    
 	    	// don't move non-persistent files as these aren't managed by us
 	    
-	    if (!download_manager.isPersistent()){
+	    if ( !download_manager.isPersistent()){
 	    	
 	    	return;
 	    }
@@ -1175,7 +1175,7 @@ DiskManagerImpl
 	    //make sure the torrent hasn't already been moved
 	
 	    	
-	  	if (alreadyMoved){
+	  	if ( alreadyMoved ){
 	  		
 	  		return;
 	  	}
