@@ -22,23 +22,28 @@
 
 package com.aelitis.azureus.core.peermanager.download;
 
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 
 import com.aelitis.azureus.core.peermanager.download.session.*;
 import com.aelitis.azureus.core.peermanager.download.session.auth.StandardAuthenticator;
 
 
 public class TorrentDownload {
-  private final byte[] infohash;
+  private final PEPeerControl legacy_peer_manager;
   private TorrentSessionAuthenticator session_auth = new StandardAuthenticator();  //default to standard auth
   
   
-  protected TorrentDownload( byte[] infohash ) {
-    this.infohash = infohash;
+  protected TorrentDownload( PEPeerControl legacy_peer_manager ) {
+    this.legacy_peer_manager = legacy_peer_manager;
+    TorrentSessionManager.getSingleton().registerForSessionManagement( this );  //register for incoming session requests
   }
   
   
-  public byte[] getInfoHash() {  return infohash;  }
+  public PEPeerControl getLegacyPeerManager() {  return legacy_peer_manager;  }
+  
+  
+  public byte[] getInfoHash() {  return legacy_peer_manager.getHash();  }
+  
   
   
   public void setSessionAuthenticator( TorrentSessionAuthenticator auth ) {  session_auth = auth;  }
@@ -59,27 +64,11 @@ public class TorrentDownload {
   
   
   
-  public void receivedSessionBitfield( TorrentSession session, DirectByteBuffer bitfield ) {
-    
+  
+  
+  
+  public void destroy() {
+    TorrentSessionManager.getSingleton().deregisterForSessionManagement( this );
   }
   
-  
-  public void receivedSessionRequest( TorrentSession session, byte unchoke_id, int piece_number, int piece_offset, int length ) {
-    
-  }
-  
-  
-  public void receivedSessionCancel( TorrentSession session, int piece_number, int piece_offset, int length ) {
-    
-  }
-  
-  
-  public void receivedSessionHave( TorrentSession session, int piece_number ) {
-    
-  }
-  
-  
-  public void receivedSessionPiece( TorrentSession session, int piece_number, int piece_offset, DirectByteBuffer data ) {
-    
-  }
 }

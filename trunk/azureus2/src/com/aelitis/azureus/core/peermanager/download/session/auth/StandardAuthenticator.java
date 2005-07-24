@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
+import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
 import com.aelitis.azureus.core.peermanager.download.session.*;
 
 
@@ -36,26 +37,26 @@ public class StandardAuthenticator implements TorrentSessionAuthenticator {
     /*nothing*/
   }
   
-  public Map createSessionSyn() {
+  public Map createSessionSyn( AZPeerConnection connection ) {
     return null;  //no explicit syn info required
   }
   
 
-  public Map verifySessionSyn( Map syn_info ) throws AuthenticatorException {
+  public Map verifySessionSyn( AZPeerConnection connection, Map syn_info ) throws AuthenticatorException {
     return null;  //no explicit ack info required
   }
 
   
-  public void verifySessionAck( Map ack_info ) throws AuthenticatorException {
+  public void verifySessionAck( AZPeerConnection connection, Map ack_info ) throws AuthenticatorException {
     //do nothing, always accept ack
   }
 
-  public DirectByteBuffer decodeSessionData( DirectByteBuffer encoded_data ) throws AuthenticatorException {
+  public DirectByteBuffer decodeSessionData( AZPeerConnection connection, DirectByteBuffer encoded_data ) throws AuthenticatorException {
     return encoded_data;  //keep as is
   }
   
 
-  public DirectByteBuffer encodeSessionData( DirectByteBuffer decoded_data ) throws AuthenticatorException {
+  public DirectByteBuffer encodeSessionData( AZPeerConnection connection, DirectByteBuffer decoded_data ) throws AuthenticatorException {
     return decoded_data;  //keep as is
   }
 }

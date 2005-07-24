@@ -33,6 +33,9 @@ import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.NetworkManager.ByteMatcher;
+import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
+import com.aelitis.azureus.core.peermanager.download.TorrentDownloadFactory;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
@@ -128,7 +131,10 @@ public class PeerManager {
         }
     );
     
-    legacy_managers.put( manager, matcher );
+    TorrentDownload download = TorrentDownloadFactory.getSingleton().createDownload( manager );  //link legacy with new
+    LegacyRegistration leg_reg = new LegacyRegistration( download, matcher );
+    
+    legacy_managers.put( manager, leg_reg );
   }
   
   
@@ -139,14 +145,26 @@ public class PeerManager {
    */
   public void deregisterLegacyManager( final PEPeerControl manager ) {
     //remove incoming routing registration 
-    NetworkManager.ByteMatcher matcher = (NetworkManager.ByteMatcher)legacy_managers.remove( manager );
-    if( matcher != null ) {
-      NetworkManager.getSingleton().cancelIncomingConnectionRouting( matcher );
+    LegacyRegistration leg_reg = (LegacyRegistration)legacy_managers.remove( manager );
+    if( leg_reg != null ) {
+      NetworkManager.getSingleton().cancelIncomingConnectionRouting( leg_reg.byte_matcher );
+      leg_reg.download.destroy();  //break legacy link
     }
     else {
       Debug.out( "matcher == null" );
     }
   }
   
+  
+  
+  private static class LegacyRegistration {
+    private final TorrentDownload download;
+    private final ByteMatcher byte_matcher;
+    
+    private LegacyRegistration( TorrentDownload d, ByteMatcher m ) {
+      this.download = d;
+      this.byte_matcher = m;
+    }  
+  }
 
 }

@@ -36,6 +36,7 @@ public interface SessionAuthenticator {
   
   /**
    * Create bencode-able map info for outgoing session syn.
+   * @param peer with session
    * @return syn info
    */
   public Map createSessionSyn( Peer	peer );
@@ -43,6 +44,7 @@ public interface SessionAuthenticator {
   /**
    * Decode and verify the given (bencoded) map of incoming session SYN information,
    * and create the session ACK reply.
+   * @param peer with session
    * @param syn_info incoming session syn info
    * @return bencode-able map info for session ack reply
    * @throws SessionAuthenticatorException on verify error / failure
@@ -51,6 +53,7 @@ public interface SessionAuthenticator {
 
   /**
    * Decode and verify the given (bencoded) map of outgoing session ACK information.
+   * @param peer with session
    * @param ack_info incoming session ack info
    * @throws SessionAuthenticatorException on verify error / failure
    */
@@ -58,6 +61,7 @@ public interface SessionAuthenticator {
   
   /**
    * Decode the given (possibly encrypted) session data into clean form.
+   * @param peer with session
    * @param encoded_data to decode
    * @return decoded form of data
    * @throws SessionAuthenticatorException on decode error / failure
@@ -66,6 +70,7 @@ public interface SessionAuthenticator {
   
   /**
    * Encode the given clean session data into (possibly encrypted) encoded form.
+   * @param peer with session
    * @param decoded_data to encode
    * @return encoded form of data
    * @throws SessionAuthenticatorException on encode error / failure

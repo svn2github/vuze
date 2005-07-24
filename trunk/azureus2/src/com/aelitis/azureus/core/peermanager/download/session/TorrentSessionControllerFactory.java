@@ -1,5 +1,5 @@
 /*
- * Created on Jul 7, 2005
+ * Created on Jul 23, 2005
  * Created by Alon Rohter
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -22,23 +22,31 @@
 
 package com.aelitis.azureus.core.peermanager.download.session;
 
+import java.util.Map;
+
 import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
 
-public class TorrentSessionFactory {
+public class TorrentSessionControllerFactory {
 
-  private static final TorrentSessionFactory instance = new TorrentSessionFactory();
+  private static final TorrentSessionControllerFactory instance = new TorrentSessionControllerFactory();
   
   
-  protected static TorrentSessionFactory getSingleton(){  return instance;  }
+  protected static TorrentSessionControllerFactory getSingleton(){  return instance;  }
   
   
-  public TorrentSession createIncomingSession( TorrentDownload download, AZPeerConnection peer, int remote_session_id ) {
-    return new TorrentSession( download, peer, remote_session_id );
+  public TorrentSessionController createInboundAZController( TorrentDownload download, AZPeerConnection peer, int remote_id, Map incoming_syn ) {
+    return new TorrentSessionController( TorrentSessionController.SESSION_TYPE_AZ, download, peer, remote_id, incoming_syn );
   }
   
   
-  public TorrentSession createOutgoingSession( TorrentDownload download, AZPeerConnection peer ) {
-    return new TorrentSession( download, peer );
+  public TorrentSessionController createOutboundAZController( TorrentDownload download, AZPeerConnection peer ) {
+    return new TorrentSessionController( TorrentSessionController.SESSION_TYPE_AZ, download, peer, -1, null );
   }
+  
+  
+  public TorrentSessionController createBTController( TorrentDownload download, AZPeerConnection peer ) {
+    return new TorrentSessionController( TorrentSessionController.SESSION_TYPE_BT, download, peer, -1, null );
+  }
+  
 }

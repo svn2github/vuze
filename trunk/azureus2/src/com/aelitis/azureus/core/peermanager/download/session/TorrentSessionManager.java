@@ -29,7 +29,6 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
 import com.aelitis.azureus.core.peermanager.connection.*;
 import com.aelitis.azureus.core.peermanager.download.TorrentDownload;
-import com.aelitis.azureus.core.peermanager.download.session.auth.*;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.session.*;
@@ -77,8 +76,9 @@ public class TorrentSessionManager {
                 connection.getNetworkConnection().getOutgoingMessageQueue().addMessage( end, false );
               }
               else { //success
-                TorrentSession session = TorrentSessionFactory.getSingleton().createIncomingSession( download, connection, syn.getSessionID() );
-                session.authenticate( syn.getSessionInfo() );  //init processing
+                //TODO
+                //TorrentSession session = TorrentSessionFactory.getSingleton().createIncomingSession( download, connection, syn.getSessionID() );
+                //session.authenticate( syn.getSessionInfo() );  //init processing //TODO
               }
                
               syn.destroy();
@@ -127,8 +127,8 @@ public class TorrentSessionManager {
    * @param connection to send request to
    */
   public void requestTorrentSession( TorrentDownload download, AZPeerConnection connection ) {
-    TorrentSession session = TorrentSessionFactory.getSingleton().createOutgoingSession( download, connection );
-    session.authenticate( null );  //init processing
+    //TorrentSession session = TorrentSessionFactory.getSingleton().createOutgoingSession( download, connection );
+    //session.authenticate( null );  //init processing  //TODO
   }
 
   

@@ -26,45 +26,52 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
+import com.aelitis.azureus.core.peermanager.connection.AZPeerConnection;
+
 
 
 public interface TorrentSessionAuthenticator {
 
   /**
    * Create bencode-able map info for outgoing session syn.
+   * @param connection with session
    * @return syn info
    */
-  public Map createSessionSyn();
+  public Map createSessionSyn( AZPeerConnection connection );
   
   /**
    * Decode and verify the given (bencoded) map of incoming session SYN information,
    * and create the session ACK reply.
+   * @param connection with session
    * @param syn_info incoming session syn info
    * @return bencode-able map info for session ack reply
    * @throws AuthenticatorException on verify error / failure
    */
-  public Map verifySessionSyn( Map syn_info ) throws AuthenticatorException;
+  public Map verifySessionSyn( AZPeerConnection connection, Map syn_info ) throws AuthenticatorException;
 
   /**
    * Decode and verify the given (bencoded) map of outgoing session ACK information.
+   * @param connection with session
    * @param ack_info incoming session ack info
    * @throws AuthenticatorException on verify error / failure
    */
-  public void verifySessionAck( Map ack_info ) throws AuthenticatorException;
+  public void verifySessionAck( AZPeerConnection connection, Map ack_info ) throws AuthenticatorException;
   
   /**
    * Decode the given (possibly encrypted) session data into clean form.
+   * @param connection with session
    * @param encoded_data to decode
    * @return decoded form of data
    * @throws AuthenticatorException on decode error / failure
    */
-  public DirectByteBuffer decodeSessionData( DirectByteBuffer encoded_data ) throws AuthenticatorException;
+  public DirectByteBuffer decodeSessionData( AZPeerConnection connection, DirectByteBuffer encoded_data ) throws AuthenticatorException;
   
   /**
    * Encode the given clean session data into (possibly encrypted) encoded form.
+   * @param connection with session
    * @param decoded_data to encode
    * @return encoded form of data
    * @throws AuthenticatorException on encode error / failure
    */
-  public DirectByteBuffer encodeSessionData( DirectByteBuffer decoded_data ) throws AuthenticatorException;
+  public DirectByteBuffer encodeSessionData( AZPeerConnection connection, DirectByteBuffer decoded_data ) throws AuthenticatorException;
 }

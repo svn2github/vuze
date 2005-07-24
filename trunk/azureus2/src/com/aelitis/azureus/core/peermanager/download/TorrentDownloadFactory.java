@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.download;
 
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+
 public class TorrentDownloadFactory {
 
   private static final TorrentDownloadFactory instance = new TorrentDownloadFactory();
@@ -30,8 +32,8 @@ public class TorrentDownloadFactory {
   public static TorrentDownloadFactory getSingleton() {  return instance;  }
   
   
-  public TorrentDownload createDownload( byte[] infohash ) {
-    return new TorrentDownload( infohash );
+  public TorrentDownload createDownload( PEPeerControl legacy_peer_manager ) {
+    return new TorrentDownload( legacy_peer_manager );
   }
   
 }
