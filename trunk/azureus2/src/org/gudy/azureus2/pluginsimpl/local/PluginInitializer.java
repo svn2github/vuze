@@ -41,6 +41,8 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
@@ -165,8 +167,9 @@ PluginInitializer
   private static PluginInitializer	singleton;
   private static AEMonitor			class_mon	= new AEMonitor( "PluginInitializer");
 
-  private static List		registration_queue = new ArrayList();
-   
+  private static List		registration_queue 	= new ArrayList();
+  private static Map		preloaded_plugins	= new HashMap();
+  
   private AzureusCoreListener listener;
   
   private AzureusCore		azureus_core;
@@ -255,6 +258,133 @@ PluginInitializer
 		class_mon.exit();
 	}  	
   }
+  
+  	public static LaunchablePlugin[]
+  	findLaunchablePlugins(
+  		LoggerChannelListener	listener )
+  	{
+  			// CAREFUL - this is called BEFORE any AZ initialisation has been performed and must
+  			// therefore NOT use anything that relies on this (such as logging, debug....)
+  		
+  		List	res = new ArrayList();
+  	
+	    File	app_dir	 = FileUtil.getApplicationFile("plugins");
+	    
+	    if ( !( app_dir.exists()) && app_dir.isDirectory()){
+	    	
+	    	listener.messageLogged( LoggerChannel.LT_ERROR, "Application dir '" + app_dir + "' not found" );
+	    	
+	    	return( new LaunchablePlugin[0] );
+	    }
+	    
+	    File[] plugins = app_dir.listFiles();
+
+	    if ( plugins == null || plugins.length == 0 ){
+	    	
+	    	listener.messageLogged( LoggerChannel.LT_ERROR, "Application dir '" + app_dir + "' empty" );
+
+	    	return( new LaunchablePlugin[0] );
+	    }
+	    
+	    for ( int i=0;i<plugins.length;i++ ) {
+	        
+	    	File	plugin_dir = plugins[i];
+	    	
+    	    if( !plugin_dir.isDirectory()){
+    	    	
+    	    	continue;
+    	    }
+    	    
+		    try{
+		    	    	    
+		      	ClassLoader classLoader = PluginInitializer.class.getClassLoader();
+		    	    		    	    
+		    	File[] contents = plugin_dir.listFiles();
+		    	    
+	    	    if ( contents == null || contents.length == 0){
+	    	    	
+	    	    	continue;
+	    	    }
+		    	    		    	    		    	    	
+		    	    // take only the highest version numbers of jars that look versioned
+		    	    
+	    	    String[]	plugin_version 	= {null};
+	    	    String[]	plugin_id 		= {null};
+		    	    
+	    	    contents	= getHighestJarVersions( contents, plugin_version, plugin_id );
+		    	    
+	    	    for( int j = 0 ; j < contents.length ; j++){
+		    	    			    	    	
+		    	    classLoader = addFileToClassPath(classLoader, contents[j]);
+	    	    }
+		    	        		    	    
+	    	    Properties props = new Properties();
+	    	    
+	    	    File	properties_file = new File( plugin_dir, "plugin.properties");
+		    	 
+	    	    	// if properties file exists on its own then override any properties file
+	    	    	// potentially held within a jar	    	      	
+		    	   
+    	    	if ( properties_file.exists()){
+	    	      	
+    	    		FileInputStream	fis = null;
+	    	      		
+    	    		try{
+    	    			fis = new FileInputStream( properties_file );
+	    	      		
+    	    			props.load( fis );
+	    	      			
+	    	      	}finally{
+	    	      			
+	    	      		if ( fis != null ){
+	    	      				
+	    	      			fis.close();
+	    	      		}
+	    	      	}  		
+    	    	}else{
+	    	      		
+	    	    	if ( classLoader instanceof URLClassLoader ){
+	    	      			
+	    	    		URLClassLoader	current = (URLClassLoader)classLoader;
+	    	      		    			
+	    	      		URL url = current.findResource("plugin.properties");
+	    	      		
+	    	      		if ( url != null ){
+	    	      				
+	    	      			props.load(url.openStream());
+	    	      		}
+	    	      	}
+    	    	}
+
+		    	String plugin_class = (String)props.get( "plugin.class");
+		    	      	    	      		    	      
+			    if ( plugin_class == null ){
+			    		
+			    	continue;
+			    }
+		    	    	    		      
+		    	Class c = classLoader.loadClass(plugin_class);
+		    			      
+		    	Plugin	    plugin	= (Plugin) c.newInstance();
+		   
+		    	if ( plugin instanceof LaunchablePlugin ){
+		    		
+		    		preloaded_plugins.put( plugin_class, plugin );
+		    		
+		    		res.add( plugin );
+		    	}
+		    }catch( Throwable e ){
+		    	
+		    	listener.messageLogged( "Load of plugin in '" + plugin_dir + "' fails", e );
+		    }
+	    }
+	    
+	    LaunchablePlugin[]	x = new LaunchablePlugin[res.size()];
+	    
+	    res.toArray( x );
+	    
+	    return( x );
+  	}
   
   protected 
   PluginInitializer(
@@ -719,22 +849,29 @@ PluginInitializer
 	      	// if the plugin load fails we still need to generate a plugin entry
   		  	// as this drives the upgrade process
   		  
-	      Plugin plugin = null;
 	      
 	      Throwable	load_failure	= null;
 	      
 	      String pid = plugin_id[0]==null?directory.getName():plugin_id[0];
 	      
-	      try{
-		      Class c = classLoader.loadClass(plugin_class);
-		      
-	      	  plugin	= (Plugin) c.newInstance();
+	      Plugin plugin = (Plugin)preloaded_plugins.get( plugin_class );
 	      
-	      }catch( Throwable e ){
+	      if ( plugin == null ){
+	    	  
+	    	  try{
+	    		  Class c = classLoader.loadClass(plugin_class);
+		      
+	    		  plugin	= (Plugin) c.newInstance();
+	      
+	    	  }catch( Throwable e ){
 	      	
-	      	load_failure	= e;
+	    		  load_failure	= e;
 	      	
-	      	plugin = new loadFailedPlugin();
+	    		  plugin = new loadFailedPlugin();
+	    	  }
+	      }else{
+	    	  
+	    	  classLoader = plugin.getClass().getClassLoader();
 	      }
 
 	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
@@ -971,7 +1108,7 @@ PluginInitializer
   		}
   	}
 
-  private ClassLoader 
+  private static ClassLoader 
   addFileToClassPath(
   	ClassLoader		classLoader,
 	File 			f) 
@@ -999,16 +1136,18 @@ PluginInitializer
     			
     			classLoader = new URLClassLoader(
     								new_urls,
-									classLoader==getClass().getClassLoader()?
+									classLoader==PluginInitializer.class.getClassLoader()?
 											classLoader:
 											classLoader.getParent());
     		}else{
     			  		
     			classLoader = new URLClassLoader(new URL[]{f.toURL()},classLoader);
     		}
-    	}catch(Exception e){
+    	}catch( Exception e){
     		
-    		Debug.printStackTrace( e );
+    			// don't use Debug/lglogger here as we can be called before AZ has been initialised
+    		
+    		e.printStackTrace();
     	}
    	}
     
@@ -1400,12 +1539,15 @@ PluginInitializer
   	return( null );
   }
   
-  	protected File[]
+  	protected static File[]
 	getHighestJarVersions(
 		File[]		files,
 		String[]	version_out ,
 		String[]	id_out )	// currently the version of last versioned jar found...
 	{
+  			// WARNING!!!!
+  			// don't use Debug/lglogger here as we can be called before AZ has been initialised
+  		
   		List	res 		= new ArrayList();
   		Map		version_map	= new HashMap();
   		
