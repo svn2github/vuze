@@ -90,16 +90,22 @@ PluginManagerDefaults
 		 */
 	
 	public void
-	setApplicationDetails(
-		String		name,
-		String		application_id,
-		String		entry_point );
+	setApplicationName(
+		String		name );
 	
 	public String
 	getApplicationName();
 	
+	public void
+	setApplicationIdentifier(
+		String		identifier );
+	
 	public String
 	getApplicationIdentifier();
+	
+	public void
+	setApplicationEntryPoint(
+		String		entry_point );
 	
 	public String
 	getApplicationEntryPoint();

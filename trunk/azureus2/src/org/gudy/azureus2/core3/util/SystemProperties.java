@@ -38,21 +38,29 @@ public class SystemProperties {
   
   
 	public static void
-	setApplicationDetails(
-		String		name,
-		String		application_id,
-		String		entry_point )
+	setApplicationName(
+		String		name )
 	{
 		if ( name != null && name.trim().length() > 0 ){
 			
 			APPLICATION_NAME			= name.trim();
 		}
-		
+	}
+	
+	public static void
+	setApplicationIdentifier(
+		String		application_id )
+	{
 		if ( application_id != null && application_id.trim().length() > 0 ){
 			
 			APPLICATION_ID			= application_id.trim();
 		}
-		
+	}
+	
+	public static void
+	setApplicationEntryPoint(
+		String		entry_point )
+	{
 		if ( entry_point != null && entry_point.trim().length() > 0 ){
 
 			APPLICATION_ENTRY_POINT	= entry_point.trim();

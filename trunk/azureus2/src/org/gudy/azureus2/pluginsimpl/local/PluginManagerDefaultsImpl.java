@@ -75,12 +75,10 @@ PluginManagerDefaultsImpl
 	}
 	
 	public void
-	setApplicationDetails(
-		String		name,
-		String		id,
-		String		entry )
+	setApplicationName(
+		String		name )
 	{
-		SystemProperties.setApplicationDetails( name, id, entry );
+		SystemProperties.setApplicationName( name );
 	}
 	
 	public String
@@ -89,10 +87,24 @@ PluginManagerDefaultsImpl
 		return( SystemProperties.getApplicationName());
 	}
 	
+	public void
+	setApplicationIdentifier(
+		String		id )
+	{
+		SystemProperties.setApplicationIdentifier( id );
+	}
+	
 	public String
 	getApplicationIdentifier()
 	{
 		return( SystemProperties.getApplicationIdentifier());
+	}
+	
+	public void
+	setApplicationEntryPoint(
+		String		ep )
+	{
+		SystemProperties.setApplicationEntryPoint( ep );
 	}
 	
 	public String

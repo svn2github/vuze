@@ -124,13 +124,11 @@ PluginLauncherImpl
 		}
 		
 		try{
-			launchables[0].setDefaults( args );
+				// set default details for restarter
 			
-				// set details for restarter
-			
-			SystemProperties.setApplicationDetails( null, null, "org.gudy.azureus2.plugins.PluginLauncher" );
-			
-			
+			SystemProperties.setApplicationEntryPoint( "org.gudy.azureus2.plugins.PluginLauncher" );
+
+			launchables[0].setDefaults( args );			
 
 				// we have to run the core startup on a separate thread and then effectively pass "this thread"
 				// through to the launchable "process" method
@@ -161,12 +159,21 @@ PluginLauncherImpl
 			
 			core_thread.start();
 			
+			boolean	restart = false;
+			
 			try{
-				launchables[0].process();
+				restart = launchables[0].process();
 				
 			}finally{
 				
-				AzureusCoreFactory.getSingleton().stop();
+				if ( restart ){
+					
+					AzureusCoreFactory.getSingleton().restart();
+
+				}else{
+					
+					AzureusCoreFactory.getSingleton().stop();
+				}
 			}
 			
 		}catch( Throwable e ){

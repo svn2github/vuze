@@ -36,10 +36,11 @@ LaunchablePlugin
 	
 		/**
 		 * Some environments have requirements regarding the main application thread and processing
-		 * on it. In particular SWT on OSX insists that the SWT dispatch thread 
-		 *
+		 * on it. In particular SWT on OSX insists that the SWT dispatch thread. When this thread
+		 * is returned from Azureus is either stopper or restarted, depending on the return value
+		 * @return whether to close down or restart (true->restart) 
 		 */
 	
-	public void
+	public boolean
 	process();
 }
