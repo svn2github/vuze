@@ -57,4 +57,41 @@ PeerManagerStatsImpl
 	{
 		return( manager.getNbPeers());
 	}
+	
+	public long
+	getDownloaded()
+	{
+		return( stats.getTotalDataBytesReceived());
+	}
+	
+	public long
+	getUploaded()
+	{
+		return( stats.getTotalDataBytesSent());
+	}
+	
+	public long
+	getDownloadAverage()
+	{
+		return( stats.getDataReceiveRate());
+	}
+	
+	public long
+	getUploadAverage()
+	{
+		return( stats.getDataSendRate());
+	}
+	
+	public long
+	getDiscarded()
+	{
+		return( stats.getTotalDiscarded());
+	}
+	
+	public long
+	getHashFailBytes()
+	{
+		return( stats.getTotalHashFailBytes());
+	}
+	
 }

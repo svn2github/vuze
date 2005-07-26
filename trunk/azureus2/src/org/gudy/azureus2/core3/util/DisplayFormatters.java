@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.text.SimpleDateFormat;
 import java.text.NumberFormat;
 // import java.text.DecimalFormat;
@@ -528,17 +530,7 @@ DisplayFormatters
   formatTime(
     long    time )
   {
-    if ( time == 0 ){
-      return( "" );
-    }
-
-    	// 24 hour clock, no point in including AM/PM
-
-	SimpleDateFormat temp = new SimpleDateFormat("HH:mm:ss");
-	
-	long	days = time/(24*60*60*1000);
-
-    return( (days==0?"":(days+":")) + temp.format(new Date(time)));
+    return( TimeFormatter.formatColon( time / 1000 ));
   }
 
   public static String

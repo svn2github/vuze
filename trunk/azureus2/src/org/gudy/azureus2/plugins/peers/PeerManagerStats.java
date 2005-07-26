@@ -35,4 +35,24 @@ PeerManagerStats
 	
 	public int
 	getConnectedLeechers();
+	
+		// session stats
+	
+	public long
+	getDownloaded();
+	
+	public long
+	getUploaded();
+	
+	public long
+	getDownloadAverage();
+	
+	public long
+	getUploadAverage();
+	
+	public long
+	getDiscarded();
+	
+	public long
+	getHashFailBytes();
 }

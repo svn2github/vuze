@@ -25,6 +25,35 @@ package org.gudy.azureus2.plugins.download;
 public interface 
 DownloadManagerStats 
 {
+		/**
+		 * bytes ever received
+		 * @return
+		 */
+	
+	public long
+	getOverallDataBytesReceived();
+	
+		/**
+		 * bytes ever sent
+		 * @return
+		 */
+	
+	public long
+	getOverallDataBytesSent();
+	
+		/**
+		 * how long since az started
+		 * @return
+		 */
+	
+	public long
+	getSessionUptimeSeconds();
+
+		/**
+		 * current data receive rate
+		 * @return
+		 */
+	
 	public int 
 	getDataReceiveRate();
 	  
@@ -37,6 +66,11 @@ DownloadManagerStats
 	public int 
 	getProtocolSendRate();
 	    
+		/**
+		 * data received since session start
+		 * @return
+		 */
+	
 	public long 
 	getDataBytesReceived();
 	  

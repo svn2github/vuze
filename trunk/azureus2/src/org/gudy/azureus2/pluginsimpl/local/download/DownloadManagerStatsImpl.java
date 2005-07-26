@@ -23,6 +23,8 @@
 package org.gudy.azureus2.pluginsimpl.local.download;
 
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.stats.transfer.OverallStats;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.plugins.download.DownloadManagerStats;
 
 public class 
@@ -31,11 +33,33 @@ DownloadManagerStatsImpl
 {
 	private GlobalManager			global_manager;
 	
+	private OverallStats			overall_stats;
+	
 	protected
 	DownloadManagerStatsImpl(
 		GlobalManager	_gm )
 	{
 		global_manager	= _gm;
+		
+		overall_stats = StatsFactory.getStats();
+	}
+	
+	public long
+	getOverallDataBytesReceived()
+	{
+		return( overall_stats.getDownloadedBytes());
+	}
+	
+	public long
+	getOverallDataBytesSent()
+	{
+		return( overall_stats.getUploadedBytes());
+	}
+	
+	public long
+	getSessionUptimeSeconds()
+	{
+		return( overall_stats.getSessionUpTime());
 	}
 	
 	public int 

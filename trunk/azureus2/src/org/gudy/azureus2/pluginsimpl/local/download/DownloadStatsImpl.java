@@ -93,6 +93,7 @@ DownloadStatsImpl
 	{
 		return( dm_stats.getTotalDataBytesSent());
 	}
+	
 	public long
 	getDiscarded()
 	{
