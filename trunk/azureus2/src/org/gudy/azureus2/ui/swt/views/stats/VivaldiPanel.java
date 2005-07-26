@@ -152,6 +152,10 @@ public class VivaldiPanel {
     gc.setForeground(white);
     gc.setBackground(white);
     gc.fillRectangle(size);
+    if(SWT.getVersion() >= 3100) {
+      gc.setTextAntialias(SWT.ON);
+      gc.setAntialias(SWT.ON);
+    }
     
     Color blue = new Color(display,66,87,104);
     gc.setForeground(blue);
@@ -222,9 +226,9 @@ public class VivaldiPanel {
     int x0 = scale.getX(x,y);
     int y0 = scale.getY(x,y);   
     gc.fillRectangle(x0-1,y0-1,3,3);   
-    int elevation =(int) ( 200*h/(scale.maxY-scale.minY));
-    gc.drawLine(x0,y0,x0,y0-elevation);
-    String text = contact.getTransportContact().getAddress().getAddress().getHostAddress() + " (" + distance + " ms)";
+    //int elevation =(int) ( 200*h/(scale.maxY-scale.minY));
+    //gc.drawLine(x0,y0,x0,y0-elevation);
+    String text = /*contact.getTransportContact().getAddress().getAddress().getHostAddress() + " (" + */distance + " ms";
     int xOffset = gc.getFontMetrics().getAverageCharWidth() * text.length() / 2;
     gc.drawText(text,x0-xOffset,y0,true);
   }
