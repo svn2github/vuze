@@ -6,6 +6,8 @@ package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
@@ -57,8 +59,10 @@ public class MinimizedWindow {
   
   private DownloadManager manager;
 
-  public MinimizedWindow(DownloadManager manager, Shell main) {
-    this.manager = manager;
+  public MinimizedWindow(DownloadManager _manager, Shell main) {
+    
+	manager = _manager;
+	
     this.stucked = null;
 
     //   The splash Screen setup
@@ -148,6 +152,35 @@ public class MinimizedWindow {
     pb1.setSize(100, hSize);
     pb1.setLocation(xSize, 0);
     xSize += 100 + 5;
+    
+    Listener pb_listener = new Listener() {
+        public void handleEvent(Event event) {
+          int perc = manager.getStats().getCompleted();
+          Color old = event.gc.getForeground(); 
+          event.gc.setForeground(Colors.black);
+          
+          /*
+          FontData[] fd = splashFile.getFont().getFontData();
+          
+          int	y_offset = ( pb1.getSize().y - fd[0].getHeight() )/2;
+          
+          if ( y_offset < 0 ){
+          	y_offset = 0;
+          }
+          */
+          
+          int	char_width = event.gc.getFontMetrics().getAverageCharWidth();
+          
+          String	percent = DisplayFormatters.formatPercentFromThousands(perc);
+          
+          event.gc.drawText(percent, ( pb1.getSize().x - percent.length() * char_width )/2, -1, true);
+      
+          event.gc.setForeground(old);
+        }
+      };
+      
+      pb1.addListener(SWT.Paint,pb_listener);
+    
     
     Label l3 = new Label(splash, SWT.NONE);
     l3.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
@@ -374,22 +407,12 @@ public class MinimizedWindow {
     splashUp.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(manager.getStats().getDataSendRate()));
     splashTime.setText(DisplayFormatters.formatETA(manager.getStats().getETA()));
     
-    pb1.setSelection(percent);
-    //final String oldPerc = 
-    Listener listener = new Listener() {
-      public void handleEvent(Event event) {
-        int perc = manager.getStats().getCompleted();
-        Color old = event.gc.getForeground(); 
-        event.gc.setForeground(Colors.black);
-        event.gc.drawText(DisplayFormatters.formatPercentFromThousands(perc), 110, -1, true);
-        
-        event.gc.setForeground(old);
-      }
-    };
-    pb1.addListener(SWT.Paint,listener);
+    if ( pb1.getSelection() != percent ){
+    	
+    	pb1.setSelection(percent);
     
-    pb1.redraw();
-  
+    	pb1.redraw();
+    }
   }
 
   public void setVisible(boolean visible) {
