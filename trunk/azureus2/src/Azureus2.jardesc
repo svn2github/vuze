@@ -49,6 +49,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.updater.snippets"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.web2.stages.net"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.client"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.download.session.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.tracker"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.config"/>
 <javaElement handleIdentifier="=azuis/&lt;org.pf.file"/>
@@ -126,6 +127,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.router.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.common"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.xml.schemas"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.launch"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.db"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.util"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.tables.mytorrents"/>
@@ -351,6 +353,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ddb"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.torrentdownloader"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.upnp.services"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.download.session"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.ipfilter.impl.tests"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.clientid"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.tableitems.pieces"/>
