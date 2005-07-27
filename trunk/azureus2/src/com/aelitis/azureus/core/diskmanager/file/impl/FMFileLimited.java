@@ -53,7 +53,8 @@ FMFileLimited
 	}
 	
 	public void
-	ensureOpen()
+	ensureOpen(
+		String	reason )
 	
 		throws FMFileManagerException
 	{
@@ -70,7 +71,7 @@ FMFileLimited
 			
 				try{
 	
-				  super.ensureOpen();
+				  super.ensureOpen( reason );
 					
 				}finally{
 					
@@ -134,7 +135,7 @@ FMFileLimited
 		try{
 			this_mon.enter();
 	
-			ensureOpen();
+			ensureOpen( "FMFileLimited:getSize" );
 		
 			return( getSizeSupport());
 			
@@ -152,7 +153,7 @@ FMFileLimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen();
+			ensureOpen( "FMFileLimited:getLength" );
 		
 			return( getLengthSupport());
 			
@@ -171,7 +172,7 @@ FMFileLimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen();
+			ensureOpen( "FMFileLimited:setLength" );
 			
 			setLengthSupport( length );
 			
@@ -191,7 +192,7 @@ FMFileLimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen();
+			ensureOpen( "FMFileLimited:read" );
 			
 			readSupport( buffer, offset );
 			
@@ -212,7 +213,7 @@ FMFileLimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen();
+			ensureOpen( "FMFileLimited:write" );
 			
 			writeSupport( buffer, position );
 			
@@ -232,7 +233,7 @@ FMFileLimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen();
+			ensureOpen( "FMFileLimited:write" );
 			
 			writeSupport( buffers, position );
 			

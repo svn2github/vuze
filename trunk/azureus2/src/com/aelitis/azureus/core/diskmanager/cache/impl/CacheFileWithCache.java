@@ -1233,14 +1233,15 @@ CacheFileWithCache
 	}
 	
 	public void
-	ensureOpen()
+	ensureOpen(
+		String	reason )
 
 		throws CacheFileManagerException
 	{
 		try{
 				// no cache flush required here
 			
-			file.ensureOpen();
+			file.ensureOpen( reason );
 			
 		}catch( FMFileManagerException e ){
 			

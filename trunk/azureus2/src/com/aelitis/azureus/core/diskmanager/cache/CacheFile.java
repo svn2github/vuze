@@ -55,7 +55,8 @@ CacheFile
 	getAccessMode();
 	
 	public void
-	ensureOpen()
+	ensureOpen(
+		String	reason )
 
 		throws CacheFileManagerException;
 

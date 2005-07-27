@@ -100,13 +100,14 @@ CacheFileWithoutCache
 	}
 	
 	public void
-	ensureOpen()
+	ensureOpen(
+		String	reason )
 
 		throws CacheFileManagerException
 	{
 		try{
 			
-			file.ensureOpen();
+			file.ensureOpen( reason );
 			
 		}catch( FMFileManagerException e ){
 			

@@ -40,7 +40,7 @@ import com.aelitis.azureus.core.diskmanager.file.*;
 
 public class 
 CacheFileManagerImpl 
-	implements CacheFileManager
+	implements CacheFileManager, AEDiagnosticsEvidenceGenerator
 {
 	public static final boolean	DEBUG	= false;
 	
@@ -98,6 +98,8 @@ CacheFileManagerImpl
 	public
 	CacheFileManagerImpl()
 	{
+		AEDiagnostics.addEvidenceGenerator( this );
+		
 		file_manager	= FMFileManagerFactory.getSingleton();
 		
 		boolean	enabled	= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.enable" );
@@ -830,5 +832,47 @@ CacheFileManagerImpl
 		}
 		
 		throw( new CacheFileManagerException( e.getMessage(), e ));
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Cache Manager" );
+			
+		try{
+			writer.indent();
+			
+			try{
+				this_mon.enter();
+
+				writer.println( "Entries = " + cache_entries.size());
+				
+				Iterator it = cache_entries.keySet().iterator();
+				
+				Set	files = new HashSet();
+				
+				while( it.hasNext()){
+					
+					CacheEntry	entry = (CacheEntry)it.next();
+					
+					CacheFileWithCache file = entry.getFile();
+					
+					if( !files.contains( file )){
+						
+						files.add( file );
+						
+						writer.println( "File:" + file.getName() + ", access = " + file.getAccessMode());
+					}
+				}
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 }

@@ -68,7 +68,7 @@ FMFileUnlimited
 				closeSupport( false );
 			}
 			
-			openSupport();
+			openSupport( "FMFileUnlimited:setAccessMode" );
 			
 		}finally{
 			
@@ -84,7 +84,7 @@ FMFileUnlimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen();
+			ensureOpen( "FMFileUnlimited:getSize" );
 		
 			return( getSizeSupport());
 			
@@ -102,7 +102,7 @@ FMFileUnlimited
 		try{
 			this_mon.enter();
 		
-			ensureOpen();
+			ensureOpen( "FMFileUnlimited:getLength" );
 		
 			return( getLengthSupport());
 			
@@ -121,7 +121,7 @@ FMFileUnlimited
 		try{
 			this_mon.enter();
 
-			ensureOpen();
+			ensureOpen( "FMFileUnlimited:setLength" );
 		
 			setLengthSupport( length );
 			
@@ -141,7 +141,7 @@ FMFileUnlimited
 		try{
 			this_mon.enter();
 
-			ensureOpen();
+			ensureOpen( "FMFileUnlimited:read" );
 		
 			readSupport( buffer, offset );
 			
@@ -162,7 +162,7 @@ FMFileUnlimited
 		try{
 			this_mon.enter();
 
-			ensureOpen();
+			ensureOpen( "FMFileUnlimited:write" );
 		
 			writeSupport( buffer, position );
 			
@@ -182,7 +182,7 @@ FMFileUnlimited
 		try{
 			this_mon.enter();
 
-			ensureOpen();
+			ensureOpen( "FMFileUnlimited:write" );
 		
 			writeSupport( buffers, position );
 			

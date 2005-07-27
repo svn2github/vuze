@@ -59,7 +59,8 @@ FMFile
 	getAccessMode();
 	
 	public void
-	ensureOpen()
+	ensureOpen(
+		String	reason )
 
 		throws FMFileManagerException;
 

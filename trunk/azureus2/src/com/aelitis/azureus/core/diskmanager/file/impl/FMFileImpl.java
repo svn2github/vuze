@@ -57,6 +57,19 @@ FMFileImpl
 	private static Map			file_map = new HashMap();
 	private static AEMonitor	file_map_mon	= new AEMonitor( "FMFile:map");
 	
+	static{
+		AEDiagnostics.addEvidenceGenerator(
+			new AEDiagnosticsEvidenceGenerator()
+			{
+				public void
+				generate(
+					IndentWriter		writer )
+				{
+					generateEvidence( writer );
+				}
+			});
+	}
+	
 	private FMFileOwner			owner;
 	private int					access_mode			= FM_READ;
 	private File				file;
@@ -184,7 +197,7 @@ FMFileImpl
 				
 				reserveFile();
 				
-				openSupport();
+				openSupport( "moveFile target" );
 				
 			}else{
 			
@@ -199,7 +212,7 @@ FMFileImpl
 				if ( was_open ){
 					
 					try{
-						openSupport();
+						openSupport( "moveFile recovery" );
 						
 					}catch( FMFileManagerException e){
 						
@@ -216,7 +229,8 @@ FMFileImpl
 	}
 	
 	public void
-	ensureOpen()
+	ensureOpen(
+		String	reason )
 	
 		throws FMFileManagerException
 	{
@@ -239,7 +253,7 @@ FMFileImpl
 	
 			if ( raf == null ){
 	  		
-				openSupport();
+				openSupport( reason );
 			}
 		}finally{
 			
@@ -306,7 +320,8 @@ FMFileImpl
 	}
 	
 	protected void
-	openSupport()
+	openSupport(
+		String	reason )
 	
 		throws FMFileManagerException
 	{
@@ -315,7 +330,7 @@ FMFileImpl
 			closeSupport(true);
 		}
 
-		reserveAccess();
+		reserveAccess( reason );
 		
 		try{		
 			raf = new RandomAccessFile( file, access_mode==FM_READ?READ_ACCESS_MODE:WRITE_ACCESS_MODE);
@@ -603,7 +618,7 @@ FMFileImpl
 				}
 			}
 			
-			owners.add( new Object[]{ owner.getName(), new Boolean( false )});
+			owners.add( new Object[]{ owner.getName(), new Boolean( false ), "<reservation>" });
 			
 		}finally{
 			
@@ -612,7 +627,8 @@ FMFileImpl
 	}
 	
 	private void
-	reserveAccess()
+	reserveAccess(
+		String	reason )
 	
 		throws FMFileManagerException
 	{
@@ -646,6 +662,7 @@ FMFileImpl
 			}
 		
 			my_entry[1] = new Boolean( access_mode==FM_WRITE );
+			my_entry[2] = reason;
 			
 			int	read_access 	= 0;
 			int write_access	= 0;
@@ -714,6 +731,53 @@ FMFileImpl
 		}finally{
 			
 			file_map_mon.exit();
+		}
+	}
+	
+	protected static void
+	generateEvidence(
+		IndentWriter	writer )
+	{
+		writer.println( "FMFile Reservations" );
+		
+		try{
+			writer.indent();
+
+			try{
+				file_map_mon.enter();
+			
+				Iterator	it = file_map.keySet().iterator();
+				
+				while( it.hasNext()){
+					
+					String	key = (String)it.next();
+					
+					List	owners = (List)file_map.get(key);
+					
+					Iterator	it2 = owners.iterator();
+					
+					String	str = "";
+						
+					while( it2.hasNext()){
+						
+						Object[]	entry = (Object[])it2.next();
+
+						String	owner 	= (String)entry[0];
+						Boolean	write	= (Boolean)entry[1];
+						String	reason	= (String)entry[2];
+						
+						str += (owner.length()==0?"":", ") + owner + "[" + (write.booleanValue()?"write":"read")+ "/" + reason + "]";
+					}
+					
+					writer.println( key + " -> " + str );
+				}
+			}finally{
+				
+				file_map_mon.exit();
+			}
+		}finally{
+			
+			writer.exdent();
 		}
 	}
 }
