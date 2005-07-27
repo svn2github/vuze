@@ -309,6 +309,12 @@ public class ConfigSectionIPFilter implements ConfigSectionSWT {
       public void handleEvent(Event event) {
         TableItem item = (TableItem) event.item;
 		int index = table.indexOf (item);
+		
+			// seems we can get -1 here (see bug 1219314 )
+		
+		if ( index < 0 || index >= ipRanges.length ){
+			return;
+		}
 		IpRange range = ipRanges[index];		
         item.setText(0, range.getDescription());
         item.setText(1, range.getStartIp());
