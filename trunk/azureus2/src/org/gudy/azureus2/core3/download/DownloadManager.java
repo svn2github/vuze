@@ -219,10 +219,6 @@ DownloadManager
 	
 	public String
 	getErrorDetails();
-	
-	public void
-	setErrorDetail(
-		String	str );
 				
 		// what are these doing here?
 		

@@ -285,6 +285,12 @@ DiskManagerImpl
 						try{
 							startSupport();
 							
+						}catch( Throwable e ){
+							
+							errorMessage = Debug.getNestedExceptionMessage(e) + " (start)";
+							
+							setState( FAULTY );
+
 						}finally{
 														
 							started_sem.release();
@@ -355,6 +361,7 @@ DiskManagerImpl
 		if ( getState() == FAULTY ){
 			
 				// bail out if broken in the meantime
+				// state will be "faulty" if the allocation process is interrupted by a stop
 			
 			return;
 		}
@@ -374,7 +381,7 @@ DiskManagerImpl
 
 		resume_handler.start();
 		  
-		if (newFiles == 0){
+		if ( newFiles == 0 ){
 			
 			resume_handler.checkAllPieces(false);
 			
@@ -416,12 +423,14 @@ DiskManagerImpl
 				
 				stopping	= true;
 
-					// we can however safely stop the resume handler at this point - this is important
-					// to interrupt a recheck process that might be holding up the start
+					// we can however safely stop things at this point - this is important
+					// to interrupt an alloc/recheck process that might be holding up the start
 					// operation
 				
+			   	writer_and_checker.stop();
+		    					
 				resume_handler.stop();
-
+								
 				return;
 			}
 			
@@ -786,8 +795,21 @@ DiskManagerImpl
 						
 						if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
 							
-							if( !writer_and_checker.zeroFile( fileInfo, length ) ) {
+							if ( !writer_and_checker.zeroFile( fileInfo, length )) {
 	                
+								try{
+										// failed to zero it, delete it so it gets done next start
+									
+									File	file = fileInfo.getCacheFile().getFile();
+									
+									fileInfo.getCacheFile().close();
+									
+									file.delete();
+									
+								}catch( Throwable e ){
+									
+								}
+								
 								setState( FAULTY );
 	                
 								return( -1 );
