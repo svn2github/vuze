@@ -293,6 +293,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker TCP NonBlocking Conc Max", new Long(2048));
     def.put( "Tracker Client Scrape Enable", new Long(1));
     def.put( "Tracker Client Scrape Stopped Enable", new Long(1));
+    def.put( "Tracker Client Scrape Single Only", new Long(0));
     
     def.put( "Network Selection Prompt", new Long(1));
     def.put( "Network Selection Default.Public", new Long(1));

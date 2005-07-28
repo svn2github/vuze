@@ -82,6 +82,8 @@ public class TrackerStatus {
   	scraper		= _scraper;
     tracker_url	= _tracker_url;
     
+    bSingleHashScrapes	= COConfigurationManager.getBooleanParameter( "Tracker Client Scrape Single Only" );
+    
     String trackerUrl	= tracker_url.toString();
     
     hashes = new HashMap();

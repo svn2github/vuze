@@ -5,6 +5,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -160,15 +161,34 @@ StartServer
         if(args.length > 1)
         {
         	for ( int i=1;i<args.length;i++){
-        		
-	          LGLogger.log( "Main::useParam: open '" + args[i] + "'");
-	
+        			
+	          String	file_name = args[i];
+	          
+		      try{
+		    	  File	file = new File(file_name);
+		        	
+		    	  if ( !file.exists()){
+		        		
+		    		  throw( new Exception("File not found" ));
+		    	  }
+		        	
+		    	  file_name = file.getCanonicalPath();
+		        	
+		    	  LGLogger.log( "StartServer: file = " + file_name );
+			          
+		      }catch( Throwable e ){
+
+		    	  LGLogger.logRepeatableAlert( 
+		        		LGLogger.AT_ERROR,
+		        		"Failed to access torrent file '" + file_name + "'. Ensure sufficient temporary file space available (check browser cache usage)." );
+		      }
+		      
 	          try{
 	          	this_mon.enter();
 	          	
 	          	if ( !core_started ){
 	          		
-	          		queued_torrents.add( args[i] );
+	          		queued_torrents.add( file_name );
 	          		
 	          		return;
 	          	}
@@ -179,7 +199,7 @@ StartServer
 	          
 	          try{
 	          	
-	          	TorrentOpener.openTorrent(azureus_core, args[i]);
+	          	TorrentOpener.openTorrent(azureus_core, file_name );
 	          	
 	          }catch( Throwable e ){
 	        		

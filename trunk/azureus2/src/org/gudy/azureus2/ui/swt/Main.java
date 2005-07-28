@@ -56,11 +56,22 @@ Main
 	        String filename = args[i];
 	        
 	        try{
-	          args[i] = new File(filename).getCanonicalPath();
+	        	File	file = new File(filename);
+	        	
+	        	if ( !file.exists()){
+	        		
+	        		throw( new Exception("File not found" ));
+	        	}
+	        	
+	        	args[i] = file.getCanonicalPath();
+	          	
+	        	LGLogger.log( "Main::main: args[" + i + "] exists = " + new File(filename).exists());
 	          
-	          LGLogger.log( "Main::main: args[" + i + "] exists = " + new File(filename).exists());
-	          
-	        }catch(java.io.IOException ioe){
+	        }catch( Throwable e ){
+	        	
+	        	LGLogger.logRepeatableAlert( 
+	        		LGLogger.AT_ERROR,
+	        		"Failed to access torrent file '" + filename + "'. Ensure sufficient temporary file space available (check browser cache usage)." );
 	        }
 	    }
 	    

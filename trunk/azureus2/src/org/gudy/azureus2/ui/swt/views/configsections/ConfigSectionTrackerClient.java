@@ -112,6 +112,10 @@ ConfigSectionTrackerClient
     
     scrape.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( scrape_stopped.getControls()));
 
+    BooleanParameter	single_scrapes = 
+    	new BooleanParameter(scrapeGroup, "Tracker Client Scrape Single Only", false,
+    							"ConfigView.section.tracker.client.scrapesingleonly");
+
     ////// main tab 
     
     // row
