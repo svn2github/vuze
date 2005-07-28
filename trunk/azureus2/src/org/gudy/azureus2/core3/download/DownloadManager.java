@@ -78,10 +78,7 @@ DownloadManager
 	
 	public void
 	setStateDownloading();
-	
-	public void
-	setStateStopped();
-	
+		
 	public void
 	setStateFinishing();
 	

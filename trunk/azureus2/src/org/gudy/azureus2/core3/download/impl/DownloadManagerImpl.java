@@ -332,8 +332,7 @@ DownloadManagerImpl
    
 	private boolean	dl_identity_obtained;
 	private byte[]	dl_identity;
-	
-    private int hashcode;
+    private int 	dl_identity_hashcode;
     
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
@@ -422,7 +421,7 @@ DownloadManagerImpl
 				 
 				 dl_identity			= torrent.getHash();
                  
-                 this.hashcode = new String( dl_identity ).hashCode();
+                 this.dl_identity_hashcode = new String( dl_identity ).hashCode();
 				 
 			 }else{
 				 
@@ -572,9 +571,10 @@ DownloadManagerImpl
 	         
 			 //trackerUrl = torrent.getAnnounceURL().toString();
          
-			 torrent_comment = locale_decoder.decodeString(torrent.getComment());
+			torrent_comment = locale_decoder.decodeString(torrent.getComment());
          
 			if ( torrent_comment == null ){
+				
 			   torrent_comment	= "";
 			}
 			
@@ -692,168 +692,190 @@ DownloadManagerImpl
 	}
 	
 	
-  public boolean
-  isPersistent()
-  {
-  	return( persistent );
-  }
+	public boolean
+	isPersistent()
+	{
+		return( persistent );
+	}
   
- 
+	public String 
+	getDisplayName() 
+	{
+		return( display_name );
+	}	
+
+	public String 
+	getErrorDetails() 
+	{
+		return errorDetail;
+	}
+
+	public long 
+	getSize() 
+	{
+		if( torrent != null){
+		
+			return torrent.getSize();
+		}
+	  
+		return 0;
+	}
+
+	protected void
+	setFailed()
+	{
+		setFailed((String)null );
+	}
   
-
-  public String 
-  getDisplayName() 
-  {
-  	return( display_name );
-  }	
-
-  public String getErrorDetails() {
-	return errorDetail;
-  }
-
-  public long getSize() {
-	if (diskManager != null)
-	  return diskManager.getTotalLength();
-  if(torrent != null)
-    return torrent.getSize();
-  return 0;
-  }
-
-  protected void
-  setFailed()
-  {
-  	setFailed((String)null );
-  }
+	protected void
+	setFailed(
+		Throwable 	e )
+	{
+		setFailed( Debug.getNestedExceptionMessage(e));
+	}
   
-  protected void
-  setFailed(
-  	Throwable 	e )
-  {
-  	setFailed( Debug.getNestedExceptionMessage(e));
-  }
-  
-  protected void
-  setFailed(
-  	String		reason )
-  {
-  	if ( reason != null ){
+	protected void
+	setFailed(
+		String		reason )
+	{
+		if ( reason != null ){
   		
-  		errorDetail = reason;
-  	}
+			errorDetail = reason;
+		}
   	
-  	stopIt( DownloadManager.STATE_ERROR, false, false );
-  }
+		stopIt( DownloadManager.STATE_ERROR, false, false );
+	}
 
   
   
-  public void 
-  initialize() 
-  {
+	public void 
+	initialize() 
+	{
+		int	entry_state = getState();
+		
+		if ( 	entry_state != STATE_WAITING &&
+				entry_state != STATE_STOPPED &&
+				entry_state != STATE_QUEUED ){
+			
+			Debug.out( "DownloadManagerImpl: Illegal initialize state, " + entry_state );
+		}
+
 	  	// entry:  valid if waiting, stopped or queued
 	  	// exit: error, ready or on the way to error
 	  
-    setState( STATE_INITIALIZING );
-         	
-    // If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
-    
-    if (onlySeeding && !filesExist()) {
-    	
-    	// If the user wants to re-download the missing files, they must
-    	// do a re-check, which will reset the onlySeeding flag.
-    	
-      return;
-    }
-
-    if ( torrent == null ) {
-    	
-      setFailed();
+		if ( torrent == null ) {
+	    	
+			setFailed();
       
-      return;
-    }
-
-    errorDetail = "";
+			return;
+		}
+		
+		setState( STATE_INITIALIZING );
+         	
+			// If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
     
-    int	state = getState();
-    
-    if ( state == STATE_WAITING || state == STATE_ERROR ){
+		if ( onlySeeding && !filesExist()) {
     	
-      return;
-    }
+				// If the user wants to re-download the missing files, they must
+				// do a re-check, which will reset the onlySeeding flag.
+    	
+			return;
+		}
+
+	
+
+		errorDetail = "";
+   
     
-    try{
-      if ( tracker_client != null ){
+		try{
+			if ( tracker_client != null ){
 
-        tracker_client.destroy();
-      }
+				tracker_client.destroy();
+			}
 
-      tracker_client = TRTrackerAnnouncerFactory.create( torrent, download_manager_state.getNetworks());
+			tracker_client = TRTrackerAnnouncerFactory.create( torrent, download_manager_state.getNetworks());
     
-      tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
+			tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
 
-      tracker_client_listener = new TRTrackerAnnouncerListener() {
-        public void receivedTrackerResponse(TRTrackerAnnouncerResponse	response) {
-          PEPeerManager pm = peerManager;
-          if ( pm != null ) {
-            pm.processTrackerResponse( response );
-          }
+			tracker_client_listener = 
+				new TRTrackerAnnouncerListener() 
+				{
+					public void 
+					receivedTrackerResponse(
+						TRTrackerAnnouncerResponse	response) 
+					{
+						PEPeerManager pm = peerManager;
+          
+						if ( pm != null ) {
+            
+							pm.processTrackerResponse( response );
+						}
 
-          tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
-        }
+						tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
+					}
 
-        public void urlChanged(String url, boolean explicit) {
-          if ( explicit ){
-            checkTracker( true );
-          }
-        }
+					public void 
+					urlChanged(
+						String 	url, 
+						boolean explicit) 
+					{
+						if ( explicit ){
+							checkTracker( true );
+						}
+					}
 
-        public void urlRefresh() {
-          checkTracker( true );
-        }
-      };
+					public void 
+					urlRefresh() 
+					{
+						checkTracker( true );
+					}
+				};
 
-      tracker_client.addListener( tracker_client_listener );
+			tracker_client.addListener( tracker_client_listener );
 
-      if ( getState() != STATE_ERROR ){
-      	
+     	
       		// we need to set the state to "initialized" before kicking off the disk manager
       		// initialisation as it should only report its status while in the "initialized"
       		// state (see getState for how this works...)
       	
-      	setState( STATE_INITIALIZED );
+			setState( STATE_INITIALIZED );
           
-      	initializeDiskManager();
-      }
+			initializeDiskManager();
 
-
-    }catch( TRTrackerAnnouncerException e ){
+		}catch( TRTrackerAnnouncerException e ){
  		
-    	setFailed( e );
-			 
-    }
-  }
-
-  public void 
-  startDownload() 
-  {
-	setState( STATE_DOWNLOADING );
-	
-	PEPeerManager temp = PEPeerManagerFactory.create(this, tracker_client, diskManager);
-		
-	temp.start();
-	
-	try{
-		peer_listeners_mon.enter();
-		
-		peerManager = temp;		// delay this so peerManager var not available to other threads until it is started
-	
-		peer_listeners.dispatch( LDT_PE_PM_ADDED, temp );
-	}finally{
-		
-		peer_listeners_mon.exit();
+			setFailed( e ); 
+		}
 	}
 	
-	tracker_client.update( true );
-  }
+
+	public void 
+	startDownload() 
+	{
+		if ( getState() != STATE_READY ){
+			
+			Debug.out( "DownloadManager: start when not ready, " + getState());
+		}
+		
+		setState( STATE_DOWNLOADING );
+	
+		PEPeerManager temp = PEPeerManagerFactory.create(this, tracker_client, diskManager);
+		
+		temp.start();
+	
+		try{
+			peer_listeners_mon.enter();
+		
+			peerManager = temp;		// delay this so peerManager var not available to other threads until it is started
+	
+			peer_listeners.dispatch( LDT_PE_PM_ADDED, temp );
+		}finally{
+		
+			peer_listeners_mon.exit();
+		}
+	
+		tracker_client.update( true );
+	}
   
   
   
@@ -1043,13 +1065,14 @@ DownloadManagerImpl
   public void
   setStateDownloading()
   {
+	  	// null operation as called on pm start + already set?
+	  
+	  if ( getState() != STATE_DOWNLOADING ){
+		  
+		  Debug.out( "setStateDownloading: not dl" );
+	  }
+	  
 	  setState( DownloadManager.STATE_DOWNLOADING );
-  }
-  
-  public void
-  setStateStopped()
-  {
-	  setState(DownloadManager.STATE_STOPPED);
   }
   
   public void
@@ -2352,6 +2375,6 @@ DownloadManagerImpl
    public int 
    hashCode() 
    {  
-	   return hashcode;  
+	   return dl_identity_hashcode;  
    }             
 }
