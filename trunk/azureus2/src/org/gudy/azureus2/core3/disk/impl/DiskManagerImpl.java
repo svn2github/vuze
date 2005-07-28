@@ -352,9 +352,9 @@ DiskManagerImpl
       
 		int newFiles = allocateFiles();
       
-		if ( getState() == FAULTY || !started ){
+		if ( getState() == FAULTY ){
 			
-				// bail out if broken or stopped in the meantime
+				// bail out if broken in the meantime
 			
 			return;
 		}
@@ -365,9 +365,9 @@ DiskManagerImpl
 		
 		piece_picker.start();
 		
-		if ( getState() == FAULTY || !started ){
+		if ( getState() == FAULTY  ){
 			
-				// bail out if broken or stopped in the meantime
+				// bail out if broken in the meantime
 
 			return;
 		}
@@ -385,12 +385,12 @@ DiskManagerImpl
 			resume_handler.checkAllPieces(true);
 		}
 		
-		if ( getState() == FAULTY || !started ){
+		if ( getState() == FAULTY  ){
 			
-			// bail out if broken or stopped in the meantime
-
 			return;
 		}
+			// in all the above cases we want to continue to here if we have been "stopped" as
+			// other components require that we end up either FAULTY or READY
 		
 			//3.Change State   
 		
@@ -415,7 +415,13 @@ DiskManagerImpl
 			if ( starting ){
 				
 				stopping	= true;
+
+					// we can however safely stop the resume handler at this point - this is important
+					// to interrupt a recheck process that might be holding up the start
+					// operation
 				
+				resume_handler.stop();
+
 				return;
 			}
 			
