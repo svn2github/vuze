@@ -461,7 +461,16 @@ DMWriterAndCheckerImpl
 						disk_manager.getPieces()[piece_number].setDone( result == CheckPieceResultHandler.OP_SUCCESS );
 						
 					}finally{
-												
+						
+						/*
+						boolean	test = (int)(Math.random()*10)==0;
+						
+						if ( test ){
+							System.out.println( "failing piece " + piece_number );
+							result = OP_FAILURE;
+						}
+						*/
+						
 						if ( _result_handler != null ){							
 							_result_handler.processResult( pieceNumber, result, _user_data );
 						}

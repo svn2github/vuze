@@ -915,7 +915,7 @@ DownloadManagerImpl
   	final int 			_stateAfterStopping, 
 	final boolean 		remove_torrent, 
 	final boolean 		remove_data )
-  {
+  {	  
     if( state == DownloadManager.STATE_STOPPED ||
         state == DownloadManager.STATE_ERROR ) {
     
@@ -989,6 +989,7 @@ DownloadManagerImpl
 						}							
 
 						if (diskManager != null){
+							
 							stats.setCompleted(stats.getCompleted());
 							stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 				      
@@ -1672,26 +1673,28 @@ DownloadManagerImpl
  
   	protected void
   	setDiskManager(
-  		DiskManager	_disk_manager )
+  		DiskManager	new_disk_manager )
   	{
-	 	try{
+ 	 	try{
 	  		disk_listeners_mon.enter();
 	  		
-	  		if ( _disk_manager == null && diskManager != null ){
+	  		DiskManager	old_disk_manager = diskManager;
+	  		
+	  		diskManager	= new_disk_manager;
+
+	  		if ( new_disk_manager == null && old_disk_manager != null ){
 	  			
-	  			disk_listeners.dispatch( LDT_DL_REMOVED, diskManager );
+	  			disk_listeners.dispatch( LDT_DL_REMOVED, old_disk_manager );
 	  			
-	  		}else if ( _disk_manager != null && diskManager == null ){
+	  		}else if ( new_disk_manager != null && old_disk_manager == null ){
 	  			
-	  			disk_listeners.dispatch( LDT_DL_ADDED, _disk_manager );
+	  			disk_listeners.dispatch( LDT_DL_ADDED, new_disk_manager );
 	  			
 	  		}else{
 	  		
-	  			Debug.out( "inconsistent DiskManager state - " + _disk_manager + "/" + diskManager  );
+	  			Debug.out( "inconsistent DiskManager state - " + new_disk_manager + "/" + old_disk_manager  );
 	  		}
 	  		
-	  		diskManager	= _disk_manager;
-
 	  	}finally{
 	  		
 	  		disk_listeners_mon.exit();
@@ -1839,8 +1842,8 @@ DownloadManagerImpl
   {
   	DiskManager	res = diskManager;
   	
-  	if( res == null) {
-
+  	if ( res == null ){
+  		
   		res = DiskManagerFactory.create( torrent, this);
       
   		setDiskManager( res );

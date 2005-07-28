@@ -67,7 +67,11 @@ DiskManagerImpl
 	private boolean	used	= false;
 	
 	private boolean started = false;
-  
+	private AESemaphore	started_sem	= new AESemaphore( "DiskManager::started" );
+	private boolean	starting;
+	private boolean	stopping;
+	
+	
 	private int state_set_via_method;
 	private String errorMessage = "";
 
@@ -251,21 +255,16 @@ DiskManagerImpl
 
 	public void 
 	start() 
-	{
-		if ( used ){
-			
-			Debug.out( "DiskManager reuse not supported!!!!" );
-		}
-		
-		used	= true;
-		
+	{		
 		try{
 			this_mon.enter();
-		
-			if ( started ){
+	
+			if ( used ){
 				
-				return;
+				Debug.out( "DiskManager reuse not supported!!!!" );
 			}
+			
+			used	= true;
 			
 			if ( getState() == FAULTY ){
 				
@@ -274,18 +273,39 @@ DiskManagerImpl
 				return;
 			}
 			
-			started = true;
-	       
+			started 	= true;
+			starting	= true;
+			
 		    Thread init = 
 		    	new AEThread("DiskManager:start") 
 				{
 					public void 
 					runSupport() 
 					{
-						startSupport();
-						
-						if (DiskManagerImpl.this.getState() == DiskManager.FAULTY){
+						try{
+							startSupport();
 							
+						}finally{
+														
+							started_sem.release();
+						}
+						
+						boolean	stop_required;
+						
+						try{
+							this_mon.enter();
+						
+							stop_required = DiskManagerImpl.this.getState() == DiskManager.FAULTY || stopping;
+							
+							starting	= false;
+							
+						}finally{
+							
+							this_mon.exit();
+						}
+						
+						if ( stop_required ){
+						
 							DiskManagerImpl.this.stop();
 						}
 					}
@@ -334,6 +354,8 @@ DiskManagerImpl
       
 		if ( getState() == FAULTY || !started ){
 			
+				// bail out if broken or stopped in the meantime
+			
 			return;
 		}
     
@@ -345,6 +367,8 @@ DiskManagerImpl
 		
 		if ( getState() == FAULTY || !started ){
 			
+				// bail out if broken or stopped in the meantime
+
 			return;
 		}
 
@@ -361,6 +385,13 @@ DiskManagerImpl
 			resume_handler.checkAllPieces(true);
 		}
 		
+		if ( getState() == FAULTY || !started ){
+			
+			// bail out if broken or stopped in the meantime
+
+			return;
+		}
+		
 			//3.Change State   
 		
 		setState( READY );
@@ -369,12 +400,35 @@ DiskManagerImpl
 	public void 
 	stop() 
 	{	
-		if ( !started ){
+		try{
+			this_mon.enter();
+		
+			if ( !started ){
 			
-			return;
+				return;
+			}
+		
+				// we need to be careful if we're still starting up as this may be
+				// a re-entrant "stop" caused by a faulty state being reported during
+				// startup. Defer the actual stop until starting is complete
+			
+			if ( starting ){
+				
+				stopping	= true;
+				
+				return;
+			}
+			
+			started		= false;
+			
+			stopping	= false;
+			
+		}finally{
+			
+			this_mon.exit();
 		}
 		
-		started	= false;
+		started_sem.reserve();
 		
     	writer_and_checker.stop();
     	
@@ -384,7 +438,7 @@ DiskManagerImpl
 		
 		piece_picker.stop();
 		
-		if (files != null){
+		if ( files != null ){
 			
 			for (int i = 0; i < files.length; i++){
 				
@@ -555,9 +609,13 @@ DiskManagerImpl
 		return true;
 	}
 	
-	private int allocateFiles() {
+	private int 
+	allocateFiles() 
+	{
 		setState( ALLOCATING );
+		
 		allocated = 0;
+		
 		int numNewFiles = 0;
 
 		String	root_dir = download_manager.getTorrentSaveDir();
@@ -571,54 +629,56 @@ DiskManagerImpl
 		
 		List btFileList	= piece_mapper.getFileList();
 	
-		for (int i = 0; i < btFileList.size(); i++) {
-			//get the BtFile
+		for ( int i=0;i<btFileList.size();i++ ){
+			
 			final DiskManagerPieceMapper.fileInfo tempFile = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
-			//get the path
+			
 			final String tempPath = root_dir + tempFile.getPath();
-			//get file name
+			
 			final String tempName = tempFile.getName();
-			//get file length
+			
 			final long length = tempFile.getLength();
 
 			final File f = new File(tempPath, tempName);
-
-			DiskManagerFileInfoImpl fileInfo;
-			
+		
 				// ascertain whether or not the file exists here in case the creation of the cache file
 				// by DiskManagerFileInfoImpl pre-creates the file if it isn't present
 			
 			boolean	file_exists	= f.exists();
 			
+			DiskManagerFileInfoImpl fileInfo	= null;
+
 			try{
 				fileInfo = new DiskManagerFileInfoImpl( this, f, tempFile.getTorrentFile());
+				
+				files[i] = fileInfo;
+	
+				tempFile.setFileInfo(files[i]);
 				
 			}catch ( CacheFileManagerException e ){
 				
 				this.errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles:" + f.toString() + ")";
 				
 				setState( FAULTY );
-				
-        try{
-          tempFile.getFileInfo().getCacheFile().close();
-        }
-        catch( Throwable t ) {  /*ignore*/ }
         
-				return -1;
+				return( -1 );
 			}
 						
 			int separator = tempName.lastIndexOf(".");
 			
-			if (separator == -1){
+			if ( separator == -1 ){
+				
 				separator = 0;
 			}
 			
 			fileInfo.setExtension(tempName.substring(separator));
 			
-			//Added for Feature Request
-			//[ 807483 ] Prioritize .nfo files in new torrents
-			//Implemented a more general way of dealing with it.
+				//Added for Feature Request
+				//[ 807483 ] Prioritize .nfo files in new torrents
+				//Implemented a more general way of dealing with it.
+			
 			String extensions = COConfigurationManager.getStringParameter("priorityExtensions","");
+			
 			if(!extensions.equals("")) {
 				boolean bIgnoreCase = COConfigurationManager.getBooleanParameter("priorityExtensionsIgnoreCase");
 				StringTokenizer st = new StringTokenizer(extensions,";");
@@ -628,151 +688,132 @@ DiskManagerImpl
 					if(!extension.startsWith("."))
 						extension = "." + extension;
 					boolean bHighPriority = (bIgnoreCase) ? 
-														  fileInfo.getExtension().equalsIgnoreCase(extension) : 
-														  fileInfo.getExtension().equals(extension);
+										  fileInfo.getExtension().equalsIgnoreCase(extension) : 
+										  fileInfo.getExtension().equals(extension);
 					if (bHighPriority)
 						fileInfo.setPriority(true);
 				}
 			}
 			
 			fileInfo.setLength(length);
+			
 			fileInfo.setDownloaded(0);
 			
-			if( file_exists ){
+			if ( file_exists ){
 				
-			  try {
+				try {
 
 			  		//make sure the existing file length isn't too large
 			  	
-			  	long	existing_length = fileInfo.getCacheFile().getLength();
+					long	existing_length = fileInfo.getCacheFile().getLength();
 			  	
-				if(  existing_length > length ){
-				
-					if ( COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
+					if(  existing_length > length ){
 					
-					  	fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
-
-						fileInfo.getCacheFile().setLength( length );
-					
-						Debug.out( "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath() + ", truncating" );
-
-					}else{
-					
-						this.errorMessage = "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath();
+						if ( COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
+						
+						  	fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+	
+							fileInfo.getCacheFile().setLength( length );
+						
+							Debug.out( "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath() + ", truncating" );
+	
+						}else{
+						
+							this.errorMessage = "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath();
 		          
-						setState( FAULTY );
-		          
-            try {
-              fileInfo.getCacheFile().close();
-            }
-            catch( Throwable t ) {  /*ignore*/ }
+							setState( FAULTY );
             
-            
-						return -1;
+							return( -1 );
+						}
 					}
-				}
 			  	
-			  	fileInfo.setAccessMode( DiskManagerFileInfo.READ );
+					fileInfo.setAccessMode( DiskManagerFileInfo.READ );
 			  	
-			  }catch (CacheFileManagerException e) {
+				}catch (CacheFileManagerException e) {
 			  	
-			  	this.errorMessage = Debug.getNestedExceptionMessage(e) + 
+					this.errorMessage = Debug.getNestedExceptionMessage(e) + 
 											" (allocateFiles existing:" + f.toString() + ")";
-			  	setState( FAULTY );
-			  	
-          try {
-            fileInfo.getCacheFile().close();
-          }
-          catch( Throwable t ) {  /*ignore*/ }
-          
-			  	return -1;
-        }
+					setState( FAULTY );
+			 
+					return( -1 );
+				}
 			  
-        allocated += length;
+				allocated += length;
         
-      }else {  //we need to allocate it
+			}else{  //we need to allocate it
         
-        //make sure it hasn't previously been allocated
-        if( download_manager.isDataAlreadyAllocated() ){
+					//make sure it hasn't previously been allocated
+				
+				if ( download_manager.isDataAlreadyAllocated() ){
         	
-          this.errorMessage = "Data file missing: " + f.getAbsolutePath();
+					this.errorMessage = "Data file missing: " + f.getAbsolutePath();
           
-          setState( FAULTY );
+					setState( FAULTY );
           
-          try {
-            fileInfo.getCacheFile().close();
-          }
-          catch( Throwable t ) {  /*ignore*/ }
-          
-          return -1;
-        }
-        
-        try {
-          File directory = new File( tempPath );
-          
-          if( !directory.exists() ) {
-          	
-            if( !directory.mkdirs() ) throw new Exception( "directory creation failed: " +directory);
-          }
-          
-          f.getCanonicalPath();  //TEST: throws Exception if filename is not supported by os
-          
-          fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
-          
-          if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
-          	
-          	//	do incremental stuff
-          	
-            fileInfo.getCacheFile().setLength( 0 );
-            
-          }else {  //fully allocate
-            if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
-              if( !writer_and_checker.zeroFile( fileInfo, length ) ) {
-                setState( FAULTY );
-                
-                try {
-                  fileInfo.getCacheFile().close();
-                }
-                catch( Throwable t ) {  /*ignore*/ }
-                
-                return -1;
-              }
-            }else {  //reserve the full file size with the OS file system
-            	
-              fileInfo.getCacheFile().setLength( length );
-              
-              allocated += length;
-            }
-          }
-        }catch ( Exception e ) {          
-          this.errorMessage = Debug.getNestedExceptionMessage(e)
-              + " (allocateFiles new:" + f.toString() + ")";
-          
-          setState( FAULTY );
-          
-          try {
-            fileInfo.getCacheFile().close();
-          }
-          catch( Throwable t ) {  /*ignore*/ }
-          
-          return -1;
-        }
-        
-        numNewFiles++;
-      }
-
-			//add the file to the array
-			files[i] = fileInfo;
-
-			//setup this files RAF reference
-			tempFile.setFileInfo(files[i]);
+					return( -1 );
+				}
+       
+				try {
+					File directory = new File( tempPath );
+	          
+					if( !directory.exists() ) {
+	          	
+						if( !directory.mkdirs() ){
+							
+							throw new Exception( "directory creation failed: " +directory);
+						}
+					}
+	          
+					f.getCanonicalPath();  //TEST: throws Exception if filename is not supported by os
+	          
+					fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+	          
+					if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
+	          	
+							//	do incremental stuff
+	          	
+						fileInfo.getCacheFile().setLength( 0 );
+	            
+					}else { 
+						
+							//fully allocate
+						
+						if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
+							
+							if( !writer_and_checker.zeroFile( fileInfo, length ) ) {
+	                
+								setState( FAULTY );
+	                
+								return( -1 );
+							}
+						}else{ 
+							
+								//reserve the full file size with the OS file system
+	            	
+							fileInfo.getCacheFile().setLength( length );
+	              
+							allocated += length;
+						}
+					}
+				}catch ( Exception e ) {
+					
+					this.errorMessage = Debug.getNestedExceptionMessage(e)
+								+ " (allocateFiles new:" + f.toString() + ")";
+	          
+					setState( FAULTY );
+	          
+					return( -1 );
+				}
+	        
+				numNewFiles++;
+			}
 		}
     
-    loadFilePriorities();
+		loadFilePriorities();
     
-    download_manager.setDataAlreadyAllocated( true );
+		download_manager.setDataAlreadyAllocated( true );
     
-		return numNewFiles;
+		return( numNewFiles );
 	}	
 	
   
@@ -949,8 +990,22 @@ DiskManagerImpl
 	setState(
 		int		_state ) 
 	{
+			// we never move from a faulty state
+		
+		if ( state_set_via_method == FAULTY ){
+			
+			if ( _state != FAULTY ){
+				
+				Debug.out( "DiskManager: attempt to move from faulty state to " + _state );
+			}
+			
+			return;
+		}
+		
 		if ( state_set_via_method != _state ){
-		  int params[] = {state_set_via_method, _state};
+			
+			int params[] = {state_set_via_method, _state};
+		  
 			state_set_via_method = _state;
 			
 			listeners.dispatch( LDT_STATECHANGED, params);
@@ -1029,6 +1084,7 @@ DiskManagerImpl
 			 * process - setFailed tends to be called from within the read/write activities
 			 * and stopping these requires this.
 			 */
+		
     	new AEThread("DiskManager:setFailed") 
 		{
 			public void 
