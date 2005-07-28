@@ -39,7 +39,7 @@ public class TorrentQueue extends TorrentCommand {
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) {
 		try {
 			if (dm.getState() == DownloadManager.STATE_STOPPED)
-				dm.setState(DownloadManager.STATE_QUEUED);
+				dm.setStateQueued();
 			else if (dm.getState() == DownloadManager.STATE_DOWNLOADING || dm.getState() == DownloadManager.STATE_SEEDING)
 				dm.stopIt( DownloadManager.STATE_QUEUED, false, false );
 			else
