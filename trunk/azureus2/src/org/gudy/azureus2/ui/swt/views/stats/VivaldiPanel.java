@@ -152,10 +152,13 @@ public class VivaldiPanel {
     gc.setForeground(white);
     gc.setBackground(white);
     gc.fillRectangle(size);
+    
+    /*
     if(SWT.getVersion() >= 3100) {
       gc.setTextAntialias(SWT.ON);
       gc.setAntialias(SWT.ON);
     }
+    */
     
     Color blue = new Color(display,66,87,104);
     gc.setForeground(blue);

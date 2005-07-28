@@ -189,10 +189,12 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
     gcBuffer.setForeground(Colors.blue);
     gcBuffer.fillRectangle(0,0,panelSize.x,panelSize.y);
 
+    /*
     if(SWT.getVersion() >= 3100) {
       gcBuffer.setTextAntialias(SWT.ON);
       gcBuffer.setAntialias(SWT.ON);
     }
+    */
     
     gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDLIGHT]);      
     
