@@ -258,7 +258,9 @@ DownloadManagerImpl
 	/**
 	 * forceStarted torrents can't/shouldn't be automatically stopped
 	 */
-	private boolean 	forceStarted;
+	private boolean 	force_start;
+	private boolean		latest_informed_force_start;
+	
 	/**
 	 * Only seed this torrent. Never download or allocate<P>
 	 * Current Implementation:
@@ -366,7 +368,7 @@ DownloadManagerImpl
 	
 		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads") );
 	 
-		forceStarted = false;
+		force_start = false;
 	
 		torrentFileName = _torrentFileName;
 	
@@ -1046,7 +1048,7 @@ DownloadManagerImpl
 					
 					 }finally{
 								  
-					   forceStarted = false;
+					   force_start = false;
              
 					   if( remove_data ){
 					   
@@ -1478,10 +1480,6 @@ DownloadManagerImpl
 	    
 	    stopIt( DownloadManager.STATE_STOPPED, false, false );
 	    
-	    try {
-	      while ( getState() != DownloadManager.STATE_STOPPED) Thread.sleep(50);
-	    } catch (Exception ignore) {/*ignore*/}
-	    
 	    initialize();
 	    
 	    if ( was_force_start ){
@@ -1719,9 +1717,12 @@ DownloadManagerImpl
 
 			int	new_state = getState();
 			
-			if ( new_state != last_informed_state ){
+			if ( 	new_state != last_informed_state ||
+					force_start != latest_informed_force_start ){
 				
 				last_informed_state	= new_state;
+				
+				latest_informed_force_start	= force_start;
 				
 				listeners.dispatch( LDT_STATECHANGED, new Integer( new_state ));
 			}
@@ -1930,17 +1931,25 @@ DownloadManagerImpl
 	}
 
   public boolean isForceStart() {
-    return forceStarted;
+    return force_start;
   }
 
-  public void setForceStart(boolean forceStart) {
-    if (forceStarted != forceStart) {
-      forceStarted = forceStart;
-      if (forceStarted && 
+  public void 
+  setForceStart(
+	 boolean forceStart) 
+  {
+    if (force_start != forceStart) {
+    	
+      force_start = forceStart;
+      
+      if (force_start && 
           (getState() == STATE_STOPPED || getState() == STATE_QUEUED)) {
         // Start it!  (Which will cause a stateChanged to trigger)
         setState(STATE_WAITING);
       } else {
+    	  
+    	  	// currently the "state" included "force start"
+    	  
         informStateChanged();
       }
     }
@@ -2100,9 +2109,9 @@ DownloadManagerImpl
 				// For extra protection from a plugin stopping a checking torrent,
 				// fake a forced start. 
 				
-				boolean wasForceStarted = forceStarted;
+				boolean wasForceStarted = force_start;
 				
-				forceStarted = true;
+				force_start = true;
 				
 					// if a file has been deleted we want this recheck to recreate the file and mark
 					// it as 0%, not fail the recheck. Otherwise the only way of recovering is to remove and
@@ -2125,7 +2134,7 @@ DownloadManagerImpl
 					}
 				}
 				
-				forceStarted = wasForceStarted;
+				force_start = wasForceStarted;
 				
 				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 				
