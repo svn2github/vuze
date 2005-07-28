@@ -262,7 +262,7 @@ DownloadImpl
 		if ( download_manager.getState() == DownloadManager.STATE_STOPPED ||
 		     download_manager.getState() == DownloadManager.STATE_QUEUED ){
 			
-			download_manager.setState( DownloadManager.STATE_WAITING );
+			download_manager.setStateWaiting();
 			
 		}else{
 			

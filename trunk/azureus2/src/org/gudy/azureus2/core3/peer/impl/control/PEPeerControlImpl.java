@@ -277,10 +277,12 @@ PEPeerControlImpl
  
   
   
-  private void mainLoop() {
+  private void 
+  mainLoop() 
+  {
     is_running = true;
 
-    _downloadManager.setState( DownloadManager.STATE_DOWNLOADING );
+    _downloadManager.setStateDownloading();
 
     _timeStarted = SystemTime.getCurrentTime();
 
@@ -849,7 +851,7 @@ PEPeerControlImpl
 	      }
       }
       
-      _downloadManager.setState(DownloadManager.STATE_FINISHING);
+      _downloadManager.setStateFinishing();
       
       _timeFinished = SystemTime.getCurrentTime();
            
@@ -881,7 +883,7 @@ PEPeerControlImpl
       
       _timeStartedSeeding = SystemTime.getCurrentTime();
       
-      _downloadManager.setState(DownloadManager.STATE_SEEDING);
+      _downloadManager.setStateSeeding();
       
       if ( !start_of_day ){
       

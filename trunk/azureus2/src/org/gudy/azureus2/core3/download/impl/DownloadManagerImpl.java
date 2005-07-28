@@ -61,6 +61,10 @@ DownloadManagerImpl
 	private static final int LDT_COMPLETIONCHANGED = 3;
 	private static final int LDT_POSITIONCHANGED = 4;
 	
+	protected AEMonitor	this_mon	= new AEMonitor( "DownloadManager" );
+
+	private AEMonitor	listeners_mon	= new AEMonitor( "DownloadManager:L" );
+
 	private ListenerManager	listeners_agregator 	= ListenerManager.createAsyncManager(
 			"DMM:ListenAgregatorDispatcher",
 			new ListenerManagerDispatcher()
@@ -265,10 +269,9 @@ DownloadManagerImpl
 	 */
 	protected boolean onlySeeding;
 	
-	private int 		state = -1;
-  
-	private int prevState = -1;
-
+	private int 		state_set_by_method = STATE_START_OF_DAY;
+	private int			last_informed_state	= STATE_START_OF_DAY;
+	
 	private String errorDetail;
 
 	private GlobalManager globalManager;
@@ -348,6 +351,13 @@ DownloadManagerImpl
 		boolean			_open_for_seeding,
 		boolean			_has_ever_been_started ) 
 	{
+		if ( 	_initialState != STATE_WAITING &&
+				_initialState != STATE_STOPPED &&
+				_initialState != STATE_QUEUED ){
+			
+			Debug.out( "DownloadManagerImpl: Illegal start state, " + _initialState );
+		}
+		
 		persistent	= _persistent;
 
 		stats = new DownloadManagerStatsImpl( this );
@@ -374,7 +384,7 @@ DownloadManagerImpl
 		
 			// must be after readTorrent, so that any listeners have a TOTorrent
 		
-		if (state == -1){
+		if ( getState() == STATE_START_OF_DAY ){
 			
 			setState( _initialState );
 		}
@@ -383,12 +393,18 @@ DownloadManagerImpl
   public void 
   initialize() 
   {
+	  	// entry:  valid if waiting, stopped or queued
+	  	// exit: error, ready or on the way to error
+	  
     setState( STATE_INITIALIZING );
          	
     // If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
+    
     if (onlySeeding && !filesExist()) {
-      // If the user wants to re-download the missing files, they must
-      // do a re-check, which will reset the onlySeeding flag.
+    	
+    	// If the user wants to re-download the missing files, they must
+    	// do a re-check, which will reset the onlySeeding flag.
+    	
       return;
     }
 
@@ -400,6 +416,8 @@ DownloadManagerImpl
     }
 
     errorDetail = "";
+    
+    int	state = getState();
     
     if ( state == STATE_WAITING || state == STATE_ERROR ){
     	
@@ -761,22 +779,33 @@ DownloadManagerImpl
   /**
    * @return
    */
-  public int getState() {
-	if (state != STATE_INITIALIZED)
-	  return state;
-	if (diskManager == null)
+  public int 
+  getState() 
+  {
+	if ( state_set_by_method != STATE_INITIALIZED ){
+		
+	  return( state_set_by_method );
+	}
+	
+	if ( diskManager == null){
+		
 	  return STATE_INITIALIZED;
+	}
+	
 	int diskManagerState = diskManager.getState();
-	if (diskManagerState == DiskManager.INITIALIZING)
+	
+	if (diskManagerState == DiskManager.INITIALIZING){
 	  return STATE_INITIALIZED;
-	if (diskManagerState == DiskManager.ALLOCATING)
+	}else if (diskManagerState == DiskManager.ALLOCATING){
 	  return STATE_ALLOCATING;
-	if (diskManagerState == DiskManager.CHECKING)
+	}else if (diskManagerState == DiskManager.CHECKING){
 	  return STATE_CHECKING;
-	if (diskManagerState == DiskManager.READY)
+	}else if (diskManagerState == DiskManager.READY){
 	  return STATE_READY;
-	if (diskManagerState == DiskManager.FAULTY)
+	}else if (diskManagerState == DiskManager.FAULTY){
 	  return STATE_ERROR;
+	}
+	
 	return STATE_ERROR;
   }
   
@@ -818,31 +847,34 @@ DownloadManagerImpl
     }
   }
 	
-	public boolean filesExist() {
-	  return (filesExistErrorMessage() == "");
-	}
-
-	private String filesExistErrorMessage() {
+	public boolean 
+	filesExist() 
+	{
+		DiskManager	dm = diskManager;
+		
 		String strErrMessage = "";
-		// currently can only seed if whole torrent exists
-		if (diskManager == null) {
-  		DiskManager dm = DiskManagerFactory.createNoStart( torrent, this);
-  		if (dm.getState() == DiskManager.FAULTY)
-  		  strErrMessage = dm.getErrorMessage();
-  		else if (!dm.filesExist()) 
-  		  strErrMessage = dm.getErrorMessage();
-  		dm = null;
-  	} else {
-  		if (!diskManager.filesExist()) 
-  		  strErrMessage = diskManager.getErrorMessage();
-  	}
+		
+			// currently can only seed if whole torrent exists
+		
+		if ( dm  == null) {
+  		
+			dm = DiskManagerFactory.createNoStart( torrent, this);
+		}
+		
+  		if ( dm.getState() == DiskManager.FAULTY || !dm.filesExist() ){
+  			
+  			strErrMessage = dm.getErrorMessage();
+  		}
+  
   	
-  	if (!strErrMessage.equals("")) {
+  		if ( !strErrMessage.equals("")){
      
-      setFailed( MessageText.getString("DownloadManager.error.datamissing") + " " + strErrMessage );
-  	}
-
-    return strErrMessage;
+  			setFailed( MessageText.getString("DownloadManager.error.datamissing") + " " + strErrMessage );
+  
+  			return( false );
+  		}
+  		
+  		return( true );
 	}
 	
 	
@@ -852,19 +884,7 @@ DownloadManagerImpl
   	return( persistent );
   }
   
-  /**
-   * Returns the 'previous' state.
-   */
-  public int getPrevState() {
-    return prevState;
-  }
-  
-  /**
-   * Sets the 'previous' state.
-   */
-  public void setPrevState(int prev_state) {
-    prevState = prev_state;
-  }
+ 
   
 
   public String 
@@ -916,6 +936,8 @@ DownloadManagerImpl
 	final boolean 		remove_torrent, 
 	final boolean 		remove_data )
   {	  
+	  int	state = getState();
+	  
     if( state == DownloadManager.STATE_STOPPED ||
         state == DownloadManager.STATE_ERROR ) {
     
@@ -1084,20 +1106,72 @@ DownloadManagerImpl
     download_manager_state.save();
   }
   
-  public void setState(int _state){
-    // note: there is a DIFFERENCE between the state held on the DownloadManager and
+  public void
+  setStateWaiting()
+  {
+	  setState(DownloadManager.STATE_WAITING);
+  }
+  
+  public void
+  setStateDownloading()
+  {
+	  setState( DownloadManager.STATE_DOWNLOADING );
+  }
+  
+  public void
+  setStateStopped()
+  {
+	  setState(DownloadManager.STATE_STOPPED);
+  }
+  
+  public void
+  setStateFinishing()
+  {
+	  setState(DownloadManager.STATE_FINISHING);
+  }
+  
+  public void
+  setStateSeeding()
+  {
+	  setState(DownloadManager.STATE_SEEDING);
+  }
+  
+  public void
+  setStateQueued()
+  {
+	  setState(DownloadManager.STATE_QUEUED);
+  }
+  
+  private void 
+  setState(
+	int _state)
+  {   
+	  int	old_state = getState();
+	  
+	// note: there is a DIFFERENCE between the state held on the DownloadManager and
     // that reported via getState as getState incorporated DiskManager states when
     // the DownloadManager is INITIALIZED
   	//System.out.println( "DM:setState - " + _state );
-    if ( state != _state ) {
-      state = _state;
-      // sometimes, downloadEnded() doesn't get called, so we must check here too
-      if (state == STATE_SEEDING) {
+	  
+    if ( old_state != _state ){
+      state_set_by_method = _state;
+      
+      	// sometimes, downloadEnded() doesn't get called, so we must check here too
+      
+      if (state_set_by_method == STATE_SEEDING) {
+    	  
         setOnlySeeding(true);
-      } else if (state == STATE_QUEUED) {
-        if (onlySeeding && !filesExist())
-          return;
-      }else if ( state == STATE_ERROR ){
+        
+      }else if (state_set_by_method == STATE_QUEUED ){
+        
+    	  	// pick up any errors regarding missing data for queued SEEDING torrents
+    	  
+    	  if ( onlySeeding ){
+    		  
+    		  filesExist();
+    	  }
+    	  
+      }else if ( state_set_by_method == STATE_ERROR ){
       
       		// the process of attempting to start the torrent may have left some empty
       		// directories created, some users take exception to this.
@@ -1115,7 +1189,7 @@ DownloadManagerImpl
       	}
       }
       
-      informStateChanged( state );
+      informStateChanged();
     }
   }
 
@@ -1405,7 +1479,7 @@ DownloadManagerImpl
 	    stopIt( DownloadManager.STATE_STOPPED, false, false );
 	    
 	    try {
-	      while (state != DownloadManager.STATE_STOPPED) Thread.sleep(50);
+	      while ( getState() != DownloadManager.STATE_STOPPED) Thread.sleep(50);
 	    } catch (Exception ignore) {/*ignore*/}
 	    
 	    initialize();
@@ -1421,11 +1495,18 @@ DownloadManagerImpl
   }
     
   
-  public void startDownloadInitialized(boolean initStoppedDownloads) {
-	if (getState() == DownloadManager.STATE_WAITING || initStoppedDownloads && getState() == DownloadManager.STATE_STOPPED) {
+  public void 
+  startDownloadInitialized(
+	  boolean initStoppedDownloads) 
+  {
+	if ( 	getState() == DownloadManager.STATE_WAITING || 
+			( initStoppedDownloads && getState() == DownloadManager.STATE_STOPPED )){
+		
 	  initialize();
 	}
-	if (getState() == DownloadManager.STATE_READY) {
+	
+	if ( getState() == DownloadManager.STATE_READY ){
+		
 	  startDownload();
 	}
   }
@@ -1597,40 +1678,87 @@ DownloadManagerImpl
 	addListener(
 		DownloadManagerListener	listener )
 	{
-		listeners.addListener(listener);
-		
-			// pick up the current state
-		
-		listener.stateChanged( this, state );
+		try{
+			listeners_mon.enter();
 
-			// we DON'T dispatch a downloadComplete event here as this event is used to mark the
-			// transition between downloading and seeding, NOT purely to inform of seeding status
+			listeners.addListener(listener);
+		
+				// pick up the current state
+		
+			listener.stateChanged( this, getState());
+
+				// we DON'T dispatch a downloadComplete event here as this event is used to mark the
+				// transition between downloading and seeding, NOT purely to inform of seeding status
+			
+		}finally{
+			
+			listeners_mon.exit();
+		}
 	}
 	
 	public void
 	removeListener(
 		DownloadManagerListener	listener )
 	{
-		listeners.removeListener(listener);			
+		try{
+			listeners_mon.enter();
+
+			listeners.removeListener(listener);
+			
+		}finally{
+			
+			listeners_mon.exit();
+		}
 	}
 	
 	protected void
-	informStateChanged(
-		int		new_state )
+	informStateChanged()
 	{
-		listeners.dispatch( LDT_STATECHANGED, new Integer( new_state ));
+		try{
+			listeners_mon.enter();
+
+			int	new_state = getState();
+			
+			if ( new_state != last_informed_state ){
+				
+				last_informed_state	= new_state;
+				
+				listeners.dispatch( LDT_STATECHANGED, new Integer( new_state ));
+			}
+			
+		}finally{
+			
+			listeners_mon.exit();
+		}
 	}
 	
 	protected void
 	informDownloadEnded()
 	{
-		listeners.dispatch( LDT_DOWNLOADCOMPLETE, null );
+		try{
+			listeners_mon.enter();
+
+			listeners.dispatch( LDT_DOWNLOADCOMPLETE, null );
+		
+		}finally{
+			
+			listeners_mon.exit();
+		}
 	}
 	
 	protected void
-	informPositionChanged(int iOldPosition)
+	informPositionChanged(
+		int iOldPosition )
 	{
-		listeners.dispatch( LDT_POSITIONCHANGED, new Integer(iOldPosition));
+		try{
+			listeners_mon.enter();
+
+			listeners.dispatch( LDT_POSITIONCHANGED, new Integer(iOldPosition));
+			
+		}finally{
+			
+			listeners_mon.exit();
+		}
 	}
 
   public void
@@ -1813,7 +1941,7 @@ DownloadManagerImpl
         // Start it!  (Which will cause a stateChanged to trigger)
         setState(STATE_WAITING);
       } else {
-        informStateChanged(getState());
+        informStateChanged();
       }
     }
   }
@@ -1856,50 +1984,48 @@ DownloadManagerImpl
   					int 	oldDMState,
   					int		newDMState )
   				{
-  					if ( newDMState == DiskManager.FAULTY ){
+  					try{
+	  					if ( newDMState == DiskManager.FAULTY ){
+	  						
+	  						setFailed( diskManager.getErrorMessage());						
+	   					}
+	  					
+	  					if (oldDMState == DiskManager.CHECKING) {
+	  						
+	  						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+	  						
+	  						DownloadManagerImpl.this.setOnlySeeding(diskManager.getRemaining() == 0);
+	  					}
+	  					  
+	  					if ( newDMState == DiskManager.READY ){
+	  						
+	  							// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
+	  							// and resumed 
+	  					
+	  						if ( 	stats.getTotalDataBytesReceived() == 0 &&
+	  								stats.getTotalDataBytesSent() == 0 &&
+	  								stats.getSecondsDownloading() == 0 ){
+	  						
+	  							int	completed = stats.getDownloadCompleted(false);
+	  							
+	  								// for seeds leave things as they are as they may never have been downloaded in the
+	  								// first place...
+	  							
+	  							if ( completed < 1000 ){
+	 
+	  									// assume downloaded = uploaded, optimistic but at least results in
+	  									// future share ratios relevant to amount up/down from now on
+	  									// see bug 1077060 
+	  								
+	  								long	amount_downloaded = (completed*diskManager.getTotalLength())/1000;
+	  								
+	 								stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
+	   							}
+	  						}
+	  					}
+  					}finally{
   						
-  						setFailed( diskManager.getErrorMessage());						
-   					}
-  					
-  					if (oldDMState == DiskManager.CHECKING) {
-  						
-  						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-  						
-  						DownloadManagerImpl.this.setOnlySeeding(diskManager.getRemaining() == 0);
-  					}
-  					  
-  					if ( newDMState == DiskManager.READY ){
-  						
-  							// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
-  							// and resumed 
-  					
-  						if ( 	stats.getTotalDataBytesReceived() == 0 &&
-  								stats.getTotalDataBytesSent() == 0 &&
-  								stats.getSecondsDownloading() == 0 ){
-  						
-  							int	completed = stats.getDownloadCompleted(false);
-  							
-  								// for seeds leave things as they are as they may never have been downloaded in the
-  								// first place...
-  							
-  							if ( completed < 1000 ){
- 
-  									// assume downloaded = uploaded, optimistic but at least results in
-  									// future share ratios relevant to amount up/down from now on
-  									// see bug 1077060 
-  								
-  								long	amount_downloaded = (completed*diskManager.getTotalLength())/1000;
-  								
- 								stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
-   							}
-  						}
-  					}
-  					
-  					int	dl_state = getState();
-  					
-  					if ( dl_state != state ){
-  						
-  						informStateChanged( dl_state );
+  						informStateChanged();
   					}
   				}
 
@@ -1939,6 +2065,8 @@ DownloadManagerImpl
   		return( false );
   	}
   	
+  	int state = getState();
+  	
     return (state == STATE_STOPPED) ||
            (state == STATE_QUEUED) ||
            (state == STATE_ERROR && diskManager == null);
@@ -1954,9 +2082,9 @@ DownloadManagerImpl
   
   	if ( torrent == null ){
  		LGLogger.log(0, 0, LGLogger.ERROR, "Trying to force recheck with broken torrent");
-  		return;
- 		
+  		return;	
   	}
+  	
     Thread recheck = 
     	new AEThread("forceRecheck") 
 		{
@@ -2044,7 +2172,11 @@ DownloadManagerImpl
   }
   
   
-  public int getHealthStatus() {
+  public int 
+  getHealthStatus() 
+  {
+	  int	state = getState();
+	  
     if(peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
       int nbSeeds = getNbSeeds();
       int nbPeers = getNbPeers();

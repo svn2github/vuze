@@ -32,28 +32,38 @@ import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 public interface
 DownloadManager
 {
+	public static final int STATE_START_OF_DAY	= -1;	// should never actually see this one
+	
 	public static final int STATE_WAITING = 0;
 	public static final int STATE_INITIALIZING = 5;
 	public static final int STATE_INITIALIZED = 10;
+	
 	public static final int STATE_ALLOCATING = 20;
 	public static final int STATE_CHECKING = 30;
+	
 	// Ready: Resources allocated
+	
 	public static final int STATE_READY = 40;
 	public static final int STATE_DOWNLOADING = 50;
 	public static final int STATE_FINISHING = 55;
 	public static final int STATE_SEEDING = 60;
 	public static final int STATE_STOPPING = 65;
+	
 	// Stopped: can't be automatically started
+	
 	public static final int STATE_STOPPED = 70;
+	
 	// Queued: Same as stopped, except can be automatically started
+	
 	public static final int STATE_QUEUED = 75;
+	
 	public static final int STATE_ERROR = 100;
   
    
 	
-	public static final int WEALTH_STOPPED    = 1;
-	public static final int WEALTH_NO_TRACKER = 2;
-	public static final int WEALTH_NO_REMOTE  = 3;
+	public static final int WEALTH_STOPPED    		= 1;
+	public static final int WEALTH_NO_TRACKER 		= 2;
+	public static final int WEALTH_NO_REMOTE  		= 3;
 	public static final int WEALTH_OK  				= 4;
 	public static final int WEALTH_KO 				= 5;
 
@@ -64,9 +74,23 @@ DownloadManager
 	getState();
 	
 	public void
-	setState(
-		int		state );
-		
+	setStateWaiting();
+	
+	public void
+	setStateDownloading();
+	
+	public void
+	setStateStopped();
+	
+	public void
+	setStateFinishing();
+	
+	public void
+	setStateSeeding();
+	
+	public void
+	setStateQueued();
+	
 	public void
 	startDownload();
 	
@@ -74,6 +98,10 @@ DownloadManager
 	startDownloadInitialized(
 		boolean		initStoppedDownloads );
 		
+    public boolean canForceRecheck();
+
+    public void forceRecheck();
+
 	
   /**
    * Stop the download manager, and do any file/torrent removals.
@@ -81,8 +109,13 @@ DownloadManager
    * @param remove_torrent remove the .torrent file after stopping
    * @param remove_data remove the data file after stopping
    */
-  public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data );
+ 
+	public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data );
 
+	
+	
+	
+	
 	public GlobalManager
 	getGlobalManager();
 	
@@ -94,54 +127,6 @@ DownloadManager
 	
 	public PEPeerManager
 	getPeerManager();
-	
-	public void
-	addListener(
-			DownloadManagerListener	listener );
-	
-	public void
-	removeListener(
-			DownloadManagerListener	listener );
-	
-	public void
-	addTrackerListener(
-		DownloadManagerTrackerListener	listener );
-	
-	public void
-	removeTrackerListener(
-		DownloadManagerTrackerListener	listener );
-	
-	public void
-	addPeerListener(
-		DownloadManagerPeerListener	listener );
-		
-	public void
-	removePeerListener(
-		DownloadManagerPeerListener	listener );
-		
-	public void
-	addDiskListener(
-		DownloadManagerDiskListener	listener );
-		
-	public void
-	removeDiskListener(
-		DownloadManagerDiskListener	listener );
-	
-	public void
-	addPeer(
-		PEPeer 		peer );
-		
-	public void
-	removePeer(
-		PEPeer		peer );
-		
-	public void
-	addPiece(
-		PEPiece 	piece );
-		
-	public void
-	removePiece(
-		PEPiece		piece );
 	
 	public DownloadManagerState 
 	getDownloadState();
@@ -273,12 +258,7 @@ DownloadManager
 	setOnlySeeding(boolean onlySeeding);
 
 	public void
-   restartDownload(boolean use_fast_resume);
-
-	public int getPrevState();
-
-	public void setPrevState(int state);
-  
+	restartDownload(boolean use_fast_resume);  
 
   /**
    * Is called when a download is finished.
@@ -287,13 +267,8 @@ DownloadManager
    * @author Rene Leonhardt
    */
     public void downloadEnded();
-
-    public DiskManager initializeDiskManager();
-  
-    public boolean canForceRecheck();
-
-    public void forceRecheck();
-
+ 
+ 
 	/**
 	 * @return the wealthy status of this download
 	 */
@@ -315,37 +290,37 @@ DownloadManager
 	public void
 	saveDownload();
 	
-  /** To retreive arbitrary objects against this object. */
-  public Object getData (String key);
-  /** To store arbitrary objects against this object. */
-  public void setData (String key, Object value);
-  
-  
-  /**
-   * Determine whether disk allocation has already been done.
-   * Used for checking if data is missing on a previously-loaded torrent.
-   * @return true if data files have already been allocated
-   */
-  public boolean isDataAlreadyAllocated();
-  
-  /**
-   * Set whether data allocation has already been done, so we know
-   * when to allocate and when to throw a missing-data error message.
-   * @param already_allocated
-   */
-  public void setDataAlreadyAllocated( boolean already_allocated );
+	  /** To retreive arbitrary objects against this object. */
+	public Object getData (String key);
+	  /** To store arbitrary objects against this object. */
+	public void setData (String key, Object value);
+	  
+	  
+	  /**
+	   * Determine whether disk allocation has already been done.
+	   * Used for checking if data is missing on a previously-loaded torrent.
+	   * @return true if data files have already been allocated
+	   */
+	public boolean isDataAlreadyAllocated();
+	 
+	  /**
+	   * Set whether data allocation has already been done, so we know
+	   * when to allocate and when to throw a missing-data error message.
+	   * @param already_allocated
+	   */
+	public void setDataAlreadyAllocated( boolean already_allocated );
   
   	/**
   	 * gives the time this download was created (not the torrent but the download itself)
   	 * @return
   	 */
   
-  public long
-  getCreationTime();
+  	public long
+  	getCreationTime();
 
-  public void
-  setCreationTime(
-  	long		t );
+  	public void
+  	setCreationTime(
+  			long		t );
   
 	public void
 	setAnnounceResult(
@@ -359,12 +334,61 @@ DownloadManager
    * Is advanced AZ messaging enabled for this download.
    * @return true if enabled, false if disabled
    */
-  public boolean isAZMessagingEnabled();
+	public boolean isAZMessagingEnabled();
   
   /**
    * Enable or disable advanced AZ messaging for this download.
    * @param enable true to enabled, false to disabled
    */
-  public void setAZMessagingEnabled( boolean enable );
+	public void setAZMessagingEnabled( boolean enable );
 
+	
+	
+	public void
+	addPeer(
+		PEPeer 		peer );
+		
+	public void
+	removePeer(
+		PEPeer		peer );
+		
+	public void
+	addPiece(
+		PEPiece 	piece );
+		
+	public void
+	removePiece(
+		PEPiece		piece );
+	
+	public void
+	addListener(
+			DownloadManagerListener	listener );
+	
+	public void
+	removeListener(
+			DownloadManagerListener	listener );
+	
+	public void
+	addTrackerListener(
+		DownloadManagerTrackerListener	listener );
+	
+	public void
+	removeTrackerListener(
+		DownloadManagerTrackerListener	listener );
+	
+	public void
+	addPeerListener(
+		DownloadManagerPeerListener	listener );
+		
+	public void
+	removePeerListener(
+		DownloadManagerPeerListener	listener );
+		
+	public void
+	addDiskListener(
+		DownloadManagerDiskListener	listener );
+		
+	public void
+	removeDiskListener(
+		DownloadManagerDiskListener	listener );
 }

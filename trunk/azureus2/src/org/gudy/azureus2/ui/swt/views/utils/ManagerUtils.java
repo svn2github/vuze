@@ -166,7 +166,7 @@ public class ManagerUtils {
   {
     if (dm != null && dm.getState() == DownloadManager.STATE_STOPPED) {
     	
-      dm.setState(DownloadManager.STATE_WAITING);
+      dm.setStateWaiting();
     }
   }
 
@@ -178,7 +178,7 @@ public class ManagerUtils {
     if (dm != null) {
     	if (dm.getState() == DownloadManager.STATE_STOPPED){
     		
-    		dm.setState(DownloadManager.STATE_QUEUED);
+    		dm.setStateQueued();
     		
     		/* parg - removed this - why would we want to effectively stop + restart
     		 * torrents that are running? This is what happens if the code is left in.

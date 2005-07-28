@@ -315,8 +315,37 @@ Test
 		}
 		
 		public void
-		setState(
-			int		state )
+		setStateWaiting()
+		{
+			
+		}
+		
+		public void
+		setStateDownloading()
+		{
+			
+		}
+		
+		public void
+		setStateStopped()
+		{
+			
+		}
+		
+		public void
+		setStateFinishing()
+		{
+			
+		}
+		
+		public void
+		setStateSeeding()
+		{
+			
+		}
+		
+		public void
+		setStateQueued()
 		{
 			
 		}

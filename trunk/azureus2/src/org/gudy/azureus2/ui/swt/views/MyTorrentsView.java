@@ -1545,7 +1545,7 @@ public class MyTorrentsView
             dm.setTorrentSaveDir(sSavePath);
         	
             if ( dm.filesExist()) {
-            	dm.setState(DownloadManager.STATE_STOPPED);
+            	dm.setStateStopped();
             	ManagerUtils.queue(dm, cTablePanel);
             }
         }
