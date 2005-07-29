@@ -56,6 +56,8 @@ public class VivaldiPanel {
   private int xDown;
   private int yDown;
   
+  private boolean antiAliasingAvailable = true;
+  
   private class Scale {
     int width;
     int height;
@@ -152,13 +154,14 @@ public class VivaldiPanel {
     gc.setForeground(white);
     gc.setBackground(white);
     gc.fillRectangle(size);
-    
-    /*
-    if(SWT.getVersion() >= 3100) {
-      gc.setTextAntialias(SWT.ON);
-      gc.setAntialias(SWT.ON);
+    if(SWT.getVersion() >= 3138 && antiAliasingAvailable) {
+    	try {
+    		gc.setTextAntialias(SWT.ON);
+    		gc.setAntialias(SWT.ON);
+      } catch(Exception e) {
+        antiAliasingAvailable = false;
+      }
     }
-    */
     
     Color blue = new Color(display,66,87,104);
     gc.setForeground(blue);
