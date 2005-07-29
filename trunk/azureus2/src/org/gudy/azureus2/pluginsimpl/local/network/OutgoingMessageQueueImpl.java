@@ -126,4 +126,8 @@ public class OutgoingMessageQueueImpl implements OutgoingMessageQueue {
     //message originally created by plugin
     core_queue.notifyOfExternallySentMessage( new MessageAdapter( message ) );
   }
+  
+  public int getPercentDoneOfCurrentMessage() {
+    return core_queue.getPercentDoneOfCurrentMessage();
+  }
 }

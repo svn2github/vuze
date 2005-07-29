@@ -60,4 +60,6 @@ public interface OutgoingMessageQueue {
    * @param message sent externally
    */
   public void notifyOfExternalSend( Message message );  
+  
+  public int getPercentDoneOfCurrentMessage();
 }

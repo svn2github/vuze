@@ -57,4 +57,6 @@ public interface IncomingMessageQueue {
    */
   public void notifyOfExternalReceive( Message message );
   
+  public int getPercentDoneOfCurrentMessage();
+  
 }

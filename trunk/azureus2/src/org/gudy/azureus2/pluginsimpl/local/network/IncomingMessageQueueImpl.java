@@ -98,4 +98,8 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue {
     core_queue.notifyOfExternallyReceivedMessage( new MessageAdapter( message ) );
   }
   
+  public int getPercentDoneOfCurrentMessage() {
+    return core_queue.getPercentDoneOfCurrentMessage();
+  }
+  
 }
