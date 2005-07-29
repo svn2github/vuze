@@ -41,7 +41,6 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.download.*;
 
-import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
@@ -61,12 +60,12 @@ DownloadManagerImpl
 	private static final int LDT_COMPLETIONCHANGED 	= 3;
 	private static final int LDT_POSITIONCHANGED 	= 4;
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "DownloadManager" );
+	protected AEMonitor	this_mon	= new AEMonitor( "DM:DownloadManager" );
 
-	private AEMonitor	listeners_mon	= new AEMonitor( "DownloadManager:L" );
+	private AEMonitor	listeners_mon	= new AEMonitor( "DM:DownloadManager:L" );
 
 	private ListenerManager	listeners_agregator 	= ListenerManager.createAsyncManager(
-			"DMM:ListenAgregatorDispatcher",
+			"DM:ListenAgregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -98,7 +97,7 @@ DownloadManagerImpl
 			});		
 	
 	private ListenerManager	listeners 	= ListenerManager.createManager(
-			"DMM:ListenDispatcher",
+			"DM:ListenDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -117,7 +116,7 @@ DownloadManagerImpl
 	private static final int LDT_TL_SCRAPERESULT		= 2;
 	
 	private ListenerManager	tracker_listeners 	= ListenerManager.createManager(
-			"DMM:TrackerListenDispatcher",
+			"DM:TrackerListenDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -151,7 +150,7 @@ DownloadManagerImpl
 		// one static async manager for them all
 	
 	private static ListenerManager	peer_listeners_agregator 	= ListenerManager.createAsyncManager(
-			"DMM:PeerListenAgregatorDispatcher",
+			"DM:PeerListenAgregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -190,7 +189,7 @@ DownloadManagerImpl
 			});
 
 	private ListenerManager	peer_listeners 	= ListenerManager.createManager(
-			"DMM:PeerListenDispatcher",
+			"DM:PeerListenDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -203,7 +202,7 @@ DownloadManagerImpl
 				}
 			});	
 	
-	private AEMonitor	peer_listeners_mon	= new AEMonitor( "DownloadManager:PL" );
+	private AEMonitor	peer_listeners_mon	= new AEMonitor( "DM:DownloadManager:PL" );
 	
 	private List	current_peers 	= new ArrayList();
 	private List	current_pieces	= new ArrayList();
@@ -1339,20 +1338,19 @@ DownloadManagerImpl
 	}
 	
 	protected void
-	informStateChanged()
+	informStateChanged(
+		int		new_state,
+		boolean	new_force_start )
 	{
 		try{
 			listeners_mon.enter();
-
-			int		new_state 	= getState();
-			boolean	force_start	= isForceStart();
 			
 			if ( 	new_state != last_informed_state ||
-					force_start != latest_informed_force_start ){
+					new_force_start != latest_informed_force_start ){
 				
 				last_informed_state	= new_state;
 				
-				latest_informed_force_start	= force_start;
+				latest_informed_force_start	= new_force_start;
 				
 				listeners.dispatch( LDT_STATECHANGED, new Integer( new_state ));
 			}

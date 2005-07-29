@@ -148,6 +148,24 @@ ListenerManager
 		}
 	}
 	
+	public void
+	clear()
+	{
+		synchronized( this ){
+									
+			listeners	= new ArrayList();
+			
+			if ( async ){
+				
+				async_thread = null;
+				
+					// try and wake up the thread so it kills itself
+				
+				dispatch_sem.release();
+			}
+		}
+	}
+	
 	public List
 	getListenersCopy()
 	{

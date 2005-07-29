@@ -468,6 +468,10 @@ DiskManagerImpl
 				}
 			}
 		}
+		
+			// can't be used after a stop so we might as well clear down the listeners
+		
+		listeners.clear();
 	}
 
 	
@@ -1492,7 +1496,7 @@ DiskManagerImpl
 
 	public void
 	addListener(
-			DiskManagerListener	l )
+		DiskManagerListener	l )
 	{
 		listeners.addListener( l );
 
