@@ -141,7 +141,10 @@ public class TrackerStatus {
   	}
   }
 
-  protected TRTrackerScraperResponseImpl getHashData(byte[] hash) {
+  protected TRTrackerScraperResponseImpl 
+  getHashData(
+	byte[] hash ) 
+  {
   	try{
   		hashes_mon.enter();
  
@@ -153,102 +156,130 @@ public class TrackerStatus {
   }
 
 
-  protected void updateSingleHash(HashWrapper hash, boolean force) {
+  protected void 
+  updateSingleHash(
+	HashWrapper hash, 
+	boolean force) 
+  {
     updateSingleHash(hash.getHash(), force, true);
   }
 
-  protected void updateSingleHash(byte[] hash, boolean force) {
+  protected void 
+  updateSingleHash(
+	byte[] hash, 
+	boolean force) 
+  {
     updateSingleHash(hash, force, true);
   }
 
-  protected void updateSingleHash(byte[] hash, boolean force, boolean async) {      
-    //LGLogger.log( "updateSingleHash():: force=" + force + ", async=" +async+ ", url=" +scrapeURL+ ", hash=" +ByteFormatter.nicePrint(hash, true) );
+  	protected void 
+  	updateSingleHash(
+  		byte[] 	hash, 
+  		boolean force, 
+  		boolean async ) 
+  	{      
+  		//LGLogger.log( "updateSingleHash():: force=" + force + ", async=" +async+ ", url=" +scrapeURL+ ", hash=" +ByteFormatter.nicePrint(hash, true) );
     
-    if (scrapeURL == null)  {
-      return;
-    }
+  		if (scrapeURL == null)  {
+      
+  			return;
+  		}
     
-    
-    try {
-    ArrayList responsesToUpdate = new ArrayList();
+  		try {
+  			ArrayList responsesToUpdate = new ArrayList();
 
-    TRTrackerScraperResponseImpl response;
+  			TRTrackerScraperResponseImpl response;
     
-   try{
-   		hashes_mon.enter();
+  			try{
+  				hashes_mon.enter();
    		
-	    response = (TRTrackerScraperResponseImpl)hashes.get(hash);
+	    		response = (TRTrackerScraperResponseImpl)hashes.get(hash);
+		    
+	    		if (response == null) {
+	    			
+	    			response = addHash(hash);
+	    		}
+	    	}finally{
+	    	
+	    		hashes_mon.exit();
+	    	}
+	
+	    	long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
+	
+	    	if( !force && lMainNextScrapeStartTime > SystemTime.getCurrentTime() ) {
+	    		
+	    		return;
+	    	}
+    
+	    		// Set status id to SCRAPING, but leave status string until we actually
+	    		// do the scrape
+	    	
+	    	response.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);
+	
+	    	responsesToUpdate.add(response);
 	    
-	    if (response == null) {
-	      response = addHash(hash);
-	    }
-    }finally{
-    	
-    	hashes_mon.exit();
-    }
-
-    long lMainNextScrapeStartTime = response.getNextScrapeStartTime();
-
-    if( !force && lMainNextScrapeStartTime > SystemTime.getCurrentTime() ) {
-      return;
-    }
-    
-    // Set status id to SCRAPING, but leave status string until we actually
-    // do the scrape
-    response.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);
-
-    responsesToUpdate.add(response);
-    
-   // Go through hashes and pick out other scrapes that are "close to" wanting a new scrape.
-    
-    if (!bSingleHashScrapes){
-    	
-    	try{
-    	  hashes_mon.enter();
-    		
-	      Iterator iterHashes = hashes.values().iterator();
-	      
-	      while( iterHashes.hasNext() ) {
-	      	
-	        TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
-	        
-	        if (!r.getHash().equals(hash)) {
-	        	
-	          long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
-	          
-	          if (lTimeDiff <= 30000 && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
-	          	
-	            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);
-	            
-	            responsesToUpdate.add(r);
-	          }
-	        }
-	      }
-      }finally{
-      	
-      	hashes_mon.exit();
-      }
-    }
-    
-    new ThreadedScrapeRunner(responsesToUpdate,  force, async);
-    }
-    catch( Throwable t ) {
-      Debug.out( "updateSingleHash() exception", t );
-    }
-  }
+	    		// Go through hashes and pick out other scrapes that are "close to" wanting a new scrape.
+	    
+		    if (!bSingleHashScrapes){
+		    	
+		    	try{
+		    	  hashes_mon.enter();
+		    		
+			      Iterator iterHashes = hashes.values().iterator();
+			      
+			      while( iterHashes.hasNext() ) {
+			      	
+			        TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
+			        
+			        if (!r.getHash().equals(hash)) {
+			        	
+			          long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
+			          
+			          if (lTimeDiff <= 30000 && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
+			          	
+			            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);
+			            
+			            responsesToUpdate.add(r);
+			          }
+			        }
+			      }
+		      }finally{
+		      	
+		      	hashes_mon.exit();
+		      }
+		    }
+	    
+		    new ThreadedScrapeRunner(responsesToUpdate,  force, async);
+		    
+  		}catch( Throwable t ) {
+      
+  			Debug.out( "updateSingleHash() exception", t );
+  		}
+  	}
   
   /** Does the scrape and decoding asynchronously.
     *
     * TODO: Allow handling of multiple TRTrackerScraperResponseImpl objects
     *       on one URL
     */
-  private class ThreadedScrapeRunner extends AEThread {
+  
+  private class 
+  ThreadedScrapeRunner 
+  	extends AEThread 
+  {
     boolean force;
     ArrayList responses;
 
-    public ThreadedScrapeRunner(ArrayList _responses, boolean _force, boolean async) {
+    public 
+    ThreadedScrapeRunner(
+    	ArrayList _responses, 
+    	boolean _force, 
+    	boolean async) 
+    {
       super("ThreadedScrapeRunner");
+      
       force = _force;
+      
       responses = _responses;
 
       if (async) {

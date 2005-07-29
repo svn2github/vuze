@@ -58,8 +58,8 @@ DownloadManagerImpl
 	
 	private static final int LDT_STATECHANGED		= 1;
 	private static final int LDT_DOWNLOADCOMPLETE	= 2;
-	private static final int LDT_COMPLETIONCHANGED = 3;
-	private static final int LDT_POSITIONCHANGED = 4;
+	private static final int LDT_COMPLETIONCHANGED 	= 3;
+	private static final int LDT_POSITIONCHANGED 	= 4;
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "DownloadManager" );
 
@@ -139,50 +139,6 @@ DownloadManagerImpl
 				}
 			});	
 
-		// DISK listeners
-	
-	private static final int LDT_DL_ADDED		= 1;
-	private static final int LDT_DL_REMOVED		= 2;
-
-	private static ListenerManager	disk_listeners_agregator 	= ListenerManager.createAsyncManager(
-			"DMM:DiskListenAgregatorDispatcher",
-			new ListenerManagerDispatcher()
-			{
-				public void
-				dispatch(
-					Object		_listener,
-					int			type,
-					Object		value )
-				{
-					DownloadManagerDiskListener	listener = (DownloadManagerDiskListener)_listener;
-					
-					if ( type == LDT_DL_ADDED ){
-						
-						listener.diskManagerAdded((DiskManager)value);
-						
-					}else if ( type == LDT_DL_REMOVED ){
-						
-						listener.diskManagerRemoved((DiskManager)value);
-					}
-				}
-			});	
-	
-	private ListenerManager	disk_listeners 	= ListenerManager.createManager(
-			"DMM:DiskListenDispatcher",
-			new ListenerManagerDispatcher()
-			{
-				public void
-				dispatch(
-					Object		listener,
-					int			type,
-					Object		value )
-				{
-					disk_listeners_agregator.dispatch( listener, type, value );
-				}
-			});
-	
-	private AEMonitor	disk_listeners_mon	= new AEMonitor( "DownloadManager:DL" );
-
 	// PeerListeners
 	
 	private static final int LDT_PE_PEER_ADDED		= 1;
@@ -252,13 +208,13 @@ DownloadManagerImpl
 	private List	current_peers 	= new ArrayList();
 	private List	current_pieces	= new ArrayList();
   
+	private DownloadManagerController	controller;
 	private DownloadManagerStatsImpl	stats;
 	
 	private boolean		persistent;
 	/**
 	 * forceStarted torrents can't/shouldn't be automatically stopped
 	 */
-	private boolean 	force_start;
 	private boolean		latest_informed_force_start;
 	
 	/**
@@ -271,11 +227,8 @@ DownloadManagerImpl
 	 */
 	protected boolean onlySeeding;
 	
-	private int 		state_set_by_method = STATE_START_OF_DAY;
 	private int			last_informed_state	= STATE_START_OF_DAY;
 	
-	private String errorDetail;
-
 	private GlobalManager globalManager;
 
 	private String torrentFileName;
@@ -316,12 +269,7 @@ DownloadManagerImpl
 	
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
 	
-	private DiskManager 			diskManager;
-	private DiskManagerFileInfo[]	skeleton_files;
-	private DiskManagerListener		disk_manager_listener;
   
-	private PEPeerManager 			peerManager;
-
 	private HashMap data;
   
 	private boolean data_already_allocated = false;
@@ -362,12 +310,12 @@ DownloadManagerImpl
 
 		stats = new DownloadManagerStatsImpl( this );
   	
+		controller	= new DownloadManagerController( this );
+
 		globalManager = _gm;
 	
 		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads") );
-	 
-		force_start = false;
-	
+	 	
 		torrentFileName = _torrentFileName;
 	
 		torrent_save_dir	= _torrent_save_dir;	
@@ -384,10 +332,7 @@ DownloadManagerImpl
 		
 			// must be after readTorrent, so that any listeners have a TOTorrent
 		
-		if ( getState() == STATE_START_OF_DAY ){
-			
-			setState( _initialState );
-		}
+		controller.setInitialState( _initialState );
 	}
 
 
@@ -664,31 +609,7 @@ DownloadManagerImpl
 	public boolean 
 	filesExist() 
 	{
-		DiskManager	dm = diskManager;
-		
-		String strErrMessage = "";
-		
-			// currently can only seed if whole torrent exists
-		
-		if ( dm  == null) {
-  		
-			dm = DiskManagerFactory.createNoStart( torrent, this);
-		}
-		
-  		if ( dm.getState() == DiskManager.FAULTY || !dm.filesExist() ){
-  			
-  			strErrMessage = dm.getErrorMessage();
-  		}
-  
-  	
-  		if ( !strErrMessage.equals("")){
-     
-  			setFailed( MessageText.getString("DownloadManager.error.datamissing") + " " + strErrMessage );
-  
-  			return( false );
-  		}
-  		
-  		return( true );
+		return( controller.filesExist());
 	}
 	
 	
@@ -707,7 +628,7 @@ DownloadManagerImpl
 	public String 
 	getErrorDetails() 
 	{
-		return errorDetail;
+		return( controller.getErrorDetail());
 	}
 
 	public long 
@@ -736,30 +657,52 @@ DownloadManagerImpl
   
 	protected void
 	setFailed(
-		String		reason )
+		String	str )
 	{
-		if ( reason != null ){
-  		
-			errorDetail = reason;
-		}
-  	
-		stopIt( DownloadManager.STATE_ERROR, false, false );
+		controller.setFailed( str );
 	}
+  
+  
 
+  public void
+  saveResumeData()
+  {
+    if ( getState() == STATE_DOWNLOADING) {
+
+    	try{
+    		getDiskManager().dumpResumeDataToDisk(false, false);
+    		
+    	}catch( Exception e ){
+    		
+			setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
+    	}
+    }
+    
+  	// we don't want to update the torrent if we're seeding
+	  
+	  if ( !onlySeeding  ){
+	  	
+	  	download_manager_state.save();
+	  }
+  }
+  
+  public void
+  saveDownload()
+  {
+    DiskManager disk_manager = controller.getDiskManager();
+    
+    if ( disk_manager != null ){
+    	
+    	disk_manager.storeFilePriorities();
+    }
+    
+    download_manager_state.save();
+  }
   
   
 	public void 
 	initialize() 
 	{
-		int	entry_state = getState();
-		
-		if ( 	entry_state != STATE_WAITING &&
-				entry_state != STATE_STOPPED &&
-				entry_state != STATE_QUEUED ){
-			
-			Debug.out( "DownloadManagerImpl: Illegal initialize state, " + entry_state );
-		}
-
 	  	// entry:  valid if waiting, stopped or queued
 	  	// exit: error, ready or on the way to error
 	  
@@ -769,9 +712,7 @@ DownloadManagerImpl
       
 			return;
 		}
-		
-		setState( STATE_INITIALIZING );
-         	
+		         	
 			// If we only want to seed, do a quick check first (before we create the diskManager, which allocates diskspace)
     
 		if ( onlySeeding && !filesExist()) {
@@ -781,12 +722,7 @@ DownloadManagerImpl
     	
 			return;
 		}
-
-	
-
-		errorDetail = "";
    
-    
 		try{
 			if ( tracker_client != null ){
 
@@ -804,7 +740,7 @@ DownloadManagerImpl
 					receivedTrackerResponse(
 						TRTrackerAnnouncerResponse	response) 
 					{
-						PEPeerManager pm = peerManager;
+						PEPeerManager pm = controller.getPeerManager();
           
 						if ( pm != null ) {
             
@@ -837,346 +773,106 @@ DownloadManagerImpl
       		// we need to set the state to "initialized" before kicking off the disk manager
       		// initialisation as it should only report its status while in the "initialized"
       		// state (see getState for how this works...)
-      	
-			setState( STATE_INITIALIZED );
-          
-			initializeDiskManager();
+      	        
+			controller.initializeDiskManager( DownloadManager.STATE_INITIALIZED );
 
 		}catch( TRTrackerAnnouncerException e ){
  		
 			setFailed( e ); 
 		}
 	}
-	
-
-	public void 
-	startDownload() 
-	{
-		if ( getState() != STATE_READY ){
-			
-			Debug.out( "DownloadManager: start when not ready, " + getState());
-		}
-		
-		setState( STATE_DOWNLOADING );
-	
-		PEPeerManager temp = PEPeerManagerFactory.create(this, tracker_client, diskManager);
-		
-		temp.start();
-	
-		try{
-			peer_listeners_mon.enter();
-		
-			peerManager = temp;		// delay this so peerManager var not available to other threads until it is started
-	
-			peer_listeners.dispatch( LDT_PE_PM_ADDED, temp );
-		}finally{
-		
-			peer_listeners_mon.exit();
-		}
-	
-		tracker_client.update( true );
-	}
   
-  
-  
-  
-  
-  
-  public void 
-  stopIt(
-  	final int 			_stateAfterStopping, 
-	final boolean 		remove_torrent, 
-	final boolean 		remove_data )
-  {	  
-	  int	state = getState();
-	  
-    if( state == DownloadManager.STATE_STOPPED ||
-        state == DownloadManager.STATE_ERROR ) {
-    
-    		//already in stopped state, just do removals if necessary
-    	
-      if( remove_data )  deleteDataFiles();
-      
-      if( remove_torrent )  deleteTorrentFile();
-      
-      setState( _stateAfterStopping );
-      
-      return;
-    }
-    
-    
-    if (state == DownloadManager.STATE_STOPPING){
-    
-    	return;
-    }
-    
-  	setState( DownloadManager.STATE_STOPPING );
-
-  		// this will run synchronously but on a non-daemon thread so that it will under
-  		// normal circumstances complete, even if we're closing
-  	
-  	try{
-	  	NonDaemonTaskRunner.run(
-			new NonDaemonTask()
-			{
-				public Object 
-				run()
-				{
-					int	stateAfterStopping = _stateAfterStopping;
-					
-					try{
-			  								
-						if ( peerManager != null ){
-							
-						  stats.saveSessionTotals();
-						  						  
-						  peerManager.stopAll(); 
-						  
-						  try{
-						  	peer_listeners_mon.enter();
-						  
-						  	peer_listeners.dispatch( LDT_PE_PM_REMOVED, peerManager );
-						  	
-						  }finally{
-						  	
-						  	peer_listeners_mon.exit();
-						  }
-			
-						  peerManager = null; 
-						}      
-						
-							// kill the tracker client after the peer manager so that the
-							// peer manager's "stopped" event has a chance to get through
-						
-						if ( tracker_client != null ){
-							
-							tracker_client.removeListener( tracker_client_listener );
-						
-							download_manager_state.setTrackerResponseCache(
-										tracker_client.getTrackerResponseCache());
-								
-							tracker_client.destroy();
-								
-							tracker_client = null;
-						}							
-
-						if (diskManager != null){
-							
-							stats.setCompleted(stats.getCompleted());
-							stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-				      
-						  if (diskManager.getState() == DiskManager.READY){
-						  	
-						  	try{
-						  		diskManager.dumpResumeDataToDisk(true, false);
-						  		
-						  	}catch( Exception e ){
-						  		
-								errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e);
-								
-								stateAfterStopping	= STATE_ERROR;
-						  	}
-						  }
-				      
-						  	// we don't want to update the torrent if we're seeding
-						  
-						  if ( !onlySeeding ){
-						  	
-						  	download_manager_state.save();
-						  }
-						  					  
-						  diskManager.storeFilePriorities();
-						  
-						  diskManager.stop();
-						  	
-						  diskManager.removeListener( disk_manager_listener );
-						  
-						  setDiskManager( null );
-						}
-					
-					 }finally{
-								  
-					   force_start = false;
-             
-					   if( remove_data ){
-					   
-					   		deleteDataFiles();
-					   }
-					   
-					   if( remove_torrent ){
-					   	
-					   	deleteTorrentFile();
-					   }
-             
-					   setState( stateAfterStopping );
-             
-					 }
-				  	
-					 return( null );
-				}
-			  });	
-  	}catch( Throwable e ){
-  		
-  		Debug.printStackTrace( e );
-  	}
-  }
-
-  public void
-  saveResumeData()
-  {
-    if ( getState() == STATE_DOWNLOADING) {
-
-    	try{
-    		getDiskManager().dumpResumeDataToDisk(false, false);
-    		
-    	}catch( Exception e ){
-    		
-			setFailed( errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
-    	}
-    }
-    
-  	// we don't want to update the torrent if we're seeding
-	  
-	  if ( !onlySeeding  ){
-	  	
-	  	download_manager_state.save();
-	  }
-  }
-  
-  public void
-  saveDownload()
-  {
-    DiskManager disk_manager = diskManager;
-    
-    if ( disk_manager != null ){
-    	
-    	disk_manager.storeFilePriorities();
-    }
-    
-    download_manager_state.save();
-  }
   
   public void
   setStateWaiting()
   {
-	  setState(DownloadManager.STATE_WAITING);
+	  controller.setStateWaiting();
   }
   
   public void
   setStateDownloading()
   {
-	  	// null operation as called on pm start + already set?
-	  
-	  if ( getState() != STATE_DOWNLOADING ){
-		  
-		  Debug.out( "setStateDownloading: not dl" );
-	  }
-	  
-	  setState( DownloadManager.STATE_DOWNLOADING );
+	  controller.setStateDownloading();
   }
   
   public void
   setStateFinishing()
   {
-	  setState(DownloadManager.STATE_FINISHING);
+	  controller.setStateFinishing();
   }
   
   public void
   setStateSeeding()
   {
-	  setState(DownloadManager.STATE_SEEDING);
+	  controller.setStateSeeding();
   }
   
   public void
   setStateQueued()
   {
-	  setState(DownloadManager.STATE_QUEUED);
+	  controller.setStateQueued();
   }
   
-  
-  public int 
-  getState() 
+  public int
+  getState()
   {
-	if ( state_set_by_method != STATE_INITIALIZED ){
-		
-	  return( state_set_by_method );
-	}
-	
-	if ( diskManager == null){
-		
-	  return STATE_INITIALIZED;
-	}
-	
-	int diskManagerState = diskManager.getState();
-	
-	if (diskManagerState == DiskManager.INITIALIZING){
-	  return STATE_INITIALIZED;
-	}else if (diskManagerState == DiskManager.ALLOCATING){
-	  return STATE_ALLOCATING;
-	}else if (diskManagerState == DiskManager.CHECKING){
-	  return STATE_CHECKING;
-	}else if (diskManagerState == DiskManager.READY){
-	  return STATE_READY;
-	}else if (diskManagerState == DiskManager.FAULTY){
-	  return STATE_ERROR;
-	}
-	
-	return STATE_ERROR;
+	  return( controller.getState());
   }
+ 
+  	public boolean
+  	canForceRecheck()
+  	{
+  		return( controller.canForceRecheck());
+  	}
   
-
-  private void 
-  setState(
-	int _state)
-  {   
-	  int	old_state = getState();
-	  
-	// note: there is a DIFFERENCE between the state held on the DownloadManager and
-    // that reported via getState as getState incorporated DiskManager states when
-    // the DownloadManager is INITIALIZED
-  	//System.out.println( "DM:setState - " + _state );
-	  
-    if ( old_state != _state ){
-    	
-      state_set_by_method = _state;
-      
-      	// sometimes, downloadEnded() doesn't get called, so we must check here too
-      
-      if (state_set_by_method == STATE_SEEDING) {
-    	  
-        setOnlySeeding(true);
-        
-      }else if (state_set_by_method == STATE_QUEUED ){
-        
-    	  	// pick up any errors regarding missing data for queued SEEDING torrents
-    	  
-    	  if ( onlySeeding ){
-    		  
-    		  filesExist();
-    	  }
-    	  
-      }else if ( state_set_by_method == STATE_ERROR ){
-      
-      		// the process of attempting to start the torrent may have left some empty
-      		// directories created, some users take exception to this.
-      		// the most straight forward way of remedying this is to delete such empty
-      		// folders here
-      	
-      	if ( torrent != null && !torrent.isSimpleTorrent()){
-
-      		File	save_dir_file	= new File( torrent_save_dir, torrent_save_file );
-
-	      	if ( save_dir_file.exists() && save_dir_file.isDirectory()){
-	      		
-	      		FileUtil.recursiveEmptyDirDelete( save_dir_file );
-	      	}
-      	}
-      }
-      
-      informStateChanged();
-    }
-  }
-
+  	public void
+  	forceRecheck()
+  	{
+  		controller.forceRecheck();
+  	}
+  
+  	public void
+  	restartDownload(
+  		boolean	use_resume )
+  	{
+  		controller.restartDownload( use_resume );
+  	}
+  
+  	public void
+  	startDownload()
+  	{
+  		controller.startDownload( tracker_client );
+  	}
+  	
+  	public void
+  	startDownloadInitialized(
+  		boolean	initialise_stopped_downloads )
+  	{
+  		int	state = getState();
+  		
+	  	if ( 	state == DownloadManager.STATE_WAITING || 
+	  			( initialise_stopped_downloads && state == DownloadManager.STATE_STOPPED )){
+			
+	  		initialize();
+	  	}
+		
+	  	state = getState();
+	  	
+	  	if ( state == DownloadManager.STATE_READY ){
+			
+	  		startDownload();
+	  	}
+	}
+  	
+  	public void
+  	stopIt(
+  		int		state_after_stopping,
+  		boolean	remove_torrent,
+  		boolean	remove_data )
+  	{
+  		controller.stopIt( state_after_stopping, remove_torrent, remove_data );
+  	}
+  	
 	public boolean 
 	getOnlySeeding() 
 	{
@@ -1234,21 +930,36 @@ DownloadManagerImpl
   
   
   
-  public int getNbSeeds() {
-	if (peerManager != null)
-	  return peerManager.getNbSeeds();
-	return 0;
+  public int 
+  getNbSeeds() 
+  {
+	  PEPeerManager peerManager = controller.getPeerManager();
+	  
+	  if (peerManager != null){
+		  
+		  return peerManager.getNbSeeds();
+	  }
+	  
+	  return 0;
   }
 
-  public int getNbPeers() {
-	if (peerManager != null)
-	  return peerManager.getNbPeers();
-	return 0;
+  public int
+  getNbPeers() 
+  {
+	  PEPeerManager peerManager = controller.getPeerManager();
+
+	  if (peerManager != null){
+		
+		  return peerManager.getNbPeers();
+	  }
+	  
+	  return 0;
   }
 
   
 
-  public String getTrackerStatus() {
+  public String 
+  getTrackerStatus() {
     if (tracker_client != null)
       return tracker_client.getStatusString();
     // to tracker, return scrape
@@ -1490,57 +1201,6 @@ DownloadManagerImpl
   }
 
   
-  /**
-   * Stops the current download, then restarts it again.
-   */
-  
-  	public void 
-  	restartDownload(
-  			boolean use_fast_resume ) 
-  	{
-  		try{
-  			boolean	was_force_start = isForceStart();
-  		
-  			if (!use_fast_resume) {
-	      
-  					//invalidate resume info
-	    	
-  				diskManager.dumpResumeDataToDisk(false, true);
-	      
-  				readTorrent( torrent==null?null:torrent.getHash(),false, false, true );
-  			}
-	    
-  			stopIt( DownloadManager.STATE_STOPPED, false, false );
-	    
-  			initialize();
-	    
-  			if ( was_force_start ){
-	    	
-  				setForceStart(true);
-  			}
-  		}catch( Exception e ){
-  		
-  			setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
-  		}
-  	}
-    
-  
-  	public void 
-  	startDownloadInitialized(
-  		boolean initStoppedDownloads ) 
-  	{
-  		if ( 	getState() == DownloadManager.STATE_WAITING || 
-  				( initStoppedDownloads && getState() == DownloadManager.STATE_STOPPED )){
-		
-  			initialize();
-  		}
-	
-  		if ( getState() == DownloadManager.STATE_READY ){
-		
-  			startDownload();
-  		}
-  	}
-
  
   
   public void 
@@ -1620,42 +1280,20 @@ DownloadManagerImpl
   public DiskManager
   getDiskManager()
   {
-  	return( diskManager );
+  	return( controller.getDiskManager());
   }
   
 	public DiskManagerFileInfo[]
    	getDiskManagerFileInfo()
 	{
-		DiskManager	dm = diskManager;
-		
-		DiskManagerFileInfo[]	res;
-		
-		if ( dm != null ){
-			
-			skeleton_files	= null;
-			
-			res = dm.getFiles();
-			
-		}else{
-			
-			res = skeleton_files;
-			
-			if ( res == null ){
-
-				res = DiskManagerFactory.getFileInfoSkeleton( this );
-				
-				skeleton_files	= res;
-			}
-		}
-		
-		return( res );
+		return( controller.getDiskManagerFileInfo());
 	}
 	
-  public PEPeerManager
-  getPeerManager()
-  {
-  	return( peerManager );
-  }
+	public PEPeerManager
+	getPeerManager()
+	{
+		return( controller.getPeerManager());
+	}
 
   	public boolean
 	isDownloadComplete()
@@ -1706,7 +1344,8 @@ DownloadManagerImpl
 		try{
 			listeners_mon.enter();
 
-			int	new_state = getState();
+			int		new_state 	= getState();
+			boolean	force_start	= isForceStart();
 			
 			if ( 	new_state != last_informed_state ||
 					force_start != latest_informed_force_start ){
@@ -1772,7 +1411,7 @@ DownloadManagerImpl
 			peer_listeners.dispatch( listener, LDT_PE_PIECE_ADDED, current_pieces.get(i));
 		}
 		
-		PEPeerManager	temp = peerManager;
+		PEPeerManager	temp = controller.getPeerManager();
 		
 		if ( temp != null ){
 	
@@ -1791,61 +1430,7 @@ DownloadManagerImpl
   	peer_listeners.removeListener( listener );
   }
  
-  	protected void
-  	setDiskManager(
-  		DiskManager	new_disk_manager )
-  	{
- 	 	try{
-	  		disk_listeners_mon.enter();
-	  		
-	  		DiskManager	old_disk_manager = diskManager;
-	  		
-	  		diskManager	= new_disk_manager;
-
-	  		if ( new_disk_manager == null && old_disk_manager != null ){
-	  			
-	  			disk_listeners.dispatch( LDT_DL_REMOVED, old_disk_manager );
-	  			
-	  		}else if ( new_disk_manager != null && old_disk_manager == null ){
-	  			
-	  			disk_listeners.dispatch( LDT_DL_ADDED, new_disk_manager );
-	  			
-	  		}else{
-	  		
-	  			Debug.out( "inconsistent DiskManager state - " + new_disk_manager + "/" + old_disk_manager  );
-	  		}
-	  		
-	  	}finally{
-	  		
-	  		disk_listeners_mon.exit();
-	  	}	
-  	}
-  	
-	public void
-	addDiskListener(
-		DownloadManagerDiskListener	listener )
-	{
-	 	try{
-	  		disk_listeners_mon.enter();
-	  		
-	  		disk_listeners.addListener( listener );
-	  		
-			if ( diskManager != null ){
-		
-				disk_listeners.dispatch( listener, LDT_DL_ADDED, diskManager );
-			}
-	  	}finally{
-	  		
-	  		disk_listeners_mon.exit();
-	  	}		
-	}
-		
-	public void
-	removeDiskListener(
-		DownloadManagerDiskListener	listener )
-	{
-		disk_listeners.removeListener( listener );
-	}
+ 
 	
   public void
   addPeer(
@@ -1915,35 +1500,71 @@ DownloadManagerImpl
   	}
  }
 
+  protected void
+  informPeerManagerAdded(
+		PEPeerManager	pm )
+  {
+		try{
+			peer_listeners_mon.enter();
+			
+			peer_listeners.dispatch( LDT_PE_PM_ADDED, pm );
+		}finally{
+		
+			peer_listeners_mon.exit();
+		}
+	
+		tracker_client.update( true );
+  }
+  
+  protected void
+  informPeerManagerRemoved(
+		PEPeerManager	pm )	// can be null if controller was stopped....
+  {
+	  if ( pm != null ){
+		  try{
+			  peer_listeners_mon.enter();
+			  
+			  peer_listeners.dispatch( LDT_PE_PM_REMOVED, pm );
+			  	
+		  }finally{
+			  	
+		  	peer_listeners_mon.exit();
+		  }
+	  }
+		
+			// kill the tracker client after the peer manager so that the
+			// peer manager's "stopped" event has a chance to get through
+		
+		if ( tracker_client != null ){
+			
+			tracker_client.removeListener( tracker_client_listener );
+		
+			download_manager_state.setTrackerResponseCache(
+						tracker_client.getTrackerResponseCache());
+				
+			tracker_client.destroy();
+				
+			tracker_client = null;
+		}	
+  	}
+  
 	public DownloadManagerStats
 	getStats()
 	{
 		return( stats );
 	}
 
-  public boolean isForceStart() {
-    return force_start;
+  public boolean 
+  isForceStart() 
+  {
+    return( controller.isForceStart());
   }
 
   public void 
   setForceStart(
 	 boolean forceStart) 
   {
-    if (force_start != forceStart) {
-    	
-      force_start = forceStart;
-      
-      if (force_start && 
-          (getState() == STATE_STOPPED || getState() == STATE_QUEUED)) {
-        // Start it!  (Which will cause a stateChanged to trigger)
-        setState(STATE_WAITING);
-      } else {
-    	  
-    	  	// currently the "state" included "force start"
-    	  
-        informStateChanged();
-      }
-    }
+	  controller.setForceStart( forceStart );
   }
 
   /**
@@ -1965,219 +1586,27 @@ DownloadManagerImpl
     informDownloadEnded();
   }
 
-  public DiskManager 
-  initializeDiskManager() 
-  {
-  	DiskManager	res = diskManager;
-  	
-  	if ( res == null ){
-  		
-  		res = DiskManagerFactory.create( torrent, this);
-      
-  		setDiskManager( res );
-  		
-  		disk_manager_listener = 
-  			new DiskManagerListener()
-  			{
-  				public void
-  				stateChanged(
-  					int 	oldDMState,
-  					int		newDMState )
-  				{
-  					try{
-	  					if ( newDMState == DiskManager.FAULTY ){
-	  						
-	  						setFailed( diskManager.getErrorMessage());						
-	   					}
-	  					
-	  					if (oldDMState == DiskManager.CHECKING) {
-	  						
-	  						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-	  						
-	  						DownloadManagerImpl.this.setOnlySeeding(diskManager.getRemaining() == 0);
-	  					}
-	  					  
-	  					if ( newDMState == DiskManager.READY ){
-	  						
-	  							// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
-	  							// and resumed 
-	  					
-	  						if ( 	stats.getTotalDataBytesReceived() == 0 &&
-	  								stats.getTotalDataBytesSent() == 0 &&
-	  								stats.getSecondsDownloading() == 0 ){
-	  						
-	  							int	completed = stats.getDownloadCompleted(false);
-	  							
-	  								// for seeds leave things as they are as they may never have been downloaded in the
-	  								// first place...
-	  							
-	  							if ( completed < 1000 ){
-	 
-	  									// assume downloaded = uploaded, optimistic but at least results in
-	  									// future share ratios relevant to amount up/down from now on
-	  									// see bug 1077060 
-	  								
-	  								long	amount_downloaded = (completed*diskManager.getTotalLength())/1000;
-	  								
-	 								stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
-	   							}
-	  						}
-	  					}
-  					}finally{
-  						
-  						informStateChanged();
-  					}
-  				}
-
-                public void 
-				filePriorityChanged(
-					DiskManagerFileInfo	file ) 
-                {                    
-                }
-                
-               	public void
-            	pieceDoneChanged(
-            		DiskManagerPiece	piece )
-            	{           		
-            	}
-               	
-            	public void
-            	fileAccessModeChanged(
-            		DiskManagerFileInfo		file,
-            		int						old_mode,
-            		int						new_mode )
-            	{
-            	}
-  			};
-  		
-  		diskManager.addListener( disk_manager_listener );
-  	}
-  	
-  	return( res );
-  }
-  
-  public boolean 
-  canForceRecheck() 
-  {
-  	if ( torrent == null ){
-  			// broken torrent, can't force recheck
-  		
-  		return( false );
-  	}
-  	
-  	int state = getState();
-  	
-    return (state == STATE_STOPPED) ||
-           (state == STATE_QUEUED) ||
-           (state == STATE_ERROR && diskManager == null);
-  }
-
-  public void 
-  forceRecheck() 
-  {
-  	if ( diskManager != null ) {
-  		LGLogger.log(0, 0, LGLogger.ERROR, "Trying to force recheck while diskmanager active");
-  		return;
-  	}
-  
-  	if ( torrent == null ){
- 		LGLogger.log(0, 0, LGLogger.ERROR, "Trying to force recheck with broken torrent");
-  		return;	
-  	}
-  	
-    Thread recheck = 
-    	new AEThread("forceRecheck") 
-		{
-			public void runSupport() {
-				int start_state = DownloadManagerImpl.this.getState();
-				
-				setState(STATE_CHECKING);
-				
-					// remove resume data
-				
-				download_manager_state.clearResumeData();
-				
-				// For extra protection from a plugin stopping a checking torrent,
-				// fake a forced start. 
-				
-				boolean wasForceStarted = force_start;
-				
-				force_start = true;
-				
-					// if a file has been deleted we want this recheck to recreate the file and mark
-					// it as 0%, not fail the recheck. Otherwise the only way of recovering is to remove and
-					// re-add the torrent
-				
-				setDataAlreadyAllocated( false );
-				
-				DiskManager recheck_disk_manager = initializeDiskManager();
-				
-				while ( recheck_disk_manager.getState() != DiskManager.FAULTY &&
-						recheck_disk_manager.getState() != DiskManager.READY){
-					
-					try {
-						
-						Thread.sleep(100);
-						
-					} catch (Exception e) {
-						
-						Debug.printStackTrace( e );
-					}
-				}
-				
-				System.out.println( "force recheck completed" );
-				
-				force_start = wasForceStarted;
-				
-				stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-				
-				if ( recheck_disk_manager.getState() == DiskManager.READY ){
-					
-				  	try{
-				  		recheck_disk_manager.dumpResumeDataToDisk(true, false);
-				  		
-						recheck_disk_manager.stop();
-						
-						setOnlySeeding(recheck_disk_manager.getRemaining() == 0);
-						
-						setDiskManager( null );
-						
-						if (start_state == STATE_ERROR){
-							
-							setState( STATE_STOPPED );
-							
-						}else{
-							
-							setState(start_state);
-						}
-				  	}catch( Exception e ){
-				  		
-						setFailed( errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
-				  	}
-				  	
-				  }else{ // Faulty
-				  						
-				  	recheck_disk_manager.stop();
-					
-				  	setOnlySeeding(false);
-					
-				  	setDiskManager( null );
-					
-					setFailed( recheck_disk_manager.getErrorMessage());	 
-				  }
-				}
-			};
+ 
+	public void
+	addDiskListener(
+		DownloadManagerDiskListener	listener )
+	{
+		controller.addDiskListener( listener );
+	}
 		
-		recheck.setDaemon( true );
-		recheck.setPriority(Thread.MIN_PRIORITY);
-		recheck.start();
-  }
-  
+	public void
+	removeDiskListener(
+		DownloadManagerDiskListener	listener )
+	{
+		controller.removeDiskListener( listener );
+	}
   
   public int 
   getHealthStatus() 
   {
 	  int	state = getState();
+	  
+	  PEPeerManager	peerManager	 = controller.getPeerManager();
 	  
     if(peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
       int nbSeeds = getNbSeeds();
@@ -2251,13 +1680,13 @@ DownloadManagerImpl
   		tracker_listeners.removeListener( listener );
   }
   
-  private void 
+  protected void 
   deleteDataFiles() 
   {
   	DiskManagerFactory.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
   }
   
-  private void 
+  protected void 
   deleteTorrentFile() 
   {
   	if ( torrentFileName != null ){

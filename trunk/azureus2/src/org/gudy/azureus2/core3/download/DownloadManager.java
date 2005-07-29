@@ -34,9 +34,9 @@ DownloadManager
 {
 	public static final int STATE_START_OF_DAY	= -1;	// should never actually see this one
 	
-	public static final int STATE_WAITING = 0;
-	public static final int STATE_INITIALIZING = 5;
-	public static final int STATE_INITIALIZED = 10;
+	public static final int STATE_WAITING 		= 0;
+	public static final int STATE_INITIALIZING 	= 5;
+	public static final int STATE_INITIALIZED 	= 10;
 	
 	public static final int STATE_ALLOCATING = 20;
 	public static final int STATE_CHECKING = 30;
