@@ -92,6 +92,7 @@ DownloadManagerController
 	private AEMonitor	disk_listeners_mon	= new AEMonitor( "DownloadManagerController:DL" );
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "DownloadManagerController" );
+	protected AEMonitor	state_mon	= new AEMonitor( "DownloadManagerController:State" );
 
 	
 	private DownloadManagerImpl			download_manager;
@@ -494,97 +495,87 @@ DownloadManagerController
     
 			setState( DownloadManager.STATE_STOPPING );
 
-		}finally{
-			
-			this_mon.exit();
-		}
+
 		
 			// this will run synchronously but on a non-daemon thread so that it will under
   			// normal circumstances complete, even if we're closing
   	
-		try{
-			NonDaemonTaskRunner.run(
-				new NonDaemonTask()
-				{
-					public Object 
-					run()
-					{
-							// DON'T need the this_mon here as we already have it
-							// as this is a synchronous exec
-						
-						int	stateAfterStopping = _stateAfterStopping;
-						
-						try{
-				  								
-							if ( peer_manager != null ){
-								
-							  stats.saveSessionTotals();
-							  						  
-							  peer_manager.stopAll(); 
-							}
+
 							
-								// do this even if null as it also triggers tracker actions
+							int	stateAfterStopping = _stateAfterStopping;
 							
-							download_manager.informPeerManagerRemoved( peer_manager );
-								
-							peer_manager	= null;
-	
-							if ( disk_manager != null ){
-								
-								stats.setCompleted(stats.getCompleted());
-								stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-					      
-								if (disk_manager.getState() == DiskManager.READY){
-							  	
-									try{
-										disk_manager.dumpResumeDataToDisk(true, false);
-							  		
-									}catch( Exception e ){
-							  		
-										errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e);
+							try{
+					  								
+								if ( peer_manager != null ){
 									
-										stateAfterStopping	= DownloadManager.STATE_ERROR;
+								  stats.saveSessionTotals();
+								  						  
+								  peer_manager.stopAll(); 
+								}
+								
+									// do this even if null as it also triggers tracker actions
+								
+								download_manager.informPeerManagerRemoved( peer_manager );
+									
+								peer_manager	= null;
+		
+								if ( disk_manager != null ){
+									
+									stats.setCompleted(stats.getCompleted());
+									stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+						      
+									if (disk_manager.getState() == DiskManager.READY){
+								  	
+										try{
+											disk_manager.dumpResumeDataToDisk(true, false);
+								  		
+										}catch( Exception e ){
+								  		
+											errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e);
+										
+											stateAfterStopping	= DownloadManager.STATE_ERROR;
+										}
 									}
+						      
+								  		// we don't want to update the torrent if we're seeding
+								  
+									if ( !download_manager.getOnlySeeding()){
+								  	
+										download_manager.getDownloadState().save();
+									}
+								  					  
+									disk_manager.storeFilePriorities();
+								  
+									disk_manager.stop();
+								  							  
+									setDiskManager( null );
 								}
-					      
-							  		// we don't want to update the torrent if we're seeding
-							  
-								if ( !download_manager.getOnlySeeding()){
-							  	
-									download_manager.getDownloadState().save();
-								}
-							  					  
-								disk_manager.storeFilePriorities();
-							  
-								disk_manager.stop();
-							  							  
-								setDiskManager( null );
-							}
-						
-						 }finally{
-									  
-						   force_start = false;
-	             
-						   if( remove_data ){
-						   
-						   		download_manager.deleteDataFiles();
-						   }
-						   
-						   if( remove_torrent ){
-						   	
-							   download_manager.deleteTorrentFile();
-						   }
-	             
-						   setState( stateAfterStopping );
-	             
-						 }
-					  	
-						 return( null );
-					}
-				  });	
+							
+							 }finally{
+										  
+							   force_start = false;
+		             
+							   if( remove_data ){
+							   
+							   		download_manager.deleteDataFiles();
+							   }
+							   
+							   if( remove_torrent ){
+							   	
+								   download_manager.deleteTorrentFile();
+							   }
+		             
+							   setState( stateAfterStopping );
+		             
+							 }
+	
 		}catch( Throwable e ){
   		
 			Debug.printStackTrace( e );
+		
+		}finally{
+		
+			this_mon.exit();
 		}
 	}
 
@@ -678,7 +669,7 @@ DownloadManagerController
   			int _state)
   	{   
   		try{
-  			this_mon.enter();
+  			state_mon.enter();
   		
 	  		int	old_state = state_set_by_method;
 		  
@@ -730,7 +721,7 @@ DownloadManagerController
 	  		}
   		}finally{
   			
-  			this_mon.exit();
+  			state_mon.exit();
   		}
   	}
   
