@@ -201,8 +201,17 @@ public class BDecoder {
         //get the string
         return getByteArrayFromStream(bais);
 
-      default :
-        throw new IOException("UNKNOWN COMMAND");
+      default :{
+    	  
+    	  int	rem_len = bais.available();
+    	  
+    	  byte[] rem_data = new byte[rem_len];
+    	  
+    	  bais.read( rem_data );
+    	  
+    	  throw( new IOException(
+        	"BDecoder: unknown command '" + tempByte + ", remainder = " + new String( rem_data )));
+      }
     }
   }
 
@@ -365,17 +374,17 @@ public class BDecoder {
 		  
 		  decoder.setRecoveryMode( true );
 		  
-		  Map res = decoder.decodeStream( new BufferedInputStream( new FileInputStream( new File( "C:\\temp\\downloads.config.630" ))));
+		  Map res = decoder.decodeStream( new BufferedInputStream( new FileInputStream( new File( "C:\\temp\\scrape.php" ))));
 		  
 		  decoder.print( res );
 		  
-		  byte[] zzz = BEncoder.encode( res );
+		 // byte[] zzz = BEncoder.encode( res );
 		 
-		  FileOutputStream fos  = new FileOutputStream( new File( "C:\\temp\\downloads.config.630.recov" ));
+		  //FileOutputStream fos  = new FileOutputStream( new File( "C:\\temp\\downloads.config.630.recov" ));
 		 
-		  fos.write( zzz );
+		  //fos.write( zzz );
 		 
-		  fos.close();
+		  //fos.close();
 		 
 	  }catch( Throwable e ){
 		  
