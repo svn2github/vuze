@@ -69,12 +69,22 @@ NonDaemonTaskRunner
 	
 		throws Throwable
 	{
-		return(getSingleton().runSupport( target ));
+		return(getSingleton().runSupport( target, false ));
+	}
+	
+	public static Object
+	runAsync(
+		NonDaemonTask	target )
+	
+		throws Throwable
+	{
+		return(getSingleton().runSupport( target, true ));
 	}
 	
 	protected Object
 	runSupport(
-		NonDaemonTask	target )
+		NonDaemonTask	target,
+		boolean			async )
 	
 		throws Throwable
 	{
@@ -154,6 +164,11 @@ NonDaemonTaskRunner
 		}finally{
 			
 			tasks_mon.exit();
+		}
+		
+		if ( async ){
+			
+			return( null );
 		}
 		
 		return( wrapper.waitForResult());

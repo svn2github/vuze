@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.ListenerManager;
@@ -157,21 +158,20 @@ DownloadManagerController
 		
 			setState( DownloadManager.STATE_DOWNLOADING );
 		
-				// make sure it is started beore making it "visible"
-		
-			PEPeerManager temp = 
-				PEPeerManagerFactory.create( download_manager, tracker_client, disk_manager);
-		
-			temp.start();
-	
-			peer_manager = temp;
-		
-			download_manager.informPeerManagerAdded( temp );
-			
 		}finally{
 			
 			this_mon.exit();
 		}
+				// make sure it is started beore making it "visible"
+		
+		PEPeerManager temp = 
+				PEPeerManagerFactory.create( download_manager, tracker_client, disk_manager);
+		
+		temp.start();
+	
+		peer_manager = temp;
+		
+		download_manager.informPeerManagerAdded( temp );
 	}
   
   
@@ -190,59 +190,57 @@ DownloadManagerController
 	  					int 	oldDMState,
 	  					int		newDMState )
 	  				{
-	  					try{	
-	  						this_mon.enter();
+	  					DiskManager	dm = disk_manager;
+	  					
+	  					if ( dm == null ){
 	  						
-	  						if ( disk_manager == null ){
-	  						
-	  								// already been cleared down
+	  							// already been cleared down
 	  							
-	  							return;
-	  						}
-	  						
-		  					if ( newDMState == DiskManager.FAULTY ){
-		  						
-		  						setFailed( disk_manager.getErrorMessage());						
-		   					}
-		  					
-		  					if ( oldDMState == DiskManager.CHECKING ){
-		  						
-		  						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-		  						
-		  						download_manager.setOnlySeeding(disk_manager.getRemaining() == 0);
-		  					}
-		  					  
-		  					if ( newDMState == DiskManager.READY ){
-		  						
-		  							// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
-		  							// and resumed 
-		  					
-		  						if ( 	stats.getTotalDataBytesReceived() == 0 &&
-		  								stats.getTotalDataBytesSent() == 0 &&
-		  								stats.getSecondsDownloading() == 0 ){
-		  						
-		  							int	completed = stats.getDownloadCompleted(false);
-		  							
-		  								// for seeds leave things as they are as they may never have been downloaded in the
-		  								// first place...
-		  							
-		  							if ( completed < 1000 ){
-		 
-		  									// assume downloaded = uploaded, optimistic but at least results in
-		  									// future share ratios relevant to amount up/down from now on
-		  									// see bug 1077060 
-		  								
-		  								long	amount_downloaded = (completed*disk_manager.getTotalLength())/1000;
-		  								
-		 								stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
-		   							}
-		  						}
-		  					}
+	  						return;
+	  					}
+	  					
+	  					try{
+			  				if ( newDMState == DiskManager.FAULTY ){
+			  					
+			  					setFailed( dm.getErrorMessage());						
+			   				}
+			  					
+			  				if ( oldDMState == DiskManager.CHECKING ){
+			  						
+			  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+			  						
+			  					download_manager.setOnlySeeding(dm.getRemaining() == 0);
+			  				}
+			  					  
+			  				if ( newDMState == DiskManager.READY ){
+			  						
+			  						// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
+			  						// and resumed 
+			  				
+			  					if ( 	stats.getTotalDataBytesReceived() == 0 &&
+			  							stats.getTotalDataBytesSent() == 0 &&
+			  							stats.getSecondsDownloading() == 0 ){
+			  						
+			  						int	completed = stats.getDownloadCompleted(false);
+			  							
+			  							// for seeds leave things as they are as they may never have been downloaded in the
+			  							// first place...
+			  							
+			  						if ( completed < 1000 ){
+			 
+			  							// assume downloaded = uploaded, optimistic but at least results in
+			  							// future share ratios relevant to amount up/down from now on
+			  							// see bug 1077060 
+			  								
+			  							long	amount_downloaded = (completed*dm.getTotalLength())/1000;
+			  								
+			 							stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
+			   						}
+			  					}
+			  				}
 	  					}finally{
 	  							  						
 	  						download_manager.informStateChanged(getState(),isForceStart());
-	  						
-	  						this_mon.exit();
 	  					}
 	  				}
 
@@ -374,58 +372,85 @@ DownloadManagerController
   	  				{
   	  					if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
   	  						
-  	  						try{
-  	  							this_mon.enter();
-  	  						
-  	  							if ( disk_manager == null ){
+  	  						if ( disk_manager == null ){
   	  								
-  	  									// already closed down via stop
+  	  								// already closed down via stop
+  	  							
+  	  							return;
+  	  						}
+  	  							
+	  	  					force_start = wasForceStarted;
+		  					
+	  	  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+		  					
+	  	  					if ( newDMState == DiskManager.READY ){
+		  						
+	  	  						try{
+	  	  							boolean	only_seeding 		= false;
+	  	  							boolean	update_only_seeding	= false;
+	  	  						
+	  	  							try{
+	  	  								this_mon.enter();
+	  	  							
+	  	  								if ( disk_manager != null ){
+	  	  							
+	  	  									disk_manager.dumpResumeDataToDisk(true, false);
+		  					  		
+	  	  									disk_manager.stop();
+		  							
+	  	  									only_seeding	= disk_manager.getRemaining() == 0;
+	  	  									
+	  	  									update_only_seeding	= true;
+	  	  								
+	  		  	  							setDiskManager( null );
+		  							
+		  							
+	  		  	  							if ( start_state == DownloadManager.STATE_ERROR ){
+		  								
+	  		  	  								setState( DownloadManager.STATE_STOPPED );
+		  								
+	  		  	  							}else{
+		  								
+	  		  	  								setState( start_state );
+	  		  	  							}
+	  	  								}
+	  	  							}finally{
+	  	  								
+	  	  								this_mon.exit();
+	  	  							}
+	  	  							
+	  	  								// careful here, don't want to update seeding while holding monitor
+	  	  								// as potential deadlock
+	  	  							
+	  	  							if ( update_only_seeding ){
+	  	  								
+	  	  								download_manager.setOnlySeeding( only_seeding );
+	  	  							}
+	  	  						
+	  	  						}catch( Exception e ){
+		  					  		
+	  	  							setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
+	  	  						}
+	  	  					}else{ // Faulty
+		  					  		
+  	  							try{
+  	  								this_mon.enter();
+  	  							
+  	  								if ( disk_manager != null ){
+
+  	  									disk_manager.stop();
+		  					
+  	  									setDiskManager( null );
+		  						
+  	  									setFailed( disk_manager.getErrorMessage());	 
+  	  								}
+  	  							}finally{
   	  								
-  	  								return;
+  	  								this_mon.exit();
   	  							}
   	  							
-	  	  						force_start = wasForceStarted;
-		  					
-	  	  						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-		  					
-	  	  						if ( newDMState == DiskManager.READY ){
-		  						
-	  	  							try{
-	  	  								disk_manager.dumpResumeDataToDisk(true, false);
-		  					  		
-	  	  								disk_manager.stop();
-		  							
-	  	  								download_manager.setOnlySeeding( disk_manager.getRemaining() == 0);
-		  							
-	  	  								setDiskManager( null );
-		  							
-	  	  								if ( start_state == DownloadManager.STATE_ERROR ){
-		  								
-	  	  									setState( DownloadManager.STATE_STOPPED );
-		  								
-	  	  								}else{
-		  								
-	  	  									setState( start_state );
-	  	  								}
-	  	  								
-	  	  							}catch( Exception e ){
-		  					  		
-	  	  								setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
-	  	  							}
-	  	  						}else{ // Faulty
-		  					  						
-	  	  							disk_manager.stop();
-		  						
-	  	  							download_manager.setOnlySeeding(false);
-		  						
-	  	  							setDiskManager( null );
-		  						
-	  	  							setFailed( disk_manager.getErrorMessage());	 
-	  	  						}
-  	  						}finally{
-  	  							
-  	  							this_mon.exit();
-  	  						}
+	  	  						download_manager.setOnlySeeding(false);
+	  	  					}
 	  					}
   	  				}
 
@@ -496,79 +521,97 @@ DownloadManagerController
 			setState( DownloadManager.STATE_STOPPING );
 
 
-		
-			// this will run synchronously but on a non-daemon thread so that it will under
-  			// normal circumstances complete, even if we're closing
+				// this will run synchronously but on a non-daemon thread so that it will under
+  				// normal circumstances complete, even if we're closing
   	
 
-							
-							int	stateAfterStopping = _stateAfterStopping;
-							
+			final	AESemaphore nd_sem = new AESemaphore( "DM:DownloadManager.NDTR" );
+			
+			NonDaemonTaskRunner.runAsync(
+				new NonDaemonTask()
+				{
+					public Object
+					run()
+					{
+						nd_sem.reserve();
+						
+						return( null );
+					}
+					
+				});
+						
+			try{
+				int	stateAfterStopping = _stateAfterStopping;
+				
+				try{
+		  								
+					if ( peer_manager != null ){
+						
+					  stats.saveSessionTotals();
+					  						  
+					  peer_manager.stopAll(); 
+					}
+					
+						// do this even if null as it also triggers tracker actions
+					
+					download_manager.informPeerManagerRemoved( peer_manager );
+						
+					peer_manager	= null;
+
+					if ( disk_manager != null ){
+						
+						stats.setCompleted(stats.getCompleted());
+						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
+			      
+						if (disk_manager.getState() == DiskManager.READY){
+					  	
 							try{
-					  								
-								if ( peer_manager != null ){
-									
-								  stats.saveSessionTotals();
-								  						  
-								  peer_manager.stopAll(); 
-								}
-								
-									// do this even if null as it also triggers tracker actions
-								
-								download_manager.informPeerManagerRemoved( peer_manager );
-									
-								peer_manager	= null;
-		
-								if ( disk_manager != null ){
-									
-									stats.setCompleted(stats.getCompleted());
-									stats.setDownloadCompleted(stats.getDownloadCompleted(true));
-						      
-									if (disk_manager.getState() == DiskManager.READY){
-								  	
-										try{
-											disk_manager.dumpResumeDataToDisk(true, false);
-								  		
-										}catch( Exception e ){
-								  		
-											errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e);
-										
-											stateAfterStopping	= DownloadManager.STATE_ERROR;
-										}
-									}
-						      
-								  		// we don't want to update the torrent if we're seeding
-								  
-									if ( !download_manager.getOnlySeeding()){
-								  	
-										download_manager.getDownloadState().save();
-									}
-								  					  
-									disk_manager.storeFilePriorities();
-								  
-									disk_manager.stop();
-								  							  
-									setDiskManager( null );
-								}
+								disk_manager.dumpResumeDataToDisk(true, false);
+					  		
+							}catch( Exception e ){
+					  		
+								errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e);
 							
-							 }finally{
-										  
-							   force_start = false;
-		             
-							   if( remove_data ){
-							   
-							   		download_manager.deleteDataFiles();
-							   }
-							   
-							   if( remove_torrent ){
-							   	
-								   download_manager.deleteTorrentFile();
-							   }
-		             
-							   setState( stateAfterStopping );
-		             
-							 }
-	
+								stateAfterStopping	= DownloadManager.STATE_ERROR;
+							}
+						}
+			      
+					  		// we don't want to update the torrent if we're seeding
+					  
+						if ( !download_manager.getOnlySeeding()){
+					  	
+							download_manager.getDownloadState().save();
+						}
+					  					  
+						disk_manager.storeFilePriorities();
+					  
+						disk_manager.stop();
+					  							  
+						setDiskManager( null );
+					}
+				
+				 }finally{
+							  
+				   force_start = false;
+         
+				   if( remove_data ){
+				   
+				   		download_manager.deleteDataFiles();
+				   }
+				   
+				   if( remove_torrent ){
+				   	
+					   download_manager.deleteTorrentFile();
+				   }
+         
+				   setState( stateAfterStopping );
+         
+				 }
+			}finally{
+				
+				nd_sem.release();
+			}
+			
 		}catch( Throwable e ){
   		
 			Debug.printStackTrace( e );
@@ -666,7 +709,7 @@ DownloadManagerController
 
   	private void 
   	setState(
-  			int _state)
+  		int _state)
   	{   
   		try{
   			state_mon.enter();
@@ -716,13 +759,13 @@ DownloadManagerController
 	  					}
 	  				}
 	  			}
-	      
-	  			download_manager.informStateChanged(getState(),isForceStart());
 	  		}
   		}finally{
   			
   			state_mon.exit();
   		}
+	      
+		download_manager.informStateChanged(getState(),isForceStart());
   	}
   
 	 /**
@@ -766,14 +809,14 @@ DownloadManagerController
 
 	public void 
 	setForceStart(
-		 boolean forceStart) 
+		 boolean _force_start) 
 	{
 		try{
-			this_mon.enter();
+			state_mon.enter();
 		
-			if ( force_start != forceStart ){
+			if ( force_start != _force_start ){
 		    	
-				force_start = forceStart;
+				force_start = _force_start;
 		      
 				int	state = getState();
 				
@@ -781,7 +824,7 @@ DownloadManagerController
 						(	state == DownloadManager.STATE_STOPPED || 
 							state == DownloadManager.STATE_QUEUED )) {
 					
-					// Start it!  (Which will cause a stateChanged to trigger)
+						// Start it!  (Which will cause a stateChanged to trigger)
 					
 					setState(DownloadManager.STATE_WAITING);
 					
@@ -789,13 +832,14 @@ DownloadManagerController
 		    	  
 		    	  	// currently the "state" included "force start"
 		    	  
-					download_manager.informStateChanged(getState(),isForceStart());
 				}
 		    }
 		}finally{
 			
-			this_mon.exit();
+			state_mon.exit();
 		}
+		
+		download_manager.informStateChanged(getState(),isForceStart());
 	}
 	
 	protected void

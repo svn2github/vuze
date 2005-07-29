@@ -118,8 +118,8 @@ DiskManagerImpl
 	private static final int LDT_PIECE_DONE_CHANGED		= 3;
 	private static final int LDT_ACCESS_MODE_CHANGED	= 4;
 	
-	private ListenerManager	listeners 	= ListenerManager.createManager(
-			"DiskM:ListenDispatcher",
+	private ListenerManager	listeners_agregator 	= ListenerManager.createAsyncManager(
+			"DiskM:ListenAgregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -155,6 +155,20 @@ DiskManagerImpl
 					}
 				}
 			});		
+	
+	private ListenerManager	listeners 	= ListenerManager.createManager(
+			"DiskM:ListenDispatcher",
+			new ListenerManagerDispatcher()
+			{
+				public void
+				dispatch(
+					Object		listener,
+					int			type,
+					Object		value )
+				{
+					listeners_agregator.dispatch( listener, type, value );
+				}
+			});	
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "DiskManager" );
 	
