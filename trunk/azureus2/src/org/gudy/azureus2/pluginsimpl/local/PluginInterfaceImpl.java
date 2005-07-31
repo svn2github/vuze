@@ -627,6 +627,47 @@ PluginInterfaceImpl
   	event_listeners.remove(l);
   }
   
+	protected void
+	generateEvidence(
+		IndentWriter		writer )
+	{
+		writer.println( getPluginName());
+
+		try{
+			writer.indent();
+			
+			writer.println( "id:" + getPluginID() + ",version:" + getPluginVersion());
+			
+			String user_dir 	= FileUtil.getUserFile( "plugins" ).toString(); 
+			String shared_dir 	= FileUtil.getApplicationFile( "plugins" ).toString(); 
+			   
+			String	plugin_dir = getPluginDirectoryName();
+			
+			String	type;
+			
+			if ( plugin_dir.startsWith( shared_dir )){
+				
+				type = "shared";
+			
+			}else	if ( plugin_dir.startsWith( user_dir )){
+					
+				type = "per-user";	
+
+			}else{
+				
+				type = "built-in";
+			}
+			
+			writer.println( "type:" + type + ",enabled:" + !isDisabled() + ",operational:" + isOperational());
+			
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+  
+  
+  
   	// unfortunately we need to protect ourselves against the plugin itself trying to set
   	// plugin.version and plugin.id as this screws things up if they get it "wrong".
   	// They should be setting these things in the plugin.properties file

@@ -34,9 +34,12 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.logging.LGLogger;
 
 
@@ -57,7 +60,7 @@ import org.gudy.azureus2.update.UpdaterUpdateChecker;
  */
 public class 
 PluginInitializer
-	implements GlobalManagerListener
+	implements GlobalManagerListener, AEDiagnosticsEvidenceGenerator
 {
 	public static final String	INTERNAL_PLUGIN_ID = "<internal>";
 	
@@ -392,6 +395,8 @@ PluginInitializer
   	AzureusCoreListener	_listener) 
   {
   	azureus_core	= _azureus_core;
+  	
+  	AEDiagnostics.addEvidenceGenerator( this );
   	
   	azureus_core.addLifecycleListener(
 	    	new AzureusCoreLifecycleAdapter()
@@ -1077,13 +1082,13 @@ PluginInitializer
 				
   				plugin.initialize(plugin_interface);
       	
+  				plugin_interface.setOperational( true );
+  				
   			}catch( Throwable e ){
       	
   				load_failure	= e;
   			}
-
-  			plugin_interface.setOperational( load_failure == null );
-      
+     
   			plugins.add( plugin );
 	      
   			plugin_interfaces.add( plugin_interface );
@@ -1228,6 +1233,8 @@ PluginInitializer
 		 
   		plugin.initialize(plugin_interface);
   		
+  		plugin_interface.setOperational( true );
+  	
    		plugins.add( plugin );
    		
    		plugin_interfaces.add( plugin_interface );
@@ -1270,6 +1277,8 @@ PluginInitializer
 		UtilitiesImpl.setPluginThreadContext( plugin_interface );
 
   		plugin.initialize(plugin_interface);
+  		
+  		plugin_interface.setOperational( true );
   		
    		plugins.add( plugin );
    		
@@ -1539,6 +1548,29 @@ PluginInitializer
   	return( null );
   }
   
+  
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "Plugins" );
+			
+		try{
+			writer.indent();
+
+		 	for (int i=0;i<plugin_interfaces.size();i++){
+		  		
+		  		PluginInterfaceImpl	pi = (PluginInterfaceImpl)plugin_interfaces.get(i);
+
+		  		pi.generateEvidence( writer );
+		 	}
+		 	
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	
   	protected static File[]
 	getHighestJarVersions(
 		File[]		files,
