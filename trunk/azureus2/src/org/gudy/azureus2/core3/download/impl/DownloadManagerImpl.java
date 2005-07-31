@@ -1595,19 +1595,17 @@ DownloadManagerImpl
 		
   		try{
   			this_mon.enter();
-  		
-  			TRTrackerAnnouncer tc = getTrackerClient();
 	  
-  			if ( tc != null ){
+  			if ( tracker_client != null ){
 			
-  				tc.removeListener( tracker_client_listener );
+  				tracker_client.removeListener( tracker_client_listener );
 		
   				download_manager_state.setTrackerResponseCache(
-						tc.getTrackerResponseCache());
+  						tracker_client.getTrackerResponseCache());
 				
-  				tc.destroy();
+  				tracker_client.destroy();
 				
-  				tc = null;
+  				tracker_client = null;
   			}
 		}finally{
 			
