@@ -263,7 +263,39 @@ DownloadManagerImpl
 	private String 			torrent_created_by;
 	
 	private TRTrackerAnnouncer 				tracker_client;
-	private TRTrackerAnnouncerListener		tracker_client_listener;
+	private TRTrackerAnnouncerListener		tracker_client_listener = 
+			new TRTrackerAnnouncerListener() 
+			{
+				public void 
+				receivedTrackerResponse(
+					TRTrackerAnnouncerResponse	response) 
+				{
+					PEPeerManager pm = controller.getPeerManager();
+      
+					if ( pm != null ) {
+        
+						pm.processTrackerResponse( response );
+					}
+
+					tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
+				}
+
+				public void 
+				urlChanged(
+					String 	url, 
+					boolean explicit) 
+				{
+					if ( explicit ){
+						checkTracker( true );
+					}
+				}
+
+				public void 
+				urlRefresh() 
+				{
+					checkTracker( true );
+				}
+			};
 	
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
 	
@@ -727,40 +759,6 @@ DownloadManagerImpl
 				tracker_client = TRTrackerAnnouncerFactory.create( torrent, download_manager_state.getNetworks());
 	    
 				tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
-	
-				tracker_client_listener = 
-					new TRTrackerAnnouncerListener() 
-					{
-						public void 
-						receivedTrackerResponse(
-							TRTrackerAnnouncerResponse	response) 
-						{
-							PEPeerManager pm = controller.getPeerManager();
-	          
-							if ( pm != null ) {
-	            
-								pm.processTrackerResponse( response );
-							}
-	
-							tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
-						}
-	
-						public void 
-						urlChanged(
-							String 	url, 
-							boolean explicit) 
-						{
-							if ( explicit ){
-								checkTracker( true );
-							}
-						}
-	
-						public void 
-						urlRefresh() 
-						{
-							checkTracker( true );
-						}
-					};
 	
 				tracker_client.addListener( tracker_client_listener );
 				
@@ -1600,8 +1598,7 @@ DownloadManagerImpl
 			
   				tracker_client.removeListener( tracker_client_listener );
 		
-  				download_manager_state.setTrackerResponseCache(
-  						tracker_client.getTrackerResponseCache());
+  				download_manager_state.setTrackerResponseCache(	tracker_client.getTrackerResponseCache());
 				
   				tracker_client.destroy();
 				
