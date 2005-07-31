@@ -88,8 +88,21 @@ ClientIDPlugin
 		PluginInterface		plugin_interface,
 		Properties			properties )
 	{
-		String	agent = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
+		String	version = Constants.AZUREUS_VERSION;
 		
+			// trim of any _Bnn or _CVS suffix as unfortunately some trackers can't cope with this
+			// (well, apparently can't cope with B10)
+			// its not a big deal anyway
+		
+		int	pos = version.indexOf('_');
+		
+		if ( pos != -1 ){
+			
+			version = version.substring(0,pos);
+		}
+		
+		String	agent = Constants.AZUREUS_NAME + " " + version;
+				
 		if ( plugin_interface.getPluginconfig().getBooleanParameter("Tracker Client Send OS and Java Version")){
 							
 			agent += ";" + Constants.OSName;
