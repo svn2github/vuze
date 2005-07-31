@@ -60,8 +60,6 @@ DownloadManagerImpl
 	private static final int LDT_COMPLETIONCHANGED 	= 3;
 	private static final int LDT_POSITIONCHANGED 	= 4;
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "DM:DownloadManager" );
-
 	private AEMonitor	listeners_mon	= new AEMonitor( "DM:DownloadManager:L" );
 
 	private ListenerManager	listeners_agregator 	= ListenerManager.createAsyncManager(
@@ -209,13 +207,11 @@ DownloadManagerImpl
   
 	private DownloadManagerController	controller;
 	private DownloadManagerStatsImpl	stats;
+
+	protected AEMonitor					this_mon = new AEMonitor( "DM:DownloadManager" );
 	
 	private boolean		persistent;
-	/**
-	 * forceStarted torrents can't/shouldn't be automatically stopped
-	 */
-	private boolean		latest_informed_force_start;
-	
+
 	/**
 	 * Only seed this torrent. Never download or allocate<P>
 	 * Current Implementation:
@@ -226,13 +222,16 @@ DownloadManagerImpl
 	 */
 	protected boolean onlySeeding;
 	
-	private int			last_informed_state	= STATE_START_OF_DAY;
+	/**
+	 * forceStarted torrents can't/shouldn't be automatically stopped
+	 */
 	
+	private int			last_informed_state	= STATE_START_OF_DAY;
+	private boolean		latest_informed_force_start;
+
 	private GlobalManager globalManager;
 
 	private String torrentFileName;
-
-	private int nbPieces;
 	
 	private String	display_name;
 	
@@ -263,7 +262,7 @@ DownloadManagerImpl
 	private String 			torrent_comment;
 	private String 			torrent_created_by;
 	
-	private TRTrackerAnnouncer 			tracker_client;
+	private TRTrackerAnnouncer 				tracker_client;
 	private TRTrackerAnnouncerListener		tracker_client_listener;
 	
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
@@ -345,7 +344,6 @@ DownloadManagerImpl
 		display_name				= torrentFileName;	// default if things go wrong decoding it
 		torrent_comment				= "";
 		torrent_created_by			= "";
-		nbPieces					= 0;
 		
 		try {
 
@@ -525,11 +523,10 @@ DownloadManagerImpl
 			torrent_created_by = locale_decoder.decodeString(torrent.getCreatedBy());
          
 			if ( torrent_created_by == null ){
+				
 				torrent_created_by	= "";
 			}
-			 
-			 nbPieces = torrent.getNumberOfPieces();
-			 
+			 			 
 			 	// only restore the tracker response cache for non-seeds
 	   
 			 if ( DiskManagerFactory.isTorrentResumeDataComplete(download_manager_state, torrent_save_dir, torrent_save_file )) {
@@ -547,25 +544,19 @@ DownloadManagerImpl
 		}catch( TOTorrentException e ){
 		
 			Debug.printStackTrace( e );
-			
-			nbPieces = 0;
-        		 			
+			       		 			
 			setFailed( TorrentUtils.exceptionToText( e ));
  			
 		}catch( UnsupportedEncodingException e ){
 		
 			Debug.printStackTrace( e );
-			
-			nbPieces = 0;
-        					
+			       					
 			setFailed( MessageText.getString("DownloadManager.error.unsupportedencoding"));
 			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
-			
-			nbPieces = 0;
-    					
+			   					
 			setFailed( e );
 			
 		}finally{
@@ -663,40 +654,40 @@ DownloadManagerImpl
   
   
 
-  public void
-  saveResumeData()
-  {
-    if ( getState() == STATE_DOWNLOADING) {
+	public void
+	saveResumeData()
+	{
+		if ( getState() == STATE_DOWNLOADING) {
 
-    	try{
-    		getDiskManager().dumpResumeDataToDisk(false, false);
+			try{
+				getDiskManager().dumpResumeDataToDisk(false, false);
     		
-    	}catch( Exception e ){
+			}catch( Exception e ){
     		
-			setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
-    	}
-    }
+				setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
+			}
+		}
     
-  	// we don't want to update the torrent if we're seeding
+		// we don't want to update the torrent if we're seeding
 	  
-	  if ( !onlySeeding  ){
+		if ( !onlySeeding  ){
 	  	
-	  	download_manager_state.save();
-	  }
-  }
+			download_manager_state.save();
+		}
+	}
   
-  public void
-  saveDownload()
-  {
-    DiskManager disk_manager = controller.getDiskManager();
+  	public void
+  	saveDownload()
+  	{
+  		DiskManager disk_manager = controller.getDiskManager();
     
-    if ( disk_manager != null ){
+  		if ( disk_manager != null ){
     	
-    	disk_manager.storeFilePriorities();
-    }
+  			disk_manager.storeFilePriorities();
+  		}
     
-    download_manager_state.save();
-  }
+  		download_manager_state.save();
+  	}
   
   
 	public void 
@@ -723,51 +714,60 @@ DownloadManagerImpl
 		}
    
 		try{
-			if ( tracker_client != null ){
-
-				tracker_client.destroy();
-			}
-
-			tracker_client = TRTrackerAnnouncerFactory.create( torrent, download_manager_state.getNetworks());
-    
-			tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
-
-			tracker_client_listener = 
-				new TRTrackerAnnouncerListener() 
-				{
-					public void 
-					receivedTrackerResponse(
-						TRTrackerAnnouncerResponse	response) 
+			try{
+				this_mon.enter();
+			
+				if ( tracker_client != null ){
+	
+					Debug.out( "DownloadManager: initialize called with tracker client still available" );
+					
+					tracker_client.destroy();
+				}
+	
+				tracker_client = TRTrackerAnnouncerFactory.create( torrent, download_manager_state.getNetworks());
+	    
+				tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
+	
+				tracker_client_listener = 
+					new TRTrackerAnnouncerListener() 
 					{
-						PEPeerManager pm = controller.getPeerManager();
-          
-						if ( pm != null ) {
-            
-							pm.processTrackerResponse( response );
+						public void 
+						receivedTrackerResponse(
+							TRTrackerAnnouncerResponse	response) 
+						{
+							PEPeerManager pm = controller.getPeerManager();
+	          
+							if ( pm != null ) {
+	            
+								pm.processTrackerResponse( response );
+							}
+	
+							tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
 						}
-
-						tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
-					}
-
-					public void 
-					urlChanged(
-						String 	url, 
-						boolean explicit) 
-					{
-						if ( explicit ){
+	
+						public void 
+						urlChanged(
+							String 	url, 
+							boolean explicit) 
+						{
+							if ( explicit ){
+								checkTracker( true );
+							}
+						}
+	
+						public void 
+						urlRefresh() 
+						{
 							checkTracker( true );
 						}
-					}
-
-					public void 
-					urlRefresh() 
-					{
-						checkTracker( true );
-					}
-				};
-
-			tracker_client.addListener( tracker_client_listener );
-
+					};
+	
+				tracker_client.addListener( tracker_client_listener );
+				
+			}finally{
+				
+				this_mon.exit();
+			}
      	
       		// we need to set the state to "initialized" before kicking off the disk manager
       		// initialisation as it should only report its status while in the "initialized"
@@ -782,45 +782,52 @@ DownloadManagerImpl
 	}
   
   
-  public void
-  setStateWaiting()
-  {
-	  controller.setStateWaiting();
-  }
+	public void
+	setStateWaiting()
+	{
+		controller.setStateWaiting();
+	}
   
-  public void
-  setStateDownloading()
-  {
-	  controller.setStateDownloading();
-  }
+  	public void
+  	setStateDownloading()
+  	{
+  		controller.setStateDownloading();
+  	}
   
-  public void
-  setStateFinishing()
-  {
-	  controller.setStateFinishing();
-  }
+  	public void
+  	setStateFinishing()
+  	{
+  		controller.setStateFinishing();
+  	}
   
-  public void
-  setStateSeeding()
-  {
-	  controller.setStateSeeding();
-  }
+  	public void
+  	setStateSeeding()
+  	{
+  		controller.setStateSeeding();
+  	}
   
-  public void
-  setStateQueued()
-  {
-	  controller.setStateQueued();
-  }
+  	public void
+  	setStateQueued()
+  	{
+  		controller.setStateQueued();
+  	}
   
-  public int
-  getState()
-  {
-	  return( controller.getState());
-  }
+  	public int
+  	getState()
+  	{
+  		return( controller.getState());
+  	}
  
   	public boolean
   	canForceRecheck()
   	{
+		if ( getTorrent() == null ){
+  	  		
+  				// broken torrent, can't force recheck
+  	  		
+			return( false );
+	  	}
+
   		return( controller.canForceRecheck());
   	}
   
@@ -840,7 +847,16 @@ DownloadManagerImpl
   	public void
   	startDownload()
   	{
-  		controller.startDownload( tracker_client );
+  		TRTrackerAnnouncer tc = getTrackerClient();
+  		
+  		if ( tc == null ){
+  			
+  			Debug.out( "DownloadManager:startDownload called with no tracker client" );
+  			
+  		}else{
+  			
+  			controller.startDownload( tc );
+  		}
   	}
   	
   	public void
@@ -957,35 +973,45 @@ DownloadManagerImpl
 
   
 
-  public String 
-  getTrackerStatus() {
-    if (tracker_client != null)
-      return tracker_client.getStatusString();
-    // to tracker, return scrape
-    if (torrent != null && globalManager != null) {
-      TRTrackerScraperResponse response = getTrackerScrapeResponse();
-      if (response != null) {
-        return response.getStatusString();
-      }
-    }
+  	public String 
+  	getTrackerStatus() 
+  	{
+  		TRTrackerAnnouncer tc = getTrackerClient();
+  		
+  		if (tc != null){
+  			
+  			return tc.getStatusString();
+  		}
+    
+  			// no tracker, return scrape
+  		
+  		if (torrent != null && globalManager != null) {
+  			
+  			TRTrackerScraperResponse response = getTrackerScrapeResponse();
+      
+  			if (response != null) {
+  				return response.getStatusString();
+  				
+  			}
+  		}
 
-    return "";
-  }
+  		return "";
+  	}
 
-  	// this is called asynchronously when a response is received
+  		// this is called asynchronously when a response is received
   
-  public void
-  setTrackerScrapeResponse(
-  	TRTrackerScraperResponse	response )
-  {
-  	tracker_listeners.dispatch( LDT_TL_SCRAPERESULT, response );
-  }
+  	public void
+  	setTrackerScrapeResponse(
+  			TRTrackerScraperResponse	response )
+  	{
+  		tracker_listeners.dispatch( LDT_TL_SCRAPERESULT, response );
+  	}
   
-  public TRTrackerAnnouncer 
-  getTrackerClient() 
-  {
-	return( tracker_client );
-  }
+  	public TRTrackerAnnouncer 
+  	getTrackerClient() 
+  	{
+  		return( tracker_client );
+  	}
  
 	public void
 	setAnnounceResult(
@@ -1030,27 +1056,45 @@ DownloadManagerImpl
 	
 	public int 
 	getNbPieces() 
-	{
-		return nbPieces;
+	{		
+		if ( torrent == null ){
+			
+			return(0);
+		}
+		
+		return( torrent.getNumberOfPieces());
 	}
 
 
-  public int getTrackerTime() {
-    if (tracker_client != null)
-      return tracker_client.getTimeUntilNextUpdate();
-
-    // no tracker, return scrape
-    if (torrent != null && globalManager != null) {
-      TRTrackerScraperResponse response = getTrackerScrapeResponse();
-      if (response != null) {
-        if (response.getStatus() == TRTrackerScraperResponse.ST_SCRAPING)
-          return -1;
-        return (int)((response.getNextScrapeStartTime() - SystemTime.getCurrentTime()) / 1000);
-      }
-    }
-	
-    return TRTrackerAnnouncer.REFRESH_MINIMUM_SECS;
-  }
+	public int 
+	getTrackerTime() 
+	{
+		TRTrackerAnnouncer tc = getTrackerClient();
+		
+		if ( tc != null){
+			
+			return( tc.getTimeUntilNextUpdate());
+		}
+		
+			// no tracker, return scrape
+			
+		if ( torrent != null && globalManager != null) {
+				
+			TRTrackerScraperResponse response = getTrackerScrapeResponse();
+				
+			if (response != null) {
+					
+				if (response.getStatus() == TRTrackerScraperResponse.ST_SCRAPING){
+          
+					return( -1 );
+				}
+					
+				return (int)((response.getNextScrapeStartTime() - SystemTime.getCurrentTime()) / 1000);
+			}
+		}
+		
+		return( TRTrackerAnnouncer.REFRESH_MINIMUM_SECS );
+	}
 
  
   	public TOTorrent
@@ -1114,133 +1158,137 @@ DownloadManagerImpl
 		torrentFileName = string;
 	}
 
-  public TRTrackerScraperResponse 
-  getTrackerScrapeResponse() 
-  {
-    TRTrackerScraperResponse r = null;
+	public TRTrackerScraperResponse 
+	getTrackerScrapeResponse() 
+	{
+		TRTrackerScraperResponse r = null;
     
-    if (globalManager != null) {
+		if ( globalManager != null) {
     	
-    	TRTrackerScraper	scraper = globalManager.getTrackerScraper();
+			TRTrackerScraper	scraper = globalManager.getTrackerScraper();
     	
-    	if ( tracker_client != null ){
+			TRTrackerAnnouncer tc = getTrackerClient();
+			
+			if ( tc != null ){
       	
-    		r = scraper.scrape(tracker_client);
-    	}
+				r = scraper.scrape( tc );
+			}
       
-	    if ( r == null && torrent != null){
+			if ( r == null && torrent != null){
 	      	
-	    		// torrent not running. For multi-tracker torrents we need to behave sensibly
-	      		// here
+					// torrent not running. For multi-tracker torrents we need to behave sensibly
+	      			// here
 	      	
-	    	TRTrackerScraperResponse	non_null_response = null;
+				TRTrackerScraperResponse	non_null_response = null;
 	    	
-	    	TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+				TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
 	    	
-	    	if ( sets.length == 0 ){
+				if ( sets.length == 0 ){
 	    	
-	    		r = scraper.scrape(torrent);
+					r = scraper.scrape(torrent);
 	    		
-	    	}else{
+				}else{
 	    			    			
-	    			// we use a fixed seed so that subsequent scrapes will randomise
-	    			// in the same order, as required by the spec. Note that if the
-	    			// torrent's announce sets are edited this all works fine (if we
-	    			// cached the randomised URL set this wouldn't work)
+						// we use a fixed seed so that subsequent scrapes will randomise
+	    				// in the same order, as required by the spec. Note that if the
+	    				// torrent's announce sets are edited this all works fine (if we
+	    				// cached the randomised URL set this wouldn't work)
 	    		
-	    		Random	scrape_random = new Random(scrape_random_seed);
+					Random	scrape_random = new Random(scrape_random_seed);
 	    		
-	    		for (int i=0;r==null && i<sets.length;i++){
+					for (int i=0;r==null && i<sets.length;i++){
 	    			
-	    			TOTorrentAnnounceURLSet	set = sets[i];
+						TOTorrentAnnounceURLSet	set = sets[i];
 	    			
-	    			URL[]	urls = set.getAnnounceURLs();
+						URL[]	urls = set.getAnnounceURLs();
 	    			
-	    			List	rand_urls = new ArrayList();
+						List	rand_urls = new ArrayList();
 	    							 	
-				 	for (int j=0;j<urls.length;j++ ){
+						for (int j=0;j<urls.length;j++ ){
 				  		
-						URL url = urls[j];
+							URL url = urls[j];
 						            									
-						int pos = (int)(scrape_random.nextDouble() *  (rand_urls.size()+1));
+							int pos = (int)(scrape_random.nextDouble() *  (rand_urls.size()+1));
 						
-						rand_urls.add(pos,url);
-				  	}
+							rand_urls.add(pos,url);
+						}
 				 	
-				 	for (int j=0;r==null && j<rand_urls.size();j++){
+						for (int j=0;r==null && j<rand_urls.size();j++){
 				 		
-				 		r = scraper.scrape(torrent, (URL)rand_urls.get(j));
+							r = scraper.scrape(torrent, (URL)rand_urls.get(j));
 				 		
-				 		if ( r!= null ){
+							if ( r!= null ){
 				 			
-				 				// treat bad scrapes as missing so we go on to 
-				 				// the next tracker
+									// treat bad scrapes as missing so we go on to 
+				 					// the next tracker
 				 			
-				 			if ( (!r.isValid()) || r.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
+								if ( (!r.isValid()) || r.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
 				 				
-				 				if ( non_null_response == null ){
+									if ( non_null_response == null ){
 				 					
-				 					non_null_response	= r;
-				 				}
+										non_null_response	= r;
+									}
 				 				
-				 				r	= null;
-				 			}
-				 		}
-				 	}
-	    		}
+									r	= null;
+								}
+							}
+						}
+					}
 	    		
-	    		if ( r == null ){
+					if ( r == null ){
 	    			
-	    			r = non_null_response;
-	    		}
-	    	}
-	    }
-    }
-    return r;
-  }
+						r = non_null_response;
+					}
+				}
+			}
+		}
+		
+		return( r );
+	}
 
   
  
   
-  public void 
-  checkTracker() 
-  {
-  	checkTracker(false);
-  }
+	public void 
+	checkTracker() 
+	{
+		checkTracker(false);
+	}
   
-  protected void
-  checkTracker(
-  	boolean	force )
-  {
-	if( tracker_client != null)
-	tracker_client.update( force );
-  }
+	protected void
+	checkTracker(
+			boolean	force )
+	{
+		TRTrackerAnnouncer tc = getTrackerClient();
+		
+		if ( tc != null)
+	
+			tc.update( force );
+	}
 
-  /**
-   * @return
-   */
-  public String 
-  getTorrentComment() {
-	return torrent_comment;
-  }
+	public String 
+	getTorrentComment() 
+	{
+		return torrent_comment;
+	}	
   
-  public String 
-  getTorrentCreatedBy() {
-  	return torrent_created_by;
-  }
+	public String 
+	getTorrentCreatedBy() 
+	{
+		return torrent_created_by;
+	}
   
-  public long 
-  getTorrentCreationDate() {
-  	if (torrent==null){
-  		return(0);
-  	}
+	public long 
+	getTorrentCreationDate() 
+	{
+		if (torrent==null){
+			return(0);
+		}
   	
-  	return( torrent.getCreationDate());
-  }
+		return( torrent.getCreationDate());
+	}
   
-  /**
-   * @return
-   */
+ 
   public int getIndex() {
 	if(globalManager != null)
 	  return globalManager.getIndexOf(this);
@@ -1338,10 +1386,11 @@ DownloadManagerImpl
 	}
 	
 	protected void
-	informStateChanged(
-		int		new_state,
-		boolean	new_force_start )
+	informStateChanged()
 	{
+		int		new_state 		= controller.getState();
+		boolean new_force_start	= controller.isForceStart();
+		
 		try{
 			listeners_mon.enter();
 			
@@ -1377,131 +1426,136 @@ DownloadManagerImpl
 	
 	protected void
 	informPositionChanged(
-		int iOldPosition )
+		int new_position )
 	{
 		try{
 			listeners_mon.enter();
-
-			listeners.dispatch( LDT_POSITIONCHANGED, new Integer(iOldPosition));
 			
+			if ( new_position != position ){
+				
+				position = new_position;
+				
+				listeners.dispatch( LDT_POSITIONCHANGED, new Integer( position ));
+			}
 		}finally{
 			
 			listeners_mon.exit();
 		}
 	}
 
-  public void
-  addPeerListener(
-	  DownloadManagerPeerListener	listener )
-  {
-  	try{
-  		peer_listeners_mon.enter();
+	public void
+	addPeerListener(
+		DownloadManagerPeerListener	listener )
+	{
+		try{
+			peer_listeners_mon.enter();
+			
+			peer_listeners.addListener( listener );
   		
-  		peer_listeners.addListener( listener );
-  		
-		for (int i=0;i<current_peers.size();i++){
+			for (int i=0;i<current_peers.size();i++){
   			
-			peer_listeners.dispatch( listener, LDT_PE_PEER_ADDED, current_peers.get(i));
-		}
+				peer_listeners.dispatch( listener, LDT_PE_PEER_ADDED, current_peers.get(i));
+			}
 		
-		for (int i=0;i<current_pieces.size();i++){
+			for (int i=0;i<current_pieces.size();i++){
   			
-			peer_listeners.dispatch( listener, LDT_PE_PIECE_ADDED, current_pieces.get(i));
-		}
+				peer_listeners.dispatch( listener, LDT_PE_PIECE_ADDED, current_pieces.get(i));
+			}
 		
-		PEPeerManager	temp = controller.getPeerManager();
+			PEPeerManager	temp = controller.getPeerManager();
 		
-		if ( temp != null ){
+			if ( temp != null ){
 	
-			peer_listeners.dispatch( listener, LDT_PE_PM_ADDED, temp );
+				peer_listeners.dispatch( listener, LDT_PE_PM_ADDED, temp );
+			}
+  	
+		}finally{
+  		
+			peer_listeners_mon.exit();
 		}
-  	}finally{
-  		
-  		peer_listeners_mon.exit();
-  	}
-  }
-		
-  public void
-  removePeerListener(
-	  DownloadManagerPeerListener	listener )
-  {
-  	peer_listeners.removeListener( listener );
-  }
- 
- 
-	
-  public void
-  addPeer(
-	  PEPeer 		peer )
-  {
-  	try{
-  		peer_listeners_mon.enter();
- 	
-  		current_peers.add( peer );
-  		
-  		peer_listeners.dispatch( LDT_PE_PEER_ADDED, peer );
-  		
-	}finally{
-		
-		peer_listeners_mon.exit();
 	}
-  }
 		
-  public void
-  removePeer(
-	  PEPeer		peer )
-  {
-    try{
-    	peer_listeners_mon.enter();
-    	
-    	current_peers.remove( peer );
-    	
-    	peer_listeners.dispatch( LDT_PE_PEER_REMOVED, peer );
-    	
-    }finally{
-    	
-    	peer_listeners_mon.exit();
-    }
- }
+	public void
+	removePeerListener(
+		DownloadManagerPeerListener	listener )
+	{
+		peer_listeners.removeListener( listener );
+	}	
+ 
+ 
+	
+	public void
+	addPeer(
+		PEPeer 		peer )
+	{
+		try{
+			peer_listeners_mon.enter();
+ 	
+			current_peers.add( peer );
+  		
+			peer_listeners.dispatch( LDT_PE_PEER_ADDED, peer );
+  		
+		}finally{
 		
-  public void
-  addPiece(
-	  PEPiece 	piece )
-  {
-  	try{
-  		peer_listeners_mon.enter();
-  		
-  		current_pieces.add( piece );
-  		
-  		peer_listeners.dispatch( LDT_PE_PIECE_ADDED, piece );
-  		
-  	}finally{
-  		
-  		peer_listeners_mon.exit();
-  	}
- }
+			peer_listeners_mon.exit();
+		}
+	}
 		
-  public void
-  removePiece(
-	  PEPiece		piece )
-  {
-  	try{
-  		peer_listeners_mon.enter();
+	public void
+	removePeer(
+		PEPeer		peer )
+	{
+		try{
+			peer_listeners_mon.enter();
+    	
+			current_peers.remove( peer );
+    	
+			peer_listeners.dispatch( LDT_PE_PEER_REMOVED, peer );
+    	
+		}finally{
+    	
+			peer_listeners_mon.exit();
+		}
+	}
+		
+	public void
+	addPiece(
+		PEPiece 	piece )
+	{
+		try{
+			peer_listeners_mon.enter();
   		
-  		current_pieces.remove( piece );
+			current_pieces.add( piece );
   		
-  		peer_listeners.dispatch( LDT_PE_PIECE_REMOVED, piece );
+			peer_listeners.dispatch( LDT_PE_PIECE_ADDED, piece );
   		
-  	}finally{
+		}finally{
   		
-  		peer_listeners_mon.exit();
-  	}
- }
+			peer_listeners_mon.exit();
+		}
+	}
+		
+	public void
+	removePiece(
+		PEPiece		piece )
+	{
+		try{
+			peer_listeners_mon.enter();
+  		
+			current_pieces.remove( piece );
+  		
+			peer_listeners.dispatch( LDT_PE_PIECE_REMOVED, piece );
+  		
+		}finally{
+  		
+			peer_listeners_mon.exit();
+		}
+	}
 
-  protected void
-  informPeerManagerAdded(
+  	protected void
+  	informPeerManagerAdded(
 		PEPeerManager	pm )
-  {
+  	{
 		try{
 			peer_listeners_mon.enter();
 			
@@ -1511,39 +1565,54 @@ DownloadManagerImpl
 			peer_listeners_mon.exit();
 		}
 	
-		tracker_client.update( true );
-  }
+		TRTrackerAnnouncer tc = getTrackerClient();
+		
+		if ( tc != null ){
+			
+			tc.update( true );
+		}
+  	}
   
-  protected void
-  informPeerManagerRemoved(
+  	protected void
+  	informPeerManagerRemoved(
 		PEPeerManager	pm )	// can be null if controller was stopped....
-  {
-	  if ( pm != null ){
-		  try{
-			  peer_listeners_mon.enter();
+  	{
+  		if ( pm != null ){
+		  
+  			try{
+  				peer_listeners_mon.enter();
 			  
-			  peer_listeners.dispatch( LDT_PE_PM_REMOVED, pm );
+  				peer_listeners.dispatch( LDT_PE_PM_REMOVED, pm );
 			  	
-		  }finally{
+  			}finally{
 			  	
-		  	peer_listeners_mon.exit();
-		  }
-	  }
+  				peer_listeners_mon.exit();
+  			}
+  		}
 		
 			// kill the tracker client after the peer manager so that the
 			// peer manager's "stopped" event has a chance to get through
 		
-		if ( tracker_client != null ){
+  		try{
+  			this_mon.enter();
+  		
+  			TRTrackerAnnouncer tc = getTrackerClient();
+	  
+  			if ( tc != null ){
 			
-			tracker_client.removeListener( tracker_client_listener );
+  				tc.removeListener( tracker_client_listener );
 		
-			download_manager_state.setTrackerResponseCache(
-						tracker_client.getTrackerResponseCache());
+  				download_manager_state.setTrackerResponseCache(
+						tc.getTrackerResponseCache());
 				
-			tracker_client.destroy();
+  				tc.destroy();
 				
-			tracker_client = null;
-		}	
+  				tc = null;
+  			}
+		}finally{
+			
+			this_mon.exit();
+		}
   	}
   
 	public DownloadManagerStats
@@ -1552,37 +1621,38 @@ DownloadManagerImpl
 		return( stats );
 	}
 
-  public boolean 
-  isForceStart() 
-  {
-    return( controller.isForceStart());
-  }
+	public boolean 
+	isForceStart() 
+	{
+		return( controller.isForceStart());
+	}	
 
-  public void 
-  setForceStart(
-	 boolean forceStart) 
-  {
-	  controller.setForceStart( forceStart );
-  }
+	public void 
+	setForceStart(
+			boolean forceStart) 
+	{
+		controller.setForceStart( forceStart );
+	}
 
-  /**
-   * Is called when a download is finished.
-   * Activates alerts for the user.
-   *
-   * @author Rene Leonhardt
-   */
-  public void 
-  downloadEnded()
-  {
-    if (isForceStart()){
-    	
-      setForceStart(false);
-    }
-
-    setOnlySeeding(true);
+	  /**
+	   * Is called when a download is finished.
+	   * Activates alerts for the user.
+	   *
+	   * @author Rene Leonhardt
+	   */
 	
-    informDownloadEnded();
-  }
+	public void 
+	downloadEnded()
+	{
+		if (isForceStart()){
+    	
+			setForceStart(false);
+		}
+
+		setOnlySeeding(true);
+	
+		informDownloadEnded();
+	}
 
  
 	public void
@@ -1599,105 +1669,107 @@ DownloadManagerImpl
 		controller.removeDiskListener( listener );
 	}
   
-  public int 
-  getHealthStatus() 
-  {
-	  int	state = getState();
+	public int 
+	getHealthStatus() 
+	{
+		int	state = getState();
 	  
-	  PEPeerManager	peerManager	 = controller.getPeerManager();
+		PEPeerManager	peerManager	 = controller.getPeerManager();
 	  
-    if(peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
-      int nbSeeds = getNbSeeds();
-      int nbPeers = getNbPeers();
-      int nbRemotes = peerManager.getNbRemoteConnections();
-      int trackerStatus = tracker_client.getLastResponse().getStatus();
-      boolean isSeed = (state == STATE_SEEDING);
+		TRTrackerAnnouncer tc = getTrackerClient();
+	  
+		if( tc != null && peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
+		  
+			int nbSeeds = getNbSeeds();
+			int nbPeers = getNbPeers();
+			int nbRemotes = peerManager.getNbRemoteConnections();
+			int trackerStatus = tc.getLastResponse().getStatus();
+			boolean isSeed = (state == STATE_SEEDING);
       
-      if( (nbSeeds + nbPeers) == 0) {
+			if( (nbSeeds + nbPeers) == 0) {
     	  
-        if( isSeed ){
+				if( isSeed ){
         	
-          return WEALTH_NO_TRACKER;	// not connected to any peer and seeding
-        }
+					return WEALTH_NO_TRACKER;	// not connected to any peer and seeding
+				}
         
-        return WEALTH_KO;        // not connected to any peer and downloading
-      }
+				return WEALTH_KO;        // not connected to any peer and downloading
+			}
       
-      	// read the spec for this!!!!
-      	// no_tracker =
-      	//	1) if downloading -> no tracker
-      	//	2) if seeding -> no connections		(dealt with above)
+      			// read the spec for this!!!!
+      			// no_tracker =
+      			//	1) if downloading -> no tracker
+      			//	2) if seeding -> no connections		(dealt with above)
       
-      if ( !isSeed ){
+			if ( !isSeed ){
     	  
-	      if( 	trackerStatus == TRTrackerAnnouncerResponse.ST_OFFLINE || 
-	    		trackerStatus == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR){
+				if( 	trackerStatus == TRTrackerAnnouncerResponse.ST_OFFLINE || 
+						trackerStatus == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR){
 	    	  
-	        return WEALTH_NO_TRACKER;
-	      }
-      }
+					return WEALTH_NO_TRACKER;
+				}
+			}
       
-      if( nbRemotes == 0 ){
+			if( nbRemotes == 0 ){
        
-    	  return WEALTH_NO_REMOTE;
-      }
+				return WEALTH_NO_REMOTE;
+			}
       
-      return WEALTH_OK;
+			return WEALTH_OK;
       
-    } else {
+		}else{
     	
-      return WEALTH_STOPPED;
-    }
-  }
+			return WEALTH_STOPPED;
+		}
+	}
   
-  public int getPosition() {
-  	return position;
-  }
+	public int 
+	getPosition() 
+	{
+		return position;
+	}
 
-  public void setPosition(int newPosition) {
-    if (newPosition != position) {
-//  	  LGLogger.log(getName() + "] setPosition from "+position+" to "+newPosition);
-//    	Debug.outStackTrace();
-      int oldPosition = position;
-    	position = newPosition;
-    	informPositionChanged(oldPosition);
-    }
-  }
+	public void 
+	setPosition(
+		int new_position ) 
+	{
+		informPositionChanged( new_position );
+	}
 
-  public void
-  addTrackerListener(
-  	DownloadManagerTrackerListener	listener )
-  {  		
-  	tracker_listeners.addListener( listener );
-  }
+	public void
+	addTrackerListener(
+		DownloadManagerTrackerListener	listener )
+	{  		
+		tracker_listeners.addListener( listener );
+	}
   
-  public void
-  removeTrackerListener(
-  	DownloadManagerTrackerListener	listener )
-  {
+	public void
+	removeTrackerListener(
+			DownloadManagerTrackerListener	listener )
+	{
   		tracker_listeners.removeListener( listener );
-  }
+	}
   
-  protected void 
-  deleteDataFiles() 
-  {
-  	DiskManagerFactory.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
-  }
+	protected void 
+	deleteDataFiles() 
+	{
+		DiskManagerFactory.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
+	}
   
-  protected void 
-  deleteTorrentFile() 
-  {
-  	if ( torrentFileName != null ){
+	protected void 
+	deleteTorrentFile() 
+	{
+		if ( torrentFileName != null ){
   		
-        TorrentUtils.delete( new File(torrentFileName));
-    }
-  }
+			TorrentUtils.delete( new File(torrentFileName));
+		}
+	}
   
-  public DownloadManagerState 
-  getDownloadState()
-  {
-  	return( download_manager_state );
-  }
+	public DownloadManagerState 
+	getDownloadState()
+	{	
+		return( download_manager_state );
+	}
   
   
   /** To retreive arbitrary objects against a download. */
