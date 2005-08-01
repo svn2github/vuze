@@ -43,6 +43,11 @@ public class SystemProperties {
 	{
 		if ( name != null && name.trim().length() > 0 ){
 			
+			if ( user_path != null ){
+				
+				System.out.println( "**** SystemProperties::setApplicationName called too late! ****" );
+			}
+			
 			APPLICATION_NAME			= name.trim();
 		}
 	}

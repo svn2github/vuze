@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.pluginsimpl.*;
+import org.gudy.azureus2.pluginsimpl.local.launch.PluginLauncherImpl;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
@@ -171,8 +172,7 @@ PluginInitializer
   private static AEMonitor			class_mon	= new AEMonitor( "PluginInitializer");
 
   private static List		registration_queue 	= new ArrayList();
-  private static Map		preloaded_plugins	= new HashMap();
-  
+   
   private AzureusCoreListener listener;
   
   private AzureusCore		azureus_core;
@@ -262,132 +262,7 @@ PluginInitializer
 	}  	
   }
   
-  	public static LaunchablePlugin[]
-  	findLaunchablePlugins(
-  		LoggerChannelListener	listener )
-  	{
-  			// CAREFUL - this is called BEFORE any AZ initialisation has been performed and must
-  			// therefore NOT use anything that relies on this (such as logging, debug....)
-  		
-  		List	res = new ArrayList();
-  	
-	    File	app_dir	 = FileUtil.getApplicationFile("plugins");
-	    
-	    if ( !( app_dir.exists()) && app_dir.isDirectory()){
-	    	
-	    	listener.messageLogged( LoggerChannel.LT_ERROR, "Application dir '" + app_dir + "' not found" );
-	    	
-	    	return( new LaunchablePlugin[0] );
-	    }
-	    
-	    File[] plugins = app_dir.listFiles();
-
-	    if ( plugins == null || plugins.length == 0 ){
-	    	
-	    	listener.messageLogged( LoggerChannel.LT_ERROR, "Application dir '" + app_dir + "' empty" );
-
-	    	return( new LaunchablePlugin[0] );
-	    }
-	    
-	    for ( int i=0;i<plugins.length;i++ ) {
-	        
-	    	File	plugin_dir = plugins[i];
-	    	
-    	    if( !plugin_dir.isDirectory()){
-    	    	
-    	    	continue;
-    	    }
-    	    
-		    try{
-		    	    	    
-		      	ClassLoader classLoader = PluginInitializer.class.getClassLoader();
-		    	    		    	    
-		    	File[] contents = plugin_dir.listFiles();
-		    	    
-	    	    if ( contents == null || contents.length == 0){
-	    	    	
-	    	    	continue;
-	    	    }
-		    	    		    	    		    	    	
-		    	    // take only the highest version numbers of jars that look versioned
-		    	    
-	    	    String[]	plugin_version 	= {null};
-	    	    String[]	plugin_id 		= {null};
-		    	    
-	    	    contents	= getHighestJarVersions( contents, plugin_version, plugin_id );
-		    	    
-	    	    for( int j = 0 ; j < contents.length ; j++){
-		    	    			    	    	
-		    	    classLoader = addFileToClassPath(classLoader, contents[j]);
-	    	    }
-		    	        		    	    
-	    	    Properties props = new Properties();
-	    	    
-	    	    File	properties_file = new File( plugin_dir, "plugin.properties");
-		    	 
-	    	    	// if properties file exists on its own then override any properties file
-	    	    	// potentially held within a jar	    	      	
-		    	   
-    	    	if ( properties_file.exists()){
-	    	      	
-    	    		FileInputStream	fis = null;
-	    	      		
-    	    		try{
-    	    			fis = new FileInputStream( properties_file );
-	    	      		
-    	    			props.load( fis );
-	    	      			
-	    	      	}finally{
-	    	      			
-	    	      		if ( fis != null ){
-	    	      				
-	    	      			fis.close();
-	    	      		}
-	    	      	}  		
-    	    	}else{
-	    	      		
-	    	    	if ( classLoader instanceof URLClassLoader ){
-	    	      			
-	    	    		URLClassLoader	current = (URLClassLoader)classLoader;
-	    	      		    			
-	    	      		URL url = current.findResource("plugin.properties");
-	    	      		
-	    	      		if ( url != null ){
-	    	      				
-	    	      			props.load(url.openStream());
-	    	      		}
-	    	      	}
-    	    	}
-
-		    	String plugin_class = (String)props.get( "plugin.class");
-		    	      	    	      		    	      
-			    if ( plugin_class == null ){
-			    		
-			    	continue;
-			    }
-		    	    	    		      
-		    	Class c = classLoader.loadClass(plugin_class);
-		    			      
-		    	Plugin	    plugin	= (Plugin) c.newInstance();
-		   
-		    	if ( plugin instanceof LaunchablePlugin ){
-		    		
-		    		preloaded_plugins.put( plugin_class, plugin );
-		    		
-		    		res.add( plugin );
-		    	}
-		    }catch( Throwable e ){
-		    	
-		    	listener.messageLogged( "Load of plugin in '" + plugin_dir + "' fails", e );
-		    }
-	    }
-	    
-	    LaunchablePlugin[]	x = new LaunchablePlugin[res.size()];
-	    
-	    res.toArray( x );
-	    
-	    return( x );
-  	}
+ 
   
   protected 
   PluginInitializer(
@@ -650,7 +525,7 @@ PluginInitializer
     String[]	plugin_version = {null};
     String[]	plugin_id = {null};
     
-    pluginContents	= getHighestJarVersions( pluginContents, plugin_version, plugin_id );
+    pluginContents	= PluginLauncherImpl.getHighestJarVersions( pluginContents, plugin_version, plugin_id );
     
     for( int i = 0 ; i < pluginContents.length ; i++){
     	
@@ -674,7 +549,7 @@ PluginInitializer
     		}
     	}
     	
-        classLoader = addFileToClassPath(classLoader, jar_file);
+        classLoader = PluginLauncherImpl.addFileToClassPath(classLoader, jar_file);
     }
         
     String plugin_class_string = null;
@@ -859,7 +734,7 @@ PluginInitializer
 	      
 	      String pid = plugin_id[0]==null?directory.getName():plugin_id[0];
 	      
-	      Plugin plugin = (Plugin)preloaded_plugins.get( plugin_class );
+	      Plugin plugin = PluginLauncherImpl.getPreloadedPlugin( plugin_class );
 	      
 	      if ( plugin == null ){
 	    	  
@@ -1112,52 +987,6 @@ PluginInitializer
   			throw( last_load_failure );
   		}
   	}
-
-  private static ClassLoader 
-  addFileToClassPath(
-  	ClassLoader		classLoader,
-	File 			f) 
-  {
-    if ( 	f.exists() &&
-    		(!f.isDirectory())&&
-    		f.getName().endsWith(".jar")){
-    
-    	try {
-    			
-    			// URL classloader doesn't seem to delegate to parent classloader properly
-    			// so if you get a chain of them then it fails to find things. Here we
-    			// make sure that all of our added URLs end up within a single URLClassloader
-    			// with its parent being the one that loaded this class itself
-    		
-    		if ( classLoader instanceof URLClassLoader ){
-    			
-    			URL[]	old = ((URLClassLoader)classLoader).getURLs();
-  
-    			URL[]	new_urls = new URL[old.length+1];
-    			
-    			System.arraycopy( old, 0, new_urls, 0, old.length );
-    			
-    			new_urls[new_urls.length-1]= f.toURL();
-    			
-    			classLoader = new URLClassLoader(
-    								new_urls,
-									classLoader==PluginInitializer.class.getClassLoader()?
-											classLoader:
-											classLoader.getParent());
-    		}else{
-    			  		
-    			classLoader = new URLClassLoader(new URL[]{f.toURL()},classLoader);
-    		}
-    	}catch( Exception e){
-    		
-    			// don't use Debug/lglogger here as we can be called before AZ has been initialised
-    		
-    		e.printStackTrace();
-    	}
-   	}
-    
-    return( classLoader );
-  }
   
   protected void 
   initializePluginFromClass(
@@ -1571,109 +1400,7 @@ PluginInitializer
 		}
 	}
 	
-  	protected static File[]
-	getHighestJarVersions(
-		File[]		files,
-		String[]	version_out ,
-		String[]	id_out )	// currently the version of last versioned jar found...
-	{
-  			// WARNING!!!!
-  			// don't use Debug/lglogger here as we can be called before AZ has been initialised
-  		
-  		List	res 		= new ArrayList();
-  		Map		version_map	= new HashMap();
-  		
-  		for (int i=0;i<files.length;i++){
-  			
-  			File	f = files[i];
-  			
-  			String	name = f.getName().toLowerCase();
-  			
-  			if ( name.endsWith(".jar")){
-  				
-  				int cvs_pos = name.lastIndexOf("_cvs");
-  				
-  				int sep_pos;
-  				
-  				if (cvs_pos <= 0)
-  					sep_pos = name.lastIndexOf("_");
-  				else
-  					sep_pos = name.lastIndexOf("_", cvs_pos - 1);
-   				
-  				if ( 	sep_pos == -1 || 
-  						sep_pos == name.length()-1 ||
-						!Character.isDigit(name.charAt(sep_pos+1))){
-  					
-  						// not a versioned jar
-  					
-  					res.add( f );
-  					
-  				}else{
-  					
-  					String	prefix = name.substring(0,sep_pos);
-					
-					String	version = name.substring(sep_pos+1, (cvs_pos <= 0) ? name.length()-4 : cvs_pos);
-					
-					String	prev_version = (String)version_map.get(prefix);
-					
-					if ( prev_version == null ){
-						
-						version_map.put( prefix, version );
-						
-					}else{
-					
-						if ( PluginUtils.comparePluginVersions( prev_version, version ) < 0 ){
-														
-							version_map.put( prefix, version );
-						}							
-					}
-  				}
-   			}
-  		}
-  		
-  			// If any of the jars are versioned then the assumption is that all of them are
-  			// For migration purposes (i.e. on the first real introduction of the update versioning
-  			// system) we drop all non-versioned jars from the set
-  		
-  		if ( version_map.size() > 0 ){
-  			
-  			res.clear();
-  		}
-  		
-  		Iterator	it = version_map.keySet().iterator();
-  		
-  		while(it.hasNext()){
-  			
-  			String	prefix 	= (String)it.next();
-  			String	version	= (String)version_map.get(prefix);
-  			
-  			String	target = prefix + "_" + version;
-  			
-  			version_out[0] 	= version;
-  			id_out[0]		= prefix;
-  			
-  			for (int i=0;i<files.length;i++){
-  				
-  				File	f = files[i];
-  				
-  				String	lc_name = f.getName().toLowerCase();
-  				
-  				if ( lc_name.equals( target + ".jar" ) ||
-  					 lc_name.equals( target + "_cvs.jar" )){
-  					  					
-  					res.add( f );
-  					
-  					break;
-  				}
-  			}
-  		}
-  		
-  		File[]	res_array = new File[res.size()];
-  		
-  		res.toArray( res_array );
-  		
-  		return( res_array );
-  	}
+
   	
   	protected static class
 	loadFailedPlugin
