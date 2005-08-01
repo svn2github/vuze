@@ -1354,9 +1354,7 @@ DownloadManagerImpl
 			listeners_mon.enter();
 
 			listeners.addListener(listener);
-		
-				// pick up the current state
-		
+				
 			listener.stateChanged( this, getState());
 
 				// we DON'T dispatch a downloadComplete event here as this event is used to mark the
@@ -1386,12 +1384,13 @@ DownloadManagerImpl
 	protected void
 	informStateChanged()
 	{
-		int		new_state 		= controller.getState();
-		boolean new_force_start	= controller.isForceStart();
-		
+			// whenever the state changes we'll get called 
 		try{
 			listeners_mon.enter();
 			
+			int		new_state 		= controller.getState();
+			boolean new_force_start	= controller.isForceStart();
+
 			if ( 	new_state != last_informed_state ||
 					new_force_start != latest_informed_force_start ){
 				

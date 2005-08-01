@@ -99,8 +99,12 @@ DownloadManagerController
 	private DownloadManagerImpl			download_manager;
 	private DownloadManagerStatsImpl	stats;
 	
-	private int 		state_set_by_method = DownloadManager.STATE_START_OF_DAY;
-	private boolean 	force_start;
+		// these are volatile as we want to ensure that if a state is read it is always the
+		// most up to date value available (as we don't synchronize state read - see below
+		// for comments)
+	
+	private volatile int		state_set_by_method = DownloadManager.STATE_START_OF_DAY;
+	private volatile boolean 	force_start;
 
 	private DiskManager 			disk_manager;
 	private DiskManagerFileInfo[]	skeleton_files;
@@ -662,41 +666,39 @@ DownloadManagerController
   			return( state_set_by_method );
   		}
 	
-  		try{
-  			this_mon.enter();
-  		
-	  		if ( disk_manager == null){
+  			// we don't want to synchronize here as there are potential deadlock problems
+  			// regarding the DownloadManager::addListener call invoking this method while
+  			// holding the listeners monitor.
+  			// 
+  		DiskManager	dm = disk_manager;
+   		
+	  	if ( dm == null){
 			
-	  			return DownloadManager.STATE_INITIALIZED;
-	  		}
+	  		return DownloadManager.STATE_INITIALIZED;
+	  	}
 		
-	  		int diskManagerState = disk_manager.getState();
-	
-			if (diskManagerState == DiskManager.INITIALIZING){
+  		int diskManagerState = dm.getState();
+
+		if (diskManagerState == DiskManager.INITIALIZING){
+		
+			return DownloadManager.STATE_INITIALIZED;
 			
-				return DownloadManager.STATE_INITIALIZED;
-				
-			}else if (diskManagerState == DiskManager.ALLOCATING){
-			  
-				return DownloadManager.STATE_ALLOCATING;
-				
-			}else if (diskManagerState == DiskManager.CHECKING){
-			  
-				return DownloadManager.STATE_CHECKING;
-				
-			}else if (diskManagerState == DiskManager.READY){
-			  
-				return DownloadManager.STATE_READY;
-				
-			}else if (diskManagerState == DiskManager.FAULTY){
-			  
-				return DownloadManager.STATE_ERROR;
-			}
+		}else if (diskManagerState == DiskManager.ALLOCATING){
+		  
+			return DownloadManager.STATE_ALLOCATING;
 			
-  		}finally{
-  			
-  			this_mon.exit();
-  		}
+		}else if (diskManagerState == DiskManager.CHECKING){
+		  
+			return DownloadManager.STATE_CHECKING;
+			
+		}else if (diskManagerState == DiskManager.READY){
+		  
+			return DownloadManager.STATE_READY;
+			
+		}else if (diskManagerState == DiskManager.FAULTY){
+		  
+			return DownloadManager.STATE_ERROR;
+		}
   		
 		return DownloadManager.STATE_ERROR;
   	}
@@ -799,7 +801,7 @@ DownloadManagerController
   	public boolean 
   	isForceStart() 
   	{
-	    return force_start;
+	    return( force_start );
 	}
 
 	public void 
