@@ -34,8 +34,8 @@ public class SystemProperties {
   private static final 	String WIN_DEFAULT = "Application Data";
   private static final 	String OSX_DEFAULT = "Library" + SEP + "Application Support";
   
-  private static String user_path = null;
-  
+  	private static String user_path;
+  	private static String app_path;
   
 	public static void
 	setApplicationName(
@@ -43,12 +43,17 @@ public class SystemProperties {
 	{
 		if ( name != null && name.trim().length() > 0 ){
 			
+			name	= name.trim();
+			
 			if ( user_path != null ){
 				
-				System.out.println( "**** SystemProperties::setApplicationName called too late! ****" );
+				if ( !name.equals( APPLICATION_NAME )){
+					
+					System.out.println( "**** SystemProperties::setApplicationName called too late! ****" );
+				}
 			}
 			
-			APPLICATION_NAME			= name.trim();
+			APPLICATION_NAME			= name;
 		}
 	}
 	
@@ -188,12 +193,24 @@ public class SystemProperties {
    * Returns the full path to the directory where Azureus is installed
    * and running from.
    */
-  public static String getApplicationPath() {
-    String sDir = System.getProperty("azureus.install.path", System.getProperty("user.dir"));
-    if (sDir.endsWith(SEP))
-      return sDir;
+  public static String 
+  getApplicationPath() 
+  {
+	  if ( app_path != null ){
+		  
+		  return( app_path );
+	  }
+	  
+	  String temp_app_path = System.getProperty("azureus.install.path", System.getProperty("user.dir"));
+    
+	  if ( !temp_app_path.endsWith(SEP)){
+		  
+		  temp_app_path += SEP;
+	  }
 
-    return sDir + SEP;
+	  app_path = temp_app_path;
+	  
+	  return( app_path );
   }
   
   
