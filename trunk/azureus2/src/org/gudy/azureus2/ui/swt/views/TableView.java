@@ -929,47 +929,43 @@ public class TableView
 	        	return;
 	          }
 	        	
-	          TableRowImpl row = new TableRowImpl(TableView.this, dataSource, 
-	                                              bSkipFirstColumn);
-	
-	          if (ptIconSize != null) {
-	            // set row height by setting image
-	            Image image = new Image(display, ptIconSize.x, ptIconSize.y);
-	            row.setImage(0, image);
-	            row.setImage(0, null);
-	            image.dispose();
-	          } else if (iCellHeight > 0){
-	            row.setHeight(iCellHeight);
-	          }
-			  
-			  boolean	found = true;
+	          TableRowImpl row = null;
 			  
 	          try{
 				  objectToSortableItem_mon.enter();
 	            
 		          if (objectToSortableItem.containsKey(dataSource)) {
 
+			          row = new TableRowImpl(TableView.this, dataSource, bSkipFirstColumn);
+
 					  objectToSortableItem.put(dataSource, row);
 					  
-		          }else{
-					  
-					  found	= false;
 		          }  
 	          }finally{
 	            	
 				  objectToSortableItem_mon.exit();
 	          }
 			  
-			  if ( found ){
+			  if ( row != null  ){
 				  
-	            TableCellCore cell = row.getTableCellCore(sorter.getLastField());
+				  if (ptIconSize != null) {
+
+					  // set row height by setting image
+					  
+					Image image = new Image(display, ptIconSize.x, ptIconSize.y);
+					row.setImage(0, image);
+					row.setImage(0, null);
+					image.dispose();
+				  } else if (iCellHeight > 0){
+					row.setHeight(iCellHeight);
+				  }
+				  
+				  TableCellCore cell = row.getTableCellCore(sorter.getLastField());
 				
-	            if (cell != null){
-	              cell.refresh();
-				} 
-			  }else {
-				  row.delete();
-	          }
+				  if (cell != null){
+					  cell.refresh();
+				  } 
+			  }
 	          	          
 	          bSortScheduled = true;
 	        }
