@@ -100,17 +100,24 @@ DiskManagerPieceImpl
 	setDone(
 		boolean		_done )
 	{
-		if ( done != _done ){
-	
-			done	= _done;
+			// we delegate this operation to the disk manager so it can synchronise the activity
 		
-			disk_manager.setPieceDone( this );
+		disk_manager.setPieceDone( this, _done );
 			
-			if ( done ){
+		if ( done ){
 				
-				written = null;
-			}
+			written = null;
 		}
+	}
+	
+		// this is ONLY used by the disk manager to update the done state while synchronized
+		// i.e. don't use it else where!
+	
+	protected void
+	setDoneSupport(
+		boolean		_done )
+	{
+		done	= _done;
 	}
 	
 	public boolean

@@ -66,21 +66,9 @@ DiskManagerHelper
 		long		num );
 	
 	public void
-	incrementRemaining(
-		long		num );
-	
-	public void
-	decrementRemaining(
-		long		num );
-	
-	public void
 	setPercentDone(
 		int			num );
-	
-	public void 
-	computeFilesDone(
-		int pieceNumber ); 
-	
+		
 	public TOTorrent
 	getTorrent();
 }

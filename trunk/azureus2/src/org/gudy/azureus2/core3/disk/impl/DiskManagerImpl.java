@@ -872,11 +872,15 @@ DiskManagerImpl
 	}
 
 
-	public int getNumberOfPieces() {
+	public int 
+	getNumberOfPieces() 
+	{
 		return nbPieces;
 	}
 
-	public int getPercentDone() {
+	public int 
+	getPercentDone() 
+	{
 		return percentDone;
 	}
 	
@@ -887,11 +891,13 @@ DiskManagerImpl
 		percentDone	= num;
 	}
 	
-	public long getRemaining() {
+	public long 
+	getRemaining() {
 		return remaining;
 	}
 	
-	public long getRemainingExcludingDND() 
+	public long 
+	getRemainingExcludingDND() 
 	{
 		if ( skipped_file_set_changed ){
 			
@@ -934,36 +940,6 @@ DiskManagerImpl
 		return( rem );
 	}
 	
-	public void
-	incrementRemaining(
-		long	num )
-	{
-		try{
-			this_mon.enter();
-		
-			remaining	+= num;
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-
-	public void
-	decrementRemaining(
-		long	num )
-	{
-		try{
-			this_mon.enter();
-		
-			remaining	-= num;
-			
-		}finally{
-			
-			this_mon.exit();
-		}	
-	}
-	
 	public long
 	getAllocated()
 	{
@@ -981,20 +957,102 @@ DiskManagerImpl
 	
 	protected void
 	setPieceDone(
-		DiskManagerPieceImpl	piece )
+		DiskManagerPieceImpl	piece,
+		boolean					done )
 	{
-		int	piece_length = piece.getPieceNumber()==nbPieces-1?lastPieceLength:pieceLength;
+		int	piece_number = piece.getPieceNumber();
 		
-		if ( piece.getDone()){
-				
-			decrementRemaining( piece_length );
+		int	piece_length = piece.getLength();
+		
+		PieceList piece_list = pieceMap[piece_number];
+
+		try{
+			this_mon.enter();					
 			
-			computeFilesDone( piece.getPieceNumber());
-			
-		}else{
+			if ( piece.getDone() != done ){
 				
-			incrementRemaining( piece_length );
-		}
+				piece.setDoneSupport( done );
+	
+				if ( done ){
+	
+					remaining -= piece_length;
+					
+				}else{
+					
+					remaining += piece_length;
+				}
+									
+				for (int i = 0; i < piece_list.size(); i++) {
+								
+					PieceMapEntry piece_map_entry = piece_list.get(i);
+								
+					DiskManagerFileInfoImpl	this_file = piece_map_entry.getFile();
+						
+					long file_length = this_file.getLength();
+					
+					long file_done = this_file.getDownloaded();
+						
+					long file_done_before = file_done;
+					
+					if ( done ){
+						
+						file_done += piece_map_entry.getLength();
+						
+					}else{
+						
+						file_done -= piece_map_entry.getLength();
+					}
+					
+					if ( file_done < 0 ){
+						
+						Debug.out( "piece map entry length negative" );
+						
+						file_done = 0;
+						
+					}else if ( file_done > file_length ){
+						
+						Debug.out( "piece map entry length too large" );
+						
+						file_done = file_length;
+					}
+					
+					if ( this_file.isSkipped()){
+						
+						skipped_but_downloaded += ( file_done - file_done_before );
+					}
+					
+					this_file.setDownloaded( file_done );
+						
+						// change file modes based on whether or not the file is complete or not
+					
+					if (	file_done == file_length &&
+							this_file.getAccessMode() == DiskManagerFileInfo.WRITE){
+												
+						try{
+							this_file.setAccessMode( DiskManagerFileInfo.READ );
+									
+						}catch (Exception e) {
+									
+							Debug.printStackTrace( e );
+						}
+						
+					}else if ( 	file_done < file_length &&
+								this_file.getAccessMode() == DiskManagerFileInfo.READ){
+						
+						try{
+							this_file.setAccessMode( DiskManagerFileInfo.WRITE );
+									
+						}catch (Exception e) {
+									
+							Debug.printStackTrace( e );
+						}
+					}
+				}
+			}
+		}finally{
+				
+			this_mon.exit();
+		}			
 		
 		listeners.dispatch(LDT_PIECE_DONE_CHANGED, piece);
 	}
@@ -1058,44 +1116,10 @@ DiskManagerImpl
 		}
 	}
 
-	public void computeFilesDone(int pieceNumber) {
-		for (int i = 0; i < files.length; i++){
-			
-			DiskManagerFileInfoImpl	this_file = files[i];
-			
-			PieceList pieceList = pieceMap[pieceNumber];
-			//for each piece
-
-			for (int k = 0; k < pieceList.size(); k++) {
-				//get the piece and the file 
-				PieceMapEntry tempPiece = pieceList.get(k);
-				
-				if ( this_file == tempPiece.getFile()){
-					
-					long done = this_file.getDownloaded();
-					
-					done += tempPiece.getLength();
-					
-					this_file.setDownloaded(done);
-					
-					if (	done == this_file.getLength() &&
-							this_file.getAccessMode() == DiskManagerFileInfo.WRITE){
-						
-					
-						try{
-							this_file.setAccessMode( DiskManagerFileInfo.READ );
-							
-						}catch (Exception e) {
-							
-							Debug.printStackTrace( e );
-						}
-					}
-				}
-			}
-		}
-	}
 	
-	public DiskManagerFileInfo[] getFiles() {
+	public DiskManagerFileInfo[] 
+	getFiles() 
+	{
 		return files;
 	}
 
