@@ -120,6 +120,9 @@ DHTTrackerPlugin
 	private AEMonitor	this_mon	= new AEMonitor( "DHTTrackerPlugin" );
 
 
+	private Map			zero_peer_scrape_injection_map	= new WeakHashMap();
+	
+	
 	public void
 	initialize(
 		PluginInterface 	_plugin_interface )
@@ -1184,16 +1187,34 @@ DHTTrackerPlugin
 										// isn't scrapable...
 									
 										// hmm, ok, try being a bit more relaxed about this, inject the scrape if
-										// we have any peers
+										// we have any peers. Ok, a bit more :) allow a single injection
+										// of a zero-peer scrape
+									
+										// also ensure we overwrite any existing injected values
+										// by testing the URL to see if its our default injector one
 									
 									boolean	inject_scrape = false;
 									
 									DownloadScrapeResult result = dl.getLastScrapeResult();
 									
 									if (	result == null || 
-											result.getResponseType() == DownloadScrapeResult.RT_ERROR ){
+											result.getResponseType() == DownloadScrapeResult.RT_ERROR ||
+											result.getURL().equals( DEFAULT_URL )){
 										
-										inject_scrape = peer_count > 0;
+										
+										if ( peer_count > 0 ){
+											
+											inject_scrape = true;
+											
+										}else{
+											
+											if (zero_peer_scrape_injection_map.get(dl) == null ){
+												
+												zero_peer_scrape_injection_map.put(dl,"");
+												
+												inject_scrape	= true;
+											}
+										}
 									}
 									
 									if ( torrent.isDecentralised() || inject_scrape ){
