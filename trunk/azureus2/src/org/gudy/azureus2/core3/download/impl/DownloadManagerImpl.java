@@ -224,7 +224,7 @@ DownloadManagerImpl
 	 *
 	 * Perhaps a better name would be "bCompleted"
 	 */
-	protected boolean onlySeeding;
+	private boolean onlySeeding;
 	
 	/**
 	 * forceStarted torrents can't/shouldn't be automatically stopped
@@ -806,6 +806,10 @@ DownloadManagerImpl
   	setStateSeeding()
   	{
   		controller.setStateSeeding();
+  		
+  			// sometimes, downloadEnded() doesn't get called, so we must check here too
+			  		
+  		setOnlySeeding(true);
   	}
   
   	public void

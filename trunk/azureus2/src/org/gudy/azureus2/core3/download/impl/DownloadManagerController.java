@@ -132,7 +132,7 @@ DownloadManagerController
 		
 		if ( getState() == DownloadManager.STATE_START_OF_DAY ){
 			
-			setState( initial_state );
+			setState( initial_state, true );
 		}
 	}
 
@@ -162,12 +162,15 @@ DownloadManagerController
 				Debug.out( "DownloadManagerController::startDownload: disk manager is null" );
 			}
 		
-			setState( DownloadManager.STATE_DOWNLOADING );
+			setState( DownloadManager.STATE_DOWNLOADING, false );
 		
 		}finally{
 			
 			this_mon.exit();
+	
+			download_manager.informStateChanged();
 		}
+		
 				// make sure it is started beore making it "visible"
 		
 		PEPeerManager temp = 
@@ -301,7 +304,7 @@ DownloadManagerController
 		
 			errorDetail	= "";
 					
-			setState( initialising_state );
+			setState( initialising_state, false );
 				  		
 		  	DiskManager dm = DiskManagerFactory.create( download_manager.getTorrent(), download_manager);
 	  	      
@@ -312,6 +315,8 @@ DownloadManagerController
 		}finally{
 			
 			this_mon.exit();
+		
+			download_manager.informStateChanged();
 		}
 	}
 	  	  
@@ -406,16 +411,18 @@ DownloadManagerController
 		  							
 	  		  	  							if ( start_state == DownloadManager.STATE_ERROR ){
 		  								
-	  		  	  								setState( DownloadManager.STATE_STOPPED );
+	  		  	  								setState( DownloadManager.STATE_STOPPED, false );
 		  								
 	  		  	  							}else{
 		  								
-	  		  	  								setState( start_state );
+	  		  	  								setState( start_state, false );
 	  		  	  							}
 	  	  								}
 	  	  							}finally{
 	  	  								
 	  	  								this_mon.exit();
+	  	  							
+	  	  								download_manager.informStateChanged();
 	  	  							}
 	  	  							
 	  	  								// careful here, don't want to update seeding while holding monitor
@@ -506,7 +513,7 @@ DownloadManagerController
 					download_manager.deleteTorrentFile();
 				}
 	      
-				setState( _stateAfterStopping );
+				setState( _stateAfterStopping, false );
 	      
 				return;
 			}
@@ -517,7 +524,7 @@ DownloadManagerController
 				return;
 			}
     
-			setState( DownloadManager.STATE_STOPPING );
+			setState( DownloadManager.STATE_STOPPING, false );
 
 
 				// this will run synchronously but on a non-daemon thread so that it will under
@@ -603,7 +610,7 @@ DownloadManagerController
 					   download_manager.deleteTorrentFile();
 				   }
          
-				   setState( stateAfterStopping );
+				   setState( stateAfterStopping, true );
          
 				 }
 			}finally{
@@ -618,16 +625,18 @@ DownloadManagerController
 		}finally{
 		
 			this_mon.exit();
+			
+			download_manager.informStateChanged();
 		}
 	}
 
-	public void
+	protected void
 	setStateWaiting()
 	{
-		setState(DownloadManager.STATE_WAITING);
+		setState(DownloadManager.STATE_WAITING, true );
 	}
   
-  	public void
+	protected void
   	setStateDownloading()
   	{
 	  	// null operation as called on pm start + already set?
@@ -637,25 +646,25 @@ DownloadManagerController
   			Debug.out( "setStateDownloading: not dl" );
   		}
 	  
-  		setState( DownloadManager.STATE_DOWNLOADING );
+  		setState( DownloadManager.STATE_DOWNLOADING, true );
   	}
   
-  	public void
+  	protected void
   	setStateFinishing()
   	{
-  		setState(DownloadManager.STATE_FINISHING);
+  		setState(DownloadManager.STATE_FINISHING, true);
   	}
   
-  	public void
+  	protected void
   	setStateSeeding()
   	{
-  		setState(DownloadManager.STATE_SEEDING);
+  		setState(DownloadManager.STATE_SEEDING, true);
   	}
   
-  	public void
+  	protected void
   	setStateQueued()
   	{
-  		setState(DownloadManager.STATE_QUEUED);
+  		setState(DownloadManager.STATE_QUEUED, true);
   	}
   
   	public int 
@@ -706,9 +715,10 @@ DownloadManagerController
 
   	private void 
   	setState(
-  		int _state)
+  		int 		_state,
+  		boolean		_inform_changed )
   	{   
-  		try{
+   		try{
   			state_mon.enter();
   		
 	  		int	old_state = state_set_by_method;
@@ -721,18 +731,12 @@ DownloadManagerController
 	  		if ( old_state != _state ){
 	    	
 	  			state_set_by_method = _state;
-	      
-	  				// sometimes, downloadEnded() doesn't get called, so we must check here too
-	      
-	  			if (state_set_by_method == DownloadManager.STATE_SEEDING) {
-	    	  
-	  				download_manager.setOnlySeeding(true);
-	        
-	  			}else if (state_set_by_method == DownloadManager.STATE_QUEUED ){
+	      	      
+	  			if (state_set_by_method == DownloadManager.STATE_QUEUED ){
 	        
 	  				// pick up any errors regarding missing data for queued SEEDING torrents
 	    	  
-	  				if (  download_manager.onlySeeding ){
+	  				if (  download_manager.getOnlySeeding()){
 	    		  
 	  					filesExist();
 	  				}
@@ -762,7 +766,10 @@ DownloadManagerController
   			state_mon.exit();
   		}
 	      
-		download_manager.informStateChanged();
+  		if ( _inform_changed ){
+  			
+  			download_manager.informStateChanged();
+  		}
   	}
   
 	 /**
@@ -806,7 +813,7 @@ DownloadManagerController
 
 	public void 
 	setForceStart(
-		 boolean _force_start) 
+		boolean _force_start) 
 	{
 		try{
 			state_mon.enter();
@@ -823,7 +830,7 @@ DownloadManagerController
 					
 						// Start it!  (Which will cause a stateChanged to trigger)
 					
-					setState(DownloadManager.STATE_WAITING);		    	  
+					setState(DownloadManager.STATE_WAITING, false );		    	  
 				}
 		    }
 		}finally{
