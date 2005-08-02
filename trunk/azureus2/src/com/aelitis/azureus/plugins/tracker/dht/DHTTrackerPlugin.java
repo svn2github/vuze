@@ -28,7 +28,6 @@ import java.net.UnknownHostException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -118,9 +117,6 @@ DHTTrackerPlugin
 	private LoggerChannel		log;
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DHTTrackerPlugin" );
-
-
-	private Map			zero_peer_scrape_injection_map	= new WeakHashMap();
 	
 	
 	public void
@@ -1206,14 +1202,6 @@ DHTTrackerPlugin
 											
 											inject_scrape = true;
 											
-										}else{
-											
-											if (zero_peer_scrape_injection_map.get(dl) == null ){
-												
-												zero_peer_scrape_injection_map.put(dl,"");
-												
-												inject_scrape	= true;
-											}
 										}
 									}
 									
