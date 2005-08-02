@@ -116,6 +116,8 @@ DHTTrackerPlugin
 	
 	private LoggerChannel		log;
 	
+	private Map					scrape_injection_map = new WeakHashMap();
+	
 	private AEMonitor	this_mon	= new AEMonitor( "DHTTrackerPlugin" );
 	
 	
@@ -985,7 +987,7 @@ DHTTrackerPlugin
 								List	ports		= new ArrayList();
 								
 								int		seed_count;
-								int		peer_count;
+								int		leecher_count;
 								
 								public void
 								valueRead(
@@ -1029,7 +1031,7 @@ DHTTrackerPlugin
 										
 										if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
 											
-											peer_count++;
+											leecher_count++;
 											
 										}else{
 											
@@ -1054,7 +1056,7 @@ DHTTrackerPlugin
 								complete(
 									boolean	timeout_occurred )
 								{
-									log.log( "Get of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + "), addresses = " + addresses.size() + ", seeds = " + seed_count + ", leechers = " + peer_count );
+									log.log( "Get of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + "), addresses = " + addresses.size() + ", seeds = " + seed_count + ", leechers = " + leecher_count );
 																	
 									final DownloadAnnounceResultPeer[]	peers = new
 										DownloadAnnounceResultPeer[addresses.size()];
@@ -1142,7 +1144,7 @@ DHTTrackerPlugin
 													public int
 													getNonSeedCount()
 													{
-														return( peer_count );	
+														return( leecher_count );	
 													}
 													
 													public String
@@ -1183,29 +1185,39 @@ DHTTrackerPlugin
 										// isn't scrapable...
 									
 										// hmm, ok, try being a bit more relaxed about this, inject the scrape if
-										// we have any peers. Ok, a bit more :) allow a single injection
-										// of a zero-peer scrape
-									
-										// also ensure we overwrite any existing injected values
-										// by testing the URL to see if its our default injector one
-									
+										// we have any peers. 
+																		
 									boolean	inject_scrape = false;
 									
 									DownloadScrapeResult result = dl.getLastScrapeResult();
-									
+																		
 									if (	result == null || 
-											result.getResponseType() == DownloadScrapeResult.RT_ERROR ||
-											result.getURL().equals( DEFAULT_URL )){
+											result.getResponseType() == DownloadScrapeResult.RT_ERROR ){									
 										
-										
-										if ( peer_count > 0 ){
+										if ( leecher_count > 0 ){
 											
 											inject_scrape = true;
+										}
+									}else{
+									
+											// if the currently reported values are the same as the 
+											// ones we previously injected then overwrite them
+											// note that we can't test the URL to see if we originated
+											// the scrape values as this gets replaced when a normal
+											// scrape fails :(
 											
+										int[]	prev = (int[])scrape_injection_map.get( dl );
+											
+										if ( 	prev != null && 
+												prev[0] == result.getSeedCount() &&
+												prev[1] == result.getNonSeedCount()){
+																								
+											inject_scrape	= true;
 										}
 									}
 									
 									if ( torrent.isDecentralised() || inject_scrape ){
+										
 										
 											// make sure that the injected scrape values are consistent
 											// with our currently connected peers
@@ -1233,9 +1245,11 @@ DHTTrackerPlugin
 											}							
 										}
 										
-										final int f_local_seeds 	= local_seeds;
-										final int f_local_leechers	= local_leechers;
+										final int f_adj_seeds 		= Math.max( seed_count, local_seeds );
+										final int f_adj_leechers	= Math.max( leecher_count, local_leechers );
 										
+										scrape_injection_map.put( dl, new int[]{ f_adj_seeds, f_adj_leechers });
+
 										dl.setScrapeResult(
 											new DownloadScrapeResult()
 											{
@@ -1254,13 +1268,13 @@ DHTTrackerPlugin
 												public int
 												getSeedCount()
 												{
-													return( Math.max( seed_count, f_local_seeds ));
+													return( f_adj_seeds );
 												}
 												
 												public int
 												getNonSeedCount()
 												{
-													return( Math.max( peer_count, f_local_leechers ));
+													return( f_adj_leechers );
 												}
 		
 												public long
