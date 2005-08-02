@@ -268,7 +268,7 @@ DHTLog
 				return( "<null>");
 			}
 			
-			return( getString(value.getValue()) + "<" + value.getCacheDistance() + ">" );
+			return( getString(value.getValue()) + "<" + (value.isLocal()?"local":"remote" ) + ">" );
 		}else{
 			return( "" );
 		}

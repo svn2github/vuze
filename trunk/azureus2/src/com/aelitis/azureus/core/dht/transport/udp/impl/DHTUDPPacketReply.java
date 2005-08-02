@@ -157,7 +157,7 @@ DHTUDPPacketReply
 		return( skew );
 	}
 	
-	protected byte
+	public byte
 	getProtocolVersion()
 	{
 		return( protocol_version );

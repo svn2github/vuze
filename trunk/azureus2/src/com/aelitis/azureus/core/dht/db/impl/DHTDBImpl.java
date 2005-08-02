@@ -78,7 +78,11 @@ DHTDBImpl
 	
 	private BloomFilter	ip_count_bloom_filter = BloomFilterFactory.createAddRemove8Bit( IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
 	
-
+	private static final int	VALUE_VERSION_CHUNK = 128;
+	private int	next_value_version;
+	private int next_value_version_left;
+	
+	
 	private Map			stored_values = new HashMap();
 	
 	private DHTControl				control;
@@ -244,17 +248,7 @@ DHTDBImpl
 		
 		try{
 			this_mon.enter();
-			
-			DHTDBValueImpl res =	
-				new DHTDBValueImpl( 
-						SystemTime.getCurrentTime(), 
-						value, 
-						local_contact, 
-						local_contact,
-						0,
-						flags );
-	
-	
+				
 				// don't police max check for locally stored data
 				// only that received
 			
@@ -267,6 +261,16 @@ DHTDBImpl
 				stored_values.put( key, mapping );
 			}
 			
+			DHTDBValueImpl res =	
+				new DHTDBValueImpl( 
+						SystemTime.getCurrentTime(), 
+						value, 
+						getNextValueVersion(),
+						local_contact, 
+						local_contact,
+						true,
+						flags );
+	
 			mapping.add( res );
 			
 			return( res );
@@ -386,44 +390,37 @@ DHTDBImpl
 			for (int i=0;i<values.length;i++){
 				
 				DHTTransportValue	t_value = values[i];
+								
+					// last check, verify that the contact is who they say they are, only for non-forwards
+					// as cache forwards are only accepted if they are "close enough" and we can't 
+					// rely on their identify due to the way that cache republish works (it doesn't
+					// guarantee a "lookup_node" prior to "store".
+
+				DHTTransportValue	value = values[i];
 				
-				if ( t_value.getCacheDistance() > 1 ){
-					
-					DHTLog.log( "Not storing " + t_value.getString() + " as cache distance > 1" );
-
-				}else{
-					
-						// last check, verify that the contact is who they say they are, only for non-forwards
-						// as cache forwards are only accepted if they are "close enough" and we can't 
-						// rely on their identify due to the way that cache republish works (it doesn't
-						// guarantee a "lookup_node" prior to "store".
-
-					DHTTransportValue	value = values[i];
-					
-					boolean	ok_to_store = false;
-					
-					boolean	direct =Arrays.equals( sender.getID(), value.getOriginator().getID());
-									
-					if ( !contact_checked ){
-							
-						contact_ok =  control.verifyContact( sender, direct );
-							
-						if ( !contact_ok ){
-							
-							logger.log( "DB: verification of contact '" + sender.getName() + "' failed for store operation" );
-						}
+				boolean	ok_to_store = false;
+				
+				boolean	direct =Arrays.equals( sender.getID(), value.getOriginator().getID());
+								
+				if ( !contact_checked ){
 						
-						contact_checked	= true;
-					}
-				
-					ok_to_store	= contact_ok;
-
-					if ( ok_to_store ){
+					contact_ok =  control.verifyContact( sender, direct );
 						
-						DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, value, 1 );
-				
-						mapping.add( mapping_value );
+					if ( !contact_ok ){
+						
+						logger.log( "DB: verification of contact '" + sender.getName() + "' failed for store operation" );
 					}
+					
+					contact_checked	= true;
+				}
+			
+				ok_to_store	= contact_ok;
+
+				if ( ok_to_store ){
+					
+					DHTDBValueImpl mapping_value	= new DHTDBValueImpl( sender, value, false );
+			
+					mapping.add( mapping_value );
 				}
 			}
 			
@@ -521,7 +518,14 @@ DHTDBImpl
 			
 			if ( mapping != null ){
 				
-				return( mapping.remove( originator ));
+				DHTDBValueImpl	res = mapping.remove( originator );
+				
+				if ( res != null ){
+					
+					return( res.getValueForDeletion( getNextValueVersion()));
+				}
+				
+				return( null ); 
 			}
 			
 			return( null );
@@ -625,7 +629,7 @@ DHTDBImpl
 					
 					DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();
 				
-					if ( value != null && value.getCacheDistance() == 0 ){
+					if ( value != null && value.isLocal()){
 						
 						// we're republising the data, reset the creation time
 						
@@ -715,7 +719,7 @@ DHTDBImpl
 					
 					DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();
 				
-					if ( value.getCacheDistance() == 1 ){
+					if ( !value.isLocal()){
 						
 							// if this value was stored < period ago then we assume that it was
 							// also stored to the other k-1 locations at the same time and therefore
@@ -989,13 +993,9 @@ DHTDBImpl
 					
 					while( it2.hasNext()){
 						
-						DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();
+						DHTDBValueImpl	value = (DHTDBValueImpl)it2.next();				
 						
-						int	distance = value.getCacheDistance();
-						
-							// distance = 0 are explicitly published and need to be explicitly removed
-						
-						if ( distance == 1 ){
+						if ( !value.isLocal()){
 							
 								// distance 1 = initial store location. We use the initial creation date
 								// when deciding whether or not to remove this, plus a bit, as the 
@@ -1003,29 +1003,10 @@ DHTDBImpl
 							
 							if ( now - value.getCreationTime() > original_republish_interval + ORIGINAL_REPUBLISH_INTERVAL_GRACE ){
 								
-								DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
+								DHTLog.log( "removing cache entry (" + value.getString() + ")" );
 								
 								it2.remove();
-							}
-							
-						}else if ( distance > 1 ){
-							
-								// remove one day, not using this caching strategy
-							
-								// distance 2 get 1/2 time, 3 get 1/4 etc.
-								// these are indirectly cached at the nearest location traversed
-								// when performing a lookup. the store time is used when deciding
-								// whether or not to remove these in an ever reducing amount the
-								// further away from the correct cache position that the value is
-							
-							long	permitted = cache_republish_interval >> (distance-1);
-							
-							if ( now - value.getStoreTime() >= permitted ){
-								
-								DHTLog.log( "removing cache entry at level " + distance + " (" + value.getString() + ")" );
-								
-								it2.remove();
-							}
+							}	
 						}
 					}
 				}
@@ -1081,7 +1062,7 @@ DHTDBImpl
 					
 					DHTDBValue	value = values[i];
 					
-					Integer key = new Integer( value.getCacheDistance());
+					Integer key = new Integer( value.isLocal()?0:1);
 					
 					Object[]	data = (Object[])count.get( key );
 									
@@ -1184,7 +1165,7 @@ DHTDBImpl
 							
 							DHTDBValueImpl	val = (DHTDBValueImpl)it2.next();
 							
-							if ( val.getCacheDistance() > 0 ){
+							if ( !val.isLocal()){
 								
 								if ( Arrays.equals( val.getOriginator().getID(), contact.getID())){
 									
@@ -1291,7 +1272,7 @@ DHTDBImpl
 					
 					DHTDBValueImpl	val = (DHTDBValueImpl)it2.next();
 					
-					if ( val.getCacheDistance() > 0 ){
+					if ( !val.isLocal()){
 						
 						// logger.log( "    adding " + val.getOriginator().getAddress());
 						
@@ -1435,6 +1416,35 @@ DHTDBImpl
 		*/
 	}
 	
+	protected int
+	getNextValueVersion()
+	{
+		try{
+			this_mon.enter();
+			
+			if ( next_value_version_left == 0 ){
+				
+				next_value_version_left = VALUE_VERSION_CHUNK;
+				
+				next_value_version = adapter.getNextValueVersions( VALUE_VERSION_CHUNK );
+				
+				//System.out.println( "next chunk:" + next_value_version );
+			}
+			
+			next_value_version_left--;
+			
+			int	res = next_value_version++;
+			
+			//System.out.println( "next value version = " + res );
+			
+			return( res  );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
 	protected class
 	adapterFacade
 		implements DHTStorageAdapter
@@ -1493,7 +1503,7 @@ DHTDBImpl
 			
 			reportSizes( "valueAdded");
 			
-			if ( value.getCacheDistance() != 0 ){
+			if ( !value.isLocal() ){
 				
 				DHTDBValueImpl	val = (DHTDBValueImpl)value;
 				
@@ -1531,7 +1541,7 @@ DHTDBImpl
 		
 			reportSizes("valueDeleted");
 			
-			if ( value.getCacheDistance() != 0 ){
+			if ( !value.isLocal() ){
 				
 				DHTDBValueImpl	val = (DHTDBValueImpl)value;
 				
@@ -1566,6 +1576,13 @@ DHTDBImpl
 			boolean				exhaustive_get )
 		{
 			return( delegate.createNewDiversification( cause, key, put_operation, diversification_type, exhaustive_get ));
+		}
+		
+		public int
+		getNextValueVersions(
+			int		num )
+		{
+			return( delegate.getNextValueVersions(num));
 		}
 	}
 }

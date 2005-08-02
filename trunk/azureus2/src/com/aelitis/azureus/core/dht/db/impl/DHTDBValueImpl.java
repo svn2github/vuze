@@ -42,8 +42,9 @@ DHTDBValueImpl
 	private byte[]				value;
 	private DHTTransportContact	originator;
 	private DHTTransportContact	sender;
-	private int					distance;
+	private boolean				local;
 	private int					flags;
+	private int					version;
 	
 	private long				store_time;
 	
@@ -61,16 +62,18 @@ DHTDBValueImpl
 	DHTDBValueImpl(
 		long				_creation_time,
 		byte[]				_value,
+		int					_version,
 		DHTTransportContact	_originator,
 		DHTTransportContact	_sender,
-		int					_distance,
+		boolean				_local,
 		int					_flags )
 	{
 		creation_time	= _creation_time;
 		value			= _value;
+		version			= _version;
 		originator		= _originator;
 		sender			= _sender;
-		distance		= _distance<0?0:_distance;
+		local			= _local;
 		flags			= _flags;
 		
 		reset();
@@ -78,25 +81,24 @@ DHTDBValueImpl
 
 		/**
 		 * Constructor used to generate values for relaying to other contacts
-		 * or receiving a value from another contact - adjusts the cache offset 
-		 * and sender as required
+		 * or receiving a value from another contact - adjusts the sender
 		 * Originator, creation time, flags and value are fixed.
 		 * @param _sender
 		 * @param _other
-		 * @param _cache_offset
 		 */
 	
 	protected 
 	DHTDBValueImpl(
 		DHTTransportContact	_sender,
 		DHTTransportValue	_other,
-		int					_cache_offset )
+		boolean				_local )
 	{
 		this( 	_other.getCreationTime(), 
 				_other.getValue(),
+				_other.getVersion(),
 				_other.getOriginator(),
 				_sender,
-				_other.getCacheDistance() + _cache_offset,
+				_local,
 				_other.getFlags());
 	}
 	
@@ -138,16 +140,22 @@ DHTDBValueImpl
 		return( store_time );
 	}
 	
-	public int 
-	getCacheDistance() 
+	public boolean 
+	isLocal() 
 	{
-		return( distance );
+		return( local );
 	}
 		
 	public byte[]
 	getValue()
 	{
 		return( value );
+	}
+	
+	public int
+	getVersion()
+	{
+		return( version );
 	}
 	
 	public DHTTransportContact
@@ -186,16 +194,20 @@ DHTDBValueImpl
 	getValueForRelay(
 		DHTTransportContact	_sender )
 	{
-		return( new DHTDBValueImpl( _sender, this, -1 ));
+		return( new DHTDBValueImpl( _sender, this, local ));
 	}
+	
 	public DHTDBValue
-	getValueForDeletion()
+	getValueForDeletion(
+		int		_version )
 	{
-		DHTDBValueImpl	res = new DHTDBValueImpl( originator, this, 0 );
+		DHTDBValueImpl	res = new DHTDBValueImpl( originator, this, local );
 		
 		res.value = new byte[0];	// delete -> 0 length value
 		
-		res.creation_time++;		// increase creation time so it supercedes existing values
+		res.setCreationTime();
+		
+		res.version = _version;
 		
 		return( res );
 	}
@@ -205,6 +217,6 @@ DHTDBValueImpl
 	{
 		long	now = SystemTime.getCurrentTime();
 		
-		return( DHTLog.getString( value ) + " - " + new String(value) + "{f=" + Integer.toHexString(flags) +",ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+"}" );
+		return( DHTLog.getString( value ) + " - " + new String(value) + "{v=" + version + ",f=" + Integer.toHexString(flags) +",ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+"}" );
 	}
 }

@@ -30,14 +30,17 @@ package com.aelitis.azureus.core.dht.transport;
 public interface 
 DHTTransportValue 
 {
-	public int
-	getCacheDistance();
+	public boolean
+	isLocal();
 	
 	public long
 	getCreationTime();
 	
 	public byte[]
 	getValue();
+	
+	public int
+	getVersion();
 	
 	public DHTTransportContact
 	getOriginator();

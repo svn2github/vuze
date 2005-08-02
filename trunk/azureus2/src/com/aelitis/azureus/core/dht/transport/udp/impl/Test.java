@@ -108,10 +108,10 @@ Test
 					new DHTTransportValue[][]{{
 						new DHTTransportValue()
 						{
-							public int
-							getCacheDistance()
+							public boolean
+							isLocal()
 							{
-								return( 1 );
+								return( false );
 							}
 							
 							public long
@@ -124,6 +124,12 @@ Test
 							getValue()
 							{
 								return( "sdsd".getBytes());
+							}
+							
+							public int
+							getVersion()
+							{
+								return( 0 );
 							}
 							
 							public DHTTransportContact

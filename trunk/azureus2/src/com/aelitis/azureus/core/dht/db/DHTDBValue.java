@@ -40,7 +40,4 @@ DHTDBValue
 	public DHTDBValue
 	getValueForRelay(
 		DHTTransportContact	new_originator );
-	
-	public DHTDBValue
-	getValueForDeletion();
 }

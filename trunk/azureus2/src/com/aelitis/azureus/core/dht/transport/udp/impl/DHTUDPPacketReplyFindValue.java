@@ -84,7 +84,7 @@ DHTUDPPacketReplyFindValue
 				diversification_type	= is.readByte();
 			}
 
-			values = DHTUDPUtils.deserialiseTransportValues( getTransport(), is, 0 );
+			values = DHTUDPUtils.deserialiseTransportValues( this, is, 0 );
 			
 		}else{
 			
@@ -121,7 +121,7 @@ DHTUDPPacketReplyFindValue
 			// values returned to a caller are adjusted by - skew
 			
 			try{
-				DHTUDPUtils.serialiseTransportValues( os, values, -getClockSkew());
+				DHTUDPUtils.serialiseTransportValues( this, os, values, -getClockSkew());
 				
 			}catch( DHTTransportException e ){
 				

@@ -111,7 +111,7 @@ DHTDBMapping
 		
 			DHTDBValueImpl	value = (DHTDBValueImpl)it.next();
 			
-			if ( value.getCacheDistance() == 0 ){
+			if ( value.isLocal()){
 			
 				value.setOriginatorAndSender( contact );
 				
@@ -240,32 +240,10 @@ DHTDBMapping
 			
 			if ( existing_value != null ){
 				
-				if ( existing_value.getCacheDistance() <= new_value.getCacheDistance() + 1 ){
-		
-						// update value with latest from this sender (could be 0 length implying
-						// deletion)
-					
-					if ( new_value.getCreationTime() > existing_value.getCreationTime()){
-					
-						addIndirectValue( originator_value_id, new_value );
-						
-					}else{
-					
-							// mark it as current 
-				
-						existing_value.reset();
-					}
-				
-					//System.out.println( "    updating existing (sender same)" );
-					
-				}else{
-					
-						// overwrite further away entry for this sender
-					
-					addIndirectValue( originator_value_id, new_value );
+				addIndirectValue( originator_value_id, new_value );
 					
 					//System.out.println( "    replacing existing" );
-				}				
+							
 			}else{
 			
 					// only add new values if not diversified
@@ -469,9 +447,37 @@ DHTDBMapping
 				
 		if ( old != null ){
 			
+			int	old_version = old.getVersion();
+			int new_version = value.getVersion();
+			
+			if ( old_version != -1 && new_version != -1 && old_version >= new_version ){
+				
+				if ( old_version == new_version ){
+			
+					//System.out.println( "addDirect[reset]:" + old.getString() + "/" + value.getString());
+				
+
+					old.reset();	// update store time as this means we don't need to republish
+									// as someone else has just done it
+				
+				}else{
+					
+						// its important to ignore old versions as a peer's increasing version sequence may
+						// have been reset and if this is the case we want the "future" values to timeout
+					
+					//System.out.println( "addDirect[ignore]:" + old.getString() + "/" + value.getString());
+
+				}
+				
+				return;
+			}
+			
+			//System.out.println( "addDirect:" + old.getString() + "/" + value.getString());
+
+			
 			direct_data_size -= old.getValue().length;
 			
-			if ( old.getCacheDistance() == 0 ){
+			if ( old.isLocal()){
 				
 				local_size -= old.getValue().length;
 			}
@@ -479,7 +485,7 @@ DHTDBMapping
 		
 		direct_data_size += value.getValue().length;
 		
-		if ( value.getCacheDistance() == 0 ){
+		if ( value.isLocal()){
 			
 			local_size += value.getValue().length;
 		}
@@ -504,7 +510,7 @@ DHTDBMapping
 			
 			direct_data_size -= old.getValue().length;
 			
-			if ( old.getCacheDistance() == 0 ){
+			if ( old.isLocal()){
 				
 				local_size -= old.getValue().length;
 			}
@@ -524,9 +530,48 @@ DHTDBMapping
 		
 		if ( old != null ){
 			
+				// discard updates that are older than current value
+			
+			int	old_version = old.getVersion();
+			int new_version = value.getVersion();
+			
+			if ( old_version != -1 && new_version != -1 && old_version >= new_version ){
+				
+				if ( old_version == new_version ){
+
+					// System.out.println( "addIndirect[reset]:" + old.getString() + "/" + value.getString());
+				
+
+					old.reset();	// update store time as this means we don't need to republish
+									// as someone else has just done it
+				
+				}else{
+					
+					// System.out.println( "addIndirect[ignore]:" + old.getString() + "/" + value.getString());
+				}
+				
+				return;
+			}
+			
+			// System.out.println( "addIndirect:" + old.getString() + "/" + value.getString());
+			
+			// vague backwards compatability - if the creation date of the "new" value is significantly
+			// less than the old then we ignore it (given that creation date is adjusted for time-skew you can
+			// see the problem with this approach...)
+			
+			if ( old_version == -1 || new_version == -1 ){
+				
+				if ( old.getCreationTime() > value.getCreationTime() + 30000 ){
+					
+					System.out.println( "backward compat: ignoring store: " + old.getString() + "/" + value.getString());
+					
+					return;
+				}
+			}
+			
 			indirect_data_size -= old.getValue().length;
 			
-			if ( old.getCacheDistance() == 0 ){
+			if ( old.isLocal()){
 				
 				local_size -= old.getValue().length;
 			}
@@ -534,7 +579,7 @@ DHTDBMapping
 		
 		indirect_data_size += value.getValue().length;
 		
-		if ( value.getCacheDistance() == 0 ){
+		if ( value.isLocal()){
 			
 			local_size += value.getValue().length;
 		}
@@ -559,7 +604,7 @@ DHTDBMapping
 			
 			indirect_data_size -= old.getValue().length;
 			
-			if ( old.getCacheDistance() == 0 ){
+			if ( old.isLocal()){
 				
 				local_size -= old.getValue().length;
 			}
@@ -597,7 +642,7 @@ DHTDBMapping
 		DHTDBValueImpl		value )
 	{
 		boolean	direct = 
-			value.getCacheDistance() > 0 &&				
+			(!value.isLocal())&&		
 			Arrays.equals( value.getOriginator().getID(), value.getSender().getID());
 			
 		if ( direct ){
@@ -623,7 +668,7 @@ DHTDBMapping
 		DHTDBValueImpl		value )
 	{	
 		boolean	direct = 
-			value.getCacheDistance() > 0 &&				
+			(!value.isLocal()) && 		
 			Arrays.equals( value.getOriginator().getID(), value.getSender().getID());
 			
 		if ( direct ){
@@ -650,11 +695,11 @@ DHTDBMapping
 		DHTDBValueImpl		new_value)
 	{
 		boolean	old_direct = 
-			old_value.getCacheDistance() > 0 &&				
+			(!old_value.isLocal()) &&				
 			Arrays.equals( old_value.getOriginator().getID(), old_value.getSender().getID());
 	
 		boolean	new_direct = 
-			new_value.getCacheDistance() > 0 &&				
+			(!new_value.isLocal()) &&			
 			Arrays.equals( new_value.getOriginator().getID(), new_value.getSender().getID());
 			
 		if ( new_direct && !old_direct ){
@@ -765,7 +810,7 @@ DHTDBMapping
 				
 				DHTDBValueImpl	val = (DHTDBValueImpl)it.next();
 				
-				if ( val.getCacheDistance() > 0 ){
+				if ( !val.isLocal()){
 					
 					// logger.log( "    adding " + val.getOriginator().getAddress());
 					
@@ -860,7 +905,7 @@ DHTDBMapping
 			
 			if ( value != null ){
 				
-				if( value.getCacheDistance() == 0 ){
+				if( value.isLocal()){
 					
 					local_size -= value.getValue().length;
 				}

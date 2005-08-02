@@ -1173,7 +1173,7 @@ DHTControlImpl
 			put( 	external_put_pool, 
 					encoded_key, 
 					description, 
-					res.getValueForDeletion(), 
+					res,
 					0, 
 					true, 
 					new HashSet(),
@@ -1987,12 +1987,7 @@ DHTControlImpl
 				// we don't consider any cached further away than the initial location, for transfer
 				// however, we *do* include ones we originate as, if we're the closest, we have to
 				// take responsibility for xfer (as others won't)
-			
-				if ( value.getCacheDistance() > 1 ){
-					
-					continue;
-				}
-				
+							
 				List		sorted_contacts	= getClosestKContactsList( encoded_key, false ); 
 				
 					// if we're closest to the key, or the new node is closest and

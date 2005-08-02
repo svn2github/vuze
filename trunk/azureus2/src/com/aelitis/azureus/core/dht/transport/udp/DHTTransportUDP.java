@@ -51,6 +51,7 @@ DHTTransportUDP
 	
 	public static final byte PROTOCOL_VERSION_FIX_ORIGINATOR		= 9;
 	public static final byte PROTOCOL_VERSION_VIVALDI				= 10;
+	public static final byte PROTOCOL_VERSION_REMOVE_DIST_ADD_VER	= 11;
 	
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
@@ -58,7 +59,7 @@ DHTTransportUDP
 	
 	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_VIVALDI;	
 	
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_VIVALDI;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_REMOVE_DIST_ADD_VER;
 
 	public DHTTransportContact
 	importContact(

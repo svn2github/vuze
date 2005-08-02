@@ -88,6 +88,13 @@ DHTDB
 		int						max_values,
 		boolean					external_request );
 		
+		/**
+		 * Local remove - returns a value suitable for putting in the DHT
+		 * @param sender
+		 * @param key
+		 * @return
+		 */
+	
 	public DHTDBValue
 	remove(	
 		DHTTransportContact 	sender,

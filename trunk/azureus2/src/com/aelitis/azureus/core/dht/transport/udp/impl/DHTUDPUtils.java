@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
 /**
  * @author parg
@@ -258,7 +259,7 @@ DHTUDPUtils
 	
 	protected static DHTTransportValue[][]
 	deserialiseTransportValuesArray(
-		DHTTransportUDPImpl		transport,
+		DHTUDPPacket			packet,
 		DataInputStream			is,
 		long					skew,
 		int						max_length )
@@ -271,7 +272,7 @@ DHTUDPUtils
 		
 		for (int i=0;i<data.length;i++){
 			
-			data[i] = deserialiseTransportValues( transport, is, skew );
+			data[i] = deserialiseTransportValues( packet, is, skew );
 		}
 		
 		return( data );	
@@ -279,6 +280,7 @@ DHTUDPUtils
 	
 	protected static void
 	serialiseTransportValuesArray(
+		DHTUDPPacket			packet,
 		DataOutputStream		os,
 		DHTTransportValue[][]	values,
 		long					skew,
@@ -290,7 +292,7 @@ DHTUDPUtils
 		
 		for (int i=0;i<values.length;i++){
 			
-			serialiseTransportValues( os, values[i], skew );
+			serialiseTransportValues( packet, os, values[i], skew );
 		}	
 	}
 	
@@ -321,7 +323,7 @@ DHTUDPUtils
 	
 	protected static DHTTransportUDPContactImpl
 	deserialiseContact(
-		DHTTransportUDPImpl		transport,	// TODO: multiple transport support
+		DHTTransportUDPImpl		transport,
 		DataInputStream			is )
 	
 		throws IOException, DHTTransportException
@@ -346,7 +348,7 @@ DHTUDPUtils
 
 	protected static DHTTransportValue[]
 	deserialiseTransportValues(
-		DHTTransportUDPImpl		transport,
+		DHTUDPPacket			packet,
 		DataInputStream			is,
 		long					skew )
 	
@@ -360,7 +362,7 @@ DHTUDPUtils
 			
 			try{
 				
-				l.add( deserialiseTransportValue( transport, is, skew ));
+				l.add( deserialiseTransportValue( packet, is, skew ));
 				
 			}catch( DHTTransportException e ){
 				
@@ -377,6 +379,7 @@ DHTUDPUtils
 
 	protected static void
 	serialiseTransportValues(
+		DHTUDPPacket			packet,
 		DataOutputStream		os,
 		DHTTransportValue[]		values,
 		long					skew )
@@ -387,23 +390,33 @@ DHTUDPUtils
 	
 		for (int i=0;i<values.length;i++){
 			
-			serialiseTransportValue( os, values[i], skew );
+			serialiseTransportValue( packet, os, values[i], skew );
 		}
 	}
 	
 	protected static DHTTransportValue
 	deserialiseTransportValue(
-		DHTTransportUDPImpl	transport,
+		DHTUDPPacket		packet,
 		DataInputStream		is, 
 		long				skew )
 	
 		throws IOException, DHTTransportException
 	{
-		final int	distance	= is.readInt();
+		final int	version;
 		
-		if ( distance < 0 ){
+		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REMOVE_DIST_ADD_VER ){
 			
-			throw( new IOException( "Invalid distance" ));
+			version = is.readInt();
+			
+			//System.out.println( "read: version = " + version );
+			
+		}else{
+			
+			version	= -1;
+			
+			int distance = is.readInt();
+			
+			//System.out.println( "read:" + distance );
 		}
 		
 		final long 	created		= is.readLong() + skew;
@@ -412,17 +425,17 @@ DHTUDPUtils
 		
 		final byte[]	value_bytes = deserialiseByteArray( is, DHT.MAX_VALUE_SIZE );
 		
-		final DHTTransportContact	originator		= deserialiseContact( transport, is );
+		final DHTTransportContact	originator		= deserialiseContact( packet.getTransport(), is );
 		
 		final int flags	= is.readByte()&0xff;
 		
 		DHTTransportValue value = 
 			new DHTTransportValue()
 			{
-				public int
-				getCacheDistance()
+				public boolean
+				isLocal()
 				{
-					return( distance );
+					return( false );
 				}
 				
 				public long
@@ -435,6 +448,12 @@ DHTUDPUtils
 				getValue()
 				{
 					return( value_bytes );
+				}
+				
+				public int
+				getVersion()
+				{
+					return( version );
 				}
 				
 				public DHTTransportContact
@@ -463,25 +482,29 @@ DHTUDPUtils
 		
 	protected static void
 	serialiseTransportValue(
+		DHTUDPPacket		packet,
 		DataOutputStream	os,
 		DHTTransportValue	value,
 		long				skew )
 	
 		throws IOException, DHTTransportException
-	{
-		int	distance = value.getCacheDistance();
-		
-		if ( distance < 0 ){
+	{		
+		if ( packet.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REMOVE_DIST_ADD_VER ){
 			
-			System.out.println( "SENDING BAD DISTANCE!");
+			int	version = value.getVersion();
 			
-			new Exception().printStackTrace();
+			//System.out.println( "write: version = " + version );
+
+			os.writeInt( version );
+		}else{
+			
+			//System.out.println( "write: 0" );
+
+			os.writeInt( 0 );
 		}
 		
 			// Don't forget to change the CONSTANT above if you change the size of this!
-		
-		os.writeInt( distance );	// 4
-		
+				
 		os.writeLong( value.getCreationTime() + skew );	// 12
 		
 		serialiseByteArray( os, value.getValue(), DHT.MAX_VALUE_SIZE );	// 12+2+X

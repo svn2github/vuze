@@ -27,4 +27,7 @@ DHTUDPPacket
 {
 	public DHTTransportUDPImpl
 	getTransport();
+	
+	public byte
+	getProtocolVersion();
 }

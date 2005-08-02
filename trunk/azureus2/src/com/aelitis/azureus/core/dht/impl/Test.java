@@ -55,6 +55,8 @@ Test
 	static boolean	AELITIS_TEST	= false;
 	static InetSocketAddress	AELITIS_ADDRESS = new InetSocketAddress("213.186.46.164", 6881);
 	
+	static int DEFAULT_NETWORK = DHT.NW_CVS;
+	
 	static{
 		
 		DHTTransportUDPImpl.TEST_EXTERNAL_IP	= true;
@@ -145,7 +147,7 @@ Test
 			
 			for (int i=0;i<num_dhts;i++){
 				
-				createDHT( dhts, transports, DHT.NW_MAIN, i );
+				createDHT( dhts, transports, DEFAULT_NETWORK, i );
 			}
 
 			for (int i=0;i<num_dhts-1;i++){
@@ -490,7 +492,7 @@ Test
 						}
 					}else if ( command == 'a' ){
 						
-						int	net = DHT.NW_MAIN;
+						int	net = DEFAULT_NETWORK;
 						
 						try{
 							net = Integer.parseInt( rhs );

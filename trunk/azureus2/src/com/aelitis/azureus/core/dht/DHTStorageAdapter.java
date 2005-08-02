@@ -87,4 +87,9 @@ DHTStorageAdapter
 		boolean				put_operation,
 		byte				diversification_type,
 		boolean				exhaustive_get );
+	
+	public int
+	getNextValueVersions(
+		int		num );
+	
 }

@@ -83,7 +83,9 @@ DHTPluginStorageManager
 	private AEMonitor	address_mon	= new AEMonitor( "DHTPluginStorageManager:address" );
 	private AEMonitor	contact_mon	= new AEMonitor( "DHTPluginStorageManager:contact" );
 	private AEMonitor	storage_mon	= new AEMonitor( "DHTPluginStorageManager:storage" );
+	private AEMonitor	version_mon	= new AEMonitor( "DHTPluginStorageManager:version" );
 	
+	private Map					version_map			= new HashMap();
 	private Map					recent_addresses	= new HashMap();
 	
 	private Map					remote_diversifications	= new HashMap();
@@ -103,6 +105,8 @@ DHTPluginStorageManager
 		readRecentAddresses();
 		
 		readDiversifications();
+		
+		readVersionData();
 	}
 	
 	protected void
@@ -369,6 +373,75 @@ DHTPluginStorageManager
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+		}
+	}
+	
+	protected void
+	readVersionData()
+	{
+		try{
+			version_mon.enter();
+			
+			version_map = readMapFromFile( "version" );
+	
+		}finally{
+			
+			version_mon.exit();
+		}
+	}
+	
+	protected void
+	writeVersionData()
+	{
+		try{
+			version_mon.enter();
+			
+			writeMapToFile( version_map, "version" );
+	
+		}finally{
+			
+			version_mon.exit();
+		}
+	}
+	public int
+	getNextValueVersions(
+		int		num )
+	{
+		try{
+			version_mon.enter();
+
+			Long	l_next = (Long)version_map.get( "next" );
+			
+			int	now = (int)(SystemTime.getCurrentTime()/1000);
+
+			int	next;
+			
+			if ( l_next == null ){
+
+				next = now;
+				
+			}else{
+				
+				next = l_next.intValue();
+				
+					// if "next" is in the future then we live with it to try and ensure increasing
+					// values (system clock must have changed)
+				
+				if ( next < now ){
+					
+					next = now;
+				}
+			}
+			
+			version_map.put( "next", new Long( next+num ));
+			
+			writeVersionData();
+			
+			return( next );
+			
+		}finally{
+			
+			version_mon.exit();
 		}
 	}
 	
