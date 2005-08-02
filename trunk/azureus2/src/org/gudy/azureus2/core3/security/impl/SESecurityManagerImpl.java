@@ -269,9 +269,7 @@ SESecurityManagerImpl
 		String		host,
 		int			port )
 	{
-		try{
-			this_mon.enter();
-			
+		try{			
 			URL	tracker_url = new URL( protocol + "://" + host + ":" + port + "/" );
 		
 			return( getPasswordAuthentication( realm, tracker_url ));
@@ -281,10 +279,6 @@ SESecurityManagerImpl
 			Debug.printStackTrace( e );
 			
 			return( null );
-			
-		}finally{
-			
-			this_mon.exit();
 		}
 	}
 	
@@ -757,9 +751,21 @@ SESecurityManagerImpl
 			return(((SEPasswordListener)handler[0]).getAuthentication( realm, (URL)handler[1] ));
 		}
 		
-		for (int i=0;i<password_listeners.size();i++){
+		List	listeners_ref;
+		
+		try{
+			this_mon.enter();
 			
-			PasswordAuthentication res = ((SEPasswordListener)password_listeners.get(i)).getAuthentication( realm, tracker );
+			listeners_ref = new ArrayList( password_listeners );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		for (int i=0;i<listeners_ref.size();i++){
+			
+			PasswordAuthentication res = ((SEPasswordListener)listeners_ref.get(i)).getAuthentication( realm, tracker );
 			
 			if ( res != null ){
 				
