@@ -469,6 +469,10 @@ DHTDBMapping
 
 				}
 				
+					// put the old value back!
+				
+				direct_originator_map.put( value_key, old );
+				
 				return;
 			}
 			
@@ -550,6 +554,10 @@ DHTDBMapping
 					// System.out.println( "addIndirect[ignore]:" + old.getString() + "/" + value.getString());
 				}
 				
+					// put the old value back!
+				
+				indirect_originator_value_map.put( value_key, old );
+				
 				return;
 			}
 			
@@ -563,8 +571,12 @@ DHTDBMapping
 				
 				if ( old.getCreationTime() > value.getCreationTime() + 30000 ){
 					
-					System.out.println( "backward compat: ignoring store: " + old.getString() + "/" + value.getString());
+					// System.out.println( "backward compat: ignoring store: " + old.getString() + "/" + value.getString());
 					
+					// put the old value back!
+					
+					indirect_originator_value_map.put( value_key, old );
+
 					return;
 				}
 			}
