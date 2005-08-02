@@ -118,8 +118,8 @@ DiskManagerImpl
 	private static final int LDT_PIECE_DONE_CHANGED		= 3;
 	private static final int LDT_ACCESS_MODE_CHANGED	= 4;
 	
-	private ListenerManager	listeners_agregator 	= ListenerManager.createAsyncManager(
-			"DiskM:ListenAgregatorDispatcher",
+	private static ListenerManager	listeners_aggregator 	= ListenerManager.createAsyncManager(
+			"DiskM:ListenAggregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -166,7 +166,7 @@ DiskManagerImpl
 					int			type,
 					Object		value )
 				{
-					listeners_agregator.dispatch( listener, type, value );
+					listeners_aggregator.dispatch( listener, type, value );
 				}
 			});	
 	

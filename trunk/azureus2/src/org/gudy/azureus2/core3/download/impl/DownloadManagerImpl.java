@@ -62,34 +62,38 @@ DownloadManagerImpl
 	
 	private AEMonitor	listeners_mon	= new AEMonitor( "DM:DownloadManager:L" );
 
-	private ListenerManager	listeners_agregator 	= ListenerManager.createAsyncManager(
-			"DM:ListenAgregatorDispatcher",
+	private static ListenerManager	listeners_aggregator 	= ListenerManager.createAsyncManager(
+			"DM:ListenAggregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
 				dispatch(
 					Object		_listener,
 					int			type,
-					Object		value )
+					Object		_value )
 				{
 					DownloadManagerListener	listener = (DownloadManagerListener)_listener;
 					
+					Object[]	value = (Object[])_value;
+					
+					DownloadManagerImpl	dm = (DownloadManagerImpl)value[0];
+					
 					if ( type == LDT_STATECHANGED ){
 						
-						listener.stateChanged(DownloadManagerImpl.this, ((Integer)value).intValue());
+						listener.stateChanged(dm, ((Integer)value[1]).intValue());
 						
 					}else if ( type == LDT_DOWNLOADCOMPLETE ){
 						
-						listener.downloadComplete(DownloadManagerImpl.this);
+						listener.downloadComplete(dm);
 
 					}else if ( type == LDT_COMPLETIONCHANGED ){
 						
-						listener.completionChanged(DownloadManagerImpl.this, ((Boolean)value).booleanValue());
+						listener.completionChanged(dm, ((Boolean)value[1]).booleanValue());
 
 					}else if ( type == LDT_POSITIONCHANGED ){
-						
-						listener.positionChanged(DownloadManagerImpl.this,
-						                         ((Integer)value).intValue(), position);
+												
+						listener.positionChanged( dm, ((Integer)value[1]).intValue(), ((Integer)value[2]).intValue());
+						                         
 					}
 				}
 			});		
@@ -104,7 +108,7 @@ DownloadManagerImpl
 					int			type,
 					Object		value )
 				{
-					listeners_agregator.dispatch( listener, type, value );
+					listeners_aggregator.dispatch( listener, type, value );
 				}
 			});	
 	
@@ -147,8 +151,8 @@ DownloadManagerImpl
 	
 		// one static async manager for them all
 	
-	private static ListenerManager	peer_listeners_agregator 	= ListenerManager.createAsyncManager(
-			"DM:PeerListenAgregatorDispatcher",
+	private static ListenerManager	peer_listeners_aggregator 	= ListenerManager.createAsyncManager(
+			"DM:PeerListenAggregatorDispatcher",
 			new ListenerManagerDispatcher()
 			{
 				public void
@@ -196,7 +200,7 @@ DownloadManagerImpl
 					int			type,
 					Object		value )
 				{
-					peer_listeners_agregator.dispatch( listener, type, value );
+					peer_listeners_aggregator.dispatch( listener, type, value );
 				}
 			});	
 	
@@ -936,7 +940,7 @@ DownloadManagerImpl
 				globalManager.fixUpDownloadManagerPositions();
 			}
 			
-			listeners.dispatch( LDT_COMPLETIONCHANGED, new Boolean( _onlySeeding ));
+			listeners.dispatch( LDT_COMPLETIONCHANGED, new Object[]{ this, new Boolean( _onlySeeding )});
 		}
 	}
   
@@ -1398,7 +1402,7 @@ DownloadManagerImpl
 				
 				latest_informed_force_start	= new_force_start;
 				
-				listeners.dispatch( LDT_STATECHANGED, new Integer( new_state ));
+				listeners.dispatch( LDT_STATECHANGED, new Object[]{ this, new Integer( new_state )});
 			}
 			
 		}finally{
@@ -1413,7 +1417,7 @@ DownloadManagerImpl
 		try{
 			listeners_mon.enter();
 
-			listeners.dispatch( LDT_DOWNLOADCOMPLETE, null );
+			listeners.dispatch( LDT_DOWNLOADCOMPLETE, new Object[]{ this });
 		
 		}finally{
 			
@@ -1428,11 +1432,15 @@ DownloadManagerImpl
 		try{
 			listeners_mon.enter();
 			
-			if ( new_position != position ){
+			int	old_position = position;
+			
+			if ( new_position != old_position ){
 				
 				position = new_position;
 				
-				listeners.dispatch( LDT_POSITIONCHANGED, new Integer( position ));
+				listeners.dispatch( 
+					LDT_POSITIONCHANGED, 
+					new Object[]{ this, new Integer( old_position ), new Integer( new_position )});
 			}
 		}finally{
 			
