@@ -93,8 +93,16 @@ Peer
  	
 	public boolean isIncoming();
 
+		/**
+		 * @deprecated This erroneously returns percent in 1000 (i.e. 100% = 1000 :) Therefore replaces
+		 * with something more accurately named!
+		 * @return
+		 */
+	
 	public int getPercentDone();
 
+	public int getPercentDoneInThousandNotation();
+	
 	public String getClient();
 
 	public boolean isOptimisticUnchoke();

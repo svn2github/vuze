@@ -198,6 +198,11 @@ PeerImpl
 		return( delegate.getPercentDoneInThousandNotation());
 	}
 
+	public int getPercentDoneInThousandNotation()
+	{
+		return( delegate.getPercentDoneInThousandNotation());
+	}
+	
 	public String getClient()
 	{
 		return( delegate.getClient());

@@ -1235,7 +1235,7 @@ DHTTrackerPlugin
 												
 												Peer	dl_peer = dl_peers[i];
 												
-												if ( dl_peer.getPercentDone() == 100 ){
+												if ( dl_peer.getPercentDoneInThousandNotation() == 1000 ){
 													
 													local_seeds++;
 													
