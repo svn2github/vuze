@@ -22,6 +22,8 @@
  */
 package com.aelitis.azureus.core.dht.vivaldi.maths.impl;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.dht.vivaldi.maths.Coordinates;
 import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 
@@ -36,13 +38,14 @@ public class VivaldiPositionImpl implements VivaldiPosition{
   
   private static final float cc = 0.25f;
   private static final float ce = 0.5f;
+  private static final float initial_error	= 10f;
   
   private HeightCoordinatesImpl coordinates;
   private float error;
   
   public VivaldiPositionImpl(HeightCoordinatesImpl coordinates) {
     this.coordinates = coordinates;
-    error = 10f;
+    error = initial_error;
   }
   
   public Coordinates getCoordinates() {
@@ -78,12 +81,31 @@ public class VivaldiPositionImpl implements VivaldiPosition{
 	    float es = Math.abs(re) / rtt;
 	    
 	    //Update weighted moving average of local error. (3)
-	    error = es * ce * w + error * (1 - ce * w);
 	    
-	    //Update local coordinates. (4)
+	    float new_error = es * ce * w + error * (1 - ce * w);
+	    
+	    	//Update local coordinates. (4)
+	    
 	    float delta = cc * w;
+	    
 	    float scale = delta * re;
-	    coordinates = (HeightCoordinatesImpl)coordinates.add(coordinates.sub(cj).unity().scale(scale));
+	    
+	    HeightCoordinatesImpl new_coordinates = (HeightCoordinatesImpl)coordinates.add(coordinates.sub(cj).unity().scale(scale));
+	    
+	    if ( valid( new_error ) && new_coordinates.isValid()){
+	    	
+	    	coordinates = new_coordinates;
+	    	
+	    	error		= new_error;
+	    	
+	    }else{
+	    	
+	    	Debug.out( "VivaldiPosition: resetting as invalid: " + 
+	    				coordinates + "/" + error + " + " + rtt + "," + cj + "," + ej + "->" + new_coordinates + "/" + new_error );
+	    	
+	    	coordinates = new HeightCoordinatesImpl(0,0,0);
+	    	error		= initial_error;
+	    }
 	  }else{
 		 // System.out.println( "rejected vivaldi update:" + rtt + "/" + cj + "/" + ej );
 	  }
