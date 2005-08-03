@@ -501,7 +501,8 @@ public class Show extends IConsoleCommand {
 	
 				ci.out.println( 	"DHT:ip=" + transport.getLocalContact().getAddress() + 
 									",net=" + transport.getNetwork() +
-									",prot=V" + transport.getProtocolVersion());
+									",prot=V" + transport.getProtocolVersion() + 
+									",vp=" + transport.getLocalContact().getVivaldiPosition());
 				
 				ci.out.println( 	
 							"Router" +
