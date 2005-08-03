@@ -64,6 +64,19 @@ public class HeightCoordinatesImpl implements Coordinates {
 	  return( x==0&&y==0&&h==0);
   }
   
+  public boolean
+  isValid()
+  {
+	 return( valid(x) && valid(y) && valid(h));
+  }
+  
+  private boolean
+  valid(
+	float	f )
+  {
+	  return( !(Float.isInfinite( f ) || Float.isNaN( f )));
+  }
+  
   public float distance(Coordinates other) {
     return this.sub(other).measure();
   }

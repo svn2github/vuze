@@ -38,4 +38,7 @@ public interface Coordinates {
   
   public boolean
   atOrigin();
+  
+  public boolean
+  isValid();
 }

@@ -57,28 +57,43 @@ public class VivaldiPositionImpl implements VivaldiPosition{
     this.error = error;
    }
   
-  public void update(float rtt,Coordinates cj,float ej) {   
-    //Insure we have valid data in input
-    if(rtt == 0) return;
-    if(error + ej == 0) return;
-    
-    //Sample weight balances local and remote error. (1)
-    float w = error / (ej + error);
-    
-    //Real error
-    float re = rtt - coordinates.distance(cj);
-    
-    //Compute relative error of this sample. (2)
-    float es = Math.abs(re) / rtt;
-    
-    //Update weighted moving average of local error. (3)
-    error = es * ce * w + error * (1 - ce * w);
-    
-    //Update local coordinates. (4)
-    float delta = cc * w;
-    float scale = delta * re;
-    coordinates = (HeightCoordinatesImpl)coordinates.add(coordinates.sub(cj).unity().scale(scale));
-    
+  public void 
+  update(float rtt,Coordinates cj,float ej) 
+  {
+	  if ( valid(rtt) && valid(ej) && cj.isValid()){
+		  
+		 // System.out.println( "accepted vivaldi update:" + rtt + "/" + cj + "/" + ej );
+
+	    //Insure we have valid data in input
+	    if(rtt == 0) return;
+	    if(error + ej == 0) return;
+	    
+	    //Sample weight balances local and remote error. (1)
+	    float w = error / (ej + error);
+	    
+	    //Real error
+	    float re = rtt - coordinates.distance(cj);
+	    
+	    //Compute relative error of this sample. (2)
+	    float es = Math.abs(re) / rtt;
+	    
+	    //Update weighted moving average of local error. (3)
+	    error = es * ce * w + error * (1 - ce * w);
+	    
+	    //Update local coordinates. (4)
+	    float delta = cc * w;
+	    float scale = delta * re;
+	    coordinates = (HeightCoordinatesImpl)coordinates.add(coordinates.sub(cj).unity().scale(scale));
+	  }else{
+		 // System.out.println( "rejected vivaldi update:" + rtt + "/" + cj + "/" + ej );
+	  }
+  }
+  
+  private boolean
+  valid(
+	float	f )
+  {
+	  return( !(Float.isInfinite( f ) || Float.isNaN( f )));
   }
   
   public void update(float rtt, float[] data ){
