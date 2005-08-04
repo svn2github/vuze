@@ -1905,7 +1905,8 @@ DHTTransportUDPImpl
 	
 	public void
 	process(
-		DHTUDPPacketRequest	request )
+		DHTUDPPacketRequest	request,
+		boolean				alien )
 	{
 		if ( request_handler == null ){
 			
@@ -1915,7 +1916,7 @@ DHTTransportUDPImpl
 		}
 		
 		try{			
-			stats.incomingRequestReceived( request );
+			stats.incomingRequestReceived( request, alien );
 			
 			InetSocketAddress	transport_address = request.getAddress();
 			

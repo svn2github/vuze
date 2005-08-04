@@ -24,7 +24,7 @@ package com.aelitis.azureus.core.dht.transport.util;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
-import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketHelper;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
 
 /**
@@ -44,9 +44,10 @@ DHTTransportStatsImpl
 	private long[]	stores		= new long[4];
 	private long[]	stats		= new long[4];
 	
+	private long[]	aliens		= new long[5];
+
 	private long	incoming_requests;
 	private long	outgoing_requests;
-	
 	
 	private long	incoming_version_requests;
 	private long[]	incoming_request_versions;
@@ -78,8 +79,10 @@ DHTTransportStatsImpl
 		add( find_values, other.find_values );
 		add( stores, other.stores );
 		add( stats, other.stats );
+		add( aliens, other.aliens );
 		
 		incoming_requests += other.incoming_requests;
+		outgoing_requests += other.outgoing_requests;
 	}
 	
 	protected void
@@ -96,12 +99,14 @@ DHTTransportStatsImpl
 	snapshotSupport(
 		DHTTransportStatsImpl	clone )
 	{
-		clone.pings		= (long[])pings.clone();
+		clone.pings			= (long[])pings.clone();
 		clone.find_nodes	= (long[])find_nodes.clone();
 		clone.find_values	= (long[])find_values.clone();
 		clone.stores		= (long[])stores.clone();
+		clone.aliens		= (long[])aliens.clone();
 		
 		clone.incoming_requests	= incoming_requests;
+		clone.outgoing_requests	= outgoing_requests;
 	}
 		// ping
 	
@@ -305,9 +310,36 @@ DHTTransportStatsImpl
 	
 	public void
 	incomingRequestReceived(
-		DHTUDPPacketRequest	request )
+		DHTUDPPacketRequest	request,
+		boolean				alien )
 	{
 		incoming_requests++;
+		
+		if ( alien ){
+			
+			int	type = request.getAction();
+			
+			if ( type == DHTUDPPacketHelper.ACT_REQUEST_FIND_NODE ){
+				
+				aliens[0]++;
+			
+			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_FIND_VALUE ){
+				
+				aliens[1]++;
+				
+			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_PING ){
+				
+				aliens[2]++;
+				
+			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_STATS ){
+				
+				aliens[3]++;
+				
+			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_STORE ){
+				
+				aliens[4]++;
+			}
+		}
 		
 		if ( DHTLog.TRACE_VERSIONS ){
 			
@@ -350,6 +382,12 @@ DHTTransportStatsImpl
 		}
 	}
 	
+	public long[]
+	getAliens()
+	{
+		return( aliens );
+	}
+	
 	public long
 	getIncomingRequests()
 	{
@@ -364,7 +402,8 @@ DHTTransportStatsImpl
 				"node:" + getString( find_nodes ) + "," +
 				"value:" + getString( find_values ) + "," +
 				"stats:" + getString( stats ) + "," +
-				"incoming:" + incoming_requests );
+				"incoming:" + incoming_requests +"," +
+				"alien:" + getString( aliens ));
 	}
 	
 	protected String

@@ -143,6 +143,6 @@ PRUDPPacket
 	public String
 	getString()
 	{
-		return( "type=".concat(String.valueOf(type)));
+		return( "type=" + type + ",addr=" + address );
 	}
 }

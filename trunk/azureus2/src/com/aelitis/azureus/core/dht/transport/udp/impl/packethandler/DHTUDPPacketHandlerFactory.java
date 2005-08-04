@@ -135,7 +135,7 @@ DHTUDPPacketHandlerFactory
 			
 			DHTUDPPacketHandler	res = (DHTUDPPacketHandler)network_details[1];
 			
-			res.process( request );
+			res.receive( request );
 			
 		}catch( IOException e ){
 			

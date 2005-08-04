@@ -29,5 +29,6 @@ DHTUDPRequestHandler
 {
 	public void
 	process(
-		DHTUDPPacketRequest	request );
+		DHTUDPPacketRequest		request,
+		boolean					alien );
 }

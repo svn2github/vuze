@@ -205,6 +205,8 @@ DHTControlImpl
 	
 			}catch( Throwable e ){
 				
+				Debug.printStackTrace( e );
+				
 				logger.log( e );
 			}
 		}

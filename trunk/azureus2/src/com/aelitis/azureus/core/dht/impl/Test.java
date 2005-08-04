@@ -62,8 +62,8 @@ Test
 		DHTTransportUDPImpl.TEST_EXTERNAL_IP	= true;
 	}
 	
-	int num_dhts		= 2;
-	int num_stores	= 2;
+	int num_dhts			= 2;
+	int num_stores			= 2;
 	static int MAX_VALUES	= 10000;
 	
 	boolean	udp_protocol	= true;
@@ -638,8 +638,13 @@ Test
 			
 			port_map.put( new Integer( network ), next_port );
 			
+			byte protocol = network==0?DHTTransportUDP.PROTOCOL_VERSION_MAIN:DHTTransportUDP.PROTOCOL_VERSION_CVS; 
+			
+			// byte protocol = i%2==0?DHTTransportUDP.PROTOCOL_VERSION_MAIN:DHTTransportUDP.PROTOCOL_VERSION_CVS; 
+
+			
 			transport = DHTTransportFactory.createUDP( 
-							network==0?DHTTransportUDP.PROTOCOL_VERSION_MAIN:DHTTransportUDP.PROTOCOL_VERSION_CVS, 
+							protocol,
 							network, 
 							null, 
 							null, 

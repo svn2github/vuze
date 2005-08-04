@@ -89,6 +89,9 @@ DHTPlugin
 	private static final String	PLUGIN_NAME		= "Distributed DB";
 	
 	private static final boolean	TRACE_NON_MAIN = false;
+	private static final boolean	MAIN_DHT_ENABLE	= true;
+	private static final boolean	CVS_DHT_ENABLE	= true;
+	
 	
 	static{
 		
@@ -255,6 +258,8 @@ DHTPlugin
 									if ( lc.equals("print")){
 										
 										dht.print();
+										
+										dhts[i].logStats();
 										
 									}else if ( lc.equals( "testca" )){
 																
@@ -482,17 +487,20 @@ DHTPlugin
 								
 								List	plugins = new ArrayList();
 								
-								plugins.add( new DHTPluginImpl(
-												plugin_interface,
-												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
-												DHT.NW_MAIN,
-												ip,
-												dht_data_port,
-												reseed,
-												logging.getValue(),
-												log ));
+								if ( MAIN_DHT_ENABLE ){
+									
+									plugins.add( new DHTPluginImpl(
+													plugin_interface,
+													DHTTransportUDP.PROTOCOL_VERSION_MAIN,
+													DHT.NW_MAIN,
+													ip,
+													dht_data_port,
+													reseed,
+													logging.getValue(),
+													log ));
+								}
 								
-								if ( Constants.isCVSVersion()){
+								if ( Constants.isCVSVersion() && CVS_DHT_ENABLE ){
 									
 									plugins.add( new DHTPluginImpl(
 											plugin_interface,

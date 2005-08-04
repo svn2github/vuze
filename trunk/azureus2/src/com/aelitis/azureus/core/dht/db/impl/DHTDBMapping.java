@@ -42,6 +42,8 @@ import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 public class 
 DHTDBMapping 
 {
+	private static final boolean	TRACE_ADDS		= false;
+	
 	private DHTDBImpl			db;
 	private HashWrapper			key;
 	private DHTStorageKey		adapter_key;
@@ -454,8 +456,9 @@ DHTDBMapping
 				
 				if ( old_version == new_version ){
 			
-					//System.out.println( "addDirect[reset]:" + old.getString() + "/" + value.getString());
-				
+					if ( TRACE_ADDS ){
+						System.out.println( "addDirect[reset]:" + old.getString() + "/" + value.getString());
+					}
 
 					old.reset();	// update store time as this means we don't need to republish
 									// as someone else has just done it
@@ -465,8 +468,9 @@ DHTDBMapping
 						// its important to ignore old versions as a peer's increasing version sequence may
 						// have been reset and if this is the case we want the "future" values to timeout
 					
-					//System.out.println( "addDirect[ignore]:" + old.getString() + "/" + value.getString());
-
+					if ( TRACE_ADDS ){
+						System.out.println( "addDirect[ignore]:" + old.getString() + "/" + value.getString());
+					}
 				}
 				
 					// put the old value back!
@@ -476,14 +480,20 @@ DHTDBMapping
 				return;
 			}
 			
-			//System.out.println( "addDirect:" + old.getString() + "/" + value.getString());
-
+			if ( TRACE_ADDS ){
+				System.out.println( "addDirect:" + old.getString() + "/" + value.getString());
+			}
 			
 			direct_data_size -= old.getValue().length;
 			
 			if ( old.isLocal()){
 				
 				local_size -= old.getValue().length;
+			}
+		}else{
+			
+			if ( TRACE_ADDS ){
+				System.out.println( "addDirect:[new]" +  value.getString());
 			}
 		}
 		
@@ -543,15 +553,18 @@ DHTDBMapping
 				
 				if ( old_version == new_version ){
 
-					// System.out.println( "addIndirect[reset]:" + old.getString() + "/" + value.getString());
-				
+					if ( TRACE_ADDS ){
+						System.out.println( "addIndirect[reset]:" + old.getString() + "/" + value.getString());
+					}
 
 					old.reset();	// update store time as this means we don't need to republish
 									// as someone else has just done it
 				
 				}else{
 					
-					// System.out.println( "addIndirect[ignore]:" + old.getString() + "/" + value.getString());
+					if ( TRACE_ADDS ){
+						System.out.println( "addIndirect[ignore]:" + old.getString() + "/" + value.getString());
+					}
 				}
 				
 					// put the old value back!
@@ -561,8 +574,6 @@ DHTDBMapping
 				return;
 			}
 			
-			// System.out.println( "addIndirect:" + old.getString() + "/" + value.getString());
-			
 			// vague backwards compatability - if the creation date of the "new" value is significantly
 			// less than the old then we ignore it (given that creation date is adjusted for time-skew you can
 			// see the problem with this approach...)
@@ -571,7 +582,9 @@ DHTDBMapping
 				
 				if ( old.getCreationTime() > value.getCreationTime() + 30000 ){
 					
-					// System.out.println( "backward compat: ignoring store: " + old.getString() + "/" + value.getString());
+					if ( TRACE_ADDS ){
+						System.out.println( "backward compat: ignoring store: " + old.getString() + "/" + value.getString());
+					}
 					
 					// put the old value back!
 					
@@ -581,13 +594,21 @@ DHTDBMapping
 				}
 			}
 			
+			if ( TRACE_ADDS ){
+				System.out.println( "addIndirect:" + old.getString() + "/" + value.getString());
+			}
+		
 			indirect_data_size -= old.getValue().length;
 			
 			if ( old.isLocal()){
 				
 				local_size -= old.getValue().length;
 			}
-		}
+		}else{	
+			if ( TRACE_ADDS ){
+				System.out.println( "addIndirect:[new]" +  value.getString());
+			}
+		}		
 		
 		indirect_data_size += value.getValue().length;
 		

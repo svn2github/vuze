@@ -52,6 +52,11 @@ DHTTransportStats
 	public long[]
 	getStores();
 	
+		// not indexed as above but rather just done on request packet type 
+	
+	public long[]
+	getAliens();
+	
 	public long
 	getIncomingRequests();
 	
