@@ -162,8 +162,8 @@ public class VivaldiPanel {
     
     if(SWT.getVersion() >= 3138 && antiAliasingAvailable) {
     	try {
-    		gc.setTextAntialias(SWT.ON);
-    		gc.setAntialias(SWT.ON);
+    		//gc.setTextAntialias(SWT.ON);
+    		//gc.setAntialias(SWT.ON);
       } catch(Exception e) {
         antiAliasingAvailable = false;
       }

@@ -193,8 +193,8 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
 
     if(SWT.getVersion() >= 3138 && antiAliasingAvailable) {
       try {
-        gcBuffer.setTextAntialias(SWT.ON);
-        gcBuffer.setAntialias(SWT.ON);
+        //gcBuffer.setTextAntialias(SWT.ON);
+        //gcBuffer.setAntialias(SWT.ON);
       } catch(Exception e) {
         antiAliasingAvailable = false;
       }
