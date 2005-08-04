@@ -1187,17 +1187,13 @@ DHTTrackerPlugin
 										// hmm, ok, try being a bit more relaxed about this, inject the scrape if
 										// we have any peers. 
 																		
-									boolean	inject_scrape = false;
+									boolean	inject_scrape = leecher_count > 0;
 									
 									DownloadScrapeResult result = dl.getLastScrapeResult();
 																		
 									if (	result == null || 
 											result.getResponseType() == DownloadScrapeResult.RT_ERROR ){									
-										
-										if ( leecher_count > 0 ){
-											
-											inject_scrape = true;
-										}
+			
 									}else{
 									
 											// if the currently reported values are the same as the 
