@@ -1036,16 +1036,10 @@ DiskManagerImpl
 							Debug.printStackTrace( e );
 						}
 						
-					}else if ( 	file_done < file_length &&
-								this_file.getAccessMode() == DiskManagerFileInfo.READ){
-						
-						try{
-							this_file.setAccessMode( DiskManagerFileInfo.WRITE );
-									
-						}catch (Exception e) {
-									
-							Debug.printStackTrace( e );
-						}
+						// note - we don't set the access mode to write if incomplete as we may 
+						// be rechecking a file and during this process the "file_done" amount
+						// will not be file_length until the end. If the file is read-only then
+						// changing to write will cause trouble!
 					}
 				}
 			}
