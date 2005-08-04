@@ -221,10 +221,10 @@ public class Utils {
   public static void centerWindowRelativeTo(final Shell window, final Control control)
   {
       final Rectangle bounds = control.getBounds();
-      final Point controlSize = control.getSize();
+      final Point shellSize = window.getSize();
       window.setLocation(
-              bounds.x + (bounds.width / 2) - controlSize.x,
-              bounds.y + (bounds.height / 2) - controlSize.y
+              bounds.x + (bounds.width / 2) - shellSize.x / 2,
+              bounds.y + (bounds.height / 2) - shellSize.y / 2
       );
   }
 

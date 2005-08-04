@@ -15,6 +15,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 public class StringListChooser {
@@ -88,8 +89,9 @@ public class StringListChooser {
       }
     });
     
-    data = new GridData(GridData.FILL_BOTH);
+    data = new GridData(GridData.FILL_HORIZONTAL);
     data.horizontalSpan = 2;
+    data.heightHint = 30;
     label.setLayoutData(data);
     
     data = new GridData(GridData.FILL_HORIZONTAL);
@@ -99,15 +101,21 @@ public class StringListChooser {
     data = new GridData();
     data.widthHint = 80;
     data.grabExcessHorizontalSpace = true;
+    data.grabExcessVerticalSpace = true;
+    data.verticalAlignment = SWT.END;
     data.horizontalAlignment = SWT.END;
     ok.setLayoutData(data);
     
     data = new GridData();
+    data.grabExcessVerticalSpace = true;
+    data.verticalAlignment = SWT.END;
     data.widthHint = 80;    
     cancel.setLayoutData(data);
     
-    shell.setSize(shell.computeSize(300,SWT.DEFAULT));
+    shell.setSize(300,150);
     shell.layout();
+    
+    Utils.centerWindowRelativeTo(shell,parentShell);
     
   }
   
