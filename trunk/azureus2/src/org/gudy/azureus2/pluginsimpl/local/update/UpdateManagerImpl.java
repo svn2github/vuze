@@ -55,8 +55,9 @@ UpdateManagerImpl
 
 	protected AzureusCore	azureus_core;
 		
-	protected List	components 	= new ArrayList();
-	protected List	listeners	= new ArrayList();
+	protected List	components 			= new ArrayList();
+	protected List	listeners			= new ArrayList();
+	protected List	decision_listeners	= new ArrayList();
 	
 	protected List	installers	= new ArrayList();
 	
@@ -203,6 +204,43 @@ UpdateManagerImpl
 			
 			throw( new UpdateException( "UpdateManager:applyUpdates fails", e ));
 		}
+	}
+	
+	protected Object
+	getDecision(
+		Update		update,
+		int			decision_type,
+		String		decision_name,
+		String		decision_description,
+		Object		decision_data )
+	{
+		for (int i=0;i<decision_listeners.size();i++){
+			
+			Object res = 
+				((UpdateManagerDecisionListener)decision_listeners.get(i)).decide(
+						update, decision_type, decision_name, decision_description, decision_data );
+			
+			if ( res != null ){
+				
+				return( res );
+			}
+		}
+		
+		return( null );
+	}
+	
+	public void
+	addDecisionListener(
+		UpdateManagerDecisionListener	l )
+	{
+		decision_listeners.add(l);
+	}
+	
+	public void
+	removeDecisionListener(
+		UpdateManagerDecisionListener	l )
+	{
+		decision_listeners.remove(l);
 	}
 	
 	public void

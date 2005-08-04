@@ -38,7 +38,7 @@ public class
 UpdateImpl 
 	implements Update
 {
-	private UpdateCheckInstance		instance;
+	private UpdateCheckInstanceImpl	instance;
 	private String					name;
 	private String[]				description;
 	private String					new_version;
@@ -52,7 +52,7 @@ UpdateImpl
 	
 	protected
 	UpdateImpl(
-		UpdateCheckInstance		_instance,
+		UpdateCheckInstanceImpl	_instance,
 		String					_name,
 		String[]				_desc,
 		String					_new_version,
@@ -179,6 +179,18 @@ UpdateImpl
 			}
 		}
 	}
+	
+	public Object
+	getDecision(
+		int			decision_type,
+		String		decision_name,
+		String		decision_description,
+		Object		decision_data )
+	{
+		return(((UpdateManagerImpl)instance.getManager()).getDecision( 
+				this, decision_type, decision_name, decision_description, decision_data ));
+	}
+	
 	public void
 	addListener(
 		UpdateListener	l )

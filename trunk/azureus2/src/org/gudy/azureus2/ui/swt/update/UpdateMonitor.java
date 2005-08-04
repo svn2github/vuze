@@ -97,6 +97,31 @@ UpdateMonitor
 	  			}
 			});
 	  	
+	  	um.addDecisionListener(
+	  		new UpdateManagerDecisionListener()
+	  		{
+	  			public Object
+	  			decide(
+	  				Update		update,
+	  				int			decision_type,
+	  				String		decision_name,
+	  				String		decision_description,
+	  				Object		decision_data )
+	  			{
+	  				if ( decision_type == UpdateManagerDecisionListener.DT_STRING_ARRAY_TO_STRING ){
+	  					
+	  					String[]	options = (String[])decision_data;
+	  					
+	  						// pop up window showing option list with name+desc as above
+	  						// and then return selected option
+	  						// return null if aborted
+	  					
+	  				}
+	  				
+	  				return( null );
+	  			}
+	  		});
+	  	
 	    SimpleTimer.addPeriodicEvent( 
 	            AUTO_UPDATE_CHECK_PERIOD,
 	            new TimerEventPerformer()

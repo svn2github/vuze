@@ -670,9 +670,12 @@ PluginUpdatePlugin
 								new BufferedInputStream( new FileInputStream( target ) ));
 					
 					
-						// first look for a common dir prefix 
+						// first look for a common dir prefix and platform-specific stuff
 					
 					String	common_prefix = null;
+				
+					String	selected_platform		= null;
+					List	selected_sub_platforms	= new ArrayList();
 					
 					try{
 						while( true ){
@@ -709,6 +712,43 @@ PluginUpdatePlugin
 									
 									common_prefix = common_prefix.substring(0,len);
 								}
+								
+								int	plat_pos = name.indexOf( "platform/" );
+								
+								if ( plat_pos != -1 ){
+									
+									plat_pos += 9;
+									
+									int	plat_end_pos = name.indexOf( "/", plat_pos );
+									
+									if ( plat_end_pos != -1 ){
+										
+										String	platform 		= name.substring( plat_pos, plat_end_pos );
+										String	sub_platform 	= null;
+										
+										int	sub_plat_pos = platform.indexOf("_");
+										
+										if ( sub_plat_pos != -1 ){
+											
+											sub_platform = platform.substring( sub_plat_pos+1 );
+											
+											platform	= platform.substring(0,sub_plat_pos);
+										}
+																	
+										if ( 	(Constants.isWindows && platform.equalsIgnoreCase( "windows" )) ||
+												(Constants.isLinux && platform.equalsIgnoreCase( "linux" ))	||
+												(Constants.isOSX && platform.equalsIgnoreCase( "osx" ))){
+											
+										
+											selected_platform = platform;
+											
+											if ( sub_platform != null ){
+												
+												selected_sub_platforms.add( sub_platform );
+											}
+										}
+									}
+								}
 							}
 							
 							long	rem = entry.getSize();
@@ -736,7 +776,42 @@ PluginUpdatePlugin
 						
 						zis.close();
 					}
-					
+	
+					if ( selected_platform != null ){
+						
+						String[]	options = new String[selected_sub_platforms.size()];
+						
+						selected_sub_platforms.toArray( options );
+
+						if ( options.length == 1 ){
+							
+							selected_platform += "_" + options[0];
+							
+							log.log( LoggerChannel.LT_INFORMATION,
+									"platform is '" + selected_platform +"'" );
+
+						}else if ( options.length > 1 ){
+													
+							String selected_sub_platform = (String) 
+								update.getDecision(
+										UpdateManagerDecisionListener.DT_STRING_ARRAY_TO_STRING,
+										"Select Platform",
+										"Multiple platform options exist for this plugin, please select required one",
+										options );
+							
+							if ( selected_sub_platform == null ){
+								
+								throw( new Exception( "Valid sub-platform selection not selected" ));
+							}else{
+								
+								selected_platform += "_" + selected_sub_platform;
+								
+								log.log( LoggerChannel.LT_INFORMATION,
+										"platform is '" + selected_platform +"'" );
+
+							}
+						}
+					}
 	
 					if ( common_prefix != null ){
 						
@@ -776,12 +851,35 @@ PluginUpdatePlugin
 									if ( 	name.length() >= common_prefix.length() &&
 											!name.endsWith("/")){
 										
+										boolean	skip_file = false;
+										
 										String	file_name = entry.getName().substring( common_prefix.length());
+										
+										if ( selected_platform != null ){
+											
+											if ( file_name.indexOf( "platform/" ) != -1 ){
+												
+												String	bit_to_remove = "platform/" + selected_platform;
+											
+												int	pp = file_name.indexOf( bit_to_remove );
+											
+												if ( pp != -1 ){
+												
+													file_name = file_name.substring(0,pp) + file_name.substring(pp+bit_to_remove.length()+1);
+																								
+												}else{
+												
+														// stuff from other platform, ignore it
+												
+													skip_file	= true;
+												}
+											}
+										}
 										
 										initial_target 	= new File( plugin.getPluginDirectoryName() + File.separator + file_name );
 										
 										final_target	= initial_target;
-										
+														
 										if ( initial_target.exists()){
 											
 											if ( 	file_name.toLowerCase().endsWith(".properties") ||
@@ -811,13 +909,21 @@ PluginUpdatePlugin
 													backup.delete();
 												}
 												
-												initial_target.renameTo( backup );
+												if ( !initial_target.renameTo( backup )){
+													
+													log.log( LoggerChannel.LT_INFORMATION,
+															"    failed to backup '" + file_name +"'" );
+
+												}
 											}
 										}
 										
-										final_target.getParentFile().mkdirs();
+										if ( !skip_file ){
+											
+											final_target.getParentFile().mkdirs();
 										
-										entry_os = new FileOutputStream( final_target );
+											entry_os = new FileOutputStream( final_target );
+										}
 									}
 									
 									long	rem = entry.getSize();

@@ -82,6 +82,13 @@ Update
 	public UpdateCheckInstance
 	getCheckInstance();
 	
+	public Object
+	getDecision(
+		int			decision_type,	// see UpdateManagerDecisionListener
+		String		decision_name,
+		String		decision_description,
+		Object		decision_data );
+	
 	public void
 	addListener(
 		UpdateListener	l );
