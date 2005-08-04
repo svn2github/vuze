@@ -66,10 +66,9 @@ StartServer
         LGLogger.log( "StartServer: listening on 127.0.0.1:6880 for passed torrent info");
     
     }catch (Throwable t) {
-      System.out.println( "ServerSocket bind failed:" );
-        t.printStackTrace();
-        state = STATE_FAULTY;
-        LGLogger.log( "StartServer ERROR: unable to bind to 127.0.0.1:6880 for passed torrent info");
+      state = STATE_FAULTY;
+      String reason = t.getMessage() == null ? "<>" : t.getMessage();
+      LGLogger.log( "StartServer ERROR: unable to bind to 127.0.0.1:6880 listening for passed torrent info: " +reason );
     }
   }
 
