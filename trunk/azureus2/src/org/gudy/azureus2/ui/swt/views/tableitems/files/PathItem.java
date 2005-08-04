@@ -68,7 +68,9 @@ public class PathItem
         int pos = fileInfo.getPath().indexOf( root );
          
         if( pos >= 0 ) {
-          path = fileInfo.getPath().substring( pos + root.length() );
+        	path = fileInfo.getPath().substring( pos + root.length() );
+        }else{
+        	path = File.separator;
         }
       }
     }

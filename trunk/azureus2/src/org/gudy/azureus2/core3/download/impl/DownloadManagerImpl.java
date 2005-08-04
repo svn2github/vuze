@@ -1113,8 +1113,21 @@ DownloadManagerImpl
   	public String 
 	getTorrentSaveDirAndFile() 
   	{	  
-  		return( torrent_save_dir + ( torrent_save_file==null?"":(File.separator + torrent_save_file )));
-  	}
+ 		if ( torrent_save_file == null ){
+ 			
+ 			return( torrent_save_dir );
+ 		}
+ 		
+  		String res = torrent_save_dir;
+  		
+  		if ( !res.endsWith( File.separator )){
+  		
+  			res += File.separator;
+  			
+  		}
+  		
+ 		return( res + torrent_save_file );
+ 	}
 
   	public String
 	getTorrentSaveDir()
