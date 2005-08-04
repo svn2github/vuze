@@ -90,6 +90,15 @@ UpdateCheckInstance
 	public UpdateManager
 	getManager();
 	
+
+	public void
+	addDecisionListener(
+		UpdateManagerDecisionListener	l );
+	
+	public void
+	removeDecisionListener(
+		UpdateManagerDecisionListener	l );
+	
 	public void
 	addListener(
 		UpdateCheckInstanceListener	l );

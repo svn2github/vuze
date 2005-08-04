@@ -25,10 +25,12 @@ package org.gudy.azureus2.ui.swt.update;
 
 import com.aelitis.azureus.core.*;
 
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
+import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -96,31 +98,6 @@ UpdateMonitor
 	  				instance.addListener( UpdateMonitor.this );
 	  			}
 			});
-	  	
-	  	um.addDecisionListener(
-	  		new UpdateManagerDecisionListener()
-	  		{
-	  			public Object
-	  			decide(
-	  				Update		update,
-	  				int			decision_type,
-	  				String		decision_name,
-	  				String		decision_description,
-	  				Object		decision_data )
-	  			{
-	  				if ( decision_type == UpdateManagerDecisionListener.DT_STRING_ARRAY_TO_STRING ){
-	  					
-	  					String[]	options = (String[])decision_data;
-	  					
-	  						// pop up window showing option list with name+desc as above
-	  						// and then return selected option
-	  						// return null if aborted
-	  					
-	  				}
-	  				
-	  				return( null );
-	  			}
-	  		});
 	  	
 	    SimpleTimer.addPeriodicEvent( 
 	            AUTO_UPDATE_CHECK_PERIOD,

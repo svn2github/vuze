@@ -11,6 +11,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 public class StringListChooser {
@@ -21,6 +23,8 @@ public class StringListChooser {
   private Combo combo;
   
   private String result;  
+  
+  private AESemaphore	waiting_sem = new AESemaphore( "StringListChooser" );
   
   public StringListChooser(final Shell parentShell) {
     result = null;
@@ -52,18 +56,20 @@ public class StringListChooser {
       public void handleEvent(Event arg0) {
        result = combo.getText();
        shell.dispose();       
-       //Unlock waiting "open()" if any
+       
        unlockWaitingOpen();
       }
     });
     ok.setText(MessageText.getString("Button.ok"));
     
     Button cancel = new Button(shell,SWT.PUSH);
-    ok.addListener(SWT.Selection, new Listener() {
+    cancel.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-       result = null;
+    	  
+    	  result = null;
+       
        shell.dispose();       
-       //Unlock waiting "open()" if any
+      
        unlockWaitingOpen();
       }
     });
@@ -72,8 +78,7 @@ public class StringListChooser {
     
     shell.addListener(SWT.Dispose,new Listener() {
       public void handleEvent(Event arg0) {
-       result = null;
-       //Unlock waiting "open()" if any
+      
        unlockWaitingOpen();
       }
     });
@@ -125,8 +130,18 @@ public class StringListChooser {
   public String open() {
     if(display == null || display.isDisposed()) return null;    
     display.asyncExec(new Runnable() {    
-      public void run() {
-       shell.open(); 
+      public void 
+      run() 
+      {
+    	  try{
+    		  shell.open();
+    		  
+    	  }catch( Throwable e ){
+    		  
+    		  Debug.printStackTrace( e );
+    		  
+    		  unlockWaitingOpen();
+    	  }
       }    
     });
     
@@ -137,11 +152,15 @@ public class StringListChooser {
     return result;
   }
   
-  private void lockWaitingOpen() {
-    
+  private void 
+  lockWaitingOpen() 
+  {
+	  waiting_sem.reserve(); 
   }
   
-  private void unlockWaitingOpen() {
-    
+  private void 
+  unlockWaitingOpen() 
+  {
+	  waiting_sem.release(); 
   }
 }

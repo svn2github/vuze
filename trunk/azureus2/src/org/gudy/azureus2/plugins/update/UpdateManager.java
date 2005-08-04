@@ -117,15 +117,6 @@ UpdateManager
 	
 		throws UpdateException;
 	
-
-	public void
-	addDecisionListener(
-		UpdateManagerDecisionListener	l );
-	
-	public void
-	removeDecisionListener(
-		UpdateManagerDecisionListener	l );
-	
 	public void
 	addListener(
 		UpdateManagerListener	l );

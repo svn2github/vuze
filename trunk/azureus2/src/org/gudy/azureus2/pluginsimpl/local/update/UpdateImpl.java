@@ -187,7 +187,7 @@ UpdateImpl
 		String		decision_description,
 		Object		decision_data )
 	{
-		return(((UpdateManagerImpl)instance.getManager()).getDecision( 
+		return( instance.getDecision( 
 				this, decision_type, decision_name, decision_description, decision_data ));
 	}
 	

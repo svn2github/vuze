@@ -34,14 +34,17 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateManagerDecisionListener;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -100,6 +103,49 @@ UpdateWindow
   	check_instance 	= _check_instance;
   	
   	check_type = check_instance.getType();
+  	
+  	check_instance.addDecisionListener(
+	  		new UpdateManagerDecisionListener()
+	  		{
+	  			public Object
+	  			decide(
+	  				Update		update,
+	  				int			decision_type,
+	  				String		decision_name,
+	  				String		decision_description,
+	  				Object		decision_data )
+	  			{
+	  				if ( decision_type == UpdateManagerDecisionListener.DT_STRING_ARRAY_TO_STRING ){
+	  					
+	  					String[]	options = (String[])decision_data;
+  					
+	  					Shell	shell = updateWindow;
+	  					
+	  					if ( shell == null ){
+	  						
+	  						Debug.out( "Shell doesn't exist" );
+	  						
+	  						return( null );
+	  					}
+	  					
+	  					StringListChooser chooser = new StringListChooser( shell );
+	  					
+	  					chooser.setTitle( decision_name );
+	  					chooser.setText( decision_description );
+	  					
+	  					for (int i=0;i<options.length;i++){
+	  						
+	  						chooser.addOption( options[i] );
+	  					}
+	  					
+	  					String	result = chooser.open();
+	  					
+	  					return( result );
+	  				}
+	  				
+	  				return( null );
+	  			}
+	  		});
   	
     this.display = SWTThread.getInstance().getDisplay();
     this.updateWindow = null;
@@ -274,6 +320,12 @@ UpdateWindow
     for(int i = 0 ; i < descriptions.length ; i++) {
       stDescription.append(descriptions[i] + "\n");
     }
+  }
+  
+  public Shell
+  getShell()
+  {
+	  return( updateWindow );
   }
   
   public void dispose() {

@@ -744,7 +744,10 @@ PluginUpdatePlugin
 											
 											if ( sub_platform != null ){
 												
-												selected_sub_platforms.add( sub_platform );
+												if ( !selected_sub_platforms.contains( sub_platform )){
+												
+													selected_sub_platforms.add( sub_platform );
+												}
 											}
 										}
 									}
@@ -802,6 +805,7 @@ PluginUpdatePlugin
 							if ( selected_sub_platform == null ){
 								
 								throw( new Exception( "Valid sub-platform selection not selected" ));
+								
 							}else{
 								
 								selected_platform += "_" + selected_sub_platform;
@@ -1197,17 +1201,15 @@ PluginUpdatePlugin
 				msg += " - See update log for details";
 			}
 			
-			log.logAlert( update_txt_found?LoggerChannel.LT_WARNING:LoggerChannel.LT_INFORMATION, msg );			
+			log.logAlertRepeatable( update_txt_found?LoggerChannel.LT_WARNING:LoggerChannel.LT_INFORMATION, msg );			
 
 		}catch( Throwable e ){
 					
 			String msg =   "Version " + version + " of plugin '" + 
 							plugin.getPluginID() + "' " +
 							"failed to install - " + (e.getMessage());
-
-			log.log( msg, e );
 		
-			log.logAlert( LoggerChannel.LT_ERROR, msg );
+			log.logAlertRepeatable( LoggerChannel.LT_ERROR, msg );
 			
 		}finally{
 			
