@@ -20,13 +20,22 @@ public class StringListChooser {
   private Label label;
   private Combo combo;
   
-  private String result;
+  private String result;  
   
-  public StringListChooser(Shell parentShell) {
+  public StringListChooser(final Shell parentShell) {
     result = null;
     
     display = parentShell.getDisplay();
-    
+    if(display == null || display.isDisposed()) return;
+    display.syncExec(new Runnable() {
+      public void run() {
+       createShell(parentShell); 
+      }
+    });
+  }
+  
+  private void createShell(Shell parentShell) {
+      
     shell = ShellFactory.createShell(display,SWT.APPLICATION_MODAL | SWT.BORDER | SWT.TITLE | SWT.CLOSE);
     
     GridLayout layout = new GridLayout();    
@@ -82,6 +91,7 @@ public class StringListChooser {
     data.horizontalAlignment = SWT.END;
     ok.setLayoutData(data);
     
+    shell.layout();
     
   }
   
