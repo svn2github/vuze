@@ -148,12 +148,18 @@ public class VivaldiPanel {
     scale.width = size.width;
     scale.height = size.height;
     
-    Image img = new Image(display,size);
-    GC gc = new GC(img);
     Color white = new Color(display,255,255,255);
+    Color blue = new Color(display,66,87,104);
+    
+    Image img = new Image(display,size);
+    
+    GC gc = new GC(img);    
+    
     gc.setForeground(white);
     gc.setBackground(white);
+    
     gc.fillRectangle(size);
+    
     if(SWT.getVersion() >= 3138 && antiAliasingAvailable) {
     	try {
     		gc.setTextAntialias(SWT.ON);
@@ -163,7 +169,7 @@ public class VivaldiPanel {
       }
     }
     
-    Color blue = new Color(display,66,87,104);
+    
     gc.setForeground(blue);
     gc.setBackground(blue);       
     
@@ -174,10 +180,13 @@ public class VivaldiPanel {
       DHTControlContact contact = (DHTControlContact) iter.next();
       VivaldiPosition position = contact.getTransportContact().getVivaldiPosition();
       HeightCoordinatesImpl coord = (HeightCoordinatesImpl) position.getCoordinates();
-      draw(gc,coord.getX(),coord.getY(),coord.getH(),contact,(int)ownCoords.distance(coord));      
+      if(coord.isValid()) {
+        draw(gc,coord.getX(),coord.getY(),coord.getH(),contact,(int)ownCoords.distance(coord),position.getErrorEstimate());
+      }
     }
     
     gc.dispose();
+    
     gc = new GC(canvas);
     gc.drawImage(img,0,0);
     gc.dispose();
@@ -227,15 +236,18 @@ public class VivaldiPanel {
     gc.drawLine(x0,y0,x0,(int)(y0-200*h/(scale.maxY-scale.minY)));
   }
   
-  private void draw(GC gc,float x,float y,float h,DHTControlContact contact,int distance) {
-    if(x == 0 && y == 0) return;
+  private void draw(GC gc,float x,float y,float h,DHTControlContact contact,int distance,float error) {
+    if(x == 0 && y == 0) return;    
+    if(error > 1) error = 1;
+    int errDisplay = (int) (100 * error);
     int x0 = scale.getX(x,y);
     int y0 = scale.getY(x,y);   
     gc.fillRectangle(x0-1,y0-1,3,3);   
     //int elevation =(int) ( 200*h/(scale.maxY-scale.minY));
     //gc.drawLine(x0,y0,x0,y0-elevation);
-    String text = /*contact.getTransportContact().getAddress().getAddress().getHostAddress() + " (" + */distance + " ms";
-    int xOffset = gc.getFontMetrics().getAverageCharWidth() * text.length() / 2;
+    String text = /*contact.getTransportContact().getAddress().getAddress().getHostAddress() + " (" + */distance + " ms \nerr:"+errDisplay+"%";
+    int lineReturn = text.indexOf("\n");
+    int xOffset = gc.getFontMetrics().getAverageCharWidth() * (lineReturn != -1 ? lineReturn:text.length()) / 2;
     gc.drawText(text,x0-xOffset,y0,true);
   }
   

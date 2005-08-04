@@ -12,7 +12,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 public class StringListChooser {
@@ -41,6 +43,9 @@ public class StringListChooser {
   private void createShell(Shell parentShell) {
       
     shell = ShellFactory.createShell(display,SWT.APPLICATION_MODAL | SWT.BORDER | SWT.TITLE | SWT.CLOSE);
+    if(!Constants.isOSX) {
+      shell.setImage(ImageRepository.getImage("azureus"));
+    }
     
     GridLayout layout = new GridLayout();    
     layout.numColumns = 2;
@@ -83,7 +88,7 @@ public class StringListChooser {
       }
     });
     
-    data = new GridData(GridData.FILL_HORIZONTAL);
+    data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 2;
     label.setLayoutData(data);
     
@@ -92,10 +97,16 @@ public class StringListChooser {
     combo.setLayoutData(data);
         
     data = new GridData();
+    data.widthHint = 80;
     data.grabExcessHorizontalSpace = true;
     data.horizontalAlignment = SWT.END;
     ok.setLayoutData(data);
     
+    data = new GridData();
+    data.widthHint = 80;    
+    cancel.setLayoutData(data);
+    
+    shell.setSize(shell.computeSize(300,SWT.DEFAULT));
     shell.layout();
     
   }
@@ -123,6 +134,9 @@ public class StringListChooser {
     display.asyncExec(new Runnable() {    
       public void run() {
         combo.add(option);
+        if(combo.getItemCount() == 1) {
+          combo.setText(option);
+        }
       }    
     });
   }
