@@ -133,7 +133,8 @@ DMWriterAndCheckerImpl
 	protected AESemaphore	async_check_request_sem 	= new AESemaphore("DMW&C::asyncReq");
 	
 	protected boolean	started;
-	protected boolean	bOverallContinue		= true;
+	
+	protected volatile boolean	bOverallContinue		= true;
 	
 	protected int		pieceLength;
 	protected int		lastPieceLength;
@@ -879,7 +880,7 @@ DMWriterAndCheckerImpl
 	DiskWriteThread 
 		extends AEThread 
 	{
-		private boolean bWriteContinue = true;
+		private volatile boolean bWriteContinue = true;
 		
 		private AESemaphore	stop_sem	= new AESemaphore( "DMW&C::stop");
 

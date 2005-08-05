@@ -47,7 +47,7 @@ DMReaderImpl
 	
 	protected DiskManagerHelper	disk_manager;
 
-	private boolean		bOverallContinue	= true;
+	private volatile boolean		bOverallContinue	= true;
 	
 	private List		readQueue		= new LinkedList();
 	private AESemaphore	readQueueSem	= new AESemaphore("DMReader::readQ");
@@ -290,7 +290,7 @@ DMReaderImpl
 	{
 		private AESemaphore		stop_sem	= new AESemaphore( "DMReader::stop");
 
-		private boolean bReadContinue = true;
+		private volatile boolean bReadContinue = true;
 
 		public 
 		DiskReadThread() 
