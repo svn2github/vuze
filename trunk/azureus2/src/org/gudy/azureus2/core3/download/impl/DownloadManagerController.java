@@ -104,6 +104,7 @@ DownloadManagerController
 		// for comments)
 	
 	private volatile int		state_set_by_method = DownloadManager.STATE_START_OF_DAY;
+	private volatile int		substate;
 	private volatile boolean 	force_start;
 
 	private DiskManager 			disk_manager;
@@ -524,6 +525,8 @@ DownloadManagerController
 				return;
 			}
     
+			setSubState( _stateAfterStopping );
+			
 			setState( DownloadManager.STATE_STOPPING, false );
 
 
@@ -712,7 +715,25 @@ DownloadManagerController
 		return DownloadManager.STATE_ERROR;
   	}
   
+	protected int
+  	getSubState()
+  	{
+		if ( state_set_by_method == DownloadManager.STATE_STOPPING ){
+			
+			return( substate );
+		}else{
+			
+			return( getState());
+		}
+  	}
 
+	private void
+	setSubState(
+		int	ss )
+	{
+		substate	= ss;
+	}
+	
   	private void 
   	setState(
   		int 		_state,

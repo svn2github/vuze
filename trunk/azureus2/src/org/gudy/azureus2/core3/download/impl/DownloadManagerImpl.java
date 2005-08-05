@@ -824,6 +824,12 @@ DownloadManagerImpl
   		return( controller.getState());
   	}
  
+  	public int
+  	getSubState()
+  	{
+  		return( controller.getSubState());
+  	}
+  	
   	public boolean
   	canForceRecheck()
   	{

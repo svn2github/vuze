@@ -109,6 +109,15 @@ Download
 	public int
 	getState();
 
+	/**
+	 * For the STOPPING state this method gives the state that is being transited too (STOPPED, QUEUED or ERROR)
+	 * @return
+	 * @since 2.3.0.5
+	 */
+	
+	public int
+	getSubState();
+	
 	/** When the download state is ERROR this method returns the error details
    * @return
    *

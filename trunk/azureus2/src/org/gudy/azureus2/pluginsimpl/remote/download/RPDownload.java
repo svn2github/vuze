@@ -294,6 +294,13 @@ RPDownload
 		return(0);
 	}
 	
+	public int
+	getSubState()
+	{
+		notSupported();
+		
+		return(0);
+	}
 
 	public String
 	getErrorStateDetails()

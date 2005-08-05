@@ -114,6 +114,30 @@ DownloadImpl
 		return( latest_state );
 	}
 	
+	public int
+	getSubState()
+	{
+		if ( latest_state == ST_STOPPING ){
+			
+			int	substate = download_manager.getSubState();
+			
+			if ( substate == DownloadManager.STATE_QUEUED ){
+				
+				return( ST_QUEUED );
+				
+			}else if ( substate == DownloadManager.STATE_STOPPED ){
+				
+				return( ST_STOPPED );
+				
+			}else if ( substate == DownloadManager.STATE_ERROR ){
+				
+				return( ST_ERROR );
+			}
+		}
+		
+		return( latest_state );
+	}
+	
 	protected int
 	convertState(
 		int		dm_state )

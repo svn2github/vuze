@@ -314,6 +314,12 @@ Test
 			return(0);
 		}
 		
+		public int
+		getSubState()
+		{
+			return( 0 );
+		}
+		
 		public void
 		setStateWaiting()
 		{

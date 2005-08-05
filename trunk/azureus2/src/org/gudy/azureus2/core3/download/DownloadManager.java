@@ -73,6 +73,14 @@ DownloadManager
 	public int
 	getState();
 	
+		/**
+		 * For stopping this returns the target state after stopping (stopped/queued)
+		 * @return
+		 */
+	
+	public int
+	getSubState();
+
 	public void
 	setStateWaiting();
 	
