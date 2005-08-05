@@ -65,7 +65,9 @@ CacheFileManagerImpl
 	
 	protected long		cache_minimum_free_size;
 	protected long		cache_space_free;
-		
+
+	private long	cache_file_id_next	= 0;
+	
 	protected FMFileManager		file_manager;
 	
 		// copy on update semantics
@@ -186,6 +188,19 @@ CacheFileManagerImpl
 	
 		throws CacheFileManagerException
 	{
+		final long	my_id;
+		
+			// we differentiate the 
+		try{
+			this_mon.enter();
+			
+			my_id = cache_file_id_next++;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
 		try{
 			FMFile	fm_file	= 
 				file_manager.createFile(
@@ -194,7 +209,7 @@ CacheFileManagerImpl
 						public String
 						getName()
 						{
-							return( owner.getCacheFileOwnerName());
+							return( owner.getCacheFileOwnerName() + "[" + my_id + "]" );
 						}
 						public TOTorrentFile
 						getTorrentFile()

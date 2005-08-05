@@ -612,6 +612,8 @@ FMFileImpl
 				
 						// already present, start off read-access
 					
+					Debug.out( "FMFileImpl:reserve file - entry already present" );
+					
 					entry[1] = new Boolean( false );
 					
 					return;	
