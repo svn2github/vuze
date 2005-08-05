@@ -254,22 +254,25 @@ IpFilterImpl
 	    return false;
 	  }
 	  
-	  	// don't bounce pseudo addresses (we can ban them but not filter them as they have no sensible
-	  	// real filter address
-	  
-	  if ( UnresolvableHostManager.isPseudoAddress( ipAddress )){
-		  
-		  return( false );
-	  }
-	  
 	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
 
 	  if(match != null) {
 	    if(!allow) {
+	    	
+	      	// don't bounce non-public addresses (we can ban them but not filter them as they have no sensible
+		  	// real filter address
+		  
+		  if ( AENetworkClassifier.categoriseAddress( ipAddress ) != AENetworkClassifier.AT_PUBLIC ){
+			  
+			  return( false );
+		  }
+		  
 	      addBlockedIP( new BlockedIpImpl(ipAddress,match, torrent_name) );
+	      
 	      LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + match);
+	      
 	      return true;
 	    }
       
@@ -277,11 +280,20 @@ IpFilterImpl
 	  }
 
 	
-	  if(allow) {
+	  if( allow ){  
+		  
+		if ( AENetworkClassifier.categoriseAddress( ipAddress ) != AENetworkClassifier.AT_PUBLIC ){
+			  
+		  return( false );
+		}
+		  
 	    addBlockedIP( new BlockedIpImpl(ipAddress,null, torrent_name) );
+	    
 	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
+	    
 	    return true;
 	  }
+	  
 	  return false;
 	}
 	
@@ -302,21 +314,19 @@ IpFilterImpl
   
   
   
-	private boolean isBanned(String ipAddress) {
+	private boolean 
+	isBanned(
+		String ipAddress) 
+	{
 	  try{
 	  	class_mon.enter();
 	  
-		int	address = PRHelpers.addressToInt( ipAddress );
+		int	address = range_manager.addressToInt( ipAddress );
 		
 		Integer	i_address = new Integer( address );
 		
 	    return( bannedIps.get(i_address) != null );
 	    
-	  }catch( UnknownHostException e ){
-		  
-		  Debug.printStackTrace( e );
-		  
-		  return( false );
 	  }finally{
 	  	
 	  	class_mon.exit();
@@ -478,7 +488,7 @@ IpFilterImpl
 		try{
 			class_mon.enter();
 			
-			int	address = PRHelpers.addressToInt( ipAddress );
+			int	address = range_manager.addressToInt( ipAddress );
 			
 			Integer	i_address = new Integer( address );
 			
@@ -486,51 +496,50 @@ IpFilterImpl
 				
 				bannedIps.put( i_address, new BannedIpImpl( ipAddress, torrent_name ));
 				
-				// check for block-banning
+					// check for block-banning, but only for real addresses
 				
-				long	l_address = address;
-				
-		    	if ( l_address < 0 ){
-		     		
-					l_address += 0x100000000L;
-		     	}
-				
-				long	start 	= l_address & 0xffffff00;
-				long	end		= start+256;
-				
-				int	hits = 0;
-				
-				for (long i=start;i<end;i++){
+				if ( !UnresolvableHostManager.isPseudoAddress( ipAddress )){
 					
-					Integer	a = new Integer((int)i);
+					long	l_address = address;
 					
-					if ( bannedIps.get(a) != null ){
-						
-						hits++;
-					}
-				}
-								
-				int	hit_limit = COConfigurationManager.getIntParameter("Ip Filter Ban Block Limit");
-				
-				if ( hits >= hit_limit ){
+			    	if ( l_address < 0 ){
+			     		
+						l_address += 0x100000000L;
+			     	}
 					
-					block_ban	= true;
+					long	start 	= l_address & 0xffffff00;
+					long	end		= start+256;
+					
+					int	hits = 0;
 					
 					for (long i=start;i<end;i++){
 						
 						Integer	a = new Integer((int)i);
 						
-						if ( bannedIps.get(a) == null ){
+						if ( bannedIps.get(a) != null ){
 							
-							bannedIps.put( a, new BannedIpImpl( PRHelpers.intToAddress((int)i), torrent_name + " [block ban]" ));
+							hits++;
+						}
+					}
+									
+					int	hit_limit = COConfigurationManager.getIntParameter("Ip Filter Ban Block Limit");
+					
+					if ( hits >= hit_limit ){
+						
+						block_ban	= true;
+						
+						for (long i=start;i<end;i++){
+							
+							Integer	a = new Integer((int)i);
+							
+							if ( bannedIps.get(a) == null ){
+								
+								bannedIps.put( a, new BannedIpImpl( PRHelpers.intToAddress((int)i), torrent_name + " [block ban]" ));
+							}
 						}
 					}
 				}
 			}
-			
-		}catch( UnknownHostException e ){
-			
-			Debug.printStackTrace( e );
 		}finally{
 			
 			class_mon.exit();
