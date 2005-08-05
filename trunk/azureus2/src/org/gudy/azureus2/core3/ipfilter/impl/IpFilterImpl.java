@@ -230,18 +230,38 @@ IpFilterImpl
   }
   
   
-	public boolean isInRange(String ipAddress, String torrent_name) {
-	  //In all cases, block banned ip addresses
-	  if(isBanned(ipAddress))
-	    return true;
+	public boolean 
+	isInRange(
+		String ipAddress, 
+		String torrent_name) 
+	{
+		//In all cases, block banned ip addresses
+		
+	  if(isBanned(ipAddress)){
+	  
+		  return true;
+	  }
 	  
 	  	// never bounce the local machine (peer guardian has a range that includes it!)
 	  
 	  if ( ipAddress.equals("127.0.0.1")){
-	  	return( false );
+	  	
+		  return( false );
 	  }
-	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true))
+	  
+	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true)){
+		  
 	    return false;
+	  }
+	  
+	  	// don't bounce pseudo addresses (we can ban them but not filter them as they have no sensible
+	  	// real filter address
+	  
+	  if ( UnresolvableHostManager.isPseudoAddress( ipAddress )){
+		  
+		  return( false );
+	  }
+	  
 	  boolean allow = COConfigurationManager.getBooleanParameter("Ip Filter Allow");
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );

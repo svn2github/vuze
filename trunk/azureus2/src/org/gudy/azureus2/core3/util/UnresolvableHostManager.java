@@ -47,20 +47,30 @@ UnresolvableHostManager
 	getPseudoAddress(
 		String		str )
 	{
-		Integer	res = (Integer)host_map.get(str);
-		
-		if ( res == null ){
+		synchronized( host_map ){
 			
-			synchronized( UnresolvableHostManager.class ){
-				
+			Integer	res = (Integer)host_map.get(str);
+		
+			if ( res == null ){
+			
 				res = new Integer( next_address++ );
 				
 				LGLogger.log( "Allocated pseudo IP address '" + Integer.toHexString(res.intValue()) + "' for host '" + str + "'" );
 				
 				host_map.put( str, res );
 			}
-		}
 		
-		return( res.intValue());
+			return( res.intValue());
+		}
+	}
+	
+	public static boolean
+	isPseudoAddress(
+		String	str )
+	{
+		synchronized( host_map ){
+
+			return( host_map.get(str) != null );
+		}
 	}
 }
