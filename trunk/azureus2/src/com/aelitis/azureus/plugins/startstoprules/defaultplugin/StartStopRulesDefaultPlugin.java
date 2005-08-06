@@ -917,7 +917,7 @@ public class StartStopRulesDefaultPlugin
 	              // adjust counts
 	              totalWaitingToDL--;
 	              activeDLCount++;
-	              numWaitingOrDLing++;
+	              //numWaitingOrDLing++;
 	              maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
 	            } catch (Exception ignore) {/*ignore*/}
 	            state = download.getState();
