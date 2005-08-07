@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.download;
 
+import java.io.File;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.category.Category;
@@ -39,6 +40,7 @@ DownloadManagerState
 	public static final String AT_USER						= "user";
 	public static final String AT_PEER_SOURCES				= "peersources";
 	public static final String AT_TRACKER_CLIENT_EXTENSIONS	= "trackerclientextensions";
+	public static final String AT_FILE_LINKS				= "filelinks";
 	
 	public TOTorrent
 	getTorrent();
@@ -115,6 +117,27 @@ DownloadManagerState
 	setPeerSourceEnabled(
 	    String		source,		// from PEPeerSource constants
 	    boolean		enabled);
+	
+		// file links
+	
+	public void
+	setFileLink(
+		File	link_source,
+		File	link_destination );
+
+	public File
+	getFileLink(
+		File	link_source );
+	
+		/**
+		 * returns a File -> File map of the defined links (empty if no links)
+		 * @return
+		 */
+	
+	public Map
+	getFileLinks();
+	
+		// general access
 	
 	public void
 	setAttribute(

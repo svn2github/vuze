@@ -890,4 +890,11 @@ CacheFileManagerImpl
 			writer.exdent();
 		}
 	}
+	
+	public void
+	setFileLinks(
+		Map					links )
+	{
+		file_manager.setFileLinks( links );
+	}
 }

@@ -70,9 +70,12 @@ FMFileImpl
 			});
 	}
 	
+	private FMFileManagerImpl	manager;
 	private FMFileOwner			owner;
 	private int					access_mode			= FM_READ;
-	private File				file;
+	
+	private File				unlinked_file;
+	private File				linked_file;
 	private String				canonical_path;
 	private RandomAccessFile	raf;
 	
@@ -81,18 +84,22 @@ FMFileImpl
 	
 	protected
 	FMFileImpl(
-		FMFileOwner		_owner,
-		File			_file )
+		FMFileOwner			_owner,
+		FMFileManagerImpl	_manager,
+		File				_file )
 	
 		throws FMFileManagerException
 	{
-		owner	= _owner;
-		file	= _file;
+		owner			= _owner;
+		manager			= _manager;
+		unlinked_file	= _file;
+		
+		linked_file		= manager.getLinkedFile( unlinked_file );
 		
 		try{
       
 			try {
-				canonical_path = file.getCanonicalPath();
+				canonical_path = linked_file.getCanonicalPath();
 				
 			}catch( IOException ioe ) {
 				
@@ -100,10 +107,10 @@ FMFileImpl
 				
 		        if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
 					
-		          String abs_path = file.getAbsolutePath();
+		          String abs_path = linked_file.getAbsolutePath();
 				  
 		          String error = "Caught 'There are no more files' exception during file.getCanonicalPath(). " +
-		                         "os=[" +Constants.OSName+ "], file.getPath()=[" +file.getPath()+ "], file.getAbsolutePath()=[" +abs_path+ "]. ";
+		                         "os=[" +Constants.OSName+ "], file.getPath()=[" +linked_file.getPath()+ "], file.getAbsolutePath()=[" +abs_path+ "]. ";
 		                         //"canonical_path temporarily set to [" +abs_path+ "]";
 				  
 		          Debug.out( error, ioe );
@@ -120,10 +127,16 @@ FMFileImpl
 		}
 	}
 
+	protected FMFileManagerImpl
+	getManager()
+	{
+		return( manager );
+	}
+	
 	public File
 	getFile()
 	{
-		return( file );
+		return( unlinked_file );
 	}
 	
 	public FMFileOwner
@@ -155,7 +168,8 @@ FMFileImpl
 			this_mon.enter();
 		
 			String	new_canonical_path;
-	
+			File	new_linked_file	= manager.getLinkedFile( new_file );
+			
 			try{
         
 		        try {
@@ -190,9 +204,10 @@ FMFileImpl
 			
 			close();
 			
-			if ( FileUtil.renameFile( file, new_file)) {
+			if ( FileUtil.renameFile( linked_file, new_linked_file )) {
 				
-				file			= new_file;
+				unlinked_file	= new_file;
+				linked_file		= new_linked_file;
 				canonical_path	= new_canonical_path;
 				
 				reserveFile();
@@ -333,7 +348,7 @@ FMFileImpl
 		reserveAccess( reason );
 		
 		try{		
-			raf = new RandomAccessFile( file, access_mode==FM_READ?READ_ACCESS_MODE:WRITE_ACCESS_MODE);
+			raf = new RandomAccessFile( linked_file, access_mode==FM_READ?READ_ACCESS_MODE:WRITE_ACCESS_MODE);
 			
 		}catch( Throwable e ){
 			
@@ -397,7 +412,7 @@ FMFileImpl
     		
 		if ( !fc.isOpen()){
 			
-			Debug.out("FileChannel is closed: " + file.getAbsolutePath());
+			Debug.out("FileChannel is closed: " + linked_file.getAbsolutePath());
 			
 			throw( new FMFileManagerException( "read - file is closed"));
 		}

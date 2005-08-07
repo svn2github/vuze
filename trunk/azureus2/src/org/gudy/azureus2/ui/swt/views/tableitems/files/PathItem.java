@@ -49,15 +49,23 @@ public class PathItem
     String path = "";
     
     if( fileInfo != null ) {
-      if( FilesView.show_full_path ) { //display as full disk path
-        try {
-          path = fileInfo.getFile().getParentFile().getCanonicalPath() + File.separator;
-        }
-        catch( IOException e ) {
-          path = fileInfo.getFile().getParentFile().getAbsolutePath() + File.separator;
-        }
+    	
+      File file = fileInfo.getFile(true);
+        
+      try {
+          path = file.getParentFile().getCanonicalPath();
       }
-      else {  //display as relative torrent path
+      catch( IOException e ) {
+          path = file.getParentFile().getAbsolutePath();
+      }
+      
+      if ( !path.endsWith( File.separator )){
+    	  
+    	  path += File.separator;
+      }
+      
+      if( !FilesView.show_full_path ) { //display as full disk path
+ 
         DownloadManager dm = fileInfo.getDownloadManager();
 
         String root = dm.getTorrentSaveDir();
@@ -65,10 +73,10 @@ public class PathItem
           root += File.separator + dm.getTorrentSaveFile();
         }
          
-        int pos = fileInfo.getPath().indexOf( root );
+        int pos = path.indexOf( root );
          
         if( pos >= 0 ) {
-        	path = fileInfo.getPath().substring( pos + root.length() );
+        	path = path.substring( pos + root.length() );
         }else{
         	path = File.separator;
         }

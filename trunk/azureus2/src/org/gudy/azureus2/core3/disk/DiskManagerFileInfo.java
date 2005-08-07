@@ -40,6 +40,16 @@ DiskManagerFileInfo
 	
 	public void setSkipped(boolean b);
 	 
+	
+	public void
+	setLink(
+		File	link_destination );
+	
+		// gets the current link, null if none
+	
+	public File
+	getLink();
+	
 	 	// get methods
 	 	
 	public int getAccessMode();
@@ -50,16 +60,12 @@ DiskManagerFileInfo
 		
 	public int getFirstPieceNumber();
   
-  public int getLastPieceNumber();
+	public int getLastPieceNumber();
 	
 	public long getLength();
-	
-	public String getName();
-	
-	public int getNbPieces();
 		
-	public String getPath();
-	
+	public int getNbPieces();
+			
 	public boolean isPriority();
 	
 	public boolean isSkipped();
@@ -68,7 +74,7 @@ DiskManagerFileInfo
 
 	public DownloadManager getDownloadManager();
 	
-	public File getFile();
+	public File getFile( boolean follow_link );
 	
 	public void
 	flushCache()

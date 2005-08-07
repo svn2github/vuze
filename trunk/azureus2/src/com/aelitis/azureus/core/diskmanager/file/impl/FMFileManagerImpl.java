@@ -66,6 +66,9 @@ FMFileManagerImpl
 	protected LinkedHashMap		map;
 	protected AEMonitor			map_mon	= new AEMonitor( "FMFileManager:Map");
 
+	protected HashMap			links		= new HashMap();
+	protected AEMonitor			links_mon	= new AEMonitor( "FMFileManager:Links");
+
 	protected boolean			limited;
 	protected int				limit_size;
 	
@@ -113,6 +116,60 @@ FMFileManagerImpl
 		}
 	}
 	
+	public void
+	setFileLinks(
+		Map					new_links )
+	{
+		try{
+			links_mon.enter();
+			
+			Iterator	it = new_links.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				File	source 	= (File)it.next();
+				File	target	= (File)new_links.get(source);
+				
+				// System.out.println( "setLink:" + source + " -> " + target );
+				
+				if ( target != null ){
+					
+					links.put( source, target );
+				}else{
+					
+					links.remove( source );
+				}
+			}
+		}finally{
+			
+			links_mon.exit();
+		}
+	}
+	
+	protected File
+	getLinkedFile(
+		File	file )
+	{
+		try{
+			links_mon.enter();
+			
+			File	res = (File)links.get( file );
+			
+			if ( res == null ){
+				
+				res = file;
+			}
+			
+			// System.out.println( "getLink:" + file + " -> " + res );
+			
+			return( res );
+			
+		}finally{
+			
+			links_mon.exit();
+		}
+	}
+	
 	public FMFile
 	createFile(
 		FMFileOwner	owner,
@@ -124,17 +181,17 @@ FMFileManagerImpl
 		
 		if ( AEDiagnostics.USE_DUMMY_FILE_DATA ){
 			
-			res = new FMFileTestImpl( owner, file );
+			res = new FMFileTestImpl( owner, this, file );
 			
 		}else{
 		
 			if ( limited ){
 	
-				res = new FMFileLimited(owner,this, file);
+				res = new FMFileLimited( owner, this, file );
 				
 			}else{
 				
-				res = new FMFileUnlimited( owner, file);
+				res = new FMFileUnlimited( owner, this, file );
 			}
 		}
 			

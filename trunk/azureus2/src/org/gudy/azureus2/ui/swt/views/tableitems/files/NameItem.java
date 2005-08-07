@@ -24,6 +24,8 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
+import java.io.File;
+
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
@@ -50,7 +52,7 @@ public class NameItem
 
   public void refresh(TableCell cell) {
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    String name = (fileInfo == null) ? "" : fileInfo.getName();
+    String name = (fileInfo == null) ? "" : fileInfo.getFile(true).getName();
     if (name == null)
       name = "";
     //setText returns true only if the text is updated
@@ -59,7 +61,7 @@ public class NameItem
       if (fileInfo == null) {
         icon = null;
       } else {
-        icon = ImageRepository.getPathIcon(fileInfo.getFile().getPath());
+    	  icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath());
       }
       // cheat for core, since we really know it's a TabeCellImpl and want to use
       // those special functions not available to Plugins
@@ -69,6 +71,6 @@ public class NameItem
   
   public void dispose(TableCell cell) {
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    ImageRepository.unloadPathIcon(fileInfo.getFile().getPath());
+    ImageRepository.unloadPathIcon(fileInfo.getFile(true).getPath());
   }
 }

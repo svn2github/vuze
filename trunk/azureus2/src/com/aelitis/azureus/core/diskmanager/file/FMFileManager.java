@@ -27,6 +27,7 @@ package com.aelitis.azureus.core.diskmanager.file;
  */
 
 import java.io.File;
+import java.util.Map;
 
 public interface 
 FMFileManager 
@@ -37,4 +38,8 @@ FMFileManager
 		File		file )
 	
 		throws FMFileManagerException;
+	
+	public void
+	setFileLinks(
+		Map					links );
 }

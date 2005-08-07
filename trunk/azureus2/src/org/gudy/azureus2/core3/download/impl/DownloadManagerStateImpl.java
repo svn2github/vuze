@@ -821,7 +821,80 @@ DownloadManagerStateImpl
 		    setListAttribute( AT_PEER_SOURCES, l );
 		  }
 	  }
+			
+	  
+	  // links stuff
+	  
+	
+	public void
+	setFileLink(
+		File	link_source,
+		File	link_destination )
+	{
+		Map	links = getFileLinks();
+		
+		File	existing = (File)links.get(link_source);
+		
+		if ( link_destination == null ){
+			
+			if ( existing == null ){
+				
+				return;
+			}
+		}else if ( existing != null && existing.equals( link_destination )){
+			
+			return;
+		}
+		
+		links.put( link_source, link_destination );
+		
+		List	list = new ArrayList();
+		
+		Iterator	it = links.keySet().iterator();
+		
+		while( it.hasNext()){
+			
+			File	source = (File)it.next();
+			File	target = (File)links.get(source);
+			
+			String	str = source + "\n" + (target==null?null:target.toString());
+			
+			list.add( str );
+		}
+		
+		setListAttribute( AT_FILE_LINKS, list );
+	}
+	
+	public File
+	getFileLink(
+		File	link_source )
+	{
+		return((File)getFileLinks().get(link_source));
+	}
 					
+	public Map
+	getFileLinks()
+	{
+		List	values = getListAttributeSupport( AT_FILE_LINKS );
+
+		HashMap	res = new HashMap();
+		
+		for (int i=0;i<values.size();i++){
+			
+			String	entry = (String)values.get(i);
+		
+			int	sep = entry.indexOf( "\n" );
+			
+			if ( sep != -1 ){
+				
+				File target = (sep == entry.length()-1)?null:new File( entry.substring( sep+1 ));
+				
+				res.put( new File( entry.substring(0,sep)), target );
+			}
+		}
+		
+		return( res );
+	}
 	
 		// general stuff
 	
@@ -1405,6 +1478,26 @@ DownloadManagerStateImpl
 	        String source,
 	        boolean enabled) {
 	    }
+		
+	    public void
+		setFileLink(
+			File	link_source,
+			File	link_destination )
+	    {
+	    }
+
+		public File
+		getFileLink(
+			File	link_source )
+		{
+			return( null );
+		}
+		
+		public Map
+		getFileLinks()
+		{
+			return( new HashMap());
+		}
 		
 		public void
 		save()

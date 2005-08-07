@@ -23,6 +23,8 @@
 package org.gudy.azureus2.core3.disk.impl;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.access.DMAccessFactory;
@@ -49,6 +51,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 /**
@@ -1339,7 +1342,7 @@ DiskManagerImpl
 	      
 	      for (int i=0; i < files.length; i++) {
 	          
-	          File old_file = files[i].getFile();
+	          File old_file = files[i].getFile(false);
 	          
 	          old_files[i]	= old_file;
 	          
@@ -1383,7 +1386,7 @@ DiskManagerImpl
 	      
 	      for (int i=0; i < files.length; i++){
 	      		 
-	          File old_file = files[i].getFile();
+	          File old_file = files[i].getFile(false);
 	
 	          File new_file = new_files[i];
 	          
@@ -1788,7 +1791,6 @@ DiskManagerImpl
 				final File		data_file	= new File( path_str );
 	
 				final String	data_name 	= data_file.getName();
-				final String	data_path	= data_file.getParent().toString() + File.separator;
 							
 				int separator = data_name.lastIndexOf(".");
 				
@@ -1856,25 +1858,13 @@ DiskManagerImpl
 						{
 							return( torrent_file.getLength());
 						}
-						
-						public String 
-						getName()
-						{
-							return( data_name );
-						}
-						
+												
 						public int 
 						getNbPieces()
 						{
 							return( -1 );
 						}
-							
-						public String 
-						getPath()
-						{
-							return( data_path );
-						}
-						
+													
 						public boolean 
 						isPriority()
 						{
@@ -1900,9 +1890,32 @@ DiskManagerImpl
 						}
 	
 						public File 
-						getFile()
+						getFile(
+							boolean	follow_link )
 						{
+							if ( follow_link ){
+								
+								File res = getLink();
+								
+								if ( res != null ){
+									
+									return( res );
+								}
+							}
 							return( data_file );
+						}
+						
+						public void
+						setLink(
+							File	link_destination )
+						{
+							download_manager.getDownloadState().setFileLink( data_file, link_destination );
+						}
+												
+						public File
+						getLink()
+						{
+							return( download_manager.getDownloadState().getFileLink( data_file ));
 						}
 						
 						public void
@@ -1924,6 +1937,20 @@ DiskManagerImpl
 			
 			return( new DiskManagerFileInfo[0]);
 	
+		}
+	}
+	
+	public static void
+	setFileLinks(
+		DownloadManager		download_manager,
+		Map					links )
+	{
+		try{
+			CacheFileManagerFactory.getSingleton().setFileLinks( links );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
 		}
 	}
 }

@@ -152,7 +152,23 @@ RPDiskManagerFileInfo
 		return( is_skipped );
 	}
 	
-	public Download getDownload()
+	public void
+	setLink(
+		File	link_destination )
+	{
+		notSupported();
+	}
+	
+	public File
+	getLink()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
+	public Download 
+	getDownload()
          throws DownloadException
     {
 		notSupported();

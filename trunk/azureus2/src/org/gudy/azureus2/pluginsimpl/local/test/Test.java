@@ -33,12 +33,14 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ddb.*;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeEvent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttributeListener;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -117,8 +119,8 @@ Test
 								public void
 								runSupport()
 								{
-									testDDB();
 									
+									testLinks();
 									try{
 										// PlatformManagerFactory.getPlatformManager().performRecoverableFileDelete( "C:\\temp\\recycle.txt" );
 										// PlatformManagerFactory.getPlatformManager().setTCPTOSEnabled( false );
@@ -145,6 +147,33 @@ Test
 					{
 					}
 				});
+	}
+	
+	protected void
+	testLinks()
+	{
+		plugin_interface.getDownloadManager().addListener(
+			new DownloadManagerListener()
+			{
+				public void
+				downloadAdded(
+					Download	download )
+				{
+					DiskManagerFileInfo[]	info = download.getDiskManagerFileInfo();
+					
+					for (int i=0;i<info.length;i++){
+						
+						info[i].setLink( new File( "C:\\temp" ));
+					}
+				}
+				
+				public void
+				downloadRemoved(
+					Download	download )
+				{
+					
+				}
+			});
 	}
 	
 	protected void

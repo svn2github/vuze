@@ -51,6 +51,18 @@ public class DiskManagerFileInfoImpl
 	  core.setSkipped(b);
 	}
 	 
+	public void
+	setLink(
+		File	link_destination )
+	{
+		core.setLink( link_destination );
+	}
+		
+	public File
+	getLink()
+	{
+		return( core.getLink());
+	}
 	 	// get methods
 	 	
 	public int getAccessMode() {
@@ -62,7 +74,7 @@ public class DiskManagerFileInfoImpl
 	}
 	
 	public File getFile() {
-	  return core.getFile();
+	  return core.getFile(false);
 	}
 	
 	public int getFirstPieceNumber() {

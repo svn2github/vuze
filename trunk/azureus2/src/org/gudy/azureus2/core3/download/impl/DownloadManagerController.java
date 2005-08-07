@@ -443,13 +443,15 @@ DownloadManagerController
   	  							try{
   	  								this_mon.enter();
   	  							
-  	  								if ( disk_manager != null ){
+  	  								DiskManager	dm = disk_manager;
+  	  								
+  	  								if ( dm != null ){
 
-  	  									disk_manager.stop();
+  	  									dm.stop();
 		  					
   	  									setDiskManager( null );
 		  						
-  	  									setFailed( disk_manager.getErrorMessage());	 
+  	  									setFailed( dm.getErrorMessage());	 
   	  								}
   	  							}finally{
   	  								

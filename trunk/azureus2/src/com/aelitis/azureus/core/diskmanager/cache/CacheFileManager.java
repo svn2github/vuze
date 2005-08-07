@@ -23,6 +23,8 @@
 package com.aelitis.azureus.core.diskmanager.cache;
 
 import java.io.File;
+import java.util.Map;
+
 
 /**
  * @author parg
@@ -41,4 +43,8 @@ CacheFileManager
 	
 	public CacheFileManagerStats
 	getStats();
+	
+	public void
+	setFileLinks(
+		Map					links );
 }

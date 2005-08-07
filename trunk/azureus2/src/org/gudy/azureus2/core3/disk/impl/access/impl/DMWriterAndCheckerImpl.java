@@ -678,7 +678,7 @@ DMWriterAndCheckerImpl
 	
 				if (current_piece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
 		
-					if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + current_piece.getFile().getName() + " to read/write");
+					if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + current_piece.getFile().getFile(false).getName() + " to read/write");
 						
 					current_piece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
 				}
@@ -735,7 +735,7 @@ DMWriterAndCheckerImpl
 			
 			Debug.printStackTrace( e );
 			
-			String file_name = current_piece==null?"<unknown>":current_piece.getFile().getName();
+			String file_name = current_piece==null?"<unknown>":current_piece.getFile().getFile(false).getName();
 				
 			disk_manager.setFailed( Debug.getNestedExceptionMessage(e) + " when processing file '" + file_name + "'" );
 			

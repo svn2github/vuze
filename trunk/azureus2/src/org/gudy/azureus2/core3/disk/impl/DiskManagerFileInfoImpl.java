@@ -43,8 +43,6 @@ DiskManagerFileInfoImpl
 {
   private CacheFile		cache_file;
   
-  private String 		path;
-  private String 		name;
   private String 		extension;
   private long 			length;
   private long 			downloaded;
@@ -67,15 +65,6 @@ DiskManagerFileInfoImpl
   {
     diskManager 	= _disk_manager;
     torrent_file	= _torrent_file;
-    
-  	try{
-      path	= _file.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
-      name	= _file.getName();
-    }
-    catch (Exception e) {
-      Debug.out("Unable to resolve canonical path for " + _file.getName());
-      Debug.printStackTrace( e );
-    }
   	
   	cache_file = CacheFileManagerFactory.getSingleton().createFile( this, _file );
   }
@@ -106,11 +95,6 @@ DiskManagerFileInfoImpl
   	throws CacheFileManagerException
   {
   	cache_file.moveFile( newFile );
-  	
-  	try {
-      path = newFile.getParentFile().getCanonicalPath() + System.getProperty("file.separator");
-    }
-    catch (Exception e) { Debug.out("Unable to resolve canonical path for " + newFile.getName()); }
   }
   
   public CacheFile
@@ -160,10 +144,35 @@ DiskManagerFileInfoImpl
   /**
    * @return
    */
-  public File getFile() {
-	return( cache_file.getFile());
-  }
+  public File getFile(
+	boolean	follow_link )
+  	{
+	  if ( follow_link ){
+	  
+		  File	res = getLink();
+	  
+		  if ( res != null ){
+		
+			  return( res );
+		  }
+	  }
+	  
+	  return( cache_file.getFile());
+  	}
 
+	public void
+	setLink(
+		File	link_destination )
+	{
+		diskManager.getDownloadManager().getDownloadState().setFileLink( getFile(false), link_destination );
+	}
+
+	public File
+	getLink()
+	{
+		return( diskManager.getDownloadManager().getDownloadState().getFileLink( getFile( false )));
+	}
+	
   /**
    * @return
    */
@@ -181,13 +190,6 @@ DiskManagerFileInfoImpl
    */
   public long getLength() {
 	return length;
-  }
-
-  /**
-   * @return
-   */
-  public String getName() {
-	return name;
   }
 
   /**
@@ -234,14 +236,6 @@ DiskManagerFileInfoImpl
   public void setNbPieces(int i) {
 	nbPieces = i;
   }
-
-  /**
-   * @return
-   */
-  public String getPath() {
-	return path;
-  }
-
 
   /**
    * @return

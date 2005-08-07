@@ -83,7 +83,7 @@ public class FilesView
       public void mouseDoubleClick(MouseEvent mEvent) {
         DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)getFirstSelectedDataSource();
         if (fileInfo != null && fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
-          Program.launch(fileInfo.getPath() + fileInfo.getName());
+          Program.launch(fileInfo.getFile(true).toString());
       }
     });
 
@@ -136,7 +136,7 @@ public class FilesView
       public void run(TableRowCore row) {
         DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
         if (fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
-          Program.launch(fileInfo.getPath() + fileInfo.getName());
+          Program.launch(fileInfo.getFile(true).toString());
       }
     });
     

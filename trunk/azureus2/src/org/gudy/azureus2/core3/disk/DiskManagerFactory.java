@@ -26,6 +26,8 @@ package org.gudy.azureus2.core3.disk;
  *
  */
 
+import java.util.Map;
+
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.resume.*;
@@ -115,4 +117,11 @@ DiskManagerFactory
 		return( DiskManagerImpl.getFileInfoSkeleton( download_manager ));
 	}
 
+	public static void
+	setFileLinks(
+		DownloadManager		download_manager,
+		Map					links )
+	{
+		DiskManagerImpl.setFileLinks( download_manager, links );
+	}
 }

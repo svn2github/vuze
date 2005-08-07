@@ -387,6 +387,28 @@ DownloadManagerImpl
 				 	DownloadManagerStateImpl.getDownloadState(
 				 			this, torrentFileName, torrent_hash );
 			 
+				// establish any file links
+				
+			 download_manager_state.addListener(
+					new DownloadManagerStateListener()
+					{
+						public void
+						stateChanged(
+							DownloadManagerState			state,
+							DownloadManagerStateEvent		event )
+						{
+							if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ){
+								
+								if (((String)event.getData()).equals( DownloadManagerState.AT_FILE_LINKS )){
+									
+									setFileLinks();
+								}
+							}
+						}
+					});
+					
+			 setFileLinks();
+			 
 			 torrent	= download_manager_state.getTorrent();
 			 
 			 	// We can't have the identity of this download changing as this will screw up
@@ -627,10 +649,11 @@ DownloadManagerImpl
 		}
 	}
 
-
-
-
- 
+	protected void
+	setFileLinks()
+	{
+		DiskManagerFactory.setFileLinks( this, download_manager_state.getFileLinks());
+	}
 	
 	public boolean 
 	filesExist() 

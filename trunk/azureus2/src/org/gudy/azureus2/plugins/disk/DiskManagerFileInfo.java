@@ -32,32 +32,58 @@ import org.gudy.azureus2.plugins.download.*;
  * @since 2.1.0.0
  */
 
-public interface DiskManagerFileInfo {
+public interface 
+DiskManagerFileInfo 
+{
 	public static final int READ = 1;
 	public static final int WRITE = 2;
 
 		// set methods
 		
-	public void setPriority(boolean b);
+	public void 
+	setPriority(
+		boolean b );
 	
-	public void setSkipped(boolean b);
-	 
+	public void 
+	setSkipped(
+		boolean b );
+	
+		// links the file to the named destination
+	
+	public void
+	setLink(
+		File	link_destination );
+	
+		// gets the current link, null if none
+	
+	public File
+	getLink();
+	
 	 	// get methods
 	 	
-	public int getAccessMode();
+	public int 
+	getAccessMode();
 	
-	public long getDownloaded();
+	public long 
+	getDownloaded();
 	
-	public File getFile();
+	public File 
+	getFile();
 		
-	public int getFirstPieceNumber();
+	public int 
+	getFirstPieceNumber();
 	
-	public int getNumPieces();
+	public int 
+	getNumPieces();
 		
-	public boolean isPriority();
+	public boolean 
+	isPriority();
 	
-	public boolean isSkipped();
+	public boolean 
+	isSkipped();
 	
-  public Download getDownload()
+	public Download 
+	getDownload()
+	
          throws DownloadException;
 }

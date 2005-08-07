@@ -37,8 +37,6 @@ public class
 FMFileLimited
 	extends FMFileImpl
 {
-	protected FMFileManagerImpl		manager;
-	
 	protected
 	FMFileLimited(
 		FMFileOwner			_owner,
@@ -47,9 +45,7 @@ FMFileLimited
 	
 		throws FMFileManagerException
 	{
-		super( _owner, _file );
-		
-		manager = _manager;
+		super( _owner, _manager, _file );
 	}
 	
 	public void
@@ -90,19 +86,19 @@ FMFileLimited
 	protected void
 	getSlot()
 	{
-		manager.getSlot(this);
+		getManager().getSlot(this);
 	}
 	
 	protected void
 	releaseSlot()
 	{
-		manager.releaseSlot(this);
+		getManager().releaseSlot(this);
 	}
 	
 	protected void
 	usedSlot()
 	{	
-		manager.usedSlot(this);
+		getManager().usedSlot(this);
 	}
 		
 	public void
