@@ -40,9 +40,7 @@ PEPieceImpl
 	implements PEPiece
 {  
   private DiskManagerPiece	dm_piece;
-	
-  private int		piece_length;
-  
+	  
   private boolean[] downloaded;
   private boolean[] requested;
   
@@ -76,10 +74,8 @@ PEPieceImpl
 	manager 	= _manager;
 	dm_piece	= _dm_piece;
 	slowPiece	= _slow_piece;
-	
-	piece_length 		= dm_piece.getLength();
-	
-	int	nbBlocs 	= (piece_length + DiskManager.BLOCK_SIZE - 1) / DiskManager.BLOCK_SIZE;
+		
+	int	nbBlocs 	= dm_piece.getBlockCount();
 	
 	downloaded 	= new boolean[nbBlocs];
 	requested 	= new boolean[nbBlocs];
@@ -133,21 +129,17 @@ PEPieceImpl
   public int 
   getAndMarkBlock() 
   {
-		int	nbBlocs 	= dm_piece.getBlockCount();
-
-		int blocNumber = -1;
-		
-		for (int i = 0; i < nbBlocs; i++) {
+		for (int i = 0; i < requested.length; i++) {
+			
 		  if (!requested[i] && !dm_piece.getWritten(i)) {
-			blocNumber = i;
+			
 			requested[i] = true;
 	
-			//To quit loop.
-			i = nbBlocs;
+			return( i );
 		  }
 		}
-		return blocNumber;
-
+		
+		return( -1 );
   }
 
   	/**
@@ -183,9 +175,9 @@ PEPieceImpl
   getBlockSize(
   	int blocNumber) 
   {
-	if ( blocNumber == (dm_piece.getBlockCount() - 1)){
+	if ( blocNumber == (downloaded.length - 1)){
 	
-		int	length = piece_length;
+		int	length = dm_piece.getLength();
 		
 		if ((length % DiskManager.BLOCK_SIZE) != 0){
 		
@@ -196,14 +188,16 @@ PEPieceImpl
 	return DiskManager.BLOCK_SIZE;
   }
 
-  public int getPieceNumber(){
+  public int 
+  getPieceNumber()
+  {
   	return( dm_piece.getPieceNumber() );
   }
   public int getLength(){
-  	return( piece_length );
+  	return( dm_piece.getLength() );
   }
   public int getNbBlocs(){
-  	return( dm_piece.getBlockCount() );  
+  	return( downloaded.length );  
   }
   
   public void setBeingChecked() {
@@ -287,7 +281,7 @@ PEPieceImpl
   public void reset() {
   	dm_piece.reset();
   	
-  	int	nbBlocs = dm_piece.getBlockCount();
+  	int	nbBlocs = downloaded.length;
   	
     downloaded 	= new boolean[nbBlocs];
     requested 	= new boolean[nbBlocs];
