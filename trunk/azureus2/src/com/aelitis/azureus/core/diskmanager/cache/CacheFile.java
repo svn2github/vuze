@@ -125,6 +125,12 @@ CacheFile
 	
 		throws CacheFileManagerException;
 	
+	public void
+	delete()
+
+		throws CacheFileManagerException;
+
+	
 		/**
 		 * Sets any offset associated with the torrent data caused by leading header
 		 * in the data file

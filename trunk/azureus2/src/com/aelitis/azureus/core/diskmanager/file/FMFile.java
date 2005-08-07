@@ -106,4 +106,9 @@ FMFile
 	close()
 	
 		throws FMFileManagerException;
+	
+	public void
+	delete()
+	
+		throws FMFileManagerException;
 }

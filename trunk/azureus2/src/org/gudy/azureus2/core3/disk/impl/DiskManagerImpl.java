@@ -820,13 +820,11 @@ DiskManagerImpl
 	                
 								try{
 										// failed to zero it, delete it so it gets done next start
-									
-									File	file = fileInfo.getCacheFile().getFile();
-									
+																		
 									fileInfo.getCacheFile().close();
 									
-									file.delete();
-									
+									fileInfo.getCacheFile().delete();
+																		
 								}catch( Throwable e ){
 									
 								}

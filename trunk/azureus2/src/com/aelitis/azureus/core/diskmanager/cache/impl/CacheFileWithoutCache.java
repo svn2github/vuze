@@ -258,6 +258,21 @@ CacheFileWithoutCache
 	}
 	
 	public void
+	delete()
+	
+		throws CacheFileManagerException
+	{
+		try{
+			
+			file.delete();
+			
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(e);			
+		}
+	}
+	
+	public void
 	setFileOffset(
 		int		_file_offset )
 	{

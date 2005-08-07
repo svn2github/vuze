@@ -396,6 +396,22 @@ FMFileImpl
 		}
 	}
 	
+	public void
+	delete()
+	
+		throws FMFileManagerException
+	{
+		close();
+		
+		if ( linked_file.exists()){
+			
+			if ( !linked_file.delete()){
+				
+				throw( new FMFileManagerException( "Failed to delete '" + linked_file + "'" ));
+			}
+		}
+	}
+	
 	protected void
 	readSupport(
 		DirectByteBuffer		buffer,
