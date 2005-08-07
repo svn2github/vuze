@@ -227,15 +227,15 @@ public class Hack extends TorrentCommand {
 				if (c.equalsIgnoreCase("normal") || c.equalsIgnoreCase("n")) {
 					files[file - 1].setSkipped(false);
 					files[file - 1].setPriority(false);
-					ci.out.println("> Set file '"+files[file - 1].getName()+"' to normal priority.");
+					ci.out.println("> Set file '"+files[file - 1].getFile(true).getName()+"' to normal priority.");
 				} else if (c.equalsIgnoreCase("high") || c.equalsIgnoreCase("h") || c.equalsIgnoreCase("+")) {
 					files[file - 1].setSkipped(false);
 					files[file - 1].setPriority(true);
-					ci.out.println("> Set file '"+files[file - 1].getName()+"' to high priority.");
+					ci.out.println("> Set file '"+files[file - 1].getFile(true).getName()+"' to high priority.");
 				} else if (c.equalsIgnoreCase("nodownload") || c.equalsIgnoreCase("!") || c.equalsIgnoreCase("-")) {
 					files[file - 1].setSkipped(true);
 					files[file - 1].setPriority(false);
-					ci.out.println("> Stopped to download file '"+files[file - 1].getName()+"'.");
+					ci.out.println("> Stopped to download file '"+files[file - 1].getFile(true).getName()+"'.");
 				} else {
 					ci.out.println("> Command 'hack': Unknown priority '" + c + "' for command parameter 'file'.");
 					return false;

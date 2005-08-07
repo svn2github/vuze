@@ -444,7 +444,7 @@ public class Show extends IConsoleCommand {
 						if (fLen > 0) {
 							DecimalFormat df = new DecimalFormat("000.0%");
 							out.print(df.format(files[i].getDownloaded() * 1.0 / fLen));
-							out.println("\t" + files[i].getName());
+							out.println("\t" + files[i].getFile(true).getName());
 						} else
 							out.println("Info not available.");
 					} else
