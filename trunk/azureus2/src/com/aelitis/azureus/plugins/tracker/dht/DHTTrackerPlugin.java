@@ -112,6 +112,8 @@ DHTTrackerPlugin
 	
 	private Map					query_map			 	= new HashMap();
 	
+	private Map					in_progress				= new HashMap();
+	
 	private BooleanParameter	track_normal_when_offline;
 	
 	private LoggerChannel		log;
@@ -811,7 +813,12 @@ DHTTrackerPlugin
 			  	    String	value_to_put = override_ip==null?"":(override_ip+":");
 			  	    
 			  	    value_to_put += port;
-			  	    			  	    
+			  	    	
+			  	    // don't let a put block an announce as we don't want to be waiting for 
+			  	    // this at start of day to get a torrent running
+			  	    
+			  	    // increaseActive( dl );
+			  	    
 					dht.put( 
 							dl.getTorrent().getHash(),
 							"Tracker registration of '" + dl.getName() + "' -> " + value_to_put,
@@ -838,6 +845,8 @@ DHTTrackerPlugin
 									boolean	timeout_occurred )
 								{
 									log.log( "Registration of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + ")");
+									
+									// decreaseActive( dl );
 								}
 							});
 		  		}
@@ -880,6 +889,8 @@ DHTTrackerPlugin
 					this_mon.exit();
 				}
 				
+				increaseActive( dl );
+				
 				dht.remove( 
 						dl.getTorrent().getHash(),
 						"Tracker deregistration of '" + dl.getName() + "'",
@@ -904,6 +915,8 @@ DHTTrackerPlugin
 								boolean	timeout_occurred )
 							{
 								log.log( "Unregistration of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + ")");
+								
+								decreaseActive( dl );
 							}
 						});
 			}
@@ -945,9 +958,16 @@ DHTTrackerPlugin
 				
 				PeerManager	pm = dl.getPeerManager();
 				
-				boolean	skip	= false;
+					// don't query if this download already has an active DHT operation
 				
-				if ( pm != null ){
+				boolean	skip	= isActive( dl );
+				
+				if ( skip ){
+					
+					log.log( "Deferring announce for '" + dl.getName() + "' as activity outstanding" );
+				}
+				
+				if ( pm != null && !skip ){
 					
 					int	con = pm.getStats().getConnectedLeechers() + pm.getStats().getConnectedSeeds();
 				
@@ -974,6 +994,8 @@ DHTTrackerPlugin
 					final Torrent	torrent = dl.getTorrent();
 					
 					final URL	url_to_report = torrent.isDecentralised()?torrent.getAnnounceURL():DEFAULT_URL;
+					
+					increaseActive( dl );
 					
 					dht.get(dl.getTorrent().getHash(), 
 							"Tracker announce for '" + dl.getName() + "'",
@@ -1057,7 +1079,9 @@ DHTTrackerPlugin
 									boolean	timeout_occurred )
 								{
 									log.log( "Get of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + "), addresses = " + addresses.size() + ", seeds = " + seed_count + ", leechers = " + leecher_count );
-																	
+								
+									decreaseActive(dl);
+									
 									final DownloadAnnounceResultPeer[]	peers = new
 										DownloadAnnounceResultPeer[addresses.size()];
 									
@@ -1468,5 +1492,71 @@ DHTTrackerPlugin
 						return( null );
 					}
 				});
+	}
+	
+	protected void
+	increaseActive(
+		Download		dl )
+	{
+		try{
+			this_mon.enter();
+		
+			Integer	active_i = (Integer)in_progress.get( dl );
+			
+			int	active = active_i==null?0:active_i.intValue();
+			
+			in_progress.put( dl, new Integer( active+1 ));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected void
+	decreaseActive(
+		Download		dl )
+	{
+		try{
+			this_mon.enter();
+		
+			Integer	active_i = (Integer)in_progress.get( dl );
+			
+			if ( active_i == null ){
+				
+				Debug.out( "active count inconsistent" );
+				
+			}else{
+				
+				int	active = active_i.intValue()-1;
+			
+				if ( active == 0 ){
+					
+					in_progress.remove( dl );
+					
+				}else{
+					
+					in_progress.put( dl, new Integer( active ));
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+		
+	protected boolean
+	isActive(
+		Download		dl )
+	{
+		try{
+			this_mon.enter();
+			
+			return( in_progress.get(dl) != null );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 }
