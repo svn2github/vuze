@@ -120,5 +120,14 @@ public class HeightCoordinatesImpl implements Coordinates {
     return y;
   }
   
+  public boolean equals(Object arg0) {
+   if(arg0 instanceof HeightCoordinatesImpl) {
+     HeightCoordinatesImpl other = (HeightCoordinatesImpl) arg0;
+     if(other.x != x || other.y != y || other.h != h) return false;
+     return true;
+   }
+   return false;
+  }
+  
   
 }

@@ -142,4 +142,14 @@ public class VivaldiPositionImpl implements VivaldiPosition{
     return coordinates +  " : " + error;
   }
   
+  public boolean equals(Object arg0) {
+   if(arg0 instanceof VivaldiPositionImpl) {
+     VivaldiPositionImpl other = (VivaldiPositionImpl) arg0;
+     if(other.error != error) return false;
+     if(! other.coordinates.equals(coordinates)) return false;
+     return true;
+   }
+   return false;
+  }
+  
 }
