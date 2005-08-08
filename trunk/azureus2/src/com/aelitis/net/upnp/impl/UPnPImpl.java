@@ -414,10 +414,10 @@ UPnPImpl
 	
 		throws SimpleXMLParserDocumentException, UPnPException, IOException
 	{
-		log.log( "UPnP:Request:" + request );
-
 		URL	control = service.getControlURL();
 		
+		log.log( "UPnP:Request: -> " + control + "," + request );
+
 		if ( use_http_connection ){
 			
 			HttpURLConnection	con = (HttpURLConnection)control.openConnection();

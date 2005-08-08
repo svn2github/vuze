@@ -63,7 +63,7 @@ UPnPServiceImpl
 		
 		control_url	= device.getAbsoluteURL(service_node.getChild("controlURL").getValue());
 		
-		device.getUPnP().log( indent + desc_url + ", " + control_url );
+		device.getUPnP().log( indent + "desc=" + desc_url + ", control=" + control_url );
 	}
 	
 	public UPnPDevice
@@ -172,16 +172,20 @@ UPnPServiceImpl
 	
 		throws UPnPException
 	{
-		URL	root_location = device.getRootDevice().getLocation();
-		
 		try{
 			URL	target;
 			
 			if ( basis.toLowerCase().startsWith( "http" )){
 				
+					// absolute
+				
 				target = new URL( basis );
 				
 			}else{
+				
+					// relative
+				
+				URL	root_location = device.getRootDevice().getLocation();
 				
 				target = new URL( root_location.getProtocol() + "://" +
 									root_location.getHost() + 
