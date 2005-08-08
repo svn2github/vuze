@@ -185,6 +185,12 @@ DHTTransportLoopbackImpl
 		return( local_contact );
 	}
 	
+	public boolean
+	isReachable()
+	{
+		return( true );
+	}
+	
 	protected DHTTransportLoopbackImpl
 	findTarget(
 		byte[]		id )

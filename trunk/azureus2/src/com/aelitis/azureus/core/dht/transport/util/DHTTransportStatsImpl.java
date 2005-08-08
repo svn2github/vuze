@@ -321,23 +321,23 @@ DHTTransportStatsImpl
 			
 			if ( type == DHTUDPPacketHelper.ACT_REQUEST_FIND_NODE ){
 				
-				aliens[0]++;
+				aliens[AT_FIND_NODE]++;
 			
 			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_FIND_VALUE ){
 				
-				aliens[1]++;
+				aliens[AT_FIND_VALUE]++;
 				
 			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_PING ){
 				
-				aliens[2]++;
+				aliens[AT_PING]++;
 				
 			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_STATS ){
 				
-				aliens[3]++;
+				aliens[AT_STATS]++;
 				
 			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_STORE ){
 				
-				aliens[4]++;
+				aliens[AT_STORE]++;
 			}
 		}
 		

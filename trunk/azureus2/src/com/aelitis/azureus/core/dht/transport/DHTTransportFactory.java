@@ -56,6 +56,7 @@ DHTTransportFactory
 		int				send_delay,
 		int				receive_delay,
 		boolean			bootstrap_node,
+		boolean			reachable,
 		LoggerChannel	logger )
 	
 		throws DHTTransportException
@@ -72,6 +73,7 @@ DHTTransportFactory
 					send_delay, 
 					receive_delay, 
 					bootstrap_node, 
+					reachable,
 					logger ));
 	}
 }

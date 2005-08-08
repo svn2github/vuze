@@ -32,9 +32,13 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
@@ -81,6 +85,8 @@ DHTTransportUDPImpl
 	private int					max_fails_for_unknown;
 	private long				request_timeout;
 	private long				store_timeout;
+	private boolean				reachable;
+	
 	private LoggerChannel		logger;
 		
 	private DHTUDPPacketHandler			packet_handler;
@@ -131,6 +137,18 @@ DHTTransportUDPImpl
 				}
 			};
 		
+			
+	private static final int	STATS_PERIOD		= 60*1000;
+	private static final int 	STATS_DURATION_SECS	= 600;	// 10 minute average
+	private static final long	STATS_INIT_PERIOD	= 10*60*1000;	
+	
+	private long	stats_start_time	= SystemTime.getCurrentTime();
+	private long	last_alien_count;
+	private long	last_alien_fv_count;
+	
+	private Average	alien_average 		= Average.getInstance(STATS_PERIOD,STATS_DURATION_SECS);
+	private Average	alien_fv_average 	= Average.getInstance(STATS_PERIOD,STATS_DURATION_SECS);
+	
 		// TODO: secure enough?
 	
 	private	Random		random = new Random( SystemTime.getCurrentTime());
@@ -155,6 +173,7 @@ DHTTransportUDPImpl
 		int				_dht_send_delay,
 		int				_dht_receive_delay,
 		boolean			_bootstrap_node,
+		boolean			_initial_reachability,
 		LoggerChannel	_logger )
 	
 		throws DHTTransportException
@@ -167,6 +186,7 @@ DHTTransportUDPImpl
 		max_fails_for_unknown	= _max_fails_for_unknown;
 		request_timeout			= _timeout;
 		bootstrap_node			= _bootstrap_node;
+		reachable				= _initial_reachability;
 		logger					= _logger;
 				
 		store_timeout			= request_timeout * 2;
@@ -193,6 +213,18 @@ DHTTransportUDPImpl
 		
 		stats =  new DHTTransportUDPStatsImpl( protocol_version, packet_handler.getStats());
 		
+		SimpleTimer.addPeriodicEvent(
+			STATS_PERIOD,
+			new TimerEventPerformer()
+			{
+				public void
+				perform(
+					TimerEvent	event )
+				{
+					updateStats();
+				}
+			});
+		
 		String	default_ip = _default_ip==null?"127.0.0.1":_default_ip;
 				
 		getExternalAddress( default_ip, logger );
@@ -202,6 +234,63 @@ DHTTransportUDPImpl
 		logger.log( "Initial external address: " + address );
 		
 		local_contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, random.nextInt(), 0);
+	}
+	
+	protected void
+	updateStats()
+	{
+		long	alien_count	= 0;
+		
+		long[]	aliens = stats.getAliens();
+		
+		for (int i=0;i<aliens.length;i++){
+			
+			alien_count	+= aliens[i];
+		}
+		
+		long	alien_fv_count = aliens[ DHTTransportStats.AT_FIND_VALUE ];
+		
+		alien_average.addValue( (alien_count-last_alien_count)*STATS_PERIOD/1000);
+		alien_fv_average.addValue( (alien_fv_count-last_alien_fv_count)*STATS_PERIOD/1000);
+
+		last_alien_count	= alien_count;
+		last_alien_fv_count	= alien_fv_count;
+		
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < 	stats_start_time ){
+			
+			stats_start_time	= now;
+			
+		}else{
+			
+				// only fiddle with the initial view of reachability when things have had
+				// time to stabilise
+			
+			if ( now - stats_start_time > STATS_INIT_PERIOD ){
+				
+				if ( alien_fv_average.getAverage() > 0 ){
+					
+					reachable	= true;
+					
+				}else if ( alien_average.getAverage() > 5 ){
+					
+					reachable	= true;
+					
+				}else{
+					
+					reachable	= false;
+				}
+			}
+		}
+		
+		// System.out.println( "net " + network + ": aliens = " + alien_average.getAverage() + ", alien fv = " + alien_fv_average.getAverage());
+	}
+	
+	public boolean
+	isReachable()
+	{
+		return( reachable );
 	}
 	
 	public byte

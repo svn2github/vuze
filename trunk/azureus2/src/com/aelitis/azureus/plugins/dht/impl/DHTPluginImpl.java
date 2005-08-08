@@ -29,7 +29,6 @@ import java.net.InetSocketAddress;
 import java.util.Properties;
 
 
-import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
@@ -122,12 +121,16 @@ DHTPluginImpl
 		try{
 			storage_manager = new DHTPluginStorageManager( log, getDataDir( _network ));
 			
-			PluginConfig conf = plugin_interface.getPluginconfig();
+			final PluginConfig conf = plugin_interface.getPluginconfig();
 			
 			int	send_delay = conf.getPluginIntParameter( "dht.senddelay", 50 );
 			int	recv_delay	= conf.getPluginIntParameter( "dht.recvdelay", 25 );
 			
 			boolean	bootstrap	= conf.getPluginBooleanParameter( "dht.bootstrapnode", false );
+			
+				// start off optimistic with reachable = true
+			
+			boolean	initial_reachable	= conf.getPluginBooleanParameter( "dht.reachable." + network, true );
 			
 			final int f_port	= _port;
 
@@ -144,6 +147,7 @@ DHTPluginImpl
 								// premature timeouts occurred
 						send_delay, recv_delay, 
 						bootstrap,
+						initial_reachable,
 						log );
 			
 			transport.addListener(
@@ -164,17 +168,12 @@ DHTPluginImpl
 				});
 				
 			final int sample_frequency		= 60*1000;
-			final int sample_duration		= 10*60;
 			final int sample_stats_ticks	= 15;	// every 15 mins
 
 			plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
 					sample_frequency,
 					new UTTimerEventPerformer()
 					{
-						Average	incoming_packet_average = Average.getInstance(sample_frequency,sample_duration);
-						
-						long	last_incoming;
-						
 						int	ticks = 0;
 						
 						public void
@@ -183,30 +182,17 @@ DHTPluginImpl
 						{
 							ticks++;
 							
-							if ( dht != null ){
-								
-								DHTTransportStats t_stats = transport.getStats();
-													
-								long	current_incoming = t_stats.getIncomingRequests();
-								
-								incoming_packet_average.addValue( (current_incoming-last_incoming)*sample_frequency/1000);
-								
-								last_incoming	= current_incoming;
-								
-								long	incoming_average = incoming_packet_average.getAverage();
-								
-								// System.out.println( "incoming average = " + incoming_average );
-								
-								long	now = SystemTime.getCurrentTime();
-								
-									// give some time for thing to generate reasonable stats
-								
-								if ( 	integrated_time > 0 &&
-										now - integrated_time >= 5*60*1000 ){
-								
-										// 1 every 30 seconds indicates problems
+							if ( transport != null ){
+																																					
+								boolean current_reachable = transport.isReachable();
 									
-									if ( incoming_average <= 2 ){
+								if ( current_reachable != conf.getPluginBooleanParameter( "dht.reachable." + network, false )){
+										
+										// reachability has changed
+									
+									conf.setPluginParameter( "dht.reachable." + network, current_reachable );
+									
+									if ( !current_reachable ){
 										
 										String msg = "If you have a router/firewall, please check that you have port " + f_port + 
 														" UDP open.\nDecentralised tracking requires this." ;
@@ -223,6 +209,9 @@ DHTPluginImpl
 											
 											log.logAlert( LoggerChannel.LT_WARNING, msg );
 										}
+									}else{
+										
+										log.log( "Reachability changed for the better" );
 									}
 								}
 								
@@ -307,11 +296,23 @@ DHTPluginImpl
 		return( status_text );
 	}
 	
+	public boolean
+	isReachable()
+	{
+		return( transport.isReachable());
+	}
+	
 	public void
 	setLogging(
 		boolean		l )
 	{
 		dht.setLogging( l );
+	}
+	
+	public void
+	tick()
+	{
+		
 	}
 	
 	public void
@@ -326,7 +327,8 @@ DHTPluginImpl
 
 		log.log( "DHT:ip=" + transport.getLocalContact().getAddress() + 
 					",net=" + transport.getNetwork() +
-					",prot=V" + transport.getProtocolVersion());
+					",prot=V" + transport.getProtocolVersion()+
+					",reach=" + transport.isReachable());
 
 		log.log( 	"Router" +
 					":nodes=" + rs[DHTRouterStats.ST_NODES] +

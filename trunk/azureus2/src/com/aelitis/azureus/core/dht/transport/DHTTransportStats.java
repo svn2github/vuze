@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.dht.transport;
 
+
 /**
  * @author parg
  *
@@ -52,7 +53,13 @@ DHTTransportStats
 	public long[]
 	getStores();
 	
-		// not indexed as above but rather just done on request packet type 
+		// aliens are indexed by these constants
+
+	public static final int AT_FIND_NODE		= 0; 
+	public static final int AT_FIND_VALUE		= 1; 
+	public static final int AT_PING				= 2; 
+	public static final int AT_STATS			= 3; 
+	public static final int AT_STORE			= 4; 
 	
 	public long[]
 	getAliens();

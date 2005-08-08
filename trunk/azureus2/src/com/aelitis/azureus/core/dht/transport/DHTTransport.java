@@ -94,6 +94,9 @@ DHTTransport
 	public boolean
 	supportsStorage();
 	
+	public boolean
+	isReachable();
+	
 	public void
 	addListener(
 		DHTTransportListener	l );

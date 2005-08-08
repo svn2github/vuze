@@ -49,13 +49,13 @@ Test
 			DHTTransport	udp1 = 
 				DHTTransportFactory.createUDP(
 					DHTTransportUDP.PROTOCOL_VERSION_MAIN, DHT.NW_MAIN,
-					null, null, 6881, 5, 3, 5000, 50, 25, false, com.aelitis.azureus.core.dht.impl.Test.getLogger());
+					null, null, 6881, 5, 3, 5000, 50, 25, false, false, com.aelitis.azureus.core.dht.impl.Test.getLogger());
 		
 			udp1.setRequestHandler( this );
 			
 			DHTTransport	udp2 = DHTTransportFactory.createUDP( 
 					DHTTransportUDP.PROTOCOL_VERSION_MAIN, DHT.NW_MAIN,
-					null, null, 6882, 5, 3, 5000, 50, 25, false, com.aelitis.azureus.core.dht.impl.Test.getLogger());
+					null, null, 6882, 5, 3, 5000, 50, 25, false, false, com.aelitis.azureus.core.dht.impl.Test.getLogger());
 		
 			udp2.setRequestHandler( this );
 
