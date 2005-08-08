@@ -34,10 +34,12 @@ import org.gudy.azureus2.core3.predicate.AllPredicate;
 import org.gudy.azureus2.core3.predicate.NotPredicate;
 import org.gudy.azureus2.core3.predicate.Predicable;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
@@ -421,7 +423,7 @@ public class MainMenu {
       //The Help Menu
       MenuItem helpItem = new MenuItem(menuBar, SWT.CASCADE);
       Messages.setLanguageText(helpItem, "MainWindow.menu.help"); //$NON-NLS-1$
-      Menu helpMenu = new Menu(parent, SWT.DROP_DOWN);
+      final Menu helpMenu = new Menu(parent, SWT.DROP_DOWN);
       helpItem.setMenu(helpMenu);
       if(isModal) {performOneTimeDisable(helpItem, true);}
 
@@ -504,6 +506,29 @@ public class MainMenu {
           //Program.launch(donationString);
         }
       });
+      
+      new MenuItem(helpMenu,SWT.SEPARATOR);
+      MenuItem testMenu = new MenuItem(helpMenu, SWT.NULL);
+      testMenu.setText("Test");
+      testMenu.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event arg0) {
+          final Shell shell = helpMenu.getShell();
+          AEThread runner = new AEThread("test list") {
+            public void runSupport() {
+              StringListChooser chooser = new StringListChooser(shell);
+              chooser.setTitle("Test Dialog");
+              chooser.setText("This is a test of a list choose dialog.\nPlease choose an item from the following list : ");
+              chooser.addOption("Option 1 : SWT");
+              chooser.addOption("Option 2 : Java");
+              chooser.addOption("Option 3 : I am alive");          
+              System.out.println("Result =" + chooser.open());
+            }
+          };
+          runner.start();
+          
+        }
+      });
+      
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Error while creating menu items");
       Debug.printStackTrace( e );
