@@ -186,7 +186,7 @@ DHTPluginImpl
 																																					
 								boolean current_reachable = transport.isReachable();
 									
-								if ( current_reachable != conf.getPluginBooleanParameter( "dht.reachable." + network, false )){
+								if ( current_reachable != conf.getPluginBooleanParameter( "dht.reachable." + network, true )){
 										
 										// reachability has changed
 									
