@@ -61,7 +61,7 @@ public class HeightCoordinatesImpl implements Coordinates {
   public boolean
   atOrigin()
   {
-	  return( x==0&&y==0&&h==0);
+	  return( x==0&&y==0);
   }
   
   public boolean
