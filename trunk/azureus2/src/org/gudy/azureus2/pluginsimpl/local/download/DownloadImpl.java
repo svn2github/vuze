@@ -253,13 +253,15 @@ DownloadImpl
 	
 		throws DownloadException
 	{
-		if ( download_manager.getState() == DownloadManager.STATE_WAITING ){
+		int	state = download_manager.getState();
+		
+		if ( state == DownloadManager.STATE_WAITING ){
 			
 			download_manager.initialize();
 			
 		}else{
 			
-			throw( new DownloadException( "Download::initialize: download not waiting" ));
+			throw( new DownloadException( "Download::initialize: download not waiting (state=" + state + ")" ));
 		}
 	}
 	
@@ -268,13 +270,15 @@ DownloadImpl
 	
 		throws DownloadException
 	{
-		if ( download_manager.getState() == DownloadManager.STATE_READY ){
+		int	state = download_manager.getState();
+		
+		if ( state == DownloadManager.STATE_READY ){
 						
 			download_manager.startDownload();
 										
 		}else{
 			
-			throw( new DownloadException( "Download::start: download not ready" ));
+			throw( new DownloadException( "Download::start: download not ready (state=" + state + ")" ));
 		}
 	}
 	
@@ -283,14 +287,16 @@ DownloadImpl
 	
 		throws DownloadException
 	{
-		if ( download_manager.getState() == DownloadManager.STATE_STOPPED ||
-		     download_manager.getState() == DownloadManager.STATE_QUEUED ){
+		int	state = download_manager.getState();
+		
+		if ( 	state == DownloadManager.STATE_STOPPED ||
+				state == DownloadManager.STATE_QUEUED ){
 			
 			download_manager.setStateWaiting();
 			
 		}else{
 			
-			throw( new DownloadException( "Download::restart: download already running" ));
+			throw( new DownloadException( "Download::restart: download already running (state=" + state + ")" ));
 		}
 	}
 	
@@ -314,10 +320,13 @@ DownloadImpl
 	
 		throws DownloadException
 	{
-		if ( download_manager.getState() != DownloadManager.STATE_QUEUED)
+		if ( download_manager.getState() != DownloadManager.STATE_QUEUED){
+			
 			download_manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
-		else
+		}else{
+			
 			throw( new DownloadException( "Download::stopAndQueue: download already queued" ));
+		}
 	}
 	
 	public void

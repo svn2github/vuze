@@ -814,12 +814,6 @@ DownloadManagerImpl
 	}
   
   	public void
-  	setStateDownloading()
-  	{
-  		controller.setStateDownloading();
-  	}
-  
-  	public void
   	setStateFinishing()
   	{
   		controller.setStateFinishing();

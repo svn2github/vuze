@@ -283,8 +283,6 @@ PEPeerControlImpl
   {
     is_running = true;
 
-    _downloadManager.setStateDownloading();
-
     _timeStarted = SystemTime.getCurrentTime();
 
     // initial check on finished state - future checks are driven by piece check results

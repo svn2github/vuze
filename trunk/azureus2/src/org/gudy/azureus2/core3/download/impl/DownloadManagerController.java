@@ -641,19 +641,6 @@ DownloadManagerController
 		setState(DownloadManager.STATE_WAITING, true );
 	}
   
-	protected void
-  	setStateDownloading()
-  	{
-	  	// null operation as called on pm start + already set?
-	  
-  		if ( getState() != DownloadManager.STATE_DOWNLOADING ){
-		  
-  			Debug.out( "setStateDownloading: not dl" );
-  		}
-	  
-  		setState( DownloadManager.STATE_DOWNLOADING, true );
-  	}
-  
   	protected void
   	setStateFinishing()
   	{

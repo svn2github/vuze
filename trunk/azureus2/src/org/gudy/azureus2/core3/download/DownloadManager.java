@@ -85,9 +85,6 @@ DownloadManager
 	setStateWaiting();
 	
 	public void
-	setStateDownloading();
-		
-	public void
 	setStateFinishing();
 	
 	public void
