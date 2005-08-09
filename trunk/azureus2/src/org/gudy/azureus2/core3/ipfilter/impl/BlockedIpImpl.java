@@ -34,12 +34,14 @@ public class BlockedIpImpl implements BlockedIp {
   private long time;
   private IpRange range;
   private String torrentname;
+  private boolean	loggable;
   
-  public BlockedIpImpl(String ip,IpRange range, String torrent_name) {
+  public BlockedIpImpl(String ip,IpRange range, String torrent_name,boolean _loggable) {
     this.ip = ip;
     this.range = range;
     this.time = SystemTime.getCurrentTime();
     this.torrentname = torrent_name;
+    loggable = _loggable;
   }
   
   public String getBlockedIp() {
@@ -58,4 +60,9 @@ public class BlockedIpImpl implements BlockedIp {
     return torrentname;
   }
 
+  public boolean
+  isLoggable()
+  {
+	  return( loggable );
+  }
 }

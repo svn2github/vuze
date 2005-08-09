@@ -65,6 +65,12 @@ IpFilter
 		String ipAddress, 
 		String torrent_name);
 	
+	public abstract boolean 
+	isInRange(
+		String ipAddress, 
+		String torrent_name,
+		boolean	loggable );
+	
 	public abstract IpRange
 	createRange(
 		boolean sessionOnly);

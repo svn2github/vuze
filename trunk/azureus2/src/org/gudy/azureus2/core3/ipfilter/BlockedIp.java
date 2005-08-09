@@ -30,4 +30,5 @@ public interface BlockedIp {
   public long getBlockedTime();
   public IpRange getBlockingRange();
   public String getTorrentName();
+  public boolean isLoggable();
 }

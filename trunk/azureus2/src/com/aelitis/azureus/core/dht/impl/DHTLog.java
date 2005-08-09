@@ -32,8 +32,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
@@ -63,7 +63,7 @@ DHTLog
 	
 	public static boolean	logging_on	= false;
 			
-	private static LoggerChannel	logger;
+	private static DHTLogger	logger;
 	
 	protected static void
 	setLogging(
@@ -91,7 +91,7 @@ DHTLog
 	
 	public static void
 	setLogger(
-		LoggerChannel l )
+		DHTLogger l )
 	{
 		logger	= l;
 	}

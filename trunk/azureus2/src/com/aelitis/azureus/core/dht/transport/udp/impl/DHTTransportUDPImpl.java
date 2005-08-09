@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.*;
@@ -87,7 +88,7 @@ DHTTransportUDPImpl
 	private long				store_timeout;
 	private boolean				reachable;
 	
-	private LoggerChannel		logger;
+	private DHTLogger			logger;
 		
 	private DHTUDPPacketHandler			packet_handler;
 	
@@ -174,7 +175,7 @@ DHTTransportUDPImpl
 		int				_dht_receive_delay,
 		boolean			_bootstrap_node,
 		boolean			_initial_reachability,
-		LoggerChannel	_logger )
+		DHTLogger		_logger )
 	
 		throws DHTTransportException
 	{
@@ -376,7 +377,7 @@ DHTTransportUDPImpl
 	protected void
 	getExternalAddress(
 		String				default_address,
-		final LoggerChannel	log )
+		final DHTLogger		log )
 	{
 			// class level synchronisation is for testing purposes when running multiple UDP instances
 			// in the same VM
@@ -479,7 +480,7 @@ DHTTransportUDPImpl
 				
 				if ( new_external_address == null ){
 			
-					new_external_address = logger.getLogger().getPluginInterface().getUtilities().getPublicAddress().getHostAddress();
+					new_external_address = logger.getPluginInterface().getUtilities().getPublicAddress().getHostAddress();
 								
 					if ( new_external_address != null ){
 							
@@ -869,7 +870,9 @@ DHTTransportUDPImpl
 				}
 			}
 			
-			if ( ip_filter.isInRange( contact.getTransportAddress().getAddress().getHostAddress(), "DHT" )){
+			if ( ip_filter.isInRange( 
+					contact.getTransportAddress().getAddress().getHostAddress(), "DHT",
+					logger.isEnabled( DHTLogger.LT_IP_FILTER ))){
 				
 					// don't let an attacker deliberately fill up our filter so we start
 					// rejecting valid addresses

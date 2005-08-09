@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.ThreadPoolTask;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTOperationAdapter;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.impl.*;
@@ -78,7 +79,7 @@ DHTControlImpl
 	
 	private DHTControlStatsImpl	stats;
 	
-	private LoggerChannel	logger;
+	private DHTLogger	logger;
 	
 	private	int			node_id_byte_count;
 	private int			search_concurrency;
@@ -155,7 +156,7 @@ DHTControlImpl
 		int					_original_republish_interval,
 		int					_cache_republish_interval,
 		int					_cache_at_closest_n,
-		LoggerChannel		_logger )
+		DHTLogger 			_logger )
 	{
 		adapter		= _adapter;
 		transport	= _transport;

@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.router.*;
 
@@ -47,7 +48,7 @@ DHTRouterImpl
 	private int		B;
 	private int		max_rep_per_node;
 	
-	private LoggerChannel	logger;
+	private DHTLogger		logger;
 	
 	private int		smallest_subtree_max;
 	
@@ -80,7 +81,7 @@ DHTRouterImpl
 		int										_max_rep_per_node,
 		byte[]									_router_node_id,
 		DHTRouterContactAttachment				_attachment,
-		LoggerChannel							_logger )
+		DHTLogger								_logger )
 	{
 		try{
 				// only needed for in-process multi-router testing :P

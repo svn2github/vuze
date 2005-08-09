@@ -52,6 +52,7 @@ import org.gudy.azureus2.plugins.ui.model.*;
 
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTLogger;
 
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -113,7 +114,11 @@ DHTPlugin
 	
 	private AESemaphore			init_sem = new AESemaphore("DHTPlugin:init" );
 	
+	private BooleanParameter	ipfilter_logging;
+	
 	private LoggerChannel		log;
+	private DHTLogger			dht_log;
+	
 	
 	public void
 	initialize(
@@ -128,6 +133,8 @@ DHTPlugin
 
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 
+
+		
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
 		final BasicPluginViewModel model = 
@@ -162,6 +169,8 @@ DHTPlugin
 		config.createGroup( "dht.reseed.group",
 				new Parameter[]{ reseed_label, reseed_ip, reseed_port, reseed });
 		
+		ipfilter_logging = config.addBooleanParameter2( "dht.ipfilter.log", "dht.ipfilter.log", true );
+
 		final BooleanParameter	advanced = config.addBooleanParameter2( "dht.advanced", "dht.advanced", false );
 
 		LabelParameter	advanced_label = config.addLabelParameter2( "dht.advanced.label" );
@@ -428,6 +437,54 @@ DHTPlugin
 					}
 				});
 
+		dht_log = 
+			new DHTLogger()
+			{
+				public void
+				log(
+					String	str )
+				{
+					log.log( str );
+				}
+			
+				public void
+				log(
+					Throwable e )
+				{
+					log.log( e );
+				}
+				
+				public void
+				log(
+					int		log_type,
+					String	str )
+				{
+					if ( isEnabled( log_type )){
+						
+						log.log( str );
+					}
+				}
+			
+				public boolean
+				isEnabled(
+					int	log_type )
+				{
+					if ( log_type == DHTLogger.LT_IP_FILTER ){
+						
+						return( ipfilter_logging.getValue());
+					}
+					
+					return( true );
+				}
+					
+				public PluginInterface
+				getPluginInterface()
+				{
+					return( log.getLogger().getPluginInterface());
+				}
+			};
+		
+		
 		if (!enabled_param.getValue()){
 			
 			model.getStatus().setText( "Disabled" );
@@ -497,7 +554,7 @@ DHTPlugin
 													dht_data_port,
 													reseed,
 													logging.getValue(),
-													log ));
+													log, dht_log ));
 								}
 								
 								if ( Constants.isCVSVersion() && CVS_DHT_ENABLE ){
@@ -510,7 +567,7 @@ DHTPlugin
 											dht_data_port,
 											reseed,
 											logging.getValue(),
-											log ));
+											log, dht_log ));
 								}
 								
 								dhts = new DHTPluginImpl[plugins.size()];

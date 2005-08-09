@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
@@ -90,13 +91,13 @@ Test
 	static Map	check = new HashMap();
 
 
-	static LoggerChannel	logger;
+	static DHTLogger	logger;
 	
 	static{
 		
-		logger = AzureusCoreFactory.create().getPluginManager().getDefaultPluginInterface().getLogger().getNullChannel("test");
+		final LoggerChannel c_logger = AzureusCoreFactory.create().getPluginManager().getDefaultPluginInterface().getLogger().getNullChannel("test");
 		
-		logger.addListener(
+		c_logger.addListener(
 			new LoggerChannelListener()
 			{
 				public void
@@ -117,9 +118,51 @@ Test
 					error.printStackTrace();
 				}
 			});
+		
+		logger = 
+			new DHTLogger()
+			{
+				public void
+				log(
+					String	str )
+				{
+					c_logger.log( str );
+				}
+			
+				public void
+				log(
+					Throwable e )
+				{
+					c_logger.log( e );
+				}
+				
+				public void
+				log(
+					int		log_type,
+					String	str )
+				{
+					if ( isEnabled( log_type )){
+						
+						c_logger.log( str );
+					}
+				}
+			
+				public boolean
+				isEnabled(
+					int	log_type )
+				{
+					return( true );
+				}
+					
+				public PluginInterface
+				getPluginInterface()
+				{
+					return( c_logger.getLogger().getPluginInterface());
+				}
+			};
 	}
 
-	public static LoggerChannel
+	public static DHTLogger
 	getLogger()
 	{
 		return( logger );

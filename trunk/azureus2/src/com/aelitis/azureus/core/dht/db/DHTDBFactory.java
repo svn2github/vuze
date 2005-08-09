@@ -22,8 +22,7 @@
 
 package com.aelitis.azureus.core.dht.db;
 
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
-
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.db.impl.DHTDBImpl;
 
@@ -40,7 +39,7 @@ DHTDBFactory
 		DHTStorageAdapter	adapter,
 		int					original_republish_interval,
 		int					cache_republish_interval,
-		LoggerChannel		logger )
+		DHTLogger			logger )
 	{
 		return( new DHTDBImpl( 
 					adapter,

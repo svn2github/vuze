@@ -235,6 +235,15 @@ IpFilterImpl
 		String ipAddress, 
 		String torrent_name) 
 	{
+		return( isInRange( ipAddress, torrent_name, true ));
+	}
+	
+	public boolean 
+	isInRange(
+		String ipAddress, 
+		String torrent_name,
+		boolean	loggable ) 
+	{
 		//In all cases, block banned ip addresses
 		
 	  if(isBanned(ipAddress)){
@@ -269,7 +278,7 @@ IpFilterImpl
 			  return( false );
 		  }
 		  
-	      addBlockedIP( new BlockedIpImpl(ipAddress,match, torrent_name) );
+	      addBlockedIP( new BlockedIpImpl(ipAddress,match, torrent_name, loggable) );
 	      
 	      LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + match);
 	      
@@ -287,7 +296,7 @@ IpFilterImpl
 		  return( false );
 		}
 		  
-	    addBlockedIP( new BlockedIpImpl(ipAddress,null, torrent_name) );
+	    addBlockedIP( new BlockedIpImpl(ipAddress,null, torrent_name, loggable) );
 	    
 	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
 	    

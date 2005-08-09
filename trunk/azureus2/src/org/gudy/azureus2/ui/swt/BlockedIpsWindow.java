@@ -245,6 +245,9 @@ BlockedIpsWindow
     
     for(int i=0;i<blocked.length;i++){
       BlockedIp bIp = blocked[i];
+      if (!bIp.isLoggable()){
+    	  continue;
+      }
       sbBlocked.append(DisplayFormatters.formatTimeStamp(bIp.getBlockedTime()));
       sbBlocked.append("\t[");
       sbBlocked.append( bIp.getTorrentName() );

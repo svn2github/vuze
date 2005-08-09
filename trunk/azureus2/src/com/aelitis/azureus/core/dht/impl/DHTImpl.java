@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.control.*;
@@ -48,14 +49,14 @@ DHTImpl
 	private DHTStorageAdapter	storage_adapter;
 	private DHTControl			control;
 	private	Properties			properties;
-	private LoggerChannel		logger;
+	private DHTLogger			logger;
 	
 	public 
 	DHTImpl(
 		DHTTransport		_transport,
 		Properties			_properties,
 		DHTStorageAdapter	_storage_adapter,
-		LoggerChannel		_logger )
+		DHTLogger			_logger )
 	{		
 		properties		= _properties;
 		storage_adapter	= _storage_adapter;

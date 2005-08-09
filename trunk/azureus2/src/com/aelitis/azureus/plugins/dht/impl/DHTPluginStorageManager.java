@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
@@ -77,7 +78,7 @@ DHTPluginStorageManager
 	
 	public static final int			MAX_STORAGE_KEYS	= 65536;
 	
-	private LoggerChannel	log;
+	private DHTLogger		log;
 	private File			data_dir;
 	
 	private AEMonitor	address_mon	= new AEMonitor( "DHTPluginStorageManager:address" );
@@ -94,7 +95,7 @@ DHTPluginStorageManager
 
 	public
 	DHTPluginStorageManager(
-		LoggerChannel		_log,
+		DHTLogger			_log,
 		File				_data_dir )
 	{
 		log			= _log;

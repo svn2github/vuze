@@ -1,7 +1,7 @@
 /*
- * Created on 11-Jan-2005
+ * Created on 09-Aug-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,26 +22,31 @@
 
 package com.aelitis.azureus.core.dht;
 
-import java.util.Properties;
+import org.gudy.azureus2.plugins.PluginInterface;
 
-import com.aelitis.azureus.core.dht.impl.DHTImpl;
-import com.aelitis.azureus.core.dht.transport.DHTTransport;
-
-/**
- * @author parg
- *
- */
-
-public class 
-DHTFactory 
+public interface 
+DHTLogger 
 {
-	public static DHT
-	create(
-		DHTTransport		transport,
-		Properties			properties,
-		DHTStorageAdapter	storage_adapter,
-		DHTLogger			logger )
-	{
-		return( new DHTImpl( transport, properties, storage_adapter, logger ));
-	}
+	public static final int	LT_GENERAL		= 1;
+	public static final int	LT_IP_FILTER	= 2;
+	
+	public void
+	log(
+		String	str );
+	
+	public void
+	log(
+		Throwable	e );
+	
+	public void
+	log(
+		int		log_type,
+		String	str );
+	
+	public boolean
+	isEnabled(
+		int	log_type );
+			
+	public PluginInterface
+	getPluginInterface();
 }

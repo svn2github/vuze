@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTFactory;
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
@@ -99,6 +100,7 @@ DHTPluginImpl
 	private long				last_root_seed_import_time;
 			
 	private LoggerChannel		log;
+	private DHTLogger			dht_log;
 	
 
 	public
@@ -110,16 +112,18 @@ DHTPluginImpl
 		int						_port,
 		ActionParameter			_reseed,
 		boolean					_logging,
-		LoggerChannel			_log )
+		LoggerChannel			_log,
+		DHTLogger				_dht_log )
 	{
 		plugin_interface	= _plugin_interface;
 		protocol_version	= _protocol_version;
 		network				= _network;
 		reseed				= _reseed;
 		log					= _log;
+		dht_log				= _dht_log;
 		
 		try{
-			storage_manager = new DHTPluginStorageManager( log, getDataDir( _network ));
+			storage_manager = new DHTPluginStorageManager( dht_log, getDataDir( _network ));
 			
 			final PluginConfig conf = plugin_interface.getPluginconfig();
 			
@@ -148,7 +152,7 @@ DHTPluginImpl
 						send_delay, recv_delay, 
 						bootstrap,
 						initial_reachable,
-						log );
+						dht_log );
 			
 			transport.addListener(
 				new DHTTransportListener()
@@ -244,7 +248,7 @@ DHTPluginImpl
 						transport, 
 						props,
 						storage_manager,
-						log );
+						dht_log );
 			
 			dht.setLogging( _logging );
 			

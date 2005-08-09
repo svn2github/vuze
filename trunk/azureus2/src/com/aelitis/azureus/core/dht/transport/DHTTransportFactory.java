@@ -29,6 +29,7 @@ package com.aelitis.azureus.core.dht.transport;
 
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.transport.loopback.*;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
@@ -57,7 +58,7 @@ DHTTransportFactory
 		int				receive_delay,
 		boolean			bootstrap_node,
 		boolean			reachable,
-		LoggerChannel	logger )
+		DHTLogger		logger )
 	
 		throws DHTTransportException
 	{

@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.db.*;
@@ -89,7 +90,7 @@ DHTDBImpl
 	private DHTStorageAdapter		adapter;
 	private DHTRouter				router;
 	private DHTTransportContact		local_contact;
-	private LoggerChannel			logger;
+	private DHTLogger				logger;
 	
 	private static final long	MAX_TOTAL_SIZE	= 4*1024*1024;
 	
@@ -108,7 +109,7 @@ DHTDBImpl
 		DHTStorageAdapter	_adapter,
 		int					_original_republish_interval,
 		int					_cache_republish_interval,
-		LoggerChannel		_logger )
+		DHTLogger			_logger )
 	{
 		adapter							= new adapterFacade( _adapter );
 		original_republish_interval		= _original_republish_interval;
