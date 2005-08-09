@@ -158,6 +158,21 @@ PEPieceImpl
   	}
   }
   
+  public void
+  reDownloadBlocks(
+	String	writer )
+  {
+	  for (int i=0;i<writers.length;i++){
+	  
+		  PEPeer peer = writers[i];
+		  
+		  if ( peer != null && peer.getIp().equals( writer )){
+			  		  
+			  reDownloadBlock( i );
+		  }
+	  }
+  }
+  
   	/**
   	 * Assumption - single threaded with getAndMarkBlock
   	 */
@@ -276,6 +291,37 @@ PEPieceImpl
         iter.remove();
     }
      return result;
+  }
+  
+  public List 
+  getPieceWrites( 
+	String	ip ) 
+  {
+	  List result;
+	  
+	  try{
+		  class_mon.enter();
+	     
+	   		result = new ArrayList(writes);
+	   	
+	   }finally{
+	    
+		   class_mon.exit();
+	   }
+	  
+	   Iterator iter = result.iterator();
+	   
+	   while(iter.hasNext()) {
+		   
+	      PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
+	      
+	      if ( !write.getSender().getIp().equals( ip )){
+	    	 
+	        iter.remove();
+	      }
+	   }
+	   
+	  return result;
   }
   
   public void reset() {

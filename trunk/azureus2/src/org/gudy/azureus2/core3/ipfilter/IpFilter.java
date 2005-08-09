@@ -35,11 +35,11 @@ import java.io.File;
 public interface 
 IpFilter 
 {
-	public abstract File getFile();
+	public File getFile();
 	
-	public abstract void save() throws Exception;
+	public void save() throws Exception;
 	
-	public abstract void 
+	public void 
 	reload()
 	
 		throws Exception;
@@ -50,85 +50,93 @@ IpFilter
 	 * @deprecated
 	 * @return
 	 */
-	public abstract List
+	public List
 	getIpRanges();
 	
-	public abstract IpRange[] 
+	public IpRange[] 
 	getRanges();
 
-	public abstract boolean 
+	public boolean 
 	isInRange(
 		String ipAddress);
   
-	public abstract boolean 
+	public boolean 
 	isInRange(
 		String ipAddress, 
 		String torrent_name);
 	
-	public abstract boolean 
+	public boolean 
 	isInRange(
 		String ipAddress, 
 		String torrent_name,
 		boolean	loggable );
 	
-	public abstract IpRange
+	public IpRange
 	createRange(
 		boolean sessionOnly);
 	
-	public abstract void
+	public void
 	addRange(
 		IpRange	range );
 	
-	public abstract void
+	public void
 	removeRange(
 		IpRange	range );
 	
-	public abstract int 
+	public int 
 	getNbRanges();
 	
-	public abstract int 
+	public int 
 	getNbIpsBlocked();
 	
-	public abstract BlockedIp[] 
+	public BlockedIp[] 
 	getBlockedIps();
 	
-	public abstract void 
+	public void 
 	clearBlockedIPs();
 	
-	public abstract boolean 
+	public boolean 
 	ban(
 		String 	ipAddress,
 		String	torrent_name );
 	
-	public abstract int
+	public int
 	getNbBannedIps();
 	
-	public abstract BannedIp[]
+	public BannedIp[]
 	getBannedIps();
 	
-	public abstract void
+	public void
 	clearBannedIps();
 	
-	public abstract boolean
+	public boolean
 	isEnabled();
 
-	public abstract void
+	public void
 	setEnabled(
 		boolean	enabled );
 	
-	public abstract boolean
+	public boolean
 	getInRangeAddressesAreAllowed();
 	
-	public abstract void
+	public void
 	setInRangeAddressesAreAllowed(
 		boolean	b );
 
-	public abstract void
+	public void
 	markAsUpToDate();
 	
-	public abstract long
+	public long
 	getLastUpdateTime();
 	
-	public abstract long
+	public long
 	getTotalAddressesInRange();
+	
+	public void
+	addListener(
+		IPFilterListener	l );
+	
+	public void
+	removeListener(
+		IPFilterListener	l );
 }

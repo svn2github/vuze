@@ -34,7 +34,7 @@ import com.aelitis.azureus.core.peermanager.unchoker.*;
 
 public class 
 PEPeerControlImpl
-	implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener, DiskManagerCheckRequestListener
+	implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener, DiskManagerCheckRequestListener, IPFilterListener
 {
   
   //Min number of requests sent to a peer
@@ -161,6 +161,7 @@ PEPeerControlImpl
       COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
       COConfigurationManager.addParameterListener( "Disconnect Seed", this );
       
+      ip_filter.addListener( this );
  }
   
 	public DownloadManager
@@ -381,6 +382,8 @@ PEPeerControlImpl
     // 5. Remove listeners
     COConfigurationManager.removeParameterListener("Ip Filter Enabled", this);
     COConfigurationManager.removeParameterListener( "Disconnect Seed", this );
+    
+    ip_filter.removeListener( this );
   }
   
 
@@ -2885,4 +2888,18 @@ PEPeerControlImpl
     }
   }
  
+	public void
+	IPBanned(
+		BannedIp		ip )
+	{
+		for (int i=0;i<_pieces.length;i++){
+			
+			PEPieceImpl	piece = _pieces[i];
+			
+			if ( piece != null ){
+				
+				piece.reDownloadBlocks( ip.getIp());
+			}
+		}
+	}
  }

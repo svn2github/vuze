@@ -44,7 +44,7 @@ IpFilterImpl
 	implements IpFilter
 {
 
-  private final static int MAX_BLOCKS_TO_REMEMBER = 500;
+	private final static int MAX_BLOCKS_TO_REMEMBER = 500;
   
 	private static IpFilterImpl ipFilter;
 	private static AEMonitor	class_mon	= new AEMonitor( "IpFilter:class" );
@@ -58,11 +58,14 @@ IpFilterImpl
     //Map ip blocked -> matching range
 	
 	private LinkedList		ipsBlocked;
-  private int num_ips_blocked = 0;
+	private int num_ips_blocked = 0;
 
 	private long	last_update_time;
     
   
+	private List	listeners = new ArrayList();
+	
+	
 	private IpFilterImpl() 
 	{
 	  ipFilter = this;
@@ -494,6 +497,8 @@ IpFilterImpl
 	{
 		boolean	block_ban = false;
 		
+		List	new_bans = new ArrayList();
+		
 		try{
 			class_mon.enter();
 			
@@ -503,7 +508,11 @@ IpFilterImpl
 			
 			if ( bannedIps.get(i_address) == null ){
 				
-				bannedIps.put( i_address, new BannedIpImpl( ipAddress, torrent_name ));
+				BannedIpImpl	new_ban = new BannedIpImpl( ipAddress, torrent_name );
+				
+				new_bans.add( new_ban );
+				
+				bannedIps.put( i_address, new_ban );
 				
 					// check for block-banning, but only for real addresses
 				
@@ -543,7 +552,11 @@ IpFilterImpl
 							
 							if ( bannedIps.get(a) == null ){
 								
-								bannedIps.put( a, new BannedIpImpl( PRHelpers.intToAddress((int)i), torrent_name + " [block ban]" ));
+								BannedIpImpl	new_block_ban = new BannedIpImpl( PRHelpers.intToAddress((int)i), torrent_name + " [block ban]" );
+								
+								new_bans.add( new_block_ban );
+
+								bannedIps.put( a, new_block_ban );
 							}
 						}
 					}
@@ -552,6 +565,24 @@ IpFilterImpl
 		}finally{
 			
 			class_mon.exit();
+		}
+		
+		List	listeners_ref = listeners;
+		
+		for (int i=0;i<new_bans.size();i++){
+			
+			BannedIp entry	= (BannedIp)new_bans.get(i);
+			
+			for (int j=0;j<listeners_ref.size();j++){
+				
+				try{
+					((IPFilterListener)listeners_ref.get(j)).IPBanned( entry );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
 		}
 		
 		return( block_ban );
@@ -655,6 +686,44 @@ IpFilterImpl
 	getTotalAddressesInRange()
 	{
 		return( range_manager.getTotalSpan());
+	}
+	
+	public void
+	addListener(
+		IPFilterListener	l )
+	{
+		try{
+			class_mon.enter();
+		
+			List	new_listeners = new ArrayList( listeners );
+			
+			new_listeners.add( l );
+			
+			listeners	= new_listeners;
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
+	
+	public void
+	removeListener(
+		IPFilterListener	l )
+	{
+		try{
+			class_mon.enter();
+		
+			List	new_listeners = new ArrayList( listeners );
+			
+			new_listeners.remove( l );
+			
+			listeners	= new_listeners;
+			
+		}finally{
+			
+			class_mon.exit();
+		}
 	}
 	
 	public static void
