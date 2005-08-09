@@ -38,7 +38,7 @@ public class VivaldiVisualTest {
   private static final int MAX_HEIGHT = 20;
   private static final int ELEMENTS_X = 20;
   private static final int ELEMENTS_Y = 20;
-  private static final int DISTANCE   = 40;
+  private static final int DISTANCE   = 50;
   private static final int MAX_ITERATIONS = 10000;
   private static final int NB_CONTACTS = 5;
   
@@ -73,7 +73,7 @@ public class VivaldiVisualTest {
         
         //Main loop
         for(int iter = 0 ; iter < MAX_ITERATIONS ; iter++) {
-          System.out.println(iter);
+          if(iter%100 == 0) System.out.println(iter);
           if(display.isDisposed()) return;
           display.syncExec( new Runnable() {
             public void run() {
@@ -97,7 +97,7 @@ public class VivaldiVisualTest {
                 if(i1 == i && j1 ==j) continue;
                 VivaldiPosition position1 = positions[i1][j1];
                 float rtt = realCoordinates[i1][j1].distance(realCoordinates[i][j]);
-                rtt *= (Math.random() - 0.5)/10 + 1;  
+                rtt *= (Math.random() - 0.5)/4 + 1;  
                 position.update(rtt,position1.getCoordinates(),position1.getErrorEstimate());
               }
               

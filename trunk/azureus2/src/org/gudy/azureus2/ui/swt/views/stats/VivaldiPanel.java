@@ -42,6 +42,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.vivaldi.maths.Coordinates;
 import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
 import com.aelitis.azureus.core.dht.vivaldi.maths.impl.HeightCoordinatesImpl;
+import com.aelitis.azureus.core.dht.vivaldi.maths.impl.VivaldiPositionImpl;
 
 public class VivaldiPanel {
   
@@ -212,12 +213,24 @@ public class VivaldiPanel {
     
     Color blue = new Color(display,66,87,104);
     gc.setForeground(blue);
-    gc.setBackground(blue);       
+    gc.setBackground(blue);
+    
+    
     
     Iterator iter = vivaldiPositions.iterator();
     while(iter.hasNext()) {
-      HeightCoordinatesImpl coord = (HeightCoordinatesImpl) ((VivaldiPosition)iter.next()).getCoordinates();
+      VivaldiPosition position  = (VivaldiPosition)iter.next();
+      HeightCoordinatesImpl coord = (HeightCoordinatesImpl) position.getCoordinates();
+      
+      float error = position.getErrorEstimate() - VivaldiPosition.ERROR_MIN;
+      if(error < 0) error = 0;
+      if(error > 1) error = 1;
+      int blueComponent = (int) (255 - error * 255);
+      int redComponent = (int) (255*error);      
+      Color drawColor = new Color(display,redComponent,50,blueComponent);      
+      gc.setForeground(drawColor);
       draw(gc,coord.getX(),coord.getY(),coord.getH());
+      drawColor.dispose();
     }
     
     gc.dispose();

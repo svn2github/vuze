@@ -24,6 +24,14 @@ package com.aelitis.azureus.core.dht.vivaldi.maths;
 
 public interface VivaldiPosition {
   
+  final static int CONVERGE_EVERY = 5;
+  final static int CONVERGE_FACTOR = 100;
+  
+  // controlling parameters
+  public final static float ERROR_MIN = 0.5f;
+  final static float ERROR_CONTROL = 0.1f;
+  final static float COORD_CONTROL = 0.2f;
+  
   public Coordinates getCoordinates();
   
   public float getErrorEstimate();
