@@ -870,7 +870,7 @@ public class StartStopRulesDefaultPlugin
 	          boolean bActivelyDownloading = dlData.getActivelyDownloading();
 	          
 		      if (bDebugOn) {
-		    	  System.out.println(dlData.getDownloadObject().getName());
+		    	  System.out.println("D : " + dlData.getDownloadObject().getName());
 		    	  System.out.println( "Before: numWaitingOrDLing: " + numWaitingOrDLing + " / " + "activeDLCount: " + activeDLCount);
 		      }
 		      
@@ -1009,14 +1009,16 @@ public class StartStopRulesDefaultPlugin
 	          continue;
 	        }
 			
-//			System.out.println("numWaitingOrSeeding " + numWaitingOrSeeding);
-//			System.out.println("maxActive " + maxActive);
+	        if (bDebugOn) {
+	        	System.out.println("S : " + dlData.getDownloadObject().getName());
+	        	System.out.println("numWaitingOrSeeding " + numWaitingOrSeeding + " / " + "maxSeeders " + maxSeeders + " / " + "maxActive " + maxActive);
+	        }
 
 			
 	        int shareRatio = download.getStats().getShareRatio();
 	        boolean bActivelySeeding = dlData.getActivelySeeding();
 	        boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING) &&
-								(!isFP || (isFP && (( maxActive != 0 && numWaitingOrSeeding >= maxActive)  )) ) &&
+								(!isFP || (isFP && (( maxActive != 0 && numWaitingOrSeeding >= maxSeeders)  )) ) &&
 	//							(!isFP || (isFP && ((numWaitingOrSeeding >= maxSeeders) || (!bActivelySeeding && (numWaitingOrSeeding + totalStalledSeeders) >= maxSeeders))) ) &&
 								(!download.isForceStart());
 
@@ -1092,8 +1094,8 @@ public class StartStopRulesDefaultPlugin
 	
 	        // XXX Change to waiting if queued and we have an open slot
 	        } else if ((state == Download.ST_QUEUED) &&
-	                   (numWaitingOrSeeding < maxSeeders) && 
-	                   (maxActive == 0 || (activeSeedingCount + activeDLCount) < maxActive) &&
+	                   (maxActive == 0 || numWaitingOrSeeding < maxSeeders) && 
+//	                   (maxActive == 0 || (activeSeedingCount + activeDLCount) < maxActive) &&
 	                   (dlData.getSeedingRank() > -2) && 
 	                   !higherQueued) {
 	          try {
@@ -1145,11 +1147,10 @@ public class StartStopRulesDefaultPlugin
 	        if (okToQueue &&
 	            (((bActivelySeeding || state != Download.ST_SEEDING) &&
 	            ((numWaitingOrSeeding > maxSeeders) || 
-	             higherQueued || 
+	            (numWaitingOrSeeding >= maxSeeders && higherQueued) ||
 	             dlData.getSeedingRank() <= -2)) ||
 	             ((!bActivelySeeding && state == Download.ST_SEEDING) &&
 				            ((numWaitingOrSeeding >= maxSeeders) || 
-				             higherQueued || 
 				             dlData.getSeedingRank() <= -2)))) 
 	        {
 	          try {
