@@ -44,6 +44,9 @@ public class
 DHTTransportUDPContactImpl
 	implements DHTTransportUDPContact
 {
+	public static final int			NODE_STATUS_UNKNOWN		= 0xffffffff;
+	public static final int			NODE_STATUS_ROUTEABLE	= 0x00000001;
+	
 	private	DHTTransportUDPImpl		transport;
 	private InetSocketAddress		external_address;
 	private InetSocketAddress		transport_address;
@@ -53,6 +56,7 @@ DHTTransportUDPContactImpl
 	private int					instance_id;
 	private long				skew;
 	private int					random_id;
+	private int					node_status	= NODE_STATUS_UNKNOWN;
 	
 	private VivaldiPosition		vivaldi_position;
 	
@@ -119,6 +123,19 @@ DHTTransportUDPContactImpl
 	getRandomID()
 	{
 		return( random_id );
+	}
+	
+	protected int
+	getNodeStatus()
+	{
+		return( node_status );
+	}
+	
+	protected void
+	setNodeStatus(
+		int		ns )
+	{
+		node_status	= ns;
 	}
 	
 	public boolean

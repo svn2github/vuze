@@ -87,6 +87,7 @@ DHTTransportUDPImpl
 	private long				request_timeout;
 	private long				store_timeout;
 	private boolean				reachable;
+	private boolean				reachable_accurate;
 	
 	private DHTLogger			logger;
 		
@@ -125,6 +126,19 @@ DHTTransportUDPImpl
 			}
 		};
 		
+	private static final int ROUTEABLE_CONTACT_HISTORY_MAX 		= 32;
+
+	private Map	routeable_contact_history = 
+		new LinkedHashMap(ROUTEABLE_CONTACT_HISTORY_MAX,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry eldest) 
+			{
+				return size() > ROUTEABLE_CONTACT_HISTORY_MAX;
+			}
+		};
+			
 	private static final int RECENT_REPORTS_HISTORY_MAX = 32;
 
 	private Map	recent_reports = 
@@ -270,6 +284,8 @@ DHTTransportUDPImpl
 			
 			if ( now - stats_start_time > STATS_INIT_PERIOD ){
 				
+				reachable_accurate	= true;
+				
 				if ( alien_fv_average.getAverage() > 0 ){
 					
 					reachable	= true;
@@ -286,6 +302,21 @@ DHTTransportUDPImpl
 		}
 		
 		// System.out.println( "net " + network + ": aliens = " + alien_average.getAverage() + ", alien fv = " + alien_fv_average.getAverage());
+	}
+	
+	protected int
+	getNodeStatus()
+	{
+		if ( reachable_accurate ){
+			
+			int	status = reachable?1:0;
+			
+			return( status );
+			
+		}else{
+			
+			return( DHTTransportUDPContactImpl.NODE_STATUS_UNKNOWN );
+		}
 	}
 	
 	public boolean
@@ -665,6 +696,16 @@ DHTTransportUDPImpl
 			this_mon.enter();
 			
 			contact_history.put( contact.getTransportAddress(), contact );
+			
+			int	status = contact.getNodeStatus();
+			
+			if ( status != DHTTransportUDPContactImpl.NODE_STATUS_UNKNOWN ){
+				
+				if ( (status & DHTTransportUDPContactImpl.NODE_STATUS_ROUTEABLE) != 0 ){
+					
+					routeable_contact_history.put( contact.getTransportAddress(), contact );
+				}
+			}
 			
 		}finally{
 			
@@ -1392,6 +1433,8 @@ DHTTransportUDPImpl
 								// store operation
 							
 							contact.setRandomID( reply.getRandomID());
+							
+							contact.setNodeStatus( reply.getNodeStatus());
 							
 							stats.findNodeOK();
 								
@@ -2161,6 +2204,8 @@ DHTTransportUDPImpl
 									originating_contact );
 								
 						reply.setRandomID( originating_contact.getRandomID());
+						
+						reply.setNodeStatus( getNodeStatus());
 						
 						reply.setContacts( res );
 						
