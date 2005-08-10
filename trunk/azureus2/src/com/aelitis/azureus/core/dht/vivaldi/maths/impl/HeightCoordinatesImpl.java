@@ -78,7 +78,7 @@ public class HeightCoordinatesImpl implements Coordinates {
   }
   
   public float distance(Coordinates other) {
-    return 2 * this.sub(other).measure();
+    return this.sub(other).measure();
   }
   
   public Coordinates unity() {

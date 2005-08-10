@@ -97,7 +97,7 @@ public class VivaldiVisualTest {
                 if(i1 == i && j1 ==j) continue;
                 VivaldiPosition position1 = positions[i1][j1];
                 float rtt = realCoordinates[i1][j1].distance(realCoordinates[i][j]);
-                rtt *= (Math.random() - 0.5)/4 + 1;  
+                rtt *= (Math.random() - 0.5)/20 + 1;  
                 position.update(rtt,position1.getCoordinates(),position1.getErrorEstimate());
               }
               
