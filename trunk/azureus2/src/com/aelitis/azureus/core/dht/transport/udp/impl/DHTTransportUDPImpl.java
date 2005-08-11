@@ -139,6 +139,10 @@ DHTTransportUDPImpl
 			}
 		};
 			
+		
+	private long	other_routeable_total;
+	private long	other_non_routeable_total;
+	
 	private static final int RECENT_REPORTS_HISTORY_MAX = 32;
 
 	private Map	recent_reports = 
@@ -286,6 +290,8 @@ DHTTransportUDPImpl
 				
 				reachable_accurate	= true;
 				
+				boolean	old_reachable	= reachable;
+				
 				if ( alien_fv_average.getAverage() > 0 ){
 					
 					reachable	= true;
@@ -298,8 +304,24 @@ DHTTransportUDPImpl
 					
 					reachable	= false;
 				}
+				
+				if ( old_reachable != reachable ){
+					
+					for (int i=0;i<listeners.size();i++){
+						
+						try{
+							((DHTTransportListener)listeners.get(i)).reachabilityChanged( reachable );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}	
+				}
 			}
 		}
+		
+		//System.out.println( "routeables=" + other_routeable_total + ", non=" + other_non_routeable_total );
 		
 		// System.out.println( "net " + network + ": aliens = " + alien_average.getAverage() + ", alien fv = " + alien_fv_average.getAverage());
 	}
@@ -309,7 +331,7 @@ DHTTransportUDPImpl
 	{
 		if ( reachable_accurate ){
 			
-			int	status = reachable?1:0;
+			int	status = reachable?DHTTransportUDPContactImpl.NODE_STATUS_ROUTEABLE:0;
 			
 			return( status );
 			
@@ -697,13 +719,24 @@ DHTTransportUDPImpl
 			
 			contact_history.put( contact.getTransportAddress(), contact );
 			
-			int	status = contact.getNodeStatus();
-			
-			if ( status != DHTTransportUDPContactImpl.NODE_STATUS_UNKNOWN ){
+			if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_XFER_STATUS ){
 				
-				if ( (status & DHTTransportUDPContactImpl.NODE_STATUS_ROUTEABLE) != 0 ){
+				int	status = contact.getNodeStatus();
+				
+				if ( status != DHTTransportUDPContactImpl.NODE_STATUS_UNKNOWN ){
 					
-					routeable_contact_history.put( contact.getTransportAddress(), contact );
+					boolean	other_routeable = (status & DHTTransportUDPContactImpl.NODE_STATUS_ROUTEABLE) != 0;
+					
+					if ( other_routeable ){
+						
+						other_routeable_total++;
+						
+						routeable_contact_history.put( contact.getTransportAddress(), contact );
+						
+					}else{
+						
+						other_non_routeable_total++;
+					}
 				}
 			}
 			

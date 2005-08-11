@@ -291,6 +291,12 @@ DHTControlImpl
 					String		address )
 				{
 				}
+				
+				public void
+				reachabilityChanged(
+					boolean	reacheable )
+				{	
+				}
 			});
 	}
 	

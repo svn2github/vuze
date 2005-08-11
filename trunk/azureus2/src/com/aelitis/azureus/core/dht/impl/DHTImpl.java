@@ -260,6 +260,12 @@ DHTImpl
 		DHTLog.setLogging( on );
 	}
 	
+	public DHTLogger
+	getLogger()
+	{
+		return( logger );
+	}
+	
 	public void
 	print()
 	{

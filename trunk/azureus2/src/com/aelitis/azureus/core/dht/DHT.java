@@ -166,6 +166,9 @@ DHT
 	setLogging(
 		boolean	on );
 
+	public DHTLogger
+	getLogger();
+	
 	public void
 	print();
 }

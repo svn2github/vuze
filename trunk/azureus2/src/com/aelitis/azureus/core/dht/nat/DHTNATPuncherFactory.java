@@ -1,7 +1,7 @@
 /*
- * Created on 24-Jan-2005
+ * Created on 11-Aug-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,25 +20,18 @@
  *
  */
 
-package com.aelitis.azureus.core.dht.transport;
+package com.aelitis.azureus.core.dht.nat;
 
-/**
- * @author parg
- *
- */
+import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.nat.impl.DHTNATPuncherImpl;
 
-public interface 
-DHTTransportListener 
+public class 
+DHTNATPuncherFactory 
 {
-	public void
-	localContactChanged(
-		DHTTransportContact	local_contact );
-	
-	public void
-	currentAddress(
-		String		address );
-	
-	public void
-	reachabilityChanged(
-		boolean	reacheable );
+	public static DHTNATPuncher
+	create(
+		DHT		dht )
+	{
+		return( new DHTNATPuncherImpl( dht ));
+	}
 }

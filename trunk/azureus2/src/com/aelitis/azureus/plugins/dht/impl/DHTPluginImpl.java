@@ -169,6 +169,12 @@ DHTPluginImpl
 					{
 						storage_manager.recordCurrentAddress( address );
 					}
+					
+					public void
+					reachabilityChanged(
+						boolean	reacheable )
+					{
+					}
 				});
 				
 			final int sample_frequency		= 60*1000;
