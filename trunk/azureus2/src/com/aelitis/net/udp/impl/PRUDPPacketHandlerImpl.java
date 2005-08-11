@@ -660,6 +660,8 @@ PRUDPPacketHandlerImpl
 										public void
 										runSupport()
 										{
+											int		consecutive_hps = 0;
+											
 											while( true ){
 												
 												try{
@@ -670,13 +672,29 @@ PRUDPPacketHandlerImpl
 													try{
 														send_queue_mon.enter();
 													
-														if ( send_queue_hp.size() > 0 ){
+															// need a bit of fairness here. just ensure that we send 
+															// a low priority one now and then
+														
+														if ( consecutive_hps >= 4 && send_queue_lp.size() > 0 ){
 															
-															data	= (Object[])send_queue_hp.remove(0);
+															data	= (Object[])send_queue_lp.remove(0);
+															
+															consecutive_hps	= 0;
 															
 														}else{
+															
+															if ( send_queue_hp.size() > 0 ){
+															
+																data	= (Object[])send_queue_hp.remove(0);
+															
+																consecutive_hps++;
+																
+															}else{
 														
-															data	= (Object[])send_queue_lp.remove(0);
+																data	= (Object[])send_queue_lp.remove(0);
+																
+																consecutive_hps	= 0;
+															}
 														}
 														
 													}finally{
