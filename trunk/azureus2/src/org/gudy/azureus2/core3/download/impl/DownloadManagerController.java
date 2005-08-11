@@ -728,6 +728,11 @@ DownloadManagerController
   		int 		_state,
   		boolean		_inform_changed )
   	{   
+  			// we bring this call out of the monitor block to prevent a potential deadlock whereby we chain
+  			// state_mon -> this_mon (there exist numerous dependencies this_mon -> state_mon...
+  		
+  		boolean	call_filesExist	= false;
+  		
    		try{
   			state_mon.enter();
   		
@@ -748,7 +753,7 @@ DownloadManagerController
 	    	  
 	  				if (  download_manager.getOnlySeeding()){
 	    		  
-	  					filesExist();
+	  					call_filesExist	= true;
 	  				}
 	    	  
 	  			}else if ( state_set_by_method == DownloadManager.STATE_ERROR ){
@@ -776,6 +781,11 @@ DownloadManagerController
   			state_mon.exit();
   		}
 	      
+  		if ( call_filesExist ){
+  			
+  			filesExist();
+  		}
+  		
   		if ( _inform_changed ){
   			
   			download_manager.informStateChanged();
