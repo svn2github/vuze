@@ -258,7 +258,7 @@ TRTrackerServerProcessorUDP
 			
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace( e );
+			LGLogger.log( "TRTrackerServerProcessorUDP: processing fails", e ); 
 		}
 	}
 	
