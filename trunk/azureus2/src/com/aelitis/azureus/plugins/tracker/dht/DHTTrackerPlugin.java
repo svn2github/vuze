@@ -81,8 +81,8 @@ DHTTrackerPlugin
 	private static final int	ANNOUNCE_TIMEOUT	= 2*60*1000;
 	private static final int	SCRAPE_TIMEOUT		= 30*1000;
 	
-	private static final int	ANNOUNCE_MIN		= 2*60*1000;
-	private static final int	ANNOUNCE_MAX		= 60*60*1000;
+	private static final int	ANNOUNCE_MIN_DEFAULT		= 2*60*1000;
+	private static final int	ANNOUNCE_MAX				= 60*60*1000;
 	
 	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
 	
@@ -983,7 +983,7 @@ DHTTrackerPlugin
 							
 								// use "min" here as we're just deferring it
 							
-							query_map.put( dl, new Long( start + ANNOUNCE_MIN ));
+							query_map.put( dl, new Long( start + ANNOUNCE_MIN_DEFAULT ));
 						}
 						
 					}finally{
@@ -1085,8 +1085,19 @@ DHTTrackerPlugin
 									final DownloadAnnounceResultPeer[]	peers = new
 										DownloadAnnounceResultPeer[addresses.size()];
 									
-									final long	retry = ANNOUNCE_MIN + peers.length*(ANNOUNCE_MAX-ANNOUNCE_MIN)/NUM_WANT;
+										// scale min and max based on number of active torrents
+										// we don't want more than a few announces a minute
 									
+									int	announce_per_min = 4;
+									
+									int	num_active = query_map.size();
+									
+									int	announce_min = Math.max( ANNOUNCE_MIN_DEFAULT, ( num_active / announce_per_min )*60*1000 );
+									
+									announce_min = Math.min( announce_min, ANNOUNCE_MAX );
+									
+									final long	retry = announce_min + peers.length*(ANNOUNCE_MAX-announce_min)/NUM_WANT;
+																		
 									try{
 										this_mon.enter();
 									
