@@ -152,7 +152,7 @@ UtilitiesImpl
 	getImageAsStream(
 		String	image_name )
 	{
-		return( UIImageRepository.getImageAsStream( image_name ));
+		return( UtilitiesImpl.class.getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/icons/" + image_name));
 	}
 	
 	public Semaphore
