@@ -67,7 +67,7 @@ public class HeightCoordinatesImpl implements Coordinates {
   public boolean
   isValid()
   {
-	 return( valid(x) && valid(y) && valid(h));
+	 return( valid(x) && valid(y) && valid(h) && x <= MAX_X && y <= MAX_Y && h <= MAX_H);
   }
   
   private boolean

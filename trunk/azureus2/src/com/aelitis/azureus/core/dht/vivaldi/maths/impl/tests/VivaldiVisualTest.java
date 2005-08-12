@@ -60,11 +60,11 @@ public class VivaldiVisualTest {
         for(int i = 0 ; i < ELEMENTS_X ; i++) {
           for(int j = 0 ; j < ELEMENTS_Y ; j++) {
             realCoordinates[i][j] = new HeightCoordinatesImpl(i*DISTANCE-ELEMENTS_X * DISTANCE/2,j*DISTANCE-ELEMENTS_Y*DISTANCE/2,MAX_HEIGHT);
-            if(i == ELEMENTS_X / 2 && 1 == 0) {
+            if(i >= ELEMENTS_X / 2 && 1 == 0) {
               positions[i][j] = new VivaldiPositionImpl(realCoordinates[i][j]);
-              positions[i][j].setErrorEstimate(0.0f);
+              positions[i][j].setErrorEstimate(0.01f);
             } else {
-              positions[i][j] = new VivaldiPositionImpl(new HeightCoordinatesImpl(0,0,0)); 
+              positions[i][j] = new VivaldiPositionImpl(new HeightCoordinatesImpl(1000+DISTANCE*i,1000+DISTANCE*j,20)); 
             }
             
             lPos.add(positions[i][j]);
@@ -97,7 +97,7 @@ public class VivaldiVisualTest {
                 if(i1 == i && j1 ==j) continue;
                 VivaldiPosition position1 = positions[i1][j1];
                 float rtt = realCoordinates[i1][j1].distance(realCoordinates[i][j]);
-                rtt *= (Math.random() - 0.5)/20 + 1;  
+                //rtt *= (Math.random() - 0.5)/20 + 1;  
                 position.update(rtt,position1.getCoordinates(),position1.getErrorEstimate());
               }
               

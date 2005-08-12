@@ -24,6 +24,10 @@ package com.aelitis.azureus.core.dht.vivaldi.maths;
 
 public interface Coordinates {
   
+  public static final float MAX_X = 30000f;
+  public static final float MAX_Y = 30000f;
+  public static final float MAX_H = 30000f;
+  
   public Coordinates add(Coordinates other);
   
   public Coordinates sub(Coordinates other);
