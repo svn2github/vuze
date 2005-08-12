@@ -211,7 +211,15 @@ UtilitiesImpl
 	createTimer(
 		String		name )
 	{
-		return( new UTTimerImpl( pi, name ));
+		return( new UTTimerImpl( pi, name, false ));
+	}
+	
+	public UTTimer
+	createTimer(
+		String		name,
+		boolean		lightweight )
+	{
+		return( new UTTimerImpl( pi, name, true ));
 	}
 	
 	public void

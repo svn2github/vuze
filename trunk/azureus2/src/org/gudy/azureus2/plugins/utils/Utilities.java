@@ -95,6 +95,11 @@ Utilities
 	createTimer(
 		String		name );
 
+	public UTTimer
+	createTimer(
+		String		name,
+		boolean		lightweight );
+	
 		/**
 		 * create and run a thread for the target. This will be a daemon thread so that
 		 * its existence doesn't interfere with Azureus closedown

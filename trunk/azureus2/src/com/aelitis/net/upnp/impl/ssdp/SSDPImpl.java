@@ -27,6 +27,9 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.utils.UTTimer;
+import org.gudy.azureus2.plugins.utils.UTTimerEvent;
+import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.*;
@@ -40,18 +43,18 @@ public class
 SSDPImpl 
 	implements SSDP
 {
-	protected final static String	SSDP_GROUP_ADDRESS 	= "239.255.255.250";
-	protected final static int		SSDP_GROUP_PORT		= 1900;
-	protected final static int		SSDP_CONTROL_PORT	= 8008;
-	protected final static int		TTL					= 4;
+	private final static String	SSDP_GROUP_ADDRESS 	= "239.255.255.250";
+	private final static int		SSDP_GROUP_PORT		= 1900;
+	private final static int		SSDP_CONTROL_PORT	= 8008;
+	private final static int		TTL					= 4;
 	
-	protected final static int		PACKET_SIZE		= 8192;
+	private final static int		PACKET_SIZE		= 8192;
 		
-	protected static final String	HTTP_VERSION	= "1.1";
-	protected static final String	NL				= "\r\n";
+	private static final String	HTTP_VERSION	= "1.1";
+	private static final String	NL				= "\r\n";
 	
 	
-	protected static InetSocketAddress group_address;
+	private static InetSocketAddress group_address;
 	
 	static{
 		try{
@@ -64,21 +67,20 @@ SSDPImpl
 	}
 
 
-	protected UPnPImpl		upnp;
+	private UPnPImpl		upnp;
 	
-	protected long			last_explicit_search	= 0;
+	private long			last_explicit_search	= 0;
+		
+	private boolean		first_response			= true;
+	private boolean		ttl_problem_reported	= false;
+	private boolean		sso_problem_reported	= false;
 	
-	protected List			mc_network_interfaces		= new ArrayList();
-	protected List			mc_socks					= new ArrayList();
-	
-	protected boolean		first_response			= true;
-	protected boolean		ttl_problem_reported	= false;
-	protected boolean		sso_problem_reported	= false;
-	
-	protected List			listeners	= new ArrayList();
+	private List			listeners	= new ArrayList();
 	
 	protected AEMonitor		this_mon	= new AEMonitor( "SSDP" );
 
+	private Map	current_registrations = new HashMap();
+	
 	public
 	SSDPImpl(
 		UPnPImpl		_upnp )
@@ -93,124 +95,194 @@ SSDPImpl
 	
 		throws UPnPException
 	{
-		try{			
+		try{	
+			processNetworkInterfaces( true );
+		
+			UTTimer timer = 
+				upnp.getPluginInterface().getUtilities().createTimer( "SSDP:refresher", true );
+			
+			timer.addPeriodicEvent(
+				60*1000,
+				new UTTimerEventPerformer()
+				{
+					public void 
+					perform(
+						UTTimerEvent event )
+					{
+						try{
+							processNetworkInterfaces( false );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				});
+			
+			upnp.getPluginInterface().getUtilities().createThread(
+					"SSDP:queryLoop",
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							queryLoop();
+						}	
+					});
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+			
+			throw( new UPnPException( "Failed to initialise SSDP", e ));
+		}
+	}
+	
+	protected void
+	processNetworkInterfaces(
+		boolean		log_ignored )
+	
+		throws SocketException
+	{
+		Map			new_registrations	= new HashMap();
+		
+		try{
+			this_mon.enter();
+			
 			Enumeration network_interfaces = NetworkInterface.getNetworkInterfaces();
 			
 			while (network_interfaces.hasMoreElements()){
 				
 				final NetworkInterface network_interface = (NetworkInterface)network_interfaces.nextElement();
-
-
+	
+				Set old_address_set = (Set)current_registrations.get( network_interface );
+					
+				if ( old_address_set == null ){
+				
+					old_address_set	= new HashSet();
+				}
+				
+				Set	new_address_set = new HashSet();
+				
+				new_registrations.put( network_interface, new_address_set );
+				
 				Enumeration ni_addresses = network_interface.getInetAddresses();
 				
 				while (ni_addresses.hasMoreElements()){
 					
 					final InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
-					
-					// turn on loopback to see if it helps for local host UPnP devices
-					// nah, turn it off again, it didn;t
+	
+					new_address_set.add( ni_address );
+
+					if ( old_address_set.contains( ni_address )){
+								
+							// already established
+						
+						continue;
+					}
+						// turn on loopback to see if it helps for local host UPnP devices
+						// nah, turn it off again, it didn;t
 					
 					if ( ni_address.isLoopbackAddress()){
 						
-						upnp.log( "UPnP::SSDP: ignoring loopback address " + ni_address );
+						if ( log_ignored ){
+							
+							upnp.log( "UPnP::SSDP: ignoring loopback address " + ni_address );
+						}
 						
 						continue;
 					}
 					
 					if ( ni_address instanceof Inet6Address ){
-
-						upnp.log( "UPnP::SSDP: ignoring IPv6 address " + ni_address );
+			
+						if ( log_ignored ){
+							
+							upnp.log( "UPnP::SSDP: ignoring IPv6 address " + ni_address );
+						}
 						
 						continue;
 					}
-
-					if ( !mc_network_interfaces.contains( network_interface )){
-					
-						mc_network_interfaces.add( network_interface );
-					
-						try{
-								// set up group
-							
-							final MulticastSocket mc_sock = new MulticastSocket(SSDP_GROUP_PORT);
-							
-							mc_socks.add( mc_sock );
-							
-							mc_sock.setReuseAddress(true);
-							
-								// windows 98 doesn't support setTimeToLive
-							
-							try{
-								mc_sock.setTimeToLive(TTL);
-								
-							}catch( Throwable e ){
-								
-								if ( !ttl_problem_reported ){
-									
-									ttl_problem_reported	= true;
-									
-									Debug.printStackTrace( e );
-								}
-							}
-							
-							String	addresses_string = "";
-								
-							Enumeration it = network_interface.getInetAddresses();
-							
-							while (it.hasMoreElements()){
-								
-								InetAddress addr = (InetAddress)it.nextElement();
-								
-								addresses_string += (addresses_string.length()==0?"":",") + addr;
-							}
-							
-							upnp.log( "UPnP::SSDP: group = " + group_address +"/" + 
-										network_interface.getName()+":"+ 
-										network_interface.getDisplayName() + "-" + addresses_string );
-							
-							mc_sock.joinGroup( group_address, network_interface );
+										
+					try{
+							// set up group
 						
-							mc_sock.setNetworkInterface( network_interface );
+						final MulticastSocket mc_sock = new MulticastSocket(SSDP_GROUP_PORT);
+										
+						mc_sock.setReuseAddress(true);
+						
+							// windows 98 doesn't support setTimeToLive
+						
+						try{
+							mc_sock.setTimeToLive(TTL);
 							
-							mc_sock.setLoopbackMode(true);
-												
-							Runtime.getRuntime().addShutdownHook(
-									new AEThread("SSDP:VMShutdown")
-									{
-										public void
-										runSupport()
-										{
-											try{
-												mc_sock.leaveGroup( group_address, network_interface );
-												
-											}catch( Throwable e ){
-												
-												Debug.printStackTrace( e );
-											}
-										}
-									});
+						}catch( Throwable e ){
 							
-							Thread	group_thread = 
-								new AEThread("SSDP: MC listener")
+							if ( !ttl_problem_reported ){
+								
+								ttl_problem_reported	= true;
+								
+								Debug.printStackTrace( e );
+							}
+						}
+						
+						String	addresses_string = "";
+							
+						Enumeration it = network_interface.getInetAddresses();
+						
+						while (it.hasMoreElements()){
+							
+							InetAddress addr = (InetAddress)it.nextElement();
+							
+							addresses_string += (addresses_string.length()==0?"":",") + addr;
+						}
+						
+						upnp.log( "UPnP::SSDP: group = " + group_address +"/" + 
+									network_interface.getName()+":"+ 
+									network_interface.getDisplayName() + "-" + addresses_string +": started" );
+						
+						mc_sock.joinGroup( group_address, network_interface );
+					
+						mc_sock.setNetworkInterface( network_interface );
+						
+						mc_sock.setLoopbackMode(true);
+											
+						Runtime.getRuntime().addShutdownHook(
+								new AEThread("SSDP:VMShutdown")
 								{
 									public void
 									runSupport()
 									{
-										handleSocket( network_interface, ni_address, mc_sock);
+										try{
+											mc_sock.leaveGroup( group_address, network_interface );
+											
+										}catch( Throwable e ){
+											
+											Debug.printStackTrace( e );
+										}
 									}
-								};
-								
-							group_thread.setDaemon( true );
-							
-							group_thread.start();
-							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace( e );
-						}						
-					}				
-					
-						// now do the incoming control listener
+								});
 						
+						Thread	group_thread = 
+							new AEThread("SSDP: MC listener")
+							{
+								public void
+								runSupport()
+								{
+									handleSocket( network_interface, ni_address, mc_sock );
+								}
+							};
+							
+						group_thread.setDaemon( true );
+						
+						group_thread.start();
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace( e );
+					}						
+				
+						// now do the incoming control listener
+					
 					try{
 						final DatagramSocket control_socket = new DatagramSocket( null );
 							
@@ -235,23 +307,34 @@ SSDPImpl
 					}
 				}
 			}
+		}finally{
+			
+			current_registrations	= new_registrations;
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected boolean
+	validNetworkAddress(
+		final NetworkInterface	network_interface,
+		final InetAddress		ni_address )
+	{
+		try{
+			this_mon.enter();
 		
-			upnp.getPluginInterface().getUtilities().createThread(
-					"SSDP:queryLoop",
-					new AERunnable()
-					{
-						public void
-						runSupport()
-						{
-							queryLoop();
-						}	
-					});
+			Set	set = (Set)current_registrations.get( network_interface );
 			
-		}catch( Throwable e ){
+			if ( set == null ){
+				
+				return( false );
+			}
 			
-			Debug.printStackTrace( e );
+			return( set.contains( ni_address ));
 			
-			throw( new UPnPException( "Failed to initialise SSDP", e ));
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -300,50 +383,57 @@ SSDPImpl
 
 		byte[]	data = str.getBytes();
 		
-		for (int i=0;i<mc_network_interfaces.size();i++){
+		try{
+			Enumeration	x = NetworkInterface.getNetworkInterfaces();
 			
-			NetworkInterface	network_interface = (NetworkInterface)mc_network_interfaces.get(i);
-			
-			try{
+			while( x != null && x.hasMoreElements()){
 				
-				MulticastSocket mc_sock = new MulticastSocket(null);
-
-				mc_sock.setReuseAddress(true);
+				NetworkInterface	network_interface = (NetworkInterface)x.nextElement();
 				
 				try{
-					mc_sock.setTimeToLive( TTL );
 					
+					MulticastSocket mc_sock = new MulticastSocket(null);
+	
+					mc_sock.setReuseAddress(true);
+					
+					try{
+						mc_sock.setTimeToLive( TTL );
+						
+					}catch( Throwable e ){
+						
+						if ( !ttl_problem_reported ){
+							
+							ttl_problem_reported	= true;
+							
+							Debug.printStackTrace( e );
+						}
+					}
+					
+					mc_sock.bind( new InetSocketAddress( SSDP_CONTROL_PORT ));
+	
+					mc_sock.setNetworkInterface( network_interface );
+					
+					// System.out.println( "querying interface " + network_interface );
+					
+					DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), SSDP_GROUP_PORT );
+					
+					mc_sock.send(packet);
+					
+					mc_sock.close();
+						
 				}catch( Throwable e ){
+				
+					if ( !sso_problem_reported ){
+						
+						sso_problem_reported	= true;
 					
-					if ( !ttl_problem_reported ){
-						
-						ttl_problem_reported	= true;
-						
 						Debug.printStackTrace( e );
 					}
 				}
-				
-				mc_sock.bind( new InetSocketAddress( SSDP_CONTROL_PORT ));
-
-				mc_sock.setNetworkInterface( network_interface );
-				
-				// System.out.println( "querying interface " + network_interface );
-				
-				DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), SSDP_GROUP_PORT );
-				
-				mc_sock.send(packet);
-				
-				mc_sock.close();
-					
-			}catch( Throwable e ){
-			
-				if ( !sso_problem_reported ){
-					
-					sso_problem_reported	= true;
-				
-					Debug.printStackTrace( e );
-				}
 			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
 		}
 	}
 	
@@ -359,6 +449,15 @@ SSDPImpl
 		int	port = socket.getLocalPort();
 		
 		while(true){
+			
+			if ( !validNetworkAddress( network_interface, local_address )){
+				
+				upnp.log( "UPnP::SSDP: group = " + group_address +"/" + 
+						network_interface.getName()+":"+ 
+						network_interface.getDisplayName() + " - " + local_address + ": stopped" );
+				
+				return;
+			}
 			
 			try{
 				byte[] buf = new byte[PACKET_SIZE];

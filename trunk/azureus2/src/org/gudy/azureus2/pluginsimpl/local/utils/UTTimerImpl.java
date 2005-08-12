@@ -44,42 +44,52 @@ UTTimerImpl
 	protected
 	UTTimerImpl(
 		PluginInterface		pi,
-		String				name )
+		String				name,
+		boolean				lightweight )
 	{
 		plugin_interface	= pi;
 		
-		timer = new Timer( "Plugin " + pi.getPluginID() + ":" + name );
+		if ( !lightweight ){
+			
+			timer = new Timer( "Plugin " + pi.getPluginID() + ":" + name );
+		}
 	}
 	
 	public UTTimerEvent
 	addPeriodicEvent(
 		long						periodic_millis,
-		final UTTimerEventPerformer	performer )
+		final UTTimerEventPerformer	ext_performer )
 	{
 		if ( destroyed ){
 			
-			throw( new RuntimeException( "Timer has been destroyed" ));
-			
+			throw( new RuntimeException( "Timer has been destroyed" ));	
 		}
 		
 		final timerEvent	res = new timerEvent();
-			
-		TimerEventPeriodic ev = timer.addPeriodicEvent( 
-			periodic_millis,
+		
+		TimerEventPerformer	performer = 
 			new TimerEventPerformer()
-			{
+			{	
 				public void
 				perform(
 					TimerEvent		ev )
 				{
 					UtilitiesImpl.setPluginThreadContext( plugin_interface );
 					
-					res.perform( performer );
+					res.perform( ext_performer );
 				}
-			});
+			};
+			
+		if ( timer == null ){
+			
+			res.setEvent( SimpleTimer.addPeriodicEvent( periodic_millis, performer ));
+			
+		}else{
+			
+			res.setEvent( timer.addPeriodicEvent( periodic_millis, performer ));
 		
-		res.setEvent( ev );
-		
+		}
+			
 		return( res );
 	}
 	
@@ -88,7 +98,10 @@ UTTimerImpl
 	{
 		destroyed	= true;
 		
-		timer.destroy();
+		if ( timer != null ){
+			
+			timer.destroy();
+		}
 	}
 	
 	protected class
