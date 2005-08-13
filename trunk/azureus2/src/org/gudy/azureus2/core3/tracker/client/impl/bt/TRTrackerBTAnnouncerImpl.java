@@ -115,9 +115,7 @@ TRTrackerBTAnnouncerImpl
   	private List trackerUrlLists;
      
   	private URL lastUsedUrl;
-  
-  	private String trackerUrlListString;
-  
+    
   	private byte[]				torrent_hash;
   	private PeerIdentityDataID	peer_data_id;
   	
@@ -309,7 +307,7 @@ TRTrackerBTAnnouncerImpl
 			}
 		};
     
-		if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Announcer Created using url : " + trackerUrlListString);
+		if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Announcer Created using url : " + trackerURLListToString());
   }
 	
 	public void
@@ -1729,8 +1727,10 @@ TRTrackerBTAnnouncerImpl
   
 	public void
 	resetTrackerUrl(
-			boolean		shuffle )
+		boolean		shuffle )
 	{
+		String	old_list = trackerURLListToString();
+		
 		constructTrackerUrlLists(shuffle);
  	
 		if ( trackerUrlLists.size() == 0 ){
@@ -1738,9 +1738,12 @@ TRTrackerBTAnnouncerImpl
 			return;
 		}
 	
-		URL	first_url = (URL)((List)trackerUrlLists.get(0)).get(0);
-		
-		informURLChange( first_url, true );       	
+		if ( !old_list.equals(trackerURLListToString())){
+			
+			URL	first_url = (URL)((List)trackerUrlLists.get(0)).get(0);
+			
+			informURLChange( first_url, true );
+		}
 	}
 	
 	public void
@@ -1821,9 +1824,13 @@ TRTrackerBTAnnouncerImpl
 			
 			Debug.printStackTrace( e );
 		}
-	
-		trackerUrlListString = "[";
-	
+	}
+  
+	protected String
+	trackerURLListToString()
+	{
+		String trackerUrlListString = "[";
+		
 		for (int i=0;i<trackerUrlLists.size();i++){
 
 			List	group = (List)trackerUrlLists.get(i);
@@ -1842,9 +1849,9 @@ TRTrackerBTAnnouncerImpl
 		
 		trackerUrlListString += "]";
 		
-		// System.out.println( trackerUrlListString );
+		return( trackerUrlListString );
 	}
-  
+	
   	protected TRTrackerAnnouncerResponseImpl
   	decodeTrackerResponse(
   		URL			url,
