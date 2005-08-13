@@ -97,6 +97,9 @@ DHTTransport
 	public boolean
 	isReachable();
 	
+	public DHTTransportContact[]
+	getReachableContacts();
+	
 	public void
 	addListener(
 		DHTTransportListener	l );

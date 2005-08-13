@@ -25,6 +25,6 @@ package com.aelitis.azureus.core.dht.nat;
 public interface 
 DHTNATPuncher 
 {
-	
-
+	public void
+	start();
 }

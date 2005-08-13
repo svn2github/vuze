@@ -126,22 +126,22 @@ DHTTransportUDPImpl
 			}
 		};
 		
-	private static final int ROUTEABLE_CONTACT_HISTORY_MAX 		= 32;
+	private static final int ROUTABLE_CONTACT_HISTORY_MAX 		= 32;
 
-	private Map	routeable_contact_history = 
-		new LinkedHashMap(ROUTEABLE_CONTACT_HISTORY_MAX,0.75f,true)
+	private Map	routable_contact_history = 
+		new LinkedHashMap(ROUTABLE_CONTACT_HISTORY_MAX,0.75f,true)
 		{
 			protected boolean 
 			removeEldestEntry(
 		   		Map.Entry eldest) 
 			{
-				return size() > ROUTEABLE_CONTACT_HISTORY_MAX;
+				return size() > ROUTABLE_CONTACT_HISTORY_MAX;
 			}
 		};
 			
 		
-	private long	other_routeable_total;
-	private long	other_non_routeable_total;
+	private long	other_routable_total;
+	private long	other_non_routable_total;
 	
 	private static final int RECENT_REPORTS_HISTORY_MAX = 32;
 
@@ -321,7 +321,7 @@ DHTTransportUDPImpl
 			}
 		}
 		
-		//System.out.println( "routeables=" + other_routeable_total + ", non=" + other_non_routeable_total );
+		// System.out.println( "routables=" + other_routable_total + ", non=" + other_non_routable_total );
 		
 		// System.out.println( "net " + network + ": aliens = " + alien_average.getAverage() + ", alien fv = " + alien_fv_average.getAverage());
 	}
@@ -329,9 +329,16 @@ DHTTransportUDPImpl
 	protected int
 	getNodeStatus()
 	{
+		if ( bootstrap_node ){
+		
+				// bootstrap node is special case and not generally routable
+			
+			return( 0 );
+		}
+		
 		if ( reachable_accurate ){
 			
-			int	status = reachable?DHTTransportUDPContactImpl.NODE_STATUS_ROUTEABLE:0;
+			int	status = reachable?DHTTransportUDPContactImpl.NODE_STATUS_ROUTABLE:0;
 			
 			return( status );
 			
@@ -719,23 +726,57 @@ DHTTransportUDPImpl
 			
 			contact_history.put( contact.getTransportAddress(), contact );
 			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public DHTTransportContact[]
+   	getReachableContacts()
+   	{
+		try{
+			this_mon.enter();
+			
+			Collection vals = routable_contact_history.values();
+			
+			DHTTransportContact[]	res = new DHTTransportContact[vals.size()];
+			
+			vals.toArray( res );
+			
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+   	}
+	
+	protected void
+	updateContactStatus(
+		DHTTransportUDPContactImpl	contact,
+		int							status )
+	{
+		try{
+			this_mon.enter();
+				
+			contact.setNodeStatus( status );
+
 			if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_XFER_STATUS ){
-				
-				int	status = contact.getNodeStatus();
-				
+								
 				if ( status != DHTTransportUDPContactImpl.NODE_STATUS_UNKNOWN ){
 					
-					boolean	other_routeable = (status & DHTTransportUDPContactImpl.NODE_STATUS_ROUTEABLE) != 0;
+					boolean	other_routable = (status & DHTTransportUDPContactImpl.NODE_STATUS_ROUTABLE) != 0;
 					
-					if ( other_routeable ){
+					if ( other_routable ){
 						
-						other_routeable_total++;
+						other_routable_total++;
 						
-						routeable_contact_history.put( contact.getTransportAddress(), contact );
+						routable_contact_history.put( contact.getTransportAddress(), contact );
 						
 					}else{
 						
-						other_non_routeable_total++;
+						other_non_routable_total++;
 					}
 				}
 			}
@@ -1466,8 +1507,8 @@ DHTTransportUDPImpl
 								// store operation
 							
 							contact.setRandomID( reply.getRandomID());
-							
-							contact.setNodeStatus( reply.getNodeStatus());
+														
+							updateContactStatus( contact, reply.getNodeStatus());
 							
 							stats.findNodeOK();
 								

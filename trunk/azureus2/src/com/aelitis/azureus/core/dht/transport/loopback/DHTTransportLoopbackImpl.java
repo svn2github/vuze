@@ -191,6 +191,12 @@ DHTTransportLoopbackImpl
 		return( true );
 	}
 	
+	public DHTTransportContact[]
+	getReachableContacts()
+	{
+		return( new DHTTransportContact[0] );
+	}
+	
 	protected DHTTransportLoopbackImpl
 	findTarget(
 		byte[]		id )

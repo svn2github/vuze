@@ -26,7 +26,6 @@ import java.io.*;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
@@ -34,6 +33,8 @@ import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.db.DHTDB;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncherFactory;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.*;
 
@@ -48,6 +49,7 @@ DHTImpl
 {
 	private DHTStorageAdapter	storage_adapter;
 	private DHTControl			control;
+	private DHTNATPuncher		nat_puncher;
 	private	Properties			properties;
 	private DHTLogger			logger;
 	
@@ -137,6 +139,8 @@ DHTImpl
 				s_conc, l_conc, 
 				o_rep, c_rep, c_n,
 				logger );
+		
+		nat_puncher	= DHTNATPuncherFactory.create( this );
 	}
 	
 	protected int
@@ -232,6 +236,8 @@ DHTImpl
 		boolean		full_wait )
 	{
 		control.seed( full_wait );	
+		
+		nat_puncher.start();
 	}
 	
 	public void

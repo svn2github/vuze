@@ -45,7 +45,7 @@ DHTTransportUDPContactImpl
 	implements DHTTransportUDPContact
 {
 	public static final int			NODE_STATUS_UNKNOWN		= 0xffffffff;
-	public static final int			NODE_STATUS_ROUTEABLE	= 0x00000001;
+	public static final int			NODE_STATUS_ROUTABLE	= 0x00000001;
 	
 	private	DHTTransportUDPImpl		transport;
 	private InetSocketAddress		external_address;

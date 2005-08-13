@@ -145,9 +145,18 @@ public class GUIUpdater extends AEThread implements ParameterListener {
           mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.failed"));
         } else
         if(dhtPlugin.getStatus() == DHTPlugin.STATUS_RUNNING) {
-          mainWindow.dhtStatus.setImage(ImageRepository.getImage("greenled"));
-		  
-		  DHT[]	dhts = dhtPlugin.getDHTs();
+        	
+  		  DHT[]	dhts = dhtPlugin.getDHTs();
+
+  		  if ( dhts.length == 0 || dhts[0].getTransport().isReachable()){
+  			  
+  			mainWindow.dhtStatus.setImage(ImageRepository.getImage("greenled"));
+  			mainWindow.dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.tooltip"));
+
+  		  }else{
+			mainWindow.dhtStatus.setImage(ImageRepository.getImage("yellowled"));		
+    		mainWindow.dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.unreachabletooltip"));
+  		  }
 		  
           if(dhts.length == 0 || dhts[0].getControl().getStats().getEstimatedDHTSize() == 0 ) {
             mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.running"));
