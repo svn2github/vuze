@@ -108,16 +108,15 @@ DownloadImpl
 	public int
 	getState()
 	{
-			// latest_state is maintained by the stateChange listener from
-			// the download manager
-		
-		return( latest_state );
+		return( convertState( download_manager.getState()) );
 	}
 	
 	public int
 	getSubState()
 	{
-		if ( latest_state == ST_STOPPING ){
+		int	state = getState();
+		
+		if ( state == ST_STOPPING ){
 			
 			int	substate = download_manager.getSubState();
 			
@@ -135,7 +134,7 @@ DownloadImpl
 			}
 		}
 		
-		return( latest_state );
+		return( state );
 	}
 	
 	protected int
