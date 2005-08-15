@@ -22,17 +22,24 @@
 
 package com.aelitis.azureus.core.dht.nat.impl;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.*;
 
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
+import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.nat.*;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportReplyHandlerAdapter;
+import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 public class 
 DHTNATPuncherImpl
@@ -43,6 +50,7 @@ DHTNATPuncherImpl
 	private boolean				started;
 	
 	private	DHT					dht;
+	private int					network;
 	private DHTLogger			logger;
 	
 	private PluginInterface		plugin_interface;
@@ -57,6 +65,9 @@ DHTNATPuncherImpl
 	private volatile DHTTransportContact		rendezvous_local_contact;
 	private volatile DHTTransportContact		rendezvous_target;
 	
+	private Set		failed_rendezvous	= new HashSet();
+	
+	private boolean	rendezvous_thread_running;
 	
 	public
 	DHTNATPuncherImpl(
@@ -129,13 +140,13 @@ DHTNATPuncherImpl
 	{
 		long now = plugin_interface.getUtilities().getCurrentSystemTime();
 		
-		if ( now < last_action ){
+		if ( now < last_action && !force ){
 			
 			last_action	= now;
 			
 		}else{
 			
-			if ( now - last_action >= REPUBLISH_TIME_MIN ){
+			if ( force || now - last_action >= REPUBLISH_TIME_MIN ){
 				
 				last_action	= now;
 				
@@ -202,18 +213,42 @@ DHTNATPuncherImpl
 				}
 			}
 			
-			rendezvous_local_contact	= null;
-			rendezvous_target			= null;
+			final DHTTransportContact[] new_rendezvous_target			= { null };
 			
 			DHTTransportContact[]	reachables = dht.getTransport().getReachableContacts();
-						
+				
+			int reachables_tried	= 0;
+			int reachables_skipped	= 0;
+			
 			final Semaphore sem = plugin_interface.getUtilities().getSemaphore();
 			
 			for (int i=0;i<reachables.length;i++){
 				
-				if ( rendezvous_target != null ){
+				DHTTransportContact	contact = reachables[i];
+				
+				try{
+					pub_mon.enter();
+
+						// see if we've found a good one yet
 					
-					break;
+					if ( new_rendezvous_target[0] != null ){
+					
+						break;
+					}
+					
+						// skip any known bad ones
+					
+					if ( failed_rendezvous.contains( contact.getAddress())){
+						
+						reachables_skipped++;
+						
+						sem.release();
+						
+						continue;
+					}
+				}finally{
+					
+					pub_mon.exit();
 				}
 				
 				if ( i > 0 ){
@@ -226,7 +261,7 @@ DHTNATPuncherImpl
 					}
 				}
 				
-				DHTTransportContact	contact = reachables[i];
+				reachables_tried++;
 				
 				contact.sendPing(
 					new DHTTransportReplyHandlerAdapter()
@@ -240,9 +275,9 @@ DHTNATPuncherImpl
 							try{
 								pub_mon.enter();
 							
-								if ( rendezvous_target == null ){
+								if ( new_rendezvous_target[0] == null ){
 								
-									rendezvous_target = ok_contact;
+									new_rendezvous_target[0] = ok_contact;
 								}
 							}finally{
 								
@@ -272,34 +307,346 @@ DHTNATPuncherImpl
 
 				sem.reserve();
 				
-				if ( rendezvous_target != null ){
-				
-					rendezvous_local_contact	= local_contact;
+				try{
+					pub_mon.enter();
+
+					if ( new_rendezvous_target[0] != null ){
 					
-					runRendezvous( rendezvous_local_contact, rendezvous_target );
+						rendezvous_target			= new_rendezvous_target[0];					
+						rendezvous_local_contact	= local_contact;
 					
-					break;
+						logger.log( "Rendezvous found: " + rendezvous_local_contact.getString() + " -> " + rendezvous_target.getString());
+
+						runRendezvous();
+					
+						break;
+					}
+				}finally{
+					
+					pub_mon.exit();
 				}
 			}
 			
-			if ( rendezvous_target == null ){
+			if ( new_rendezvous_target[0] == null ){
 				
-				logger.log( "No rendezvous found" );		
+				logger.log( "No rendezvous found: candidates=" + reachables.length +",tried="+ reachables_tried+",skipped=" +reachables_skipped );
+							
+				try{
+					pub_mon.enter();
+
+					rendezvous_local_contact	= null;
+					rendezvous_target			= null;
+					
+				}finally{
+					
+					pub_mon.exit();
+				}
 			}
 		}else{
 			
-			rendezvous_local_contact	= null;
-			rendezvous_target			= null;
+			try{
+				pub_mon.enter();
+
+				rendezvous_local_contact	= null;
+				rendezvous_target			= null;
+				
+			}finally{
+				
+				pub_mon.exit();
+			}
 		}
 	}
 	
 	protected void
-	runRendezvous(
-		DHTTransportContact		local_contact,
-		DHTTransportContact		rendezvous )
+	runRendezvous()
 	{
-		logger.log( "Activating rendezvous " + rendezvous.getString());
-		
-		
+		try{
+			pub_mon.enter();
+
+			if ( !rendezvous_thread_running ){
+				
+				rendezvous_thread_running	= true;
+				
+				plugin_interface.getUtilities().createThread(
+					"DHTNatPuncher:rendevzous",
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							runRendezvousSupport();
+						}
+					});
+			}
+		}finally{
+			
+			pub_mon.exit();
+		}
 	}
+		
+	protected void
+	runRendezvousSupport()
+	{
+		DHTTransportContact		current_local		= null;
+		DHTTransportContact		current_target		= null;
+		
+		final int[]	rendevzous_fail_count = {0};
+		
+		while( true ){
+			
+			try{
+				DHTTransportContact		latest_local;
+				DHTTransportContact		latest_target;
+				
+				try{
+					pub_mon.enter();
+					
+					latest_local	= rendezvous_local_contact;
+					latest_target	= rendezvous_target;
+				}finally{
+					
+					pub_mon.exit();
+				}
+				
+				if ( current_local != null || latest_local != null ){
+				
+						// one's not null, worthwhile further investigation
+					
+					if ( current_local != latest_local ){
+				
+							// local has changed, remove existing publish
+						
+						if ( current_local != null ){
+							
+							logger.log( "Removing publish for " + current_local.getString() + " -> " + current_target.getString());
+							
+							dht.remove( 
+									getPublishKey( current_local ),
+									"DHTNatPuncher: removal of publish",
+									new DHTOperationListener()
+									{
+										public void
+										searching(
+											DHTTransportContact	contact,
+											int					level,
+											int					active_searches )
+										{}
+										
+										public void
+										found(
+											DHTTransportContact	contact )
+										{}
+										
+										public void
+										read(
+											DHTTransportContact	contact,
+											DHTTransportValue	value )
+										{}
+										
+										public void
+										wrote(
+											DHTTransportContact	contact,
+											DHTTransportValue	value )
+										{}
+										
+										public void
+										complete(
+											boolean				timeout )
+										{}
+									});
+						}
+						
+						if ( latest_local != null ){
+					
+							logger.log( "Adding publish for " + latest_local.getString() + " -> " + latest_target.getString());
+
+							rendevzous_fail_count[0]	= 0;
+							
+							dht.put(
+									getPublishKey( latest_local ),
+									"DHTNatPuncher: publish",
+									getPublishValue( latest_target ),
+									DHT.FLAG_SINGLE_VALUE,
+									new DHTOperationListener()
+									{
+										public void
+										searching(
+											DHTTransportContact	contact,
+											int					level,
+											int					active_searches )
+										{}
+										
+										public void
+										found(
+											DHTTransportContact	contact )
+										{}
+										
+										public void
+										read(
+											DHTTransportContact	contact,
+											DHTTransportValue	value )
+										{}
+										
+										public void
+										wrote(
+											DHTTransportContact	contact,
+											DHTTransportValue	value )
+										{}
+										
+										public void
+										complete(
+											boolean				timeout )
+										{}
+									});
+						}
+					}else if ( current_target != latest_target ){
+						
+							// target changed, update publish
+						
+						logger.log( "Updating publish for " + latest_local.getString() + " -> " + latest_target.getString());
+
+						rendevzous_fail_count[0]	= 0;
+						
+						dht.put(
+								getPublishKey( latest_local ),
+								"DHTNatPuncher: update publish",
+								getPublishValue( latest_target ),
+								DHT.FLAG_SINGLE_VALUE,
+								new DHTOperationListener()
+								{
+									public void
+									searching(
+										DHTTransportContact	contact,
+										int					level,
+										int					active_searches )
+									{}
+									
+									public void
+									found(
+										DHTTransportContact	contact )
+									{}
+									
+									public void
+									read(
+										DHTTransportContact	contact,
+										DHTTransportValue	value )
+									{}
+									
+									public void
+									wrote(
+										DHTTransportContact	contact,
+										DHTTransportValue	value )
+									{}
+									
+									public void
+									complete(
+										boolean				timeout )
+									{}
+								});
+					}
+				}
+				
+				current_local	= latest_local;
+				current_target	= latest_target;
+	
+				if ( current_target != null ){
+							
+					current_target.sendPing(
+						new DHTTransportReplyHandlerAdapter()
+						{
+							public void
+							pingReply(
+								DHTTransportContact ok_contact )
+							{
+								// System.out.println( "Rendezvous:" + ok_contact.getString() + " OK" );
+								
+								// failed( ok_contact, null );
+								
+								rendevzous_fail_count[0]	= 0;
+							}
+							
+							public void
+							failed(
+								DHTTransportContact 	failed_contact,
+								Throwable				e )
+							{
+								if ( rendevzous_fail_count[0]++ == 4 ){
+									
+									logger.log( "Rendezvous:" + failed_contact.getString() + " Failed" );
+									
+									try{
+										pub_mon.enter();
+									
+										failed_rendezvous.add( failed_contact.getAddress());
+										
+									}finally{
+										
+										pub_mon.exit();
+									}
+									
+									publish( true );
+								}							
+	
+							}
+						});
+				}
+				
+			}catch( Throwable e ){
+				
+				logger.log(e);
+				
+			}finally{
+				
+				try{
+					Thread.sleep( 30*1000 );
+					
+				}catch( Throwable e ){
+					
+					logger.log(e);
+					
+					break;
+				}
+			}
+		}
+	}
+	
+	protected byte[]
+	getPublishKey(
+		DHTTransportContact	contact )
+	{
+		byte[]	id = contact.getID();
+		byte[]	suffix = ":DHTNATPuncher".getBytes();
+		
+		byte[]	res = new byte[id.length + suffix.length];
+		
+		System.arraycopy( id, 0, res, 0, id.length );
+		System.arraycopy( suffix, 0, res, id.length, suffix.length );
+		
+		return( res );
+	}
+	
+	protected byte[]
+   	getPublishValue(
+   		DHTTransportContact	contact )
+   	{ 		
+		try{
+	   		ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+	   		
+	   		DataOutputStream	dos = new DataOutputStream(baos);
+	   		
+	   		dos.writeByte( 0 );	// version 
+	   		
+	   		contact.exportContact( dos );
+	   		
+	   		dos.close();
+	   		
+	  		return( baos.toByteArray());
+
+		}catch( Throwable e ){
+			
+			logger.log( e );
+		
+			return( new byte[0]);
+    	}
+   	}
 }

@@ -92,6 +92,13 @@ PRUDPPacketHandlerRequestImpl
 			res	= 0;
 		}
 		
+			// do something sensible with 0 time!
+		
+		if ( res == 0 ){
+			
+			res = SystemTime.TIME_GRANULARITY_MILLIS / 2;
+		}
+		
 		return( res );
 	}
 	
