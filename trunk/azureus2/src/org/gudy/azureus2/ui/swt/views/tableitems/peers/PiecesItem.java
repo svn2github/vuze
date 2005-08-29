@@ -31,6 +31,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
@@ -167,15 +168,19 @@ public class PiecesItem
     }
 
     boolean available[] = infoObj.getAvailable();
+    boolean established = ((PEPeerTransport)infoObj).getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
     
-    if (available != null && available.length > 0) {
+    if (established && available != null && available.length > 0) {
     try {
+      
+      int nbComplete = 0;
+      int nbPieces = available.length;
+      
       DiskManager disk_manager = dm.getDiskManager();
       
       DiskManagerPiece[]  pieces = disk_manager==null?null:disk_manager.getPieces();
-              
-      int nbComplete = 0;
-      int nbPieces = available.length;
+                      
+      
       int a0;
       int a1 = 0;
       for (int i = 0; i < drawWidth; i++) {
@@ -225,27 +230,29 @@ public class PiecesItem
         }
       }
       if (!bImageBufferValid) {
-        int iLastIndex = imageBuffer[0];
-        int iWidth = 1;
-        for (int i = 1; i < drawWidth; i++) {
-          if (iLastIndex == imageBuffer[i]) {
-            iWidth++;
-          } else {
-            if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
-              gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
-            else
-              gcImage.setBackground(Colors.blues[iLastIndex]);
-            gcImage.fillRectangle(i - iWidth + x0, y0, iWidth, y1 - y0 + 1);
-            iWidth = 1;
-            iLastIndex = imageBuffer[i];
+        if(established) {
+          int iLastIndex = imageBuffer[0];
+          int iWidth = 1;
+          for (int i = 1; i < drawWidth; i++) {
+            if (iLastIndex == imageBuffer[i]) {
+              iWidth++;
+            } else {
+              if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
+                gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
+              else
+                gcImage.setBackground(Colors.blues[iLastIndex]);
+              gcImage.fillRectangle(i - iWidth + x0, y0, iWidth, y1 - y0 + 1);
+              iWidth = 1;
+              iLastIndex = imageBuffer[i];
+            }
           }
+          if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
+            gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
+          else
+            gcImage.setBackground(Colors.blues[iLastIndex]);
+          gcImage.fillRectangle(x1 - iWidth + 1, y0, iWidth, y1 - y0 + 1);
+          bImageChanged = true;
         }
-        if (iLastIndex >= INDEX_COLOR_FADEDSTARTS)
-          gcImage.setBackground(Colors.faded[iLastIndex - INDEX_COLOR_FADEDSTARTS]);
-        else
-          gcImage.setBackground(Colors.blues[iLastIndex]);
-        gcImage.fillRectangle(x1 - iWidth + 1, y0, iWidth, y1 - y0 + 1);
-        bImageChanged = true;
       }
 
       int limit = (drawWidth * nbComplete) / nbPieces;
@@ -260,7 +267,11 @@ public class PiecesItem
     } catch (Exception e) {
       System.out.println("Error Drawing PiecesItem");
       Debug.printStackTrace( e );
-    } }
+    } } else {
+        gcImage.setForeground(Colors.grey);
+        gcImage.setBackground(Colors.grey);
+        gcImage.fillRectangle(0,y0,drawWidth,y1);
+    }
     gcImage.dispose();
 
     Image oldImage = ((TableCellCore)cell).getGraphicSWT();
