@@ -157,56 +157,63 @@ StartServer
   openTorrent(
    	String 		args[]) 
   {
-    if(args.length != 0) {
-      if(args[0].equals("args")) {
-        if(args.length > 1)
-        {
-        	for ( int i=1;i<args.length;i++){
-        			
-	          String	file_name = args[i];
-	          
-		      try{
-		    	  File	file = new File(file_name);
-		        	
-		    	  if ( !file.exists()){
-		        		
-		    		  throw( new Exception("File not found" ));
-		    	  }
-		        	
-		    	  file_name = file.getCanonicalPath();
-		        	
-		    	  LGLogger.log( "StartServer: file = " + file_name );
-			          
-		      }catch( Throwable e ){
+    if (args.length != 0) {
+      if (args[0].equals("args")) {
+        if (args.length > 1) {
+          for (int i = 1; i < args.length; i++) {
 
-		    	  LGLogger.logRepeatableAlert( 
-		        		LGLogger.AT_ERROR,
-		        		"Failed to access torrent file '" + file_name + "'. Ensure sufficient temporary file space available (check browser cache usage)." );
-		      }
-		      
-	          try{
-	          	this_mon.enter();
-	          	
-	          	if ( !core_started ){
-	          		
-	          		queued_torrents.add( file_name );
-	          		
-	          		return;
-	          	}
-	          }finally{
-	          	
-	          	this_mon.exit();
-	          }
-	          
-	          try{
-	          	
-	          	TorrentOpener.openTorrent(azureus_core, file_name );
-	          	
-	          }catch( Throwable e ){
-	        		
-	        	Debug.printStackTrace(e);
-	          }
-        	}
+            String file_name = args[i];
+            
+            if( file_name.toUpperCase().startsWith( "HTTP:" ) || file_name.toUpperCase().startsWith( "MAGNET:" ) ) {
+              LGLogger.log( "StartServer: args[" + i + "] handling as a URI: " +file_name );
+              continue;  //URIs cannot be checked as a .torrent file
+            }
+
+            try {
+              File file = new File(file_name);
+
+              if (!file.exists()) {
+
+                throw (new Exception("File not found"));
+              }
+
+              file_name = file.getCanonicalPath();
+
+              LGLogger.log("StartServer: file = " + file_name);
+
+            } catch (Throwable e) {
+
+              LGLogger
+                  .logRepeatableAlert(
+                      LGLogger.AT_ERROR,
+                      "Failed to access torrent file '"
+                          + file_name
+                          + "'. Ensure sufficient temporary file space available (check browser cache usage).");
+            }
+
+            try {
+              this_mon.enter();
+
+              if (!core_started) {
+
+                queued_torrents.add(file_name);
+
+                return;
+              }
+            } finally {
+
+              this_mon.exit();
+            }
+
+            try {
+
+              TorrentOpener.openTorrent(azureus_core, file_name);
+
+            } catch (Throwable e) {
+
+              Debug.printStackTrace(e);
+            }
+          }
         }
       }
     }

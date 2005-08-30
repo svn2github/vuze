@@ -54,6 +54,11 @@ Main
 		        // is used to get back the long form
 		    	
 	        String filename = args[i];
+            
+            if( filename.toUpperCase().startsWith( "HTTP:" ) || filename.toUpperCase().startsWith( "MAGNET:" ) ) {
+              LGLogger.log( "Main::main: args[" + i + "] handling as a URI: " +filename );
+              continue;  //URIs cannot be checked as a .torrent file
+            }            
 	        
 	        try{
 	        	File	file = new File(filename);
