@@ -1650,13 +1650,15 @@ public class StartStopRulesDefaultPlugin
 	              newSR += 20000;
 	          }
 	          else { // numSeeds != 0 && numPeers != 0
-	            if (num_peers_excluding_us > num_seeds_excluding_us) {
+	            /*if (num_peers_excluding_us > num_seeds_excluding_us) {
 	              // give poor seeds:peer ratio a boost 
 	              newSR += 10000 - (num_seeds_excluding_us * 10000 / num_peers_excluding_us);
 	            }
 	            else { // Peers <= Seeds
 	              newSR += num_peers_excluding_us * 1000 / num_seeds_excluding_us;
-	            }
+	            }*/
+	            float x =  num_seeds_excluding_us  / num_peers_excluding_us;
+	            newSR += 10000 / ((x+1)*(x+1));
 	          }
 	
 	          if (bPreferLargerSwarms)

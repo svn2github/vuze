@@ -43,6 +43,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "AZ", "Azureus" )) != null ) return decoded;      
       if( (decoded = decodeAzStyle( peerID, "BC", "BitComet" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "LT", "libtorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "lt", "libtorrent" )) != null ) return decoded;
 //      if( (decoded = decodeAzStyle( peerID, "AR", "Arctic Torrent" )) != null ) return decoded; //based on libtorrent but same peerid for different versions
       if( (decoded = decodeAzStyle( peerID, "TS", "TorrentStorm" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "MT", "MoonlightTorrent" )) != null ) return decoded;
@@ -245,11 +246,11 @@ public class BTPeerIDByteDecoder {
       }
           
 
-      if( iFirstNonZeroPos == 8 ) {
+//      if( iFirstNonZeroPos == 8 ) {
         if( (decoded = decodeSimpleStyle( peerID, 16, "UDP0", "BitComet UDP" )) != null ) return decoded;
         if( (decoded = decodeSimpleStyle( peerID, 14, "HTTPBT", "BitComet HTTP" )) != null ) return decoded;
         
-      }
+//      }
       
       byte three = (byte)3;
       if ((iFirstNonZeroPos == 9)
