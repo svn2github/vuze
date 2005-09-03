@@ -801,10 +801,18 @@ DownloadManagerStateImpl
 	  public void
 	  setPeerSourceEnabled(
 	      String source,
-	      boolean enabled) {
-	    List	values = getListAttributeSupport( AT_PEER_SOURCES );
-	    boolean alreadyEnabled = values.contains(source);
-	    List	l = new ArrayList();
+	      boolean enabled ) 
+	  {
+		  if ( enabled && !isPeerSourcePermitted( source )){
+			  
+			  return;
+		  }
+		  
+		  List	values = getListAttributeSupport( AT_PEER_SOURCES );
+		  
+		  boolean alreadyEnabled = values.contains(source);
+		  
+		  List	l = new ArrayList();
   	  
 		  if(enabled && !alreadyEnabled) {	      	
 		    for (int i=0;i<values.size();i++){
