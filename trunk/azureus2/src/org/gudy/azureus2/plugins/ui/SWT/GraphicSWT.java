@@ -29,6 +29,7 @@ import org.eclipse.swt.graphics.Image;
 /** An SWT image to be used in Azureus
  *
  * @see SWTManager#createGraphic
+ * @deprecated use {@link org.gudy.azureus2.ui.swt.plugins.UISWTGraphic}
  */
 public interface GraphicSWT extends Graphic {
   /** Retrieve the Image object 

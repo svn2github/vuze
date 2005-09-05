@@ -1,7 +1,7 @@
 /*
- * Created on 19-Apr-2004
+ * Created on 05-Sep-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,27 +22,26 @@
 
 package org.gudy.azureus2.plugins.ui;
 
-/**
- * @author parg
- *
- */
-
-public class 
-UIException
-	extends Exception
+public interface 
+UIInstance 
 {
-	public
-	UIException(
-		String		str )
-	{
-		super(str);
-	}
+	/**
+	 * This interface represents a UI running on the core (e.g. the SWT UI). The actual implementation of
+	 * this will support UI-specific operations - you need to cast this to the appropriate type to access
+	 * them.
+	 * This is to allow "native" UI plugin access - for example a plugin that directly accesses SWT functionality
+	 * would do it via this object (it'll be an instance of 
+	 * 	org.gudy.azureus2.ui.swt.plugins.UISWTInstance )
+	 */
 	
-	public
-	UIException(
-		String		str,
-		Throwable	c )
-	{
-		super(str, c);
-	}
+	
+		/**
+		 * This method will be called by the UI manager when detaching the UI to permit the action to be
+		 * vetoed/any detach logic to occur. It should not be directly called by the plugin code 
+		 */
+	
+	public void
+	detach()
+	
+		throws UIException;
 }

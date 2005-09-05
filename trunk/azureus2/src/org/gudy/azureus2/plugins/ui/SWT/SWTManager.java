@@ -22,6 +22,7 @@ import org.gudy.azureus2.plugins.PluginView;
 /** Evil SWT Specific stuff that plugins may need access to
  *
  * @author TuxPaper
+ * @deprecated use {@link org.gudy.azureus2.ui.swt.plugins.UISWTInstance}
  */
 public interface SWTManager
 {

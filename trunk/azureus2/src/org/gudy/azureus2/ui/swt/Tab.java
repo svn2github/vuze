@@ -18,6 +18,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.views.*;
 
 import java.util.HashMap;
@@ -399,8 +400,12 @@ public class Tab {
     if (view != null) {
         try {
           if(view instanceof PluginView) {
-            MainWindow.getWindow().removeActivePluginView((PluginView)view);
+            MainWindow.getWindow().removeActivePluginView(((PluginView)view).getPluginViewName());
           }
+          if(view instanceof UISWTPluginView) {
+              MainWindow.getWindow().removeActivePluginView(((UISWTPluginView)view).getPluginViewName());
+          }
+   
           view.delete();
         } catch (Exception e) {
         	Debug.printStackTrace( e );
@@ -478,8 +483,12 @@ public class Tab {
     try {
       if (localView != null) {
         if(localView instanceof PluginView) {
-          MainWindow.getWindow().removeActivePluginView((PluginView)localView);
+          MainWindow.getWindow().removeActivePluginView(((PluginView)localView).getPluginViewName());
         }
+        if(localView instanceof UISWTPluginView) {
+          MainWindow.getWindow().removeActivePluginView(((UISWTPluginView)localView).getPluginViewName());
+        }
+
         localView.delete();
       }
       tabItem.dispose();

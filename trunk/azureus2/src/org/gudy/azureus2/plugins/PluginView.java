@@ -26,7 +26,7 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
 /**
  * This Class must be extended by Plugin willing to have their own view in Azureus
  * @author Olivier
- * 
+ * @deprecated 
  */
 public abstract class PluginView extends AbstractIView {
   

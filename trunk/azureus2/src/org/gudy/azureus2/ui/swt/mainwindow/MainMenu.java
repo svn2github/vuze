@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
+import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.predicate.shell.ShellCanMaximizePredicate;
@@ -59,6 +60,7 @@ import org.gudy.azureus2.ui.swt.predicate.shellmanager.AllManagedShellsAreMinimi
 import org.gudy.azureus2.ui.swt.predicate.shellmanager.ShellManagerIsEmptyPredicate;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.plugins.PluginView;
@@ -632,13 +634,27 @@ public class MainMenu {
 
   public void
   addPluginView(
-  	final PluginView view)
+  	PluginView view)
   {
+	  addPluginView( view, view.getPluginViewName());
+  }
+  
+  public void
+  addPluginView(
+  	UISWTPluginView view)
+  {
+	  addPluginView( view, view.getPluginViewName());
+  }
+  
+  public void
+  addPluginView(
+  	final AbstractIView 	view,
+  	final String			name )
+  {
+
     display.asyncExec(new AERunnable() {
       public void runSupport()
       {
-      	String	name = view.getPluginViewName();
-
       	MenuItem[]	items = pluginMenu.getItems();
 
       	int	insert_at	= items.length;
@@ -658,7 +674,7 @@ public class MainMenu {
         item.setText( name );
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
-            mainWindow.openPluginView(view);
+            mainWindow.openPluginView(view,name);
           }
         });
         menu_plugin.setEnabled(true);

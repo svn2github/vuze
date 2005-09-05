@@ -83,19 +83,61 @@ UIManager
 	
 		throws UIException;
 
-  public TableManager getTableManager();
+	public TableManager getTableManager();
 
-  /** Retrieve a class of SWT specific functions */
-  public SWTManager getSWTManager();
+		/** Retrieve a class of SWT specific functions 
+		 * 
+		 * @deprecated 
+		 */
   
-  /* Future
-  public MenuManager getMenuManager();
-  In MenuManager..
-  public Menu addMenu(String resourceKey);
-  public Menu addMenu(String resourceKey, String parentKey);
-  public Menu addMenu(String resourceKey, Menu parent);
-  public MenuItem addMenuItem(String resourceKey);
-  public MenuItem addMenuItem(String resourceKey, String parentKey);
-  public MenuItem addMenuItem(String resourceKey, Menu parent);
-  */
+	public SWTManager getSWTManager();
+  
+	  /* Future
+	  public MenuManager getMenuManager();
+	  In MenuManager..
+	  public Menu addMenu(String resourceKey);
+	  public Menu addMenu(String resourceKey, String parentKey);
+	  public Menu addMenu(String resourceKey, Menu parent);
+	  public MenuItem addMenuItem(String resourceKey);
+	  public MenuItem addMenuItem(String resourceKey, String parentKey);
+	  public MenuItem addMenuItem(String resourceKey, Menu parent);
+	  */
+  
+		/**
+		 * UIs should support generic UI-agnostic views such as the basic config model by default. The can also
+		 * expose a UI-specific plugin interface to plugins via the UIInstance (see interface for details).
+		 * To get access to this it is necessary to use the UIManagerListener 
+		 */
+	
+	/**
+	 * attach a new UI
+	 *   
+	 */
+	
+	public void
+	attachUI(
+		UIInstance		instance )
+	
+		throws UIException;
+	
+	/**
+	 * detach a UI - can fail if the UI doesn't support detaching
+	 * 
+	 * @param instance
+	 * @throws UIManagerException
+	 */
+	
+	public void
+	detachUI(
+		UIInstance		instance )
+	
+		throws UIException;
+	
+  	public void
+  	addUIListener(
+  		UIManagerListener listener );
+  	
+ 	public void
+  	removeUIListener(
+  		UIManagerListener listener );
 }

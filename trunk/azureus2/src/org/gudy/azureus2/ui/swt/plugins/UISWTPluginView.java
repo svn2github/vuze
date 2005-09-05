@@ -1,8 +1,9 @@
 /*
- * Created on 2004/May/23
- * Created by TuxPaper
+ * File    : PluginView.java
+ * Created : 2 nov. 2003 20:58:14
+ * By      : Olivier 
  * 
- * Copyright (C) 2004 Aelitis SARL, All rights Reserved
+ * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,17 +17,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+ 
+package org.gudy.azureus2.ui.swt.plugins;
+
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
+
+/**
+ * This Class must be extended by Plugin willing to have their own view in Azureus
+ * @author Olivier
  * 
- * AELITIS, SARL au capital de 30,000 euros,
- * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
+public abstract class UISWTPluginView extends AbstractIView {
+  
 
-package org.gudy.azureus2.plugins.ui;
+  /**
+   * @return The name of the Plugin, as seen in the View > Plugins menu
+   *
+   * @since 2.0.4.0
+   */	
+  public abstract String getPluginViewName();
 
-/** An image to be used in Azureus
- */
-
-public interface 
-Graphic 
-{
 }

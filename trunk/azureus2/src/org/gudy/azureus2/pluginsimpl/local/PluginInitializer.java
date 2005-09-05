@@ -48,6 +48,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.launch.PluginLauncherImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
@@ -1176,7 +1177,7 @@ PluginInitializer
   	return( singleton.getDefaultInterfaceSupport());
   }
   
-  public PluginInterface
+  protected PluginInterface
   getDefaultInterfaceSupport()
   {
   
@@ -1308,6 +1309,8 @@ PluginInitializer
   initialisationComplete()
   {
   	initialisation_complete	= true;
+  	
+  	UIManagerImpl.initialisationComplete();
   	
   	for (int i=0;i<plugin_interfaces.size();i++){
   		

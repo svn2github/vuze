@@ -22,9 +22,16 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ui.UIException;
+import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -49,6 +56,12 @@ public class
 UIManagerImpl 
 	implements UIManager
 {	
+	protected static AEMonitor	class_mon = new AEMonitor( "UIManager:class" );
+	
+	protected static boolean	initialisation_complete;
+	protected static List		ui_listeners	= new ArrayList();
+	protected static List		ui_instances	= new ArrayList();
+	
 	protected PluginInterface		pi;
 	
 	protected PluginConfig			plugin_config;
@@ -175,6 +188,139 @@ UIManagerImpl
     return SWTManagerImpl.getSingleton();
   }
   
+  	public static void
+  	initialisationComplete()
+  	{
+  		try{
+  			class_mon.enter();
+  			
+  			initialisation_complete	= true;
+  			
+			for (int j=0;j<ui_instances.size();j++){
+
+				UIInstance	instance = (UIInstance)ui_instances.get(j);
+				
+  				for (int i=0;i<ui_listeners.size();i++){
+					
+					try{
+						((UIManagerListener)ui_listeners.get(i)).UIAttached( instance );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}  				
+			}
+  		}finally{
+  			
+  			class_mon.exit();
+  		}
+  	}
+  
+	public void
+	attachUI(
+		UIInstance		instance )
+	{
+		try{
+  			class_mon.enter();
+  			
+  			ui_instances.add( instance );
+  			
+  			if ( initialisation_complete ){
+  				
+  				for (int i=0;i<ui_listeners.size();i++){
+  					
+  					try{
+  						((UIManagerListener)ui_listeners.get(i)).UIAttached( instance );
+  						
+  					}catch( Throwable e ){
+  						
+  						Debug.printStackTrace(e);
+  					}
+  				}
+  			}
+  		}finally{
+  			
+  			class_mon.exit();
+  		}		
+	}
+	
+	public void
+	detachUI(
+		UIInstance		instance )
+	
+		throws UIException
+	{
+		try{
+  			class_mon.enter();
+  			
+  			instance.detach();
+  			
+  			ui_instances.remove( instance );
+  			
+  			if ( initialisation_complete ){
+  				
+  				for (int i=0;i<ui_listeners.size();i++){
+  					
+  					try{
+  						((UIManagerListener)ui_listeners.get(i)).UIDetached( instance );
+  						
+  					}catch( Throwable e ){
+  						
+  						Debug.printStackTrace(e);
+  					}
+  				}
+  			}
+  		}finally{
+  			
+  			class_mon.exit();
+  		}		
+	}
+  	public void
+  	addUIListener(
+  		UIManagerListener listener )
+  	{
+		try{
+  			class_mon.enter();
+  			
+  			ui_listeners.add( listener );
+  			
+ 			if ( initialisation_complete ){
+  				
+  				for (int i=0;i<ui_instances.size();i++){
+  					
+  					UIInstance	instance = (UIInstance)ui_instances.get(i);
+
+  					try{
+  						listener.UIAttached( instance );
+  						
+  					}catch( Throwable e ){
+  						
+  						Debug.printStackTrace(e);
+  					}
+  				}
+  			}
+  		}finally{
+  			
+  			class_mon.exit();
+  		} 		
+  	}
+  	
+ 	public void
+  	removeUIListener(
+  		UIManagerListener listener )
+ 	{
+		try{
+  			class_mon.enter();
+  			
+ 			ui_listeners.remove( listener );
+ 			 
+  		}finally{
+  			
+  			class_mon.exit();
+  		}		
+ 	}
+ 	
   protected class
   dummyConfigModel
   	implements BasicPluginConfigModel

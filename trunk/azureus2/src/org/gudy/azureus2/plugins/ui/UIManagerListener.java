@@ -1,7 +1,7 @@
 /*
- * Created on 19-Apr-2004
+ * Created on 05-Sep-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,27 +22,14 @@
 
 package org.gudy.azureus2.plugins.ui;
 
-/**
- * @author parg
- *
- */
-
-public class 
-UIException
-	extends Exception
+public interface 
+UIManagerListener 
 {
-	public
-	UIException(
-		String		str )
-	{
-		super(str);
-	}
+	public void
+	UIAttached(
+		UIInstance		instance );
 	
-	public
-	UIException(
-		String		str,
-		Throwable	c )
-	{
-		super(str, c);
-	}
+	public void
+	UIDetached(
+		UIInstance		instance );		
 }

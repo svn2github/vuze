@@ -21,12 +21,31 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 
-package org.gudy.azureus2.plugins.ui;
+package org.gudy.azureus2.ui.swt.pluginsimpl;
 
-/** An image to be used in Azureus
+
+import org.eclipse.swt.graphics.Image;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+
+/** An SWT image to be used in Azureus
+ *
+ * @see SWTManager.createGraphic
  */
+public class UISWTGraphicImpl implements UISWTGraphic {
+	Image img;
+  
+  public UISWTGraphicImpl(Image newImage) {
+    img = newImage;
+  }
 
-public interface 
-Graphic 
-{
+  public Image getImage() {
+    return img;
+  }
+
+  public boolean setImage(Image newImage) {
+    if (img == newImage)
+      return false;
+    img = newImage;
+    return true;
+  }
 }

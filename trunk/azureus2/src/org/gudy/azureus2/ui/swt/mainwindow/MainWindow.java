@@ -40,6 +40,8 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
+import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
@@ -793,6 +795,10 @@ MainWindow
     
     	// check file associations   
     DonationWindow2.checkForDonationPopup();
+    
+    	// attach the UI to plugins
+    
+    new UISWTInstanceImpl( azureus_core );
   }
 
 
@@ -1277,18 +1283,36 @@ MainWindow
   
 
   
-  public void openPluginView(final PluginView view) {
-    Tab tab = (Tab) pluginTabs.get(view.getPluginViewName());
+  public void 
+  openPluginView(
+	PluginView view) 
+  {
+	  openPluginView( view, view.getPluginViewName());
+  }
+  
+  public void 
+  openPluginView(
+	UISWTPluginView view) 
+  {
+	  openPluginView( view, view.getPluginViewName());
+  }
+  
+  protected void 
+  openPluginView(
+	AbstractIView 	view,
+	String			name )
+  {
+    Tab tab = (Tab) pluginTabs.get(name);
     if(tab != null) {
       tab.setFocus();
     } else {
       tab = new Tab(view);
-      pluginTabs.put(view.getPluginViewName(),tab);         
+      pluginTabs.put(name,tab);         
     }
   }
   
-  public void removeActivePluginView(final PluginView view) {
-    pluginTabs.remove(view.getPluginViewName());
+  public void removeActivePluginView( String view_name ) {
+    pluginTabs.remove(view_name);
   }
   
 

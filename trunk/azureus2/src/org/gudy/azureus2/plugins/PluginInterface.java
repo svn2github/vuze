@@ -80,7 +80,7 @@ public interface PluginInterface {
    *
    * @since 2.0.4.0
    *
-   * @deprecated use use {@link org.gudy.azureus2.plugins.ui.SWT.SWTManager#addView}
+   * @deprecated use {@link org.gudy.azureus2.ui.swt.plugins.UISWTInstance#addView}
    */
   public void addView(PluginView view);
 
