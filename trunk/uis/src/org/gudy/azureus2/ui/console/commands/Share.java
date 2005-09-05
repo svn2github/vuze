@@ -12,7 +12,8 @@ package org.gudy.azureus2.ui.console.commands;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.util.List;
+import java.util.*;
+
 
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
@@ -47,6 +48,8 @@ public class Share extends IConsoleCommand {
 		out.println( "contents       Share files and sub-dirs in a folder as single and multi-file torrents." );
 		out.println( "rcontents      Share files and sub-dir files in a folder as separate torrents." );
 		out.println( "list           List the shares (path not required)");
+		out.println( "remove         Remove a share given its path");
+		
 		out.println( "      <properties> is semicolon separated <name>=<value> list.");
 		out.println( "      Defined <name> values are 'category' only");
 		out.println( "      For example: share file /tmp/wibble.mp3 category=music");
@@ -70,14 +73,42 @@ public class Share extends IConsoleCommand {
 		}
 		
 		final String arg = (String) args.remove(0);
+		
 		if ( args.isEmpty() && ("list".equalsIgnoreCase(arg)) ) {
 			ShareResource[]	shares = share_manager.getShares();
-			if( shares.length == 0 )
+			if( shares.length == 0 ){
 				ci.out.println("> No shares found");
-			else
-			{
+			}else{
+				
+				HashSet	share_map = new HashSet();
+				
+				int	share_num = 0;
+				
 				for (int i=0;i<shares.length;i++){
-					ci.out.println( "> " + i + ": " + shares[i].getName());
+					
+					ShareResource	share = shares[i];
+										
+					if ( share instanceof ShareResourceDirContents ){
+						
+						share_map.add( share );
+						
+					}else if ( share.getParent() != null ){
+						
+					}else{
+						
+						ci.out.println( "> " + share_num++ + ": " + shares[i].getName());
+					}
+				}
+				
+				Iterator	it = share_map.iterator();
+				
+				while( it.hasNext()){
+					
+					ShareResourceDirContents	root = (ShareResourceDirContents)it.next();
+					
+					ci.out.println( "> " + share_num++ + ": " + root.getName());
+					
+					outputChildren( ci, "    ", root );
 				}
 			}
 			return;
@@ -86,6 +117,42 @@ public class Share extends IConsoleCommand {
 		final File path = new File( (String) args.get(0) );
 		if( !path.exists() ) {
 			ci.out.println( "ERROR: path [" +path+ "] does not exist." );
+			return;
+		}
+		
+		if ( ("remove".equalsIgnoreCase(arg)) ) {
+			
+			ShareResource[]	shares = share_manager.getShares();
+
+			boolean	done = false;
+			
+			for (int i=0;i<shares.length;i++){
+				
+				if ( shares[i].getName().equals( path.toString())){
+					
+					try{
+						shares[i].delete();
+					
+						ci.out.println( "> Share " + path.toString() + " removed" );
+					
+						done	= true;
+					
+					}catch( Throwable e ) {
+						
+						ci.out.println( "ERROR: " + e.getMessage() + " ::");
+						
+						Debug.printStackTrace( e );
+					}
+
+					break;
+				}
+			}
+			
+			if ( !done ){
+				
+				ci.out.println( "> Share " + path.toString() + " not found" );
+			}
+			
 			return;
 		}
 		
@@ -180,5 +247,26 @@ public class Share extends IConsoleCommand {
 				}
 			}
 		}.start();
+	}
+		
+	protected void
+	outputChildren(
+		ConsoleInput				ci,		
+		String						indent,
+		ShareResourceDirContents	node )
+	{
+		ShareResource[]	kids = node.getChildren();
+		
+		for (int i=0;i<kids.length;i++){
+			
+			ShareResource	kid = kids[i];
+			
+			ci.out.println( indent + kid.getName());
+
+			if ( kid instanceof ShareResourceDirContents ){
+				
+				outputChildren( ci, indent + "    ", (ShareResourceDirContents)kid );
+			}
+		}
 	}
 }
