@@ -124,6 +124,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.components"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.stats.transfer.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.nat"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.router.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.common"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.xml.schemas"/>
@@ -215,6 +216,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.associations"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.remote.tracker"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.impl"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.nat.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.util.protocol.i2p"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.sharing"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.webplugin.remoteui.xml.server"/>
