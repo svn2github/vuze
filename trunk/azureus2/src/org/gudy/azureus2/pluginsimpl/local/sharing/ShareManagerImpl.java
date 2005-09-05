@@ -223,7 +223,13 @@ ShareManagerImpl
 			
 			ShareResourceImpl	resource = (ShareResourceImpl)it.next();
 			
-			resource.checkConsistency();
+			try{
+				resource.checkConsistency();
+				
+			}catch( ShareException e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	

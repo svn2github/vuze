@@ -121,9 +121,12 @@ ShareResourceDirContentsImpl
 		
 		List	kids = checkConsistency(root);
 		
-		children = new ShareResource[kids.size()];
+		if ( kids != null ){
+			
+			children = new ShareResource[kids.size()];
 		
-		kids.toArray( children );
+			kids.toArray( children );
+		}
 	}
 	
 	protected List
@@ -136,12 +139,22 @@ ShareResourceDirContentsImpl
 		
 		File[]	files = dir.listFiles();
 		
-		if ( files == null ){
+		if ( files == null || !dir.exists() ){
 			
 				// dir has been deleted
 			
-			manager.delete( this );
+				// actually, this can be bad as some os errors (e.g. "too many open files") can cause the dir
+				// to appear to have been deleted. However, we don't want to delete the share. So let's just
+				// leave it around, manual delete required if deletion required.
 			
+			if ( dir == root ){
+				
+				return( null );
+				
+			}else{
+			
+				manager.delete( this );
+			}
 		}else{
 					
 			for (int i=0;i<files.length;i++){
