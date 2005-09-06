@@ -11,16 +11,14 @@
 package org.gudy.azureus2.ui.console.commands;
 
 import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.ui.console.ConsoleInput;
+import org.gudy.azureus2.ui.console.UserProfile;
 
 /**
  * base class for objects which need to operate on specific torrents.
@@ -31,7 +29,6 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 public abstract class TorrentCommand extends IConsoleCommand {
 	private final String primaryCommandName;
 	private final String action;
-	private final Map subCommands = new HashMap();
 	
 	/**
 	 * initializes the torrent command
@@ -45,22 +42,6 @@ public abstract class TorrentCommand extends IConsoleCommand {
 		this.action = action;
 	}
 
-	protected void addSubCommand(TorrentSubCommand command)
-	{
-		for (Iterator iter = command.getCommandNames().iterator(); iter.hasNext();) {
-			String cmdName = (String) iter.next();
-			subCommands.put(cmdName, command);
-		}
-	}
-	protected Set getSubCommands()
-	{
-		return new HashSet(subCommands.values());
-	}
-	protected TorrentSubCommand getSubCommand(String commandName)
-	{
-		return (TorrentSubCommand) subCommands.get(commandName);
-	}
-	
 	protected String getCommandName()
 	{
 		return primaryCommandName;
@@ -88,10 +69,7 @@ public abstract class TorrentCommand extends IConsoleCommand {
 							name = "?";
 						else
 							name = dm.getDisplayName();
-						if (performCommand(ci, dm, args))
-							ci.out.println("> " + getAction() + " Torrent #" + subcommand + " (" + name + ") succeeded.");
-						else
-							ci.out.println("> " + getAction() + " Torrent #" + subcommand + " (" + name + ") failed.");
+						performCommandIfAllowed(ci, args, dm, "#" + subcommand, name);
 					} else
 						ci.out.println("> Command '" + getCommandName() + "': Torrent #" + subcommand + " unknown.");
 				} catch (NumberFormatException e) {
@@ -103,10 +81,7 @@ public abstract class TorrentCommand extends IConsoleCommand {
 								name = "?";
 							else
 								name = dm.getDisplayName();
-							if (performCommand(ci, dm, args))
-								ci.out.println("> " + getAction() + " Torrent #" + subcommand + " (" + name + ") succeeded.");
-							else
-								ci.out.println("> " + getAction() + " Torrent #" + subcommand + " (" + name + ") failed.");
+							performCommandIfAllowed(ci, args, dm, subcommand, name);
 						}
 					} else if ("hash".equalsIgnoreCase(subcommand)) {
 						String hash = (String) args.remove(0); 
@@ -121,10 +96,9 @@ public abstract class TorrentCommand extends IConsoleCommand {
 										name = "?";
 									else
 										name = dm.getDisplayName();
-									if (performCommand(ci, dm, args))
-										ci.out.println("> " + getAction() + " Torrent " + hash + " (" + name + ") succeeded.");
-									else
-										ci.out.println("> " + getAction() + " Torrent " + hash + " (" + name + ") failed.");
+									// FIXME: check user permission here and fix it to take torrent hash instead of subcommand
+									
+									performCommandIfAllowed(ci, args, dm, hash, name);
 									foundit = true;
 									break;
 								}
@@ -143,8 +117,44 @@ public abstract class TorrentCommand extends IConsoleCommand {
 		}
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.console.commands.IConsoleCommand#printHelp(java.io.PrintStream, java.util.List)
+	/**
+	 * checks the role of the user. if the user is a 'guest', they are not able to 
+	 * perform any actions on the torrents. they are a 'read only' role.
+	 * if they are a 'user' role, they are only able to modify their own torrents.
+	 * users with the 'admin' role can modify anybody's torrents
+	 * @param ci
+	 * @param args
+	 * @param dm
+	 * @param name
+	 * @param subcommand
+	 */
+	private void performCommandIfAllowed(ConsoleInput ci, List args, DownloadManager dm, String desc, String name) {
+		if( ! UserProfile.ADMIN.equals( ci.getUserProfile().getUserType() ) )
+		{
+			if( UserProfile.USER.equals( ci.getUserProfile().getUserType() ) )
+			{
+				String owner = dm.getDownloadState().getAttribute(DownloadManagerState.AT_USER);
+				if(! ci.getUserProfile().getUsername().equals(owner) )
+				{
+					ci.out.println("> " + getAction() + " torrent " + desc + " (" + name + ") failed: Permission Denied. Users can only modify their own torrents");
+					return;
+				}
+			}
+			else
+			{
+				ci.out.println("> " + getAction() + " torrent " + desc + " (" + name + ") failed: Permission Denied. Guests cannot modify torrents");
+				return;
+			}
+		}
+		if (performCommand(ci, dm, args))
+			ci.out.println("> " + getAction() + " Torrent " + desc + " (" + name + ") succeeded.");
+		else
+			ci.out.println("> " + getAction() + " Torrent " + desc + " (" + name + ") failed.");		
+		
+	}
+
+	/**
+	 * prints out the syntax of this command
 	 */
 	public void printHelp(PrintStream out, List args) {
 		out.println("> " + getCommandName() + " syntax: " + getCommandName() + " (<#>|all|hash <hash>)");

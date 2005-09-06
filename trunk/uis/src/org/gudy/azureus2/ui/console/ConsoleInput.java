@@ -32,9 +32,15 @@ import java.util.Properties;
 import java.util.Vector;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LGAlertListener;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
+import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderManager;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.update.Update;
@@ -86,6 +92,8 @@ public class ConsoleInput extends Thread {
 	public final Properties aliases = new Properties();
 	private final Map commands = new LinkedHashMap();
 	private final List helpItems = new ArrayList();
+	private final UserProfile userProfile;
+	
 	/**
 	 * can be used by plugins to register console commands since they may not have access o
 	 * each ConsoleInput object that is created.
@@ -112,12 +120,24 @@ public class ConsoleInput extends Thread {
 		PrintStream _out, 
 		Boolean 	_controlling) 
 	{
+		this( con, _azureus_core, _in, _out, _controlling, UserProfile.DEFAULT_USER_PROFILE);
+	}
+	
+	public ConsoleInput( String con, AzureusCore _azureus_core, Reader _in, PrintStream _out, Boolean _controlling, UserProfile profile)
+	{
 		super("Console Input: " + con);
 		this.out = _out;
 		this.azureus_core	= _azureus_core;
+		this.userProfile = profile;
 		this.gm  			= _azureus_core.getGlobalManager();
 		this.controlling = _controlling.booleanValue();
 		this.br = new CommandReader(_in);
+		
+		initialise();		
+		start();
+	}
+
+	protected void initialise() {
 		registerAlertHandler();
 		registerCommands();
 		registerPluginCommands();
@@ -130,7 +150,50 @@ public class ConsoleInput extends Thread {
 		// populate the old command so that '.' does something sensible first time around
 		oldcommand.add("sh");
 		oldcommand.add("t");
-		start();
+	}
+	/**
+	 * begins the download of the torrent in the specified file, downloading
+	 * it to the specified output directory. We also annotate the download with the
+	 * current username
+	 * @param filename
+	 * @param outputDir
+	 */
+	public void downloadTorrent( String filename, String outputDir )
+	{
+		DownloadManager manager = gm.addDownloadManager(filename, outputDir);
+		manager.getDownloadState().setAttribute(DownloadManagerState.AT_USER, getUserProfile().getUsername());
+	}
+	
+	/**
+	 * downloads the remote torrent file. once we have downloaded the .torrent file, we
+	 * pass the data to the downloadTorrent() method for further processing
+	 * @param url
+	 * @param outputDir
+	 */
+	public void downloadRemoteTorrent( String url, final String outputDir )
+	{
+		TorrentDownloader downloader = TorrentDownloaderFactory.create(new TorrentDownloaderCallBackInterface() {
+			public void TorrentDownloaderEvent(int state, TorrentDownloader inf) {
+				if( state == TorrentDownloader.STATE_FINISHED )
+				{
+					out.println("torrent file download complete. starting torrent");
+					TorrentDownloaderManager.getInstance().remove(inf);
+					downloadTorrent( inf.getFile().getAbsolutePath(), outputDir );
+				}
+				else
+					TorrentDownloaderManager.getInstance().TorrentDownloaderEvent(state, inf);
+			}
+		}, url, null, null, true);
+		TorrentDownloaderManager.getInstance().add(downloader);
+	}
+	
+	/**
+	 * downloads a torrent on the local file system to the default save directory
+	 * @param fileName
+	 */
+	public void downloadTorrent(String fileName) 
+	{
+		downloadTorrent(fileName, getDefaultSaveDirectory());
 	}
 
 	/**
@@ -454,7 +517,6 @@ public class ConsoleInput extends Thread {
 	}
 
 	public void run() {
-		String command;
 		List comargs;
 		running = true;
 		while (running) {
@@ -467,13 +529,13 @@ public class ConsoleInput extends Thread {
 				break;
 			}
 			if (!comargs.isEmpty()) {
-				command = ((String) comargs.get(0)).toLowerCase();
+				String command = ((String) comargs.get(0)).toLowerCase();
 				if( ".".equals(command) )
 				{
 					if (oldcommand != null) {
 						comargs.clear();
 						comargs.addAll(oldcommand);
-						command = (String) oldcommand.get(0);
+						command = ((String) comargs.get(0)).toLowerCase();
 					} else {
 						out.println("No old command. Remove commands are not repeated to prevent errors");
 					}
@@ -481,8 +543,15 @@ public class ConsoleInput extends Thread {
 				oldcommand.clear();
 				oldcommand.addAll(comargs);
 				comargs.remove(0);
-				if (!invokeCommand(command, comargs)) {
-					out.println("> Command '" + command + "' unknown (or . used without prior command)");
+				
+				try {
+					if (!invokeCommand(command, comargs)) {
+						out.println("> Command '" + command + "' unknown (or . used without prior command)");
+					}
+				} catch (Throwable e)
+				{
+					out.println("Exception occurred when executing command: '" + command + "'");
+					e.printStackTrace(out);
 				}
 			}
 		}
@@ -527,6 +596,35 @@ public class ConsoleInput extends Thread {
 			out.println("> Error saving aliases to " + aliasesFile.getPath() + ":" + e.getMessage());
 		}
 	}
+	
+	/**
+	 * @return Returns the userProfile.
+	 */
+	public UserProfile getUserProfile() {
+		return userProfile;
+	}
+	
+	/**
+	 * returns the default directory that torrents should be saved to unless otherwise specified
+	 * @return
+	 */
+	public String getDefaultSaveDirectory() {
+		try {
+			String saveDir = getUserProfile().getDefaultSaveDirectory();
+			if( saveDir == null )
+			{
+				saveDir = COConfigurationManager.getDirectoryParameter("Default save path");
+				if( saveDir == null || saveDir.length() == 0 )
+					saveDir = ".";
+			}
+			return saveDir;
+		} catch (Exception e) 
+		{
+			e.printStackTrace();
+			return ".";
+		}
+	}
+	
 	
 	protected void
 	registerUpdateChecker()

@@ -11,12 +11,13 @@
 package org.gudy.azureus2.ui.console;
 
 import org.apache.log4j.Logger;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UIConst;
+import org.gudy.azureus2.ui.console.multiuser.UserManager;
+import org.gudy.azureus2.ui.console.multiuser.commands.UserCommand;
 
 /**
  *
@@ -42,15 +43,30 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
   public void startUI() {
     super.startUI();
     TorrentDownloaderFactory.initManager(UIConst.getGlobalManager(), true, true, COConfigurationManager.getStringParameter("Default save path") );
-    if ((!isStarted()) || (console == null) || ((console!=null) && (!console.isAlive()))) {
+    if ((!isStarted()) || (console == null) || (!console.isAlive())) {
 //      ConsoleInput.printconsolehelp(System.out);
       System.out.println();
       console = new ConsoleInput("Main", UIConst.getAzureusCore(), System.in, System.out, Boolean.TRUE);
+      if( System.getProperty("azureus.console.multiuser") != null)
+      {
+    	  UserManager manager = UserManager.getInstance(UIConst.getAzureusCore().getPluginManager().getDefaultPluginInterface());
+    	  console.registerCommand(new UserCommand(manager));
+      }
       console.printconsolehelp();
     }
   }
   
   public void openTorrent(String fileName) {
+  	if( console != null )
+  	{
+//  		System.out.println("NOT NULL CONSOLE. CAN PASS STRAIGHT TO IT!");
+  		console.downloadTorrent(fileName);
+  		return;
+  	}
+  	else
+  	{
+//  		System.out.println("NULL CONSOLE");
+  	}
     if( fileName.toUpperCase().startsWith( "HTTP://" ) ) {
       System.out.println( "Downloading torrent from url: " + fileName );
       TorrentDownloaderFactory.downloadManaged( fileName );
@@ -68,7 +84,9 @@ public class UI extends org.gudy.azureus2.ui.common.UITemplateHeadless implement
     }
     if (UIConst.getGlobalManager()!=null) {
       try {
-        UIConst.getGlobalManager().addDownloadManager(fileName, COConfigurationManager.getDirectoryParameter("Default save path"));
+      	String downloadDir = COConfigurationManager.getDirectoryParameter("Default save path");
+      	System.out.println( "Adding torrent: " + fileName + " and saving to " + downloadDir);
+        UIConst.getGlobalManager().addDownloadManager(fileName, downloadDir);
       } catch (Exception e) {
         Logger.getLogger("azureus2.ui.console").error("The torrent "+fileName+" could not be added.", e);
       }

@@ -24,15 +24,18 @@ import org.gudy.azureus2.ui.console.ConsoleInput;
 /**
  * @author Tobias Minich
  */
-public class Hack extends TorrentCommand {
+public class Hack extends TorrentCommand 
+{
+
+	private final CommandCollection subCommands = new CommandCollection();
 	
 	public Hack() 
 	{
 		super(new String[] { "hack", "#" }, "Hacking");
-		addSubCommand(new HackFile());
-		addSubCommand(new HackTracker());
-		addSubCommand(new HackDownloadSpeed());
-		addSubCommand(new HackUploadSpeed());
+		subCommands.add(new HackFile());
+		subCommands.add(new HackTracker());
+		subCommands.add(new HackDownloadSpeed());
+		subCommands.add(new HackUploadSpeed());
 	}
 	
 	public String getCommandDescriptions()
@@ -45,7 +48,7 @@ public class Hack extends TorrentCommand {
 		out.println("'hack' syntax:");
 		if( args.size() > 0 ) {
 			String command = (String) args.remove(0);
-			TorrentCommand cmd = getSubCommand(command);
+			IConsoleCommand cmd = subCommands.get(command);
 			if( cmd != null )
 				cmd.printHelp(out, args);
 			return;
@@ -58,7 +61,7 @@ public class Hack extends TorrentCommand {
 		out.println("help\t\tDetailed help for <command>");
 		out.println();
 		out.println("Available <command>s:");
-		for (Iterator iter = getSubCommands().iterator(); iter.hasNext();) {
+		for (Iterator iter = subCommands.iterator(); iter.hasNext();) {
 			TorrentSubCommand cmd = (TorrentSubCommand) iter.next();
 			out.println(cmd.getCommandDescriptions());
 		}
@@ -78,7 +81,7 @@ public class Hack extends TorrentCommand {
 			return false;
 		}
 		String subCommandName = (String)args.remove(0);
-		TorrentSubCommand cmd = getSubCommand(subCommandName);
+		TorrentSubCommand cmd = (TorrentSubCommand) subCommands.get(subCommandName);
 		if( cmd != null )
 			return cmd.performCommand(ci, dm, args);
 		else
@@ -142,12 +145,14 @@ public class Hack extends TorrentCommand {
 	
 	private static class HackTracker extends TorrentSubCommand
 	{
+		private final CommandCollection subCommands = new CommandCollection();
+		
 		public HackTracker()
 		{
 			super(new String[] { "tracker", "t" });
-			addSubCommand(new HackHost());
-			addSubCommand(new HackPort());
-			addSubCommand(new HackURL());
+			subCommands.add(new HackHost());
+			subCommands.add(new HackPort());
+			subCommands.add(new HackURL());
 		}
 
 		public void printHelp(PrintStream out, List args)
@@ -155,7 +160,7 @@ public class Hack extends TorrentCommand {
 			out.println("hack <torrent id> tracker [command] <new value>");
 			out.println();
 			out.println("[command] can be one of the following:");
-			for (Iterator iter = getSubCommands().iterator(); iter.hasNext();) {
+			for (Iterator iter = subCommands.iterator(); iter.hasNext();) {
 				TorrentSubCommand cmd = (TorrentSubCommand) iter.next();
 				out.println(cmd.getCommandDescriptions());
 			}
@@ -180,11 +185,11 @@ public class Hack extends TorrentCommand {
 				ci.out.println("> Command 'hack': Tracker interface not available.");
 				return false;
 			}
-			TorrentSubCommand cmd = getSubCommand(trackercommand);
+			TorrentSubCommand cmd = (TorrentSubCommand) subCommands.get(trackercommand);
 			if( cmd == null )
 			{
 				args.add(trackercommand);
-				cmd = getSubCommand("url");
+				cmd = (TorrentSubCommand) subCommands.get("url");
 			}
 			
 			return cmd.performCommand(ci, dm, args);

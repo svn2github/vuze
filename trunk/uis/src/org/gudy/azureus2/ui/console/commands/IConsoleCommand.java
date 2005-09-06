@@ -31,11 +31,6 @@ public abstract class IConsoleCommand {
 		}
 	}
 	
-	public IConsoleCommand()
-	{
-		
-	}
-	
 	/**
 	 * execute the command with the specified name using the specified arguments 
 	 * @param commandName

@@ -16,8 +16,6 @@ import java.net.URL;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.OptionBuilder;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 import org.pf.file.FileFinder;
 import org.pf.text.StringUtil;
@@ -38,7 +36,7 @@ public class AddFind extends OptionsConsoleCommand {
 		OptionBuilder.withArgName("outputDir");
 		OptionBuilder.withLongOpt("output");
 		OptionBuilder.hasArg();
-		OptionBuilder.withDescription("Output Directory");
+		OptionBuilder.withDescription("override default download directory");
 		OptionBuilder.withType(File.class);		
 		getOptions().addOption( OptionBuilder.create('o') );
 		getOptions().addOption("r", "recurse", false, "recurse sub-directories.");
@@ -70,11 +68,7 @@ public class AddFind extends OptionsConsoleCommand {
 		if (commands.hasOption('o'))
 			outputDir = commands.getOptionValue('o');
 		else
-			try {
-				outputDir = COConfigurationManager.getDirectoryParameter("Default save path");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			outputDir = ci.getDefaultSaveDirectory();
 
 		boolean scansubdir = commands.hasOption('r'); 
 		boolean finding = commands.hasOption('f');
@@ -104,7 +98,7 @@ public class AddFind extends OptionsConsoleCommand {
 	protected void addRemote(ConsoleInput ci, String arg, String outputDir) {
 		ci.out.println("> Starting Download of " + arg + " ...");
 		try {
-			TorrentDownloaderFactory.downloadManaged(arg);
+			ci.downloadRemoteTorrent(arg, outputDir);
 		} catch (Exception e) {
 			ci.out.println("An error occurred while downloading torrent: " + e.getMessage());
 			e.printStackTrace(ci.out);
@@ -135,7 +129,7 @@ public class AddFind extends OptionsConsoleCommand {
 					ci.out.println("> Directory '" + arg + "' seems to contain no torrent files.");
 				}
 			} else {
-				ci.gm.addDownloadManager(arg, outputDir);
+				ci.downloadTorrent(arg, outputDir);
 				ci.out.println("> '" + arg + "' added.");
 				ci.torrents.clear();
 			}
@@ -148,7 +142,7 @@ public class AddFind extends OptionsConsoleCommand {
 			if( ci.adds != null && ci.adds.length > id )
 			{
 				String torrentPath = ci.adds[id].getAbsolutePath();
-				ci.gm.addDownloadManager(torrentPath, outputDir);
+				ci.downloadTorrent(torrentPath, outputDir);
 				ci.out.println("> '" + torrentPath + "' added.");
 				ci.torrents.clear();
 			}
@@ -206,7 +200,7 @@ public class AddFind extends OptionsConsoleCommand {
 		else
 		{
 			for (int i = 0; i < toadd.length; i++) {
-				ci.gm.addDownloadManager(toadd[i].getAbsolutePath(), outputDir);
+				ci.downloadTorrent(toadd[i].getAbsolutePath(), outputDir);
 				ci.out.println("> '" + toadd[i].getAbsolutePath() + "' added.");
 				ci.torrents.clear();
 			}
