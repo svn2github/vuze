@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -37,7 +38,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class PeersItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellRefreshListener, TableCellToolTipListener
 {
   /** Default Constructor */
   public PeersItem(String sTableID) {
@@ -67,4 +68,33 @@ public class PeersItem
       lTotalPeers = 0;
     cell.setText(tmp);
   }
+  
+  public void cellHover(TableCell cell) {
+	    long lConnectedPeers = 0;
+	    long lTotalPeers = -1;
+	    DownloadManager dm = (DownloadManager)cell.getDataSource();
+	    if (dm != null) {
+	    	lConnectedPeers = dm.getNbPeers();
+	      TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
+	      if (hd != null && hd.isValid())
+	    	  lTotalPeers = hd.getPeers();
+	    }
+	    
+	    String sToolTip = lConnectedPeers + " " + 
+	                      MessageText.getString("GeneralView.label.connected") + 
+	                      "\n";
+	    if (lTotalPeers != -1) {
+	      sToolTip += lTotalPeers + " " + MessageText.getString("GeneralView.label.in_swarm");
+	    } else {
+	      TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+	      sToolTip += "?? " + MessageText.getString("GeneralView.label.in_swarm");
+	      if (response != null)
+	        sToolTip += "(" + response.getStatusString() + ")";
+	    }
+	    cell.setToolTip(sToolTip);
+	  }
+
+	  public void cellHoverComplete(TableCell cell) {
+	    cell.setToolTip(null);
+	  }
 }
