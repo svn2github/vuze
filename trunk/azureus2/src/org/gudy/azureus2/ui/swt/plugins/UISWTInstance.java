@@ -39,7 +39,7 @@ UISWTInstance
 	   *
 	   * @since 2.1.0.0
 	   */
-	  public Display getDisplay();
+	public Display getDisplay();
 
 	  /** Creates an UIImageSWT object with the supplied SWT Image
 	   *
@@ -48,16 +48,8 @@ UISWTInstance
 	   *
 	   * @since 2.1.0.0
 	   */
-	  public UISWTGraphic createGraphic(Image img);
-
-	  /**
-	   * A Plugin might call this method to add a View to Azureus's views
-	   * The View will be accessible from View > Plugins > View name
-	   * @param view The PluginView to be added
-	   *
-	   * @since 2.1.0.2
-	   */
-	  public void addView( UISWTPluginView view );
+	
+	public UISWTGraphic createGraphic(Image img);
 
 	  /**
 	   * A Plugin might call this method to add a View to Azureus's views
@@ -67,27 +59,20 @@ UISWTInstance
 	   *
 	   * @since 2.1.0.2
 	   */
-	  public void addView( UISWTPluginView view, boolean autoOpen );
+	
+	public void 
+	addView( 
+		UISWTPluginView 	view, 
+		boolean 			autoOpen );
+	
+		/**
+		 * Add an AWT panel as the plugin view
+		 * @param view
+		 * @param auto_open
+		 */
 	  
-	  /**
-	   * A Plugin might call this method to load an image from
-	   * a resource (eg: "org/my_name/my_plugin/images/te_image.gif"
-	   * @see getImage(String name)
-	   * @param resource the resource path to the image
-	   * @param name the name used for the image, please use names starting with your plugin name.
-	   * @return true is the image was correctly loaded
-	   * @since 2.1.0.6
-	   */
-	  //public boolean loadImage(String resource,String name);
-	  
-	  /**
-	   * Once an image is loaded (@see loadImage(String resource,String name) )
-	   * a plugin can retrieve it by calling this method.
-	   * 
-	   * @param name the name used in loadImage to identify the image.
-	   * @return the image
-	   *
-	   */
-	  //public Image getImage(String name);
-	  
+	public void
+	addView(
+		UISWTAWTPluginView	view,
+		boolean				auto_open );
 }

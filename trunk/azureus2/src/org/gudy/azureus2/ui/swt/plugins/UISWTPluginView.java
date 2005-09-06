@@ -28,14 +28,16 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
  * @author Olivier
  * 
  */
-public abstract class UISWTPluginView extends AbstractIView {
-  
-
+public abstract class 
+UISWTPluginView 
+	extends AbstractIView 
+{
   /**
    * @return The name of the Plugin, as seen in the View > Plugins menu
    *
    * @since 2.0.4.0
-   */	
-  public abstract String getPluginViewName();
-
+   */
+	
+  public abstract String 
+  getPluginViewName();
 }

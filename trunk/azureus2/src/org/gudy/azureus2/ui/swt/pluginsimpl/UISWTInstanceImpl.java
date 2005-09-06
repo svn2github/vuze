@@ -22,18 +22,31 @@
 
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Panel;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.awt.SWT_AWT;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.gudy.azureus2.core3.util.AEMonitor;
+
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.UIException;
 
-import org.gudy.azureus2.pluginsimpl.local.ui.SWT.GraphicSWTImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.plugins.UISWTAWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
@@ -92,14 +105,89 @@ UISWTInstanceImpl
 	  		// SWT not available prolly
 	  	}
 	} 
-
-	public void 
-	addView(
-		UISWTPluginView view )
-	{
-		addView(view, false);
-	} 
   
+	public void
+	addView(
+		final UISWTAWTPluginView	view,
+		boolean						auto_open )
+	{
+		addView(
+			new UISWTPluginView()
+			{
+				Composite		composite;
+				Component		component;
+				
+				boolean	first_paint = true;
+				
+				public String
+				getPluginViewName()
+				{
+					return( view.getPluginViewName());
+				}
+				
+				public String 
+				getFullTitle() 
+				{
+					return( view.getPluginViewName());
+				}
+				 
+				public void 
+				initialize(
+					Composite _composite )
+				{
+					first_paint	= true;
+					
+					composite	= _composite;
+					
+					Composite frame_composite = new Composite(composite, SWT.EMBEDDED);
+	
+					GridData data = new GridData(GridData.FILL_BOTH);
+					
+					frame_composite.setLayoutData(data);
+	
+					Frame	f = SWT_AWT.new_Frame(frame_composite);
+	
+					Panel	pan = 
+						new Panel( new BorderLayout())
+						{
+							public void 
+							paint( Graphics g )
+							{
+								super.paint(g);
+								
+								if ( first_paint ){
+										
+									first_paint	= false;
+										
+									view.open( component );
+								}
+							}
+						};
+					
+					f.add( pan );
+							
+					component	= view.create();
+					
+					pan.add( component, BorderLayout.CENTER );
+				}
+				
+				public Composite 
+				getComposite()
+				{
+					return( composite );
+				}
+				
+				public void 
+				delete() 
+				{
+					super.delete();
+					
+					view.delete( component );
+				}
+			},
+			auto_open );
+	}
+	
 	public void
 	detach()
 	
