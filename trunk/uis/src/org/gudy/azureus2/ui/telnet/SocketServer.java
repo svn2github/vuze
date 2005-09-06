@@ -96,7 +96,7 @@ final class SocketServer implements Runnable
 						else
 						{
 							loginAttempts++;
-							if( loginAttempts > maxLoginAttempts )
+							if( loginAttempts >= maxLoginAttempts )
 							{
 								System.out.println("rejecting connection from: " + addr + " as number of failed connections > max login attempts (" + maxLoginAttempts + ")");
 								socket.close();
