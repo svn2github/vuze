@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.download.impl;
 
 import java.io.File;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -224,29 +225,37 @@ DownloadManagerController
 			  					  
 			  				if ( newDMState == DiskManager.READY ){
 			  						
-			  						// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
-			  						// and resumed 
-			  				
 			  					if ( 	stats.getTotalDataBytesReceived() == 0 &&
 			  							stats.getTotalDataBytesSent() == 0 &&
 			  							stats.getSecondsDownloading() == 0 ){
-			  						
+
 			  						int	completed = stats.getDownloadCompleted(false);
-			  							
-			  							// for seeds leave things as they are as they may never have been downloaded in the
-			  							// first place...
-			  							
+	  							
 			  						if ( completed < 1000 ){
-			 
-			  							// assume downloaded = uploaded, optimistic but at least results in
-			  							// future share ratios relevant to amount up/down from now on
-			  							// see bug 1077060 
+		  							
+				  						// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
+				  						// and resumed 
+				  				
+				  									  										 
+			  								// assume downloaded = uploaded, optimistic but at least results in
+			  								// future share ratios relevant to amount up/down from now on
+			  								// see bug 1077060 
 			  								
 			  							long	amount_downloaded = (completed*dm.getTotalLength())/1000;
 			  								
 			 							stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
-			   						}
-			  					}
+			   						
+			  						}else{		  					
+			  								// see GlobalManager for comment on this
+			  							
+			  							int	dl_copies = COConfigurationManager.getIntParameter("StartStopManager_iAddForSeedingDLCopyCount");
+			  		              
+										if ( dl_copies > 0 ){
+											
+			  								stats.setSavedDownloadedUploaded( download_manager.getSize()*dl_copies, stats.getTotalDataBytesSent());
+			  							}
+			  						}
+			  		        	}
 			  				}
 	  					}finally{
 	  							  						

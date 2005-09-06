@@ -87,6 +87,12 @@ public class ConfigSectionSeeding implements ConfigSectionSWT {
     new BooleanParameter(cSeeding, "StartStopManager_bAutoReposition",
                          "ConfigView.label.seeding.autoReposition").setLayoutData(gridData);
 
+    label = new Label(cSeeding, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.seeding.addForSeedingDLCopyCount");
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    new IntParameter(cSeeding, "StartStopManager_iAddForSeedingDLCopyCount").setLayoutData(gridData);
+
     return cSeeding;
   }
 }

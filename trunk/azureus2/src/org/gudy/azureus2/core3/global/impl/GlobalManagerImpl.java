@@ -525,9 +525,7 @@ public class GlobalManagerImpl
                 	        	
         	return( existing );
         }
-        
-        int minQueueingShareRatio = COConfigurationManager.getIntParameter("StartStopManager_iFirstPriority_ShareRatio");
-        
+                
         DownloadManagerStats dm_stats = download_manager.getStats();
 
         String	torrent_file_name = download_manager.getTorrentFileName();
@@ -610,18 +608,26 @@ public class GlobalManagerImpl
 	        download_manager.setOnlySeeding(bCompleted);
 	        
 	        if (lDownloaded != null && lUploaded != null) {
+	        	
 	          long lUploadedValue = lUploaded.longValue();
+	          
 	          long lDownloadedValue = lDownloaded.longValue();
-	          if (bCompleted && (lDownloadedValue == 0)) {
-              //Gudy : I say if the torrent is complete, let's simply set downloaded
-              //to size in order to see a meaningfull share-ratio
-	            lDownloadedValue = download_manager.getSize();
-	            	
-              //Gudy : Bypass this horrible hack, and I don't care of first priority seeding...
-              /*
-	            if (lDownloadedValue != 0 && ((lUploadedValue * 1000) / lDownloadedValue < minQueueingShareRatio) )
-	              lUploadedValue = ( download_manager.getSize()+999) * minQueueingShareRatio / 1000;
-                */
+	          
+	          if ( bCompleted && (lDownloadedValue == 0)){
+	        	  
+	        	  //Gudy : I say if the torrent is complete, let's simply set downloaded
+	        	  //to size in order to see a meaningfull share-ratio
+	              //Gudy : Bypass this horrible hack, and I don't care of first priority seeding...
+	              /*
+		            if (lDownloadedValue != 0 && ((lUploadedValue * 1000) / lDownloadedValue < minQueueingShareRatio) )
+		              lUploadedValue = ( download_manager.getSize()+999) * minQueueingShareRatio / 1000;
+	                */
+	        	  // Parg: quite a few users have complained that they want "open-for-seeding" torrents to
+	        	  // have an infinite share ratio for seeding rules (i.e. so they're not first priority)
+	        	 
+	        	int	dl_copies = COConfigurationManager.getIntParameter("StartStopManager_iAddForSeedingDLCopyCount");
+	        	  	
+	        	lDownloadedValue = download_manager.getSize() * dl_copies; 
 	          }
 	          
 	          saved_data_bytes_downloaded	= lDownloadedValue;
@@ -674,9 +680,9 @@ public class GlobalManagerImpl
            
         	if ( dm_stats.getDownloadCompleted(false) == 1000 ){
 	               
-        		long lUploadedValue = 0;
+        		int	dl_copies = COConfigurationManager.getIntParameter("StartStopManager_iAddForSeedingDLCopyCount");
             
-        		saved_data_bytes_downloaded = download_manager.getSize();
+	        	saved_data_bytes_downloaded = download_manager.getSize()*dl_copies;
 	        }
         }
         

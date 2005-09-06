@@ -181,6 +181,7 @@ public class ConfigurationDefaults {
     // for "Stop Ratio" ignore rule
     def.put("StartStopManager_iIgnoreShareRatioSeedStart", new Long(0));
     def.put("StartStopManager_bNewSeedsMoveTop", new Long(1));
+    def.put("StartStopManager_iAddForSeedingDLCopyCount", new Long(1));
     
     	//tracker proxy defaults
     def.put( "Enable.Proxy", new Long(0) );
