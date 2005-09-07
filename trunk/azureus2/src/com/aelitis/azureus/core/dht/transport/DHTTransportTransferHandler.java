@@ -36,7 +36,7 @@ DHTTransportTransferHandler
 		DHTTransportContact	originator,
 		byte[]				key );
 	
-	public void
+	public byte[]
 	handleWrite(
 		DHTTransportContact	originator,
 		byte[]				key,

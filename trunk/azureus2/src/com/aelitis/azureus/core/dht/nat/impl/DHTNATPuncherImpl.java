@@ -22,22 +22,28 @@
 
 package com.aelitis.azureus.core.dht.nat.impl;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.*;
 
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
+import com.aelitis.azureus.core.dht.DHTOperationAdapter;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.nat.*;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
+import com.aelitis.azureus.core.dht.transport.DHTTransportProgressListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportReplyHandlerAdapter;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
@@ -47,10 +53,17 @@ DHTNATPuncherImpl
 {
 	private static boolean		TESTING	= false;
 	
+	static{
+		if ( TESTING ){
+			System.out.println( "**** DHTNATPuncher test on ****" );
+		}
+	}
+	
+	private static byte[]		transfer_handler_key = new SHA1Simple().calculateHash(DHTNATPuncherImpl.class.getName().getBytes());
+	
 	private boolean				started;
 	
 	private	DHT					dht;
-	private int					network;
 	private DHTLogger			logger;
 	
 	private PluginInterface		plugin_interface;
@@ -315,7 +328,7 @@ DHTNATPuncherImpl
 						rendezvous_target			= new_rendezvous_target[0];					
 						rendezvous_local_contact	= local_contact;
 					
-						logger.log( "Rendezvous found: " + rendezvous_local_contact.getString() + " -> " + rendezvous_target.getString());
+						log( "Rendezvous found: " + rendezvous_local_contact.getString() + " -> " + rendezvous_target.getString());
 
 						runRendezvous();
 					
@@ -329,7 +342,7 @@ DHTNATPuncherImpl
 			
 			if ( new_rendezvous_target[0] == null ){
 				
-				logger.log( "No rendezvous found: candidates=" + reachables.length +",tried="+ reachables_tried+",skipped=" +reachables_skipped );
+				log( "No rendezvous found: candidates=" + reachables.length +",tried="+ reachables_tried+",skipped=" +reachables_skipped );
 							
 				try{
 					pub_mon.enter();
@@ -418,7 +431,7 @@ DHTNATPuncherImpl
 						
 						if ( current_local != null ){
 							
-							logger.log( "Removing publish for " + current_local.getString() + " -> " + current_target.getString());
+							log( "Removing publish for " + current_local.getString() + " -> " + current_target.getString());
 							
 							dht.remove( 
 									getPublishKey( current_local ),
@@ -458,14 +471,14 @@ DHTNATPuncherImpl
 						
 						if ( latest_local != null ){
 					
-							logger.log( "Adding publish for " + latest_local.getString() + " -> " + latest_target.getString());
+							log( "Adding publish for " + latest_local.getString() + " -> " + latest_target.getString());
 
 							rendevzous_fail_count[0]	= 0;
 							
 							dht.put(
 									getPublishKey( latest_local ),
 									"DHTNatPuncher: publish",
-									getPublishValue( latest_target ),
+									encodePublishValue( latest_target ),
 									DHT.FLAG_SINGLE_VALUE,
 									new DHTOperationListener()
 									{
@@ -503,14 +516,14 @@ DHTNATPuncherImpl
 						
 							// target changed, update publish
 						
-						logger.log( "Updating publish for " + latest_local.getString() + " -> " + latest_target.getString());
+						log( "Updating publish for " + latest_local.getString() + " -> " + latest_target.getString());
 
 						rendevzous_fail_count[0]	= 0;
 						
 						dht.put(
 								getPublishKey( latest_local ),
 								"DHTNatPuncher: update publish",
-								getPublishValue( latest_target ),
+								encodePublishValue( latest_target ),
 								DHT.FLAG_SINGLE_VALUE,
 								new DHTOperationListener()
 								{
@@ -572,7 +585,7 @@ DHTNATPuncherImpl
 							{
 								if ( rendevzous_fail_count[0]++ == 4 ){
 									
-									logger.log( "Rendezvous:" + failed_contact.getString() + " Failed" );
+									log( "Rendezvous:" + failed_contact.getString() + " Failed" );
 									
 									try{
 										pub_mon.enter();
@@ -593,7 +606,7 @@ DHTNATPuncherImpl
 				
 			}catch( Throwable e ){
 				
-				logger.log(e);
+				log(e);
 				
 			}finally{
 				
@@ -602,12 +615,126 @@ DHTNATPuncherImpl
 					
 				}catch( Throwable e ){
 					
-					logger.log(e);
+					log(e);
 					
 					break;
 				}
 			}
 		}
+	}
+	
+	public boolean
+	punch(
+		DHTTransportContact	target )
+	{
+		DHTTransportContact	rendezvous = getRendezvous( target );
+		
+		if ( rendezvous != null ){
+			
+			try{
+				rendezvous.getTransport().writeTransfer(
+					new DHTTransportProgressListener()
+					{
+						public void
+						reportSize(
+							long	size )
+						{
+						}
+						
+						public void
+						reportActivity(
+							String	str )
+						{
+						}
+						
+						public void
+						reportCompleteness(
+							int		percent )
+						{						
+						}
+					},
+					rendezvous,
+					transfer_handler_key,
+					new byte[0],
+					new byte[0],
+					30000 );
+				
+			}catch( DHTTransportException e ){
+				
+				e.printStackTrace();
+			}
+		}
+		
+		return( false );
+	}
+	
+	protected DHTTransportContact
+	getRendezvous(
+		DHTTransportContact	target )
+	{
+		byte[]	key = getPublishKey( target );
+		
+		final DHTTransportValue[]	result_value = {null};
+		
+		final Semaphore sem = plugin_interface.getUtilities().getSemaphore();
+		
+		dht.get( 	key, 
+					"DHTNatPuncher: lookup for '" + target.getString() + "'",
+					(byte)0,
+					1,
+					60000,
+					false,
+					new DHTOperationAdapter()
+					{
+						public void
+						read(
+							DHTTransportContact	contact,
+							DHTTransportValue	value )
+						{
+							result_value[0] = value;
+							
+							sem.release();
+						}
+						
+						public void
+						complete(
+							boolean				timeout )
+						{
+							sem.release();
+						}
+					});
+		
+		sem.reserve();
+		
+		DHTTransportContact result = null;
+		
+		if ( result_value[0] != null ){
+			
+			byte[]	bytes = result_value[0].getValue();
+			
+			try{
+				ByteArrayInputStream	bais = new ByteArrayInputStream( bytes );
+				
+				DataInputStream	dis = new DataInputStream( bais );
+				
+				byte	version = dis.readByte();
+				
+				if ( version != 0 ){
+					
+					throw( new Exception( "Unsupported rendezvous version '" + version + "'" ));
+				}
+				
+				result = dht.getTransport().importContact( dis );
+				
+			}catch( Throwable e ){
+				
+				log(e);
+			}
+		}
+		
+		log( "Lookup of rendezvous for " + target.getString() + " -> " + ( result==null?"None":result.getString()));
+
+		return( result );
 	}
 	
 	protected byte[]
@@ -626,7 +753,7 @@ DHTNATPuncherImpl
 	}
 	
 	protected byte[]
-   	getPublishValue(
+   	encodePublishValue(
    		DHTTransportContact	contact )
    	{ 		
 		try{
@@ -644,9 +771,25 @@ DHTNATPuncherImpl
 
 		}catch( Throwable e ){
 			
-			logger.log( e );
+			log( e );
 		
 			return( new byte[0]);
     	}
    	}
+	
+	protected void
+	log(
+		String	str )
+	{
+		logger.log( "NATPuncher: " + str );
+	}
+	
+	protected void
+	log(
+		Throwable 	e )
+	{
+		logger.log( "NATPuncher: error occurred" );
+		
+		logger.log(e);
+	}
 }

@@ -841,13 +841,15 @@ outer:
 						return( handler.handleRead( new DHTPluginContactImpl( DHTPluginImpl.this, originator ), key ));
 					}
 					
-					public void
+					public byte[]
 					handleWrite(
 							DHTTransportContact	originator,
 						byte[]				key,
 						byte[]				value )
 					{
 						handler.handleWrite( new DHTPluginContactImpl( DHTPluginImpl.this, originator ), key, value );
+						
+						return( null );
 					}
 				});
 	}

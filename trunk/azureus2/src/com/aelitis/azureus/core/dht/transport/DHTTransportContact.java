@@ -114,6 +114,9 @@ DHTTransportContact
 	public VivaldiPosition
 	getVivaldiPosition();
 	
+	public DHTTransport
+	getTransport();
+	
 	public String
 	getString();
 }

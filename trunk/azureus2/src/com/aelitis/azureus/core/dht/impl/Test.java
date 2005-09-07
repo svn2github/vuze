@@ -597,21 +597,21 @@ Test
 										reportSize(
 											long	size )
 										{
-											System.out.println( "   size: " + size );
+											System.out.println( "   read size: " + size );
 										}
 										
 										public void
 										reportActivity(
 											String	str )
 										{
-											System.out.println( "   act: " + str );
+											System.out.println( "   read act: " + str );
 										}
 										
 										public void
 										reportCompleteness(
 											int		percent )
 										{
-											System.out.println( "   %: " + percent );
+											System.out.println( "   read %: " + percent );
 										}
 									},
 									dhts[1].getTransport().getLocalContact(),
@@ -626,11 +626,34 @@ Test
 						System.out.println( "write - dht0 -> dht1" );
 											
 						dhts[0].getTransport().writeTransfer(
+									new DHTTransportProgressListener()
+									{
+										public void
+										reportSize(
+											long	size )
+										{
+											System.out.println( "   write size: " + size );
+										}
+										
+										public void
+										reportActivity(
+											String	str )
+										{
+											System.out.println( "   write act: " + str );
+										}
+										
+										public void
+										reportCompleteness(
+											int		percent )
+										{
+											System.out.println( "   write %: " + percent );
+										}
+									},
 									dhts[1].getTransport().getLocalContact(),
 									th_key,
 									new byte[]{1,2,3,4},
-									new byte[]{4,3,2,1},
-									30000 );
+									new byte[1000],
+									60000 );
 		
 					}else{
 						
@@ -715,19 +738,29 @@ Test
 					DHTTransportContact	originator,
 					byte[]				key )
 				{
-					System.out.println("handle read");
+					byte[]	data = new byte[1000];
 					
-					return( new byte[10000]);
+					System.out.println("handle read -> length = " + data.length );
+					
+					return( data );
 				}
 				
-				public void
+				public byte[]
 				handleWrite(
 					DHTTransportContact	originator,
 					byte[]				key,
 					byte[]				value )
 				{
-					System.out.println("handle write");
+					byte[]	reply = null;
 					
+					if ( value.length == 1000 ){
+						
+						reply = new byte[4];
+					}
+					
+					System.out.println("handle write -> length = " + value.length +", reply = " + reply );
+					
+					return( reply );
 				}
 			});
 		

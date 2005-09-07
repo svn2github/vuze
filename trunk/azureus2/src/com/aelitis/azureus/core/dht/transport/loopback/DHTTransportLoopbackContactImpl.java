@@ -52,6 +52,12 @@ DHTTransportLoopbackContactImpl
 		id			= _id;
 	}
 	
+	public DHTTransport
+	getTransport()
+	{
+		return( transport );
+	}
+	
 	public int
 	getInstanceID()
 	{

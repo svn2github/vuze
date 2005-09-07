@@ -231,6 +231,12 @@ DHTImpl
 		return( control.getDataBase());
 	}
 	
+	public DHTNATPuncher
+	getNATPuncher()
+	{
+		return( nat_puncher );
+	}
+	
 	public void
 	integrate(
 		boolean		full_wait )

@@ -83,11 +83,12 @@ DHTTransport
 	
 	public void
 	writeTransfer(
-		DHTTransportContact		target,
-		byte[]					handler_key,
-		byte[]					key,
-		byte[]					data,
-		long					timeout )
+		DHTTransportProgressListener	listener,
+		DHTTransportContact				target,
+		byte[]							handler_key,
+		byte[]							key,
+		byte[]							data,
+		long							timeout )
 	
 		throws DHTTransportException;
 	

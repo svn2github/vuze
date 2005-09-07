@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
@@ -64,6 +63,12 @@ DHTTransportUDPImpl
 	implements DHTTransportUDP, DHTUDPRequestHandler
 {
 	public static boolean TEST_EXTERNAL_IP	= false;
+	
+	public static final int	TRANSFER_QUEUE_MAX	= 64;
+	
+	public static final long	WRITE_XFER_RESEND_DELAY		= 12500;
+	public static final long	READ_XFER_REREQUEST_DELAY	= 5000;
+	public static final long	WRITE_REPLY_TIMEOUT			= 60000;		
 	
 	static{
 			// when 2304 out for a week or so change:
@@ -98,7 +103,8 @@ DHTTransportUDPImpl
 	private DHTTransportUDPContactImpl		local_contact;
 	
 	private Map transfer_handlers 	= new HashMap();
-	private Map	transfers			= new HashMap();
+	private Map	read_transfers		= new HashMap();
+	private Map write_transfers		= new HashMap();
 	
 	private long last_address_change;
 	
@@ -540,10 +546,12 @@ DHTTransportUDPImpl
 				
 				if ( new_external_address == null ){
 			
-					new_external_address = logger.getPluginInterface().getUtilities().getPublicAddress().getHostAddress();
-								
-					if ( new_external_address != null ){
+					InetAddress public_address = logger.getPluginInterface().getUtilities().getPublicAddress();
+											
+					if ( public_address != null ){
 							
+						new_external_address = public_address.getHostAddress();
+						
 						log.log( "    External IP address obtained: " + new_external_address );
 					}
 				}
@@ -1744,7 +1752,7 @@ DHTTransportUDPImpl
 		try{
 			checkAddress( contact );
 			
-			logger.log( "Transfer read reply: key = " + DHTLog.getFullString( key ));
+			// logger.log( "Transfer read reply: key = " + DHTLog.getFullString( key ));
 
 			packet_handler.send(
 				request,
@@ -1754,6 +1762,65 @@ DHTTransportUDPImpl
 			
 		}
 	}
+	
+	protected void
+	sendWriteRequest(
+		long						connection_id,	
+		DHTTransportUDPContactImpl	contact,
+		byte[]						transfer_key,
+		byte[]						key,
+		byte[]						data,
+		int							start_position,
+		int							length,
+		int							total_length )
+	{
+		final DHTUDPPacketData	request = 
+			new DHTUDPPacketData( this, connection_id, local_contact, contact );
+			
+		request.setDetails( DHTUDPPacketData.PT_WRITE_REQUEST, transfer_key, key, data, start_position, length, total_length );
+		
+		try{
+			checkAddress( contact );
+			
+			logger.log( "Transfer write request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+
+			packet_handler.send(
+				request,
+				contact.getTransportAddress());
+			
+		}catch( Throwable e ){
+			
+		}
+	}
+	
+	protected void
+	sendWriteReply(
+		long						connection_id,	
+		DHTTransportUDPContactImpl	contact,
+		byte[]						transfer_key,
+		byte[]						key,
+		int							start_position,
+		int							length )
+	{
+		final DHTUDPPacketData	request = 
+			new DHTUDPPacketData( this, connection_id, local_contact, contact );
+			
+		request.setDetails( DHTUDPPacketData.PT_WRITE_REPLY, transfer_key, key, new byte[0], start_position, length, 0 );
+		
+		try{
+			checkAddress( contact );
+			
+			logger.log( "Transfer write reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+
+			packet_handler.send(
+				request,
+				contact.getTransportAddress());
+			
+		}catch( Throwable e ){
+			
+		}
+	}
+	
 	public void
 	registerTransferHandler(
 		byte[]						handler_key,
@@ -1762,21 +1829,162 @@ DHTTransportUDPImpl
 		transfer_handlers.put( new HashWrapper( handler_key ), handler );
 	}
 	
+	protected int
+	handleTransferRequest(
+		DHTTransportUDPContactImpl	target,
+		long						connection_id,
+		byte[]						transfer_key,
+		byte[]						request_key,
+		byte[]						data,
+		int							start,
+		int							length,
+		boolean						write_request,
+		boolean						first_packet_only )
+	
+		throws DHTTransportException
+	{
+		DHTTransportTransferHandler	handler = (DHTTransportTransferHandler)transfer_handlers.get(new HashWrapper( transfer_key ));
+		
+		if ( handler == null ){
+			
+			logger.log( "No transfer handler registered for key" );
+			
+			throw( new DHTTransportException( "No transfer handler registered" ));
+		}
+
+		if ( data == null ){
+			
+			data = handler.handleRead( target, request_key );
+		}
+		
+		if ( data == null ){
+			
+			return( -1 );
+			
+		}else{
+				
+				// special case 0 length data
+			
+			if ( data.length == 0 ){
+				
+				if ( write_request ){
+					
+					sendWriteRequest(
+							connection_id,
+							target,
+							transfer_key,
+							request_key,
+							data,
+							0,
+							0,
+							0 );						
+				}else{
+					
+					sendReadReply( 
+							connection_id,
+							target,
+							transfer_key,
+							request_key,
+							data,
+							0,
+							0,
+							0 );
+				}
+			}else{
+								
+				if ( start < 0 ){
+					
+					start	= 0;
+					
+				}else if ( start >= data.length ){
+					
+					logger.log( "dataRequest: invalid start position" );
+					
+					return( data.length );
+				}
+								
+				if ( length <= 0 ){
+					
+					length = data.length;
+					
+				}else if ( start + length > data.length ){
+					
+					logger.log( "dataRequest: invalid length" );
+					
+					return( data.length );
+				}
+				
+				int	end = start+length;
+				
+				while( start < end ){
+					
+					int	chunk = end - start;
+					
+					if ( chunk > DHTUDPPacketData.MAX_DATA_SIZE ){
+						
+						chunk = DHTUDPPacketData.MAX_DATA_SIZE;								
+					}
+					
+					if ( write_request ){
+						
+						sendWriteRequest(
+								connection_id,
+								target,
+								transfer_key,
+								request_key,
+								data,
+								start,
+								chunk,
+								data.length );
+												
+						if ( first_packet_only ){
+							
+							break;
+						}
+					}else{
+						
+						sendReadReply( 
+								connection_id,
+								target,
+								transfer_key,
+								request_key,
+								data,
+								start,
+								chunk,
+								data.length );
+					}
+					
+					start += chunk;
+				}
+			}
+			
+			return( data.length );
+		}
+	}
+	
 	protected void
 	dataRequest(
-		DHTTransportUDPContactImpl	originator,
-		DHTUDPPacketData			req )
+		final DHTTransportUDPContactImpl	originator,
+		final DHTUDPPacketData				req )
 	{
+		/*
+		if ((int)(Math.random() * 4 )== 0 ){
+			
+			System.out.println("dropping request packet:" + req.getString());
+			
+			return;
+		}
+		*/
+		
 			// both requests and replies come through here. Currently we only support read
 			// requests so we can safely use the data.length == 0 test to discriminate between
 			// a request and a reply to an existing transfer
 		
 		byte	packet_type = req.getPacketType();
 		
-		if (	packet_type == DHTUDPPacketData.PT_READ_REPLY ||
-				packet_type == DHTUDPPacketData.PT_WRITE_REPLY ){
+		if ( packet_type == DHTUDPPacketData.PT_READ_REPLY ){
 			
-			transferQueue	queue = lookupTransferQueue( req.getConnectionId());
+			transferQueue	queue = lookupTransferQueue( read_transfers, req.getConnectionId());
 			
 				// unmatched -> drop it
 			
@@ -1784,93 +1992,187 @@ DHTTransportUDPImpl
 			
 				queue.add( req );
 			}
+			
+		}else if ( packet_type == DHTUDPPacketData.PT_WRITE_REPLY ){
 				
+			transferQueue	queue = lookupTransferQueue( write_transfers, req.getConnectionId());
+				
+				// unmatched -> drop it
+				
+			if ( queue != null ){
+				
+				queue.add( req );
+			}
 		}else{
 			
 			byte[]	transfer_key = req.getTransferKey();
-			
-			DHTTransportTransferHandler	handler = (DHTTransportTransferHandler)transfer_handlers.get(new HashWrapper( transfer_key ));
-			
-			if ( handler == null ){
-				
-				logger.log( "No transfer handler for '" + req.getString() + "'" );
-				
-			}else{
-						
-				if ( packet_type == DHTUDPPacketData.PT_READ_REQUEST ){
-					
-					byte[] data = handler.handleRead( originator, req.getRequestKey());
-					
-					if ( data != null ){
-							
-							// special case 0 length data
-						
-						if ( data.length == 0 ){
-							sendReadReply( 
-									req.getConnectionId(),
-									originator,
-									transfer_key,
-									req.getRequestKey(),
-									data,
-									0,
-									0,
-									0 );							
-						}else{
-							int	start = req.getStartPosition();
-							
-							if ( start < 0 ){
-								
-								start	= 0;
-								
-							}else if ( start >= data.length ){
-								
-								logger.log( "dataRequest: invalid start position" );
-								
-								return;
-							}
-							
-							int len = req.getLength();
-							
-							if ( len <= 0 ){
-								
-								len = data.length;
-								
-							}else if ( start + len > data.length ){
-								
-								logger.log( "dataRequest: invalid length" );
-								
-								return;
-							}
-							
-							int	end = start+len;
-							
-							while( start < end ){
-								
-								int	chunk = end - start;
-								
-								if ( chunk > DHTUDPPacketData.MAX_DATA_SIZE ){
 									
-									chunk = DHTUDPPacketData.MAX_DATA_SIZE;								
-								}
+			if ( packet_type == DHTUDPPacketData.PT_READ_REQUEST ){
+
+				try{
+					handleTransferRequest( 
+							originator,
+							req.getConnectionId(),
+							transfer_key,
+							req.getRequestKey(),
+							null,
+							req.getStartPosition(),
+							req.getLength(),
+							false, false );
+					
+				}catch( DHTTransportException e ){
+					
+					logger.log(e);
+				}
+
+			}else{
+				
+					// 	write request 
+					
+				transferQueue	old_queue = lookupTransferQueue( read_transfers, req.getConnectionId());
+				
+				if ( old_queue != null ){
+					
+					old_queue.add( req );
+					
+				}else{
+				
+					final DHTTransportTransferHandler	handler = (DHTTransportTransferHandler)transfer_handlers.get(new HashWrapper( transfer_key ));
+					
+					if ( handler == null ){
+						
+						logger.log( "No transfer handler registered for key" );
+						
+					}else{
+					
+						try{
+							final transferQueue new_queue = new transferQueue( read_transfers, req.getConnectionId());
+						
+								// add the initial data for this write request
+							
+							new_queue.add( req );
+							
+								// set up the queue processor
+												
+							new AEThread( "DHTTransportUDP:writeQueueProcessor", true )
+								{
+									public void
+									runSupport()
+									{
+										try{
+											byte[] write_data = 
+												runTransferQueue( 
+													new_queue, 
+													new DHTTransportProgressListener()
+													{
+														public void
+														reportSize(
+															long	size )
+														{
+															System.out.println( "writeXfer: size=" + size );
+														}
+														
+														public void
+														reportActivity(
+															String	str )
+														{
+															System.out.println( "writeXfer: act=" + str );
+		
+														}
+														
+														public void
+														reportCompleteness(
+															int		percent )
+														{
+															System.out.println( "writeXfer: %=" + percent );
+														}
+													},
+													originator,
+													req.getTransferKey(),
+													req.getRequestKey(),
+													60000,
+													false );
+											
+											if ( write_data != null ){
+												
+													// xfer complete, send ack if multi-packet xfer
+												
+												if ( 	req.getStartPosition() != 0 ||
+														req.getLength() != req.getTotalLength() ){
+													
+													sendWriteReply(
+															req.getConnectionId(),
+															originator,
+															req.getTransferKey(),
+															req.getRequestKey(),
+															0,
+															req.getTotalLength());
+												}
+												
+												byte[]	reply = handler.handleWrite( originator, req.getRequestKey(), write_data );
+												
+												if ( reply != null ){
+													
+													writeTransfer(
+															new DHTTransportProgressListener()
+															{
+																public void
+																reportSize(
+																	long	size )
+																{
+																	System.out.println( "writeXferReply: size=" + size );
+																}
+																
+																public void
+																reportActivity(
+																	String	str )
+																{
+																	System.out.println( "writeXferReply: act=" + str );
+				
+																}
+																
+																public void
+																reportCompleteness(
+																	int		percent )
+																{
+																	System.out.println( "writeXferReply: %=" + percent );
+																}
+															},
+															originator,
+															req.getTransferKey(),
+															req.getRequestKey(),
+															reply,
+															WRITE_REPLY_TIMEOUT );
+															
+												}
+											}
+											
+										}catch( DHTTransportException e ){
+											
+											logger.log( "Faild to process transfer queue" );
+											
+											logger.log( e );
+										}
+									}
+								}.start();
 								
-								sendReadReply( 
-										req.getConnectionId(),
-										originator,
-										transfer_key,
-										req.getRequestKey(),
-										data,
-										start,
-										chunk,
-										data.length );
+									// indicate that at least one packet has been received
 								
-								start += chunk;
-							}
+							sendWriteReply(
+								req.getConnectionId(),
+								originator,
+								req.getTransferKey(),
+								req.getRequestKey(),
+								req.getStartPosition(),
+								req.getLength());
+							
+						}catch( DHTTransportException e ){
+							
+							logger.log( "Faild to create transfer queue" );
+							
+							logger.log( e );
 						}
 					}
-				}else{
-					
-					// write request not supported
-					
 				}
 			}
 		}
@@ -1888,8 +2190,23 @@ DHTTransportUDPImpl
 	{
 		long	connection_id 	= getConnectionID();
 		
-		transferQueue	transfer_queue = new transferQueue( connection_id );
+		transferQueue	transfer_queue = new transferQueue( read_transfers, connection_id );
 		
+		return( runTransferQueue( transfer_queue, listener, target, handler_key, key, timeout, true ));
+	}
+	
+	protected byte[]
+	runTransferQueue(
+		transferQueue					transfer_queue,
+		DHTTransportProgressListener	listener,
+		DHTTransportContact				target,
+		byte[]							handler_key,
+		byte[]							key,
+		long							timeout,
+		boolean							read_transfer )
+	
+		throws DHTTransportException
+	{		
 		SortedSet	packets = 
 			new TreeSet(
 				new Comparator()
@@ -1916,15 +2233,24 @@ DHTTransportUDPImpl
 		try{
 			long	start = SystemTime.getCurrentTime();
 			
-			listener.reportActivity( "Requesting entire transfer from " + target_name );
-
-			entire_request_count++;
+			if ( read_transfer ){
 			
-			sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
+				listener.reportActivity( "Requesting entire transfer from " + target_name );
 
+				entire_request_count++;
+			
+				sendReadRequest( transfer_queue.getID(), (DHTTransportUDPContactImpl)target, handler_key, key );
+
+			}else{
+				
+					// write transfer - data already on its way, no need to request it
+				
+				entire_request_count++;
+			}
+			
 			while( SystemTime.getCurrentTime() - start <= timeout ){					
 				
-				DHTUDPPacketData	reply = transfer_queue.receive( 10000 );
+				DHTUDPPacketData	reply = transfer_queue.receive( READ_XFER_REREQUEST_DELAY );
 				
 				if ( reply != null ){
 	
@@ -2031,7 +2357,7 @@ DHTTransportUDPImpl
 						
 						listener.reportActivity( "Re-requesting entire transfer from " + target_name );
 						
-						sendReadRequest( connection_id, (DHTTransportUDPContactImpl)target, handler_key, key );
+						sendReadRequest( transfer_queue.getID(), (DHTTransportUDPContactImpl)target, handler_key, key );
 						
 					}else{
 						
@@ -2054,7 +2380,7 @@ DHTTransportUDPImpl
 								listener.reportActivity( "Re-requesting " + pos + " to " + p.getStartPosition() +  " from " + target_name );
 								
 								sendReadRequest( 
-										connection_id, 
+										transfer_queue.getID(), 
 										(DHTTransportUDPContactImpl)target, 
 										handler_key, 
 										key,
@@ -2071,7 +2397,7 @@ DHTTransportUDPImpl
 							listener.reportActivity( "Re-requesting " + pos + " to " + actual_end + " from " + target_name );
 
 							sendReadRequest( 
-									connection_id, 
+									transfer_queue.getID(), 
 									(DHTTransportUDPContactImpl)target, 
 									handler_key, 
 									key,
@@ -2098,15 +2424,108 @@ DHTTransportUDPImpl
 	
 	public void
 	writeTransfer(
-		DHTTransportContact		target,
-		byte[]					handler_key,
-		byte[]					key,
-		byte[]					data,
-		long					timeout )
+		DHTTransportProgressListener	listener,
+		DHTTransportContact				target,
+		byte[]							handler_key,
+		byte[]							key,
+		byte[]							data,
+		long							timeout )
 	
 		throws DHTTransportException
 	{
-		throw( new DHTTransportException( "not imp" ));
+		transferQueue	transfer_queue = null;
+	
+		try{
+			long	connection_id 	= getConnectionID();
+		
+			transfer_queue = new transferQueue( write_transfers, connection_id );
+		
+			boolean	ok 				= false;
+			boolean	reply_received	= false;
+			
+			int		loop			= 0;
+			int		total_length	= data.length;
+			
+			long	start = SystemTime.getCurrentTime();
+			
+			long	last_packet_time = 0;
+			
+			while( true ){
+				
+				long	now = SystemTime.getCurrentTime();
+				
+				if ( now < start ){
+					
+					start				= now;
+					
+					last_packet_time	= 0;
+					
+				}else{
+					
+					if ( now - start > timeout ){
+						
+						break;
+					}
+				}
+				
+				long	time_since_last_packet = now - last_packet_time;
+				
+				if ( time_since_last_packet >= WRITE_XFER_RESEND_DELAY ){
+					
+					listener.reportActivity( loop==0?"Sending data":"Resending data" );
+				
+					loop++;
+				
+					total_length =	handleTransferRequest(
+												(DHTTransportUDPContactImpl)target,
+												connection_id,
+												handler_key,
+												key,
+												data,
+												-1, -1,
+												true,
+												reply_received );	// first packet only if we've has a reply
+				
+					last_packet_time		= now;
+					time_since_last_packet	= 0;
+				}
+				
+				DHTUDPPacketData packet = transfer_queue.receive( WRITE_XFER_RESEND_DELAY - time_since_last_packet );
+			
+				if ( packet != null ){
+					
+					last_packet_time	= now;
+					
+					reply_received = true;
+					
+					if ( packet.getStartPosition() == 0 && packet.getLength() == total_length ){
+						
+						ok	= true;
+					
+						break;
+					}
+				}
+			}
+			
+			if ( ok ){
+				
+				listener.reportCompleteness( 100 );
+				
+				listener.reportActivity( "Complete" );
+				
+			}else{
+				
+				listener.reportActivity( "Failed, timeout" );
+				
+				throw( new DHTTransportException( "Timeout" ));
+			}
+		}finally{
+			
+			if ( transfer_queue != null ){
+				
+				transfer_queue.destroy();
+			}
+		}
 	}
 	
 	
@@ -2536,6 +2955,7 @@ DHTTransportUDPImpl
 
 	protected transferQueue
 	lookupTransferQueue(
+		Map			transfers,
 		long		id )
 	{
 		try{
@@ -2552,6 +2972,7 @@ DHTTransportUDPImpl
 	protected class
 	transferQueue
 	{
+		Map			transfers;
 		long		id;
 		
 		List		packets	= new ArrayList();
@@ -2560,19 +2981,34 @@ DHTTransportUDPImpl
 		
 		protected
 		transferQueue(
+			Map			_transfers,
 			long		_id )
+		
+			throws DHTTransportException
 		{
-			id		= _id;
+			transfers	= _transfers;
+			id			= _id;
 			
 			try{
 				this_mon.enter();
 
+				if ( transfers.size() > TRANSFER_QUEUE_MAX ){
+					
+					throw( new DHTTransportException( "Transfer queue limit exceeded" ));
+				}
+				
 				transfers.put( new Long( id ), this );
 				
 			}finally{
 				
 				this_mon.exit();
 			}			
+		}
+		
+		protected long
+		getID()
+		{
+			return( id );
 		}
 		
 		protected void

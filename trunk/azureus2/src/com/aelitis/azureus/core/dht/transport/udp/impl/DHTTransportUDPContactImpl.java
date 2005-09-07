@@ -93,6 +93,12 @@ DHTTransportUDPContactImpl
 		vivaldi_position	= VivaldiPositionFactory.createPosition();
 	}
 	
+	public DHTTransport
+	getTransport()
+	{
+		return( transport );
+	}
+	
 	public byte
 	getProtocolVersion()
 	{

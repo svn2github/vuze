@@ -26,6 +26,7 @@ import java.io.*;
 
 import com.aelitis.azureus.core.dht.control.DHTControl;
 import com.aelitis.azureus.core.dht.db.DHTDB;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
@@ -125,6 +126,9 @@ DHT
 	
 	public DHTDB
 	getDataBase();
+	
+	public DHTNATPuncher
+	getNATPuncher();
 	
 		/**
 		 * externalises information that allows the DHT to be recreated at a later date

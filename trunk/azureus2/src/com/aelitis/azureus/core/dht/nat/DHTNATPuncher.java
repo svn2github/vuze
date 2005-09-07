@@ -22,9 +22,15 @@
 
 package com.aelitis.azureus.core.dht.nat;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+
 public interface 
 DHTNATPuncher 
 {
 	public void
 	start();
+	
+	public boolean
+	punch(
+		DHTTransportContact	target );
 }

@@ -309,6 +309,10 @@ DHTPlugin
 												DHTPlugin.this.get(
 													rhs.getBytes(), "DHT Plugin: get", (byte)0, 1, 10000, true, log_polistener );
 	
+											}else if ( lhs.equals( "punch" )){
+
+												dht.getNATPuncher().punch( transport.getLocalContact());
+												
 											}else if ( lhs.equals( "stats" )){
 												
 												try{
