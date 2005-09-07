@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Panel;
@@ -147,23 +148,28 @@ UISWTInstanceImpl
 	
 					Frame	f = SWT_AWT.new_Frame(frame_composite);
 	
-					Panel	pan = 
-						new Panel( new BorderLayout())
+					BorderLayout	layout = 
+						new BorderLayout()
 						{
 							public void 
-							paint( Graphics g )
+							layoutContainer(Container parent)
 							{
-								super.paint(g);
+								try{
+									super.layoutContainer( parent );
 								
-								if ( first_paint ){
+								}finally{
+									if ( first_paint ){
 										
-									first_paint	= false;
-										
-									view.open( component );
+										first_paint	= false;
+											
+										view.open( component );
+									}
 								}
 							}
 						};
 					
+					Panel	pan = new Panel( layout );
+	
 					f.add( pan );
 							
 					component	= view.create();
