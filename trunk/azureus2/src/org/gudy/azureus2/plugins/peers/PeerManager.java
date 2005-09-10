@@ -70,6 +70,9 @@ PeerManager
 	public boolean
 	isSeeding();
 	
+	public boolean
+	isSuperSeeding();
+	
 	public PeerStats
 	createPeerStats();
 	

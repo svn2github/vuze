@@ -106,6 +106,11 @@ PeerManagerImpl
 	{
 		return( manager.getState() == PEPeerManager.PS_SEEDING );
 	}
+	public boolean
+	isSuperSeeding()
+	{
+		return( manager.isSuperSeedMode());
+	}
 	
 	public Download
 	getDownload()
