@@ -1639,44 +1639,6 @@ public class GlobalManagerImpl
 	{
 		removal_listeners.removeListener( l );
 	}
-	
-
-  /**
-   * @param c the character to be found 
-   * @param lastSelectedIndex the highest selection index; -1 to start from the beginning
-   * @return index of next item with a name beginning with c, -1 else
-   *
-   * @author Rene Leonhardt
-   */
-  public int getNextIndexForCharacter(char c, int lastSelectedIndex) {
-    if(c >= '0' && c <= 'z') {
-      c = Character.toLowerCase(c);
-      
-        try{
-        	managers_mon.enter();
-        
-          if(lastSelectedIndex < 0 || lastSelectedIndex >= managers_cow.size())
-            lastSelectedIndex = -1;
-          lastSelectedIndex++;
-          for (int i = lastSelectedIndex; i < managers_cow.size(); i++) {
-            char test = Character.toLowerCase(((DownloadManager) managers_cow.get(i)).getDisplayName().charAt(0));
-            if(test == c)
-              return i;
-          }
-          for (int i = 0; i < lastSelectedIndex; i++) {
-            char test = Character.toLowerCase(((DownloadManager) managers_cow.get(i)).getDisplayName().charAt(0));
-            if(test == c)
-              return i;
-          }
-        }finally{
-        	
-        	managers_mon.exit();
-        }
-      
-    }
-    return -1;
-  }
-
   
   // DownloadManagerListener
   public void stateChanged(DownloadManager manager, int state) {

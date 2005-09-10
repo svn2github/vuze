@@ -198,13 +198,4 @@ GlobalManager
 	public void
 	removeDownloadWillBeRemovedListener(
 		GlobalManagerDownloadWillBeRemovedListener	l );
-	
-  /**
-   * @param c the character to be found 
-   * @param lastSelectedIndex the highest selection index; -1 to start from the beginning
-   * @return index of next item with a name beginning with c, -1 else
-   *
-   * @author Rene Leonhardt
-   */
-  public int getNextIndexForCharacter(char c, int lastSelectedIndex);
 }

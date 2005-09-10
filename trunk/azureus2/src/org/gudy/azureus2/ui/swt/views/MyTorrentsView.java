@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -1504,11 +1505,54 @@ public class MyTorrentsView
             removeSelectedTorrents();
           } else {
             // normal character: jump to next item with a name beginning with this character
-            TableItem[] items = getTable().getSelection();
-            int lastSelectedIndex = items.length == 0 ? -1 : getTable().indexOf(items[items.length-1]);
-            int nextIndex = globalManager.getNextIndexForCharacter(e.character, lastSelectedIndex);
-            if (nextIndex >= 0)
-              getTable().setSelection(nextIndex);
+            Table table = getTable();
+              
+            TableItem[] selected_items = table.getSelection();
+            
+            int lastSelectedIndex = selected_items.length == 0 ? -1 : getTable().indexOf(selected_items[selected_items.length-1]);
+            
+            TableItem[] items = table.getItems();
+            
+            int	first_index = Integer.MAX_VALUE;
+            int next_index = -1;
+            
+            for (int i = 0; i < items.length; i++) {
+            	
+                TableRowCore row = (TableRowCore)items[i].getData("TableRow");
+                
+                if ( row == null ){
+                	
+                  continue;
+                }
+                
+                Download	download = (Download)row.getDataSource();
+                
+                String	name = download.getName();
+                
+                if ( 	name.length() > 0 && 
+                		Character.toLowerCase(name.charAt(0)) == Character.toLowerCase( e.character )){
+                	
+                	if ( i < first_index ){
+                		
+                		first_index = i;
+                	}
+                	
+                	if ( i > lastSelectedIndex && next_index == -1 ){
+                		
+                		next_index = i;
+                	}
+                }
+            }
+            
+            if ( next_index == -1 ){
+            	
+            	next_index = first_index;
+            }
+            
+            if ( next_index != Integer.MAX_VALUE ){
+            	
+               table.setSelection(next_index);
+            }
           }
         }
       }
