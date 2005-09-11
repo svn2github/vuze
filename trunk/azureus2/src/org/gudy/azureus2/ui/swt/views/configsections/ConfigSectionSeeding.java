@@ -26,16 +26,15 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 /** Seeding Automation Specific options
  * @author TuxPaper
  * @created Jan 12, 2004
  */
-public class ConfigSectionSeeding implements ConfigSectionSWT {
+public class ConfigSectionSeeding implements UISWTConfigSection {
   public String configSectionGetParentSection() {
     return "queue";
   }

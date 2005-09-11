@@ -31,10 +31,10 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
-public class ConfigSectionInterfaceStart implements ConfigSectionSWT {
+public class ConfigSectionInterfaceStart implements UISWTConfigSection {
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_INTERFACE;
   }

@@ -28,16 +28,16 @@ import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 /** General Queueing options
  * @author TuxPaper
  * @created Jan 12, 2004
  */
-public class ConfigSectionQueue implements ConfigSectionSWT {
+public class ConfigSectionQueue implements UISWTConfigSection {
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_ROOT;
   }

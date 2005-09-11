@@ -41,15 +41,15 @@ import org.gudy.azureus2.platform.PlatformManagerException;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import java.applet.Applet;
 import java.io.File;
 
-public class ConfigSectionInterface implements ConfigSectionSWT {
+public class ConfigSectionInterface implements UISWTConfigSection {
   Label passwordMatch;
 
   public String configSectionGetParentSection() {

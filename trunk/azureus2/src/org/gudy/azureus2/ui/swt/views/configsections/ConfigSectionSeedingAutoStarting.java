@@ -32,11 +32,10 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.graphics.Image;
 
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -47,7 +46,7 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDe
  * @author TuxPaper
  * @created Jan 12, 2004
  */
-public class ConfigSectionSeedingAutoStarting implements ConfigSectionSWT {
+public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
   public String configSectionGetParentSection() {
 		return "queue.seeding";
   }

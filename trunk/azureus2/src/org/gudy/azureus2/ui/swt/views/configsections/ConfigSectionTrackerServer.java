@@ -42,7 +42,6 @@ import org.eclipse.swt.program.Program;
 import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
@@ -53,11 +52,12 @@ import org.gudy.azureus2.ui.swt.ipchecker.IpCheckerWizard;
 import org.gudy.azureus2.ui.swt.ipchecker.IpSetterCallBack;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.auth.*;
 
 public class 
 ConfigSectionTrackerServer 
-	implements ConfigSectionSWT 
+	implements UISWTConfigSection 
 {
 	
 	protected	AzureusCore	azureus_core;

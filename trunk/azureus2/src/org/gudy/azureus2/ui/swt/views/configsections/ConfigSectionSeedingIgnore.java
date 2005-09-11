@@ -28,18 +28,17 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.graphics.Image;
 
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /** Config Section for items that make us ignore torrents when seeding
  * @author TuxPaper
  * @created Jan 12, 2004
  */
-public class ConfigSectionSeedingIgnore implements ConfigSectionSWT {
+public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
   public String configSectionGetParentSection() {
     return "queue.seeding";
   }

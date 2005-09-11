@@ -27,10 +27,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
-
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
 
@@ -40,7 +39,7 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDe
  * @author TuxPaper
  * @created Jan 12, 2004
  */
-public class ConfigSectionSeedingFirstPriority implements ConfigSectionSWT {
+public class ConfigSectionSeedingFirstPriority implements UISWTConfigSection {
   public String configSectionGetParentSection() {
     return "queue.seeding";
   }

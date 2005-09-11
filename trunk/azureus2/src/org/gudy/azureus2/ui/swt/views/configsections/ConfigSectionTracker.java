@@ -32,11 +32,11 @@ import org.eclipse.swt.layout.GridLayout;
 import com.aelitis.azureus.core.*;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class 
 ConfigSectionTracker 
-	implements ConfigSectionSWT 
+	implements UISWTConfigSection 
 {
 	
 	protected	AzureusCore	azureus_core;

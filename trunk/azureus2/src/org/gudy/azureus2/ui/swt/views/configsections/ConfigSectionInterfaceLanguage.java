@@ -35,11 +35,12 @@ import org.gudy.azureus2.ui.swt.config.ParameterChangeListener;
 import org.gudy.azureus2.ui.swt.config.StringListParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.StartupUtils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 /**
  *
  */
-public class ConfigSectionInterfaceLanguage implements ConfigSectionSWT {
+public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
   
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_INTERFACE;

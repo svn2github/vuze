@@ -32,14 +32,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 
 
-public class ConfigSectionTransfer implements ConfigSectionSWT {
+public class ConfigSectionTransfer implements UISWTConfigSection {
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_ROOT;
   }

@@ -38,15 +38,15 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 
-public class ConfigSectionFileTorrents implements ConfigSectionSWT {
+public class ConfigSectionFileTorrents implements UISWTConfigSection {
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_FILES;
   }

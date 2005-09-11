@@ -49,6 +49,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
 import com.aelitis.azureus.core.*;
@@ -250,7 +251,8 @@ public class ConfigView extends AbstractIView {
       }
       
       ConfigSection section = (ConfigSection)pluginSections.get(i);
-      if (section instanceof ConfigSectionSWT) {
+      
+      if (section instanceof ConfigSectionSWT || section instanceof UISWTConfigSection ) {
         String name;
         try {
           name = section.configSectionGetName();
@@ -279,7 +281,16 @@ public class ConfigView extends AbstractIView {
           sc.setExpandVertical(true);
           sc.setLayoutData(new GridData(GridData.FILL_BOTH));
   
-          Composite c = ((ConfigSectionSWT)section).configSectionCreate(sc);
+          Composite c;
+          
+          if ( section instanceof ConfigSectionSWT ){
+        	  
+        	  c = ((ConfigSectionSWT)section).configSectionCreate(sc);
+        	  
+          }else{
+ 
+          	  c = ((UISWTConfigSection)section).configSectionCreate(sc);
+          }
   
           String	section_key = name;
           
@@ -325,11 +336,26 @@ public class ConfigView extends AbstractIView {
     ScrolledComposite item = (ScrolledComposite)section.getData("Panel");
 
     if (item != null) {
-      ConfigSectionSWT configSection = (ConfigSectionSWT)section.getData("ConfigSectionSWT");
+    	
+      ConfigSection configSection = (ConfigSection)section.getData("ConfigSectionSWT");
+      
       if (configSection != null) {
-        Composite c = ((ConfigSectionSWT)configSection).configSectionCreate(item);
+    	  
+        Composite c;
+        
+        if ( configSection instanceof ConfigSectionSWT ){
+      	  
+      	  c = ((ConfigSectionSWT)configSection).configSectionCreate(item);
+      	  
+        }else{
+
+          c = ((UISWTConfigSection)configSection).configSectionCreate(item);
+        }
+        
         item.setContent(c);
+        
         c.layout();
+        
         section.setData("ConfigSectionSWT", null);
       }
       layoutConfigSection.topControl = item;

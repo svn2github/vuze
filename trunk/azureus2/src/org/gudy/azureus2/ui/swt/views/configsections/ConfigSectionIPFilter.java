@@ -44,8 +44,8 @@ import org.eclipse.swt.events.MouseEvent;
 
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
@@ -53,7 +53,7 @@ import org.gudy.azureus2.core3.ipfilter.IpRange;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
-public class ConfigSectionIPFilter implements ConfigSectionSWT {
+public class ConfigSectionIPFilter implements UISWTConfigSection {
   AzureusCore	azureus_core;
   
   IpFilter filter;

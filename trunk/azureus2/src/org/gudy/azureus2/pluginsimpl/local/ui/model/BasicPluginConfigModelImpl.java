@@ -40,7 +40,6 @@ import org.eclipse.swt.layout.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
@@ -50,6 +49,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.plugins.*;
 
 import org.gudy.azureus2.plugins.ui.model.*;
@@ -57,7 +57,7 @@ import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 
 public class 
 BasicPluginConfigModelImpl
-	implements BasicPluginConfigModel, ConfigSectionSWT
+	implements BasicPluginConfigModel, UISWTConfigSection
 {
 	protected PluginInterface		pi;
 	

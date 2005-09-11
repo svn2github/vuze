@@ -26,7 +26,10 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
 /**
  * Extend this class to add a new configuration panel to the SWT config view.
+ * 
+ * @deprecated use {@link org.gudy.azureus2.ui.swt.plugins.UISWTInstance}
  */
+
 public interface ConfigSectionSWT extends ConfigSection {
   /**
    * Create your own configuration panel here.  It can be anything that inherits

@@ -34,12 +34,12 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 
-public class ConfigSectionFilePerformance implements ConfigSectionSWT {
+public class ConfigSectionFilePerformance implements UISWTConfigSection {
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_FILES;
   }

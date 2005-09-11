@@ -41,15 +41,15 @@ import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
 
-public class ConfigSectionStats implements ConfigSectionSWT {
+public class ConfigSectionStats implements UISWTConfigSection {
 	
   private static final int defaultStatsPeriod = 30;
   

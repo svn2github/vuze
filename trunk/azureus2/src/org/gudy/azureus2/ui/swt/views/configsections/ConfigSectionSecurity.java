@@ -34,11 +34,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
 import org.gudy.azureus2.ui.swt.config.StringParameter;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 /**
  * @author parg
@@ -46,7 +46,7 @@ import org.gudy.azureus2.ui.swt.config.StringParameter;
  */
 public class 
 ConfigSectionSecurity 
-	implements ConfigSectionSWT 
+	implements UISWTConfigSection 
 {
 	public String 
 	configSectionGetParentSection() 

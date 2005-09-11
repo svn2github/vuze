@@ -39,16 +39,16 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.Constants;
 
-public class ConfigSectionInterfaceDisplay implements ConfigSectionSWT {
+public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
   private static final String[] sColorsToOverride = { "progressBar", "error", "warning", "altRow" };
   private Color[] colorsToOverride = { Colors.colorProgressBar, 
       Colors.colorError,
