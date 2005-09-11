@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.ui.model;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+
 /**
  * @author parg
  *
@@ -29,4 +31,6 @@ package org.gudy.azureus2.plugins.ui.model;
 public interface 
 PluginConfigModel 
 {
+	public PluginInterface
+	getPluginInterface();
 }

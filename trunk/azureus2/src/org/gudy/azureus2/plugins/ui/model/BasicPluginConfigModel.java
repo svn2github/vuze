@@ -114,4 +114,13 @@ BasicPluginConfigModel
 	createGroup(
 		String		resource_name,
 		Parameter[]	parameters );
+	
+	public String
+	getSection();
+	
+	public String
+	getParentSection();
+	
+	public Parameter[]
+	getParameters();
 }

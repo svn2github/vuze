@@ -45,8 +45,8 @@ import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
-import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
-import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
+
+
 
 
 /**
@@ -82,21 +82,7 @@ UIManagerImpl
 		
 		key_prefix		= plugin_config.getPluginConfigKeyPrefix();
 	}
-	
-	protected boolean
-	isSWTAvailable()
-	{
-		try{
-			org.eclipse.swt.SWT.getVersion();
-			
-			return( true );
-			
-		}catch( Throwable e ){
-			
-			return( false );
-		}
-	}
-	
+		
 	public BasicPluginViewModel
 	getBasicPluginViewModel(
 		String			name )
@@ -154,14 +140,7 @@ UIManagerImpl
 	createBasicPluginConfigModel(
 		String		section_name )
 	{
-		if ( isSWTAvailable()){
-			
-			return( new BasicPluginConfigModelImpl( pi, null, section_name ));
-	
-		}else{
-			
-			return( new dummyConfigModel());
-		}
+		return( createBasicPluginConfigModel( null, section_name ));
 	}
 	
 	
@@ -170,31 +149,52 @@ UIManagerImpl
 		String		parent_section,
 		String		section_name )
 	{
-		if ( isSWTAvailable()){
-			
-			return( new BasicPluginConfigModelImpl( pi, parent_section, section_name ));
-			
-		}else{
-			
-			return( new dummyConfigModel());
-		}
+		final BasicPluginConfigModel	model = new BasicPluginConfigModelImpl( pi, parent_section, section_name );
+		
+		fireEvent(
+			new UIManagerEvent()
+			{
+				public int
+				getType()
+				{
+					return( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED );
+				}
+				
+				public Object
+				getData()
+				{
+					return( model );
+				}
+			});
+		
+		return( model );
 	}
 	
 	public void
 	copyToClipBoard(
-		String		data )
+		final String		data )
 	
 		throws UIException
 	{
-		if ( isSWTAvailable()){
+		boolean ok = fireEvent(
+				new UIManagerEvent()
+				{
+					public int
+					getType()
+					{
+						return( UIManagerEvent.ET_COPY_TO_CLIPBOARD );
+					}
+					
+					public Object
+					getData()
+					{
+						return( data );
+					}
+				});
+		
+		if ( !ok ){
 			
-			try{
-				ClipboardCopy.copyToClipBoard( data );
-				
-			}catch( Throwable e ){
-				
-				throw( new UIException( "Failed to copy to clipboard", e ));
-			}
+			throw( new UIException("Failed to deliver request to UI" ));
 		}
 	}
 
@@ -380,14 +380,18 @@ UIManagerImpl
   		}		
  	}
  	
- 	public static void
+ 	public static boolean
  	fireEvent(
  		UIManagerEvent	event )
  	{
+ 		boolean	delivered	= false;
+ 		
  		for (int i=0;i<ui_event_listeners.size();i++){
  			
  			try{
  				if (((UIManagerEventListener)ui_event_listeners.get(i)).eventOccurred( event )){
+ 					
+ 					delivered = true;
  					
  					break;
  				}
@@ -402,10 +406,15 @@ UIManagerImpl
  		
  			// some events need to be replayed when new UIs attach
  		
- 		if ( type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED ){
+ 		if ( 	type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED ||
+ 				type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED ){
+ 			
+ 			delivered = true;
  			
  			ui_event_history.add( event );
  		}
+ 		
+ 		return( delivered );
  	}
  	
 	public void
@@ -429,108 +438,5 @@ UIManagerImpl
 					return( new String[]{ title_resource, message_resource, contents });
 				}
 			});
-	}
- 		
-  protected class
-  dummyConfigModel
-  	implements BasicPluginConfigModel
-  {
-	public void
-	addBooleanParameter(
-		String 		key,
-		String 		resource_name,
-		boolean 	defaultValue )
-	{	
-		addBooleanParameter2( key, resource_name, defaultValue );
-	}
-	
-	public BooleanParameter
-	addBooleanParameter2(
-		final String 	key,
-		String 			resource_name,
-		final boolean 	defaultValue )
-	{	
-		return( new BooleanParameterImpl(plugin_config,key_prefix+key,resource_name,defaultValue));
-	}
-	
-	
-	public void
-	addStringParameter(
-		String 		key,
-		String 		resource_name,
-		String	 	defaultValue )
-	{
-		addStringParameter2( key, resource_name, defaultValue );
-	}
-	
-	public StringParameter
-	addStringParameter2(
-		final String 		key,
-		String 				resource_name,
-		final String	 	defaultValue )
-	{
-		return( new StringParameterImpl(plugin_config,key_prefix+key,resource_name,defaultValue));
-	}
-	
-	public StringListParameter
-	addStringListParameter2(
-		String 		key,
-		String 		resource_name,
-		String[]	values,
-		String	 	defaultValue )
-	{
-		return( new StringListParameterImpl(plugin_config,key_prefix+key,resource_name,defaultValue, values, values));		
-	}
-	
-	public PasswordParameter
-	addPasswordParameter2(
-		String 		key,
-		String 		resource_name,
-		int			encoding_type,	
-		byte[]	 	defaultValue )
-	{
-		return( new PasswordParameterImpl(plugin_config,key_prefix+key,resource_name,encoding_type, defaultValue));
-	}
-	
-	public IntParameter
-	addIntParameter2(
-		final String 	key,
-		String 			resource_name,
-		final int	 	defaultValue )
-	{
-		return( new IntParameterImpl(plugin_config,key_prefix+key,resource_name,defaultValue));
-	}
-	
-	public LabelParameter
-	addLabelParameter2(
-		String		resource_name )
-	{
-		return( new LabelParameterImpl(plugin_config,key_prefix,resource_name));
-	}
-	
-	public DirectoryParameter
-	addDirectoryParameter2(
-		String 		key,
-		String 		resource_name,
-		String 		defaultValue )
-	{
-		return( new DirectoryParameterImpl(plugin_config,key_prefix+key, resource_name,defaultValue));
-	}
-	
-	public ActionParameter
-	addActionParameter2(
-		String 		label_resource_name,
-		String		action_resource_name )
-	{
-		return( new ActionParameterImpl(plugin_config, label_resource_name, action_resource_name));
-	}
-	
-	public ParameterGroup
-	createGroup(
-		String		resource_name,
-		Parameter[]	parameters )
-	{
-		return( new ParameterGroup(){});
-	}
-  }
+	}		
 }

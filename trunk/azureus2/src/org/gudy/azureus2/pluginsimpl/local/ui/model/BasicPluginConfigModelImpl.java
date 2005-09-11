@@ -29,27 +29,18 @@ package org.gudy.azureus2.pluginsimpl.local.ui.model;
 
 import java.util.*;
 
-import org.eclipse.swt.*;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.layout.*;
 
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.LabelParameter;
+import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
-import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.plugins.*;
 
 import org.gudy.azureus2.plugins.ui.model.*;
@@ -57,7 +48,7 @@ import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 
 public class 
 BasicPluginConfigModelImpl
-	implements BasicPluginConfigModel, UISWTConfigSection
+	implements BasicPluginConfigModel
 {
 	protected PluginInterface		pi;
 	
@@ -79,41 +70,36 @@ BasicPluginConfigModelImpl
 		section			= _section;
 		
 		key_prefix		= pi.getPluginconfig().getPluginConfigKeyPrefix();
-		
-		pi.addConfigSection( this );
 	}
 
-	public String 
-	configSectionGetParentSection()
+	public String
+	getParentSection()
 	{
-		if ( parent_section == null || parent_section.length() == 0 ){
-			
-			return( ConfigSection.SECTION_ROOT );
-		}
-
 		return( parent_section );
 	}
 	
-	public String 
-	configSectionGetName()
+	public String
+	getSection()
 	{
 		return( section );
 	}
-
-
-	public void 
-	configSectionSave()
+	
+	public PluginInterface
+	getPluginInterface()
 	{
-		
+		return( pi );
 	}
-
-
-	public void 
-	configSectionDelete()
+	
+	public Parameter[]
+	getParameters()
 	{
+		Parameter[] res = new Parameter[parameters.size()];
 		
+		parameters.toArray( res );
+		
+		return( res );
 	}
-
+	
 	public void
 	addBooleanParameter(
 		String 		key,
@@ -249,379 +235,5 @@ BasicPluginConfigModelImpl
 		}
 		
 		return( pg );
-	}
-	
-	public Composite 
-	configSectionCreate(
-		final Composite parent ) 
-	{
-		
-			// main tab set up
-		
-		Composite main_tab = new Composite(parent, SWT.NULL);
-		
-		GridData main_gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-		
-		main_tab.setLayoutData(main_gridData);
-		
-		GridLayout layout = new GridLayout();
-		
-		layout.numColumns = 2;
-		
-		layout.marginHeight = 0;
-		
-		main_tab.setLayout(layout);
-		
-		final Map	comp_map	= new HashMap();
-		
-		ParameterGroupImpl	current_group	= null;
-		
-		Composite current_composite	= main_tab;
-		
-		for (int i=0;i<parameters.size();i++){
-			
-			final ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
-		
-			ParameterGroupImpl	pg = param.getGroup();
-			
-			if ( pg == null ){
-				
-				current_composite = main_tab;
-				
-			}else{
-			
-				if ( pg != current_group ){
-					
-					current_group	= pg;
-					
-					current_composite = new Group(main_tab, SWT.NULL);
-					
-					Messages.setLanguageText(current_composite, current_group.getResourceName());
-					
-					GridData gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-					
-					gridData.horizontalSpan = 2;
-					
-					current_composite.setLayoutData(gridData);
-					
-					layout = new GridLayout();
-					
-					layout.numColumns = 2;
-					
-					current_composite.setLayout(layout);			
-				}
-			}
-			
-			Label label = new Label(current_composite, param instanceof LabelParameterImpl?SWT.WRAP:SWT.NULL);
-			
-			Messages.setLanguageText(label, param.getLabel());
-						
-			String	key = param.getKey();
-						
-			//System.out.println( "key = " + key );
-			
-			final Parameter	swt_param;
-			
-			if ( param instanceof BooleanParameterImpl ){
-				
-				swt_param = new BooleanParameter(current_composite, key, ((BooleanParameterImpl)param).getDefaultValue());
-					
-				param.addListener(
-					new ParameterListener()
-					{
-						public void
-						parameterChanged(
-							org.gudy.azureus2.plugins.ui.config.Parameter	p )
-						{
-							if ( swt_param.getControls()[0].isDisposed()){
-					
-								param.removeListener( this );
-								
-							}else{
-								
-								((BooleanParameter)swt_param).setSelected(((BooleanParameterImpl)param).getValue());
-							}
-						}
-					});
-				
-			}else if ( param instanceof IntParameterImpl ){
-						
-				swt_param = 
-					new IntParameter(
-						current_composite, 
-						key, 
-						((IntParameterImpl)param).getDefaultValue(),
-						false );	// don't want intermediate values
-				
-				param.addListener(
-						new ParameterListener()
-						{
-							public void
-							parameterChanged(
-								org.gudy.azureus2.plugins.ui.config.Parameter	p )
-							{
-								if ( swt_param.getControls()[0].isDisposed()){
-						
-									param.removeListener( this );
-									
-								}else{
-									
-									((IntParameter)swt_param).setValue(((IntParameterImpl)param).getValue());
-								}
-							}
-						});
-				
-				
-				GridData gridData = new GridData();
-				gridData.widthHint = 100;
-				
-				swt_param.setLayoutData( gridData );
-							
-			}else if ( param instanceof StringParameterImpl ){
-				
-				GridData gridData = new GridData();
-				
-				gridData.widthHint = 150;
-
-				swt_param = new StringParameter(current_composite, key, ((StringParameterImpl)param).getDefaultValue());
-				
-				swt_param.setLayoutData( gridData );
-				
-			}else if ( param instanceof StringListParameterImpl ){
-				
-				StringListParameterImpl	sl_param = (StringListParameterImpl)param;
-				
-				GridData gridData = new GridData();
-				
-				gridData.widthHint = 150;
-
-				swt_param = new StringListParameter(current_composite, key, sl_param.getDefaultValue(), sl_param.getValues(), sl_param.getValues());
-				
-				swt_param.setLayoutData( gridData );
-				
-			}else if ( param instanceof PasswordParameterImpl ){
-				
-				GridData gridData = new GridData();
-				
-				gridData.widthHint = 150;
-
-				swt_param = new PasswordParameter(current_composite, key, ((PasswordParameterImpl)param).getEncodingType() == PasswordParameterImpl.ET_SHA1 );
-				
-				swt_param.setLayoutData( gridData );
-				
-			}else if ( param instanceof DirectoryParameterImpl ){
-				
-				Composite area = new Composite(current_composite, SWT.NULL);
-
-				GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.FILL_HORIZONTAL );
-				
-				area.setLayoutData(gridData);
-				
-				layout = new GridLayout();
-				
-				layout.numColumns 	= 2;
-				layout.marginHeight = 0;
-				layout.marginWidth 	= 0;
-				
-				area.setLayout(layout);				
-				
-				swt_param = new DirectoryParameter(area, key, ((DirectoryParameterImpl)param).getDefaultValue());
-		
-			}else if ( param instanceof ActionParameterImpl ){
-				
-				swt_param = new ButtonParameter( current_composite, MessageText.getString(((ActionParameterImpl)param).getActionResource()));
-				
-				swt_param.addChangeListener(
-						new ParameterChangeListener()
-						{
-							public void
-							parameterChanged(
-								Parameter	p,
-								boolean		caused_internally )
-							{
-								param.parameterChanged( "" );
-							}
-						});
-			}else{
-				
-					// label
-				
-				GridData gridData = new GridData();
-				gridData.horizontalSpan	= 2;
-				
-				label.setLayoutData( gridData );
-				
-				swt_param	= null;
-			}
-			
-			if ( swt_param == null ){
-				
-				comp_map.put( param, new Object[]{ null, label });
-				
-			}else{
-				
-				Control[]	c = swt_param.getControls();
-					
-				Object[] moo = new Object[c.length+2];
-					
-				moo[0] = swt_param;
-				moo[1] = label;
-					
-				for (int j=0;j<c.length;j++){
-						
-					moo[j+2] = c[j];
-				}
-					
-				comp_map.put( param, moo );
-			}
-		}
-		
-		for (int i=0;i<parameters.size();i++){
-			
-			final ParameterImpl	param = 	(ParameterImpl)parameters.get(i);
-			
-			param.addImplListener( 
-				new ParameterImplListener()
-				{
-					public void
-					enabledChanged(
-						final ParameterImpl	p )
-					{
-					    final Object[] stuff = (Object[])comp_map.get( p );
-					    
-					    if ( stuff != null ){
-					    	
-								// lazy tidyup
-							
-							if ( ((Control)stuff[1]).isDisposed()){
-								
-								param.removeImplListener( this );
-								
-							}else{
-								
-								Runnable target = 
-									new Runnable()
-									{
-										public void
-										run()
-										{
-										    for(int k = 1 ; k < stuff.length ; k++) {
-										    	
-										    	((Control)stuff[k]).setEnabled(p.isEnabled());
-										    }
-		
-										}
-									};
-									
-								Display	display = parent.getDisplay();
-								
-								if ( display.getThread() == Thread.currentThread()){
-									
-									target.run();
-									
-								}else{
-									
-									display.asyncExec( target );
-								}
-							}
-					    }
-					}
-				});
-				
-			if ( !param.isEnabled()){
-				
-			    Object[] stuff = (Object[])comp_map.get( param );
-			    
-			    if ( stuff != null ){
-			    	
-				    for(int k = 1 ; k < stuff.length ; k++) {
-				    	
-				    	((Control)stuff[k]).setEnabled(false);
-				    }
-			    }
-			}
-			
-			if ( !param.isVisible()){
-				
-			    Object[] stuff = (Object[])comp_map.get( param );
-			    
-			    if ( stuff != null ){
-			    	
-				    for(int k = 1 ; k < stuff.length ; k++) {
-				    	
-				    	Control	con = (Control)stuff[k];
-				    	
-				    	con.setVisible(false);
-				    	
-				    	GridData gridData = new GridData();
-						
-						gridData.heightHint 				= 0;
-						gridData.verticalSpan				= 0;
-						gridData.grabExcessVerticalSpace	= false;
-						
-						con.setLayoutData( gridData );
-				    }
-			    }
-			}
-			
-			if ( param instanceof EnablerParameter ){
-				
-				List controlsToEnable = new ArrayList();
-				
-				Iterator iter = param.getEnabledOnSelectionParameters().iterator();
-				
-				while(iter.hasNext()){
-					
-					ParameterImpl enable_param = (ParameterImpl) iter.next();
-					
-				    Object[] stuff = (Object[])comp_map.get( enable_param );
-				    
-				    if ( stuff != null ){
-				    	
-					    for(int k = 1 ; k < stuff.length ; k++) {
-					    	
-					    	controlsToEnable.add(stuff[k]);
-					    }
-				    }
-				}
-				
-				List controlsToDisable = new ArrayList();
-
-				iter = param.getDisabledOnSelectionParameters().iterator();
-				
-				while(iter.hasNext()){
-					
-					ParameterImpl disable_param = (ParameterImpl)iter.next();
-					
-				    Object[] stuff = (Object[])comp_map.get( disable_param );
-				    
-				    if ( stuff != null ){
-				    	
-					    for(int k = 1 ; k < stuff.length ; k++) {
-					    	
-					    	controlsToDisable.add(stuff[k]);
-					    }
-				    }
-				}
-
-				Control[] ce = new Control[controlsToEnable.size()];
-				Control[] cd = new Control[controlsToDisable.size()];
-
-				if ( ce.length + cd.length > 0 ){
-				
-				    IAdditionalActionPerformer ap = 
-				    	new DualChangeSelectionActionPerformer(
-				    			(Control[]) controlsToEnable.toArray(ce),
-								(Control[]) controlsToDisable.toArray(cd));
-				    
-	
-				    BooleanParameter	target = (BooleanParameter)((Object[])comp_map.get(param))[0];
-				    
-				    target.setAdditionalActionPerformer(ap);
-				}
-			}
-		}
-		
-		return( main_tab );
 	}
 }

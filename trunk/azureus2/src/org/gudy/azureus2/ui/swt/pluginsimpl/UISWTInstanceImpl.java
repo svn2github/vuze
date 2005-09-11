@@ -46,10 +46,12 @@ import org.gudy.azureus2.plugins.ui.UIException;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -150,6 +152,27 @@ UISWTInstanceImpl
 				
 				break;
 			}
+			case UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED:
+			{
+				if ( data instanceof BasicPluginConfigModel ){
+					
+					BasicPluginConfigModel	model = (BasicPluginConfigModel)data;
+					
+					BasicPluginConfigImpl view = new BasicPluginConfigImpl(model);
+					   
+					
+					model.getPluginInterface().addConfigSection( view );
+				}
+				
+				break;
+			}
+			case UIManagerEvent.ET_COPY_TO_CLIPBOARD:
+			{
+				ClipboardCopy.copyToClipBoard((String)data);
+				
+				break;
+			}
+			
 			default:
 			{
 				done	= false;
