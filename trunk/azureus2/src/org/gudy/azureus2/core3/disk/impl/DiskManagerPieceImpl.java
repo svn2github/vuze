@@ -245,8 +245,17 @@ DiskManagerPieceImpl
 		last_write_time = SystemTime.getCurrentTime();		
 	}
   
-  public void reDownloadBlock(int blockNumber) {
-    written[blockNumber] = false;
-    setDone(false);
+  public void 
+  reDownloadBlock(
+	 int blockNumber ) 
+  {
+	  boolean[]	written_ref = written;
+
+	  if ( written_ref != null ){
+		  
+		  written_ref[blockNumber] = false;
+    
+		  setDone(false);
+	  }
   }
 }
