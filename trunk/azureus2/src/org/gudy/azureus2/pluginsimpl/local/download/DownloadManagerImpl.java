@@ -30,11 +30,11 @@ import java.util.*;
 import java.io.File;
 import java.net.URL;
 
-import org.eclipse.swt.widgets.Display;
-
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.plugins.torrent.*;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
@@ -47,9 +47,6 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.*;
 
-import org.gudy.azureus2.ui.swt.FileDownloadWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 public class 
 DownloadManagerImpl
@@ -191,9 +188,23 @@ DownloadManagerImpl
 	
 	public void 
 	addDownload(
-		File fileName ) 
+		final File fileName ) 
 	{
-		TorrentOpener.openTorrent(azureus_core, fileName.toString());
+		UIManagerImpl.fireEvent(
+			new UIManagerEvent()
+			{
+				public int
+				getType()
+				{
+					return( UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE );
+				}
+				
+				public Object
+				getData()
+				{
+					return( fileName );
+				}
+			});
 	}
 
 	public void 
@@ -208,15 +219,19 @@ DownloadManagerImpl
 		final URL	url,
 		final URL 	referrer) 
 	{
-		Display	display = MainWindow.getWindow().getDisplay();
-		
-		display.syncExec(
-				new AERunnable()
+		UIManagerImpl.fireEvent(
+				new UIManagerEvent()
 				{
-					public void
-					runSupport()
+					public int
+					getType()
 					{
-						new FileDownloadWindow(azureus_core,MainWindow.getWindow().getDisplay(),url.toString(), referrer==null?null:referrer.toString());
+						return( UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE );
+					}
+					
+					public Object
+					getData()
+					{
+						return( new URL[]{ url, referrer });
 					}
 				});
 	}

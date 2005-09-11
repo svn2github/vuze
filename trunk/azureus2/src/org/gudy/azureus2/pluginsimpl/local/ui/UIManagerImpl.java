@@ -45,8 +45,8 @@ import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.view.BasicPluginViewImpl;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
+import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
 
 
 /**
@@ -64,6 +64,8 @@ UIManagerImpl
 	protected static List		ui_listeners		= new ArrayList();
 	protected static List		ui_event_listeners	= new ArrayList();
 	protected static List		ui_instances		= new ArrayList();
+	protected static List		ui_event_history	= new ArrayList();
+	
 	
 	protected PluginInterface		pi;
 	
@@ -99,13 +101,14 @@ UIManagerImpl
 	getBasicPluginViewModel(
 		String			name )
 	{
-		return( new BasicPluginViewModelImpl( name ));
+		throw( new RuntimeException( "Deprecated method - use createBasicPluginViewModel"));
 	}
 	
 	public PluginView
 	createPluginView(
 		PluginViewModel	model )
 	{
+		/*
 		if ( isSWTAvailable()){
 			
 		  if(model instanceof BasicPluginViewModel) {
@@ -117,20 +120,32 @@ UIManagerImpl
 		}else{
 			return( null );
 		}
+		*/
+		
+		throw( new RuntimeException( "Deprecated method - use createBasicPluginViewModel"));
 	}
 	
 	public BasicPluginViewModel
 	createBasicPluginViewModel(
 		String			name )
 	{
-		BasicPluginViewModel	model = getBasicPluginViewModel( name );
-		
-		PluginView	pv = createPluginView( model );
-		
-		if ( pv != null ){
-			
-			pi.getUIManager().getSWTManager().addView( pv );
-		}
+		final BasicPluginViewModel	model = new BasicPluginViewModelImpl( name );
+				
+		fireEvent(
+			new UIManagerEvent()
+			{
+				public int
+				getType()
+				{
+					return( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED );
+				}
+				
+				public Object
+				getData()
+				{
+					return( model );
+				}
+			});
 		
 		return( model );
 	}
@@ -336,7 +351,18 @@ UIManagerImpl
   		}finally{
   			
   			class_mon.exit();
-  		} 		
+  		} 
+  		
+  		for (int i=0;i<ui_event_history.size();i++){
+  			
+  			try{
+  				listener.eventOccurred((UIManagerEvent)ui_event_history.get(i));
+  				
+  			}catch( Throwable e ){
+  				
+  				Debug.printStackTrace(e);
+  			}
+  		}
   	}
   	
  	public void
@@ -370,6 +396,15 @@ UIManagerImpl
  				
  				e.printStackTrace();
  			}
+ 		}
+ 		
+ 		int	type = event.getType();
+ 		
+ 			// some events need to be replayed when new UIs attach
+ 		
+ 		if ( type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED ){
+ 			
+ 			ui_event_history.add( event );
  		}
  	}
  	

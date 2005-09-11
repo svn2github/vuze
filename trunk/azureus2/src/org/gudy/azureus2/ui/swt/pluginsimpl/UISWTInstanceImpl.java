@@ -28,6 +28,8 @@ import java.awt.Container;
 import java.awt.Frame;
 
 import java.awt.Panel;
+import java.io.File;
+import java.net.URL;
 
 
 
@@ -44,10 +46,13 @@ import org.gudy.azureus2.plugins.ui.UIException;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 
+import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTAWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -59,10 +64,14 @@ public class
 UISWTInstanceImpl
 	implements UISWTInstance, UIManagerEventListener
 {
+	private AzureusCore		core;
+	
 	public 
 	UISWTInstanceImpl(
-		AzureusCore		core )
+		AzureusCore		_core )
 	{
+		core		= _core;
+		
 		try{
 			UIManager	ui_manager = core.getPluginManager().getDefaultPluginInterface().getUIManager();
 			
@@ -80,23 +89,70 @@ UISWTInstanceImpl
 	eventOccurred(
 		final UIManagerEvent	event )
 	{
-		boolean	done = false;
+		boolean	done = true;
+		
+		final Object	data = event.getData();
 		
 		switch( event.getType()){
 		
 			case UIManagerEvent.ET_SHOW_TEXT_MESSAGE:
 			{
-					getDisplay().asyncExec(
+				getDisplay().asyncExec(
 					new Runnable()
 					{
 						public void 
 						run()
 						{
-							String[]	data = (String[])event.getData();
+							String[]	params = (String[])data;
 							
-							new TextViewerWindow( data[0], data[1], data[2] );
+							new TextViewerWindow( params[0], params[1], params[2] );
 						}
 					});
+				
+				break;
+			}
+			
+			case UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE:
+			{	
+				TorrentOpener.openTorrent(core, ((File)data).toString());
+
+				break;
+			}
+			case UIManagerEvent.ET_OPEN_TORRENT_VIA_URL:
+			{
+				Display	display = MainWindow.getWindow().getDisplay();
+				
+				display.syncExec(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								URL[]	urls = (URL[])data;
+								
+								new FileDownloadWindow(
+										core,
+										MainWindow.getWindow().getDisplay(),
+										urls[0].toString(), urls[1]==null?null:urls[1].toString());
+							}
+						});
+				
+				break;
+			}
+			case UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED:
+			{
+				if ( data instanceof BasicPluginViewModel ){
+					
+					BasicPluginViewImpl view = new BasicPluginViewImpl( (BasicPluginViewModel)data);
+					   
+				    addView( view, false );
+				}
+				
+				break;
+			}
+			default:
+			{
+				done	= false;
 				
 				break;
 			}

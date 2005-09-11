@@ -21,7 +21,7 @@
  */
 
 
-package org.gudy.azureus2.pluginsimpl.local.ui.view;
+package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
@@ -35,18 +35,23 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeEvent;
 import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 
 
 /**
  * 
  */
-public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeListener {
+public class 
+BasicPluginViewImpl 
+	extends UISWTPluginView 
+	implements UIPropertyChangeListener 
+{
   
   BasicPluginViewModel model;
   String pluginName;
@@ -59,7 +64,10 @@ public class BasicPluginViewImpl extends PluginView implements UIPropertyChangeL
   BufferedLabel task;
   StyledText log;
   
-  public BasicPluginViewImpl(BasicPluginViewModel model) {
+  public 
+  BasicPluginViewImpl(
+	BasicPluginViewModel 	model) 
+  {
     this.model = model;
     this.pluginName = model.getName();
   }

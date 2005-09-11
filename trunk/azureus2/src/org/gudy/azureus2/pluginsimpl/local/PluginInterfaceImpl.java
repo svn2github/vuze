@@ -23,6 +23,7 @@ package org.gudy.azureus2.pluginsimpl.local;
 
 import java.util.*;
 import java.io.File;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.Logger;
@@ -62,11 +63,6 @@ import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.update.*;
-
-import org.gudy.azureus2.ui.swt.FileDownloadWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -179,14 +175,22 @@ PluginInterfaceImpl
    * @deprecated
    */
   public void openTorrentFile(String fileName) {
-    TorrentOpener.openTorrent(initialiser.getAzureusCore(),fileName);
+	  try{
+		  getDownloadManager().addDownload( new File(fileName));
+	  }catch( DownloadException e ){
+		  throw( new RuntimeException(e));
+	  }
   }
 
   /**
    * @deprecated
    */
   public void openTorrentURL(String url) {
-    new FileDownloadWindow(initialiser.getAzureusCore(),MainWindow.getWindow().getDisplay(),url, null);
+	  try{
+		  getDownloadManager().addDownload( new URL( url ));
+	  }catch( Throwable e ){
+		  throw( new RuntimeException(e));
+	  } 
   }
       
   public void
@@ -324,13 +328,13 @@ PluginInterfaceImpl
   
   /** @deprecated Use getUIManager().getTableManager().createColumn */
   public void addColumnToPeersTable(String columnName, PluginPeerItemFactory item) {
-    TableColumnManager.getInstance().addExtension(columnName,item);
+    Debug.out( "Method PluginInterface::addColumnToPeersTable deprecated. Use getUIManager().getTableManager().createColumn" );
   }
   
   /** @deprecated Use getUIManager().getTableManager().createColumn */
   public void addColumnToMyTorrentsTable(String columnName, PluginMyTorrentsItemFactory item) {
-    TableColumnManager.getInstance().addExtension(columnName,item);
-  }
+	   Debug.out( "Method PluginInterface::addColumnToMyTorrentsTable deprecated. Use getUIManager().getTableManager().createColumn" );
+ }
 
   public Tracker getTracker() {
   	return( TrackerImpl.getSingleton());
