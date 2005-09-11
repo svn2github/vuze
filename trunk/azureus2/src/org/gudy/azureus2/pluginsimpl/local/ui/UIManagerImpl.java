@@ -31,6 +31,8 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ui.UIException;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.config.*;
@@ -59,8 +61,9 @@ UIManagerImpl
 	protected static AEMonitor	class_mon = new AEMonitor( "UIManager:class" );
 	
 	protected static boolean	initialisation_complete;
-	protected static List		ui_listeners	= new ArrayList();
-	protected static List		ui_instances	= new ArrayList();
+	protected static List		ui_listeners		= new ArrayList();
+	protected static List		ui_event_listeners	= new ArrayList();
+	protected static List		ui_instances		= new ArrayList();
 	
 	protected PluginInterface		pi;
 	
@@ -321,6 +324,78 @@ UIManagerImpl
   		}		
  	}
  	
+  	public void
+  	addUIEventListener(
+  		UIManagerEventListener listener )
+  	{
+		try{
+  			class_mon.enter();
+  			
+  			ui_event_listeners.add( listener );
+  			
+  		}finally{
+  			
+  			class_mon.exit();
+  		} 		
+  	}
+  	
+ 	public void
+  	removeUIEventListener(
+  		UIManagerEventListener listener )
+ 	{
+		try{
+  			class_mon.enter();
+  			
+  			ui_event_listeners.remove( listener );
+ 			 
+  		}finally{
+  			
+  			class_mon.exit();
+  		}		
+ 	}
+ 	
+ 	public static void
+ 	fireEvent(
+ 		UIManagerEvent	event )
+ 	{
+ 		for (int i=0;i<ui_event_listeners.size();i++){
+ 			
+ 			try{
+ 				if (((UIManagerEventListener)ui_event_listeners.get(i)).eventOccurred( event )){
+ 					
+ 					break;
+ 				}
+ 				
+ 			}catch( Throwable e ){
+ 				
+ 				e.printStackTrace();
+ 			}
+ 		}
+ 	}
+ 	
+	public void
+	showTextMessage(
+		final String		title_resource,
+		final String		message_resource,
+		final String		contents )
+	{
+		fireEvent(
+			new UIManagerEvent()
+			{
+				public int
+				getType()
+				{
+					return( UIManagerEvent.ET_SHOW_TEXT_MESSAGE );
+				}
+				
+				public Object
+				getData()
+				{
+					return( new String[]{ title_resource, message_resource, contents });
+				}
+			});
+	}
+ 		
   protected class
   dummyConfigModel
   	implements BasicPluginConfigModel

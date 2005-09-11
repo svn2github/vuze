@@ -26,16 +26,13 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Frame;
-import java.awt.Graphics;
+
 import java.awt.Panel;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+
 
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -44,7 +41,11 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIException;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
 
+import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTAWTPluginView;
@@ -56,14 +57,18 @@ import com.aelitis.azureus.core.AzureusCore;
 
 public class 
 UISWTInstanceImpl
-	implements UISWTInstance
+	implements UISWTInstance, UIManagerEventListener
 {
 	public 
 	UISWTInstanceImpl(
 		AzureusCore		core )
 	{
 		try{
-			core.getPluginManager().getDefaultPluginInterface().getUIManager().attachUI( this );
+			UIManager	ui_manager = core.getPluginManager().getDefaultPluginInterface().getUIManager();
+			
+			ui_manager.addUIEventListener( this );
+			
+			ui_manager.attachUI( this );
 			
 		}catch( UIException e ){
 			
@@ -71,6 +76,35 @@ UISWTInstanceImpl
 		}
 	}
   
+	public boolean
+	eventOccurred(
+		final UIManagerEvent	event )
+	{
+		boolean	done = false;
+		
+		switch( event.getType()){
+		
+			case UIManagerEvent.ET_SHOW_TEXT_MESSAGE:
+			{
+					getDisplay().asyncExec(
+					new Runnable()
+					{
+						public void 
+						run()
+						{
+							String[]	data = (String[])event.getData();
+							
+							new TextViewerWindow( data[0], data[1], data[2] );
+						}
+					});
+				
+				break;
+			}
+		}
+		
+		return( done );
+	}
+	
 	public Display 
 	getDisplay() 
 	{

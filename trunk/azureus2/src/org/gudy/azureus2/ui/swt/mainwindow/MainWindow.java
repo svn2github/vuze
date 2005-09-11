@@ -702,9 +702,16 @@ MainWindow
 	}
 }
 
-  private void openMainWindow() {
-    
-    //  share progress window    
+  private void 
+  openMainWindow() 
+  {
+	   
+  		// attach the UI to plugins
+  
+	new UISWTInstanceImpl( azureus_core );
+  
+		//  share progress window
+	
     new ProgressWindow();
     
     addUpdateListener();
@@ -795,11 +802,7 @@ MainWindow
     
     	// check file associations   
     DonationWindow2.checkForDonationPopup();
-    
-    	// attach the UI to plugins
-    
-    new UISWTInstanceImpl( azureus_core );
-  }
+   }
 
 
   public void showMyTracker() {

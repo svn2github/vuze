@@ -18,7 +18,7 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 
-package org.gudy.azureus2.ui.swt.views.configsections;
+package com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;

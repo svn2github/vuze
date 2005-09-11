@@ -24,7 +24,7 @@ public class TextViewerWindow {
     final Display display = SWTThread.getInstance().getDisplay();
     final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 
-    if (sTitleID != null) shell.setText(MessageText.getString(sTitleID));
+    if (sTitleID != null) shell.setText(MessageText.keyExists(sTitleID)?MessageText.getString(sTitleID):sTitleID);
     
     if(! Constants.isOSX) {
       shell.setImage(ImageRepository.getImage("azureus"));
@@ -34,7 +34,7 @@ public class TextViewerWindow {
     shell.setLayout(layout);
 
     Label label = new Label(shell, SWT.NONE);
-    if (sMessageID != null) label.setText(MessageText.getString(sMessageID));
+    if (sMessageID != null) label.setText(MessageText.keyExists(sMessageID)?MessageText.getString(sMessageID):sMessageID);
     GridData gridData = new GridData();
     gridData.widthHint = 200;
     label.setLayoutData(gridData);

@@ -38,12 +38,15 @@ import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.ui.swt.TextViewerWindow;
-import org.gudy.azureus2.ui.swt.views.configsections.*;
-import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+
+
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt.StartStopRulesDefaultPluginSWTUI;
 
 /** Handles Starting and Stopping of torrents.
  *
@@ -194,17 +197,27 @@ public class StartStopRulesDefaultPlugin
       seedingRankColumn.addCellAddedListener(columnListener);
       tm.addColumn(seedingRankColumn);
       
-      plugin_interface.addConfigSection(new ConfigSectionQueue());
-      plugin_interface.addConfigSection(new ConfigSectionSeeding());
-      plugin_interface.addConfigSection(new ConfigSectionSeedingAutoStarting());
-      plugin_interface.addConfigSection(new ConfigSectionSeedingFirstPriority());
-      plugin_interface.addConfigSection(new ConfigSectionSeedingIgnore());
-    } catch (NoClassDefFoundError e) {
-      /* Ignore. SWT probably not installed */
-      log.log(LoggerChannel.LT_WARNING,
-              "SWT UI Config not loaded for StartStopRulesDefaulPlugin. " +
-              e.getMessage() + " not found.");
-    } catch( Throwable e ){
+      plugin_interface.getUIManager().addUIListener(
+			new UIManagerListener()
+			{
+				public void
+				UIAttached(
+					UIInstance		instance )
+				{
+					if ( instance instanceof UISWTInstance ){
+						
+						new StartStopRulesDefaultPluginSWTUI( plugin_interface );
+					}
+				}
+				
+				public void
+				UIDetached(
+					UIInstance		instance )
+				{
+					
+				}
+			});
+     } catch( Throwable e ){
     	Debug.printStackTrace( e );
     }
     reloadConfigParams();
@@ -526,23 +539,28 @@ public class StartStopRulesDefaultPlugin
 	      log.log(LoggerChannel.LT_INFORMATION,
 	              "somethingChanged: config reload");
 	      try {
-	        if (debugMenuItem == null && seedingRankColumn != null) {
-	          debugMenuItem = ((TableColumnCore)seedingRankColumn).addContextMenuItem("StartStopRules.menu.viewDebug");
-	          debugMenuItem.addListener(new MenuItemListener() {
-	            public void selected(MenuItem _menu, Object _target) {
-	    				  Download dl = (Download)((TableRow)_target).getDataSource();
-	              downloadData dlData = (downloadData)downloadDataMap.get(dl);
+	        if (debugMenuItem == null ){
+	        	
+	        	debugMenuItem = plugin_interface.getUIManager().getTableManager().addContextMenuItem(
+	        			TableManager.TABLE_MYTORRENTS_COMPLETE, "StartStopRules.menu.viewDebug" );
+	        	
+	        	debugMenuItem.addListener(new MenuItemListener() {
+	        		public void 
+	        		selected(MenuItem _menu, Object _target) 
+	        		{
+	        			Download dl = (Download)((TableRow)_target).getDataSource();
+	        			
+	        			downloadData dlData = (downloadData)downloadDataMap.get(dl);
 	  
-	              if (dlData != null) {
-	                new TextViewerWindow(null, null, dlData.sExplainFP + "\n" + dlData.sTrace);
-	              }
-	            }
-	          });
+	        			if ( dlData != null ){
+	        				plugin_interface.getUIManager().showTextMessage(null, null, dlData.sExplainFP + "\n" + dlData.sTrace);
+	        			}
+	        		}
+	        	});
 	        }
-	      } catch (Throwable t) { Debug.printStackTrace( t ); }
-	    } else if (debugMenuItem != null && seedingRankColumn != null) {
-	      ((TableColumnCore)seedingRankColumn).removeContextMenuItem(debugMenuItem);
-	      debugMenuItem = null;
+	      } catch (Throwable t) { 
+	    	  Debug.printStackTrace( t );
+	      }
 	    }
   	}finally{
   		

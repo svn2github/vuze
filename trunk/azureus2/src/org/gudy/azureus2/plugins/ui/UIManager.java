@@ -85,6 +85,12 @@ UIManager
 
 	public TableManager getTableManager();
 
+	public void
+	showTextMessage(
+		String		title_resource,
+		String		message_resource,
+		String		contents );
+	
 		/** Retrieve a class of SWT specific functions 
 		 * 
 		 * @deprecated 
@@ -140,4 +146,12 @@ UIManager
  	public void
   	removeUIListener(
   		UIManagerListener listener );
+ 	
+ 	public void
+  	addUIEventListener(
+  		UIManagerEventListener listener );
+  	
+ 	public void
+  	removeUIEventListener(
+  		UIManagerEventListener listener );
 }
