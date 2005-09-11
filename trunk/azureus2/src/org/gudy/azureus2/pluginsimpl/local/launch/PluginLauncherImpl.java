@@ -327,7 +327,9 @@ PluginLauncherImpl
 	
 		    	String plugin_class = (String)props.get( "plugin.class");
 		    	      	    	      		    	      
-			    if ( plugin_class == null ){
+		    		// don't support multiple launchable plugins
+		    	
+			    if ( plugin_class == null || plugin_class.indexOf(';') != -1 ){
 			    		
 			    	continue;
 			    }
