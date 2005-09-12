@@ -263,13 +263,24 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{
+		return( isAdditionalFileTypeRegistered( "BitTorrent", ".torrent" ));
+	}
+	
+	public boolean
+	isAdditionalFileTypeRegistered(
+		String		name,
+		String		type )
+	
+		throws PlatformManagerException
+	{
+
 		String	az_exe_str = getAureusEXELocation().toString();
 		
 		try{
 			String	test1 = 
 				access.readStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					"BitTorrent\\shell\\open\\command",
+					name + "\\shell\\open\\command",
 					"" );
 			
 			if ( !test1.equals( "\"" + az_exe_str + "\" \"%1\"" )){
@@ -284,7 +295,7 @@ PlatformManagerImpl
 				String	always_open_with = 
 					access.readStringValue( 
 						AEWin32Access.HKEY_CURRENT_USER,
-						"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.torrent",
+						"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\" + type,
 						"Application" );
 				
 				//System.out.println( "mru_list = " + mru_list );
@@ -351,6 +362,18 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{
+		registerAdditionalFileType( "BitTorrent", "Bittorrent File", ".torrent", "application/x-bittorrent" );
+	}
+	
+	public void
+	registerAdditionalFileType(
+		String		name,				// e.g. "BitTorrent"
+		String		description,		// e.g. "BitTorrent File"
+		String		type,				// e.g. ".torrent"
+		String		content_type )		// e.g. "application/x-bittorrent"
+		
+		throws PlatformManagerException
+	{
 		// 	WriteRegStr HKCR ".torrent" "" "BitTorrent"
 		// 	WriteRegStr HKCR "BitTorrent" "" "Bittorrent File"
 		// 	WriteRegStr HKCR "BitTorrent\shell" "" "open"
@@ -366,7 +389,7 @@ PlatformManagerImpl
 		
 				access.deleteValue( 	
 					AEWin32Access.HKEY_CURRENT_USER,
-					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.torrent",
+					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\" + type,
 					"Application" );
 				
 			}catch( Throwable e ){
@@ -377,7 +400,7 @@ PlatformManagerImpl
 			try{
 				access.deleteKey( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					".torrent" );
+					type );
 				
 			}catch( Throwable e ){
 				
@@ -387,7 +410,7 @@ PlatformManagerImpl
 			try{
 				access.deleteKey( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					"BitTorrent",
+					name,
 					true );
 				
 			}catch( Throwable e ){
@@ -397,39 +420,39 @@ PlatformManagerImpl
 
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					".torrent",
+					type,
 					"",
-					"BitTorrent" );
+					name );
 		
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					"BitTorrent",
+					name,
 					"",
-					"Bittorrent File" );
+					description );
 			
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					"BitTorrent\\shell",
+					name + "\\shell",
 					"",
 					"open" );
 			
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					"BitTorrent\\DefaultIcon",
+					name + "\\DefaultIcon",
 					"",
 					az_exe_string + "," + getIconIndex());
 			
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					"BitTorrent\\shell\\open\\command",
+					name + "\\shell\\open\\command",
 					"",
 					"\"" + az_exe_string + "\" \"%1\"" );
 					
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					"BitTorrent\\Content Type" ,
+					name + "\\Content Type" ,
 					"",
-					"application/x-bittorrent" );
+					content_type );
 			
 		}catch( PlatformManagerException e ){
 			

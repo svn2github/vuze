@@ -98,8 +98,7 @@ PluginLauncherImpl
 					int		type,
 					String	content )
 				{
-					log(  content );
-
+					log(  content, false );
 				}
 				
 				public void
@@ -107,7 +106,7 @@ PluginLauncherImpl
 					String		str,
 					Throwable	error )
 				{
-					log(  str );
+					log(  str, true );
 					
 					StringWriter	sw = new StringWriter();
 					
@@ -117,12 +116,13 @@ PluginLauncherImpl
 					
 					pw.flush();
 					
-					log( sw.toString());
+					log( sw.toString(), true );
 				}
 				
 				protected synchronized void
 				log(
-					String	str )
+					String	str,
+					boolean	stdout )
 				{
 				    File	log_file	 = getApplicationFile("launch.log");
 
@@ -133,13 +133,17 @@ PluginLauncherImpl
 
 						if ( str.endsWith( "\n" )){
 							
-							System.err.print( "PluginLauncher: " + str );
+							if ( stdout ){
+								System.err.print( "PluginLauncher: " + str );
+							}
 							
 							pw.print( str );
 							
 						}else{
 							
-							System.err.println( "PluginLauncher: " + str );
+							if ( stdout ){
+								System.err.println( "PluginLauncher: " + str );
+							}
 							
 							pw.println( str );
 						}
@@ -176,6 +180,12 @@ PluginLauncherImpl
 
 			launchables[0].setDefaults( args );			
 
+				// see if we're a secondary instance
+			
+			if ( PluginSingleInstanceHandler.process( listener, args )){
+				
+				return;
+			}
 				// we have to run the core startup on a separate thread and then effectively pass "this thread"
 				// through to the launchable "process" method
 			

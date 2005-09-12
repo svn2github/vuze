@@ -56,6 +56,16 @@ public class PlatformManagerImpl implements PlatformManager
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
 
+	public boolean
+	isAdditionalFileTypeRegistered(
+		String		name,				// e.g. "BitTorrent"
+		String		type )				// e.g. ".torrent"
+	
+		throws PlatformManagerException
+	{
+	    throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
     /**
      * {@inheritDoc}
      */
@@ -66,6 +76,18 @@ public class PlatformManagerImpl implements PlatformManager
         throw new PlatformManagerException("Unsupported capability called on platform manager");
     }
 
+	public void
+	registerAdditionalFileType(
+		String		name,				// e.g. "BitTorrent"
+		String		description,		// e.g. "BitTorrent File"
+		String		type,				// e.g. ".torrent"
+		String		content_type )		// e.g. "application/x-bittorrent"
+	
+		throws PlatformManagerException
+	{
+	       throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
     /**
      * {@inheritDoc}
      */

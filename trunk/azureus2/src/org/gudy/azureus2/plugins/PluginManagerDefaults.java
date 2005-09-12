@@ -109,4 +109,9 @@ PluginManagerDefaults
 	
 	public String
 	getApplicationEntryPoint();
+	
+	public void
+	setSingleInstanceHandler(
+		int									single_instance_port,
+		PluginManagerArgumentHandler		handler );
 }

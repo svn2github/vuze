@@ -56,6 +56,22 @@ PlatformManager
 	
 		throws PlatformManagerException;
 	
+	public boolean
+	isAdditionalFileTypeRegistered(
+		String		name,				// e.g. "BitTorrent"
+		String		type )				// e.g. ".torrent"
+	
+		throws PlatformManagerException;
+	
+	public void
+	registerAdditionalFileType(
+		String		name,				// e.g. "BitTorrent"
+		String		description,		// e.g. "BitTorrent File"
+		String		type,				// e.g. ".torrent"
+		String		content_type )		// e.g. "application/x-bittorrent"
+	
+		throws PlatformManagerException;
+	
 	public void
 	createProcess(
 		String	command_line,

@@ -31,12 +31,15 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.pluginsimpl.local.launch.PluginSingleInstanceHandler;
 
 public class 
 PluginManagerDefaultsImpl
 	implements PluginManagerDefaults
 {
 	protected static  PluginManagerDefaultsImpl		singleton = new PluginManagerDefaultsImpl();
+	
+	private PluginManagerArgumentHandler		arg_handler;
 	
 	public static PluginManagerDefaults
 	getSingleton()
@@ -111,5 +114,13 @@ PluginManagerDefaultsImpl
 	getApplicationEntryPoint()
 	{
 		return( SystemProperties.getApplicationEntryPoint());
+	}
+	
+	public void
+	setSingleInstanceHandler(
+		int									single_instance_port,
+		PluginManagerArgumentHandler		handler )
+	{
+		PluginSingleInstanceHandler.initialise( single_instance_port, handler );
 	}
 }
