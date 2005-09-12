@@ -31,9 +31,9 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
@@ -112,7 +112,7 @@ public class ProgressGraphItem
 
       if (piecesImage != null && !piecesImage.isDisposed())
         piecesImage.dispose();
-      piecesImage = new Image(SWTManagerImpl.getSingleton().getDisplay(),
+      piecesImage = new Image(SWTThread.getInstance().getDisplay(),
                               newWidth, newHeight);
 
       GC gcImage = new GC(piecesImage);

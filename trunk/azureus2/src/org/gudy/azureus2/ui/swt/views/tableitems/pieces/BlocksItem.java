@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
@@ -99,7 +99,7 @@ public class BlocksItem
       int y1 = newHeight - 3;
       if (x1 < 10 || y1 < 3)
         return;
-      Image image = new Image(SWTManagerImpl.getSingleton().getDisplay(), 
+      Image image = new Image(SWTThread.getInstance().getDisplay(), 
                               newWidth, newHeight);
       Color blue = Colors.blues[Colors.BLUES_DARKEST];
       Color green = Colors.blues[Colors.BLUES_MIDLIGHT];

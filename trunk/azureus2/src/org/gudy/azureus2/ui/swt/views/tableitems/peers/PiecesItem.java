@@ -34,8 +34,8 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
@@ -138,7 +138,7 @@ public class PiecesItem
       if (image != null && !image.isDisposed()) {
         image.dispose();
       }
-      image = new Image(SWTManagerImpl.getSingleton().getDisplay(),
+      image = new Image(SWTThread.getInstance().getDisplay(),
                         newWidth, newHeight);
       imageBounds = image.getBounds();
       bImageBufferValid = false;

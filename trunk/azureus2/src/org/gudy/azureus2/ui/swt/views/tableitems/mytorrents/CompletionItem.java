@@ -30,9 +30,9 @@ import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 
 /** Torrent Completion Level Graphic Cell for My Torrents.
@@ -111,7 +111,7 @@ public class CompletionItem
       }
       
       if (bImageSizeChanged) {
-        image = new Image(SWTManagerImpl.getSingleton().getDisplay(),
+        image = new Image(SWTThread.getInstance().getDisplay(),
                           newWidth, newHeight);
         imageBounds = image.getBounds();
   

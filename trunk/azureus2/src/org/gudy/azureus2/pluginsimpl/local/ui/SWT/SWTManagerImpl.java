@@ -24,9 +24,12 @@ import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+
+/*
+ * @deprecated
+ */
 
 public class SWTManagerImpl
 	implements SWTManager
