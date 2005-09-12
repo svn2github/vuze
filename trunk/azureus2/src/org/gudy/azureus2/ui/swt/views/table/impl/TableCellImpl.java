@@ -46,12 +46,13 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
-import org.gudy.azureus2.pluginsimpl.local.ui.SWT.GraphicSWTImpl;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem1;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
@@ -272,10 +273,17 @@ public class TableCellImpl
     if (img == null)
       return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(null);
 
-    if (!(img instanceof GraphicSWT))
-      return false;
-    Image imgSWT = ((GraphicSWT)img).getImage();
-    return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
+    if (img instanceof GraphicSWT){
+    	Image imgSWT = ((GraphicSWT)img).getImage();
+    	return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
+    }
+    
+    if (img instanceof UISWTGraphic){
+    	Image imgSWT = ((UISWTGraphic)img).getImage();
+    	return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
+    }
+    
+    return( false );
   }
 
   public Graphic getGraphic() {
@@ -283,7 +291,7 @@ public class TableCellImpl
         !(bufferedTableItem instanceof BufferedGraphicTableItem))
       return null;
     Image img = ((BufferedGraphicTableItem)bufferedTableItem).getGraphic();
-    return new GraphicSWTImpl(img);
+    return new UISWTGraphicImpl(img);
   }
 
   public Image getGraphicSWT() {
