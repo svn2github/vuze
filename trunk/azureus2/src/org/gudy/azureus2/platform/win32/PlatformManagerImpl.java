@@ -218,7 +218,7 @@ PlatformManagerImpl
 				
 				if ( !az_exe.exists()){
 					
-					String	msg = app_exe_name + " not found in " + az_home + " - can't check file associations. Please re-install Azureus";
+					String	msg = app_exe_name + " not found in " + az_home + " - can't check file associations. Please re-install " + SystemProperties.getApplicationName();
 					
 					az_exe = null;
 					
