@@ -22,12 +22,15 @@
 
 package org.gudy.azureus2.platform;
 
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+
 /**
  * @author parg
  *
  */
 public interface 
-PlatformManager 
+PlatformManager
+	extends org.gudy.azureus2.plugins.platform.PlatformManager
 {
 	public static final int	PT_WINDOWS		= 1;
 	public static final int PT_OTHER		= 2;
@@ -56,21 +59,7 @@ PlatformManager
 	
 		throws PlatformManagerException;
 	
-	public boolean
-	isAdditionalFileTypeRegistered(
-		String		name,				// e.g. "BitTorrent"
-		String		type )				// e.g. ".torrent"
-	
-		throws PlatformManagerException;
-	
-	public void
-	registerAdditionalFileType(
-		String		name,				// e.g. "BitTorrent"
-		String		description,		// e.g. "BitTorrent File"
-		String		type,				// e.g. ".torrent"
-		String		content_type )		// e.g. "application/x-bittorrent"
-	
-		throws PlatformManagerException;
+
 	
 	public void
 	createProcess(
@@ -97,16 +86,7 @@ PlatformManager
 		
 		throws PlatformManagerException;
 
-    /**
-     * Reveals the file or directory with the platform's default browser
-     * @param file_name The full path to a file or directory
-     * @throws PlatformManagerException If this operation fails
-     */
-	public void
-    showFile(
-		String	file_name )
-
-		throws PlatformManagerException;
+ 
 
     /**
      * <p>Gets whether the platform manager supports a capability</p>

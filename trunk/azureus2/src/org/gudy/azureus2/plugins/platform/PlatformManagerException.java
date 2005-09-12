@@ -20,7 +20,7 @@
  *
  */
 
-package org.gudy.azureus2.platform;
+package org.gudy.azureus2.plugins.platform;
 
 /**
  * @author parg

@@ -2,8 +2,8 @@ package org.gudy.azureus2.platform.dummy;
 
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.platform.PlatformManagerException;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 
 

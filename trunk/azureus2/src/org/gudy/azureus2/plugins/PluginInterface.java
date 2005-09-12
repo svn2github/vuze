@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.plugins.peers.protocol.PeerProtocolManager;
+import org.gudy.azureus2.plugins.platform.PlatformManager;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -442,12 +443,20 @@ public interface PluginInterface {
   
   
   /**
-   * Get th edistributed database
+   * Get the distributed database
    * @since 2.2.0.3
    * @return
    */
   public DistributedDatabase
   getDistributedDatabase();
+  
+  /**
+   * Gets the platform manager that gives access to native functionality
+   * @return
+   */
+  
+  public PlatformManager
+  getPlatformManager();
   
   /**
    *

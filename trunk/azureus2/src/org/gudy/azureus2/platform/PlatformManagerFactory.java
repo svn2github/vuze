@@ -25,6 +25,7 @@ package org.gudy.azureus2.platform;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 /**
  * @author parg

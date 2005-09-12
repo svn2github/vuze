@@ -29,6 +29,7 @@ package org.gudy.azureus2.ui.swt.associations;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.platform.*;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;

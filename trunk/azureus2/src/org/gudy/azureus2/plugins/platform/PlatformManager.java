@@ -1,0 +1,73 @@
+/*
+ * Created on 12-Sep-2005
+ * Created by Paul Gardner
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * 
+ * AELITIS, SARL au capital de 30,000 euros
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ *
+ */
+
+package org.gudy.azureus2.plugins.platform;
+
+
+public interface 
+PlatformManager 
+{
+		/**
+		 * Checks to see if the supplied file type is registered with this application
+		 * @param name
+		 * @param type
+		 * @return
+		 * @throws PlatformManagerException
+		 */
+		
+	public boolean
+	isAdditionalFileTypeRegistered(
+		String		name,				// e.g. "Wibble"
+		String		type )				// e.g. ".wib"
+	
+		throws PlatformManagerException;
+	
+		/**
+		 * Registers a file type with this application
+		 * @param name
+		 * @param description
+		 * @param type
+		 * @param content_type
+		 * @throws PlatformManagerException
+		 */
+	
+	public void
+	registerAdditionalFileType(
+		String		name,				// e.g. "Wibble"
+		String		description,		// e.g. "Wibble File"
+		String		type,				// e.g. ".wib"
+		String		content_type )		// e.g. "application/x-wibble"
+	
+		throws PlatformManagerException;
+	
+	   /**
+	    * Reveals the file or directory with the platform's default browser
+	    * @param file_name The full path to a file or directory
+	    * @throws PlatformManagerException If this operation fails
+	    */
+	
+	public void
+    showFile(
+		String	file_name )
+
+		throws PlatformManagerException;
+}

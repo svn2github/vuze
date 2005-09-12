@@ -37,8 +37,8 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.platform.PlatformManagerException;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 /**

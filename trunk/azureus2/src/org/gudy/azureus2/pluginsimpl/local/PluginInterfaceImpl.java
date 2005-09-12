@@ -25,6 +25,7 @@ import java.util.*;
 import java.io.File;
 import java.net.URL;
 
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.messaging.MessageManager;
@@ -54,6 +55,7 @@ import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
 import org.gudy.azureus2.plugins.ui.tables.peers.PluginPeerItemFactory;
 import org.gudy.azureus2.plugins.ui.tables.mytorrents.PluginMyTorrentsItemFactory;
 import org.gudy.azureus2.plugins.peers.protocol.*;
+import org.gudy.azureus2.plugins.platform.PlatformManager;
 import org.gudy.azureus2.plugins.sharing.*;
 import org.gudy.azureus2.plugins.clientid.ClientIDManager;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
@@ -529,6 +531,12 @@ PluginInterfaceImpl
    getDistributedDatabase()
    {
    	return( DDBaseImpl.getSingleton(initialiser.getAzureusCore()));
+   }
+   
+   public PlatformManager
+   getPlatformManager()
+   {
+	   return( PlatformManagerFactory.getPlatformManager());
    }
    
   protected void
