@@ -51,6 +51,13 @@ PluginSingleInstanceHandler
 		port		= _port;
 		handler		= _handler;
 		
+		String	multi_instance = System.getProperty( "MULTI_INSTANCE");
+		
+		if ( multi_instance != null && multi_instance.equalsIgnoreCase( "true" )){
+			
+			return;
+		}
+		
 		active = true;
 	}
 	
