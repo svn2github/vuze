@@ -1725,7 +1725,11 @@ DownloadManagerImpl
 			int nbSeeds = getNbSeeds();
 			int nbPeers = getNbPeers();
 			int nbRemotes = peerManager.getNbRemoteConnections();
-			int trackerStatus = tc.getLastResponse().getStatus();
+			
+			TRTrackerAnnouncerResponse	announce_response = tc.getLastResponse();
+			
+			int trackerStatus = announce_response.getStatus();
+			
 			boolean isSeed = (state == STATE_SEEDING);
       
 			if( (nbSeeds + nbPeers) == 0) {
@@ -1754,6 +1758,20 @@ DownloadManagerImpl
       
 			if( nbRemotes == 0 ){
        
+				TRTrackerScraperResponse scrape_response = getTrackerScrapeResponse();
+				
+				if ( scrape_response != null && scrape_response.isValid()){
+					
+						// if we're connected to everyone then report OK as we can't get
+						// any incoming connections!
+					
+					if ( 	nbSeeds == scrape_response.getSeeds() &&
+							nbPeers == scrape_response.getPeers()){
+						
+						return WEALTH_OK;
+					}
+				}
+				
 				return WEALTH_NO_REMOTE;
 			}
       
