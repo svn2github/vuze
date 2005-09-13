@@ -42,6 +42,15 @@ public class
 UPnPRootDeviceImpl 
 	implements  UPnPRootDevice
 {
+	public static final String	ROUTERS[]			= 
+		{ 	"3Com ADSL 11g",
+		};
+	
+	public static final String	BAD_ROUTER_VERSIONS[]	= 
+		{ 	"2.05",
+		};
+	
+	
 	private UPnPImpl			upnp;
 	private NetworkInterface	network_interface;
 	private InetAddress			local_address;
@@ -49,7 +58,7 @@ UPnPRootDeviceImpl
 	private URL			location;
 	private URL			url_base_for_relative_urls;
 	
-	private UPnPDevice	root_device;
+	private UPnPDeviceImpl	root_device;
 	
 	private boolean		destroyed;
 	
@@ -98,6 +107,33 @@ UPnPRootDeviceImpl
 		}
 		
 		root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
+		
+		String	model 	= root_device.getModelName();
+		String	version	= root_device.getModelNumber();
+		
+		if ( model == null || version == null ){
+			
+			return;
+		}
+		
+		System.out.println( "checking " + model + "/" + version );
+		
+		for (int i=0;i<ROUTERS.length;i++){
+			
+			if ( ROUTERS[i].equals( model )){
+				
+				if ( isBadVersion( version, BAD_ROUTER_VERSIONS[i])){
+					
+					String	url = root_device.getModeURL();
+					
+					upnp.logAlert( 
+							"Device '" + model + "', version '" + version + 
+							"' has known problems with UPnP. Please update to the latest software version (see " + 
+							(url==null?"the manufacturer's web site":url) + ")",
+							false );
+				}
+			}
+		}
 	}
 
 	protected String
@@ -212,4 +248,90 @@ UPnPRootDeviceImpl
 	{
 		listeners.remove( l );
 	}
+	
+	protected boolean
+	isBadVersion(
+		String	current,
+		String	bad )
+	{
+			// comparator does A10 -vs- A9 correctly (i.e. 111 is > 20 )
+		
+		Comparator comp = upnp.getPluginInterface().getUtilities().getFormatters().getAlphanumericComparator( true );
+		//Comparator comp = getAlphanumericComparator( true );
+		
+			// look for a delimiter (non alpha/numeric)
+		
+		Set	delimiters = new HashSet();
+		
+		char	current_delim 	= '1';
+		char	bad_delim		= '1';
+		
+		for (int i=0;i<current.length();i++){
+			
+			char	c = current.charAt(i);
+			
+			if ( !Character.isLetterOrDigit( c )){
+				
+				delimiters.add( new Character( c ));
+				
+				current_delim = c;
+			}
+		}
+		
+		for (int i=0;i<bad.length();i++){
+			
+			char	c = bad.charAt(i);
+			
+			if ( !Character.isLetterOrDigit( c )){
+				
+				delimiters.add( new Character( c ));
+				
+				bad_delim = c;
+			}
+		}
+		
+		if ( 	delimiters.size() != 1 || 
+				current_delim != bad_delim ){
+			
+			return( comp.compare( current, bad ) <= 0 );
+		}
+		
+		StringTokenizer	current_tk 	= new StringTokenizer( current, ""+current_delim );
+		StringTokenizer	bad_tk 		= new StringTokenizer( bad, ""+bad_delim );
+		
+		int	num_current = current_tk.countTokens();
+		int	num_bad		= bad_tk.countTokens();
+		
+		for (int i=0;i<Math.min( num_current, num_bad);i++){
+			
+			String	current_token 	= current_tk.nextToken();
+			String	bad_token 		= bad_tk.nextToken();
+			
+			int	res = comp.compare( current_token, bad_token );
+			
+			if ( res != 0 ){
+				
+				return( res < 0 );
+			}
+		}
+		
+		return( num_current <= num_bad );
+	}
+	
+
+	/*
+	public static void
+	main(
+		String[]	args )
+	{
+		String[]	test_current	= { "1.11.2" };
+		String[]	test_bad		= { "1.11" };
+		
+		for (int i=0;i<test_current.length;i++){
+			
+			System.out.println( test_current[i] + " / " + test_bad[i] + " -> " + isBadVersion( test_current[i], test_bad[i] ));
+			System.out.println( test_bad[i] + " / " + test_current[i] + " -> " + isBadVersion( test_bad[i], test_current[i] ));
+		}
+	}
+	*/
 }

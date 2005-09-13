@@ -86,8 +86,9 @@ UPnPImpl
 	
 	protected Map		root_locations	= new HashMap();
 	
-	protected List		log_listeners	= new ArrayList();
-	protected List		log_history		= new ArrayList();
+	protected List		log_listeners		= new ArrayList();
+	protected List		log_history			= new ArrayList();
+	protected List		log_alert_history	= new ArrayList();
 	
 	protected List		rd_listeners		= new ArrayList();
 	protected AEMonitor	rd_listeners_mon 	= new AEMonitor( "UPnP:L" );
@@ -614,15 +615,46 @@ UPnPImpl
 	}
 	
 	public void
-	addLogListener(
-		UPnPLogListener	l )
+	logAlert(
+		String	str,
+		boolean	error )
 	{
-		List	old_logs;
+		List	old_listeners;
 		
 		try{
 			this_mon.enter();
 
-			old_logs = new ArrayList(log_history);
+			old_listeners = new ArrayList(log_listeners);
+
+			log_alert_history.add(new Object[]{ str, new Boolean( error ) });
+			
+			if ( log_alert_history.size() > 32 ){
+				
+				log_alert_history.remove(0);
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		for (int i=0;i<old_listeners.size();i++){
+	
+			((UPnPLogListener)old_listeners.get(i)).logAlert( str, error );
+		}
+	}
+	
+	public void
+	addLogListener(
+		UPnPLogListener	l )
+	{
+		List	old_logs;
+		List	old_alerts;
+		
+		try{
+			this_mon.enter();
+
+			old_logs 	= new ArrayList(log_history);
+			old_alerts 	= new ArrayList(log_alert_history);
 
 			log_listeners.add( l );
 		}finally{
@@ -633,6 +665,13 @@ UPnPImpl
 		for (int i=0;i<old_logs.size();i++){
 			
 			l.log((String)old_logs.get(i));
+		}
+		
+		for (int i=0;i<old_alerts.size();i++){
+			
+			Object[]	entry = (Object[])old_alerts.get(i);
+			
+			l.logAlert((String)entry[0], ((Boolean)entry[1]).booleanValue());
 		}
 	}
 		
@@ -706,6 +745,14 @@ UPnPImpl
 					{
 						System.out.println( str );
 					}
+					public void
+					logAlert(
+						String	str,
+						boolean	error )
+					{
+						System.out.println( str );
+					}
+
 				});
 			
 			Thread.sleep(20000);

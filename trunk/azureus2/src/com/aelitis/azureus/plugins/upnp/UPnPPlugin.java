@@ -238,6 +238,21 @@ UPnPPlugin
 					{
 						log.log( str );
 					}
+					public void
+					logAlert(
+						String	str,
+						boolean	error )
+					{
+						if ( alert_device_probs_param.getValue()){
+							
+							log.logAlert(
+									
+								error?LoggerChannel.LT_ERROR:LoggerChannel.LT_WARNING,
+								str );
+						}
+						
+						log.log( str );
+					}
 				});
 			
 			mapping_manager.addListener(

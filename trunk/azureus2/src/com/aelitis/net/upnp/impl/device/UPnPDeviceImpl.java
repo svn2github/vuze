@@ -40,13 +40,17 @@ public class
 UPnPDeviceImpl
 	implements UPnPDevice
 {
-	protected UPnPRootDeviceImpl		root_device;
+	private UPnPRootDeviceImpl		root_device;
 	
-	protected String	device_type;
-	protected String	friendly_name;
+	private String	device_type;
+	private String	friendly_name;
+	private String	model_name;
+	private String	model_number;
+	private String	model_url;
 	
-	protected List		devices		= new ArrayList();
-	protected List		services	= new ArrayList();
+	
+	private List		devices		= new ArrayList();
+	private List		services	= new ArrayList();
 	
 	protected
 	UPnPDeviceImpl(
@@ -58,6 +62,16 @@ UPnPDeviceImpl
 		
 		device_type		= device_node.getChild("DeviceType").getValue().trim();
 		friendly_name	= device_node.getChild("FriendlyName").getValue().trim();
+		
+		/*
+		  <modelName>3Com ADSL 11g</modelName> 
+		  <modelNumber>1.07</modelNumber> 
+		  <modelURL>http://www.3com.com/</modelURL> 
+		  */
+		
+		model_name		= getOptionalField( device_node, "modelName" );
+		model_number	= getOptionalField( device_node, "modelNumber");
+		model_url		= getOptionalField( device_node, "modelURL");
 		
 		boolean	interested = device_type.equalsIgnoreCase( "urn:schemas-upnp-org:device:WANConnectionDevice:1" );
 		
@@ -125,6 +139,23 @@ UPnPDeviceImpl
 		return( friendly_name );
 	}
 	
+	public String
+	getModelName()
+	{
+		return( model_name );
+	}
+	public String
+	getModelNumber()
+	{
+		return( model_number );
+	}
+	
+	public String
+	getModeURL()
+	{
+		return( model_url );
+	}
+	
 	public UPnPDevice[]
 	getSubDevices()
 	{
@@ -143,5 +174,20 @@ UPnPDeviceImpl
 		services.toArray( res );
 		
 		return( res );
+	}
+	
+	protected String
+	getOptionalField(
+		SimpleXMLParserDocumentNode	node,
+		String						name )
+	{
+		SimpleXMLParserDocumentNode	child = node.getChild(name);
+		
+		if ( child == null ){
+			
+			return( null);
+		}
+		
+		return( child.getValue().trim());
 	}
 }

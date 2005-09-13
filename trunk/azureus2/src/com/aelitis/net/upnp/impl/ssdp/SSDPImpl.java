@@ -43,7 +43,8 @@ public class
 SSDPImpl 
 	implements SSDP
 {
-	private final static String	SSDP_GROUP_ADDRESS 	= "239.255.255.250";
+
+	private final static String		SSDP_GROUP_ADDRESS 	= "239.255.255.250";
 	private final static int		SSDP_GROUP_PORT		= 1900;
 	private final static int		SSDP_CONTROL_PORT	= 8008;
 	private final static int		TTL					= 4;

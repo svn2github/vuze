@@ -33,4 +33,9 @@ UPnPLogListener
 	public void
 	log(
 		String		str );
+	
+	public void
+	logAlert(
+		String		str,
+		boolean		error );	
 }
