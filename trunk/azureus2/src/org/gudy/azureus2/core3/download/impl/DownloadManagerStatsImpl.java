@@ -28,8 +28,10 @@ package org.gudy.azureus2.core3.download.impl;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 public class 
 DownloadManagerStatsImpl 
@@ -393,7 +395,16 @@ DownloadManagerStatsImpl
 		return( 0 );
 	}
       
-  
+	public long
+	getTotalAveragePerPeer()
+	{
+		int div = download_manager.getNbPeers() + (download_manager.isDownloadComplete() ? 0 : 1);  //since total speed includes our own speed when downloading
+	    
+	    long average = div < 1 ? 0 : getTotalAverage() / div;
+
+	    return( average );
+	}
+	
 	public int 
 	getShareRatio() 
 	{

@@ -36,6 +36,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
  */
 public class SpeedGraphic extends ScaledGraphic implements ParameterListener {    
   
+  private static final int	ENTRIES	= 2000;
+  
   private int internalLoop;
   private int graphicsUpdate;
   private Point oldSize;
@@ -45,8 +47,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   private int average = 0;
   private int nbValues = 0;
   
-  private int[] values;
-  private int[] targetValues;
+  private int[][] all_values	= new int[1][ENTRIES];
   private int currentPosition;
   
   
@@ -55,8 +56,6 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     super(scale,formater);
     
     currentPosition = 0;
-    values = new int[2000];
-    targetValues = new int[2000];
     
     COConfigurationManager.addParameterListener("Graphics Update",this);
     parameterChanged("Graphics Update");
@@ -70,19 +69,45 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     });
   }
   
-  public void addIntsValue(int value,int targetValue) {  	
+  public void addIntsValue(int[] new_values) {  	
     try{
     	this_mon.enter();
     
-	    average += value - values[currentPosition];
-	    targetValues[currentPosition] = targetValue;
-	    values[currentPosition++] = value;
-	    	    
-	    if(nbValues < 2000)
-	      nbValues++;
+    	if ( all_values.length < new_values.length ){
+    		
+    		int[][]	new_all_values = new int[new_values.length][];
+    		
+    		for (int i=0;i<all_values.length;i++){
+    		
+    			new_all_values[i] = all_values[i];
+    		}
+    		
+    		for (int i=all_values.length;i<new_all_values.length; i++ ){
+    			
+    			new_all_values[i] = new int[ENTRIES];
+    		}
+    		
+    		all_values = new_all_values;
+    	}
+    	
+	    average += new_values[0] - all_values[0][currentPosition];
 	    
-	    if(currentPosition >= values.length)
+	    for (int i=0;i<new_values.length;i++){
+    		
+	        all_values[i][currentPosition] = new_values[i];
+    	}
+	  	
+	    currentPosition++;
+	    
+	    if(nbValues < ENTRIES){
+	    	
+	      nbValues++;
+	    }
+	    
+	    if(currentPosition >= ENTRIES){
+	    	
 	      currentPosition = 0;
+	    }
 	    
     }finally{
     	
@@ -91,22 +116,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   }
   
   public void addIntValue(int value) {
-    try{
-    	this_mon.enter();
-    
-	    average += value - values[currentPosition];
-	    values[currentPosition++] = value;
-	    
-	    if(nbValues < 2000)
-	      nbValues++;
-	    
-	    if(currentPosition >= values.length)
-	      currentPosition = 0;
-	    
-    }finally{
-    	
-    	this_mon.exit();
-    }
+	  addIntsValue( new int[]{ value });
   }
   
   public void refresh() {  
@@ -153,7 +163,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       gcImage.drawImage(bufferScale,0,0);
       
       int oldAverage = 0;   
-      int oldTargetValue = 0;
+      int[] oldTargetValues = new int[all_values.length];
       Color background = Colors.blues[Colors.BLUES_DARKEST];
       Color foreground = Colors.blues[Colors.BLUES_MIDLIGHT];
       int max = 0;
@@ -161,10 +171,10 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         int position = currentPosition - x -1;
         if(position < 0)
           position+= 2000;
-        int value = values[position];
-        if(value > max) max = value;
-        value = targetValues[position];
-        if(value > max) max = value;
+        for (int z=0;z<all_values.length;z++){
+        	int value = all_values[z][position];
+        	if(value > max) max = value;
+        }
       }
       scale.setMax(max);
       int maxHeight = scale.getScaledValue(max);
@@ -172,7 +182,8 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         int position = currentPosition - x -1;
         if(position < 0)
           position+= 2000;
-        int value = values[position];
+        
+        int value = all_values[0][position];
         
         int xDraw = bounds.width - 71 - x;
         int height = scale.getScaledValue(value);        
@@ -182,14 +193,16 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         gcImage.fillGradientRectangle(xDraw,bounds.height - 1 - maxHeight,1, maxHeight,true);
         gcImage.setClipping(0,0,bounds.width, bounds.height);
         
-        int targetValue = targetValues[position];
-        if(x > 1 && targetValue > 0) {
-        	int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
-            int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
-            gcImage.setForeground(Colors.blue);
-            gcImage.drawLine(xDraw,h1,xDraw+1, h2);
+        for (int z=1;z<all_values.length;z++){
+	        int targetValue = all_values[z][position];
+	        if(x > 1 && targetValue > 0) {
+	        	int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
+	            int h2 = bounds.height - scale.getScaledValue(oldTargetValues[z]) - 2;
+	            gcImage.setForeground(z==1?Colors.blue:Colors.black);
+	            gcImage.drawLine(xDraw,h1,xDraw+1, h2);
+	        }
+	        oldTargetValues[z] = targetValue;
         }
-        oldTargetValue = targetValue;
         
         int average = computeAverage(position);
         if(x > 6) {
@@ -223,7 +236,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         pos += 2000;
       if(pos >= 2000)
         pos -= 2000;
-      sum += values[pos];
+      sum += all_values[0][pos];
     }
     return (sum / 11);
     

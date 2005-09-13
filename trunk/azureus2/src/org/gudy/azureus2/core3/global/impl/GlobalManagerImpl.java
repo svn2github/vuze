@@ -135,29 +135,33 @@ public class GlobalManagerImpl
 		
 	private Checker checker;
 	private GlobalManagerStatsImpl		stats;
+    private long last_swarm_stats_calc_time		= 0;
+    private long last_swarm_stats				= 0;
+	    
+
 	private TRTrackerScraper 			trackerScraper;
 	private GlobalManagerStatsWriter 	stats_writer;
 	private GlobalManagerHostSupport	host_support;
   
 	private Map							saved_download_manager_state	= new HashMap();
 	
-  private TorrentFolderWatcher torrent_folder_watcher;
+	private TorrentFolderWatcher torrent_folder_watcher;
   
-  private ArrayList paused_list = new ArrayList();
-  private final AEMonitor paused_list_mon = new AEMonitor( "GlobalManager:PL" );
-  
-  
-  
-  /* Whether the GlobalManager is active (false) or stopped (true) */
-  
-  private boolean 	isStopping;
-  private boolean	destroyed;
-  private boolean 	needsSaving = false;
-  
-  private boolean seeding_only_mode = false;
+	private ArrayList paused_list = new ArrayList();
+	private final AEMonitor paused_list_mon = new AEMonitor( "GlobalManager:PL" );
   
   
-  public class Checker extends AEThread {
+  
+	/* Whether the GlobalManager is active (false) or stopped (true) */
+  
+	private boolean 	isStopping;
+	private boolean	destroyed;
+	private boolean 	needsSaving = false;
+  
+	private boolean seeding_only_mode = false;
+  
+  
+	public class Checker extends AEThread {
     boolean finished = false;
     int loopFactor;
     private static final int waitTime = 1000;
@@ -165,7 +169,7 @@ public class GlobalManagerImpl
     private int saveResumeLoopCount = 300000 / waitTime;
     
 
-    public Checker() {
+     public Checker() {
       super("Global Status Checker");
       loopFactor = 0;
       setPriority(Thread.MIN_PRIORITY);
@@ -246,7 +250,7 @@ public class GlobalManagerImpl
   	
 	AEDiagnostics.addEvidenceGenerator( this );
 	
-    stats = new GlobalManagerStatsImpl();
+    stats = new GlobalManagerStatsImpl( this );
        
     try{
     	stats_writer = new GlobalManagerStatsWriter( this );
@@ -1682,13 +1686,39 @@ public class GlobalManagerImpl
   
   
   
-  public void downloadComplete(DownloadManager manager) { }
+  	public void downloadComplete(DownloadManager manager) { }
 
-  public void completionChanged(DownloadManager manager, boolean bCompleted) { }
+  	public void completionChanged(DownloadManager manager, boolean bCompleted) { }
   
-  public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
-  }
+  	public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
+  	}
   
+	public long getTotalSwarmsPeerRate()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( 	now < last_swarm_stats_calc_time ||
+				now - last_swarm_stats_calc_time >= 1000 ){
+			
+			long	total = 0;
+					
+			List	managers = managers_cow;
+			
+			for (int i=0;i<managers.size();i++){
+				
+				DownloadManager	manager = (DownloadManager)managers.get(i);
+
+				total += manager.getStats().getTotalAveragePerPeer();
+			}
+			
+			last_swarm_stats	= total;
+			
+			last_swarm_stats_calc_time	= now;
+		}
+		
+		return( last_swarm_stats );
+	}
+	
 	public void
 	generate(
 		IndentWriter		writer )

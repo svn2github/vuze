@@ -34,27 +34,29 @@ public class
 GlobalManagerStatsImpl
 	implements GlobalManagerStats
 {
-
-	  private long total_data_bytes_received;
+	private GlobalManagerImpl		manager;
+	
+	private long total_data_bytes_received;
     private long total_protocol_bytes_received;
     
-	  private long totalDiscarded;
+	private long totalDiscarded;
     
     private long total_data_bytes_sent;
     private long total_protocol_bytes_sent;
 
-	  private Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+	private Average data_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
     private Average protocol_receive_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
-	  private Average data_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+	private Average data_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
     private Average protocol_send_speed = Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
 
-	  protected 
-	  GlobalManagerStatsImpl()
-	  {
-	    /* nothing */
-	  }
+	protected 
+	GlobalManagerStatsImpl(
+		GlobalManagerImpl	_manager )
+	{
+		manager = _manager;
+	}
   
     
   			// update methods
@@ -130,4 +132,10 @@ GlobalManagerStatsImpl
 	  public long getTotalDiscardedRaw() {
 		  return totalDiscarded;
 	  }
+	  
+	  public long getTotalSwarmsPeerRate()
+	  {
+		  return( manager.getTotalSwarmsPeerRate());
+	  }
+
 }

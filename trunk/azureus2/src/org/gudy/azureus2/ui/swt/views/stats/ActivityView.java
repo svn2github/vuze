@@ -70,8 +70,18 @@ public class ActivityView extends AbstractIView {
   }
   
   public void periodicUpdate() {
-    downSpeedGraphic.addIntsValue(manager.getStats().getDataReceiveRate() + manager.getStats().getProtocolReceiveRate(),COConfigurationManager.getIntParameter("Max Download Speed KBs") * 1024);
-    upSpeedGraphic.addIntsValue(manager.getStats().getDataSendRate() + manager.getStats().getProtocolSendRate(), COConfigurationManager.getIntParameter("Max Upload Speed KBs") * 1024);
+	  
+	int swarms_peer_speed = (int)stats.getTotalSwarmsPeerRate();
+	
+    downSpeedGraphic.addIntsValue(
+    	new int[]{ 	stats.getDataReceiveRate() + stats.getProtocolReceiveRate(),
+    				COConfigurationManager.getIntParameter("Max Download Speed KBs") * 1024,
+    				swarms_peer_speed });
+   
+    upSpeedGraphic.addIntsValue(
+    	new int[]{	stats.getDataSendRate() + stats.getProtocolSendRate(), 
+    				COConfigurationManager.getIntParameter("Max Upload Speed KBs") * 1024,
+    				swarms_peer_speed });
   }
   
   public void initialize(Composite composite) {

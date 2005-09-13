@@ -118,10 +118,20 @@ DownloadManagerStats
 
 	public long getProtocolSendRate();
   
-  
+	/**
+	 * Swarm speed
+	 * @return
+	 */
 	public long
 	getTotalAverage();
-			
+	
+		/**
+		 * Average for a peer in the swarm
+		 * @return
+		 */
+	public long
+	getTotalAveragePerPeer();
+	
 	public String
 	getElapsedTime();
 	

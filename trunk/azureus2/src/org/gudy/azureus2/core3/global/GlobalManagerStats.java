@@ -30,31 +30,32 @@ GlobalManagerStats
 {
 	public int getDataReceiveRate();
   
-  public int getProtocolReceiveRate();
+	public int getProtocolReceiveRate();
 	
 	public int getDataSendRate();
   
-  public int getProtocolSendRate();
+	public int getProtocolSendRate();
   
   
-  public long getTotalDataBytesReceived();
+	public long getTotalDataBytesReceived();
   
-  public long getTotalProtocolBytesReceived();
+	public long getTotalProtocolBytesReceived();
   
 	
-  public long getTotalDataBytesSent();
+	public long getTotalDataBytesSent();
   
-  public long getTotalProtocolBytesSent();
+	public long getTotalProtocolBytesSent();
   
-  
+  	public long getTotalSwarmsPeerRate();
+  	
   
 		// set methods
 		
 	public void	dataBytesSent( int bytes );
-  public void protocolBytesSent( int bytes );
+	public void protocolBytesSent( int bytes );
 		
 	public void dataBytesReceived( int bytes );
-  public void protocolBytesReceived( int bytes );
+	public void protocolBytesReceived( int bytes );
 		
 	public void
 	discarded(
