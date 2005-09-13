@@ -115,9 +115,7 @@ UPnPRootDeviceImpl
 			
 			return;
 		}
-		
-		System.out.println( "checking " + model + "/" + version );
-		
+				
 		for (int i=0;i<ROUTERS.length;i++){
 			
 			if ( ROUTERS[i].equals( model )){
