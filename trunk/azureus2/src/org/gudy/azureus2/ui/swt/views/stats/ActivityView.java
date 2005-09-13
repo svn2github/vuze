@@ -24,6 +24,7 @@
 package org.gudy.azureus2.ui.swt.views.stats;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -40,7 +41,9 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
@@ -112,6 +115,22 @@ public class ActivityView extends AbstractIView {
     upSpeedCanvas.setLayoutData(gridData);
     upSpeedGraphic = SpeedGraphic.getInstance();
     upSpeedGraphic.initialize(upSpeedCanvas);
+    
+	Legend.createLegendComposite(
+	    		panel,
+	        	new Color[] {
+	    			SpeedGraphic.color_value1,       		
+	    			SpeedGraphic.color_value0,
+	    			SpeedGraphic.color_average,
+	    			SpeedGraphic.color_value2plus,
+	    			SpeedGraphic.color_trimmed },
+	    		new String[] {
+	        			"ActivityView.legend.limit",
+	        			"ActivityView.legend.achieved",        			
+	        			"ActivityView.legend.peeraverage",        			
+	    				"ActivityView.legend.swarmaverage",
+	    				"ActivityView.legend.trimmed"}
+	        	);
   }
   
   public void delete() {    

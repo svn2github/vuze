@@ -54,6 +54,7 @@ public class Colors implements ParameterListener {
   public static Color colorAltRow;
   public static Color colorWarning;
   public static Color black;
+  public static Color light_grey;
   public static Color blue;
   public static Color grey;
   public static Color red;
@@ -141,7 +142,7 @@ public class Colors implements ParameterListener {
             Colors.blues[i].dispose();
         }
         Color[] colorsToDispose = {colorInverse, colorShiftLeft, colorShiftRight,
-            colorError, grey, black, blue, red, white, red_ConsoleView,
+            colorError, grey, black, light_grey, blue, red, white, red_ConsoleView,
             colorAltRow, colorWarning};
         for (int i = 0; i < colorsToDispose.length; i++) {
           if (colorsToDispose[i] != null && !colorsToDispose[i].isDisposed()) {
@@ -285,6 +286,7 @@ public class Colors implements ParameterListener {
     allocateColorAltRow();
     
     black = new Color(display, new RGB(0, 0, 0));
+    light_grey = new Color(display, new RGB(192, 192, 192));
     blue = new Color(display, new RGB(0, 0, 170));
     grey = new Color(display, new RGB(170, 170, 170));
     red = new Color(display, new RGB(255, 0, 0));

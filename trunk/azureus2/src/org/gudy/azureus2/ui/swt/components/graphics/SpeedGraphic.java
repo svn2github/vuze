@@ -38,6 +38,12 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   
   private static final int	ENTRIES	= 2000;
   
+  public static Color	color_average		= Colors.red;
+  public static Color	color_value0		= Colors.blues[Colors.BLUES_MIDDARK];	// approx
+  public static Color	color_value1		= Colors.blue;
+  public static Color	color_value2plus	= Colors.grey;
+  public static Color	color_trimmed		= Colors.light_grey;
+  
   private int internalLoop;
   private int graphicsUpdate;
   private Point oldSize;
@@ -50,6 +56,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   private int[][] all_values	= new int[1][ENTRIES];
   private int currentPosition;
   
+   
   
   
   private SpeedGraphic(Scale scale,ValueFormater formater) {
@@ -166,16 +173,45 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       int[] oldTargetValues = new int[all_values.length];
       Color background = Colors.blues[Colors.BLUES_DARKEST];
       Color foreground = Colors.blues[Colors.BLUES_MIDLIGHT];
-      int max = 0;
+      int[] maxs = new int[all_values.length];
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
         int position = currentPosition - x -1;
         if(position < 0)
           position+= 2000;
         for (int z=0;z<all_values.length;z++){
         	int value = all_values[z][position];
-        	if(value > max) max = value;
+        	if(value > maxs[z]){
+        		maxs[z] = value;
+        	}
         }
       }
+      int	max = maxs[0];
+      int	max_primary = max;
+      for (int i=1;i<maxs.length;i++){
+    	  int	m = maxs[i];
+    	  if ( i == 1 ){
+    		  if  ( max < m ){
+    			  max 			= m;
+    			  max_primary	= max;
+    		  }
+    	  }else{
+    		  	// trim secondary indicators so we don't loose the more important info 
+    		  
+    		  if ( max < m ){
+    			  
+    			  if ( m <= 4*max_primary ){
+    		  
+    				  max = m;
+    			  }else{
+    				  
+    				  max = 4*max_primary;
+    				  
+    				  break;
+    			  }
+    		  }
+    	  }
+      }
+      
       scale.setMax(max);
       int maxHeight = scale.getScaledValue(max);
       for(int x = 0 ; x < bounds.width - 71 ; x++) {
@@ -186,7 +222,8 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         int value = all_values[0][position];
         
         int xDraw = bounds.width - 71 - x;
-        int height = scale.getScaledValue(value);        
+        int height = scale.getScaledValue(value); 
+        
         gcImage.setForeground(background);
         gcImage.setBackground(foreground); 
         gcImage.setClipping(xDraw,bounds.height - 1 - height,1, height);
@@ -194,21 +231,37 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         gcImage.setClipping(0,0,bounds.width, bounds.height);
         
         for (int z=1;z<all_values.length;z++){
-	        int targetValue = all_values[z][position];
-	        if(x > 1 && targetValue > 0) {
-	        	int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
-	            int h2 = bounds.height - scale.getScaledValue(oldTargetValues[z]) - 2;
-	            gcImage.setForeground(z==1?Colors.blue:Colors.black);
-	            gcImage.drawLine(xDraw,h1,xDraw+1, h2);
+	        int targetValue 	= all_values[z][position];
+	        int oldTargetValue 	= oldTargetValues[z];
+	        
+	        if ( x > 1 && targetValue > 0 && oldTargetValue > 0 ) {
+	        	int	trimmed = 0;
+	        	if ( targetValue > max ){
+	        		targetValue = max;
+	        		trimmed++;
+	        	}
+	        	if ( oldTargetValue > max ){
+	        		oldTargetValue = max;
+	        		trimmed++;
+	        	}
+	        	if ( 	trimmed < 2 ||
+	        			trimmed == 2 && position % 3 == 0 ){
+	        		
+		        	int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
+	            	int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
+	            	gcImage.setForeground(z==1?color_value1:(trimmed>0?color_trimmed:color_value2plus));
+	            	gcImage.drawLine(xDraw,h1,xDraw+1, h2);
+	        	}
 	        }
-	        oldTargetValues[z] = targetValue;
+	        
+	        oldTargetValues[z] = all_values[z][position];
         }
         
         int average = computeAverage(position);
         if(x > 6) {
           int h1 = bounds.height - scale.getScaledValue(average) - 2;
           int h2 = bounds.height - scale.getScaledValue(oldAverage) - 2;
-          gcImage.setForeground(Colors.red);
+          gcImage.setForeground(color_average);
           gcImage.drawLine(xDraw,h1,xDraw+1, h2);
         }
         oldAverage = average;
@@ -216,7 +269,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       
       if(nbValues > 0) {
         int height = bounds.height - scale.getScaledValue(computeAverage(currentPosition-6)) - 2;
-        gcImage.setForeground(Colors.red);
+        gcImage.setForeground(color_average);
         gcImage.drawText(formater.format(computeAverage(currentPosition-6)),bounds.width - 65,height - 12,true);
       }    
       
@@ -253,5 +306,4 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     }
     COConfigurationManager.removeParameterListener("Graphics Update",this);
   }
-
 }

@@ -242,43 +242,6 @@ public class TableView
 
     return table;
   }
-  
-  /** Creates the legend Composite
-   * 
-   * @return The created Legend Composite
-   */
-  public Composite createLegendComposite(Color[] colors,String[] keys) {
-  	if(colors.length != keys.length) return null;
-  	
-  	Composite legend = new Composite(panel,SWT.NULL);
-  	legend.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-  	
-  	
-    GridLayout layout = new GridLayout();
-    int numColumns = colors.length * 2;
-    if(numColumns > 10) numColumns = 10;
-    layout.numColumns = numColumns;
-    legend.setLayout(layout);
-    GridData data;
-    
-    for(int i = 0 ; i < colors.length ; i++) {
-    	Label lblColor = new Label(legend,SWT.BORDER);
-    	lblColor.setBackground(colors[i]);
-    	data = new GridData();
-    	data.widthHint = 20;
-    	data.heightHint = 10;
-    	lblColor.setLayoutData(data);
-    	
-    	Label lblDesc = new Label(legend,SWT.NULL);
-    	Messages.setLanguageText(lblDesc,keys[i]);
-    	data = new GridData();
-    	data.widthHint = 150;
-    	lblDesc.setLayoutData(data);
-    }
-    
-    return legend;
-  	
-  }
 
   /** Sets up the sorter, columns, and context menu.
    *

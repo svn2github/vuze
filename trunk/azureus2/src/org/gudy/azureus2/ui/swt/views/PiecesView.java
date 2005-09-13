@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -68,7 +69,8 @@ public class PiecesView
   public void initialize(Composite composite) {
     super.initialize(composite);
     
-    super.createLegendComposite(
+    Legend.createLegendComposite(
+    		getComposite(),
         	new Color[] {
         		Colors.blues[Colors.BLUES_MIDLIGHT],
         		Colors.blues[Colors.BLUES_DARKEST],        		
