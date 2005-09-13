@@ -149,6 +149,16 @@ public class PlatformManagerImpl implements PlatformManager
 	}
 	
 	public void
+	unregisterAdditionalFileType(
+		String		name,				// e.g. "BitTorrent"
+		String		type )				// e.g. ".torrent"
+		
+		throws PlatformManagerException
+	{
+		throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
+	public void
 	registerAdditionalFileType(
 		String		name,				// e.g. "BitTorrent"
 		String		description,		// e.g. "BitTorrent File"

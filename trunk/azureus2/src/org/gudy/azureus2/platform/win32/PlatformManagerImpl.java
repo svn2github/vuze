@@ -385,38 +385,7 @@ PlatformManagerImpl
 		try{
 			String	az_exe_string	= getAureusEXELocation().toString();
 			
-			try{
-		
-				access.deleteValue( 	
-					AEWin32Access.HKEY_CURRENT_USER,
-					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\" + type,
-					"Application" );
-				
-			}catch( Throwable e ){
-				
-				// e.printStackTrace();
-			}
-			
-			try{
-				access.deleteKey( 	
-					AEWin32Access.HKEY_CLASSES_ROOT,
-					type );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-			
-			try{
-				access.deleteKey( 	
-					AEWin32Access.HKEY_CLASSES_ROOT,
-					name,
-					true );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
+			unregisterAdditionalFileType( name, type );
 
 			access.writeStringValue( 	
 					AEWin32Access.HKEY_CLASSES_ROOT,
@@ -461,6 +430,53 @@ PlatformManagerImpl
 		}catch( Throwable e ){
 			
 			throw( new PlatformManagerException( "Failed to write registry details", e ));
+		}
+	}
+	
+	public void
+	unregisterAdditionalFileType(
+		String		name,				// e.g. "BitTorrent"
+		String		type )				// e.g. ".torrent"
+		
+		throws PlatformManagerException
+	{
+		try{
+			try{
+		
+				access.deleteValue( 	
+					AEWin32Access.HKEY_CURRENT_USER,
+					"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\" + type,
+					"Application" );
+				
+			}catch( Throwable e ){
+				
+				// e.printStackTrace();
+			}
+			
+			try{
+				access.deleteKey( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					type );
+				
+			}catch( Throwable e ){
+				
+				// Debug.printStackTrace( e );
+			}
+			
+			try{
+				access.deleteKey( 	
+					AEWin32Access.HKEY_CLASSES_ROOT,
+					name,
+					true );
+				
+			}catch( Throwable e ){
+				
+				// Debug.printStackTrace( e );
+			}
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to delete registry details", e ));
 		}
 	}
 	

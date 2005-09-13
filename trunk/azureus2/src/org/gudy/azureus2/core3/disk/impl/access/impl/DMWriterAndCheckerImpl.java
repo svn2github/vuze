@@ -433,7 +433,8 @@ DMWriterAndCheckerImpl
 	checkPiece(
 		final int 						pieceNumber,
 		final CheckPieceResultHandler	_result_handler,
-		final Object					user_data )
+		final Object					user_data,
+		final boolean					low_priorty )
 	
 		throws Exception
 	{
@@ -600,7 +601,8 @@ DMWriterAndCheckerImpl
     		    					}
     		    				}
     		    				
-							});
+							},
+							low_priorty );
 	
 	   		    	total_async_check_requests++;
     		    	
@@ -1027,7 +1029,8 @@ DMWriterAndCheckerImpl
 										  	}
 							  			}
 									},
-									elt.getUserData());
+									elt.getUserData(),
+									false );
 						  }
 						}
 					}catch( Throwable e ){

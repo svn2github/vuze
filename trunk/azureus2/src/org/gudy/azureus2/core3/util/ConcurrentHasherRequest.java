@@ -32,26 +32,32 @@ import java.nio.ByteBuffer;
 public class 
 ConcurrentHasherRequest 
 {	
-	protected static AEMonitor		class_mon = new AEMonitor( "ConcHashRequest:class" );
+	private static AEMonitor		class_mon = new AEMonitor( "ConcHashRequest:class" );
 	
-	protected ConcurrentHasher						concurrent_hasher;
-	protected ByteBuffer							buffer;
-	protected ConcurrentHasherRequestListener		listener;
+	private ConcurrentHasher					concurrent_hasher;
+	private ByteBuffer							buffer;
+	private ConcurrentHasherRequestListener		listener;
 
-	protected byte[]								result;
-	protected boolean								cancelled;
+	private int									size;
+	private byte[]								result;
+	private boolean								cancelled;
+	private boolean								low_priority;
 	
-	protected AESemaphore	sem = new AESemaphore("ConcHashRequest");
+	private AESemaphore	sem = new AESemaphore("ConcHashRequest");
 	
 	protected
 	ConcurrentHasherRequest(
 		ConcurrentHasher					_concurrent_hasher,
 		ByteBuffer							_buffer,
-		ConcurrentHasherRequestListener		_listener )
+		ConcurrentHasherRequestListener		_listener,
+		boolean								_low_priorty )
 	{
 		concurrent_hasher	= _concurrent_hasher;
 		buffer				= _buffer;
 		listener			= _listener;
+		low_priority		= _low_priorty;
+		
+		size				= buffer.limit() - buffer.position();
 	}
 	
 		/**
@@ -106,6 +112,18 @@ ConcurrentHasherRequest
 	getCancelled()
 	{
 		return( cancelled );
+	}
+	
+	public int
+	getSize()
+	{
+		return( size );
+	}
+	
+	public boolean
+	isLowPriority()
+	{
+		return( low_priority );
 	}
 	
 	protected void

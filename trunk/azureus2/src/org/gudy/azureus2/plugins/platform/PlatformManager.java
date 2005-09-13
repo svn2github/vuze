@@ -59,6 +59,21 @@ PlatformManager
 	
 		throws PlatformManagerException;
 	
+		/**
+		 * Removes a file-type registration
+		 * @param name
+		 * @param type
+		 * @return
+		 * @throws PlatformManagerException
+		 */
+	
+	public void
+	unregisterAdditionalFileType(
+		String		name,				// e.g. "Wibble"
+		String		type )				// e.g. ".wib"
+	
+		throws PlatformManagerException;
+	
 	   /**
 	    * Reveals the file or directory with the platform's default browser
 	    * @param file_name The full path to a file or directory

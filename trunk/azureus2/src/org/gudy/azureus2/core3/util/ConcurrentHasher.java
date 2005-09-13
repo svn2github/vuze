@@ -155,10 +155,27 @@ ConcurrentHasher
 												requests_mon.exit();
 											}
 
-											if ( friendly_hashing ){
+											if ( friendly_hashing && req.isLowPriority()){
 					
 												try{  
-													Thread.sleep( 50 );
+													int	size = req.getSize();
+													
+														// pieces can be several MB so delay based on size
+													
+													final int max = 250;
+													final int min = 50;
+													
+													size = size/1024;	// in K
+													
+													size = size/8;
+													
+														// 4MB -> 500
+														// 1MB -> 125
+													
+													size = Math.min( size, max );
+													size = Math.max( size, min );
+													
+													Thread.sleep( size );
 						
 												}catch( Throwable e ){ 
 						
@@ -189,7 +206,7 @@ ConcurrentHasher
 	addRequest(
 		ByteBuffer		buffer )
 	{
-		return( addRequest( buffer, null ));
+		return( addRequest( buffer, null, false ));
 	}
 	
 		/**
@@ -197,15 +214,18 @@ ConcurrentHasher
 		 * @param buffer
 		 * @param priority
 		 * @param listener
+		 * @param low_priorty low priority checks will cause the "friendly hashing" setting to be
+		 * taken into account
 		 * @return
 		 */
 	
 	public ConcurrentHasherRequest
 	addRequest(
 		ByteBuffer							buffer,
-		ConcurrentHasherRequestListener		listener )
+		ConcurrentHasherRequestListener		listener,
+		boolean								low_priorty )
 	{
-		final ConcurrentHasherRequest	req = new ConcurrentHasherRequest( this, buffer, listener );
+		final ConcurrentHasherRequest	req = new ConcurrentHasherRequest( this, buffer, listener, low_priorty );
 			
 			// get permission to run a request
 		

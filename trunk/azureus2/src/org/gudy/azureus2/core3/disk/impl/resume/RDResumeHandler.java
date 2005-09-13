@@ -348,7 +348,8 @@ RDResumeHandler
 											pending_checks_sem.release();
 										}
 									},
-									null );
+									null, 
+									true );
 								
 								pending_check_num++;
 								
@@ -404,7 +405,8 @@ RDResumeHandler
 									pending_checks_sem.release();
 								}
 							},
-							null );
+							null,
+							true );
 						
 						pending_check_num++;
 						

@@ -48,7 +48,8 @@ DMWriterAndChecker
 	checkPiece(
 		int 					pieceNumber,
 		CheckPieceResultHandler	result_handler,
-		Object					user_data )
+		Object					user_data,
+		boolean					low_priority )
 	
 		throws Exception;
 	
