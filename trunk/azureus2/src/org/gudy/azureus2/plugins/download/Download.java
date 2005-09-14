@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.plugins.download;
 
+import java.io.File;
 import java.util.Map;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -515,6 +516,32 @@ Download
   	
   	public String
 	getSavePath();
+  	
+  		/**
+  		 * Move a download's data files to a new location. Download must be stopped and persistent
+  		 * @since 2.3.0.5
+  		 * @param new_parent_dir
+  		 * @throws DownloadException
+  		 */
+  	
+  	public void
+  	moveDataFiles(
+  		File	new_parent_dir )
+  	
+  		throws DownloadException;
+  	
+  		/**
+		 * Move a download's torrent file to a new location. Download must be stopped and persistent
+		 * @since 2.3.0.5
+		 * @param new_parent_dir
+		 * @throws DownloadException
+		 */
+  	
+  	public void
+  	moveTorrentFile(
+  		File	new_parent_dir ) 
+  	
+  		throws DownloadException;
   	
   		/**
   		 * return the current peer manager for the download. 

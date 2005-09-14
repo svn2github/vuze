@@ -503,11 +503,28 @@ public class MyTorrentsView
     itemExport.setMenu(menuExport);
 
     final MenuItem itemExportXML = new MenuItem(menuExport, SWT.PUSH);
-    Messages.setLanguageText(itemExportXML, "MyTorrentsView.menu.export"); //$NON-NLS-1$    
+    Messages.setLanguageText(itemExportXML, "MyTorrentsView.menu.export");   
 
     final MenuItem itemExportTorrent = new MenuItem(menuExport, SWT.PUSH);
-    Messages.setLanguageText(itemExportTorrent, "MyTorrentsView.menu.exporttorrent"); //$NON-NLS-1$
+    Messages.setLanguageText(itemExportTorrent, "MyTorrentsView.menu.exporttorrent");
  
+    // advanced > move menu
+    
+    final MenuItem itemFileMove = new MenuItem(menuAdvanced, SWT.CASCADE);
+    Messages.setLanguageText(itemFileMove, "MyTorrentsView.menu.movemenu");
+ 
+    final Menu menuFileMove = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemFileMove.setMenu(menuFileMove);
+
+    final MenuItem itemFileMoveData = new MenuItem(menuFileMove, SWT.PUSH);
+    Messages.setLanguageText(itemFileMoveData, "MyTorrentsView.menu.movedata");  
+
+    final MenuItem itemFileMoveTorrent = new MenuItem(menuFileMove, SWT.PUSH);
+    Messages.setLanguageText(itemFileMoveTorrent, "MyTorrentsView.menu.movetorrent");
+
+    // back to main menu
+    
+    
     final MenuItem itemHost = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemHost, "MyTorrentsView.menu.host"); //$NON-NLS-1$
     Utils.setMenuItemImage(itemHost, "host");
@@ -708,15 +725,15 @@ public class MyTorrentsView
         itemManualUpdate.setEnabled(hasSelection);
 
         itemAdvanced.setEnabled(hasSelection);
-        
+       
         boolean bChangeDir = false;
         if (hasSelection) {
           bChangeDir = true;
           
           boolean moveUp, moveDown, start, stop, changeUrl, barsOpened,
-                  forceStart, forceStartEnabled, recheck, manualUpdate, changeSpeed;
+                  forceStart, forceStartEnabled, recheck, manualUpdate, changeSpeed, fileMove;
           
-          moveUp = moveDown = changeUrl = barsOpened = manualUpdate = changeSpeed = true;
+          moveUp = moveDown = changeUrl = barsOpened = manualUpdate = changeSpeed = fileMove = true;
           
           forceStart = forceStartEnabled = recheck =  start = stop = false;
          
@@ -776,6 +793,8 @@ public class MyTorrentsView
             	         
             forceStart = forceStart || dm.isForceStart();
   
+            fileMove = fileMove && ManagerUtils.isStopped(dm) && dm.isPersistent();
+            
             if (!dm.isMoveableDown()){
               moveDown = false;
             }
@@ -822,6 +841,8 @@ public class MyTorrentsView
           itemRemove.setEnabled( true );
           itemRemoveAnd.setEnabled( true );
 
+          itemFileMove.setEnabled(fileMove);
+          
           StringBuffer speedText = new StringBuffer();
           String separator = "";
           //itemDownSpeed.                   
@@ -1097,6 +1118,76 @@ public class MyTorrentsView
           }
         }
       });
+    
+    itemFileMoveData.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event event) {
+          Object[] dms = getSelectedDataSources();
+          
+          if (dms != null && dms.length > 0 ){
+        	  
+        	DirectoryDialog dd = new DirectoryDialog(getComposite().getShell());
+			
+			dd.setFilterPath( TorrentOpener.getFilterPathData());
+					
+			dd.setText(MessageText.getString( "MyTorrentsView.menu.movedata.dialog" ));
+					
+			String path = dd.open();
+			
+			if ( path != null ){
+				
+				File	target = new File( path );
+
+				for (int i=0;i<dms.length;i++){
+					
+					try{
+						((DownloadManager)dms[i]).moveDataFiles( target );
+						
+					}catch( Throwable e ){
+	
+						LGLogger.logRepeatableAlert( "Download data move operation failed", e );
+					}
+				}
+			}    
+          }
+        }
+      });
+    
+    itemFileMoveTorrent.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event event) {
+          Object[] dms = getSelectedDataSources();
+          
+          if (dms != null && dms.length > 0 ){
+        	  
+        	DirectoryDialog dd = new DirectoryDialog(getComposite().getShell());
+			
+			dd.setFilterPath( TorrentOpener.getFilterPathData());
+					
+			dd.setText(MessageText.getString( "MyTorrentsView.menu.movedata.dialog" ));
+					
+			String path = dd.open();
+			
+			if ( path != null ){
+				
+				File	target = new File( path );
+
+				for (int i=0;i<dms.length;i++){
+					
+					try{
+						((DownloadManager)dms[i]).moveTorrentFile( target );
+						
+					}catch( Throwable e ){
+	
+						LGLogger.logRepeatableAlert( "Download torrent move operation failed", e );
+					}
+				}
+			}    
+          }
+        }
+      });
+    
+    
+    
+    
     itemHost.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event event) {
         hostSelectedTorrents();

@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.remote.download;
  *
  */
 
+import java.io.File;
 import java.util.Map;
 
 import org.gudy.azureus2.plugins.disk.DiskManager;
@@ -796,6 +797,22 @@ RPDownload
 		return( null );
 	}
  	
+ 	public void
+  	moveDataFiles(
+  		File	new_parent_dir )
+  	
+  		throws DownloadException
+  	{
+ 		notSupported();
+  	}
+  	
+  	public void
+  	moveTorrentFile(
+  		File	new_parent_dir )
+ 	{
+ 		notSupported();
+  	}
+  	
  	public void
 	requestTrackerAnnounce()
  	{

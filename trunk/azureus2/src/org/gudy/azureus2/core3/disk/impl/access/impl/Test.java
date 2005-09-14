@@ -850,11 +850,10 @@ Test
 		
 
 		
-		  public void
-		  mergeTorrentDetails(
+		public void
+		mergeTorrentDetails(
 		  	DownloadManager	other_manager )
-			{
-			
+		{	
 		}
 		  
 		
@@ -869,12 +868,23 @@ Test
 		{
 		}
 		 
-	 
-	  public Object getData (String key)
-	{
-		return( null );
+		public void
+		moveDataFiles(
+			File	new_parent_dir )
+		{
+		}
 		
-	}
+		 
+		public void
+		moveTorrentFile(
+			File	new_parent_dir )
+		{
+		}
+		
+	  public Object getData (String key)
+	  {
+		  return( null );	
+	  }
 	 
 	  public void setData (String key, Object value)
 		{

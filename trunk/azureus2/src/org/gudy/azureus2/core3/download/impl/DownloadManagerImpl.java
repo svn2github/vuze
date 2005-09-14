@@ -1888,10 +1888,139 @@ DownloadManagerImpl
   
   public boolean isAZMessagingEnabled() {  return az_messaging_enabled;  }
   
-  public void setAZMessagingEnabled( boolean enable ) {
+  public void 
+  setAZMessagingEnabled( 
+	boolean enable ) 
+  {
     az_messaging_enabled = enable;
   }
   
+  public void
+  moveDataFiles(
+	File	new_parent_dir )
+  
+  	throws DownloadManagerException
+  {
+	  if ( !isPersistent()){
+		  
+		  throw( new DownloadManagerException( "Download is not persistent" ));
+	  }
+	  
+	  int	state = getState();
+	  
+	  if ( 	state == DownloadManager.STATE_STOPPED ||
+			state == DownloadManager.STATE_ERROR ){
+		  
+		  	// old file will be a "file" for simple torrents, a dir for non-simple
+		  
+		  File	old_file = new File( getTorrentSaveDirAndFile());
+		  
+		  try{
+			  old_file = old_file.getCanonicalFile();
+			  
+			  new_parent_dir = new_parent_dir.getCanonicalFile();
+			  
+		  }catch( Throwable e ){
+			  
+			  Debug.printStackTrace(e);
+			  
+			  throw( new DownloadManagerException( "Failed to get canonical paths", e ));
+		  }
+		  
+		  if ( new_parent_dir.equals( old_file.getParentFile())){
+			  
+			  	// null operation
+			  
+			  return;
+		  }
+		  
+		  if ( !old_file.exists()){
+			  
+			  	// files not created yet
+			  
+			  new_parent_dir.mkdirs();
+			  
+			  setTorrentSaveDir( new_parent_dir.toString());
+
+			  return;
+		  }
+		  
+		  File new_file = new File( new_parent_dir, getTorrentSaveFile());
+		  
+		  if ( FileUtil.renameFile( old_file, new_file )){
+			  
+			  setTorrentSaveDir( new_parent_dir.toString());
+		  
+		  }else{
+			  
+			  throw( new DownloadManagerException( "rename operation failed" ));
+
+		  }
+	  }else{
+		  
+		  throw( new DownloadManagerException( "download not stopped or in error state" ));
+	  }
+  }
+  
+  public void
+  moveTorrentFile(
+	File	new_parent_dir )
+  
+	throws DownloadManagerException
+  {
+	  if ( !isPersistent()){
+		  
+		  throw( new DownloadManagerException( "Download is not persistent" ));
+	  }	  
+	  
+	  int	state = getState();
+
+	  if ( 	state == DownloadManager.STATE_STOPPED ||
+			state == DownloadManager.STATE_ERROR ){
+			  
+		  File	old_file = new File( getTorrentFileName() );
+		  
+		  if ( !old_file.exists()){
+			  
+			  Debug.out( "torrent file doesn't exist!" );
+			  
+			  return;
+		  }
+		  
+		  File	new_file = new File( new_parent_dir, old_file.getName());
+		  
+		  try{
+			  old_file = old_file.getCanonicalFile();
+			  
+			  new_parent_dir = new_parent_dir.getCanonicalFile();
+			  
+		  }catch( Throwable e ){
+			  
+			  Debug.printStackTrace(e);
+			  
+			  throw( new DownloadManagerException( "Failed to get canonical paths", e ));
+		  }
+		  
+		  if ( new_parent_dir.equals( old_file.getParentFile())){
+			  
+			  	// null op
+			  
+			  return;
+		  }
+		  
+		  if ( TorrentUtils.move( old_file, new_file )){
+		  
+			  setTorrentFileName( new_file.toString());
+		  			  
+		  }else{
+
+			  throw( new DownloadManagerException( "rename operation failed" ));
+		  }
+	  }else{
+			  
+		  throw( new DownloadManagerException( "download not stopped or in error state" ));
+	  }  
+  }
   
   private byte[]
   getIdentity()

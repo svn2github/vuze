@@ -26,6 +26,7 @@ package org.gudy.azureus2.pluginsimpl.local.download;
  *
  */
 
+import java.io.File;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -1204,6 +1205,36 @@ DownloadImpl
 		return( download_manager.getTorrentSaveDirAndFile());
  	}
 	
+	public void
+  	moveDataFiles(
+  		File	new_parent_dir )
+  	
+  		throws DownloadException
+  	{
+ 		try{
+ 			download_manager.moveDataFiles( new_parent_dir );
+ 			
+ 		}catch( DownloadManagerException e ){
+ 			
+ 			throw( new DownloadException("move operation failed", e ));
+ 		}
+  	}
+  	
+  	public void
+  	moveTorrentFile(
+  		File	new_parent_dir )
+  	
+  		throws DownloadException
+ 	{
+		try{
+ 			download_manager.moveTorrentFile( new_parent_dir );
+ 			
+ 		}catch( DownloadManagerException e ){
+ 			
+ 			throw( new DownloadException("move operation failed", e ));
+ 		}  	
+ 	}
+  	
  	public void
 	requestTrackerAnnounce()
  	{

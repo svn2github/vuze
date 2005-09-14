@@ -98,6 +98,17 @@ public class ManagerUtils {
     return true;
   }
   
+  public static boolean isStopped(DownloadManager dm) {
+	    if(dm == null)
+	      return false;
+	    int state = dm.getState();
+	    if (	state == DownloadManager.STATE_STOPPED ||
+	    		state == DownloadManager.STATE_ERROR	) {
+	      return true;
+	    }
+	    return false;
+	  }
+  
   public static boolean
   isForceStartable(
   	DownloadManager	dm )

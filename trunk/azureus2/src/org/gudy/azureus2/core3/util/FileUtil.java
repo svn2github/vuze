@@ -1019,100 +1019,188 @@ public class FileUtil {
     {
     	if ( to_file.exists()){
     		
-    		Debug.out( "renameFile: target file '" + to_file + "' already exists, failing" );
+			LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: target file '" + to_file + "' already exists, failing" );
     		
     		return( false );
     	}
     	
-		if ( 	(!COConfigurationManager.getBooleanParameter("Copy And Delete Data Rather Than Move")) &&
-				from_file.renameTo( to_file )){
-	  					
-			return( true );
+    	if ( !from_file.exists()){
+    		
+			LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: source file '" + from_file + "' already exists, failing" );
+    		
+    		return( false );
+    	}
+    	
+    	if ( from_file.isDirectory()){
+    		
+    		to_file.mkdirs();
+    		
+    		File[]	files = from_file.listFiles();
+    		
+    		if ( files == null ){
+    			
+    				// empty dir
+    			
+    			return( true );
+    		}
+    		
+    		int	last_ok = 0;
+    		
+    		for (int i=0;i<files.length;i++){
+    			
+  				File	ff = files[i];
+				File	tf = new File( to_file, ff.getName());
 
-		}else{
-			
-			boolean		success	= false;
-			
+    			try{
+     				if ( renameFile( ff, tf )){
+    					
+    					last_ok++;
+    					
+    				}else{
+    					
+    					break;
+    				}
+    			}catch( Throwable e ){
+    				
+    	   			LGLogger.logRepeatableAlert( "renameFile: failed to rename file '" + ff.toString() + "' to '" + tf.toString() + "'", e );
 
-			// can't rename across file systems under Linux - try copy+delete
+    				break;
+    			}
+    		}
+    		
+    		if ( last_ok == files.length ){
+    			
+    			File[]	remaining = from_file.listFiles();
+    			
+    			if ( remaining != null && remaining.length > 0 ){
+    				
+   					LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: files remain in '" + from_file.toString() + "', not deleting" );
+   				 
+    			}else{
+    				
+    				if ( !from_file.delete()){
+    					
+    					LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: failed to delete '" + from_file.toString() + "'" );
+    				}
+    			}
+    			
+    			return( true );
+    		}
+    		
+    			// recover by moving files back
+    		
+      		for (int i=0;i<last_ok;i++){
+        		
+				File	ff = files[i];
+				File	tf = new File( to_file, ff.getName());
 
-			FileInputStream		fis = null;
-			
-			FileOutputStream	fos = null;
-			
-			try{
-				fis = new FileInputStream( from_file );
-				
-				fos = new FileOutputStream( to_file );
-			
-				byte[]	buffer = new byte[65536];
-				
-				while( true ){
-					
-					int	len = fis.read( buffer );
-					
-					if ( len <= 0 ){
-						
-						break;
-					}
-					
-					fos.write( buffer, 0, len );
-				}
-				
-				fos.close();
-				
-				fos	= null;
-				
-				fis.close();
-				
-				fis = null;
-				
-				if ( !from_file.delete()){
-					
-					throw( new Exception( "Failed to delete '" + from_file.toString() + "'"));
-				}
-				
-				success	= true;
-				
+    			try{
+    				
+    				if ( !renameFile( tf, ff )){
+    					
+    	   				LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: recovery - failed to move file '" + tf.toString() + "' to '" + ff.toString() + "'" );
+    				}
+    			}catch( Throwable e ){
+    				
+    	   			LGLogger.logRepeatableAlert( "renameFile: recovery - failed to move file '" + tf.toString() + "' to '" + ff.toString() + "'", e );
+   	   			    				
+    			}
+      		}
+      		
+      		return( false );
+      		
+    	}else{
+			if ( 	(!COConfigurationManager.getBooleanParameter("Copy And Delete Data Rather Than Move")) &&
+					from_file.renameTo( to_file )){
+		  					
 				return( true );
+	
+			}else{
 				
-			}catch( Throwable e ){		
-
-				LGLogger.logUnrepeatableAlert( "Failed to rename '" + from_file.toString() + "' to '" + to_file.toString() + "'", e );
+				boolean		success	= false;
 				
-				return( false );
+					// can't rename across file systems under Linux - try copy+delete
+	
+				FileInputStream		fis = null;
 				
-			}finally{
+				FileOutputStream	fos = null;
 				
-				if ( fis != null ){
+				try{
+					fis = new FileInputStream( from_file );
 					
-					try{
-						fis.close();
+					fos = new FileOutputStream( to_file );
+				
+					byte[]	buffer = new byte[65536];
+					
+					while( true ){
 						
-					}catch( Throwable e ){
+						int	len = fis.read( buffer );
+						
+						if ( len <= 0 ){
+							
+							break;
+						}
+						
+						fos.write( buffer, 0, len );
 					}
-				}
-				
-				if ( fos != null ){
 					
-					try{
-						fos.close();
+					fos.close();
+					
+					fos	= null;
+					
+					fis.close();
+					
+					fis = null;
+					
+					if ( !from_file.delete()){
 						
-					}catch( Throwable e ){
+						LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: failed to delete '" + from_file.toString() + "'");
+						
+						throw( new Exception( "Failed to delete '" + from_file.toString() + "'"));
 					}
-				}
-				
-					// if we've failed then tidy up any partial copy that has been performed
-				
-				if ( !success ){
 					
-					if ( to_file.exists()){
+					success	= true;
+					
+					return( true );
+					
+				}catch( Throwable e ){		
+	
+					LGLogger.logRepeatableAlert( "renameFile: failed to rename '" + from_file.toString() + "' to '" + to_file.toString() + "'", e );
+					
+					return( false );
+					
+				}finally{
+					
+					if ( fis != null ){
 						
-						to_file.delete();
+						try{
+							fis.close();
+							
+						}catch( Throwable e ){
+						}
+					}
+					
+					if ( fos != null ){
+						
+						try{
+							fos.close();
+							
+						}catch( Throwable e ){
+						}
+					}
+					
+						// if we've failed then tidy up any partial copy that has been performed
+					
+					if ( !success ){
+						
+						if ( to_file.exists()){
+							
+							to_file.delete();
+						}
 					}
 				}
 			}
-		}
+    	}
     }
     
     

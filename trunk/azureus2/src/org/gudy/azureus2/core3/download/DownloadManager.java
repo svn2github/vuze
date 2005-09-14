@@ -21,6 +21,8 @@
  
 package org.gudy.azureus2.core3.download;
 
+import java.io.File;
+
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -306,12 +308,37 @@ DownloadManager
 	   * when to allocate and when to throw a missing-data error message.
 	   * @param already_allocated
 	   */
+	
 	public void setDataAlreadyAllocated( boolean already_allocated );
   
-  	/**
-  	 * gives the time this download was created (not the torrent but the download itself)
-  	 * @return
-  	 */
+		/**
+		 * Move data files to new location. Torrent must be in stopped/error state
+		 * @param new_parent_dir
+		 * @return
+		 */
+	
+	public void
+	moveDataFiles(
+		File	new_parent_dir )
+	
+		throws DownloadManagerException;
+	
+	 	/**
+	 	 * Move torrent file to new location. Download must be stopped/error
+	 	 * @param new_parent_dir
+	 	 * @return
+	 	 */
+	 
+	public void
+	moveTorrentFile(
+		File	new_parent_dir )
+	
+		throws DownloadManagerException;
+	  
+	  	/**
+	  	 * gives the time this download was created (not the torrent but the download itself)
+	  	 * @return
+	  	 */
   
   	public long
   	getCreationTime();
