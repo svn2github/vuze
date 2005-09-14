@@ -1135,6 +1135,8 @@ public class MyTorrentsView
 			
 			if ( path != null ){
 				
+				TorrentOpener.setFilterPathData( path );
+
 				File	target = new File( path );
 
 				for (int i=0;i<dms.length;i++){
@@ -1160,7 +1162,7 @@ public class MyTorrentsView
         	  
         	DirectoryDialog dd = new DirectoryDialog(getComposite().getShell());
 			
-			dd.setFilterPath( TorrentOpener.getFilterPathData());
+			dd.setFilterPath( TorrentOpener.getFilterPathTorrent());
 					
 			dd.setText(MessageText.getString( "MyTorrentsView.menu.movedata.dialog" ));
 					
@@ -1170,6 +1172,8 @@ public class MyTorrentsView
 				
 				File	target = new File( path );
 
+				TorrentOpener.setFilterPathTorrent( target.toString());
+				
 				for (int i=0;i<dms.length;i++){
 					
 					try{
