@@ -62,12 +62,9 @@ DHTNATPuncherImpl
 	}
 	
 	private static final int	RT_BIND_REQUEST		= 0;
-	private static final int	RT_BIND_REPLY		= 1;
+	private static final int	RT_BIND_REPLY		= 1;	
 	
-	
-		// DON'T rename/move this class as it'll change the key - maybe it was a bad choice :P
-	
-	private static byte[]		transfer_handler_key = new SHA1Simple().calculateHash(DHTNATPuncherImpl.class.getName().getBytes());
+	private static byte[]		transfer_handler_key = new SHA1Simple().calculateHash("Aelitis:NATPuncher:TransferHandlerKey".getBytes());
 	
 	private boolean				started;
 	
