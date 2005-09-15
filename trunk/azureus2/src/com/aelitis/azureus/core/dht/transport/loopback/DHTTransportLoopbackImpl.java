@@ -619,6 +619,19 @@ DHTTransportLoopbackImpl
 		throw( new DHTTransportException("not imp"));
 	}
 	
+	public byte[]
+	writeReadTransfer(
+		DHTTransportProgressListener	listener,
+		DHTTransportContact				target,
+		byte[]							handler_key,
+		byte[]							data,
+		long							timeout )	
+	
+		throws DHTTransportException
+	{
+		throw( new DHTTransportException("not imp"));
+	}
+	
 	public boolean
 	supportsStorage()
 	{

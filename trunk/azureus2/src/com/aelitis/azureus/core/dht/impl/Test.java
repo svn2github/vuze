@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.impl;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.control.DHTControlContact;
+import com.aelitis.azureus.core.dht.nat.impl.DHTNATPuncherImpl;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.loopback.DHTTransportLoopbackImpl;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
@@ -655,6 +656,52 @@ Test
 									new byte[1000],
 									60000 );
 		
+					}else if ( command == 'c' ){
+						
+						System.out.println( "call - dht0 <-> dht1" );
+											
+						byte[] res = 
+							dhts[0].getTransport().writeReadTransfer(
+									new DHTTransportProgressListener()
+									{
+										public void
+										reportSize(
+											long	size )
+										{
+											System.out.println( "   readWrite size: " + size );
+										}
+										
+										public void
+										reportActivity(
+											String	str )
+										{
+											System.out.println( "   readWrite act: " + str );
+										}
+										
+										public void
+										reportCompleteness(
+											int		percent )
+										{
+											System.out.println( "   readWrite %: " + percent );
+										}
+									},
+									dhts[1].getTransport().getLocalContact(),
+									th_key,
+									new byte[1000],
+									60000 );
+						
+						System.out.println( "    reply: len = " + res.length );
+						
+					}else if ( command == 'b' ){
+						
+						System.out.println( "rendezvous bind" );
+						
+						DHTNATPuncherImpl	puncher = (DHTNATPuncherImpl)dhts[0].getNATPuncher();
+						
+						puncher.setRendezvous( 
+								dhts[0].getTransport().getLocalContact(),
+								dhts[1].getTransport().getLocalContact());
+
 					}else{
 						
 						usage();

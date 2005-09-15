@@ -92,6 +92,16 @@ DHTTransport
 	
 		throws DHTTransportException;
 	
+	public byte[]
+	writeReadTransfer(
+		DHTTransportProgressListener	listener,
+		DHTTransportContact				target,
+		byte[]							handler_key,
+		byte[]							data,
+		long							timeout )	
+	
+		throws DHTTransportException;
+
 	public boolean
 	supportsStorage();
 	

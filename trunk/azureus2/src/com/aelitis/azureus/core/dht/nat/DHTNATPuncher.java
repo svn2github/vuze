@@ -33,4 +33,14 @@ DHTNATPuncher
 	public boolean
 	punch(
 		DHTTransportContact	target );
+	
+		/**
+		 * @param target
+		 * @param rendezvous
+		 */
+	
+	public void
+	setRendezvous(
+		DHTTransportContact		target,
+		DHTTransportContact		rendezvous );
 }

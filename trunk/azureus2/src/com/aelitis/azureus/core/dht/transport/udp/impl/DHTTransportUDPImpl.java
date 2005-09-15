@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.SecureRandom;
 import java.util.*;
 
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
@@ -106,6 +107,8 @@ DHTTransportUDPImpl
 	private Map	read_transfers		= new HashMap();
 	private Map write_transfers		= new HashMap();
 	
+	private Map	call_transfers		= new HashMap();
+	
 	private long last_address_change;
 	
 	private List listeners	= new ArrayList();
@@ -173,10 +176,8 @@ DHTTransportUDPImpl
 	
 	private Average	alien_average 		= Average.getInstance(STATS_PERIOD,STATS_DURATION_SECS);
 	private Average	alien_fv_average 	= Average.getInstance(STATS_PERIOD,STATS_DURATION_SECS);
-	
-		// TODO: secure enough?
-	
-	private	Random		random = new Random( SystemTime.getCurrentTime());
+		
+	private Random				random;
 	
 	private static final int	BAD_IP_BLOOM_FILTER_SIZE	= 32000;
 	private BloomFilter			bad_ip_bloom_filter;
@@ -215,6 +216,16 @@ DHTTransportUDPImpl
 		logger					= _logger;
 				
 		store_timeout			= request_timeout * 2;
+		
+		try{
+			random = new SecureRandom();
+			
+		}catch( Throwable e ){
+			
+			random	= new Random();
+			
+			logger.log( e );
+		}
 		
 		DHTUDPPacketHelper.registerCodecs();
 
@@ -1826,7 +1837,10 @@ DHTTransportUDPImpl
 		byte[]						handler_key,
 		DHTTransportTransferHandler	handler )
 	{
-		transfer_handlers.put( new HashWrapper( handler_key ), handler );
+		transfer_handlers.put( 
+			new HashWrapper( handler_key ), 
+			new transferHandlerInterceptor(
+					handler ));
 	}
 	
 	protected int
@@ -2096,6 +2110,7 @@ DHTTransportUDPImpl
 											if ( write_data != null ){
 												
 													// xfer complete, send ack if multi-packet xfer
+													// (ack already sent below if single packet)
 												
 												if ( 	req.getStartPosition() != 0 ||
 														req.getLength() != req.getTotalLength() ){
@@ -2109,9 +2124,9 @@ DHTTransportUDPImpl
 															req.getTotalLength());
 												}
 												
-												byte[]	reply = handler.handleWrite( originator, req.getRequestKey(), write_data );
+												byte[]	reply_data = handler.handleWrite( originator, req.getRequestKey(), write_data );
 												
-												if ( reply != null ){
+												if ( reply_data != null ){
 													
 													writeTransfer(
 															new DHTTransportProgressListener()
@@ -2141,7 +2156,7 @@ DHTTransportUDPImpl
 															originator,
 															req.getTransferKey(),
 															req.getRequestKey(),
-															reply,
+															reply_data,
 															WRITE_REPLY_TIMEOUT );
 															
 												}
@@ -2528,7 +2543,55 @@ DHTTransportUDPImpl
 		}
 	}
 	
+	public byte[]
+	writeReadTransfer(
+		DHTTransportProgressListener	listener,
+		DHTTransportContact				target,
+		byte[]							handler_key,
+		byte[]							data,
+		long							timeout )	
 	
+		throws DHTTransportException
+	{
+		byte[]	call_key = new byte[20];
+		
+		random.nextBytes( call_key );
+		
+		AESemaphore	call_sem = new AESemaphore( "DHTTransportUDP:calSem" );
+		
+		HashWrapper	wrapped_key = new HashWrapper( call_key );
+		
+		try{
+			this_mon.enter();
+			
+			call_transfers.put( wrapped_key, call_sem );
+		
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		writeTransfer( listener, target, handler_key, call_key, data, timeout );
+		
+		if ( call_sem.reserve( timeout )){
+			
+			try{
+				this_mon.enter();
+			
+				Object	res = call_transfers.remove( wrapped_key );
+				
+				if ( res instanceof byte[] ){
+					
+					return((byte[])res);
+				}
+			}finally{
+				
+				this_mon.exit();
+			}
+		}
+		
+		throw( new DHTTransportException( "timeout" ));
+	}
 	
 	
 	public void
@@ -3062,5 +3125,60 @@ DHTTransportUDPImpl
 				this_mon.exit();
 			}
 		}
+	}
+	
+	protected class
+	transferHandlerInterceptor
+		implements DHTTransportTransferHandler
+	{
+		private DHTTransportTransferHandler		handler;
+		
+		protected
+		transferHandlerInterceptor(
+			DHTTransportTransferHandler		_handler )
+		{
+			handler	= _handler;
+		}
+		
+		public byte[]
+    	handleRead(
+    		DHTTransportContact	originator,
+    		byte[]				key )
+		{
+			return( handler.handleRead( originator, key ));
+		}
+    	
+    	public byte[]
+    	handleWrite(
+    		DHTTransportContact	originator,
+    		byte[]				key,
+    		byte[]				value )
+    	{
+    		HashWrapper	key_wrapper = new HashWrapper( key );
+    		
+    			// see if this is the response to an outstanding call
+    		
+    		try{
+    			this_mon.enter();
+    			
+    			Object	obj = call_transfers.get( key_wrapper );
+    			
+    			if ( obj instanceof AESemaphore ){
+    				
+    				AESemaphore	sem = (AESemaphore)obj;
+    				
+    				call_transfers.put( key_wrapper, value );
+    				
+    				sem.release();
+    				
+    				return( null );
+    			}
+    		}finally{
+    			
+    			this_mon.exit();
+    		}
+    		
+    		return( handler.handleWrite( originator, key, value ));
+    	}
 	}
 }

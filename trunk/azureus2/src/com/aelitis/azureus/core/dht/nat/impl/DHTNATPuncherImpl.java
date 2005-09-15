@@ -26,8 +26,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -45,6 +46,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportProgressListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportReplyHandlerAdapter;
+import com.aelitis.azureus.core.dht.transport.DHTTransportTransferHandler;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 public class 
@@ -59,6 +61,12 @@ DHTNATPuncherImpl
 		}
 	}
 	
+	private static final int	RT_BIND_REQUEST		= 0;
+	private static final int	RT_BIND_REPLY		= 1;
+	
+	
+		// DON'T rename/move this class as it'll change the key - maybe it was a bad choice :P
+	
 	private static byte[]		transfer_handler_key = new SHA1Simple().calculateHash(DHTNATPuncherImpl.class.getName().getBytes());
 	
 	private boolean				started;
@@ -67,6 +75,7 @@ DHTNATPuncherImpl
 	private DHTLogger			logger;
 	
 	private PluginInterface		plugin_interface;
+	private Formatters			formatters;
 	
 	private static final long	REPUBLISH_TIME_MIN = 5*60*1000;
 	
@@ -78,9 +87,22 @@ DHTNATPuncherImpl
 	private volatile DHTTransportContact		rendezvous_local_contact;
 	private volatile DHTTransportContact		rendezvous_target;
 	
-	private Set		failed_rendezvous	= new HashSet();
+	private static final int FAILED_RENDEZVOUS_HISTORY_MAX	= 16;
+	
+	private Map		failed_rendezvous	= 
+		new LinkedHashMap(FAILED_RENDEZVOUS_HISTORY_MAX,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry eldest) 
+			{
+				return size() > FAILED_RENDEZVOUS_HISTORY_MAX;
+			}
+		};
 	
 	private boolean	rendezvous_thread_running;
+	
+	private Map		explicit_rendezvous_map		= new HashMap();
 	
 	public
 	DHTNATPuncherImpl(
@@ -92,7 +114,8 @@ DHTNATPuncherImpl
 		
 		plugin_interface	= dht.getLogger().getPluginInterface();
 		
-		pub_mon	= plugin_interface.getUtilities().getMonitor();
+		formatters	= plugin_interface.getUtilities().getFormatters();
+		pub_mon		= plugin_interface.getUtilities().getMonitor();
 	}
 	
 	public void
@@ -132,6 +155,28 @@ DHTNATPuncherImpl
 			});
 		
 	
+		transport.registerTransferHandler(
+			transfer_handler_key,
+			new DHTTransportTransferHandler()
+			{
+				public byte[]
+	        	handleRead(
+	        		DHTTransportContact	originator,
+	        		byte[]				key )
+				{
+					return( null );
+				}
+				        	
+	        	public byte[]
+	        	handleWrite(
+	        		DHTTransportContact	originator,
+	        		byte[]				key,
+	        		byte[]				value )
+	        	{
+	        		return( receiveRequest( originator, value ));
+	        	}
+			});
+		
 		UTTimer	timer = plugin_interface.getUtilities().createTimer(
 							"DHTNATPuncher:refresher", true );
 		
@@ -186,7 +231,7 @@ DHTNATPuncherImpl
 							}
 							
 							try{
-								publishSupport( force );
+								publishSupport();
 								
 							}finally{
 								
@@ -207,8 +252,7 @@ DHTNATPuncherImpl
 	}
 	
 	protected void
-	publishSupport(
-		boolean		force )
+	publishSupport()
 	{
 		DHTTransport	transport = dht.getTransport();
 	
@@ -216,143 +260,168 @@ DHTNATPuncherImpl
 			
 			DHTTransportContact	local_contact = transport.getLocalContact();
 			
+				// see if the rendezvous has failed and therefore we are required to find a new one
+			
+			boolean force = 
+				rendezvous_target != null && 
+				failed_rendezvous.containsKey( rendezvous_target.getAddress());
+			
 			if ( rendezvous_local_contact != null && !force ){
 				
 				if ( local_contact.getAddress().equals( rendezvous_local_contact.getAddress())){
 					
-						// already running
+						// already running for the current local contact
 					
 					return;
 				}
 			}
 			
-			final DHTTransportContact[] new_rendezvous_target			= { null };
+			DHTTransportContact	explicit = (DHTTransportContact)explicit_rendezvous_map.get( local_contact.getAddress());
 			
-			DHTTransportContact[]	reachables = dht.getTransport().getReachableContacts();
-				
-			int reachables_tried	= 0;
-			int reachables_skipped	= 0;
-			
-			final Semaphore sem = plugin_interface.getUtilities().getSemaphore();
-			
-			for (int i=0;i<reachables.length;i++){
-				
-				DHTTransportContact	contact = reachables[i];
+			if ( explicit != null ){
 				
 				try{
 					pub_mon.enter();
-
-						// see if we've found a good one yet
+				
+					rendezvous_local_contact	= local_contact;
+					rendezvous_target			= explicit;
+				
+					runRendezvous();
 					
-					if ( new_rendezvous_target[0] != null ){
-					
-						break;
-					}
-					
-						// skip any known bad ones
-					
-					if ( failed_rendezvous.contains( contact.getAddress())){
-						
-						reachables_skipped++;
-						
-						sem.release();
-						
-						continue;
-					}
 				}finally{
 					
 					pub_mon.exit();
 				}
+			}else{
 				
-				if ( i > 0 ){
+				final DHTTransportContact[] new_rendezvous_target			= { null };
+				
+				DHTTransportContact[]	reachables = dht.getTransport().getReachableContacts();
+					
+				int reachables_tried	= 0;
+				int reachables_skipped	= 0;
+				
+				final Semaphore sem = plugin_interface.getUtilities().getSemaphore();
+				
+				for (int i=0;i<reachables.length;i++){
+					
+					DHTTransportContact	contact = reachables[i];
 					
 					try{
-						Thread.sleep( 1000 );
+						pub_mon.enter();
+	
+							// see if we've found a good one yet
 						
-					}catch( Throwable e ){
+						if ( new_rendezvous_target[0] != null ){
 						
+							break;
+						}
+						
+							// skip any known bad ones
+						
+						if ( failed_rendezvous.containsKey( contact.getAddress())){
+							
+							reachables_skipped++;
+							
+							sem.release();
+							
+							continue;
+						}
+					}finally{
+						
+						pub_mon.exit();
 					}
-				}
-				
-				reachables_tried++;
-				
-				contact.sendPing(
-					new DHTTransportReplyHandlerAdapter()
-					{
-						public void
-						pingReply(
-							DHTTransportContact ok_contact )
+					
+					if ( i > 0 ){
+						
+						try{
+							Thread.sleep( 1000 );
+							
+						}catch( Throwable e ){
+							
+						}
+					}
+					
+					reachables_tried++;
+					
+					contact.sendPing(
+						new DHTTransportReplyHandlerAdapter()
 						{
-							// System.out.println( "Punch:" + ok_contact.getString() + " OK" );
-							
-							try{
-								pub_mon.enter();
-							
-								if ( new_rendezvous_target[0] == null ){
+							public void
+							pingReply(
+								DHTTransportContact ok_contact )
+							{
+								// System.out.println( "Punch:" + ok_contact.getString() + " OK" );
 								
-									new_rendezvous_target[0] = ok_contact;
+								try{
+									pub_mon.enter();
+								
+									if ( new_rendezvous_target[0] == null ){
+									
+										new_rendezvous_target[0] = ok_contact;
+									}
+								}finally{
+									
+									pub_mon.exit();
+									
+									sem.release();
 								}
-							}finally{
-								
-								pub_mon.exit();
-								
-								sem.release();
 							}
-						}
-						
-						public void
-						failed(
-							DHTTransportContact 	failed_contact,
-							Throwable				e )
-						{
-							try{
-								// System.out.println( "Punch:" + failed_contact.getString() + " Failed" );
-								
-							}finally{
-								
-								sem.release();
-							}
-						}
-					});
-			}
-			
-			for (int i=0;i<reachables.length;i++){
-
-				sem.reserve();
-				
-				try{
-					pub_mon.enter();
-
-					if ( new_rendezvous_target[0] != null ){
-					
-						rendezvous_target			= new_rendezvous_target[0];					
-						rendezvous_local_contact	= local_contact;
-					
-						log( "Rendezvous found: " + rendezvous_local_contact.getString() + " -> " + rendezvous_target.getString());
-
-						runRendezvous();
-					
-						break;
-					}
-				}finally{
-					
-					pub_mon.exit();
-				}
-			}
-			
-			if ( new_rendezvous_target[0] == null ){
-				
-				log( "No rendezvous found: candidates=" + reachables.length +",tried="+ reachables_tried+",skipped=" +reachables_skipped );
 							
-				try{
-					pub_mon.enter();
-
-					rendezvous_local_contact	= null;
-					rendezvous_target			= null;
+							public void
+							failed(
+								DHTTransportContact 	failed_contact,
+								Throwable				e )
+							{
+								try{
+									// System.out.println( "Punch:" + failed_contact.getString() + " Failed" );
+									
+								}finally{
+									
+									sem.release();
+								}
+							}
+						});
+				}
+				
+				for (int i=0;i<reachables.length;i++){
+	
+					sem.reserve();
 					
-				}finally{
-					
-					pub_mon.exit();
+					try{
+						pub_mon.enter();
+	
+						if ( new_rendezvous_target[0] != null ){
+						
+							rendezvous_target			= new_rendezvous_target[0];					
+							rendezvous_local_contact	= local_contact;
+						
+							log( "Rendezvous found: " + rendezvous_local_contact.getString() + " -> " + rendezvous_target.getString());
+	
+							runRendezvous();
+						
+							break;
+						}
+					}finally{
+						
+						pub_mon.exit();
+					}
+				}
+			
+				if ( new_rendezvous_target[0] == null ){
+				
+					log( "No rendezvous found: candidates=" + reachables.length +",tried="+ reachables_tried+",skipped=" +reachables_skipped );
+							
+					try{
+						pub_mon.enter();
+	
+						rendezvous_local_contact	= null;
+						rendezvous_target			= null;
+						
+					}finally{
+						
+						pub_mon.exit();
+					}
 				}
 			}
 		}else{
@@ -564,6 +633,33 @@ DHTNATPuncherImpl
 	
 				if ( current_target != null ){
 							
+					if ( sendBind( current_target )){
+					
+						System.out.println( "Rendezvous:" + current_target.getString() + " OK" );
+												
+						rendevzous_fail_count[0]	= 0;
+						
+					}else{
+						
+						if ( rendevzous_fail_count[0]++ == 4 ){
+							
+							log( "Rendezvous:" + current_target.getString() + " Failed" );
+							
+							try{
+								pub_mon.enter();
+							
+								failed_rendezvous.put( current_target.getAddress(),"");
+								
+							}finally{
+								
+								pub_mon.exit();
+							}
+							
+							publish( true );
+						}			
+					}
+					
+					/*
 					current_target.sendPing(
 						new DHTTransportReplyHandlerAdapter()
 						{
@@ -571,9 +667,9 @@ DHTNATPuncherImpl
 							pingReply(
 								DHTTransportContact ok_contact )
 							{
-								// System.out.println( "Rendezvous:" + ok_contact.getString() + " OK" );
+								System.out.println( "Rendezvous:" + ok_contact.getString() + " OK" );
 								
-								// failed( ok_contact, null );
+								 //failed( ok_contact, null );
 								
 								rendevzous_fail_count[0]	= 0;
 							}
@@ -590,7 +686,7 @@ DHTNATPuncherImpl
 									try{
 										pub_mon.enter();
 									
-										failed_rendezvous.add( failed_contact.getAddress());
+										failed_rendezvous.put( failed_contact.getAddress(),"");
 										
 									}finally{
 										
@@ -602,6 +698,7 @@ DHTNATPuncherImpl
 	
 							}
 						});
+						*/
 				}
 				
 			}catch( Throwable e ){
@@ -623,16 +720,14 @@ DHTNATPuncherImpl
 		}
 	}
 	
-	public boolean
-	punch(
-		DHTTransportContact	target )
+	protected byte[]
+	sendRequest(
+		DHTTransportContact		target,
+		byte[]					data )
 	{
-		DHTTransportContact	rendezvous = getRendezvous( target );
-		
-		if ( rendezvous != null ){
-			
-			try{
-				rendezvous.getTransport().writeTransfer(
+		try{
+			return(
+				dht.getTransport().writeReadTransfer(
 					new DHTTransportProgressListener()
 					{
 						public void
@@ -653,25 +748,171 @@ DHTNATPuncherImpl
 						{						
 						}
 					},
-					rendezvous,
+					target,
 					transfer_handler_key,
-					new byte[0],
-					new byte[0],
-					30000 );
+					data,
+					30000 ));
 				
-			}catch( DHTTransportException e ){
+		}catch( DHTTransportException e ){
+			
+			log(e);
+			
+			return( null );
+		}		
+	}
+	
+	protected byte[]
+	receiveRequest(
+		DHTTransportContact		originator,
+		byte[]					data )
+	{
+		try{
+			Map	res = receiveRequest( originator, formatters.bDecode( data ));
+			
+			if ( res == null ){
 				
-				e.printStackTrace();
+				return( null );
+			}
+			
+			return( formatters.bEncode( res ));
+			
+		}catch( Throwable e ){
+			
+			log(e);
+			
+			return( null );
+		}
+	}
+	
+	protected Map
+	sendRequest(
+		DHTTransportContact		target,
+		Map						data )
+	{
+		try{
+			byte[]	res = sendRequest( target, formatters.bEncode( data ));
+			
+			if ( res == null ){
+				
+				return( null );
+			}
+			
+			return( formatters.bDecode( res ));
+			
+		}catch( Throwable e ){
+			
+			log(e);
+			
+			return( null );
+		}
+	}
+	
+	protected Map
+	receiveRequest(
+		DHTTransportContact		originator,
+		Map						data )
+	{
+		int	type = ((Long)data.get("type")).intValue();
+		
+		Map	response = new HashMap();
+		
+		switch( type ){
+		
+			case RT_BIND_REQUEST:
+			{
+				response.put( "type", new Long( RT_BIND_REPLY ));
+				
+				receiveBind( originator, data, response );
+				
+				break;
+			}
+			
+			default:
+			{
+				response = null;
+				
+				break;
 			}
 		}
 		
+		return( response );
+	}
+	
+	protected void
+	receiveBind(
+		DHTTransportContact		originator,
+		Map						request,
+		Map						response )
+	{
+		System.out.println( "received bind request" );
+	}
+	
+	protected boolean
+	sendBind(
+		DHTTransportContact	target )
+	{
+		try{
+			Map	request = new HashMap();
+			
+			request.put("type", new Long( RT_BIND_REQUEST ));
+			
+			Map response = sendRequest( target, request );
+			
+			if ( response == null ){
+				
+				return( false );
+			}
+			
+			if (((Long)response.get( "type" )).intValue() == RT_BIND_REPLY ){
+				
+				System.out.println( "received bind reply" );
+				
+				return( true );
+			}
+			
+			return( false );
+			
+		}catch( Throwable e ){
+			
+			log(e);
+			
+			return( false );
+		}
+	}
+			
+	public boolean
+	punch(
+		DHTTransportContact	target )
+	{
+
+		
 		return( false );
+	}
+	
+	public void
+	setRendezvous(
+		DHTTransportContact		target,
+		DHTTransportContact		rendezvous )
+	{
+		explicit_rendezvous_map.put( target.getAddress(), rendezvous );
+		
+		if ( target.getAddress().equals( dht.getTransport().getLocalContact().getAddress())){
+			
+			publish( true );
+		}
 	}
 	
 	protected DHTTransportContact
 	getRendezvous(
 		DHTTransportContact	target )
 	{
+		DHTTransportContact	explicit = (DHTTransportContact)explicit_rendezvous_map.get( target.getAddress());
+		
+		if ( explicit != null ){
+			
+			return( explicit );
+		}
+		
 		byte[]	key = getPublishKey( target );
 		
 		final DHTTransportValue[]	result_value = {null};
