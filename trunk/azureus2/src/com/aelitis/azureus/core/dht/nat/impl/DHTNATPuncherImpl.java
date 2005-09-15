@@ -26,9 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -51,7 +49,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 public class 
 DHTNATPuncherImpl
-	implements DHTNATPuncher, UTTimerEventPerformer
+	implements DHTNATPuncher
 {
 	private static boolean		TESTING	= false;
 	
@@ -64,6 +62,10 @@ DHTNATPuncherImpl
 	private static final int	RT_BIND_REQUEST		= 0;
 	private static final int	RT_BIND_REPLY		= 1;	
 	
+	private static final int	RESP_OK			= 0;
+	private static final int	RESP_NOT_OK		= 1;
+	private static final int	RESP_FAILED		= 3;
+	
 	private static byte[]		transfer_handler_key = new SHA1Simple().calculateHash("Aelitis:NATPuncher:TransferHandlerKey".getBytes());
 	
 	private boolean				started;
@@ -74,9 +76,19 @@ DHTNATPuncherImpl
 	private PluginInterface		plugin_interface;
 	private Formatters			formatters;
 	
-	private static final long	REPUBLISH_TIME_MIN = 5*60*1000;
+	private static final long	REPUBLISH_TIME_MIN 			= 5*60*1000;
+	private static final long	TRANSFER_TIMEOUT			= 60*1000;
+	private static final long	RENDEZVOUS_LOOKUP_TIMEOUT	= 30*1000;
 	
-	private long	last_action;
+	private static final int	RENDEZVOUS_SERVER_MAX			= 8;
+	private static final long	RENDEZVOUS_SERVER_TIMEOUT 		= 5*60*1000;
+	private static final int	RENDEZVOUS_CLIENT_PING_PERIOD	= 50*1000;		// some routers only hold tunnel for 60s
+	private static final int	RENDEZVOUS_PING_FAIL_LIMIT		= 4;
+	
+	private Monitor	server_mon;
+	private Map 	rendezvous_bindings = new HashMap();
+	
+	private long	last_publish;
 	
 	private Monitor	pub_mon;
 	private boolean	publish_in_progress;
@@ -113,6 +125,7 @@ DHTNATPuncherImpl
 		
 		formatters	= plugin_interface.getUtilities().getFormatters();
 		pub_mon		= plugin_interface.getUtilities().getMonitor();
+		server_mon	= plugin_interface.getUtilities().getMonitor();
 	}
 	
 	public void
@@ -177,17 +190,60 @@ DHTNATPuncherImpl
 		UTTimer	timer = plugin_interface.getUtilities().createTimer(
 							"DHTNATPuncher:refresher", true );
 		
-		timer.addPeriodicEvent(	REPUBLISH_TIME_MIN, this );
+		timer.addPeriodicEvent(	
+				REPUBLISH_TIME_MIN,
+				new UTTimerEventPerformer()
+				{
+					public void
+					perform(
+						UTTimerEvent		event )
+					{
+						publish( false );
+					}
+				});
+				
+		timer.addPeriodicEvent(	
+				RENDEZVOUS_SERVER_TIMEOUT/2,
+				new UTTimerEventPerformer()
+				{
+					public void
+					perform(
+						UTTimerEvent		event )
+					{
+						long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+						
+						try{
+							server_mon.enter();
+							
+							Iterator	it = rendezvous_bindings.values().iterator();
+							
+							while( it.hasNext()){
+								
+								long	time = ((Long)it.next()).longValue();
+								
+								if ( time < now ){
+									
+										// clock change, easiest approach is to remove it
+									
+									it.remove();
+									
+								}else if ( now - time > RENDEZVOUS_SERVER_TIMEOUT ){
+									
+										// timeout
+									
+									it.remove();
+								}
+							}
+						}finally{
+							
+							server_mon.exit();
+						}
+					}
+				});
 		
 		publish( false );
 	}
 	
-	public void
-	perform(
-		UTTimerEvent		event )
-	{
-		publish( false );
-	}
 	
 	protected void
 	publish(
@@ -195,15 +251,15 @@ DHTNATPuncherImpl
 	{
 		long now = plugin_interface.getUtilities().getCurrentSystemTime();
 		
-		if ( now < last_action && !force ){
+		if ( now < last_publish && !force ){
 			
-			last_action	= now;
+			last_publish	= now;
 			
 		}else{
 			
-			if ( force || now - last_action >= REPUBLISH_TIME_MIN ){
+			if ( force || now - last_publish >= REPUBLISH_TIME_MIN ){
 				
-				last_action	= now;
+				last_publish	= now;
 				
 				plugin_interface.getUtilities().createThread(
 					"DHTNATPuncher:publisher",
@@ -469,7 +525,7 @@ DHTNATPuncherImpl
 		DHTTransportContact		current_local		= null;
 		DHTTransportContact		current_target		= null;
 		
-		final int[]	rendevzous_fail_count = {0};
+		int	rendevzous_fail_count = 0;
 		
 		while( true ){
 			
@@ -539,7 +595,7 @@ DHTNATPuncherImpl
 					
 							log( "Adding publish for " + latest_local.getString() + " -> " + latest_target.getString());
 
-							rendevzous_fail_count[0]	= 0;
+							rendevzous_fail_count = 0;
 							
 							dht.put(
 									getPublishKey( latest_local ),
@@ -584,7 +640,7 @@ DHTNATPuncherImpl
 						
 						log( "Updating publish for " + latest_local.getString() + " -> " + latest_target.getString());
 
-						rendevzous_fail_count[0]	= 0;
+						rendevzous_fail_count	= 0;
 						
 						dht.put(
 								getPublishKey( latest_local ),
@@ -630,15 +686,28 @@ DHTNATPuncherImpl
 	
 				if ( current_target != null ){
 							
-					if ( sendBind( current_target )){
+					int	bind_result = sendBind( current_target );
+					
+					if ( bind_result == RESP_OK ){
 					
 						System.out.println( "Rendezvous:" + current_target.getString() + " OK" );
 												
-						rendevzous_fail_count[0]	= 0;
+						rendevzous_fail_count	= 0;
 						
 					}else{
 						
-						if ( rendevzous_fail_count[0]++ == 4 ){
+						if ( bind_result == RESP_NOT_OK ){
+							
+								// denied access
+							
+							rendevzous_fail_count = RENDEZVOUS_PING_FAIL_LIMIT;
+							
+						}else{
+							
+							rendevzous_fail_count++;
+						}
+						
+						if ( rendevzous_fail_count == RENDEZVOUS_PING_FAIL_LIMIT ){
 							
 							log( "Rendezvous:" + current_target.getString() + " Failed" );
 							
@@ -705,7 +774,7 @@ DHTNATPuncherImpl
 			}finally{
 				
 				try{
-					Thread.sleep( 30*1000 );
+					Thread.sleep( RENDEZVOUS_CLIENT_PING_PERIOD );
 					
 				}catch( Throwable e ){
 					
@@ -748,7 +817,7 @@ DHTNATPuncherImpl
 					target,
 					transfer_handler_key,
 					data,
-					30000 ));
+					TRANSFER_TIMEOUT ));
 				
 		}catch( DHTTransportException e ){
 			
@@ -842,9 +911,37 @@ DHTNATPuncherImpl
 		Map						response )
 	{
 		System.out.println( "received bind request" );
+		
+		boolean	ok = true;
+		
+		try{
+			server_mon.enter();
+		
+			Long	last_time = (Long)rendezvous_bindings.get( originator.getAddress());
+		
+			if ( last_time == null ){
+			
+				if ( rendezvous_bindings.size() == RENDEZVOUS_SERVER_MAX ){
+					
+					ok	= false;
+				}
+			}
+			
+			if ( ok ){
+				
+				long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+				
+				rendezvous_bindings.put( originator.getAddress(), new Long( now ));
+			}
+		}finally{
+			
+			server_mon.exit();
+		}
+		
+		response.put( "ok", new Long(ok?1:0));
 	}
 	
-	protected boolean
+	protected int
 	sendBind(
 		DHTTransportContact	target )
 	{
@@ -857,23 +954,26 @@ DHTNATPuncherImpl
 			
 			if ( response == null ){
 				
-				return( false );
+				return( RESP_FAILED );
 			}
 			
 			if (((Long)response.get( "type" )).intValue() == RT_BIND_REPLY ){
 				
 				System.out.println( "received bind reply" );
 				
-				return( true );
+				if (((Long)response.get("ok")).intValue() == 1 ){
+					
+					return( RESP_OK );
+				}
 			}
 			
-			return( false );
+			return( RESP_NOT_OK );
 			
 		}catch( Throwable e ){
 			
 			log(e);
 			
-			return( false );
+			return( RESP_FAILED );
 		}
 	}
 			
@@ -920,7 +1020,7 @@ DHTNATPuncherImpl
 					"DHTNatPuncher: lookup for '" + target.getString() + "'",
 					(byte)0,
 					1,
-					60000,
+					RENDEZVOUS_LOOKUP_TIMEOUT,
 					false,
 					new DHTOperationAdapter()
 					{
