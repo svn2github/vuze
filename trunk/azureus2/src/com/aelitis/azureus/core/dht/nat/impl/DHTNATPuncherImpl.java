@@ -59,12 +59,16 @@ DHTNATPuncherImpl
 		}
 	}
 	
-	private static final int	RT_BIND_REQUEST		= 0;
-	private static final int	RT_BIND_REPLY		= 1;	
+	private static final int	RT_BIND_REQUEST			= 0;
+	private static final int	RT_BIND_REPLY			= 1;	
+	private static final int	RT_PUNCH_REQUEST		= 2;
+	private static final int	RT_PUNCH_REPLY			= 3;	
+	private static final int	RT_CONNECT_REQUEST		= 4;
+	private static final int	RT_CONNECT_REPLY		= 5;	
 	
 	private static final int	RESP_OK			= 0;
 	private static final int	RESP_NOT_OK		= 1;
-	private static final int	RESP_FAILED		= 3;
+	private static final int	RESP_FAILED		= 2;
 	
 	private static byte[]		transfer_handler_key = new SHA1Simple().calculateHash("Aelitis:NATPuncher:TransferHandlerKey".getBytes());
 	
@@ -75,6 +79,7 @@ DHTNATPuncherImpl
 	
 	private PluginInterface		plugin_interface;
 	private Formatters			formatters;
+	private UTTimer				timer;
 	
 	private static final long	REPUBLISH_TIME_MIN 			= 5*60*1000;
 	private static final long	TRANSFER_TIMEOUT			= 60*1000;
@@ -126,6 +131,9 @@ DHTNATPuncherImpl
 		formatters	= plugin_interface.getUtilities().getFormatters();
 		pub_mon		= plugin_interface.getUtilities().getMonitor();
 		server_mon	= plugin_interface.getUtilities().getMonitor();
+		
+		timer = plugin_interface.getUtilities().createTimer(
+						"DHTNATPuncher:refresher", true );
 	}
 	
 	public void
@@ -187,9 +195,6 @@ DHTNATPuncherImpl
 	        	}
 			});
 		
-		UTTimer	timer = plugin_interface.getUtilities().createTimer(
-							"DHTNATPuncher:refresher", true );
-		
 		timer.addPeriodicEvent(	
 				REPUBLISH_TIME_MIN,
 				new UTTimerEventPerformer()
@@ -219,7 +224,9 @@ DHTNATPuncherImpl
 							
 							while( it.hasNext()){
 								
-								long	time = ((Long)it.next()).longValue();
+								Object[]	entry = (Object[])it.next();
+								
+								long	time = ((Long)entry[1]).longValue();
 								
 								if ( time < now ){
 									
@@ -892,7 +899,22 @@ DHTNATPuncherImpl
 				
 				break;
 			}
-			
+			case RT_PUNCH_REQUEST:
+			{
+				response.put( "type", new Long( RT_PUNCH_REPLY ));
+				
+				receivePunch( originator, data, response );
+				
+				break;
+			}
+			case RT_CONNECT_REQUEST:
+			{
+				response.put( "type", new Long( RT_CONNECT_REPLY ));
+				
+				receiveConnect( originator, data, response );
+				
+				break;
+			}
 			default:
 			{
 				response = null;
@@ -902,43 +924,6 @@ DHTNATPuncherImpl
 		}
 		
 		return( response );
-	}
-	
-	protected void
-	receiveBind(
-		DHTTransportContact		originator,
-		Map						request,
-		Map						response )
-	{
-		System.out.println( "received bind request" );
-		
-		boolean	ok = true;
-		
-		try{
-			server_mon.enter();
-		
-			Long	last_time = (Long)rendezvous_bindings.get( originator.getAddress());
-		
-			if ( last_time == null ){
-			
-				if ( rendezvous_bindings.size() == RENDEZVOUS_SERVER_MAX ){
-					
-					ok	= false;
-				}
-			}
-			
-			if ( ok ){
-				
-				long	now = plugin_interface.getUtilities().getCurrentSystemTime();
-				
-				rendezvous_bindings.put( originator.getAddress(), new Long( now ));
-			}
-		}finally{
-			
-			server_mon.exit();
-		}
-		
-		response.put( "ok", new Long(ok?1:0));
 	}
 	
 	protected int
@@ -959,9 +944,11 @@ DHTNATPuncherImpl
 			
 			if (((Long)response.get( "type" )).intValue() == RT_BIND_REPLY ){
 				
-				System.out.println( "received bind reply" );
-				
-				if (((Long)response.get("ok")).intValue() == 1 ){
+				int	result = ((Long)response.get("ok")).intValue();
+
+				System.out.println( "received bind reply: " + (result==0?"failed":"ok" ));
+					
+				if ( result == 1 ){
 					
 					return( RESP_OK );
 				}
@@ -976,12 +963,285 @@ DHTNATPuncherImpl
 			return( RESP_FAILED );
 		}
 	}
+	
+	protected void
+	receiveBind(
+		DHTTransportContact		originator,
+		Map						request,
+		Map						response )
+	{
+		System.out.println( "received bind request" );
+		
+		boolean	ok = true;
+		
+		try{
+			server_mon.enter();
+		
+			Object[]	entry = (Object[])rendezvous_bindings.get( originator.getAddress().toString());
 			
+			if ( entry == null ){
+			
+				if ( rendezvous_bindings.size() == RENDEZVOUS_SERVER_MAX ){
+					
+					ok	= false;
+				}
+			}
+			
+			if ( ok ){
+				
+				long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+				
+				rendezvous_bindings.put( originator.getAddress().toString(), new Object[]{ originator, new Long( now )});
+			}
+		}finally{
+			
+			server_mon.exit();
+		}
+		
+		response.put( "ok", new Long(ok?1:0));
+	}
+		
+	protected int
+	sendPunch(
+		DHTTransportContact rendezvous,
+		DHTTransportContact	target )
+	{
+		try{
+			Map	request = new HashMap();
+			
+			request.put("type", new Long( RT_PUNCH_REQUEST ));
+			
+			request.put("target", target.getAddress().toString().getBytes());
+			
+			Map response = sendRequest( rendezvous, request );
+			
+			if ( response == null ){
+				
+				return( RESP_FAILED );
+			}
+			
+			if (((Long)response.get( "type" )).intValue() == RT_PUNCH_REPLY ){
+				
+				int	result = ((Long)response.get("ok")).intValue();
+
+				System.out.println( "received punch reply: " + (result==0?"failed":"ok" ));
+				
+				if ( result == 1 ){
+					
+					return( RESP_OK );
+				}
+			}
+			
+			return( RESP_NOT_OK );
+			
+		}catch( Throwable e ){
+			
+			log(e);
+			
+			return( RESP_FAILED );
+		}
+	}
+	
+	protected void
+	receivePunch(
+		DHTTransportContact		originator,
+		Map						request,
+		Map						response )
+	{
+		System.out.println( "received puch request" );
+		
+		boolean	ok = false;
+		
+		try{
+			server_mon.enter();
+		
+			String	target_str = new String((byte[])request.get( "target" ));
+			
+			Object[] entry = (Object[])rendezvous_bindings.get( target_str );
+		
+			if ( entry != null ){
+				
+				DHTTransportContact	target = (DHTTransportContact)entry[0];
+				
+				if ( sendConnect( target, originator ) == RESP_OK ){
+				
+					ok	= true;
+				}
+			}
+			
+		}finally{
+			
+			server_mon.exit();
+		}
+		
+		response.put( "ok", new Long(ok?1:0));
+	}
+	
+	protected int
+	sendConnect(
+		DHTTransportContact target,
+		DHTTransportContact	originator )
+	{
+		try{
+			Map	request = new HashMap();
+			
+			request.put("type", new Long( RT_CONNECT_REQUEST ));
+			
+			request.put("origin", encodeContact( originator ));
+			
+			Map response = sendRequest( target, request );
+			
+			if ( response == null ){
+				
+				return( RESP_FAILED );
+			}
+			
+			if (((Long)response.get( "type" )).intValue() == RT_CONNECT_REPLY ){
+				
+				int	result = ((Long)response.get("ok")).intValue();
+
+				System.out.println( "received connect reply: " + (result==0?"failed":"ok" ));
+					
+				if ( result == 1 ){
+					
+					return( RESP_OK );
+				}
+			}
+			
+			return( RESP_NOT_OK );
+			
+		}catch( Throwable e ){
+			
+			log(e);
+			
+			return( RESP_FAILED );
+		}
+	}
+	
+	protected void
+	receiveConnect(
+		DHTTransportContact		rendezvous,
+		Map						request,
+		Map						response )
+	{
+		System.out.println( "received connect request" );
+
+		boolean	ok = false;
+			
+			// ensure that we've received this from our current rendezvous node
+		
+		DHTTransportContact	rt = rendezvous_target;
+		
+		if ( rt != null && rt.getAddress().equals( rendezvous.getAddress())){
+					
+			final DHTTransportContact	target = decodeContact( (byte[])request.get( "origin" ));
+			
+			if ( target != null ){
+				
+					// ping the origin a few times to try and establish a tunnel
+				
+				final int[]	pings = {1};
+				
+				timer.addPeriodicEvent(
+							3000,
+							new UTTimerEventPerformer()
+							{
+								public void
+								perform(
+									UTTimerEvent		event )
+								{
+									try{
+										pub_mon.enter();
+									
+										if ( pings[0] > 3 ){
+										
+											event.cancel();
+										
+											return;
+										}else{
+								
+											pings[0]++;
+										}
+									}finally{
+										
+										pub_mon.exit();
+									}
+										
+									target.sendPing(
+											new DHTTransportReplyHandlerAdapter()
+											{
+												public void
+												pingReply(
+													DHTTransportContact ok_contact )
+												{
+													System.out.println( "tunnel ping ok" );
+												}
+												
+												public void
+												failed(
+													DHTTransportContact 	failed_contact,
+													Throwable				e )
+												{
+												}
+											});
+								}
+							});
+					
+				target.sendPing(
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						pingReply(
+							DHTTransportContact ok_contact )
+						{
+							try{
+								pub_mon.enter();
+
+								pings[0]	= 100;	// stop periodic above
+							
+								System.out.println( "tunnel ping ok" );
+							}finally{
+								
+								pub_mon.exit();
+							}
+						}
+						
+						public void
+						failed(
+							DHTTransportContact 	failed_contact,
+							Throwable				e )
+						{
+						}
+					});
+				
+				ok	= true;
+			}
+		}
+		
+		response.put( "ok", new Long(ok?1:0));
+	}
+	
 	public boolean
 	punch(
 		DHTTransportContact	target )
 	{
-
+		try{
+			DHTTransportContact rendezvous = getRendezvous( target );
+			
+			if ( rendezvous == null ){
+				
+				return( false );
+			}
+			
+			if ( sendPunch( rendezvous, target ) == RESP_OK ){
+				
+				return( true );
+			}
+			
+		}catch( Throwable e ){
+			
+			log( e );
+		}
 		
 		return( false );
 	}
@@ -1114,6 +1374,48 @@ DHTNATPuncherImpl
 			return( new byte[0]);
     	}
    	}
+	
+	protected byte[]
+  	encodeContact(
+  		DHTTransportContact	contact )
+  	{ 		
+		try{
+	   		ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+	   		
+	   		DataOutputStream	dos = new DataOutputStream(baos);
+	   		   		
+	   		contact.exportContact( dos );
+	   		
+	   		dos.close();
+	   		
+	  		return( baos.toByteArray());
+	
+		}catch( Throwable e ){
+			
+			log( e );
+		
+			return( null );
+	   	}
+  	}
+	
+	protected DHTTransportContact
+	decodeContact(
+		byte[]		bytes )
+	{
+		try{
+			ByteArrayInputStream	bais = new ByteArrayInputStream( bytes );
+			
+			DataInputStream	dis = new DataInputStream( bais );
+						
+			return( dht.getTransport().importContact( dis ));
+			
+		}catch( Throwable e ){
+			
+			log(e);
+			
+			return( null );
+		}
+	}
 	
 	protected void
 	log(
