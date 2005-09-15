@@ -56,6 +56,8 @@ PluginUpdatePlugin
 	protected SFPluginDetailsLoader	loader;
 	protected LoggerChannel 		log;
 		
+	private String	last_id_info	= "";
+		
 	public void
 	initialize(
 		PluginInterface	_plugin_interface )
@@ -200,8 +202,19 @@ PluginUpdatePlugin
 					{
 						checkForUpdateSupport( checker, null, true );
 					}			
-				}, true );	
-		}
+				}, true );
+		
+		update_manager.addListener(
+			new UpdateManagerListener()
+			{
+				public void
+				checkInstanceCreated(
+					UpdateCheckInstance	instance )
+				{
+					log.log( LoggerChannel.LT_INFORMATION, "**** Update check starts ****" );
+				}
+			});
+	}
 	
 	public UpdatableComponent
 	getCustomUpdateableComponent(
@@ -247,9 +260,7 @@ PluginUpdatePlugin
 			}
 			
 			PluginInterface[]	plugins = plugin_interface.getPluginManager().getPlugins();
-			
-			log.log( LoggerChannel.LT_INFORMATION, "Currently loaded " + (mandatory?"mandatory ":"non-mandatory" ) + " plugins:");
-	
+				
 			List	plugins_to_check 			= new ArrayList();
 			List	plugins_to_check_ids		= new ArrayList();
 			Map		plugins_to_check_unloadable = new HashMap();
@@ -323,19 +334,30 @@ PluginUpdatePlugin
 					}
 				}
 				
-				log.log( LoggerChannel.LT_INFORMATION, "    " + pi.getPluginName() + ", id = " + id + (version==null?"":(", version = " + pi.getPluginVersion())));
+				String location = pi.getPluginDirectoryName();
+				
+				log.log( LoggerChannel.LT_INFORMATION, (mandatory?"*":"-") + pi.getPluginName() + ", id = " + id + (version==null?"":(", version = " + pi.getPluginVersion())) + (location==null?"":( ", loc = " + location)));
 			}
 			
 			String[]	ids = loader.getPluginIDs();
 			
-			String	id_list = "";
+			String	id_info = "";
 			
 			for (int i=0;i<ids.length;i++){
 				
-				id_list += (i==0?"":",") + ids[i];
+				String	id = ids[i];
+				
+				SFPluginDetails	details = loader.getPluginDetails( id );
+				
+				id_info += (i==0?"":",") + ids[i] + "=" + details.getVersion()+"/"+details.getCVSVersion();
 			}
 			
-			log.log( LoggerChannel.LT_INFORMATION, "Downloaded plugin ids = " + id_list );
+			if ( !id_info.equals( last_id_info )){
+				
+				last_id_info	= id_info;
+				
+				log.log( LoggerChannel.LT_INFORMATION, "Downloaded plugin info = " + id_info );
+			}
 			
 			for ( int i=0;i<plugins_to_check.size();i++){
 				
