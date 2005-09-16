@@ -115,6 +115,11 @@ UPnPRootDeviceImpl
 		String	model 	= root_device.getModelName();
 		String	version	= root_device.getModelNumber();
 		
+		if ( version != null ){
+			
+			info += "/" + version;
+		}
+		
 		if ( model == null || version == null ){
 			
 			return;
