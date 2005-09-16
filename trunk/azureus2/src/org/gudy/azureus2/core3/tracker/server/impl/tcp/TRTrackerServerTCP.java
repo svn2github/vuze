@@ -85,13 +85,6 @@ TRTrackerServerTCP
 			
 			thread_pool.setExecutionLimit( PROCESSING_GET_LIMIT );
 		}
-		
-		current_announce_retry_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
-		
-		if ( current_announce_retry_interval < RETRY_MINIMUM_SECS ){
-			
-			current_announce_retry_interval = RETRY_MINIMUM_SECS;
-		}
 	}
 	
 	public void

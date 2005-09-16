@@ -56,6 +56,44 @@ UTTimerImpl
 	}
 	
 	public UTTimerEvent
+	addEvent(
+		long						when,
+		final UTTimerEventPerformer	ext_performer )
+	{
+		if ( destroyed ){
+			
+			throw( new RuntimeException( "Timer has been destroyed" ));	
+		}
+		
+		final timerEvent	res = new timerEvent();
+		
+		TimerEventPerformer	performer = 
+			new TimerEventPerformer()
+			{	
+				public void
+				perform(
+					TimerEvent		ev )
+				{
+					UtilitiesImpl.setPluginThreadContext( plugin_interface );
+					
+					res.perform( ext_performer );
+				}
+			};
+			
+		if ( timer == null ){
+			
+			res.setEvent( SimpleTimer.addEvent( when, performer ));
+			
+		}else{
+			
+			res.setEvent( timer.addEvent( when, performer ));
+		
+		}
+			
+		return( res );
+	}
+	
+	public UTTimerEvent
 	addPeriodicEvent(
 		long						periodic_millis,
 		final UTTimerEventPerformer	ext_performer )
@@ -108,11 +146,19 @@ UTTimerImpl
 	timerEvent
 		implements UTTimerEvent
 	{
-		protected TimerEventPeriodic		ev;
+		protected TimerEvent				ev;
+		protected TimerEventPeriodic		pev;
 		
 		protected void
 		setEvent(
 			TimerEventPeriodic	_ev )
+		{
+			pev		= _ev;
+		}
+		
+		protected void
+		setEvent(
+			TimerEvent	_ev )
 		{
 			ev		= _ev;
 		}
@@ -127,7 +173,14 @@ UTTimerImpl
 		public void
 		cancel()
 		{
-			ev.cancel();
+			if ( ev != null ){
+				
+				ev.cancel();
+				
+			}else{
+				
+				pev.cancel();
+			}
 		}
 	}
 }

@@ -82,6 +82,8 @@ TRNonBlockingServer
 	{
 		super( _name, _port, false, _apply_ip_filter );
 		
+		boolean	ok = false;
+		
 		try{
 			InetSocketAddress	address;
 			
@@ -144,6 +146,8 @@ TRNonBlockingServer
 			
 			LGLogger.log( "TRTrackerServer: Non-blocking listener established on port " +  getPort() ); 
 
+			ok	= true;
+			
 		}catch( Throwable e){
 			
 			LGLogger.logUnrepeatableAlertUsingResource( 
@@ -154,7 +158,14 @@ TRNonBlockingServer
 			LGLogger.log( "TRTrackerServer: listener failed on port " +  getPort(), e ); 
 						
 			throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
-		}	
+			
+		}finally{
+			
+			if ( !ok ){
+				
+				destroy();
+			}
+		}
 	}
 	
 	protected void

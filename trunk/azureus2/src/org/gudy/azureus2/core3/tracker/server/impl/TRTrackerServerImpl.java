@@ -167,55 +167,66 @@ TRTrackerServerImpl
 	
 	protected IpFilter	ip_filter	= IpFilterManagerFactory.getSingleton().getIPFilter();
 	
-	protected long		current_announce_retry_interval;
-	protected long		current_scrape_retry_interval;
-	protected long		current_total_clients;
+	private long		current_announce_retry_interval;
+	private long		current_scrape_retry_interval;
+	private long		current_total_clients;
 	
-	protected int		current_min_poll_interval;
+	private int		current_min_poll_interval;
 	
-	protected TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl();
+	private TRTrackerServerStatsImpl	stats = new TRTrackerServerStatsImpl();
 		
-	protected String	name;
-	protected boolean	web_password_enabled;
-	protected boolean	web_password_https_only;
+	private String	name;
+	private boolean	web_password_enabled;
+	private boolean	web_password_https_only;
 	
-	protected boolean	tracker_password_enabled;
-	protected String	password_user;
-	protected byte[]	password_pw;
-	protected boolean	compact_enabled;
-	protected boolean	key_enabled;
+	private boolean	tracker_password_enabled;
+	private String	password_user;
+	private byte[]	password_pw;
+	private boolean	compact_enabled;
+	private boolean	key_enabled;
 	
 
 	protected Vector	listeners 			= new Vector();
-	protected List		auth_listeners		= new ArrayList();
+	private List		auth_listeners		= new ArrayList();
 	
 	private Vector	request_listeners 	= new Vector();
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRTrackerServer" );
 
+	private COConfigurationListener		config_listener;
+	private boolean						destroyed;
+	
 	public
 	TRTrackerServerImpl(
 		String		_name )
 	{
 		name		= _name==null?DEFAULT_NAME:_name;
 
-		COConfigurationManager.addListener(
-				new COConfigurationListener()
+		config_listener = 
+			new COConfigurationListener()
+			{
+				public void
+				configurationSaved()
 				{
-					public void
-					configurationSaved()
-					{
-						readConfigSettings();
-					}
-				});
-				
+					readConfigSettings();
+				}
+			};
+		
+		COConfigurationManager.addListener( config_listener );
+
 		readConfigSettings();
 					
 		current_min_poll_interval	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
-		int	scrape_percentage 		= COConfigurationManager.getIntParameter("Tracker Scrape Retry Percentage", DEFAULT_SCRAPE_RETRY_PERCENTAGE );
 		
-		current_announce_retry_interval = current_min_poll_interval;
+		if ( current_min_poll_interval < RETRY_MINIMUM_SECS ){
+			
+			current_min_poll_interval = RETRY_MINIMUM_SECS;
+		}
 		
+		current_announce_retry_interval = current_min_poll_interval;		
+
+		int	scrape_percentage 		= COConfigurationManager.getIntParameter("Tracker Scrape Retry Percentage", DEFAULT_SCRAPE_RETRY_PERCENTAGE );		
+	
 		current_scrape_retry_interval	= (current_announce_retry_interval*scrape_percentage)/100;
 		
 		Thread timer_thread = 
@@ -477,7 +488,7 @@ TRTrackerServerImpl
 	{
 		long	time_to_go = TIMEOUT_CHECK;
 		
-		while(true){
+		while( !destroyed ){
 			
 			try{
 				Thread.sleep( RETRY_MINIMUM_MILLIS );
@@ -487,6 +498,11 @@ TRTrackerServerImpl
 				// recalc tracker interval every minute
 				
 				current_min_poll_interval 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Min", DEFAULT_MIN_RETRY_DELAY );
+				
+				if ( current_min_poll_interval < RETRY_MINIMUM_SECS ){
+					
+					current_min_poll_interval = RETRY_MINIMUM_SECS;
+				}
 				
 				int	min		= current_min_poll_interval;
 				int	max 	= COConfigurationManager.getIntParameter("Tracker Poll Interval Max", DEFAULT_MAX_RETRY_DELAY );
@@ -822,5 +838,13 @@ TRTrackerServerImpl
 		TRTrackerServerRequestListener	l )
 	{
 		request_listeners.removeElement(l);
+	}
+	
+	protected void
+	destroy()
+	{
+		destroyed	= true;
+		
+		COConfigurationManager.removeListener( config_listener );
 	}
 }

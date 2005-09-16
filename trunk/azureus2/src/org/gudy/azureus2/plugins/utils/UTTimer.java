@@ -31,6 +31,18 @@ public interface
 UTTimer 
 {
 		/**
+		 * Create a single-shot event with delay
+		 * @param when			when it is to occur (absolute time, not relative)
+		 * @param performer
+		 * @return
+		 */
+	
+	public UTTimerEvent
+	addEvent(
+		long					when,
+		UTTimerEventPerformer	performer );
+	
+		/**
 		 * Create a periodic event that will fire every specified number of milliseconds until cancelled
 		 * or the timer is destroyed
 		 * @param periodic_millis
