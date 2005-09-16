@@ -61,6 +61,8 @@ UPnPPlugin
 	protected List	mappings	= new ArrayList();
 	protected List	services	= new ArrayList();
 	
+	protected Map	root_info_map	= new HashMap();
+	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnPPlugin" );
 	   
 	public void
@@ -83,6 +85,10 @@ UPnPPlugin
 				public void
 				closedownInitiated()
 				{
+					if ( services.size() == 0 ){
+						
+						plugin_interface.getPluginconfig().setPluginParameter( "plugin.info", "" );
+					}
 				}
 				
 				public void
@@ -193,7 +199,7 @@ UPnPPlugin
 		
 		if ( enabled ){
 			
-			startUp();
+			startUp();			
 		}
 	}
 	
@@ -221,6 +227,35 @@ UPnPPlugin
 					{
 						try{
 							processDevice( device.getDevice() );
+							
+							try{
+								this_mon.enter();
+							
+								root_info_map.put( device.getLocation(), device.getInfo());
+							
+								Iterator	it = root_info_map.values().iterator();
+								
+								String	all_info = "";
+									
+								while( it.hasNext()){
+									
+									String	info = (String)it.next();
+									
+									if ( info != null ){
+										
+										all_info += (all_info.length()==0?"":",") + info;
+									}
+								}
+								
+								if ( all_info.length() > 0 ){
+									
+									plugin_interface.getPluginconfig().setPluginParameter( "plugin.info", all_info );
+								}
+								
+							}finally{
+								
+								this_mon.exit();
+							}
 							
 						}catch( Throwable e ){
 							
@@ -306,21 +341,14 @@ UPnPPlugin
 		UPnPDevice		device )
 	
 		throws UPnPException
-	{
-		if ( device.getDeviceType().equalsIgnoreCase("urn:schemas-upnp-org:device:WANConnectionDevice:1")){
+	{			
+		processServices( device, device.getServices());
 			
-			log.log( "Found WANConnectionDevice" );
+		UPnPDevice[]	kids = device.getSubDevices();
+		
+		for (int i=0;i<kids.length;i++){
 			
-			processServices( device, device.getServices());
-			
-		}else{
-			
-			UPnPDevice[]	kids = device.getSubDevices();
-			
-			for (int i=0;i<kids.length;i++){
-				
-				processDevice( kids[i] );
-			}
+			processDevice( kids[i] );
 		}
 	}
 	
@@ -355,6 +383,24 @@ UPnPPlugin
 					});
 				
 				addService( wan_service );
+				
+			}else if ( 	service_type.equalsIgnoreCase( "urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1")){ 
+				
+				try{
+					UPnPWANCommonInterfaceConfig	config = (UPnPWANCommonInterfaceConfig)s.getSpecificService();
+				
+					long[]	speeds = config.getCommonLinkProperties();
+					
+					if ( speeds[0] > 0 && speeds[1] > 0 ){
+						
+						log.log( "Device speed: down=" + 
+									plugin_interface.getUtilities().getFormatters().formatByteCountToKiBEtcPerSec(speeds[0]/8) + ", up=" + 
+									plugin_interface.getUtilities().getFormatters().formatByteCountToKiBEtcPerSec(speeds[1]/8));
+					}
+				}catch( Throwable e ){
+					
+					log.log(e);
+				}
 			}
 		}
 	}

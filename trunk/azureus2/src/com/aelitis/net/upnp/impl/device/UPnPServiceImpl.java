@@ -253,6 +253,10 @@ UPnPServiceImpl
 			
 			return( new UPnPSSWANPPPConnectionImpl( this ));
 			
+		}else if ( service_type.equalsIgnoreCase("urn:schemas-upnp-org:service:WANCommonInterfaceConfig:1")){
+			
+			return( new UPnPSSWANCommonInterfaceConfigImpl( this ));
+			
 		}else{
 			
 			return( null );

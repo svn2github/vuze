@@ -1,7 +1,7 @@
 /*
- * Created on 15-Jun-2004
+ * Created on 16-Sep-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,43 +20,18 @@
  *
  */
 
-package com.aelitis.net.upnp;
+package com.aelitis.net.upnp.services;
 
-import java.net.URL;
-import java.net.InetAddress;
-
-
-/**
- * @author parg
- *
- */
+import com.aelitis.net.upnp.UPnPException;
 
 public interface 
-UPnPRootDevice
+UPnPWANCommonInterfaceConfig
+	extends UPnPSpecificService
 {
-	public UPnP
-	getUPnP();
+		// returns link down/up speed in bits/sec
 	
-	public URL
-	getLocation();
+	public long[]
+	getCommonLinkProperties()
 	
-	public InetAddress
-	getLocalAddress();
-	
-	public String
-	getInfo();
-	
-	public UPnPDevice
-	getDevice();
-	
-	public boolean
-	isDestroyed();
-	
-	public void
-	addListener(
-		UPnPRootDeviceListener	l );
-	
-	public void
-	removeListener(
-		UPnPRootDeviceListener	l );
+		throws UPnPException;
 }

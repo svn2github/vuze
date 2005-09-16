@@ -58,6 +58,8 @@ UPnPRootDeviceImpl
 	private URL			location;
 	private URL			url_base_for_relative_urls;
 	
+	private String		info;
+	
 	private UPnPDeviceImpl	root_device;
 	
 	private boolean		destroyed;
@@ -108,6 +110,8 @@ UPnPRootDeviceImpl
 		
 		root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
 		
+		info = root_device.getFriendlyName();
+
 		String	model 	= root_device.getModelName();
 		String	version	= root_device.getModelNumber();
 		
@@ -115,7 +119,7 @@ UPnPRootDeviceImpl
 			
 			return;
 		}
-				
+			
 		for (int i=0;i<ROUTERS.length;i++){
 			
 			if ( ROUTERS[i].equals( model )){
@@ -134,6 +138,12 @@ UPnPRootDeviceImpl
 		}
 	}
 
+	public String
+	getInfo()
+	{
+		return( info );
+	}
+	
 	protected String
 	getAbsoluteURL(
 		String	url )

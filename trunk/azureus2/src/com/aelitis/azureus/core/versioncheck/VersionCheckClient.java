@@ -312,13 +312,29 @@ public class VersionCheckClient {
 	      for (int i=0;i<plugins.length;i++){
 	        String  pid = plugins[i].getPluginID();
 	        
+        	String	info = (String)plugins[i].getPluginconfig().getPluginStringParameter( "plugin.info" );
+        	
 	          // filter out built-in and core ones
-	        if (  !pid.startsWith( "<" ) && 
-	            !pid.startsWith( "azupdater" ) &&
-	            !pid.startsWith( "azplatform" ) &&
-	            !pids.contains( pid )){
+	        if ( 	( info != null && info.length() > 0 ) ||
+	        		(	!pid.startsWith( "<" ) && 
+		        		!pid.startsWith( "azbp" ) &&
+		        		!pid.startsWith( "azupdater" ) &&
+	        			!pid.startsWith( "azplatform" ) &&
+	        			!pids.contains( pid ))){
 	        
-	          pids.add( pid );
+	        	if ( info != null && info.length() > 0 ){
+	        		
+	        		if( info.length() < 256 ){
+	        			
+	        			pid += ":" + info;
+	        			
+	        		}else{
+	        			
+	        			Debug.out( "Plugin '" + pid + "' reported excessive info string '" + info + "'" );
+	        		}
+	        	}
+	        	
+	        	pids.add( pid );
 	        }
 	      }
 	      message.put( "plugins", pids );
