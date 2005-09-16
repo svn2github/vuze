@@ -42,7 +42,6 @@ import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 
@@ -64,7 +63,7 @@ Test
 		DHTTransportUDPImpl.TEST_EXTERNAL_IP	= true;
 	}
 	
-	int num_dhts			= 2;
+	int num_dhts			= 3;
 	int num_stores			= 2;
 	static int MAX_VALUES	= 10000;
 	
@@ -694,14 +693,24 @@ Test
 						
 					}else if ( command == 'b' ){
 						
-						System.out.println( "rendezvous bind" );
+						if ( rhs.equals("1")){
+							
+							System.out.println( "rendezvous bind: dht2 -> rdv dht1" );
 						
-						DHTNATPuncherImpl	puncher = (DHTNATPuncherImpl)dhts[0].getNATPuncher();
+							DHTNATPuncherImpl	puncher = (DHTNATPuncherImpl)dhts[2].getNATPuncher();
 						
-						puncher.setRendezvous( 
-								dhts[0].getTransport().getLocalContact(),
+							puncher.setRendezvous( 
+								dhts[2].getTransport().getLocalContact(),
 								dhts[1].getTransport().getLocalContact());
 
+						}else if ( rhs.equals("2" )){
+							
+							System.out.println( "rendezvous punch: dht0 -> rdv dht2" );
+							
+							DHTNATPuncherImpl	puncher = (DHTNATPuncherImpl)dhts[0].getNATPuncher();
+
+							puncher.punch( dhts[2].getTransport().getLocalContact());
+						}
 					}else{
 						
 						usage();
