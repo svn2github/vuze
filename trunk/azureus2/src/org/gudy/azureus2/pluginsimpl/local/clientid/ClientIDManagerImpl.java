@@ -457,7 +457,7 @@ ClientIDManagerImpl
 		interruptTask()
 		{
 			try{
-				LGLogger.log( "ClientIDManager - interrupting HTTP filter due to timeout" );
+				// LGLogger.log( "ClientIDManager - interrupting HTTP filter due to timeout" );
 				
 				socket.close();
 				
