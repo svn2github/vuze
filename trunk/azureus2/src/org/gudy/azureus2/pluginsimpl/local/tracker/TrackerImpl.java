@@ -133,6 +133,23 @@ TrackerImpl
 		}
 	}
 	
+	public TrackerTorrent
+	publish(
+			Torrent _torrent)
+	
+	throws TrackerException
+	{
+		TorrentImpl	torrent = (TorrentImpl)_torrent;
+		
+		try{
+			return( new TrackerTorrentImpl( host.publishTorrent( torrent.getTorrent() )));
+			
+		}catch( Throwable e ){
+			
+			throw( new TrackerException( "Tracker: publish operation fails", e ));
+		}
+	}
+	
 	public TrackerTorrent[]
 	getTorrents()
 	{
