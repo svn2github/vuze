@@ -85,28 +85,23 @@ UIManagerImpl
 	getBasicPluginViewModel(
 		String			name )
 	{
-		throw( new RuntimeException( "Deprecated method - use createBasicPluginViewModel"));
+		// grrr, RSSImport plugin directly uses this method
+		
+		return( createBasicPluginViewModel( name ));
+		// throw( new RuntimeException( "Deprecated method - use createBasicPluginViewModel"));
 	}
 	
 	public PluginView
 	createPluginView(
 		PluginViewModel	model )
 	{
-		/*
-		if ( isSWTAvailable()){
+		try{
+			return( SWTManagerImpl.getSingleton().createPluginView( model ));
+	
+		}catch( Throwable e ){
 			
-		  if(model instanceof BasicPluginViewModel) {
-		    return new BasicPluginViewImpl((BasicPluginViewModel)model);
-		  } else {
-		    //throw new Exception("Unsupported Model : " + model.getClass());
-		    return null;
-		  }
-		}else{
 			return( null );
 		}
-		*/
-		
-		throw( new RuntimeException( "Deprecated method - use createBasicPluginViewModel"));
 	}
 	
 	public BasicPluginViewModel

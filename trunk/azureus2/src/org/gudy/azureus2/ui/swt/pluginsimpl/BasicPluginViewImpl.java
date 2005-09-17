@@ -40,7 +40,6 @@ import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 
 

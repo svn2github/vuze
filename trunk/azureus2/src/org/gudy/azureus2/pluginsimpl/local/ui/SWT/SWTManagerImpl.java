@@ -24,8 +24,11 @@ import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
 
 /*
  * @deprecated
@@ -60,30 +63,79 @@ public class SWTManagerImpl
   }
   
 
-  public void addView(final PluginView view, boolean bAutoOpen)
-  {
-  	try{
-	    final MainWindow window = MainWindow.getWindow();
-	    if(window != null) {
-	      window.getMenu().addPluginView(view);
-	      if (bAutoOpen) {
-          window.getDisplay().asyncExec(new AERunnable(){
-            public void runSupport() {
-    	        window.openPluginView(view);
-            }
-          });
-	      }
-	    }
-  	}catch( Throwable e ){
-  		// SWT not available prolly
-  	}
-  } 
-
-  public void addView(PluginView view)
-  {
-    addView(view, false);
-  } 
+  	public void 
+  	addView(
+  		final PluginView view, 
+  		boolean bAutoOpen )
+  	{
+  		try{
+  			final MainWindow window = MainWindow.getWindow();
+  			
+  			if( window != null) {
+	    	
+  				if ( view instanceof PluginViewWrapper ){
+	    	
+  						// legacy support for RSSImport plugin
+  						// model already registered, no need to do anything as UI will pick it up
   
+  				}else{
+	    		
+  					window.getMenu().addPluginView( view );
+		      
+  					if ( bAutoOpen ){
+	          
+  						window.getDisplay().asyncExec(
+  								new AERunnable()
+  								{
+  									public void 
+  									runSupport() 
+  									{
+  										window.openPluginView(view);
+  									}
+  								});
+  					}
+  				}
+  			}
+  		}catch( Throwable e ){
+  			// SWT not available prolly
+  		}
+  	} 
+
+  	public void 
+  	addView(
+  		PluginView view)
+  	{
+  		addView(view, false);
+  	} 
+  
+	public PluginView
+	createPluginView(
+		PluginViewModel	model )
+	{		
+		return( new PluginViewWrapper(model));
+	
+	}
+	
+	protected class
+	PluginViewWrapper
+		extends PluginView
+	{
+		private	PluginViewModel		model;
+		
+		protected
+		PluginViewWrapper(
+			PluginViewModel	_model )
+		{
+			model	= model;
+		}
+		
+		public String 
+		getPluginViewName()
+		{
+			return( model.getName());
+		}
+	}
+	
   /* 
    * Not working due to class loader being different between plugins and
    * main program.
