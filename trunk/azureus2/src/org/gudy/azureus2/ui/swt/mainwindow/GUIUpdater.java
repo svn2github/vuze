@@ -124,7 +124,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 					"} IPs: " + 
           numberFormat.format(ip_filter.getNbRanges()) + 
 					" - " + 
-          numberFormat.format(ip_filter.getNbIpsBlocked()) + 
+          numberFormat.format(ip_filter.getNbIpsBlockedAndLoggable()) + 
 					"/" +
           numberFormat.format(ip_filter.getNbBannedIps()) +
 					"/" + 

@@ -30,7 +30,6 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.net.UnknownHostException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -58,7 +57,9 @@ IpFilterImpl
     //Map ip blocked -> matching range
 	
 	private LinkedList		ipsBlocked;
-	private int num_ips_blocked = 0;
+	
+	private int num_ips_blocked 			= 0;
+	private int num_ips_blocked_loggable	= 0;
 
 	private long	last_update_time;
     
@@ -281,7 +282,7 @@ IpFilterImpl
 			  return( false );
 		  }
 		  
-	      addBlockedIP( new BlockedIpImpl(ipAddress,match, torrent_name, loggable) );
+	      addBlockedIP( new BlockedIpImpl(ipAddress,match, torrent_name, loggable), loggable );
 	      
 	      LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + match);
 	      
@@ -299,7 +300,7 @@ IpFilterImpl
 		  return( false );
 		}
 		  
-	    addBlockedIP( new BlockedIpImpl(ipAddress,null, torrent_name, loggable) );
+	    addBlockedIP( new BlockedIpImpl(ipAddress,null, torrent_name, loggable), loggable );
 	    
 	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
 	    
@@ -311,13 +312,24 @@ IpFilterImpl
 	
   
   
-  private void addBlockedIP( BlockedIp ip ) {
+  private void 
+  addBlockedIP( 
+	BlockedIp 	ip,
+	boolean		loggable ) 
+  {
     try{  class_mon.enter();
    
       ipsBlocked.addLast( ip );
+      
       num_ips_blocked++;
       
+      if ( loggable ){
+    	  
+    	  num_ips_blocked_loggable++;
+      }
+      
       if( ipsBlocked.size() > MAX_BLOCKS_TO_REMEMBER ) {  //only "remember" the last few blocks occurrences
+    	  
         ipsBlocked.removeFirst();
       }
     }
@@ -490,6 +502,12 @@ IpFilterImpl
 	  return num_ips_blocked;
 	}
 	
+	public int 
+	getNbIpsBlockedAndLoggable() 
+	{
+	  return num_ips_blocked_loggable;
+	}
+	
 	public boolean 
 	ban(
 		String 	ipAddress,
@@ -649,7 +667,9 @@ IpFilterImpl
 			class_mon.enter();
 			
 			ipsBlocked.clear();
-      num_ips_blocked = 0;
+      
+			num_ips_blocked 			= 0;
+			num_ips_blocked_loggable	= 0;
 			
 		}finally{
 			

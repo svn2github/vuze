@@ -89,6 +89,9 @@ IpFilter
 	public int 
 	getNbIpsBlocked();
 	
+	public int 
+	getNbIpsBlockedAndLoggable();
+	
 	public BlockedIp[] 
 	getBlockedIps();
 	
