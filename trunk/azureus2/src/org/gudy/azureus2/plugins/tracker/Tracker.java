@@ -26,8 +26,9 @@ package org.gudy.azureus2.plugins.tracker;
  *
  */
 
-import org.gudy.azureus2.plugins.tracker.web.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebContext;
 
 public interface 
 Tracker 
@@ -48,6 +49,12 @@ Tracker
 		Torrent		torrent,
 		boolean		persistent,
 		boolean		passive )
+		
+		throws TrackerException;
+	
+	public TrackerTorrent
+	publish(
+		Torrent		torrent )
 		
 		throws TrackerException;
 
