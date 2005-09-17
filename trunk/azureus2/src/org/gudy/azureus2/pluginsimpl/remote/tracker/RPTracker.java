@@ -166,6 +166,17 @@ RPTracker
 		return( null );
 	}
 	
+	public TrackerTorrent
+	publish(
+		Torrent		torrent )
+	
+		throws TrackerException
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
     public TrackerTorrent[]
     getTorrents()
     {
