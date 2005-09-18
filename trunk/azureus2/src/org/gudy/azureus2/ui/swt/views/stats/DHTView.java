@@ -68,10 +68,13 @@ public class DHTView extends AbstractIView {
   
   Composite panel;
   
+  String	yes_str;
+  String	no_str;
+  
   Label lblUpTime,lblNumberOfUsers;
   Label lblNodes,lblLeaves;
   Label lblContacts,lblReplacements,lblLive,lblUnknown,lblDying;
-
+  Label lblRendezvous, lblReachable;
   Label lblKeys,lblValues;
   Label lblLocal,lblDirect,lblIndirect;
   Label lblDivFreq,lblDivSize;
@@ -137,6 +140,9 @@ public class DHTView extends AbstractIView {
     layout.numColumns = 2;
     panel.setLayout(layout);
     
+    yes_str = MessageText.getString( "Button.yes");
+    no_str 	= MessageText.getString( "Button.no");
+    
     initialiseGeneralGroup();
     initialiseDBGroup();
     
@@ -173,8 +179,10 @@ public class DHTView extends AbstractIView {
     lblNumberOfUsers.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
-    label = new Label(gGeneral,SWT.NONE);
-    
+    Messages.setLanguageText(label,"DHTView.general.reachable");    
+
+    lblReachable = new Label(gGeneral,SWT.NONE);
+    lblReachable.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
     Messages.setLanguageText(label,"DHTView.general.nodes");    
@@ -189,7 +197,10 @@ public class DHTView extends AbstractIView {
     lblLeaves.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
     
     label = new Label(gGeneral,SWT.NONE);
-    label = new Label(gGeneral,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.general.rendezvous");    
+
+    lblRendezvous = new Label(gGeneral,SWT.NONE);
+    lblRendezvous.setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
     
     
     label = new Label(gGeneral,SWT.NONE);
@@ -529,6 +540,8 @@ public class DHTView extends AbstractIView {
     DHTRouterStats routerStats = dht.getRouter().getStats();
     lblUpTime.setText(TimeFormatter.format(controlStats.getRouterUptime() / 1000));
     lblNumberOfUsers.setText("" + controlStats.getEstimatedDHTSize());
+    lblReachable.setText(dht.getTransport().isReachable()?yes_str:no_str);
+    lblRendezvous.setText(dht.getTransport().isReachable()?"":(dht.getNATPuncher().operational()?yes_str:no_str));
     long[] stats = routerStats.getStats();
     lblNodes.setText("" + stats[DHTRouterStats.ST_NODES]);
     lblLeaves.setText("" + stats[DHTRouterStats.ST_LEAVES]);

@@ -30,6 +30,22 @@ DHTNATPuncher
 	public void
 	start();
 	
+		/**
+		 * We're trying to run a rendezvous
+		 * @return
+		 */
+	
+	public boolean
+	active();
+	
+		/**
+		 * Got a good running rendezvous
+		 * @return
+		 */
+	
+	public boolean
+	operational();
+	
 	public boolean
 	punch(
 		DHTTransportContact	target );

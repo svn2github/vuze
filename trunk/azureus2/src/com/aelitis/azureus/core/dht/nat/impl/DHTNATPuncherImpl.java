@@ -103,6 +103,7 @@ DHTNATPuncherImpl
 	
 	private volatile DHTTransportContact		rendezvous_local_contact;
 	private volatile DHTTransportContact		rendezvous_target;
+	private volatile DHTTransportContact		last_ok_rendezvous;
 	
 	private static final int FAILED_RENDEZVOUS_HISTORY_MAX	= 16;
 	
@@ -254,6 +255,24 @@ DHTNATPuncherImpl
 		publish( false );
 	}
 	
+	public boolean
+	active()
+	{
+		return( rendezvous_local_contact != null );
+	}
+	
+	public boolean
+	operational()
+	{
+		DHTTransportContact	ok = last_ok_rendezvous;
+		
+		if ( ok != null && ok == rendezvous_target ){
+			
+			return( true );
+		}
+		
+		return( false );	
+	}
 	
 	protected void
 	publish(
@@ -709,6 +728,12 @@ DHTNATPuncherImpl
 												
 						rendevzous_fail_count	= 0;
 						
+						if ( last_ok_rendezvous != current_target ){
+							
+							last_ok_rendezvous = current_target;
+							
+							log( "Rendezvous " + latest_target.getString() + " operational" );
+						}
 					}else{
 						
 						if ( bind_result == RESP_NOT_OK ){
