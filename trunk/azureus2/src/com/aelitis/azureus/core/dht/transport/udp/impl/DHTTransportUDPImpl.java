@@ -1735,6 +1735,8 @@ DHTTransportUDPImpl
 				logger.log( "Transfer read request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
 			}
 			
+			stats.dataSent( request );
+			
 			packet_handler.send(
 				request,
 				contact.getTransportAddress());
@@ -1766,6 +1768,8 @@ DHTTransportUDPImpl
 			if ( XFER_TRACE ){
 				logger.log( "Transfer read reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
 			}
+			
+			stats.dataSent( request );
 			
 			packet_handler.send(
 				request,
@@ -1799,6 +1803,8 @@ DHTTransportUDPImpl
 				logger.log( "Transfer write request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
 			}
 			
+			stats.dataSent( request );
+			
 			packet_handler.send(
 				request,
 				contact.getTransportAddress());
@@ -1828,6 +1834,8 @@ DHTTransportUDPImpl
 			if ( XFER_TRACE ){
 				logger.log( "Transfer write reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
 			}
+			
+			stats.dataSent( request );
 			
 			packet_handler.send(
 				request,
@@ -1995,6 +2003,8 @@ DHTTransportUDPImpl
 			return;
 		}
 		*/
+		
+		stats.dataReceived();
 		
 			// both requests and replies come through here. Currently we only support read
 			// requests so we can safely use the data.length == 0 test to discriminate between

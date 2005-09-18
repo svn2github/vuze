@@ -53,6 +53,9 @@ DHTTransportStats
 	public long[]
 	getStores();
 	
+	public long[]
+	getData();
+	
 		// aliens are indexed by these constants
 
 	public static final int AT_FIND_NODE		= 0; 

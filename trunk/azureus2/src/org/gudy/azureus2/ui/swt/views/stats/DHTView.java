@@ -84,6 +84,7 @@ public class DHTView extends AbstractIView {
   Label lblFindNodes[] = new Label[4];
   Label lblFindValues[] = new Label[4];
   Label lblStores[] = new Label[4];
+  Label lblData[] = new Label[4];
     
   Canvas  in,out;  
   SpeedGraphic inGraph,outGraph;
@@ -422,6 +423,13 @@ public class DHTView extends AbstractIView {
       lblStores[i].setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
     }
     
+    label = new Label(gOperations,SWT.NONE);
+    Messages.setLanguageText(label,"DHTView.operations.data");
+    
+    for(int i = 0 ; i < 4 ; i++) {
+      lblData[i] = new Label(gOperations,SWT.NONE);      
+      lblData[i].setLayoutData(new GridData(SWT.FILL,SWT.TOP,true,false));
+    }
   }
   
   private void initialiseActivityGroup() {
@@ -579,6 +587,10 @@ public class DHTView extends AbstractIView {
     long[] stores = transportStats.getStores();
     for(int i = 0 ; i < 4 ; i++) {
       lblStores[i].setText("" + stores[i]);
+    }
+    long[] data = transportStats.getData();
+    for(int i = 0 ; i < 4 ; i++) {
+      lblData[i].setText("" + data[i]);
     }
   }
   

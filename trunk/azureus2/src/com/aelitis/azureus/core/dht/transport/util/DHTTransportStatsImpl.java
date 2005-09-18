@@ -43,6 +43,7 @@ DHTTransportStatsImpl
 	private long[]	find_values	= new long[4];
 	private long[]	stores		= new long[4];
 	private long[]	stats		= new long[4];
+	private long[]	data		= new long[4];
 	
 	private long[]	aliens		= new long[5];
 
@@ -79,6 +80,7 @@ DHTTransportStatsImpl
 		add( find_values, other.find_values );
 		add( stores, other.stores );
 		add( stats, other.stats );
+		add( data, other.data );
 		add( aliens, other.aliens );
 		
 		incoming_requests += other.incoming_requests;
@@ -103,6 +105,7 @@ DHTTransportStatsImpl
 		clone.find_nodes	= (long[])find_nodes.clone();
 		clone.find_values	= (long[])find_values.clone();
 		clone.stores		= (long[])stores.clone();
+		clone.data			= (long[])data.clone();
 		clone.aliens		= (long[])aliens.clone();
 		
 		clone.incoming_requests	= incoming_requests;
@@ -261,6 +264,41 @@ DHTTransportStatsImpl
 		stats[STAT_RECEIVED]++;
 	}
 	
+		//data
+	
+	public void
+	dataSent(
+		DHTUDPPacketRequest	request )
+	{
+		data[STAT_SENT]++;
+		
+		outgoingRequestSent( request );
+	}
+	
+	public void
+	dataOK()
+	{
+		data[STAT_OK]++;
+	}
+	
+	public void
+	dayaFailed()
+	{
+		data[STAT_FAILED]++;
+	}
+	
+	public void
+	dataReceived()
+	{
+		data[STAT_RECEIVED]++;
+	}
+	
+	public long[]
+	getData()
+	{
+		return( data );
+	}
+	
 	protected void
 	outgoingRequestSent(
 		DHTUDPPacketRequest	request )
@@ -402,6 +440,7 @@ DHTTransportStatsImpl
 				"node:" + getString( find_nodes ) + "," +
 				"value:" + getString( find_values ) + "," +
 				"stats:" + getString( stats ) + "," +
+				"data:" + getString( data ) + "," +
 				"incoming:" + incoming_requests +"," +
 				"alien:" + getString( aliens ));
 	}
