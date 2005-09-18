@@ -22,14 +22,13 @@
 
 package org.gudy.azureus2.pluginsimpl.local.clientid;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.*;
 
@@ -94,11 +93,44 @@ ClientIDManagerImpl
 		    
 	        if ( bindIP.length() > 6 ){
 
-	        	filter_override	= true;
+	        	int		ips = 0;
 	        	
-	        	use_filter	= true;
+	        		// seeing as this is a bit of a crappy way to enforce binding, add one more check to make
+	        		// sure that the machine has multiple ips before going ahead in case user has set it
+	        		// incorrectly
 	        	
-				LGLogger.log( "ClientIDManager: overriding filter option to support local bind IP" ); 
+	        	try{
+	        		Enumeration nis = NetworkInterface.getNetworkInterfaces();
+	        			        		
+	        		while( nis.hasMoreElements()){
+	        			
+	        			NetworkInterface ni = (NetworkInterface)nis.nextElement();
+	        			
+	        			Enumeration addresses = ni.getInetAddresses();
+	        			
+	        			while( addresses.hasMoreElements()){
+	        				
+	        				InetAddress address = (InetAddress)addresses.nextElement();
+	        				
+	        				if ( !address.isLoopbackAddress()){
+	        					
+	        					ips++;
+	        				}
+	        			}        			
+	        		}
+	        	}catch( Throwable e ){
+	        	
+	        		LGLogger.log( e );
+	        	}
+	        	
+	        	if ( ips > 1 ){
+	        		
+		        	filter_override	= true;
+		        	
+		        	use_filter	= true;
+		        	
+					LGLogger.log( "ClientIDManager: overriding filter option to support local bind IP" ); 
+	        	}
 	        }
 		}
 		
