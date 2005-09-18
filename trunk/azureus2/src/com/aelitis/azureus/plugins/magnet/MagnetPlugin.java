@@ -326,9 +326,9 @@ MagnetPlugin
 		try{
 			final DistributedDatabase db = plugin_interface.getDistributedDatabase();
 			
-			final List			live_ones 		= new ArrayList();
-			final AESemaphore	live_ones_sem 	= new AESemaphore( "MagnetPlugin:liveones" );
-			final AEMonitor		live_ones_mon	= new AEMonitor( "MagnetPlugin:liveones" );
+			final List			potential_contacts 		= new ArrayList();
+			final AESemaphore	potential_contacts_sem 	= new AESemaphore( "MagnetPlugin:liveones" );
+			final AEMonitor		potential_contacts_mon	= new AEMonitor( "MagnetPlugin:liveones" );
 			
 			final int[]			outstanding		= {0};
 
@@ -362,30 +362,51 @@ MagnetPlugin
 																							
 											listener.reportActivity( value.getContact().getName() + " is " + (alive?"":"not ") + "alive" );
 											
-											if ( alive ){
+											try{
+												potential_contacts_mon.enter();
 												
-												try{
-													live_ones_mon.enter();
+												Object[]	entry = new Object[]{ new Boolean( alive ), value.getContact()};
+												
+												boolean	added = false;
+												
+												if ( alive ){
 													
-													live_ones.add( value.getContact());
-													
-													live_ones_sem.release();
-													
-												}finally{
-													
-													live_ones_mon.exit();
+														// try and place before first dead entry 
+											
+													for (int i=0;i<potential_contacts.size();i++){
+														
+														if (!((Boolean)((Object[])potential_contacts.get(i))[0]).booleanValue()){
+															
+															potential_contacts.add(i, entry );
+															
+															added = true;
+															
+															break;
+														}
+													}
 												}
+												
+												if ( !added ){
+													
+													potential_contacts.add( entry );	// dead at end
+												}
+													
+												potential_contacts_sem.release();
+													
+											}finally{
+													
+												potential_contacts_mon.exit();
 											}
 										}finally{
 											
 											try{
-												live_ones_mon.enter();													
+												potential_contacts_mon.enter();													
 
 												outstanding[0]--;
 												
 											}finally{
 												
-												live_ones_mon.exit();
+												potential_contacts_mon.exit();
 											}
 										}
 									}
@@ -398,7 +419,7 @@ MagnetPlugin
 						}else if (	type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ||
 									type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ){
 																		
-							live_ones_sem.release();
+							potential_contacts_sem.release();
 						}
 					}
 				},
@@ -411,16 +432,17 @@ MagnetPlugin
 					
 				long start = SystemTime.getCurrentTime();
 				
-				live_ones_sem.reserve( remaining );
+				potential_contacts_sem.reserve( remaining );
 				
 				remaining -= ( SystemTime.getCurrentTime() - start );
 				
 				DistributedDatabaseContact	contact;
+				boolean						live_contact;
 				
 				try{
-					live_ones_mon.enter();
+					potential_contacts_mon.enter();
 					
-					if ( live_ones.size() == 0 ){
+					if ( potential_contacts.size() == 0 ){
 						
 						if ( outstanding[0] == 0 ){
 						
@@ -432,14 +454,23 @@ MagnetPlugin
 						}
 					}else{
 					
-						contact = (DistributedDatabaseContact)live_ones.remove(0);
+						Object[]	entry = (Object[])potential_contacts.remove(0);
+						
+						live_contact 	= ((Boolean)entry[0]).booleanValue(); 
+						contact 		= (DistributedDatabaseContact)entry[1];
 					}
 					
 				}finally{
 					
-					live_ones_mon.exit();
+					potential_contacts_mon.exit();
 				}
 					
+				System.out.println( "magnetDownload: " + contact.getName() + ", live = " + live_contact );
+				
+				if ( !live_contact ){
+					
+					boolean	tunne_ok = contact.openTunnel();
+				}
 				try{
 					listener.reportActivity( "downloading data from " + contact.getName());
 					

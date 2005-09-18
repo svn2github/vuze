@@ -1224,6 +1224,8 @@ DHTNATPuncherImpl
 			
 			if ( sendPunch( rendezvous, target ) == RESP_OK ){
 				
+				log( "    punch to " + target.getString() + " succeeded" );
+				
 				return( true );
 			}
 			
@@ -1232,6 +1234,8 @@ DHTNATPuncherImpl
 			log( e );
 		}
 		
+		log( "    punch to " + target.getString() + " failed" );
+
 		return( false );
 	}
 	

@@ -40,6 +40,14 @@ DistributedDatabaseContact
 	public boolean
 	isOrHasBeenLocal();
 	
+		/**
+		 * Tries to open a NAT tunnel to the contact. Should only be used if direct contact fails
+		 * @return
+		 */
+	
+	public boolean
+	openTunnel();
+	
 	public void
 	write(
 		DistributedDatabaseTransferType		type,

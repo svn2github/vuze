@@ -32,6 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
@@ -179,7 +180,7 @@ MagnetURIHandlerImpl
 										        }
 											}catch( Throwable e ){
 												
-												if ( !(e instanceof IOException )){
+												if ( !(e instanceof IOException || e instanceof SocketException )){
 													
 													Debug.printStackTrace(e);
 												}

@@ -72,6 +72,12 @@ DDBaseContactImpl
 		return( contact.isOrHasBeenLocal());
 	}
 
+	public boolean
+	openTunnel()
+	{
+		return( contact.openTunnel());
+	}
+	
 	public void
 	write(
 		DistributedDatabaseTransferType		type,

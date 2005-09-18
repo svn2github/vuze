@@ -2180,7 +2180,7 @@ DHTTransportUDPImpl
 											
 										}catch( DHTTransportException e ){
 											
-											logger.log( "Faild to process transfer queue" );
+											logger.log( "Failed to process transfer queue" );
 											
 											logger.log( e );
 										}

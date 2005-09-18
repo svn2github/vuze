@@ -47,4 +47,7 @@ DHTPluginContact
 	
 	public boolean
 	isOrHasBeenLocal();
+	
+	public boolean
+	openTunnel();
 }

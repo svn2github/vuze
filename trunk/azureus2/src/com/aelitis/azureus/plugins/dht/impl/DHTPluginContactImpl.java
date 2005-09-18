@@ -79,4 +79,10 @@ DHTPluginContactImpl
 	{
 		return( plugin.isRecentAddress( contact.getAddress().getAddress().getHostAddress()));
 	}
+	
+	public boolean
+	openTunnel()
+	{
+		return( plugin.getDHT().getNATPuncher().punch( contact ));
+	}
 }
