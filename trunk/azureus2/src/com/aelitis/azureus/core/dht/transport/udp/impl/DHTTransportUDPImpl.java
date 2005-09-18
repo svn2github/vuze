@@ -71,14 +71,12 @@ DHTTransportUDPImpl
 	public static final long	READ_XFER_REREQUEST_DELAY	= 5000;
 	public static final long	WRITE_REPLY_TIMEOUT			= 60000;		
 	
+	private static boolean	XFER_TRACE	= false;
+	
 	static{
-			// when 2304 out for a week or so change:
-			// min protocol to 2304
-			// main protocol to "vivaldi" (10)
-		
-			// ALSO remove the anti-spoof disabling for old versions
-		
-		// done - 10/07 System.out.println( "**** mainline DHT version fix required" );
+		if ( XFER_TRACE ){
+			System.out.println( "**** DHTTransportUDPImpl xfer trace on ****" );
+		}
 	}	
 	
 	
@@ -1733,7 +1731,9 @@ DHTTransportUDPImpl
 		try{
 			checkAddress( contact );
 			
-			logger.log( "Transfer read request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+			if ( XFER_TRACE ){
+				logger.log( "Transfer read request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+			}
 			
 			packet_handler.send(
 				request,
@@ -1763,8 +1763,10 @@ DHTTransportUDPImpl
 		try{
 			checkAddress( contact );
 			
-			// logger.log( "Transfer read reply: key = " + DHTLog.getFullString( key ));
-
+			if ( XFER_TRACE ){
+				logger.log( "Transfer read reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+			}
+			
 			packet_handler.send(
 				request,
 				contact.getTransportAddress());
@@ -1793,8 +1795,10 @@ DHTTransportUDPImpl
 		try{
 			checkAddress( contact );
 			
-			logger.log( "Transfer write request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
-
+			if ( XFER_TRACE ){
+				logger.log( "Transfer write request: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+			}
+			
 			packet_handler.send(
 				request,
 				contact.getTransportAddress());
@@ -1821,8 +1825,10 @@ DHTTransportUDPImpl
 		try{
 			checkAddress( contact );
 			
-			logger.log( "Transfer write reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
-
+			if ( XFER_TRACE ){
+				logger.log( "Transfer write reply: key = " + DHTLog.getFullString( key ) + ", contact = " + contact.getString());
+			}
+			
 			packet_handler.send(
 				request,
 				contact.getTransportAddress());
@@ -2083,22 +2089,27 @@ DHTTransportUDPImpl
 														reportSize(
 															long	size )
 														{
-															System.out.println( "writeXfer: size=" + size );
+															if ( XFER_TRACE ){
+																System.out.println( "writeXfer: size=" + size );
+															}
 														}
 														
 														public void
 														reportActivity(
 															String	str )
 														{
-															System.out.println( "writeXfer: act=" + str );
-		
+															if ( XFER_TRACE ){
+																System.out.println( "writeXfer: act=" + str );
+															}
 														}
 														
 														public void
 														reportCompleteness(
 															int		percent )
 														{
-															System.out.println( "writeXfer: %=" + percent );
+															if ( XFER_TRACE ){
+																System.out.println( "writeXfer: %=" + percent );
+															}
 														}
 													},
 													originator,
@@ -2135,22 +2146,27 @@ DHTTransportUDPImpl
 																reportSize(
 																	long	size )
 																{
-																	System.out.println( "writeXferReply: size=" + size );
+																	if ( XFER_TRACE ){
+																		System.out.println( "writeXferReply: size=" + size );
+																	}
 																}
 																
 																public void
 																reportActivity(
 																	String	str )
 																{
-																	System.out.println( "writeXferReply: act=" + str );
-				
+																	if ( XFER_TRACE ){
+																		System.out.println( "writeXferReply: act=" + str );
+																	}
 																}
 																
 																public void
 																reportCompleteness(
 																	int		percent )
 																{
-																	System.out.println( "writeXferReply: %=" + percent );
+																	if ( XFER_TRACE ){
+																		System.out.println( "writeXferReply: %=" + percent );
+																	}
 																}
 															},
 															originator,

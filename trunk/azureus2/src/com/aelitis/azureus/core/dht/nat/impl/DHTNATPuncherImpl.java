@@ -52,10 +52,13 @@ DHTNATPuncherImpl
 	implements DHTNATPuncher
 {
 	private static boolean		TESTING	= false;
-	
+	private static boolean		TRACE	= false;
 	static{
 		if ( TESTING ){
 			System.out.println( "**** DHTNATPuncher test on ****" );
+		}
+		if ( TRACE ){
+			System.out.println( "**** DHTNATPuncher trace on ****" );
 		}
 	}
 	
@@ -82,13 +85,13 @@ DHTNATPuncherImpl
 	private UTTimer				timer;
 	
 	private static final long	REPUBLISH_TIME_MIN 			= 5*60*1000;
-	private static final long	TRANSFER_TIMEOUT			= 60*1000;
+	private static final long	TRANSFER_TIMEOUT			= 30*1000;
 	private static final long	RENDEZVOUS_LOOKUP_TIMEOUT	= 30*1000;
 	
 	private static final int	RENDEZVOUS_SERVER_MAX			= 8;
 	private static final long	RENDEZVOUS_SERVER_TIMEOUT 		= 5*60*1000;
 	private static final int	RENDEZVOUS_CLIENT_PING_PERIOD	= 50*1000;		// some routers only hold tunnel for 60s
-	private static final int	RENDEZVOUS_PING_FAIL_LIMIT		= 4;
+	private static final int	RENDEZVOUS_PING_FAIL_LIMIT		= 4;			// if you make this < 2 change code below!
 	
 	private Monitor	server_mon;
 	private Map 	rendezvous_bindings = new HashMap();
@@ -601,9 +604,9 @@ DHTNATPuncherImpl
 						if ( latest_local != null ){
 					
 							log( "Adding publish for " + latest_local.getString() + " -> " + latest_target.getString());
-
-							rendevzous_fail_count = 0;
 							
+							rendevzous_fail_count	= RENDEZVOUS_PING_FAIL_LIMIT - 2; // only 2 attempts to start with
+
 							dht.put(
 									getPublishKey( latest_local ),
 									"DHTNatPuncher: publish",
@@ -643,11 +646,13 @@ DHTNATPuncherImpl
 						}
 					}else if ( current_target != latest_target ){
 						
+							// here current_local == latest_local and neither is null! 
+						
 							// target changed, update publish
 						
 						log( "Updating publish for " + latest_local.getString() + " -> " + latest_target.getString());
 
-						rendevzous_fail_count	= 0;
+						rendevzous_fail_count	= RENDEZVOUS_PING_FAIL_LIMIT - 2; // only 2 attempts to start with
 						
 						dht.put(
 								getPublishKey( latest_local ),
@@ -697,7 +702,10 @@ DHTNATPuncherImpl
 					
 					if ( bind_result == RESP_OK ){
 					
-						System.out.println( "Rendezvous:" + current_target.getString() + " OK" );
+						if ( TRACE ){
+							
+							System.out.println( "Rendezvous:" + current_target.getString() + " OK" );
+						}
 												
 						rendevzous_fail_count	= 0;
 						
@@ -716,7 +724,12 @@ DHTNATPuncherImpl
 						
 						if ( rendevzous_fail_count == RENDEZVOUS_PING_FAIL_LIMIT ){
 							
-							log( "Rendezvous:" + current_target.getString() + " Failed" );
+							log( "Rendezvous failed: " + current_target.getString());
+
+							if ( TRACE ){
+								
+								log( "Rendezvous:" + current_target.getString() + " Failed" );
+							}
 							
 							try{
 								pub_mon.enter();
@@ -730,48 +743,7 @@ DHTNATPuncherImpl
 							
 							publish( true );
 						}			
-					}
-					
-					/*
-					current_target.sendPing(
-						new DHTTransportReplyHandlerAdapter()
-						{
-							public void
-							pingReply(
-								DHTTransportContact ok_contact )
-							{
-								System.out.println( "Rendezvous:" + ok_contact.getString() + " OK" );
-								
-								 //failed( ok_contact, null );
-								
-								rendevzous_fail_count[0]	= 0;
-							}
-							
-							public void
-							failed(
-								DHTTransportContact 	failed_contact,
-								Throwable				e )
-							{
-								if ( rendevzous_fail_count[0]++ == 4 ){
-									
-									log( "Rendezvous:" + failed_contact.getString() + " Failed" );
-									
-									try{
-										pub_mon.enter();
-									
-										failed_rendezvous.put( failed_contact.getAddress(),"");
-										
-									}finally{
-										
-										pub_mon.exit();
-									}
-									
-									publish( true );
-								}							
-	
-							}
-						});
-						*/
+					}					
 				}
 				
 			}catch( Throwable e ){
@@ -828,7 +800,7 @@ DHTNATPuncherImpl
 				
 		}catch( DHTTransportException e ){
 			
-			log(e);
+			// log(e); timeout most likely
 			
 			return( null );
 		}		
@@ -946,7 +918,10 @@ DHTNATPuncherImpl
 				
 				int	result = ((Long)response.get("ok")).intValue();
 
-				System.out.println( "received bind reply: " + (result==0?"failed":"ok" ));
+				if ( TRACE ){
+					
+					System.out.println( "received bind reply: " + (result==0?"failed":"ok" ));
+				}
 					
 				if ( result == 1 ){
 					
@@ -970,7 +945,9 @@ DHTNATPuncherImpl
 		Map						request,
 		Map						response )
 	{
-		System.out.println( "received bind request" );
+		if ( TRACE ){
+			System.out.println( "received bind request" );
+		}
 		
 		boolean	ok = true;
 		
@@ -1024,7 +1001,9 @@ DHTNATPuncherImpl
 				
 				int	result = ((Long)response.get("ok")).intValue();
 
-				System.out.println( "received punch reply: " + (result==0?"failed":"ok" ));
+				if ( TRACE ){
+					System.out.println( "received punch reply: " + (result==0?"failed":"ok" ));
+				}
 				
 				if ( result == 1 ){
 					
@@ -1048,7 +1027,9 @@ DHTNATPuncherImpl
 		Map						request,
 		Map						response )
 	{
-		System.out.println( "received puch request" );
+		if ( TRACE ){
+			System.out.println( "received puch request" );
+		}
 		
 		boolean	ok = false;
 		
@@ -1100,7 +1081,9 @@ DHTNATPuncherImpl
 				
 				int	result = ((Long)response.get("ok")).intValue();
 
-				System.out.println( "received connect reply: " + (result==0?"failed":"ok" ));
+				if ( TRACE ){
+					System.out.println( "received connect reply: " + (result==0?"failed":"ok" ));
+				}
 					
 				if ( result == 1 ){
 					
@@ -1124,7 +1107,9 @@ DHTNATPuncherImpl
 		Map						request,
 		Map						response )
 	{
-		System.out.println( "received connect request" );
+		if ( TRACE ){
+			System.out.println( "received connect request" );
+		}
 
 		boolean	ok = false;
 			
@@ -1174,7 +1159,9 @@ DHTNATPuncherImpl
 												pingReply(
 													DHTTransportContact ok_contact )
 												{
-													System.out.println( "tunnel ping ok" );
+													if ( TRACE ){
+														System.out.println( "tunnel ping ok" );
+													}
 												}
 												
 												public void
@@ -1199,7 +1186,9 @@ DHTNATPuncherImpl
 
 								pings[0]	= 100;	// stop periodic above
 							
-								System.out.println( "tunnel ping ok" );
+								if ( TRACE ){
+									System.out.println( "tunnel ping ok" );
+								}
 							}finally{
 								
 								pub_mon.exit();
