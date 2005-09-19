@@ -160,13 +160,14 @@ AEWin32AccessImpl
 	}
 	
 	public String
-	getAzureusInstallDir()
+	getApplicationInstallDir(
+		String	app_name )
 		
 		throws AEWin32AccessException
 	{
 		return(	readStringValue(
 				HKEY_LOCAL_MACHINE,
-				"software\\azureus",
+				"software\\" + app_name,
 				null ));		
 	}
 	

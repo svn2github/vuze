@@ -103,7 +103,8 @@ AEWin32Access
 		throws AEWin32AccessException;
 	
 	public String
-	getAzureusInstallDir()
+	getApplicationInstallDir(
+		String	app_name )
 		
 		throws AEWin32AccessException;
 	

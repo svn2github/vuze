@@ -128,7 +128,7 @@ PlatformManagerImpl
 	applyPatches()
 	{
 		try{
-			File	exe_loc = getAureusEXELocation();
+			File	exe_loc = getApplicationEXELocation();
 			
 			String	az_exe_string = exe_loc.toString();
 			
@@ -189,7 +189,7 @@ PlatformManagerImpl
 	}
 	
 	protected File
-	getAureusEXELocation()
+	getApplicationEXELocation()
 		throws PlatformManagerException
 	{
 		if ( az_exe == null ){
@@ -199,7 +199,7 @@ PlatformManagerImpl
 				String az_home;
 				
 				try{
-					az_home = access.getAzureusInstallDir();
+					az_home = access.getApplicationInstallDir( SystemProperties.getApplicationName());
 					
 					az_exe = new File( az_home + File.separator + app_exe_name ).getAbsoluteFile();
 	
@@ -258,6 +258,18 @@ PlatformManagerImpl
 		}		
 	}
 	
+	public String
+	getApplicationCommandLine()
+	{
+		try{
+			return( getApplicationEXELocation().toString());
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
+	}
+	
 	public boolean
 	isApplicationRegistered()
 	
@@ -274,7 +286,15 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 
-		String	az_exe_str = getAureusEXELocation().toString();
+		String	az_exe_str;
+		
+		try{
+			az_exe_str = getApplicationEXELocation().toString();
+		
+		}catch( Throwable e ){
+			
+			return( false );
+		}
 		
 		try{
 			String	test1 = 
@@ -383,7 +403,7 @@ PlatformManagerImpl
 		
 
 		try{
-			String	az_exe_string	= getAureusEXELocation().toString();
+			String	az_exe_string	= getApplicationEXELocation().toString();
 			
 			unregisterAdditionalFileType( name, type );
 

@@ -59,7 +59,10 @@ PlatformManager
 	
 		throws PlatformManagerException;
 	
-
+	public String
+	getApplicationCommandLine() 
+		
+		throws PlatformManagerException;
 	
 	public void
 	createProcess(

@@ -46,7 +46,7 @@ Test
 			
 			System.out.println( "AppData = " + app_data );
 
-			String az_home = access.getAzureusInstallDir();
+			String az_home = access.getApplicationInstallDir("azureus");
 			
 			File	az_exe = new File( az_home + File.separator + "Azureus.exe" ).getAbsoluteFile();
 			
