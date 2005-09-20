@@ -1497,7 +1497,7 @@ PEPeerTransportProtocol
           
           //make sure they're not spamming us
           if( !message_limiter.countIncomingMessage( message.getID(), 6, 60*1000 ) ) {  //allow max 6 keep-alives per 60sec
-            Debug.out( "Incoming keep-alive message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
+            System.out.println( "Incoming keep-alive message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
             closeConnectionInternally( "Incoming keep-alive message flood detected, dropping spamming peer connection." );
           }
 
@@ -1779,14 +1779,14 @@ PEPeerTransportProtocol
     
     //make sure they're not spamming us
     if( !message_limiter.countIncomingMessage( exchange.getID(), 7, 120*1000 ) ) {  //allow max 7 PEX per 2min  //TODO reduce max after 2306 release?
-      Debug.out( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
+   	System.out.println( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
       closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
       return;
     }
     
     if( added != null && added.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY || dropped != null && dropped.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY ) {
       //drop these too-large messages as they seem to be used for DOS by swarm poisoners
-      Debug.out( "Invalid PEX message received: too large [" +added.length+ "/" +dropped.length+ "]" +PEPeerTransportProtocol.this );
+   	System.out.println( "Invalid PEX message received: too large [" +added.length+ "/" +dropped.length+ "]" +PEPeerTransportProtocol.this );
       closeConnectionInternally( "Invalid PEX message received: too large, dropping likely poisoner peer connection." );
       return;
     }
