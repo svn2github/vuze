@@ -36,7 +36,10 @@ AEThread
 		String	name )
 	{
 		super(name);
+		
+		setDaemon( false );
 	}
+	
 	public
 	AEThread(
 		String	name,
@@ -51,6 +54,13 @@ AEThread
 	run()
 	{
 		try{
+			/*
+			if ( !isDaemon()){
+				
+				System.out.println( "non-daemon thread:" + this );
+			}
+			*/
+			
 			runSupport();
 			
 		}catch( Throwable e ){
