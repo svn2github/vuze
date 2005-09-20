@@ -590,6 +590,12 @@ DownloadManagerImpl
 		return( stats );
 	}
 	
+	public boolean
+	isSeedingOnly()
+	{
+		return( global_manager.isSeedingOnly());
+	}
+	
 	public void
 	addListener(
 		DownloadManagerListener	l )

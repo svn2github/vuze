@@ -57,10 +57,12 @@ public class ConfigSectionQueue implements UISWTConfigSection {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gMainTab.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 4;
     layout.marginHeight = 0;
     gMainTab.setLayout(layout);
 
+    	// row
+    
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxdownloads"); //$NON-NLS-1$
     gridData = new GridData();
@@ -69,11 +71,33 @@ public class ConfigSectionQueue implements UISWTConfigSection {
     maxDLs.setLayoutData(gridData); //$NON-NLS-1$
 
     label = new Label(gMainTab, SWT.NULL);
+    label = new Label(gMainTab, SWT.NULL);
+    
+    	// row
+    
+    label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.maxactivetorrents"); //$NON-NLS-1$
     gridData = new GridData();
     gridData.widthHint = 40;
     final IntParameter maxActiv = new IntParameter(gMainTab, "max active torrents");
     maxActiv.setLayoutData(gridData); //$NON-NLS-1$
+    
+    gridData = new GridData();
+    BooleanParameter maxActiveWhenSeedingEnabled = 
+    	new BooleanParameter(gMainTab, 
+    		"StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled",
+            "ConfigView.label.queue.maxactivetorrentswhenseeding");
+    maxActiveWhenSeedingEnabled.setLayoutData(gridData);
+    
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    
+    final IntParameter maxActivWhenSeeding = new IntParameter(gMainTab, "StartStopManager_iMaxActiveTorrentsWhenSeeding");
+    maxActivWhenSeeding.setLayoutData(gridData); //$NON-NLS-1$
+
+    	// change controllers for above
+    
+    maxActiveWhenSeedingEnabled.setAdditionalActionPerformer( new ChangeSelectionActionPerformer(maxActivWhenSeeding));
     
     maxDLs.addChangeListener( new ParameterChangeListener() {
       public void parameterChanged( Parameter p, boolean caused_internally ) {
@@ -97,6 +121,8 @@ public class ConfigSectionQueue implements UISWTConfigSection {
       }
     });
 
+    	// row
+    
     String	bytes_per_sec 	= DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_B );
     String	k_per_sec 		= DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
 
@@ -123,6 +149,11 @@ public class ConfigSectionQueue implements UISWTConfigSection {
     new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveDL", activeDLLabels, activeDLValues);
 
     label = new Label(gMainTab, SWT.NULL);
+    label = new Label(gMainTab, SWT.NULL);
+    
+    	// row
+    
+    label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveSeeding");
     final String activeSeedingLabels[] = new String[27];
     final int activeSeedingValues[] = new int[27];
@@ -146,18 +177,27 @@ public class ConfigSectionQueue implements UISWTConfigSection {
     new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveSeeding", 
                          activeSeedingLabels, activeSeedingValues);
 
+    label = new Label(gMainTab, SWT.NULL);
+    label = new Label(gMainTab, SWT.NULL);
+    
+    	// row
+    
     gridData = new GridData();
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 4;
     new BooleanParameter(gMainTab, "StartStopManager_bNewSeedsMoveTop", true,
                          "ConfigView.label.queue.newseedsmovetop").setLayoutData(gridData);
 
+    	// row
+    
     gridData = new GridData();
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 4;
     new BooleanParameter(gMainTab, "Alert on close", true,
                          "ConfigView.label.showpopuponclose").setLayoutData(gridData);
 
+    	//row 
+    
     gridData = new GridData();
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 4;
     new BooleanParameter(gMainTab, "StartStopManager_bDebugLog",
                          "ConfigView.label.queue.debuglog").setLayoutData(gridData);
 

@@ -182,6 +182,8 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iIgnoreShareRatioSeedStart", new Long(0));
     def.put("StartStopManager_bNewSeedsMoveTop", new Long(1));
     def.put("StartStopManager_iAddForSeedingDLCopyCount", new Long(1));
+    def.put("StartStopManager_iMaxActiveTorrentsWhenSeeding", new Long(0));
+    def.put("StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled", new Long(0));
     
     	//tracker proxy defaults
     def.put( "Enable.Proxy", new Long(0) );

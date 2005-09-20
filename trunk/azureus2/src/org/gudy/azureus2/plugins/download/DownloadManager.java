@@ -194,6 +194,15 @@ DownloadManager
 	public DownloadManagerStats
 	getStats();
 	
+		/**
+		 * indicates whether or not all active downloads are in a seeding (or effective) seeding state
+		 * @since 2.3.0.5
+		 * @return
+		 */
+	
+	public boolean
+	isSeedingOnly();
+	
 	/**
 	 * Add a listener that will be informed when a download is added to/removed from Azureus
 	 * @param l

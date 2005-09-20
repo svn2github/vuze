@@ -115,7 +115,10 @@ public class StartStopRulesDefaultPlugin
   int numPeersAsFullCopy;
   // don't count x peers as a full copy if seeds below
   int iFakeFullCopySeedStart;
-  int maxActive;
+  int _maxActive;
+  boolean _maxActiveWhenSeedingEnabled;
+  int _maxActiveWhenSeeding;
+  
   int maxDownloads;
 
   // Ignore torrent if seed count is at least..
@@ -487,7 +490,10 @@ public class StartStopRulesDefaultPlugin
 	    minPeersToBoostNoSeeds = plugin_config.getIntParameter("StartStopManager_iMinPeersToBoostNoSeeds");
 	    minSpeedForActiveDL = plugin_config.getIntParameter("StartStopManager_iMinSpeedForActiveDL");
 	    minSpeedForActiveSeeding = plugin_config.getIntParameter("StartStopManager_iMinSpeedForActiveSeeding");
-	    maxActive = plugin_config.getIntParameter("max active torrents");
+	    _maxActive = plugin_config.getIntParameter("max active torrents");
+	    _maxActiveWhenSeedingEnabled = plugin_config.getBooleanParameter("StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled");
+	    _maxActiveWhenSeeding		= plugin_config.getIntParameter("StartStopManager_iMaxActiveTorrentsWhenSeeding");
+	    
 	    maxDownloads = plugin_config.getIntParameter("max downloads");
 	    numPeersAsFullCopy = plugin_config.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
 	    iFakeFullCopySeedStart = plugin_config.getIntParameter("StartStopManager_iFakeFullCopySeedStart");
@@ -570,9 +576,27 @@ public class StartStopRulesDefaultPlugin
   
   private int calcMaxSeeders(int iDLs) {
     // XXX put in subtraction logic here
+	  int	maxActive = getMaxActive();
     return (maxActive == 0) ? 99999 : maxActive - iDLs;
   }
 
+  protected int
+  getMaxActive()
+  {
+	  if ( !_maxActiveWhenSeedingEnabled ){
+		  
+		  return( _maxActive );
+	  }
+	  
+	  if ( download_manager.isSeedingOnly()){
+		  
+		  return( _maxActiveWhenSeeding );
+	  }else{
+		  
+		  return( _maxActive );
+	  }
+  }
+  
   protected void process() {
   	try{
   		this_mon.enter();
@@ -684,6 +708,8 @@ public class StartStopRulesDefaultPlugin
 	    }
 	    
 	    int maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
+	    
+	    int	maxActive = getMaxActive();
 	    
 	    int maxTorrents;
 	    if (maxActive == 0) {

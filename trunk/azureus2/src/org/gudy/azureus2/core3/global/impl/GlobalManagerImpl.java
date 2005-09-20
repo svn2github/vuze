@@ -1683,7 +1683,11 @@ public class GlobalManagerImpl
     }
   }
 		
-  
+  public boolean
+  isSeedingOnly()
+  {
+	  return( seeding_only_mode );
+  }
   
   
   	public void downloadComplete(DownloadManager manager) { }

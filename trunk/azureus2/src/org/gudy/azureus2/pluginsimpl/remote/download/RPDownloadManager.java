@@ -353,6 +353,14 @@ RPDownloadManager
 		return( null );
 	}
 	
+	public boolean
+	isSeedingOnly()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
 	public void
 	addListener(
 		DownloadManagerListener	l )
