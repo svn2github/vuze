@@ -74,7 +74,7 @@ public class ActivityView extends AbstractIView {
   
   public void periodicUpdate() {
 	  
-	int swarms_peer_speed = (int)stats.getTotalSwarmsPeerRate();
+	int swarms_peer_speed = (int)stats.getTotalSwarmsPeerRate(true,false);
 	
     downSpeedGraphic.addIntsValue(
     	new int[]{ 	stats.getDataReceiveRate() + stats.getProtocolReceiveRate(),

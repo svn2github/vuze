@@ -133,9 +133,9 @@ GlobalManagerStatsImpl
 		  return totalDiscarded;
 	  }
 	  
-	  public long getTotalSwarmsPeerRate()
+	  public long getTotalSwarmsPeerRate(boolean downloading, boolean seeding )
 	  {
-		  return( manager.getTotalSwarmsPeerRate());
+		  return( manager.getTotalSwarmsPeerRate(downloading,seeding));
 	  }
 
 }

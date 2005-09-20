@@ -1693,7 +1693,10 @@ public class GlobalManagerImpl
   	public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
   	}
   
-	public long getTotalSwarmsPeerRate()
+	public long 
+	getTotalSwarmsPeerRate(
+		boolean 	downloading, 
+		boolean 	seeding )
 	{
 		long	now = SystemTime.getCurrentTime();
 		
@@ -1708,7 +1711,13 @@ public class GlobalManagerImpl
 				
 				DownloadManager	manager = (DownloadManager)managers.get(i);
 
-				total += manager.getStats().getTotalAveragePerPeer();
+				boolean	is_seeding = manager.getState() == DownloadManager.STATE_SEEDING;
+				
+				if (	( downloading && !is_seeding ) ||
+						( seeding && is_seeding )){
+					
+					total += manager.getStats().getTotalAveragePerPeer();
+				}
 			}
 			
 			last_swarm_stats	= total;

@@ -46,7 +46,7 @@ GlobalManagerStats
   
 	public long getTotalProtocolBytesSent();
   
-  	public long getTotalSwarmsPeerRate();
+  	public long getTotalSwarmsPeerRate( boolean downloading, boolean seeding );
   	
   
 		// set methods

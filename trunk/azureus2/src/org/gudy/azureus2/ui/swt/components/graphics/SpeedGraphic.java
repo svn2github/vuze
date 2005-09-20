@@ -234,7 +234,10 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 	        int targetValue 	= all_values[z][position];
 	        int oldTargetValue 	= oldTargetValues[z];
 	        
-	        if ( x > 1 && targetValue > 0 && oldTargetValue > 0 ) {
+	        if ( x > 1 && 
+	        		( z == 1 && ( targetValue > 0 && oldTargetValue > 0 ) ||
+	        		( z > 1  && ( targetValue > 0 || oldTargetValue > 0 )))){
+	        	
 	        	int	trimmed = 0;
 	        	if ( targetValue > max ){
 	        		targetValue = max;
