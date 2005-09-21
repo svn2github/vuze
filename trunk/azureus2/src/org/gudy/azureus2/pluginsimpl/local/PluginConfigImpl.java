@@ -166,6 +166,8 @@ PluginConfigImpl
 	 */
 	public int getPluginIntParameter(String key, int defaultValue)
 	{
+	   	COConfigurationManager.setIntDefault( this.key+key, defaultValue );
+
 		return COConfigurationManager.getIntParameter(this.key+key, defaultValue);
 	}
 
@@ -182,6 +184,8 @@ PluginConfigImpl
 	 */
 	public String getPluginStringParameter(String key, String defaultValue)
 	{
+    	COConfigurationManager.setStringDefault( this.key+key, defaultValue );
+
 		return COConfigurationManager.getStringParameter(this.key+key, defaultValue);
 	}
 
@@ -198,11 +202,15 @@ PluginConfigImpl
 	 */
 	public boolean getPluginBooleanParameter(String key, boolean defaultValue)
 	{
+	   	COConfigurationManager.setBooleanDefault( this.key+key, defaultValue );
+
 		return COConfigurationManager.getBooleanParameter(this.key+key, defaultValue);
 	}
 
 	public byte[] getPluginByteParameter(String key, byte[] defaultValue )
 	{
+	   	COConfigurationManager.setByteDefault( this.key+key, defaultValue );
+
 		return COConfigurationManager.getByteParameter(this.key+key, defaultValue);
 	}
 
