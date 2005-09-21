@@ -98,8 +98,8 @@ ClientIDManagerImpl
 			
 		    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
 		    
-	        if (	( http_proxy == null || http_proxy.length() == 0 ) &&
-	        		( socks_proxy == null || socks_proxy.length() == 0 ) &&
+	        if (	( http_proxy == null || http_proxy.trim().length() == 0 ) &&
+	        		( socks_proxy == null || socks_proxy.trim().length() == 0 ) &&
 	        		bindIP.length() > 6 ){
 
 	        	int		ips = 0;
