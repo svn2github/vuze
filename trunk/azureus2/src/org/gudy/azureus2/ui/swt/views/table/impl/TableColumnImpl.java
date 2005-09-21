@@ -27,6 +27,7 @@ import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
@@ -317,33 +318,69 @@ public class TableColumnImpl
       return;
 
     //System.out.println(this + " :: invokeCellRefreshListeners" + cellRefreshListeners.size());
-    for (int i = 0; i < cellRefreshListeners.size(); i++)
-      ((TableCellRefreshListener)(cellRefreshListeners.get(i))).refresh(cell);
+    for (int i = 0; i < cellRefreshListeners.size(); i++){
+    	
+    	try{
+    		((TableCellRefreshListener)(cellRefreshListeners.get(i))).refresh(cell);
+    		
+    	}catch( Throwable e ){
+    		
+    		Debug.printStackTrace(e);
+    	}
+    }
   }
 
   public void invokeCellAddedListeners(TableCellCore cell) {
     if (cellAddedListeners == null)
       return;
-    for (int i = 0; i < cellAddedListeners.size(); i++)
-      ((TableCellAddedListener)(cellAddedListeners.get(i))).cellAdded(cell);
+    for (int i = 0; i < cellAddedListeners.size(); i++){
+    	
+    	try{
+    		((TableCellAddedListener)(cellAddedListeners.get(i))).cellAdded(cell);
+   	
+    	}catch( Throwable e ){
+    		
+    		Debug.printStackTrace(e);
+    	}
+    }
   }
 
   public void invokeCellDisposeListeners(TableCellCore cell) {
     if (cellDisposeListeners == null)
       return;
-    for (int i = 0; i < cellDisposeListeners.size(); i++)
-      ((TableCellDisposeListener)(cellDisposeListeners.get(i))).dispose(cell);
+    for (int i = 0; i < cellDisposeListeners.size(); i++){
+    	try{
+    		((TableCellDisposeListener)(cellDisposeListeners.get(i))).dispose(cell);
+    		
+    	}catch( Throwable e ){
+    		
+    		Debug.printStackTrace(e);
+    	}
+    }
   }
 
   public void invokeCellToolTipListeners(TableCellCore cell, int type) {
     if (cellToolTipListeners == null)
       return;
     if (type == TableCellCore.TOOLTIPLISTENER_HOVER) {
-      for (int i = 0; i < cellToolTipListeners.size(); i++)
-        ((TableCellToolTipListener)(cellToolTipListeners.get(i))).cellHover(cell);
+      for (int i = 0; i < cellToolTipListeners.size(); i++){
+    	  try{
+    		  ((TableCellToolTipListener)(cellToolTipListeners.get(i))).cellHover(cell);
+    	  }catch( Throwable e ){
+        		
+        	Debug.printStackTrace(e);
+    	  }
+      }
     } else {
-      for (int i = 0; i < cellToolTipListeners.size(); i++)
-        ((TableCellToolTipListener)(cellToolTipListeners.get(i))).cellHoverComplete(cell);
+      for (int i = 0; i < cellToolTipListeners.size(); i++){
+    	  
+    	    try{
+    		  ((TableCellToolTipListener)(cellToolTipListeners.get(i))).cellHoverComplete(cell);
+    	  	}catch( Throwable e ){
+        		
+        		Debug.printStackTrace(e);
+        	}
+      }
     }
   }
 
