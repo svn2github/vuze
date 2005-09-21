@@ -391,6 +391,14 @@ SSDPImpl
 				
 				NetworkInterface	network_interface = (NetworkInterface)x.nextElement();
 				
+				if ( !network_interface.getInetAddresses().hasMoreElements()){
+					
+						// skip any interface that have no addresses as this will
+						// cause an error when we try and set the mc_socks's NI
+					
+					continue;
+				}
+				
 				try{
 					
 					MulticastSocket mc_sock = new MulticastSocket(null);
