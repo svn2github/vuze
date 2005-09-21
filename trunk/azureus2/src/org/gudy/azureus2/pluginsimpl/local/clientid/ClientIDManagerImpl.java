@@ -89,9 +89,18 @@ ClientIDManagerImpl
 
 		if ( !use_filter ){
 			
+				// another reason for NOT doing this is if the user has a defined proxy
+				// in this case the assumption is that they know what they're doing and
+				// the proxy will be bound correctly to ensure that things work...
+			
+			String	http_proxy 	= System.getProperty( "http.proxyHost" );
+			String	socks_proxy = System.getProperty( "socksProxyHost" );
+			
 		    String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
 		    
-	        if ( bindIP.length() > 6 ){
+	        if (	( http_proxy == null || http_proxy.length() == 0 ) &&
+	        		( socks_proxy == null || socks_proxy.length() == 0 ) &&
+	        		bindIP.length() > 6 ){
 
 	        	int		ips = 0;
 	        	
