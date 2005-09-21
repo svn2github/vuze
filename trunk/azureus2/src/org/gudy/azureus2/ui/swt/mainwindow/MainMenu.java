@@ -509,6 +509,7 @@ public class MainMenu {
         }
       });
       
+      /*
       new MenuItem(helpMenu,SWT.SEPARATOR);
       MenuItem testMenu = new MenuItem(helpMenu, SWT.NULL);
       testMenu.setText("Test");
@@ -530,6 +531,7 @@ public class MainMenu {
           
         }
       });
+      */
       
     } catch (Exception e) {
       LGLogger.log(LGLogger.ERROR, "Error while creating menu items");
