@@ -313,4 +313,11 @@ COConfigurationManager
   {
   	ConfigurationDefaults.getInstance().addParameter( parameter, _default );
   }
+  
+  public static Object
+  getDefault(
+	 String parameter )
+  {
+	return( ConfigurationDefaults.getInstance().getParameter( parameter ));
+  }
 }

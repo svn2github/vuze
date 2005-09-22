@@ -442,4 +442,11 @@ public class ConfigurationDefaults {
   public boolean doesParameterDefaultExist(String p) {
     return def.containsKey(p);
   }
+  
+  public Object
+  getParameter(
+	 String	key )
+  {
+	return( def.get( key ));  
+  }
 }
