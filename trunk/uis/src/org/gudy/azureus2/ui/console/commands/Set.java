@@ -50,11 +50,11 @@ public class Set extends IConsoleCommand {
 			displayOptions(ci.out);
 			return;
 		}
-		String origParamName = (String) args.get(0);
-		String parameter = (String) ExternalUIConst.parameterlegacy.get(origParamName);
-		if( parameter == null || parameter.length() == 0 )
+		String external_name = (String) args.get(0);
+		String internal_name = (String) ExternalUIConst.parameterlegacy.get(external_name);
+		if( internal_name == null || internal_name.length() == 0 )
 		{
-			parameter = origParamName;
+			internal_name = external_name;
 		}
 //		else
 //			ci.out.println("> converting " + origParamName + " to " + parameter);
@@ -64,13 +64,13 @@ public class Set extends IConsoleCommand {
 		{
 			case 1:
 				// try to display the value of the specified parameter
-				if( ! COConfigurationManager.doesParameterDefaultExist( parameter ) )					
+				if( ! COConfigurationManager.doesParameterDefaultExist( internal_name ) )					
 				{
-					ci.out.println("> Command 'set': Parameter '" + parameter + "' unknown.");
+					ci.out.println("> Command 'set': Parameter '" + external_name + "' unknown.");
 					return;
 				}
-				param = Parameter.get(parameter);
-				param.name = origParamName;
+				param = Parameter.get(internal_name,external_name);
+				
 				ci.out.println( param.toString() );
 				break;
 			case 2:
@@ -80,7 +80,7 @@ public class Set extends IConsoleCommand {
 				if( args.size() == 2 )
 				{
 					// guess the parameter type by getting the current value and determining its type
-					param = Parameter.get(parameter);
+					param = Parameter.get( internal_name, external_name );
 					type = param.getType();
 				}
 				else
@@ -88,19 +88,19 @@ public class Set extends IConsoleCommand {
 				
 				boolean success = false;
 				if( type.equalsIgnoreCase("int") ) {
-					COConfigurationManager.setParameter( parameter, Integer.parseInt( setto ) );
+					COConfigurationManager.setParameter( internal_name, Integer.parseInt( setto ) );
 					success = true;
 				}
 				else if( type.equalsIgnoreCase("bool") ) {
-					COConfigurationManager.setParameter( parameter, setto.equalsIgnoreCase("true") ? true : false );
+					COConfigurationManager.setParameter( internal_name, setto.equalsIgnoreCase("true") ? true : false );
 					success = true;
 				}
 				else if( type.equalsIgnoreCase("float") ) {
-					COConfigurationManager.setParameter( parameter, Float.parseFloat( setto ) );
+					COConfigurationManager.setParameter( internal_name, Float.parseFloat( setto ) );
 					success = true;
 				}
 				else if( type.equalsIgnoreCase("string") ) {
-					COConfigurationManager.setParameter( parameter, setto );
+					COConfigurationManager.setParameter( internal_name, setto );
 					success = true;
 				}
 				else if( type.equalsIgnoreCase("password") ) {
@@ -119,14 +119,14 @@ public class Set extends IConsoleCommand {
 						encoded = password;
 					}
 					
-					COConfigurationManager.setParameter( parameter, encoded );
+					COConfigurationManager.setParameter( internal_name, encoded );
 					
 					success = true;
 				}
 				
 				if( success ) {
 					COConfigurationManager.save();
-					ci.out.println("> Parameter '" + parameter + "' set to '" + setto + "'. [" + type + "]");
+					ci.out.println("> Parameter '" + external_name + "' set to '" + setto + "'. [" + type + "]");
 				}
 				else ci.out.println("ERROR: invalid type given");
 				
@@ -147,11 +147,18 @@ public class Set extends IConsoleCommand {
 		}
 		TreeSet srt = new TreeSet();
 		while (I.hasNext()) {
-			String parameter = (String) I.next();
-			if( backmap.containsKey(parameter))
-				parameter = (String) backmap.get(parameter);
+			String internal_name = (String) I.next();
 			
-			Parameter param = Parameter.get( parameter );
+			String	external_name = (String) backmap.get(internal_name);
+			
+			if ( external_name == null ){
+				
+				external_name = internal_name;
+			}
+
+			System.out.println( "ext=" + external_name + ",int=" + internal_name );
+			
+			Parameter param = Parameter.get( internal_name, external_name );
 			srt.add( param.toString() );
 		}
 		I = srt.iterator();
@@ -176,69 +183,88 @@ public class Set extends IConsoleCommand {
 		 * @param parameter
 		 * @return
 		 */
-		public static Parameter get(String parameter)
+		public static Parameter 
+		get(
+			String	internal_name,
+			String	external_name )
 		{
-			int underscoreIndex = parameter.indexOf('_');
-			int nextchar = parameter.charAt(underscoreIndex + 1);
+			int underscoreIndex = external_name.indexOf('_');
+			int nextchar = external_name.charAt(underscoreIndex + 1);
 			try {
 				if( nextchar == 'i' )
 				{
-					int value = COConfigurationManager.getIntParameter(parameter, Integer.MIN_VALUE);
-					return new Parameter(parameter, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
+					int value = COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE);
+					return new Parameter(internal_name, external_name, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
 				}
 				else if( nextchar == 'b' )
 				{
 					// firstly get it as an integer to make sure it is actually set to something
-					if( COConfigurationManager.getIntParameter(parameter, Integer.MIN_VALUE) != Integer.MIN_VALUE )
+					if( COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE) != Integer.MIN_VALUE )
 					{
-						boolean b = COConfigurationManager.getBooleanParameter(parameter);
-						return new Parameter(parameter, Boolean.valueOf(b));
+						boolean b = COConfigurationManager.getBooleanParameter(internal_name);
+						return new Parameter(internal_name, external_name, Boolean.valueOf(b));
 					}
 					else
 					{
-						return new Parameter(parameter, (Boolean)null);
+						return new Parameter(internal_name, external_name, (Boolean)null);
 					}
 				}
 				else
 				{
-					String value = COConfigurationManager.getStringParameter(parameter, NULL_STRING);				
-					return new Parameter( parameter, NULL_STRING.equals(value) ? null : value);
+					String value = COConfigurationManager.getStringParameter(internal_name, NULL_STRING);				
+					return new Parameter( internal_name, external_name, NULL_STRING.equals(value) ? null : value);
 				}
 			} catch (Exception e)
 			{
 				try {
-					int value = COConfigurationManager.getIntParameter(parameter, Integer.MIN_VALUE);
-					return new Parameter(parameter, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
+					int value = COConfigurationManager.getIntParameter(internal_name, Integer.MIN_VALUE);
+					return new Parameter(internal_name, external_name, value == Integer.MIN_VALUE ? (Integer)null : new Integer(value) );
 				} catch (Exception e1)
 				{
-					String value = COConfigurationManager.getStringParameter(parameter);
-					return new Parameter( parameter, NULL_STRING.equals(value) ? null : value);
+					String value = COConfigurationManager.getStringParameter(internal_name);
+					return new Parameter( internal_name, external_name, NULL_STRING.equals(value) ? null : value);
 				}
 			}
 		}
-		public Parameter( String name, Boolean val )
+		public Parameter( String iname, String ename, Boolean val )
 		{
-			this(name, val, PARAM_BOOLEAN);
+			this(iname,ename, val, PARAM_BOOLEAN);
 		}
-		public Parameter( String name, Integer val )
+		public Parameter( String iname, String ename, Integer val )
 		{
-			this(name, val, PARAM_INT);
+			this(iname,ename, val, PARAM_INT);
 		}
-		public Parameter( String name, String val )
+		public Parameter( String iname, String ename, String val )
 		{
-			this(name, val, PARAM_STRING);
+			this(iname,ename, val, PARAM_STRING);
 		}
-		private Parameter( String name, Object val, int type )
+		private Parameter( String _iname, String _ename, Object _val, int _type )
 		{
-			this.type = type;
-			this.name = name;
-			this.value = val;
-			this.isSet = (val != null);
+			type = _type;
+			iname = _iname;
+			ename = _ename;
+			value = _val;
+			isSet = (value != null);
+			
+			if ( !isSet ){
+				
+				def = COConfigurationManager.getDefault(iname);
+				
+				if  ( def != null ){
+					
+					if ( def instanceof Long ){
+						
+						type = PARAM_INT;
+					}
+				}
+			}
 		}
-		public final int type;
-		public String name;
-		public final Object value;
-		public final boolean isSet;
+		private int type;
+		private String iname;
+		private String ename;
+		private Object value;
+		private boolean isSet;
+		private Object	def;
 		
 		public String getType()
 		{
@@ -256,10 +282,17 @@ public class Set extends IConsoleCommand {
 		}	
 		public String toString()
 		{
-			if( isSet )
-				return "> " + name + ": " + value + " [" + getType() + "]";				
-			else
-				return "> " + name + " is not set. [" + getType() + "]";
+			if( isSet ){
+				return "> " + ename + ": " + value + " [" + getType() + "]";				
+			}else{
+				if ( def == null ){
+					
+					return "> " + ename + " is not set. [" + getType() + "]";
+					
+				}else{
+					return "> " + ename + " is not set. [" + getType() + ", default: " + def + "]";
+				}
+			}
 		}
 	}
 }
