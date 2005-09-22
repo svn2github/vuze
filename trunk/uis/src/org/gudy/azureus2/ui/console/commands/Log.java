@@ -11,7 +11,7 @@
 package org.gudy.azureus2.ui.console.commands;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -22,13 +22,18 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.varia.DenyAllFilter;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
  * @author Tobias Minich
  */
-public class Log extends OptionsConsoleCommand {
-
+public class Log extends OptionsConsoleCommand {	
+	
+	private Map channel_listener_map = new HashMap();
+	
 	public Log()
 	{
 		super( new String[] { "log", "l" });
@@ -41,61 +46,167 @@ public class Log extends OptionsConsoleCommand {
 		return options;
 	}
 	
-	public void execute(String commandName, ConsoleInput ci, CommandLine commandLine)
+	public void execute(String commandName, final ConsoleInput ci, CommandLine commandLine)
 	{
 		Appender con = Logger.getRootLogger().getAppender("ConsoleAppender");
 		List args = commandLine.getArgList();
 		if ((con != null) && (!args.isEmpty())) {
 			String subcommand = (String) args.get(0);
 			if ("off".equalsIgnoreCase(subcommand) ) {
-				con.addFilter(new DenyAllFilter());
-				ci.out.println("> Console logging off");
-			} else if ("on".equalsIgnoreCase(subcommand) ) {
-				if( commandLine.hasOption('f') )
-				{
-					// send log output to a file
-					String filename = commandLine.getOptionValue('f');
+				if ( args.size() == 1 ){
+					con.addFilter(new DenyAllFilter());
+					ci.out.println("> Console logging off");
+				}else{
 					
-					try
-					{
-						Appender newAppender = new FileAppender(new PatternLayout("%d{ISO8601} %c{1}-%p: %m%n"), filename, true);
-						newAppender.setName("ConsoleAppender");
-						Logger.getRootLogger().removeAppender(con);
-						Logger.getRootLogger().addAppender(newAppender);
-						ci.out.println("> Logging to filename: " + filename);
-					} catch (IOException e)
-					{
-						ci.out.println("> Unable to log to file: " + filename + ": " + e);
-					}					
-				}
-				else
-				{
-					if( ! (con instanceof ConsoleAppender) )
-					{
-						Logger.getRootLogger().removeAppender(con);
-						con = new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN));
-						con.setName("ConsoleAppender");
-					    Logger.getRootLogger().addAppender(con);
+					Object[]	entry  = (Object[])channel_listener_map.remove( args.get(1));
+					
+					if ( entry == null ){
+						
+						ci.out.println( "> Channel '" + args.get(1) + "' not found" );
+						
+					}else{
+						
+						((LoggerChannel)entry[0]).removeListener((LoggerChannelListener)entry[1]);
+						
+						ci.out.println( "> Channel '" + args.get(1) + "' logging off" );
 					}
-					// switch back to console appender
-					ci.out.println("> Console logging on");
 				}
-				con.clearFilters();
+			} else if ("on".equalsIgnoreCase(subcommand) ) {
 				
+				if ( args.size() == 1 ){
+
+					if( commandLine.hasOption('f') )
+					{
+						// send log output to a file
+						String filename = commandLine.getOptionValue('f');
+						
+						try
+						{
+							Appender newAppender = new FileAppender(new PatternLayout("%d{ISO8601} %c{1}-%p: %m%n"), filename, true);
+							newAppender.setName("ConsoleAppender");
+							Logger.getRootLogger().removeAppender(con);
+							Logger.getRootLogger().addAppender(newAppender);
+							ci.out.println("> Logging to filename: " + filename);
+						} catch (IOException e)
+						{
+							ci.out.println("> Unable to log to file: " + filename + ": " + e);
+						}					
+					}
+					else
+					{
+						if( ! (con instanceof ConsoleAppender) )
+						{
+							Logger.getRootLogger().removeAppender(con);
+							con = new ConsoleAppender(new PatternLayout(PatternLayout.TTCC_CONVERSION_PATTERN));
+							con.setName("ConsoleAppender");
+						    Logger.getRootLogger().addAppender(con);
+						}
+						// switch back to console appender
+						ci.out.println("> Console logging on");
+					}
+					
+					con.clearFilters();
+				}else{
+					// hack - dunno how to do plugin-specific logging using these damn appenders..
+					
+					Map	channel_map = getChannelMap( ci );
+
+					LoggerChannel	channel = (LoggerChannel)channel_map.get(args.get(1));
+					
+					if ( channel == null ){
+						
+						ci.out.println( "> Channel '" + args.get(1) + "' not found" );
+						
+					}else{
+						
+						LoggerChannelListener	l = 
+							new LoggerChannelListener()
+							{
+								public void
+								messageLogged(
+									int		type,
+									String	content )
+								{
+									ci.out.println( content );
+								}
+								
+								public void
+								messageLogged(
+									String		str,
+									Throwable	error )
+								{
+									ci.out.println( str );
+									
+									error.printStackTrace( ci.out );
+								}
+							};
+							
+						channel.addListener( l );
+						
+						channel_listener_map.put( args.get(1), new Object[]{ channel, l });
+						
+						ci.out.println( "> Channel '" + args.get(1) + "' on" );
+					}
+					
+				}
+			}else if ( subcommand.equalsIgnoreCase("list" )){
+				
+				Map	channel_map = getChannelMap( ci );
+				
+				Iterator it = channel_map.keySet().iterator();
+				
+				while( it.hasNext()){
+					
+					String	name = (String)it.next();
+					
+					ci.out.println( "  " + name + " [" + ( channel_listener_map.get( name ) == null?"off":"on") + "]" );
+				}
 			} else {
+				
 				ci.out.println("> Command 'log': Subcommand '" + subcommand + "' unknown.");
 			}
 		} else {
-			ci.out.println("> Console logger not found or missing subcommand for 'log'\r\n> log syntax: log (on|off)");
+			ci.out.println("> Console logger not found or missing subcommand for 'log'\r\n> log syntax: log [-f filename] (on [name]|off [name]|list)");
 		}
 	}
 
+	protected Map
+	getChannelMap(
+		ConsoleInput	ci )
+	{
+		Map channel_map = new HashMap();
+		
+		PluginInterface[]	pis = ci.azureus_core.getPluginManager().getPluginInterfaces();
+		
+		for (int i=0;i<pis.length;i++){
+		
+			LoggerChannel[]	logs = pis[i].getLogger().getChannels();
+		
+			if ( logs.length > 0 ){
+								
+				if ( logs.length == 1 ){
+					
+					channel_map.put( pis[i].getPluginName(),logs[0] );
+
+				}else{
+					
+					for (int j=0;j<logs.length;j++){
+					
+						channel_map.put( pis[i].getPluginName() + "." + logs[j].getName(), logs[j] );
+					}
+				}
+			}
+		}
+		
+		return( channel_map );
+	}
+	
 	public static void commandLogtest(ConsoleInput ci, List args) {
 		Logger.getLogger("azureus2").fatal("Logging test" + (((args == null) || (args.isEmpty())) ? "" : ": " + args.get(0).toString()));
 	}
 
 	public String getCommandDescriptions()
 	{
-		return("log [-f filename] (on|off)\t\t\tl\tTurn on/off console logging");
+		return("log [-f filename] (on [name]|off [name]|list)\t\t\tl\tTurn on/off console logging");
 	}
 }

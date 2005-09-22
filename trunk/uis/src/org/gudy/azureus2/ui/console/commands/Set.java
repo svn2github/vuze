@@ -155,8 +155,6 @@ public class Set extends IConsoleCommand {
 				
 				external_name = internal_name;
 			}
-
-			System.out.println( "ext=" + external_name + ",int=" + internal_name );
 			
 			Parameter param = Parameter.get( internal_name, external_name );
 			srt.add( param.toString() );
