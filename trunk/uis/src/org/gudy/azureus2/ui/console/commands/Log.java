@@ -58,17 +58,19 @@ public class Log extends OptionsConsoleCommand {
 					ci.out.println("> Console logging off");
 				}else{
 					
-					Object[]	entry  = (Object[])channel_listener_map.remove( args.get(1));
+					String	name = (String)args.get(1);
+					
+					Object[]	entry  = (Object[])channel_listener_map.remove( name );
 					
 					if ( entry == null ){
 						
-						ci.out.println( "> Channel '" + args.get(1) + "' not found" );
+						ci.out.println( "> Channel '" + name + "' not being logged" );
 						
 					}else{
 						
 						((LoggerChannel)entry[0]).removeListener((LoggerChannelListener)entry[1]);
 						
-						ci.out.println( "> Channel '" + args.get(1) + "' logging off" );
+						ci.out.println( "> Channel '" + name + "' logging off" );
 					}
 				}
 			} else if ("on".equalsIgnoreCase(subcommand) ) {
@@ -111,12 +113,18 @@ public class Log extends OptionsConsoleCommand {
 					
 					Map	channel_map = getChannelMap( ci );
 
-					LoggerChannel	channel = (LoggerChannel)channel_map.get(args.get(1));
+					final String	name = (String)args.get(1);
+					
+					LoggerChannel	channel = (LoggerChannel)channel_map.get(name);
 					
 					if ( channel == null ){
 						
-						ci.out.println( "> Channel '" + args.get(1) + "' not found" );
+						ci.out.println( "> Channel '" + name + "' not found" );
 						
+					}else if ( channel_listener_map.get(name) != null ){
+						
+						ci.out.println( "> Channel '" + name + "' already being logged" );
+
 					}else{
 						
 						LoggerChannelListener	l = 
@@ -127,7 +135,7 @@ public class Log extends OptionsConsoleCommand {
 									int		type,
 									String	content )
 								{
-									ci.out.println( content );
+									ci.out.println( "["+name+"] "+ content );
 								}
 								
 								public void
@@ -135,7 +143,7 @@ public class Log extends OptionsConsoleCommand {
 									String		str,
 									Throwable	error )
 								{
-									ci.out.println( str );
+									ci.out.println( "["+name+"] "+ str );
 									
 									error.printStackTrace( ci.out );
 								}
@@ -143,9 +151,9 @@ public class Log extends OptionsConsoleCommand {
 							
 						channel.addListener( l );
 						
-						channel_listener_map.put( args.get(1), new Object[]{ channel, l });
+						channel_listener_map.put( name, new Object[]{ channel, l });
 						
-						ci.out.println( "> Channel '" + args.get(1) + "' on" );
+						ci.out.println( "> Channel '" + name + "' on" );
 					}
 					
 				}
