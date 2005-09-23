@@ -729,6 +729,9 @@ IpFilterImpl
 			class_mon.enter();
 		
 			bannedIps.clear();
+			
+			saveBannedIPs();
+			
 		}finally{
 			
 			class_mon.exit();
