@@ -25,6 +25,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.security;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,6 +38,7 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
  */
 
 import org.gudy.azureus2.core3.security.*;
+import org.gudy.azureus2.plugins.utils.security.CertificateListener;
 import org.gudy.azureus2.plugins.utils.security.PasswordListener;
 
 
@@ -44,7 +46,8 @@ public class
 SESecurityManagerImpl 
 	implements org.gudy.azureus2.plugins.utils.security.SESecurityManager
 {
-	private Map	password_listeners	= new HashMap();
+	private Map	password_listeners		= new HashMap();
+	private Map	certificate_listeners	= new HashMap();
 	
 	public byte[]
 	calculateSHA1(
@@ -115,6 +118,39 @@ SESecurityManagerImpl
 		if ( sepl != null ){
 			
 			SESecurityManager.removePasswordListener( sepl );
+		}
+	}
+	
+	public void
+	addCertificateListener(
+		final CertificateListener	listener )
+	{
+		SECertificateListener	sepl = 
+			new SECertificateListener()
+			{
+			public boolean
+			trustCertificate(
+				String			resource,
+				X509Certificate	cert )
+			{
+				return( listener.trustCertificate( resource, cert ));
+			}
+			};
+			
+		certificate_listeners.put( listener, sepl );
+		
+		SESecurityManager.addCertificateListener( sepl );
+	}
+		
+	public void
+	removeCertificateListener(
+			CertificateListener	listener )
+	{
+		SECertificateListener	sepl = (SECertificateListener)certificate_listeners.get( listener );
+		
+		if ( sepl != null ){
+			
+			SESecurityManager.removeCertificateListener( sepl );
 		}
 	}
 }

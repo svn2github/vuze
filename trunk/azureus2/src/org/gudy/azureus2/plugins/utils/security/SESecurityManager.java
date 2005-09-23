@@ -51,6 +51,14 @@ SESecurityManager
 	removePasswordListener(
 		PasswordListener	listener );
 	
+	public void
+	addCertificateListener(
+		CertificateListener	listener );
+		
+	public void
+	removeCertificateListener(
+		CertificateListener	listener );
+
 		/**
 		 * returns the SHA1 hash of the input data
 		 * @param data_in
