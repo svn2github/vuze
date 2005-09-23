@@ -36,20 +36,18 @@ import org.gudy.azureus2.plugins.logging.*;
 
 public class 
 LoggerImpl
-	implements Logger, LGAlertListener
+	implements Logger
 {
 	private PluginInterface	pi;
 	
-	private List		channels 		= new ArrayList();
-	private List		alert_listeners = new ArrayList();
+	private List		channels 			= new ArrayList();
+	private Map			alert_listeners_map	= new HashMap();
 	
 	public
 	LoggerImpl(
 		PluginInterface	_pi )
 	{
 		pi	= _pi;
-		
-		LGLogger.addAlertListener( this );
 	}
 	
 	public PluginInterface
@@ -102,61 +100,55 @@ LoggerImpl
 	}
 	
 	public void
-	alertRaised(
-		int		_type,
-		String	message,
-		boolean	repeatable )
-	{
-		int	type;
-		
-		if ( _type == LGLogger.AT_COMMENT ){
-			type = LoggerChannel.LT_INFORMATION;
-		}else if ( _type == LGLogger.AT_WARNING ){
-			type = LoggerChannel.LT_WARNING;
-		}else{
-			type = LoggerChannel.LT_ERROR;
-		}
-		
-		for (int i=0;i<alert_listeners.size();i++){
-			
-			try{
-				((LoggerAlertListener)alert_listeners.get(i)).alertLogged( type, message, repeatable );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}	}
-	
-	public void
-	alertRaised(
-		String		message,
-		Throwable	exception,
-		boolean		repeatable )
-	{
-		for (int i=0;i<alert_listeners.size();i++){
-			
-			try{
-				((LoggerAlertListener)alert_listeners.get(i)).alertLogged( message, exception, repeatable );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}
-	}
-	
-	public void
 	addAlertListener(
-		LoggerAlertListener		listener )
+		final LoggerAlertListener		listener )
 	{
-		alert_listeners.add( listener );
+		LGAlertListener	lg_listener = 
+			new LGAlertListener()
+			{
+				public void
+				alertRaised(
+					int		_type,
+					String	message,
+					boolean	repeatable )
+				{
+					int	type;
+					
+					if ( _type == LGLogger.AT_COMMENT ){
+						type = LoggerChannel.LT_INFORMATION;
+					}else if ( _type == LGLogger.AT_WARNING ){
+						type = LoggerChannel.LT_WARNING;
+					}else{
+						type = LoggerChannel.LT_ERROR;
+					}
+					
+					listener.alertLogged( type, message, repeatable );
+				}
+				
+				public void
+				alertRaised(
+					String		message,
+					Throwable	exception,
+					boolean		repeatable )
+				{
+					listener.alertLogged( message, exception, repeatable );
+				}
+			};
+				
+		alert_listeners_map.put( listener, lg_listener );
+		
+		LGLogger.addAlertListener( lg_listener );
 	}
 	
 	public void
 	removeAlertListener(
 		LoggerAlertListener		listener )
 	{
-		alert_listeners.remove( listener );
+		LGAlertListener	lg_listener = (LGAlertListener)alert_listeners_map.remove( listener );
+		
+		if ( lg_listener != null ){
+			
+			LGLogger.removeAlertListener( lg_listener );
+		}
 	}
 }
