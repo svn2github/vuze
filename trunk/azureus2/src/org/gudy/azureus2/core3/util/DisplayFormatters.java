@@ -56,6 +56,8 @@ DisplayFormatters
 	protected static String[] units_rate;
 	protected static int unitsStopAt = UNIT_TB;
 
+	protected static String[] units_base10;
+	
 	private static String		per_sec;
 	
 	protected static boolean use_si_units;
@@ -177,6 +179,9 @@ DisplayFormatters
     
     per_sec = MessageText.getString( "Formats.units.persec" );
 
+    units_base10 = 
+    	new String[]{ getUnit( "B"), getUnit("KB"), getUnit( "MB" ), getUnit( "GB"), getUnit( "TB" ) };
+    
     for (int i = 0; i <= unitsStopAt; i++) {
       units[i] 		= units[i];
       units_rate[i] = units_rate[i] + per_sec;
@@ -250,27 +255,41 @@ DisplayFormatters
 
 		// base 10 ones
 
-	public static String formatByteCountToBase10KBEtc(long n) {
-		if (n < 1000)
-			return String.valueOf(n).concat(getUnit("B"));
-		if (n < 1000 * 1000)
-			return String.valueOf(n / 1000).concat(".").concat(String.valueOf((n % 1000) / 100)).concat(getUnit("KB"));
-		if (n < 1000L * 1000L * 1000L  || not_use_GB_TB)
-			return String.valueOf(n / (1000L * 1000L)).concat(
-			".").concat(
-			String.valueOf((n % (1000L * 1000L)) / (1000L * 100L))).concat(
-					getUnit("MB"));
-		if (n < 1000L * 1000L * 1000L * 1000L)
-			return String.valueOf(n / (1000L * 1000L * 1000L)).concat(
-			".").concat(
-			String.valueOf((n % (1000L * 1000L * 1000L)) / (1000L * 1000L * 100L))).concat(
-					getUnit("GB"));
-		if (n < 1000L * 1000L * 1000L * 1000L* 1000L)
-			return String.valueOf(n / (1000L * 1000L * 1000L* 1000L)).concat(
-			".").concat(
-			String.valueOf((n % (1000L * 1000L * 1000L* 1000L)) / (1000L * 1000L * 1000L* 100L))).concat(
-					getUnit("TB"));
-		return MessageText.getString( "Formats.units.alot" );
+	public static String 
+	formatByteCountToBase10KBEtc(
+			long n) 
+	{
+		if (n < 1000){
+			
+			return n + units_base10[UNIT_B];
+			
+		}else if (n < 1000 * 1000){
+			
+			return 	(n / 1000) + "." + 
+					((n % 1000) / 100) + 
+					units_base10[UNIT_KB];
+			
+		}else if ( n < 1000L * 1000L * 1000L  || not_use_GB_TB ){
+			
+			return 	(n / (1000L * 1000L)) + "." +
+					((n % (1000L * 1000L)) / (1000L * 100L)) +	
+					units_base10[UNIT_MB];
+			
+		}else if (n < 1000L * 1000L * 1000L * 1000L){
+			
+			return (n / (1000L * 1000L * 1000L)) + "." +
+					((n % (1000L * 1000L * 1000L)) / (1000L * 1000L * 100L))+
+					units_base10[UNIT_GB];
+			
+		}else if (n < 1000L * 1000L * 1000L * 1000L* 1000L){
+			
+			return (n / (1000L * 1000L * 1000L* 1000L)) + "." +
+					((n % (1000L * 1000L * 1000L* 1000L)) / (1000L * 1000L * 1000L* 100L))+
+					units_base10[UNIT_TB];
+		}else{
+			
+			return MessageText.getString( "Formats.units.alot" );
+		}
 	}
 
 	public static String
