@@ -713,9 +713,44 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     
     DiskManager dm = manager.getDiskManager();
-    setTime(manager.getStats().getElapsedTime(), 
-            DisplayFormatters.formatETA(manager.getStats().getETA()) +
-            ((dm != null) ? " " + DisplayFormatters.formatByteCountToKiBEtc(dm.getRemainingExcludingDND()) : "")  );
+    
+    String	remaining;
+    String	eta			= DisplayFormatters.formatETA(manager.getStats().getETA());
+    
+    if ( dm != null ){
+    	
+    	long	rem = dm.getRemainingExcludingDND();
+    	
+    	String	data_rem = DisplayFormatters.formatByteCountToKiBEtc( rem );
+    	
+			// append data length unless we have an eta value and none left
+    	 
+    	if ( rem > 0 ){
+    			
+    		remaining = eta + (eta.length()==0?"":" ") + data_rem;
+    		
+    	}else{
+    		
+    			// no bytes left, don't show remaining bytes unless no eta
+    		
+    		if ( eta.length() == 0 ){
+    			
+    			remaining = data_rem;
+    		}else{
+    			
+    			remaining = eta;
+    		}
+    	}
+    }else{
+    	
+    		// only got eta value, just use that
+    	
+    	remaining = eta;
+    }
+    
+    
+    setTime(manager.getStats().getElapsedTime(), remaining );
+            
     TRTrackerScraperResponse hd = manager.getTrackerScrapeResponse();
     String seeds_str = manager.getNbSeeds() +" "+ MessageText.getString("GeneralView.label.connected");
     String peers_str = manager.getNbPeers() +" "+ MessageText.getString("GeneralView.label.connected");
