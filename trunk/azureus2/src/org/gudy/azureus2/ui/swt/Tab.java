@@ -139,7 +139,7 @@ public class Tab {
           TabItem items[] = {(TabItem) tabItem };
           ((TabFolder) folder).setSelection(items);
         }
-        tabItem.setText(view.getShortTitle());
+        tabItem.setText(escapeAccelerators(view.getShortTitle()));
         tabs.put(tabItem, view);
       }
       catch (Exception e) {
@@ -150,7 +150,7 @@ public class Tab {
       try {
         _view.initialize(folder);
         _view.setTabListener();
-        tabItem.setText(view.getShortTitle());
+        tabItem.setText(escapeAccelerators(view.getShortTitle()));
         if (useCustomTab) {
           ((CTabItem) tabItem).setControl(_view.getComposite());
           ((CTabItem) tabItem).setToolTipText(view.getFullTitle());
@@ -204,7 +204,7 @@ public class Tab {
           String lastTitle = item.getText();
           String newTitle = view.getShortTitle();
           if (lastTitle == null || !lastTitle.equals(newTitle)) {
-            item.setText(newTitle);
+            item.setText(escapeAccelerators(newTitle));
           }
           if (item instanceof CTabItem) {
             String lastToolTip = ((CTabItem) item).getToolTipText();
@@ -631,6 +631,18 @@ public class Tab {
       }
   }
 
+  protected static String
+  escapeAccelerators(
+	 String	str )
+  {
+	  if ( str == null ){
+		  
+		  return( str );
+	  }
+	  
+	  return( str.replaceAll( "&", "&&" ));
+  }
+  
   private static Event getEvent(Item sender)
   {
       Event e = new Event();
