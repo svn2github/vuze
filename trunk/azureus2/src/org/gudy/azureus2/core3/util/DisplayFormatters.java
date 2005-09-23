@@ -28,15 +28,11 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
 import java.text.SimpleDateFormat;
 import java.text.NumberFormat;
-// import java.text.DecimalFormat;
 
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.internat.*;
@@ -60,6 +56,8 @@ DisplayFormatters
 	protected static String[] units_rate;
 	protected static int unitsStopAt = UNIT_TB;
 
+	private static String		per_sec;
+	
 	protected static boolean use_si_units;
 	protected static boolean use_units_rate_bits;
     protected static boolean not_use_GB_TB;
@@ -138,52 +136,63 @@ DisplayFormatters
       // fall through intentional
       switch (unitsStopAt) {
         case UNIT_TB:
-          units[UNIT_TB] = " TiB";
-          units_rate[UNIT_TB] = (use_units_rate_bits) ? " Tibit"  : " TiB";
+          units[UNIT_TB] = getUnit("TiB");
+          units_rate[UNIT_TB] = (use_units_rate_bits) ? getUnit("Tibit")  : getUnit("TiB");
         case UNIT_GB:
-          units[UNIT_GB]= " GiB";
-          units_rate[UNIT_GB] = (use_units_rate_bits) ? " Gibit"  : " GiB";
+          units[UNIT_GB]= getUnit("GiB");
+          units_rate[UNIT_GB] = (use_units_rate_bits) ? getUnit("Gibit")  : getUnit("GiB");
         case UNIT_MB:
-          units[UNIT_MB] = " MiB";
-          units_rate[UNIT_MB] = (use_units_rate_bits) ? " Mibit"  : " MiB";
+          units[UNIT_MB] = getUnit("MiB");
+          units_rate[UNIT_MB] = (use_units_rate_bits) ? getUnit("Mibit")  : getUnit("MiB");
         case UNIT_KB:
           // can be upper or lower case k
-          units[UNIT_KB] = " KiB"; 
+          units[UNIT_KB] = getUnit("KiB"); 
           // can be upper or lower case k, upper more consistent
-          units_rate[UNIT_KB] = (use_units_rate_bits) ? " Kibit"  : " KiB";
+          units_rate[UNIT_KB] = (use_units_rate_bits) ? getUnit("Kibit")  : getUnit("KiB");
         case UNIT_B:
-          units[UNIT_B] = " B";
-          units_rate[UNIT_B] = (use_units_rate_bits)  ?   " bit"  :   " B";
+          units[UNIT_B] = getUnit("B");
+          units_rate[UNIT_B] = (use_units_rate_bits)  ?   getUnit("bit")  :   getUnit("B");
       }
     }else{
       switch (unitsStopAt) {
         case UNIT_TB:
-          units[UNIT_TB] = " TB";
-          units_rate[UNIT_TB] = (use_units_rate_bits) ? " Tbit"  : " TB";
+          units[UNIT_TB] = getUnit("TB");
+          units_rate[UNIT_TB] = (use_units_rate_bits) ? getUnit("Tbit")  : getUnit("TB");
         case UNIT_GB:
-          units[UNIT_GB]= " GB";
-          units_rate[UNIT_GB] = (use_units_rate_bits) ? " Gbit"  : " GB";
+          units[UNIT_GB]= getUnit("GB");
+          units_rate[UNIT_GB] = (use_units_rate_bits) ? getUnit("Gbit")  : getUnit("GB");
         case UNIT_MB:
-          units[UNIT_MB] = " MB";
-          units_rate[UNIT_MB] = (use_units_rate_bits) ? " Mbit"  : " MB";
+          units[UNIT_MB] = getUnit("MB");
+          units_rate[UNIT_MB] = (use_units_rate_bits) ? getUnit("Mbit")  : getUnit("MB");
         case UNIT_KB:
           // yes, the k should be lower case
-          units[UNIT_KB] = " kB";
-          units_rate[UNIT_KB] = (use_units_rate_bits) ? " kbit"  : " kB";
+          units[UNIT_KB] = getUnit("kB");
+          units_rate[UNIT_KB] = (use_units_rate_bits) ? getUnit("kbit")  : getUnit("kB");
         case UNIT_B:
-          units[UNIT_B] = " B";
-          units_rate[UNIT_B] = (use_units_rate_bits)  ?  " bit"  :  " B";
+          units[UNIT_B] = getUnit("B");
+          units_rate[UNIT_B] = (use_units_rate_bits)  ?  getUnit("bit")  :  getUnit("B");
       }
     }
 
     
+    per_sec = MessageText.getString( "Formats.units.persec" );
+
     for (int i = 0; i <= unitsStopAt; i++) {
       units[i] 		= units[i];
-      units_rate[i] = units_rate[i] + "/s";
+      units_rate[i] = units_rate[i] + per_sec;
     }
     
     NumberFormat.getPercentInstance().setMinimumFractionDigits(1);
     NumberFormat.getPercentInstance().setMaximumFractionDigits(1);
+   }
+  
+  private static String
+  getUnit(
+	String	key )
+  {
+	  String res = " " + MessageText.getString( "Formats.units." + key );
+	  	  
+	  return( res );
   }
 
 	public static String
@@ -243,32 +252,32 @@ DisplayFormatters
 
 	public static String formatByteCountToBase10KBEtc(long n) {
 		if (n < 1000)
-			return String.valueOf(n).concat(" B");
+			return String.valueOf(n).concat(getUnit("B"));
 		if (n < 1000 * 1000)
-			return String.valueOf(n / 1000).concat(".").concat(String.valueOf((n % 1000) / 100)).concat(" KB");
+			return String.valueOf(n / 1000).concat(".").concat(String.valueOf((n % 1000) / 100)).concat(getUnit("KB"));
 		if (n < 1000L * 1000L * 1000L  || not_use_GB_TB)
 			return String.valueOf(n / (1000L * 1000L)).concat(
 			".").concat(
 			String.valueOf((n % (1000L * 1000L)) / (1000L * 100L))).concat(
-			" MB");
+					getUnit("MB"));
 		if (n < 1000L * 1000L * 1000L * 1000L)
 			return String.valueOf(n / (1000L * 1000L * 1000L)).concat(
 			".").concat(
 			String.valueOf((n % (1000L * 1000L * 1000L)) / (1000L * 1000L * 100L))).concat(
-			" GB");
+					getUnit("GB"));
 		if (n < 1000L * 1000L * 1000L * 1000L* 1000L)
 			return String.valueOf(n / (1000L * 1000L * 1000L* 1000L)).concat(
 			".").concat(
 			String.valueOf((n % (1000L * 1000L * 1000L* 1000L)) / (1000L * 1000L * 1000L* 100L))).concat(
-			" TB");
-		return "A lot !!!";
+					getUnit("TB"));
+		return MessageText.getString( "Formats.units.alot" );
 	}
 
 	public static String
 	formatByteCountToBase10KBEtcPerSec(
 			long		n )
 	{
-		return( formatByteCountToBase10KBEtc(n).concat("/s"));
+		return( formatByteCountToBase10KBEtc(n).concat(per_sec));
 	}
 
    public static String formatETA(long eta) {
