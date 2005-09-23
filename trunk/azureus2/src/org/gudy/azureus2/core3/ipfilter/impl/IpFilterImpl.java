@@ -78,6 +78,13 @@ IpFilterImpl
 	  ipsBlocked = new LinkedList();
 	  
 	  try{
+		  loadBannedIPs();
+		  
+	  }catch( Throwable e ){
+		  
+		  Debug.printStackTrace(e);
+	  }
+	  try{
 	  	
 	  	loadFilters();
 	  	
@@ -221,6 +228,89 @@ IpFilterImpl
 		}
 	}
   
+	protected void
+	loadBannedIPs()
+	{
+		if ( !COConfigurationManager.getBooleanParameter("Ip Filter Banning Persistent" )){
+			
+			return;
+		}
+		
+		try{
+			class_mon.enter();
+			
+			Map	map = FileUtil.readResilientConfigFile( "banips.config" );
+		
+			List	ips = (List)map.get( "ips" );
+			
+			if ( ips != null ){
+				
+				for (int i=0;i<ips.size();i++){
+					
+					Map	entry = (Map)ips.get(i);
+					
+					String	ip 		= new String((byte[])entry.get("ip"));
+					String	desc 	= new String((byte[])entry.get("desc"));
+					Long	time	= (Long)entry.get("time");
+					
+					int	int_ip = range_manager.addressToInt( ip );
+					
+					bannedIps.put( new Integer( int_ip ), new BannedIpImpl(ip, desc, time.longValue() ));
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
+	
+	protected void
+	saveBannedIPs()
+	{
+		if ( !COConfigurationManager.getBooleanParameter("Ip Filter Banning Persistent" )){
+			
+			return;
+		}
+		
+		try{
+			class_mon.enter();
+			
+			Map	map = new HashMap();
+			
+			List	ips = new ArrayList();
+			
+			Iterator	it = bannedIps.values().iterator();
+			
+			while( it.hasNext()){
+				
+				BannedIpImpl	bip = (BannedIpImpl)it.next();
+				
+				Map	entry = new HashMap();
+				
+				entry.put( "ip", bip.getIp());
+				entry.put( "desc", bip.getTorrentName());
+				entry.put( "time", new Long( bip.getBanningTime()));
+				
+				ips.add( entry );
+			}
+			
+			map.put( "ips", ips );
+			
+			FileUtil.writeResilientConfigFile( "banips.config", map );
+		
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
 	protected boolean
 	isInRange(
 		IpRangeImpl	range,
@@ -579,6 +669,8 @@ IpFilterImpl
 						}
 					}
 				}
+				
+				saveBannedIPs();
 			}
 		}finally{
 			

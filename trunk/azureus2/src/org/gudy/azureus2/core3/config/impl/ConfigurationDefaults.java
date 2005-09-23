@@ -119,6 +119,7 @@ public class ConfigurationDefaults {
     def.put("Ip Filter Allow",new Long(0));
 	def.put("Ip Filter Enable Banning", new Long(1));
 	def.put("Ip Filter Ban Block Limit", new Long(4));
+	def.put("Ip Filter Banning Persistent", new Long(1));
     def.put("Allow Same IP Peers",new Long(0));
     def.put("Use Super Seeding",new Long(0));
 

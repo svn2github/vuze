@@ -48,6 +48,17 @@ BannedIpImpl
 		time	= SystemTime.getCurrentTime();
 	}
 	
+	protected
+	BannedIpImpl(
+		String	_ip,
+		String	_torrent_name,
+		long	_time )
+	{
+		ip				= _ip;
+		torrent_name	= _torrent_name;
+		time			= _time;
+	}
+	
 	public String
 	getIp()
 	{
