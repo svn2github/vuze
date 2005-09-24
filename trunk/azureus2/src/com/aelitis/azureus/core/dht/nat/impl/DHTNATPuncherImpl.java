@@ -232,17 +232,28 @@ DHTNATPuncherImpl
 								
 								long	time = ((Long)entry[1]).longValue();
 								
+								boolean	removed = false;
+								
 								if ( time < now ){
 									
 										// clock change, easiest approach is to remove it
 									
 									it.remove();
+								
+									removed	= true;
 									
 								}else if ( now - time > RENDEZVOUS_SERVER_TIMEOUT ){
 									
 										// timeout
 									
 									it.remove();
+									
+									removed = true;
+								}
+								
+								if ( removed ){
+									
+									log( "Rendezvous " + ((DHTTransportContact)entry[0]).getString() + " removed due to inactivity" );
 								}
 							}
 						}finally{
@@ -1000,6 +1011,8 @@ DHTNATPuncherImpl
 			server_mon.exit();
 		}
 		
+		log( "Rendezvous request from " + originator.getString() + " " + (ok?"accepted":"denied" ));
+		
 		response.put( "ok", new Long(ok?1:0));
 	}
 		
@@ -1075,6 +1088,8 @@ DHTNATPuncherImpl
 				}
 			}
 			
+			log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated":"failed"));
+
 		}finally{
 			
 			server_mon.exit();
