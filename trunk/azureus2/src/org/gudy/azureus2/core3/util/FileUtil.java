@@ -151,7 +151,14 @@ public class FileUtil {
   public static void 
   recursiveEmptyDirDelete(
   	File f) 
-  {  
+  {
+	  recursiveEmptyDirDelete( f, true );
+  }
+  public static void 
+  recursiveEmptyDirDelete(
+  	File 	f,
+  	boolean	log_warnings )
+  {
     Map		ignore_map	= new HashMap();
     
 	String	ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
@@ -183,13 +190,14 @@ public class FileUtil {
 		}
 	}
 	
-	recursiveEmptyDirDelete( f, ignore_map );
+	recursiveEmptyDirDelete( f, ignore_map, log_warnings );
   }
   
   private static void 
   recursiveEmptyDirDelete(
-  	File f,
-	Map	ignore_map ) 
+  	File	f,
+	Map		ignore_map,
+	boolean	log_warnings ) 
   {
      try {
       String defSaveDir 	= COConfigurationManager.getStringParameter("Default save path", "");
@@ -211,7 +219,9 @@ public class FileUtil {
         
         if ( files == null ){
         	
-          	Debug.out("FileUtil::recursiveEmptyDirDelete:: failed list contents of directory" + f );
+        	if (log_warnings ){
+        		Debug.out("FileUtil::recursiveEmptyDirDelete:: failed list contents of directory" + f );
+        	}
           	 
           	return;
         }
@@ -222,7 +232,7 @@ public class FileUtil {
         	
         	if ( x.isDirectory()){
         		
-        		recursiveEmptyDirDelete(files[i],ignore_map);
+        		recursiveEmptyDirDelete(files[i],ignore_map,log_warnings);
         		
         	}else{
         		
@@ -230,7 +240,9 @@ public class FileUtil {
         			
         			if ( !x.delete()){
         				
-        	          	Debug.out("FileUtil::recursiveEmptyDirDelete:: failed to delete file" + x );
+        				if ( log_warnings ){
+        					Debug.out("FileUtil::recursiveEmptyDirDelete:: failed to delete file" + x );
+        				}
         			}
         		}
         	}
@@ -238,14 +250,18 @@ public class FileUtil {
 
         if (f.getCanonicalPath().equals(moveToDir)) {
         	
-          Debug.out("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the MoveTo dir !");
+        	if ( log_warnings ){
+        		Debug.out("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the MoveTo dir !");
+        	}
           
           return;
         }
         
         if (f.getCanonicalPath().equals(defSaveDir)) {
         	
-          Debug.out("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the default data dir !");
+        	if ( log_warnings ){
+        		Debug.out("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the default data dir !");
+        	}
           
           return;
         }
@@ -254,11 +270,14 @@ public class FileUtil {
         	
           if ( !f.delete()){
           	
-           	Debug.out("FileUtil::recursiveEmptyDirDelete:: failed to delete directory" + f );
-         	
+        	  if ( log_warnings ){
+        		  Debug.out("FileUtil::recursiveEmptyDirDelete:: failed to delete directory" + f );
+        	  }
           }
         }else{
-        	Debug.out("FileUtil::recursiveEmptyDirDelete:: "+f.listFiles().length+" file(s)/folder(s) still in " + f + ". Not removing.");
+        	if ( log_warnings ){
+        		Debug.out("FileUtil::recursiveEmptyDirDelete:: "+f.listFiles().length+" file(s)/folder(s) still in " + f + ". Not removing.");
+        	}
         }
       }
 

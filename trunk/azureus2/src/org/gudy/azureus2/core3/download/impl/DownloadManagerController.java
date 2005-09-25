@@ -780,7 +780,7 @@ DownloadManagerController
 	
 	  					if ( save_dir_file.exists() && save_dir_file.isDirectory()){
 		      		
-	  						FileUtil.recursiveEmptyDirDelete( save_dir_file );
+	  						FileUtil.recursiveEmptyDirDelete( save_dir_file, false );
 	  					}
 	  				}
 	  			}
