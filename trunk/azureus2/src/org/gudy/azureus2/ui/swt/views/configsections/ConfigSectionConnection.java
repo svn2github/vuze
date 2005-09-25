@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Control;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
@@ -68,6 +69,9 @@ public class ConfigSectionConnection implements UISWTConfigSection {
     FormData formData;
     FormLayout layout;
     Label label;
+    GridData grid_data;
+    
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
 
     Composite cServer = new Composite(parent, SWT.NULL);
 
@@ -107,29 +111,49 @@ public class ConfigSectionConnection implements UISWTConfigSection {
       }
     });
     
+/////////////////////// PEER SOURCES GROUP ///////////////////
+    
+    Group peer_sources_group = new Group( cServer, SWT.NULL );
+    Messages.setLanguageText( peer_sources_group, "ConfigView.section.connection.group.peersources" );
+    GridLayout peer_sources_layout = new GridLayout();
+    peer_sources_layout.numColumns = 2;
+    peer_sources_group.setLayout( peer_sources_layout );
+    
+    formData = new FormData();
+    formData.top = new FormAttachment( tcplisten.getControl(), 6 );
+    formData.left = new FormAttachment( 0, 0 );
+    formData.right = new FormAttachment( 100, -5 );
+    peer_sources_group.setLayoutData( formData );
+        
+    label = new Label(peer_sources_group, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.connection.group.peersources.info");
+    grid_data = new GridData();
+    grid_data.horizontalSpan = 2;
+    label.setLayoutData( grid_data );
+    
+    for (int i=0;i<PEPeerSource.PS_SOURCES.length;i++){
+		
+		String	p = PEPeerSource.PS_SOURCES[i];
+	
+		String	config_name = "Peer Source Selection Default." + p;
+		String	msg_text	= "ConfigView.section.connection.peersource." + p;
+		 
+		BooleanParameter peer_source = new BooleanParameter(peer_sources_group, config_name, msg_text );
+				
+	    grid_data = new GridData();
+	    grid_data.horizontalSpan = 2;
+	    peer_source.setLayoutData( grid_data );
+	}
+    
     
     
  ///////////////////////
     
-    StringParameter bindip = new StringParameter(cServer, "Bind IP", "");
-    formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl());
-    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
-    formData.width = 105;
-    bindip.setLayoutData(formData);
-    
-    label = new Label(cServer, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.bindip");
-    formData = new FormData();
-    formData.top = new FormAttachment(tcplisten.getControl(),5);
-    formData.left = new FormAttachment(bindip.getControl());
-    label.setLayoutData(formData);
-    
- //////////////////////
+    if (userMode > 0) {
     
     IntParameter max_connects = new IntParameter(cServer, "network.max.simultaneous.connect.attempts");
     formData = new FormData();
-    formData.top = new FormAttachment(bindip.getControl());
+    formData.top = new FormAttachment(peer_sources_group);
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
     formData.width = 20;
     max_connects.setLayoutData(formData);
@@ -137,8 +161,27 @@ public class ConfigSectionConnection implements UISWTConfigSection {
     label = new Label(cServer, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.connection.network.max.simultaneous.connect.attempts");
     formData = new FormData();
-    formData.top = new FormAttachment(bindip.getControl(),5);
+    formData.top = new FormAttachment(peer_sources_group,5);
     formData.left = new FormAttachment(max_connects.getControl());
+    label.setLayoutData(formData);
+    
+    
+ //////////////////////
+    
+    if (userMode > 1) {
+    
+    StringParameter bindip = new StringParameter(cServer, "Bind IP", "");
+    formData = new FormData();
+    formData.top = new FormAttachment(max_connects.getControl());
+    formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0
+    formData.width = 105;
+    bindip.setLayoutData(formData);
+    
+    label = new Label(cServer, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.bindip");
+    formData = new FormData();
+    formData.top = new FormAttachment(max_connects.getControl(),5);
+    formData.left = new FormAttachment(bindip.getControl());
     label.setLayoutData(formData);
 
  //////////////////////  PROXY GROUP /////////////////
@@ -152,10 +195,10 @@ public class ConfigSectionConnection implements UISWTConfigSection {
     formData = new FormData();
     formData.left = new FormAttachment( 0, 0 );
     formData.right = new FormAttachment( 100, -5 );
-    formData.top = new FormAttachment( max_connects.getControl(), 5 );
+    formData.top = new FormAttachment( bindip.getControl(), 5 );
     proxy_group.setLayoutData( formData );
     
-    GridData grid_data;
+    
     
     
     final BooleanParameter enableProxy = new BooleanParameter(proxy_group, "Enable.Proxy", false, "ConfigView.section.proxy.enable_proxy");
@@ -329,7 +372,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
     enableSocksPeer.setAdditionalActionPerformer( proxy_peer_enabler );
     sameConfig.setAdditionalActionPerformer( proxy_peer_enabler );
      
-///////////////////////
+/////////////////////// NETWORKS GROUP ///////////////////
     
     Group networks_group = new Group( cServer, SWT.NULL );
     Messages.setLanguageText( networks_group, "ConfigView.section.connection.group.networks" );
@@ -374,46 +417,14 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 	grid_data.horizontalSpan = 2;
 	network_prompt.setLayoutData( grid_data );
 	
-///////////////////////
-    
-    Group peer_sources_group = new Group( cServer, SWT.NULL );
-    Messages.setLanguageText( peer_sources_group, "ConfigView.section.connection.group.peersources" );
-    GridLayout peer_sources_layout = new GridLayout();
-    peer_sources_layout.numColumns = 2;
-    peer_sources_group.setLayout( peer_sources_layout );
-    
-    formData = new FormData();
-    formData.top = new FormAttachment( networks_group, 6 );
-    formData.left = new FormAttachment( 0, 0 );
-    formData.right = new FormAttachment( 100, -5 );
-    peer_sources_group.setLayoutData( formData );
-        
-    label = new Label(peer_sources_group, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.connection.group.peersources.info");
-    grid_data = new GridData();
-    grid_data.horizontalSpan = 2;
-    label.setLayoutData( grid_data );
-    
-    for (int i=0;i<PEPeerSource.PS_SOURCES.length;i++){
-		
-		String	p = PEPeerSource.PS_SOURCES[i];
-	
-		String	config_name = "Peer Source Selection Default." + p;
-		String	msg_text	= "ConfigView.section.connection.peersource." + p;
-		 
-		BooleanParameter peer_source = new BooleanParameter(peer_sources_group, config_name, msg_text );
-				
-	    grid_data = new GridData();
-	    grid_data.horizontalSpan = 2;
-	    peer_source.setLayoutData( grid_data );
-	}
+
     
 	
- ///////////////////////   
+ ///////////////////////   ADVANCED NETWORK SETTINGS GROUP //////////
     
     final BooleanParameter enable_advanced = new BooleanParameter( cServer, "config.connection.show_advanced", false );
     formData = new FormData();
-    formData.top = new FormAttachment( peer_sources_group, 5 );
+    formData.top = new FormAttachment( networks_group, 5 );
     enable_advanced.setLayoutData( formData );
     
     
@@ -428,7 +439,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
     formData = new FormData();
     formData.left = new FormAttachment( enable_advanced.getControl() );
     formData.right = new FormAttachment( 100, -5 );
-    formData.top = new FormAttachment( peer_sources_group, 6 );
+    formData.top = new FormAttachment( networks_group, 6 );
     advanced_group.setLayoutData( formData );
     
     GridData advanced_grid_data;
@@ -531,6 +542,9 @@ public class ConfigSectionConnection implements UISWTConfigSection {
       public void setIntValue(int value) { }
       public void setStringValue(String value) {}
     });
+    
+    } // end userMode>1
+    } // end userMode>0
     
     
  ///////////////////////   

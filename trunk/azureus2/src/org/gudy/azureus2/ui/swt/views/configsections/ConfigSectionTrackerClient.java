@@ -32,6 +32,8 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.gudy.azureus2.ui.swt.Messages;
 
+import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -58,6 +60,8 @@ ConfigSectionTrackerClient
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
     GridLayout layout;
+    Label  label;
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
 
     // extensions tab set up
     Composite gMainTab = new Composite(parent, SWT.NULL);
@@ -66,26 +70,6 @@ ConfigSectionTrackerClient
     layout = new GridLayout();
     layout.numColumns = 3;
     gMainTab.setLayout(layout);
-
-    // row
-    
-    Label  label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label,  "ConfigView.section.tracker.client.connecttimeout");
-    gridData = new GridData();
-    gridData.widthHint = 40;
-    IntParameter	connect_timeout = new IntParameter(gMainTab, "Tracker Client Connect Timeout" );
-    connect_timeout.setLayoutData(gridData);
-    label = new Label(gMainTab, SWT.NULL);
-
-    // row
-    
-    label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label,  "ConfigView.section.tracker.client.readtimeout");
-    gridData = new GridData();
-    gridData.widthHint = 40;
-    IntParameter	read_timeout = new IntParameter(gMainTab, "Tracker Client Read Timeout" );
-    read_timeout.setLayoutData(gridData);
-    label = new Label(gMainTab, SWT.NULL);
 
     	//////////////////////SCRAPE GROUP ///////////////////
     
@@ -115,18 +99,8 @@ ConfigSectionTrackerClient
     BooleanParameter	single_scrapes = 
     	new BooleanParameter(scrapeGroup, "Tracker Client Scrape Single Only", false,
     							"ConfigView.section.tracker.client.scrapesingleonly");
-
-    ////// main tab 
     
-    // row
-
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-  
-    new BooleanParameter(gMainTab, "Tracker Key Enable Client", true,
-                         "ConfigView.section.tracker.enablekey").setLayoutData(gridData);
-
-    label = new Label(gMainTab, SWT.NULL);
+    /////////////////////////
     
     // row
 
@@ -156,7 +130,9 @@ ConfigSectionTrackerClient
 	showWarnings.setLayoutData(gridData); 
     
     label = new Label(gMainTab, SWT.NULL);
-
+    
+    if (userMode > 0) {
+    
 //////////////////////OVERRIDE GROUP ///////////////////
     
     Group overrideGroup = new Group(gMainTab,SWT.NULL);
@@ -185,6 +161,43 @@ ConfigSectionTrackerClient
     label = new Label(overrideGroup, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.announceport");
     
+    //////////////////////////
+    
+    if(userMode>1) {
+    
+    // row
+    
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label,  "ConfigView.section.tracker.client.connecttimeout");
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    IntParameter	connect_timeout = new IntParameter(gMainTab, "Tracker Client Connect Timeout" );
+    connect_timeout.setLayoutData(gridData);
+    label = new Label(gMainTab, SWT.NULL);
+
+    // row
+    
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label,  "ConfigView.section.tracker.client.readtimeout");
+    gridData = new GridData();
+    gridData.widthHint = 40;
+    IntParameter	read_timeout = new IntParameter(gMainTab, "Tracker Client Read Timeout" );
+    read_timeout.setLayoutData(gridData);
+    label = new Label(gMainTab, SWT.NULL);
+
+    ////// main tab 
+    
+    // row
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+  
+    new BooleanParameter(gMainTab, "Tracker Key Enable Client", true,
+                         "ConfigView.section.tracker.enablekey").setLayoutData(gridData);
+
+    label = new Label(gMainTab, SWT.NULL);
+    
+    
     // row
 
     gridData = new GridData();
@@ -195,6 +208,9 @@ ConfigSectionTrackerClient
   
     label = new Label(gMainTab, SWT.WRAP);
     Messages.setLanguageText(label,  "ConfigView.section.tracker.separatepeerids.info");
+    
+    }
+    }
 
 
     return gMainTab;

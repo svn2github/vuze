@@ -62,6 +62,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     GridData gridData;
     GridLayout layout;
     Label label;
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
 
     Composite cSection = new Composite(parent, SWT.NULL);
     cSection.addControlListener(new Utils.LabelWrapControlListener());  
@@ -86,54 +87,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     
     
     
-    // Max Open Files
     
-    label = new Label(cSection, SWT.NULL);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.file.max_open_files");
-    IntParameter file_max_open = new IntParameter(cSection, "File Max Open");
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.widthHint = 30;
-    file_max_open.setLayoutData( gridData );
-    label = new Label(cSection, SWT.WRAP);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.file.max_open_files.explain");
-    
-    	// write block limit
-    
-    label = new Label(cSection, SWT.NULL);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
-    String label_text = 
-    	MessageText.getString( 
-    		"ConfigView.section.file.write_block_limit", 
-    		new String[]{ DisplayFormatters.formatByteCountToKiBEtc( DiskManager.BLOCK_SIZE )});
-    label.setText(label_text);
-    IntParameter write_block_limit = new IntParameter(cSection, "DiskManager Write Queue Block Limit", 0);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.widthHint = 30;
-    write_block_limit.setLayoutData( gridData );
-    label = new Label(cSection, SWT.WRAP);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.file.write_block_limit.explain");
-         
-    	// check piece limit
-    
-    label = new Label(cSection, SWT.NULL);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit");
-    IntParameter check_piece_limit = new IntParameter(cSection, "DiskManager Check Queue Piece Limit", 0);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    gridData.widthHint = 30;
-    check_piece_limit.setLayoutData( gridData );
-    label = new Label(cSection, SWT.WRAP);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit.explain");
 
     
     // diskmanager.perf.cache.enable
@@ -222,6 +176,58 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     disk_cache.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( cache_not_smaller_than.getControls() ));
     
+    if(userMode > 1) {
+    	
+    // Max Open Files
+    
+    label = new Label(cSection, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    label.setLayoutData(gridData);
+    Messages.setLanguageText(label, "ConfigView.section.file.max_open_files");
+    IntParameter file_max_open = new IntParameter(cSection, "File Max Open");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    gridData.widthHint = 30;
+    file_max_open.setLayoutData( gridData );
+    label = new Label(cSection, SWT.WRAP);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
+    label.setLayoutData(gridData);
+    Messages.setLanguageText(label, "ConfigView.section.file.max_open_files.explain");
+    
+    	// write block limit
+    
+    label = new Label(cSection, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    label.setLayoutData(gridData);
+    String label_text = 
+    	MessageText.getString( 
+    		"ConfigView.section.file.write_block_limit", 
+    		new String[]{ DisplayFormatters.formatByteCountToKiBEtc( DiskManager.BLOCK_SIZE )});
+    label.setText(label_text);
+    IntParameter write_block_limit = new IntParameter(cSection, "DiskManager Write Queue Block Limit", 0);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    gridData.widthHint = 30;
+    write_block_limit.setLayoutData( gridData );
+    label = new Label(cSection, SWT.WRAP);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
+    label.setLayoutData(gridData);
+    Messages.setLanguageText(label, "ConfigView.section.file.write_block_limit.explain");
+         
+    	// check piece limit
+    
+    label = new Label(cSection, SWT.NULL);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    label.setLayoutData(gridData);
+    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit");
+    IntParameter check_piece_limit = new IntParameter(cSection, "DiskManager Check Queue Piece Limit", 0);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    gridData.widthHint = 30;
+    check_piece_limit.setLayoutData( gridData );
+    label = new Label(cSection, SWT.WRAP);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
+    label.setLayoutData(gridData);
+    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit.explain");
+    
+    }
     
     return cSection;
   }

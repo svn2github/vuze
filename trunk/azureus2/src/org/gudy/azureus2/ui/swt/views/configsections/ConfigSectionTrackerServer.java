@@ -44,6 +44,7 @@ import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
@@ -88,7 +89,8 @@ ConfigSectionTrackerServer
     GridData gridData;
     GridLayout layout;
     Label label;
-
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+    
     // main tab set up
     Composite gMainTab = new Composite(parent, SWT.NULL);
 
@@ -236,7 +238,20 @@ ConfigSectionTrackerServer
 
     sslEnable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( ssl_controls ));
 
+    
+    // row
 
+    gridData = new GridData();
+    gridData.horizontalSpan = 1;
+    new BooleanParameter(gMainTab, "Tracker Public Enable", false,
+                         "ConfigView.section.tracker.publicenable").setLayoutData( gridData );
+
+    label = new Label(gMainTab, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable.info");
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    label.setLayoutData(gridData);
+    
     // row
     
     BooleanParameter forcePortDetails = 
@@ -265,19 +280,6 @@ ConfigSectionTrackerServer
 
     nonsslEnable.setAdditionalActionPerformer(f_enabler);
     sslEnable.setAdditionalActionPerformer(f_enabler);
-    
-    // row
-
-    gridData = new GridData();
-    gridData.horizontalSpan = 1;
-    new BooleanParameter(gMainTab, "Tracker Public Enable", false,
-                         "ConfigView.section.tracker.publicenable").setLayoutData( gridData );
-
-    label = new Label(gMainTab, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.publicenable.info");
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
-    label.setLayoutData(gridData);
     
     // row
 
@@ -372,9 +374,11 @@ ConfigSectionTrackerServer
             };
 
     passwordEnableWeb.setAdditionalActionPerformer(enabler);
-    passwordEnableTorrent.setAdditionalActionPerformer(enabler);    
+    passwordEnableTorrent.setAdditionalActionPerformer(enabler);
     
-    	// Poll Group
+    if(userMode>0) { // XXX
+    
+    	// Poll Group //
     
     Group gPollStuff = new Group(gMainTab, SWT.NULL);
     Messages.setLanguageText(gPollStuff, "ConfigView.section.tracker.pollinterval");
@@ -487,103 +491,6 @@ ConfigSectionTrackerServer
     gridData = new GridData();
     gridData.widthHint = 30;
     announceCachePeriod.setLayoutData( gridData );
-
-    // processing limits group
-
-    Group gProcessing = new Group(gMainTab, SWT.NULL);
-    Messages.setLanguageText(gProcessing, "ConfigView.section.tracker.processinglimits");
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 4;
-    gProcessing.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 3;
-    gProcessing.setLayout(layout);
-    
-    	// row annouce/scrape max process time
-    
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter maxGetTime = new IntParameter(gProcessing, "Tracker Max GET Time", 20 );
- 
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    maxGetTime.setLayoutData( gridData );
-
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime.info");
-   
-  	// row post multiplier
-    
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter maxPostTimeMultiplier = new IntParameter(gProcessing, "Tracker Max POST Time Multiplier", 1 );
-
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    maxPostTimeMultiplier.setLayoutData( gridData );
-
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier.info");
-   
-   	// row max threads
-    
-    label = new Label(gProcessing, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.maxthreads");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter maxThreadsTime = new IntParameter(gProcessing, "Tracker Max Threads", 48 );
-    maxThreadsTime.setMinimumValue(1);
-    maxThreadsTime.setMaximumValue(4096);
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    maxThreadsTime.setLayoutData( gridData );
-
-    label = new Label(gProcessing, SWT.NULL);
-    
-    
-  	// non-blocking tracker group
-    
-    Group gNBTracker = new Group(gMainTab, SWT.NULL);
-    Messages.setLanguageText(gNBTracker, "ConfigView.section.tracker.nonblocking");
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 4;
-    gNBTracker.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 3;
-    gNBTracker.setLayout(layout);
-    
-    	// row
-
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
- 
-    BooleanParameter nb_enable =
-    	new BooleanParameter(gNBTracker, "Tracker TCP NonBlocking", false,
-                         "ConfigView.section.tracker.tcpnonblocking");
-    nb_enable.setLayoutData(gridData);
-
- 	// row max conc connections
-    
-    label = new Label(gNBTracker, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.tracker.nonblockingconcmax");
-    gridData = new GridData();
-    label.setLayoutData( gridData );
-
-    IntParameter maxConcConn = new IntParameter(gNBTracker, "Tracker TCP NonBlocking Conc Max" );
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    maxConcConn.setLayoutData( gridData );
-
-    label = new Label(gNBTracker, SWT.NULL);
-    
-    nb_enable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( maxConcConn.getControls() ));
 
     
     // main tab again
@@ -698,21 +605,22 @@ ConfigSectionTrackerServer
 
     gridData = new GridData();
     gridData.horizontalSpan = 4;
- 
-    new BooleanParameter(gMainTab, "Tracker Key Enable Server", true,
-                         "ConfigView.section.tracker.enablekey").setLayoutData(gridData);
-
+    BooleanParameter log_enable = 
+    	new BooleanParameter(gMainTab, "Tracker Log Enable", false, 
+                         "ConfigView.section.tracker.logenable");
+    log_enable.setLayoutData( gridData );
     
+    if(userMode>1) { // XXX
     
     // row
 
     gridData = new GridData();
     gridData.horizontalSpan = 4;
-    BooleanParameter log_enable = 
-    	new BooleanParameter(gMainTab, "Tracker Log Enable", false, 
-                         "ConfigView.section.tracker.logenable");
-    log_enable.setLayoutData( gridData );
+ 
+    new BooleanParameter(gMainTab, "Tracker Key Enable Server", true,
+                         "ConfigView.section.tracker.enablekey").setLayoutData(gridData);
 
+    // Networks Group //
     
     Group networks_group = new Group( gMainTab, SWT.NULL );
     Messages.setLanguageText( networks_group, "ConfigView.section.tracker.server.group.networks" );
@@ -742,6 +650,106 @@ ConfigSectionTrackerServer
 	    grid_data.horizontalSpan = 2;
 	    network.setLayoutData( grid_data );
 	}
+    
+    // processing limits group //
+
+    Group gProcessing = new Group(gMainTab, SWT.NULL);
+    Messages.setLanguageText(gProcessing, "ConfigView.section.tracker.processinglimits");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 4;
+    gProcessing.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    gProcessing.setLayout(layout);
+    
+    	// row annouce/scrape max process time
+    
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxGetTime = new IntParameter(gProcessing, "Tracker Max GET Time", 20 );
+ 
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxGetTime.setLayoutData( gridData );
+
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxgettime.info");
+   
+  	// row post multiplier
+    
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxPostTimeMultiplier = new IntParameter(gProcessing, "Tracker Max POST Time Multiplier", 1 );
+
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxPostTimeMultiplier.setLayoutData( gridData );
+
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxposttimemultiplier.info");
+   
+   	// row max threads
+    
+    label = new Label(gProcessing, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.maxthreads");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxThreadsTime = new IntParameter(gProcessing, "Tracker Max Threads", 48 );
+    maxThreadsTime.setMinimumValue(1);
+    maxThreadsTime.setMaximumValue(4096);
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxThreadsTime.setLayoutData( gridData );
+
+    label = new Label(gProcessing, SWT.NULL);
+    
+    
+  	// non-blocking tracker group //
+    
+    Group gNBTracker = new Group(gMainTab, SWT.NULL);
+    Messages.setLanguageText(gNBTracker, "ConfigView.section.tracker.nonblocking");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 4;
+    gNBTracker.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    gNBTracker.setLayout(layout);
+    
+    	// row
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+ 
+    BooleanParameter nb_enable =
+    	new BooleanParameter(gNBTracker, "Tracker TCP NonBlocking", false,
+                         "ConfigView.section.tracker.tcpnonblocking");
+    nb_enable.setLayoutData(gridData);
+
+ 	// row max conc connections
+    
+    label = new Label(gNBTracker, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.tracker.nonblockingconcmax");
+    gridData = new GridData();
+    label.setLayoutData( gridData );
+
+    IntParameter maxConcConn = new IntParameter(gNBTracker, "Tracker TCP NonBlocking Conc Max" );
+    gridData = new GridData();
+    gridData.widthHint = 50;
+    maxConcConn.setLayoutData( gridData );
+
+    label = new Label(gNBTracker, SWT.NULL);
+    
+    nb_enable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( maxConcConn.getControls() ));
+    
+    }
+  }
     
     return gMainTab;
   }
