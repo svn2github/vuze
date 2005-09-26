@@ -341,11 +341,10 @@ DiskManagerPieceMapper
 		public long getLength() {
 			return length;
 		}
-		public String getPath() {
-			return path;
-		}
-		public String getName() {
-			return name;
+		public File
+		getDataFile()
+		{
+			return( new File( path, name ));
 		}
 		public TOTorrentFile
 		getTorrentFile()

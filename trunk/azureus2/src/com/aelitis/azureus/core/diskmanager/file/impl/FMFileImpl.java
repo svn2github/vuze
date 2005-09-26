@@ -119,6 +119,16 @@ FMFileImpl
 		        throw ioe;
 			}
 			
+			File	parent = linked_file.getParentFile();
+			
+	        if ( !parent.exists()){
+	        	  
+	        	if ( parent.mkdirs()){
+	        		  
+	        		throw( new FMFileManagerException( "Failed to create parent directory '" + parent + "'"));	
+	        	}
+	        }
+	        
 			reserveFile();
 			
 		}catch( Throwable e ){
@@ -137,6 +147,12 @@ FMFileImpl
 	getFile()
 	{
 		return( unlinked_file );
+	}
+	
+	public boolean
+	exists()
+	{
+		return( linked_file.exists());
 	}
 	
 	public FMFileOwner
@@ -176,6 +192,7 @@ FMFileImpl
 					
 		          new_canonical_path = new_file.getCanonicalPath();
 				  
+	
 		        }catch( IOException ioe ) {
 					
 		          String msg = ioe.getMessage();
@@ -200,6 +217,16 @@ FMFileImpl
 				throw( new FMFileManagerException( "moveFile fails - file '" + new_canonical_path + "' already exists"));	
 			}
 			
+	        File	parent = new_linked_file.getParentFile();
+	          
+	        if ( !parent.exists()){
+	        	  
+	        	if ( parent.mkdirs()){
+	        		  
+	        		throw( new FMFileManagerException( "moveFile fails - failed to create parent directory '" + parent + "'"));	
+	        	}
+	        }
+	        
 			boolean	was_open	= raf != null;
 			
 			close();

@@ -86,14 +86,19 @@ ShareResourceDirContentsImpl
 		root 		= _dir;
 		recursive	= _recursive;
 		
+			// recovery - see comment below about not failing if dir doesn't exist...
+		
 		if ( !root.exists()){
 			
-			throw( new ShareException( "Dir '".concat(root.getName()).concat("' not found")));
-		}
-		
-		if ( root.isFile()){
+			Debug.out( "Dir '".concat(root.getName()).concat("' not found"));
+			// throw( new ShareException( "Dir '".concat(root.getName()).concat("' not found")));
 			
-			throw( new ShareException( "Not a directory"));
+		}else{
+		
+			if ( root.isFile()){
+			
+				throw( new ShareException( "Not a directory"));
+			}
 		}
 		
 			// deserialised resource, checkConsistency will be called later to trigger sub-share adding

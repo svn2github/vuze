@@ -22,6 +22,8 @@
 package org.gudy.azureus2.ui.swt.views;
 
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -31,6 +33,9 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -94,9 +99,12 @@ public class FilesView
   
   public void fillMenu(final Menu menu) {
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
-    Messages.setLanguageText(itemOpen, "FilesView.menu.open"); //$NON-NLS-1$
+    Messages.setLanguageText(itemOpen, "FilesView.menu.open");
     Utils.setMenuItemImage(itemOpen, "run");
     
+    final MenuItem itemRename = new MenuItem(menu, SWT.PUSH);
+    Messages.setLanguageText(itemRename, "FilesView.menu.rename");
+
     final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
     Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority"); //$NON-NLS-1$
     
@@ -129,6 +137,12 @@ public class FilesView
             open = false;
         }
         itemOpen.setEnabled(open);
+        int	dm_state = download_manager.getState();
+        
+        itemRename.setEnabled(
+        		download_manager.isPersistent() &&
+        			( 	dm_state == DownloadManager.STATE_STOPPED || 
+        				dm_state == DownloadManager.STATE_ERROR ));
       }
     });       
 
@@ -139,6 +153,89 @@ public class FilesView
           Program.launch(fileInfo.getFile(true).toString());
       }
     });
+    
+    itemRename.addListener(
+    	SWT.Selection, 
+    	new SelectedTableRowsListener() 
+    	{
+    		public void 
+    		run(
+    			TableRowCore row) 
+    		{
+    			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+   
+    			FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
+    			File	existing_file = fileInfo.getFile(true);
+    			fDialog.setFilterPath(existing_file.getParent() );
+    			fDialog.setFileName( existing_file.getName());
+    			fDialog.setText( MessageText.getString("FilesView.rename.choose.path"));
+          
+    			String	res = fDialog.open();
+          
+    			if ( res != null ){
+        	  
+    				File	target = new File( res );
+        	  
+    				boolean	ok = false;
+        	  
+    				if ( target.exists()){
+        		 
+    					if ( target.equals( existing_file )){
+        			  
+    						// nothing to do
+    					}else{
+        			  
+    						MessageBox mb = new MessageBox(getComposite().getShell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
+	        		    
+    						mb.setText(MessageText.getString("FilesView.rename.confirm.delete.title"));
+	        		    		       		    
+    						mb.setMessage(MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()}));
+	        		    		
+    						if ( mb.open() == SWT.OK ){
+	        		    	
+    							if ( FileUtil.deleteWithRecycle( existing_file )){
+	        		    		
+    								ok	= true;
+	        		    		
+    									// force recheck - could be smarter by restricting
+    									// to this file, but hey ho
+    								
+    								download_manager.getDownloadState().clearResumeData();
+    								
+    							}else{
+	        		    	
+    								LGLogger.logRepeatableAlert( 
+    										LGLogger.AT_ERROR, "Failed to delete '" + existing_file.toString() + "'" );
+    							}
+    						}
+    					}
+    				}else{
+        		  
+    					if ( existing_file.exists()){
+        			  
+    						ok = FileUtil.renameFile( existing_file, target );
+        			  
+    						if ( !ok ){
+        				  
+    							LGLogger.logRepeatableAlert( 
+            		    			LGLogger.AT_ERROR, "Failed to rename '" + existing_file.toString() + "'" );
+     
+    						}
+    					}else{
+        			  
+    						ok = true;
+    					}
+    				}
+        	  
+    				if ( ok ){
+        		  
+    					fileInfo.setLink( target );
+        		  
+    					row.refresh( true );
+    				}
+    			}
+    		}
+    	});
     
     itemHigh.addListener(SWT.Selection, new SelectedTableRowsListener() {
       public void run(TableRowCore row) {

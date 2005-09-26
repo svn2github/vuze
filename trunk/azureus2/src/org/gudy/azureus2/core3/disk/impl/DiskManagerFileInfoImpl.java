@@ -41,6 +41,7 @@ public class
 DiskManagerFileInfoImpl
 	implements DiskManagerFileInfo, CacheFileOwner
 {
+  private File			file;
   private CacheFile		cache_file;
   
   private String 		extension;
@@ -66,6 +67,8 @@ DiskManagerFileInfoImpl
     diskManager 	= _disk_manager;
     torrent_file	= _torrent_file;
   	
+    file		= _file;
+    
   	cache_file = CacheFileManagerFactory.getSingleton().createFile( this, _file );
   }
   
@@ -95,6 +98,8 @@ DiskManagerFileInfoImpl
   	throws CacheFileManagerException
   {
   	cache_file.moveFile( newFile );
+  	
+  	file	= newFile;
   }
   
   public CacheFile
@@ -144,7 +149,8 @@ DiskManagerFileInfoImpl
   /**
    * @return
    */
-  public File getFile(
+  public File 
+  getFile(
 	boolean	follow_link )
   	{
 	  if ( follow_link ){
@@ -157,7 +163,7 @@ DiskManagerFileInfoImpl
 		  }
 	  }
 	  
-	  return( cache_file.getFile());
+	  return( file );
   	}
 
 	public void

@@ -367,7 +367,13 @@ DownloadManager
    */
 	public void setAZMessagingEnabled( boolean enable );
 
+		/**
+		 * Indicates that the download manager is no longer needed
+		 *
+		 */
 	
+	public void
+	destroy();
 	
 	public void
 	addPeer(

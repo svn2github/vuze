@@ -308,6 +308,11 @@ Test
 			
 		}
 		
+		public void
+		destroy()
+		{
+		}
+		
 		public int
 		getState()
 		{

@@ -36,9 +36,9 @@ CacheFile
 	public static final int	CF_READ		= 1;
 	public static final int CF_WRITE	= 2;
 	
-	public File
-	getFile();
-
+	public boolean
+	exists();
+	
 	public void
 	moveFile(
 		File		new_file )

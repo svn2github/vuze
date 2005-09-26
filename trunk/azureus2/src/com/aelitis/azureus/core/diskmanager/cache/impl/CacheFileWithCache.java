@@ -1188,7 +1188,13 @@ CacheFileWithCache
 	{
 		return( file.getFile());
 	}
-
+	
+	public boolean
+	exists()
+	{
+		return( file.exists());
+	}
+	
 	public void
 	moveFile(
 		File		new_file )

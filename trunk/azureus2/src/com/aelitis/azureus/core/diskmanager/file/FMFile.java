@@ -40,6 +40,9 @@ FMFile
 	public File
 	getFile();
 
+	public boolean
+	exists();
+	
 	public FMFileOwner
 	getOwner();
 	

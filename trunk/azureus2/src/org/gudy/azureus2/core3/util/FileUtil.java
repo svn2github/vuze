@@ -220,7 +220,7 @@ public class FileUtil {
         if ( files == null ){
         	
         	if (log_warnings ){
-        		Debug.out("FileUtil::recursiveEmptyDirDelete:: failed list contents of directory" + f );
+        		Debug.out("Empty folder delete:  failed to list contents of directory " + f );
         	}
           	 
           	return;
@@ -241,7 +241,7 @@ public class FileUtil {
         			if ( !x.delete()){
         				
         				if ( log_warnings ){
-        					Debug.out("FileUtil::recursiveEmptyDirDelete:: failed to delete file" + x );
+        					Debug.out("Empty folder delete: failed to delete file " + x );
         				}
         			}
         		}
@@ -251,7 +251,7 @@ public class FileUtil {
         if (f.getCanonicalPath().equals(moveToDir)) {
         	
         	if ( log_warnings ){
-        		Debug.out("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the MoveTo dir !");
+        		Debug.out("Empty folder delete:  not allowed to delete the MoveTo dir !");
         	}
           
           return;
@@ -260,7 +260,7 @@ public class FileUtil {
         if (f.getCanonicalPath().equals(defSaveDir)) {
         	
         	if ( log_warnings ){
-        		Debug.out("FileUtil::recursiveEmptyDirDelete:: not allowed to delete the default data dir !");
+        		Debug.out("Empty folder delete:  not allowed to delete the default data dir !");
         	}
           
           return;
@@ -271,12 +271,12 @@ public class FileUtil {
           if ( !f.delete()){
           	
         	  if ( log_warnings ){
-        		  Debug.out("FileUtil::recursiveEmptyDirDelete:: failed to delete directory" + f );
+        		  Debug.out("Empty folder delete:  failed to delete directory " + f );
         	  }
           }
         }else{
         	if ( log_warnings ){
-        		Debug.out("FileUtil::recursiveEmptyDirDelete:: "+f.listFiles().length+" file(s)/folder(s) still in " + f + ". Not removing.");
+        		Debug.out("Empty folder delete: "+f.listFiles().length+" file(s)/folder(s) still in " + f + ". Not removing.");
         	}
         }
       }

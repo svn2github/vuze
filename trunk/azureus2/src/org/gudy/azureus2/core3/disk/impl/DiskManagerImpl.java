@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.disk.impl;
 
+import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 
@@ -565,80 +566,76 @@ DiskManagerImpl
 		
 		for (int i = 0; i < btFileList.size(); i++) {
 				//get the BtFile
-			DiskManagerPieceMapper.fileInfo tempFile = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
-				//get the path
-			String tempPath = root_dir + tempFile.getPath();
-				//get file name
-			String tempName = tempFile.getName();
-				//System.out.println( "\ttempPath="+tempPath+",tempName="+tempName );
-				//get file length
-			long length = tempFile.getLength();
-
-			File f = new File(tempPath, tempName);
-
-			if (!f.exists()){
-				
-			  errorMessage = f.toString() + " not found.";
-			  
-			  return false;
-			  
-			}else{
+			DiskManagerPieceMapper.fileInfo pm_info = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
 			
-					// use the cache file to ascertain length in case the caching/writing algorithm
-					// fiddles with the real length
-					// Unfortunately we may be called here BEFORE the disk manager has been 
-					// started and hence BEFORE the file info has been setup...
-					// Maybe one day we could allocate the file info earlier. However, if we do
-					// this then we'll need to handle the "already moved" stuff too...
-				
-				DiskManagerFileInfoImpl	file_info = tempFile.getFileInfo();
-				
-				boolean	close_it	= false;
+			File	relative_file = pm_info.getDataFile();
+			
+			long target_length = pm_info.getLength();
+			
+				// use the cache file to ascertain length in case the caching/writing algorithm
+				// fiddles with the real length
+				// Unfortunately we may be called here BEFORE the disk manager has been 
+				// started and hence BEFORE the file info has been setup...
+				// Maybe one day we could allocate the file info earlier. However, if we do
+				// this then we'll need to handle the "already moved" stuff too...
+			
+			DiskManagerFileInfoImpl	file_info = pm_info.getFileInfo();
+			
+			boolean	close_it	= false;
+			
+			try{
+				if ( file_info == null ){
+					
+					file_info = new DiskManagerFileInfoImpl( this, new File( root_dir + relative_file.toString()), pm_info.getTorrentFile());
+	
+					close_it	= true;					
+				}
 				
 				try{
-					if ( file_info == null ){
-						
-						file_info = new DiskManagerFileInfoImpl( this, f, tempFile.getTorrentFile());
-		
-						close_it	= true;					
-					}
-					
-					try{
-							// only test for too big as if incremental creation selected
-							// then too small is OK
-						
-						long	existing_length = file_info.getCacheFile().getLength();
-						
-						if ( existing_length > length ){
-							
-							if ( COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
-								
-								file_info.setAccessMode( DiskManagerFileInfo.WRITE );
+					CacheFile	cache_file	= file_info.getCacheFile();
+					File		data_file	= file_info.getFile(true);
 
-								file_info.getCacheFile().setLength( length );
-								
-								Debug.out( "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath() + ", truncating" );
-
-							}else{
-
-								errorMessage = "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath();
+					if (!cache_file.exists()){
+						
+						  errorMessage = data_file.toString() + " not found.";
 						  
-								return false;
-							}
-						}
-					}finally{
+						  return false;
+					}
+					
+						// only test for too big as if incremental creation selected
+						// then too small is OK
+					
+					long	existing_length = file_info.getCacheFile().getLength();
+					
+					if ( existing_length > target_length ){
 						
-						if ( close_it ){
+						if ( COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
 							
-							file_info.getCacheFile().close();
+							file_info.setAccessMode( DiskManagerFileInfo.WRITE );
+
+							file_info.getCacheFile().setLength( target_length );
+							
+							Debug.out( "Existing data file length too large [" +existing_length+ ">" +target_length+ "]: " + data_file.getAbsolutePath() + ", truncating" );
+
+						}else{
+
+							errorMessage = "Existing data file length too large [" +existing_length+ ">" +target_length+ "]: " + data_file.getAbsolutePath();
+					  
+							return false;
 						}
 					}
-				}catch( CacheFileManagerException e ){
-				
-					errorMessage = Debug.getNestedExceptionMessage(e) + " (filesExist:" + f.toString() + ")";
+				}finally{
 					
-					return( false );
+					if ( close_it ){
+						
+						file_info.getCacheFile().close();
+					}
 				}
+			}catch( CacheFileManagerException e ){
+			
+				errorMessage = Debug.getNestedExceptionMessage(e) + " (filesExist:" + relative_file.toString() + ")";
+				
+				return( false );
 			}
 		}
 		
@@ -653,7 +650,9 @@ DiskManagerImpl
 		allocated = 0;
 		
 		int numNewFiles = 0;
-
+		
+		List btFileList	= piece_mapper.getFileList();
+	
 		String	root_dir = download_manager.getTorrentSaveDir();
 		
 		if ( !torrent.isSimpleTorrent()){
@@ -663,51 +662,44 @@ DiskManagerImpl
 		
 		root_dir	+= File.separator;	
 		
-		List btFileList	= piece_mapper.getFileList();
-	
 		for ( int i=0;i<btFileList.size();i++ ){
 			
-			final DiskManagerPieceMapper.fileInfo tempFile = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
-			
-			final String tempPath = root_dir + tempFile.getPath();
-			
-			final String tempName = tempFile.getName();
-			
-			final long length = tempFile.getLength();
+			final DiskManagerPieceMapper.fileInfo pm_info = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
+					
+			final long target_length = pm_info.getLength();
 
-			final File f = new File(tempPath, tempName);
-		
-				// ascertain whether or not the file exists here in case the creation of the cache file
-				// by DiskManagerFileInfoImpl pre-creates the file if it isn't present
+			File relative_data_file = pm_info.getDataFile();
+								
+			DiskManagerFileInfoImpl fileInfo;
 			
-			boolean	file_exists	= f.exists();
-			
-			DiskManagerFileInfoImpl fileInfo	= null;
-
 			try{
-				fileInfo = new DiskManagerFileInfoImpl( this, f, tempFile.getTorrentFile());
+				fileInfo = new DiskManagerFileInfoImpl( this, new File( root_dir + relative_data_file.toString()), pm_info.getTorrentFile());
 				
 				files[i] = fileInfo;
 	
-				tempFile.setFileInfo(files[i]);
+				pm_info.setFileInfo(files[i]);
 				
 			}catch ( CacheFileManagerException e ){
 				
-				this.errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles:" + f.toString() + ")";
+				this.errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles:" + relative_data_file.toString() + ")";
 				
 				setState( FAULTY );
         
 				return( -1 );
 			}
-						
-			int separator = tempName.lastIndexOf(".");
+			
+			CacheFile	cache_file 		= fileInfo.getCacheFile();
+			File		data_file		= fileInfo.getFile(true);
+			String		data_file_name 	= data_file.getName();
+			
+			int separator = data_file_name.lastIndexOf(".");
 			
 			if ( separator == -1 ){
 				
 				separator = 0;
 			}
 			
-			fileInfo.setExtension(tempName.substring(separator));
+			fileInfo.setExtension(data_file_name.substring(separator));
 			
 				//Added for Feature Request
 				//[ 807483 ] Prioritize .nfo files in new torrents
@@ -731,11 +723,11 @@ DiskManagerImpl
 				}
 			}
 			
-			fileInfo.setLength(length);
+			fileInfo.setLength(target_length);
 			
 			fileInfo.setDownloaded(0);
 			
-			if ( file_exists ){
+			if ( cache_file.exists() ){
 				
 				try {
 
@@ -743,19 +735,19 @@ DiskManagerImpl
 			  	
 					long	existing_length = fileInfo.getCacheFile().getLength();
 			  	
-					if(  existing_length > length ){
+					if(  existing_length > target_length ){
 					
 						if ( COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
 						
 						  	fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
 	
-							fileInfo.getCacheFile().setLength( length );
+						  	cache_file.setLength( target_length );
 						
-							Debug.out( "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath() + ", truncating" );
+							Debug.out( "Existing data file length too large [" +existing_length+ ">" +target_length+ "]: " +data_file.getAbsolutePath() + ", truncating" );
 	
 						}else{
 						
-							this.errorMessage = "Existing data file length too large [" +existing_length+ ">" +length+ "]: " + f.getAbsolutePath();
+							this.errorMessage = "Existing data file length too large [" +existing_length+ ">" +target_length+ "]: " + data_file.getAbsolutePath();
 		          
 							setState( FAULTY );
             
@@ -768,13 +760,13 @@ DiskManagerImpl
 				}catch (CacheFileManagerException e) {
 			  	
 					this.errorMessage = Debug.getNestedExceptionMessage(e) + 
-											" (allocateFiles existing:" + f.toString() + ")";
+											" (allocateFiles existing:" + data_file.getAbsolutePath() + ")";
 					setState( FAULTY );
 			 
 					return( -1 );
 				}
 			  
-				allocated += length;
+				allocated += target_length;
         
 			}else{  //we need to allocate it
         
@@ -782,26 +774,14 @@ DiskManagerImpl
 				
 				if ( download_manager.isDataAlreadyAllocated() ){
         	
-					this.errorMessage = "Data file missing: " + f.getAbsolutePath();
+					this.errorMessage = "Data file missing: " + data_file.getAbsolutePath();
           
 					setState( FAULTY );
           
 					return( -1 );
 				}
        
-				try {
-					File directory = new File( tempPath );
-	          
-					if( !directory.exists() ) {
-	          	
-						if( !directory.mkdirs() ){
-							
-							throw new Exception( "directory creation failed: " +directory);
-						}
-					}
-	          
-					f.getCanonicalPath();  //TEST: throws Exception if filename is not supported by os
-	          
+				try{	          	          
 					fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
 	          
 					if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
@@ -816,7 +796,7 @@ DiskManagerImpl
 						
 						if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
 							
-							if ( !writer_and_checker.zeroFile( fileInfo, length )) {
+							if ( !writer_and_checker.zeroFile( fileInfo, target_length )) {
 	                
 								try{
 										// failed to zero it, delete it so it gets done next start
@@ -837,15 +817,15 @@ DiskManagerImpl
 							
 								//reserve the full file size with the OS file system
 	            	
-							fileInfo.getCacheFile().setLength( length );
+							fileInfo.getCacheFile().setLength( target_length );
 	              
-							allocated += length;
+							allocated += target_length;
 						}
 					}
 				}catch ( Exception e ) {
 					
 					this.errorMessage = Debug.getNestedExceptionMessage(e)
-								+ " (allocateFiles new:" + f.toString() + ")";
+								+ " (allocateFiles new:" + data_file.toString() + ")";
 	          
 					setState( FAULTY );
 	          
@@ -1342,15 +1322,18 @@ DiskManagerImpl
 	          
 	          File old_file = files[i].getFile(false);
 	          
-	          old_files[i]	= old_file;
+	          old_files[i]	= files[i].getFile(true);	// gotta grab the real destination here for recovery
+	          											// purposes 
 	          
-	          //get old file's parent path
+	          	//get old file's parent path
+	          
 	          fullPath = old_file.getParent();
 	          
-	           //compute the file's sub-path off from the default save path
+	           	//compute the file's sub-path off from the default save path
+	          
 	          subPath = fullPath.substring(fullPath.indexOf(rPath) + rPath.length());
 	    
-	          //create the destination dir
+	          	//create the destination dir
 	          
 	          if ( subPath.startsWith( File.separator )){
 	          	
@@ -1383,9 +1366,7 @@ DiskManagerImpl
 	      }
 	      
 	      for (int i=0; i < files.length; i++){
-	      		 
-	          File old_file = files[i].getFile(false);
-	
+	      		 	          
 	          File new_file = new_files[i];
 	          
 	          try{
@@ -1396,13 +1377,13 @@ DiskManagerImpl
 	            
 	          }catch( CacheFileManagerException e ){
 	          	
-	            String msg = "Failed to move " + old_file.getName() + " to destination dir";
+	            String msg = "Failed to move " + old_files[i].toString() + " to destination dir";
 	            
 	            LGLogger.log(LGLogger.ERROR,msg);
 	            
 	            LGLogger.logUnrepeatableAlertUsingResource( 
 	            		LGLogger.AT_ERROR, "DiskManager.alert.movefilefails", 
-	            		new String[]{ old_file.toString(),
+	            		new String[]{ old_files[i].toString(),
 	            		Debug.getNestedExceptionMessage(e)});
 	
 	            Debug.out(msg);
@@ -1420,7 +1401,7 @@ DiskManagerImpl
 	              
 	            		LGLogger.logUnrepeatableAlertUsingResource( 
 	                    		LGLogger.AT_ERROR, "DiskManager.alert.movefilerecoveryfails", 
-	                    		new String[]{ files[j].toString(),
+	                    		new String[]{ old_files[j].toString(),
 	                    		Debug.getNestedExceptionMessage(f)} );
 	           		
 	            	}

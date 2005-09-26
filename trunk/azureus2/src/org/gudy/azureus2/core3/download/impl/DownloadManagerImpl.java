@@ -655,6 +655,23 @@ DownloadManagerImpl
 		DiskManagerFactory.setFileLinks( this, download_manager_state.getFileLinks());
 	}
 	
+	public void
+	destroy()
+	{
+		Map	links = download_manager_state.getFileLinks();
+		
+		Map	removed_links = new HashMap();
+		
+		Iterator	it = links.keySet().iterator();
+		
+		while( it.hasNext()){
+			
+			removed_links.put( it.next(), null );
+		}
+		
+		DiskManagerFactory.setFileLinks( this, removed_links );
+	}
+	
 	public boolean 
 	filesExist() 
 	{
