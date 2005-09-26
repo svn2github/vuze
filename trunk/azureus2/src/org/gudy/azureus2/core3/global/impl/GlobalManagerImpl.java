@@ -846,6 +846,8 @@ public class GlobalManagerImpl
     			Debug.printStackTrace( e );
     		}
     	}
+    	
+    	manager.destroy();
     }finally{
     	
     	managers_mon.exit();
@@ -859,14 +861,12 @@ public class GlobalManagerImpl
 
     DownloadManagerState dms = manager.getDownloadState();
     
-    if (dms.getCategory() != null){
+    if ( dms.getCategory() != null){
     
     	dms.setCategory(null);
     }
     
-    dms.delete();
-    
-    if (manager.getTorrent() != null) {
+     if ( manager.getTorrent() != null ) {
 
       trackerScraper.remove(manager.getTorrent());
     }
@@ -875,6 +875,11 @@ public class GlobalManagerImpl
     	
     	host_support.torrentRemoved( manager.getTorrentFileName(), manager.getTorrent());
     }
+    
+    	// delete the state last as passivating a hosted torrent may require access to 
+    	// the existing torrent state
+    
+    dms.delete();
   }
 
   /* Puts GlobalManager in a stopped state.
