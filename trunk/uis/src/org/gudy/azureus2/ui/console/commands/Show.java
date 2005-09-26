@@ -103,8 +103,6 @@ public class Show extends IConsoleCommand {
 				return;
 			}
 			
-			DownloadManager dm;
-			Iterator torrent = ci.torrents.iterator();
 			long totalReceived = 0;
 			long totalSent = 0;
 			long totalDiscarded = 0;
@@ -119,16 +117,28 @@ public class Show extends IConsoleCommand {
 				String arg = (String) iter.next();
 				if ("active".equalsIgnoreCase(arg) || "a".equalsIgnoreCase(arg)) {
 					bShowOnlyActive = true;
+					iter.remove();
 				} else if ("complete".equalsIgnoreCase(arg) || "c".equalsIgnoreCase(arg)) {
 					bShowOnlyComplete = true;
+					iter.remove();
 				} else if ("incomplete".equalsIgnoreCase(arg) || "i".equalsIgnoreCase(arg)) {
 					bShowOnlyIncomplete = true;
+					iter.remove();
 				}
 			}
-
+			
+			Iterator torrent;
+			if( args.size() > 0 )
+			{
+				List matchedTorrents = new TorrentFilter().getTorrents(ci.torrents, args);
+				torrent = matchedTorrents.iterator();
+			}
+			else
+				torrent = ci.torrents.iterator();
+			
 			while (torrent.hasNext()) {
 				nrTorrent++;
-				dm = (DownloadManager) torrent.next();
+				DownloadManager dm = (DownloadManager) torrent.next();
 				DownloadManagerStats stats = dm.getStats();
 
 				boolean bDownloadCompleted = stats.getDownloadCompleted(false) == 1000;
@@ -397,7 +407,8 @@ public class Show extends IConsoleCommand {
 			out.println("Error: " + dm.getErrorDetails());
 		out.println("Hash: " + ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
 		out.println("- Torrent file -");
-		out.println("Filename: " + dm.getTorrentFileName());
+		out.println("Torrent Filename: " + dm.getTorrentFileName());
+		out.println("Saving to: " + dm.getTorrentSaveDirAndFile());
 		out.println("Created By: " + dm.getTorrentCreatedBy());
 		out.println("Comment: " + dm.getTorrentComment());
 		out.println("- Tracker Info -");
