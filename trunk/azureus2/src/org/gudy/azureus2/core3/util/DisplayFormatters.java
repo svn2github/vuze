@@ -46,24 +46,26 @@ DisplayFormatters
 	final public static int UNIT_GB = 3;
 	final public static int UNIT_TB = 4;
 	
-	final protected static int UNITS_PRECISION[] =	 {	 0, // B
+	final private static int UNITS_PRECISION[] =	 {	 0, // B
 	                                                     1, //KB
 	                                                     1, //MB
 	                                                     2, //GB
 	                                                     3 //TB
 	                                                  };
-	protected static String[] units;
-	protected static String[] units_rate;
-	protected static int unitsStopAt = UNIT_TB;
+	private static String[] units;
+	private static String[] units_rate;
+	private static int unitsStopAt = UNIT_TB;
 
-	protected static String[] units_base10;
+	private static String[] units_base10;
 	
 	private static String		per_sec;
 	
-	protected static boolean use_si_units;
-	protected static boolean use_units_rate_bits;
-    protected static boolean not_use_GB_TB;
+	private static boolean use_si_units;
+	private static boolean use_units_rate_bits;
+	private static boolean not_use_GB_TB;
 
+    private static int message_text_state = 0;
+    
 	// private static String lastDecimalFormat = "";
 
 	static{
@@ -177,7 +179,7 @@ DisplayFormatters
     }
 
     
-    per_sec = MessageText.getString( "Formats.units.persec" );
+    per_sec = getResourceString( "Formats.units.persec", "/s" );
 
     units_base10 = 
     	new String[]{ getUnit( "B"), getUnit("KB"), getUnit( "MB" ), getUnit( "GB"), getUnit( "TB" ) };
@@ -191,14 +193,45 @@ DisplayFormatters
     NumberFormat.getPercentInstance().setMaximumFractionDigits(1);
    }
   
-  private static String
-  getUnit(
-	String	key )
-  {
-	  String res = " " + MessageText.getString( "Formats.units." + key );
-	  	  
-	  return( res );
-  }
+	private static String
+	getUnit(
+		String	key )
+	{
+		String res = " " + getResourceString( "Formats.units." + key, key );
+		  	  
+		return( res );
+	}
+	
+	private static String
+	getResourceString(
+		String	key,
+		String	def )
+	{
+		if ( message_text_state == 0 ){
+			
+				// this fooling around is to permit the use of this class in the absence of the (large) overhead
+				// of resource bundles
+			
+			try{
+				MessageText.class.getName();
+				
+				message_text_state	= 1;
+				
+			}catch( Throwable e ){
+				
+				message_text_state	= 2;
+			}
+		}
+		
+		if ( message_text_state == 1 ){
+			
+			return( MessageText.getString( key ));
+			
+		}else{
+			
+			return( def );
+		}
+	}
 
 	public static String
 	getRateUnit(
