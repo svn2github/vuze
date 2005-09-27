@@ -328,7 +328,7 @@ public class BTPeerIDByteDecoder {
               String v3 = new String( id, 4, 1, Constants.BYTE_ENCODING );
               String v4 = new String( id, 5, 1, Constants.BYTE_ENCODING );
               String v5 = new String( id, 6, 1, Constants.BYTE_ENCODING );
-              return name + " " + v2 + "." + v3 + ((v4.equals("R") ? (" RC" + v5) : ""));
+              return name + " " + v2 + "." + v3 + ( v4.equals("R") ? (" RC" + v5) : ( v4.equals("D") ? " Dev":"" ) );
           }
           if( ident.equals( "UT") ) {
         	  String v2 = new String( id, 3, 1, Constants.BYTE_ENCODING );
