@@ -99,6 +99,8 @@ public class MyTorrentsView
   private ControlAdapter catResizeAdapter;
   private Menu menuCategory;
   private MenuItem menuItemChangeDir = null;
+  
+  int userMode;
 
   private Map downloadBars;
   private AEMonitor				downloadBars_mon	= new AEMonitor( "MyTorrentsView:DL" );
@@ -127,8 +129,7 @@ public class MyTorrentsView
     this.isSeedingView 	= isSeedingView;
 
     downloadBars = MainWindow.getWindow().getDownloadBars();
-    currentCategory = CategoryManager.getCategory(Category.TYPE_ALL);
-  }
+    currentCategory = CategoryManager.getCategory(Category.TYPE_ALL);  }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
@@ -423,6 +424,9 @@ public class MyTorrentsView
   }
 
   public void fillMenu(final Menu menu) {
+	  
+	userMode = COConfigurationManager.getIntParameter("User Mode");
+	  
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemDetails, "MyTorrentsView.menu.showdetails"); //$NON-NLS-1$
     menu.setDefaultItem(itemDetails);
@@ -714,9 +718,15 @@ public class MyTorrentsView
 
         itemOpen.setEnabled(hasSelection);
         itemExplore.setEnabled(hasSelection);
-        itemExport.setEnabled(hasSelection);
-        itemHost.setEnabled(hasSelection);
-        itemPublish.setEnabled(hasSelection);
+        if(userMode > 0) {
+	        itemExport.setEnabled(hasSelection);
+	        itemHost.setEnabled(hasSelection);
+	        itemPublish.setEnabled(hasSelection);
+        }else {
+	        itemExport.setEnabled(false);
+	        itemHost.setEnabled(false);
+	        itemPublish.setEnabled(false);
+        }
 
         itemMove.setEnabled(hasSelection);
         itemCategory.setEnabled(hasSelection);
@@ -803,28 +813,40 @@ public class MyTorrentsView
               moveUp = false;
             }
             
-            TRTrackerAnnouncer trackerClient = dm.getTrackerClient();
-            
-            if(trackerClient != null) {
-              boolean update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerAnnouncer.REFRESH_MINIMUM_SECS ));
-              manualUpdate = manualUpdate & update_state;
+            if(userMode>1) {
+            	itemNetworks.setEnabled(true);
+
+	            TRTrackerAnnouncer trackerClient = dm.getTrackerClient();
+	            
+	            if(trackerClient != null) {
+	              boolean update_state = ((SystemTime.getCurrentTime()/1000 - trackerClient.getLastUpdateTime() >= TRTrackerAnnouncer.REFRESH_MINIMUM_SECS ));
+	              manualUpdate = manualUpdate & update_state;
+	            }
+	           
+	            bChangeDir &= (dm.getState() == DownloadManager.STATE_ERROR && !dm.filesExist());
+	                          
+	            for(int j=0;j<itemsNetwork.length;j++) {
+	              String network = (String) itemsNetwork[j].getData("network");
+				  
+	              itemsNetwork[j].setSelection(dm.getDownloadState().isNetworkEnabled(network));   
+	            }
+            } else {
+            	itemNetworks.setEnabled(false);
             }
-           
-            bChangeDir &= (dm.getState() == DownloadManager.STATE_ERROR && !dm.filesExist());
-                          
-            for(int j=0;j<itemsNetwork.length;j++) {
-              String network = (String) itemsNetwork[j].getData("network");
-			  
-              itemsNetwork[j].setSelection(dm.getDownloadState().isNetworkEnabled(network));   
-            }
             
-            for(int j=0;j<itemsPeersource.length;j++) {
-              String ps = (String) itemsPeersource[j].getData("peerSource");
-			  
-			  itemsPeersource[j].setEnabled( dm.getDownloadState().isPeerSourcePermitted(ps) );
-	              
-	          itemsPeersource[j].setSelection(dm.getDownloadState().isPeerSourceEnabled(ps));
-            }            
+            if(userMode>0) {
+            	itemPeerSource.setEnabled(true);
+
+	            for(int j=0;j<itemsPeersource.length;j++) {
+	              String ps = (String) itemsPeersource[j].getData("peerSource");
+				  
+				  itemsPeersource[j].setEnabled( dm.getDownloadState().isPeerSourcePermitted(ps) );
+		              
+		          itemsPeersource[j].setSelection(dm.getDownloadState().isPeerSourceEnabled(ps));
+	            }
+            } else {
+            	itemPeerSource.setEnabled(false);
+            }
           }
           
           //itemCurrentSpeed.setText((float) ((int) (totalSpeed * 1000)) / 10 + " %");  //TODO
@@ -833,9 +855,14 @@ public class MyTorrentsView
 
           itemMoveTop.setEnabled(moveUp);
           itemMoveEnd.setEnabled(moveDown);
+          if (userMode>0) {
+	          itemForceStart.setSelection(forceStart);
+		      itemForceStart.setEnabled(forceStartEnabled);
+          }else {
+        	  itemForceStart.setSelection(false);
+        	  itemForceStart.setEnabled(false);
+          }
 
-          itemForceStart.setSelection(forceStart);
-          itemForceStart.setEnabled(forceStartEnabled);
           itemQueue.setEnabled(start);
           itemStop.setEnabled(stop);
           itemRemove.setEnabled( true );
@@ -937,11 +964,12 @@ public class MyTorrentsView
 
           itemManualUpdate.setEnabled(manualUpdate);
 
-        } else {
+        } else { // empty right-click
           itemBar.setSelection(false);
 
-          itemForceStart.setEnabled(false);
-          itemForceStart.setSelection(false);
+	      itemForceStart.setEnabled(false);
+	      itemForceStart.setSelection(false);
+
           itemQueue.setEnabled(false);
           itemStop.setEnabled(false);
           itemRemove.setEnabled(false);
@@ -1272,7 +1300,7 @@ public class MyTorrentsView
       }
     });
 
-  } // fillMenu
+  } // XXX END fillMenu
 
   private void addCategorySubMenu() {
     MenuItem[] items = menuCategory.getItems();
@@ -1505,6 +1533,7 @@ public class MyTorrentsView
 
     computePossibleActions();
     MainWindow.getWindow().refreshIconBar();
+    userMode = COConfigurationManager.getIntParameter("User Mode");
 
     super.refresh();
   }
