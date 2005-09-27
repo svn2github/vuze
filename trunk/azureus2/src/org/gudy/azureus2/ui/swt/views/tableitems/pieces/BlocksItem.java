@@ -111,6 +111,9 @@ public class BlocksItem
       gcImage.drawRectangle(0, 0, x1 + 1, y1 + 1);
       int blocksPerPixel = 0;
       int iPixelsPerBlock = 0;
+      int pxRes = 0;
+      long pxBlockStep = 0;
+      int factor = 4;
       
       
       while(iPixelsPerBlock <= 0) {
@@ -118,15 +121,36 @@ public class BlocksItem
         iPixelsPerBlock = (int) ((x1 + 1) / (lNumBlocks / blocksPerPixel) );        
       }
       
+      pxRes = (int) (x1 - ((lNumBlocks / blocksPerPixel) * iPixelsPerBlock)); // kolik mi zbyde
+      if (pxRes<=0)
+        pxRes=1;
+      pxBlockStep = (long) ((lNumBlocks*factor) / pxRes);	// kolikaty blok na +1 k sirce
+      long addBlocks = (long) ((lNumBlocks*factor) / pxBlockStep);
+      if ( (addBlocks*iPixelsPerBlock) > pxRes)
+        pxBlockStep+=1;
+      
+/*      String msg = "iPixelsPerBlock = "+iPixelsPerBlock + ", blocksPerPixel = " + blocksPerPixel;
+      msg += ", pxRes = " + pxRes + ", pxBlockStep = " + pxBlockStep + ", addBlocks = " + addBlocks + ", x1 = " + x1;
+      Debug.out(msg);*/
+      
       TOTorrent torrent = piece.getManager().getDownloadManager().getTorrent();
       
       boolean[]	written 	= piece.getWritten();
       boolean	piece_done 	= piece.isComplete();
+      int	drawnWidth	= 0;
+      int	blockStep	= 0;
       
       for (int i = 0; i < lNumBlocks; i+=blocksPerPixel) {
         int nextWidth = iPixelsPerBlock;
-        if (i == lNumBlocks - 1) {
-          nextWidth = (int)( x1 - (iPixelsPerBlock * (lNumBlocks / blocksPerPixel - 1)));
+	
+		blockStep += blocksPerPixel*factor;
+		if (blockStep >= pxBlockStep) { // pokud jsem prelezl dany pocet bloku, zvys tomuhle sirku
+		    nextWidth += (int)(blockStep/pxBlockStep);
+		    blockStep -= pxBlockStep;
+		}
+	
+        if (i >= lNumBlocks - blocksPerPixel) {	// pokud je posledni, at zasahuje az na konec
+	    nextWidth = (int)( x1 - drawnWidth);
         }
         color = Colors.white;
         
@@ -151,7 +175,7 @@ public class BlocksItem
         }
   
         gcImage.setBackground(color);
-        gcImage.fillRectangle(i * iPixelsPerBlock / blocksPerPixel + 1,1,nextWidth,y1);
+        gcImage.fillRectangle(drawnWidth + 1,1,nextWidth,y1);
         
         int pieceNumber = piece.getPieceNumber();
         int length = piece.getBlockSize(i);
@@ -160,8 +184,9 @@ public class BlocksItem
         // System.out.println(pieceNumber + "," + offset + " : "  + bytes + " / " + length);
         if(bytes == length) {
           gcImage.setBackground(cache);
-          gcImage.fillRectangle(i * iPixelsPerBlock + 1,1,nextWidth,3);
+          gcImage.fillRectangle(drawnWidth + 1,1,nextWidth,3);
         }
+        drawnWidth += nextWidth;
         
       }
       gcImage.dispose();
