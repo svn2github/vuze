@@ -943,6 +943,12 @@ DownloadManagerController
    		return( res );
    	}
 	
+	protected void
+	fileInfoChanged()
+	{
+		skeleton_files = null;
+	}
+	
 	protected PEPeerManager
 	getPeerManager()
 	{

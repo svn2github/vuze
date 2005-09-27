@@ -1322,8 +1322,7 @@ DiskManagerImpl
 	          
 	          File old_file = files[i].getFile(false);
 	          
-	          old_files[i]	= files[i].getFile(true);	// gotta grab the real destination here for recovery
-	          											// purposes 
+	          old_files[i]	= old_file;
 	          
 	          	//get old file's parent path
 	          
@@ -1344,12 +1343,16 @@ DiskManagerImpl
 	     
 	          destDir.mkdirs();
 	          
-	          //create the destination file pointer
+	          	//create the destination file pointer
+	          
 	          File newFile = new File(destDir, old_file.getName());
 	
 	          new_files[i]	= newFile;
 	          
-	          if (newFile.exists()) {
+	          	// if we ever support the linking of move to locations then this
+	          	// logic is broken (as the newFile won't identify the actual target) 
+	          
+	          if ( newFile.exists()){
 	          	
 	            String msg = "" + old_file.getName() + " already exists in MoveTo destination dir";
 	            

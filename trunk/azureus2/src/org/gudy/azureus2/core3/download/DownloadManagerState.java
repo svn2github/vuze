@@ -125,6 +125,9 @@ DownloadManagerState
 		File	link_source,
 		File	link_destination );
 
+	public void
+	clearFileLinks();
+	
 	public File
 	getFileLink(
 		File	link_source );

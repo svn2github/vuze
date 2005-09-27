@@ -188,7 +188,7 @@ FMFileImpl
         
 		        try {
 					
-		          new_canonical_path = new_unlinked_file.getCanonicalPath();
+		          new_canonical_path = new_linked_file.getCanonicalPath();
 				  
 	
 		        }catch( IOException ioe ) {
@@ -196,9 +196,9 @@ FMFileImpl
 		          String msg = ioe.getMessage();
 				  
 		          if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
-		            String abs_path = new_unlinked_file.getAbsolutePath();
+		            String abs_path = new_linked_file.getAbsolutePath();
 		            String error = "Caught 'There are no more files' exception during new_file.getCanonicalPath(). " +
-		                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_unlinked_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";
+		                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_linked_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";
 		                           //"new_canonical_path temporarily set to [" +abs_path+ "]";
 		            Debug.out( error, ioe );
 		          }

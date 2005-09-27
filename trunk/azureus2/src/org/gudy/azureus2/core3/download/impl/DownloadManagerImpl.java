@@ -653,23 +653,20 @@ DownloadManagerImpl
 	setFileLinks()
 	{
 		DiskManagerFactory.setFileLinks( this, download_manager_state.getFileLinks());
+		
+		controller.fileInfoChanged();
+	}
+	
+	protected void
+	clearFileLinks()
+	{
+		download_manager_state.clearFileLinks();
 	}
 	
 	public void
 	destroy()
 	{
-		Map	links = download_manager_state.getFileLinks();
-		
-		Map	removed_links = new HashMap();
-		
-		Iterator	it = links.keySet().iterator();
-		
-		while( it.hasNext()){
-			
-			removed_links.put( it.next(), null );
-		}
-		
-		DiskManagerFactory.setFileLinks( this, removed_links );
+		clearFileLinks();
 	}
 	
 	public boolean 
@@ -1192,6 +1189,8 @@ DownloadManagerImpl
   		// Calling it while a download is active will in general result in unpredictable behaviour!
   
 		torrent_save_dir	= sPath;
+		
+		controller.fileInfoChanged();
 	}
 
 	public String 
@@ -1959,6 +1958,10 @@ DownloadManagerImpl
 			  
 			  setTorrentSaveDir( new_parent_dir.toString());
 
+			  	// let the user fix up any links that may have existed
+			  
+			  clearFileLinks();
+			  
 			  return;
 		  }
 		  
@@ -1968,6 +1971,9 @@ DownloadManagerImpl
 			  
 			  setTorrentSaveDir( new_parent_dir.toString());
 		  
+			  	// let the user fix up any links that may have existed
+
+			  clearFileLinks();
 		  }else{
 			  
 			  throw( new DownloadManagerException( "rename operation failed" ));

@@ -865,12 +865,44 @@ DownloadManagerStateImpl
 			File	source = (File)it.next();
 			File	target = (File)links.get(source);
 			
-			String	str = source + "\n" + (target==null?null:target.toString());
+			String	str = source + "\n" + (target==null?"":target.toString());
 			
 			list.add( str );
 		}
 		
 		setListAttribute( AT_FILE_LINKS, list );
+	}
+	
+	public void
+	clearFileLinks()
+	{
+		Map	links = getFileLinks();
+		
+		List	list = new ArrayList();
+		
+		Iterator	it = links.keySet().iterator();
+		
+		boolean	changed = false;
+		
+		while( it.hasNext()){
+			
+			File	source = (File)it.next();
+			File	target = (File)links.get(source);
+			
+			if ( target != null ){
+				
+				changed = true;
+			}
+			
+			String	str = source + "\n";
+			
+			list.add( str );
+		}
+		
+		if ( changed ){
+	
+			setListAttribute( AT_FILE_LINKS, list );
+		}
 	}
 	
 	public File
@@ -1493,7 +1525,11 @@ DownloadManagerStateImpl
 			File	link_destination )
 	    {
 	    }
-
+		public void
+		clearFileLinks()
+		{
+		}
+		
 		public File
 		getFileLink(
 			File	link_source )

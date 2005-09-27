@@ -183,6 +183,15 @@ public class FilesView
     					if ( target.equals( existing_file )){
         			  
     						// nothing to do
+    						
+    					}else if ( !existing_file.exists()){
+
+    							// using a new file, make sure we recheck
+    						
+							download_manager.getDownloadState().clearResumeData();
+
+    						ok	= true;
+    						
     					}else{
         			  
     						MessageBox mb = new MessageBox(getComposite().getShell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
