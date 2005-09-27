@@ -38,17 +38,16 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 
 
-public class ConfigSectionMode implements UISWTConfigSection {
-  public String configSectionGetParentSection() {
-    return ConfigSection.SECTION_ROOT;
-  }
+public class ConfigSectionInterfaceMode implements UISWTConfigSection {
+	  public String configSectionGetParentSection() {
+		    return ConfigSection.SECTION_INTERFACE;
+		  }
 
 	public String configSectionGetName() {
 		return "mode";
