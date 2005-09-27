@@ -224,7 +224,7 @@ FMFileManagerImpl
 			map_mon.enter();
 		
 			if (DEBUG ){
-				System.out.println( "FMFileManager::getSlot: " + file.getFile().toString() +", map_size = " + map.size());
+				System.out.println( "FMFileManager::getSlot: " + file.getName() +", map_size = " + map.size());
 			}
 			
 			if ( map.size() >= limit_size ){
@@ -255,7 +255,7 @@ FMFileManagerImpl
 		FMFileLimited	file )
 	{
 		if ( DEBUG ){
-			System.out.println( "FMFileManager::releaseSlot: " + file.getFile().toString());
+			System.out.println( "FMFileManager::releaseSlot: " + file.getName());
 		}
 		
 		try{
@@ -274,7 +274,7 @@ FMFileManagerImpl
 		FMFileLimited	file )
 	{	
 		if ( DEBUG ){
-			System.out.println( "FMFileManager::usedSlot: " + file.getFile().toString());
+			System.out.println( "FMFileManager::usedSlot: " + file.getName());
 		}
 		
 		try{
@@ -298,7 +298,7 @@ FMFileManagerImpl
 		FMFileLimited	file )
 	{
 		if ( DEBUG ){
-			System.out.println( "FMFileManager::closeFile: " + file.getFile().toString());
+			System.out.println( "FMFileManager::closeFile: " + file.getName());
 		}
 
 		try{
@@ -339,7 +339,7 @@ FMFileManagerImpl
 
 					if ( DEBUG ){
 						
-						System.out.println( "FMFileManager::closeQ: " + file.getFile().toString() + ", rem = " + close_queue.size());
+						System.out.println( "FMFileManager::closeQ: " + file.getName() + ", rem = " + close_queue.size());
 					}
 				}
 			}finally{

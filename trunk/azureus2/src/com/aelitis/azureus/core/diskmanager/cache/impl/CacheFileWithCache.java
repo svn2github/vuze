@@ -1166,7 +1166,7 @@ CacheFileWithCache
 	protected String
 	getName()
 	{
-		return( file.getFile().toString());
+		return( file.getName());
 	}
 	
 	protected FMFile
@@ -1182,12 +1182,6 @@ CacheFileWithCache
 	}
 	
 		// public methods
-	
-	public File
-	getFile()
-	{
-		return( file.getFile());
-	}
 	
 	public boolean
 	exists()

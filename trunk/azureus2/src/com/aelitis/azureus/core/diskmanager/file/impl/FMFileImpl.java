@@ -74,7 +74,6 @@ FMFileImpl
 	private FMFileOwner			owner;
 	private int					access_mode			= FM_READ;
 	
-	private File				unlinked_file;
 	private File				linked_file;
 	private String				canonical_path;
 	private RandomAccessFile	raf;
@@ -92,9 +91,8 @@ FMFileImpl
 	{
 		owner			= _owner;
 		manager			= _manager;
-		unlinked_file	= _file;
 		
-		linked_file		= manager.getLinkedFile( unlinked_file );
+		linked_file		= manager.getLinkedFile( _file );
 		
 		try{
       
@@ -123,7 +121,7 @@ FMFileImpl
 			
 	        if ( !parent.exists()){
 	        	  
-	        	if ( parent.mkdirs()){
+	        	if ( !parent.mkdirs()){
 	        		  
 	        		throw( new FMFileManagerException( "Failed to create parent directory '" + parent + "'"));	
 	        	}
@@ -143,10 +141,10 @@ FMFileImpl
 		return( manager );
 	}
 	
-	public File
-	getFile()
+	public String
+	getName()
 	{
-		return( unlinked_file );
+		return( linked_file.toString());
 	}
 	
 	public boolean
@@ -176,7 +174,7 @@ FMFileImpl
 	
 	public void
 	moveFile(
-		File		new_file )
+		File		new_unlinked_file )
 	
 		throws FMFileManagerException
 	{
@@ -184,13 +182,13 @@ FMFileImpl
 			this_mon.enter();
 		
 			String	new_canonical_path;
-			File	new_linked_file	= manager.getLinkedFile( new_file );
+			File	new_linked_file	= manager.getLinkedFile( new_unlinked_file );
 			
 			try{
         
 		        try {
 					
-		          new_canonical_path = new_file.getCanonicalPath();
+		          new_canonical_path = new_unlinked_file.getCanonicalPath();
 				  
 	
 		        }catch( IOException ioe ) {
@@ -198,9 +196,9 @@ FMFileImpl
 		          String msg = ioe.getMessage();
 				  
 		          if( msg != null && msg.indexOf( "There are no more files" ) != -1 ) {
-		            String abs_path = new_file.getAbsolutePath();
+		            String abs_path = new_unlinked_file.getAbsolutePath();
 		            String error = "Caught 'There are no more files' exception during new_file.getCanonicalPath(). " +
-		                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";
+		                           "os=[" +Constants.OSName+ "], new_file.getPath()=[" +new_unlinked_file.getPath()+ "], new_file.getAbsolutePath()=[" +abs_path+ "]. ";
 		                           //"new_canonical_path temporarily set to [" +abs_path+ "]";
 		            Debug.out( error, ioe );
 		          }
@@ -212,7 +210,7 @@ FMFileImpl
 				throw( new FMFileManagerException( "getCanonicalPath fails", e ));
 			}	
 			
-			if ( new_file.exists()){
+			if ( new_linked_file.exists()){
 				
 				throw( new FMFileManagerException( "moveFile fails - file '" + new_canonical_path + "' already exists"));	
 			}
@@ -221,7 +219,7 @@ FMFileImpl
 	          
 	        if ( !parent.exists()){
 	        	  
-	        	if ( parent.mkdirs()){
+	        	if ( !parent.mkdirs()){
 	        		  
 	        		throw( new FMFileManagerException( "moveFile fails - failed to create parent directory '" + parent + "'"));	
 	        	}
@@ -233,7 +231,6 @@ FMFileImpl
 			
 			if ( FileUtil.renameFile( linked_file, new_linked_file )) {
 				
-				unlinked_file	= new_file;
 				linked_file		= new_linked_file;
 				canonical_path	= new_canonical_path;
 				
