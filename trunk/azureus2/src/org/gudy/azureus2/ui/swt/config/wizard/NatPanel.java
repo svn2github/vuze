@@ -127,6 +127,8 @@ public class NatPanel extends AbstractWizardPanel {
     Messages.setLanguageText(label, "configureWizard.nat.message");
 
     label = new Label(panel, SWT.NULL);
+    label = new Label(panel, SWT.NULL);
+    label = new Label(panel, SWT.NULL);
     Messages.setLanguageText(label, "configureWizard.nat.server.tcp_listen_port");
 
     final Text textServerTCPListen = new Text(panel, SWT.BORDER);
