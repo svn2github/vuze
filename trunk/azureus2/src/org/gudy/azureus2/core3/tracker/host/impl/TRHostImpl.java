@@ -1048,25 +1048,30 @@ TRHostImpl
 			
 			TRTrackerServerTorrent ts_torrent = request.getTorrent();
 		
-			HashWrapper	hash_wrapper = ts_torrent.getHash();
+				// can be null for multi-hash scrapes... should fix this sometime I guess
 			
-			TRHostTorrent h_torrent = lookupHostTorrentViaHash( hash_wrapper.getHash());
-			
-			if ( h_torrent != null ){
+			if (ts_torrent != null ){
 				
-				TRHostTorrentRequest	req = new TRHostTorrentRequestImpl( h_torrent, new TRHostPeerHostImpl(request.getPeer()), request );
-			
-				try{
-					if ( h_torrent instanceof TRHostTorrentHostImpl ){
+				HashWrapper	hash_wrapper = ts_torrent.getHash();
+				
+				TRHostTorrent h_torrent = lookupHostTorrentViaHash( hash_wrapper.getHash());
+				
+				if ( h_torrent != null ){
 					
-						((TRHostTorrentHostImpl)h_torrent).postProcess( req );
-					}else{
+					TRHostTorrentRequest	req = new TRHostTorrentRequestImpl( h_torrent, new TRHostPeerHostImpl(request.getPeer()), request );
+				
+					try{
+						if ( h_torrent instanceof TRHostTorrentHostImpl ){
 						
-						((TRHostTorrentPublishImpl)h_torrent).postProcess( req );	
+							((TRHostTorrentHostImpl)h_torrent).postProcess( req );
+						}else{
+							
+							((TRHostTorrentPublishImpl)h_torrent).postProcess( req );	
+						}
+					}catch( TRHostException e ){
+						
+						throw( new TRTrackerServerException( "Post process fails", e ));
 					}
-				}catch( TRHostException e ){
-					
-					throw( new TRTrackerServerException( "Post process fails", e ));
 				}
 			}
 		}
