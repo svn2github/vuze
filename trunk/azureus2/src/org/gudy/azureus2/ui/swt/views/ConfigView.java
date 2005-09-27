@@ -185,8 +185,8 @@ public class ConfigView extends AbstractIView {
           //OSX lets you select nothing in the tree for example when a child is selected
           //and you close its parent.
           if(tree.getSelection().length > 0)
-            showSection(tree.getSelection()[0]);
-        }
+    	      showSection(tree.getSelection()[0]);
+           }
       });
       // Double click = expand/contract branch
       tree.addListener(SWT.DefaultSelection, new Listener() {
@@ -212,8 +212,7 @@ public class ConfigView extends AbstractIView {
      */
     pluginSections = ConfigSectionRepository.getInstance().getList();
 
-    ConfigSection[] internalSections = { new ConfigSectionMode(),
-    									new ConfigSectionConnection(),
+    ConfigSection[] internalSections = { new ConfigSectionConnection(),
                                          new ConfigSectionTransfer(),
                                          new ConfigSectionFile(), 
                                          new ConfigSectionFileTorrents(),
@@ -222,6 +221,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionInterfaceLanguage(),
                                          new ConfigSectionInterfaceStart(),
                                          new ConfigSectionInterfaceDisplay(),
+                                         new ConfigSectionInterfaceMode(),
                                          new ConfigSectionIPFilter(azureus_core),
                                          new ConfigSectionStats(),
                                          new ConfigSectionTracker(azureus_core),
@@ -357,7 +357,7 @@ public class ConfigView extends AbstractIView {
         
         c.layout();
         
-        section.setData("ConfigSectionSWT", null);
+        //section.setData("ConfigSectionSWT", null); // XXX Refreshes ok but does not dispose of previous composite...
       }
       layoutConfigSection.topControl = item;
       
@@ -423,7 +423,7 @@ public class ConfigView extends AbstractIView {
     sc.setContent(cConfigSection);
     return cConfigSection;
   }
-
+	
   private TreeItem findTreeItem(Tree tree, String ID) {
     TreeItem[] items = tree.getItems();
     for (int i = 0; i < items.length; i++) {
