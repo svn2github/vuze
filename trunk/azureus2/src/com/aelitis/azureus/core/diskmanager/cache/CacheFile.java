@@ -33,11 +33,18 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 public interface 
 CacheFile 
 {
+	public static final int	CT_LINEAR	= 1;
+	public static final int CT_COMPACT	= 2;
+
 	public static final int	CF_READ		= 1;
 	public static final int CF_WRITE	= 2;
 	
 	public boolean
 	exists();
+	
+	public void
+	setType(
+		int		type );
 	
 	public void
 	moveFile(

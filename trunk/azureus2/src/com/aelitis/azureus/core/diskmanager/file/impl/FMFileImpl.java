@@ -30,8 +30,6 @@ import java.util.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
-import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.util.*;
 
@@ -62,6 +60,7 @@ FMFileImpl
 	
 	private FMFileManagerImpl	manager;
 	private FMFileOwner			owner;
+	private int					type				= FT_LINEAR;
 	private int					access_mode			= FM_READ;
 	
 	private File				linked_file;
@@ -101,7 +100,6 @@ FMFileImpl
 				  
 		          String error = "Caught 'There are no more files' exception during file.getCanonicalPath(). " +
 		                         "os=[" +Constants.OSName+ "], file.getPath()=[" +linked_file.getPath()+ "], file.getAbsolutePath()=[" +abs_path+ "]. ";
-		                         //"canonical_path temporarily set to [" +abs_path+ "]";
 				  
 		          Debug.out( error, ioe );
 		        }
@@ -151,6 +149,17 @@ FMFileImpl
 	getOwner()
 	{
 		return( owner );
+	}
+	
+	public void
+	setType(
+		int		_type )
+	{
+		if ( _type == type ){
+			
+			return;
+		}
+		// TODO :P
 	}
 	
 	public int
@@ -274,20 +283,9 @@ FMFileImpl
 				
 			  return;
 			}
-			
-      /*
-      long lTimeToWait = lClosedAt + 1000 - SystemTime.getCurrentTime();
-			if (lTimeToWait > 0) {
-	      try {
-	        Thread.sleep(lTimeToWait);
-	      } catch (Exception ignore) { Debug.printStackTrace( ignore ); }
-	    }
-      */
-	
-			if ( raf == null ){
-	  		
-				openSupport( reason );
-			}
+					  		
+			openSupport( reason );
+
 		}finally{
 			
 			this_mon.exit();
@@ -325,7 +323,7 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		if (raf != null){
+		if ( raf != null ){
 			
 			closeSupport(true);
 		}

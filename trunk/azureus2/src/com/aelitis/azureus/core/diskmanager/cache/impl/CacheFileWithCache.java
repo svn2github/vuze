@@ -1190,6 +1190,13 @@ CacheFileWithCache
 	}
 	
 	public void
+	setType(
+		int		type )
+	{
+		file.setType( type == CT_LINEAR?FMFile.FT_LINEAR:FMFile.FT_COMPACT );
+	}
+	
+	public void
 	moveFile(
 		File		new_file )
 	
