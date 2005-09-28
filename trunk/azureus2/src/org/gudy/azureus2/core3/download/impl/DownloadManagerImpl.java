@@ -663,6 +663,59 @@ DownloadManagerImpl
 		download_manager_state.clearFileLinks();
 	}
 	
+	protected void
+	updateFileLinks(
+		String		_old_dir,
+		String		_new_dir )
+	{
+		try{
+			String	old_dir = new File( _old_dir ).getCanonicalPath();
+			String	new_dir = new File( _new_dir ).getCanonicalPath();
+	
+			Map	links = download_manager_state.getFileLinks();
+			
+			Iterator	it = links.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				File	from 	= (File)it.next();
+				File	to		= (File)links.get(from);
+				
+				if ( to == null ){
+					
+					continue;
+				}
+				
+				String	from_str = from.getCanonicalPath();
+				
+				if ( from_str.startsWith( old_dir )){
+					
+					String	new_from_str;
+					
+					String	suffix = from_str.substring( old_dir.length());
+					
+					if ( suffix.startsWith( File.separator )){
+						
+						new_from_str = new_dir + suffix;
+						
+					}else{
+						
+						new_from_str = new_dir + File.separator + suffix;
+					}
+					
+					// System.out.println( "Updating file link:" + from + "->" + to + ":" + new_from_str );
+					
+					download_manager_state.setFileLink( from, null );
+					download_manager_state.setFileLink( new File( new_from_str), to ); 
+				}
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
 	public void
 	destroy()
 	{
@@ -1180,16 +1233,23 @@ DownloadManagerImpl
 	
 	public void 
 	setTorrentSaveDir(
-			String sPath) 
+		String 	new_dir ) 
 	{
+		if ( new_dir.equals( torrent_save_dir )){
+			
+			return;
+		}
+		
   		// assumption here is that the caller really knows what they are doing. You can't
   		// just change this willy nilly, it must be synchronised with reality. For example,
   		// the disk-manager calls it after moving files on completing
   		// The UI can call it as long as the torrent is stopped.
   		// Calling it while a download is active will in general result in unpredictable behaviour!
-  
-		torrent_save_dir	= sPath;
-		
+ 
+		updateFileLinks( torrent_save_dir, new_dir );
+
+		torrent_save_dir	= new_dir;
+
 		controller.fileInfoChanged();
 	}
 
@@ -1957,10 +2017,6 @@ DownloadManagerImpl
 			  new_parent_dir.mkdirs();
 			  
 			  setTorrentSaveDir( new_parent_dir.toString());
-
-			  	// let the user fix up any links that may have existed
-			  
-			  clearFileLinks();
 			  
 			  return;
 		  }
@@ -1971,9 +2027,6 @@ DownloadManagerImpl
 			  
 			  setTorrentSaveDir( new_parent_dir.toString());
 		  
-			  	// let the user fix up any links that may have existed
-
-			  clearFileLinks();
 		  }else{
 			  
 			  throw( new DownloadManagerException( "rename operation failed" ));

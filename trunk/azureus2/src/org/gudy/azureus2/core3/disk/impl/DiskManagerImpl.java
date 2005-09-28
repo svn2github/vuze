@@ -1319,7 +1319,7 @@ DiskManagerImpl
 	      File[]	old_files	= new File[files.length];
 	      
 	      for (int i=0; i < files.length; i++) {
-	          
+	          	    	  
 	          File old_file = files[i].getFile(false);
 	          
 	          old_files[i]	= old_file;
@@ -1341,37 +1341,40 @@ DiskManagerImpl
 	          
 	          destDir = new File(moveToDir, subPath);
 	     
-	          destDir.mkdirs();
-	          
 	          	//create the destination file pointer
 	          
 	          File newFile = new File(destDir, old_file.getName());
 	
 	          new_files[i]	= newFile;
-	          
-	          	// if we ever support the linking of move to locations then this
-	          	// logic is broken (as the newFile won't identify the actual target) 
-	          
-	          if ( newFile.exists()){
-	          	
-	            String msg = "" + old_file.getName() + " already exists in MoveTo destination dir";
-	            
-	            LGLogger.log(LGLogger.ERROR,msg);
-	            
-	            LGLogger.logUnrepeatableAlertUsingResource( 
-	            		LGLogger.AT_ERROR, "DiskManager.alert.movefileexists", 
-	            		new String[]{ old_file.getName() } );
-	            
-	            Debug.out(msg);
-	            
-	            return;
-	          }
+
+	    	  if ( !files[i].isLinked()){
+		             
+		          if ( newFile.exists()){
+		          	
+		            String msg = "" + old_file.getName() + " already exists in MoveTo destination dir";
+		            
+		            LGLogger.log(LGLogger.ERROR,msg);
+		            
+		            LGLogger.logUnrepeatableAlertUsingResource( 
+		            		LGLogger.AT_ERROR, "DiskManager.alert.movefileexists", 
+		            		new String[]{ old_file.getName() } );
+		            
+		            Debug.out(msg);
+		            
+		            return;
+		            
+		          }else{
+		        	  
+		    		  destDir.mkdirs();
+  
+		          }
+	    	  }
 	      }
 	      
 	      for (int i=0; i < files.length; i++){
 	      		 	          
 	          File new_file = new_files[i];
-	          
+	          	          
 	          try{
 	          	
 	          	files[i].moveFile( new_file );
@@ -1394,7 +1397,7 @@ DiskManagerImpl
 	            	// try some recovery by moving any moved files back...
 	            
 	            for (int j=0;j<i;j++){
-	            
+	            	
 	            	try{
 	            		files[j].moveFile( old_files[j]);
 	

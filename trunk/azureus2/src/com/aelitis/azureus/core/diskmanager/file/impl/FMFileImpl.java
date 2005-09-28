@@ -40,20 +40,10 @@ import com.aelitis.azureus.core.diskmanager.file.*;
 public abstract class 
 FMFileImpl
 	implements FMFile
-{
-	//protected static final long REOPEN_EVERY_BYTES 		= 50 * 1024 * 1024;
-	private static final int 	WRITE_RETRY_LIMIT		= 10;
-	private static final int	WRITE_RETRY_DELAY		= 100;
-	
-	private static final boolean	DEBUG			= true;
-	private static final boolean	DEBUG_VERBOSE	= false;
-	
+{	
 	private static final String		READ_ACCESS_MODE	= "r";
 	private static final String		WRITE_ACCESS_MODE	= "rwd";
 	
-	//protected long lBytesRead = 0;
-	//protected long lClosedAt = 0;
-
 	private static Map			file_map = new HashMap();
 	private static AEMonitor	file_map_mon	= new AEMonitor( "FMFile:map");
 	
@@ -78,7 +68,9 @@ FMFileImpl
 	private String				canonical_path;
 	private RandomAccessFile	raf;
 	
-	protected AEMonitor				this_mon	= new AEMonitor( "FMFile" );
+	private FMFileAccess		file_access;
+	
+	protected AEMonitor			this_mon	= new AEMonitor( "FMFile" );
 	
 	
 	protected
@@ -133,6 +125,8 @@ FMFileImpl
 			
 			throw( new FMFileManagerException( "getCanonicalPath fails", e ));
 		}
+		
+		file_access	= new FMFileAccessLinear( this );
 	}
 
 	protected FMFileManagerImpl
@@ -305,13 +299,7 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		try{
-			return( raf.length());
-			
-		}catch( Throwable e ){
-			
-			throw( new FMFileManagerException( "getLength fails", e ));
-		}
+		return( file_access.getLength( raf ));
 	}
 	
 	protected void
@@ -320,13 +308,7 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		try{			
-			raf.setLength( length );
-			
-		}catch( Throwable e ){
-			
-			throw( new FMFileManagerException( "setLength fails", e ));
-		}
+		file_access.setLength( raf, length );
 	}
 	
 	protected long
@@ -334,28 +316,7 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		if (raf == null){
-			
-			throw new FMFileManagerException( "getSize: raf is null" );
-		}
-	      
-		try{
-			FileChannel	channel = raf.getChannel();
-			
-			if ( channel.isOpen()){
-				
-				return( channel.size());
-				
-			}else{
-				
-				Debug.out("FileChannel is not open");
-				
-				throw( new FMFileManagerException( "getSize: channel not open"));
-			}
-		}catch( Throwable e ){
-			
-			throw( new FMFileManagerException( "getSize fails", e ));
-		}
+		return(file_access.getSize( raf ));
 	}
 	
 	protected void
@@ -438,48 +399,12 @@ FMFileImpl
 	
 	protected void
 	readSupport(
-		DirectByteBuffer		buffer,
-		long			offset )
+		DirectByteBuffer	buffer,
+		long				offset )
 	
 		throws FMFileManagerException
 	{
-		if (raf == null){
-			
-			throw new FMFileManagerException( "read: raf is null" );
-		}
-    
-		FileChannel fc = raf.getChannel();
-    		
-		if ( !fc.isOpen()){
-			
-			Debug.out("FileChannel is closed: " + linked_file.getAbsolutePath());
-			
-			throw( new FMFileManagerException( "read - file is closed"));
-		}
-
-		long lRemainingBeforeRead = buffer.remaining(DirectByteBuffer.SS_FILE);
-
-		try{
-			fc.position(offset);
-			
-			while (fc.position() < fc.size() && buffer.hasRemaining(DirectByteBuffer.SS_FILE)){
-				
-				buffer.read(DirectByteBuffer.SS_FILE,fc);
-			}
-			
-		}catch ( Exception e ){
-			
-			Debug.printStackTrace( e );
-			
-			throw( new FMFileManagerException( "read fails", e ));
-		}
-
-    // Recycle handle to clear OS cache
-	  //lBytesRead += lRemainingBeforeRead - buffer.remaining(DirectByteBuffer.SS_FILE);
-	  //if (lBytesRead >= REOPEN_EVERY_BYTES) {
-	  //  lBytesRead = 0;
-  	//  close();
-  	//}
+		file_access.read( raf, buffer, offset );
 	}
 	
 	protected void
@@ -499,130 +424,7 @@ FMFileImpl
 	
 		throws FMFileManagerException
 	{
-		if (raf == null){
-			
-			throw( new FMFileManagerException( "write fails: raf is null" ));
-		}
-    
-		FileChannel fc = raf.getChannel();
-    
-		try{
-			
-			if (fc.isOpen()){
-				
-				long	expected_write 	= 0;
-				long	actual_write	= 0;
-				boolean	partial_write	= false;
-				
-				if ( DEBUG ){
-				
-					for (int i=0;i<buffers.length;i++){
-						
-						expected_write += buffers[i].limit(DirectByteBuffer.SS_FILE) - buffers[i].position(DirectByteBuffer.SS_FILE);
-					}
-				}
-				
-				fc.position( position );
-									
-				ByteBuffer[]	bbs = new ByteBuffer[buffers.length];
-				
-				ByteBuffer	last_bb	= null;
-				
-				for (int i=0;i<bbs.length;i++){
-					
-					bbs[i] = buffers[i].getBuffer(DirectByteBuffer.SS_FILE);
-					
-					if ( bbs[i].position() != bbs[i].limit()){
-						
-						last_bb	= bbs[i];
-					}
-				}
-				
-				if ( last_bb != null ){
-										  
-					int		loop			= 0;
-					
-					while( last_bb.position() != last_bb.limit()){
-						
-						long	written = fc.write( bbs );
-						
-						actual_write	+= written;
-						
-						if ( written > 0 ){
-							
-							loop	= 0;
-							
-							if ( DEBUG ){
-								
-								if ( last_bb.position() != last_bb.limit()){
-								
-									partial_write	= true;
-									
-									if ( DEBUG_VERBOSE ){
-										
-										Debug.out( "FMFile::write: **** partial write **** this = " + written + ", total = " + actual_write + ", target = " + expected_write );
-									}
-								}
-							}
-							
-						}else{
-						
-							loop++;
-							
-							if ( loop == WRITE_RETRY_LIMIT ){
-								
-								Debug.out( "FMFile::write: zero length write - abandoning" );
-							
-								throw( new FMFileManagerException( "write fails: retry limit exceeded"));
-								
-							}else{
-								
-								if ( DEBUG_VERBOSE ){
-									
-									Debug.out( "FMFile::write: zero length write - retrying" );
-								}
-								
-								try{
-									Thread.sleep( WRITE_RETRY_DELAY*loop );
-									
-								}catch( InterruptedException e ){
-									
-									throw( new FMFileManagerException( "write fails: interrupted" ));
-								}
-							}
-						}						
-					}
-				}
-				
-				if ( DEBUG ){
-
-					if ( expected_write != actual_write ){
-						
-						Debug.out( "FMFile::write: **** partial write **** failed: expected = " + expected_write + ", actual = " + actual_write );
-
-						throw( new FMFileManagerException( "write fails: expected write/actual write mismatch" ));
-					
-					}else{
-						
-						if ( partial_write && DEBUG_VERBOSE ){
-							
-							Debug.out( "FMFile::write: **** partial write **** completed ok" );
-						}
-					}
-				}
-			}else{
-				
-				Debug.out("file channel is not open !");
-				
-				throw( new FMFileManagerException( "write fails " ));
-			}
-			
-		}catch (Exception e ){
-			
-			Debug.printStackTrace( e );
-			
-			throw( new FMFileManagerException( "write fails", e ));
-		}		
+		file_access.write( raf, buffers, position );
 	}
 	
 	protected boolean

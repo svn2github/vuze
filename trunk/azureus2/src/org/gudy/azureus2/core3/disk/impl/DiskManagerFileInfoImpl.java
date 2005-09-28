@@ -97,9 +97,14 @@ DiskManagerFileInfoImpl
   
   	throws CacheFileManagerException
   {
-  	cache_file.moveFile( newFile );
-  	
-  	file	= newFile;
+	  	// don't do anything to the actual file if this is a linked file
+	  
+	  if ( !isLinked()){
+		  
+		  cache_file.moveFile( newFile );
+	  }
+	  
+	  file	= newFile;
   }
   
   public CacheFile
@@ -177,6 +182,12 @@ DiskManagerFileInfoImpl
 	getLink()
 	{
 		return( diskManager.getDownloadManager().getDownloadState().getFileLink( getFile( false )));
+	}
+	
+	protected boolean
+	isLinked()
+	{
+		return( getLink() != null );
 	}
 	
   /**
