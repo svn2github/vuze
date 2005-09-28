@@ -408,7 +408,7 @@ public class Show extends IConsoleCommand {
 		out.println("Hash: " + ByteFormatter.nicePrintTorrentHash(dm.getTorrent(), true));
 		out.println("- Torrent file -");
 		out.println("Torrent Filename: " + dm.getTorrentFileName());
-		out.println("Saving to: " + dm.getTorrentSaveDirAndFile());
+		out.println("Saving to: " + dm.getTorrentSaveDirAndFile(true));
 		out.println("Created By: " + dm.getTorrentCreatedBy());
 		out.println("Comment: " + dm.getTorrentComment());
 		out.println("- Tracker Info -");
