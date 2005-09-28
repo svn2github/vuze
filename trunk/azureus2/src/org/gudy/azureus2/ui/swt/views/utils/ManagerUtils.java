@@ -49,7 +49,7 @@ public class ManagerUtils {
   
   public static void run(DownloadManager dm) {
     if(dm != null) {
-      Program.launch(dm.getTorrentSaveDirAndFile());
+      Program.launch(dm.getTorrentSaveDirAndFile(true));
     }
   }
 
@@ -64,7 +64,7 @@ public class ManagerUtils {
         if(mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
             try
             {
-                PlatformManagerFactory.getPlatformManager().showFile(dm.getTorrentSaveDirAndFile());
+                PlatformManagerFactory.getPlatformManager().showFile(dm.getTorrentSaveDirAndFile(true));
                 return;
             }
             catch (PlatformManagerException e)

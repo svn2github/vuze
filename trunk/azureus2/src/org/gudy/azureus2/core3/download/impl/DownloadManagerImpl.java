@@ -1201,7 +1201,8 @@ DownloadManagerImpl
 
 
   	public String 
-	getTorrentSaveDirAndFile() 
+	getTorrentSaveDirAndFile(
+		boolean	follow_links ) 
   	{	  
  		if ( torrent_save_file == null ){
  			
@@ -1216,7 +1217,19 @@ DownloadManagerImpl
   			
   		}
   		
- 		return( res + torrent_save_file );
+ 		res += torrent_save_file;
+ 		
+ 		if ( follow_links ){
+ 			
+ 			File	link = download_manager_state.getFileLink( new File( res ));
+ 			
+ 			if ( link != null ){
+ 				
+ 				res = link.toString();
+ 			}
+ 		}
+ 		
+ 		return( res );
  	}
 
   	public String
@@ -1989,7 +2002,7 @@ DownloadManagerImpl
 		  
 		  	// old file will be a "file" for simple torrents, a dir for non-simple
 		  
-		  File	old_file = new File( getTorrentSaveDirAndFile());
+		  File	old_file = new File( getTorrentSaveDirAndFile( false ));
 		  
 		  try{
 			  old_file = old_file.getCanonicalFile();

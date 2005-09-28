@@ -61,7 +61,7 @@ DownloadStatsImpl
 	public String
 	getTargetFileOrDir()
 	{		
-		return( dm.getTorrentSaveDirAndFile());
+		return( dm.getTorrentSaveDirAndFile(true));
 	}
 	
 	public String

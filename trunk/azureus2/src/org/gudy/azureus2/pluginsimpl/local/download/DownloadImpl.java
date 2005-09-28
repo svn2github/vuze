@@ -1202,7 +1202,7 @@ DownloadImpl
 	public String
 	getSavePath()
  	{
-		return( download_manager.getTorrentSaveDirAndFile());
+		return( download_manager.getTorrentSaveDirAndFile(true));
  	}
 	
 	public void

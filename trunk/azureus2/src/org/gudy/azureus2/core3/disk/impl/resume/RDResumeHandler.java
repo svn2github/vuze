@@ -147,7 +147,7 @@ RDResumeHandler
 					String resume_key = 
 						torrent.isSimpleTorrent()?
 							disk_manager.getDownloadManager().getTorrentSaveDir():
-							disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
+							disk_manager.getDownloadManager().getTorrentSaveDirAndFile(false);
 					
 				
 					String[]	resume_keys = new String[4];
@@ -514,7 +514,7 @@ RDResumeHandler
 		String resume_key = 
 			torrent.isSimpleTorrent()?
 				disk_manager.getDownloadManager().getTorrentSaveDir():
-				disk_manager.getDownloadManager().getTorrentSaveDirAndFile();
+				disk_manager.getDownloadManager().getTorrentSaveDirAndFile(false);
 		
 		resume_key	= getCanonicalResumeKey( resume_key );
 

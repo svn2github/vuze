@@ -571,7 +571,8 @@ Test
 		}
 		
 		public String
-		getTorrentSaveDirAndFile()
+		getTorrentSaveDirAndFile(
+			boolean	follow_links )
 		{
 			return( null );
 			

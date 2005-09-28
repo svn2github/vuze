@@ -164,7 +164,8 @@ DownloadManager
 	setTorrentFileName(String string);
 	
 	public String
-	getTorrentSaveDirAndFile();
+	getTorrentSaveDirAndFile(
+		boolean		follow_links );
 	
 	public String
 	getTorrentSaveDir();
