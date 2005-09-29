@@ -465,12 +465,13 @@ MagnetPlugin
 					potential_contacts_mon.exit();
 				}
 					
-				System.out.println( "magnetDownload: " + contact.getName() + ", live = " + live_contact );
+				// System.out.println( "magnetDownload: " + contact.getName() + ", live = " + live_contact );
 				
 				if ( !live_contact ){
 					
-					boolean	tunne_ok = contact.openTunnel();
+					contact.openTunnel();
 				}
+				
 				try{
 					listener.reportActivity( "downloading data from " + contact.getName());
 					
