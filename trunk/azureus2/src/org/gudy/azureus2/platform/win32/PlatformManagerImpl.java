@@ -46,6 +46,10 @@ public class
 PlatformManagerImpl
 	implements PlatformManager
 {
+	public static final int			RT_NONE		= 0;
+	public static final int			RT_AZ 		= 1;
+	public static final int			RT_OTHER 	= 2;
+	
 	public static final String					DLL_NAME = "aereg";
 	
 	protected static boolean					init_tried;
@@ -275,11 +279,36 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{
+		try{
+			if ( getAdditionalFileTypeRegistrationDetails( "Magnet", ".magnet" ) == RT_NONE ){
+		
+				registerAdditionalFileType( 
+						"Magnet", 
+						"Magnet File", 
+						".magnet", 
+						"application/x-magnet",
+						true );
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
 		return( isAdditionalFileTypeRegistered( "BitTorrent", ".torrent" ));
 	}
 	
 	public boolean
 	isAdditionalFileTypeRegistered(
+		String		name,
+		String		type )
+	
+		throws PlatformManagerException
+	{
+		return( getAdditionalFileTypeRegistrationDetails( name, type ) == RT_AZ );
+	}
+	
+	public int
+	getAdditionalFileTypeRegistrationDetails(
 		String		name,
 		String		type )
 	
@@ -293,7 +322,7 @@ PlatformManagerImpl
 		
 		}catch( Throwable e ){
 			
-			return( false );
+			return( RT_NONE );
 		}
 		
 		try{
@@ -305,7 +334,7 @@ PlatformManagerImpl
 			
 			if ( !test1.equals( "\"" + az_exe_str + "\" \"%1\"" )){
 				
-				return( false );
+				return( test1.length() ==0?RT_NONE:RT_OTHER );
 			}
 			
 				// MRU list is just that, to remove the "always open with" we need to kill
@@ -324,7 +353,7 @@ PlatformManagerImpl
 				
 					// AZ is default so if this entry exists it denotes another (non-AZ) app
 					
-					return( false );
+					return( RT_OTHER );
 				}
 			}catch( Throwable e ){
 				
@@ -363,7 +392,7 @@ PlatformManagerImpl
 			}
 			*/
 			
-			return( true );
+			return( RT_AZ );
 			
 		}catch( Throwable e ){
 			
@@ -373,7 +402,7 @@ PlatformManagerImpl
 				Debug.printStackTrace( e );
 			}
 
-			return( false );
+			return( RT_NONE );
 		}
 	}
 	
@@ -391,6 +420,19 @@ PlatformManagerImpl
 		String		description,		// e.g. "BitTorrent File"
 		String		type,				// e.g. ".torrent"
 		String		content_type )		// e.g. "application/x-bittorrent"
+		
+		throws PlatformManagerException
+	{
+		registerAdditionalFileType( name, description, type, content_type, false );
+	}
+	
+	public void
+	registerAdditionalFileType(
+		String		name,				
+		String		description,		
+		String		type,				
+		String		content_type,
+		boolean		url_protocol)		
 		
 		throws PlatformManagerException
 	{
@@ -442,6 +484,15 @@ PlatformManagerImpl
 					name + "\\Content Type" ,
 					"",
 					content_type );
+			
+			if ( url_protocol ){
+				
+				access.writeStringValue( 	
+						AEWin32Access.HKEY_CLASSES_ROOT,
+						name,
+						"URL Protocol",
+						"" );
+			}
 			
 		}catch( PlatformManagerException e ){
 			
