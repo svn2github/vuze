@@ -280,14 +280,11 @@ PlatformManagerImpl
 		throws PlatformManagerException
 	{
 		try{
+				// always trigger magnet reg here if not owned so old users get it...
+			
 			if ( getAdditionalFileTypeRegistrationDetails( "Magnet", ".magnet" ) == RT_NONE ){
 		
-				registerAdditionalFileType( 
-						"Magnet", 
-						"Magnet File", 
-						".magnet", 
-						"application/x-magnet",
-						true );
+				registerMagnet();
 			}
 		}catch( Throwable e ){
 			
@@ -411,9 +408,27 @@ PlatformManagerImpl
 	
 		throws PlatformManagerException
 	{
+		registerMagnet();
+		
 		registerAdditionalFileType( "BitTorrent", "Bittorrent File", ".torrent", "application/x-bittorrent" );
 	}
 	
+	protected void
+	registerMagnet()
+	{
+		try{
+			registerAdditionalFileType( 
+				"Magnet", 
+				"Magnet File", 
+				".magnet", 
+				"application/x-magnet",
+				true );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
 	public void
 	registerAdditionalFileType(
 		String		name,				// e.g. "BitTorrent"
