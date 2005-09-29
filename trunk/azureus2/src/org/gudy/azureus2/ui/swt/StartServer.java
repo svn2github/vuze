@@ -165,32 +165,36 @@ StartServer
             String file_name = args[i];
             
             if( file_name.toUpperCase().startsWith( "HTTP:" ) || file_name.toUpperCase().startsWith( "MAGNET:" ) ) {
+            	
               LGLogger.log( "StartServer: args[" + i + "] handling as a URI: " +file_name );
-              continue;  //URIs cannot be checked as a .torrent file
+            
+            }else{
+
+	            try {
+	              File file = new File(file_name);
+	
+	              if (!file.exists()) {
+	
+	                throw (new Exception("File not found"));
+	              }
+	
+	              file_name = file.getCanonicalPath();
+	
+	              LGLogger.log("StartServer: file = " + file_name);
+	
+	            } catch (Throwable e) {
+	
+	              LGLogger
+	                  .logRepeatableAlert(
+	                      LGLogger.AT_ERROR,
+	                      "Failed to access torrent file '"
+	                          + file_name
+	                          + "'. Ensure sufficient temporary file space available (check browser cache usage).");
+	            }
             }
-
-            try {
-              File file = new File(file_name);
-
-              if (!file.exists()) {
-
-                throw (new Exception("File not found"));
-              }
-
-              file_name = file.getCanonicalPath();
-
-              LGLogger.log("StartServer: file = " + file_name);
-
-            } catch (Throwable e) {
-
-              LGLogger
-                  .logRepeatableAlert(
-                      LGLogger.AT_ERROR,
-                      "Failed to access torrent file '"
-                          + file_name
-                          + "'. Ensure sufficient temporary file space available (check browser cache usage).");
-            }
-
+            
+            boolean	queued = false;
+            
             try {
               this_mon.enter();
 
@@ -198,20 +202,22 @@ StartServer
 
                 queued_torrents.add(file_name);
 
-                return;
+                queued = true;
               }
             } finally {
 
               this_mon.exit();
             }
 
-            try {
-
-              TorrentOpener.openTorrent(azureus_core, file_name);
-
-            } catch (Throwable e) {
-
-              Debug.printStackTrace(e);
+            if ( !queued ){
+	            try {
+	
+	              TorrentOpener.openTorrent(azureus_core, file_name);
+	
+	            } catch (Throwable e) {
+	
+	              Debug.printStackTrace(e);
+	            }
             }
           }
         }
