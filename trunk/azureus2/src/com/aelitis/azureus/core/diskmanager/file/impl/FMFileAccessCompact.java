@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.diskmanager.file.impl;
 
+import java.io.File;
 import java.io.RandomAccessFile;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
@@ -32,13 +33,27 @@ public class
 FMFileAccessCompact
 	implements FMFileAccess
 {
+	private FMFileAccess		delegate;
+	
+	protected
+	FMFileAccessCompact(
+		File			_control_file,
+		FMFileAccess	_delegate )
+	{
+		delegate	= _delegate;
+	}
+	
 	public long
 	getLength(
 		RandomAccessFile		raf )
 	
 		throws FMFileManagerException
 	{
-		throw( new FMFileManagerException(""));
+		long	length = delegate.getLength( raf );
+		
+		System.out.println( "compact: getLength - " + length );
+
+		return( length );
 	}
 	
 	public void
@@ -48,26 +63,22 @@ FMFileAccessCompact
 	
 		throws FMFileManagerException
 	{
-	}
-	
-	public long
-	getSize(
-		RandomAccessFile		raf )
-	
-		throws FMFileManagerException
-	{
-		throw( new FMFileManagerException(""));
+		System.out.println( "compact: setLength - " + length );
+
+		delegate.setLength( raf, length );
 	}
 	
 	public void
 	read(
 		RandomAccessFile	raf,
 		DirectByteBuffer	buffer,
-		long				offset )
+		long				position )
 	
 		throws FMFileManagerException
 	{
-		
+		System.out.println( "compact: read - " + position );
+
+		delegate.read( raf, buffer, position );
 	}
 	
 	public void
@@ -78,6 +89,18 @@ FMFileAccessCompact
 	
 		throws FMFileManagerException
 	{
+		System.out.println( "compact: write - " + position );
 		
+		delegate.write( raf, buffers, position );
+	}
+	
+	public void
+	flush()
+	
+		throws FMFileManagerException
+	{
+		// save control file!
+		
+		System.out.println( "compact: flush" );
 	}
 }

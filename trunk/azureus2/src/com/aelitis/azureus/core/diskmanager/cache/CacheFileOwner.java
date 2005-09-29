@@ -27,6 +27,8 @@ package com.aelitis.azureus.core.diskmanager.cache;
  *
  */
 
+import java.io.File;
+
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 
 public interface 
@@ -37,4 +39,8 @@ CacheFileOwner
 	
 	public TOTorrentFile
 	getCacheFileTorrentFile();
+	
+	public File
+	getCacheFileControlFile(
+		String	name );
 }

@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.diskmanager.file;
 
+import java.io.File;
+
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 
 /**
@@ -35,4 +37,8 @@ FMFileOwner
 	
 	public TOTorrentFile
 	getTorrentFile();
+	
+	public File
+	getControlFile(
+		String	name );
 }

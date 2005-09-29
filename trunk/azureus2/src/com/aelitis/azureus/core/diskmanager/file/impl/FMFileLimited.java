@@ -124,24 +124,6 @@ FMFileLimited
 	}
 	
 	public long
-	getSize()
-	
-		throws FMFileManagerException
-	{
-		try{
-			this_mon.enter();
-	
-			ensureOpen( "FMFileLimited:getSize" );
-		
-			return( getSizeSupport());
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	public long
 	getLength()
 	
 		throws FMFileManagerException

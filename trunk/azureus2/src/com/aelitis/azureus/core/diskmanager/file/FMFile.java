@@ -43,9 +43,11 @@ FMFile
 	public String
 	getName();
 
-	public void
+	public boolean
 	setType(
-		int		type );
+		int		type )
+	
+		throws FMFileManagerException;
 	
 	public boolean
 	exists();
@@ -72,11 +74,6 @@ FMFile
 	ensureOpen(
 		String	reason )
 
-		throws FMFileManagerException;
-
-	public long
-	getSize()
-	
 		throws FMFileManagerException;
 	
 	public long
@@ -109,6 +106,11 @@ FMFile
 	write(
 		DirectByteBuffer[]	buffers,
 		long				position )
+	
+		throws FMFileManagerException;
+	
+	public void
+	flush()
 	
 		throws FMFileManagerException;
 	

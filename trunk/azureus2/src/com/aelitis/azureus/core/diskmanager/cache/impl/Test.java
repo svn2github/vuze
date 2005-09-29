@@ -97,6 +97,11 @@ Test
 						{
 							return( null );
 						}
+						public File 
+						getCacheFileControlFile(String name) 
+						{
+							return null;
+						}
 					},
 					f );
 			
@@ -152,6 +157,11 @@ Test
 						getCacheFileTorrentFile()
 						{
 							return( null );
+						}
+						public File 
+						getCacheFileControlFile(String name) 
+						{
+							return null;
 						}
 					},
 					f );
@@ -209,6 +219,11 @@ Test
 						getCacheFileTorrentFile()
 						{
 							return( null );
+						}
+						public File 
+						getCacheFileControlFile(String name) 
+						{
+							return null;
 						}
 					},
 					new File( "C:\\temp\\cachetest" + i + ".dat" ));

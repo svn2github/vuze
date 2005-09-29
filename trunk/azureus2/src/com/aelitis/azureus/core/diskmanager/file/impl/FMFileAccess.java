@@ -44,12 +44,6 @@ FMFileAccess
 	
 		throws FMFileManagerException;
 	
-	public long
-	getSize(
-		RandomAccessFile		raf )
-	
-		throws FMFileManagerException;
-	
 	public void
 	read(
 		RandomAccessFile	raf,
@@ -63,6 +57,11 @@ FMFileAccess
 		RandomAccessFile		raf,
 		DirectByteBuffer[]		buffers,
 		long					position )
+	
+		throws FMFileManagerException;
+	
+	public void
+	flush()
 	
 		throws FMFileManagerException;
 }

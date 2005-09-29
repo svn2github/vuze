@@ -72,15 +72,22 @@ DiskManagerFileInfoImpl
   	cache_file = CacheFileManagerFactory.getSingleton().createFile( this, _file );
   }
   
-  public String
-  getCacheFileOwnerName()
-  {
-  	return( diskManager.getName());
-  }
+  	public String
+  	getCacheFileOwnerName()
+  	{
+  		return( diskManager.getName());
+  	}
+  	
 	public TOTorrentFile
 	getCacheFileTorrentFile()
 	{
 		return( torrent_file );
+	}
+	
+	public File 
+	getCacheFileControlFile(String name) 
+	{
+		return( diskManager.getDownloadManager().getDownloadState().getStateFile( name ));
 	}
 	
   public void

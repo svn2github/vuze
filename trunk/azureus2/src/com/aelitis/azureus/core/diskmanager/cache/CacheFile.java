@@ -44,7 +44,9 @@ CacheFile
 	
 	public void
 	setType(
-		int		type );
+		int		type )
+	
+		throws CacheFileManagerException;
 	
 	public void
 	moveFile(

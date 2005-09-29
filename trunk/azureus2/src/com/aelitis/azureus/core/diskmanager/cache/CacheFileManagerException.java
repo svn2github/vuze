@@ -28,7 +28,7 @@ package com.aelitis.azureus.core.diskmanager.cache;
  */
 public class 
 CacheFileManagerException 
-extends Exception
+	extends Exception
 {
 	public
 	CacheFileManagerException(

@@ -252,6 +252,7 @@ DownloadManagerStateImpl
 		return( new File( ACTIVE_DIR, ByteFormatter.encodeString( torrent_hash ) + ".dat" ));
 	}
 	
+
 	protected
 	DownloadManagerStateImpl(
 		DownloadManagerImpl	_download_manager,
@@ -312,6 +313,23 @@ DownloadManagerStateImpl
 		DownloadManagerImpl		dm )
 	{
 		download_manager	= dm;
+	}
+	
+	public File
+	getStateFile(
+		String	name )
+	{
+		try{
+			File	parent = new File( ACTIVE_DIR, ByteFormatter.encodeString( torrent.getHash()));
+		
+			return( new File( parent, name ));
+
+		}catch( Throwable e ){
+
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
 	}
 	
 	public void
@@ -458,11 +476,19 @@ DownloadManagerStateImpl
 		try{
 			class_mon.enter();
 
-			state_map.remove( torrent.getHashWrapper());
+			HashWrapper	wrapper = torrent.getHashWrapper();
+			
+			state_map.remove( wrapper );
 			
 	        TorrentUtils.delete( torrent );
 	        
-	    }catch( TOTorrentException e ){
+			File	dir = new File( ACTIVE_DIR, ByteFormatter.encodeString( wrapper.getBytes()));
+
+			if ( dir.exists() && dir.isDirectory()){
+				
+				FileUtil.recursiveDelete( dir );
+			}
+		}catch( Throwable e ){
 	    	
 	    	Debug.printStackTrace( e );
 	   
@@ -1362,6 +1388,13 @@ DownloadManagerStateImpl
 		
 		public TOTorrent
 		getTorrent()
+		{
+			return( null );
+		}
+		
+		public File
+		getStateFile(
+			String	name )
 		{
 			return( null );
 		}

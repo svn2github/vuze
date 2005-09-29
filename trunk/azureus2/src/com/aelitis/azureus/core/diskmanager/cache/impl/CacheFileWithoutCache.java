@@ -65,8 +65,16 @@ CacheFileWithoutCache
 	public void
 	setType(
 		int		type )
+	
+		throws CacheFileManagerException
 	{
-		file.setType( type == CT_LINEAR?FMFile.FT_LINEAR:FMFile.FT_COMPACT );
+		try{
+			file.setType( type == CT_LINEAR?FMFile.FT_LINEAR:FMFile.FT_COMPACT );
+	
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(e);
+		}
 	}
 	
 	public void
@@ -129,7 +137,7 @@ CacheFileWithoutCache
 	{
 		try{
 						
-			return( file.getSize());
+			return( file.getLength());
 			
 		}catch( FMFileManagerException e ){
 			
@@ -240,6 +248,13 @@ CacheFileWithoutCache
 	
 		throws CacheFileManagerException
 	{
+		try{
+			file.flush();
+		
+		}catch( FMFileManagerException e ){
+		
+			manager.rethrow(e);
+		}
 	}
 	
 	public void

@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.file.*;
@@ -123,7 +125,7 @@ FMFileImpl
 			
 			throw( new FMFileManagerException( "getCanonicalPath fails", e ));
 		}
-		
+			
 		file_access	= new FMFileAccessLinear( this );
 	}
 
@@ -151,15 +153,103 @@ FMFileImpl
 		return( owner );
 	}
 	
-	public void
-	setType(
-		int		_type )
+	protected File
+	getControlFile()
 	{
-		if ( _type == type ){
-			
-			return;
+		TOTorrentFile	tf = owner.getTorrentFile();
+		
+		if ( tf == null ){
+
+			return( null );
 		}
-		// TODO :P
+		
+		TOTorrent	torrent = tf.getTorrent();
+		
+		TOTorrentFile[]	files = torrent.getFiles();
+		
+		int	file_index = -1;
+		
+		for (int i=0;i<files.length;i++){
+			
+			if ( files[i] == tf ){
+		
+				file_index = i;
+				
+				break;
+			}
+		}
+		
+		if ( file_index == -1 ){
+			
+			Debug.out("File '" + canonical_path + "' not found in torrent!" );
+			
+			return( null );
+		}else{
+			
+			File	control = owner.getControlFile( "fmfile" + file_index + ".dat" );
+		
+			return( control );
+		}
+	}
+	
+	public boolean
+	setType(
+		int		new_type )
+	
+		throws FMFileManagerException
+	{
+		if ( new_type == type ){
+			
+			return( true );
+		}
+		
+		if ( raf != null ){
+			
+			throw( new FMFileManagerException( "File must be closed" ));
+		}
+		
+		File	control_file = getControlFile();
+		
+		if ( control_file == null ){
+			
+			Debug.out( "Can't change file type, control file not avaialble" );
+			
+			return( false );
+		}
+		
+			
+			// linear file shouldn't exist for change to occur - it is the responsibility
+			// of the caller to delete the file first and take consequent actions (in
+			// particular force recheck the file to ensure that the loss in save state
+			// is represented in the resume view of the world)
+		
+			
+		if ( linked_file.exists()){
+			
+			Debug.out( "Can't change file between linear and compact, main file exists" );
+			
+			return( false );
+		}
+		
+			// get rid if any existing control file as it is redundant info
+		
+		if ( control_file.exists()){
+			
+			control_file.delete();
+		}
+		
+		type	= new_type;
+		
+		if ( type == FT_LINEAR ){
+			
+			file_access = new FMFileAccessLinear( this );
+			
+		}else{
+			
+			file_access = new FMFileAccessCompact( control_file,  new FMFileAccessLinear( this ) );
+		}
+		
+		return( true );
 	}
 	
 	public int
@@ -309,14 +399,6 @@ FMFileImpl
 		file_access.setLength( raf, length );
 	}
 	
-	protected long
-	getSizeSupport()
-	
-		throws FMFileManagerException
-	{
-		return(file_access.getSize( raf ));
-	}
-	
 	protected void
 	openSupport(
 		String	reason )
@@ -377,6 +459,14 @@ FMFileImpl
 				releaseFile();
 			}
 		}
+	}
+	
+	public void
+	flush()
+	
+		throws FMFileManagerException
+	{
+		file_access.flush();
 	}
 	
 	public void

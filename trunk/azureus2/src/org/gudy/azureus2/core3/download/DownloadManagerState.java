@@ -48,6 +48,10 @@ DownloadManagerState
 	public DownloadManager
 	getDownloadManager();
 	
+	public File 
+	getStateFile(
+		String	name );
+	
 	public void
 	clearResumeData();
 	

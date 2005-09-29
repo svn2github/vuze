@@ -216,6 +216,12 @@ CacheFileManagerImpl
 						{
 							return( owner.getCacheFileTorrentFile());
 						}
+						public File
+						getControlFile(
+							String	name )
+						{
+							return( owner.getCacheFileControlFile( name ));
+						}
 					}, file );
 				
 			TOTorrentFile	tf = owner.getCacheFileTorrentFile();

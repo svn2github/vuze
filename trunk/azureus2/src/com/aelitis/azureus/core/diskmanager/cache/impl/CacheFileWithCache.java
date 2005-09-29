@@ -1192,8 +1192,16 @@ CacheFileWithCache
 	public void
 	setType(
 		int		type )
+	
+		throws CacheFileManagerException
 	{
-		file.setType( type == CT_LINEAR?FMFile.FT_LINEAR:FMFile.FT_COMPACT );
+		try{
+			file.setType( type == CT_LINEAR?FMFile.FT_LINEAR:FMFile.FT_COMPACT );
+			
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(e);
+		}	
 	}
 	
 	public void
@@ -1271,7 +1279,7 @@ CacheFileWithCache
 				// fails. Caused by the reported length not taking into account the cache
 				// entries that have yet to be flushed.
 			
-			long	physical_size = file.getSize();
+			long	physical_size = file.getLength();
 			
 			if ( manager.isCacheEnabled()){
 				
@@ -1370,7 +1378,15 @@ CacheFileWithCache
 	
 		throws CacheFileManagerException
 	{
-		flushCache( false, -1 );
+		try{
+			flushCache( false, -1 );
+			
+			file.flush();
+			
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(e);
+		}
 	}
 	
 	public void

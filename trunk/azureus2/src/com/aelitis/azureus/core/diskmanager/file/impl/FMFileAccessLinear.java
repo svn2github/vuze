@@ -81,36 +81,6 @@ FMFileAccessLinear
 		}
 	}
 	
-	public long
-	getSize(
-		RandomAccessFile		raf )
-	
-		throws FMFileManagerException
-	{
-		if (raf == null){
-			
-			throw new FMFileManagerException( "getSize: raf is null" );
-		}
-	      
-		try{
-			FileChannel	channel = raf.getChannel();
-			
-			if ( channel.isOpen()){
-				
-				return( channel.size());
-				
-			}else{
-				
-				Debug.out("FileChannel is not open");
-				
-				throw( new FMFileManagerException( "getSize: channel not open"));
-			}
-		}catch( Throwable e ){
-			
-			throw( new FMFileManagerException( "getSize fails", e ));
-		}
-	}
-	
 	public void
 	read(
 		RandomAccessFile	raf,
@@ -283,5 +253,13 @@ FMFileAccessLinear
 			
 			throw( new FMFileManagerException( "write fails", e ));
 		}		
+	}
+	
+	public void
+	flush()
+	
+		throws FMFileManagerException
+	{
+		// no state to flush
 	}
 }
