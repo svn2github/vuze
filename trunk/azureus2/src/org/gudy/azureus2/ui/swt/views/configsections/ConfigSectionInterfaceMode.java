@@ -63,9 +63,9 @@ public class ConfigSectionInterfaceMode implements UISWTConfigSection {
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
     GridLayout layout;
-    String sUserMode = "";
+    String initsMode = "";
     
-
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
 
     final Composite cMode = new Composite(parent, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -78,41 +78,35 @@ public class ConfigSectionInterfaceMode implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalSpan = 4;
     final Group gRadio = new Group(cMode, SWT.WRAP);
-    gRadio.setText("User Proficiency");
+    Messages.setLanguageText(gRadio, "ConfigView.section.mode.title");
     gRadio.setLayoutData(gridData);
     gRadio.setLayout(new RowLayout(SWT.HORIZONTAL));
 
     Button button0 = new Button (gRadio, SWT.RADIO);
-    button0.setText ("Beginner");
-    button0.setData("0");
+    Messages.setLanguageText(button0, "ConfigView.section.mode.Beginner");
+    button0.setData("iMode", "0");
+    button0.setData("sMode", "Beginner.text");
     
     Button button1 = new Button (gRadio, SWT.RADIO);
-    button1.setText ("Intermediate");
-    button1.setData("1");
+    Messages.setLanguageText(button1, "ConfigView.section.mode.Intermediate");
+    button1.setData("iMode", "1");
+    button1.setData("sMode", "Intermediate.text");
     
     Button button2 = new Button (gRadio, SWT.RADIO);
-    button2.setText ("Advanced");
-    button2.setData("2");
+    Messages.setLanguageText(button2, "ConfigView.section.mode.Advanced");
+    button2.setData("iMode", "2");
+    button2.setData("sMode", "Advanced.text");
     
-    if (COConfigurationManager.getIntParameter("User Mode") == 0) {
-    	sUserMode = "Beginner";
+    if ( userMode == 0) {
+    	initsMode = "Beginner.text";
     	button0.setSelection(true);
-    }
-    if (COConfigurationManager.getIntParameter("User Mode") == 1) {
-    	sUserMode = "Intermediate";
+    } else if ( userMode == 1) {
+    	initsMode = "Intermediate.text";
     	button1.setSelection(true);
-    }
-    if (COConfigurationManager.getIntParameter("User Mode") == 2) {
-    	sUserMode = "Advanced";
+    } else {
+    	initsMode = "Advanced.text";
     	button2.setSelection(true);
     }
-    
-    
-    /*gridData = new GridData();
-    gridData.horizontalSpan = 4;
-    final Label label = new Label(gExplain, SWT.NULL);
-    label.setLayoutData( gridData );
-    Messages.setLanguageText(label, "ConfigView.mode.beginner");*/
     
     Composite cExplain = new Composite(cMode, SWT.NULL);
     layout = new GridLayout();
@@ -127,8 +121,7 @@ public class ConfigSectionInterfaceMode implements UISWTConfigSection {
     final Label label = new Label(cExplain, SWT.WRAP);
     gridData.horizontalSpan = 2;
     label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.mode." + sUserMode);
-
+    Messages.setLanguageText(label, "ConfigView.section.mode." + initsMode);
     
     Listener radioGroup = new Listener () {
     	public void handleEvent (Event event) {
@@ -145,8 +138,8 @@ public class ConfigSectionInterfaceMode implements UISWTConfigSection {
 
 		    Button button = (Button) event.widget;
 		    button.setSelection (true);
-		    Messages.setLanguageText(label, "ConfigView.section.mode." + button.getText());
-		    COConfigurationManager.setParameter("User Mode", Integer.parseInt((String)button.getData()));
+		    Messages.setLanguageText(label, "ConfigView.section.mode." + (String)button.getData("sMode"));
+		    COConfigurationManager.setParameter("User Mode", Integer.parseInt((String)button.getData("iMode")));
 		    }
     };
     
