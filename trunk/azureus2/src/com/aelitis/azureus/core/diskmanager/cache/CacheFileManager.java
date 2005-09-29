@@ -37,7 +37,8 @@ CacheFileManager
 	public CacheFile
 	createFile(
 		CacheFileOwner	owner,
-		File			file )
+		File			file,
+		int				type )
 	
 		throws CacheFileManagerException;
 	

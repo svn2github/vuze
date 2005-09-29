@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePicker;
 import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePickerFactory;
 import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.LocaleUtilEncodingException;
@@ -564,6 +565,8 @@ DiskManagerImpl
 		
 		List btFileList	= piece_mapper.getFileList();
 		
+		String[]	storage_types = getStorageTypes();
+		
 		for (int i = 0; i < btFileList.size(); i++) {
 				//get the BtFile
 			DiskManagerPieceMapper.fileInfo pm_info = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
@@ -586,7 +589,14 @@ DiskManagerImpl
 			try{
 				if ( file_info == null ){
 					
-					file_info = new DiskManagerFileInfoImpl( this, new File( root_dir + relative_file.toString()), pm_info.getTorrentFile());
+					boolean linear = storage_types[i].equals("L");
+					
+					file_info = new DiskManagerFileInfoImpl( 
+										this, 
+										new File( root_dir + relative_file.toString()), 
+										i,
+										pm_info.getTorrentFile(),
+										linear );
 	
 					close_it	= true;					
 				}
@@ -662,6 +672,8 @@ DiskManagerImpl
 		
 		root_dir	+= File.separator;	
 		
+		String[]	storage_types = getStorageTypes();
+
 		for ( int i=0;i<btFileList.size();i++ ){
 			
 			final DiskManagerPieceMapper.fileInfo pm_info = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
@@ -673,7 +685,14 @@ DiskManagerImpl
 			DiskManagerFileInfoImpl fileInfo;
 			
 			try{
-				fileInfo = new DiskManagerFileInfoImpl( this, new File( root_dir + relative_data_file.toString()), pm_info.getTorrentFile());
+				boolean linear = storage_types[i].equals("L");
+
+				fileInfo = new DiskManagerFileInfoImpl( 
+								this, 
+								new File( root_dir + relative_data_file.toString()), 
+								i,
+								pm_info.getTorrentFile(),
+								linear );
 				
 				files[i] = fileInfo;
 	
@@ -1721,6 +1740,33 @@ DiskManagerImpl
 	    return piece_picker.hasDownloadablePiece();
 	}
 	
+	protected String[]
+	getStorageTypes()                 
+	{
+		return( getStorageTypes( download_manager ));
+	}
+	
+	protected static String[]
+	getStorageTypes(
+		DownloadManager		download_manager )
+	{
+		DownloadManagerState	state = download_manager.getDownloadState();
+
+		String[]	types = state.getListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES );
+		
+		if ( types.length == 0 ){
+			
+			types = new String[download_manager.getTorrent().getFiles().length];
+			
+			for (int i=0;i<types.length;i++){
+				
+				types[i] = "L";
+			}	
+		}
+		
+		return( types );
+	}
+	
 	public static DiskManagerFileInfo[]
 	getFileInfoSkeleton(
 		final DownloadManager		download_manager )
@@ -1744,13 +1790,15 @@ DiskManagerImpl
 		try{
 		    LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 			
-			TOTorrentFile[]	torrent_files = torrent.getFiles();
+		    TOTorrentFile[]	torrent_files = torrent.getFiles();
 			
 			final DiskManagerFileInfo[]	res = new DiskManagerFileInfo[ torrent_files.length ];
 			
 			for (int i=0;i<res.length;i++){
 			
 				final TOTorrentFile	torrent_file	= torrent_files[i];
+				
+				final int file_index = i;
 				
 				String	path_str = root_dir + File.separator;
 				
@@ -1894,13 +1942,63 @@ DiskManagerImpl
 						setLink(
 							File	link_destination )
 						{
-							download_manager.getDownloadState().setFileLink( data_file, link_destination );
+							DownloadManagerState	state = download_manager.getDownloadState();
+							
+							state.setFileLink( data_file, link_destination );
+							
+							state.save();
 						}
 												
 						public File
 						getLink()
 						{
 							return( download_manager.getDownloadState().getFileLink( data_file ));
+						}
+						
+						public void
+						setStorageType(
+							int		type )
+						{
+							String[]	types = getStorageTypes( download_manager );
+
+							int	old_type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
+							
+							if ( type == old_type ){
+								
+								return;
+							}
+							
+							int	s = download_manager.getState();
+							
+							if ( s != DownloadManager.STATE_STOPPED && s != DownloadManager.STATE_ERROR ){
+								
+								Debug.out( "setStorageType: download not stopped" );
+								
+								return;
+							}
+							
+							if ( getFile(true).exists()){
+								
+								Debug.out( "setStorageType: file exists" );
+
+								return;
+							}
+							
+							types[file_index] = type==ST_LINEAR?"L":"C";
+							
+							DownloadManagerState	dm_state = download_manager.getDownloadState();
+							
+							dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
+							
+							dm_state.save();
+						}
+						
+						public int
+						getStorageType()
+						{
+							String[]	types = getStorageTypes( download_manager );
+							
+							return( types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT );
 						}
 						
 						public void

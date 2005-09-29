@@ -41,13 +41,7 @@ CacheFile
 	
 	public boolean
 	exists();
-	
-	public void
-	setType(
-		int		type )
-	
-		throws CacheFileManagerException;
-	
+		
 	public void
 	moveFile(
 		File		new_file )

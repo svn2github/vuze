@@ -184,7 +184,8 @@ CacheFileManagerImpl
 	public CacheFile
 	createFile(
 		final CacheFileOwner	owner,
-		File					file )
+		File					file,
+		int						type )
 	
 		throws CacheFileManagerException
 	{
@@ -222,7 +223,8 @@ CacheFileManagerImpl
 						{
 							return( owner.getCacheFileControlFile( name ));
 						}
-					}, file );
+					}, file,
+					type==CacheFile.CT_LINEAR?FMFile.FT_LINEAR:FMFile.FT_COMPACT );
 				
 			TOTorrentFile	tf = owner.getCacheFileTorrentFile();
 			

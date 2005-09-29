@@ -1190,21 +1190,6 @@ CacheFileWithCache
 	}
 	
 	public void
-	setType(
-		int		type )
-	
-		throws CacheFileManagerException
-	{
-		try{
-			file.setType( type == CT_LINEAR?FMFile.FT_LINEAR:FMFile.FT_COMPACT );
-			
-		}catch( FMFileManagerException e ){
-			
-			manager.rethrow(e);
-		}	
-	}
-	
-	public void
 	moveFile(
 		File		new_file )
 	

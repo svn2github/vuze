@@ -63,7 +63,8 @@ public class FilesView
     new RemainingPiecesItem(),
     new ProgressGraphItem(),
     new ModeItem(),
-    new PriorityItem()
+    new PriorityItem(),
+    new StorageTypeItem()
   };
   
   private DownloadManager download_manager;
@@ -130,19 +131,30 @@ public class FilesView
         }
         itemOpen.setEnabled(false);
         itemPriority.setEnabled(true);
+        
         boolean open = true;
+        boolean	skipped = false;
+        
         for (int i = 0; i < infos.length; i++) {
           DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)infos[i];
-          if (fileInfo.getAccessMode() != DiskManagerFileInfo.READ)
+          if (fileInfo.getAccessMode() != DiskManagerFileInfo.READ){
             open = false;
+          }
+          if (fileInfo.isSkipped()){
+        	  skipped = true;
+          }
         }
         itemOpen.setEnabled(open);
         int	dm_state = download_manager.getState();
         
-        itemRename.setEnabled(
-        		download_manager.isPersistent() &&
-        			( 	dm_state == DownloadManager.STATE_STOPPED || 
-        				dm_state == DownloadManager.STATE_ERROR ));
+        boolean	stopped =	dm_state == DownloadManager.STATE_STOPPED || 
+							dm_state == DownloadManager.STATE_ERROR;
+				 
+        itemRename.setEnabled( download_manager.isPersistent() && stopped );
+        
+        itemHigh.setEnabled( stopped || !skipped );
+        itemLow.setEnabled( stopped || !skipped );
+        itemSkipped.setEnabled( stopped );
       }
     });       
 
@@ -250,7 +262,7 @@ public class FilesView
       public void run(TableRowCore row) {
         DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
         fileInfo.setPriority(true);
-        fileInfo.setSkipped(false);
+        setSkipped( fileInfo, false );
       }
     });
         
@@ -258,20 +270,35 @@ public class FilesView
       public void run(TableRowCore row) {
         DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
         fileInfo.setPriority(false);
-        fileInfo.setSkipped(false);
+        setSkipped( fileInfo, false );
       }
     });
         
     itemSkipped.addListener(SWT.Selection, new SelectedTableRowsListener() {
       public void run(TableRowCore row) {
         DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-        fileInfo.setSkipped(true);
+        setSkipped( fileInfo, true );
       }
     });
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     super.fillMenu(menu);
+  }
+  
+  protected void
+  setSkipped(
+	 DiskManagerFileInfo	info,
+	 boolean				skipped )
+  {
+	if( info.isSkipped() == skipped ){
+		
+		return;
+	}
+	
+	info.setSkipped( skipped );
+	
+	info.setStorageType( skipped?DiskManagerFileInfo.ST_COMPACT:DiskManagerFileInfo.ST_LINEAR );
   }
 
   /* (non-Javadoc)

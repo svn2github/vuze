@@ -173,7 +173,8 @@ FMFileManagerImpl
 	public FMFile
 	createFile(
 		FMFileOwner	owner,
-		File		file )
+		File		file,
+		int			type )
 	
 		throws FMFileManagerException
 	{
@@ -181,17 +182,17 @@ FMFileManagerImpl
 		
 		if ( AEDiagnostics.USE_DUMMY_FILE_DATA ){
 			
-			res = new FMFileTestImpl( owner, this, file );
+			res = new FMFileTestImpl( owner, this, file, type );
 			
 		}else{
 		
 			if ( limited ){
 	
-				res = new FMFileLimited( owner, this, file );
+				res = new FMFileLimited( owner, this, file, type );
 				
 			}else{
 				
-				res = new FMFileUnlimited( owner, this, file );
+				res = new FMFileUnlimited( owner, this, file, type );
 			}
 		}
 			

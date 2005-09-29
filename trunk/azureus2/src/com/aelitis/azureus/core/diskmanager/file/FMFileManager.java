@@ -35,7 +35,8 @@ FMFileManager
 	public FMFile
 	createFile(
 		FMFileOwner	owner,
-		File		file )
+		File		file,
+		int			type )
 	
 		throws FMFileManagerException;
 	

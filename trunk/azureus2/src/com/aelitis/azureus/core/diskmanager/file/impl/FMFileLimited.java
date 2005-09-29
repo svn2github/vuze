@@ -41,11 +41,12 @@ FMFileLimited
 	FMFileLimited(
 		FMFileOwner			_owner,
 		FMFileManagerImpl	_manager,
-		File				_file )
+		File				_file,
+		int					_type )
 	
 		throws FMFileManagerException
 	{
-		super( _owner, _manager, _file );
+		super( _owner, _manager, _file, _type );
 	}
 	
 	public void

@@ -41,6 +41,7 @@ DownloadManagerState
 	public static final String AT_PEER_SOURCES				= "peersources";
 	public static final String AT_TRACKER_CLIENT_EXTENSIONS	= "trackerclientextensions";
 	public static final String AT_FILE_LINKS				= "filelinks";
+	public static final String AT_FILE_STORE_TYPES			= "storetypes";
 	
 	public TOTorrent
 	getTorrent();
@@ -163,6 +164,11 @@ DownloadManagerState
 	public Map
 	getMapAttribute(
 		String		name );
+	
+	public void
+	setListAttribute(
+		String		name,
+		String[]	values );
 	
 	public String[]
 	getListAttribute(

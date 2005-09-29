@@ -1056,6 +1056,24 @@ DownloadManagerStateImpl
 		}
 	}
 	
+	public void
+	setListAttribute(
+		String		name,
+		String[]	values )
+	{
+		List	list = values==null?null:new ArrayList();
+		
+		if ( list != null ){
+			
+			for (int i=0;i<values.length;i++){
+				
+				list.add( values[i]);
+			}
+		}
+		
+		setListAttribute( name, list );
+	}
+	
 	public String[]
 	getListAttribute(
 		String	attribute_name )
@@ -1067,9 +1085,36 @@ DownloadManagerStateImpl
 		}else if ( attribute_name == AT_PEER_SOURCES ){
 		
 			return( getPeerSources());
+			
+		}else{
+			
+			List	l = getListAttributeSupport( attribute_name );
+			
+			if ( l == null ){
+				
+				return( null );
+			}
+			
+			String[]	res = new String[l.size()];
+			
+			for (int i=0;i<l.size();i++){
+				
+				Object	 o = l.get(i);
+				
+				if ( o instanceof String ){
+					
+					res[i] = (String)o;
+					
+				}else{
+					
+					Debug.out( "getListAttribute( " + attribute_name + ") - object isnt String - " + o );
+					
+					return( null );
+				}
+			}
+			
+			return( res );
 		}
-	
-		return( null );
 	}
 	
 	protected List
@@ -1462,6 +1507,13 @@ DownloadManagerStateImpl
 		public void
 		setTrackerClientExtensions(
 			String		value )
+		{
+		}
+		
+		public void
+		setListAttribute(
+			String		name,
+			String[]	values )
 		{
 		}
 		

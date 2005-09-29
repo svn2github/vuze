@@ -34,6 +34,9 @@ DiskManagerFileInfo
 	public static final int READ = 1;
 	public static final int WRITE = 2;
 
+	public static final int	ST_LINEAR	= 1;
+	public static final int	ST_COMPACT	= 2;
+	
 		// set methods
 		
 	public void setPriority(boolean b);
@@ -49,6 +52,18 @@ DiskManagerFileInfo
 	
 	public File
 	getLink();
+	
+		/**
+		 * Download must be stopped before calling this! Also the data file must not exist
+		 * @param type	one of ST_LINEAR or ST_COMPACT
+		 */
+	
+	public void
+	setStorageType(
+		int		type );
+	
+	public int
+	getStorageType();
 	
 	 	// get methods
 	 	

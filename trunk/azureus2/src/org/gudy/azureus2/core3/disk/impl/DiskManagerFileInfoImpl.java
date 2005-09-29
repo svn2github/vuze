@@ -42,6 +42,7 @@ DiskManagerFileInfoImpl
 	implements DiskManagerFileInfo, CacheFileOwner
 {
   private File			file;
+  private int			file_index;
   private CacheFile		cache_file;
   
   private String 		extension;
@@ -60,7 +61,9 @@ DiskManagerFileInfoImpl
   DiskManagerFileInfoImpl(
   	DiskManagerImpl		_disk_manager,
   	File				_file,
-	TOTorrentFile		_torrent_file )
+  	int					_file_index,
+	TOTorrentFile		_torrent_file,
+	boolean				_linear_storage )
   
   	throws CacheFileManagerException
   {
@@ -68,8 +71,10 @@ DiskManagerFileInfoImpl
     torrent_file	= _torrent_file;
   	
     file		= _file;
+    file_index	= _file_index;
     
-  	cache_file = CacheFileManagerFactory.getSingleton().createFile( this, _file );
+  	cache_file = CacheFileManagerFactory.getSingleton().createFile( 
+  						this, _file, _linear_storage?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
   }
   
   	public String
@@ -183,12 +188,30 @@ DiskManagerFileInfoImpl
 		File	link_destination )
 	{
 		diskManager.getDownloadManager().getDownloadState().setFileLink( getFile(false), link_destination );
+		
+		diskManager.getDownloadManager().getDownloadState().save();
 	}
 
 	public File
 	getLink()
 	{
 		return( diskManager.getDownloadManager().getDownloadState().getFileLink( getFile( false )));
+	}
+	
+	public void
+	setStorageType(
+		int		type )
+	{
+		Debug.out( "setStorageType: download must be stopped" );
+	}
+	
+	public int
+	getStorageType()
+	{
+		String[]	types = diskManager.getStorageTypes();
+		
+		return( types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT );
+
 	}
 	
 	protected boolean

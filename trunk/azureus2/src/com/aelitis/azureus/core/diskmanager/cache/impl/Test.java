@@ -103,7 +103,7 @@ Test
 							return null;
 						}
 					},
-					f );
+					f, CacheFile.CT_LINEAR );
 			
 			cf.setAccessMode( CacheFile.CF_WRITE );
 			
@@ -164,7 +164,7 @@ Test
 							return null;
 						}
 					},
-					f );
+					f, CacheFile.CT_LINEAR );
 			DirectByteBuffer	write_buffer1 = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_OTHER,512);
 			DirectByteBuffer	write_buffer2 = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_OTHER,512);
 			DirectByteBuffer	write_buffer3 = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_OTHER,512);
@@ -226,7 +226,7 @@ Test
 							return null;
 						}
 					},
-					new File( "C:\\temp\\cachetest" + i + ".dat" ));
+					new File( "C:\\temp\\cachetest" + i + ".dat" ), CacheFile.CT_LINEAR);
 				
 				files[i].setAccessMode( CacheFile.CF_WRITE );
 				

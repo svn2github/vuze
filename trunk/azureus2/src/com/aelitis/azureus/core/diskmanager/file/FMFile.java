@@ -42,12 +42,6 @@ FMFile
 	
 	public String
 	getName();
-
-	public boolean
-	setType(
-		int		type )
-	
-		throws FMFileManagerException;
 	
 	public boolean
 	exists();

@@ -78,12 +78,14 @@ FMFileImpl
 	FMFileImpl(
 		FMFileOwner			_owner,
 		FMFileManagerImpl	_manager,
-		File				_file )
+		File				_file,
+		int					_type )
 	
 		throws FMFileManagerException
 	{
 		owner			= _owner;
 		manager			= _manager;
+		type			= _type;
 		
 		linked_file		= manager.getLinkedFile( _file );
 		
@@ -126,7 +128,46 @@ FMFileImpl
 			throw( new FMFileManagerException( "getCanonicalPath fails", e ));
 		}
 			
-		file_access	= new FMFileAccessLinear( this );
+		
+		// linear file shouldn't exist for change to occur - it is the responsibility
+		// of the caller to delete the file first and take consequent actions (in
+		// particular force recheck the file to ensure that the loss in save state
+		// is represented in the resume view of the world)
+	
+		File	control_file = getControlFile();
+		
+		if ( control_file == null ){
+			
+			Debug.out( "No control file" );
+			
+		}else{
+			
+			int	old_type = control_file.exists()?FT_COMPACT:FT_LINEAR;
+				
+			if ( old_type != type ){
+			
+				if ( linked_file.exists()){
+						
+					throw( new FMFileManagerException( "Can't change between linear and compact file formats as file already exists" ));
+				}
+		
+					// get rid if any existing control file as it is redundant info
+		
+				if ( control_file.exists()){
+					
+					control_file.delete();
+				}
+			}
+		}
+				
+		if ( type == FT_LINEAR ){
+			
+			file_access = new FMFileAccessLinear( this );
+			
+		}else{
+			
+			file_access = new FMFileAccessCompact( control_file,  new FMFileAccessLinear( this ) );
+		}	
 	}
 
 	protected FMFileManagerImpl
@@ -190,67 +231,8 @@ FMFileImpl
 		
 			return( control );
 		}
-	}
-	
-	public boolean
-	setType(
-		int		new_type )
-	
-		throws FMFileManagerException
-	{
-		if ( new_type == type ){
-			
-			return( true );
-		}
-		
-		if ( raf != null ){
-			
-			throw( new FMFileManagerException( "File must be closed" ));
-		}
-		
-		File	control_file = getControlFile();
-		
-		if ( control_file == null ){
-			
-			Debug.out( "Can't change file type, control file not avaialble" );
-			
-			return( false );
-		}
-		
-			
-			// linear file shouldn't exist for change to occur - it is the responsibility
-			// of the caller to delete the file first and take consequent actions (in
-			// particular force recheck the file to ensure that the loss in save state
-			// is represented in the resume view of the world)
-		
-			
-		if ( linked_file.exists()){
-			
-			Debug.out( "Can't change file between linear and compact, main file exists" );
-			
-			return( false );
-		}
-		
-			// get rid if any existing control file as it is redundant info
-		
-		if ( control_file.exists()){
-			
-			control_file.delete();
-		}
-		
-		type	= new_type;
-		
-		if ( type == FT_LINEAR ){
-			
-			file_access = new FMFileAccessLinear( this );
-			
-		}else{
-			
-			file_access = new FMFileAccessCompact( control_file,  new FMFileAccessLinear( this ) );
-		}
-		
-		return( true );
-	}
+	}	
+
 	
 	public int
 	getAccessMode()
