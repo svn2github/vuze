@@ -278,10 +278,4 @@ CacheFileWithoutCache
 			manager.rethrow(e);			
 		}
 	}
-	
-	public void
-	setFileOffset(
-		int		_file_offset )
-	{
-	}
 }

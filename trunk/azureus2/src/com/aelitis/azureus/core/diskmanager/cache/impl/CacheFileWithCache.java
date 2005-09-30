@@ -117,9 +117,7 @@ CacheFileWithCache
 	
 	protected int piece_size						= 0;
 	protected int piece_offset						= 0;
-	
-	protected int file_offset						= 0;
-	
+		
 	protected AEMonitor				this_mon		= new AEMonitor( "CacheFile" );
 	
 	protected
@@ -424,7 +422,7 @@ CacheFileWithCache
 							
 									// don't read ahead over the end of a piece
 								
-								int	request_piece_offset = (int)((file_position - ( piece_offset + file_offset )) % piece_size);
+								int	request_piece_offset = (int)((file_position - piece_offset ) % piece_size);
 								
 								if ( request_piece_offset < 0 ){
 									
@@ -1434,12 +1432,5 @@ CacheFileWithCache
 			
 			manager.rethrow(e);			
 		}
-	}
-	
-	public void
-	setFileOffset(
-		int		_file_offset )
-	{
-		file_offset		= _file_offset;
 	}
 }
