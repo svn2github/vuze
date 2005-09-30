@@ -293,7 +293,7 @@ public class Debug {
 			
 			String	this_message = e.getMessage();
 			
-			if ( this_message != null && !last_message.contains( this_message )){
+			if ( this_message != null && last_message.indexOf( this_message ) == -1 ){
 				
 				last_message	= this_message + ( last_message.length()==0?"":(", " + last_message ));
 			}
