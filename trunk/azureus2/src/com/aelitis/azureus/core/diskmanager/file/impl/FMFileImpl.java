@@ -89,6 +89,8 @@ FMFileImpl
 		
 		linked_file		= manager.getLinkedFile( _file );
 		
+		boolean	file_was_created	= false;
+		
 		try{
       
 			try {
@@ -122,52 +124,76 @@ FMFileImpl
 	        }
 	        
 			reserveFile();
-			
-		}catch( Throwable e ){
-			
-			throw( new FMFileManagerException( "getCanonicalPath fails", e ));
-		}
-			
-		
-		// linear file shouldn't exist for change to occur - it is the responsibility
-		// of the caller to delete the file first and take consequent actions (in
-		// particular force recheck the file to ensure that the loss in save state
-		// is represented in the resume view of the world)
-	
-		File	control_file = getControlFile();
-		
-		if ( control_file == null ){
-			
-			Debug.out( "No control file" );
-			
-		}else{
-			
-			int	old_type = control_file.exists()?FT_COMPACT:FT_LINEAR;
-				
-			if ( old_type != type ){
-			
-				if ( linked_file.exists()){
 						
-					throw( new FMFileManagerException( "Can't change between linear and compact file formats as file already exists" ));
-				}
 		
-					// get rid if any existing control file as it is redundant info
+			// linear file shouldn't exist for change to occur - it is the responsibility
+			// of the caller to delete the file first and take consequent actions (in
+			// particular force recheck the file to ensure that the loss in save state
+			// is represented in the resume view of the world)
 		
-				if ( control_file.exists()){
+			File	control_file = getControlFile();
+			
+			if ( control_file == null ){
+				
+				Debug.out( "No control file" );
+				
+			}else{
+			
+				int	old_type = control_file.exists()?FT_COMPACT:FT_LINEAR;
 					
-					control_file.delete();
+				if ( old_type != type ){
+				
+					if ( linked_file.exists()){
+							
+						throw( new FMFileManagerException( "Can't change between linear and compact file formats as file already exists" ));
+					}
+			
+						// get rid if any existing control file as it is redundant info
+			
+					if ( control_file.exists()){
+						
+						control_file.delete();
+					}
+					
+						// create a new file so that the switch cycle works correctly. If we
+						// don't do this then the download will fail with "missing file" exception
+						// when started
+					
+					try{
+						if ( linked_file.createNewFile()){
+							
+							file_was_created	= true;
+						}
+						
+					}catch( Throwable e ){
+						
+						throw( new FMFileManagerException( "createNewFile fails", e ));
+					}
 				}
 			}
-		}
+					
+			if ( type == FT_LINEAR ){
 				
-		if ( type == FT_LINEAR ){
+				file_access = new FMFileAccessLinear( this );
+				
+			}else{
+				
+				file_access = new FMFileAccessCompact( control_file,  new FMFileAccessLinear( this ) );
+			}	
+		}catch( Throwable e ){
 			
-			file_access = new FMFileAccessLinear( this );
+			if ( file_was_created ){
+				
+				linked_file.delete();
+			}
 			
-		}else{
+			if ( e instanceof FMFileManagerException ){
+				
+				throw((FMFileManagerException)e);
+			}
 			
-			file_access = new FMFileAccessCompact( control_file,  new FMFileAccessLinear( this ) );
-		}	
+			throw( new FMFileManagerException( "initialisation failed", e ));
+		}
 	}
 
 	protected FMFileManagerImpl

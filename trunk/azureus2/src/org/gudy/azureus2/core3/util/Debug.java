@@ -287,13 +287,15 @@ public class Debug {
 	getNestedExceptionMessage(
 		Throwable 		e )
 	{
-		String	last_message	= null;
+		String	last_message	= "";
 		
 		while( true ){
 			
-			if ( e.getMessage() != null ){
+			String	this_message = e.getMessage();
+			
+			if ( this_message != null && !last_message.contains( this_message )){
 				
-				last_message	= e.getMessage() + ( last_message==null?"":(", " + last_message ));
+				last_message	= this_message + ( last_message.length()==0?"":(", " + last_message ));
 			}
 			
 			if ( e.getCause() == null ){
@@ -304,7 +306,7 @@ public class Debug {
 			e	= e.getCause();
 		}
 		
-		if ( last_message == null ){
+		if ( last_message.length() == 0 ){
 			
 			last_message = e.getClass().getName();
 			

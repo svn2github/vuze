@@ -152,6 +152,12 @@ public class FilesView
 				 
         itemRename.setEnabled( download_manager.isPersistent() && stopped );
         
+        boolean	completed = download_manager.isDownloadComplete();
+        
+        	// no point in changing priority of completed downloads
+        
+        itemPriority.setEnabled( !completed );
+        
         itemHigh.setEnabled( stopped || !skipped );
         itemLow.setEnabled( stopped || !skipped );
         itemSkipped.setEnabled( stopped );
@@ -174,7 +180,7 @@ public class FilesView
     		run(
     			TableRowCore row) 
     		{
-    			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+    			final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
    
     			FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
     			File	existing_file = fileInfo.getFile(true);
@@ -200,7 +206,7 @@ public class FilesView
 
     							// using a new file, make sure we recheck
     						
-							download_manager.getDownloadState().clearResumeData();
+							download_manager.recheckFile( fileInfo );
 
     						ok	= true;
     						
@@ -217,12 +223,8 @@ public class FilesView
     							if ( FileUtil.deleteWithRecycle( existing_file )){
 	        		    		
     								ok	= true;
-	        		    		
-    									// force recheck - could be smarter by restricting
-    									// to this file, but hey ho
-    								
-    								download_manager.getDownloadState().clearResumeData();
-    								
+	        		    		    								
+    								download_manager.resetFile( fileInfo );    								
     							}else{
 	        		    	
     								LGLogger.logRepeatableAlert( 
@@ -296,9 +298,55 @@ public class FilesView
 		return;
 	}
 	
-	info.setSkipped( skipped );
+		// if we're not managing the download then don't do anything other than
+		// change the file's priority
 	
-	info.setStorageType( skipped?DiskManagerFileInfo.ST_COMPACT:DiskManagerFileInfo.ST_LINEAR );
+	if ( !download_manager.isPersistent()){
+		
+		info.setSkipped( skipped );
+
+		return;
+	}
+	
+	File	existing_file = info.getFile(true);
+	
+	boolean	ok = false;
+	
+	if ( existing_file.exists()){
+		
+		MessageBox mb = new MessageBox(getComposite().getShell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
+	    
+		mb.setText(MessageText.getString("FilesView.rename.confirm.delete.title"));
+    		       		    
+		mb.setMessage(MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()}));
+    		
+		if ( mb.open() == SWT.OK ){
+    	
+			if ( FileUtil.deleteWithRecycle( existing_file )){
+    		
+				ok = true;
+					// force recheck - could be smarter by restricting
+					// to this file, but hey ho
+				
+				download_manager.resetFile( info );
+				
+			}else{
+    	
+				LGLogger.logRepeatableAlert( 
+						LGLogger.AT_ERROR, "Failed to delete '" + existing_file.toString() + "'" );
+			}
+		}
+	}else{
+		
+		ok = true;
+	}
+	
+	if ( ok ){
+		
+		info.setSkipped( skipped );
+	
+		info.setStorageType( skipped?DiskManagerFileInfo.ST_COMPACT:DiskManagerFileInfo.ST_LINEAR );
+	}
   }
 
   /* (non-Javadoc)

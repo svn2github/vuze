@@ -832,6 +832,18 @@ Test
 			
 		}
 
+	    public void
+	    resetFile(
+	    	DiskManagerFileInfo		file )
+	    {
+	    }
+	    
+	    public void
+	    recheckFile(
+	    	DiskManagerFileInfo		file )
+	    {	
+	    }
+	    
 		public int getHealthStatus()
 		{
 			return( 0 );

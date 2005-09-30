@@ -33,14 +33,30 @@ public class
 FMFileAccessCompact
 	implements FMFileAccess
 {
+	private File				control_file;
 	private FMFileAccess		delegate;
 	
 	protected
 	FMFileAccessCompact(
 		File			_control_file,
 		FMFileAccess	_delegate )
+	
+		throws FMFileManagerException
 	{
-		delegate	= _delegate;
+		control_file	= _control_file;
+		delegate		= _delegate;
+		
+		try{
+			if ( !control_file.exists()){
+				
+				control_file.getParentFile().mkdirs();
+			
+				control_file.createNewFile();
+			}
+		}catch( Throwable e ){
+			
+			throw( new FMFileManagerException( "createNewFile fails", e ));
+		}
 	}
 	
 	public long

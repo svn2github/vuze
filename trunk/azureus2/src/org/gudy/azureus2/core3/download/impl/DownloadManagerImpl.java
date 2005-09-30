@@ -933,6 +933,44 @@ DownloadManagerImpl
   		controller.forceRecheck();
   	}
   
+    public void
+    resetFile(
+    	DiskManagerFileInfo		file )
+    {
+		int	state = getState();
+  		
+	  	if ( 	state == DownloadManager.STATE_STOPPED ||
+	  			state == DownloadManager.STATE_ERROR ){
+	  		
+	  			// TODO:
+	  		
+	  		download_manager_state.clearResumeData();
+	  		
+	  	}else{
+	  		
+	  		Debug.out( "Download not stopped" );
+	  	}
+    }
+    
+    public void
+    recheckFile(
+    	DiskManagerFileInfo		file )
+    {
+		int	state = getState();
+  		
+	  	if ( 	state == DownloadManager.STATE_STOPPED ||
+	  			state == DownloadManager.STATE_ERROR ){
+
+	  			// TODO:
+	  		
+	  		download_manager_state.clearResumeData();
+
+	  	}else{
+	  		
+	  		Debug.out( "Download not stopped" );
+	  	}
+	  }
+    
   	public void
   	restartDownload(
   		boolean	use_resume )

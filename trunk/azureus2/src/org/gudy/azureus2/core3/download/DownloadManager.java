@@ -106,6 +106,23 @@ DownloadManager
 
     public void forceRecheck();
 
+    	/**
+    	 * Reset the file download state to totally undownloaded. Download must be stopped
+    	 * @param file
+    	 */
+    
+    public void
+    resetFile(
+    	DiskManagerFileInfo		file );
+    
+    	/**
+    	 * Recheck a particular file. Download must be stopped
+    	 * @param file
+    	 */
+    
+    public void
+    recheckFile(
+    	DiskManagerFileInfo		file );
 	
   /**
    * Stop the download manager, and do any file/torrent removals.
