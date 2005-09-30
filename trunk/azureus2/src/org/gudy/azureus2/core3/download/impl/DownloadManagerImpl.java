@@ -941,10 +941,8 @@ DownloadManagerImpl
   		
 	  	if ( 	state == DownloadManager.STATE_STOPPED ||
 	  			state == DownloadManager.STATE_ERROR ){
-	  		
-	  			// TODO:
-	  		
-	  		download_manager_state.clearResumeData();
+	  			  		
+	  		DiskManagerFactory.clearResumeData( this, file );
 	  		
 	  	}else{
 	  		
@@ -961,9 +959,7 @@ DownloadManagerImpl
 	  	if ( 	state == DownloadManager.STATE_STOPPED ||
 	  			state == DownloadManager.STATE_ERROR ){
 
-	  			// TODO:
-	  		
-	  		download_manager_state.clearResumeData();
+	  		DiskManagerFactory.recheckFile( this, file );
 
 	  	}else{
 	  		

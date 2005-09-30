@@ -1792,6 +1792,9 @@ DiskManagerImpl
 			
 		    TOTorrentFile[]	torrent_files = torrent.getFiles();
 			
+		    long	piece_size 	= torrent.getPieceLength();
+		    long	size_so_far	= 0;
+		    
 			final DiskManagerFileInfo[]	res = new DiskManagerFileInfo[ torrent_files.length ];
 			
 			for (int i=0;i<res.length;i++){
@@ -1799,6 +1802,14 @@ DiskManagerImpl
 				final TOTorrentFile	torrent_file	= torrent_files[i];
 				
 				final int file_index = i;
+				
+				long	file_length = torrent_file.getLength();
+				
+				final int	first_piece = (int)(size_so_far/piece_size);
+				
+				size_so_far += file_length;
+				
+				final int	last_piece	= (int)((size_so_far-1)/piece_size);
 				
 				String	path_str = root_dir + File.separator;
 				
@@ -1877,13 +1888,13 @@ DiskManagerImpl
 						public int 
 						getFirstPieceNumber()
 						{
-							return( -1 );
+							return( first_piece );
 						}
 					  
 						public int 
 						getLastPieceNumber()
 						{
-							return( -1 );
+							return( last_piece );
 						}
 						
 						public long 
@@ -1895,7 +1906,7 @@ DiskManagerImpl
 						public int 
 						getNbPieces()
 						{
-							return( -1 );
+							return( last_piece - first_piece + 1 );
 						}
 													
 						public boolean 
@@ -1928,11 +1939,11 @@ DiskManagerImpl
 						{
 							if ( follow_link ){
 								
-								File res = getLink();
+								File link = getLink();
 								
-								if ( res != null ){
+								if ( link != null ){
 									
-									return( res );
+									return( link );
 								}
 							}
 							return( data_file );

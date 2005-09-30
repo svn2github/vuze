@@ -631,6 +631,100 @@ RDResumeHandler
 		resumeDirectory.put("valid", new Long(1));	
 				
 		download_manager_state.setResumeData( resumeMap );
+		
+		download_manager_state.save();
+	}
+	
+	protected static void
+	clearResumeDataSupport(
+		DownloadManager			download_manager,
+		DiskManagerFileInfo		file,
+		boolean					recheck )
+	{
+		DownloadManagerState	download_manager_state = download_manager.getDownloadState();
+		
+		String resume_key	= getCanonicalResumeKey( download_manager );
+
+		Map resumeDirectory = getResumeDirectory( download_manager_state, resume_key );
+
+		if ( resumeDirectory == null ){
+			
+			return;
+		}
+		
+			// clear any affected pieces
+		
+		byte[]	pieces = (byte[])resumeDirectory.get("resume data");
+		
+		int	first_piece = file.getFirstPieceNumber();
+		int last_piece	= file.getLastPieceNumber();
+		
+		if ( pieces != null ){
+			
+			for (int i=first_piece;i<=last_piece;i++){
+				
+				if ( i >= pieces.length ){
+					
+					break;
+				}
+								
+				pieces[i] = 0;
+			}
+		}
+			// clear any affected partial pieces
+		
+		Map	partial_pieces = (Map)resumeDirectory.get("blocks");
+		
+		if ( partial_pieces != null ){
+			
+			Iterator iter = partial_pieces.keySet().iterator();
+		
+			while (iter.hasNext()) {
+			
+				int piece_number = Integer.parseInt((String)iter.next());
+	
+				if ( piece_number >= first_piece && piece_number <= last_piece ){
+					
+					iter.remove();
+				}
+			}
+		}
+		
+			// save back
+		
+		Map resumeMap = new HashMap();
+			
+		resumeMap.put( resume_key, resumeDirectory);
+			
+		if ( recheck ){
+			
+				// TODO: this causes ALL pieces with 0 against them to be rechecked
+				// not just this file's... To fix we'd need to do something like introduce
+				// a further "partially valid" state (e.g. 2) and mark blocks that need
+				// partial recheck (e.g. with a 2)
+			
+			resumeDirectory.put( "valid", new Long(0));	
+		}
+		
+		download_manager_state.setResumeData( resumeMap );
+		
+		download_manager_state.save();
+	}
+	
+	public static void
+	clearResumeData(
+		DownloadManager			download_manager,
+		DiskManagerFileInfo		file )
+	{
+		clearResumeDataSupport( download_manager, file, false );
+	}
+	
+	public static void
+	recheckFile(
+		DownloadManager			download_manager,
+		DiskManagerFileInfo		file )
+	{
+		clearResumeDataSupport( download_manager, file, true );
 	}
 	
 	public static void
@@ -685,6 +779,8 @@ RDResumeHandler
 		resumeDirectory.put("valid", new Long(0));	
 			
 		download_manager_state.setResumeData( resumeMap );
+		
+		download_manager_state.save();
 	}
 	
 	public static boolean
@@ -708,61 +804,33 @@ RDResumeHandler
 		try{
 			int	piece_count = torrent.getNumberOfPieces();
 		
-			Map resumeMap = download_manager_state.getResumeData();
-		
-			if (resumeMap != null) {
-			
-					// see bug 869749 for explanation of this mangling
-				
-				String mangled_path;
-				
-				try{
-					mangled_path = new String(resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
-									
-				}catch( Throwable e ){
+			Map resumeDirectory = getResumeDirectory( download_manager_state, resume_key );
 					
-					Debug.printStackTrace( e );
+			if ( resumeDirectory != null ){
+				
+				byte[] 	resume_data =  (byte[])resumeDirectory.get("resume data");
+				Map		blocks		= (Map)resumeDirectory.get("blocks");
+				boolean	valid		= ((Long)resumeDirectory.get("valid")).intValue() == 1;
+				
+					// any partial pieced -> not complete
+				if ( blocks == null || blocks.size() > 0 ){
 					
-					mangled_path = resume_key;
+					return( false );
 				}
 				
-				Map resumeDirectory = (Map)resumeMap.get(mangled_path);
-				
-				if ( resumeDirectory == null ){
+				if ( valid && resume_data.length == piece_count ){
 					
-					// unfortunately, if the torrent hasn't been saved and restored then the
-					// mangling with not yet have taken place. So we have to also try the 
-					// original key (see 878015)
-					
-					resumeDirectory = (Map)resumeMap.get(resume_key);
-				}
-				
-				if (resumeDirectory != null) {
-										
-					byte[] 	resume_data =  (byte[])resumeDirectory.get("resume data");
-					Map		blocks		= (Map)resumeDirectory.get("blocks");
-					boolean	valid		= ((Long)resumeDirectory.get("valid")).intValue() == 1;
-					
-						// any partial pieced -> not complete
-					if ( blocks == null || blocks.size() > 0 ){
-						
-						return( false );
-					}
-					
-					if ( valid && resume_data.length == piece_count ){
-						
-						for (int i=0;i<resume_data.length;i++){
-	
-							if ( resume_data[i] == 0 ){
-								
-									// missing piece
-								
-								return( false );
-							}
+					for (int i=0;i<resume_data.length;i++){
+
+						if ( resume_data[i] == 0 ){
+							
+								// missing piece
+							
+							return( false );
 						}
-						
-						return( true );
 					}
+					
+					return( true );
 				}
 			}
 		}catch( Throwable e ){
@@ -773,6 +841,61 @@ RDResumeHandler
 		return( false );
 	}
 
+	protected static Map
+	getResumeDirectory(
+		DownloadManagerState	download_manager_state,
+		String					resume_key )
+	{
+		Map resumeMap = download_manager_state.getResumeData();
+		
+		if ( resumeMap != null) {
+		
+				// see bug 869749 for explanation of this mangling
+			
+			String mangled_path;
+			
+			try{
+				mangled_path = new String(resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+								
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+				
+				mangled_path = resume_key;
+			}
+			
+			Map resumeDirectory = (Map)resumeMap.get( mangled_path );
+			
+			if ( resumeDirectory == null ){
+				
+				// unfortunately, if the torrent hasn't been saved and restored then the
+				// mangling with not yet have taken place. So we have to also try the 
+				// original key (see 878015)
+				
+				resumeDirectory = (Map)resumeMap.get( resume_key );
+			}
+			
+			return( resumeDirectory );
+			
+		}else{
+			
+			return( null );
+		}
+	}
+	
+	protected static String
+	getCanonicalResumeKey(
+		DownloadManager	dm )
+	{
+		TOTorrent	torrent = dm.getTorrent();
+			
+		String	resume_key = torrent.isSimpleTorrent()?
+							dm.getTorrentSaveDir():
+							(dm.getTorrentSaveDir() + File.separator + dm.getTorrentSaveFile());
+	
+		return( getCanonicalResumeKey( resume_key ));
+	}
+	
 	protected static String
 	getCanonicalResumeKey(
 		String		resume_key )

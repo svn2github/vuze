@@ -223,8 +223,10 @@ public class FilesView
     							if ( FileUtil.deleteWithRecycle( existing_file )){
 	        		    		
     								ok	= true;
-	        		    		    								
-    								download_manager.resetFile( fileInfo );    								
+	        		    		    			
+    									// new file, recheck 
+    								
+    								download_manager.recheckFile( fileInfo );    								
     							}else{
 	        		    	
     								LGLogger.logRepeatableAlert( 

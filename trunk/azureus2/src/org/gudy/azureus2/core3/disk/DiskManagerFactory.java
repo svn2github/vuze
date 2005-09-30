@@ -124,4 +124,20 @@ DiskManagerFactory
 	{
 		DiskManagerImpl.setFileLinks( download_manager, links );
 	}
+	
+	public static void
+	clearResumeData(
+		DownloadManager			download_manager,
+		DiskManagerFileInfo		file )
+	{
+		RDResumeHandler.clearResumeData( download_manager, file );
+	}
+	
+	public static void
+	recheckFile(
+		DownloadManager			download_manager,
+		DiskManagerFileInfo		file )
+	{
+		RDResumeHandler.recheckFile( download_manager, file );
+	}
 }
