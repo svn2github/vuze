@@ -124,13 +124,14 @@ FMFileImpl
 	        }
 	        
 			reserveFile();
-						
+							
+				// actual file shouldn't exist for change to occur - it is the responsibility
+				// of the caller to delete the file first and take consequent actions (in
+				// particular force recheck the file to ensure that the loss in save state
+				// is represented in the resume view of the world )
 		
-			// linear file shouldn't exist for change to occur - it is the responsibility
-			// of the caller to delete the file first and take consequent actions (in
-			// particular force recheck the file to ensure that the loss in save state
-			// is represented in the resume view of the world)
-		
+				// in the future, if we support format conversion, this obviously changes
+			
 			File	control_file = getControlFile();
 			
 			if ( control_file == null ){
@@ -139,9 +140,14 @@ FMFileImpl
 				
 			}else{
 			
-				int	old_type = control_file.exists()?FT_COMPACT:FT_LINEAR;
+				boolean	control_file_existed = control_file.exists();
+				
+				int	old_type = control_file_existed?FT_COMPACT:FT_LINEAR;
 					
-				if ( old_type != type ){
+					// if the actual file doesn't exist then treat as a change of
+					// type as someone's probably gone A -> B -> A without starting download
+				
+				if ( old_type != type || !linked_file.exists()){
 				
 					if ( linked_file.exists()){
 							
@@ -157,17 +163,23 @@ FMFileImpl
 					
 						// create a new file so that the switch cycle works correctly. If we
 						// don't do this then the download will fail with "missing file" exception
-						// when started
+						// when started. This needs to be done
+						//	1) linear -> compact : type will be compact
+						//	2) compact -> linear : control file will exist
+						//	3) linear -> compact -> linear : control file will exist
 					
-					try{
-						if ( linked_file.createNewFile()){
+					if ( control_file_existed || type == FT_COMPACT ){
+						
+						try{
+							if ( linked_file.createNewFile()){
+								
+								file_was_created	= true;
+							}
 							
-							file_was_created	= true;
+						}catch( Throwable e ){
+							
+							throw( new FMFileManagerException( "createNewFile fails", e ));
 						}
-						
-					}catch( Throwable e ){
-						
-						throw( new FMFileManagerException( "createNewFile fails", e ));
 					}
 				}
 			}
@@ -178,7 +190,11 @@ FMFileImpl
 				
 			}else{
 				
-				file_access = new FMFileAccessCompact( control_file,  new FMFileAccessLinear( this ) );
+				file_access = 
+					new FMFileAccessCompact(
+							owner.getTorrentFile(),
+							control_file,  
+							new FMFileAccessLinear( this ) );
 			}	
 		}catch( Throwable e ){
 			
