@@ -652,6 +652,10 @@ DownloadManagerImpl
 	protected void
 	setFileLinks()
 	{
+			// invalidate the cache info in case its now wrong
+		
+		cached_save_file	= null;
+		
 		DiskManagerFactory.setFileLinks( this, download_manager_state.getFileLinks());
 		
 		controller.fileInfoChanged();
