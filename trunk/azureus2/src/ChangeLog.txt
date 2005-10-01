@@ -53,6 +53,10 @@ BUGFIX: Core  | fixed DHT initialisation hang if port already in use [Parg]
 BUGFIX: Core  | Don't allow prohibited peer sources to be enabled (ui artifact only) [Parg]
 BUGFIX: Plug  | UPnP fix for picking up changed network interfaces [Parg]
 BUGFIX: UI    | Fixed 100% CPU problem with download bars [Parg]
+BUGFIX: UI    | Fixed UI foregrounding itself on every unverified localhost:6880 socket connection attempt [Nolar]
+
+
+
 
 2005.06.27 | Azureus 2.3.0.4
 

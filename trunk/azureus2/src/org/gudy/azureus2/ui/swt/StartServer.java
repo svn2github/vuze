@@ -107,31 +107,31 @@ StartServer
       	  LGLogger.log( "Main::startServer: received '" + line + "'");
       	 
           if (line != null) {
-            if( !COConfigurationManager.getBooleanParameter( "add_torrents_silently" ) ) {
-              showMainWindow();
-            }
-
             StringTokenizer st = new StringTokenizer(line, ";");           
             int i = 0;
             if(st.countTokens() > 1) {
-              String args[] = new String[st.countTokens() - 1];
-              String checker = st.nextToken();
-                if(checker.equals(ACCESS_STRING)) {
+            	String args[] = new String[st.countTokens() - 1];
+            	String checker = st.nextToken();
+            	if(checker.equals(ACCESS_STRING)) {
                 	
-                  String debug_str = "";
+            		String debug_str = "";
                   	
-                  while (st.hasMoreElements()) {              
-                    String bit = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
+            		while (st.hasMoreElements()) {              
+            			String bit = st.nextToken().replaceAll("&;", ";").replaceAll("&&", "&");
                     
-                    debug_str += (debug_str.length()==0?"":" ; ") + bit;
+            			debug_str += (debug_str.length()==0?"":" ; ") + bit;
                     
-                    args[i++] = bit;
-                  }
+            			args[i++] = bit;
+            		}
                   
-              	  LGLogger.log( "Main::startServer: decoded to '" + debug_str + "'");
+            		LGLogger.log( "Main::startServer: decoded to '" + debug_str + "'");
+                  
+            		if( !COConfigurationManager.getBooleanParameter( "add_torrents_silently" ) ) {
+            			showMainWindow();
+                  }
               	                  
                   openTorrent(args);
-              }
+                }
             }
           }
         }
