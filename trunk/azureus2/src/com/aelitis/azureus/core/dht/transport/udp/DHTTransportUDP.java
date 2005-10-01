@@ -58,7 +58,7 @@ DHTTransportUDP
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_VIVALDI;	
+	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_XFER_STATUS;	
 	
 	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_XFER_STATUS;
 
