@@ -116,7 +116,20 @@ DisplayFormatters
           }
         });
 
+    	COConfigurationManager.addListener(
+    		new COConfigurationListener()
+    		{
+    			public void 
+    			configurationSaved() 
+    			{
+    				loadMessages();
+    			}
+    		});
+    	
+    	
 		setUnits();
+		
+		loadMessages();
 	}
 
 	static NumberFormat	percentage_format;
@@ -200,6 +213,48 @@ DisplayFormatters
 		String res = " " + getResourceString( "Formats.units." + key, key );
 		  	  
 		return( res );
+	}
+	
+	private static String	PeerManager_status_finished;
+	private static String	PeerManager_status_finishedin;
+	private static String	Formats_units_alot;
+	private static String	discarded;
+	private static String	ManagerItem_waiting;
+	private static String	ManagerItem_initializing;
+	private static String	ManagerItem_allocating;
+	private static String	ManagerItem_checking;
+	private static String	ManagerItem_finishing;
+	private static String	ManagerItem_ready;
+	private static String	ManagerItem_downloading;
+	private static String	ManagerItem_seeding;
+	private static String	ManagerItem_superseeding;
+	private static String	ManagerItem_stopping;
+	private static String	ManagerItem_stopped;
+	private static String	ManagerItem_queued;
+	private static String	ManagerItem_error;
+	private static String	ManagerItem_forced;
+
+	private static void
+	loadMessages()
+	{
+		PeerManager_status_finished 	= getResourceString( "PeerManager.status.finished", "Finished" );
+		PeerManager_status_finishedin	= getResourceString( "PeerManager.status.finishedin", "Finished in" );
+		Formats_units_alot				= getResourceString( "Formats.units.alot", "A lot" );
+		discarded						= getResourceString( "discarded", "discarded" );
+		ManagerItem_waiting				= getResourceString( "ManagerItem.waiting", "waiting" );
+		ManagerItem_initializing		= getResourceString( "ManagerItem.initializing", "initializing" );
+		ManagerItem_allocating			= getResourceString( "ManagerItem.allocating", "allocating" );
+		ManagerItem_checking			= getResourceString( "ManagerItem.checking", "checking" );
+		ManagerItem_finishing			= getResourceString( "ManagerItem.finishing", "finishing" );
+		ManagerItem_ready				= getResourceString( "ManagerItem.ready", "ready" );
+		ManagerItem_downloading			= getResourceString( "ManagerItem.downloading", "downloading" );
+		ManagerItem_seeding				= getResourceString( "ManagerItem.seeding", "seeding" );
+		ManagerItem_superseeding		= getResourceString( "ManagerItem.superseeding", "superseeding" );
+		ManagerItem_stopping			= getResourceString( "ManagerItem.stopping", "stopping" );
+		ManagerItem_stopped				= getResourceString( "ManagerItem.stopped", "stopped" );
+		ManagerItem_queued				= getResourceString( "ManagerItem.queued", "queued" );
+		ManagerItem_error				= getResourceString( "ManagerItem.error", "error" );
+		ManagerItem_forced				= getResourceString( "ManagerItem.forced", "forced" );
 	}
 	
 	private static String
@@ -321,7 +376,7 @@ DisplayFormatters
 					units_base10[UNIT_TB];
 		}else{
 			
-			return MessageText.getString( "Formats.units.alot" );
+			return Formats_units_alot;
 		}
 	}
 
@@ -329,16 +384,17 @@ DisplayFormatters
 	formatByteCountToBase10KBEtcPerSec(
 			long		n )
 	{
-		return( formatByteCountToBase10KBEtc(n).concat(per_sec));
+		return( formatByteCountToBase10KBEtc(n) + per_sec );
 	}
 
-   public static String formatETA(long eta) {
-     if (eta == 0) return MessageText.getString("PeerManager.status.finished");
+   public static String 
+   formatETA(long eta) 
+   {
+     if (eta == 0) return PeerManager_status_finished;
      if (eta == -1) return "";
      if (eta > 0) return TimeFormatter.format(eta);
 
-     return MessageText.getString("PeerManager.status.finishedin").concat(
-            " ").concat(TimeFormatter.format(eta * -1));
+     return PeerManager_status_finishedin + " " + TimeFormatter.format(eta * -1);
    }
 
 
@@ -355,7 +411,9 @@ DisplayFormatters
 
 		}else{
 
-			return formatByteCountToKiBEtc(total_received).concat(" ( ").concat(DisplayFormatters.formatByteCountToKiBEtc(total_discarded)).concat(" ").concat(MessageText.getString("discarded")).concat(" )");
+			return formatByteCountToKiBEtc(total_received) + " ( " + 
+					DisplayFormatters.formatByteCountToKiBEtc(total_discarded) + " " + 
+					discarded + " )";
 		}
 	}
 
@@ -391,54 +449,52 @@ DisplayFormatters
 
 		switch (state) {
 		  case DownloadManager.STATE_WAITING :
-			tmp = MessageText.getString("ManagerItem.waiting");
+			tmp = ManagerItem_waiting;
 			break;
-      case DownloadManager.STATE_INITIALIZING :
-        tmp = MessageText.getString("ManagerItem.initializing");
-        break;
-      case DownloadManager.STATE_INITIALIZED :
-        tmp = MessageText.getString("ManagerItem.initializing");
-        break;
+		  case DownloadManager.STATE_INITIALIZING :
+			  tmp = ManagerItem_initializing;
+			  break;
+		  case DownloadManager.STATE_INITIALIZED :
+			  tmp = ManagerItem_initializing;
+			  break;
 		  case DownloadManager.STATE_ALLOCATING :
-			tmp = MessageText.getString("ManagerItem.allocating");
+			tmp = ManagerItem_allocating;
 			break;
 		  case DownloadManager.STATE_CHECKING :
-			tmp = MessageText.getString("ManagerItem.checking");
+			tmp = ManagerItem_checking;;
 			break;
 		  case DownloadManager.STATE_FINISHING :
-		    tmp = MessageText.getString("ManagerItem.finishing");
+		    tmp = ManagerItem_finishing;
 			 break;
 		  case DownloadManager.STATE_READY :
-			tmp = MessageText.getString("ManagerItem.ready");
+			tmp = ManagerItem_ready;
 			break;
 		  case DownloadManager.STATE_DOWNLOADING :
-			tmp = MessageText.getString("ManagerItem.downloading");
+			tmp = ManagerItem_downloading;
 			break;
 		  case DownloadManager.STATE_SEEDING :
-         DiskManager diskManager = manager.getDiskManager();
-         if ((diskManager != null) && diskManager.isChecking()) {
-           tmp = MessageText.getString("ManagerItem.seeding").concat(
-                 " + ").concat(
-                 MessageText.getString("ManagerItem.checking"));
-         }
-         else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
-           tmp = MessageText.getString("ManagerItem.superseeding");
-         }
-         else {
-           tmp = MessageText.getString("ManagerItem.seeding");
-         }
-			break;
+         
+			  DiskManager diskManager = manager.getDiskManager();
+			  
+			  if ((diskManager != null) && diskManager.isChecking()) {
+				  tmp = ManagerItem_seeding + " + " + ManagerItem_checking ;
+			  }else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
+				  tmp = ManagerItem_superseeding;
+			  }else{
+				  tmp = ManagerItem_seeding;
+			  }
+			  break;
 		case DownloadManager.STATE_STOPPING :
-			tmp = MessageText.getString("ManagerItem.stopping");
+			tmp = ManagerItem_stopping;
 			break;
 		case DownloadManager.STATE_STOPPED :
-			tmp = MessageText.getString("ManagerItem.stopped");
+			tmp = ManagerItem_stopped;
 			break;
 		  case DownloadManager.STATE_QUEUED :
-			tmp = MessageText.getString("ManagerItem.queued"); //$NON-NLS-1$
+			tmp = ManagerItem_queued;
 			break;
 		  case DownloadManager.STATE_ERROR :
-			tmp = MessageText.getString("ManagerItem.error").concat(": ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$
+			tmp = ManagerItem_error + ": " + manager.getErrorDetails();
 			break;
 			default :
 			tmp = String.valueOf(state);
@@ -447,7 +503,7 @@ DisplayFormatters
 		if (manager.isForceStart() &&
 		    (state == DownloadManager.STATE_SEEDING ||
 		     state == DownloadManager.STATE_DOWNLOADING))
-			tmp = MessageText.getString("ManagerItem.forced") + " " + tmp;
+			tmp = ManagerItem_forced + " " + tmp;
 		return( tmp );
 	}
 
@@ -461,28 +517,28 @@ DisplayFormatters
 
 		switch (state) {
 		  case DownloadManager.STATE_WAITING :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.waiting"); //$NON-NLS-1$
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.waiting");
 			break;
-      case DownloadManager.STATE_INITIALIZING :
-        tmp = MessageText.getDefaultLocaleString("ManagerItem.initializing");
-        break;
-      case DownloadManager.STATE_INITIALIZED :
-        tmp = MessageText.getDefaultLocaleString("ManagerItem.initializing");
-        break;
+		  case DownloadManager.STATE_INITIALIZING :
+			  tmp = MessageText.getDefaultLocaleString("ManagerItem.initializing");
+			  break;
+		  case DownloadManager.STATE_INITIALIZED :
+			  tmp = MessageText.getDefaultLocaleString("ManagerItem.initializing");
+			  break;
 		  case DownloadManager.STATE_ALLOCATING :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.allocating"); //$NON-NLS-1$
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.allocating");
 			break;
 		  case DownloadManager.STATE_CHECKING :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.checking"); //$NON-NLS-1$
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.checking");
 			break;
 		  case DownloadManager.STATE_FINISHING :
-		    tmp = MessageText.getDefaultLocaleString("ManagerItem.finishing"); //$NON-NLS-1$
+		    tmp = MessageText.getDefaultLocaleString("ManagerItem.finishing");
 		    break;
          case DownloadManager.STATE_READY :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.ready"); //$NON-NLS-1$
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.ready");
 			break;
 		  case DownloadManager.STATE_DOWNLOADING :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.downloading"); //$NON-NLS-1$
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.downloading");
 			break;
 		  case DownloadManager.STATE_SEEDING :
 		  	if (manager.getDiskManager().isChecking()) {
@@ -492,20 +548,20 @@ DisplayFormatters
 		  	}
 		  	else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
 
-		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.superseeding"); //$NON-NLS-1$
+		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.superseeding");
 		  	}
 		  	else {
-		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding"); //$NON-NLS-1$
+		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding");
 		  	}
 		  	break;
 		  case DownloadManager.STATE_STOPPING :
 		  	tmp = MessageText.getDefaultLocaleString("ManagerItem.stopping");
 		  	break;
 		  case DownloadManager.STATE_STOPPED :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.stopped"); //$NON-NLS-1$
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.stopped"); 
 			break;
 		  case DownloadManager.STATE_QUEUED :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.queued"); //$NON-NLS-1$
+			tmp = MessageText.getDefaultLocaleString("ManagerItem.queued"); 
 			break;
 		  case DownloadManager.STATE_ERROR :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.error").concat(": ").concat(manager.getErrorDetails()); //$NON-NLS-1$ //$NON-NLS-2$

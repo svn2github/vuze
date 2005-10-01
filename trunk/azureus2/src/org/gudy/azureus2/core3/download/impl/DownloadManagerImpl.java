@@ -1233,34 +1233,55 @@ DownloadManagerImpl
   		return( torrent );
   	}
 
-
+ 	private String	cached_save_dir;
+	private String	cached_save_file;
+	private String	cached_save_dir_and_file;
+ 	  	
   	public String 
 	getTorrentSaveDirAndFile(
 		boolean	follow_links ) 
   	{	  
- 		if ( torrent_save_file == null ){
- 			
- 			return( torrent_save_dir );
- 		}
- 		
-  		String res = torrent_save_dir;
+  			// this can be called quite often - cache results for perf reasons
   		
-  		if ( !res.endsWith( File.separator )){
+  		String	save_file	= torrent_save_file;
+  		String	save_dir	= torrent_save_dir;
   		
-  			res += File.separator;
+  		if ( save_file == cached_save_file && save_dir == cached_save_dir ){
   			
+  			return( cached_save_dir_and_file );
   		}
   		
- 		res += torrent_save_file;
+  		String	res;
+  		
+ 		if ( save_file == null ){
+ 			
+ 			res	= save_dir;
+ 			
+ 		}else{
  		
- 		if ( follow_links ){
- 			
- 			File	link = download_manager_state.getFileLink( new File( res ));
- 			
- 			if ( link != null ){
- 				
- 				res = link.toString();
- 			}
+ 			res = save_dir;
+  		
+	  		if ( !res.endsWith( File.separator )){
+	  		
+	  			res += File.separator;
+	  			
+	  		}
+	  		
+	 		res += save_file;
+	 		
+	 		if ( follow_links ){
+	 			
+	 			File	link = download_manager_state.getFileLink( new File( res ));
+	 			
+	 			if ( link != null ){
+	 				
+	 				res = link.toString();
+	 			}
+	 		}
+	 		
+	 		cached_save_dir				= save_dir;
+	 		cached_save_file			= save_file;
+	 		cached_save_dir_and_file	= res;
  		}
  		
  		return( res );
