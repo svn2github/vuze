@@ -28,6 +28,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 
 import com.aelitis.azureus.core.networkmanager.impl.VirtualChannelSelectorImpl;
@@ -39,6 +40,9 @@ public class VirtualChannelSelector {
   public static final int OP_WRITE  = SelectionKey.OP_WRITE;
 
   private boolean SAFE_SELECTOR_MODE_ENABLED = COConfigurationManager.getBooleanParameter( "network.tcp.enable_safe_selector_mode" );
+  
+  private static final int MAX_SAFEMODE_SELECTORS = 100;
+  
 
   private VirtualChannelSelectorImpl selector_impl;
   
@@ -102,14 +106,23 @@ public class VirtualChannelSelector {
           VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)entry.getKey();
           ArrayList channels = (ArrayList)entry.getValue();
           
-          if( channels.size() < 55 ) {  //there's room in the current selector
+          if( channels.size() < 60 ) {  //there's room in the current selector
             sel.register( channel, listener, attachment );
             channels.add( channel );
             return;
           }
         }
         
-        //we couldnt find room in any of the existing selectors, so start up a new one
+        //we couldnt find room in any of the existing selectors, so start up a new one if allowed
+        
+        //max limit to the number of Selectors we are allowed to create
+        if( selectors.size() >= MAX_SAFEMODE_SELECTORS ) {
+      	  String msg = "Error: MAX_SAFEMODE_SELECTORS reached [" +selectors.size()+ "], no more socket channels can be registered. Too many peer connections.";
+      	  Debug.out( msg );
+      	  listener.selectFailure( this, channel, attachment, new Throwable( msg ) );  //reject registration    	  
+      	  return;
+        }
+        
         VirtualChannelSelectorImpl sel = new VirtualChannelSelectorImpl( this, op, pause );
         ArrayList chans = new ArrayList();
         selectors.put( sel, chans );
