@@ -43,7 +43,7 @@ public class PeersItem
   /** Default Constructor */
   public PeersItem(String sTableID) {
     super("peers", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
-    setRefreshInterval(INTERVAL_LIVE);
+    setRefreshInterval(10);		// slow refresh as getTrackerScrapeResponse is relatively expensive
   }
 
   public void refresh(TableCell cell) {

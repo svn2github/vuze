@@ -38,7 +38,7 @@ public class TrackerStatusItem
 {
   public TrackerStatusItem(String sTableID) {
     super("tracker", POSITION_LAST, 90, sTableID);
-    setRefreshInterval(INTERVAL_LIVE);
+    setRefreshInterval(10);		// slow refresh as getTrackerStatus is relatively expensive
   }
 
   public void refresh(TableCell cell) {

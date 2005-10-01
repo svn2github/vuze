@@ -43,7 +43,7 @@ public class SeedsItem
   /** Default Constructor */
   public SeedsItem(String sTableID) {
     super("seeds", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
-    setRefreshInterval(INTERVAL_LIVE);
+    setRefreshInterval(10);		// slow refresh as getTrackerScrapeResponse is relatively expensive
   }
 
   public void refresh(TableCell cell) {
