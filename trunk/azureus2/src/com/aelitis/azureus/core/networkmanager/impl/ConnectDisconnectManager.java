@@ -44,16 +44,24 @@ public class ConnectDisconnectManager {
   public static int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 5;  //NOTE: WinXP SP2 limits to 10 max at any given time
   static {
     MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = COConfigurationManager.getIntParameter( "network.max.simultaneous.connect.attempts" );
-    MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - 2;
-    if( MIN_SIMULTANIOUS_CONNECT_ATTEMPTS < 1 ) {
-      MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0 ? 0 : 1;  //max 0 = outbound disabled
+    
+    if( MAX_SIMULTANIOUS_CONNECT_ATTEMPTS < 1 ) { //should never happen, but hey
+   	 MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 1;
+   	 COConfigurationManager.setParameter( "network.max.simultaneous.connect.attempts", 1 );
     }
+    
+    MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - 2;
+    
+    if( MIN_SIMULTANIOUS_CONNECT_ATTEMPTS < 1 ) {
+      MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 1;
+    }
+
     COConfigurationManager.addParameterListener( "network.max.simultaneous.connect.attempts", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = COConfigurationManager.getIntParameter( "network.max.simultaneous.connect.attempts" );
         MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - 2;
         if( MIN_SIMULTANIOUS_CONNECT_ATTEMPTS < 1 ) {
-          MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0 ? 0 : 1;  //max 0 = outbound disabled
+          MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 1;
         }
       }
     });
@@ -429,13 +437,7 @@ public class ConnectDisconnectManager {
    * @param address remote ip+port to connect to
    * @param listener to receive notification of connect attempt success/failure
    */
-  public void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {
-    if( MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0 ) { //outbound connects are disabled, so fail immediately
-      LGLogger.log( "Aborting connect attempt to [" +address+ "]: Outbound connects disabled in config." );
-      listener.connectFailure( new Throwable( "Outbound connects disabled in config: MAX_SIMULTANIOUS_CONNECT_ATTEMPTS == 0" ) );
-      return;
-    }
-    
+  public void requestNewConnection( InetSocketAddress address, ConnectListener listener ) {    
     ConnectionRequest cr = new ConnectionRequest( address, listener );
     try{
       new_canceled_mon.enter();

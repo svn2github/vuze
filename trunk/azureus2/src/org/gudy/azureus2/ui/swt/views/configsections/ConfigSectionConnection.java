@@ -151,7 +151,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
     
     if (userMode > 0) {
     
-    IntParameter max_connects = new IntParameter(cServer, "network.max.simultaneous.connect.attempts");
+    IntParameter max_connects = new IntParameter(cServer, "network.max.simultaneous.connect.attempts", 1, 100, false, false );
     formData = new FormData();
     formData.top = new FormAttachment(peer_sources_group);
     formData.left = new FormAttachment(0, 0);  // 2 params for Pre SWT 3.0

@@ -42,6 +42,7 @@ CHANGE: Core  | DHT - removed cache-distance metrics and added value versions to
 CHANGE: Core  | Reduced thread count by aggregating async listener dispatchers [Parg]
 CHANGE: Core  | Major refactoring of Download and Disk managers [Parg]
 CHANGE: Core  | Download totals don't include hash fails and discards and aren't included in share-ratio calculation [Parg]
+CHANGE: Core  | "Max simultaneous outbound connection attempts" option no longer accepts zero as a disable value [Nolar]
 
 BUGFIX: Core  | Fix interested flag being set sometimes when seeding [Nolar]
 BUGFIX: Core  | Wrong file name returned for stopped simple torrents [Parg]
@@ -54,7 +55,7 @@ BUGFIX: Core  | Don't allow prohibited peer sources to be enabled (ui artifact o
 BUGFIX: Plug  | UPnP fix for picking up changed network interfaces [Parg]
 BUGFIX: UI    | Fixed 100% CPU problem with download bars [Parg]
 BUGFIX: UI    | Fixed UI foregrounding itself on every unverified localhost:6880 socket connection attempt [Nolar]
-
+BUGFIX: Core  | Limit the max number of socket selectors created when in safe selector mode [Nolar]
 
 
 
