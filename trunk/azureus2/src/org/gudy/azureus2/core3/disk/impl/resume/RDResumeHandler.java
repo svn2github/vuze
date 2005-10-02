@@ -368,6 +368,8 @@ RDResumeHandler
 				}catch( Exception e ){
 					
 					Debug.out( "Failed to dump initial resume data to disk" );
+					
+					Debug.printStackTrace( e );
 				}
 			}
 		}catch( Throwable e ){
@@ -622,6 +624,23 @@ RDResumeHandler
 		Map	resume_map = new HashMap();
 		
 		resume_map.put( "data", resume_data );
+		
+			// for a short while (2305 B33 current) we'll save the resume data in any existing locations as well so that
+			// people can regress AZ versions after updating and their resume data will still work.... 
+		
+		Map	old_resume_data = download_manager_state.getResumeData();
+		
+		if ( old_resume_data != null ){
+			
+			Iterator	it = old_resume_data.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Object	key = it.next();
+							
+				resume_map.put( key, resume_data );
+			}
+		}
 		
 		download_manager_state.setResumeData( resume_map );
 		
