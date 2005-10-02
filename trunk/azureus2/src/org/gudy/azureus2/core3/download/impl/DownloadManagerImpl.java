@@ -554,7 +554,7 @@ DownloadManagerImpl
 			 	
 			 	if ( open_for_seeding ){
 			 		
-			 		DiskManagerFactory.setTorrentResumeDataNearlyComplete(download_manager_state, torrent_save_dir, torrent_save_file );
+			 		DiskManagerFactory.setTorrentResumeDataNearlyComplete(download_manager_state);
 
 			 	}else{
 			 		

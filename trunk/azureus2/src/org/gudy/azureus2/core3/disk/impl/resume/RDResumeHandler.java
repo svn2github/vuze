@@ -134,121 +134,61 @@ RDResumeHandler
 				
 				boolean resumeValid = false;
 				
-				byte[] resumeArray = null;
+				byte[] resume_pieces = null;
 				
 				Map partialPieces = null;
 				
-				Map resumeMap = download_manager_state.getResumeData();
+				Map	resume_data = getResumeData();							
 				
-				if ( resumeMap != null ){
+				if ( resume_data != null ){
 					
-						// backward compatability here over path management changes :(
-					
-					String resume_key = getResumeKey();
-					
-				
-					String[]	resume_keys = new String[4];
-			
-						// see bug 869749 for explanation of this mangling
+					try {
 						
-						// unfortunately, if the torrent hasn't been saved and restored then the
-						// mangling with not yet have taken place. So we have to also try the 
-						// original key (see 878015)
-	
-						// also I've introduced canonicalisation into the resume key (2.1.0.5), so until any migration
-						// issues have been resolved we need to support both original + non-canonicalised forms
-				
-					resume_keys[0]	= resume_key;
-					
-					try{
-						resume_keys[1]= new String( resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+						resume_pieces = (byte[])resume_data.get("resume data");
 						
-						// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace( e );
-					}
-					
-					resume_keys[2]	= getCanonicalResumeKey( resume_key );
-					
-					try{
-						resume_keys[3]= new String( resume_keys[2].getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
-						
-						// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
-						
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace( e );
-					}
-				
-					Map resumeDirectory = null;
-					
-					for (int i=0;i<resume_keys.length;i++){
-						
-						String	rk = resume_keys[i];
-						
-						if ( rk != null ){
-								
-							resumeDirectory	= (Map)resumeMap.get(rk);
+						if ( resume_pieces != null ){
 							
-							if ( resumeDirectory != null ){
+							if ( resume_pieces.length != pieces.length ){
+							
+								Debug.out( "Resume data array length mismatch: " + resume_pieces.length + "/" + pieces.length );
 								
-								break;
+								resume_pieces	= null;
 							}
 						}
-					}
-									
-					if ( resumeDirectory != null ){
 						
-						try {
+						partialPieces = (Map)resume_data.get("blocks");
+						
+						resumeValid = ((Long)resume_data.get("valid")).intValue() == 1;
+						
+							// if the torrent download is complete we don't need to invalidate the
+							// resume data
+						
+						if ( isTorrentResumeDataComplete( disk_manager.getDownloadManager())){
 							
-							resumeArray = (byte[])resumeDirectory.get("resume data");
-							
-							if ( resumeArray != null ){
-								
-								if ( resumeArray.length != pieces.length ){
-								
-									Debug.out( "Resume data array length mismatch: " + resumeArray.length + "/" + pieces.length );
+							resume_data_complete	= true;
 									
-									resumeArray	= null;
-								}
-							}
+						}else{
 							
-							partialPieces = (Map)resumeDirectory.get("blocks");
+							resume_data.put("valid", new Long(0));
 							
-							resumeValid = ((Long)resumeDirectory.get("valid")).intValue() == 1;
-							
-								// if the torrent download is complete we don't need to invalidate the
-								// resume data
-							
-							if ( isTorrentResumeDataComplete( disk_manager.getDownloadManager())){
-								
-								resume_data_complete	= true;
-										
-							}else{
-								
-								resumeDirectory.put("valid", new Long(0));
-								
-								download_manager_state.save();
-							}
-							
-						}catch(Exception ignore){
-							
-							// ignore.printStackTrace();
+							saveResumeData( resume_data );
 						}
 						
-					}else{
+					}catch(Exception ignore){
 						
-						// System.out.println( "resume dir not found");
+						// ignore.printStackTrace();
 					}
+					
+				}else{
+					
+					// System.out.println( "resume dir not found");
 				}
 								
-				if ( resumeArray == null ){
+				if ( resume_pieces == null ){
 					
 					resumeValid	= false;
 					
-					resumeArray	= new byte[pieces.length];
+					resume_pieces	= new byte[pieces.length];
 				}
 				
 					// calculate the current file sizes up front for performance reasons
@@ -276,7 +216,7 @@ RDResumeHandler
 					
 					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
 					
-					boolean	ok = resumeArray[i] == 1;
+					boolean	ok = resume_pieces[i] == 1;
 					
 						// valid resume data means that the resume array correctly represents
 						// the state of pieces on disk, be they done or not
@@ -476,40 +416,27 @@ RDResumeHandler
 
 			//build the piece byte[]
 		
-		byte[] resumeData = new byte[pieces.length];
+		byte[] resume_pieces = new byte[pieces.length];
 		
 		if ( !force_recheck ){
 				
-			for (int i = 0; i < resumeData.length; i++) {
+			for (int i = 0; i < resume_pieces.length; i++) {
 		  	
 			  	if ( pieces[i].getDone()){
 			  		
-					resumeData[i] = (byte)1;
+					resume_pieces[i] = (byte)1;
 			  		
 			  	}else{
 			  	
-					resumeData[i] = (byte)0;
+					resume_pieces[i] = (byte)0;
 			  	}
 			}
 		}
 		
-		Map resumeMap = new HashMap();
-	  
-		Map resumeDirectory = new HashMap();
-	  
-	  		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
-	  		// currently fixed by mangling such that decode works
-	  
-		// System.out.println( "writing resume data: key = " + ByteFormatter.nicePrint(path));
-	  
-		String resume_key = getResumeKey();
+		Map	resume_data = new HashMap();
+	  	  
+		resume_data.put( "resume data", resume_pieces );
 		
-		resume_key	= getCanonicalResumeKey( resume_key );
-
-		resumeMap.put(resume_key, resumeDirectory);
-	  
-		resumeDirectory.put("resume data", resumeData);
-	  
 		Map partialPieces = new HashMap();
 	
 		if ( savePartialPieces && !force_recheck ){
@@ -540,7 +467,7 @@ RDResumeHandler
 				}
 			}
 			
-			resumeDirectory.put("blocks", partialPieces);
+			resume_data.put("blocks", partialPieces);
 		}
 		
 			// savePartialPieces has overloaded meanings. It also implies that the download
@@ -550,7 +477,7 @@ RDResumeHandler
 			// to see if they are actually complete.
 			// TODO: fix this up!!!!
 		
-		resumeDirectory.put("valid", new Long( force_recheck?0:(savePartialPieces?1:0)));
+		resume_data.put("valid", new Long( force_recheck?0:(savePartialPieces?1:0)));
 		
 		for (int i=0;i<files.length;i++){
 			
@@ -559,8 +486,6 @@ RDResumeHandler
 		
 	  		// OK, we've got valid resume data and flushed the cache
 	  
-		download_manager_state.setResumeData( resumeMap );
-
 		boolean	is_complete = isTorrentResumeDataComplete( disk_manager.getDownloadManager());
 	
 		if ( was_complete && is_complete ){
@@ -569,54 +494,167 @@ RDResumeHandler
 	  		  	
 		}else{
 	  	
-			download_manager_state.save();
+			saveResumeData( resume_data );
+		}
+	}
+	
+	protected Map
+	getResumeData()
+	{
+		return( getResumeData( disk_manager.getDownloadManager()));
+	}
+	
+	protected static Map
+	getResumeData(
+		DownloadManager		download_manager)
+	{
+		DownloadManagerState download_manager_state = download_manager.getDownloadState();
+		
+		Map resumeMap = download_manager_state.getResumeData();
+		
+		if ( resumeMap != null ){
+			
+				// time to remove this directory based madness - just use a "data" key
+			
+			Map	resume_data = (Map)resumeMap.get( "data" );
+			
+			if ( resume_data != null ){
+				
+				return( resume_data );
+			}
+			
+				// backward compatability here over path management changes :(
+			
+			String	resume_key = 
+				download_manager.getTorrent().isSimpleTorrent()?
+						download_manager.getAbsoluteSaveLocation().getParent():
+						download_manager.getAbsoluteSaveLocation().toString();
+	
+			String[]	resume_keys = new String[4];
+	
+				// see bug 869749 for explanation of this mangling
+				
+				// unfortunately, if the torrent hasn't been saved and restored then the
+				// mangling with not yet have taken place. So we have to also try the 
+				// original key (see 878015)
+
+				// also I've introduced canonicalisation into the resume key (2.1.0.5), so until any migration
+				// issues have been resolved we need to support both original + non-canonicalised forms
+		
+			resume_keys[0]	= resume_key;
+			
+			try{
+				resume_keys[1]= new String( resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+				
+				// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+			
+			String	canonical_resume_key = resume_key;
+			
+			try{
+				canonical_resume_key	= new File( resume_key).getCanonicalFile().toString();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+			
+			resume_keys[2]	= canonical_resume_key;
+			
+			try{
+				resume_keys[3]= new String( resume_keys[2].getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
+				
+				// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+			}
+		
+			Map resumeDirectory = null;
+			
+			for (int i=0;i<resume_keys.length;i++){
+				
+				String	rk = resume_keys[i];
+				
+				if ( rk != null ){
+						
+					resumeDirectory	= (Map)resumeMap.get(rk);
+					
+					if ( resumeDirectory != null ){
+						
+						break;
+					}
+				}
+			}
+			
+				// if we've migrated, move it into the right place
+			
+			if ( resumeDirectory != null ){
+				
+				saveResumeData( download_manager_state, resumeDirectory );
+			}
+			
+			return( resumeDirectory );
+			
+		}else{
+			
+			return( null );
 		}
 	}
 
-		/**
-		 * data_dir must be the parent folder for a simple torrent or the *actual* folder for non-simple
-		 * @param torrent
-		 * @param data_dir
-		 */
+	protected void
+	saveResumeData(
+		Map		resume_data )
+	{
+		saveResumeData( disk_manager.getDownloadManager().getDownloadState(), resume_data );
+	}
+	
+	protected static void
+	saveResumeData(
+		DownloadManagerState		download_manager_state,
+		Map							resume_data )
+	{		
+		Map	resume_map = new HashMap();
+		
+		resume_map.put( "data", resume_data );
+		
+		download_manager_state.setResumeData( resume_map );
+		
+		download_manager_state.save();
+	}
+	
 	
 	public static void
 	setTorrentResumeDataComplete(
-		DownloadManagerState	download_manager_state,
-		String					resume_key  )
+		DownloadManagerState	download_manager_state )
 	{
 		TOTorrent	torrent = download_manager_state.getTorrent();
 		
-		resume_key	= getCanonicalResumeKey( resume_key );
-
 		int	piece_count = torrent.getNumberOfPieces();
 		
-		byte[] resumeData = new byte[piece_count];
+		byte[] resume_pieces = new byte[piece_count];
 		
-		for (int i = 0; i < resumeData.length; i++) {
+		for (int i = 0; i < resume_pieces.length; i++) {
 			
-			resumeData[i] = (byte)1;
+			resume_pieces[i] = (byte)1;
 		}
 
-		Map resumeMap = new HashMap();
-		
-		Map resumeDirectory = new HashMap();
-		
-		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
-		// currently fixed by mangling such that decode works
-		
-		resumeMap.put(resume_key, resumeDirectory);
-		
-		resumeDirectory.put("resume data", resumeData);
+		Map resume_data = new HashMap();
+			
+		resume_data.put( "resume data", resume_pieces );
 		
 		Map partialPieces = new HashMap();
 		
-		resumeDirectory.put("blocks", partialPieces);
+		resume_data.put("blocks", partialPieces );
 		
-		resumeDirectory.put("valid", new Long(1));	
-				
-		download_manager_state.setResumeData( resumeMap );
-		
-		download_manager_state.save();
+		resume_data.put("valid", new Long(1));	
+	
+		saveResumeData( download_manager_state, resume_data );
 	}
 	
 	protected static void
@@ -627,37 +665,35 @@ RDResumeHandler
 	{
 		DownloadManagerState	download_manager_state = download_manager.getDownloadState();
 		
-		String resume_key	= getCanonicalResumeKey( download_manager );
+		Map resume_data = getResumeData( download_manager );
 
-		Map resumeDirectory = getResumeDirectory( download_manager_state, resume_key );
-
-		if ( resumeDirectory == null ){
+		if ( resume_data == null ){
 			
 			return;
 		}
 		
 			// clear any affected pieces
 		
-		byte[]	pieces = (byte[])resumeDirectory.get("resume data");
+		byte[]	resume_pieces = (byte[])resume_data.get("resume data");
 		
 		int	first_piece = file.getFirstPieceNumber();
 		int last_piece	= file.getLastPieceNumber();
 		
-		if ( pieces != null ){
+		if ( resume_pieces != null ){
 			
 			for (int i=first_piece;i<=last_piece;i++){
 				
-				if ( i >= pieces.length ){
+				if ( i >= resume_pieces.length ){
 					
 					break;
 				}
 								
-				pieces[i] = 0;
+				resume_pieces[i] = 0;
 			}
 		}
 			// clear any affected partial pieces
 		
-		Map	partial_pieces = (Map)resumeDirectory.get("blocks");
+		Map	partial_pieces = (Map)resume_data.get("blocks");
 		
 		if ( partial_pieces != null ){
 			
@@ -673,13 +709,7 @@ RDResumeHandler
 				}
 			}
 		}
-		
-			// save back
-		
-		Map resumeMap = new HashMap();
-			
-		resumeMap.put( resume_key, resumeDirectory);
-			
+					
 		if ( recheck ){
 			
 				// TODO: this causes ALL pieces with 0 against them to be rechecked
@@ -687,29 +717,13 @@ RDResumeHandler
 				// a further "partially valid" state (e.g. 2) and mark blocks that need
 				// partial recheck (e.g. with a 2)
 			
-			resumeDirectory.put( "valid", new Long(0));	
+			resume_data.put( "valid", new Long(0));	
 		}
 		
-		download_manager_state.setResumeData( resumeMap );
-		
-		download_manager_state.save();
+		saveResumeData( download_manager_state, resume_data );
 	}
 	
-	protected static String
-	getResumeKey(
-		DownloadManager	dm )
-	{
-		return(
-			dm.getTorrent().isSimpleTorrent()?
-				dm.getAbsoluteSaveLocation().getParent():
-				dm.getAbsoluteSaveLocation().toString());
-	}
-	
-	protected String
-	getResumeKey()
-	{
-		return( getResumeKey( disk_manager.getDownloadManager()));
-	}
+
 	
 	public static void
 	clearResumeData(
@@ -729,27 +743,19 @@ RDResumeHandler
 	
 	public static void
 	setTorrentResumeDataNearlyComplete(
-		DownloadManagerState	download_manager_state,
-		String					torrent_save_dir,
-		String					torrent_save_file )
+		DownloadManagerState	download_manager_state )
 	{
 			// backwards compatability, resume data key is the dir
 		
 		TOTorrent	torrent = download_manager_state.getTorrent();
 		
-		String	resume_key = torrent.isSimpleTorrent()?
-								torrent_save_dir:
-								(torrent_save_dir + File.separator + torrent_save_file );
-		
-		resume_key	= getCanonicalResumeKey( resume_key );
-		
 		long	piece_count = torrent.getNumberOfPieces();
 		
-		byte[] resumeData = new byte[(int)piece_count];
+		byte[] resume_pieces = new byte[(int)piece_count];
 		
-		for (int i = 0; i < resumeData.length; i++) {
+		for (int i = 0; i < resume_pieces.length; i++) {
 			
-			resumeData[i] = (byte)1;
+			resume_pieces[i] = (byte)1;
 		}
 
 			// randomly clear some pieces
@@ -758,29 +764,20 @@ RDResumeHandler
 			
 			int	piece_num = (int)(Math.random()*piece_count);
 						
-			resumeData[piece_num]= 0;
+			resume_pieces[piece_num]= 0;
 		}
 		
 		Map resumeMap = new HashMap();
-		
-		Map resumeDirectory = new HashMap();
-		
-		// We *really* shouldn't be using a localised string as a Map key (see bug 869749)
-		// currently fixed by mangling such that decode works
-		
-		resumeMap.put(resume_key, resumeDirectory);
-		
-		resumeDirectory.put("resume data", resumeData);
+								
+		resumeMap.put( "resume data", resume_pieces);
 		
 		Map partialPieces = new HashMap();
 		
-		resumeDirectory.put("blocks", partialPieces);
+		resumeMap.put("blocks", partialPieces);
 		
-		resumeDirectory.put("valid", new Long(0));	
-			
-		download_manager_state.setResumeData( resumeMap );
-		
-		download_manager_state.save();
+		resumeMap.put("valid", new Long(0));	
+	
+		saveResumeData(download_manager_state,resumeMap);
 	}
 	
 	public static boolean
@@ -793,34 +790,29 @@ RDResumeHandler
 		
 			// backwards compatability, resume data key is the dir
 		
-		String	resume_key = getResumeKey( download_manager );
-		
-		// System.out.println( "resume key = " + resume_key );
-	
-		resume_key	= getCanonicalResumeKey( resume_key );
-		
+		Map	resume_data = getResumeData( download_manager );
+					
 		try{
 			int	piece_count = torrent.getNumberOfPieces();
-		
-			Map resumeDirectory = getResumeDirectory( download_manager_state, resume_key );
-					
-			if ( resumeDirectory != null ){
+							
+			if ( resume_data != null ){
 				
-				byte[] 	resume_data =  (byte[])resumeDirectory.get("resume data");
-				Map		blocks		= (Map)resumeDirectory.get("blocks");
-				boolean	valid		= ((Long)resumeDirectory.get("valid")).intValue() == 1;
+				byte[] 	pieces 	= (byte[])resume_data.get("resume data");
+				Map		blocks	= (Map)resume_data.get("blocks");
+				boolean	valid	= ((Long)resume_data.get("valid")).intValue() == 1;
 				
 					// any partial pieced -> not complete
+				
 				if ( blocks == null || blocks.size() > 0 ){
 					
 					return( false );
 				}
 				
-				if ( valid && resume_data.length == piece_count ){
+				if ( valid && pieces != null && pieces.length == piece_count ){
 					
-					for (int i=0;i<resume_data.length;i++){
+					for (int i=0;i<pieces.length;i++){
 
-						if ( resume_data[i] == 0 ){
+						if ( pieces[i] == 0 ){
 							
 								// missing piece
 							
@@ -837,73 +829,5 @@ RDResumeHandler
 		}	
 		
 		return( false );
-	}
-
-	protected static Map
-	getResumeDirectory(
-		DownloadManagerState	download_manager_state,
-		String					resume_key )
-	{
-		Map resumeMap = download_manager_state.getResumeData();
-		
-		if ( resumeMap != null) {
-		
-				// see bug 869749 for explanation of this mangling
-			
-			String mangled_path;
-			
-			try{
-				mangled_path = new String(resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
-								
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-				
-				mangled_path = resume_key;
-			}
-			
-			Map resumeDirectory = (Map)resumeMap.get( mangled_path );
-			
-			if ( resumeDirectory == null ){
-				
-				// unfortunately, if the torrent hasn't been saved and restored then the
-				// mangling with not yet have taken place. So we have to also try the 
-				// original key (see 878015)
-				
-				resumeDirectory = (Map)resumeMap.get( resume_key );
-			}
-			
-			return( resumeDirectory );
-			
-		}else{
-			
-			return( null );
-		}
-	}
-	
-	protected static String
-	getCanonicalResumeKey(
-		DownloadManager	dm )
-	{
-		TOTorrent	torrent = dm.getTorrent();
-			
-		String	resume_key = getResumeKey( dm );
-	
-		return( getCanonicalResumeKey( resume_key ));
-	}
-	
-	protected static String
-	getCanonicalResumeKey(
-		String		resume_key )
-	{
-		try{
-			resume_key	= new File( resume_key).getCanonicalFile().toString();
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-		}
-		
-		return( resume_key );
 	}
 }

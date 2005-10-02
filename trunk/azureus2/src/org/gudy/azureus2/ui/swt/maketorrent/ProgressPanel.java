@@ -178,7 +178,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 	  DownloadManagerState	download_manager_state = 
 			DownloadManagerStateFactory.getDownloadState( torrent ); 
 
-	  TorrentUtils.setResumeDataCompletelyValid( download_manager_state, save_dir.toString());
+	  TorrentUtils.setResumeDataCompletelyValid( download_manager_state );
 
 	  download_manager_state.save();
      

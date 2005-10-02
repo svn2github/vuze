@@ -127,7 +127,7 @@ Test
 			
 			DownloadManagerState	download_manager_state = DownloadManagerStateFactory.getDownloadState( torrent ); 
 				
-			TorrentUtils.setResumeDataCompletelyValid( download_manager_state, "C:\\temp" );
+			TorrentUtils.setResumeDataCompletelyValid( download_manager_state );
 			
 			download_manager_state.save();
 			

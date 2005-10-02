@@ -716,10 +716,9 @@ TorrentUtils
 	
 	public static void
 	setResumeDataCompletelyValid(
-		DownloadManagerState	download_manager_state,
-		String					data_location )
+		DownloadManagerState	download_manager_state )
 	{
-		DiskManagerFactory.setResumeDataCompletelyValid( download_manager_state, data_location );
+		DiskManagerFactory.setResumeDataCompletelyValid( download_manager_state );
 	}
 	
 	public static String

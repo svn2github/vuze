@@ -215,7 +215,7 @@ ShareResourceFileOrDirImpl
 			DownloadManagerState	download_manager_state = 
 				DownloadManagerStateFactory.getDownloadState( to_torrent ); 
 
-			TorrentUtils.setResumeDataCompletelyValid( download_manager_state, save_dir.toString());
+			TorrentUtils.setResumeDataCompletelyValid( download_manager_state );
 
 			download_manager_state.save();
 			
