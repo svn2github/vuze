@@ -776,7 +776,7 @@ DownloadManagerController
 	    	
 	  				if ( torrent != null && !torrent.isSimpleTorrent()){
 	
-	  					File	save_dir_file	= new File( download_manager.getTorrentSaveDir(), download_manager.getTorrentSaveFile() );
+	  					File	save_dir_file	= download_manager.getAbsoluteSaveLocation();
 	
 	  					if ( save_dir_file.exists() && save_dir_file.isDirectory()){
 		      		

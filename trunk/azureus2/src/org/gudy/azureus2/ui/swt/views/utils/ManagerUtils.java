@@ -49,7 +49,7 @@ public class ManagerUtils {
   
   public static void run(DownloadManager dm) {
     if(dm != null) {
-      Program.launch(dm.getTorrentSaveDirAndFile(true));
+      Program.launch(dm.getSaveLocation().toString());
     }
   }
 
@@ -64,7 +64,7 @@ public class ManagerUtils {
         if(mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
             try
             {
-                PlatformManagerFactory.getPlatformManager().showFile(dm.getTorrentSaveDirAndFile(true));
+                PlatformManagerFactory.getPlatformManager().showFile(dm.getSaveLocation().toString());
                 return;
             }
             catch (PlatformManagerException e)
@@ -73,7 +73,7 @@ public class ManagerUtils {
             }
         }
 
-        Program.launch(dm.getTorrentSaveDir()); // default launcher
+        Program.launch(dm.getSaveLocation().getParent()); // default launcher
     }
   }
   

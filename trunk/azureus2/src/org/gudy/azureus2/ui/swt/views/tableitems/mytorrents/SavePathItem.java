@@ -42,6 +42,6 @@ public class SavePathItem
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     
-    cell.setText((dm == null) ? "" : dm.getTorrentSaveDirAndFile(true));
+    cell.setText((dm == null) ? "" : dm.getSaveLocation().toString());
   }
 }

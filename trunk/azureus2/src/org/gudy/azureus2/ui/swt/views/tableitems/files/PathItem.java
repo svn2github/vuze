@@ -68,9 +68,13 @@ public class PathItem
  
         DownloadManager dm = fileInfo.getDownloadManager();
 
-        String root = dm.getTorrentSaveDir();
-        if( !dm.getTorrent().isSimpleTorrent() ) {
-          root += File.separator + dm.getTorrentSaveFile();
+        File	loc = dm.getSaveLocation();
+        
+        String root;
+        if( dm.getTorrent().isSimpleTorrent() ) {
+        	root = loc.getParent();
+        }else{
+        	root = loc.toString();
         }
          
         int pos = path.indexOf( root );

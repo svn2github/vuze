@@ -570,29 +570,19 @@ Test
 			
 		}
 		
-		public String
-		getTorrentSaveDirAndFile(
-			boolean	follow_links )
+		public File
+		getSaveLocation()
 		{
-			return( null );
+			return( file );
 			
 		}
 		
-		public String
-		getTorrentSaveDir()
+		public File
+		getAbsoluteSaveLocation()
 		{
-			return( file.getParent() );
+			return( file );
 			
 		}
-		
-		public String
-		getTorrentSaveFile()
-		{
-			return( file.getName() );
-			
-		}
-
-	
 	 	public void 
 		setTorrentSaveDir(
 			String sPath )

@@ -55,13 +55,13 @@ DownloadStatsImpl
 	public String
 	getDownloadDirectory()
 	{
-		return( dm.getTorrentSaveDir());
+		return( dm.getSaveLocation().getParent());
 	}
 	
 	public String
 	getTargetFileOrDir()
 	{		
-		return( dm.getTorrentSaveDirAndFile(true));
+		return( dm.getSaveLocation().toString());
 	}
 	
 	public String

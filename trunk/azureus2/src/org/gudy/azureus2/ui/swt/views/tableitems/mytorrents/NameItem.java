@@ -57,7 +57,7 @@ public class NameItem
     //setText returns true only if the text is updated
     if (cell.setText(name)) {
     	if ( dm != null ){
-            Image icon = ImageRepository.getPathIcon(dm.getTorrentSaveDirAndFile(true));
+            Image icon = ImageRepository.getPathIcon(dm.getSaveLocation().toString());
             // cheat for core, since we really know it's a TabeCellImpl and want to use
             // those special functions not available to Plugins
             ((TableCellCore)cell).setImage(icon);

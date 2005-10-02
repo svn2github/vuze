@@ -234,7 +234,7 @@ DiskManagerImpl
 
 		if ( torrent.isSimpleTorrent()){
 			 								
-			piece_mapper.buildFileLookupTables( torrent_files[0], download_manager.getTorrentSaveFile());
+			piece_mapper.buildFileLookupTables( torrent_files[0], download_manager.getAbsoluteSaveLocation().getName());
 
 		}else{
 
@@ -501,7 +501,7 @@ DiskManagerImpl
 	public boolean
 	filesExist()
 	{
-		return( filesExist( download_manager.getTorrentSaveDir()));
+		return( filesExist( download_manager.getAbsoluteSaveLocation().getParent()));
 	}
 
 	protected boolean 
@@ -510,56 +510,13 @@ DiskManagerImpl
 	{
 		if ( !torrent.isSimpleTorrent()){
 			
-			root_dir += File.separator + download_manager.getTorrentSaveFile();
+			root_dir += File.separator + download_manager.getAbsoluteSaveLocation().getName();
 		}
 		
-		File	root_dir_file = new File( root_dir );
-		
-		if ( !root_dir_file.exists()){
+		if ( !root_dir.endsWith( File.separator )){
 			
-				// look for something sensible to report
-			
-		  File current = root_dir_file;
-		  
-		  while( !current.exists()){
-			
-		  	File	parent = current.getParentFile();
-		  	
-		  	if ( parent == null ){
-		  		
-		  		break;
-		  		
-		  	}else if ( !parent.exists()){
-		  		
-		  		current	= parent;
-		  		
-		  	}else{
-		  		
-		  		if ( parent.isDirectory()){
-		  			
-		  			errorMessage = current.toString() + " not found.";
-		  			
-		  		}else{
-		  			
-		  			errorMessage = parent.toString() + " is not a directory.";
-		  		}
-		  		
-		  		return( false );
-		  	}
-		  }
-		  
-		  errorMessage = current + " not found.";
-			  
-		  return false;
-			  
-		}else if ( !root_dir_file.isDirectory()){
-			
-		  errorMessage = root_dir + " is not a directory.";
-			  
-		  return false;	
+			root_dir	+= File.separator;
 		}
-		
-		root_dir	+= File.separator;
 		
 		// System.out.println( "root dir = " + root_dir_file );
 		
@@ -605,8 +562,39 @@ DiskManagerImpl
 					CacheFile	cache_file	= file_info.getCacheFile();
 					File		data_file	= file_info.getFile(true);
 
-					if (!cache_file.exists()){
+					if ( !cache_file.exists()){
 						
+							// look for something sensible to report
+						
+						  File current = data_file;
+						  
+						  while( !current.exists()){
+							
+						  	File	parent = current.getParentFile();
+						  	
+						  	if ( parent == null ){
+						  		
+						  		break;
+						  		
+						  	}else if ( !parent.exists()){
+						  		
+						  		current	= parent;
+						  		
+						  	}else{
+						  		
+						  		if ( parent.isDirectory()){
+						  			
+						  			errorMessage = current.toString() + " not found.";
+						  			
+						  		}else{
+						  			
+						  			errorMessage = parent.toString() + " is not a directory.";
+						  		}
+						  		
+						  		return( false );
+						  	}
+						  }
+						  
 						  errorMessage = data_file.toString() + " not found.";
 						  
 						  return false;
@@ -663,11 +651,11 @@ DiskManagerImpl
 		
 		List btFileList	= piece_mapper.getFileList();
 	
-		String	root_dir = download_manager.getTorrentSaveDir();
+		String	root_dir = download_manager.getAbsoluteSaveLocation().getParent();
 		
 		if ( !torrent.isSimpleTorrent()){
 			
-			root_dir += File.separator + download_manager.getTorrentSaveFile();
+			root_dir += File.separator + download_manager.getAbsoluteSaveLocation().getName();
 		}
 		
 		root_dir	+= File.separator;	
@@ -1279,7 +1267,7 @@ DiskManagerImpl
 	    
 	    String subPath;
 	    
-	    String rPath = download_manager.getTorrentSaveDir();
+	    String rPath = download_manager.getAbsoluteSaveLocation().getParent();
 	    
 	    File destDir;
 	    
@@ -1438,12 +1426,12 @@ DiskManagerImpl
 	      
 	      	//remove the old dir
 	      
-	      File tFile = new File(download_manager.getTorrentSaveDir(), download_manager.getTorrentSaveFile());
+	      File tFile = download_manager.getAbsoluteSaveLocation();
 	      
 	      if (	tFile.isDirectory() && 
 	      		!moveToDir.equals(rPath)){
 	      	
-	      		deleteDataFiles(torrent, download_manager.getTorrentSaveDir(), download_manager.getTorrentSaveFile());
+	      		deleteDataFiles(torrent, tFile.getParent(), tFile.getName());
 	      }
 	        
 	      download_manager.setTorrentSaveDir( moveToDir );
@@ -1778,11 +1766,11 @@ DiskManagerImpl
 			return( new DiskManagerFileInfo[0]);
 		}
 		
-		String	root_dir = download_manager.getTorrentSaveDir();
+		String	root_dir = download_manager.getAbsoluteSaveLocation().getParent();
 		
 		if ( !torrent.isSimpleTorrent()){
 			
-			root_dir += File.separator + download_manager.getTorrentSaveFile();
+			root_dir += File.separator + download_manager.getAbsoluteSaveLocation().getName();
 		}
 		
 		root_dir	+= File.separator;	
@@ -1817,7 +1805,7 @@ DiskManagerImpl
 				
 				if ( torrent.isSimpleTorrent()){
 					
-					path_str = path_str + download_manager.getTorrentSaveFile();
+					path_str = path_str + download_manager.getAbsoluteSaveLocation().getName();
 					
 				}else{
 			        byte[][]path_comps = torrent_file.getPathComponents();

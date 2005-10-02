@@ -239,18 +239,10 @@ DownloadManagerImpl
 	
 	private String	display_name;
 	
+		// for simple torrents this refers to the torrent file itself. For non-simple it refers to the
+		// folder containing the torrent's files
 	
-		// torrent_save_dir is always the directory within which torrent data is being saved. That is, it
-		// never includes the torrent data itself. In particular it DOESN'T include the dir name of a
-		// non-simple torrent
-	
-	private String	torrent_save_dir;
-	
-		// torrent_save_file is the top level file corresponding to the torrent save data location. This
-		// will be the file name for simple torrents and the folder name for non-simple ones
-	
-	private String	torrent_save_file;
-	
+	private File	torrent_save_location;	
   
 	// Position in Queue
 	private int position = -1;
@@ -351,18 +343,15 @@ DownloadManagerImpl
 		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads") );
 	 	
 		torrentFileName = _torrentFileName;
-	
-		torrent_save_dir	= _torrent_save_dir;	
-		torrent_save_file	= _torrent_save_file;
-	
-		while( torrent_save_dir.endsWith( File.separator )){
+		
+		while( _torrent_save_dir.endsWith( File.separator )){
 			
-			torrent_save_dir = torrent_save_dir.substring(0, torrent_save_dir.length()-1 );
+			_torrent_save_dir = _torrent_save_dir.substring(0, _torrent_save_dir.length()-1 );
 		}
 		
 			// readTorrent adjusts the save dir and file to be sensible values
 			
-		readTorrent( _torrent_hash, persistent && !_recovered, _open_for_seeding, _has_ever_been_started );
+		readTorrent( _torrent_save_dir, _torrent_save_file, _torrent_hash, persistent && !_recovered, _open_for_seeding, _has_ever_been_started );
 		
 			// must be after readTorrent, so that any listeners have a TOTorrent
 		
@@ -372,6 +361,8 @@ DownloadManagerImpl
 
 	private void 
 	readTorrent(
+		String		torrent_save_dir,
+		String		torrent_save_file,
 		byte[]		torrent_hash,		// can be null for initial torrents
 		boolean		new_torrent,		// probably equivalend to (torrent_hash == null)????
 		boolean		open_for_seeding,
@@ -520,12 +511,15 @@ DownloadManagerImpl
 			 		torrent_save_file	= display_name;		
 			 	}
 			 }
+
+			 torrent_save_location = new File( torrent_save_dir, torrent_save_file );
 			 
-			 // System.out.println( "after: " + torrent_save_dir + "/" + torrent_save_file );
+			 	// final validity test must be based of potentially linked target location as file
+			 	// may have been re-targetted
 
-			 save_dir_file	= torrent.isSimpleTorrent()?new File( torrent_save_dir ):new File( torrent_save_dir, torrent_save_file );
-
-			 if ( !save_dir_file.exists()){
+			 File	linked_target = getSaveLocation();
+			 
+			 if ( !linked_target.exists()){
 			 	
 			 		// if this isn't a new torrent then we treat the absence of the enclosing folder
 			 		// as a fatal error. This is in particular to solve a problem with the use of
@@ -542,7 +536,7 @@ DownloadManagerImpl
 					
 					if ( has_ever_been_started ){
 			 		
-						throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + save_dir_file.toString()));
+						throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + linked_target.toString()));
 					}
 			 	}
 			 }	
@@ -587,7 +581,7 @@ DownloadManagerImpl
 			 			 
 			 	// only restore the tracker response cache for non-seeds
 	   
-			 if ( DiskManagerFactory.isTorrentResumeDataComplete(download_manager_state, torrent_save_dir, torrent_save_file )) {
+			 if ( DiskManagerFactory.isTorrentResumeDataComplete( this )) {
 			 	
 				  download_manager_state.clearTrackerResponseCache();
 					
@@ -654,7 +648,7 @@ DownloadManagerImpl
 	{
 			// invalidate the cache info in case its now wrong
 		
-		cached_save_file	= null;
+		cached_save_location	= null;
 		
 		DiskManagerFactory.setFileLinks( this, download_manager_state.getFileLinks());
 		
@@ -1237,77 +1231,49 @@ DownloadManagerImpl
   		return( torrent );
   	}
 
- 	private String	cached_save_dir;
-	private String	cached_save_file;
-	private String	cached_save_dir_and_file;
+ 	private File	cached_save_location;
+	private File	cached_save_location_result;
  	  	
-  	public String 
-	getTorrentSaveDirAndFile(
-		boolean	follow_links ) 
+  	public File 
+	getSaveLocation()
   	{	  
   			// this can be called quite often - cache results for perf reasons
   		
-  		String	save_file	= torrent_save_file;
-  		String	save_dir	= torrent_save_dir;
+  		File	save_location	= torrent_save_location;
   		
-  		if ( save_file == cached_save_file && save_dir == cached_save_dir ){
+  		if ( save_location == cached_save_location  ){
   			
-  			return( cached_save_dir_and_file );
+  			return( cached_save_location_result );
   		}
-  		
-  		String	res;
-  		
- 		if ( save_file == null ){
+  			  			 			 			
+ 		File	res = download_manager_state.getFileLink( save_location );
  			
- 			res	= save_dir;
- 			
- 		}else{
- 		
- 			res = save_dir;
-  		
-	  		if ( !res.endsWith( File.separator )){
-	  		
-	  			res += File.separator;
-	  			
-	  		}
-	  		
-	 		res += save_file;
-	 		
-	 		if ( follow_links ){
-	 			
-	 			File	link = download_manager_state.getFileLink( new File( res ));
-	 			
-	 			if ( link != null ){
-	 				
-	 				res = link.toString();
-	 			}
-	 		}
-	 		
-	 		cached_save_dir				= save_dir;
-	 		cached_save_file			= save_file;
-	 		cached_save_dir_and_file	= res;
+ 		if ( res == null ){
+ 				
+ 			res	= save_location;
  		}
+ 		
+ 		cached_save_location		= save_location;
+ 		cached_save_location_result	= res;
  		
  		return( res );
  	}
-
-  	public String
-	getTorrentSaveDir()
-  	{		
-  		return( torrent_save_dir );
+	
+  	public File
+  	getAbsoluteSaveLocation()
+  	{
+  		return( torrent_save_location );
   	}
-	
-	public String
-	getTorrentSaveFile()
-	{
-		return( torrent_save_file );
-	}
-	
+  	
 	public void 
 	setTorrentSaveDir(
 		String 	new_dir ) 
 	{
-		if ( new_dir.equals( torrent_save_dir )){
+		File	old_location = torrent_save_location;
+		
+		String	old_dir = old_location.getParent();
+		
+		if ( new_dir.equals( old_dir )){
 			
 			return;
 		}
@@ -1318,9 +1284,9 @@ DownloadManagerImpl
   		// The UI can call it as long as the torrent is stopped.
   		// Calling it while a download is active will in general result in unpredictable behaviour!
  
-		updateFileLinks( torrent_save_dir, new_dir );
+		updateFileLinks( old_dir, new_dir );
 
-		torrent_save_dir	= new_dir;
+		torrent_save_location = new File( new_dir, old_location.getName());
 
 		controller.fileInfoChanged();
 	}
@@ -1953,7 +1919,7 @@ DownloadManagerImpl
   
 	public void
 	removeTrackerListener(
-			DownloadManagerTrackerListener	listener )
+		DownloadManagerTrackerListener	listener )
 	{
   		tracker_listeners.removeListener( listener );
 	}
@@ -1961,7 +1927,7 @@ DownloadManagerImpl
 	protected void 
 	deleteDataFiles() 
 	{
-		DiskManagerFactory.deleteDataFiles(torrent, torrent_save_dir, torrent_save_file );
+		DiskManagerFactory.deleteDataFiles(torrent, torrent_save_location.getParent(), torrent_save_location.getName());
 	}
   
 	protected void 
@@ -2061,7 +2027,7 @@ DownloadManagerImpl
 		  
 		  	// old file will be a "file" for simple torrents, a dir for non-simple
 		  
-		  File	old_file = new File( getTorrentSaveDirAndFile( false ));
+		  File	old_file = torrent_save_location;
 		  
 		  try{
 			  old_file = old_file.getCanonicalFile();
@@ -2093,7 +2059,7 @@ DownloadManagerImpl
 			  return;
 		  }
 		  
-		  File new_file = new File( new_parent_dir, getTorrentSaveFile());
+		  File new_file = new File( new_parent_dir, old_file.getName());
 		  
 		  if ( FileUtil.renameFile( old_file, new_file )){
 			  

@@ -218,17 +218,17 @@ StatsWriterImpl
 						
 						writeTag( "DOWNLOAD_STATUS", DisplayFormatters.formatDownloadStatusDefaultLocale( dm));
 						
-						writeTag( "DOWNLOAD_DIR", dm.getTorrentSaveDirAndFile(true));
+						writeTag( "DOWNLOAD_DIR", dm.getSaveLocation().toString());
 						
 						if ( torrent != null ){
 								
 							if ( torrent.isSimpleTorrent()){
 							
-								writeTag( "TARGET_FILE", dm.getTorrentSaveDirAndFile(true));
+								writeTag( "TARGET_FILE", dm.getSaveLocation().toString());
 								
 							}else{
 								
-								writeTag( "TARGET_DIR", dm.getTorrentSaveDirAndFile(true));
+								writeTag( "TARGET_DIR", dm.getSaveLocation().toString());
 							}
 						}
 						

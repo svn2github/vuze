@@ -797,7 +797,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       manager.getDisplayName(),
 	  torrent==null?null:LocaleUtil.getSingleton().getCurrentTorrentEncoding( torrent ),
 	  DisplayFormatters.formatByteCountToKiBEtc(manager.getSize()),
-      manager.getTorrentSaveDirAndFile(true),
+      manager.getSaveLocation().toString(),
       ByteFormatter.nicePrintTorrentHash(torrent),
       manager.getNbPieces(),
       manager.getPieceLength(),

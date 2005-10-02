@@ -1743,7 +1743,7 @@ public class MyTorrentsView
     
     int choice;
     if (confirmDataDelete && bDeleteData) {
-      String path = dm.getTorrentSaveDirAndFile(true);
+      String path = dm.getSaveLocation().toString();
       
       MessageBox mb = new MessageBox(cTablePanel.getShell(), SWT.ICON_WARNING | SWT.YES | SWT.NO);
       

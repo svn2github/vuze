@@ -144,10 +144,7 @@ RDResumeHandler
 					
 						// backward compatability here over path management changes :(
 					
-					String resume_key = 
-						torrent.isSimpleTorrent()?
-							disk_manager.getDownloadManager().getTorrentSaveDir():
-							disk_manager.getDownloadManager().getTorrentSaveDirAndFile(false);
+					String resume_key = getResumeKey();
 					
 				
 					String[]	resume_keys = new String[4];
@@ -225,10 +222,7 @@ RDResumeHandler
 								// if the torrent download is complete we don't need to invalidate the
 								// resume data
 							
-							if ( isTorrentResumeDataComplete( 
-									download_manager_state, 
-									disk_manager.getDownloadManager().getTorrentSaveDir(),
-									disk_manager.getDownloadManager().getTorrentSaveFile())){
+							if ( isTorrentResumeDataComplete( disk_manager.getDownloadManager())){
 								
 								resume_data_complete	= true;
 										
@@ -476,10 +470,7 @@ RDResumeHandler
 			return;
 		}
 
-		boolean	was_complete = isTorrentResumeDataComplete( 
-									download_manager_state, 
-									disk_manager.getDownloadManager().getTorrentSaveDir(), 
-									disk_manager.getDownloadManager().getTorrentSaveFile());
+		boolean	was_complete = isTorrentResumeDataComplete( disk_manager.getDownloadManager());
 		
 		DiskManagerPiece[] pieces	= disk_manager.getPieces();
 
@@ -511,10 +502,7 @@ RDResumeHandler
 	  
 		// System.out.println( "writing resume data: key = " + ByteFormatter.nicePrint(path));
 	  
-		String resume_key = 
-			torrent.isSimpleTorrent()?
-				disk_manager.getDownloadManager().getTorrentSaveDir():
-				disk_manager.getDownloadManager().getTorrentSaveDirAndFile(false);
+		String resume_key = getResumeKey();
 		
 		resume_key	= getCanonicalResumeKey( resume_key );
 
@@ -573,12 +561,8 @@ RDResumeHandler
 	  
 		download_manager_state.setResumeData( resumeMap );
 
-		boolean	is_complete = 
-			isTorrentResumeDataComplete( 
-				download_manager_state, 
-				disk_manager.getDownloadManager().getTorrentSaveDir(),
-				disk_manager.getDownloadManager().getTorrentSaveFile());
-
+		boolean	is_complete = isTorrentResumeDataComplete( disk_manager.getDownloadManager());
+	
 		if ( was_complete && is_complete ){
 	 
 	  		// no change, no point in writing
@@ -711,6 +695,22 @@ RDResumeHandler
 		download_manager_state.save();
 	}
 	
+	protected static String
+	getResumeKey(
+		DownloadManager	dm )
+	{
+		return(
+			dm.getTorrent().isSimpleTorrent()?
+				dm.getAbsoluteSaveLocation().getParent():
+				dm.getAbsoluteSaveLocation().toString());
+	}
+	
+	protected String
+	getResumeKey()
+	{
+		return( getResumeKey( disk_manager.getDownloadManager()));
+	}
+	
 	public static void
 	clearResumeData(
 		DownloadManager			download_manager,
@@ -785,17 +785,15 @@ RDResumeHandler
 	
 	public static boolean
 	isTorrentResumeDataComplete(
-		DownloadManagerState	download_manager_state,
-		String					torrent_save_dir,
-		String					torrent_save_file )
+		DownloadManager			download_manager )
 	{
+		DownloadManagerState	download_manager_state = download_manager.getDownloadState();
+		
 		TOTorrent	torrent = download_manager_state.getTorrent();
 		
 			// backwards compatability, resume data key is the dir
 		
-		String	resume_key = torrent.isSimpleTorrent()?
-								torrent_save_dir:
-								(torrent_save_dir + File.separator + torrent_save_file );
+		String	resume_key = getResumeKey( download_manager );
 		
 		// System.out.println( "resume key = " + resume_key );
 	
@@ -889,9 +887,7 @@ RDResumeHandler
 	{
 		TOTorrent	torrent = dm.getTorrent();
 			
-		String	resume_key = torrent.isSimpleTorrent()?
-							dm.getTorrentSaveDir():
-							(dm.getTorrentSaveDir() + File.separator + dm.getTorrentSaveFile());
+		String	resume_key = getResumeKey( dm );
 	
 		return( getCanonicalResumeKey( resume_key ));
 	}

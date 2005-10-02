@@ -180,16 +180,12 @@ DownloadManager
     public void 
 	setTorrentFileName(String string);
 	
-	public String
-	getTorrentSaveDirAndFile(
-		boolean		follow_links );
+    public File
+    getAbsoluteSaveLocation();
+    
+	public File
+	getSaveLocation();
 	
-	public String
-	getTorrentSaveDir();
-	
-	public String
-	getTorrentSaveFile();
-
 		/**
 		 * changes the save directory. Only call this if you know what you are doing!!!!
 		 * @param sPath

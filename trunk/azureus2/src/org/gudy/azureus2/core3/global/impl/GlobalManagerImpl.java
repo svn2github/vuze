@@ -1278,21 +1278,11 @@ public class GlobalManagerImpl
 		      	}
 		      }
 		      
+		      File	save_loc = dm.getAbsoluteSaveLocation();
 		      dmMap.put("persistent", new Long(dm.isPersistent()?1:0));
 		      dmMap.put("torrent", dm.getTorrentFileName());
-		      dmMap.put("save_dir", dm.getTorrentSaveDir());
-		      dmMap.put("save_file", dm.getTorrentSaveFile());
-          
-		      	//TODO: remove after later release...it makes sure older versions can load this version's downloads.config
-		      
-		      if ( dm.getTorrentSaveFile() == null ){
-		      	
-		      	dmMap.put("path", new File( dm.getTorrentSaveDir()).getAbsolutePath() );
-		      	
-		      }else{
-		      
-		      	dmMap.put("path", new File( dm.getTorrentSaveDir(), dm.getTorrentSaveFile() ).getAbsolutePath() );
-		      }
+		      dmMap.put("save_dir", save_loc.getParent());
+		      dmMap.put("save_file", save_loc.getName());
 		      dmMap.put("uploads", new Long(dm_stats.getMaxUploads()));
 		      dmMap.put("maxdl", new Long( dm_stats.getDownloadRateLimitBytesPerSecond() ));
 		      dmMap.put("maxul", new Long( dm_stats.getUploadRateLimitBytesPerSecond() ));
