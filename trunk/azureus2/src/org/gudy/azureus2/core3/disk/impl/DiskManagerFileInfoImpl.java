@@ -239,6 +239,11 @@ DiskManagerFileInfoImpl
 	return length;
   }
 
+	public int	
+	getIndex()
+	{
+		return( file_index );
+	}
   /**
    * @return
    */

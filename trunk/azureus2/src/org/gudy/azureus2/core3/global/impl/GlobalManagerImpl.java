@@ -985,9 +985,54 @@ public class GlobalManagerImpl
     }
   }
   
+  public boolean 
+  pauseDownload(
+	DownloadManager	manager ) 
+  {
+	  if ( manager.getTorrent() == null ) {
+	  
+		  return( false );
+	  }
+	      
+	  int state = manager.getState();
+	      
+	  if ( 	state != DownloadManager.STATE_STOPPED &&
+			state != DownloadManager.STATE_ERROR &&
+			state != DownloadManager.STATE_STOPPING ) {
+	        
+	      try{
+	      
+	    	  HashWrapper	wrapper = manager.getTorrent().getHashWrapper();
+	    	  
+	    	  boolean	forced = manager.isForceStart();
+	        	
+	    	  manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
+	          
+	    	  try{  
+	    		  paused_list_mon.enter();
+	          
+	    		  paused_list.add( new Object[]{wrapper, new Boolean(forced)});
+	    		  
+	    	  }finally{
+	    		  
+	    		  paused_list_mon.exit();  
+	    	  }   
+	    	  
+	    	  return( true );
+	    	  
+	      }catch( TOTorrentException e ){
+	    	  
+	    	  Debug.printStackTrace( e );  
+	      }
+      }
+	  
+	  return( false );
+  }
+
   
-  
-  public void pauseDownloads() {
+  public void 
+  pauseDownloads() 
+  {
     for( Iterator i = managers_cow.iterator(); i.hasNext(); ) {
       DownloadManager manager = (DownloadManager)i.next();
       
@@ -1013,19 +1058,21 @@ public class GlobalManagerImpl
         	finally {  
         		paused_list_mon.exit();  
         	}
+        }catch( TOTorrentException e ) {
+        	Debug.printStackTrace( e );  
         }
-        catch( TOTorrentException e ) {  Debug.printStackTrace( e );  }
       }
     }
   }
   
-  
-  public boolean canPauseDownloads() {
-    for( Iterator i = managers_cow.iterator(); i.hasNext(); ) {
-      DownloadManager manager = (DownloadManager)i.next();
-      
+  	public boolean 
+  	canPauseDownload(
+  		DownloadManager	manager ) 
+  	{	
+     
       if( manager.getTorrent() == null ) {
-        continue;
+
+    	  return( false );
       }
       
       int state = manager.getState();
@@ -1034,14 +1081,77 @@ public class GlobalManagerImpl
           state != DownloadManager.STATE_ERROR &&
           state != DownloadManager.STATE_STOPPING ) {
         
-        return true;
+        return( true );
+      }
+
+      return false;
+  	}
+  
+  public boolean 
+  canPauseDownloads() 
+  {
+    for( Iterator i = managers_cow.iterator(); i.hasNext(); ) {
+      DownloadManager manager = (DownloadManager)i.next();
+      
+      if ( canPauseDownload( manager )){
+    	  
+    	  return( true );
       }
     }
-    
     return false;
   }
 
 
+  public void 
+  resumeDownload(
+	DownloadManager	manager )
+  {
+	boolean	resume_ok 	= false;
+	boolean force		= false;
+		
+	try {  
+		paused_list_mon.enter();
+		
+	    for( int i=0; i < paused_list.size(); i++ ) {
+	    	
+	      	Object[]	data = (Object[])paused_list.get(i);
+	      	
+	        HashWrapper hash = (HashWrapper)data[0];
+	        
+	        force = ((Boolean)data[1]).booleanValue();
+	        
+	        DownloadManager this_manager = getDownloadManager( hash.getHash() );
+	      
+	        if ( this_manager == manager ){
+	        	
+	        	resume_ok	= true;
+	        	
+	        	paused_list.remove(i);
+	        	
+	        	break;
+	        }
+	    }
+	}finally{  
+	    	
+		paused_list_mon.exit();  
+   	}
+	    
+	if ( resume_ok ){
+	    	
+		if ( manager.getState() == DownloadManager.STATE_STOPPED ) {
+  	          
+			if ( force ){
+        			
+        		manager.setForceStart(true);
+        		
+        	}else{
+          	
+        		manager.startDownloadInitialized( true );
+        	}
+        }   	
+	}
+  }
+  
   public void resumeDownloads() {
     try {  paused_list_mon.enter();
       for( int i=0; i < paused_list.size(); i++ ) {     

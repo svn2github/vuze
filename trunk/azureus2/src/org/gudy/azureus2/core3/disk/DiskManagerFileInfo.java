@@ -85,6 +85,8 @@ DiskManagerFileInfo
 	
 	public boolean isSkipped();
 	
+	public int	getIndex();
+	
 	public DiskManager getDiskManager();
 
 	public DownloadManager getDownloadManager();

@@ -131,11 +131,17 @@ DownloadManager
    * @param remove_data remove the data file after stopping
    */
  
-	public void stopIt(final int _stateAfterStopping, final boolean remove_torrent, final boolean remove_data );
+	public void 
+	stopIt(
+		int 	stateAfterStopping, 
+		boolean remove_torrent, 
+		boolean remove_data );
 
+	public boolean
+	pause();
 	
-	
-	
+	public void
+	resume();
 	
 	public GlobalManager
 	getGlobalManager();

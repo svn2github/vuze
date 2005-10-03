@@ -385,6 +385,16 @@ Test
       
     }
     
+	public boolean
+	pause()
+	{
+		return( false );
+	}
+	
+	public void
+	resume()
+	{
+	}
     
     public boolean isAZMessagingEnabled() { return true;  }
 

@@ -1890,7 +1890,13 @@ DiskManagerImpl
 						{
 							return( torrent_file.getLength());
 						}
-												
+							
+						public int	
+						getIndex()
+						{
+							return( file_index );
+						}
+						
 						public int 
 						getNbPieces()
 						{

@@ -1286,12 +1286,24 @@ public class TableView
     if (table == null || table.isDisposed())
       return;
 
-    TableItem[] tis = table.getSelection();
-    for (int i = 0; i < tis.length; i++) {
-      TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
-      if (row != null)
-        runner.run(row);
-    }
+     	List	rows = new ArrayList();
+    	
+	    TableItem[] tis = table.getSelection();
+	    for (int i = 0; i < tis.length; i++) {
+	      TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
+	      if (row != null){
+	       rows.add( row );
+	      }
+	    }
+	    
+	    TableRowCore[]	rows_a = (TableRowCore[])rows.toArray( new TableRowCore[rows.size()] );
+	    
+    	runner.runAll(rows_a);
+
+    	for (int i=0;i<rows_a.length;i++){
+
+	        runner.run(rows_a[i]);
+	    }
   }
 
   public void runForAllRows(GroupTableRowRunner runner) {
@@ -1365,7 +1377,17 @@ public class TableView
     /** Code to run 
      * @param row TableRowCore to run code against
      */
-    public abstract void run(TableRowCore row);
+    public void 
+    run(
+    	TableRowCore 	row)
+    {
+    }
+    
+    public void
+    runAll(
+    	TableRowCore[]	rows )
+    {
+    }
   }
   
   /** Listener primarily for Menu Selection.  Implement run(TableRowCore) and it
@@ -1385,10 +1407,7 @@ public class TableView
     public void handleEvent(Event e) {
       event = e;
       runForSelectedRows(this);
-    }
-    
-    public abstract void run(TableRowCore row);
-    
+    }    
   }
   
   /** Handle sorting of a column based on clicking the Table Header */

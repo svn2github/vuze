@@ -133,6 +133,13 @@ GlobalManager
      */
     public boolean canResumeDownloads();
     
+    public boolean
+    pauseDownload(
+    	DownloadManager	dm );
+    
+    public void
+    resumeDownload(
+    	DownloadManager	dm );
     
     public boolean
     isSeedingOnly();

@@ -133,34 +133,22 @@ public class FilesView
         itemPriority.setEnabled(true);
         
         boolean open = true;
-        boolean	skipped = false;
         
         for (int i = 0; i < infos.length; i++) {
           DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)infos[i];
           if (fileInfo.getAccessMode() != DiskManagerFileInfo.READ){
             open = false;
           }
-          if (fileInfo.isSkipped()){
-        	  skipped = true;
-          }
         }
         itemOpen.setEnabled(open);
-        int	dm_state = download_manager.getState();
         
-        boolean	stopped =	dm_state == DownloadManager.STATE_STOPPED || 
-							dm_state == DownloadManager.STATE_ERROR;
-				 
-        itemRename.setEnabled( download_manager.isPersistent() && stopped );
+        itemRename.setEnabled( download_manager.isPersistent());
         
         boolean	completed = download_manager.isDownloadComplete();
         
         	// no point in changing priority of completed downloads
         
         itemPriority.setEnabled( !completed );
-        
-        itemHigh.setEnabled( stopped || !skipped );
-        itemLow.setEnabled( stopped || !skipped );
-        itemSkipped.setEnabled( stopped );
       }
     });       
 
@@ -192,104 +180,198 @@ public class FilesView
           
     			if ( res != null ){
         	  
-    				File	target = new File( res );
-        	  
-    				boolean	ok = false;
-        	  
-    				if ( target.exists()){
-        		 
-    					if ( target.equals( existing_file )){
-        			  
-    						// nothing to do
-    						
-    					}else if ( !existing_file.exists()){
-
-    							// using a new file, make sure we recheck
-    						
-							download_manager.recheckFile( fileInfo );
-
-    						ok	= true;
-    						
-    					}else{
-        			  
-    						MessageBox mb = new MessageBox(getComposite().getShell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
-	        		    
-    						mb.setText(MessageText.getString("FilesView.rename.confirm.delete.title"));
-	        		    		       		    
-    						mb.setMessage(MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()}));
-	        		    		
-    						if ( mb.open() == SWT.OK ){
-	        		    	
-    							if ( FileUtil.deleteWithRecycle( existing_file )){
-	        		    		
-    								ok	= true;
-	        		    		    			
-    									// new file, recheck 
-    								
-    								download_manager.recheckFile( fileInfo );    								
-    							}else{
-	        		    	
-    								LGLogger.logRepeatableAlert( 
-    										LGLogger.AT_ERROR, "Failed to delete '" + existing_file.toString() + "'" );
-    							}
-    						}
-    					}
-    				}else{
-        		  
-    					if ( existing_file.exists()){
-        			  
-    						ok = FileUtil.renameFile( existing_file, target );
-        			  
-    						if ( !ok ){
-        				  
-    							LGLogger.logRepeatableAlert( 
-            		    			LGLogger.AT_ERROR, "Failed to rename '" + existing_file.toString() + "'" );
-     
-    						}
-    					}else{
-        			  
-    						ok = true;
-    					}
-    				}
-        	  
-    				if ( ok ){
-        		  
-    					fileInfo.setLink( target );
-        		  
-    					row.refresh( true );
-    				}
+    				boolean	paused = false;
+    				
+    				try{
+    					paused = download_manager.pause();
+    					
+	    				File	target = new File( res );
+	        	  
+	    				boolean	ok = false;
+	        	  
+	    				if ( target.exists()){
+	        		 
+	    					if ( target.equals( existing_file )){
+	        			  
+	    						// nothing to do
+	    						
+	    					}else if ( !existing_file.exists()){
+	
+	    							// using a new file, make sure we recheck
+	    						
+								download_manager.recheckFile( fileInfo );
+	
+	    						ok	= true;
+	    						
+	    					}else{
+	        			  
+	    						MessageBox mb = new MessageBox(getComposite().getShell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
+		        		    
+	    						mb.setText(MessageText.getString("FilesView.rename.confirm.delete.title"));
+		        		    		       		    
+	    						mb.setMessage(MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()}));
+		        		    		
+	    						if ( mb.open() == SWT.OK ){
+		        		    	
+	    							if ( FileUtil.deleteWithRecycle( existing_file )){
+		        		    		
+	    								ok	= true;
+		        		    		    			
+	    									// new file, recheck 
+	    								
+	    								download_manager.recheckFile( fileInfo );    								
+	    							}else{
+		        		    	
+	    								LGLogger.logRepeatableAlert( 
+	    										LGLogger.AT_ERROR, "Failed to delete '" + existing_file.toString() + "'" );
+	    							}
+	    						}
+	    					}
+	    				}else{
+	        		  
+	    					if ( existing_file.exists()){
+	        			  
+	    						ok = FileUtil.renameFile( existing_file, target );
+	        			  
+	    						if ( !ok ){
+	        				  
+	    							LGLogger.logRepeatableAlert( 
+	            		    			LGLogger.AT_ERROR, "Failed to rename '" + existing_file.toString() + "'" );
+	     
+	    						}
+	    					}else{
+	        			  
+	    						ok = true;
+	    					}
+	    				}
+	        	  
+	    				if ( ok ){
+	        		  
+	    					fileInfo.setLink( target );
+	        		  
+	    					row.refresh( true );
+	    				}
+    				
+	    			}finally{
+	    				
+	    				if ( paused ){
+	    					
+	    					download_manager.resume();
+	    				}
+	    			}
     			}
     		}
     	});
     
-    itemHigh.addListener(SWT.Selection, new SelectedTableRowsListener() {
-      public void run(TableRowCore row) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-        fileInfo.setPriority(true);
-        setSkipped( fileInfo, false );
-      }
-    });
+    itemHigh.addListener(SWT.Selection, 
+    	new SelectedTableRowsListener() 
+    	{
+    		public void
+    		runAll(
+    			TableRowCore[]	rows )
+    		{
+    			changePriority( 0, rows );
+    		}
+    	});
         
-    itemLow.addListener(SWT.Selection, new SelectedTableRowsListener() {
-      public void run(TableRowCore row) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-        fileInfo.setPriority(false);
-        setSkipped( fileInfo, false );
-      }
-    });
+    itemLow.addListener(SWT.Selection, 
+	   	new SelectedTableRowsListener() 
+    	{
+    		public void
+    		runAll(
+    			TableRowCore[]	rows )
+    		{
+    			changePriority( 1, rows );
+    		}
+    	});
         
-    itemSkipped.addListener(SWT.Selection, new SelectedTableRowsListener() {
-      public void run(TableRowCore row) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-        setSkipped( fileInfo, true );
-      }
-    });
+    itemSkipped.addListener(SWT.Selection, 
+	   	new SelectedTableRowsListener() 
+    	{
+    		public void
+    		runAll(
+    			TableRowCore[]	rows )
+    		{
+    			changePriority( 2, rows );
+    		}
+    	});
 
     new MenuItem(menu, SWT.SEPARATOR);
 
     super.fillMenu(menu);
   }
   
+  protected void
+  changePriority(
+	  int				type ,
+	  TableRowCore[]	rows )
+  {
+		DiskManagerFileInfo[] file_infos	= new DiskManagerFileInfo[rows.length];
+			
+		boolean	pause = false;
+		
+		for (int i=0;i<file_infos.length;i++){
+				
+			DiskManagerFileInfo file_info = file_infos[i] = (DiskManagerFileInfo)rows[i].getDataSource(true);
+			
+			if ( file_info.isSkipped() && type != 2 ){
+				
+				pause	= true;
+				
+			}else if ( type == 2 && !file_info.isSkipped()){
+				
+				pause	= true;
+			}
+		}
+		
+		try{
+			if ( pause ){
+				
+				pause = download_manager.pause();
+				
+				if ( pause ){
+						// we've got to pick up the new info as stopping causes skeleton
+						// info to be returned and this is the only info that will
+						// accept changes in storage strategy...
+					
+					DiskManagerFileInfo[] new_info = download_manager.getDiskManagerFileInfo();
+					
+					for (int i=0;i<file_infos.length;i++){
+						
+						file_infos[i] = new_info[file_infos[i].getIndex()];
+					}
+				}
+			}
+		
+			for (int i=0;i<file_infos.length;i++){
+
+				DiskManagerFileInfo	fileInfo = file_infos[i];
+				
+				if ( type == 0){
+					
+		   			fileInfo.setPriority(true);
+		   			
+					setSkipped( fileInfo, false );
+					
+				}else if ( type == 1 ){
+					
+		 			fileInfo.setPriority(false);
+		 			
+					setSkipped( fileInfo, false );
+					
+				}else{
+					
+					setSkipped( fileInfo, true );
+				}
+			}
+		}finally{
+			
+			if ( pause ){
+			
+				download_manager.resume();
+			}
+		}
+  }
   protected void
   setSkipped(
 	 DiskManagerFileInfo	info,

@@ -1016,6 +1016,18 @@ DownloadManagerImpl
   		controller.stopIt( state_after_stopping, remove_torrent, remove_data );
   	}
   	
+	public boolean
+	pause()
+	{
+		return( globalManager.pauseDownload( this ));
+	}
+	
+	public void
+	resume()
+	{
+		globalManager.resumeDownload( this );
+	}
+	
 	public boolean 
 	getOnlySeeding() 
 	{
