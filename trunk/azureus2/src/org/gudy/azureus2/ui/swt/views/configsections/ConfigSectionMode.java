@@ -29,24 +29,27 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 
 
-public class ConfigSectionInterfaceMode implements UISWTConfigSection {
+public class ConfigSectionMode implements UISWTConfigSection {
 	  public String configSectionGetParentSection() {
-		    return ConfigSection.SECTION_INTERFACE;
+		    return ConfigSection.SECTION_ROOT;
 		  }
 
 	public String configSectionGetName() {
@@ -64,6 +67,7 @@ public class ConfigSectionInterfaceMode implements UISWTConfigSection {
     GridData gridData;
     GridLayout layout;
     String initsMode = "";
+    final String[] text = {""};
     
     int userMode = COConfigurationManager.getIntParameter("User Mode");
 
@@ -118,10 +122,16 @@ public class ConfigSectionInterfaceMode implements UISWTConfigSection {
     cExplain.setLayoutData(gridData);
     
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final Label label = new Label(cExplain, SWT.WRAP);
+    final Link link = new Link(cExplain, SWT.WRAP);
     gridData.horizontalSpan = 2;
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.mode." + initsMode);
+    link.setLayoutData(gridData);
+	text[0] = MessageText.getString("ConfigView.section.mode." + initsMode);
+	link.setText(text[0]);
+	link.addListener (SWT.Selection, new Listener () {
+		public void handleEvent(Event event) {
+			Program.launch(event.text);
+		}
+	});
     
     Listener radioGroup = new Listener () {
     	public void handleEvent (Event event) {
@@ -138,7 +148,8 @@ public class ConfigSectionInterfaceMode implements UISWTConfigSection {
 
 		    Button button = (Button) event.widget;
 		    button.setSelection (true);
-		    Messages.setLanguageText(label, "ConfigView.section.mode." + (String)button.getData("sMode"));
+		    text[0] = MessageText.getString("ConfigView.section.mode." + (String)button.getData("sMode"));
+			link.setText(text[0]);
 		    COConfigurationManager.setParameter("User Mode", Integer.parseInt((String)button.getData("iMode")));
 		    }
     };

@@ -22,12 +22,20 @@
 package org.gudy.azureus2.ui.swt.config.wizard;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
@@ -48,6 +56,10 @@ public class WelcomePanel extends AbstractWizardPanel {
   public void show() {
     wizard.setTitle(MessageText.getString("configureWizard.welcome.title"));
     
+    String initsMode = "";
+    final String[] text = {""};
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+    
     Composite rootPanel = wizard.getPanel();
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
@@ -60,11 +72,92 @@ public class WelcomePanel extends AbstractWizardPanel {
     layout.numColumns = 1;
     panel.setLayout(layout);     
 
-    Label label = new Label(panel,SWT.WRAP);
+    Label label0 = new Label(panel,SWT.WRAP);
     gridData = new GridData();
     gridData.widthHint = 380;    
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label,"configureWizard.welcome.message");
+    label0.setLayoutData(gridData);
+    Messages.setLanguageText(label0,"configureWizard.welcome.message");
+    
+    label0 = new Label(panel, SWT.NULL);
+    label0 = new Label(panel, SWT.NULL);
+    
+    Label label1 = new Label(panel,SWT.WRAP);
+    gridData = new GridData();
+    gridData.widthHint = 380;
+    label1.setLayoutData(gridData);
+    Messages.setLanguageText(label1,"configureWizard.welcome.usermodes");
+    
+    //// USER MODE GROUP ////
+    gridData = new GridData();
+    gridData.heightHint = 20;
+    final Group gRadio = new Group(panel, SWT.WRAP);
+    Messages.setLanguageText(gRadio, "ConfigView.section.mode.title");
+    gRadio.setLayoutData(gridData);
+    gRadio.setLayout(new RowLayout(SWT.HORIZONTAL));
+
+    Button button0 = new Button (gRadio, SWT.RADIO);
+    Messages.setLanguageText(button0, "ConfigView.section.mode.Beginner");
+    button0.setData("iMode", "0");
+    button0.setData("sMode", "Beginner.text");
+    
+    Button button1 = new Button (gRadio, SWT.RADIO);
+    Messages.setLanguageText(button1, "ConfigView.section.mode.Intermediate");
+    button1.setData("iMode", "1");
+    button1.setData("sMode", "Intermediate.text");
+    
+    Button button2 = new Button (gRadio, SWT.RADIO);
+    Messages.setLanguageText(button2, "ConfigView.section.mode.Advanced");
+    button2.setData("iMode", "2");
+    button2.setData("sMode", "Advanced.text");
+    
+    if ( userMode == 0) {
+    	initsMode = "Beginner.text";
+    	button0.setSelection(true);
+    } else if ( userMode == 1) {
+    	initsMode = "Intermediate.text";
+    	button1.setSelection(true);
+    } else {
+    	initsMode = "Advanced.text";
+    	button2.setSelection(true);
+    }
+    
+    final Link link = new Link(panel, SWT.WRAP);
+    gridData = new GridData();
+    gridData.widthHint = 380;    
+    link.setLayoutData(gridData);
+	text[0] = MessageText.getString("ConfigView.section.mode." + initsMode);
+	link.setText(text[0]);
+	link.addListener (SWT.Selection, new Listener () {
+		public void handleEvent(Event event) {
+			Program.launch(event.text);
+		}
+	});
+    
+    Listener radioGroup = new Listener () {
+    	public void handleEvent (Event event) {
+    		
+    		Control [] children = gRadio.getChildren ();
+    		
+    		for (int j=0; j<children.length; j++) {
+    			 Control child = children [j];
+    			 if (child instanceof Button) {
+    				 Button button = (Button) child;
+    				 if ((button.getStyle () & SWT.RADIO) != 0) button.setSelection (false);
+    			 }
+    		}
+
+		    Button button = (Button) event.widget;
+		    button.setSelection (true);
+		    text[0] = MessageText.getString("ConfigView.section.mode." + (String)button.getData("sMode"));
+			link.setText(text[0]);
+		    COConfigurationManager.setParameter("User Mode", Integer.parseInt((String)button.getData("iMode")));
+		    }
+    };
+    
+    button0.addListener (SWT.Selection, radioGroup);
+    button1.addListener (SWT.Selection, radioGroup);
+    button2.addListener (SWT.Selection, radioGroup);
+    
   }
   
   

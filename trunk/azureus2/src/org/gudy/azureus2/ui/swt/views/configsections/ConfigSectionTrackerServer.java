@@ -103,6 +103,8 @@ ConfigSectionTrackerServer
       // MAIN TAB DATA
 
    	// row
+    
+    if(userMode>0) { // XXX
 
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.tracker.ip");
@@ -376,7 +378,7 @@ ConfigSectionTrackerServer
     passwordEnableWeb.setAdditionalActionPerformer(enabler);
     passwordEnableTorrent.setAdditionalActionPerformer(enabler);
     
-    if(userMode>0) { // XXX
+
     
     	// Poll Group //
     
