@@ -121,13 +121,13 @@ public class WelcomePanel extends AbstractWizardPanel {
     	button2.setSelection(true);
     }
     
-    final Link link = new Link(panel, SWT.WRAP);
+    final Label label = new Label(panel, SWT.WRAP);
     gridData = new GridData();
     gridData.widthHint = 380;    
-    link.setLayoutData(gridData);
+    label.setLayoutData(gridData);
 	text[0] = MessageText.getString("ConfigView.section.mode." + initsMode);
-	link.setText(text[0]);
-	link.addListener (SWT.Selection, new Listener () {
+	label.setText(text[0]);
+	label.addListener (SWT.Selection, new Listener () {
 		public void handleEvent(Event event) {
 			Program.launch(event.text);
 		}
@@ -149,7 +149,7 @@ public class WelcomePanel extends AbstractWizardPanel {
 		    Button button = (Button) event.widget;
 		    button.setSelection (true);
 		    text[0] = MessageText.getString("ConfigView.section.mode." + (String)button.getData("sMode"));
-			link.setText(text[0]);
+		    label.setText(text[0]);
 		    COConfigurationManager.setParameter("User Mode", Integer.parseInt((String)button.getData("iMode")));
 		    }
     };
