@@ -368,6 +368,14 @@ public class FileUtil {
   
   public static void
   writeResilientFile(
+	File		file,
+	Map			data )
+  {
+	  writeResilientFile( file.getParentFile(), file.getName(), data, false );
+  }
+  
+  public static void
+  writeResilientFile(
     File		parent_dir,
   	String		file_name,
 	Map			data,
@@ -476,6 +484,13 @@ public class FileUtil {
  		}
  		
  		return( readResilientFile( parent_dir, file_name, use_backups ));
+	}
+	
+	public static Map
+	readResilientFile(
+		File		file )
+	{
+		return( readResilientFile( file.getParentFile(),file.getName(),false));
 	}
 	
  	public static Map

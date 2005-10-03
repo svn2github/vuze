@@ -30,11 +30,13 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Comparator;
 import java.util.Collections;
+import java.util.Set;
 
 import com.aelitis.azureus.core.AzureusCoreListener;
 
@@ -1753,5 +1755,80 @@ public class GlobalManagerImpl
 			
 			writer.exdent();
 	    }
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		if ( args.length == 0 ){
+			args = new String[]{ 
+					"C:\\temp\\downloads.config", 
+					"C:\\temp\\downloads-9-3-05.config", 
+					"C:\\temp\\merged.config" };
+			
+		}else if ( args.length != 3 ){
+			
+			System.out.println( "Usage: newer_config_file older_config_file save_config_file" );
+			
+			return;
+		}
+		
+		try{
+			Map	map1 = FileUtil.readResilientFile( new File(args[0]));
+			Map	map2 = FileUtil.readResilientFile( new File(args[1]));
+			
+			List	downloads1 = (List)map1.get( "downloads" );
+			List	downloads2 = (List)map2.get( "downloads" );
+			
+			Set	torrents = new HashSet();
+			
+			Iterator	it1 = downloads1.iterator();
+			
+			while( it1.hasNext()){
+				
+				Map	m = (Map)it1.next();
+				
+				byte[]	hash = (byte[])m.get( "torrent_hash" );
+				
+				System.out.println( "1:" + ByteFormatter.nicePrint(hash));
+				
+				torrents.add( new HashWrapper( hash ));
+			}
+			
+			List	to_add = new ArrayList();
+			
+			Iterator	it2 = downloads2.iterator();
+			
+			while( it2.hasNext()){
+				
+				Map	m = (Map)it2.next();
+				
+				byte[]	hash = (byte[])m.get( "torrent_hash" );
+				
+				HashWrapper	wrapper = new HashWrapper( hash );
+				
+				if ( torrents.contains( wrapper )){
+					
+					System.out.println( "-:" + ByteFormatter.nicePrint(hash));
+					
+				}else{
+					
+					System.out.println( "2:" + ByteFormatter.nicePrint(hash));
+					
+					to_add.add( m );
+				}
+			}
+			
+			downloads1.addAll( to_add );
+			
+			System.out.println( to_add.size() + " copied from " + args[1] + " to " + args[2]);
+			
+			FileUtil.writeResilientFile( new File( args[2]), map1 );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }
