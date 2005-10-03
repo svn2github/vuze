@@ -216,7 +216,14 @@ public class BTPeerIDByteDecoder {
         return name;
       }
     
-      
+      String mldonkey = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
+      if (mldonkey.equals("ML")) {
+    	  String name = "mldonkey ";
+    	  name = name.concat(String.valueOf(peerID[3]) + ".");
+    	  name = name.concat(String.valueOf(peerID[5]) + ".");
+    	  name = name.concat(String.valueOf(peerID[7]));
+    	  return name;
+      }
             
       iFirstNonZeroPos = 20;
       for( int i=0; i < 20; i++ ) {
