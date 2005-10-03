@@ -358,13 +358,20 @@ Initializer
 	  	
 	    if ( azureus_core != null && !close_already_in_progress ){
 
-	    	if ( for_restart ){
-	    			
-	    		azureus_core.restart();
-	    			
-	    	}else{
-	    			
-	    		azureus_core.stop();
+	    	try{
+		    	if ( for_restart ){
+		    			
+		    		azureus_core.restart();
+		    			
+		    	}else{
+		    			
+		    		azureus_core.stop();
+		    	}
+	    	}catch( Throwable e ){
+	    		
+	    			// don't let any failure here cause the stop operation to fail
+	    		
+	    		Debug.out( e );
 	    	}
 	    }
 	}
