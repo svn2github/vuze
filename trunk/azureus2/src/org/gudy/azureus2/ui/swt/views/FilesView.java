@@ -402,13 +402,17 @@ public class FilesView
 	
 	if ( existing_file.exists()){
 		
-		if ( MessageBoxWindow.open( 
-				"FilesView.messagebox.skip.id",
-				SWT.OK,
-				getComposite().getDisplay(), 
-				MessageBoxWindow.ICON_WARNING,
-				MessageText.getString( "FilesView.rename.confirm.delete.title" ),
-				MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK ){
+			// when transitioning from skipped -> non-skipped we don't need to prompt the user as its a DND
+			// file that's being deleted
+		
+		if ( 	(!skipped) ||
+				MessageBoxWindow.open( 
+					"FilesView.messagebox.skip.id",
+					SWT.OK,
+					getComposite().getDisplay(), 
+					MessageBoxWindow.ICON_WARNING,
+					MessageText.getString( "FilesView.rename.confirm.delete.title" ),
+					MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK ){
     	
 			if ( FileUtil.deleteWithRecycle( existing_file )){
     		
