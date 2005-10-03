@@ -128,11 +128,10 @@ public class FilesView
         if (infos.length == 0) {
           itemOpen.setEnabled(false);
           itemPriority.setEnabled(false);
+          itemRename.setEnabled(false);
           return;
         }
-        itemOpen.setEnabled(false);
-        itemPriority.setEnabled(true);
-        
+         
         boolean open = true;
         
         for (int i = 0; i < infos.length; i++) {
@@ -141,15 +140,19 @@ public class FilesView
             open = false;
           }
         }
-        itemOpen.setEnabled(open);
+        
+        	// we can only open files if they are read-only
+        
+        itemOpen.setEnabled( open );
+        
+        	// can't rename files for non-persistent downloads (e.g. shares) as these
+        	// are managed "externally"
         
         itemRename.setEnabled( download_manager.isPersistent());
-        
-        boolean	completed = download_manager.isDownloadComplete();
-        
+                
         	// no point in changing priority of completed downloads
         
-        itemPriority.setEnabled( !completed );
+        itemPriority.setEnabled( !download_manager.isDownloadComplete() );
       }
     });       
 
