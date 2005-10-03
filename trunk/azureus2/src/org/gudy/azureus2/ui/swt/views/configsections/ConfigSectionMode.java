@@ -35,8 +35,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -122,16 +120,16 @@ public class ConfigSectionMode implements UISWTConfigSection {
     cExplain.setLayoutData(gridData);
     
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    final Link link = new Link(cExplain, SWT.WRAP);
+    //final Link link = new Link(cExplain, SWT.WRAP);
     gridData.horizontalSpan = 2;
-    link.setLayoutData(gridData);
+   //link.setLayoutData(gridData);
 	text[0] = MessageText.getString("ConfigView.section.mode." + initsMode);
-	link.setText(text[0]);
-	link.addListener (SWT.Selection, new Listener () {
-		public void handleEvent(Event event) {
-			Program.launch(event.text);
-		}
-	});
+	//link.setText(text[0]);
+	//link.addListener (SWT.Selection, new Listener () {
+	//	public void handleEvent(Event event) {
+	//		Program.launch(event.text);
+	//	}
+	//});
     
     Listener radioGroup = new Listener () {
     	public void handleEvent (Event event) {
@@ -149,7 +147,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
 		    Button button = (Button) event.widget;
 		    button.setSelection (true);
 		    text[0] = MessageText.getString("ConfigView.section.mode." + (String)button.getData("sMode"));
-			link.setText(text[0]);
+			//link.setText(text[0]);
 		    COConfigurationManager.setParameter("User Mode", Integer.parseInt((String)button.getData("iMode")));
 		    }
     };
