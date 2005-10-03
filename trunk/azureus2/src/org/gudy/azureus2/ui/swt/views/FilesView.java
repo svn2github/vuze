@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.swt.MessageBoxWindow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -205,13 +206,13 @@ public class FilesView
 	    						
 	    					}else{
 	        			  
-	    						MessageBox mb = new MessageBox(getComposite().getShell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
-		        		    
-	    						mb.setText(MessageText.getString("FilesView.rename.confirm.delete.title"));
-		        		    		       		    
-	    						mb.setMessage(MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()}));
-		        		    		
-	    						if ( mb.open() == SWT.OK ){
+	    						if ( MessageBoxWindow.open( 
+	    								"FilesView.messagebox.rename.id",
+	    								SWT.OK,
+	    								getComposite().getDisplay(), 
+	    								MessageBoxWindow.ICON_WARNING,
+	    								MessageText.getString( "FilesView.rename.confirm.delete.title" ),
+	    								MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK ){
 		        		    	
 	    							if ( FileUtil.deleteWithRecycle( existing_file )){
 		        		    		
@@ -398,13 +399,13 @@ public class FilesView
 	
 	if ( existing_file.exists()){
 		
-		MessageBox mb = new MessageBox(getComposite().getShell(), SWT.ICON_WARNING | SWT.OK | SWT.CANCEL);
-	    
-		mb.setText(MessageText.getString("FilesView.rename.confirm.delete.title"));
-    		       		    
-		mb.setMessage(MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()}));
-    		
-		if ( mb.open() == SWT.OK ){
+		if ( MessageBoxWindow.open( 
+				"FilesView.messagebox.skip.id",
+				SWT.OK,
+				getComposite().getDisplay(), 
+				MessageBoxWindow.ICON_WARNING,
+				MessageText.getString( "FilesView.rename.confirm.delete.title" ),
+				MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK ){
     	
 			if ( FileUtil.deleteWithRecycle( existing_file )){
     		

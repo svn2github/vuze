@@ -268,6 +268,7 @@ ConfigurationManager
   public boolean setParameter(String parameter,List value) {
   	try {
   		propertiesMap.put(parameter,value);
+  		notifyParameterListeners(parameter);
   	} catch(Exception e) {
   		Debug.printStackTrace(e);
   		return false;
@@ -292,6 +293,7 @@ ConfigurationManager
   public boolean setParameter(String parameter,Map value) {
   	try {
   		propertiesMap.put(parameter,value);
+  		notifyParameterListeners(parameter);
   	} catch(Exception e) {
   		Debug.printStackTrace(e);
   		return false;

@@ -32,6 +32,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -48,10 +49,13 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import java.applet.Applet;
 import java.io.File;
+import java.util.HashMap;
 
 public class ConfigSectionInterface implements UISWTConfigSection {
   Label passwordMatch;
 
+  private ParameterListener		decisions_parameter_listener;
+  
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_ROOT;
   }
@@ -64,6 +68,11 @@ public class ConfigSectionInterface implements UISWTConfigSection {
   }
 
   public void configSectionDelete() {
+	  
+	  if ( decisions_parameter_listener != null ){
+		  
+		  COConfigurationManager.removeParameterListener( "MessageBoxWindow.decisions", decisions_parameter_listener );
+	  }
   }
   
 
@@ -339,7 +348,42 @@ public class ConfigSectionInterface implements UISWTConfigSection {
     gridData.horizontalSpan = 4;
     confirm_removal.setLayoutData( gridData );
     
+    	// clear remembered decisions
     
+    final Label clear_label = new Label(cArea, SWT.NULL);
+    Messages.setLanguageText(clear_label, "ConfigView.section.interface.cleardecisions");
+
+    final Button clear_decisions = new Button(cArea, SWT.PUSH);
+    Messages.setLanguageText(clear_decisions, "ConfigView.section.interface.cleardecisionsbutton"); 
+
+    clear_decisions.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event event) {
+      	
+    	  COConfigurationManager.setParameter("MessageBoxWindow.decisions", new HashMap());
+      }
+    });
+    
+    decisions_parameter_listener = 
+    	new ParameterListener()
+    	{
+    		public void 
+    		parameterChanged(
+    			String parameterName)
+    		{
+    			boolean	enabled = COConfigurationManager.getMapParameter("MessageBoxWindow.decisions", new HashMap()).size() > 0;
+    				    	
+    			clear_label.setEnabled( enabled );
+    			clear_decisions.setEnabled( enabled );
+    		}
+    	};
+    	
+    decisions_parameter_listener.parameterChanged( null );
+    
+    COConfigurationManager.addParameterListener( "MessageBoxWindow.decisions", decisions_parameter_listener );
+    
+    label = new Label(cArea, SWT.NULL);
+    label = new Label(cArea, SWT.NULL);
+
     // password
     
     label = new Label(cArea, SWT.NULL);
