@@ -71,7 +71,10 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     MainWindow.getWindow().removeManagerView(manager);
     manager.removeListener(this);
     
-    folder.setSelection(0);
+    if ( !folder.isDisposed()){
+    	
+    	folder.setSelection(0);
+    }
     
     //Don't ask me why, but without this an exception is thrown further
     // (in folder.dispose() )
