@@ -225,7 +225,7 @@ DownloadManagerImpl
 					public int
 					getType()
 					{
-						return( UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE );
+						return( UIManagerEvent.ET_OPEN_TORRENT_VIA_URL );
 					}
 					
 					public Object
