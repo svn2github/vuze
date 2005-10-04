@@ -80,7 +80,7 @@ DiskManagerFileInfoImpl
   	public String
   	getCacheFileOwnerName()
   	{
-  		return( diskManager.getName());
+  		return( DiskManagerImpl.getName( torrent_file.getTorrent()));
   	}
   	
 	public TOTorrentFile
@@ -183,13 +183,13 @@ DiskManagerFileInfoImpl
 	  return( file );
   	}
 
-	public void
+	public boolean
 	setLink(
 		File	link_destination )
 	{
-		diskManager.getDownloadManager().getDownloadState().setFileLink( getFile(false), link_destination );
+		Debug.out( "setLink: download must be stopped" );
 		
-		diskManager.getDownloadManager().getDownloadState().save();
+		return( false );
 	}
 
 	public File
@@ -198,11 +198,13 @@ DiskManagerFileInfoImpl
 		return( diskManager.getDownloadManager().getDownloadState().getFileLink( getFile( false )));
 	}
 	
-	public void
+	public boolean
 	setStorageType(
 		int		type )
 	{
 		Debug.out( "setStorageType: download must be stopped" );
+		
+		return( false );
 	}
 	
 	public int

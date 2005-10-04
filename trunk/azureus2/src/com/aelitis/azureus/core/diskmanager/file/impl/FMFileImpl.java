@@ -87,7 +87,7 @@ FMFileImpl
 		manager			= _manager;
 		type			= _type;
 		
-		linked_file		= manager.getLinkedFile( _file );
+		linked_file		= manager.getFileLink( _file );
 		
 		boolean	file_was_created	= false;
 		
@@ -299,7 +299,7 @@ FMFileImpl
 			this_mon.enter();
 		
 			String	new_canonical_path;
-			File	new_linked_file	= manager.getLinkedFile( new_unlinked_file );
+			File	new_linked_file	= manager.getFileLink( new_unlinked_file );
 			
 			try{
         

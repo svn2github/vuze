@@ -172,7 +172,7 @@ public class FilesView
     		run(
     			TableRowCore row) 
     		{
-    			final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+    			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
    
     			FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
     			File	existing_file = fileInfo.getFile(true);
@@ -189,6 +189,10 @@ public class FilesView
     				try{
     					paused = download_manager.pause();
     					
+    						// gotta pick up the skeleton entry if we paused
+    					
+    					fileInfo = download_manager.getDiskManagerFileInfo()[fileInfo.getIndex()];
+
 	    				File	target = new File( res );
 	        	  
 	    				boolean	ok = false;
@@ -211,6 +215,7 @@ public class FilesView
 	        			  
 	    						if ( MessageBoxWindow.open( 
 	    								"FilesView.messagebox.rename.id",
+	    								SWT.OK | SWT.CANCEL,
 	    								SWT.OK,
 	    								getComposite().getDisplay(), 
 	    								MessageBoxWindow.ICON_WARNING,
@@ -251,7 +256,16 @@ public class FilesView
 	        	  
 	    				if ( ok ){
 	        		  
-	    					fileInfo.setLink( target );
+	    					if ( !fileInfo.setLink( target )){
+	    						
+	    						MessageBox mb = new MessageBox(getComposite().getShell(),SWT.ICON_ERROR | SWT.OK );
+	    					    
+	    						mb.setText(MessageText.getString("FilesView.rename.failed.title"));
+	    					    
+	    						mb.setMessage(MessageText.getString("FilesView.rename.failed.text"));
+	    					    
+	    						mb.open();	    					
+	    					}
 	        		  
 	    					row.refresh( true );
 	    				}
@@ -314,17 +328,42 @@ public class FilesView
 			
 		boolean	pause = false;
 		
+			// if the user has defaulted the storage switch option to "don't use compact" then
+			// we don't need to pause the download etc.
+		
+		boolean	compact_disabled = MessageBoxWindow.getRememberedDecision( 
+										"FilesView.messagebox.skip.id",
+										SWT.YES | SWT.NO ) == SWT.NO;
+		
 		for (int i=0;i<file_infos.length;i++){
-				
+					
 			DiskManagerFileInfo file_info = file_infos[i] = (DiskManagerFileInfo)rows[i].getDataSource(true);
-			
+				
 			if ( file_info.isSkipped() && type != 2 ){
 				
-				pause	= true;
+					// skipped -> normal
 				
+				if ( compact_disabled ){
+					
+						// compact is disabled but we have a residual compact file 
+					
+					pause = file_info.getStorageType() == DiskManagerFileInfo.ST_COMPACT;
+					
+				}else{
+					
+					pause	= true;
+				}
+					
 			}else if ( type == 2 && !file_info.isSkipped()){
 				
-				pause	= true;
+					// normal -> skipped
+
+					// if compact is disabled this transition doesn't require pausing
+				
+				if ( !compact_disabled ){
+				
+					pause	= true;
+				}
 			}
 		}
 		
@@ -355,17 +394,17 @@ public class FilesView
 					
 		   			fileInfo.setPriority(true);
 		   			
-					setSkipped( fileInfo, false );
+					setSkipped( fileInfo, compact_disabled, false );
 					
 				}else if ( type == 1 ){
 					
 		 			fileInfo.setPriority(false);
 		 			
-					setSkipped( fileInfo, false );
+					setSkipped( fileInfo, compact_disabled, false );
 					
 				}else{
 					
-					setSkipped( fileInfo, true );
+					setSkipped( fileInfo, compact_disabled, true );
 				}
 			}
 		}finally{
@@ -376,12 +415,14 @@ public class FilesView
 			}
 		}
   }
+  
   protected void
   setSkipped(
 	 DiskManagerFileInfo	info,
+	 boolean				compact_disabled,
 	 boolean				skipped )
   {
-	if( info.isSkipped() == skipped ){
+	if ( info.isSkipped() == skipped ){
 		
 		return;
 	}
@@ -396,38 +437,65 @@ public class FilesView
 		return;
 	}
 	
-	File	existing_file = info.getFile(true);
+	File	existing_file 			= info.getFile(true);	
+	int		existing_storage_type	= info.getStorageType();
 	
-	boolean	ok = false;
+		// we can't ever have storage = COMPACT and !skipped
+		
+	int		new_storage_type;
 	
 	if ( existing_file.exists()){
 		
-			// when transitioning from skipped -> non-skipped we don't need to prompt the user as its a DND
-			// file that's being deleted
-		
-		if ( 	(!skipped) ||
+		if (!skipped ){
+			
+			new_storage_type	= DiskManagerFileInfo.ST_LINEAR;
+			
+		}else{
+	
+			boolean	delete_file = 
 				MessageBoxWindow.open( 
 					"FilesView.messagebox.skip.id",
-					SWT.OK,
+					SWT.YES | SWT.NO,
+					SWT.YES | SWT.NO,
 					getComposite().getDisplay(), 
 					MessageBoxWindow.ICON_WARNING,
 					MessageText.getString( "FilesView.rename.confirm.delete.title" ),
-					MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK ){
-    	
-			if ( FileUtil.deleteWithRecycle( existing_file )){
-    		
-				ok = true;
-					// force recheck - could be smarter by restricting
-					// to this file, but hey ho
+					MessageText.getString( "FilesView.skip.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.YES;
+			
+			if ( delete_file ){
 				
-				download_manager.resetFile( info );
-				
+				new_storage_type	= DiskManagerFileInfo.ST_COMPACT;
+
 			}else{
-    	
-				LGLogger.logRepeatableAlert( 
-						LGLogger.AT_ERROR, "Failed to delete '" + existing_file.toString() + "'" );
+				
+				new_storage_type	= DiskManagerFileInfo.ST_LINEAR;
 			}
 		}
+	}else{
+		
+		if ( skipped ){
+			
+			if ( compact_disabled ){
+				
+				new_storage_type	= DiskManagerFileInfo.ST_LINEAR;
+				
+			}else{
+				
+				new_storage_type	= DiskManagerFileInfo.ST_COMPACT;
+			}
+		}else{
+			
+			new_storage_type	= DiskManagerFileInfo.ST_LINEAR;
+
+		}
+	}
+	
+	boolean	ok;
+	
+	if ( existing_storage_type != new_storage_type ){
+		
+		ok = info.setStorageType( new_storage_type );
+		
 	}else{
 		
 		ok = true;
@@ -436,8 +504,6 @@ public class FilesView
 	if ( ok ){
 		
 		info.setSkipped( skipped );
-	
-		info.setStorageType( skipped?DiskManagerFileInfo.ST_COMPACT:DiskManagerFileInfo.ST_LINEAR );
 	}
   }
 

@@ -25,6 +25,8 @@ package org.gudy.azureus2.core3.disk.impl;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
+import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.*;
@@ -67,8 +69,6 @@ public class
 DiskManagerImpl
 	implements DiskManagerHelper 
 {  
-	private String	dm_name	= "";
-	
 	private boolean	used	= false;
 	
 	private boolean started = false;
@@ -202,8 +202,6 @@ DiskManagerImpl
 		
 		try{
 			locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
-
-			dm_name	= ByteFormatter.nicePrint(torrent.getHash(),true);
 			
 		}catch( TOTorrentException e ){
 			
@@ -1508,10 +1506,19 @@ DiskManagerImpl
    
     
  
-  	public String
-	getName()
+  	public static String
+	getName(
+		TOTorrent	torrent )
   	{
-  		return( dm_name );
+  		try{
+  			return( ByteFormatter.nicePrint(torrent.getHash(),true));
+
+  		}catch( TOTorrentException e ){
+  			
+  			Debug.printStackTrace(e);
+  			
+  			return( "?" );
+  		}
   	}
   
 	public TOTorrent
@@ -1755,6 +1762,37 @@ DiskManagerImpl
 		return( types );
 	}
 	
+	protected static boolean
+	setFileLink(
+		DownloadManagerState	state,
+		DiskManagerFileInfo[]	info,
+		File					from_link,
+		File					to_link )
+	{
+		if ( FMFileManagerFactory.getSingleton().getFileLink( to_link ) != to_link ){
+			
+			Debug.out( "Attempt to link to a link" );
+			
+			return( false );
+		}
+		
+		for (int i=0;i<info.length;i++){
+			
+			if ( to_link.equals( info[i].getFile( true ))){
+				
+				Debug.out( "Attempt to cross-link files within a torrent" );
+				
+				return( false );
+			}
+		}
+		
+		state.setFileLink( from_link, to_link );
+		
+		state.save();
+		
+		return( true );
+	}
+	
 	public static DiskManagerFileInfo[]
 	getFileInfoSkeleton(
 		final DownloadManager		download_manager )
@@ -1943,15 +1981,11 @@ DiskManagerImpl
 							return( data_file );
 						}
 						
-						public void
+						public boolean
 						setLink(
 							File	link_destination )
 						{
-							DownloadManagerState	state = download_manager.getDownloadState();
-							
-							state.setFileLink( data_file, link_destination );
-							
-							state.save();
+							return( setFileLink( download_manager.getDownloadState(), res, data_file, link_destination ));
 						}
 												
 						public File
@@ -1960,7 +1994,7 @@ DiskManagerImpl
 							return( download_manager.getDownloadState().getFileLink( data_file ));
 						}
 						
-						public void
+						public boolean
 						setStorageType(
 							int		type )
 						{
@@ -1970,7 +2004,7 @@ DiskManagerImpl
 							
 							if ( type == old_type ){
 								
-								return;
+								return( true );
 							}
 							
 							int	s = download_manager.getState();
@@ -1979,16 +2013,67 @@ DiskManagerImpl
 								
 								Debug.out( "setStorageType: download not stopped" );
 								
-								return;
+								return( false );
 							}
 							
-							if ( getFile(true).exists()){
+							File	existing_file = getFile(true);
+							
+							if ( existing_file.exists()){
+														    		
+								if ( FileUtil.deleteWithRecycle( existing_file )){
+						    																
+									download_manager.resetFile( this );
+										
+								}else{
+						    					
+									LGLogger.logRepeatableAlert( 
+											LGLogger.AT_ERROR, "Failed to delete '" + existing_file.toString() + "'" );
+									
+									return( false );
+								}
+							}
+							
+								// at this point, if we could be bothered, we could migrate storage types
+								// from one to another. We could also handle "allocate all space" and "zero new"
+								// properly with files returning to a linear state...
+							
+								// establish the new file type 
+							
+							try{
+							 	CacheFile cache_file = 
+							 		CacheFileManagerFactory.getSingleton().createFile( 
+					  						new CacheFileOwner()
+					  						{
+					  						 	public String
+					  						  	getCacheFileOwnerName()
+					  						  	{
+					  						  		return( DiskManagerImpl.getName( download_manager.getTorrent()));
+					  						  	}
+					  						  	
+					  							public TOTorrentFile
+					  							getCacheFileTorrentFile()
+					  							{
+					  								return( torrent_file );
+					  							}
+					  							
+					  							public File 
+					  							getCacheFileControlFile(String name) 
+					  							{
+					  								return( download_manager.getDownloadState().getStateFile( name ));
+					  							}  							
+					  						}, 
+					  						existing_file, 
+					  						type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );							
+					  							
+					  			cache_file.close();
+					  			
+							}catch( Throwable e ){
 								
-								Debug.out( "setStorageType: file exists" );
-
-								return;
+								Debug.printStackTrace(e);
+								
+								return( false );
 							}
-							
+				  							
 							types[file_index] = type==ST_LINEAR?"L":"C";
 							
 							DownloadManagerState	dm_state = download_manager.getDownloadState();
@@ -1996,6 +2081,8 @@ DiskManagerImpl
 							dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
 							
 							dm_state.save();
+							
+							return( true );
 						}
 						
 						public int

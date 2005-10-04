@@ -44,7 +44,7 @@ DiskManagerFileInfo
 	public void setSkipped(boolean b);
 	 
 	
-	public void
+	public boolean
 	setLink(
 		File	link_destination );
 	
@@ -54,11 +54,11 @@ DiskManagerFileInfo
 	getLink();
 	
 		/**
-		 * Download must be stopped before calling this! Also the data file must not exist
+		 * Download must be stopped before calling this!
 		 * @param type	one of ST_LINEAR or ST_COMPACT
 		 */
 	
-	public void
+	public boolean
 	setStorageType(
 		int		type );
 	

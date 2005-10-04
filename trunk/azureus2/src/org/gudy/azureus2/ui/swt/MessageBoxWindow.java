@@ -49,14 +49,10 @@ MessageBoxWindow
 	public static final String ICON_WARNING 	= "warning";
 	public static final String ICON_INFO	 	= "info";
 
-	public static int 
-	open(
-		String	id,
-		int		remember_map,
-		Display display,
-		String	icon,
-		String	title,
-		String	message ) 
+	public static int
+	getRememberedDecision(
+		String		id,
+		int			remember_map )
 	{
 		Map	remembered_decisions = COConfigurationManager.getMapParameter( "MessageBoxWindow.decisions", new HashMap());
 		
@@ -72,7 +68,27 @@ MessageBoxWindow
 			}
 		}
 		
-		return( new MessageBoxWindow( id, display, icon, title, message ).getResult());
+		return( SWT.NULL );
+	}
+	
+	public static int 
+	open(
+		String	id,
+		int		options,
+		int		remember_map,
+		Display display,
+		String	icon,
+		String	title,
+		String	message ) 
+	{
+		int	remembered = getRememberedDecision( id, remember_map );
+		
+		if ( remembered != SWT.NULL ){
+			
+			return( remembered );
+		}
+		
+		return( new MessageBoxWindow( id, options, display, icon, title, message ).getResult());
 	}
   
 	private Shell shell;
@@ -85,33 +101,11 @@ MessageBoxWindow
 	protected 
 	MessageBoxWindow(
 		final String	id,
+		final int		options,
 		final Display 	display,
 		final String	icon,
 		final String	title,
 		final String	message )
-	{
-		/*
-		display.asyncExec(
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					create( display, icon, title, message );
-				}
-			});
-			*/
-		
-		create( id, display, icon, title, message );
-	}
-	
-	protected void
-	create(
-		final String	id,
-		Display			display,
-		String			icon,
-		String			title,
-		String			message )
 	{	
 		shell = new Shell(display,SWT.APPLICATION_MODAL | SWT.TITLE | SWT.CLOSE );
 
@@ -163,27 +157,31 @@ MessageBoxWindow
 			
 		label = new Label(shell,SWT.NULL);
 
+		final int yes_option = options & ( SWT.OK | SWT.YES );
+		
 		Button bYes = new Button(shell,SWT.PUSH);
-	 	bYes.setText(MessageText.getString("Button.ok"));
+	 	bYes.setText(MessageText.getString( yes_option==SWT.YES?"Button.yes":"Button.ok"));
 	 	gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
 	 	gridData.grabExcessHorizontalSpace = true;
 	 	gridData.widthHint = 70;
 	 	bYes.setLayoutData(gridData);
 	 	bYes.addListener(SWT.Selection,new Listener() {
 	  		public void handleEvent(Event e) {
-		 		okSelected( id, checkBox.getSelection());
+	  			setResult( id, yes_option, checkBox.getSelection());
 	   		}
 		 });
     
+		final int no_option = options & ( SWT.CANCEL | SWT.NO );
+
 	 	Button bNo = new Button(shell,SWT.PUSH);
-	 	bNo.setText(MessageText.getString("Button.cancel"));
+	 	bNo.setText(MessageText.getString(no_option==SWT.NO?"Button.no":"Button.cancel"));
 	 	gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 	 	gridData.grabExcessHorizontalSpace = false;
 	 	gridData.widthHint = 70;
 	 	bNo.setLayoutData(gridData);    
 	 	bNo.addListener(SWT.Selection,new Listener() {
 	 		public void handleEvent(Event e) {
-		 		cancelSelected( id, checkBox.getSelection());
+	 			setResult( id, no_option, checkBox.getSelection());
 	   		}
 	 	});
 	 	
@@ -192,7 +190,7 @@ MessageBoxWindow
 		shell.addListener(SWT.Traverse, new Listener() {	
 			public void handleEvent(Event e) {
 				if ( e.character == SWT.ESC){
-					cancelSelected( id, false );
+					setResult( id, SWT.NULL, false );
 				}
 			}
 		});
@@ -205,7 +203,7 @@ MessageBoxWindow
 	    		handleEvent(
 	    			Event arg0) 
 	    		{
-	    			cancelSelected( id, false );
+	    			setResult( id, SWT.NULL, false );
 	    		}
 	    	});
     
@@ -238,32 +236,14 @@ MessageBoxWindow
 	}
 	
 	protected void
-	okSelected(
+	setResult(
 		String		id,
-		boolean		remember )
-	{
-		result	= SWT.OK;
-		
-		result_set	= true;
-		
-		if ( remember ){
-			
-			setRemembered( id, result );
-		}
-		
-		result_sem.release();
-		
-		close();
-	}
-	
-	protected void
-	cancelSelected(
-		String		id,
+		int			option,
 		boolean		remember )
 	{
 		if ( !result_set ){
 			
-			result	= SWT.CANCEL;
+			result	= option;
 			
 			result_set	= true;
 			

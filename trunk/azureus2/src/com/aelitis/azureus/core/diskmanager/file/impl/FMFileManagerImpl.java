@@ -146,8 +146,8 @@ FMFileManagerImpl
 		}
 	}
 	
-	protected File
-	getLinkedFile(
+	public File
+	getFileLink(
 		File	file )
 	{
 		try{

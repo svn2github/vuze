@@ -43,4 +43,8 @@ FMFileManager
 	public void
 	setFileLinks(
 		Map					links );
+	
+	public File
+	getFileLink(
+		File				from_file );
 }
