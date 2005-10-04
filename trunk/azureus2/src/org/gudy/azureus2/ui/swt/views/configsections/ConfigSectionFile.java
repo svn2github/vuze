@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.DirectoryDialog;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -74,44 +75,61 @@ public class ConfigSectionFile implements UISWTConfigSection {
     layout.marginHeight = 0;
     gFile.setLayout(layout);
 
-      // zero new files
-    BooleanParameter zeroNew = new BooleanParameter(gFile, "Zero New", false,
+    
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+    
+    BooleanParameter zeroNew = null;
+    
+    if( userMode > 1 ) {
+    	// zero new files
+    	zeroNew = new BooleanParameter(gFile, "Zero New", false,
                                                     "ConfigView.label.zeronewfiles");
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    zeroNew.setLayoutData(gridData);
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	zeroNew.setLayoutData(gridData);
+    }
 
-    // truncate too large
-    BooleanParameter truncateLarge = 
-    	new BooleanParameter(gFile, "File.truncate.if.too.large", false,
+    
+    if( userMode > 1 ) {
+    	// truncate too large
+    	BooleanParameter truncateLarge = 
+    		new BooleanParameter(gFile, "File.truncate.if.too.large", false,
                                     "ConfigView.section.file.truncate.too.large");
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    truncateLarge.setLayoutData(gridData);
-
-      // incrementaal file creation
-    BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false,
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	truncateLarge.setLayoutData(gridData);
+    }
+    
+    if( userMode > 1 ) {
+    	// incremental file creation
+    	BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false,
                                                         "ConfigView.label.incrementalfile");
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    incremental.setLayoutData(gridData);
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	incremental.setLayoutData(gridData);
 
-        //Make the incremental checkbox (button) deselect when zero new is used
-    Button[] btnIncremental = {(Button)incremental.getControl()};
-    zeroNew.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnIncremental));
+    	//Make the incremental checkbox (button) deselect when zero new is used
+    	Button[] btnIncremental = {(Button)incremental.getControl()};
+    	zeroNew.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnIncremental));
 
-        //Make the zero new checkbox(button) deselct when incremental is used
-    Button[] btnZeroNew = {(Button)zeroNew.getControl()};
-    incremental.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnZeroNew));
-
-      // check on complete
-    BooleanParameter checkOnComp = new BooleanParameter(gFile, "Check Pieces on Completion", true,
+    	//Make the zero new checkbox(button) deselct when incremental is used
+    	Button[] btnZeroNew = {(Button)zeroNew.getControl()};
+    	incremental.setAdditionalActionPerformer(new ExclusiveSelectionActionPerformer(btnZeroNew));
+    }
+    
+    
+    if( userMode > 0 ) {
+    	// check on complete
+    	BooleanParameter checkOnComp = new BooleanParameter(gFile, "Check Pieces on Completion", true,
                                                         "ConfigView.label.checkOncompletion");
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    checkOnComp.setLayoutData(gridData);
-
-      // resume data
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	checkOnComp.setLayoutData(gridData);
+    }
+    
+    
+    if( userMode > 1 ) {
+    	// resume data
     final BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", true,
                                                               "ConfigView.label.usefastresume");
     bpUseResume.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
@@ -182,6 +200,9 @@ public class ConfigSectionFile implements UISWTConfigSection {
       bpUseResume.setAdditionalActionPerformer(f_enabler);
       save_peers.setAdditionalActionPerformer(f_enabler);
 
+    } //end usermode>1
+      
+      
     // savepath
     BooleanParameter saveDefault = new BooleanParameter(gFile, "Use default data dir",
                                                         "ConfigView.label.defaultsavepath");
@@ -284,41 +305,46 @@ public class ConfigSectionFile implements UISWTConfigSection {
       gridData.horizontalSpan = 2;
       moveOnly.setLayoutData(gridData);
 
+      
+      if( userMode > 1 ) {
       	// copy rather than move
       
-      BooleanParameter copyDontMove = 
+      	BooleanParameter copyDontMove = 
       		new BooleanParameter(	gMoveCompleted, "Copy And Delete Data Rather Than Move", false,
       								"ConfigView.label.copyanddeleteratherthanmove");
-	  gridData = new GridData();
-	  gridData.horizontalSpan = 2;
-	  copyDontMove.setLayoutData(gridData);
+      	gridData = new GridData();
+      	gridData.horizontalSpan = 2;
+      	copyDontMove.setLayoutData(gridData);
+      }
 
       Control[] controls3 = new Control[]{ gMoveCompleted };
       IAdditionalActionPerformer grayPathAndButton2 = new ChangeSelectionActionPerformer(controls3);
       moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
 
 
-    // Auto-Prioritize
-    label = new Label(gFile, SWT.WRAP);
-    gridData = new GridData();
-    gridData.widthHint = 180;
-    label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.label.priorityExtensions");
+      if( userMode > 1 ) {   	
+      	// Auto-Prioritize
+      	label = new Label(gFile, SWT.WRAP);
+      	gridData = new GridData();
+      	gridData.widthHint = 180;
+      	label.setLayoutData(gridData);
+      	Messages.setLanguageText(label, "ConfigView.label.priorityExtensions");
 
-    Composite cExtensions = new Composite(gFile, SWT.NULL);
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      cExtensions.setLayoutData(gridData);
-      layout = new GridLayout();
-      layout.marginHeight = 0;
-      layout.marginWidth = 0;
-      layout.numColumns = 3;
-      cExtensions.setLayout(layout);
+      	Composite cExtensions = new Composite(gFile, SWT.NULL);
+      	gridData = new GridData(GridData.FILL_HORIZONTAL);
+      	cExtensions.setLayoutData(gridData);
+      	layout = new GridLayout();
+      	layout.marginHeight = 0;
+      	layout.marginWidth = 0;
+      	layout.numColumns = 3;
+      	cExtensions.setLayout(layout);
 
-      gridData = new GridData(GridData.FILL_HORIZONTAL);
-      new StringParameter(cExtensions, "priorityExtensions", "").setLayoutData(gridData);
+      	gridData = new GridData(GridData.FILL_HORIZONTAL);
+      	new StringParameter(cExtensions, "priorityExtensions", "").setLayoutData(gridData);
 
-      new BooleanParameter(cExtensions, "priorityExtensionsIgnoreCase",
-                           "ConfigView.label.ignoreCase");
+      	new BooleanParameter(cExtensions, "priorityExtensionsIgnoreCase", "ConfigView.label.ignoreCase");
+      }
+      
 
     // Confirm Delete
     gridData = new GridData();
@@ -342,13 +368,15 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	
     }
     
-    // check on complete
-    BooleanParameter backupConfig = 
-    	new BooleanParameter(gFile, "Use Config File Backups", false,
+    if( userMode > 1 ) {
+    	// check on complete
+    	BooleanParameter backupConfig = 
+    		new BooleanParameter(gFile, "Use Config File Backups", true,
                                     "ConfigView.label.backupconfigfiles");
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    backupConfig.setLayoutData(gridData);
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	backupConfig.setLayoutData(gridData);
+    }
 
     return gFile;
   }
