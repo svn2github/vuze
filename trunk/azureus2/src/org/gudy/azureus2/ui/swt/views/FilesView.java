@@ -175,9 +175,13 @@ public class FilesView
     			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
    
     			FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
+    			
     			File	existing_file = fileInfo.getFile(true);
-    			fDialog.setFilterPath(existing_file.getParent() );
+    			
+    			fDialog.setFilterPath(existing_file.getParent());
+    			
     			fDialog.setFileName( existing_file.getName());
+    			
     			fDialog.setText( MessageText.getString("FilesView.rename.choose.path"));
           
     			String	res = fDialog.open();
@@ -204,11 +208,7 @@ public class FilesView
 	    						// nothing to do
 	    						
 	    					}else if ( !existing_file.exists()){
-	
-	    							// using a new file, make sure we recheck
-	    						
-								download_manager.recheckFile( fileInfo );
-	
+		
 	    						ok	= true;
 	    						
 	    					}else{
@@ -221,37 +221,13 @@ public class FilesView
 	    								MessageBoxWindow.ICON_WARNING,
 	    								MessageText.getString( "FilesView.rename.confirm.delete.title" ),
 	    								MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK ){
-		        		    	
-	    							if ( FileUtil.deleteWithRecycle( existing_file )){
-		        		    		
-	    								ok	= true;
-		        		    		    			
-	    									// new file, recheck 
-	    								
-	    								download_manager.recheckFile( fileInfo );    								
-	    							}else{
-		        		    	
-	    								LGLogger.logRepeatableAlert( 
-	    										LGLogger.AT_ERROR, "Failed to delete '" + existing_file.toString() + "'" );
-	    							}
+		        		    			        		    		
+	    							ok	= true;
 	    						}
 	    					}
 	    				}else{
-	        		  
-	    					if ( existing_file.exists()){
 	        			  
-	    						ok = FileUtil.renameFile( existing_file, target );
-	        			  
-	    						if ( !ok ){
-	        				  
-	    							LGLogger.logRepeatableAlert( 
-	            		    			LGLogger.AT_ERROR, "Failed to rename '" + existing_file.toString() + "'" );
-	     
-	    						}
-	    					}else{
-	        			  
-	    						ok = true;
-	    					}
+	    					ok = true;
 	    				}
 	        	  
 	    				if ( ok ){

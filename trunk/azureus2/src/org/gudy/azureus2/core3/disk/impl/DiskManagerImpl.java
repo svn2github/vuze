@@ -1764,14 +1764,18 @@ DiskManagerImpl
 	
 	protected static boolean
 	setFileLink(
-		DownloadManagerState	state,
+		DownloadManager			download_manager,
 		DiskManagerFileInfo[]	info,
+		DiskManagerFileInfo		file_info,
 		File					from_link,
 		File					to_link )
 	{
-		if ( FMFileManagerFactory.getSingleton().getFileLink( to_link ) != to_link ){
+		File	existing_link = FMFileManagerFactory.getSingleton().getFileLink( to_link );
+		
+		if ( existing_link != to_link ){
 			
-			Debug.out( "Attempt to link to a link" );
+			LGLogger.logRepeatableAlert( 
+					LGLogger.AT_ERROR, "Attempt to link to existing link '" + existing_link.toString() + "'" );
 			
 			return( false );
 		}
@@ -1780,11 +1784,58 @@ DiskManagerImpl
 			
 			if ( to_link.equals( info[i].getFile( true ))){
 				
-				Debug.out( "Attempt to cross-link files within a torrent" );
+				LGLogger.logRepeatableAlert( 
+						LGLogger.AT_ERROR, "Attempt to link to existing file '" + info[i].getFile( true ) + "'" );
 				
 				return( false );
 			}
 		}
+
+		File	existing_file = file_info.getFile( true );
+		
+		if ( to_link.exists()){
+   		 
+			if ( to_link.equals( existing_file )){
+		  
+				return( true );
+				
+			}else if ( !existing_file.exists()){
+
+					// using a new file, make sure we recheck
+				
+				download_manager.recheckFile( file_info );
+				
+			}else{
+				
+				if ( FileUtil.deleteWithRecycle( existing_file )){
+		    		
+						// new file, recheck
+					
+					download_manager.recheckFile( file_info );
+					
+				}else{
+	    	
+					LGLogger.logRepeatableAlert( 
+							LGLogger.AT_ERROR, "Failed to delete '" + existing_file.toString() + "'" );
+					
+					return( false );
+				}
+			}
+		}else{
+			
+			if ( existing_file.exists()){
+  			  
+				if ( !FileUtil.renameFile( existing_file, to_link )){
+		  			  
+					LGLogger.logRepeatableAlert( 
+		    			LGLogger.AT_ERROR, "Failed to rename '" + existing_file.toString() + "'" );
+
+					return( false );
+				}
+			}
+		}
+
+		DownloadManagerState	state = download_manager.getDownloadState();
 		
 		state.setFileLink( from_link, to_link );
 		
@@ -1985,7 +2036,7 @@ DiskManagerImpl
 						setLink(
 							File	link_destination )
 						{
-							return( setFileLink( download_manager.getDownloadState(), res, data_file, link_destination ));
+							return( setFileLink( download_manager, res, this, data_file, link_destination ));
 						}
 												
 						public File
