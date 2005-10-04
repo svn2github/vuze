@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.DirectoryDialog;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -77,6 +78,9 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     layout = new GridLayout();
     layout.numColumns = 2;
     cTorrent.setLayout(layout);
+    
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+    
     
     // Save .Torrent files to..
     BooleanParameter saveTorrents = new BooleanParameter(cTorrent, "Save Torrent Files", true,
@@ -200,6 +204,9 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     controls = new Control[]{ gWatchFolder };
     watchFolder.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
+    
+    if( userMode > 0 ) {
+    	
     // locale decoder
     label = new Label(cTorrent, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.file.decoder.label");
@@ -247,6 +254,8 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     new StringParameter(cTorrent, "File.Torrent.IgnoreFiles",
                         TOTorrent.DEFAULT_IGNORE_FILES).setLayoutData(gridData);
+    
+    } //end usermode>0
 
     return cTorrent;
   }

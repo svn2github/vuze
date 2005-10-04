@@ -233,7 +233,6 @@ ConfigurationChecker
 	    		    	
 	    	//enable Beginner user mode for first time
 	    	if( !COConfigurationManager.doesParameterNonDefaultExist( "User Mode" ) ) {
-	    		System.out.println( "virgin installation, enabling Beginner user mode" );
 	    		COConfigurationManager.setParameter( "User Mode", 0 );
 	    		changed	= true;	    		
 	    	}
@@ -242,7 +241,6 @@ ConfigurationChecker
 	    else {  //this is a pre-existing installation, called every time after first
 	   	 //enable Advanced user mode for existing users by default, to ease 2304-->2306 migrations
 	   	 if( !COConfigurationManager.doesParameterNonDefaultExist( "User Mode" ) ) {
-	   		 System.out.println( "existing installation, enabling Advanced user mode" );
 	   		 COConfigurationManager.setParameter( "User Mode", 2 );
 	   		 changed	= true;
 	   	 }

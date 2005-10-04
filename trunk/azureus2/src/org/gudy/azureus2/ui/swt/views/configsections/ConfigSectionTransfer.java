@@ -67,6 +67,8 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     layout.marginHeight = 0;
     cTransfer.setLayout(layout);
 
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+    
     
     //  store the initial d/l speed so we can do something sensible later
     final int[] manual_max_download_speed = { COConfigurationManager.getIntParameter( "Max Download Speed KBs" )};
@@ -174,7 +176,9 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
         
 
     
-    	// max uploads
+    if( userMode > 0 ) {
+    	
+    // max uploads
     gridData = new GridData();
     gridData.widthHint = 35;
     IntParameter paramMaxUploads = new IntParameter(cTransfer, "Max Uploads", 2, -1, false, false);
@@ -222,12 +226,13 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     BooleanParameter firstPiece = new BooleanParameter(cTransfer, "Prioritize First Piece", false, "ConfigView.label.prioritizefirstpiece");
     firstPiece.setLayoutData( gridData );
     
-	// prioritise most completed files
+    /* BAD BAD BAD
+		// prioritise most completed files
     gridData = new GridData();
     gridData.horizontalSpan = 4;
     BooleanParameter mostCompletedFiles = new BooleanParameter(cTransfer, "Prioritize Most Completed Files", false, "ConfigView.label.prioritizemostcompletedfiles");
     mostCompletedFiles.setLayoutData(gridData);
-    
+    */
     
     // ignore ports
     
@@ -242,7 +247,8 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     StringParameter ignore_ports = new StringParameter(cTransfer, "Ignore.peer.ports","0"); 
     ignore_ports.setLayoutData( gridData );
     
-
+    } //end usermode>0
+    
     return cTransfer;
   }
 }

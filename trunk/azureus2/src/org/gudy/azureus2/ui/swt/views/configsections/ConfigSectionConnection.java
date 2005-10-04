@@ -111,45 +111,45 @@ public class ConfigSectionConnection implements UISWTConfigSection {
       }
     });
     
+    
+    if( userMode > 0 ) {
 /////////////////////// PEER SOURCES GROUP ///////////////////
+
+    	Group peer_sources_group = new Group( cServer, SWT.NULL );
+    	Messages.setLanguageText( peer_sources_group, "ConfigView.section.connection.group.peersources" );
+    	GridLayout peer_sources_layout = new GridLayout();
+    	peer_sources_layout.numColumns = 2;
+    	peer_sources_group.setLayout( peer_sources_layout );
     
-    Group peer_sources_group = new Group( cServer, SWT.NULL );
-    Messages.setLanguageText( peer_sources_group, "ConfigView.section.connection.group.peersources" );
-    GridLayout peer_sources_layout = new GridLayout();
-    peer_sources_layout.numColumns = 2;
-    peer_sources_group.setLayout( peer_sources_layout );
-    
-    formData = new FormData();
-    formData.top = new FormAttachment( tcplisten.getControl(), 6 );
-    formData.left = new FormAttachment( 0, 0 );
-    formData.right = new FormAttachment( 100, -5 );
-    peer_sources_group.setLayoutData( formData );
+    	formData = new FormData();
+    	formData.top = new FormAttachment( tcplisten.getControl(), 6 );
+    	formData.left = new FormAttachment( 0, 0 );
+    	formData.right = new FormAttachment( 100, -5 );
+    	peer_sources_group.setLayoutData( formData );
         
-    label = new Label(peer_sources_group, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.connection.group.peersources.info");
-    grid_data = new GridData();
-    grid_data.horizontalSpan = 2;
-    label.setLayoutData( grid_data );
+    	label = new Label(peer_sources_group, SWT.NULL);
+    	Messages.setLanguageText(label, "ConfigView.section.connection.group.peersources.info");
+    	grid_data = new GridData();
+    	grid_data.horizontalSpan = 2;
+    	label.setLayoutData( grid_data );
     
-    for (int i=0;i<PEPeerSource.PS_SOURCES.length;i++){
+    	for (int i=0;i<PEPeerSource.PS_SOURCES.length;i++){
 		
-		String	p = PEPeerSource.PS_SOURCES[i];
+    		String	p = PEPeerSource.PS_SOURCES[i];
 	
-		String	config_name = "Peer Source Selection Default." + p;
-		String	msg_text	= "ConfigView.section.connection.peersource." + p;
+    		String	config_name = "Peer Source Selection Default." + p;
+    		String	msg_text	= "ConfigView.section.connection.peersource." + p;
 		 
-		BooleanParameter peer_source = new BooleanParameter(peer_sources_group, config_name, msg_text );
+    		BooleanParameter peer_source = new BooleanParameter(peer_sources_group, config_name, msg_text );
 				
-	    grid_data = new GridData();
-	    grid_data.horizontalSpan = 2;
-	    peer_source.setLayoutData( grid_data );
-	}
-    
-    
-    
+    		grid_data = new GridData();
+    		grid_data.horizontalSpan = 2;
+    		peer_source.setLayoutData( grid_data );
+    	}
+
  ///////////////////////
     
-    if (userMode > 0) {
+ 
     
     IntParameter max_connects = new IntParameter(cServer, "network.max.simultaneous.connect.attempts", 1, 100, false, false );
     formData = new FormData();

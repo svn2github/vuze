@@ -90,7 +90,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }
 
     
-    if( userMode > 1 ) {
+    if( userMode > 0 ) {
     	// truncate too large
     	BooleanParameter truncateLarge = 
     		new BooleanParameter(gFile, "File.truncate.if.too.large", false,
@@ -100,7 +100,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	truncateLarge.setLayoutData(gridData);
     }
     
-    if( userMode > 1 ) {
+    if( userMode > 0 ) {
     	// incremental file creation
     	BooleanParameter incremental = new BooleanParameter(gFile, "Enable incremental file creation", false,
                                                         "ConfigView.label.incrementalfile");
@@ -118,7 +118,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }
     
     
-    if( userMode > 1 ) {
+    if( userMode > 0 ) {
     	// check on complete
     	BooleanParameter checkOnComp = new BooleanParameter(gFile, "Check Pieces on Completion", true,
                                                         "ConfigView.label.checkOncompletion");
@@ -128,7 +128,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }
     
     
-    if( userMode > 1 ) {
+    if( userMode > 0 ) {
     	// resume data
     final BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", true,
                                                               "ConfigView.label.usefastresume");
@@ -306,7 +306,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
       moveOnly.setLayoutData(gridData);
 
       
-      if( userMode > 1 ) {
+      if( userMode > 0 ) {
       	// copy rather than move
       
       	BooleanParameter copyDontMove = 
@@ -322,7 +322,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
       moveCompleted.setAdditionalActionPerformer(grayPathAndButton2);
 
 
-      if( userMode > 1 ) {   	
+      if( userMode > 0 ) {   	
       	// Auto-Prioritize
       	label = new Label(gFile, SWT.WRAP);
       	gridData = new GridData();
@@ -368,7 +368,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	
     }
     
-    if( userMode > 1 ) {
+    if( userMode > 0 ) {
     	// check on complete
     	BooleanParameter backupConfig = 
     		new BooleanParameter(gFile, "Use Config File Backups", true,
