@@ -47,7 +47,6 @@ import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
 public class 
 ConfigurationChecker 
 {
-  //private static boolean migrated				= false;
 	 
   private static boolean system_properties_set	= false;
   
@@ -56,28 +55,7 @@ ConfigurationChecker
   private static AEMonitor	class_mon	= new AEMonitor( "ConfigChecker");
   
   
-  /*
-  protected static void
-  migrateConfig()
-  {
-  	try{
-  		class_mon.enter();
-  	
-	  	if ( migrated ){
-	  		
-	  		return;
-	  	}
-	  	
-	  	migrated	= true;
-	    
-	    migrateOldConfigFiles();
-	    
-  	}finally{
-  		
-  		class_mon.exit();
-  	}
-  }
-  */
+
   
   protected static void
   setSystemProperties()
@@ -215,7 +193,7 @@ ConfigurationChecker
 	    	// migration from default-save-dir enable = true to false
 	    	// if the user hadn't explicitly set a value then we want to stick with true
 	    
-	    if ( last_version.length() == 0 ){
+	    if ( last_version.length() == 0 ){  //this is a virgin installation, i.e. first time running, called only once ever
 	    	
 	    		// "last version" introduced at same time as the default save dir problem
 	    		// which was the release after 2.2.0.0
@@ -251,47 +229,27 @@ ConfigurationChecker
 	    		
 	    		changed	= true;
 	    	}
+	    	
+	    		    	
+	    	//enable Beginner user mode for first time
+	    	if( !COConfigurationManager.doesParameterNonDefaultExist( "User Mode" ) ) {
+	    		System.out.println( "virgin installation, enabling Beginner user mode" );
+	    		COConfigurationManager.setParameter( "User Mode", 0 );
+	    		changed	= true;	    		
+	    	}
+	    	 	
+	    }
+	    else {  //this is a pre-existing installation, called every time after first
+	   	 //enable Advanced user mode for existing users by default, to ease 2304-->2306 migrations
+	   	 if( !COConfigurationManager.doesParameterNonDefaultExist( "User Mode" ) ) {
+	   		 System.out.println( "existing installation, enabling Advanced user mode" );
+	   		 COConfigurationManager.setParameter( "User Mode", 2 );
+	   		 changed	= true;
+	   	 }
 	    }
 	    
-      
-      /*
-       * Old migration code... 
-       * 
-	    int nbMinSeeds = COConfigurationManager.getIntParameter("StartStopManager_iIgnoreSeedCount", -1);
-	    if (nbMinSeeds == -1) {
-	    COConfigurationManager.setParameter("StartStopManager_iIgnoreSeedCount", 0);
-	      // not set yet.. import from "Start Num Peers"
-	    int nbOldMinSeeds = COConfigurationManager.getIntParameter("Start Num Peers", -1);
-	    if (nbOldMinSeeds != -1)
-	      COConfigurationManager.setParameter("StartStopManager_iIgnoreSeedCount", nbOldMinSeeds);
-	    changed = true;
-	    }
-	
-	    //migrate from older BPs setting to newer KBs setting
-	    int speed = COConfigurationManager.getIntParameter("Max Upload Speed", -1);
-	    if ( speed > -1 ) {      
-	      COConfigurationManager.setParameter("Max Upload Speed KBs", speed / 1024);
-	      COConfigurationManager.setParameter("Max Upload Speed", -1);
-	      changed = true;
-	    }
 	    
-	    //migrate to new dual connection limit option
-	    int maxclients = COConfigurationManager.getIntParameter("Max Clients", -1);
-	    if ( maxclients > -1 ) {      
-	      COConfigurationManager.setParameter("Max.Peer.Connections.Per.Torrent", maxclients);
-	      COConfigurationManager.setParameter("Max Clients", -1);
-	      changed = true;
-	    }
-      
-      //if previous config did not use shared port, grab the port
-      if (!COConfigurationManager.getBooleanParameter("Server.shared.port", true)) {
-        int lp = COConfigurationManager.getIntParameter("Low Port", 6881);
-        COConfigurationManager.setParameter("TCP.Listen.Port", lp);
-        COConfigurationManager.setParameter("Server.shared.port", true);
-        changed = true;
-      }
-      */
-      
+	    
 	    
 	    // migrate to split tracker client/server key config
 	    
@@ -484,69 +442,6 @@ ConfigurationChecker
     }
     System.out.println("\n" + collisions);
   }
-  
-  
-  
-  /*
-   * Migrates old user files/dirs from application dir to user dir
-   *
-  private static void migrateOldConfigFiles() {
-    if ( COConfigurationManager.getBooleanParameter("Already_Migrated", false)) {
-      return;
-    }
-    
-    String results = "";
-    
-    //migrate from old buggy APPDATA dir to new registry-culled dir
-    if( Constants.isWindows ) {
-      String old_dir = SystemProperties.getEnvironmentalVariable( "APPDATA" );
-      if( old_dir != null && old_dir.length() > 0 ) {
-        old_dir = old_dir + SystemProperties.SEP + "Azureus" + SystemProperties.SEP;
-        results += migrateAllFiles( old_dir, SystemProperties.getUserPath() );
-      }
-    }
-    
-    //migrate from old ~/Library/Azureus/ to ~/Library/Application Support/Azureus/
-    if( Constants.isOSX ) {
-      String old_dir = System.getProperty("user.home") + "/Library/Azureus/";
-      results += migrateAllFiles( old_dir, SystemProperties.getUserPath() );
-    }
-    
-    //migrate from old ~/Azureus/ to ~/.Azureus/
-    if( Constants.isLinux ) {
-      String old_dir = System.getProperty("user.home") + "/Azureus/";
-      results += migrateAllFiles( old_dir, SystemProperties.getUserPath() );
-    }
-
-    ConfigurationManager.getInstance().load();
-    COConfigurationManager.setParameter("Already_Migrated", true);
-    
-    if( results.length() > 0 ) {
-    	String[] params = { results };
-    	LGLogger.logAlertUsingResource(LGLogger.INFORMATION, "AutoMigration.useralert", params);
-    }
-  }
-    
-  private static String migrateAllFiles( String source_path, String dest_path ) {
-    String result = "";
-    File source_dir = new File( source_path );
-    File dest_dir = new File( dest_path );
-    if( source_dir.exists() && !source_path.equals( dest_path ) ) {
-      if( !dest_dir.exists() ) dest_dir.mkdirs();
-      File[] files = source_dir.listFiles();
-      for( int i=0; i < files.length; i++ ) {
-        File source_file = files[ i ];
-        File dest_file = new File( dest_dir, source_file.getName() );
-        boolean ok = FileUtil.renameFile( source_file, dest_file );
-        if( ok ) result += source_file.toURI().getPath() + "\n---> " + dest_file.toURI().getPath() + " : OK\n";
-        else result += source_file.toURI().getPath() + "\n---> " + dest_file.toURI().getPath() + " : FAILED\n";
-      }
-      source_dir.delete();
-    }
-    return result;
-  }
-  */
-  
   
   
 }
