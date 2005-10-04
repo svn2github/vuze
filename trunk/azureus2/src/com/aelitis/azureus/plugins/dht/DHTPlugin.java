@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 
 import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.components.UITextField;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.IntParameter;
@@ -49,6 +50,8 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.*;
+import org.gudy.azureus2.plugins.utils.UTTimerEvent;
+import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 
 import com.aelitis.azureus.core.dht.DHT;
@@ -515,89 +518,7 @@ DHTPlugin
 							true );
 		}
 
-		
-		Thread t = 
-				new AEThread( "DHDPlugin.init" )
-				{
-					public void
-					runSupport()
-					{
-						try{							
-								// we take the view that if the version check failed then we go ahead
-								// and enable the DHT (i.e. we're being optimistic)
-							
-							enabled =
-								(!VersionCheckClient.getSingleton().isVersionCheckDataValid()) ||
-								VersionCheckClient.getSingleton().DHTEnableAllowed();
-							
-							if ( enabled ){
-								
-								model.getStatus().setText( "Initialising" );
-								
-								String	ip = null;
-								
-								if ( advanced.getValue()){
-									
-									ip = override_ip.getValue().trim();
-									
-									if ( ip.length() == 0 ){
-										
-										ip = null;
-									}
-								}
-								
-								List	plugins = new ArrayList();
-								
-								if ( MAIN_DHT_ENABLE ){
-									
-									plugins.add( new DHTPluginImpl(
-													plugin_interface,
-													DHTTransportUDP.PROTOCOL_VERSION_MAIN,
-													DHT.NW_MAIN,
-													ip,
-													dht_data_port,
-													reseed,
-													logging.getValue(),
-													log, dht_log ));
-								}
-								
-								if ( Constants.isCVSVersion() && CVS_DHT_ENABLE ){
-									
-									plugins.add( new DHTPluginImpl(
-											plugin_interface,
-											DHTTransportUDP.PROTOCOL_VERSION_CVS,
-											DHT.NW_CVS,
-											ip,
-											dht_data_port,
-											reseed,
-											logging.getValue(),
-											log, dht_log ));
-								}
-								
-								dhts = new DHTPluginImpl[plugins.size()];
-								
-								plugins.toArray( dhts );
-														
-								status = dhts[0].getStatus();
-								
-								model.getStatus().setText( dhts[0].getStatusText());
-							
-							}else{
-								
-								status	= STATUS_DISABLED;
-
-								model.getStatus().setText( "Disabled administratively due to network problems" );
-							}
-						}finally{
-							
-							init_sem.releaseForever();
-						}
-					}
-				};
-				
-		t.setDaemon(true);
-			
-		t.start();
+		setPluginInfo();
 		
 		plugin_interface.addListener(
 			new PluginListener()
@@ -605,6 +526,19 @@ DHTPlugin
 				public void
 				initializationComplete()
 				{
+					String	ip = null;
+					
+					if ( advanced.getValue()){
+						
+						ip = override_ip.getValue().trim();
+						
+						if ( ip.length() == 0 ){
+							
+							ip = null;
+						}
+					}
+					
+					initComplete( model.getStatus(), logging.getValue(), ip );
 				}
 				
 				public void
@@ -624,9 +558,123 @@ DHTPlugin
 				{
 				}
 			});
+		
+		final int sample_frequency		= 60*1000;
+		final int sample_stats_ticks	= 15;	// every 15 mins
+
+		plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
+				sample_frequency,
+				new UTTimerEventPerformer()
+				{
+					public void
+					perform(
+						UTTimerEvent		event )
+					{
+						if ( dhts != null ){
+							
+							for (int i=0;i<dhts.length;i++){
+								
+								dhts[i].updateStats( sample_stats_ticks );
+							}
+						}
+						
+						setPluginInfo();
+					}
+				});
+
 	}
 	
+	protected void
+	initComplete(
+		final UITextField		status_area,
+		final boolean			logging,
+		final String			override_ip )
+	{
+		Thread t = 
+			new AEThread( "DHDPlugin.init" )
+			{
+				public void
+				runSupport()
+				{
+					try{							
+							// we take the view that if the version check failed then we go ahead
+							// and enable the DHT (i.e. we're being optimistic)
+						
+						enabled =
+							(!VersionCheckClient.getSingleton().isVersionCheckDataValid()) ||
+							VersionCheckClient.getSingleton().DHTEnableAllowed();
+						
+						if ( enabled ){
+							
+							status_area.setText( "Initialising" );
+							
+							List	plugins = new ArrayList();
+							
+							if ( MAIN_DHT_ENABLE ){
+								
+								DHTPluginImpl plug = new DHTPluginImpl(
+												plugin_interface,
+												DHTTransportUDP.PROTOCOL_VERSION_MAIN,
+												DHT.NW_MAIN,
+												override_ip,
+												dht_data_port,
+												reseed,
+												logging,
+												log, dht_log );
+								
+								plugins.add( plug );
+							}
+							
+							if ( Constants.isCVSVersion() && CVS_DHT_ENABLE ){
+								
+								plugins.add( new DHTPluginImpl(
+										plugin_interface,
+										DHTTransportUDP.PROTOCOL_VERSION_CVS,
+										DHT.NW_CVS,
+										override_ip,
+										dht_data_port,
+										reseed,
+										logging,
+										log, dht_log ));
+							}
+							
+							DHTPluginImpl[]	_dhts = new DHTPluginImpl[plugins.size()];
+							
+							plugins.toArray( _dhts );
+												
+							dhts = _dhts;
+							
+							status = dhts[0].getStatus();
+							
+							status_area.setText( dhts[0].getStatusText());
+						
+						}else{
+							
+							status	= STATUS_DISABLED;
+
+							status_area.setText( "Disabled administratively due to network problems" );
+						}
+					}finally{
+						
+						init_sem.releaseForever();
+					}
+				}
+			};
+			
+		t.setDaemon(true);
+		
+		t.start();
+	}
 	
+	protected void
+	setPluginInfo()
+	{
+		boolean	reachable	= plugin_interface.getPluginconfig().getPluginBooleanParameter( "dht.reachable." + DHT.NW_MAIN, true );
+
+		plugin_interface.getPluginconfig().setPluginParameter( 
+				"plugin.info", 
+				reachable?"1":"0" );
+	}
 
 	public boolean
 	isEnabled()

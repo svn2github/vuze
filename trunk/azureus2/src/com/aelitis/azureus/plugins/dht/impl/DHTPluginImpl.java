@@ -90,6 +90,7 @@ DHTPluginImpl
 	private ActionParameter		reseed;
 	
 	private DHT					dht;
+	private int					port;
 	private byte				protocol_version;
 	private int					network;		
 	private DHTTransportUDP		transport;
@@ -102,7 +103,8 @@ DHTPluginImpl
 	private LoggerChannel		log;
 	private DHTLogger			dht_log;
 	
-
+	private int					stats_ticks;
+	
 	public
 	DHTPluginImpl(
 		PluginInterface			_plugin_interface,
@@ -118,6 +120,7 @@ DHTPluginImpl
 		plugin_interface	= _plugin_interface;
 		protocol_version	= _protocol_version;
 		network				= _network;
+		port				= _port;
 		reseed				= _reseed;
 		log					= _log;
 		dht_log				= _dht_log;
@@ -136,8 +139,6 @@ DHTPluginImpl
 			
 			boolean	initial_reachable	= conf.getPluginBooleanParameter( "dht.reachable." + network, true );
 			
-			final int f_port	= _port;
-
 			transport = 
 				DHTTransportFactory.createUDP( 
 						_protocol_version,
@@ -176,63 +177,7 @@ DHTPluginImpl
 					{
 					}
 				});
-				
-			final int sample_frequency		= 60*1000;
-			final int sample_stats_ticks	= 15;	// every 15 mins
-
-			plugin_interface.getUtilities().createTimer("DHTStats").addPeriodicEvent(
-					sample_frequency,
-					new UTTimerEventPerformer()
-					{
-						int	ticks = 0;
-						
-						public void
-						perform(
-							UTTimerEvent		event )
-						{
-							ticks++;
 							
-							if ( transport != null ){
-																																					
-								boolean current_reachable = transport.isReachable();
-									
-								if ( current_reachable != conf.getPluginBooleanParameter( "dht.reachable." + network, true )){
-										
-										// reachability has changed
-									
-									conf.setPluginParameter( "dht.reachable." + network, current_reachable );
-									
-									if ( !current_reachable ){
-										
-										String msg = "If you have a router/firewall, please check that you have port " + f_port + 
-														" UDP open.\nDecentralised tracking requires this." ;
-
-										int	warned_port = plugin_interface.getPluginconfig().getPluginIntParameter( "udp_warned_port", 0 );
-										
-										if ( warned_port == f_port  ){
-											
-											log.log( msg );
-											
-										}else{
-											
-											plugin_interface.getPluginconfig().setPluginParameter( "udp_warned_port", f_port );
-											
-											log.logAlert( LoggerChannel.LT_WARNING, msg );
-										}
-									}else{
-										
-										log.log( "Reachability changed for the better" );
-									}
-								}
-								
-								if ( ticks % sample_stats_ticks == 0 ){
-
-									logStats();
-								}
-							}
-						}
-					});
-			
 			Properties	props = new Properties();
 			
 			/*
@@ -292,6 +237,54 @@ DHTPluginImpl
 			
 			status	= DHTPlugin.STATUS_FAILED;
 		}
+	}
+
+	public void
+	updateStats(
+		int		sample_stats_ticks )
+	{
+		stats_ticks++;
+		
+		if ( transport != null ){
+				
+			PluginConfig conf = plugin_interface.getPluginconfig();
+			
+			boolean current_reachable = transport.isReachable();
+				
+			if ( current_reachable != conf.getPluginBooleanParameter( "dht.reachable." + network, true )){
+					
+					// reachability has changed
+				
+				conf.setPluginParameter( "dht.reachable." + network, current_reachable );
+				
+				if ( !current_reachable ){
+					
+					String msg = "If you have a router/firewall, please check that you have port " + port + 
+									" UDP open.\nDecentralised tracking requires this." ;
+
+					int	warned_port = plugin_interface.getPluginconfig().getPluginIntParameter( "udp_warned_port", 0 );
+					
+					if ( warned_port == port  ){
+						
+						log.log( msg );
+						
+					}else{
+						
+						plugin_interface.getPluginconfig().setPluginParameter( "udp_warned_port", port );
+						
+						log.logAlert( LoggerChannel.LT_WARNING, msg );
+					}
+				}else{
+					
+					log.log( "Reachability changed for the better" );
+				}
+			}
+			
+			if ( stats_ticks % sample_stats_ticks == 0 ){
+
+				logStats();
+			}
+		}	
 	}
 	
 	public int
