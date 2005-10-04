@@ -118,7 +118,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     }
     
     
-    if( userMode > 0 ) {
+    if( userMode > 1 ) {
     	// check on complete
     	BooleanParameter checkOnComp = new BooleanParameter(gFile, "Check Pieces on Completion", true,
                                                         "ConfigView.label.checkOncompletion");
