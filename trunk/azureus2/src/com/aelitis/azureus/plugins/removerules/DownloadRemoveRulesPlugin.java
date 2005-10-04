@@ -49,7 +49,8 @@ DownloadRemoveRulesPlugin
 	public static final int			AELITIS_BIG_TORRENT_SEED_LIMIT		= 10000;
 	public static final int			AELITIS_SMALL_TORRENT_SEED_LIMIT	= 1000;
 		
-	public static final String		AELITIS_HOST	= "aelitis.com";	// needs to be lowercase
+	public static final String		AELITIS_HOST_CORE	= "aelitis.com";			// needs to be lowercase
+	public static final String		AELITIS_TRACKER		= "tracker.aelitis.com";	// needs to be lowercase
 	
 	protected String				aelitis_ip;
 	
@@ -73,7 +74,7 @@ DownloadRemoveRulesPlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
-		HostNameToIPResolver.addResolverRequest( AELITIS_HOST, this );
+		HostNameToIPResolver.addResolverRequest( AELITIS_TRACKER, this );
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", "Download Remove Rules" );
@@ -236,7 +237,7 @@ DownloadRemoveRulesPlugin
 		
 			String	url_string = torrent.getAnnounceURL().toString().toLowerCase();
 			
-			if ( 	url_string.indexOf( AELITIS_HOST ) != -1 ||
+			if ( 	url_string.indexOf( AELITIS_HOST_CORE ) != -1 ||
 					( aelitis_ip != null && url_string.indexOf( aelitis_ip ) != -1 )){
 	
 					// emergency instruction from tracker

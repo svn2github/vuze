@@ -45,7 +45,7 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  * Client for checking version information from a remote server.
  */
 public class VersionCheckClient {
-  private static final String SERVER_ADDRESS = "azureus.aelitis.com";
+  private static final String SERVER_ADDRESS = "version.aelitis.com";
   private static final int SERVER_PORT = 6868;
   
   private static final VersionCheckClient instance = new VersionCheckClient();

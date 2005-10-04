@@ -76,7 +76,7 @@ import com.aelitis.azureus.plugins.dht.impl.DHTPluginStorageManager;
 public class 
 DHTPluginImpl
 {
-	private static final String	SEED_ADDRESS	= "aelitis.com";
+	private static final String	SEED_ADDRESS	= "dht.aelitis.com";
 	private static final int	SEED_PORT		= 6881;
 		
 	private static final long	MIN_ROOT_SEED_IMPORT_PERIOD	= 8*60*60*1000;
