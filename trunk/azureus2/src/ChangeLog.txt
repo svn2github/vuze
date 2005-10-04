@@ -21,7 +21,7 @@ FEATURE: Core | Added ability to turn off DHT originated IP Filter violation log
 FEATURE: Core | When a peer is banned remove any data downloaded from it in partially complete pieces [Parg]
 FEATURE: Core | Added "block banning" feature when multiple bad peers found with "close" IPs [Parg]
 FEATURE: Core | Support for platform-specific plugin update components [Parg]
-FEATURE: UI   | Console support for listing shares improved, deletiong of shares added [Parg]
+FEATURE: UI   | Console support for listing shares improved, deleting of shares added [Parg]
 FEATURE: Core | Added feature to allow disabling of multi-hash tracker scrapes [Parg]
 FEATURE: Core | Tracker connections respect bind-ip settings (http only) [Parg]
 FEATURE: Core | Banned ips persisted across restart [Parg]
