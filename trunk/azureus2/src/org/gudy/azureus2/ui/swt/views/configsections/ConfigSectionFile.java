@@ -80,7 +80,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     
     BooleanParameter zeroNew = null;
     
-    if( userMode > 1 ) {
+    if( userMode > 0 ) {
     	// zero new files
     	zeroNew = new BooleanParameter(gFile, "Zero New", false,
                                                     "ConfigView.label.zeronewfiles");
@@ -200,7 +200,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
       bpUseResume.setAdditionalActionPerformer(f_enabler);
       save_peers.setAdditionalActionPerformer(f_enabler);
 
-    } //end usermode>1
+    } //end usermode>0
       
       
     // savepath

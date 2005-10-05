@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.util.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -101,6 +102,7 @@ public class MyTorrentsView
   private MenuItem menuItemChangeDir = null;
   
   int userMode;
+  boolean isTrackerOn;
 
   private Map downloadBars;
   private AEMonitor				downloadBars_mon	= new AEMonitor( "MyTorrentsView:DL" );
@@ -426,6 +428,7 @@ public class MyTorrentsView
   public void fillMenu(final Menu menu) {
 	  
 	userMode = COConfigurationManager.getIntParameter("User Mode");
+	isTrackerOn = TRTrackerUtils.isTrackerEnabled();
 	  
     final MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemDetails, "MyTorrentsView.menu.showdetails"); //$NON-NLS-1$
@@ -720,8 +723,13 @@ public class MyTorrentsView
         itemExplore.setEnabled(hasSelection);
         if(userMode > 0) {
 	        itemExport.setEnabled(hasSelection);
-	        itemHost.setEnabled(hasSelection);
-	        itemPublish.setEnabled(hasSelection);
+	        if(isTrackerOn) {
+	        	itemHost.setEnabled(hasSelection);
+	        	itemPublish.setEnabled(hasSelection);
+	        } else {
+		        itemHost.setEnabled(false);
+		        itemPublish.setEnabled(false);
+	        }
         }else {
 	        itemExport.setEnabled(false);
 	        itemHost.setEnabled(false);
