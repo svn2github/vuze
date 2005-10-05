@@ -126,75 +126,67 @@ public class SWTUpdateChecker implements UpdatableComponent
     
   }
   
-  private boolean processData(UpdateChecker checker,InputStream data) {
+  private boolean 
+  processData(
+	UpdateChecker checker,
+	InputStream data ) 
+  {
     try {
-      UpdateInstaller installer = checker.createInstaller();    
+      String	osx_app = "/" + SystemProperties.getApplicationName() + ".app";
+        
+      UpdateInstaller installer = checker.createInstaller();
+      
       ZipInputStream zip = new ZipInputStream(data);
+      
       ZipEntry entry = null;
+      
       while((entry = zip.getNextEntry()) != null) {
+    	  
         String name = entry.getName();
         
-        String	osx_app = "/" + SystemProperties.getApplicationName() + ".app";
+        	// all jars
         
-        //swt.jar on all platforms ...
-        if(name.equals("swt.jar")) {
+        if ( name.endsWith( ".jar" )){
+        	
           installer.addResource(name,zip,false);
-          if(Constants.isOSX) {
+          
+          if ( Constants.isOSX ){
+        	  
             installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/Resources/Java/" + name);
-          } else {
+            
+          }else{ 
+        	  
             installer.addMoveAction(name,installer.getInstallDir() + File.separator + name);
           }
-          continue;
-        }
-        
-        //swt-pi.jar on OSX and on Linux
-        if(name.equals("swt-pi.jar")) {
+        }else if ( name.endsWith(".jnilib") && Constants.isOSX ){
+        	
+        	  //on OS X, any .jnilib
+        	
           installer.addResource(name,zip,false);
-          if(Constants.isOSX) {
-            installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/Resources/Java/" + name);
-          } else {
-            installer.addMoveAction(name,installer.getInstallDir() + File.separator + name);
-          }
-          continue;
-        }
-        
-        //on OS X, any .jnilib
-        if(name.endsWith(".jnilib") && Constants.isOSX) {
-          installer.addResource(name,zip,false);
+          
           installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/Resources/Java/dll/" + name);
-          continue;
-        }
-        
-        //on OS X, java_swt (the launcher to start SWT applications)
-        if(name.equals("java_swt")) {
+          
+        }else if ( name.equals("java_swt")){
+        	
+            //on OS X, java_swt (the launcher to start SWT applications)
+        	   
           installer.addResource(name,zip,false);
+          
           installer.addMoveAction(name,installer.getInstallDir() + osx_app + "/Contents/MacOS/" + name);
+          
           installer.addChangeRightsAction("755",installer.getInstallDir() + osx_app + "/Contents/MacOS/" + name);
-          continue;
-        }
-        
-        //on windows, swt-win32-XXXX.dll
-        if(name.startsWith("swt-win32-") && name.endsWith(".dll")) {
+          
+        }else if( name.endsWith( ".dll" ) || name.endsWith( ".so" )) {
+        	
+           	// native stuff for windows and linux
+        	 
           installer.addResource(name,zip,false);
-          installer.addMoveAction(name,installer.getInstallDir() + "\\" + name);
-          continue;
-        }
-        
-        //on linux, all .jar an .so ;)
-        if(Constants.isLinux) {
           
-          if(name.endsWith(".jar")) {
-            installer.addResource(name,zip,false);
-            installer.addMoveAction(name,installer.getInstallDir() + "/" + name);
-            continue;
-          }
-          
-          if(name.endsWith(".so")) {
-            installer.addResource(name,zip,false);
-            installer.addMoveAction(name,installer.getInstallDir() + "/" + name);
-            continue;
-          }
-        }
+          installer.addMoveAction(name,installer.getInstallDir() + File.separator + name);
+  
+       }else{
+    	   Debug.out( "SWTUpdate: ignoring zip entry '" + name + "'" );
+       }
       }
       zip.close();      
     } catch(Exception e) {
