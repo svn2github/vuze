@@ -391,6 +391,12 @@ Test
 		return( false );
 	}
 	
+	public boolean
+	isPaused()
+	{
+		return( false );
+	}
+	
 	public void
 	resume()
 	{

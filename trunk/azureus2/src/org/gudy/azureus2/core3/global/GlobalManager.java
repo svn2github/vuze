@@ -141,6 +141,10 @@ GlobalManager
     resumeDownload(
     	DownloadManager	dm );
     
+	public boolean
+	isPaused(
+		DownloadManager	dm );
+	
     public boolean
     isSeedingOnly();
     

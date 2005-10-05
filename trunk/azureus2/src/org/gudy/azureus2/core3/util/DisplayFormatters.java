@@ -230,6 +230,7 @@ DisplayFormatters
 	private static String	ManagerItem_superseeding;
 	private static String	ManagerItem_stopping;
 	private static String	ManagerItem_stopped;
+	private static String	ManagerItem_paused;
 	private static String	ManagerItem_queued;
 	private static String	ManagerItem_error;
 	private static String	ManagerItem_forced;
@@ -252,6 +253,7 @@ DisplayFormatters
 		ManagerItem_superseeding		= getResourceString( "ManagerItem.superseeding", "superseeding" );
 		ManagerItem_stopping			= getResourceString( "ManagerItem.stopping", "stopping" );
 		ManagerItem_stopped				= getResourceString( "ManagerItem.stopped", "stopped" );
+		ManagerItem_paused				= getResourceString( "ManagerItem.paused", "paused" );
 		ManagerItem_queued				= getResourceString( "ManagerItem.queued", "queued" );
 		ManagerItem_error				= getResourceString( "ManagerItem.error", "error" );
 		ManagerItem_forced				= getResourceString( "ManagerItem.forced", "forced" );
@@ -488,7 +490,7 @@ DisplayFormatters
 			tmp = ManagerItem_stopping;
 			break;
 		case DownloadManager.STATE_STOPPED :
-			tmp = ManagerItem_stopped;
+			tmp = manager.isPaused()?ManagerItem_paused:ManagerItem_stopped;
 			break;
 		  case DownloadManager.STATE_QUEUED :
 			tmp = ManagerItem_queued;
@@ -558,7 +560,7 @@ DisplayFormatters
 		  	tmp = MessageText.getDefaultLocaleString("ManagerItem.stopping");
 		  	break;
 		  case DownloadManager.STATE_STOPPED :
-			tmp = MessageText.getDefaultLocaleString("ManagerItem.stopped"); 
+			tmp = MessageText.getDefaultLocaleString(manager.isPaused()?"ManagerItem.paused":"ManagerItem.stopped"); 
 			break;
 		  case DownloadManager.STATE_QUEUED :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.queued"); 

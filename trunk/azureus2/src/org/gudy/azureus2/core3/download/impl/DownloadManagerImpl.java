@@ -1022,6 +1022,12 @@ DownloadManagerImpl
 		return( globalManager.pauseDownload( this ));
 	}
 	
+	public boolean
+	isPaused()
+	{
+		return( globalManager.isPaused( this ));
+	}
+	
 	public void
 	resume()
 	{

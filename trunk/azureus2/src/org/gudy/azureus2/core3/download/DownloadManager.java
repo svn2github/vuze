@@ -140,6 +140,9 @@ DownloadManager
 	public boolean
 	pause();
 	
+	public boolean
+	isPaused();
+	
 	public void
 	resume();
 	

@@ -1087,19 +1087,54 @@ public class GlobalManagerImpl
       return false;
   	}
   
-  public boolean 
-  canPauseDownloads() 
-  {
-    for( Iterator i = managers_cow.iterator(); i.hasNext(); ) {
-      DownloadManager manager = (DownloadManager)i.next();
+	public boolean
+	isPaused(
+		DownloadManager	manager )
+	{
+		if ( paused_list.size() == 0 ){
+			
+			return( false );
+		}
+		
+		try {  
+			paused_list_mon.enter();
+			
+		    for( int i=0; i < paused_list.size(); i++ ) {
+		    	
+		      	Object[]	data = (Object[])paused_list.get(i);
+		      	
+		        HashWrapper hash = (HashWrapper)data[0];
+		        
+		        DownloadManager this_manager = getDownloadManager( hash.getHash() );
+		      
+		        if ( this_manager == manager ){
+		        	
+		        	return( true );
+		        }
+		    }
+		    
+		    return( false );
+		    
+		}finally{
+			
+			paused_list_mon.exit();
+		}
+	}
+	
+	public boolean 
+	canPauseDownloads() 
+	{
+		for( Iterator i = managers_cow.iterator(); i.hasNext(); ) {
       
-      if ( canPauseDownload( manager )){
+			DownloadManager manager = (DownloadManager)i.next();
+      
+			if ( canPauseDownload( manager )){
     	  
-    	  return( true );
-      }
-    }
-    return false;
-  }
+				return( true );
+			}
+		}
+		return false;
+	}
 
 
   public void 
