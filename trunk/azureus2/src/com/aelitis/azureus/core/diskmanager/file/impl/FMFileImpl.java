@@ -71,6 +71,9 @@ FMFileImpl
 	
 	private FMFileAccess		file_access;
 	
+	private File				created_dirs_leaf;
+	private List				created_dirs;
+	
 	protected AEMonitor			this_mon	= new AEMonitor( "FMFile" );
 	
 	
@@ -113,15 +116,7 @@ FMFileImpl
 		        throw ioe;
 			}
 			
-			File	parent = linked_file.getParentFile();
-			
-	        if ( !parent.exists()){
-	        	  
-	        	if ( !parent.mkdirs()){
-	        		  
-	        		throw( new FMFileManagerException( "Failed to create parent directory '" + parent + "'"));	
-	        	}
-	        }
+			createDirs( linked_file );
 	        
 			reserveFile();
 							
@@ -202,6 +197,8 @@ FMFileImpl
 				
 				linked_file.delete();
 			}
+			
+			deleteDirs();
 			
 			if ( e instanceof FMFileManagerException ){
 				
@@ -332,20 +329,12 @@ FMFileImpl
 				throw( new FMFileManagerException( "moveFile fails - file '" + new_canonical_path + "' already exists"));	
 			}
 			
-	        File	parent = new_linked_file.getParentFile();
-	          
-	        if ( !parent.exists()){
-	        	  
-	        	if ( !parent.mkdirs()){
-	        		  
-	        		throw( new FMFileManagerException( "moveFile fails - failed to create parent directory '" + parent + "'"));	
-	        	}
-	        }
-	        
 			boolean	was_open	= raf != null;
 			
 			close();
 			
+			createDirs( new_linked_file );
+	        
 			if ( FileUtil.renameFile( linked_file, new_linked_file )) {
 				
 				linked_file		= new_linked_file;
@@ -460,6 +449,8 @@ FMFileImpl
 			if ( explicit ){
 				
 				releaseFile();
+				
+				deleteDirs();
 			}
 			
 			return;
@@ -473,9 +464,7 @@ FMFileImpl
 			throw( new FMFileManagerException("close fails", e ));
 			
 		}finally{
-			
-  	  //lClosedAt = SystemTime.getCurrentTime();
-  	  
+			  	  
 			raf	= null;
 			
 			if ( explicit ){
@@ -667,6 +656,82 @@ FMFileImpl
 		}finally{
 			
 			file_map_mon.exit();
+		}
+	}
+	
+	protected void
+	createDirs(
+		File		target )
+	
+		throws FMFileManagerException
+	{
+		deleteDirs();
+		
+		File	parent = target.getParentFile();
+		
+		if ( !parent.exists()){
+			
+			List	new_dirs = new ArrayList();
+			
+			File	current = parent;
+			
+			while( current != null && !current.exists()){
+			
+				new_dirs.add( 0, current );
+				
+				current = current.getParentFile();
+			}
+			
+			created_dirs_leaf	= target;
+			created_dirs		= new Stack();
+			
+			if ( parent.mkdirs()){
+			
+				created_dirs_leaf	= target;
+				created_dirs		= new_dirs;
+
+			}else{
+        		throw( new FMFileManagerException( "Failed to create parent directory '" + parent + "'"));	
+        	}
+        }
+	}
+	
+	protected void
+	deleteDirs()
+	{
+		if ( created_dirs_leaf != null ){
+			
+				// delete any dirs we created if the target file doesn't exist
+			
+			if ( !created_dirs_leaf.exists()){
+				
+				Iterator	it = created_dirs.iterator();
+					
+				while( it.hasNext()){
+					
+					File	dir = (File)it.next();
+					
+					if ( dir.exists() && dir.isDirectory()){
+						
+						File[]	entries = dir.listFiles();
+						
+						if ( entries == null || entries.length == 0 ){
+							
+							dir.delete();
+							
+						}else{
+							
+							break;
+						}
+					}else{
+						
+						break;
+					}
+				}
+			}
+	
+			created_dirs_leaf	= null;
+			created_dirs 		= null;
 		}
 	}
 	

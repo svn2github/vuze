@@ -627,7 +627,7 @@ DiskManagerImpl
 						file_info.getCacheFile().close();
 					}
 				}
-			}catch( CacheFileManagerException e ){
+			}catch( Throwable e ){
 			
 				errorMessage = Debug.getNestedExceptionMessage(e) + " (filesExist:" + relative_file.toString() + ")";
 				
