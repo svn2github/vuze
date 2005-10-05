@@ -193,7 +193,9 @@ public class SystemTraySWT {
         {
             public void handleEvent(Event event)
             {
-                createLimitMenuItems("Max Upload Speed KBs", uploadSpeedMenu);
+                createLimitMenuItems(
+                		TransferSpeedValidator.getActiveUploadParameter( mainWindow.getGlobalManager()), 
+                		uploadSpeedMenu);
             }
         });
 
@@ -244,7 +246,7 @@ public class SystemTraySWT {
             maxBandwidth = 275;
         }
         
-        final String unitSuffix = COConfigurationManager.getBooleanParameter("config.style.useSIUnits") ? " KiB/s" : "KB/s";
+        String	k_unit = DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
 
         MenuItem item = new MenuItem(parent, SWT.RADIO);
         item.setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
@@ -263,7 +265,7 @@ public class SystemTraySWT {
               for (int j = 0; j < valuePair.length; j++) {
                 if (valuePair[j] >= 5) {
                   item = new MenuItem(parent, SWT.RADIO, (j == 0) ? 1 : parent.getItemCount());
-                  item.setText(valuePair[j] + unitSuffix);
+                  item.setText(valuePair[j] + " " + k_unit);
                   item.setData("maxkb", new Integer(valuePair[j]));
                   item.addListener(SWT.Selection, getLimitMenuItemListener(parent, configKey));
                   item.setSelection(!unlim && valuePair[j] == maxBandwidth);

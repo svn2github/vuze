@@ -22,7 +22,8 @@ package org.gudy.azureus2.core3.config.impl;
  *
  */
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.global.GlobalManager;
 
 /**
  * Provides validation for transfer speed settings
@@ -32,12 +33,30 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
  */
 public final class TransferSpeedValidator
 {
-    public static final String UPLOAD_CONFIGKEY =  "Max Upload Speed KBs";
-    public static final String DOWNLOAD_CONFIGKEY =  "Max Download Speed KBs";
+    public static final String UPLOAD_CONFIGKEY 		=  "Max Upload Speed KBs";
+    public static final String UPLOAD_SEEDING_CONFIGKEY =  "Max Upload Speed Seeding KBs";
+    public static final String DOWNLOAD_CONFIGKEY 		=  "Max Download Speed KBs";
 
     private final String configKey;
     private final Object configValue;
 
+    private static boolean seeding_upload_enabled;
+    
+    static{
+    	    		
+    	COConfigurationManager.addAndFireParameterListener(
+    			"enable.seedingonly.upload.rate",
+    			new ParameterListener()
+        		{
+        			public void 
+        			parameterChanged(
+        				String parameterName)
+        			{
+        				seeding_upload_enabled = COConfigurationManager.getBooleanParameter( parameterName );
+        			}
+        		});		
+    }
+    
     /**
      * Creates a TransferSpeedValidator with the given configuration key and value
      * @param configKey Configuration key; must be "Max Upload Speed KBs" or "Max Download Speed KBs"
@@ -97,8 +116,11 @@ public final class TransferSpeedValidator
                     //COConfigurationManager.setParameter(UPLOAD_CONFIGKEY, 0);
                 }
             }
-        }
-        else
+        }else if ( configKey == UPLOAD_SEEDING_CONFIGKEY ){
+
+        		// nothing to do as this is active only when were not downloading
+        		// so we don't really care
+        }else
         {
             throw new IllegalArgumentException("Invalid Configuation Key; use key for max upload and max download");
         }
@@ -114,5 +136,19 @@ public final class TransferSpeedValidator
     public Object getValue()
     {
         return validate(configKey, configValue);
+    }
+    
+    public static String
+    getActiveUploadParameter(
+    	GlobalManager	gm )
+    {
+       if ( gm.isSeedingOnly() && seeding_upload_enabled ){
+        	
+        	return( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY );
+        	
+      	}else{
+      		
+      		return( TransferSpeedValidator.UPLOAD_CONFIGKEY );
+      	}
     }
 }

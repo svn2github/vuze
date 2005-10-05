@@ -507,13 +507,15 @@ MainWindow
          items[i].dispose(); 
         }
         
-        int upLimit = COConfigurationManager.getIntParameter("Max Upload Speed KBs",0);
+        final String	config_param = TransferSpeedValidator.getActiveUploadParameter(globalManager);
+      	
+        int upLimit = COConfigurationManager.getIntParameter(config_param,0);
         
         MenuItem item = new MenuItem(menuUpSpeed,SWT.RADIO);
         item.setText(MessageText.getString("ConfigView.unlimited"));
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
-            COConfigurationManager.setParameter("Max Upload Speed KBs",0);
+            COConfigurationManager.setParameter(config_param,0);
             COConfigurationManager.save();
           }
         });
@@ -521,11 +523,13 @@ MainWindow
         
         final Listener speedChangeListener = new Listener() {
               public void handleEvent(Event e) {
-                int iSpeed = ((Integer)new TransferSpeedValidator("Max Upload Speed KBs", ((MenuItem)e.widget).getData("speed")).getValue()).intValue();
-                COConfigurationManager.setParameter("Max Upload Speed KBs", iSpeed);
+                int iSpeed = ((Integer)new TransferSpeedValidator(config_param, ((MenuItem)e.widget).getData("speed")).getValue()).intValue();
+                COConfigurationManager.setParameter(config_param, iSpeed);
                 COConfigurationManager.save();
               }
             };
+      
+        String	k_unit = DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
 
         int iRel = 0;
         for (int i = 0; i < 12; i++) {
@@ -535,11 +539,12 @@ MainWindow
           } else {
             iAboveBelow = new int[] { upLimit - iRel, upLimit + iRel };
           }
+          
           for (int j = 0; j < iAboveBelow.length; j++) {
             if (iAboveBelow[j] >= 5) {
               item = new MenuItem(menuUpSpeed, SWT.RADIO, 
                                   (j == 0) ? 1 : menuUpSpeed.getItemCount());
-              item.setText(iAboveBelow[j] + " KB/s");
+              item.setText(iAboveBelow[j] + " " + k_unit);
               item.setData("speed", new Long(iAboveBelow[j]));
               item.addListener(SWT.Selection, speedChangeListener);
   
@@ -589,6 +594,8 @@ MainWindow
               }
             };
 
+        String	k_unit = DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
+            
         int iRel = 0;
         for (int i = 0; i < 12; i++) {
           int[] iAboveBelow;
@@ -601,7 +608,7 @@ MainWindow
             if (iAboveBelow[j] >= 5) {
               item = new MenuItem(menuDownSpeed, SWT.RADIO, 
                                   (j == 0) ? 1 : menuDownSpeed.getItemCount());
-              item.setText(iAboveBelow[j] + " KB/s");
+              item.setText(iAboveBelow[j] + " " + k_unit);
               item.setData("speed", new Long(iAboveBelow[j]));
               item.addListener(SWT.Selection, speedChangeListener);
               item.setSelection(!unlim && downLimit == iAboveBelow[j]);

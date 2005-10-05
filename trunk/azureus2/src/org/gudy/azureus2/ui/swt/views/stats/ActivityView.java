@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -79,7 +80,7 @@ public class ActivityView extends AbstractIView {
    
     upSpeedGraphic.addIntsValue(
     	new int[]{	stats.getDataSendRate() + stats.getProtocolSendRate(), 
-    				COConfigurationManager.getIntParameter("Max Upload Speed KBs") * 1024,
+    				COConfigurationManager.getIntParameter(TransferSpeedValidator.getActiveUploadParameter( manager )) * 1024,
     				swarms_peer_speed });
   }
   
