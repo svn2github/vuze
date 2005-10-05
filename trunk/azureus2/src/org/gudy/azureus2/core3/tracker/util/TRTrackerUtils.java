@@ -44,6 +44,12 @@ TRTrackerUtils
 		TRTrackerUtilsImpl.checkForBlacklistedURLs( url );
 	}
 
+	public static boolean
+	isTrackerEnabled()
+	{
+		return( getAnnounceURLs().length > 0 );
+	}
+	
 	public static String
 	getTrackerIP()
 	{
