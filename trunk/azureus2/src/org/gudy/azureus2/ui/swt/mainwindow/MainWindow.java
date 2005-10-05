@@ -1892,8 +1892,7 @@ MainWindow
   
   private void checkForWhatsNewWindow() {
     try {
-      String versionStr  = MessageText.getString("window.welcome.version");
-      int version = Integer.parseInt(versionStr);
+      int version = WelcomeWindow.WELCOME_VERSION;
       int latestDisplayed = COConfigurationManager.getIntParameter("welcome.version.lastshown",0);
       if(latestDisplayed < version) {
         new WelcomeWindow();

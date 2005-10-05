@@ -1,12 +1,21 @@
 $ 
-$    Bem vindo ao Azureus 2.3.0.4
+$    Bem vindo ao Azureus 2.3.0.6
 $ 
 
-+1. O que há de novo no Azureus 2.3.0.4
++1. O que há de novo no Azureus 2.3.0.6
 
- Isto é um lançamento adicional do reparo de erros.
+ This is a further bug fix release and also contains various improvements including:
  
-    Registro completo das mudanças http://azureus.sourceforge.net/changelog.php?version=2.3.0.4
+    Better banning of peers that send corrupt data
+    Alternative upload controls when only seeding
+    Renaming and retargeting of files within a download
+    Better reporting of firewalled status
+    NAT traversal for magnet downloads
+    Java 5.0 support for OSX
+    
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
+   
+    See http://azureus.sourceforge.net/changelog.php?version=2.3.0.4 for previous changes.
     
 +2. O que há de novo no Azureus 2.3.0.2
 

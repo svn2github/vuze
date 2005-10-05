@@ -45,6 +45,9 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 public class WelcomeWindow {
   
+	public static final int		WELCOME_VERSION		 	=  2306;
+	public static final String	WELCOME_VERSION_STRING	= "2.3.0.6";
+	
   private static final String lineSeparator = System.getProperty ("line.separator");
   
   Display display;
@@ -57,10 +60,9 @@ public class WelcomeWindow {
       shell.setImage(ImageRepository.getImage("azureus"));
     }
 	
-    String versionStr  = MessageText.getString("window.welcome.version");
-    int version = Integer.parseInt(versionStr);
+    int version = WELCOME_VERSION;
 
-    shell.setText(MessageText.getString("window.welcome.title."+version));
+    shell.setText(MessageText.getString("window.welcome.title", new String[]{ WELCOME_VERSION_STRING }));
     
     display = shell.getDisplay();
     
