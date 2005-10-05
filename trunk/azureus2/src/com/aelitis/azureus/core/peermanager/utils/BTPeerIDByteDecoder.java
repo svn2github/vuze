@@ -219,10 +219,10 @@ public class BTPeerIDByteDecoder {
       String mldonkey = new String(peerID, 1, 2, Constants.BYTE_ENCODING);
       if (mldonkey.equals("ML")) {
     	  String name = "mldonkey ";
-    	  name = name.concat(String.valueOf(peerID[3]) + ".");
-    	  name = name.concat(String.valueOf(peerID[5]) + ".");
-    	  name = name.concat(String.valueOf(peerID[7]));
-    	  return name;
+    	  String v1 = new String(peerID, 3, 1, Constants.BYTE_ENCODING);
+    	  String v2 = new String(peerID, 5, 1, Constants.BYTE_ENCODING);
+    	  String v3 = new String(peerID, 7, 1, Constants.BYTE_ENCODING);
+    	  return name + v1 + "." + v2 + "." + v3;
       }
             
       iFirstNonZeroPos = 20;
@@ -376,9 +376,19 @@ public class BTPeerIDByteDecoder {
             int v1 = Integer.parseInt( new String( id, 1, 1, Constants.BYTE_ENCODING ), 16 );
             int v2 = Integer.parseInt( new String( id, 2, 1, Constants.BYTE_ENCODING ), 16 );
             int v3 = Integer.parseInt( new String( id, 3, 1, Constants.BYTE_ENCODING ), 16 );
-            return name + " LM" + " " + v1 + "." + v2 + "." + v3;
+            if(ident.equals("T")){
+            	return name + " LM" + " " + v1 + "." + v2 + "." + v3;
+            } else {
+            	return name +  " " + v1 + "." + v2 + "." + v3;
+            }
           }
         }
+     }
+     if( (id[4] == (byte)48) && (id[5] == (byte)45) && (id[6] == (byte)45)  ) {
+         String decoded = new String( id, 0, 1, Constants.BYTE_ENCODING );
+         if( decoded.equals( ident ) ) {
+           return "TorrentFlux";
+         }
      }
     }
     catch( Exception e ) {  return null;  }
