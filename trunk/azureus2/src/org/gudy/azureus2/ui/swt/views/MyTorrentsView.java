@@ -56,7 +56,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
@@ -1538,10 +1537,12 @@ public class MyTorrentsView
   public void refresh() {
     if (getComposite() == null || getComposite().isDisposed())
       return;
-
+    
+    userMode = COConfigurationManager.getIntParameter("User Mode");
+    isTrackerOn = TRTrackerUtils.isTrackerEnabled();
+    
     computePossibleActions();
     MainWindow.getWindow().refreshIconBar();
-    userMode = COConfigurationManager.getIntParameter("User Mode");
 
     super.refresh();
   }
@@ -1933,8 +1934,8 @@ public class MyTorrentsView
   private void computePossibleActions() {
     Object[] dataSources = getSelectedDataSources();
     // enable up and down so that we can do the "selection rotate trick"
-    up = down = run = host = publish = remove = (dataSources.length > 0);
-    top = bottom = start = stop = false;
+    up = down = run =  remove = (dataSources.length > 0);
+    top = bottom = start = stop = host = publish = false;
     for (int i = 0; i < dataSources.length; i++) {
       DownloadManager dm = (DownloadManager)dataSources[i];
 
@@ -1946,6 +1947,9 @@ public class MyTorrentsView
         top = true;
       if(!bottom && dm.isMoveableDown())
         bottom = true;
+      
+      if(userMode>0 && isTrackerOn)
+    	  host = publish = true;
     }
   }
 
