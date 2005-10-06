@@ -119,7 +119,24 @@ AzureusRestarterImpl
 	  		restart_properties.put( "app_name", SystemProperties.getApplicationName());
 	  		restart_properties.put( "app_entry", SystemProperties.getApplicationEntryPoint());
 	  		
+	  		if ( System.getProperty( "azureus.nativelauncher" ) != null ){
+	  			
+	  			try{
+		  			String	cmd = PlatformManagerFactory.getPlatformManager().getApplicationCommandLine();
+		  			
+		  			if ( cmd != null ){
+		  				
+		  				restart_properties.put( "app_cmd", cmd );
+		  			}
+	  			}catch( Throwable e ){
+	  				
+	  				Debug.printStackTrace(e);
+	  			}
+	  		}
+	  		
 	  		fos	= new FileOutputStream( new File( user_path, UPDATE_PROPERTIES ));
+	  		
+	  			// this handles unicode chars by writing \\u escapes
 	  		
 	  		restart_properties.store(fos, "Azureus restart properties" );
 	  		
