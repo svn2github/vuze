@@ -343,6 +343,7 @@ AzureusRestarterImpl
     if ( log != null ){
       log.println( "  " + exec );
     }
+    
     String fileName = userPath + osx_app + "/" + restartScriptName;
     
     File fUpdate = new File(fileName);
@@ -352,7 +353,7 @@ AzureusRestarterImpl
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
       chMod(fileName,"755",log);      
-      runExternalCommand( log, osx_app + "/" + restartScriptName );
+      runExternalCommand( log, fileName );
     } catch(Exception e) {
       log.println(e);
       e.printStackTrace(log);
@@ -397,7 +398,7 @@ AzureusRestarterImpl
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
       chMod(fileName,"755",log);
-      runExternalCommand( log, "./" + restartScriptName );
+      runExternalCommand( log, fileName );
     } catch(Exception e) {
       log.println(e);  
       e.printStackTrace(log);
@@ -482,6 +483,8 @@ AzureusRestarterImpl
   
   private Process runExternalCommand( PrintWriter log, String command ) {
   	try {
+  		log.println("About to execute: [" +command+ "]" );
+  		
   		Process runner = Runtime.getRuntime().exec( command );
   		runner.waitFor();		
   		logStream( "runtime.exec() output", runner.getInputStream(), log);
@@ -489,6 +492,7 @@ AzureusRestarterImpl
       return runner;
   	}
   	catch( Throwable t ) {
+  		log.println( t.getMessage() != null ? t.getMessage() : "<null>" );
   		log.println( t );
   		t.printStackTrace( log );
   		return null;
