@@ -31,6 +31,9 @@ import java.util.*;
 import java.net.URL;
 import java.io.InputStream;
 
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
@@ -48,8 +51,23 @@ SFPluginDetailsLoaderImpl
 {
 
 	public static final String	site_prefix = "http://azureus.sourceforge.net/";
-	public static final String	page_url 	= site_prefix + "update/pluginlist3.php?type=&version=" + Constants.AZUREUS_VERSION ;
+	
+	public static String	page_url 	= site_prefix + "update/pluginlist3.php?type=&version=" + Constants.AZUREUS_VERSION;
 
+	static{
+		try{
+			PlatformManager pm = PlatformManagerFactory.getPlatformManager();
+			
+			if ( pm.hasCapability( PlatformManagerCapabilities.GetVersion )){
+				
+				page_url += "&pmv=" + pm.getVersion();
+			}
+			
+		}catch( Throwable e ){
+			
+		}
+	}
+	
 	protected static SFPluginDetailsLoaderImpl		singleton;
   	protected static AEMonitor		class_mon		= new AEMonitor( "SFPluginDetailsLoader:class" );
 
@@ -96,7 +114,7 @@ SFPluginDetailsLoaderImpl
 	
 		throws SFPluginDetailsException
 	{
-		try{
+		try{			
 			ResourceDownloader dl = rd_factory.create( new URL(page_url));
 			
 			dl = rd_factory.getRetryDownloader( dl, 5 );
