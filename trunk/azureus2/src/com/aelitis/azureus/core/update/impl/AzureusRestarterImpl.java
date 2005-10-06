@@ -302,8 +302,8 @@ AzureusRestarterImpl
           
         try{
         	log.println( "Using java spawn" );
-          
-        	Process p = Runtime.getRuntime().exec(exec);
+
+        	Process p = runExternalCommand( log, exec );
           
         	log.println("    -> " + p );
         	
@@ -352,7 +352,7 @@ AzureusRestarterImpl
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
       chMod(fileName,"755",log);      
-      Runtime.getRuntime().exec(osx_app + "/" + restartScriptName);
+      runExternalCommand( log, osx_app + "/" + restartScriptName );
     } catch(Exception e) {
       log.println(e);
       e.printStackTrace(log);
@@ -397,7 +397,7 @@ AzureusRestarterImpl
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
       chMod(fileName,"755",log);
-      Runtime.getRuntime().exec("./" + restartScriptName);
+      runExternalCommand( log, "./" + restartScriptName );
     } catch(Exception e) {
       log.println(e);  
       e.printStackTrace(log);
@@ -471,12 +471,28 @@ AzureusRestarterImpl
     try {
       Process pChMod = Runtime.getRuntime().exec(execStr);
       pChMod.waitFor();
-      logStream("Execution Output",pChMod.getInputStream(),log);
-      logStream("Execution Error",pChMod.getErrorStream(),log);
+      logStream("CHMOD Output",pChMod.getInputStream(),log);
+      logStream("CHMOD Error",pChMod.getErrorStream(),log);
     } catch(Exception e) {
       log.println(e);
       e.printStackTrace(log);
     }
+  }
+  
+  
+  private Process runExternalCommand( PrintWriter log, String command ) {
+  	try {
+  		Process runner = Runtime.getRuntime().exec( command );
+  		runner.waitFor();		
+  		logStream( "runtime.exec() output", runner.getInputStream(), log);
+      logStream( "runtime.exec() error", runner.getErrorStream(), log);
+      return runner;
+  	}
+  	catch( Throwable t ) {
+  		log.println( t );
+  		t.printStackTrace( log );
+  		return null;
+  	}
   }
   
 }
