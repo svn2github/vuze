@@ -46,6 +46,7 @@ CHANGE: Core  | Download totals don't include hash fails and discards and aren't
 CHANGE: Core  | "Max simultaneous outbound connection attempts" option no longer accepts zero as a disable value [Nolar]
 CHANGE: UI    | Update to the latest SWT library (3.2M2) [Nolar]
 CHANGE: Core  | Under OSX, now launches using the Java Preferences application configured JVM, enabling JRE 5.0 support [Nolar]
+CHANGE: Core  | Under Windows, now runs via a launcher built by exe4j - taskmanager process is now "Azureus.exe" [Nolar,Parg]
 
 BUGFIX: Core  | Fix interested flag being set sometimes when seeding [Nolar]
 BUGFIX: Core  | Wrong file name returned for stopped simple torrents [Parg]
