@@ -4,18 +4,18 @@ $
 
 +1. Lo nuevo en Azureus 2.3.0.6
 
- This is a further bug fix release and also contains various improvements including:
+ Esta versión arregla más fallos y también contiene varias mejoras incluyendo:
  
-    Better banning of peers that send corrupt data
-    Alternative upload controls when only seeding
-    Renaming and retargeting of files within a download
-    Better reporting of firewalled status
-    NAT traversal for magnet downloads
-    Java 5.0 support for OSX
+    Mejorada la expulsión de clientes que envían datos corruptos
+    Controles alternativos de subida para cuando sólo estás sirviendo (seeding)
+    Renombrado y recolocación de los archivos dentro de una descarga
+    Mejor información sobre el estado 'impedido por el cortafuegos'
+    NAT transversal para descargas magnet
+    Soporte de Java 5.0 bajo OSX
     
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
+    Informe completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
    
-    See http://azureus.sourceforge.net/changelog.php?version=2.3.0.4 for previous changes.
+    Mire en http://azureus.sourceforge.net/changelog.php?version=2.3.0.4 para cambios más antiguos.
 
 +2. Lo nuevo en Azureus 2.3.0.2
 
