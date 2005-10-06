@@ -12,7 +12,7 @@
       <versionLine x="20" y="40" text="version %VERSION%" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
     </text>
   </splashScreen>
-  <java mainClass="org.gudy.azureus2.ui.swt.Main" vmParameters="&quot;-Xmx128m&quot; &quot;-Duser.dir=%EXE4J_EXEDIR%&quot;" arguments="" allowVMPassthroughParameters="true" minVersion="1.4" maxVersion="" preferredVM="" allowBetaVM="true" jdkOnly="false">
+  <java mainClass="org.gudy.azureus2.ui.swt.Main" vmParameters="&quot;-Xmx128m&quot; &quot;-Duser.dir=%EXE4J_EXEDIR%&quot; &quot;-Dazureus.nativelauncher=1&quot;" arguments="" allowVMPassthroughParameters="true" minVersion="1.4" maxVersion="" preferredVM="" allowBetaVM="true" jdkOnly="false">
     <searchSequence>
       <registry />
       <envVar name="JAVA_HOME" />
