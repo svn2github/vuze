@@ -34,7 +34,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.9"
+#define VERSION "1.9.1"
 
 
 HMODULE	application_module;
