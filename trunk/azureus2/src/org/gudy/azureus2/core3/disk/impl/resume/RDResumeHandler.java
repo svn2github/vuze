@@ -49,6 +49,11 @@ public class
 RDResumeHandler
 	implements ParameterListener
 {
+	private static final byte		PIECE_NOT_DONE			= 0;
+	private static final byte		PIECE_DONE				= 1;
+	private static final byte		PIECE_RECHECK_REQUIRED	= 2;
+
+	
 	protected DiskManagerHelper		disk_manager;
 	protected DMWriterAndChecker	writer_and_checker;
 	protected DownloadManagerState	download_manager_state;
@@ -169,6 +174,9 @@ RDResumeHandler
 									
 						}else{
 							
+								// set it so that if we crash the NOT_DONE pieces will be
+								// rechecked
+							
 							resume_data.put("valid", new Long(0));
 							
 							saveResumeData( resume_data );
@@ -216,12 +224,12 @@ RDResumeHandler
 					
 					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
 					
-					boolean	ok = resume_pieces[i] == 1;
+					byte	piece_state = resume_pieces[i];
 					
 						// valid resume data means that the resume array correctly represents
 						// the state of pieces on disk, be they done or not
 					
-					if ( ok ){
+					if ( piece_state == PIECE_DONE ){
 					
 							// at least check that file sizes are OK for this piece to be valid
 						
@@ -235,7 +243,7 @@ RDResumeHandler
 							
 							if ( file_size == null ){
 								
-								ok	= false;
+								piece_state	= PIECE_NOT_DONE;
 								
 								LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is missing, fails re-check." );
 
@@ -246,7 +254,7 @@ RDResumeHandler
 							
 							if ( file_size.longValue() < expected_size ){
 								
-								ok	= false;
+								piece_state	= PIECE_NOT_DONE;
 								
 								LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is too small, fails re-check. File size = " + file_size + ", piece needs " + expected_size );
 
@@ -255,18 +263,18 @@ RDResumeHandler
 						}
 					}
 					
-					if ( ok ){
+					if ( piece_state == PIECE_DONE ){
 						
-						dm_piece.setDone( ok );
+						dm_piece.setDone( true );
 						
 					}else{								
 						
-							// We only need to recheck blocks that are marked as not-ok
-							// if the resume data is invalid
+							// We only need to recheck pieces that are marked as not-ok
+							// if the resume data is invalid or explicit recheck needed
 						
-						if ( !resumeValid ){
+						if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
 						
-							try{
+							try{								
 								writer_and_checker.checkPiece(
 									i,
 									new CheckPieceResultHandler()
@@ -426,11 +434,11 @@ RDResumeHandler
 		  	
 			  	if ( pieces[i].getDone()){
 			  		
-					resume_pieces[i] = (byte)1;
+					resume_pieces[i] = PIECE_DONE;
 			  		
 			  	}else{
 			  	
-					resume_pieces[i] = (byte)0;
+					resume_pieces[i] = PIECE_NOT_DONE;
 			  	}
 			}
 		}
@@ -660,7 +668,7 @@ RDResumeHandler
 		
 		for (int i = 0; i < resume_pieces.length; i++) {
 			
-			resume_pieces[i] = (byte)1;
+			resume_pieces[i] = PIECE_DONE;
 		}
 
 		Map resume_data = new HashMap();
@@ -690,6 +698,9 @@ RDResumeHandler
 			
 			return;
 		}
+			
+			// TODO: we could be a bit smarter with the first and last pieces regarding
+			// partial blocks where the piece spans the file bounaries.
 		
 			// clear any affected pieces
 		
@@ -707,7 +718,7 @@ RDResumeHandler
 					break;
 				}
 								
-				resume_pieces[i] = 0;
+				resume_pieces[i] = recheck?PIECE_RECHECK_REQUIRED:PIECE_NOT_DONE;
 			}
 		}
 			// clear any affected partial pieces
@@ -729,15 +740,11 @@ RDResumeHandler
 			}
 		}
 					
-		if ( recheck ){
-			
-				// TODO: this causes ALL pieces with 0 against them to be rechecked
-				// not just this file's... To fix we'd need to do something like introduce
-				// a further "partially valid" state (e.g. 2) and mark blocks that need
-				// partial recheck (e.g. with a 2)
-			
-			resume_data.put( "valid", new Long(0));	
-		}
+			// either way we're valid as 
+			//    1) clear -> pieces are set as not done
+			//	  2) recheck -> pieces are set as "recheck" and will be checked on restart
+		
+		resume_data.put( "valid", new Long(1));	
 		
 		saveResumeData( download_manager_state, resume_data );
 	}
@@ -774,7 +781,7 @@ RDResumeHandler
 		
 		for (int i = 0; i < resume_pieces.length; i++) {
 			
-			resume_pieces[i] = (byte)1;
+			resume_pieces[i] = PIECE_DONE;
 		}
 
 			// randomly clear some pieces
@@ -783,7 +790,7 @@ RDResumeHandler
 			
 			int	piece_num = (int)(Math.random()*piece_count);
 						
-			resume_pieces[piece_num]= 0;
+			resume_pieces[piece_num]= PIECE_NOT_DONE;
 		}
 		
 		Map resumeMap = new HashMap();
@@ -794,7 +801,7 @@ RDResumeHandler
 		
 		resumeMap.put("blocks", partialPieces);
 		
-		resumeMap.put("valid", new Long(0));	
+		resumeMap.put("valid", new Long(0));	// recheck the not-done pieces
 	
 		saveResumeData(download_manager_state,resumeMap);
 	}
@@ -831,9 +838,9 @@ RDResumeHandler
 					
 					for (int i=0;i<pieces.length;i++){
 
-						if ( pieces[i] == 0 ){
+						if ( pieces[i] != PIECE_DONE ){
 							
-								// missing piece
+								// missing piece or recheck outstanding
 							
 							return( false );
 						}
