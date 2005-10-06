@@ -91,6 +91,7 @@ public class NetworkManager {
     COConfigurationManager.addParameterListener( "enable.seedingonly.upload.rate", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         seeding_only_mode_allowed = COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" );
+        refreshUploadRate();
       }
     });
     
