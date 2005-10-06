@@ -19,8 +19,8 @@
       <envVar name="JDK_HOME" />
     </searchSequence>
     <classPath>
-      <archive location="./Azureus2.jar" failOnError="false" />
-      <archive location="./swt.jar" failOnError="false" />
+      <archive location="./Azureus2.jar" failOnError="true" />
+      <archive location="./swt.jar" failOnError="true" />
     </classPath>
     <nativeLibraryDirectories>
       <directory name="." />
