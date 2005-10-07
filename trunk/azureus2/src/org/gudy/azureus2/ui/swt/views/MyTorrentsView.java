@@ -1422,6 +1422,10 @@ public class MyTorrentsView
           drag_drop_line_start = -1;
         }
       }
+      public void dragSetData(DragSourceEvent event)
+      {
+    	  event.data =  "" + drag_drop_line_start;
+      }
     });
 
     DropTarget dropTarget = new DropTarget(getTable(),
