@@ -122,6 +122,9 @@ public class FilesView
     final MenuItem itemSkipped = new MenuItem(menuPriority, SWT.CASCADE);
     Messages.setLanguageText(itemSkipped, "FilesView.menu.setpriority.skipped"); //$NON-NLS-1$
 
+    final MenuItem itemDelete = new MenuItem(menuPriority, SWT.CASCADE);
+    Messages.setLanguageText(itemDelete, "wizard.multitracker.delete");	// lazy but we're near release
+
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
         Object[] infos = getSelectedDataSources();
@@ -132,13 +135,22 @@ public class FilesView
           return;
         }
          
-        boolean open = true;
+        boolean open 		= true;
+        boolean	all_compact	= true;
         
-        for (int i = 0; i < infos.length; i++) {
-          DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)infos[i];
-          if (fileInfo.getAccessMode() != DiskManagerFileInfo.READ){
+        for (int i = 0; i < infos.length; i++){
+        	
+          DiskManagerFileInfo file_info = (DiskManagerFileInfo)infos[i];
+          
+          if (file_info.getAccessMode() != DiskManagerFileInfo.READ){
+        	  
             open = false;
           }
+          
+		  if ( file_info.getStorageType() != DiskManagerFileInfo.ST_COMPACT ){
+
+			  all_compact	= false;
+		  }
         }
         
         	// we can only open files if they are read-only
@@ -153,6 +165,8 @@ public class FilesView
         	// no point in changing priority of completed downloads
         
         itemPriority.setEnabled( !download_manager.isDownloadComplete() );
+        
+        itemDelete.setEnabled( !( download_manager.isDownloadComplete() || all_compact ));
       }
     });       
 
@@ -289,6 +303,17 @@ public class FilesView
     			changePriority( 2, rows );
     		}
     	});
+    
+    itemDelete.addListener(SWT.Selection, 
+    	   	new SelectedTableRowsListener() 
+        	{
+        		public void
+        		runAll(
+        			TableRowCore[]	rows )
+        		{
+        			changePriority( 3, rows );
+        		}
+        	});
 
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -310,12 +335,20 @@ public class FilesView
 		boolean	compact_disabled = MessageBoxWindow.getRememberedDecision( 
 										"FilesView.messagebox.skip.id",
 										SWT.YES | SWT.NO ) == SWT.NO;
-		
+				
 		for (int i=0;i<file_infos.length;i++){
 					
 			DiskManagerFileInfo file_info = file_infos[i] = (DiskManagerFileInfo)rows[i].getDataSource(true);
 				
-			if ( file_info.isSkipped() && type != 2 ){
+			int	storage_type = file_info.getStorageType();
+			
+				// delete + non-compact requires work
+			
+			if ( type == 3 && storage_type != DiskManagerFileInfo.ST_COMPACT ){
+				
+				pause	= true;
+				
+			}else if ( file_info.isSkipped() && type != 2 ){
 				
 					// skipped -> normal
 				
@@ -323,7 +356,7 @@ public class FilesView
 					
 						// compact is disabled but we have a residual compact file 
 					
-					pause = file_info.getStorageType() == DiskManagerFileInfo.ST_COMPACT;
+					pause =  storage_type == DiskManagerFileInfo.ST_COMPACT;
 					
 				}else{
 					
@@ -370,17 +403,21 @@ public class FilesView
 					
 		   			fileInfo.setPriority(true);
 		   			
-					setSkipped( fileInfo, compact_disabled, false );
+					setSkipped( fileInfo, compact_disabled, false, false );
 					
 				}else if ( type == 1 ){
 					
 		 			fileInfo.setPriority(false);
 		 			
-					setSkipped( fileInfo, compact_disabled, false );
+					setSkipped( fileInfo, compact_disabled, false, false );
+					
+				}else if ( type == 2 ){
+					
+					setSkipped( fileInfo, compact_disabled, true, false );
 					
 				}else{
 					
-					setSkipped( fileInfo, compact_disabled, true );
+					setSkipped( fileInfo, false, true, true );
 				}
 			}
 		}finally{
@@ -396,7 +433,8 @@ public class FilesView
   setSkipped(
 	 DiskManagerFileInfo	info,
 	 boolean				compact_disabled,
-	 boolean				skipped )
+	 boolean				skipped,
+	 boolean				force_compact )
   {
 	if ( info.isSkipped() == skipped ){
 		
@@ -429,6 +467,7 @@ public class FilesView
 		}else{
 	
 			boolean	delete_file = 
+				force_compact ||
 				MessageBoxWindow.open( 
 					"FilesView.messagebox.skip.id",
 					SWT.YES | SWT.NO,
