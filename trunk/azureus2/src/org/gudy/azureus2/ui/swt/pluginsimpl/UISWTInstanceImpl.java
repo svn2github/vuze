@@ -205,14 +205,30 @@ UISWTInstanceImpl
 	{
 	  	try{
 		    final MainWindow window = MainWindow.getWindow();
-		    if(window != null) {
+		    
+		    if ( window != null ){
+		    
 		      window.getMenu().addPluginView(view);
-		      if (bAutoOpen) {
-	          window.getDisplay().asyncExec(new AERunnable(){
-	            public void runSupport() {
-	    	        window.openPluginView(view);
-	            }
-	          });
+		      
+		      if ( bAutoOpen ){
+		    	  
+		    	  Display	display = window.getDisplay();
+		    	  
+		    	  if ( display.getThread() == Thread.currentThread()){
+		    		  
+		    		  window.openPluginView(view);
+		    		  
+		    	  }else{
+		    		  display.asyncExec(
+		    			  new AERunnable()
+		    			  {
+		    				  public void 
+		    				  runSupport() 
+		    				  {
+		    					  window.openPluginView(view);
+		    				  }
+		    			  });
+		    	  }
 		      }
 		    }
 	  	}catch( Throwable e ){
