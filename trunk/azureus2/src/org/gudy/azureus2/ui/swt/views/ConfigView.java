@@ -480,8 +480,10 @@ public class ConfigView extends AbstractIView {
     Composite infoGroup = createConfigSection(ConfigSection.SECTION_PLUGINS, 6);
     TreeItem treePlugins = findTreeItem(tree, ConfigSection.SECTION_PLUGINS);
     infoGroup.setLayout(new GridLayout());
-    infoGroup.addControlListener(new Utils.LabelWrapControlListener());  
-
+    if ( SWT.getVersion() < 3138 ){ // screws up scrolling on 3.2M2
+    	infoGroup.addControlListener(new Utils.LabelWrapControlListener());  
+    }
+    
     String	sep = System.getProperty("file.separator");
     
     String sUserPluginDir 	= FileUtil.getUserFile( "plugins" ).toString(); 
