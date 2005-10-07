@@ -12,9 +12,12 @@ $
     Better reporting of firewalled status
     NAT traversal for magnet downloads
     Java 5.0 support for OSX
+    Bugfixes, bugfixes, bufixes
+    
+    Note: New Windows launcher exe might require allowing "Azureus.exe" internet access in your software firewall.
     
     Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
-   
+
     See http://azureus.sourceforge.net/changelog.php?version=2.3.0.4 for previous changes.
     
 +2. What's new in Azureus 2.3.0.2
