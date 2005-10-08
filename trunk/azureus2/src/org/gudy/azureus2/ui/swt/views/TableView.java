@@ -1085,7 +1085,16 @@ public class TableView
     table = createTable();
     initializeTable(table);
     
-    table_panel.layout();
+    	// sub-implementation may have overridden createTable and therefore
+    	// not have used table_panel but panel directly
+    
+    if ( table_panel != null ){
+    	
+    	table_panel.layout();
+    }else{
+    	
+    	panel.layout();
+    }
   }
   
   /** The Columns width changed
