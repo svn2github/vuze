@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
+import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.TrackersUtil;
@@ -93,8 +94,6 @@ public class ModePanel extends AbstractWizardPanel {
     //Line :
     //Announce URL : <local announce>
 
-    final Label localTrackerValue = new Label(panel, SWT.NULL);
-
     final String localTrackerHost = COConfigurationManager.getStringParameter("Tracker IP", "");
     final int localTrackerPort 	= COConfigurationManager.getIntParameter("Tracker Port", TRHost.DEFAULT_PORT );
     final int localTrackerPortSSL = COConfigurationManager.getIntParameter("Tracker Port SSL", TRHost.DEFAULT_PORT_SSL );
@@ -105,17 +104,19 @@ public class ModePanel extends AbstractWizardPanel {
     // there's a potential oversize issue with the howToLocal string, and attemtping to force wrap has no effect -
     // therefore, provide more room and remove extraneous labeling
     
-    final boolean showLocal = localTrackerHost != null && !localTrackerHost.equals("");
+    final boolean showLocal = TRTrackerUtils.isTrackerEnabled();
     
     final Label labelLocalAnnounce = (showLocal) ? new Label(panel, SWT.NULL) : null;
     
+    final Label localTrackerValue = new Label(panel, SWT.NULL);
+    
     if ( showLocal ){
+    	
+      Messages.setLanguageText(labelLocalAnnounce, "wizard.announceUrl");
     	
       localTrackerUrl[0] = "http://" + localTrackerHost + ":" + localTrackerPort + "/announce";
       localTrackerValue.setText(localTrackerUrl[0]);
       btnSSL.setEnabled( SSLEnabled );
-
-      Messages.setLanguageText(labelLocalAnnounce, "wizard.announceUrl");
 
       gridData = new GridData();
       gridData.horizontalSpan = 3;
@@ -127,7 +128,7 @@ public class ModePanel extends AbstractWizardPanel {
       btnLocalTracker.setSelection(false);
       btnSSL.setEnabled(false);
       btnLocalTracker.setEnabled(false);
-      localTrackerValue.setEnabled(false);
+      localTrackerValue.setEnabled(true);
       
       if (((NewTorrentWizard) wizard).tracker_type == NewTorrentWizard.TT_LOCAL ){
       	
@@ -146,19 +147,13 @@ public class ModePanel extends AbstractWizardPanel {
     }
 
     //Line:
-    // O use external Tracker     O decentral tracking
+    // O use external Tracker   
     
     final Button btnExternalTracker = new Button(panel, SWT.RADIO);
     Messages.setLanguageText(btnExternalTracker, "wizard.tracker.external");
     gridData = new GridData();
-    gridData.horizontalSpan = 2;
+    gridData.horizontalSpan = 4;
     btnExternalTracker.setLayoutData(gridData);
-    
-    final Button btnDHTTracker = new Button(panel, SWT.RADIO);
-    Messages.setLanguageText(btnDHTTracker, "wizard.tracker.dht");
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    btnDHTTracker.setLayoutData(gridData);
 
     //Line:
     // [External Tracker Url ]V
@@ -169,13 +164,13 @@ public class ModePanel extends AbstractWizardPanel {
     int	tracker_type = ((NewTorrentWizard) wizard).tracker_type;
     
     btnLocalTracker.setSelection(tracker_type==NewTorrentWizard.TT_LOCAL);
-    localTrackerValue.setEnabled(tracker_type==NewTorrentWizard.TT_LOCAL);
+    if(showLocal) localTrackerValue.setEnabled(tracker_type==NewTorrentWizard.TT_LOCAL);
     btnSSL.setEnabled(SSLEnabled&&tracker_type==NewTorrentWizard.TT_LOCAL);
     
     btnExternalTracker.setSelection(tracker_type==NewTorrentWizard.TT_EXTERNAL);
     labelExternalAnnounce.setEnabled(tracker_type==NewTorrentWizard.TT_EXTERNAL);
 
-    btnDHTTracker.setSelection(tracker_type==NewTorrentWizard.TT_DECENTRAL);
+    
     
     tracker = new Combo(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -202,8 +197,8 @@ public class ModePanel extends AbstractWizardPanel {
         try {
           new URL(text);
         } catch (MalformedURLException e) {
-          valid = false;
-          errorMessage = MessageText.getString("wizard.invalidurl");
+        	valid = false;
+        	errorMessage = MessageText.getString("wizard.invalidurl");
         }
         wizard.setErrorMessage(errorMessage);
         wizard.setNextEnabled(valid);
@@ -221,8 +216,8 @@ public class ModePanel extends AbstractWizardPanel {
         try {
           new URL(text);
         } catch (MalformedURLException ex) {
-          valid = false;
-          errorMessage = MessageText.getString("wizard.invalidurl");
+        	valid = false;
+        	errorMessage = MessageText.getString("wizard.invalidurl");
         }
         wizard.setErrorMessage(errorMessage);
         wizard.setNextEnabled(valid);
@@ -242,6 +237,23 @@ public class ModePanel extends AbstractWizardPanel {
     layout = new GridLayout();
     layout.numColumns = 4;
     panel.setLayout(layout);
+    
+    // O decentral tracking
+    final Button btnDHTTracker = new Button(panel, SWT.RADIO);
+    Messages.setLanguageText(btnDHTTracker, "wizard.tracker.dht");
+    gridData = new GridData();
+    gridData.horizontalSpan = 4;
+    btnDHTTracker.setLayoutData(gridData);
+    
+    btnDHTTracker.setSelection(tracker_type==NewTorrentWizard.TT_DECENTRAL);
+    
+    //Line:
+    // ------------------------------
+    
+    Label label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 4;
+    label.setLayoutData(gridData);
 
     //Line:
     // [] add Multi-tracker information
@@ -289,17 +301,17 @@ public class ModePanel extends AbstractWizardPanel {
     //Line:
     // ------------------------------
     
-    Label label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
+    Label label1 = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 4;
-    label.setLayoutData(gridData);
+    label1.setLayoutData(gridData);
 
     //Line:
-    // O single file
+    // O single file O Directory mode
     bSingle = new Button(panel, SWT.RADIO);
     bSingle.setSelection(!((NewTorrentWizard) wizard).create_from_dir);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 2;
     bSingle.setLayoutData(gridData);
     Messages.setLanguageText(bSingle, "wizard.singlefile");
     
@@ -309,13 +321,10 @@ public class ModePanel extends AbstractWizardPanel {
       }
     });
     
-    //Line:
-    // O Directory mode
-    
     bDirectory = new Button(panel, SWT.RADIO);
     bDirectory.setSelection(((NewTorrentWizard) wizard).create_from_dir);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 2;
     bDirectory.setLayoutData(gridData);
     Messages.setLanguageText(bDirectory, "wizard.directory");
     
