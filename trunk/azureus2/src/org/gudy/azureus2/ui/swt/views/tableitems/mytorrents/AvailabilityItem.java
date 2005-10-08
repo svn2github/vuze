@@ -66,14 +66,13 @@ public class AvailabilityItem
       float f = pm.getMinAvailability();
       if (!cell.setSortValue((long)(f * 1000)) && cell.isValid())
         return;
-      if (f != 0) {
-        int numZeros = zeros.length();
+      
         sText = String.valueOf((int)(f * iTimesBy));
         if (numZeros - sText.length() > 0)
           sText = zeros.substring(0, numZeros - sText.length()) + sText;
         sText = sText.substring(0, sText.length() - numZeros + 1) + "." + 
                 sText.substring(sText.length() - numZeros + 1);
-      }
+     
     } else {
       cell.setSortValue(0);
     }
