@@ -100,6 +100,9 @@ public class TableView
 
   /** Composite for IView implementation */
   private Composite panel;
+  
+  private Composite table_panel;
+  
   /** Table for SortableTable implementation */
   private Table table;
   /** SWT style options for the creation of the Table */
@@ -236,8 +239,21 @@ public class TableView
    *
    * @return The created Table.
    */
-  public Table createTable() {
-    table = new Table(panel, iTableStyle);
+  public Table createTable() 
+  {
+	 if ( table_panel == null ){
+		 
+		 table_panel = new Composite(panel,SWT.NULL);
+		 
+		 GridLayout layout = new GridLayout();
+		 layout.marginHeight = 0;
+		 layout.marginWidth = 0;
+		 table_panel.setLayout(layout);
+		 table_panel.setLayoutData(new GridData(GridData.FILL_BOTH));
+	 }
+	 
+    table = new Table(table_panel, iTableStyle);
+    
     table.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     return table;
@@ -1069,7 +1085,7 @@ public class TableView
     table = createTable();
     initializeTable(table);
     
-    panel.layout();
+    table_panel.layout();
   }
   
   /** The Columns width changed
