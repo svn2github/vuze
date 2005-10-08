@@ -12,6 +12,9 @@ $
     Mejor información sobre el estado 'impedido por el cortafuegos'
     NAT transversal para descargas magnet
     Soporte de Java 5.0 bajo OSX
+    Bugfixes, bugfixes, bufixes
+    
+    Note: New Windows launcher exe might require allowing "Azureus.exe" internet access in your software firewall.
     
     Informe completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
    
