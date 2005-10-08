@@ -120,6 +120,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
      
     Label cache_explain_label = new Label(cSection, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 300;
     cache_explain_label.setLayoutData(gridData);
     Messages.setLanguageText(
     		cache_explain_label, 
@@ -192,6 +193,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     file_max_open.setLayoutData( gridData );
     label = new Label(cSection, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 300;
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.section.file.max_open_files.explain");
     
@@ -211,6 +213,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     write_block_limit.setLayoutData( gridData );
     label = new Label(cSection, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 300;
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.section.file.write_block_limit.explain");
          
@@ -226,6 +229,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     check_piece_limit.setLayoutData( gridData );
     label = new Label(cSection, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 300;
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit.explain");
     
