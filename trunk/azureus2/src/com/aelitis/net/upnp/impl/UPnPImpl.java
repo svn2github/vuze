@@ -444,7 +444,7 @@ UPnPImpl
 	
 			con.connect();
 			
-			if ( con.getResponseCode() == 405 ){
+			if ( con.getResponseCode() == 405 || con.getResponseCode() == 500 ){
 				
 					// gotta retry with M-POST method
 								
