@@ -239,7 +239,20 @@ UPnPSSWANConnectionImpl
 			inv.addArgument( "NewPortMappingDescription", 	description );
 			inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)
 			
-			inv.invoke();
+			boolean	ok = false;
+			
+			try{
+				inv.invoke();
+				
+				ok	= true;
+				
+			}finally{
+				
+				if ( !ok ){
+					
+					((UPnPRootDeviceImpl)service.getDevice().getRootDevice()).portMappingFailed();
+				}
+			}
 			
 			try{
 				class_mon.enter();

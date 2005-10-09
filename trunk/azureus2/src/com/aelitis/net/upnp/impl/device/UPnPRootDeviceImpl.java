@@ -62,6 +62,8 @@ UPnPRootDeviceImpl
 	
 	private UPnPDeviceImpl	root_device;
 	
+	private boolean			port_mapping_failed;
+	
 	private boolean		destroyed;
 	
 	private List		listeners	= new ArrayList();
@@ -111,14 +113,29 @@ UPnPRootDeviceImpl
 		root_device = new UPnPDeviceImpl( this, "", doc.getChild( "Device" ));
 		
 		info = root_device.getFriendlyName();
-
-		String	model 	= root_device.getModelName();
+		
 		String	version	= root_device.getModelNumber();
 		
 		if ( version != null ){
 			
 			info += "/" + version;
 		}
+	}
+	
+	protected void
+	portMappingFailed()
+	{
+		if ( port_mapping_failed ){
+			
+			return;
+		}
+		
+		port_mapping_failed	= true;
+		
+		info += "/Bad";
+		
+		String	model 	= root_device.getModelName();
+		String	version	= root_device.getModelNumber();
 		
 		if ( model == null || version == null ){
 			
