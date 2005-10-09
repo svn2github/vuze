@@ -1701,8 +1701,9 @@ public class StartStopRulesDefaultPlugin
 	            else { // Peers <= Seeds
 	              newSR += num_peers_excluding_us * 1000 / num_seeds_excluding_us;
 	            }*/
-	            float x =  num_seeds_excluding_us  / num_peers_excluding_us;
+	            float x =  (float)(num_seeds_excluding_us)  / num_peers_excluding_us;
 	            newSR += 10000 / ((x+1)*(x+1));
+	            //System.out.println(dl.getName() + ": Seeds: " + num_seeds_excluding_us + " - Peers: " + num_peers_excluding_us + " - Ratio: " + x + " Rank: " + newSR);
 	          }
 	
 	          if (bPreferLargerSwarms)
