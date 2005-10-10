@@ -282,15 +282,18 @@ public class ConfigView extends AbstractIView {
           sc.setExpandVertical(true);
           sc.setLayoutData(new GridData(GridData.FILL_BOTH));
   
-          Composite c;
           
-          if ( section instanceof ConfigSectionSWT ){
-        	  
-        	  c = ((ConfigSectionSWT)section).configSectionCreate(sc);
-        	  
-          }else{
- 
-          	  c = ((UISWTConfigSection)section).configSectionCreate(sc);
+          if(i == 0) {
+            Composite c;
+            if ( section instanceof ConfigSectionSWT ){
+          	  
+          	  c = ((ConfigSectionSWT)section).configSectionCreate(sc);
+          	  
+            }else{
+   
+            	  c = ((UISWTConfigSection)section).configSectionCreate(sc);
+            }
+            sc.setContent(c);
           }
   
           String	section_key = name;
@@ -314,7 +317,7 @@ public class ConfigView extends AbstractIView {
           treeItem.setData("ID", name);
           treeItem.setData("ConfigSectionSWT", section);
           
-          sc.setContent(c);
+          
         } catch (Exception e) {
           LGLogger.log(LGLogger.ERROR, "ConfigSection plugin '" + name + "' caused an error");
           Debug.printStackTrace( e );
@@ -342,6 +345,8 @@ public class ConfigView extends AbstractIView {
       
       if (configSection != null) {
     	  
+        Control previous = item.getContent();
+        
         Composite c;
         
         if ( configSection instanceof ConfigSectionSWT ){
@@ -356,6 +361,10 @@ public class ConfigView extends AbstractIView {
         item.setContent(c);
         
         c.layout();
+        
+        if(previous != null && previous instanceof Composite) {
+          Utils.disposeComposite((Composite)previous,true);
+        }
         
         //section.setData("ConfigSectionSWT", null); // XXX Refreshes ok but does not dispose of previous composite...
       }

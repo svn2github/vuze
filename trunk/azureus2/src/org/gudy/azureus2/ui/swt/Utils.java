@@ -45,30 +45,34 @@ import java.net.URL;
  */
 public class Utils {
   
-  public static void disposeComposite(Composite composite) {
+  public static void disposeComposite(Composite composite,boolean disposeSelf) {
     if(composite == null || composite.isDisposed())
-        return;
-    Control[] controls = composite.getChildren();
-    for(int i = 0 ; i < controls.length ; i++) {
-      Control control = controls[i];                
-      if(control != null && ! control.isDisposed()) {
-        if(control instanceof Composite) {
-          disposeComposite((Composite) control);
-        }
-        try {
-          control.dispose();
-        } catch (SWTException e) {
-        	Debug.printStackTrace( e );
-        }
+      return;
+  Control[] controls = composite.getChildren();
+  for(int i = 0 ; i < controls.length ; i++) {
+    Control control = controls[i];                
+    if(control != null && ! control.isDisposed()) {
+      if(control instanceof Composite) {
+        disposeComposite((Composite) control,true);
+      }
+      try {
+        control.dispose();
+      } catch (SWTException e) {
+        Debug.printStackTrace( e );
       }
     }
-    // It's possible that the composite was destroyed by the child
-    if (!composite.isDisposed())
-      try {
-        composite.dispose();
-      } catch (SWTException e) {
-      	Debug.printStackTrace( e );
-      }
+  }
+  // It's possible that the composite was destroyed by the child
+  if (!composite.isDisposed() && disposeSelf)
+    try {
+      composite.dispose();
+    } catch (SWTException e) {
+      Debug.printStackTrace( e );
+    }
+  }
+  
+  public static void disposeComposite(Composite composite) {
+    disposeComposite(composite,true);
   }
   
   public static void changeBackgroundComposite(Composite composite,Color color) {

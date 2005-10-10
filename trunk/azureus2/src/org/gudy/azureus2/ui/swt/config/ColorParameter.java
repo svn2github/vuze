@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
  */
 public class ColorParameter extends Parameter implements ParameterListener {
 
+  
   private Button colorChooser;
   protected String sParamName;
   private Image img;
@@ -62,6 +63,9 @@ public class ColorParameter extends Parameter implements ParameterListener {
     colorChooser.addListener(SWT.Dispose, new Listener() {
       public void handleEvent(Event e) {
         COConfigurationManager.removeParameterListener(sParamName, ColorParameter.this);
+        if(img != null && ! img.isDisposed()) {
+          img.dispose();          
+        }
       }
     });
 
