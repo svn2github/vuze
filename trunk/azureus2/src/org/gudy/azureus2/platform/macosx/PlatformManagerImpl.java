@@ -25,6 +25,7 @@ package org.gudy.azureus2.platform.macosx;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
@@ -138,13 +139,43 @@ public class PlatformManagerImpl implements PlatformManager
         return true;
     }
 
+    
 	public String
 	getApplicationCommandLine()
-	
 		throws PlatformManagerException
 	{
-        throw new PlatformManagerException("Unsupported capability called on platform manager");
+		try{	    
+			String	bundle_path = System.getProperty("user.dir") +SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app";
+
+			File osx_app_bundle = new File( bundle_path ).getAbsoluteFile();
+			
+			if( !osx_app_bundle.exists() ) {
+				String msg = "OSX app bundle not found: [" +osx_app_bundle.toString()+ "]";
+				System.out.println( msg );
+				LGLogger.log( msg );		
+				throw new PlatformManagerException( msg );
+			}
+			
+			return "open -a " +osx_app_bundle.toString();  //TODO will work properly with spaces in path???
+			
+	    /*
+	    String exec = userPath + osx_app + "/Contents/MacOS/JavaApplicationStub";
+	    if( new File( exec ).exists() == false ) {
+	    	exec = userPath + osx_app + "/Contents/MacOS/java_swt";
+	    } 
+
+	    String[] exec = new String[3];
+	    exec[0] = "open";
+	    exec[1] = "-a";
+	    exec[2] = userPath + osx_app;
+	    */
+		}
+		catch( Throwable t ){	
+			t.printStackTrace();
+			return null;
+		}
 	}
+	
 	
 	public boolean
 	isAdditionalFileTypeRegistered(

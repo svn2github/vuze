@@ -119,7 +119,8 @@ AzureusRestarterImpl
 	  		restart_properties.put( "app_name", SystemProperties.getApplicationName());
 	  		restart_properties.put( "app_entry", SystemProperties.getApplicationEntryPoint());
 	  		
-	  		if ( System.getProperty( "azureus.nativelauncher" ) != null ){
+	  		if ( System.getProperty( "azureus.nativelauncher" ) != null || isOSX() ){
+	  			//NOTE: new 2306 osx bundle now sets azureus.nativelauncher=1, but older bundles dont
 	  			
 	  			try{
 		  			String	cmd = PlatformManagerFactory.getPlatformManager().getApplicationCommandLine();
@@ -132,7 +133,8 @@ AzureusRestarterImpl
 	  				
 	  				Debug.printStackTrace(e);
 	  			}
-	  		}
+	  		}	  		
+	  		
 	  		
 	  		fos	= new FileOutputStream( new File( user_path, UPDATE_PROPERTIES ));
 	  		
@@ -239,8 +241,6 @@ AzureusRestarterImpl
   
   // ****************** This code is copied into Restarter / Updater so make changes there too !!!
   
-  //Beware that for OSX no SPECIAL Java will be used with
-  //This method.
   
   private static final String restartScriptName = "restartScript";
   
@@ -314,6 +314,8 @@ AzureusRestarterImpl
     }
   }
   
+  
+  
   private void 
   restartAzureus_OSX(
       PrintWriter log,
@@ -321,44 +323,52 @@ AzureusRestarterImpl
     String[]  properties,
     String[] parameters) 
   {
-    String userPath = System.getProperty("user.dir");
+  	
+     String	osx_app_bundle = System.getProperty("user.dir") +
+     												 System.getProperty("file.separator") +
+     												 SystemProperties.getApplicationName() +
+     												 ".app";
+     
+     String java_exec_path = System.getProperty("java.home") +
+     												 System.getProperty("file.separator") +
+     												 "bin" +
+     												 System.getProperty("file.separator") +
+     												 "java";
     
-    String	osx_app = "/" + SystemProperties.getApplicationName() + ".app";
+     String exec =   "#!/bin/bash\n\"" + java_exec_path + "\" " + getClassPath() +   getLibraryPath();
+  	 
+     for (int i=0;i<properties.length;i++){
+    	 exec += properties[i] + " ";
+     }
     
-    String exec =   "#!/bin/bash\n" + 
-                  	"ulimit -H -S -n 8192\n\"" +
-					userPath + osx_app + "/Contents/MacOS/java_swt\" " + getClassPath() +
-					getLibraryPath();
+     exec += mainClass ;
     
-    for (int i=0;i<properties.length;i++){
-      exec += properties[i] + " ";
-    }
+     for(int i = 0 ; i < parameters.length ; i++) {
+    	 exec += " \"" + parameters[i] + "\"";
+     }
+
+     String script_name = osx_app_bundle + System.getProperty("file.separator") + restartScriptName;
     
-    exec += mainClass ;
+     if ( log != null ){
+    	 log.println( " [" +exec+ "]" );
+     }
     
-    for(int i = 0 ; i < parameters.length ; i++) {
-      exec += " \"" + parameters[i] + "\"";
-    }
+     File fUpdate = new File(script_name);
     
-    if ( log != null ){
-      log.println( "  " + exec );
-    }
+     try {
+    	 FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
+    	 fosUpdate.write(exec.getBytes());
+    	 fosUpdate.close();
+    	 chMod(script_name,"755",log);      
+    	 runExternalCommand( log, script_name );   	
+     } catch(Exception e) {
+    	 log.println(e);
+    	 e.printStackTrace(log);
+     }
     
-    String fileName = userPath + osx_app + "/" + restartScriptName;
-    
-    File fUpdate = new File(fileName);
-    
-    try {
-      FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
-      fosUpdate.write(exec.getBytes());
-      fosUpdate.close();
-      chMod(fileName,"755",log);      
-      runExternalCommand( log, fileName );
-    } catch(Exception e) {
-      log.println(e);
-      e.printStackTrace(log);
-    }
   }
+  
+  
   
   private void 
   restartAzureus_Linux(
@@ -468,24 +478,41 @@ AzureusRestarterImpl
     execStr[0] = "chmod";
     execStr[1] = rights;
     execStr[2] = fileName;
-    log.println("About to execute : "  + execStr[0] + " " + execStr[1] + " " + execStr[2]);
-    try {
-      Process pChMod = Runtime.getRuntime().exec(execStr);
-      pChMod.waitFor();
-      logStream("CHMOD Output",pChMod.getInputStream(),log);
-      logStream("CHMOD Error",pChMod.getErrorStream(),log);
-    } catch(Exception e) {
-      log.println(e);
-      e.printStackTrace(log);
-    }
+    
+    runExternalCommands( log, execStr );
   }
   
   
   private Process runExternalCommand( PrintWriter log, String command ) {
+  	log.println("About to execute: [" +command+ "]" );
+  	
   	try {
-  		log.println("About to execute: [" +command+ "]" );
-  		
   		Process runner = Runtime.getRuntime().exec( command );
+  		runner.waitFor();		
+  		logStream( "runtime.exec() output", runner.getInputStream(), log);
+      logStream( "runtime.exec() error", runner.getErrorStream(), log);
+      return runner;
+  	}
+  	catch( Throwable t ) {
+  		log.println( t.getMessage() != null ? t.getMessage() : "<null>" );
+  		log.println( t );
+  		t.printStackTrace( log );
+  		return null;
+  	}
+  }
+  
+  private Process runExternalCommands( PrintWriter log, String[] commands ) {
+  	String cmd = "About to execute: [";
+  	for( int i=0; i < commands.length; i++ ) {
+  		cmd += commands[i];
+  		if( i < commands.length -1 )  cmd += " ";
+  	}
+  	cmd += "]";
+  	
+  	log.println( cmd );
+  	
+  	try {
+  		Process runner = Runtime.getRuntime().exec( commands );
   		runner.waitFor();		
   		logStream( "runtime.exec() output", runner.getInputStream(), log);
       logStream( "runtime.exec() error", runner.getErrorStream(), log);
