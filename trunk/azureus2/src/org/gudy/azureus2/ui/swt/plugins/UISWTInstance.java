@@ -66,6 +66,15 @@ UISWTInstance
 		boolean 			autoOpen );
 	
 		/**
+		 * Remove a view
+		 * @param view
+		 */
+
+	public void
+	removeView(
+		UISWTPluginView		view );
+	
+		/**
 		 * Add an AWT panel as the plugin view
 		 * @param view
 		 * @param auto_open
@@ -75,4 +84,14 @@ UISWTInstance
 	addView(
 		UISWTAWTPluginView	view,
 		boolean				auto_open );
+	
+		/**
+		 * Remove a view
+		 * @param view
+		 */
+
+	public void
+	removeView(
+		UISWTAWTPluginView		view );
+
 }

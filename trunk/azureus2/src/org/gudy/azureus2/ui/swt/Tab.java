@@ -188,6 +188,34 @@ public class Tab {
     return (IView) tabs.get(item);
   }
 
+  public static Item
+  getTab(
+		IView	view )
+  {
+	   try{
+		   class_mon.enter();
+	    	
+		   Iterator iter = tabs.keySet().iterator();
+		   
+		   while( iter.hasNext()){
+			 
+			   Item item = (Item) iter.next();
+			   
+			   IView this_view = (IView) tabs.get(item); 
+			   
+			   if ( this_view == view ){
+				   
+				   return( item );
+			   }
+		   }
+		   
+		   return( null );
+		   
+	   }finally{
+		   
+		   class_mon.exit();
+	   }
+  }
   public static void refresh() {
     try{
     	class_mon.enter();

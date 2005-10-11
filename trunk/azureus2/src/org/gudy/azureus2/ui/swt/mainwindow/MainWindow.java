@@ -1321,10 +1321,23 @@ MainWindow
     }
   }
   
+  public void 
+  closePluginView( 
+	IView	view) 
+  {
+	  Item	tab = Tab.getTab( view );
+	  
+	  if ( tab != null ){
+		  
+		  Tab.closed( tab );
+	  }
+  }
+  
   public void removeActivePluginView( String view_name ) {
     pluginTabs.remove(view_name);
   }
   
+ 
 
 
   

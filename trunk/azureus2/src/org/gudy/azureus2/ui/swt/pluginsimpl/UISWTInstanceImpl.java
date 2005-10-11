@@ -30,6 +30,8 @@ import java.awt.Frame;
 import java.awt.Panel;
 import java.io.File;
 import java.net.URL;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 
 
@@ -67,6 +69,9 @@ UISWTInstanceImpl
 	implements UISWTInstance, UIManagerEventListener
 {
 	private AzureusCore		core;
+	
+	private Map awt_view_map = new WeakHashMap();
+	
 	
 	public 
 	UISWTInstanceImpl(
@@ -237,11 +242,27 @@ UISWTInstanceImpl
 	} 
   
 	public void
+	removeView(
+		UISWTPluginView		view )
+	{
+	  	try{
+		    final MainWindow window = MainWindow.getWindow();
+		    
+		    if ( window != null ){
+
+		    	window.getMenu().removePluginView( view );
+		    }
+	  	}catch( Throwable e ){
+	  		// SWT not available prolly
+	  	}
+	}
+	
+	public void
 	addView(
 		final UISWTAWTPluginView	view,
 		boolean						auto_open )
 	{
-		addView(
+		UISWTPluginView	v = 
 			new UISWTPluginView()
 			{
 				Composite		composite;
@@ -319,8 +340,23 @@ UISWTInstanceImpl
 					
 					view.delete( component );
 				}
-			},
-			auto_open );
+			};
+			
+		awt_view_map.put( view, v );
+		
+		addView( v, auto_open );
+	}
+	
+	public void
+	removeView(
+		UISWTAWTPluginView		view )
+	{
+		UISWTPluginView	v = (UISWTPluginView)awt_view_map.remove(view );
+		
+		if ( v != null ){
+			
+			removeView( v );
+		}
 	}
 	
 	public void

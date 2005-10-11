@@ -648,7 +648,7 @@ public class MainMenu {
 	  addPluginView( view, view.getPluginViewName());
   }
   
-  public void
+  protected void
   addPluginView(
   	final AbstractIView 	view,
   	final String			name )
@@ -680,6 +680,54 @@ public class MainMenu {
           }
         });
         menu_plugin.setEnabled(true);
+      }
+    });
+  }
+  
+  public void
+  removePluginView(
+  	PluginView view)
+  {
+	  removePluginView( view, view.getPluginViewName());
+  }
+  
+  public void
+  removePluginView(
+  	UISWTPluginView view)
+  {
+	  removePluginView( view, view.getPluginViewName());
+  }
+  
+  protected void
+  removePluginView(
+  	final AbstractIView 	view,
+  	final String			name )
+  {
+    display.asyncExec(new AERunnable() {
+      public void runSupport()
+      {
+      	MenuItem[]	items = pluginMenu.getItems();
+
+      	boolean	others = false;
+      	
+      	for (int i=0;i<items.length;i++){
+
+      		MenuItem	item = items[i];
+      		
+      		if ( item.getStyle() == SWT.SEPARATOR ){
+    	
+      		}else if ( item.getText().equals( name )){
+      			
+      			item.dispose();
+      			
+      			mainWindow.closePluginView( view );
+      			
+      		}else{
+      			others = true;
+      		}
+      	}
+      	
+      	menu_plugin.setEnabled(others);
       }
     });
   }
