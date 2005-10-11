@@ -48,8 +48,22 @@ public class SWTVersionGetter {
   SWTVersionGetter(
   		UpdateChecker	_checker ) 
   {
-    this.platform = SWT.getPlatform();
+    this.platform 		= SWT.getPlatform();
     this.currentVersion = SWT.getVersion();
+    
+    if ( currentVersion == 3206 ){
+    	
+    		/* problem here with 3.2M2 that we rolled out to CVS users - it doesn't work
+    		 * on windows 98 (hangs the app). We therefore decided to fall back to 3.1.1
+    		 * which does work. However, to rollback the CVS users we need to make it appear
+    		 * that 3206 is < 3.1.1. We do this by hacking the version here
+    		 */
+    	
+    	System.out.println( "Rolling back SWT version 3.2M2 to 3.1.1" );
+    	
+    	currentVersion = 3138;	// 3.1.1 is 3139
+    }
+    
     this.latestVersion = 0;
     checker	= _checker;
   }
