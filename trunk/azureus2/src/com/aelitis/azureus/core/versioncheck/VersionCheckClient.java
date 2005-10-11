@@ -267,16 +267,16 @@ public class VersionCheckClient {
   private Map constructVersionCheckMessage() {
     Map message = new HashMap();
     
+    message.put( "appid", SystemProperties.getApplicationIdentifier());
+    message.put( "version", Constants.AZUREUS_VERSION );
+    
     String id = COConfigurationManager.getStringParameter( "ID", null );
     boolean send_info = COConfigurationManager.getBooleanParameter( "Send Version Info" );
     
     if( id != null && send_info ) {
-      
+    	
       message.put( "id", id );
-      message.put( "appid", SystemProperties.getApplicationIdentifier());
-      message.put( "version", Constants.AZUREUS_VERSION );
       message.put( "os", Constants.OSName );
-      
       
       String  java_version = System.getProperty( "java.version" );
       if ( java_version == null ){  java_version = "unknown";  }
