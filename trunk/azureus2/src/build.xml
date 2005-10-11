@@ -2,6 +2,7 @@
 
 <project default="jar" name="Azureus" basedir=".">
 
+   <property name="root.dir" value="temp" />
    <property name="libs.dir" value="build/libs" />
    <property name="dist.dir" value="dist" />
    
@@ -19,26 +20,26 @@
          <not>  <isset property="libs.dir" />  </not>
       </condition> -->
        
-      <mkdir dir="${dist.dir}" />
+      <mkdir dir="${root.dir}/${dist.dir}" />
    </target>
 
    
    <target name="compile" depends="init" >
       <path id="libs.classpath">
-         <fileset dir="${libs.dir}" includes="**/*.jar" />
+         <fileset dir="${root.dir}/${libs.dir}" includes="**/*.jar" />
       </path>
    
-      <javac srcdir="." destdir="." nowarn="yes" source="1.4" target="1.4" includeAntRuntime="no" >
+      <javac srcdir="${root.dir}" destdir="${root.dir}" nowarn="yes" source="1.4" target="1.4" includeAntRuntime="no" >
          <classpath refid="libs.classpath" />
       </javac>
    </target>
 
 
    <target name="jar" depends="compile" >
-      <jar destfile="${dist.dir}/Azureus2.jar" basedir="." excludes="${dist.jar.excludes}">
+      <jar destfile="${root.dir}/${dist.dir}/Azureus2.jar" basedir="${root.dir}" excludes="${dist.jar.excludes}" >
          <manifest>
             <attribute name="Main-Class" value="org.gudy.azureus2.ui.common.Main" />
-            <attribute name="Class-Path" value="Azureus2.jar apple-extensions.jar commons-cli.jar log4j.jar swt.jar swt-win32.jar swt-pi-osx.jar" />
+            <attribute name="Class-Path" value="Azureus2.jar apple-extensions.jar commons-cli.jar log4j.jar swt.jar swt-win32.jar swt-osx.jar" />
          </manifest>
       </jar>
       
@@ -49,11 +50,11 @@
 
    <target name="clean" >
       <delete quiet="true" >
-         <fileset dir="com" includes="**/*.class"/>
-         <fileset dir="org" includes="**/*.class"/>
+         <fileset dir="${root.dir}/com" includes="**/*.class"/>
+         <fileset dir="${root.dir}/org" includes="**/*.class"/>
       </delete>
       
-      <delete dir="${dist.dir}" />
+      <delete dir="${root.dir}/${dist.dir}" />
    </target>
 
 </project>
