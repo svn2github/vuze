@@ -677,19 +677,25 @@ FMFileImpl
 			
 			while( current != null && !current.exists()){
 			
-				new_dirs.add( 0, current );
+				new_dirs.add( current );
 				
 				current = current.getParentFile();
 			}
 			
 			created_dirs_leaf	= target;
-			created_dirs		= new Stack();
+			created_dirs		= new ArrayList();
 			
 			if ( parent.mkdirs()){
 			
 				created_dirs_leaf	= target;
 				created_dirs		= new_dirs;
 
+				/*
+				for (int i=created_dirs.size()-1;i>=0;i--){
+					
+					System.out.println( "created " + created_dirs.get(i));
+				}
+				*/
 			}else{
         		throw( new FMFileManagerException( "Failed to create parent directory '" + parent + "'"));	
         	}
@@ -716,6 +722,8 @@ FMFileImpl
 						File[]	entries = dir.listFiles();
 						
 						if ( entries == null || entries.length == 0 ){
+							
+							// System.out.println( "deleted " + dir );
 							
 							dir.delete();
 							
