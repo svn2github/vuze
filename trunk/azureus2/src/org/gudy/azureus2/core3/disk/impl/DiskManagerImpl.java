@@ -175,7 +175,8 @@ DiskManagerImpl
 				}
 			});	
 	
-	protected AEMonitor	this_mon	= new AEMonitor( "DiskManager" );
+	private AEMonitor	start_stop_mon	= new AEMonitor( "DiskManager:startStop" );
+	private AEMonitor	file_piece_mon		= new AEMonitor( "DiskManager:filePiece" );
 	
 	public 
 	DiskManagerImpl(
@@ -274,7 +275,7 @@ DiskManagerImpl
 	start() 
 	{		
 		try{
-			this_mon.enter();
+			start_stop_mon.enter();
 	
 			if ( used ){
 				
@@ -316,7 +317,7 @@ DiskManagerImpl
 						boolean	stop_required;
 						
 						try{
-							this_mon.enter();
+							start_stop_mon.enter();
 						
 							stop_required = DiskManagerImpl.this.getState() == DiskManager.FAULTY || stopping;
 							
@@ -324,7 +325,7 @@ DiskManagerImpl
 							
 						}finally{
 							
-							this_mon.exit();
+							start_stop_mon.exit();
 						}
 						
 						if ( stop_required ){
@@ -340,7 +341,7 @@ DiskManagerImpl
 			
 		}finally{
 			
-			this_mon.exit();
+			start_stop_mon.exit();
 		}
 	}
 
@@ -425,7 +426,7 @@ DiskManagerImpl
 	stop() 
 	{	
 		try{
-			this_mon.enter();
+			start_stop_mon.enter();
 		
 			if ( !started ){
 			
@@ -457,7 +458,7 @@ DiskManagerImpl
 			
 		}finally{
 			
-			this_mon.exit();
+			start_stop_mon.exit();
 		}
 		
 		started_sem.reserve();
@@ -894,7 +895,7 @@ DiskManagerImpl
 				skipped_file_set_changed	= false;
 				
 				try{
-					this_mon.enter();
+					file_piece_mon.enter();
 					
 					skipped_file_set_size	= 0;
 					skipped_but_downloaded	= 0;
@@ -911,7 +912,7 @@ DiskManagerImpl
 					}
 				}finally{
 					
-					this_mon.exit();
+					file_piece_mon.exit();
 				}
 			}
 		}
@@ -953,7 +954,7 @@ DiskManagerImpl
 		PieceList piece_list = pieceMap[piece_number];
 
 		try{
-			this_mon.enter();					
+			file_piece_mon.enter();					
 			
 			if ( piece.getDone() != done ){
 				
@@ -1031,7 +1032,7 @@ DiskManagerImpl
 			}
 		}finally{
 				
-			this_mon.exit();
+			file_piece_mon.exit();
 		}			
 		
 		listeners.dispatch(LDT_PIECE_DONE_CHANGED, piece);
@@ -1259,7 +1260,7 @@ DiskManagerImpl
   downloadEnded() 
   {
     try{
-    	this_mon.enter();
+    	start_stop_mon.enter();
     	
 	    String fullPath;
 	    
@@ -1500,7 +1501,7 @@ DiskManagerImpl
     		Debug.printStackTrace(e);
     	}
     	
-    	this_mon.exit();
+    	start_stop_mon.exit();
     }
   }
    
