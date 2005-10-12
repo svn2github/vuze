@@ -113,7 +113,7 @@ DHTPlugin
 	private ActionParameter		reseed;
 		
 	private boolean				enabled;
-	private int					dht_data_port;
+	private int					dht_data_port_default, dht_data_port;
 	
 	private AESemaphore			init_sem = new AESemaphore("DHTPlugin:init" );
 	
@@ -132,7 +132,7 @@ DHTPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	PLUGIN_VERSION );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
 
-		dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+		dht_data_port_default = dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 
@@ -154,6 +154,32 @@ DHTPlugin
 		final IntParameter		dht_port_param	= config.addIntParameter2( "dht.port", "dht.port", dht_data_port );
 				
 		use_default_port.addDisabledOnSelection( dht_port_param );
+		
+	    dht_port_param.addListener( new ParameterListener() {
+	        public void parameterChanged( Parameter p ) {
+		        int val = dht_port_param.getValue();
+		          
+		        if( val == 6880 || val == 6881 ) {
+		        	  dht_port_param.setValue( 6881 );
+		        }
+		        if( val > 65535 ) {
+		        	dht_port_param.setValue(65535);
+		    	}
+		        if( val < 1 ) {
+		        	dht_port_param.setValue(1);
+		    	}
+	        }
+	      });
+	    
+	    use_default_port.addListener(new ParameterListener() {
+	    	public void parameterChanged(Parameter p){
+	    		boolean useDefault = use_default_port.getValue();
+	    		
+	    		if(useDefault){
+	    			dht_port_param.setValue(dht_data_port_default);
+	    		}
+	    	}
+	    });
 		
 		if ( !use_default_port.getValue()){
 		
