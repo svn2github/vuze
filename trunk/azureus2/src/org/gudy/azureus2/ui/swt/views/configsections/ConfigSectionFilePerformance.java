@@ -131,6 +131,8 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
 				Constants.AELITIS_WEB_SITE + "wiki/"
 			});
     
+    if(userMode > 0) {
+    	
     // don't cache smaller than
     
     Label cnst_label = new Label(cSection, SWT.NULL);
@@ -144,7 +146,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     gridData.widthHint = 30;
     cache_not_smaller_than.setLayoutData( gridData );
     
- 
+    	
     // diskmanager.perf.cache.enable.read
     
     final BooleanParameter disk_cache_read = new BooleanParameter(cSection, "diskmanager.perf.cache.enable.read", "ConfigView.section.file.perf.cache.enable.read");
@@ -167,17 +169,15 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     disk_cache_trace.setLayoutData(gridData);
      
     disk_cache.setAdditionalActionPerformer(
-    		new ChangeSelectionActionPerformer( cache_size.getControls() ));
+    		new ChangeSelectionActionPerformer( new Control[]{ cnst_label }));
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( cache_not_smaller_than.getControls() ));
     disk_cache.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( disk_cache_trace.getControls() ));
     disk_cache.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( disk_cache_read.getControls() ));
     disk_cache.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( disk_cache_write.getControls() ));
-    disk_cache.setAdditionalActionPerformer(
-    		new ChangeSelectionActionPerformer( new Control[]{ cache_size_label, cache_explain_label, cnst_label }));
-    disk_cache.setAdditionalActionPerformer(
-    		new ChangeSelectionActionPerformer( cache_not_smaller_than.getControls() ));
     
     if(userMode > 1) {
     	
@@ -234,6 +234,12 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit.explain");
     
     }
+    }
+
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( cache_size.getControls() ));
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( new Control[]{ cache_size_label, cache_explain_label }));
     
     return cSection;
   }
