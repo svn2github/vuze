@@ -350,7 +350,7 @@ AzureusRestarterImpl
      String script_name = osx_app_bundle + System.getProperty("file.separator") + restartScriptName;
     
      if ( log != null ){
-    	 log.println( " [" +exec+ "]" );
+    	 log.println( " R:[" +exec+ "]" );
      }
     
      File fUpdate = new File(script_name);
@@ -462,9 +462,15 @@ AzureusRestarterImpl
   private void logStream(String message,InputStream stream,PrintWriter log) {
     BufferedReader br = new BufferedReader (new InputStreamReader(stream));
     String line = null;
-    log.println(message);
+    boolean first = true;
+    
     try {
       while((line = br.readLine()) != null) {
+      	if( first ) {
+      		log.println(message);
+      		first = false;
+      	}
+      	
         log.println(line);
       }
     } catch(Exception e) {
@@ -484,13 +490,13 @@ AzureusRestarterImpl
   
   
   private Process runExternalCommand( PrintWriter log, String command ) {
-  	log.println("About to execute: [" +command+ "]" );
+  	log.println("About to execute: R:[" +command+ "]" );
   	
   	try {
   		Process runner = Runtime.getRuntime().exec( command );
   		runner.waitFor();		
-  		logStream( "runtime.exec() output", runner.getInputStream(), log);
-      logStream( "runtime.exec() error", runner.getErrorStream(), log);
+  		logStream( "runtime.exec() output:", runner.getInputStream(), log);
+      logStream( "runtime.exec() error:", runner.getErrorStream(), log);
       return runner;
   	}
   	catch( Throwable t ) {
@@ -502,7 +508,7 @@ AzureusRestarterImpl
   }
   
   private Process runExternalCommands( PrintWriter log, String[] commands ) {
-  	String cmd = "About to execute: [";
+  	String cmd = "About to execute: R:[";
   	for( int i=0; i < commands.length; i++ ) {
   		cmd += commands[i];
   		if( i < commands.length -1 )  cmd += " ";
@@ -514,8 +520,8 @@ AzureusRestarterImpl
   	try {
   		Process runner = Runtime.getRuntime().exec( commands );
   		runner.waitFor();		
-  		logStream( "runtime.exec() output", runner.getInputStream(), log);
-      logStream( "runtime.exec() error", runner.getErrorStream(), log);
+  		logStream( "runtime.exec() output:", runner.getInputStream(), log);
+      logStream( "runtime.exec() error:", runner.getErrorStream(), log);
       return runner;
   	}
   	catch( Throwable t ) {
