@@ -116,6 +116,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
       }
     });
     
+    if (userMode < 2) {
     // wiki link
     label = new Label(cServer, SWT.NULL);
     formData = new FormData();
@@ -141,7 +142,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
         Program.launch((String) ((Label) arg0.widget).getData());
       }
     });
-    
+    }
     
     if( userMode > 0 ) {
 /////////////////////// PEER SOURCES GROUP ///////////////////

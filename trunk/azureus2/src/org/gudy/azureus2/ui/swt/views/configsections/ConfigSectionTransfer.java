@@ -107,6 +107,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     enable_seeding_rate.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( paramMaxUploadSpeedSeeding.getControl() ) );
     label = new Label(cTransfer, SWT.NULL);
 
+    if(userMode < 2) {
     // wiki link
     
     Composite cWiki = new Composite(cTransfer, SWT.COLOR_GRAY);
@@ -144,6 +145,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
         Program.launch((String) ((Label) arg0.widget).getData());
       }
     });
+    }
     
     // max download speed
     gridData = new GridData();
