@@ -27,11 +27,11 @@ import java.net.*;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
-import sun.misc.BASE64Decoder;
-
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.tracker.server.impl.*;
 import org.gudy.azureus2.core3.util.*;
+
+import org.bouncycastle.util.encoders.Base64;
 
 public abstract class 
 TRTrackerServerProcessorTCP
@@ -495,7 +495,7 @@ TRTrackerServerProcessorTCP
 				
 				String	body = header.substring( p2, header.indexOf( '\r', p2 )).trim();
 				
-				String decoded=new String(new BASE64Decoder().decodeBuffer(body));
+				String decoded=new String( Base64.decode(body));
 
 					// username:password
 									
@@ -548,7 +548,7 @@ TRTrackerServerProcessorTCP
 						
 						if ( user.equals( "<internal>")){
 							
-							byte[] internal_pw = new BASE64Decoder().decodeBuffer(pw);
+							byte[] internal_pw = Base64.decode(pw);
 	
 							if ( Arrays.equals( internal_pw, server.getPassword())){
 								

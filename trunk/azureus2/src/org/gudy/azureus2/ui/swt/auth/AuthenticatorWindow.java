@@ -29,8 +29,6 @@ package org.gudy.azureus2.ui.swt.auth;
 import java.net.*;
 import java.util.*;
 
-import sun.misc.BASE64Encoder;
-
 import org.eclipse.swt.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -43,6 +41,8 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.security.*;
+
+import org.bouncycastle.util.encoders.Base64;
 
 public class 
 AuthenticatorWindow 
@@ -160,7 +160,7 @@ AuthenticatorWindow
 				try{
 					byte[]	pw	= COConfigurationManager.getByteParameter("Tracker Password", new byte[0]);
 				
-					String str_pw = new BASE64Encoder().encode(pw);
+					String str_pw = new String( Base64.encode(pw));
 					
 					return( new PasswordAuthentication( "<internal>", str_pw.toCharArray()));
 						

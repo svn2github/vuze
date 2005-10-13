@@ -30,8 +30,6 @@ import java.util.*;
 import java.io.*;
 import java.net.*;
 
-import sun.misc.BASE64Decoder;
-
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
@@ -44,6 +42,8 @@ import com.aelitis.net.udp.PRUDPPacketReceiver;
 import com.aelitis.net.udp.PRUDPPacketReply;
 import com.aelitis.net.udp.PRUDPPacketRequest;
 import com.aelitis.net.udp.PRUDPRequestHandler;
+
+import org.bouncycastle.util.encoders.Base64;
 
 public class 
 PRUDPPacketHandlerImpl
@@ -565,7 +565,7 @@ PRUDPPacketHandlerImpl
 				
 				if ( user_name.equals( "<internal>")){
 					
-					sha1_password = new BASE64Decoder().decodeBuffer(password);
+					sha1_password = Base64.decode(password);
 
 				}else{
 					
