@@ -12,8 +12,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.DESedeKeySpec;
 
-import sun.misc.BASE64Decoder;
-import sun.misc.BASE64Encoder;
+import org.bouncycastle.util.encoders.Base64;
 
 /**
  * utility class to encrypt strings. this class was taken from the examples at:
@@ -98,8 +97,7 @@ public class StringEncrypter
 			byte[] cleartext = unencryptedString.getBytes( UNICODE_FORMAT );
 			byte[] ciphertext = cipher.doFinal( cleartext );
 			
-			BASE64Encoder base64encoder = new BASE64Encoder();
-			return base64encoder.encode( ciphertext );
+			return new String( Base64.encode( ciphertext ));
 		}
 		catch (Exception e)
 		{
@@ -116,8 +114,7 @@ public class StringEncrypter
 		{
 			SecretKey key = keyFactory.generateSecret( keySpec );
 			cipher.init( Cipher.DECRYPT_MODE, key );
-			BASE64Decoder base64decoder = new BASE64Decoder();
-			byte[] cleartext = base64decoder.decodeBuffer( encryptedString );
+			byte[] cleartext = Base64.decode( encryptedString );
 			byte[] ciphertext = cipher.doFinal( cleartext );
 			
 			return bytes2String( ciphertext );
