@@ -29,23 +29,28 @@ package org.gudy.azureus2.pluginsimpl.local.ui.model;
 
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.components.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.components.*;
 
 public class 
 BasicPluginViewModelImpl 
 	implements BasicPluginViewModel
 {
-	protected String		name;
+	private UIManagerImpl		ui_manager;
 	
-	protected UITextField	status;
-	protected UITextField	activity;
-	protected UITextArea	log;
-	protected UIProgressBar	progress;
+	private String		name;
+	
+	private UITextField	status;
+	private UITextField	activity;
+	private UITextArea	log;
+	private UIProgressBar	progress;
 	
 	public
 	BasicPluginViewModelImpl(
-		String		_name )
+		UIManagerImpl	_ui_manager,
+		String			_name )
 	{
+		ui_manager	= _ui_manager;
 		name		= _name;
 		
 		status 		= new UITextFieldImpl();
@@ -82,5 +87,11 @@ BasicPluginViewModelImpl
 	getProgress()
 	{
 		return( progress );
+	}
+	
+	public void
+	destroy()
+	{
+		ui_manager.destroy( this );
 	}
 }

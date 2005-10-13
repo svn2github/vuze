@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterGroup;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 
+import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 
 import org.gudy.azureus2.plugins.*;
@@ -50,25 +51,27 @@ public class
 BasicPluginConfigModelImpl
 	implements BasicPluginConfigModel
 {
-	protected PluginInterface		pi;
+	private UIManagerImpl		ui_manager;
 	
-	protected String				parent_section;
-	protected String				section;
+	private String				parent_section;
+	private String				section;
+	private PluginInterface		pi;
+	private ArrayList			parameters = new ArrayList();
 	
-	protected ArrayList				parameters = new ArrayList();
-	
-	protected String				key_prefix;
+	private String				key_prefix;
 	
 	public
 	BasicPluginConfigModelImpl(
-		PluginInterface		_pi,
+		UIManagerImpl		_ui_manager,
 		String				_parent_section,
 		String				_section )
 	{
-		pi				= _pi;
+		ui_manager		= _ui_manager;
 		parent_section	= _parent_section;
 		section			= _section;
 		
+		pi				= ui_manager.getPluginInterface();
+
 		key_prefix		= pi.getPluginconfig().getPluginConfigKeyPrefix();
 	}
 
@@ -235,5 +238,11 @@ BasicPluginConfigModelImpl
 		}
 		
 		return( pg );
+	}
+	
+	public void
+	destroy()
+	{
+		ui_manager.destroy( this );
 	}
 }

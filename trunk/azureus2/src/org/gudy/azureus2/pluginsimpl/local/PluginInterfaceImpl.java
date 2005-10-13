@@ -173,6 +173,10 @@ PluginInterfaceImpl
   	ConfigSectionRepository.getInstance().addConfigSection(section);
   }
 
+  public void removeConfigSection(ConfigSection section)
+  {
+  	ConfigSectionRepository.getInstance().removeConfigSection(section);
+  }
   /**
    * @deprecated
    */

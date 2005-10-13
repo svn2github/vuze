@@ -33,4 +33,7 @@ PluginConfigModel
 {
 	public PluginInterface
 	getPluginInterface();
+	
+	public void
+	destroy();
 }

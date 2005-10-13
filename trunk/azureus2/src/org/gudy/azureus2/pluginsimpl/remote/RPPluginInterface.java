@@ -251,6 +251,11 @@ RPPluginInterface
 		notSupported();
 	}
 	
+	public void removeConfigSection(ConfigSection tab)
+	{
+		notSupported();
+	}
+	
 	public Tracker 
 	getTracker()
 	{

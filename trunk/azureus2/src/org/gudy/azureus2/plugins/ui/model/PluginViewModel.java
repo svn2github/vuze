@@ -31,4 +31,7 @@ PluginViewModel
 {
 	public String
 	getName();
+	
+	public void
+	destroy();
 }

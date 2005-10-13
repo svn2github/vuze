@@ -137,6 +137,14 @@ public interface PluginInterface {
    */
 	public void addConfigSection(ConfigSection section);
 
+	/**
+	 * 
+	 * @param section
+	 * @since 2.3.0.5
+	 */
+	
+	public void removeConfigSection( ConfigSection section );
+	
   /**
    * Gives access to the tracker functionality
    * @return The tracker

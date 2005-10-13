@@ -23,6 +23,7 @@
 package org.gudy.azureus2.pluginsimpl.local.ui;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -81,6 +82,12 @@ UIManagerImpl
 		key_prefix		= plugin_config.getPluginConfigKeyPrefix();
 	}
 		
+	public PluginInterface
+	getPluginInterface()
+	{
+		return( pi );
+	}
+	
 	public BasicPluginViewModel
 	getBasicPluginViewModel(
 		String			name )
@@ -108,7 +115,7 @@ UIManagerImpl
 	createBasicPluginViewModel(
 		String			name )
 	{
-		final BasicPluginViewModel	model = new BasicPluginViewModelImpl( name );
+		final BasicPluginViewModel	model = new BasicPluginViewModelImpl( this, name );
 				
 		fireEvent(
 			new UIManagerEvent()
@@ -129,6 +136,27 @@ UIManagerImpl
 		return( model );
 	}
 	
+	public void
+	destroy(
+		final BasicPluginViewModel		model )
+	{
+		fireEvent(
+				new UIManagerEvent()
+				{
+					public int
+					getType()
+					{
+						return( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED );
+					}
+					
+					public Object
+					getData()
+					{
+						return( model );
+					}
+				});
+	}
+	
 	public BasicPluginConfigModel
 	createBasicPluginConfigModel(
 		String		section_name )
@@ -142,7 +170,7 @@ UIManagerImpl
 		String		parent_section,
 		String		section_name )
 	{
-		final BasicPluginConfigModel	model = new BasicPluginConfigModelImpl( pi, parent_section, section_name );
+		final BasicPluginConfigModel	model = new BasicPluginConfigModelImpl( this, parent_section, section_name );
 		
 		fireEvent(
 			new UIManagerEvent()
@@ -161,6 +189,27 @@ UIManagerImpl
 			});
 		
 		return( model );
+	}
+	
+	public void
+	destroy(
+		final BasicPluginConfigModel		model )
+	{
+		fireEvent(
+				new UIManagerEvent()
+				{
+					public int
+					getType()
+					{
+						return( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED );
+					}
+					
+					public Object
+					getData()
+					{
+						return( model );
+					}
+				});
 	}
 	
 	public void
@@ -405,6 +454,33 @@ UIManagerImpl
  			delivered = true;
  			
  			ui_event_history.add( event );
+ 			
+ 		}else if ( 	type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_DESTROYED ||
+ 					type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED ){
+ 			
+ 				// remove any corresponding history events for creation of these entities
+ 			
+ 			delivered = true;
+ 			
+ 			Iterator 	it = ui_event_history.iterator();
+ 			
+ 			while( it.hasNext()){
+ 				
+ 				UIManagerEvent	e = (UIManagerEvent)it.next();
+ 			
+ 				int	e_type = e.getType();
+ 				
+ 				if ( 	e_type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED ||
+ 		 				e_type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED ){
+ 		 
+ 					if ( e.getData() == event.getData()){
+ 						
+ 						it.remove();
+ 						
+ 						break;
+ 					}
+ 				}
+ 			}
  		}
  		
  		return( delivered );

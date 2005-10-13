@@ -25,13 +25,15 @@ package org.gudy.azureus2.plugins.ui;
 public interface 
 UIManagerEvent 
 {
-	public static final int ET_SHOW_TEXT_MESSAGE			= 1;		// data is String[] - title, message, text
-	public static final int ET_OPEN_TORRENT_VIA_FILE		= 2;		// data is File 
-	public static final int ET_OPEN_TORRENT_VIA_URL			= 3;		// data is URL[] - { torrent_url, referrer url}  
-	public static final int ET_PLUGIN_VIEW_MODEL_CREATED	= 4;		// data is PluginViewModel (or subtype)
-	public static final int ET_PLUGIN_CONFIG_MODEL_CREATED	= 5;		// data is PluginConfigModel (or subtype)
-	public static final int ET_COPY_TO_CLIPBOARD			= 6;		// data is String
-	
+	public static final int ET_SHOW_TEXT_MESSAGE				= 1;		// data is String[] - title, message, text
+	public static final int ET_OPEN_TORRENT_VIA_FILE			= 2;		// data is File 
+	public static final int ET_OPEN_TORRENT_VIA_URL				= 3;		// data is URL[] - { torrent_url, referrer url}  
+	public static final int ET_PLUGIN_VIEW_MODEL_CREATED		= 4;		// data is PluginViewModel (or subtype)
+	public static final int ET_PLUGIN_CONFIG_MODEL_CREATED		= 5;		// data is PluginConfigModel (or subtype)
+	public static final int ET_COPY_TO_CLIPBOARD				= 6;		// data is String
+	public static final int ET_PLUGIN_VIEW_MODEL_DESTROYED		= 7;		// data is PluginViewModel (or subtype)
+	public static final int ET_PLUGIN_CONFIG_MODEL_DESTROYED	= 8;		// data is PluginConfigModel (or subtype)
+
 	public int
 	getType();
 	

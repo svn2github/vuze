@@ -61,7 +61,19 @@ public class ConfigSectionRepository {
     	class_mon.exit();
     }
   }
-
+  
+  public void removeConfigSection(ConfigSection item) {
+	  	try{
+	  		class_mon.enter();
+	  		
+	  		items.remove(item);
+	  		
+	    }finally{
+	    	
+	    	class_mon.exit();
+	    }
+	  }
+  
   public ArrayList getList() {
  	try{
   		class_mon.enter();

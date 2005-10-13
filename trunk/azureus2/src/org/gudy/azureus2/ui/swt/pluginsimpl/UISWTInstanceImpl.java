@@ -70,7 +70,8 @@ UISWTInstanceImpl
 {
 	private AzureusCore		core;
 	
-	private Map awt_view_map = new WeakHashMap();
+	private Map awt_view_map 	= new WeakHashMap();
+	private Map config_view_map = new WeakHashMap();
 	
 	
 	public 
@@ -157,6 +158,17 @@ UISWTInstanceImpl
 				
 				break;
 			}
+			case UIManagerEvent.ET_PLUGIN_VIEW_MODEL_DESTROYED:
+			{
+				if ( data instanceof BasicPluginViewModel ){
+					
+					BasicPluginViewImpl view = new BasicPluginViewImpl( (BasicPluginViewModel)data);
+					   
+				    removeView( view );
+				}
+				
+				break;
+			}
 			case UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED:
 			{
 				if ( data instanceof BasicPluginConfigModel ){
@@ -165,8 +177,25 @@ UISWTInstanceImpl
 					
 					BasicPluginConfigImpl view = new BasicPluginConfigImpl(model);
 					   
+					config_view_map.put( model, view );
 					
 					model.getPluginInterface().addConfigSection( view );
+				}
+				
+				break;
+			}
+			case UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED:
+			{
+				if ( data instanceof BasicPluginConfigModel ){
+					
+					BasicPluginConfigModel	model = (BasicPluginConfigModel)data;
+					
+					BasicPluginConfigImpl view = (BasicPluginConfigImpl)config_view_map.get( model );
+					   
+					if ( view != null ){
+						
+						model.getPluginInterface().removeConfigSection( view );
+					}
 				}
 				
 				break;
