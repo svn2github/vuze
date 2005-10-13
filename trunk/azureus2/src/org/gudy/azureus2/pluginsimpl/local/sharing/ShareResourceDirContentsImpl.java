@@ -42,7 +42,7 @@ ShareResourceDirContentsImpl
 	protected File		root;
 	protected boolean	recursive;
 	
-	protected ShareResource[]		children;
+	protected ShareResource[]		children	= new ShareResource[0];
 	
 	protected
 	ShareResourceDirContentsImpl(
@@ -90,7 +90,8 @@ ShareResourceDirContentsImpl
 		
 		if ( !root.exists()){
 			
-			Debug.out( "Dir '".concat(root.getName()).concat("' not found"));
+			Debug.out( "Dir '" + root.getName() + "' not found");
+			
 			// throw( new ShareException( "Dir '".concat(root.getName()).concat("' not found")));
 			
 		}else{
@@ -131,6 +132,10 @@ ShareResourceDirContentsImpl
 			children = new ShareResource[kids.size()];
 		
 			kids.toArray( children );
+			
+		}else{
+			
+			children = new ShareResource[0];
 		}
 	}
 	
