@@ -455,28 +455,121 @@ public class MyTorrentsView
     final Menu menuAdvanced = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
     itemAdvanced.setMenu(menuAdvanced);
     
-    //advanced > networks menu
+    // advanced > Download Speed Menu //
+    final MenuItem itemDownSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
+    Messages.setLanguageText(itemDownSpeed, "MyTorrentsView.menu.setDownSpeed"); //$NON-NLS-1$
+    Utils.setMenuItemImage(itemDownSpeed, "speed");
+
+    final Menu menuDownSpeed = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemDownSpeed.setMenu(menuDownSpeed);
+
+    final MenuItem itemCurrentDownSpeed = new MenuItem(menuDownSpeed,SWT.PUSH);
+    itemCurrentDownSpeed.setEnabled(false);
+
+    new MenuItem(menuDownSpeed,SWT.SEPARATOR);
+
+    final MenuItem itemsDownSpeed[] = new MenuItem[12];
+    Listener itemsDownSpeedListener = new Listener() {
+      public void handleEvent(Event e) {
+        if(e.widget != null && e.widget instanceof MenuItem) {
+          MenuItem item = (MenuItem) e.widget;
+          int speed = item.getData("maxdl") == null ? 0 : ((Integer)item.getData("maxdl")).intValue();
+          setSelectedTorrentsDownSpeed(speed);
+        }
+      }
+    };
+
+    itemsDownSpeed[1] = new MenuItem(menuDownSpeed,SWT.PUSH);
+    Messages.setLanguageText(itemsDownSpeed[1],"MyTorrentsView.menu.setSpeed.unlimit");
+    itemsDownSpeed[1].setData("maxdl", new Integer(0));    
+    itemsDownSpeed[1].addListener(SWT.Selection,itemsDownSpeedListener);
     
-    final MenuItem itemNetworks = new MenuItem(menuAdvanced,SWT.CASCADE);
-    Messages.setLanguageText(itemNetworks, "MyTorrentsView.menu.networks"); //$NON-NLS-1$
-    
-    final Menu menuNetworks = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-    itemNetworks.setMenu(menuNetworks);
-    
-    for (int i=0;i<AENetworkClassifier.AT_NETWORKS.length;i++){
-		final String	nn = AENetworkClassifier.AT_NETWORKS[i];
-		String	msg_text	= "ConfigView.section.connection.networks." + nn;
-		final MenuItem itemNetwork = new MenuItem(menuNetworks,SWT.CHECK);
-		itemNetwork.setData("network",nn);
-		Messages.setLanguageText(itemNetwork, msg_text); //$NON-NLS-1$
-		itemNetwork.addListener(SWT.Selection,new SelectedTableRowsListener() {
-	      public void run(TableRowCore row) {
-	        ((DownloadManager)row.getDataSource(true)).getDownloadState().setNetworkEnabled(nn,itemNetwork.getSelection());
-	      }
-	    });
+    for(int i = 2 ; i < 12 ; i++) {
+      itemsDownSpeed[i] = new MenuItem(menuDownSpeed,SWT.PUSH);      
+      itemsDownSpeed[i].addListener(SWT.Selection,itemsDownSpeedListener);
     }
     
-    //advanced > peer sources menu
+    // advanced >Upload Speed Menu //
+    final MenuItem itemUpSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
+    Messages.setLanguageText(itemUpSpeed, "MyTorrentsView.menu.setUpSpeed"); //$NON-NLS-1$
+    Utils.setMenuItemImage(itemUpSpeed, "speed");
+
+    final Menu menuUpSpeed = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemUpSpeed.setMenu(menuUpSpeed);
+
+    final MenuItem itemCurrentUpSpeed = new MenuItem(menuUpSpeed,SWT.PUSH);
+    itemCurrentUpSpeed.setEnabled(false);
+
+    new MenuItem(menuUpSpeed,SWT.SEPARATOR);
+
+    final MenuItem itemsUpSpeed[] = new MenuItem[12];
+    Listener itemsUpSpeedListener = new Listener() {
+      public void handleEvent(Event e) {
+        if(e.widget != null && e.widget instanceof MenuItem) {
+          MenuItem item = (MenuItem) e.widget;
+          int speed = item.getData("maxul") == null ? 0 : ((Integer)item.getData("maxul")).intValue();
+          setSelectedTorrentsUpSpeed(speed);
+        }
+      }
+    };
+
+    itemsUpSpeed[1] = new MenuItem(menuUpSpeed,SWT.PUSH);
+    Messages.setLanguageText(itemsUpSpeed[1],"MyTorrentsView.menu.setSpeed.unlimit");
+    itemsUpSpeed[1].setData("maxul", new Integer(0));    
+    itemsUpSpeed[1].addListener(SWT.Selection,itemsUpSpeedListener);
+    
+    for(int i = 2 ; i < 12 ; i++) {
+      itemsUpSpeed[i] = new MenuItem(menuUpSpeed,SWT.PUSH);      
+      itemsUpSpeed[i].addListener(SWT.Selection,itemsUpSpeedListener);
+    }
+    
+    // advanced > Tracker Menu //
+    final Menu menuTracker = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    final MenuItem itemTracker = new MenuItem(menuAdvanced, SWT.CASCADE);
+    Messages.setLanguageText(itemTracker, "MyTorrentsView.menu.tracker");
+    itemTracker.setMenu(menuTracker);
+
+    final MenuItem itemChangeTracker = new MenuItem(menuTracker, SWT.PUSH);
+    Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
+    Utils.setMenuItemImage(itemChangeTracker, "add_tracker");
+
+    final MenuItem itemEditTracker = new MenuItem(menuTracker, SWT.PUSH);
+    Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker"); //$NON-NLS-1$
+    Utils.setMenuItemImage(itemEditTracker, "edit_trackers");
+
+    final MenuItem itemManualUpdate = new MenuItem(menuTracker,SWT.PUSH);
+    Messages.setLanguageText(itemManualUpdate, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
+    //itemManualUpdate.setImage(ImageRepository.getImage("edit_trackers"));
+    
+    // advanced > move menu //
+    
+    final MenuItem itemFileMove = new MenuItem(menuAdvanced, SWT.CASCADE);
+    Messages.setLanguageText(itemFileMove, "MyTorrentsView.menu.movemenu");
+ 
+    final Menu menuFileMove = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemFileMove.setMenu(menuFileMove);
+
+    final MenuItem itemFileMoveData = new MenuItem(menuFileMove, SWT.PUSH);
+    Messages.setLanguageText(itemFileMoveData, "MyTorrentsView.menu.movedata");  
+
+    final MenuItem itemFileMoveTorrent = new MenuItem(menuFileMove, SWT.PUSH);
+    Messages.setLanguageText(itemFileMoveTorrent, "MyTorrentsView.menu.movetorrent");
+    
+    // advanced > export menu //
+    
+    final MenuItem itemExport = new MenuItem(menuAdvanced, SWT.CASCADE);
+    Messages.setLanguageText(itemExport, "MyTorrentsView.menu.exportmenu"); //$NON-NLS-1$
+    Utils.setMenuItemImage(itemExport, "export");
+
+    final Menu menuExport = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemExport.setMenu(menuExport);
+
+    final MenuItem itemExportXML = new MenuItem(menuExport, SWT.PUSH);
+    Messages.setLanguageText(itemExportXML, "MyTorrentsView.menu.export");   
+
+    final MenuItem itemExportTorrent = new MenuItem(menuExport, SWT.PUSH);
+    Messages.setLanguageText(itemExportTorrent, "MyTorrentsView.menu.exporttorrent");
+    //advanced > peer sources menu //
     
     final MenuItem itemPeerSource = new MenuItem(menuAdvanced,SWT.CASCADE);
     Messages.setLanguageText(itemPeerSource, "MyTorrentsView.menu.peersource"); //$NON-NLS-1$
@@ -499,34 +592,26 @@ public class MyTorrentsView
 	    });
 	}
     
-    // advanced > export menu
+    //advanced > networks menu //
     
-    final MenuItem itemExport = new MenuItem(menuAdvanced, SWT.CASCADE);
-    Messages.setLanguageText(itemExport, "MyTorrentsView.menu.exportmenu"); //$NON-NLS-1$
-    Utils.setMenuItemImage(itemExport, "export");
-
-    final Menu menuExport = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-    itemExport.setMenu(menuExport);
-
-    final MenuItem itemExportXML = new MenuItem(menuExport, SWT.PUSH);
-    Messages.setLanguageText(itemExportXML, "MyTorrentsView.menu.export");   
-
-    final MenuItem itemExportTorrent = new MenuItem(menuExport, SWT.PUSH);
-    Messages.setLanguageText(itemExportTorrent, "MyTorrentsView.menu.exporttorrent");
- 
-    // advanced > move menu
+    final MenuItem itemNetworks = new MenuItem(menuAdvanced,SWT.CASCADE);
+    Messages.setLanguageText(itemNetworks, "MyTorrentsView.menu.networks"); //$NON-NLS-1$
     
-    final MenuItem itemFileMove = new MenuItem(menuAdvanced, SWT.CASCADE);
-    Messages.setLanguageText(itemFileMove, "MyTorrentsView.menu.movemenu");
- 
-    final Menu menuFileMove = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-    itemFileMove.setMenu(menuFileMove);
-
-    final MenuItem itemFileMoveData = new MenuItem(menuFileMove, SWT.PUSH);
-    Messages.setLanguageText(itemFileMoveData, "MyTorrentsView.menu.movedata");  
-
-    final MenuItem itemFileMoveTorrent = new MenuItem(menuFileMove, SWT.PUSH);
-    Messages.setLanguageText(itemFileMoveTorrent, "MyTorrentsView.menu.movetorrent");
+    final Menu menuNetworks = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+    itemNetworks.setMenu(menuNetworks);
+    
+    for (int i=0;i<AENetworkClassifier.AT_NETWORKS.length;i++){
+		final String	nn = AENetworkClassifier.AT_NETWORKS[i];
+		String	msg_text	= "ConfigView.section.connection.networks." + nn;
+		final MenuItem itemNetwork = new MenuItem(menuNetworks,SWT.CHECK);
+		itemNetwork.setData("network",nn);
+		Messages.setLanguageText(itemNetwork, msg_text); //$NON-NLS-1$
+		itemNetwork.addListener(SWT.Selection,new SelectedTableRowsListener() {
+	      public void run(TableRowCore row) {
+	        ((DownloadManager)row.getDataSource(true)).getDownloadState().setNetworkEnabled(nn,itemNetwork.getSelection());
+	      }
+	    });
+    }
 
     // back to main menu
     
@@ -564,77 +649,6 @@ public class MyTorrentsView
     Messages.setLanguageText(itemMoveEnd, "MyTorrentsView.menu.moveEnd"); //$NON-NLS-1$
     Utils.setMenuItemImage(itemMoveEnd, "bottom");
     
-    final MenuItem itemDownSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
-    Messages.setLanguageText(itemDownSpeed, "MyTorrentsView.menu.setDownSpeed"); //$NON-NLS-1$
-    Utils.setMenuItemImage(itemDownSpeed, "speed");
-
-    final Menu menuDownSpeed = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-    itemDownSpeed.setMenu(menuDownSpeed);
-
-    final MenuItem itemCurrentDownSpeed = new MenuItem(menuDownSpeed,SWT.PUSH);
-    itemCurrentDownSpeed.setEnabled(false);
-
-    new MenuItem(menuDownSpeed,SWT.SEPARATOR);
-
-    final MenuItem itemsDownSpeed[] = new MenuItem[12];
-    Listener itemsDownSpeedListener = new Listener() {
-      public void handleEvent(Event e) {
-        if(e.widget != null && e.widget instanceof MenuItem) {
-          MenuItem item = (MenuItem) e.widget;
-          int speed = item.getData("maxdl") == null ? 0 : ((Integer)item.getData("maxdl")).intValue();
-          setSelectedTorrentsDownSpeed(speed);
-        }
-      }
-    };
-
-
-
-    itemsDownSpeed[1] = new MenuItem(menuDownSpeed,SWT.PUSH);
-    Messages.setLanguageText(itemsDownSpeed[1],"MyTorrentsView.menu.setSpeed.unlimit");
-    itemsDownSpeed[1].setData("maxdl", new Integer(0));    
-    itemsDownSpeed[1].addListener(SWT.Selection,itemsDownSpeedListener);
-    
-    for(int i = 2 ; i < 12 ; i++) {
-      itemsDownSpeed[i] = new MenuItem(menuDownSpeed,SWT.PUSH);      
-      itemsDownSpeed[i].addListener(SWT.Selection,itemsDownSpeedListener);
-    }
-    
-    
-    final MenuItem itemUpSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
-    Messages.setLanguageText(itemUpSpeed, "MyTorrentsView.menu.setUpSpeed"); //$NON-NLS-1$
-    Utils.setMenuItemImage(itemUpSpeed, "speed");
-
-    final Menu menuUpSpeed = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-    itemUpSpeed.setMenu(menuUpSpeed);
-
-    final MenuItem itemCurrentUpSpeed = new MenuItem(menuUpSpeed,SWT.PUSH);
-    itemCurrentUpSpeed.setEnabled(false);
-
-    new MenuItem(menuUpSpeed,SWT.SEPARATOR);
-
-    final MenuItem itemsUpSpeed[] = new MenuItem[12];
-    Listener itemsUpSpeedListener = new Listener() {
-      public void handleEvent(Event e) {
-        if(e.widget != null && e.widget instanceof MenuItem) {
-          MenuItem item = (MenuItem) e.widget;
-          int speed = item.getData("maxul") == null ? 0 : ((Integer)item.getData("maxul")).intValue();
-          setSelectedTorrentsUpSpeed(speed);
-        }
-      }
-    };
-
-
-
-    itemsUpSpeed[1] = new MenuItem(menuUpSpeed,SWT.PUSH);
-    Messages.setLanguageText(itemsUpSpeed[1],"MyTorrentsView.menu.setSpeed.unlimit");
-    itemsUpSpeed[1].setData("maxul", new Integer(0));    
-    itemsUpSpeed[1].addListener(SWT.Selection,itemsUpSpeedListener);
-    
-    for(int i = 2 ; i < 12 ; i++) {
-      itemsUpSpeed[i] = new MenuItem(menuUpSpeed,SWT.PUSH);      
-      itemsUpSpeed[i].addListener(SWT.Selection,itemsUpSpeedListener);
-    }
-    
     
     /*  //TODO ensure that all limits combined don't go under the min 5kbs ?
     //Disable at the end of the list, thus the first item of the array is instanciated last.
@@ -653,24 +667,6 @@ public class MyTorrentsView
     itemCategory.setMenu(menuCategory);
 
     addCategorySubMenu();
-
-    // Tracker
-    final Menu menuTracker = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-    final MenuItem itemTracker = new MenuItem(menuAdvanced, SWT.CASCADE);
-    Messages.setLanguageText(itemTracker, "MyTorrentsView.menu.tracker");
-    itemTracker.setMenu(menuTracker);
-
-    final MenuItem itemChangeTracker = new MenuItem(menuTracker, SWT.PUSH);
-    Messages.setLanguageText(itemChangeTracker, "MyTorrentsView.menu.changeTracker"); //$NON-NLS-1$
-    Utils.setMenuItemImage(itemChangeTracker, "add_tracker");
-
-    final MenuItem itemEditTracker = new MenuItem(menuTracker, SWT.PUSH);
-    Messages.setLanguageText(itemEditTracker, "MyTorrentsView.menu.editTracker"); //$NON-NLS-1$
-    Utils.setMenuItemImage(itemEditTracker, "edit_trackers");
-
-    final MenuItem itemManualUpdate = new MenuItem(menuTracker,SWT.PUSH);
-    Messages.setLanguageText(itemManualUpdate, "GeneralView.label.trackerurlupdate"); //$NON-NLS-1$
-    //itemManualUpdate.setImage(ImageRepository.getImage("edit_trackers"));
 
     new MenuItem(menu, SWT.SEPARATOR);
 
