@@ -242,7 +242,7 @@ AzureusRestarterImpl
   // ****************** This code is copied into Restarter / Updater so make changes there too !!!
   
   
-  private static final String restartScriptName = "restartScript";
+  private static final String restartScriptName = "restarter_script";
   
   public void 
   restartAzureus(
@@ -303,7 +303,8 @@ AzureusRestarterImpl
         try{
         	log.println( "Using java spawn" );
 
-        	Process p = runExternalCommand( log, exec );
+  		  	//NOTE: no logging done here, as we need the method to return right away, before the external process completes
+        	Process p = Runtime.getRuntime().exec( exec );
           
         	log.println("    -> " + p );
         	
@@ -359,8 +360,11 @@ AzureusRestarterImpl
     	 FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
     	 fosUpdate.write(exec.getBytes());
     	 fosUpdate.close();
-    	 chMod(script_name,"755",log);      
-    	 runExternalCommand( log, script_name );   	
+    	 chMod(script_name,"755",log);
+
+		   //NOTE: no logging done here, as we need the method to return right away, before the external process completes
+    	 Runtime.getRuntime().exec( script_name );
+ 	
      } catch(Exception e) {
     	 log.println(e);
     	 e.printStackTrace(log);
@@ -383,8 +387,7 @@ AzureusRestarterImpl
                     + "bin"
                     + System.getProperty("file.separator");
     
-    String exec =   "#!/bin/bash\n\"" + javaPath + "java\" " + getClassPath() +
-            		getLibraryPath();
+    String exec =   "#!/bin/bash\n\"" + javaPath + "java\" " + getClassPath() +	getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
       exec += properties[i] + " ";
@@ -408,7 +411,10 @@ AzureusRestarterImpl
       fosUpdate.write(exec.getBytes());
       fosUpdate.close();
       chMod(fileName,"755",log);
-      runExternalCommand( log, fileName );
+      
+	  	//NOTE: no logging done here, as we need the method to return right away, before the external process completes
+	  	Runtime.getRuntime().exec( fileName );
+
     } catch(Exception e) {
       log.println(e);  
       e.printStackTrace(log);
@@ -485,11 +491,11 @@ AzureusRestarterImpl
     execStr[1] = rights;
     execStr[2] = fileName;
     
-    runExternalCommands( log, execStr );
+    runExternalCommandsLogged( log, execStr );
   }
   
   
-  private Process runExternalCommand( PrintWriter log, String command ) {
+  private Process runExternalCommandLogged( PrintWriter log, String command ) {  //NOTE: will not return until external command process has completed
   	log.println("About to execute: R:[" +command+ "]" );
   	
   	try {
@@ -507,7 +513,7 @@ AzureusRestarterImpl
   	}
   }
   
-  private Process runExternalCommands( PrintWriter log, String[] commands ) {
+  private Process runExternalCommandsLogged( PrintWriter log, String[] commands ) {  //NOTE: will not return until external command process has completed
   	String cmd = "About to execute: R:[";
   	for( int i=0; i < commands.length; i++ ) {
   		cmd += commands[i];

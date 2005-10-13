@@ -156,19 +156,9 @@ public class PlatformManagerImpl implements PlatformManager
 				throw new PlatformManagerException( msg );
 			}
 			
-			return "open -a " +osx_app_bundle.toString();  //TODO will work properly with spaces in path???
+			return "open -a " +osx_app_bundle.toString();   //TODO will work properly with spaces in path???
+			//return osx_app_bundle.toString() +"/Contents/MacOS/JavaApplicationStub";
 			
-	    /*
-	    String exec = userPath + osx_app + "/Contents/MacOS/JavaApplicationStub";
-	    if( new File( exec ).exists() == false ) {
-	    	exec = userPath + osx_app + "/Contents/MacOS/java_swt";
-	    } 
-
-	    String[] exec = new String[3];
-	    exec[0] = "open";
-	    exec[1] = "-a";
-	    exec[2] = userPath + osx_app;
-	    */
 		}
 		catch( Throwable t ){	
 			t.printStackTrace();
