@@ -26,14 +26,18 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.*;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
@@ -44,6 +48,7 @@ import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 
@@ -111,6 +116,32 @@ public class ConfigSectionConnection implements UISWTConfigSection {
       }
     });
     
+    // wiki link
+    label = new Label(cServer, SWT.NULL);
+    formData = new FormData();
+    formData.top = new FormAttachment(tcplisten.getControl(), 0);  // 2 params for Pre SWT 3.0
+    formData.left = new FormAttachment(0, 15);  // 2 params for Pre SWT 3.0
+    label.setLayoutData(formData);
+    label.setText(MessageText.getString("Utils.link.visit") + ":");
+    
+    final Label linkLabel = new Label(cServer, SWT.NULL);
+    linkLabel.setText(MessageText.getString("ConfigView.section.connection.serverport.wiki"));
+    linkLabel.setData("http://azureus.aelitis.com/wiki/index.php?title=Why_ports_like_6881_are_no_good_choice");
+    linkLabel.setCursor(Cursors.handCursor);
+    linkLabel.setForeground(Colors.blue);
+    formData = new FormData();
+    formData.top = new FormAttachment(tcplisten.getControl(), 0);  // 2 params for Pre SWT 3.0
+    formData.left = new FormAttachment(label, 5);  // 2 params for Pre SWT 3.0
+    linkLabel.setLayoutData(formData);
+    linkLabel.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+        Program.launch((String) ((Label) arg0.widget).getData());
+      }
+      public void mouseDown(MouseEvent arg0) {
+        Program.launch((String) ((Label) arg0.widget).getData());
+      }
+    });
+    
     
     if( userMode > 0 ) {
 /////////////////////// PEER SOURCES GROUP ///////////////////
@@ -122,7 +153,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
     	peer_sources_group.setLayout( peer_sources_layout );
     
     	formData = new FormData();
-    	formData.top = new FormAttachment( tcplisten.getControl(), 6 );
+    	formData.top = new FormAttachment( label, 6 );
     	formData.left = new FormAttachment( 0, 0 );
     	formData.right = new FormAttachment( 100, -5 );
     	peer_sources_group.setLayoutData( formData );

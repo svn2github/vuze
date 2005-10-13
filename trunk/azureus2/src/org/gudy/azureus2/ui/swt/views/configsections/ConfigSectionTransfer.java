@@ -26,16 +26,22 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 
 
@@ -58,6 +64,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
     GridLayout layout;
+    Label label;
 
     Composite cTransfer = new Composite(parent, SWT.WRAP);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -73,7 +80,6 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     //  store the initial d/l speed so we can do something sensible later
     final int[] manual_max_download_speed = { COConfigurationManager.getIntParameter( "Max Download Speed KBs" )};
     
-    
     //  max upload speed
     gridData = new GridData();
     gridData.widthHint = 35;
@@ -82,7 +88,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     
     gridData = new GridData();
     gridData.horizontalSpan = 3;
-    Label label = new Label(cTransfer, SWT.NULL);
+    label = new Label(cTransfer, SWT.NULL);
     label.setLayoutData( gridData );
     Messages.setLanguageText(label, "ConfigView.label.maxuploadspeed");
 
@@ -101,6 +107,43 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     enable_seeding_rate.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( paramMaxUploadSpeedSeeding.getControl() ) );
     label = new Label(cTransfer, SWT.NULL);
 
+    // wiki link
+    
+    Composite cWiki = new Composite(cTransfer, SWT.COLOR_GRAY);
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 4;
+    cWiki.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 4;
+    layout.marginHeight = 0;
+    cWiki.setLayout(layout);
+    
+    gridData = new GridData();
+    gridData.horizontalIndent = 6;
+    gridData.horizontalSpan = 2;
+    label = new Label(cWiki, SWT.NULL);
+    label.setLayoutData( gridData );
+    label.setText(MessageText.getString("Utils.link.visit") + ":");
+
+    
+    
+    final Label linkLabel = new Label(cWiki, SWT.NULL);
+    linkLabel.setText(MessageText.getString("ConfigView.section.transfer.speeds.wiki"));
+    linkLabel.setData("http://azureus.aelitis.com/wiki/index.php/Good_settings");
+    linkLabel.setCursor(Cursors.handCursor);
+    linkLabel.setForeground(Colors.blue);
+    gridData = new GridData();
+    gridData.horizontalIndent = 10;
+    gridData.horizontalSpan = 2;
+    linkLabel.setLayoutData( gridData );
+    linkLabel.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+        Program.launch((String) ((Label) arg0.widget).getData());
+      }
+      public void mouseUp(MouseEvent arg0) {
+        Program.launch((String) ((Label) arg0.widget).getData());
+      }
+    });
     
     // max download speed
     gridData = new GridData();
@@ -237,7 +280,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     // ignore ports
     
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 2;
     label = new Label(cTransfer, SWT.NULL);
     label.setLayoutData( gridData );
     Messages.setLanguageText(label, "ConfigView.label.transfer.ignorepeerports");

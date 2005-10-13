@@ -28,7 +28,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
@@ -59,6 +62,9 @@ public class IPWModePanel extends AbstractWizardPanel {
   public void 
   show() 
   {
+	  
+	int userMode = COConfigurationManager.getIntParameter("User Mode");
+	
 	wizard.setTitle(MessageText.getString("installPluginsWizard.mode.title"));
 	wizard.setErrorMessage("");
 	
@@ -93,6 +99,25 @@ public class IPWModePanel extends AbstractWizardPanel {
 
 	bListMode.addListener(SWT.Selection,modeListener);
 	bFileMode.addListener(SWT.Selection,modeListener);
+	
+	if(userMode < 2){
+	    Group cWiki = new Group(panel, SWT.WRAP);
+	    cWiki.setText(MessageText.getString("installPluginsWizard.installMode.info.title"));
+	    gridData = new GridData( GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+	    gridData.verticalIndent = 15;
+	    cWiki.setLayoutData(gridData);
+	    layout = new GridLayout();
+	    layout.numColumns = 4;
+	    layout.marginHeight = 0;
+	    cWiki.setLayout(layout);
+	    
+	    gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+	    gridData.horizontalIndent = 10;
+	    gridData.horizontalSpan = 4;
+	    Label label = new Label(cWiki, SWT.WRAP);
+	    label.setLayoutData( gridData );
+	    label.setText(MessageText.getString("installPluginsWizard.installMode.info.text"));
+	}
 }
 
 	public IWizardPanel 
