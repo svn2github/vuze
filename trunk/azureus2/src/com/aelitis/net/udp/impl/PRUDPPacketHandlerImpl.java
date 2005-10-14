@@ -539,6 +539,11 @@ PRUDPPacketHandlerImpl
 	
 		throws PRUDPPacketHandlerException
 	{
+		if ( socket == null ){
+			
+			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
+		}
+		
 		try{
 			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			
@@ -802,6 +807,11 @@ PRUDPPacketHandlerImpl
 	
 		throws PRUDPPacketHandlerException
 	{
+		if ( socket == null ){
+			
+			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
+		}
+		
 		try{
 			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			
