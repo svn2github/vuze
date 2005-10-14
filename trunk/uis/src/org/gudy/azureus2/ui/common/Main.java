@@ -14,13 +14,16 @@ import java.io.Reader;
 import java.io.StringReader;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.Socket;
 
 import java.text.SimpleDateFormat;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.commons.cli.CommandLine;
@@ -108,31 +111,43 @@ public class Main {
     }
   }
   
-  public static void main(String[] args) 
+  public static void 
+  main(
+		String[] args ) 
   {
         
     String  mi_str = System.getProperty( "MULTI_INSTANCE" );
+    
     boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
 
     initRootLogger();
     
     try{
+       	CommandLine commands = parseCommands(args, true);
+
+       	if ( commands != null && directLaunch( args, commands )){
+       		
+       		return;
+       	}
+       	
     	core = AzureusCoreFactory.create();
 
-    	CommandLine commands = parseCommands(args, true);
-
-      if( mi ) {
-        System.out.println( "MULTI_INSTANCE enabled" );
-        processArgs(args, core, commands);
-        return;
-      }
+ 
+    	if( mi ){
+    		
+    		System.out.println( "MULTI_INSTANCE enabled" );
+    		
+    		processArgs(args, core, commands);
+    		
+    		return;
+    	}
       
     	start = new StartServer();
       
 	    if ((start == null) || (start.getServerState()==StartServer.STATE_FAULTY)) {
 	    	
 	 
-	    	new StartSocket(args);
+	    	new StartSocket(commands==null?new String[0]:commands.getArgs());
 	    	
 	    }else{
 	    	
@@ -171,6 +186,48 @@ public class Main {
     Logger.getLogger("azureus2").fatal("Azureus stopped at "+temp.format(new Date()));
     //System.exit(0);	- we don't want to force quit, wait until other threads have completed
     // so that resume data etc is saved....
+  }
+  
+  	public static boolean 
+  	directLaunch(
+  		String[] 		args, 
+  		CommandLine 	commands) 
+  	{
+  			// frig to support launch of SWT ui via this means pending a proper rewrite
+  			// of this stuff
+  		
+  		if ( commands.hasOption('u')) {
+    	  
+  			String uinames = commands.getOptionValue('u');
+       
+  			if ( uinames.indexOf(',') != -1 ){
+  				
+  				return( false );
+  			}
+  			
+  			if ( !uinames.equalsIgnoreCase( DEFAULT_UI )){
+  				
+  				return( false );
+  			}
+  		}
+           
+  		try{
+  			String uiclass = "org.gudy.azureus2.ui." + DEFAULT_UI + ".Main";
+  	   
+  			Class	main_class = Class.forName( uiclass );
+  		
+  			Method main_method = main_class.getMethod( "main", new Class[]{ String[].class });
+  			
+   			main_method.invoke( null, new Object[]{ commands.getArgs()});
+  			
+  			return( true );
+  			
+  		}catch( Throwable e ){
+  			
+  			e.printStackTrace();
+  			
+  			return( false );
+  		}
   }
   
   public static void 
