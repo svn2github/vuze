@@ -22,7 +22,6 @@
 package org.gudy.azureus2.ui.swt.config.wizard;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
@@ -32,7 +31,6 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
@@ -59,6 +57,16 @@ public class WelcomePanel extends AbstractWizardPanel {
     String initsMode = "";
     final String[] text = {""};
     int userMode = COConfigurationManager.getIntParameter("User Mode");
+    final String[] messTexts = {"ConfigView.section.mode.beginner.wiki.definitions",
+    		"ConfigView.section.mode.intermediate.wiki.host",
+    		"ConfigView.section.mode.advanced.wiki.main",
+    		"ConfigView.section.mode.intermediate.wiki.publish"
+    };
+    final String[] links = {"http://azureus.aelitis.com/wiki/index.php/This_funny_word",
+    		"http://azureus.aelitis.com/wiki/index.php/HostingFiles",
+    		"http://azureus.aelitis.com/wiki/index.php/Main_Page",
+    		"http://azureus.aelitis.com/wiki/index.php/PublishingFiles"
+    };
     
     Composite rootPanel = wizard.getPanel();
     GridLayout layout = new GridLayout();
@@ -96,42 +104,89 @@ public class WelcomePanel extends AbstractWizardPanel {
     gRadio.setLayout(new RowLayout(SWT.HORIZONTAL));
 
     Button button0 = new Button (gRadio, SWT.RADIO);
-    Messages.setLanguageText(button0, "ConfigView.section.mode.Beginner");
+    Messages.setLanguageText(button0, "ConfigView.section.mode.beginner");
     button0.setData("iMode", "0");
-    button0.setData("sMode", "Beginner.text");
+    button0.setData("sMode", "beginner.text");
     
     Button button1 = new Button (gRadio, SWT.RADIO);
-    Messages.setLanguageText(button1, "ConfigView.section.mode.Intermediate");
+    Messages.setLanguageText(button1, "ConfigView.section.mode.intermediate");
     button1.setData("iMode", "1");
-    button1.setData("sMode", "Intermediate.text");
+    button1.setData("sMode", "intermediate.text");
     
     Button button2 = new Button (gRadio, SWT.RADIO);
-    Messages.setLanguageText(button2, "ConfigView.section.mode.Advanced");
+    Messages.setLanguageText(button2, "ConfigView.section.mode.advanced");
     button2.setData("iMode", "2");
-    button2.setData("sMode", "Advanced.text");
+    button2.setData("sMode", "advanced.text");
     
     if ( userMode == 0) {
-    	initsMode = "Beginner.text";
+    	initsMode = "beginner.text";
     	button0.setSelection(true);
     } else if ( userMode == 1) {
-    	initsMode = "Intermediate.text";
+    	initsMode = "intermediate.text";
     	button1.setSelection(true);
     } else {
-    	initsMode = "Advanced.text";
+    	initsMode = "advanced.text";
     	button2.setSelection(true);
     }
     
-    final Label label = new Label(panel, SWT.WRAP);
-    gridData = new GridData();
-    gridData.widthHint = 380;    
-    label.setLayoutData(gridData);
+    final Label labl = new Label(panel, SWT.WRAP);
+    gridData = new GridData(GridData.FILL_BOTH);
+    gridData.widthHint = 380;
+    gridData.heightHint = 50;
+    labl.setLayoutData(gridData);
 	text[0] = MessageText.getString("ConfigView.section.mode." + initsMode);
-	label.setText(text[0]);
-	label.addListener (SWT.Selection, new Listener () {
+	labl.setText(text[0]);
+	labl.addListener (SWT.Selection, new Listener () {
 		public void handleEvent(Event event) {
 			Program.launch(event.text);
 		}
 	});
+	
+    Group gWiki = new Group(panel, SWT.WRAP);
+    gridData = new GridData();
+    gridData.widthHint = 350;
+    gWiki.setLayoutData(gridData);
+    layout = new GridLayout();
+    layout.numColumns = 1;
+    layout.marginHeight = 1;
+    gWiki.setLayout(layout);
+    
+    gWiki.setText(MessageText.getString("Utils.link.visit"));
+
+	    final Label linkLabel = new Label(gWiki, SWT.NULL);
+	    linkLabel.setText( MessageText.getString( messTexts[userMode] ) );
+	    linkLabel.setData( links[userMode] );
+	    linkLabel.setCursor(Cursors.handCursor);
+	    linkLabel.setForeground(Colors.blue);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.horizontalIndent = 10;
+	    linkLabel.setLayoutData( gridData );
+	    linkLabel.addMouseListener(new MouseAdapter() {
+	      public void mouseDoubleClick(MouseEvent arg0) {
+	        Program.launch((String) ((Label) arg0.widget).getData());
+	      }
+	      public void mouseUp(MouseEvent arg0) {
+	        Program.launch((String) ((Label) arg0.widget).getData());
+	      }
+	    });
+	    
+	    final Label linkLabel1 = new Label(gWiki, SWT.NULL);
+	    linkLabel1.setText( (userMode == 1)?MessageText.getString(messTexts[3]):"");
+	    linkLabel1.setData( links[3] );
+	    linkLabel1.setCursor(Cursors.handCursor);
+	    linkLabel1.setForeground(Colors.blue);
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.horizontalIndent = 10;
+	    linkLabel1.setLayoutData( gridData );
+	    linkLabel1.addMouseListener(new MouseAdapter() {
+	      public void mouseDoubleClick(MouseEvent arg0) {
+	        Program.launch((String) ((Label) arg0.widget).getData());
+	      }
+	      public void mouseUp(MouseEvent arg0) {
+	        Program.launch((String) ((Label) arg0.widget).getData());
+	      }
+	    });
+
     
     Listener radioGroup = new Listener () {
     	public void handleEvent (Event event) {
@@ -145,11 +200,22 @@ public class WelcomePanel extends AbstractWizardPanel {
     				 if ((button.getStyle () & SWT.RADIO) != 0) button.setSelection (false);
     			 }
     		}
-
+    		
 		    Button button = (Button) event.widget;
 		    button.setSelection (true);
+		    int mode = Integer.parseInt((String)button.getData("iMode"));
 		    text[0] = MessageText.getString("ConfigView.section.mode." + (String)button.getData("sMode"));
-		    label.setText(text[0]);
+		    labl.setText(text[0]);
+		    
+		    linkLabel.setText( MessageText.getString(messTexts[mode]) );
+		    linkLabel.setData( links[mode] );
+		    if(mode == 1){
+			    linkLabel1.setText( MessageText.getString(messTexts[3]) );
+			    linkLabel1.setData( links[3] );
+		    } else{
+			    linkLabel1.setText( "" );
+			    linkLabel1.setData( "" );
+		    }
 		    COConfigurationManager.setParameter("User Mode", Integer.parseInt((String)button.getData("iMode")));
 		    }
     };
