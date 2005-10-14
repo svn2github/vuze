@@ -122,11 +122,14 @@ DisplayFormatters
     			public void 
     			configurationSaved() 
     			{
+    				setUnits();
     				loadMessages();
+    				
     			}
+
     		});
-    	
-    	
+		
+		
 		setUnits();
 		
 		loadMessages();
@@ -140,7 +143,7 @@ DisplayFormatters
 		percentage_format.setMaximumFractionDigits(1);
 	}
 	
-  protected static void
+  public static void
   setUnits()
   {
       // (1) http://physics.nist.gov/cuu/Units/binary.html
@@ -235,7 +238,7 @@ DisplayFormatters
 	private static String	ManagerItem_error;
 	private static String	ManagerItem_forced;
 
-	private static void
+	public static void
 	loadMessages()
 	{
 		PeerManager_status_finished 	= getResourceString( "PeerManager.status.finished", "Finished" );

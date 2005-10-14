@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.Parameter;
@@ -83,6 +84,8 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     locale_param.addChangeListener( new ParameterChangeListener() {
       public void parameterChanged( Parameter p, boolean caused_internally ) {
         StartupUtils.setLocale();
+        DisplayFormatters.setUnits();
+        DisplayFormatters.loadMessages();
         MainWindow.getWindow().getMenu().refreshLanguage();
       }
     });
