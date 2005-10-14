@@ -27,6 +27,7 @@ package org.gudy.azureus2.plugins.tracker.web;
  */
 
 import java.io.InputStream;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.tracker.*;
 
@@ -39,6 +40,11 @@ TrackerWebPageRequest
 	public String
 	getClientAddress();
 	
+		/**
+		 * This gives the relative URL of the request (e.g. /fred.html)
+		 * @return
+		 */
+	
 	public String
 	getURL();
 	
@@ -47,6 +53,14 @@ TrackerWebPageRequest
 	
 	public InputStream
 	getInputStream();
+	
+		/**
+		 * Absolute URL including protocol and port e.g. https://a.b.c:1235/fred.html
+		 * @return
+		 */
+	
+	public URL
+	getAbsoluteURL();
 	
 	public TrackerWebContext
 	getContext();

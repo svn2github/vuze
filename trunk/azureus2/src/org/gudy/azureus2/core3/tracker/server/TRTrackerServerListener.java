@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.tracker.server;
  */
 
 import java.io.*;
+import java.net.URL;
 
 public interface 
 TRTrackerServerListener 
@@ -35,6 +36,7 @@ TRTrackerServerListener
 	handleExternalRequest(
 		String			client_address,
 		String			url,
+		URL				absolute_url,
 		String			header,
 		InputStream		is,
 		OutputStream	os )

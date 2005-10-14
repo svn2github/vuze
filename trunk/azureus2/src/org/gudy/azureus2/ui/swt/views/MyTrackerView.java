@@ -57,6 +57,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.Arrays;
 
 
@@ -260,6 +261,7 @@ MyTrackerView
 	handleExternalRequest(
 		String			client,
 		String			url,
+		URL				absolute_url,
 		String			header,
 		InputStream		is,
 		OutputStream	os )

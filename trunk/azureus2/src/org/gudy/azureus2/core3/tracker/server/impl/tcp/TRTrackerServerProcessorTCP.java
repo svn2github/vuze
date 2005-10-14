@@ -55,6 +55,7 @@ TRTrackerServerProcessorTCP
 	protected static final byte[]	HTTP_RESPONSE_END_NOGZIP 	= (NL + NL).getBytes();
 	
 	private TRTrackerServerTCP	server;
+	private String				server_url;
 	
 	private boolean			disable_timeouts 	= false;
 
@@ -64,6 +65,8 @@ TRTrackerServerProcessorTCP
 		TRTrackerServerTCP		_server )
 	{
 		server	= _server;
+		
+		server_url = (server.isSSL()?"https":"http") + "://" + server.getHost() + ":" + server.getPort();
 	}	
 
 	protected boolean
@@ -588,6 +591,8 @@ TRTrackerServerProcessorTCP
 		
 		throws IOException
 	{
-		return( server.handleExternalRequest(client_address,url,header, is, os));
+		URL	absolute_url = new URL( server_url + (url.startsWith("/")?url:("/"+url)));
+			
+		return( server.handleExternalRequest(client_address,url,absolute_url,header, is, os));
 	}
 }

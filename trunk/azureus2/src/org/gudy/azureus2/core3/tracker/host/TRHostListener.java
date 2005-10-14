@@ -27,6 +27,7 @@ package org.gudy.azureus2.core3.tracker.host;
  */
 
 import java.io.*;
+import java.net.URL;
 
 public interface 
 TRHostListener 
@@ -47,6 +48,7 @@ TRHostListener
 	handleExternalRequest(
 		String			client_address,
 		String			url,
+		URL				absolute_url,
 		String			header,
 		InputStream		is,
 		OutputStream	os )

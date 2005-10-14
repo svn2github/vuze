@@ -27,6 +27,8 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
  */
 
 import java.io.InputStream;
+import java.net.URL;
+
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
 
@@ -34,12 +36,13 @@ public class
 TrackerWebPageRequestImpl
 	implements TrackerWebPageRequest
 {
-	protected Tracker			tracker;
-	protected TrackerWebContext	context;
-	protected String			client_address;
-	protected String			url;
-	protected String			header;
-	protected InputStream		is;
+	private Tracker				tracker;
+	private TrackerWebContext	context;
+	private String				client_address;
+	private String				url;
+	private URL					absolute_url;
+	private String				header;
+	private InputStream			is;
 	
 	protected
 	TrackerWebPageRequestImpl(
@@ -47,6 +50,7 @@ TrackerWebPageRequestImpl
 		TrackerWebContext	_context,
 		String				_client_address,
 		String				_url,
+		URL					_absolute_url,
 		String				_header,
 		InputStream			_is )
 	{
@@ -54,6 +58,7 @@ TrackerWebPageRequestImpl
 		context			= _context;
 		client_address	= _client_address;
 		url				= _url;
+		absolute_url	= _absolute_url;
 		header			= _header;
 		is				= _is;
 	}
@@ -74,6 +79,12 @@ TrackerWebPageRequestImpl
 	getURL()
 	{
 		return( url );
+	}
+	
+	public URL
+	getAbsoluteURL()
+	{
+		return( absolute_url );
 	}
 	
 	public String

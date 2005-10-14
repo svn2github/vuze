@@ -30,6 +30,7 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
 
 import java.util.*;
 import java.io.*;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.tracker.*;
@@ -67,6 +68,7 @@ TrackerWCHelper
 	handleExternalRequest(
 		String			_client_address,
 		String			_url,
+		URL				_absolute_url,
 		String			_header,
 		InputStream		_is,
 		OutputStream	_os )
@@ -75,7 +77,7 @@ TrackerWCHelper
 	{	
 		UtilitiesImpl.setPluginThreadContext( plugin_interface );
 		
-		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, this, _client_address, _url, _header, _is );
+		TrackerWebPageRequestImpl	request = new TrackerWebPageRequestImpl( tracker, this, _client_address, _url, _absolute_url, _header, _is );
 		TrackerWebPageResponseImpl	reply 	= new TrackerWebPageResponseImpl( _os );
 		
 		for (int i=0;i<generators.size();i++){

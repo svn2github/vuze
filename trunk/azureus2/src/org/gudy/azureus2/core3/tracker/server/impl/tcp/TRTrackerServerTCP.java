@@ -293,6 +293,7 @@ TRTrackerServerTCP
 	handleExternalRequest(
 		String			client_address,
 		String			url,
+		URL				absolute_url,
 		String			header,
 		InputStream		is,
 		OutputStream	os )
@@ -318,7 +319,7 @@ TRTrackerServerTCP
 				this_mon.exit();
 			}
 			
-			if (listener.handleExternalRequest( client_address, url, header, is, os )){
+			if (listener.handleExternalRequest( client_address, url, absolute_url, header, is, os )){
 				
 				return( true );
 			}
