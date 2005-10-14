@@ -247,11 +247,7 @@ DownloadManagerImpl
 	// Position in Queue
 	private int position = -1;
 	
-  
-	//Used when trackerConnection is not yet created.
-	// private String trackerUrl;
-
-	
+	private Object[]					read_torrent_state;
 	private	DownloadManagerState		download_manager_state;
 	
 	private TOTorrent		torrent;
@@ -351,11 +347,10 @@ DownloadManagerImpl
 		
 			// readTorrent adjusts the save dir and file to be sensible values
 			
-		readTorrent( _torrent_save_dir, _torrent_save_file, _torrent_hash, persistent && !_recovered, _open_for_seeding, _has_ever_been_started );
-		
-			// must be after readTorrent, so that any listeners have a TOTorrent
-		
-		controller.setInitialState( _initialState );
+		readTorrent( 	_torrent_save_dir, _torrent_save_file, _torrent_hash, 
+						persistent && !_recovered, _open_for_seeding, _has_ever_been_started,
+						_initialState );		
+
 	}
 
 
@@ -366,14 +361,18 @@ DownloadManagerImpl
 		byte[]		torrent_hash,		// can be null for initial torrents
 		boolean		new_torrent,		// probably equivalend to (torrent_hash == null)????
 		boolean		open_for_seeding,
-		boolean		has_ever_been_started )
-	{
+		boolean		has_ever_been_started,
+		int			initial_state )
+	{		
 		display_name				= torrentFileName;	// default if things go wrong decoding it
 		torrent_comment				= "";
 		torrent_created_by			= "";
 		
-		try {
+		try{
 
+				// this is the first thing we do and most likely to go wrong - hence its
+				// existence is used below to indicate success or not
+			
 			 download_manager_state	= 
 				 	DownloadManagerStateImpl.getDownloadState(
 				 			this, torrentFileName, torrent_hash );
@@ -402,6 +401,7 @@ DownloadManagerImpl
 			 
 			 torrent	= download_manager_state.getTorrent();
 			 
+			 
 			 	// We can't have the identity of this download changing as this will screw up
 			 	// anyone who tries to maintain a unique set of downloads (e.g. the GlobalManager)
 			 	//
@@ -410,18 +410,20 @@ DownloadManagerImpl
 				 
 				 	// flag set true below
 				 
-				 dl_identity			= torrent.getHash();
+				 dl_identity			= torrent_hash==null?torrent.getHash():torrent_hash;
                  
-                 this.dl_identity_hashcode = new String( dl_identity ).hashCode();
+                 this.dl_identity_hashcode = new String( dl_identity ).hashCode();		 
+			 }
 				 
-			 }else{
-				 
-				 if ( !Arrays.equals( dl_identity, torrent.getHash())){
+			 if ( !Arrays.equals( dl_identity, torrent.getHash())){
 					 
-					 throw( new Exception( "Download identity changed - please remove and re-add the download" ));
-				 }
+				 torrent	= null;	// prevent this download from being used
+				 
+				 throw( new Exception( "Download identity changed - please remove and re-add the download" ));
 			 }
 			 
+			 read_torrent_state	= null;	// no longer needed if we saved it
+
 			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 					 
 			 	// if its a simple torrent and an explicit save file wasn't supplied, use
@@ -618,6 +620,13 @@ DownloadManagerImpl
 		
 		if ( download_manager_state == null ){
 		
+			read_torrent_state = 
+				new Object[]{ 	
+					torrent_save_dir, torrent_save_file, torrent_hash,
+					new Boolean(new_torrent), new Boolean( open_for_seeding ), new Boolean( has_ever_been_started ),
+					new Integer( initial_state )
+				};
+
 				// torrent's stuffed - create a dummy "null object" to simplify use
 				// by other code
 			
@@ -652,8 +661,30 @@ DownloadManagerImpl
 				download_manager_state.setPeerSources( ps );
 			}
 		}
+		
+			// must be after torrent read, so that any listeners have a TOTorrent
+		
+		controller.setInitialState( initial_state );
 	}
 
+	protected void
+	readTorrent()
+	{
+		if ( read_torrent_state == null ){
+			
+			return;
+		}
+		
+		readTorrent(
+				(String)read_torrent_state[0],
+				(String)read_torrent_state[1],
+				(byte[])read_torrent_state[2],
+				((Boolean)read_torrent_state[3]).booleanValue(),
+				((Boolean)read_torrent_state[4]).booleanValue(),
+				((Boolean)read_torrent_state[5]).booleanValue(),
+				((Integer)read_torrent_state[6]).intValue());
+
+	}
 	protected void
 	setFileLinks()
 	{
@@ -832,7 +863,14 @@ DownloadManagerImpl
 	  	// exit: error, ready or on the way to error
 	  
 		if ( torrent == null ) {
-	    	
+
+				// have a go at re-reading the torrent in case its been recovered
+			
+			readTorrent();
+		}
+		
+		if ( torrent == null ) {
+
 			setFailed();
       
 			return;
