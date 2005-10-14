@@ -145,8 +145,8 @@ public class TorrentOpener {
       }
     } catch (Exception e) {
       
-      LGLogger.log( "MainWindow::openTorrent: check fails", e );
-
+      LGLogger.logRepeatableAlert("Torrent open fails for '" + fileName + "'", e );
+         	 
       return;
     }
 
@@ -174,7 +174,7 @@ public class TorrentOpener {
 	                                                                     : DownloadManager.STATE_WAITING);
                 }catch( Throwable e ){
     	          	
-    	          	LGLogger.logUnrepeatableAlert("Torrent open fails for '" + fileName + "'", e );
+    	          	LGLogger.logRepeatableAlert("Torrent open fails for '" + fileName + "'", e );
     	        }
 	          }catch( Throwable e ){
                 
