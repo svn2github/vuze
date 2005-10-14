@@ -447,6 +447,14 @@ public class GlobalManagerImpl
     try {
       File f = new File(torrent_file_name);
       
+      if ( !f.exists()){
+    	  throw( new IOException( "Torrent file '" + torrent_file_name + "' doesn't exist" ));
+      }
+      
+      if ( !f.isFile()){
+       	  throw( new IOException( "Torrent '" + torrent_file_name + "' is not a file" ));    	  
+      }
+      
       boolean saveTorrents = persistent&&COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
       if (saveTorrents) torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
       else torrentDir = new File(f.getParent());
