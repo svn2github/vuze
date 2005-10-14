@@ -417,6 +417,9 @@ public class ConnectDisconnectManager {
       while( !pending_closes.isEmpty() ) {
         SocketChannel channel = (SocketChannel)pending_closes.removeFirst();
         if( channel != null ) {
+        	
+        	connect_selector.cancel( channel );
+        	
           try{ 
             channel.close();
           }
