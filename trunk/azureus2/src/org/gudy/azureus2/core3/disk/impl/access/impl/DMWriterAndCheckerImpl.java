@@ -822,6 +822,10 @@ DMWriterAndCheckerImpl
 			return false;
 		}
 		int size = data.remaining(DirectByteBuffer.SS_DW);
+		if (size <= 0) {
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: size="+size+" <= 0");
+			return false;
+		}
 		if (offset + size > length) {
 		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
 			return false;
@@ -840,14 +844,18 @@ DMWriterAndCheckerImpl
 		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: length="+length+" > " + max_read_block_size );
 		  return false;
 		}
+		if (length <= 0 ) {
+		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: length="+length+" <= 0" );
+		    return false;
+		}	
 		if (pieceNumber < 0) {
 		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" < 0");
 		  return false;
-      }
+		}
 		if (pieceNumber >= this.nbPieces) {
 		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
 		  return false;
-      }
+		}
 		int pLength = this.pieceLength;
 		if (pieceNumber == this.nbPieces - 1)
 			pLength = this.lastPieceLength;
