@@ -59,7 +59,7 @@ BUGFIX: Core  | Don't allow prohibited peer sources to be enabled (ui artifact o
 BUGFIX: Plug  | UPnP fix for picking up changed network interfaces [Parg]
 BUGFIX: UI    | Fixed 100% CPU problem with download bars [Parg]
 BUGFIX: UI    | Fixed UI foregrounding itself on every unverified localhost:6880 socket connection attempt [Nolar]
-BUGFIX: Core  | Limit the max number of socket selectors created when in safe selector mode [Nolar]
+BUGFIX: Core  | Fixed too many socket selectors created when in safe selector mode [Nolar]
 
 
 
