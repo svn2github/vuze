@@ -363,7 +363,19 @@ TRTrackerBTAnnouncerImpl
 													
 	  if( last_response != null && last_response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ) {
       
-	    secs_to_wait = getErrorRetryInterval();
+	  	if( last_response.getStatus() == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR ) {
+	  		
+	  		//the tracker has explicitly reported an error (torrent is unauthorized for example),
+	  		//so there's no need to keep trying to re-announce as if it were actually offline
+
+	  		//there's no "min interval" returned, so start the re-announce backoff timings at 15min
+	  		if( failure_added_time < 900 )  failure_added_time = 900;
+  			secs_to_wait = getErrorRetryInterval();
+  			
+	  	}
+	  	else {	//tracker is OFFLINE
+	  		secs_to_wait = getErrorRetryInterval();
+	  	}
 							
 	  }
     else{
@@ -2294,9 +2306,9 @@ TRTrackerBTAnnouncerImpl
     
     if( is_seed ) failure_added_time = failure_added_time * 2; //no need to retry as often
     
-    //make sure we're not waiting longer than 20min
-    if( !is_seed && failure_added_time > 1200) {
-      failure_added_time = 1200;
+    //make sure we're not waiting longer than 30min
+    if( !is_seed && failure_added_time > 1800) {
+      failure_added_time = 1800;
     }
     else if ( is_seed && failure_added_time > 3600) { //or 60min if seed
       failure_added_time = 3600;
