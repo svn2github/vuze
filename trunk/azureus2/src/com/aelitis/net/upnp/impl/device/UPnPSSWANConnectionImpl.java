@@ -247,11 +247,8 @@ UPnPSSWANConnectionImpl
 				ok	= true;
 				
 			}finally{
-				
-				if ( !ok ){
-					
-					((UPnPRootDeviceImpl)service.getDevice().getRootDevice()).portMappingFailed();
-				}
+									
+				((UPnPRootDeviceImpl)service.getDevice().getRootDevice()).portMappingResult(ok);
 			}
 			
 			try{

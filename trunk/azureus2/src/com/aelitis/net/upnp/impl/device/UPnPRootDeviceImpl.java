@@ -62,7 +62,7 @@ UPnPRootDeviceImpl
 	
 	private UPnPDeviceImpl	root_device;
 	
-	private boolean			port_mapping_failed;
+	private boolean			port_mapping_result_received;
 	
 	private boolean		destroyed;
 	
@@ -123,38 +123,46 @@ UPnPRootDeviceImpl
 	}
 	
 	protected void
-	portMappingFailed()
+	portMappingResult(
+		boolean	ok )
 	{
-		if ( port_mapping_failed ){
+		if ( port_mapping_result_received ){
 			
 			return;
 		}
 		
-		port_mapping_failed	= true;
+		port_mapping_result_received	= true;
 		
-		info += "/Bad";
-		
-		String	model 	= root_device.getModelName();
-		String	version	= root_device.getModelNumber();
-		
-		if ( model == null || version == null ){
+		if ( ok ){
 			
-			return;
-		}
+			info += "/OK";
 			
-		for (int i=0;i<ROUTERS.length;i++){
+		}else{
+
+			info += "/Failed";
 			
-			if ( ROUTERS[i].equals( model )){
+			String	model 	= root_device.getModelName();
+			String	version	= root_device.getModelNumber();
+			
+			if ( model == null || version == null ){
 				
-				if ( isBadVersion( version, BAD_ROUTER_VERSIONS[i])){
+				return;
+			}
+				
+			for (int i=0;i<ROUTERS.length;i++){
+				
+				if ( ROUTERS[i].equals( model )){
 					
-					String	url = root_device.getModeURL();
-					
-					upnp.logAlert( 
-							"Device '" + model + "', version '" + version + 
-							"' has known problems with UPnP. Please update to the latest software version (see " + 
-							(url==null?"the manufacturer's web site":url) + ")",
-							false );
+					if ( isBadVersion( version, BAD_ROUTER_VERSIONS[i])){
+						
+						String	url = root_device.getModeURL();
+						
+						upnp.logAlert( 
+								"Device '" + model + "', version '" + version + 
+								"' has known problems with UPnP. Please update to the latest software version (see " + 
+								(url==null?"the manufacturer's web site":url) + ")",
+								false );
+					}
 				}
 			}
 		}
