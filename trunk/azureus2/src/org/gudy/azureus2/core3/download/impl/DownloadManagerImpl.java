@@ -623,6 +623,17 @@ DownloadManagerImpl
 			
 			download_manager_state	= DownloadManagerStateImpl.getDownloadState( this );
 			
+				// make up something vaguely sensible for save location
+			
+			if ( torrent_save_file == null ){
+				
+				torrent_save_location = new File( torrent_save_dir );
+				
+			}else{
+				
+				torrent_save_location = new File( torrent_save_dir, torrent_save_file );
+			}
+			
 		}else{
 			
 				// make sure we know what networks to use for this download
