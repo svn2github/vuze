@@ -697,10 +697,9 @@ public class MainMenu {
 					String sID = (String)items[i].getData("ViewID");
 					if (sID != null && sID.equals(sViewID)) {
 						items[i].dispose();
-						
-      			mainWindow.closePluginViews(sViewID);
 					}
 				}
+  			mainWindow.closePluginViews(sViewID);
 			}
 		});
   }
