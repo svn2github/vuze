@@ -28,7 +28,7 @@ package org.gudy.azureus2.core3.util;
  */
 public class SystemTime {
   
-  public static final long TIME_GRANULARITY_MILLIS = 20;   //internal update time ms
+  public static final long TIME_GRANULARITY_MILLIS = 30;   //internal update time ms
   
   private static final int STEPS_PER_SECOND = (int)(1000/TIME_GRANULARITY_MILLIS);
   
