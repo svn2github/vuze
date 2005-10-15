@@ -27,7 +27,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
@@ -41,7 +41,9 @@ import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
@@ -135,6 +137,8 @@ MainWindow
    * Warning status icon identifier
     */
   public static final String STATUS_ICON_WARN = "sb_warning";
+  
+  private UISWTInstanceImpl uiSWTInstanceImpl;
 
 
   public
@@ -715,7 +719,7 @@ MainWindow
 	   
   		// attach the UI to plugins
   
-	new UISWTInstanceImpl( azureus_core );
+  	uiSWTInstanceImpl = new UISWTInstanceImpl( azureus_core );
   
 		//  share progress window
 	
@@ -1307,6 +1311,56 @@ MainWindow
 	  openPluginView( view, view.getPluginViewName());
   }
   
+  public void openPluginView(String sParentID, String sViewID, UISWTViewEventListener l,
+			Object dataSource, boolean bSetFocus) {
+  	
+  	UISWTViewImpl view = null;
+  	try {
+  		view = new UISWTViewImpl(sParentID, sViewID, l);
+  	} catch (Exception e) {
+  		Tab tab = (Tab) pluginTabs.get(sViewID);
+  		if (tab != null) {
+  			tab.setFocus();
+  		}
+			return;
+  	}
+		view.dataSourceChanged(dataSource);
+
+		Tab tab = new Tab(view, bSetFocus);
+
+ 		pluginTabs.put(sViewID, tab);
+	}
+  
+  /**
+   * Close all plugin views with the specified ID
+   * 
+   * @param sViewID
+   */
+  public void closePluginViews(String sViewID) {
+  	Item[] items;
+
+		if (folder instanceof CTabFolder)
+			items = ((CTabFolder) folder).getItems();
+		else if (folder instanceof TabFolder)
+			items = ((TabFolder) folder).getItems();
+		else
+			return;
+
+		for (int i = 0; i < items.length; i++) {
+			IView view = Tab.getView(items[i]);
+			if (view instanceof UISWTViewImpl) {
+				String sID = ((UISWTViewImpl) view).getViewID();
+				if (sID != null && sID.equals(sViewID)) {
+					try {
+						closePluginView(view);
+					} catch (Exception e) {
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+		} // for
+  }
+
   protected void 
   openPluginView(
 	AbstractIView 	view,
@@ -1915,5 +1969,9 @@ MainWindow
     } catch(Exception e) {
       //DOo Nothing
     }    
+  }
+  
+  public UISWTInstanceImpl getUISWTInstanceImpl() {
+  	return uiSWTInstanceImpl;
   }
 }

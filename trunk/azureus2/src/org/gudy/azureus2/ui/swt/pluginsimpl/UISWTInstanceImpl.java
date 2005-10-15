@@ -30,6 +30,7 @@ import java.awt.Frame;
 import java.awt.Panel;
 import java.io.File;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -42,6 +43,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIException;
@@ -57,10 +59,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.plugins.UISWTAWTPluginView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.plugins.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -72,6 +71,10 @@ UISWTInstanceImpl
 	
 	private Map awt_view_map 	= new WeakHashMap();
 	private Map config_view_map = new WeakHashMap();
+	
+	private Map views = new HashMap();
+	
+	private boolean bUIAttaching;
 	
 	
 	public 
@@ -85,7 +88,9 @@ UISWTInstanceImpl
 			
 			ui_manager.addUIEventListener( this );
 			
+			bUIAttaching = true;
 			ui_manager.attachUI( this );
+			bUIAttaching = false;
 			
 		}catch( UIException e ){
 			
@@ -270,6 +275,7 @@ UISWTInstanceImpl
 	  	}
 	} 
   
+
 	public void
 	removeView(
 		UISWTPluginView		view )
@@ -394,5 +400,59 @@ UISWTInstanceImpl
 		throws UIException
 	{
 		throw( new UIException( "not supported" ));
+	}
+
+
+	public void addView(String sParentID, String sViewID, UISWTViewEventListener l) {
+		Map subViews =  (Map)views.get(sParentID);
+		if (subViews == null) {
+			subViews = new HashMap();
+			views.put(sParentID, subViews);
+		}
+			
+		subViews.put(sViewID, l);
+
+		if (sParentID.equals(UISWTInstance.VIEW_MAIN)) {
+			try {
+				final MainWindow window = MainWindow.getWindow();
+
+				if (window != null)
+					window.getMenu().addPluginView(sViewID, l);
+			} catch (Throwable e) {
+				// SWT not available prolly
+			}
+		}
+	}
+	
+	// TODO: Remove views from PeersView, etc
+	public void removeViews(String sParentID, String sViewID) {
+		Map subViews =  (Map)views.get(sParentID);
+		if (subViews == null)
+			return;
+
+		if (sParentID.equals(UISWTInstance.VIEW_MAIN)) {
+			try {
+				final MainWindow window = MainWindow.getWindow();
+
+				if (window != null)
+					window.getMenu().removePluginViews(sViewID);
+			} catch (Throwable e) {
+				// SWT not available prolly
+			}
+		}
+		subViews.remove(sViewID);
+	}
+
+	public void openMainView(String sViewID, UISWTViewEventListener l,
+			Object[] dataSources) {
+		MainWindow.getWindow().openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l,
+				dataSources, !bUIAttaching);
+	}
+
+	// Core Functions
+	// ==============
+	
+	public Map getViewListeners(String sParentID) {
+		return (Map)views.get(sParentID);
 	}
 }

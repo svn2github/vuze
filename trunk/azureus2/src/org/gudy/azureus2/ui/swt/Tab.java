@@ -19,6 +19,7 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.views.*;
 
 import java.util.HashMap;
@@ -68,6 +69,10 @@ public class Tab {
   }
 
   public Tab(IView _view) {
+  	this(_view, true);
+  }
+
+  public Tab(IView _view, boolean bFocus) {
     this.useCustomTab = MainWindow.getWindow().isUseCustomTab();
     this.view = _view;
     this.folder = _folder;
@@ -154,13 +159,15 @@ public class Tab {
         if (useCustomTab) {
           ((CTabItem) tabItem).setControl(_view.getComposite());
           ((CTabItem) tabItem).setToolTipText(view.getFullTitle());
-          ((CTabFolder) folder).setSelection((CTabItem) tabItem);
+          if (bFocus)
+          	((CTabFolder) folder).setSelection((CTabItem) tabItem);
         }
         else {
           ((TabItem) tabItem).setControl(_view.getComposite());
           ((TabItem) tabItem).setToolTipText(view.getFullTitle());
           TabItem items[] = {(TabItem) tabItem };
-          ((TabFolder) folder).setSelection(items);
+          if (bFocus)
+          	((TabFolder) folder).setSelection(items);
         }
 
         tabs.put(tabItem, view);
@@ -169,8 +176,11 @@ public class Tab {
       	Debug.printStackTrace( e );
       }
     }
-    MainWindow.getWindow().refreshIconBar();
-    selectedItem = tabItem;
+    
+    if (bFocus) {
+    	MainWindow.getWindow().refreshIconBar();
+    	selectedItem = tabItem;
+    }
 
     // events
     notifyListeners(tabAddListeners, tabItem);
@@ -433,6 +443,8 @@ public class Tab {
           if(view instanceof UISWTPluginView) {
               MainWindow.getWindow().removeActivePluginView(((UISWTPluginView)view).getPluginViewName());
           }
+          if(view instanceof UISWTView)
+            MainWindow.getWindow().removeActivePluginView(((UISWTView)view).getViewID());
    
           view.delete();
         } catch (Exception e) {

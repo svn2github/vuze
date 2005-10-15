@@ -25,6 +25,10 @@ package org.gudy.azureus2.ui.swt.plugins;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 
+/**
+ * 
+ * @since 2.3.0.5
+ */
 public interface 
 UISWTConfigSection 
 	extends ConfigSection 

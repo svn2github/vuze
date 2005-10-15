@@ -22,13 +22,30 @@
 
 package org.gudy.azureus2.plugins.ui;
 
+/**
+ * 
+ * @see UIManager#addUIListener(UIManagerListener)
+ * @see org.gudy.azureus2.ui.swt.plugins.UISWTInstance
+ */
 public interface 
 UIManagerListener 
 {
+	/**
+	 * Triggered when an UI is attached
+	 * 
+	 * @param instance Check with <code>instanceof</code> to see what UI is being
+	 *                  attached
+	 */
 	public void
 	UIAttached(
 		UIInstance		instance );
 	
+	/**
+	 * Triggered when an UI is detached
+	 * 
+	 * @param instance Check with <code>instanceof</code> to see what UI is being
+	 *                  dettached
+	 */
 	public void
 	UIDetached(
 		UIInstance		instance );		

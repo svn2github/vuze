@@ -58,44 +58,79 @@ UIManager
 	createPluginView(
 		PluginViewModel	model );
 	
-	
+	/**
+	 * 
+	 * @param section_name
+	 * @return
+	 * @since 2.1.0.0
+	 */
 	public BasicPluginConfigModel
 	createBasicPluginConfigModel(
 		String		section_name );
 	
-	
+
+	/**
+	 * 
+	 * @param parent_section
+	 * @param section_name
+	 * @return
+	 * @since 2.1.0.0
+	 */
 	public BasicPluginConfigModel
 	createBasicPluginConfigModel(
 		String		parent_section,
 		String		section_name );
-	
-		/*
-		 * Creates a basic plugin view model and adds it to the plugin in one step
-		 */
-	
+
+	/**
+	 * Creates a basic plugin view model and adds it to the plugin in one step
+	 * 
+	 * @param name
+	 * @return
+	 * @since 2.1.0.2
+	 */
 	public BasicPluginViewModel
 	createBasicPluginViewModel(
 		String			name );
 	
+	/**
+	 * 
+	 * @param data
+	 * @throws UIException
+	 * @since 2.1.0.0
+	 */
 	public void
 	copyToClipBoard(
 		String		data )
 	
 		throws UIException;
 
+	/**
+	 * Retrieve the Table Manager
+	 * 
+	 * @return Table management functions
+	 * @since 2.1.0.0
+	 */
 	public TableManager getTableManager();
 
+	/**
+	 * 
+	 * @param title_resource
+	 * @param message_resource
+	 * @param contents
+	 * @since 2.3.0.5
+	 */
 	public void
 	showTextMessage(
 		String		title_resource,
 		String		message_resource,
 		String		contents );
 	
-		/** Retrieve a class of SWT specific functions 
-		 * 
-		 * @deprecated 
-		 */
-  
+	/** Retrieve a class of SWT specific functions 
+	 * 
+	 * @deprecated 
+	 * @since 2.1.0.0
+	 */
+	
 	public SWTManager getSWTManager();
   
 	  /* Future
@@ -118,6 +153,7 @@ UIManager
 	/**
 	 * attach a new UI
 	 *   
+	 * @since 2.3.0.5
 	 */
 	
 	public void
@@ -130,7 +166,9 @@ UIManager
 	 * detach a UI - can fail if the UI doesn't support detaching
 	 * 
 	 * @param instance
-	 * @throws UIManagerException
+	 * @throws UIException
+	 * 
+	 * @since 2.3.0.5
 	 */
 	
 	public void

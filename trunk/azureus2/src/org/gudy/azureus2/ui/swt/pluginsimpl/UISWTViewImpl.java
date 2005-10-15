@@ -1,0 +1,205 @@
+/*
+ * File    : UISWTViewImpl.java
+ * Created : Oct 14, 2005
+ * By      : TuxPaper
+ *
+ * Copyright (C) 2005 Aelitis SARL, All rights Reserved
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * AELITIS, SARL au capital de 30,000 euros,
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ */
+
+package org.gudy.azureus2.ui.swt.pluginsimpl;
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Frame;
+import java.awt.Panel;
+import java.util.ArrayList;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.awt.SWT_AWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.views.AbstractIView;
+
+/**
+ * @author TuxPaper
+ *
+ */
+public class UISWTViewImpl extends AbstractIView implements UISWTView {
+	public static final String CFG_PREFIX = "Views.plugins.";
+
+	private Object dataSource = null;
+
+	private final UISWTViewEventListener eventListener;
+
+	private Composite composite;
+
+	private Component component;
+
+	private final String sViewID;
+
+	private int iControlType = UISWTView.CONTROLTYPE_SWT;
+	
+	private boolean bFirstGetCompositeCall = true;
+
+	private final String sParentID;
+
+	/**
+	 * 
+	 * @param sViewID
+	 * @param eventListener
+	 */
+	public UISWTViewImpl(String sParentID, String sViewID, UISWTViewEventListener eventListener)
+			throws Exception {
+		this.sParentID = sParentID;
+		this.sViewID = sViewID;
+		this.eventListener = eventListener;
+
+		if (!eventListener.eventOccurred(new UISWTViewEventImpl(this,
+				UISWTViewEvent.TYPE_CREATE, this)))
+			throw new Exception();
+	}
+
+	// UISWTPluginView implementation
+	// ==============================
+
+	public Object getDataSource() {
+		return dataSource;
+	}
+
+	public String getViewID() {
+		return sViewID;
+	}
+
+	public void closeView() {
+		try {
+			MainWindow.getWindow().closePluginView(this);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+	}
+
+	public void setControlType(int iControlType) {
+		if (iControlType == UISWTView.CONTROLTYPE_AWT
+				|| iControlType == UISWTView.CONTROLTYPE_SWT)
+			this.iControlType = iControlType;
+	}
+
+	// AbstractIView Implementation
+	// ============================
+
+	public void dataSourceChanged(Object newDataSource) {
+		dataSource = newDataSource;
+
+		eventListener.eventOccurred(new UISWTViewEventImpl(this,
+				UISWTViewEvent.TYPE_DATASOURCES_CHANGED, newDataSource));
+	}
+
+	public void delete() {
+		eventListener.eventOccurred(new UISWTViewEventImpl(this,
+				UISWTViewEvent.TYPE_DESTROY, null));
+		super.delete();
+	}
+
+	public Composite getComposite() {
+		if (bFirstGetCompositeCall) {
+			bFirstGetCompositeCall = false;
+		}
+		return composite;
+	}
+
+	public String getData() {
+		return CFG_PREFIX + sViewID + ".title";
+	}
+
+	public void initialize(Composite parent) {
+		if (iControlType == UISWTView.CONTROLTYPE_SWT) {
+			composite = new Composite(parent, SWT.NULL);
+			GridLayout layout = new GridLayout(1, false);
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			composite.setLayout(layout);
+			GridData gridData = new GridData(GridData.FILL_BOTH);
+			composite.setLayoutData(gridData);
+
+			eventListener.eventOccurred(new UISWTViewEventImpl(this,
+					UISWTViewEvent.TYPE_INITIALIZE, composite));
+		} else {
+			composite = new Composite(parent, SWT.EMBEDDED);
+			GridLayout layout = new GridLayout(1, false);
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			composite.setLayout(layout);
+			GridData gridData = new GridData(GridData.FILL_BOTH);
+			composite.setLayoutData(gridData);
+
+			Frame f = SWT_AWT.new_Frame(composite);
+
+			Panel pan = new Panel();
+
+			f.add(pan);
+
+			eventListener.eventOccurred(new UISWTViewEventImpl(this,
+					UISWTViewEvent.TYPE_INITIALIZE, pan));
+
+			pan.add(component, BorderLayout.CENTER);
+		}
+		
+		if (composite != null) {
+			composite.addListener(SWT.Activate, new Listener() {
+				public void handleEvent(Event event) {
+					eventListener.eventOccurred(new UISWTViewEventImpl(UISWTViewImpl.this,
+							UISWTViewEvent.TYPE_FOCUSGAINED, null));
+				}
+			});
+	
+			composite.addListener(SWT.Deactivate, new Listener() {
+				public void handleEvent(Event event) {
+					eventListener.eventOccurred(new UISWTViewEventImpl(UISWTViewImpl.this,
+							UISWTViewEvent.TYPE_FOCUSLOST, null));
+				}
+			});
+		}
+	}
+
+	public void refresh() {
+		eventListener.eventOccurred(new UISWTViewEventImpl(this,
+				UISWTViewEvent.TYPE_REFRESH, null));
+	}
+
+	public void updateLanguage() {
+		super.updateLanguage();
+
+		eventListener.eventOccurred(new UISWTViewEventImpl(this,
+				UISWTViewEvent.TYPE_LANGUAGEUPDATE, null));
+	}
+	
+	// Core Functions
+	public String getParentID() {
+		return sParentID;
+	}
+}

@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -266,9 +267,12 @@ public class Utils {
    *   - Label style has SWT.WRAP
    *
    * @author TuxPaper
+   * @note Bug 9866 fixed in 3105 and later
    */
   public static class LabelWrapControlListener extends ControlAdapter{
   	public void controlResized(ControlEvent e){
+  		if (SWT.getVersion() >= 3105)
+  			return;
   	  Composite parent = (Composite)e.widget;
   	  Control children[] = parent.getChildren();
 
@@ -334,14 +338,24 @@ public class Utils {
   } // class
 
   public static void alternateTableBackground(Table table) {
-    TableItem[] rows = table.getItems();
-    Color[] colors = { table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+  	int iTopIndex = table.getTopIndex();
+    int iBottomIndex = Math.min(iTopIndex
+				+ (table.getClientArea().height / table.getItemHeight()), table
+				.getItemCount() - 1);
+
+  	Color[] colors = { table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
         Colors.colorAltRow };
-    for (int i = 0; i < rows.length; i++) {
-      Color newColor = colors[i % colors.length];
-      if (!rows[i].getBackground().equals(newColor)) {
+  	int iFixedIndex = iTopIndex;
+    for (int i = iTopIndex; i <= iBottomIndex; i++) {
+      TableItem row = table.getItem(i);
+      // Rows can be disposed!
+      if (!row.isDisposed()) {
+      	Color newColor = colors[iFixedIndex % colors.length];
+      	iFixedIndex++;
+      	if (!row.getBackground().equals(newColor)) {
 //        System.out.println("setting "+rows[i].getBackground() +" to " + newColor);
-        rows[i].setBackground(newColor);
+      		row.setBackground(newColor);
+      	}
       }
     }
   }
@@ -360,5 +374,54 @@ public class Utils {
       if(!Constants.isOSX)
           item.setImage(ImageRepository.getImage(repoKey));
   }
+
+  /**
+   * Execute code in the Runnable object using SWT's thread.  If current
+   * thread it already SWT's thread, the code will run immediately.  If the
+   * current thread is not SWT's, code will be run either synchronously or 
+   * asynchronously on SWT's thread at the next reasonable opportunity.
+   * 
+   * @param code code to run
+   * @param async true if SWT asyncExec, false if SWT syncExec
+   * @return success
+   */
+  public static boolean execSWTThread(Runnable code,
+			boolean async) {
+  	Display display = MainWindow.getWindow().getDisplay();
+
+  	if (display == null || display.isDisposed())
+			return false;
+
+		if (display.getThread() == Thread.currentThread())
+			code.run();
+		else if (async)
+			display.asyncExec(code);
+		else
+			display.syncExec(code);
+
+		return true;
+	}
+
+  /**
+   * Execute code in the Runnable object using SWT's thread.  If current
+   * thread it already SWT's thread, the code will run immediately.  If the
+   * current thread is not SWT's, code will be run asynchronously on SWT's 
+   * thread at the next reasonable opportunity.
+   * 
+   * @param code code to run
+   * @return success
+   */
+	public static boolean execSWTThread(Runnable code) {
+		return execSWTThread(code, true);
+	}
+	
+	public static boolean isThisThreadSWT() {
+  	Display display = MainWindow.getWindow().getDisplay();
+  	if (display == null || display.isDisposed()) {
+  		System.out.println("display null");
+			return false;
+  	}
+		return (display.getThread() == Thread.currentThread());
+	}
 }
 

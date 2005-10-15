@@ -1,9 +1,9 @@
 /*
- * File    : PluginView.java
- * Created : 2 nov. 2003 20:58:14
- * By      : Olivier 
- * 
- * Azureus - a Java Bittorrent client
+ * File    : UISWTViewEventListener.java
+ * Created : Oct 14, 2005
+ * By      : TuxPaper
+ *
+ * Copyright (C) 2005 Aelitis SARL, All rights Reserved
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,28 +17,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * AELITIS, SARL au capital de 30,000 euros,
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
+
 package org.gudy.azureus2.ui.swt.plugins;
 
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 /**
- * This Class must be extended by Plugin willing to have their own view in Azureus
- * @author Olivier
+ * Listener to be triggered when an event related to a UISWTView takes place
  * 
- * @deprecated Use {@link org.gudy.azureus2.ui.swt.plugins.UISWTInstance#addView(String, String, UISWTViewEventListener)}
+ * @see org.gudy.azureus2.ui.swt.plugins.UISWTInstance#addView(String, String, UISWTViewEventListener)
+ * 
+ * @author TuxPaper
  */
-public abstract class 
-UISWTPluginView 
-	extends AbstractIView 
-{
-  /**
-   * @return The name of the Plugin, as seen in the View > Plugins menu
-   *
-   * @since 2.0.4.0
-   */
-	
-  public abstract String 
-  getPluginViewName();
+public interface UISWTViewEventListener {
+	/**
+	 * Triggers when an even listed in UISWTViewEvent occurs
+	 * 
+	 * @param event event that occurred
+	 * @return meaning dependent upon event type
+	 * 
+	 * @since 2.3.0.6
+	 */
+	public boolean eventOccurred(UISWTViewEvent event);
 }

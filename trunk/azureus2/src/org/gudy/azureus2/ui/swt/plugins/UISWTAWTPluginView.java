@@ -24,6 +24,10 @@ package org.gudy.azureus2.ui.swt.plugins;
 
 import java.awt.Component;
 
+/**
+ * 
+ * @deprecated Use {@link org.gudy.azureus2.ui.swt.plugins.UISWTInstance#addView(String, String, UISWTViewEventListener)}
+ */
 public interface 
 UISWTAWTPluginView 
 {

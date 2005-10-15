@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.predicate.AllPredicate;
 import org.gudy.azureus2.core3.predicate.NotPredicate;
 import org.gudy.azureus2.core3.predicate.Predicable;
@@ -49,7 +49,11 @@ import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.importtorrent.wizard.ImportTorrentWizard;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.predicate.shell.ShellCanMaximizePredicate;
@@ -641,13 +645,67 @@ public class MainMenu {
 	  addPluginView( view, view.getPluginViewName());
   }
   
+  /**
+   * Add a UISWTPluginView to the main view
+   * 
+   * @param view view to add
+   */
   public void
   addPluginView(
   	UISWTPluginView view)
   {
 	  addPluginView( view, view.getPluginViewName());
   }
+
+  public void addPluginView(final String sViewID, final UISWTViewEventListener l) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				String sResourceID = UISWTViewImpl.CFG_PREFIX + sViewID + ".title";
+				String name = MessageText.getString(sResourceID);
+				MenuItem[] items = pluginMenu.getItems();
+
+				int insert_at = items.length;
+
+				for (int i = 0; i < items.length; i++) {
+					if (items[i].getStyle() == SWT.SEPARATOR
+							|| name.compareTo(items[i].getText()) < 0) {
+						insert_at = i;
+						break;
+					}
+				}
+
+				MenuItem item = new MenuItem(pluginMenu, SWT.NULL, insert_at);
+				item.setData("ViewID", sViewID);
+
+				Messages.setLanguageText(item, sResourceID);
+				item.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event e) {
+						mainWindow.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l,
+								null, true);
+					}
+				});
+				menu_plugin.setEnabled(true);
+			}
+		});
+	}
   
+  public void removePluginViews(final String sViewID) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				MenuItem[] items = pluginMenu.getItems();
+				for (int i = 0; i < items.length; i++) {
+					String sID = (String)items[i].getData("ViewID");
+					if (sID != null && sID.equals(sViewID)) {
+						items[i].dispose();
+						
+      			mainWindow.closePluginViews(sViewID);
+					}
+				}
+			}
+		});
+  }
+
+
   protected void
   addPluginView(
   	final AbstractIView 	view,
