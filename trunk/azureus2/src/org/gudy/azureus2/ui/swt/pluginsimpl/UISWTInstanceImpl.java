@@ -444,9 +444,9 @@ UISWTInstanceImpl
 	}
 
 	public void openMainView(String sViewID, UISWTViewEventListener l,
-			Object[] dataSources) {
+			Object dataSource) {
 		MainWindow.getWindow().openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l,
-				dataSources, !bUIAttaching);
+				dataSource, !bUIAttaching);
 	}
 
 	// Core Functions

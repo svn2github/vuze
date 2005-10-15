@@ -72,7 +72,7 @@ public interface UISWTView extends UIPluginView {
 	 *  {@link UISWTInstance#VIEW_MAIN}- null<br>
 	 *  {@link UISWTInstance#VIEW_MYTORRENTS}- {@link org.gudy.azureus2.plugins.download.Download}<br>
 	 *  {@link UISWTInstance#VIEW_TORRENT_PEERS}- {@link org.gudy.azureus2.plugins.peers.Peer}<br>
-	 *  If created by {@link UISWTInstance#openMainView(String, UISWTViewEventListener, Object[])},
+	 *  If created by {@link UISWTInstance#openMainView(String, UISWTViewEventListener, Object)},
 	 *  value will be the value set.
 	 *  <p>
 	 *  May return null if no data source is selected, or while processing the

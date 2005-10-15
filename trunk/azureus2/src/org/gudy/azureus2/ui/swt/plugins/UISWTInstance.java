@@ -44,7 +44,7 @@ public interface UISWTInstance extends UIInstance {
 	//public static final String VIEW_MYTORRENTS = "MyTorrents";
 
 	/** 
-	 * ID of "My Torrents" view  (not supported yet)
+	 * ID of "Peers" view  (not supported yet)
 	 * 
 	 * @since 2.3.0.7
 	 */
@@ -98,12 +98,12 @@ public interface UISWTInstance extends UIInstance {
 	 * 
 	 * @param sViewID ID to give your view
 	 * @param l Listener to be triggered when View Events occur
-	 * @param dataSources objects to set {@link UISWTView#getDataSource()} with
+	 * @param dataSource objects to set {@link UISWTView#getDataSource()} with
 	 *
 	 * @since 2.3.0.6
 	 */
 	public void openMainView(String sViewID, UISWTViewEventListener l,
-			Object[] dataSources);
+			Object dataSource);
 
 	/**
 	 * Remove all views that belong to a specific parent and of a specific View 
