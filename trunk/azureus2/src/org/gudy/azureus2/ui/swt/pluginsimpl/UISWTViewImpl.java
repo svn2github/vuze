@@ -24,7 +24,6 @@
 
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Panel;
@@ -34,6 +33,7 @@ import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -56,8 +56,6 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	private final UISWTViewEventListener eventListener;
 
 	private Composite composite;
-
-	private Component component;
 
 	private final String sViewID;
 
@@ -96,7 +94,24 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 
 	public void closeView() {
 		try {
-			MainWindow.getWindow().closePluginView(this);
+			Display display = MainWindow.getWindow().getDisplay();
+			
+			if ( display.getThread() == Thread.currentThread()){
+				
+				MainWindow.getWindow().closePluginView(this);
+				
+			}else{
+				
+				display.syncExec(
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							MainWindow.getWindow().closePluginView(UISWTViewImpl.this);
+						}
+					});
+			}
 		} catch (Exception e) {
 			Debug.out(e);
 		}
@@ -174,8 +189,6 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 
 			eventListener.eventOccurred(new UISWTViewEventImpl(this,
 					UISWTViewEvent.TYPE_INITIALIZE, pan));
-
-			pan.add(component, BorderLayout.CENTER);
 		}
 		
 		if (composite != null) {
