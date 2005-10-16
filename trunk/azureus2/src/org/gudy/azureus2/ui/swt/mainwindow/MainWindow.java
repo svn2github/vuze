@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
 import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
@@ -1359,6 +1360,33 @@ MainWindow
 				}
 			}
 		} // for
+  }
+  
+  /**
+   * Get all open Plugin Views
+   * 
+   * @return open plugin views
+   */
+  public UISWTView[] getPluginViews() {
+  	Item[] items;
+
+		if (folder instanceof CTabFolder)
+			items = ((CTabFolder) folder).getItems();
+		else if (folder instanceof TabFolder)
+			items = ((TabFolder) folder).getItems();
+		else
+			return new UISWTView[0];
+
+		ArrayList views = new ArrayList();
+		
+		for (int i = 0; i < items.length; i++) {
+			IView view = Tab.getView(items[i]);
+			if (view instanceof UISWTViewImpl) {
+				views.add(view);
+			}
+		} // for
+		
+		return (UISWTView[])views.toArray(new UISWTView[0]);
   }
 
   protected void 

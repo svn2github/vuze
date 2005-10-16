@@ -83,4 +83,11 @@ public interface UISWTView extends UIPluginView {
 	// From UIPluginView, declared here only to change JavaDoc
 	public Object getDataSource();
 
+	/**
+	 * Trigger an event for this view
+	 * 
+	 * @param eventType  Event to trigger
+	 * @param data data to send with trigger
+	 */
+	public void triggerEvent(int eventType, Object data);
 }

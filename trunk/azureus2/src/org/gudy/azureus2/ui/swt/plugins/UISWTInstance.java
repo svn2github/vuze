@@ -119,6 +119,16 @@ public interface UISWTInstance extends UIInstance {
 	public void removeViews(String sParentID, String sViewID);
 
 	/**
+	 * Get a list of views currently open on the specified VIEW_* view
+	 * 
+	 * @param sParentID VIEW_* constant
+	 * @return list of views currently open
+	 * 
+	 * @since 2.3.0.6
+	 */
+	public UISWTView[] getOpenViews(String sParentID);
+
+	/**
 	 * A Plugin might call this method to add a View to Azureus's views
 	 * The View will be accessible from View > Plugins > View name
 	 * @param view The PluginView to be added

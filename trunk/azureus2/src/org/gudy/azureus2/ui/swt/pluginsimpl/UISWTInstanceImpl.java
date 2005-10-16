@@ -464,6 +464,20 @@ UISWTInstanceImpl
 		});
 	}
 
+	public UISWTView[] getOpenViews(String sParentID) {
+		if (sParentID.equals(UISWTInstance.VIEW_MAIN)) {
+			try {
+				final MainWindow window = MainWindow.getWindow();
+	
+				if (window != null)
+					return 	window.getPluginViews();
+			} catch (Throwable e) {
+				// SWT not available prolly
+			}
+		}
+		return new UISWTView[0];
+	}
+
 	// Core Functions
 	// ==============
 	

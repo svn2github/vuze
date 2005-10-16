@@ -108,6 +108,10 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 			this.iControlType = iControlType;
 	}
 
+	public void triggerEvent(int eventType, Object data) {
+		eventListener.eventOccurred(new UISWTViewEventImpl(this, eventType, data));
+	}
+
 	// AbstractIView Implementation
 	// ============================
 
