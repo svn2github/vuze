@@ -70,6 +70,7 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     label = new Label(cIgnoreRules, SWT.WRAP);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
+    gridData.widthHint = 300;
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.autoSeedingIgnoreInfo"); //$NON-NLS-1$
 	

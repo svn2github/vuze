@@ -75,6 +75,7 @@ public class ConfigSectionSeedingFirstPriority implements UISWTConfigSection {
     label = new Label(cFirstPriorityArea, SWT.WRAP);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
+    gridData.widthHint = 300;
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority.info");
 
