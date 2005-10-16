@@ -958,7 +958,28 @@ MainWindow
     });
   }
 
+  public void
+  destroyRequest()
+  {
+	  LGLogger.log("MainWindow::destroyRequest");
 
+	  if ( COConfigurationManager.getBooleanParameter("Password enabled", false )){
+		  
+		  LGLogger.log("    denied - password is enabled");
+
+		  return;
+	  }
+	  
+	  display.asyncExec(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					dispose( false, false );
+				}
+			});
+  }
 
 	// globalmanagerlistener
 	

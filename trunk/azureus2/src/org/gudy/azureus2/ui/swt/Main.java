@@ -47,13 +47,23 @@ Main
 	      return;
 	    }
 	    
+	    boolean	closedown	= false;
+	    
 	    for (int i=0;i<args.length;i++){
 	
+	    	String	arg = args[i];
+	    	
+	    	if ( arg.equalsIgnoreCase( "--closedown" )){
+	    		
+	    		closedown	= true;
+	    		
+	    		break;
+	    	}
 		        // Sometimes Windows use filename in 8.3 form and cannot
 		        // match .torrent extension. To solve this, canonical path
 		        // is used to get back the long form
 		    	
-	        String filename = args[i];
+	        String filename = arg;
             
             if( filename.toUpperCase().startsWith( "HTTP:" ) || filename.toUpperCase().startsWith( "MAGNET:" ) ) {
               LGLogger.log( "Main::main: args[" + i + "] handling as a URI: " +filename );
@@ -80,21 +90,28 @@ Main
 	        }
 	    }
 	    
-	    if (startServer.getState() == StartServer.STATE_LISTENING) {
+	    if ( startServer.getState() == StartServer.STATE_LISTENING ){
 	
-	      startServer.pollForConnections();
+	    	if ( closedown ){
+	    
+	    			// closedown request and no instance running
+	    		
+	    		return;
+	    	}
+	    	
+	    	startServer.pollForConnections();
 	
-	      new Initializer(core,startServer,args);
+	    	new Initializer(core,startServer,args);
 	      
 	    }else{
 	    	
-	      new StartSocket(args);
+	    	new StartSocket(args);
 	      
-	      try{
-	      	Thread.sleep(2500);
-	      }catch( Throwable e ){
+	    	try{
+	    		Thread.sleep(2500);
+	    	}catch( Throwable e ){
 	      	
-	      }
+	    	}
 	    }
   	}catch( AzureusCoreException e ){
   		
