@@ -24,7 +24,6 @@
 
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
-import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Panel;
 
@@ -155,9 +154,9 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 		if (MessageText.keyExists(key))
 			return key;
 		// For now, to get plugin developers to update their plugins
-		return key;
+		// return key;
 		// For release, change it to this, to make it at least shorter:
-		//return sViewID;
+		return sViewID;
 	}
 
 	public void initialize(Composite parent) {
