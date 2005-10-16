@@ -50,7 +50,7 @@ public interface UISWTViewEvent {
 	public static final int TYPE_CREATE = 0;
 
 	/**
-	 * Triggered when the datasources related to this view change.
+	 * Triggered when the datasource related to this view change.
 	 * <p>
 	 * Usually called after TYPE_CREATE, but before TYPE_INITIALIZE
 	 * <p>
@@ -58,7 +58,7 @@ public interface UISWTViewEvent {
 	 * 
 	 * @since 2.3.0.6
 	 */
-	public static final int TYPE_DATASOURCES_CHANGED = 1;
+	public static final int TYPE_DATASOURCE_CHANGED = 1;
 
 	/**
 	 * Initialize your view.

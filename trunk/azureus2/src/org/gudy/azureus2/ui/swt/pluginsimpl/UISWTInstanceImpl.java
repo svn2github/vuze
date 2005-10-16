@@ -43,7 +43,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIException;
@@ -55,6 +54,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -155,10 +155,12 @@ UISWTInstanceImpl
 			case UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED:
 			{
 				if ( data instanceof BasicPluginViewModel ){
+					BasicPluginViewModel model = (BasicPluginViewModel)data;
 					
-					BasicPluginViewImpl view = new BasicPluginViewImpl( (BasicPluginViewModel)data);
-					   
-				    addView( view, false );
+					// property bundles can't handle spaces in keys
+					String sViewID = model.getName().replaceAll(" ", ".");
+					BasicPluginViewImpl view = new BasicPluginViewImpl(model);
+					addView(UISWTInstance.VIEW_MAIN, sViewID, view);
 				}
 				
 				break;
@@ -166,10 +168,10 @@ UISWTInstanceImpl
 			case UIManagerEvent.ET_PLUGIN_VIEW_MODEL_DESTROYED:
 			{
 				if ( data instanceof BasicPluginViewModel ){
-					
-					BasicPluginViewImpl view = new BasicPluginViewImpl( (BasicPluginViewModel)data);
-					   
-				    removeView( view );
+					BasicPluginViewModel model = (BasicPluginViewModel)data;
+					// property bundles can't handle spaces in keys
+					String sViewID = model.getName().replaceAll(" ", ".");
+					removeViews(UISWTInstance.VIEW_MAIN, sViewID);
 				}
 				
 				break;
@@ -291,7 +293,7 @@ UISWTInstanceImpl
 	  		// SWT not available prolly
 	  	}
 	}
-	
+
 	public void
 	addView(
 		final UISWTAWTPluginView	view,
@@ -403,50 +405,63 @@ UISWTInstanceImpl
 	}
 
 
-	public void addView(String sParentID, String sViewID, UISWTViewEventListener l) {
-		Map subViews =  (Map)views.get(sParentID);
+	public void addView(String sParentID, final String sViewID,
+			final UISWTViewEventListener l) {
+		Map subViews = (Map) views.get(sParentID);
 		if (subViews == null) {
 			subViews = new HashMap();
 			views.put(sParentID, subViews);
 		}
-			
+
 		subViews.put(sViewID, l);
 
 		if (sParentID.equals(UISWTInstance.VIEW_MAIN)) {
-			try {
-				final MainWindow window = MainWindow.getWindow();
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					try {
+						final MainWindow window = MainWindow.getWindow();
 
-				if (window != null)
-					window.getMenu().addPluginView(sViewID, l);
-			} catch (Throwable e) {
-				// SWT not available prolly
-			}
+						if (window != null)
+							window.getMenu().addPluginView(sViewID, l);
+					} catch (Throwable e) {
+						// SWT not available prolly
+					}
+				}
+			});
 		}
 	}
 	
 	// TODO: Remove views from PeersView, etc
-	public void removeViews(String sParentID, String sViewID) {
-		Map subViews =  (Map)views.get(sParentID);
+	public void removeViews(String sParentID, final String sViewID) {
+		Map subViews = (Map) views.get(sParentID);
 		if (subViews == null)
 			return;
 
 		if (sParentID.equals(UISWTInstance.VIEW_MAIN)) {
-			try {
-				final MainWindow window = MainWindow.getWindow();
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					try {
+						final MainWindow window = MainWindow.getWindow();
 
-				if (window != null)
-					window.getMenu().removePluginViews(sViewID);
-			} catch (Throwable e) {
-				// SWT not available prolly
-			}
+						if (window != null)
+							window.getMenu().removePluginViews(sViewID);
+					} catch (Throwable e) {
+						// SWT not available prolly
+					}
+				}
+			});
 		}
 		subViews.remove(sViewID);
 	}
 
-	public void openMainView(String sViewID, UISWTViewEventListener l,
-			Object dataSource) {
-		MainWindow.getWindow().openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l,
-				dataSource, !bUIAttaching);
+	public void openMainView(final String sViewID,
+			final UISWTViewEventListener l, final Object dataSource) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				MainWindow.getWindow().openPluginView(UISWTInstance.VIEW_MAIN, sViewID,
+						l, dataSource, !bUIAttaching);
+			}
+		});
 	}
 
 	// Core Functions

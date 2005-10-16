@@ -26,23 +26,22 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Panel;
-import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
-import org.eclipse.swt.events.FocusEvent;
-import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
 /**
@@ -116,7 +115,7 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 		dataSource = newDataSource;
 
 		eventListener.eventOccurred(new UISWTViewEventImpl(this,
-				UISWTViewEvent.TYPE_DATASOURCES_CHANGED, newDataSource));
+				UISWTViewEvent.TYPE_DATASOURCE_CHANGED, newDataSource));
 	}
 
 	public void delete() {
@@ -133,7 +132,13 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	}
 
 	public String getData() {
-		return CFG_PREFIX + sViewID + ".title";
+		final String key = CFG_PREFIX + sViewID + ".title";
+		if (MessageText.keyExists(key))
+			return key;
+		// For now, to get plugin developers to update their plugins
+		return key;
+		// For release, change it to this, to make it at least shorter:
+		//return sViewID;
 	}
 
 	public void initialize(Composite parent) {

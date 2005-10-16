@@ -27,20 +27,15 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.ProgressBar;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeEvent;
 import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
-import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 
 /**
@@ -48,12 +43,10 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
  */
 public class 
 BasicPluginViewImpl 
-	extends UISWTPluginView 
-	implements UIPropertyChangeListener 
+	implements UISWTViewEventListener, UIPropertyChangeListener 
 {
   
   BasicPluginViewModel model;
-  String pluginName;
   
   //GUI elements
   Display display;
@@ -63,29 +56,49 @@ BasicPluginViewImpl
   BufferedLabel task;
   StyledText log;
   
+  boolean isCreated;
+  
   public 
   BasicPluginViewImpl(
 	BasicPluginViewModel 	model) 
   {
     this.model = model;
-    this.pluginName = model.getName();
+    isCreated = false;
   }
   
-  public String getPluginViewName() {
-    return pluginName;
-  }
+	public boolean eventOccurred(UISWTViewEvent event) {
+		switch (event.getType()) {
+			case UISWTViewEvent.TYPE_CREATE:
+				if (isCreated)
+					return false;
+				isCreated = true;
+				break;
+				
+			case UISWTViewEvent.TYPE_INITIALIZE:
+				initialize((Composite)event.getData());
+				break;
+			
+			case UISWTViewEvent.TYPE_REFRESH:
+				refresh();
+				break;
+			
+			case UISWTViewEvent.TYPE_DESTROY:
+				delete();
+				isCreated = false;
+				break;
+		}
+		return true;
+	}
 
-  public Composite getComposite() {
-    return panel;
-  }
-
-  public void initialize(Composite composite) {
+  private void initialize(Composite composite) {
     this.display = composite.getDisplay();
     panel = new Composite(composite,SWT.NULL);
     GridLayout panelLayout = new GridLayout();
     GridData gridData;
     panelLayout.numColumns = 2;
     panel.setLayout(panelLayout);
+		gridData = new GridData(GridData.FILL_BOTH);
+		panel.setLayoutData(gridData);
     
     /*
      * Status       : [Status Text]
@@ -143,7 +156,7 @@ BasicPluginViewImpl
   	      	model.getLogArea().setText("");
   	      }});
 
-      log = new StyledText(panel,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL);
+      log = new StyledText(panel,SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
       gridData = new GridData(GridData.FILL_BOTH);
       gridData.horizontalSpan = 2;
       log.setLayoutData(gridData);
@@ -152,7 +165,7 @@ BasicPluginViewImpl
     }
   }
   
-  public void refresh() {
+  private void refresh() {
     if(status != null) {
       status.setText(model.getStatus().getText());
     }
@@ -189,15 +202,9 @@ BasicPluginViewImpl
     });
   }
   
-  public void
+  private void
   delete()
   {
     model.getLogArea().removePropertyChangeListener( this );
-    
-  	super.delete();
-  }
-  
-  public String getFullTitle() {
-    return pluginName;
   }
 }
