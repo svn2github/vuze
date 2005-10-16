@@ -43,7 +43,14 @@ public abstract class AbstractIView implements IView {
   public String getData(){ return null; }
 
   public String getFullTitle(){
-    return MessageText.getString(getData());
+	  String	key = getData();
+	  
+	 if ( MessageText.keyExists( key )){
+		 
+		 return MessageText.getString(getData());
+	 }
+	 
+	 return( key.replace( ".", " " ));	// support old plugins
   }
 
   public final String getShortTitle() {

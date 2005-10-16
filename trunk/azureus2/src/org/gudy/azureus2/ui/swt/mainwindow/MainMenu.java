@@ -661,7 +661,15 @@ public class MainMenu {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				String sResourceID = UISWTViewImpl.CFG_PREFIX + sViewID + ".title";
-				String name = MessageText.getString(sResourceID);
+				
+				String name;
+				
+				if ( MessageText.keyExists( sResourceID )){
+					name = MessageText.getString(sResourceID);
+				}else{
+					name = sViewID.replace(".", " " );	// support old plugins
+				}
+					
 				MenuItem[] items = pluginMenu.getItems();
 
 				int insert_at = items.length;
@@ -677,7 +685,8 @@ public class MainMenu {
 				MenuItem item = new MenuItem(pluginMenu, SWT.NULL, insert_at);
 				item.setData("ViewID", sViewID);
 
-				Messages.setLanguageText(item, sResourceID);
+				item.setText( name );
+
 				item.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event e) {
 						mainWindow.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l,
