@@ -32,6 +32,7 @@ FEATURE: Core | Ability to rename and redirect files within a torrent [Parg]
 FEATURE: Core | Compact storage for "do not download" files [Parg]
 FEATURE: Core | Magnet URI protocol registration under windows [Parg]
 FEATURE: UI   | Beginner configuration user mode provides a simplified interface [Gouss]
+FEATURE: UI   | Support for --closedown parameter to org.gudy.azureus2.ui.swt.Main to closedown an existing AZ instance [Parg]
 
 CHANGE: Core  | Countermeasures against swarm DOS/poisoning [Nolar]
 CHANGE: Core  | Health status for swarms where all known peers are connected now reported as OK [Parg]
