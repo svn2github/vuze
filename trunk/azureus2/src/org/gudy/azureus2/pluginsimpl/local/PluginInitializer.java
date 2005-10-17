@@ -44,9 +44,6 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 
 
 import org.gudy.azureus2.plugins.*;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
-import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
-import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.local.launch.PluginLauncherImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
@@ -664,6 +661,12 @@ PluginInitializer
   					existing_parent	!= null &&
   					existing_parent.equals( FileUtil.getUserFile( "plugins" ))){
   				
+  					// skip this overridden plugin
+  				
+  				LGLogger.log( LGLogger.AT_COMMENT, "Plugin '" + plugin_name_string + "/" + plugin_class + ": shared version overridden by user-specific one" );
+  				
+  				return( new ArrayList());
+  				
   			}else{
   			
   				LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "Error loading '" + plugin_name_string + "', plugin class '" + plugin_class + "' is already loaded" );
@@ -1135,6 +1138,21 @@ PluginInitializer
   	plugins.remove( pi.getPlugin());
   	
   	plugin_interfaces.remove( pi );
+  	
+  	for (int i=0;i<loaded_pi_list.size();i++){
+  		
+  		List	l = (List)loaded_pi_list.get(i);
+  		
+  		if ( l.remove(pi)){
+  		
+  			if ( l.size() == 0 ){
+  				
+  				loaded_pi_list.remove(i);
+  			}
+  			
+  			return;
+  		}
+  	}
   }
   
   protected void
@@ -1153,6 +1171,7 @@ PluginInitializer
   		List	pis = loadPluginFromDir( (File)key );
   		
   		initialisePlugin( pis );
+  		
   	}else{
   		
   		initializePluginFromClass( (Class) key, pi.getPluginID(), config_key );
@@ -1374,6 +1393,23 @@ PluginInitializer
   		if ( pi.getPlugin().getClass().getName().equals( class_name )){
   		
   			return( pi );
+  		}
+  	}
+  	
+  		// fall back to the loaded but not-yet-initialised list
+  	
+  	for (int i=0;i<loaded_pi_list.size();i++){
+  		
+  		List	l = (List)loaded_pi_list.get(i);
+  		
+  		for (int j=0;j<l.size();j++){
+  			
+  			PluginInterfaceImpl	pi = (PluginInterfaceImpl)l.get(j);
+  			
+  			if ( pi.getPlugin().getClass().getName().equals( class_name )){
+  		  		
+  	  			return( pi );
+  	  		}
   		}
   	}
   	
