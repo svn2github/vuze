@@ -9,12 +9,12 @@ $
     Mejorada la expulsión de clientes que envían datos corruptos
     Controles alternativos de subida para cuando sólo estás sirviendo (seeding)
     Renombrado y recolocación de los archivos dentro de una descarga
-    Mejor información sobre el estado 'impedido por el cortafuegos'
-    NAT transversal para descargas magnet
+    Mejor información sobre estados de bloqueo por el cortafuegos
+    Paso a través del NAT para las descargas magnet
     Soporte de Java 5.0 bajo OSX
-    Bugfixes, bugfixes, bufixes
+    Fallos arreglados, más fallos arreglados, y por último... más fallos arreglados
     
-    Note: New Windows launcher exe might require allowing "Azureus.exe" internet access in your software firewall.
+    Nota: El nuevo lanzador ejecutable para Windows necesitará que tu cortafuegos permita "Azureus.exe" acceder a internet.
     
     Informe completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
    
