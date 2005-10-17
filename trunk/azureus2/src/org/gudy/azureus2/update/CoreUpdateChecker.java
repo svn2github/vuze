@@ -322,7 +322,7 @@ CoreUpdateChecker
     try{
       byte[]  message = (byte[])reply.get( "message" );
           
-      if ( message != null ){
+      if ( message != null && message.length > 0 ){
         
         String  s_message = new String(message);
         
@@ -340,7 +340,7 @@ CoreUpdateChecker
             alert_text = alert_text.substring(2);
           }
           
-		  plugin_interface.getPluginProperties().setProperty( MESSAGE_PROPERTY, alert_text );
+          plugin_interface.getPluginProperties().setProperty( MESSAGE_PROPERTY, alert_text );
 
           LGLogger.logUnrepeatableAlert( alert_type, alert_text );
           
