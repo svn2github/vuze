@@ -1001,7 +1001,7 @@ PluginInitializer
   	throws PluginException
   {
   
-  	if ( getPluginFromClass( plugin_class ) != null ){
+  	if ( plugin_class != loadFailedPlugin.class && getPluginFromClass( plugin_class ) != null ){
   	
   		LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "Error loading '" + plugin_id + "', plugin class '" + plugin_class.getName() + "' is already loaded" );
   		
@@ -1456,6 +1456,8 @@ PluginInitializer
 		  
 		  	throws PluginException
 		{ 	
+  			System.out.println( "plugin load failed for " + pi.getPluginID());
+  			
 			Properties props = pi.getPluginProperties();
 			
 			props.setProperty( "plugin.name", pi.getPluginID() + " load failed" );
