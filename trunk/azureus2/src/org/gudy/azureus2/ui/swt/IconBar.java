@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolBar;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.components.*;
 
 /**
@@ -55,7 +56,9 @@ public class IconBar {
   public IconBar(Composite parent) {
     this.parent = parent;
     this.itemKeyToControl = new HashMap();    
-    this.coolBar = new CoolBar(parent,SWT.NONE);
+    	// 3.1 onwards the default is gradient-fill - the disabled icons' transparency no workies
+    	// so disabled buttons look bad on the gradient-filled background
+    this.coolBar = new CoolBar(parent,Constants.isWindows?SWT.FLAT:SWT.NULL);
     initBar();       
     this.coolBar.setLocked(true);
   }
