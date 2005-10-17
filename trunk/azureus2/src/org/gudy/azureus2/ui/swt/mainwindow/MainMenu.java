@@ -667,7 +667,7 @@ public class MainMenu {
 				if ( MessageText.keyExists( sResourceID )){
 					name = MessageText.getString(sResourceID);
 				}else{
-					name = sViewID.replace(".", " " );	// support old plugins
+					name = sViewID.replace('.', ' ' );	// support old plugins
 				}
 					
 				MenuItem[] items = pluginMenu.getItems();

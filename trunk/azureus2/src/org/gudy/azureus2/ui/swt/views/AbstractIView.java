@@ -50,7 +50,7 @@ public abstract class AbstractIView implements IView {
 		 return MessageText.getString(getData());
 	 }
 	 
-	 return( key.replace( ".", " " ));	// support old plugins
+	 return( key.replace( '.', ' ' ));	// support old plugins
   }
 
   public final String getShortTitle() {
