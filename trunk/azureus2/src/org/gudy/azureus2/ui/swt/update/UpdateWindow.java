@@ -344,8 +344,8 @@ UpdateWindow
         
         final TableItem item = new TableItem(table,SWT.NULL);
         item.setData(update);
-        item.setText(COL_NAME,update.getName());  
-        item.setText(COL_VERSION,update.getNewVersion());
+        item.setText(COL_NAME,update.getName()==null?"Unknown":update.getName());  
+        item.setText(COL_VERSION,update.getNewVersion()==null?"Unknown":update.getNewVersion());
         ResourceDownloader[] rds = update.getDownloaders();
         long totalLength = 0;
         for(int i = 0 ; i < rds.length ; i++) {
