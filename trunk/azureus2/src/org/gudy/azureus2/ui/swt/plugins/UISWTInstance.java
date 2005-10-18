@@ -77,7 +77,7 @@ public interface UISWTInstance extends UIInstance {
 	 * 
 	 * @param sParentID VIEW_* constant
 	 * @param sViewID of your view.  Used as part of the resource id.<br>
-	 *          "Views.Plugins." + ID + ".title" = title of your view
+	 *          "Views.plugins." + ID + ".title" = title of your view
 	 * @param l Listener to be triggered when parent view wants to tell you 
 	 *           an event has happened
 	 *           
