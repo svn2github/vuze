@@ -1456,9 +1456,7 @@ PluginInitializer
 		  
 		  	throws PluginException
 		{ 	
-  			System.out.println( "plugin load failed for " + pi.getPluginID());
-  			
-			Properties props = pi.getPluginProperties();
+ 			Properties props = pi.getPluginProperties();
 			
 			props.setProperty( "plugin.name", pi.getPluginID() + " load failed" );
 			
