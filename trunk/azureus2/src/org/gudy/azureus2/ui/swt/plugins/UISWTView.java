@@ -88,6 +88,21 @@ public interface UISWTView extends UIPluginView {
 	 * 
 	 * @param eventType  Event to trigger
 	 * @param data data to send with trigger
+	 * 
+	 * @since 2.3.0.6
 	 */
 	public void triggerEvent(int eventType, Object data);
+	
+	/**
+	 * Override the default title with a new one.
+	 * 
+	 * After setting this, you should use the 
+	 * {@link UISWTViewEvent#TYPE_LANGUAGEUPDATE} to update your title to the
+	 * new language.
+	 * 
+	 * @param title new Title
+	 * 
+	 * @since 2.3.0.6
+	 */
+	public void setTitle(String title);
 }

@@ -63,6 +63,8 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 	private boolean bFirstGetCompositeCall = true;
 
 	private final String sParentID;
+	
+	private String sTitle = null;
 
 	/**
 	 * 
@@ -126,6 +128,12 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 		eventListener.eventOccurred(new UISWTViewEventImpl(this, eventType, data));
 	}
 
+	
+	public void setTitle(String title) {
+		sTitle = title;
+		
+	}
+
 	// AbstractIView Implementation
 	// ============================
 
@@ -157,6 +165,13 @@ public class UISWTViewImpl extends AbstractIView implements UISWTView {
 		// return key;
 		// For release, change it to this, to make it at least shorter:
 		return sViewID;
+	}
+
+	public String getFullTitle() {
+		if (sTitle != null)
+			return sTitle;
+
+		return super.getFullTitle();
 	}
 
 	public void initialize(Composite parent) {
