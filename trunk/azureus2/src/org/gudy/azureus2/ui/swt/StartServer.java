@@ -31,7 +31,6 @@ StartServer
   public static final String ACCESS_STRING = "Azureus Start Server Access";
   private ServerSocket socket;
   private int state;
-  private AzureusCore	azureus_core;
 
   private boolean bContinue;
   public static final int STATE_FAULTY = 0;
@@ -42,26 +41,12 @@ StartServer
   protected AEMonitor	this_mon		= new AEMonitor( "StartServer" );
   
   public 
-  StartServer(
-  	AzureusCore		_azureus_core )
-   {
+  StartServer()
+    {
     try {
-    	azureus_core	= _azureus_core;
-        
         socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
         
         state = STATE_LISTENING;    
-        
-        azureus_core.addLifecycleListener(
-		    	new AzureusCoreLifecycleAdapter()
-				{
-		    		public void
-					started(
-						AzureusCore		core )
-		    		{
-		    			openQueuedTorrents();
-		    		}
-				});
         
         LGLogger.log( "StartServer: listening on 127.0.0.1:6880 for passed torrent info");
     
@@ -73,15 +58,28 @@ StartServer
   }
 
     public void
-    pollForConnections()
+    pollForConnections(
+   	 	final AzureusCore		azureus_core )
+
 	{
+        azureus_core.addLifecycleListener(
+		    	new AzureusCoreLifecycleAdapter()
+				{
+		    		public void
+					started(
+						AzureusCore		core )
+		    		{
+		    			openQueuedTorrents( azureus_core );
+		    		}
+				});
+        
 	    Thread t = 
 	    	new AEThread("Start Server")
 			{
 	    		public void 
 	    		runSupport()
 				{
-	    			pollForConnectionsSupport();
+	    			pollForConnectionsSupport( azureus_core );
 	    		}
 			};
 	    
@@ -91,7 +89,8 @@ StartServer
 	}
     
   private void 
-  pollForConnectionsSupport() 
+  pollForConnectionsSupport(
+	AzureusCore		azureus_core ) 
   {
     bContinue = true;
     while (bContinue) {
@@ -130,7 +129,7 @@ StartServer
             			showMainWindow();
                   }
               	                  
-                  processArgs(args);
+                  processArgs(azureus_core,args);
                 }
             }
           }
@@ -155,7 +154,8 @@ StartServer
   
   protected void 
   processArgs(
-   	String 		args[]) 
+	AzureusCore		azureus_core,
+   	String 			args[]) 
   {
     if (args.length < 1 || !args[0].equals( "args" )){
     	
@@ -234,7 +234,8 @@ StartServer
   }
   
   protected void
-  openQueuedTorrents()
+  openQueuedTorrents(
+	AzureusCore		azureus_core )
   {
     try{
       	this_mon.enter();

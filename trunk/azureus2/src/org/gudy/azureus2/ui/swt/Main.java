@@ -32,9 +32,9 @@ Main
 	  	
 	  	boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
 	  	
-	  	AzureusCore		core = AzureusCoreFactory.create();
+	    startServer = new StartServer();
+
 		    
-	    startServer = new StartServer(core);
 	
 	    boolean debugGUI = Boolean.getBoolean("debug");
 	    
@@ -42,6 +42,8 @@ Main
 	    	
 	    	// create a MainWindow regardless to the server state
 	    	
+		  AzureusCore		core = AzureusCoreFactory.create();
+
 	      new Initializer(core,startServer,args);
 	      
 	      return;
@@ -99,7 +101,9 @@ Main
 	    		return;
 	    	}
 	    	
-	    	startServer.pollForConnections();
+	    	AzureusCore		core = AzureusCoreFactory.create();
+	    	
+	    	startServer.pollForConnections(core);
 	
 	    	new Initializer(core,startServer,args);
 	      
