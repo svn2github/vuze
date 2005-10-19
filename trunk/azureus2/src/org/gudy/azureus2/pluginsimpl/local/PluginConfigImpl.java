@@ -47,11 +47,15 @@ PluginConfigImpl
 	static{
 		
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC, 		CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC );
+		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_UPLOAD_SPEED_SEEDING_KBYTES_PER_SEC, 		"Max Upload Speed Seeding KBs" );
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_DOWNLOAD_SPEED_KBYTES_PER_SEC, 	CORE_PARAM_INT_MAX_DOWNLOAD_SPEED_KBYTES_PER_SEC );
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL, 				"Max.Peer.Connections.Total" );
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT, 			"Max.Peer.Connections.Per.Torrent" );
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_DOWNLOADS, 						"max downloads" );
 		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_ACTIVE, 							"max active torrents" );
+		external_to_internal_key_map.put( CORE_PARAM_INT_MAX_ACTIVE_SEEDING, 							"StartStopManager_iMaxActiveTorrentsWhenSeeding" );
+		external_to_internal_key_map.put(CORE_PARAM_BOOLEAN_MAX_UPLOAD_SPEED_SEEDING, "enable.seedingonly.upload.rate");
+		external_to_internal_key_map.put(CORE_PARAM_BOOLEAN_MAX_ACTIVE_SEEDING, "StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled");
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_SOCKS_PROXY_NO_INWARD_CONNECTION, 	"Proxy.Data.SOCKS.inform" );
 		external_to_internal_key_map.put( CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP, 			CORE_PARAM_BOOLEAN_NEW_SEEDS_START_AT_TOP );
 		external_to_internal_key_map.put( CORE_PARAM_STRING_LOCAL_BIND_IP, 						"Bind IP" );

@@ -75,11 +75,13 @@ RPPluginConfig
 		
 		cached_property_names 	= new String[]{
 				CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC,
+				CORE_PARAM_INT_MAX_UPLOAD_SPEED_SEEDING_KBYTES_PER_SEC,
 				CORE_PARAM_INT_MAX_DOWNLOAD_SPEED_KBYTES_PER_SEC,
 				CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT,
 				CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL,
 				CORE_PARAM_INT_MAX_DOWNLOADS,
-				CORE_PARAM_INT_MAX_ACTIVE
+				CORE_PARAM_INT_MAX_ACTIVE,
+				CORE_PARAM_INT_MAX_ACTIVE_SEEDING
 			};
 		
 		cached_property_values 	= new Object[]{
@@ -89,6 +91,8 @@ RPPluginConfig
 				new Integer( delegate.getIntParameter( cached_property_names[3] )),
 				new Integer( delegate.getIntParameter( cached_property_names[4] )),
 				new Integer( delegate.getIntParameter( cached_property_names[5] )),
+				new Integer( delegate.getIntParameter( cached_property_names[6] )),
+				new Integer( delegate.getIntParameter( cached_property_names[7] ))
 		};		
 	}
 	
