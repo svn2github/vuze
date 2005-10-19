@@ -35,6 +35,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.security.*;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.*;
 import org.gudy.azureus2.plugins.utils.xml.rss.*;
@@ -129,6 +130,9 @@ Utilities
 	public ResourceDownloaderFactory
 	getResourceDownloaderFactory();
 	
+	public ResourceUploaderFactory
+	getResourceUploaderFactory();
+
 	public SESecurityManager
 	getSecurityManager();
 	

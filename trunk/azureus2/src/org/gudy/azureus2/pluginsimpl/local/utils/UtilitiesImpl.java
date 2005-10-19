@@ -40,11 +40,13 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentFactory;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader.ResourceUploaderFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSFeedImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser.*;
@@ -275,6 +277,12 @@ UtilitiesImpl
 	getResourceDownloaderFactory()
 	{
 		return( ResourceDownloaderFactoryImpl.getSingleton());
+	}
+	
+	public ResourceUploaderFactory
+	getResourceUploaderFactory()
+	{
+		return( ResourceUploaderFactoryImpl.getSingleton());
 	}
 	
 	public SESecurityManager
