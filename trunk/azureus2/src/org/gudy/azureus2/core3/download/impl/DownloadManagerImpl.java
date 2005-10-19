@@ -289,6 +289,32 @@ DownloadManagerImpl
 				}
 			};
 	
+				// a second listener used to catch and propagate the "stopped" event
+				
+	private TRTrackerAnnouncerListener		stopping_tracker_client_listener = 
+		new TRTrackerAnnouncerListener() 
+		{
+			public void 
+			receivedTrackerResponse(
+				TRTrackerAnnouncerResponse	response) 
+			{
+				tracker_listeners.dispatch( LDT_TL_ANNOUNCERESULT, response );
+			}
+
+			public void 
+			urlChanged(
+				String 	url, 
+				boolean explicit) 
+			{
+			}
+
+			public void 
+			urlRefresh() 
+			{
+			}
+		};
+		
+		
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
 	
   
@@ -900,7 +926,7 @@ DownloadManagerImpl
 				tracker_client = TRTrackerAnnouncerFactory.create( torrent, download_manager_state.getNetworks());
 	    
 				tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
-	
+					
 				tracker_client.addListener( tracker_client_listener );
 				
 			}finally{
@@ -1824,9 +1850,11 @@ DownloadManagerImpl
 	  
   			if ( tracker_client != null ){
 			
+				tracker_client.addListener( stopping_tracker_client_listener );
+
   				tracker_client.removeListener( tracker_client_listener );
 		
-  				download_manager_state.setTrackerResponseCache(	tracker_client.getTrackerResponseCache());
+ 				download_manager_state.setTrackerResponseCache(	tracker_client.getTrackerResponseCache());
 				
   				tracker_client.destroy();
 				

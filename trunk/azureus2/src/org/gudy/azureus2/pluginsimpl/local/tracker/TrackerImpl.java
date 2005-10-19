@@ -165,6 +165,20 @@ TrackerImpl
 		return( res );
 	}
 	
+	public TrackerTorrent
+	getTorrent(
+		Torrent		torrent )
+	{
+		TRHostTorrent	ht = host.getHostTorrent(((TorrentImpl)torrent).getTorrent());
+		
+		if ( ht == null ){
+			
+			return( null );
+		}
+		
+		return( new TrackerTorrentImpl( ht ));
+	}
+	
 	public TrackerWebContext
 	createWebContext(
 		int		port,

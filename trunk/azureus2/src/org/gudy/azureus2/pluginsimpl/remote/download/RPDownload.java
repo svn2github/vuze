@@ -747,6 +747,14 @@ RPDownload
  		return( false );
  	}
  	
+	public boolean
+ 	isChecking()
+	{
+ 		notSupported();
+ 		
+ 		return( false );
+ 	}
+	
 	public PeerManager
 	getPeerManager()
 	{

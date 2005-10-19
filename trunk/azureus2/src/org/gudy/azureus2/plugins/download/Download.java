@@ -514,6 +514,16 @@ Download
   	public boolean
 	isComplete();
   	
+  		/**
+  		 * When a download is completed it is rechecked (if the option is enabled). This method
+  		 * returns true during this phase (at which time the status will be seeding)
+  		 * @return
+  		 * @since 2.3.0.6
+  		 */
+  	
+	public boolean
+ 	isChecking();
+	
   	public String
 	getSavePath();
   	

@@ -637,6 +637,19 @@ DownloadImpl
  		return( state == ST_SEEDING || download_manager.isDownloadComplete());
  	}
  	
+ 	public boolean
+ 	isChecking()
+ 	{
+ 		org.gudy.azureus2.core3.disk.DiskManager	dm = download_manager.getDiskManager();
+ 		
+ 		if ( dm != null ){
+ 			
+ 			return( dm.isChecking());
+ 		}
+ 		
+ 		return( false );
+ 	}
+ 	
 	protected void
 	isRemovable()
 		throws DownloadRemovalVetoException

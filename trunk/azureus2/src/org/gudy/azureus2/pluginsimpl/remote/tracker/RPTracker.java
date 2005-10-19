@@ -190,6 +190,15 @@ RPTracker
 		return( res ); 	
     }
         
+    public TrackerTorrent
+    getTorrent(
+    	Torrent	t )
+    {
+    	notSupported();
+    	
+    	return( null );
+    }
+    
     public TrackerWebContext
     createWebContext(
     	int		port,

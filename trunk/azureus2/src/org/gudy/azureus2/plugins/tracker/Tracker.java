@@ -57,6 +57,10 @@ Tracker
 		
 		throws TrackerException;
 
+	public TrackerTorrent
+	getTorrent(
+		Torrent		torrent );
+	
     public TrackerTorrent[]
     getTorrents();
         
