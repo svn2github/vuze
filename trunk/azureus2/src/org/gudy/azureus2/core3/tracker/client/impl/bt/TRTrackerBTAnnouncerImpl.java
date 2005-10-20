@@ -112,6 +112,8 @@ TRTrackerBTAnnouncerImpl
 	private long			rd_last_override = 0;
 	private int				rd_override_percentage	= 100;
 
+	private long			min_interval_override	= 0;
+	
   	private List trackerUrlLists;
      
   	private URL lastUsedUrl;
@@ -510,9 +512,12 @@ TRTrackerBTAnnouncerImpl
 	{
 		long now = SystemTime.getCurrentTime() / 1000;
         
-        if( now < last_update_time_secs )  force = true;  //time went backwards
+        if ( now < last_update_time_secs )  force = true;  //time went backwards
 
-		if( force || ( now - last_update_time_secs >= REFRESH_MINIMUM_SECS )){
+        long	effective_min = min_interval_override>0?min_interval_override:REFRESH_MINIMUM_SECS;
+        
+		if( force || ( now - last_update_time_secs >= effective_min )){
+			
 		  requestUpdate();
 		}
 	}
@@ -2139,6 +2144,15 @@ TRTrackerBTAnnouncerImpl
 					
 						if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "ANNOUNCE SCRAPE2: seeds=" +complete_l+ " peers=" +incomplete_l);
 			            
+						Object	override = extensions.get( "min interval override" );
+						
+						if ( override != null && override instanceof Long ){
+							
+								// this is to allow specific torrents to be refreshed more quickly
+								// if the tracker permits. Parg
+							
+							min_interval_override = ((Long)override).longValue();
+						}
 					}
 
 		          if (complete_l != null || incomplete_l != null) {
