@@ -389,6 +389,21 @@ TorrentImpl
 		return( TorrentUtils.getPluginStringProperty( torrent, name ));
 	}
 	
+	public void
+	setMapProperty(
+		String		name,
+		Map			value )
+	{
+		TorrentUtils.setPluginMapProperty( torrent, name, value );
+	}
+	
+	public Map
+	getMapProperty(
+		String		name )
+	{
+		return( TorrentUtils.getPluginMapProperty( torrent, name ));
+	}
+	
 	public Map
 	writeToMap()
 	

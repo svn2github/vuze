@@ -132,6 +132,28 @@ Torrent
 		String		name );
 	
 		/**
+		 * Sets a map property in the torrent, retrievable via getMapProperty
+		 * @param name	should be unique across plugins (i.e. prefix it with something unique)
+		 * @param value	bencodable Map value
+		 */
+	
+	public void
+	setMapProperty(
+		String		name,
+		Map			value );
+	
+		/**
+		 * Gets a previously set map value
+		 * @see setMapProperty
+		 * @param name	should be unique across plugins (i.e. prefix it with something unique)
+		 * @return
+		 */
+	
+	public Map
+	getMapProperty(
+		String		name );
+	
+		/**
 		 * A decentralised torrent uses the DHT only as a "tracker"
 		 * @return
 		 */

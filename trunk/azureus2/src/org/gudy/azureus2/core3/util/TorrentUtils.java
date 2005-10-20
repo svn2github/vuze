@@ -903,6 +903,64 @@ TorrentUtils
 		return( new String(v));
 	}
 	
+	public static void
+	setPluginMapProperty(
+		TOTorrent		torrent,
+		String			name,
+		Map				value )
+	{
+		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
+		
+		if ( m == null ){
+			
+			m = new HashMap();
+			
+			torrent.setAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES, m );
+		}
+		
+		Map p = (Map)m.get( "plugins" );
+		
+		if ( p == null ){
+			
+			p = new HashMap();
+			
+			m.put( "plugins", p );
+		}
+		
+		if ( value == null ){
+			
+			p.remove( name );
+			
+		}else{
+			
+			p.put( name, value );
+		}
+	}
+	
+	public static Map
+	getPluginMapProperty(
+		TOTorrent		torrent,
+		String			name )
+	{
+		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
+		
+		if ( m == null ){
+			
+			return( null );
+		}
+		
+		Map p = (Map)m.get( "plugins" );
+		
+		if ( p == null ){
+	
+			return( null );
+		}
+		
+		Map	v = (Map)p.get( name );
+		
+		return( v );
+	}
+	
 	public static List
 	getPluginStringProperties(
 		TOTorrent		torrent )

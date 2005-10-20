@@ -307,6 +307,23 @@ RPTorrent
 		return( null );
 	}
 	
+	public void
+	setMapProperty(
+		String		name,
+		Map			value )
+	{
+		notSupported();
+	}
+	
+	public Map
+	getMapProperty(
+		String		name )
+	{
+		notSupported();
+
+		return( null );
+	}
+	
 	public Map
 	writeToMap()
 	
