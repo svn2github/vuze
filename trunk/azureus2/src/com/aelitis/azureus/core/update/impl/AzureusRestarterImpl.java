@@ -43,6 +43,11 @@ AzureusRestarterImpl
 
 	protected static boolean	restarted		= false;
 	
+	private static String JAVA_EXEC_DIR = System.getProperty("java.home") +
+	 																		  System.getProperty("file.separator") +
+	 																		  "bin" +
+	 																		  System.getProperty("file.separator");
+	
 	
 	protected AzureusCore	azureus_core;
 	protected String		classpath_prefix;
@@ -242,8 +247,8 @@ AzureusRestarterImpl
   // ****************** This code is copied into Restarter / Updater so make changes there too !!!
   
   
-  private static final String restartScriptName = "restarter_script";
-  
+
+
   public void 
   restartAzureus(
       PrintWriter log, 
@@ -273,14 +278,8 @@ AzureusRestarterImpl
     String[]  parameters) 
   {
     
-    //Classic restart way using Runtime.exec directly on java(w)
-     String javaPath = System.getProperty("java.home")
-                    + System.getProperty("file.separator")
-                    + "bin"
-                    + System.getProperty("file.separator");
-    
-    String exec = "\"" + javaPath + "javaw\" "+ getClassPath() +
-            getLibraryPath();
+    //Classic restart way using Runtime.exec directly on java(w)    
+    String exec = "\"" + JAVA_EXEC_DIR + "javaw\" "+ getClassPath() + getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
       exec += properties[i] + " ";
@@ -324,19 +323,8 @@ AzureusRestarterImpl
     String[]  properties,
     String[] parameters) 
   {
-  	
-     String	osx_app_bundle = System.getProperty("user.dir") +
-     												 System.getProperty("file.separator") +
-     												 SystemProperties.getApplicationName() +
-     												 ".app";
-     
-     String java_exec_path = System.getProperty("java.home") +
-     												 System.getProperty("file.separator") +
-     												 "bin" +
-     												 System.getProperty("file.separator") +
-     												 "java";
-    
-     String exec =   "#!/bin/bash\n\"" + java_exec_path + "\" " + getClassPath() +   getLibraryPath();
+
+     String exec = "\"" + JAVA_EXEC_DIR + "java\" " + getClassPath() + getLibraryPath();
   	 
      for (int i=0;i<properties.length;i++){
     	 exec += properties[i] + " ";
@@ -348,28 +336,7 @@ AzureusRestarterImpl
     	 exec += " \"" + parameters[i] + "\"";
      }
 
-     String script_name = osx_app_bundle + System.getProperty("file.separator") + restartScriptName;
-    
-     if ( log != null ){
-    	 log.println( " R:[" +exec+ "]" );
-     }
-    
-     File fUpdate = new File(script_name);
-    
-     try {
-    	 FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
-    	 fosUpdate.write(exec.getBytes());
-    	 fosUpdate.close();
-    	 chMod(script_name,"755",log);
-
-		   //NOTE: no logging done here, as we need the method to return right away, before the external process completes
-    	 Runtime.getRuntime().exec( script_name );
- 	
-     } catch(Exception e) {
-    	 log.println(e);
-    	 e.printStackTrace(log);
-     }
-    
+     runExternalCommandViaUnixShell( log, exec );
   }
   
   
@@ -381,13 +348,8 @@ AzureusRestarterImpl
   String[]  properties,
   String[]  parameters) 
   {
-    String userPath = System.getProperty("user.dir"); 
-    String javaPath = System.getProperty("java.home")
-                    + System.getProperty("file.separator")
-                    + "bin"
-                    + System.getProperty("file.separator");
     
-    String exec =   "#!/bin/bash\n\"" + javaPath + "java\" " + getClassPath() +	getLibraryPath();
+    String exec = "\"" + JAVA_EXEC_DIR + "java\" " + getClassPath() +	getLibraryPath();
     
     for (int i=0;i<properties.length;i++){
       exec += properties[i] + " ";
@@ -399,27 +361,10 @@ AzureusRestarterImpl
       exec += " \"" + parameters[i] + "\"";
     }
     
-    if ( log != null ){
-      log.println( "  " + exec );
-    }
-    
-    String fileName = userPath + "/" + restartScriptName;
-    
-    File fUpdate = new File(fileName);
-    try {
-      FileOutputStream fosUpdate = new FileOutputStream(fUpdate,false);
-      fosUpdate.write(exec.getBytes());
-      fosUpdate.close();
-      chMod(fileName,"755",log);
-      
-	  	//NOTE: no logging done here, as we need the method to return right away, before the external process completes
-	  	Runtime.getRuntime().exec( fileName );
-
-    } catch(Exception e) {
-      log.println(e);  
-      e.printStackTrace(log);
-    }
+    runExternalCommandViaUnixShell( log, exec );
   }
+  
+  
   
   private String
   getLibraryPath()
@@ -465,6 +410,7 @@ AzureusRestarterImpl
     return( libraryPath );
   }
   
+  /*
   private void logStream(String message,InputStream stream,PrintWriter log) {
     BufferedReader br = new BufferedReader (new InputStreamReader(stream));
     String line = null;
@@ -484,6 +430,7 @@ AzureusRestarterImpl
        e.printStackTrace(log);
     }
   }
+  
   
   private void chMod(String fileName,String rights,PrintWriter log) {
     String[] execStr = new String[3];
@@ -537,5 +484,32 @@ AzureusRestarterImpl
   		return null;
   	}
   }
+  */
+  
+  
+  private void runExternalCommandViaUnixShell( PrintWriter log, String command ) {
+  	String[] to_run = new String[3];
+  	to_run[0] = "/bin/sh";
+  	to_run[1] = "-c";
+  	to_run[2] = command;
+   	 
+  	if( log != null )  log.println("Executing: R:[" +to_run[0]+ " " +to_run[1]+ " " +to_run[2]+ "]" );
+
+  	try {
+  		//NOTE: no logging done here, as we need the method to return right away, before the external process completes
+  		Runtime.getRuntime().exec( to_run );	
+  	}
+  	catch(Throwable t) {
+  		if( log != null )  {
+  			log.println( t.getMessage() != null ? t.getMessage() : "<null>" );
+  			log.println( t );
+  			t.printStackTrace( log );
+  		}
+  		else {
+  			t.printStackTrace();
+  		}
+  	}
+  }
+  
   
 }

@@ -156,7 +156,7 @@ public class PlatformManagerImpl implements PlatformManager
 				throw new PlatformManagerException( msg );
 			}
 			
-			return "open -a " +osx_app_bundle.toString();   //TODO will work properly with spaces in path???
+			return "open -a \"" +osx_app_bundle.toString()+ "\"";
 			//return osx_app_bundle.toString() +"/Contents/MacOS/JavaApplicationStub";
 			
 		}
