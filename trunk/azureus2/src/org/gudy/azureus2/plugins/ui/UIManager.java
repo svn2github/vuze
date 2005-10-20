@@ -22,23 +22,24 @@
 
 package org.gudy.azureus2.plugins.ui;
 
-/**
- * @author parg
- *
- */
-
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
+/**
+ * Management tools for the User Inferface
+ * 
+ * @author parg
+ */
 public interface 
 UIManager 
 {
 		/**
 		 * Gets a basic plugin view model that supports simple plugin requirements
 		 * After getting the model create the view using createPluginView
-		 * @return
+		 * @param name name
+		 * @return BasicPluginViewModel
 		 * @deprecated Use createBasicPluginViewModel 
 		 */
 	
@@ -50,7 +51,7 @@ UIManager
 		 * Creates a view from the model. It is then necessary to add it to the plugin
 		 * as any other PluginView
 		 * @param model
-		 * @return
+		 * @return PluginView
 		 * @deprecated Use createBasicPluginViewModel
 		 */
 	
@@ -61,7 +62,7 @@ UIManager
 	/**
 	 * 
 	 * @param section_name
-	 * @return
+	 * @return BasicPluginConfigModel
 	 * @since 2.1.0.0
 	 */
 	public BasicPluginConfigModel
@@ -70,10 +71,11 @@ UIManager
 	
 
 	/**
+	 * Creates a basic plugin view model and adds it to the plugin in one step.
 	 * 
 	 * @param parent_section
-	 * @param section_name
-	 * @return
+	 * @param section_name  see {@link org.gudy.azureus2.plugins.ui.config.ConfigSection}.SECTION_*
+	 * @return BasicPluginConfigModel
 	 * @since 2.1.0.0
 	 */
 	public BasicPluginConfigModel
@@ -82,10 +84,11 @@ UIManager
 		String		section_name );
 
 	/**
-	 * Creates a basic plugin view model and adds it to the plugin in one step
+	 * Creates a basic plugin view model and adds it to the plugin in one step.
+	 * view is placed inside the plugins section of the configuration page.
 	 * 
 	 * @param name
-	 * @return
+	 * @return BasicPluginViewModel
 	 * @since 2.1.0.2
 	 */
 	public BasicPluginViewModel
@@ -128,6 +131,8 @@ UIManager
 	/** Retrieve a class of SWT specific functions 
 	 * 
 	 * @deprecated 
+	 * @return SWTManager
+	 * 
 	 * @since 2.1.0.0
 	 */
 	
@@ -153,6 +158,9 @@ UIManager
 	/**
 	 * attach a new UI
 	 *   
+	 * @param instance
+	 * @throws UIException
+	 * 
 	 * @since 2.3.0.5
 	 */
 	
@@ -176,19 +184,43 @@ UIManager
 		UIInstance		instance )
 	
 		throws UIException;
-	
+
+	/**
+	 * 
+	 * @param listener
+	 * 
+	 * @since 2.3.0.5
+	 */
   	public void
   	addUIListener(
   		UIManagerListener listener );
-  	
+
+	/**
+	 * 
+	 * @param listener
+	 * 
+	 * @since 2.3.0.5
+	 */
  	public void
   	removeUIListener(
   		UIManagerListener listener );
  	
+	/**
+	 * 
+	 * @param listener
+	 * 
+	 * @since 2.3.0.5
+	 */
  	public void
   	addUIEventListener(
   		UIManagerEventListener listener );
   	
+	/**
+	 * 
+	 * @param listener
+	 * 
+	 * @since 2.3.0.5
+	 */
  	public void
   	removeUIEventListener(
   		UIManagerEventListener listener );
