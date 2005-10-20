@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
@@ -161,7 +162,7 @@ UIManagerImpl
 	createBasicPluginConfigModel(
 		String		section_name )
 	{
-		return( createBasicPluginConfigModel( null, section_name ));
+		return( createBasicPluginConfigModel( ConfigSection.SECTION_PLUGINS, section_name ));
 	}
 	
 	
