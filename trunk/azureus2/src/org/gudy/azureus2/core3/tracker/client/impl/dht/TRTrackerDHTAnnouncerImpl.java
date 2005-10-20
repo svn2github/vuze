@@ -84,7 +84,7 @@ TRTrackerDHTAnnouncerImpl
 		last_response = 
 			new TRTrackerAnnouncerResponseImpl( 
 				torrent.getAnnounceURL(),
-				TRTrackerAnnouncerResponse.ST_OFFLINE, 0 );
+				TRTrackerAnnouncerResponse.ST_OFFLINE, 0, "Initialising" );
 		
 		tracker_status_str = MessageText.getString("PeerManager.status.checking") + "...";
 	}

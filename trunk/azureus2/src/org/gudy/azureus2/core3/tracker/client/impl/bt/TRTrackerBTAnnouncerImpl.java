@@ -882,7 +882,7 @@ TRTrackerBTAnnouncerImpl
 		  				url,
 		  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
-						e.getMessage());
+						e.getMessage()==null?e.toString():e.getMessage());
 		  }
 		
 	  	  if ( destroyed ){
@@ -1982,7 +1982,7 @@ TRTrackerBTAnnouncerImpl
 							
 				       if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Problems with Tracker, will retry in 1 minute");
 											   			
-				       return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval() ));
+				       return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), "Unknown cause" ));
 	
 				     }else{
 				     	
@@ -2238,7 +2238,7 @@ TRTrackerBTAnnouncerImpl
 	{
 		if( last_response == null ){
 			
-			return new TRTrackerAnnouncerResponseImpl( null, TRTrackerAnnouncerResponse.ST_OFFLINE, TRTrackerAnnouncer.REFRESH_MINIMUM_SECS );
+			return new TRTrackerAnnouncerResponseImpl( null, TRTrackerAnnouncerResponse.ST_OFFLINE, TRTrackerAnnouncer.REFRESH_MINIMUM_SECS, "Initialising" );
 		}
 		
 		return( last_response );
