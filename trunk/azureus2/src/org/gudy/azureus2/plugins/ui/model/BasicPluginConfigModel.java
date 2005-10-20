@@ -39,6 +39,8 @@ BasicPluginConfigModel
 	 * @param resource_name
 	 * @param defaultValue
 	 * @return
+	 * 
+	 * @since 2.1.0.0
 	 */
 	
 	public void
@@ -53,6 +55,8 @@ BasicPluginConfigModel
 	 * @param resource_name
 	 * @param defaultValue
 	 * @return
+	 * 
+	 * @since 2.1.0.0
 	 */
 	
 	public void
@@ -62,19 +66,44 @@ BasicPluginConfigModel
 		String	 	defaultValue );
 	
 	
-	
+	/**
+	 * 
+	 * @param key
+	 * @param resource_name
+	 * @param defaultValue
+	 * @return
+	 * 
+	 * @since 2.1.0.2
+	 */
 	public BooleanParameter
 	addBooleanParameter2(
 		String 		key,
 		String 		resource_name,
 		boolean 	defaultValue );
-	
+
+	/**
+	 * 
+	 * @param key
+	 * @param resource_name
+	 * @param defaultValue
+	 * @return
+	 * @since 2.1.0.2
+	 */
 	public StringParameter
 	addStringParameter2(
 		String 		key,
 		String 		resource_name,
 		String	 	defaultValue );
 	
+	/**
+	 * 
+	 * @param key
+	 * @param resource_name
+	 * @param values
+	 * @param defaultValue
+	 * @return
+	 * @since 2.1.0.2
+	 */
 	public StringListParameter
 	addStringListParameter2(
 		String 		key,
@@ -82,45 +111,106 @@ BasicPluginConfigModel
 		String[]	values,
 		String	 	defaultValue );
 
+	/**
+	 * 
+	 * @param key
+	 * @param resource_name
+	 * @param encoding_type
+	 * @param defaultValue
+	 * @return
+	 * @since 2.1.0.2
+	 */
 	public PasswordParameter
 	addPasswordParameter2(
 		String 		key,
 		String 		resource_name,
 		int			encoding_type,		// see PasswordParameter.ET_ constants
 		byte[]	 	defaultValue );		// plain default value
-	
+
+	/**
+	 * 
+	 * @param key
+	 * @param resource_name
+	 * @param defaultValue
+	 * @return
+	 * @since 2.1.0.2
+	 */
 	public IntParameter
 	addIntParameter2(
 		String 		key,
 		String 		resource_name,
 		int	 		defaultValue );
-	
+
+	/**
+	 * 
+	 * @param resource_name
+	 * @return
+	 * @since 2.1.0.2
+	 */
 	public LabelParameter
 	addLabelParameter2(
 		String 		resource_name );
-	
+
+	/**
+	 * 
+	 * @param key
+	 * @param resource_name
+	 * @param defaultValue
+	 * @return
+	 * @since 2.1.0.2
+	 */
 	public DirectoryParameter
 	addDirectoryParameter2(
 		String 		key,
 		String 		resource_name,
 		String	 	defaultValue );
 	
+	/**
+	 * 
+	 * @param label_resource_name
+	 * @param action_resource_name
+	 * @return
+	 * @since 2.1.0.2
+	 */
 	public ActionParameter
 	addActionParameter2(
 		String 		label_resource_name,
 		String		action_resource_name );
 	
+	/**
+	 * 
+	 * @param resource_name
+	 * @param parameters
+	 * @return
+	 * @since 2.3.0.0
+	 */
 	public ParameterGroup
 	createGroup(
 		String		resource_name,
 		Parameter[]	parameters );
-	
+
+	/**
+	 * 
+	 * @return
+	 * @since 2.3.0.5
+	 */
 	public String
 	getSection();
 	
+	/**
+	 * 
+	 * @return
+	 * @since 2.3.0.5
+	 */
 	public String
 	getParentSection();
 	
+	/**
+	 * Retrieve all the parameters added to this plugin config
+	 * 
+	 * @return parameter list
+	 * @since 2.3.0.5
+	 */
 	public Parameter[]
 	getParameters();
 }
