@@ -85,6 +85,7 @@ PluginInterfaceImpl
   private ClassLoader			class_loader;
   private List					listeners 		= new ArrayList();
   private List					event_listeners	= new ArrayList();
+  private String				key;
   private String 				pluginConfigKey;
   private Properties 			props;
   private String 				pluginDir;
@@ -95,6 +96,8 @@ PluginInterfaceImpl
   private boolean				disabled;
   private Logger				logger;
    
+  private List					children		= new ArrayList();
+  
   public 
   PluginInterfaceImpl(
   		Plugin				_plugin,
@@ -111,6 +114,7 @@ PluginInterfaceImpl
   	initialiser			= _initialiser;
   	initialiser_key		= _initialiser_key;
   	class_loader		= _class_loader;
+  	key					= _key;
   	pluginConfigKey 	= "Plugin." + _key;
     props 				= new propertyWrapper(_props );
     pluginDir 			= _pluginDir;
@@ -446,6 +450,14 @@ PluginInterfaceImpl
   		}
   	}
   	
+  	for (int i=0;i<children.size();i++){
+  		
+  		if ( !((PluginInterface)children.get(i)).isUnloadable()){
+  			
+  			return( false );
+  		}
+  	}
+  	
   	return( true );
   }
   
@@ -494,6 +506,11 @@ PluginInterfaceImpl
 	  			initialiser.unloadPlugin( pi );
 	  		}
 		}
+  	}
+  	
+  	for (int i=0;i<children.size();i++){
+  		
+  		((PluginInterface)children.get(i)).unload();
   	}
   }
   
@@ -610,6 +627,45 @@ PluginInterfaceImpl
   	return( class_loader );
   }
   
+	public PluginInterface
+	getLocalPluginInterface(
+		Class		plugin_class,
+		String		id )
+	
+		throws PluginException
+	{
+		try{
+			Plugin	p = (Plugin)plugin_class.newInstance();
+	
+			PluginInterfaceImpl pi =
+				new PluginInterfaceImpl(
+			  		p,
+			  		initialiser,
+					initialiser_key,
+					class_loader,
+					key + "." + id,
+					props,
+					pluginDir,
+					plugin_id + "." + id,
+					plugin_version ); 
+			
+			p.initialize( pi );
+			
+			children.add( pi );
+			
+			return( pi );
+			
+		}catch( Throwable e ){
+			
+			if ( e instanceof PluginException ){
+				
+				throw((PluginException)e);
+			}
+			
+			throw( new PluginException( "Local initialisation fails", e ));
+		}
+	}
+	
   public void
   addListener(
   	PluginListener	l )

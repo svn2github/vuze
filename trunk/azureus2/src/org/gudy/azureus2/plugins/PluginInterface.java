@@ -348,6 +348,23 @@ public interface PluginInterface {
   public ClassLoader
   getPluginClassLoader();
   
+	/**
+	 * Returns an initialised plugin instance with its own scope (e.g. for config params). 
+	 * Designed for loading secondary plugins directly from a primary one. 
+	 * Note - ensure that the bundled secondary plugins do *not* contain a plugin.properties as
+	 * this will cause no end of problems.
+	 * @param plugin	must implement Plugin
+	 * @param id        the unique id of this plugin (used to scope config params etc)
+	 * @return
+	 */
+
+  public PluginInterface
+  getLocalPluginInterface(
+	Class		plugin,
+	String		id )
+  
+  	throws PluginException;
+  
   /**
    * Gives access to the plugin itself
    * @return

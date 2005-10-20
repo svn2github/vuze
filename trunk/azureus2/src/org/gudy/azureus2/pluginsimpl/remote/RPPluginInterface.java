@@ -460,6 +460,16 @@ RPPluginInterface
 		return( null );
 	}
 	
+	public PluginInterface
+	getLocalPluginInterface(
+		Class		plugin,
+		String		id )
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
 	public UpdateManager
 	getUpdateManager()
 	{

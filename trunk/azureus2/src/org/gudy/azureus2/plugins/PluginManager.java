@@ -179,7 +179,6 @@ PluginManager
 	
 	public abstract PluginInterface
 	getDefaultPluginInterface();
-
 	
 	/**
 	 * Gets the current set of registered plugins. During initialisation this will probably give partial
