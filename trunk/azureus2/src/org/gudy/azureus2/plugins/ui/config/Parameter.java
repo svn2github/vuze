@@ -54,4 +54,9 @@ Parameter
 	public void
 	removeListener(
 		ParameterListener	l );
+	
+	public String getLabelText();
+	public void setLabelText(String sText);
+	public String getLabelKey();
+	public void setLabelKey(String sLabelKey);
 }

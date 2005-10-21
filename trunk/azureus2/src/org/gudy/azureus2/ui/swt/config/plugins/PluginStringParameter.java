@@ -40,7 +40,7 @@ public class PluginStringParameter implements PluginParameterImpl {
     controls = new Control[2];
            
     controls[0] = new Label(pluginGroup,SWT.NULL);
-    Messages.setLanguageText(controls[0],parameter.getLabel());
+    Messages.setLanguageText(controls[0],parameter.getLabelKey());
     
     org.gudy.azureus2.ui.swt.config.StringParameter sp =
     	new org.gudy.azureus2.ui.swt.config.StringParameter(

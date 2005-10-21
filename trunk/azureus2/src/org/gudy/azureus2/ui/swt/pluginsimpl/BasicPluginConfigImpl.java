@@ -27,31 +27,31 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
  *
  */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import org.eclipse.swt.*;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.layout.*;
-
-
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-
+import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
-
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
-
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.plugins.*;
-
-import org.gudy.azureus2.plugins.ui.model.*;
-import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 
 public class 
 BasicPluginConfigImpl
@@ -167,9 +167,14 @@ BasicPluginConfigImpl
 				}
 			}
 			
-			Label label = new Label(current_composite, param instanceof LabelParameterImpl?SWT.WRAP:SWT.NULL);
+			Label label = null;
 			
-			Messages.setLanguageText(label, param.getLabel());
+			if (!(param instanceof BooleanParameterImpl)) {
+				label = new Label(current_composite, param instanceof LabelParameterImpl
+						? SWT.WRAP : SWT.NULL);
+
+				Messages.setLanguageText(label, param.getLabelKey());
+			}
 						
 			String	key = param.getKey();
 						
@@ -179,7 +184,12 @@ BasicPluginConfigImpl
 			
 			if ( param instanceof BooleanParameterImpl ){
 				
-				swt_param = new BooleanParameter(current_composite, key, ((BooleanParameterImpl)param).getDefaultValue());
+				swt_param = new BooleanParameter(current_composite, key,
+						((BooleanParameterImpl) param).getDefaultValue(), param.getLabelKey());
+				
+				GridData data = new GridData();
+				data.horizontalSpan = 2;
+				swt_param.setLayoutData(data);
 					
 				param.addListener(
 					new ParameterListener()
@@ -234,7 +244,7 @@ BasicPluginConfigImpl
 							
 			}else if ( param instanceof StringParameterImpl ){
 				
-				GridData gridData = new GridData();
+				GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 				
 				gridData.widthHint = 150;
 
@@ -294,15 +304,21 @@ BasicPluginConfigImpl
 								Parameter	p,
 								boolean		caused_internally )
 							{
-								param.parameterChanged( "" );
+								try {
+									param.parameterChanged( "" );
+								} catch (Throwable t) {
+									Debug.out(t);
+								}
 							}
 						});
 			}else{
 				
 					// label
 				
-				GridData gridData = new GridData();
+				GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 				gridData.horizontalSpan	= 2;
+				// for wrap to work
+		    gridData.widthHint = 300;
 				
 				label.setLayoutData( gridData );
 				
@@ -331,57 +347,79 @@ BasicPluginConfigImpl
 			}
 		}
 		
+		// Only need one instance
+		ParameterImplListener parameterImplListener = new ParameterImplListener() {
+			
+			public void enabledChanged(final ParameterImpl p) {
+				final Object[] stuff = (Object[]) comp_map.get(p);
+
+				if (stuff != null) {
+
+					if (stuff[1] != null && ((Control) stuff[1]).isDisposed()) {
+						// lazy tidyup
+						p.removeImplListener(this);
+
+					} else {
+
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								{
+									for (int k = 1; k < stuff.length; k++) {
+										if (stuff[k] instanceof Control)
+											((Control) stuff[k]).setEnabled(p.isEnabled());
+									}
+
+								}
+							}
+						});
+
+					}
+				}
+			}
+
+			public void labelChanged(final ParameterImpl p, final String text,
+					final boolean bIsKey) {
+				final Object[] stuff = (Object[]) comp_map.get(p);
+
+				if (stuff == null)
+					return;
+
+				Label lbl;
+				if (stuff[1] instanceof Label)
+					lbl = (Label) stuff[1];
+				else if (stuff[0] instanceof Label)
+					lbl = (Label) stuff[0];
+				else
+					return;
+
+
+				if (lbl.isDisposed()) {
+					// lazy tidyup
+					p.removeImplListener(this);
+					
+				} else {
+					final Label finalLabel = lbl;
+
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							if (bIsKey)
+								Messages.setLanguageText(finalLabel, text);
+							else {
+								finalLabel.setData("");
+								finalLabel.setText(text);
+							}
+							finalLabel.getParent().layout(true);
+						}
+					});
+				}
+			}
+		};
+		
 		for (int i=0;i<parameters.length;i++){
 			
 			final ParameterImpl	param = 	(ParameterImpl)parameters[i];
 			
-			param.addImplListener( 
-				new ParameterImplListener()
-				{
-					public void
-					enabledChanged(
-						final ParameterImpl	p )
-					{
-					    final Object[] stuff = (Object[])comp_map.get( p );
-					    
-					    if ( stuff != null ){
-					    	
-								// lazy tidyup
-							
-							if ( ((Control)stuff[1]).isDisposed()){
-								
-								param.removeImplListener( this );
-								
-							}else{
-								
-								Runnable target = 
-									new Runnable()
-									{
-										public void
-										run()
-										{
-										    for(int k = 1 ; k < stuff.length ; k++) {
-										    	
-										    	((Control)stuff[k]).setEnabled(p.isEnabled());
-										    }
-		
-										}
-									};
-									
-								Display	display = parent.getDisplay();
-								
-								if ( display.getThread() == Thread.currentThread()){
-									
-									target.run();
-									
-								}else{
-									
-									display.asyncExec( target );
-								}
-							}
-					    }
-					}
-				});
+			param.addImplListener(parameterImplListener);
 				
 			if ( !param.isEnabled()){
 				

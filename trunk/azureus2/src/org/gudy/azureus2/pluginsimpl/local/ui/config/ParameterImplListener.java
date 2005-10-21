@@ -33,4 +33,6 @@ ParameterImplListener
 	public void
 	enabledChanged(
 		ParameterImpl	parameter );
+	
+	public void labelChanged(ParameterImpl	parameter, String text, boolean bIsKey);
 }

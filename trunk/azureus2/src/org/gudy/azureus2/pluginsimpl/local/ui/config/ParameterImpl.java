@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.config.*;
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
@@ -41,6 +42,7 @@ ParameterImpl
 {
 	protected 	PluginConfig	config;
 	private 	String 			key;
+	private 	String 			labelKey;
 	private 	String 			label;
 	
 	private	boolean	enabled	= true;
@@ -62,7 +64,8 @@ ParameterImpl
 	{
 		config	= _config;
 		key		= _key;
-		label 	= _label;
+		labelKey 	= _label;
+		label = MessageText.getString(labelKey);
 	}
 	/**
 	 * @return Returns the key.
@@ -71,14 +74,7 @@ ParameterImpl
 	{
 		return key;
 	}
-
-	/**
-	 * @return Returns the label.
-	 */
-	public String getLabel()
-	{
-		return label;
-	}
+	
 	 public void addDisabledOnSelection(Parameter parameter) {
 	    toDisable.add(parameter);
 	  }
@@ -223,6 +219,44 @@ ParameterImpl
 		if ( listeners.size() == 0 ){
 			
 			COConfigurationManager.removeParameterListener( key, this );
+		}
+	}
+	
+	public String getLabelText() {
+		return label;
+	}
+
+	public void setLabelText(String sText) {
+		labelKey = null;
+		label = sText;
+
+		for (int i=0;i<impl_listeners.size();i++){
+
+			try{
+				((ParameterImplListener)impl_listeners.get(i)).labelChanged(this, sText, false);
+				
+			}catch( Throwable f ){
+				
+				Debug.printStackTrace(f);
+			}
+		}
+	}
+
+	public String getLabelKey() {
+		return labelKey;
+	}
+	
+	public void setLabelKey(String sLabelKey) {
+		labelKey = sLabelKey;
+		label = MessageText.getString(sLabelKey);
+
+		for (int i = 0; i < impl_listeners.size(); i++) {
+			try {
+				((ParameterImplListener) impl_listeners.get(i)).labelChanged(this,
+						labelKey, true);
+			} catch (Throwable f) {
+				Debug.printStackTrace(f);
+			}
 		}
 	}
 }
