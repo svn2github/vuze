@@ -55,6 +55,9 @@ PEPeerControlImpl
   private int peer_manager_state = PS_INITIALISED;
   
   private int[] 	availability_cow;
+  //Test of new availability computation
+  private int[]   availability_new;
+  
   
   private volatile boolean is_running = false;  
   
@@ -162,6 +165,8 @@ PEPeerControlImpl
       COConfigurationManager.addParameterListener( "Disconnect Seed", this );
       
       ip_filter.addListener( this );
+      
+      availability_new = new int[manager.getNbPieces()];
  }
   
 	public DownloadManager
@@ -1208,9 +1213,6 @@ PEPeerControlImpl
       return true;
     }
 
-    if (nbPiecesRarest == 0)
-      return false;
-
     //If we get to this point we haven't found a block from a piece being downloaded
     //So we'll find a new one          
 
@@ -1222,8 +1224,31 @@ PEPeerControlImpl
     
     pieceNumber = _diskManager.getPieceNumberToDownload(_piecesRarest);
 
-    if (pieceNumber == -1)
+    if (pieceNumber == -1) {
+      //No more new pieces?
+      //We have to check for the case where a slow piece is remaining, and the peer is a fast one
+      if(!slowPeer) {
+        //For every piece
+        for (int i = 0; i < _nbPieces; i++) {
+          //If we're not downloading the piece and if it's available from that peer 
+          //And it's not reserved by any specific peer
+          if (_pieces[i] != null && !_downloading[i] && _pieces[i].getReservedBy() == null) {
+            //We get and mark the next block number to dl
+            //We will either get -1 if no more blocks need to be requested
+            //Or a number >= 0 otherwise
+            blockNumber = _pieces[i].getAndMarkBlock();
+
+            //SO, if there is a block to request in that piece            
+            if (blockNumber != -1) {
+              pc.request(i, blockNumber * DiskManager.BLOCK_SIZE, _pieces[i].getBlockSize(blockNumber));
+              return true;
+            }
+          }
+        }
+      }
       return false;
+    }
+      
     //Now we should have a piece with least presence on network    
     PEPieceImpl piece = null;
     
