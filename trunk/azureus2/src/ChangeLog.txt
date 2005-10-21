@@ -62,6 +62,8 @@ BUGFIX: UI    | Fixed 100% CPU problem with download bars [Parg]
 BUGFIX: UI    | Fixed UI foregrounding itself on every unverified localhost:6880 socket connection attempt [Nolar]
 BUGFIX: Core  | Fixed too many socket selectors created when in safe selector mode [Nolar]
 BUGFIX: Core  | Fixed re-announce interval when receiving "failure reason" error response from tracker [Nolar]
+BUGFIX: Core  | Fixed and improved restarts under OSX (and linux) [Nolar,Gouss]
+BUGFIX: Core  | Fixed and improved one-to-one LAN transfer speeds [Nolar]
 
 
 
