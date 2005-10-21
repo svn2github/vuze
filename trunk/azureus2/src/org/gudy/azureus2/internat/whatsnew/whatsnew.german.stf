@@ -1,0 +1,138 @@
+$ 
+$    Willkommen zum Azureus 2.3.0.4
+$
+
++1. Was ist neues beim Azureus 2.3.0.4
+
+Dieses ist ein weiteres fehler freigabe. 
+
+Volles änderung protokoll http://azureus.sourceforge.net/changelog.php?version=2.3.0.4
+
+
++2. Was ist neues beim Azureus 2.3.0.2
+
+Dieses ist hauptsächlich eine leistung verlegenheit freigabe. 
+Vom bemerkenswerten Interesse seien sie:
+
+	JDK 1.4 Kompatibilität wieder hergestellt auf Windows
+Stiefelriemen der dezentralisierten Datenbank und IP Änderung Behandlung verbessert
+Memory verbrauch verringert
+Gewindeverbrauch fur untätige Ströme verringert
+Verbesserter Anschlussmanagement fur langfristige Anschlüsse und Gleichaustausch
+Konsole UI stützt jetzt das Alarmieren und die Version Update überprüfung
+
+
+Volles änderung protokoll http://azureus.sourceforge.net/changelog.php?version=2.3.0.2
+
+
++3. Was ist neues beim Azureus 2.3.0.0
+
+
+!3.1 Dezentralisierte Datenbank
+
+Azureus hat jetzt eine verteilte, dezentralisierte Datenbank, die benutzt werden kann, um dezentralisierte Ströme aufzuspüren. Dieses ermöglicht beide “trackerless” Ströme und die Wartung der Schwärme, in denen der Verfolger nicht erreichbar geworden ist, oder wo der Strom vom Verfolger entfernt wurde. Es verwendet das UDP Protokoll, wenn Sie ein firewall/router haben, sie benötigten open/forward das UDP Tor in der gleichen Weise, die Sie mit TCP taten, um Daten zu downloaden.
+
+
+*3.1.1 Magnet-Verbindungen
+Für Ströme, die dezentralisierten aufgespürt werden, kann Azureus eine “Magnet-Verbindung” exportieren. Dieses ist von der form "magnet:?xt=urn:btih:..." und kann verwendet warden, den Strom von der dezentralisierten Datenbank über das “geöffnetes URL” Menüeinzeilteil zu donwloaden.
+
+
+
+!3.2 Erhöhtes Protokoll
+
+Azureus stützt jetzt ein erhöhtes Zwischen-Klient Nachrichtenübermittlung Protokoll, das angestrebt wird, plugins die Anschlüsse benutzen lassend, die von Azureus verursacht werden, um Funktionalität des Programs hinzuzügen. Andere Klienten Entwickler können die Spezifikationen für dieses Protokoll ansehen http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol.
+Plugins Entwickler können die steckbaren javadocs überprüfen, um zu sehen, wie man es verwendet. Z.B. die JPC und die Schwätzchen plugins werden diese Nachtichtenübermittlung gebrauchen.
+
+
+!3.3 JPC
+
+Joltid Gleich-Pufferspeicher (JPC) wird jetzt in Azureus integriert. Für benutzer deren ISP diese Unterstützen, JPC sollte erlauben für schnellere Downloads, Hilft auch beim verringern der Bandbreite Kosten von ISP’s. Das JPC, das plugin ist in der Weise sicher, der ihr ISP nicht weiss, was sie Donwloaden, und es nicht verwenden kann auf sie zu spionieren. Das JPC, das plugin kann durch Werkzeug-Wählen Plugins JPC untauglich sein. 
+
+
+!3.4 Gekennzeichnetes Plugin
+
+Die dezentralisierte Datenbank und das erhöhte Protokoll erlaubt uns neue plugins zu entwickeln. Wir werden sie nicht für sie selber bringen, aber wir empfehlen alle Benutzer die an ihnen interessiert sein könnten, das Plugin Installation Zaubermenü verwendet.  
+
+
+
+*3.4.1 Schwätzchen
+
+Dieser plugin wird einige verursachen eine Diskussion Führen für jeden Strom den Sie downloaden. Jede Führung ist unabhängig und Sie sind frei zu besprechen, was auch immer Sie innerhalb der Führung wünschen.
+Dieses plugin gebraucht das erhöhte Protokoll. Entwickler anderer Klienten, die die Schwätzchenfunktionalität in ihrem Klienten einzuführen, sind willkommen, einen Blick am sehr einfachen Protokoll zu nehmen, das hier verwendet wird und beschrieben ist
+: http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
+Sie können auch create/join eine willkürkliche Führung, indem Sie in seinem Namen innerhalb des plugins schreiben. Dieses hat den Effekt des Herstellens eines “virtuellen” Stromes, ohne Samen, um Benutzern zu erlauben Anschlusse zum Schwätzchen zu verursachen. Die “virtuellen” Strome gebraucht die dezentralisierte Datenbank als ihr Verfolger, also, während Sie das Schwätzchen verwenden können, das ohne die dezentralisierte Datenbank steckbar ist, SIND Sie nicht in der Lage, die virtuelle Führung Funktion zu benutzen, wenn Sie die dezentralisierte Datenbank sperren.
+
+
+
+
+*3.4.2 Bewertung und Anmerkungen
+
+Dieser plugin wird Ihnen erlauben, bewertungen und anmerkungen von anderen Benutzern zu sehen, sowie veranschlagen und kommnetieren eines Stromes; (rechtes Klicken des Stromes in “meinen Strömen” wählt dann “Bewertung und Anmerkungen”. Dieses müssen steckbarer Gebrauchen die dezentralisierte Datenbank, also die dezentralisierte Datenbank haben, damit sie ermöglicht wird um zu arbeiten.
+
+
+
++4. Aufsteigen-Rat
+
+!4.1 Java 5.0
+
+Azureus wird in Java geschrieben und die Java Laufzeit erfordert. Wir empfehlen Java 5.0 (1.5 alias) da es bessere Leistung und Zuverlassigkeit – bitte wenn notwendig verbessern lasst.
+Sie warden Ströme finden, um Java hier zu aktualisieren:
+http://azureus.sourceforge.net/download.php
+Downloaden Sie das für Ihr System, nahes Azureus, führen Sie die downloadete Akte durch, dann beginnen Sie Azureus wieder. WinXP Benutzer müssen zur Werkzeugeconfig-Schnittstelle Anzeige gehen und prüfen die “ermöglichen XP Art” Wahl nach.
+
+
+
+!4.2 NOD32
+NOD32 (http://www.nod32.com/) ist ein antivirus, das bekannt ist um Problem emit Azureus zu haben und verursacht CPU Verbrauch 100%. Sehen Sie http://azureus.aeletis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
+
+
+
++5. Allgemeine Ausgaben
+
+!5.1 NAT "fehler"
+Nationale Mittell “Endsystemadresse-?bersetzung”. Der Nationale Test in Azureus erklart Ihnen, ob oder nicht Sie von den Leuten auf dem Internet anschliessbar sind. Die erhalten bessere Geschwindigkeit wenn Sie anschliessbar sind. Bitte treten Sie mit uns nicht in Verbindung, um Nationale Ausgaben zu lösen, da vielbetriebsmittel auf dem Internet über das vorhanden sind. Erste ?berprüfung:
+- http://azureus.aelitis.com/wiki/index.php/PortForwarding
+- http://www.portforward.com
+
+
+
+!5.2 Azureus zusammenstossen
+
+Wenn Ihr Azureus zusammenstösst, ist der wahrscheinlichste Grund eine Ausgabe mit Ihren Netzbestandteilen (Karte, Treiber, OS). Wir empfehlen in hohem Grade, dass Sie alle Netz bezogenen Bestandteile aktualisieren. Wenn dieses nicht hilft, dann ist der Grund vermutlich dass Ihr System nicht anfassen kann diese vielen Gleichanschlussen.
+Senken Sie die Zahl Anschlüssen in Azureus (Werkzeug-Wahlen bringen Hochstzahl der Anschlusse pro Strom/global), versuchen Sie einen niedrigen Wert wie 30 als erstes.
+
+
+
+!5.3 Unterstützung
+
+Bevor Sie mit der Unterstützungsmannschaft in Verbindung treten, seien Sie sicher, die vorhandenen Betriebsmittel an zu überprüfen.
+- Die offiziele WebSite : http://azureus.sourceforge.net/
+- Die offiziele Wiki : http://azureus.aelitis.com/wiki/
+- Die offiziele IRC Channel : #azureus-users on irc.freenode.net
+- Die offiziele SF forums :http://sourceforge.net/forum/?group_id=84122
+- Wenn (und nur wenn) Sie nicht Ihre Ausgabe lösen können, nachdem Sie alle jene Mittel versucht haben, können Sie mit uns an azureus@gmail.com in Verbindung treten.
+
+
+
+
++6. Volles Anderung Protokoll
+
+	http://azureus.sourceforge.net/changelog.php?version=2.3.0.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
