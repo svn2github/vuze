@@ -140,6 +140,9 @@ public class MessageText {
 	String key, 
 	String sDefault) 
   {
+  	if (key == null)
+  		return "";
+
 	  String	target_key = key + getPlatformSuffix();
 	  
 	  if ( !platform_specific_keys.contains( target_key )){
@@ -161,6 +164,9 @@ public class MessageText {
   getString(
 	String key) 
   {
+  	if (key == null)
+  		return "";
+
 	  String	target_key = key + getPlatformSuffix();
 	  
 	  if ( !platform_specific_keys.contains( target_key )){
