@@ -77,8 +77,8 @@ public class SinglePeerUploader implements RateControlledEntity {
     
     int num_bytes_to_write = num_bytes_allowed > num_bytes_available ? num_bytes_available : num_bytes_allowed;
     
-    int mss = NetworkManager.getTcpMssSize();
-    if( num_bytes_to_write > mss )  num_bytes_to_write = mss;
+    //int mss = NetworkManager.getTcpMssSize();
+    //if( num_bytes_to_write > mss )  num_bytes_to_write = mss;
     
     int written = 0;
     try {
