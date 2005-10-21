@@ -67,9 +67,9 @@ public class SinglePeerDownloader implements RateControlledEntity {
       return false;
     }
     
-    int mss = NetworkManager.getTcpMssSize();
     
-    if( num_bytes_allowed > mss )  num_bytes_allowed = mss;
+    //int mss = NetworkManager.getTcpMssSize();   
+    //if( num_bytes_allowed > mss )  num_bytes_allowed = mss;
 
     int bytes_read = 0;
     
@@ -103,13 +103,13 @@ public class SinglePeerDownloader implements RateControlledEntity {
     
     rate_handler.bytesProcessed( bytes_read );
 
-    if( bytes_read == mss && recursion_count < 10) {  //we've read in a full packet, so give the socket another chance to read to allow for bursting
-      recursion_count++;
-      doProcessing();
-    }
-    else {
-      recursion_count = 0;
-    }
+    //if( bytes_read == mss && recursion_count < 10) {  //we've read in a full packet, so give the socket another chance to read to allow for bursting
+    //  recursion_count++;
+    //  doProcessing();
+    //}
+    //else {
+    //  recursion_count = 0;
+    //}
     
     return true;
   }
