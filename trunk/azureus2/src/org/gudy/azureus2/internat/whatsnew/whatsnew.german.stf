@@ -1,12 +1,24 @@
 $ 
-$    Willkommen zum Azureus 2.3.0.4
+$    Willkommen zum Azureus 2.3.0.6
 $
 
-+1. Was ist neues beim Azureus 2.3.0.4
++1. What's new in Azureus 2.3.0.6
 
-Dieses ist ein weiteres fehler freigabe. 
+ This is a further bug fix release and also contains various improvements including:
+ 
+    Better banning of peers that send corrupt data
+    Alternative upload controls when only seeding
+    Renaming and retargeting of files within a download
+    Better reporting of firewalled status
+    NAT traversal for magnet downloads
+    Java 5.0 support for OSX
+    Bugfixes
+    
+    Note: New Windows launcher exe might require allowing "Azureus.exe" internet access in your software firewall.
+    
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
 
-Volles änderung protokoll http://azureus.sourceforge.net/changelog.php?version=2.3.0.4
+	Volles änderung protokoll http://azureus.sourceforge.net/changelog.php?version=2.3.0.4
 
 
 +2. Was ist neues beim Azureus 2.3.0.2
@@ -15,14 +27,14 @@ Dieses ist hauptsächlich eine leistung verlegenheit freigabe.
 Vom bemerkenswerten Interesse seien sie:
 
 	JDK 1.4 Kompatibilität wieder hergestellt auf Windows
-Stiefelriemen der dezentralisierten Datenbank und IP Änderung Behandlung verbessert
-Memory verbrauch verringert
-Gewindeverbrauch fur untätige Ströme verringert
-Verbesserter Anschlussmanagement fur langfristige Anschlüsse und Gleichaustausch
-Konsole UI stützt jetzt das Alarmieren und die Version Update überprüfung
+	Stiefelriemen der dezentralisierten Datenbank und IP Änderung Behandlung verbessert
+	Memory verbrauch verringert
+	Gewindeverbrauch fur untätige Ströme verringert
+	Verbesserter Anschlussmanagement fur langfristige Anschlüsse und Gleichaustausch
+	Konsole UI stützt jetzt das Alarmieren und die Version Update überprüfung
 
 
-Volles änderung protokoll http://azureus.sourceforge.net/changelog.php?version=2.3.0.2
+	Volles änderung protokoll http://azureus.sourceforge.net/changelog.php?version=2.3.0.2
 
 
 +3. Was ist neues beim Azureus 2.3.0.0
