@@ -390,7 +390,7 @@ public class VirtualChannelSelectorImpl {
         try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
       
-      selector_guard.verifySelectorIntegrity( count, 30 );
+      selector_guard.verifySelectorIntegrity( count, SystemTime.TIME_GRANULARITY_MILLIS /2 );
       
       if( !selector.isOpen() )  return count;
       

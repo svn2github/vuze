@@ -41,7 +41,8 @@ public class WriteController {
   private int next_normal_position = 0;
   private int next_high_position = 0;
   
-  private static final int IDLE_SLEEP_TIME = 50;
+  private static final int IDLE_SLEEP_TIME  = 25;
+  private static final int SELECT_LOOP_TIME = 25;
   
   
   /**
@@ -75,7 +76,7 @@ public class WriteController {
   private void writeSelectorLoop() {
     while( true ) {
       try {
-        write_selector.select( 100 );
+        write_selector.select( SELECT_LOOP_TIME );
       }
       catch( Throwable t ) {
         Debug.out( "writeSelectorLoop() EXCEPTION: ", t );
