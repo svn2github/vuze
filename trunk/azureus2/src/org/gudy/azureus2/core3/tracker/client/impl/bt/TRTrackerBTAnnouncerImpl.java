@@ -562,8 +562,8 @@ TRTrackerBTAnnouncerImpl
 						SystemTime.getCurrentTime(),
 						timer_event_action );
 			}
-		}
-    finally{
+		}finally{
+			
 			this_mon.exit();
 		}
 	}
@@ -578,7 +578,9 @@ TRTrackerBTAnnouncerImpl
 			try{
 				this_mon.enter();
 
-				if ( update_in_progress ){
+					// can't continue if the data provider hasn't been set yet...
+				
+				if ( update_in_progress || announce_data_provider == null ){
 					
 					clear_progress = false;
 					
@@ -874,9 +876,7 @@ TRTrackerBTAnnouncerImpl
 						"malformed URL '" + (request_url==null?"<null>":request_url.toString()) + "'" );
 		  	
 		  }catch( Exception e ){
-		  	
-		  	//e.printStackTrace();
-		  	
+		  			  	
 		  	last_failure_resp = 
 		  		new TRTrackerAnnouncerResponseImpl(
 		  				url,
@@ -1704,7 +1704,15 @@ TRTrackerBTAnnouncerImpl
  	setAnnounceDataProvider(
  		TRTrackerAnnouncerDataProvider _provider) 
  	{
- 		announce_data_provider = _provider;
+		try{
+			this_mon.enter();
+
+			announce_data_provider = _provider;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
  	}
 	
 	public TOTorrent
