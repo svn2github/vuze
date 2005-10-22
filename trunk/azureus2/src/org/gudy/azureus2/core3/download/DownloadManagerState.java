@@ -42,6 +42,7 @@ DownloadManagerState
 	public static final String AT_TRACKER_CLIENT_EXTENSIONS	= "trackerclientextensions";
 	public static final String AT_FILE_LINKS				= "filelinks";
 	public static final String AT_FILE_STORE_TYPES			= "storetypes";
+	public static final String AT_FILE_DOWNLOADED			= "filedownloaded";
 	
 	public TOTorrent
 	getTorrent();

@@ -915,15 +915,8 @@ DownloadManagerController
   		return( true );
 	}
 	
-	public DiskManagerFileInfo[]
+   	public DiskManagerFileInfo[]
     getDiskManagerFileInfo()
-   	{
-		return( getDiskManagerFileInfo( null ));
-   	}
-	
-   	protected DiskManagerFileInfo[]
-    getDiskManagerFileInfo(
-    	DiskManagerFileInfo[]	old_file_info )
    	{
   		DiskManager	dm = disk_manager;
 
@@ -941,7 +934,7 @@ DownloadManagerController
    			
    			if ( res == null ){
 
-   				res = DiskManagerFactory.getFileInfoSkeleton( download_manager, old_file_info );
+   				res = DiskManagerFactory.getFileInfoSkeleton( download_manager );
    				
    				skeleton_files	= res;
    			}
@@ -953,14 +946,7 @@ DownloadManagerController
 	protected void
 	fileInfoChanged()
 	{
-		DiskManagerFileInfo[]	old_info = skeleton_files;
-		
 		skeleton_files = null;
-		
-		if ( old_info != null ){
-			
-			getDiskManagerFileInfo( old_info );
-		}
 	}
 	
 	protected PEPeerManager
@@ -993,9 +979,7 @@ DownloadManagerController
 	  		disk_manager	= new_disk_manager;
 
 	  		if ( new_disk_manager == null && old_disk_manager != null ){
-	  			
-	  			getDiskManagerFileInfo( old_disk_manager.getFiles());
-	  			
+	  				  			
 	  			disk_listeners.dispatch( LDT_DL_REMOVED, old_disk_manager );
 	  			
 	  		}else if ( new_disk_manager != null && old_disk_manager == null ){

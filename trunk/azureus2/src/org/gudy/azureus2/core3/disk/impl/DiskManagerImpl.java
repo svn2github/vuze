@@ -54,6 +54,7 @@ import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -487,15 +488,12 @@ DiskManagerImpl
 			}
 		}
 		
+		storeFileDownloaded( download_manager, files );
+		
 			// can't be used after a stop so we might as well clear down the listeners
 		
 		listeners.clear();
 	}
-
-	
-	
-	
-	
 	
 	public boolean
 	filesExist()
@@ -1715,6 +1713,62 @@ DiskManagerImpl
     download_manager.setData( "file_priorities", file_priorities );
   }
   
+  protected static void
+  storeFileDownloaded(
+	DownloadManager			download_manager,
+	DiskManagerFileInfo[]	files )
+  {
+	  DownloadManagerState	state = download_manager.getDownloadState();
+	  
+	  Map	details = new HashMap();
+	  
+	  List	downloaded = new ArrayList();
+	  
+	  details.put( "downloaded", downloaded );
+	  
+	  for (int i=0;i<files.length;i++){
+		  
+		  downloaded.add( new Long( files[i].getDownloaded()));
+	  }
+	  
+	  state.setMapAttribute( DownloadManagerState.AT_FILE_DOWNLOADED, details );
+	  
+	  state.save();
+  }
+  
+  protected static void
+  loadFileDownloaded(
+	DownloadManager				download_manager,
+	DiskManagerFileInfoHelper[]	files )
+  {
+	  DownloadManagerState	state = download_manager.getDownloadState();
+
+	  Map	details = state.getMapAttribute( DownloadManagerState.AT_FILE_DOWNLOADED );
+	  
+	  if ( details == null ){
+		  
+		  return;
+	  }  
+		
+	  List	downloaded = (List)details.get( "downloaded" );
+	  
+	  if ( downloaded == null ){
+		  
+		  return;
+	  }
+		
+	  try{
+		  for (int i=0;i<files.length;i++){
+	
+			  files[i].setDownloaded(((Long)downloaded.get(i)).longValue());
+		  }
+	 }catch( Throwable e ){
+		 
+		 Debug.printStackTrace(e);
+	 }
+	
+  }
+  
   public DownloadManager getDownloadManager() {
     return download_manager;
   }
@@ -1847,8 +1901,7 @@ DiskManagerImpl
 	
 	public static DiskManagerFileInfo[]
 	getFileInfoSkeleton(
-		final DownloadManager		download_manager,
-		DiskManagerFileInfo[]		old_file_info )
+		final DownloadManager		download_manager )
 	{
 		TOTorrent	torrent = download_manager.getTorrent();
 		
@@ -1874,7 +1927,7 @@ DiskManagerImpl
 		    long	piece_size 	= torrent.getPieceLength();
 		    long	size_so_far	= 0;
 		    
-			final DiskManagerFileInfo[]	res = new DiskManagerFileInfo[ torrent_files.length ];
+			final DiskManagerFileInfoHelper[]	res = new DiskManagerFileInfoHelper[ torrent_files.length ];
 			
 			for (int i=0;i<res.length;i++){
 			
@@ -1889,9 +1942,7 @@ DiskManagerImpl
 				size_so_far += file_length;
 				
 				final int	last_piece	= (int)((size_so_far-1)/piece_size);
-				
-				final long	downloaded = old_file_info==null?-1:old_file_info[i].getDownloaded();
-				
+								
 				String	path_str = root_dir + File.separator;
 				
 					// for a simple torrent the target file can be changed 
@@ -1926,11 +1977,12 @@ DiskManagerImpl
 				
 				final String	data_extension	= data_name.substring(separator);
 				
-				DiskManagerFileInfo	info = 
-					new DiskManagerFileInfo()
+				DiskManagerFileInfoHelper	info = 
+					new DiskManagerFileInfoHelper()
 					{		
 						private boolean	priority;
 						private boolean	skipped;
+						private long	downloaded;
 						
 						public void 
 						setPriority(boolean b)
@@ -1958,6 +2010,13 @@ DiskManagerImpl
 						getDownloaded()
 						{
 							return( downloaded );
+						}
+						
+						public void
+						setDownloaded(
+							long	l )
+						{
+							downloaded	= l;
 						}
 						
 						public String 
@@ -2158,6 +2217,8 @@ DiskManagerImpl
 			}
 			
 			loadFilePriorities( download_manager, res );
+			
+			loadFileDownloaded( download_manager, res );
 			
 			return( res );
 

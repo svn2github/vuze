@@ -106,10 +106,9 @@ DiskManagerFactory
 	
 	public static DiskManagerFileInfo[]
    	getFileInfoSkeleton(
-		DownloadManager			download_manager,
-		DiskManagerFileInfo[]	old_file_info )
+		DownloadManager			download_manager )
 	{
-		return( DiskManagerImpl.getFileInfoSkeleton( download_manager, old_file_info ));
+		return( DiskManagerImpl.getFileInfoSkeleton( download_manager ));
 	}
 
 	public static void
