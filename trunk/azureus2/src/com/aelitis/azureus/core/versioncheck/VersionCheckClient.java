@@ -355,6 +355,7 @@ public class VersionCheckClient {
       }
     }
     catch( ClassNotFoundException e ) {  /* ignore */ }
+    catch( NoClassDefFoundError er ) {  /* ignore */ }
     catch( Throwable t ) {  t.printStackTrace();  }
     
     return message;
