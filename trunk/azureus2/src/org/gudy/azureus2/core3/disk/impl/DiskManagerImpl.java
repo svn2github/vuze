@@ -1847,7 +1847,8 @@ DiskManagerImpl
 	
 	public static DiskManagerFileInfo[]
 	getFileInfoSkeleton(
-		final DownloadManager		download_manager )
+		final DownloadManager		download_manager,
+		DiskManagerFileInfo[]		old_file_info )
 	{
 		TOTorrent	torrent = download_manager.getTorrent();
 		
@@ -1888,6 +1889,8 @@ DiskManagerImpl
 				size_so_far += file_length;
 				
 				final int	last_piece	= (int)((size_so_far-1)/piece_size);
+				
+				final long	downloaded = old_file_info==null?-1:old_file_info[i].getDownloaded();
 				
 				String	path_str = root_dir + File.separator;
 				
@@ -1954,7 +1957,7 @@ DiskManagerImpl
 						public long 
 						getDownloaded()
 						{
-							return( -1 );
+							return( downloaded );
 						}
 						
 						public String 

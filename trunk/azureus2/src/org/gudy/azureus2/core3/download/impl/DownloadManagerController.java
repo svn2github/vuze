@@ -110,7 +110,7 @@ DownloadManagerController
 
 	private DiskManager 			disk_manager;
 	private DiskManagerFileInfo[]	skeleton_files;
-
+	
 	private PEPeerManager 			peer_manager;
 	
 	private String errorDetail;
@@ -918,8 +918,15 @@ DownloadManagerController
 	public DiskManagerFileInfo[]
     getDiskManagerFileInfo()
    	{
-   		DiskManager	dm = disk_manager;
-   		
+		return( getDiskManagerFileInfo( null ));
+   	}
+	
+   	protected DiskManagerFileInfo[]
+    getDiskManagerFileInfo(
+    	DiskManagerFileInfo[]	old_file_info )
+   	{
+  		DiskManager	dm = disk_manager;
+
    		DiskManagerFileInfo[]	res;
    		
    		if ( dm != null ){
@@ -934,7 +941,7 @@ DownloadManagerController
    			
    			if ( res == null ){
 
-   				res = DiskManagerFactory.getFileInfoSkeleton( download_manager );
+   				res = DiskManagerFactory.getFileInfoSkeleton( download_manager, old_file_info );
    				
    				skeleton_files	= res;
    			}
@@ -946,7 +953,14 @@ DownloadManagerController
 	protected void
 	fileInfoChanged()
 	{
+		DiskManagerFileInfo[]	old_info = skeleton_files;
+		
 		skeleton_files = null;
+		
+		if ( old_info != null ){
+			
+			getDiskManagerFileInfo( old_info );
+		}
 	}
 	
 	protected PEPeerManager
@@ -979,6 +993,8 @@ DownloadManagerController
 	  		disk_manager	= new_disk_manager;
 
 	  		if ( new_disk_manager == null && old_disk_manager != null ){
+	  			
+	  			getDiskManagerFileInfo( old_disk_manager.getFiles());
 	  			
 	  			disk_listeners.dispatch( LDT_DL_REMOVED, old_disk_manager );
 	  			
