@@ -1810,14 +1810,14 @@ public class GlobalManagerImpl
       for( int i=0; i < managers.size(); i++ ) {
         DownloadManager dm = (DownloadManager)managers.get( i );
 
-        if( dm.getState() == DownloadManager.STATE_DOWNLOADING && !dm.isDownloadComplete() ) {
-          if( dm.getDiskManager().hasDownloadablePiece() ) {
-            seeding = false;  //we cant possibly be seeding-only
-            break;  //so break early
+        if( (dm.getState() != DownloadManager.STATE_ERROR && dm.getState() != DownloadManager.STATE_STOPPED) && !dm.isDownloadComplete() ) {
+          if( dm.getState() == DownloadManager.STATE_DOWNLOADING && !dm.getDiskManager().hasDownloadablePiece() ) {
+              seeding = true;  //a completed DND torrent
+              continue;  //check next
+          } else {
+	          seeding = false;  //we cant possibly be seeding-only
+	          break;  //so break early
           }
-          
-          seeding = true;  //a completed DND torrent
-          continue;  //check next
         }
 
         if( dm.getState() == DownloadManager.STATE_SEEDING ) {
