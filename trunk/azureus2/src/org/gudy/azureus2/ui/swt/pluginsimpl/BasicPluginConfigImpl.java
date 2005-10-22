@@ -169,13 +169,17 @@ BasicPluginConfigImpl
 			
 			Label label = null;
 			
-			if (!(param instanceof BooleanParameterImpl)) {
+			String	label_text = MessageText.getString(param.getLabelKey());
+				
+			if ( 	label_text.indexOf('\n') != -1 ||
+					!(param instanceof BooleanParameterImpl)) {
+				
 				label = new Label(current_composite, param instanceof LabelParameterImpl
-						? SWT.WRAP : SWT.NULL);
-
+							? SWT.WRAP : SWT.NULL);
+	
 				Messages.setLanguageText(label, param.getLabelKey());
 			}
-						
+	
 			String	key = param.getKey();
 						
 			//System.out.println( "key = " + key );
@@ -184,11 +188,17 @@ BasicPluginConfigImpl
 			
 			if ( param instanceof BooleanParameterImpl ){
 				
-				swt_param = new BooleanParameter(current_composite, key,
-						((BooleanParameterImpl) param).getDefaultValue(), param.getLabelKey());
+				if ( label == null ){
+					
+					swt_param = new BooleanParameter(current_composite, key,
+							((BooleanParameterImpl) param).getDefaultValue(), param.getLabelKey());
+				}else{
+					
+					swt_param = new BooleanParameter(current_composite, key, ((BooleanParameterImpl)param).getDefaultValue());
+				}
 				
 				GridData data = new GridData();
-				data.horizontalSpan = 2;
+				data.horizontalSpan = label==null?2:1;
 				swt_param.setLayoutData(data);
 					
 				param.addListener(
@@ -327,20 +337,29 @@ BasicPluginConfigImpl
 			
 			if ( swt_param == null ){
 				
-				comp_map.put( param, new Object[]{ null, label });
+				if ( label == null ){
+					comp_map.put( param, new Object[]{ null });
+				}else{
+					comp_map.put( param, new Object[]{ null, label });
+				}
 				
 			}else{
 				
 				Control[]	c = swt_param.getControls();
 					
-				Object[] moo = new Object[c.length+2];
+				Object[] moo = new Object[c.length+(label==null?1:2)];
 					
+				int	pos = 1;
+				
 				moo[0] = swt_param;
-				moo[1] = label;
-					
+				
+				if ( label != null){
+					moo[pos++] = label;
+				}
+				
 				for (int j=0;j<c.length;j++){
 						
-					moo[j+2] = c[j];
+					moo[j+pos] = c[j];
 				}
 					
 				comp_map.put( param, moo );
