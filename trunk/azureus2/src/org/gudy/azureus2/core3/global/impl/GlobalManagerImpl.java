@@ -42,6 +42,7 @@ import com.aelitis.azureus.core.AzureusCoreListener;
 
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
@@ -1795,34 +1796,61 @@ public class GlobalManagerImpl
 	}
   
   // DownloadManagerListener
-  public void stateChanged(DownloadManager manager, int state) {
+  public void 
+  stateChanged(
+	DownloadManager 	manager, 
+	int 				new_state ) 
+  {
     needsSaving = true;  //make sure we update 'downloads.config' on state changes
     
-    //run seeding-only-mode check
+    	//run seeding-only-mode check
+    
     boolean seeding = false;
     
-    if( state == DownloadManager.STATE_DOWNLOADING && !manager.isDownloadComplete() && manager.getDiskManager().hasDownloadablePiece() ) {
-      //the new state is downloading, so can skip the full check
-    }
-    else {
+    DiskManager	disk_manager = manager.getDiskManager();
+    
+    if ( 	new_state == DownloadManager.STATE_DOWNLOADING && 
+    		disk_manager != null &&
+    		disk_manager.hasDownloadablePiece()){
+    	
+    	//the new state is downloading, so can skip the full check
+    	
+    }else{
+    	
       List managers = managers_cow;
       
       for( int i=0; i < managers.size(); i++ ) {
+    	  
         DownloadManager dm = (DownloadManager)managers.get( i );
 
-        if( (dm.getState() != DownloadManager.STATE_ERROR && dm.getState() != DownloadManager.STATE_STOPPED) && !dm.isDownloadComplete() ) {
-          if( dm.getState() == DownloadManager.STATE_DOWNLOADING && !dm.getDiskManager().hasDownloadablePiece() ) {
-              seeding = true;  //a completed DND torrent
-              continue;  //check next
-          } else {
-	          seeding = false;  //we cant possibly be seeding-only
-	          break;  //so break early
-          }
+        disk_manager = dm.getDiskManager();
+        
+        if ( disk_manager == null ){
+        	
+        		// download not running, not interesting
+        	
+        	continue;
         }
-
-        if( dm.getState() == DownloadManager.STATE_SEEDING ) {
-          seeding = true;  //a seeding torrent
-          continue;  //check next
+        
+        int	state = dm.getState();
+        
+        if ( state == DownloadManager.STATE_DOWNLOADING ){
+        	
+        	if (!dm.getDiskManager().hasDownloadablePiece()){
+        		
+        			// complete DND file
+        		
+        		seeding = true;
+        		
+        	}else{
+        		
+        		seeding = false;
+        		
+        		break;
+        	}
+        }else if ( state == DownloadManager.STATE_SEEDING ){
+        	
+        	seeding = true;
         }
       }
     }
