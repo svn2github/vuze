@@ -39,8 +39,8 @@ import org.gudy.azureus2.core3.util.*;
  * Fixed in JVM 1.4.2_05+ and 1.5b2+
  */
 public class SelectorGuard {
-  private static final int SELECTOR_SPIN_THRESHOLD    = 100;
-  private static final int SELECTOR_FAILURE_THRESHOLD = 5000;
+  private static final int SELECTOR_SPIN_THRESHOLD    = 200;
+  private static final int SELECTOR_FAILURE_THRESHOLD = 10000;
   private static final int MAX_IGNORES = 5;
   
   private boolean marked = false;
@@ -56,9 +56,9 @@ public class SelectorGuard {
   /**
    * Create a new SelectorGuard with the given failed count threshold.
    */
-  public SelectorGuard( String type, GuardListener listener ) {
-    this.type = type;
-    this.listener = listener;
+  public SelectorGuard( String _type, GuardListener _listener ) {
+    this.type = _type;
+    this.listener = _listener;
   }
   
   
@@ -99,7 +99,7 @@ public class SelectorGuard {
     //if we've gotten here, then we have a potential selector anomalie
     consecutiveZeroSelects++;
     
-    if( consecutiveZeroSelects % 10 == 0 && Constants.isWindows ) {
+    if( consecutiveZeroSelects % 20 == 0 && Constants.isWindows ) {
       Debug.out( "consecutiveZeroSelects=" +consecutiveZeroSelects );
     }
     
