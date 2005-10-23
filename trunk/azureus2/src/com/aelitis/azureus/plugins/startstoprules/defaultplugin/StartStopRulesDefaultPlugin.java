@@ -583,9 +583,7 @@ public class StartStopRulesDefaultPlugin
 
   protected int
   getMaxActive()
-  {
-	  System.out.println( "getMaxActive" );
-	  
+  {	  
 	  if ( !_maxActiveWhenSeedingEnabled ){
 		  
 		  return( _maxActive );

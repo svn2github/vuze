@@ -73,6 +73,9 @@ public class DiskManagerFileInfoImpl
 	  return core.getDownloaded();
 	}
 	
+	public long getLength() {
+		  return core.getLength();
+		}
 	public File getFile() {
 	  return core.getFile(false);
 	}
