@@ -43,6 +43,7 @@ RPDiskManagerFileInfo
 
 	public int			access_mode;
 	public long			downloaded;
+	public long			length;
 	public File			file;
 	public int			first_piece_number;
 	public int			num_pieces;
@@ -78,6 +79,7 @@ RPDiskManagerFileInfo
 		
 		access_mode				= delegate.getAccessMode();
 		downloaded				= delegate.getDownloaded();
+		length					= delegate.getLength();
 		file					= delegate.getFile();
 		first_piece_number		= delegate.getFirstPieceNumber();
 		num_pieces				= delegate.getNumPieces();
@@ -125,6 +127,11 @@ RPDiskManagerFileInfo
 	public long getDownloaded()
 	{
 		return( downloaded );
+	}
+	
+	public long getLength() 
+	{
+		return( length );
 	}
 	
 	public File getFile()

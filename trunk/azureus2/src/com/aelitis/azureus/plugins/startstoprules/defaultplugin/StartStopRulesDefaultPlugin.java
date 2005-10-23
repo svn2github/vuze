@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -583,12 +584,71 @@ public class StartStopRulesDefaultPlugin
   protected int
   getMaxActive()
   {
+	  System.out.println( "getMaxActive" );
+	  
 	  if ( !_maxActiveWhenSeedingEnabled ){
 		  
 		  return( _maxActive );
 	  }
-	  
+	 
 	  if ( download_manager.isSeedingOnly()){
+	
+		  if ( _maxActiveWhenSeeding <= _maxActive ){
+			  
+			  return( _maxActiveWhenSeeding );
+		  }
+		  
+		  	// danger here if we are in a position where allowing more to start when seeding
+		  	// allows a non-seeding download to start (looping occurs)
+		  
+		  Download[]	downloads = download_manager.getDownloads();
+		  
+		  boolean	danger = false;
+		  
+		  for (int i=0;i<downloads.length;i++){
+			  
+			  Download	download	= downloads[i];
+			  
+			  int	state = download.getState();
+			  
+			  if (	state == Download.ST_DOWNLOADING ||
+					state == Download.ST_SEEDING ||
+					state == Download.ST_STOPPED ||
+					state == Download.ST_STOPPING ||
+					state == Download.ST_ERROR ){
+				  
+				  	// not interesting, they can't potentially cause trouble
+				  
+			  }else{
+				  
+				  	// look for incomplete files
+				  
+				  DiskManagerFileInfo[]	files = download.getDiskManagerFileInfo();
+				  
+				  for (int j=0;j<files.length;j++){
+					  
+					  DiskManagerFileInfo	file = files[j];
+					  
+					  if ( 	(!file.isSkipped()) &&
+							  file.getDownloaded() != file.getLength()){
+						  
+						  danger	= true;
+						  
+						  break;
+					  }
+				  } 
+			  }  
+			  
+			  if ( danger ){
+				  
+				  break;
+			  }
+		  }
+		  
+		  if ( danger ){
+			  
+			  return( _maxActive );
+		  }
 		  
 		  return( _maxActiveWhenSeeding );
 	  }else{

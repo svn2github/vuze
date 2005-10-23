@@ -67,6 +67,9 @@ DiskManagerFileInfo
 	public long 
 	getDownloaded();
 	
+	public long
+	getLength();
+	
 	public File 
 	getFile();
 		
