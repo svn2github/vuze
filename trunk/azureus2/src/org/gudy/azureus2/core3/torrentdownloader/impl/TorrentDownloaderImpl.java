@@ -109,20 +109,36 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
   public void 
   runSupport() {
+
+  	try{
+  		new URL( url_str );  //determine if this is already a proper URL
+  	}
+  	catch( Throwable t ) {  //it's not
+  		//check if the string is just a hex-encoded torrent infohash
+  		if( url_str.length() == 40 ) {
+  			try{
+  				//if so, convert to magnet:?xt=urn:btih:ZFQ7PUPQ2QMPFSD6AP4JASDDACA5MZU7 format		
+  				byte[] infohash = ByteFormatter.decodeString( url_str.toUpperCase() );  //convert from HEX to raw bytes
+  				url_str = "magnet:?xt=urn:btih:" +Base32.encode( infohash );  //convert to BASE32
+  			}
+  			catch( Throwable e ) {  /*e.printStackTrace();*/		}
+  		}
+  	}
+ 
     try {      
-      url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str));
+    	url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str));
       
-	  String	protocol = url.getProtocol().toLowerCase();
+    	String	protocol = url.getProtocol().toLowerCase();
 	  
-	  	// hack here - the magnet download process requires an additional paramter to cause it to
-	  	// stall on error so the error can be reported
+    	// hack here - the magnet download process requires an additional paramter to cause it to
+    	// stall on error so the error can be reported
 	  
-	  if ( protocol.equals( "magnet" )){
+    	if ( protocol.equals( "magnet" )){
 		  
-	      url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str+"&pause_on_error=true"));
-	  }
+    		url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str+"&pause_on_error=true"));
+    	}
 	  
-      for (int i=0;i<2;i++){
+    	for (int i=0;i<2;i++){
       	try{
       
 	      if ( protocol.equals("https")){
@@ -166,17 +182,17 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	      
       	}catch( SSLException e ){
       		
-			if ( i == 0 ){
+      		if ( i == 0 ){
 				
-				if ( SESecurityManager.installServerCertificates( url )){
+      			if ( SESecurityManager.installServerCertificates( url )){
+      				
+      				// certificate has been installed
 					
-						// certificate has been installed
-					
-					continue;	// retry with new certificate
-				}
-			}
+      				continue;	// retry with new certificate
+      			}
+      		}
 
-			throw( e );
+      		throw( e );
       	}
       }
       
