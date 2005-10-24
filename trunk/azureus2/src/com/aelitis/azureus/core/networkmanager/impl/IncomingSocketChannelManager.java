@@ -58,6 +58,7 @@ public class IncomingSocketChannelManager {
   
   protected AEMonitor	this_mon	= new AEMonitor( "IncomingSocketChannelManager" );
 
+    
   
   /**
    * Create manager and begin accepting and routing new connections.
@@ -103,6 +104,41 @@ public class IncomingSocketChannelManager {
     
     //start processing
     start();
+    
+    
+    //run a daemon thread to poll listen port for connectivity
+    AEThread checker = new AEThread( "ServerSocketChecker" ){
+    	public void runSupport() {
+    		try{  Thread.sleep( 60*1000 );  }catch( Throwable t){ t.printStackTrace(); }
+    		
+    		int fail_count = 0;
+    		
+    		while( true ) {
+    			try{
+    				Socket sock = new Socket( "127.0.0.1", listen_port );
+    				//Debug.out( new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems OPEN" );
+    				sock.close();
+    				fail_count = 0;
+    			}
+    			catch( Throwable t ) {
+    				fail_count++;
+    				Debug.out( new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
+    				
+    				if( fail_count > 4 ) {
+    					String msg = new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems to have FAILED internally.\nAuto-repairing listen service...";
+    					LGLogger.logRepeatableAlert( msg, t );  //TODO make unrepeatable
+    					IncomingSocketChannelManager.this.stop();
+    					IncomingSocketChannelManager.this.start();
+    					fail_count = 0;
+    				}
+    			}
+    			
+    			try{  Thread.sleep( 60*1000 );  }catch( Throwable t){ t.printStackTrace(); }
+    		}
+    	}
+    };
+    checker.setDaemon( true );
+    checker.start();    
   }
   
   
