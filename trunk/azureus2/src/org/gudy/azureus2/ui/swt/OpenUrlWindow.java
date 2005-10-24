@@ -92,6 +92,20 @@ OpenUrlWindow
       Utils.setTextLink(shell, gridData, url, linkURL);
     url.setSelection(url.getText().length());
     
+    
+    
+    // help field
+    Label help_label = new Label(shell, SWT.NULL);
+    help_label.setText(MessageText.getString("openUrl.url.info"));
+    gridData = new GridData();
+    gridData.horizontalSpan	= 3;
+    help_label.setLayoutData(gridData);
+       
+    Label space = new Label(shell, SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan	= 3;
+    space.setLayoutData(gridData);
+    
     	// referrer field
     
     Label referrer_label = new Label(shell, SWT.NULL);
