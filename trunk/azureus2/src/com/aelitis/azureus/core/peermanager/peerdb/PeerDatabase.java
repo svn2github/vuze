@@ -37,7 +37,7 @@ public class PeerDatabase {
   private static final int MIN_REBUILD_WAIT_TIME = 60*1000;
   private static final int MAX_DISCOVERED_PEERS = 500;
   
-  private static final int BLOOM_ROTATION_PERIOD = 5*60*1000;
+  private static final int BLOOM_ROTATION_PERIOD = 7*60*1000;
   private static final int BLOOM_FILTER_SIZE = 10000;
   
   
