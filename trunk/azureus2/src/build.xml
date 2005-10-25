@@ -2,7 +2,7 @@
 
 <project default="jar" name="Azureus" basedir=".">
 
-   <property name="root.dir" value="temp" />
+   <property name="root.dir" value="." />  <!-- REMINDER: this needs to be "." for public source -->
    <property name="libs.dir" value="build/libs" />
    <property name="dist.dir" value="dist" />
    
