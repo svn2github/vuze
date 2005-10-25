@@ -67,7 +67,9 @@ Main
 		    	
 	        String filename = arg;
             
-            if( filename.toUpperCase().startsWith( "HTTP:" ) || filename.toUpperCase().startsWith( "MAGNET:" ) ) {
+            if( filename.toUpperCase().startsWith( "HTTP:" ) || 
+            		filename.toUpperCase().startsWith( "HTTPS:" ) || 
+            		filename.toUpperCase().startsWith( "MAGNET:" ) ) {
               LGLogger.log( "Main::main: args[" + i + "] handling as a URI: " +filename );
               continue;  //URIs cannot be checked as a .torrent file
             }            
@@ -92,12 +94,25 @@ Main
 	        }
 	    }
 	    
-	    if ( startServer.getState() == StartServer.STATE_LISTENING ){
+	    
+	    boolean another_instance = startServer.getState() != StartServer.STATE_LISTENING;
+	    
+	    if( another_instance ) {  //looks like there's already a process listening on 127.0.0.1:6880
+	    	//attempt to pass args to existing instance
+	    	StartSocket ss = new StartSocket(args);
+	    	
+	    	if( !ss.sendArgs() ) {  //arg passing attempt failed, so start core anyway
+	    		another_instance = false;
+	    		String msg = "There appears to be another program process already listening on socket [127.0.0.1: 6880].\nLoading of torrents via command line parameter will fail until this is fixed.";
+	    		System.out.println( msg );
+	    		LGLogger.logRepeatableAlert( LGLogger.AT_WARNING, msg );
+	    	}
+	    }
+	    
+	    if ( !another_instance ){
 	
 	    	if ( closedown ){
-	    
 	    			// closedown request and no instance running
-	    		
 	    		return;
 	    	}
 	    	
@@ -107,16 +122,8 @@ Main
 	
 	    	new Initializer(core,startServer,args);
 	      
-	    }else{
-	    	
-	    	new StartSocket(args);
-	      
-	    	try{
-	    		Thread.sleep(2500);
-	    	}catch( Throwable e ){
-	      	
-	    	}
 	    }
+	    
   	}catch( AzureusCoreException e ){
   		
    		

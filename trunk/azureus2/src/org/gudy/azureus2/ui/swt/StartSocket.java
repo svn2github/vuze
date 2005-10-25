@@ -31,47 +31,62 @@ import org.gudy.azureus2.core3.util.Debug;
 
 
 public class StartSocket {
-    public StartSocket(String args[]) {
-//      if(args.length == 0)
-//        return;
-
-      Socket sck = null;
-      PrintWriter pw = null;
-      try {  
-      	LGLogger.log( "Main::startSocket: starting connect to 6880");
-        System.out.println("StartSocket: passing startup args to already-running Azureus java process.");
-      	
-        sck = new Socket("127.0.0.1", 6880);
-        
-        pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream(),Constants.DEFAULT_ENCODING));
-        
-        StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING + ";args;");
-        
-        for(int i = 0 ; i < args.length ; i++) {
-          String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");
-          buffer.append(arg);
-          buffer.append(';');
-        }
-        
-     	LGLogger.log( "Main::startSocket: sending '" + buffer.toString() + "'");
-     	 
-        pw.println(buffer.toString());
-        pw.flush();
-      } catch(Exception e) {
-      	Debug.printStackTrace( e );
-      } finally {
-        try {
-          if (pw != null)
-            pw.close();
-        } catch (Exception e) {
-        }
-        try {
-          if (sck != null)
-            sck.close();
-        } catch (Exception e) {
-        }
-      }
+		private final String[] args;
+	
+    public StartSocket(String _args[]) {
+    	this.args = _args;
     }
+    
+    
+    /**
+     * Attempt to send args via socket connection.
+     * @return true if successful, false if connection attempt failed
+     */
+    public boolean sendArgs() {
+    	Socket sck = null;
+    	PrintWriter pw = null;
+    	try {
+    		String msg = "StartSocket: passing startup args to already-running Azureus java process listening on [127.0.0.1: 6880]";
+    		LGLogger.log( msg );
+    		System.out.println( msg );
+       	
+    		sck = new Socket("127.0.0.1", 6880);
+         
+    		pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream(),Constants.DEFAULT_ENCODING));
+         
+    		StringBuffer buffer = new StringBuffer(StartServer.ACCESS_STRING + ";args;");
+         
+    		for(int i = 0 ; i < args.length ; i++) {
+    			String arg = args[i].replaceAll("&","&&").replaceAll(";","&;");
+    			buffer.append(arg);
+    			buffer.append(';');
+    		}
+         
+    		LGLogger.log( "Main::startSocket: sending '" + buffer.toString() + "'");
+      	 
+    		pw.println(buffer.toString());
+    		pw.flush();
+    		
+    		return true;
+    	}
+    	catch(Exception e) {
+    		e.printStackTrace();
+    		Debug.printStackTrace( e );
+    		return false;  //there was a problem connecting to the socket
+    	}
+    	finally {
+    		try {
+    			if (pw != null)  pw.close();
+    		}
+    		catch (Exception e) {}
+    		
+    		try {
+    			if (sck != null) 	sck.close();
+    		}
+    		catch (Exception e) {}
+    	}
+    }
+    
     
     public static void main(String args[]) {
       new StartSocket(args);
