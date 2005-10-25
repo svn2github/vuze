@@ -140,6 +140,16 @@ public class VirtualServerChannelSelector {
   
   
   /**
+   * Is this selector actively running
+   * @return true if enabled, false if not running
+   */
+  public boolean isRunning() {
+  	if( server_channel != null && server_channel.isOpen() )  return true;
+  	return false;
+  }
+  
+  
+  /**
    * Listener notified when a new incoming connection is accepted.
    */
   public interface SelectListener {
