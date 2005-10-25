@@ -107,29 +107,33 @@ public class IncomingSocketChannelManager {
     
     
     //run a daemon thread to poll listen port for connectivity
+    //it seems under OSX that listen server sockets sometimes stop accepting incoming connections for some unknown reason
+    //this checker tests to make sure the listen socket is still accepting connections, and if not, recreates the socket
     AEThread checker = new AEThread( "ServerSocketChecker" ){
     	public void runSupport() {
     		try{  Thread.sleep( 60*1000 );  }catch( Throwable t){ t.printStackTrace(); }
     		
     		int fail_count = 0;
     		
-    		while( true ) {
-    			try{
-    				Socket sock = new Socket( "127.0.0.1", listen_port );
-    				//Debug.out( new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems OPEN" );
-    				sock.close();
-    				fail_count = 0;
-    			}
-    			catch( Throwable t ) {
-    				fail_count++;
-    				Debug.out( new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
-    				
-    				if( fail_count > 4 ) {
-    					String msg = new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems to have FAILED internally.\nAuto-repairing listen service...";
-    					LGLogger.logRepeatableAlert( msg, t );  //TODO make unrepeatable
-    					IncomingSocketChannelManager.this.stop();
-    					IncomingSocketChannelManager.this.start();
+    		while( true ) {			
+    			if( server_selector != null && server_selector.isRunning() ) { //ensure it's actually running
+    				try{
+    					Socket sock = new Socket( "127.0.0.1", listen_port );
+    					//Debug.out( new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems OPEN" );
+    					sock.close();
     					fail_count = 0;
+    				}
+    				catch( Throwable t ) {
+    					fail_count++;
+    					Debug.out( new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
+    				
+    					if( fail_count > 9 ) {
+    						String msg = "Listen server socket on [127.0.0.1: " +listen_port+ "] does not appear to be accepting inbound connections.\nAuto-repairing listen service....\n";
+    						LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
+    						IncomingSocketChannelManager.this.stop();
+    						IncomingSocketChannelManager.this.start();
+    						fail_count = 0;
+    					}
     				}
     			}
     			
