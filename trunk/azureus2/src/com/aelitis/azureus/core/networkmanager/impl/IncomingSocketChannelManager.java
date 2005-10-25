@@ -117,18 +117,24 @@ public class IncomingSocketChannelManager {
     		
     		while( true ) {			
     			if( server_selector != null && server_selector.isRunning() ) { //ensure it's actually running
-    				try{
-    					Socket sock = new Socket( "127.0.0.1", listen_port );
-    					//Debug.out( new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems OPEN" );
+    				
+    				InetAddress inet_address = server_selector.getBoundToAddress();
+    				
+    				try{   					
+    					if( inet_address == null )  inet_address = InetAddress.getByName( "127.0.0.1" );  //failback
+    					
+    					Socket sock = new Socket( inet_address, listen_port, inet_address, 0 );
+
     					sock.close();
     					fail_count = 0;
     				}
     				catch( Throwable t ) {
     					fail_count++;
-    					Debug.out( new Date()+ ": listen port on [127.0.0.1: " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
+    					Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
     				
     					if( fail_count > 9 ) {
-    						String msg = "Listen server socket on [127.0.0.1: " +listen_port+ "] does not appear to be accepting inbound connections.\nAuto-repairing listen service....\n";
+    						String error = t.getMessage() == null ? "<null>" : t.getMessage();
+    						String msg = "Listen server socket on [" +inet_address+ ": " +listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
     						LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
     						IncomingSocketChannelManager.this.stop();
     						IncomingSocketChannelManager.this.start();

@@ -149,6 +149,14 @@ public class VirtualServerChannelSelector {
   }
   
   
+  public InetAddress getBoundToAddress() {
+  	if( server_channel != null ) {
+  		return server_channel.socket().getInetAddress();
+  	}
+  	return null;
+  }
+  
+  
   /**
    * Listener notified when a new incoming connection is accepted.
    */
