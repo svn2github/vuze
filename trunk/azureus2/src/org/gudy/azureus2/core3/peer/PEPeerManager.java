@@ -261,4 +261,11 @@ PEPeerManager
   /** To store arbitrary objects against this object. */
   public void setData (String key, Object value);
   
+  
+  /**
+   * Get the average completion percentage of connected peers.
+   * @return average percent complete in thousand notation
+   */
+  public int getAverageCompletionInThousandNotation();
+  
 }

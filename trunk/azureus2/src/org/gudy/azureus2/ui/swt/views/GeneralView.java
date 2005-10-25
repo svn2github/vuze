@@ -84,6 +84,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   Text 			maxULSpeed;
   Text maxUploads;
   BufferedLabel totalSpeed;
+  BufferedLabel ave_completion;
   BufferedLabel seeds;
   BufferedLabel peers;
   Group gInfo;
@@ -390,6 +391,13 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     totalSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalSpeed.setLayoutData(gridData);
+    
+    
+    label = new Label(gTransfer, SWT.LEFT);
+    Messages.setLanguageText(label, "GeneralView.label.swarm_average_completion"); 
+    ave_completion = new BufferedLabel(gTransfer, SWT.LEFT);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    ave_completion.setLayoutData(gridData);
     
 
     gInfo = new Group(genComposite, SWT.SHADOW_OUT);
@@ -776,18 +784,30 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     String swarm_speed = DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getTotalAverage() ) + " ( " +DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getTotalAveragePerPeer())+ " " +MessageText.getString("GeneralView.label.averagespeed") + " )";    
     
+    String swarm_completion = "";
+    
+    PEPeerManager pm = manager.getPeerManager();
+    if( pm != null ) {
+    	int comp = pm.getAverageCompletionInThousandNotation();
+    	if( comp >= 0 ) {
+    		swarm_completion = DisplayFormatters.formatPercentFromThousands( comp );
+    	}
+    }
+
     setStats(
-		DisplayFormatters.formatDownloaded(stats),
-		DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesSent()),
-		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()),
-		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()),
-		swarm_speed,
-		""+manager.getStats().getDownloadRateLimitBytesPerSecond() /1024,
-		""+(manager.getStats().getUploadRateLimitBytesPerSecond() /1024),
+    		DisplayFormatters.formatDownloaded(stats),
+    		DisplayFormatters.formatByteCountToKiBEtc(stats.getTotalDataBytesSent()),
+    		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataReceiveRate()),
+    		DisplayFormatters.formatByteCountToKiBEtcPerSec(stats.getDataSendRate()),
+    		swarm_speed,
+    		""+manager.getStats().getDownloadRateLimitBytesPerSecond() /1024,
+    		""+(manager.getStats().getUploadRateLimitBytesPerSecond() /1024),
       	seeds_str,
       	peers_str,
-		DisplayFormatters.formatHashFails(manager),
-      _shareRatio);
+      	DisplayFormatters.formatHashFails(manager),
+      	_shareRatio,
+      	swarm_completion
+    );
       
     setTracker(manager);
     
@@ -1111,7 +1131,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	String s, 
 	String p,
 	String hash_fails,
-	String share_ratio) 
+	String share_ratio,
+	String ave_comp ) 
   {
     if (display == null || display.isDisposed())
       return;
@@ -1121,6 +1142,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	upload.setText( ul );
 	uploadSpeed.setText( uls );
 	totalSpeed.setText( ts );
+	ave_completion.setText( ave_comp );
 	
 	if ( !maxDLSpeed.getText().equals( dl_speed )){
 		

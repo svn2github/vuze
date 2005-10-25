@@ -23,9 +23,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import java.util.List;
-
-import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -40,7 +38,7 @@ public class SwarmAverageCompletion
 
   public SwarmAverageCompletion(String sTableID) {
     super("swarm_average_completion", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
-    setRefreshInterval(INTERVAL_GRAPHIC);  //TODO
+    setRefreshInterval(INTERVAL_GRAPHIC);
   }
 
   protected void finalize() throws Throwable {
@@ -52,18 +50,11 @@ public class SwarmAverageCompletion
 
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     
-    if( dm != null && dm.getPeerManager() != null ) {	
-    	List peers = dm.getPeerManager().getPeers();
+    if( dm != null ) {
+    	PEPeerManager pm = dm.getPeerManager();
     	
-    	if( peers != null && peers.size() > 0 ) {
-    		int sum = 0;
-    	
-    		for( int i=0; i < peers.size(); i++ ) {
-    			PEPeer peer = (PEPeer)peers.get( i );	
-    			sum += peer.getPercentDoneInThousandNotation();
-    		}
-    	
-    		average = sum / peers.size();
+    	if( pm != null ) {
+    		average = pm.getAverageCompletionInThousandNotation();
     	}
     }
 

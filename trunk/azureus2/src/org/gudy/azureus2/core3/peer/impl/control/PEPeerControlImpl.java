@@ -2925,4 +2925,28 @@ PEPeerControlImpl
 			}
 		}
 	}
+	
+	
+	public int getAverageCompletionInThousandNotation() {
+		ArrayList peers = peer_transports_cow;
+  	
+  	if( peers != null ) {
+  		int sum = 0;
+  		int num = 0;
+  		
+  		for( int i=0; i < peers.size(); i++ ) {
+  			PEPeer peer = (PEPeer)peers.get( i );
+  			
+  			if( peer.getPeerState() == PEPeer.TRANSFERING ) {
+  				num++;
+  				sum += peer.getPercentDoneInThousandNotation();
+  			}
+  		}
+  	
+  		return num > 0 ? sum / num : 0;
+  	}
+  	
+  	return -1;
+	}
+	
  }

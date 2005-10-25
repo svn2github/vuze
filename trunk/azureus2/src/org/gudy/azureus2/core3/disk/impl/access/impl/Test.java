@@ -996,6 +996,8 @@ Test
     public boolean isInEndGameMode() {  return false;  }
     
 			
+    public int getAverageCompletionInThousandNotation(){  return 0;  }
+    
 		public byte[]
 		getHash()
 		{
