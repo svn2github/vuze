@@ -115,7 +115,12 @@ public class SWTThread {
               display.sleep();
         }
         catch (Exception e) {
-          Debug.printStackTrace( e );
+        	// Must use printStackTrace() (no params) in order to get 
+        	// "cause of"'s stack trace in SWT < 3119
+        	if (SWT.getVersion() < 3119)
+        		e.printStackTrace();
+        	else
+        		Debug.out(e);
         }
       }
       
@@ -133,7 +138,12 @@ public class SWTThread {
       	if (!display.isDisposed())
       		display.dispose();
       } catch (Throwable t) {
-      	Debug.printStackTrace(t);
+      	// Must use printStackTrace() (no params) in order to get 
+      	// "cause of"'s stack trace in SWT < 3119
+      	if (SWT.getVersion() < 3119)
+      		t.printStackTrace();
+      	else
+      		Debug.out(t);
       }
 
        // dispose platform manager here
