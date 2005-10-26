@@ -129,7 +129,12 @@ public class SWTThread {
         app.stopIt( false, false );
       }
 
-      display.dispose();
+      try {
+      	if (!display.isDisposed())
+      		display.dispose();
+      } catch (Throwable t) {
+      	Debug.printStackTrace(t);
+      }
 
        // dispose platform manager here
       PlatformManagerFactory.getPlatformManager().dispose();
