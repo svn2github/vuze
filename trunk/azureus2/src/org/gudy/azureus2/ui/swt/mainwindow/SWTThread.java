@@ -120,7 +120,7 @@ public class SWTThread {
         	if (SWT.getVersion() < 3119)
         		e.printStackTrace();
         	else
-        		Debug.out(e);
+        		Debug.printStackTrace(e);
         }
       }
       
@@ -143,7 +143,7 @@ public class SWTThread {
       	if (SWT.getVersion() < 3119)
       		t.printStackTrace();
       	else
-      		Debug.out(t);
+      		Debug.printStackTrace(t);
       }
 
        // dispose platform manager here
