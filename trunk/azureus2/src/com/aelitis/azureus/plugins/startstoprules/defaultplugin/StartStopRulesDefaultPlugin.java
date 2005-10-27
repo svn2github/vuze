@@ -1621,16 +1621,15 @@ public class StartStopRulesDefaultPlugin
 		      // (we don't want leechers circumventing the 0.5 rule)
 	      
 			if (iIgnoreShareRatio != 0 && 
-				         shareRatio >= iIgnoreShareRatio && 
-				         (num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl)) &&
-				         shareRatio != -1) {
+				         (shareRatio >= iIgnoreShareRatio || shareRatio != -1) && 
+				         (num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl))) {
 		          setSeedingRank(SR_SHARERATIOMET);
 		          return SR_SHARERATIOMET;
 		        }
 			  
 			if (num_peers_excluding_us == 0 && bScrapeResultsOk) {
-				if ( shareRatio >= minQueueingShareRatio &&
-						shareRatio != -1 &&
+				if ( (shareRatio >= minQueueingShareRatio ||
+						shareRatio != -1) &&
 						bIgnore0Peers){
 					setSeedingRank(SR_0PEERS);
 			          return SR_0PEERS;
@@ -1660,7 +1659,7 @@ public class StartStopRulesDefaultPlugin
 	        // (More Peers for each Seed than specified in Config)
 	        //0 means never stop
 	        if (iIgnoreRatioPeers != 0 && num_seeds_excluding_us != 0) {
-	          float ratio = (float) num_peers_excluding_us / num_seeds_excluding_us;
+	          float ratio = ((float) num_peers_excluding_us) / num_seeds_excluding_us;
 	          if (ratio <= iIgnoreRatioPeers && num_seeds_excluding_us >= iIgnoreRatioPeers_SeedStart) {
 	            setSeedingRank(SR_RATIOMET);
 	            return SR_RATIOMET;
