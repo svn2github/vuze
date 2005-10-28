@@ -83,6 +83,18 @@ public class AZMessageFactory {
   }
   
   
+  /**
+   * Register a generic map payload type with the factory.
+   * @param type_id to register
+   */
+  public static void registerGenericMapPayloadMessageType( String type_id ) {
+  	try {
+      MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null ) );
+    }
+    catch( MessageException me ) {  me.printStackTrace();  }
+  }
+  
+  
   
   /**
    * Construct a new AZ message instance from the given message raw byte stream.
