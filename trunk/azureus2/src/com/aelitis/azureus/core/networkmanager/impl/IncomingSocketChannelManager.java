@@ -105,50 +105,51 @@ public class IncomingSocketChannelManager {
     //start processing
     start();
     
-    
-    //run a daemon thread to poll listen port for connectivity
-    //it seems under OSX that listen server sockets sometimes stop accepting incoming connections for some unknown reason
-    //this checker tests to make sure the listen socket is still accepting connections, and if not, recreates the socket
-    AEThread checker = new AEThread( "ServerSocketChecker" ){
-    	public void runSupport() {
-    		try{  Thread.sleep( 60*1000 );  }catch( Throwable t){ t.printStackTrace(); }
+     
+    	//run a daemon thread to poll listen port for connectivity
+    	//it seems that sometimes under OSX that listen server sockets sometimes stop accepting incoming connections for some unknown reason
+    	//this checker tests to make sure the listen socket is still accepting connections, and if not, recreates the socket
+    	AEThread checker = new AEThread( "ServerSocketChecker" ){
+    		public void runSupport() {
+    			try{  Thread.sleep( 60*1000 );  }catch( Throwable t){ t.printStackTrace(); }
     		
-    		int fail_count = 0;
+    			int fail_count = 0;
     		
-    		while( true ) {			
-    			if( server_selector != null && server_selector.isRunning() ) { //ensure it's actually running
+    			while( true ) {			
+    				if( server_selector != null && server_selector.isRunning() ) { //ensure it's actually running
     				
-    				InetAddress inet_address = server_selector.getBoundToAddress();
+    					InetAddress inet_address = server_selector.getBoundToAddress();
     				
-    				try{   					
-    					if( inet_address == null )  inet_address = InetAddress.getByName( "127.0.0.1" );  //failback
+    					try{   					
+    						if( inet_address == null )  inet_address = InetAddress.getByName( "127.0.0.1" );  //failback
     					
-    					Socket sock = new Socket( inet_address, listen_port, inet_address, 0 );
+    						Socket sock = new Socket( inet_address, listen_port, inet_address, 0 );
 
-    					sock.close();
-    					fail_count = 0;
-    				}
-    				catch( Throwable t ) {
-    					fail_count++;
-    					Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
-    				
-    					if( fail_count > 9 ) {
-    						String error = t.getMessage() == null ? "<null>" : t.getMessage();
-    						String msg = "Listen server socket on [" +inet_address+ ": " +listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
-    						LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
-    						IncomingSocketChannelManager.this.stop();
-    						IncomingSocketChannelManager.this.start();
+    						sock.close();
     						fail_count = 0;
     					}
+    					catch( Throwable t ) {
+    						fail_count++;
+    						Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
+    				
+    						if( fail_count > 9 ) {
+    							String error = t.getMessage() == null ? "<null>" : t.getMessage();
+    							String msg = "Listen server socket on [" +inet_address+ ": " +listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
+    							LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
+    							IncomingSocketChannelManager.this.stop();
+    							IncomingSocketChannelManager.this.start();
+    							fail_count = 0;
+    						}
+    					}
     				}
-    			}
     			
-    			try{  Thread.sleep( 60*1000 );  }catch( Throwable t){ t.printStackTrace(); }
+    				try{  Thread.sleep( 60*1000 );  }catch( Throwable t){ t.printStackTrace(); }
+    			}
     		}
-    	}
-    };
-    checker.setDaemon( true );
-    checker.start();    
+    	};
+    	checker.setDaemon( true );
+    	checker.start(); 
+    
   }
   
   
@@ -348,6 +349,8 @@ public class IncomingSocketChannelManager {
   		
   		this_mon.exit();
   	}
+  	
+  	try{ Thread.sleep( 3000 );  }catch( Throwable t ) { t.printStackTrace();  }
   }
   
   
