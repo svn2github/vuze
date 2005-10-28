@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 
 
@@ -44,6 +45,8 @@ public class VirtualServerChannelSelector {
   
   protected AEMonitor	this_mon	= new AEMonitor( "VirtualServerChannelSelector" );
 
+  private long last_accept_time;
+  
   
   /**
    * Create a new server listening on the given address and reporting to the given listener.
@@ -90,11 +93,13 @@ public class VirtualServerChannelSelector {
             Debug.out( t );
             LGLogger.logUnrepeatableAlert( "ERROR, unable to bind TCP incoming server socket to " +bind_address.getPort(), t );
 	      }
+	      
+	      last_accept_time = SystemTime.getCurrentTime();  //init to now
 	    }
   	}finally{
   		
   		this_mon.exit();
-  	}
+  	} 	
   }
   
   
@@ -125,6 +130,7 @@ public class VirtualServerChannelSelector {
       try {
         SocketChannel client_channel = server_channel.accept();
         client_channel.configureBlocking( false );
+        last_accept_time = SystemTime.getCurrentTime();
         listener.newConnectionAccepted( client_channel );
       }
       catch( AsynchronousCloseException e ) {
@@ -155,6 +161,12 @@ public class VirtualServerChannelSelector {
   	}
   	return null;
   }
+  
+  
+  public long getTimeOfLastAccept() {
+  	return last_accept_time;
+  }
+  
   
   
   /**
