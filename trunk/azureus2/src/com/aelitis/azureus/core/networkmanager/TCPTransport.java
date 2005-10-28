@@ -434,6 +434,13 @@ public class TCPTransport {
       }
       
       public void connectSuccess( SocketChannel channel ) {
+        if( channel == null ) {
+          Debug.out( "connectSuccess:: given socket_channel == null" );
+          listener.connectFailure( new Exception( "connectSuccess:: given socket_channel == null" ) );
+          return;
+        }
+        
+        
         if( has_been_closed ) {  //closed between select ops
           NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
           return;
