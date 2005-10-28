@@ -81,9 +81,9 @@ public class ProxyLoginHandler {
    * @param remote_address address to proxy to
    * @param listener for proxy login success or faulure
    */
-  public ProxyLoginHandler( TCPTransport proxy_connection, InetSocketAddress remote_address, ProxyListener listener ) {
-    this.proxy_connection = proxy_connection;
-    this.remote_address = remote_address;
+  public ProxyLoginHandler( TCPTransport _proxy_connection, InetSocketAddress _remote_address, ProxyListener listener ) {
+    this.proxy_connection = _proxy_connection;
+    this.remote_address = _remote_address;
     this.proxy_listener = listener;
        
     if ( remote_address.isUnresolved() || remote_address.getAddress() == null ){
@@ -121,6 +121,8 @@ public class ProxyLoginHandler {
 
   private void doSocks4Login( final ByteBuffer[] data ) {
     try {
+    	sendMessage( data[0] );  //send initial handshake to get things started
+    	
       //register for read ops
       NetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
         public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
@@ -151,8 +153,6 @@ public class ProxyLoginHandler {
           proxy_listener.connectFailure( msg );
         }
       }, null );
-
-      sendMessage( data[0] );
     }
     catch( Throwable t ) {
       Debug.out( t );
@@ -170,6 +170,8 @@ public class ProxyLoginHandler {
       ByteBuffer[] header = createSocks5Message();
       data.add( header[0] );  //message
       data.add( header[1] );  //reply buff
+      
+      sendMessage( (ByteBuffer)data.get(0) );  //send initial handshake to get things started
       
       //register for read ops
       NetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
@@ -211,8 +213,6 @@ public class ProxyLoginHandler {
           proxy_listener.connectFailure( msg );
         }
       }, null );
-
-      sendMessage( (ByteBuffer)data.get(0) );  //send initial handshake to get things started
     }
     catch( Throwable t ) {
       Debug.out( t );
