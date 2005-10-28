@@ -217,8 +217,11 @@ public class ConnectDisconnectManager {
 
         msg += "\n channel="+channel+ ", socket="+socket+ ", local_address="+local_address+ ", local_port="+local_port+ ", remote_address="+remote_address+ ", remote_port="+remote_port;
       }
+      else {
+        msg += "\n channel=<null>";
+      }
       
-      LGLogger.log( msg, t );
+      Debug.out( msg, t );
       
       
       if( request.channel != null ) {
