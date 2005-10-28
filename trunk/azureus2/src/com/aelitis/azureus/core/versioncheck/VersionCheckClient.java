@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.TCPTransport;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
+import com.aelitis.azureus.core.networkmanager.impl.TCPTransportImpl;
 
 
 /**
@@ -164,7 +165,7 @@ public class VersionCheckClient {
   private Map performVersionCheck( Map data_to_send ) throws Exception {
     LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient retrieving version information from " +SERVER_ADDRESS+ ":" +SERVER_PORT ); 
     
-    final TCPTransport transport = new TCPTransport();  //use transport for proxy capabilities
+    final TCPTransport transport = new TCPTransportImpl();  //use transport for proxy capabilities
     final AESemaphore block = new AESemaphore( "versioncheck" );
     final Throwable[] errors = new Throwable[1];
     

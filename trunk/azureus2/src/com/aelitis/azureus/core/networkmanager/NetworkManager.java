@@ -278,7 +278,7 @@ public class NetworkManager {
    * Get the socket channel connect / disconnect manager.
    * @return connect manager
    */
-  protected ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
+  public ConnectDisconnectManager getConnectDisconnectManager() {  return connect_disconnect_manager;  }
   
   
   /**
