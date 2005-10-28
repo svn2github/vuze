@@ -81,9 +81,9 @@ public class ProxyLoginHandler {
    * @param remote_address address to proxy to
    * @param listener for proxy login success or faulure
    */
-  public ProxyLoginHandler( TCPTransport _proxy_connection, InetSocketAddress _remote_address, ProxyListener listener ) {
-    this.proxy_connection = _proxy_connection;
-    this.remote_address = _remote_address;
+  public ProxyLoginHandler( TCPTransport proxy_connection, InetSocketAddress remote_address, ProxyListener listener ) {
+    this.proxy_connection = proxy_connection;
+    this.remote_address = remote_address;
     this.proxy_listener = listener;
        
     if ( remote_address.isUnresolved() || remote_address.getAddress() == null ){
@@ -93,8 +93,8 @@ public class ProxyLoginHandler {
     else{
     	mapped_ip = remote_address.getAddress().getHostName();
     }
- 
-    if( socks_version.equals( "V4" ) ) {	
+    
+    if( socks_version.equals( "V4" ) ) {
       try{
         doSocks4Login( createSocks4Message() );
       }
@@ -120,8 +120,6 @@ public class ProxyLoginHandler {
 
 
   private void doSocks4Login( final ByteBuffer[] data ) {
-  	Debug.out( "Starting SOCKSv4 login to host [" +remote_address+ "] via proxy [" +proxy_connection.getDescription()+ "]: " );
-  	
     try {
       //register for read ops
       NetworkManager.getSingleton().getReadSelector().register( proxy_connection.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
@@ -139,8 +137,7 @@ public class ProxyLoginHandler {
             }
           }
           catch( Throwable t ) {
-          	Debug.out( "Caught SOCKSv4 exception on socket read for login to host [" +remote_address+ "] via proxy [" +proxy_connection.getDescription()+ "]: ", t );
-            //Debug.out( t );
+            Debug.out( t );
             NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
           }
