@@ -320,6 +320,14 @@ public class VirtualChannelSelectorImpl {
  
             RegistrationData data = (RegistrationData)obj;
             	
+            if( data == null ) {
+              Debug.out( "data == null" );
+            }
+            
+            if( data.channel == null ) {
+              Debug.out( "data.channel == null" );
+            }
+            
             try {
               if( data.channel.isOpen() ){
                 	
