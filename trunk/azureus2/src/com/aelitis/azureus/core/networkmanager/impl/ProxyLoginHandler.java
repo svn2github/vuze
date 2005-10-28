@@ -137,7 +137,8 @@ public class ProxyLoginHandler {
             }
           }
           catch( Throwable t ) {
-            Debug.out( t );
+          	String msg = "Caught exception on socks4 read op, write buffer pos=" +data[0].position() ;
+            Debug.out( msg, t );
             NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
           }
