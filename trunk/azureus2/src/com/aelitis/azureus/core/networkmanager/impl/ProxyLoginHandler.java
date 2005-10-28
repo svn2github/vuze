@@ -139,8 +139,7 @@ public class ProxyLoginHandler {
             }
           }
           catch( Throwable t ) {
-          	String msg = "Caught exception on socks4 login read op, " +remote_address+ " via " +proxy_connection.getDescription()+ ", write buffer pos=" +data[0].position() ;
-            Debug.out( msg, t );
+          	//Debug.out( t );
             NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
           }
@@ -200,7 +199,7 @@ public class ProxyLoginHandler {
             }
           }
           catch( Throwable t ) {
-            Debug.out( t );
+            //Debug.out( t );
             NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
           }
@@ -243,7 +242,7 @@ public class ProxyLoginHandler {
     while( msg.hasRemaining() ) {
       if( proxy_connection.write( new ByteBuffer[]{ msg }, 0, 1 ) < 1 ) {
         if( SystemTime.getCurrentTime() - start_time > 30*1000 ) {
-          String error = "proxy message send timed out after 30sec";
+          String error = "proxy handshake message send timed out after 30sec";
           Debug.out( error );
           throw new IOException( error );
         }
