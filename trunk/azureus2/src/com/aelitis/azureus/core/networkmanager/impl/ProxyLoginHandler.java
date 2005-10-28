@@ -137,7 +137,7 @@ public class ProxyLoginHandler {
             }
           }
           catch( Throwable t ) {
-          	String msg = "Caught exception on socks4 read op, write buffer pos=" +data[0].position() ;
+          	String msg = "Caught exception on socks4 login read op, " +remote_address+ " via " +proxy_connection.getDescription()+ ", write buffer pos=" +data[0].position() ;
             Debug.out( msg, t );
             NetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
             proxy_listener.connectFailure( t );
