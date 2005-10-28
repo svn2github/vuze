@@ -489,6 +489,11 @@ public class TCPTransport {
   
 
   private void setTransportBuffersSize( int size_in_bytes ) {
+    if( socket_channel == null ) {
+      Debug.out( "socket_channel == null" );
+      return;
+    }
+    
     try{
       socket_channel.socket().setSendBufferSize( size_in_bytes );
       socket_channel.socket().setReceiveBufferSize( size_in_bytes );
@@ -558,7 +563,6 @@ public class TCPTransport {
       NetworkManager.getSingleton().getReadSelector().cancel( socket_channel );
       NetworkManager.getSingleton().getWriteSelector().cancel( socket_channel );
       NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
-      socket_channel = null;
     }
   }
      
