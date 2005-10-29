@@ -625,31 +625,32 @@ public class OutgoingMessageQueue {
   
   
   
-  public void printQueueTrace() {
+  public String getQueueTrace() {
+  	StringBuffer trace = new StringBuffer();
+  	
+  	trace.append( "**** OUTGOING QUEUE TRACE ****" );
+  	
   	try{
       queue_mon.enter();
 
       int position = queue.size() - 1;
-      
-      System.out.println( "**** OUTGOING QUEUE TRACE ****" );
-      
+
       for( Iterator it = queue.iterator(); it.hasNext(); ) {
         RawMessage raw = (RawMessage)it.next();
         
         int pos = raw.getRawData()[0].position(DirectByteBuffer.SS_NET);
         int length = raw.getRawData()[0].limit( DirectByteBuffer.SS_NET );
         
-        System.out.println( "[#" +position+ " " +pos+ ":" +length+ "]: " +raw.getDescription() );
+        trace.append( "[#" +position+ " " +pos+ ":" +length+ "]: " +raw.getID()+ "\n" );
         
         position--;
       }
-      
-      System.out.println();
-    }finally{
+    }
+  	finally{
       queue_mon.exit();
     }
   	
-  	
+  	return trace.toString();
   }
   
   
