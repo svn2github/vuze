@@ -44,6 +44,18 @@ public class TrackerStatusItem
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     
-    cell.setText( dm == null ? "" : dm.getTrackerStatus() );
+    String	status = dm == null ? "" : dm.getTrackerStatus();
+    
+    	// status sometimes contains multiline text (e.g. HTML) on failure - trim to end of first
+    	// line break if present (see bug 1337563)
+    
+    int	nl_pos = status.indexOf( '\n' );
+    
+    if ( nl_pos >= 0 ){
+    	
+    	status = status.substring(0,nl_pos);
+    }
+    
+    cell.setText( status );
   }
 }
