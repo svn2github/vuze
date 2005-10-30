@@ -1621,14 +1621,14 @@ public class StartStopRulesDefaultPlugin
 		      // (we don't want leechers circumventing the 0.5 rule)
 	      
 			if (iIgnoreShareRatio != 0 && 
-				         (shareRatio >= iIgnoreShareRatio || shareRatio != -1) && 
+				         (shareRatio >= iIgnoreShareRatio && shareRatio != -1) && 
 				         (num_seeds_excluding_us >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl))) {
 		          setSeedingRank(SR_SHARERATIOMET);
 		          return SR_SHARERATIOMET;
 		        }
 			  
 			if (num_peers_excluding_us == 0 && bScrapeResultsOk) {
-				if ( (shareRatio >= minQueueingShareRatio ||
+				if ( (shareRatio >= minQueueingShareRatio &&
 						shareRatio != -1) &&
 						bIgnore0Peers){
 					setSeedingRank(SR_0PEERS);
