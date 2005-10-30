@@ -495,9 +495,17 @@ ResourceDownloaderURLImpl
 								
 								if ( size > 0 && total_read != size ){
 									
-									Debug.out( "Inconsistent stream length: expected = " + size + ", actual = " + total_read );
-									
-									//throw( new IOException( "Premature end of stream" ));
+									if ( total_read > size ){
+										
+											// this has been seen with UPnP linksys - more data is read than
+											// the content-length has us believe is coming (1 byte in fact...)
+										
+										Debug.out( "Inconsistent stream length for '" + original_url + "': expected = " + size + ", actual = " + total_read );
+										
+									}else{
+										
+										throw( new IOException( "Premature end of stream" ));
+									}
 								}
 							}finally{
 								
