@@ -171,7 +171,11 @@ BasicPluginConfigImpl
 			
 			String	label_text = MessageText.getString(param.getLabelKey());
 				
+				// we can only use the check-box's label form for boolean params if the text
+				// doesn't include formatting (it doesn't handle it)
+			
 			if ( 	label_text.indexOf('\n') != -1 ||
+					label_text.indexOf('\t') != -1 ||
 					!(param instanceof BooleanParameterImpl)) {
 				
 				label = new Label(current_composite, param instanceof LabelParameterImpl
