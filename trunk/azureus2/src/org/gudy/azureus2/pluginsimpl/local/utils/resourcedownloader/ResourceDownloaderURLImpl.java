@@ -495,7 +495,9 @@ ResourceDownloaderURLImpl
 								
 								if ( size > 0 && total_read != size ){
 									
-									throw( new IOException( "Premature end of stream" ));
+									Debug.out( "Inconsistent stream length: expected = " + size + ", actual = " + total_read );
+									
+									//throw( new IOException( "Premature end of stream" ));
 								}
 							}finally{
 								
