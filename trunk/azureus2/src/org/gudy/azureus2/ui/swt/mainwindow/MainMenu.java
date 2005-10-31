@@ -661,10 +661,11 @@ public class MainMenu {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				String sResourceID = UISWTViewImpl.CFG_PREFIX + sViewID + ".title";
+				boolean bResourceExists = MessageText.keyExists(sResourceID);
 				
 				String name;
 				
-				if ( MessageText.keyExists( sResourceID )){
+				if (bResourceExists){
 					name = MessageText.getString(sResourceID);
 				}else{
 					name = sViewID.replace('.', ' ' );	// support old plugins
@@ -685,7 +686,10 @@ public class MainMenu {
 				MenuItem item = new MenuItem(pluginMenu, SWT.NULL, insert_at);
 				item.setData("ViewID", sViewID);
 
-				item.setText( name );
+				if (bResourceExists)
+					Messages.setLanguageText(item, sResourceID);
+				else
+					item.setText(name);
 
 				item.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event e) {
