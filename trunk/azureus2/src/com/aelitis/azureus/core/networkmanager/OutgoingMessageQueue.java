@@ -56,6 +56,10 @@ public class OutgoingMessageQueue {
   private int percent_complete = -1;
   
   
+  private static final boolean TRACE_HISTORY = true;
+  private final LinkedList prev_sent = new LinkedList();
+  
+  
   
   /**
    * Create a new outgoing message queue.
@@ -469,6 +473,13 @@ public class OutgoingMessageQueue {
             
               queue.remove( 0 );
               
+              
+              if( TRACE_HISTORY ) {
+              	prev_sent.addLast( msg );
+              	if( prev_sent.size() > 5 )  prev_sent.removeFirst();
+              }
+              
+              
               percent_complete = -1;  //reset send percentage
                             
               if( manual_listener_notify ) {
@@ -632,6 +643,17 @@ public class OutgoingMessageQueue {
   	
   	try{
       queue_mon.enter();
+      
+      
+      int i=0;
+    	
+    	for( Iterator it = prev_sent.iterator(); it.hasNext(); ) {
+    		RawMessage raw = (RawMessage)it.next();
+        trace.append( "[#h" +i+ "]: " +raw.getID()+ "\n" );
+        i++;
+    	}      
+      
+      
 
       int position = queue.size() - 1;
 
