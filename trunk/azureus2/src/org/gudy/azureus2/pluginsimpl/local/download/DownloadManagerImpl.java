@@ -345,7 +345,7 @@ DownloadManagerImpl
 		
 		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),
 		                                                       data_location.toString(), 
-		                                                       DownloadManager.STATE_QUEUED, 
+		                                                       getInitialState(), 
 		                                                       true );
 		
 		if ( dm == null ){
@@ -366,9 +366,10 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
+
 		DownloadManager dm = global_manager.addDownloadManager(torrent_file.toString(),
 		                                                       data_location.toString(), 
-		                                                       DownloadManager.STATE_QUEUED, 
+		                                                       getInitialState(), 
 		                                                       false );
 		
 		if ( dm == null ){
@@ -379,6 +380,14 @@ DownloadManagerImpl
 		addDownloadManager( dm );
 		
 		return( getDownload( dm ));
+	}
+	
+	protected int
+	getInitialState()
+	{
+	  	boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
+
+        return( default_start_stopped?DownloadManager.STATE_STOPPED:DownloadManager.STATE_WAITING);
 	}
 	
 	protected Download
