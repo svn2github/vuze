@@ -10,7 +10,7 @@ $
     Alternative upload controls when only seeding
     Renaming and retargeting of files within a download
     Better reporting of firewalled status
-    NAT traversal for magnet downloads
+    NAT tranversal for magnet downloads
     Java 5.0 support for OSX
     Bugfixes
     
@@ -41,6 +41,7 @@ $
  
 *3.1.1 Magnet links
  For torrents som er sporet decentralt, kan Azureus eksportere et "Magnet Link". Dette er af formen "magnet:?xt=urn:btih:..." og kan bruges til at hente torrent fra den distributerede database via menu punktet "Åbn->URL".
+ http://azureus.aelitis.com/wiki/index.php/Magnet_link
  
 !3.2 Udvidet protokol
  Azureus understøtter nu en udvidet mellem-klient besked protokol, som er sigtet efter at tilade plugins at bruge forbindelseren oprettet af Azureus til at tilføje funktionalitet til programmet. Andre klient udviklere kan se specifikationerne for denne protokol på http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Plugin udviklere kan tjekke plugin javadocs for at se hvordan den skal benyttes.

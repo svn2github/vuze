@@ -10,7 +10,7 @@ $
     Alternative upload controls when only seeding
     Renaming and retargeting of files within a download
     Better reporting of firewalled status
-    NAT traversal for magnet downloads
+    NAT tranversal for magnet downloads
     Java 5.0 support for OSX
     Bugfixes
     
@@ -24,7 +24,7 @@ $
 
  This is primarily a bug/performance fix release. Of notable interest are:
  
-    JDK 1.4 compatability restored on Windows
+    JDK 1.4 compatibility restored on Windows
     Distributed Database bootstrap and IP change handling improved
     Memory usage reduced
     Thread usage for idle torrents reduced
@@ -66,7 +66,7 @@ $
  Azureus is written in Java and requires the Java runtime. We recommend Java 5.0 (also known as 1.5) as it has better performance and reliability - please upgrade if necessary.
  You'll find torrents to update Java here : http://azureus.sourceforge.net/download.php
  Download the one for your system, close Azureus, execute the downloaded file, then restart Azureus.
- WinXP users will have to go to Tools > Config > Interface > Display, and re-check the "Enable XP Style" option.
+ WinXP users will have to go to Tools > Options > Interface > Display, and re-check the "Enable XP Style" option.
  
 !4.2 NOD32
  NOD32 (http://www.nod32.com/) is an antivirus which is known to have problems with Azureus, causing 100% CPU usage.

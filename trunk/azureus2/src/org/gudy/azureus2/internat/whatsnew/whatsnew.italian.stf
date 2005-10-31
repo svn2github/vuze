@@ -41,6 +41,7 @@ $
  
 *3.1.1 Magnet Links
  Per i torrent che hanno un tracker decentralizzato, Azureus può esportare un "Magnet Link". Questo è nella forma "magnet:?xt=urn:btih:..." e può essere usato per scaricare il torrent dal database distribuito attraverso il menu "apri->url".
+ http://azureus.aelitis.com/wiki/index.php/Magnet_link
  
 !3.2 Protocollo migliorato
  Azureus ora supporta un protocollo migliorato di scambio messaggi nel client, concepito per consentire ai plugin di usare la connessione creata da Azureus per aggiungere funzionalità al programma. Gli sviluppatori di altri client possono vedere le specifiche per questo protocollo all'indirizzo http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Gli sviluppatori di plugin possono controllare i javadocs del plugin per vedere come usarlo.

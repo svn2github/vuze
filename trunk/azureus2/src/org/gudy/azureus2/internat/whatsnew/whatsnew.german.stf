@@ -10,7 +10,7 @@ $
     Alternative upload controls when only seeding
     Renaming and retargeting of files within a download
     Better reporting of firewalled status
-    NAT traversal for magnet downloads
+    NAT tranversal for magnet downloads
     Java 5.0 support for OSX
     Bugfixes
     
@@ -47,7 +47,7 @@ Azureus hat jetzt eine verteilte, dezentralisierte Datenbank, die benutzt werden
 
 *3.1.1 Magnet-Verbindungen
 Für Ströme, die dezentralisierten aufgespürt werden, kann Azureus eine “Magnet-Verbindung” exportieren. Dieses ist von der form "magnet:?xt=urn:btih:..." und kann verwendet warden, den Strom von der dezentralisierten Datenbank über das “geöffnetes URL” Menüeinzeilteil zu donwloaden.
-
+http://azureus.aelitis.com/wiki/index.php/Magnet_link
 
 
 !3.2 Erhöhtes Protokoll

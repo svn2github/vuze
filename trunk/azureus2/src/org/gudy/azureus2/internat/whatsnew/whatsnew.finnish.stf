@@ -10,7 +10,7 @@ $
     Vaihtoehtoiset lähetysasetukset pelkästään lähetettäessä (kun ei ladata mitään)
     Torrent-tiedoston käsittämien tiedostojen uudelleennimeäminen ja kohteen uudelleenvalitseminen
     Jos palomuuri estää Azureuksen toiminnan, siitä ilmoitetaan kattavammin
-    NAT traversal -tuki hajautettua tietokantaa hyödyntäville torrent-tiedostoille
+    NAT tranversal -tuki hajautettua tietokantaa hyödyntäville torrent-tiedostoille
     Java 5.0 -tuki Mac OSX:lle
     
     Huom.: Nykyisin Windows-ympäristössä Internet-yhteyttä käyttävänä prosessina ei näy Java, vaan itse Azureus.exe. Niinpä ohjelmistopohjaiseen palomuuriin saattaa joutua tekemään uuden Azureuksen liikenteen sallivan säännön.
@@ -40,6 +40,7 @@ $
  
 *3.1.1 Magnet-linkit
  Hajautettua tietokantaa käyttäville torrent-tiedostoille voidaan luoda ns. Magnet-linkki. Tämä on muotoa "magnet:?xt=urn:btih:..." ja sitä voidaan käyttää varsinaisen torrent-tiedoston lataamiseen hajautetusta tietokannasta (Tiedosto | Avaa | Torrent-tiedosto url-osoitteesta).
+ http://azureus.aelitis.com/wiki/index.php/Magnet_link
  
 !3.2 Parannettu protokolla
  Azureus tukee nyt uutta viestintään tarkoitettua protokollaa, jonka avulla lisäosat voivat hyödyntää Azureuksen luomia yhteyksiä uudenlaisissa käyttötarkoituksissa. Muiden asiakasohjelmien kehittäjät voivat katsoa protokollan määrittelyn osoitteesta http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Lisäosien kehittäjät voivat katsoa lisäosien javadocs-tiedostoista, kuinka käyttää tätä protokollaa.
