@@ -37,7 +37,7 @@ public class StartupUtils {
   public static void setLocale() {
     //  Setup Locales
     Locale[] locales = MessageText.getLocales();
-    String savedLocaleString = COConfigurationManager.getStringParameter("locale", Locale.getDefault().toString()); //$NON-NLS-1$
+    String savedLocaleString = COConfigurationManager.getStringParameter("locale" );
     Locale savedLocale;
     String[] savedLocaleStrings = savedLocaleString.split("_", 3);
     if (savedLocaleStrings.length > 0 && savedLocaleStrings[0].length() == 2) {

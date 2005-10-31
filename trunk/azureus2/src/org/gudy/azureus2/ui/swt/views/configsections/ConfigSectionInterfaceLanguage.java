@@ -80,7 +80,7 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
       drop_values[ i ] = locale.toString();
     }
     
-    final StringListParameter locale_param = new StringListParameter( cMain, "locale", "", drop_labels, drop_values );
+    final StringListParameter locale_param = new StringListParameter( cMain, "locale", drop_labels, drop_values );
     locale_param.addChangeListener( new ParameterChangeListener() {
       public void parameterChanged( Parameter p, boolean caused_internally ) {
         StartupUtils.setLocale();

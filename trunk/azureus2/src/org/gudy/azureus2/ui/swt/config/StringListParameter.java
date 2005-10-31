@@ -39,6 +39,11 @@ public class StringListParameter extends Parameter {
   final String name;
   final String default_value;
 
+  public StringListParameter( Composite composite, String _name, String labels[], String values[]) 
+  {
+	  this( composite, _name, COConfigurationManager.getStringParameter(_name), labels, values );
+  }
+  
   public StringListParameter( Composite composite, String _name, String defaultValue, final String labels[], final String values[]) {
     this.name = _name;
     this.default_value = defaultValue;
