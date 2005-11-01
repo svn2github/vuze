@@ -21,6 +21,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.ui.common.ExternalUIConst;
 import org.gudy.azureus2.ui.console.ConsoleInput;
+import org.pf.text.StringPattern;
 
 /**
  * command that allows manipulation of Azureus' runtime properties.
@@ -41,13 +42,13 @@ public class Set extends IConsoleCommand {
 	}
 	
 	public String getCommandDescriptions() {
-		return("set [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown.");
+		return("set [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown. Parameter may be a wildcard to narrow results");
 	}
 	
 	public void execute(String commandName,ConsoleInput ci, List args) {
 		if( args.isEmpty() )
 		{
-			displayOptions(ci.out);
+			displayOptions(ci.out, new StringPattern("*"));
 			return;
 		}
 		String external_name = (String) args.get(0);
@@ -63,15 +64,24 @@ public class Set extends IConsoleCommand {
 		switch( args.size() )
 		{
 			case 1:
-				// try to display the value of the specified parameter
-				if( ! COConfigurationManager.doesParameterDefaultExist( internal_name ) )					
+				// allow wildcards : eg: Core* or *DHT* to shorten result list
+				StringPattern sp = new StringPattern(internal_name);
+				if( sp.hasWildcard() )
 				{
-					ci.out.println("> Command 'set': Parameter '" + external_name + "' unknown.");
-					return;
+					displayOptions(ci.out, sp);
 				}
-				param = Parameter.get(internal_name,external_name);
-				
-				ci.out.println( param.toString() );
+				else
+				{
+					// try to display the value of the specified parameter
+					if( ! COConfigurationManager.doesParameterDefaultExist( internal_name ) )					
+					{
+						ci.out.println("> Command 'set': Parameter '" + external_name + "' unknown.");
+						return;
+					}
+					param = Parameter.get(internal_name,external_name);
+					
+					ci.out.println( param.toString() );					
+				}
 				break;
 			case 2:
 			case 3:
@@ -137,8 +147,9 @@ public class Set extends IConsoleCommand {
 		}
 	}
 
-	private void displayOptions(PrintStream out)
+	private void displayOptions(PrintStream out, StringPattern sp)
 	{
+		sp.setIgnoreCase(true);
 		Iterator I = COConfigurationManager.getAllowedParameters().iterator();
 		Map backmap = new HashMap();
 		for (Iterator iter = ExternalUIConst.parameterlegacy.entrySet().iterator(); iter.hasNext();) {
@@ -155,9 +166,11 @@ public class Set extends IConsoleCommand {
 				
 				external_name = internal_name;
 			}
-			
-			Parameter param = Parameter.get( internal_name, external_name );
-			srt.add( param.toString() );
+			if( sp.matches(external_name) )
+			{
+				Parameter param = Parameter.get( internal_name, external_name );			
+				srt.add( param.toString() );
+			}
 		}
 		I = srt.iterator();
 		while (I.hasNext()) {
