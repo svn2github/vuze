@@ -30,12 +30,12 @@ public class
 AESemaphore 
 	extends AEMonSem
 {
-	protected int		dont_wait	= 0;
+	private int		dont_wait	= 0;
 
-	protected int		total_reserve	= 0;
-	protected int		total_release	= 0;
+	private int		total_reserve	= 0;
+	private int		total_release	= 0;
 
-	protected boolean	released_forever	= false;
+	private boolean	released_forever	= false;
 
 	protected Thread	latest_waiter;
 	
@@ -211,11 +211,14 @@ AESemaphore
 	public void
 	releaseAllWaiters()
 	{
-		int	x	= waiting;
+		synchronized(this){
 
-		for ( int i=0;i<x;i++ ){
+			int	x	= waiting;
 
-			release();
+			for ( int i=0;i<x;i++ ){
+
+				release();
+			}
 		}
 	}
 
@@ -233,12 +236,18 @@ AESemaphore
 	public boolean
 	isReleasedForever()
 	{
-		return( released_forever );
+		synchronized(this){
+
+			return( released_forever );
+		}
 	}
 	
 	public int
 	getValue()
 	{
-		return( dont_wait - waiting );
+		synchronized(this){
+
+			return( dont_wait - waiting );
+		}
 	}
 }
