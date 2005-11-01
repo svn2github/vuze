@@ -566,6 +566,12 @@ Test
 			
 		}
 	  
+		public String
+		getInternalName()
+		{
+			return( null );
+			
+		}
 		public long
 		getSize()
 		{

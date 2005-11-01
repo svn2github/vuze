@@ -1502,23 +1502,6 @@ DiskManagerImpl
     	start_stop_mon.exit();
     }
   }
-   
-    
- 
-  	public static String
-	getName(
-		TOTorrent	torrent )
-  	{
-  		try{
-  			return( ByteFormatter.nicePrint(torrent.getHash(),true));
-
-  		}catch( TOTorrentException e ){
-  			
-  			Debug.printStackTrace(e);
-  			
-  			return( "?" );
-  		}
-  	}
   
 	public TOTorrent
 	getTorrent()
@@ -2161,7 +2144,7 @@ DiskManagerImpl
 					  						 	public String
 					  						  	getCacheFileOwnerName()
 					  						  	{
-					  						  		return( DiskManagerImpl.getName( download_manager.getTorrent()));
+					  						  		return( download_manager.getInternalName());
 					  						  	}
 					  						  	
 					  							public TOTorrentFile

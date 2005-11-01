@@ -80,7 +80,7 @@ DiskManagerFileInfoImpl
   	public String
   	getCacheFileOwnerName()
   	{
-  		return( DiskManagerImpl.getName( torrent_file.getTorrent()));
+  		return( diskManager.getDownloadManager().getInternalName());
   	}
   	
 	public TOTorrentFile

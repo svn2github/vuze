@@ -180,6 +180,14 @@ DownloadManager
 	public String
 	getDisplayName();
   
+		/**
+		 * returns a name based on the torrent hash or an empty string if torrent invalid
+		 * @return
+		 */
+	
+	public String
+	getInternalName();
+	
 	public long
 	getSize();
 	

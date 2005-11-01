@@ -237,7 +237,8 @@ DownloadManagerImpl
 
 	private String torrentFileName;
 	
-	private String	display_name;
+	private String	display_name	= "";
+	private String	internal_name	= "";
 	
 		// for simple torrents this refers to the torrent file itself. For non-simple it refers to the
 		// folder containing the torrent's files
@@ -391,6 +392,7 @@ DownloadManagerImpl
 		int			initial_state )
 	{		
 		display_name				= torrentFileName;	// default if things go wrong decoding it
+		internal_name				= "";
 		torrent_comment				= "";
 		torrent_created_by			= "";
 		
@@ -459,6 +461,8 @@ DownloadManagerImpl
              
 			 display_name = FileUtil.convertOSSpecificChars( display_name );
 		
+			 internal_name = ByteFormatter.nicePrint(torrent.getHash(),true);
+
 			 	// now we know if its a simple torrent or not we can make some choices about
 			 	// the save dir and file. On initial entry the save_dir will have the user-selected
 			 	// save location and the save_file will be null
@@ -807,6 +811,12 @@ DownloadManagerImpl
 		return( display_name );
 	}	
 
+ 	public String
+	getInternalName()
+  	{
+ 		return( internal_name );
+  	}
+ 	
 	public String 
 	getErrorDetails() 
 	{
