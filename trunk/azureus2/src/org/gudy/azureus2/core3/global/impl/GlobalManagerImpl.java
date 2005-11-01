@@ -157,9 +157,9 @@ public class GlobalManagerImpl
   
 	/* Whether the GlobalManager is active (false) or stopped (true) */
   
-	private boolean 	isStopping;
-	private boolean	destroyed;
-	private boolean 	needsSaving = false;
+	private volatile boolean 	isStopping;
+	private volatile boolean	destroyed;
+	private volatile boolean 	needsSaving = false;
   
 	private boolean seeding_only_mode = false;
   
@@ -167,9 +167,9 @@ public class GlobalManagerImpl
 	public class Checker extends AEThread {
     boolean finished = false;
     int loopFactor;
-    private static final int waitTime = 1000;
+    private static final int waitTime = 10*1000;
     // 5 minutes save resume data interval (default)
-    private int saveResumeLoopCount = 300000 / waitTime;
+    private int saveResumeLoopCount = 5*60*1000 / waitTime;
     
 
      public Checker() {
@@ -197,9 +197,7 @@ public class GlobalManagerImpl
 	        
 	        if ((loopFactor % saveResumeLoopCount == 0) || needsSaving) {
           	
-	        	saveDownloads();
-            
-	        	needsSaving = false;
+	        	saveDownloads( true );
 	        }
 	        	        
 	        for (Iterator it=managers_cow.iterator();it.hasNext();) {
@@ -773,8 +771,9 @@ public class GlobalManagerImpl
       	managers_mon.exit();
       }
  
-      if (save)
-        saveDownloads();
+      if (save){
+        saveDownloads(false);
+      }
       
       return( download_manager );
     }
@@ -868,7 +867,7 @@ public class GlobalManagerImpl
     listeners.dispatch( LDT_MANAGER_REMOVED, manager );
     manager.removeListener(this);
     
-    saveDownloads();
+    saveDownloads( false );
 
     DownloadManagerState dms = manager.getDownloadState();
     
@@ -941,7 +940,7 @@ public class GlobalManagerImpl
 	
   checker.stopIt();
   
-  saveDownloads();
+  saveDownloads( true );
   
   stopAllDownloads();
 
@@ -1407,10 +1406,21 @@ public class GlobalManagerImpl
   }
 
 
-  private void saveDownloads() 
+  private void 
+  saveDownloads(
+  	boolean	immediate ) 
   {
+	  if ( !immediate ){
+		  
+		  needsSaving	= true;
+		  
+		  return;
+	  }
+	  
     //    if(Boolean.getBoolean("debug")) return;
 
+	  needsSaving = false;
+	  
   	try{
   		managers_mon.enter();
   	

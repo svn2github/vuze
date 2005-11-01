@@ -38,9 +38,10 @@ public class
 TRHostExternalTorrent 
 	implements TOTorrent
 {
-	protected byte[]		hash;
-	protected HashWrapper	hash_wrapper;
-	protected URL			announce_url;
+	private byte[]		name;
+	private byte[]		hash;
+	private HashWrapper	hash_wrapper;
+	private URL			announce_url;
 	
 	protected Map		additional_properties = new HashMap();
 	
@@ -55,6 +56,8 @@ TRHostExternalTorrent
 		hash_wrapper	= new HashWrapper( hash );
 		announce_url	= _announce_url;
 		
+		name = ByteFormatter.nicePrint( hash, true ).getBytes();
+		
 		try{
 			LocaleUtil.getSingleton().setDefaultTorrentEncoding( this );
 			
@@ -67,7 +70,7 @@ TRHostExternalTorrent
 	public byte[]
 	getName()
 	{
-		return( ByteFormatter.nicePrint( hash, true ).getBytes());
+		return( name );
 	}
 	
 	

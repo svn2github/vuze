@@ -47,7 +47,9 @@ TRHostImpl
 	protected static final int URL_DEFAULT_PORT		= 80;	// port to use if none in announce URL
 	protected static final int URL_DEFAULT_PORT_SSL	= 443;	// port to use if none in announce URL
 	
-	protected static final int STATS_PERIOD_SECS	= 60;
+	protected static final int STATS_PERIOD_SECS		= 60;
+	protected static final int TICK_PERIOD_SECS			= 10;
+	protected static final int TICKS_PER_STATS_PERIOD	= STATS_PERIOD_SECS/TICK_PERIOD_SECS;
 		
 	protected static TRHostImpl	singleton;
 	protected static AEMonitor 	class_mon 	= new AEMonitor( "TRHost:class" );
@@ -137,6 +139,8 @@ TRHostImpl
 			
 			Thread t = new AEThread("TRHost::stats.loop")
 						{
+							private int	tick_count = 0;
+							
 							public void
 							runSupport()
 							{
@@ -188,37 +192,47 @@ TRHostImpl
 											}
 										}
 										
-										Thread.sleep( STATS_PERIOD_SECS*1000 );
+										Thread.sleep( TICK_PERIOD_SECS*1000 );
 										
-										try{
-											this_mon.enter();
+										if ( tick_count % TICKS_PER_STATS_PERIOD == 0 ){
 											
-											for (int i=0;i<host_torrents.size();i++){
-				
-												TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
+											try{
+												this_mon.enter();
 												
-												if ( ht instanceof TRHostTorrentHostImpl ){
-																					
-													((TRHostTorrentHostImpl)ht).updateStats();
+												for (int i=0;i<host_torrents.size();i++){
+					
+													TRHostTorrent	ht = (TRHostTorrent)host_torrents.get(i);
 													
-												}else{
-													
-													((TRHostTorrentPublishImpl)ht).updateStats();
-													
+													if ( ht instanceof TRHostTorrentHostImpl ){
+																						
+														((TRHostTorrentHostImpl)ht).updateStats();
+														
+													}else{
+														
+														((TRHostTorrentPublishImpl)ht).updateStats();
+														
+													}
 												}
+											}finally{
+												
+												this_mon.exit();
 											}
-										}finally{
 											
-											this_mon.exit();
+											config.saveConfig( true );
+											
+										}else{
+											
+											config.saveConfig( false );
 										}
-										
-										config.saveConfig();
 										
 									}catch( InterruptedException e ){
 										
 										Debug.printStackTrace( e );
 										
 										break;
+									}finally{
+										
+										tick_count++;
 									}
 								}
 							}
@@ -451,7 +465,7 @@ TRHostImpl
 	
 			listeners.dispatch( LDT_TORRENT_ADDED, host_torrent );
 			
-			config.saveConfig();
+			config.saveRequired();
 			
 			return( host_torrent );
 			
@@ -1081,7 +1095,7 @@ TRHostImpl
 	public void
 	close()
 	{
-		config.saveConfig();
+		config.saveConfig( true );
 	}
 	
 	public boolean
