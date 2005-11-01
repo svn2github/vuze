@@ -165,11 +165,12 @@ public class GlobalManagerImpl
   
   
 	public class Checker extends AEThread {
-    boolean finished = false;
     int loopFactor;
     private static final int waitTime = 10*1000;
     // 5 minutes save resume data interval (default)
     private int saveResumeLoopCount = 5*60*1000 / waitTime;
+    
+    private AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
     
 
      public Checker() {
@@ -188,7 +189,7 @@ public class GlobalManagerImpl
     public void 
 	runSupport() 
     {
-      while (!finished) {
+      while ( true ){
 
       	try{
 	        loopFactor++;
@@ -228,7 +229,12 @@ public class GlobalManagerImpl
       	}
       	
         try {
-          Thread.sleep(waitTime);
+        	run_sem.reserve(waitTime);
+        	
+        	if ( run_sem.isReleasedForever()){
+        		
+        		break;
+        	}
         }
         catch (Exception e) {
         	Debug.printStackTrace( e );
@@ -237,7 +243,7 @@ public class GlobalManagerImpl
     }
 
     public void stopIt() {
-      finished = true;
+      run_sem.releaseForever();
     }
   }
 

@@ -44,25 +44,25 @@ TRHostImpl
 				TRTrackerServerListener, TRTrackerServerFactoryListener,
 				TRTrackerServerRequestListener, TRTrackerServerAuthenticationListener
 {
-	protected static final int URL_DEFAULT_PORT		= 80;	// port to use if none in announce URL
-	protected static final int URL_DEFAULT_PORT_SSL	= 443;	// port to use if none in announce URL
+	private static final int URL_DEFAULT_PORT		= 80;	// port to use if none in announce URL
+	private static final int URL_DEFAULT_PORT_SSL	= 443;	// port to use if none in announce URL
 	
-	protected static final int STATS_PERIOD_SECS		= 60;
-	protected static final int TICK_PERIOD_SECS			= 10;
-	protected static final int TICKS_PER_STATS_PERIOD	= STATS_PERIOD_SECS/TICK_PERIOD_SECS;
+	public static final int STATS_PERIOD_SECS		= 60;
+	private static final int TICK_PERIOD_SECS			= 10;
+	private static final int TICKS_PER_STATS_PERIOD	= STATS_PERIOD_SECS/TICK_PERIOD_SECS;
 		
-	protected static TRHostImpl	singleton;
-	protected static AEMonitor 	class_mon 	= new AEMonitor( "TRHost:class" );
+	private static TRHostImpl	singleton;
+	private static AEMonitor 	class_mon 	= new AEMonitor( "TRHost:class" );
 
-	protected TRHostConfigImpl		config;
+	private TRHostConfigImpl		config;
 		
-	protected Hashtable				server_map 	= new Hashtable();
+	private Hashtable				server_map 	= new Hashtable();
 	
-	protected List	host_torrents			= new ArrayList();
-	protected Map	host_torrent_hash_map	= new HashMap();
+	private List	host_torrents			= new ArrayList();
+	private Map	host_torrent_hash_map	= new HashMap();
 	
-	protected Map	host_torrent_map		= new HashMap();
-	protected Map	tracker_client_map		= new HashMap();
+	private Map	host_torrent_map		= new HashMap();
+	private Map	tracker_client_map		= new HashMap();
 	
 	private static final int LDT_TORRENT_ADDED			= 1;
 	private static final int LDT_TORRENT_REMOVED		= 2;
@@ -95,12 +95,14 @@ TRHostImpl
 			}
 		});	
 	
-	protected List	auth_listeners		= new ArrayList();
+	private List	auth_listeners		= new ArrayList();
 	
-	protected boolean	server_factory_listener_added;
+	private boolean	server_factory_listener_added;
 	
 	protected AEMonitor this_mon 	= new AEMonitor( "TRHost" );
 
+	private volatile boolean	closed;
+	
 	public static TRHost
 	create()
 	{
@@ -193,6 +195,11 @@ TRHostImpl
 										}
 										
 										Thread.sleep( TICK_PERIOD_SECS*1000 );
+										
+										if ( closed ){
+											
+											break;
+										}
 										
 										if ( tick_count % TICKS_PER_STATS_PERIOD == 0 ){
 											
@@ -1095,6 +1102,8 @@ TRHostImpl
 	public void
 	close()
 	{
+		closed	= true;
+		
 		config.saveConfig( true );
 	}
 	
