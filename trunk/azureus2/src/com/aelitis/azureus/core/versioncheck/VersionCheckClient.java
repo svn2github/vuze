@@ -46,6 +46,15 @@ import com.aelitis.azureus.core.networkmanager.impl.TCPTransportImpl;
  * Client for checking version information from a remote server.
  */
 public class VersionCheckClient {
+	
+	public static final String	REASON_UPDATE_CHECK_START		= "us";
+	public static final String	REASON_UPDATE_CHECK_PERIODIC	= "up";
+	public static final String	REASON_CHECK_SWT				= "sw";
+	public static final String	REASON_DHT_EXTENDED_ALLOWED		= "dx";
+	public static final String	REASON_DHT_ENABLE_ALLOWED		= "de";
+	public static final String	REASON_EXTERNAL_IP				= "ip";
+	
+	
   private static final String SERVER_ADDRESS = "version.aelitis.com";
   private static final int SERVER_PORT = 6868;
   
@@ -72,7 +81,7 @@ public class VersionCheckClient {
    * Get the version check reply info.
    * @return reply data, possibly cached, if the server was already checked within the last minute
    */
-  public Map getVersionCheckInfo() {
+  public Map getVersionCheckInfo( String reason ) {
     try {  check_mon.enter();
     
       long time_diff = SystemTime.getCurrentTime() - last_check_time;
@@ -80,7 +89,7 @@ public class VersionCheckClient {
       
       if( last_check_data == null || last_check_data.size() == 0 || force ) {
         try {
-          last_check_data = performVersionCheck( constructVersionCheckMessage() );
+          last_check_data = performVersionCheck( constructVersionCheckMessage( reason ) );
         }
         catch( Throwable t ) {
           t.printStackTrace();
@@ -98,11 +107,9 @@ public class VersionCheckClient {
     return last_check_data;
   }
   
-  public boolean
+  private boolean
   isVersionCheckDataValid()
-  {
-  	getVersionCheckInfo();
-  	
+  {  	
   	return( last_check_data != null && last_check_data.size() > 0 ); 
   }
   
@@ -112,7 +119,7 @@ public class VersionCheckClient {
    * @return external ip address, or empty string if no address information found
    */
   public String getExternalIpAddress() {
-    Map reply = getVersionCheckInfo();
+    Map reply = getVersionCheckInfo( REASON_EXTERNAL_IP );
     
     byte[] address = (byte[])reply.get( "source_ip_address" );
     if( address != null ) {
@@ -128,14 +135,25 @@ public class VersionCheckClient {
    * @return true if DHT can be enabled, false if it should not be enabled
    */
   public boolean DHTEnableAllowed() {
-    Map reply = getVersionCheckInfo();
+    Map reply = getVersionCheckInfo( REASON_DHT_ENABLE_ALLOWED );
+    
+    boolean	res = false;
     
     byte[] value = (byte[])reply.get( "enable_dht" );
+    
     if( value != null ) {
-      return( new String( value ).equalsIgnoreCase( "true" ));
+    	
+      res = new String( value ).equalsIgnoreCase( "true" );
     }
     
-    return false;
+	// we take the view that if the version check failed then we go ahead
+	// and enable the DHT (i.e. we're being optimistic)
+
+    if ( !res ){
+    	res = !isVersionCheckDataValid();
+    }
+    
+    return res;
   }
   
   
@@ -144,14 +162,22 @@ public class VersionCheckClient {
    * @return true if extended DHT use is allowed, false if not allowed
    */
   public boolean DHTExtendedUseAllowed() {
-    Map reply = getVersionCheckInfo();
+    Map reply = getVersionCheckInfo( REASON_DHT_EXTENDED_ALLOWED );
+    
+    boolean	res = false;
     
     byte[] value = (byte[])reply.get( "enable_dht_extended_use" );
     if( value != null ) {
-      return( new String( value ).equalsIgnoreCase( "true" ));
+      res = new String( value ).equalsIgnoreCase( "true" );
     }
     
-    return false;
+    	// be generous and enable extended use if check failed
+    
+    if ( !res ){
+    	res = !isVersionCheckDataValid();
+    }
+    
+    return res;
   }
   
 
@@ -265,7 +291,7 @@ public class VersionCheckClient {
    * Construct the default version check message.
    * @return message to send
    */
-  private Map constructVersionCheckMessage() {
+  private Map constructVersionCheckMessage( String reason ) {
     Map message = new HashMap();
     
     message.put( "appid", SystemProperties.getApplicationIdentifier());
@@ -274,10 +300,25 @@ public class VersionCheckClient {
     String id = COConfigurationManager.getStringParameter( "ID", null );
     boolean send_info = COConfigurationManager.getBooleanParameter( "Send Version Info" );
     
+    int last_send_time = COConfigurationManager.getIntParameter( "Send Version Info Last Time", -1 );
+
+    int current_send_time = (int)(SystemTime.getCurrentTime()/1000);
+    
+    COConfigurationManager.setParameter( "Send Version Info Last Time", current_send_time );
+    
     if( id != null && send_info ) {
     	
       message.put( "id", id );
       message.put( "os", Constants.OSName );
+    
+      if ( last_send_time != -1 && last_send_time < current_send_time ){
+    	  
+    	  	// tims since last
+    	  
+    	  message.put( "tsl", new Long(current_send_time-last_send_time));
+      }
+      
+      message.put( "reason", reason );
       
       String  java_version = System.getProperty( "java.version" );
       if ( java_version == null ){  java_version = "unknown";  }

@@ -64,6 +64,8 @@ CoreUpdateChecker
 	protected LoggerChannel					log;
 	protected ResourceDownloaderListener	rd_logger;
 	
+	protected boolean						first_check		= true;
+	
 	public static void
 	doUsageStats()
 	{
@@ -79,9 +81,16 @@ CoreUpdateChecker
 	protected void
 	doUsageStatsSupport()
 	{
-	  Map decoded = VersionCheckClient.getSingleton().getVersionCheckInfo();
-    
-    displayUserMessage( decoded );
+		try{
+			Map decoded = VersionCheckClient.getSingleton().getVersionCheckInfo(
+			  			first_check?VersionCheckClient.REASON_UPDATE_CHECK_START:VersionCheckClient.REASON_UPDATE_CHECK_PERIODIC);
+    	  
+			displayUserMessage( decoded );
+			
+		}finally{
+			
+			  first_check	= false;
+		}
 	}
 
 	
@@ -144,8 +153,10 @@ CoreUpdateChecker
 				System.out.println( "CoreUpdater: !!!! Testing mode !!!!" );
 				
 			}
-					
-			Map	decoded = VersionCheckClient.getSingleton().getVersionCheckInfo();
+				
+			Map	decoded = VersionCheckClient.getSingleton().getVersionCheckInfo(
+		  			first_check?VersionCheckClient.REASON_UPDATE_CHECK_START:VersionCheckClient.REASON_UPDATE_CHECK_PERIODIC);
+
       
 			displayUserMessage( decoded );
 			
@@ -306,6 +317,8 @@ CoreUpdateChecker
 		}finally{
 			
 			checker.completed();
+			
+			first_check = false;
 		}
 	}
 	

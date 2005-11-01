@@ -115,6 +115,9 @@ DHTPlugin
 	private boolean				enabled;
 	private int					dht_data_port_default, dht_data_port;
 	
+	private boolean				got_extended_use;
+	private boolean				extended_use;
+	
 	private AESemaphore			init_sem = new AESemaphore("DHTPlugin:init" );
 	
 	private BooleanParameter	ipfilter_logging;
@@ -623,12 +626,8 @@ DHTPlugin
 				runSupport()
 				{
 					try{							
-							// we take the view that if the version check failed then we go ahead
-							// and enable the DHT (i.e. we're being optimistic)
 						
-						enabled =
-							(!VersionCheckClient.getSingleton().isVersionCheckDataValid()) ||
-							VersionCheckClient.getSingleton().DHTEnableAllowed();
+						enabled = VersionCheckClient.getSingleton().DHTEnableAllowed();
 						
 						if ( enabled ){
 							
@@ -729,7 +728,14 @@ DHTPlugin
 			return( false );
 		}
 		
-		return( VersionCheckClient.getSingleton().DHTExtendedUseAllowed());
+		if ( !got_extended_use){
+		
+			got_extended_use	= true;
+			
+			extended_use = VersionCheckClient.getSingleton().DHTExtendedUseAllowed();
+		}
+		
+		return( extended_use );
 	}
 	
 	public int

@@ -91,7 +91,7 @@ public class SWTVersionGetter {
   private void downloadLatestVersion() {
     LGLogger.log("Requesting latest SWT version and url from version check client." );
     
-    Map reply = VersionCheckClient.getSingleton().getVersionCheckInfo();
+    Map reply = VersionCheckClient.getSingleton().getVersionCheckInfo(VersionCheckClient.REASON_CHECK_SWT);
     
     String msg = "SWT version check received:";
     
