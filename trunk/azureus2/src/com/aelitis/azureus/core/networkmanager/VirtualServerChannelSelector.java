@@ -129,8 +129,8 @@ public class VirtualServerChannelSelector {
     while( running ) {
       try {
         SocketChannel client_channel = server_channel.accept();
-        client_channel.configureBlocking( false );
         last_accept_time = SystemTime.getCurrentTime();
+        client_channel.configureBlocking( false );
         listener.newConnectionAccepted( client_channel );
       }
       catch( AsynchronousCloseException e ) {

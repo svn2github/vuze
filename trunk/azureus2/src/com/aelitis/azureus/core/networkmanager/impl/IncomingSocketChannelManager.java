@@ -120,7 +120,7 @@ public class IncomingSocketChannelManager {
     					
     					long accept_idle = SystemTime.getCurrentTime() - server_selector.getTimeOfLastAccept();
  
-    					if( accept_idle > 5*60*1000 ) {  //the socket server hasn't accepted any new connections in the last 5min
+    					if( accept_idle > 10*60*1000 ) {  //the socket server hasn't accepted any new connections in the last 10min
   						
     						//so manually test the listen port for connectivity
     						
@@ -135,16 +135,25 @@ public class IncomingSocketChannelManager {
       						fail_count = 0;
       					}
       					catch( Throwable t ) {
-      						fail_count++;
-      						Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
-      				
-      						if( fail_count > 4 ) {
-      							String error = t.getMessage() == null ? "<null>" : t.getMessage();
-      							String msg = "Listen server socket on [" +inet_address+ ": " +listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
-      							LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
-      							IncomingSocketChannelManager.this.stop();
-      							IncomingSocketChannelManager.this.start();
+      						
+      						//ok, let's try again without the explicit local bind
+      						try {
+      							Socket sock = new Socket( InetAddress.getByName( "127.0.0.1" ), listen_port );      							
+      							sock.close();
       							fail_count = 0;
+      						}
+      						catch( Throwable x ) {
+      							fail_count++;
+        						Debug.out( new Date()+ ": listen port on [" +inet_address+ ": " +listen_port+ "] seems CLOSED [" +fail_count+ "x]" );
+        				
+        						if( fail_count > 4 ) {
+        							String error = t.getMessage() == null ? "<null>" : t.getMessage();
+        							String msg = "Listen server socket on [" +inet_address+ ": " +listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
+        							LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
+        							IncomingSocketChannelManager.this.stop();
+        							IncomingSocketChannelManager.this.start();
+        							fail_count = 0;
+        						}
       						}
       					}
     					}
