@@ -425,18 +425,29 @@ TRNonBlockingServer
 		
 		List	pending_list	= new ArrayList();
 		
+		long	default_delay = CLOSE_DELAY*2/3;
+		
+		long	delay = default_delay;
+		
 		while( true ){
 
 				// wait a small amount of time to allow the client to close the connection rather
 				// than us. This prevents a buildup of TIME_WAIT state sockets
 			
-			try{
-				Thread.sleep( CLOSE_DELAY*2/3 );
+			if ( delay > 0 ){
 				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
+				try{
+					Thread.sleep( delay );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
+			
+			// System.out.println( "close delay = " + delay + ", pending =" + pending_list.size());
+			
+			long	start = SystemTime.getCurrentTime();
 			
 	        for (int i=0;i<pending_list.size();i++){
 	        	
@@ -447,7 +458,7 @@ TRNonBlockingServer
 	        		
 	        	}
 	        }
-				        
+				        	
 		    try{
 		    	this_mon.enter();
 	        
@@ -459,6 +470,17 @@ TRNonBlockingServer
 	        	
 	        	this_mon.exit();
 	        }
+	        
+	        	// reduce the sleep time if we're not keeping up
+	        
+	        long	duration = SystemTime.getCurrentTime() - start;
+	        
+	        if ( duration < 0 ){
+	        	
+	        	duration	= 0;
+	        }
+	        
+	        delay = default_delay - duration;
 		}	
 	}
 }
