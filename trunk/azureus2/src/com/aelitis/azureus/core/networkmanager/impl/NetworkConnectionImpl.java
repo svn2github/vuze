@@ -61,7 +61,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
    */
   public NetworkConnectionImpl( InetSocketAddress _remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
     remote_address = _remote_address;
-    tcp_transport = new TCPTransportImpl();
+    tcp_transport = TransportFactory.createTCPTransport();
     is_connected = false;
     outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );
     incoming_message_queue = new IncomingMessageQueue( decoder, this );
@@ -78,7 +78,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
    */
   public NetworkConnectionImpl( SocketChannel _remote_channel, ByteBuffer data_already_read, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
     remote_address = new InetSocketAddress( _remote_channel.socket().getInetAddress(), _remote_channel.socket().getPort() );
-    tcp_transport = new TCPTransportImpl( _remote_channel, data_already_read );
+    tcp_transport = TransportFactory.createTCPTransport( _remote_channel, data_already_read );
     is_connected = true;
     outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );
     incoming_message_queue = new IncomingMessageQueue( decoder, this );

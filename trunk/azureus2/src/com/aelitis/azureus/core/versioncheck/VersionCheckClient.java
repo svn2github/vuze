@@ -22,24 +22,18 @@
 
 package com.aelitis.azureus.core.versioncheck;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.*;
+
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.stats.transfer.OverallStats;
-import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.stats.transfer.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.TCPTransport;
-import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportImpl;
+import com.aelitis.azureus.core.clientmessageservice.*;
+
 
 
 /**
@@ -56,7 +50,8 @@ public class VersionCheckClient {
 	
 	
   private static final String SERVER_ADDRESS = "version.aelitis.com";
-  private static final int SERVER_PORT = 6868;
+  private static final int SERVER_PORT = 27001;
+  private static final String MESSAGE_TYPE_ID = "AZVER";
   
   private static final VersionCheckClient instance = new VersionCheckClient();
   private Map last_check_data = null;
@@ -67,6 +62,7 @@ public class VersionCheckClient {
   private VersionCheckClient() {
     /* blank */
   }
+  
   
   
   /**
@@ -189,100 +185,20 @@ public class VersionCheckClient {
    * @throws Exception if the server check connection fails
    */
   private Map performVersionCheck( Map data_to_send ) throws Exception {
+  	
     LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient retrieving version information from " +SERVER_ADDRESS+ ":" +SERVER_PORT ); 
     
-    final TCPTransport transport = new TCPTransportImpl();  //use transport for proxy capabilities
-    final AESemaphore block = new AESemaphore( "versioncheck" );
-    final Throwable[] errors = new Throwable[1];
+    ClientMessageService msg_service = ClientMessageServiceClient.getServerService( SERVER_ADDRESS, SERVER_PORT, MESSAGE_TYPE_ID );
     
-    transport.establishOutboundConnection( new InetSocketAddress( SERVER_ADDRESS, SERVER_PORT ), new TCPTransport.ConnectListener() {  //NOTE: async operation!
-      public void connectAttemptStarted() {  /*nothing*/ }
-      
-     public void connectSuccess() {
-       block.release();       
-     }
-     
-     public void connectFailure( Throwable failure_msg ) {
-       errors[0] = failure_msg;
-       block.release();  
-     }
-    });
-    
-    block.reserve();  //block while waiting for connect
-    
-    //connect op finished   
-    
-    if( errors[0] != null ) {  //connect failure
-      transport.close();
-      String error = errors[0].getMessage();
-      throw new IOException( "version check connect operation failed: " + error == null ? "[]" : error );
-    }
-    
-    //connect success  
-    try{    
-      final StreamDecoder decoder = new StreamDecoder( "AZR" );
-      final ByteBuffer[] reply = new ByteBuffer[1];
-         
-      NetworkManager.getSingleton().getReadSelector().register( transport.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
-        public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
-          try {
-            reply[0] = decoder.decode( transport );
-            
-            if( reply[0] != null ) {  //reading complete
-              NetworkManager.getSingleton().getReadSelector().cancel( transport.getSocketChannel() );
-              block.release();
-            }
-            else {
-              NetworkManager.getSingleton().getReadSelector().resumeSelects( transport.getSocketChannel() );
-            }
-          }
-          catch( Throwable t ) {
-            errors[0] = t;
-            NetworkManager.getSingleton().getReadSelector().cancel( transport.getSocketChannel() );
-            block.release();
-          }
-          return true;
-        }
-        
-        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-          errors[0] = msg;
-          NetworkManager.getSingleton().getReadSelector().cancel( transport.getSocketChannel() );
-          block.release();
-        }
-      }, null );
+    msg_service.sendMessage( data_to_send );  //send our version message
 
-      ByteBuffer message = ByteBuffer.wrap( BEncoder.encode( data_to_send ) );
-      StreamEncoder encoder = new StreamEncoder( "AZH", message );
-      
-      while( true ) {  //send message
-        if( encoder.encode( transport ) ) {
-          break;
-        }
-      }
+    Map reply = msg_service.receiveMessage();  //get the server reply
 
-      block.reserve();  //block while waiting for read completion
-      
-      //read op finished
-      
-      if( errors[0] != null ) {  //read failure
-        transport.close();
-        String error = errors[0].getMessage();
-        throw new IOException( "version check read operation failed: " + error == null ? "[]" : error );
-      }
-      
-      //read success
-      
-      Map reply_message = BDecoder.decode( reply[0].array() );
-      
-      LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient server version check successful. Received " +reply_message.size()+ " reply keys." );
+    LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient server version check successful. Received " +reply.size()+ " reply keys." );
 
-      last_check_time = SystemTime.getCurrentTime();
+    last_check_time = SystemTime.getCurrentTime();
       
-      return reply_message;
-    }
-    finally {
-      transport.close();
-    }
+    return reply;
   }
   
   

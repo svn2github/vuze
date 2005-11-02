@@ -86,12 +86,10 @@ public class AZMessageFactory {
   /**
    * Register a generic map payload type with the factory.
    * @param type_id to register
+   * @throws MessageException on registration error
    */
-  public static void registerGenericMapPayloadMessageType( String type_id ) {
-  	try {
-      MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null ) );
-    }
-    catch( MessageException me ) {  me.printStackTrace();  }
+  public static void registerGenericMapPayloadMessageType( String type_id ) throws MessageException {
+  	MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null ) );
   }
   
   

@@ -50,6 +50,11 @@ public class VirtualChannelSelectorImpl {
     private final VirtualChannelSelector parent;
     
     
+    private int[] select_counts = new int[ 50 ];
+    private int round = 0;
+    
+    
+    
     public VirtualChannelSelectorImpl( VirtualChannelSelector _parent, int _interest_op, boolean _pause_after_select ) {	
       this.parent = _parent;
       INTEREST_OP = _interest_op;
@@ -397,6 +402,26 @@ public class VirtualChannelSelectorImpl {
         Debug.out( "Caught exception on selector.select() op: " +t.getMessage(), t );
         try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
+      
+      
+      /*
+      if( INTEREST_OP == VirtualChannelSelector.OP_READ ) {  //TODO
+      	select_counts[ round ] = count;
+      	round++;
+      	if( round == select_counts.length ) {
+      		StringBuffer buf = new StringBuffer( select_counts.length * 3 );
+      		
+      		buf.append( "select_counts=" );
+      		for( int i=0; i < select_counts.length; i++ ) {
+      			buf.append( select_counts[i] );
+      			buf.append( ' ' );
+      		}
+      		
+      		//System.out.println( buf.toString() );
+      		round = 0;
+      	}
+      }
+      */
       
       selector_guard.verifySelectorIntegrity( count, SystemTime.TIME_GRANULARITY_MILLIS /2 );
       

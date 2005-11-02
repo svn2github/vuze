@@ -40,8 +40,8 @@ import com.aelitis.azureus.core.networkmanager.*;
  */
 public class TCPTransportImpl implements TCPTransport {
 	
-  private static boolean enable_efficient_io = Constants.JAVA_VERSION.startsWith("1.5");
-  private SocketChannel socket_channel;
+  
+  private TCPTransportHelper helper;
 
   private volatile boolean is_ready_for_write = false;
   private volatile boolean is_ready_for_read = false;
@@ -67,7 +67,7 @@ public class TCPTransportImpl implements TCPTransport {
    * Constructor for disconnected transport.
    */
   public TCPTransportImpl() {
-    socket_channel = null;
+  	helper = null;
     is_inbound_connection = false;
   }
   
@@ -78,7 +78,7 @@ public class TCPTransportImpl implements TCPTransport {
    * @param already_read bytes from the channel
    */
   public TCPTransportImpl( SocketChannel channel, ByteBuffer already_read ) {
-    this.socket_channel = channel;
+    this.helper = new TCPTransportHelper( channel );
     this.data_already_read = already_read;   
     is_inbound_connection = true;
     description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
@@ -102,7 +102,7 @@ public class TCPTransportImpl implements TCPTransport {
    * Get the socket channel used by the transport.
    * @return the socket channel
    */
-  public SocketChannel getSocketChannel() {  return socket_channel;  }
+  public SocketChannel getSocketChannel() {  return helper.getSocketChannel();  }
   
   
   /**
@@ -138,112 +138,44 @@ public class TCPTransportImpl implements TCPTransport {
    * @throws IOException on write error
    */
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-    if( socket_channel == null ) {
-      Debug.out( "socket_channel == null" );
-      return 0;
-    }
+  	if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
     
-    
-    /*
-    if( array_offset < 0 || array_offset >= buffers.length ) {
-      Debug.out( "array_offset < 0 || array_offset >= buffers.length" );
-    }
-    
-    if( length < 1  || length > buffers.length - array_offset ) {
-      Debug.out( "length < 1  || length > buffers.length - array_offset" );
-    }
-    
-    if( buffers.length < 1 ) {
-      Debug.out( "buffers.length < 1" );
-    }
-    
-    for( int i = array_offset; i < (array_offset + length); i++ ) {
-      ByteBuffer bb = buffers[ i ];
-      
-      if( bb == null ) {
-        Debug.out( "bb[" +i+ "] == null" );
-      }
-    }
-    */    
+  	long written = helper.write( buffers, array_offset, length );
 
-    
-    try { 
-      if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
-    
-      if( enable_efficient_io ) {
-        try {
-          long written = socket_channel.write( buffers, array_offset, length );		
-          
-          
-          if( stats != null )  stats.bytesWritten( (int)written );  //TODO
-          
-          
-          if( written < 1 )  requestWriteSelect();
-          return written;
-        }
-        catch( IOException ioe ) {
-          //a bug only fixed in Tiger (1.5 series):
-          //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-          String msg = ioe.getMessage();
-          if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
-            enable_efficient_io = false;
-            LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket write failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem!" );
-          }
-          throw ioe;
-        }
-      }
-    
-      //single-buffer mode
-      long written_sofar = 0;
-      for( int i=array_offset; i < (array_offset + length); i++ ) {
-        int data_length = buffers[ i ].remaining();
-        int written = socket_channel.write( buffers[ i ] );
-        written_sofar += written;
-        if( written < data_length ) {
-          break;
-        }
-      }
+  	if( stats != null )  stats.bytesWritten( (int)written );  //TODO
+       
+  	if( written < 1 )  requestWriteSelect();
       
-      
-      if( stats != null )  stats.bytesWritten( (int)written_sofar );  //TODO
-      
-      
-      if( written_sofar < 1 )  requestWriteSelect();
-      
-      return written_sofar;
-    }
-    catch( IOException e ) {
-      is_ready_for_write = false;  //once an exception is thrown on write, disable any future writing
-      throw e;
-    }
+  	return written;
   }
   
 
+  
   private void requestWriteSelect() {
     is_ready_for_write = false;
-    if( socket_channel != null ){
-      NetworkManager.getSingleton().getWriteSelector().resumeSelects( socket_channel );
+    if( helper != null ){
+      NetworkManager.getSingleton().getWriteSelector().resumeSelects( helper.getSocketChannel() );
     }
   }
   
   
   private void requestReadSelect() {
     is_ready_for_read = false;
-    if( socket_channel != null ){
-      NetworkManager.getSingleton().getReadSelector().resumeSelects( socket_channel );
+    if( helper != null ){
+      NetworkManager.getSingleton().getReadSelector().resumeSelects( helper.getSocketChannel() );
     }
   } 
   
 
   
   private void registerSelectHandling() {
-    if( socket_channel == null ) {
+    if( helper == null ) {
       Debug.out( "ERROR: registerSelectHandling():: socket_channel == null" );
       return;
     }
 
     //read selection
-    NetworkManager.getSingleton().getReadSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+    NetworkManager.getSingleton().getReadSelector().register( helper.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
         is_ready_for_read = true;
         return true;
@@ -257,7 +189,7 @@ public class TCPTransportImpl implements TCPTransport {
     
     
     //write selection
-    NetworkManager.getSingleton().getWriteSelector().register( socket_channel, new VirtualChannelSelector.VirtualSelectorListener() {
+    NetworkManager.getSingleton().getWriteSelector().register( helper.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
         is_ready_for_write = true;
         return true;
@@ -287,35 +219,7 @@ public class TCPTransportImpl implements TCPTransport {
     if( read_select_failure != null ) {
       is_ready_for_read = false;
       throw new IOException( "read_select_failure: " + read_select_failure.getMessage() );
-    }
-
-    if( socket_channel == null ) {
-      Debug.out( "socket_channel == null" );
-      return 0;
-    }
-    
-    /*
-    if( array_offset < 0 || array_offset >= buffers.length ) {
-      Debug.out( "array_offset < 0 || array_offset >= buffers.length" );
-    }
-    
-    if( length < 1  || length > buffers.length - array_offset ) {
-      Debug.out( "length < 1  || length > buffers.length - array_offset" );
-    }
-    
-    if( buffers.length < 1 ) {
-      Debug.out( "buffers.length < 1" );
-    }
-    
-    for( int i = array_offset; i < (array_offset + length); i++ ) {
-      ByteBuffer bb = buffers[ i ];
-      
-      if( bb == null ) {
-        Debug.out( "bb[" +i+ "] == null" );
-      }
-    }
-    */
-    
+    }  
     
     //insert already-read data into the front of the stream
     if( data_already_read != null ) {
@@ -347,51 +251,10 @@ public class TCPTransportImpl implements TCPTransport {
       }      
     }
  
-    
-    if( buffers == null ) {
-      Debug.out( "read: buffers == null" );
-    }
-    
-    long bytes_read = 0;
-    
-    if( enable_efficient_io ) {
-      try{
-        bytes_read = socket_channel.read( buffers, array_offset, length );
-      }
-      catch( IOException ioe ) {
-        is_ready_for_read = false;
         
-        //a bug only fixed in Tiger (1.5 series):
-        //http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4854354
-        String msg = ioe.getMessage();
-        if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
-          enable_efficient_io = false;
-          LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket read failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem!" );
-        }
-        
-        throw ioe;
-      }
-    }
-    else {
-      //single-buffer mode
-      for( int i=array_offset; i < (array_offset + length); i++ ) {
-        int data_length = buffers[ i ].remaining();
-        int read = socket_channel.read( buffers[ i ] );
-        bytes_read += read;
-        if( read < data_length ) {
-          break;
-        }
-      }
-    }    
+    long bytes_read = helper.read( buffers, array_offset, length );
 
-    if( bytes_read < 0 ) {
-      is_ready_for_read = false;
-      throw new IOException( "end of stream on socket read" );
-    }
-    
-    
     if( stats != null )  stats.bytesRead( (int)bytes_read );  //TODO
-    
     
     if( bytes_read == 0 ) {
       requestReadSelect();
@@ -412,7 +275,7 @@ public class TCPTransportImpl implements TCPTransport {
   public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ) {
     if( has_been_closed )  return;
     
-    if( socket_channel != null ) {  //already connected
+    if( helper != null ) {  //already connected
       Debug.out( "socket_channel != null" );
       listener.connectSuccess();
       return;
@@ -439,7 +302,7 @@ public class TCPTransportImpl implements TCPTransport {
           return;
         }
         
-        socket_channel = channel;
+        helper = new TCPTransportHelper( channel );
         connect_request_key = null;
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
@@ -482,17 +345,17 @@ public class TCPTransportImpl implements TCPTransport {
   
 
   private void setTransportBuffersSize( int size_in_bytes ) {
-  	if( socket_channel == null ) {
+  	if( helper == null ) {
   		Debug.out( "socket_channel == null" );
   		return;
   	}
   	
     try{
-      socket_channel.socket().setSendBufferSize( size_in_bytes );
-      socket_channel.socket().setReceiveBufferSize( size_in_bytes );
+    	helper.getSocketChannel().socket().setSendBufferSize( size_in_bytes );
+    	helper.getSocketChannel().socket().setReceiveBufferSize( size_in_bytes );
       
-      int snd_real = socket_channel.socket().getSendBufferSize();
-      int rcv_real = socket_channel.socket().getReceiveBufferSize();
+      int snd_real = helper.getSocketChannel().socket().getSendBufferSize();
+      int rcv_real = helper.getSocketChannel().socket().getReceiveBufferSize();
       
       LGLogger.log( "Setting new transport [" +description+ "] buffer sizes: SND=" +size_in_bytes+ " [" +snd_real+ "] , RCV=" +size_in_bytes+ " [" +rcv_real+ "]" );
     }
@@ -552,10 +415,10 @@ public class TCPTransportImpl implements TCPTransport {
     is_ready_for_read = false;
     is_ready_for_write = false;
 
-    if( socket_channel != null ){
-      NetworkManager.getSingleton().getReadSelector().cancel( socket_channel );
-      NetworkManager.getSingleton().getWriteSelector().cancel( socket_channel );
-      NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( socket_channel );
+    if( helper != null ){
+      NetworkManager.getSingleton().getReadSelector().cancel( helper.getSocketChannel() );
+      NetworkManager.getSingleton().getWriteSelector().cancel( helper.getSocketChannel() );
+      NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( helper.getSocketChannel() );
     }
   }
      
