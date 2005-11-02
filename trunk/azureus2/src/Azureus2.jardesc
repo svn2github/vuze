@@ -33,6 +33,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ddb"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.crypto.modes"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.asn1.misc"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.upnp.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.config.wizard"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.diskmanager.cache.impl"/>
@@ -239,6 +240,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.transport.util"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.udp"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.pluginsinstaller"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.clientmessageservice"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.pluginsuninstaller"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.disk"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ipfilter"/>
@@ -249,6 +251,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swing"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.util.bloom.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.configsections"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.utils.resourceuploader"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.udp.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.messaging"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.asn1.x509"/>
@@ -334,6 +337,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.html.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.table.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.clientmessageservice.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui.model"/>
 <javaElement handleIdentifier="=azuis/&lt;HTML.Tmpl.Element"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.dht.impl"/>

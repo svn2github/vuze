@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerException;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -53,11 +52,12 @@ TRNonBlockingServer
 {
 	private static final int TIMEOUT_CHECK_INTERVAL = 10*1000;  //10sec
 	
+	private static final int CLOSE_DELAY			= 10*1000;
+	
 	private final VirtualChannelSelector read_selector	 	= new VirtualChannelSelector( VirtualChannelSelector.OP_READ, false );
 	private final VirtualChannelSelector write_selector 	= new VirtualChannelSelector( VirtualChannelSelector.OP_WRITE, true );
 	
 	private 	  List			connections_to_close 		= new ArrayList();
-	private final AESemaphore	connections_to_close_sem	= new AESemaphore( "TRNonBlockingServer:close");
 	
 	private		  List		processors					= new ArrayList();
 	
@@ -344,12 +344,10 @@ TRNonBlockingServer
         	
         	if ( processors.remove( processor )){
             
-            read_selector.cancel( processor.getSocketChannel() );
-            write_selector.cancel( processor.getSocketChannel() );
+        		read_selector.cancel( processor.getSocketChannel() );
+        		write_selector.cancel( processor.getSocketChannel() );
         	
         		connections_to_close.add( processor );
-        	
-        		connections_to_close_sem.release();
         	}
         	
         }finally{
@@ -398,14 +396,12 @@ TRNonBlockingServer
         		
         		if ( now - processor.getStartTime() > PROCESSING_GET_LIMIT ){
               
-              read_selector.cancel( processor.getSocketChannel() );
-              write_selector.cancel( processor.getSocketChannel() );
+        			read_selector.cancel( processor.getSocketChannel() );
+        			write_selector.cancel( processor.getSocketChannel() );
               
-              connections_to_close.add( processor );
-                	
-              connections_to_close_sem.release();
-               		
-              total_timeouts++;
+        			connections_to_close.add( processor );
+                	            		
+        			total_timeouts++;
                		
         		}else{
         			
@@ -427,37 +423,41 @@ TRNonBlockingServer
 			// socket channel close ops can block, hence we move it off the main processing loops
 			// to ensure that a rogue connection doesn't stall us
 		
+		List	pending_list	= new ArrayList();
+		
 		while( true ){
+
+				// wait a small amount of time to allow the client to close the connection rather
+				// than us. This prevents a buildup of TIME_WAIT state sockets
 			
-			connections_to_close_sem.reserve();
+			try{
+				Thread.sleep( CLOSE_DELAY*2/3 );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 			
-			List	close_list;
-			
+	        for (int i=0;i<pending_list.size();i++){
+	        	
+	        	try{
+	        		((TRNonBlockingServerProcessor)pending_list.get(i)).getSocketChannel().close();
+	        		
+	        	}catch( Throwable e ){
+	        		
+	        	}
+	        }
+				        
 		    try{
 		    	this_mon.enter();
 	        
-		    	close_list	= connections_to_close;
+		    	pending_list	= connections_to_close;
 		    	
 		    	connections_to_close	= new ArrayList();
 		    	
 	        }finally{
 	        	
 	        	this_mon.exit();
-	        }
-	        
-	        if ( close_list.size() > 1 ){
-	        	
-	        	connections_to_close_sem.reserve( close_list.size() - 1 );
-	        }
-	        
-	        for (int i=0;i<close_list.size();i++){
-	        	
-	        	try{
-	        		((TRNonBlockingServerProcessor)close_list.get(i)).getSocketChannel().close();
-	        		
-	        	}catch( Throwable e ){
-	        		
-	        	}
 	        }
 		}	
 	}
