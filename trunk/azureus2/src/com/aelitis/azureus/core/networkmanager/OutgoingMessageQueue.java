@@ -476,7 +476,7 @@ public class OutgoingMessageQueue {
               
               if( TRACE_HISTORY ) {
               	prev_sent.addLast( msg );
-              	if( prev_sent.size() > 5 )  prev_sent.removeFirst();
+              	if( prev_sent.size() > 10 )  prev_sent.removeFirst();
               }
               
               
@@ -639,7 +639,7 @@ public class OutgoingMessageQueue {
   public String getQueueTrace() {
   	StringBuffer trace = new StringBuffer();
   	
-  	trace.append( "**** OUTGOING QUEUE TRACE ****" );
+  	trace.append( "**** OUTGOING QUEUE TRACE ****\n" );
   	
   	try{
       queue_mon.enter();
