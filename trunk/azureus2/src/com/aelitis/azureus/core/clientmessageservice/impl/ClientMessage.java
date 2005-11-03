@@ -34,7 +34,7 @@ public class ClientMessage {
 	private final String message_id;
 	private final ClientConnection client;
 	private final Map payload;
-	private final ClientMessageHandler handler;
+	private ClientMessageHandler handler;
 	
 	
 	public ClientMessage( String msg_id, ClientConnection _client, Map msg_payload, ClientMessageHandler _handler ) {
@@ -52,5 +52,7 @@ public class ClientMessage {
 	public Map getPayload(){  return payload;  }
 	
 	public ClientMessageHandler getHandler(){  return handler;  }
+	
+	public void setHandler( ClientMessageHandler new_handler ) {  this.handler = new_handler;  }
 
 }
