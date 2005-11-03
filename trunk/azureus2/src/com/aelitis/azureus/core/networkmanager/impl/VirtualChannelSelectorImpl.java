@@ -396,6 +396,13 @@ public class VirtualChannelSelectorImpl {
       int count = 0;
       selector_guard.markPreSelectTime();
       try {
+      	
+      	
+      	
+      	Thread.sleep( 20 );
+      	
+      	
+      	
         count = selector.select( timeout );
       }
       catch (Throwable t) {
