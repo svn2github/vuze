@@ -621,17 +621,73 @@ public class TableView
 
       for (int i = 0; i < items.length; i++) {
         final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl)items[i];
-        final MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
-
+        
+        final int style = contextMenuItem.getStyle();
+        
+        final MenuItem menuItem = 
+        	new MenuItem(menu, style==TableContextMenuItem.STYLE_NORMAL?SWT.PUSH:SWT.CHECK );
+        
         Messages.setLanguageText(menuItem, contextMenuItem.getResourceKey());
+
+        menuItem.setData( contextMenuItem );
+        
         menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
           public void run(TableRowCore row) {
-            contextMenuItem.invokeListeners(row);
+              if ( style == TableContextMenuItem.STYLE_CHECK ){
+            	  contextMenuItem.setData(new Boolean(menuItem.getSelection()));
+              }	  
+              contextMenuItem.invokeListeners(row);
           }
         });
       }
     }
   }
+  
+  	/**
+  	 * should be called by sub-views when the context menu is shown to allow selection specific actions
+  	 * to be taken
+  	 */
+  
+ 	protected void
+ 	showMenu()
+ 	{	
+ 		boolean	enable_items = table != null && table.getSelection().length > 0;
+      
+ 		MenuItem[]	items = menu.getItems();
+ 
+ 		for (int i = 0; i < items.length; i++) {
+        	
+ 			MenuItem	item = items[i];
+        	
+ 			Object	data = item.getData();
+        	
+ 			if ( data instanceof TableContextMenuItemImpl ){
+        		
+        		final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl)data;
+          
+        		final int style = contextMenuItem.getStyle();
+          
+        		if ( style == TableContextMenuItem.STYLE_CHECK && enable_items ){
+	          	
+        			runForSelectedRows(
+	              		new GroupTableRowRunner()
+	              		{
+	              			public void
+	              			runAll(
+	              				TableRowCore[]	rows )
+	              			{
+	              				contextMenuItem.invokeMenuWillBeShownListeners( rows );
+	              			}
+	              		});
+                
+        			item.setSelection(((Boolean)contextMenuItem.getData()).booleanValue());
+        		}
+         
+          
+        		item.setEnabled( enable_items );
+        	}
+        }
+  	}
 
   /* SubMenu for column specific tasks. 
    *

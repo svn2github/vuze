@@ -202,6 +202,8 @@ MySharesView
 
 	   menu.addListener(SWT.Show, new Listener() {
 		 public void handleEvent(Event e) {
+			 MySharesView.this.showMenu();
+			 	
 		   Object[] shares = getSelectedDataSources();
 
 		   itemRemove.setEnabled(shares.length > 0);

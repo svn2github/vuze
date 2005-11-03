@@ -20,16 +20,22 @@ package org.gudy.azureus2.pluginsimpl.local.ui.tables;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.ui.menus.*;
 
 public class TableContextMenuItemImpl 
        implements TableContextMenuItem
 {
-  private String sTableID;
-  private String sName;
-  protected List listeners  = new ArrayList();
-
+  private String 	sTableID;
+  private String 	sName;
+  private int		style		= STYLE_NORMAL;
+  private Object	data;
+  
+  private List 	listeners 		= new ArrayList();
+  private List	fill_listeners	= new ArrayList();
+  
   public TableContextMenuItemImpl(String tableID, String key) {
     sTableID = tableID;
     sName = key;
@@ -43,11 +49,72 @@ public class TableContextMenuItemImpl
     return sName;
   }
   
+	public int
+	getStyle()
+	{
+		return( style );
+	}
+	
+	public void
+	setStyle(
+		int		_style )
+	{
+		style	= _style;
+	}
+	
+	public Object
+	getData()
+	{
+		return( data );
+	}
+	
+	public void
+	setData(
+		Object	_data )
+	{
+		data	= _data;
+	}
+	
+	public void
+	invokeMenuWillBeShownListeners(
+		TableRow[]		rows )
+	{
+		  for (int i = 0; i < fill_listeners.size(); i++){
+		    	
+		    	try{
+		    		((MenuItemFillListener)(fill_listeners.get(i))).menuWillBeShown(this, rows);
+		    		
+		    	}catch( Throwable e ){
+		    		
+		    		Debug.printStackTrace(e);
+		    	}
+		    }
+	}
+
+	public void
+	addFillListener(
+		MenuItemFillListener	listener )
+	{
+		fill_listeners.add( listener );
+	}
+	
+	public void
+	removeFillListener(
+		MenuItemFillListener	listener )
+	{
+		fill_listeners.remove( listener );
+	}
+	
   public void invokeListeners(TableRow row) {
-    if (listeners == null)
-      return;
-    for (int i = 0; i < listeners.size(); i++)
-      ((MenuItemListener)(listeners.get(i))).selected(this, row);
+    for (int i = 0; i < listeners.size(); i++){
+    	
+    	try{
+    		((MenuItemListener)(listeners.get(i))).selected(this, row);
+    	}catch( Throwable e ){
+    		
+    		Debug.printStackTrace(e);
+    	}
+    }
   }
 
   public void addListener(MenuItemListener l) {

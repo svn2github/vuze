@@ -29,6 +29,17 @@ package org.gudy.azureus2.plugins.ui.menus;
  */
 public interface MenuItem 
 {
+		/**
+		 * normal selection menu, no Data value required
+		 */
+	public static final int STYLE_NORMAL		= 1;
+	
+		/**
+		 * check box style menu item - data must be of type Boolean
+		 */
+	
+	public static final int STYLE_CHECK			= 2;
+	
   /** Retrieve the resource key ("name") of this menu item
    *
    * @return resource key for this menu
@@ -44,6 +55,48 @@ public interface MenuItem
 	getParent();
    */
 	
+		/**
+		 * Get the type of the menu item
+		 */
+	
+	public int
+	getStyle();
+	
+		/**
+		 * Set the style of the menu item (see STYLE_ constants)
+		 * @param style
+		 */
+	
+	public void
+	setStyle(
+		int		style );
+	
+		/**
+		 * Get the current data value associated with the menu: Boolean for CHECK style
+		 * @return
+		 */
+	
+	public Object
+	getData();
+	
+		/**
+		 * Set the current data value associated with the menu: Boolean for CHECK style
+		 * @param data
+		 */
+	
+	public void
+	setData(
+		Object	data );
+	
+	
+	public void
+	addFillListener(
+		MenuItemFillListener	listener );
+	
+	public void
+	removeFillListener(
+		MenuItemFillListener	listener );
+
 	/** Add a Selection Listener for this menu item
 	 *
 	 * @param l listener to be notified when user has selected menu item.

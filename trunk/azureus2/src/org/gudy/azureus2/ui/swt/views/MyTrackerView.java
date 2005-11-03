@@ -145,8 +145,7 @@ MyTrackerView
     azureus_core.getTrackerHost().addListener( this );
   }
 
-  public void fillMenu(final Menu menu) {
-	  
+  public void fillMenu(final Menu menu) {	  
 	    menuCategory = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
 	    final MenuItem itemCategory = new MenuItem(menu, SWT.CASCADE);
 	    Messages.setLanguageText(itemCategory, "MyTorrentsView.menu.setCategory"); //$NON-NLS-1$
@@ -171,6 +170,7 @@ MyTrackerView
 
      menu.addListener(SWT.Show, new Listener() {
 		 public void handleEvent(Event e) {
+			 MyTrackerView.this.showMenu();
 		   Object[] hostTorrents = getSelectedDataSources();
 
 		   itemStart.setEnabled(false);

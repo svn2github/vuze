@@ -1,7 +1,7 @@
 /*
- * Created on 19-Apr-2004
+ * Created on 03-Nov-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,30 +15,24 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SARL au capital de 30,000 euros
+ * AELITIS, SAS au capital de 40,000 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
 package org.gudy.azureus2.plugins.ui.menus;
 
-/** A listener that is triggered when the user selects a menu item
- *
- * @author parg (Original ContextMenuItemListener)
- * @author tuxpaper (generic-izing and comments)
- */
 public interface 
-MenuItemListener 
+MenuItemFillListener 
 {
-  /** Menu item has been selected by the user.
-   *
-   * @param menu Which menu item was selected
-   * @param target What this menu item applies to.  For the default
-   *               implementation, target is null.  Implementing classes
-   *               may provide an object related to the menu selection.
-   */
+		/**
+		 * This is fired before a menu is shown  
+		 * @param data For table context menu items this will be TableRow[]
+		 * of selected rows
+		 */
+	
 	public void
-	selected(
-		MenuItem			menu,
-		Object 				target );
+	menuWillBeShown(
+		MenuItem	menu,
+		Object		data );
 }

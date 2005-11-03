@@ -100,6 +100,7 @@ public class FilesView
   
   
   public void fillMenu(final Menu menu) {
+	  
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemOpen, "FilesView.menu.open");
     Utils.setMenuItemImage(itemOpen, "run");
@@ -127,6 +128,8 @@ public class FilesView
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
+    	FilesView.this.showMenu();
+    		
         Object[] infos = getSelectedDataSources();
         if (infos.length == 0) {
           itemOpen.setEnabled(false);

@@ -105,11 +105,12 @@ public class PeersView
   }
 
   public void fillMenu(final Menu menu) {
-    
+    	
     final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
+    	PeersView.this.showMenu();
         PEPeer peer = (PEPeer)getFirstSelectedDataSource();
 
         if( peer == null || !peer.getManager().getDownloadManager().isDownloadComplete()) {  //only allow upload blocking when seeding

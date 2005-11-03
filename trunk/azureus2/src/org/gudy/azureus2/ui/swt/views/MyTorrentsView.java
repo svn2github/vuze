@@ -425,7 +425,7 @@ public class MyTorrentsView
   }
 
   public void fillMenu(final Menu menu) {
-	  
+	  	
 	userMode = COConfigurationManager.getIntParameter("User Mode");
 	isTrackerOn = TRTrackerUtils.isTrackerEnabled();
 	  
@@ -709,6 +709,7 @@ public class MyTorrentsView
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
+    	MyTorrentsView.this.showMenu();
         Object[] dms = getSelectedDataSources();
         boolean hasSelection = (dms.length > 0);
 
