@@ -214,7 +214,10 @@ SESecurityManagerImpl
 		try{
 			exit_vm_permitted	= true;
 			
-			System.exit( status );
+			try{
+      	System.exit( status );
+      }
+      catch( Throwable t ){}
 			
 		}finally{
 			
@@ -232,6 +235,7 @@ SESecurityManagerImpl
 					
 					protected PasswordAuthentication
 					getPasswordAuthentication()
+					
 					{			
 						try{
 							auth_mon.enter();
