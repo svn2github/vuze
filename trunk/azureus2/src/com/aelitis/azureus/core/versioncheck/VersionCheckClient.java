@@ -193,6 +193,8 @@ public class VersionCheckClient {
     msg_service.sendMessage( data_to_send );  //send our version message
 
     Map reply = msg_service.receiveMessage();  //get the server reply
+    
+    msg_service.close();
 
     LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient server version check successful. Received " +reply.size()+ " reply keys." );
 
