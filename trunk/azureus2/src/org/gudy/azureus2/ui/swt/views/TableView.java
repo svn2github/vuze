@@ -736,13 +736,13 @@ public class TableView
             			item.setSelection(((Boolean)contextMenuItem.getData()).booleanValue());
             		}
         		}
-         
-        		Graphic g = contextMenuItem.getGraphic();
-        		
-        		if ( g instanceof UISWTGraphic ){
-        			
-        			item.setImage(((UISWTGraphic)g).getImage());
-        		}
+                			       			
+	        	Graphic g = contextMenuItem.getGraphic();
+	        		
+	        	if ( g instanceof UISWTGraphic ){
+	        			
+	        		Utils.setMenuItemImage(item, ((UISWTGraphic)g).getImage());
+	        	}
         		
         		item.setEnabled( enable_items && contextMenuItem.isEnabled());
         	}
