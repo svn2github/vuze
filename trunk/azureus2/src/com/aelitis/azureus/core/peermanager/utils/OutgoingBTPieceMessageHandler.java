@@ -218,7 +218,7 @@ public class OutgoingBTPieceMessageHandler {
         }
       }
       
-      if( num_removed < num_queued -1 ) {
+      if( num_removed < num_queued -2 ) {
         Debug.out( "num_removed[" +num_removed+ "] < num_queued[" +num_queued+ "]:\n" + outgoing_message_queue.getQueueTrace() );
       }
     }
