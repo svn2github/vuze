@@ -158,7 +158,7 @@ UIManager
 	/**
 	 * attach a new UI
 	 *   
-	 * @param instance
+	 * @param factory
 	 * @throws UIException
 	 * 
 	 * @since 2.3.0.5
@@ -166,14 +166,14 @@ UIManager
 	
 	public void
 	attachUI(
-		UIInstance		instance )
+		UIInstanceFactory		factory )
 	
 		throws UIException;
 	
 	/**
 	 * detach a UI - can fail if the UI doesn't support detaching
 	 * 
-	 * @param instance
+	 * @param factory
 	 * @throws UIException
 	 * 
 	 * @since 2.3.0.5
@@ -181,7 +181,7 @@ UIManager
 	
 	public void
 	detachUI(
-		UIInstance		instance )
+		UIInstanceFactory		factory )
 	
 		throws UIException;
 

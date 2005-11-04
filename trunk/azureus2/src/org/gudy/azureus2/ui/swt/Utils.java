@@ -375,6 +375,11 @@ public class Utils {
           item.setImage(ImageRepository.getImage(repoKey));
   }
 
+  public static void setMenuItemImage(final MenuItem item, final Image image)
+  {
+      if(!Constants.isOSX)
+          item.setImage(image);
+  }
   /**
    * Execute code in the Runnable object using SWT's thread.  If current
    * thread it already SWT's thread, the code will run immediately.  If the

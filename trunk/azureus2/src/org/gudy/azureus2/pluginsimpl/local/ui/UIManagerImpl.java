@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.ui.UIException;
 import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIInstanceFactory;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
@@ -64,7 +65,7 @@ UIManagerImpl
 	protected static boolean	initialisation_complete;
 	protected static List		ui_listeners		= new ArrayList();
 	protected static List		ui_event_listeners	= new ArrayList();
-	protected static List		ui_instances		= new ArrayList();
+	protected static List		ui_factories		= new ArrayList();
 	protected static List		ui_event_history	= new ArrayList();
 	
 	
@@ -258,9 +259,9 @@ UIManagerImpl
   			
   			initialisation_complete	= true;
   			
-			for (int j=0;j<ui_instances.size();j++){
+			for (int j=0;j<ui_factories.size();j++){
 
-				UIInstance	instance = (UIInstance)ui_instances.get(j);
+				UIInstanceFactory	instance = (UIInstanceFactory)ui_factories.get(j);
 				
   				for (int i=0;i<ui_listeners.size();i++){
 
@@ -268,7 +269,7 @@ UIManagerImpl
   					
   					try{
   						((UIManagerListener)entry[0]).UIAttached( 
-  								instance.getPluginSpecificInstance((PluginInterface)entry[1]) );
+  								instance.getInstance((PluginInterface)entry[1]) );
 						
 					}catch( Throwable e ){
 						
@@ -284,12 +285,12 @@ UIManagerImpl
   
 	public void
 	attachUI(
-		UIInstance		instance )
+		UIInstanceFactory		factory )
 	{
 		try{
   			class_mon.enter();
   			
-  			ui_instances.add( instance );
+  			ui_factories.add( factory );
   			
   			if ( initialisation_complete ){
   				
@@ -299,7 +300,7 @@ UIManagerImpl
   					
   					try{
   						((UIManagerListener)entry[0]).UIAttached( 
-  								instance.getPluginSpecificInstance((PluginInterface)entry[1]));
+  								factory.getInstance((PluginInterface)entry[1]));
   						
   					}catch( Throwable e ){
   						
@@ -315,7 +316,7 @@ UIManagerImpl
 	
 	public void
 	detachUI(
-		UIInstance		instance )
+		UIInstanceFactory		instance )
 	
 		throws UIException
 	{
@@ -324,7 +325,7 @@ UIManagerImpl
   			
   			instance.detach();
   			
-  			ui_instances.remove( instance );
+  			ui_factories.remove( instance );
   			
   			if ( initialisation_complete ){
   				
@@ -334,7 +335,7 @@ UIManagerImpl
   					
   					try{
    						((UIManagerListener)entry[0]).UIDetached( 
-   								instance.getPluginSpecificInstance((PluginInterface)entry[1]));
+   								instance.getInstance((PluginInterface)entry[1]));
   						
   					}catch( Throwable e ){
   						
@@ -359,12 +360,12 @@ UIManagerImpl
   			
  			if ( initialisation_complete ){
   				
-  				for (int i=0;i<ui_instances.size();i++){
+  				for (int i=0;i<ui_factories.size();i++){
   					
-  					UIInstance	instance = (UIInstance)ui_instances.get(i);
+  					UIInstanceFactory	instance = (UIInstanceFactory)ui_factories.get(i);
 
   					try{  						
-  						listener.UIAttached( instance.getPluginSpecificInstance( pi ));
+  						listener.UIAttached( instance.getInstance( pi ));
   						
   					}catch( Throwable e ){
   						

@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIException;
 import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIInstanceFactory;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
@@ -69,7 +70,7 @@ import com.aelitis.azureus.core.AzureusCore;
 
 public class 
 UISWTInstanceImpl
-	implements UISWTInstance, UIManagerEventListener
+	implements UIInstanceFactory, UISWTInstance, UIManagerEventListener
 {
 	private AzureusCore		core;
 	
@@ -95,7 +96,9 @@ UISWTInstanceImpl
 			ui_manager.addUIEventListener( this );
 			
 			bUIAttaching = true;
+			
 			ui_manager.attachUI( this );
+			
 			bUIAttaching = false;
 			
 		}catch( UIException e ){
@@ -105,7 +108,7 @@ UISWTInstanceImpl
 	}
   
 	public UIInstance
-	getPluginSpecificInstance(
+	getInstance(
 		PluginInterface		plugin_interface )
 	{
 		UIInstance	instance = (UIInstance)plugin_map.get( plugin_interface );
@@ -546,13 +549,6 @@ UISWTInstanceImpl
 		{
 			pi			= _pi;
 			delegate	= _delegate;
-		}
-		
-		public UIInstance
-		getPluginSpecificInstance(
-			PluginInterface		plugin_interface )
-		{
-			return( delegate.getPluginSpecificInstance( plugin_interface ));
 		}
 		
 		public void
