@@ -39,11 +39,13 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -619,26 +621,74 @@ public class TableView
     if (items.length > 0) {
       new MenuItem(menu, SWT.SEPARATOR);
 
+      boolean	prev_was_separator	= true;
+      
       for (int i = 0; i < items.length; i++) {
         final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl)items[i];
         
         final int style = contextMenuItem.getStyle();
         
-        final MenuItem menuItem = 
-        	new MenuItem(menu, style==TableContextMenuItem.STYLE_NORMAL?SWT.PUSH:SWT.CHECK );
+        final int	swt_style;
         
+        boolean	this_is_separator	= false;
+        
+        if ( style == TableContextMenuItem.STYLE_PUSH ){
+        	swt_style = SWT.PUSH;
+        }else if ( style == TableContextMenuItem.STYLE_CHECK ){
+        	swt_style = SWT.CHECK;
+        }else if ( style == TableContextMenuItem.STYLE_RADIO ){
+        	swt_style = SWT.RADIO;
+        }else if ( style == TableContextMenuItem.STYLE_SEPARATOR ){
+        	this_is_separator	= true;
+        	swt_style = SWT.SEPARATOR;
+        }else{
+        	swt_style = SWT.PUSH;
+        }
+        
+        	// skip contiguous separators
+        
+        if ( prev_was_separator && this_is_separator ){
+        	
+        	continue;
+        }
+        
+        	// skip trailing separator
+        
+        if ( this_is_separator && i == items.length - 1 ){
+        	
+        	continue;
+        }
+        
+        prev_was_separator	= this_is_separator;
+        
+        final MenuItem menuItem = new MenuItem(menu, swt_style );
+        
+        if ( swt_style == SWT.SEPARATOR ){
+        	
+        	continue;
+        }
+
         Messages.setLanguageText(menuItem, contextMenuItem.getResourceKey());
 
         menuItem.setData( contextMenuItem );
         
-        menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
-          public void run(TableRowCore row) {
-              if ( style == TableContextMenuItem.STYLE_CHECK ){
-            	  contextMenuItem.setData(new Boolean(menuItem.getSelection()));
-              }	  
-              contextMenuItem.invokeListeners(row);
-          }
-        });
+        menuItem.addListener(
+        	SWT.Selection, 
+        	new SelectedTableRowsListener() 
+        	{
+        		public void 
+        		run(
+        			TableRowCore row ) 
+        		{
+        			if ( 	swt_style == SWT.CHECK ||
+        					swt_style == SWT.RADIO ){
+        				
+        				contextMenuItem.setData(new Boolean(menuItem.getSelection()));
+        			}	
+        			
+        			contextMenuItem.invokeListeners(row);
+        		}
+        	});
       }
     }
   }
@@ -664,10 +714,8 @@ public class TableView
  			if ( data instanceof TableContextMenuItemImpl ){
         		
         		final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl)data;
-          
-        		final int style = contextMenuItem.getStyle();
-          
-        		if ( style == TableContextMenuItem.STYLE_CHECK && enable_items ){
+                    
+        		if ( enable_items ){
 	          	
         			runForSelectedRows(
 	              		new GroupTableRowRunner()
@@ -680,11 +728,23 @@ public class TableView
 	              			}
 	              		});
                 
-        			item.setSelection(((Boolean)contextMenuItem.getData()).booleanValue());
+               		int style = contextMenuItem.getStyle();
+                    
+            		if ( 	style == TableContextMenuItem.STYLE_CHECK ||
+            				style == TableContextMenuItem.STYLE_RADIO ){
+
+            			item.setSelection(((Boolean)contextMenuItem.getData()).booleanValue());
+            		}
         		}
          
-          
-        		item.setEnabled( enable_items );
+        		Graphic g = contextMenuItem.getGraphic();
+        		
+        		if ( g instanceof UISWTGraphic ){
+        			
+        			item.setImage(((UISWTGraphic)g).getImage());
+        		}
+        		
+        		item.setEnabled( enable_items && contextMenuItem.isEnabled());
         	}
         }
   	}

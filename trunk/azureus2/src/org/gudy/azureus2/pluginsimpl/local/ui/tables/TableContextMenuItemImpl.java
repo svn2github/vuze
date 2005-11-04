@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.ui.menus.*;
 
@@ -30,8 +31,10 @@ public class TableContextMenuItemImpl
 {
   private String 	sTableID;
   private String 	sName;
-  private int		style		= STYLE_NORMAL;
+  private int		style		= STYLE_PUSH;
+  private boolean	enabled		= true;
   private Object	data;
+  private Graphic	graphic;
   
   private List 	listeners 		= new ArrayList();
   private List	fill_listeners	= new ArrayList();
@@ -73,6 +76,32 @@ public class TableContextMenuItemImpl
 		Object	_data )
 	{
 		data	= _data;
+	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( enabled );
+	}
+	
+	public void
+	setEnabled(
+		boolean	_enabled )
+	{
+		enabled = _enabled;
+	}
+	
+	public void
+	setGraphic(
+		Graphic		_graphic )
+	{
+		graphic	= _graphic;
+	}
+	
+	public Graphic
+	getGraphic()
+	{
+		return( graphic );
 	}
 	
 	public void

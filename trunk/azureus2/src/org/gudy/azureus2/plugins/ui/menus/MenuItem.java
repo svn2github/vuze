@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.ui.menus;
 
+import org.gudy.azureus2.plugins.ui.Graphic;
+
 /** Menu item access for the UI.
  *
  * @author parg (Original ContextMenuItem code)
@@ -32,13 +34,25 @@ public interface MenuItem
 		/**
 		 * normal selection menu, no Data value required
 		 */
-	public static final int STYLE_NORMAL		= 1;
+	public static final int STYLE_PUSH				= 1;
 	
 		/**
 		 * check box style menu item - data must be of type Boolean
 		 */
 	
-	public static final int STYLE_CHECK			= 2;
+	public static final int STYLE_CHECK				= 2;
+	
+		/**
+		 * radio style - data must be Boolean
+		 */
+	
+	public static final int STYLE_RADIO				= 3;
+	
+		/**
+		 * separator line
+		 */
+	
+	public static final int STYLE_SEPARATOR			= 4;
 	
   /** Retrieve the resource key ("name") of this menu item
    *
@@ -88,7 +102,40 @@ public interface MenuItem
 	setData(
 		Object	data );
 	
+		/**
+		 * Whether or not this item is enabled or not
+		 * @return
+		 */
 	
+	public boolean
+	isEnabled();
+	
+		/**
+		 * Set the enabled status of the menu item
+		 * @param enabled
+		 */
+	
+	public void
+	setEnabled(
+		boolean	enabled );
+	
+		/**
+		 * set the menu item's icon
+		 * @param graphic
+		 */
+	
+	public void
+	setGraphic(
+		Graphic		graphic );
+	
+		/**
+		 * get the menu's graphic
+		 * @return
+		 */
+	
+	public Graphic
+	getGraphic();
+		
 	public void
 	addFillListener(
 		MenuItemFillListener	listener );
