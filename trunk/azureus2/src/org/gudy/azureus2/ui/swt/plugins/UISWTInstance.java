@@ -61,6 +61,10 @@ public interface UISWTInstance extends UIInstance {
 	 */
 	public Display getDisplay();
 
+	public Image
+	loadImage(
+		String	resource );
+	
 	/** Creates an UISWTGraphic object with the supplied SWT Image
 	 *
 	 * @param img Image to assign to the object

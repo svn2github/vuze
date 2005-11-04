@@ -28,6 +28,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -47,11 +48,14 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.net.magneturi.*;
 
@@ -142,8 +146,8 @@ MagnetPlugin
 				}
 			};
 		
-		TableContextMenuItem menu1 = plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "MagnetPlugin.contextmenu.exporturi" );
-		TableContextMenuItem menu2 = plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, 	"MagnetPlugin.contextmenu.exporturi" );
+		final TableContextMenuItem menu1 = plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "MagnetPlugin.contextmenu.exporturi" );
+		final TableContextMenuItem menu2 = plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, 	"MagnetPlugin.contextmenu.exporturi" );
 			
 		menu1.addListener( listener );
 		menu2.addListener( listener );
@@ -278,6 +282,32 @@ MagnetPlugin
 				public void
 				closedownComplete(){}			
 			});
+		
+		plugin_interface.getUIManager().addUIListener(
+				new UIManagerListener()
+				{
+					public void
+					UIAttached(
+						UIInstance		instance )
+					{
+						if ( instance instanceof UISWTInstance ){
+							
+							UISWTInstance	swt = (UISWTInstance)instance;
+							
+							Image	image = swt.loadImage( "com/aelitis/azureus/plugins/magnet/icons/magnet.gif" );
+
+							menu1.setGraphic( swt.createGraphic( image ));
+							menu2.setGraphic( swt.createGraphic( image ));							
+						}
+					}
+					
+					public void
+					UIDetached(
+						UIInstance		instance )
+					{
+						
+					}
+				});
 	}
 	
 	public URL

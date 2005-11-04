@@ -22,18 +22,29 @@
 
 package org.gudy.azureus2.plugins.ui;
 
+import org.gudy.azureus2.plugins.PluginInterface;
+
+/**
+ * This interface represents a UI running on the core (e.g. the SWT UI). The actual implementation of
+ * this will support UI-specific operations - you need to cast this to the appropriate type to access
+ * them.
+ * This is to allow "native" UI plugin access - for example a plugin that directly accesses SWT functionality
+ * would do it via this object (it'll be an instance of 
+ * 	org.gudy.azureus2.ui.swt.plugins.UISWTInstance )
+ */
+
 public interface 
 UIInstance 
 {
-	/**
-	 * This interface represents a UI running on the core (e.g. the SWT UI). The actual implementation of
-	 * this will support UI-specific operations - you need to cast this to the appropriate type to access
-	 * them.
-	 * This is to allow "native" UI plugin access - for example a plugin that directly accesses SWT functionality
-	 * would do it via this object (it'll be an instance of 
-	 * 	org.gudy.azureus2.ui.swt.plugins.UISWTInstance )
-	 */
+		/**
+		 * Some UI instances need to understand which plugin they are associated with. This method
+		 * gives the opportunity to customise the UIInstance returned to a plugin so that operations
+		 * on it can take the appropriate actions
+		 */
 	
+	public UIInstance
+	getPluginSpecificInstance(
+		PluginInterface		plugin_interface );
 	
 		/**
 		 * This method will be called by the UI manager when detaching the UI to permit the action to be

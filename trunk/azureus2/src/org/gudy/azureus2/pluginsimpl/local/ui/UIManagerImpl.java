@@ -45,6 +45,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 
 
@@ -262,9 +263,12 @@ UIManagerImpl
 				UIInstance	instance = (UIInstance)ui_instances.get(j);
 				
   				for (int i=0;i<ui_listeners.size();i++){
-					
-					try{
-						((UIManagerListener)ui_listeners.get(i)).UIAttached( instance );
+
+ 					Object[]	entry = (Object[])ui_listeners.get(i);
+  					
+  					try{
+  						((UIManagerListener)entry[0]).UIAttached( 
+  								instance.getPluginSpecificInstance((PluginInterface)entry[1]) );
 						
 					}catch( Throwable e ){
 						
@@ -291,8 +295,11 @@ UIManagerImpl
   				
   				for (int i=0;i<ui_listeners.size();i++){
   					
+  					Object[]	entry = (Object[])ui_listeners.get(i);
+  					
   					try{
-  						((UIManagerListener)ui_listeners.get(i)).UIAttached( instance );
+  						((UIManagerListener)entry[0]).UIAttached( 
+  								instance.getPluginSpecificInstance((PluginInterface)entry[1]));
   						
   					}catch( Throwable e ){
   						
@@ -323,8 +330,11 @@ UIManagerImpl
   				
   				for (int i=0;i<ui_listeners.size();i++){
   					
+ 					Object[]	entry = (Object[])ui_listeners.get(i);
+  					
   					try{
-  						((UIManagerListener)ui_listeners.get(i)).UIDetached( instance );
+   						((UIManagerListener)entry[0]).UIDetached( 
+   								instance.getPluginSpecificInstance((PluginInterface)entry[1]));
   						
   					}catch( Throwable e ){
   						
@@ -337,6 +347,7 @@ UIManagerImpl
   			class_mon.exit();
   		}		
 	}
+	
   	public void
   	addUIListener(
   		UIManagerListener listener )
@@ -344,7 +355,7 @@ UIManagerImpl
 		try{
   			class_mon.enter();
   			
-  			ui_listeners.add( listener );
+  			ui_listeners.add( new Object[]{ listener, pi });
   			
  			if ( initialisation_complete ){
   				
@@ -352,8 +363,8 @@ UIManagerImpl
   					
   					UIInstance	instance = (UIInstance)ui_instances.get(i);
 
-  					try{
-  						listener.UIAttached( instance );
+  					try{  						
+  						listener.UIAttached( instance.getPluginSpecificInstance( pi ));
   						
   					}catch( Throwable e ){
   						
@@ -373,8 +384,18 @@ UIManagerImpl
  	{
 		try{
   			class_mon.enter();
+
+  			Iterator	it = ui_listeners.iterator();
   			
- 			ui_listeners.remove( listener );
+  			while( it.hasNext()){
+  				
+				Object[]	entry = (Object[])it.next();
+					
+				if ( entry[0] == listener ){
+					
+					it.remove();
+				}
+  			}
  			 
   		}finally{
   			

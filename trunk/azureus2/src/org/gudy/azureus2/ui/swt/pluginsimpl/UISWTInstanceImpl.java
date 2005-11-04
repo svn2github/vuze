@@ -29,6 +29,7 @@ import java.awt.Frame;
 
 import java.awt.Panel;
 import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,13 +40,16 @@ import java.util.WeakHashMap;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIException;
+import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
@@ -74,6 +78,8 @@ UISWTInstanceImpl
 	
 	private Map views = new HashMap();
 	
+	private Map	plugin_map	= new WeakHashMap();
+	
 	private boolean bUIAttaching;
 	
 	
@@ -98,6 +104,22 @@ UISWTInstanceImpl
 		}
 	}
   
+	public UIInstance
+	getPluginSpecificInstance(
+		PluginInterface		plugin_interface )
+	{
+		UIInstance	instance = (UIInstance)plugin_map.get( plugin_interface );
+		
+		if ( instance == null ){
+			
+			instance = new instanceWrapper( plugin_interface, this );
+			
+			plugin_map.put( plugin_interface, instance );
+		}
+		
+		return( instance );
+	}
+	
 	public boolean
 	eventOccurred(
 		final UIManagerEvent	event )
@@ -231,6 +253,30 @@ UISWTInstanceImpl
 		return SWTThread.getInstance().getDisplay();
 	}
   
+	public Image
+	loadImage(
+		String	resource )
+	{
+		throw( new RuntimeException( "plugin specific instance required" ));
+	}
+	
+	protected Image  
+	loadImage(
+		PluginInterface	pi,
+		String 			res ) 
+	{
+		InputStream is = pi.getPluginClassLoader().getResourceAsStream( res);
+		
+		if ( is != null ){
+		        
+			ImageData imageData = new ImageData(is);
+		    
+			return new Image(getDisplay(), imageData);
+		}
+		
+		return null;
+	}
+	
 	public UISWTGraphic 
 	createGraphic(
 		Image img) 
@@ -483,5 +529,110 @@ UISWTInstanceImpl
 	
 	public Map getViewListeners(String sParentID) {
 		return (Map)views.get(sParentID);
+	}
+	
+	
+	protected static class
+	instanceWrapper
+		implements UISWTInstance
+	{
+		private PluginInterface			pi;
+		private UISWTInstanceImpl		delegate;
+		
+		protected
+		instanceWrapper(
+			PluginInterface		_pi,
+			UISWTInstanceImpl	_delegate )
+		{
+			pi			= _pi;
+			delegate	= _delegate;
+		}
+		
+		public UIInstance
+		getPluginSpecificInstance(
+			PluginInterface		plugin_interface )
+		{
+			return( delegate.getPluginSpecificInstance( plugin_interface ));
+		}
+		
+		public void
+		detach()
+		
+			throws UIException
+		{
+			delegate.detach();
+		}
+	
+		public Display
+		getDisplay()
+		{
+			return( delegate.getDisplay());
+		}
+		
+		public Image
+		loadImage(
+			String	resource )
+		{
+			return( delegate.loadImage( pi, resource ));
+		}
+		
+		public UISWTGraphic 
+		createGraphic(
+			Image img )
+		{
+			return( delegate.createGraphic( img ));
+		}
+		
+		public void 
+		addView(String sParentID, String sViewID, UISWTViewEventListener l)
+		{
+			delegate.addView( sParentID, sViewID, l );
+		}
+
+		public void 
+		openMainView(String sViewID, UISWTViewEventListener l,Object dataSource)
+		{
+			delegate.openMainView( sViewID, l, dataSource );
+		}
+
+		public void 
+		removeViews(String sParentID, String sViewID)
+		{
+			delegate.removeViews(sParentID, sViewID );
+		}
+
+
+		public UISWTView[] 
+		getOpenViews(String sParentID)
+		{
+			return( delegate.getOpenViews(sParentID));
+		}
+
+
+		public void 
+		addView(UISWTPluginView view, boolean autoOpen)
+		{
+			delegate.addView( view, autoOpen );
+		}
+
+
+		public void 
+		removeView(UISWTPluginView view)
+		{
+			delegate.removeView( view );
+		}
+
+		public void 
+		addView(UISWTAWTPluginView view, boolean auto_open)
+		{
+			delegate.addView( view, auto_open );
+		}
+
+
+		public void 
+		removeView(UISWTAWTPluginView view)
+		{
+			delegate.removeView( view );
+		}
 	}
 }
