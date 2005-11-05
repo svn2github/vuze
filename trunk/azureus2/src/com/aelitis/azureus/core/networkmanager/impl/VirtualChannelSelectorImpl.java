@@ -273,6 +273,8 @@ public class VirtualChannelSelectorImpl {
     
     
     public int select( long timeout ) {
+    	
+    	long select_start_time = SystemTime.getCurrentTime();
       
       if( selector == null ) {
         Debug.out( "VirtualChannelSelector.select() op called with null selector" );
@@ -396,13 +398,6 @@ public class VirtualChannelSelectorImpl {
       int count = 0;
       selector_guard.markPreSelectTime();
       try {
-      	
-      	
-      	
-      	Thread.sleep( 20 );
-      	
-      	
-      	
         count = selector.select( timeout );
       }
       catch (Throwable t) {
@@ -472,7 +467,7 @@ public class VirtualChannelSelectorImpl {
                   data.channel.close();
             				
                 }catch( Throwable e ){
-            				
+            				e.printStackTrace();
                 }
               }
             }
@@ -483,6 +478,13 @@ public class VirtualChannelSelectorImpl {
           data.listener.selectFailure( parent, data.channel, data.attachment, new Throwable( "key is invalid" ) );
           // can get this if socket has been closed between select and here
         }
+      }
+      
+      
+      long time_diff = SystemTime.getCurrentTime() - select_start_time;
+      
+      if( time_diff < timeout && time_diff >= 0 ) {  //ensure that it always takes at least 'timeout' time to complete the select op
+      	try {  Thread.sleep( timeout - time_diff );  }catch(Throwable e) { e.printStackTrace(); }      
       }
       
       return count;
