@@ -77,6 +77,14 @@ AEDiagnostics
 		if ( TRACE_TCP_TRANSPORT_STATS ){
 		  System.out.println( "**** TCP_TRANSPORT_STATS tracing on ****" );
 		}
+		
+			// pull in the JDK1.5 monitoring stuff if present
+		
+		try{
+			Class.forName( "com.aelitis.azureus.core.monitoring.thread.AEThreadMonitor" );
+						
+		}catch( Throwable e ){
+		}
 	}
 	
 	private static final int	MAX_FILE_SIZE	= 128*1024;	// get two of these per logger type
@@ -312,27 +320,33 @@ AEDiagnostics
 		}
 	}
 	
-	public static synchronized void
+	public static void
 	addEvidenceGenerator(
 		AEDiagnosticsEvidenceGenerator	gen )
 	{
-		evidence_generators.add( gen );
+		synchronized( evidence_generators ){
+			
+			evidence_generators.add( gen );
+		}
 	}
 	
-	public static synchronized void
+	public static void
 	generateEvidence(
 		PrintWriter		_writer )
 	{
 		IndentWriter	writer = new IndentWriter( _writer );
 		
-		for (int i=0;i<evidence_generators.size();i++){
-			
-			try{
-				((AEDiagnosticsEvidenceGenerator)evidence_generators.get(i)).generate( writer );
+		synchronized( evidence_generators ){
+
+			for (int i=0;i<evidence_generators.size();i++){
 				
-			}catch( Throwable e ){
-				
-				e.printStackTrace( _writer );
+				try{
+					((AEDiagnosticsEvidenceGenerator)evidence_generators.get(i)).generate( writer );
+					
+				}catch( Throwable e ){
+					
+					e.printStackTrace( _writer );
+				}
 			}
 		}
 	}
