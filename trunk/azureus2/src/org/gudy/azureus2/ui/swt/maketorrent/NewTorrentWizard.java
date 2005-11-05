@@ -110,7 +110,7 @@ NewTorrentWizard
     });
     
     trackers.add(new ArrayList());
-    trackerURL = Utils.getLinkFromClipboard(display);
+    trackerURL = Utils.getLinkFromClipboard(display,false);
     ModePanel panel = new ModePanel(this, null);
     this.setFirstPanel(panel);
     createDropTarget(getWizardWindow());

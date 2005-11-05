@@ -104,8 +104,10 @@ public class Utils {
    *
    * @author Rene Leonhardt
    */
-  public static void setTextLinkFromClipboard(final Shell shell, final GridData gridData, final Text url) {
-    String link = getLinkFromClipboard(shell.getDisplay());
+  public static void 
+  setTextLinkFromClipboard(
+		  final Shell shell, final GridData gridData, final Text url, boolean accept_magnets ) {
+    String link = getLinkFromClipboard(shell.getDisplay(),accept_magnets);
     setTextLink(shell, gridData, url, link);
   }
 
@@ -142,13 +144,21 @@ public class Utils {
    * @param display
    * @return first valid link from clipboard, else "http://"
    */
-  public static String getLinkFromClipboard(final Display display) {
-    final String[] prefixes = new String[] {"http://", "https://", "magnet:?" };
+  public static String 
+  getLinkFromClipboard(
+	 Display 	display,
+	 boolean	accept_magnets ) 
+  {
+    final String[] prefixes = new String[] {"http://", "https://", "magnet:?", "magnet://?" };
+    
     final Clipboard cb = new Clipboard(display);
     final TextTransfer transfer = TextTransfer.getInstance();
-    final String data = (String)cb.getContents(transfer);
+    
+    String data = (String)cb.getContents(transfer);
+    
     if (data != null) {
-      for(int i = 0; i < prefixes.length; i++) {
+      data	= data.trim();
+      for(int i = 0; i < (accept_magnets?prefixes.length:2 ); i++) {
         final int begin = data.indexOf(prefixes[i]);
         if (begin >= 0) {
           final int end = data.indexOf("\n", begin + prefixes[i].length());
@@ -160,7 +170,23 @@ public class Utils {
           }
         }
       }
+    
+      if ( accept_magnets && data.length() == 40 ){
+    	  
+    	  for (int i=0;i<data.length();i++){
+    		  
+    		  if ( "0123456789abcdefABCDEF".indexOf( data.charAt(i)) == -1 ){
+    			  
+    			  return( prefixes[0] );
+    		  }
+    	  }
+    	  
+    	  	// accept raw hash of 40 hex chars
+    	  
+    	  return( data );
+      }
     }
+    
     return prefixes[0];
   }
 

@@ -87,7 +87,7 @@ OpenUrlWindow
     gridData.horizontalSpan	= 2;
     url.setLayoutData(gridData);
     if(linkURL == null)
-      Utils.setTextLinkFromClipboard(shell, gridData, url);
+      Utils.setTextLinkFromClipboard(shell, gridData, url, true);
     else
       Utils.setTextLink(shell, gridData, url, linkURL);
     url.setSelection(url.getText().length());
