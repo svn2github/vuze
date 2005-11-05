@@ -2772,25 +2772,25 @@ PEPeerControlImpl
         }
         
         //load stored peer-infos to be established
-        while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
-          if( peer_database != null ) {
-            PeerItem item = peer_database.getNextOptimisticConnectPeer();
-            
-            if( item == null || !is_running )  break;
+        while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
+        	if( peer_database == null || !is_running )  break;        	
+       
+        	PeerItem item = peer_database.getNextOptimisticConnectPeer();
+        	
+        	if( item == null || !is_running )  break;
 
-            PeerItem self = peer_database.getSelfPeer();
-            if( self != null && self.equals( item ) ) {
-              continue;
-            }
-            
-            if( !isAlreadyConnected( item ) ) {
-              String source = PeerItem.convertSourceString( item.getSource() );
+        	PeerItem self = peer_database.getSelfPeer();
+        	if( self != null && self.equals( item ) ) {
+        		continue;
+        	}
+        	
+        	if( !isAlreadyConnected( item ) ) {
+        		String source = PeerItem.convertSourceString( item.getSource() );
 
-              if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort() ) ) {
-                num_waiting_establishments++;
-              }
-            }
-          }
+        		if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort() ) ) {
+        			num_waiting_establishments++;
+        		}
+        	}          
         }
       }
     }
