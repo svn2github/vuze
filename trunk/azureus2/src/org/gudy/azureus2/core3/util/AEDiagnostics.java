@@ -43,7 +43,8 @@ AEDiagnostics
 
 	// these can safely be set true, things will work just slower
 	public static final boolean	DEBUG_MONITOR_SEM_USAGE			= false;
-	
+    public static final boolean DEBUG_THREADS			        = true;
+
 	public static final boolean	TRACE_DIRECT_BYTE_BUFFERS		= false;
 	public static final boolean	TRACE_DBB_POOL_USAGE			= false;
 	public static final boolean	PRINT_DBB_POOL_USAGE			= false;
@@ -78,12 +79,16 @@ AEDiagnostics
 		  System.out.println( "**** TCP_TRANSPORT_STATS tracing on ****" );
 		}
 		
-			// pull in the JDK1.5 monitoring stuff if present
-		
-		try{
-			Class.forName( "com.aelitis.azureus.core.monitoring.thread.AEThreadMonitor" );
-						
-		}catch( Throwable e ){
+		if ( DEBUG_THREADS ){
+				// pull in the JDK1.5 monitoring stuff if present
+			
+			try{
+				Class.forName( "com.aelitis.azureus.core.monitoring.thread.AEThreadMonitor" );
+					
+				  System.out.println( "**** AEThread debug on ****" );
+
+			}catch( Throwable e ){
+			}
 		}
 	}
 	
