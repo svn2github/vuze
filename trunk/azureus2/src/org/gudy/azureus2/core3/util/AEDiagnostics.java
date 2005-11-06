@@ -78,18 +78,6 @@ AEDiagnostics
 		if ( TRACE_TCP_TRANSPORT_STATS ){
 		  System.out.println( "**** TCP_TRANSPORT_STATS tracing on ****" );
 		}
-		
-		if ( DEBUG_THREADS ){
-				// pull in the JDK1.5 monitoring stuff if present
-			
-			try{
-				Class.forName( "com.aelitis.azureus.core.monitoring.thread.AEThreadMonitor" );
-					
-				  System.out.println( "**** AEThread debug on ****" );
-
-			}catch( Throwable e ){
-			}
-		}
 	}
 	
 	private static final int	MAX_FILE_SIZE	= 128*1024;	// get two of these per logger type
@@ -179,6 +167,19 @@ AEDiagnostics
 			if ( !(e instanceof NoClassDefFoundError )){
 				
 				Debug.printStackTrace( e );
+			}
+		}finally{
+			
+			if ( DEBUG_THREADS ){
+				// pull in the JDK1.5 monitoring stuff if present
+				
+				try{
+					Class.forName( "com.aelitis.azureus.core.monitoring.thread.AEThreadMonitor" );
+						
+					System.out.println( "**** AEThread debug on ****" );
+	
+				}catch( Throwable e ){
+				}
 			}
 		}
 	}
