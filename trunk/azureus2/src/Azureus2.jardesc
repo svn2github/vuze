@@ -151,6 +151,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.cl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.messaging"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.server.test"/>
+<javaElement handleIdentifier="=azdiag/&lt;com.aelitis.azureus.core.monitoring.thread"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.webplugin"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.server.impl"/>
@@ -251,8 +252,8 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swing"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.util.bloom.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.configsections"/>
-<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.utils.resourceuploader"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.udp.impl"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.utils.resourceuploader"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.messaging"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.asn1.x509"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.test"/>
