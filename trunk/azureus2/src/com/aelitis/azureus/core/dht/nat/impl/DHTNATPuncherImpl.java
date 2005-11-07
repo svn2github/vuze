@@ -234,7 +234,7 @@ DHTNATPuncherImpl
 								
 								boolean	removed = false;
 								
-								if ( time < now ){
+								if ( time > now ){
 									
 										// clock change, easiest approach is to remove it
 									
@@ -985,7 +985,8 @@ DHTNATPuncherImpl
 			System.out.println( "received bind request" );
 		}
 		
-		boolean	ok = true;
+		boolean	ok 	= true;
+		boolean	log	= true;
 		
 		try{
 			server_mon.enter();
@@ -998,6 +999,11 @@ DHTNATPuncherImpl
 					
 					ok	= false;
 				}
+			}else{
+				
+					// already present, no need to log again
+				
+				log	= false;
 			}
 			
 			if ( ok ){
@@ -1011,7 +1017,10 @@ DHTNATPuncherImpl
 			server_mon.exit();
 		}
 		
-		log( "Rendezvous request from " + originator.getString() + " " + (ok?"accepted":"denied" ));
+		if ( log ){
+			
+			log( "Rendezvous request from " + originator.getString() + " " + (ok?"accepted":"denied" ));
+		}
 		
 		response.put( "ok", new Long(ok?1:0));
 	}
