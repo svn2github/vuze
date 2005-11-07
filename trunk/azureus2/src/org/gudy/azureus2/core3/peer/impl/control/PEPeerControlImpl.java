@@ -2931,18 +2931,20 @@ PEPeerControlImpl
 		ArrayList peers = peer_transports_cow;
   	
   	if( peers != null ) {
-  		int sum = 0;
-  		int num = 0;
+  		int comp = _downloadManager.getStats().getCompleted();
+  		
+  		int sum = comp == 1000 ? 0 : comp;  //add in our own percentage if not seeding
+  		int num = comp == 1000 ? 0 : 1;
   		
   		for( int i=0; i < peers.size(); i++ ) {
   			PEPeer peer = (PEPeer)peers.get( i );
   			
-  			if( peer.getPeerState() == PEPeer.TRANSFERING ) {
+  			if( peer.getPeerState() == PEPeer.TRANSFERING && !peer.isSeed() ) {
   				num++;
   				sum += peer.getPercentDoneInThousandNotation();
   			}
   		}
-  	
+  		
   		return num > 0 ? sum / num : 0;
   	}
   	
