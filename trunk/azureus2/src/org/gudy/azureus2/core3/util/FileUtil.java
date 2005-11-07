@@ -643,7 +643,9 @@ public class FileUtil {
         
   			if ( !recovery_mode ){
   				
-  				LGLogger.log("Load of '" + file_name + "' failed, file not found or 0-sized." );
+  				// kinda confusing log this as we get it under "normal" circumstances (loading a config
+  				// file that doesn't exist legitimately, e.g. shares or bad-ips
+  				// LGLogger.log("Load of '" + file_name + "' failed, file not found or 0-sized." );
   			}
   			
   			return( readResilientFile( parent_dir, file_name + ".saving", 0, recovery_mode ));
