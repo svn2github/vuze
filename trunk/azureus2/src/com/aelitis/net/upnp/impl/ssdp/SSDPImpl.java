@@ -509,6 +509,8 @@ SSDPImpl
 		
 			String	str = new String( packet.getData(), 0, packet.getLength());
 			
+			boolean	log = first_response;
+			
 			if ( first_response ){
 				
 				first_response	= false;
@@ -624,8 +626,75 @@ SSDPImpl
 							
 								// alive can be reported on any interface
 							
-							gotAlive( location );
-							
+							try{
+
+								InetAddress	dev = InetAddress.getByName( location.getHost());
+								
+								byte[]	dev_bytes = dev.getAddress();
+																
+								boolean[]	dev_bits = bytesToBits( dev_bytes );
+								
+									// try and work out what bind address this location corresponds to
+								
+								NetworkInterface	best_ni 	= null;
+								InetAddress			best_addr	= null;
+								
+								int	best_prefix	= 0;
+								
+								Enumeration network_interfaces = NetworkInterface.getNetworkInterfaces();
+								
+								while (network_interfaces.hasMoreElements()){
+									
+									NetworkInterface this_ni = (NetworkInterface)network_interfaces.nextElement();
+															
+									Enumeration ni_addresses = this_ni.getInetAddresses();
+									
+									while (ni_addresses.hasMoreElements()){
+										
+										InetAddress this_address = (InetAddress)ni_addresses.nextElement();
+										
+										byte[]	this_bytes = this_address.getAddress();
+										
+										if ( dev_bytes.length == this_bytes.length ){
+											
+											boolean[]	this_bits = bytesToBits( this_bytes );
+
+											for (int i=0;i<this_bits.length;i++){
+												
+												if ( dev_bits[i] != this_bits[i] ){
+													
+													break;
+												}
+												
+												if ( i > best_prefix ){
+													
+													best_prefix	= i;
+													
+													best_ni		= this_ni;
+													best_addr	= this_address;
+												}
+											}
+										}
+									}
+								}
+								
+								if ( best_ni != null ){
+									
+									if ( log ){
+										
+										upnp.log( "    NOTIFY: " + location + " -> " + best_ni + "/" + best_addr + " (prefix=" + (best_prefix + 1 ) + ")");
+									}
+									
+									gotRoot( best_ni, best_addr, location );
+									
+								}else{
+									
+									gotAlive( location );
+								}
+							}catch( Throwable e ){
+								
+								gotAlive( location );
+							}
 						}else if ( nts.indexOf( "byebye") != -1 ){
 								
 							lostRoot( local_address, location );
@@ -646,6 +715,25 @@ SSDPImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	protected boolean[]
+	bytesToBits(
+		byte[]	bytes )
+	{
+		boolean[]	res = new boolean[bytes.length*8];
+		
+		for (int i=0;i<bytes.length;i++){
+			
+			byte	b = bytes[i];
+			
+			for (int j=0;j<8;j++){
+				
+				res[i*8+j] = (b&(byte)(0x01<<(7-j))) != 0;
+			}
+		}
+				
+		return( res );
 	}
 	
 	protected void
