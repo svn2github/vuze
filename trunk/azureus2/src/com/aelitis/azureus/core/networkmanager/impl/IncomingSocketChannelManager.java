@@ -70,8 +70,7 @@ public class IncomingSocketChannelManager {
         int port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
         if( port != listen_port ) {
           listen_port = port;
-          stop();
-          start();
+          restart();
         }
       }
     });
@@ -82,8 +81,7 @@ public class IncomingSocketChannelManager {
         int size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
         if( size != so_rcvbuf_size ) {
           so_rcvbuf_size = size;
-          stop();
-          start();
+          restart();
         }
       }
     });
@@ -96,8 +94,7 @@ public class IncomingSocketChannelManager {
 	        String address = COConfigurationManager.getStringParameter( "Bind IP" );
 	        if( !address.equals( bind_address ) ) {
 	          bind_address = address;
-	          stop();
-	          start();
+	          restart();
 	        }
       }
     });
@@ -150,8 +147,7 @@ public class IncomingSocketChannelManager {
         							String error = t.getMessage() == null ? "<null>" : t.getMessage();
         							String msg = "Listen server socket on [" +inet_address+ ": " +listen_port+ "] does not appear to be accepting inbound connections.\n[" +error+ "]\nAuto-repairing listen service....\n";
         							LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
-        							IncomingSocketChannelManager.this.stop();
-        							IncomingSocketChannelManager.this.start();
+        							restart();
         							fail_count = 0;
         						}
       						}
@@ -356,20 +352,22 @@ public class IncomingSocketChannelManager {
   }
   
   
-  private void stop() {
+  private void restart() {
   	try{
   		this_mon.enter();
-  	
-  		if( server_selector != null ) {
+      	
+  		if( server_selector != null ) {	  			  			
   			server_selector.stop();
   			server_selector = null;
   		}
   	}finally{
-  		
+      		
   		this_mon.exit();
   	}
-  	
-  	try{ Thread.sleep( 3000 );  }catch( Throwable t ) { t.printStackTrace();  }
+      	
+  	try{ Thread.sleep( 1000 );  }catch( Throwable t ) { t.printStackTrace();  }
+      	
+  	start();
   }
   
   
