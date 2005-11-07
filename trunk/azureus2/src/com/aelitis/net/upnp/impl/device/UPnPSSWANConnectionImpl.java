@@ -134,6 +134,53 @@ UPnPSSWANConnectionImpl
 		return( service );
 	}
 	
+	public String[]
+   	getStatusInfo()
+	          	
+   		throws UPnPException
+   	{
+		UPnPAction act = service.getAction( "GetStatusInfo" );
+		
+		if ( act == null ){
+			
+			service.getDevice().getRootDevice().getUPnP().log( "Action 'GetStatusInfo' not supported, binding not established" );
+			
+			throw( new UPnPException( "GetStatusInfo not supported" ));
+			
+		}else{
+					
+			UPnPActionInvocation inv = act.getInvocation();
+						
+			UPnPActionArgument[]	args = inv.invoke();
+			
+			String	connection_status	= null;
+			String	connection_error	= null;
+			String	uptime				= null;
+			
+			for (int i=0;i<args.length;i++){
+				
+				UPnPActionArgument	arg = args[i];
+			
+				String	name = arg.getName();
+				
+				if ( name.equalsIgnoreCase("NewConnectionStatus")){
+					
+					connection_status = arg.getValue();
+					
+				}else if ( name.equalsIgnoreCase("NewLastConnectionError")){
+					
+					connection_error = arg.getValue();
+					
+				}else if ( name.equalsIgnoreCase("NewUptime")){
+					
+					uptime = arg.getValue();
+				}
+			}
+			
+			return( new String[]{ connection_status, connection_error, uptime });
+		}		
+   	}
+	
 	protected void
 	checkMappings()
 	

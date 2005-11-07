@@ -59,4 +59,9 @@ UPnPWANConnection
 		int			port )
 	
 		throws UPnPException;
+	
+	public String[]
+	getStatusInfo()
+	
+		throws UPnPException;
 }
