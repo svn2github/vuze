@@ -47,6 +47,7 @@ public class ClientConnection {
 	private final AEMonitor msg_mon = new AEMonitor( "ClientConnection" );
 	private final ArrayList sending_msgs = new ArrayList();
 	
+	private Object	user_data;
 	
 	/**
 	 * Create a new connection based on an incoming socket.
@@ -173,4 +174,17 @@ public class ClientConnection {
    * Reset the last activity time to the current time.
    */
   public void resetLastActivityTime() {  last_activity_time = System.currentTimeMillis();  }
+  
+  public Object
+  getData()
+  {
+	  return( user_data );
+  }
+  
+  public void
+  setData(
+	 Object	data )
+  {
+	  user_data	= data;
+  }
 }
