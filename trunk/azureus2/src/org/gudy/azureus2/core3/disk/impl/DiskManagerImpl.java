@@ -373,8 +373,6 @@ DiskManagerImpl
 		
 			//allocate / check every file
 
-		files = new DiskManagerFileInfoImpl[piece_mapper.getFileList().size()];
-      
 		int newFiles = allocateFiles();
       
 		if ( getState() == FAULTY ){
@@ -640,6 +638,8 @@ DiskManagerImpl
 	private int 
 	allocateFiles() 
 	{
+		DiskManagerFileInfoImpl[] allocated_files = new DiskManagerFileInfoImpl[piece_mapper.getFileList().size()];
+	      
 		setState( ALLOCATING );
 		
 		allocated = 0;
@@ -679,9 +679,9 @@ DiskManagerImpl
 								pm_info.getTorrentFile(),
 								linear );
 				
-				files[i] = fileInfo;
+				allocated_files[i] = fileInfo;
 	
-				pm_info.setFileInfo(files[i]);
+				pm_info.setFileInfo( fileInfo );
 				
 			}catch ( CacheFileManagerException e ){
 				
@@ -840,6 +840,11 @@ DiskManagerImpl
 			}
 		}
     
+			// make sure that "files" doens't become visible to the rest of the world until all
+			// entries have been populated
+		
+		files	= allocated_files;
+		
 		loadFilePriorities();
     
 		download_manager.setDataAlreadyAllocated( true );
