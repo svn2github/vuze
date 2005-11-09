@@ -48,6 +48,7 @@ public class ClientConnection {
 	private final ArrayList sending_msgs = new ArrayList();
 	
 	private Object	user_data;
+	private boolean	closed;
 	
 	/**
 	 * Create a new connection based on an incoming socket.
@@ -135,6 +136,10 @@ public class ClientConnection {
 		ClientMessage[] messages = null;
 		
 		try{  msg_mon.enter();
+			if ( closed ){
+				return;
+			}
+			closed	= true;
 			if( !sending_msgs.isEmpty() ) {
 				messages = (ClientMessage[])sending_msgs.toArray( new ClientMessage[]{} );
 			}
