@@ -60,6 +60,13 @@ SemaphoreImpl
 		return( sem.reserveIfAvailable());
 	}
 	
+	public boolean
+	reserve(
+		long	timeout_millis )
+	{
+		return( sem.reserve( timeout_millis ));
+	}
+	
 	public void
 	release()
 	{
