@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.clientmessageservice.impl;
 import java.io.IOException;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 
@@ -47,7 +49,7 @@ public class ClientConnection {
 	private final AEMonitor msg_mon = new AEMonitor( "ClientConnection" );
 	private final ArrayList sending_msgs = new ArrayList();
 	
-	private Object	user_data;
+	private Map		user_data;
 	private boolean	closed;
 	
 	/**
@@ -181,15 +183,37 @@ public class ClientConnection {
   public void resetLastActivityTime() {  last_activity_time = System.currentTimeMillis();  }
   
   public Object
-  getData()
+  getUserData(
+	Object	key )
   {
-	  return( user_data );
+	  Map	m = user_data;
+	  
+	  if ( m == null ){
+		  
+		  return( null );
+	  }
+	  
+	  return( m.get(key));
   }
   
   public void
-  setData(
-	 Object	data )
+  setUserData(
+	Object	key,
+	Object	data )
   {
-	  user_data	= data;
+	try{  
+		msg_mon.enter();
+		
+			// assumption is write infrequently, read often -> copy-on-write
+		
+		Map	m = (user_data==null)?new HashMap():new HashMap( user_data );
+		
+		m.put( key, data );
+		
+		user_data	= m;
+	}finally{
+		
+		msg_mon.exit();
+	}
   }
 }
