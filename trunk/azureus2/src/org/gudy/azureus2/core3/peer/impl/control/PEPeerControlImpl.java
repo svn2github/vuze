@@ -530,8 +530,11 @@ PEPeerControlImpl
     }
     
     if( removed ) {
-      peerRemoved( peer );  //notify listeners
-      peer.closeConnection( reason );
+    	peer.closeConnection( reason );
+      peerRemoved( peer );  //notify listeners      
+    }
+    else {
+    	System.out.println( "closeAndRemovePeer(): peer not removed" );
     }
   }
   
@@ -554,8 +557,8 @@ PEPeerControlImpl
     for( int i=0; i < peer_transports.size(); i++ ) {
       PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
       
-      peerRemoved( peer );  //notify listeners
-      peer.closeConnection( reason );      
+      peer.closeConnection( reason );
+      peerRemoved( peer );  //notify listeners       
     }
     
     if( reconnect ) {
@@ -1899,6 +1902,10 @@ PEPeerControlImpl
     }
 
     if ( connection_found ){
+    	if( peer.getPeerState() != PEPeer.DISCONNECTED ) {
+    		System.out.println( "peer.getPeerState() != PEPeer.DISCONNECTED: " +peer.getPeerState() );
+    	}
+    	
       peerRemoved( peer );  //notify listeners
     }
   }

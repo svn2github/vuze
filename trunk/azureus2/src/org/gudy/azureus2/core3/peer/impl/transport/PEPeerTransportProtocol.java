@@ -1148,8 +1148,8 @@ PEPeerTransportProtocol
       return;
     }
 
-    PeerIdentityManager.addIdentity( my_peer_data_id, peer_id, ip );
     identityAdded = true;
+    PeerIdentityManager.addIdentity( my_peer_data_id, peer_id, ip );    
 
     if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtLifeCycle, LGLogger.RECEIVED, toString() + " has sent their handshake" );
 
