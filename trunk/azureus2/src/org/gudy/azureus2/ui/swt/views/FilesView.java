@@ -351,6 +351,10 @@ public class FilesView
 				
 				pause	= true;
 				
+			}else if ( type != 3 && storage_type == DiskManagerFileInfo.ST_COMPACT ){
+					
+				pause	= true;
+				
 			}else if ( file_info.isSkipped() && type != 2 ){
 				
 					// skipped -> normal
@@ -439,11 +443,6 @@ public class FilesView
 	 boolean				skipped,
 	 boolean				force_compact )
   {
-	if ( info.isSkipped() == skipped ){
-		
-		return;
-	}
-	
 		// if we're not managing the download then don't do anything other than
 		// change the file's priority
 	
