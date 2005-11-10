@@ -53,6 +53,7 @@ public class VirtualChannelSelectorImpl {
     private int[] select_counts = new int[ 50 ];
     private int round = 0;
     
+    private volatile boolean	destroyed;
     
     
     public VirtualChannelSelectorImpl( VirtualChannelSelector _parent, int _interest_op, boolean _pause_after_select ) {	
@@ -78,14 +79,14 @@ public class VirtualChannelSelectorImpl {
         }
         
         public void spinDetected() {
-          destroy();
+          closeExistingSelector();
           try {  Thread.sleep( 1000 );  }catch( Throwable x ) {x.printStackTrace();}
           parent.enableSafeSelectionMode();
         }
         
         public void failureDetected() {
           try {  Thread.sleep( 10000 );  }catch( Throwable x ) {x.printStackTrace();}
-          destroy();
+          closeExistingSelector();
           try {  Thread.sleep( 1000 );  }catch( Throwable x ) {x.printStackTrace();}
           selector = openNewSelector();
         }
@@ -220,6 +221,11 @@ public class VirtualChannelSelectorImpl {
     addRegOrCancel( 
     	Object	obj_to_add ) 
     {
+    	if ( destroyed ){
+    		
+    		Debug.out( "addRegOrCancel called after selector destroyed" );
+    	}
+    	
     	try{
     		register_cancel_list_mon.enter();
       	   		
@@ -274,13 +280,19 @@ public class VirtualChannelSelectorImpl {
     
     public int select( long timeout ) {
     	
-    	long select_start_time = SystemTime.getCurrentTime();
+      long select_start_time = SystemTime.getCurrentTime();
       
       if( selector == null ) {
         Debug.out( "VirtualChannelSelector.select() op called with null selector" );
         try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
         return 0;
-      }      
+      } 
+      
+      if( !selector.isOpen()) {
+          Debug.out( "VirtualChannelSelector.select() op called with closed selector" );
+          try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
+          return 0;
+      }  
       
       	// store these when they occur so they can be raised *outside* of the monitor to avoid
       	// potential deadlocks
@@ -394,6 +406,7 @@ public class VirtualChannelSelectorImpl {
       	}
       }
       
+  
       //do the actual select
       int count = 0;
       selector_guard.markPreSelectTime();
@@ -405,7 +418,16 @@ public class VirtualChannelSelectorImpl {
         try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
       
+      	// do this after the select so that any pending cancels (prior to destroy) are processed
+      	// by the selector before we kill it
       
+ 	  if ( destroyed ){
+  		
+ 	    closeExistingSelector();
+ 	    	
+ 	    return( 0 );
+ 	  }
+ 	   	  
       /*
       if( INTEREST_OP == VirtualChannelSelector.OP_READ ) {  //TODO
       	select_counts[ round ] = count;
@@ -490,9 +512,18 @@ public class VirtualChannelSelectorImpl {
       return count;
     }
     
+    	/**
+    	 * Note that you have to ensure that a select operation is performed on the normal select
+    	 * loop *after* destroying the selector to actually cause the destroy to occur
+    	 */
     
+    public void
+    destroy()
+    {
+    	destroyed	= true;
+    }
     
-    private void destroy() {
+    private void closeExistingSelector() {
       for( Iterator i = selector.keys().iterator(); i.hasNext(); ) {
         SelectionKey key = (SelectionKey)i.next();
         RegistrationData data = (RegistrationData)key.attachment();

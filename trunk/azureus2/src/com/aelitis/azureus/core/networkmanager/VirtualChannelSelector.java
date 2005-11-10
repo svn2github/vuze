@@ -46,6 +46,8 @@ public class VirtualChannelSelector {
 
   private VirtualChannelSelectorImpl selector_impl;
   
+  private volatile boolean	destroyed;
+  
   //ONLY USED IN FAULTY MODE
   private HashMap selectors;
   private AEMonitor selectors_mon;
@@ -123,6 +125,13 @@ public class VirtualChannelSelector {
       	  return;
         }
         
+        if ( destroyed ){
+          String	msg = "socket registered after controller destroyed";
+       	  Debug.out( msg );
+      	  listener.selectFailure( this, channel, attachment, new Throwable( msg ) );  //reject registration    	  
+      	  return;
+        }
+
         VirtualChannelSelectorImpl sel = new VirtualChannelSelectorImpl( this, op, pause );
         ArrayList chans = new ArrayList();
         selectors.put( sel, chans );
@@ -253,7 +262,28 @@ public class VirtualChannelSelector {
     return selector_impl.select( timeout );
   }
 
-  
+  public void destroy()
+  {
+	  destroyed	= true;
+	  
+	  if( SAFE_SELECTOR_MODE_ENABLED ) {
+				      
+		 try{  
+			 selectors_mon.enter();
+		      
+		     for( Iterator it = selectors.keySet().iterator(); it.hasNext(); ) {
+		    	 
+		        VirtualChannelSelectorImpl sel = (VirtualChannelSelectorImpl)it.next();
+		        
+		       sel.destroy();
+		     }
+		 }finally{
+			 selectors_mon.exit();
+		 }
+	  }else{
+		  selector_impl.destroy();
+	  }
+  }
   
   
   public boolean isSafeSelectionModeEnabled() {  return SAFE_SELECTOR_MODE_ENABLED;  }

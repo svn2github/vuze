@@ -45,6 +45,7 @@ public class NonBlockingReadWriteService {
   private final ServiceListener listener;
   private final String service_name;
   private volatile boolean running = true;
+  private volatile boolean destroyed;
   
   private long last_timeout_check_time = 0;
   private static final int TIMEOUT_CHECK_INTERVAL_MS = 10*1000;  //check for timeouts every 10sec
@@ -61,7 +62,7 @@ public class NonBlockingReadWriteService {
 		
     AEThread select_thread = new AEThread( "[" +service_name+ "] Service Select" ) {
       public void runSupport() {
-        while( running ) {
+        while( true ) {
           try{
             read_selector.select( 50 );
             write_selector.select( 50 );
@@ -70,7 +71,14 @@ public class NonBlockingReadWriteService {
             Debug.out( "[" +service_name+ "] SelectorLoop() EXCEPTION: ", t );
           }
           
+          if ( !running ){
+        	  break;
+          }
+          
           doConnectionTimeoutChecks();
+          
+          	// check this at the end so we have one last run through  the selectors to do cancels
+          	// before exiting
         }
       }
     };
@@ -80,19 +88,41 @@ public class NonBlockingReadWriteService {
 	
 	
 	
-	public void destroy() {
-		connections.clear();
-		running = false;
+	public void 
+	destroy() 
+	{
+	    try {  
+	    	connections_mon.enter();
+		    	    
+	    	connections.clear();
+	    	
+	    	destroyed	= true;
+	    	
+	    }finally{
+	    	connections_mon.exit();
+	    }
+	    
+	    read_selector.destroy();
+	    write_selector.destroy();
+	    running = false;
 	}
 	
 	
 	
 	public void addClientConnection( ClientConnection connection ) {
 		//add to active list
+		
     try {  connections_mon.enter();
-      connections.add( connection );
+    
+    	if ( destroyed ){
+    		
+    		Debug.out( "connection added after destroy" );
+    	}
+    	
+    	connections.add( connection );
+    }finally {  
+    	connections_mon.exit(); 
     }
-    finally {  connections_mon.exit();  }
     
     registerForSelection( connection );
 	}
