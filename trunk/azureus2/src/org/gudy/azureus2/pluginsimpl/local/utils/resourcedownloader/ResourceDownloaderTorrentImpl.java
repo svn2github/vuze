@@ -343,7 +343,7 @@ ResourceDownloaderTorrentImpl
 							
 							download.removeListener( this );
 							
-							downloadSucceeded( torrent_file, data_dir );
+							downloadSucceeded( download, torrent_file, data_dir );
 						}
 					}
 
@@ -396,7 +396,7 @@ ResourceDownloaderTorrentImpl
 			
 			if ( download.getState() == Download.ST_SEEDING ){
 				
-				downloadSucceeded( torrent_file, data_dir );
+				downloadSucceeded( download, torrent_file, data_dir );
 			}
 		}catch( Throwable e ){
 			
@@ -406,6 +406,7 @@ ResourceDownloaderTorrentImpl
 	
 	protected void
 	downloadSucceeded(
+		Download	download,
 		File		torrent_file,
 		File		data_dir )
 	{
@@ -444,6 +445,26 @@ ResourceDownloaderTorrentImpl
 					// carry on and use the moved one 
 				
 				target_file	= moved_target_file;
+			}
+			
+			if ( !target_file.exists()){
+
+					// not sure why we don't just use the save path and avoid all the crap above
+				
+				File	actual_target_file = new File(download.getSavePath());
+				
+				try{
+					if ( download_dir != null && actual_target_file.exists()){
+						
+						FileUtil.copyFile( actual_target_file, target_file );
+					}
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+				
+				target_file	= actual_target_file;
 			}
 		}
 
