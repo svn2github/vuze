@@ -50,6 +50,7 @@ public class ClientConnection {
 	private final ArrayList sending_msgs = new ArrayList();
 	
 	private Map		user_data;
+	private boolean	close_pending;
 	private boolean	closed;
 	
 	/**
@@ -166,6 +167,23 @@ public class ClientConnection {
 		}
 	}
 	
+		/**
+		 * Marks the socket as complete and ready to undergo any close-delay prior to it being closed
+		 * by the server
+		 */
+	
+	public void
+	closePending()
+	{
+		last_activity_time 	= System.currentTimeMillis();
+		close_pending		= true;
+	}
+	
+	public boolean
+	isClosePending()
+	{
+		return( close_pending );
+	}
 	
 	public SocketChannel getSocketChannel(){  return light_transport.getSocketChannel();  }
 	

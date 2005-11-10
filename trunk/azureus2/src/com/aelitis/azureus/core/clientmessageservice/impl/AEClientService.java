@@ -55,8 +55,12 @@ public class AEClientService implements ClientMessageService {
 	private Throwable error;
 	
   
-  
 	public AEClientService( String server_address, int server_port, String _msg_type_id ) {
+
+		this( server_address, server_port, 30, _msg_type_id );
+	}
+  
+	public AEClientService( String server_address, int server_port, int timeout, String _msg_type_id ) {
 		this.address = server_address;
 		this.port = server_port;
 		this.msg_type_id = _msg_type_id;
@@ -66,7 +70,7 @@ public class AEClientService implements ClientMessageService {
 		}
 		catch( MessageException me ) {  /*ignore, since message type probably already registered*/ }
 		
-		rw_service = new NonBlockingReadWriteService( msg_type_id, 30, new NonBlockingReadWriteService.ServiceListener() {			
+		rw_service = new NonBlockingReadWriteService( msg_type_id, timeout, 0, new NonBlockingReadWriteService.ServiceListener() {			
 			public void messageReceived( ClientMessage message ) {
 				received_messages.add( message.getPayload() );
 				read_block.release();

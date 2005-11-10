@@ -50,15 +50,20 @@ public class NonBlockingReadWriteService {
   private long last_timeout_check_time = 0;
   private static final int TIMEOUT_CHECK_INTERVAL_MS = 10*1000;  //check for timeouts every 10sec
   private final int activity_timeout_period_ms;
-  
+  private final int close_delay_period_ms;
   
   
 	public NonBlockingReadWriteService( String _service_name, int timeout, ServiceListener _listener ) {
+		this( _service_name, timeout, 0, _listener );
+	}
+  
+	public NonBlockingReadWriteService( String _service_name, int timeout, int close_delay, ServiceListener _listener ) {
 		this.service_name = _service_name;
 		this.listener = _listener;
 
 		if( timeout < TIMEOUT_CHECK_INTERVAL_MS /1000 )  timeout = TIMEOUT_CHECK_INTERVAL_MS /1000;
-		this.activity_timeout_period_ms = timeout *1000;		
+		this.activity_timeout_period_ms = timeout *1000;
+		close_delay_period_ms			= close_delay * 1000;
 		
     AEThread select_thread = new AEThread( "[" +service_name+ "] Service Select" ) {
       public void runSupport() {
@@ -161,7 +166,11 @@ public class NonBlockingReadWriteService {
       		}	
       	}
       	catch( Throwable t ) {
-      		System.out.println( "[" +new Date()+ "] Connection read error [" +sc.socket().getInetAddress()+ "]: " +t.getMessage() );
+      		if ( !client.isClosePending()){
+      			
+      			System.out.println( "[" +new Date()+ "] Connection read error [" +sc.socket().getInetAddress()+ "]: " +t.getMessage() );
+      		}
+      		
       		listener.connectionError( client );
       	}
 
@@ -222,8 +231,13 @@ public class NonBlockingReadWriteService {
           if( current_time < vconn.getLastActivityTime() ) {  //time went backwards!
             vconn.resetLastActivityTime();
           }
-          else if( current_time - vconn.getLastActivityTime() > activity_timeout_period_ms ) {
-            timed_out.add( vconn );   //do actual removal outside the check loop
+          else{
+        	  if( current_time - vconn.getLastActivityTime() > activity_timeout_period_ms ||
+        			 ( close_delay_period_ms > 0 && 
+        			   current_time - vconn.getLastActivityTime() > close_delay_period_ms )){
+        		  
+        		  timed_out.add( vconn );   //do actual removal outside the check loop
+        	  }
           }
         }
       }

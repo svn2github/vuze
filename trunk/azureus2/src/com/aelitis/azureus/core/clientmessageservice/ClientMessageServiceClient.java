@@ -36,8 +36,11 @@ public class ClientMessageServiceClient {
 	 * @param message type id to use for messages
 	 * @return server service connection
 	 */
+	public static ClientMessageService getServerService( String server_address, int server_port, int timeout_secs, String msg_type_id ) {
+		return new AEClientService( server_address, server_port, timeout_secs, msg_type_id );
+	}
+	
 	public static ClientMessageService getServerService( String server_address, int server_port, String msg_type_id ) {
 		return new AEClientService( server_address, server_port, msg_type_id );
 	}
-	
 }
