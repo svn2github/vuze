@@ -646,7 +646,9 @@ public class GlobalManagerImpl
 	        	 
 	        	int	dl_copies = COConfigurationManager.getIntParameter("StartStopManager_iAddForSeedingDLCopyCount");
 	        	  	
-	        	lDownloadedValue = download_manager.getSize() * dl_copies; 
+	        	lDownloadedValue = download_manager.getSize() * dl_copies;
+	        	
+	        	download_manager.getDownloadState().setFlag( DownloadManagerState.FLAG_ONLY_EVER_SEEDED, true );
 	          }
 	          
 	          saved_data_bytes_downloaded	= lDownloadedValue;

@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.plugins.download.Download;
 
 /**
  * @author parg
@@ -43,6 +44,9 @@ DownloadManagerState
 	public static final String AT_FILE_LINKS				= "filelinks";
 	public static final String AT_FILE_STORE_TYPES			= "storetypes";
 	public static final String AT_FILE_DOWNLOADED			= "filedownloaded";
+	public static final String AT_FLAGS						= "flags";
+	
+	public static final long FLAG_ONLY_EVER_SEEDED	= Download.FLAG_ONLY_EVER_SEEDED;
 	
 	public TOTorrent
 	getTorrent();
@@ -53,6 +57,15 @@ DownloadManagerState
 	public File 
 	getStateFile(
 		String	name );
+	
+	public void
+	setFlag(
+		long		flag,
+		boolean		set );
+	
+	public boolean
+	getFlag(
+		long		flag );
 	
 	public void
 	clearResumeData();

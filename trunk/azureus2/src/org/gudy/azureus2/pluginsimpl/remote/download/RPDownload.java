@@ -311,6 +311,15 @@ RPDownload
 		return( null );
 	}
 	
+	public boolean
+	getFlag(
+		long	flag )
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
 	public int
 	getIndex()
 	{

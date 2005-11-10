@@ -262,6 +262,35 @@ PlatformManagerImpl
 		}		
 	}
 	
+	public File
+	getLocation(
+		long	location_id )
+	
+		throws PlatformManagerException
+	{
+	    if ( location_id == LOC_USER_DATA ){
+	    	
+	    	return(new File(getUserDataDirectory()));
+	    	
+	    }else if ( location_id == LOC_MUSIC ){
+	    	
+	    	try{
+		    	return( new File(
+		    		access.readStringValue(
+		    			AEWin32Access.HKEY_CURRENT_USER,
+		    			"software\\microsoft\\windows\\currentversion\\explorer\\shell folders",
+		    			"My Music" )));
+		    	
+	    	}catch( Throwable e ){
+	    		
+				throw( new PlatformManagerException( "Failed to read registry details", e ));
+	    	}
+	    }else{
+	    	
+	    	return( null );
+	    }
+	}
+	
 	public String
 	getApplicationCommandLine()
 	{

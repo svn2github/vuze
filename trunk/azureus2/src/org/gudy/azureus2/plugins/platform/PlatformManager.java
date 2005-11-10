@@ -22,10 +22,15 @@
 
 package org.gudy.azureus2.plugins.platform;
 
+import java.io.File;
+
 
 public interface 
 PlatformManager 
 {
+	public static final int	LOC_USER_DATA		= 1;
+	public static final int	LOC_MUSIC			= 2;
+	
 		/**
 		 * Checks to see if the supplied file type is registered with this application
 		 * @param name
@@ -84,5 +89,18 @@ PlatformManager
     showFile(
 		String	file_name )
 
+		throws PlatformManagerException;
+	
+		/**
+		 * Get a well-known location, if defined for the platform
+		 * @param location_id from above LOC_constants
+		 * @return
+		 * @since 2.3.0.6
+		 */
+	
+	public File
+	getLocation(
+		long	location_id )
+	
 		throws PlatformManagerException;
 }

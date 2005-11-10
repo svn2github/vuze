@@ -529,6 +529,38 @@ DownloadManagerStateImpl
 		}
 	}
 	
+	public void
+	setFlag(
+		long		flag,
+		boolean		set )
+	{
+		long	old_value = getLongAttribute( AT_FLAGS );
+	
+		long	new_value;
+		
+		if ( set ){
+			
+			new_value = old_value | flag;
+			
+		}else{
+			
+			new_value = old_value & ~flag;
+		}
+		
+		if ( old_value != new_value ){
+			
+			setLongAttribute( AT_FLAGS, new_value );
+		}
+	}
+	
+	public boolean
+	getFlag(
+		long	flag )
+	{
+		long	value = getLongAttribute( AT_FLAGS );
+	
+		return(( value & flag ) != 0 );
+	}
 	
 	public void
 	setAttribute(
@@ -1056,6 +1088,56 @@ DownloadManagerStateImpl
 		}
 	}
 	
+	protected long
+	getLongAttribute(
+		String	attribute_name )
+	{
+		informWillRead( attribute_name );
+		
+		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		
+		if ( attributes == null ){
+			
+			return( 0 );
+		}
+		
+		Long	l = (Long)attributes.get( attribute_name );
+		
+		if ( l == null ){
+			
+			return( 0 );
+		}
+		
+		return( l.longValue());
+	}
+	
+	protected void
+	setLongAttribute(
+		final String	attribute_name,
+		final long		attribute_value )
+	{
+		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		
+		if ( attributes == null ){
+			
+			attributes = new HashMap();
+			
+			torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
+		}
+	
+		Long	existing_value = (Long)attributes.get( attribute_name );
+				
+		if ( 	existing_value == null ||
+				existing_value.longValue() != attribute_value ){
+				
+			attributes.put( attribute_name, new Long( attribute_value) );
+						
+			write_required	= true;
+			
+			informWritten( attribute_name );
+		}
+	}
+	
 	public void
 	setListAttribute(
 		String		name,
@@ -1482,6 +1564,20 @@ DownloadManagerStateImpl
 		setTrackerResponseCache(
 			Map		value )
 		{
+		}
+		
+		public void
+		setFlag(
+			long		flag,
+			boolean		set )
+		{
+		}
+		
+		public boolean
+		getFlag(
+			long		flag )
+		{
+			return( false );
 		}
 		
 		public void

@@ -1,5 +1,7 @@
 package org.gudy.azureus2.platform.dummy;
 
+import java.io.File;
+
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -62,6 +64,15 @@ public class PlatformManagerImpl implements PlatformManager
 		throws PlatformManagerException
 	{
         throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
+	public File
+	getLocation(
+		long	location_id )
+	
+		throws PlatformManagerException
+	{
+	    return( null );
 	}
 	
 	public boolean

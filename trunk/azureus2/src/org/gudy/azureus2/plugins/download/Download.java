@@ -102,6 +102,13 @@ Download
 	public static final int	PR_LOW_PRIORITY		= 2;
 	
 	
+		/**
+		 * Flags values
+		 * @since 2.3.0.5
+		 */
+	
+	public static final long FLAG_ONLY_EVER_SEEDED	= 0x00000001;
+
 	/** get state from above ST_ set
    * @return ST_ constant
    *
@@ -126,6 +133,17 @@ Download
    */
 	public String
 	getErrorStateDetails();
+	
+		/**
+		 * Get the flag value
+		 * @since 2.3.0.5
+		 * @param flag	FLAG value from above
+		 * @return
+		 */
+	
+	public boolean
+	getFlag(
+		long		flag );
 	
 	/**
 	 * Index of download. {@link #getPosition()}

@@ -131,6 +131,19 @@ public class PlatformManagerImpl implements PlatformManager
         return USERDATA_PATH;
     }
 
+	public File
+	getLocation(
+		long	location_id )
+	
+		throws PlatformManagerException
+	{
+		if ( location_id == LOC_USER_DATA ){
+			
+			return( new File( USERDATA_PATH ));
+		}
+		
+		return( null );
+	}
     /**
      * Not implemented; returns True
      */
