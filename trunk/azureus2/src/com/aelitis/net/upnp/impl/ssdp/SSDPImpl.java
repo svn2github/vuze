@@ -682,7 +682,7 @@ SSDPImpl
 									
 									if ( log ){
 										
-										upnp.log( "    NOTIFY: " + location + " -> " + best_ni + "/" + best_addr + " (prefix=" + (best_prefix + 1 ) + ")");
+										upnp.log( location + " -> " + best_ni.getDisplayName() + "/" + best_addr + " (prefix=" + (best_prefix + 1 ) + ")");
 									}
 									
 									gotRoot( best_ni, best_addr, location );
