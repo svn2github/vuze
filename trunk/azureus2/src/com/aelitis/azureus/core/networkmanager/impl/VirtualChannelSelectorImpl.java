@@ -223,7 +223,13 @@ public class VirtualChannelSelectorImpl {
     {
     	if ( destroyed ){
     		
-    		Debug.out( "addRegOrCancel called after selector destroyed" );
+    		if ( obj_to_add instanceof SocketChannel ){
+    		
+    				// don't worry too much about cancels
+    		}else{
+    			
+    			Debug.out( "addRegOrCancel called after selector destroyed" );
+    		}
     	}
     	
     	try{
