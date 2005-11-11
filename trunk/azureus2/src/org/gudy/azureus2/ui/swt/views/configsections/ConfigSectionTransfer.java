@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
@@ -108,43 +109,29 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     label = new Label(cTransfer, SWT.NULL);
 
     if(userMode < 2) {
-    // wiki link
-    
-    Composite cWiki = new Composite(cTransfer, SWT.COLOR_GRAY);
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 4;
-    cWiki.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 4;
-    layout.marginHeight = 0;
-    cWiki.setLayout(layout);
-    
-    gridData = new GridData();
-    gridData.horizontalIndent = 6;
-    gridData.horizontalSpan = 2;
-    label = new Label(cWiki, SWT.NULL);
-    label.setLayoutData( gridData );
-    label.setText(MessageText.getString("Utils.link.visit") + ":");
-
-    
-    
-    final Label linkLabel = new Label(cWiki, SWT.NULL);
-    linkLabel.setText(MessageText.getString("ConfigView.section.transfer.speeds.wiki"));
-    linkLabel.setData("http://azureus.aelitis.com/wiki/index.php/Good_settings");
-    linkLabel.setCursor(Cursors.handCursor);
-    linkLabel.setForeground(Colors.blue);
-    gridData = new GridData();
-    gridData.horizontalIndent = 10;
-    gridData.horizontalSpan = 2;
-    linkLabel.setLayoutData( gridData );
-    linkLabel.addMouseListener(new MouseAdapter() {
-      public void mouseDoubleClick(MouseEvent arg0) {
-        Program.launch((String) ((Label) arg0.widget).getData());
-      }
-      public void mouseUp(MouseEvent arg0) {
-        Program.launch((String) ((Label) arg0.widget).getData());
-      }
-    });
+	    // wiki link
+	    
+	    Composite cWiki = new Composite(cTransfer, SWT.COLOR_GRAY);
+	    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+	    gridData.horizontalSpan = 4;
+	    cWiki.setLayoutData(gridData);
+	    layout = new GridLayout();
+	    layout.numColumns = 4;
+	    layout.marginHeight = 0;
+	    cWiki.setLayout(layout);
+	    
+	    gridData = new GridData();
+	    gridData.horizontalIndent = 6;
+	    gridData.horizontalSpan = 2;
+	    label = new Label(cWiki, SWT.NULL);
+	    label.setLayoutData( gridData );
+	    label.setText(MessageText.getString("Utils.link.visit") + ":");
+	
+	    
+	    gridData = new GridData();
+	    gridData.horizontalIndent = 10;
+	    gridData.horizontalSpan = 2;
+	    new LinkLabel( cWiki, gridData, "ConfigView.section.transfer.speeds.wiki", "http://azureus.aelitis.com/wiki/index.php/Good_settings" );
     }
     
     // max download speed

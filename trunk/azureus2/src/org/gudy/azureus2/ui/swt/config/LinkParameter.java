@@ -29,42 +29,57 @@ package org.gudy.azureus2.ui.swt.config;
  */
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 
 
 public class 
-ButtonParameter
+LinkParameter
 	extends Parameter
 {
-	Button	button;
+	Label		link_label;
 
   public 
-  ButtonParameter(
+  LinkParameter(
   	Composite composite,
-	final String name_resource ) 
+	final String name_resource) 
   {
-    button = new Button( composite, SWT.PUSH );
-    
-    Messages.setLanguageText(button, name_resource);
-
-    button.addListener(SWT.Selection, new Listener() {
-	      public void handleEvent(Event event) 
-	      {
-	       	for (int i=0;i<change_listeners.size();i++){
-        		
-        		((ParameterChangeListener)change_listeners.get(i)).parameterChanged(ButtonParameter.this,false);
-        	}
-	      }
+    link_label = new Label(composite, SWT.NULL);
+    Messages.setLanguageText(link_label, name_resource);
+    link_label.setCursor(Cursors.handCursor);
+    link_label.setForeground(Colors.blue);
+    link_label.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+        fire();
+      }
+      public void mouseUp(MouseEvent arg0) {
+        fire();
+      }
     });
   }
 
+ 
+  protected void
+  fire()
+  {
+	  for (int i=0;i<change_listeners.size();i++){
+		
+		((ParameterChangeListener)change_listeners.get(i)).parameterChanged(this,false);
+	}
+  }
+  
   public void setLayoutData(Object layoutData) {
-    button.setLayoutData(layoutData);
+	  link_label.setLayoutData(layoutData);
   }
 
   public Control getControl() 
   {
-	 return button;
+	 return link_label;
   }
 }

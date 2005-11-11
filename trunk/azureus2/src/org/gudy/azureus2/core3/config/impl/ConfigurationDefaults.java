@@ -353,6 +353,7 @@ public class ConfigurationDefaults {
     def.put( "Open Bar", new Long(0) );
     def.put( "confirmationOnExit", new Long(0) );
     def.put( "locale", Locale.getDefault().toString() );
+    def.put( "locale.set.complete.count", new Long(0));
     def.put( "Add URL Silently", new Long(0) );
     def.put( "config.style.dropdiraction", "0" );
     def.put( "MyTorrents.SplitAt", new Long(30) );

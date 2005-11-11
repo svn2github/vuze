@@ -453,7 +453,7 @@ public class MessageText {
     return changeLocale(newLocale, false);
   }
 
-  public static boolean changeLocale(Locale newLocale, boolean force) {
+  private static boolean changeLocale(Locale newLocale, boolean force) {
     if (!LOCALE_CURRENT.equals(newLocale) || force) {
       Locale.setDefault(LOCALE_DEFAULT);
       ResourceBundle newResourceBundle = null;

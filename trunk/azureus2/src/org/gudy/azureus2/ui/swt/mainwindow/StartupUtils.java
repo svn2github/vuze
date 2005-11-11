@@ -61,6 +61,10 @@ public class StartupUtils {
     }
     MessageText.changeLocale(savedLocale);
 
+    COConfigurationManager.setParameter(
+        	"locale.set.complete.count",
+        	COConfigurationManager.getIntParameter("locale.set.complete.count" ) +1 );
+    
     ////////////////////////////////////////////////////
   }
   

@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.EnablerParameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
@@ -169,7 +170,9 @@ BasicPluginConfigImpl
 			
 			Label label = null;
 			
-			String	label_text = MessageText.getString(param.getLabelKey());
+			String	label_key = param.getLabelKey();
+			
+			String	label_text = label_key==null?param.getLabelText():MessageText.getString( label_key );
 				
 				// we can only use the check-box's label form for boolean params if the text
 				// doesn't include formatting (it doesn't handle it)
@@ -181,7 +184,14 @@ BasicPluginConfigImpl
 				label = new Label(current_composite, param instanceof LabelParameterImpl
 							? SWT.WRAP : SWT.NULL);
 	
-				Messages.setLanguageText(label, param.getLabelKey());
+				if ( label_key == null ){
+					
+					label.setText( param.getLabelText());
+					
+				}else{
+					
+					Messages.setLanguageText(label, label_key );
+				}
 			}
 	
 			String	key = param.getKey();
@@ -308,7 +318,16 @@ BasicPluginConfigImpl
 		
 			}else if ( param instanceof ActionParameterImpl ){
 				
-				swt_param = new ButtonParameter( current_composite, MessageText.getString(((ActionParameterImpl)param).getActionResource()));
+				ActionParameterImpl	_param = (ActionParameterImpl)param;
+				
+				if ( _param.getStyle() == ActionParameter.STYLE_BUTTON ){
+				
+					swt_param = new ButtonParameter( current_composite, _param.getActionResource());
+				
+				}else{
+					
+					swt_param = new LinkParameter( current_composite, _param.getActionResource());					
+				}
 				
 				swt_param.addChangeListener(
 						new ParameterChangeListener()

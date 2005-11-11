@@ -1,7 +1,7 @@
 /*
- * Created on 17-Jun-2004
+ * Created on 11-Nov-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,29 +15,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SARL au capital de 30,000 euros
+ * AELITIS, SAS au capital de 40,000 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package org.gudy.azureus2.plugins.ui.config;
+package org.gudy.azureus2.plugins.utils;
 
-/**
- * @author parg
- *
- */
+import java.util.Locale;
 
 public interface 
-ActionParameter
-	extends Parameter
+LocaleListener 
 {
-	public static final int STYLE_BUTTON		= 1;
-	public static final int STYLE_LINK			= 2;
-	
 	public void
-	setStyle(
-		int		style );
-	
-	public int
-	getStyle();
+	localeChanged(
+		Locale	locale );
 }

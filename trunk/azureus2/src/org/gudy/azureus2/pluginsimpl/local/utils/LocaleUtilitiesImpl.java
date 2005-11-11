@@ -26,7 +26,12 @@ package org.gudy.azureus2.pluginsimpl.local.utils;
  *
  */
 
+import java.util.*;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.util.Debug;
 
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.*;
@@ -36,7 +41,9 @@ public class
 LocaleUtilitiesImpl
 	implements LocaleUtilities
 {
-	protected PluginInterface	pi;
+	private PluginInterface	pi;
+	
+	private List			listeners;
 	
 	public
 	LocaleUtilitiesImpl(
@@ -80,5 +87,50 @@ LocaleUtilitiesImpl
 		}
 		
 		return( res );
+	}
+	
+	public void
+	addListener(
+		LocaleListener		l )
+	{
+		if ( listeners == null ){
+			
+			listeners	= new ArrayList();
+			
+			COConfigurationManager.addParameterListener(
+				"locale.set.complete.count", 
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String parameterName )
+					{
+						for (int i=0;i<listeners.size();i++){
+							
+							try{
+								((LocaleListener)listeners.get(i)).localeChanged( MessageText.getCurrentLocale());
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
+				});
+		}
+		
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		LocaleListener		l )
+	{
+		if ( listeners == null ){
+			
+			return;
+		}
+		
+		listeners.remove(l);
 	}
 }

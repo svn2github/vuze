@@ -35,7 +35,8 @@ ActionParameterImpl
 	extends ParameterImpl
 	implements ActionParameter
 {
-	protected String	action_resource;
+	private String	action_resource;
+	private int		style	= STYLE_BUTTON;
 	
 	public 
 	ActionParameterImpl(
@@ -52,5 +53,18 @@ ActionParameterImpl
 	getActionResource()
 	{
 		return( action_resource );
+	}
+	
+	public void
+	setStyle(
+		int		_style )
+	{
+		style	= _style;
+	}
+	
+	public int
+	getStyle()
+	{
+		return( style );
 	}
 }

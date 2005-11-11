@@ -50,4 +50,12 @@ LocaleUtilities
 	
 	public LocaleDecoder[]
 	getDecoders();
+	
+	public void
+	addListener(
+		LocaleListener		l );
+	
+	public void
+	removeListener(
+		LocaleListener		l );
 }
