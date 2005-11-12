@@ -43,7 +43,7 @@ AEDiagnostics
 
 	// these can safely be set true, things will work just slower
 	public static final boolean	DEBUG_MONITOR_SEM_USAGE			= false;
-    public static final boolean DEBUG_THREADS			        = true;
+    public static final boolean DEBUG_THREADS			        = true; // Leave this on by default for the moment
 
 	public static final boolean	TRACE_DIRECT_BYTE_BUFFERS		= false;
 	public static final boolean	TRACE_DBB_POOL_USAGE			= false;
@@ -176,7 +176,7 @@ AEDiagnostics
 				try{
 					Class.forName( "com.aelitis.azureus.core.monitoring.thread.AEThreadMonitor" );
 						
-					System.out.println( "**** AEThread debug on ****" );
+					// System.out.println( "**** AEThread debug on ****" );
 	
 				}catch( Throwable e ){
 				}
