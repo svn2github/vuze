@@ -179,7 +179,9 @@ public class NonBlockingReadWriteService {
 
       //FAILURE
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
-        msg.printStackTrace();
+    	  if ( !destroyed ){
+    		  msg.printStackTrace();
+    	  }
         listener.connectionError( client );
       }
     };
@@ -204,7 +206,9 @@ public class NonBlockingReadWriteService {
       }
 
       public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
-        msg.printStackTrace();
+        if ( !destroyed ){
+        	msg.printStackTrace();
+        }
         listener.connectionError( client );
       }
     };
