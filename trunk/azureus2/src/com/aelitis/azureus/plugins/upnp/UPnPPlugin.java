@@ -296,20 +296,65 @@ UPnPPlugin
 					{
 						log.log( str );
 					}
+					
 					public void
 					logAlert(
 						String	str,
-						boolean	error )
+						boolean	error,
+						int		type )
 					{
+						boolean	logged = false;
+						
 						if ( alert_device_probs_param.getValue()){
 							
-							log.logAlert(
+							if ( type == UPnPLogListener.TYPE_ALWAYS ){
+								
+								log.logAlertRepeatable(						
+										error?LoggerChannel.LT_ERROR:LoggerChannel.LT_WARNING,
+										str );
+								
+								logged	= true;
+								
+							}else{
+								
+								boolean	do_it	= false;
+								
+								if ( type == UPnPLogListener.TYPE_ONCE_EVER ){
 									
-								error?LoggerChannel.LT_ERROR:LoggerChannel.LT_WARNING,
-								str );
+									byte[] fp = 
+										plugin_interface.getUtilities().getSecurityManager().calculateSHA1(
+											str.getBytes());
+									
+									String	key = "upnp.alert.fp." + plugin_interface.getUtilities().getFormatters().encodeBytesToString( fp );
+									
+									PluginConfig pc = plugin_interface.getPluginconfig();
+									
+									if ( !pc.getPluginBooleanParameter( key, false )){
+										
+										pc.setPluginParameter( key, true );
+										
+										do_it	= true;
+									}
+								}else{
+									
+									do_it	= true;
+								}
+							
+								if ( do_it ){						
+									
+									log.logAlert(						
+										error?LoggerChannel.LT_ERROR:LoggerChannel.LT_WARNING,
+										str );	
+									
+									logged	= true;
+								}
+							}		
 						}
 						
-						log.log( str );
+						if ( !logged ){
+							
+							log.log( str );
+						}
 					}
 				});
 			

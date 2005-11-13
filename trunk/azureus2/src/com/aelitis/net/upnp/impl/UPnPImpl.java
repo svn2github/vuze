@@ -617,7 +617,8 @@ UPnPImpl
 	public void
 	logAlert(
 		String	str,
-		boolean	error )
+		boolean	error,
+		int		type )
 	{
 		List	old_listeners;
 		
@@ -626,7 +627,7 @@ UPnPImpl
 
 			old_listeners = new ArrayList(log_listeners);
 
-			log_alert_history.add(new Object[]{ str, new Boolean( error ) });
+			log_alert_history.add(new Object[]{ str, new Boolean( error ), new Integer( type )});
 			
 			if ( log_alert_history.size() > 32 ){
 				
@@ -639,7 +640,7 @@ UPnPImpl
 		
 		for (int i=0;i<old_listeners.size();i++){
 	
-			((UPnPLogListener)old_listeners.get(i)).logAlert( str, error );
+			((UPnPLogListener)old_listeners.get(i)).logAlert( str, error, type );
 		}
 	}
 	
@@ -671,7 +672,7 @@ UPnPImpl
 			
 			Object[]	entry = (Object[])old_alerts.get(i);
 			
-			l.logAlert((String)entry[0], ((Boolean)entry[1]).booleanValue());
+			l.logAlert((String)entry[0], ((Boolean)entry[1]).booleanValue(), ((Integer)entry[2]).intValue());
 		}
 	}
 		
@@ -748,7 +749,8 @@ UPnPImpl
 					public void
 					logAlert(
 						String	str,
-						boolean	error )
+						boolean	error,
+						int		type )
 					{
 						System.out.println( str );
 					}

@@ -42,14 +42,21 @@ public class
 UPnPRootDeviceImpl 
 	implements  UPnPRootDevice
 {
-	public static final String	ROUTERS[]			= 
+	public static final String	ROUTERS[]				= 
 		{ 	"3Com ADSL 11g",
+			"WRT54G",
 		};
 	
 	public static final String	BAD_ROUTER_VERSIONS[]	= 
 		{ 	"2.05",
+			"any",
 		};
 	
+	public static final boolean BAD_ROUTER_REPORT_FAIL[]	=
+		{
+			true,		// report on fail
+			false,		// report always
+		};
 	
 	private UPnPImpl			upnp;
 	private NetworkInterface	network_interface;
@@ -140,29 +147,41 @@ UPnPRootDeviceImpl
 		}else{
 
 			info += "/Failed";
+		}
+		
+		String	model 	= root_device.getModelName();
+		String	version	= root_device.getModelNumber();
+		
+		if ( model == null || version == null ){
 			
-			String	model 	= root_device.getModelName();
-			String	version	= root_device.getModelNumber();
+			return;
+		}
 			
-			if ( model == null || version == null ){
+		for (int i=0;i<ROUTERS.length;i++){
+			
+			if ( ROUTERS[i].equals( model )){
 				
-				return;
-			}
-				
-			for (int i=0;i<ROUTERS.length;i++){
-				
-				if ( ROUTERS[i].equals( model )){
+				if ( isBadVersion( version, BAD_ROUTER_VERSIONS[i])){
 					
-					if ( isBadVersion( version, BAD_ROUTER_VERSIONS[i])){
+					boolean	report_on_fail = BAD_ROUTER_REPORT_FAIL[i];
+					
+					if ( report_on_fail && ok ){
+						
+						// don't warn here, only warn on failures
+						
+					}else{
 						
 						String	url = root_device.getModeURL();
 						
 						upnp.logAlert( 
 								"Device '" + model + "', version '" + version + 
 								"' has known problems with UPnP. Please update to the latest software version (see " + 
-								(url==null?"the manufacturer's web site":url) + ")",
-								false );
+								(url==null?"the manufacturer's web site":url) + ") and refer to http://azureus.aelitis.com/wiki/index.php/UPnP",
+								false,
+								UPnPLogListener.TYPE_ONCE_EVER );
 					}
+					
+					break;
 				}
 			}
 		}
@@ -292,6 +311,10 @@ UPnPRootDeviceImpl
 		String	current,
 		String	bad )
 	{
+		if ( bad.equals( "any" )){
+			
+			return( true );
+		}
 			// comparator does A10 -vs- A9 correctly (i.e. 111 is > 20 )
 		
 		Comparator comp = upnp.getPluginInterface().getUtilities().getFormatters().getAlphanumericComparator( true );
