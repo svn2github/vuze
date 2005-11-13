@@ -42,6 +42,7 @@ import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 
@@ -238,7 +239,12 @@ UISWTInstanceImpl
 				
 				break;
 			}
-			
+			case UIManagerEvent.ET_OPEN_URL:
+			{
+				Program.launch(((URL)data).toExternalForm());
+				
+				break;
+			}
 			default:
 			{
 				done	= false;

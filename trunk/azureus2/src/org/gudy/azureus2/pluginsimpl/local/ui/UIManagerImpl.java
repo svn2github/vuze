@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ui;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -243,6 +244,34 @@ UIManagerImpl
 		}
 	}
 
+	public void
+	openURL(
+		final URL		url )
+	
+		throws UIException
+	{
+		boolean ok = fireEvent(
+				new UIManagerEvent()
+				{
+					public int
+					getType()
+					{
+						return( UIManagerEvent.ET_OPEN_URL );
+					}
+					
+					public Object
+					getData()
+					{
+						return( url );
+					}
+				});
+		
+		if ( !ok ){
+			
+			throw( new UIException("Failed to deliver request to UI" ));
+		}		
+	}
+	
   public TableManager getTableManager() {
     return TableManagerImpl.getSingleton();
   }

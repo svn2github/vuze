@@ -33,6 +33,7 @@ UIManagerEvent
 	public static final int ET_COPY_TO_CLIPBOARD				= 6;		// data is String
 	public static final int ET_PLUGIN_VIEW_MODEL_DESTROYED		= 7;		// data is PluginViewModel (or subtype)
 	public static final int ET_PLUGIN_CONFIG_MODEL_DESTROYED	= 8;		// data is PluginConfigModel (or subtype)
+	public static final int ET_OPEN_URL							= 9;		// data is URL
 
 	public int
 	getType();

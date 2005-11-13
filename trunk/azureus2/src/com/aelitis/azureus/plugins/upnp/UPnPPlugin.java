@@ -28,6 +28,7 @@ package com.aelitis.azureus.plugins.upnp;
  */
 
 import java.util.*;
+import java.net.URL;
 
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
@@ -110,8 +111,30 @@ UPnPPlugin
 		
 		config.addLabelParameter2( "upnp.info" );
 		
+		ActionParameter	wiki = config.addActionParameter2( "Utils.link.visit", "MainWindow.about.internet.wiki" );
+		
+		wiki.setStyle( ActionParameter.STYLE_LINK );
+		
+		wiki.addListener(
+			new ParameterListener()
+			{
+				public void
+				parameterChanged(
+					Parameter	param )
+				{
+					try{
+						plugin_interface.getUIManager().openURL( new URL( "http://azureus.aelitis.com/wiki/index.php/UPnP" ));
+						
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
+				}
+			});
+		
 		final BooleanParameter enable_param = 
 			config.addBooleanParameter2( "upnp.enable", "upnp.enable", true );
+		
 		
 		grab_ports_param = config.addBooleanParameter2( "upnp.grabports", "upnp.grabports", false );
 		

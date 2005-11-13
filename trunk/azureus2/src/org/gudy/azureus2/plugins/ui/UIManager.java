@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.ui;
 
+import java.net.URL;
+
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
@@ -127,6 +129,17 @@ UIManager
 		String		title_resource,
 		String		message_resource,
 		String		contents );
+	
+		/**
+		 * @since 2.3.0.6
+		 * @param url
+		 */
+	
+	public void
+	openURL(
+		URL		url )
+	
+		throws UIException;
 	
 	/** Retrieve a class of SWT specific functions 
 	 * 
