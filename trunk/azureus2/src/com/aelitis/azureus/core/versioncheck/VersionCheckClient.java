@@ -188,13 +188,23 @@ public class VersionCheckClient {
   	
     LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient retrieving version information from " +SERVER_ADDRESS+ ":" +SERVER_PORT ); 
     
-    ClientMessageService msg_service = ClientMessageServiceClient.getServerService( SERVER_ADDRESS, SERVER_PORT, MESSAGE_TYPE_ID );
+    ClientMessageService 	msg_service = null;
+    Map 					reply		= null;	
     
-    msg_service.sendMessage( data_to_send );  //send our version message
-
-    Map reply = msg_service.receiveMessage();  //get the server reply
-    
-    msg_service.close();
+    try{
+	    msg_service = ClientMessageServiceClient.getServerService( SERVER_ADDRESS, SERVER_PORT, MESSAGE_TYPE_ID );
+	    
+	    msg_service.sendMessage( data_to_send );  //send our version message
+	
+	    reply = msg_service.receiveMessage();  //get the server reply
+	    
+    }finally{
+    	
+    	if ( msg_service != null ){
+    		
+    		msg_service.close();
+    	}
+    }
 
     LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient server version check successful. Received " +reply.size()+ " reply keys." );
 
