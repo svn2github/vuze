@@ -56,6 +56,10 @@ public class PeerDatabase {
   private BloomFilter filter_two = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
   
   
+  private int recursion_count;
+  
+  
+  
   
   protected PeerDatabase() {
     /* nothing */
@@ -210,8 +214,9 @@ public class PeerDatabase {
       }
       
       //check to see if we've already given this peer out optimistically in the last 5-10min
-      if( filter_one.contains( peer.getSerialization() ) ) {
+      if( filter_one.contains( peer.getSerialization() ) && recursion_count < 100 ) {
         //we've recently given this peer, so recursively find another peer to try
+      	recursion_count++;
         peer = getNextOptimisticConnectPeer();
       }
       
@@ -222,6 +227,7 @@ public class PeerDatabase {
       }
     }
 
+    recursion_count = 0;
     return peer;
   }
   
