@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  *
  */
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Md5Hasher;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.PasswordParameter;
@@ -60,6 +61,12 @@ PasswordParameterImpl
 			if ( _encoding_type == ET_SHA1 ){
 				
 		        SHA1Hasher hasher = new SHA1Hasher();
+		        
+		        defaultValue = hasher.calculateHash(defaultValue);
+		        
+			}else if ( _encoding_type == ET_MD5 ){
+				
+		        Md5Hasher hasher = new Md5Hasher();
 		        
 		        defaultValue = hasher.calculateHash(defaultValue);	
 			}

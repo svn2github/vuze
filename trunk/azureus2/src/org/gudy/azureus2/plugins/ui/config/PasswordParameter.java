@@ -33,6 +33,7 @@ PasswordParameter
 {
 	public static final int	ET_PLAIN		= 1;
 	public static final int ET_SHA1			= 2;
+	public static final int ET_MD5			= 3;
 	
 		// note that even for encoded parameters, an empty value ("") will be returned
 		// as "" (not an encoded "")

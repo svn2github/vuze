@@ -294,7 +294,7 @@ BasicPluginConfigImpl
 				
 				gridData.widthHint = 150;
 
-				swt_param = new PasswordParameter(current_composite, key, ((PasswordParameterImpl)param).getEncodingType() == PasswordParameterImpl.ET_SHA1 );
+				swt_param = new PasswordParameter(current_composite, key, ((PasswordParameterImpl)param).getEncodingType());
 				
 				swt_param.setLayoutData( gridData );
 				

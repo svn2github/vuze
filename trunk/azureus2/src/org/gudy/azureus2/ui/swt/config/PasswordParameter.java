@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.Md5Hasher;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
@@ -21,8 +22,7 @@ import org.gudy.azureus2.core3.util.SHA1Hasher;
 public class 
 PasswordParameter
 	extends Parameter
-{
-
+{ 
   String name;
   Text inputField;
 
@@ -31,14 +31,14 @@ PasswordParameter
   	Composite composite,
 	final String name) 
   {
-  	this( composite, name, true );
+  	this( composite, name, org.gudy.azureus2.plugins.ui.config.PasswordParameter.ET_SHA1 );
   }
   
   public 
   PasswordParameter(
   	Composite 		composite,
 	final String 	name,
-	final boolean	sha1 ) 
+	final int		encoding ) 
   {
     this.name = name;
     inputField = new Text(composite, SWT.BORDER);
@@ -49,13 +49,29 @@ PasswordParameter
     inputField.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event event) {
         try{
-          SHA1Hasher hasher = new SHA1Hasher();
           byte[] password = inputField.getText().getBytes();
           byte[] encoded;
-          if(password.length > 0 && sha1)
-            encoded = hasher.calculateHash(password);
-          else
+          if(password.length > 0 ){
+        	  if ( encoding == org.gudy.azureus2.plugins.ui.config.PasswordParameter.ET_PLAIN ){
+        		  
+        		 encoded = password;
+        		  
+        	  }else if ( encoding == org.gudy.azureus2.plugins.ui.config.PasswordParameter.ET_SHA1 ){
+        		  
+       	         SHA1Hasher hasher = new SHA1Hasher();
+
+       	         encoded = hasher.calculateHash(password);
+       	         
+        	  }else{
+        		  
+      	         Md5Hasher hasher = new Md5Hasher();
+
+       	         encoded = hasher.calculateHash(password);     		  
+        	  }
+          }else{
             encoded = password;
+          }
+          
           COConfigurationManager.setParameter(name, encoded);
         } catch(Exception e) {
         	Debug.printStackTrace( e );
