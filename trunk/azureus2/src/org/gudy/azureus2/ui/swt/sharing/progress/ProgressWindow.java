@@ -49,16 +49,17 @@ public class
 ProgressWindow
 	implements ShareManagerListener
 {
-	protected progressDialog	dialog;
+	private progressDialog	dialog;
 	
-	protected Display			display;
+	private Display			display;
 	
-	protected StyledText		tasks;
-	protected ProgressBar		progress;
-	protected Button 			cancel_button;
+	private StyledText		tasks;
+	private ProgressBar		progress;
+	private Button 			cancel_button;
 	
 
-	protected boolean			shell_opened;
+	private boolean			shell_opened;
+	private boolean			manually_hidden;
 	
 	public
 	ProgressWindow()
@@ -194,16 +195,19 @@ ProgressWindow
 		
 		protected void
 		hidePanel()
-		{			
-      currentAnimator = new LinearAnimator(this,new Point(x0,y1),new Point(x1,y1),15,30);
-      currentAnimator.start();
-      hideAfter = true;
+		{		
+			manually_hidden	= true;
+			currentAnimator = new LinearAnimator(this,new Point(x0,y1),new Point(x1,y1),15,30);
+			currentAnimator.start();
+			hideAfter = true;
 		}
 		
 		protected void
 		showPanel()
 		{
-		  boolean animate = false ;
+			manually_hidden	= false;
+			
+			boolean animate = false ;
 			if ( !shell_opened ){
 			
 				shell_opened = true;
@@ -227,6 +231,12 @@ ProgressWindow
 		        currentAnimator.start();
 			}
 		}
+		
+	protected boolean
+	isShown()
+	{
+		return( shell.isVisible());
+	}
     
     
     
@@ -299,6 +309,14 @@ ProgressWindow
 					{
 						if (progress != null && !progress.isDisposed()){
 							
+								// only allow percentage updates to make the window visible
+								// if it hasn't been manually hidden 
+							
+							if ( !dialog.isShown() && !manually_hidden ){
+
+								dialog.showPanel();
+							}
+							
 							cancel_button.setEnabled( percent_complete < 100 );
 							
 							progress.setSelection(percent_complete);
@@ -320,7 +338,7 @@ ProgressWindow
 					public void runSupport()
 					{
 						if (tasks != null && !tasks.isDisposed()){
-								
+														
 							dialog.showPanel();
 							
 							tasks.append(task_description + Text.DELIMITER);

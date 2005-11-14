@@ -75,7 +75,27 @@ ShareHosterPlugin
 	public void
 	initializationComplete()
 	{
+			// take this process off the main thread as we don't want share-recreation to hang
+			// initialisation
+		
+		plugin_interface.getUtilities().createThread(
+			"ShareHosterImplugin::init",
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					initialise();
+				}
+			});
+	}
+	
+	protected void
+	initialise()
+	{
 		log.log( LoggerChannel.LT_INFORMATION, "ShareHosterPlugin: initialisation complete");
+		
+		Thread.currentThread().setPriority( Thread.MIN_PRIORITY );
 		
 		try{
 			tracker	=  plugin_interface.getTracker();
