@@ -285,6 +285,11 @@ public class VirtualChannelSelector {
 	  }
   }
   
+  public boolean
+  isDestroyed()
+  {
+	  return( destroyed );
+  }
   
   public boolean isSafeSelectionModeEnabled() {  return SAFE_SELECTOR_MODE_ENABLED;  }
   

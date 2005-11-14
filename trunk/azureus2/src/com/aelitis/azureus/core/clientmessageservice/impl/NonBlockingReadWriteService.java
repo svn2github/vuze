@@ -44,7 +44,6 @@ public class NonBlockingReadWriteService {
   
   private final ServiceListener listener;
   private final String service_name;
-  private volatile boolean running = true;
   private volatile boolean destroyed;
   
   private long last_timeout_check_time = 0;
@@ -68,6 +67,14 @@ public class NonBlockingReadWriteService {
     AEThread select_thread = new AEThread( "[" +service_name+ "] Service Select" ) {
       public void runSupport() {
         while( true ) {
+        	
+          boolean	stop_after_select = destroyed;
+          
+  	      if ( stop_after_select ){
+  	    	  read_selector.destroy();
+  	    	  write_selector.destroy();
+  	      }
+  	      
           try{
             read_selector.select( 50 );
             write_selector.select( 50 );
@@ -76,7 +83,7 @@ public class NonBlockingReadWriteService {
             Debug.out( "[" +service_name+ "] SelectorLoop() EXCEPTION: ", t );
           }
           
-          if ( !running ){
+          if (stop_after_select){
         	  break;
           }
           
@@ -106,10 +113,6 @@ public class NonBlockingReadWriteService {
 	    }finally{
 	    	connections_mon.exit();
 	    }
-	    
-	    read_selector.destroy();
-	    write_selector.destroy();
-	    running = false;
 	}
 	
 	
