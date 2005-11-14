@@ -50,7 +50,7 @@ TOTorrentCreateImpl
 	
 	protected int	reported_progress;
 		
-	protected Map	ignore_map = new HashMap();
+	protected Set	ignore_set = new HashSet();
 	
 	protected boolean	cancelled;
 	
@@ -542,41 +542,12 @@ TOTorrentCreateImpl
 	protected void
 	setIgnoreList()
 	{
-		String	ignore_list;
-		
 		try{
-			ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
+			ignore_set = TorrentUtils.getIgnoreSet();
 			
 		}catch( NoClassDefFoundError e ){
 			
 			return;
-		}
-		
-		int	pos = 0;
-		
-		while(true){
-			
-			int	p1 = ignore_list.indexOf( ";", pos );
-			
-			String	bit;
-			
-			if ( p1 == -1 ){
-				
-				bit = ignore_list.substring(pos);
-				
-			}else{
-				
-				bit	= ignore_list.substring( pos, p1 );
-				
-				pos	= p1+1;
-			}
-			
-			ignore_map.put(bit.trim().toLowerCase(),"");
-			
-			if ( p1 == -1 ){
-				
-				break;
-			}
 		}
 	}
 	
@@ -584,7 +555,7 @@ TOTorrentCreateImpl
 	ignoreFile(
 		String		file )
 	{
-		if ( ignore_map.get(file.toLowerCase()) != null ){
+		if ( ignore_set.contains(file.toLowerCase())){
 
 			report( "Torrent.create.progress.ignoringfile", " '" + file + "'" );
 			

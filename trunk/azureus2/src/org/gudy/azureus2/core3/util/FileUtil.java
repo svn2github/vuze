@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * File utility class.
@@ -159,36 +160,7 @@ public class FileUtil {
   	File 	f,
   	boolean	log_warnings )
   {
-    Map		ignore_map	= new HashMap();
-    
-	String	ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
-	
-	int	pos = 0;
-	
-	while(true){
-		
-		int	p1 = ignore_list.indexOf( ";", pos );
-		
-		String	bit;
-		
-		if ( p1 == -1 ){
-			
-			bit = ignore_list.substring(pos);
-			
-		}else{
-			
-			bit	= ignore_list.substring( pos, p1 );
-			
-			pos	= p1+1;
-		}
-		
-		ignore_map.put(bit.trim().toLowerCase(),"");
-		
-		if ( p1 == -1 ){
-			
-			break;
-		}
-	}
+    Set		ignore_map	= TorrentUtils.getIgnoreSet();
 	
 	recursiveEmptyDirDelete( f, ignore_map, log_warnings );
   }
@@ -196,7 +168,7 @@ public class FileUtil {
   private static void 
   recursiveEmptyDirDelete(
   	File	f,
-	Map		ignore_map,
+	Set		ignore_set,
 	boolean	log_warnings ) 
   {
      try {
@@ -232,11 +204,11 @@ public class FileUtil {
         	
         	if ( x.isDirectory()){
         		
-        		recursiveEmptyDirDelete(files[i],ignore_map,log_warnings);
+        		recursiveEmptyDirDelete(files[i],ignore_set,log_warnings);
         		
         	}else{
         		
-        		if ( ignore_map.get( x.getName().toLowerCase()) != null ){
+        		if ( ignore_set.contains( x.getName().toLowerCase())){
         			
         			if ( !x.delete()){
         				

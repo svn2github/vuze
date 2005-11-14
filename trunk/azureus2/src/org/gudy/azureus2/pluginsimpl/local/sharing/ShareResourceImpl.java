@@ -305,7 +305,7 @@ ShareResourceImpl
 		throws ShareException
 	{
 		try{
-			String	finger_print = getFingerPrintSupport( file );
+			String	finger_print = getFingerPrintSupport( file, TorrentUtils.getIgnoreSet());
 							
 			return( hasher.calculateHash(finger_print.getBytes()));
 			
@@ -321,7 +321,8 @@ ShareResourceImpl
 	
 	protected String
 	getFingerPrintSupport(
-		File		file )
+		File		file,
+		Set			ignore_set )
 	
 		throws ShareException
 	{
@@ -331,9 +332,18 @@ ShareResourceImpl
 				long	mod 	= file.lastModified();
 				long	size	= file.length();
 			
-				String	finger_print = file.getName().concat(":").concat(String.valueOf(mod)).concat(":").concat(String.valueOf(size));
+				String	file_name = file.getName();
+				
+				if  ( ignore_set.contains( file_name.toLowerCase())){
+					
+					return( "" );
+					
+				}else{
+					
+					String	finger_print = file_name + ":" + String.valueOf(mod) + ":" + String.valueOf(size);
 			
-				return( finger_print );
+					return( finger_print );
+				}
 				
 			}else if ( file.isDirectory()){
 				
@@ -347,13 +357,18 @@ ShareResourceImpl
 				
 				for (int i=0;i<file_list.size();i++){
 					
-					File	f = (File)file_list.get(i);;
+					File	f = (File)file_list.get(i);
 					
 					String	file_name = f.getName();
 					
 					if ( !(file_name.equals( "." ) || file_name.equals( ".." ))){
 						
-						res = res.concat(":").concat(getFingerPrintSupport( f ));
+						String	sub_print = getFingerPrintSupport( f, ignore_set );
+						
+						if  ( sub_print.length() > 0 ){
+							
+							res = res + ":" + getFingerPrintSupport( f, ignore_set );
+						}
 					}
 				}
 				

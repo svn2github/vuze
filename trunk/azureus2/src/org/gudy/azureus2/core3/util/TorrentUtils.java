@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.*;
@@ -54,7 +55,9 @@ TorrentUtils
 			}
 		};
 		
+	private static volatile Set		ignore_set;
 	
+
 	public static TOTorrent
 	readFromFile(
 		File		file,
@@ -1111,6 +1114,74 @@ TorrentUtils
 			Debug.printStackTrace(e);
 		}
 	}
+	
+	public static Set
+	getIgnoreSet()
+	{
+		return(getIgnoreSetSupport(false));
+	}
+	
+	public static synchronized Set
+	getIgnoreSetSupport(
+		boolean	force )
+	{
+		if ( ignore_set == null || force ){
+			
+			Set		new_ignore_set	= new HashSet();
+		    
+			String	ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
+			
+			if ( ignore_set == null ){
+				
+					// first time - add the listener
+				
+				COConfigurationManager.addParameterListener(
+					"File.Torrent.IgnoreFiles",
+					new ParameterListener()
+					{
+						public void 
+						parameterChanged(
+							String parameterName)
+						{
+							getIgnoreSetSupport( true );
+						}
+					});
+			}
+			
+			int	pos = 0;
+			
+			while(true){
+				
+				int	p1 = ignore_list.indexOf( ";", pos );
+				
+				String	bit;
+				
+				if ( p1 == -1 ){
+					
+					bit = ignore_list.substring(pos);
+					
+				}else{
+					
+					bit	= ignore_list.substring( pos, p1 );
+					
+					pos	= p1+1;
+				}
+				
+				new_ignore_set.add(bit.trim().toLowerCase());
+				
+				if ( p1 == -1 ){
+					
+					break;
+				}
+			}
+			
+			ignore_set = new_ignore_set;
+		}
+		
+		return( ignore_set );
+	}
+	
+	
 	
 		// this class exists to minimise memory requirements by discarding the piece hash values
 		// when "idle" 
