@@ -36,6 +36,9 @@ ShareManager
 	
 		throws ShareException;
 	
+	public boolean
+	isInitialising();
+	
 	public ShareResource[]
 	getShares();
 	

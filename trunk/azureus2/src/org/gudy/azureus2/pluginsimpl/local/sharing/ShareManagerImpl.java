@@ -79,17 +79,19 @@ ShareManagerImpl
 	}
 	
 	
-	protected boolean			initialised;
-	protected File				share_dir;
+	private volatile boolean	initialised;
+	private volatile boolean	initialising;
 	
-	protected URL[]				announce_urls;
-	protected ShareConfigImpl	config;
+	private File				share_dir;
 	
-	protected Map				shares 		= new HashMap();
+	private URL[]				announce_urls;
+	private ShareConfigImpl		config;
 	
-	protected shareScanner		current_scanner;
+	private Map					shares 		= new HashMap();
 	
-	protected List				listeners	= new ArrayList();
+	private shareScanner		current_scanner;
+	
+	private List				listeners	= new ArrayList();
 	
 	protected
 	ShareManagerImpl()
@@ -116,54 +118,68 @@ ShareManagerImpl
 		
 			if ( !initialised ){
 			
-				initialised	= true;
-				
-				share_dir = FileUtil.getUserFile( TORRENT_STORE );
-				
-				share_dir.mkdirs();
-								
-				config = new ShareConfigImpl();
-				
 				try{
-					config.suspendSaving();
+					initialising	= true;
+					
+					initialised		= true;
+					
+					share_dir = FileUtil.getUserFile( TORRENT_STORE );
+					
+					share_dir.mkdirs();
+									
+					config = new ShareConfigImpl();
+					
+					try{
+						config.suspendSaving();
+					
+						config.loadConfig(this);
 				
-					config.loadConfig(this);
-			
-					checkConsistency();
-					
-				}finally{
-				
-					Iterator it = shares.values().iterator();
-					
-					while(it.hasNext()){
-					
-						ShareResourceImpl	resource = (ShareResourceImpl)it.next();
+						checkConsistency();
 						
-						if ( resource.getType() == ShareResource.ST_DIR_CONTENTS ){
-				
-							for (int i=0;i<listeners.size();i++){
-								
-								try{
+					}finally{
+					
+						Iterator it = shares.values().iterator();
+						
+						while(it.hasNext()){
+						
+							ShareResourceImpl	resource = (ShareResourceImpl)it.next();
+							
+							if ( resource.getType() == ShareResource.ST_DIR_CONTENTS ){
+					
+								for (int i=0;i<listeners.size();i++){
 									
-									((ShareManagerListener)listeners.get(i)).resourceAdded( resource );
-									
-								}catch( Throwable e ){
-									
-									Debug.printStackTrace( e );
+									try{
+										
+										((ShareManagerListener)listeners.get(i)).resourceAdded( resource );
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace( e );
+									}
 								}
 							}
 						}
+						
+						config.resumeSaving();
 					}
 					
-					config.resumeSaving();
+					readAZConfig();
+					
+				}finally{
+					
+					initialising	= false;
 				}
-				
-				readAZConfig();
 			}
 		}finally{
 			
 			this_mon.exit();
 		}
+	}
+	
+	public boolean
+	isInitialising()
+	{
+		return( initialising );
 	}
 	
 	protected void

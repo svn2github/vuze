@@ -49,6 +49,7 @@ public class
 ProgressWindow
 	implements ShareManagerListener
 {
+	private ShareManager	share_manager;
 	private progressDialog	dialog;
 	
 	private Display			display;
@@ -64,17 +65,19 @@ ProgressWindow
 	public
 	ProgressWindow()
 	{
-		display = MainWindow.getWindow().getDisplay();
-		
-		if ( display.isDisposed()){
-			
-			return;
-		}
-		
 		try{
+			share_manager	= PluginInitializer.getDefaultInterface().getShareManager();
+			
+			display = MainWindow.getWindow().getDisplay();
+			
+			if ( display.isDisposed()){
+				
+				return;
+			}
+		
 			dialog = new progressDialog( display );
 			
-			PluginInitializer.getDefaultInterface().getShareManager().addListener(this);
+			share_manager.addListener(this);
 			
 		}catch( ShareException e ){
 			
@@ -83,7 +86,7 @@ ProgressWindow
 		
 	}
 	
-	protected class
+	private class
 	progressDialog 
 		extends 	PopupShell 
 		implements 	AnimableShell
@@ -154,14 +157,9 @@ ProgressWindow
       
 			cancel_button.addListener(SWT.Selection,new Listener() {
 				public void handleEvent(Event e) {
-					try{
-						cancel_button.setEnabled( false );
+					cancel_button.setEnabled( false );
 						
-						PluginInitializer.getDefaultInterface().getShareManager().cancelOperation();
-						
-					}catch( ShareException f ){
-						Debug.printStackTrace(f);
-					}
+					share_manager.cancelOperation();
 				}
 			});
 			
@@ -279,7 +277,12 @@ ProgressWindow
 	resourceAdded(
 		ShareResource		resource )
 	{		
-		reportCurrentTask( "Resource added: " + resource.getName());
+			// we don't want to pick these additions up
+		
+		if ( !share_manager.isInitialising()){
+			
+			reportCurrentTask( "Resource added: " + resource.getName());
+		}
 	}
 	
 	public void
