@@ -30,7 +30,18 @@ SecureMessageServiceClient
 	public SecureMessageServiceClientMessage
 	sendMessage(
 		Map			request,
-		Object		client_data );
+		Object		client_data,
+		String		description );
+	
+		/**
+		 * This shouldn't be required under normal circumstances as message addition causes
+		 * dispatch and the server handles retries itself. However, sometimes it is necessary to
+		 * force a dispatch to occur (e.g. to validate new authentication information immediately
+		 * rather than wait for it to happen naturally)
+		 */
+	
+	public void
+	sendMessages();
 	
 	public SecureMessageServiceClientMessage[]
 	getMessages();

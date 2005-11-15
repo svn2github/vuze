@@ -46,15 +46,21 @@ SecureMessageServiceClientImpl
 	public static final int STATUS_LOGON_FAIL			= 1;
 	public static final int STATUS_INVALID_SEQUENCE		= 2;	
 	public static final int STATUS_FAILED				= 3;
-	
+	public static final int STATUS_ABORT				= 4;
+
 	public static final String	SERVICE_NAME	= "SecureMsgServ";
 	
-	private static final long	RETRY_TIME	= 5*60*1000;
+	private static final long	MIN_RETRY_PERIOD	=    5*60*1000;
+	private static final long	MAX_RETRY_PERIOD	= 2*60*60*1000;
 
 	private String									host;
 	private int										port;
 	private RSAPublicKey							public_key;
 	private SecureMessageServiceClientAdapter		adapter;
+
+	private long				retry_millis			= MIN_RETRY_PERIOD;
+	private int					connect_failure_count	= 0;
+	
 	
 	private AEMonitor			message_mon;
 	private AESemaphore			message_sem;
@@ -85,10 +91,27 @@ SecureMessageServiceClientImpl
 			{
 				while( true ){
 					
-					message_sem.reserve( RETRY_TIME );
+					long	time = retry_millis;
+					
+					if ( connect_failure_count > 0 ){
+						
+						for (int i=0;i<connect_failure_count;i++){
+							
+							time = time + time;
+							
+							if ( time > MAX_RETRY_PERIOD ){
+								
+								time = MAX_RETRY_PERIOD;
+								
+								break;
+							}
+						}
+					}
+					
+					message_sem.reserve( time );
 					
 					try{
-						sendMessages();
+						sendMessagesSupport();
 						
 					}catch( Throwable e ){
 						
@@ -99,8 +122,14 @@ SecureMessageServiceClientImpl
 		}.start();
 	}
 	
-	protected void
+	public void
 	sendMessages()
+	{
+		message_sem.release();
+	}
+	
+	protected void
+	sendMessagesSupport()
 	{
 		List	outstanding_messages;
 		
@@ -119,7 +148,7 @@ SecureMessageServiceClientImpl
 			return;
 		}
 		
-		List	sent_messages	= new ArrayList();
+		List	complete_messages	= new ArrayList();
 		
 		boolean	failed = false;
 		
@@ -139,6 +168,8 @@ SecureMessageServiceClientImpl
 					
 					ClientMessageService	message_service = null;
 
+					boolean	got_reply = false;
+					
 					try{
 						Map	content	= new HashMap();				
 			
@@ -157,9 +188,29 @@ SecureMessageServiceClientImpl
 						
 						Map	reply = message_service.receiveMessage();
 						
+						got_reply	= true;
+						
 						System.out.println( "<-- " + reply );
 	
 						long	status = ((Long)reply.get( "status" )).longValue();
+						
+						Long	new_retry = (Long)reply.get( "retry" );
+						
+						if ( new_retry != null ){
+							
+							retry_millis = new_retry.longValue();
+							
+							if ( retry_millis < MIN_RETRY_PERIOD ){
+								
+								retry_millis = MIN_RETRY_PERIOD;
+							}
+							
+							adapter.log( "Server requested retry period of " + (retry_millis/1000) + " seconds" );
+							
+						}else{
+							
+							retry_millis = MIN_RETRY_PERIOD;
+						}
 						
 						if ( status == STATUS_OK ){
 		
@@ -182,7 +233,7 @@ SecureMessageServiceClientImpl
 								}
 							}
 							
-							sent_messages.add( message );
+							complete_messages.add( message );
 							
 						}else if ( status == STATUS_LOGON_FAIL ){
 							
@@ -218,16 +269,58 @@ SecureMessageServiceClientImpl
 							adapter.serverFailed( new Exception( new String( (byte[])reply.get( "error" ))));
 							
 							failed = true;
-						}	
+							
+						}else{//  if ( status == STATUS_ABORT ){
+						
+								// this is when things have gone badly wrong server-side - we just
+								// dump the message
+							
+							adapter.serverFailed( new Exception( "Server requested abort" ));
+
+							for (Iterator l_it=listeners.iterator();l_it.hasNext();){
+								
+								try{
+									((SecureMessageServiceClientListener)l_it.next()).aborted( 
+											message,
+											new String( (byte[])reply.get( "error" )));
+									
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+								}
+							}
+							
+							complete_messages.add( message );							
+						}
 						
 					}catch( Throwable e ){
-					
+									
 						adapter.serverFailed( e );
 						
 						failed	= true;
 						
 					}finally{
+						
+						if ( got_reply ){
 							
+							connect_failure_count = 0;
+							
+						}else{
+							
+							connect_failure_count++;
+							
+							if ( connect_failure_count > 1 ){
+								
+								try{
+									adapter.log( "Failed to contact server " + connect_failure_count + " times in a row" );
+									
+								}catch( Throwable e ){
+									
+									e.printStackTrace();
+								}
+							}
+						}
+						
 						if ( message_service != null ){
 							
 							message_service.close();
@@ -244,7 +337,7 @@ SecureMessageServiceClientImpl
 			try{
 				message_mon.enter();
 					
-				messages.removeAll( sent_messages );
+				messages.removeAll( complete_messages );
 				
 			}finally{
 				
@@ -256,12 +349,13 @@ SecureMessageServiceClientImpl
 	public SecureMessageServiceClientMessage
 	sendMessage(
 		Map			request,
-		Object		data )
+		Object		data,
+		String		description )
 	{
 		try{
 			message_mon.enter();
 			
-			SecureMessageServiceClientMessage	res =  new SecureMessageServiceClientMessageImpl( this, request, data );
+			SecureMessageServiceClientMessage	res =  new SecureMessageServiceClientMessageImpl( this, request, data, description );
 			
 			messages.add( res );
 			

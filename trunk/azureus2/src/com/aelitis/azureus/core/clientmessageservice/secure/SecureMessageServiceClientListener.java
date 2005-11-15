@@ -32,4 +32,10 @@ SecureMessageServiceClientListener
 	public void
 	cancelled(
 		SecureMessageServiceClientMessage	message );
+	
+	public void
+	aborted(
+		SecureMessageServiceClientMessage	message,
+		String								reason );
+	
 }

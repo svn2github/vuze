@@ -34,16 +34,19 @@ SecureMessageServiceClientMessageImpl
 	private Map					request;
 	private Map					reply;
 	private Object				client_data;
+	private String				description;
 	
 	protected
 	SecureMessageServiceClientMessageImpl(
 		SecureMessageServiceClientImpl	_service,
 		Map				_content,
-		Object			_data )
+		Object			_data,
+		String			_description )
 	{
-		service		= _service;
-		request		= _content;
+		service			= _service;
+		request			= _content;
 		client_data		= _data;
+		description		= _description;
 	}
 		
 	public Map
@@ -75,5 +78,11 @@ SecureMessageServiceClientMessageImpl
 	cancel()
 	{
 		service.cancel( this );
+	}
+	
+	public String
+	getString()
+	{
+		return( description );
 	}
 }

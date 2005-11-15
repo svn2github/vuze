@@ -38,4 +38,7 @@ SecureMessageServiceClientMessage
 	
 	public void
 	cancel();
+	
+	public String
+	getString();
 }
