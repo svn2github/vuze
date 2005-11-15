@@ -171,7 +171,7 @@ public class NonBlockingReadWriteService {
       	catch( Throwable t ) {
       		if ( !client.isClosePending()){
       			
-      			System.out.println( "[" +new Date()+ "] Connection read error [" +sc.socket().getInetAddress()+ "]: " +t.getMessage() );
+      			System.out.println( "[" +new Date()+ "] Connection read error [" +sc.socket().getInetAddress()+ "] [" +client.getDebugString()+ "]: " +t.getMessage() );
       		}
       		
       		listener.connectionError( client );
@@ -201,7 +201,7 @@ public class NonBlockingReadWriteService {
       		}
       	}
       	catch( Throwable t ) {
-          System.out.println( "[" +new Date()+ "] Connection write error [" +sc.socket().getInetAddress()+ "]: " +t.getMessage() );
+          System.out.println( "[" +new Date()+ "] Connection write error [" +sc.socket().getInetAddress()+ "] [" +client.getDebugString()+ "]: " +t.getMessage() );
           listener.connectionError( client );
       	}
 
@@ -252,7 +252,7 @@ public class NonBlockingReadWriteService {
       
       for( int i=0; i < timed_out.size(); i++ ) {  
         ClientConnection vconn = (ClientConnection)timed_out.get( i );
-        System.out.println( "[" +new Date()+ "] Connection timed out [" +vconn.getSocketChannel().socket().getInetAddress()+ "]" );
+        System.out.println( "[" +new Date()+ "] Connection timed out [" +vconn.getSocketChannel().socket().getInetAddress()+ "]: " +vconn.getDebugString() );
         listener.connectionError( vconn );
       }
       
@@ -275,7 +275,7 @@ public class NonBlockingReadWriteService {
 		finally {  connections_mon.exit();  }
 		
 		if( !still_connected ) {
-			System.out.println( "[" +new Date()+ "] Connection message send error [connection no longer connected]" );
+			System.out.println( "[" +new Date()+ "] Connection message send error [connection no longer connected]: " +vconn.getDebugString() );
 			message.getHandler().sendAttemptCompleted( message, false );
 			//listener.connectionError( vconn ); //no need to call this, as there is no connection to remove
       return;

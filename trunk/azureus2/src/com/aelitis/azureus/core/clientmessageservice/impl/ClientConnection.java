@@ -53,6 +53,10 @@ public class ClientConnection {
 	private boolean	close_pending;
 	private boolean	closed;
 	
+	
+	private String debug_string = "<>";
+	
+	
 	/**
 	 * Create a new connection based on an incoming socket.
 	 * @param channel
@@ -234,4 +238,12 @@ public class ClientConnection {
 		msg_mon.exit();
 	}
   }
+  
+  
+  public void setDebugString( String debug ) {  debug_string = debug;  }
+  
+  public String getDebugString() {  return debug_string;  }
+  
+  
+  
 }
