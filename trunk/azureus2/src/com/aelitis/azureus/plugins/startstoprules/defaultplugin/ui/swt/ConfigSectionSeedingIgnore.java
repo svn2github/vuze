@@ -132,7 +132,7 @@ public class ConfigSectionSeedingIgnore implements UISWTConfigSection {
     Messages.setLanguageText(label, "ConfigView.label.seeding.ignoreShareRatio");
     gridData = new GridData();
     gridData.widthHint = 30;
-    new FloatParameter(cIgnore, "Stop Ratio", 0, -1, true, 1).setLayoutData(gridData);
+    new FloatParameter(cIgnore, "Stop Ratio", 1, -1, true, 1).setLayoutData(gridData);
     label = new Label(cIgnore, SWT.NULL);
     label.setText(":1");
 
