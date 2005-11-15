@@ -348,6 +348,17 @@ PEPeerTransportProtocol
     
     changePeerState( PEPeer.CLOSING );
     
+       
+    if( identityAdded ) {  //remove identity
+    	if( peer_id != null ) {
+    		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), peer_id );
+    	}
+    	else {
+    		Debug.out( "PeerIdentity added but peer_id == null !!!" );
+    	}    	
+    }
+    
+    
     if( outgoing_piece_message_handler != null ) {
       outgoing_piece_message_handler.destroy();
     }
@@ -371,11 +382,6 @@ PEPeerTransportProtocol
       ip_resolver_request.cancel();
     }
     
-    
-    //remove identity
-    if ( this.peer_id != null && identityAdded ) {
-      PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), this.peer_id );
-    }
 
     changePeerState( PEPeer.DISCONNECTED );
     

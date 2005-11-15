@@ -534,7 +534,7 @@ PEPeerControlImpl
       peerRemoved( peer );  //notify listeners      
     }
     else {
-    	System.out.println( "closeAndRemovePeer(): peer not removed" );
+    	Debug.out( "closeAndRemovePeer(): peer not removed" );
     }
   }
   
@@ -1454,16 +1454,28 @@ PEPeerControlImpl
       return;
     }
     
-    List	peer_transports = peer_transports_cow;
-          
+    ArrayList to_close = null;
+    
+    List	peer_transports = peer_transports_cow;          
     for (int i = 0; i < peer_transports.size(); i++) {
       PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-      if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && pc.isSeed()) {
-        closeAndRemovePeer( pc, "disconnect other seed when seeding" );
+      
+      if (pc != null && pc.getPeerState() == PEPeer.TRANSFERING && pc.isSeed()) {      	
+      	if( to_close == null )  to_close = new ArrayList();
+				to_close.add( pc );
       }
     }
+		
+		if( to_close != null ) {		
+			for( int i=0; i < to_close.size(); i++ ) {  			
+				closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "disconnect other seed when seeding" );
+			}
+		}
   }
 
+  
+  
+  
   private void updateStats() {   
     //calculate seeds vs peers
   	List	peer_transports = peer_transports_cow;
@@ -2382,20 +2394,26 @@ PEPeerControlImpl
   
   protected void
   checkForBannedConnections()
-  {
-  	//if ipfiltering is enabled, remove any existing filtered connections
-  	
-    if ( ip_filter.isEnabled()){
+  {	 	
+  	if ( ip_filter.isEnabled()){  //if ipfiltering is enabled, remove any existing filtered connections    	
+  		ArrayList to_close = null;
     	
-      	ArrayList	peer_transports = peer_transports_cow;
-      	
-        for (int i=0; i < peer_transports.size(); i++) {
-          PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
-          if ( ip_filter.isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {
-            closeAndRemovePeer( conn, "IPFilter banned IP address" );
-          }
-        }
-    }
+  		ArrayList	peer_transports = peer_transports_cow;      	
+  		for (int i=0; i < peer_transports.size(); i++) {
+  			PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
+  			
+  			if ( ip_filter.isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {        	
+  				if( to_close == null )  to_close = new ArrayList();
+  				to_close.add( conn );
+  			}
+  		}
+  		
+  		if( to_close != null ) {		
+  			for( int i=0; i < to_close.size(); i++ ) {  			
+  				closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "IPFilter banned IP address" );
+  			}
+  		}
+  	}
   }
   
   
