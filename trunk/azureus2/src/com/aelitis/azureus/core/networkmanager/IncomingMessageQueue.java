@@ -104,6 +104,11 @@ public class IncomingMessageQueue {
       for( int i=0; i < messages.length; i++ ) {
         Message msg = messages[ i ];
         
+        if( msg == null ) {
+        	System.out.println( "received msg == null [messages.length=" +messages.length+ ", #" +i+ "]: " +connection.getTCPTransport().getDescription() );
+        	continue;
+        }
+        
         ArrayList listeners_ref = listeners;  //copy-on-write
         boolean handled = false;
         
