@@ -289,30 +289,25 @@ public class Debug {
 	{
 		String	last_message	= "";
 		
-		while( true ){
+		while( e != null ){
 			
 			String	this_message = e.getMessage();
 			
-			if ( this_message != null && last_message.indexOf( this_message ) == -1 ){
+			if ( this_message == null || this_message.length() == 0 ){
+				
+				this_message = e.getClass().getName();
+				
+				int	pos = this_message.lastIndexOf(".");
+				
+				this_message = this_message.substring( pos+1 );
+			}
+			
+			if ( last_message.indexOf( this_message ) == -1 ){
 				
 				last_message	= this_message + ( last_message.length()==0?"":(", " + last_message ));
 			}
 			
-			if ( e.getCause() == null ){
-				
-				break;
-			}
-			
 			e	= e.getCause();
-		}
-		
-		if ( last_message.length() == 0 ){
-			
-			last_message = e.getClass().getName();
-			
-			int	pos = last_message.lastIndexOf(".");
-			
-			last_message = last_message.substring( pos+1 );
 		}
 		
 		return( last_message );
