@@ -125,8 +125,9 @@ public class BTMessageFactory {
         if( LGLogger.isEnabled() )  LGLogger.log( "Old extended messaging hello received, ignoring and faking as keep-alive." );
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
         
-      default:
-        throw new MessageException( "Unknown BT message id [" +id+ "]" );
+      default: {  System.out.println( "Unknown BT message id [" +id+ "]" );
+        					throw new MessageException( "Unknown BT message id [" +id+ "]" );
+      				}
     }
   }
   
