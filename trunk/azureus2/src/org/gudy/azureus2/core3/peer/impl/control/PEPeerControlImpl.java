@@ -2284,6 +2284,9 @@ PEPeerControlImpl
     if(	nbWarnings > WARNINGS_LIMIT ){
     	
     	if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning")){
+    		
+    		//	Close connection      	
+        closeAndRemovePeer( peer, "has sent too many bad pieces, " + WARNINGS_LIMIT + " max." );
     	
     			// if a block-ban occurred, check other connections
     		
@@ -2291,10 +2294,6 @@ PEPeerControlImpl
       		
       		checkForBannedConnections();
       	}
-      
-      		//	Close connection in 2nd
-      	
-        closeAndRemovePeer( peer, "has sent too many bad pieces, " + WARNINGS_LIMIT + " max." );
       	
       		//Trace the ban in third
       		      		
