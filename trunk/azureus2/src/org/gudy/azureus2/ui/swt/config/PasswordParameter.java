@@ -4,6 +4,8 @@
  */
 package org.gudy.azureus2.ui.swt.config;
 
+import java.security.MessageDigest;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Composite;
@@ -12,7 +14,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.Md5Hasher;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
 /**
@@ -49,7 +50,9 @@ PasswordParameter
     inputField.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event event) {
         try{
-          byte[] password = inputField.getText().getBytes();
+          String	password_string = inputField.getText();
+        	
+          byte[] password = password_string.getBytes();
           byte[] encoded;
           if(password.length > 0 ){
         	  if ( encoding == org.gudy.azureus2.plugins.ui.config.PasswordParameter.ET_PLAIN ){
@@ -63,10 +66,10 @@ PasswordParameter
        	         encoded = hasher.calculateHash(password);
        	         
         	  }else{
+        		 
+        		  	// newly added, might as well go for UTF-8
         		  
-      	         Md5Hasher hasher = new Md5Hasher();
-
-       	         encoded = hasher.calculateHash(password);     		  
+        		 encoded = MessageDigest.getInstance( "md5").digest( password_string.getBytes( "UTF-8" ));		  
         	  }
           }else{
             encoded = password;

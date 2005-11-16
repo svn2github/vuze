@@ -26,8 +26,10 @@ package org.gudy.azureus2.pluginsimpl.local.ui.config;
  * @author parg
  *
  */
+import java.security.MessageDigest;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.Md5Hasher;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.config.PasswordParameter;
@@ -66,9 +68,13 @@ PasswordParameterImpl
 		        
 			}else if ( _encoding_type == ET_MD5 ){
 				
-		        Md5Hasher hasher = new Md5Hasher();
-		        
-		        defaultValue = hasher.calculateHash(defaultValue);	
+				try{
+					defaultValue = MessageDigest.getInstance( "md5").digest( defaultValue );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 		

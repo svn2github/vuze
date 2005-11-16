@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc.,  59 Temple Plac(int)e, Suite 330, Boston, MA  02111-1307  USA
  *
- * $Id: Md5Hasher.java,v 1.3 2004-02-16 10:01:01 parg Exp $
+ * $Id: BrokenMd5Hasher.java,v 1.1 2005-11-16 13:36:23 parg Exp $
  *
  ********************************************************************************/
 
@@ -35,10 +35,10 @@ import java.nio.ByteOrder;
  * use final, it will reset the MD5 instance for a new calculation.
  *
  * @author emarant
- * @version $Revision: 1.3 $
- * <br>Last changed by $Author: parg $ on $Date: 2004-02-16 10:01:01 $
+ * @version $Revision: 1.1 $
+ * <br>Last changed by $Author: parg $ on $Date: 2005-11-16 13:36:23 $
  */
-public final class Md5Hasher {
+public final class BrokenMd5Hasher {
     
     private ByteBuffer buffer = ByteBuffer.allocate(64).order(ByteOrder.LITTLE_ENDIAN);
     private int stateA = 0x67452301;
@@ -50,7 +50,7 @@ public final class Md5Hasher {
     /**
     * Constructor returns a MD6 ready for use.
     */
-    public Md5Hasher(){
+    public BrokenMd5Hasher(){
     }
     
     public byte[]

@@ -325,7 +325,7 @@ public class MD5 {
   
   public static void main(String args[]) throws Exception {
     MD5 md5Gudy = new MD5();
-    Md5Hasher md5Jmule = new Md5Hasher();
+    BrokenMd5Hasher md5Jmule = new BrokenMd5Hasher();
     MessageDigest md5Sun = MessageDigest.getInstance("MD5");
     
     ByteBuffer bhashJ = ByteBuffer.allocate(16);

@@ -39,7 +39,7 @@ public abstract class
 ShareResourceImpl
 	implements ShareResource
 {
-	protected static Md5Hasher	hasher = new Md5Hasher();
+	protected static BrokenMd5Hasher	hasher = new BrokenMd5Hasher();
 	
 	protected ShareManagerImpl				manager;
 	protected int							type;

@@ -1986,7 +1986,7 @@ PEPeerControlImpl
 	computeMd5Hash(
 		DirectByteBuffer buffer) 
 	{ 			
-		Md5Hasher md5 	= new Md5Hasher();
+		BrokenMd5Hasher md5 	= new BrokenMd5Hasher();
 
 	    md5.reset();
 	    
