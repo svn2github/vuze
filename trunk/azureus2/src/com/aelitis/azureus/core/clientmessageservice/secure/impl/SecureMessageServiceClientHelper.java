@@ -45,12 +45,13 @@ SecureMessageServiceClientHelper
 	getServerService( 
 		String 			server_address, 
 		int 			server_port, 
+		int				timeout_secs,
 		String 			msg_type_id,
 		RSAPublicKey	public_key ) 
 	
 		throws IOException
 	{
-		return new SecureMessageServiceClientHelper( server_address, server_port, msg_type_id, public_key );
+		return new SecureMessageServiceClientHelper( server_address, server_port, timeout_secs, msg_type_id, public_key );
 	}
 	
 	private ClientMessageService	delegate;
@@ -60,7 +61,8 @@ SecureMessageServiceClientHelper
 	protected
 	SecureMessageServiceClientHelper(
 		String 			server_address, 
-		int 			server_port, 
+		int 			server_port,
+		int				timeout_secs,
 		String 			msg_type_id,
 		RSAPublicKey	public_key ) 
 	

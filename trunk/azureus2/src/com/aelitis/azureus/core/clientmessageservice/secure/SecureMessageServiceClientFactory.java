@@ -34,9 +34,10 @@ SecureMessageServiceClientFactory
 	create(
 		String					host,
 		int						port,
+		int						timeout_secs,
 		RSAPublicKey			key,
 		SecureMessageServiceClientAdapter	adapter )
 	{
-		return( new SecureMessageServiceClientImpl(host, port, key, adapter));
+		return( new SecureMessageServiceClientImpl(host, port, timeout_secs, key, adapter));
 	}
 }

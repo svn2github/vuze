@@ -50,11 +50,12 @@ SecureMessageServiceClientImpl
 
 	public static final String	SERVICE_NAME	= "SecureMsgServ";
 	
-	private static final long	MIN_RETRY_PERIOD	=    5*60*1000;
-	private static final long	MAX_RETRY_PERIOD	= 2*60*60*1000;
+	private static final long	MIN_RETRY_PERIOD		=    5*60*1000;
+	private static final long	MAX_RETRY_PERIOD		= 2*60*60*1000;
 
 	private String									host;
 	private int										port;
+	private int										timeout_secs;
 	private RSAPublicKey							public_key;
 	private SecureMessageServiceClientAdapter		adapter;
 
@@ -72,6 +73,7 @@ SecureMessageServiceClientImpl
 	SecureMessageServiceClientImpl(
 		String								_host,
 		int									_port,
+		int									_timeout_secs,
 		RSAPublicKey						_key,
 		SecureMessageServiceClientAdapter	_adapter )	
 	{
@@ -182,7 +184,7 @@ SecureMessageServiceClientImpl
 						
 						System.out.println( "--> " + content );
 						
-						message_service = SecureMessageServiceClientHelper.getServerService( host, port, SERVICE_NAME, public_key );					
+						message_service = SecureMessageServiceClientHelper.getServerService( host, port, timeout_secs, SERVICE_NAME, public_key );					
 
 						message_service.sendMessage( content );
 						
