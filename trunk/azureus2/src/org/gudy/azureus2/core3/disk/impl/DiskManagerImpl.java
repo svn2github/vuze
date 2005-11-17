@@ -640,216 +640,238 @@ DiskManagerImpl
 	{
 		DiskManagerFileInfoImpl[] allocated_files = new DiskManagerFileInfoImpl[piece_mapper.getFileList().size()];
 	      
-		setState( ALLOCATING );
+		try{
+			setState( ALLOCATING );
+			
+			allocated = 0;
+			
+			int numNewFiles = 0;
+			
+			List btFileList	= piece_mapper.getFileList();
 		
-		allocated = 0;
-		
-		int numNewFiles = 0;
-		
-		List btFileList	= piece_mapper.getFileList();
+			String	root_dir = download_manager.getAbsoluteSaveLocation().getParent();
+			
+			if ( !torrent.isSimpleTorrent()){
+				
+				root_dir += File.separator + download_manager.getAbsoluteSaveLocation().getName();
+			}
+			
+			root_dir	+= File.separator;	
+			
+			String[]	storage_types = getStorageTypes();
 	
-		String	root_dir = download_manager.getAbsoluteSaveLocation().getParent();
-		
-		if ( !torrent.isSimpleTorrent()){
-			
-			root_dir += File.separator + download_manager.getAbsoluteSaveLocation().getName();
-		}
-		
-		root_dir	+= File.separator;	
-		
-		String[]	storage_types = getStorageTypes();
-
-		for ( int i=0;i<btFileList.size();i++ ){
-			
-			final DiskManagerPieceMapper.fileInfo pm_info = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
+			for ( int i=0;i<btFileList.size();i++ ){
+				
+				final DiskManagerPieceMapper.fileInfo pm_info = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
+						
+				final long target_length = pm_info.getLength();
+	
+				File relative_data_file = pm_info.getDataFile();
+									
+				DiskManagerFileInfoImpl fileInfo;
+				
+				try{
+					boolean linear = storage_types[i].equals("L");
+	
+					fileInfo = new DiskManagerFileInfoImpl( 
+									this, 
+									new File( root_dir + relative_data_file.toString()), 
+									i,
+									pm_info.getTorrentFile(),
+									linear );
 					
-			final long target_length = pm_info.getLength();
-
-			File relative_data_file = pm_info.getDataFile();
-								
-			DiskManagerFileInfoImpl fileInfo;
-			
-			try{
-				boolean linear = storage_types[i].equals("L");
-
-				fileInfo = new DiskManagerFileInfoImpl( 
-								this, 
-								new File( root_dir + relative_data_file.toString()), 
-								i,
-								pm_info.getTorrentFile(),
-								linear );
-				
-				allocated_files[i] = fileInfo;
-	
-				pm_info.setFileInfo( fileInfo );
-				
-			}catch ( CacheFileManagerException e ){
-				
-				this.errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles:" + relative_data_file.toString() + ")";
-				
-				setState( FAULTY );
-        
-				return( -1 );
-			}
-			
-			CacheFile	cache_file 		= fileInfo.getCacheFile();
-			File		data_file		= fileInfo.getFile(true);
-			String		data_file_name 	= data_file.getName();
-			
-			int separator = data_file_name.lastIndexOf(".");
-			
-			if ( separator == -1 ){
-				
-				separator = 0;
-			}
-			
-			fileInfo.setExtension(data_file_name.substring(separator));
-			
-				//Added for Feature Request
-				//[ 807483 ] Prioritize .nfo files in new torrents
-				//Implemented a more general way of dealing with it.
-			
-			String extensions = COConfigurationManager.getStringParameter("priorityExtensions","");
-			
-			if(!extensions.equals("")) {
-				boolean bIgnoreCase = COConfigurationManager.getBooleanParameter("priorityExtensionsIgnoreCase");
-				StringTokenizer st = new StringTokenizer(extensions,";");
-				while(st.hasMoreTokens()) {
-					String extension = st.nextToken();
-					extension = extension.trim();
-					if(!extension.startsWith("."))
-						extension = "." + extension;
-					boolean bHighPriority = (bIgnoreCase) ? 
-										  fileInfo.getExtension().equalsIgnoreCase(extension) : 
-										  fileInfo.getExtension().equals(extension);
-					if (bHighPriority)
-						fileInfo.setPriority(true);
+					allocated_files[i] = fileInfo;
+		
+					pm_info.setFileInfo( fileInfo );
+					
+				}catch ( CacheFileManagerException e ){
+					
+					this.errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles:" + relative_data_file.toString() + ")";
+					
+					setState( FAULTY );
+	        
+					return( -1 );
 				}
-			}
-			
-			fileInfo.setLength(target_length);
-			
-			fileInfo.setDownloaded(0);
-			
-			if ( cache_file.exists() ){
 				
-				try {
-
-			  		//make sure the existing file length isn't too large
-			  	
-					long	existing_length = fileInfo.getCacheFile().getLength();
-			  	
-					if(  existing_length > target_length ){
+				CacheFile	cache_file 		= fileInfo.getCacheFile();
+				File		data_file		= fileInfo.getFile(true);
+				String		data_file_name 	= data_file.getName();
+				
+				int separator = data_file_name.lastIndexOf(".");
+				
+				if ( separator == -1 ){
 					
-						if ( COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
-						
-						  	fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
-	
-						  	cache_file.setLength( target_length );
-						
-							Debug.out( "Existing data file length too large [" +existing_length+ ">" +target_length+ "]: " +data_file.getAbsolutePath() + ", truncating" );
-	
-						}else{
-						
-							this.errorMessage = "Existing data file length too large [" +existing_length+ ">" +target_length+ "]: " + data_file.getAbsolutePath();
-		          
-							setState( FAULTY );
-            
-							return( -1 );
-						}
+					separator = 0;
+				}
+				
+				fileInfo.setExtension(data_file_name.substring(separator));
+				
+					//Added for Feature Request
+					//[ 807483 ] Prioritize .nfo files in new torrents
+					//Implemented a more general way of dealing with it.
+				
+				String extensions = COConfigurationManager.getStringParameter("priorityExtensions","");
+				
+				if(!extensions.equals("")) {
+					boolean bIgnoreCase = COConfigurationManager.getBooleanParameter("priorityExtensionsIgnoreCase");
+					StringTokenizer st = new StringTokenizer(extensions,";");
+					while(st.hasMoreTokens()) {
+						String extension = st.nextToken();
+						extension = extension.trim();
+						if(!extension.startsWith("."))
+							extension = "." + extension;
+						boolean bHighPriority = (bIgnoreCase) ? 
+											  fileInfo.getExtension().equalsIgnoreCase(extension) : 
+											  fileInfo.getExtension().equals(extension);
+						if (bHighPriority)
+							fileInfo.setPriority(true);
 					}
-			  	
-					fileInfo.setAccessMode( DiskManagerFileInfo.READ );
-			  	
-				}catch (CacheFileManagerException e) {
-			  	
-					this.errorMessage = Debug.getNestedExceptionMessage(e) + 
-											" (allocateFiles existing:" + data_file.getAbsolutePath() + ")";
-					setState( FAULTY );
-			 
-					return( -1 );
 				}
-			  
-				allocated += target_length;
-        
-			}else{  //we need to allocate it
-        
-					//make sure it hasn't previously been allocated
 				
-				if ( download_manager.isDataAlreadyAllocated() ){
-        	
-					this.errorMessage = "Data file missing: " + data_file.getAbsolutePath();
-          
-					setState( FAULTY );
-          
-					return( -1 );
-				}
-       
-				try{	          	          
-					fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
-	          
-					if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
-	          	
-							//	do incremental stuff
-	          	
-						fileInfo.getCacheFile().setLength( 0 );
-	            
-					}else { 
+				fileInfo.setLength(target_length);
+				
+				fileInfo.setDownloaded(0);
+				
+				if ( cache_file.exists() ){
+					
+					try {
+	
+				  		//make sure the existing file length isn't too large
+				  	
+						long	existing_length = fileInfo.getCacheFile().getLength();
+				  	
+						if(  existing_length > target_length ){
 						
-							//fully allocate
-						
-						if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
+							if ( COConfigurationManager.getBooleanParameter("File.truncate.if.too.large")){
 							
-							if ( !writer_and_checker.zeroFile( fileInfo, target_length )) {
-	                
-								try{
-										// failed to zero it, delete it so it gets done next start
-																		
-									fileInfo.getCacheFile().close();
-									
-									fileInfo.getCacheFile().delete();
-																		
-								}catch( Throwable e ){
-									
-								}
-								
+							  	fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+		
+							  	cache_file.setLength( target_length );
+							
+								Debug.out( "Existing data file length too large [" +existing_length+ ">" +target_length+ "]: " +data_file.getAbsolutePath() + ", truncating" );
+		
+							}else{
+							
+								this.errorMessage = "Existing data file length too large [" +existing_length+ ">" +target_length+ "]: " + data_file.getAbsolutePath();
+			          
 								setState( FAULTY );
-	                
+	            
 								return( -1 );
 							}
-						}else{ 
+						}
+				  	
+						fileInfo.setAccessMode( DiskManagerFileInfo.READ );
+				  	
+					}catch (CacheFileManagerException e) {
+				  	
+						this.errorMessage = Debug.getNestedExceptionMessage(e) + 
+												" (allocateFiles existing:" + data_file.getAbsolutePath() + ")";
+						setState( FAULTY );
+				 
+						return( -1 );
+					}
+				  
+					allocated += target_length;
+	        
+				}else{  //we need to allocate it
+	        
+						//make sure it hasn't previously been allocated
+					
+					if ( download_manager.isDataAlreadyAllocated() ){
+	        	
+						this.errorMessage = "Data file missing: " + data_file.getAbsolutePath();
+	          
+						setState( FAULTY );
+	          
+						return( -1 );
+					}
+	       
+					try{	          	          
+						fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
+		          
+						if( COConfigurationManager.getBooleanParameter("Enable incremental file creation") ) {
+		          	
+								//	do incremental stuff
+		          	
+							fileInfo.getCacheFile().setLength( 0 );
+		            
+						}else { 
 							
-								//reserve the full file size with the OS file system
-	            	
-							fileInfo.getCacheFile().setLength( target_length );
-	              
-							allocated += target_length;
+								//fully allocate
+							
+							if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
+								
+								if ( !writer_and_checker.zeroFile( fileInfo, target_length )) {
+		                
+									try{
+											// failed to zero it, delete it so it gets done next start
+																			
+										fileInfo.getCacheFile().close();
+										
+										fileInfo.getCacheFile().delete();
+																			
+									}catch( Throwable e ){
+										
+									}
+									
+									setState( FAULTY );
+		                
+									return( -1 );
+								}
+							}else{ 
+								
+									//reserve the full file size with the OS file system
+		            	
+								fileInfo.getCacheFile().setLength( target_length );
+		              
+								allocated += target_length;
+							}
+						}
+					}catch ( Exception e ) {
+						
+						this.errorMessage = Debug.getNestedExceptionMessage(e)
+									+ " (allocateFiles new:" + data_file.toString() + ")";
+		          
+						setState( FAULTY );
+		          
+						return( -1 );
+					}
+		        
+					numNewFiles++;
+				}
+			}
+	    
+				// make sure that "files" doens't become visible to the rest of the world until all
+				// entries have been populated
+			
+			files	= allocated_files;
+			
+			loadFilePriorities();
+	    
+			download_manager.setDataAlreadyAllocated( true );
+	    
+			return( numNewFiles );
+			
+		}finally{
+			
+				// if we failed to do the allocation make sure we close all the files that
+				// we might have opened
+			
+			if ( files == null ){
+				
+				for (int i=0;i<allocated_files.length;i++){
+					
+					if ( allocated_files[i] != null ){
+					
+						try{
+							allocated_files[i].getCacheFile().close();
+							
+						}catch( Throwable e ){
 						}
 					}
-				}catch ( Exception e ) {
-					
-					this.errorMessage = Debug.getNestedExceptionMessage(e)
-								+ " (allocateFiles new:" + data_file.toString() + ")";
-	          
-					setState( FAULTY );
-	          
-					return( -1 );
 				}
-	        
-				numNewFiles++;
 			}
 		}
-    
-			// make sure that "files" doens't become visible to the rest of the world until all
-			// entries have been populated
-		
-		files	= allocated_files;
-		
-		loadFilePriorities();
-    
-		download_manager.setDataAlreadyAllocated( true );
-    
-		return( numNewFiles );
 	}	
 	
   
