@@ -201,11 +201,11 @@ public class OutgoingBTPieceMessageHandler {
   public void removeAllPieceRequests() {
     try{
       lock_mon.enter();
-  
-      requests.clear();
-      loading_messages.clear();
-      num_messages_loading = 0;
 
+      
+      String before_trace = outgoing_message_queue.getQueueTrace();  //TODO
+      
+      
       int num_queued = queued_messages.size();
       int num_removed = 0;
       
@@ -219,8 +219,12 @@ public class OutgoingBTPieceMessageHandler {
       }
       
       if( num_removed < num_queued -2 ) {
-        Debug.out( "num_removed[" +num_removed+ "] < num_queued[" +num_queued+ "]:\n" + outgoing_message_queue.getQueueTrace() );
+        Debug.out( "num_removed[" +num_removed+ "] < num_queued[" +num_queued+ "]:\nBEFORE:\n" +before_trace+ "\nAFTER:\n" +outgoing_message_queue.getQueueTrace() );		
       }
+      
+      requests.clear();
+      loading_messages.clear();
+      num_messages_loading = 0;
     }
     finally{
       lock_mon.exit();

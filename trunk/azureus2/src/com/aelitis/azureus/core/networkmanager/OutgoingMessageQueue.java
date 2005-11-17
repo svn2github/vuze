@@ -56,7 +56,8 @@ public class OutgoingMessageQueue {
   private int percent_complete = -1;
   
   
-  private static final boolean TRACE_HISTORY = true;
+  private static final boolean TRACE_HISTORY = true;  //TODO
+  private static final int MAX_HISTORY_TRACES = 30;
   private final LinkedList prev_sent = new LinkedList();
   
   
@@ -476,7 +477,7 @@ public class OutgoingMessageQueue {
               
               if( TRACE_HISTORY ) {
               	prev_sent.addLast( msg );
-              	if( prev_sent.size() > 10 )  prev_sent.removeFirst();
+              	if( prev_sent.size() > MAX_HISTORY_TRACES )  prev_sent.removeFirst();
               }
               
               
@@ -649,7 +650,7 @@ public class OutgoingMessageQueue {
     	
     	for( Iterator it = prev_sent.iterator(); it.hasNext(); ) {
     		RawMessage raw = (RawMessage)it.next();
-        trace.append( "[#h" +i+ "]: " +raw.getID()+ "\n" );
+        trace.append( "[#h" +i+ "]: " +raw.getID()+ " [" +raw.getDescription()+ "]" + "\n" );
         i++;
     	}      
       
@@ -663,7 +664,7 @@ public class OutgoingMessageQueue {
         int pos = raw.getRawData()[0].position(DirectByteBuffer.SS_NET);
         int length = raw.getRawData()[0].limit( DirectByteBuffer.SS_NET );
         
-        trace.append( "[#" +position+ " " +pos+ ":" +length+ "]: " +raw.getID()+ "\n" );
+        trace.append( "[#" +position+ " " +pos+ ":" +length+ "]: " +raw.getID()+ " [" +raw.getDescription()+ "]" + "\n" );
         
         position--;
       }
