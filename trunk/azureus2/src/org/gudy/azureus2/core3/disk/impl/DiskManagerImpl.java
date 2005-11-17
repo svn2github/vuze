@@ -484,9 +484,9 @@ DiskManagerImpl
 					Debug.printStackTrace( e );
 				}
 			}
-		}
 		
-		storeFileDownloaded( download_manager, files );
+			storeFileDownloaded( download_manager, files );
+		}
 		
 			// can't be used after a stop so we might as well clear down the listeners
 		
