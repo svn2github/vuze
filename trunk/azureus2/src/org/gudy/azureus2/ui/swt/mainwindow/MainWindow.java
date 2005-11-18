@@ -109,6 +109,7 @@ MainWindow
   
   //Package visibility for GUIUpdater
   CLabel ipBlocked;
+  CLabel natStatus;
   CLabel dhtStatus;
   CLabel statusDown;
   CLabel statusUp;
@@ -362,7 +363,7 @@ MainWindow
     
 
     GridLayout layout_status = new GridLayout();
-    layout_status.numColumns = 5;
+    layout_status.numColumns = 6;
     layout_status.horizontalSpacing = 1;
     layout_status.verticalSpacing = 0;
     layout_status.marginHeight = 0;
@@ -458,6 +459,12 @@ MainWindow
     layoutStatusAera.topControl = statusText;
     
  
+    natStatus = new CLabel(statusBar,borderFlag);
+    natStatus.setText("");
+    gridData = new GridData();
+    gridData.widthHint = 20;
+    natStatus.setLayoutData(gridData);
+    
     dhtStatus = new CLabel(statusBar,borderFlag);
     dhtStatus.setText("");
     gridData = new GridData();
@@ -493,6 +500,11 @@ MainWindow
     	}
     };
 
+    Listener lConfig = new Listener() {
+    	public void handleEvent(Event e) {
+    		showConfig();
+    	}
+    };
     gridData = new GridData();
     gridData.widthHint = Constants.isOSX ? 155 : ( Constants.isLinux ? 145 : 135 );
     statusUp = new CLabel(statusBar, borderFlag);
@@ -503,7 +515,8 @@ MainWindow
     statusDown.addListener(SWT.MouseDoubleClick,lStats);
     statusUp.addListener(SWT.MouseDoubleClick,lStats);
     dhtStatus.addListener(SWT.MouseDoubleClick,lStats);
-    
+    natStatus.addListener(SWT.MouseDoubleClick,lConfig);
+       
     final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);
     menuUpSpeed.addListener(SWT.Show,new Listener() {
       public void handleEvent(Event e) {

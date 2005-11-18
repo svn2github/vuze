@@ -80,6 +80,7 @@ PEPeerControlImpl
   private TRTrackerAnnouncer _tracker;
    //  private int _maxUploads;
   private int _seeds, _peers,_remotes;
+  private long last_remote_time;
   private long _timeStarted;
   private long _timeStartedSeeding = -1;
   private long _timeFinished;
@@ -1491,6 +1492,10 @@ PEPeerControlImpl
           
           if(((PEPeer)pc).isIncoming()) {
             _remotes++;
+            if ( last_remote_time == 0 ){
+            	
+            	last_remote_time = SystemTime.getCurrentTime();
+            }
           }
         }
       }
@@ -1809,6 +1814,11 @@ PEPeerControlImpl
       return _remotes;
   }
 
+  public long getLastRemoteConnectionTime()
+  {
+	  return( last_remote_time );
+  }
+  
   public PEPeerManagerStats getStats() {
     return _stats;
   }

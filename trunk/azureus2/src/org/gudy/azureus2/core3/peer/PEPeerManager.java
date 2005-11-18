@@ -123,6 +123,7 @@ PEPeerManager
   
   public int getNbRemoteConnections();
   
+  public long getLastRemoteConnectionTime();
   
   /**
    * Data bytes received.

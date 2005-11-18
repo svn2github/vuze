@@ -46,11 +46,13 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
 
@@ -163,7 +165,9 @@ public class GlobalManagerImpl
   
 	private boolean seeding_only_mode = false;
   
-  
+	private int 	nat_status				= ConnectionManager.NAT_UNKNOWN;
+	private boolean	nat_status_probably_ok;
+	
 	public class Checker extends AEThread {
     int loopFactor;
     private static final int waitTime = 10*1000;
@@ -221,7 +225,9 @@ public class GlobalManagerImpl
             	
 	        		manager.startDownload();
 	           }
-          }
+	        }
+	        
+	        computeNATStatus();
 
       	}catch( Throwable e ){
       		
@@ -1928,6 +1934,59 @@ public class GlobalManagerImpl
 		return( last_swarm_stats );
 	}
 	
+	protected void
+	computeNATStatus()
+	{
+		int	num_ok			= 0;
+		int num_probably_ok	= 0;
+		int	num_bad			= 0;
+		
+        for (Iterator it=managers_cow.iterator();it.hasNext();) {
+          	
+        	DownloadManager manager = (DownloadManager)it.next();
+
+        	int	status = manager.getNATStatus();
+        	
+        	if ( status == ConnectionManager.NAT_OK ){
+        		
+        		num_ok++;
+        		
+        	}else if ( status == ConnectionManager.NAT_PROBABLY_OK ){
+        		
+        		num_probably_ok++;
+        		
+        	}else if ( status == ConnectionManager.NAT_BAD ){
+            		
+            	num_bad++;
+        	}
+        }
+        
+        if ( num_ok > 0 ){
+        	
+        	nat_status = ConnectionManager.NAT_OK;
+        	
+        }else if ( num_probably_ok > 0 || nat_status_probably_ok ){
+        	
+        	nat_status 				= ConnectionManager.NAT_PROBABLY_OK;
+        	
+        	nat_status_probably_ok	= true;
+        	
+        }else if ( num_bad > 0 ){
+        	
+        	nat_status = ConnectionManager.NAT_BAD;
+        	
+        }else{
+        	
+        	nat_status = ConnectionManager.NAT_UNKNOWN;
+        }
+	}
+	
+	public int
+	getNATStatus()
+	{	
+		return( nat_status );
+	}
+	 
 	public void
 	generate(
 		IndentWriter		writer )

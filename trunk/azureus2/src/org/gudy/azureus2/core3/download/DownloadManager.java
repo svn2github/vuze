@@ -305,6 +305,14 @@ DownloadManager
 	 */
 	public int getHealthStatus();
 	
+	/**
+	 * See plugin ConnectionManager.NAT_ constants for return values
+	 * @return
+	 */
+
+	 public int
+	 getNATStatus();
+	 
 		/**
 		 * persist resume data
 		 *

@@ -31,6 +31,7 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamDecoderAdapter;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageStreamEncoderAdapter;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 
 /**
@@ -38,14 +39,26 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
  */
 public class ConnectionManagerImpl implements ConnectionManager {
   
-  private static final ConnectionManagerImpl instance = new ConnectionManagerImpl();
+  private static ConnectionManagerImpl instance;
   
   
-  public static ConnectionManagerImpl getSingleton() {  return instance;  }
+  public static synchronized ConnectionManagerImpl 
+  getSingleton(
+	AzureusCore		core )
+  {
+	  if ( instance == null ){
+		  
+		  instance = new ConnectionManagerImpl( core );
+	  }
+	  
+	  return( instance );
+  }
   
+  private AzureusCore		azureus_core;
   
-  private ConnectionManagerImpl() {
-    /*nothing*/
+  private ConnectionManagerImpl(AzureusCore _core) {
+  
+	  azureus_core	= _core;
   }
   
 
@@ -53,6 +66,12 @@ public class ConnectionManagerImpl implements ConnectionManager {
     com.aelitis.azureus.core.networkmanager.NetworkConnection core_conn =
       NetworkManager.getSingleton().createConnection( remote_address, new MessageStreamEncoderAdapter( encoder ), new MessageStreamDecoderAdapter( decoder ) );
     return new ConnectionImpl( core_conn );
+  }
+  
+  public int
+  getNATStatus()
+  {
+	  return( azureus_core.getGlobalManager().getNATStatus());
   }
   
 }

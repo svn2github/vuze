@@ -194,6 +194,14 @@ GlobalManager
 	public void
 	fixUpDownloadManagerPositions();
 
+		/**
+		 * See plugin ConnectionManager.NAT_ constants for return values
+		 * @return
+		 */
+	
+	 public int
+	 getNATStatus();
+	 
   public void
 	addListener(
 		GlobalManagerListener	l );

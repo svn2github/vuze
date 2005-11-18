@@ -30,7 +30,13 @@ import org.gudy.azureus2.plugins.messaging.*;
 /**
  * Manages connections.
  */
-public interface ConnectionManager {
+public interface 
+ConnectionManager 
+{
+	public static final int	NAT_UNKNOWN			= 0;
+	public static final int	NAT_OK				= 1;
+	public static final int	NAT_PROBABLY_OK		= 2;
+	public static final int	NAT_BAD				= 3;
 
   /**
    * Create a new unconnected remote connection (for outbound-initiated connections).
@@ -38,5 +44,13 @@ public interface ConnectionManager {
    * @return not yet established connection
    */
   public Connection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder );
+  
+  	/** 
+  	 * Returns the current view on whether or not we are inwardly connectable via our listener port
+  	 * @return
+  	 */
+  
+  public int
+  getNATStatus();
   
 }

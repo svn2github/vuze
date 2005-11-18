@@ -861,6 +861,11 @@ Test
 			return( 0 );
 			
 		}
+		public int
+		getNATStatus()
+		{
+			return( 0 );
+		}
 		
 		public Category getCategory()
 		{
@@ -1205,7 +1210,10 @@ Test
 	  	return( 0 );
 	}
 
-	  
+	  public long getLastRemoteConnectionTime()
+	  {
+		  return(0);
+	  }
 		public void
 		dataBytesReceived(
 			int		l )

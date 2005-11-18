@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.download.*;
 
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 /**
  * @author Olivier
@@ -1999,6 +2000,75 @@ DownloadManagerImpl
 		}else{
     	
 			return WEALTH_STOPPED;
+		}
+	}
+  
+	public int 
+	getNATStatus() 
+	{
+		int	state = getState();
+	  
+		PEPeerManager	peerManager	 = controller.getPeerManager();
+	  
+		TRTrackerAnnouncer tc = getTrackerClient();
+	  
+		if ( tc != null && peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
+		  			
+			if ( peerManager.getNbRemoteConnections() > 0 ){
+				
+				return( ConnectionManager.NAT_OK );
+			}
+			
+			long	last_good_time = peerManager.getLastRemoteConnectionTime();
+		
+			if ( last_good_time > 0 ){
+				
+				if ( SystemTime.getCurrentTime() - last_good_time < 30*60*60 ){
+				
+					return( ConnectionManager.NAT_OK );
+					
+				}else{
+					
+					return( ConnectionManager.NAT_PROBABLY_OK );
+				}
+			}
+			
+			TRTrackerAnnouncerResponse	announce_response = tc.getLastResponse();
+			
+			int trackerStatus = announce_response.getStatus();
+			
+			if( 	trackerStatus == TRTrackerAnnouncerResponse.ST_OFFLINE || 
+					trackerStatus == TRTrackerAnnouncerResponse.ST_REPORTED_ERROR){
+	    	  
+				return ConnectionManager.NAT_UNKNOWN;
+			}
+			
+				// tracker's ok but no remotes - give it some time
+			
+			if ( SystemTime.getCurrentTime() - peerManager.getTimeStarted() < 120*60*60 ){
+				
+				return ConnectionManager.NAT_UNKNOWN;
+			}
+			
+			TRTrackerScraperResponse scrape_response = getTrackerScrapeResponse();
+				
+			if ( scrape_response != null && scrape_response.isValid()){
+					
+					// if we're connected to everyone then report OK as we can't get
+					// any incoming connections!
+					
+				if ( 	peerManager.getNbSeeds() == scrape_response.getSeeds() &&
+						peerManager.getNbPeers() == scrape_response.getPeers()){
+						
+					return ConnectionManager.NAT_UNKNOWN;
+				}
+			}
+				
+			return ConnectionManager.NAT_BAD;
+	
+		}else{
+    	
+			return ConnectionManager.NAT_UNKNOWN;
 		}
 	}
   

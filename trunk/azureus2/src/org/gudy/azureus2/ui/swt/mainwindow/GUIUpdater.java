@@ -39,6 +39,8 @@ import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Tab;
@@ -51,8 +53,10 @@ import org.gudy.azureus2.ui.swt.views.IView;
 public class GUIUpdater extends AEThread implements ParameterListener {
   
   private AzureusCore		azureus_core;
-  private DHTPlugin     dhtPlugin;
-  private NumberFormat  numberFormat;
+  private ConnectionManager	connection_manager;
+  
+  private DHTPlugin     	dhtPlugin;
+  private NumberFormat  	numberFormat;
   private MainWindow 		mainWindow;
   private Display 			display;
   
@@ -71,7 +75,12 @@ public class GUIUpdater extends AEThread implements ParameterListener {
     this.mainWindow = mainWindow;
     this.display = mainWindow.getDisplay();
     this.numberFormat = NumberFormat.getInstance();
-    PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+    
+    PluginManager	pm = AzureusCoreFactory.getSingleton().getPluginManager();
+    
+    connection_manager = pm.getDefaultPluginInterface().getConnectionManager();
+    
+    PluginInterface dht_pi = pm.getPluginInterfaceByClass( DHTPlugin.class );
     if ( dht_pi != null ){
     	dhtPlugin = (DHTPlugin)dht_pi.getPlugin();
     }
@@ -130,7 +139,22 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 					"/" + 
           numberFormat.format(azureus_core.getIpFilterManager().getBadIps().getNbBadIps()));
 					
-            
+        int	nat_status = connection_manager.getNATStatus();
+        
+        if ( nat_status == ConnectionManager.NAT_UNKNOWN ){
+            mainWindow.natStatus.setImage(null);
+  			mainWindow.natStatus.setToolTipText(null);
+        }else if ( nat_status == ConnectionManager.NAT_OK ){
+            mainWindow.natStatus.setImage(ImageRepository.getImage("greenled"));
+    		mainWindow.natStatus.setToolTipText(MessageText.getString("MainWindow.nat.status.tooltip.ok"));
+        }else if ( nat_status == ConnectionManager.NAT_PROBABLY_OK ){
+            mainWindow.natStatus.setImage(ImageRepository.getImage("yellowled"));
+    		mainWindow.natStatus.setToolTipText(MessageText.getString("MainWindow.nat.status.tooltip.probok"));
+        }else{
+        	mainWindow.natStatus.setImage(ImageRepository.getImage("redled"));
+    		mainWindow.natStatus.setToolTipText(MessageText.getString("MainWindow.nat.status.tooltip.bad"));
+
+        }
                
         if( dhtPlugin == null || dhtPlugin.getStatus() == DHTPlugin.STATUS_DISABLED) {
           mainWindow.dhtStatus.setImage(ImageRepository.getImage("redled"));

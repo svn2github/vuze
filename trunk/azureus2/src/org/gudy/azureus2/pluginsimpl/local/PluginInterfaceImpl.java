@@ -540,7 +540,7 @@ PluginInterfaceImpl
 	 
    
    public ConnectionManager getConnectionManager() {
-     return ConnectionManagerImpl.getSingleton();
+     return ConnectionManagerImpl.getSingleton( initialiser.getAzureusCore());
    }
    
    public MessageManager getMessageManager() {
