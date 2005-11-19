@@ -154,17 +154,10 @@ public class BlocksItem
         }
         color = Colors.white;
         
-        if ( written == null ){
-        
-        	if ( piece_done ){
-        		
-        		color = blue;
-        	}
-        	
-        }else if (written[i]){
+        if ( (written == null && piece_done) || (written != null && written[i]) ){
         	
           color = blue;
-          
+        	
         }else if (piece.getDownloaded()[i]) {
         	
           color = downloaded;
