@@ -246,8 +246,6 @@ public class SystemTraySWT {
             maxBandwidth = 275;
         }
         
-        String	k_unit = DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
-
         MenuItem item = new MenuItem(parent, SWT.RADIO);
         item.setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
         item.setData("maxkb", new Integer(0));
@@ -265,7 +263,7 @@ public class SystemTraySWT {
               for (int j = 0; j < valuePair.length; j++) {
                 if (valuePair[j] >= 5) {
                   item = new MenuItem(parent, SWT.RADIO, (j == 0) ? 1 : parent.getItemCount());
-                  item.setText(valuePair[j] + " " + k_unit);
+                  item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(valuePair[j] * 1024));
                   item.setData("maxkb", new Integer(valuePair[j]));
                   item.addListener(SWT.Selection, getLimitMenuItemListener(parent, configKey));
                   item.setSelection(!unlim && valuePair[j] == maxBandwidth);

@@ -284,11 +284,15 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       }
     });
 
+    //Disabled for release. Need to convert from user-specified units to
+    //KB/s before restoring the following line
+    //String k_unit = DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)
+    String k_unit = DisplayFormatters.getRateUnitBase10(DisplayFormatters.UNIT_KB);
     
     // ul speed
   
     label = new Label(culdl, SWT.LEFT);
-    label.setText( MessageText.getString( "GeneralView.label.maxuploadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+" :");
+    label.setText( MessageText.getString( "GeneralView.label.maxuploadspeed" ) + " " + k_unit +" :");
     Messages.setLanguageText(label, "GeneralView.label.maxuploadspeed.tooltip", true);
      
     maxULSpeed = new Text(culdl, SWT.BORDER);
@@ -332,7 +336,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 //  dl speed
     
       label = new Label(culdl, SWT.LEFT);
-      label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)+" :");
+      label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + k_unit +" :");
       Messages.setLanguageText(label, "GeneralView.label.maxdownloadspeed.tooltip", true);
       
       maxDLSpeed = new Text(culdl, SWT.BORDER);

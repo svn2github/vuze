@@ -547,8 +547,6 @@ MainWindow
               }
             };
       
-        String	k_unit = DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
-
         int iRel = 0;
         for (int i = 0; i < 12; i++) {
           int[] iAboveBelow;
@@ -562,7 +560,7 @@ MainWindow
             if (iAboveBelow[j] >= 5) {
               item = new MenuItem(menuUpSpeed, SWT.RADIO, 
                                   (j == 0) ? 1 : menuUpSpeed.getItemCount());
-              item.setText(iAboveBelow[j] + " " + k_unit);
+              item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iAboveBelow[j] * 1024));
               item.setData("speed", new Long(iAboveBelow[j]));
               item.addListener(SWT.Selection, speedChangeListener);
   
@@ -612,8 +610,6 @@ MainWindow
               }
             };
 
-        String	k_unit = DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
-            
         int iRel = 0;
         for (int i = 0; i < 12; i++) {
           int[] iAboveBelow;
@@ -626,7 +622,7 @@ MainWindow
             if (iAboveBelow[j] >= 5) {
               item = new MenuItem(menuDownSpeed, SWT.RADIO, 
                                   (j == 0) ? 1 : menuDownSpeed.getItemCount());
-              item.setText(iAboveBelow[j] + " " + k_unit);
+              item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iAboveBelow[j] * 1024));
               item.setData("speed", new Long(iAboveBelow[j]));
               item.addListener(SWT.Selection, speedChangeListener);
               item.setSelection(!unlim && downLimit == iAboveBelow[j]);
