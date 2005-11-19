@@ -1492,10 +1492,8 @@ PEPeerControlImpl
           
           if(((PEPeer)pc).isIncoming()) {
             _remotes++;
-            if ( last_remote_time == 0 ){
             	
-            	last_remote_time = SystemTime.getCurrentTime();
-            }
+           	last_remote_time = SystemTime.getCurrentTime();
           }
         }
       }
