@@ -213,9 +213,9 @@ SecureMessageServiceClientImpl
 						
 						if ( status == STATUS_OK ){
 		
-							adapter.log( "Request successfully sent: " + message.getRequest());
-							
 							message.setReply( (Map)reply.get( "reply" ));
+
+							adapter.log( "Request successfully sent: " + message.getRequest() + "->" + message.getReply());							
 							
 							adapter.setMessageSequence( sequence + 1 );
 							
