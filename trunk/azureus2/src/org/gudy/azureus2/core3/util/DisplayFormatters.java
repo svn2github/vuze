@@ -48,7 +48,7 @@ DisplayFormatters
 	
 	final private static int UNITS_PRECISION[] =	 {	 0, // B
 	                                                     1, //KB
-	                                                     1, //MB
+	                                                     2, //MB
 	                                                     2, //GB
 	                                                     3 //TB
 	                                                  };
@@ -304,6 +304,11 @@ DisplayFormatters
 		int		unit_size )
 	{
 		return( units[unit_size].substring(1, units[unit_size].length()) );
+	}
+	
+	public static String 
+	getRateUnitBase10(int unit_size) {
+		return units_base10[unit_size] + per_sec;
 	}
 
 	public static String
