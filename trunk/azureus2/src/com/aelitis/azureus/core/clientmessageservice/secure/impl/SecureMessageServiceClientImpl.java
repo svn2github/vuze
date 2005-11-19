@@ -77,10 +77,11 @@ SecureMessageServiceClientImpl
 		RSAPublicKey						_key,
 		SecureMessageServiceClientAdapter	_adapter )	
 	{
-		host		= _host;
-		port		= _port;
-		public_key	= _key;
-		adapter		= _adapter;
+		host			= _host;
+		port			= _port;
+		timeout_secs	= _timeout_secs;
+		public_key		= _key;
+		adapter			= _adapter;
 				
 		message_mon	= new AEMonitor( "SecureService:messages" );
 		
@@ -117,7 +118,7 @@ SecureMessageServiceClientImpl
 						
 					}catch( Throwable e ){
 						
-						adapter.log( "Message Processing failed", e);
+						adapter.log( "Request processing failed", e);
 					}
 				}
 			}
@@ -181,9 +182,7 @@ SecureMessageServiceClientImpl
 						content.put( "password", 	adapter.getPassword());
 						content.put( "seq", 		new Long( sequence ));
 						content.put( "request", 	message.getRequest());
-						
-						System.out.println( "--> " + content );
-						
+										
 						message_service = SecureMessageServiceClientHelper.getServerService( host, port, timeout_secs, SERVICE_NAME, public_key );					
 
 						message_service.sendMessage( content );
@@ -191,9 +190,7 @@ SecureMessageServiceClientImpl
 						Map	reply = message_service.receiveMessage();
 						
 						got_reply	= true;
-						
-						System.out.println( "<-- " + reply );
-	
+							
 						long	status = ((Long)reply.get( "status" )).longValue();
 						
 						Long	new_retry = (Long)reply.get( "retry" );
@@ -216,7 +213,7 @@ SecureMessageServiceClientImpl
 						
 						if ( status == STATUS_OK ){
 		
-							adapter.log( "Message successfully sent: " + message.getRequest());
+							adapter.log( "Request successfully sent: " + message.getRequest());
 							
 							message.setReply( (Map)reply.get( "reply" ));
 							
