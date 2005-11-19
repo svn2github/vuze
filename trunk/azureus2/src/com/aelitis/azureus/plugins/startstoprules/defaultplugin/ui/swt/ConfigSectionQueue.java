@@ -123,27 +123,27 @@ public class ConfigSectionQueue implements UISWTConfigSection {
 
     	// row
     
-    String	bytes_per_sec 	= DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_B );
-    String	k_per_sec 		= DisplayFormatters.getRateUnit( DisplayFormatters.UNIT_KB );
-
     label = new Label(gMainTab, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.minSpeedForActiveDL"); //$NON-NLS-1$
     final String activeDLLabels[] = new String[57];
     final int activeDLValues[] = new int[57];
     int pos = 0;
     for (int i = 0; i < 256; i += 64) {
-        activeDLLabels[pos] = "" + i + " " + bytes_per_sec;
         activeDLValues[pos] = i;
+    		activeDLLabels[pos] = DisplayFormatters
+					.formatByteCountToKiBEtcPerSec(activeDLValues[pos]);
         pos++;
     }
     for (int i = 256; i < 1024; i += 256) {
-      activeDLLabels[pos] = "" + i + " " + bytes_per_sec;
       activeDLValues[pos] = i;
+  		activeDLLabels[pos] = DisplayFormatters
+					.formatByteCountToKiBEtcPerSec(activeDLValues[pos]);
       pos++;
     }
     for (int i = 1; pos < activeDLLabels.length; i++) {
-      activeDLLabels[pos] = "" + i + " " + k_per_sec;
       activeDLValues[pos] = i * 1024;
+  		activeDLLabels[pos] = DisplayFormatters
+					.formatByteCountToKiBEtcPerSec(activeDLValues[pos]);
       pos++;
     }
     new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveDL", activeDLLabels, activeDLValues);
@@ -160,18 +160,21 @@ public class ConfigSectionQueue implements UISWTConfigSection {
     pos = 0;
         
     for (int i = 0; i < 256; i += 64) {
-    	activeSeedingLabels[pos] = "" + i + " " + bytes_per_sec;
     	activeSeedingValues[pos] = i;
+    	activeSeedingLabels[pos] = DisplayFormatters
+					.formatByteCountToKiBEtcPerSec(activeSeedingValues[pos]);
         pos++;
     }
     for (int i = 256; i < 1024; i += 256) {
-      activeSeedingLabels[pos] = "" + i + " " + bytes_per_sec;
       activeSeedingValues[pos] = i;
+    	activeSeedingLabels[pos] = DisplayFormatters
+					.formatByteCountToKiBEtcPerSec(activeSeedingValues[pos]);
       pos++;
     }
     for (int i = 1; pos < activeSeedingLabels.length; i++) {
-      activeSeedingLabels[pos] = "" + i + " " + k_per_sec;
       activeSeedingValues[pos] = i * 1024;
+    	activeSeedingLabels[pos] = DisplayFormatters
+					.formatByteCountToKiBEtcPerSec(activeSeedingValues[pos]);
       pos++;
     }
     new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveSeeding", 
