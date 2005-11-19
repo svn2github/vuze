@@ -20,9 +20,12 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.util.StringTokenizer;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -35,6 +38,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 
 import com.aelitis.azureus.core.*;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.util.Constants;
@@ -88,7 +93,7 @@ BlockedIpsWindow
         styles = SWT.SHELL_TRIM;
     }
     else {
-        styles = SWT.DIALOG_TRIM | SWT.RESIZE | SWT.APPLICATION_MODAL;
+        styles = SWT.DIALOG_TRIM | SWT.MAX | SWT.RESIZE | SWT.APPLICATION_MODAL;
     }
 
     final Shell window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,styles);
@@ -220,11 +225,53 @@ BlockedIpsWindow
 		}
     });
     
-    window.setSize(620,450);
-    window.layout();
+    // Copied from MainWindow
+    boolean isMaximized = COConfigurationManager.getBooleanParameter(
+				"BlockedIpsWindow.maximized", false);
+		window.setMaximized(isMaximized);
 
-    if(!Constants.isOSX)
-        Utils.centreWindow( window );
+		String windowRectangle = COConfigurationManager.getStringParameter(
+				"BlockedIpsWindow.rectangle", null);
+		boolean bDidResize = false;
+		if (null != windowRectangle) {
+			int i = 0;
+			int[] values = new int[4];
+			StringTokenizer st = new StringTokenizer(windowRectangle, ",");
+			try {
+				while (st.hasMoreTokens() && i < 4) {
+					values[i++] = Integer.valueOf(st.nextToken()).intValue();
+					if (values[i - 1] < 0)
+						values[i - 1] = 0;
+				}
+				if (i == 4) {
+					window.setBounds(values[0], values[1], values[2], values[3]);
+					bDidResize = true;
+				}
+			} catch (Exception e) {
+			}
+		}
+
+		if (!bDidResize) {
+			window.setSize(620, 450);
+			if (!Constants.isOSX)
+				Utils.centreWindow(window);
+		}
+		window.layout();
+
+		window.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				COConfigurationManager.setParameter("BlockedIpsWindow.maximized",
+						window.getMaximized());
+				// unmaximize to get correct window rect
+				if (window.getMaximized())
+					window.setMaximized(false);
+
+				Rectangle windowRectangle = window.getBounds();
+				COConfigurationManager.setParameter("BlockedIpsWindow.rectangle",
+						windowRectangle.x + "," + windowRectangle.y + ","
+								+ windowRectangle.width + "," + windowRectangle.height);
+			}
+		});
     
     window.open();
     return window;
