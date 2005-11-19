@@ -108,7 +108,12 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     Label cache_size_label = new Label(cSection, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     cache_size_label.setLayoutData(gridData);
-    Messages.setLanguageText(cache_size_label, "ConfigView.section.file.perf.cache.size", new String[]{ DisplayFormatters.getUnit(DisplayFormatters.UNIT_MB)});
+    // XXX Changed "DisplayFormatters.getUnit(DisplayFormatters.UNIT_MB)"
+    //      to getUnitBase10 for the release, since the # is  in MB.
+    Messages.setLanguageText(cache_size_label,
+				"ConfigView.section.file.perf.cache.size",
+				new String[] {
+    		DisplayFormatters.getUnitBase10(DisplayFormatters.UNIT_MB) });
     IntParameter cache_size = new IntParameter(cSection, "diskmanager.perf.cache.size" );
     cache_size.setAllowZero(false);
     cache_size.setMinimumValue(1);
@@ -138,7 +143,11 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     Label cnst_label = new Label(cSection, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     cnst_label.setLayoutData(gridData);
-    Messages.setLanguageText(cnst_label, "ConfigView.section.file.perf.cache.notsmallerthan", new String[]{ DisplayFormatters.getUnit(DisplayFormatters.UNIT_KB)});
+    // XXX Changed "DisplayFormatters.getUnit(DisplayFormatters.UNIT_KB)" to
+    //     getUnitBase10 for the release, since the # is stored in KB.
+    Messages.setLanguageText(cnst_label,
+    		"ConfigView.section.file.perf.cache.notsmallerthan",
+    		new String[] { DisplayFormatters.getUnitBase10(DisplayFormatters.UNIT_KB) });
     IntParameter cache_not_smaller_than= new IntParameter(cSection, "diskmanager.perf.cache.notsmallerthan" );
     cache_not_smaller_than.setAllowZero(false);
     cache_not_smaller_than.setMinimumValue(0);

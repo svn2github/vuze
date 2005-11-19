@@ -311,6 +311,11 @@ DisplayFormatters
 		return units_base10[unit_size] + per_sec;
 	}
 
+	public static String 
+	getUnitBase10(int unit_size) {
+		return units_base10[unit_size];
+	}
+
 	public static String
 	formatByteCountToKiBEtc(int n)
 	{
