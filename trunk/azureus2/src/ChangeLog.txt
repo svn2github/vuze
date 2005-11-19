@@ -35,6 +35,7 @@ FEATURE: UI   | Beginner configuration user mode provides a simplified interface
 FEATURE: UI   | Support for --closedown parameter to org.gudy.azureus2.ui.swt.Main to closedown an existing AZ instance [Parg]
 FEATURE: Core | Support for .torrent file download using just infohash hex string (via DHT magnet lookup mechanism) [Nolar]
 FEATURE: UI   | Added Average Peer Completion percentage column to MyTorrents view and Details view [Nolar]
+FEATURE: UI   | Added NAT status icon to status area [Parg]
 
 CHANGE: Core  | Countermeasures against swarm DOS/poisoning [Nolar]
 CHANGE: Core  | Health status for swarms where all known peers are connected now reported as OK [Parg]
