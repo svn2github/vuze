@@ -30,6 +30,10 @@ public interface
 StringListParameter
 	extends Parameter
 {
+	public void
+	setValue(
+		String	value );
+	
 	public String
 	getValue();
 }

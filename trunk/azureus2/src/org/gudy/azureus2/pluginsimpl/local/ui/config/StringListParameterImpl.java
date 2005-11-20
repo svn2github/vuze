@@ -75,4 +75,11 @@ public class StringListParameterImpl extends ParameterImpl implements StringList
 	{
 		return( config.getStringParameter( getKey(), getDefaultValue()));
 	}
+	
+	public void
+	setValue(
+		String	s )
+	{
+		COConfigurationManager.setParameter( getKey(), s );
+	}
 }

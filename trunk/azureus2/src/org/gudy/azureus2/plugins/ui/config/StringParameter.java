@@ -31,6 +31,10 @@ public interface
 StringParameter
 	extends Parameter
 {
+	public void
+	setValue(
+		String	value );
+	
 	public String
 	getValue();
 }

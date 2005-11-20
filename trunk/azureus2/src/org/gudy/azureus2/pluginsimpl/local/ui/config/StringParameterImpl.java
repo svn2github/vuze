@@ -54,4 +54,11 @@ public class StringParameterImpl extends ParameterImpl implements StringParamete
 	{
 		return( config.getStringParameter( getKey(), getDefaultValue()));
 	}
+	
+	public void
+	setValue(
+		String	s )
+	{
+		COConfigurationManager.setParameter( getKey(), s );
+	}
 }
