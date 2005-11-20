@@ -222,7 +222,7 @@ public class StatsView extends AbstractIView {
   
   public void delete() {
     updateThread.stopIt();
-    MainWindow.getWindow().setStats(null);    
+    MainWindow.getWindow().clearStats();    
     
     //Don't ask me why, but without this an exception is thrown further
     // (in folder.dispose() )

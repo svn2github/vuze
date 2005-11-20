@@ -30,6 +30,7 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
@@ -453,6 +454,13 @@ public class Utils {
 			return false;
   	}
 		return (display.getThread() == Thread.currentThread());
+	}
+	
+	public static void
+	openURL(
+		String		url )
+	{
+		Program.launch( url );
 	}
 }
 

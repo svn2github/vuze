@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateProgressWindow;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.views.configsections.ConfigSectionConnection;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.ui.swt.wizard.WizardListener;
@@ -128,8 +129,10 @@ MainWindow
   private Tab 	my_tracker_tab;
   private Tab 	my_shares_tab;
   private Tab 	stats_tab;
-  private Tab console;
-  private Tab config;
+  private Tab 	console;
+  
+  private Tab 			config;
+  private ConfigView	config_view;
   
   private ArrayList	update_stack = new ArrayList();
   
@@ -185,6 +188,7 @@ MainWindow
     my_tracker_tab	= null;
     console = null;
     config = null;
+    config_view = null;
     downloadViews = new HashMap();
     downloadBars = new HashMap();
     
@@ -500,11 +504,6 @@ MainWindow
     	}
     };
 
-    Listener lConfig = new Listener() {
-    	public void handleEvent(Event e) {
-    		showConfig();
-    	}
-    };
     gridData = new GridData();
     gridData.widthHint = Constants.isOSX ? 155 : ( Constants.isLinux ? 145 : 135 );
     statusUp = new CLabel(statusBar, borderFlag);
@@ -515,7 +514,18 @@ MainWindow
     statusDown.addListener(SWT.MouseDoubleClick,lStats);
     statusUp.addListener(SWT.MouseDoubleClick,lStats);
     dhtStatus.addListener(SWT.MouseDoubleClick,lStats);
-    natStatus.addListener(SWT.MouseDoubleClick,lConfig);
+    
+    Listener lNAT = new Listener() {
+    	public void handleEvent(Event e) {
+    		showConfig();
+    		
+    		config_view.selectSection( ConfigSectionConnection.class );
+    		
+    		Utils.openURL( "http://azureus.aelitis.com/wiki/index.php/NAT_problem" );
+    	}
+    };
+    
+    natStatus.addListener(SWT.MouseDoubleClick,lNAT);
        
     final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);
     menuUpSpeed.addListener(SWT.Show,new Listener() {
@@ -1278,31 +1288,18 @@ MainWindow
   }
 
   /**
-	 * @return
-	 */
-  public Tab getConfig() {
-    return config;
-  }
-
-  /**
 	 * @param tab
 	 */
-  public void setConfig(Tab tab) {
-    config = tab;
-  }
-
-  /**
-	 * @return
-	 */
-  public Tab getStats() {
-    return stats_tab;
+  public void clearConfig() {
+    config 		= null;
+    config_view	= null;
   }
 
   /**
    * @param tab
    */
-  public void setStats(Tab tab) {
-    stats_tab = tab;
+  public void clearStats() {
+    stats_tab = null;
   }
 
   /**
@@ -1570,10 +1567,12 @@ MainWindow
   }
 
   public void showConfig() {
-    if (config == null)
-      config = new Tab(new ConfigView( azureus_core ));
-    else
+    if (config == null){
+      config_view = new ConfigView( azureus_core );
+      config = new Tab(config_view);
+    }else{
       config.setFocus();
+    }
   }
   
 

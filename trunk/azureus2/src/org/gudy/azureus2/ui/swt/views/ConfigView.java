@@ -754,7 +754,7 @@ public class ConfigView extends AbstractIView {
   }
 
   public void delete() {
-    MainWindow.getWindow().setConfig(null);
+    MainWindow.getWindow().clearConfig();
     for (int i = 0; i < pluginSections.size(); i++)
       ((ConfigSection)pluginSections.get(i)).configSectionDelete();
     pluginSections.clear();
@@ -780,4 +780,26 @@ public class ConfigView extends AbstractIView {
     return MessageText.getString("ConfigView.title.full"); //$NON-NLS-1$
   }
 
+  public void
+  selectSection(
+  	Class	config_section_class )
+  {
+	  TreeItem[]	items = tree.getItems();
+	  
+	  for (int i=0;i<items.length;i++){
+		  
+		  TreeItem	item = items[i];
+		  	    	
+		  ConfigSection section = (ConfigSection)item.getData("ConfigSectionSWT");
+			  
+		  if ( section != null && section.getClass() == config_section_class ){
+				  
+			  tree.setSelection( new TreeItem[]{ item });
+			  
+			  showSection( item );
+			  
+			  break;
+		  }
+	  }
+  }
 }

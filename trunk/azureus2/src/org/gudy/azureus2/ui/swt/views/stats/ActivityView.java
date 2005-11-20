@@ -131,7 +131,7 @@ public class ActivityView extends AbstractIView {
   }
   
   public void delete() {    
-    MainWindow.getWindow().setStats(null);
+    MainWindow.getWindow().clearStats();
     Utils.disposeComposite(panel);
     downSpeedGraphic.dispose();
     upSpeedGraphic.dispose();
