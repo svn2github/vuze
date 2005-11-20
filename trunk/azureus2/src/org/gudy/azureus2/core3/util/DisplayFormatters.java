@@ -326,13 +326,21 @@ DisplayFormatters
 	String formatByteCountToKiBEtc(
 		long n )
 	{
-		return( formatByteCountToKiBEtc( n, false ));
+		return( formatByteCountToKiBEtc( n, false, false ));
+	}
+
+	public static
+	String formatByteCountToKiBEtc(
+		long n, boolean bTruncateZeros )
+	{
+		return( formatByteCountToKiBEtc( n, false, bTruncateZeros ));
 	}
 
 	protected static
 	String formatByteCountToKiBEtc(
 		long	n,
-		boolean	rate )
+		boolean	rate,
+		boolean bTruncateZeros)
 	{
 		double dbl = (rate && use_units_rate_bits) ? n * 8 : n;
 
@@ -344,7 +352,7 @@ DisplayFormatters
 		  unitIndex++;
 		}
 			 
-		return( formatDecimal( dbl, UNITS_PRECISION[unitIndex] ) +  
+		return( formatDecimal( dbl, UNITS_PRECISION[unitIndex], bTruncateZeros ) +  
 				( rate ? units_rate[unitIndex] : units[unitIndex]));
 	}
 
@@ -352,9 +360,16 @@ DisplayFormatters
 	formatByteCountToKiBEtcPerSec(
 		long		n )
 	{
-		return( formatByteCountToKiBEtc(n,true));
+		return( formatByteCountToKiBEtc(n,true,false));
 	}
 
+	public static String
+	formatByteCountToKiBEtcPerSec(
+		long		n,
+		boolean bTruncateZeros)
+	{
+		return( formatByteCountToKiBEtc(n,true, bTruncateZeros));
+	}
 
 		// base 10 ones
 
@@ -668,7 +683,17 @@ DisplayFormatters
   public static String
   formatDecimal(
   	double value, 
-  	int		precision )
+  	int		precision)
+  {
+  	return formatDecimal(value, precision, false);
+  }
+
+
+  public static String
+  formatDecimal(
+  	double value, 
+  	int		precision,
+  	boolean bTruncateZeros)
   {
     // this call returns a cached instance.. however, it might be worth
     // checking if caching the object ourselves gives any noticable perf gains.
@@ -686,7 +711,7 @@ DisplayFormatters
   	
   	if ( pos == -1 ){
   		
-  		if ( precision != 0 ){
+  		if ( precision != 0 && !bTruncateZeros ){
   			
 	  		res += ".";
 	  		
@@ -716,6 +741,15 @@ DisplayFormatters
 	  		
 	  			res = res.substring( 0, pos+1+precision );
 	  		}
+  		}
+
+  		if (bTruncateZeros && value != 0 && res.charAt(res.length() - 1) == '0') {
+  			int iFirstTrailingZero = res.lastIndexOf('0');
+  			
+  			if (iFirstTrailingZero == pos + 1)
+  				res = res.substring(0, pos);
+  			else
+  				res = res.substring(0, iFirstTrailingZero);
   		}
   	}
   	

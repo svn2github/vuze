@@ -560,7 +560,7 @@ MainWindow
             if (iAboveBelow[j] >= 5) {
               item = new MenuItem(menuUpSpeed, SWT.RADIO, 
                                   (j == 0) ? 1 : menuUpSpeed.getItemCount());
-              item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iAboveBelow[j] * 1024));
+              item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iAboveBelow[j] * 1024, true));
               item.setData("speed", new Long(iAboveBelow[j]));
               item.addListener(SWT.Selection, speedChangeListener);
   
@@ -622,7 +622,7 @@ MainWindow
             if (iAboveBelow[j] >= 5) {
               item = new MenuItem(menuDownSpeed, SWT.RADIO, 
                                   (j == 0) ? 1 : menuDownSpeed.getItemCount());
-              item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iAboveBelow[j] * 1024));
+              item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iAboveBelow[j] * 1024, true));
               item.setData("speed", new Long(iAboveBelow[j]));
               item.addListener(SWT.Selection, speedChangeListener);
               item.setSelection(!unlim && downLimit == iAboveBelow[j]);

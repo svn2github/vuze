@@ -263,7 +263,7 @@ public class SystemTraySWT {
               for (int j = 0; j < valuePair.length; j++) {
                 if (valuePair[j] >= 5) {
                   item = new MenuItem(parent, SWT.RADIO, (j == 0) ? 1 : parent.getItemCount());
-                  item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(valuePair[j] * 1024));
+                  item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(valuePair[j] * 1024, true));
                   item.setData("maxkb", new Integer(valuePair[j]));
                   item.addListener(SWT.Selection, getLimitMenuItemListener(parent, configKey));
                   item.setSelection(!unlim && valuePair[j] == maxBandwidth);

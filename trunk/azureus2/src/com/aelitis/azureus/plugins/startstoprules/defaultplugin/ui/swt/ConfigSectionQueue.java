@@ -131,19 +131,19 @@ public class ConfigSectionQueue implements UISWTConfigSection {
     for (int i = 0; i < 256; i += 64) {
         activeDLValues[pos] = i;
     		activeDLLabels[pos] = DisplayFormatters
-					.formatByteCountToKiBEtcPerSec(activeDLValues[pos]);
+					.formatByteCountToKiBEtcPerSec(activeDLValues[pos], true);
         pos++;
     }
     for (int i = 256; i < 1024; i += 256) {
       activeDLValues[pos] = i;
   		activeDLLabels[pos] = DisplayFormatters
-					.formatByteCountToKiBEtcPerSec(activeDLValues[pos]);
+					.formatByteCountToKiBEtcPerSec(activeDLValues[pos], true);
       pos++;
     }
     for (int i = 1; pos < activeDLLabels.length; i++) {
       activeDLValues[pos] = i * 1024;
   		activeDLLabels[pos] = DisplayFormatters
-					.formatByteCountToKiBEtcPerSec(activeDLValues[pos]);
+					.formatByteCountToKiBEtcPerSec(activeDLValues[pos], true);
       pos++;
     }
     new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveDL", activeDLLabels, activeDLValues);
@@ -162,19 +162,19 @@ public class ConfigSectionQueue implements UISWTConfigSection {
     for (int i = 0; i < 256; i += 64) {
     	activeSeedingValues[pos] = i;
     	activeSeedingLabels[pos] = DisplayFormatters
-					.formatByteCountToKiBEtcPerSec(activeSeedingValues[pos]);
+					.formatByteCountToKiBEtcPerSec(activeSeedingValues[pos], true);
         pos++;
     }
     for (int i = 256; i < 1024; i += 256) {
       activeSeedingValues[pos] = i;
     	activeSeedingLabels[pos] = DisplayFormatters
-					.formatByteCountToKiBEtcPerSec(activeSeedingValues[pos]);
+					.formatByteCountToKiBEtcPerSec(activeSeedingValues[pos], true);
       pos++;
     }
     for (int i = 1; pos < activeSeedingLabels.length; i++) {
       activeSeedingValues[pos] = i * 1024;
     	activeSeedingLabels[pos] = DisplayFormatters
-					.formatByteCountToKiBEtcPerSec(activeSeedingValues[pos]);
+					.formatByteCountToKiBEtcPerSec(activeSeedingValues[pos], true);
       pos++;
     }
     new IntListParameter(gMainTab, "StartStopManager_iMinSpeedForActiveSeeding", 
