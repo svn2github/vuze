@@ -85,8 +85,8 @@ public class DonationWindow2 {
   Animator animator;    
   PaintListener listener;
   
-  private static final String donationUrl = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&no_note=1&tax=0&currency_code=EUR&lc=US";
-  private static final String donationUrlShort = "https://www.paypal.com/xclick/business=olivier%40gudy.org&item_name=Azureus&currency_code=EUR&lc=US";
+  private static final String donationUrl = "http://azureus.aelitis.com/donate/";
+  private static final String donationUrlShort = "http://azureus.aelitis.com/donate/";
   
   private static final int DONATIONS_ASK_AFTER = 168;
   private static final AEMonitor	class_mon	= new AEMonitor( "DonationWindow:class");
@@ -349,6 +349,7 @@ public class DonationWindow2 {
       formData = new FormData();
       formData.bottom = new FormAttachment(100,-7);
       formData.left = new FormAttachment(0,5);
+      formData.right = new FormAttachment(ok,-5);
       textForCopy.setLayoutData(formData);
       
       
