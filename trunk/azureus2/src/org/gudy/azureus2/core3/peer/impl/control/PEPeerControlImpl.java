@@ -1479,9 +1479,7 @@ PEPeerControlImpl
   
   private void updateStats() {   
     //calculate seeds vs peers
-	  
-	long now = SystemTime.getCurrentTime();
-	
+	  	
   	List	peer_transports = peer_transports_cow;
   	
       _seeds = _peers = _remotes = 0;
