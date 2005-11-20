@@ -1479,6 +1479,9 @@ PEPeerControlImpl
   
   private void updateStats() {   
     //calculate seeds vs peers
+	  
+	long now = SystemTime.getCurrentTime();
+	
   	List	peer_transports = peer_transports_cow;
   	
       _seeds = _peers = _remotes = 0;
@@ -1492,8 +1495,6 @@ PEPeerControlImpl
           
           if(((PEPeer)pc).isIncoming()) {
             _remotes++;
-            	
-           	last_remote_time = SystemTime.getCurrentTime();
           }
         }
       }
@@ -1891,6 +1892,15 @@ PEPeerControlImpl
     }
     
     if( added ) {
+      if ( peer.isIncoming()){
+	      long	connect_time = SystemTime.getCurrentTime();
+	        
+	      if ( connect_time > last_remote_time ){
+	        	
+	       	last_remote_time = connect_time;
+	      }
+      }
+      
       peerAdded( peer ); 
     }
     else {
