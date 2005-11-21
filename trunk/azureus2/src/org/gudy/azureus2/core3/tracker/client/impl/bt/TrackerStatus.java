@@ -54,6 +54,11 @@ public class TrackerStatus {
 	public final static int evtErrors = 2;
 
   private final static int FAULTY_SCRAPE_RETRY_INTERVAL = 60 * 10 * 1000;
+  /**
+   * When scraping a single hash, also scrape other hashes that are going to
+   * be scraped within this range.
+   */
+  private final static int GROUP_SCRAPES_MS = 60 * 15 * 1000;
   
   static{
   	PRUDPTrackerCodecs.registerCodecs();
@@ -235,7 +240,7 @@ public class TrackerStatus {
 			        	
 			          long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
 			          
-			          if (lTimeDiff <= 30000 && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
+			          if (lTimeDiff <= GROUP_SCRAPES_MS && r.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) {
 			          	
 			            r.setStatus(TRTrackerScraperResponse.ST_SCRAPING, null);
 			            
