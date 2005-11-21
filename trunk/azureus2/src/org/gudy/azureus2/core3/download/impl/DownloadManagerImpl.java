@@ -392,310 +392,325 @@ DownloadManagerImpl
 		boolean		has_ever_been_started,
 		int			initial_state )
 	{		
-		display_name				= torrentFileName;	// default if things go wrong decoding it
-		internal_name				= "";
-		torrent_comment				= "";
-		torrent_created_by			= "";
-		
 		try{
-
-				// this is the first thing we do and most likely to go wrong - hence its
-				// existence is used below to indicate success or not
+			display_name				= torrentFileName;	// default if things go wrong decoding it
+			internal_name				= "";
+			torrent_comment				= "";
+			torrent_created_by			= "";
 			
-			 download_manager_state	= 
-				 	DownloadManagerStateImpl.getDownloadState(
-				 			this, torrentFileName, torrent_hash );
-			 
-				// establish any file links
+			try{
+	
+					// this is the first thing we do and most likely to go wrong - hence its
+					// existence is used below to indicate success or not
 				
-			 download_manager_state.addListener(
-					new DownloadManagerStateListener()
-					{
-						public void
-						stateChanged(
-							DownloadManagerState			state,
-							DownloadManagerStateEvent		event )
+				 download_manager_state	= 
+					 	DownloadManagerStateImpl.getDownloadState(
+					 			this, torrentFileName, torrent_hash );
+				 
+					// establish any file links
+					
+				 download_manager_state.addListener(
+						new DownloadManagerStateListener()
 						{
-							if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ){
-								
-								if (((String)event.getData()).equals( DownloadManagerState.AT_FILE_LINKS )){
+							public void
+							stateChanged(
+								DownloadManagerState			state,
+								DownloadManagerStateEvent		event )
+							{
+								if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ){
 									
-									setFileLinks();
+									if (((String)event.getData()).equals( DownloadManagerState.AT_FILE_LINKS )){
+										
+										setFileLinks();
+									}
 								}
 							}
-						}
-					});
-					
-			 setFileLinks();
-			 
-			 torrent	= download_manager_state.getTorrent();
-			 
-			 
-			 	// We can't have the identity of this download changing as this will screw up
-			 	// anyone who tries to maintain a unique set of downloads (e.g. the GlobalManager)
-			 	//
-			 
-			 if ( !dl_identity_obtained ){
+						});
+						
+				 setFileLinks();
 				 
-				 	// flag set true below
+				 torrent	= download_manager_state.getTorrent();
 				 
-				 dl_identity			= torrent_hash==null?torrent.getHash():torrent_hash;
-                 
-                 this.dl_identity_hashcode = new String( dl_identity ).hashCode();		 
-			 }
 				 
-			 if ( !Arrays.equals( dl_identity, torrent.getHash())){
+				 	// We can't have the identity of this download changing as this will screw up
+				 	// anyone who tries to maintain a unique set of downloads (e.g. the GlobalManager)
+				 	//
+				 
+				 if ( !dl_identity_obtained ){
 					 
-				 torrent	= null;	// prevent this download from being used
-				 
-				 throw( new Exception( "Download identity changed - please remove and re-add the download" ));
-			 }
-			 
-			 read_torrent_state	= null;	// no longer needed if we saved it
-
-			 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+					 	// flag set true below
 					 
-			 	// if its a simple torrent and an explicit save file wasn't supplied, use
-			 	// the torrent name itself
-			 
-			 display_name = locale_decoder.decodeString( torrent.getName());
-             
-			 display_name = FileUtil.convertOSSpecificChars( display_name );
-		
-			 internal_name = ByteFormatter.nicePrint(torrent.getHash(),true);
-
-			 	// now we know if its a simple torrent or not we can make some choices about
-			 	// the save dir and file. On initial entry the save_dir will have the user-selected
-			 	// save location and the save_file will be null
-			 
-			 File	save_dir_file	= new File( torrent_save_dir );
-			 
-			 // System.out.println( "before: " + torrent_save_dir + "/" + torrent_save_file );
-			 
-			 	// if save file is non-null then things have already been sorted out
-			 
-			 if ( torrent_save_file == null ){
-			 		 	
-			 		// make sure we're working off a canonical save dir if possible
-			 	
-			 	try{
-			 		if ( save_dir_file.exists()){
-			 			
-			 			save_dir_file = save_dir_file.getCanonicalFile();
-			 		}
-			 	}catch( Throwable e ){
-			 			
-			 		Debug.printStackTrace(e);
-			 	}
+					 dl_identity			= torrent_hash==null?torrent.getHash():torrent_hash;
+	                 
+	                 this.dl_identity_hashcode = new String( dl_identity ).hashCode();		 
+				 }
+					 
+				 if ( !Arrays.equals( dl_identity, torrent.getHash())){
+						 
+					 torrent	= null;	// prevent this download from being used
+					 
+					 throw( new Exception( "Download identity changed - please remove and re-add the download" ));
+				 }
+				 
+				 read_torrent_state	= null;	// no longer needed if we saved it
 	
-			 	if ( torrent.isSimpleTorrent()){
-			 		
-			 			// if target save location is a directory then we use that as the save
-			 			// dir and use the torrent display name as the target. Otherwise we
-			 			// use the file name
-			 		
-			 		if ( save_dir_file.exists()){
-			 			
-			 			if ( save_dir_file.isDirectory()){
-			 				
-			 				torrent_save_file	= display_name;
-			 				
-			 			}else{
-			 				
+				 LocaleUtilDecoder	locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+						 
+				 	// if its a simple torrent and an explicit save file wasn't supplied, use
+				 	// the torrent name itself
+				 
+				 display_name = locale_decoder.decodeString( torrent.getName());
+	             
+				 display_name = FileUtil.convertOSSpecificChars( display_name );
+			
+				 internal_name = ByteFormatter.nicePrint(torrent.getHash(),true);
+	
+				 	// now we know if its a simple torrent or not we can make some choices about
+				 	// the save dir and file. On initial entry the save_dir will have the user-selected
+				 	// save location and the save_file will be null
+				 
+				 File	save_dir_file	= new File( torrent_save_dir );
+				 
+				 // System.out.println( "before: " + torrent_save_dir + "/" + torrent_save_file );
+				 
+				 	// if save file is non-null then things have already been sorted out
+				 
+				 if ( torrent_save_file == null ){
+				 		 	
+				 		// make sure we're working off a canonical save dir if possible
+				 	
+				 	try{
+				 		if ( save_dir_file.exists()){
+				 			
+				 			save_dir_file = save_dir_file.getCanonicalFile();
+				 		}
+				 	}catch( Throwable e ){
+				 			
+				 		Debug.printStackTrace(e);
+				 	}
+		
+				 	if ( torrent.isSimpleTorrent()){
+				 		
+				 			// if target save location is a directory then we use that as the save
+				 			// dir and use the torrent display name as the target. Otherwise we
+				 			// use the file name
+				 		
+				 		if ( save_dir_file.exists()){
+				 			
+				 			if ( save_dir_file.isDirectory()){
+				 				
+				 				torrent_save_file	= display_name;
+				 				
+				 			}else{
+				 				
+				 				torrent_save_dir	= save_dir_file.getParent().toString();
+				 				
+				 				torrent_save_file	= save_dir_file.getName();
+				 			}
+				 		}else{
+				 			
+				 				// doesn't exist, assume it refers directly to the file
+				 			
+				 			if ( save_dir_file.getParent() == null ){
+				 				
+				 				throw( new Exception( "Data location '" + torrent_save_dir + "' is invalid" ));
+	
+				 			}
+				 			
 			 				torrent_save_dir	= save_dir_file.getParent().toString();
 			 				
-			 				torrent_save_file	= save_dir_file.getName();
-			 			}
-			 		}else{
-			 			
-			 				// doesn't exist, assume it refers directly to the file
-			 			
-			 			if ( save_dir_file.getParent() == null ){
-			 				
-			 				throw( new Exception( "Data location '" + torrent_save_dir + "' is invalid" ));
-
-			 			}
-			 			
-		 				torrent_save_dir	= save_dir_file.getParent().toString();
-		 				
-		 				torrent_save_file	= save_dir_file.getName(); 			
-			 		}
-			 		
-			 	}else{
-			 	
-			 			// torrent is a folder. It is possible that the natural location
-			 			// for the folder is X/Y and that in fact 'Y' already exists and
-			 			// has been selected. If ths is the case the select X as the dir and Y
-			 			// as the file name
-			 		
-			 		if ( save_dir_file.exists()){
-			 			
-			 			if ( !save_dir_file.isDirectory()){
-			 				
-			 				throw( new Exception( "'" + torrent_save_dir + "' is not a directory" ));
-			 			}
-			 			
-			 			if ( save_dir_file.getName().equals( display_name )){
-			 				
-			 				torrent_save_dir	= save_dir_file.getParent().toString();
-			 			}
-			 		}
-			 		
-			 		torrent_save_file	= display_name;		
-			 	}
-			 }
-
-			 torrent_save_location = new File( torrent_save_dir, torrent_save_file );
-			 
-			 	// final validity test must be based of potentially linked target location as file
-			 	// may have been re-targetted
-
-			 File	linked_target = getSaveLocation();
-			 
-			 if ( !linked_target.exists()){
-			 	
-			 		// if this isn't a new torrent then we treat the absence of the enclosing folder
-			 		// as a fatal error. This is in particular to solve a problem with the use of
-			 		// externally mounted torrent data on OSX, whereby a re-start with the drive unmounted
-			 		// results in the creation of a local diretory in /Volumes that subsequently stuffs
-			 		// up recovery when the volume is mounted
-			 	
-			 		// changed this to only report the error on non-windows platforms 
-			 	
-			 	if ( !(new_torrent || Constants.isWindows )){
-			 		
-						// another exception here - if the torrent has never been started then we can
-						// fairly safely continue as its in a stopped state
-					
-					if ( has_ever_been_started ){
-			 		
-						throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + linked_target.toString()));
-					}
-			 	}
-			 }	
-			 
-			 	// if this is a newly introduced torrent trash the tracker cache. We do this to
-			 	// prevent, say, someone publishing a torrent with a load of invalid cache entries
-			 	// in it and a bad tracker URL. This could be used as a DOS attack
-
-			 if ( new_torrent ){
-			 	
-			 	download_manager_state.setTrackerResponseCache( new HashMap());
-			 	
-			 		// also remove resume data incase someone's published a torrent with resume
-			 		// data in it
-			 	
-			 	if ( open_for_seeding ){
-			 		
-			 		DiskManagerFactory.setTorrentResumeDataNearlyComplete(download_manager_state);
-
-			 	}else{
-			 		
-			 		download_manager_state.clearResumeData();
-			 	}
-			 }
-			 
+			 				torrent_save_file	= save_dir_file.getName(); 			
+				 		}
+				 		
+				 	}else{
+				 	
+				 			// torrent is a folder. It is possible that the natural location
+				 			// for the folder is X/Y and that in fact 'Y' already exists and
+				 			// has been selected. If ths is the case the select X as the dir and Y
+				 			// as the file name
+				 		
+				 		if ( save_dir_file.exists()){
+				 			
+				 			if ( !save_dir_file.isDirectory()){
+				 				
+				 				throw( new Exception( "'" + torrent_save_dir + "' is not a directory" ));
+				 			}
+				 			
+				 			if ( save_dir_file.getName().equals( display_name )){
+				 				
+				 				torrent_save_dir	= save_dir_file.getParent().toString();
+				 			}
+				 		}
+				 		
+				 		torrent_save_file	= display_name;		
+				 	}
+				 }
+	
+				 torrent_save_location = new File( torrent_save_dir, torrent_save_file );
+				 
+				 	// final validity test must be based of potentially linked target location as file
+				 	// may have been re-targetted
+	
+				 File	linked_target = getSaveLocation();
+				 
+				 if ( !linked_target.exists()){
+				 	
+				 		// if this isn't a new torrent then we treat the absence of the enclosing folder
+				 		// as a fatal error. This is in particular to solve a problem with the use of
+				 		// externally mounted torrent data on OSX, whereby a re-start with the drive unmounted
+				 		// results in the creation of a local diretory in /Volumes that subsequently stuffs
+				 		// up recovery when the volume is mounted
+				 	
+				 		// changed this to only report the error on non-windows platforms 
+				 	
+				 	if ( !(new_torrent || Constants.isWindows )){
+				 		
+							// another exception here - if the torrent has never been started then we can
+							// fairly safely continue as its in a stopped state
+						
+						if ( has_ever_been_started ){
+				 		
+							throw( new Exception( MessageText.getString("DownloadManager.error.datamissing") + " " + linked_target.toString()));
+						}
+				 	}
+				 }	
+				 
+				 	// if this is a newly introduced torrent trash the tracker cache. We do this to
+				 	// prevent, say, someone publishing a torrent with a load of invalid cache entries
+				 	// in it and a bad tracker URL. This could be used as a DOS attack
+	
+				 if ( new_torrent ){
+				 	
+				 	download_manager_state.setTrackerResponseCache( new HashMap());
+				 	
+				 		// also remove resume data incase someone's published a torrent with resume
+				 		// data in it
+				 	
+				 	if ( open_for_seeding ){
+				 		
+				 		DiskManagerFactory.setTorrentResumeDataNearlyComplete(download_manager_state);
+	
+				 	}else{
+				 		
+				 		download_manager_state.clearResumeData();
+				 	}
+				 }
+				 
+		         
+				 //trackerUrl = torrent.getAnnounceURL().toString();
 	         
-			 //trackerUrl = torrent.getAnnounceURL().toString();
-         
-			torrent_comment = locale_decoder.decodeString(torrent.getComment());
-         
-			if ( torrent_comment == null ){
-				
-			   torrent_comment	= "";
-			}
-			
-			torrent_created_by = locale_decoder.decodeString(torrent.getCreatedBy());
-         
-			if ( torrent_created_by == null ){
-				
-				torrent_created_by	= "";
-			}
-			 			 
-			 	// only restore the tracker response cache for non-seeds
-	   
-			 if ( DiskManagerFactory.isTorrentResumeDataComplete( this )) {
-			 	
-				  download_manager_state.clearTrackerResponseCache();
+				torrent_comment = locale_decoder.decodeString(torrent.getComment());
+	         
+				if ( torrent_comment == null ){
 					
-				  stats.setDownloadCompleted(1000);
-			  
-				  setOnlySeeding(true);
-			  
-			 }else{
-			 					 
-				 setOnlySeeding(false);
-			}
-		}catch( TOTorrentException e ){
-		
-			Debug.printStackTrace( e );
-			       		 			
-			setFailed( TorrentUtils.exceptionToText( e ));
- 			
-		}catch( UnsupportedEncodingException e ){
-		
-			Debug.printStackTrace( e );
-			       					
-			setFailed( MessageText.getString("DownloadManager.error.unsupportedencoding"));
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-			   					
-			setFailed( e );
-			
-		}finally{
-			
-			 dl_identity_obtained	= true;			 
-		}
-		
-		if ( download_manager_state == null ){
-		
-			read_torrent_state = 
-				new Object[]{ 	
-					torrent_save_dir, torrent_save_file, torrent_hash,
-					new Boolean(new_torrent), new Boolean( open_for_seeding ), new Boolean( has_ever_been_started ),
-					new Integer( initial_state )
-				};
-
-				// torrent's stuffed - create a dummy "null object" to simplify use
-				// by other code
-			
-			download_manager_state	= DownloadManagerStateImpl.getDownloadState( this );
-			
-				// make up something vaguely sensible for save location
-			
-			if ( torrent_save_file == null ){
+				   torrent_comment	= "";
+				}
 				
-				torrent_save_location = new File( torrent_save_dir );
+				torrent_created_by = locale_decoder.decodeString(torrent.getCreatedBy());
+	         
+				if ( torrent_created_by == null ){
+					
+					torrent_created_by	= "";
+				}
+				 			 
+				 	// only restore the tracker response cache for non-seeds
+		   
+				 if ( DiskManagerFactory.isTorrentResumeDataComplete( this )) {
+				 	
+					  download_manager_state.clearTrackerResponseCache();
+						
+					  stats.setDownloadCompleted(1000);
+				  
+					  setOnlySeeding(true);
+				  
+				 }else{
+				 					 
+					 setOnlySeeding(false);
+				}
+			}catch( TOTorrentException e ){
+			
+				Debug.printStackTrace( e );
+				       		 			
+				setFailed( TorrentUtils.exceptionToText( e ));
+	 			
+			}catch( UnsupportedEncodingException e ){
+			
+				Debug.printStackTrace( e );
+				       					
+				setFailed( MessageText.getString("DownloadManager.error.unsupportedencoding"));
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+				   					
+				setFailed( e );
+				
+			}finally{
+				
+				 dl_identity_obtained	= true;			 
+			}
+			
+			if ( download_manager_state == null ){
+			
+				read_torrent_state = 
+					new Object[]{ 	
+						torrent_save_dir, torrent_save_file, torrent_hash,
+						new Boolean(new_torrent), new Boolean( open_for_seeding ), new Boolean( has_ever_been_started ),
+						new Integer( initial_state )
+					};
+	
+					// torrent's stuffed - create a dummy "null object" to simplify use
+					// by other code
+				
+				download_manager_state	= DownloadManagerStateImpl.getDownloadState( this );
+				
+					// make up something vaguely sensible for save location
+				
+				if ( torrent_save_file == null ){
+					
+					torrent_save_location = new File( torrent_save_dir );
+					
+				}else{
+					
+					torrent_save_location = new File( torrent_save_dir, torrent_save_file );
+				}
 				
 			}else{
 				
-				torrent_save_location = new File( torrent_save_dir, torrent_save_file );
+					// make sure we know what networks to use for this download
+				
+				if ( download_manager_state.getNetworks().length == 0 ){
+					
+					String[] networks = AENetworkClassifier.getNetworks( torrent, display_name );
+					
+					download_manager_state.setNetworks( networks );
+				}
+				
+				if ( download_manager_state.getPeerSources().length == 0 ){
+					
+					String[] ps = PEPeerSource.getPeerSources();
+					
+					download_manager_state.setPeerSources( ps );
+				}
 			}
 			
-		}else{
+				// must be after torrent read, so that any listeners have a TOTorrent
 			
-				// make sure we know what networks to use for this download
+			controller.setInitialState( initial_state );
 			
-			if ( download_manager_state.getNetworks().length == 0 ){
-				
-				String[] networks = AENetworkClassifier.getNetworks( torrent, display_name );
-				
-				download_manager_state.setNetworks( networks );
-			}
+		}finally{
 			
-			if ( download_manager_state.getPeerSources().length == 0 ){
+			if ( torrent_save_location != null ){
 				
-				String[] ps = PEPeerSource.getPeerSources();
-				
-				download_manager_state.setPeerSources( ps );
+				try{
+					torrent_save_location = torrent_save_location.getCanonicalFile();
+					
+				}catch( Throwable e ){
+					
+					torrent_save_location = torrent_save_location.getAbsoluteFile();
+				}
 			}
 		}
-		
-			// must be after torrent read, so that any listeners have a TOTorrent
-		
-		controller.setInitialState( initial_state );
 	}
 
 	protected void
@@ -1355,6 +1370,15 @@ DownloadManagerImpl
  		if ( res == null ){
  				
  			res	= save_location;
+ 		}else{
+ 			
+ 			try{
+				res = res.getCanonicalFile();
+				
+			}catch( Throwable e ){
+				
+				res = res.getAbsoluteFile();
+			}
  		}
  		
  		cached_save_location		= save_location;
@@ -1392,6 +1416,14 @@ DownloadManagerImpl
 
 		torrent_save_location = new File( new_dir, old_location.getName());
 
+		try{
+			torrent_save_location = torrent_save_location.getCanonicalFile();
+			
+		}catch( Throwable e ){
+			
+			torrent_save_location = torrent_save_location.getAbsoluteFile();
+		}
+		
 		controller.fileInfoChanged();
 	}
 
