@@ -2149,23 +2149,15 @@ PEPeerControlImpl
 	            //System.out.println("Correct Hash " + correctHash);
 	            //If it's found                       
 	            if(correctHash != null) {
-	              List peersToDisconnect = new ArrayList();
+	             
 	              iterPerBlock = listPerBlock.iterator();
 	              while(iterPerBlock.hasNext()) {
 	              	PEPieceWriteImpl write = (PEPieceWriteImpl) iterPerBlock.next();
 	                if(! Arrays.equals(write.getHash(),correctHash)) {
 	                  //Bad peer found here
 	                  PEPeer peer = write.getSender();
-	                  badPeerDetected((PEPeerTransport) peer);
-	                  if(!peersToDisconnect.contains(peer))
-	                    peersToDisconnect.add(peer);                  
-	              }
-	                
-	              Iterator iterPeers = peersToDisconnect.iterator();
-	              while(iterPeers.hasNext()) {
-	                PEPeerTransport peer = (PEPeerTransport) iterPeers.next();
-	                badPeerDetected(peer);
-	               }
+	                  badPeerDetected((PEPeerTransport) peer);              
+	                }
 	              }              
 	            }            
 	          }
@@ -2301,19 +2293,28 @@ PEPeerControlImpl
     	
     	if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning")){
     		
-    		//	Close connection      	
-        closeAndRemovePeer( peer, "has sent too many bad pieces, " + WARNINGS_LIMIT + " max." );
-    	
+    		int ps = peer.getPeerState();
+    		
+    			// might have been through here very recently and already started closing
+    			// the peer (due to multiple bad blocks being found from same peer when checking piece)
+    		
+    		if ( !(ps == PEPeer.CLOSING || ps == PEPeer.DISCONNECTED )){
+    			
+		    		//	Close connection
+    			
+		        closeAndRemovePeer( peer, "has sent too many bad pieces, " + WARNINGS_LIMIT + " max." );
+    		}
+    		
     			// if a block-ban occurred, check other connections
     		
-      	if ( ip_filter.ban(ip, _downloadManager.getDisplayName())){
+    		if ( ip_filter.ban(ip, _downloadManager.getDisplayName())){
       		
-      		checkForBannedConnections();
-      	}
+    			checkForBannedConnections();
+    		}
       	
       		//Trace the ban in third
       		      		
-      	LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
+    		LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
       	
     	}
     }    
