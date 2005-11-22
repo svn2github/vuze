@@ -109,7 +109,7 @@ TRTrackerServerUDP
 		DatagramSocket		socket,
 		InetSocketAddress	address )
 	{		
-		long	successfull_accepts = 0;
+		long	successful_accepts 	= 0;
 		long	failed_accepts		= 0;
 		
 		while(true){
@@ -121,7 +121,9 @@ TRTrackerServerUDP
 				
 				socket.receive( packet );
 				
-				successfull_accepts++;
+				successful_accepts++;
+				
+				failed_accepts	= 0;
 				
 				String	ip = packet.getAddress().getHostAddress();
 								
@@ -136,7 +138,7 @@ TRTrackerServerUDP
 				
 				LGLogger.log( "TRTrackerServer: receive failed on port " + port, e ); 
 				
-				if ( failed_accepts > 100 && successfull_accepts == 0 ){
+				if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
 
 					// looks like its not going to work...
 					// some kind of socket problem

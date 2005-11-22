@@ -477,6 +477,8 @@ SSDPImpl
 					
 				successful_accepts++;
 				
+				failed_accepts	 = 0;
+				
 				receivePacket( network_interface, local_address, packet );
 				
 			}catch( Throwable e ){
@@ -485,7 +487,7 @@ SSDPImpl
 				
 				LGLogger.log( "SSDP: receive failed on port " + port, e ); 
 
-				if ( failed_accepts > 100 && successful_accepts == 0 ){
+				if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
 					
 					LGLogger.logUnrepeatableAlertUsingResource( 
 							LGLogger.AT_ERROR,

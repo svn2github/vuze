@@ -193,6 +193,8 @@ PRUDPPacketHandlerImpl
 					
 					successful_accepts++;
 					
+					failed_accepts = 0;
+					
 					process( packet );
 				
 				}catch( SocketTimeoutException e ){
@@ -203,8 +205,7 @@ PRUDPPacketHandlerImpl
 					
 					LGLogger.log( "PRUDPPacketReceiver: receive failed on port " + port, e ); 
 
-					if ( failed_accepts > 100 && successful_accepts == 0 ){
-						
+					if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){						
 		
 						LGLogger.logUnrepeatableAlertUsingResource( 
 								LGLogger.AT_ERROR,
