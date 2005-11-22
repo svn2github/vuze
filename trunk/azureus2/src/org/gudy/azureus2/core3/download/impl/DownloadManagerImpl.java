@@ -2055,7 +2055,9 @@ DownloadManagerImpl
 		
 			if ( last_good_time > 0 ){
 				
-				if ( SystemTime.getCurrentTime() - last_good_time < 30*60*60 ){
+					// half an hour's grace
+				
+				if ( SystemTime.getCurrentTime() - last_good_time < 30*60*1000 ){
 				
 					return( ConnectionManager.NAT_OK );
 					
@@ -2077,7 +2079,7 @@ DownloadManagerImpl
 			
 				// tracker's ok but no remotes - give it some time
 			
-			if ( SystemTime.getCurrentTime() - peerManager.getTimeStarted() < 120*60*60 ){
+			if ( SystemTime.getCurrentTime() - peerManager.getTimeStarted() < 3*60*1000 ){
 				
 				return ConnectionManager.NAT_UNKNOWN;
 			}
