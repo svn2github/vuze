@@ -202,7 +202,7 @@ AEProxyConnectionImpl
 		Throwable			reason )
 	{
 		try{
-			LGLogger.log( "AEProxyProcessor: " + getName() + " failed", reason );
+			if( LGLogger.isEnabled() )  LGLogger.log( "AEProxyProcessor: " + getName() + " failed", reason );
 			
 			close();
 			

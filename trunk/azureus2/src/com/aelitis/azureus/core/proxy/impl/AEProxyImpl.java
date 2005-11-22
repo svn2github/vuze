@@ -150,7 +150,7 @@ AEProxyImpl
 		
 			accept_thread.start();									
 		
-			LGLogger.log( "AEProxy: listener established on port " + port ); 
+			if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: listener established on port " + port ); 
 			
 		}catch( Throwable e){
 		
@@ -159,7 +159,7 @@ AEProxyImpl
 					"Tracker.alert.listenfail",
 					new String[]{ ""+port });
 	
-			LGLogger.log( "AEProxy: listener failed on port " + port, e ); 
+			if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: listener failed on port " + port, e ); 
 						
 			throw( new AEProxyException( "AEProxy: accept fails: " + e.toString()));
 		}			
@@ -181,7 +181,7 @@ AEProxyImpl
 				
 				if ( !socket_channel.socket().getInetAddress().isLoopbackAddress()){
 					
-					LGLogger.log( "AEProxy: incoming connection from '" + socket_channel.socket().getInetAddress() + "' - closed as not local" );
+					if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: incoming connection from '" + socket_channel.socket().getInetAddress() + "' - closed as not local" );
 				
 					socket_channel.close();
 				}
@@ -197,7 +197,7 @@ AEProxyImpl
 					
 						processors.add( processor );
 		
-						LGLogger.log( "AEProxy: active processors = " + processors.size());
+						if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: active processors = " + processors.size());
 						
 					}finally{
 						
@@ -211,7 +211,7 @@ AEProxyImpl
 				
 				failed_accepts++;
 
-				LGLogger.log( "AEProxy: listener failed on port " + port, e ); 
+				if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: listener failed on port " + port, e ); 
 			
 				if ( failed_accepts > 100 && successfull_accepts == 0 ){
 
@@ -297,7 +297,7 @@ AEProxyImpl
 					
 					AEProxyConnectionImpl	processor = (AEProxyConnectionImpl)it.next();
 					
-					LGLogger.log( "AEProxy: active processor: " + processor.getStateString());
+					if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: active processor: " + processor.getStateString());
 				}
 			}finally{
 				

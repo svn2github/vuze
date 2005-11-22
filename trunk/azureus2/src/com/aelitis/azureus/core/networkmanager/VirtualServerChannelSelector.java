@@ -78,7 +78,7 @@ public class VirtualServerChannelSelector {
 	        
 	        server_channel.socket().bind( bind_address, 1024 );
 	        
-	        LGLogger.log( "TCP incoming server socket bound and listening on " +bind_address );
+	        if( LGLogger.isEnabled() )  LGLogger.log( "TCP incoming server socket bound and listening on " +bind_address );
 	        
 	        AEThread accept_thread = new AEThread( "VServerSelector:port" + bind_address.getPort() ) {
 	          public void runSupport() {

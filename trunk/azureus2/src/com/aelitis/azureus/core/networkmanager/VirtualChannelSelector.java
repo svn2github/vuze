@@ -79,7 +79,7 @@ public class VirtualChannelSelector {
   
   
   private void initSafeMode() {
-    LGLogger.log( "*** SAFE SOCKET SELECTOR MODE ENABLED ***" );
+  	if( LGLogger.isEnabled() )  LGLogger.log( "*** SAFE SOCKET SELECTOR MODE ENABLED ***" );
     selector_impl = null;
     selectors = new HashMap();
     selectors_mon = new AEMonitor( "VirtualChannelSelector:FM" );

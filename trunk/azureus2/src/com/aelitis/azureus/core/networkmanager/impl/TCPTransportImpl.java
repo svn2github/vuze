@@ -307,11 +307,11 @@ public class TCPTransportImpl implements TCPTransport {
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
         if( use_proxy ) {  //proxy server connection established, login
-          LGLogger.log( "Socket connection established to proxy server [" +description+ "], login initiated..." );
+        	if( LGLogger.isEnabled() )  LGLogger.log( "Socket connection established to proxy server [" +description+ "], login initiated..." );
           
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
-              LGLogger.log( "Proxy [" +description+ "] login successful." );
+            	if( LGLogger.isEnabled() )  LGLogger.log( "Proxy [" +description+ "] login successful." );
               registerSelectHandling();
               listener.connectSuccess();
             }
@@ -357,7 +357,7 @@ public class TCPTransportImpl implements TCPTransport {
       int snd_real = helper.getSocketChannel().socket().getSendBufferSize();
       int rcv_real = helper.getSocketChannel().socket().getReceiveBufferSize();
       
-      LGLogger.log( "Setting new transport [" +description+ "] buffer sizes: SND=" +size_in_bytes+ " [" +snd_real+ "] , RCV=" +size_in_bytes+ " [" +rcv_real+ "]" );
+      if( LGLogger.isEnabled() )  LGLogger.log( "Setting new transport [" +description+ "] buffer sizes: SND=" +size_in_bytes+ " [" +snd_real+ "] , RCV=" +size_in_bytes+ " [" +rcv_real+ "]" );
     }
     catch( Throwable t ) {
       Debug.out( t );
