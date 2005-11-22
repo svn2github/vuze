@@ -33,9 +33,12 @@ import java.net.URL;
 import java.io.*;
 
 import org.gudy.azureus2.core3.html.HTMLUtils;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
+import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -44,6 +47,8 @@ import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 import org.gudy.azureus2.update.CorePatchChecker;
+
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
 PluginUpdatePlugin
@@ -75,7 +80,9 @@ PluginUpdatePlugin
 			ui_manager.createBasicPluginViewModel( 
 					"Plugin Update");
 		
-		boolean enabled = plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true );
+		final PluginConfig	plugin_config = plugin_interface.getPluginconfig();
+		
+		boolean enabled = plugin_config.getPluginBooleanParameter( "enable.update", true );
 
 		model.getStatus().setText( enabled?"Running":"Optional checks disabled" );
 		model.getActivity().setVisible( false );
@@ -133,7 +140,9 @@ PluginUpdatePlugin
 				
 			});
 		
-		PluginInterface[]	plugins = plugin_interface.getPluginManager().getPlugins();
+		final PluginManager	plugin_manager = plugin_interface.getPluginManager();
+		
+		PluginInterface[]	plugins = plugin_manager.getPlugins();
 			
 		int mandatory_count 	= 0;
 		int non_mandatory_count	= 0;
@@ -176,7 +185,77 @@ PluginUpdatePlugin
 				checkForUpdate(
 					UpdateChecker	checker )
 				{
-					checkForUpdateSupport( checker, null, false );
+					if ( checkForUpdateSupport( checker, null, false ) == 0 ){
+						
+						String[] rps = VersionCheckClient.getSingleton(). getRecommendedPlugins();
+						
+						boolean	found_one = false;
+						
+						for (int i=0;i<rps.length;i++){
+							
+							String	rp_id = rps[i];
+							
+							if ( plugin_manager.getPluginInterfaceByID( rp_id ) != null ){
+								
+									// already installed
+								
+								continue;
+							}
+							
+							final String	config_key = "recommended.processed." + rp_id;
+							
+							if ( !plugin_config.getPluginBooleanParameter( config_key, false )){
+								
+								try{
+									final PluginInstaller installer = plugin_interface.getPluginManager().getPluginInstaller();
+									
+									StandardPlugin[]	sps = installer.getStandardPlugins();
+									
+									for (int j=0;j<sps.length;j++){
+										
+										final StandardPlugin	sp = sps[j];
+										
+										if ( sp.getId().equals( rp_id )){
+										
+											found_one = true;
+											
+											checker.getCheckInstance().addListener(
+												new UpdateCheckInstanceListener()
+												{
+													public void
+													cancelled(
+														UpdateCheckInstance		instance )
+													{													
+													}
+													
+													public void
+													complete(
+														UpdateCheckInstance		instance )
+													{
+														if ( instance.getUpdates().length == 0 ){
+															
+															installRecommendedPlugin( installer, sp );
+															
+															plugin_config.setPluginParameter( config_key, true );
+														}
+													}
+												});
+											
+											break;
+										}
+									}
+									
+								}catch( Throwable e ){
+									
+								}
+							}
+							
+							if ( found_one ){
+								
+								break;
+							}
+						}
+					}
 				}
 				
 			}, false );
@@ -216,6 +295,20 @@ PluginUpdatePlugin
 			});
 	}
 	
+	protected void
+	installRecommendedPlugin(
+		PluginInstaller	installer,
+		StandardPlugin	plugin )
+	{	
+		try{
+			installer.requestInstall( MessageText.getString("plugin.installer.recommended.plugin"), plugin );
+			
+		}catch( Throwable e ){
+			
+			log.log(e);
+		}
+	}
+	
 	public UpdatableComponent
 	getCustomUpdateableComponent(
 		final String		id,
@@ -245,18 +338,20 @@ PluginUpdatePlugin
 			});
 	}
 	
-	protected  void
+	protected  int
 	checkForUpdateSupport(
 		UpdateChecker	checker,
 		String[]		ids_to_check,	// explicit ids or null for all
 		boolean			mandatory )
 	{
+		int	num_updates_found = 0;
+		
 		try{
 			if ( 	(!mandatory) &&
 					(ids_to_check == null ) && 	// allow custom actions through
 					(!plugin_interface.getPluginconfig().getPluginBooleanParameter( "enable.update", true ))){
 								
-				return;
+				return( num_updates_found );
 			}
 			
 			PluginInterface[]	plugins = plugin_interface.getPluginManager().getPlugins();
@@ -534,7 +629,9 @@ PluginUpdatePlugin
 						String[]	update_d = new String[update_desc.size()];
 						
 						update_desc.toArray( update_d );
-													
+							
+						num_updates_found++;
+						
 						addUpdate( 
 								pi_being_checked,
 								checker,
@@ -564,6 +661,8 @@ PluginUpdatePlugin
 			
 			checker.completed();
 		}
+		
+		return( num_updates_found );
 	}
 	
 	public void

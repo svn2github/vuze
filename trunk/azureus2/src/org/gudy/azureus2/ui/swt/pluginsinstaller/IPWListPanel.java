@@ -57,6 +57,7 @@ import org.gudy.azureus2.ui.swt.wizard.Wizard;
 public class IPWListPanel extends AbstractWizardPanel {
 
   Table pluginList;
+  StyledText txtDescription;
   
   public 
   IPWListPanel(
@@ -109,7 +110,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	Label lblDescription = new Label(panel,SWT.NULL);
 	Messages.setLanguageText(lblDescription,"installPluginsWizard.list.description");
 	
-	final StyledText txtDescription = new StyledText(panel,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
+	txtDescription = new StyledText(panel,SWT.BORDER | SWT.READ_ONLY | SWT.H_SCROLL | SWT.V_SCROLL);
 	txtDescription.setWordWrap(true);
 	txtDescription.setEditable(false);
 	
@@ -121,7 +122,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	  public void runSupport() {
 	    final StandardPlugin plugins[];
 	    try {
-	      plugins = wizard.getAzureusCore().getPluginManager().getPluginInstaller().getStandardPlugins();
+	      plugins = ((InstallPluginWizard)wizard).getStandardPlugins();
 	      
 	      Arrays.sort( 
 	      	plugins,
@@ -150,7 +151,8 @@ public class IPWListPanel extends AbstractWizardPanel {
 	    
 	    wizard.getDisplay().asyncExec(new AERunnable() {
 	      public void runSupport() {
-	        Messages.setLanguageText(lblStatus,"installPluginsWizard.list.loaded");
+	       
+	        lblStatus.setText( ((InstallPluginWizard)wizard).getListTitleText());
 	        
 	        List	selected_plugins = ((InstallPluginWizard)wizard).getPluginList();
 
@@ -172,6 +174,17 @@ public class IPWListPanel extends AbstractWizardPanel {
 	            item.setText(1,plugin.getVersion());
 	          }
 	        }
+	        
+	        	// if there's only one entry then we might as well pull it in (this is really to
+	        	// support explicit install directions in the wizard as opposed to selection from
+	        	// the SF list )
+	        
+	        if ( plugins.length == 1 && pluginList.getItemCount() > 0 ){
+	        	
+	        	pluginList.select(0);
+	        	
+	        	loadPluginDetails( pluginList.getItem(0));
+	        }
 	      }
 	    });
 	  }
@@ -185,9 +198,21 @@ public class IPWListPanel extends AbstractWizardPanel {
 	pluginList.addListener(SWT.Selection,new Listener() {
 	  public void handleEvent(Event e) {
 	    if(pluginList.getSelectionCount() > 0) {
+	    	loadPluginDetails( pluginList.getSelection()[0]);
+
+	    }
+	    updateList();
+	  }
+	});
+  }
+  
+  	protected void
+  	loadPluginDetails(
+  		final TableItem	selected_item )
+  	{
 	      txtDescription.setText( MessageText.getString( "installPluginsWizard.details.loading"));
-	      final TableItem itemSelected = pluginList.getSelection()[0];
-	      final StandardPlugin plugin = (StandardPlugin) itemSelected.getData();
+	   
+	      final StandardPlugin plugin = (StandardPlugin) selected_item.getData();
 	      
 	      
 	      AEThread detailsLoader = new AEThread("Detail Loader") {
@@ -197,7 +222,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 			      public void runSupport() {
 			        if(pluginList == null || pluginList.isDisposed() || pluginList.getSelectionCount() ==0)
 			          return;
-			        if(pluginList.getSelection()[0] != itemSelected)
+			        if(pluginList.getSelection()[0] != selected_item)
 			          return;
 			      	if(txtDescription == null || txtDescription.isDisposed())
 			      	  return;			      	
@@ -209,11 +234,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	      
 	      detailsLoader.setDaemon(true);
 	      detailsLoader.start();
-	    }
-	    updateList();
-	  }
-	});
-  }
+  	}
   
 	public boolean 
 	isNextEnabled() 

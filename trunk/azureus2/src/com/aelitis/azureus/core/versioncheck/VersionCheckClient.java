@@ -47,11 +47,14 @@ public class VersionCheckClient {
 	public static final String	REASON_DHT_EXTENDED_ALLOWED		= "dx";
 	public static final String	REASON_DHT_ENABLE_ALLOWED		= "de";
 	public static final String	REASON_EXTERNAL_IP				= "ip";
+	public static final String	REASON_RECOMMENDED_PLUGINS		= "rp";
 	
 	
   private static final String SERVER_ADDRESS = "version.aelitis.com";
   private static final int SERVER_PORT = 27001;
   private static final String MESSAGE_TYPE_ID = "AZVER";
+  private static final long		CACHE_PERIOD	= 5*60*1000;
+  
   
   private static final VersionCheckClient instance = new VersionCheckClient();
   private Map last_check_data = null;
@@ -81,7 +84,7 @@ public class VersionCheckClient {
     try {  check_mon.enter();
     
       long time_diff = SystemTime.getCurrentTime() - last_check_time;
-      boolean force = time_diff > 60*1000 || time_diff < 0;
+      boolean force = time_diff > CACHE_PERIOD || time_diff < 0;
       
       if( last_check_data == null || last_check_data.size() == 0 || force ) {
         try {
@@ -176,7 +179,27 @@ public class VersionCheckClient {
     return res;
   }
   
+  public String[]
+  getRecommendedPlugins()
+  {
+	  Map reply = getVersionCheckInfo( REASON_RECOMMENDED_PLUGINS );
 
+	  List	l = (List)reply.get( "recommended_plugins" );
+	  
+	  if ( l == null ){
+		  
+		  return( new String[0] );
+	  }
+	  
+	  String[]	res = new String[l.size()];
+	  
+	  for (int i=0;i<l.size();i++){
+		  
+		  res[i] = new String((byte[])l.get(i));
+	  }
+	  
+	  return( res );
+  }
   
   /**
    * Perform the actual version check by connecting to the version server.

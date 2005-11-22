@@ -46,6 +46,19 @@ PluginInstaller
 		throws PluginException;	
 	
 		/**
+		 * Requests any registered listeners to initiate a plugin install process
+		 * @param plugin
+		 * @throws PluginException
+		 */
+	
+	public void
+	requestInstall(
+		String				reason,
+		InstallablePlugin 	plugin )
+	
+		throws PluginException;
+	
+		/**
 		 * Install one of more plugins in a single operation
 		 * @param plugins
 		 */
@@ -86,4 +99,12 @@ PluginInstaller
 	
 	
 		throws PluginException;
+	
+	public void
+	addListener(
+		PluginInstallerListener		l );
+	
+	public void
+	removeListener(
+		PluginInstallerListener		l );
 }

@@ -64,7 +64,8 @@ PluginInstallerImpl
 		return( singleton );
 	}
 	
-	protected PluginManager		manager;
+	private PluginManager	manager;
+	private List			listeners	 = new ArrayList();
 	
 	protected
 	PluginInstallerImpl(
@@ -477,6 +478,25 @@ PluginInstallerImpl
 		return( getPluginManager().getPluginInterfaceByID(id));
 	}
 	
+	
+	public void
+	requestInstall(
+		String				reason,
+		InstallablePlugin 	plugin )
+	
+		throws PluginException
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			if (((PluginInstallerListener)listeners.get(i)).installRequest( reason, plugin )){
+				
+				return;
+			}
+		}
+		
+		throw( new PluginException( "No listeners registered to perform installation of '" + plugin.getName() +" (" + reason + ")" ));
+	}
+	
 	protected class
 	dummyPlugin
 		implements UnloadablePlugin
@@ -524,5 +544,19 @@ PluginInstallerImpl
 				Debug.printStackTrace(e);
 			}
 		}
+	}
+	
+	public void
+	addListener(
+		PluginInstallerListener		l )
+	{
+		listeners.add( l );
+	}
+	
+	public void
+	removeListener(
+		PluginInstallerListener		l )
+	{
+		listeners.remove( l );
 	}
 }

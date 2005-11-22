@@ -25,9 +25,15 @@ package org.gudy.azureus2.ui.swt.pluginsinstaller;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.installer.InstallablePlugin;
+import org.gudy.azureus2.plugins.installer.PluginInstallerListener;
+import org.gudy.azureus2.plugins.installer.StandardPlugin;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -39,20 +45,103 @@ public class InstallPluginWizard extends Wizard {
       
   int mode;
   
+  StandardPlugin[]	standard_plugins;
   List plugins = new ArrayList();
   boolean shared = false;
+  String list_title_text;
+  
+  public static void 
+  register(
+	final AzureusCore		core,
+	final Display			display )
+  {
+	core.getPluginManager().getPluginInstaller().addListener(
+		new PluginInstallerListener()
+		{
+			public boolean
+			installRequest(
+				final String			reason,
+				final InstallablePlugin	plugin )
+			
+				throws PluginException
+			{
+				if ( plugin instanceof StandardPlugin ){
+					
+					display.asyncExec(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								new InstallPluginWizard( core, display, reason, (StandardPlugin)plugin );
+							}
+						});
+					
+					return( true );
+				}else{
+					
+					return( false );
+				}
+			}
+		});
+  }
+  
   
   public InstallPluginWizard(
       	AzureusCore	azureus_core,	
  		Display 	display )
 	{
 		super(azureus_core,display,"installPluginsWizard.title");			
-		
+				
 		IPWModePanel mode_panel = new IPWModePanel(this,null);
 	
 		setFirstPanel(mode_panel);
 	}
   
+  	public 
+  	InstallPluginWizard(
+  		AzureusCore			azureus_core,	
+  		Display 			display,
+  		String				reason,
+  		StandardPlugin		plugin )
+  	{
+		super(azureus_core,display,"installPluginsWizard.title");			
+			
+		standard_plugins 	= new StandardPlugin[]{ plugin };
+		list_title_text		= reason;
+		
+		plugins = new ArrayList();
+		plugins.add( plugin );
+		
+		IPWListPanel list_panel = new IPWListPanel(this,null);
+		
+		setFirstPanel(list_panel);
+	}
+  	
+  	protected StandardPlugin[]
+  	getStandardPlugins()
+  	
+  		throws PluginException
+  	{
+  		if ( standard_plugins == null ){
+  			
+  			standard_plugins = getAzureusCore().getPluginManager().getPluginInstaller().getStandardPlugins();
+  		}
+  		
+  		return( standard_plugins );
+  	}
+  	
+  	protected String
+  	getListTitleText()
+  	{
+  		if ( list_title_text == null ){
+  			
+  			list_title_text = MessageText.getString( "installPluginsWizard.list.loaded" );
+  		}
+  		
+  		return( list_title_text );
+  	}
+  	
   	public void 
 	onClose() 
 	{

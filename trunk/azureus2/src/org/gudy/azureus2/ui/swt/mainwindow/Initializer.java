@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
 import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
+import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
@@ -193,6 +194,8 @@ Initializer
 	    
 	    new CertificateTrustWindow();
 
+	    InstallPluginWizard.register( azureus_core, display );
+	    
 	    nextTask(); 	    
 	    reportCurrentTaskByKey("splash.loadingImages");
 	    
