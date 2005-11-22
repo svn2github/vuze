@@ -3,9 +3,9 @@
 ;Written by Joost Verburg
 
 
-!define AZ_VERSION "2.3.0.6RC1"        ;Define your own software version here
+!define AZ_VERSION "2.3.0.6"        ;Define your own software version here
 !define SWT_VERSION "3139"          ;SWT lib version
-!define AZPLUGINS_VERSION "1.8.5"   ;azplugins plugin version
+!define AZPLUGINS_VERSION "1.8.6"   ;azplugins plugin version
 !define AZUPDATER_VERSION "1.8.2"   ;azupdater plugin version
 !define RATING_VERSION "1.2"        ;torrent rating plugin version
 
