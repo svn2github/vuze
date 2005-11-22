@@ -1,6 +1,10 @@
 AZUREUS CHANGELOG
 ---------
 
+2006.xx.xx | Azureus 2.3.0.7
+
+
+
 2005.11.22 | Azureus 2.3.0.6
 
 FEATURE: Core | Built in tracker support for multiple listen ports [Parg]
