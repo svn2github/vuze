@@ -41,8 +41,11 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderManager;
+import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.installer.InstallablePlugin;
+import org.gudy.azureus2.plugins.installer.PluginInstallerListener;
 import org.gudy.azureus2.plugins.update.Update;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
@@ -639,6 +642,31 @@ public class ConsoleInput extends Thread {
 			// we've got to disable the auto-update components as we're not using them (yet...)
 		
 		PluginManager	pm = azureus_core.getPluginManager();
+		
+		pm.getPluginInstaller().addListener(
+			new PluginInstallerListener()
+			{
+				public boolean
+				installRequest(
+					String				reason,
+					InstallablePlugin	plugin )
+				
+					throws PluginException
+					{
+						out.println( "Plugin installation request for '" + plugin.getName() + "' - " + reason );
+							
+						String	desc = plugin.getDescription();
+						
+						String[]	bits = desc.split( "\n" );
+						
+						for (int i=0;i<bits.length;i++){
+							
+							out.println( "\t" + bits[i]);
+						}
+						
+						return( true );
+					}
+			});
 		
 		PluginInterface	pi = pm.getPluginInterfaceByClass( CorePatchChecker.class );
 		
