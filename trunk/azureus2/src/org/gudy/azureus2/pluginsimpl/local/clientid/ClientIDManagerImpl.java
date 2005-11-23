@@ -408,7 +408,34 @@ ClientIDManagerImpl
 				
 				lines_in[0] = get;
 				
-				String[]	lines_out = filter_override?lines_in:generator.filterHTTP( lines_in );
+				String[]	lines_out;
+				
+				if ( filter_override ){
+					
+						// bodge for ip override. we still need to take account of the correct
+						// user-agent
+					lines_out = lines_in;
+					
+					Properties p = new Properties();
+					
+					generator.generateHTTPProperties( p );
+						
+					String	agent = p.getProperty( ClientIDGenerator.PR_USER_AGENT );
+					
+					if ( agent != null ){
+						
+						for (int i=0;i<lines_out.length;i++){
+							
+							if ( lines_out[i].toLowerCase().startsWith( "user-agent" )){
+								
+								lines_out[i] = "User-Agent: " + agent;
+							}
+						}
+					}
+				}else{
+					
+					lines_out = generator.filterHTTP( lines_in );
+				}
 				
 				String	header_out = "";
 				
