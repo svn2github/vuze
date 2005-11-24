@@ -1956,33 +1956,31 @@ TRTrackerBTAnnouncerImpl
 					long	time_to_wait;
 										
 					try {
-													
-			            if( announce_data_provider.getRemaining() == 0 ) { //is a seed
-			              time_to_wait = ((Long) metaData.get("interval")).longValue();
-			            }
-			            else { // slightly shorten the wait so we don't time out
-			              time_to_wait = (6 * ((Long) metaData.get("interval")).intValue()) / 7;
-			            }
-						
-							// guard against crazy return values
-						
-						if ( time_to_wait < 0 || time_to_wait > 0xffffffffL ){
-							
+						time_to_wait = ((Long) metaData.get("interval")).longValue();
+
+						// guard against crazy return values
+						if (time_to_wait < 0 || time_to_wait > 0xffffffffL) {
 							time_to_wait = 0xffffffffL;
 						}
-            
-			            
-			            Long raw_min_interval = (Long)metaData.get("min interval");
-			            if( raw_min_interval != null ) {
-			              min_interval = raw_min_interval.longValue();
-			              
-			              if( min_interval < 1 || min_interval >= time_to_wait ) {  //ignore useless values
-			                min_interval = 0;
-			              }
-			            }            
-            
-									
-				   }catch( Exception e ){
+
+						Long raw_min_interval = (Long) metaData.get("min interval");
+						if (raw_min_interval != null) {
+							min_interval = raw_min_interval.longValue();
+
+							// ignore useless values
+							// Note: Many trackers set min_interval and interval the same.
+							if (min_interval < 1 || min_interval > time_to_wait) {
+								min_interval = 0;
+							}
+						}
+
+						// roll back 10 seconds to make sure we announce before the tracker
+						// times us out.  This is done after min_interval in order not to 
+						// mess up the "ignore useless values"
+						if (time_to_wait > 30)
+							time_to_wait -= 10;
+
+					} catch (Exception e) {
 				   	
 				     byte[]	failure_reason_bytes = (byte[]) metaData.get("failure reason");
 						
