@@ -92,7 +92,12 @@ TOTorrent
 	public URL
 	getAnnounceURL();
 
-	public void
+	/**
+	 * 
+	 * @param url
+	 * @return true-changed; false-not changed
+	 */
+	public boolean
 	setAnnounceURL(
 		URL		url );
 		

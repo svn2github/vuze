@@ -1280,7 +1280,7 @@ DownloadManagerImpl
 	setScrapeResult(
 		DownloadScrapeResult	result )
 	{
-		if ( torrent != null ){
+		if ( torrent != null && result != null ){
 			
 			TRTrackerScraper	scraper = globalManager.getTrackerScraper();
 		
@@ -1506,15 +1506,31 @@ DownloadManagerImpl
 						}
 				 	
 						for (int j=0;r==null && j<rand_urls.size();j++){
-				 		
-							r = scraper.scrape(torrent, (URL)rand_urls.get(j));
+							URL url = (URL)rand_urls.get(j);
+							r = scraper.scrape(torrent, url);
 				 		
 							if ( r!= null ){
-				 			
+								
+								int status = r.getStatus();
+								
+								// Exit if online
+								if (status == TRTrackerScraperResponse.ST_ONLINE) {
+									// trigger listeners of new scrape
+									if (torrent.setAnnounceURL(url))
+								  	setTrackerScrapeResponse(r);
+									break;
+								}
+
+								// Scrape 1 at a time to save on outgoing connections
+								if (status == TRTrackerScraperResponse.ST_INITIALIZING || 
+										status == TRTrackerScraperResponse.ST_SCRAPING) {
+									break;
+								}
+									
 									// treat bad scrapes as missing so we go on to 
 				 					// the next tracker
 				 			
-								if ( (!r.isValid()) || r.getStatus() == TRTrackerScraperResponse.ST_ERROR ){
+								if ( (!r.isValid()) || status == TRTrackerScraperResponse.ST_ERROR ){
 				 				
 									if ( non_null_response == null ){
 				 					
@@ -1523,6 +1539,7 @@ DownloadManagerImpl
 				 				
 									r	= null;
 								}
+								
 							}
 						}
 					}
