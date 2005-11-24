@@ -21,6 +21,10 @@
  
 package org.gudy.azureus2.ui.swt;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -32,14 +36,11 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-
-import java.net.MalformedURLException;
-import java.net.URL;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 /**
  * @author Olivier
@@ -77,24 +78,6 @@ public class Utils {
     disposeComposite(composite,true);
   }
   
-  public static void changeBackgroundComposite(Composite composite,Color color) {
-    if(1==1)
-      return;  
-    if(composite == null || composite.isDisposed())
-          return;
-      Control[] controls = composite.getChildren();
-      for(int i = 0 ; i < controls.length ; i++) {
-        Control control = controls[i];                
-        if(control != null && ! control.isDisposed()) {
-          if(control instanceof Composite) {
-            changeBackgroundComposite((Composite) control,color);
-          }
-          control.setBackground(color);
-        }
-      }    
-      composite.setBackground(color);
-    }
-
   /**
    * Initializes the URL dialog with http://
    * If a valid link is found in the clipboard, it will be inserted
@@ -189,41 +172,6 @@ public class Utils {
     }
     
     return prefixes[0];
-  }
-
-  /**
-   * Saves the width from the given column in the configuration.
-   * The data property "configName" must be set to determine the full table column name.
-   * @param t the table column from which to save the width 
-   *
-   * @author Rene Leonhardt
-   */
-  public static void saveTableColumn(TableColumn t) {
-    if(t != null && t.getData("configName") != null) {
-      COConfigurationManager.setParameter((String) t.getData("configName") + ".width", t.getWidth());
-      COConfigurationManager.save();
-    }
-  }
-
-  public static void saveTableColumn(TableColumn[] t) {
-    for (int i = 0; i < t.length; i++) {
-      if(t[i] != null && t[i].getData("configName") != null) {
-        COConfigurationManager.setParameter((String) t[i].getData("configName") + ".width", t[i].getWidth());
-      }
-    }
-    COConfigurationManager.save();
-  }
-
-  /**
-   * Saves the width from the given column in the configuration if the user has allowed it.
-   * The data property "configName" must be set to determine the full table column name.
-   * @param t the table column from which to save the width 
-   *
-   * @author Rene Leonhardt
-   */
-  public static void saveTableColumnIfAllowed(TableColumn t) {
-    if(COConfigurationManager.getBooleanParameter("Save detail views column widths", false))
-      saveTableColumn(t);
   }
 
   public static void
@@ -364,7 +312,20 @@ public class Utils {
   	} // controlResized
   } // class
 
+  public static void alternateRowBackground(TableItem item) {
+  	if (item == null || item.isDisposed())
+  		return;
+  	Color[] colors = { item.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+        Colors.colorAltRow };
+  	Color newColor = colors[ item.getParent().indexOf(item) % colors.length];
+  	if (!item.getBackground().equals(newColor)) {
+  		item.setBackground(newColor);
+  	}
+  }
+
   public static void alternateTableBackground(Table table) {
+  	if (table == null || table.isDisposed())
+  		return;
   	int iTopIndex = table.getTopIndex();
     int iBottomIndex = Math.min(iTopIndex
 				+ (table.getClientArea().height / table.getItemHeight()), table
@@ -408,10 +369,50 @@ public class Utils {
           item.setImage(image);
   }
   /**
+   * Sets the shell's Icon(s) to the default Azureus icon.  OSX doesn't require
+   * an icon, so they are skipped
+   * 
+   * @param shell
+   */
+  public static void setShellIcon(Shell shell) {
+		final String[] sImageNames = { "azureus", "azureus32", "azureus64",
+				"azureus128" };
+
+		if (Constants.isOSX)
+			return;
+
+		try {
+			ArrayList list = new ArrayList();
+			Image[] images = new Image[] { ImageRepository.getImage("azureus"),
+					ImageRepository.getImage("azureus32"),
+					ImageRepository.getImage("azureus64"),
+					ImageRepository.getImage("azureus128") };
+
+			for (int i = 0; i < images.length; i++) {
+				Image image = ImageRepository.getImage(sImageNames[i]);
+				if (image != null)
+					list.add(image);
+			}
+
+			if (list.size() == 0)
+				return;
+
+			shell.setImages((Image[]) list.toArray(new Image[0]));
+		} catch (NoSuchMethodError e) {
+			// SWT < 3.0
+			Image image = ImageRepository.getImage(sImageNames[0]);
+			if (image != null)
+				shell.setImage(image);
+		}
+	}
+
+  /**
    * Execute code in the Runnable object using SWT's thread.  If current
    * thread it already SWT's thread, the code will run immediately.  If the
    * current thread is not SWT's, code will be run either synchronously or 
    * asynchronously on SWT's thread at the next reasonable opportunity.
+   * 
+   * This method does not catch any exceptions.
    * 
    * @param code code to run
    * @param async true if SWT asyncExec, false if SWT syncExec
@@ -419,7 +420,14 @@ public class Utils {
    */
   public static boolean execSWTThread(Runnable code,
 			boolean async) {
-  	Display display = MainWindow.getWindow().getDisplay();
+    SWTThread swt = SWTThread.getInstance();
+    
+    if (swt == null) {
+    	System.err.println("SWT Thread not started yet");
+    	return false;
+    }
+    
+    Display display = swt.getDisplay();
 
   	if (display == null || display.isDisposed())
 			return false;
@@ -440,6 +448,8 @@ public class Utils {
    * current thread is not SWT's, code will be run asynchronously on SWT's 
    * thread at the next reasonable opportunity.
    * 
+   * This method does not catch any exceptions.
+   * 
    * @param code code to run
    * @return success
    */
@@ -448,12 +458,63 @@ public class Utils {
 	}
 	
 	public static boolean isThisThreadSWT() {
-  	Display display = MainWindow.getWindow().getDisplay();
-  	if (display == null || display.isDisposed()) {
-  		System.out.println("display null");
+    SWTThread swt = SWTThread.getInstance();
+    
+    if (swt == null) {
+    	System.err.println("SWT Thread not started yet");
+    	return false;
+    }
+
+    Display display = swt.getDisplay();
+
+  	if (display == null || display.isDisposed())
 			return false;
-  	}
+
 		return (display.getThread() == Thread.currentThread());
+	}
+
+	/** Open a messagebox using resource keys for title/text
+	 * 
+	 * @param parent Parent shell for messagebox
+	 * @param style SWT styles for messagebox
+	 * @param keyPrefix message bundle key prefix used to get title and text.  
+	 *         Title will be keyPrefix + ".title", and text will be set to
+	 *         keyPrefix + ".text"
+	 * @param textParams any parameters for text
+	 * 
+	 * @return what the messagebox returns
+	 */
+	public static int openMessageBox(Shell parent, int style, String keyPrefix,
+			String[] textParams) {
+		MessageBox mb = new MessageBox(parent, style);
+		mb.setMessage(MessageText.getString(keyPrefix + ".text", textParams));
+		mb.setText(MessageText.getString(keyPrefix + ".title"));
+		return mb.open();
+	}
+
+	/** Open a messagebox with actual title and text
+	 * 
+	 * @param parent
+	 * @param style
+	 * @param title
+	 * @param text
+	 * @return
+	 */ 
+	public static int openMessageBox(Shell parent, int style, String title,
+			String text) {
+		MessageBox mb = new MessageBox(parent, style);
+		mb.setMessage(text);
+		mb.setText(title);
+		return mb.open();
+	}
+	
+	/**
+	 * Bottom Index may be negative
+	 */ 
+	public static int getTableBottomIndex(Table table, int iTopIndex) {
+		return Math.min(iTopIndex
+				+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table
+						.getItemHeight()), table.getItemCount() - 1);
 	}
 	
 	public static void
