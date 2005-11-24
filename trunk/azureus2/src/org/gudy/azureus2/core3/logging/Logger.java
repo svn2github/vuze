@@ -15,6 +15,8 @@ import org.gudy.azureus2.core3.util.Debug;
  * 
  * @author TuxPaper
  * @since 2.3.0.7
+ * 
+ * XXX This class is currently routes to LGLogger until switchover is complete!
  */
 public class Logger {
 	private static final LogIDs LOGID = LogIDs.LOGGER;
