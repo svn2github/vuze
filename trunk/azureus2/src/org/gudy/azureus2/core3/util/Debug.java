@@ -74,29 +74,16 @@ public class Debug {
       className = first_line.getClassName() + "::";
       methodName = first_line.getMethodName() + "::";
       lineNumber = first_line.getLineNumber();
-   
-      for (int i=3;i<st.length;i++){
-      	
-      	if ( trace_trace_tail == null ){
-      		trace_trace_tail = "";
-      	}else{
-      		trace_trace_tail += ",";
-      	}
-      	
-      	String cn = st[i].getClassName();
-      	      	  
-      	cn = cn.substring( cn.lastIndexOf(".")+1);
-      	
-      	trace_trace_tail += cn +"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
-      }
+      
+    	trace_trace_tail = getCompressedStackTrace(e, 3);
     }
     
-    diag_logger.logAndOut(header+className+(methodName)+lineNumber+":");
+    diag_logger.logAndOut(header+className+(methodName)+lineNumber+":", true);
     if (_debug_msg.length() > 0) {
-    	diag_logger.logAndOut("  " + _debug_msg);
+    	diag_logger.logAndOut("  " + _debug_msg, true);
     }
     if ( trace_trace_tail != null ){
-    	diag_logger.logAndOut( "    " + trace_trace_tail );
+    	diag_logger.logAndOut( "    " + trace_trace_tail, true);
     }
     if (_exception != null) {
     	diag_logger.logAndOut(_exception);
@@ -145,7 +132,32 @@ public class Debug {
 			
 		killAWTThreads( threadGroup );
 	}
-	
+
+	public static String
+	getCompressedStackTrace(Throwable t,
+		int	frames_to_skip )
+	{
+		String sStackTrace = "";
+  	StackTraceElement[]	st = t.getStackTrace();
+	   
+    for (int i=frames_to_skip;i<st.length;i++){
+    	
+    	if (i > frames_to_skip)
+    		sStackTrace += ",";
+    	
+    	String cn = st[i].getClassName();
+    	cn = cn.substring( cn.lastIndexOf(".")+1);
+    	
+    	sStackTrace += cn +"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
+    }
+    
+    if (t.getCause() != null) {
+    	sStackTrace += "\n\tCaused By: " + getCompressedStackTrace(t, 0);
+    }
+    
+    return sStackTrace;
+	}
+
 	public static String
 	getCompressedStackTrace(
 		int	frames_to_skip )
@@ -156,22 +168,7 @@ public class Debug {
 	      throw new Exception();
 	    }
 	    catch (Exception e) {
-	    	StackTraceElement[]	st = e.getStackTrace();
-	    		   
-	      for (int i=frames_to_skip;i<st.length;i++){
-	      	
-	      	if ( trace_trace_tail == null ){
-	      		trace_trace_tail = "";
-	      	}else{
-	      		trace_trace_tail += ",";
-	      	}
-	      	
-	      	String cn = st[i].getClassName();
-	      	      	  
-	      	cn = cn.substring( cn.lastIndexOf(".")+1);
-	      	
-	      	trace_trace_tail += cn +"::"+st[i].getMethodName()+"::"+st[i].getLineNumber();
-	      }
+	    	trace_trace_tail = getCompressedStackTrace(e, frames_to_skip);
 	    }
 	    
 	    return( trace_trace_tail );
@@ -331,6 +328,23 @@ public class Debug {
 		}catch( Throwable ignore ){
 			
 			e.printStackTrace();
+		}
+	}
+
+	public static String getStackTrace(Throwable e) {
+		try {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+			PrintWriter pw = new PrintWriter(new OutputStreamWriter(baos));
+
+			e.printStackTrace(pw);
+
+			pw.close();
+
+			return baos.toString();
+
+		} catch (Throwable ignore) {
+			return "";
 		}
 	}
 }
