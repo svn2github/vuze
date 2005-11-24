@@ -34,10 +34,13 @@ public interface StringList {
 	
 	public void add(String str);
 
+	public void add(int index,String str);
+
 	public StringIterator iterator();
 	
 	public int indexOf(String str);
 	
 	public boolean contains(String str);
-	
+
+	public String remove(int index);
 }

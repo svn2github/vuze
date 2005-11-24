@@ -98,4 +98,8 @@ public class StringListImpl implements StringList {
 		return list.contains(str);
 	}
 
+	public String remove(int index) {
+		return (String)list.remove(index);
+	}
+
 }
