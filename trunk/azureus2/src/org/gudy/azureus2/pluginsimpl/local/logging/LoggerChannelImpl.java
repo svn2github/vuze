@@ -29,7 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.logging;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.logging.*;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 
 public class 

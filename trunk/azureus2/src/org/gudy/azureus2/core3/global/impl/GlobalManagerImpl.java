@@ -813,7 +813,7 @@ public class GlobalManagerImpl
     }
   }
 
-  protected DownloadManager 
+  public DownloadManager 
   getDownloadManager(byte[]	hash) 
   {
       return (DownloadManager)manager_map.get(new HashWrapper(hash));

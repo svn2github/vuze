@@ -82,6 +82,9 @@ GlobalManager
 	public DownloadManager 
 	getDownloadManager(TOTorrent torrent);
 
+	public DownloadManager 
+  getDownloadManager(byte[]	hash);
+
 	public void
 	stopAll();
 
