@@ -161,6 +161,23 @@ BasicPluginConfigModelImpl
 		return( res );			
 	}
 	
+	public org.gudy.azureus2.plugins.ui.config.StringListParameter
+	addStringListParameter2(
+		String 		key,
+		String 		resource_name,
+		String[]	values,
+		String[]	labels,
+		String	 	defaultValue )
+	{
+		StringListParameterImpl res = new StringListParameterImpl(pi
+				.getPluginconfig(), key_prefix + key, resource_name, defaultValue,
+				values, labels);
+
+		parameters.add(res);
+
+		return (res);			
+	}
+
 	public org.gudy.azureus2.plugins.ui.config.PasswordParameter
 	addPasswordParameter2(
 		String 		key,

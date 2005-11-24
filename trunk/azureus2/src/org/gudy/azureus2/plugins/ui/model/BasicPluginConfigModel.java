@@ -115,6 +115,24 @@ BasicPluginConfigModel
 	 * 
 	 * @param key
 	 * @param resource_name
+	 * @param values
+	 * @param labels
+	 * @param defaultValue
+	 * @return
+	 * @since 2.3.0.6
+	 */
+	public StringListParameter
+	addStringListParameter2(
+		String 		key,
+		String 		resource_name,
+		String[]	values,
+		String[]	labels,
+		String	 	defaultValue );
+
+	/**
+	 * 
+	 * @param key
+	 * @param resource_name
 	 * @param encoding_type
 	 * @param defaultValue
 	 * @return

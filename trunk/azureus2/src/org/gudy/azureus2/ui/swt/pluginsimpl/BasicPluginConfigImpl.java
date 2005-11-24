@@ -284,7 +284,7 @@ BasicPluginConfigImpl
 				
 				gridData.widthHint = 150;
 
-				swt_param = new StringListParameter(current_composite, key, sl_param.getDefaultValue(), sl_param.getValues(), sl_param.getValues());
+				swt_param = new StringListParameter(current_composite, key, sl_param.getDefaultValue(), sl_param.getValues(), sl_param.getLabels());
 				
 				swt_param.setLayoutData( gridData );
 				
