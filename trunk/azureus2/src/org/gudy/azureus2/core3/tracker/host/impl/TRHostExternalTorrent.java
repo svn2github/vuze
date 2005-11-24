@@ -118,10 +118,11 @@ TRHostExternalTorrent
 		return( announce_url );
 	}
 
-	public void
+	public boolean
 	setAnnounceURL(
 		URL		url )
 	{
+		return false;
 	}
 		
 	public TOTorrentAnnounceURLGroup

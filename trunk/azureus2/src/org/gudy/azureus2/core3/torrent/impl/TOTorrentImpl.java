@@ -440,11 +440,18 @@ TOTorrentImpl
 		return( announce_url );
 	}
 	
-	public void
+	public boolean
 	setAnnounceURL(
 		URL		url )
 	{
-		announce_url	= anonymityTransform( url );
+		URL newURL = anonymityTransform( url );
+		String s0 = (newURL == null) ? "" : newURL.toString();
+		String s1 = (announce_url == null) ? "" : announce_url.toString();
+		if (s0.equals(s1))
+			return false;
+		
+		announce_url	= newURL;
+		return true;
 	}
 
 	public long
