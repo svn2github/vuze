@@ -41,14 +41,14 @@ public interface UISWTInstance extends UIInstance {
 	 * 
 	 * @since 2.3.0.7
 	 */
-	//public static final String VIEW_MYTORRENTS = "MyTorrents";
+	public static final String VIEW_MYTORRENTS = "MyTorrents";
 
 	/** 
 	 * ID of "Peers" view  (not supported yet)
 	 * 
 	 * @since 2.3.0.7
 	 */
-	//public static final String VIEW_TORRENT_PEERS = "Peers";
+	public static final String VIEW_TORRENT_PEERS = "Peers";
 
 	/** Retrieve the SWT Display object that Azureus uses (when in SWT mode).
 	 * If you have a thread that does some periodic/asynchronous stuff, Azureus 
