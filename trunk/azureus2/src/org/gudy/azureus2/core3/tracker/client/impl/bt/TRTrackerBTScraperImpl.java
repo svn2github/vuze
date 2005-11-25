@@ -86,7 +86,7 @@ TRTrackerBTScraperImpl
 		URL						url,
 		DownloadScrapeResult	result )
 	{
-		if ( torrent != null ){
+		if ( torrent != null && result != null ){
 			
 			TRTrackerScraperResponseImpl resp =	tracker_checker.getHashData( torrent, url );
 			
