@@ -2143,8 +2143,19 @@ DiskManagerImpl
 							File	existing_file = getFile(true);
 							
 							if ( existing_file.exists()){
-														    		
-								if ( FileUtil.deleteWithRecycle( existing_file )){
+											
+								
+									// at this point, if we could be bothered, we could migrate storage types
+									// from one to another. We could also handle "allocate all space" and "zero new"
+									// properly with files returning to a linear state...							
+								
+								
+									// don't use delete-with-recycle as (on osx at least) this can cause
+									// problems as it goes asynchronous (or maybe fails) and then we fail later on creating
+									// the cache file.
+									// The caller will have prompted for "ok to delete" anyway
+								
+								if ( existing_file.delete()){
 						    																
 									download_manager.resetFile( this );
 										
@@ -2156,10 +2167,6 @@ DiskManagerImpl
 									return( false );
 								}
 							}
-							
-								// at this point, if we could be bothered, we could migrate storage types
-								// from one to another. We could also handle "allocate all space" and "zero new"
-								// properly with files returning to a linear state...
 							
 								// establish the new file type 
 							
