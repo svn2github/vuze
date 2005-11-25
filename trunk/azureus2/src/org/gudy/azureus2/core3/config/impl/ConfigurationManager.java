@@ -98,7 +98,32 @@ ConfigurationManager
   public void load(String filename) 
   {
   	propertiesMap = FileUtil.readResilientConfigFile( filename, false );
+  	
+  	
+  	// Remove entries that are default.  Saves memory, reduces
+  	// file size when saved again
+    ConfigurationDefaults def = ConfigurationDefaults.getInstance();
+  	Iterator it = new TreeSet(propertiesMap.keySet()).iterator();
 
+		while (it.hasNext()) {
+			String key = (String)it.next();
+			Object defValue = def.getDefaultValueAsObject(key);
+			if (defValue == null)
+				continue;
+
+			if (defValue instanceof Long) {
+				int iDefValue = ((Long)defValue).intValue();
+				int iValue = getIntParameter(key, iDefValue);
+				if (iValue == iDefValue)
+					propertiesMap.remove(key);
+			}
+			if (defValue instanceof String) {
+				String sDefValue = defValue.toString();
+				String sValue = getStringParameter(key, sDefValue);
+				if (sValue.compareTo(sDefValue) == 0)
+					propertiesMap.remove(key);
+			}
+		}
   }
   
   public void load() {
@@ -538,6 +563,9 @@ ConfigurationManager
 					
 					Object	key 	= it.next();
 					Object	value	= propertiesMap.get(key);
+					boolean bParamExists = ConfigurationDefaults.getInstance().doesParameterDefaultExist(key.toString());
+					if (!bParamExists)
+						key = "[NoDef] " + key;
 					
 					if ( value instanceof Long ){
 						

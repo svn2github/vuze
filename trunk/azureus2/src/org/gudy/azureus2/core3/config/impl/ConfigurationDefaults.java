@@ -420,6 +420,16 @@ public class ConfigurationDefaults {
       throw new ConfigurationParameterNotFoundException(p);
   }
   
+  /**
+   * Returns the default value as an object (String, Long, Float, Boolean)
+   *  
+   * @param key
+   * @return default value
+   */
+  public Object getDefaultValueAsObject(String key) {
+  	return def.get(key);
+  }
+  
   public Set getAllowedParameters() {
   	return def.keySet();
   }
