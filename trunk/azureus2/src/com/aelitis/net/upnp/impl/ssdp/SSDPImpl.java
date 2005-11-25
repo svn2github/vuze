@@ -457,6 +457,16 @@ SSDPImpl
 
 		int	port = socket.getLocalPort();
 		
+		try{
+				// introduce a timeout so that when a Network interface changes we don't sit here
+				// blocking forever and thus never realise that we should shutdown
+			
+			socket.setSoTimeout( 30000 );
+			
+		}catch( Throwable e ){
+			
+		}
+		
 		while(true){
 			
 			if ( !validNetworkAddress( network_interface, local_address )){
@@ -480,6 +490,8 @@ SSDPImpl
 				failed_accepts	 = 0;
 				
 				receivePacket( network_interface, local_address, packet );
+				
+			}catch( SocketTimeoutException e ){
 				
 			}catch( Throwable e ){
 				

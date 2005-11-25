@@ -148,7 +148,10 @@ UPnPImpl
 					// if this is the case we just use the first NI through which it was discovered and
 					// map to that NI's local address
 			
-				if ( !root_device.getNetworkInterface().equals( network_interface )){
+					// use the interfate.getName (e.g. eth0) as the "equals" method includes the addresses and we want to
+					// detect when an address has changed
+				
+				if ( !root_device.getNetworkInterface().getName().equals( network_interface.getName())){
 				
 					log( "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
 							root_device.getNetworkInterface());

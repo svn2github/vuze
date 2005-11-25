@@ -158,12 +158,13 @@ UPnPPluginService
 										MessageText.getString( 
 											"upnp.alert.differenthost", 
 											new String[]{ mapping.getString(), sm.getInternalHost()});
-								
-									log.log( text );
-								
+																
 									if ( alert_other_port_param.getValue()){
 									
 										log.logAlertRepeatable( LoggerChannel.LT_WARNING, text );
+									}else{
+										
+										log.log( text);
 									}
 								}
 								
