@@ -24,54 +24,62 @@ package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.ui.swt.Messages;
 
-public class 
-Legend 
-{
-	  /** Creates the legend Composite
-	   * 
-	   * @return The created Legend Composite
-	   */
-	  public static Composite 
-	  createLegendComposite(
-		Composite	panel,
-		Color[] 	colors,
-		String[]	keys) 
-	  {
-	  	if(colors.length != keys.length) return null;
-	  	
-	  	Composite legend = new Composite(panel,SWT.NULL);
-	  	legend.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-	  	
-	  	
-	    GridLayout layout = new GridLayout();
-	    int numColumns = colors.length * 2;
-	    if(numColumns > 10) numColumns = 10;
-	    layout.numColumns = numColumns;
-	    legend.setLayout(layout);
-	    GridData data;
-	    
-	    for(int i = 0 ; i < colors.length ; i++) {
-	    	Label lblColor = new Label(legend,SWT.BORDER);
-	    	lblColor.setBackground(colors[i]);
-	    	data = new GridData();
-	    	data.widthHint = 20;
-	    	data.heightHint = 10;
-	    	lblColor.setLayoutData(data);
-	    	
-	    	Label lblDesc = new Label(legend,SWT.NULL);
-	    	Messages.setLanguageText(lblDesc,keys[i]);
-	    	data = new GridData();
-	    	data.widthHint = 150;
-	    	lblDesc.setLayoutData(data);
-	    }
-	    
-	    return legend;
-	  	
-	  }
+public class Legend {
+	/** Creates the legend Composite
+	 * 
+	 * @return The created Legend Composite
+	 */
+	public static Composite createLegendComposite(Composite panel,
+			Color[] colors, String[] keys) {
+		Object layout = panel.getLayout();
+		Object layoutData = null;
+		if (layout instanceof GridLayout)
+			layoutData = new GridData(GridData.FILL_HORIZONTAL);
+
+		return createLegendComposite(panel, colors, keys, layoutData);
+	}
+
+
+	public static Composite createLegendComposite(Composite panel,
+			Color[] colors, String[] keys, Object layoutData) {
+		if (colors.length != keys.length)
+			return null;
+
+		Composite legend = new Composite(panel, SWT.NONE);
+		if (layoutData != null)
+			legend.setLayoutData(layoutData);
+
+		RowLayout layout = new RowLayout(SWT.HORIZONTAL);
+		layout.wrap = true;
+		layout.marginBottom = 0;
+		layout.marginTop = 0;
+		layout.marginLeft = 0;
+		layout.marginRight = 0;
+		layout.spacing = 0;
+		legend.setLayout(layout);
+
+		RowData data;
+		for (int i = 0; i < colors.length; i++) {
+			Composite colorSet = new Composite(legend, SWT.NONE);
+
+			colorSet.setLayout(new RowLayout(SWT.HORIZONTAL));
+
+			Label lblColor = new Label(colorSet, SWT.BORDER);
+			lblColor.setBackground(colors[i]);
+			data = new RowData();
+			data.width = 20;
+			data.height = 10;
+			lblColor.setLayoutData(data);
+
+			BufferedLabel lblDesc = new BufferedLabel(colorSet, SWT.NULL);
+			Messages.setLanguageText(lblDesc, keys[i]);
+		}
+
+		return legend;
+	}
 }
