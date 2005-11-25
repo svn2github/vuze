@@ -93,8 +93,8 @@ FMFileImpl
 		linked_file		= manager.getFileLink( _file );
 		
 		boolean	file_was_created	= false;
-		
-		boolean	ok = false;
+		boolean	file_reserved		= false;
+		boolean	ok 					= false;
 		
 		try{
       
@@ -121,7 +121,9 @@ FMFileImpl
 			createDirs( linked_file );
 	        
 			reserveFile();
-							
+				
+			file_reserved	= true;
+			
 				// actual file shouldn't exist for change to occur - it is the responsibility
 				// of the caller to delete the file first and take consequent actions (in
 				// particular force recheck the file to ensure that the loss in save state
@@ -214,7 +216,7 @@ FMFileImpl
 			
 		}finally{
 			
-			if ( !ok ){
+			if ( file_reserved && !ok ){
 				
 				releaseFile();
 			}
