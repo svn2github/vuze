@@ -609,7 +609,7 @@ FMFileImpl
 		try{
 			file_map_mon.enter();
 			
-			System.out.println( "FMFile::reserveAccess:" + canonical_path + "("+ owner.getName() + ")" + " [" + (access_mode==FM_WRITE?"write":"read") + "]" );
+			// System.out.println( "FMFile::reserveAccess:" + canonical_path + "("+ owner.getName() + ")" + " [" + (access_mode==FM_WRITE?"write":"read") + "]" );
 			
 			List	owners = (List)file_map.get( canonical_path );
 			
@@ -667,6 +667,41 @@ FMFileImpl
 				throw( new FMFileManagerException( "File '"+canonical_path+"' is in use by '" + users +"'"));
 			}
 			
+		}finally{
+			
+			file_map_mon.exit();
+		}
+	}
+	
+	private void
+	releaseFile()
+	{
+		try{
+			file_map_mon.enter();
+		
+			// System.out.println( "FMFile::releaseFile:" + canonical_path + "("+ owner.getName() + ")" );
+					
+			List	owners = (List)file_map.get( canonical_path );
+			
+			if ( owners != null ){
+				
+				for (Iterator it=owners.iterator();it.hasNext();){
+					
+					Object[]	entry = (Object[])it.next();
+					
+					if ( owner.getName().equals(entry[0])){
+						
+						it.remove();
+						
+						break;
+					}
+				}
+				
+				if ( owners.size() == 0 ){
+					
+					file_map.remove( canonical_path );
+				}
+			}
 		}finally{
 			
 			file_map_mon.exit();
@@ -754,41 +789,6 @@ FMFileImpl
 	
 			created_dirs_leaf	= null;
 			created_dirs 		= null;
-		}
-	}
-	
-	private void
-	releaseFile()
-	{
-		try{
-			file_map_mon.enter();
-		
-			System.out.println( "FMFile::releaseFile:" + canonical_path + "("+ owner.getName() + ")" );
-					
-			List	owners = (List)file_map.get( canonical_path );
-			
-			if ( owners != null ){
-				
-				for (Iterator it=owners.iterator();it.hasNext();){
-					
-					Object[]	entry = (Object[])it.next();
-					
-					if ( owner.getName().equals(entry[0])){
-						
-						it.remove();
-						
-						break;
-					}
-				}
-				
-				if ( owners.size() == 0 ){
-					
-					file_map.remove( canonical_path );
-				}
-			}
-		}finally{
-			
-			file_map_mon.exit();
 		}
 	}
 	
