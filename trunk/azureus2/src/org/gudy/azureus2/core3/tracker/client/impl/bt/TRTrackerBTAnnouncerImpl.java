@@ -2161,41 +2161,36 @@ TRTrackerBTAnnouncerImpl
 						}
 					}
 
-		          if (complete_l != null || incomplete_l != null) {
-		          	
-		          	int	complete = complete_l==null?0:complete_l.intValue();
-		          	
-		          	int incomplete = incomplete_l==null?0:incomplete_l.intValue();
-		          	
-		            TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
-		            
-		            if (scraper != null) {
-		              TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
-		              if (scrapeResponse != null) {
-		                long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
-		                long now = SystemTime.getCurrentTime();
-		                
-		                long lNewNextScrapeTime =  now + 10*60*1000;
-		                
-		                	// make it look as if the scrape has just run. Important
-		                	// as seeding rules may make calculations on when the 
-		                	// scrape value were set
-		                
-		                scrapeResponse.setScrapeStartTime( now );
-		                
-		                if (lNextScrapeTime < lNewNextScrapeTime) {
-		                	
-		                  scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
-		                }
-		                
-		                scrapeResponse.setSeedsPeers( complete, incomplete );
-		              }
-		            }
-       
-		            //resp.setScrapeDetails( lComplete.intValue(), lIncomplete.intValue());
-		          }
-            
-		          return( resp );  
+					if (complete_l != null || incomplete_l != null) {
+
+						int complete = complete_l == null ? 0 : complete_l.intValue();
+
+						int incomplete = incomplete_l == null ? 0 : incomplete_l.intValue();
+
+						TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
+
+						if (scraper != null) {
+							TRTrackerScraperResponse scrapeResponse = scraper.scrape(this);
+							if (scrapeResponse != null) {
+								long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
+								long lNewNextScrapeTime = TRTrackerScraperResponseImpl
+										.calcScrapeIntervalSecs(0, complete) * 1000;
+
+								// make it look as if the scrape has just run. Important
+								// as seeding rules may make calculations on when the 
+								// scrape value were set
+
+								scrapeResponse.setScrapeStartTime(SystemTime.getCurrentTime());
+
+								if (lNextScrapeTime < lNewNextScrapeTime)
+									scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
+
+								scrapeResponse.setSeedsPeers(complete, incomplete);
+							}
+						}
+					}
+
+					return (resp);  
 
 				}catch( IOException e ){
 					
