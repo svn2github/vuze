@@ -94,6 +94,8 @@ FMFileImpl
 		
 		boolean	file_was_created	= false;
 		
+		boolean	ok = false;
+		
 		try{
       
 			try {
@@ -132,7 +134,7 @@ FMFileImpl
 			if ( control_file == null ){
 				
 				Debug.out( "No control file" );
-				
+								
 			}else{
 			
 				boolean	control_file_existed = control_file.exists();
@@ -191,6 +193,9 @@ FMFileImpl
 							control_file,  
 							new FMFileAccessLinear( this ) );
 			}	
+			
+			ok	= true;
+			
 		}catch( Throwable e ){
 			
 			if ( file_was_created ){
@@ -206,6 +211,13 @@ FMFileImpl
 			}
 			
 			throw( new FMFileManagerException( "initialisation failed", e ));
+			
+		}finally{
+			
+			if ( !ok ){
+				
+				releaseFile();
+			}
 		}
 	}
 
@@ -536,7 +548,7 @@ FMFileImpl
 	
 		// file reservation is used to manage the possibility of multiple torrents
 		// refering to the same file. Initially introduced to stop a common problem
-		// whereby different torrents contain the same files (DVD rips) - without 
+		// whereby different torrents contain the same files - without 
 		// this code the torrents could interfere resulting in all sorts of problems
 		// The original behavior was to completely prevent the sharing of files.
 		// However, better behaviour is to allow sharing of a file as long as only
@@ -595,7 +607,7 @@ FMFileImpl
 		try{
 			file_map_mon.enter();
 			
-			// System.out.println( "FMFile::reserveAccess:" + canonical_path + "("+ owner.getName() + ")" + " [" + (access_mode==FM_WRITE?"write":"read") + "]" );
+			System.out.println( "FMFile::reserveAccess:" + canonical_path + "("+ owner.getName() + ")" + " [" + (access_mode==FM_WRITE?"write":"read") + "]" );
 			
 			List	owners = (List)file_map.get( canonical_path );
 			
@@ -749,7 +761,7 @@ FMFileImpl
 		try{
 			file_map_mon.enter();
 		
-			// System.out.println( "FMFile::releaseFile:" + canonical_path + "("+ owner.getName() + ")" );
+			System.out.println( "FMFile::releaseFile:" + canonical_path + "("+ owner.getName() + ")" );
 					
 			List	owners = (List)file_map.get( canonical_path );
 			
