@@ -71,11 +71,11 @@ TRTrackerBTScraperResponseImpl
 		setSeeds( iSeeds );
 		setPeers( iPeers );
 		
-		setStatus((isValid()) ? TRTrackerScraperResponse.ST_INITIALIZING : TRTrackerScraperResponse.ST_ONLINE );
-		  
-		if ( isValid()){
-			
+		if (isValid()){
+			setStatus(TRTrackerScraperResponse.ST_ONLINE);
 			setStatus( MessageText.getString("Scrape.status.ok"));
+		} else {
+			setStatus(TRTrackerScraperResponse.ST_INITIALIZING);
 		}
 		    // XXX Is this a good idea?
 		ts.scrapeReceived(this);
