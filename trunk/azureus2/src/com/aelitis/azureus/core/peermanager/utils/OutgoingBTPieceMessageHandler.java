@@ -265,4 +265,20 @@ public class OutgoingBTPieceMessageHandler {
     }
   }
 
+  public int[] getRequestedPieces() {
+  	int [] pieceList = new int[queued_messages.size()];
+    try{
+      lock_mon.enter();
+    
+      int i = 0;
+      for (Iterator iter = queued_messages.keySet().iterator(); iter.hasNext();) {
+				BTPiece msg = (BTPiece) iter.next();
+				pieceList[i++] = msg.getPieceNumber();
+			}
+    }finally{
+      lock_mon.exit();
+    }
+    
+    return pieceList;
+  }
 }
