@@ -265,20 +265,46 @@ public class OutgoingBTPieceMessageHandler {
     }
   }
 
-  public int[] getRequestedPieces() {
-  	int [] pieceList = new int[queued_messages.size()];
-    try{
-      lock_mon.enter();
-    
-      int i = 0;
-      for (Iterator iter = queued_messages.keySet().iterator(); iter.hasNext();) {
+  /**
+   * Get a list of piece numbers being requested
+   *  
+   * @return list of Long values
+   */
+	public List getRequestedPieceNumbers() {
+		ArrayList list = new ArrayList();
+
+		/** Cheap hack to reduce (but not remove all) the # of duplicate entries */
+		int iLastNumber = -1;
+		try {
+			lock_mon.enter();
+
+			for (Iterator iter = queued_messages.keySet().iterator(); iter.hasNext();) {
 				BTPiece msg = (BTPiece) iter.next();
-				pieceList[i++] = msg.getPieceNumber();
+				if (iLastNumber != msg.getPieceNumber()) {
+					iLastNumber = msg.getPieceNumber();
+					list.add(new Long(iLastNumber));
+				}
 			}
-    }finally{
-      lock_mon.exit();
-    }
-    
-    return pieceList;
-  }
+			
+			for (Iterator iter = loading_messages.iterator(); iter.hasNext();) {
+				DiskManagerReadRequest dmr = (DiskManagerReadRequest) iter.next();
+				if (iLastNumber != dmr.getPieceNumber()) {
+					iLastNumber = dmr.getPieceNumber();
+					list.add(new Long(iLastNumber));
+				}
+			}
+
+			for (Iterator iter = requests.iterator(); iter.hasNext();) {
+				DiskManagerReadRequest dmr = (DiskManagerReadRequest) iter.next();
+				if (iLastNumber != dmr.getPieceNumber()) {
+					iLastNumber = dmr.getPieceNumber();
+					list.add(new Long(iLastNumber));
+				}
+			}
+		} finally {
+			lock_mon.exit();
+		}
+		
+		return list;
+	}
 }
