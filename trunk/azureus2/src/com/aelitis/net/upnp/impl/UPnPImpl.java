@@ -55,8 +55,8 @@ UPnPImpl
 {	
 	public static final String	NL	= "\r\n";
 	
-	protected static UPnPImpl	singleton;
-	protected static AEMonitor	class_mon 	= new AEMonitor( "UPnP:class" );
+	private static UPnPImpl	singleton;
+	private static AEMonitor	class_mon 	= new AEMonitor( "UPnP:class" );
 	
 	public static UPnP
 	getSingleton(
@@ -80,23 +80,25 @@ UPnPImpl
 		}
 	}
 	
-	protected PluginInterface		plugin_interface;
-	protected LoggerChannel			log;
-	protected SSDP					ssdp;
+	private PluginInterface			plugin_interface;
+	private LoggerChannel			log;
+	private SSDP					ssdp;
 	
-	protected Map		root_locations	= new HashMap();
+	private Map			root_locations	= new HashMap();
 	
-	protected List		log_listeners		= new ArrayList();
-	protected List		log_history			= new ArrayList();
-	protected List		log_alert_history	= new ArrayList();
+	private List		log_listeners		= new ArrayList();
+	private List		log_history			= new ArrayList();
+	private List		log_alert_history	= new ArrayList();
 	
-	protected List		rd_listeners		= new ArrayList();
-	protected AEMonitor	rd_listeners_mon 	= new AEMonitor( "UPnP:L" );
+	private List		rd_listeners		= new ArrayList();
+	private AEMonitor	rd_listeners_mon 	= new AEMonitor( "UPnP:L" );
 
-	protected int		http_calls_ok	= 0;
-	protected int		direct_calls_ok	= 0;
+	private int		http_calls_ok	= 0;
+	private int		direct_calls_ok	= 0;
 	
-	protected int		trace_index		= 0;
+	private int		trace_index		= 0;
+	
+	private String	secondary_route_log = "";
 	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnP" );
 
@@ -153,8 +155,15 @@ UPnPImpl
 				
 				if ( !root_device.getNetworkInterface().getName().equals( network_interface.getName())){
 				
-					log( "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
-							root_device.getNetworkInterface());
+					String	msg =  "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
+							root_device.getNetworkInterface();
+
+					if ( !secondary_route_log.equals( msg )){
+					
+						secondary_route_log	= msg;
+						
+						log( msg );
+					}
 	
 					return;
 				}
