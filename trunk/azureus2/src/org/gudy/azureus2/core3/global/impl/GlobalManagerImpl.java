@@ -27,8 +27,10 @@ package org.gudy.azureus2.core3.global.impl;
  */
 
 import java.io.*;
+import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -168,11 +170,15 @@ public class GlobalManagerImpl
 	private int 	nat_status				= ConnectionManager.NAT_UNKNOWN;
 	private boolean	nat_status_probably_ok;
 	
+	private Set		old_network_interfaces;
+	private long	last_network_change;
+	
 	public class Checker extends AEThread {
     int loopFactor;
     private static final int waitTime = 10*1000;
     // 5 minutes save resume data interval (default)
     private int saveResumeLoopCount = 5*60*1000 / waitTime;
+    private int netCheckLoopCount	= 60*1000 / waitTime;
     
     private AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
     
@@ -201,8 +207,13 @@ public class GlobalManagerImpl
 	        determineSaveResumeDataInterval();
 	        
 	        if ((loopFactor % saveResumeLoopCount == 0) || needsSaving) {
-          	
+	          	
 	        	saveDownloads( true );
+	        }
+	        
+	        if ((loopFactor % netCheckLoopCount == 0)) {
+          	
+	        	checkNetwork();
 	        }
 	        	        
 	        for (Iterator it=managers_cow.iterator();it.hasNext();) {
@@ -1985,6 +1996,71 @@ public class GlobalManagerImpl
 	getNATStatus()
 	{	
 		return( nat_status );
+	}
+	
+	protected void
+	checkNetwork()
+	{
+		try{
+			Enumeration 	nis = NetworkInterface.getNetworkInterfaces();
+		
+			Set	network_interfaces = new HashSet();
+			
+			boolean	changed	= false;
+			
+			while( nis.hasMoreElements()){
+				
+				Object	 ni = nis.nextElement();
+				
+					// NetworkInterface's "equals" method is based on ni name + addresses
+				
+				if ( old_network_interfaces != null && !old_network_interfaces.contains( ni )){
+					
+					changed	= true;
+				}
+				
+				network_interfaces.add( ni );
+			}
+						
+			if ( changed ){
+				
+				long now	= SystemTime.getCurrentTime();
+				
+					// don't pick up "change" on first time through
+				
+				if ( last_network_change > 0 ){
+					
+					if ( now - last_network_change > 30*60*1000 ){
+					
+						LGLogger.log( "Network interfaces have changed, updating trackers" );
+						
+						List	managers = managers_cow;
+						
+						for (int i=0;i<managers.size();i++){
+							
+							DownloadManager	manager = (DownloadManager)managers.get(i);
+							
+							TRTrackerAnnouncer	anouncer = manager.getTrackerClient();
+							
+							if ( anouncer != null ){
+								
+								anouncer.update( true );
+							}
+						}
+					}else{
+						
+						LGLogger.log( "Network interfaces have changed, not updating trackers as too soon after previous change" );
+	
+					}
+				}
+				
+				last_network_change	= now;
+			}
+			
+			old_network_interfaces	= network_interfaces;
+			
+		}catch( Throwable e ){
+		}
 	}
 	 
 	public void
