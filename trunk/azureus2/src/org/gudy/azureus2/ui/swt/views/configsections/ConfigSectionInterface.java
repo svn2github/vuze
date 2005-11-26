@@ -370,10 +370,19 @@ public class ConfigSectionInterface implements UISWTConfigSection {
     		parameterChanged(
     			String parameterName)
     		{
-    			boolean	enabled = COConfigurationManager.getMapParameter("MessageBoxWindow.decisions", new HashMap()).size() > 0;
-    				    	
-    			clear_label.setEnabled( enabled );
-    			clear_decisions.setEnabled( enabled );
+    			if ( clear_decisions.isDisposed()){
+    				
+    					// tidy up from previous incarnations
+    				
+    				COConfigurationManager.removeParameterListener("MessageBoxWindow.decisions", this );
+    				
+    			}else{
+    				
+	    			boolean	enabled = COConfigurationManager.getMapParameter("MessageBoxWindow.decisions", new HashMap()).size() > 0;
+	    				    	
+	    			clear_label.setEnabled( enabled );
+	    			clear_decisions.setEnabled( enabled );
+    			}
     		}
     	};
     	
