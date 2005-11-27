@@ -477,38 +477,7 @@ public class GlobalManagerImpl
        	  throw( new IOException( "Torrent '" + torrent_file_name + "' is not a file" ));    	  
       }
       
-      boolean saveTorrents = persistent&&COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
-      if (saveTorrents) torrentDir = new File(COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory"));
-      else torrentDir = new File(f.getParent());
-
-      //if the torrent is already in the completed files dir, use this
-      //torrent instead of creating a new one in the default dir
-      boolean moveWhenDone = COConfigurationManager.getBooleanParameter("Move Completed When Done", false);
-      String completedDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
-      if (moveWhenDone && completedDir.length() > 0) {
-        File cFile = new File( completedDir, f.getName() );
-        if ( cFile.exists() ) {
-          //set the torrentDir to the completedDir
-          torrentDir = new File(completedDir);
-        }
-      }
-        
-      torrentDir.mkdirs();
-      
-      fDest = new File(torrentDir, f.getName().replaceAll("%20","."));
-      if (fDest.equals(f)) {
-        throw new Exception("Same files");
-      }
-      
-      while (fDest.exists()) {
-        fDest = new File(torrentDir, "_" + fDest.getName());
-      }
-      
-      fDest.createNewFile();
-      
-      if ( ! FileUtil.copyFile(f, fDest)) {
-        throw new IOException("File copy failed");
-      }
+      fDest = TorrentUtils.copyTorrentFileToSaveDir(f, persistent);
       
       String fName = fDest.getCanonicalPath();
     
