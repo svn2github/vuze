@@ -83,7 +83,7 @@ TRTrackerDHTScraperImpl
 		URL						url,
 		DownloadScrapeResult	result )
 	{
-		if ( torrent != null ){
+		if ( torrent != null && result != null){
 			
 			try{
 				TRTrackerScraperResponseImpl resp = 
