@@ -6,7 +6,6 @@ package org.gudy.azureus2.core3.logging.impl;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -145,12 +144,12 @@ public class LoggerImpl {
 		public void write(int data) {
 			char c = (char) data;
 
-			buffer.append(c);
-
 			if (c == '\n') {
-				ps.print(buffer);
+				ps.println(buffer);
 				log(new LogEvent(logID, logType, buffer.toString()));
 				buffer.setLength(0);
+			} else if (c != '\r') {
+				buffer.append(c);
 			}
 		}
 
@@ -177,14 +176,21 @@ public class LoggerImpl {
 		if (bLogToStdOut)
 			psOldOut.println(event.text);
 
-		for (Iterator iter = logListeners.iterator(); iter.hasNext();) {
-			Object listener = iter.next();
-			if (listener instanceof ILogEventListener)
-				((ILogEventListener) listener).log(event);
-			else
-				// XXX ComponentID
-				((ILoggerListener) listener).log(0, event.entryType, event.entryType,
-						event.text);
+		for (int i = 0; i < logListeners.size(); i++) {
+			try {
+				Object listener = logListeners.get(i);
+				if (listener instanceof ILogEventListener)
+					((ILogEventListener) listener).log(event);
+				else
+					// XXX ComponentID
+					((ILoggerListener) listener).log(0, event.entryType, event.entryType,
+							event.text);
+			} catch (Throwable e) {
+				if (psOldErr != null) {
+					psOldErr.println("Error while logging: " + e.getMessage());
+					e.printStackTrace(psOldErr);
+				}
+			}
 		}
 
 		// Write error to stderr, which will eventually get back here
@@ -252,7 +258,10 @@ public class LoggerImpl {
 								alert.repeatable);
 				}
 			} catch (Throwable f) {
-				Debug.printStackTrace(f);
+				if (psOldErr != null) {
+					psOldErr.println("Error while alerting: " + f.getMessage());
+					f.printStackTrace(psOldErr);
+				}
 			}
 		}
 
