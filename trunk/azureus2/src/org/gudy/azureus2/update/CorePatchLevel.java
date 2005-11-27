@@ -37,8 +37,9 @@ CorePatchLevel
 		// dont' reset to 1 on a new mainline, keep going up!
 	
 		// Level 1: 2302 - fix for DHT version propagation problem
+		// Level 2: 2306 - fix for SF mirror parsing problem for core updates
 	
-	public static final int	PATCH_LEVEL	= 1;
+	public static final int	PATCH_LEVEL	= 2;
 	
 	public static int
 	getCurrentPatchLevel()

@@ -214,15 +214,8 @@ CoreUpdateChecker
 			
 
 			ResourceDownloader[]	primary_mirrors;
-			
-			if ( TESTING ){
 				
-				primary_mirrors = getTestMirrors();
-				
-			}else{
-				
-				primary_mirrors = getPrimaryDownloaders( latest_file_name );
-			}
+			primary_mirrors = getPrimaryDownloaders( latest_file_name );
 
 				// the download hierarchy is primary mirrors first (randomised alternate)
 				// then backup mirrors (randomised alternate)
@@ -366,111 +359,7 @@ CoreUpdateChecker
       
       Debug.printStackTrace( e );
     }
-  }
-    
-  
-  
-  
-  /*
-  protected Map
-  doHTTPVersionDownload()
-  
-    throws Exception
-  {
-    URL url = getVersionURL();
-    
-    ResourceDownloader  rd = rdf.create( url );
-    
-    rd = rdf.getRetryDownloader( rd, RD_GET_DETAILS_RETRIES );
-    
-    if ( rd_logger != null ){
-      
-      rd.addListener( rd_logger );
-    }
-    
-    BufferedInputStream data = new BufferedInputStream(rd.download());
-    
-    Map decoded = BDecoder.decode(data);
-    
-    data.close();
-
-    displayUserMessage( decoded );
-    
-    return( decoded );
-  }
-  
-  
-	protected URL
-	getVersionURL()
-		throws MalformedURLException, UnsupportedEncodingException
-	{
-		String url_str = Constants.AELITIS_WEB_SITE + "version.php";
-		
-		String id = COConfigurationManager.getStringParameter("ID",null);
-		
-		if ( id != null && COConfigurationManager.getBooleanParameter("Send Version Info")){
-			
-			String	java_version = System.getProperty("java.version");
-			
-			if ( java_version == null ){
-				
-				java_version = "unknown";
-			}
-			
-			String	java_vendor	= System.getProperty( "java.vm.vendor" );
-			
-			if ( java_vendor == null ){
-				
-				java_vendor = "unknown";
-			}
-			
-			long	max_mem = Runtime.getRuntime().maxMemory()/(1024*1024);
-			
-			PluginInterface[] plugins = plugin_interface.getPluginManager().getPluginInterfaces();
-			
-			
-			List	pids = new ArrayList();
-			
-			for (int i=0;i<plugins.length;i++){
-				
-				String	pid = plugins[i].getPluginID();
-				
-					// filter out built-in and core ones
-				
-				if ( 	!plugins[i].isBuiltIn() &&
-						!pid.startsWith( "azupdater" ) &&
-						!pid.startsWith( "azplatform" ) &&
-						!pids.contains( pid )){
-				
-					pids.add( pid );
-				}
-			}
-			
-			String	plugins_str = "";
-
-			for (int i=0;i<pids.size();i++){
-				
-				String	pid = (String)pids.get(i);
-				
-				plugins_str += ( plugins_str.length()==0?"":";")+pid ;
-			}
-			
-			url_str += "?id=" + id + 
-							"&version=" + Constants.AZUREUS_VERSION + 
-							"&os=" + URLEncoder.encode( Constants.OSName, Constants.BYTE_ENCODING).replaceAll("\\+", "%20") +
-							"&java=" + URLEncoder.encode( java_version, Constants.BYTE_ENCODING).replaceAll("\\+", "%20") + 
-							"&javavendor=" + URLEncoder.encode( java_vendor, Constants.BYTE_ENCODING).replaceAll("\\+", "%20") +
-							"&javamx=" + max_mem +
-							"&plugins=" + URLEncoder.encode( plugins_str, Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
-			}
-		
-		return( new URL( url_str ));
-	}
-  */
-  
-  
-  
-  
+  } 
 	
 	protected ResourceDownloader[]
 	getPrimaryDownloaders(
@@ -512,8 +401,14 @@ CoreUpdateChecker
 						position = -1;
 						
 					}else{
+						
 						String mirror = page.substring(position, end);
-	 
+						
+						if ( mirror.endsWith("\"")){
+							
+							mirror = mirror.substring(0,mirror.length()-1);
+						}
+						
 						try{
 							res.add( new URL( "http://prdownloads.sourceforge.net" + mirror ));
 							
@@ -605,7 +500,7 @@ CoreUpdateChecker
 			
 			URL	url =(URL)res.get(i);
 			
-			log.log( "    Primary mirror:" +url.toString());
+			log.log( "    Backup mirror:" +url.toString());
 			
 			ResourceDownloader dl = rdf.create( url );
 
@@ -617,29 +512,7 @@ CoreUpdateChecker
 		}
 		
 		return( dls );
-	}    
- 
-	protected ResourceDownloader[]
-	getTestMirrors()
-	{
-		try{
-			ResourceDownloader[]	dls = new ResourceDownloader[1];
-			
-			ResourceDownloader rd = rdf.create( new URL("http://66.90.75.92/suprnova//torrents/1822/DivX511-exe.torrent" ));
-			
-			rd = rdf.getSuffixBasedDownloader( rd );
-	
-			dls[0] = rd;
-	
-			return( dls );
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-			
-			return( new ResourceDownloader[0]);
-		}
-	}    	
+	}       	
 
 	protected void
 	installUpdate(
