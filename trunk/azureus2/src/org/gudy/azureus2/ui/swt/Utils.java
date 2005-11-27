@@ -90,36 +90,10 @@ public class Utils {
    */
   public static void 
   setTextLinkFromClipboard(
-		  final Shell shell, final GridData gridData, final Text url, boolean accept_magnets ) {
+		  final Shell shell, final Text url, boolean accept_magnets ) {
     String link = getLinkFromClipboard(shell.getDisplay(),accept_magnets);
-    setTextLink(shell, gridData, url, link);
-  }
-
-  /**
-   * Sets a text into the URL dialog and adjusts the dialog size (and location).
-   * @param shell
-   * @param gridData
-   * @param url the URL text control
-   * @param link
-   * @author Rene Leonhardt
-   */
-  public static void setTextLink(final Shell shell, final GridData gridData, final Text url, String link) {
-    if(link == null)
-      return;
-    if(link.length() > 7) {
-      GC gc = new GC(url);
-      FontMetrics fm = gc.getFontMetrics();
-      int width = (link.length() + 10) * fm.getAverageCharWidth();
-      if(width > gridData.widthHint) {
-        if (width > shell.getDisplay().getBounds().width) {
-          gridData.widthHint = shell.getDisplay().getBounds().width - 20;
-          shell.setLocation(0, 0);
-        } else {
-          gridData.widthHint = width;
-        }
-      }
-    }
-    url.setText(link);
+    if (link != null)
+    	url.setText(link);
   }
 
   /**
@@ -218,15 +192,19 @@ public class Utils {
     DropTarget dropTarget = new DropTarget(control, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
     dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance()});
     dropTarget.addDropListener(new DropTargetAdapter() {
+			public void dropAccept(DropTargetEvent event) {
+				event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
+						event.currentDataType);
+			}
       public void dragOver(DropTargetEvent event) {
-        event.detail = DND.DROP_LINK;
+      	if ((event.operations & DND.DROP_LINK) > 0)
+      		event.detail = DND.DROP_LINK;
+      	else if ((event.operations & DND.DROP_COPY) > 0)
+      		event.detail = DND.DROP_COPY;
       }
       public void drop(DropTargetEvent event) {
-        GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-        gridData.widthHint=300;
-        setTextLink(control instanceof Shell ? (Shell) control : control.getShell(), gridData, url, ((URLTransfer.URLType)event.data).linkURL);
-        url.setLayoutData(gridData);
-        control.pack();
+        if (((URLTransfer.URLType)event.data).linkURL != null)
+        	url.setText(((URLTransfer.URLType)event.data).linkURL);
       }
     });
   }

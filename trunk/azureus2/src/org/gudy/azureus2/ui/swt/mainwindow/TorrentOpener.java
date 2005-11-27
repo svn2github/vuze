@@ -23,312 +23,50 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.io.File;
-import java.io.FileFilter;
+import java.io.IOException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
-
-import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
-import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.TorrentUtils;
-import org.gudy.azureus2.ui.swt.FileDownloadWindow;
-import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
-import org.gudy.azureus2.ui.swt.OpenUrlWindow;
-import org.gudy.azureus2.ui.swt.URLTransfer;
-import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
+import org.gudy.azureus2.ui.swt.URLTransfer;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
+
+import com.aelitis.azureus.core.AzureusCore;
 
 /**
  * @author Olivier Chalouhi
- *
+ * @author TuxPaper (openTorrentWindow)
  */
 public class TorrentOpener {
+	/**
+	 * Open a torrent.  Possibly display a window if the user config says so
+	 * 
+	 * @param torrentFile Torrent to open (file, url, etc)
+	 */
+	public static void openTorrent(String torrentFile) {
+		openTorrentWindow(null, new String[] { torrentFile }, false);
+	}
   
-  private static Display display;
-  private static Shell mainWindow;
-  private static AzureusCore azureus_core;
-  
-  public static void init(Shell _mainWindow, AzureusCore	core ) {
-    display = SWTThread.getInstance().getDisplay();
-    mainWindow = _mainWindow;
-	azureus_core	= core;
-  }
-  
-  
-  public static void 
-  openTorrent(
-  	AzureusCore		azureus_core,
-	String 			fileName) 
-  {
-  	boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
-  	
-    openTorrent(azureus_core,fileName, default_start_stopped, false);
-  }
-
-  public static void 
-  openTorrent(
-  	  final AzureusCore	azureus_core,
-      final String  fileName, 
-	  final boolean   startInStoppedState,
-	  boolean     from_drag_and_drop ) 
-  {
-    //catch a http url - who wrote this shite code?
-	  
-    int http_index = fileName.toUpperCase().lastIndexOf( "HTTP:" );
-	
-    int https_index = fileName.toUpperCase().lastIndexOf( "HTTPS:" );
-	
-	int	magnet_index = fileName.toUpperCase().lastIndexOf( "MAGNET:" );
-	
-	int index = Math.max( http_index, https_index );
-	index = Math.max( index, magnet_index );
-	
-    if( index > -1 ) {
-      String url = fileName.substring( index );
-      
-      //clean up accidental left-facing slashes
-      url = url.replace( (char)92, (char)47 );
-      
-      //find the root
-      int root_index = url.indexOf( 58 ) + 1;  //start searching after the colon, ":"
-      while( url.charAt( root_index) == (char)47 )  root_index++;  //pass over all "/"s
-      url = url.substring( root_index );
-      
-      String protocol;
-	  
-      if( http_index > -1 ){
-		  protocol = "http://";
-      }else if ( https_index > -1 ){
-		  protocol = "https://";
-      }else{
-		  protocol = "magnet://";
-      }
-      
-      final String full_url = protocol + url;
-      
-      AERunnable r = new AERunnable() {
-        public void runSupport() {
-          openUrl( azureus_core, full_url );
-        }
-      };
-      display.asyncExec( r );
-      return;
-    }
-    
-    try {
-      if (!FileUtil.isTorrentFile(fileName)){
-        
-        if ( from_drag_and_drop ){
-          
-          LGLogger.log( "MainWindow::openTorrent: file it not a torrent file, sharing" );
-
-          ShareUtils.shareFile( azureus_core, fileName );
-        
-          return;
-        }
-      }
-    } catch (Exception e) {
-      
-      LGLogger.logRepeatableAlert("Torrent open fails for '" + fileName + "'", e );
-         	 
-      return;
-    }
-
-    if(display != null && ! display.isDisposed())
-      display.asyncExec(new AERunnable(){
-        public void runSupport() {          
-          new AEThread("TorrentOpener::openTorrent") {
-            public void runSupport() {
-              try{
-                String savePath = getSavePath(fileName);
-                if (savePath == null){
-                  LGLogger.log( "MainWindow::openTorrent: save path not set, aborting" );
-  
-                  return;
-                }
-                // set to STATE_WAITING if we don't want to startInStoppedState
-                // so that auto-open details will work (even if the torrent
-                // immediately goes to queued)
-                
-                LGLogger.log( "MainWindow::openTorrent: adding download '" + fileName + "' --> '" + savePath + "'" );
- 
-                try{
-	                azureus_core.getGlobalManager().addDownloadManager(fileName, savePath, 
-	                                                 startInStoppedState ? DownloadManager.STATE_STOPPED 
-	                                                                     : DownloadManager.STATE_WAITING);
-                }catch( Throwable e ){
-    	          	
-    	          	LGLogger.logRepeatableAlert("Torrent open fails for '" + fileName + "'", e );
-    	        }
-	          }catch( Throwable e ){
-                
-               LGLogger.log( "MainWindow::openTorrent: torrent addition fails", e );
-
-              }
-            }
-          }
-          .start();
-        }
-      });
-  }
-  
-  public static String getSavePath(String fileName) {
-    return getSavePathSupport(fileName,true,false);
-  }
-  
-  protected static String 
-  getSavePathSupport(
-    String fileName,
-    boolean useDefault,
-    boolean forSeeding) 
-  {
-      // This *musn't* run on the swt thread as the torrent decoder stuff can need to 
-      // show a window...
-    boolean has_default = COConfigurationManager.getBooleanParameter("Use default data dir");
-    final String[] default_dir = { COConfigurationManager.getStringParameter( "Default save path" ) };
-    if( default_dir[0] == null || default_dir[0].length() == 0 ) has_default = false;
-      
-    if ( has_default ){
-    	File	f = new File(default_dir[0]);
-    	if ( !f.exists()){
-    		f.mkdirs();
-    	}
-    }
-    
-    if ( !useDefault || !has_default ) {
-
-      boolean singleFile = false;
-      
-      String singleFileName = ""; //$NON-NLS-1$
-
-      try {
-        TOTorrent torrent = TorrentUtils.readFromFile( new File(fileName), false );
-        
-        singleFile = torrent.isSimpleTorrent();
-        
-        LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
-            
-        singleFileName = locale_decoder.decodeString(torrent.getName());
-        
-        singleFileName = FileUtil.convertOSSpecificChars( singleFileName );
-      }
-      catch (Exception e) {
-      	Debug.printStackTrace( e );
-      }
-
-    
-      final boolean f_singleFile    = singleFile;
-      final boolean f_forSeeding = forSeeding;
-      final String  f_singleFileName  = singleFileName;
-
-      final AESemaphore sem = new AESemaphore("TorrentOpener");
-    
-      display.asyncExec(new AERunnable() {
-        public void runSupport()
-        {
-          try{
-            if (f_singleFile) {
-              int style = (f_forSeeding) ? SWT.OPEN : SWT.SAVE;
-              FileDialog fDialog = new FileDialog(mainWindow, SWT.SYSTEM_MODAL | style);             
-              fDialog.setFilterPath( getFilterPathData() );
-              fDialog.setFileName(f_singleFileName);
-              fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + f_singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-              default_dir[0] = setFilterPathData( fDialog.open() );
-            }
-            else {
-              DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.SYSTEM_MODAL);
-              dDialog.setFilterPath( getFilterPathData() );
-              dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath") + " (" + f_singleFileName + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-              default_dir[0] = setFilterPathData( dDialog.open() );
-            }
-          }finally{
-            sem.release();
-          }
-        }
-      });
- 
-    
-      sem.reserve();
-    }
-    
-    return default_dir[0];
-  }
-
-  
-  protected static void openTorrents(final String path, final String fileNames[]) {
-    openTorrents(path,fileNames,true);
-  }
-
-  protected static void openTorrentsForSeeding(final String path, final String fileNames[]) {
-    openTorrents(path,fileNames,false,true);
-  }
-  
-  protected static void openTorrents(
-    final String path, 
-    final String fileNames[],
-    final boolean useDefault )
-  {
-    openTorrents(path,fileNames,useDefault,false);
-  }
-
-  protected static void openTorrents(
-    final String path, 
-    final String fileNames[],
-    final boolean useDefault,
-    final boolean forSeeding )
-  {
-  display.asyncExec(new AERunnable(){
-     public void runSupport()
-     {
-
-       new AEThread("TorrentOpener"){
-          public void runSupport() {
-            boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
-
-            String separator = System.getProperty("file.separator"); //$NON-NLS-1$
-            for (int i = 0; i < fileNames.length; i++) {
-
-            	// parg: removed test on .torrent/.tor as we now support any file
-                     
-              String savePath = getSavePathSupport(path + separator + fileNames[i],useDefault,forSeeding);
-              
-              if (savePath == null){
-                continue;
-              }
-              
-              try{
-				  azureus_core.getGlobalManager().addDownloadManager(
-	              				path + separator + fileNames[i], 
-								savePath,
-								default_start_stopped ? DownloadManager.STATE_STOPPED 
-	                                    : DownloadManager.STATE_QUEUED,
-								true,
-								forSeeding );
-	          }catch( Throwable e ){
-	          	
-   	          	LGLogger.logUnrepeatableAlert("Torrent open fails for '" + path + separator + fileNames[i] + "'", e );
-	          }
-            }
-          }
-        }.start();
-     }
-  });
+	/**
+	 * Open the torrent window
+	 *
+	 */
+  public static void openTorrentWindow() {
+  	openTorrentWindow(null, null, false);
   }
 
   protected static void 
@@ -336,147 +74,66 @@ public class TorrentOpener {
     final String path, 
     final String fileNames[] )
   {
-		  display.asyncExec(new AERunnable(){
-		     public void runSupport()
-		     {
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+		  	MainWindow mainWindow = MainWindow.getWindow();
+				if (mainWindow == null)
+					return;
 
-		       new AEThread("TorrentOpener"){
-		          public void runSupport() {
+				final Display display = mainWindow.getDisplay();
+		  	final AzureusCore azureus_core = mainWindow.getAzureusCore();
+		  	if (display == null || display.isDisposed() || azureus_core == null)
+		  		return;
+		  	
+				new AEThread("TorrentOpener") {
+					public void runSupport() {
 
-		            String separator = System.getProperty("file.separator");
-					
-		            for (int i = 0; i < fileNames.length; i++) {
+						for (int i = 0; i < fileNames.length; i++) {
 
-		              try{
-						  TOTorrent	t = TorrentUtils.readFromFile( new File( path, fileNames[i]), true );
-						  
-						  azureus_core.getTrackerHost().hostTorrent( t, true, true );
-	
-			          }catch( Throwable e ){
-			          	
-		   	          	LGLogger.logUnrepeatableAlert("Torrent open fails for '" + path + separator + fileNames[i] + "'", e );
-			          }
-		            }
-		          }
-		        }.start();
-		     }
-		  });
-  }
-  
-  public static void openTorrentsFromDirectory(String directoryName) {
-    boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
-    
-    openTorrentsFromDirectory(directoryName, default_start_stopped);
-  }
+							try {
+								TOTorrent t = TorrentUtils.readFromFile(new File(path,
+										fileNames[i]), true);
 
-  public static void openTorrentsFromDirectory(String directoryName, final boolean startInStoppedState) {
-    File f = new File(directoryName);
-    if (!f.isDirectory())
-      return;
-    final File[] files = f.listFiles(new FileFilter() {
-      public boolean accept(File arg0) {
-        if (FileUtil.getCanonicalFileName(arg0.getName()).endsWith(".torrent")) //$NON-NLS-1$
-          return true;
-        if (FileUtil.getCanonicalFileName(arg0.getName()).endsWith(".tor")) //$NON-NLS-1$
-          return true;
-        return false;
-      }
-    });
-    if (files.length == 0)
-      return;
+								azureus_core.getTrackerHost().hostTorrent(t, true, true);
 
-    DirectoryDialog dDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-    dDialog.setFilterPath( getFilterPathData() );
-    dDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath_forallfiles")); //$NON-NLS-1$
-    final String path = setFilterPathData( dDialog.open() );
-    if( path == null ) return;
-    
-    new AEThread("Torrent Opener") {
-      public void runSupport() {
-        for (int i = 0; i < files.length; i++)
-        	try{
-	          azureus_core.getGlobalManager().addDownloadManager(files[i].getAbsolutePath(), path, 
-	                                           startInStoppedState ? DownloadManager.STATE_STOPPED 
-	                                                               : DownloadManager.STATE_QUEUED);
-            }catch( Throwable e ){
-	          	
-   	          	LGLogger.logUnrepeatableAlert("Torrent open fails for '" + files[i].getAbsolutePath() + "'", e );
-	        }
-      }
-    }
-    .start();
-  }
-
-
-  public static void openDirectory() {
-    DirectoryDialog fDialog = new DirectoryDialog(mainWindow, SWT.NULL);
-    fDialog.setFilterPath( getFilterPathTorrent() );
-    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.folder")); //$NON-NLS-1$
-    String path = setFilterPathTorrent( fDialog.open() );
-    if( path == null ) return;
-    TorrentOpener.openTorrentsFromDirectory( path );
-  }
-
-
-  public static void openTorrent() {
-    FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-    fDialog.setFilterPath( getFilterPathTorrent() );
-    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", "*.*" });
-    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", "*.*" }); 
-    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); 
-    String path = setFilterPathTorrent( fDialog.open() );
-    if( path == null ) return;
-    TorrentOpener.openTorrents( path, fDialog.getFileNames() );
-  }
-
-
-  public static void openTorrentNoDefaultSave(boolean forSeeding) {
-    FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-    fDialog.setFilterPath( getFilterPathTorrent() );
-    fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", "*.*" }); 
-    fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", "*.*" }); 
-    fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); 
-    String path = setFilterPathTorrent( fDialog.open() );
-    if( path == null ) return;
-    TorrentOpener.openTorrents( path, fDialog.getFileNames(), false, forSeeding );
+							} catch (Throwable e) {
+								Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+										"Torrent open fails for '" + path + File.separator
+												+ fileNames[i] + "'", e));
+							}
+						}
+					}
+				}.start();
+			}
+		});
   }
   
   public static void 
   openTorrentTrackingOnly() 
   {
-	  FileDialog fDialog = new FileDialog(mainWindow, SWT.OPEN | SWT.MULTI);
-	  fDialog.setFilterPath( getFilterPathTorrent() );
-	  fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", "*.*" }); 
-	  fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", "*.*" }); 
-	  fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file")); 
-	  String path = setFilterPathTorrent( fDialog.open() );
-	  if( path == null ) return;
-		
-	  TorrentOpener.openTorrentsForTracking( path, fDialog.getFileNames() );
-  }
-  
-  public static void openTorrentWindow() {
-    new OpenTorrentWindow(display, azureus_core.getGlobalManager());
-  }
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+		  	MainWindow mainWindow = MainWindow.getWindow();
+				if (mainWindow == null)
+					return;
 
+				final Shell shell = mainWindow.getShell();
+		  	if (shell == null || shell.isDisposed())
+		  		return;
 
-  public static void 
-  openUrl(
-  	AzureusCore	azureus_core )
-  {
-    openUrl(azureus_core,null);
-  }
+				FileDialog fDialog = new FileDialog(shell, SWT.OPEN | SWT.MULTI);
+				fDialog.setFilterPath(getFilterPathTorrent());
+				fDialog
+						.setFilterExtensions(new String[] { "*.torrent", "*.tor", "*.*" });
+				fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", "*.*" });
+				fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file"));
+				String path = setFilterPathTorrent(fDialog.open());
+				if (path == null)
+					return;
 
-
-  public static void 
-  openUrl(
-  	AzureusCore	azureus_core,
-	String 		linkURL) 
-  {
-    if( linkURL != null && linkURL.length() > 12 && COConfigurationManager.getBooleanParameter("Add URL Silently") )
-      new FileDownloadWindow(azureus_core,display, linkURL, null );
-    else
-      new OpenUrlWindow(azureus_core, display, linkURL, null);
+				TorrentOpener.openTorrentsForTracking(path, fDialog.getFileNames());
+			}
+		});
   }
   
   public static void 
@@ -486,23 +143,22 @@ public class TorrentOpener {
   {
     if(event.data == null)
       return;
-    if(event.data instanceof String[]) {
-      final String[] sourceNames = (String[]) event.data;
+
+    boolean bOverrideToStopped = event.detail == DND.DROP_COPY;
+    
+    if(event.data instanceof String[] || event.data instanceof String) {
+      final String[] sourceNames = (event.data instanceof String[]) ?
+      		(String[]) event.data : new String[] { (String) event.data };
       if (sourceNames == null)
         event.detail = DND.DROP_NONE;
       if (event.detail == DND.DROP_NONE)
         return;
       
-      	// override non-DND.DROP_COPY if the default has been set to "start stopped"
-      
-      boolean	default_start_stopped = COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped" );
-      
-      boolean startInStoppedState = default_start_stopped || event.detail == DND.DROP_COPY;
-      
       for (int i = 0;(i < sourceNames.length); i++) {
         final File source = new File(sourceNames[i]);
         if (source.isFile())
-          TorrentOpener.openTorrent(azureus_core, source.getAbsolutePath(), startInStoppedState, true );
+        	openTorrentWindow(null, new String[] { source.getAbsolutePath() }, 
+        			bOverrideToStopped);
         else if (source.isDirectory()){
           
           String  dir_name = source.getAbsolutePath();
@@ -516,12 +172,18 @@ public class TorrentOpener {
           }else if ( drop_action.equals("3")){
             ShareUtils.shareDirContents( azureus_core,dir_name, true );
           }else{
-            TorrentOpener.openTorrentsFromDirectory(dir_name, startInStoppedState);
+          	openTorrentWindow(dir_name, null, bOverrideToStopped);
           }
+        } else {
+        	// Probably a URL.. let torrentwindow handle it
+        	openTorrentWindow(null, new String[] { sourceNames[i] },
+        			bOverrideToStopped);
         }
       }
-    } else {
-      TorrentOpener.openUrl(azureus_core,((URLTransfer.URLType)event.data).linkURL);
+    } else if (event.data instanceof URLTransfer.URLType) {
+    	openTorrentWindow(null,
+					new String[] { ((URLTransfer.URLType) event.data).linkURL },
+					bOverrideToStopped);
     }
   }
   
@@ -531,18 +193,13 @@ public class TorrentOpener {
     if( before != null && before.length() > 0 ) {
       return before;
     }
-    String	def = COConfigurationManager.getStringParameter("Default save path");
-    
-    if ( def != null && def.length() > 0 ){
-    	
-    	File	f = new File(def);
-    	
-    	if ( !f.exists()){
-    		f.mkdirs();
-    	}
-    }
-    
-    return( def );
+    String def;
+		try {
+			def = COConfigurationManager.getDirectoryParameter("Default save path");
+	    return def;
+		} catch (IOException e) {
+			return "";
+		}
   }
   
   public static String getFilterPathTorrent() {
@@ -583,5 +240,23 @@ public class TorrentOpener {
     }
     return path;
   }
-  
+
+  private static void openTorrentWindow(final String path,
+			final String[] torrents, final boolean bOverrideStartModeToStopped) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+		  	MainWindow mainWindow = MainWindow.getWindow();
+				if (mainWindow == null)
+					return;
+
+				Shell shell = mainWindow.getShell();
+				GlobalManager gm = mainWindow.getGlobalManager();
+		  	if (shell == null || shell.isDisposed() || gm == null)
+		  		return;
+
+				OpenTorrentWindow.invoke(shell, gm, path, torrents,
+						bOverrideStartModeToStopped, false);
+			}
+		});
+	}
 }

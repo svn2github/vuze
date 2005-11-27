@@ -208,9 +208,6 @@ MainWindow
     // register window
     ShellManager.sharedManager().addWindow(mainWindow);
 
-    //The Torrent Opener
-    TorrentOpener.init(mainWindow,azureus_core);
-    
     mainMenu = new MainMenu(this);
 
     try {
@@ -1504,24 +1501,8 @@ MainWindow
 
   public void itemActivated(String itemKey) {   
     if(itemKey.equals("open")) {        
-     TorrentOpener.openTorrent();
+     TorrentOpener.openTorrentWindow();
      return;
-    }
-    if(itemKey.equals("open_no_default")) {
-      TorrentOpener.openTorrentNoDefaultSave(false);
-      return;
-    }
-    if(itemKey.equals("open_for_seeding")) {
-      TorrentOpener.openTorrentNoDefaultSave(true);
-      return;
-    }
-    if(itemKey.equals("open_url")) {
-      TorrentOpener.openUrl(azureus_core);
-      return;
-    }
-    if(itemKey.equals("open_folder")) {
-      TorrentOpener.openDirectory();
-      return;
     }
     if(itemKey.equals("new")) {
       new NewTorrentWizard(getAzureusCore(),display);

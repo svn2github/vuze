@@ -28,7 +28,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -38,7 +37,8 @@ import org.eclipse.swt.widgets.Text;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 /**
  * @author Olivier
@@ -55,18 +55,36 @@ OpenUrlWindow
   	last_referrer = COConfigurationManager.getStringParameter( CONFIG_REFERRER_DEFAULT, "" );
   }
   
-  public 
-  OpenUrlWindow(
-  	final AzureusCore	azureus_core,
-	final Display 		display, 
-	String 				linkURL,
-	final String		referrer ) 
-  {
-    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+  /**
+   * Init
+	 * 
+	 * @param azureus_core
+	 * @param parent
+	 * @param linkURL
+	 * @param referrer
+	 */
+	public OpenUrlWindow(final AzureusCore azureus_core, final Shell parent,
+			String linkURL, final String referrer) {
+		this(azureus_core, parent, linkURL, referrer, null);
+	}
+
+	/**
+	 * Init with listener
+	 * 
+	 * @param azureus_core
+	 * @param parent
+	 * @param linkURL
+	 * @param referrer
+	 * @param listener
+	 */
+	public OpenUrlWindow(final AzureusCore azureus_core, final Shell parent,
+			String linkURL, final String referrer,
+			final TorrentDownloaderCallBackInterface listener) {
+
+    final Shell shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM
+				| SWT.APPLICATION_MODAL | SWT.RESIZE);
     shell.setText(MessageText.getString("openUrl.title"));
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
     
     GridData gridData;
     GridLayout layout = new GridLayout();
@@ -82,14 +100,14 @@ OpenUrlWindow
     
     final Text url = new Text(shell, SWT.BORDER);
 
-    gridData = new GridData();//GridData.FILL_HORIZONTAL
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint=400;
     gridData.horizontalSpan	= 2;
     url.setLayoutData(gridData);
     if(linkURL == null)
-      Utils.setTextLinkFromClipboard(shell, gridData, url, true);
+      Utils.setTextLinkFromClipboard(shell, url, true);
     else
-      Utils.setTextLink(shell, gridData, url, linkURL);
+    	url.setText(linkURL);
     url.setSelection(url.getText().length());
     
     
@@ -141,7 +159,7 @@ OpenUrlWindow
 	// line
 	
 	Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
-	gridData = new GridData(GridData.FILL_HORIZONTAL);
+	gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_END);
 	gridData.horizontalSpan = 3;
 	labelSeparator.setLayoutData(gridData);
 
@@ -151,7 +169,7 @@ OpenUrlWindow
     layout = new GridLayout();
     layout.numColumns = 3;
     panel.setLayout(layout);        
-    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
     gridData.horizontalSpan = 3;
 	gridData.grabExcessHorizontalSpace = true;
     panel.setLayoutData(gridData);
@@ -159,7 +177,7 @@ OpenUrlWindow
     new Label(panel, SWT.NULL);
     
     Button ok = new Button(panel,SWT.PUSH);
-    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_END);
     gridData.widthHint = 70;    
 	gridData.grabExcessHorizontalSpace = true;
     ok.setLayoutData(gridData);
@@ -177,7 +195,7 @@ OpenUrlWindow
       	COConfigurationManager.setParameter( CONFIG_REFERRER_DEFAULT, last_referrer );
       	COConfigurationManager.save();
       	
-        new FileDownloadWindow(azureus_core,display,url.getText(), last_referrer );
+        new FileDownloadWindow(azureus_core,parent,url.getText(), last_referrer, listener );
         shell.dispose();
       }
     }); 

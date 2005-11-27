@@ -32,4 +32,6 @@ TOTorrentFile
 		
 	public byte[][]
 	getPathComponents();
+	
+	public String getRelativePath();
 }

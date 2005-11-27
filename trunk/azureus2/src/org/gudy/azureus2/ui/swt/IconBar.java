@@ -119,10 +119,11 @@ public class IconBar {
     //The File Menu
     CoolItem coolItem = new CoolItem(coolBar,SWT.NULL); 
     ToolBar toolBar = new ToolBar(coolBar,SWT.FLAT);
-    createBufferedToolItem(toolBar,SWT.PUSH,"open","cb_open","iconBar.open.tooltip");    
-    createBufferedToolItem(toolBar,SWT.PUSH,"open_no_default","cb_open_no_default","iconBar.openNoDefault.tooltip");    
-    createBufferedToolItem(toolBar,SWT.PUSH,"open_url","cb_open_url","iconBar.openURL.tooltip");    
-    createBufferedToolItem(toolBar,SWT.PUSH,"open_folder","cb_open_folder","iconBar.openFolder.tooltip");            
+    createBufferedToolItem(toolBar,SWT.PUSH,"open","cb_open","iconBar.open.tooltip");
+    // XXX TuxPaper: Remove images
+    //createBufferedToolItem(toolBar,SWT.PUSH,"open_no_default","cb_open_no_default","iconBar.openNoDefault.tooltip");    
+    //createBufferedToolItem(toolBar,SWT.PUSH,"open_url","cb_open_url","iconBar.openURL.tooltip");    
+    //createBufferedToolItem(toolBar,SWT.PUSH,"open_folder","cb_open_folder","iconBar.openFolder.tooltip");            
     createBufferedToolItem(toolBar,SWT.PUSH,"new","cb_new","iconBar.new.tooltip");
     toolBar.pack(); 
     Point p = toolBar.getSize();

@@ -19,6 +19,7 @@ import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 /**
  * @author Olivier
@@ -26,25 +27,23 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
  */
 public class TrackerChangerWindow {
   public TrackerChangerWindow(final Display display, final TRTrackerAnnouncer trackerConnection) {
-    final Shell shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display);
+    final Shell shell = ShellFactory.createShell(display);
     shell.setText(MessageText.getString("TrackerChangerWindow.title"));
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();
     shell.setLayout(layout);
 
     Label label = new Label(shell, SWT.NONE);
-    label.setText(MessageText.getString("TrackerChangerWindow.newtracker"));    
+    Messages.setLanguageText(label, "TrackerChangerWindow.newtracker");    
     GridData gridData = new GridData();
     gridData.widthHint = 200;
     label.setLayoutData(gridData);
 
     final Text url = new Text(shell, SWT.BORDER);
-    gridData = new GridData();
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint = 300;
     url.setLayoutData(gridData);
-    Utils.setTextLinkFromClipboard(shell, gridData, url, false);
+    Utils.setTextLinkFromClipboard(shell, url, false);
 
     Composite panel = new Composite(shell, SWT.NULL);
     layout = new GridLayout();

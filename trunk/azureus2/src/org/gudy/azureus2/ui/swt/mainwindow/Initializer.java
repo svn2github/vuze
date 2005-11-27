@@ -260,7 +260,7 @@ Initializer
 	    		    for (int i=0;i<args.length;i++){
 	    		    	
 	    		    	try{
-	    		    		TorrentOpener.openTorrent( core, args[i]);
+	    		    		TorrentOpener.openTorrent(args[i]);
 	    		    		
 	    	        	}catch( Throwable e ){
 	    	        		

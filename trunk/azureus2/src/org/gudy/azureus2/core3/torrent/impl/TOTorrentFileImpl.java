@@ -25,6 +25,8 @@ package org.gudy.azureus2.core3.torrent.impl;
 import java.io.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -160,5 +162,39 @@ TOTorrentFileImpl
 	getAdditionalProperties()
 	{
 		return( additional_properties );
+	}
+
+	public String getRelativePath() {
+		if (torrent == null)
+			return "";
+		String sRelativePath = "";
+
+		LocaleUtilDecoder decoder = null;
+		try {
+			decoder = LocaleUtil.getSingleton()
+				.getTorrentEncodingIfAvailable(torrent);
+		} catch (Exception e) {
+			// Do Nothing
+		}
+
+		if (decoder != null) {
+			for (int j = 0; j < path_components.length; j++) {
+
+				String comp;
+				try {
+					comp = decoder.decodeString(path_components[j]);
+				} catch (UnsupportedEncodingException e) {
+					System.out.println("file - unsupported encoding!!!!");
+					comp = new String(path_components[j]);
+				}
+
+				comp = FileUtil.convertOSSpecificChars(comp);
+
+				sRelativePath += (j == 0 ? "" : File.separator) + comp;
+
+			}
+
+		}
+		return sRelativePath;
 	}
 }

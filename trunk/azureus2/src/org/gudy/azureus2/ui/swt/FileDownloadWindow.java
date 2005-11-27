@@ -41,9 +41,9 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.eclipse.swt.widgets.Button;
 
@@ -61,14 +61,38 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
   Button cancel;  
   TorrentDownloader downloader;
   
-  public 
-  FileDownloadWindow(
-  		AzureusCore		_azureus_core,
-  		Display 		display,
-		final String 	url,
-		final String	referrer ) 
-  {
+  TorrentDownloaderCallBackInterface listener;
+
+  /**
+   * Create a file download window.  Add torrent when done downloading
+   *  
+   * @param _azureus_core
+   * @param parent
+   * @param url
+   * @param referrer
+   */
+  public FileDownloadWindow(AzureusCore _azureus_core, Shell parent,
+			final String url, final String referrer) {
+  	this(_azureus_core, parent, url, referrer, null);
+	}
+
+  /**
+   * Create a file download window.  If no listener is supplied, torrent will
+   * be added when download is complete.  If a listener is supplied, caller
+   * handles it
+   *   
+   * @param _azureus_core
+   * @param parent
+   * @param url
+   * @param referrer
+   * @param listener
+   */
+	public FileDownloadWindow(AzureusCore _azureus_core, Shell parent,
+			final String url, final String referrer,
+			TorrentDownloaderCallBackInterface listener) {
   	azureus_core	= _azureus_core;
+  	
+  	this.listener = listener;
   	
     String dirName = null;
     if(COConfigurationManager.getBooleanParameter("Save Torrent Files",true)) {
@@ -77,18 +101,17 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
       } catch(Exception egnore) {}
     }
     if(dirName == null) {
-      DirectoryDialog dd = new DirectoryDialog(MainWindow.getWindow().getShell(),SWT.NULL);
+      DirectoryDialog dd = new DirectoryDialog(shell, SWT.NULL);
       dd.setText(MessageText.getString("fileDownloadWindow.saveTorrentIn"));
       dirName = dd.open();
     }
     if(dirName == null) return;
     
-    this.display = display;
-    this.shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,SWT.CLOSE | SWT.BORDER | SWT.TITLE);
+    this.display = parent.getDisplay();
+    this.shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM);
     shell.setText(MessageText.getString("fileDownloadWindow.title"));
-    if(! Constants.isOSX) {
-      shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(shell);
+
     final FormLayout formLayout = new FormLayout();
     formLayout.marginHeight = 5;
     formLayout.marginWidth = 5;
@@ -215,7 +238,9 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     downloader.start();
   }    
     
-  public void TorrentDownloaderEvent(int state, TorrentDownloader inf) {   
+  public void TorrentDownloaderEvent(int state, TorrentDownloader inf) {
+  	if (listener != null)
+  		listener.TorrentDownloaderEvent(state, inf);
     update();    
   }
   
@@ -250,7 +275,8 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
             //If the Shell has been disposed, then don't process the torrent.
             if(shell != null && ! shell.isDisposed()) {
               shell.dispose();
-              TorrentOpener.openTorrent(azureus_core, downloader.getFile().getAbsolutePath());
+              if (listener == null)
+              	TorrentOpener.openTorrent(downloader.getFile().getAbsolutePath());
             }
           }
    
@@ -281,5 +307,4 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
       });
     }
   }
-
 }

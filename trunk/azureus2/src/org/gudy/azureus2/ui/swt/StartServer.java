@@ -28,6 +28,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 public class 
 StartServer
 {
+	private static final LogIDs LOGID = LogIDs.GUI;
   public static final String ACCESS_STRING = "Azureus Start Server Access";
   private ServerSocket socket;
   private int state;
@@ -48,12 +49,16 @@ StartServer
         
         state = STATE_LISTENING;    
         
-        LGLogger.log( "StartServer: listening on 127.0.0.1:6880 for passed torrent info");
+        if (Logger.isEnabled())
+        	Logger.log(new LogEvent(LOGID, "StartServer: listening on "
+        			+ "127.0.0.1:6880 for passed torrent info"));
     
     }catch (Throwable t) {
       state = STATE_FAULTY;
       String reason = t.getMessage() == null ? "<>" : t.getMessage();
-      LGLogger.log( "StartServer ERROR: unable to bind to 127.0.0.1:6880 listening for passed torrent info: " +reason );
+      Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+					"StartServer ERROR: unable" + " to bind to 127.0.0.1:6880 listening"
+							+ " for passed torrent info: " + reason));
     }
   }
 
@@ -103,7 +108,9 @@ StartServer
           String line = br.readLine();
           //System.out.println("received : " + line);
           
-      	  LGLogger.log( "Main::startServer: received '" + line + "'");
+          if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "Main::startServer: received '"
+								+ line + "'"));
       	 
           if (line != null) {
             StringTokenizer st = new StringTokenizer(line, ";");           
@@ -123,7 +130,8 @@ StartServer
             			args[i++] = bit;
             		}
                   
-            		LGLogger.log( "Main::startServer: decoded to '" + debug_str + "'");
+            		Logger.log(new LogEvent(LOGID,
+										"Main::startServer: decoded to '" + debug_str + "'"));
                   
             		if( !COConfigurationManager.getBooleanParameter( "add_torrents_silently" ) ) {
             			showMainWindow();
@@ -177,7 +185,9 @@ StartServer
         
         if( file_name.toUpperCase().startsWith( "HTTP:" ) || file_name.toUpperCase().startsWith( "MAGNET:" ) ) {
         	
-          LGLogger.log( "StartServer: args[" + i + "] handling as a URI: " +file_name );
+        	if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "StartServer: args[" + i
+								+ "] handling as a URI: " + file_name));
         
         }else{
 
@@ -191,16 +201,14 @@ StartServer
 
               file_name = file.getCanonicalPath();
 
-              LGLogger.log("StartServer: file = " + file_name);
+              Logger.log(new LogEvent(LOGID, "StartServer: file = " + file_name));
 
             } catch (Throwable e) {
 
-              LGLogger
-                  .logRepeatableAlert(
-                      LGLogger.AT_ERROR,
-                      "Failed to access torrent file '"
-                          + file_name
-                          + "'. Ensure sufficient temporary file space available (check browser cache usage).");
+            	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+            			"Failed to access torrent file '" + file_name
+            			+ "'. Ensure sufficient temporary file space "
+            			+ "available (check browser cache usage)."));
             }
         }
         
@@ -223,7 +231,7 @@ StartServer
         if ( !queued ){
             try {
 
-              TorrentOpener.openTorrent(azureus_core, file_name);
+              TorrentOpener.openTorrent(file_name);
 
             } catch (Throwable e) {
 
@@ -250,7 +258,7 @@ StartServer
     for (int i=0;i<queued_torrents.size();i++){
     	
     	try{
-    		TorrentOpener.openTorrent(azureus_core, (String)queued_torrents.get(i));
+    		TorrentOpener.openTorrent((String)queued_torrents.get(i));
     		
     	}catch( Throwable e ){
     		

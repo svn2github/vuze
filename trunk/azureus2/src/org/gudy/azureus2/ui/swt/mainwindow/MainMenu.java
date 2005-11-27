@@ -34,12 +34,9 @@ import org.gudy.azureus2.core3.predicate.AllPredicate;
 import org.gudy.azureus2.core3.predicate.NotPredicate;
 import org.gudy.azureus2.core3.predicate.Predicable;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow2;
@@ -51,7 +48,6 @@ import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
@@ -77,6 +73,7 @@ import java.util.Locale;
  * @author James Yeh Accessibility: Changes to allow better validation and unified menu bar state
  */
 public class MainMenu {
+	private static final LogIDs LOGID = LogIDs.GUI;
 
   private Display display;
   private MainWindow mainWindow;
@@ -105,7 +102,7 @@ public class MainMenu {
           this.display = SWTThread.getInstance().getDisplay();
           attachedShell = shell;
 
-          buildMenu(MessageText.getLocales(), shell);
+          buildMenu(shell);
       }
   }
 
@@ -114,7 +111,7 @@ public class MainMenu {
     this.display = SWTThread.getInstance().getDisplay();
     attachedShell = mainWindow.getShell();
 
-    buildMenu(MessageText.getLocales(), mainWindow.getShell());
+    buildMenu(mainWindow.getShell());
   }
 
   /**
@@ -122,7 +119,7 @@ public class MainMenu {
    * @param locales
    * @param parent
    */
-  private void buildMenu(Locale[] locales, final Shell parent) {
+  private void buildMenu(final Shell parent) {
     try {
       
       //The Main Menu
@@ -213,63 +210,29 @@ public class MainMenu {
       }
 
       // file->open submenus
+      final String PREFIX_FILEOPEN = "MainWindow.menu.file.open."; 
       
       Menu newMenu = new Menu(parent, SWT.DROP_DOWN);
       file_new.setMenu(newMenu);
-  
-      MenuItem file_new_torrent = new MenuItem(newMenu, SWT.NULL);
-      KeyBindings.setAccelerator(file_new_torrent, "MainWindow.menu.file.open.torrent");
-      Messages.setLanguageText(file_new_torrent, "MainWindow.menu.file.open.torrent"); //$NON-NLS-1$
-      file_new_torrent.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          TorrentOpener.openTorrent();
-        }
-      });
-  
-      MenuItem file_new_torrent_no_default = new MenuItem(newMenu, SWT.NULL);
-      KeyBindings.setAccelerator(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault");
-      Messages.setLanguageText(file_new_torrent_no_default, "MainWindow.menu.file.open.torrentnodefault"); //$NON-NLS-1$
-      file_new_torrent_no_default.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          TorrentOpener.openTorrentNoDefaultSave(false);
-        }      
-      });
-  
-    MenuItem file_new_torrent_for_seeding = new MenuItem(newMenu, SWT.NULL);
-      KeyBindings.setAccelerator(file_new_torrent_for_seeding, "MainWindow.menu.file.open.torrentforseeding");
-      Messages.setLanguageText(file_new_torrent_for_seeding, "MainWindow.menu.file.open.torrentforseeding"); //$NON-NLS-1$
-      file_new_torrent_for_seeding.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          TorrentOpener.openTorrentNoDefaultSave(true);
-        }      
-      });
-  
+      
+      MenuItem fileOpenTorrent = new MenuItem(newMenu, SWT.NULL);
+			Messages.setLanguageText(fileOpenTorrent, PREFIX_FILEOPEN + "torrent");
+			KeyBindings.setAccelerator(fileOpenTorrent, PREFIX_FILEOPEN + "torrent");
+			fileOpenTorrent.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					TorrentOpener.openTorrentWindow();
+				}
+			});
+
     MenuItem file_new_torrent_for_tracking = new MenuItem(newMenu, SWT.NULL);
-      KeyBindings.setAccelerator(file_new_torrent_for_tracking, "MainWindow.menu.file.open.torrentfortracking");
-      Messages.setLanguageText(file_new_torrent_for_tracking, "MainWindow.menu.file.open.torrentfortracking");
+      KeyBindings.setAccelerator(file_new_torrent_for_tracking, PREFIX_FILEOPEN + "torrentfortracking");
+      Messages.setLanguageText(file_new_torrent_for_tracking, PREFIX_FILEOPEN + "torrentfortracking");
 	  file_new_torrent_for_tracking.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
           TorrentOpener.openTorrentTrackingOnly();
         }      
       });
 		  
-      MenuItem file_new_url = new MenuItem(newMenu,SWT.NULL);
-      KeyBindings.setAccelerator(file_new_url, "MainWindow.menu.file.open.url");
-      Messages.setLanguageText(file_new_url, "MainWindow.menu.file.open.url"); //$NON-NLS-1$
-      file_new_url.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          TorrentOpener.openUrl(mainWindow.getAzureusCore());
-        }
-      });
-      MenuItem file_new_folder = new MenuItem(newMenu, SWT.NULL);
-      KeyBindings.setAccelerator(file_new_folder, "MainWindow.menu.file.folder");
-      Messages.setLanguageText(file_new_folder, "MainWindow.menu.file.folder"); //$NON-NLS-1$
-      file_new_folder.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          TorrentOpener.openDirectory();
-        }
-      });
-  
       	// file->share submenus
       
       Menu shareMenu = new Menu(parent, SWT.DROP_DOWN);
@@ -538,8 +501,7 @@ public class MainMenu {
       */
       
     } catch (Exception e) {
-      LGLogger.log(LGLogger.ERROR, "Error while creating menu items");
-      Debug.printStackTrace( e );
+    	Logger.log(new LogEvent(LOGID, "Error while creating menu items", e));
     }
   }
 
@@ -724,9 +686,12 @@ public class MainMenu {
   	final String			name )
   {
 
-    display.asyncExec(new AERunnable() {
+  	Utils.execSWTThread(new AERunnable() {
       public void runSupport()
       {
+      	if (pluginMenu == null || pluginMenu.isDisposed())
+      		return;
+
       	MenuItem[]	items = pluginMenu.getItems();
 
       	int	insert_at	= items.length;
@@ -773,9 +738,12 @@ public class MainMenu {
   	final AbstractIView 	view,
   	final String			name )
   {
-    display.asyncExec(new AERunnable() {
+  	Utils.execSWTThread(new AERunnable() {
       public void runSupport()
       {
+      	if (pluginMenu == null || pluginMenu.isDisposed())
+      		return;
+
       	MenuItem[]	items = pluginMenu.getItems();
 
       	boolean	others = false;
@@ -1110,11 +1078,11 @@ public class MainMenu {
   
   
   public void refreshLanguage() {
-    if (display == null || display.isDisposed())
-      return;
-
-    display.asyncExec(new AERunnable() {
+    Utils.execSWTThread(new AERunnable() {
       public void runSupport() {
+        if (display == null || display.isDisposed())
+          return;
+
         updateMenuText(menuBar);
         mainWindow.setSelectedLanguageItem(); 
       }

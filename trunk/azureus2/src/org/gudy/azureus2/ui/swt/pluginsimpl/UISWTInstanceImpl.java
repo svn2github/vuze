@@ -136,7 +136,7 @@ UISWTInstanceImpl
 		
 			case UIManagerEvent.ET_SHOW_TEXT_MESSAGE:
 			{
-				getDisplay().asyncExec(
+				Utils.execSWTThread(
 					new Runnable()
 					{
 						public void 
@@ -153,7 +153,7 @@ UISWTInstanceImpl
 			
 			case UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE:
 			{	
-				TorrentOpener.openTorrent(core, ((File)data).toString());
+				TorrentOpener.openTorrent(((File)data).toString());
 
 				break;
 			}
@@ -171,7 +171,7 @@ UISWTInstanceImpl
 								
 								new FileDownloadWindow(
 										core,
-										MainWindow.getWindow().getDisplay(),
+										MainWindow.getWindow().getShell(),
 										urls[0].toString(), urls[1]==null?null:urls[1].toString());
 							}
 						});
@@ -308,23 +308,11 @@ UISWTInstanceImpl
 		      
 		      if ( bAutoOpen ){
 		    	  
-		    	  Display	display = window.getDisplay();
-		    	  
-		    	  if ( display.getThread() == Thread.currentThread()){
-		    		  
-		    		  window.openPluginView(view);
-		    		  
-		    	  }else{
-		    		  display.asyncExec(
-		    			  new AERunnable()
-		    			  {
-		    				  public void 
-		    				  runSupport() 
-		    				  {
-		    					  window.openPluginView(view);
-		    				  }
-		    			  });
-		    	  }
+		      	Utils.execSWTThread(new AERunnable() {
+		      		public void runSupport() {
+		      			window.openPluginView(view);
+		      		}
+		      	});
 		      }
 		    }
 	  	}catch( Throwable e ){
