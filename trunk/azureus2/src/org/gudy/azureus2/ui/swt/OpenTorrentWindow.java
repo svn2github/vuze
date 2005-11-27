@@ -1027,12 +1027,16 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			File fOriginal = new File(sFileName);
 			torrentFile = TorrentUtils.copyTorrentFileToSaveDir(fOriginal, true);
 			bDeleteFileOnCancel = !fOriginal.equals(torrentFile);
+			// TODO if the files are still equal, and it isn't in the save
+			//       dir, we should copy it to a temp file in case something
+			//       re-writes it.  No need to copy a torrent coming from the
+			//       downloader though..
 		} catch (IOException e1) {
 			// Use torrent in wherever it is and hope for the best
 			// XXX Should error instead?
 			torrentFile = new File(sFileName);
 		}
-
+		
 		// Load up the torrent, see it it's real
 		try {
 			torrent = TorrentUtils.readFromFile(torrentFile, false);
