@@ -534,7 +534,7 @@ TOTorrentDeserialiseImpl
 			}
 			
 			throw( new TOTorrentException( "Decode fails '" + e.toString() + "'",
-											TOTorrentException.RT_DECODE_FAILS ));
+											TOTorrentException.RT_DECODE_FAILS, e ));
 		}
 	}
 	
