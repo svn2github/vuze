@@ -29,10 +29,12 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.animations.Animator;
 import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
 import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
@@ -66,6 +68,22 @@ public class MessagePopupShell implements AnimableShell {
   static {
       viewStack = new LinkedList();
   }
+  
+	/** Open a popup using resource keys for title/text
+	 * 
+	 * @param keyPrefix message bundle key prefix used to get title and text.  
+	 *         Title will be keyPrefix + ".title", and text will be set to
+	 *         keyPrefix + ".text"
+	 * @param details actual text for details (not a key)
+	 * @param textParams any parameters for text
+	 * 
+	 * @note Display moved to end to remove conflict in constructors
+	 */
+  public MessagePopupShell(String icon, String keyPrefix,
+			String details, String[] textParams, Display display) {
+  	this(display, icon, MessageText.getString(keyPrefix + ".title"),
+				MessageText.getString(keyPrefix + ".text", textParams), details);
+	}
 
   public MessagePopupShell(Display display,String icon,String title,String errorMessage,String details) {
     closeTimer = new Timer(true);
@@ -73,30 +91,22 @@ public class MessagePopupShell implements AnimableShell {
     this.display = display;
     this.icon = icon;
     detailsShell = new Shell(display,SWT.BORDER | SWT.ON_TOP);
-    if(! Constants.isOSX) {
-		// this code here in case image load fails
-	  Image az_image = ImageRepository.getImage("azureus");
-	  if ( az_image != null ){
-		  detailsShell.setImage(az_image);
-	  }
-    }
+    Utils.setShellIcon(detailsShell);
     
     detailsShell.setLayout(new FillLayout());
     StyledText textDetails = new StyledText(detailsShell, SWT.READ_ONLY | SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);  
     textDetails.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
     textDetails.setWordWrap( true );
     detailsShell.layout();    
-    detailsShell.setSize(500,300);    
+    detailsShell.setSize(550,300);    
     
-    
+
+    int popupWidth = 280;
+    int popupHeight = 170;
+
     shell = new Shell(display,SWT.ON_TOP);
-    shell.setSize(250,150);
-    if(! Constants.isOSX) {
-	  Image az_image = ImageRepository.getImage("azureus");
-	  if ( az_image != null ){
-		  shell.setImage(ImageRepository.getImage("azureus"));
-	  }
-    }
+    Utils.setShellIcon(shell);
+
     FormLayout layout = new FormLayout();
     layout.marginHeight = 0; layout.marginWidth = 0; 
     try {
@@ -107,49 +117,59 @@ public class MessagePopupShell implements AnimableShell {
     shell.setLayout(layout);
     
     Image popup_image = ImageRepository.getImage("popup");
-	
+
 		// this code is here to ensure that we can still show error messages even if images
 		// are failing to load (e.g. coz there's a ! in AZ install dir... )
-	
-	if ( popup_image != null ){
-		
-	    shellImg = new Image(display,popup_image,SWT.IMAGE_COPY);
-	    GC gcImage = new GC(shellImg);
+
+		GC gcImage = null;
+		if (popup_image != null) {
+			shellImg = new Image(display, popup_image, SWT.IMAGE_COPY);
+	    popupWidth = popup_image.getBounds().width; 
+	    popupHeight = popup_image.getBounds().height;
+		} else {
+			shellImg = new Image(display,
+					new Rectangle(0, 0, popupWidth, popupHeight));
+		}
+
+    shell.setSize(popupWidth, popupHeight);
+
+		gcImage = new GC(shellImg);
+
+		Image imgIcon = ImageRepository.getImage(icon);
+		int iconWidth = 0;
+		int iconHeight = 0;
+		if (imgIcon != null) {
+			imgIcon.setBackground(shell.getBackground());
+			gcImage.drawImage(imgIcon, 5, 5);
+	    iconWidth = imgIcon.getBounds().width;
+			iconHeight = imgIcon.getBounds().height;
+		}
 	    
-	    Image imgIcon = ImageRepository.getImage(icon);
-	    imgIcon.setBackground(shell.getBackground());
-	    
-	    gcImage.drawImage(imgIcon,5,5);
-	    
-	    Font tempFont = shell.getFont();
-	    FontData[] fontDataMain = tempFont.getFontData();
-	    for(int i=0 ; i < fontDataMain.length ; i++) {             
-	      fontDataMain[i].setStyle(SWT.BOLD);
-	      fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.2));
-	    }
-	    
-	    Font fontTitle = new Font(display,fontDataMain);
-	    gcImage.setFont(fontTitle);
-	    
-	    GCStringPrinter.printString(gcImage,title,new Rectangle(59,11,182,43));
-	    
-	    gcImage.setFont(tempFont);
-	    fontTitle.dispose();
-	    
-	    
-	    boolean bItFit = GCStringPrinter.printString(gcImage,errorMessage, 
-	                                                 new Rectangle(5,40,240,60));
-	    
-	    gcImage.dispose(); 
+
+		Font tempFont = shell.getFont();
+		FontData[] fontDataMain = tempFont.getFontData();
+		for (int i = 0; i < fontDataMain.length; i++) {
+			fontDataMain[i].setStyle(SWT.BOLD);
+			fontDataMain[i].setHeight((int) (fontDataMain[i].getHeight() * 1.2));
+		}
+
+		Font fontTitle = new Font(display, fontDataMain);
+		gcImage.setFont(fontTitle);
+
+		Rectangle rect = new Rectangle(iconWidth + 10, 5, popupWidth - iconWidth
+				- 15, iconHeight);
+		GCStringPrinter.printString(gcImage, title, rect);
+
+		gcImage.setFont(tempFont);
+		fontTitle.dispose();
+
+		rect = new Rectangle(5, iconHeight + 5, popupWidth - 10, popupHeight
+				- iconHeight - 60);
+		boolean bItFit = GCStringPrinter.printString(gcImage, errorMessage, rect);
+
+		gcImage.dispose(); 
 		if (!bItFit && details == null)
 			details = errorMessage;
-	}else{
-		
-		if ( details == null ){
-			
-			details = errorMessage;
-		}
-	}
     
     if(details != null)
       textDetails.setText(details);
@@ -202,11 +222,11 @@ public class MessagePopupShell implements AnimableShell {
     });
     
     Rectangle bounds = display.getClientArea();
-    x0 = bounds.x + bounds.width - 255;
+    x0 = bounds.x + bounds.width - popupWidth - 5;
     x1 = bounds.x + bounds.width;
 
     y0 = bounds.y + bounds.height;
-    y1 = bounds.y + bounds.height - 155;
+    y1 = bounds.y + bounds.height - popupHeight - 5;
     
     shell.setLocation(x0,y0);
     viewStack.addFirst(new WeakReference(this));
