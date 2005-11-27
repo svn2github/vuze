@@ -34,7 +34,7 @@ public class CategoryAdderWindow {
     shell.setLayout(layout);
 
     Label label = new Label(shell, SWT.NONE);
-    label.setText(MessageText.getString("CategoryAddWindow.message"));    
+    Messages.setLanguageText(label, "CategoryAddWindow.message");    
     GridData gridData = new GridData();
     gridData.widthHint = 200;
     label.setLayoutData(gridData);
@@ -50,7 +50,11 @@ public class CategoryAdderWindow {
     rLayout.marginLeft = 0;
     rLayout.marginBottom = 0;
     rLayout.marginRight = 0;
-    rLayout.fill = true;
+    try {
+    	rLayout.fill = true;
+    } catch (NoSuchFieldError e) {
+    	// SWT 2.x
+    }
     rLayout.spacing = ControlUtils.getButtonMargin();
     panel.setLayout(rLayout);
     gridData = new GridData();
