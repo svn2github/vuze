@@ -4,6 +4,7 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -139,14 +140,18 @@ public class ImageRepository {
     if(null == im) {
       InputStream is = loader.getResourceAsStream(res);
       if(null != is) {
-        if(alpha == 255) {
-          im = new Image(display, is);
-        } else {
-          ImageData icone = new ImageData(is);
-          icone.alpha = alpha;
-          im = new Image(display,icone);
-        }
-        images.put(name, im);
+      	try { 
+	        if(alpha == 255) {
+	          im = new Image(display, is);
+	        } else {
+	          ImageData icone = new ImageData(is);
+	          icone.alpha = alpha;
+	          im = new Image(display,icone);
+	        }
+	        images.put(name, im);
+      	} catch (SWTException e) {
+      		return null;
+      	}
       } else {
         System.out.println("ImageRepository:loadImage:: Resource not found: " + res);
 		
