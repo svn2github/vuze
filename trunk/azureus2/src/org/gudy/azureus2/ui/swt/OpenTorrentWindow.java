@@ -158,22 +158,24 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		}
 
 		if (stOpenTorrentWindow != null) {
-			stOpenTorrentWindow.bOverrideStartModeToStopped = bDefaultStopped;
-			stOpenTorrentWindow.bDefaultForSeeding = bForSeeding;
+			// local var because static may get set o null
+			OpenTorrentWindow openTorrentWindow = stOpenTorrentWindow;
+			openTorrentWindow.bOverrideStartModeToStopped = bDefaultStopped;
+			openTorrentWindow.bDefaultForSeeding = bForSeeding;
 			if (sFilesToOpen != null) {
 				// If none of the files sent to us were valid files, don't open the 
 				// window
-				if (stOpenTorrentWindow.addTorrents(sPathOfFilesToOpen, sFilesToOpen) == 0
-						&& stOpenTorrentWindow.torrentList.size() == 0
-						&& stOpenTorrentWindow.downloaders.size() == 0) {
-					stOpenTorrentWindow.close(true, true);
+				if (openTorrentWindow.addTorrents(sPathOfFilesToOpen, sFilesToOpen) == 0
+						&& openTorrentWindow.torrentList.size() == 0
+						&& openTorrentWindow.downloaders.size() == 0) {
+					openTorrentWindow.close(true, true);
 					return;
 				}
 			}
 
 			if (saveSilentlyDir != null) {
-				stOpenTorrentWindow.openTorrents(saveSilentlyDir);
-				stOpenTorrentWindow.close(true, false);
+				openTorrentWindow.openTorrents(saveSilentlyDir);
+				openTorrentWindow.close(true, false);
 			}
 		}
 	}
