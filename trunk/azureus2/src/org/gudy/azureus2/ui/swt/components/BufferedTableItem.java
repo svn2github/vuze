@@ -36,7 +36,7 @@ import org.gudy.azureus2.core3.util.Debug;
  */
 public abstract class BufferedTableItem {
   
-  private BufferedTableRow row;
+  protected BufferedTableRow row;
   private int position;
   private Color ourFGColor = null;
   
@@ -96,7 +96,7 @@ public abstract class BufferedTableItem {
 		  return false;
     }
     
-    Color newColor = new Color(row.getItem().getDisplay(), newRGB);
+    Color newColor = new Color(row.getTable().getDisplay(), newRGB);
     boolean ok = row.setForeground(position, newColor);
     if (ok) {
       if (ourFGColor != null && !ourFGColor.isDisposed())
@@ -124,10 +124,6 @@ public abstract class BufferedTableItem {
     return row.getTable();
   }
 
-  public TableItem getTableItem() {
-    return row.getItem();
-  }
-  
   public abstract void refresh();
   
   public void dispose() {
