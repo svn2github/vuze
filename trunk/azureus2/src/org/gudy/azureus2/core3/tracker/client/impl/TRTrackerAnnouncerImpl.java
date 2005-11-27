@@ -32,6 +32,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -53,6 +54,7 @@ public abstract class
 TRTrackerAnnouncerImpl
 	implements TRTrackerAnnouncer
 {
+	protected final static LogIDs LOGID = LogIDs.TRACKER;
 	public final static int componentID = 2;
 	public final static int evtLifeCycle = 0;
 	public final static int evtFullTrace = 1;

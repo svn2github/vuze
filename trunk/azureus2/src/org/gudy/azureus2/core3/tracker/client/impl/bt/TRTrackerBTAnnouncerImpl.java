@@ -221,14 +221,14 @@ TRTrackerBTAnnouncerImpl
 		this.tracker_peer_id_str += URLEncoder.encode(new String(tracker_peer_id, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
 	}catch (UnsupportedEncodingException e){
-		
-	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle,"URL encode fails", e );
+
+		Logger.log(new LogEvent(torrent, LOGID, "URL encode fails", e));
 	  
 	  throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));
 	  
 	}catch( TOTorrentException e ){
 	
-	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle,"Torrent hash retrieval fails", e );
+		Logger.log(new LogEvent(torrent, LOGID, "Torrent hash retrieval fails", e));
 		
 		throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));	
 	}
@@ -250,6 +250,11 @@ TRTrackerBTAnnouncerImpl
 				try{
 															
 					secs_to_wait = requestUpdateSupport();
+
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(torrent, LOGID,
+								"Next tracker announce (unadjusted) will be in " + secs_to_wait
+										+ "s"));
 								
 				}finally{
 						
@@ -278,6 +283,11 @@ TRTrackerBTAnnouncerImpl
 								
 								
 								secs_to_wait = getAdjustedSecsToWait();
+
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(torrent, LOGID,
+											"Next tracker announce (adjusted) will be in "
+													+ secs_to_wait + "s"));
 								
 								long target_time = SystemTime.getCurrentTime() + (secs_to_wait*1000);
 								
@@ -309,7 +319,9 @@ TRTrackerBTAnnouncerImpl
 			}
 		};
     
-		if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Tracker Announcer Created using url : " + trackerURLListToString());
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(torrent, LOGID,
+					"Tracker Announcer Created using url : " + trackerURLListToString()));
   }
 	
 	public void
@@ -382,7 +394,12 @@ TRTrackerBTAnnouncerImpl
 	  }
     else{
         
-      if( rd_override_percentage == 0 )  return REFRESH_MINIMUM_SECS;
+      if( rd_override_percentage == 0 ) {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID,
+							"MIN INTERVAL CALC: override, perc = 0"));
+      	return REFRESH_MINIMUM_SECS;
+      }
 							
       secs_to_wait = (secs_to_wait * rd_override_percentage) /100;
 									
@@ -400,7 +417,12 @@ TRTrackerBTAnnouncerImpl
         int added_secs = (int)((min_interval - secs_to_wait) * percentage);  //increase by x percentage of difference
         secs_to_wait += added_secs;
         
-        //System.out.println( "MIN INTERVAL CALC: min_interval=" +min_interval+ ", interval=" +current_time_to_wait_secs+ ", orig=" +orig_override+ ", new=" +secs_to_wait+ ", added=" +added_secs+ ", perc=" + percentage);
+    		if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID,
+							"MIN INTERVAL CALC: min_interval=" + min_interval + ", interval="
+									+ current_time_to_wait_secs + ", orig=" +  current_time_to_wait_secs
+									+ ", new=" + secs_to_wait + ", added=" + added_secs
+									+ ", perc=" + percentage));
       }
       
     }
@@ -463,6 +485,11 @@ TRTrackerBTAnnouncerImpl
 						current_timer_event.cancel();
 						
 						if ( !destroyed ){ 
+							
+							if (Logger.isEnabled())
+								Logger.log(new LogEvent(torrent, LOGID,
+										"Changed next tracker announce to " + secs_to_wait
+												+ "s via " + Debug.getStackTrace(true, false, 0, 3)));
 							
 							current_timer_event = 
 								tracker_timer.addEvent( 
@@ -557,6 +584,11 @@ TRTrackerBTAnnouncerImpl
       
 			if ( !destroyed ){
 				
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID,
+							"Forcing tracker announce now via "
+									+ Debug.getStackTrace(true, false, 0, 3)));
+
 				current_timer_event = 
 					tracker_timer.addEvent( 
 						SystemTime.getCurrentTime(),
@@ -728,45 +760,37 @@ TRTrackerBTAnnouncerImpl
 		}
 	}
 	
-	protected TRTrackerAnnouncerResponse 
-  	startSupport() 
-  	{
-	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a start Request");
-	
-		// System.out.println( "started");
-		
-		return(update("started"));
-  	}
+	protected TRTrackerAnnouncerResponse startSupport() {
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(torrent, LOGID, "Tracker Announcer is sending "
+					+ "a start Request"));
 
-  	protected TRTrackerAnnouncerResponse 
-  	completeSupport() 
-  	{	
-  	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a completed Request");
-		
-		// System.out.println( "complete");
-		
-		return(update("completed"));
-  	}
+    return (update("started"));
+  }
 
-  	protected TRTrackerAnnouncerResponse 
-  	stopSupport() 
-  	{
-  	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending a stopped Request");
+  protected TRTrackerAnnouncerResponse completeSupport() {
+  	if (Logger.isEnabled())
+			Logger.log(new LogEvent(torrent, LOGID, "Tracker Announcer is sending "
+					+ "a completed Request"));
 
-		// System.out.println( "stop");		
-	
-		return( update("stopped"));
-  	}
+		return (update("completed"));
+  }
 
-  	protected TRTrackerAnnouncerResponse 
-  	updateSupport() 
-  	{
-  	  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Tracker Announcer is sending an update Request");
-	
-		// System.out.println( "update");
-		
-		return update("");
-  	}
+  protected TRTrackerAnnouncerResponse stopSupport() {
+  	if (Logger.isEnabled())
+			Logger.log(new LogEvent(torrent, LOGID, "Tracker Announcer is sending "
+					+ "a stopped Request"));
+
+    return (update("stopped"));
+  }
+
+  protected TRTrackerAnnouncerResponse updateSupport() {
+  	if (Logger.isEnabled())
+			Logger.log(new LogEvent(torrent, LOGID, "Tracker Announcer is sending "
+					+ "an update Request"));
+
+    return update("");
+  }
   
   	private TRTrackerAnnouncerResponse 
 	update(
@@ -803,10 +827,10 @@ TRTrackerBTAnnouncerImpl
 	  				}
 	  			}
 	  			
-	  			if ( !added ){
-	  				
-			  		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Announcer dropped peer '" + peer_address + "' as incompatible with network selection" );
-	  			}
+	  			if (!added && Logger.isEnabled())
+						Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_WARNING,
+								"Tracker Announcer dropped peer '" + peer_address
+										+ "' as incompatible " + "with network selection"));
 	  		}
 	  		
 	  		peers = new TRTrackerAnnouncerResponsePeer[ p.size()];
@@ -943,7 +967,9 @@ TRTrackerBTAnnouncerImpl
 			try{  
 				String	protocol = reqUrl.getProtocol();
 				
-				if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Tracker Announcer is Requesting : " + reqUrl);
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID,
+							"Tracker Announcer is Requesting: " + reqUrl));
 		  
 		  		ByteArrayOutputStream message = new ByteArrayOutputStream();
 		  				
@@ -1006,7 +1032,10 @@ TRTrackerBTAnnouncerImpl
 				failure_reason = "Tracker authentication failed";
 			}
 		
-			if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while processing the Tracker Request : " + failure_reason);
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+						"Exception while processing the Tracker Request : "
+								+ failure_reason));
 			
 			throw( new Exception( failure_reason));
  		}
@@ -1155,9 +1184,12 @@ TRTrackerBTAnnouncerImpl
  						
  					}catch (Exception e){
  						
- 					  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtErrors, LGLogger.ERROR, "Exception while Requesting Tracker : " + e);
- 						
- 					  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.ERROR, "Message Received was : " + message);
+ 						if (Logger.isEnabled()) {
+							Logger.log(new LogEvent(torrent, LOGID,
+									"Exception while Requesting Tracker", e));
+							Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+									"Message Received was : " + message));
+						}
  						
  						failure_reason = exceptionToString( e );
  						
@@ -1165,7 +1197,9 @@ TRTrackerBTAnnouncerImpl
  					}
  				}
  				
- 				if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.RECEIVED, "Tracker Announcer ["+lastUsedUrl+"] has received : " + message);
+ 				if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID, "Tracker Announcer ["
+							+ lastUsedUrl + "] has received : " + message));
  				
  				
  			}catch (Exception e){
@@ -1658,7 +1692,10 @@ TRTrackerBTAnnouncerImpl
     		
     		}catch( UnknownHostException e){
     		    			
-    		  if( LGLogger.isEnabled() )  LGLogger.log( LGLogger.ERROR, "IP Override host resolution of '" + ip + "' fails, using unresolved address" );
+    			if (Logger.isEnabled())
+						Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+								"IP Override host resolution of '" + ip
+										+ "' fails, using unresolved address"));
     		}
     	}
     	    	
@@ -1934,17 +1971,10 @@ TRTrackerBTAnnouncerImpl
 								}
 								
 								if ( log_it ){
-		 							
-		 							String	expanded_message = 
-		 								MessageText.getString(
-		 										"TrackerClient.announce.warningmessage",
-												new String[]{
-		 												announce_data_provider.getName(),
-														warning_message });
-		 									
-		 							LGLogger.logUnrepeatableAlert(
-		 								LGLogger.AT_WARNING,
-										expanded_message );
+		 							Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+											LogAlert.AT_WARNING,
+											"TrackerClient.announce.warningmessage"), new String[] {
+											announce_data_provider.getName(), warning_message });
 		 						}
 							}
 	 					}
@@ -1986,7 +2016,10 @@ TRTrackerBTAnnouncerImpl
 						
 				     if ( failure_reason_bytes == null ){
 							
-				       if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "Problems with Tracker, will retry in 1 minute");
+				    	 if (Logger.isEnabled())
+								Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_WARNING,
+										"Problems with Tracker, will retry in "
+												+ getErrorRetryInterval() + "ms"));
 											   			
 				       return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), "Unknown cause" ));
 	
@@ -2007,7 +2040,10 @@ TRTrackerBTAnnouncerImpl
 				   
 				   if ( incomplete_l != null || complete_l != null  ){
 				   
-				     if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "ANNOUNCE SCRAPE1: seeds=" +complete_l+ " peers=" +incomplete_l);
+				  	 if (Logger.isEnabled())
+							Logger.log(new LogEvent(torrent, LOGID,
+									"ANNOUNCE SCRAPE1: seeds=" + complete_l + " peers="
+											+ incomplete_l));
 				   }
            
            
@@ -2057,10 +2093,12 @@ TRTrackerBTAnnouncerImpl
 								
 								int peer_port = ((Long) s_port).intValue(); 
 				                
-				                if( peer_port < 0 || peer_port > 65535 ) {
-				                  LGLogger.log( LGLogger.ERROR, "Invalid peer port given: " +ip+ ": " +peer_port );
-				                  continue;
-				                }
+                if (peer_port < 0 || peer_port > 65535) {
+                	if (Logger.isEnabled())
+										Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+												"Invalid peer port given: " + ip + ": " + peer_port));
+                  continue;
+                }
 								
 								byte[] peer_peer_id;
 								
@@ -2080,7 +2118,9 @@ TRTrackerBTAnnouncerImpl
 									peer_peer_id = (byte[])s_peerid ; 
 								}
 																	
-								if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "NON-COMPACT PEER: ip=" +ip+ " port=" +peer_port);
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(torrent, LOGID,
+											"NON-COMPACT PEER: ip=" + ip + " port=" + peer_port));
 
 								valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
 								
@@ -2105,14 +2145,19 @@ TRTrackerBTAnnouncerImpl
 				    		String	ip 		= "" + ip1 + "." + ip2 + "." + ip3 + "." + ip4;
 				    		int		peer_port 	= po1*256+po2;
 				    		
-			                if( peer_port < 0 || peer_port > 65535 ) {
-			                  if( LGLogger.isEnabled() )  LGLogger.log( LGLogger.ERROR, "Invalid compact peer port given: " +ip+ ": " +peer_port );
-			                  continue;
-			                }
+                if (peer_port < 0 || peer_port > 65535) {
+                	if (Logger.isEnabled())
+										Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+												"Invalid compact peer port given: " + ip + ": "
+														+ peer_port));
+                  continue;
+                }
                 
 				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
-				    		if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "COMPACT PEER: ip=" +ip+ " port=" +peer_port);
+				    		if (Logger.isEnabled())
+									Logger.log(new LogEvent(torrent, LOGID, "COMPACT PEER: ip="
+											+ ip + " port=" + peer_port));
 
 				    		valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
                 			
@@ -2148,7 +2193,10 @@ TRTrackerBTAnnouncerImpl
 							incomplete_l = (Long)extensions.get("incomplete");
 						}
 					
-						if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "ANNOUNCE SCRAPE2: seeds=" +complete_l+ " peers=" +incomplete_l);
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(torrent, LOGID,
+									"ANNOUNCE SCRAPE2: seeds=" + complete_l + " peers="
+											+ incomplete_l));
 			            
 						Object	override = extensions.get( "min interval override" );
 						
@@ -2199,7 +2247,9 @@ TRTrackerBTAnnouncerImpl
 	 				 				
 	 				String	trace_data = new String(data);
 	 				
-	 				if( LGLogger.isEnabled() )  LGLogger.log("TRTrackerAnnouncer::invalid reply: " + trace_data );
+	 				if (Logger.isEnabled())
+						Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_ERROR,
+								"TRTrackerAnnouncer::invalid reply: " + trace_data));
 	 				
 	 				if ( trace_data.length() > 150 ){
 	 					
@@ -2266,6 +2316,10 @@ TRTrackerBTAnnouncerImpl
 				
 				if ( current_timer_event.getWhen() - SystemTime.getCurrentTime() > 10*1000 ){
 					
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(torrent, LOGID,
+								"Canceling announce trigger"));
+
 					current_timer_event.cancel();
 				}
 			}
@@ -2367,7 +2421,9 @@ TRTrackerBTAnnouncerImpl
 				
 			for (int i=0;i<ext_peers.length;i++){
 				
-			  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, "EXTERNAL PEER: ip=" +ext_peers[i].getAddress() + " port=" +ext_peers[i].getPort());
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER: ip="
+							+ ext_peers[i].getAddress() + " port=" + ext_peers[i].getPort()));
 
 				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
 									ext_peers[i].getSource(),
