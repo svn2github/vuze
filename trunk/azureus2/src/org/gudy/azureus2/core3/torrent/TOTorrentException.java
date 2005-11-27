@@ -47,6 +47,17 @@ TOTorrentException
 		reason	= _reason;
 	}
 	
+	public
+	TOTorrentException(
+		String		_str,
+		int			_reason,
+		Throwable cause )
+	{
+		this(_str, _reason);
+		
+		initCause(cause);
+	}
+	
 	public int
 	getReason()
 	{
