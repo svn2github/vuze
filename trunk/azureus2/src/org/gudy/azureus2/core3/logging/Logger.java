@@ -6,6 +6,7 @@ package org.gudy.azureus2.core3.logging;
 import org.gudy.azureus2.core3.logging.impl.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 
 /**
  * A static implementation of the LoggerImpl class.
@@ -79,10 +80,44 @@ public class Logger {
 	 */
 	public static void log(LogEvent event) {
 		if (bUseOldLogger) {
+			StringBuffer text = new StringBuffer("{" + event.logID + "} ");
+			int len = text.length();
+			
+			boolean needLF = false;
+
+			if (event.peer != null) {
+				text.append("Peer[");
+				text.append(event.peer.getIp());
+				text.append(";");
+				text.append(event.peer.getClient());
+				text.append("]");
+				needLF = true;
+			}
+
+			if (event.torrent != null) {
+				if (event.peer != null)
+					text.append("; ");
+				text.append("Torrent: ");
+				text.append(TorrentUtils.getLocalisedName(event.torrent));
+				needLF = true;
+			}
+
+			if (needLF) {
+				text.append("\r\n");
+				for (int i = 0; i < len; i++)
+					text.append(" ");
+			}
+
+			text.append(event.text);
+			
+			int componentID = 0;
+			if (event.logID == LogIDs.TRACKER)
+				componentID = 2;
+
 			if (event.err == null)
-				LGLogger.log(event.entryType, event.text);
+				LGLogger.log(componentID, 0, event.entryType, text.toString());
 			else
-				LGLogger.log(event.text, event.err);
+				LGLogger.log(componentID, 0, text.toString(), event.err);
 			return;
 		}
 		loggerImpl.log(event);
