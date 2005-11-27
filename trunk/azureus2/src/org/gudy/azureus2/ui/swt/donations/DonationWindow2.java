@@ -85,8 +85,8 @@ public class DonationWindow2 {
   Animator animator;    
   PaintListener listener;
   
-  private static final String donationUrl = "http://azureus.aelitis.com/donate/";
-  private static final String donationUrlShort = "http://azureus.aelitis.com/donate/";
+  private static final String donationUrl = "http://donate.aelitis.com/donate/";
+  private static final String donationUrlShort = "http://donate.aelitis.com/donate/";
   
   private static final int DONATIONS_ASK_AFTER = 168;
   private static final AEMonitor	class_mon	= new AEMonitor( "DonationWindow:class");
