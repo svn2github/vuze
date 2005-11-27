@@ -511,7 +511,7 @@ AEMonSem
 					if ( debug_traces.get(trace_key) == null ){
 					
 						String	thread_name	= Thread.currentThread().getName();
-						String	stack_trace	= Debug.getCompressedStackTrace(3);
+						String	stack_trace	= Debug.getStackTrace(true, false);
 						
 						Iterator	it = debug_traces.keySet().iterator();
 					

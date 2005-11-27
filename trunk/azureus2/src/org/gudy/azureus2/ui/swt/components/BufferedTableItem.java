@@ -168,18 +168,4 @@ public abstract class BufferedTableItem {
 
     return null;
   }
-
-  public void debugOut(String s, boolean bStackTrace) {
-    Table table = row.getTable();
-    if (table == null || table.isDisposed())
-      return;
-    TableItem[] ti = table.getSelection();
-    for (int i = 0; i < ti.length; i++) {
-      if (ti[i] == row.getItem()) {
-        System.out.println(i + "-" + ti[i] + ": " + s);
-        if (bStackTrace) Debug.outStackTrace(3);
-        break;
-      }
-    }
-  }
 }

@@ -75,7 +75,7 @@ public class Debug {
       methodName = first_line.getMethodName() + "::";
       lineNumber = first_line.getLineNumber();
       
-    	trace_trace_tail = getCompressedStackTrace(e, 3);
+    	trace_trace_tail = getCompressedStackTrace(e, 3, 200);
     }
     
     diag_logger.logAndOut(header+className+(methodName)+lineNumber+":", true);
@@ -109,10 +109,11 @@ public class Debug {
 
   public static void outStackTrace() {
     // skip the last, since they'll most likely be main
-    outStackTrace(1);
+  	diag_logger.logAndOut(getStackTrace(1));
   }
 
-  public static void outStackTrace(int endNumToSkip) {
+  private static String getStackTrace(int endNumToSkip) {
+		String sStackTrace = "";
     try {
       throw new Exception();
     }
@@ -120,9 +121,12 @@ public class Debug {
       StackTraceElement st[] = e.getStackTrace();
       for (int i = 1; i < st.length - endNumToSkip; i++) {
         if (st[i].getMethodName() != "outStackTrace")
-        	diag_logger.logAndOut(st[i].toString());
+        	sStackTrace += st[i].toString() + "\n";
       }
+      if (e.getCause() != null)
+      	sStackTrace += "\tCaused By: " + getStackTrace(e.getCause()) + "\n";
     }
+    return sStackTrace;
   }
 
 	public static void
@@ -133,14 +137,18 @@ public class Debug {
 		killAWTThreads( threadGroup );
 	}
 
-	public static String
-	getCompressedStackTrace(Throwable t,
-		int	frames_to_skip )
-	{
+	private static String getCompressedStackTrace(Throwable t,
+			int frames_to_skip) {
+		return getCompressedStackTrace(t, frames_to_skip, 200);
+	}
+
+	private static String getCompressedStackTrace(Throwable t,
+			int frames_to_skip, int iMaxLines) {
 		String sStackTrace = "";
   	StackTraceElement[]	st = t.getStackTrace();
 	   
-    for (int i=frames_to_skip;i<st.length;i++){
+  	int iMax = Math.min(st.length, iMaxLines + frames_to_skip);
+    for (int i = frames_to_skip; i < iMax; i++) {
     	
     	if (i > frames_to_skip)
     		sStackTrace += ",";
@@ -158,20 +166,31 @@ public class Debug {
     return sStackTrace;
 	}
 
-	public static String
-	getCompressedStackTrace(
-		int	frames_to_skip )
-	{
-		String	trace_trace_tail	= null;
-	
-	   try {
-	      throw new Exception();
-	    }
-	    catch (Exception e) {
-	    	trace_trace_tail = getCompressedStackTrace(e, frames_to_skip);
-	    }
-	    
-	    return( trace_trace_tail );
+	public static String getStackTrace(boolean bCompressed, boolean bIncludeSelf) {
+		return getStackTrace(bCompressed, bIncludeSelf, 0, 200);
+	}
+
+	public static String getStackTrace(boolean bCompressed, boolean bIncludeSelf,
+			int iNumLinesToSkip, int iMaxLines) {
+		if (bCompressed)
+			return getCompressedStackTrace(bIncludeSelf ? 2 + iNumLinesToSkip
+					: 3 + iNumLinesToSkip, iMaxLines);
+
+		// bIncludeSelf not supported gor non Compressed yet
+		return getStackTrace(1);
+	}
+
+	private static String getCompressedStackTrace(int frames_to_skip,
+			int iMaxLines) {
+		String trace_trace_tail = null;
+
+		try {
+			throw new Exception();
+		} catch (Exception e) {
+			trace_trace_tail = getCompressedStackTrace(e, frames_to_skip, iMaxLines);
+		}
+
+		return (trace_trace_tail);
 	}
 	
 	public static void
