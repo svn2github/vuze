@@ -208,7 +208,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
           this.filename = this.filename.substring(1);
       if ((this.filename == null) || !this.filename.toLowerCase().startsWith("attachment") || (this.filename.indexOf('=') == -1)) {
         String tmp = this.url.getFile();
-        if ( tmp.startsWith("?")){
+        if (tmp.length() == 0 || tmp.equals("/")) {
+        	this.filename = url.getHost();
+        }
+        else if ( tmp.startsWith("?")){
         
         	// probably a magnet URI - use the hash
         	// magnet:?xt=urn:sha1:VGC53ZWCUXUWVGX7LQPVZIYF4L6RXSU6
@@ -256,6 +259,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	        if ( param_pos != -1 ){
 	          tmp = tmp.substring(0,param_pos);
 	        }
+	        
 	        this.filename = URLDecoder.decode(tmp, Constants.DEFAULT_ENCODING );
         }
       } else {
@@ -483,7 +487,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	      }
       } catch (Exception e) {
     	  
-      	Debug.printStackTrace( e );
+      	Debug.out("'" + this.directoryname + "' '" +  this.filename + "'", e);
       	
         this.error("Exception while downloading '" + this.url.toString() + "':" + e.getMessage());
       }
