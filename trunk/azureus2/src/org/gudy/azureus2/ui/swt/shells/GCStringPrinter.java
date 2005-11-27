@@ -62,6 +62,17 @@ public class GCStringPrinter {
         while(stWord.hasMoreElements()) {      
           String word = stWord.nextToken();
           Point ptWordSize = gc.stringExtent(word + " ");
+          if (ptWordSize.x > printArea.width) {
+          	int endIndex = word.length() - 1;
+          	do {
+          		endIndex--;
+          		ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
+          	} while (endIndex > 3 && ptWordSize.x > printArea.width);
+          	outputLine.append(space + word.substring(0, endIndex) + "\n");
+          	word = word.substring(endIndex);
+          	ptWordSize = gc.stringExtent(word + " ");
+          	iLineLength = 0;
+          }
           iLineLength += ptWordSize.x;
           //System.out.println(outputLine + " : " + word + " : " + iLineLength);
           if(iLineLength > printArea.width) {
