@@ -99,7 +99,16 @@ ConfigurationManager
   {
   	propertiesMap = FileUtil.readResilientConfigFile( filename, false );
   	
-  	
+/* 
+ * Can't do this yet.  Sometimes, there's a default set to x, but the code
+ * calls get..Parameter(..., y).  y != x.  When the user sets the the parameter
+ * to x, we remove it from the list.  Later, the get..Parameter(.., y) returns
+ * y because there is no entry.
+ * 
+ * The solution is to not allow get..Parameter(.., y) when there's a default
+ * value.  Another reason to not allow it is that having two defaults confuses
+ * coders.
+ *  	
   	// Remove entries that are default.  Saves memory, reduces
   	// file size when saved again
     ConfigurationDefaults def = ConfigurationDefaults.getInstance();
@@ -124,6 +133,7 @@ ConfigurationManager
 					propertiesMap.remove(key);
 			}
 		}
+*/
   }
   
   public void load() {
