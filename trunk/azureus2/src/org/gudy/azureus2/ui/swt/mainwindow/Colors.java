@@ -26,7 +26,7 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.Debug;
  *  
  */
 public class Colors implements ParameterListener {
+	private static final LogIDs LOGID = LogIDs.GUI;
   private static Colors instance = null;
   public static final int BLUES_LIGHTEST = 0;
   public static final int BLUES_DARKEST = 9;
@@ -108,7 +109,7 @@ public class Colors implements ParameterListener {
       }
       toBeDisposed = colorShiftRight;
       hslColor.initHSLbyRGB(r, g, b);
-      hslColor.setHue(hslColor.getHue() + 20);
+      hslColor.setHue(hslColor.getHue() + 25);
       colorShiftRight = new Color(display, hslColor.getRed(), hslColor
           .getGreen(), hslColor.getBlue());
       if (toBeDisposed != null && !toBeDisposed.isDisposed()) {
@@ -116,15 +117,14 @@ public class Colors implements ParameterListener {
       }
       toBeDisposed = colorShiftLeft;
       hslColor.initHSLbyRGB(r, g, b);
-      hslColor.setHue(hslColor.getHue() - 20);
+      hslColor.setHue(hslColor.getHue() - 25);
       colorShiftLeft = new Color(display, hslColor.getRed(), hslColor
           .getGreen(), hslColor.getBlue());
       if (toBeDisposed != null && !toBeDisposed.isDisposed()) {
         toBeDisposed.dispose();
       }
     } catch (Exception e) {
-      LGLogger.log(LGLogger.ERROR, "Error allocating colors");
-      Debug.printStackTrace( e );
+    	Logger.log(new LogEvent(LOGID, "Error allocating colors", e));
     }
   }
   
