@@ -4,82 +4,43 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.io.File;
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.program.Program;
-import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.internat.*;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.ui.config.Parameter;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.core3.logging.LGLogger;
-
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
 
 /**
  * @author Olivier
  *
  */
 public class ConfigView extends AbstractIView {
-  private static final String sSectionPrefix = "ConfigView.section.";
+	private static final LogIDs LOGID = LogIDs.GUI;
+  public static final String sSectionPrefix = "ConfigView.section.";
   
-  /*
-  public static final int upRates[] =
-    {
-      0,
-      5,6,7,8,9,10,
-      11,12,13,14,15,16,17,18,19,20,
-      21,22,23,24,25,26,27,28,29,30,
-      31,32,33,34,35,36,37,38,39,40,
-      41,42,43,44,45,46,47,48,49,50,
-      55,60,65,70,75,80,85,90,95,100,
-      110,120,130,140,150,160,170,180,190,200,
-      210,220,230,240,250,
-      275,300,325,350,375,400,425,450,475,500,
-      550,600,650,700,750,
-      800,900,1000,1100,1200,1300,1400,1500,
-      1750,2000,2250,2500,2750,3000,
-      3500,4000,4500,5000 };
-  */
-
   AzureusCore		azureus_core;
   
   Composite cConfig;
@@ -91,6 +52,11 @@ public class ConfigView extends AbstractIView {
   TreeItem treePlugins;
   ArrayList pluginSections;
 
+  /**
+   * Main Initializer
+   * 
+   * @param _azureus_core
+   */
   public 
   ConfigView(
   	AzureusCore		_azureus_core ) 
@@ -197,8 +163,7 @@ public class ConfigView extends AbstractIView {
         }
       });
     } catch (Exception e) {
-      LGLogger.log(LGLogger.ERROR, "Error initializing ConfigView");
-      Debug.printStackTrace( e );
+    	Logger.log(new LogEvent(LOGID, "Error initializing ConfigView", e));
     }
 
 
@@ -223,6 +188,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionInterfaceDisplay(),
                                          new ConfigSectionMode(),
                                          new ConfigSectionIPFilter(azureus_core),
+                                         new ConfigSectionPlugins(this, azureus_core),
                                          new ConfigSectionStats(),
                                          new ConfigSectionTracker(azureus_core),
                                          new ConfigSectionTrackerClient(),
@@ -241,16 +207,6 @@ public class ConfigView extends AbstractIView {
     	
       boolean	plugin_section = i >= internalSections.length;
       
-      if ( i == internalSections.length ){
-        // for now, init plugins seperately
-        try {
-          initGroupPlugins();
-        } catch (Exception e) {
-          LGLogger.log(LGLogger.ERROR, "Error initializing ConfigView.Plugins");
-          Debug.printStackTrace( e );
-        }   	
-      }
-      
       ConfigSection section = (ConfigSection)pluginSections.get(i);
       
       if (section instanceof ConfigSectionSWT || section instanceof UISWTConfigSection ) {
@@ -258,9 +214,10 @@ public class ConfigView extends AbstractIView {
         try {
           name = section.configSectionGetName();
          } catch (Exception e) {
-          LGLogger.log(LGLogger.ERROR, "A ConfigSection plugin caused an error while trying to call its configSectionGetName function");
+        	 Logger.log(new LogEvent(LOGID, "A ConfigSection plugin caused an "
+							+ "error while trying to call its "
+							+ "configSectionGetName function", e));
           name = "Bad Plugin";
-          Debug.printStackTrace( e );
         }
         try {
           TreeItem treeItem = null;
@@ -281,7 +238,6 @@ public class ConfigView extends AbstractIView {
           sc.setExpandHorizontal(true);
           sc.setExpandVertical(true);
           sc.setLayoutData(new GridData(GridData.FILL_BOTH));
-  
           
           if(i == 0) {
             Composite c;
@@ -295,7 +251,6 @@ public class ConfigView extends AbstractIView {
             }
             sc.setContent(c);
           }
-  
           String	section_key = name;
           
           if ( plugin_section ){
@@ -317,10 +272,9 @@ public class ConfigView extends AbstractIView {
           treeItem.setData("ID", name);
           treeItem.setData("ConfigSectionSWT", section);
           
-          
         } catch (Exception e) {
-          LGLogger.log(LGLogger.ERROR, "ConfigSection plugin '" + name + "' caused an error");
-          Debug.printStackTrace( e );
+        	Logger.log(new LogEvent(LOGID, "ConfigSection plugin '" + name
+							+ "' caused an error", e));
         }
       }
     }
@@ -362,18 +316,17 @@ public class ConfigView extends AbstractIView {
         
         c.layout();
         
+        section.setData("ConfigSectionSWT", null);
+
         if(previous != null && previous instanceof Composite) {
           Utils.disposeComposite((Composite)previous,true);
         }
-        
-        //section.setData("ConfigSectionSWT", null); // XXX Refreshes ok but does not dispose of previous composite...
       }
       layoutConfigSection.topControl = item;
       
-      ScrolledComposite sc = (ScrolledComposite)item;
-      Composite c = (Composite)sc.getContent();
+      Composite c = (Composite)item.getContent();
       
-      sc.setMinSize(c.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+      item.setMinSize(c.computeSize(SWT.DEFAULT, SWT.DEFAULT));
       cConfigSection.layout();
       
       updateHeader(section);
@@ -390,7 +343,7 @@ public class ConfigView extends AbstractIView {
       sHeader = section.getText() + " : " + sHeader;
       section = section.getParentItem();
     }
-    lHeader.setText(" " + sHeader);
+    lHeader.setText(" " + sHeader.replaceAll("&", "&&"));
   }
 
 
@@ -402,7 +355,7 @@ public class ConfigView extends AbstractIView {
     return createConfigSection(null, sNameID, position, true);
   }
 
-  private Composite createConfigSection(TreeItem treeItemParent, 
+  public Composite createConfigSection(TreeItem treeItemParent, 
                                         String sNameID, 
                                         int position, 
                                         boolean bPrefix) {
@@ -432,8 +385,14 @@ public class ConfigView extends AbstractIView {
     sc.setContent(cConfigSection);
     return cConfigSection;
   }
-	
+
+  public TreeItem findTreeItem(String ID) {
+  	return findTreeItem((Tree)null, ID);
+  }
+
   private TreeItem findTreeItem(Tree tree, String ID) {
+  	if (tree == null)
+  		tree = this.tree;
     TreeItem[] items = tree.getItems();
     for (int i = 0; i < items.length; i++) {
       String itemID = (String)items[i].getData("ID");
@@ -481,258 +440,6 @@ public class ConfigView extends AbstractIView {
       }
     });
   }
-
-  private void initGroupPlugins()
-  {
-    Label label;
-
-    Composite infoGroup = createConfigSection(ConfigSection.SECTION_PLUGINS, 6);
-    TreeItem treePlugins = findTreeItem(tree, ConfigSection.SECTION_PLUGINS);
-    infoGroup.setLayout(new GridLayout());
-    if ( SWT.getVersion() < 3138 ){ // screws up scrolling on 3.2M2
-    	infoGroup.addControlListener(new Utils.LabelWrapControlListener());  
-    }
-    
-    String	sep = System.getProperty("file.separator");
-    
-    String sUserPluginDir 	= FileUtil.getUserFile( "plugins" ).toString(); 
-    
-    if ( !sUserPluginDir.endsWith(sep)){
-    	sUserPluginDir += sep;
-    }
-    
-    String sAppPluginDir 	= FileUtil.getApplicationFile( "plugins" ).toString();
-    
-    if ( !sAppPluginDir.endsWith(sep)){
-    	sAppPluginDir += sep;
-    }
-    
-    label = new Label(infoGroup, SWT.WRAP);
-    label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-    Messages.setLanguageText(label, "ConfigView.pluginlist.whereToPut");
-
-    
-    
-    label = new Label(infoGroup, SWT.WRAP);
-    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalIndent = 10;
-    label.setLayoutData(gridData);
-    label.setText(sUserPluginDir);
-    label.setForeground(Colors.blue);
-    label.setCursor(Cursors.handCursor);
-    
-    final String _sUserPluginDir = sUserPluginDir;
-    
-    //TODO : Fix it for windows
-    label.addMouseListener(new MouseAdapter() {
-      public void mouseUp(MouseEvent arg0) {
-        if(_sUserPluginDir.endsWith("/plugins/") || _sUserPluginDir.endsWith("\\plugins\\")) {
-          File f = new File(_sUserPluginDir);
-          if(f.exists() && f.isDirectory()) {
-            Program.launch(_sUserPluginDir);
-          } else {
-            String azureusDir = _sUserPluginDir.substring(0,_sUserPluginDir.length() - 9);
-            System.out.println(azureusDir);
-            Program.launch(azureusDir);
-          }
-        }
-      }
-    });
-
-    label = new Label(infoGroup, SWT.WRAP);
-    label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-    Messages.setLanguageText(label, "ConfigView.pluginlist.whereToPutOr");
-
-    label = new Label(infoGroup, SWT.WRAP);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalIndent = 10;
-    label.setLayoutData(gridData);
-    label.setText(sAppPluginDir);
-    label.setForeground(Colors.blue);
-    label.setCursor(Cursors.handCursor);
-    
- 
-    final String _sAppPluginDir = sAppPluginDir;
-    
-    //TODO : Fix it for windows
-    label.addMouseListener(new MouseAdapter() {
-      public void mouseUp(MouseEvent arg0) {
-        if(_sAppPluginDir.endsWith("/plugins/") || _sAppPluginDir.endsWith("\\plugins\\")) {
-          File f = new File(_sAppPluginDir);
-          if(f.exists() && f.isDirectory()) {
-            Program.launch(_sAppPluginDir);
-          } else {
-            String azureusDir = _sAppPluginDir.substring(0,_sAppPluginDir.length() - 9);
-            System.out.println(azureusDir);
-            Program.launch(azureusDir);
-          }
-        }
-      }
-    });
-    
-    List pluginIFs = Arrays.asList( azureus_core.getPluginManager().getPlugins());
-    
-    Collections.sort( 
-    		pluginIFs,
-			new Comparator()
-			{
-    			public int
-				compare(
-					Object	o1,
-					Object	o2 )
-    			{
-    				return( ((PluginInterface)o1).getPluginName().compareToIgnoreCase(((PluginInterface)o2).getPluginName()));
-    			}
-			});
-    
-    Label labelInfo = new Label(infoGroup, SWT.WRAP);
-    labelInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-    
-    int numPlugins = 0;
-    for (int i = 0; i < pluginIFs.size(); i++) {
-      PluginInterface pluginIF = (PluginInterface)pluginIFs.get(i);
- 
-      Properties p = pluginIF.getPluginProperties();
-      
-      String plugin_name = pluginIF.getPluginName();
-      
-      String plugin_version = pluginIF.getPluginVersion();
-      
-      String sDirName = pluginIF.getPluginDirectoryName();
-      
-      boolean	user_plugin = false;
-      
-      if (sDirName.length() > sUserPluginDir.length() && 
-          sDirName.substring(0, sUserPluginDir.length()).equals(sUserPluginDir)){
-      	
-      	sDirName = sDirName.substring(sUserPluginDir.length());
-      
-      	user_plugin = true;
-      	
-      }else if (sDirName.length() > sAppPluginDir.length() && 
-            sDirName.substring(0, sAppPluginDir.length()).equals(sAppPluginDir)){
-      	
-      	sDirName = sDirName.substring(sAppPluginDir.length());
-      }
-      
-      // Blank means it's internal
-      
-      if (!sDirName.equals("")){
-      	
-        label = new Label(infoGroup, SWT.NULL);
-
-      	String	broken_str = pluginIF.isOperational()?"":(" - " + MessageText.getString("ConfigView.pluginlist.broken"));
-      	
-      	String shared_str = user_plugin?"":" [" + MessageText.getString("ConfigView.pluginlist.shared") + "]";
-      	
-        label.setText( " - " + plugin_name + (plugin_version==null?"":(" " + plugin_version ))+ " (" + sDirName + ")" + broken_str + shared_str );
-        numPlugins++;
-      }
-    }
-    Messages.setLanguageText(labelInfo, (numPlugins == 0) ? "ConfigView.pluginlist.noplugins"
-                                                          : "ConfigView.pluginlist.info");
-
-    	// lastly the built-in plugins
-    
-    label = new Label(infoGroup, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.pluginlist.coreplugins");
-
-    for (int i = 0; i < pluginIFs.size(); i++) {
-        PluginInterface pluginIF = (PluginInterface)pluginIFs.get(i);
-          
-        String plugin_name = pluginIF.getPluginName();
-       
-        String	version = pluginIF.getPluginVersion();
-        
-        if ( pluginIF.isBuiltIn()){
-        	
-            label = new Label(infoGroup, SWT.NULL);
-
-            label.setText(" - " + plugin_name + (version==null?"":(" " + version )));
-        }
-    }
-    
-    ParameterRepository repository = ParameterRepository.getInstance();
-
-    String[] names = repository.getNames();
-
-
-    Arrays.sort( names );
-    
-    for(int i = 0; i < names.length; i++)
-    {
-      String pluginName = names[i];
-      Parameter[] parameters = repository.getParameterBlock(pluginName);
-
-      // Note: 2070's plugin documentation for PluginInterface.addConfigUIParameters
-      //       said to pass <"ConfigView.plugins." + displayName>.  This was
-      //       never implemented in 2070.  2070 read the key <displayName> without
-      //       the prefix.
-      //
-      //       2071+ uses <sSectionPrefix ("ConfigView.section.plugins.") + pluginName>
-      //       and falls back to <displayName>.  Since 
-      //       <"ConfigView.plugins." + displayName> was never implemented in the
-      //       first place, a check for it has not been created
-      boolean bUsePrefix = MessageText.keyExists(sSectionPrefix + "plugins." + pluginName);
-      Composite pluginGroup = createConfigSection(treePlugins, pluginName, -1, bUsePrefix);
-      GridLayout pluginLayout = new GridLayout();
-      pluginLayout.numColumns = 3;
-      pluginGroup.setLayout(pluginLayout);
-
-      Map parameterToPluginParameter = new HashMap();
-      //Add all parameters
-      for(int j = 0; j < parameters.length; j++)
-      {
-        Parameter parameter = parameters[j];
-        parameterToPluginParameter.put(parameter,new PluginParameter(pluginGroup,parameter));
-      }
-      //Check for dependencies
-      for(int j = 0; j < parameters.length; j++) {
-        Parameter parameter = parameters[j];
-        if(parameter instanceof org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl) {
-          List parametersToEnable =
-            ((org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl)parameter).getEnabledOnSelectionParameters();
-          List controlsToEnable = new ArrayList();
-          Iterator iter = parametersToEnable.iterator();
-          while(iter.hasNext()) {
-            Parameter parameterToEnable = (Parameter) iter.next();
-            PluginParameter pp = (PluginParameter) parameterToPluginParameter.get(parameterToEnable);
-            Control[] controls = pp.getControls();
-            for(int k = 0 ; k < controls.length ; k++) {
-              controlsToEnable.add(controls[k]);
-            }
-          }
-
-          List parametersToDisable =
-          ((org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl)parameter).getDisabledOnSelectionParameters();
-          List controlsToDisable = new ArrayList();
-          iter = parametersToDisable.iterator();
-          while(iter.hasNext()) {
-            Parameter parameterToDisable = (Parameter) iter.next();
-            PluginParameter pp = (PluginParameter) parameterToPluginParameter.get(parameterToDisable);
-            Control[] controls = pp.getControls();
-            for(int k = 0 ; k < controls.length ; k++) {
-              controlsToDisable.add(controls[k]);
-            }
-          }
-
-          Control[] ce = new Control[controlsToEnable.size()];
-          Control[] cd = new Control[controlsToDisable.size()];
-
-          if(ce.length + cd.length > 0) {
-            IAdditionalActionPerformer ap = new DualChangeSelectionActionPerformer(
-                (Control[]) controlsToEnable.toArray(ce),
-                (Control[]) controlsToDisable.toArray(cd));
-            PluginParameter pp = (PluginParameter) parameterToPluginParameter.get(parameter);
-            pp.setAdditionalActionPerfomer(ap);
-          }
-
-        }
-      }
-    }
-  }
-
-  
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#getComposite()
