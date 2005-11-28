@@ -21,6 +21,9 @@
 
 package org.gudy.azureus2.plugins.logging;
 
+import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+
 /**
  * @author parg
  *
@@ -68,6 +71,50 @@ LoggerChannel
 		String		data,
 		Throwable 	error );
 	
+	/**
+	 * Log a string against a torrent.
+	 * 
+	 * @param torrent The Torrent the log entry relates to
+	 * @param log_type LT_* constant
+	 * @param data text to log
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public void log(Torrent torrent, int log_type, String data);
+
+	/**
+	 * Log an error against a torrent.
+	 * 
+	 * @param torrent The Torrent the log entry relates to
+	 * @param data text to log
+	 * @param error Error that will be appended to the log entry
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public void log(Torrent torrent, String data, Throwable error);
+
+	/**
+	 * Log a string against a peer (and torrent)
+	 * 
+	 * @param peer The Peer the log entry relates to
+	 * @param log_type LT_* constant
+	 * @param data text to log
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public void log(Peer peer, int log_type, String data);
+
+	/**
+	 * Log an error against a peer.
+	 * 
+	 * @param peer The Peer the log entry relates to
+	 * @param data text to log
+	 * @param error Error that will be appended to the log entry
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public void log(Peer peer, String data, Throwable error);
+
 	/**
 	 * raise an alert to the user, if UI present
 	 * Note that messages shown to the user are filtered on unique message content

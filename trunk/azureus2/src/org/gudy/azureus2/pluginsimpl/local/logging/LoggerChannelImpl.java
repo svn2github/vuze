@@ -29,13 +29,23 @@ package org.gudy.azureus2.pluginsimpl.local.logging;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.logging.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.local.peers.PeerImpl;
+import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
+
+import com.sun.org.apache.bcel.internal.generic.Select;
 
 public class 
 LoggerChannelImpl 
 	implements LoggerChannel
 {
+	private static final LogIDs LOGID = org.gudy.azureus2.core3.logging.LogIDs.PLUGIN;
 	private Logger		logger;
 	private String		name;
 	private boolean		timestamp;
@@ -70,41 +80,52 @@ LoggerChannelImpl
 	public boolean
 	isEnabled()
 	{
-		return( LGLogger.isEnabled());
+		return org.gudy.azureus2.core3.logging.Logger.isEnabled();
 	}
+
+    
+	private int LogTypePluginToCore(int pluginLogType) {
+    switch (pluginLogType) {
+      case LT_INFORMATION:
+        return LogEvent.LT_INFORMATION;
+      case LT_WARNING:
+        return LogEvent.LT_WARNING;
+      case LT_ERROR:
+        return LogEvent.LT_ERROR;
+    }
+    return LogEvent.LT_INFORMATION;
+  }
 	
-	public void
-	log(
-		int		log_type,
-		String	data )
-	{
-		for (int i=0;i<listeners.size();i++){
-			
-			try{
-				((LoggerChannelListener)listeners.get(i)).messageLogged( log_type, addTimeStamp( data ));
-	
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
+	private void notifyListeners(int log_type, String data) {
+		for (int i = 0; i < listeners.size(); i++) {
+			try {
+				LoggerChannelListener l = (LoggerChannelListener) listeners.get(i);
+				l.messageLogged(log_type, data);
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
 			}
 		}
-		
-		if ( LGLogger.isEnabled() && !no_output ){
-			
-			data = "[".concat(name).concat("] ").concat(data);
-			
-			if ( log_type == LT_INFORMATION ){
-				
-				LGLogger.log( LGLogger.INFORMATION, data );
-				
-			}else if ( log_type == LT_WARNING ){
-					
-				LGLogger.log( LGLogger.RECEIVED, data );	// !!!!
+	}
 	
-			}else if ( log_type == LT_ERROR ){
-					
-				LGLogger.log( LGLogger.ERROR, data );
+	private void notifyListeners(String listenersText, Throwable error) {
+		for (int i = 0; i < listeners.size(); i++) {
+			try {
+				LoggerChannelListener l = (LoggerChannelListener) listeners.get(i);
+				l.messageLogged(listenersText, error);
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
 			}
+		}
+	}
+	
+	public void log(int log_type, String data) {
+		notifyListeners(log_type, addTimeStamp(data));
+
+		if (isEnabled() && !no_output) {
+			data = "[" + name + "] " + data;
+
+			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(LOGID,
+					LogTypePluginToCore(log_type), data));
 		}
 	}
 	
@@ -115,101 +136,103 @@ LoggerChannelImpl
 		log( LT_INFORMATION, data );
 	}
 	
-	public void
-	log(
-		Throwable 	error )
-	{
-		for (int i=0;i<listeners.size();i++){
-			
-			try{
-				((LoggerChannelListener)listeners.get(i)).messageLogged( "", error );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-		}
+	public void log(Peer peer, int log_type, String data) {
+		notifyListeners(log_type, addTimeStamp(data));
 		
-		if ( !no_output ){
+		if (isEnabled() && !no_output) {
+			data = "[" + name + "] " + data;
 			
-			LGLogger.log("[".concat(name).concat("]"), error);
+			PEPeer corePeer = ((PeerImpl)peer).getPEPeer();
+			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(corePeer, LOGID,
+					LogTypePluginToCore(log_type), data));
 		}
 	}
-	
-	public void
-	log(
-		String		str,
-		Throwable 	error )
-	{
-		for (int i=0;i<listeners.size();i++){
-			
-			try{
-				((LoggerChannelListener)listeners.get(i)).messageLogged( addTimeStamp( str ), error );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-		}
+
+	public void log(Torrent torrent, int log_type, String data) {
+		notifyListeners(log_type, addTimeStamp(data));
 		
-		if ( !no_output ){
+		if (isEnabled() && !no_output) {
+			data = "[" + name + "] " + data;
 			
-			LGLogger.log("[".concat(name).concat("] ").concat(str), error);
+			TOTorrent coreTorrent = ((TorrentImpl) torrent).getTorrent();
+			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(coreTorrent,
+					LOGID, LogTypePluginToCore(log_type), data));
 		}
 	}
+
 	
-	protected void
-	logAlert(
-		int			alert_type,
-		String		message,
-		boolean		repeatable )
-	{
-			// output as log message to any listeners
-		
-		for (int i=0;i<listeners.size();i++){
+	public void log(Throwable error)
+  {
+    log("", error);
+  }
+
+  public void log(String str, Throwable error) {
+		notifyListeners(str.equals("") ? "" : addTimeStamp(str), error);
+
+		if (!no_output) {
+			LogEvent event = new LogEvent(LOGID, "[" + name + "] " + str, error);
+			org.gudy.azureus2.core3.logging.Logger.log(event);
+		}
+	}
+
+	public void log(Peer peer, String str, Throwable error) {
+		notifyListeners(str.equals("") ? "" : addTimeStamp(str), error);
+
+		if (isEnabled() && !no_output) {
+			str = "[" + name + "] " + str;
 			
-			try{
-				((LoggerChannelListener)listeners.get(i)).messageLogged( alert_type, addTimeStamp( message ) );
-	
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
+			PEPeer corePeer = ((PeerImpl)peer).getPEPeer();
+			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(corePeer, LOGID,
+					str, error));
+		}
+	}
+
+	public void log(Torrent torrent, String str, Throwable error) {
+		notifyListeners(str.equals("") ? "" : addTimeStamp(str), error);
+
+		if (isEnabled() && !no_output) {
+			str = "[" + name + "] " + str;
+			
+			TOTorrent coreTorrent = ((TorrentImpl) torrent).getTorrent();
+			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(coreTorrent,
+					LOGID, str, error));
+		}
+	}
+
+	// Alert Functions
+	// ===============
+  
+	protected void logAlert(int alert_type, String message, boolean repeatable) {
+		// output as log message to any listeners
+		for (int i = 0; i < listeners.size(); i++) {
+			try {
+				((LoggerChannelListener) listeners.get(i)).messageLogged(alert_type,
+						addTimeStamp(message));
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
 			}
-		}	
-		
-		if ( !no_output ){
-			
-			int	at;
-			
-			switch( alert_type ){
-				
-				case LoggerChannel.LT_INFORMATION:
-				{
-					at	= LGLogger.AT_COMMENT;
-					
+		}
+
+		if (!no_output) {
+			int at;
+
+			switch (alert_type) {
+				case LoggerChannel.LT_INFORMATION: {
+					at = LogAlert.AT_INFORMATION;
 					break;
-				}	
-				case LoggerChannel.LT_WARNING:
-				{
-					at	= LGLogger.AT_WARNING;
-					
+				}
+				case LoggerChannel.LT_WARNING: {
+					at = LogAlert.AT_WARNING;
 					break;
-				}	
-				default:
-				{
-					at	= LGLogger.AT_ERROR;
-					
+				}
+				default: {
+					at = LogAlert.AT_ERROR;
 					break;
-				}	
+				}
 			}
-			
-			if ( repeatable ){
-				
-				LGLogger.logRepeatableAlert( at, message );
-			}else{
-				
-				LGLogger.logUnrepeatableAlert( at, message );
-			}
+
+			org.gudy.azureus2.core3.logging.Logger.log(new LogAlert(repeatable, at,
+					message));
 		}
 	}
 	
@@ -246,8 +269,8 @@ LoggerChannelImpl
 		}	
 
 		if ( !no_output ){
-			
-			LGLogger.logUnrepeatableAlert( message, e  );
+			org.gudy.azureus2.core3.logging.Logger.log(new LogAlert(
+					LogAlert.UNREPEATABLE, message, e));
 		}
 	}	
 	
@@ -268,10 +291,13 @@ LoggerChannelImpl
 		}	
 		
 		if ( !no_output ){
-			
-			LGLogger.logRepeatableAlert( message, e );
+			org.gudy.azureus2.core3.logging.Logger.log(new LogAlert(
+					LogAlert.REPEATABLE, message, e));
 		}
 	}
+	
+	// Misc. Functions
+	// ===============
 	
 	public void
 	addListener(

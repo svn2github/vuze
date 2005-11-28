@@ -333,4 +333,12 @@ PeerImpl
 	{
 		return( delegate.hashCode());
 	}
+	
+	/** Core use only.  This is not propogated to the plugin interface
+	 * 
+	 * @return PEPeer object associated with the plugin Peer object
+	 */
+	public PEPeer getPEPeer() {
+		return delegate;
+	}
 }
