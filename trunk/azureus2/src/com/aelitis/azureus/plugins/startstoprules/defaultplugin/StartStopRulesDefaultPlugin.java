@@ -356,7 +356,7 @@ public class StartStopRulesDefaultPlugin
           	numPreparing++;
           	if (numPreparing > 1) {
           		try {
-          			dl.stopAndQueue();
+          			download.stopAndQueue();
           		} catch (Exception ignore) {/*ignore*/}
           		break;
           	}
