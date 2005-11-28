@@ -317,7 +317,8 @@ UPnPRootDeviceImpl
 		}
 			// comparator does A10 -vs- A9 correctly (i.e. 111 is > 20 )
 		
-		Comparator comp = upnp.getPluginInterface().getUtilities().getFormatters().getAlphanumericComparator( true );
+		Comparator comp = upnp.getAdapter().getAlphanumericComparator();
+		
 		//Comparator comp = getAlphanumericComparator( true );
 		
 			// look for a delimiter (non alpha/numeric)

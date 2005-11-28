@@ -32,7 +32,7 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
+//import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.*;
 
@@ -60,7 +60,7 @@ UPnPImpl
 	
 	public static UPnP
 	getSingleton(
-		PluginInterface		plugin_interface )
+		UPnPAdapter		adapter )
 	
 		throws UPnPException
 	{
@@ -69,7 +69,7 @@ UPnPImpl
 		
 			if ( singleton == null ){
 				
-				singleton = new UPnPImpl( plugin_interface );
+				singleton = new UPnPImpl( adapter );
 			}
 			
 			return( singleton );
@@ -80,7 +80,7 @@ UPnPImpl
 		}
 	}
 	
-	private PluginInterface			plugin_interface;
+	private UPnPAdapter				adapter;
 	private LoggerChannel			log;
 	private SSDP					ssdp;
 	
@@ -104,13 +104,13 @@ UPnPImpl
 
 	protected
 	UPnPImpl(
-		PluginInterface		_plugin_interface )
+		UPnPAdapter		_adapter )
 	
 		throws UPnPException
 	{
-		plugin_interface	= _plugin_interface;
+		adapter	= _adapter;
 		
-		log		= plugin_interface.getLogger().getChannel("UPnP Core");
+		log		= adapter.getLogger();
 		
 		ssdp = SSDPFactory.create( this );
 		
@@ -333,7 +333,7 @@ UPnPImpl
 			
 			log.log( "UPnP:Response:" + data_str );
 			
-			return( plugin_interface.getUtilities().getSimpleXMLParserDocumentFactory().create( data_str ));
+			return( adapter.parseXML( data_str ));
 			
 		}catch( Throwable e ){
 			
@@ -346,7 +346,7 @@ UPnPImpl
 				
 			}catch( Throwable f ){
 				
-				Debug.printStackTrace( f );
+				adapter.debug(f);
 			}
 			
 			if ( e instanceof SimpleXMLParserDocumentException ){
@@ -364,7 +364,7 @@ UPnPImpl
 	
 		throws UPnPException
 	{
-		ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
+		ResourceDownloaderFactory rdf = adapter.getResourceDownloaderFactory();
 		
 		ResourceDownloader rd = rdf.getRetryDownloader( rdf.create( url ), 3 );
 		
@@ -562,17 +562,17 @@ UPnPImpl
 				trace_index = 1;
 			}
 			
-			return( new File( plugin_interface.getUtilities().getAzureusUserDir(), "upnp_trace" + trace_index + ".log" ));
+			return( new File( adapter.getTraceDir(), "upnp_trace" + trace_index + ".log" ));
 		}finally{
 			
 			this_mon.exit();
 		}
 	}
 	
-	public PluginInterface
-	getPluginInterface()
+	public UPnPAdapter
+	getAdapter()
 	{
-		return( plugin_interface );
+		return( adapter );
 	}
 	
 	public void
@@ -725,6 +725,7 @@ UPnPImpl
 	{
 		rd_listeners.remove( l );
 	}
+	
 	public static void
 	main(
 		String[]		args )
@@ -744,7 +745,7 @@ UPnPImpl
 								
 							}catch( Throwable e ){
 								
-								Debug.printStackTrace( e );
+								e.printStackTrace();
 							}
 						}						
 					});
@@ -773,7 +774,7 @@ UPnPImpl
 			
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace( e );
+			e.printStackTrace();
 		}
 	}
 	

@@ -35,9 +35,15 @@ import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.config.*;
+import org.gudy.azureus2.plugins.utils.UTTimer;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.services.*;
@@ -239,7 +245,65 @@ UPnPPlugin
 		}
 		
 		try{
-			upnp = UPnPFactory.getSingleton( plugin_interface );
+			upnp = UPnPFactory.getSingleton(
+					new UPnPAdapter()
+					{
+						public LoggerChannel
+						getLogger()
+						{
+							return( plugin_interface.getLogger().getChannel("UPnP Core"));
+						}
+
+					
+						public SimpleXMLParserDocument
+						parseXML(
+							String	data )
+						
+							throws SimpleXMLParserDocumentException
+						{
+							return( plugin_interface.getUtilities().getSimpleXMLParserDocumentFactory().create( data ));
+						}
+						
+						public ResourceDownloaderFactory
+						getResourceDownloaderFactory()
+						{
+							return( plugin_interface.getUtilities().getResourceDownloaderFactory());
+						}
+						
+						public UTTimer
+						createTimer(
+							String	name )
+						{
+							return( plugin_interface.getUtilities().createTimer( name, true ));
+						}
+						
+						public void
+						createThread(
+							String		name,
+							AERunnable	runnable )
+						{
+							plugin_interface.getUtilities().createThread( name, runnable );
+						}
+						
+						public Comparator
+						getAlphanumericComparator()
+						{
+							return( plugin_interface.getUtilities().getFormatters().getAlphanumericComparator( true ));
+						}
+
+						public void
+						debug(
+							Throwable	e )
+						{
+							Debug.printStackTrace( e );
+						}
+						
+						public String
+						getTraceDir()
+						{
+							return( plugin_interface.getUtilities().getAzureusUserDir());
+						}
+					});
 				
 			upnp.addRootDeviceListener(
 				new UPnPListener()

@@ -99,8 +99,7 @@ SSDPImpl
 		try{	
 			processNetworkInterfaces( true );
 		
-			UTTimer timer = 
-				upnp.getPluginInterface().getUtilities().createTimer( "SSDP:refresher", true );
+			UTTimer timer = upnp.getAdapter().createTimer( "SSDP:refresher" );
 			
 			timer.addPeriodicEvent(
 				60*1000,
@@ -120,7 +119,7 @@ SSDPImpl
 					}
 				});
 			
-			upnp.getPluginInterface().getUtilities().createThread(
+			upnp.getAdapter().createThread(
 					"SSDP:queryLoop",
 					new AERunnable()
 					{
@@ -291,7 +290,7 @@ SSDPImpl
 							
 						control_socket.bind( new InetSocketAddress(ni_address, SSDP_CONTROL_PORT ));
 			
-						upnp.getPluginInterface().getUtilities().createThread(
+						upnp.getAdapter().createThread(
 							"SSDP:listener",
 							new AERunnable()
 							{

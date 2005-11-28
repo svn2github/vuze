@@ -36,10 +36,10 @@ UPnPFactory
 {
 	public static UPnP
 	getSingleton(
-		PluginInterface		plugin_interface )
+		UPnPAdapter		adapter )
 	
 		throws UPnPException
 	{
-		return( UPnPImpl.getSingleton( plugin_interface));
+		return( UPnPImpl.getSingleton( adapter));
 	}
 }
