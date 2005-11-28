@@ -41,6 +41,20 @@ UTTimerImpl
 
 	private boolean				destroyed;
 	
+	public
+	UTTimerImpl(
+		String				name,
+		boolean				lightweight )
+	{		
+			// this constructor is for external (non-az) use, e.g. someone using the UPnP component
+			// in their own app
+		
+		if ( !lightweight ){
+			
+			timer = new Timer( name );
+		}
+	}
+	
 	protected
 	UTTimerImpl(
 		PluginInterface		pi,

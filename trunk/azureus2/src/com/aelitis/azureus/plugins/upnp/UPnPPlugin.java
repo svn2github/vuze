@@ -248,13 +248,6 @@ UPnPPlugin
 			upnp = UPnPFactory.getSingleton(
 					new UPnPAdapter()
 					{
-						public LoggerChannel
-						getLogger()
-						{
-							return( plugin_interface.getLogger().getChannel("UPnP Core"));
-						}
-
-					
 						public SimpleXMLParserDocument
 						parseXML(
 							String	data )

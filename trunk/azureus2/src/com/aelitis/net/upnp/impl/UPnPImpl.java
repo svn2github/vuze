@@ -32,8 +32,6 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-//import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.*;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -81,7 +79,6 @@ UPnPImpl
 	}
 	
 	private UPnPAdapter				adapter;
-	private LoggerChannel			log;
 	private SSDP					ssdp;
 	
 	private Map			root_locations	= new HashMap();
@@ -109,8 +106,6 @@ UPnPImpl
 		throws UPnPException
 	{
 		adapter	= _adapter;
-		
-		log		= adapter.getLogger();
 		
 		ssdp = SSDPFactory.create( this );
 		
@@ -331,7 +326,7 @@ UPnPImpl
 				
 			String	data_str = data.toString();
 			
-			log.log( "UPnP:Response:" + data_str );
+			log( "UPnP:Response:" + data_str );
 			
 			return( adapter.parseXML( data_str ));
 			
@@ -411,7 +406,7 @@ UPnPImpl
 			
 			if ( direct_calls_ok == 1 ){
 				
-				log.log( "Invocation via http connection failed (" + e.getMessage() + ") but socket connection succeeded" );
+				log( "Invocation via http connection failed (" + e.getMessage() + ") but socket connection succeeded" );
 			}
 		}
 		
@@ -429,7 +424,7 @@ UPnPImpl
 	{
 		URL	control = service.getControlURL();
 		
-		log.log( "UPnP:Request: -> " + control + "," + request );
+		log( "UPnP:Request: -> " + control + "," + request );
 
 		if ( use_http_connection ){
 			

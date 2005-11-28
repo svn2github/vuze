@@ -25,7 +25,6 @@ package com.aelitis.net.upnp;
 import java.util.Comparator;
 
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
@@ -34,9 +33,6 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentE
 public interface 
 UPnPAdapter 
 {
-	public LoggerChannel
-	getLogger();
-	
 	public SimpleXMLParserDocument
 	parseXML(
 		String	data )
