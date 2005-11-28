@@ -171,7 +171,6 @@ DownloadManagerController
 			
 			this_mon.exit();
 	
-			download_manager.informStateChanged();
 		}
 		
 				// make sure it is started beore making it "visible"
@@ -182,7 +181,14 @@ DownloadManagerController
 		temp.start();
 	
 		peer_manager = temp;
-		
+
+		// Inform only after peer_manager.start(), because it 
+		// may have switched it to STATE_SEEDING (in which case we don't need to
+		// inform).
+		if (getState() == DownloadManager.STATE_DOWNLOADING) {
+			download_manager.informStateChanged();
+		}
+
 		download_manager.informPeerManagerAdded( temp );
 	}
   
