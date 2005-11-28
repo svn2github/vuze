@@ -270,6 +270,13 @@ PEPeerControlImpl
     
     
     
+    // initial check on finished state - future checks are driven by piece check results
+
+    // Moved out of mainLoop() so that it runs immediately, possibly changing
+    // the state to seeding.
+
+    checkFinished( true );
+
     new AEThread( "PEPeerControlImpl"){
       public void
       runSupport()
@@ -290,10 +297,6 @@ PEPeerControlImpl
     is_running = true;
 
     _timeStarted = SystemTime.getCurrentTime();
-
-    // initial check on finished state - future checks are driven by piece check results
-
-    checkFinished( true );
 
     while( is_running ) { //loop until stopAll() kills us
 
@@ -861,7 +864,8 @@ PEPeerControlImpl
 	      }
       }
       
-      _downloadManager.setStateFinishing();
+      if (!start_of_day)
+      	_downloadManager.setStateFinishing();
       
       _timeFinished = SystemTime.getCurrentTime();
            
