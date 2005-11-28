@@ -50,7 +50,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpRange;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 
 public class ConfigSectionIPFilter implements UISWTConfigSection {
@@ -120,7 +120,8 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
       if (filter != null)
       	filter.save();
     }catch( Exception e ){
-    	LGLogger.logUnrepeatableAlert("Save of filter file fails", e);
+    	Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+					"Save of filter file fails", e));
     }
   }
 
@@ -135,7 +136,8 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 
     Composite gFilter = new Composite(parent, SWT.NULL);
     GridLayout layout = new GridLayout();
-    layout.numColumns = 3;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
     gFilter.setLayout(layout);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gFilter.setLayoutData(gridData);
@@ -154,14 +156,12 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     	// row: enable filter + allow/deny
     
 	gridData = new GridData();
-	gridData.horizontalSpan = 1;
 
     BooleanParameter enabled = new BooleanParameter(gFilter, "Ip Filter Enabled",true);
 	enabled.setLayoutData( gridData ); 
     Messages.setLanguageText(enabled.getControl(), "ConfigView.section.ipfilter.enable");
 
 	gridData = new GridData();
-	gridData.horizontalSpan = 2;
 
     BooleanParameter deny = new BooleanParameter(gFilter, "Ip Filter Allow",false);
 	deny.setLayoutData( gridData ); 
@@ -182,7 +182,6 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     	// row persist banning
     
 	gridData = new GridData();
-	gridData.horizontalSpan = 3;
 	
     BooleanParameter persist_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Banning Persistent",true);
     persist_bad_data_banning.setLayoutData( gridData );
@@ -191,30 +190,39 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     	// row block bad + group ban
     
 	gridData = new GridData();
-	gridData.horizontalSpan = 1;
 	
     BooleanParameter enable_bad_data_banning = new BooleanParameter(gFilter, "Ip Filter Enable Banning",true);
 	enable_bad_data_banning.setLayoutData( gridData );
     Messages.setLanguageText(enable_bad_data_banning.getControl(), "ConfigView.section.ipfilter.enablebanning");
 
     	// block banning
-    
-	IntParameter block_banning = new IntParameter(gFilter, "Ip Filter Ban Block Limit" );
-	gridData = new GridData();
-	gridData.widthHint = 30;
-	block_banning.setLayoutData( gridData );
 
-	Label	block_label = new Label(gFilter, SWT.NULL);
-	Messages.setLanguageText(block_label, "ConfigView.section.ipfilter.blockbanning");
-	
-	enable_bad_data_banning.setAdditionalActionPerformer(
-	    		new ChangeSelectionActionPerformer( new Control[]{ block_banning.getControl(), block_label }));
+    Composite cLine = new Composite(gFilter, SWT.NULL);
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.numColumns = 2;
+		cLine.setLayout(layout);
+
+		Label block_label = new Label(cLine, SWT.NULL);
+		Messages.setLanguageText(block_label,
+				"ConfigView.section.ipfilter.blockbanning");
+
+		IntParameter block_banning = new IntParameter(cLine,
+				"Ip Filter Ban Block Limit");
+		gridData = new GridData();
+		gridData.widthHint = 30;
+		block_banning.setLayoutData(gridData);
+
+		enable_bad_data_banning
+				.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+						new Control[] { block_banning.getControl(), block_label }));
 	
 		// table
 	
     table = new Table(gFilter, SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
     String[] headers = { "ConfigView.section.ipfilter.description", "ConfigView.section.ipfilter.start", "ConfigView.section.ipfilter.end" };
-    int[] sizes = { 200, 110, 110 };
+    int[] sizes = { 110, 110, 110 };
     int[] aligns = { SWT.LEFT, SWT.CENTER, SWT.CENTER };
     for (int i = 0; i < headers.length; i++) {
       TableColumn tc = new TableColumn(table, aligns[i]);
@@ -249,13 +257,12 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
 
     table.setHeaderVisible(true);
 
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.heightHint = 400;
-	gridData.horizontalSpan = 3;
+    gridData = new GridData(GridData.FILL_BOTH);
+    gridData.heightHint = 200;
+		gridData.widthHint = 200;
     table.setLayoutData(gridData);
 
 	gridData = new GridData();
-	gridData.horizontalSpan = 3;
 
     Composite cArea = new Composite(gFilter, SWT.NULL);
     layout = new GridLayout();
