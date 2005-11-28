@@ -76,7 +76,7 @@ public interface TableManager
    *
    * @param tableID Which table the menu item will be visible in. See {@link TableManager}.
    *                If null, the menu item will be added to all table context menus.
-   * @param resourceKey ID of the context menu, which is also used to retreieve
+   * @param resourceKey ID of the context menu, which is also used to retrieve
    *                    the textual name from the plugin language file.
    *
    * @return a newly created menu item for the table's context menu.

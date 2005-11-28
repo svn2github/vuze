@@ -66,23 +66,32 @@ DownloadAnnounceResult
 	getReportedPeerCount();	// number returned by the announce
 	
 	/**
-	 * This method gives the number of seeds we know about (and may have received from a succession
-	 * of announces)
+	 * This method gives the number of seeds we know about (and may have received
+	 * from a succession of announces).
+	 * 
 	 * @return
    *
    * @since 2.0.7.0
+   * 
+   * @note This is not the number of seeds that the tracker knows about, even
+   *        when the tracker returns the total seeds it knows of within
+   *        its announce results.  Use DownloadScrapeResult to retrieve that 
+   *        value.
 	 */
-	
 	public int
 	getSeedCount();			// seeds we know about
 	
 	/**
-	 * This method gives the number of non-seeds we know about
+	 * This method gives the number of non-seeds (peers) we know about
 	 * @return
    *
    * @since 2.0.7.0
+   * 
+   * @note This is not the number of non-seeds that the tracker knows about, 
+   *        even when the tracker returns the total non-seeds it knows of within
+   *        its announce results.  Use DownloadScrapeResult to retrieve that 
+   *        value.
 	 */
-	
 	public int
 	getNonSeedCount();		// non-seeds we know about
 	
