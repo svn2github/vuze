@@ -36,7 +36,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -44,6 +44,7 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.MinimizedWindow;
 import org.gudy.azureus2.ui.swt.Tab;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.IView;
 
 /**
@@ -51,6 +52,7 @@ import org.gudy.azureus2.ui.swt.views.IView;
  *
  */
 public class GUIUpdater extends AEThread implements ParameterListener {
+	private static final LogIDs LOGID = LogIDs.GUI;
   
   private AzureusCore		azureus_core;
   private ConnectionManager	connection_manager;
@@ -112,9 +114,12 @@ public class GUIUpdater extends AEThread implements ParameterListener {
   private void update() {
     refreshed = false;
     if (display != null && !display.isDisposed())
-      display.asyncExec(new AERunnable(){
+    	Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
         try {
+        	if (display == null || display.isDisposed())
+        		return;
+
           IView view = null;
           if (!mainWindow.getShell().isDisposed() && mainWindow.isVisible() && !mainWindow.getShell().getMinimized()) {
 
@@ -234,8 +239,8 @@ public class GUIUpdater extends AEThread implements ParameterListener {
           	mainWindow.downloadBars_mon.exit();
           }
         } catch (Exception e) {
-          LGLogger.log(LGLogger.ERROR, "Error while trying to update GUI");
-          Debug.printStackTrace( e );
+        	Logger.log(new LogEvent(LOGID, "Error while trying to update GUI",
+								e));
         } finally {
           refreshed = true;
         }

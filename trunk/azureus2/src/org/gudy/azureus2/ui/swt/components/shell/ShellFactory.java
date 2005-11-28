@@ -64,6 +64,9 @@ public final class ShellFactory
      */
     public static Shell createShell(final Shell parent, final int styles)
     {
+        if (parent != null && parent.isDisposed())
+    		    return null;
+    	
         return getRegisteredShell(new AEShell(parent, styles));
     }
 

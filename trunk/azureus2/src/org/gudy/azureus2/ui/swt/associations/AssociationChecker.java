@@ -86,7 +86,7 @@ AssociationChecker
 			return;
 		}
 							
-		display.asyncExec(
+		Utils.execSWTThread(
 				new AERunnable()
 				{
 					public void
@@ -100,6 +100,9 @@ AssociationChecker
 	protected void
 	check()
 	{
+		if (display.isDisposed())
+			return;
+
  		shell = new Shell (display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
  	
  		if(! Constants.isOSX) {
@@ -117,7 +120,7 @@ AssociationChecker
 	 		// text
 	 	
 		Label user_label = new Label(shell,SWT.NULL);
-		user_label.setText(MessageText.getString("dialog.associations.prompt"));
+		Messages.setLanguageText(user_label, "dialog.associations.prompt");
 		gridData = new GridData(GridData.FILL_BOTH);
 		gridData.horizontalSpan = 3;
 		user_label.setLayoutData(gridData);

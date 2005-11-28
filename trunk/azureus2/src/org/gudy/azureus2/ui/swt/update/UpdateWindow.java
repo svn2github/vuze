@@ -33,7 +33,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.update.Update;
@@ -42,9 +41,10 @@ import org.gudy.azureus2.plugins.update.UpdateManagerDecisionListener;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderListener;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.StringListChooser;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -61,7 +61,6 @@ UpdateWindow
 	extends 	AERunnable
 	implements 	ResourceDownloaderListener{
   
-  private AzureusCore			azureus_core;
   private UpdateCheckInstance	check_instance;
   private int					check_type;
   
@@ -99,7 +98,6 @@ UpdateWindow
   		AzureusCore			_azureus_core,
   		UpdateCheckInstance	_check_instance )
   {
-  	azureus_core	= _azureus_core;
   	check_instance 	= _check_instance;
   	
   	check_type = check_instance.getType();
@@ -162,17 +160,16 @@ UpdateWindow
     //Do not use ~SWT.CLOSE cause on some linux/GTK platform it
     //forces the window to be only 200x200
     //catch close event instead, and never do it
-    updateWindow = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,(SWT.DIALOG_TRIM | SWT.RESIZE) );
+    updateWindow = ShellFactory.createShell(MainWindow.getWindow().getShell(),
+				(SWT.DIALOG_TRIM | SWT.RESIZE));
     
     updateWindow.addListener(SWT.Close,new Listener() {
       public void handleEvent(Event e) {
-        e.doit = false;
+        dispose();
       }
     });
     
-    if(! Constants.isOSX) {
-      updateWindow.setImage(ImageRepository.getImage("azureus"));
-    }
+    Utils.setShellIcon(updateWindow);
     
     String	res_prefix = "swt.";
     

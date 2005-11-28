@@ -69,9 +69,8 @@ public class AboutWindow {
     }
         
     final Shell window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, (Constants.isOSX) ? SWT.DIALOG_TRIM : (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
-    if(! Constants.isOSX) {
-      window.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
-    }
+    Utils.setShellIcon(window);
+
     window.setText(MessageText.getString("MainWindow.about.title") + " " + Constants.AZUREUS_VERSION); //$NON-NLS-1$
     GridData gridData;
     window.setLayout(new GridLayout(3, false));
@@ -179,7 +178,7 @@ public class AboutWindow {
             finished[0] = true;
             break;
           }
-          display.asyncExec(new AERunnable() {
+          Utils.execSWTThread(new AERunnable() {
             public void runSupport() {
               if(labelImage.isDisposed())
                 return;

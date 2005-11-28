@@ -192,8 +192,10 @@ public class DonationWindow2 {
         if(display == null || display.isDisposed())
           return;
         drawingDone = false;
-        display.asyncExec(new AERunnable() {
+        Utils.execSWTThread(new AERunnable() {
           public void runSupport() {
+            if(display == null || display.isDisposed())
+              return;
            Image tempImage = new Image(display,background,SWT.IMAGE_COPY);
           
            nbchars++;
@@ -454,8 +456,9 @@ public class DonationWindow2 {
 	    final Display display = SWTThread.getInstance().getDisplay();
 	    
 	    if(display != null && !display.isDisposed()) {
-	     display.asyncExec( new AERunnable() {
+	    	Utils.execSWTThread(new AERunnable() {
 	      public void runSupport() {
+	      	if(display != null && !display.isDisposed())
 	         new DonationWindow2(display).show();    
 	      }
 	     });

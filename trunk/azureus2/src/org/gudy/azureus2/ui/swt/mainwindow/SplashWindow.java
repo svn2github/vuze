@@ -58,9 +58,8 @@ public class SplashWindow implements AzureusCoreListener {
     white = new Color(display,255,255,255);
     splash = new Shell(display, SWT.NULL);
     splash.setText("Azureus");
-    if(! Constants.isOSX) {
-      splash.setImage(ImageRepository.getImage("azureus")); //$NON-NLS-1$
-    }
+    Utils.setShellIcon(splash);
+
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
@@ -93,9 +92,14 @@ public class SplashWindow implements AzureusCoreListener {
   
   
   public static void create(final Display display,final Initializer initializer) {
-    if(display != null && !display.isDisposed()) {
-      display.asyncExec(new AERunnable() { public void runSupport() {new SplashWindow(display,initializer);}});
-    }    
+  	Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (display == null || display.isDisposed())
+					return;
+
+				new SplashWindow(display, initializer);
+			}
+		});
   }
   
   
@@ -123,7 +127,7 @@ public class SplashWindow implements AzureusCoreListener {
       return;
     
     //Post runnable to SWTThread
-    display.asyncExec(new AERunnable(){
+    Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
         //Ensure than the task Label is created and not disposed
         if(currentTask == null || currentTask.isDisposed())
@@ -139,7 +143,7 @@ public class SplashWindow implements AzureusCoreListener {
       return;
     
     //Post runnable to SWTThread
-    display.asyncExec(new AERunnable(){
+    Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
         //Ensure than the percentDone ProgressBar is created and not disposed
         if(percentDone == null || percentDone.isDisposed())

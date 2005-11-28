@@ -11,7 +11,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.ImageRepository;
@@ -26,8 +26,6 @@ public class StringListChooser {
   private Combo combo;
   
   private String result;  
-  
-  private AESemaphore	waiting_sem = new AESemaphore( "StringListChooser" );
   
   public StringListChooser(final Shell parentShell) {
     result = null;
@@ -62,8 +60,6 @@ public class StringListChooser {
       public void handleEvent(Event arg0) {
        result = combo.getText();
        shell.dispose();       
-       
-       unlockWaitingOpen();
       }
     });
     ok.setText(MessageText.getString("Button.ok"));
@@ -75,8 +71,6 @@ public class StringListChooser {
     	  result = null;
        
        shell.dispose();       
-      
-       unlockWaitingOpen();
       }
     });
     cancel.setText(MessageText.getString("Button.cancel"));
@@ -84,8 +78,6 @@ public class StringListChooser {
     
     shell.addListener(SWT.Dispose,new Listener() {
       public void handleEvent(Event arg0) {
-      
-       unlockWaitingOpen();
       }
     });
     
@@ -120,27 +112,27 @@ public class StringListChooser {
   }
   
   public void setTitle(final String title) {
-    if(display == null || display.isDisposed()) return;
-    display.asyncExec(new Runnable() {    
-      public void run() {
+    Utils.execSWTThread(new AERunnable() {    
+      public void runSupport() {
+        if(display == null || display.isDisposed()) return;
         shell.setText(title);
       }    
     });
   }
   
   public void setText(final String text) {
-    if(display == null || display.isDisposed()) return;
-    display.asyncExec(new Runnable() {    
-      public void run() {
-        label.setText(text);
+  	Utils.execSWTThread(new AERunnable() {    
+      public void runSupport() {
+        if(display == null || display.isDisposed()) return;
+        label.setText(text.replaceAll("&", "&&"));
       }    
     });
   }
   
   public void addOption(final String option) {
-    if(display == null || display.isDisposed()) return;
-    display.asyncExec(new Runnable() {    
-      public void run() {
+    Utils.execSWTThread(new AERunnable() {    
+      public void runSupport() {
+        if(display == null || display.isDisposed()) return;
         combo.add(option);
         if(combo.getItemCount() == 1) {
           combo.setText(option);
@@ -151,38 +143,26 @@ public class StringListChooser {
   
   public String open() {
     if(display == null || display.isDisposed()) return null;    
-    display.asyncExec(new Runnable() {    
+    Utils.execSWTThread(new AERunnable() {    
       public void 
-      run() 
+      runSupport() 
       {
+        if(display == null || display.isDisposed()) {
+        	return;    
+        }
     	  try{
     		  shell.open();
+    	    while (!shell.isDisposed())
+    	      if (!display.readAndDispatch()) display.sleep();
     		  
     	  }catch( Throwable e ){
     		  
     		  Debug.printStackTrace( e );
-    		  
-    		  unlockWaitingOpen();
     	  }
       }    
     });
     
-    //Add some code here to wait for the shell to close
-    
-    lockWaitingOpen();
-    
     return result;
   }
   
-  private void 
-  lockWaitingOpen() 
-  {
-	  waiting_sem.reserve(); 
-  }
-  
-  private void 
-  unlockWaitingOpen() 
-  {
-	  waiting_sem.release(); 
-  }
 }
