@@ -293,6 +293,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker NAT Check Enable", new Long(1));
     def.put( "Tracker NAT Check Timeout", new Long(TRTrackerServer.DEFAULT_NAT_CHECK_SECS));
     def.put( "Tracker Max Seeds Retained", new Long( 0 ) );
+    def.put( "Tracker Max Seeds", new Long( 0 ) );
     def.put( "Tracker Max GET Time", new Long(20));
     def.put( "Tracker Max POST Time Multiplier", new Long(1));
     def.put( "Tracker Max Threads", new Long( 48 ));

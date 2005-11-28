@@ -51,6 +51,7 @@ TRTrackerServerImpl
 	public static int		scrape_cache_period			= TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD;
 	public static int		announce_cache_threshold	= TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD;
 	public static int		max_seed_retention			= 0;
+	public static int		seed_limit					= 0;
 	
 	public static boolean	all_networks_permitted		= true;
 	public static String[]	permitted_networks			= {};
@@ -91,6 +92,8 @@ TRTrackerServerImpl
 		announce_cache_threshold = COConfigurationManager.getIntParameter( "Tracker Announce Cache Min Peers", TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PEER_THRESHOLD );
 
 		max_seed_retention = COConfigurationManager.getIntParameter( "Tracker Max Seeds Retained", 0 );
+		
+		seed_limit = COConfigurationManager.getIntParameter( "Tracker Max Seeds", 0 );
 		
 		List	nets = new ArrayList();
 		
@@ -151,6 +154,12 @@ TRTrackerServerImpl
 	getMaxSeedRetention()
 	{
 		return( max_seed_retention );
+	}
+	
+	protected static int
+	getSeedLimit()
+	{
+		return( seed_limit );
 	}
 	
 	protected static boolean

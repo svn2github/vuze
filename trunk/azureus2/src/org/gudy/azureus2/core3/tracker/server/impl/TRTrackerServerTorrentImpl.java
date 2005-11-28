@@ -308,7 +308,7 @@ TRTrackerServerTorrentImpl
 				
 				if ( dl_rate > MAX_DOWNLOAD_BYTES_PER_SEC ){
 					
-          LGLogger.log( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
+					LGLogger.log( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
 									new String(peer.getPeerId().getHash()) + 
 									" reported a download rate of " + dl_rate/1024 + " KiB/s per second" );
 					
@@ -340,6 +340,18 @@ TRTrackerServerTorrentImpl
 			}
 			
 			if ( peer != null && peer.isSeed()){
+				
+				int	seed_limit		= TRTrackerServerImpl.getSeedLimit();
+				
+				if ( seed_limit != 0 && seed_count > seed_limit && !loopback ){
+					
+					removePeer( peer );
+					
+						// this is picked up by AZ client removal rules and causes the torrent to
+						// be removed
+					
+					throw( new TRTrackerServerException( "too many seeds" ));
+				}
 				
 				int	seed_retention = TRTrackerServerImpl.getMaxSeedRetention();
 			
