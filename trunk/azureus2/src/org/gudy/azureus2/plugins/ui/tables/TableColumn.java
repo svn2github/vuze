@@ -204,4 +204,14 @@ public interface TableColumn {
    * update on the next refresh.
    */
   public void invalidateCells();
+
+
+  /** Adds a Context Menu item to the "This Column" sub menu
+   *
+   * @param resourceKey ID of the context menu, which is also used to retreieve
+   *                    the textual name from the plugin language file.
+   *
+   * @return a newly created menu item
+   */
+  public TableContextMenuItem addContextMenuItem(String resourceKey);
 }
