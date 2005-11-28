@@ -337,8 +337,9 @@ public class StartStopRulesDefaultPlugin
         somethingChanged = true;
         if (bDebugLog) 
         	log.log(dlData.dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-							"somethingChanged: stateChange from " + old_state + " to "
-									+ new_state);
+							"somethingChanged: stateChange from " + sStates.charAt(old_state)
+									+ " (" + old_state + ") to " + sStates.charAt(new_state)
+									+ " (" + new_state + ")");
       }
       
       // We have to stop a second torrent from "preparing" at stateChanged,
@@ -1127,11 +1128,6 @@ public class StartStopRulesDefaultPlugin
 	        //    c) other
 	        // 7) Seeding Torrent changes to Queued.  Go to step 1.
 	        
-	        // Don't allow the possibility for more checks to be started
-	        if (totalAllocatingOrChecking > 0) {
-	        	continue;
-	        }
-	        
 	        boolean isFP = dlData.isFirstPriority();
 	        if (!bHasNonFPRank && !isFP)
 	          continue;
@@ -1141,17 +1137,22 @@ public class StartStopRulesDefaultPlugin
 	        // Ignore rules and other auto-starting rules do not apply when 
 	        // bAutoStart0Peers and peers == 0. So, handle starting 0 peers 
 	        // right at the beginning, and loop early
-	        if (bAutoStart0Peers && numPeers == 0 && scrapeResultOk(download)) {
+	        if (totalAllocatingOrChecking == 0 && bAutoStart0Peers
+							&& numPeers == 0 && scrapeResultOk(download)) {
 	          if (state == Download.ST_QUEUED) {
 	            try {
 	              if (bDebugLog)
 	                sDebugLine += "\nrestart() 0Peers";
 	              download.restart(); // set to Waiting
+		            totalWaitingToSeed++;
+		            numWaitingOrSeeding++;
+
 	              state = download.getState();
 	              if (state == Download.ST_READY) {
 	                if (bDebugLog)
 	                  sDebugLine += "\nstart(); 0Peers";
 	                download.start();
+			            activeSeedingCount++;
 	              }
 	            } catch (Exception ignore) {/*ignore*/}
 	          }
@@ -1160,6 +1161,8 @@ public class StartStopRulesDefaultPlugin
 	              if (bDebugLog)
 	                sDebugLine += "\nstart(); 0Peers";
 	              download.start();
+		            activeSeedingCount++;
+		            numWaitingOrSeeding++;
 	            } catch (Exception ignore) {/*ignore*/}
 	          }
 	          continue;
@@ -1251,7 +1254,7 @@ public class StartStopRulesDefaultPlugin
 	                   (maxActive == 0 || numWaitingOrSeeding < maxSeeders) && 
 //	                   (maxActive == 0 || (activeSeedingCount + activeDLCount) < maxActive) &&
 	                   (download.getSeedingRank() > -2) && 
-	                   !higherQueued) {
+	                   !higherQueued && totalAllocatingOrChecking == 0) {
 	          try {
 	            if (bDebugLog)
 	              sDebugLine += "\nrestart() numWaitingOrSeeding < maxSeeders";
@@ -1269,15 +1272,17 @@ public class StartStopRulesDefaultPlugin
 	        if (state == Download.ST_READY && activeSeedingCount < maxSeeders) {
 
 	          if (download.getSeedingRank() > -2 || download.isForceStart()) {
-	            try {
-	              if (bDebugLog)
-	                sDebugLine += "\nstart(); activeSeedingCount < maxSeeders";
-	              download.start();
-	              okToQueue = false;
-	            } catch (Exception ignore) {/*ignore*/}
-	            state = download.getState();
-	            activeSeedingCount++;
-	
+	          	if (totalAllocatingOrChecking == 0) {
+		            try {
+		              if (bDebugLog)
+		                sDebugLine += "\nstart(); activeSeedingCount < maxSeeders";
+		              download.start();
+		              okToQueue = false;
+		            } catch (Exception ignore) {/*ignore*/}
+		            state = download.getState();
+		            activeSeedingCount++;
+		            numWaitingOrSeeding++;
+	          	}
 	          } else if (okToQueue) {
 	            // In between switching from STATE_WAITING and STATE_READY,
 	            // and ignore rule was met, so move it back to Queued
@@ -1522,12 +1527,14 @@ public class StartStopRulesDefaultPlugin
 
   public class downloadData implements Comparable
   {
-  	// Wait XX ms before really changing activity (DL or CDing) state 
+  	/** Wait XX ms before really changing activity (DL or CDing) state when
+  	 * state changes via speed change
+  	 */ 
   	private final int ACTIVE_CHANGE_WAIT = 10000;
   	
   	// Base will be shifted over by 4 digits
 		private final int SPRATIO_SHIFT = 10000;
-		private final int SPRATIO_BASE_LIMIT = SR_INCOMPLETE_ENDS_AT / SPRATIO_SHIFT;
+		private final int SPRATIO_BASE_LIMIT = (SR_INCOMPLETE_ENDS_AT - SPRATIO_SHIFT) / SPRATIO_SHIFT - 1;
 
 		// This is actually 1/2 the limit.  Doubling SPRATIO_BASE_LIMIT is 
 		// intentional to make gap more visible, and to handle any SR added due to 
@@ -1586,13 +1593,14 @@ public class StartStopRulesDefaultPlugin
       // - Must be above speed threshold, or started less than 30s ago
       if (state != Download.ST_DOWNLOADING) {
       	bIsActive = false;
+			} else if (System.currentTimeMillis() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR) {
+				bIsActive = true;
       } else {
-				long now = System.currentTimeMillis();
       	// activity based on DL Average
-      	bIsActive = (stats.getDownloadAverage() >= minSpeedForActiveDL)
-						|| (now - stats.getTimeStarted() <= FORCE_ACTIVE_FOR);
+      	bIsActive = (stats.getDownloadAverage() >= minSpeedForActiveDL);
       	
     		if (bActivelyDownloading != bIsActive) {
+  				long now = System.currentTimeMillis();
     			// Change
 					if (lDLActivelyChangedOn == -1) {
 						// Start Timer
@@ -1636,12 +1644,13 @@ public class StartStopRulesDefaultPlugin
 				// Not active if we aren't seeding
 				// Not active if we are AutoStarting 0 Peers, and peer count == 0
 				bIsActive = false;
+			} else if (System.currentTimeMillis() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR) {
+				bIsActive = true;
 			} else {
-				long now = System.currentTimeMillis();
-				bIsActive = (stats.getUploadAverage() >= minSpeedForActiveSeeding)
-						|| (now - stats.getTimeStarted() <= FORCE_ACTIVE_FOR);
+				bIsActive = (stats.getUploadAverage() >= minSpeedForActiveSeeding);
 
     		if (bActivelySeeding != bIsActive) {
+  				long now = System.currentTimeMillis();
     			// Change
 					if (lCDActivelyChangedOn == -1) {
 						// Start Timer
