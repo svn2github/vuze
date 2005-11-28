@@ -350,6 +350,10 @@ DownloadManager
 	
 	public void setDataAlreadyAllocated( boolean already_allocated );
   
+
+  public void setSeedingRank(int rank);
+  public int getSeedingRank();
+
 		/**
 		 * Move data files to new location. Torrent must be in stopped/error state
 		 * @param new_parent_dir
@@ -450,6 +454,11 @@ DownloadManager
 	addPeerListener(
 		DownloadManagerPeerListener	listener );
 		
+	public void
+	addPeerListener(
+		DownloadManagerPeerListener	listener,
+		boolean bDispatchForExisting );
+
 	public void
 	removePeerListener(
 		DownloadManagerPeerListener	listener );

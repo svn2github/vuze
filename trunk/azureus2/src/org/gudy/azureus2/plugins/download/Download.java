@@ -468,7 +468,7 @@ Download
 	
 	/**
 	 * Gives access to the last scrape result received from the tracker for the download
-	 * @return
+	 * @return a non-null DownloadScrapeResult
    *
    * @since 2.0.7.0
 	 */
@@ -686,6 +686,20 @@ Download
 	public void
 	removePeerListener(
 		DownloadPeerListener	l );
+
+	/**
+	 * The torrents with the highest rankings will be seeded first.
+	 * 
+	 * @return Seeding Rank
+	 */
+	public int getSeedingRank();
+
+	/**
+	 * The torrents with the highest rankings will be seeded first.
+	 * 
+	 * @param rank New Ranking
+	 */
+	public void setSeedingRank(int rank);
   
 	public void
 	addPropertyListener(

@@ -805,7 +805,13 @@ RPDownload
 		
 		return( 0 );
 	}
-	
+  
+  public int getSeedingRank() {
+		notSupported();
+		
+		return( 0 );
+  }
+  
  	public String
 	getSavePath()
  	{
@@ -854,4 +860,12 @@ RPDownload
     public void setSessionAuthenticator( SessionAuthenticator auth ) {
       notSupported();  //TODO ?
     }
+
+		/* (non-Javadoc)
+		 * @see org.gudy.azureus2.plugins.download.Download#setSeedingRank(int)
+		 */
+		public void setSeedingRank(int rank) {
+			// TODO Auto-generated method stub
+			
+		}
 }

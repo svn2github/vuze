@@ -326,6 +326,8 @@ DownloadManagerImpl
   
 	private long	creation_time	= SystemTime.getCurrentTime();
   
+  private int iSeedingRank;
+
 	private boolean az_messaging_enabled = true;
    
 	private boolean	dl_identity_obtained;
@@ -1759,10 +1761,21 @@ DownloadManagerImpl
 	addPeerListener(
 		DownloadManagerPeerListener	listener )
 	{
+		addPeerListener(listener, true);
+	}
+
+	public void
+	addPeerListener(
+		DownloadManagerPeerListener	listener,
+		boolean bDispatchForExisting )
+	{
 		try{
 			peer_listeners_mon.enter();
 			
 			peer_listeners.addListener( listener );
+			
+			if (!bDispatchForExisting)
+				return; // finally will call
   		
 			for (int i=0;i<current_peers.size();i++){
   			
@@ -1782,7 +1795,7 @@ DownloadManagerImpl
 			}
   	
 		}finally{
-  		
+
 			peer_listeners_mon.exit();
 		}
 	}
@@ -2212,6 +2225,14 @@ DownloadManagerImpl
     data_already_allocated = already_allocated;
   }
     
+  public void setSeedingRank(int rank) {
+    iSeedingRank = rank;
+  }
+  
+  public int getSeedingRank() {
+    return iSeedingRank;
+  }
+
   public long
   getCreationTime()
   {

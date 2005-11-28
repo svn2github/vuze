@@ -1217,7 +1217,14 @@ DownloadImpl
   	public void setUploadRateLimitBytesPerSecond( int max_rate_bps ) {
       download_manager.getStats().setUploadRateLimitBytesPerSecond( max_rate_bps );
   	}
+
+  public int getSeedingRank() {
+    return download_manager.getSeedingRank();
+  }
     
+	public void setSeedingRank(int rank) {
+		download_manager.setSeedingRank(rank);
+	}
   	
 	public String
 	getSavePath()

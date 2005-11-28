@@ -954,6 +954,21 @@ Test
 		{
 		
 	}
+
+		public void setSeedingRank(int rank) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		public int getSeedingRank() {
+			// TODO Auto-generated method stub
+			return 0;
+		}
+
+		public void addPeerListener(DownloadManagerPeerListener listener, boolean bDispatchForExisting) {
+			// TODO Auto-generated method stub
+			
+		}
 	}
 	
 	protected class
