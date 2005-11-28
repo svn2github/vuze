@@ -66,7 +66,6 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     GridData gridData;
     GridLayout layout;
     Label label;
-    Composite cArea;
 
     Composite gQR = new Composite(parent, SWT.NULL);
     gQR.addControlListener(new Utils.LabelWrapControlListener());
@@ -190,95 +189,9 @@ public class ConfigSectionSeedingAutoStarting implements UISWTConfigSection {
     gridData = new GridData();
     new IntListParameter(cNoTimeNone, "StartStopManager_iMinPeersToBoostNoSeeds", boostQRPeersLabels, boostQRPeersValues);
 
-
-    label = new Label(cNoTimeNone, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.seeding.numPeersAsFullCopy");
-
-    cArea = new Composite(cNoTimeNone, SWT.NULL);
-    layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    layout.numColumns = 2;
-    cArea.setLayout(layout);
-    gridData = new GridData();
-    cArea.setLayoutData(gridData);
-
-    gridData = new GridData();
-    gridData.widthHint = 20;
-    IntParameter paramFakeFullCopy = new IntParameter(cArea, "StartStopManager_iNumPeersAsFullCopy");
-    paramFakeFullCopy.setLayoutData(gridData);
-    final Text txtFakeFullCopy = (Text)paramFakeFullCopy.getControl();
-
-    label = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.peers");
-
-
-    final Composite cFullCopyOptionsArea = new Composite(cNoTimeNone, SWT.NULL);
-    layout = new GridLayout();
-    layout.numColumns = 4;
-    layout.marginWidth = 0;
-    layout.marginHeight = 0;
-    cFullCopyOptionsArea.setLayout(layout);
-    gridData = new GridData();
-    gridData.horizontalIndent = 15;
-    gridData.horizontalSpan = 2;
-    cFullCopyOptionsArea.setLayoutData(gridData);
-    
-    label = new Label(cFullCopyOptionsArea, SWT.NULL);
-    Image img = ImageRepository.getImage("subitem");
-    img.setBackground(label.getBackground());
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
-    label.setImage(img);
-    
-    label = new Label(cFullCopyOptionsArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.seeding.fakeFullCopySeedStart");
-
-    gridData = new GridData();
-    gridData.widthHint = 20;
-    new IntParameter(cFullCopyOptionsArea, "StartStopManager_iFakeFullCopySeedStart").setLayoutData(gridData);
-    label = new Label(cFullCopyOptionsArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.label.seeds");
-    
-
-    final int iNumPeersAsFullCopy = COConfigurationManager.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
-    controlsSetEnabled(cFullCopyOptionsArea.getChildren(), iNumPeersAsFullCopy != 0);
-
-    paramFakeFullCopy.getControl().addListener(SWT.Modify, new Listener() {
-        public void handleEvent(Event event) {
-          try {
-            Text control = (Text)event.widget;
-            if (control.getEnabled()) {
-              int value = Integer.parseInt(control.getText());
-              boolean enabled = (value != 0);
-              if (cFullCopyOptionsArea.getEnabled() != enabled) {
-                cFullCopyOptionsArea.setEnabled(enabled);
-                controlsSetEnabled(cFullCopyOptionsArea.getChildren(), enabled);
-              }
-            }
-          }
-          catch (Exception e) {}
-        }
-    });
-
     Control[] controlsNoTimeNone = { cNoTimeNone };
-    rparamPeerSeed.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsNoTimeNone) {
-      public void performAction() {
-        super.performAction();
-        Event e = new Event();
-        e.widget = txtFakeFullCopy;
-        txtFakeFullCopy.notifyListeners(SWT.Modify, e);
-      }
-    });
-    rparamSeedCount.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsNoTimeNone) {
-      public void performAction() {
-        super.performAction();
-        Event e = new Event();
-        e.widget = txtFakeFullCopy;
-        txtFakeFullCopy.notifyListeners(SWT.Modify, e);
-      }
-    });
-    
+    rparamPeerSeed.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsNoTimeNone));
+    rparamSeedCount.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controlsNoTimeNone));
     
     int iRankType = COConfigurationManager.getIntParameter("StartStopManager_iRankType");
     boolean enable = (iRankType == StartStopRulesDefaultPlugin.RANK_SPRATIO || 
