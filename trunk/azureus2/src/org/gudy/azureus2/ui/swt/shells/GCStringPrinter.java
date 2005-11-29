@@ -61,14 +61,20 @@ public class GCStringPrinter {
         // Process line word by word
         while(stWord.hasMoreElements()) {      
           String word = stWord.nextToken();
+          
+          // check if word is longer than our print area, and split it
           Point ptWordSize = gc.stringExtent(word + " ");
-          if (ptWordSize.x > printArea.width) {
+          while (ptWordSize.x > printArea.width) {
           	int endIndex = word.length() - 1;
           	do {
           		endIndex--;
           		ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
-          	} while (endIndex > 3 && ptWordSize.x > printArea.width);
+          	} while (endIndex > 3 && ptWordSize.x + iLineLength > printArea.width);
+          	// append part that will fit
           	outputLine.append(space + word.substring(0, endIndex) + "\n");
+            height += ptWordSize.y;
+
+            // setup word as the remaining part that didn't fit
           	word = word.substring(endIndex);
           	ptWordSize = gc.stringExtent(word + " ");
           	iLineLength = 0;
