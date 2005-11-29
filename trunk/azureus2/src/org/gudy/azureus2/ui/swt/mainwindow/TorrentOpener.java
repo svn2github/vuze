@@ -255,7 +255,7 @@ public class TorrentOpener {
 		  		return;
 
 				OpenTorrentWindow.invoke(shell, gm, path, torrents,
-						bOverrideStartModeToStopped, false);
+						bOverrideStartModeToStopped, false, false);
 			}
 		});
 	}
