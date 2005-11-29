@@ -92,7 +92,17 @@ public class FileUtil {
     String defSaveDir = COConfigurationManager.getStringParameter("Default save path", "");
     String moveToDir = COConfigurationManager.getStringParameter("Completed Files Directory", "");
     
+    try{
+  	  moveToDir = new File(moveToDir).getCanonicalPath();
+    }catch( Throwable e ){
+    }
+    try{
+    	defSaveDir = new File(defSaveDir).getCanonicalPath();
+    }catch( Throwable e ){
+    }
+    
     try {
+
       if (f.getCanonicalPath().equals(moveToDir)) {
         System.out.println("FileUtil::recursiveDelete:: not allowed to delete the MoveTo dir !");
         return;

@@ -1336,6 +1336,16 @@ DiskManagerImpl
 	      	
 	        String defSaveDir = COConfigurationManager.getStringParameter("Default save path");
 
+	        	// canonicalise is as the rpath is canonicalised so links have been followed etc.
+	        
+	        try{
+	        	defSaveDir = new File( defSaveDir ).getCanonicalPath();
+	        	
+	        }catch( Throwable e ){
+	        	
+	        	Debug.printStackTrace(e);
+	        }
+	        
 	        if (!rPath.equals(defSaveDir)){
 	        	
 	          LGLogger.log(LGLogger.INFORMATION, "Not moving-on-complete since data is not within default save dir");
