@@ -270,6 +270,25 @@ MainWindow
     }    
     
     Tab.setFolder(folder);   
+
+    folder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
+			public void handleEvent(Event event) {
+				// Another window has control, skip filter
+				if (display.getFocusControl().getShell() != mainWindow)
+					return;
+
+				int key = event.character;
+				if ((event.stateMask & SWT.MOD1) != 0 && event.character <= 26
+						&& event.character > 0)
+					key += 'a' - 1;
+
+				if (key == 'l' && (event.stateMask & SWT.MOD1) != 0) {
+					// Ctrl-L: Open URL
+					OpenTorrentWindow.invokeURLPopup(mainWindow, globalManager);
+				}
+			}
+		});
+
     SelectionAdapter selectionAdapter = new SelectionAdapter() {
       public void widgetSelected(final SelectionEvent event) {
         if(display != null && ! display.isDisposed())
