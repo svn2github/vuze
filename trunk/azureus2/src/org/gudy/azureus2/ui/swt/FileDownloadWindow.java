@@ -190,7 +190,8 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     cancel.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
         downloader.cancel();
-        shell.dispose();
+        if (!shell.isDisposed())
+        	shell.dispose();
       }
     });
     
@@ -216,7 +217,8 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
 												
 			    downloader.cancel();
 			    
-			    shell.dispose();
+	        if (!shell.isDisposed())
+	        	shell.dispose();
 			}
 		}
 	});
@@ -257,6 +259,10 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
           int state = downloader.getDownloadState();
           String stateText;
           switch(state) {
+          	case TorrentDownloader.STATE_CANCELLED :
+              if (!shell.isDisposed())
+              	shell.dispose();
+              return;
             case TorrentDownloader.STATE_DOWNLOADING :
               stateText = MessageText.getString("fileDownloadWindow.state_downloading") + ": " + downloader.getStatus();
               break;
