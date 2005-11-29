@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 
 
 
@@ -130,11 +131,13 @@ MessageBoxWindow
 	    	label.setImage( image );
 	    }
 	    
-	    label = new Label(shell,SWT.NONE);
-	    label.setText(message);
+	    	// buffered label handles & in the text properly
+	    
+	    BufferedLabel	msg_label = new BufferedLabel(shell,SWT.NONE);
+	    msg_label.setText(message);
 	    GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 	    gridData.horizontalSpan = 2;
-	    label.setLayoutData(gridData);
+	    msg_label.setLayoutData(gridData);
 	    
 	    	// remember decision
 	    
