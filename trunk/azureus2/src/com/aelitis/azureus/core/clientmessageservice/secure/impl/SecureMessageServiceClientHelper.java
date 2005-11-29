@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.clientmessageservice.secure.impl;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,6 +32,12 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.encodings.PKCS1Encoding;
+import org.bouncycastle.crypto.engines.RSAEngine;
+import org.bouncycastle.crypto.params.ParametersWithRandom;
+import org.bouncycastle.jce.provider.RSAUtil;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.clientmessageservice.ClientMessageService;
@@ -75,15 +82,35 @@ SecureMessageServiceClientHelper
 				
 			byte[] secret_bytes = session_key.getEncoded();
 			
-		    Cipher	rsa_cipher = Cipher.getInstance( "RSA" );
+			try{
+				Cipher	rsa_cipher = Cipher.getInstance( "RSA" );
 		    
-		    rsa_cipher.init( Cipher.ENCRYPT_MODE, public_key );
+				rsa_cipher.init( Cipher.ENCRYPT_MODE, public_key );
 		    
-		    encryped_session_key = rsa_cipher.doFinal( secret_bytes );
+				encryped_session_key = rsa_cipher.doFinal( secret_bytes );
+				
+			}catch( Throwable e ){
+				
+					// fallback to the BC implementation for jdk1.4.2 as JCE RSA not available
+				
+				RSAEngine	eng = new RSAEngine();
+				
+				PKCS1Encoding	padded_eng = new PKCS1Encoding( eng );
+				
+	            CipherParameters param = RSAUtil.generatePublicKeyParameter(public_key);
+	            
+	            param = new ParametersWithRandom(param, new SecureRandom());
+	            
+	            padded_eng.init( true, param );
+				
+				encryped_session_key = padded_eng.processBlock(secret_bytes, 0, secret_bytes.length);
+			}
 
 		}catch( Throwable e ){
 			
-			throw( new IOException( "Secure client message service initialisation fails - " + e.getMessage()));
+			e.printStackTrace();
+			
+			throw( new IOException( "Secure client message service initialisation fails - " + Debug.getNestedExceptionMessage(e)));
 		}
 		
 		delegate = ClientMessageServiceClient.getServerService( server_address, server_port, msg_type_id );
@@ -113,7 +140,7 @@ SecureMessageServiceClientHelper
 			
 		}catch( Throwable e ){
 			
-			throw( new IOException( "send message failed - " + e.getMessage()));
+			throw( new IOException( "send message failed - " + Debug.getNestedExceptionMessage(e)));
 		}
 		
 		delegate.sendMessage( secure_payload );
@@ -141,7 +168,7 @@ SecureMessageServiceClientHelper
 			
 		}catch( Throwable e ){
 			
-			throw( new IOException( "send message failed - " + e.getMessage()));
+			throw( new IOException( "send message failed - " + Debug.getNestedExceptionMessage(e)));
 		}	
 	}
 	
