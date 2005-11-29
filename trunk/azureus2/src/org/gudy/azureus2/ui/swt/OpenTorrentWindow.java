@@ -61,7 +61,6 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
 
@@ -71,6 +70,9 @@ import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
  * @author TuxPaper
  */
 public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
+
+	/** Don't allow disabling of downloading for files smaller than this */
+	private final static int MIN_NODOWNLOAD_SIZE = 1024 * 1024;
 
 	private final static String PARAM_DEFSAVEPATH = "Default save path";
 
@@ -128,6 +130,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 	private boolean bClosed = false;
 
+	/** Shell to use to open children (FileDialog, etc) */
+	private Shell shellForChildren;
+
 	/**
 	 * 
 	 * @param parent
@@ -139,7 +144,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	 */
 	public synchronized static final void invoke(Shell parent, GlobalManager gm,
 			String sPathOfFilesToOpen, String[] sFilesToOpen,
-			boolean bDefaultStopped, boolean bForSeeding) {
+			boolean bDefaultStopped, boolean bForSeeding, boolean bPopupOpenURL) {
 
 		String saveSilentlyDir = null;
 
@@ -165,13 +170,17 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			if (sFilesToOpen != null) {
 				// If none of the files sent to us were valid files, don't open the 
 				// window
-				if (openTorrentWindow.addTorrents(sPathOfFilesToOpen, sFilesToOpen) == 0
+				if (!bPopupOpenURL
+						&& openTorrentWindow.addTorrents(sPathOfFilesToOpen, sFilesToOpen) == 0
 						&& openTorrentWindow.torrentList.size() == 0
 						&& openTorrentWindow.downloaders.size() == 0) {
 					openTorrentWindow.close(true, true);
 					return;
 				}
 			}
+
+			if (bPopupOpenURL)
+				openTorrentWindow.browseURL();
 
 			if (saveSilentlyDir != null) {
 				openTorrentWindow.openTorrents(saveSilentlyDir);
@@ -187,7 +196,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	 */
 	public synchronized static final void invoke(final Shell parent,
 			GlobalManager gm) {
-		invoke(parent, gm, null, null, false, false);
+		invoke(parent, gm, null, null, false, false, false);
+	}
+
+	public synchronized static final void invokeURLPopup(final Shell parent,
+			GlobalManager gm) {
+		invoke(parent, gm, null, null, false, false, true);
 	}
 
 	/**
@@ -199,8 +213,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	private OpenTorrentWindow(final Shell parent, GlobalManager gm,
 			boolean bOpenWindow) {
 		this.gm = gm;
+
 		if (bOpenWindow)
 			openWindow(parent);
+		else
+			shellForChildren = parent;
 	}
 
 	private void openWindow(Shell parent) {
@@ -210,6 +227,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 		shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(
 				parent, SWT.RESIZE | SWT.DIALOG_TRIM);
+
+		shellForChildren = shell;
 
 		shell.setText(MessageText.getString("OpenTorrentWindow.title"));
 		Utils.setShellIcon(shell);
@@ -270,12 +289,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		Messages.setLanguageText(browseURL, "OpenTorrentWindow.addFiles.URL");
 		browseURL.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				if (COConfigurationManager.getBooleanParameter("Add URL Silently"))
-					new FileDownloadWindow(MainWindow.getWindow().getAzureusCore(),
-							shell, null, null, OpenTorrentWindow.this);
-				else
-					new OpenUrlWindow(MainWindow.getWindow().getAzureusCore(), shell,
-							null, null, OpenTorrentWindow.this);
+				browseURL();
 			}
 		});
 
@@ -571,6 +585,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		}
 	}
 
+	private void browseURL() {
+		new OpenUrlWindow(MainWindow.getWindow().getAzureusCore(),
+				shellForChildren, null, null, OpenTorrentWindow.this);
+	}
+
 	private void close(boolean dispose, boolean bCancel) {
 		stOpenTorrentWindow = null;
 		// Can't rely on (stOpenTorrentWindow == null) to check if we are closed
@@ -705,7 +724,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		MenuItem item;
 		sTitle = MessageText.getString("OpenTorrentWindow.startMode");
 
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
 		for (int i = 0; i < startModes.length; i++) {
+			if (i == STARTMODE_FORCESTARTED && userMode == 0)
+				continue;
+
 			item = new MenuItem(menu, SWT.PUSH);
 			item.setData("Value", new Long(i));
 			item.setText(sTitle
@@ -778,7 +801,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				int[] indexes = tableTorrents.getSelectionIndices();
 				for (int i = 0; i < indexes.length; i++) {
 					TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
-					DirectoryDialog dDialog = new DirectoryDialog(shell, SWT.SYSTEM_MODAL);
+					DirectoryDialog dDialog = new DirectoryDialog(shellForChildren,
+							SWT.SYSTEM_MODAL);
 
 					dDialog.setFilterPath(cmbDataDir.getText());
 					dDialog.setMessage(MessageText
@@ -883,7 +907,13 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 					TableItem item = (TableItem) event.item;
 					int index = dataFileTable.indexOf(item);
 					TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
-					file.bDownload = item.getChecked();
+					// don't allow disabling of small files
+					// XXX Maybe warning prompt instead?
+					if (!item.getChecked() && file.lSize <= MIN_NODOWNLOAD_SIZE
+							&& file.parent.iStartID != STARTMODE_SEEDING)
+						item.setChecked(true);
+					else
+						file.bDownload = item.getChecked();
 				}
 			}
 
@@ -907,7 +937,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 							.get(indexes[i]);
 					int style = (fileInfo.parent.iStartID == STARTMODE_SEEDING)
 							? SWT.OPEN : SWT.SAVE;
-					FileDialog fDialog = new FileDialog(shell, SWT.SYSTEM_MODAL | style);
+					FileDialog fDialog = new FileDialog(shellForChildren,
+							SWT.SYSTEM_MODAL | style);
 					fDialog.setFilterPath(cmbDataDir.getText());
 					fDialog.setFileName(fileInfo.sDestFileName == null
 							? fileInfo.sFileName : fileInfo.sDestFileName);
@@ -924,7 +955,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 						if (file.length() == fileInfo.lSize)
 							fileInfo.sDestFileName = sNewName;
 						else {
-							Utils.openMessageBox(shell, SWT.OK,
+							Utils.openMessageBox(shellForChildren, SWT.OK,
 									"OpenTorrentWindow.mb.badSize", new String[] {
 											file.getName(), fileInfo.sFileName });
 						}
@@ -982,10 +1013,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			if (isURL(sTorrentFilenames[i])) {
 				if (COConfigurationManager.getBooleanParameter("Add URL Silently"))
 					new FileDownloadWindow(MainWindow.getWindow().getAzureusCore(),
-							shell, sTorrentFilenames[i], null, this);
+							shellForChildren, sTorrentFilenames[i], null, this);
 				else
-					new OpenUrlWindow(MainWindow.getWindow().getAzureusCore(), shell,
-							sTorrentFilenames[i], null, this);
+					new OpenUrlWindow(MainWindow.getWindow().getAzureusCore(),
+							shellForChildren, sTorrentFilenames[i], null, this);
 				numAdded++;
 				continue;
 			}
@@ -1036,7 +1067,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			// XXX Should error instead?
 			torrentFile = new File(sFileName);
 		}
-		
+
 		// Load up the torrent, see it it's real
 		try {
 			torrent = TorrentUtils.readFromFile(torrentFile, false);
@@ -1234,16 +1265,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 	// TorrentDownloaderCallBackInterface
 	public void TorrentDownloaderEvent(int state, final TorrentDownloader inf) {
-		if (bClosed) {
-			// We are closed!  Either we are getting a CANCELLED state, or the
-			// TorrentDownloader is somehow still running.
-
-			if (state != TorrentDownloader.STATE_CANCELLED)
-				inf.cancel();
-
-			downloaders.remove(inf);
-			return;
-		}
+		// This method is run even if the window is closed.
 
 		if (state == TorrentDownloader.STATE_INIT) {
 			downloaders.add(inf);
@@ -1264,7 +1286,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				return;
 			}
 
-			if (shell != null && !shell.isDisposed())
+			if (shell != null && !shell.isDisposed()) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						tableTorrents.setItemCount(torrentList.size());
@@ -1278,6 +1300,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 						resizeTables(1);
 					}
 				});
+			} else {
+				String saveSilentlyDir = getSaveSilentlyDir();
+				if (saveSilentlyDir != null)
+					openTorrents(saveSilentlyDir);
+			}
 
 		} else if (state == TorrentDownloader.STATE_CANCELLED
 				|| state == TorrentDownloader.STATE_ERROR
@@ -1406,7 +1433,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				sFileName = torrentFile.getRelativePath(); // translated to locale
 			} else {
 				sFileName = parent.getTorrentName() + File.separator
-						+ torrentFile.getRelativePath(); 
+						+ torrentFile.getRelativePath();
 			}
 			lSize = torrentFile.getLength();
 			this.iIndex = iIndex;
