@@ -1066,6 +1066,18 @@ DiskManagerImpl
 	}
 	
 	protected void
+	storageTypeChanged(
+		DiskManagerFileInfoImpl	file )
+	{
+		for (int i=file.getFirstPieceNumber()+1;i<file.getLastPieceNumber()-1;i++){
+			
+			DiskManagerPieceImpl	piece = pieces[i];
+			
+			piece.setDone( false );
+		}
+	}
+	
+	protected void
 	fileAccessModeChanged(
 		DiskManagerFileInfoImpl		file,
 		int							old_mode,
@@ -2201,6 +2213,27 @@ DiskManagerImpl
 					  							
 					  			cache_file.close();
 					  			
+					  				// download's not running, update resume data as necessary 
+					  			
+					  			int	cleared = RDResumeHandler.storageTypeChanged( download_manager, this );
+					  			
+					  				// try and maintain reasonable figures for downloaded. Note that because
+					  				// we don't screw with the first and last pieces of the file during
+					  				// storage type changes we don't have the problem of dealing with
+					  				// the last piece being smaller than torrent piece size
+					  			
+					  			if ( cleared > 0 ){
+					  				
+					  				downloaded = downloaded - cleared * torrent_file.getTorrent().getPieceLength();
+					  				
+					  				if ( downloaded < 0 ){
+					  					
+					  					downloaded = 0;
+					  				}
+					  				
+					  				storeFileDownloaded( download_manager, res );
+					  			}
+					  			
 								return( true );
 								
 							}catch( Throwable e ){
@@ -2213,7 +2246,9 @@ DiskManagerImpl
 											LogAlert.AT_ERROR,
 											"Failed to change storge type for '" + getFile(true) +"': " + Debug.getNestedExceptionMessage(e)));
 
-								download_manager.recheckFile( this );
+									// download's not running - tag for recheck
+								
+								RDResumeHandler.recheckFile( download_manager, this );
 								
 								return( false );
 								

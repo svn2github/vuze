@@ -684,11 +684,12 @@ RDResumeHandler
 		saveResumeData( download_manager_state, resume_data );
 	}
 	
-	protected static void
+	protected static int
 	clearResumeDataSupport(
 		DownloadManager			download_manager,
 		DiskManagerFileInfo		file,
-		boolean					recheck )
+		boolean					recheck,
+		boolean					ignore_first_and_last )
 	{
 		DownloadManagerState	download_manager_state = download_manager.getDownloadState();
 		
@@ -696,9 +697,11 @@ RDResumeHandler
 
 		if ( resume_data == null ){
 			
-			return;
+			return(0);
 		}
-			
+
+		int	pieces_cleared	= 0;
+		
 			// TODO: we could be a bit smarter with the first and last pieces regarding
 			// partial blocks where the piece spans the file bounaries.
 		
@@ -709,6 +712,13 @@ RDResumeHandler
 		int	first_piece = file.getFirstPieceNumber();
 		int last_piece	= file.getLastPieceNumber();
 		
+		if ( ignore_first_and_last ){
+			
+			first_piece++;
+			
+			last_piece--;
+		}
+		
 		if ( resume_pieces != null ){
 			
 			for (int i=first_piece;i<=last_piece;i++){
@@ -717,7 +727,12 @@ RDResumeHandler
 					
 					break;
 				}
-								
+						
+				if ( resume_pieces[i] == PIECE_DONE ){
+					
+					pieces_cleared++;
+				}
+				
 				resume_pieces[i] = recheck?PIECE_RECHECK_REQUIRED:PIECE_NOT_DONE;
 			}
 		}
@@ -747,16 +762,24 @@ RDResumeHandler
 		resume_data.put( "valid", new Long(1));	
 		
 		saveResumeData( download_manager_state, resume_data );
+		
+		return( pieces_cleared );
 	}
 	
-
+	public static int
+	storageTypeChanged(
+		DownloadManager			download_manager,
+		DiskManagerFileInfo		file )
+	{
+		return( clearResumeDataSupport(  download_manager, file, false, true ));
+	}
 	
 	public static void
 	clearResumeData(
 		DownloadManager			download_manager,
 		DiskManagerFileInfo		file )
 	{
-		clearResumeDataSupport( download_manager, file, false );
+		clearResumeDataSupport( download_manager, file, false, false );
 	}
 	
 	public static void
@@ -764,7 +787,7 @@ RDResumeHandler
 		DownloadManager			download_manager,
 		DiskManagerFileInfo		file )
 	{
-		clearResumeDataSupport( download_manager, file, true );
+		clearResumeDataSupport( download_manager, file, true, false );
 	}
 	
 	public static void

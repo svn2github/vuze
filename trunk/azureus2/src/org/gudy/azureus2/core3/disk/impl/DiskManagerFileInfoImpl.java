@@ -218,6 +218,8 @@ DiskManagerFileInfoImpl
 		try{
 			cache_file.setStorageType( type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
 			
+			diskManager.storageTypeChanged( this );
+			
 			return( true );
 			
 		}catch( Throwable e ){
