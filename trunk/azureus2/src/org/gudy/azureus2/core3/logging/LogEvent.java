@@ -31,11 +31,8 @@ public class LogEvent {
 	/** Date and Time this event occurred */
 	public Date timeStamp = new Date();
 
-	/** Peer this event applies to */
-	public PEPeer peer;
-
-	/** Torrent this event applies to */
-	public TOTorrent torrent;
+	/** A list of events that this entry is related to */
+	public Object[] relatedTo;
 
 	/** Log ID, categorizing the event */
 	public LogIDs logID;
@@ -49,72 +46,46 @@ public class LogEvent {
 	/** Error related to event */
 	public Throwable err = null;
 
-	public LogEvent(TOTorrent torrent, PEPeer peer, LogIDs logID,
-			int entryType, String text) {
-		this.torrent = torrent;
-		this.peer = peer;
-		if (peer != null && torrent == null) {
-			DownloadManager dlm = peer.getManager().getDownloadManager();
-			if (dlm != null)
-				this.torrent = dlm.getTorrent();
-		}
+	public LogEvent(Object[] relatedTo, LogIDs logID, int entryType, String text) {
 		this.logID = logID;
 		this.entryType = entryType;
 		this.text = text;
+		this.relatedTo = relatedTo;
 	}
 
-	public LogEvent(TOTorrent torrent, PEPeer peer, LogIDs logID,
-			String text) {
-		this(null, peer, logID, LT_INFORMATION, text);
+	public LogEvent(Object relatedTo, LogIDs logID, int entryType, String text) {
+		this(new Object[] { relatedTo }, logID, entryType, text);
 	}
 
-	public LogEvent(PEPeer peer, LogIDs logID, int entryType, String text) {
-		this(null, peer, logID, entryType, text);
-	}
-
-	public LogEvent(PEPeer peer, LogIDs logID, String text) {
-		this(null, peer, logID, LT_INFORMATION, text);
-	}
-
-	public LogEvent(TOTorrent torrent, LogIDs logID, int entryType,
-			String text) {
-		this(torrent, null, logID, entryType, text);
-	}
 
 	public LogEvent(LogIDs logID, int entryType, String text) {
-		this(null, null, logID, entryType, text);
+		this(null, logID, entryType, text);
 	}
 
-	public LogEvent(TOTorrent torrent, LogIDs logID, String text) {
-		this(torrent, logID, LT_INFORMATION, text);
+	public LogEvent(Object[] relatedTo, LogIDs logID, String text) {
+		this(relatedTo, logID, LT_INFORMATION, text);
+	}
+
+	public LogEvent(Object relatedTo, LogIDs logID, String text) {
+		this(new Object[] { relatedTo }, logID, LT_INFORMATION, text);
 	}
 
 	public LogEvent(LogIDs logID, String text) {
-		this(null, null, logID, LT_INFORMATION, text);
+		this(null, logID, LT_INFORMATION, text);
 	}
 
 	// Throwables
 
-	public LogEvent(PEPeer peer, LogIDs logID, String text, Throwable e) {
-		this(peer, logID, LT_ERROR, text);
+	public LogEvent(Object[] relatedTo, LogIDs logID, String text, Throwable e) {
+		this(relatedTo, logID, LT_ERROR, text);
 		this.err = e;
 	}
-
-	public LogEvent(TOTorrent torrent, LogIDs logID, String text,
-			Throwable e) {
-		this(torrent, logID, LT_ERROR, text);
-		this.err = e;
+	
+	public LogEvent(Object relatedTo, LogIDs logID, String text, Throwable e) {
+		this(new Object[] { relatedTo }, logID, text, e);
 	}
 
 	public LogEvent(LogIDs logID, String text, Throwable e) {
-		this((TOTorrent) null, logID, text, e);
-	}
-
-	// This should be (or already is) somewhere else.. like TorrentUtils?
-	public static TOTorrent getTorrentFromHash(byte[] hash) {
-		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		DownloadManager dlm = gm.getDownloadManager(hash);
-
-		return (dlm == null) ? null : dlm.getTorrent();
+		this(null, logID, text, e);
 	}
 }

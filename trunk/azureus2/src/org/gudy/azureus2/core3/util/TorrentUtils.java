@@ -36,6 +36,7 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
@@ -1216,6 +1217,7 @@ TorrentUtils
 	
 	protected static class
 	torrentDelegate
+		extends LogRelation
 		implements TOTorrent
 	{
 		protected TOTorrent		delegate;
@@ -1622,6 +1624,18 @@ TorrentUtils
 		{
 			delegate.print();
 		}
+
+		public String getRelationText() {
+			if (delegate instanceof LogRelation)
+				return ((LogRelation)delegate).getRelationText();
+			return delegate.toString();
+		}
+
+		public Object[] getQueryableInterfaces() {
+			if (delegate instanceof LogRelation)
+				return ((LogRelation)delegate).getQueryableInterfaces();
+			return super.getQueryableInterfaces();
+		}
 	}
 
 	/**
@@ -1679,5 +1693,20 @@ TorrentUtils
 		}
 
 		return fDest;
+	}
+
+	/**
+	 * Get the DownloadManager related to a torrent's hashBytes
+	 * 
+	 * @param hashBytes
+	 * @return
+	 */
+  public static DownloadManager getDownloadManager(byte[] hashBytes) {
+		try {
+			return AzureusCoreFactory.getSingleton().getGlobalManager()
+					.getDownloadManager(hashBytes);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }

@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
@@ -40,6 +41,7 @@ import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 public class 
 PeerImpl 
+	extends LogRelation
 	implements Peer
 {
 	protected PeerManager	manager;
@@ -340,5 +342,21 @@ PeerImpl
 	 */
 	public PEPeer getPEPeer() {
 		return delegate;
+	}
+
+  // Pass LogRelation off to core objects
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
+	 */
+	public String getRelationText() {
+		return propogatedRelationText(delegate);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getQueryableInterfaces()
+	 */
+	public Object[] getQueryableInterfaces() {
+		return new Object[] { delegate };
 	}
 }

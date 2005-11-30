@@ -62,9 +62,11 @@ import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 import org.gudy.azureus2.plugins.download.session.SessionAuthenticator;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogRelation;
 
 public class 
 DownloadImpl
+	extends LogRelation
 	implements 	Download, DownloadManagerListener, 
 				DownloadManagerTrackerListener, DownloadManagerPeerListener,
 				DownloadManagerStateListener
@@ -1299,4 +1301,20 @@ DownloadImpl
 
   public void setPriority(int priority) {
   }
+
+  // Pass LogRelation off to core objects
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
+	 */
+	public String getRelationText() {
+		return propogatedRelationText(download_manager);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getQueryableInterfaces()
+	 */
+	public Object[] getQueryableInterfaces() {
+		return new Object[] { download_manager };
+	}
 }

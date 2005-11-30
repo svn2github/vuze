@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -52,6 +53,7 @@ import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 public class 
 DownloadManagerImpl 
+	extends LogRelation
 	implements DownloadManager
 {
 		// DownloadManager listeners
@@ -2425,5 +2427,21 @@ DownloadManagerImpl
    hashCode() 
    {  
 	   return dl_identity_hashcode;  
-   }             
+   }
+
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
+	 */
+	public String getRelationText() {
+		return "TorrentDLM: '" + getDisplayName() + "'";
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#queryForClass(java.lang.Class)
+	 */
+	public Object[] getQueryableInterfaces() {
+		return new Object[] { tracker_client };
+	}
 }

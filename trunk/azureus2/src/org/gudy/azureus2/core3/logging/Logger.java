@@ -3,10 +3,10 @@
  */
 package org.gudy.azureus2.core3.logging;
 
-import org.gudy.azureus2.core3.logging.impl.*;
+import org.gudy.azureus2.core3.logging.impl.FileLogging;
+import org.gudy.azureus2.core3.logging.impl.LoggerImpl;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.TorrentUtils;
 
 /**
  * A static implementation of the LoggerImpl class.
@@ -81,31 +81,36 @@ public class Logger {
 	public static void log(LogEvent event) {
 		if (bUseOldLogger) {
 			StringBuffer text = new StringBuffer("{" + event.logID + "} ");
-			int len = text.length();
 			
 			boolean needLF = false;
 
-			if (event.peer != null) {
-				text.append("Peer[");
-				text.append(event.peer.getIp());
-				text.append(";");
-				text.append(event.peer.getClient());
-				text.append("]");
-				needLF = true;
-			}
+			if (event.relatedTo != null) {
+				for (int i = 0; i < event.relatedTo.length; i++) {
+					Object obj = event.relatedTo[i];
+					
+					if (obj == null)
+						continue;
 
-			if (event.torrent != null) {
-				if (event.peer != null)
-					text.append("; ");
-				text.append("Torrent: ");
-				text.append(TorrentUtils.getLocalisedName(event.torrent));
-				needLF = true;
+					needLF = true;
+					if (i > 0)
+						text.append("; ");
+
+					if (obj instanceof LogRelation) {
+						text.append(((LogRelation)obj).getRelationText());
+					} else {
+						text.append("RelatedTo[" + obj.toString() + "]");
+					}
+				}
 			}
 
 			if (needLF) {
 				text.append("\r\n");
-				for (int i = 0; i < len; i++)
-					text.append(" ");
+				
+				int len = 16;
+				char[] padding = new char[len];
+				while (len > 0)
+					padding[--len] = ' ';
+				text.append(padding);
 			}
 
 			text.append(event.text);
@@ -113,6 +118,8 @@ public class Logger {
 			int componentID = 0;
 			if (event.logID == LogIDs.TRACKER)
 				componentID = 2;
+			else if (event.logID == LogIDs.PEER)
+				componentID = 1;
 
 			if (event.err == null)
 				LGLogger.log(componentID, 0, event.entryType, text.toString());

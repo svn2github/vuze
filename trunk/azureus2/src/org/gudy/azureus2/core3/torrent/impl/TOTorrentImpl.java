@@ -26,11 +26,15 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+
 public class 
 TOTorrentImpl
+	extends LogRelation
 	implements TOTorrent
 {
 	protected static final String TK_ANNOUNCE			= "announce";
@@ -1037,5 +1041,26 @@ TOTorrentImpl
 	getMonitor()
 	{
 		return( this_mon );
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
+	 */
+	public String getRelationText() {
+		return "Torrent: '" + new String(torrent_name) + "'";  
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#queryForClass(java.lang.Class)
+	 */
+	public Object[] getQueryableInterfaces() {
+		// yuck
+		try {
+			return new Object[] { AzureusCoreFactory.getSingleton()
+					.getGlobalManager().getDownloadManager(this) };
+		} catch (Exception e) {
+		}
+
+		return null;
 	}
 }

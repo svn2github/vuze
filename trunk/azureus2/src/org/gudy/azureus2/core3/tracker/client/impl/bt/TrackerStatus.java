@@ -20,6 +20,7 @@ import java.util.zip.GZIPInputStream;
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
@@ -330,7 +331,7 @@ public class TrackerStatus {
 						byte[] hash = response.getHash();
 
 						if (Logger.isEnabled())
-							Logger.log(new LogEvent(LogEvent.getTorrentFromHash(hash), LOGID,
+							Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
 									"TrackerStatus: scraping, single_hash_scrapes = "
 											+ bSingleHashScrapes));
 
@@ -606,7 +607,7 @@ public class TrackerStatus {
 							if (seeds < 0 || peers < 0) {
 								if (Logger.isEnabled()) {
 									byte[] hash = response.getHash();
-									Logger.log(new LogEvent(LogEvent.getTorrentFromHash(hash),
+									Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash),
 											LOGID, "Invalid scrape response from '" + reqUrl
 													+ "': map = " + scrapeMap));
 								}
@@ -722,7 +723,7 @@ public class TrackerStatus {
 
 						if (Logger.isEnabled()) {
 							byte[] hash = response.getHash();
-							Logger.log(new LogEvent(LogEvent.getTorrentFromHash(hash), LOGID,
+							Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
 									LogEvent.LT_ERROR, "Error from scrape interface " + scrapeURL
 											+ " : " + msg));
 						}
@@ -895,7 +896,7 @@ public class TrackerStatus {
   			scraper.isTorrentDownloading( hash )){
   	
   		if (Logger.isEnabled())
-				Logger.log(new LogEvent(LogEvent.getTorrentFromHash(hash), LOGID,
+				Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
 						LogEvent.LT_WARNING, "Scrape of " + reqUrl
 								+ " skipped as torrent running and "
 								+ "therefore scrape data available in " + "announce replies"));
@@ -1055,7 +1056,7 @@ public class TrackerStatus {
 						failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
 						
 						if (Logger.isEnabled())
-								Logger.log(new LogEvent(LogEvent.getTorrentFromHash(hash),
+								Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash),
 										LOGID, LogEvent.LT_ERROR,
 										"Response from scrape interface : " + failure_reason));
 						
@@ -1066,7 +1067,7 @@ public class TrackerStatus {
 					failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
 					
 					if (Logger.isEnabled())
-							Logger.log(new LogEvent(LogEvent.getTorrentFromHash(hash), LOGID,
+							Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hash), LOGID,
 									LogEvent.LT_ERROR, "Response from scrape interface : "
 											+ ((PRUDPPacketReplyError) reply).getMessage()));
 				

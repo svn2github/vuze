@@ -34,6 +34,7 @@ import java.io.File;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -47,6 +48,7 @@ import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 
 public class 
 TorrentImpl
+	extends LogRelation
 	implements Torrent
 {
 	private static MagnetPlugin		magnet_plugin;
@@ -500,4 +502,19 @@ TorrentImpl
 		}
 	}
 	
+  // Pass LogRelation off to core objects
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
+	 */
+	public String getRelationText() {
+		return propogatedRelationText(torrent);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getQueryableInterfaces()
+	 */
+	public Object[] getQueryableInterfaces() {
+		return new Object[] { torrent };
+	}
 }

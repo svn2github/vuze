@@ -24,10 +24,12 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 import java.net.InetSocketAddress;
 import java.util.*;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
@@ -48,12 +50,12 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 public class 
 PEPeerTransportProtocol
+	extends LogRelation
 	implements PEPeerTransport
 {
- 
+	protected final static LogIDs LOGID = LogIDs.PEER;
   
-  
-	private PEPeerControl 	manager;
+	private final PEPeerControl 	manager;
 	private String			peer_source;
 	private byte[] peer_id;
 	private String ip;
@@ -105,11 +107,6 @@ PEPeerTransportProtocol
 	
 	//Spread time (0 secs , fake default)
 	private int spreadTimeHint = 0 * 1000;
-
-	public final static int componentID = 1;
-	public final static int evtProtocol = 0;
-  public final static int evtLifeCycle = 1;
-  public final static int evtErrors = 2;
 
   private long last_message_sent_time = 0;
   private long last_message_received_time = 0;
@@ -187,7 +184,9 @@ PEPeerTransportProtocol
       }
       
       public void connectSuccess() {  //will be called immediately
-        if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.RECEIVED, "Established incoming connection from " + PEPeerTransportProtocol.this );
+      	if (Logger.isEnabled())
+					Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
+							"LifeCycle:In: Established incoming connection"));
         initializeConnection();
         
         /*
@@ -255,7 +254,9 @@ PEPeerTransportProtocol
           return;
         }
         
-        if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Established outgoing connection with " + PEPeerTransportProtocol.this);
+        if (Logger.isEnabled())
+					Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
+							"LifeCycle:Out: Established outgoing connection"));
         initializeConnection();
         sendBTHandshake();
       }
@@ -273,7 +274,9 @@ PEPeerTransportProtocol
       }
     });
       
-    if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.SENT, "Creating outgoing connection to " +ip+ ": " +port );
+    if (Logger.isEnabled())
+			Logger.log(new LogEvent(this, LOGID,
+					"LifeCycle:Out: Creating outgoing connection"));
   }
   
   
@@ -385,7 +388,9 @@ PEPeerTransportProtocol
 
     changePeerState( PEPeer.DISCONNECTED );
     
-    if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtLifeCycle, LGLogger.INFORMATION, "Peer connection [" +toString()+ "] closed: " +reason );
+    if (Logger.isEnabled())
+			Logger.log(new LogEvent(this, LOGID,
+					"LifeCycle: Peer connection closed: " + reason));
 
     if( !externally_closed ) {  //if closed internally, notify manager, otherwise we assume it already knows
       manager.peerConnectionClosed( this );
@@ -915,7 +920,7 @@ PEPeerTransportProtocol
     
 
 	public String toString() {
-    if( connection != null ) {
+    if( connection != null && connection.isConnected() ) {
       return connection + " [" + client+ "]";
     }
     return ip + ":" + port + " [" + client+ "]";
@@ -1157,7 +1162,9 @@ PEPeerTransportProtocol
     identityAdded = true;
     PeerIdentityManager.addIdentity( my_peer_data_id, peer_id, ip );    
 
-    if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtLifeCycle, LGLogger.RECEIVED, toString() + " has sent their handshake" );
+    if (Logger.isEnabled())
+			Logger.log(new LogEvent(this, LOGID,
+					"LifeCycle:In: has sent their handshake"));
 
     handshake.destroy();
     
@@ -1178,15 +1185,21 @@ PEPeerTransportProtocol
     //extended protocol processing
     if( (handshake.getReserved()[0] & 128) == 128 ) {  //if first (high) bit is set
       if( !manager.getDownloadManager().isAZMessagingEnabled() ) {
-        if( LGLogger.isEnabled() )  LGLogger.log( "Ignoring peer [" +toString()+ "]'s extended AZ messaging support, as disabled for this download." );
+      	if (Logger.isEnabled())
+					Logger.log(new LogEvent(this, LOGID,
+							"Ignoring peer's extended AZ messaging support,"
+									+ " as disabled for this download."));
       }
       else if( client.indexOf( "Plus!" ) != -1 ) {
-        if( LGLogger.isEnabled() )  LGLogger.log( toString() + " handshake mistakingly indicates extended AZ messaging support....ignoring." );
+      	if (Logger.isEnabled())
+					Logger.log(new LogEvent(this, LOGID, "Handshake mistakingly indicates"
+							+ " extended AZ messaging support...ignoring."));
       }
       else {
-        if( client.indexOf( "Azureus" ) == -1 ) {
-          if( LGLogger.isEnabled() )  LGLogger.log( toString() + " handshake claims extended AZ messaging support....enabling AZ mode." );
-        }
+      	if (Logger.isEnabled() && client.indexOf("Azureus") == -1) {
+					Logger.log(new LogEvent(this, LOGID, "Handshake claims extended AZ "
+							+ "messaging support....enabling AZ mode."));
+				}
         
         az_messaging_mode = true;
         connection.getIncomingMessageQueue().setDecoder( new AZMessageDecoder() );
@@ -1266,7 +1279,11 @@ PEPeerTransportProtocol
          
     if( field.remaining( DirectByteBuffer.SS_PEER ) < dataf.length ) {
       Debug.out( toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]" );
-      if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.ERROR, toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]" );
+      if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"Protocol:Err: invalid Bitfield from peer: too short ["
+								+ field.remaining(DirectByteBuffer.SS_PEER) + "<"
+								+ dataf.length + "]"));
       bitfield.destroy();
       return;
     }
@@ -1367,7 +1384,10 @@ PEPeerTransportProtocol
       outgoing_piece_message_handler.addPieceRequest( number, offset, length );
     }
     else {
-      if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, toString() + " has requested #" + number + ":" + offset + "->" + (offset + length) + " but peer is currently choked. Request ignored." );
+    	if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, "Protocol:In: peer requested #"
+						+ number + ":" + offset + "->" + (offset + length)
+						+ " but peer is currently choked. Request ignored."));
     }
 
     request.destroy();  
@@ -1397,10 +1417,13 @@ PEPeerTransportProtocol
     }
     */
     
-    String error_msg = toString() + " has sent #" + number + ":" + offset + "->" + (offset + length) + ", ";
+    String error_msg = "Peer has sent #" + number + ":" + offset + "->"
+				+ (offset + length) + ", ";
     
     if( !manager.checkBlock( number, offset, payload ) ) {
-      if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block discarded as invalid." );
+    	if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, "Protocol:In: "
+						+ error_msg + "but piece block discarded as invalid."));
       peer_stats.bytesDiscarded( length );
       manager.discarded( length );
       requests_discarded++;
@@ -1422,11 +1445,17 @@ PEPeerTransportProtocol
         manager.discarded( length );
 
         if( manager.isInEndGameMode() ) {  //we're probably in end-game mode then
-          if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block ignored as already written in end-game mode." );      
+        	if (Logger.isEnabled())
+						Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING,
+								"Protocol:In: " + error_msg + "but piece block ignored as "
+										+ "already written in end-game mode."));      
           requests_discarded_endgame++;
         }
         else {
-          if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but piece block discarded as already written." );
+        	if (Logger.isEnabled())
+						Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING,
+								"Protocol:In: " + error_msg + "but piece block discarded as "
+										+ "already written."));
           requests_discarded++;
         }
         
@@ -1448,7 +1477,9 @@ PEPeerTransportProtocol
         finally{  recent_outgoing_requests_mon.exit();  }
         
         if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
-          if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "expired piece block data recovered as useful." );
+        	if (Logger.isEnabled())
+						Logger.log(new LogEvent(this, LOGID, "Protocol:In: " + error_msg
+								+ "expired piece block data " + "recovered as useful."));
           setSnubbed( false );
           reSetRequestsTime();
           manager.writeBlockAndCancelOutstanding( number, offset, payload, this );
@@ -1457,7 +1488,10 @@ PEPeerTransportProtocol
           piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
         }
         else {
-          if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but expired piece block discarded as never requested." );
+        	if (Logger.isEnabled())
+						Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+								"Protocol:In: " + error_msg + "but expired piece block "
+										+ "discarded as never requested."));
           
           System.out.println( error_msg + "but expired piece block discarded as never requested." );
           
@@ -1468,7 +1502,11 @@ PEPeerTransportProtocol
         }
       }
       else {
-        if( LGLogger.isEnabled() )  LGLogger.log( componentID, evtProtocol, LGLogger.RECEIVED, error_msg + "but expired piece block discarded as already written." );
+      	if (Logger.isEnabled())
+					Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+							"Protocol:In: " + error_msg
+									+ "but expired piece block discarded "
+									+ "as already written."));
         peer_stats.bytesDiscarded( length );
         manager.discarded( length );
         requests_discarded++;
@@ -1497,7 +1535,9 @@ PEPeerTransportProtocol
     //INCOMING MESSAGES
     connection.getIncomingMessageQueue().registerQueueListener( new IncomingMessageQueue.MessageQueueListener() {
       public boolean messageReceived( Message message ) {      
-        if( LGLogger.isEnabled() )  LGLogger.log( LGLogger.CORE_NETWORK, "Received [" +message.getDescription()+ "] message from " +PEPeerTransportProtocol.this );
+      	if (Logger.isEnabled())
+							Logger.log(new LogEvent(PEPeerTransportProtocol.this, LogIDs.NET,
+									"Received [" + message.getDescription() + "] message"));
         
         last_message_received_time = SystemTime.getCurrentTime();
         if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
@@ -1623,7 +1663,9 @@ PEPeerTransportProtocol
           }
         }
         
-        if( LGLogger.isEnabled() )  LGLogger.log( LGLogger.CORE_NETWORK, "Sent [" +message.getDescription()+ "] message to " +PEPeerTransportProtocol.this );
+        if (Logger.isEnabled())
+							Logger.log(new LogEvent(PEPeerTransportProtocol.this, LogIDs.NET,
+									"Sent [" + message.getDescription() + "] message"));
       }
   
       public void protocolBytesSent( int byte_count ) {
@@ -1817,7 +1859,10 @@ PEPeerTransportProtocol
       }
     }
     else {
-      if( LGLogger.isEnabled() )  LGLogger.log( "Peer Exchange disabled for this download, dropping received exchange message." );
+    	if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID,
+						"Peer Exchange disabled for this download, "
+								+ "dropping received exchange message."));
     }
   }
   
@@ -1833,4 +1878,28 @@ PEPeerTransportProtocol
     reservedPiece = pieceNumber;
   }
 
+  public List getRequestedPieceNumbers() {
+  	return outgoing_piece_message_handler.getRequestedPieceNumbers();
+  }
+
+
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
+	 */
+	public String getRelationText() {
+		String text;
+		text = "Peer: " + toString();
+		if (manager instanceof LogRelation)
+			text += "; " + ((LogRelation)manager).getRelationText();
+		return text;
+	}
+
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#queryForClass(java.lang.Class)
+	 */
+	public Object[] getQueryableInterfaces() {
+		return new Object[] { manager };
+	}
 }

@@ -20,7 +20,7 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.ipfilter.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
@@ -34,8 +34,11 @@ import com.aelitis.azureus.core.peermanager.unchoker.*;
 
 public class 
 PEPeerControlImpl
-	implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener, DiskManagerCheckRequestListener, IPFilterListener
+	extends LogRelation
+	implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener,
+		DiskManagerCheckRequestListener, IPFilterListener
 {
+	private static final LogIDs LOGID = LogIDs.PEER;
   
   //Min number of requests sent to a peer
   private static final int MIN_REQUESTS = 2;
@@ -77,7 +80,7 @@ PEPeerControlImpl
   private int _nbPieces;
   private PEPieceImpl[] 				_pieces;
   private PEPeerManagerStats 		_stats;
-  private TRTrackerAnnouncer _tracker;
+  private final TRTrackerAnnouncer _tracker;
    //  private int _maxUploads;
   private int _seeds, _peers,_remotes;
   private long last_remote_time;
@@ -100,7 +103,7 @@ PEPeerControlImpl
   private AEMonitor	endGameModeChunks_mon	= new AEMonitor( "PEPeerControl:EG");
 
   
-  private DownloadManager _downloadManager;
+  private final DownloadManager _downloadManager;
   
   
   private long mainloop_loop_count;
@@ -2995,5 +2998,21 @@ PEPeerControlImpl
   	
   	return -1;
 	}
-	
- }
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
+	 */
+	public String getRelationText() {
+		if (_downloadManager instanceof LogRelation)
+			return ((LogRelation)_downloadManager).getRelationText();
+
+		return "";
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.logging.LogRelation#castTo(java.lang.Class)
+	 */
+	public Object[] getQueryableInterfaces() {
+		return new Object[] { _downloadManager, _tracker, _diskManager };
+	}
+}

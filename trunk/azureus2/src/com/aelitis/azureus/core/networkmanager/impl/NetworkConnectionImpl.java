@@ -168,5 +168,10 @@ public class NetworkConnectionImpl implements NetworkConnection {
   public String toString() {
     return tcp_transport.getDescription();
   }
+
+
+	public boolean isConnected() {
+		return is_connected;
+	}
   
 }

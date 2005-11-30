@@ -13,12 +13,8 @@ import java.util.Date;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
-import org.gudy.azureus2.core3.logging.ILogEventListener;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.TorrentUtils;
 
 /**
  * Log events to a file.
@@ -201,27 +197,32 @@ public class FileLogging implements ILogEventListener {
 		int len = text.length() + sTimeStampFormat.length();
 		boolean needLF = false;
 
-		if (event.peer != null) {
-			text.append("Peer[");
-			text.append(event.peer.getIp());
-			text.append(";");
-			text.append(event.peer.getClient());
-			text.append("]");
-			needLF = true;
-		}
+		if (event.relatedTo != null) {
+			for (int i = 0; i < event.relatedTo.length; i++) {
+				Object obj = event.relatedTo[i];
+				
+				if (obj == null)
+					continue;
 
-		if (event.torrent != null) {
-			if (event.peer != null)
-				text.append("; ");
-			text.append("Torrent: ");
-			text.append(TorrentUtils.getLocalisedName(event.torrent));
-			needLF = true;
+				needLF = true;
+				if (i > 0)
+					text.append("; ");
+
+				if (obj instanceof LogRelation) {
+					text.append(((LogRelation)obj).getRelationText());
+				} else {
+					text.append("RelatedTo[" + obj.toString() + "]");
+				}
+			}
 		}
 
 		if (needLF) {
 			text.append("\r\n");
-			for (int i = 0; i < len; i++)
-				text.append(" ");
+
+			char[] padding = new char[len];
+			while (len > 0)
+				padding[--len] = ' ';
+			text.append(padding);
 		}
 
 		text.append(event.text);

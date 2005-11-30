@@ -100,6 +100,7 @@ public interface NetworkConnection {
 
   
 
+  public boolean isConnected();
   
   
   
