@@ -987,6 +987,11 @@ DownloadManagerController
 	  		
 	  		disk_manager	= new_disk_manager;
 
+	  			// whether going from none->active or the other way, indicate that the file info
+	  			// has changed
+	  		
+	  		fileInfoChanged();
+	  		
 	  		if ( new_disk_manager == null && old_disk_manager != null ){
 	  				  			
 	  			disk_listeners.dispatch( LDT_DL_REMOVED, old_disk_manager );

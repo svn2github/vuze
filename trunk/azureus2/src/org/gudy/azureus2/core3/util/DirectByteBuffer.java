@@ -48,7 +48,7 @@ DirectByteBuffer
 	public static final byte		AL_DM_READ		= 6;
 	public static final byte		AL_DM_ZERO		= 7;
 	public static final byte		AL_DM_CHECK		= 8;
-	public static final byte		AL_BT_PIECE    = 9;
+	public static final byte		AL_BT_PIECE    	= 9;
 	public static final byte		AL_CACHE_WRITE  = 10;
 	public static final byte		AL_PROXY_RELAY  = 11;
 	public static final byte    	AL_MSG          = 12;
@@ -65,6 +65,7 @@ DirectByteBuffer
     public static final byte        AL_MSG_AZ_HEADER      = 22;
     public static final byte        AL_MSG_BT_PAYLOAD     = 23;
     public static final byte        AL_MSG_AZ_PAYLOAD     = 24;
+    public static final byte        AL_FILE				  = 25;
     
 	public static final String[] AL_DESCS =
 	{ "None", "Ext", "Other", "PeerRead", "PeerLen",
@@ -81,7 +82,8 @@ DirectByteBuffer
     "BTHeader",
     "AZHeader",
     "BTPayload",
-    "AZPayload"};
+    "AZPayload",
+    "File" };
 	
     
     

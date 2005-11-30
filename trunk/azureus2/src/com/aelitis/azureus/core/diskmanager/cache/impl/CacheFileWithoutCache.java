@@ -100,6 +100,28 @@ CacheFileWithoutCache
 	}
 	
 	public void
+	setStorageType(
+		int		type )
+	
+		throws CacheFileManagerException
+	{
+		try{
+			
+			file.setStorageType( type==CT_COMPACT?FMFile.FT_COMPACT:FMFile.FT_LINEAR );
+			
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(e);
+		}			
+	}
+	
+	public int
+	getStorageType()
+	{
+		return( file.getStorageType()==FMFile.FT_COMPACT?CT_COMPACT:CT_LINEAR );
+	}
+	
+	public void
 	ensureOpen(
 		String	reason )
 

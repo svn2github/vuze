@@ -31,8 +31,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.file.*;
@@ -41,8 +39,8 @@ public abstract class
 FMFileImpl
 	implements FMFile
 {	
-	private static final String		READ_ACCESS_MODE	= "r";
-	private static final String		WRITE_ACCESS_MODE	= "rwd";
+	protected static final String		READ_ACCESS_MODE	= "r";
+	protected static final String		WRITE_ACCESS_MODE	= "rwd";
 	
 	private static Map			file_map = new HashMap();
 	private static AEMonitor	file_map_mon	= new AEMonitor( "FMFile:map");
@@ -62,14 +60,13 @@ FMFileImpl
 	
 	private FMFileManagerImpl	manager;
 	private FMFileOwner			owner;
-	private int					type				= FT_LINEAR;
 	private int					access_mode			= FM_READ;
 	
 	private File				linked_file;
 	private String				canonical_path;
 	private RandomAccessFile	raf;
 	
-	private FMFileAccess		file_access;
+	private FMFileAccessController		file_access;
 	
 	private File				created_dirs_leaf;
 	private List				created_dirs;
@@ -88,7 +85,6 @@ FMFileImpl
 	{
 		owner			= _owner;
 		manager			= _manager;
-		type			= _type;
 		
 		linked_file		= manager.getFileLink( _file );
 		
@@ -124,77 +120,7 @@ FMFileImpl
 				
 			file_reserved	= true;
 			
-				// actual file shouldn't exist for change to occur - it is the responsibility
-				// of the caller to delete the file first and take consequent actions (in
-				// particular force recheck the file to ensure that the loss in save state
-				// is represented in the resume view of the world )
-		
-				// in the future, if we support format conversion, this obviously changes
-			
-			File	control_file = getControlFile();
-			
-			if ( control_file == null ){
-				
-				Debug.out( "No control file" );
-								
-			}else{
-			
-				boolean	control_file_existed = control_file.exists();
-				
-				int	old_type = control_file_existed?FT_COMPACT:FT_LINEAR;
-					
-					// if the actual file doesn't exist then treat as a change of
-					// type as someone's probably gone A -> B -> A without starting download
-				
-				if ( old_type != type || !linked_file.exists()){
-				
-					if ( linked_file.exists()){
-							
-						throw( new FMFileManagerException( "Can't change between linear and compact file formats as file already exists" ));
-					}
-			
-						// get rid if any existing control file as it is redundant info
-			
-					if ( control_file.exists()){
-						
-						control_file.delete();
-					}
-					
-						// create a new file so that the switch cycle works correctly. If we
-						// don't do this then the download will fail with "missing file" exception
-						// when started. This needs to be done
-						//	1) linear -> compact : type will be compact
-						//	2) compact -> linear : control file will exist
-						//	3) linear -> compact -> linear : control file will exist
-					
-					if ( control_file_existed || type == FT_COMPACT ){
-						
-						try{
-							if ( linked_file.createNewFile()){
-								
-								file_was_created	= true;
-							}
-							
-						}catch( Throwable e ){
-							
-							throw( new FMFileManagerException( "createNewFile fails", e ));
-						}
-					}
-				}
-			}
-					
-			if ( type == FT_LINEAR ){
-				
-				file_access = new FMFileAccessLinear( this );
-				
-			}else{
-				
-				file_access = 
-					new FMFileAccessCompact(
-							owner.getTorrentFile(),
-							control_file,  
-							new FMFileAccessLinear( this ) );
-			}	
+			file_access = new FMFileAccessController( this, _type );
 			
 			ok	= true;
 			
@@ -246,46 +172,45 @@ FMFileImpl
 	{
 		return( owner );
 	}
+		
+	public void
+	setStorageType(
+		int		new_type )
 	
-	protected File
-	getControlFile()
+		throws FMFileManagerException
 	{
-		TOTorrentFile	tf = owner.getTorrentFile();
-		
-		if ( tf == null ){
+		try{
+			this_mon.enter();
 
-			return( null );
-		}
-		
-		TOTorrent	torrent = tf.getTorrent();
-		
-		TOTorrentFile[]	files = torrent.getFiles();
-		
-		int	file_index = -1;
-		
-		for (int i=0;i<files.length;i++){
+			boolean	was_open	= raf != null;
 			
-			if ( files[i] == tf ){
-		
-				file_index = i;
+			if ( was_open ){
 				
-				break;
+				closeSupport( false );
 			}
+			
+			try{
+				file_access.setStorageType(  new_type );
+				
+			}finally{
+				
+				if ( was_open ){
+					
+					openSupport( "Re-open after storage type change" );
+				}
+			}
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		if ( file_index == -1 ){
-			
-			Debug.out("File '" + canonical_path + "' not found in torrent!" );
-			
-			return( null );
-		}else{
-			
-			File	control = owner.getControlFile( "fmfile" + file_index + ".dat" );
-		
-			return( control );
-		}
-	}	
-
+	}
+	
+	public int
+	getStorageType()
+	{
+		return( file_access.getStorageType());
+	}
 	
 	public int
 	getAccessMode()
@@ -298,6 +223,12 @@ FMFileImpl
 		int		mode )
 	{
 		access_mode	= mode;
+	}
+	
+	protected File
+	getLinkedFile()
+	{
+		return( linked_file );
 	}
 	
 	public void

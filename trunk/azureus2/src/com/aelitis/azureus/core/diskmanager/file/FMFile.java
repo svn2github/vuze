@@ -65,6 +65,15 @@ FMFile
 	getAccessMode();
 	
 	public void
+	setStorageType(
+		int		type )
+	
+		throws FMFileManagerException;
+	
+	public int
+	getStorageType();
+	
+	public void
 	ensureOpen(
 		String	reason )
 

@@ -41,7 +41,9 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.LocaleUtilEncodingException;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
@@ -68,10 +70,8 @@ import java.util.StringTokenizer;
  */
 public class 
 DiskManagerImpl
-	extends LogRelation
 	implements DiskManagerHelper 
 {  
-	private static final LogIDs LOGID = LogIDs.DISK;
 	private boolean	used	= false;
 	
 	private boolean started = false;
@@ -1170,8 +1170,7 @@ DiskManagerImpl
 			{
 				errorMessage	= reason;
 				
-				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-						errorMessage));
+				LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, errorMessage );
 				
 
 				setState( DiskManager.FAULTY );
@@ -1181,7 +1180,37 @@ DiskManagerImpl
 		}.start();
 
 	}
+	
+	public void
+	setFailed(
+		final DiskManagerFileInfo		file,
+		final String					reason )
+	{
+			/**
+			 * need to run this on a separate thread to avoid deadlock with the stopping
+			 * process - setFailed tends to be called from within the read/write activities
+			 * and stopping these requires this.
+			 */
+		
+    	new AEThread("DiskManager:setFailed") 
+		{
+			public void 
+			runSupport() 
+			{
+				errorMessage	= reason;
+				
+				LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, errorMessage );
+				
 
+				setState( DiskManager.FAULTY );
+									
+				DiskManagerImpl.this.stop();
+				
+				RDResumeHandler.recheckFile( download_manager, file );
+			}
+		}.start();
+
+	}
 	
 	public PieceList
 	getPieceList(
@@ -1350,10 +1379,8 @@ DiskManagerImpl
 	        }
 	        
 	        if (!rPath.equals(defSaveDir)){
-	        	if (Logger.isEnabled())
-							Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING,
-									"Not moving-on-complete since "
-											+ "data is not within default save dir"));
+	        	
+	          LGLogger.log(LGLogger.INFORMATION, "Not moving-on-complete since data is not within default save dir");
 	          
 	          return;
 	        }
@@ -1399,14 +1426,11 @@ DiskManagerImpl
 		          	
 		            String msg = "" + old_file.getName() + " already exists in MoveTo destination dir";
 		            
-		            if (Logger.isEnabled())
-		            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-		            			msg));
+		            LGLogger.log(LGLogger.ERROR,msg);
 		            
-		            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-		            		LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
-		            		new String[] { old_file.getName() });
-	            
+		            LGLogger.logUnrepeatableAlertUsingResource( 
+		            		LGLogger.AT_ERROR, "DiskManager.alert.movefileexists", 
+		            		new String[]{ old_file.getName() } );
 		            
 		            Debug.out(msg);
 		            
@@ -1434,14 +1458,12 @@ DiskManagerImpl
 	          	
 	            String msg = "Failed to move " + old_files[i].toString() + " to destination dir";
 	            
-	            if (Logger.isEnabled())
-								Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-										msg));
+	            LGLogger.log(LGLogger.ERROR,msg);
 	            
-	            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-								LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-								new String[] { old_files[i].toString(),
-										Debug.getNestedExceptionMessage(e) });
+	            LGLogger.logUnrepeatableAlertUsingResource( 
+	            		LGLogger.AT_ERROR, "DiskManager.alert.movefilefails", 
+	            		new String[]{ old_files[i].toString(),
+	            		Debug.getNestedExceptionMessage(e)});
 	
 	            Debug.out(msg);
 	            
@@ -1456,11 +1478,10 @@ DiskManagerImpl
 	         		
 	            	}catch( CacheFileManagerException f ){
 	              
-	            		Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-										LogAlert.AT_ERROR,
-										"DiskManager.alert.movefilerecoveryfails"),
-										new String[] { old_files[j].toString(),
-												Debug.getNestedExceptionMessage(f) });
+	            		LGLogger.logUnrepeatableAlertUsingResource( 
+	                    		LGLogger.AT_ERROR, "DiskManager.alert.movefilerecoveryfails", 
+	                    		new String[]{ old_files[j].toString(),
+	                    		Debug.getNestedExceptionMessage(f)} );
 	           		
 	            	}
 	            }
@@ -1505,14 +1526,12 @@ DiskManagerImpl
 	          
 		            String msg = "Failed to move " + oldTorrentFile.toString() + " to " + newTorrentFile.toString();
 		            
-		            if (Logger.isEnabled())
-		            	Logger
-		            	.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
+		            LGLogger.log(LGLogger.ERROR,msg);
 		            
-		            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-									LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-									new String[] { oldTorrentFile.toString(),
-											newTorrentFile.toString() });
+		            LGLogger.logUnrepeatableAlertUsingResource( 
+		            		LGLogger.AT_ERROR, "DiskManager.alert.movefilefails", 
+		            		new String[]{ 	oldTorrentFile.toString(),
+		            						newTorrentFile.toString()});
 		
 		            Debug.out(msg);
 	          	}
@@ -1862,9 +1881,8 @@ DiskManagerImpl
 		
 		if ( existing_link != to_link ){
 			
-			Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-							"Attempt to link to existing link '" + existing_link.toString()
-									+ "'"));
+			LGLogger.logRepeatableAlert( 
+					LGLogger.AT_ERROR, "Attempt to link to existing link '" + existing_link.toString() + "'" );
 			
 			return( false );
 		}
@@ -1873,9 +1891,8 @@ DiskManagerImpl
 			
 			if ( to_link.equals( info[i].getFile( true ))){
 				
-				Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-								"Attempt to link to existing file '" + info[i].getFile(true)
-										+ "'"));
+				LGLogger.logRepeatableAlert( 
+						LGLogger.AT_ERROR, "Attempt to link to existing file '" + info[i].getFile( true ) + "'" );
 				
 				return( false );
 			}
@@ -1905,8 +1922,8 @@ DiskManagerImpl
 					
 				}else{
 	    	
-					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-							"Failed to delete '" + existing_file.toString() + "'"));
+					LGLogger.logRepeatableAlert( 
+							LGLogger.AT_ERROR, "Failed to delete '" + existing_file.toString() + "'" );
 					
 					return( false );
 				}
@@ -1917,8 +1934,8 @@ DiskManagerImpl
   			  
 				if ( !FileUtil.renameFile( existing_file, to_link )){
 		  			  
-					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR, 
-		    			"Failed to rename '" + existing_file.toString() + "'" ));
+					LGLogger.logRepeatableAlert( 
+		    			LGLogger.AT_ERROR, "Failed to rename '" + existing_file.toString() + "'" );
 
 					return( false );
 				}
@@ -2156,45 +2173,6 @@ DiskManagerImpl
 								return( true );
 							}
 							
-							int	s = download_manager.getState();
-							
-							if ( s != DownloadManager.STATE_STOPPED && s != DownloadManager.STATE_ERROR ){
-								
-								Debug.out( "setStorageType: download not stopped" );
-								
-								return( false );
-							}
-							
-							File	existing_file = getFile(true);
-							
-							if ( existing_file.exists()){
-											
-								
-									// at this point, if we could be bothered, we could migrate storage types
-									// from one to another. We could also handle "allocate all space" and "zero new"
-									// properly with files returning to a linear state...							
-								
-								
-									// don't use delete-with-recycle as (on osx at least) this can cause
-									// problems as it goes asynchronous (or maybe fails) and then we fail later on creating
-									// the cache file.
-									// The caller will have prompted for "ok to delete" anyway
-								
-								if ( existing_file.delete()){
-						    																
-									download_manager.resetFile( this );
-										
-								}else{
-						    					
-									Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-										"Failed to delete '" + existing_file.toString() + "'"));
-									
-									return( false );
-								}
-							}
-							
-								// establish the new file type 
-							
 							try{
 							 	CacheFile cache_file = 
 							 		CacheFileManagerFactory.getSingleton().createFile( 
@@ -2218,27 +2196,37 @@ DiskManagerImpl
 					  								return( download_manager.getDownloadState().getStateFile( name ));
 					  							}  							
 					  						}, 
-					  						existing_file, 
+					  						getFile( true ), 
 					  						type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );							
 					  							
 					  			cache_file.close();
 					  			
+								return( true );
+								
 							}catch( Throwable e ){
 								
 								Debug.printStackTrace(e);
 								
+								Logger.log(
+									new LogAlert(
+											LogAlert.REPEATABLE, 
+											LogAlert.AT_ERROR,
+											"Failed to change storge type for '" + getFile(true) +"': " + Debug.getNestedExceptionMessage(e)));
+
+								download_manager.recheckFile( this );
+								
 								return( false );
-							}
+								
+							}finally{
 				  							
-							types[file_index] = type==ST_LINEAR?"L":"C";
-							
-							DownloadManagerState	dm_state = download_manager.getDownloadState();
-							
-							dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
-							
-							dm_state.save();
-							
-							return( true );
+								types[file_index] = type==ST_LINEAR?"L":"C";
+								
+								DownloadManagerState	dm_state = download_manager.getDownloadState();
+								
+								dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
+								
+								dm_state.save();
+							}
 						}
 						
 						public int
@@ -2285,20 +2273,5 @@ DiskManagerImpl
 			
 			Debug.printStackTrace(e);
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
-	 */
-	public String getRelationText() {
-		return "TorrentDM: '" + download_manager.getDisplayName() + "'";
-	}
-
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.core3.logging.LogRelation#queryForClass(java.lang.Class)
-	 */
-	public Object[] getQueryableInterfaces() {
-		return new Object[] { download_manager, torrent };
 	}
 }

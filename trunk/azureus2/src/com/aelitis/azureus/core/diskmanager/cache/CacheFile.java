@@ -58,6 +58,15 @@ CacheFile
 	getAccessMode();
 	
 	public void
+	setStorageType(
+		int		type )
+	
+		throws CacheFileManagerException;
+	
+	public int
+	getStorageType();
+	
+	public void
 	ensureOpen(
 		String	reason )
 

@@ -137,6 +137,30 @@ FMFileAccessCompact
 		}
 	}
 	
+	protected long
+	getFirstPieceStart()
+	{
+		return( first_piece_start );
+	}
+	
+	protected long
+	getFirstPieceLength()
+	{
+		return( first_piece_length );
+	}
+	
+	protected long
+	getLastPieceStart()
+	{
+		return( last_piece_start );
+	}
+	
+	protected long
+	getLastPieceLength()
+	{
+		return( last_piece_length );
+	}
+	
 	public long
 	getLength(
 		RandomAccessFile		raf )

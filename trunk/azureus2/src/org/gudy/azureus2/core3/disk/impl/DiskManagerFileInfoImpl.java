@@ -28,6 +28,8 @@ import java.io.File;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 
@@ -202,9 +204,40 @@ DiskManagerFileInfoImpl
 	setStorageType(
 		int		type )
 	{
-		Debug.out( "setStorageType: download must be stopped" );
+		DownloadManager	download_manager = diskManager.getDownloadManager();
 		
-		return( false );
+		String[]	types = DiskManagerImpl.getStorageTypes( download_manager );
+
+		int	old_type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
+		
+		if ( type == old_type ){
+			
+			return( true );
+		}
+		
+		try{
+			cache_file.setStorageType( type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			diskManager.setFailed( this, "Failed to change storge type for '" + getFile(true) + "': " + Debug.getNestedExceptionMessage(e));
+			
+			return( false );
+			
+		}finally{
+			
+			types[file_index] = cache_file.getStorageType()==CacheFile.CT_LINEAR?"L":"C";
+			
+			DownloadManagerState	dm_state = download_manager.getDownloadState();
+			
+			dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
+			
+			dm_state.save();
+		}
 	}
 	
 	public int

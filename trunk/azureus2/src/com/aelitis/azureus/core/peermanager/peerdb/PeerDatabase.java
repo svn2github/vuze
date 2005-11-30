@@ -56,8 +56,6 @@ public class PeerDatabase {
   private BloomFilter filter_two = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
   
   
-  private int recursion_count;
-  
   
   
   
@@ -171,13 +169,20 @@ public class PeerDatabase {
    * Get the next potential peer for optimistic connect.
    * @return peer to connect, or null of no optimistic peer available
    */
-  public PeerItem getNextOptimisticConnectPeer() {
+  public PeerItem getNextOptimisticConnectPeer( ) {
+	  return(getNextOptimisticConnectPeer(0));
+  }
+  
+  protected PeerItem getNextOptimisticConnectPeer( int recursion_count ) {
     PeerItem peer = null;
-
+    boolean	 discovered_peer = false;
+    
     //first see if there are any unknown peers to try
     try{  map_mon.enter();
       if( !discovered_peers.isEmpty() ) {
         peer = (PeerItem)discovered_peers.removeFirst();
+        
+        discovered_peer	= true;
       }
     }
     finally{  map_mon.exit();  }
@@ -205,29 +210,58 @@ public class PeerDatabase {
 
     //to reduce the number of wasted outgoing attempts, we limit how frequently we hand out the same optimistic peer in a given time period
     if( peer != null ) {
-      //check if it's time to rotate the bloom filters
+    	//check if it's time to rotate the bloom filters
+    	
       long diff = SystemTime.getCurrentTime() - last_rotation_time;
+      
       if( diff < 0 || diff > BLOOM_ROTATION_PERIOD ) {
         filter_one = filter_two;
         filter_two = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
         last_rotation_time = SystemTime.getCurrentTime();
       }
       
-      //check to see if we've already given this peer out optimistically in the last 5-10min
-      if( filter_one.contains( peer.getSerialization() ) && recursion_count < 100 ) {
-        //we've recently given this peer, so recursively find another peer to try
-      	recursion_count++;
-        peer = getNextOptimisticConnectPeer();
+      	//check to see if we've already given this peer out optimistically in the last 5-10min
+      
+      boolean	already_recorded = false;
+      
+      byte[]	peer_serialisation = peer.getSerialization();
+      
+      if( filter_one.contains( peer_serialisation ) && recursion_count < 100 ) {
+    	  
+    	  	// we've recently given this peer, so recursively find another peer to try
+      
+    	  PeerItem next_peer = getNextOptimisticConnectPeer( recursion_count + 1);
+    	  
+    	  if ( next_peer != null ){
+    		  
+    		  	// we've found a better peer that this one. If the existing peer was discovered (as opposed to PEX)
+    		  	// then we'll save it for later as it might come in useful
+    		  
+    		  if ( discovered_peer ){
+    			  
+    		    try{  map_mon.enter();
+  
+    		    	discovered_peers.addLast( peer );
+   
+   			    }finally{  
+   			    	map_mon.exit();  
+   			    }
+    		  }
+    		  
+    		  peer	= next_peer;
+    		  
+    		  already_recorded	= true;	// this peer's already in the bloom filters as it has been returned
+    		  							// by a recursive call
+    	  }
       }
       
-      if( peer != null ) {  //we've found a suitable peer
-        byte[] raw = peer.getSerialization();
-        filter_one.add( raw );
-        filter_two.add( raw );
+      if( !already_recorded ) {  //we've found a suitable peer
+        
+        filter_one.add( peer_serialisation );
+        filter_two.add( peer_serialisation );
       }
     }
-
-    recursion_count = 0;
+    
     return peer;
   }
   
