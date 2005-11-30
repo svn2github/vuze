@@ -179,7 +179,8 @@ public class GlobalManagerImpl
     // 5 minutes save resume data interval (default)
     private int saveResumeLoopCount = 5*60*1000 / waitTime;
     private int netCheckLoopCount	= 60*1000 / waitTime;
-    
+    private int natCheckLoopCount	= 30*1000 / waitTime;
+       
     private AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
     
 
@@ -215,7 +216,18 @@ public class GlobalManagerImpl
           	
 	        	checkNetwork();
 	        }
-	        	        
+	        
+	        if ((loopFactor % natCheckLoopCount == 0)) {
+	          	
+	        	computeNATStatus();
+	        	
+	        		// we need this periodic check to pick up on DND file state changes (someone changes
+	        		// a file from DND to normal and consequentially changes to a non-seeding mode). 
+	        		// Doing this via listeners is too much effort
+	        	
+		        checkSeedingOnlyState();
+	        }
+	        	
 	        for (Iterator it=managers_cow.iterator();it.hasNext();) {
           	
 	        	DownloadManager manager = (DownloadManager)it.next();
@@ -237,8 +249,6 @@ public class GlobalManagerImpl
 	        		manager.startDownload();
 	           }
 	        }
-	        
-	        computeNATStatus();
 
       	}catch( Throwable e ){
       		
@@ -1809,9 +1819,7 @@ public class GlobalManagerImpl
     
     	//run seeding-only-mode check
     
-    boolean seeding = false;
-    
-    DiskManager	disk_manager = manager.getDiskManager();
+   DiskManager	disk_manager = manager.getDiskManager();
     
     if ( 	new_state == DownloadManager.STATE_DOWNLOADING && 
     		disk_manager != null &&
@@ -1819,15 +1827,26 @@ public class GlobalManagerImpl
     	
     	//the new state is downloading, so can skip the full check
     	
+    	setSeedingOnlyState( false );
+    	
     }else{
     	
-      List managers = managers_cow;
-      
-      for( int i=0; i < managers.size(); i++ ) {
+    	checkSeedingOnlyState();
+    }
+  }
+  
+  protected void
+  checkSeedingOnlyState()
+  {
+    boolean seeding = false;
+    	
+    List managers = managers_cow;
+    
+    for( int i=0; i < managers.size(); i++ ) {
     	  
         DownloadManager dm = (DownloadManager)managers.get( i );
 
-        disk_manager = dm.getDiskManager();
+        DiskManager disk_manager = dm.getDiskManager();
         
         if ( disk_manager == null ){
         	
@@ -1856,9 +1875,16 @@ public class GlobalManagerImpl
         	
         	seeding = true;
         }
-      }
     }
-
+    
+    setSeedingOnlyState( seeding );
+  }
+  
+  
+  protected void
+  setSeedingOnlyState(
+		boolean	seeding )
+  { 
     if( seeding != seeding_only_mode ) {
       seeding_only_mode = seeding;
       listeners.dispatch( LDT_SEEDING_ONLY, new Boolean( seeding_only_mode ) );
