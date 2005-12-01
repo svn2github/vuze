@@ -30,12 +30,13 @@ import com.aelitis.azureus.core.update.AzureusRestarter;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 
 public class 
 AzureusRestarterImpl 
 	implements AzureusRestarter
 {    
+	private static final LogIDs LOGID = LogIDs.CORE;
 	private static final String MAIN_CLASS 		= "org.gudy.azureus2.update.Updater";
 	private static final String UPDATER_JAR 	= "Updater.jar";
   
@@ -65,7 +66,8 @@ AzureusRestarterImpl
 	{
 		if ( restarted ){
 			
-			LGLogger.log( "AzureusRestarter: already restarted!!!!");
+			Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+					"AzureusRestarter: already restarted!!!!"));
 			
 			return;
 		}
@@ -75,8 +77,8 @@ AzureusRestarterImpl
 		PluginInterface pi = azureus_core.getPluginManager().getPluginInterfaceByID( "azupdater" );
 		
 		if ( pi == null ){
-			
-			LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, "Can't restart, mandatory plugin 'azupdater' not found" );
+			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+					"Can't restart, mandatory plugin 'azupdater' not found"));
 			
 			return;
 		}
@@ -170,22 +172,13 @@ AzureusRestarterImpl
 	  	
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		
-	  	restartAzureus(
-	  		new PrintWriter(os)
-			{
-	  			public void
-				println(
-					String	str )
-				{
-						// we intercept these logs and log immediately
-					
-	  				LGLogger.log( str );
-	  			}
-					
-	  		},
-			MAIN_CLASS,
-			properties,
-			parameters );
+		restartAzureus(new PrintWriter(os) {
+			public void println(String str) {
+				// we intercept these logs and log immediately
+				Logger.log(new LogEvent(LOGID, str));
+			}
+
+		}, MAIN_CLASS, properties, parameters);
 		
 			// just check if any non-logged data exists
 		
@@ -193,7 +186,8 @@ AzureusRestarterImpl
 		
 		if ( bytes.length > 0 ){
 			
-			LGLogger.log( "AzureusRestarter: extra log - " + new String( bytes ));
+			Logger.log(new LogEvent(LOGID, "AzureusRestarter: extra log - "
+					+ new String(bytes)));
 		}
 	}
   

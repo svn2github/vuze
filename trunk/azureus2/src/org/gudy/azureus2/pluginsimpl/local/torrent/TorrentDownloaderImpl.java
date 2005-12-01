@@ -41,6 +41,7 @@ public class
 TorrentDownloaderImpl 
 	implements TorrentDownloader
 {
+	private static final LogIDs LOGID = LogIDs.PLUGIN;
 	protected TorrentManagerImpl		manager;
 	protected URL						url;
 	protected ResourceDownloader		downloader;
@@ -80,17 +81,12 @@ TorrentDownloaderImpl
 		
 		downloader = ResourceDownloaderFactoryImpl.getSingleton().create( url, _user_name, _password );
 		
-		downloader.addListener(
-				new ResourceDownloaderAdapter()
-				{
-					public void
-					reportActivity(
-						ResourceDownloader	downloader,
-						String				activity )
-					{
-						LGLogger.log( "TorrentDownloader:" + activity );
-					}			
-				});
+		downloader.addListener(new ResourceDownloaderAdapter() {
+			public void reportActivity(ResourceDownloader downloader, String activity) {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "TorrentDownloader:" + activity));
+			}
+		});
 		
 	}
 	

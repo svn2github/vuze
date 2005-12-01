@@ -25,8 +25,8 @@ package org.gudy.azureus2.ui.swt.pluginsinstaller;
 import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.installer.InstallablePlugin;
@@ -176,7 +176,8 @@ public class InstallPluginWizard extends Wizard {
   	    	
   	      Debug.printStackTrace(e);
   	      
-  	      LGLogger.logRepeatableAlert( "Failed to initialise installer", e );
+  	      Logger.log(new LogAlert(LogAlert.REPEATABLE,
+						"Failed to initialise installer", e));
   	    }
   	  }
   	}

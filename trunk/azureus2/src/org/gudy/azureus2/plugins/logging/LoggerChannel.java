@@ -21,9 +21,6 @@
 
 package org.gudy.azureus2.plugins.logging;
 
-import org.gudy.azureus2.plugins.peers.Peer;
-import org.gudy.azureus2.plugins.torrent.Torrent;
-
 /**
  * @author parg
  *
@@ -72,48 +69,53 @@ LoggerChannel
 		Throwable 	error );
 	
 	/**
-	 * Log a string against a torrent.
+	 * Log a string against a list of objects
 	 * 
-	 * @param torrent The Torrent the log entry relates to
+	 * @param relatedTo a list of what this log is related to (ex. Peer, Torrent,
+	 *                   Download, Object)
 	 * @param log_type LT_* constant
 	 * @param data text to log
 	 * 
 	 * @since 2.3.0.7
 	 */
-	public void log(Torrent torrent, int log_type, String data);
+	public void log(Object[] relatedTo, int log_type, String data);
 
 	/**
-	 * Log an error against a torrent.
+	 * Log an error against an object.
 	 * 
-	 * @param torrent The Torrent the log entry relates to
-	 * @param data text to log
-	 * @param error Error that will be appended to the log entry
-	 * 
-	 * @since 2.3.0.7
-	 */
-	public void log(Torrent torrent, String data, Throwable error);
-
-	/**
-	 * Log a string against a peer (and torrent)
-	 * 
-	 * @param peer The Peer the log entry relates to
+	 * @param relatedTo What this log is related to (ex. Peer, Torrent,
+	 *         Download, Object, etc)
 	 * @param log_type LT_* constant
 	 * @param data text to log
 	 * 
 	 * @since 2.3.0.7
 	 */
-	public void log(Peer peer, int log_type, String data);
-
+	public void log(Object relatedTo, int log_type, String data);
+	
 	/**
-	 * Log an error against a peer.
+	 * Log an error against an object.
 	 * 
-	 * @param peer The Peer the log entry relates to
+	 * @param relatedTo What this log is related to (ex. Peer, Torrent,
+	 *         Download, Object, etc)
 	 * @param data text to log
 	 * @param error Error that will be appended to the log entry
 	 * 
 	 * @since 2.3.0.7
 	 */
-	public void log(Peer peer, String data, Throwable error);
+	
+	public void log(Object relatedTo, String data, Throwable error);
+	
+	/**
+	 * Log an error against a list of objects
+	 * 
+	 * @param relatedTo a list of what this log is related to (ex. Peer, Torrent,
+	 *                   Download, Object)
+	 * @param data text to log
+	 * @param error Error that will be appended to the log entry
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public void log(Object[] relatedTo, String data, Throwable error);
 
 	/**
 	 * raise an alert to the user, if UI present

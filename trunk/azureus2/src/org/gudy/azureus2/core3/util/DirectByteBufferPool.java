@@ -11,7 +11,8 @@ import java.util.*;
 import java.math.*;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
+
 import com.aelitis.azureus.core.diskmanager.cache.*;
 
 
@@ -192,7 +193,7 @@ DirectByteBufferPool
                     + "or upgrade your Java JRE to version 1.4.2_05 or 1.5 series or newer.";
        	 Debug.out( msg );
        	 
-         LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, msg );
+       	 Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
          
          printInUse( true );
          

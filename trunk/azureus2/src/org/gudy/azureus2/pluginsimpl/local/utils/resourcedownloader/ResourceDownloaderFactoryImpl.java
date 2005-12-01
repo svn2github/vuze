@@ -39,6 +39,7 @@ public class
 ResourceDownloaderFactoryImpl
 	implements ResourceDownloaderFactory
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
 	protected static ResourceDownloaderFactoryImpl	singleton = new ResourceDownloaderFactoryImpl();
 	
 	public static ResourceDownloaderFactory
@@ -189,7 +190,9 @@ ResourceDownloaderFactoryImpl
 		
 		if ( target == null ){
 			
-			LGLogger.log( "ResourceDownloader: suffix based downloader failed to find leaf");
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "ResourceDownloader: suffix "
+						+ "based downloader failed to find leaf"));
 			
 			return( _downloader );
 		}

@@ -46,6 +46,7 @@ public class
 TRTrackerServerProcessorUDP
 	extends		TRTrackerServerProcessor
 {
+	private static final LogIDs LOGID = LogIDs.TRACKER;
 		// client may connect + then retry announce up to 4 times -> * 6
 	
 	public static final long CONNECTION_ID_LIFETIME	= PRUDPPacket.DEFAULT_UDP_TIMEOUT*6;
@@ -94,7 +95,9 @@ TRTrackerServerProcessorUDP
 			
 			if ( input_buffer.length < 17 ){
 				
-				LGLogger.log( "TRTrackerServerProcessorUDP: packet received but authorisation missing" ); 
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+						"TRTrackerServerProcessorUDP: "
+								+ "packet received but authorisation missing")); 
 
 				return;
 			}
@@ -126,7 +129,9 @@ TRTrackerServerProcessorUDP
 			
 			PRUDPPacketRequest	request = PRUDPPacketRequest.deserialiseRequest( null, is );
 			
-			LGLogger.log( "TRTrackerServerProcessorUDP: packet received: " + request.getString()); 
+			Logger.log(new LogEvent(LOGID,
+					"TRTrackerServerProcessorUDP: packet received: "
+							+ request.getString())); 
 				
 			PRUDPPacket					reply 	= null;
 			TRTrackerServerTorrentImpl	torrent	= null;
@@ -157,7 +162,9 @@ TRTrackerServerProcessorUDP
 					
 					if ( sha1_pw == null ){
 				
-						LGLogger.log( "TRTrackerServerProcessorUDP: auth fails for user '" + auth_user + "'"); 
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+								"TRTrackerServerProcessorUDP: auth fails for user '"
+										+ auth_user + "'")); 
 
 						reply = new PRUDPPacketReplyError( request.getTransactionId(), "Access Denied" );
 					}
@@ -182,7 +189,9 @@ TRTrackerServerProcessorUDP
 						
 						if ( auth_hash[i] != digest[i] ){
 					
-							LGLogger.log( "TRTrackerServerProcessorUDP: auth fails for user '" + auth_user + "'"); 
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+									"TRTrackerServerProcessorUDP: auth fails for user '"
+											+ auth_user + "'")); 
 	
 							reply = new PRUDPPacketReplyError( request.getTransactionId(), "Access Denied" );
 							
@@ -258,7 +267,8 @@ TRTrackerServerProcessorUDP
 			
 		}catch( Throwable e ){
 			
-			LGLogger.log( "TRTrackerServerProcessorUDP: processing fails", e ); 
+			Logger.log(new LogEvent(LOGID,
+					"TRTrackerServerProcessorUDP: processing fails", e)); 
 		}
 	}
 	

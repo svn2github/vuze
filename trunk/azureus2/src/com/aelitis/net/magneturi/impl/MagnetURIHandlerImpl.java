@@ -37,7 +37,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -53,6 +53,7 @@ public class
 MagnetURIHandlerImpl 
 	extends MagnetURIHandler
 {
+  private static final LogIDs LOGID = LogIDs.NET;
 		// see http://magnet-uri.sourceforge.net/magnet-draft-overview.txt
 	
 	private static MagnetURIHandlerImpl		singleton;
@@ -109,12 +110,14 @@ MagnetURIHandlerImpl
 		if ( socket == null ){
 			
 			// no free sockets, not much we can do
-			
-			LGLogger.log( "MagnetURI: no free sockets, giving up");
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+						"MagnetURI: no free sockets, giving up"));
 			
 		}else{
-			
-			LGLogger.log( "MagnetURI: bound on " + socket.getLocalPort());
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "MagnetURI: bound on "
+						+ socket.getLocalPort()));
 			
 			final ServerSocket	f_socket = socket;
 			
@@ -158,7 +161,9 @@ MagnetURIHandlerImpl
 										        		
 											        	if ( line.toUpperCase().startsWith( "GET " )){
 											        	
-												        	LGLogger.log("MagentURIHandler: processing '" + line + "'" );
+											        		if (Logger.isEnabled())
+											        			Logger.log(new LogEvent(LOGID,
+											        					"MagentURIHandler: processing '" + line + "'"));
 			
 											        		line = line.substring(4);
 											        		
@@ -169,13 +174,15 @@ MagnetURIHandlerImpl
 											        		close_socket = process( line, sck.getOutputStream() );
 											        		
 											        	}else{
-											        								        	
-												        	LGLogger.log("MagentURIHandler: invalid command - '" + line + "'" );
+																	Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+																			"MagentURIHandler: invalid command - '" + line
+																					+ "'"));
 											        	}
 											        }else{
-											        	
-											        	LGLogger.log("MagentURIHandler: connect from invalid address '" + address + "'" );
-											        	
+											        	if (Logger.isEnabled())
+											        		Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+											        				"MagentURIHandler: connect from "
+											        				+ "invalid address '" + address + "'"));
 											        }
 										        }
 											}catch( Throwable e ){
@@ -211,8 +218,9 @@ MagnetURIHandlerImpl
 								errors++;
 								
 								if ( errors > 100 ){
-									
-									LGLogger.log("MagentURIHandler: bailing out, too many socket errors" );
+									if (Logger.isEnabled())
+										Logger.log(new LogEvent(LOGID,
+										"MagentURIHandler: bailing out, too many socket errors"));
 								}
 							}
 						}
@@ -388,8 +396,9 @@ MagnetURIHandlerImpl
 			String urn = (String)params.get( "xt" );
 			
 			if ( urn == null || !( urn.startsWith( "urn:sha1:") || urn.startsWith( "urn:btih:"))){
-				
-				LGLogger.log("MagentURIHandler: invalid command - '" + get + "'" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+							"MagentURIHandler: " + "invalid command - '" + get + "'"));
 				
 				return( true );
 			}
@@ -404,7 +413,9 @@ MagnetURIHandlerImpl
 				
 				String	base_32 = urn.substring(9);
 					
-	        	LGLogger.log("MagentURIHandler: download of '" + base_32 + "' starts" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "MagentURIHandler: download of '"
+							+ base_32 + "' starts"));
 
 				byte[] sha1 = Base32.decode( base_32 );
 				
@@ -452,7 +463,12 @@ MagnetURIHandlerImpl
 					}
 				}
 				
-	        	LGLogger.log("MagentURIHandler: download of '" + base_32 + "' completes, data " + (data==null?"not found":("found, length = "+data.length )));
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "MagentURIHandler: download of '"
+							+ base_32
+							+ "' completes, data "
+							+ (data == null ? "not found"
+									: ("found, length = " + data.length))));
 
 				if ( data != null ){
 					

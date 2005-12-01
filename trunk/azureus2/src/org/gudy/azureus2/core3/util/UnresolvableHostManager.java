@@ -55,7 +55,10 @@ UnresolvableHostManager
 			
 				res = new Integer( next_address++ );
 				
-				LGLogger.log( "Allocated pseudo IP address '" + Integer.toHexString(res.intValue()) + "' for host '" + str + "'" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LogIDs.NET, "Allocated pseudo IP address '"
+							+ Integer.toHexString(res.intValue()) + "' for host '" + str
+							+ "'"));
 				
 				host_map.put( str, res );
 			}

@@ -44,6 +44,7 @@ public class
 ShareManagerImpl
 	implements ShareManager, TOTorrentProgressListener, ParameterListener
 {
+	private static final LogIDs LOGID = LogIDs.PLUGIN;
 	public static final String		TORRENT_STORE 		= "shares";
 	public static final String		TORRENT_SUBSTORE	= "cache";
 	
@@ -487,7 +488,9 @@ ShareManagerImpl
 
 		throws ShareException, ShareResourceDeletionVetoException
 	{
-		LGLogger.log( "ShareManager: addFile '" + file.toString()+ "'" );
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "ShareManager: addFile '"
+					+ file.toString() + "'"));
 
 		try{
 			return( (ShareResourceFile)addFileOrDir( parent, file, ShareResource.ST_FILE, false ));
@@ -525,7 +528,9 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
-		LGLogger.log( "ShareManager: addDir '" + dir.toString()+ "'" );
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "ShareManager: addDir '" + dir.toString()
+					+ "'"));
 
 		try{
 			this_mon.enter();
@@ -635,7 +640,9 @@ ShareManagerImpl
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
-		LGLogger.log( "ShareManager: addDirContents '" + dir.toString()+ "'" );
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "ShareManager: addDirContents '"
+					+ dir.toString() + "'"));
 
 		try{
 			this_mon.enter();
@@ -690,7 +697,9 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
-		LGLogger.log( "ShareManager: resource '" + resource.getName() + "' deleted" );
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "ShareManager: resource '"
+					+ resource.getName() + "' deleted"));
 		
 		try{
 			this_mon.enter();
@@ -723,7 +732,9 @@ ShareManagerImpl
 	
 		throws ShareException
 	{
-		LGLogger.log( "ShareManager: scanning resources for changes" );
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID,
+					"ShareManager: scanning resources for changes"));
 
 		checkConsistency();
 	}

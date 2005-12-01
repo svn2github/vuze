@@ -42,6 +42,7 @@ public class
 CorePatchChecker
 	implements Plugin, UpdatableComponent, UpdateCheckInstanceListener
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
 	public static final boolean	TESTING	= false;
 	
 	protected PluginInterface	plugin_interface;
@@ -123,22 +124,20 @@ CorePatchChecker
 				
 				// OK, we have an updater update
 				
-				LGLogger.log( "Core Patcher: updater update found" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "Core Patcher: updater update found"));
 				
 				update.setRestartRequired( Update.RESTART_REQUIRED_MAYBE );
 				
-				update.addListener(
-						new UpdateListener()
-						{
-							public void
-							complete(
-								Update	update )
-							{
-								LGLogger.log( "Core Patcher: updater update complete" );
-								
-								patch( instance, update, updater_plugin );
-							}
-						});
+				update.addListener(new UpdateListener() {
+					public void complete(Update update) {
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID,
+									"Core Patcher: updater update complete"));
+
+						patch(instance, update, updater_plugin);
+					}
+				});
 			}
 		}
 	}
@@ -158,7 +157,9 @@ CorePatchChecker
 			
 			if ( files == null ){
 			
-				LGLogger.log( "Core Patcher: no files in plugin dir!!!" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"Core Patcher: no files in plugin dir!!!"));
 			
 				return;
 			}
@@ -174,7 +175,9 @@ CorePatchChecker
 				
 				if ( name.startsWith( patch_prefix ) && name.endsWith( ".pat" )){
 			
-					LGLogger.log( "Core Patcher: found patch file '" + name + "'" );
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "Core Patcher: found patch file '"
+								+ name + "'"));
 					
 					try{
 						int	this_p = Integer.parseInt( name.substring( patch_prefix.length(), name.indexOf( ".pat" )));
@@ -194,20 +197,25 @@ CorePatchChecker
 			
 			if ( CorePatchLevel.getCurrentPatchLevel() >= highest_p ){
 				
-				LGLogger.log( "Core Patcher: no applicable patch found (highest = " + highest_p + ")" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"Core Patcher: no applicable patch found (highest = " + highest_p
+									+ ")"));
 				
 			}else{
 				
 				rd_log.reportActivity( "Applying patch '" + highest_p_file.getName() + "'");
 				
-				LGLogger.log( "Core Patcher: applying patch '" + highest_p_file.toString() + "'" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "Core Patcher: applying patch '"
+							+ highest_p_file.toString() + "'"));
 				
 				InputStream pis = new FileInputStream( highest_p_file );
 								
 				patchAzureus2( instance, pis, "P" + highest_p, plugin_interface.getLogger().getChannel( "CorePatcher" ));
 				
-				LGLogger.logUnrepeatableAlert( 	LGLogger.AT_COMMENT,
-									"Patch " + highest_p_file.getName() + " ready to be applied" );
+				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_INFORMATION,
+						"Patch " + highest_p_file.getName() + " ready to be applied"));
 				
 				String done_file = highest_p_file.toString();
 				
@@ -222,8 +230,7 @@ CorePatchChecker
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
-			
-			LGLogger.logUnrepeatableAlert( 	"Core Patcher failed", e );
+			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, "Core Patcher failed", e));
 		}
 	}
 	

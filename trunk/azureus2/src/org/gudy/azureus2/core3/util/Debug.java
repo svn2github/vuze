@@ -120,7 +120,7 @@ public class Debug {
     catch (Exception e) {
       StackTraceElement st[] = e.getStackTrace();
       for (int i = 1; i < st.length - endNumToSkip; i++) {
-        if (st[i].getMethodName() != "outStackTrace")
+        if (!st[i].getMethodName().endsWith("StackTrace"))
         	sStackTrace += st[i].toString() + "\n";
       }
       if (e.getCause() != null)

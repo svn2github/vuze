@@ -35,14 +35,16 @@ import java.security.*;
 import java.security.cert.*;
 import java.security.cert.Certificate;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
 SESecurityManagerImpl 
 {
-	protected static SESecurityManagerImpl	singleton = new SESecurityManagerImpl();
+	private static final LogIDs LOGID = LogIDs.NET; 
+
+  protected static SESecurityManagerImpl	singleton = new SESecurityManagerImpl();
 	
 	protected String	keystore_name;
 	protected String	truststore_name;
@@ -98,7 +100,8 @@ SESecurityManagerImpl
 			
 		}catch( Throwable e ){
 			
-			LGLogger.log( LGLogger.ERROR, "Bouncy Castle not available" );
+			Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+					"Bouncy Castle not available"));
 		}
 		
 		installSecurityManager();
@@ -292,11 +295,9 @@ SESecurityManagerImpl
 		File	f  = new File(keystore_name);
 		
 		if ( !f.exists()){
-			
-			LGLogger.logUnrepeatableAlertUsingResource( 
-					LGLogger.AT_ERROR,
-					"Security.keystore.empty",
-					new String[]{ keystore_name });
+			Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+					LogAlert.AT_ERROR, "Security.keystore.empty"),
+					new String[] { keystore_name });
 			
 			return( false );
 		}
@@ -307,21 +308,18 @@ SESecurityManagerImpl
 			Enumeration enumx = key_store.aliases();
 			
 			if ( !enumx.hasMoreElements()){
-				
-				LGLogger.logUnrepeatableAlertUsingResource( 
-						LGLogger.AT_ERROR,
-						"Security.keystore.empty",
-						new String[]{ keystore_name });
+				Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+						LogAlert.AT_ERROR, "Security.keystore.empty"),
+						new String[] { keystore_name });
 				
 				return( false );			
 			}
 			
 		}catch( Throwable e ){
 		
-			LGLogger.logUnrepeatableAlertUsingResource( 
-					LGLogger.AT_ERROR,
-					"Security.keystore.corrupt",
-					new String[]{ keystore_name });
+			Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+					LogAlert.AT_ERROR, "Security.keystore.corrupt"),
+					new String[] { keystore_name });
 			
 			return( false );			
 		}

@@ -25,7 +25,7 @@ package com.aelitis.net.upnp.impl.ssdp;
 import java.net.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
@@ -43,7 +43,7 @@ public class
 SSDPImpl 
 	implements SSDP
 {
-
+	private static final LogIDs LOGID = LogIDs.NET;
 	private final static String		SSDP_GROUP_ADDRESS 	= "239.255.255.250";
 	private final static int		SSDP_GROUP_PORT		= 1900;
 	private final static int		SSDP_CONTROL_PORT	= 8008;
@@ -496,14 +496,14 @@ SSDPImpl
 				
 				failed_accepts++;
 				
-				LGLogger.log( "SSDP: receive failed on port " + port, e ); 
+				Logger.log(new LogEvent(LOGID, "SSDP: receive failed on port " + port,
+						e)); 
 
 				if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
 					
-					LGLogger.logUnrepeatableAlertUsingResource( 
-							LGLogger.AT_ERROR,
-							"Network.alert.acceptfail",
-							new String[]{ ""+port, "UDP" } );
+						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+							LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
+							"" + port, "UDP" });
 			
 					break;
 				}

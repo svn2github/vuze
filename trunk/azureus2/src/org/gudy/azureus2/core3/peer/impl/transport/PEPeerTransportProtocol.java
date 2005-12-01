@@ -1888,10 +1888,10 @@ PEPeerTransportProtocol
 	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
 	 */
 	public String getRelationText() {
-		String text;
-		text = "Peer: " + toString();
+		String text = "";
 		if (manager instanceof LogRelation)
-			text += "; " + ((LogRelation)manager).getRelationText();
+			text = ((LogRelation)manager).getRelationText() + "; ";
+		text = "Peer: " + toString();
 		return text;
 	}
 

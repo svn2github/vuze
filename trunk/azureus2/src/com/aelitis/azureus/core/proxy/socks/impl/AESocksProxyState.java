@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.proxy.*;
 import com.aelitis.azureus.core.proxy.socks.*;
@@ -40,6 +40,7 @@ public class
 AESocksProxyState
 	implements AEProxyState
 {
+	private static final LogIDs LOGID = LogIDs.NET;
 	private AESocksProxyConnection	socks_connection;
 	
 	protected ByteBuffer					buffer;
@@ -51,8 +52,8 @@ AESocksProxyState
 		socks_connection	= _socks_connection;
 		
 		if ( AESocksProxyConnectionImpl.TRACE ){
-			
-			LGLogger.log( socks_connection.getConnection().getName() + ":" + getStateName());
+			Logger.log(new LogEvent(LOGID, socks_connection.getConnection().getName()
+					+ ":" + getStateName()));
 		}
 	}
 	
@@ -144,8 +145,8 @@ AESocksProxyState
 	trace()
 	{
 		if ( AESocksProxyConnectionImpl.TRACE ){
-			
-			LGLogger.log( socks_connection.getConnection().getName() + ":" + getStateName());
+			Logger.log(new LogEvent(LOGID, socks_connection.getConnection().getName()
+					+ ":" + getStateName()));
 		}
 	}
 }

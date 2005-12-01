@@ -33,7 +33,7 @@ import java.net.UnknownHostException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -55,6 +55,7 @@ public class
 ClientIDManagerImpl
 	implements ClientIDManager
 {
+	private static final LogIDs LOGID = LogIDs.PLUGIN;
 	protected static ClientIDManagerImpl	singleton = new ClientIDManagerImpl();
 	
 	protected static final char		CR			= '\015';
@@ -128,8 +129,7 @@ ClientIDManagerImpl
 	        			}        			
 	        		}
 	        	}catch( Throwable e ){
-	        	
-	        		LGLogger.log( e );
+	        		Logger.log(new LogEvent(LOGID, "", e));
 	        	}
 	        	
 	        	if ( ips > 1 ){
@@ -138,7 +138,10 @@ ClientIDManagerImpl
 		        	
 		        	use_filter	= true;
 		        	
-					LGLogger.log( "ClientIDManager: overriding filter option to support local bind IP" ); 
+		        	if (Logger.isEnabled())
+		        		Logger.log(new LogEvent(LOGID,
+		        				"ClientIDManager: overriding filter "
+		        				+ "option to support local bind IP"));
 	        	}
 	        }
 		}
@@ -183,17 +186,19 @@ ClientIDManagerImpl
 										
 										failed_accepts++;
 										
-										LGLogger.log( "ClientIDManager: listener failed on port " + filter_port, e ); 
+                    if (Logger.isEnabled())
+                      Logger.log(new LogEvent(LOGID, 
+                                              "ClientIDManager: listener failed on port "
+                                              + filter_port, e )); 
 										
 										if ( failed_accepts > 100 && successfull_accepts == 0 ){
 
 												// looks like its not going to work...
 												// some kind of socket problem
 															
-											LGLogger.logUnrepeatableAlertUsingResource( 
-													LGLogger.AT_ERROR,
-													"Network.alert.acceptfail",
-													new String[]{ ""+filter_port, "TCP" } );
+											Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+												LogAlert.AT_ERROR, "Network.alert.acceptfail"),
+												new String[] { "" + filter_port, "TCP" });
 									
 											use_filter	= false;
 											
@@ -208,16 +213,19 @@ ClientIDManagerImpl
 			
 				accept_thread.start();									
 			
-				LGLogger.log( "ClientIDManager: listener established on port " + filter_port ); 
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"ClientIDManager: listener established on port " + filter_port)); 
 				
 			}catch( Throwable e){
 			
-				LGLogger.logUnrepeatableAlertUsingResource( 
-						LGLogger.AT_ERROR,
-						"Tracker.alert.listenfail",
-						new String[]{ ""+filter_port });
+				Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+						LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { ""
+						+ filter_port });
 		
-				LGLogger.log( "ClientIDManager: listener failed on port " + filter_port, e ); 
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"ClientIDManager: listener failed on port " + filter_port, e)); 
 				
 				use_filter	= false;
 			}		
@@ -249,7 +257,8 @@ ClientIDManagerImpl
 			
 			if ( !url.getProtocol().toLowerCase().equals( "http" )){
 				
-				LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, "ClientIDManager only supports filtering of http, not https");
+				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+						"ClientIDManager only supports filtering of http, not https"));
 				
 				return;
 			}
@@ -525,8 +534,11 @@ ClientIDManagerImpl
 		interruptTask()
 		{
 			try{
-				// LGLogger.log( "ClientIDManager - interrupting HTTP filter due to timeout" );
-				
+/*
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "ClientIDManager - interrupting "
+							+ "HTTP filter due to timeout"));
+*/				
 				socket.close();
 				
 			}catch( Throwable e ){

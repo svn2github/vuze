@@ -27,7 +27,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -471,9 +471,9 @@ DDBaseTTTorrent
 				
 			}catch( Throwable e ){
 				
-				LGLogger.logUnrepeatableAlert( 
-						"Unable to initialise cryptographic framework for magnet-based torrent downloads, please re-install Java",
-						e);
+				Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+						"Unable to initialise cryptographic framework for magnet-based "
+								+ "torrent downloads, please re-install Java", e));
 			}
 		}
 		

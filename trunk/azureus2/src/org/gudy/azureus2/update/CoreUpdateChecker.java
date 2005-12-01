@@ -33,6 +33,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.html.*;
 
@@ -336,19 +337,20 @@ CoreUpdateChecker
         
         if ( !s_message.equals( last )){
           
-          int   alert_type    = LGLogger.AT_WARNING;
+          int   alert_type    = LogAlert.AT_WARNING;
           String  alert_text    = s_message;
           
           if ( alert_text.startsWith("i:" )){
           
-            alert_type = LGLogger.AT_COMMENT;
+            alert_type = LogAlert.AT_INFORMATION;
             
             alert_text = alert_text.substring(2);
           }
           
           plugin_interface.getPluginProperties().setProperty( MESSAGE_PROPERTY, alert_text );
 
-          LGLogger.logUnrepeatableAlert( alert_type, alert_text );
+
+          Logger.log(new LogAlert(LogAlert.UNREPEATABLE, alert_type, alert_text));
           
           COConfigurationManager.setParameter( "CoreUpdateChecker.lastmessage", s_message );
           

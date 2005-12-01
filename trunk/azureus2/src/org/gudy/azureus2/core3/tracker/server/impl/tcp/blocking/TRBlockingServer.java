@@ -30,7 +30,7 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerException;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
@@ -46,7 +46,9 @@ public class
 TRBlockingServer
 	extends TRTrackerServerTCP
 {
-	public
+	private static final LogIDs LOGID = LogIDs.TRACKER;
+
+  public
 	TRBlockingServer(
 		String		_name,
 		int			_port,
@@ -107,19 +109,21 @@ TRBlockingServer
 					
 						accept_thread.start();									
 					
-						LGLogger.log( "TRTrackerServer: SSL listener established on port " +  getPort() );
+						Logger.log(new LogEvent(LOGID,
+								"TRTrackerServer: SSL listener established on port "
+										+ getPort()));
 						
 						ok	= true;
 					}
 					
 				}catch( Throwable e){
 									
-					LGLogger.logUnrepeatableAlertUsingResource( 
-							LGLogger.AT_ERROR,
-							"Tracker.alert.listenfail",
-							new String[]{ ""+ getPort() });
+					Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+							LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { ""
+							+ getPort() });
 					
-					LGLogger.log( "TRTrackerServer: SSL listener failed on port " +  getPort(), e ); 
+					Logger.log(new LogEvent(LOGID,
+							"TRTrackerServer: SSL listener failed on port " + getPort(), e)); 
 					  
 					if ( e instanceof TRTrackerServerException ){
 						
@@ -163,19 +167,20 @@ TRBlockingServer
 				
 					accept_thread.start();									
 				
-					LGLogger.log( "TRTrackerServer: listener established on port " +  getPort() ); 
+					Logger.log(new LogEvent(LOGID, "TRTrackerServer: "
+							+ "listener established on port " + getPort())); 
 					
 					ok	= true;
 					
 				}catch( Throwable e){
-				
-					LGLogger.logUnrepeatableAlertUsingResource( 
-							LGLogger.AT_ERROR,
-							"Tracker.alert.listenfail",
-							new String[]{ ""+ getPort() });
-			
-					LGLogger.log( "TRTrackerServer: listener failed on port " +  getPort(), e ); 
 								
+					Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+							LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { ""
+							+ getPort() });
+					
+					Logger.log(new LogEvent(LOGID,
+							"TRTrackerServer: listener failed on port " + getPort(), e)); 
+				  
 					throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
 				}			
 			}
@@ -217,17 +222,17 @@ TRBlockingServer
 				
 				failed_accepts++;
 				
-				LGLogger.log( "TRTrackerServer: listener failed on port " +  getPort(), e ); 
+				Logger.log(new LogEvent(LOGID,
+						"TRTrackerServer: listener failed on port " + getPort(), e)); 
 				
 				if ( failed_accepts > 100 && successfull_accepts == 0 ){
 
 						// looks like its not going to work...
 						// some kind of socket problem
-									
-					LGLogger.logUnrepeatableAlertUsingResource( 
-							LGLogger.AT_ERROR,
-							"Network.alert.acceptfail",
-							new String[]{ ""+ getPort(), "TCP" } );
+
+					Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+							LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
+							"" + getPort(), "TCP" });
 			
 					break;
 				}

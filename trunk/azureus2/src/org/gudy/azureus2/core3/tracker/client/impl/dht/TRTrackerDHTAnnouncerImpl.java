@@ -26,7 +26,7 @@ import java.net.URL;
 
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
@@ -239,8 +239,9 @@ TRTrackerDHTAnnouncerImpl
 				
 			for (int i=0;i<ext_peers.length;i++){
 				
-	    		LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-	    				"EXTERNAL PEER: ip=" +ext_peers[i].getAddress() + " port=" +ext_peers[i].getPort());
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER DHT: ip="
+							+ ext_peers[i].getAddress() + " port=" + ext_peers[i].getPort()));
 
 				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
 									ext_peers[i].getSource(),

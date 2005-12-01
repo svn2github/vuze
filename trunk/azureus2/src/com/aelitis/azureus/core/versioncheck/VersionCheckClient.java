@@ -26,7 +26,7 @@ package com.aelitis.azureus.core.versioncheck;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.transfer.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.clientmessageservice.*;
  * Client for checking version information from a remote server.
  */
 public class VersionCheckClient {
+	private static final LogIDs LOGID = LogIDs.CORE;
 	
 	public static final String	REASON_UPDATE_CHECK_START		= "us";
 	public static final String	REASON_UPDATE_CHECK_PERIODIC	= "up";
@@ -96,7 +97,9 @@ public class VersionCheckClient {
         }
       }
       else {
-        LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient is using cached version check info. Using " +last_check_data.size()+ " reply keys." ); 
+      	Logger.log(new LogEvent(LOGID, "VersionCheckClient is using "
+						+ "cached version check info. Using " + last_check_data.size()
+						+ " reply keys.")); 
       }
     }
     finally {  check_mon.exit();  }
@@ -208,8 +211,9 @@ public class VersionCheckClient {
    * @throws Exception if the server check connection fails
    */
   private Map performVersionCheck( Map data_to_send ) throws Exception {
-  	
-    LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient retrieving version information from " +SERVER_ADDRESS+ ":" +SERVER_PORT ); 
+  	if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "VersionCheckClient retrieving "
+					+ "version information from " + SERVER_ADDRESS + ":" + SERVER_PORT)); 
     
     ClientMessageService 	msg_service = null;
     Map 					reply		= null;	
@@ -229,7 +233,10 @@ public class VersionCheckClient {
     	}
     }
 
-    LGLogger.log( LGLogger.INFORMATION, "VersionCheckClient server version check successful. Received " +reply.size()+ " reply keys." );
+      if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "VersionCheckClient server "
+						+ "version check successful. Received " + reply.size()
+						+ " reply keys."));
 
     last_check_time = SystemTime.getCurrentTime();
       

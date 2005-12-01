@@ -29,7 +29,7 @@ import java.util.Map;
 
 import com.aelitis.azureus.core.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -43,6 +43,7 @@ import com.aelitis.azureus.plugins.upnp.*;
  * 
  */
 public class NatChecker {
+	private static final LogIDs LOGID = LogIDs.NET;
 
   public static final int NAT_OK = 1;
   public static final int NAT_KO = 2;
@@ -122,7 +123,8 @@ public class NatChecker {
         case 0 :
           byte[] reason = (byte[])map.get( "reason" );
           if( reason != null ) {
-            LGLogger.log( "NAT CHECK FAILED: " + new String( reason ) );
+          	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+								"NAT CHECK FAILED: " + new String(reason)));
           }
           return NAT_KO;
         case 1 :

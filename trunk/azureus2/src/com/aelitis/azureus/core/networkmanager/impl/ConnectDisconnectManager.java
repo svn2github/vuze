@@ -28,7 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
@@ -40,6 +40,8 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  * Manages new connection establishment and ended connection termination.
  */
 public class ConnectDisconnectManager {
+  private static final LogIDs LOGID = LogIDs.NWMAN;
+
   private static int MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 3;  
   public static int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS = 5;  //NOTE: WinXP SP2 limits to 10 max at any given time
   static {
@@ -137,32 +139,43 @@ public class ConnectDisconnectManager {
       try {  //advanced socket options
         int rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
         if( rcv_size > 0 ) {
-        	if( LGLogger.isEnabled() )  LGLogger.log( "Setting socket receive buffer size for outgoing connection [" +request.address+ "] to: " + rcv_size );
+          if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "Setting socket receive buffer size"
+								+ " for outgoing connection [" + request.address + "] to: "
+								+ rcv_size));
           request.channel.socket().setReceiveBufferSize( rcv_size );
         }
       
         int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
         if( snd_size > 0 ) {
-        	if( LGLogger.isEnabled() )  LGLogger.log( "Setting socket send buffer size for outgoing connection [" +request.address+ "] to: " + snd_size );
+        	if (Logger.isEnabled())
+        		Logger.log(new LogEvent(LOGID, "Setting socket send buffer size "
+        				+ "for outgoing connection [" + request.address + "] to: "
+        				+ snd_size));
           request.channel.socket().setSendBufferSize( snd_size );
         }
 
         String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
         if( ip_tos.length() > 0 ) {
-        	if( LGLogger.isEnabled() )  LGLogger.log( "Setting socket TOS field for outgoing connection [" +request.address+ "] to: " + ip_tos );
+        	if (Logger.isEnabled())
+        		Logger.log(new LogEvent(LOGID, "Setting socket TOS field "
+        				+ "for outgoing connection [" + request.address + "] to: "
+        				+ ip_tos));
           request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
         }
 
         String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
         if ( bindIP.length() > 6 ) {
-        	if( LGLogger.isEnabled() )  LGLogger.log( "Binding outgoing connection [" +request.address+ "] to local IP address: " + bindIP );
+        	if (Logger.isEnabled())
+        		Logger.log(new LogEvent(LOGID, "Binding outgoing connection ["
+        				+ request.address + "] to local IP address: " + bindIP));
           request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
         }
       }
       catch( Throwable t ) {
         String msg = "Error while processing advanced socket options.";
         Debug.out( msg, t );
-        LGLogger.logUnrepeatableAlert( msg, t );
+        Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, t));
         //dont pass the exception outwards, so we will continue processing connection without advanced options set
       }
       

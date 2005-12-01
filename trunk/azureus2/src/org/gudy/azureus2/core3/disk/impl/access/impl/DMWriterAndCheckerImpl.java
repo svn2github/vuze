@@ -33,7 +33,9 @@ import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
 import org.gudy.azureus2.core3.disk.impl.PieceList;
 import org.gudy.azureus2.core3.disk.impl.PieceMapEntry;
 import org.gudy.azureus2.core3.disk.impl.access.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -48,6 +50,8 @@ public class
 DMWriterAndCheckerImpl 
 	implements DMWriterAndChecker
 {
+	private static final LogIDs LOGID = LogIDs.DISK;
+  
 	private static final long WRITE_THREAD_IDLE_LIMIT	= 60*1000;
 	
 	protected static final boolean	CONCURRENT_CHECKING	= true;
@@ -160,7 +164,7 @@ DMWriterAndCheckerImpl
 		
 		// System.out.println( "DMW&C: write sem = " + global_write_queue_block_sem.getValue() + ", check = " + global_check_queue_block_sem.getValue());
 	}
-	
+
 	public void
 	start()
 	{
@@ -680,7 +684,10 @@ DMWriterAndCheckerImpl
 	
 				if (current_piece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
 		
-					if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.INFORMATION, "Changing " + current_piece.getFile().getFile(true).getName() + " to read/write");
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(disk_manager, LOGID, "Changing "
+								+ current_piece.getFile().getFile(true).getName()
+								+ " to read/write"));
 						
 					current_piece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
 				}
@@ -760,7 +767,12 @@ DMWriterAndCheckerImpl
 		
 		if ( global_write_queue_block_sem.getValue() < global_write_queue_block_sem_next_report_size ){
 			
-		  if( LGLogger.isEnabled() )  LGLogger.log( "Disk Manager write queue size exceeds " + ( global_write_queue_block_sem_size - global_write_queue_block_sem_next_report_size ));
+			if (Logger.isEnabled()) {
+				int x = global_write_queue_block_sem_size;
+				x -= global_write_queue_block_sem_next_report_size;
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_WARNING,
+						"Disk Manager write queue size exceeds " + x));
+			}
 
 			global_write_queue_block_sem_next_report_size -= QUEUE_REPORT_CHUNK;
 		}
@@ -802,11 +814,16 @@ DMWriterAndCheckerImpl
 		DirectByteBuffer data ) 
 	{
 		if (pieceNumber < 0) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" < 0");
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: pieceNumber=" + pieceNumber + " < 0"));
 			return false;
 		}
 		if (pieceNumber >= this.nbPieces) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: pieceNumber=" + pieceNumber + " >= this.nbPieces="
+								+ this.nbPieces));
 			return false;
 		}
 		int length = this.pieceLength;
@@ -814,20 +831,29 @@ DMWriterAndCheckerImpl
 			length = this.lastPieceLength;
 		}
 		if (offset < 0) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" < 0");
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: offset=" + offset + " < 0"));
 			return false;
 		}
 		if (offset > length) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" > length="+length);
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: offset=" + offset + " > length=" + length));
 			return false;
 		}
 		int size = data.remaining(DirectByteBuffer.SS_DW);
 		if (size <= 0) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: size="+size+" <= 0");
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: size=" + size + " <= 0"));
 			return false;
 		}
 		if (offset + size > length) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK1: offset="+offset+" + size="+size+" > length="+length);
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: offset=" + offset + " + size=" + size + " > length="
+								+ length));
 			return false;
 		}
 		return true;
@@ -841,38 +867,56 @@ DMWriterAndCheckerImpl
 		int length) 
 	{
 		if (length > max_read_block_size) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: length="+length+" > " + max_read_block_size );
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: length=" + length + " > " + max_read_block_size));
 		  return false;
 		}
 		if (length <= 0 ) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: length="+length+" <= 0" );
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: length=" + length + " <= 0"));
 		    return false;
 		}	
 		if (pieceNumber < 0) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" < 0");
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " < 0"));
 		  return false;
 		}
 		if (pieceNumber >= this.nbPieces) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" >= this.nbPieces="+this.nbPieces);
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " >= this.nbPieces="
+								+ this.nbPieces));
 		  return false;
 		}
 		int pLength = this.pieceLength;
 		if (pieceNumber == this.nbPieces - 1)
 			pLength = this.lastPieceLength;
 		if (offset < 0) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" < 0");
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: offset=" + offset + " < 0"));
 		  return false;
 		}
 		if (offset > pLength) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" > pLength="+pLength);
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: offset=" + offset + " > pLength=" + pLength));
 		  return false;
 		}
 		if (offset + length > pLength) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: offset="+offset+" + length="+length+" > pLength="+pLength);
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: offset=" + offset + " + length=" + length
+								+ " > pLength=" + pLength));
 		  return false;
 		}
 		if(!disk_manager.getPieces()[pieceNumber].getDone()) {
-		  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "CHECKBLOCK2: pieceNumber="+pieceNumber+" not done");
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " not done"));
 		  return false;
 		}
 		return true;
@@ -1005,40 +1049,39 @@ DMWriterAndCheckerImpl
 								
 							}else{
 								
-							  checkPiece( 
-							  		elt.getPieceNumber(),
-									new CheckPieceResultHandler()
-									{
-							  			public void
-										processResult(
-											int			pieceNumber,
-											int			result,
-											Object		user_data )
-							  			{
-							  				if ( result == CheckPieceResultHandler.OP_SUCCESS ){
-										  								  	
-							  					if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece " + pieceNumber + " passed hash check.");
-										   
-							  				}else if ( result == CheckPieceResultHandler.OP_FAILURE ){
-	
-							  				  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " failed hash check.");
-	
-							  				}else{
-							  					
-							  				  if( LGLogger.isEnabled() )  LGLogger.log(0, 0, LGLogger.ERROR, "Piece " + pieceNumber + " hash check cancelled.");
-							  					
-							  				}
-			
-										  	DiskManagerCheckRequestListener	listener = (DiskManagerCheckRequestListener)elt.getListener();
-										  	
-										  	if ( listener != null ){
-	
-										  		listener.pieceChecked(pieceNumber, result == CheckPieceResultHandler.OP_SUCCESS, user_data );
-										  	}
-							  			}
-									},
-									elt.getUserData(),
-									false );
+								checkPiece(elt.getPieceNumber(), new CheckPieceResultHandler() {
+									public void processResult(int pieceNumber, int result,
+											Object user_data) {
+										if (result == CheckPieceResultHandler.OP_SUCCESS) {
+											if (Logger.isEnabled())
+												Logger.log(new LogEvent(disk_manager, LOGID, "Piece "
+														+ pieceNumber + " passed hash check."));
+
+										} else if (result == CheckPieceResultHandler.OP_FAILURE) {
+											if (Logger.isEnabled())
+												Logger.log(new LogEvent(disk_manager, LOGID,
+														LogEvent.LT_ERROR, "Piece " + pieceNumber
+																+ " failed hash check."));
+
+										} else {
+											if (Logger.isEnabled())
+												Logger.log(new LogEvent(disk_manager, LOGID,
+														LogEvent.LT_ERROR, "Piece " + pieceNumber
+																+ " hash check cancelled."));
+
+										}
+
+										DiskManagerCheckRequestListener listener = (DiskManagerCheckRequestListener) elt
+												.getListener();
+
+										if (listener != null) {
+
+											listener.pieceChecked(pieceNumber,
+													result == CheckPieceResultHandler.OP_SUCCESS,
+													user_data);
+										}
+									}
+								}, elt.getUserData(), false);
 						  }
 						}
 					}catch( Throwable e ){

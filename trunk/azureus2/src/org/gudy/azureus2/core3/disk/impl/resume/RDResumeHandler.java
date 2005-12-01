@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.io.File;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
@@ -49,6 +49,8 @@ public class
 RDResumeHandler
 	implements ParameterListener
 {
+	private static final LogIDs LOGID = LogIDs.DISK;
+
 	private static final byte		PIECE_NOT_DONE			= 0;
 	private static final byte		PIECE_DONE				= 1;
 	private static final byte		PIECE_RECHECK_REQUIRED	= 2;
@@ -245,7 +247,10 @@ RDResumeHandler
 								
 								piece_state	= PIECE_NOT_DONE;
 								
-								LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is missing, fails re-check." );
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(disk_manager, LOGID,
+											LogEvent.LT_WARNING, "Piece #" + i
+													+ ": file is missing, " + "fails re-check."));
 
 								break;
 							}
@@ -256,7 +261,11 @@ RDResumeHandler
 								
 								piece_state	= PIECE_NOT_DONE;
 								
-								LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + i + ": file is too small, fails re-check. File size = " + file_size + ", piece needs " + expected_size );
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(disk_manager, LOGID,
+											LogEvent.LT_WARNING, "Piece #" + i
+													+ ": file is too small, fails re-check. File size = "
+													+ file_size + ", piece needs " + expected_size));
 
 								break;
 							}
@@ -285,7 +294,14 @@ RDResumeHandler
 											int		result,
 											Object	user_data )
 										{
-											LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
+											if (Logger.isEnabled())
+												Logger.log(new LogEvent(disk_manager, LOGID,
+													result == CheckPieceResultHandler.OP_SUCCESS
+															? LogEvent.LT_INFORMATION : LogEvent.LT_WARNING,
+													"Piece #"
+															+ piece_number
+															+ (result == CheckPieceResultHandler.OP_SUCCESS
+																	? " passed" : " failed") + " re-check."));
 		
 											pending_checks_sem.release();
 										}
@@ -332,23 +348,20 @@ RDResumeHandler
 					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );						
 						
 					try{
-						writer_and_checker.checkPiece(
-							i,
-							new CheckPieceResultHandler()
-							{
-								public void
-								processResult(
-									int		piece_number,
-									int		result,
-									Object	user_data )
-								{
-									LGLogger.log(0, 0, LGLogger.INFORMATION, "Piece #" + piece_number + (result==CheckPieceResultHandler.OP_SUCCESS?" passed":" failed") + " re-check.");
-	
-									pending_checks_sem.release();
-								}
-							},
-							null,
-							true );
+						writer_and_checker.checkPiece(i, new CheckPieceResultHandler() {
+							public void processResult(int piece_number, int result,
+									Object user_data) {
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(disk_manager, LOGID,
+											result == CheckPieceResultHandler.OP_SUCCESS
+													? LogEvent.LT_INFORMATION : LogEvent.LT_WARNING,
+											"Piece #"
+													+ piece_number
+													+ (result == CheckPieceResultHandler.OP_SUCCESS
+															? " passed" : " failed") + " re-check."));
+								pending_checks_sem.release();
+							}
+						}, null, true);
 						
 						pending_check_num++;
 						

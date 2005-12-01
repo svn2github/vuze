@@ -102,12 +102,13 @@ DownloadImpl
 		latest_forcedStart = download_manager.isForceStart();
 	}
 	
-	protected DownloadManager
+	// Not available to plugins
+	public DownloadManager
 	getDownload()
 	{
 		return( download_manager );
 	}
-	
+
 	public int
 	getState()
 	{

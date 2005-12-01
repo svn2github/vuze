@@ -26,7 +26,7 @@ import com.apple.cocoa.foundation.NSAppleEventDescriptor;
 import com.apple.cocoa.foundation.NSAppleScript;
 import com.apple.cocoa.foundation.NSAutoreleasePool;
 import com.apple.cocoa.foundation.NSMutableDictionary;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -288,7 +288,7 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
     }
 
     /**
-     * Logs a warning message to LGLogger. The class monitor is used.
+     * Logs a warning message to Logger. The class monitor is used.
      * @param message A warning message
      */
     private void logWarning(String message)
@@ -296,7 +296,7 @@ public final class CocoaJavaBridge extends NativeInvocationBridge
         try
         {
             classMon.enter();
-            LGLogger.logUnrepeatableAlert(LGLogger.AT_WARNING, message);
+            Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING, message));
         }
         finally
         {

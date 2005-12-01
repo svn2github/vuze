@@ -44,6 +44,7 @@ TRHostImpl
 				TRTrackerServerListener, TRTrackerServerFactoryListener,
 				TRTrackerServerRequestListener, TRTrackerServerAuthenticationListener
 {
+	private static final LogIDs LOGID = LogIDs.TRACKER;
 	private static final int URL_DEFAULT_PORT		= 80;	// port to use if none in announce URL
 	private static final int URL_DEFAULT_PORT_SSL	= 443;	// port to use if none in announce URL
 	
@@ -521,7 +522,8 @@ TRHostImpl
 							
 				}catch( TRTrackerServerException e ){
 						
-					LGLogger.log(0, 0, LGLogger.ERROR, "Tracker Host: failed to start server: " + e.toString());
+					Logger.log(new LogEvent(LOGID,
+							"Tracker Host: failed to start server", e));
 		
 					throw( new TRHostException( e.getMessage()));
 				}

@@ -29,7 +29,7 @@ import java.net.ServerSocket;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
@@ -48,6 +48,7 @@ public class
 AEProxyImpl 
 	implements AEProxy, VirtualChannelSelector.VirtualSelectorListener
 {
+	private static final LogIDs LOGID = LogIDs.NET;
 	private static final int	DEBUG_PERIOD	= 60000;
 	private long				last_debug;
 	
@@ -150,16 +151,19 @@ AEProxyImpl
 		
 			accept_thread.start();									
 		
-			if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: listener established on port " + port ); 
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "AEProxy: listener established on port "
+						+ port)); 
 			
 		}catch( Throwable e){
-		
-			LGLogger.logUnrepeatableAlertUsingResource( 
-					LGLogger.AT_ERROR,
-					"Tracker.alert.listenfail",
-					new String[]{ ""+port });
+
+			Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+					LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { ""
+					+ port });
 	
-			if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: listener failed on port " + port, e ); 
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "AEProxy: listener failed on port "
+						+ port, e)); 
 						
 			throw( new AEProxyException( "AEProxy: accept fails: " + e.toString()));
 		}			
@@ -181,7 +185,11 @@ AEProxyImpl
 				
 				if ( !socket_channel.socket().getInetAddress().isLoopbackAddress()){
 					
-					if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: incoming connection from '" + socket_channel.socket().getInetAddress() + "' - closed as not local" );
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+								"AEProxy: incoming connection from '"
+										+ socket_channel.socket().getInetAddress()
+										+ "' - closed as not local"));
 				
 					socket_channel.close();
 				}
@@ -197,7 +205,9 @@ AEProxyImpl
 					
 						processors.add( processor );
 		
-						if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: active processors = " + processors.size());
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, "AEProxy: active processors = "
+									+ processors.size()));
 						
 					}finally{
 						
@@ -211,17 +221,17 @@ AEProxyImpl
 				
 				failed_accepts++;
 
-				if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: listener failed on port " + port, e ); 
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "AEProxy: listener failed on port "
+							+ port, e)); 
 			
 				if ( failed_accepts > 100 && successfull_accepts == 0 ){
 
 						// looks like its not going to work...
 						// some kind of socket problem
-									
-					LGLogger.logUnrepeatableAlertUsingResource( 
-							LGLogger.AT_ERROR,
-							"Network.alert.acceptfail",
-							new String[]{ ""+port, "TCP" } );
+					Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+							LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
+							"" + port, "TCP" });
 			
 					break;
 				}			
@@ -297,7 +307,9 @@ AEProxyImpl
 					
 					AEProxyConnectionImpl	processor = (AEProxyConnectionImpl)it.next();
 					
-					if( LGLogger.isEnabled() )  LGLogger.log( "AEProxy: active processor: " + processor.getStateString());
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "AEProxy: active processor: "
+								+ processor.getStateString()));
 				}
 			}finally{
 				

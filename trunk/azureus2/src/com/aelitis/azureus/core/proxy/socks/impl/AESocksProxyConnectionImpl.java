@@ -27,7 +27,7 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.HostNameToIPResolverListener;
@@ -44,6 +44,7 @@ public class
 AESocksProxyConnectionImpl
 	implements AESocksProxyConnection, AEProxyConnectionListener
 {
+	private static final LogIDs LOGID = LogIDs.NET;
 	public static final boolean	TRACE	= false;
 	
 	protected AESocksProxyImpl		proxy;
@@ -75,8 +76,7 @@ AESocksProxyConnectionImpl
 			plugable_connection	= _connection_factory.create( this );
 		
 			if ( TRACE ){
-			
-				LGLogger.log( "AESocksProxyProcessor: " + getName());
+				Logger.log(new LogEvent(LOGID, "AESocksProxyProcessor: " + getName()));
 			}
 		}catch( AEProxyException e ){
 			

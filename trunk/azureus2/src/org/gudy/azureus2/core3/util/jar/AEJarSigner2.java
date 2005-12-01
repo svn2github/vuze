@@ -108,11 +108,9 @@ AEJarSigner2
 				JarSigner_class = cl.loadClass( "sun.security.tools.JarSigner" );
 				
 			}catch( Throwable e ){
-				
-				LGLogger.logUnrepeatableAlertUsingResource( 
-						LGLogger.AT_ERROR, 
-						"Security.jar.signfail",
-						new String[]{ e.getMessage()});
+				Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+						LogAlert.AT_ERROR, "Security.jar.signfail"), new String[] { e
+						.getMessage() });
 				
 				Debug.printStackTrace(e);
 				
@@ -120,11 +118,9 @@ AEJarSigner2
 			}
    			
 		}else{
-			
-			LGLogger.logUnrepeatableAlertUsingResource( 
-					LGLogger.AT_ERROR, 
-					"Security.jar.tools_not_found",
-					new String[]{ tools_dir.toString() });
+			Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+					LogAlert.AT_ERROR, "Security.jar.tools_not_found"),
+					new String[] { tools_dir.toString() });
 			
 			
 			throw( new IOException( "JAR signing fails: tools.jar not found" ));
@@ -210,10 +206,9 @@ AEJarSigner2
 			
 			Debug.out( "JAR signing fails '" + failure_msg + "'" );
 		
-			LGLogger.logUnrepeatableAlertUsingResource( 
-					LGLogger.AT_ERROR, 
-					"Security.jar.signfail",
-					new String[]{ failure_msg });
+			Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+					LogAlert.AT_ERROR, "Security.jar.signfail"),
+					new String[] { failure_msg });
 			
 			throw( new IOException( "JAR signing fails: " + failure_msg ));
 		}

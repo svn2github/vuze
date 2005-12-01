@@ -47,6 +47,7 @@ public class
 PlatformManagerUpdateChecker
 	implements Plugin, UpdatableComponent
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
 	public static final String UPDATE_NAME	= "Platform-specific support";
 	
 	public static final int	RD_SIZE_RETRIES	= 3;
@@ -111,7 +112,10 @@ PlatformManagerUpdateChecker
 					
 			String	current_version = plugin_interface.getPluginVersion();
 			
-			LGLogger.log( "PlatformManager:Win32 update check starts: current = " + current_version );
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID,
+						"PlatformManager:Win32 update check starts: current = "
+								+ current_version));
 						
 			boolean current_az_is_cvs	= Constants.isCVSVersion();
 						
@@ -138,7 +142,10 @@ PlatformManagerUpdateChecker
 			if (	 sf_comp_version.length() == 0 ||
 					!Character.isDigit(sf_comp_version.charAt(0))){
 				
-				LGLogger.log( "PlatformManager:Win32 no valid version to check against (" + sf_comp_version + ")" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+							"PlatformManager:Win32 no valid version to check against ("
+									+ sf_comp_version + ")"));
 
 			}else if ( Constants.compareVersions( current_version, sf_comp_version ) < 0 ){
 				
@@ -147,7 +154,10 @@ PlatformManagerUpdateChecker
 	
 			checker.reportProgress( "Win32: current = " + current_version + ", latest = " + sf_comp_version );
 			
-			LGLogger.log( "PlatformManager:Win32 update required = " + (target_version!=null));
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID,
+						"PlatformManager:Win32 update required = "
+								+ (target_version != null)));
 			
 			if ( target_version != null ){
 					
@@ -248,42 +258,45 @@ PlatformManagerUpdateChecker
 		ResourceDownloader	rd,
 		InputStream			data )
 	{
-		try{
+		try {
 			UpdateInstaller installer = checker.createInstaller();
-			
-		    ZipInputStream zip = new ZipInputStream( data );
-		    
-		    ZipEntry entry = null;
-		    
-		    while((entry = zip.getNextEntry()) != null){
-		    	
-		        String name = entry.getName();
-		        
-		        if ( name.toLowerCase().startsWith( "windows/" )){
-		        	
-		        	// win32 only files
-		        
-		        	name = name.substring( 8 );
-		        
-		        		// skip the directory entry
-		        	
-		        	if ( name.length() > 0 ){
-		        		
-		        		rd.reportActivity( "Adding update action for '" + name + "'" );
-		        		
-		    			LGLogger.log( "PlatformManager:Win32 adding action for '" + name + "'" );
 
-		        		installer.addResource( name, zip, false );
+			ZipInputStream zip = new ZipInputStream(data);
 
-		        		installer.addMoveAction( name, installer.getInstallDir() + File.separator + name );
-		        	}
-		        }
-		    }
-			
-		    zip.close();
-		    
-		}catch( Throwable e ){
-			
+			ZipEntry entry = null;
+
+			while ((entry = zip.getNextEntry()) != null) {
+
+				String name = entry.getName();
+
+				if (name.toLowerCase().startsWith("windows/")) {
+
+					// win32 only files
+
+					name = name.substring(8);
+
+					// skip the directory entry
+
+					if (name.length() > 0) {
+
+						rd.reportActivity("Adding update action for '" + name + "'");
+
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID,
+									"PlatformManager:Win32 adding action for '" + name + "'"));
+
+						installer.addResource(name, zip, false);
+
+						installer.addMoveAction(name, installer.getInstallDir()
+								+ File.separator + name);
+					}
+				}
+			}
+
+			zip.close();
+
+		} catch (Throwable e) {
+
 			rd.reportActivity("Update install failed:" + e.getMessage());
 		}
 	}

@@ -49,6 +49,7 @@ public class
 SFPluginDetailsLoaderImpl 
 	implements SFPluginDetailsLoader, ResourceDownloaderListener
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
 
 	public static final String	site_prefix = "http://azureus.sourceforge.net/";
 	
@@ -463,7 +464,9 @@ SFPluginDetailsLoaderImpl
 			
 			if ( now - plugin_ids_loaded_at > RELOAD_MIN_TIME ){
 				
-				LGLogger.log( "SFPluginDetailsLoader: resetting values");
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"SFPluginDetailsLoader: resetting values"));
 				
 				plugin_ids_loaded	= false;
 			
@@ -471,8 +474,9 @@ SFPluginDetailsLoaderImpl
 				plugin_map			= new HashMap();
 				
 			}else{
-				
-				LGLogger.log( "SFPluginDetailsLoader: not resetting, cache still valid");
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+							"SFPluginDetailsLoader: not resetting, " + "cache still valid"));
 			}
 			
 		}finally{

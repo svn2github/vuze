@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.proxy.AEProxyFactory;
 public class 
 TRTrackerServerNATChecker 
 {
+	private static final LogIDs LOGID = LogIDs.TRACKER;
 	protected static TRTrackerServerNATChecker		singleton	= new TRTrackerServerNATChecker();
 	
 	protected static final int THREAD_POOL_SIZE		= 32;
@@ -181,8 +182,10 @@ TRTrackerServerNATChecker
 			check_queue_mon.enter();
 			
 			if ( check_queue.size() > CHECK_QUEUE_LIMIT ){
-				
-				LGLogger.log( "NAT Check queue size too large, check for '" + host + ":" + port + "' skipped" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+							"NAT Check queue size too large, check for '" + host + ":" + port
+									+ "' skipped"));
 				//Debug.out( "NAT Check queue size too large, check skipped" );
 				
 				listener.NATCheckComplete( true );

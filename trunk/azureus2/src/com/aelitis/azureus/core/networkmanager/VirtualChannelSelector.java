@@ -26,7 +26,7 @@ import java.nio.channels.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.networkmanager.impl.VirtualChannelSelectorImpl;
 
 
 public class VirtualChannelSelector {
+  private static final LogIDs LOGID = LogIDs.NWMAN;
   public static final int OP_CONNECT  = SelectionKey.OP_CONNECT;
   public static final int OP_READ   = SelectionKey.OP_READ;
   public static final int OP_WRITE  = SelectionKey.OP_WRITE;
@@ -79,7 +80,9 @@ public class VirtualChannelSelector {
   
   
   private void initSafeMode() {
-  	if( LGLogger.isEnabled() )  LGLogger.log( "*** SAFE SOCKET SELECTOR MODE ENABLED ***" );
+    if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID,
+					"*** SAFE SOCKET SELECTOR MODE ENABLED ***"));
     selector_impl = null;
     selectors = new HashMap();
     selectors_mon = new AEMonitor( "VirtualChannelSelector:FM" );

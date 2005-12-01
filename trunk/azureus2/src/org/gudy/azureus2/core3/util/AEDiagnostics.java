@@ -149,11 +149,9 @@ AEDiagnostics
 					}
 					
 					if ( file_moved ){
-						
-						LGLogger.logUnrepeatableAlertUsingResource(
-							LGLogger.AT_WARNING,
-							"diagnostics.log_found",
-							new String[]{ debug_save_dir.toString() } );
+						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+								LogAlert.AT_WARNING, "diagnostics.log_found"),
+								new String[] { debug_save_dir.toString() });
 					}
 				}
 			}else{

@@ -25,7 +25,7 @@ import java.net.*;
 import java.nio.ByteBuffer;
 
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
  *
  */
 public class NatCheckerServer extends AEThread {
+		private static final LogIDs LOGID = LogIDs.NET;
     private static final String incoming_handshake = "NATCHECK_HANDSHAKE";
   
     private final String check;
@@ -75,7 +76,9 @@ public class NatCheckerServer extends AEThread {
             matcher,
             new NetworkManager.RoutingListener() {
               public void connectionRouted( NetworkConnection connection ) {
-                LGLogger.log( "Incoming connection from [" +connection+ "] successfully routed to NAT CHECKER" );
+  							if (Logger.isEnabled())
+  								Logger.log(new LogEvent(LOGID, "Incoming connection from ["
+  										+ connection + "] successfully routed to NAT CHECKER"));
                 
                 try{
                   ByteBuffer msg = ByteBuffer.wrap( check.getBytes() );
@@ -98,7 +101,9 @@ public class NatCheckerServer extends AEThread {
         );
         
         valid = true;
-        LGLogger.log( "NAT tester using central routing for server socket" );
+  			if (Logger.isEnabled())
+  				Logger.log(new LogEvent(LOGID, "NAT tester using central routing for "
+  						+ "server socket"));
       }
       else {  //different port than already listening on, start new listen server
         try {
@@ -106,11 +111,14 @@ public class NatCheckerServer extends AEThread {
 
           if ( bind_ip.length() < 7 ){
             server = new ServerSocket( _port );
-            LGLogger.log( "NAT tester server socket bound to port " +_port );
-          }
-          else{
-            server = new ServerSocket( _port, 8, InetAddress.getByName(bind_ip) );
-            LGLogger.log( "NAT tester server socket bound to " +bind_ip+ ":" +_port );
+  					if (Logger.isEnabled())
+  						Logger.log(new LogEvent(LOGID, "NAT tester server socket "
+  								+ "bound to port " + _port));
+  				} else {
+  					server = new ServerSocket(_port, 8, InetAddress.getByName(bind_ip));
+  					if (Logger.isEnabled())
+  						Logger.log(new LogEvent(LOGID, "NAT tester server socket "
+  								+ "bound to " + bind_ip + ":" + _port));
           }
           
           valid = true;

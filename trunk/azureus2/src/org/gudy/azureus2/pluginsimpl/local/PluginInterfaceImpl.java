@@ -79,6 +79,8 @@ public class
 PluginInterfaceImpl 
 	implements PluginInterface 
 {
+	private static final LogIDs LOGID = org.gudy.azureus2.core3.logging.LogIDs.PLUGIN;
+
   private Plugin				plugin;
   private PluginInitializer		initialiser;
   private Object				initialiser_key;
@@ -778,7 +780,11 @@ PluginInterfaceImpl
   			
 	  		if ( str.equalsIgnoreCase( "plugin.id" ) || str.equalsIgnoreCase("plugin.version" )){
 	  		 			
-	  			LGLogger.log(LGLogger.AT_COMMENT, "Plugin '" + getPluginName() + "' tried to set property '" + str + "' - action ignored" );
+	  			if (org.gudy.azureus2.core3.logging.Logger.isEnabled())
+						org.gudy.azureus2.core3.logging.Logger
+								.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Plugin '"
+										+ getPluginName() + "' tried to set property '" + str
+										+ "' - action ignored"));
 	  			
 	  			return( null );
 	  		}
@@ -802,7 +808,11 @@ PluginInterfaceImpl
 	  			
 	  	 		if ( k_str.equalsIgnoreCase( "plugin.id" ) || k_str.equalsIgnoreCase("plugin.version" )){
 	  	 	  		
-	  	 			LGLogger.log(LGLogger.AT_COMMENT, "Plugin '" + getPluginName() + "' tried to set property '" + k_str + "' - action ignored" );
+	  	 			if (org.gudy.azureus2.core3.logging.Logger.isEnabled())
+							org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(LOGID,
+									LogEvent.LT_WARNING, "Plugin '" + getPluginName()
+											+ "' tried to set property '" + k_str
+											+ "' - action ignored"));
 	  	 		 
 	  	 			return( null );
 	  	 	  	}

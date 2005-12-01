@@ -28,7 +28,9 @@ import java.util.List;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.*;
@@ -41,6 +43,7 @@ public class
 DMReaderImpl
 	implements DMReader
 {
+	private static final LogIDs LOGID = LogIDs.DISK;
 	private static final long	READ_THREAD_IDLE_LIMIT	= 120*1000;
 	
 	protected static final int	QUEUE_REPORT_CHUNK	= 32;
@@ -135,39 +138,38 @@ DMReaderImpl
 	  	DiskManagerReadRequest request, 
 		DiskManagerReadRequestListener listener ) 
 	{
-		DiskReadRequest drr = new DiskReadRequest( request, listener );
-	    
-	   try{
-	   		this_mon.enter();
-	   
-	  		if ( !bOverallContinue ){
-	  				  			
-	  			throw( new RuntimeException( "Reader stopped" ));
-	  		}
-	  		
-	   		readQueue.add( drr );
-	   		
-		    readQueueSem.release();
+		DiskReadRequest drr = new DiskReadRequest(request, listener);
 
-			if ( readThread == null ){
-				
+		try {
+			this_mon.enter();
+
+			if (!bOverallContinue) {
+				throw (new RuntimeException("Reader stopped"));
+			}
+
+			readQueue.add(drr);
+
+			readQueueSem.release();
+
+			if (readThread == null) {
 				startReadThread();
 			}
-	    }finally{
-	    	
-	    	this_mon.exit();
-	    }
-	    
-	    
-	    int	queue_size = readQueueSem.getValue();
-	    
-	    if( queue_size > next_report_size ){
-	    	
-	    	LGLogger.log( "Disk Manager read queue size exceeds " + next_report_size );
-	    	
-	    	next_report_size += QUEUE_REPORT_CHUNK;
-	    }
-	    
+		} finally {
+
+			this_mon.exit();
+		}
+
+		int queue_size = readQueueSem.getValue();
+
+		if (queue_size > next_report_size) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(disk_manager, LOGID,
+						LogEvent.LT_WARNING, "Disk Manager read queue size exceeds "
+								+ next_report_size));
+
+			next_report_size += QUEUE_REPORT_CHUNK;
+		}
+
 		// System.out.println( "read queue size = " + queue_size );
 	}
 	  
@@ -362,7 +364,10 @@ DMReaderImpl
 								
 								String err_msg = "Failed loading piece " +request.getPieceNumber()+ ":" +request.getOffset()+ "->" +(request.getOffset() + request.getLength());
 								
-								LGLogger.log( LGLogger.ERROR, err_msg );
+								if (Logger.isEnabled()) {
+									Logger.log(new LogEvent(disk_manager, LOGID,
+											LogEvent.LT_ERROR, err_msg));
+								}
 								
 								System.out.println( err_msg );
 							}

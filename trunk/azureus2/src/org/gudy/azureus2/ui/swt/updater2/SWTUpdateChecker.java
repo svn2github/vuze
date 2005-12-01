@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -52,6 +52,8 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
  */
 public class SWTUpdateChecker implements UpdatableComponent
 {
+	private static final LogIDs LOGID = LogIDs.GUI;
+
   public static void
   initialize()
   {
@@ -78,7 +80,9 @@ public class SWTUpdateChecker implements UpdatableComponent
               downloaders.add(factory.getSuffixBasedDownloader(factory.create(new URL(mirrors[i]))));
             } catch(MalformedURLException e) {
               //Do nothing
-              LGLogger.log("Cannot use URL " + mirrors[i] + " (not valid)");
+            	if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+										"Cannot use URL " + mirrors[i] + " (not valid)"));
             }
           }
           ResourceDownloader[] resourceDownloaders = 
@@ -114,8 +118,8 @@ public class SWTUpdateChecker implements UpdatableComponent
 	      
 	    }
   	}catch( Throwable e ){
-  		
-  		LGLogger.logUnrepeatableAlert( "SWT Version check failed", e );
+  		Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+					"SWT Version check failed", e));
   		
   		checker.failed();
   		

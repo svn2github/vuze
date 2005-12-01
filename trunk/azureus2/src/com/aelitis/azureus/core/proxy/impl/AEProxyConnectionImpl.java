@@ -26,7 +26,7 @@ import java.util.*;
 
 import java.nio.channels.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.proxy.*;
@@ -40,6 +40,7 @@ public class
 AEProxyConnectionImpl 
 	implements AEProxyConnection
 {
+	private static final LogIDs LOGID = LogIDs.NET;
 	protected AEProxyImpl		server;
 	protected SocketChannel		source_channel;
 
@@ -202,7 +203,9 @@ AEProxyConnectionImpl
 		Throwable			reason )
 	{
 		try{
-			if( LGLogger.isEnabled() )  LGLogger.log( "AEProxyProcessor: " + getName() + " failed", reason );
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()
+						+ " failed", reason));
 			
 			close();
 			

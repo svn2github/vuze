@@ -677,7 +677,8 @@ DHTTrackerPlugin
 				
 					if ( !running_downloads.contains( download )){
 						
-						log.log( "Monitoring '" + download.getName() + "': " + register_reason );
+						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+								"Monitoring '" + download.getName() + "': " + register_reason);
 						
 						running_downloads.add( download );
 					}
@@ -685,14 +686,18 @@ DHTTrackerPlugin
 					
 					if ( running_downloads.contains( download )){
 						
-						log.log( "Not monitoring '" + download.getName() + "': " + register_reason );
+						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+								"Not monitoring '" + download.getName() + "': "
+										+ register_reason);
 	
 						running_downloads.remove( download );
 					}else{
 						
 						if ( first_time ){
 							
-							log.log( "Not monitoring '" + download.getName() + "': " + register_reason );
+							log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+									"Not monitoring '" + download.getName() + "': "
+											+ register_reason);
 						}
 					}
 				}
@@ -844,7 +849,10 @@ DHTTrackerPlugin
 								complete(
 									boolean	timeout_occurred )
 								{
-									log.log( "Registration of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + ")");
+									log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+											"Registration of '" + dl.getName()
+													+ "' completed (elapsed="
+													+ (SystemTime.getCurrentTime() - start) + ")");
 									
 									// decreaseActive( dl );
 								}
@@ -873,7 +881,8 @@ DHTTrackerPlugin
 			
 			if ( unregister ){
 				
-				log.log( "Unregistering download '" + dl.getName() + "'" );
+				log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+						"Unregistering download '" + dl.getName() + "'");
 				
 				final long	start = SystemTime.getCurrentTime();
 				
@@ -914,7 +923,9 @@ DHTTrackerPlugin
 							complete(
 								boolean	timeout_occurred )
 							{
-								log.log( "Unregistration of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + ")");
+								log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+								"Unregistration of '" + dl.getName() + "' completed (elapsed="
+										+ (SystemTime.getCurrentTime() - start) + ")");
 								
 								decreaseActive( dl );
 							}
@@ -964,7 +975,9 @@ DHTTrackerPlugin
 				
 				if ( skip ){
 					
-					log.log( "Deferring announce for '" + dl.getName() + "' as activity outstanding" );
+					log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+							"Deferring announce for '" + dl.getName()
+									+ "' as activity outstanding");
 				}
 				
 				if ( pm != null && !skip ){
@@ -1078,7 +1091,11 @@ DHTTrackerPlugin
 								complete(
 									boolean	timeout_occurred )
 								{
-									log.log( "Get of '" + dl.getName() + "' completed (elapsed=" + (SystemTime.getCurrentTime()-start) + "), addresses = " + addresses.size() + ", seeds = " + seed_count + ", leechers = " + leecher_count );
+									log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+											"Get of '" + dl.getName() + "' completed (elapsed="
+													+ (SystemTime.getCurrentTime() - start)
+													+ "), addresses = " + addresses.size() + ", seeds = "
+													+ seed_count + ", leechers = " + leecher_count);
 								
 									decreaseActive(dl);
 									

@@ -25,7 +25,7 @@ package com.aelitis.azureus.core.networkmanager;
 import java.net.*;
 import java.nio.channels.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
  * Virtual server socket channel for listening and accepting incoming connections.
  */
 public class VirtualServerChannelSelector {
+	private static final LogIDs LOGID = LogIDs.NWMAN;
   private ServerSocketChannel server_channel = null;
   private final InetSocketAddress bind_address;
   private final int receive_buffer_size;
@@ -78,7 +79,9 @@ public class VirtualServerChannelSelector {
 	        
 	        server_channel.socket().bind( bind_address, 1024 );
 	        
-	        if( LGLogger.isEnabled() )  LGLogger.log( "TCP incoming server socket bound and listening on " +bind_address );
+	        if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "TCP incoming server socket "
+								+ bind_address));
 	        
 	        AEThread accept_thread = new AEThread( "VServerSelector:port" + bind_address.getPort() ) {
 	          public void runSupport() {
@@ -91,7 +94,9 @@ public class VirtualServerChannelSelector {
 	      }
 	      catch( Throwable t ) {
             Debug.out( t );
-            LGLogger.logUnrepeatableAlert( "ERROR, unable to bind TCP incoming server socket to " +bind_address.getPort(), t );
+            Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+							"ERROR, unable to bind TCP incoming server socket to "
+									+ bind_address.getPort(), t));
 	      }
 	      
 	      last_accept_time = SystemTime.getCurrentTime();  //init to now

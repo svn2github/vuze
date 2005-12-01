@@ -111,10 +111,9 @@ AEJarBuilder
 				SEKeyDetails	kd = SESecurityManager.getKeyDetails( sign_alias );
 			
 				if ( kd == null ){
-			
-					LGLogger.logUnrepeatableAlert(
-						LGLogger.AT_ERROR,
-						"Certificate alias '" + sign_alias + "' not found, jar signing fails" );
+					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+							"Certificate alias '" + sign_alias
+									+ "' not found, jar signing fails"));
 					
 					throw( new Exception( "Certificate alias '" + sign_alias + "' not found "));
 				}

@@ -31,10 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
-import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerListener;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
@@ -54,11 +52,8 @@ public abstract class
 TRTrackerAnnouncerImpl
 	implements TRTrackerAnnouncer
 {
+  // Used to be componentID 2
 	protected final static LogIDs LOGID = LogIDs.TRACKER;
-	public final static int componentID = 2;
-	public final static int evtLifeCycle = 0;
-	public final static int evtFullTrace = 1;
-	public final static int evtErrors = 2;
 
 	// 	listener
 	
@@ -118,8 +113,9 @@ TRTrackerAnnouncerImpl
 	{
 		int	num = importTrackerCache( map );
 		
-		if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-	             "TRTrackerClient: imported " + num + " cached peers" );
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(getTorrent(), LOGID, "TRTrackerClient: imported "
+					+ num + " cached peers"));
 	}
 
 	protected Map
@@ -149,8 +145,10 @@ TRTrackerAnnouncerImpl
 				peers.add( entry );
 			}
 		
-			if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-			             "TRTrackerClient: exported " + tracker_peer_cache.size() + " cached peers" );
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(getTorrent(), LOGID,
+						"TRTrackerClient: exported " + tracker_peer_cache.size()
+								+ " cached peers"));
 		}finally{
 			
 			tracker_peer_cache_mon.exit();
@@ -325,8 +323,10 @@ TRTrackerAnnouncerImpl
 		
 		if ( p2 != null ){
 			
-		  if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-			             "TRTrackerClient: merged peer sets: p1 = " + peers.size() + ", p2 = " + p2.size());
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID,
+						"TRTrackerClient: merged peer sets: p1 = " + peers.size()
+								+ ", p2 = " + p2.size()));
 		
 			for (int i=0;i<p2.size();i++){
 				
@@ -352,8 +352,9 @@ TRTrackerAnnouncerImpl
 				
 				tracker_peer_cache.values().toArray( res );
 				
-				if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-		                   "TRTrackerClient: returned " + res.length + " cached peers" );
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(getTorrent(), LOGID,
+							"TRTrackerClient: returned " + res.length + " cached peers"));
 			    
 				return( res );
 			}
@@ -379,8 +380,9 @@ TRTrackerAnnouncerImpl
 				tracker_peer_cache.put( res[i].getAddress(), res[i] );
 			}
 			
-			if( LGLogger.isEnabled() )  LGLogger.log(componentID, evtFullTrace, LGLogger.INFORMATION, 
-	                   "TRTrackerClient: returned " + res.length + " cached peers" );
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(getTorrent(), LOGID,
+						"TRTrackerClient: returned " + res.length + " cached peers"));
 		    
 			return( res );
 			
@@ -403,5 +405,5 @@ TRTrackerAnnouncerImpl
 	{
 		listeners.removeListener(l);
 	}
-	
+
 }

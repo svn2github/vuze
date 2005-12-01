@@ -6,7 +6,7 @@
  */
 package org.gudy.azureus2.core3.internat;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -59,7 +59,10 @@ public class MessageText {
 			  
 			  e.printStackTrace();
 			  
-			  LGLogger.logRepeatableAlert( LGLogger.AT_ERROR, "Failed to load resource bundle. One possible cause is that you have installed Azureus into a directory with a '!' in it. If so, please remove the '!'.");
+			  Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+						"Failed to load resource bundle. One possible cause is "
+								+ "that you have installed Azureus into a directory "
+								+ "with a '!' in it. If so, please remove the '!'."));
 		  }
 		  
 		  return(

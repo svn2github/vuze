@@ -42,7 +42,11 @@ public class
 CacheFileWithCache 
 	implements CacheFile
 {
-	protected static Comparator comparator = new
+  // Make code prettier by bringing over SS_CACHE from DirectByteBuffer
+  private static final byte SS_CACHE = DirectByteBuffer.SS_CACHE;
+  private static final LogIDs LOGID = LogIDs.CACHE;
+
+  protected static Comparator comparator = new
 		Comparator()
 		{
 			public int 
@@ -94,6 +98,7 @@ CacheFileWithCache
 	protected CacheFileManagerImpl		manager;
 	protected FMFile					file;
 	protected TOTorrentFile				torrent_file;
+  protected TOTorrent       torrent = null;
 	protected long						file_offset_in_torrent;
 	
 	protected long[]					read_history		= new long[ READAHEAD_HISTORY ];
@@ -135,7 +140,7 @@ CacheFileWithCache
 			
 			torrent_file	= _torrent_file;
 			
-			TOTorrent	torrent = torrent_file.getTorrent();
+			torrent = torrent_file.getTorrent();
 					
 			piece_size	= (int)torrent.getPieceLength();
 									
@@ -230,19 +235,19 @@ CacheFileWithCache
 	
 		throws CacheFileManagerException
 	{
-		final int	file_buffer_position	= file_buffer.position(DirectByteBuffer.SS_CACHE);
-		final int	file_buffer_limit		= file_buffer.limit(DirectByteBuffer.SS_CACHE);
+		final int	file_buffer_position	= file_buffer.position(SS_CACHE);
+		final int	file_buffer_limit		= file_buffer.limit(SS_CACHE);
 		
 		final int	read_length	= file_buffer_limit - file_buffer_position;
 	
 		try{
 			if ( manager.isCacheEnabled()){
 			
-				if ( TRACE ){
-					LGLogger.log( 
-							"readCache: " + getName() + ", " + file_position + " - " + (file_position + read_length - 1 ) + 
-							":" + file_buffer_position + "/" + file_buffer_limit );
-				}
+				if (TRACE)
+					Logger.log(new LogEvent(torrent, LOGID, "readCache: " + getName()
+							+ ", " + file_position + " - "
+							+ (file_position + read_length - 1) + ":" + file_buffer_position
+							+ "/" + file_buffer_limit));
 				
 				if ( read_length == 0 ){
 					
@@ -309,33 +314,34 @@ CacheFileWithCache
 							
 							DirectByteBuffer	entry_buffer = entry.getBuffer();
 							
-							int					entry_buffer_position 	= entry_buffer.position(DirectByteBuffer.SS_CACHE);
-							int					entry_buffer_limit		= entry_buffer.limit(DirectByteBuffer.SS_CACHE);
+							int					entry_buffer_position 	= entry_buffer.position(SS_CACHE);
+							int					entry_buffer_limit		= entry_buffer.limit(SS_CACHE);
 							
 							try{
 															
-								entry_buffer.limit( DirectByteBuffer.SS_CACHE, entry_buffer_position + skip + available );
+								entry_buffer.limit( SS_CACHE, entry_buffer_position + skip + available );
 								
-								entry_buffer.position( DirectByteBuffer.SS_CACHE, entry_buffer_position + skip );
+								entry_buffer.position( SS_CACHE, entry_buffer_position + skip );
 								
-								if ( TRACE ){
-									LGLogger.log( 
-											"cacheRead: using " + entry.getString() + 
-											"[" + entry_buffer.position(DirectByteBuffer.SS_CACHE)+"/"+entry_buffer.limit(DirectByteBuffer.SS_CACHE)+ "]" +
-											"to write to [" + file_buffer.position(DirectByteBuffer.SS_CACHE) + "/" + file_buffer.limit(DirectByteBuffer.SS_CACHE) + "]" );
-								}
+								if (TRACE)
+									Logger.log(new LogEvent(torrent, LOGID, "cacheRead: using "
+											+ entry.getString() + "["
+											+ entry_buffer.position(SS_CACHE) + "/"
+											+ entry_buffer.limit(SS_CACHE) + "]" + "to write to ["
+											+ file_buffer.position(SS_CACHE) + "/"
+											+ file_buffer.limit(SS_CACHE) + "]"));
 								
 								used_entries++;
 								
-								file_buffer.put( DirectByteBuffer.SS_CACHE, entry_buffer );
+								file_buffer.put( SS_CACHE, entry_buffer );
 									
 								manager.cacheEntryUsed( entry );
 								
 							}finally{
 								
-								entry_buffer.limit( DirectByteBuffer.SS_CACHE, entry_buffer_limit );
+								entry_buffer.limit( SS_CACHE, entry_buffer_limit );
 								
-								entry_buffer.position( DirectByteBuffer.SS_CACHE, entry_buffer_position );						
+								entry_buffer.position( SS_CACHE, entry_buffer_position );						
 							}
 							
 							writing_file_position	+= available;
@@ -368,21 +374,19 @@ CacheFileWithCache
 						manager.cacheBytesRead( read_length );
 					}
 						
-					if ( TRACE ){
-							
-						LGLogger.log( "cacheRead: cache use ok [entries = " + used_entries + "]" );
-					}
+					if (TRACE)
+						Logger.log(new LogEvent(torrent, LOGID,
+								"cacheRead: cache use ok [entries = " + used_entries + "]"));
 										
 				}else{
 						
-					if ( TRACE ){
-							
-						LGLogger.log( "cacheRead: cache use fails, reverting to plain read" );
-					}
+					if (TRACE)
+						Logger.log(new LogEvent(torrent, LOGID,
+								"cacheRead: cache use fails, reverting to plain read"));
 								
 						// reset in case we've done some partial reads
 						
-					file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_position );
+					file_buffer.position( SS_CACHE, file_buffer_position );
 					
 						// If read-ahead fails then we resort to a straight read
 						// Read-ahead can fail if a cache-flush fails (e.g. out of disk space
@@ -450,10 +454,9 @@ CacheFileWithCache
 							
 							if ( do_read_ahead ){
 									
-								if ( TRACE ){
-										
-									LGLogger.log( "\tperforming read-ahead" );
-								}
+								if (TRACE)
+									Logger.log(new LogEvent(torrent, LOGID,
+											"\tperforming read-ahead"));
 									
 								DirectByteBuffer	cache_buffer = 
 										DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_READ, actual_read_ahead );
@@ -486,7 +489,7 @@ CacheFileWithCache
 										
 										manager.fileBytesRead( actual_read_ahead );
 											
-										cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
+										cache_buffer.position( SS_CACHE, 0 );
 										
 										cache.add( entry );
 										
@@ -518,10 +521,9 @@ CacheFileWithCache
 							
 							}else{
 									
-								if ( TRACE ){
-										
-									LGLogger.log( "\tnot performing read-ahead" );
-								}
+								if (TRACE)
+									Logger.log(new LogEvent(torrent, LOGID,
+											"\tnot performing read-ahead"));
 									
 								try{
 									
@@ -575,18 +577,18 @@ CacheFileWithCache
 				
 				long	temp_position = file_position + file_offset_in_torrent;
 			
-				file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_position );
+				file_buffer.position( SS_CACHE, file_buffer_position );
 				
-				while( file_buffer.hasRemaining( DirectByteBuffer.SS_CACHE )){
+				while( file_buffer.hasRemaining( SS_CACHE )){
 						
-					byte	v = file_buffer.get( DirectByteBuffer.SS_CACHE );
+					byte	v = file_buffer.get( SS_CACHE );
 						
 					if ((byte)temp_position != v ){
 							
 						System.out.println( "readCache: read is bad at " + temp_position +
 											": expected = " + (byte)temp_position + ", actual = " + v );
 				
-						file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_limit );
+						file_buffer.position( SS_CACHE, file_buffer_limit );
 						
 						break;
 					}
@@ -609,8 +611,8 @@ CacheFileWithCache
 		boolean	failed			= false;
 		
 		try{
-			int	file_buffer_position	= file_buffer.position(DirectByteBuffer.SS_CACHE);
-			int file_buffer_limit		= file_buffer.limit(DirectByteBuffer.SS_CACHE);
+			int	file_buffer_position	= file_buffer.position(SS_CACHE);
+			int file_buffer_limit		= file_buffer.limit(SS_CACHE);
 			
 			int	write_length = file_buffer_limit - file_buffer_position;
 			
@@ -623,9 +625,9 @@ CacheFileWithCache
 			
 				long	temp_position = file_position + file_offset_in_torrent;
 				
-				while( file_buffer.hasRemaining( DirectByteBuffer.SS_CACHE )){
+				while( file_buffer.hasRemaining( SS_CACHE )){
 					
-					byte	v = file_buffer.get( DirectByteBuffer.SS_CACHE );
+					byte	v = file_buffer.get( SS_CACHE );
 					
 					if ((byte)temp_position != v ){
 						
@@ -638,35 +640,35 @@ CacheFileWithCache
 					temp_position++;
 				}
 				
-				file_buffer.position( DirectByteBuffer.SS_CACHE, file_buffer_position );
+				file_buffer.position( SS_CACHE, file_buffer_position );
 			}
 			
 			if ( manager.isWriteCacheEnabled() ){
 				
-				if ( TRACE ){
-					
-					LGLogger.log( 
-							"writeCache: " + getName() + ", " + file_position + " - " + (file_position + write_length - 1 ) + 
-							":" + file_buffer_position + "/" + file_buffer_limit );
-				}
+				if (TRACE)
+					Logger.log(new LogEvent(torrent, LOGID, "writeCache: " + getName()
+							+ ", " + file_position + " - "
+							+ (file_position + write_length - 1) + ":" + file_buffer_position
+							+ "/" + file_buffer_limit));
 				
-					// if the data is smaller than a piece and not handed over then it is most
-					// likely apart of a piece at the start or end of a file. If so, copy it
+					// if the data is smaller than a piece and not handed over
+                    // then it is most
+					// likely apart of a piece at the start or end of a file. If
+                    // so, copy it
 					// and insert the copy into cache
 							
 				if ( 	( !buffer_handed_over ) &&
 						write_length < piece_size ){
 				
-					if ( TRACE ){
-						
-						LGLogger.log( "    making copy of non-handedover buffer" );
-					}
+					if (TRACE)
+						Logger.log(new LogEvent(torrent, LOGID,
+								"    making copy of non-handedover buffer"));
 					
 					DirectByteBuffer	cache_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_CACHE_WRITE, write_length );
 										
-					cache_buffer.put( DirectByteBuffer.SS_CACHE, file_buffer );
+					cache_buffer.put( SS_CACHE, file_buffer );
 					
-					cache_buffer.position( DirectByteBuffer.SS_CACHE, 0 );
+					cache_buffer.position( SS_CACHE, 0 );
 					
 						// make it look like this buffer has been handed over
 					
@@ -881,11 +883,11 @@ CacheFileWithCache
 							multi_block_entries.add( entry );
 							
 							if ( skip_chunk ){
-								
-								if ( TRACE ){
-									
-									LGLogger.log( "flushCache: skipping " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "] as too small" );			
-								}
+								if (TRACE)
+									Logger.log(new LogEvent(torrent, LOGID,
+											"flushCache: skipping " + multi_block_entries.size()
+													+ " entries, [" + multi_block_start + ","
+													+ multi_block_next + "] as too small"));			
 							}else{
 								
 								multiBlockFlush(
@@ -944,10 +946,12 @@ CacheFileWithCache
 
 				if ( skip_chunk ){
 					
-					if ( TRACE ){
-						
-						LGLogger.log( "flushCache: skipping " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "] as too small" );			
-					}
+					if (TRACE)
+						Logger
+								.log(new LogEvent(torrent, LOGID, "flushCache: skipping "
+										+ multi_block_entries.size() + " entries, ["
+										+ multi_block_start + "," + multi_block_next
+										+ "] as too small"));			
 					
 				}else{
 					
@@ -986,10 +990,10 @@ CacheFileWithCache
 		boolean	write_ok	= false;
 		
 		try{
-			if ( TRACE ){
-				
-				LGLogger.log( "multiBlockFlush: writing " + multi_block_entries.size() + " entries, [" + multi_block_start + "," + multi_block_next + "," + release_entries + "]" );			
-			}
+			if (TRACE)
+				Logger.log(new LogEvent(torrent, LOGID, "multiBlockFlush: writing "
+						+ multi_block_entries.size() + " entries, [" + multi_block_start
+						+ "," + multi_block_next + "," + release_entries + "]"));			
 			
 			DirectByteBuffer[]	buffers = new DirectByteBuffer[ multi_block_entries.size()];
 			
@@ -1003,7 +1007,7 @@ CacheFileWithCache
 			
 				DirectByteBuffer	buffer = entry.getBuffer();
 				
-				if ( buffer.limit(DirectByteBuffer.SS_CACHE) - buffer.position(DirectByteBuffer.SS_CACHE) != entry.getLength()){
+				if ( buffer.limit(SS_CACHE) - buffer.position(SS_CACHE) != entry.getLength()){
 					
 					throw( new CacheFileManagerException( "flush: inconsistent entry length, position wrong" ));
 				}
@@ -1064,10 +1068,9 @@ CacheFileWithCache
 	{
 		if ( manager.isCacheEnabled()){
 							
-			if ( TRACE ){
-					
-				LGLogger.log( "flushCache: " + getName() + ", rel = " + release_entries + ", min = " + minumum_to_release );
-			}
+			if (TRACE)
+				Logger.log(new LogEvent(torrent, LOGID, "flushCache: " + getName()
+						+ ", rel = " + release_entries + ", min = " + minumum_to_release));
 			
 			flushCache( file_start_position, -1, release_entries, minumum_to_release, 0, -1 );
 		}
@@ -1092,10 +1095,9 @@ CacheFileWithCache
 	{
 		if ( manager.isCacheEnabled()){
 			
-			if ( TRACE ){
-	
-				LGLogger.log( "flushOldDirtyData: " + getName());
-			}
+			if (TRACE)
+				Logger.log(new LogEvent(torrent, LOGID, "flushOldDirtyData: "
+						+ getName()));
 
 			flushCache( 0, -1, false, -1, oldest_dirty_time, min_chunk_size );
 		}

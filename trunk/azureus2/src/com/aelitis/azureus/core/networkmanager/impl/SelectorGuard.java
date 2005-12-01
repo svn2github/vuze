@@ -21,7 +21,7 @@
  */
 package com.aelitis.azureus.core.networkmanager.impl;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -111,7 +111,8 @@ public class SelectorGuard {
           String msg = "Likely faulty socket selector detected: reverting to safe-mode socket selection. [JRE " +Constants.JAVA_VERSION+"]\n";
           msg += "Please see " +Constants.AZUREUS_WIKI+ "LikelyFaultySocketSelector for help.";
           Debug.out( msg );
-          LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
+          Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+							msg));
         
           consecutiveZeroSelects = 0;
           listener.spinDetected();
@@ -131,7 +132,7 @@ public class SelectorGuard {
       String msg = "Likely network disconnect/reconnect: Repairing socket channel selector. [JRE " +Constants.JAVA_VERSION+"]\n";
       msg += "Please see " +Constants.AZUREUS_WIKI+ "LikelyNetworkDisconnectReconnect for help.";
       Debug.out( msg );
-      LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
+      Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING, msg));
       
       consecutiveZeroSelects = 0;
       listener.failureDetected();

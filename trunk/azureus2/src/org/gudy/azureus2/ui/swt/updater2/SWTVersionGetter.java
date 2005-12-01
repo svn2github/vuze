@@ -25,7 +25,7 @@ package org.gudy.azureus2.ui.swt.updater2;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.plugins.update.UpdateChecker;
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
@@ -36,6 +36,7 @@ import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
  *
  */
 public class SWTVersionGetter {
+	private static final LogIDs LOGID = LogIDs.GUI;
 
   private String platform; 
   private int currentVersion;
@@ -79,7 +80,8 @@ public class SWTVersionGetter {
       
       checker.reportProgress( msg );
       
-      LGLogger.log( msg );
+      if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, msg));
       
       return latestVersion > currentVersion;
     } catch(Exception e) {
@@ -89,7 +91,9 @@ public class SWTVersionGetter {
   }
   
   private void downloadLatestVersion() {
-    LGLogger.log("Requesting latest SWT version and url from version check client." );
+  	if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Requesting latest SWT version "
+					+ "and url from version check client."));
     
     Map reply = VersionCheckClient.getSingleton().getVersionCheckInfo(VersionCheckClient.REASON_CHECK_SWT);
     
@@ -107,7 +111,8 @@ public class SWTVersionGetter {
       msg += " url=" + mirrors[0];
     }
     
-    LGLogger.log( msg );
+    if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, msg));
   }
   
 

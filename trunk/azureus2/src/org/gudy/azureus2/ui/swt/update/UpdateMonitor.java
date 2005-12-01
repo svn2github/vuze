@@ -47,6 +47,7 @@ public class
 UpdateMonitor 
 	implements UpdateCheckInstanceListener 
 {
+	private static final LogIDs LOGID = LogIDs.GUI;
 	public static final long AUTO_UPDATE_CHECK_PERIOD = 23*60*60*1000;  // 23 hours
 
 	protected static UpdateMonitor		singleton;
@@ -174,8 +175,9 @@ UpdateMonitor
 		if ( SystemProperties.isJavaWebStartInstance()){
 			
 				// just in case we get here somehome!
-			
-			LGLogger.log( "skipping update check as java web start");
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID,
+						"skipping update check as java web start"));
 			
 			return;
 		}
@@ -302,13 +304,16 @@ UpdateMonitor
 	    		this_window.updateAdditionComplete();
 	    		
     		}else{
-    			
-    			LGLogger.log( "UpdateMonitor: user dialog already in progress, updates skipped");
+    			if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+								"UpdateMonitor: user dialog already "
+										+ "in progress, updates skipped"));
 
     		}
     	}else{
-    		
-			LGLogger.log( "UpdateMonitor: check instance resulted in no user-actionable updates");
+    		if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "UpdateMonitor: check instance "
+							+ "resulted in no user-actionable updates"));
 
     	}
 	} 

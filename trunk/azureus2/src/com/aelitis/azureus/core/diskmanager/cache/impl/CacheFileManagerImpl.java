@@ -42,6 +42,7 @@ public class
 CacheFileManagerImpl 
 	implements CacheFileManager, AEDiagnosticsEvidenceGenerator
 {
+  private static final LogIDs LOGID = LogIDs.CACHE;
 	public static final boolean	DEBUG	= false;
 	
 	public static final int	CACHE_CLEANER_TICKS		= 60;	// every 60 seconds
@@ -165,8 +166,11 @@ CacheFileManagerImpl
 		t.setDaemon(true);
 			
 		t.start();
-			
-		if( LGLogger.isEnabled() )  LGLogger.log( "DiskCache: enabled = " + cache_enabled + ", read = " + cache_read_enabled + ", write = " + cache_write_enabled + ", size = " + cache_size + " B" );
+
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "DiskCache: enabled = " + cache_enabled
+					+ ", read = " + cache_read_enabled + ", write = "
+					+ cache_write_enabled + ", size = " + cache_size + " B"));
 	}
 	
 	protected boolean
@@ -351,7 +355,13 @@ CacheFileManagerImpl
 				
 				long	flushed = cache_space_free - old_free;
 				
-				if( LGLogger.isEnabled() )  LGLogger.log( "DiskCache: cache full, flushed " + ( flushed ) + " from " + oldest_file.getName());
+				if (Logger.isEnabled()) {
+					TOTorrentFile tf = file.getTorrentFile();
+					TOTorrent torrent = tf == null ? null : tf.getTorrent();
+					Logger.log(new LogEvent(torrent, LOGID,
+							"DiskCache: cache full, flushed " + flushed + " from "
+									+ oldest_file.getName()));
+				}
 				
 				if ( flushed == 0 ){
 				
@@ -376,9 +386,13 @@ CacheFileManagerImpl
 					
 		CacheEntry	entry = new CacheEntry( entry_type, file, buffer, file_position, length );
 			
-		if ( log ){
-				
-		  if( LGLogger.isEnabled() )  LGLogger.log( "DiskCache: cr=" + cache_bytes_read + ",cw=" + cache_bytes_written+	",fr=" + file_bytes_read + ",fw=" + file_bytes_written ); 
+		if (log && Logger.isEnabled()) {
+			TOTorrentFile tf = file.getTorrentFile();
+			TOTorrent torrent = tf == null ? null : tf.getTorrent();
+
+			Logger.log(new LogEvent(torrent, LOGID, "DiskCache: cr="
+					+ cache_bytes_read + ",cw=" + cache_bytes_written + ",fr="
+					+ file_bytes_read + ",fw=" + file_bytes_written));
 		}
 			
 		return( entry );

@@ -27,7 +27,7 @@ package org.gudy.azureus2.platform.win32;
  *
  */
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -46,6 +46,7 @@ public class
 PlatformManagerImpl
 	implements PlatformManager
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
 	public static final int			RT_NONE		= 0;
 	public static final int			RT_AZ 		= 1;
 	public static final int			RT_OTHER 	= 2;
@@ -76,7 +77,7 @@ PlatformManagerImpl
 					
 				}catch( Throwable e ){
 					
-					LGLogger.log( "Win32Platform: failed to initialise", e );
+					Logger.log(new LogEvent(LOGID, "Win32Platform: failed to initialise", e ));
 					
 					if ( e instanceof PlatformManagerException ){
 						
@@ -228,7 +229,8 @@ PlatformManagerImpl
 					
 					if (!az_exe_checked){
 					
-						LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, msg );
+						Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+								msg));
 					}
 					
 					throw( new PlatformManagerException( msg ));

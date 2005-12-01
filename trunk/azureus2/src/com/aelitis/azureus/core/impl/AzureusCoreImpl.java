@@ -29,7 +29,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
@@ -51,6 +51,7 @@ public class
 AzureusCoreImpl 
 	implements 	AzureusCore, AzureusCoreListener
 {
+  private final static LogIDs LOGID = LogIDs.CORE;
 	protected static AzureusCore		singleton;
 	protected static AEMonitor			class_mon	= new AEMonitor( "AzureusCore:class" );
 	
@@ -153,23 +154,27 @@ AzureusCoreImpl
 			
 			this_mon.exit();
 		}
-         
-	    LGLogger.log("Core: Loading of Plugins starts");
+
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Loading of Plugins starts"));
 
 		pi.loadPlugins(this);
-		
-	    LGLogger.log("Core: Loading of Plugins complete");
 
-		global_manager = GlobalManagerFactory.create( this );
-		
-		for (int i=0;i<lifecycle_listeners.size();i++){
-			
-			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).componentCreated( this, global_manager );
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Loading of Plugins complete"));
+
+		global_manager = GlobalManagerFactory.create(this);
+
+		for (int i = 0; i < lifecycle_listeners.size(); i++) {
+
+			((AzureusCoreLifecycleListener) lifecycle_listeners.get(i))
+					.componentCreated(this, global_manager);
 		}
 
-	    pi.initialisePlugins();
-	        
-	    LGLogger.log("Core: Initializing Plugins complete");
+		pi.initialisePlugins();
+
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Initializing Plugins complete"));
 
 	    new AEThread("Plugin Init Complete")
 	       {
@@ -191,12 +196,13 @@ AzureusCoreImpl
            
             
 	   //Catch non-user-initiated VM shutdown
-       ShutdownHook.install( new ShutdownHook.Handler() {
-         public void shutdown( String signal_name ) {
-           LGLogger.log( "Core: Caught signal " +signal_name );
-           shutdownCore();
-         }
-       });  
+		ShutdownHook.install(new ShutdownHook.Handler() {
+			public void shutdown(String signal_name) {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "Caught signal " + signal_name));
+				shutdownCore();
+			}
+		});  
          
 	   Runtime.getRuntime().addShutdownHook( new AEThread("Shutdown Hook") {
 	     public void runSupport() {
@@ -205,21 +211,21 @@ AzureusCoreImpl
 	   });
 		   
 	}
-  
-  
-  
-    private void shutdownCore() {
-      if( running ) {
-        try{
-          LGLogger.log( "Core: Caught VM shutdown event; auto-stopping Azureus" );
-        
-          AzureusCoreImpl.this.stop();
-        }
-        catch( Throwable e ) {  
-          Debug.printStackTrace( e );
-        }
-      }
-    }
+
+
+	private void shutdownCore() {
+		if (running) {
+			try {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"Caught VM shutdown event; auto-stopping Azureus"));
+
+				AzureusCoreImpl.this.stop();
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
   
   
   
@@ -281,17 +287,14 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		runNonDaemon( 
-			new AERunnable()
-			{
-				public void
-				runSupport()
-				{
-					LGLogger.log("Core: Stop operation starts");
-					
-					stopSupport( true );
-				}
-			});
+		runNonDaemon(new AERunnable() {
+			public void runSupport() {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "Stop operation starts"));
+
+				stopSupport(true);
+			}
+		});
 	}
 	
 	private void
@@ -325,8 +328,9 @@ AzureusCoreImpl
 		NonDaemonTaskRunner.waitUntilIdle();
 		
 		AEDiagnostics.shutdown();
-		
-		LGLogger.log("Core: Stop operation completes");
+
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Stop operation completes"));
 
 			// if any installers exist then we need to closedown via the updater
 		
@@ -343,26 +347,24 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		runNonDaemon( 
-				new AERunnable()
-				{
-					public void
-					runSupport()
-					{
-				
-						for (int i=0;i<lifecycle_listeners.size();i++){
-							
-							if ( !((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopRequested( AzureusCoreImpl.this )){
-								
-								LGLogger.log("Core: Request to stop the core has been denied");
-								
-								return;
-							}
-						}
-							
-						stop();
+		runNonDaemon(new AERunnable() {
+			public void runSupport() {
+
+				for (int i = 0; i < lifecycle_listeners.size(); i++) {
+
+					if (!((AzureusCoreLifecycleListener) lifecycle_listeners.get(i))
+							.stopRequested(AzureusCoreImpl.this)) {
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+									"Request to stop the core has been denied"));
+
+						return;
 					}
-				});
+				}
+
+				stop();
+			}
+		});
 	}
 	
 	public void
@@ -370,23 +372,22 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		runNonDaemon( 
-				new AERunnable()
-				{
-					public void
-					runSupport()
-					{
-						LGLogger.log("Core: Restart operation starts");
-							
-						checkRestartSupported();
-						
-						stopSupport( false );
-						
-						LGLogger.log("Core: Restart operation: stop complete, restart initiated" );
-				
-						AzureusRestarterFactory.create( AzureusCoreImpl.this ).restart( false );
-					}
-				});
+		runNonDaemon(new AERunnable() {
+			public void runSupport() {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "Restart operation starts"));
+
+				checkRestartSupported();
+
+				stopSupport(false);
+
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "Restart operation: stop complete,"
+							+ "restart initiated"));
+
+				AzureusRestarterFactory.create(AzureusCoreImpl.this).restart(false);
+			}
+		});
 	}
 	
 	public void
@@ -394,27 +395,28 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
-		runNonDaemon( 
-				new AERunnable()
-				{
-					public void
-					runSupport()
-					{
-						checkRestartSupported();
-		
-						for (int i=0;i<lifecycle_listeners.size();i++){
-							
-							if (!((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).restartRequested( AzureusCoreImpl.this )){
-								
-								LGLogger.log("Core: Request to restart the core has been denied");
-								
-								return;
-							}
-						}
-						
-						restart();
-					}
-				});
+		runNonDaemon(new AERunnable() {
+            public void runSupport() {
+                checkRestartSupported();
+
+                for (int i = 0; i < lifecycle_listeners.size(); i++) {
+                    AzureusCoreLifecycleListener l = (AzureusCoreLifecycleListener) lifecycle_listeners
+                            .get(i);
+
+                    if (!l.restartRequested(AzureusCoreImpl.this)) {
+
+                        if (Logger.isEnabled())
+                            Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+                                    "Request to restart the core"
+                                            + " has been denied"));
+
+                        return;
+                    }
+                }
+
+                restart();
+            }
+        });
 	}
 	
 	public void
@@ -423,8 +425,8 @@ AzureusCoreImpl
 		throws AzureusCoreException
 	{
 		if ( getPluginManager().getPluginInterfaceByClass( "org.gudy.azureus2.update.UpdaterPatcher") == null ){
-			
-			LGLogger.logRepeatableAlert( LGLogger.AT_ERROR, "Can't restart without the 'azupdater' plugin installed" );
+			Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+					"Can't restart without the 'azupdater' plugin installed"));
 			
 			throw( new  AzureusCoreException("Can't restart without the 'azupdater' plugin installed"));
 		}

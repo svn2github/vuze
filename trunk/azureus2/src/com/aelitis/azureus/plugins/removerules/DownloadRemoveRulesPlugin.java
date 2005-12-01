@@ -225,7 +225,8 @@ DownloadRemoveRulesPlugin
 				 (	(!remove_unauthorised_seeding_only.getValue()) ||
 				 	download_completed )){
 			
-				log.log( "Download '" + download.getName() + "' is unauthorised and removal triggered" );
+				log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, "Download '"
+						+ download.getName() + "' is unauthorised and removal triggered");
 			
 				removeDownload( download );
 				
@@ -247,7 +248,9 @@ DownloadRemoveRulesPlugin
 				if ( 	( download_completed && status.indexOf( "too many seeds" ) != -1 ) ||
 						status.indexOf( "too many peers" ) != -1 ){
 		
-					log.log( "Download '" + download.getName() + "' being removed on instruction from the tracker" );
+					log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+							"Download '" + download.getName()
+									+ "' being removed on instruction from the tracker");
 
 					removeDownloadDelayed( download );
 					
@@ -261,7 +264,9 @@ DownloadRemoveRulesPlugin
 
 					if ( seeds / ( peers==0?1:peers ) > MAX_SEED_TO_PEER_RATIO ){
 						
-						log.log( "Download '" + download.getName() + "' being removed to reduce swarm size" );
+						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+								"Download '" + download.getName()
+										+ "' being removed to reduce swarm size");
 						
 						removeDownloadDelayed( download );		
 
@@ -348,7 +353,8 @@ DownloadRemoveRulesPlugin
 						int				old_state,
 						int				new_state )
 					{
-						log.log( "download state changed to '" + new_state +"'" );
+						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION,
+							"download state changed to '" + new_state + "'");
 						
 						if ( new_state == Download.ST_STOPPED ){
 							

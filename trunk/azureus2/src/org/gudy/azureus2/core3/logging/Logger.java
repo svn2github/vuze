@@ -106,7 +106,7 @@ public class Logger {
 			if (needLF) {
 				text.append("\r\n");
 				
-				int len = 16;
+				int len = 22;
 				char[] padding = new char[len];
 				while (len > 0)
 					padding[--len] = ' ';

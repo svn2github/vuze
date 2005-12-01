@@ -74,10 +74,9 @@ UpdateInstallerImpl
 				}
 				
 				if ( found_failure ){
-					
-					LGLogger.logUnrepeatableAlert(
-							LGLogger.AT_ERROR, 
-							"Installation of at least one component failed - see 'update.log' for details" );
+					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+							"Installation of at least one component failed"
+									+ " - see 'update.log' for details"));
 				}
 			}
 		}catch( Throwable e ){
@@ -213,10 +212,10 @@ UpdateInstallerImpl
 				// we're going to need write access to the parent, let's try
 				
 				if ( !parent.canWrite()){
-					
-					LGLogger.logUnrepeatableAlert(
-							LGLogger.AT_WARNING,
-							"The location '" + parent.toString() + "' isn't writable, this update will probably fail. Check permissions and rety the update" );
+					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+							"The location '" + parent.toString()
+									+ "' isn't writable, this update will probably fail."
+									+ " Check permissions and rety the update"));
 				}
 			}
 			

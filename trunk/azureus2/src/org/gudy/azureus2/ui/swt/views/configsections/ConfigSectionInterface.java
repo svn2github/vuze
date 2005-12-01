@@ -34,7 +34,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -494,7 +494,8 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 	      		
 	      	}catch( PlatformManagerException e ){
 	      	
-	      		LGLogger.logUnrepeatableAlert("Failed to register application", e );
+	      		Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+								"Failed to register application", e));
 	      	}
 	      }
 	    });

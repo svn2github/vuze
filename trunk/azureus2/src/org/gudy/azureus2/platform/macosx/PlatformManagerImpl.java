@@ -22,7 +22,7 @@
 
 package org.gudy.azureus2.platform.macosx;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
@@ -47,6 +47,7 @@ import java.util.HashSet;
  */
 public class PlatformManagerImpl implements PlatformManager
 {
+    private static final LogIDs LOGID = LogIDs.CORE;
 
     protected static PlatformManagerImpl singleton;
     protected static AEMonitor class_mon = new AEMonitor("PlatformManager");
@@ -84,7 +85,8 @@ public class PlatformManagerImpl implements PlatformManager
         }
         catch (Throwable e)
         {
-            LGLogger.log("Failed to initialize platform manager for Mac OS X", e);
+        	Logger.log(new LogEvent(LOGID, "Failed to initialize platform manager"
+					+ " for Mac OS X", e));
         }
         finally
         {
@@ -165,7 +167,8 @@ public class PlatformManagerImpl implements PlatformManager
 			if( !osx_app_bundle.exists() ) {
 				String msg = "OSX app bundle not found: [" +osx_app_bundle.toString()+ "]";
 				System.out.println( msg );
-				LGLogger.log( msg );		
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, msg));		
 				throw new PlatformManagerException( msg );
 			}
 			
@@ -243,7 +246,9 @@ public class PlatformManagerImpl implements PlatformManager
         File file = new File(path);
         if(!file.exists())
         {
-            LGLogger.log(LGLogger.AT_WARNING, "Cannot find " + file.getName());
+	        	if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Cannot find "
+									+ file.getName()));
             return;
         }
 
@@ -301,7 +306,9 @@ public class PlatformManagerImpl implements PlatformManager
         File file = new File(path);
         if(!file.exists())
         {
-            LGLogger.log(LGLogger.AT_WARNING, "Cannot find " + file.getName());
+        	if (Logger.isEnabled())
+        		Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Cannot find "
+        				+ file.getName()));
             throw new PlatformManagerException("File not found");
         }
 
@@ -321,8 +328,10 @@ public class PlatformManagerImpl implements PlatformManager
         }
         catch (IOException e)
         {
-            LGLogger.log(LGLogger.AT_WARNING, "Cannot play system alert");
-            LGLogger.log(e);
+        	if (Logger.isEnabled())
+        		Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+						"Cannot play system alert"));
+        	Logger.log(new LogEvent(LOGID, "", e));
         }
     }
 
@@ -349,7 +358,8 @@ public class PlatformManagerImpl implements PlatformManager
             }
             catch (IOException e)
             {
-                LGLogger.logUnrepeatableAlert(LGLogger.AT_ERROR, e.getMessage());
+                Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, e
+						.getMessage()));
             }
         }
     }
@@ -389,12 +399,15 @@ public class PlatformManagerImpl implements PlatformManager
             }
             catch (IOException e)
             {
-                LGLogger.logUnrepeatableAlert(LGLogger.AT_ERROR, e.getMessage());
+                Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, e
+						.getMessage()));
             }
         }
         else
         {
-            LGLogger.log(LGLogger.AT_WARNING, "Cannot find " + path.getName());
+        	if (Logger.isEnabled())
+        		Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Cannot find "
+        				+ path.getName()));
         }
     }
 
@@ -560,7 +573,7 @@ public class PlatformManagerImpl implements PlatformManager
         }
         catch (IOException e)
         {
-            LGLogger.logUnrepeatableAlert(e.getMessage(), e);
+            Logger.log(new LogAlert(LogAlert.UNREPEATABLE, e.getMessage(), e));
             throw e;
         }
     }
@@ -590,7 +603,7 @@ public class PlatformManagerImpl implements PlatformManager
         catch (IOException e)
         {
             Debug.printStackTrace(e);
-            LGLogger.log(e.getMessage(), e);
+            Logger.log(new LogEvent(LOGID, e.getMessage(), e));
 
             return "Finder";
         }

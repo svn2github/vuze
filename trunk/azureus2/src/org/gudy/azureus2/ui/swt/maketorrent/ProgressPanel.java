@@ -217,8 +217,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
                 		((NewTorrentWizard)wizard).getAzureusCore().getTrackerHost().hostTorrent( torrent, true, false );
                 		
                 	}catch( TRHostException e ){
-                		
-                		LGLogger.logRepeatableAlert( "Host operation fails", e );
+                		Logger.log(new LogAlert(LogAlert.REPEATABLE,
+                				"Host operation fails", e));
                 	}
                 }
 
@@ -235,7 +235,7 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       }else{
       	Debug.printStackTrace( e );
         reportCurrentTask(MessageText.getString("wizard.operationfailed"));
-        reportCurrentTask(LGLogger.exceptionToString(e));
+        reportCurrentTask(Debug.getStackTrace(e));
       }
       
  	  wizard.switchToClose();

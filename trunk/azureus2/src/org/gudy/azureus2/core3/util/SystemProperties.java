@@ -17,6 +17,7 @@ import org.gudy.azureus2.platform.*;
  * Utility class to manage system-dependant information.
  */
 public class SystemProperties {
+	private static final LogIDs LOGID = LogIDs.CORE;
   
 		// note this is also used in the restart code....
 	
@@ -132,7 +133,10 @@ public class SystemProperties {
 	        dir.mkdirs();
 	      }
 		  
-	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Custom): user_path = " + temp_user_path );
+	      if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"SystemProperties::getUserPath(Custom): user_path = "
+									+ temp_user_path));
 		  
 	      return temp_user_path;
 	    }
@@ -142,37 +146,57 @@ public class SystemProperties {
 	    if ( Constants.isWindows ) {   	
 	      try { 
 	        temp_user_path = PlatformManagerFactory.getPlatformManager().getUserDataDirectory();
-	        LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from registry: " + temp_user_path  );
+	        if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID,
+								"Using user config path from registry: " + temp_user_path));
 	      }
 	      catch ( Throwable e ){
-	        LGLogger.log( LGLogger.CORE_SYSTEM, "Unable to retrieve user config path from registry. Make sure aereg.dll is present." );
+	      	if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID,
+								"Unable to retrieve user config path from registry. "
+										+ "Make sure aereg.dll is present."));
 	        
 	        temp_user_path = getEnvironmentalVariable( "APPDATA" );
 	        
 	        if ( temp_user_path != null && temp_user_path.length() > 0 ) {
-	          LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from APPDATA env var instead: " + temp_user_path  );
+	        	if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID,
+									"Using user config path from APPDATA env var instead: "
+											+ temp_user_path));
 	        }
 	        else {
 	          temp_user_path = userhome + SEP + WIN_DEFAULT;
-	          LGLogger.log( LGLogger.CORE_SYSTEM, "Using user config path from java user.home var instead: " + temp_user_path  );
+	          if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID,
+									"Using user config path from java user.home var instead: "
+											+ temp_user_path));
 	        }
 	      }
 	    	
 	      temp_user_path = temp_user_path + SEP + APPLICATION_NAME + SEP;
 	      
-	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Win): user_path = " + temp_user_path );
+	      if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"SystemProperties::getUserPath(Win): user_path = "
+									+ temp_user_path));
 	      
 	    }else if ( Constants.isOSX ) {
 	    	
 	      temp_user_path = userhome + SEP + OSX_DEFAULT + SEP + APPLICATION_NAME + SEP;
 	      
-	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Mac): user_path = " + temp_user_path );
+	      if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"SystemProperties::getUserPath(Mac): user_path = "
+									+ temp_user_path));
 	    
 	    }else{
 	    	
 	      temp_user_path = userhome + SEP + "." + APPLICATION_NAME + SEP;
 	      
-	      LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getUserPath(Unix): user_path = " + temp_user_path );
+	      if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID,
+							"SystemProperties::getUserPath(Unix): user_path = "
+									+ temp_user_path));
 	    }
 	    
 	    //if the directory doesn't already exist, create it
@@ -262,7 +286,10 @@ public class SystemProperties {
     
     	String system_encoding = LocaleUtil.getSingleton().getSystemEncoding();
     	
-    	LGLogger.log( LGLogger.CORE_SYSTEM, "SystemProperties::getEnvironmentalVariable - " + _var + ", system encoding = " + system_encoding );
+    	if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID,
+						"SystemProperties::getEnvironmentalVariable - " + _var
+								+ ", system encoding = " + system_encoding));
 
     	br = new BufferedReader( new InputStreamReader( p.getInputStream(), system_encoding), 8192);
     	String line;

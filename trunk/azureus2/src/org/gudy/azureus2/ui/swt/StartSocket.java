@@ -25,12 +25,14 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 
 public class StartSocket {
+	private static final LogIDs LOGID = LogIDs.GUI;
+
 		private final String[] args;
 	
     public StartSocket(String _args[]) {
@@ -47,7 +49,7 @@ public class StartSocket {
     	PrintWriter pw = null;
     	try {
     		String msg = "StartSocket: passing startup args to already-running Azureus java process listening on [127.0.0.1: 6880]";
-    		LGLogger.log( msg );
+    		Logger.log(new LogEvent(LOGID, msg ));
     		System.out.println( msg );
        	
     		sck = new Socket("127.0.0.1", 6880);
@@ -62,7 +64,9 @@ public class StartSocket {
     			buffer.append(';');
     		}
          
-    		LGLogger.log( "Main::startSocket: sending '" + buffer.toString() + "'");
+        if (Logger.isEnabled())
+        	Logger.log(new LogEvent(LOGID, "Main::startSocket: sending '"
+        			+ buffer.toString() + "'"));
       	 
     		pw.println(buffer.toString());
     		pw.flush();

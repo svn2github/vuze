@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.tracker.protocol.PRHelpers;
 public class 
 IPAddressRangeManager 
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
+
 	protected Map		entries = new HashMap();
 	
 	protected long		total_span;
@@ -335,7 +337,9 @@ IPAddressRangeManager
 	protected void
 	rebuild()
 	{
-		LGLogger.log( "IPAddressRangeManager: rebuilding " + entries.size() + " entries starts" );
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "IPAddressRangeManager: rebuilding "
+					+ entries.size() + " entries starts"));
 
 		Collection col = entries.values();
 		
@@ -460,7 +464,9 @@ IPAddressRangeManager
 		}
 			//	System.out.println( "non_merged = " + merged_entries.length );
 		
-		LGLogger.log( "IPAddressRangeManager: rebuilding " + entries.size() + " entries ends" );
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "IPAddressRangeManager: rebuilding "
+					+ entries.size() + " entries ends"));
 
 	}
 	

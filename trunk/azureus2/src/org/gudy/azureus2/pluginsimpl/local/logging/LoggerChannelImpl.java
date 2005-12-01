@@ -30,13 +30,7 @@ import java.util.*;
 
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.logging.Logger;
-import org.gudy.azureus2.plugins.peers.Peer;
-import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.pluginsimpl.local.peers.PeerImpl;
-import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 
 public class 
@@ -134,28 +128,19 @@ LoggerChannelImpl
 		log( LT_INFORMATION, data );
 	}
 	
-	public void log(Peer peer, int log_type, String data) {
+	public void log(Object[] relatedTo, int log_type, String data) {
+		// TODO Auto-generated method stub
 		notifyListeners(log_type, addTimeStamp(data));
 		
 		if (isEnabled() && !no_output) {
 			data = "[" + name + "] " + data;
-			
-			PEPeer corePeer = ((PeerImpl)peer).getPEPeer();
-			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(corePeer, LOGID,
+			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(relatedTo, LOGID,
 					LogTypePluginToCore(log_type), data));
 		}
 	}
 
-	public void log(Torrent torrent, int log_type, String data) {
-		notifyListeners(log_type, addTimeStamp(data));
-		
-		if (isEnabled() && !no_output) {
-			data = "[" + name + "] " + data;
-			
-			TOTorrent coreTorrent = ((TorrentImpl) torrent).getTorrent();
-			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(coreTorrent,
-					LOGID, LogTypePluginToCore(log_type), data));
-		}
+	public void log(Object relatedTo, int log_type, String data) {
+		log(new Object[] { relatedTo }, log_type, data);
 	}
 
 	
@@ -173,28 +158,19 @@ LoggerChannelImpl
 		}
 	}
 
-	public void log(Peer peer, String str, Throwable error) {
+	public void log(Object[] relatedTo, String str, Throwable error) {
 		notifyListeners(str.equals("") ? "" : addTimeStamp(str), error);
 
 		if (isEnabled() && !no_output) {
 			str = "[" + name + "] " + str;
 			
-			PEPeer corePeer = ((PeerImpl)peer).getPEPeer();
-			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(corePeer, LOGID,
+			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(relatedTo, LOGID,
 					str, error));
 		}
 	}
 
-	public void log(Torrent torrent, String str, Throwable error) {
-		notifyListeners(str.equals("") ? "" : addTimeStamp(str), error);
-
-		if (isEnabled() && !no_output) {
-			str = "[" + name + "] " + str;
-			
-			TOTorrent coreTorrent = ((TorrentImpl) torrent).getTorrent();
-			org.gudy.azureus2.core3.logging.Logger.log(new LogEvent(coreTorrent,
-					LOGID, str, error));
-		}
+	public void log(Object relatedTo, String str, Throwable error) {
+		log(new Object[] { relatedTo }, str, error);
 	}
 
 	// Alert Functions

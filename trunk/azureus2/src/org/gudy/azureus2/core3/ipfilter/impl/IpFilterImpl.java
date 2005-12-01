@@ -42,6 +42,7 @@ public class
 IpFilterImpl 
 	implements IpFilter
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
 
 	private final static int MAX_BLOCKS_TO_REMEMBER = 500;
   
@@ -374,7 +375,9 @@ IpFilterImpl
 		  
 	      addBlockedIP( new BlockedIpImpl(ipAddress,match, torrent_name, loggable), loggable );
 	      
-	      LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", in range : " + match);
+	      if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Ip Blocked : "
+							+ ipAddress + ", in range : " + match));
 	      
 	      return true;
 	    }
@@ -392,7 +395,9 @@ IpFilterImpl
 		  
 	    addBlockedIP( new BlockedIpImpl(ipAddress,null, torrent_name, loggable), loggable );
 	    
-	    LGLogger.log(0,0,LGLogger.ERROR,"Ip Blocked : " + ipAddress + ", not in any range");
+	    if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Ip Blocked : "
+						+ ipAddress + ", not in any range"));
 	    
 	    return true;
 	  }

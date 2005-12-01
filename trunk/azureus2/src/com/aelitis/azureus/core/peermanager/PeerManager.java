@@ -26,7 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
@@ -43,6 +43,7 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
  *
  */
 public class PeerManager {
+	private static final LogIDs LOGID = LogIDs.PEER;
 
   private static final PeerManager instance = new PeerManager();
 
@@ -106,22 +107,32 @@ public class PeerManager {
     };
     
     
-    //register for incoming connection routing   
+    // register for incoming connection routing
     NetworkManager.getSingleton().requestIncomingConnectionRouting(
         matcher,
         new NetworkManager.RoutingListener() {
           public void connectionRouted( NetworkConnection connection ) {
             
-            //make sure not already connected to the same IP address; allow loopback connects for co-located proxy-based connections and testing
+            // make sure not already connected to the same IP address; allow
+            // loopback connects for co-located proxy-based connections and
+            // testing
             String address = connection.getAddress().getAddress().getHostAddress();
             boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
             if( !same_allowed && PeerIdentityManager.containsIPAddress( manager.getPeerIdentityDataID(), address ) ){  
-              if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP connection from [" +connection+ "] dropped as IP address already connected for [" +manager.getDownloadManager().getDisplayName()+ "]" );
+            	if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+										"Incoming TCP connection from [" + connection
+												+ "] dropped as IP address already "
+												+ "connected for ["
+												+ manager.getDownloadManager().getDisplayName() + "]"));
               connection.close();
               return;
             }
             
-            if( LGLogger.isEnabled() )  LGLogger.log( "Incoming TCP connection from [" +connection+ "] routed to legacy download [" +manager.getDownloadManager().getDisplayName()+ "]" );
+            if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
+									+ connection + "] routed to legacy download ["
+									+ manager.getDownloadManager().getDisplayName() + "]"));
             manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
           }
         },

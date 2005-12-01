@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -60,7 +60,10 @@ public class TCPTransportHelper {
   			String msg = ioe.getMessage();
   			if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
   				enable_efficient_io = false;
-  				LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket write failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem!" );
+  				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+							"WARNING: Multi-buffer socket write failed; "
+									+ "switching to single-buffer mode.\n"
+									+ "Upgrade to JRE 1.5 (5.0) series to fix this problem!"));
   			}
   			throw ioe;
   		}
@@ -106,7 +109,9 @@ public class TCPTransportHelper {
         String msg = ioe.getMessage();
         if( msg != null && msg.equals( "A non-blocking socket operation could not be completed immediately" ) ) {
           enable_efficient_io = false;
-          LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "WARNING: Multi-buffer socket read failed; switching to single-buffer mode.\nUpgrade to JRE 1.5 (5.0) series to fix this problem!" );
+          Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+							"WARNING: Multi-buffer socket read failed; switching to single-buffer mode.\n"
+									+ "Upgrade to JRE 1.5 (5.0) series to fix this problem!"));
         }
         
         throw ioe;

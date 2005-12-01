@@ -28,7 +28,7 @@ import java.io.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
@@ -47,6 +47,7 @@ import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
 public class 
 ConfigurationChecker 
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
 	 
   private static boolean system_properties_set	= false;
   
@@ -100,7 +101,9 @@ ConfigurationChecker
 	  	int	connect_timeout = COConfigurationManager.getIntParameter( "Tracker Client Connect Timeout");
 	  	int	read_timeout 	= COConfigurationManager.getIntParameter( "Tracker Client Read Timeout");
 	  	
-	  	LGLogger.log( "TrackerClient: connect timeout = " + connect_timeout + ", read timeout = " + read_timeout );
+	  	if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "TrackerClient: connect timeout = "
+						+ connect_timeout + ", read timeout = " + read_timeout));
 	  	
 	  	System.setProperty(
 	  			"sun.net.client.defaultConnectTimeout", 
@@ -389,7 +392,10 @@ ConfigurationChecker
         for( int i=0; i < files.length; i++ ) {
           File file = files[ i ];
           if( file.exists() ) {
-            LGLogger.log( "ConfigurationChecker:: removing old language file: " + file.getAbsolutePath() );
+          	if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+									"ConfigurationChecker:: removing old language file: "
+											+ file.getAbsolutePath()));
             file.renameTo( new File( file.getParentFile(), "delme" + file.getName() ) );
           }
         }

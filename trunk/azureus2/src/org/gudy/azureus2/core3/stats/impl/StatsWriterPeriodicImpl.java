@@ -39,6 +39,7 @@ public class
 StatsWriterPeriodicImpl 
 	implements StatsWriterPeriodic, COConfigurationListener
 {
+	private static final LogIDs LOGID = LogIDs.CORE; 
 	
 	private static StatsWriterPeriodicImpl	singleton;
 	private static AEMonitor				class_mon	= new AEMonitor( "StatsWriterPeriodic" );
@@ -196,15 +197,13 @@ StatsWriterPeriodicImpl
 			
 			file_name += file;
 		
-			LGLogger.log(0, 0, LGLogger.INFORMATION, "Stats Logged to '" + file_name + "'" );				
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Stats Logged to '" + file_name + "'"));				
 			
 			new StatsWriterImpl( global_manager ).write( file_name );
 			
 		}catch( Throwable e ){
-		
-			Debug.printStackTrace( e );
-			
-			LGLogger.log(0, 0, "Stats Logging fails", e );
+			Logger.log(new LogEvent(LOGID, "Stats Logging fails", e));
 		}			
 	}
 	

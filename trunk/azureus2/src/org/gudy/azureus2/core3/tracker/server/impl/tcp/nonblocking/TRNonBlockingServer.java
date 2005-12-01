@@ -29,7 +29,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerException;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -50,6 +50,7 @@ TRNonBlockingServer
 	extends 	TRTrackerServerTCP
 	implements 	VirtualServerChannelSelector.SelectListener
 {
+	private static final LogIDs LOGID = LogIDs.TRACKER;
 	private static final int TIMEOUT_CHECK_INTERVAL = 10*1000;  //10sec
 	
 	private static final int CLOSE_DELAY			= 10*1000;
@@ -144,18 +145,20 @@ TRNonBlockingServer
 				
 			close_thread.start();
 			
-			LGLogger.log( "TRTrackerServer: Non-blocking listener established on port " +  getPort() ); 
+			Logger.log(new LogEvent(LOGID,
+					"TRTrackerServer: Non-blocking listener established on port "
+							+ getPort())); 
 
 			ok	= true;
 			
 		}catch( Throwable e){
 			
-			LGLogger.logUnrepeatableAlertUsingResource( 
-					LGLogger.AT_ERROR,
-					"Tracker.alert.listenfail",
-					new String[]{ ""+ getPort() });
-	
-			LGLogger.log( "TRTrackerServer: listener failed on port " +  getPort(), e ); 
+			Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+					LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { ""
+					+ getPort() });
+
+			Logger.log(new LogEvent(LOGID,
+					"TRTrackerServer: listener failed on port " + getPort(), e)); 
 						
 			throw( new TRTrackerServerException( "TRTrackerServer: accept fails: " + e.toString()));
 			

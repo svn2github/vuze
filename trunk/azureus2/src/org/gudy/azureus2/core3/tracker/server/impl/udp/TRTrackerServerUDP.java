@@ -40,6 +40,7 @@ public class
 TRTrackerServerUDP
 	extends 	TRTrackerServerImpl
 {
+	private static final LogIDs LOGID = LogIDs.TRACKER;
 	protected static final int THREAD_POOL_SIZE				= 10;
 
 	protected ThreadPool	thread_pool;
@@ -96,11 +97,13 @@ TRTrackerServerUDP
 			
 			recv_thread.start();									
 			
-			LGLogger.log( "TRTrackerServerUDP: recv established on port " + port ); 
+			Logger.log(new LogEvent(LOGID,
+					"TRTrackerServerUDP: recv established on port " + port)); 
 			
 		}catch( Throwable e ){
 			
-			LGLogger.log( "TRTrackerServerUDP: DatagramSocket bind failed on port " + port, e ); 
+			Logger.log(new LogEvent(LOGID, "TRTrackerServerUDP: "
+					+ "DatagramSocket bind failed on port " + port, e)); 
 		}
 	}
 	
@@ -136,17 +139,17 @@ TRTrackerServerUDP
 				
 				failed_accepts++;
 				
-				LGLogger.log( "TRTrackerServer: receive failed on port " + port, e ); 
+				Logger.log(new LogEvent(LOGID,
+						"TRTrackerServer: receive failed on port " + port, e)); 
 				
 				if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
 
 					// looks like its not going to work...
 					// some kind of socket problem
 				
-					LGLogger.logUnrepeatableAlertUsingResource( 
-							LGLogger.AT_ERROR,
-							"Network.alert.acceptfail",
-							new String[]{ ""+port, "UDP" } );
+					Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+							LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
+							"" + port, "UDP" });
 							
 					break;
 				}

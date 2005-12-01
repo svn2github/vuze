@@ -49,6 +49,7 @@ public class
 PRUDPPacketHandlerImpl
 	implements PRUDPPacketHandler
 {	
+	private static final LogIDs LOGID = LogIDs.NET;
 	private boolean			TRACE_REQUESTS	= false;
 	
 	private static final long	MAX_SEND_QUEUE_DATA_SIZE	= 2*1024*1024;
@@ -176,7 +177,9 @@ PRUDPPacketHandlerImpl
 			
 			init_sem.release();
 			
-			LGLogger.log( "PRUDPPacketReceiver: receiver established on port ".concat(String.valueOf(port))); 
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID,
+						"PRUDPPacketReceiver: receiver established on port " + port)); 
 	
 			byte[] buffer = new byte[PRUDPPacket.MAX_PACKET_SIZE];
 			
@@ -203,14 +206,15 @@ PRUDPPacketHandlerImpl
 						
 					failed_accepts++;
 					
-					LGLogger.log( "PRUDPPacketReceiver: receive failed on port " + port, e ); 
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID,
+								"PRUDPPacketReceiver: receive failed on port " + port, e)); 
 
 					if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){						
 		
-						LGLogger.logUnrepeatableAlertUsingResource( 
-								LGLogger.AT_ERROR,
-								"Network.alert.acceptfail",
-								new String[]{ ""+port, "UDP" } );
+						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+								LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
+								"" + port, "UDP" });
 										
 							// break, sometimes get a screaming loop. e.g.
 						/*
@@ -228,13 +232,12 @@ PRUDPPacketHandlerImpl
 				}
 			}
 		}catch( Throwable e ){
+			Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+					LogAlert.AT_ERROR, "Tracker.alert.listenfail"), new String[] { "UDP:"
+					+ port });
 			
-			LGLogger.logUnrepeatableAlertUsingResource( 
-					LGLogger.AT_ERROR,
-					"Tracker.alert.listenfail",
-					new String[]{ "UDP:"+port });
-			
-			LGLogger.log( "PRUDPPacketReceiver: DatagramSocket bind failed on port ".concat(String.valueOf(port)), e );
+			Logger.log(new LogEvent(LOGID, "PRUDPPacketReceiver: "
+					+ "DatagramSocket bind failed on port " + port, e));
 			
 		}finally{
 			
@@ -280,8 +283,9 @@ PRUDPPacketHandlerImpl
 			PRUDPPacketHandlerRequestImpl	request = (PRUDPPacketHandlerRequestImpl)timed_out.get(i);
 			
 			if ( TRACE_REQUESTS ){
-				
-				LGLogger.log( LGLogger.ERROR, "PRUDPPacketHandler: request timeout" ); 
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+							"PRUDPPacketHandler: request timeout")); 
 			}
 				// don't change the text of this message, it's used elsewhere
 			
@@ -343,8 +347,9 @@ PRUDPPacketHandlerImpl
 				// System.out.println( "Incoming from " + dg_packet.getAddress());
 				
 				if ( TRACE_REQUESTS ){
-				
-					LGLogger.log( "PRUDPPacketHandler: request packet received: " + packet.getString()); 
+					Logger.log(new LogEvent(LOGID,
+							"PRUDPPacketHandler: request packet received: "
+									+ packet.getString())); 
 				}
 				
 				if ( receive_delay > 0 ){
@@ -446,8 +451,9 @@ PRUDPPacketHandlerImpl
 			}else{
 				
 				if ( TRACE_REQUESTS ){
-					
-					LGLogger.log( "PRUDPPacketHandler: reply packet received: " + packet.getString()); 
+					Logger.log(new LogEvent(LOGID,
+							"PRUDPPacketHandler: reply packet received: "
+									+ packet.getString())); 
 				}
 				
 				PRUDPPacketHandlerRequestImpl	request;
@@ -474,8 +480,9 @@ PRUDPPacketHandlerImpl
 				if ( request == null ){
 				
 					if ( TRACE_REQUESTS ){
-					
-						LGLogger.log( LGLogger.ERROR, "PRUDPPacketReceiver: unmatched reply received, discarding:" + packet.getString());
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+								"PRUDPPacketReceiver: unmatched reply received, discarding:"
+										+ packet.getString()));
 					}
 				
 				}else{
@@ -488,7 +495,7 @@ PRUDPPacketHandlerImpl
 				// if someone's sending us junk we just log and continue
 			
 			// e.printStackTrace();
-			// LGLogger.log( e );
+			// Logger.log(new LogEvent(LOGID, "", e));
 		}
 	}
 	
@@ -636,8 +643,10 @@ PRUDPPacketHandlerImpl
 							stats.packetSent( buffer.length );
 							
 							if ( TRACE_REQUESTS ){
-								
-								LGLogger.log( "PRUDPPacketHandler: request packet sent to " + destination_address + ": " + request_packet.getString());
+								Logger.log(new LogEvent(LOGID,
+										"PRUDPPacketHandler: request packet sent to "
+												+ destination_address + ": "
+												+ request_packet.getString()));
 							}
 								
 							Thread.sleep( send_delay );
@@ -727,18 +736,17 @@ PRUDPPacketHandlerImpl
 													stats.packetSent( p.getLength() );
 							
 													if ( TRACE_REQUESTS ){
-														
-														LGLogger.log( "PRUDPPacketHandler: request packet sent to " + p.getAddress());											
+														Logger.log(new LogEvent(LOGID,
+															"PRUDPPacketHandler: request packet sent to "
+																	+ p.getAddress()));											
 													}														
 												
 													Thread.sleep( send_delay );
 													
 												}catch( Throwable e ){
-													
-													// get occasional send fails, not 
-													// very interesting
-													
-													LGLogger.log( "PRUDPPacketHandler: send failed", e ); 
+													// get occasional send fails, not very interesting
+													Logger.log(new LogEvent(LOGID, "PRUDPPacketHandler: "
+														+ "send failed", e)); 
 												}
 											}
 										}
@@ -764,8 +772,9 @@ PRUDPPacketHandlerImpl
 					stats.packetSent( buffer.length );
 					
 					if ( TRACE_REQUESTS ){
-						
-						LGLogger.log( "PRUDPPacketHandler: request packet sent to " + destination_address + ": " + request_packet.getString());
+						Logger.log(new LogEvent(LOGID, "PRUDPPacketHandler: "
+								+ "request packet sent to " + destination_address + ": "
+								+ request_packet.getString()));
 					}
 				}
 					// if the send is ok then the request will be removed from the queue
@@ -795,7 +804,8 @@ PRUDPPacketHandlerImpl
 			
 		}catch( Throwable e ){
 			
-			LGLogger.log( "PRUDPPacketHandler: sendAndReceive failed", e ); 
+			Logger.log(new LogEvent(LOGID,
+					"PRUDPPacketHandler: sendAndReceive failed", e)); 
 			
 			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:sendAndReceive failed", e ));
 		}
@@ -829,8 +839,9 @@ PRUDPPacketHandlerImpl
 			// System.out.println( "Outgoing to " + dg_packet.getAddress());	
 			
 			if ( TRACE_REQUESTS ){
-				
-				LGLogger.log( "PRUDPPacketHandler: reply packet sent: " + request_packet.getString());
+				Logger.log(new LogEvent(LOGID,
+						"PRUDPPacketHandler: reply packet sent: "
+								+ request_packet.getString()));
 			}
 			
 			socket.send( dg_packet );
@@ -841,7 +852,7 @@ PRUDPPacketHandlerImpl
 			
 		}catch( Throwable e ){
 			
-			LGLogger.log( "PRUDPPacketHandler: send failed", e ); 
+			Logger.log(new LogEvent(LOGID, "PRUDPPacketHandler: send failed", e)); 
 			
 			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:send failed", e ));
 		}

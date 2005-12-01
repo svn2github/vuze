@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 import java.util.*;
 import java.io.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -38,6 +38,7 @@ public class
 TRTrackerServerTorrentImpl 
 	implements TRTrackerServerTorrent
 {
+	private static final LogIDs LOGID = LogIDs.TRACKER;
 		// no point in caching replies smaller than that below
 	
 	public static final int	MIN_CACHE_ENTRY_SIZE		= 10;
@@ -299,18 +300,23 @@ TRTrackerServerTorrentImpl
 					
 				if ( ul_rate > MAX_UPLOAD_BYTES_PER_SEC ){
 					
-					LGLogger.log( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
-									new String(peer.getPeerId().getHash()) + 
-									" reported an upload rate of " + ul_rate/1024 + " KiB/s per second" );
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "TRTrackerPeer: peer "
+								+ peer.getIPRaw() + "/"
+								+ new String(peer.getPeerId().getHash())
+								+ " reported an upload rate of " + ul_rate / 1024
+								+ " KiB/s per second"));
 					
 					ul_diff	= 0;
 				}
 				
 				if ( dl_rate > MAX_DOWNLOAD_BYTES_PER_SEC ){
-					
-					LGLogger.log( "TRTrackerPeer: peer " + peer.getIPRaw() + "/" +
-									new String(peer.getPeerId().getHash()) + 
-									" reported a download rate of " + dl_rate/1024 + " KiB/s per second" );
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "TRTrackerPeer: peer "
+								+ peer.getIPRaw() + "/"
+								+ new String(peer.getPeerId().getHash())
+								+ " reported a download rate of " + dl_rate / 1024
+								+ " KiB/s per second"));
 					
 					dl_diff	= 0;
 				}

@@ -34,7 +34,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerException;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerProcessorTCP;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
@@ -50,6 +50,7 @@ public class
 TRBlockingServerProcessor
 	extends TRTrackerServerProcessorTCP
 {
+	private static final LogIDs LOGID = LogIDs.TRACKER;
 	protected Socket				socket;
 	
 
@@ -111,7 +112,7 @@ TRBlockingServerProcessor
 					}
 				}
 		
-				if ( LGLogger.isLoggingOn()){
+				if ( Logger.isEnabled()){
 					
 					String	log_str = header_plus;
 					
@@ -122,7 +123,8 @@ TRBlockingServerProcessor
 						log_str = log_str.substring(0,pos);
 					}
 					
-					LGLogger.log(0, 0, LGLogger.INFORMATION, "Tracker Server: received header '" + log_str + "'" );
+					Logger.log(new LogEvent(LOGID, "Tracker Server: received header '"
+							+ log_str + "'"));
 				}				
 					
 				// System.out.println( "got header:" + header_plus );

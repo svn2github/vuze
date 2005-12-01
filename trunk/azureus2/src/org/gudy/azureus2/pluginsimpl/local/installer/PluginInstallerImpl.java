@@ -31,7 +31,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -401,8 +401,8 @@ PluginInstallerImpl
 											}catch( Throwable e ){
 												
 												Debug.printStackTrace(e);
-												
-												LGLogger.logRepeatableAlert( "Plugin uninstall failed", e );
+												Logger.log(new LogAlert(LogAlert.REPEATABLE,
+														"Plugin uninstall failed", e));
 											}
 												
 											return( true );
@@ -414,8 +414,8 @@ PluginInstallerImpl
 											ResourceDownloaderException e )
 										{
 											if ( !downloader.isCancelled()){
-												
-												LGLogger.logRepeatableAlert( "Plugin uninstall failed", e );
+												Logger.log(new LogAlert(LogAlert.REPEATABLE,
+														"Plugin uninstall failed", e));
 											}
 										}
 									});

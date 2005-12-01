@@ -16,7 +16,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
@@ -226,10 +226,9 @@ UserAlerts
 	    				}finally{
 
 	    					if ( audio_clip == null ){
-
-	    						LGLogger.logUnrepeatableAlert(
-	    								LGLogger.AT_ERROR,
-	    								"Failed to load audio file '" + file + "'" );
+	    						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+										LogAlert.AT_ERROR, "Failed to load audio file '" + file
+												+ "'"));
 	    					}
 	    				}
 	    			}

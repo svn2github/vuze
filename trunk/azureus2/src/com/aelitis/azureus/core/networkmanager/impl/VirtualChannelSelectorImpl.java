@@ -25,7 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.nio.channels.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
@@ -126,7 +126,9 @@ public class VirtualChannelSelectorImpl {
           Debug.out( "NOTICE: socket Selector successfully opened after " +fail_count+ " failures." );
         }
         else {  //failure
-          LGLogger.logRepeatableAlert( LGLogger.AT_ERROR ,"ERROR: socket Selector.open() failed 10 times in a row, aborting.\nAzureus / Java is likely being firewalled!" );
+        	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+						"ERROR: socket Selector.open() failed 10 times in a row, aborting."
+								+ "\nAzureus / Java is likely being firewalled!"));
         }
       }
       

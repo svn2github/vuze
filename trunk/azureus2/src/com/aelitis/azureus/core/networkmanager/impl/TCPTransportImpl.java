@@ -28,7 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
@@ -39,7 +39,7 @@ import com.aelitis.azureus.core.networkmanager.*;
  * Represents a peer TCP transport connection (eg. a network socket).
  */
 public class TCPTransportImpl implements TCPTransport {
-	
+	private static final LogIDs LOGID = LogIDs.NET;
   
   private TCPTransportHelper helper;
 
@@ -307,11 +307,14 @@ public class TCPTransportImpl implements TCPTransport {
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
         if( use_proxy ) {  //proxy server connection established, login
-        	if( LGLogger.isEnabled() )  LGLogger.log( "Socket connection established to proxy server [" +description+ "], login initiated..." );
+        	Logger.log(new LogEvent(LOGID,
+							"Socket connection established to proxy server [" + description
+									+ "], login initiated..."));
           
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
-            	if( LGLogger.isEnabled() )  LGLogger.log( "Proxy [" +description+ "] login successful." );
+            	Logger.log(new LogEvent(LOGID,
+            			"Proxy [" +description+ "] login successful." ));
               registerSelectHandling();
               listener.connectSuccess();
             }
@@ -357,7 +360,9 @@ public class TCPTransportImpl implements TCPTransport {
       int snd_real = helper.getSocketChannel().socket().getSendBufferSize();
       int rcv_real = helper.getSocketChannel().socket().getReceiveBufferSize();
       
-      if( LGLogger.isEnabled() )  LGLogger.log( "Setting new transport [" +description+ "] buffer sizes: SND=" +size_in_bytes+ " [" +snd_real+ "] , RCV=" +size_in_bytes+ " [" +rcv_real+ "]" );
+      Logger.log(new LogEvent(LOGID, "Setting new transport [" + description
+					+ "] buffer sizes: SND=" + size_in_bytes + " [" + snd_real
+					+ "] , RCV=" + size_in_bytes + " [" + rcv_real + "]"));
     }
     catch( Throwable t ) {
       Debug.out( t );

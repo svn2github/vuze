@@ -8,7 +8,7 @@
 package org.gudy.azureus2.core3.util;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -28,7 +28,7 @@ import java.util.Set;
  * File utility class.
  */
 public class FileUtil {
-  
+	private static final LogIDs LOGID = LogIDs.CORE;
   public static final String DIR_SEP = System.getProperty("file.separator");
   
   private static final int	RESERVED_FILE_HANDLE_COUNT	= 4;
@@ -410,8 +410,8 @@ public class FileUtil {
 	        }
 	
 		    }catch (Exception e) {
-		    
-		    	LGLogger.logUnrepeatableAlert( "Save of '" + file_name + "' fails", e );
+		    	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, "Save of '"
+							+ file_name + "' fails", e));
 		    	
 		    }finally{
 		    	
@@ -421,8 +421,8 @@ public class FileUtil {
 		    			baos.close();
 		    		}
 		    	}catch( Exception e){
-		    		
-		        	LGLogger.logUnrepeatableAlert( "Save of '" + file_name + "' fails", e ); 
+		    		Logger.log(new LogAlert(LogAlert.UNREPEATABLE, "Save of '"
+								+ file_name + "' fails", e)); 
 		    	}
 		    }
 	  	}finally{
@@ -501,9 +501,9 @@ public class FileUtil {
  		 		
 	 		if ( res != null ){
 	 			
-				LGLogger.logUnrepeatableAlert( 	
-						LGLogger.AT_WARNING,
-						"Backup file '" + backup_file + "' has been used for recovery purposes" );
+	 			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+						"Backup file '" + backup_file
+								+ "' has been used for recovery purposes"));
 				
 					// rewrite the good data, don't use backups here as we want to
 					// leave the original backup in place for the moment
@@ -555,10 +555,9 @@ public class FileUtil {
 	  				res = readResilientFile( parent_dir, file_name, 0, true );
 	  				
 	  				if ( res != null ){
-	  					
-	 					LGLogger.logUnrepeatableAlert( 	
-	 						LGLogger.AT_WARNING,
-							"File '" + file_name + "' has been partially recovered, information may have been lost!" );
+	  					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+								"File '" + file_name + "' has been partially recovered, "
+										+ "information may have been lost!"));
 	  				}
 	  			}
 	  			
@@ -605,17 +604,14 @@ public class FileUtil {
   					
 	  				if ( fail_count == 1 ){
 	  					
-	  						// we only alert the user if at least one file was found and failed
-	  						// otherwise it could be start of day when neither file exists yet
-	  					
-	  					LGLogger.logUnrepeatableAlert( 	
-	  							LGLogger.AT_ERROR,
-	  							"Load of '" + file_name + "' fails, no usable file or backup" );
+	  					// we only alert the user if at least one file was found and failed
+	  					// otherwise it could be start of day when neither file exists yet
+	  					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+								"Load of '" + file_name + "' fails, no usable file or backup"));
 	  				}else{
-	  					
-	  					LGLogger.log( 	
-	  							LGLogger.INFORMATION,
-								"Load of '" + file_name + "' fails, file not found" );
+	  					if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Load of '"
+										+ file_name + "' fails, file not found"));
 					
 	  				}
   				}
@@ -627,7 +623,9 @@ public class FileUtil {
   				
   				// kinda confusing log this as we get it under "normal" circumstances (loading a config
   				// file that doesn't exist legitimately, e.g. shares or bad-ips
-  				// LGLogger.log("Load of '" + file_name + "' failed, file not found or 0-sized." );
+//  				if (Logger.isEnabled())
+//						Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "Load of '"
+//								+ file_name + "' failed, " + "file not found or 0-sized."));
   			}
   			
   			return( readResilientFile( parent_dir, file_name + ".saving", 0, recovery_mode ));
@@ -652,7 +650,9 @@ public class FileUtil {
   						throw( e );
   					}
   	 				
-  					LGLogger.log( "Failed to open '" + file.toString() + "' - " + e.getMessage() + ", retrying");
+  	 				if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, "Failed to open '" + file.toString()
+								+ "', retrying", e));
   					
   					Thread.sleep(500);
   				}
@@ -669,9 +669,9 @@ public class FileUtil {
 	    	
 	    	if ( using_backup && !recovery_mode ){
   		
-	    		LGLogger.logUnrepeatableAlert( 
-	    					LGLogger.AT_WARNING,
-							"Load of '" + file_name.substring(0,file_name.length()-7) + "' had to revert to backup file" ); 
+	    		Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+						"Load of '" + file_name.substring(0, file_name.length() - 7)
+								+ "' had to revert to backup file")); 
 	    	}
 	    	
 	    	return( res );
@@ -717,7 +717,10 @@ public class FileUtil {
 		    		bad_id++;
 		    	}
 
-		    	LGLogger.log( "Read of '" + file_name + "' failed, decoding error. Renaming to " + bad.getName());
+		    	if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Read of '"
+								+ file_name + "' failed, decoding error. " + "Renaming to "
+								+ bad.getName()));
 	
 		    		// copy it so its left in place for possible recovery
 		    	
@@ -727,10 +730,8 @@ public class FileUtil {
 	    	if ( using_backup ){
 		
 	    		if ( !recovery_mode ){
-	    			
-	    			LGLogger.logUnrepeatableAlert( 
-	    					LGLogger.AT_ERROR,
-							"Load of '" + file_name + "' fails, no usable file or backup" ); 
+	    			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
+							"Load of '" + file_name + "' fails, no usable file or backup")); 
 	    		}
 	    			
 	    		return( null );
@@ -1036,15 +1037,17 @@ public class FileUtil {
 		File		to_file )
     {
     	if ( to_file.exists()){
-    		
-			LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: target file '" + to_file + "' already exists, failing" );
+    		Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+					"renameFile: target file '" + to_file + "' already exists, failing"));
     		
     		return( false );
     	}
     	
     	if ( !from_file.exists()){
-    		
-			LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: source file '" + from_file + "' already exists, failing" );
+    		Logger
+					.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+							"renameFile: source file '" + from_file
+									+ "' already exists, failing"));
     		
     		return( false );
     	}
@@ -1080,7 +1083,9 @@ public class FileUtil {
     				}
     			}catch( Throwable e ){
     				
-    	   			LGLogger.logRepeatableAlert( "renameFile: failed to rename file '" + ff.toString() + "' to '" + tf.toString() + "'", e );
+    				Logger.log(new LogAlert(LogAlert.REPEATABLE,
+							"renameFile: failed to rename file '" + ff.toString() + "' to '"
+									+ tf.toString() + "'", e));
 
     				break;
     			}
@@ -1091,14 +1096,15 @@ public class FileUtil {
     			File[]	remaining = from_file.listFiles();
     			
     			if ( remaining != null && remaining.length > 0 ){
-    				
-   					LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: files remain in '" + from_file.toString() + "', not deleting" );
+    				Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+							"renameFile: files remain in '" + from_file.toString()
+									+ "', not deleting"));
    				 
     			}else{
     				
     				if ( !from_file.delete()){
-    					
-    					LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: failed to delete '" + from_file.toString() + "'" );
+    					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+								"renameFile: failed to delete '" + from_file.toString() + "'"));
     				}
     			}
     			
@@ -1115,12 +1121,14 @@ public class FileUtil {
     			try{
     				
     				if ( !renameFile( tf, ff )){
-    					
-    	   				LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: recovery - failed to move file '" + tf.toString() + "' to '" + ff.toString() + "'" );
+    					Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+								"renameFile: recovery - failed to move file '" + tf.toString()
+										+ "' to '" + ff.toString() + "'"));
     				}
     			}catch( Throwable e ){
-    				
-    	   			LGLogger.logRepeatableAlert( "renameFile: recovery - failed to move file '" + tf.toString() + "' to '" + ff.toString() + "'", e );
+    				Logger.log(new LogAlert(LogAlert.REPEATABLE,
+							"renameFile: recovery - failed to move file '" + tf.toString()
+									+ "' to '" + ff.toString() + "'", e));
    	   			    				
     			}
       		}
@@ -1171,8 +1179,9 @@ public class FileUtil {
 					fis = null;
 					
 					if ( !from_file.delete()){
-						
-						LGLogger.logRepeatableAlert(LGLogger.AT_ERROR, "renameFile: failed to delete '" + from_file.toString() + "'");
+						Logger.log(new LogAlert(LogAlert.REPEATABLE,
+								LogAlert.AT_ERROR, "renameFile: failed to delete '"
+										+ from_file.toString() + "'"));
 						
 						throw( new Exception( "Failed to delete '" + from_file.toString() + "'"));
 					}
@@ -1183,7 +1192,9 @@ public class FileUtil {
 					
 				}catch( Throwable e ){		
 	
-					LGLogger.logRepeatableAlert( "renameFile: failed to rename '" + from_file.toString() + "' to '" + to_file.toString() + "'", e );
+					Logger.log(new LogAlert(LogAlert.REPEATABLE,
+							"renameFile: failed to rename '" + from_file.toString()
+									+ "' to '" + to_file.toString() + "'", e));
 					
 					return( false );
 					

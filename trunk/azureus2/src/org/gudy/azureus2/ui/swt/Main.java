@@ -19,6 +19,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
 public class 
 Main 
 {  
+	private static final LogIDs LOGID = LogIDs.GUI;
   public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";	// values "true" or "false"
 	
   StartServer startServer;
@@ -70,7 +71,8 @@ Main
             if( filename.toUpperCase().startsWith( "HTTP:" ) || 
             		filename.toUpperCase().startsWith( "HTTPS:" ) || 
             		filename.toUpperCase().startsWith( "MAGNET:" ) ) {
-              LGLogger.log( "Main::main: args[" + i + "] handling as a URI: " +filename );
+          		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
+          				+ "] handling as a URI: " + filename));
               continue;  //URIs cannot be checked as a .torrent file
             }            
 	        
@@ -84,13 +86,15 @@ Main
 	        	
 	        	args[i] = file.getCanonicalPath();
 	          	
-	        	LGLogger.log( "Main::main: args[" + i + "] exists = " + new File(filename).exists());
+	        	if (Logger.isEnabled())
+	        		Logger.log(new LogEvent(LOGID, "Main::main: args[" + i
+	        				+ "] exists = " + new File(filename).exists()));
 	          
 	        }catch( Throwable e ){
-	        	
-	        	LGLogger.logRepeatableAlert( 
-	        		LGLogger.AT_ERROR,
-	        		"Failed to access torrent file '" + filename + "'. Ensure sufficient temporary file space available (check browser cache usage)." );
+	        	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+							"Failed to access torrent file '" + filename
+									+ "'. Ensure sufficient temporary "
+									+ "file space available (check browser cache usage)."));
 	        }
 	    }
 	    
@@ -105,7 +109,7 @@ Main
 	    		another_instance = false;
 	    		String msg = "There appears to be another program process already listening on socket [127.0.0.1: 6880].\nLoading of torrents via command line parameter will fail until this is fixed.";
 	    		System.out.println( msg );
-	    		LGLogger.logRepeatableAlert( LGLogger.AT_WARNING, msg );
+	    		Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_WARNING, msg));
 	    	}
 	    }
 	    
@@ -125,11 +129,7 @@ Main
 	    }
 	    
   	}catch( AzureusCoreException e ){
-  		
-   		
-  		LGLogger.log( LGLogger.ERROR, "Start failed" );
-	
-  		Debug.printStackTrace( e );	
+  		Logger.log(new LogEvent(LOGID, "Start failed", e));
   	}
   }
   

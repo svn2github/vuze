@@ -25,7 +25,7 @@ package com.aelitis.azureus.core.peermanager.messaging.bittorrent;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
@@ -39,6 +39,7 @@ import com.aelitis.azureus.core.peermanager.messaging.*;
  *
  */
 public class BTMessageFactory {
+	private static final LogIDs LOGID = LogIDs.PEER;
   
   /**
    * Initialize the factory, i.e. register the messages with the message manager.
@@ -122,7 +123,10 @@ public class BTMessageFactory {
       case 20:
         //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
         //Instead of throwing an exception and dropping the peer connection, we'll just fake it as a keep-alive :)
-        if( LGLogger.isEnabled() )  LGLogger.log( "Old extended messaging hello received, ignoring and faking as keep-alive." );
+      	if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+							"Old extended messaging hello received, "
+									+ "ignoring and faking as keep-alive."));
         return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
         
       default: {  System.out.println( "Unknown BT message id [" +id+ "]" );

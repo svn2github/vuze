@@ -39,6 +39,7 @@ public class
 UpdateCheckInstanceImpl
 	implements UpdateCheckInstance
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
 	protected List	listeners			= new ArrayList();
 	protected List	updates 			= new ArrayList();
 	protected List	decision_listeners	= new ArrayList();
@@ -194,7 +195,9 @@ UpdateCheckInstanceImpl
 					
 					if ( mandatory_failed ){
 						
-						LGLogger.log("Dropping all updates as a mandatory update check failed" );
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+										"Dropping all updates as a mandatory update check failed"));
 
 					}else{
 							// If there are any manadatory updates then we just go ahead with them and drop the rest
@@ -222,8 +225,11 @@ UpdateCheckInstanceImpl
 								target_updates.add( update );
 								
 							}else{
-								
-								LGLogger.log("Dropping update '" + update.getName() + "' as non-mandatory and mandatory updates found" );
+								if (Logger.isEnabled())
+								  Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+								                          "Dropping update '" + update.getName()
+                                            + "' as non-mandatory and "
+                                            + "mandatory updates found"));
 							}
 						}
 					}
