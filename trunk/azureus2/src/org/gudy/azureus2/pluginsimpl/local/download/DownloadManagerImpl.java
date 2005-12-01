@@ -406,6 +406,13 @@ DownloadManagerImpl
 		return( dl );
 	}
 
+	/**
+	 * Retrieve the plugin Downlaod object related to the DowloadManager
+	 * 
+	 * @param dm DownloadManager to find
+	 * @return plugin object
+	 * @throws DownloadException
+	 */
 	public static Download
 	getDownloadStatic(
 		DownloadManager	dm )
