@@ -936,15 +936,16 @@ DownloadManagerController
    	{
   		DiskManager	dm = disk_manager;
 
-   		DiskManagerFileInfo[]	res;
+   		DiskManagerFileInfo[]	res	= null;
    		
    		if ( dm != null ){
    			
    			skeleton_files	= null;
    			
    			res = dm.getFiles();
-   			
-   		}else{
+   		}
+   		
+   		if ( res == null ){
    			
    			res = skeleton_files;
    			
