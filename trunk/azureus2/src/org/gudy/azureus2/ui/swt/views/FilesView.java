@@ -328,38 +328,96 @@ public class FilesView
 	  int				type ,
 	  TableRowCore[]	rows )
   {
+		DiskManagerFileInfo[] file_infos	= new DiskManagerFileInfo[rows.length];
+			
+		boolean	pause = false;
+		
+			// if the user has defaulted the storage switch option to "don't use compact" then
+			// we don't need to pause the download etc.
+		
 		boolean	compact_disabled = MessageBoxWindow.getRememberedDecision( 
 										"FilesView.messagebox.skip.id",
-										SWT.YES | SWT.NO ) == SWT.NO;		
-		
-		for (int i=0;i<rows.length;i++){
-
-			DiskManagerFileInfo file_info = (DiskManagerFileInfo)rows[i].getDataSource(true);
+										SWT.YES | SWT.NO ) == SWT.NO;
+				
+		for (int i=0;i<file_infos.length;i++){
+					
+			DiskManagerFileInfo file_info = file_infos[i] = (DiskManagerFileInfo)rows[i].getDataSource(true);
+				
+			int	storage_type = file_info.getStorageType();
 			
-			if ( file_info == null ){
+			if ( storage_type == DiskManagerFileInfo.ST_COMPACT ){
+			
+					// we support compact -> anything without stopping the download
 				
 				continue;
 			}
 			
-			if ( type == 0){
+			if ( type == 3 ){
+			
+					// delete always requires pausing if we're linear
 				
-				file_info.setPriority(true);
-	   			
-				setSkipped( file_info, compact_disabled, false, false );
-				
-			}else if ( type == 1 ){
-				
-				file_info.setPriority(false);
-	 			
-				setSkipped( file_info, compact_disabled, false, false );
-				
+				pause	= true;
+								
 			}else if ( type == 2 ){
 				
-				setSkipped( file_info, compact_disabled, true, false );
+					// dnd requires pausing if linear and user hasn't defaulted to staying-linear
 				
-			}else{
+				if ( !compact_disabled ){
 				
-				setSkipped( file_info, false, true, true );
+					pause	= true;
+				}
+			}
+		}
+		
+		try{
+			if ( pause ){
+				
+				pause = download_manager.pause();
+				
+				if ( pause ){
+						// we've got to pick up the new info as stopping causes skeleton
+						// info to be returned and this is the only info that will
+						// accept changes in storage strategy...
+					
+					DiskManagerFileInfo[] new_info = download_manager.getDiskManagerFileInfo();
+					
+					for (int i=0;i<file_infos.length;i++){
+						
+						file_infos[i] = new_info[file_infos[i].getIndex()];
+					}
+				}
+			}
+		
+			for (int i=0;i<file_infos.length;i++){
+
+				DiskManagerFileInfo	fileInfo = file_infos[i];
+				
+				if ( type == 0){
+					
+		   			fileInfo.setPriority(true);
+		   			
+					setSkipped( fileInfo, compact_disabled, false, false );
+					
+				}else if ( type == 1 ){
+					
+		 			fileInfo.setPriority(false);
+		 			
+					setSkipped( fileInfo, compact_disabled, false, false );
+					
+				}else if ( type == 2 ){
+					
+					setSkipped( fileInfo, compact_disabled, true, false );
+					
+				}else{
+					
+					setSkipped( fileInfo, false, true, true );
+				}
+			}
+		}finally{
+			
+			if ( pause ){
+			
+				download_manager.resume();
 			}
 		}
   }

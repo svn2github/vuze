@@ -29,7 +29,6 @@ import java.io.File;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.logging.LGLogger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 
@@ -204,6 +203,7 @@ DiskManagerFileInfoImpl
 	setStorageType(
 		int		type )
 	{
+
 		DownloadManager	download_manager = diskManager.getDownloadManager();
 		
 		String[]	types = DiskManagerImpl.getStorageTypes( download_manager );
@@ -215,10 +215,16 @@ DiskManagerFileInfoImpl
 			return( true );
 		}
 		
-		try{
-			cache_file.setStorageType( type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );
+		if ( type == ST_COMPACT ){
 			
-			diskManager.storageTypeChanged( this );
+			Debug.out( "Download must be stopped for linear -> compact conversion" );
+			
+			return( false );
+		}
+		
+		try{
+			
+			cache_file.setStorageType( type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );	
 			
 			return( true );
 			

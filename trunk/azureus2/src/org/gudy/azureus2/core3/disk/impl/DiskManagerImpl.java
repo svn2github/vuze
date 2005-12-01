@@ -1064,19 +1064,7 @@ DiskManagerImpl
 		
 		listeners.dispatch(LDT_PIECE_DONE_CHANGED, piece);
 	}
-	
-	protected void
-	storageTypeChanged(
-		DiskManagerFileInfoImpl	file )
-	{
-		for (int i=file.getFirstPieceNumber()+1;i<file.getLastPieceNumber()-1;i++){
-			
-			DiskManagerPieceImpl	piece = pieces[i];
-			
-			piece.setDone( false );
-		}
-	}
-	
+		
 	protected void
 	fileAccessModeChanged(
 		DiskManagerFileInfoImpl		file,
