@@ -147,8 +147,8 @@ public class GUIUpdater extends AEThread implements ParameterListener {
         int	nat_status = connection_manager.getNATStatus();
         
         if ( nat_status == ConnectionManager.NAT_UNKNOWN ){
-            mainWindow.natStatus.setImage(null);
-  			mainWindow.natStatus.setToolTipText(null);
+          mainWindow.natStatus.setImage(ImageRepository.getImage("grayled"));
+      		mainWindow.natStatus.setToolTipText(MessageText.getString("MainWindow.nat.status.tooltip.unknown"));
         }else if ( nat_status == ConnectionManager.NAT_OK ){
             mainWindow.natStatus.setImage(ImageRepository.getImage("greenled"));
     		mainWindow.natStatus.setToolTipText(MessageText.getString("MainWindow.nat.status.tooltip.ok"));
@@ -162,7 +162,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
         }
                
         if( dhtPlugin == null || dhtPlugin.getStatus() == DHTPlugin.STATUS_DISABLED) {
-          mainWindow.dhtStatus.setImage(ImageRepository.getImage("redled"));
+          mainWindow.dhtStatus.setImage(ImageRepository.getImage("grayled"));
           mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.disabled"));
         } else
         if(dhtPlugin.getStatus() == DHTPlugin.STATUS_INITALISING) {
@@ -223,6 +223,8 @@ public class GUIUpdater extends AEThread implements ParameterListener {
             DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDataSendRate() + mainWindow.globalManager.getStats().getProtocolSendRate() ));
           }
           
+          mainWindow.statusBar.layout();
+
           if(mainWindow.systemTraySWT != null)
             mainWindow.systemTraySWT.update();
           

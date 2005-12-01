@@ -15,7 +15,8 @@ import org.eclipse.swt.custom.*;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -69,6 +70,7 @@ MainWindow
 				ParameterListener, IconBarEnabler, AzureusCoreListener,
 				AEDiagnosticsEvidenceGenerator
 {
+	private static final LogIDs LOGID = LogIDs.GUI;
   
   private static MainWindow window;
 
@@ -98,7 +100,8 @@ MainWindow
   private UpdateWindow updateWindow;
   
   private Composite statusArea;
-  StackLayout layoutStatusAera;
+  Composite statusBar;
+  StackLayout layoutStatusArea;
   
   private CLabel statusText;
   private String statusTextKey = "";
@@ -195,16 +198,8 @@ MainWindow
     //The Main Window
     mainWindow = new Shell(display, SWT.RESIZE | SWT.BORDER | SWT.CLOSE | SWT.MAX | SWT.MIN);
     mainWindow.setText("Azureus"); //$NON-NLS-1$
-    if(Constants.isOSX) {
-      //Do nothing in fact, windows don't need images on OS X
-    } else {
-	    mainWindow.setImages(new Image[] {
-	        ImageRepository.getImage("azureus"),
-	        ImageRepository.getImage("azureus32"),
-	        ImageRepository.getImage("azureus64"),
-	        ImageRepository.getImage("azureus128"),
-	    }); //$NON-NLS-1$
-    }
+    Utils.setShellIcon(mainWindow);
+
     // register window
     ShellManager.sharedManager().addWindow(mainWindow);
 
@@ -213,8 +208,7 @@ MainWindow
     try {
       createDropTarget(mainWindow);
     } catch (Throwable e) {
-      LGLogger.log(LGLogger.ERROR,"Drag and Drop not available");
-      LGLogger.log( e );
+    	Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
     }
     
 
@@ -365,14 +359,9 @@ MainWindow
       }
     }
 
-    final int borderFlag = (Constants.isOSX)? SWT.NONE : SWT.SHADOW_IN;
+    final int borderFlag = (Constants.isOSX) ? SWT.NONE : SWT.SHADOW_IN;
 
-    Composite statusBar = new Composite(mainWindow, borderFlag);
-    formData = new FormData();
-    formData.bottom = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
-    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
-    statusBar.setLayoutData(formData);
+    statusBar = new Composite(mainWindow, SWT.NONE);
     
     formData = new FormData();
     formData.top = new FormAttachment(separator);
@@ -384,7 +373,7 @@ MainWindow
 
     GridLayout layout_status = new GridLayout();
     layout_status.numColumns = 6;
-    layout_status.horizontalSpacing = 1;
+    layout_status.horizontalSpacing = 0;
     layout_status.verticalSpacing = 0;
     layout_status.marginHeight = 0;
     layout_status.marginWidth = (Constants.isOSX) ? 3 : 0;
@@ -392,19 +381,35 @@ MainWindow
 
     GridData gridData;
     
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
     
     //Composite with StackLayout
-    statusArea = new Composite(statusBar, SWT.NULL);
+    statusArea = new Composite(statusBar, SWT.NONE);
+    gridData = new GridData(GridData.FILL_BOTH);
     statusArea.setLayoutData(gridData);
     
-    layoutStatusAera = new StackLayout();
-    statusArea.setLayout(layoutStatusAera);
+    layoutStatusArea = new StackLayout();
+    statusArea.setLayout(layoutStatusArea);
     
     //Either the Status Text
     statusText = new CLabel(statusArea, borderFlag);
-    int height = statusText.computeSize(150,SWT.DEFAULT).y;
+    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL);
+    statusText.setLayoutData(gridData);
     
+    // This is the highest image displayed on the statusbar
+    int imageHeight = ImageRepository.getImage(STATUS_ICON_WARN).getBounds().height;
+    
+    GC gc = new GC(statusText);
+    // add 6, because CLabel forces a 3 pixel indent
+    int height = Math.max(imageHeight, gc.getFontMetrics().getHeight()) + 6;
+    gc.dispose();
+    
+    formData = new FormData();
+    formData.height = height;
+    formData.bottom = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+    formData.left = new FormAttachment(0, 0); // 2 params for Pre SWT 3.0
+    formData.right = new FormAttachment(100, 0); // 2 params for Pre SWT 3.0
+    statusBar.setLayoutData(formData);
+
     Listener listener = new Listener() {
       public void handleEvent(Event e) {
         if(updateWindow != null) {
@@ -418,16 +423,16 @@ MainWindow
     
     //Or a composite with a label, a progressBar and a button
     statusUpdate = new Composite(statusArea, SWT.NULL);
-    statusUpdate.setSize(SWT.DEFAULT,height);
-    FormLayout layoutStatusUpdate = new FormLayout();
+    gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.VERTICAL_ALIGN_FILL);
+    statusUpdate.setLayoutData(gridData);
+    GridLayout layoutStatusUpdate = new GridLayout(2, false);
     layoutStatusUpdate.marginHeight = 0;
     layoutStatusUpdate.marginWidth = 0;
-    try {
-      layoutStatusUpdate.spacing = 5;
-    } catch (NoSuchFieldError e) { /* Pre SWT 3.0 */ }
     statusUpdate.setLayout(layoutStatusUpdate);
     
     statusUpdateLabel = new Label(statusUpdate,SWT.NULL);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+    statusUpdateLabel.setLayoutData(gridData);
     Messages.setLanguageText(statusUpdateLabel, "MainWindow.statusText.checking");
     Messages.setLanguageText(statusUpdateLabel,"MainWindow.status.update.tooltip");
     statusUpdateLabel.addMouseListener(new MouseAdapter() {
@@ -438,6 +443,8 @@ MainWindow
 
     final int progressFlag = (Constants.isOSX) ? SWT.INDETERMINATE : SWT.HORIZONTAL;
     statusUpdateProgressBar = new ProgressBar(statusUpdate ,progressFlag);
+    gridData = new GridData(GridData.FILL_BOTH);
+    statusUpdateProgressBar.setLayoutData(gridData);
     Messages.setLanguageText(statusUpdateProgressBar,"MainWindow.status.update.tooltip");
     statusUpdateProgressBar.addMouseListener(new MouseAdapter() {
         public void mouseDoubleClick(MouseEvent arg0) {
@@ -445,61 +452,20 @@ MainWindow
         }
       });
     
-    /*statusUpdateButton = new Button(statusUpdate,SWT.PUSH);
-    Messages.setLanguageText(statusUpdateButton,"Button.cancel");*/
-    int ctrlHeight,top;
-    
-    formData = new FormData();
-    formData.left = new FormAttachment(0, 0);
-    ctrlHeight = statusUpdateLabel.computeSize(100,SWT.DEFAULT).y;
-    top = (height - ctrlHeight) / 2;
-    formData.top = new FormAttachment(0,top);
-    formData.width = 150;
-    formData.height = height;
-    statusUpdateLabel.setLayoutData(formData);
-    
-    /*formData = new FormData();
-    formData.right = new FormAttachment(100);
-    ctrlHeight = statusUpdateButton.computeSize(100,SWT.DEFAULT).y;
-    top = (height - ctrlHeight) / 2;
-    //formData.top = new FormAttachment(0,top);
-    formData.width = 100;
-    formData.height = height;
-    statusUpdateButton.setLayoutData(formData);*/
-    
-    formData = new FormData();
-    formData.left = new FormAttachment(statusUpdateLabel);
-    formData.right = new FormAttachment(100,0);
-    ctrlHeight = statusUpdateProgressBar.computeSize(100,SWT.DEFAULT).y;
-    top = (height - ctrlHeight) / 2;
-    formData.top = new FormAttachment(0,top);
-    formData.height = height;    
-    statusUpdateProgressBar.setLayoutData(formData);    
-    
-    layoutStatusAera.topControl = statusText;
+    layoutStatusArea.topControl = statusText;
+    statusBar.layout();
     
  
-    natStatus = new CLabel(statusBar,borderFlag);
-    natStatus.setText("");
-    gridData = new GridData();
-    gridData.widthHint = 20;
-    natStatus.setLayoutData(gridData);
+    natStatus = new CLabelPadding(statusBar,borderFlag);
+    natStatus.setText(MessageText.getString("MainWindow.nat.status.ledtext"));
     
-    dhtStatus = new CLabel(statusBar,borderFlag);
+
+    dhtStatus = new CLabelPadding(statusBar,borderFlag);
     dhtStatus.setText("");
-    gridData = new GridData();
-    gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
-    dhtStatus.setLayoutData(gridData);
     dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.tooltip"));
     
-    gridData = new GridData();
-
-    if( Constants.isLinux ) gridData.widthHint = 255;
-    else gridData.widthHint = 225;        
-    
-    ipBlocked = new CLabel(statusBar, borderFlag);
+    ipBlocked = new CLabelPadding(statusBar, borderFlag);
     ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
-    ipBlocked.setLayoutData(gridData);
     Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
     ipBlocked.addMouseListener(new MouseAdapter() {
       public void mouseDoubleClick(MouseEvent arg0) {
@@ -507,12 +473,10 @@ MainWindow
       }
     });
     
-    gridData = new GridData();
-    gridData.widthHint = Constants.isOSX ? 150 : ( Constants.isLinux ? 140 : 130 );
-    statusDown = new CLabel(statusBar, borderFlag);
+    statusDown = new CLabelPadding(statusBar, borderFlag);
     statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/ "n/a");
-    statusDown.setLayoutData(gridData);
     Messages.setLanguageText(statusDown,"MainWindow.status.updowndetails.tooltip");
+
 
     Listener lStats = new Listener() {
     	public void handleEvent(Event e) {
@@ -520,11 +484,8 @@ MainWindow
     	}
     };
 
-    gridData = new GridData();
-    gridData.widthHint = Constants.isOSX ? 155 : ( Constants.isLinux ? 145 : 135 );
-    statusUp = new CLabel(statusBar, borderFlag);
+    statusUp = new CLabelPadding(statusBar, borderFlag);
     statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
-    statusUp.setLayoutData(gridData);
     Messages.setLanguageText(statusUp,"MainWindow.status.updowndetails.tooltip");
 
     statusDown.addListener(SWT.MouseDoubleClick,lStats);
@@ -543,6 +504,7 @@ MainWindow
     
     natStatus.addListener(SWT.MouseDoubleClick,lNAT);
        
+  	// Status Bar Menu construction
     final Menu menuUpSpeed = new Menu(mainWindow,SWT.POP_UP);
     menuUpSpeed.addListener(SWT.Show,new Listener() {
       public void handleEvent(Event e) {
@@ -663,8 +625,9 @@ MainWindow
     statusDown.setMenu(menuDownSpeed);
     
     
-    
-    LGLogger.log("Initializing GUI complete");
+
+    if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Initializing GUI complete"));
    
     globalManager.addListener(this);
 
@@ -797,7 +760,8 @@ MainWindow
     	      
    	    } catch (Throwable e) {
    	    	
-    	      LGLogger.log(LGLogger.ERROR, "Upgrade to SWT3.0M8 or later for system tray support.");
+   	    	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+						"Upgrade to SWT3.0M8 or later for system tray support."));
    	    }
 
 	    if (COConfigurationManager.getBooleanParameter("Start Minimized", false)) {
@@ -929,7 +893,7 @@ MainWindow
     } else {
       text = this.statusTextKey;
     }
-    display.asyncExec(new AERunnable(){
+    Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
         if (statusText != null && !statusText.isDisposed()) {      
           statusText.setText(MessageText.getStringForSentence(text));
@@ -954,11 +918,12 @@ MainWindow
   }
 
   public void closeDownloadBars() {
-    if (display == null || display.isDisposed())
-      return;
-    display.asyncExec(new AERunnable() {
+    Utils.execSWTThread(new AERunnable() {
 
       public void runSupport() {
+        if (display == null || display.isDisposed())
+          return;
+
         try{
         	downloadBars_mon.enter();
         
@@ -996,16 +961,16 @@ MainWindow
   public void
   destroyRequest()
   {
-	  LGLogger.log("MainWindow::destroyRequest");
+	  Logger.log(new LogEvent(LOGID, "MainWindow::destroyRequest"));
 
 	  if ( COConfigurationManager.getBooleanParameter("Password enabled", false )){
 		  
-		  LGLogger.log("    denied - password is enabled");
+	  	Logger.log(new LogEvent(LOGID, "    denied - password is enabled"));
 
 		  return;
 	  }
 	  
-	  display.asyncExec(
+	  Utils.execSWTThread(
 			new Runnable()
 			{
 				public void
@@ -1104,10 +1069,11 @@ MainWindow
     
       if (downloadViews.containsKey(removed)) {
         final Tab tab = (Tab) downloadViews.get(removed);
-        if (display == null || display.isDisposed())
-          return;
-        display.asyncExec(new AERunnable(){
+        Utils.execSWTThread(new AERunnable(){
           public void runSupport() {
+            if (display == null || display.isDisposed())
+              return;
+
             tab.dispose();
           }
         });
@@ -1500,12 +1466,6 @@ MainWindow
   public boolean isEnabled(String itemKey) {
     if(itemKey.equals("open"))
       return true;
-    if(itemKey.equals("open_no_default"))
-      return true;
-    if(itemKey.equals("open_url"))
-      return true;
-    if(itemKey.equals("open_folder"))
-      return true;
     if(itemKey.equals("new"))
       return true;
     IView currentView = getCurrentView();
@@ -1645,10 +1605,10 @@ MainWindow
    */
   public void reportPercent(int percent) {
     if(percent > 100) {
-      if(display == null || display.isDisposed())
-        return;
-      display.asyncExec(new AERunnable(){
+      Utils.execSWTThread(new AERunnable(){
         public void runSupport() {
+          if(display == null || display.isDisposed())
+            return;
           openMainWindow();
         }
       });
@@ -1696,8 +1656,11 @@ MainWindow
     // if state == STARTED, then open the details window (according to config)
     if(state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING) {
         if(display != null && !display.isDisposed()) {
-          display.asyncExec(new AERunnable() {
+        	Utils.execSWTThread(new AERunnable() {
             public void runSupport() {
+            	if (display == null || display.isDisposed())
+            		return;
+
               if (COConfigurationManager.getBooleanParameter("Open Details",false)) {
                 openManagerView(manager);
               }
@@ -1865,7 +1828,7 @@ MainWindow
   	
     private void setNbChecks(final int nbChecks) {
         if(display != null && ! display.isDisposed())
-          display.asyncExec(new AERunnable() {
+        	Utils.execSWTThread(new AERunnable() {
             public void runSupport() {
               if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
                 return;
@@ -1878,7 +1841,7 @@ MainWindow
       
       private void setNextCheck() {
         if(display != null && ! display.isDisposed())
-          display.asyncExec(new AERunnable() {
+        	Utils.execSWTThread(new AERunnable() {
             public void runSupport() {
               if(statusUpdateProgressBar == null || statusUpdateProgressBar.isDisposed())
                 return;
@@ -1894,7 +1857,7 @@ MainWindow
       
       private void switchStatusToUpdate() {
         if(display != null && ! display.isDisposed())
-          display.asyncExec(new AERunnable(){
+        	Utils.execSWTThread(new AERunnable(){
             public void runSupport() {
                	if ( statusArea == null || statusArea.isDisposed()){
             		return;
@@ -1909,7 +1872,7 @@ MainWindow
                	
                	statusUpdateLabel.setText( name );
                	
-               	layoutStatusAera.topControl = statusUpdate;
+               	layoutStatusArea.topControl = statusUpdate;
                	statusArea.layout();
             }
           });
@@ -1922,7 +1885,7 @@ MainWindow
             	if ( statusArea == null || statusArea.isDisposed()){
             		return;
             	}
-            	layoutStatusAera.topControl = statusText;
+            	layoutStatusArea.topControl = statusText;
             	statusArea.layout();
             }
           });
@@ -2031,4 +1994,22 @@ MainWindow
   public UISWTInstanceImpl getUISWTInstanceImpl() {
   	return uiSWTInstanceImpl;
   }
+  
+  private class CLabelPadding extends CLabel {
+		public CLabelPadding(Composite parent, int style) {
+			super(parent, style | SWT.CENTER);
+
+			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.VERTICAL_ALIGN_FILL);
+			setLayoutData(gridData);
+		}
+
+		/* (non-Javadoc)
+		 * @see org.eclipse.swt.custom.CLabel#computeSize(int, int, boolean)
+		 */
+		public Point computeSize(int wHint, int hHint, boolean changed) {
+			Point pt = super.computeSize(wHint, hHint, changed);
+			pt.x += 4;
+			return pt;
+		}
+	}
 }
