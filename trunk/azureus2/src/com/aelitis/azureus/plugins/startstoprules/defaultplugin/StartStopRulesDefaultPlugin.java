@@ -1532,16 +1532,8 @@ public class StartStopRulesDefaultPlugin
   	 */ 
   	private final int ACTIVE_CHANGE_WAIT = 10000;
   	
-  	// Base will be shifted over by 4 digits
-		private final int SPRATIO_SHIFT = 10000;
-		private final int SPRATIO_BASE_LIMIT = (SR_INCOMPLETE_ENDS_AT - SPRATIO_SHIFT) / SPRATIO_SHIFT - 1;
-
-		// This is actually 1/2 the limit.  Doubling SPRATIO_BASE_LIMIT is 
-		// intentional to make gap more visible, and to handle any SR added due to 
-		// peers
-		private final int SEEDCOUNT_LIMIT1 = SR_INCOMPLETE_ENDS_AT  / 2 - SPRATIO_BASE_LIMIT - 1;
-		// Save 3 digits for tie breaking
-		private final int SEEDCOUNT_LIMIT2 = SEEDCOUNT_LIMIT1 / 1000;  
+		private final int SPRATIO_BASE_LIMIT = 99999;
+		private final int SEEDONLY_SHIFT = SPRATIO_BASE_LIMIT + 1;
 
   	protected Download dl;
     private boolean bActivelyDownloading;
@@ -1561,16 +1553,39 @@ public class StartStopRulesDefaultPlugin
     public int compareTo(Object obj)
     {
     	downloadData dlData = (downloadData) obj;
+    	
+    	// Test FP
 			if (dlData.bIsFirstPriority && !bIsFirstPriority)
 				return 1;
 			if (!dlData.bIsFirstPriority && bIsFirstPriority)
 				return -1;
 
+			// Check Rank
 			int value = dlData.dl.getSeedingRank() - dl.getSeedingRank();
-			if (value == 0) {
-				return dl.getPosition() - dlData.getDownloadObject().getPosition();
+			if (value != 0)
+				return value;
+
+			if (iRankType != RANK_TIMED) {
+				// Test Large/Small Swarm pref
+				int numPeersThem = calcPeersNoUs(dlData.dl);
+				int numPeersUs = calcPeersNoUs(dl);
+				if (bPreferLargerSwarms)
+					value = numPeersThem - numPeersUs;
+				else
+					value = numPeersUs - numPeersThem;
+				if (value != 0)
+					return value;
+				
+				// Test Share Ratio
+				int shareRatioUs = dl.getStats().getShareRatio();
+				int shareRatioThem = dlData.dl.getStats().getShareRatio();
+				value = shareRatioUs - shareRatioThem;
+				if (value != 0)
+					return value;
 			}
-			return value;
+
+			// Test Position
+			return dl.getPosition() - dlData.dl.getPosition();
     }
 
     public downloadData(Download _dl)
@@ -1690,7 +1705,7 @@ public class StartStopRulesDefaultPlugin
 				// make undownloaded sort to top so they can start first.
 
 				if (numCompleted < 1000) {
-					dl.setSeedingRank(SR_INCOMPLETE_ENDS_AT - dl.getPosition());
+					dl.setSeedingRank(SR_INCOMPLETE_ENDS_AT + (10000 - dl.getPosition()));
 					return oldSR;
 				}
 
@@ -1826,76 +1841,21 @@ public class StartStopRulesDefaultPlugin
 				if (bScrapeResultsOk) {
 					if ((iRankType == RANK_SEEDCOUNT)
 							&& (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > numSeeds)) {
-	          // Worst case: iLimit+((iLimit)/(num_seeds+2))+num_peers
-						// Max # = 2*(iLimit+1)
-						//   iLimit+((iLimit)/(num_seeds+2))+num_peers < 2*(iLimit+1)
-						//   iLimit+((iLimit)/(num_seeds+2))+num_peers < 2*iLimit +2
-						//   iLimit+((iLimit)/(num_seeds+2)) < 2*iLimit +2 - num_peers
-						//   iLimit+((iLimit)/(num_seeds+2)) < iLimit + iLimit +2 - num_peers
-						//   ((iLimit)/(num_seeds+2))-iLimit - 2 < -num_peers
-						//   num_peers < +iLimit + 2-((iLimit)/(num_seeds+2))
-						int maxp = SEEDCOUNT_LIMIT2 + 2 - ((SEEDCOUNT_LIMIT2)/(numSeeds+2));
-						int iMaxPeers = (int) maxp - 1;
-
-						if (bDebugLog) {
-							sExplainSR = SEEDCOUNT_LIMIT2 + ";";
-							sExplainSR += "SR Calc: numSeeds=" + numSeeds + ";MaxPeers="
-									+ iMaxPeers + ";NumPeers=" + numPeers;
-						}
-						
-						int iNumPeers = numPeers;
-						if (iNumPeers >= iMaxPeers)
-							iNumPeers = iMaxPeers - 1;
-						if (!bPreferLargerSwarms && iNumPeers >= SEEDCOUNT_LIMIT2)
-							iNumPeers = SEEDCOUNT_LIMIT2 - 1;
-						if (bDebugLog) sExplainSR += ";AdjNumPeers=" + iNumPeers;
-
-						long phase1 = ((SEEDCOUNT_LIMIT2)
-								/ (numSeeds + (bPreferLargerSwarms ? 2 : 1)));
-						if (bDebugLog) sExplainSR += "\nSR(P1)=" + phase1;
-
-						phase1 += ((bPreferLargerSwarms ? 1 : -1) * iNumPeers);
-						if (bDebugLog) sExplainSR += ";SR(P2)=" + phase1;
-
-						if (numSeeds == 0 && numPeers >= minPeersToBoostNoSeeds)
-							phase1 += SEEDCOUNT_LIMIT2;
-						if (bDebugLog) sExplainSR += ";SR(P3)=" + phase1;
-
-						// Shift phase1 over by 3 digits, then add "reversed share ratio / 10"
-						// to it (limited to those 3 digits), so that equal phase1 torrents 
-						// with smaller share ratios will move to the top
-						int shareRatioModifier =  9999 - dl.getStats().getShareRatio();
-						if (shareRatioModifier <= 0) // 10.0
-							shareRatioModifier = 0;
+						if (numSeeds < 10000)
+							newSR = 10000 - numSeeds;
 						else
-							shareRatioModifier /= 10;
-						newSR += (phase1 * 1000) + shareRatioModifier;
-						
-						// Finally, add in SPRATIO_LIMIT1 so that fallback works
-						newSR += SPRATIO_BASE_LIMIT;
+							newSR = 1;
+						// shift over to make way for fallback
+						newSR *= SEEDONLY_SHIFT;
 
-						if (bDebugLog) sExplainSR += ";shareRM=" + shareRatioModifier + 
-								";SR(Final)=" + newSR + "\n";
 					} else { // iRankType == RANK_SPRATIO or we are falling back
 						if (numPeers != 0) {
 							if (numSeeds == 0) {
 								if (numPeers >= minPeersToBoostNoSeeds)
-									newSR += SPRATIO_BASE_LIMIT + 1;
+									newSR += SPRATIO_BASE_LIMIT;
 							} else { // numSeeds != 0 && numPeers != 0
 								float x = (float)numSeeds / numPeers;
 								newSR += SPRATIO_BASE_LIMIT / ((x + 1) * (x + 1));
-							}
-
-							// Shift over, leaving room for peers.
-							newSR *= SPRATIO_SHIFT;
-							if (bPreferLargerSwarms) {
-								if (numPeers >= SPRATIO_SHIFT / 2)
-									numPeers = 5000;
-								newSR += numPeers * 2;
-							} else { // Prefer smaller swarms
-								if (numPeers >= SPRATIO_SHIFT)
-									numPeers = 10000;
-								newSR += numPeers;
 							}
 						}
 					}
@@ -1980,7 +1940,7 @@ public class StartStopRulesDefaultPlugin
       bLastMatched = (iFirstPrioritySeedingMinutes == 0);
       if (!bLastMatched) {
         long timeSeeding = dl.getStats().getSecondsOnlySeeding();
-        if (timeSeeding > 0) {
+        if (timeSeeding >= 0) {
           bLastMatched = (timeSeeding < (iFirstPrioritySeedingMinutes * 60));
           if (bDebugLog) sExplainFP += "  SeedingTime("+timeSeeding+") < "+(iFirstPrioritySeedingMinutes*60)+"="+bLastMatched+"\n";
           if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
@@ -1999,7 +1959,7 @@ public class StartStopRulesDefaultPlugin
       bLastMatched = (iFirstPriorityDLMinutes == 0);
       if (!bLastMatched) {
         long timeDLing = dl.getStats().getSecondsDownloading();
-        if (timeDLing > 0) {
+        if (timeDLing >= 0) {
           bLastMatched = (timeDLing < (iFirstPriorityDLMinutes * 60));
           if (bDebugLog) sExplainFP += "  DLTime("+timeDLing+") < "+(iFirstPriorityDLMinutes*60)+"="+bLastMatched+"\n";
           if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
