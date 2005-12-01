@@ -143,10 +143,25 @@ PEPeerTransportProtocol
   
   //certain Optimum Online networks block peer seeding via "complete" bitfield message filtering
   //lazy mode makes sure we never send a complete (seed) bitfield
-  private static final boolean ENABLE_LAZY_BITFIELD;
+  private static boolean ENABLE_LAZY_BITFIELD;
+  
   static {
-    String  prop = System.getProperty( "azureus.lazy.bitfield" );
-    ENABLE_LAZY_BITFIELD = prop != null && prop.equals( "1" );
+    
+    COConfigurationManager.addAndFireParameterListener(
+    		"Use Lazy Bitfield",
+    		new ParameterListener()
+    		{
+    			 public void 
+    			 parameterChanged(
+    				String parameterName )
+    			 {
+    				 String  prop = System.getProperty( "azureus.lazy.bitfield" );
+    				 
+    				 ENABLE_LAZY_BITFIELD = prop != null && prop.equals( "1" );
+ 
+    				 ENABLE_LAZY_BITFIELD |= COConfigurationManager.getBooleanParameter( "Use Lazy Bitfield" );
+    			 }
+    		});
   }
   
   

@@ -228,6 +228,7 @@ public class ConfigurationDefaults {
     def.put( "DiskManager Write Queue Block Limit", new Long(0) );
     def.put( "DiskManager Check Queue Piece Limit", new Long(0) );
     def.put( "Prioritize First Piece", new Long(0) );
+    def.put( "Use Lazy Bitfield", new Long(0) );
     def.put( "Move Completed When Done", new Long(0) );
     def.put( "Completed Files Directory", "" );
     def.put( "Zero New", new Long(0) );
