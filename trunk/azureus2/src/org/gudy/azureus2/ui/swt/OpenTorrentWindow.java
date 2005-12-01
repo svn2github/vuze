@@ -1396,7 +1396,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 					return decoder.decodeString(torrent.getName());
 			} catch (Exception e) {
 			}
-			return new String(torrent.getName());
+			
+			try {
+				return new String(torrent.getName());
+			} catch (Exception e) {
+				return "TextDecodingError";
+			}
 		}
 	}
 
@@ -1429,17 +1434,18 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		public TorrentFileInfo(TorrentInfo parent, TOTorrentFile torrentFile,
 				int iIndex) {
 			this.parent = parent;
+			lSize = torrentFile.getLength();
+			this.iIndex = iIndex;
+			bDownload = true;
+			sDestFileName = null;
+			isValid = true;
+
 			if (parent.torrent.isSimpleTorrent()) {
 				sFileName = torrentFile.getRelativePath(); // translated to locale
 			} else {
 				sFileName = parent.getTorrentName() + File.separator
 						+ torrentFile.getRelativePath();
 			}
-			lSize = torrentFile.getLength();
-			this.iIndex = iIndex;
-			bDownload = true;
-			sDestFileName = null;
-			isValid = true;
 		}
 	}
 
