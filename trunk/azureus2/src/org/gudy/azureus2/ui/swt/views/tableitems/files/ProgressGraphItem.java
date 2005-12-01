@@ -63,7 +63,7 @@ public class ProgressGraphItem
     int lastPercentDone = 0;
     private long last_draw_time;
     private boolean bNoRed = false;
-    private boolean	flush_required = false;
+    private boolean	was_running = false;
 
     public Cell(TableCell cell) {
       cell.setFillCell(true);
@@ -101,12 +101,23 @@ public class ProgressGraphItem
         return;
       }
 
+	  DiskManager			manager			= fileInfo.getDiskManager();
+
+      	// we want to run through the image part once one the transition from with a disk manager (running)
+      	// to without a disk manager (stopped) in order to clear the pieces view
+      
+		 
+	  boolean	running	= manager != null;
+	  
       boolean bImageBufferValid = (lastPercentDone == percentDone) &&
-                                  cell.isValid() && bNoRed && !flush_required;
+                                  cell.isValid() && bNoRed && running == was_running;
+      
       if (bImageBufferValid) {
         return;
       }
 
+      was_running	= running;
+      
       lastPercentDone = percentDone;
 
       Image piecesImage = ((TableCellCore)cell).getGraphicSWT();
@@ -120,11 +131,8 @@ public class ProgressGraphItem
 
 	  	// dm may be null if this is a skeleton file view
 	  
-	  DiskManager			manager			= fileInfo.getDiskManager();
-
       if (fileInfo != null && manager != null ) {
-    	flush_required	= true;
-    	  
+    	   	  
         if (percentDone == 1000) {
           gcImage.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
           gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);
