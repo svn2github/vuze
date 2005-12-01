@@ -63,6 +63,7 @@ public class ProgressGraphItem
     int lastPercentDone = 0;
     private long last_draw_time;
     private boolean bNoRed = false;
+    private boolean	flush_required = false;
 
     public Cell(TableCell cell) {
       cell.setFillCell(true);
@@ -101,7 +102,7 @@ public class ProgressGraphItem
       }
 
       boolean bImageBufferValid = (lastPercentDone == percentDone) &&
-                                  cell.isValid() && bNoRed;
+                                  cell.isValid() && bNoRed && !flush_required;
       if (bImageBufferValid) {
         return;
       }
@@ -122,6 +123,8 @@ public class ProgressGraphItem
 	  DiskManager			manager			= fileInfo.getDiskManager();
 
       if (fileInfo != null && manager != null ) {
+    	flush_required	= true;
+    	  
         if (percentDone == 1000) {
           gcImage.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
           gcImage.setBackground(Colors.blues[Colors.BLUES_DARKEST]);

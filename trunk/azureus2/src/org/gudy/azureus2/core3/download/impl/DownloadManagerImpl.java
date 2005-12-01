@@ -696,12 +696,7 @@ DownloadManagerImpl
 					
 					download_manager_state.setPeerSources( ps );
 				}
-			}
-			
-				// must be after torrent read, so that any listeners have a TOTorrent
-			
-			controller.setInitialState( initial_state );
-			
+			}			
 		}finally{
 			
 			if ( torrent_save_location != null ){
@@ -714,6 +709,12 @@ DownloadManagerImpl
 					torrent_save_location = torrent_save_location.getAbsoluteFile();
 				}
 			}
+			
+				// must be after torrent read, so that any listeners have a TOTorrent
+				// not that if things have failed above this method won't override a failed
+				// state with the initial one
+			
+			controller.setInitialState( initial_state );
 		}
 	}
 

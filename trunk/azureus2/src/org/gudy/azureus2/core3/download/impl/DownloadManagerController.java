@@ -111,7 +111,7 @@ DownloadManagerController
 
 	private DiskManager 			disk_manager;
 	private DiskManagerFileInfo[]	skeleton_files;
-	
+	private fileInfoFacade[]		files_facade;
 	private PEPeerManager 			peer_manager;
 	
 	private String errorDetail;
@@ -131,6 +131,13 @@ DownloadManagerController
 	setInitialState(
 		int	initial_state )
 	{
+		files_facade	= new fileInfoFacade[download_manager.getTorrent()==null?0:download_manager.getTorrent().getFiles().length];
+		
+		for (int i=0;i<files_facade.length;i++){
+			
+			files_facade[i] = new fileInfoFacade();
+		}
+		
 			// only take note if there's been no errors
 		
 		if ( getState() == DownloadManager.STATE_START_OF_DAY ){
@@ -949,7 +956,12 @@ DownloadManagerController
    			}
    		}
    		
-   		return( res );
+   		for (int i=0;i<res.length;i++){
+   			
+   			files_facade[i].setDelegate( res[i] );
+   		}
+   		
+   		return( files_facade );
    	}
 	
 	protected void
@@ -1043,5 +1055,147 @@ DownloadManagerController
 	  		
 	  		disk_listeners_mon.exit();
 	  	}
+	}
+	
+	protected static class
+	fileInfoFacade
+		implements DiskManagerFileInfo
+	{
+		private DiskManagerFileInfo		delegate;
+		
+		protected void
+		setDelegate(
+				DiskManagerFileInfo	_d )
+		{
+			delegate = _d;
+		}
+		
+		public void 
+		setPriority(
+			boolean b )
+		{
+			delegate.setPriority(b);
+		}
+		
+		public void 
+		setSkipped(
+			boolean b)
+		{
+			delegate.setSkipped(b);
+		}
+		 
+		
+		public boolean
+		setLink(
+			File	link_destination )
+		{
+			return( delegate.setLink( link_destination ));
+		}
+		
+		public File
+		getLink()
+		{
+			return( delegate.getLink());
+		}
+		
+		public boolean
+		setStorageType(
+			int		type )
+		{
+			return( delegate.setStorageType( type ));
+		}
+		
+		public int
+		getStorageType()
+		{
+			return( delegate.getStorageType());
+		}
+		
+		 	
+		public int 
+		getAccessMode()
+		{
+			return( delegate.getAccessMode());
+		}
+		
+		public long 
+		getDownloaded()
+		{
+			return( delegate.getDownloaded());
+		}
+		
+		public String 
+		getExtension()
+		{
+			return( delegate.getExtension());
+		}
+			
+		public int 
+		getFirstPieceNumber()
+		{
+			return( delegate.getFirstPieceNumber());
+		}
+	  
+		public int 
+		getLastPieceNumber()
+		{
+			return( delegate.getLastPieceNumber());
+		}
+		
+		public long 
+		getLength()
+		{
+			return( delegate.getLength());
+		}
+			
+		public int 
+		getNbPieces()
+		{
+			return( delegate.getNbPieces());
+		}
+				
+		public boolean 
+		isPriority()
+		{
+			return( delegate.isPriority());
+		}
+		
+		public boolean 
+		isSkipped()
+		{
+			return( delegate.isSkipped());
+		}
+		
+		public int	
+		getIndex()
+		{
+			return( delegate.getIndex());
+		}
+		
+		public DiskManager 
+		getDiskManager()
+		{
+			return( delegate.getDiskManager());
+		}
+
+		public DownloadManager 
+		getDownloadManager()
+		{
+			return( delegate.getDownloadManager());
+		}
+		
+		public File 
+		getFile( boolean follow_link )
+		{
+			return( delegate.getFile( follow_link ));
+		}
+		
+		public void
+		flushCache()
+		
+			throws	Exception
+		{
+			delegate.flushCache();
+		}
 	}
 }
