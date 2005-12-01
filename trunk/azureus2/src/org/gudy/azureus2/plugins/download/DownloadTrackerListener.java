@@ -22,17 +22,38 @@
 package org.gudy.azureus2.plugins.download;
 
 /**
+ * A listener that will be informed when the latest announce/scrape results 
+ * change. See {@link org.gudy.azureus2.plugins.download#addTrackerListener}
+ * 
  * @author parg
- *
+ * @author TuxPaper 2005/Oct/01: JavaDocs & reformat to Java Conventions w/Tabs
  */
-public interface 
-DownloadTrackerListener 
-{
-	public void
-	scrapeResult(
-		DownloadScrapeResult	result );
-	
-	public void
-	announceResult(
-		DownloadAnnounceResult	result ); 
+public interface DownloadTrackerListener {
+	/**
+	 * A scrape result has been returned from a tracker
+	 * 
+	 * @param result Information about the scrape
+	 * 
+	 * @since 2.0.7.0
+	 * 
+	 * @note If an announce result is returned from the tracker contains
+	 *        seed and non-seed (peer) counts, a new DownloadScrapeResult will be
+	 *        created with the new information, and a scrapeResult will be
+	 *        triggered.
+	 *        <p>
+	 *        The DownloadScrapeResult isn't always information from the currently
+	 *        selected tracker.  Compare result.getURL() with 
+	 *        getDownload().getTorrent().getAnnounceURL() to determine if it's
+	 *        from the currently selected tracker.
+	 */
+	public void scrapeResult(DownloadScrapeResult result);
+
+	/**
+	 * An announce result has been returned from the tracker
+	 * 
+	 * @param result Information about the announce
+	 * 
+	 * @since 2.0.7.0
+	 */
+	public void announceResult(DownloadAnnounceResult result);
 }
