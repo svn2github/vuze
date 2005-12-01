@@ -180,17 +180,25 @@ TOTorrentFileImpl
 		if (decoder != null) {
 			for (int j = 0; j < path_components.length; j++) {
 
-				String comp;
 				try {
-					comp = decoder.decodeString(path_components[j]);
-				} catch (UnsupportedEncodingException e) {
-					System.out.println("file - unsupported encoding!!!!");
-					comp = new String(path_components[j]);
+					String comp;
+					try {
+						comp = decoder.decodeString(path_components[j]);
+					} catch (UnsupportedEncodingException e) {
+						System.out.println("file - unsupported encoding!!!!");
+						try {
+							comp = new String(path_components[j]);
+						} catch (Exception e2) {
+							comp = "UnsupportedEncoding";
+						}
+					}
+	
+					comp = FileUtil.convertOSSpecificChars(comp);
+	
+					sRelativePath += (j == 0 ? "" : File.separator) + comp;
+				} catch (Exception ex) {
+					Debug.out(ex);
 				}
-
-				comp = FileUtil.convertOSSpecificChars(comp);
-
-				sRelativePath += (j == 0 ? "" : File.separator) + comp;
 
 			}
 
