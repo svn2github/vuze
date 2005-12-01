@@ -148,16 +148,19 @@ MainWindow
   
   private UISWTInstanceImpl uiSWTInstanceImpl;
 
+  private ArrayList events;
 
   public
   MainWindow(
   	AzureusCore		_azureus_core,
-	Initializer 	_initializer) 
+	Initializer 	_initializer,
+	ArrayList events) 
   { 
   	try{
-	    LGLogger.log("MainWindow start");
+  		if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "MainWindow start"));
 	    
-		AEDiagnostics.addEvidenceGenerator( this );
+  		AEDiagnostics.addEvidenceGenerator( this );
 		
 	    azureus_core	= _azureus_core;
 	    
@@ -170,6 +173,8 @@ MainWindow
 	    window = this;
 	    
 	    initializer.addListener(this);
+	    
+	    this.events = events;
 	    
 	    display.syncExec(this);
 	    
@@ -263,30 +268,59 @@ MainWindow
       });
     }    
     
-    Tab.setFolder(folder);   
-
+    Tab.setFolder(folder);
+    
     folder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
-			public void handleEvent(Event event) {
-				// Another window has control, skip filter
-				if (display.getFocusControl().getShell() != mainWindow)
-					return;
+				public void handleEvent(Event event) {
+					// Another window has control, skip filter
+					if (display.getFocusControl().getShell() != mainWindow)
+						return;
 
-				int key = event.character;
-				if ((event.stateMask & SWT.MOD1) != 0 && event.character <= 26
-						&& event.character > 0)
-					key += 'a' - 1;
+					int key = event.character;
+					if ((event.stateMask & SWT.MOD1) != 0 && event.character <= 26
+							&& event.character > 0)
+						key += 'a' - 1;
 
-				if (key == 'l' && (event.stateMask & SWT.MOD1) != 0) {
-					// Ctrl-L: Open URL
-					OpenTorrentWindow.invokeURLPopup(mainWindow, globalManager);
+					// ESC or CTRL+F4 closes current Tab
+					if (key == SWT.ESC
+							|| (event.keyCode == SWT.F4 && event.stateMask == SWT.CTRL)) {
+						Tab.closeCurrent();
+						event.doit = false;
+					} else if (event.keyCode == SWT.F6
+							|| (event.character == SWT.TAB && (event.stateMask & SWT.CTRL) != 0)) {
+						// F6 or Ctrl-Tab selects next Tab
+						// On Windows the tab key will not reach this filter, as it is
+						// processed by the traversal TRAVERSE_TAB_NEXT.  It's unknown
+						// what other OSes do, so the code is here in case we get TAB
+						if ((event.stateMask & SWT.SHIFT) == 0) {
+							event.doit = false;
+							Tab.selectNextTab(true);
+							// Shift+F6 or Ctrl+Shift+Tab selects previous Tab
+						} else if (event.stateMask == SWT.SHIFT) {
+							Tab.selectNextTab(false);
+							event.doit = false;
+						}
+					} else if (key == 'l' && (event.stateMask & SWT.MOD1) != 0) {
+						// Ctrl-L: Open URL
+						OpenTorrentWindow.invokeURLPopup(mainWindow, globalManager);
+						event.doit = false;
+					} else if ((event.stateMask & SWT.MOD1) != 0) {
+						// Control/Command/Apple
+						if (event.keyCode == SWT.ARROW_RIGHT) {
+							Tab.selectNextTab(true);
+							event.doit = false;
+						} else if (event.keyCode == SWT.ARROW_LEFT) {
+							Tab.selectNextTab(false);
+							event.doit = false;
+						}
+					}
 				}
-			}
-		});
+			});
 
     SelectionAdapter selectionAdapter = new SelectionAdapter() {
       public void widgetSelected(final SelectionEvent event) {
         if(display != null && ! display.isDisposed())
-          display.asyncExec(new AERunnable() {
+        	Utils.execSWTThread(new AERunnable() {
 	          public void runSupport() {
               if(useCustomTab) {
                 CTabItem item = (CTabItem) event.item;
@@ -311,14 +345,12 @@ MainWindow
     };
     
     if(!useCustomTab) {
-      Tab.addTabKeyListenerToComposite(folder);
       ((TabFolder)folder).addSelectionListener(selectionAdapter);
     } else {
       try {
         ((CTabFolder)folder).setMinimumCharacters( 75 );
       } catch (Exception e) {
-        LGLogger.log(LGLogger.ERROR, "Can't set MIN_TAB_WIDTH");
-        Debug.printStackTrace( e );
+      	Logger.log(new LogEvent(LOGID, "Can't set MIN_TAB_WIDTH", e));
       }      
       //try {
       ///  TabFolder2ListenerAdder.add((CTabFolder)folder);
@@ -734,8 +766,9 @@ MainWindow
     showMyTorrents();
 
     if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
-        showConsole();
-      }  
+			showConsole();
+		}
+    events = null;
     
     if (COConfigurationManager.getBooleanParameter("Open Config", false)) {
         showConfig();
@@ -806,8 +839,6 @@ MainWindow
     
     checkForWhatsNewWindow();
         
-    
-    Tab.addTabKeyListenerToComposite(folder);
     
     // globalManager.startChecker();
     
@@ -1499,12 +1530,9 @@ MainWindow
 				if(selection.length > 0)  {
 				  return Tab.getView(selection[0]);
 				}
-				else {
-				  return null;
-				}
-	    } else {
-	      return Tab.getView(((CTabFolder)folder).getSelection());
+			  return null;
 	    }
+      return Tab.getView(((CTabFolder)folder).getSelection());
 	  }
 	  catch (Exception e) {
 	    return null;
@@ -1880,7 +1908,7 @@ MainWindow
       
       private void switchStatusToText() {
         if(display != null && ! display.isDisposed())
-          display.asyncExec(new AERunnable() {
+        	Utils.execSWTThread(new AERunnable() {
             public void runSupport() {
             	if ( statusArea == null || statusArea.isDisposed()){
             		return;

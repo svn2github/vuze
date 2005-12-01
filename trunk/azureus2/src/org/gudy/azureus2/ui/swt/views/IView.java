@@ -64,8 +64,6 @@ public interface IView extends IconBarEnabler {
   public void updateLanguage();
   
   
-  public void setTabListener();
-  
   public void
   generateDiagnostics(
 		IndentWriter	writer );

@@ -76,25 +76,12 @@ public class Tab {
     this.useCustomTab = MainWindow.getWindow().isUseCustomTab();
     this.view = _view;
     this.folder = _folder;
-    if (_view instanceof MyTorrentsSuperView) {
-      if (useCustomTab) {
-        tabItem = new CTabItem((CTabFolder) folder, SWT.NULL, 0);
-      }
-      else {
-        tabItem = new TabItem((TabFolder) folder, SWT.NULL, 0);
-      }
 
-    }
-    else {
-      if (useCustomTab) {
-        tabItem = new CTabItem((CTabFolder) folder, SWT.NULL);
-      }
-      else {
-        tabItem = new TabItem((TabFolder) folder, SWT.NULL);
-      }
-    }
-    
-    if(useCustomTab) {
+    if (useCustomTab) {
+    	CTabFolder tabFolder = (CTabFolder) folder;
+      tabItem = new CTabItem(tabFolder, SWT.NULL,
+					(_view instanceof MyTorrentsSuperView) ? 0 : tabFolder.getItemCount());
+
 	    folder.addMouseListener(new MouseAdapter() {
 	      public void mouseDown(MouseEvent arg0) {
 	        if(arg0.button == 2) {
@@ -120,6 +107,11 @@ public class Tab {
 	      }
 	    });
     }
+    else {
+    	TabFolder tabFolder = (TabFolder) folder;
+      tabItem = new TabItem(tabFolder, SWT.NULL,
+					(_view instanceof MyTorrentsSuperView) ? 0 : tabFolder.getItemCount());
+    }
 
     if (!(_view instanceof MyTorrentsSuperView || _view instanceof MyTrackerView || _view instanceof MySharesView )) {
       composite = new Composite(folder, SWT.NULL);
@@ -133,7 +125,6 @@ public class Tab {
       GridData gridData = new GridData(GridData.FILL_BOTH);
       try {
         _view.initialize(composite);
-        _view.setTabListener();
         _view.getComposite().setLayoutData(gridData);
         if (useCustomTab) {
           ((CTabItem) tabItem).setControl(composite);
@@ -154,7 +145,6 @@ public class Tab {
     else {
       try {
         _view.initialize(folder);
-        _view.setTabListener();
         tabItem.setText(escapeAccelerators(view.getShortTitle()));
         if (useCustomTab) {
           ((CTabItem) tabItem).setControl(_view.getComposite());
@@ -536,74 +526,6 @@ public class Tab {
     catch (Exception e) {}
     if (composite != null && !composite.isDisposed()) {
       composite.dispose();
-    }
-  }
-
-  /**
-   * ESC or CTRL+F4 closes current tab, F6 selects next, CTRL+F6 selects previous
-   * @return a KeyListener for Tabs
-   *
-   * @author Rene Leonhardt
-   */
-  public static KeyAdapter createTabKeyListener() {
-    return new KeyAdapter() {
-      public void keyReleased(KeyEvent keyEvent) {
-        // ESC or CTRL+F4 closes current Tab
-        if(keyEvent.character == SWT.ESC || (keyEvent.keyCode == 0x100000d && keyEvent.stateMask == SWT.CTRL)) {
-          eventCloseAllowed = false;
-          closeCurrent();
-        }
-        if(keyEvent.keyCode == 0x100000f) {
-          // F6 selects next Tab
-          if(keyEvent.stateMask == 0)
-            selectNextTab(true);
-          // Shift+F6 selects previous Tab
-          else if(keyEvent.stateMask == SWT.SHIFT)
-            selectNextTab(false);
-        }
-      }
-
-      public void keyPressed(KeyEvent keyEvent) {
-        eventCloseAllowed = true;
-        // F6 selects next Tab
-//        if(keyEvent.keyCode == 0x100000f && keyEvent.stateMask == 0) {
-//          selectNextTab();
-//        }
-      }
-    };
-  }
-  
-  public static KeyAdapter defaultListener;
-
-  public static void addTabKeyListenerToComposite(Composite folder) {
-  	try{
-  		class_mon.enter();
-  	
-	    if(folder == null)
-	      return;
-	
-	    if(defaultListener == null)      
-	      defaultListener = createTabKeyListener();
-	
-	    addTabKeyListenerToComposite(defaultListener,folder);    
-	    
-  	}finally{
-  		
-  		class_mon.exit();
-  	}
-  }
-  
-  public static void addTabKeyListenerToComposite(KeyListener listener,Composite folder) {    
-    folder.removeKeyListener(listener);
-    folder.addKeyListener(listener);
-    Control[] children = folder.getChildren();
-    for (int i = 0; i < children.length; i++) {
-      if(children[i] instanceof Composite)
-        addTabKeyListenerToComposite(listener,(Composite) children[i]);
-      else {
-				children[i].removeKeyListener(listener);
-        children[i].addKeyListener(listener);
-			}
     }
   }
 

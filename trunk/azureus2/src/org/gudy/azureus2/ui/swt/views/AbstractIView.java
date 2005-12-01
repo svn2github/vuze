@@ -9,7 +9,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.Tab;
 
 /**
  * @author René
@@ -20,10 +19,6 @@ public abstract class AbstractIView implements IView {
   protected AEMonitor this_mon 	= new AEMonitor( "AbstractIView" );
 
   public void initialize(Composite composite){    
-  }
-  
-  public final void setTabListener() {
-    Tab.addTabKeyListenerToComposite(getComposite());
   }
   
   public Composite getComposite(){ return null; }

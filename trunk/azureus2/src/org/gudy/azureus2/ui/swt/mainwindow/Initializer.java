@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -60,6 +60,7 @@ public class
 Initializer 
 	implements AzureusCoreListener 
 {
+	private static final LogIDs LOGID = LogIDs.GUI;
   private AzureusCore		azureus_core;
   private GlobalManager 	gm;
   private StartServer 		startServer;
@@ -227,7 +228,7 @@ Initializer
 		    		    
 		    		    Cursors.init();
 		    		    
-		    		    new MainWindow(core,Initializer.this);
+		    		    new MainWindow(core,Initializer.this,null);
 		    		    
 		    		    AssociationChecker.checkAssociations();
 
@@ -274,7 +275,7 @@ Initializer
 
   	}catch( Throwable e ){
   	
-  		LGLogger.log( "Initialization fails:", e );
+  		Logger.log(new LogEvent(LOGID, "Initialization fails:", e));
   		
   		Debug.printStackTrace( e );
   	} 
