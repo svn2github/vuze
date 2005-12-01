@@ -203,6 +203,20 @@ public class Messages {
           ((ToolItem)widget).setToolTipText(toolTip);
         }
       }
+    } else if (widget instanceof TableColumn) {
+      String key = (String) widget.getData();
+			if (key != null) {
+				if (!key.endsWith(".info"))
+					key += ".info";
+				String toolTip = MessageText.getString(key, (String) null);
+				if (toolTip != null) {
+					try {
+						((TableColumn) widget).setToolTipText(toolTip);
+					} catch (NoSuchMethodError e) {
+						// Pre SWT 3.2
+					}
+				}
+			}
     }
   }
   
@@ -243,7 +257,9 @@ public class Messages {
         else if (widget instanceof TableColumn)
            ((TableColumn) widget).setText(message);
         else if (widget instanceof Label)
-           ((Label) widget).setText(message);
+        	// Disable Mnemonic when & is before a space.  Otherwise, it's most
+        	// likely meant to be a Mnemonic
+          ((Label) widget).setText(message.replaceAll("& ", "&& "));
         else if (widget instanceof Group)
            ((Group) widget).setText(message);
         else if (widget instanceof Button)
@@ -256,6 +272,8 @@ public class Messages {
           ((TreeItem) widget).setText(message);
         else if(widget instanceof Shell) 
           ((Shell) widget).setText(message);
+        else if(widget instanceof ToolItem) 
+          ((ToolItem) widget).setText(message);
         else
           System.out.println("No cast for " + widget.getClass().getName());
       } 
