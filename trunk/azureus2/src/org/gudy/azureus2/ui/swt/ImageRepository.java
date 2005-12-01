@@ -79,6 +79,7 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/greenled.gif", "greenled");
     loadImage(display, "org/gudy/azureus2/ui/icons/redled.gif", "redled");
     loadImage(display, "org/gudy/azureus2/ui/icons/yellowled.gif", "yellowled");
+    loadImage(display, "org/gudy/azureus2/ui/icons/grayled.gif", "grayled");
     imagesToPath.put("donation","org/gudy/azureus2/ui/icons/donation.jpg");
     loadImage(display, "org/gudy/azureus2/ui/icons/popup.png","popup");
     loadImage(display, "org/gudy/azureus2/ui/icons/error.gif","error");
