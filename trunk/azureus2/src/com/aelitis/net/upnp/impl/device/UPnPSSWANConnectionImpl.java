@@ -275,24 +275,46 @@ UPnPSSWANConnectionImpl
 			
 		}else{
 					
-			UPnPActionInvocation inv = act.getInvocation();
+			UPnPActionInvocation add_inv = act.getInvocation();
 			
-			inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
-			inv.addArgument( "NewExternalPort", 			"" + port );
-			inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
-			inv.addArgument( "NewInternalPort", 			"" + port );
-			inv.addArgument( "NewInternalClient",			service.getDevice().getRootDevice().getLocalAddress().getHostAddress());
-			inv.addArgument( "NewEnabled", 					"1" );
-			inv.addArgument( "NewPortMappingDescription", 	description );
-			inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)
+			add_inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
+			add_inv.addArgument( "NewExternalPort", 			"" + port );
+			add_inv.addArgument( "NewProtocol", 				tcp?"TCP":"UDP" );
+			add_inv.addArgument( "NewInternalPort", 			"" + port );
+			add_inv.addArgument( "NewInternalClient",			service.getDevice().getRootDevice().getLocalAddress().getHostAddress());
+			add_inv.addArgument( "NewEnabled", 					"1" );
+			add_inv.addArgument( "NewPortMappingDescription", 	description );
+			add_inv.addArgument( "NewLeaseDuration",			"0" );		// 0 -> infinite (?)
 			
 			boolean	ok = false;
 			
 			try{
-				inv.invoke();
+				add_inv.invoke();
 				
 				ok	= true;
+			
+			}catch( UPnPException original_error ){
 				
+					// some routers won't add properly if the mapping's already there
+				
+				try{
+					UPnPActionInvocation rem_inv = act.getInvocation();
+					
+					rem_inv.addArgument( "NewRemoteHost", 	"" );		// "" = wildcard for hosts, 0 = wildcard for ports
+					rem_inv.addArgument( "NewProtocol", 	tcp?"TCP":"UDP" );
+					rem_inv.addArgument( "NewExternalPort", "" + port );
+					
+					rem_inv.invoke();
+					
+				}catch( Throwable e ){
+					
+					throw( original_error );
+				}
+				
+				add_inv.invoke();
+					
+				ok	= true;
+	
 			}finally{
 									
 				((UPnPRootDeviceImpl)service.getDevice().getRootDevice()).portMappingResult(ok);

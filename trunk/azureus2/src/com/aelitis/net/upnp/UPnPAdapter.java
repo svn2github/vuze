@@ -55,8 +55,12 @@ UPnPAdapter
 	getAlphanumericComparator();
 	
 	public void
-	debug(
+	trace(
 		Throwable	e );
+	
+	public void
+	trace(
+		String	str );
 	
 	public String
 	getTraceDir();

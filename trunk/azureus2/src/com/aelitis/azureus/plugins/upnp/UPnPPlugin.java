@@ -244,6 +244,8 @@ UPnPPlugin
 			return;
 		}
 		
+		final LoggerChannel	core_log		= plugin_interface.getLogger().getChannel("UPnP Core");
+
 		try{
 			upnp = UPnPFactory.getSingleton(
 					new UPnPAdapter()
@@ -285,9 +287,18 @@ UPnPPlugin
 						}
 
 						public void
-						debug(
+						trace(
+							String	str )
+						{
+							core_log.log( str );
+						}
+						
+						public void
+						trace(
 							Throwable	e )
 						{
+							core_log.log( e );
+							
 							Debug.printStackTrace( e );
 						}
 						

@@ -199,6 +199,8 @@ UPnPImpl
 		}catch( UPnPException e ){
 			
 			log( e.toString());
+			
+			adapter.trace(e);
 		}
 	}
 	
@@ -326,7 +328,7 @@ UPnPImpl
 				
 			String	data_str = data.toString();
 			
-			log( "UPnP:Response:" + data_str );
+			adapter.trace( "UPnP:Response:" + data_str );
 			
 			return( adapter.parseXML( data_str ));
 			
@@ -341,7 +343,7 @@ UPnPImpl
 				
 			}catch( Throwable f ){
 				
-				adapter.debug(f);
+				adapter.trace(f);
 			}
 			
 			if ( e instanceof SimpleXMLParserDocumentException ){
@@ -372,7 +374,7 @@ UPnPImpl
 			
 		}catch( Throwable e ){
 			
-			log( e );
+			adapter.trace( e );
 
 			if (e instanceof UPnPException ){
 				
@@ -424,7 +426,7 @@ UPnPImpl
 	{
 		URL	control = service.getControlURL();
 		
-		log( "UPnP:Request: -> " + control + "," + request );
+		adapter.trace( "UPnP:Request: -> " + control + "," + request );
 
 		if ( use_http_connection ){
 			
