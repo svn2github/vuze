@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 import java.text.NumberFormat;
 import java.util.Iterator;
 
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
 import com.aelitis.azureus.core.*;
@@ -61,6 +62,10 @@ public class GUIUpdater extends AEThread implements ParameterListener {
   private NumberFormat  	numberFormat;
   private MainWindow 		mainWindow;
   private Display 			display;
+  
+  private int lastNATstatus = -1;
+  private int lastDHTstatus = -1;
+  private long lastDHTcount = -1;
   
   boolean finished = false;
   boolean refreshed = true;
@@ -113,141 +118,212 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 
   private void update() {
     refreshed = false;
-    if (display != null && !display.isDisposed())
-    	Utils.execSWTThread(new AERunnable(){
-      public void runSupport() {
-        try {
-        	if (display == null || display.isDisposed())
-        		return;
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				try {
+					if (display == null || display.isDisposed())
+						return;
 
-          IView view = null;
-          if (!mainWindow.getShell().isDisposed() && mainWindow.isVisible() && !mainWindow.getShell().getMinimized()) {
+					IView view = null;
+					if (!mainWindow.getShell().isDisposed() && mainWindow.isVisible()
+							&& !mainWindow.getShell().getMinimized()) {
 
-            view = mainWindow.getCurrentView();
-            
-            if (view != null) {
-              view.refresh();
-              Tab.refresh();
-            }
+						view = mainWindow.getCurrentView();
 
-            IpFilter ip_filter = azureus_core.getIpFilterManager().getIPFilter();
-            
-            mainWindow.ipBlocked.setText( 
-            		"{"+
-					DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime()) + 
-					"} IPs: " + 
-          numberFormat.format(ip_filter.getNbRanges()) + 
-					" - " + 
-          numberFormat.format(ip_filter.getNbIpsBlockedAndLoggable()) + 
-					"/" +
-          numberFormat.format(ip_filter.getNbBannedIps()) +
-					"/" + 
-          numberFormat.format(azureus_core.getIpFilterManager().getBadIps().getNbBadIps()));
-					
-        int	nat_status = connection_manager.getNATStatus();
-        
-        if ( nat_status == ConnectionManager.NAT_UNKNOWN ){
-          mainWindow.natStatus.setImage(ImageRepository.getImage("grayled"));
-      		mainWindow.natStatus.setToolTipText(MessageText.getString("MainWindow.nat.status.tooltip.unknown"));
-        }else if ( nat_status == ConnectionManager.NAT_OK ){
-            mainWindow.natStatus.setImage(ImageRepository.getImage("greenled"));
-    		mainWindow.natStatus.setToolTipText(MessageText.getString("MainWindow.nat.status.tooltip.ok"));
-        }else if ( nat_status == ConnectionManager.NAT_PROBABLY_OK ){
-            mainWindow.natStatus.setImage(ImageRepository.getImage("yellowled"));
-    		mainWindow.natStatus.setToolTipText(MessageText.getString("MainWindow.nat.status.tooltip.probok"));
-        }else{
-        	mainWindow.natStatus.setImage(ImageRepository.getImage("redled"));
-    		mainWindow.natStatus.setToolTipText(MessageText.getString("MainWindow.nat.status.tooltip.bad"));
+						if (view != null) {
+							view.refresh();
+							Tab.refresh();
+						}
 
-        }
-               
-        if( dhtPlugin == null || dhtPlugin.getStatus() == DHTPlugin.STATUS_DISABLED) {
-          mainWindow.dhtStatus.setImage(ImageRepository.getImage("grayled"));
-          mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.disabled"));
-        } else
-        if(dhtPlugin.getStatus() == DHTPlugin.STATUS_INITALISING) {
-          mainWindow.dhtStatus.setImage(ImageRepository.getImage("yellowled"));
-          mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.initializing"));
-        } else
-        if(dhtPlugin.getStatus() == DHTPlugin.STATUS_FAILED) {
-          mainWindow.dhtStatus.setImage(ImageRepository.getImage("redled"));
-          mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.failed"));
-        } else
-        if(dhtPlugin.getStatus() == DHTPlugin.STATUS_RUNNING) {
-        	
-  		  DHT[]	dhts = dhtPlugin.getDHTs();
+						// IP Filter Status Section
+						IpFilter ip_filter = azureus_core.getIpFilterManager()
+								.getIPFilter();
 
-  		  if ( dhts.length == 0 || dhts[0].getTransport().isReachable()){
-  			  
-  			mainWindow.dhtStatus.setImage(ImageRepository.getImage("greenled"));
-  			mainWindow.dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.tooltip"));
+						mainWindow.ipBlocked.setText("{"
+								+ DisplayFormatters.formatDateShort(ip_filter
+										.getLastUpdateTime())
+								+ "} IPs: "
+								+ numberFormat.format(ip_filter.getNbRanges())
+								+ " - "
+								+ numberFormat.format(ip_filter.getNbIpsBlockedAndLoggable())
+								+ "/"
+								+ numberFormat.format(ip_filter.getNbBannedIps())
+								+ "/"
+								+ numberFormat.format(azureus_core.getIpFilterManager()
+										.getBadIps().getNbBadIps()));
 
-  		  }else{
-			mainWindow.dhtStatus.setImage(ImageRepository.getImage("yellowled"));		
-    		mainWindow.dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.unreachabletooltip"));
-  		  }
-		  
-          if(dhts.length == 0 || dhts[0].getControl().getStats().getEstimatedDHTSize() == 0 ) {
-            mainWindow.dhtStatus.setText(MessageText.getString("MainWindow.dht.status.running"));
-          } else {
-            mainWindow.dhtStatus.setText(numberFormat.format(dhts[0].getControl().getStats().getEstimatedDHTSize()) + " " + MessageText.getString("MainWindow.dht.status.users"));
-          }            
-        }
-        
-        int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
-        int dl_limit = NetworkManager.getMaxDownloadRateBPS() / 1024;
-        
-        String seeding_only;
-        if( NetworkManager.isSeedingOnlyUploadRate() ) {
-          int ul_limit_seed = NetworkManager.getMaxUploadRateBPSSeedingOnly() / 1024;
-          if( ul_limit_seed == 0 ) {
-            seeding_only = "+" +Constants.INFINITY_STRING+ "K";
-          }
-          else {
-            int diff = ul_limit_seed - ul_limit_norm;
-            seeding_only = (diff >= 0 ? "+" : "") +diff+ "K";
-          }
-        }
-        else {
-          seeding_only = "";
-        }
-        
-        mainWindow.statusDown.setText(
-            MessageText.getString("ConfigView.download.abbreviated") + " " + 
-            (dl_limit==0?"":"[" + dl_limit + "K] " ) +
-            DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDataReceiveRate() + mainWindow.globalManager.getStats().getProtocolReceiveRate() ));
-        
-        mainWindow.statusUp.setText(
-            MessageText.getString("ConfigView.upload.abbreviated") + " " + 
-            (ul_limit_norm==0?"":"[" + ul_limit_norm + "K" +seeding_only+ "] " ) +
-            DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.globalManager.getStats().getDataSendRate() + mainWindow.globalManager.getStats().getProtocolSendRate() ));
-          }
-          
-          mainWindow.statusBar.layout();
+						// NAT status Section
+						int nat_status = connection_manager.getNATStatus();
 
-          if(mainWindow.systemTraySWT != null)
-            mainWindow.systemTraySWT.update();
-          
-          try{
-          	mainWindow.downloadBars_mon.enter();
-          
-            Iterator iter = mainWindow.downloadBars.values().iterator();
-            while (iter.hasNext()) {
-              MinimizedWindow mw = (MinimizedWindow) iter.next();
-              mw.refresh();
-            }
-          }finally{
-          	
-          	mainWindow.downloadBars_mon.exit();
-          }
-        } catch (Exception e) {
-        	Logger.log(new LogEvent(LOGID, "Error while trying to update GUI",
-								e));
-        } finally {
-          refreshed = true;
-        }
-      }        
-    });
+						if (lastNATstatus != nat_status) {
+							String imgID;
+							String textID;
+							switch (nat_status) {
+								case ConnectionManager.NAT_UNKNOWN:
+									imgID = "grayled";
+									textID = "MainWindow.nat.status.tooltip.unknown";
+									break;
+
+								case ConnectionManager.NAT_OK:
+									imgID = "greenled";
+									textID = "MainWindow.nat.status.tooltip.ok";
+
+								case ConnectionManager.NAT_PROBABLY_OK:
+									imgID = "yellowled";
+									textID = "MainWindow.nat.status.tooltip.probok";
+									break;
+
+								default:
+									imgID = "redled";
+									textID = "MainWindow.nat.status.tooltip.bad";
+									break;
+							}
+
+							mainWindow.natStatus.setImage(ImageRepository.getImage(imgID));
+							mainWindow.natStatus
+									.setToolTipText(MessageText.getString(textID));
+							lastNATstatus = nat_status;
+						}
+
+						// DHT Status Section
+						int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED
+								: dhtPlugin.getStatus();
+						long dht_count = -1;
+						if (dht_status == DHTPlugin.STATUS_RUNNING) {
+							DHT[] dhts = dhtPlugin.getDHTs();
+
+							boolean reachable = dhts.length > 0
+									&& dhts[0].getTransport().isReachable();
+							
+							if (reachable) {
+								if (dhts.length == 0)
+									dht_count = 0;
+								else
+									dht_count = dhts[0].getControl().getStats()
+											.getEstimatedDHTSize();
+							} else { // not reachable
+								dht_count = -1;
+							}
+						}
+
+						if (lastDHTstatus != dht_status || lastDHTcount != dht_count) {
+							String imgID = null;
+							String textID = null;
+							switch (dht_status) {
+								case DHTPlugin.STATUS_RUNNING:
+									if (dht_count == -1) {
+										imgID = "yellowled";
+										textID = "MainWindow.dht.status.unreachabletooltip";
+									} else {
+										imgID = "greenled";
+										textID = "MainWindow.dht.status.tooltip";
+									}
+									mainWindow.dhtStatus.setToolTipText(MessageText
+											.getString(textID));
+
+									if (dht_count == 0) {
+										textID = "MainWindow.dht.status.running";
+									} else {
+										textID = null;
+										mainWindow.dhtStatus.setText(numberFormat.format(dht_count)
+												+ " "
+												+ MessageText.getString("MainWindow.dht.status.users"));
+									}
+									break;
+
+								case DHTPlugin.STATUS_DISABLED:
+									imgID = "grayled";
+									textID = "MainWindow.dht.status.disabled";
+									break;
+
+								case DHTPlugin.STATUS_INITALISING:
+									imgID = "yellowled";
+									textID = "MainWindow.dht.status.initializing";
+									break;
+
+								case DHTPlugin.STATUS_FAILED:
+									imgID = "redled";
+									textID = "MainWindow.dht.status.failed";
+									break;
+							}
+
+							if (imgID != null)
+								mainWindow.dhtStatus.setImage(ImageRepository.getImage(imgID));
+							else
+								mainWindow.dhtStatus.setImage(null);
+
+							if (textID != null)
+								mainWindow.dhtStatus.setText(MessageText.getString(textID));
+
+							lastDHTstatus = dht_status;
+							lastDHTcount = dht_count;
+						}
+
+						// UL/DL Status Sections
+						int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
+						int dl_limit = NetworkManager.getMaxDownloadRateBPS() / 1024;
+
+						String seeding_only;
+						if (NetworkManager.isSeedingOnlyUploadRate()) {
+							int ul_limit_seed = NetworkManager
+									.getMaxUploadRateBPSSeedingOnly() / 1024;
+							if (ul_limit_seed == 0) {
+								seeding_only = "+" + Constants.INFINITY_STRING + "K";
+							} else {
+								int diff = ul_limit_seed - ul_limit_norm;
+								seeding_only = (diff >= 0 ? "+" : "") + diff + "K";
+							}
+						} else {
+							seeding_only = "";
+						}
+
+						mainWindow.statusDown.setText(MessageText
+								.getString("ConfigView.download.abbreviated")
+								+ " "
+								+ (dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
+								+ DisplayFormatters
+										.formatByteCountToKiBEtcPerSec(mainWindow.globalManager
+												.getStats().getDataReceiveRate()
+												+ mainWindow.globalManager.getStats()
+														.getProtocolReceiveRate()));
+
+						mainWindow.statusUp.setText(MessageText
+								.getString("ConfigView.upload.abbreviated")
+								+ " "
+								+ (ul_limit_norm == 0 ? "" : "[" + ul_limit_norm + "K"
+										+ seeding_only + "] ")
+								+ DisplayFormatters
+										.formatByteCountToKiBEtcPerSec(mainWindow.globalManager
+												.getStats().getDataSendRate()
+												+ mainWindow.globalManager.getStats()
+														.getProtocolSendRate()));
+					}
+
+					// End of Status Sections
+					mainWindow.statusBar.layout();
+
+					if (mainWindow.systemTraySWT != null)
+						mainWindow.systemTraySWT.update();
+
+					try {
+						mainWindow.downloadBars_mon.enter();
+
+						Iterator iter = mainWindow.downloadBars.values().iterator();
+						while (iter.hasNext()) {
+							MinimizedWindow mw = (MinimizedWindow) iter.next();
+							mw.refresh();
+						}
+					} finally {
+
+						mainWindow.downloadBars_mon.exit();
+					}
+				} catch (Exception e) {
+					Logger.log(new LogEvent(LOGID, "Error while trying to update GUI", e));
+				} finally {
+					refreshed = true;
+				}
+			}
+		});
   }
 
   public void stopIt() {
