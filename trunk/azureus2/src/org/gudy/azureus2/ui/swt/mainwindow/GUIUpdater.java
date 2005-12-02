@@ -167,6 +167,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 								case ConnectionManager.NAT_OK:
 									imgID = "greenled";
 									textID = "MainWindow.nat.status.tooltip.ok";
+									break;
 
 								case ConnectionManager.NAT_PROBABLY_OK:
 									imgID = "yellowled";
