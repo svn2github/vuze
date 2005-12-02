@@ -39,6 +39,17 @@ ThreadPool
 	protected static List		busy_pools			= new ArrayList();
 	protected static boolean	busy_pool_timer_set	= false;
 	
+	
+	private static ThreadLocal		tls	= 
+		new ThreadLocal()
+		{
+			public Object
+			initialValue()
+			{
+				return( null );
+			}
+		};
+		
 	protected static void
 	checkAllTimeouts()
 	{
@@ -112,7 +123,32 @@ ThreadPool
 		
 		if ( !queue_when_full ){
 		
-			thread_sem.reserve();
+			if ( !thread_sem.reserveIfAvailable()){
+			
+					// defend against recursive entry when in queuing mode (yes, it happens)
+				
+				threadPoolWorker	recursive_worker = (threadPoolWorker)tls.get();
+				
+				if ( recursive_worker == null ){
+	
+						// do a blocking reserve here, not recursive 
+					
+					thread_sem.reserve();
+	
+				}else{
+				
+					if ( runnable instanceof ThreadPoolTask ){
+						
+						((ThreadPoolTask)runnable).worker = recursive_worker;
+					}
+					
+						// run immediately
+					
+					runnable.runSupport();
+					
+					return( recursive_worker );
+				}
+			}
 		}
 						
 		threadPoolWorker allocated_worker;
@@ -277,6 +313,8 @@ ThreadPool
 					public void 
 					runSupport()
 					{
+						tls.set( threadPoolWorker.this );
+						
 						boolean	time_to_die = false;
 			
 outer:

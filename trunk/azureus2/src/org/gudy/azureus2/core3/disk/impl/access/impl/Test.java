@@ -224,6 +224,14 @@ Test
 														System.out.println( "    " + cache_stats.getBytesReadFromCache() + "/" + cache_stats.getBytesReadFromFile());
 													}
 												}
+												
+												  public void 
+												  readFailed( 
+												  		DiskManagerReadRequest 	request, 
+														Throwable		 		cause )
+												  {
+													  Debug.out( cause );
+												  }
 											});	
 									}else{
 										

@@ -41,5 +41,10 @@ DiskManagerReadRequestListener
   public void 
   readCompleted( 
   		DiskManagerReadRequest 	request, 
-		DirectByteBuffer 	data );
+		DirectByteBuffer 		data );
+  
+  public void 
+  readFailed( 
+  		DiskManagerReadRequest 	request, 
+		Throwable		 		cause );
 }

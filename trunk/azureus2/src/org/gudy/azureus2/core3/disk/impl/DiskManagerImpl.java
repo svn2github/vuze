@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.disk.impl;
 
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessControllerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
@@ -72,6 +74,15 @@ DiskManagerImpl
 	implements DiskManagerHelper 
 {  
 	private static final LogIDs LOGID = LogIDs.DISK;
+	
+	private static final int	MAX_READ_THREADS	= 32;
+	private static final int	MAX_WRITE_THREADS	= 32;
+
+	private static DiskAccessController	disk_access_controller = 
+		DiskAccessControllerFactory.create(
+				MAX_READ_THREADS,
+				MAX_WRITE_THREADS );
+
 	private boolean	used	= false;
 	
 	private boolean started = false;
@@ -370,9 +381,7 @@ DiskManagerImpl
 		}
 
 		writer_and_checker.start();
-		
-		reader.start();
-		
+				
 			//allocate / check every file
 
 		int newFiles = allocateFiles();
@@ -465,9 +474,7 @@ DiskManagerImpl
 		started_sem.reserve();
 		
     	writer_and_checker.stop();
-    	
-		reader.stop();
-		
+    			
 		resume_handler.stop();
 		
 		piece_picker.stop();
@@ -876,13 +883,18 @@ DiskManagerImpl
 		}
 	}	
 	
-  
+	public DiskAccessController
+	getDiskAccessController()
+	{
+		return( disk_access_controller );
+	}
+	
 	public void 
 	enqueueReadRequest( 
 		DiskManagerReadRequest request, 
 		DiskManagerReadRequestListener listener ) 
 	{
-		reader.enqueueReadRequest( request, listener );
+		reader.readBlock( request, listener );
 	}
 
 

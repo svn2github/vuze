@@ -33,9 +33,7 @@ import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
 import org.gudy.azureus2.core3.disk.impl.PieceList;
 import org.gudy.azureus2.core3.disk.impl.PieceMapEntry;
 import org.gudy.azureus2.core3.disk.impl.access.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -486,64 +484,27 @@ DMWriterAndCheckerImpl
         
 		try{
 			
-	        buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_CHECK,this_piece_length);
-	    
-		    if ( !bOverallContinue ){
-		    	
-		    	return;
-		    }
-	
-				//get the piece list
+				// quick check that the files that make up this piece are at least big enough
+				// to warrant reading the data to check
 			
 			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
 
-			//for each piece-part-to-file mapping entry
 			for (int i = 0; i < pieceList.size(); i++) {
 				
-				PieceMapEntry tempPiece = pieceList.get(i);
-	            
-				try {
-	                    
-						//if the file is large enough
+				PieceMapEntry piece_entry = pieceList.get(i);
 					
-					if ( tempPiece.getFile().getCacheFile().getLength() >= tempPiece.getOffset()){
+				if ( piece_entry.getFile().getCacheFile().getLength() < piece_entry.getOffset()){
 						
-			            //Make sure we only read in this entry-length's worth of data from the file
-			            //NOTE: Without this limit the read op will
-			            // a) fill the entire buffer with file data if the file length is big enough,
-			            //    i.e. the whole piece is contained within the file somewhere, or
-			            // b) read the file into the buffer until it reaches EOF,
-			            //    i.e. the piece overlaps two different files
-			            //Under normal conditions this works ok, because the assumption is that if a piece
-			            //is contained within a single file, then there will only be one PieceMapEntry for
-			            //that piece, so we can just fill the buffer.  It also assumes that if a piece
-			            //overlaps two (or more) files, then there will be multiple PieceMapEntrys, with
-			            //each entry ending at the file EOF boundary.  However, if for some reason one of
-			            //these files is at least one byte too large, then the read op will read in too
-			            //many bytes before hitting EOF, and our piece buffer data will be misaligned,
-			            //causing hash failure (and a 99.9% bug).  Better to set the buffer limit explicitly.
-			            
-			            int entry_read_limit = buffer.position( DirectByteBuffer.SS_DW ) + tempPiece.getLength();
-			            
-			            buffer.limit( DirectByteBuffer.SS_DW, entry_read_limit );
-			
-			            tempPiece.getFile().getCacheFile().read(buffer, tempPiece.getOffset());  //do read
-			            
-			            buffer.limit( DirectByteBuffer.SS_DW, this_piece_length );  //restore limit
-						
-					}else{
-						// file is too small, therefore required data hasn't been 
-						// written yet -> check fails
-								
-						return;
-					}
-				}catch (Exception e){
-					
-					Debug.printStackTrace( e );
-					
 					return;
 				}
 			}
+			
+			buffer = disk_manager.readBlock( pieceNumber, 0, this_piece_length );
+				    
+		    if ( !bOverallContinue || buffer == null ){
+		    	
+		    	return;
+		    }
 
 			try {
 	      
@@ -552,8 +513,6 @@ DMWriterAndCheckerImpl
 					return;
 				}
 	      
-	      		buffer.position(DirectByteBuffer.SS_DW, 0);
-
     		    if ( CONCURRENT_CHECKING ){
 
     		    	async_request	= true;

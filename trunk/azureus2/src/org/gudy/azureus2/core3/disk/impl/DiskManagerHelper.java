@@ -30,10 +30,15 @@ package org.gudy.azureus2.core3.disk.impl;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.torrent.*;
 
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
+
 public interface 
 DiskManagerHelper 
 	extends DiskManager
 {
+	public DiskAccessController
+	getDiskAccessController();
+	
 	public PieceList
 	getPieceList(
 		int	piece_number );

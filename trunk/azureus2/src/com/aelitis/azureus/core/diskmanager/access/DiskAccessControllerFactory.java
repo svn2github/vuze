@@ -1,7 +1,7 @@
 /*
- * Created on 31-Jul-2004
+ * Created on 02-Dec-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,40 +15,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SARL au capital de 30,000 euros
+ * AELITIS, SAS au capital de 40,000 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package org.gudy.azureus2.core3.disk.impl.access;
+package com.aelitis.azureus.core.diskmanager.access;
 
-import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
-import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import com.aelitis.azureus.core.diskmanager.access.impl.DiskAccessControllerImpl;
 
-
-/**
- * @author parg
- *
- */
-
-public interface 
-DMReader 
+public class 
+DiskAccessControllerFactory 
 {
-	public DirectByteBuffer 
-	readBlock(
-		int pieceNumber, 
-		int offset, 
-		int length );
-
-	public DiskManagerReadRequest
-	createRequest(
-		int pieceNumber,
-		int offset,
-		int length );
-	
-	public void 
-	readBlock( 
-		DiskManagerReadRequest 			request, 
-		DiskManagerReadRequestListener 	listener );
+	public static DiskAccessController
+	create(
+		int		max_read_threads,
+		int 	max_write_threads )
+	{
+		return( new DiskAccessControllerImpl( max_read_threads, max_write_threads ));
+	}
 }

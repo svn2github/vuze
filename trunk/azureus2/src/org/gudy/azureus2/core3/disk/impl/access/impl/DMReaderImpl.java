@@ -22,17 +22,18 @@
 
 package org.gudy.azureus2.core3.disk.impl.access.impl;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequest;
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequestListener;
 import com.aelitis.azureus.core.diskmanager.cache.*;
 
 /**
@@ -44,84 +45,16 @@ DMReaderImpl
 	implements DMReader
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
-	private static final long	READ_THREAD_IDLE_LIMIT	= 120*1000;
-	
-	protected static final int	QUEUE_REPORT_CHUNK	= 32;
-	
-	protected DiskManagerHelper	disk_manager;
 
-	private volatile boolean		bOverallContinue	= true;
-	
-	private List		readQueue		= new LinkedList();
-	private AESemaphore	readQueueSem	= new AESemaphore("DMReader::readQ");
-		
-	private AEMonitor	this_mon		= new AEMonitor( "DMReader");
-	
-	private int			next_report_size	= QUEUE_REPORT_CHUNK;
-	
-	private boolean			started;
-
-	private DiskReadThread readThread;
+	protected DiskManagerHelper		disk_manager;
+	protected DiskAccessController	disk_access;	
 
 	public
 	DMReaderImpl(
-		DiskManagerHelper	_disk_manager )
+		DiskManagerHelper		_disk_manager )
 	{
 		disk_manager	= _disk_manager;
-	}
-	
-	public void
-	start()
-	{
-		try{
-			this_mon.enter();
-
-			if ( started ){
-				
-				throw( new RuntimeException( "DMReader: start while started"));
-			}
-			
-			if ( !bOverallContinue ){
-	
-				throw( new RuntimeException( "DMReader: start after stopped"));
-			}
-			
-			started	= true;
-								
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-	
-	public void
-	stop()
-	{
-		DiskReadThread	current_read_thread;
-		
-		try{
-			this_mon.enter();
-
-			if ( !started ){
-			
-				return;
-			}	
-		
-			started				= false;
-			
-			bOverallContinue	= false;
-			
-			current_read_thread	= readThread;
-			
-		}finally{
-			
-			this_mon.exit();
-		}
-		
-		if ( current_read_thread != null ){
-			
-			current_read_thread.stopIt();
-		}
+		disk_access		= disk_manager.getDiskAccessController();
 	}
 	
 	public DiskManagerReadRequest
@@ -132,47 +65,7 @@ DMReaderImpl
 	{
 		return( new DiskManagerRequestImpl( pieceNumber, offset, length ));
 	}
-	
-	public void 
-	enqueueReadRequest( 
-	  	DiskManagerReadRequest request, 
-		DiskManagerReadRequestListener listener ) 
-	{
-		DiskReadRequest drr = new DiskReadRequest(request, listener);
-
-		try {
-			this_mon.enter();
-
-			if (!bOverallContinue) {
-				throw (new RuntimeException("Reader stopped"));
-			}
-
-			readQueue.add(drr);
-
-			readQueueSem.release();
-
-			if (readThread == null) {
-				startReadThread();
-			}
-		} finally {
-
-			this_mon.exit();
-		}
-
-		int queue_size = readQueueSem.getValue();
-
-		if (queue_size > next_report_size) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID,
-						LogEvent.LT_WARNING, "Disk Manager read queue size exceeds "
-								+ next_report_size));
-
-			next_report_size += QUEUE_REPORT_CHUNK;
-		}
-
-		// System.out.println( "read queue size = " + queue_size );
-	}
-	  
+		  
 		// returns null if the read can't be performed
 	
 	public DirectByteBuffer 
@@ -181,36 +74,86 @@ DMReaderImpl
 		int offset, 
 		int length ) 
 	{
-		if ( !bOverallContinue ){
-			
-			Debug.out( "DMReader:readBlock: called when stopped" );
-			
-			return( null );
-		}
+		DiskManagerReadRequest	request = createRequest( pieceNumber, offset, length );
 		
+		final AESemaphore	sem = new AESemaphore( "DMReader:readBlock" );
+		
+		final DirectByteBuffer[]	result = {null};
+		
+		readBlock( 
+				request,
+				new DiskManagerReadRequestListener()
+				{
+					  public void 
+					  readCompleted( 
+					  		DiskManagerReadRequest 	request, 
+							DirectByteBuffer 		data )
+					  {
+						  result[0]	= data;
+						  
+						  sem.release();
+					  }
+					  
+					  public void 
+					  readFailed( 
+					  		DiskManagerReadRequest 	request, 
+							Throwable		 		cause )
+					  {
+						  sem.release();
+					  }
+				});
+		
+		sem.reserve();
+		
+		return( result[0] );
+	}
+	
+	public void 
+	readBlock(
+		DiskManagerReadRequest			request,
+		DiskManagerReadRequestListener	listener )
+	{
+		int	length		= request.getLength();
+
 		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ,length );
 
-		if (buffer == null) { // Fix for bug #804874
+		if ( buffer == null ) { // Fix for bug #804874
 			
-			System.out.println("DiskManager::readBlock:: ByteBufferPool returned null buffer");
+			Debug.out("DiskManager::readBlock:: ByteBufferPool returned null buffer");
 			
-			return null;
+			listener.readFailed( request, new Exception( "Out of memory" ));
+			
+			return;
 		}
 
-		long previousFilesLength = 0;
-		int currentFile = 0;
+		int	pieceNumber	= request.getPieceNumber();
+		int	offset		= request.getOffset();
+		
 		PieceList pieceList = disk_manager.getPieceList(pieceNumber);
 
 			// temporary fix for bug 784306
-		if (pieceList.size() == 0) {
-			System.out.println("no pieceList entries for " + pieceNumber);
-			return buffer;
+		
+		if ( pieceList.size() == 0 ){
+			
+			Debug.out("no pieceList entries for " + pieceNumber);
+			
+			listener.readCompleted( request, buffer );
+			
+			return;
 		}
 
+		long previousFilesLength = 0;
+		
+		int currentFile = 0;
+		
 		long fileOffset = pieceList.get(0).getOffset();
+		
 		while (currentFile < pieceList.size() && pieceList.getCumulativeLengthToPiece(currentFile) < offset) {
+			
 			previousFilesLength = pieceList.getCumulativeLengthToPiece(currentFile);
+			
 			currentFile++;
+			
 			fileOffset = 0;
 		}
 
@@ -218,7 +161,11 @@ DMReaderImpl
 		
 		fileOffset += offset - previousFilesLength;
 		
-		while (buffer.hasRemaining(DirectByteBuffer.SS_DR) && currentFile < pieceList.size() ) {
+		List	chunks = new ArrayList();
+		
+		int	buffer_position = 0;
+		
+		while ( buffer_position < length && currentFile < pieceList.size()) {
      
 			PieceMapEntry map_entry = pieceList.get( currentFile );
       			
@@ -227,229 +174,146 @@ DMReaderImpl
 				//explicitly limit the read size to the proper length, rather than relying on the underlying file being correctly-sized
 				//see long DMWriterAndCheckerImpl::checkPiece note
 			
-			int entry_read_limit = buffer.position( DirectByteBuffer.SS_DR ) + length_available;
+			int entry_read_limit = buffer_position + length_available;
 			
 				// now bring down to the required read length if this is shorter than this
 				// chunk of data
 			
 			entry_read_limit = Math.min( length, entry_read_limit );
 			
-			buffer.limit( DirectByteBuffer.SS_DR, entry_read_limit );
-      
-			boolean	ok = readFileInfoIntoBuffer( map_entry.getFile(), buffer, fileOffset );
-      
-			buffer.limit ( DirectByteBuffer.SS_DR, length );
-      
-			if( !ok ){
-				
-				buffer.returnToPool();
-				
-				return( null );
-			}
+				// this chunk denotes a read up to buffer offset "entry_read_limit"
+			
+			chunks.add( new Object[]{ map_entry.getFile().getCacheFile(), new Long(fileOffset), new Integer( entry_read_limit )});
+			
+			buffer_position = entry_read_limit;
       
 			currentFile++;
 			
 			fileOffset = 0;
 		}
 
-		buffer.position(DirectByteBuffer.SS_DR,0);
-		
-		return buffer;
-	}
-	
-		// reads a file into a buffer, returns true when no error, otherwise false.
-	
-	private boolean 
-	readFileInfoIntoBuffer(
-		DiskManagerFileInfoImpl file, 
-		DirectByteBuffer buffer, 
-		long offset) 
-	{
-		try{
-			file.getCacheFile().read( buffer, offset );
-				
-			return( true );
-				
-		}catch( CacheFileManagerException e ){
-				
-			disk_manager.setFailed( Debug.getNestedExceptionMessage(e));
-				
-			return( false );
-		}
-	}
-
-	protected void
-	startReadThread()
-	{
-		readThread = new DiskReadThread();
-		
-		readThread.start();
-	}
-	
-	public class 
-	DiskReadThread 
-		extends AEThread 
-	{
-		private AESemaphore		stop_sem	= new AESemaphore( "DMReader::stop");
-
-		private volatile boolean bReadContinue = true;
-
-		public 
-		DiskReadThread() 
-		{
-			super("Disk Reader");
+		if ( chunks.size() == 0 ){
 			
-			setDaemon(true);
+			Debug.out("no chunk reads for " + pieceNumber);
+				
+			listener.readCompleted( request, buffer );
+			
+			return;
 		}
-
-		public void 
-		runSupport() 
+		
+		new requestDispatcher( request, listener, buffer, chunks );
+	}
+	
+	protected class
+	requestDispatcher
+		implements DiskAccessRequestListener
+	{
+		private DiskManagerReadRequest			dm_request;
+		private DiskManagerReadRequestListener	listener;
+		private DirectByteBuffer				buffer;
+		private List							chunks;
+		
+		private int	buffer_length;
+		
+		private int	chunk_index;
+		
+		protected
+		requestDispatcher(
+			DiskManagerReadRequest			_request,
+			DiskManagerReadRequestListener	_listener,
+			DirectByteBuffer				_buffer,
+			List							_chunks )
+		{
+			dm_request	= _request;
+			listener	= _listener;
+			buffer		= _buffer;
+			chunks		= _chunks;
+			
+			/*
+			String	str = "Read: " + dm_request.getPieceNumber()+"/"+dm_request.getOffset()+"/"+dm_request.getLength()+":";
+			
+			for (int i=0;i<chunks.size();i++){
+			
+				Object[]	entry = (Object[])chunks.get(i);
+				
+				String	str2 = entry[0] + "/" + entry[1] +"/" + entry[2];
+				
+				str += (i==0?"":",") + str2;
+			}
+			
+			System.out.println( str );
+			*/
+			
+			buffer_length = buffer.limit( DirectByteBuffer.SS_DR );
+			
+			dispatch();
+		}	
+		
+		protected void
+		dispatch()
 		{
 			try{
-				while ( bReadContinue ){	
-			
-					try{
-						int	entry_count = readQueueSem.reserveSet( 10, READ_THREAD_IDLE_LIMIT );
-						
-						if ( !bReadContinue){
-							
-							break;
-						}
-
-						if ( entry_count == 0 ){
-							
-							try{
-								this_mon.enter();
-								
-								if ( readQueueSem.getValue() == 0 ){
-																			
-									readThread	= null;
-																		
-									break;
-								}
-							}finally{
-								
-								this_mon.exit();
-							}
-						}
-						
-						for (int i=0;i<entry_count;i++){
-							
-							DiskReadRequest drr;
-							
-							try{
-								this_mon.enter();
-								
-								if ( !bReadContinue){
-															
-									break;
-								}
-							
-								drr = (DiskReadRequest)readQueue.remove(0);
-								
-							}finally{
-								
-								this_mon.exit();
-							}
-			
-							DiskManagerReadRequest request = drr.getRequest();
-			
-							DirectByteBuffer buffer = readBlock(request.getPieceNumber(), request.getOffset(), request.getLength());
-	            
-							if (buffer != null) {
-								
-								drr.readCompleted( buffer );
-								
-							}else {
-								
-								String err_msg = "Failed loading piece " +request.getPieceNumber()+ ":" +request.getOffset()+ "->" +(request.getOffset() + request.getLength());
-								
-								if (Logger.isEnabled()) {
-									Logger.log(new LogEvent(disk_manager, LOGID,
-											LogEvent.LT_ERROR, err_msg));
-								}
-								
-								System.out.println( err_msg );
-							}
-						}
-					}catch( Throwable e ){
-						
-						disk_manager.setFailed( "DiskReadThread: error - " + Debug.getNestedExceptionMessage(e));
-						
-						Debug.printStackTrace( e );
-						
-						Debug.out( "DiskReadThread: error occurred during processing: " + e.toString());
-					}
+				if ( chunk_index == chunks.size()){
+					
+					buffer.limit( DirectByteBuffer.SS_DR, buffer_length );
+					
+					buffer.position(  DirectByteBuffer.SS_DR, 0 );
+					
+					listener.readCompleted( dm_request, buffer );
+					
+				}else{
+					
+					Object[]	stuff = (Object[])chunks.get( chunk_index++ );
+					
+					buffer.limit( DirectByteBuffer.SS_DR, ((Integer)stuff[2]).intValue());
+					
+					disk_access.queueReadRequest(
+						(CacheFile)stuff[0],
+						((Long)stuff[1]).longValue(),
+						buffer,
+						this );
 				}
-			}finally{
+			}catch( Throwable e ){
 				
-				stop_sem.releaseForever();
+				failed( e );
 			}
 		}
-
-		protected void 
-		stopIt() 
+		
+		public void
+		requestComplete(
+			DiskAccessRequest	request )
 		{
-			try{
-				try{
-					this_mon.enter();
-					
-					bReadContinue = false;
-					
-				}finally{
-					
-					this_mon.exit();
-				}
-				
-				readQueueSem.releaseForever();
-							
-				while (readQueue.size() != 0){
-					
-					readQueue.remove(0);
-				}
-			}finally{
-			
-				stop_sem.reserve();
-			}
+			dispatch();
 		}
-	}
-	 
-	private static class 
-	DiskReadRequest 
-	{
-	    private final DiskManagerReadRequest 	request;
-	    private final DiskManagerReadRequestListener 	listener;
-	    
-	    //private long	queue_time	= SystemTime.getCurrentTime();
-	    
-	    private 
-		DiskReadRequest( 
-			DiskManagerReadRequest 	r, 
-			DiskManagerReadRequestListener l ) 
-	    {
-	      request 	= r;
-	      listener = l;
-	    }
-	    
-	    protected DiskManagerReadRequest
-		getRequest()
-	    {
-	    	return( request );
-	    }
-	    
-	    protected void
-		readCompleted(
-			DirectByteBuffer	buffer )
-	    {
-	    	//long	now	= SystemTime.getCurrentTime();    	
-	    	//long	processing_time = now - request.getTimeCreated();
-	    	//long	queueung_time	= now - queue_time;
-	    	
-	    	//System.out.println( "DiskManager req time = " + processing_time + ", queue = " + queueung_time );
-	    	
-	    	listener.readCompleted( request, buffer );
-	    }
-	}
-
-	  
+		
+		public void
+		requestCancelled(
+			DiskAccessRequest	request )
+		{
+				// we never cancel so nothing to do here
+			
+			Debug.out( "shouldn't get here" );
+		}
+		
+		public void
+		requestFailed(
+			DiskAccessRequest	request,
+			Throwable			cause )
+		{
+			failed( cause );
+		}
+		
+		protected void
+		failed(
+			Throwable			cause )
+		{
+			buffer.returnToPool();
+			
+			disk_manager.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(cause));
+			
+			Debug.printStackTrace( cause );
+			
+			listener.readFailed( dm_request, cause );
+		}	
+	}	
 }

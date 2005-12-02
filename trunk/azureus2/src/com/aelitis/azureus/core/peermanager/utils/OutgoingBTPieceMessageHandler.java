@@ -83,6 +83,25 @@ public class OutgoingBTPieceMessageHandler {
 
       outgoing_message_queue.doListenerNotifications();
     }
+    public void 
+    readFailed( 
+    	DiskManagerReadRequest 	request, 
+  		Throwable		 		cause )
+    {
+        try{
+          	lock_mon.enter();
+
+          	if( !loading_messages.contains( request ) || destroyed ) { //was canceled
+          	  return;
+          	}
+          	loading_messages.remove( request );
+
+            num_messages_loading--;   
+          }
+          finally{
+          	lock_mon.exit();
+          }
+    }
   };
   
   
@@ -96,10 +115,12 @@ public class OutgoingBTPieceMessageHandler {
 
           queued_messages.remove( message );
           num_messages_in_queue--;
-          doReadAheadLoads();
+   
         }finally{
           lock_mon.exit();
         }
+        
+        doReadAheadLoads();
       }
     }
     public void messageQueued( Message message ) {/*nothing*/}
@@ -142,11 +163,11 @@ public class OutgoingBTPieceMessageHandler {
     
       requests.addLast( dmr );
       
-      doReadAheadLoads();
-      
     }finally{
       lock_mon.exit();
     }
+    
+    doReadAheadLoads();
   }
   
   
@@ -257,11 +278,27 @@ public class OutgoingBTPieceMessageHandler {
   
   
   private void doReadAheadLoads() {
-    while( num_messages_loading + num_messages_in_queue < request_read_ahead && !requests.isEmpty() && !destroyed ) {
-      DiskManagerReadRequest dmr = (DiskManagerReadRequest)requests.removeFirst();
-      loading_messages.add( dmr );
-      disk_manager.enqueueReadRequest( dmr, read_req_listener );
-      num_messages_loading++;
+	List	to_submit = null;
+	try{
+		lock_mon.enter();
+		while( num_messages_loading + num_messages_in_queue < request_read_ahead && !requests.isEmpty() && !destroyed ) {
+			DiskManagerReadRequest dmr = (DiskManagerReadRequest)requests.removeFirst();
+			loading_messages.add( dmr );
+			if ( to_submit == null ){
+				to_submit = new ArrayList();
+			}
+			to_submit.add( dmr );
+     
+			num_messages_loading++;
+		}	
+    }finally{
+    	lock_mon.exit();
+    }
+    
+    if ( to_submit != null ){
+    	for (int i=0;i<to_submit.size();i++){
+    		disk_manager.enqueueReadRequest( (DiskManagerReadRequest)to_submit.get(i), read_req_listener );
+    	}
     }
   }
 
