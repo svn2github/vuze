@@ -2024,10 +2024,15 @@ MainWindow
   }
   
   private class CLabelPadding extends CLabel {
+  	private int lastWidth = 0;
+  	private long widthSetOn = 0;
+  	private final int KEEPWIDTHFOR_MS = 30 * 1000;
+
 		public CLabelPadding(Composite parent, int style) {
 			super(parent, style | SWT.CENTER);
 
-			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.VERTICAL_ALIGN_FILL);
+			GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER
+					| GridData.VERTICAL_ALIGN_FILL);
 			setLayoutData(gridData);
 		}
 
@@ -2037,6 +2042,16 @@ MainWindow
 		public Point computeSize(int wHint, int hHint, boolean changed) {
 			Point pt = super.computeSize(wHint, hHint, changed);
 			pt.x += 4;
+			
+			long now = System.currentTimeMillis();
+			if (lastWidth > pt.x && now - widthSetOn < KEEPWIDTHFOR_MS) {
+				pt.x = lastWidth;
+			} else {
+				if (lastWidth != pt.x)
+					lastWidth = pt.x;
+				widthSetOn = now;
+			}
+			
 			return pt;
 		}
 	}
