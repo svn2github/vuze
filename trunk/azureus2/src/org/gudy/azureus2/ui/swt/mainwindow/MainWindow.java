@@ -408,7 +408,17 @@ MainWindow
     layout_status.horizontalSpacing = 0;
     layout_status.verticalSpacing = 0;
     layout_status.marginHeight = 0;
-    layout_status.marginWidth = (Constants.isOSX) ? 3 : 0;
+    if (Constants.isOSX) {
+    	// OSX has a resize widget on the bottom right.  It's about 15px wide.
+    	try {
+        layout_status.marginRight = 15;
+    	} catch (NoSuchFieldError e) {
+    		// Pre SWT 3.1 
+        layout_status.marginWidth = 15;
+    	}
+    } else {
+      layout_status.marginWidth = 0;
+    }
     statusBar.setLayout(layout_status);
 
     GridData gridData;
