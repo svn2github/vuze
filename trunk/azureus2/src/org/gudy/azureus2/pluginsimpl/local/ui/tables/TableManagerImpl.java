@@ -31,7 +31,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 
-/* Manage Tables
+/** Manage Tables
  *
  * @author TuxPaper
  * @since 2.0.8.5
