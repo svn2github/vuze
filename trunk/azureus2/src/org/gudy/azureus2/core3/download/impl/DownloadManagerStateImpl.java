@@ -26,7 +26,7 @@ import java.util.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -53,6 +53,7 @@ public class
 DownloadManagerStateImpl
 	implements DownloadManagerState
 {
+	private static final LogIDs LOGID = LogIDs.DISK;
 	private static final String			RESUME_KEY			= "resume";
 	private static final String			TRACKER_CACHE_KEY	= "tracker_cache";
 	private static final String			ATTRIBUTE_KEY		= "attributes";
@@ -437,37 +438,38 @@ DownloadManagerStateImpl
 	public void
 	save()
 	{
- 		boolean	do_write;
-  		
-  		try{
-  			this_mon.enter();
-  		
-  			do_write	= write_required;
-  			
-  			write_required	= false;
-  			
-  		}finally{
-  			
-  			this_mon.exit();
-  		}
-  		
-	  	if ( do_write ){
-	  				  	
-	  		try{
-	  			// System.out.println( "writing download state for '" + new String(torrent.getName()));
-	  		
-	  		  if( LGLogger.isEnabled() )  LGLogger.log( "Saving state for download '" + TorrentUtils.getLocalisedName( torrent ) + "'" );
-				
-	  			TorrentUtils.writeToFile( torrent, true );
-	  		
-	  		}catch( Throwable e ){
-	  		
-	  			Debug.printStackTrace( e );
-	  		}
-	  	}else{
-	  		
-	  		// System.out.println( "not writing download state for '" + new String(torrent.getName()));
-	  	}
+ 		boolean do_write;
+
+		try {
+			this_mon.enter();
+
+			do_write = write_required;
+
+			write_required = false;
+
+		} finally {
+
+			this_mon.exit();
+		}
+
+		if (do_write) {
+
+			try {
+				// System.out.println( "writing download state for '" + new String(torrent.getName()));
+
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(torrent, LOGID, "Saving state for download '"
+							+ TorrentUtils.getLocalisedName(torrent) + "'"));
+
+				TorrentUtils.writeToFile(torrent, true);
+
+			} catch (Throwable e) {
+				Logger.log(new LogEvent(torrent, LOGID, "Saving state", e));
+			}
+		} else {
+
+			// System.out.println( "not writing download state for '" + new String(torrent.getName()));
+		}
 	}
 	
 	public void
