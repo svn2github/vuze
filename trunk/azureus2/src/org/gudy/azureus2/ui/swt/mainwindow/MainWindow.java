@@ -516,6 +516,7 @@ MainWindow
     });
     
     statusDown = new CLabelPadding(statusBar, borderFlag);
+    statusDown.setImage(ImageRepository.getImage("down"));
     statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/ "n/a");
     Messages.setLanguageText(statusDown,"MainWindow.status.updowndetails.tooltip");
 
@@ -527,6 +528,7 @@ MainWindow
     };
 
     statusUp = new CLabelPadding(statusBar, borderFlag);
+    statusUp.setImage(ImageRepository.getImage("up"));
     statusUp.setText(/*MessageText.getString("ConfigView.upload.abbreviated") +*/ "n/a");
     Messages.setLanguageText(statusUp,"MainWindow.status.updowndetails.tooltip");
 
