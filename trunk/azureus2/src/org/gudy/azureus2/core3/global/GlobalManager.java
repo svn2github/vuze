@@ -29,195 +29,293 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.download.*;
 
-public interface
-GlobalManager
-	extends AzureusCoreComponent
-{
-	public DownloadManager
-	addDownloadManager(
-		String			file_name,
-		String			save_path );
-	
-	public DownloadManager
-	addDownloadManager(
-		String			file_name,
-		String			save_path,
-		int        		initialState );
-		
-	public DownloadManager
-	addDownloadManager(
-	    String 		fileName,
-	    String 		savePath,
-	    int         initialState,
-		boolean		persistent );
-  
-	public DownloadManager
-	addDownloadManager(
-	    String 		fileName,
-	    String 		savePath,
-	    int         initialState,
-		boolean		persistent,
-		boolean		for_seeding );
-  
-	public void
-	removeDownloadManager(
-		DownloadManager	dm )
-	
-		throws GlobalManagerDownloadRemovalVetoException;
-	
-	public void
-	canDownloadManagerBeRemoved(
-			DownloadManager	dm )
-	
-		throws GlobalManagerDownloadRemovalVetoException;
-	
-		/**
-		 * returns a COPY of the current set of download managers so iteration is safe
-		 * @return
-		 */
-	
-	public List
-	getDownloadManagers();
-	
-	public DownloadManager 
-	getDownloadManager(TOTorrent torrent);
+/**
+ * The GlobalManager contains a list of all the downloads
+ * (DownloadManager objects) that Azureus controls. 
+ */
+public interface GlobalManager extends AzureusCoreComponent {
+	/**
+	 * Create and add a Download Manager to the global list
+	 * 
+	 * @param file_name location and name of torrent file
+	 * @param save_path path to write the data to
+	 * 
+	 * @return The Downloadmanger based on the supplied information.<br>
+	 *          May return an existing DownloadManager if torrent was already
+	 *          in GlobalManager. 
+	 */
+	public DownloadManager addDownloadManager(String file_name, String save_path);
 
-	public DownloadManager 
-  getDownloadManager(byte[]	hash);
+	/**
+	 * Create and add a Download Manager to the global list
+	 * 
+	 * @param fileName location and name of torrent file
+	 * @param savePath path to write the data to
+	 * @param initialState Initial state of download. See DownloadManager.STATE_*
+	 * @param persistent Whether the download should be treated as persistent download
+	 * 
+	 * @return The Downloadmanger based on the supplied information.<br>
+	 *          May return an existing DownloadManager if torrent was already
+	 *          in GlobalManager. 
+	 */
+	public DownloadManager addDownloadManager(String fileName, String savePath,
+			int initialState, boolean persistent);
 
-	public void
-	stopAll();
+	/**
+	 * Create and add a Download Manager to the global list
+	 * 
+	 * @param fileName location and name of torrent file
+	 * @param savePath path to write the data to
+	 * @param initialState Initial state of download. See DownloadManager.STATE_*
+	 * @param persistent Whether the download should be treated as persistent download
+	 * @param for_seeding Whether the manager should assume the torrent is 
+	 *                     already complete and ready for seeding. 
+	 * 
+	 * @return The Downloadmanger based on the supplied information.<br>
+	 *          May return an existing DownloadManager if torrent was already
+	 *          in GlobalManager. 
+	 */
+	public DownloadManager addDownloadManager(String fileName, String savePath,
+			int initialState, boolean persistent, boolean for_seeding);
+
+	/**
+	 * Removes a DownloadManager from the global list, providing it can be
+	 * removed (see {@link #canDownloadManagerBeRemoved(DownloadManager)})
+	 * <p>
+	 * The DownloadManager will not be stopped if it is running.  Scraping,
+	 * however, will be turned off.
+	 * 
+	 * @param dm DownloadManager to remove
+	 * 
+	 * @throws GlobalManagerDownloadRemovalVetoException
+	 */
+	public void removeDownloadManager(DownloadManager dm)
+			throws GlobalManagerDownloadRemovalVetoException;
+
+	/**
+	 * Determines whether a DownloadManager can be removed
+	 * 
+	 * @param dm DownloadManager to check
+	 * @throws GlobalManagerDownloadRemovalVetoException
+	 */
+	public void canDownloadManagerBeRemoved(DownloadManager dm)
+			throws GlobalManagerDownloadRemovalVetoException;
+
+	/**
+	 * Retrieve a list of {@link DownloadManager}s that GlobalManager is handling
+	 * @return a list of {@link DownloadManager}s
+	 */
+	public List getDownloadManagers();
+
+	/**
+	 * Retrieve the DownloadManager associated with a TOTorrent object
+	 * 
+	 * @param torrent Torrent to search for
+	 * @return The DownloadManager associted with the TOTOrrent, or null if
+	 *          none found
+	 */
+	public DownloadManager getDownloadManager(TOTorrent torrent);
+
+	/**
+	 * Retrieve the DownloadManager associated with a hash
+	 * 
+	 * @param hash Hash to search for
+	 * @return The DownloadManager associted with the hash, or null if
+	 *          none found
+	 */
+	public DownloadManager getDownloadManager(byte[] hash);
+
+	/**
+	 * Retrieve the Tracker Scraper management class
+	 * 
+	 * @return Tracker Scraper management class
+	 */
+	public TRTrackerScraper getTrackerScraper();
+
+	/**
+	 * Retrieve the Global Manager Statistics class
+	 * 
+	 * @return the Global Manager Statistics class
+	 */
+	public GlobalManagerStats getStats();
+
+	/**
+	 * Puts GlobalManager in a stopped state.<br>
+	 * Used when closing down Azureus.
+	 */
+	public void stopGlobalManager();
 
 	/**
 	 * Stops all downloads without removing them
-	 *	
-	 *	 @author Rene Leonhardt
+	 *
+	 * @author Rene Leonhardt
 	 */
-	
-	public void
-	stopAllDownloads();
-  
+	public void stopAllDownloads();
+
 	/**
 	 * Starts all downloads
 	 */
-	
-    public void
-    startAllDownloads();
-    
-    /**
-     * pauses (stops) all running downloads
-     * @return an object to supply when resuming the downloads - defines the paused state
-     */
-    
-    
-    
-    /**
-     * Pauses (stops) all running downloads/seedings.
-     */
-    public void pauseDownloads();
-    
+	public void startAllDownloads();
 
-    /**
-     * Indicates whether or not there are any downloads that can be paused.
-     * @return true if there is at least one download to pause, false if none
-     */
-    public boolean canPauseDownloads();
+	/**
+	 * Pauses (stops) all running downloads/seedings.
+	 */
+	public void pauseDownloads();
 
- 	
-    /**
-     * Resumes (starts) all downloads paused by the previous pauseDownloads call.
-     */
-    public void resumeDownloads();
+	/**
+	 * Indicates whether or not there are any downloads that can be paused.
+	 * @return true if there is at least one download to pause, false if none
+	 */
+	public boolean canPauseDownloads();
 
-    
-    /**
-     * Indicates whether or not there are any paused downloads to resume.
-     * @return true if there is at least one download to resume, false if none.
-     */
-    public boolean canResumeDownloads();
-    
-    public boolean
-    pauseDownload(
-    	DownloadManager	dm );
-    
-    public void
-    resumeDownload(
-    	DownloadManager	dm );
-    
-	public boolean
-	isPaused(
-		DownloadManager	dm );
-	
-    public boolean
-    isSeedingOnly();
-    
-	public TRTrackerScraper
-	getTrackerScraper();
-	
-	public GlobalManagerStats
-	getStats();
+	/**
+	 * Resumes (starts) all downloads paused by the previous pauseDownloads call.
+	 */
+	public void resumeDownloads();
 
-	public int
-	getIndexOf(
-		DownloadManager	dm );
-	
-	public boolean
-	isMoveableDown(
-		DownloadManager	dm );
-	
-	public boolean
-	isMoveableUp(
-		DownloadManager	dm );
-	
-	public void
-	moveDown(
-		DownloadManager	dm );
-	
-	public void
-	moveUp(
-		DownloadManager	dm );
-		
-  public void
-  moveEnd(
-      DownloadManager[] dm );
-  
-  public void
-  moveTop(
-      DownloadManager[] dm );
-  
-  public void 
-  moveTo(
-  		DownloadManager manager, int newPosition );
+	/**
+	 * Indicates whether or not there are any paused downloads to resume.
+	 * @return true if there is at least one download to resume, false if none.
+	 */
+	public boolean canResumeDownloads();
 
-  /** Verifies the positions of the DownloadManagers, 
-   *  filling in gaps and shifting duplicate IDs down if necessary.
-   *
-   *  This does not need to be called after MoveXXX functions.
-   */
-	public void
-	fixUpDownloadManagerPositions();
+	/**
+	 * Pause one DownloadManager
+	 * @param dm DownloadManager to pause
+	 * @return False if DownloadManager was invalid, stopped, or pause failed
+	 */
+	public boolean pauseDownload(DownloadManager dm);
 
-		/**
-		 * See plugin ConnectionManager.NAT_ constants for return values
-		 * @return
-		 */
-	
-	 public int
-	 getNATStatus();
-	 
-  public void
-	addListener(
-		GlobalManagerListener	l );
-		
-	public void
-	removeListener(
-		GlobalManagerListener	l );
+	/**
+	 * Resume a previously paused DownloadManager
+	 * @param dm DownloadManager to resume
+	 */
+	public void resumeDownload(DownloadManager dm);
 
-	public void
-	addDownloadWillBeRemovedListener(
-		GlobalManagerDownloadWillBeRemovedListener	l );
-	
-	public void
-	removeDownloadWillBeRemovedListener(
-		GlobalManagerDownloadWillBeRemovedListener	l );
+	/**
+	 * Retrieve whether a DownloadManager is in a paused state
+	 * 
+	 * @param dm DownloadManager to query
+	 * @return the pause state
+	 */
+	public boolean isPaused(DownloadManager dm);
+
+	/**
+	 * Determines whether we are only seeding, and not currently downloading
+	 * anything.
+	 * 
+	 * @return  Seeding Only State
+	 */
+	public boolean isSeedingOnly();
+
+	/**
+	 * Retrieve the index of a DownloadManager within the GlobalManager
+	 * list retrieved via {@link #getDownloadManagers()}.
+	 * <P>
+	 * This is NOT the DownloadManager's position
+	 * 
+	 * @param dm  DownloadManger to find the index of
+	 * @return index, -1 if not in list
+	 * 
+	 * @deprecated Should not be used, as indexes may be different than
+	 *               when getDownloadManagers() was called.
+	 */
+	public int getIndexOf(DownloadManager dm);
+
+	/**
+	 * Retrieve whether a DownloadManager can move down in the GlobalManager list
+	 * @param dm DownloadManager to check
+	 * @return True - Can move down
+	 */
+	public boolean isMoveableDown(DownloadManager dm);
+
+	/**
+	 * Retrieve whether a DownloadManager can move up in the GlobalManager list
+	 * @param dm DownloadManager to check
+	 * @return True - Can move up
+	 */
+	public boolean isMoveableUp(DownloadManager dm);
+
+	/**
+	 * Move a list of DownloadManagers to the top of the GlobalManager list
+	 *  
+	 * @param dm array list of DownloadManager objects to move
+	 */
+	public void moveTop(DownloadManager[] dm);
+
+	/**
+	 * Move one DownloadManager up in the GlobalManager's list
+	 * @param dm DownloadManager to move up
+	 */
+	public void moveUp(DownloadManager dm);
+
+	/**
+	 * Move one DownloadManager down in the GlobalManager's list
+	 * @param dm DownloadManager to move down
+	 */
+	public void moveDown(DownloadManager dm);
+
+	/**
+	 * Move a list of DownloadManagers to the end of the GlobalManager list
+	 *  
+	 * @param dm array list of DownloadManager objects to move
+	 */
+	public void moveEnd(DownloadManager[] dm);
+
+	/**
+	 * Move a Downloadmanager to a new position.
+	 * 
+	 * @param manager DownloadManager to move
+	 * @param newPosition position to place
+	 */
+	public void moveTo(DownloadManager manager, int newPosition);
+
+	/** 
+	 * Verifies the positions of the DownloadManagers, 
+	 * filling in gaps and shifting duplicate IDs down if necessary.
+	 * <p>
+	 * This does not need to be called after MoveXXX, addDownloadManager, or
+	 * removeDownloadManager functions.
+	 */
+	public void fixUpDownloadManagerPositions();
+
+	/**
+	 * Add a Global Manager listener
+	 * @param l Listener to add
+	 */
+	public void addListener(GlobalManagerListener l);
+
+	/**
+	 * Removes a Global Manager listener
+	 * @param l Listener to remove
+	 */
+	public void removeListener(GlobalManagerListener l);
+
+	/**
+	 * Add a listener triggered when Download is about to be removed
+	 * @param l Listener to add
+	 */
+	public void addDownloadWillBeRemovedListener(
+			GlobalManagerDownloadWillBeRemovedListener l);
+
+	/**
+	 * Remove a listener triggered when Download is about to be removed
+	 * @param l Listener to remove
+	 */
+	public void removeDownloadWillBeRemovedListener(
+			GlobalManagerDownloadWillBeRemovedListener l);
+
+	/**
+	 * Saves the states of the downloads
+	 * 
+	 * @param immediate True: Save Immediately;<BR>
+	 *                   False: Save on next manager checker cycle
+	 */
+	public void saveDownloads(boolean immediate);
+
+	/**
+	 * See plugin ConnectionManager.NAT_ constants for return values
+	 * @return ConnectionManager.NAT_*
+	 */
+	public int getNATStatus();
 }

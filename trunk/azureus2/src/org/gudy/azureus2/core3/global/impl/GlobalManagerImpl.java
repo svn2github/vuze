@@ -415,15 +415,6 @@ public class GlobalManagerImpl
   	return addDownloadManager(fileName, savePath, DownloadManager.STATE_WAITING, true);
   }
    
-  	public DownloadManager 
-	addDownloadManager(
-  		String 	fileName, 
-		String 	savePath, 
-		int 	initialState ) 
-  	{
-  		return( addDownloadManager(fileName, savePath, initialState, true ));
-  	}
-  	
 	public DownloadManager
 	addDownloadManager(
 	    String 		fileName,
@@ -900,7 +891,7 @@ public class GlobalManagerImpl
    * Used when closing down Azureus.
    */
   public void 
-  stopAll() {
+  stopGlobalManager() {
   	try{
   		managers_mon.enter();
   		
@@ -1410,7 +1401,7 @@ public class GlobalManagerImpl
   }
 
 
-  private void 
+  public void 
   saveDownloads(
   	boolean	immediate ) 
   {

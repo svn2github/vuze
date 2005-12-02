@@ -318,7 +318,7 @@ AzureusCoreImpl
 			this_mon.exit();
 		}
 		
-		global_manager.stopAll();
+		global_manager.stopGlobalManager();
 			
 		for (int i=0;i<lifecycle_listeners.size();i++){
 				

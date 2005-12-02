@@ -244,12 +244,12 @@ public class TorrentFolderWatcher {
 							TorrentUtils.move(file, imported);
 
 							global_manager.addDownloadManager(imported.getAbsolutePath(),
-									data_save_path, start_state);
+									data_save_path, start_state, false);
 
 						} else {
 
 							global_manager.addDownloadManager(file.getAbsolutePath(),
-									data_save_path, start_state);
+									data_save_path, start_state, false);
 
 							// add torrent for deletion, since there will be a 
 							// saved copy elsewhere
