@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.pluginsimpl.local.FailedPlugin;
 import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
@@ -238,7 +239,7 @@ PluginInstallerImpl
 						// create a dummy plugin at version 0.0 to trigger the "upgrade" to the new
 						// installed version
 					
-					final dummyPlugin	dummy_plugin = new dummyPlugin( plugin_id, target_dir );
+					final FailedPlugin	dummy_plugin = new FailedPlugin( plugin_id, target_dir );
 					
 					PluginManager.registerPlugin( dummy_plugin, plugin_id );
 				
@@ -495,55 +496,6 @@ PluginInstallerImpl
 		}
 		
 		throw( new PluginException( "No listeners registered to perform installation of '" + plugin.getName() +" (" + reason + ")" ));
-	}
-	
-	protected class
-	dummyPlugin
-		implements UnloadablePlugin
-	{
-		protected String			plugin_name;
-		protected String			plugin_dir;
-		
-		protected PluginInterfaceImpl	plugin_interface;
-		
-		protected
-		dummyPlugin(
-			String	_name,
-			String	_target_dir )
-		{
-			plugin_name	= _name;
-			plugin_dir	= _target_dir;
-		}
-		
-		public void
-		initialize(
-			PluginInterface	_plugin_interface )
-		{
-			plugin_interface	= (PluginInterfaceImpl)_plugin_interface;
-			
-			plugin_interface.setPluginVersion( "0.0" );
-			
-			plugin_interface.setPluginName( plugin_name );
-			
-			plugin_interface.setPluginDirectoryName( plugin_dir );
-		}
-		
-		public void
-		unload()
-		{	
-		}
-		
-		protected void
-		requestUnload()
-		{
-			try{
-				plugin_interface.unload();
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}
 	}
 	
 	public void

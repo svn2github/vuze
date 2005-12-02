@@ -30,6 +30,7 @@ import java.util.*;
 
 import com.aelitis.azureus.core.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
@@ -40,7 +41,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 
 
 import org.gudy.azureus2.plugins.*;
@@ -61,6 +62,7 @@ public class
 PluginInitializer
 	implements GlobalManagerListener, AEDiagnosticsEvidenceGenerator
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
 	public static final String	INTERNAL_PLUGIN_ID = "<internal>";
 	
 	// class name, plugin id, plugin key (key used for config props so if you change
@@ -332,8 +334,9 @@ PluginInitializer
 	    	
 	    	loadPluginsFromDir(app_dir, user_plugins, user_plugins + app_plugins );
 	    }
-	    
-		LGLogger.log("Loading built-in plugins");
+      
+	    if (Logger.isEnabled())
+	    	Logger.log(new LogEvent(LOGID, "Loading built-in plugins"));
 	    
   		PluginManagerDefaults	def = PluginManager.getDefaults();
     
@@ -354,6 +357,8 @@ PluginInitializer
   			      	
   			      	load_method.invoke( null, new Object[]{ getDefaultInterfaceSupport() });
   			      	
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+							"Built-in plugin '" + builtin_plugins[i][0] + "' ok"));
   			      }catch( NoSuchMethodException e ){
   			      	
   			      }catch( Throwable e ){
@@ -362,16 +367,19 @@ PluginInitializer
 							
 						Debug.printStackTrace( e );
 	  			
-						LGLogger.logUnrepeatableAlert( "Load of built in plugin '" + key + "' fails", e );
+						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+								"Load of built in plugin '" + builtin_plugins[i][2] + "' fails", e));
 					}
   				}
   			}else{
-    		
-  				LGLogger.log( "Built-in plugin '" + builtin_plugins[i][0] + "' is disabled" );
+  				if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+								"Built-in plugin '" + builtin_plugins[i][2] + "' is disabled"));
   			}
   		}
   		
-		LGLogger.log("Loading dynamically registered plugins");
+ 		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Loading dynamically registered plugins"));
 		 
 		for (int i=0;i<registration_queue.size();i++){
 			
@@ -411,7 +419,8 @@ PluginInitializer
 		      	
 				Debug.printStackTrace( e );
 		
-				LGLogger.logUnrepeatableAlert( "Load of dynamic plugin '" + id + "' fails", e );
+				Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+						"Load of dynamic plugin '" + id + "' fails", e));
 			}
 		}
   	}
@@ -422,7 +431,8 @@ PluginInitializer
 	int		plugin_offset,
 	int		plugin_total )
   {
-    LGLogger.log("Plugin Directory is " + pluginDirectory);
+  	if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Plugin Directory is " + pluginDirectory));
     
     if ( !pluginDirectory.exists() ){
     	
@@ -437,12 +447,16 @@ PluginInitializer
         
         if( pluginsDirectory[i].getName().equals( "CVS" ) ) {
         	
-          LGLogger.log("Skipping plugin " + pluginsDirectory[i].getName());
+        	if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "Skipping plugin "
+								+ pluginsDirectory[i].getName()));
           
           continue;
         }
 	    	
-	    LGLogger.log("Loading plugin " + pluginsDirectory[i].getName());
+      if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Loading plugin "
+						+ pluginsDirectory[i].getName()));
 
 	    if(listener != null) {
   	      	
@@ -513,7 +527,10 @@ PluginInitializer
     
     if ( !looks_like_plugin ){
     	
-    	LGLogger.log( "Plugin directory '" + directory + "' has no plugin.properties or .jar files, skipping" );
+    	if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+						"Plugin directory '" + directory + "' has no plugin.properties "
+								+ "or .jar files, skipping"));
     	
     	return( loaded_pis );
     }
@@ -539,7 +556,9 @@ PluginInitializer
     			
     				// non-versioned version still there, rename it
     			
-    			LGLogger.log( "renaming '" + name + "' to conform with versioning system" );
+    			if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "renaming '" + name
+								+ "' to conform with versioning system"));
     			
     			jar_file.renameTo( new File( jar_file.getParent(), "i18nAZ_0.1.jar  " ));
     			
@@ -607,7 +626,7 @@ PluginInitializer
       	
       	String	msg =  "Can't read 'plugin.properties' for plugin '" + pluginName + "': file may be missing";
       	
-      	LGLogger.logUnrepeatableAlert( LGLogger.AT_ERROR, msg );
+      	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
       	  
         System.out.println( msg );
         
@@ -663,13 +682,16 @@ PluginInitializer
   				
   					// skip this overridden plugin
   				
-  				LGLogger.log( LGLogger.AT_COMMENT, "Plugin '" + plugin_name_string + "/" + plugin_class + ": shared version overridden by user-specific one" );
+  				Logger.log(new LogEvent(LOGID, "Plugin '" + plugin_name_string
+								+ "/" + plugin_class
+								+ ": shared version overridden by user-specific one"));
   				
   				return( new ArrayList());
   				
   			}else{
-  			
-  				LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "Error loading '" + plugin_name_string + "', plugin class '" + plugin_class + "' is already loaded" );
+  				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+								"Error loading '" + plugin_name_string + "', plugin class '"
+										+ plugin_class + "' is already loaded"));
   			}
 
   		}else{
@@ -751,15 +773,15 @@ PluginInitializer
 	      	
 	    		  load_failure	= e;
 	      	
-	    		  plugin = new loadFailedPlugin();
+	    		  plugin = new FailedPlugin();
 	    	  }
 	      }else{
 	    	  
 	    	  classLoader = plugin.getClass().getClassLoader();
 	      }
-
-	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
 	      
+	      MessageText.integratePluginMessages((String)props.get("plugin.langfile"),classLoader);
+
 	      PluginInterfaceImpl plugin_interface = 
 	      		new PluginInterfaceImpl(
 	      					plugin, 
@@ -772,6 +794,8 @@ PluginInitializer
 							pid,
 							plugin_version[0] );
 	      
+	      boolean bEnabled = COConfigurationManager.getBooleanParameter("Plugin." + pid + ".enabled", true);
+	      plugin_interface.setDisabled(!bEnabled);
 
 	      try{
 	      
@@ -796,7 +820,7 @@ PluginInitializer
 	    		  
 		      	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
 		   	 
-		      	LGLogger.logUnrepeatableAlert( msg, load_failure );
+		      	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, load_failure));
 	
 		      	System.out.println( msg + " : " + load_failure);
 		      }
@@ -822,7 +846,7 @@ PluginInitializer
       
     	String	msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
  	 
-    	LGLogger.logUnrepeatableAlert( msg, e );
+    	Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, e));
 
     	System.out.println( msg + " : " + e);
     	
@@ -830,114 +854,111 @@ PluginInitializer
     }
   }
   
-  	public void
-	initialisePlugins()
-  	{
-  		for (int i=0;i<loaded_pi_list.size();i++){
-  		
-  			try{
-  				List	l = (List)loaded_pi_list.get(i);
-  			
-  				if ( l.size() > 0 ){
-  				
-  					PluginInterfaceImpl	plugin_interface = (PluginInterfaceImpl)l.get(0);
-  				
-  					LGLogger.log("Initialising plugin " + plugin_interface.getPluginName());
-	
-  					if (listener != null) {
-	  			      	
-  						listener.reportCurrentTask(MessageText.getString("splash.plugin.init") + plugin_interface.getPluginName());
-  					}
-	  		    
-  					initialisePlugin( l );
-  				}
-  			
-  			}catch( PluginException e ){
-  			
-  				// already handled
-  			
-  			}finally{
-  			
-  				if( listener != null ){
-	      	
-  					listener.reportPercent( (100 * (i+1)) / loaded_pi_list.size() );
-  				}
-  			}
-  		}
-  	
-  			// some plugins try and steal the logger stdout redirects. re-establish them if needed
-    
-  		LGLogger.checkRedirection();
-    
-  			// now do built in ones
-    
-  		LGLogger.log("Initializing built-in plugins");
-    
-  		PluginManagerDefaults	def = PluginManager.getDefaults();
-    
-  		for (int i=0;i<builtin_plugins.length;i++){
-    		
-  			if ( def.isDefaultPluginEnabled( builtin_plugins[i][0])){
-    		
-  				String	id 	= builtin_plugins[i][2];
-  				String	key	= builtin_plugins[i][3];
-	    	
-  				try{
-  					Class	cla = getClass().getClassLoader().loadClass( builtin_plugins[i][1]);
-				
-  					initializePluginFromClass( cla, id, key );
-		 		 				
-  				}catch( Throwable e ){
-	  			
-					try{
-							// replace it with a "broken" plugin instance
-						
-						initializePluginFromClass( loadFailedPlugin.class, id, key );
-						
-					}catch( Throwable f ){
+  public void initialisePlugins() {
+		for (int i = 0; i < loaded_pi_list.size(); i++) {
+			try {
+				List l = (List) loaded_pi_list.get(i);
+
+				if (l.size() > 0) {
+					PluginInterfaceImpl plugin_interface = (PluginInterfaceImpl) l.get(0);
+
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "Initialising plugin "
+								+ plugin_interface.getPluginName()));
+
+					if (listener != null) {
+						listener.reportCurrentTask(MessageText
+								.getString("splash.plugin.init")
+								+ plugin_interface.getPluginName());
 					}
-					
- 					if ( builtin_plugins[i][4].equalsIgnoreCase("true")){
-						
-	 					Debug.printStackTrace( e );
-			  			
-						LGLogger.logUnrepeatableAlert( "Initialisation of built in plugin '" + key + "' fails", e );
-					}
-  				}
-  			}else{
-    		
-  				LGLogger.log( "Built-in plugin '" + builtin_plugins[i][0] + "' is disabled" );
-  			}
-  		}
-    
- 		LGLogger.log("Initializing dynamically registered plugins");
- 		 
-		for (int i=0;i<registration_queue.size();i++){
-			
-			try{
-				Object	entry = registration_queue.get(i);
-				
-				if ( entry instanceof Class ){
-					
-	  				Class cla = (Class)entry;
-	  				
-	  				singleton.initializePluginFromClass(cla, INTERNAL_PLUGIN_ID, cla.getName());
-				
-				}else{
-					
-					Object[]	x = (Object[])entry;
-					
-					Plugin	plugin = (Plugin)x[0];
-					
-					singleton.initializePluginFromInstance(plugin, (String)x[1], plugin.getClass().getName());
+
+					initialisePlugin(l);
 				}
-			}catch(PluginException e ){
-				
+
+			} catch (PluginException e) {
+				// already handled
+			} finally {
+				if (listener != null) {
+					listener.reportPercent((100 * (i + 1)) / loaded_pi_list.size());
+				}
 			}
 		}
-		
+
+		// some plugins try and steal the logger stdout redirects. 
+		// re-establish them if needed
+		Logger.doRedirects();
+
+		// now do built in ones
+
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID, "Initializing built-in plugins"));
+
+		PluginManagerDefaults def = PluginManager.getDefaults();
+
+		for (int i = 0; i < builtin_plugins.length; i++) {
+			if (def.isDefaultPluginEnabled(builtin_plugins[i][0])) {
+				String id = builtin_plugins[i][2];
+				String key = builtin_plugins[i][3];
+
+				try {
+					Class cla = getClass().getClassLoader().loadClass(
+							builtin_plugins[i][1]);
+
+					initializePluginFromClass(cla, id, key);
+
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+							"Built-in plugin '" + builtin_plugins[i][2] + "' ok"));
+				} catch (Throwable e) {
+					try {
+						// replace it with a "broken" plugin instance
+						initializePluginFromClass(FailedPlugin.class, id, key);
+
+					} catch (Throwable f) {
+					}
+
+					if (builtin_plugins[i][4].equalsIgnoreCase("true")) {
+						Debug.printStackTrace(e);
+						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+								"Initialisation of built in plugin '" + builtin_plugins[i][2]
+										+ "' fails", e));
+					}
+				}
+			} else {
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+							"Built-in plugin '" + builtin_plugins[i][2] + "' is disabled"));
+			}
+		}
+
+		if (Logger.isEnabled())
+			Logger.log(new LogEvent(LOGID,
+					"Initializing dynamically registered plugins"));
+
+		for (int i = 0; i < registration_queue.size(); i++) {
+			try {
+				Object entry = registration_queue.get(i);
+
+				if (entry instanceof Class) {
+
+					Class cla = (Class) entry;
+
+					singleton.initializePluginFromClass(cla, INTERNAL_PLUGIN_ID, cla
+							.getName());
+
+				} else {
+					Object[] x = (Object[]) entry;
+
+					Plugin plugin = (Plugin) x[0];
+
+					singleton.initializePluginFromInstance(plugin, (String) x[1], plugin
+							.getClass().getName());
+				}
+			} catch (PluginException e) {
+			}
+		}
+
 		registration_queue.clear();
-  	}
+	}
   
   	private void
 	initialisePlugin(
@@ -950,6 +971,11 @@ PluginInitializer
   		for (int i=0;i<l.size();i++){
   	
   			PluginInterfaceImpl	plugin_interface = (PluginInterfaceImpl)l.get(i);
+  			
+  			if (plugin_interface.isDisabled()) {
+  				plugin_interfaces.add( plugin_interface );
+  				continue;
+  			}
   	
   			Plugin	plugin = plugin_interface.getPlugin();
   			
@@ -961,7 +987,8 @@ PluginInitializer
 				
   				plugin.initialize(plugin_interface);
       	
-  				plugin_interface.setOperational( true );
+  				if (!(plugin instanceof FailedPlugin))
+  					plugin_interface.setOperational( true );
   				
   			}catch( Throwable e ){
       	
@@ -978,7 +1005,7 @@ PluginInitializer
 	        
   				String	msg = "Error initialising plugin '" + plugin_interface.getPluginName() + "'";
 	   	 
-  				LGLogger.logUnrepeatableAlert( msg, load_failure );
+  				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, load_failure));
 	
   				System.out.println( msg + " : " + load_failure);
 	      	
@@ -1001,9 +1028,12 @@ PluginInitializer
   	throws PluginException
   {
   
-  	if ( plugin_class != loadFailedPlugin.class && getPluginFromClass( plugin_class ) != null ){
+  	if ( plugin_class != FailedPlugin.class && getPluginFromClass( plugin_class ) != null ){
   	
-  		LGLogger.logUnrepeatableAlert( LGLogger.AT_WARNING, "Error loading '" + plugin_id + "', plugin class '" + plugin_class.getName() + "' is already loaded" );
+  		
+  		Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_WARNING,
+					"Error loading '" + plugin_id + "', plugin class '"
+							+ plugin_class.getName() + "' is already loaded"));
   		
   		return;
   	}
@@ -1061,12 +1091,14 @@ PluginInitializer
 		      	
 			Debug.printStackTrace( e );
 			
-			LGLogger.logUnrepeatableAlert( "Load of built in plugin '" + plugin_id + "' fails", e );
+			Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+						"Load of built in plugin '" + plugin_id + "' fails", e));
 		}
 		 
   		plugin.initialize(plugin_interface);
   		
-  		plugin_interface.setOperational( true );
+  		if (!(plugin instanceof FailedPlugin))
+  			plugin_interface.setOperational( true );
   	
    		plugins.add( plugin );
    		
@@ -1077,8 +1109,8 @@ PluginInitializer
   		Debug.printStackTrace( e );
   		
   		String	msg = "Error loading internal plugin '" + plugin_class.getName() + "'";
-  		
-    	LGLogger.logUnrepeatableAlert( msg, e );
+
+  		Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, e));
 
   		System.out.println(msg + " : " + e);
   		
@@ -1111,7 +1143,8 @@ PluginInitializer
 
   		plugin.initialize(plugin_interface);
   		
-  		plugin_interface.setOperational( true );
+  		if (!(plugin instanceof FailedPlugin))
+  			plugin_interface.setOperational( true );
   		
    		plugins.add( plugin );
    		
@@ -1123,7 +1156,7 @@ PluginInitializer
   		
   		String	msg = "Error loading internal plugin '" + plugin.getClass().getName() + "'";
   		
-    	LGLogger.logUnrepeatableAlert( msg, e );
+  		Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, e));
 
   		System.out.println(msg + " : " + e);
   		
@@ -1438,34 +1471,4 @@ PluginInitializer
 			writer.exdent();
 		}
 	}
-	
-
-  	
-  	protected static class
-	loadFailedPlugin
-		implements UnloadablePlugin
-	{
-		public
-		loadFailedPlugin()
-		{	
-		}
-		
-  		public void 
-		initialize(
-		  	PluginInterface pi )
-		  
-		  	throws PluginException
-		{ 	
- 			Properties props = pi.getPluginProperties();
-			
-			props.setProperty( "plugin.name", pi.getPluginID() + " load failed" );
-			
-			props.setProperty( "plugin.version", "0.0" );
-  		}
-  		 
-  		public void
-		unload()
-		{
-  		}
-  	}
 }

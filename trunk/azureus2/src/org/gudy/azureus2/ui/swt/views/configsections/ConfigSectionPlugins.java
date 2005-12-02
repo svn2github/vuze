@@ -375,9 +375,8 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 		labelInfo.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		Messages.setLanguageText(labelInfo, "ConfigView.pluginlist.info");
 
-		// XXX add SWT.CHECK when rest of the code is checked in
 		final Table table = new Table(infoGroup, SWT.BORDER | SWT.SINGLE
-				| SWT.VIRTUAL | SWT.FULL_SELECTION);
+				| SWT.CHECK | SWT.VIRTUAL | SWT.FULL_SELECTION);
 		gridData = new GridData(GridData.FILL_BOTH);
 		gridData.heightHint = 200;
 		gridData.widthHint = 200;
