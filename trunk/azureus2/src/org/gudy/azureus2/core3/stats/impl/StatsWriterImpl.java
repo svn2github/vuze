@@ -133,7 +133,7 @@ StatsWriterImpl
 			
 				DownloadManager[]	dms = new DownloadManager[_dms.size()];
 				
-					// sort by index, downloads then seeders
+					// sort by position, downloads then seeders
 				
 				_dms.toArray( dms );
 				
@@ -149,8 +149,8 @@ StatsWriterImpl
 							DownloadManager	d1 = (DownloadManager)o1;
 							DownloadManager	d2 = (DownloadManager)o2;
 							
-							int	d1_index 	= d1.getIndex();
-							int d2_index	= d2.getIndex();
+							int	d1_index 	= d1.getPosition();
+							int d2_index	= d2.getPosition();
 							
 							if ( d1.getStats().getDownloadCompleted(false) == 1000 ){
 								
