@@ -55,7 +55,10 @@ public class SWTManagerImpl
 	}
   
   public Display getDisplay() {
-    return SWTThread.getInstance().getDisplay();
+  	SWTThread instance = SWTThread.getInstance();
+  	if (instance == null)
+  		return null;
+    return instance.getDisplay();
   }
   
   public GraphicSWT createGraphic(Image img) {
@@ -107,7 +110,7 @@ public class SWTManagerImpl
   	{
   		addView(view, false);
   	} 
-  
+
 	public PluginView
 	createPluginView(
 		PluginViewModel	model )
