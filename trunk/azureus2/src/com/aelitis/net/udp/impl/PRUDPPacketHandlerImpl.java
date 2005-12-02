@@ -84,6 +84,8 @@ PRUDPPacketHandlerImpl
 	private int			receive_delay			= 0;
 	private int			queued_request_timeout	= 0;
 	
+	private long		total_requests;
+	private long		total_replies;
 	private long		last_error_report;
 	
 	protected
@@ -344,6 +346,8 @@ PRUDPPacketHandlerImpl
 			
 			if ( request_packet ){
 					
+				total_requests++;
+				
 				// System.out.println( "Incoming from " + dg_packet.getAddress());
 				
 				if ( TRACE_REQUESTS ){
@@ -368,7 +372,9 @@ PRUDPPacketHandlerImpl
 								
 								last_error_report	= now;
 								
-								Debug.out( "Receive queue size limit exceeded (" + MAX_RECV_QUEUE_DATA_SIZE + "), dropping request packet" );
+								Debug.out( "Receive queue size limit exceeded (" + 
+											MAX_RECV_QUEUE_DATA_SIZE + "), dropping request packet [" +
+											total_requests + "/" + total_replies + "]");
 							}
 							
 						}else if ( receive_delay * recv_queue.size() > queued_request_timeout ){
@@ -382,7 +388,9 @@ PRUDPPacketHandlerImpl
 								
 								last_error_report	= now;
 
-								Debug.out( "Receive queue entry limit exceeded (" + recv_queue.size() + ", dropping request packet" );
+								Debug.out( "Receive queue entry limit exceeded (" + 
+											recv_queue.size() + "), dropping request packet ]" +
+											total_requests + "/" + total_replies + "]");
 							}
 							
 						}else{
@@ -449,6 +457,8 @@ PRUDPPacketHandlerImpl
 				}
 	
 			}else{
+				
+				total_replies++;
 				
 				if ( TRACE_REQUESTS ){
 					Logger.log(new LogEvent(LOGID,
