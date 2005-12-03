@@ -17,15 +17,13 @@ import org.apache.log4j.Level;
  */
 public class SLevel extends Level {
   
-  public final static int INT_TORRENT_RECEIVED = 11101;
-  public final static int INT_TORRENT_SENT = 11100;
+  public final static int INT_CORE_WARNING = 11100;
   public final static int INT_CORE_INFO = 11000;
   public final static int INT_THREAD = 10001;
   public final static int INT_HTTP = 12000;
   public final static int INT_ACCESS_VIOLATION = 35000;
   
-  public static final Level TORRENT_RECEIVED = new SLevel(INT_TORRENT_RECEIVED, "TORRENT RECEIVED", 6);
-  public static final Level TORRENT_SENT = new SLevel(INT_TORRENT_SENT, "TORRENT SENT", 6);
+  public static final Level CORE_WARNING = new SLevel(INT_CORE_WARNING, "CORE WARNING", 6);
   public static final Level CORE_INFO = new SLevel(INT_CORE_INFO, "CORE INFO", 6);
   public static final Level THREAD = new SLevel(INT_THREAD, "THREAD", 6);
   public static final Level HTTP = new SLevel(INT_HTTP, "HTTP", 6);
@@ -39,8 +37,7 @@ public class SLevel extends Level {
   
   public static Level toLevel(int val, Level defaultLevel) {
     switch (val) {
-      case INT_TORRENT_RECEIVED: return SLevel.TORRENT_RECEIVED;
-      case INT_TORRENT_SENT: return SLevel.TORRENT_SENT;
+      case INT_CORE_WARNING: return SLevel.CORE_WARNING;
       case INT_CORE_INFO: return SLevel.CORE_INFO;
       case INT_THREAD: return SLevel.THREAD;
       case INT_HTTP: return SLevel.HTTP;

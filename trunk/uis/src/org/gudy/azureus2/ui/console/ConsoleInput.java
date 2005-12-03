@@ -35,8 +35,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.logging.LGAlertListener;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
@@ -221,52 +220,23 @@ public class ConsoleInput extends Thread {
 	protected void
 	registerAlertHandler()
 	{
-		LGLogger.addAlertListener(
-			new LGAlertListener()
-			{
-				private java.util.Set	history = Collections.synchronizedSet( new HashSet());
-				
-				
-				public void
-				alertRaised(
-					int		type,
-					String	message,
-					boolean	repeatable )
-				{
-					if ( !repeatable ){
+		Logger.addListener(new ILogAlertListener() {
+			private java.util.Set	history = Collections.synchronizedSet( new HashSet());
+			
+			public void alertRaised(LogAlert alert) {
+				if (!alert.repeatable) {
+					if ( history.contains( alert.text )){
 						
-						if ( history.contains( message )){
-							
-							return;
-						}
-						
-						history.add( message );
+						return;
 					}
 					
-					out.println( message );
+					history.add( alert.text );
 				}
-				
-				public void
-				alertRaised(
-					String		message,
-					Throwable	exception,
-					boolean		repeatable )
-				{
-					if ( !repeatable ){
-						
-						if ( history.contains( message )){
-							
-							return;
-						}
-						
-						history.add( message );
-					}
-					
-					out.println( message );
-
-					exception.printStackTrace( out );
-				}
-			});
+				out.println( alert.text );
+				if (alert.err != null)
+					alert.err.printStackTrace( out );
+			}
+		});
 	}
 	/**
 	 * registers the commands available to be executed from this console 
