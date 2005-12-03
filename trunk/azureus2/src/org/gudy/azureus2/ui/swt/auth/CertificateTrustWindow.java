@@ -130,7 +130,7 @@ CertificateTrustWindow
 			// info
 			
 			Label info_label = new Label(shell,SWT.NULL);
-			info_label.setText(MessageText.getString("security.certtruster.intro"));
+			Messages.setLanguageText(info_label, "security.certtruster.intro");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 3;
 			info_label.setLayoutData(gridData);
@@ -138,13 +138,13 @@ CertificateTrustWindow
 			// resource
 			
 			Label resource_label = new Label(shell,SWT.NULL);
-			resource_label.setText(MessageText.getString("security.certtruster.resource"));
+			Messages.setLanguageText(resource_label, "security.certtruster.resource");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
 			resource_label.setLayoutData(gridData);
 			
 			Label resource_value = new Label(shell,SWT.NULL);
-			resource_value.setText(resource);
+			resource_value.setText(resource.replaceAll("&", "&&"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
 			resource_value.setLayoutData(gridData);
@@ -152,13 +152,13 @@ CertificateTrustWindow
 			// issued by
 			
 			Label issued_by_label = new Label(shell,SWT.NULL);
-			issued_by_label.setText(MessageText.getString("security.certtruster.issuedby"));
+			Messages.setLanguageText(issued_by_label, "security.certtruster.issuedby");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
 			issued_by_label.setLayoutData(gridData);
 			
 			Label issued_by_value = new Label(shell,SWT.NULL);
-			issued_by_value.setText(extractCN(cert.getIssuerDN().getName()));
+			issued_by_value.setText(extractCN(cert.getIssuerDN().getName()).replaceAll("&", "&&"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
 			issued_by_value.setLayoutData(gridData);
@@ -166,13 +166,13 @@ CertificateTrustWindow
 			// issued to
 			
 			Label issued_to_label = new Label(shell,SWT.NULL);
-			issued_to_label.setText(MessageText.getString("security.certtruster.issuedto"));
+			Messages.setLanguageText(issued_to_label, "security.certtruster.issuedto");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
 			issued_to_label.setLayoutData(gridData);
 			
 			Label issued_to_value = new Label(shell,SWT.NULL);
-			issued_to_value.setText(extractCN(cert.getSubjectDN().getName()));
+			issued_to_value.setText(extractCN(cert.getSubjectDN().getName()).replaceAll("&", "&&"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
 			issued_to_value.setLayoutData(gridData);
@@ -180,7 +180,7 @@ CertificateTrustWindow
 			// prompt
 			
 			Label prompt_label = new Label(shell,SWT.NULL);
-			prompt_label.setText(MessageText.getString("security.certtruster.prompt"));
+			Messages.setLanguageText(prompt_label, "security.certtruster.prompt");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 3;
 			prompt_label.setLayoutData(gridData);

@@ -98,7 +98,7 @@ CertificateCreatorWindow
 			if(! Constants.isOSX) {
 			  shell.setImage(ImageRepository.getImage("azureus"));
 			}
-			shell.setText(MessageText.getString("security.certcreate.title"));
+			Messages.setLanguageText(shell, "security.certcreate.title");
 			
 			GridLayout layout = new GridLayout();
 			layout.numColumns = 3;
@@ -110,7 +110,7 @@ CertificateCreatorWindow
 			// info
 			
 			Label info_label = new Label(shell,SWT.NULL);
-			info_label.setText(MessageText.getString("security.certcreate.intro"));
+			Messages.setLanguageText(info_label, "security.certcreate.intro");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 3;
 			info_label.setLayoutData(gridData);
@@ -118,7 +118,7 @@ CertificateCreatorWindow
 			// alias
 			
 			Label alias_label = new Label(shell,SWT.NULL);
-			alias_label.setText(MessageText.getString("security.certcreate.alias"));
+			Messages.setLanguageText(alias_label, "security.certcreate.alias");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
 			alias_label.setLayoutData(gridData);
@@ -134,7 +134,7 @@ CertificateCreatorWindow
 			// strength
 			
 			Label strength_label = new Label(shell,SWT.NULL);
-			strength_label.setText(MessageText.getString("security.certcreate.strength"));
+			Messages.setLanguageText(strength_label, "security.certcreate.strength");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
 			strength_label.setLayoutData(gridData);
@@ -170,7 +170,7 @@ CertificateCreatorWindow
 			for (int i=0;i<fields.length;i++){
 				
 				Label resource_label = new Label(shell,SWT.NULL);
-				resource_label.setText(MessageText.getString(field_names[i]));
+				Messages.setLanguageText(resource_label, field_names[i]);
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 1;
 				resource_label.setLayoutData(gridData);
@@ -204,7 +204,7 @@ CertificateCreatorWindow
 			
 			
 			Button bYes = new Button(comp,SWT.PUSH);
-			bYes.setText(MessageText.getString("security.certcreate.ok"));
+			Messages.setLanguageText(bYes, "security.certcreate.ok");
 			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
 			gridData.grabExcessHorizontalSpace = true;
 			gridData.widthHint = 70;
@@ -235,17 +235,23 @@ CertificateCreatorWindow
 						
 						close(true );
 						
-						LGLogger.logUnrepeatableAlert( LGLogger.AT_COMMENT, MessageText.getString( "security.certcreate.createok") + "\n" + alias +":" + strength + "\n" + dn + "\n" + SystemTime.getCurrentTime());
+						Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
+								LogAlert.AT_INFORMATION, MessageText
+										.getString("security.certcreate.createok")
+										+ "\n" + alias + ":" + strength + "\n"
+										+ dn + "\n" + SystemTime.getCurrentTime()));
 						
 					}catch( Throwable f ){
 						
-						LGLogger.logUnrepeatableAlert( MessageText.getString( "security.certcreate.createfail")+"\n" + SystemTime.getCurrentTime(), f );
+						Logger.log(new LogAlert(LogAlert.UNREPEATABLE, MessageText
+								.getString("security.certcreate.createfail")
+								+ "\n" + SystemTime.getCurrentTime(), f));
 					}
 				}
 			});
 			
 			Button bNo = new Button(comp,SWT.PUSH);
-			bNo.setText(MessageText.getString("security.certcreate.cancel"));
+			Messages.setLanguageText(bNo, "security.certcreate.cancel");
 			gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 			gridData.grabExcessHorizontalSpace = false;
 			gridData.widthHint = 70;

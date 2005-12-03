@@ -294,7 +294,7 @@ AuthenticatorWindow
 	 		if(! Constants.isOSX) {
 	 		  shell.setImage(ImageRepository.getImage("azureus"));
 	 		}
-		 	shell.setText(MessageText.getString("authenticator.title"));
+		 	Messages.setLanguageText(shell, "authenticator.title");
     		
 		 	GridLayout layout = new GridLayout();
 		 	layout.numColumns = 3;
@@ -306,13 +306,13 @@ AuthenticatorWindow
 	    		// realm
 	    		
 			Label realm_label = new Label(shell,SWT.NULL);
-			realm_label.setText(MessageText.getString("authenticator.realm"));
+			Messages.setLanguageText(realm_label, "authenticator.realm");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
 			realm_label.setLayoutData(gridData);
 			
 			Label realm_value = new Label(shell,SWT.NULL);
-			realm_value.setText(realm);
+			realm_value.setText(realm.replaceAll("&", "&&"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
 			realm_value.setLayoutData(gridData);
@@ -320,13 +320,13 @@ AuthenticatorWindow
 	    		// tracker
 			
 			Label tracker_label = new Label(shell,SWT.NULL);
-			tracker_label.setText(MessageText.getString("authenticator.tracker"));
+			Messages.setLanguageText(tracker_label, "authenticator.tracker");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
 			tracker_label.setLayoutData(gridData);
 			
 			Label tracker_value = new Label(shell,SWT.NULL);
-			tracker_value.setText(tracker);
+			tracker_value.setText(tracker.replaceAll("&", "&&"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
 			tracker_value.setLayoutData(gridData);
@@ -334,13 +334,13 @@ AuthenticatorWindow
 			if ( torrent_name != null ){
 				
 				Label torrent_label = new Label(shell,SWT.NULL);
-				torrent_label.setText(MessageText.getString("authenticator.torrent"));
+				Messages.setLanguageText(torrent_label, "authenticator.torrent");
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 1;
 				torrent_label.setLayoutData(gridData);
 				
 				Label torrent_value = new Label(shell,SWT.NULL);
-				torrent_value.setText(torrent_name);
+				torrent_value.setText(torrent_name.replaceAll("&", "&&"));
 				gridData = new GridData(GridData.FILL_BOTH);
 				gridData.horizontalSpan = 2;
 				torrent_value.setLayoutData(gridData);
@@ -348,7 +348,7 @@ AuthenticatorWindow
 	    		// user
 	    		
 			Label user_label = new Label(shell,SWT.NULL);
-			user_label.setText(MessageText.getString("authenticator.user"));
+			Messages.setLanguageText(user_label, "authenticator.user");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
 			user_label.setLayoutData(gridData);
@@ -367,7 +367,7 @@ AuthenticatorWindow
 				// password
 	    		
 			Label password_label = new Label(shell,SWT.NULL);
-			password_label.setText(MessageText.getString("authenticator.password"));
+			Messages.setLanguageText(password_label, "authenticator.password");
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 1;
 			password_label.setLayoutData(gridData);
@@ -396,7 +396,7 @@ AuthenticatorWindow
 			new Label(shell,SWT.NULL);
 
 			Button bOk = new Button(shell,SWT.PUSH);
-		 	bOk.setText(MessageText.getString("Button.ok"));
+		 	Messages.setLanguageText(bOk, "Button.ok");
 		 	gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
 		 	gridData.grabExcessHorizontalSpace = true;
 		 	gridData.widthHint = 70;
@@ -408,7 +408,7 @@ AuthenticatorWindow
 			 });
 	    
 		 	Button bCancel = new Button(shell,SWT.PUSH);
-		 	bCancel.setText(MessageText.getString("Button.cancel"));
+		 	Messages.setLanguageText(bCancel, "Button.cancel");
 		 	gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		 	gridData.grabExcessHorizontalSpace = false;
 		 	gridData.widthHint = 70;
