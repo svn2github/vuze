@@ -258,7 +258,7 @@ SimpleXMLParserDocumentImpl
 			
 			throws SAXException 
 		{
-            out.println("Warning: " + getParseExceptionInfo(spe));
+            // out.println("Warning: " + getParseExceptionInfo(spe));
         }
         
         public void 
