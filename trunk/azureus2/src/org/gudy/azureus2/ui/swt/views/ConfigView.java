@@ -300,6 +300,10 @@ public class ConfigView extends AbstractIView {
       if (configSection != null) {
     	  
         Control previous = item.getContent();
+        if (previous instanceof Composite) {
+        	configSection.configSectionDelete();
+          Utils.disposeComposite((Composite)previous,true);
+        }
         
         Composite c;
         
@@ -315,12 +319,6 @@ public class ConfigView extends AbstractIView {
         item.setContent(c);
         
         c.layout();
-        
-        section.setData("ConfigSectionSWT", null);
-
-        if(previous != null && previous instanceof Composite) {
-          Utils.disposeComposite((Composite)previous,true);
-        }
       }
       layoutConfigSection.topControl = item;
       
