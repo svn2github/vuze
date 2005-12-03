@@ -167,6 +167,12 @@ CacheFileWithCache
 		}
 	}
 	
+	public TOTorrentFile
+	getTorrentFile()
+	{
+		return( torrent_file );
+	}
+	
 	protected void
 	updateStats()
 	{
@@ -1173,12 +1179,6 @@ CacheFileWithCache
 	getFMFile()
 	{
 		return( file );
-	}
-	
-	protected TOTorrentFile
-	getTorrentFile()
-	{
-		return( torrent_file );
 	}
 	
 		// public methods

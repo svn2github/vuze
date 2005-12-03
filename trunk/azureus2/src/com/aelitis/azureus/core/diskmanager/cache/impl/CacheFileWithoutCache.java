@@ -56,6 +56,12 @@ CacheFileWithoutCache
 		// System.out.println( "without cache = " + file.getFile().toString());
 	}
 
+	public TOTorrentFile
+	getTorrentFile()
+	{
+		return( torrent_file );
+	}
+	
 	public boolean
 	exists()
 	{

@@ -46,15 +46,75 @@ DMReaderImpl
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
 
-	protected DiskManagerHelper		disk_manager;
-	protected DiskAccessController	disk_access;	
+	private DiskManagerHelper		disk_manager;
+	private DiskAccessController	disk_access;	
 
+	private int						async_reads;
+	private AESemaphore				async_read_sem = new AESemaphore("DMReader:asyncReads");
+	
+	private boolean					started;
+	private boolean					stopped;
+	
+	protected AEMonitor	this_mon	= new AEMonitor( "DMReader" );
+	
 	public
 	DMReaderImpl(
 		DiskManagerHelper		_disk_manager )
 	{
 		disk_manager	= _disk_manager;
 		disk_access		= disk_manager.getDiskAccessController();
+	}
+	
+	public void
+	start()
+	{
+		try{
+			this_mon.enter();
+		
+			if ( started ){
+				
+				throw( new RuntimeException("can't start twice" ));
+			}
+			
+			if ( stopped ){
+				
+				throw( new RuntimeException("already been stopped" ));
+			}
+		
+			started	= true;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	stop()
+	{
+		int	read_wait;
+		
+		try{
+			this_mon.enter();
+		
+			if ( stopped || !started ){
+				
+				return;
+			}
+			
+			stopped	= true;
+			
+			read_wait	= async_reads;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		for (int i=0;i<read_wait;i++){
+			
+			async_read_sem.reserve();
+		}
 	}
 	
 	public DiskManagerReadRequest
@@ -110,98 +170,176 @@ DMReaderImpl
 	
 	public void 
 	readBlock(
-		DiskManagerReadRequest			request,
-		DiskManagerReadRequestListener	listener )
+		final DiskManagerReadRequest			request,
+		final DiskManagerReadRequestListener	listener )
 	{
-		int	length		= request.getLength();
 
-		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ,length );
-
-		if ( buffer == null ) { // Fix for bug #804874
-			
-			Debug.out("DiskManager::readBlock:: ByteBufferPool returned null buffer");
-			
-			listener.readFailed( request, new Exception( "Out of memory" ));
-			
-			return;
-		}
-
-		int	pieceNumber	= request.getPieceNumber();
-		int	offset		= request.getOffset();
+		DirectByteBuffer buffer	= null;
 		
-		PieceList pieceList = disk_manager.getPieceList(pieceNumber);
-
-			// temporary fix for bug 784306
-		
-		if ( pieceList.size() == 0 ){
-			
-			Debug.out("no pieceList entries for " + pieceNumber);
-			
-			listener.readCompleted( request, buffer );
-			
-			return;
-		}
-
-		long previousFilesLength = 0;
-		
-		int currentFile = 0;
-		
-		long fileOffset = pieceList.get(0).getOffset();
-		
-		while (currentFile < pieceList.size() && pieceList.getCumulativeLengthToPiece(currentFile) < offset) {
-			
-			previousFilesLength = pieceList.getCumulativeLengthToPiece(currentFile);
-			
-			currentFile++;
-			
-			fileOffset = 0;
-		}
-
-			// update the offset (we're in the middle of a file)
-		
-		fileOffset += offset - previousFilesLength;
-		
-		List	chunks = new ArrayList();
-		
-		int	buffer_position = 0;
-		
-		while ( buffer_position < length && currentFile < pieceList.size()) {
-     
-			PieceMapEntry map_entry = pieceList.get( currentFile );
-      			
-			int	length_available = map_entry.getLength() - (int)( fileOffset - map_entry.getOffset());
-			
-				//explicitly limit the read size to the proper length, rather than relying on the underlying file being correctly-sized
-				//see long DMWriterAndCheckerImpl::checkPiece note
-			
-			int entry_read_limit = buffer_position + length_available;
-			
-				// now bring down to the required read length if this is shorter than this
-				// chunk of data
-			
-			entry_read_limit = Math.min( length, entry_read_limit );
-			
-				// this chunk denotes a read up to buffer offset "entry_read_limit"
-			
-			chunks.add( new Object[]{ map_entry.getFile().getCacheFile(), new Long(fileOffset), new Integer( entry_read_limit )});
-			
-			buffer_position = entry_read_limit;
-      
-			currentFile++;
-			
-			fileOffset = 0;
-		}
-
-		if ( chunks.size() == 0 ){
-			
-			Debug.out("no chunk reads for " + pieceNumber);
+		try{
+			int	length		= request.getLength();
+	
+			buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_DM_READ,length );
+	
+			if ( buffer == null ) { // Fix for bug #804874
 				
-			listener.readCompleted( request, buffer );
+				Debug.out("DiskManager::readBlock:: ByteBufferPool returned null buffer");
+				
+				listener.readFailed( request, new Exception( "Out of memory" ));
+				
+				return;
+			}
+	
+			int	pieceNumber	= request.getPieceNumber();
+			int	offset		= request.getOffset();
 			
-			return;
+			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
+	
+				// temporary fix for bug 784306
+			
+			if ( pieceList.size() == 0 ){
+				
+				Debug.out("no pieceList entries for " + pieceNumber);
+				
+				listener.readCompleted( request, buffer );
+				
+				return;
+			}
+	
+			long previousFilesLength = 0;
+			
+			int currentFile = 0;
+			
+			long fileOffset = pieceList.get(0).getOffset();
+			
+			while (currentFile < pieceList.size() && pieceList.getCumulativeLengthToPiece(currentFile) < offset) {
+				
+				previousFilesLength = pieceList.getCumulativeLengthToPiece(currentFile);
+				
+				currentFile++;
+				
+				fileOffset = 0;
+			}
+	
+				// update the offset (we're in the middle of a file)
+			
+			fileOffset += offset - previousFilesLength;
+			
+			List	chunks = new ArrayList();
+			
+			int	buffer_position = 0;
+			
+			while ( buffer_position < length && currentFile < pieceList.size()) {
+	     
+				PieceMapEntry map_entry = pieceList.get( currentFile );
+	      			
+				int	length_available = map_entry.getLength() - (int)( fileOffset - map_entry.getOffset());
+				
+					//explicitly limit the read size to the proper length, rather than relying on the underlying file being correctly-sized
+					//see long DMWriterAndCheckerImpl::checkPiece note
+				
+				int entry_read_limit = buffer_position + length_available;
+				
+					// now bring down to the required read length if this is shorter than this
+					// chunk of data
+				
+				entry_read_limit = Math.min( length, entry_read_limit );
+				
+					// this chunk denotes a read up to buffer offset "entry_read_limit"
+				
+				chunks.add( new Object[]{ map_entry.getFile().getCacheFile(), new Long(fileOffset), new Integer( entry_read_limit )});
+				
+				buffer_position = entry_read_limit;
+	      
+				currentFile++;
+				
+				fileOffset = 0;
+			}
+	
+			if ( chunks.size() == 0 ){
+				
+				Debug.out("no chunk reads for " + pieceNumber);
+					
+				listener.readCompleted( request, buffer );
+				
+				return;
+			}
+			
+				// this is where we go async and need to start counting requests for the sake
+				// of shutting down tidily
+			
+			DiskManagerReadRequestListener	l = 
+				new DiskManagerReadRequestListener()
+				{
+					 public void 
+					  readCompleted( 
+					  		DiskManagerReadRequest 	request, 
+							DirectByteBuffer 		data )
+					 {
+						 complete();
+						 
+						 listener.readCompleted( request, data );
+					 }
+					  
+					  public void 
+					  readFailed( 
+					  		DiskManagerReadRequest 	request, 
+							Throwable		 		cause )
+					  {
+						  complete();
+						  
+						  listener.readFailed( request, cause );
+					  }
+					  
+					  protected void
+					  complete()
+					  {
+						  try{
+							  this_mon.enter();
+							
+							  async_reads--;
+							  
+							  if ( stopped ){
+								  
+								  async_read_sem.release();
+							  }
+						  }finally{
+							  
+							  this_mon.exit();
+						  }
+					  }
+				};
+			
+			try{
+				this_mon.enter();
+				
+				if ( stopped ){
+					
+					throw( new Exception( "Disk reader has been stopped" ));
+				}
+				
+				async_reads++;
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+			
+			new requestDispatcher( request, l, buffer, chunks );
+
+		}catch( Throwable e ){
+			
+			if ( buffer != null ){
+				
+				buffer.returnToPool();
+			}
+			
+			disk_manager.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(e));
+			
+			Debug.printStackTrace( e );
+			
+			listener.readFailed( request, e );
 		}
-		
-		new requestDispatcher( request, listener, buffer, chunks );
 	}
 	
 	protected class

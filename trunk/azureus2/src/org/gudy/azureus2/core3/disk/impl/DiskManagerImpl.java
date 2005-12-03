@@ -380,6 +380,8 @@ DiskManagerImpl
 			}
 		}
 
+		reader.start();
+		
 		writer_and_checker.start();
 				
 			//allocate / check every file
@@ -456,7 +458,9 @@ DiskManagerImpl
 					// operation
 				
 			   	writer_and_checker.stop();
-		    					
+		    	
+				reader.stop();
+				
 				resume_handler.stop();
 								
 				return;
@@ -475,6 +479,8 @@ DiskManagerImpl
 		
     	writer_and_checker.stop();
     			
+		reader.stop();
+		
 		resume_handler.stop();
 		
 		piece_picker.stop();

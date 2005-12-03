@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.diskmanager.cache;
 
 import java.io.File;
 
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 /**
@@ -38,6 +39,9 @@ CacheFile
 
 	public static final int	CF_READ		= 1;
 	public static final int CF_WRITE	= 2;
+	
+	public TOTorrentFile
+	getTorrentFile();
 	
 	public boolean
 	exists();

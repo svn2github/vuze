@@ -22,8 +22,13 @@
 
 package com.aelitis.azureus.core.diskmanager.access.impl;
 
+import java.util.*;
+
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.ThreadPool;
 
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequest;
@@ -34,18 +39,31 @@ public class
 DiskAccessControllerImpl
 	implements DiskAccessController
 {
-	private ThreadPool	read_pool;
-	private ThreadPool	write_pool;
-		
+	private AESemaphore	max_read_requests_sem = new AESemaphore("DiskAccessControllerImpl:maxReadReq", 100);
+	
+	private requestDispatcher[]	read_dispatchers;
+	private requestDispatcher[]	write_dispatchers;
+	
+	
+	private Map			read_requests	= new HashMap();
+	private Map			write_requests	= new HashMap();
+	
 	public
 	DiskAccessControllerImpl(
 		int		_max_read_threads,
 		int 	_max_write_threads )
 	{		
-			// these pools block requests when no worker avail
+		read_dispatchers	= new requestDispatcher[_max_read_threads];
 		
-		read_pool	= new ThreadPool("DiskAccessController:read", 	_max_read_threads, false );
-		write_pool	= new ThreadPool("DiskAccessController:write",	_max_write_threads, false );
+		for (int i=0;i<_max_read_threads;i++){
+			read_dispatchers[i]	= new requestDispatcher();
+		}
+		
+		write_dispatchers	= new requestDispatcher[_max_write_threads];
+		
+		for (int i=0;i<_max_write_threads;i++){
+			write_dispatchers[i] = new requestDispatcher();
+		}
 	}
 	
 	public DiskAccessRequest
@@ -57,8 +75,8 @@ DiskAccessControllerImpl
 	{
 		DiskAccessRequestImpl	request = 
 			new DiskAccessRequestImpl( file, offset, buffer, listener, DiskAccessRequestImpl.OP_READ );
-	
-		read_pool.run( request );
+
+		queueRequest( read_requests, read_dispatchers, request );
 		
 		return( request );
 	}
@@ -79,8 +97,133 @@ DiskAccessControllerImpl
 					listener, 
 					free_buffer?DiskAccessRequestImpl.OP_WRITE_AND_FREE:DiskAccessRequestImpl.OP_WRITE );
 	
-		write_pool.run( request );
+		queueRequest( write_requests, write_dispatchers, request );
 		
 		return( request );	
+	}
+	
+	protected void
+	queueRequest(
+		Map						request_map,
+		requestDispatcher[]		request_dispatchers,
+		DiskAccessRequestImpl	request )
+	{
+		TOTorrent	torrent = request.getFile().getTorrentFile().getTorrent();
+		
+		requestDispatcher	dispatcher;
+		
+		synchronized( request_map ){
+			
+			dispatcher = (requestDispatcher)request_map.get(torrent);
+			
+			int	min_index 	= 0;
+			int	min_size	= Integer.MAX_VALUE;
+			
+			if ( dispatcher == null ){
+				
+				for (int i=0;i<request_dispatchers.length;i++){
+					
+					int	size = request_dispatchers[i].size();
+					
+					if ( size == 0 ){
+						
+						min_index = i;
+						
+						break;
+					}
+					
+					if ( size < min_size ){
+						
+						min_size 	= size;
+						min_index	= i;
+					}
+				}
+				
+				dispatcher = request_dispatchers[min_index];
+				
+				request_map.put( torrent, dispatcher );
+			}
+		}
+		
+		dispatcher.queue( request );
+	}
+	
+	protected class
+	requestDispatcher
+	{
+		private AEThread	thread;
+		private LinkedList	requests 	= new LinkedList();
+		private AESemaphore	request_sem	= new AESemaphore("DiskAccessController:requestDispatcher" );
+		
+		protected void
+		queue(
+			DiskAccessRequestImpl	request )
+		{
+			max_read_requests_sem.reserve();
+			
+			synchronized( this ){
+				
+				requests.add( request );
+				
+				request_sem.release();
+				
+				if ( thread == null ){
+					
+					thread = 
+						new AEThread("DiskAccessController:requestDispatcher", true )
+						{
+							public void
+							runSupport()
+							{
+								while( true ){
+									
+									if ( request_sem.reserve( 10000 )){
+										
+										DiskAccessRequestImpl	request;
+										
+										synchronized( this ){
+
+											request = (DiskAccessRequestImpl)requests.remove(0);
+										}
+										
+										try{
+											
+											request.runSupport();
+											
+										}catch( Throwable e ){
+											
+											Debug.printStackTrace(e);
+											
+										}finally{
+											
+											max_read_requests_sem.release();
+										}
+										
+									}else{
+										
+										synchronized( this ){
+
+											if ( requests.size() == 0 ){
+												
+												thread	= null;
+												
+												break;
+											}
+										}
+									}
+								}
+							}
+						};
+						
+					thread.start();
+				}
+			}
+		}
+		
+		protected int
+		size()
+		{
+			return( requests.size());
+		}
 	}
 }

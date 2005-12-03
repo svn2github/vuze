@@ -35,6 +35,12 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 public interface 
 DMReader 
 {
+	public void
+	start();
+	
+	public void
+	stop();
+	
 	public DirectByteBuffer 
 	readBlock(
 		int pieceNumber, 
