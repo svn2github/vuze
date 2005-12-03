@@ -280,9 +280,7 @@ public class GlobalManagerImpl
   {
     //Debug.dumpThreadsLoop("Active threads");
   	
-  	LGLogger.initialise();
-  	
-	AEDiagnostics.addEvidenceGenerator( this );
+  	AEDiagnostics.addEvidenceGenerator( this );
 	
     stats = new GlobalManagerStatsImpl( this );
        

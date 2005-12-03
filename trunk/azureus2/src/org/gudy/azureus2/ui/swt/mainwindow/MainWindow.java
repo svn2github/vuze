@@ -1581,7 +1581,7 @@ MainWindow
   
   public void showConsole() {
     if (console == null)
-      console = new Tab(new ConsoleView());
+      console = new Tab(new LoggerView(events));
     else
       console.setFocus();
   }

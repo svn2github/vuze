@@ -27,13 +27,15 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGAlertListener;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
 import org.gudy.azureus2.core3.util.*;
 /**
  * Utility methods to display popup window
+ * 
+ * TODO: Finish up moving from LGLogger to Logger/LogAlert.  ie alert_queue
+ *        could store LogAlert instead of an object array.
  */
 public class Alerts {
 
@@ -131,7 +133,7 @@ public class Alerts {
   	String		title,
   Throwable	error )
   {
-  	String error_message = LGLogger.exceptionToString( error );
+  	String error_message = Debug.getStackTrace(error);
   	showMessageBox( SWT.ICON_ERROR, title, error.getMessage(),error_message );
   }
 
@@ -230,11 +232,11 @@ public class Alerts {
   		alert_history_mon.exit();
   	}
   	
-  if ( type == LGLogger.AT_COMMENT ){
+  if ( type == LogAlert.AT_INFORMATION ){
   		
   	showCommentMessageBox( message );
   	
-  }else if ( type == LGLogger.AT_WARNING ){
+  }else if ( type == LogAlert.AT_WARNING ){
   	
   	showWarningMessageBox( message );
   		       						
@@ -295,54 +297,35 @@ public class Alerts {
   }
   
   private void initI() {
-    LGLogger.addAlertListener(
-  			new LGAlertListener()
-			{
-  				public void
-				alertRaised(
-					int			type,
-					String		message,
-					boolean		repeatable )
-				{
-  					try{
-  						alert_queue_mon.enter();
-  						
-  						if ( !initialisation_complete ){
-  							
-  							alert_queue.add( new Object[]{ new Integer(type), message, new Boolean(repeatable)});
-  							
-  							return;
-  						}
-  					}finally{
-  						
-  						alert_queue_mon.exit();
-  					}
-  					
-  					showAlert( type, message, repeatable );
-  				}
-				
-				public void
-				alertRaised(
-					String		message,
-					Throwable	exception,
-					boolean		repeatable )
-				{
-  					try{
-  						alert_queue_mon.enter();
-  						
-  						if ( !initialisation_complete ){
-  							
-  							alert_queue.add( new Object[]{ message, exception, new Boolean(repeatable)});
-  							
-  							return;
-  						}
-  					}finally{
-  						
-  						alert_queue_mon.exit();
-  					}
-  					
-  					showAlert( message, exception, repeatable );
+		Logger.addListener(new ILogAlertListener() {
+			/* (non-Javadoc)
+			 * @see org.gudy.azureus2.core3.logging.ILogAlertListener#alertRaised(org.gudy.azureus2.core3.logging.LogAlert)
+			 */
+			public void alertRaised(LogAlert alert) {
+				try {
+					alert_queue_mon.enter();
+
+					if (!initialisation_complete) {
+
+						if (alert.err == null)
+							alert_queue.add(new Object[] { new Integer(alert.entryType),
+									alert.text, new Boolean(alert.repeatable) });
+						else
+							alert_queue.add(new Object[] { alert.text, alert.err,
+									new Boolean(alert.repeatable) });
+
+						return;
+					}
+				} finally {
+
+					alert_queue_mon.exit();
 				}
-  			});
-  }
+
+				if (alert.err == null)
+					showAlert(alert.entryType, alert.text, alert.repeatable);
+				else
+					showAlert(alert.text, alert.err, alert.repeatable);
+			}
+		});
+	}
 }

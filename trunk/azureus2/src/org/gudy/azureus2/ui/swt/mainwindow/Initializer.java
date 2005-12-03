@@ -36,7 +36,7 @@ import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.LocaleUtilSWT;
 import org.gudy.azureus2.ui.swt.StartServer;
-import org.gudy.azureus2.ui.swt.views.ConsoleView;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
@@ -116,16 +116,14 @@ Initializer
   handleStopRestart(
   	final boolean	restart )
   {
-	if ( MainWindow.getWindow().getDisplay().getThread() == Thread.currentThread()){
+  	if ( MainWindow.getWindow().getDisplay().getThread() == Thread.currentThread())
+  		return( MainWindow.getWindow().dispose(restart,true));
 		
-		return( MainWindow.getWindow().dispose(restart,true));
-		
-	}else{
 		final AESemaphore			sem 	= new AESemaphore("SWTInit::stopRestartRequest");
 		final boolean[]				ok	 	= {false};
 		
 		try{
-			MainWindow.getWindow().getDisplay().asyncExec(
+			Utils.execSWTThread(
 					new AERunnable()
 					{
 						public void
@@ -155,7 +153,6 @@ Initializer
 		sem.reserve();
 	
 		return( ok[0] );
-	}
   }
 	
 
@@ -185,7 +182,18 @@ Initializer
 	    reportCurrentTaskByKey("splash.firstMessageNoI18N");
 	    
 	    Alerts.init();
-        ConsoleView.preInitialize();
+	    
+	    final ArrayList logEvents = new ArrayList();
+	    ILogEventListener logListener = null;
+	    if (COConfigurationManager.getBooleanParameter("Open Console", false)) {
+	    	logListener = new ILogEventListener() {
+					public void log(LogEvent event) {
+						logEvents.add(event);
+					}
+	    	};
+	    	Logger.addListener(logListener);
+	    }
+	    final ILogEventListener finalLogListener = logListener;
 
 	    StartupUtils.setLocale();
 	    	
@@ -228,7 +236,9 @@ Initializer
 		    		    
 		    		    Cursors.init();
 		    		    
-		    		    new MainWindow(core,Initializer.this,null);
+		    		    new MainWindow(core,Initializer.this,logEvents);
+		    		    if (finalLogListener != null)
+		    		    	Logger.removeListener(finalLogListener);
 		    		    
 		    		    AssociationChecker.checkAssociations();
 
@@ -274,10 +284,7 @@ Initializer
 	    azureus_core.start();
 
   	}catch( Throwable e ){
-  	
   		Logger.log(new LogEvent(LOGID, "Initialization fails:", e));
-  		
-  		Debug.printStackTrace( e );
   	} 
   }
   

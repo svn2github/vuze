@@ -46,16 +46,11 @@ Test
 	{
 		System.setProperty("azureus.log.stdout","1");
 		
-		LGLogger.initialise();
-		
-		LGLogger.setListener(
-			new ILoggerListener()
-			{
-				public void log(int componentId,int event,int color,String text)
-				{
-					System.out.println( text );
-				}
-			});
+		Logger.addListener(new ILogEventListener() {
+			public void log(LogEvent event) {
+				System.out.println(event.text);
+			}
+		});
 		
 		try{
 			CacheFileManagerImpl	manager = (CacheFileManagerImpl)CacheFileManagerFactory.getSingleton();

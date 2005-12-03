@@ -38,8 +38,7 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 
-import org.gudy.azureus2.core3.logging.ILoggerListener;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerListener;
@@ -91,19 +90,11 @@ Test
 				
 				System.setProperty("azureus.log.stdout","1");
 				
-				LGLogger.initialise();
-				
-				LGLogger.setListener(
-					new ILoggerListener()
-					{
-						public void log(int componentId,int event,int color,String text)
-						{
-							System.out.println( text );
-						}
-					});
-			}else{
-				
-				LGLogger.initialise();
+				Logger.addListener(new ILogEventListener() {
+					public void log(LogEvent event) {
+						System.out.println(event.text);
+					}
+				});
 				
 			}
 			

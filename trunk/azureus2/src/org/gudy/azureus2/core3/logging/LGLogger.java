@@ -13,8 +13,13 @@ package org.gudy.azureus2.core3.logging;
 import java.io.*;
 
 import org.gudy.azureus2.core3.logging.impl.*;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.internat.*;
 
+/** Use Logger
+ * @deprecated use Logger
+ * @see Logger
+ */
 public class 
 LGLogger 
 {
@@ -36,12 +41,31 @@ LGLogger
   public static final int CORE_NETWORK  = 11;
   public static final int CORE_DISK     = 12;
   
-  
+
+  // until LGLogger is removed..
+  private static boolean bUseLogger = true;
 
 	public static void
 	initialise()
 	{
+		if (bUseLogger) {
+			System.out.println("Don't call LGLogger.initialise!");
+			System.out.println(Debug.getStackTrace(false, false));
+			return;
+		}
+
 		LGLoggerImpl.initialise();
+	}
+	
+	private static LogIDs componentIDtoLogID(int componentId) {
+		LogIDs logID;
+		if (componentId == 1)
+			logID = LogIDs.PEER;
+		else if (componentId == 1)
+			logID = LogIDs.TRACKER;
+		else
+			logID = LogIDs.CORE;
+		return logID;
 	}
 	
 	public static void 
@@ -51,6 +75,11 @@ LGLogger
 		int color, 
 		String text ) 
 	{
+		if (bUseLogger) {
+			Logger.log(new LogEvent(componentIDtoLogID(componentId), color, text));
+			return;
+		}
+			
 		LGLoggerImpl.log(componentId,event,color,text );
 	}	
 	
@@ -97,6 +126,12 @@ LGLogger
 		String		text, 
 		Throwable	e )
 	{
+		if (bUseLogger) {
+			Logger.log(new LogEvent(componentIDtoLogID(componentId), text + " - "
+					+ exceptionToString(e), e));
+			return;
+		}
+
 		LGLoggerImpl.log(componentId,event,ERROR, text + " - " + exceptionToString(e));
 	}
 	
@@ -118,12 +153,21 @@ LGLogger
 	public static void
 	checkRedirection()
 	{
+		if (bUseLogger) {
+			Logger.doRedirects();
+			return;
+		}
+
 		LGLoggerImpl.checkRedirection();
 	}
 	
 	public static boolean
 	isLoggingOn()
 	{
+		if (bUseLogger) {
+			return Logger.isEnabled();
+		}
+
 		return( LGLoggerImpl.isLoggingOn());
 	}
   
@@ -133,6 +177,10 @@ LGLogger
    * @return true if logger is enabled, false if disabled
    */
   public static boolean isEnabled() {   
+		if (bUseLogger) {
+			return Logger.isEnabled();
+		}
+
     return LGLoggerImpl.isEnabled();
   }
 	
@@ -141,12 +189,24 @@ LGLogger
 	setListener(
 		ILoggerListener	listener )
 	{
+		if (bUseLogger) {
+			System.out.println("LGLogger.setListener() deprecated.  Use Logger.addListener");
+			System.out.println(Debug.getStackTrace(false, false));
+			return;
+		}
+
 		LGLoggerImpl.setListener( listener );
 	}	
 	
 	public static void
 	removeListener()
 	{
+		if (bUseLogger) {
+			System.out.println("LGLogger.removeListener() deprecated.  Use Logger.removeListener");
+			System.out.println(Debug.getStackTrace(false, false));
+			return;
+		}
+
 		LGLoggerImpl.removeListener();
 	}
 	
@@ -155,6 +215,11 @@ LGLogger
 		int			type,
 		String		message )
 	{
+		if (bUseLogger) {
+			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, type, message));
+			return;
+		}
+
 		LGLoggerImpl.logAlert(type,message,false);
 	}
 	
@@ -163,6 +228,11 @@ LGLogger
 		int			type,
 		String		message )
 	{
+		if (bUseLogger) {
+			Logger.log(new LogAlert(LogAlert.REPEATABLE, type, message));
+			return;
+		}
+
 		LGLoggerImpl.logAlert(type,message,true);
 	}
 	
@@ -171,6 +241,12 @@ LGLogger
 		int			type,
 		String		resource_key )
 	{
+		if (bUseLogger) {
+			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, type, MessageText
+					.getString(resource_key)));
+			return;
+		}
+
 		LGLoggerImpl.logAlert( type, MessageText.getString( resource_key ), false);
 	}
 
@@ -180,6 +256,12 @@ LGLogger
 		String		resource_key,
 		String[]	params )
 	{
+		if (bUseLogger) {
+			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, type, MessageText
+					.getString(resource_key, params)));
+			return;
+		}
+
 		LGLoggerImpl.logAlert( type, MessageText.getString( resource_key, params ), false);
 	}
 
@@ -188,6 +270,11 @@ LGLogger
 		String		message,
 		Throwable	e )
 	{
+		if (bUseLogger) {
+			Logger.log(new LogAlert(LogAlert.UNREPEATABLE, message, e));
+			return;
+		}
+
 		LGLoggerImpl.logAlert(message,e,false);
 	}
 	
@@ -196,6 +283,11 @@ LGLogger
 		String		message,
 		Throwable	e )
 	{
+		if (bUseLogger) {
+			Logger.log(new LogAlert(LogAlert.REPEATABLE, message, e));
+			return;
+		}
+
 		LGLoggerImpl.logAlert(message,e,true );
 	}
 	
@@ -203,6 +295,12 @@ LGLogger
 	addAlertListener(
 		LGAlertListener	l )
 	{
+		if (bUseLogger) {
+			System.out.println("LGLogger.addAlertListener() deprecated.  Use Logger.addListener");
+			System.out.println(Debug.getStackTrace(false, false));
+			return;
+		}
+
 		LGLoggerImpl.addAlertListener(l);
 	}
 	
@@ -210,6 +308,12 @@ LGLogger
 	removeAlertListener(
 		LGAlertListener	l )
 	{
+		if (bUseLogger) {
+			System.out.println("LGLogger.removeAlertListener() deprecated.  Use Logger.removeListener");
+			System.out.println(Debug.getStackTrace(false, false));
+			return;
+		}
+
 		LGLoggerImpl.removeAlertListener(l);
 	}
 }

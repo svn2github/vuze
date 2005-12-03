@@ -28,11 +28,12 @@ package org.gudy.azureus2.pluginsimpl.local.logging;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.logging.LGAlertListener;
-import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.logging.ILogAlertListener;
+import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.logging.*;
+import org.gudy.azureus2.plugins.logging.Logger;
+import org.gudy.azureus2.plugins.logging.LoggerAlertListener;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 public class 
 LoggerImpl
@@ -103,52 +104,42 @@ LoggerImpl
 	addAlertListener(
 		final LoggerAlertListener		listener )
 	{
-		LGAlertListener	lg_listener = 
-			new LGAlertListener()
-			{
-				public void
-				alertRaised(
-					int		_type,
-					String	message,
-					boolean	repeatable )
-				{
-					int	type;
-					
-					if ( _type == LGLogger.AT_COMMENT ){
+		
+		ILogAlertListener lg_listener = new ILogAlertListener() {
+			public void alertRaised(LogAlert alert) {
+				if (alert.err == null) {
+					int type;
+
+					if (alert.entryType == LogAlert.AT_INFORMATION) {
 						type = LoggerChannel.LT_INFORMATION;
-					}else if ( _type == LGLogger.AT_WARNING ){
+					} else if (alert.entryType == LogAlert.AT_WARNING) {
 						type = LoggerChannel.LT_WARNING;
-					}else{
+					} else {
 						type = LoggerChannel.LT_ERROR;
 					}
-					
-					listener.alertLogged( type, message, repeatable );
-				}
-				
-				public void
-				alertRaised(
-					String		message,
-					Throwable	exception,
-					boolean		repeatable )
-				{
-					listener.alertLogged( message, exception, repeatable );
-				}
-			};
+
+					listener.alertLogged(type, alert.text, alert.repeatable);
+
+				} else
+					listener.alertLogged(alert.text, alert.err, alert.repeatable);
+			}
+
+		};
 				
 		alert_listeners_map.put( listener, lg_listener );
 		
-		LGLogger.addAlertListener( lg_listener );
+		org.gudy.azureus2.core3.logging.Logger.addListener( lg_listener );
 	}
 	
 	public void
 	removeAlertListener(
 		LoggerAlertListener		listener )
 	{
-		LGAlertListener	lg_listener = (LGAlertListener)alert_listeners_map.remove( listener );
+		ILogAlertListener	lg_listener = (ILogAlertListener)alert_listeners_map.remove( listener );
 		
 		if ( lg_listener != null ){
 			
-			LGLogger.removeAlertListener( lg_listener );
+			org.gudy.azureus2.core3.logging.Logger.removeListener( lg_listener );
 		}
 	}
 }

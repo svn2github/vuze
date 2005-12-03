@@ -112,8 +112,6 @@ AzureusCoreImpl
 	{
 		COConfigurationManager.initialise();
 		
-		LGLogger.initialise();
-		
 		AEDiagnostics.startup();
 		
 		AETemporaryFileHandler.startup();

@@ -29,30 +29,32 @@ import java.io.StringWriter;
 import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Group;
-
+import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.impl.FileLogging;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.ImageRepository;
-import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.config.BooleanParameter;
+import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
+import org.gudy.azureus2.ui.swt.config.IAdditionalActionPerformer;
+import org.gudy.azureus2.ui.swt.config.IntListParameter;
+import org.gudy.azureus2.ui.swt.config.StringParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
-import org.gudy.azureus2.ui.swt.Messages;
 
 public class ConfigSectionLogging implements UISWTConfigSection {
+	private static final LogIDs LOGID = LogIDs.GUI;
   private static final int logFileSizes[] =
      {
        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50, 75, 100, 200, 300, 500
@@ -74,7 +76,6 @@ public class ConfigSectionLogging implements UISWTConfigSection {
   
 
   public Composite configSectionCreate(final Composite parent) {
-  	int[] components = { 0, 1, 2, 4 };
     Image imgOpenFolder = ImageRepository.getImage("openFolderButton");
     GridData gridData;
     GridLayout layout;
@@ -156,35 +157,86 @@ public class ConfigSectionLogging implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     paramMaxSize.setLayoutData(gridData);
-
     
-    Composite cLogTypes = new Composite(gLogging, SWT.NULL);
+    
+    /** FileLogging filter, consisting of a List of types (info, warning, error)
+     * and a checkbox Table of component IDs.
+     */ 
+    final String sFilterPrefix = "ConfigView.section.logging.filter";
+    Group gLogIDs = new Group(gLogging, SWT.NULL);
+    Messages.setLanguageText(gLogIDs, sFilterPrefix);
     layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    layout.numColumns = 3;
-    layout.makeColumnsEqualWidth = true;
-    cLogTypes.setLayout(layout);
-    gridData = new GridData();
+    layout.numColumns = 2;
+    gLogIDs.setLayout(layout);
+    gridData = new GridData(SWT.BEGINNING, SWT.BEGINNING, true, true);
     gridData.horizontalSpan = 2;
-    cLogTypes.setLayoutData(gridData);
+    gLogIDs.setLayoutData(gridData);
 
-		for (int i = 0; i < components.length; i++) {
-      Group gLogType = new Group(cLogTypes, SWT.NULL);
-      layout = new GridLayout();
-      layout.numColumns = 1;
-      gLogType.setLayout(layout);
-      gLogType.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-      Messages.setLanguageText(gLogType, "ConfigView.section.logging.log" + components[i] + "component");
-      
-      for (int j = 0; j <= 3; j++) {
-        new BooleanParameter(gLogType, "bLog" + components[i] + "-" + j,
-                             "ConfigView.section.logging.log" + j + "type");
-      }
+    final List listLogTypes = new List(gLogIDs, SWT.BORDER | SWT.SINGLE
+				| SWT.V_SCROLL);
+    gridData = new GridData(SWT.NULL, SWT.BEGINNING, false, false);
+    listLogTypes.setLayoutData(gridData);
+
+    final int[] logTypes = { LogEvent.LT_INFORMATION, LogEvent.LT_WARNING,
+				LogEvent.LT_ERROR };
+		for (int i = 0; i < logTypes.length; i++)
+			listLogTypes.add(MessageText.getString("ConfigView.section.logging.log" + i + "type"));
+		listLogTypes.select(0);
+
+		final LogIDs[] logIDs = FileLogging.configurableLOGIDs;
+		//Arrays.sort(logIDs);
+		final Table tableLogIDs = new Table(gLogIDs, SWT.CHECK | SWT.BORDER
+				| SWT.SINGLE | SWT.FULL_SELECTION);
+    gridData = new GridData(GridData.FILL_BOTH);
+    tableLogIDs.setLayoutData(gridData);
+    tableLogIDs.setLinesVisible (false);    
+    tableLogIDs.setHeaderVisible(false);
+    TableColumn column = new TableColumn(tableLogIDs, SWT.NONE);
+
+    for (int i = 0; i < logIDs.length; i++) {
+    	TableItem item = new TableItem(tableLogIDs, SWT.NULL);
+			item.setText(0, MessageText.getString(sFilterPrefix + "." + logIDs[i],
+					logIDs[i].toString()));
+			item.setData(logIDs[i]);
+			boolean checked = COConfigurationManager.getBooleanParameter("bLog."
+					+ logTypes[0] + "." + logIDs[i], true);
+			item.setChecked(checked);
     }
+    column.pack();
+    
+    // Update table when list selection changes
+		listLogTypes.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				int index = listLogTypes.getSelectionIndex();
+				if (index < 0 || index >= logTypes.length)
+					return;
+				TableItem[] items = tableLogIDs.getItems();
+				for (int i = 0; i < items.length; i++) {
+					boolean checked = COConfigurationManager.getBooleanParameter(
+							"bLog." + logTypes[index] + "." + items[i].getData(),
+							true);
+					items[i].setChecked(checked);
+
+				}
+			}
+		});
+    
+    // Save config when checkbox is clicked
+    tableLogIDs.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if (e.detail != SWT.CHECK)
+					return;
+				int index = listLogTypes.getSelectionIndex();
+				if (index < 0 || index >= logTypes.length)
+					return;
+				TableItem item = (TableItem) e.item;
+				COConfigurationManager.setParameter("bLog." + logTypes[index] + "."
+						+ item.getData(), item.getChecked());
+			}
+		});
     
     
-    final Control[] controls_main = { cArea, cLogTypes };
+    final Control[] controls_main = { cArea, gLogIDs };
     final ChangeSelectionActionPerformer perf2 = new ChangeSelectionActionPerformer( controls_main );
     
     enableLogging.setAdditionalActionPerformer( perf2 );
@@ -237,8 +289,7 @@ public class ConfigSectionLogging implements UISWTConfigSection {
 					StringTokenizer	tok = new StringTokenizer(evidence, "\n" );
 					
 					while( tok.hasMoreTokens()){
-						
-						LGLogger.log( LGLogger.AT_COMMENT, tok.nextToken().trim());
+						Logger.log( new LogEvent(LOGID, tok.nextToken().trim()));
 					}
 				}
 			});

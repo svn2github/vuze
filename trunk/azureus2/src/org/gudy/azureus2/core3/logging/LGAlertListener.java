@@ -23,7 +23,7 @@ package org.gudy.azureus2.core3.logging;
 
 /**
  * @author parg
- *
+ * @deprecated Use ILogAlertListener
  */
 public interface 
 LGAlertListener 
