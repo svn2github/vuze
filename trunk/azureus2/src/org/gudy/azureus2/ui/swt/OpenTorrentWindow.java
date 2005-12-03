@@ -881,10 +881,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				TableItem item = (TableItem) event.item;
 				int index = dataFileTable.indexOf(item);
 				TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
+
+				item.setChecked(file.bDownload);
 				item.setText(new String[] { file.sFileName,
 						DisplayFormatters.formatByteCountToKiBEtc(file.lSize),
 						file.sDestFileName });
-				item.setChecked(file.bDownload);
 				if (!file.isValid) {
 					item.setForeground(Colors.red);
 					Font font = item.getFont();
