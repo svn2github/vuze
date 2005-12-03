@@ -294,10 +294,10 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 												.getStats().getDataSendRate()
 												+ mainWindow.globalManager.getStats()
 														.getProtocolSendRate()));
-					}
 
-					// End of Status Sections
-					mainWindow.statusBar.layout();
+						// End of Status Sections
+						mainWindow.statusBar.layout();
+					}
 
 					if (mainWindow.systemTraySWT != null)
 						mainWindow.systemTraySWT.update();
