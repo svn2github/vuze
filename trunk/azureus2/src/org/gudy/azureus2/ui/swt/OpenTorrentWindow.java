@@ -83,6 +83,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	private final static int STARTMODE_FORCESTARTED = 2;
 
 	private final static int STARTMODE_SEEDING = 3;
+	
+	private final static int QUEUELOCATION_TOP = 0;
+	
+	private final static int QUEUELOCATION_BOTTOM = 1;
 
 	private final static String[] startModes = { "queued", "stopped",
 			"forceStarted", "seeding" };
@@ -1209,6 +1213,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	 * @param sDataDir 
 	 */
 	private void openTorrents(String sDataDir) {
+		ArrayList addedTorrentsTop = new ArrayList();
+		
 		for (int i = 0; i < torrentList.size(); i++) {
 			TorrentInfo info = (TorrentInfo) torrentList.get(i);
 			try {
@@ -1230,14 +1236,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				if (dm == null)
 					continue;
 
+				if (info.iQueueLocation == QUEUELOCATION_TOP)
+					addedTorrentsTop.add(dm);
+
 				if (iStartMode == STARTMODE_FORCESTARTED)
 					dm.setForceStart(true);
-
-				// TODO We should store queue last entries in a list and move them all
-				//       to the bottom at once to preserve order.
-				if (info.iQueueLocation == 1)
-					gm.moveEnd(new DownloadManager[] { dm });
-
+				
 				DiskManagerFileInfo[] dmFileInfo = dm.getDiskManagerFileInfo();
 				TorrentFileInfo[] files = info.getFiles();
 				for (int j = 0; j < dmFileInfo.length; j++) {
@@ -1261,6 +1265,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 							new String[] { info.sOriginatingLocation, e.getMessage() });
 			}
 		}
+		
+		if (addedTorrentsTop.size() > 0) {
+			DownloadManager[] dms = (DownloadManager[])addedTorrentsTop.toArray(new DownloadManager[0]);
+			gm.moveTop(dms);
+		}
+
 		torrentList.clear();
 	}
 
@@ -1364,7 +1374,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				iStartID = (bOverrideStartModeToStopped || COConfigurationManager
 						.getBooleanParameter("Default Start Torrents Stopped"))
 						? STARTMODE_STOPPED : STARTMODE_QUEUED;
-			iQueueLocation = 0;
+			iQueueLocation = QUEUELOCATION_BOTTOM;
 			isValid = true;
 
 			// Force a check on the encoding, will prompt user if we dunno
