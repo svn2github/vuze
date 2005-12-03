@@ -303,7 +303,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 						if (obj instanceof LogRelation) {
 							buf.append(((LogRelation) obj).getRelationText());
 						} else {
-							buf.append(obj.getClass().getSimpleName() + ": '"
+							buf.append(obj.getClass().getName() + ": '"
 									+ obj.toString() + "'");
 						}
 					}
