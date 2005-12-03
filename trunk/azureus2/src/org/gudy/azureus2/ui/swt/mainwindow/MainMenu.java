@@ -779,7 +779,8 @@ public class MainMenu {
       final int numTopItems = windowMenu.getItemCount();
       Listener rebuild = new Listener() {
           public void handleEvent(Event event) {
-              if(windowMenu.isDisposed())
+          	try {
+              if(windowMenu.isDisposed() || attachedShell.isDisposed())
                   return;
 
               final int size = ShellManager.sharedManager().getSize();
@@ -809,7 +810,7 @@ public class MainMenu {
                   item.setText(sh.getText());
                   item.setSelection(attachedShell == sh);
                   item.setData(sh);
-
+                  
                   item.addSelectionListener(new SelectionAdapter()
                   {
                       public void widgetSelected(SelectionEvent event)
@@ -824,6 +825,9 @@ public class MainMenu {
                       }
                   });
               }
+          	} catch (Exception e) {
+          		Logger.log(new LogEvent(LogIDs.GUI, "rebuild menu error", e));
+          	}
           }
       };
 
