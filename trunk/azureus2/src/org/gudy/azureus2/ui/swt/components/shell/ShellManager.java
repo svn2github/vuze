@@ -5,6 +5,9 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 
 import java.util.*;
 
@@ -77,7 +80,11 @@ public class ShellManager
         {
             public void widgetDisposed(DisposeEvent event)
             {
+            	try {
                 removeWindow(shell);
+            	} catch (Exception e) {
+            		Logger.log(new LogEvent(LogIDs.GUI, "removeWindow", e));
+            	}
             }
         });
     }
