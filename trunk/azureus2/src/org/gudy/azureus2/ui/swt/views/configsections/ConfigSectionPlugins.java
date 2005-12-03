@@ -258,8 +258,6 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 	}
 
 	public void configSectionDelete() {
-		configView = null;
-		azureusCore = null;
 	}
 
 	public Composite configSectionCreate(final Composite parent) {
