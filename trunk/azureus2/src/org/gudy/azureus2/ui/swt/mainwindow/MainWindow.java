@@ -304,15 +304,6 @@ MainWindow
 						// Ctrl-L: Open URL
 						OpenTorrentWindow.invokeURLPopup(mainWindow, globalManager);
 						event.doit = false;
-					} else if ((event.stateMask & SWT.MOD1) != 0) {
-						// Control/Command/Apple
-						if (event.keyCode == SWT.ARROW_RIGHT) {
-							Tab.selectNextTab(true);
-							event.doit = false;
-						} else if (event.keyCode == SWT.ARROW_LEFT) {
-							Tab.selectNextTab(false);
-							event.doit = false;
-						}
 					}
 				}
 			});
