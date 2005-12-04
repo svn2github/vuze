@@ -2263,60 +2263,59 @@ DownloadManagerImpl
 		  
 		  throw( new DownloadManagerException( "Download is not persistent" ));
 	  }
-	  
-	  int	state = getState();
-	  
-	  if ( 	state == DownloadManager.STATE_STOPPED ||
-			state == DownloadManager.STATE_ERROR ){
+	  		  
+			// old file will be a "file" for simple torrents, a dir for non-simple
 		  
-		  	// old file will be a "file" for simple torrents, a dir for non-simple
+	  File	old_file = torrent_save_location;
 		  
-		  File	old_file = torrent_save_location;
+	  try{
+		  old_file = old_file.getCanonicalFile();
+			  
+		  new_parent_dir = new_parent_dir.getCanonicalFile();
+			  
+	  }catch( Throwable e ){
+			  
+		  Debug.printStackTrace(e);
+			  
+		  throw( new DownloadManagerException( "Failed to get canonical paths", e ));
+	  }
 		  
-		  try{
-			  old_file = old_file.getCanonicalFile();
+	  if ( new_parent_dir.equals( old_file.getParentFile())){
 			  
-			  new_parent_dir = new_parent_dir.getCanonicalFile();
-			  
-		  }catch( Throwable e ){
-			  
-			  Debug.printStackTrace(e);
-			  
-			  throw( new DownloadManagerException( "Failed to get canonical paths", e ));
-		  }
+		  	// null operation
 		  
-		  if ( new_parent_dir.equals( old_file.getParentFile())){
-			  
-			  	// null operation
-			  
-			  return;
-		  }
-		  
-		  if ( !old_file.exists()){
-			  
-			  	// files not created yet
-			  
-			  new_parent_dir.mkdirs();
-			  
-			  setTorrentSaveDir( new_parent_dir.toString());
-			  
-			  return;
-		  }
-		  
-		  File new_file = new File( new_parent_dir, old_file.getName());
-		  
-		  if ( FileUtil.renameFile( old_file, new_file )){
-			  
-			  setTorrentSaveDir( new_parent_dir.toString());
-		  
-		  }else{
-			  
-			  throw( new DownloadManagerException( "rename operation failed" ));
+		  return;
+	  }
 
+	  DiskManager	dm = getDiskManager();
+	  
+	  if ( dm == null ){
+
+		  if ( !old_file.exists()){
+				  
+		  	// files not created yet
+				  
+			  new_parent_dir.mkdirs();
+				  
+			  setTorrentSaveDir( new_parent_dir.toString());
+			  
+			  return;
+		  }
+			  
+		  File new_file = new File( new_parent_dir, old_file.getName());
+			  
+		  if ( FileUtil.renameFile( old_file, new_file )){
+				  
+			  setTorrentSaveDir( new_parent_dir.toString());
+			  
+		  }else{
+				  
+			  throw( new DownloadManagerException( "rename operation failed" ));
+	
 		  }
 	  }else{
 		  
-		  throw( new DownloadManagerException( "download not stopped or in error state" ));
+		  dm.moveDataFiles( new_parent_dir );
 	  }
   }
   

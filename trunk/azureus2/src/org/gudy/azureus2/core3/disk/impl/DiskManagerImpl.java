@@ -1454,19 +1454,11 @@ DiskManagerImpl
   public void 
   downloadEnded() 
   {
-    try{
+	  try{
     	start_stop_mon.enter();
-    	
-	    String fullPath;
-	    
-	    String subPath;
 	    
 	    String rPath = download_manager.getAbsoluteSaveLocation().getParent();
-	    
-	    File destDir;
-	    
-	    //String returnName = "";
-	    
+	    	    
 	    	// don't move non-persistent files as these aren't managed by us
 	    
 	    if ( !download_manager.isPersistent()){
@@ -1498,11 +1490,9 @@ DiskManagerImpl
 	    	return;
 	    }
 	
-	    try{
-	
-	      boolean moveOnlyInDefault = COConfigurationManager.getBooleanParameter("Move Only When In Default Save Dir");
+	    boolean moveOnlyInDefault = COConfigurationManager.getBooleanParameter("Move Only When In Default Save Dir");
 	      
-	      if (moveOnlyInDefault) {
+	    if ( moveOnlyInDefault ){
 	      	
 	        String defSaveDir = COConfigurationManager.getStringParameter("Default save path");
 
@@ -1517,14 +1507,45 @@ DiskManagerImpl
 	        }
 	        
 	        if (!rPath.equals(defSaveDir)){
+	        	
 	        	if (Logger.isEnabled())
 							Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING,
 									"Not moving-on-complete since "
 											+ "data is not within default save dir"));
 	          
-	          return;
+	        	return;
 	        }
-	      }
+	        
+	    	Debug.out( "Moving data files: " + rPath + " -> " + moveToDir +", def = " + defSaveDir ); 
+	    }
+	    
+	    boolean moveTorrent = COConfigurationManager.getBooleanParameter("Move Torrent When Done", true);
+
+	    moveFiles( moveToDir, moveTorrent, true );
+	    
+	  }finally{
+		  
+		  start_stop_mon.exit();
+	  }
+    }
+    
+	public void
+	moveDataFiles(
+		File	new_parent_dir )
+	{
+		moveFiles( new_parent_dir.toString(), false, false );
+	}
+	
+    protected void
+    moveFiles(
+    	String	move_to_dir,
+    	boolean	move_torrent,
+    	boolean	change_to_read_only )
+    {
+	    String move_from_dir = download_manager.getAbsoluteSaveLocation().getParent();
+
+    	try{
+    	  start_stop_mon.enter();
 	      
 	      	// first of all check that no destination files already exist
 	      
@@ -1539,11 +1560,11 @@ DiskManagerImpl
 	          
 	          	//get old file's parent path
 	          
-	          fullPath = old_file.getParent();
+	          String fullPath = old_file.getParent();
 	          
 	           	//compute the file's sub-path off from the default save path
 	          
-	          subPath = fullPath.substring(fullPath.indexOf(rPath) + rPath.length());
+	          String subPath = fullPath.substring(fullPath.indexOf(move_from_dir) + move_from_dir.length());
 	    
 	          	//create the destination dir
 	          
@@ -1552,7 +1573,7 @@ DiskManagerImpl
 	          	subPath = subPath.substring(1);
 	          }
 	          
-	          destDir = new File(moveToDir, subPath);
+	          File destDir = new File(move_to_dir, subPath);
 	     
 	          	//create the destination file pointer
 	          
@@ -1595,7 +1616,10 @@ DiskManagerImpl
 	          	
 	          	files[i].moveFile( new_file );
 	           	
-	            files[i].setAccessMode(DiskManagerFileInfo.READ);
+	          	if ( change_to_read_only ){
+	          		
+	          		files[i].setAccessMode(DiskManagerFileInfo.READ);
+	          	}
 	            
 	          }catch( CacheFileManagerException e ){
 	          	
@@ -1618,9 +1642,7 @@ DiskManagerImpl
 	            	
 	            	try{
 	            		files[j].moveFile( old_files[j]);
-	
-	            		files[j].setAccessMode(DiskManagerFileInfo.READ);
-	         		
+		         		
 	            	}catch( CacheFileManagerException f ){
 	              
 	            		Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
@@ -1641,18 +1663,17 @@ DiskManagerImpl
 	      File tFile = download_manager.getAbsoluteSaveLocation();
 	      
 	      if (	tFile.isDirectory() && 
-	      		!moveToDir.equals(rPath)){
+	      		!move_to_dir.equals(move_from_dir)){
 	      	
 	      		deleteDataFiles(torrent, tFile.getParent(), tFile.getName());
 	      }
 	        
-	      download_manager.setTorrentSaveDir( moveToDir );
+	      download_manager.setTorrentSaveDir( move_to_dir );
 	      
 	      	//move the torrent file as well
 	      
-	      boolean moveTorrent = COConfigurationManager.getBooleanParameter("Move Torrent When Done", true);
 	      
-	      if ( moveTorrent ){
+	      if ( move_torrent ){
 	      	
 	          String oldFullName = download_manager.getTorrentFileName();
 	          
@@ -1660,7 +1681,7 @@ DiskManagerImpl
 	          
 	          String oldFileName = oldTorrentFile.getName();
 	          
-	          File newTorrentFile = new File(moveToDir, oldFileName);
+	          File newTorrentFile = new File(move_to_dir, oldFileName);
 	          
 	          if (!newTorrentFile.equals(oldTorrentFile)){
 	          	
@@ -1684,10 +1705,10 @@ DiskManagerImpl
 	          	}
 	          }
 	      }
-	    }catch( Exception e){
+	}catch( Exception e){
 	    	
-	    	Debug.printStackTrace( e ); 
-	    }	    
+	  	Debug.printStackTrace( e );
+	  	
     }finally{
     	
     	try{
@@ -1695,7 +1716,7 @@ DiskManagerImpl
             
             	//update resume data
             
-            if (resumeEnabled){
+            if ( resumeEnabled ){
             	
             	try{
             		dumpResumeDataToDisk(true, false);

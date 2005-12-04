@@ -22,6 +22,8 @@
 package org.gudy.azureus2.core3.disk;
  
  
+import java.io.File;
+
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
@@ -175,6 +177,10 @@ DiskManager
 	public void
 	downloadEnded();
 
+	public void
+	moveDataFiles(
+		File	new_parent_dir );
+	
 		/**
 		 * returns true if a complete recheck is in progress
 		 * @return
