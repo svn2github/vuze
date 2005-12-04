@@ -206,7 +206,7 @@ DiskAccessControllerInstance
 					max_mb_sem.reserve();
 				}
 				
-				synchronized( this ){
+				synchronized( requests ){
 					
 					requests.add( request );
 					
@@ -230,7 +230,7 @@ DiskAccessControllerInstance
 											
 											DiskAccessRequestImpl	request;
 											
-											synchronized( this ){
+											synchronized( requests ){
 	
 												request = (DiskAccessRequestImpl)requests.remove(0);
 											}
@@ -268,7 +268,7 @@ DiskAccessControllerInstance
 											
 										}else{
 											
-											synchronized( this ){
+											synchronized( requests ){
 	
 												if ( requests.size() == 0 ){
 													
