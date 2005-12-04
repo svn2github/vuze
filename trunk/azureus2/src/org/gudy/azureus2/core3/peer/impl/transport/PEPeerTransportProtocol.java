@@ -201,7 +201,7 @@ PEPeerTransportProtocol
       public void connectSuccess() {  //will be called immediately
       	if (Logger.isEnabled())
 					Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
-							"LifeCycle:In: Established incoming connection"));
+							"In: Established incoming connection"));
         initializeConnection();
         
         /*
@@ -271,7 +271,7 @@ PEPeerTransportProtocol
         
         if (Logger.isEnabled())
 					Logger.log(new LogEvent(PEPeerTransportProtocol.this, LOGID,
-							"LifeCycle:Out: Established outgoing connection"));
+							"Out: Established outgoing connection"));
         initializeConnection();
         sendBTHandshake();
       }
@@ -291,7 +291,7 @@ PEPeerTransportProtocol
       
     if (Logger.isEnabled())
 			Logger.log(new LogEvent(this, LOGID,
-					"LifeCycle:Out: Creating outgoing connection"));
+					"Out: Creating outgoing connection"));
   }
   
   
@@ -404,8 +404,7 @@ PEPeerTransportProtocol
     changePeerState( PEPeer.DISCONNECTED );
     
     if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LOGID,
-					"LifeCycle: Peer connection closed: " + reason));
+			Logger.log(new LogEvent(this, LOGID, "Peer connection closed: " + reason));
 
     if( !externally_closed ) {  //if closed internally, notify manager, otherwise we assume it already knows
       manager.peerConnectionClosed( this );
@@ -1178,8 +1177,7 @@ PEPeerTransportProtocol
     PeerIdentityManager.addIdentity( my_peer_data_id, peer_id, ip );    
 
     if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LOGID,
-					"LifeCycle:In: has sent their handshake"));
+			Logger.log(new LogEvent(this, LOGID, "In: has sent their handshake"));
 
     handshake.destroy();
     
