@@ -794,7 +794,8 @@ PluginInitializer
 							pid,
 							plugin_version[0] );
 	      
-	      boolean bEnabled = COConfigurationManager.getBooleanParameter("Plugin." + pid + ".enabled", true);
+	      // Must use getPluginID() instead of pid, because they may differ
+	      boolean bEnabled = COConfigurationManager.getBooleanParameter("Plugin." + plugin_interface.getPluginID() + ".enabled", true);
 	      plugin_interface.setDisabled(!bEnabled);
 
 	      try{
