@@ -240,7 +240,8 @@ DownloadImpl
 	public int
 	getIndex()
 	{
-		return( download_manager.getIndex());
+		GlobalManager globalManager = download_manager.getGlobalManager();
+		return globalManager.getIndexOf(download_manager);
 	}
 	
 	public Torrent

@@ -257,9 +257,6 @@ DownloadManager
 				
 		// what are these doing here?
 		
-	public int
-	getIndex();
-	
 	public boolean
 	isMoveableDown();
 	

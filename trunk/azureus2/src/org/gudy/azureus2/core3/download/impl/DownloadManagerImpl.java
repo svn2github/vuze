@@ -1603,12 +1603,6 @@ DownloadManagerImpl
 	}
   
  
-  public int getIndex() {
-	if(globalManager != null)
-	  return globalManager.getIndexOf(this);
-	return -1;
-  }
-  
   public boolean isMoveableUp() {
 	if(globalManager != null)
 	  return globalManager.isMoveableUp(this);
