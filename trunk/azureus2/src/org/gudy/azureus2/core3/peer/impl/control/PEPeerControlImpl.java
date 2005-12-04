@@ -1145,9 +1145,6 @@ PEPeerControlImpl
    * @return null = No piece avail, or:
    *          [0] = Piece Number
    *          [1] = Block Number, -1 if piece not created
-   *   
-   * XXX Last updated: r1.298.  Check for any changes in findPieceToDownload
-   *     beyond this revision!  And remove this XXX before commiting  
    */
   public int[] getRarestPieceInfo(PEPeer pc) {
     
