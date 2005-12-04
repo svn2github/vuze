@@ -2190,9 +2190,7 @@ DHTTransportUDPImpl
 											
 										}catch( DHTTransportException e ){
 											
-											logger.log( "Failed to process transfer queue" );
-											
-											logger.log( e );
+											logger.log( "Failed to process transfer queue: " + Debug.getNestedExceptionMessage(e));
 										}
 									}
 								}.start();
