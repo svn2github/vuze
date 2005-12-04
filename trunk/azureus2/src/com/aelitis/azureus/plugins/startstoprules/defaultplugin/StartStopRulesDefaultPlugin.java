@@ -849,18 +849,18 @@ public class StartStopRulesDefaultPlugin
 	    if (bDebugLog) {
 	      log.log(LoggerChannel.LT_INFORMATION, ">>process()");
 	      mainDebugEntries = new String[] { 
-	              "bHasSR="+bHasNonFPRank,
-	              "tFrcdCding="+totalForcedSeeding,
-	              "actvCDs="+activeSeedingCount,
-	              "tW8tingToCd="+totalWaitingToSeed,
-	              "tDLing="+totalDownloading,
-	              "actvDLs="+activeDLCount,
-	              "tW8tingToDL="+totalWaitingToDL,
-	              "tCom="+totalComplete,
-	              "tIncQd="+totalIncompleteQueued,
-	              "mxCdrs="+maxSeeders,
-	              "t1stPr="+totalFirstPriority,
-	              "maxT="+maxTorrents
+	          "bHasSR="+boolDebug(bHasNonFPRank),
+	          "tFrcdCding="+totalForcedSeeding,
+	          "actvCDs="+activeSeedingCount,
+	          "tW8tingToCd="+totalWaitingToSeed,
+	          "tDLing="+totalDownloading,
+	          "actvDLs="+activeDLCount,
+	          "tW8tingToDL="+totalWaitingToDL,
+	          "tCom="+totalComplete,
+	          "tIncQd="+totalIncompleteQueued,
+	          "mxCdrs="+maxSeeders,
+	          "t1stPr="+totalFirstPriority,
+	          "maxT="+maxTorrents
 	                      };
 	    }
 	
@@ -1201,16 +1201,16 @@ public class StartStopRulesDefaultPlugin
 	
 	        if (bDebugLog) {
 	          debugEntries = new String[] { "state="+sStates.charAt(state),
-	                           "shareR="+shareRatio,
-	                           "nWorCDing="+numWaitingOrSeeding,
-	                           "nWorDLing="+numWaitingOrDLing,
-	                           "ok2Q="+okToQueue,
-	                           "sr="+download.getSeedingRank(),
-	                           "hgherQd="+higherQueued,
-	                           "maxCDrs="+maxSeeders,
-	                           "1stP="+isFP,
-	                           "actCDingCount="+activeSeedingCount,
-	                           "ActCDing="+bActivelySeeding
+                "shareR="+download.getStats().getShareRatio(),
+                "nWorCDing="+numWaitingOrSeeding,
+                "nWorDLing="+numWaitingOrDLing,
+                "ok2Q="+boolDebug(okToQueue),
+                "sr="+download.getSeedingRank(),
+                "hgherQd="+boolDebug(higherQueued),
+                "maxCDrs="+maxSeeders,
+                "1stP="+boolDebug(dlData.isFirstPriority()),
+                "actCDingCount="+activeSeedingCount,
+                "ActCDing="+boolDebug(bActivelySeeding)
 	                          };
 	        }
 	        
@@ -1365,13 +1365,13 @@ public class StartStopRulesDefaultPlugin
 	                           "shareR="+download.getStats().getShareRatio(),
 	                           "nWorCDing="+numWaitingOrSeeding,
 	                           "nWorDLing="+numWaitingOrDLing,
-	                           "ok2Q="+okToQueue,
+	                           "ok2Q="+boolDebug(okToQueue),
 	                           "sr="+download.getSeedingRank(),
-	                           "hgherQd="+higherQueued,
+	                           "hgherQd="+boolDebug(higherQueued),
 	                           "maxCDrs="+maxSeeders,
-	                           "1stP="+dlData.isFirstPriority(),
+	                           "1stP="+boolDebug(dlData.isFirstPriority()),
 	                           "actCDingCount="+activeSeedingCount,
-	                           "ActCDing="+bActivelySeeding
+	                           "ActCDing="+boolDebug(bActivelySeeding)
 	                          };
 	          printDebugChanges("", debugEntries, debugEntries2, sDebugLine, "  ", true, dlData);
 	        }
@@ -1381,7 +1381,7 @@ public class StartStopRulesDefaultPlugin
 	    
 	    if (bDebugLog) {
 	      String[] mainDebugEntries2 = new String[] { 
-	          "bHasSR="+bHasNonFPRank,
+	          "bHasSR="+boolDebug(bHasNonFPRank),
 	          "tFrcdCding="+totalForcedSeeding,
 	          "actvCDs="+activeSeedingCount,
 	          "tW8tingToCd="+totalWaitingToSeed,
@@ -1401,6 +1401,10 @@ public class StartStopRulesDefaultPlugin
   		this_mon.exit();
   	}
   } // process()
+  
+  private String boolDebug(boolean b) {
+  	return b ? "Y" : "N";
+  }
   
   private void printDebugChanges(String sPrefixFirstLine, 
                                  String[] oldEntries, 
