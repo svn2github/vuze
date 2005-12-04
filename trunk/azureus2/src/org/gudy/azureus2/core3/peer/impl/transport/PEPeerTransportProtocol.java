@@ -1906,7 +1906,7 @@ PEPeerTransportProtocol
 		String text = "";
 		if (manager instanceof LogRelation)
 			text = ((LogRelation)manager).getRelationText() + "; ";
-		text = "Peer: " + toString();
+		text += "Peer: " + toString();
 		return text;
 	}
 
