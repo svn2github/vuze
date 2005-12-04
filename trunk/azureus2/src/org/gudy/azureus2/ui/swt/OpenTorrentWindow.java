@@ -902,6 +902,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 					item.setFont(font);
 				}
 				Utils.alternateRowBackground(item);
+				
+				// For OSX to hopefully refresh the checkbox.
+				item.getParent().redraw();
 			}
 		});
 
