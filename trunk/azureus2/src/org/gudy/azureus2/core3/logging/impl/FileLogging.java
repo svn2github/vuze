@@ -31,7 +31,7 @@ public class FileLogging implements ILogEventListener {
 			LogIDs.DISK, LogIDs.GUI, LogIDs.NET, LogIDs.NWMAN, LogIDs.PEER,
 			LogIDs.PLUGIN, LogIDs.TRACKER, LogIDs.CACHE };
 
-	private static final String sTimeStampFormat = "HH:mm:ss.SSS|";
+	private static final String sTimeStampFormat = "HH:mm:ss.SSS ";
 
 	private boolean bLogToFile = false;
 
@@ -187,49 +187,74 @@ public class FileLogging implements ILogEventListener {
 	 * @see org.gudy.azureus2.core3.logging.ILoggerListener2#log(org.gudy.azureus2.core3.logging.LogEvent)
 	 */
 
+	private final static int DEFPADDING = 100;
+	private int lastWidth = DEFPADDING;
 	public void log(LogEvent event) {
 		if (ignoredComponents[logTypeToIndex(event.entryType)]
 				.contains(event.logID))
 			return;
 
-		StringBuffer text = new StringBuffer(event.entryType + "|" + event.logID
-				+ "| ");
-		int len = text.length() + sTimeStampFormat.length();
-		boolean needLF = false;
+		StringBuffer text = new StringBuffer(event.entryType);
+
+		padAndAppend(text, event.logID.toString(), 8, 1);
+
+		//text.append("|");
 
 		if (event.relatedTo != null) {
+			lastWidth = padAndAppend(text, event.text, lastWidth, 1);
+
 			for (int i = 0; i < event.relatedTo.length; i++) {
 				Object obj = event.relatedTo[i];
-				
+
 				if (obj == null)
 					continue;
 
-				needLF = true;
 				if (i > 0)
 					text.append("; ");
 
 				if (obj instanceof LogRelation) {
-					text.append(((LogRelation)obj).getRelationText());
+					text.append(((LogRelation) obj).getRelationText());
 				} else {
 					text.append("RelatedTo[" + obj.toString() + "]");
 				}
 			}
+		} else {
+			text.append(event.text);
+
+			lastWidth = DEFPADDING;
 		}
 
-		if (needLF) {
-			text.append("\r\n");
-
-			char[] padding = new char[len];
-			while (len > 0)
-				padding[--len] = ' ';
-			text.append(padding);
-		}
-
-		text.append(event.text);
+		//text.append(event.text);
 
 		if (event.text == null || !event.text.endsWith("\n"))
 			text.append("\r\n");
 
 		logToFile(text.toString());
+	}
+
+	private int padAndAppend(StringBuffer appendTo, String s, int width, int growBy) {
+		if (s == null)
+			s = "null";
+		appendTo.append(s);
+
+		int sLen = s.length();
+		int len = width - sLen;
+		while (len <= 0)
+			len += growBy;
+		
+		char[] padding = new char[len];
+		if (len > 5) {
+			for (int i = 0; i < len; i += 2)
+				padding[i] = ' ';
+			for (int i = 1; i < len; i += 2)
+				padding[i] = '.';
+		} else {
+			for (int i = 0; i < len; i++)
+				padding[i] = ' ';
+		}
+
+		appendTo.append(padding);
+		
+		return len + sLen;
 	}
 }
