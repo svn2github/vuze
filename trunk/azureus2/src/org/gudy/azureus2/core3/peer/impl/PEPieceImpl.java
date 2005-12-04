@@ -142,6 +142,14 @@ PEPieceImpl
 		return( -1 );
   }
 
+  public int getNextUnrequestedBlock() {
+		for (int i = 0; i < requested.length; i++)
+			if (!requested[i] && !dm_piece.getWritten(i) && !downloaded[i])
+				return i;
+
+		return -1;
+	}
+
   	/**
   	 * This method is safe in a multi-threaded situation as the worst that it can
   	 * do is mark a block as not requested even though its downloaded which may lead
@@ -177,13 +185,16 @@ PEPieceImpl
   	 * Assumption - single threaded with getAndMarkBlock
   	 */
   
-  public void 
+  public boolean 
   markBlock(int blocNumber) 
   { 	
   	if (!downloaded[blocNumber]){
   		
   		requested[blocNumber] = true;
+  		return true;
   	}
+  	
+  	return false;
   }
 
   public int 

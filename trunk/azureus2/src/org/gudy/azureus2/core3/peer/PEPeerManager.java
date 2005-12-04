@@ -269,4 +269,5 @@ PEPeerManager
    */
   public int getAverageCompletionInThousandNotation();
   
+  public int[] getRarestPieceInfo(PEPeer pc);
 }

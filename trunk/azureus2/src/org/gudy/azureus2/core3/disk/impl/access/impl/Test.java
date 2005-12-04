@@ -1355,6 +1355,14 @@ Test
 		 public Object getData (String key){return( null );}
 		  /** To store arbitrary objects against this object. */
 		  public void setData (String key, Object value){}
+
+			/* (non-Javadoc)
+			 * @see org.gudy.azureus2.core3.peer.PEPeerManager#getRarestPieceInfo(org.gudy.azureus2.core3.peer.PEPeer)
+			 */
+			public int[] getRarestPieceInfo(PEPeer pc) {
+				// TODO Auto-generated method stub
+				return null;
+			}
 	
 
 	  

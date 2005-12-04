@@ -663,7 +663,10 @@ PEPeerControlImpl
     }
 
     if( PeerUtils.ignorePeerPort( port ) ) {
-      LGLogger.log( "Skipping connect with " +address+ ":" +port+ " as peer port is in ignore list." );
+    	if (Logger.isEnabled())
+				Logger.log(new LogEvent(_tracker.getTorrent(), LOGID,
+						"Skipping connect with " + address + ":" + port
+								+ " as peer port is in ignore list."));
       return false;
     }
     
@@ -1090,6 +1093,47 @@ PEPeerControlImpl
 
   /**
    * This method is the core download manager.
+   * @param pc the PeerConnection we're working on
+   * @return true if a request was assigned, false otherwise
+   */
+  private boolean findPieceToDownload(PEPeerTransport pc) {
+		int[] rarestPieceInfo = getRarestPieceInfo(pc);
+		if (rarestPieceInfo == null)
+			return false;
+
+		int pieceNumber = rarestPieceInfo[0];
+		int blockNumber = rarestPieceInfo[1];
+
+		//Slower than 2KB/s is a slow peer
+		boolean slowPeer = pc.getStats().getDataReceiveRate() < 2 * 1024;
+
+		if (_pieces[pieceNumber] == null) {
+			PEPieceImpl piece = null;
+
+			piece = new PEPieceImpl(this, dm_pieces[pieceNumber], slowPeer, false);
+
+			pieceAdded(piece);
+			//Assign the created piece to the pieces array.
+			_pieces[pieceNumber] = piece;
+		} else {
+			_pieces[pieceNumber].setSlowPiece(slowPeer);
+		}
+
+		if (blockNumber >= 0 && !_pieces[pieceNumber].markBlock(blockNumber))
+			blockNumber = -1;
+
+		if (blockNumber == -1)
+			blockNumber = _pieces[pieceNumber].getAndMarkBlock();
+
+		if (blockNumber == -1)
+			return false;
+
+		pc.request(pieceNumber, blockNumber * DiskManager.BLOCK_SIZE,
+				_pieces[pieceNumber].getBlockSize(blockNumber));
+		return true;
+	}
+
+  /**
    * It will decide for a given peer, which block it should download from it.
    * Here is the overall algorithm :
    * 1. It will determine a list of rarest pieces.
@@ -1097,10 +1141,15 @@ PEPeerControlImpl
    * 3. If not, it will start a new piece dl based on a randomly choosen piece from least available ones.  
    * 3. If it can't find a piece then, this means that all pieces are already downloaded/fully requested, and it returns false.
    * 
-   * @param pc the PeerConnection we're working on
-   * @return true if a request was assigned, false otherwise
+   * @param pc
+   * @return null = No piece avail, or:
+   *          [0] = Piece Number
+   *          [1] = Block Number, -1 if piece not created
+   *   
+   * XXX Last updated: r1.298.  Check for any changes in findPieceToDownload
+   *     beyond this revision!  And remove this XXX before commiting  
    */
-  private boolean findPieceToDownload(PEPeerTransport pc) {
+  public int[] getRarestPieceInfo(PEPeer pc) {
     
     //0. if a piece is linked to this peer, let's assign it to him
     if(pc.getReservedPieceNumber() != -1) {
@@ -1109,17 +1158,13 @@ PEPeerControlImpl
       if(piece == null) {
         pc.setReservedPieceNumber(-1);
       } else {
-        int blockNumber = piece.getAndMarkBlock();
+        int blockNumber = piece.getNextUnrequestedBlock();
         if(blockNumber == -1) {
           //No blocks left to request on that piece,
           //Unallocate the piece from that peer
           pc.setReservedPieceNumber(-1);
         } else {
-          //We really send the request to the peer
-          pc.request(pieceNumber, blockNumber * DiskManager.BLOCK_SIZE, _pieces[pieceNumber].getBlockSize(blockNumber));
-
-          //and return true as we have found a block to request
-          return true;
+        	return new int[] {pieceNumber, blockNumber};
         }
       }
     }
@@ -1131,7 +1176,7 @@ PEPeerControlImpl
     //get the rarest pieces list
     getRarestPieces(pc,90,false);
     if (_piecesRarest == null)
-      return false;
+    	return null;
 
     int nbPiecesRarest = 0;
     for (int i = 0; i < _piecesRarest.length; i++) {
@@ -1141,7 +1186,7 @@ PEPeerControlImpl
 
     //If there is no piece to download, return.
     if (nbPiecesRarest == 0)
-      return false;
+      return null;
 
     //Piece number and block number that we should dl
     int pieceNumber = -1;
@@ -1158,7 +1203,7 @@ PEPeerControlImpl
         //We get and mark the next block number to dl
         //We will either get -1 if no more blocks need to be requested
         //Or a number >= 0 otherwise
-        int tempBlock = _pieces[i].getAndMarkBlock();
+        int tempBlock = _pieces[i].getNextUnrequestedBlock();
 
         //SO, if there is a block to request in that piece
         
@@ -1178,12 +1223,6 @@ PEPeerControlImpl
 	                   (_pieces[i]. getNbBlocs() - _pieces[i].getCompleted() > 1)
 	               )
               ) {
-            //If we had marked a block previously, we must unmark it
-            if (pieceNumber != -1) {
-              //So pieceNumber contains the last piece
-              //We unmark the last block marked        
-              _pieces[pieceNumber].unmarkBlock(blockNumber);
-            }
             //Now we change the different variables
             //The new pieceNumber being used is pieceNumber
             pieceNumber = i;
@@ -1192,11 +1231,7 @@ PEPeerControlImpl
             //The new completed level
             lastCompleted = _pieces[i].getCompleted();
           }
-          else {
-            //This piece is not intersting, but we have marked it as
-            //being downloaded, we have to unmark it.
-            _pieces[i].unmarkBlock(tempBlock);
-          }
+          // else this piece is not interesting
         }
         else {
           //So ..... we have a piece not marked as being downloaded ...
@@ -1211,17 +1246,7 @@ PEPeerControlImpl
 
     //Ok, so we may have found a valid (piece;block) to request    
     if (pieceNumber != -1 && blockNumber != -1) {
-      //If the peer is snubbed, we unmark the block as being requested
-      //if (snubbed)
-      //  _pieces[pieceNumber].unmarkBlock(blockNumber);
-
-      _pieces[pieceNumber].setSlowPiece(slowPeer);
-      
-      //We really send the request to the peer
-      pc.request(pieceNumber, blockNumber * DiskManager.BLOCK_SIZE, _pieces[pieceNumber].getBlockSize(blockNumber));
-
-      //and return true as we have found a block to request
-      return true;
+    	return new int[] {pieceNumber, blockNumber};
     }
 
     //If we get to this point we haven't found a block from a piece being downloaded
@@ -1247,38 +1272,21 @@ PEPeerControlImpl
             //We get and mark the next block number to dl
             //We will either get -1 if no more blocks need to be requested
             //Or a number >= 0 otherwise
-            blockNumber = _pieces[i].getAndMarkBlock();
+            blockNumber = _pieces[i].getNextUnrequestedBlock();
 
             //SO, if there is a block to request in that piece            
             if (blockNumber != -1) {
-              pc.request(i, blockNumber * DiskManager.BLOCK_SIZE, _pieces[i].getBlockSize(blockNumber));
-              return true;
+            	return new int[] {i, blockNumber};
             }
           }
         }
       }
-      return false;
+      return null;
     }
       
-    //Now we should have a piece with least presence on network    
-    PEPieceImpl piece = null;
-    
-    
-    piece = new PEPieceImpl(this, dm_pieces[pieceNumber], slowPeer, false );
- 
-    pieceAdded(piece);
-    //Assign the created piece to the pieces array.
-    _pieces[pieceNumber] = piece;
-
-    //We send request ...
-    blockNumber = piece.getAndMarkBlock();
-    //if (snubbed)
-    //  _pieces[pieceNumber].unmarkBlock(blockNumber);
-
-    pc.request(pieceNumber, blockNumber * DiskManager.BLOCK_SIZE, piece.getBlockSize(blockNumber));
-    return true;
+  	return new int[] {pieceNumber, -1};
   }
-
+  
   	// set FORCE_PIECE if trying to diagnose piece problems and only want to d/l a specific
   	// piece from a torrent
   
@@ -1286,7 +1294,7 @@ PEPeerControlImpl
   
   private void 
   getRarestPieces(
-  	PEPeerTransport 	pc,
+  	PEPeer 	pc,
 	int 				rangePercent,
 	boolean 			onlyNonAllocatedPieces) 
   {
@@ -2321,7 +2329,10 @@ PEPeerControlImpl
       	
       		//Trace the ban in third
       		      		
-    		LGLogger.log(LGLogger.ERROR,ip + " : has been banned and won't be able to connect until you restart azureus");
+        if (Logger.isEnabled())
+					Logger.log(new LogEvent(peer, LOGID,
+							LogEvent.LT_ERROR, ip + " : has been banned and won't be able "
+									+ "to connect until you restart azureus"));
       	
     	}
     }    
@@ -2451,8 +2462,11 @@ PEPeerControlImpl
     			endGameMode	= false;
     			
     			endGameModeAbandoned	= true;
-  
-    		    LGLogger.log(LGLogger.INFORMATION,"Abandoning end-game mode: " + _downloadManager.getDisplayName());
+
+    			if (Logger.isEnabled())
+						Logger.log(new LogEvent(_tracker.getTorrent(), LOGID,
+								"Abandoning end-game mode: "
+										+ _downloadManager.getDisplayName()));
 
     		    try{
     		    	endGameModeChunks_mon.enter();
@@ -2494,7 +2508,9 @@ PEPeerControlImpl
 		
 	    computeEndGameModeChunks();
 	    endGameMode = true;
-	    if( LGLogger.isEnabled() )  LGLogger.log(LGLogger.INFORMATION,"Entering end-game mode: " + _downloadManager.getDisplayName());
+	    if (Logger.isEnabled())
+				Logger.log(new LogEvent(_tracker.getTorrent(), LOGID,
+						"Entering end-game mode: " + _downloadManager.getDisplayName()));
 	    //System.out.println("End-Game Mode activated");
     }
   }

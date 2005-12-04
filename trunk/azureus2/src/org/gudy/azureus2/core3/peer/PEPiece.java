@@ -35,7 +35,7 @@ PEPiece
  
   public void unmarkBlock(int blocNumber);
   
-  public void markBlock(int blocNumber);
+  public boolean markBlock(int blocNumber);
  
   public int getAvailability();
    
@@ -90,6 +90,8 @@ PEPiece
   public boolean isBeingChecked();
   
   public int getAndMarkBlock();
+  
+  public int getNextUnrequestedBlock();
    
   public PEPeerManager getManager();
   
