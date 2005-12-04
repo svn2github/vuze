@@ -81,7 +81,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 	private AzureusCore azureusCore;
 
 	FilterComparator comparator;
-
+	
 	class FilterComparator implements Comparator {
 		boolean ascending = true;
 
@@ -438,12 +438,10 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 
 		table.setItemCount(pluginIFs.size());
 
-		initPluginSubSections();
-
 		return infoGroup;
 	}
 
-	private void initPluginSubSections() {
+	public void initPluginSubSections() {
 		// Create subsections for plugins that used the PluginConfigModel object
 		// =====================================================================
 

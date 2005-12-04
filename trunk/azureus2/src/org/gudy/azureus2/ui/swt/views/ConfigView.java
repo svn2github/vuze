@@ -272,6 +272,10 @@ public class ConfigView extends AbstractIView {
           treeItem.setData("ID", name);
           treeItem.setData("ConfigSectionSWT", section);
           
+          // ConfigSectionPlugins is special because it has to handle the
+          // PluginConfigModel config pages
+          if (section instanceof ConfigSectionPlugins)
+          	((ConfigSectionPlugins)section).initPluginSubSections();
         } catch (Exception e) {
         	Logger.log(new LogEvent(LOGID, "ConfigSection plugin '" + name
 							+ "' caused an error", e));
