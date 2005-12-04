@@ -400,7 +400,18 @@ DownloadManagerController
   	  					int 	oldDMState,
   	  					int		newDMState )
   	  				{
-  	  					if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
+  	  					if ( newDMState == DiskManager.STOPPED) {
+  								if ( disk_manager != null ){
+  									try {
+											disk_manager.dumpResumeDataToDisk(true, false);
+										} catch (Exception e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
+  								}
+  	  						download_manager.setOnlySeeding(false);
+	  							setDiskManager( null );
+  	  					} if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
   	  						
   	  						if ( disk_manager == null ){
   	  								

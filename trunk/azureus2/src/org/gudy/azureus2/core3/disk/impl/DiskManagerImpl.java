@@ -503,6 +503,8 @@ DiskManagerImpl
 			storeFileDownloaded( download_manager, files );
 		}
 		
+		setState( STOPPED );
+
 			// can't be used after a stop so we might as well clear down the listeners
 		
 		listeners.clear();
