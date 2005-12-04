@@ -10,14 +10,21 @@ import org.gudy.azureus2.ui.swt.IconBarEnabler;
 
 /**
  * @author Olivier
- * 
  */
+
+// XXX This class is used by plugins.  Don't remove any functions from it!
 public interface IView extends IconBarEnabler {
   /**
    * This method is called when the view is instanciated, it should initialize all GUI
    * components. Must NOT be blocking, or it'll freeze the whole GUI.
    * Caller is the GUI Thread.
-   * @param composite the parent composite. Each view should create a child composite, and then use this child composite to add all elements to.
+   * 
+   * @param composite the parent composite. Each view should create a child 
+   *         composite, and then use this child composite to add all elements
+   *         to.
+   *         
+   * @note It's possible that the view may be created, but never initialize'd.
+   *        In these cases, delete will still be called.
    */
   public void initialize(Composite composite);
   
@@ -49,10 +56,19 @@ public interface IView extends IconBarEnabler {
    */
   public String getData();
   
+  /**
+   * Called in order to set / update the short title of this view.  When the 
+   * view is being displayed in a tab, the short title is used for the tab's
+   * text
+   * 
+   * @return A short title for the view
+   */
   public String getShortTitle();
   
   /**
-   * Called in order to set / update the title of this View
+   * Called in order to set / update the title of this View.  When the view
+   * is being displayed in a tab, the full title is used for the tooltip.
+   * 
    * @return the full title for the view
    */
   public String getFullTitle();
@@ -64,7 +80,27 @@ public interface IView extends IconBarEnabler {
   public void updateLanguage();
   
   
+  /**
+   * Called when Azureus generates Diagnostics.
+   * Write any diagnostic information you want to the writer. 
+   * 
+   * @param writer
+   * @since 2.3.0.4
+   */
+  // XXX Introduced IndentWriter to plugins..
   public void
   generateDiagnostics(
 		IndentWriter	writer );
+  
+
+  /**
+   * Called when the selected dataSource has changed.
+   * If this view is dependent upon a selected datasource, implement this 
+   * function and update your view.
+   * 
+   * @param newDataSource null if no datasource is selected.  May be an array
+   *                       of Object[] if multiple dataSources are selected
+   * @since 2.3.0.7
+   */
+  public void dataSourceChanged(Object newDataSource);
 }

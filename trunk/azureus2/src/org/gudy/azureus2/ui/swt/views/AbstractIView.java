@@ -14,9 +14,11 @@ import org.gudy.azureus2.ui.swt.Messages;
  * @author René
  * 
  */
-public abstract class AbstractIView implements IView {
 
-  protected AEMonitor this_mon 	= new AEMonitor( "AbstractIView" );
+// XXX This class is used by plugins.  Don't remove any functions from it!
+public abstract class AbstractIView implements IView {
+	// XXX AEMonitor introduced to plugin interface..
+	protected AEMonitor this_mon 	= new AEMonitor( "AbstractIView" );
 
   public void initialize(Composite composite){    
   }
@@ -31,12 +33,21 @@ public abstract class AbstractIView implements IView {
    */
   public void delete(){
     Composite comp = getComposite();
-    if (!comp.isDisposed())
+    if (comp != null && !comp.isDisposed())
       comp.dispose();
   }
 
   public String getData(){ return null; }
 
+  /**
+   * Called in order to set / update the title of this View.  When the view
+   * is being displayed in a tab, the full title is used for the tooltip.
+   * 
+   * By default, this function will return text from the message bundles which
+   * correspond to the key returned in #getData()
+   * 
+   * @return the full title for the view
+   */
   public String getFullTitle(){
 	  String	key = getData();
 	  
@@ -48,6 +59,16 @@ public abstract class AbstractIView implements IView {
 	 return( key.replace( '.', ' ' ));	// support old plugins
   }
 
+  /**
+   * Called in order to set / update the short title of this view.  When the 
+   * view is being displayed in a tab, the short title is used for the tab's
+   * text.
+   * 
+   * By default, this function will return the full title. If the full title
+   * is over 30 characters, it will be trimmed and "..." will be added
+   * 
+   * @return A short title for the view
+   */
   public final String getShortTitle() {
     String shortTitle = getFullTitle();
     if(shortTitle != null && shortTitle.length() > 30) {
@@ -61,14 +82,17 @@ public abstract class AbstractIView implements IView {
   }
   
   
+  // IconBarEnabler
   public boolean isEnabled(String itemKey) {
     return false;
   }
   
+  // IconBarEnabler
   public boolean isSelected(String itemKey) {
     return false;
   }
 
+  // IconBarEnabler
   public void itemActivated(String itemKey) {   
   }
 
@@ -77,5 +101,8 @@ public abstract class AbstractIView implements IView {
 	IndentWriter	writer )
   {
 	  writer.println( "Diagnostics for " + this + " (" + getFullTitle()+ ")");
+  }
+
+  public void dataSourceChanged(Object newDataSource) {
   }
 }
