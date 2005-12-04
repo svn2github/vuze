@@ -44,6 +44,8 @@ DiskAccessRequestImpl
 	private DiskAccessRequestListener	listener;
 	private int							op;
 	
+	private int							size;
+	
 	private volatile boolean	cancelled;
 	
 	protected
@@ -59,6 +61,14 @@ DiskAccessRequestImpl
 		buffer		= _buffer;
 		listener	= _listener;
 		op			= _op;
+		
+		size = buffer.remaining( DirectByteBuffer.SS_FILE );
+	}
+	
+	protected int
+	getSize()
+	{
+		return( size );
 	}
 	
 	public void
@@ -70,6 +80,8 @@ DiskAccessRequestImpl
 			
 			return;
 		}
+		
+		//System.out.println( "DiskReq:" + Thread.currentThread().getName() + ": " + op + " - " + offset );
 		
 		try{
 			if ( op == OP_READ ){
