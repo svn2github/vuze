@@ -68,6 +68,8 @@ DiskAccessControllerImpl
 		boolean						free_buffer,
 		DiskAccessRequestListener	listener )
 	{
+		// System.out.println( "write request: " + offset );
+		
 		DiskAccessRequestImpl	request = 
 			new DiskAccessRequestImpl( 
 					file, 

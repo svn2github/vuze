@@ -66,19 +66,6 @@ DMWriterAndChecker
 	  
 	public boolean 
 	isChecking();
-	
-	public boolean 
-	checkBlock(
-		int 				pieceNumber, 
-		int 				offset, 
-		DirectByteBuffer 	data);
-
-	
-	public boolean 
-	checkBlock(
-		int 		pieceNumber, 
-		int 		offset, 
-		int 		length) ;
 
 	public void 
 	writeBlock(

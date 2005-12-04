@@ -37,6 +37,9 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequest;
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessRequestListener;
 import com.aelitis.azureus.core.diskmanager.cache.*;
 
 /**
@@ -81,7 +84,6 @@ DMWriterAndCheckerImpl
 	}
   
 	private static boolean 	friendly_hashing;
-	private static int		max_read_block_size;
 
     static{
     	
@@ -90,22 +92,17 @@ DMWriterAndCheckerImpl
 			parameterChanged( 
 				String  str ) 
     	    {
-    	      friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
-    	      
-    	  	  max_read_block_size	= COConfigurationManager.getIntParameter( "BT Request Max Block Size" );
-
+    	      friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ); 
     	    }
     	 };
 
- 		COConfigurationManager.addParameterListener( "diskmanager.friendly.hashchecking", param_listener );
-		COConfigurationManager.addParameterListener( "BT Request Max Block Size", param_listener );
-		
-		param_listener.parameterChanged("");	// pick up initial values
+ 		COConfigurationManager.addAndFireParameterListener( "diskmanager.friendly.hashchecking", param_listener );
     }
 
   
 
 	private DiskManagerHelper		disk_manager;
+	private DiskAccessController	disk_access;
 	
 	private DiskWriteThread writeThread;
 	private List 			writeQueue			= new LinkedList();
@@ -136,6 +133,7 @@ DMWriterAndCheckerImpl
 		DiskManagerHelper	_disk_manager )
 	{
 		disk_manager	= _disk_manager;
+		disk_access		= disk_manager.getDiskAccessController();
 		
 		pieceLength		= disk_manager.getPieceLength();
 		lastPieceLength	= disk_manager.getLastPieceLength();
@@ -270,8 +268,50 @@ DMWriterAndCheckerImpl
             
 						buffer.limit(DirectByteBuffer.SS_DW, write_size);
              
-						cache_file.write( buffer, written );
-            
+						final AESemaphore	sem = new AESemaphore( "DMW&C:zeroFile" );
+						final Throwable[]	op_failed = {null};
+						
+						disk_access.queueWriteRequest(
+								cache_file,
+								written,
+								buffer,
+								false,
+								new DiskAccessRequestListener()
+								{
+									public void
+									requestComplete(
+										DiskAccessRequest	request )
+									{
+										sem.release();
+									}
+									
+									public void
+									requestCancelled(
+										DiskAccessRequest	request )
+									{
+										op_failed[0] = new Throwable( "Request cancelled" );
+										
+										sem.release();
+									}
+									
+									public void
+									requestFailed(
+										DiskAccessRequest	request,
+										Throwable			cause )
+									{
+										op_failed[0]	= cause;
+										
+										sem.release();
+									}
+								});
+           
+						sem.reserve();
+						
+						if ( op_failed[0] != null ){
+							
+							throw( op_failed[0] );
+						}
+						
 						buffer.position(DirectByteBuffer.SS_DW, 0);
             
 						written += write_size;
@@ -291,7 +331,7 @@ DMWriterAndCheckerImpl
 										   
 				return false;
 			}
-		}catch (Exception e){ 
+		}catch ( Throwable e){ 
 			
 			Debug.printStackTrace( e );
 			
@@ -654,7 +694,7 @@ DMWriterAndCheckerImpl
 	 */
 	
 	private boolean 
-	dumpBlockToDisk(
+	writeBlock(
 		QueueElement queue_entry ) 
 	{
 		int pieceNumber 	= queue_entry.getPieceNumber();
@@ -806,121 +846,6 @@ DMWriterAndCheckerImpl
 	}
 
   
-	public boolean 
-	checkBlock(
-		int pieceNumber, 
-		int offset, 
-		DirectByteBuffer data ) 
-	{
-		if (pieceNumber < 0) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK1: pieceNumber=" + pieceNumber + " < 0"));
-			return false;
-		}
-		if (pieceNumber >= this.nbPieces) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK1: pieceNumber=" + pieceNumber + " >= this.nbPieces="
-								+ this.nbPieces));
-			return false;
-		}
-		int length = this.pieceLength;
-		if (pieceNumber == nbPieces - 1) {
-			length = this.lastPieceLength;
-		}
-		if (offset < 0) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK1: offset=" + offset + " < 0"));
-			return false;
-		}
-		if (offset > length) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK1: offset=" + offset + " > length=" + length));
-			return false;
-		}
-		int size = data.remaining(DirectByteBuffer.SS_DW);
-		if (size <= 0) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK1: size=" + size + " <= 0"));
-			return false;
-		}
-		if (offset + size > length) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK1: offset=" + offset + " + size=" + size + " > length="
-								+ length));
-			return false;
-		}
-		return true;
-	}
-  
-
-	public boolean 
-	checkBlock(
-		int pieceNumber, 
-		int offset, 
-		int length) 
-	{
-		if (length > max_read_block_size) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: length=" + length + " > " + max_read_block_size));
-		  return false;
-		}
-		if (length <= 0 ) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: length=" + length + " <= 0"));
-		    return false;
-		}	
-		if (pieceNumber < 0) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " < 0"));
-		  return false;
-		}
-		if (pieceNumber >= this.nbPieces) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " >= this.nbPieces="
-								+ this.nbPieces));
-		  return false;
-		}
-		int pLength = this.pieceLength;
-		if (pieceNumber == this.nbPieces - 1)
-			pLength = this.lastPieceLength;
-		if (offset < 0) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: offset=" + offset + " < 0"));
-		  return false;
-		}
-		if (offset > pLength) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: offset=" + offset + " > pLength=" + pLength));
-		  return false;
-		}
-		if (offset + length > pLength) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: offset=" + offset + " + length=" + length
-								+ " > pLength=" + pLength));
-		  return false;
-		}
-		if(!disk_manager.getPieces()[pieceNumber].getDone()) {
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_ERROR,
-						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " not done"));
-		  return false;
-		}
-		return true;
-	}
-
 	protected void
 	startDiskWriteThread()
 	{	     
@@ -1004,7 +929,7 @@ DMWriterAndCheckerImpl
 							
 							if(!disk_manager.getPieces()[pieceNumber].getDone()){
 								
-							  if ( dumpBlockToDisk(elt)){
+							  if ( writeBlock(elt)){
 							  
 							  	DiskManagerWriteRequestListener	listener = (DiskManagerWriteRequestListener)elt.getListener();
 							  	

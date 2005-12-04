@@ -31,6 +31,7 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.access.DMAccessFactory;
 import org.gudy.azureus2.core3.disk.impl.access.DMReader;
@@ -192,6 +193,23 @@ DiskManagerImpl
 	private AEMonitor	start_stop_mon	= new AEMonitor( "DiskManager:startStop" );
 	private AEMonitor	file_piece_mon		= new AEMonitor( "DiskManager:filePiece" );
 	
+	
+	private static int		max_read_block_size;
+
+	static{    	
+	    	
+		ParameterListener param_listener = new ParameterListener() {
+	    	    public void 
+				parameterChanged( 
+					String  str ) 
+	    	    { 	      
+	    	  	  max_read_block_size	= COConfigurationManager.getIntParameter( "BT Request Max Block Size" );
+	    	    }
+	    	 };
+
+		COConfigurationManager.addAndFireParameterListener( "BT Request Max Block Size", param_listener );
+	}
+	   
 	public 
 	DiskManagerImpl(
 		TOTorrent			_torrent, 
@@ -503,7 +521,7 @@ DiskManagerImpl
 			storeFileDownloaded( download_manager, files );
 		}
 		
-		setState( STOPPED );
+		// removed until we work out how to fix this setState( STOPPED );
 
 			// can't be used after a stop so we might as well clear down the listeners
 		
@@ -1302,23 +1320,121 @@ DiskManagerImpl
 		writer_and_checker.writeBlock( pieceNumber, offset, data, user_data, listener );
 	}
 	
+	
 	public boolean 
 	checkBlockConsistency(
 		int pieceNumber, 
 		int offset, 
-		DirectByteBuffer data) 
+		DirectByteBuffer data ) 
 	{
-		return( writer_and_checker.checkBlock( pieceNumber, offset, data ));
+		if (pieceNumber < 0) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: pieceNumber=" + pieceNumber + " < 0"));
+			return false;
+		}
+		if (pieceNumber >= this.nbPieces) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: pieceNumber=" + pieceNumber + " >= this.nbPieces="
+								+ this.nbPieces));
+			return false;
+		}
+		int length = this.pieceLength;
+		if (pieceNumber == nbPieces - 1) {
+			length = this.lastPieceLength;
+		}
+		if (offset < 0) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: offset=" + offset + " < 0"));
+			return false;
+		}
+		if (offset > length) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: offset=" + offset + " > length=" + length));
+			return false;
+		}
+		int size = data.remaining(DirectByteBuffer.SS_DW);
+		if (size <= 0) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: size=" + size + " <= 0"));
+			return false;
+		}
+		if (offset + size > length) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK1: offset=" + offset + " + size=" + size + " > length="
+								+ length));
+			return false;
+		}
+		return true;
 	}
-	
+  
 	public boolean 
 	checkBlockConsistency(
 		int pieceNumber, 
 		int offset, 
 		int length) 
 	{
-		return( writer_and_checker.checkBlock( pieceNumber, offset, length ));
+		if (length > max_read_block_size) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: length=" + length + " > " + max_read_block_size));
+		  return false;
+		}
+		if (length <= 0 ) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: length=" + length + " <= 0"));
+		    return false;
+		}	
+		if (pieceNumber < 0) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " < 0"));
+		  return false;
+		}
+		if (pieceNumber >= this.nbPieces) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " >= this.nbPieces="
+								+ this.nbPieces));
+		  return false;
+		}
+		int pLength = this.pieceLength;
+		if (pieceNumber == this.nbPieces - 1)
+			pLength = this.lastPieceLength;
+		if (offset < 0) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: offset=" + offset + " < 0"));
+		  return false;
+		}
+		if (offset > pLength) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: offset=" + offset + " > pLength=" + pLength));
+		  return false;
+		}
+		if (offset + length > pLength) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: offset=" + offset + " + length=" + length
+								+ " > pLength=" + pLength));
+		  return false;
+		}
+		if(!getPieces()[pieceNumber].getDone()) {
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " not done"));
+		  return false;
+		}
+		return true;
 	}
+
 	
 	public void 
 	dumpResumeDataToDisk(
