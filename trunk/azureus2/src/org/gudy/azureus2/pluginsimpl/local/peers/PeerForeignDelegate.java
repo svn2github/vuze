@@ -451,5 +451,12 @@ PeerForeignDelegate
   public void setReservedPieceNumber(int pieceNumber) {
     //TODO : Really implement it (Gudy)
   }
-	
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.peer.PEPeer#getRequestedPieceNumbers()
+	 */
+	public List getRequestedPieceNumbers() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

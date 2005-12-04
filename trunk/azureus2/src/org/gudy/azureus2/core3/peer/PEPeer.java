@@ -25,6 +25,8 @@
  */
 package org.gudy.azureus2.core3.peer;
 
+import java.util.List;
+
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 
@@ -193,4 +195,9 @@ PEPeer
    * Get the reserved piece for piece picking by this peer
    */
   public int getReservedPieceNumber();
+  
+  /**
+   * get a list of piece numbers the peer has requested
+   */
+  public List getRequestedPieceNumbers();
 }
