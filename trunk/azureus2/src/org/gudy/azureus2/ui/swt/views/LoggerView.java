@@ -81,6 +81,8 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 
 	private boolean bPaused = false;
 
+	private boolean bRealtime = false;
+
 	private boolean bEnabled = false;
 
 	// List of components we don't log.  
@@ -122,6 +124,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 		GridLayout layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
+		layout.verticalSpacing = 2;
 		layout.numColumns = 2;
 		panel.setLayout(layout);
 		GridData gd = new GridData(SWT.DEFAULT, SWT.DEFAULT, true, true);
@@ -147,8 +150,12 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 		});
 		
 		Composite cLeft = new Composite(panel, SWT.NULL);
-		cLeft.setLayout(new GridLayout());
-		gd = new GridData();
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.verticalSpacing = 1;
+		cLeft.setLayout(layout);
+		gd = new GridData(SWT.TOP, SWT.LEAD, false, false);
 		cLeft.setLayoutData(gd);
 
 		Button buttonPause = new Button(cLeft, SWT.CHECK);
@@ -167,6 +174,19 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 			}
 		});
 
+		Button buttonRealtime = new Button(cLeft, SWT.CHECK);
+		Messages.setLanguageText(buttonRealtime, "LoggerView.realtime");
+		gd = new GridData();
+		buttonRealtime.setLayoutData(gd);
+		buttonRealtime.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if (e.widget == null || !(e.widget instanceof Button))
+					return;
+				Button btn = (Button) e.widget;
+				bRealtime = btn.getSelection();
+			}
+		});
+
 		Button buttonClear = new Button(cLeft, SWT.PUSH);
 		Messages.setLanguageText(buttonClear, "LoggerView.clear");
 		gd = new GridData();
@@ -181,16 +201,22 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 		 * and a checkbox Table of component IDs.
 		 */
 		final String sFilterPrefix = "ConfigView.section.logging.filter";
-		Composite gLogIDs = new Composite(panel, SWT.NULL);
-		//Messages.setLanguageText(gLogIDs, sFilterPrefix);
+		Group gLogIDs = new Group(panel, SWT.NULL);
+		Messages.setLanguageText(gLogIDs, "LoggerView.filter");
 		layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.numColumns = 2;
 		gLogIDs.setLayout(layout);
 		gd = new GridData();
-		gd.verticalSpan = 2;
 		gLogIDs.setLayoutData(gd);
 
+		Label label = new Label(gLogIDs, SWT.NONE);
+		Messages.setLanguageText(label, "ConfigView.section.logging.level");
+		label.setLayoutData(new GridData());
+
+		final Label labelCatFilter = new Label(gLogIDs, SWT.NONE);
+		labelCatFilter.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
+		
 		final List listLogTypes = new List(gLogIDs, SWT.BORDER | SWT.SINGLE
 				| SWT.V_SCROLL);
 		gd = new GridData(SWT.NULL, SWT.BEGINNING, false, false);
@@ -206,7 +232,14 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 		final LogIDs[] logIDs = FileLogging.configurableLOGIDs;
 		//Arrays.sort(logIDs);
 
-		final Composite cChecks = new Composite(gLogIDs, SWT.NULL);
+		Composite cChecksAndButtons = new Composite(gLogIDs, SWT.NULL);
+		layout = new GridLayout(2, false);
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		cChecksAndButtons.setLayout(layout);
+		cChecksAndButtons.setLayoutData(new GridData());
+		
+		final Composite cChecks = new Composite(cChecksAndButtons, SWT.NULL);
 		RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
 		rowLayout.wrap = true;
 		rowLayout.marginLeft = 0;
@@ -214,9 +247,6 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 		rowLayout.marginTop = 0;
 		rowLayout.marginBottom = 0;
 		cChecks.setLayout(rowLayout);
-		gd = new GridData(SWT.FILL, SWT.FILL, false, false);
-		gd.heightHint = 65;
-		cChecks.setLayoutData(gd);
 
 		SelectionAdapter buttonClickListener = new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -236,23 +266,80 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 					logIDs[i].toString()));
 
 			btn.setData("LOGID", logIDs[i]);
-			btn.setSelection(true);
 
 			btn.addSelectionListener(buttonClickListener);
+			
+			if (i == 0) {
+				gd = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2);
+				gd.heightHint = (btn.computeSize(SWT.DEFAULT, SWT.DEFAULT).y + 2) * 3;
+				cChecks.setLayoutData(gd);
+			}
 		}
-
+		
 		// Update table when list selection changes
 		listLogTypes.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				int index = listLogTypes.getSelectionIndex();
 				if (index < 0 || index >= logTypes.length)
 					return;
+				
+				labelCatFilter.setText(MessageText.getString(
+						"ConfigView.section.logging.showLogsFor", listLogTypes
+								.getSelection()));
+
 				Control[] items = cChecks.getChildren();
 				for (int i = 0; i < items.length; i++) {
 					if (items[i] instanceof Button) {
-						boolean checked = !ignoredComponents[index].contains(items[i]
-								.getData("LOGID"));
-						((Button) items[i]).setSelection(checked);
+						LogIDs ID = (LogIDs)items[i].getData("LOGID");
+						if (ID != null) {
+							boolean checked = !ignoredComponents[index].contains(ID);
+							((Button) items[i]).setSelection(checked);
+						}
+					}
+				}
+			}
+		});
+
+		listLogTypes.notifyListeners(SWT.Selection, null);
+
+		Button btn;
+		btn = new Button(cChecksAndButtons, SWT.PUSH);
+		gd = new GridData();
+		btn.setLayoutData(gd);
+		Messages.setLanguageText(btn, "LoggerView.filter.checkAll");
+		btn.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				int index = listLogTypes.getSelectionIndex();
+
+				Control[] items = cChecks.getChildren();
+				for (int i = 0; i < items.length; i++) {
+					if (items[i] instanceof Button) {
+						LogIDs ID = (LogIDs)items[i].getData("LOGID");
+						if (ID != null && ignoredComponents[index].contains(ID)) {
+							((Button) items[i]).setSelection(true);
+							ignoredComponents[index].remove(ID);
+						}
+					}
+				}
+			}
+		});
+
+		btn = new Button(cChecksAndButtons, SWT.PUSH);
+		gd = new GridData();
+		btn.setLayoutData(gd);
+		Messages.setLanguageText(btn, "LoggerView.filter.uncheckAll");
+		btn.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				int index = listLogTypes.getSelectionIndex();
+
+				Control[] items = cChecks.getChildren();
+				for (int i = 0; i < items.length; i++) {
+					if (items[i] instanceof Button) {
+						LogIDs ID = (LogIDs)items[i].getData("LOGID");
+						if (ID != null && !ignoredComponents[index].contains(ID)) {
+							((Button) items[i]).setSelection(false);
+							ignoredComponents[index].add(ID);
+						}
 					}
 				}
 			}
@@ -389,12 +476,21 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 			} // for relatedTo
 		}
 
-		if (bMatch)
+		if (bMatch) {
 			synchronized (buffer) {
 				if (buffer.size() >= 200)
-					buffer.remove(0);
+					buffer.removeFirst();
 				buffer.add(event);
 			}
+			
+			if (bRealtime && !bPaused) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						refresh();
+					}
+				});
+			}
+		}
 	}
 
 	public void setFilter(Object[] _filter) {
