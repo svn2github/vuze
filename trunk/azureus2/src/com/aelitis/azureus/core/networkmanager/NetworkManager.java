@@ -59,53 +59,48 @@ public class NetworkManager {
   
   
   static {
-    tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
-    COConfigurationManager.addParameterListener( "network.tcp.mtu.size", new ParameterListener() {
-      public void parameterChanged( String parameterName ) {
-        tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
-      }
-    });
-    
-    max_upload_rate_bps_normal = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
-    if( max_upload_rate_bps_normal < 1024 )  max_upload_rate_bps_normal = UNLIMITED_RATE;
-    COConfigurationManager.addParameterListener( "Max Upload Speed KBs", new ParameterListener() {
+    COConfigurationManager.addAndFireParameterListener( "Max Upload Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         max_upload_rate_bps_normal = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
         if( max_upload_rate_bps_normal < 1024 )  max_upload_rate_bps_normal = UNLIMITED_RATE;
-        refreshUploadRate();
+        refreshRates();
       }
     });
     
-    max_upload_rate_bps_seeding_only = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
-    if( max_upload_rate_bps_seeding_only < 1024 )  max_upload_rate_bps_seeding_only = UNLIMITED_RATE;
-    COConfigurationManager.addParameterListener( "Max Upload Speed Seeding KBs", new ParameterListener() {
+
+    COConfigurationManager.addAndFireParameterListener( "Max Upload Speed Seeding KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         max_upload_rate_bps_seeding_only = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
         if( max_upload_rate_bps_seeding_only < 1024 )  max_upload_rate_bps_seeding_only = UNLIMITED_RATE;
-        refreshUploadRate();
+        refreshRates();
       }
     });
     
     
-    seeding_only_mode_allowed = COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" );
-    COConfigurationManager.addParameterListener( "enable.seedingonly.upload.rate", new ParameterListener() {
+    COConfigurationManager.addAndFireParameterListener( "enable.seedingonly.upload.rate", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         seeding_only_mode_allowed = COConfigurationManager.getBooleanParameter( "enable.seedingonly.upload.rate" );
-        refreshUploadRate();
+        refreshRates();
       }
     });
     
     
-    max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
-    if( max_download_rate_bps < 1024 )  max_download_rate_bps = UNLIMITED_RATE;
-    COConfigurationManager.addParameterListener( "Max Download Speed KBs", new ParameterListener() {
+    COConfigurationManager.addAndFireParameterListener( "Max Download Speed KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
         if( max_download_rate_bps < 1024 )  max_download_rate_bps = UNLIMITED_RATE;
+        refreshRates();
       }
     });
     
-    refreshUploadRate();
+    COConfigurationManager.addAndFireParameterListener( "network.tcp.mtu.size", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        tcp_mss_size = COConfigurationManager.getIntParameter( "network.tcp.mtu.size" ) - 40;
+        refreshRates();
+      }
+    });
+    
+    refreshRates();
   }
 
   
@@ -131,7 +126,7 @@ public class NetworkManager {
   
 
   
-  private static void refreshUploadRate() {
+  private static void refreshRates() {
     if( isSeedingOnlyUploadRate() ) {
       max_upload_rate_bps = max_upload_rate_bps_seeding_only;
     }
@@ -142,6 +137,11 @@ public class NetworkManager {
     if( max_upload_rate_bps < 1024 ) {
       Debug.out( "max_upload_rate_bps < 1024=" +max_upload_rate_bps);
     }
+    
+    if( tcp_mss_size > max_upload_rate_bps )  tcp_mss_size = max_upload_rate_bps - 1;
+    if( tcp_mss_size > max_download_rate_bps )  tcp_mss_size = max_download_rate_bps - 1;
+    
+    if( tcp_mss_size < 512 )  tcp_mss_size = 512; 
   }
   
   
@@ -175,7 +175,7 @@ public class NetworkManager {
 
       public void seedingStatusChanged( boolean seeding_only ) {
         seeding_only_mode = seeding_only;
-        refreshUploadRate();
+        refreshRates();
       }
     });
   }
