@@ -81,7 +81,7 @@ BufferedTableRow
 		item = null;
 		if (alternatingColors == null) {
 			alternatingColors = new Color[] {
-					Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+					table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
 					Colors.colorAltRow };
 		}
 	}
