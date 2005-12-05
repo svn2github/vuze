@@ -86,7 +86,7 @@ MySharesView
 		AzureusCore	_azureus_core )
 	{	
     super(TableManager.TABLE_MYSHARES, "MySharesView", basicItems, "name", 
-          SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
+          SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
     
     	azureus_core	= _azureus_core;
 		global_manager = azureus_core.getGlobalManager();
@@ -202,8 +202,6 @@ MySharesView
 
 	   menu.addListener(SWT.Show, new Listener() {
 		 public void handleEvent(Event e) {
-			 MySharesView.this.showMenu();
-			 	
 		   Object[] shares = getSelectedDataSources();
 
 		   itemRemove.setEnabled(shares.length > 0);
@@ -235,7 +233,7 @@ MySharesView
 	
 	public void	reportCurrentTask(final String task_description) { }
  
-	public void refresh() {
+	public void refresh(boolean bForceSort) {
 		if (getComposite() == null || getComposite().isDisposed()) {
       return;
 	  }
@@ -243,7 +241,7 @@ MySharesView
 		computePossibleActions();
 		MainWindow.getWindow().refreshIconBar();
 		
-		super.refresh();
+		super.refresh(bForceSort);
 	}	 
 
 	 private void addCategorySubMenu() {

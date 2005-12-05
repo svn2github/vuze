@@ -24,13 +24,12 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
-import java.io.File;
-
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
@@ -48,6 +47,7 @@ public class NameItem
   /** Default Constructor */
   public NameItem() {
     super("name", ALIGN_LEAD, POSITION_LAST, 300, TableManager.TABLE_TORRENT_FILES);
+		setType(TableColumn.TYPE_TEXT);
   }
 
   public void refresh(TableCell cell) {
@@ -56,7 +56,7 @@ public class NameItem
     if (name == null)
       name = "";
     //setText returns true only if the text is updated
-    if (cell.setText(name)) {
+    if (cell.setText(name) || !cell.isValid()) {
       Image icon;
       if (fileInfo == null) {
         icon = null;

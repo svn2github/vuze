@@ -118,7 +118,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     if (fillCell) {
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
-/*
+/**/
         // Enable this for semi-fast visual update with some flicker
         boolean ourGC = (gc == null);
         if (ourGC)
@@ -128,6 +128,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
                        bounds.x, bounds.y, bounds.width, bounds.height);
           if (ourGC)
             gc.dispose();
+          return;
         }
         // _OR_ enable refresh() for slower visual update with lots of flicker
         //refresh();
@@ -135,7 +136,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
         // OR, disable both and image will be updated on next graphic bar update
         
         // TODO: make config option to choose
-*/
+/**/
         //debugOut("doPaint() sizewrong.  Image="+imageBounds +";us="+bounds, false);
         invalidate();
         return;

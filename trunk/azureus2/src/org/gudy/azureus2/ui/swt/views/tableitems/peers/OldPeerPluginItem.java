@@ -24,7 +24,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.ui.tables.peers.*;
@@ -41,6 +41,7 @@ public class OldPeerPluginItem
        extends TableColumnImpl
        implements TableCellAddedListener
 {
+	private static final LogIDs LOGID = LogIDs.GUI;
   private PluginPeerItemFactory oldFactory;
   private String oldFactoryType;
 
@@ -69,7 +70,7 @@ public class OldPeerPluginItem
       pluginItem = OldPeerPluginItem.this.oldFactory.getInstance(this);
 
       // listener is disposed of in core when cell is removed
-      cell.addRefreshListener(this);
+			cell.addListeners(this);
     }
     
     public Peer getPeer() {
@@ -97,7 +98,8 @@ public class OldPeerPluginItem
           }
         }
       } catch(Throwable e) {
-        LGLogger.log(LGLogger.ERROR,"Plugin in PeersView generated an exception : " + e );
+      	Logger.log(new LogEvent(LOGID,
+						"Plugin in PeersView generated an exception", e));
         Debug.printStackTrace( e );
       }
     }

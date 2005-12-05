@@ -67,15 +67,13 @@ public class ProgressGraphItem
 
     public Cell(TableCell cell) {
       cell.setFillCell(true);
-      cell.addRefreshListener(this);
-      cell.addDisposeListener(this);
+			cell.addListeners(this);
     }
 
     public void dispose(TableCell cell) {
       Image img = ((TableCellCore)cell).getGraphicSWT();
       if (img != null && !img.isDisposed())
         img.dispose();
-      cell.setGraphic(null);
     }
 
 

@@ -20,6 +20,8 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
+import java.util.ArrayList;
+
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -37,22 +39,32 @@ public class WritersItem
   /** Default Constructor */
   public WritersItem() {
     super("writers", ALIGN_TRAIL, CoreTableColumn.POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PIECES);
-    setRefreshInterval(INTERVAL_LIVE);
+    setRefreshInterval(4);
   }
 
   public void refresh(TableCell cell) {
     PEPiece piece = (PEPiece)cell.getDataSource();
     PEPeer[] writers = piece.getWriters();
-    String value = "";
-    String separator = "";
+    StringBuffer sb = new StringBuffer();
+    
+    ArrayList list = new ArrayList();
     for(int i = 0 ; i < writers.length ; i++) {
-      value += separator;
-      if(writers[i] != null) { 
-        value += writers[i].getIp();
-      }       
-      separator  = ";" ;
+      if (writers[i] != null) {
+      	String sIP = writers[i].getIp();
+      	if (sIP != null & sIP != "" && !list.contains(sIP))
+      		list.add(sIP);
+      }
     }
     
+    for (int i = 0; i < list.size(); i++) {
+    	sb.append((String)list.get(i));
+    	if (i != 0)
+    		sb.append(";");
+    }
+    
+    
+    
+    String value = sb.toString();
     if( !cell.setSortValue( value ) && cell.isValid() ) {
       return;
     }

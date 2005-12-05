@@ -75,7 +75,7 @@ public class TableColumnImpl
   public TableColumnImpl(String tableID, String columnID) {
     sTableID = tableID;
     sName = columnID;
-    iType = TYPE_TEXT;
+    iType = TYPE_TEXT_ONLY;
     iPosition = POSITION_INVISIBLE;
     iWidth = 50;
     iAlignment = ALIGN_LEAD;

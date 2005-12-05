@@ -55,13 +55,15 @@ import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.components.*;
 
 /**
+ * View of General information on the torrent
+ * 
  * @author Olivier
  * 
  */
 public class GeneralView extends AbstractIView implements ParameterListener {
 
   private Display display;
-  private DownloadManager manager;
+  private DownloadManager manager = null;
   boolean pieces[];
   int loopFactor;
 
@@ -109,14 +111,29 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
 
-  public GeneralView(DownloadManager _manager) {
-    this.manager = _manager;
-    pieces = new boolean[manager.getNbPieces()];
+  /**
+   * Initialize GeneralView
+   */
+  public GeneralView() {
   }
+
+	public void dataSourceChanged(Object newDataSource) {
+		if (newDataSource == null)
+			manager = null;
+		else if (newDataSource instanceof Object[])
+			manager = (DownloadManager)((Object[])newDataSource)[0];
+		else
+			manager = (DownloadManager)newDataSource;
+	}
+
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
    */
   public void initialize(Composite composite) {
+  	if (manager == null)
+  		return;
+
+    pieces = new boolean[manager.getNbPieces()];
 
     this.display = composite.getDisplay();
 
@@ -288,7 +305,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     //KB/s before restoring the following line
     //String k_unit = DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)
     String k_unit = DisplayFormatters.getRateUnitBase10(DisplayFormatters.UNIT_KB);
-    
+
     // ul speed
   
     label = new Label(culdl, SWT.LEFT);
@@ -334,7 +351,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     
     
 //  dl speed
-    
+
       label = new Label(culdl, SWT.LEFT);
       label.setText( MessageText.getString( "GeneralView.label.maxdownloadspeed" ) + " " + k_unit +" :");
       Messages.setLanguageText(label, "GeneralView.label.maxdownloadspeed.tooltip", true);
@@ -713,7 +730,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-    if(getComposite() == null || getComposite().isDisposed())
+    if(getComposite() == null || getComposite().isDisposed() || manager == null)
       return;
 
     loopFactor++;
@@ -826,7 +843,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       manager.getNbPieces(),
       manager.getPieceLength(),
       manager.getTorrentComment(),
-	  DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000));
+      DisplayFormatters.formatDate(manager.getTorrentCreationDate()*1000));
     
     
     //A special layout, for OS X and Linux, on which for some unknown reason
@@ -861,7 +878,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     return MessageText.getString("GeneralView.title.full"); //$NON-NLS-1$
   }
 
-  public void updateAvailability() {
+  private void updateAvailability() {
+  	if (manager == null)
+  		return;
+
   	try{
   		this_mon.enter();
   	
@@ -1002,7 +1022,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   	}
   }
 
-  public void updatePiecesInfo(boolean bForce) {
+  private void updatePiecesInfo(boolean bForce) {
+  	if (manager == null)
+  		return;
+
   	try{
   		this_mon.enter();
   
@@ -1121,12 +1144,12 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   	}
   }
 
-  public void setTime(String elapsed, String remaining) {
+  private void setTime(String elapsed, String remaining) {
     timeElapsed.setText( elapsed );
     timeRemaining.setText( remaining);
   }
 
-  public void 
+  private void 
   setStats(
   	String dl, String ul, 
 	String dls, String uls,
@@ -1163,7 +1186,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	shareRatio.setText( share_ratio);     
   }
 
-  public void setTracker( DownloadManager	_manager ){
+  private void setTracker( DownloadManager	_manager ){
     if (display == null || display.isDisposed())
       return;
     
@@ -1237,7 +1260,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     }
   }
 
-  public void setInfos(
+  private void setInfos(
     final String _fileName,
 	final String _encoding,
     final String _fileSize,
@@ -1249,7 +1272,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	final String _creation_date ) {
     if (display == null || display.isDisposed())
       return;
-    display.asyncExec(new AERunnable(){
+    Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
 		fileName.setText(_fileName + (_encoding==null?"":(" [" + _encoding + "]")));
 		fileSize.setText( _fileSize);

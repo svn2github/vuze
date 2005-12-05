@@ -1,18 +1,26 @@
 /*
- * Copyright (c) 2000, 2003 IBM Corp.  All rights reserved.
- * This file is made available under the terms of the Common Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/cpl-v10.html
- */
- 
-/*
- * Table example snippet: place arbitrary controls in a table
+ * Copyright (C) 2004 Aelitis SARL, All rights Reserved
  *
- * For a list of all SWT example snippets see
- * http://dev.eclipse.org/viewcvs/index.cgi/%7Echeckout%7E/platform-swt-home/dev.html#snippets
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details ( see the LICENSE file ).
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * AELITIS, SARL au capital de 30,000 euros,
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 
 package org.gudy.azureus2.ui.swt.views.table.utils;
+
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -23,15 +31,15 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.ImageRepository;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
-import java.util.Arrays;
-import java.util.Comparator;
-
+/**
+ * Choose columns to display, and in what order
+ */
 public class TableColumnEditorWindow {
   
   private Display display;
@@ -39,35 +47,54 @@ public class TableColumnEditorWindow {
   private Color blue;
   private Table table;
   
-  private TableColumnCore[] tableColumns;
+  //private TableColumnCore[] tableColumns;
+  private ArrayList tableColumns;
+  private Map newEnabledState;
   private ITableStructureModificationListener listener;
   
   private boolean mousePressed;
   private TableItem selectedItem;
-  Point oldPoint;
-  Image oldImage;
-  
-  /**
-   * @return Returns the shell.
-   */
-  public Shell getShell() {
-    return shell;
-  }
+  private Point oldPoint;
+  private Image oldImage;
 
-  public TableColumnEditorWindow(Display _display,
+  /**
+   * Default Constructor
+   * 
+   * @param parent Parent Shell
+   * @param _tableColumns List of columns available
+   * @param _listener Callback listener to trigger when columns changed
+   */
+  public TableColumnEditorWindow(Shell parent,
                                 TableColumnCore[] _tableColumns,
                                 ITableStructureModificationListener _listener) {    
     RowData rd;
-    this.display = _display;
-    this.tableColumns = _tableColumns;
-    this.listener = _listener;
+    display = parent.getDisplay();
+    listener = _listener;
+    
+    tableColumns = new ArrayList(Arrays.asList(_tableColumns));
+    Collections.sort(tableColumns, new Comparator () {
+      public final int compare (Object a, Object b) {
+        int iPositionA = ((TableColumnCore)a).getPosition();
+        if (iPositionA == -1)
+          iPositionA = 0xFFFF;
+        int iPositionB = ((TableColumnCore)b).getPosition();
+        if (iPositionB == -1)
+          iPositionB = 0xFFFF;
+
+        return iPositionA - iPositionB;
+      }
+    });
+    
+    newEnabledState = new HashMap();
+    for (Iterator iter = tableColumns.iterator(); iter.hasNext();) {
+			TableColumnCore item = (TableColumnCore) iter.next();
+			newEnabledState.put(item, new Boolean(item.getPosition() >= 0));
+		}
     
     blue = new Color(display,0,0,128);
     
-    shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
-    if(!Constants.isOSX) {
-        shell.setImage(ImageRepository.getImage("azureus"));
-    }
+    shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM | SWT.RESIZE);
+    Utils.setShellIcon(shell);
     shell.setText(MessageText.getString("columnChooser.title"));
     
     GridLayout layout = new GridLayout();
@@ -80,24 +107,11 @@ public class TableColumnEditorWindow {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     label.setLayoutData(gridData);
     
-    table = new Table (shell, SWT.CHECK | SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
+    table = new Table (shell, SWT.VIRTUAL | SWT.CHECK | SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
     gridData = new GridData(GridData.FILL_BOTH);
     table.setLayoutData(gridData);
     table.setLinesVisible (true);    
     table.setHeaderVisible(true);
-    Font f = table.getFont();
-    FontData fd = f.getFontData()[0];
-    fd.setHeight(9);
-    final Font fontNew = new Font(display, fd); 
-    table.setFont(fontNew);
-
-    shell.addDisposeListener(new DisposeListener() {
-      public void widgetDisposed(DisposeEvent de) {
-        if (fontNew != null && !fontNew.isDisposed()) {
-          fontNew.dispose();
-        }
-      }
-    });
     
     Composite cButtonArea = new Composite(shell, SWT.NULL);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
@@ -145,33 +159,43 @@ public class TableColumnEditorWindow {
     });
     
     
-    String[] columnsHeader = { "columnname", "columndescription" };
+    final String[] columnsHeader = { "columnname", "columndescription" };
     for (int i=0; i< columnsHeader.length; i++) {
       TableColumn column = new TableColumn(table, SWT.NONE);    
       if (columnsHeader[i] != "")
         column.setText(MessageText.getString("columnChooser." + columnsHeader[i]));
     }
-    Arrays.sort(tableColumns, new Comparator () {
-      public final int compare (Object a, Object b) {
-        int iPositionA = ((TableColumnCore)a).getPosition();
-        if (iPositionA == -1)
-          iPositionA = 0xFFFF;
-        int iPositionB = ((TableColumnCore)b).getPosition();
-        if (iPositionB == -1)
-          iPositionB = 0xFFFF;
+    table.getColumn(0).setWidth(160);
 
-        return iPositionA - iPositionB;
+    table.addListener(SWT.Selection,new Listener() {
+      public void handleEvent(Event e) {
+      	if (e.detail != SWT.CHECK)
+      		return;
+				TableItem item = (TableItem) e.item;
+				int index = item.getParent().indexOf(item);
+				TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(index);
+				
+				newEnabledState.put(tableColumn, new Boolean(item.getChecked()));
       }
     });
     
-    for (int i=0; i < tableColumns.length; i++) {
-      createTableRow(-1, tableColumns[i], 
-                     tableColumns[i].getPosition() >= 0);
-    }
-    for (int i = 0; i< columnsHeader.length; i++) {
-      table.getColumn(i).pack();
-    }
-    
+    table.addListener(SWT.SetData, new Listener() {
+			public void handleEvent(Event event) {
+				TableItem item = (TableItem) event.item;
+				int index = item.getParent().indexOf(item);
+				
+				TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(index);
+		    String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
+		    item.setText(0, MessageText.getString(sTitleLanguageKey));
+		    item.setText(1, MessageText.getString(sTitleLanguageKey + ".info", ""));
+
+		    boolean bChecked = ((Boolean)newEnabledState.get(tableColumn)).booleanValue();
+		    item.setChecked(bChecked);
+		    
+	      table.getColumn(1).pack();
+			}
+    });
+    table.setItemCount(tableColumns.size());
     
     table.addMouseListener(new MouseAdapter() {
       
@@ -197,12 +221,13 @@ public class TableColumnEditorWindow {
           int oldIndex = table.indexOf(selectedItem);
           if(index == oldIndex)
             return;
-          if(index > oldIndex)
-            index++;
+
           TableColumnCore tableColumn = 
-                           (TableColumnCore)selectedItem.getData("TableColumn");
-          createTableRow(index, tableColumn, selectedItem.getChecked());
-          selectedItem.dispose();        
+                           (TableColumnCore)tableColumns.get(oldIndex);
+          
+          tableColumns.remove(tableColumn);
+          tableColumns.add(index, tableColumn);
+          table.clearAll();
         }
       }
     });
@@ -243,48 +268,35 @@ public class TableColumnEditorWindow {
       }
     });
     table.redraw();
-    shell.pack ();
+
+    shell.pack();
     Point p = shell.getSize();
-    if (p.x > 550) {
-      p.x = 550;
-      shell.setSize(p);
-    }
+    p.x = 550;
+    // For Windows, to get rid of the scrollbar
+    p.y += 2;
+    
+    shell.setSize(p);
+    
+    Utils.centreWindow(shell);
     shell.open (); 
   }
   
   private void close() {
     if(blue != null && ! blue.isDisposed())
       blue.dispose();
-    shell.dispose();
+    if (!shell.isDisposed())
+    	shell.dispose();
   }
   
   private void saveAndApply() {
     TableItem[] items = table.getItems();
     int position = 0;
     for(int i = 0 ; i < items.length ; i++) {
-      TableColumnCore tableColumn = 
-                      (TableColumnCore)items[i].getData("TableColumn");
+      TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(i);
       tableColumn.setPositionNoShift(items[i].getChecked() ? position++ : -1);
       tableColumn.saveSettings();
     }
     listener.tableStructureChanged();
-  }
-  
-  private void createTableRow(int index, TableColumnCore tableColumn,
-                              boolean selected) {
-    String name = tableColumn.getName();
-    TableItem item;
-    
-    if(index == -1)
-      item = new TableItem (table, SWT.NONE);
-    else
-      item = new TableItem (table, SWT.NONE, index);
-    
-    String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
-    item.setText(0,MessageText.getString(sTitleLanguageKey));
-    item.setText(1,MessageText.getString(sTitleLanguageKey + ".info", ""));
-    item.setData("TableColumn", tableColumn);
-    item.setChecked(selected);
   }
 }
 

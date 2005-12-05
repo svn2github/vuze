@@ -65,12 +65,10 @@ public class PiecesItem
     //No need to create a new class per cell instance
     //new Cell(cell);
     cell.setFillCell(true);
-    cell.addRefreshListener(this);
-    cell.addDisposeListener(this);
+		cell.addListeners(this);
   }
 
   public void dispose(TableCell cell) {
-    cell.setGraphic(null);
     // Named infoObj so code can be copied easily to the other PiecesItem
     PEPeer infoObj = (PEPeer)cell.getDataSource();
     if (infoObj == null)
@@ -205,7 +203,7 @@ public class PiecesItem
           int nbAvailable = 0;
           for (int j = a0; j < a1; j++) {
             if (available[j]) {
-              if (pieces==null|!pieces[j].getDone()) {
+              if (pieces==null || !pieces[j].getDone()) {
                 nbNeeded++;
               }
               nbAvailable++;

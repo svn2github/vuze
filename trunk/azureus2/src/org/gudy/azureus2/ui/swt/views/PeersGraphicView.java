@@ -51,7 +51,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 public class PeersGraphicView extends AbstractIView implements DownloadManagerPeerListener {
 
   
-  private DownloadManager manager;
+  private DownloadManager manager = null;
   
   private static final int NB_ANGLES = 1000;  
   private double[] angles;
@@ -96,7 +96,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   }
   
   
-  public PeersGraphicView(DownloadManager manager) {
+  public PeersGraphicView() {
     angles = new double[NB_ANGLES];
     deltaPerimeters = new double[NB_ANGLES];
     rs = new double[NB_ANGLES];
@@ -113,14 +113,28 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       deltaYYs[i] = Math.sin(angles[i]+Math.PI / 2);
     }
     
-    this.manager = manager;
     this.peers = new ArrayList();
     this.peerComparator = new PeerComparator();
-    this.manager.addPeerListener(this);
   } 
   
+	public void dataSourceChanged(Object newDataSource) {
+  	if (manager != null)
+  		manager.removePeerListener(this);
+
+		if (newDataSource == null)
+			manager = null;
+		else if (newDataSource instanceof Object[])
+			manager = (DownloadManager)((Object[])newDataSource)[0];
+		else
+			manager = (DownloadManager)newDataSource;
+
+    if (manager != null)
+    	manager.addPeerListener(this);
+	}
+
   public void delete() {
-    manager.removePeerListener(this);
+  	if (manager != null)
+  		manager.removePeerListener(this);
     super.delete();
   }
 
@@ -134,7 +148,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
 
   public void initialize(Composite composite) {
     display = composite.getDisplay();
-    panel = new Canvas(composite,SWT.NULL);    
+    panel = new Canvas(composite,SWT.NULL);
   }
 
   public void refresh() {
@@ -168,7 +182,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   }
   
   private void render(PEPeer[] sortedPeers) {
-    if(panel == null || panel.isDisposed())
+    if(panel == null || panel.isDisposed() || manager == null)
       return;
     Point panelSize = panel.getSize();
     int x0 = panelSize.x / 2;

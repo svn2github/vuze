@@ -24,6 +24,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -35,7 +36,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class TypeItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellRefreshListener, TableCellToolTipListener
 {
   /** Default Constructor */
   public TypeItem() {
@@ -52,4 +53,15 @@ public class TypeItem
 
     cell.setText((value == 1) ? "R" : "L");
   }
+
+	public void cellHover(TableCell cell) {
+		String ID = "PeersView.T." + cell.getText() + ".tooltip";
+		String sTooltip = MessageText.getString(ID, "");
+		if (sTooltip.length() > 0)
+			cell.setToolTip(sTooltip);
+	}
+
+	public void cellHoverComplete(TableCell cell) {
+		cell.setToolTip(null);
+	}
 }

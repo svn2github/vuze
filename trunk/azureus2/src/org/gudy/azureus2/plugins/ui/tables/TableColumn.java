@@ -27,6 +27,14 @@ public interface TableColumn {
    * {@link TableCell}.
    */
   public static final int TYPE_GRAPHIC = 2;
+  /**
+   * The cells in this column display only textual information, and do not
+   * set any other visible properties of cell (background, foreground, icon, 
+   * etc).
+   * 
+   * Using this type allows azureus to call refresh less, and saves on CPU.
+   */
+  public static final int TYPE_TEXT_ONLY = 3;
   
   /** leading alignment */
   public static final int ALIGN_LEAD = 1;
@@ -86,9 +94,9 @@ public interface TableColumn {
    * <P>
    * NOTE: This MUST be set BEFORE adding the column to a table.
    * <br>
-   * The default type is {@link #TYPE_TEXT}.
+   * The default type is {@link #TYPE_TEXT_ONLY}.
    *
-   * @param type {@link #TYPE_TEXT}, {@link #TYPE_GRAPHIC}
+   * @param type {@link #TYPE_TEXT}, {@link #TYPE_TEXT_ONLY}, {@link #TYPE_GRAPHIC}
    */
   public void setType(int type);
 

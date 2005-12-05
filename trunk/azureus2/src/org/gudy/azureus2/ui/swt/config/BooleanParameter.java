@@ -91,6 +91,14 @@ public class BooleanParameter extends Parameter{
   public Control getControl() {
     return checkBox;
   }
+  
+  public String getName() {
+  	return name;
+  }
+  
+  public void setName(String newName) {
+  	name = newName;
+  }
 
   public boolean
   isSelected()

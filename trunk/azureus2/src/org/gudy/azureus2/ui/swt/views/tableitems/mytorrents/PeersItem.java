@@ -21,80 +21,106 @@
  * AELITIS, SARL au capital de 30,000 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-
 /** # of Peers
+ * 
+ * A new object is created for each cell, so that we can listen to the
+ * scrapes and update individually (and only when needed).
+ * 
+ * Total connected peers are left to update on INTERVAL_LIVE, as they aren't
+ * very expensive.  It would probably be more expensive to hook the
+ * peer listener and only refresh on peer added/removed, because that happens
+ * frequently.
  *
  * @author Olivier
- * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
+ * @author TuxPaper
+ * 		2004/Apr/17: modified to TableCellAdapter
+ * 		2005/Oct/13: Use listener to update total from scrape
  */
-public class PeersItem
-       extends CoreTableColumn 
-       implements TableCellRefreshListener, TableCellToolTipListener
+public class PeersItem extends CoreTableColumn implements
+		TableCellAddedListener
 {
-  /** Default Constructor */
-  public PeersItem(String sTableID) {
-    super("peers", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
-    setRefreshInterval(10);		// slow refresh as getTrackerScrapeResponse is relatively expensive
-  }
+	/** Default Constructor */
+	public PeersItem(String sTableID) {
+		super("peers", ALIGN_CENTER, POSITION_LAST, 60, sTableID);
+		setRefreshInterval(INTERVAL_LIVE);
+	}
 
-  public void refresh(TableCell cell) {
-    long lConnectedPeers = 0;
-    long lTotalPeers = -1;
-    DownloadManager dm = (DownloadManager)cell.getDataSource();
-    if (dm != null) {
-      lConnectedPeers = dm.getNbPeers();
-      TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
-      if (hd != null && hd.isValid())
-        lTotalPeers = hd.getPeers();
-    }
+	public void cellAdded(TableCell cell) {
+		new Cell(cell);
+	}
 
-    long value = lConnectedPeers * 10000000 + lTotalPeers;
-    if (!cell.setSortValue(value) && cell.isValid())
-      return;
-    
-    String tmp = String.valueOf(lConnectedPeers); //$NON-NLS-1$
-    if (lTotalPeers != -1)
-      tmp += " (" + lTotalPeers + ")";
-    else
-      lTotalPeers = 0;
-    cell.setText(tmp);
-  }
-  
-  public void cellHover(TableCell cell) {
-	    long lConnectedPeers = 0;
-	    long lTotalPeers = -1;
-	    DownloadManager dm = (DownloadManager)cell.getDataSource();
-	    if (dm != null) {
-	    	lConnectedPeers = dm.getNbPeers();
-	      TRTrackerScraperResponse hd = dm.getTrackerScrapeResponse();
-	      if (hd != null && hd.isValid())
-	    	  lTotalPeers = hd.getPeers();
-	    }
-	    
-	    String sToolTip = lConnectedPeers + " " + 
-	                      MessageText.getString("GeneralView.label.connected") + 
-	                      "\n";
-	    if (lTotalPeers != -1) {
-	      sToolTip += lTotalPeers + " " + MessageText.getString("GeneralView.label.in_swarm");
-	    } else {
-	      TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
-	      sToolTip += "?? " + MessageText.getString("GeneralView.label.in_swarm");
-	      if (response != null)
-	        sToolTip += "(" + response.getStatusString() + ")";
-	    }
-	    cell.setToolTip(sToolTip);
-	  }
+	private class Cell extends AbstractTrackerCell {
+		long lTotalPeers = -1;
+		
+		/**
+		 * Initialize
+		 * 
+		 * @param cell
+		 */
+		public Cell(TableCell cell) {
+			super(cell);
+		}
 
-	  public void cellHoverComplete(TableCell cell) {
-	    cell.setToolTip(null);
-	  }
+		public void scrapeResult(TRTrackerScraperResponse response) {
+			if (checkScrapeResult(response)) {
+				lTotalPeers = response.getPeers();
+			}
+		}
+
+		public void refresh(TableCell cell) {
+			super.refresh(cell);
+
+			long lConnectedPeers = 0;
+			if (dm != null) {
+				lConnectedPeers = dm.getNbPeers();
+
+				if (lTotalPeers == -1)
+					scrapeResult(dm.getTrackerScrapeResponse());
+			}
+
+			long value = lConnectedPeers * 10000000 + lTotalPeers;
+			if (!cell.setSortValue(value) && cell.isValid())
+				return;
+
+			String tmp = String.valueOf(lConnectedPeers);
+			if (lTotalPeers != -1)
+				tmp += " (" + lTotalPeers + ")";
+			else
+				lTotalPeers = 0;
+			cell.setText(tmp);
+		}
+
+		public void cellHover(TableCell cell) {
+			super.cellHover(cell);
+
+			long lConnectedPeers = 0;
+			DownloadManager dm = (DownloadManager) cell.getDataSource();
+			if (dm != null) {
+				lConnectedPeers = dm.getNbPeers();
+			}
+
+			String sToolTip = lConnectedPeers + " "
+					+ MessageText.getString("GeneralView.label.connected") + "\n";
+			if (lTotalPeers != -1) {
+				sToolTip += lTotalPeers + " "
+						+ MessageText.getString("GeneralView.label.in_swarm");
+			} else {
+				TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+				sToolTip += "?? " + MessageText.getString("GeneralView.label.in_swarm");
+				if (response != null)
+					sToolTip += "(" + response.getStatusString() + ")";
+			}
+			cell.setToolTip(sToolTip);
+		}
+	}
 }

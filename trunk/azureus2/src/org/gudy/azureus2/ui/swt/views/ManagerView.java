@@ -4,6 +4,9 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -24,35 +27,33 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 /**
+ * Torrent download view, consisting of several information tabs
+ * 
  * @author Olivier
  * 
  */
-public class ManagerView extends AbstractIView implements DownloadManagerListener {
+public class ManagerView extends AbstractIView implements
+		DownloadManagerListener {
 
-  AzureusCore		azureus_core;
-  DownloadManager 	manager;
-  TabFolder folder;
+  private AzureusCore		azureus_core;
+  private DownloadManager 	manager;
+  private TabFolder folder;
+  private ArrayList tabViews = new ArrayList();
   
-  TabItem itemGeneral;
-  TabItem itemDetails;
-  TabItem itemGraphic;
-  TabItem itemPieces;
-  TabItem itemFiles;
-  
-
-  IView viewGeneral;
-  IView viewDetails;
-  IView viewGraphic;
-  IView viewPieces;
-  IView viewFiles;
-
   public 
   ManagerView(
   	AzureusCore		_azureus_core,
@@ -61,6 +62,8 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
   	azureus_core	= _azureus_core;
     this.manager 	= manager;
     
+    dataSourceChanged(manager);
+
     manager.addListener(this);
   }
 
@@ -88,17 +91,14 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
         }
       }
     }
-    
-    if (viewGeneral != null)
-      viewGeneral.delete();
-    if (viewDetails != null)
-      viewDetails.delete();
-    if(viewGraphic != null)
-      viewGraphic.delete();
-    if (viewPieces != null)
-      viewPieces.delete();
-    if (viewFiles != null)
-      viewFiles.delete();
+
+    for (int i = 0; i < tabViews.size(); i++) {
+    	IView view = (IView) tabViews.get(i);
+    	if (view != null)
+    		view.delete();
+    }
+    tabViews.clear();
+
     if (folder != null && !folder.isDisposed()) {
       folder.dispose();
     }
@@ -130,41 +130,44 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 	  	} else {
 	  	  System.out.println("ManagerView::initialize : folder isn't null !!!");
 	  	}
-	  	
-    itemGeneral = new TabItem(folder, SWT.NULL);
-    itemDetails = new TabItem(folder, SWT.NULL);
-    itemGraphic = new TabItem(folder, SWT.NULL);
-    itemPieces  = new TabItem(folder, SWT.NULL);
-    itemFiles   = new TabItem(folder, SWT.NULL);
 
-    viewGeneral = new GeneralView(manager);
-    viewDetails = new PeersView(manager);
-    viewGraphic = new PeersGraphicView(manager);
-    viewPieces = new PiecesView(manager);
-    viewFiles = new FilesView(manager);
-    
-    Messages.setLanguageText(itemGeneral, viewGeneral.getData());
-    Messages.setLanguageText(itemDetails, viewDetails.getData());
-    Messages.setLanguageText(itemGraphic, viewGraphic.getData());
-    Messages.setLanguageText(itemPieces, viewPieces.getData());
-    Messages.setLanguageText(itemFiles, viewFiles.getData());
-    
-    TabItem items[] = {itemGeneral};
-    folder.setSelection(items);
-    viewGeneral.initialize(folder);
-    itemGeneral.setControl(viewGeneral.getComposite());
-    viewDetails.initialize(folder);
-    itemDetails.setControl(viewDetails.getComposite());
-    viewGraphic.initialize(folder);
-    itemGraphic.setControl(viewGraphic.getComposite());
-    viewPieces.initialize(folder);
-    itemPieces.setControl(viewPieces.getComposite());
-    viewFiles.initialize(folder);
-    itemFiles.setControl(viewFiles.getComposite());
+	  IView views[] = { new GeneralView(), new PeersView(),
+				new PeersGraphicView(), new PiecesView(), new FilesView(),
+				new LoggerView() };
 
+		for (int i = 0; i < views.length; i++)
+			addSection(views[i], manager);
+
+    // Call plugin listeners
+		UISWTInstanceImpl pluginUI = MainWindow.getWindow().getUISWTInstanceImpl();
+		Map pluginViews = pluginUI.getViewListeners(UISWTInstance.VIEW_MYTORRENTS);
+		if (pluginViews != null) {
+			String[] sNames = (String[])pluginViews.keySet().toArray(new String[0]);
+			for (int i = 0; i < sNames.length; i++) {
+				UISWTViewEventListener l = (UISWTViewEventListener)pluginViews.get(sNames[i]);
+				if (l != null) {
+					try {
+						UISWTViewImpl view = new UISWTViewImpl(
+								UISWTInstance.VIEW_MYTORRENTS, sNames[i], l);
+						addSection(view);
+					} catch (Exception e) {
+						// skip
+					}
+				}
+			}
+		}
+		
     
+    // Initialize view when user selects it
     folder.addSelectionListener(new SelectionListener() {
       public void widgetSelected(SelectionEvent e) {
+        TabItem item = (TabItem)e.item;
+        if (item != null && item.getControl() == null) {
+        	IView view = (IView)item.getData("IView");
+        	
+        	view.initialize(folder);
+        	item.setControl(view.getComposite());
+        }
         refresh();
       }
       public void widgetDefaultSelected(SelectionEvent e) {
@@ -172,47 +175,35 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     });
     
     
-    refresh();
-    viewGeneral.getComposite().layout(true);
-
+    views[0].initialize(folder);
+    folder.getItem(0).setControl(views[0].getComposite());
+    views[0].refresh();
+    views[0].getComposite().layout(true);
   }
 
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
   public void refresh() {
-    if(getComposite() == null || getComposite().isDisposed())
-      return;
+		if (getComposite() == null || getComposite().isDisposed())
+			return;
 
-    try {
-      switch (folder.getSelectionIndex()) {
-        case 0 :
-          if (viewGeneral != null && !itemGeneral.isDisposed())
-            viewGeneral.refresh();
-          break;
-        case 1 :
-        if (viewDetails != null && !itemDetails.isDisposed())
-          viewDetails.refresh();
-          break;
-        case 2 :
-          if (viewGraphic != null && !itemGraphic.isDisposed())
-            viewGraphic.refresh();
-            break;  
-        case 3 :
-        //case 2 :
-        if (viewPieces != null && !itemPieces.isDisposed())
-          viewPieces.refresh();
-          break;
-        case 4 :
-        //case 3 :
-        if (viewFiles != null && !itemFiles.isDisposed())
-          viewFiles.refresh();
-          break;
-      }
-    } catch (Exception e) {
-    	Debug.printStackTrace( e );
-    }
-  }
+		try {
+			int index = folder.getSelectionIndex();
+			if (index == -1)
+				return;
+			TabItem ti = folder.getItem(index);
+			if (ti.isDisposed())
+				return;
+
+			IView view = (IView) ti.getData("IView");
+			if (view != null)
+				view.refresh();
+
+		} catch (Exception e) {
+			Debug.printStackTrace(e);
+		}
+	}
   
   public boolean isEnabled(String itemKey) {
     if(itemKey.equals("run"))
@@ -298,7 +289,7 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
     Display display = folder.getDisplay();
     if(display == null || display.isDisposed())
       return;
-    display.asyncExec(new AERunnable() {
+    Utils.execSWTThread(new AERunnable() {
 	    public void runSupport() {
 	      MainWindow.getWindow().refreshIconBar();  
 	    }
@@ -307,4 +298,26 @@ public class ManagerView extends AbstractIView implements DownloadManagerListene
 
   public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
   }
+
+	public void addSection(UISWTViewImpl view) {
+		Object pluginDataSource = null;
+		try {
+			pluginDataSource = DownloadManagerImpl.getDownloadStatic(manager);
+		} catch (DownloadException e) { 
+			/* Ignore */
+		}
+		addSection(view, pluginDataSource);
+	}
+	
+	private void addSection(IView view, Object dataSource) {
+		if (view == null)
+			return;
+
+		view.dataSourceChanged(dataSource);
+
+		TabItem item = new TabItem(folder, SWT.NULL);
+		Messages.setLanguageText(item, view.getData());
+		item.setData("IView", view);
+		tabViews.add(view);
+	}
 }

@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Locale;
 
@@ -36,16 +37,20 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem1;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem2;
@@ -70,8 +75,10 @@ import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 public class TableCellImpl 
        implements TableCellCore
 {
+	private static final LogIDs LOGID = LogIDs.GUI;
   private TableRowCore tableRow;
   private Comparable sortValue;
+  private boolean bSortValueIsText = true;
   private BufferedTableItem bufferedTableItem;
   private ArrayList refreshListeners;
   private ArrayList disposeListeners;
@@ -79,36 +86,53 @@ public class TableCellImpl
   private TableColumnCore tableColumn;
   private boolean valid;
   private int refreshErrLoopCount;
+  private int tooltipErrLoopCount;
   private int loopFactor;
   private Object oToolTip;
+  /**
+   * For refreshing, this flag manages whether the row is actually up to date.
+   * 
+   * We don't update any visuals while the row isn't visible.  But, validility
+   * does get set to true so that the cell isn't forced to refresh every
+   * cycle when not visible.  (We can't just never call refresh when the row
+   * is not visible, as refresh also sets the sort value)
+   *  
+   * When the row does become visible, we have to invalidate the row so
+   * that the row will set its visuals again (this time, actually
+   * updating a viewable object).
+   */
+	private boolean bIsUpToDate = true;
+	
+	private boolean bDisposed = false;
+	
+	private boolean bMustRefresh = false;
+	
+	public boolean bDebug = false;
   
   private AEMonitor 	this_mon 	= new AEMonitor( "TableCell" );
 
-  public TableCellImpl(TableRowCore _tableRow, TableColumnCore _tableColumn) {
-    this(_tableRow, _tableColumn, false);
-  }
-
   /**
-   * @param bSkipFirstColumn Add 1 to position because we make a non resizable 
-   *                         0-sized 1st column to fix the 1st column gap 
-   *                         problem (Eclipse Bug 43910)
+   * Initialize
+   *  
+   * @param _tableRow
+   * @param _tableColumn
+   * @param position
    */
   public TableCellImpl(TableRowCore _tableRow, TableColumnCore _tableColumn,
-                       boolean bSkipFirstColumn) {
+                       int position) {
     this.tableColumn = _tableColumn;
     this.tableRow = _tableRow;
     valid = false;
     refreshErrLoopCount = 0;
+    tooltipErrLoopCount = 0;
     loopFactor = 0;
-    int position = tableColumn.getPosition();
-    position = (position >= 0 && bSkipFirstColumn) ? position + 1 : position;
     if (tableColumn.getType() != TableColumnCore.TYPE_GRAPHIC) {
       bufferedTableItem = new BufferedTableItem((BufferedTableRow)tableRow, position) {
         public void refresh() {
           TableCellImpl.this.refresh();
         }
         public void invalidate() {
-          TableCellImpl.this.setValid(false);
+          TableCellImpl.this.valid = false;
         }
       };
     } else if (COConfigurationManager.getBooleanParameter("GUI_SWT_bAlternateTablePainting")) {
@@ -117,7 +141,7 @@ public class TableCellImpl
           TableCellImpl.this.refresh();
         }
         public void invalidate() {
-          TableCellImpl.this.setValid(false);
+          TableCellImpl.this.valid = false;
         }
       };
     } else {
@@ -126,7 +150,7 @@ public class TableCellImpl
           TableCellImpl.this.refresh();
         }
         public void invalidate() {
-          TableCellImpl.this.setValid(false);
+          TableCellImpl.this.valid = false;
         }
       };
     }
@@ -138,10 +162,13 @@ public class TableCellImpl
       ? "null" 
       : "" + bufferedTableItem.getPosition() + 
         " (" + bufferedTableItem.getColumnName() + ")";
-    LGLogger.log(LGLogger.ERROR, 
-                 "Table Cell Plugin for Column #" + sPosition + 
-                 " generated an exception: " + e);
-    Debug.printStackTrace( e );
+    Logger.log(new LogEvent(LOGID, "Table Cell Plugin for Column #" + sPosition
+				+ " generated an exception ", e));
+  }
+  
+  private void checkCellForSetting() {
+  	if (isDisposed())
+  		throw new UIRuntimeException("Table Cell is disposed.");
   }
   
   /* Public API */
@@ -168,60 +195,111 @@ public class TableCellImpl
   }
   
   public boolean setForeground(Color color) {
-    if (bufferedTableItem == null)
-      return false;
+  	checkCellForSetting();
+
+  	// Don't need to set when not visible
+  	if (!tableRow.isVisible())
+  		return false;
+
     return bufferedTableItem.setItemForeground(color);
   }
   
   public boolean setForeground(int red, int green, int blue) {
-    if (bufferedTableItem == null)
-      return false;
+  	checkCellForSetting();
+
+  	// Don't need to set when not visible
+  	if (!tableRow.isVisible())
+  		return false;
+
     return bufferedTableItem.setItemForeground(red, green, blue);
   }
 
   public boolean setText(String text) {
-    if (bufferedTableItem == null)
-      return false;
-    return bufferedTableItem.setText(text);
+  	checkCellForSetting();
+  	if (text == null)
+  		text = "";
+  	boolean bChanged = false;
+
+  	if (bSortValueIsText && !text.equals(sortValue)) {
+  		bChanged = true;
+  		sortValue = text;
+    	if (bDebug)
+    		System.out.println("r" + tableRow.getIndex() + "; Setting SortValue to text;");
+  	}
+  	
+  	if (!tableRow.isVisible())
+  		return false;
+  	
+    if (bufferedTableItem.setText(text) && !bSortValueIsText)
+    	bChanged = true;
+
+  	return bChanged;
   }
   
   public String getText() {
-    if (bufferedTableItem == null)
-      return "";
+  	if (bSortValueIsText && sortValue instanceof String)
+  		return (String)sortValue;
     return bufferedTableItem.getText();
   }
 
   public boolean isShown() {
-    if (bufferedTableItem == null)
-      return false;
     return bufferedTableItem.isShown();
   }
   
   public boolean setSortValue(Comparable valueToSort) {
+  	checkCellForSetting();
+
     if (sortValue == valueToSort)
       return false;
+
+    if (bSortValueIsText) {
+      bSortValueIsText = false;
+    	if (sortValue instanceof String)
+	    	// Make sure text is actually in the cell (it may not have been if
+	      // cell wasn't created at the time of setting)
+	      setText((String)sortValue);
+    }
+
+  	if (bDebug)
+  		System.out.println("r" + tableRow.getIndex() + "; Setting SortValue to "
+					+ ((valueToSort == null) ? "null" : valueToSort.getClass().getName()));
     sortValue = valueToSort;
+
     return true;
   }
   
   public boolean setSortValue(long valueToSort) {
-    if ((sortValue instanceof Long) && 
-        ((Long)sortValue).longValue() == valueToSort)
-      return false;
+  	checkCellForSetting();
 
-    sortValue = new Long(valueToSort);
-    return true;
+		if ((sortValue instanceof Long)
+				&& ((Long) sortValue).longValue() == valueToSort)
+			return false;
+
+		return setSortValue(new Long(valueToSort));
   }
   
   public boolean setSortValue( float valueToSort ) {
-    if( sortValue instanceof Float && ((Float)sortValue).floatValue() == valueToSort ) {
-      return false;
-    }
-    sortValue = new Float( valueToSort );
-    return true;
+  	checkCellForSetting();
+
+		if (sortValue instanceof Float
+				&& ((Float) sortValue).floatValue() == valueToSort)
+			return false;
+
+		return setSortValue(new Float(valueToSort));
   }
 
   public Comparable getSortValue() {
+  	if (bDebug) {
+  		Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+		  		System.out.println("r"
+							+ tableRow.getIndex()
+							+ "; GetSortValue;"
+							+ (sortValue == null ? "null" : sortValue.getClass().getName()
+									+ ";" + sortValue.toString()));
+				}
+  		}, true);
+  	}
     if (sortValue == null) {
       if (bufferedTableItem != null)
         return bufferedTableItem.getText();
@@ -229,19 +307,29 @@ public class TableCellImpl
     }
     return sortValue;
   }
-    
+  
+  public void setToolTip(Object tooltip) {
+    oToolTip = tooltip;
+  }
+
+  public Object getToolTip() {
+    return oToolTip;
+  }
+
+	public boolean isDisposed() {
+		return bDisposed;
+	}
+  
   /* Start TYPE_GRAPHIC Functions */
 
-  public Point getSize() {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+	public Point getSize() {
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return null;
     return ((BufferedGraphicTableItem)bufferedTableItem).getSize();
   }
 
   public int getWidth() {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return -1;
     Point pt = ((BufferedGraphicTableItem)bufferedTableItem).getSize();
     if (pt == null)
@@ -250,8 +338,7 @@ public class TableCellImpl
   }
 
   public int getHeight() {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return -1;
     Point pt = ((BufferedGraphicTableItem)bufferedTableItem).getSize();
     if (pt == null)
@@ -260,16 +347,20 @@ public class TableCellImpl
   }
 
   public boolean setGraphic(Image img) {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+  	checkCellForSetting();
+
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return false;
+
     return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(img);
   }
 
   public boolean setGraphic(Graphic img) {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+  	checkCellForSetting();
+
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return false;
+
     if (img == null)
       return ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(null);
 
@@ -287,37 +378,38 @@ public class TableCellImpl
   }
 
   public Graphic getGraphic() {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return null;
     Image img = ((BufferedGraphicTableItem)bufferedTableItem).getGraphic();
     return new UISWTGraphicImpl(img);
   }
 
   public Image getGraphicSWT() {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return null;
     return ((BufferedGraphicTableItem)bufferedTableItem).getGraphic();
   }
 
   public void setFillCell(boolean bFillCell) {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+  	checkCellForSetting();
+
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
     ((BufferedGraphicTableItem)bufferedTableItem).fillCell = bFillCell;
   }
 
   public void setMarginHeight(int height) {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+  	checkCellForSetting();
+
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
     ((BufferedGraphicTableItem)bufferedTableItem).marginHeight = height;
   }
 
   public void setMarginWidth(int width) {
-    if (bufferedTableItem == null || 
-        !(bufferedTableItem instanceof BufferedGraphicTableItem))
+  	checkCellForSetting();
+
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
     ((BufferedGraphicTableItem)bufferedTableItem).marginWidth = width;
   }
@@ -409,36 +501,105 @@ public class TableCellImpl
   	}
   }
   
-  /* Start of Core-Only function */
+  
+	public void addListeners(Object listenerObject) {
+		if (listenerObject instanceof TableCellDisposeListener)
+			addDisposeListener((TableCellDisposeListener)listenerObject);
+
+		if (listenerObject instanceof TableCellRefreshListener)
+			addRefreshListener((TableCellRefreshListener)listenerObject);
+
+		if (listenerObject instanceof TableCellToolTipListener)
+			addToolTipListener((TableCellToolTipListener)listenerObject);
+	}
+
+	/**
+	 * If a plugin in trying to invalidate a cell, then clear the sort value
+	 * too.
+	 */
+	public void invalidate() {
+  	checkCellForSetting();
+
+  	invalidate(true);
+	}
+
+	/* Start of Core-Only function */
   //////////////////////////////////
-  public void setValid(boolean _valid) {
-    this.valid = _valid;
+  public void invalidate(final boolean bMustRefresh) {
+  	valid = false;
+
+  	if (bDebug) {
+  		Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+		  		System.out.println("r" + tableRow.getIndex() + "; Invalidate Cell;" + bMustRefresh);
+				}
+  		}, true);
+  	}
+
+  	if (bMustRefresh)
+  		this.bMustRefresh = true;
   }
 
   public void refresh() {
     refresh(true);
   }
 
+  private boolean bInRefresh = false;
   public void refresh(boolean bDoGraphics) {
-    if (bufferedTableItem == null || refreshErrLoopCount > 2)
+    if (refreshErrLoopCount > 2)
       return;
     int iErrCount = tableColumn.getConsecutiveErrCount();
     if (iErrCount > 10)
       return;
+    
+    if (bInRefresh) {
+    	// Skip a Refresh call when being called from within refresh.
+    	// This could happen on virtual tables where SetData calls us again, or
+    	// if we ever introduce plugins to refresh.
+    	if (bDebug)
+    		System.out.println("Calling Refresh from Refresh :) Skipping.");
+    	return;
+    }
+  	bInRefresh = true;
+
+    boolean bVisible = tableRow.isVisible();
+
+    // See bIsUpToDate variable comments
+    if (bVisible && !bIsUpToDate) {
+    	if (bDebug)
+    		System.out.println(tableRow.getIndex() + "; Setting Invalid because visible & not up to date");
+    	valid = false;
+    	bIsUpToDate = true;
+    }
 
     try {
+    	if (bDebug)
+    		System.out.println("r" + tableRow.getIndex() + "; Cell Valid?" + valid + ";");
       int iInterval = tableColumn.getRefreshInterval();
-      if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
+    	if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid
+    			&& !bMustRefresh && bSortValueIsText && sortValue != null
+					&& tableColumn.getType() == TableColumnCore.TYPE_TEXT_ONLY) {
+    		setText((String)sortValue);
+    		valid = true;
+    	} else if ((iInterval == TableColumnCore.INTERVAL_LIVE ||
           (iInterval == TableColumnCore.INTERVAL_GRAPHIC && bDoGraphics) ||
           (iInterval > 0 && (loopFactor % iInterval) == 0) ||
-          !valid) && bufferedTableItem.isShown()) 
+          !valid || bMustRefresh) && bufferedTableItem.isShown()) 
       {
+      	boolean bWasValid = isValid();
+
         tableColumn.invokeCellRefreshListeners(this);
         if (refreshListeners != null)
           for (int i = 0; i < refreshListeners.size(); i++)
             ((TableCellRefreshListener)(refreshListeners.get(i))).refresh(this);
 
-        setValid(true);
+        // Change to valid only if we weren't valid before the listener calls
+        // This is in case the listeners set valid to false when it was true
+        if (!bWasValid) 
+        	valid = true;
+        
+        if (bMustRefresh)
+        	bMustRefresh = false;
       }
       loopFactor++;
       refreshErrLoopCount = 0;
@@ -449,13 +610,17 @@ public class TableCellImpl
       tableColumn.setConsecutiveErrCount(++iErrCount);
       pluginError(e);
       if (refreshErrLoopCount > 2)
-        LGLogger.log(LGLogger.ERROR, 
-                     "TableCell will not be refreshed anymore this session.");
+      	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+						"TableCell will not be refreshed anymore this session."));
+    } finally {
+    	bInRefresh = false;
     }
   }
 
 
   public void dispose() {
+  	bDisposed = true;
+
     if (disposeListeners != null) {
       try {
         tableColumn.invokeCellDisposeListeners(this);
@@ -480,26 +645,21 @@ public class TableCellImpl
   }
   
   public void setImage(Image img) {
-    if (bufferedTableItem == null)
-      return;
+  	if (!tableRow.isVisible())
+  		return;
+
     bufferedTableItem.setImage(img);
   }
 
   public boolean needsPainting() {
-    if (bufferedTableItem == null)
-      return false;
     return bufferedTableItem.needsPainting();
   }
   
   public void doPaint(GC gc) {
-    if (bufferedTableItem == null)
-      return;
     bufferedTableItem.doPaint(gc);
   }
 
   public void locationChanged() {
-    if (bufferedTableItem == null)
-      return;
     bufferedTableItem.locationChanged();
   }
 
@@ -507,7 +667,14 @@ public class TableCellImpl
     return tableRow;
   }
   
-  /* Comparable Implementation */
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	public String toString() {
+		return getText();
+	}
+
+	/* Comparable Implementation */
   
   /** Compare our sortValue to the specified object.  Assumes the object 
    * is TableCellImp (safe assumption)
@@ -539,25 +706,46 @@ public class TableCellImpl
     return 0;
   }
 
-  public void setToolTip(Object tooltip) {
-    oToolTip = tooltip;
-  }
-
-  public Object getToolTip() {
-    return oToolTip;
-  }
-
   public void invokeToolTipListeners(int type) {
+  	if (tableColumn == null)
+  		return;
+
     tableColumn.invokeCellToolTipListeners(this, type);
 
-    if (tooltipListeners == null)
+    if (tooltipListeners == null || tooltipErrLoopCount > 2)
       return;
-    if (type == TOOLTIPLISTENER_HOVER) {
-      for (int i = 0; i < tooltipListeners.size(); i++)
-        ((TableCellToolTipListener)(tooltipListeners.get(i))).cellHover(this);
-    } else {
-      for (int i = 0; i < tooltipListeners.size(); i++)
-        ((TableCellToolTipListener)(tooltipListeners.get(i))).cellHoverComplete(this);
+
+    int iErrCount = tableColumn.getConsecutiveErrCount();
+    if (iErrCount > 10)
+      return;
+
+    try {
+	    if (type == TOOLTIPLISTENER_HOVER) {
+	      for (int i = 0; i < tooltipListeners.size(); i++)
+	        ((TableCellToolTipListener)(tooltipListeners.get(i))).cellHover(this);
+	    } else {
+	      for (int i = 0; i < tooltipListeners.size(); i++)
+	        ((TableCellToolTipListener)(tooltipListeners.get(i))).cellHoverComplete(this);
+	    }
+	    tooltipErrLoopCount = 0;
+    } catch (Throwable e) {
+      tooltipErrLoopCount++;
+      tableColumn.setConsecutiveErrCount(++iErrCount);
+      pluginError(e);
+      if (tooltipErrLoopCount > 2)
+      	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+						"TableCell's tooltip will not be refreshed anymore this session."));
     }
   }
+  
+  public static final Comparator TEXT_COMPARATOR = new TextComparator();
+  private static class TextComparator implements Comparator {
+		public int compare(Object arg0, Object arg1) {
+			return arg0.toString().compareToIgnoreCase(arg1.toString());
+		}
+  }
+  
+	public void setUpToDate(boolean upToDate) {
+		bIsUpToDate = upToDate;
+	}
 }

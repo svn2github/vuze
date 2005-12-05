@@ -25,11 +25,20 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+
 /**
- *
+ * Torrent Position column.
+ * 
+ * One object for all rows to save memory
+ * 
  * @author Olivier
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
@@ -37,18 +46,69 @@ public class RankItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
+	private boolean bInvalidByTrigger = false;
+
   /** Default Constructor */
   public RankItem(String sTableID) {
     super("#", ALIGN_TRAIL, POSITION_LAST, 50, sTableID);
-    setRefreshInterval(INTERVAL_LIVE);
+    setRefreshInterval(INTERVAL_INVALID_ONLY);
+    GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+    gm.addListener(new GMListener());
   }
 
   public void refresh(TableCell cell) {
+  	bInvalidByTrigger = false;
+
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     long value = (dm == null) ? 0 : dm.getPosition();
-    if (!cell.setSortValue(value) && cell.isValid())
-      return;
-
+    cell.setSortValue(value);
     cell.setText(String.valueOf(value));
+  }
+  
+  private class GMListener implements GlobalManagerListener {
+    	DownloadManagerListener listener;
+    	
+    	public GMListener() {
+    		 listener = new DownloadManagerListener() {
+					public void completionChanged(DownloadManager manager, boolean bCompleted) {
+					}
+
+					public void downloadComplete(DownloadManager manager) {
+					}
+
+					public void positionChanged(DownloadManager download, int oldPosition, int newPosition) {
+						/** We will be getting multiple position changes, but we only need
+						 * to invalidate cells once.
+						 */
+						if (bInvalidByTrigger)
+							return;
+						RankItem.this.invalidateCells();
+						bInvalidByTrigger = true;
+					}
+
+					public void stateChanged(DownloadManager manager, int state) {
+					}
+    			 
+    		 };
+    	}
+    	
+			public void destroyed() {
+			}
+
+			public void destroyInitiated() {
+				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+				gm.removeListener(this);
+			}
+
+			public void downloadManagerAdded(DownloadManager dm) {
+				dm.addListener(listener);
+			}
+
+			public void downloadManagerRemoved(DownloadManager dm) {
+				dm.removeListener(listener);
+			}
+
+			public void seedingStatusChanged(boolean seeding_only_mode) {
+			}
   }
 }

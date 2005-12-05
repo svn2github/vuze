@@ -337,7 +337,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedGraphicTableItem
   }
 
   private Color getRowBackground(Table table) {
-    if (row.getSelected() && false) {
+    if (row.isSelected() && false) {
       if (table.isFocusControl())
         return table.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION);
       else

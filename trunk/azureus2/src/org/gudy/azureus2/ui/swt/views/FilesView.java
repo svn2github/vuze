@@ -27,6 +27,8 @@ import java.io.File;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
@@ -34,8 +36,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.LGLogger;
-import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.MessageBoxWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -52,6 +52,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 public class FilesView 
        extends TableView
 {
+	boolean refreshing = false;
 
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
@@ -68,42 +69,54 @@ public class FilesView
     new StorageTypeItem()
   };
   
-  private DownloadManager download_manager;
+  private DownloadManager manager = null;
   
   public static boolean show_full_path = COConfigurationManager.getBooleanParameter( "FilesView.show.full.path", false );
   private MenuItem path_item;
   
 
-  public FilesView(DownloadManager manager) {
-    super(TableManager.TABLE_TORRENT_FILES, "FilesView", 
-          basicItems, "firstpiece", SWT.MULTI | SWT.FULL_SELECTION);
-    bSkipFirstColumn = true;
-    ptIconSize = new Point(16, 16);
-    download_manager = manager;
+  /**
+   * Initialize 
+   */
+  public FilesView() {
+    super(TableManager.TABLE_TORRENT_FILES, "FilesView", basicItems,
+				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+    setRowDefaultIconSize(new Point(16, 16));
+    bEnableTabViews = true;
   }
 
-  public void initialize(Composite composite) {
-    super.initialize(composite);
+	public void dataSourceChanged(Object newDataSource) {
+		if (newDataSource == null)
+			manager = null;
+		else if (newDataSource instanceof Object[])
+			manager = (DownloadManager)((Object[])newDataSource)[0];
+		else
+			manager = (DownloadManager)newDataSource;
 
-    
-    getTable().addMouseListener(new MouseAdapter() {
-      public void mouseDoubleClick(MouseEvent mEvent) {
-        DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)getFirstSelectedDataSource();
-        if (fileInfo != null && fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
-          Program.launch(fileInfo.getFile(true).toString());
-      }
-    });
+		removeAllTableRows();
+	}
+	
+	
 
-  }
+	public void initializeTable(Table table) {
+    table.addSelectionListener(new SelectionAdapter() {
+			public void widgetDefaultSelected(SelectionEvent e) {
+				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) getFirstSelectedDataSource();
+				if (fileInfo != null
+						&& fileInfo.getAccessMode() == DiskManagerFileInfo.READ)
+					Program.launch(fileInfo.getFile(true).toString());
+			}
+		});
 
-  
-  
-  
-  public void fillMenu(final Menu menu) {
-	  
+		super.initializeTable(table);
+	}
+
+	public void fillMenu(final Menu menu) {
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemOpen, "FilesView.menu.open");
     Utils.setMenuItemImage(itemOpen, "run");
+    // Invoke open on enter, double click
+    menu.setDefaultItem(itemOpen);
     
     final MenuItem itemRename = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRename, "FilesView.menu.rename");
@@ -115,20 +128,25 @@ public class FilesView
     itemPriority.setMenu(menuPriority);
     
     final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
+    itemHigh.setData("Priority", new Integer(0));
     Messages.setLanguageText(itemHigh, "FilesView.menu.setpriority.high"); //$NON-NLS-1$
     
     final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
+    itemLow.setData("Priority", new Integer(1));
     Messages.setLanguageText(itemLow, "FilesView.menu.setpriority.normal"); //$NON-NLS-1$
     
     final MenuItem itemSkipped = new MenuItem(menuPriority, SWT.CASCADE);
+    itemSkipped.setData("Priority", new Integer(2));
     Messages.setLanguageText(itemSkipped, "FilesView.menu.setpriority.skipped"); //$NON-NLS-1$
 
     final MenuItem itemDelete = new MenuItem(menuPriority, SWT.CASCADE);
+    itemDelete.setData("Priority", new Integer(3));
     Messages.setLanguageText(itemDelete, "wizard.multitracker.delete");	// lazy but we're near release
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
-    	FilesView.this.showMenu();
+      	if (manager == null)
+      		return;
     		
         Object[] infos = getSelectedDataSources();
         if (infos.length == 0) {
@@ -163,13 +181,13 @@ public class FilesView
         	// can't rename files for non-persistent downloads (e.g. shares) as these
         	// are managed "externally"
         
-        itemRename.setEnabled( download_manager.isPersistent());
+        itemRename.setEnabled(manager.isPersistent());
                 
         	// no point in changing priority of completed downloads
         
-        itemPriority.setEnabled( !download_manager.isDownloadComplete() );
+        itemPriority.setEnabled(!manager.isDownloadComplete());
         
-        itemDelete.setEnabled( !( download_manager.isDownloadComplete() || all_compact ));
+        itemDelete.setEnabled(!(manager.isDownloadComplete() || all_compact));
       }
     });       
 
@@ -189,6 +207,9 @@ public class FilesView
     		run(
     			TableRowCore row) 
     		{
+    			if (manager == null)
+    				return;
+
     			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
    
     			FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
@@ -208,11 +229,11 @@ public class FilesView
     				boolean	paused = false;
     				
     				try{
-    					paused = download_manager.pause();
+    					paused = manager.pause();
     					
     						// gotta pick up the skeleton entry if we paused
     					
-    					fileInfo = download_manager.getDiskManagerFileInfo()[fileInfo.getIndex()];
+    					fileInfo = manager.getDiskManagerFileInfo()[fileInfo.getIndex()];
 
 	    				File	target = new File( res );
 	        	  
@@ -267,56 +288,24 @@ public class FilesView
 	    				
 	    				if ( paused ){
 	    					
-	    					download_manager.resume();
+	    					manager.resume();
 	    				}
 	    			}
     			}
     		}
     	});
     
-    itemHigh.addListener(SWT.Selection, 
-    	new SelectedTableRowsListener() 
-    	{
-    		public void
-    		runAll(
-    			TableRowCore[]	rows )
-    		{
-    			changePriority( 0, rows );
-    		}
-    	});
-        
-    itemLow.addListener(SWT.Selection, 
-	   	new SelectedTableRowsListener() 
-    	{
-    		public void
-    		runAll(
-    			TableRowCore[]	rows )
-    		{
-    			changePriority( 1, rows );
-    		}
-    	});
-        
-    itemSkipped.addListener(SWT.Selection, 
-	   	new SelectedTableRowsListener() 
-    	{
-    		public void
-    		runAll(
-    			TableRowCore[]	rows )
-    		{
-    			changePriority( 2, rows );
-    		}
-    	});
-    
-    itemDelete.addListener(SWT.Selection, 
-    	   	new SelectedTableRowsListener() 
-        	{
-        		public void
-        		runAll(
-        			TableRowCore[]	rows )
-        		{
-        			changePriority( 3, rows );
-        		}
-        	});
+    Listener priorityListener = new Listener() {
+			public void handleEvent(Event event) {
+				changePriority(((Integer) event.widget.getData("Priority")).intValue(),
+						getSelectedRows());
+			}
+    };
+
+    itemHigh.addListener(SWT.Selection, priorityListener); 
+    itemLow.addListener(SWT.Selection, priorityListener);
+    itemSkipped.addListener(SWT.Selection, priorityListener); 
+    itemDelete.addListener(SWT.Selection, priorityListener);
 
     new MenuItem(menu, SWT.SEPARATOR);
 
@@ -328,6 +317,9 @@ public class FilesView
 	  int				type ,
 	  TableRowCore[]	rows )
   {
+  	if (manager == null)
+  		return;
+
 		DiskManagerFileInfo[] file_infos	= new DiskManagerFileInfo[rows.length];
 			
 		boolean	pause = false;
@@ -372,14 +364,14 @@ public class FilesView
 		try{
 			if ( pause ){
 				
-				pause = download_manager.pause();
+				pause = manager.pause();
 				
 				if ( pause ){
 						// we've got to pick up the new info as stopping causes skeleton
 						// info to be returned and this is the only info that will
 						// accept changes in storage strategy...
 					
-					DiskManagerFileInfo[] new_info = download_manager.getDiskManagerFileInfo();
+					DiskManagerFileInfo[] new_info = manager.getDiskManagerFileInfo();
 					
 					for (int i=0;i<file_infos.length;i++){
 						
@@ -417,7 +409,7 @@ public class FilesView
 			
 			if ( pause ){
 			
-				download_manager.resume();
+				manager.resume();
 			}
 		}
   }
@@ -432,7 +424,7 @@ public class FilesView
 		// if we're not managing the download then don't do anything other than
 		// change the file's priority
 	
-	if ( !download_manager.isPersistent()){
+	if ( !manager.isPersistent()){
 		
 		info.setSkipped( skipped );
 
@@ -513,7 +505,11 @@ public class FilesView
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.IView#refresh()
    */
-  public void refresh() {
+  public synchronized void refresh(boolean bForceSort) {
+  	if (refreshing)
+  		return;
+
+  	refreshing = true;
     if(getComposite() == null || getComposite().isDisposed())
       return;
 
@@ -521,15 +517,14 @@ public class FilesView
 
     DiskManagerFileInfo files[] = getFileInfo();
 	
-    if (files != null && getTable().getItemCount() != files.length) {
-      for (int i = 0; i < files.length; i++) {
-        if (files[i] != null) {
-          addDataSource(files[i]);
-        }
-      }
+    if (files != null && getTable().getItemCount() != files.length && files.length > 0) {
+	    Object filesCopy[] = new Object[files.length]; 
+	    System.arraycopy(files, 0, filesCopy, 0, files.length);
+    	addDataSources(filesCopy);
     }
     
-    super.refresh();
+    super.refresh(bForceSort);
+    refreshing = false;
   }
   
   private void removeInvalidFileItems() {
@@ -579,7 +574,8 @@ public class FilesView
       path_item.addListener(SWT.Selection, new Listener() {
         public void handleEvent(Event e) {
           show_full_path = path_item.getSelection();
-          forceFullRefresh();
+          columnInvalidate("path");
+          refreshTable(false);
           COConfigurationManager.setParameter( "FilesView.show.full.path", show_full_path );
         }
       });
@@ -588,18 +584,11 @@ public class FilesView
   }
   
   
-  private void forceFullRefresh() {
-    super.tableInvalidate();
-    super.refresh();
-  }
-  
   private DiskManagerFileInfo[]
   getFileInfo()
   {
-	  return( download_manager.getDiskManagerFileInfo());
-  }
-  
-  public void delete() {
-    super.delete();
+  	if (manager == null)
+  		return null;
+	  return( manager.getDiskManagerFileInfo());
   }
 }

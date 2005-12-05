@@ -24,9 +24,15 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import java.util.HashMap;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTScraperResponseImpl;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -35,8 +41,11 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class TrackerNextAccessItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener
+       implements TableCellRefreshListener, TableCellDisposeListener,
+                  TableCellToolTipListener
 {
+	HashMap map = new HashMap();
+	
   public TrackerNextAccessItem(String sTableID) {
     super("trackernextaccess", ALIGN_TRAIL, POSITION_INVISIBLE, 70, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
@@ -44,23 +53,42 @@ public class TrackerNextAccessItem
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
+    if (cell.isValid() && map.containsKey(dm)) {
+    	long lNextUpdate = ((Long)map.get(dm)).longValue();
+    	if (System.currentTimeMillis() < lNextUpdate)
+    		return;
+    }
     long value = (dm == null) ? 0 : dm.getTrackerTime();
     
     if (value < -1)
       value = -1;
 
-    // Update every minute, unless under a minute, then update every second
-    if (value > 60)
-      value = value - (value % 60) + 60;
+    long lNextUpdate = System.currentTimeMillis()
+				+ (((value > 60) ? (value % 60) : 1) * 1000);
+		map.put(dm, new Long(lNextUpdate));
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;
 
-    if (value > 60) {
-      cell.setText("< " + TimeFormatter.formatColon(value));
-    } else {
-      cell.setText(TimeFormatter.formatColon(value));
-    }
-      
+    String sText = TimeFormatter.formatColon(value);
+    
+    if (value > 60)
+    	sText = "< " + sText;
+    
+  	TrackerCellUtils.updateColor(cell, dm);
+    cell.setText(sText);
   }
+
+	public void cellHover(TableCell cell) {
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		cell.setToolTip(TrackerCellUtils.getTooltipText(cell, dm));
+	}
+
+	public void cellHoverComplete(TableCell cell) {
+		cell.setToolTip(null);
+	}
+
+	public void dispose(TableCell cell) {
+		map.remove(cell.getDataSource());
+	}
 }

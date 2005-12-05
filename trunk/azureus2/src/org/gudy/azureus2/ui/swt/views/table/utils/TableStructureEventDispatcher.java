@@ -71,7 +71,7 @@ public class TableStructureEventDispatcher implements ITableStructureModificatio
   	}
   }
   
-  public void addListener(ITableStructureModificationListener listener) {
+	public void addListener(ITableStructureModificationListener listener) {
     try{
     	listeners_mon.enter();
     
@@ -139,4 +139,20 @@ public class TableStructureEventDispatcher implements ITableStructureModificatio
     	listeners_mon.exit();
     }
   }
+
+	public void columnOrderChanged(int[] iPositions) {
+		try {
+			listeners_mon.enter();
+
+			Iterator iter = listeners.iterator();
+			while (iter.hasNext()) {
+				ITableStructureModificationListener listener = (ITableStructureModificationListener) iter
+						.next();
+				listener.columnOrderChanged(iPositions);
+			}
+		} finally {
+
+			listeners_mon.exit();
+		}
+	}
 }

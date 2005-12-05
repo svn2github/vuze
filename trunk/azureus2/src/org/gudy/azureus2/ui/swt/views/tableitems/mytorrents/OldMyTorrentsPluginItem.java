@@ -24,7 +24,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import org.gudy.azureus2.core3.logging.LGLogger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
@@ -46,6 +46,7 @@ public class OldMyTorrentsPluginItem
        extends TableColumnImpl
        implements TableCellAddedListener
 {
+  private static final LogIDs LOGID = LogIDs.GUI;
   private PluginMyTorrentsItemFactory oldFactory;
   private String oldFactoryType;
 
@@ -73,7 +74,7 @@ public class OldMyTorrentsPluginItem
       pluginItem = OldMyTorrentsPluginItem.this.oldFactory.getInstance(this);
 
       // listener is disposed of in core when cell is removed
-      cell.addRefreshListener(this);
+			cell.addListeners(this);
     }
     
     public Download getDownload() {
@@ -91,8 +92,8 @@ public class OldMyTorrentsPluginItem
             cell.setSortValue(pluginItem.getIntValue());
         }
       } catch(Throwable e) {
-        LGLogger.log(LGLogger.ERROR,"Plugin in MyTorrentsView generated an exception : " + e );
-        Debug.printStackTrace( e );
+      	Logger.log(new LogEvent(LOGID, "Plugin in MyTorrentsView "
+						+ "generated an exception", e));
       }
     }
     

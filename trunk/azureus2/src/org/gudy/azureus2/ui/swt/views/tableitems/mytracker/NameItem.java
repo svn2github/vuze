@@ -43,6 +43,7 @@ public class NameItem
   /** Default Constructor */
   public NameItem() {
     super("name", POSITION_LAST, 250, TableManager.TABLE_MYTRACKER);
+		setType(TableColumn.TYPE_TEXT);
   }
 
   public void refresh(TableCell cell) {
@@ -51,7 +52,7 @@ public class NameItem
                                  : TorrentUtils.getLocalisedName(item.getTorrent());
     //setText returns true only if the text is updated
   
-    if (cell.setText(name)) {
+    if (cell.setText(name) || !cell.isValid()) {
     	
     	boolean	folder_icon	= false;
     	

@@ -34,7 +34,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCell;
 /** Core Table Cell functions are those available to plugins plus
  * some core-only functions.  The core-only functions are listed here.
  *
- * @see TableCellImpl
+ * @see org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl
  *
  * @future split out SWT functions to TableCellSWTCore and move TableCellCore
  *         out of swt package. An abstract adapter for TableCell may have to 
@@ -47,11 +47,7 @@ public interface TableCellCore
   static final int TOOLTIPLISTENER_HOVER = 0;
   static final int TOOLTIPLISTENER_HOVERCOMPLETE = 1;
   
-  /** Sets the Validitiliy of the cell
-   *
-   * @param valid The valid to set.
-   */
-  public void setValid(boolean valid);
+  public void invalidate(boolean bMustRefresh);
 
   /** Change the cell's foreground color.
    *
@@ -105,4 +101,5 @@ public interface TableCellCore
   public Image getGraphicSWT();
 
   public void invokeToolTipListeners(int type);
+  public void setUpToDate(boolean upToDate);
 }

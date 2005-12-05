@@ -107,7 +107,7 @@ MyTrackerView
 		AzureusCore		_azureus_core ) 
 	{
     super(TableManager.TABLE_MYTRACKER, "MyTrackerView", basicItems, "name", 
-          SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
+          SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
     azureus_core = _azureus_core;
 	}
 
@@ -170,7 +170,6 @@ MyTrackerView
 
      menu.addListener(SWT.Show, new Listener() {
 		 public void handleEvent(Event e) {
-			 MyTrackerView.this.showMenu();
 		   Object[] hostTorrents = getSelectedDataSources();
 
 		   itemStart.setEnabled(false);
@@ -272,7 +271,7 @@ MyTrackerView
 	}
  
 	public void 
-	refresh() 
+	refresh(boolean bForceSort) 
 	{
 		if (getComposite() == null || getComposite().isDisposed()){
 	   
@@ -285,7 +284,7 @@ MyTrackerView
 		// Store values for columns that are calculate from peer information, so 
 		// that we only have to do one loop.  (As opposed to each cell doing a loop)
 		// Calculate code copied from TrackerTableItem
-		TableRowCore[] rows = getRowsUnordered();
+		TableRowCore[] rows = getRows();
 		for (int x = 0; x < rows.length; x++) {
 		  if (rows[x] == null)
 		    continue;
@@ -312,7 +311,7 @@ MyTrackerView
         }
       }
     }
-    super.refresh();
+    super.refresh(bForceSort);
 	}	 
 
 	 /* (non-Javadoc)

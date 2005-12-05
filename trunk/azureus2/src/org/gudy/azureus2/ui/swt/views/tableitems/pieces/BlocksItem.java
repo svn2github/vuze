@@ -62,8 +62,7 @@ public class BlocksItem
     CacheFileManagerStats cacheStats; 
     public Cell(TableCell cell) {
       cell.setFillCell(true);
-      cell.addRefreshListener(this);
-      cell.addDisposeListener(this);
+			cell.addListeners(this);
       try {
         cacheStats = CacheFileManagerFactory.getSingleton().getStats();
       } catch(Exception e) {
@@ -75,7 +74,6 @@ public class BlocksItem
       Image img = ((TableCellCore)cell).getGraphicSWT();
       if (img != null && !img.isDisposed())
         img.dispose();
-      cell.setGraphic(null);
       
       // listeners don't need to be removed on dispose (core removed them)
     }

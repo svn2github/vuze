@@ -22,6 +22,8 @@ package org.gudy.azureus2.ui.swt.views.table;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.TableItem;
 
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 
@@ -35,18 +37,12 @@ import org.gudy.azureus2.plugins.ui.tables.TableRow;
 public interface TableRowCore
        extends TableRow
 {
-  /** Sets the Validitiliy of the row
-   *
-   * @param valid The valid to set.
-   */
-  public void setValid(boolean valid);
+	/** Invalidates Row */
+  public void invalidate();
 
   /** Delete the row */
   public void delete();
   
-  /** Delete the row but without deleting the table item associated with it*/
-  public void delete(boolean deleteItem);
-
   /** Refresh all the cells in the row 
    *
    * @param bDoGraphics Refresh graphic cells to
@@ -85,19 +81,14 @@ public interface TableRowCore
 
   public int getIndex();
 
-  /** Set the data source that's related to this row
-   *
-   * @param dataSource Data Source related to this row
-   *
-   * @return true - dataSource changed.  false - already set
-   */
-  public boolean setDataSource(Object dataSource);
-
   /** Adjust cell height.  Don't use if any other column/cell uses setImage()
    *
    * @param iHeight new Row Height.  Will not reduce row's height (SWT)
+   * @return success level
    */
-  public void setHeight(int iHeight);
+  public boolean setHeight(int iHeight);
+  
+  public boolean setIconSize(Point pt);
 
   /** Retrieve a cell based on the supplied value
    *
@@ -116,4 +107,27 @@ public interface TableRowCore
    * @param c new color
    */
 	public void setForeground(Color	c);
+	
+	/** Retreive whether the row is visible to the user.  In SWT, when the table
+	 * is not VIRTUAL, all rows are "visible"
+	 * 
+	 * @return visibility state
+	 */
+	public boolean isVisible();
+	
+	/**
+	 * Link the row to a SWT TableItem
+	 * 
+	 * @param newIndex new position row should be
+	 * @return false - already linked to that item at that index
+	 */
+	public boolean setTableItem(int newIndex);
+	
+  public boolean isSelected();
+
+  public void setSelected(boolean bSelected);
+  
+ 	public boolean isRowDisposed();
+ 	
+ 	public void setUpToDate(boolean upToDate);
 }

@@ -46,6 +46,7 @@ public class PiecesItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
+  private final static int INDEX_COLOR_NONEAVAIL = Colors.BLUES_DARKEST + 1;
   // only supports 0 or 1 border size
   private final static int borderHorizontalSize = 1;
   private final static int borderVerticalSize = 1;
@@ -68,12 +69,10 @@ public class PiecesItem
   {
     public Cell(TableCell cell) {
       cell.setFillCell(true);
-      cell.addRefreshListener(this);
-      cell.addDisposeListener(this);
+			cell.addListeners(this);
     }
 
     public void dispose(TableCell cell) {
-      cell.setGraphic(null);
       // Named infoObj so code can be copied easily to the other PiecesItem
       DownloadManager infoObj = (DownloadManager)cell.getDataSource();
       if (infoObj == null)
@@ -199,6 +198,7 @@ public class PiecesItem
             index = imageBuffer[i - 1];
           } else {
             int nbAvailable = 0;
+            int nbCompleteThisColumn = 0;
             for (int j = a0; j < a1; j++)
               if (pieces != null && pieces[j].getDone())
                 nbAvailable++;
@@ -210,7 +210,7 @@ public class PiecesItem
           if (!bImageBufferValid || imageBuffer[i] != index) {
             imageBuffer[i] = index;
             bImageChanged = true;
-            gcImage.setForeground(Colors.blues[index]);
+            gcImage.setForeground(index == INDEX_COLOR_NONEAVAIL ? Colors.red : Colors.blues[index]);
             gcImage.drawLine(i + x0, y0, i + x0, y1);
           }
         }

@@ -21,69 +21,134 @@
 
 package org.gudy.azureus2.ui.swt.components;
 
-/**
- * @author parg
- *
- */
-
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Rectangle;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
+/**
+ * A buffered Table Row.
+ *<p> 
+ * We buffer certain properties of TableRow to save CPU cycles.  For example,
+ * foreground_colors is cached because TableItem.getForegroundColor is expensive
+ * when there is no color set, and setForegroundColor is always expensive.
+ *<p> 
+ * Text is not buffered as SWT does a good job of buffering it already.
+ *<p>
+ * 
+ * @note For Virtual tables, we can not set any visual properties until
+ *        SWT.SetData has been called.  getData("SD") is set after SetData
+ *        call, and the row is invalidated.  Thus, there is no need to set
+ *        any visual properties until the row #isVisible()
+ * 
+ * @author parg<br>
+ * @author TuxPaper (SWT.Virtual Stuff)
+ */
 public class 
-BufferedTableRow 
+BufferedTableRow
 {
-	public static final int VALUE_SIZE_INC	= 8;
+	private static final int VALUE_SIZE_INC	= 8;
 	
+	private static final  Color[] alternatingColors = {
+		Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+		Colors.colorAltRow };
+	
+	protected Table table;
 	protected TableItem	item;
 	
-	protected String[]	text_values		= new String[0];
 	protected Image[]	image_values	= new Image[0];
 	protected Color[]	foreground_colors	= new Color[0];
 	
 	protected Color		foreground;
 	
-	/** Must be initialized from the Display thread */
+	// remove when things work
+	private static final boolean bDebug = false;
+	
+	private Point ptIconSize;
+	
+	/**
+	 * Default constructor
+	 * 
+	 * @param _table
+	 */
 	public BufferedTableRow(Table _table)
 	{
-	  this(_table, -1);
-	}
-
-	/** Must be initialized from the Display thread */
-	public BufferedTableRow(Table _table, int index)
-	{
-    if (index >= 0 && index < _table.getItemCount())
-      item = new TableItem( _table, SWT.NULL, index );
-    else
-      item = new TableItem( _table, SWT.NULL );
-	}
-
-		// prefer not to have this one but need to introduce BufferedTable to do it...
-		
-	public TableItem
-	getItem()
-	{
-		return( item );	
+		table = _table;
+		item = null;
 	}
 	
+	/**
+	 * Create a row in the SWT table
+	 *
+	 */
+	public void createSWTRow() {
+    item = new TableItem(table, SWT.NULL);
+		item.setData("TableRow", this);
+		setAlternatingBGColor();
+	}
+	
+	private void setAlternatingBGColor() {
+		if (noTableItem())
+			return;
+
+		int index = table.indexOf(item);
+		Color newColor = alternatingColors[index % alternatingColors.length];
+		if (!getBackground().equals(newColor))
+			item.setBackground(newColor);
+	}
+
+	/**
+	 * Disposes of underlying SWT TableItem. If no TableItem has been
+	 * assigned to the row yet, an unused TableItem will be disposed of, if
+	 * available.
+	 * <p>
+	 * Disposing of fonts, colors and other resources are the responsibilty of 
+	 * the caller.
+	 */
 	public void
 	dispose()
 	{
-		item.dispose();
+		if (table != null && !table.isDisposed() && Utils.isThisThreadSWT()) {
+			if (noTableItem() || item.getData("TableRow") != this) {
+				// No assigned spot yet, or not our spot:
+				// find a row with no TableRow data
+
+				TableItem[] items = table.getItems();
+				for (int i = items.length - 1; i >= 0; i--) {
+					TableItem item = items[i];
+					if (!item.isDisposed() && item.getData("TableRow") == null) {
+						this.item = item;
+						break;
+					}
+				}
+			}
+			
+			if (item != null && !item.isDisposed()) 
+				item.dispose();
+		}
+		item = null;
 	}
 	
+	/**
+	 * Sets the receiver's image at a column.
+	 *
+	 * @param index the column index
+	 * @param new_image the new image
+	 */
 	public void
 	setImage(
    		int 	index,
 		Image	new_image )
 	{
-		if (item == null || item.isDisposed()){
+		if (noTableItem())
 			return;
-		}
-				
+
 		if ( index >= image_values.length ){
 			
 			int	new_size = Math.max( index+1, image_values.length+VALUE_SIZE_INC );
@@ -106,11 +171,12 @@ BufferedTableRow
 		
 		item.setImage( index, new_image );	
 	}
-	
+
 	public boolean
-	isDisposed()
+	noTableItem()
 	{
-		return (item == null || item.isDisposed());
+		return table.isDisposed() || item == null || item.isDisposed()
+				|| item.getData("TableRow") != this;
 	}
 	
 	public Color
@@ -125,8 +191,9 @@ BufferedTableRow
 	setForeground(
 		Color	c )
 	{
-  	if (item == null || item.isDisposed())
-  	  return;
+		if (noTableItem())
+			return;
+
 		if (foreground != null && foreground.equals(c))
 		  return;
 		
@@ -140,9 +207,8 @@ BufferedTableRow
 	  int index,
 		Color	new_color )
 	{
-		if (item == null || item.isDisposed()){
+		if (noTableItem())
 			return false;
-		}
 				
 		if ( index >= foreground_colors.length ){
 			
@@ -194,13 +260,14 @@ BufferedTableRow
 	getText(
 		int		index )
 	{
-		if ( index >= text_values.length ){
-			
+		if (noTableItem())
 			return "";
-		}
-		
-		return( text_values[index] == null ? "" : text_values[index]);
+
+		// SWT >= 3041(Win),3014(GTK),3002(Carbon) and returns "" if range check
+		// fails
+		return item.getText(index);
 	}
+
   /**
    * @param index
    * @param new_value
@@ -211,55 +278,31 @@ BufferedTableRow
 		int			index,
 		String		new_value )
 	{
-		if (item == null || item.isDisposed()){
+		if (noTableItem())
 			return false;
-		}
-				
-		if ( index >= text_values.length ){
-			
-			int	new_size = Math.max( index+1, text_values.length+VALUE_SIZE_INC );
-			
-			String[]	new_values = new String[new_size];
-			
-			System.arraycopy( text_values, 0, new_values, 0, text_values.length );
-			
-			text_values = new_values;
-		}
 		
-		String	value = text_values[index];
-		
-		if ( new_value == value ){
-			
+		if (index < 0 || index >= table.getColumnCount())
 			return false;
-		}
 		
-		if (	new_value != null && 
-				value != null &&
-				new_value.equals( value )){
-					
+		if (new_value == null)
+			new_value = "";
+
+		if (item.getText(index).equals(new_value))
 			return false;
-		}
-		
-		text_values[index] = new_value;
-		
-		item.setText( index, new_value==null?"":new_value );
+
+		item.setText( index, new_value );
     
     return true;
 	}
-  
+	
   public Rectangle getBounds(int index) {
-    if(item == null || item.isDisposed())
-      return null;
-    return item.getBounds(index);
-  }
+		if (noTableItem())
+			return null;
+		return item.getBounds(index);
+	}
 
-  public Table getTable() {
-    if (item == null || item.isDisposed())
-      return null;
-    Table parent = item.getParent();
-    if (parent == null || parent.isDisposed())
-      return null;
-    return parent;
+  protected Table getTable() {
+  	return table;
   }
   
   public Color getBackground() {
@@ -268,43 +311,52 @@ BufferedTableRow
     return item.getBackground();
   }
 
-  /* The Index is this item's the position in list.
+  /**
+   * The Index is this item's the position in list.
    *
    * @return Item's Position
    */
   public int getIndex() {
-    Table table = getTable();
+  	if (noTableItem())
+  		return -1;
+
     if (table == null)
       return -1;
     return table.indexOf(item);
   }
   
+  /** This flickers */
   public boolean setIndex(int index) {
-    Table table = getTable();
     if (table == null)
       return false;
-    int oldIndex = table.indexOf(item);
-    if (oldIndex == index)
-      return false;
-    
-    if (index > oldIndex)
-       index--;
-    //System.out.println(this+": oldIndex="+oldIndex+"; index="+ index);
+  	if (item != null) {
+	    int oldIndex = table.indexOf(item);
+	    if (oldIndex == index)
+	      return false;
+	    
+	    if (index > oldIndex)
+	       index--;
+  	}
+    //if (bDebug) System.out.println(this+": oldIndex="+oldIndex+"; index="+ index);
 		TableItem newItem = new TableItem( table, SWT.NULL, index );
 		copyToItem(newItem);
 
 		// don't use oldIndex
-		table.remove(table.indexOf(item));
+  	if (item != null) {
+  		table.remove(table.indexOf(item));
+  	}
 		item = newItem;
+		if (bDebug) System.out.println("SetIndex=" + index);
+
 		return true;
   }
   
   private void copyToItem(TableItem newItem) {
     Table table = getTable();
-    if (table == null)
+    if (table == null || item == null)
       return;
 
-    newItem.setText(text_values);
+//    newItem.setText(text_values);
 		newItem.setImage(image_values);
 		Color colorFG = item.getForeground();
 		Color colorBG = item.getBackground();
@@ -313,6 +365,7 @@ BufferedTableRow
 		int numColumns = table.getColumnCount();
 		for (int i = 0; i < numColumns; i++) {
       try {
+      	newItem.setText(i, item.getText(i));
         Color colorColumnFG = item.getForeground(i);
         Color colorColumnBG = item.getBackground(i);
         if (!colorColumnFG.equals(colorFG))
@@ -323,53 +376,171 @@ BufferedTableRow
         /* Ignore for Pre 3.0 SWT.. */
       }
 		}
-    if (getSelected())
+    if (isSelected())
       table.select(table.indexOf(newItem));
     else
       table.deselect(table.indexOf(newItem));
+
+    newItem.setData("TableRow", item.getData("TableRow"));
 	}
   
-  public boolean getSelected() {
-    Table table = getTable();
-    if (table == null)
-      return false;
+  public boolean isSelected() {
+  	if (noTableItem())
+  		return false;
+
+  	// Invalid Indexes are checked/ignored by SWT.
     return table.isSelected(table.indexOf(item));
   }
 
   public void setSelected(boolean bSelected) {
-    Table table = getTable();
-    if (table == null)
-      return;
+  	if (noTableItem())
+  		return;
+
     if (bSelected)
       table.select(getIndex());
     else
       table.deselect(getIndex());
   }
-  
-  public void setTableItem(TableItem ti, boolean bCopyFromOld) {
-    if (bCopyFromOld) {
-      copyToItem(ti);
-    } else {
-  		ti.setForeground(null);
-  		ti.setBackground(null);
-      Table table = getTable();
-      if (table == null)
-        return;
-  		int numColumns = table.getColumnCount();
-  		for (int i = 0; i < numColumns; i++) {
-        try {
-  		    ti.setForeground(i, null);
-    	    ti.setBackground(i, null);
-        } catch (NoSuchMethodError e) {
-          /* Ignore for Pre 3.0 SWT.. */
-        }
+
+  /**
+   * Set the TableItem associated with this row to the TableItem at the
+   * specified index.
+   * 
+   * @param newIndex Index of TableItem that will be associated with this row
+   * @param bCopyFromOld True: Copy the visuals from the old TableItem to
+   *                            the new TableItem
+   * @return success level
+   */
+  public boolean setTableItem(int newIndex, boolean bCopyFromOld) {
+  	TableItem newRow = table.getItem(newIndex); 
+  	if (newRow != null && !newRow.isDisposed()) {
+  		// This is temporary for SWT 3212, because there are cases where
+  		// it says it isn't disposed, when it really almost is
+  		try {
+  			newRow.setData("Test", "");
+  		} catch (NullPointerException e) {
+  			return false;
   		}
- 		}
-	  text_values		= new String[0];
+  	}
+
+  	if (newRow == item) {
+  		if (newRow == null || newRow.getData("TableRow") == this) {
+     		setAlternatingBGColor();
+  			return false;
+  		}
+  	}
+
+  	if (newRow != null) {
+  		if (newRow.getParent() != table)
+  			return false;
+
+	    if (bCopyFromOld) {
+	      copyToItem(newRow);
+	    } else {
+	    	// clear causes too much flicker
+	    	//table.clear(table.indexOf(newRow));
+	  		newRow.setForeground(null);
+	  		//newRow.setBackground(null);
+
+	  		int numColumns = table.getColumnCount();
+	  		for (int i = 0; i < numColumns; i++) {
+	        try {
+        		newRow.setForeground(i, null);
+	        } catch (NoSuchMethodError e) {
+	          /* Ignore for Pre 3.0 SWT.. */
+	        }
+	  		}
+	 		}
+
+	    try {
+	    	newRow.setData("TableRow", this);
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	    	System.out.println("Disposed? " + newRow.isDisposed());
+	    	if (!newRow.isDisposed()) {
+		    	System.out.println("TR? " + newRow.getData("TableRow"));
+		    	System.out.println("SD? " + newRow.getData("SD"));
+	    	}
+	    }
+  	}
 	  image_values	= new Image[0];
 	  foreground_colors	= new Color[0];
     foreground = null;
 
-    item = ti;
+    if (item != null && !item.isDisposed() && item.getData("TableRow") == this)
+    	item.setData("TableRow", null);
+
+    item = newRow;
+    if (item != null) {
+   		setAlternatingBGColor();
+	    // XXX Move back to TableView
+	    if ((table.getStyle() & SWT.VIRTUAL) == 0)
+	    	setIconSize(ptIconSize);
+    }
+ 		invalidate();
+
+    return true;
+  }
+
+  public boolean setHeight(int iHeight) {
+  	return setIconSize(new Point(1, iHeight));
+  }
+  
+  public boolean setIconSize(Point pt) {
+		if (noTableItem())
+			return false;
+		
+    ptIconSize = pt;
+
+    if (pt == null)
+      return false;
+		
+    // set row height by setting image
+    Image image = new Image(item.getDisplay(), pt.x, pt.y);
+    item.setImage(0, image);
+    item.setImage(0, null);
+    image.dispose();
+    
+    return true;
+  }
+
+  /**
+	 * Whether the row is currently visible to the user
+	 * 
+	 * @return visibility
+	 */
+	public boolean isVisible() {
+		if (noTableItem())
+			return false;
+
+		int index = table.indexOf(item);
+		if (index == -1)
+			return false;
+
+		int iTopIndex = table.getTopIndex();
+		if (index < iTopIndex)
+			return false;
+
+		// iBottomIndex may be greater than # of rows, but that doesn't matter
+		// because index is always less than # of rows
+		int iBottomIndex = iTopIndex
+				+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table
+						.getItemHeight()) + 1;
+
+		if (index > iBottomIndex)
+			return false;
+
+		// Not visible if we haven't setData yet
+		if ((table.getStyle() & SWT.VIRTUAL) > 0 && item.getData("SD") == null)
+			return false;
+
+		return true;
+	}
+  
+  /**
+   * Overridable function that is called when row needs invalidation.
+   *
+   */
+  public void invalidate() {
   }
 }

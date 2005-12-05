@@ -21,9 +21,10 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -33,10 +34,10 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
-
 
 /**
  * @author Olivier
@@ -82,35 +83,70 @@ public class PeersView
   };
   private DownloadManager manager;
 
-  public PeersView(DownloadManager manager) {
+
+  /**
+   * Initialize
+   *
+   */
+  public PeersView() {
     super(TableManager.TABLE_TORRENT_PEERS, "PeersView", 
-          basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION);
-    this.manager = manager;
-    iCellHeight = 16;
+          basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+    setRowDefaultHeight(16);
+    bEnableTabViews = true;
   }
   
-  public void initialize(Composite composite) {
-    super.initialize(composite);
-    manager.addPeerListener(this);
+	public void dataSourceChanged(Object newDataSource) {
+  	if (manager != null)
+  		manager.removePeerListener(this);
+
+		if (newDataSource == null)
+			manager = null;
+		else if (newDataSource instanceof Object[])
+			manager = (DownloadManager)((Object[])newDataSource)[0];
+		else
+			manager = (DownloadManager)newDataSource;
+
+  	if (manager != null && getTable() != null) {
+    	manager.addPeerListener(this, false);
+    	addExistingDatasources();
+    }
+	}
+
+  public void addCoreTabViews() {
+	  final IView views[] = { new PeerInfoView(), new LoggerView() };
+
+		for (int i = 0; i < views.length; i++)
+			addTabView(views[i]);
   }
   
-  public void tableStructureChanged() {
+  
+	public void initializeTable(Table table) {
+		super.initializeTable(table);
+
+		manager.addPeerListener(this, false);
+  	addExistingDatasources();
+	}
+
+	public void tableStructureChanged() {
     //1. Unregister for item creation
-    manager.removePeerListener(this);
+  	if (manager != null)
+  		manager.removePeerListener(this);
     
     super.tableStructureChanged();
 
     //5. Re-add as a listener
-    manager.addPeerListener(this);
+    if (manager != null) {
+    	manager.addPeerListener(this, false);
+    	addExistingDatasources();
+    }
   }
 
   public void fillMenu(final Menu menu) {
-    	
+    
     final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
 
     menu.addListener(SWT.Show, new Listener() {
       public void handleEvent(Event e) {
-    	PeersView.this.showMenu();
         PEPeer peer = (PEPeer)getFirstSelectedDataSource();
 
         if( peer == null || !peer.getManager().getDownloadManager().isDownloadComplete()) {  //only allow upload blocking when seeding
@@ -152,10 +188,11 @@ public class PeersView
 
 
   public void delete() {
-    manager.removePeerListener(this);
+  	if (manager != null)
+  		manager.removePeerListener(this);
     super.delete();
   }
-
+  
   /* DownloadManagerPeerListener implementation */
   public void peerAdded(PEPeer created) {
     addDataSource(created);
@@ -169,4 +206,20 @@ public class PeersView
   public void pieceRemoved(PEPiece piece) {  }
   public void peerManagerAdded(PEPeerManager manager) {	}
   public void peerManagerRemoved(PEPeerManager manager) { }
+
+	/**
+	 * Add datasources already in existance before we called addListener.
+	 * Faster than allowing addListener to call us one datasource at a time. 
+	 */
+	private void addExistingDatasources() {
+		if (manager == null)
+			return;
+		PEPeerManager pm = manager.getPeerManager();
+		if (pm == null)
+			return;
+		List peerList = manager.getPeerManager().getPeers();
+		if (peerList == null)
+			return;
+		addDataSources(peerList.toArray());
+	}
 }

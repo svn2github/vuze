@@ -49,6 +49,7 @@ public class ShareRatioItem
   /** Default Constructor */
   public ShareRatioItem(String sTableID) {
     super("shareRatio", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
 
     if (sTableID.equals(TableManager.TABLE_MYTORRENTS_COMPLETE))

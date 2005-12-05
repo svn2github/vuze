@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -49,9 +50,14 @@ public class UpSpeedItem
   private final static String CONFIG_ID = "StartStopManager_iMinSpeedForActiveSeeding";
   private int iMinActiveSpeed;
 
-  /** Default Constructor */
+  /** 
+   * Default Constructor
+   *  
+   * @param sTableID The ID of the table the cell belongs to 
+   */
   public UpSpeedItem(String sTableID) {
     super("upspeed", ALIGN_TRAIL, POSITION_LAST, 70, sTableID);
+		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
 
     iMinActiveSpeed = COConfigurationManager.getIntParameter(CONFIG_ID);

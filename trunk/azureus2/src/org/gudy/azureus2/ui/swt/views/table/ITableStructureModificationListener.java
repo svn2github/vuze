@@ -30,6 +30,7 @@ package org.gudy.azureus2.ui.swt.views.table;
  */
 public interface ITableStructureModificationListener {
   void tableStructureChanged();
+  void columnOrderChanged(int[] iPositions);
   void columnSizeChanged(TableColumnCore tableColumn);
   void columnInvalidate(TableColumnCore tableColumn);
 }

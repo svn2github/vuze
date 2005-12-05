@@ -21,7 +21,12 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.util.*;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.accessibility.*;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -31,46 +36,80 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableRowComparator;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.*;
 
-import java.util.*;
-import java.util.List;
 
-
-/** An IView with a SortableTable in it.  Handles composite/menu/table creation
+/** 
+ * An IView with a sortable table.  Handles composite/menu/table creation
  * and management.
+ * <P>
+ * Usage of this class is rather haphazard.  Sometimes, you can set a
+ * variable to change behavior.  Other times you call a function.  Some
+ * functions are meant for extending or implementing, others are meant as
+ * normal functions.  
  *
  * @author Olivier (Original PeersView/MyTorrentsView/etc code)
  * @author TuxPaper
  *         2004/Apr/20: Remove need for tableItemToObject
+ *         2005/Oct/07: Virtual Table
+ *         2005/Nov/16: Moved TableSorter into TableView
+ *         
+ * @todo Remove TableSorter.java, SortableTable.java from CVS
+ * 
+ * @note From TableSorter.java:<br>
+ *   <li>2004/Apr/20: Remove need for tableItemToObject (store object in tableItem.setData)
+ *   <li>2004/May/11: Use Comparable instead of SortableItem
+ *   <li>2004/May/14: moved from org.gudy.azureus2.ui.swt.utils
+ *   <li>2005/Oct/10: v2307 : Sort SWT.VIRTUAL Tables, Column Indicator
+ *   
+ * @future TableView should be split into two.  One for non SWT functions, and
+ *          the other extending the first, with extra SWT stuff. 
+ *        
  */
 public class TableView 
   extends AbstractIView 
-  implements SortableTable,
-             ParameterListener,
+  implements ParameterListener,
              ITableStructureModificationListener
 {
-  /** TableID (from {@link TableManager}) of the table this class is
+	private final static LogIDs LOGID = LogIDs.GUI;
+	
+	public final static boolean DEBUGADDREMOVE = false;
+	/** Virtual Tables still a work in progress */
+	private final static boolean DISABLEVIRTUAL = false;
+
+	private static final boolean DEBUG_SORTER = false;
+
+	// Shorter name for ConfigManager, easier to read code
+	private static final ConfigurationManager configMan = ConfigurationManager
+			.getInstance();
+
+	private static final String CFG_SORTDIRECTION = "config.style.table.sortDefaultAscending";
+
+  /** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
+   * of the table this class is
    * handling.  Config settings are stored with the prefix of 
    * "Table.<i>TableID</i>"
    */
@@ -85,15 +124,9 @@ public class TableView
   /** 1st column gap problem (Eclipse Bug 43910).  Set to true when table is 
    * using TableItem.setImage 
    */
-  protected boolean bSkipFirstColumn;
-  /** Sets the table row's height.  0 for default height.  Do NOT use when
-   * TableItem uses setImage
-   */
-  protected int iCellHeight = 0;
-  /** Sets the icon size when the row is initialized.  Any TableItem.setImage
-   * will use this size
-   */
-  protected Point ptIconSize = null;
+  private boolean bSkipFirstColumn;
+  
+  private Point ptIconSize = null;
 
   /** Basic (pre-defined) Column Definitions */
   private TableColumnCore[] basicItems;
@@ -101,14 +134,17 @@ public class TableView
   private TableColumnCore[] tableColumns;
 
   /** Composite for IView implementation */
-  private Composite panel;
+  private Composite mainComposite;
   
-  private Composite table_panel;
+  /** Composite that stores the table (sometimes the same as mainComposite) */
+  private Composite tableComposite;
   
   /** Table for SortableTable implementation */
   private Table table;
   /** SWT style options for the creation of the Table */
-  private int iTableStyle;
+  protected int iTableStyle;
+  /** Whether the Table is Virtual */
+  private boolean bTableVirtual;
   /** Context Menu */
   private Menu menu;
   /** Context Menu specific to the column the mouse was on */
@@ -118,12 +154,13 @@ public class TableView
    * key = DataSource
    * value = TableRowCore
    */
-  private Map 		objectToSortableItem;
-  private AEMonitor objectToSortableItem_mon 	= new AEMonitor( "TableView:OTSI" );
+  private Map 		  dataSourceToRow;
+  private AEMonitor dataSourceToRow_mon 	= new AEMonitor( "TableView:OTSI" );
+  private List      sortedRows;
+  private AEMonitor sortedRows_mon 	= new AEMonitor( "TableView:sR" );
 
   /** Sorting functions */
-  protected TableSorter sorter;
-  private boolean bSortScheduled = false;
+  protected TableRowComparator rowSorter;
   /* position of mouse in table.  Used for context menu. */
   private int iMouseX = -1;
 
@@ -131,25 +168,57 @@ public class TableView
   /** For updating GUI.  
    * Some UI objects get updating every X cycles (user configurable) 
    */
-  private int loopFactor;
+  protected int loopFactor;
   /** How often graphic cells get updated
    */
-  private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+  protected int graphicsUpdate = configMan.getIntParameter("Graphics Update");
+  
+	protected int reOrderDelay = configMan.getIntParameter("ReOrder Delay");
+
   /** Check Column Widths every 10 seconds on Pre 3.0RC1 on OSX if view is active.  
    * Other OSes can capture column width changes automatically */
   private int checkColumnWidthsEvery = (Constants.isOSX && SWT.getVersion() < 3054) ?
-                                       10000 / COConfigurationManager.getIntParameter("GUI Refresh") :
+                                       10000 / configMan.getIntParameter("GUI Refresh") :
                                        0;
 
   /**
    * Cache of selected table items to bypass insufficient drawing on Mac OS X
    */
-  private ArrayList oldSelectedItems;
+  //private ArrayList oldSelectedItems;
+  
+  
+  /** We need to remember the order of the columns at the time we added them
+   * in case the user drags the columns around.
+   */
+  private TableColumnCore[] columnsOrdered;
+
+	private ColumnMoveListener columnMoveListener = new ColumnMoveListener();
+	
+	/** Queue added datasources and add them on refresh */
+	private List dataSourcesToAdd = null;
+	
+	/** Queue removed datasources and add them on refresh */
+	private List dataSourcesToRemove = null;
+
+	/** TabViews */
+	public boolean bEnableTabViews = false;
+	/** TabViews */
+  private TabFolder tabFolder;
+	/** TabViews */
+  private ArrayList tabViews = new ArrayList();
+
+  private int lastTopIndex = 0;
+  private int lastBottomIndex = -1;
 
   /**
    * Main Initializer
-   * @param _sTableID Which table to handle (see {@link TableManager}).  Config settings are stored with the prefix of  "Table.<i>TableID</i>"
-   * @param _sPropertiesPrefix Prefix for retrieving text from the properties file (MessageText).  Typically <i>TableID</i> + "View"
+   * @param _sTableID Which table to handle (see 
+   *                   {@link org.gudy.azureus2.plugins.ui.tables.TableManager}).
+   *                   Config settings are stored with the prefix of  
+   *                   "Table.<i>TableID</i>"
+   * @param _sPropertiesPrefix Prefix for retrieving text from the properties
+   *                            file (MessageText).  Typically 
+   *                            <i>TableID</i> + "View"
    * @param _basicItems Column Definitions
    * @param _sDefaultSortOn Column name to sort on if user hasn't chosen one yet
    * @param _iTableStyle SWT style constants used when creating the table
@@ -163,9 +232,17 @@ public class TableView
     basicItems = _basicItems;
     sPropertiesPrefix = _sPropertiesPrefix;
     sDefaultSortOn = _sDefaultSortOn;
-    iTableStyle = _iTableStyle;
+    iTableStyle = _iTableStyle | SWT.V_SCROLL;
+    if (DISABLEVIRTUAL)
+    	iTableStyle &= ~(SWT.VIRTUAL);
+    bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
+    if (bTableVirtual && SWT.getVersion() < 3044) {
+    	bTableVirtual = false;
+    	iTableStyle &= ~iTableStyle;
+    }
 
-    objectToSortableItem = new HashMap();
+    dataSourceToRow = new HashMap();
+    sortedRows = new ArrayList();
   }
 
   /**
@@ -181,7 +258,7 @@ public class TableView
                    TableColumnCore[] _basicItems,
                    String _sDefaultSortOn) {
     this(_sTableID, _sPropertiesPrefix, _basicItems, _sDefaultSortOn, 
-         SWT.SINGLE | SWT.FULL_SELECTION);
+         SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
   }
 
   private void initializeColumnDefs() {
@@ -207,19 +284,97 @@ public class TableView
    *        composite, and then use this child composite to add all elements to.
    */
   public void initialize(Composite composite) {
-    panel = createMainPanel(composite);
+  	mainComposite = createSashForm(composite);
     menu = createMenu();
-    fillMenu(menu);
-    table = createTable();
+    table = createTable(tableComposite);
     initializeTable(table);
 
-    COConfigurationManager.addParameterListener("Graphics Update", this);
+    configMan.addParameterListener("Graphics Update", this);
+    configMan.addParameterListener("ReOrder Delay", this);
     Colors.getInstance().addColorsChangedListener(this);
 
-    // So all TableView objects of the same TableID have the same columns, and column widths, etc
+    // So all TableView objects of the same TableID have the same columns,
+    // and column widths, etc
     TableStructureEventDispatcher.getInstance(sTableID).addListener(this);
   }
+
   
+  private Composite createSashForm(Composite composite) {
+  	if (!bEnableTabViews) {
+      tableComposite = createMainPanel(composite);
+      return tableComposite;
+  	}
+  		
+    GridData gridData;
+    final SashForm form = new SashForm(composite, SWT.VERTICAL);
+    gridData = new GridData(GridData.FILL_BOTH); 
+    form.setLayoutData(gridData);
+
+    tableComposite = createMainPanel(form);
+    GridLayout layout = new GridLayout();
+    layout.numColumns = 1;
+    layout.horizontalSpacing = 0;
+    layout.verticalSpacing = 0;
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    tableComposite.setLayout(layout);
+    tableComposite.addListener(SWT.Resize, new Listener() {
+      public void handleEvent(Event e) {
+        int[] weights = form.getWeights();
+        if (weights.length != 2)
+        	return;
+        int iSashValue = weights[0] * 100 / (weights[0] + weights[1]);
+        configMan.setParameter(sPropertiesPrefix + ".SplitAt", iSashValue);
+      }
+    });
+
+    tabFolder = new TabFolder(form, SWT.TOP);
+    // Don't set a new layout for TabFolder.  This will cause flicker
+    // on the bottom 1/2 of the folder when resizing
+    
+    addCoreTabViews();
+
+    // Call plugin listeners
+		UISWTInstanceImpl pluginUI = MainWindow.getWindow().getUISWTInstanceImpl();
+		Map pluginViews = pluginUI.getViewListeners(UISWTInstance.VIEW_TORRENT_PEERS);
+		if (pluginViews != null) {
+			String[] sNames = (String[])pluginViews.keySet().toArray(new String[0]);
+			for (int i = 0; i < sNames.length; i++) {
+				UISWTViewEventListener l = (UISWTViewEventListener)pluginViews.get(sNames[i]);
+				if (l != null) {
+					try {
+						UISWTViewImpl view = new UISWTViewImpl(
+								UISWTInstance.VIEW_TORRENT_PEERS, sNames[i], l);
+						addTabView(view);
+					} catch (Exception e) {
+						// skip
+					}
+				}
+			}
+		}
+		
+		if (tabViews == null || tabViews.size() == 0) {
+			tabFolder.dispose();
+			tabFolder = null;
+		} else {
+	    int weight = configMan.getIntParameter("PeersView.SplitAt", 70);
+	    if (weight > 100)
+	      weight = 100;
+	    form.setWeights(new int[] {weight, 100 - weight});
+		}
+
+    return form;
+  }
+  
+
+  /**
+   * Override this method to add your own predefined tab views.
+   * 
+   * (TableView will handle plugin tab views for you)
+   *
+   */
+  public void addCoreTabViews() {
+  }
   
   /** Creates a composite within the specified composite and sets its layout
    * to a default FillLayout().
@@ -228,7 +383,7 @@ public class TableView
    * @return The newly created composite
    */
   public Composite createMainPanel(Composite composite) {
-    panel = new Composite(composite,SWT.NULL);
+    Composite panel = new Composite(composite,SWT.NULL);
     GridLayout layout = new GridLayout();
     layout.marginHeight = 0;
     layout.marginWidth = 0;
@@ -241,21 +396,8 @@ public class TableView
    *
    * @return The created Table.
    */
-  public Table createTable() 
-  {
-	 if ( table_panel == null ){
-		 
-		 table_panel = new Composite(panel,SWT.NULL);
-		 
-		 GridLayout layout = new GridLayout();
-		 layout.marginHeight = 0;
-		 layout.marginWidth = 0;
-		 table_panel.setLayout(layout);
-		 table_panel.setLayoutData(new GridData(GridData.FILL_BOTH));
-	 }
-	 
-    table = new Table(table_panel, iTableStyle);
-    
+  public Table createTable(Composite panel) {
+    table = new Table(panel, iTableStyle);
     table.setLayoutData(new GridData(GridData.FILL_BOTH));
 
     return table;
@@ -268,87 +410,16 @@ public class TableView
   public void initializeTable(final Table table) {
     initializeColumnDefs();
 
+    iTableStyle = table.getStyle();
+    bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
+
     table.setLinesVisible(false);
     table.setMenu(menu);
     table.setData("Name", sTableID);
     table.setData("TableView", this);
 
-    sorter = new TableSorter(this, sTableID, sDefaultSortOn, COConfigurationManager.getBooleanParameter( "config.style.table.sortDefaultAscending" ));
-
-    // Pre 3.0RC1 SWT on OSX doesn't call this!! :(
-    ControlListener resizeListener = new ControlAdapter() {
-      public void controlResized(ControlEvent e) {
-        TableColumn column = (TableColumn) e.widget;
-        if (column == null || column.isDisposed())
-          return;
-
-        TableColumnCore tc = (TableColumnCore)column.getData("TableColumnCore");
-        if (tc != null)
-          tc.setWidth(column.getWidth());
-
-        int columnNumber = table.indexOf(column);
-        locationChanged(columnNumber);
-      }
-    };
-
     // Setup table
     // -----------
-    // Add 1 to position because we make a non resizable 0-sized 1st column
-    // to fix the 1st column gap problem (Eclipse Bug 43910)
-
-    // SWT does not set 0 column width as expected in OS X; see bug 43910
-    // this will be removed when a SWT-provided solution is available to satisfy all platforms with identation issue
-    bSkipFirstColumn = bSkipFirstColumn && !Constants.isOSX;
-
-    if (bSkipFirstColumn) {
-      TableColumn tc = new TableColumn(table, SWT.NULL);
-      tc.setWidth(0);
-      tc.setResizable(false);
-    }
-
-    //Create all columns
-    for (int i = 0; i < tableColumns.length; i++) {
-      int position = tableColumns[i].getPosition();
-      if (position != -1) {
-        new TableColumn(table, SWT.NULL);
-      }
-    }
-    //Assign length and titles
-    //We can only do it after ALL columns are created, as position (order)
-    //may not be in the natural order (if the user re-order the columns).
-    for (int i = 0; i < tableColumns.length; i++) {
-      int position = tableColumns[i].getPosition();
-      if (position == -1)
-        continue;
-
-      String sName = tableColumns[i].getName();
-      // +1 for Eclipse Bug 43910 (see above)
-      // user has reported a problem here with index-out-of-bounds - not sure why
-      // but putting in a preventative check so that hopefully the view still opens
-      // so they can fix it
-      
-      int	adjusted_position = position + (bSkipFirstColumn ? 1 : 0);
-      
-      if ( adjusted_position >= table.getColumnCount()){
-      	
-      	Debug.out( "Incorrect table column setup, skipping column '" + sName + "'" );
-      	
-      	continue;
-      }
-      
-      TableColumn column = table.getColumn(adjusted_position);
-      Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
-      column.setAlignment(tableColumns[i].getSWTAlign());
-      column.setWidth(tableColumns[i].getWidth());
-      column.setData("TableColumnCore", tableColumns[i]);
-      column.setData("configName", "Table." + sTableID + "." + sName);
-      column.setData("Name", sName);
-
-      column.addControlListener(resizeListener);
-      // At the time of writing this SWT (3.0RC1) on OSX doesn't call the 
-      // selection listener for tables
-      column.addListener(SWT.Selection, new ColumnListener(tableColumns[i]));
-    }
 
     table.addPaintListener(new PaintListener() {
       public void paintControl(PaintEvent event) {
@@ -382,6 +453,9 @@ public class TableView
             }
 /*        // This doesn't work because of OS inconsistencies when table is scrolled
           // Re-enable once SWT fixes the problem
+          // Bug 103934: Table.getItem(Point) uses incorrect calculation on Motif
+          //             Fixed 20050718 SWT 3.2M1 (3201) & SWT 3.1.1 (3139)
+          // TODO: Get Build IDs and use this code (if it works)
             TableItem ti = table.getItem(pMousePosition);
             if (ti == null)
               table.deselectAll();
@@ -402,7 +476,101 @@ public class TableView
       }
     });
 
+    table.addSelectionListener(new SelectionListener() {
+      public void widgetSelected(SelectionEvent event) {
+      	// Refresh rows when top index has changed
+      	visibleRowsChanged();
+      		
+      	if (tabViews == null && tabViews.size() == 0)
+      		return;
+
+      	// Set Data Object for all tabs.  Tabs of PluginView are sent the plugin
+      	// Peer object, while Tabs of IView are sent the core PEPeer object.
+
+      	// TODO: Send all datasources
+      	Object[] dataSourcesCore = getSelectedDataSources(true);
+      	Object[] dataSourcesPlugin = null;
+
+      	for (int i = 0; i < tabViews.size(); i++) {
+      		IView view = (IView) tabViews.get(i);
+      		if (view != null) {
+      			if (view instanceof UISWTViewImpl) {
+      				if (dataSourcesPlugin == null)
+      					dataSourcesPlugin = getSelectedDataSources(false);
+
+      				((UISWTViewImpl) view)
+									.dataSourceChanged(dataSourcesPlugin.length == 0 ? null
+											: dataSourcesPlugin);
+      			} else {
+      				view.dataSourceChanged(dataSourcesCore.length == 0 ? null
+									: dataSourcesCore);
+      			}
+      		}
+      	}
+      }
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				MenuItem item = menu.getDefaultItem();
+				if (item == null || item.isDisposed() || !item.isEnabled())
+					return;
+				// This probably won't work if the default item is SWT.CHECK or
+				// SWT.RADIO.
+				item.notifyListeners(SWT.Selection, null);
+			}
+    });
+    
+    // Refresh rows when table has grown in height
+    table.addListener(SWT.Resize, new Listener() {
+      public void handleEvent(Event e) {
+      	visibleRowsChanged();
+      }
+    });
+
+    if (bTableVirtual)
+	    table.addListener(SWT.SetData, new Listener() {
+	      public void handleEvent(Event e) {
+					final TableItem item = (TableItem) e.item;
+		  		// This is catch is temporary for SWT 3212, because there are cases where
+		  		// it says it isn't disposed, when it really almost is
+		  		try {
+						item.setData("SD", "1");
+		  		} catch (NullPointerException badSWT) {
+		  			return;
+		  		}
+	
+					int tableIndex = table.indexOf(item);
+					if (tableIndex < 0) {
+						System.out.println("XXX TI < 0!!");
+						return;
+					}
+	
+					TableRowCore row = (TableRowCore) item.getData("TableRow");
+					if (row == null || row.getIndex() != tableIndex) {
+						//System.out.println("SetData " + tableIndex + ": Filling Gaps..");
+						// fillGaps()
+						sortColumn(false, true);
+	
+						row = (TableRowCore) item.getData("TableRow");
+						if (row == null || row.getIndex() != tableIndex) {
+							// row's been deleted.  tableitem probably about to be remove
+							// (hopefully!)
+							if (DEBUGADDREMOVE)
+								Debug.outStackTrace();
+							return;
+						}
+					} else {
+						//System.out.println("SetData " + tableIndex + ": setValid False");
+						row.invalidate();
+					}
+					row.setIconSize(ptIconSize);
+					// User made the row visible, they want satisfaction now!
+					row.refresh(true);
+					Utils.alternateRowBackground(item);
+				}
+	    });
+
     // bypasses disappearing graphic glitch on Mac OS X
+/* Temporarily Disabled to see if we need it anymore
     if(Constants.isOSX) {
         table.addSelectionListener(new SelectionAdapter() {
             public void widgetSelected( SelectionEvent event) {
@@ -436,147 +604,162 @@ public class TableView
             }
         });
     }
+*/
 
-  	// Implement a "fake" tooltip
-  	final Listener labelListener = new Listener () {
-  		public void handleEvent (Event event) {
-  		  Shell shell;
-  		  if (event.widget instanceof Control)
-  		    shell = ((Control)event.widget).getShell();
-  		  else
-  		    shell = (Shell)event.widget;
-  			switch (event.type) {
-  				case SWT.MouseDown:
-  			  case SWT.MouseDoubleClick:
-  					Event e = new Event ();
-  					TableItem ti = (TableItem)shell.getData("_TABLEITEM");
-  					if (!ti.isDisposed()) {
-    					e.item = ti;
-    					table.setSelection(table.indexOf(ti));
-    					table.notifyListeners((event.type == SWT.MouseDown) ? SWT.Selection : SWT.DefaultSelection, e);
-   					}
-   					if (table != null && !table.isDisposed())
-     					table.setFocus();
-  					// fall through
-  				case SWT.MouseMove:
-  				case SWT.MouseExit:
-  				  TableCellCore cell = (TableCellCore)shell.getData("TableCellCore");
-            cell.invokeToolTipListeners(TableCellCore.TOOLTIPLISTENER_HOVERCOMPLETE);
-  					shell.dispose();
-  					break;
-  			}
-  		}
-  	};
-  
-  	Listener tableListener = new Listener () {
-  		Shell shell = null;
-  		Label label = null;
-  		public void handleEvent (Event event) {
-  			switch (event.type) {
-  				case SWT.Dispose:
-  				case SWT.KeyDown:
-  				case SWT.MouseMove: {
-  					if (shell == null) break;
-  					shell.dispose ();
-  					shell = null;
-  					label = null;
-  					break;
-  				}
-  				case SWT.MouseHover: {
-						if (shell != null  && !shell.isDisposed())
-						  shell.dispose();
-
-  					TableItem item = table.getItem (new Point (event.x, event.y));
-  					if (item == null)
-  					  return;
-            TableRowCore row = (TableRowCore)item.getData("TableRow");
-            if (row == null)
-              return;
-            int iColumn = getColumnNo(event.x);
-            if (iColumn < 0)
-              return;
-            TableColumn tcColumn = table.getColumn(iColumn);
-            String sCellName = (String)tcColumn.getData("Name");
-            if (sCellName == null)
-              return;
-            
-            TableCellCore cell = row.getTableCellCore(sCellName);
-            if (cell == null)
-              return;
-            cell.invokeToolTipListeners(TableCellCore.TOOLTIPLISTENER_HOVER);
-            Object oToolTip = cell.getToolTip();
-            
-            // TODO: support composite, image, etc
-            if (oToolTip == null || !(oToolTip instanceof String))
-              return;
-            String sToolTip = (String)oToolTip;
-
-						Display d = table.getDisplay();
-						if (d == null)
-						  return;
-
-            // We don't get mouse down notifications on trim or borders..
-						shell = new Shell (table.getShell(), SWT.ON_TOP);
-            FillLayout f = new FillLayout();
-            try {
-              f.marginWidth = 3;
-              f.marginHeight = 1;
-            } catch (NoSuchFieldError e) {
-              /* Ignore for Pre 3.0 SWT.. */
-            }
-						shell.setLayout(f);
-						shell.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-
-						label = new Label(shell, SWT.WRAP);
-						label.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
-						label.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-						shell.setData("_TABLEITEM", item);
-						shell.setData("TableCellCore", cell);
-						label.setText(sToolTip);
-						label.addListener(SWT.MouseMove, labelListener);
-						label.addListener(SWT.MouseDown, labelListener);
-						label.addListener(SWT.MouseExit, labelListener);
-						shell.addListener(SWT.MouseMove, labelListener);
-						shell.addListener(SWT.MouseDown, labelListener);
-						shell.addListener(SWT.MouseExit, labelListener);
-						shell.addListener(SWT.MouseDoubleClick, labelListener);
-						// compute size on label instead of shell because label
-						// calculates wrap, while shell doesn't
-						Point size = label.computeSize (SWT.DEFAULT, SWT.DEFAULT);
-						if (size.x > 600) {
-  						size = label.computeSize (600, SWT.DEFAULT, true);
-						}
-						size.x += shell.getBorderWidth() * 2;
-						size.y += shell.getBorderWidth() * 2;
-            try {
-              size.x += shell.getBorderWidth() * 2 + (f.marginWidth * 2);
-              size.y += shell.getBorderWidth() * 2 + (f.marginHeight * 2);
-            } catch (NoSuchFieldError e) {
-              /* Ignore for Pre 3.0 SWT.. */
-            }
-						Point pt = table.toDisplay (event.x - 1, event.y - size.y + 2);
-            Rectangle displayRect;
-            try {
-            	displayRect = shell.getMonitor().getClientArea();
-            } catch (NoSuchMethodError e) {
-              displayRect = shell.getDisplay().getClientArea();
-            }
-            if (pt.x + size.x > displayRect.x + displayRect.width) {
-              pt.x = displayRect.x + displayRect.width - size.x;
-            }
-
-						shell.setBounds(pt.x, (pt.y < 0) ? 0 : pt.y, size.x, size.y);
-						shell.setVisible(true);
+  	new TableTooltips(table);
+  	
+  	table.addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent event) {
+				if (event.keyCode == SWT.F5) { 
+					if ((event.stateMask & SWT.SHIFT) > 0) {
+      			runForSelectedRows(new GroupTableRowRunner() {
+							public void run(TableRowCore row) {
+								row.invalidate();
+								row.refresh(true);
+							}
+						});
+					} else {
+						sortColumn(true, false);
 					}
+					event.doit = false;
 				}
-  		}
-  	};
-  	table.addListener (SWT.Dispose, tableListener);
-  	table.addListener (SWT.KeyDown, tableListener);
-  	table.addListener (SWT.MouseMove, tableListener);
-  	table.addListener (SWT.MouseHover, tableListener);
-
+			}
+  	});
+  	
+  	ScrollBar bar = table.getVerticalBar();
+  	if (bar != null) {
+  		bar.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+	      	visibleRowsChanged();
+				}
+  		});
+		}
+  	
     table.setHeaderVisible(true);
+
+    initializeTableColumns(table);
+  }
+
+  protected void initializeTableColumns(final Table table) {
+  	TableColumn[] oldColumns = table.getColumns();
+
+    if (SWT.getVersion() >= 3100)
+    	for (int i = 0; i < oldColumns.length; i++)
+    		oldColumns[i].removeListener(SWT.Move, columnMoveListener);
+
+  	for (int i = oldColumns.length - 1; i >= 0 ; i--)
+  		oldColumns[i].dispose();
+  	
+    // Pre 3.0RC1 SWT on OSX doesn't call this!! :(
+    ControlListener resizeListener = new ControlAdapter() {
+      public void controlResized(ControlEvent e) {
+        TableColumn column = (TableColumn) e.widget;
+        if (column == null || column.isDisposed())
+          return;
+
+        TableColumnCore tc = (TableColumnCore)column.getData("TableColumnCore");
+        if (tc != null)
+          tc.setWidth(column.getWidth());
+
+        int columnNumber = table.indexOf(column);
+        locationChanged(columnNumber);
+      }
+    };
+
+    // Add 1 to position because we make a non resizable 0-sized 1st column
+    // to fix the 1st column gap problem (Eclipse Bug 43910)
+
+    // SWT does not set 0 column width as expected in OS X; see bug 43910
+    // this will be removed when a SWT-provided solution is available to satisfy all platforms with identation issue
+    bSkipFirstColumn = bSkipFirstColumn && !Constants.isOSX;
+
+    if (bSkipFirstColumn) {
+      TableColumn tc = new TableColumn(table, SWT.NULL);
+      tc.setWidth(0);
+      tc.setResizable(false);
+    }
+
+    TableColumnCore[] tmpColumnsOrdered = new TableColumnCore[tableColumns.length];
+    //Create all columns
+    for (int i = 0; i < tableColumns.length; i++) {
+      int position = tableColumns[i].getPosition();
+      if (position != -1) {
+        new TableColumn(table, SWT.NULL);
+        tmpColumnsOrdered[position] = tableColumns[i];
+      }
+    }
+    int iNewLength = table.getColumnCount() - (bSkipFirstColumn ? 1 : 0);
+    columnsOrdered = new TableColumnCore[iNewLength];
+    System.arraycopy(tmpColumnsOrdered, 0, columnsOrdered, 0, iNewLength);
+    
+    ColumnSelectionListener columnSelectionListener = new ColumnSelectionListener();
+    
+    //Assign length and titles
+    //We can only do it after ALL columns are created, as position (order)
+    //may not be in the natural order (if the user re-order the columns).
+    for (int i = 0; i < tableColumns.length; i++) {
+      int position = tableColumns[i].getPosition();
+      if (position == -1)
+        continue;
+
+      String sName = tableColumns[i].getName();
+      // +1 for Eclipse Bug 43910 (see above)
+      // user has reported a problem here with index-out-of-bounds - not sure why
+      // but putting in a preventative check so that hopefully the view still opens
+      // so they can fix it
+      
+      int	adjusted_position = position + (bSkipFirstColumn ? 1 : 0);
+      
+      if (adjusted_position >= table.getColumnCount()) {
+				Debug.out("Incorrect table column setup, skipping column '" + sName
+						+ "'");
+				continue;
+			}
+      
+      TableColumn column = table.getColumn(adjusted_position);
+      try {
+      	column.setMoveable(true);
+      } catch (NoSuchMethodError e) {
+      	// Ignore < SWT 3.1
+      }
+      Messages.setLanguageText(column, tableColumns[i].getTitleLanguageKey());
+      column.setAlignment(tableColumns[i].getSWTAlign());
+      column.setWidth(tableColumns[i].getWidth());
+      column.setData("TableColumnCore", tableColumns[i]);
+      column.setData("configName", "Table." + sTableID + "." + sName);
+      column.setData("Name", sName);
+      
+      column.addControlListener(resizeListener);
+      // At the time of writing this SWT (3.0RC1) on OSX doesn't call the 
+      // selection listener for tables
+      column.addListener(SWT.Selection, columnSelectionListener);
+    }
+
+    // Initialize the sorter after the columns have been added
+		String sSortColumn = configMan.getStringParameter(sTableID
+				+ ".sortColumn", sDefaultSortOn);
+		boolean bSortAscending = configMan.getBooleanParameter(sTableID
+				+ ".sortAsc", configMan.getBooleanParameter(CFG_SORTDIRECTION));
+
+		rowSorter = new TableRowComparator(sSortColumn, bSortAscending);
+		changeColumnIndicator();
+		
+    // Add move listener at the very end, so we don't get a bazillion useless 
+    // move triggers
+    if (SWT.getVersion() >= 3100) {
+	    for (int i = 0; i < tableColumns.length; i++) {
+	      int position = tableColumns[i].getPosition();
+	      if (position == -1)
+	        continue;
+	
+	      int	adjusted_position = position + (bSkipFirstColumn ? 1 : 0);
+	      if (adjusted_position >= table.getColumnCount())
+	      	continue;
+	      
+	      TableColumn column = table.getColumn(adjusted_position);
+	      column.addListener(SWT.Move, columnMoveListener);
+	    }
+    }
   }
 
   /** Creates the Context Menu.
@@ -584,7 +767,40 @@ public class TableView
    * @return a new Menu object
    */
   public Menu createMenu() {
-    return new Menu(panel.getShell(), SWT.POP_UP);
+    final Menu menu = new Menu(tableComposite.getShell(), SWT.POP_UP);
+    menu.addMenuListener(new MenuListener() {
+    	boolean bShown = false;
+    	
+			public void menuHidden(MenuEvent e) {
+				bShown = false;
+
+				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
+				// get fired (async workaround provided by Eclipse Bug #87678)
+				e.widget.getDisplay().asyncExec(new AERunnable() {
+					public void runSupport() {
+						if (bShown)
+							return;
+						MenuItem[] items = menu.getItems();
+						for (int i = 0; i < items.length; i++) {
+							items[i].dispose();
+						}
+					}
+				});
+			}
+
+			public void menuShown(MenuEvent e) {
+				MenuItem[] items = menu.getItems();
+				for (int i = 0; i < items.length; i++)
+					items[i].dispose();
+
+        bShown = true;
+
+      	fillMenu(menu);
+        addThisColumnSubMenu(getColumnNo(iMouseX));
+			}
+    });
+
+    return menu;
   }
 
   /** Fill the Context Menu with items.  Only called at TableView initialization
@@ -595,7 +811,7 @@ public class TableView
    * @param menu Menu to fill
    */
   public void fillMenu(Menu menu) {
-    menuThisColumn = new Menu(panel.getShell(), SWT.DROP_DOWN);
+    menuThisColumn = new Menu(tableComposite.getShell(), SWT.DROP_DOWN);
     final MenuItem itemThisColumn = new MenuItem(menu, SWT.CASCADE);
     itemThisColumn.setMenu(menuThisColumn);
 
@@ -603,153 +819,101 @@ public class TableView
     Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns");
     Utils.setMenuItemImage(itemChangeTable, "columns");
     
-    menu.addListener(SWT.Show, new Listener() {
-      public void handleEvent(Event e) {
-        addThisColumnSubMenu(getColumnNo(iMouseX));
-      }
-    });
-
     itemChangeTable.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        new TableColumnEditorWindow(table.getDisplay(), tableColumns,
-                                    TableStructureEventDispatcher.getInstance(sTableID));
+      	new TableColumnEditorWindow(table.getShell(), tableColumns,
+						TableStructureEventDispatcher.getInstance(sTableID));
       }
     });
     
     // Add Plugin Context menus..
-    TableContextMenuItem[] items = TableContextMenuManager.getInstance().getAllAsArray(sTableID);
-    if (items.length > 0) {
-      new MenuItem(menu, SWT.SEPARATOR);
+ 		boolean	enable_items = table != null && table.getSelection().length > 0;
+    
+    TableContextMenuItem[] items = TableContextMenuManager.getInstance()
+				.getAllAsArray(sTableID);
+		if (items.length > 0) {
+			new MenuItem(menu, SWT.SEPARATOR);
 
-      boolean	prev_was_separator	= true;
-      
-      for (int i = 0; i < items.length; i++) {
-        final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl)items[i];
-        
-        final int style = contextMenuItem.getStyle();
-        
-        final int	swt_style;
-        
-        boolean	this_is_separator	= false;
-        
-        if ( style == TableContextMenuItem.STYLE_PUSH ){
-        	swt_style = SWT.PUSH;
-        }else if ( style == TableContextMenuItem.STYLE_CHECK ){
-        	swt_style = SWT.CHECK;
-        }else if ( style == TableContextMenuItem.STYLE_RADIO ){
-        	swt_style = SWT.RADIO;
-        }else if ( style == TableContextMenuItem.STYLE_SEPARATOR ){
-        	this_is_separator	= true;
-        	swt_style = SWT.SEPARATOR;
-        }else{
-        	swt_style = SWT.PUSH;
-        }
-        
-        	// skip contiguous separators
-        
-        if ( prev_was_separator && this_is_separator ){
-        	
-        	continue;
-        }
-        
-        	// skip trailing separator
-        
-        if ( this_is_separator && i == items.length - 1 ){
-        	
-        	continue;
-        }
-        
-        prev_was_separator	= this_is_separator;
-        
-        final MenuItem menuItem = new MenuItem(menu, swt_style );
-        
-        if ( swt_style == SWT.SEPARATOR ){
-        	
-        	continue;
-        }
+			boolean prev_was_separator = true;
 
-        Messages.setLanguageText(menuItem, contextMenuItem.getResourceKey());
+			for (int i = 0; i < items.length; i++) {
+				final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl) items[i];
 
-        menuItem.setData( contextMenuItem );
-        
-        menuItem.addListener(
-        	SWT.Selection, 
-        	new SelectedTableRowsListener() 
-        	{
-        		public void 
-        		run(
-        			TableRowCore row ) 
-        		{
-        			if ( 	swt_style == SWT.CHECK ||
-        					swt_style == SWT.RADIO ){
-        				
-        				contextMenuItem.setData(new Boolean(menuItem.getSelection()));
-        			}	
-        			
-        			contextMenuItem.invokeListeners(row);
-        		}
-        	});
-      }
+				final int style = contextMenuItem.getStyle();
+
+				final int swt_style;
+
+				boolean this_is_separator = false;
+
+				if (style == TableContextMenuItem.STYLE_PUSH) {
+					swt_style = SWT.PUSH;
+				} else if (style == TableContextMenuItem.STYLE_CHECK) {
+					swt_style = SWT.CHECK;
+				} else if (style == TableContextMenuItem.STYLE_RADIO) {
+					swt_style = SWT.RADIO;
+				} else if (style == TableContextMenuItem.STYLE_SEPARATOR) {
+					this_is_separator = true;
+					swt_style = SWT.SEPARATOR;
+				} else {
+					swt_style = SWT.PUSH;
+				}
+
+				// skip contiguous separators
+
+				if (prev_was_separator && this_is_separator) {
+					continue;
+				}
+
+				// skip trailing separator
+
+				if (this_is_separator && i == items.length - 1) {
+					continue;
+				}
+
+				prev_was_separator = this_is_separator;
+
+				final MenuItem menuItem = new MenuItem(menu, swt_style);
+
+				if (swt_style == SWT.SEPARATOR) {
+					continue;
+				}
+
+				Messages.setLanguageText(menuItem, contextMenuItem.getResourceKey());
+
+				menuItem.addListener(SWT.Selection, new SelectedTableRowsListener() {
+					public void run(TableRowCore row) {
+						if (swt_style == SWT.CHECK || swt_style == SWT.RADIO) {
+
+							contextMenuItem.setData(new Boolean(menuItem.getSelection()));
+						}
+
+						contextMenuItem.invokeListeners(row);
+					}
+				});
+
+				if (enable_items) {
+					contextMenuItem.invokeMenuWillBeShownListeners(getSelectedRows());
+
+					if (style == TableContextMenuItem.STYLE_CHECK
+							|| style == TableContextMenuItem.STYLE_RADIO) {
+
+						menuItem.setSelection(((Boolean) contextMenuItem.getData())
+								.booleanValue());
+					}
+				}
+
+				Graphic g = contextMenuItem.getGraphic();
+				if (g instanceof UISWTGraphic) {
+					Utils.setMenuItemImage(menuItem, ((UISWTGraphic) g).getImage());
+				}
+
+				menuItem.setEnabled(enable_items && contextMenuItem.isEnabled());
+			}
     }
   }
   
-  	/**
-  	 * should be called by sub-views when the context menu is shown to allow selection specific actions
-  	 * to be taken
-  	 */
-  
- 	protected void
- 	showMenu()
- 	{	
- 		boolean	enable_items = table != null && table.getSelection().length > 0;
-      
- 		MenuItem[]	items = menu.getItems();
- 
- 		for (int i = 0; i < items.length; i++) {
-        	
- 			MenuItem	item = items[i];
-        	
- 			Object	data = item.getData();
-        	
- 			if ( data instanceof TableContextMenuItemImpl ){
-        		
-        		final TableContextMenuItemImpl contextMenuItem = (TableContextMenuItemImpl)data;
-                    
-        		if ( enable_items ){
-	          	
-        			runForSelectedRows(
-	              		new GroupTableRowRunner()
-	              		{
-	              			public void
-	              			runAll(
-	              				TableRowCore[]	rows )
-	              			{
-	              				contextMenuItem.invokeMenuWillBeShownListeners( rows );
-	              			}
-	              		});
-                
-               		int style = contextMenuItem.getStyle();
-                    
-            		if ( 	style == TableContextMenuItem.STYLE_CHECK ||
-            				style == TableContextMenuItem.STYLE_RADIO ){
-
-            			item.setSelection(((Boolean)contextMenuItem.getData()).booleanValue());
-            		}
-        		}
-                			       			
-	        	Graphic g = contextMenuItem.getGraphic();
-	        		
-	        	if ( g instanceof UISWTGraphic ){
-	        			
-	        		Utils.setMenuItemImage(item, ((UISWTGraphic)g).getImage());
-	        	}
-        		
-        		item.setEnabled( enable_items && contextMenuItem.isEnabled());
-        	}
-        }
-  	}
-
-  /* SubMenu for column specific tasks. 
+  /**
+   * SubMenu for column specific tasks. 
    *
    * @param iColumn Column # that tasks apply to.
    */
@@ -810,7 +974,7 @@ public class TableView
           if (i != 0) sToClipboard += "\n";
           sToClipboard += tis[i].getText(iColumn);
         }
-        new Clipboard(panel.getDisplay()).setContents(new Object[] { sToClipboard }, 
+        new Clipboard(mainComposite.getDisplay()).setContents(new Object[] { sToClipboard }, 
                                                       new Transfer[] {TextTransfer.getInstance()});
       }
     });
@@ -860,17 +1024,48 @@ public class TableView
    * @return the composite for this TableView
    */
   public Composite getComposite() {
-    return panel;
+    return mainComposite;
+  }
+  
+  public Composite getTableComposite() {
+    return tableComposite;
   }
 
   /** IView.refresh(), called when the GUI needs an update */
-  public void refresh() {
+  public final void refresh() {
+  	refresh(false);
+  }
+
+  long count = 0;
+  public void refresh(boolean bForceSort) {
+  	// don't refresh while there's no table
+  	if (table == null)
+  		return;
+  	
+  	refreshTable(bForceSort);
+
+    if (tabViews != null && tabViews.size() > 0) {
+			for (int i = 0; i < tabViews.size(); i++) {
+				IView view = (IView)tabViews.get(i);
+				if (view != null)
+					view.refresh();
+			}
+    }
+  }
+  
+  public void refreshTable(boolean bForceSort) {
+  	// don't refresh while there's no table
+  	if (table == null)
+  		return;
+
   	try{
   		this_mon.enter();
 
 	    if(getComposite() == null || getComposite().isDisposed())
 	      return;
 	
+	    processDataSourceQueue();
+
 	    if (checkColumnWidthsEvery != 0 && 
 	        (loopFactor % checkColumnWidthsEvery) == 0) {
 	      TableColumn[] tableColumnsSWT = table.getColumns();
@@ -885,41 +1080,77 @@ public class TableView
 	      }
 	    }
 	
-	    if (bSortScheduled) {
-	      bSortScheduled = false;
-	      sorter.sortColumn( true );
-	    } else {
-	      sorter.reOrder(false);
-	    }
-	
-	    final int topIndex = table.getTopIndex();
-	    final int bottomIndex = topIndex + (table.getClientArea().height / table.getItemHeight());
+	    long lTimeStart = System.currentTimeMillis();
 	    
-	    //Refresh all items in table...
+	    count = 0;
+	    
+	    final boolean bDoGraphics = (loopFactor % graphicsUpdate) == 0;
+	    final boolean bWillSort = bForceSort || (reOrderDelay != 0) && ((loopFactor % reOrderDelay) == 0); 
+	    //System.out.println("Refresh.. WillSort? " + bWillSort);
+	    
+			if (bWillSort)
+				sortColumn(true, false);
+	
+	    lTimeStart = System.currentTimeMillis();
+	    
+	    //Refresh all visible items in table...
 	    runForAllRows(new GroupTableRowRunner() {
 	      public void run(TableRowCore row) {
-	        int index = row.getIndex();
-	        // If the row is being shown, update it.  Otherwise, just update
-	        // the cell being sorted.
-	        if (index >= topIndex && index <= bottomIndex) {
-	          // Every N GUI updates we refresh graphics
-	          row.refresh((loopFactor % graphicsUpdate) == 0);
-	        } else {
-	          TableCellCore cell = row.getTableCellCore(sorter.getLastField());
-	          if (cell != null)
-	            cell.refresh();
-	        }
+	      	if (row.isVisible()) {
+	      		// Every N GUI updates we refresh graphics
+	      		row.refresh(bDoGraphics);
+          	count++;
+	      	} else {
+	      		row.setUpToDate(false);
+	      	}
 	      }
 	    });
+
+			if (DEBUGADDREMOVE) {
+		    long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
+				if (lTimeDiff > 500)
+					System.out.println(lTimeDiff + "ms to refresh " + count + " visible rows");
+			}
 	
-	    Utils.alternateTableBackground(table);
 	    loopFactor++;
   	}finally{
   		
   		this_mon.exit();
   	}
   }
-
+  
+  /**
+   * Process the queue of datasources to be added and removed
+   *
+   */
+  public void processDataSourceQueue() {
+  	if (dataSourcesToAdd != null) {
+  		Object[] dataSources = dataSourcesToAdd.toArray();
+  		dataSourcesToAdd = null;
+  		
+  		// remove the ones we are going to add then delete
+  		if (dataSourcesToRemove != null) {
+	  		for (int i = 0; i < dataSources.length; i++)
+	  			if (dataSourcesToRemove.contains(dataSources[i])) {
+	  				dataSourcesToRemove.remove(dataSources[i]);
+	  				dataSources[i] = null;
+  			//System.out.println("Saved time by not adding a row that was removed");
+	  			}
+  		}
+  		
+  		addDataSources(dataSources, true);
+//  		if (dataSources.length > 1)
+//  			System.out.println("Streamlined adding " + dataSources.length + " rows");
+  	}
+  	if (dataSourcesToRemove != null) {
+  		Object[] dataSources = dataSourcesToRemove.toArray();
+//  		if (dataSources.length > 1)
+//  			System.out.println("Streamlining removing " + dataSources.length + " rows");
+  		dataSourcesToRemove = null;
+  		removeDataSources(dataSources, true);
+  	}
+  }
+  
   private void locationChanged(final int iStartColumn) {
     if (getComposite() == null || getComposite().isDisposed())
       return;    
@@ -935,30 +1166,40 @@ public class TableView
     if (getComposite() == null || getComposite().isDisposed())
       return;    
     
-    runForAllRows(new GroupTableRowRunner() {
+    runForVisibleRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
         row.doPaint(gc);
       }
     });
   }
 
-  /** IView.delete: This method is caled when the view is destroyed.
+  /** IView.delete: This method is called when the view is destroyed.
    * Each color instanciated, images and such things should be disposed.
    * The caller is the GUI thread.
    */
   public void delete() {
-    TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
-    for (int i = 0; i < tableColumns.length; i++)
-      tableColumns[i].saveSettings();
+    if (tabViews != null && tabViews.size() > 0) {
+			for (int i = 0; i < tabViews.size(); i++) {
+				IView view = (IView)tabViews.get(i);
+				if (view != null)
+					view.delete();
+			}
+    }
 
-    removeAllTableRows();
+    TableStructureEventDispatcher.getInstance(sTableID).removeListener(this);
+    if (tableColumns != null)
+	    for (int i = 0; i < tableColumns.length; i++)
+	      tableColumns[i].saveSettings();
+
     if (table != null && !table.isDisposed())
       table.dispose();
-    COConfigurationManager.removeParameterListener("ReOrder Delay", sorter);
-    COConfigurationManager.removeParameterListener("Graphics Update", this);
+    removeAllTableRows();
+    configMan.removeParameterListener("ReOrder Delay", this);
+    configMan.removeParameterListener("Graphics Update", this);
     Colors.getInstance().removeColorsChangedListener(this);
 
-    oldSelectedItems =  null;
+    //oldSelectedItems =  null;
+    super.delete();
   }
 
   /** IView.getData: Data 'could' store a key to a language file, in order to 
@@ -977,190 +1218,294 @@ public class TableView
     return MessageText.getString(sPropertiesPrefix + ".title.full");
   }
 
-  /** Adds a dataSource to the table as a new row.  If the data source is
+  /* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#updateLanguage()
+	 */
+	public void updateLanguage() {
+		super.updateLanguage();
+		
+    if (tabViews != null && tabViews.size() > 0) {
+			for (int i = 0; i < tabViews.size(); i++) {
+				IView view = (IView)tabViews.get(i);
+				if (view != null)
+					view.updateLanguage();
+			}
+    }
+	}
+
+	/** Adds a dataSource to the table as a new row.  If the data source is
    * already added, a new row will not be added.  This function runs 
    * asynchronously, so the rows creation is not guaranteed directly after
    * calling this function.
    *
+   * You can't add datasources until the table is initialized
+   * 
    * @param dataSource data source to add to the table
+   * @param bImmediate Add immediately, or queue and add at next refresh
    */
   
-  public void addDataSource(final Object dataSource) {
-  	try{
-  		this_mon.enter();
- 
-	    try {
-	      try{
-			  objectToSortableItem_mon.enter();
-			
-		      if ( 	objectToSortableItem.containsKey(dataSource) ||
-			      	panel.isDisposed() ||
-					table.isDisposed()){
+  public void addDataSource(Object dataSource, boolean bImmediate) {
+  	addDataSources(new Object[] { dataSource}, bImmediate );
+	}
+  
+  public void addDataSource(Object dataSource) {
+  	addDataSources(new Object[] { dataSource}, false);
+	}
 
-			        return;
-			  }
-			      
-
-			  	// Since adding to objectToSortableItem is async, there's a chance
-			  	// the item will not be stored in objectToSortableItem before another
-			  	// call here.  So, add it now and null it
-			  
-			  objectToSortableItem.put(dataSource, null);
-			  
-	      }finally{
-	      	
-			  objectToSortableItem_mon.exit();
-	      }
-	      
-	      final Display display = panel.getDisplay();
-	      // syncExec is evil because we eventually end up in a sync lock.
-	      // So, use async, then wait for it to finish
-	      display.asyncExec(new AERunnable() {
-	        public void runSupport() 
-	        {
-	        		// recheck the table in case its been killed in the meantime
-	        	
-	          if ( getTable().isDisposed()){
-	        	return;
-	          }
-	        	
-	          TableRowImpl row = null;
-			  
-	          try{
-				  objectToSortableItem_mon.enter();
-	            
-		          if (objectToSortableItem.containsKey(dataSource)) {
-
-			          row = new TableRowImpl(TableView.this, dataSource, bSkipFirstColumn);
-
-					  objectToSortableItem.put(dataSource, row);
-					  
-		          }  
-	          }finally{
-	            	
-				  objectToSortableItem_mon.exit();
-	          }
-			  
-			  if ( row != null  ){
-				  
-				  if (ptIconSize != null) {
-
-					  // set row height by setting image
-					  
-					Image image = new Image(display, ptIconSize.x, ptIconSize.y);
-					row.setImage(0, image);
-					row.setImage(0, null);
-					image.dispose();
-				  } else if (iCellHeight > 0){
-					row.setHeight(iCellHeight);
-				  }
-				  
-				  TableCellCore cell = row.getTableCellCore(sorter.getLastField());
-				
-				  if (cell != null){
-					  cell.refresh();
-				  } 
-			  }
-	          	          
-	          bSortScheduled = true;
-	        }
-	      });
-	    } catch (Exception e) {
-	      System.out.println("Error adding row to " + sTableID + " table");
-	      Debug.printStackTrace( e );
-	    }
-  	}finally{
-  		
-  		this_mon.exit();
-  	}
-  }
-
-  /** Remove the specified dataSource from the table.
-   *
-   * @param dataSource data source to be removed
-   */
-  public void removeDataSource(Object dataSource) {
-    TableRowCore item;
-    try{
-    	objectToSortableItem_mon.enter();
-
-    	item = (TableRowCore)objectToSortableItem.remove(dataSource);
-    }finally{
-
-    	objectToSortableItem_mon.exit();
-    }
-    
-    if (item == null)
-      return;
-    final TableRowCore _item = item;
-    if(table != null && !table.isDisposed()) {
-      table.getDisplay().asyncExec(new AERunnable() {
-        public void runSupport() {
-          _item.delete();
-         } 
-       });
-    }
-  }
+  public void addDataSources(Object[] dataSources) {
+  	addDataSources(dataSources, false);
+	}
 
   /**
-   * Removes the table's rows using the row index
-   * @param indexSet Zero-based row index for the table
+   * Add a list of dataSources to the table.  The array passed in may be 
+   * modified, so make sure you don't need it afterwards.
+   * 
+   * You can't add datasources until the table is initialized
+   * 
+   * @param dataSources
+   * @param bImmediate Add immediately, or queue and add at next refresh
    */
-  public void removeTableRows(int[] indexSet)
-  {
-      Object[] sources = new Object[indexSet.length];
-      if (table != null && !table.isDisposed())
-      {
-          for (int i = 0; i < indexSet.length; i++)
-          {
-              sources[i] = getRow(indexSet[i]).getDataSource(true);
-          }
+  public synchronized void addDataSources(final Object dataSources[],
+			boolean bImmediate) {
+  	// In order to save time, we cache entries to be added and process them
+  	// in a refresh cycle.  This is a huge benefit to tables that have
+  	// many rows being added and removed in rapid succession
+  	if (!bImmediate) {
+  		if (dataSourcesToAdd == null)
+  			dataSourcesToAdd = new ArrayList(4);
+  		Collections.addAll(dataSourcesToAdd, dataSources);
+  		return;
+  	}
+  	
+		if (dataSources == null || mainComposite == null || table == null
+				|| mainComposite.isDisposed() || table.isDisposed())
+			return;
+		
+		if (DEBUGADDREMOVE)
+			System.out.print(">>" + sTableID + " Add " + dataSources.length + " rows;");
 
-          table.remove(indexSet);
-      }
+		// Create row, and add to map immediately
+		try {
+			dataSourceToRow_mon.enter();
 
-      for (int i = 0; i < sources.length; i++)
-      {
-          Object src = sources[i];
-          if(src != null)
-          {
-              removeDataSource(src);
-          }
-      }
+			for (int i = 0; i < dataSources.length; i++) {
+				if (dataSources[i] == null)
+					continue;
+
+				if (dataSourceToRow.containsKey(dataSources[i])) {
+					dataSources[i] = null;
+				} else {
+					TableRowImpl row = new TableRowImpl(table, sTableID, columnsOrdered,
+							dataSources[i], bSkipFirstColumn);
+					dataSourceToRow.put(dataSources[i], row);
+				}
+			}
+		} finally {
+			dataSourceToRow_mon.exit();
+		}
+
+		// Now, add to sortedRows which requires the SWT thread.
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (table == null || table.isDisposed())
+					return;
+
+				try {
+					dataSourceToRow_mon.enter();
+
+					// add to sortedRows list in best position.  
+					// We need to be in the SWT thread because the rowSorter may end up
+					// calling SWT objects.
+					for (int i = 0; i < dataSources.length; i++) {
+						Object dataSource = dataSources[i];
+						if (dataSource == null)
+							continue;
+
+						TableRowImpl row = (TableRowImpl) dataSourceToRow.get(dataSource);
+						if (row == null)
+							continue;
+						TableCellCore cell = row.getTableCellCore(rowSorter.sColumnName);
+						if (cell == null)
+							continue;
+
+						try {
+							cell.invalidate();
+							cell.refresh(true);
+						} catch (Exception e) {
+							Logger.log(new LogEvent(LOGID,
+									"Minor error adding a row to table " + sTableID, e));
+						}
+
+						try {
+							sortedRows_mon.enter();
+							if (sortedRows.size() > 0) {
+								// If we are >= to the last item, then just add it to the end
+								// instead of relying on binarySearch, which may return an item
+								// in the middle that also is equal.
+								TableRowCore lastRow = (TableRowCore) sortedRows.get(sortedRows
+										.size() - 1);
+								if (rowSorter.compare(row, lastRow) >= 0) {
+									sortedRows.add(row);
+								} else {
+									int index = Collections.binarySearch(sortedRows, row,
+											rowSorter);
+									if (index < 0)
+										index = -1 * index - 1; // best guess
+
+									if (index > sortedRows.size())
+										index = sortedRows.size();
+
+									sortedRows.add(index, row);
+								}
+							} else {
+								sortedRows.add(row);
+							}
+
+							if (!bTableVirtual) {
+								row.createSWTRow();
+								row.setIconSize(ptIconSize);
+							}
+						} catch (Exception e) {
+							Logger.log(new LogEvent(LOGID, "Error adding a row to table "
+									+ sTableID, e));
+							try {
+								if (!sortedRows.contains(row))
+									sortedRows.add(row);
+							} catch (Exception e2) {
+								Debug.out(e2);
+							}
+						} finally {
+							sortedRows_mon.exit();
+						}
+					} // for dataSources
+
+					if (bTableVirtual)
+						table.setItemCount(dataSourceToRow.size());
+
+				} finally {
+					dataSourceToRow_mon.exit();
+				}
+
+				if (DEBUGADDREMOVE)
+					System.out.println("<<");
+			}
+		});
+	}
+
+  public void removeDataSource(final Object dataSource) {
+  	removeDataSource(dataSource, false);
   }
+  
+  public void removeDataSource(final Object dataSource, boolean bImmediate) {
+  	removeDataSources(new Object[] {dataSource}, bImmediate);
+  }
+  
+  /** Remove the specified dataSource from the table.
+   *
+   * @param dataSources data sources to be removed
+   * @param bImmediate Remove immediately, or queue and remove at next refresh
+   */
+  public synchronized void removeDataSources(final Object[] dataSources,
+			boolean bImmediate) {
+  	if (!bImmediate) {
+  		if (dataSourcesToRemove == null)
+  			dataSourcesToRemove = new ArrayList(4);
+  		Collections.addAll(dataSourcesToRemove, dataSources);
+  		return;
+  	}
+  	
+  	if (DEBUGADDREMOVE)
+  		System.out.println(">>" + sTableID + " Remove rows");
+
+		boolean ok = Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (DEBUGADDREMOVE)
+					System.out.println(">>>" + sTableID + " Remove rows.  Start");
+				
+				ArrayList itemsToRemove = new ArrayList();
+				
+				for (int i = 0; i < dataSources.length; i++) {
+					if (dataSources[i] == null)
+						continue;
+
+					// Must remove from map before deleted from gui
+					TableRowCore item = (TableRowCore) dataSourceToRow.remove(dataSources[i]);
+					if (item != null) {
+						itemsToRemove.add(item);
+						sortedRows.remove(item);
+					}
+				}
+
+				if (bTableVirtual && !table.isDisposed()) {
+					//table.setItemCount(dataSourceToRow.size());
+				}
+				
+				for (Iterator iter = itemsToRemove.iterator(); iter.hasNext();) {
+					TableRowCore item = (TableRowCore) iter.next();
+					item.delete();
+				}
+
+				if (DEBUGADDREMOVE)
+					System.out.println("<<" + sTableID + " Remove "
+							+ itemsToRemove.size() + " rows. now " + dataSourceToRow.size()
+							+ "ds; tc=" + table.getItemCount());
+			}
+		});
+
+		if (!ok) {
+			// execRunnable will only fail if we are closing
+			for (int i = 0; i < dataSources.length; i++) {
+				if (dataSources[i] == null)
+					continue;
+
+				TableRowCore item = (TableRowCore) dataSourceToRow.get(dataSources[i]);
+				dataSourceToRow.remove(dataSources[i]);
+				if (item != null) {
+					sortedRows.remove(item);
+					item.delete();
+				}
+			}
+			if (DEBUGADDREMOVE)
+				System.out.println("<<" + sTableID + " Remove 1 row, noswt");
+		}
+	}
 
   /** Remove all the data sources (table rows) from the table.
    */
   public void removeAllTableRows() {
-    
-    // clear all table items first, so that TableRowCore.delete() doesn't remove
-    // them one by one (slow)
-    // Gudy : THIS PREVENTS DISPOSAL OF IMAGES ... DO NOT UNCOMMENT
-    /*
-    if (table != null && !table.isDisposed()) {
-      table.removeAll();
-    }*/
+  	long lTimeStart = System.currentTimeMillis();
+  	
+		if (table != null && !table.isDisposed()) {
+			table.removeAll();
+		}
 
-    runForAllRows(new GroupTableRowRunner() {
-      public void run(TableRowCore row) {
-        row.delete(false);
-      }
-    });
-    
-    if (table != null && !table.isDisposed()) {
-      table.removeAll();
-    }
-      
-	
-	try{
-		objectToSortableItem_mon.enter();
-	
-		objectToSortableItem.clear();
-		
-	}finally{
-	
-		objectToSortableItem_mon.exit();
-	}
+		// Image Disposal handled by each cell
+		runForAllRows(new GroupTableRowRunner() {
+			public void run(TableRowCore row) {
+				row.delete();
+			}
+		});
+
+		try {
+			dataSourceToRow_mon.enter();
+			sortedRows_mon.enter();
+
+			dataSourceToRow.clear();
+			sortedRows.clear();
+			if (DEBUGADDREMOVE)
+				System.out.println(sTableID + " removeAll");
+
+		} finally {
+
+			sortedRows_mon.exit();
+			dataSourceToRow_mon.exit();
+		}
+
+		if (DEBUGADDREMOVE) {
+	    long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
+			if (lTimeDiff > 10)
+				System.out.println("RemovaAll took " + lTimeDiff + "ms");
+		}
   }
     
   public Table getTable() {
@@ -1175,49 +1520,41 @@ public class TableView
 
   public void parameterChanged(String parameterName) {
     if (parameterName.equals("Graphics Update")) {
-      graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
+      graphicsUpdate = configMan.getIntParameter("Graphics Update");
       return;
+    }
+    if (parameterName.equals("ReOrder Delay")) {
+    	reOrderDelay = configMan.getIntParameter("ReOrder Delay");
+    	return;
     }
     if (parameterName.startsWith("Color")) {
       tableInvalidate();
     }
   }
   
-  /* ITableStructureModificationListener implementation */
-
+  // ITableStructureModificationListener
   public void tableStructureChanged() {
-    //2. Clear everything
     removeAllTableRows();
-    
-    //3. Dispose the old table
-    if (table != null && !table.isDisposed()) {
-      table.dispose();
-    }
-    menu.dispose();
-    
-    //4. Re-create the table
-    menu = createMenu();
-    fillMenu(menu);
-    table = createTable();
-    initializeTable(table);
-    
-    	// sub-implementation may have overridden createTable and therefore
-    	// not have used table_panel but panel directly
-    
-    if ( table_panel != null ){
-    	
-    	table_panel.layout();
-    }else{
-    	
-    	panel.layout();
-    }
+    initializeTableColumns(table);
+    refreshTable(false);
   }
   
-  /** The Columns width changed
-   *
-   * @param columnNumber # of column which size has changed for
-   * @param newWidth New width of column
+  // ITableStructureModificationListener
+  public void columnOrderChanged(int[] positions) {
+		try {
+			table.setColumnOrder(positions);
+		} catch (NoSuchMethodError e) {
+			// Pre SWT 3.1
+			// This shouldn't really happen, since this function only gets triggered
+			// from SWT >= 3.1
+			tableStructureChanged();
+		}
+	}
+  
+  /** 
+   * The Columns width changed
    */
+  // ITableStructureModificationListener
   public void columnSizeChanged(TableColumnCore tableColumn) {
     int newWidth = tableColumn.getWidth();
     if (table == null || table.isDisposed())
@@ -1237,118 +1574,147 @@ public class TableView
     column.setWidth(newWidth);
   }
   
+  // ITableStructureModificationListener
   public void columnInvalidate(TableColumnCore tableColumn) {
+  	// We are being called from a plugin (probably), so we must refresh
+  	columnInvalidate(tableColumn, true);
+  }
+
+  public void columnRefresh(TableColumnCore tableColumn) {
     final String sColumnName = tableColumn.getName();
     runForAllRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
         TableCellCore cell = row.getTableCellCore(sColumnName);
         if (cell != null)
-          cell.setValid(false);
+          cell.refresh();
       }
     });
   }
 
+  /**
+   * Invalidate and refresh whole table
+   */
   public void tableInvalidate() {
     runForAllRows(new GroupTableRowRunner() {
       public void run(TableRowCore row) {
-        row.setValid(false);
+        row.invalidate();
         row.refresh(true);
       }
     });
   }
 
-  /* End ITableStructureModificationListener implementation */
+  /**
+   * Invalidate all the cells in a column
+   * 
+   * @param sColumnName Name of column to invalidate
+   */
+  public void columnInvalidate(final String sColumnName) {
+  	TableColumnCore tc = TableColumnManager.getInstance().getTableColumnCore(
+				sTableID, sColumnName);
+  	if (tc != null)
+  		columnInvalidate(tc, tc.getType() == TableColumnCore.TYPE_TEXT_ONLY);
+  }
 
-  /** Get all the cells for one Column, in the order they are displayed */
-  /* SortableTable implementation */
-  public List getColumnCoreCells(String sColumnName) {
-    ArrayList l = new ArrayList();
-    if (table != null && !table.isDisposed()) {
-      TableItem[] tis = table.getItems();
-      for (int i = 0; i < tis.length; i++) {
-        TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
-        if (row == null)
-          continue;
+  public void columnInvalidate(TableColumnCore tableColumn, final boolean bMustRefresh) {
+  	final String sColumnName = tableColumn.getName();
+
+    runForAllRows(new GroupTableRowRunner() {
+      public void run(TableRowCore row) {
         TableCellCore cell = row.getTableCellCore(sColumnName);
         if (cell != null)
-          l.add(cell);
+          cell.invalidate(bMustRefresh);
       }
-    }
-    return l;
-  }
-
-  /** Get all the rows for this table, in the order they are displayed
-   *
-   * @return a list of TableRowCore objects in the order the user sees them
-   */
-  public List getRowsOrdered() {
-    ArrayList l = new ArrayList();
-    if (table != null && !table.isDisposed()) {
-      TableItem[] tis = table.getItems();
-      for (int i = 0; i < tis.length; i++) {
-        TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
-        if (row != null)
-          l.add(row);
-      }
-    }
-    return l;
+    });
   }
   
-  /** Get all the rows for this table, in no particular order.  Faster than
-   * {@link #getRowsOrdered}
-   *
-   * @return TableRowCore objects.  May contain null entries.
-   */
-  public TableRowCore[] getRowsUnordered() {
-	  try{
-		  objectToSortableItem_mon.enter();
-	 
-		  return (TableRowCore[])objectToSortableItem.values().toArray(new TableRowCore[0]);
-		  
-	  }finally{
-		  
-		  objectToSortableItem_mon.exit();
-	  }
-  }
+  /**
+	 * Retrieve a list of <pre>TableCell</pre>s, in the last sorted order.
+	 * The order will not be of the supplied cell's sort unless the table
+	 * has been sorted by that column previously.
+	 * <p>
+	 * ie.  You can sort on the 5th column, and retrieve the cells for the
+	 *      3rd column, but they will be in order of the 5th columns sort.  
+	 * 
+	 * @param sColumnName Which column cell's to return.  This does not sort
+	 *         the array on the column. 
+	 * @return array of cells
+	 */
+	public TableCellCore[] getColumnCells(String sColumnName) {
+		TableCellCore[] cells = new TableCellCore[sortedRows.size()];
 
-  public TableRowCore getRow(int rowIndex) {
-      return (TableRowCore) getTable().getItem(rowIndex).getData("TableRow");
-  }
+		try {
+			sortedRows_mon.enter();
 
-  /** Return all the TableColumnCore objects that belong to this TableView
-   *
-   * @return All the TableColumnCore objects
-   */
-  public TableColumnCore[] getAllTableColumnCore() {
-    return tableColumns;
-  }
+			int i = 0;
+			for (Iterator iter = sortedRows.iterator(); iter.hasNext();) {
+				TableRowCore row = (TableRowCore) iter.next();
+				cells[i++] = row.getTableCellCore(sColumnName);
+			}
+
+		} finally {
+			sortedRows_mon.exit();
+		}
+
+		return cells;
+	}
+	
+	/** Get all the rows for this table, in the order they are displayed
+	 *
+	 * @return a list of TableRowCore objects in the order the user sees them
+	 */
+	public TableRowCore[] getRows() {
+		try {
+			sortedRows_mon.enter();
+
+			return (TableRowCore[]) sortedRows.toArray(new TableRowCore[0]);
+
+		} finally {
+			sortedRows_mon.exit();
+		}
+	}
+	
+	/**
+	 * Get the row associated with a datasource
+	 * @param dataSource a reference to a core Datasource object 
+	 * 										(not a plugin datasource object)
+	 * @return The row, or null
+	 */
+	public TableRowCore getRow(Object dataSource) {
+		return (TableRowCore)dataSourceToRow.get(dataSource);
+	}
   
-  /** Return the specified TableColumnCore object
-   *
-   * @return TableColumnCore requested
-   */
-  /* SortableTable implementation */
-  public TableColumnCore getTableColumnCore(String sColumnName) {
-    TableColumnManager tcManager = TableColumnManager.getInstance();
-    return tcManager.getTableColumnCore(sTableID, sColumnName);
-  }
-    
   /* various selected rows functions */
   /***********************************/
+
+  public List getSelectedDataSourcesList() {
+  	return getSelectedDataSourcesList(true);
+  }
 
   /** Returns an array of all selected Data Sources.  Null data sources are
    * ommitted.
    *
    * @return an array containing the selected data sources
+   * 
+   * @TODO TuxPaper: Virtual row not created when usint getSelection?
+   *                  computePossibleActions isn't being calculated right
+   *                  because of non-created rows when select user selects all
    */
-  public List getSelectedDataSourcesList() {
+  public List getSelectedDataSourcesList(boolean bCoreDataSource) {
     ArrayList l = new ArrayList();
     if (table != null && !table.isDisposed()) {
       TableItem[] tis = table.getSelection();
       for (int i = 0; i < tis.length; i++) {
         TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
+        if (row == null) {
+        	sortColumn(false, true);
+
+        	// Try again
+          row = (TableRowCore)tis[i].getData("TableRow");
+          if (row == null)
+          	System.out.println("XXX Boo, row still null");
+        }
         if (row != null && row.getDataSource(true) != null)
-          l.add(row.getDataSource(true));
+          l.add(row.getDataSource(bCoreDataSource));
       }
     }
     return l;
@@ -1374,6 +1740,10 @@ public class TableView
    */
   public Object[] getSelectedDataSources() {
     return getSelectedDataSourcesList().toArray();
+  }
+  
+  public Object[] getSelectedDataSources(boolean bCoreDataSource) {
+    return getSelectedDataSourcesList(bCoreDataSource).toArray();
   }
 
   /** Returns an array of all selected TableRowCore.  Null data sources are
@@ -1403,19 +1773,48 @@ public class TableView
     return l;
   }
   
+  public Object getFirstSelectedDataSource() {
+  	return getFirstSelectedDataSource(true);
+  }
+  
+  public TableRowCore[] getVisibleRows() {
+		if (table == null || table.isDisposed())
+			return new TableRowCore[0];
+
+		int iTopIndex = table.getTopIndex();
+		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+
+		TableRowCore[] rows = new TableRowCore[iBottomIndex - iTopIndex + 1];
+		int pos = 0;
+		for (int i = iTopIndex; i <= iBottomIndex; i++) {
+			TableRowCore row = (TableRowCore) table.getItem(i).getData("TableRow");
+			if (row != null)
+				rows[pos++] = row;
+		}
+		
+		if (pos <= rows.length) {
+			// Some were null, shrink array
+			TableRowCore[] temp = new TableRowCore[pos];
+			System.arraycopy(rows, 0, temp, 0, pos);
+			return temp;
+		}
+		
+		return rows;
+	}
+
   /** Returns the first selected data sources.
    *
    * @return the first selected data source, or null if no data source is 
    *         selected
    */
-  public Object getFirstSelectedDataSource() {
+  public Object getFirstSelectedDataSource(boolean bCoreObject) {
     if (table == null || table.isDisposed() || table.getSelectionCount() == 0)
       return null;
 
     TableRowCore row = (TableRowCore)table.getSelection()[0].getData("TableRow");
     if (row == null)
       return null;
-    return row.getDataSource(true);
+    return row.getDataSource(bCoreObject);
   }
 
   /** For each row source that the user has selected, run the code
@@ -1427,45 +1826,38 @@ public class TableView
     if (table == null || table.isDisposed())
       return;
 
-     	List	rows = new ArrayList();
-    	
-	    TableItem[] tis = table.getSelection();
-	    for (int i = 0; i < tis.length; i++) {
-	      TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
-	      if (row != null){
-	       rows.add( row );
-	      }
-	    }
-	    
-	    TableRowCore[]	rows_a = (TableRowCore[])rows.toArray( new TableRowCore[rows.size()] );
-	    
-    	runner.runAll(rows_a);
-
-    	for (int i=0;i<rows_a.length;i++){
-
-	        runner.run(rows_a[i]);
-	    }
-  }
-
-  public void runForAllRows(GroupTableRowRunner runner) {
-    // put to array instead of synchronised iterator, so that runner can remove
-    TableRowCore[] rows;
-	
-	try{
-		objectToSortableItem_mon.enter();
-		
-		rows = (TableRowCore[])objectToSortableItem.values().toArray(new TableRowCore[0]);
-		
-	}finally{
-		
-		objectToSortableItem_mon.exit();
-		
-	}
-    for (int i = 0; i < rows.length; i++) {
-      if (rows[i] != null)
-        runner.run(rows[i]);
+    TableItem[] tis = table.getSelection();
+    for (int i = 0; i < tis.length; i++) {
+      TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
+      if (row != null)
+        runner.run(row);
     }
   }
+  
+  /** For each visible row source, run the code provided by the specified 
+	 * parameter.
+	 *
+	 * @param runner Code to run for each selected row/datasource
+	 */
+	public void runForVisibleRows(GroupTableRowRunner runner) {
+		TableRowCore[] rows = getVisibleRows();
+
+		for (int i = 0; i < rows.length; i++)
+			runner.run(rows[i]);
+	}
+
+  /** For every row source, run the code provided by the specified 
+	 * parameter.
+	 *
+	 * @param runner Code to run for each row/datasource
+	 */
+	public void runForAllRows(GroupTableRowRunner runner) {
+		// put to array instead of synchronised iterator, so that runner can remove
+		TableRowCore[] rows = getRows();
+
+		for (int i = 0; i < rows.length; i++)
+			runner.run(rows[i]);
+	}
 
   /**
    * Runs a specified task for a list of table items that the table contains
@@ -1510,27 +1902,19 @@ public class TableView
                                   new Object[] { sToClipboard },
                                   new Transfer[] {TextTransfer.getInstance()});
   }
-    
-  
-  /** Used with {@link #runForSelectedRows}
-   */
-  public abstract class GroupTableRowRunner {
-    /** Code to run 
-     * @param row TableRowCore to run code against
-     */
-    public void 
-    run(
-    	TableRowCore 	row)
-    {
-    }
-    
-    public void
-    runAll(
-    	TableRowCore[]	rows )
-    {
-    }
-  }
-  
+
+
+	/** 
+	 * Used with {@link TableView#runForSelectedRows}
+	 */
+	public abstract class GroupTableRowRunner {
+		/** Code to run 
+		 * @param row TableRowCore to run code against
+		 */
+		public void run(TableRowCore row) {
+		}
+	}
+
   /** Listener primarily for Menu Selection.  Implement run(TableRowCore) and it
    * will get called for each row the user has selected.
    */
@@ -1552,22 +1936,195 @@ public class TableView
   }
   
   /** Handle sorting of a column based on clicking the Table Header */
-  private class ColumnListener implements Listener {
-    private TableColumnCore tableColumn;
-
-    /** Initialize ColumnListener
-     * @param tc TableColumnCore that will be sorted when header is clicked
-     */
-    public ColumnListener(TableColumnCore tc) {
-      tableColumn = tc;
-    }
-
+  private class ColumnSelectionListener implements Listener {
     /** Process a Table Header click
-     * @param e event information
+     * @param event event information
      */
-    public void handleEvent(Event e) {
-      sorter.sortColumnReverse(tableColumn);
+    public void handleEvent(Event event) {
+			TableColumn column = (TableColumn) event.widget;
+			if (column == null)
+				return;
+			TableColumnCore tableColumnCore = (TableColumnCore) column.getData("TableColumnCore");
+			if (tableColumnCore != null) {
+				sortColumnReverse(tableColumnCore);
+				refreshTable(true);
+			}
     }
+  }
+
+  /**
+   * Handle movement of a column based on user dragging the Column Header.
+   * SWT >= 3.1
+   */
+  private class ColumnMoveListener implements Listener {
+		public void handleEvent(Event event) {
+			TableColumn column = (TableColumn) event.widget;
+			if (column == null)
+				return;
+			
+			TableColumnCore tableColumnCore = (TableColumnCore) column
+					.getData("TableColumnCore");
+			if (tableColumnCore == null)
+				return;
+
+			Table table = column.getParent();
+			
+			// Get the 'added position' of column
+			// It would have been easier if event (.start, .end) contained the old
+			// and new position..
+			TableColumn[] tableColumns = table.getColumns();
+			int iAddedPosition;
+			for (iAddedPosition = 0; iAddedPosition < tableColumns.length; iAddedPosition++) {
+				if (column == tableColumns[iAddedPosition])
+					break;
+			}
+			if (iAddedPosition >= tableColumns.length)
+				return;
+
+			// Find out position in the order list
+			int iColumnOrder[];
+			try {
+				iColumnOrder = table.getColumnOrder();
+      } catch (NoSuchMethodError e) {
+      	// Ignore < SWT 3.1
+      	return;
+      }
+			for (int i = 0; i < iColumnOrder.length; i++) {
+				if (iColumnOrder[i] == iAddedPosition) {
+					int iNewPosition = i - (bSkipFirstColumn ? 1 : 0);
+					if (tableColumnCore.getPosition() != iNewPosition) {
+						//System.out.println("Moving " + tableColumnCore.getName() + " to Position " + i);
+						tableColumnCore.setPositionNoShift(iNewPosition);
+						tableColumnCore.saveSettings();
+						TableStructureEventDispatcher.getInstance(sTableID).columnOrderChanged(iColumnOrder);
+					}
+					break;
+				}
+			}
+		}
+	}
+  
+  private class TableTooltips implements Listener {
+		Shell toolTipShell = null;
+		Shell mainShell = null;
+
+		Label toolTipLabel = null;
+
+		/**
+		 * Initialize
+		 */
+		public TableTooltips(Table table) {
+			mainShell = table.getShell();
+			
+	  	table.addListener(SWT.Dispose, this);
+	  	table.addListener(SWT.KeyDown, this);
+	  	table.addListener(SWT.MouseMove, this);
+	  	table.addListener(SWT.MouseHover, this);
+			mainShell.addListener(SWT.Deactivate, this);
+		}
+
+		public void handleEvent(Event event) {
+			switch (event.type) {
+				case SWT.MouseHover: {
+					if (toolTipShell != null && !toolTipShell.isDisposed())
+						toolTipShell.dispose();
+
+					TableItem item = table.getItem(new Point(event.x, event.y));
+					if (item == null)
+						return;
+					TableRowCore row = (TableRowCore) item.getData("TableRow");
+					if (row == null)
+						return;
+					int iColumn = getColumnNo(event.x);
+					if (iColumn < 0)
+						return;
+					TableColumn tcColumn = table.getColumn(iColumn);
+					String sCellName = (String) tcColumn.getData("Name");
+					if (sCellName == null)
+						return;
+
+					TableCellCore cell = row.getTableCellCore(sCellName);
+					if (cell == null)
+						return;
+					cell.invokeToolTipListeners(TableCellCore.TOOLTIPLISTENER_HOVER);
+					Object oToolTip = cell.getToolTip();
+
+					// TODO: support composite, image, etc
+					if (oToolTip == null || !(oToolTip instanceof String))
+						return;
+					String sToolTip = (String) oToolTip;
+
+					Display d = table.getDisplay();
+					if (d == null)
+						return;
+
+					// We don't get mouse down notifications on trim or borders..
+					toolTipShell = new Shell(table.getShell(), SWT.ON_TOP);
+					FillLayout f = new FillLayout();
+					try {
+						f.marginWidth = 3;
+						f.marginHeight = 1;
+					} catch (NoSuchFieldError e) {
+						/* Ignore for Pre 3.0 SWT.. */
+					}
+					toolTipShell.setLayout(f);
+					toolTipShell.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+
+					toolTipLabel = new Label(toolTipShell, SWT.WRAP);
+					toolTipLabel.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
+					toolTipLabel.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
+					toolTipShell.setData("_TABLEITEM", item);
+					toolTipShell.setData("TableCellCore", cell);
+					toolTipLabel.setText(sToolTip.replaceAll("&", "&&"));
+					// compute size on label instead of shell because label
+					// calculates wrap, while shell doesn't
+					Point size = toolTipLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+					if (size.x > 600) {
+						size = toolTipLabel.computeSize(600, SWT.DEFAULT, true);
+					}
+					size.x += toolTipShell.getBorderWidth() * 2;
+					size.y += toolTipShell.getBorderWidth() * 2;
+					try {
+						size.x += toolTipShell.getBorderWidth() * 2 + (f.marginWidth * 2);
+						size.y += toolTipShell.getBorderWidth() * 2 + (f.marginHeight * 2);
+					} catch (NoSuchFieldError e) {
+						/* Ignore for Pre 3.0 SWT.. */
+					}
+					Point pt = table.toDisplay(event.x, event.y + 21);
+					Rectangle displayRect;
+					try {
+						displayRect = toolTipShell.getMonitor().getClientArea();
+					} catch (NoSuchMethodError e) {
+						displayRect = toolTipShell.getDisplay().getClientArea();
+					}
+					if (pt.x + size.x > displayRect.x + displayRect.width) {
+						pt.x = displayRect.x + displayRect.width - size.x;
+					}
+					
+					if (pt.y + size.y > displayRect.y + displayRect.height) {
+						pt.y -= (size.y * 2 - 23);
+					}
+
+					toolTipShell.setBounds(pt.x, (pt.y < 0) ? 0 : pt.y, size.x, size.y);
+					toolTipShell.setVisible(true);
+
+					break;
+				}
+				
+				case SWT.Dispose:
+					if (mainShell != null)
+						mainShell.removeListener(SWT.FocusOut, this);
+					// fall through
+				
+				default:
+					if (toolTipShell != null) {
+						toolTipShell.dispose();
+						toolTipShell = null;
+						toolTipLabel = null;
+					}
+					break;
+			} // switch
+		} // handlEvent()
   }
 
   private int getColumnNo(int iMouseX) {
@@ -1597,21 +2154,255 @@ public class TableView
 	  super.generateDiagnostics( writer );
 	  
 	  try{
-		  objectToSortableItem_mon.enter();
+		  dataSourceToRow_mon.enter();
 		  
-		  writer.println( "TableView: " + objectToSortableItem.size());
+		  writer.println( "TableView: " + dataSourceToRow.size());
 		  
-		  Iterator	it = objectToSortableItem.keySet().iterator();
+		  Iterator	it = dataSourceToRow.keySet().iterator();
 		  
 		  while( it.hasNext()){
 			  
 			  Object key = it.next();
 			  
-			  writer.println( "  " + key + " -> " + objectToSortableItem.get(key));
+			  writer.println( "  " + key + " -> " + dataSourceToRow.get(key));
 		  }
 	  }finally{
 		  
-		  objectToSortableItem_mon.exit();
+		  dataSourceToRow_mon.exit();
 	  }
   }
+  
+  public boolean getSkipFirstColumn() {
+  	return bSkipFirstColumn;
+  }
+  
+  public void setRowDefaultHeight(int iHeight) {
+		if (ptIconSize == null)
+			ptIconSize = new Point(1, iHeight);
+		else
+			ptIconSize.y = iHeight;
+		bSkipFirstColumn = true;
+	}
+
+	public int getRowDefaultHeight() {
+		if (ptIconSize == null)
+			return 0;
+		return ptIconSize.y;
+	}
+
+	public void setRowDefaultIconSize(Point size) {
+		ptIconSize = size;
+		bSkipFirstColumn = true;
+	}
+
+	// TabViews Functions
+	public void addTabView(IView view) {
+		if (view == null || tabFolder == null)
+			return;
+
+		TabItem item = new TabItem(tabFolder, SWT.NULL);
+		Messages.setLanguageText(item, view.getData());
+		view.initialize(tabFolder);
+		item.setControl(view.getComposite());
+		tabViews.add(view);
+	}
+
+	private synchronized void sortColumn(boolean bForceDataRefresh,
+			boolean bFillGapsOnly) {
+
+		long lTimeStart;
+		if (DEBUG_SORTER) {
+			//System.out.println(">>> Sort.. ");
+			lTimeStart = System.currentTimeMillis();
+		}
+
+		int iNumMoves = 0;
+
+		// This actually gets the focus, assuming the focus is selected
+		int iFocusIndex = table.getSelectionIndex();
+		TableRowCore focusedRow = (iFocusIndex == -1) ? null : (TableRowCore) table
+				.getItem(iFocusIndex).getData("TableRow");
+
+		int[] selectedRowIndices = table.getSelectionIndices();
+		TableRowCore[] selectedRows = new TableRowCore[selectedRowIndices.length];
+		for (int i = 0; i < selectedRowIndices.length; i++) {
+			selectedRows[i] = (TableRowCore) table.getItem(selectedRowIndices[i])
+					.getData("TableRow");
+		}
+
+		try {
+			sortedRows_mon.enter();
+
+			if (bForceDataRefresh) {
+				for (Iterator iter = sortedRows.iterator(); iter.hasNext();) {
+					TableRowCore row = (TableRowCore) iter.next();
+					TableCellCore cell = row.getTableCellCore(rowSorter.sColumnName);
+					if (cell != null) {
+						cell.refresh();
+					}
+				}
+			}
+
+			if (!bFillGapsOnly) {
+				Collections.sort(sortedRows, rowSorter);
+
+				if (DEBUG_SORTER) {
+					long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
+					if (lTimeDiff > 150)
+						System.out.println("--- Build & Sort took " + lTimeDiff + "ms");
+				}
+			}
+
+			if (bTableVirtual) {
+				// No Refresh for virtual, OS will trigger a SWT.SetData almost 
+				// immediately where we refresh
+				for (int i = 0; i < sortedRows.size(); i++) {
+					TableRowCore row = (TableRowCore) sortedRows.get(i);
+					if (row.setTableItem(i))
+						iNumMoves++;
+				}
+			} else {
+				for (int i = 0; i < sortedRows.size(); i++) {
+					TableRowCore row = (TableRowCore) sortedRows.get(i);
+					if (row.setTableItem(i)) {
+						iNumMoves++;
+						if (row.isVisible())
+							row.refresh(true);
+					}
+				}
+			}
+		} finally {
+			sortedRows_mon.exit();
+		}
+
+		// move cursor to selected row
+		/** SWT/Windows Bug:
+		 * When we set selection, the first index is the focus row.
+		 * This works visually, however, if you press shift-up or shift-down,
+		 * it uses an older selection index.
+		 * 
+		 * ie. User selects row #10
+		 *     Programmically change selection to Row #15 only
+		 *     Shift-down
+		 *     Rows 10 through 26 will be selected
+		 *     
+		 * This is Eclipse bug #77106, and is marked WONTFIX 
+		 */
+		if (focusedRow != null) {
+			int pos = 1;
+			int numSame = 0;
+			int[] newSelectedRowIndices = new int[selectedRows.length];
+			Arrays.sort(selectedRowIndices);
+			for (int i = 0; i < selectedRows.length; i++) {
+				int index = selectedRows[i].getIndex();
+				newSelectedRowIndices[(selectedRows[i] == focusedRow) ? 0 : pos++] = index;
+				if (Arrays.binarySearch(selectedRowIndices, index) >= 0)
+					numSame++;
+			}
+			
+			if (numSame < selectedRows.length) {
+				// XXX setSelection calls showSelection().  We don't want the table
+				//     to jump all over.  Quick fix is to reset topIndex, but
+				//     there might be a better way
+				table.setRedraw(false);
+				int iTopIndex = table.getTopIndex();
+				table.setSelection(newSelectedRowIndices);
+				table.setTopIndex(iTopIndex);
+				table.setRedraw(true);
+			}
+		}
+
+		if (DEBUG_SORTER) {
+			long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
+			if (lTimeDiff >= 500)
+				System.out.println("<<< Sort & Assign took " + lTimeDiff + "ms with "
+						+ iNumMoves + " rows (of " + sortedRows.size() + ") moved. "
+						+ focusedRow);
+		}
+	}
+
+	public void sortColumnReverse(TableColumnCore tableColumn) {
+		boolean bSameColumn = (rowSorter.sColumnName.equals(tableColumn.getName()));
+		if (!bSameColumn) {
+			if (configMan.getBooleanParameter(CFG_SORTDIRECTION))
+				rowSorter.bAscending = true;
+			else
+				rowSorter.bAscending = !rowSorter.bAscending;
+			rowSorter.sColumnName = tableColumn.getName();
+
+			configMan.setParameter(sTableID + ".sortAsc", rowSorter.bAscending);
+			configMan.setParameter(sTableID + ".sortColumn",
+					rowSorter.sColumnName);
+		} else {
+			rowSorter.bAscending = !rowSorter.bAscending;
+			configMan.setParameter(sTableID + ".sortAsc", rowSorter.bAscending);
+		}
+
+		changeColumnIndicator();
+		sortColumn(!bSameColumn, false);
+	}
+
+	private void changeColumnIndicator() {
+		if (table == null || table.isDisposed())
+			return;
+
+		try {
+			// can't use TableColumnCore.getPosition, because user may have moved
+			// columns around, messing up the SWT column indexes.  
+			// We can either use search columnsOrdered, or search table.getColumns()
+			TableColumn[] tcs = table.getColumns();
+			for (int i = 0; i < tcs.length; i++) {
+				String sName = (String)tcs[i].getData("Name");
+				if (sName != null && sName.equals(rowSorter.sColumnName)) {
+					table.setSortColumn(tcs[i]);
+					table.setSortDirection(rowSorter.bAscending ? SWT.UP : SWT.DOWN);
+					return;
+				}
+			}
+
+			table.setSortColumn(null);
+		} catch (NoSuchMethodError e) {
+			// sWT < 3.2 doesn't have column indicaters
+		}
+	}
+
+	private void visibleRowsChanged() {
+		int iTopIndex = table.getTopIndex();
+		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+
+		if (lastTopIndex != iTopIndex) {
+			if (iTopIndex < lastTopIndex) {
+				try {
+					sortedRows_mon.enter();
+					for (int i = iTopIndex; i < lastTopIndex && i < sortedRows.size(); i++) {
+						TableRowCore row = (TableRowCore) sortedRows.get(i);
+						row.refresh(true);
+					}
+				} finally {
+					sortedRows_mon.exit();
+				}
+			}
+			lastTopIndex = table.getTopIndex();
+		}
+
+		if (lastBottomIndex != iBottomIndex) {
+			if (lastBottomIndex < 0)
+				lastBottomIndex = 0;
+
+			if (lastBottomIndex <= iBottomIndex) {
+				try {
+					sortedRows_mon.enter();
+					for (int i = lastBottomIndex + 1; i <= iBottomIndex
+							&& i < sortedRows.size(); i++) {
+						TableRowCore row = (TableRowCore) sortedRows.get(i);
+						row.refresh(true);
+					}
+				} finally {
+					sortedRows_mon.exit();
+				}
+			}
+			lastBottomIndex = iBottomIndex;
+		}
+	}
+
 }

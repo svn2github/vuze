@@ -80,6 +80,14 @@ public interface TableCell {
    * Caching is done, so that if same text is used several times,
    * there won't be any 'flickering' effect. Ie the text is only updated if
    * it's different from current value.
+   * <p>
+   * This function must be called from the same thread that the GUI is running
+   * under.  Listeners like {@link TableCellAddedListener} do not always get
+   * called on the GUI thread.
+   * <p>
+   * If you wish to set the text and not worry about changing to the GUI thread,
+   * use {@link #invalidate()}, and set the text in the 
+   * {@link TableCellRefreshListener}
    *
    * @param text the text to be set
    * @return True - the text was updated.<br>
@@ -150,8 +158,42 @@ public interface TableCell {
    */
   boolean isValid();
 
+  /** Sets the cell to invalid. This will result in a refresh on the next 
+   * scheduled interval.
+   *
+   * @since 2.3.0.7
+   */
+  public void invalidate();
+
+  /**
+   * Set the cell's tooltip display.
+   * 
+   * 
+   * @param tooltip Object to display.  Currently, only String is supported
+   * 
+   * @see #addToolTipListener(TableCellToolTipListener)
+   * @since 2.1.0.2
+   */
   public void setToolTip(Object tooltip);
+  /**
+   * Retrieve the tooltip object assigned to this cell
+   * 
+   * @return tooltip object
+   * 
+   * @see #addToolTipListener(TableCellToolTipListener)
+   * @since 2.1.0.2
+   */
   public Object getToolTip();
+
+  
+  /**
+   * Retrieve whether the cell has been disposed.  This will return true after
+   * the {@link TableCellDisposeListener} is triggered.
+   * 
+   * @return disposal state
+   * @since 2.3.0.7
+   */
+  public boolean isDisposed();
 
   //////////////////////////////////
   // Start TYPE_GRAPHIC functions //
@@ -262,4 +304,12 @@ public interface TableCell {
    * @param listener Previously added listener
    */
   public void removeToolTipListener(TableCellToolTipListener listener);
+  
+  /**
+   * A listener is added for every type of cell listener the supplied object 
+   * implements
+   *  
+   * @param listenerObject Object implementing some cell listeneters
+   */
+  public void addListeners(Object listenerObject);
 }

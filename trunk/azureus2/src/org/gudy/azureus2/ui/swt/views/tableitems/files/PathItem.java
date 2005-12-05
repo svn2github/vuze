@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.views.FilesView;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
@@ -45,7 +46,6 @@ public class PathItem
 
   public void refresh(TableCell cell) {
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    
     String path = "";
     
     if( fileInfo != null ) {

@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.peer.PEPiece;
@@ -59,18 +60,38 @@ public class PiecesView
 
   DownloadManager manager;
   
-  public PiecesView(DownloadManager manager) {
-    super(TableManager.TABLE_TORRENT_PIECES, "PiecesView",
-          basicItems, basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION);
-    
-    this.manager = manager;
+  /**
+   * Initialize
+   *
+   */
+  public PiecesView() {
+    super(TableManager.TABLE_TORRENT_PIECES, "PiecesView", basicItems,
+				basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
+    bEnableTabViews = true;
   }
 
-  public void initialize(Composite composite) {
+	public void dataSourceChanged(Object newDataSource) {
+  	if (manager != null)
+  		manager.removePeerListener(this);
+
+		if (newDataSource == null)
+			manager = null;
+		else if (newDataSource instanceof Object[])
+			manager = (DownloadManager)((Object[])newDataSource)[0];
+		else
+			manager = (DownloadManager)newDataSource;
+  	
+  	if (manager != null && getTable() != null) {
+    	manager.addPeerListener(this, false);
+    	addExistingDatasources();
+    }
+	}
+
+	public void initialize(Composite composite) {
     super.initialize(composite);
     
     Legend.createLegendComposite(
-    		getComposite(),
+    		getTableComposite(),
         	new Color[] {
         		Colors.blues[Colors.BLUES_MIDLIGHT],
         		Colors.blues[Colors.BLUES_DARKEST],        		
@@ -82,22 +103,25 @@ public class PiecesView
     				"PiecesView.legend.downloaded",
     				"PiecesView.legend.incache"}
         	);
-    
-    manager.addPeerListener(this);
   }
 
   public void tableStructureChanged() {
     //1. Unregister for item creation
-    manager.removePeerListener(this);
+  	if (manager != null)
+  		manager.removePeerListener(this);
     
     super.tableStructureChanged();
 
     //5. Re-add as a listener
-    manager.addPeerListener(this);
+    if (manager != null) {
+    	manager.addPeerListener(this, false);
+    	addExistingDatasources();
+    }
   }
   
   public void delete() {
-    manager.removePeerListener(this);
+  	if (manager != null)
+  		manager.removePeerListener(this);
     super.delete();
   }
 
@@ -114,4 +138,31 @@ public class PiecesView
   public void peerRemoved(PEPeer peer) {  }
 	public void peerManagerAdded(PEPeerManager manager) {	}
 	public void peerManagerRemoved(PEPeerManager	manager) {	}
+
+	/**
+	 * Add datasources already in existance before we called addListener.
+	 * Faster than allowing addListener to call us one datasource at a time. 
+	 */
+	private void addExistingDatasources() {
+		if (manager == null)
+			return;
+		PEPeerManager pm = manager.getPeerManager();
+		if (pm == null)
+			return;
+		Object[] dataSources = pm.getPieces();
+		if (dataSources == null || dataSources.length == 0)
+			return;
+    Object dataSourcesCopy[] = new Object[dataSources.length]; 
+    System.arraycopy(dataSources, 0, dataSourcesCopy, 0, dataSources.length);
+		
+		addDataSources(dataSourcesCopy);
+	}
+
+	public void initializeTable(Table table) {
+		super.initializeTable(table);
+
+		// Table is initialized, we can add datasources to it now
+  	manager.addPeerListener(this, false);
+  	addExistingDatasources();
+	}
 }

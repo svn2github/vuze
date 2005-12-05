@@ -26,17 +26,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.TableItem;
-
+import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -45,7 +42,6 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerImpl;
 import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.views.TableView;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
@@ -57,6 +53,11 @@ import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
  * row and handles refreshing them.
  *
  * @see TableCellImpl
+ * 
+ * @author TuxPaper
+ *            2005/Oct/07: Moved TableItem.SetData("TableRow", ..) to 
+ *                         BufferedTableRow
+ *            2005/Oct/07: Removed all calls to BufferedTableRoe.getItem()
  */
 public class TableRowImpl 
        extends BufferedTableRow 
@@ -68,36 +69,41 @@ public class TableRowImpl
   
   private Object coreDataSource;
   private Object pluginDataSource;
+  private boolean bDisposed;
 
-  /** Must be initialized on the Display thread */
-  public TableRowImpl(TableView tableView, Object dataSource,
-                      boolean bSkipFirstColumn) {
-    this(tableView, dataSource, bSkipFirstColumn, -1);
-  }
-
-  public TableRowImpl(TableView tableView, Object dataSource,
-                      boolean bSkipFirstColumn, int index) {
-    super(tableView.getTable(), index);
-    this.sTableID = tableView.getTableID();
+  /**
+   * Default constructor
+   * 
+   * @param table
+   * @param sTableID
+   * @param columnsSorted
+   * @param dataSource
+   * @param bSkipFirstColumn
+   */
+  public TableRowImpl(Table table, String sTableID,
+			TableColumnCore[] columnsSorted, Object dataSource,
+			boolean bSkipFirstColumn) {
+		super(table);
+    this.sTableID = sTableID;
     coreDataSource = dataSource;
     mTableCells = new HashMap();
+    bDisposed = false;
 
-    // TableColumnCore objects contains a list of all column definitions for the table
-    TableColumnCore[] tableColumns = tableView.getAllTableColumnCore();
-    
     // create all the cells for the column
-    for (int i = 0; i < tableColumns.length; i++) {
+    for (int i = 0; i < columnsSorted.length; i++) {
+    	if (columnsSorted[i] == null)
+    		continue;
       //System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
-      mTableCells.put(tableColumns[i].getName(), 
-                      new TableCellImpl(TableRowImpl.this, tableColumns[i], 
-                                        bSkipFirstColumn));
+      mTableCells.put(columnsSorted[i].getName(), 
+                      new TableCellImpl(TableRowImpl.this, columnsSorted[i], 
+                                        bSkipFirstColumn ? i+1 : i));
     }
-
-    TableItem ti = getItem();
-    if (ti != null) ti.setData("TableRow", this);
   }
 
   public boolean isValid() {
+  	if (bDisposed)
+  		return true;
+
     boolean valid = true;
     Iterator iter = mTableCells.values().iterator();
     while (iter.hasNext()) {
@@ -124,53 +130,41 @@ public class TableRowImpl
   }
   
   public TableCell getTableCell(String field) {
+  	if (bDisposed)
+  		return null;
     return (TableCell)mTableCells.get(field);
   }
   
   /* Start Core-Only functions */
   ///////////////////////////////
 
-  public void setValid(boolean valid) {
-    Iterator iter = mTableCells.values().iterator();
-    while (iter.hasNext()) {
-      TableCellCore cell = (TableCellCore)iter.next();
-      if (cell != null)
-        cell.setValid(valid);
-    }
-  }
-  
   public void delete() {
-    delete(true);
+  	if (bDisposed)
+  		return;
+  	
+  	if (!table.isDisposed() && TableView.DEBUGADDREMOVE)
+  		System.out.println(table.getData("Name") + " row delete; index=" + getIndex());
+
+  	bDisposed = true;
+
+    // Manually dispose of TableCellImpl objects, since row does
+    // not contain a list of them.
+    Iterator iter = mTableCells.values().iterator();
+    while(iter.hasNext()) {
+      TableCellCore item = (TableCellCore)iter.next();
+      item.dispose();
+    }
+
+    // Dispose of row
+    dispose();
   }
   
-  public void delete(boolean deleteItem) {
-    /*Display display = SWTThread.getInstance().getDisplay();
-    if (display == null || display.isDisposed())
-      return;
-    display.asyncExec(new AERunnable() {
-      public void runSupport() {*/
-        // Manually dispose of TableCellImpl objects, since row does
-        // not contain a list of them.
-        Iterator iter = mTableCells.values().iterator();
-        while(iter.hasNext()) {
-          TableCellCore item = (TableCellCore)iter.next();
-          item.dispose();
-        }
-
-        TableItem ti = getItem();
-        if (ti != null && !ti.isDisposed()) {
-          ti.setData("TableRow", null);
-        }
-        
-        // Dispose of row
-        dispose();
-    //  }
-    //});
-  }
-
   public void refresh(boolean bDoGraphics) {
-    if (isDisposed())
+    if (bDisposed)
       return;
+    
+    // Must refresh even non-visible cells, since cell may want to set
+    // other things (like sort #)
 
     Iterator iter = mTableCells.values().iterator();
     while(iter.hasNext()) {
@@ -180,8 +174,8 @@ public class TableRowImpl
   }
   
   public void locationChanged(int iStartColumn) {
-  	if (isDisposed())
-  		return;
+    if (bDisposed || !isVisible())
+      return;
 
   	Iterator iter = mTableCells.values().iterator();
   	while(iter.hasNext()) {
@@ -192,7 +186,7 @@ public class TableRowImpl
   }
 
   public void doPaint(GC gc) {
-    if (isDisposed())
+    if (bDisposed || !isVisible())
       return;
 
     Iterator iter = mTableCells.values().iterator();
@@ -205,24 +199,15 @@ public class TableRowImpl
   }
 
   public TableCellCore getTableCellCore(String field) {
+  	if (bDisposed)
+  		return null;
+
     return (TableCellCore)mTableCells.get(field);
   }
 
-  public void setHeight(int iHeight) {
-    TableItem ti = getItem();
-    if (ti == null)
-      return;
-    // set row height by setting image
-    Image image = new Image(ti.getDisplay(), 1, iHeight);
-    ti.setImage(0, image);
-    ti.setImage(0, null);
-    image.dispose();
-  }
-
   public Object getDataSource(boolean bCoreObject) {
-    TableItem ti = getItem();
-    if (ti == null || ti.isDisposed())
-      return null;
+  	if (bDisposed)
+  		return null;
 
     if (bCoreObject)
       return coreDataSource;
@@ -271,23 +256,63 @@ public class TableRowImpl
     return pluginDataSource;
   }
   
-  // Flicker
-  public boolean setIndex(int newIndex) {
-    if (super.setIndex(newIndex)) {
-      getItem().setData("TableRow", this);
-      return true;
-    }
-    return false;
-  }
+	public boolean isRowDisposed() {
+		return bDisposed;
+	}
 
-  public boolean setDataSource(Object dataSource) {
-    if (getDataSource(true) != dataSource) {
-      //System.out.println(getDataSource(true) + " != " + dataSource);
-      coreDataSource = dataSource;
-      pluginDataSource = null;
-      setValid(false);
-      return true;
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#getIndex()
+	 */
+	public int getIndex() {
+		if (bDisposed)
+			return -1;
+
+		return super.getIndex();
+	}
+
+	public boolean setTableItem(int newIndex) {
+		if (bDisposed) {
+			System.out.println("XXX setTI: bDisposed");
+			return false;
+		}
+			
+		return setTableItem(newIndex, false);
+	}
+	
+	public void setForeground(Color c) {
+  	// Don't need to set when not visible
+  	if (!isVisible())
+  		return;
+  	
+  	super.setForeground(c);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#invalidate()
+	 */
+	public void invalidate() {
+		super.invalidate();
+		
+  	if (bDisposed)
+  		return;
+
+    Iterator iter = mTableCells.values().iterator();
+    while (iter.hasNext()) {
+      TableCellCore cell = (TableCellCore)iter.next();
+      if (cell != null)
+        cell.invalidate(true);
     }
-    return false;
-  }
+	}
+
+	public void setUpToDate(boolean upToDate) {
+  	if (bDisposed)
+  		return;
+
+    Iterator iter = mTableCells.values().iterator();
+    while (iter.hasNext()) {
+      TableCellCore cell = (TableCellCore)iter.next();
+      if (cell != null)
+        cell.setUpToDate(upToDate);
+    }
+	}
 }

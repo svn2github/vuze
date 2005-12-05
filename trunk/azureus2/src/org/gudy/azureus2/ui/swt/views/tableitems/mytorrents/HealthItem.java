@@ -60,7 +60,7 @@ public class HealthItem
   {
 
     public Cell(TableCell cell) {
-      cell.addRefreshListener(this);
+			cell.addListeners(this);
       cell.setMarginWidth(0);
       cell.setMarginHeight(0);
     }

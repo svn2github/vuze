@@ -21,13 +21,15 @@
  * AELITIS, SARL au capital de 30,000 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -37,31 +39,37 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @author Olivier
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class NameItem
-       extends CoreTableColumn 
-       implements TableCellRefreshListener
-{
-  /** Default Constructor */
-  public NameItem(String sTableID) {
-    super("name", POSITION_LAST, 250, sTableID);
-  }
+public class NameItem extends CoreTableColumn implements
+		TableCellRefreshListener, TableCellDisposeListener {
+	/** Default Constructor */
+	public NameItem(String sTableID) {
+		super("name", POSITION_LAST, 250, sTableID);
+		setType(TableColumn.TYPE_TEXT);
+	}
 
-  public void refresh(TableCell cell) {
-    String name = null;
-    DownloadManager dm = (DownloadManager)cell.getDataSource();
-    if (dm != null)
-      name = dm.getDisplayName();
-    if (name == null)
-      name = "";
+	public void refresh(TableCell cell) {
+		String name = null;
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		if (dm != null)
+			name = dm.getDisplayName();
+		if (name == null)
+			name = "";
 
-    //setText returns true only if the text is updated
-    if (cell.setText(name)) {
-    	if ( dm != null ){
-            Image icon = ImageRepository.getPathIcon(dm.getSaveLocation().toString());
-            // cheat for core, since we really know it's a TabeCellImpl and want to use
-            // those special functions not available to Plugins
-            ((TableCellCore)cell).setImage(icon);
-    	}
-    }
-  }
+		//setText returns true only if the text is updated
+		if (cell.setText(name) || !cell.isValid()) {
+			if (dm != null) {
+				Image icon = ImageRepository.getPathIcon(dm.getSaveLocation()
+						.toString());
+				// cheat for core, since we really know it's a TabeCellImpl and want to
+				// use those special functions not available to Plugins
+				((TableCellCore) cell).setImage(icon);
+			}
+		}
+	}
+
+	public void dispose(TableCell cell) {
+		DownloadManager dm = (DownloadManager) cell.getDataSource();
+		if (dm != null)
+			ImageRepository.unloadPathIcon(dm.getSaveLocation().toString());
+	}
 }

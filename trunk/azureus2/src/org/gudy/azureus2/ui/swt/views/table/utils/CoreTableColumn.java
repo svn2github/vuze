@@ -34,12 +34,16 @@ public class CoreTableColumn
        extends TableColumnImpl 
 {
   /** Construct a new CoreTableColumn
+   * Type will be TYPE_TEXT, Update Interval will be INTERVAL_INVALID_ONLY
+   * <p>
+   * TableCell listeners (Added, Refresh, Dispose, ToolTip) are added based on
+   * whether the class is an instance of them.
    *
-   * @param sName See {@link #getName()}
+   * @param sName Unique ID for column 
    * @param iAlignment See {@link #getAlignment()}
-   * @param iPosition See {@link #getPosition(int)}
-   * @param iWidth See {@link #getWidth()}
-   * @param sTableID See {@link #getTableID()}
+   * @param iPosition See {@link TableColumn#setPosition(int)}
+   * @param iWidth See {@link TableColumn#setWidth(int)}
+   * @param sTableID See {@link TableManager}_TABLE*
    */
   public CoreTableColumn(String sName, int iAlignment,
                          int iPosition, int iWidth,
@@ -51,15 +55,16 @@ public class CoreTableColumn
   }
 
   /** Construct a new CoreTableColumn.<p>
-   * getAlignment() will be determined by iType.  TYPE_STRING will be ALIGN_LEAD, 
-   * TYPE_LONG will be ALIGN_TRAIL, and TYPE_GRAPHIC will be ALIGN_CENTER.
+   * Alignment will be ALIGN_LEAD, Type will be TYPE_TEXT, 
+   * Update Interval will be INTERVAL_INVALID_ONLY
    * <p>
-   * getPosition(int) will be POSITION_INVISIBLE
+   * TableCell listeners (Added, Refresh, Dispose, ToolTip) are added based on
+   * whether the class is an instance of them.
    *
-   * @param sName See {@link TableColumn#setName()}
+   * @param sName Unique ID for column 
    * @param iPosition See {@link TableColumn#setPosition(int)}
-   * @param iWidth See {@link TableColumn#setWidth()}
-   * @param sTableID See {@link TableColumn#setTableID()}
+   * @param iWidth See {@link TableColumn#setWidth(int)}
+   * @param sTableID See {@link TableManager}_TABLE*
    */
   public CoreTableColumn(String sName, int iPosition, int iWidth, 
                          String sTableID) {
@@ -70,6 +75,17 @@ public class CoreTableColumn
     addListeners();
   }
 
+  /** Construct a new CoreTableColumn.<p>
+   * Alignment will be ALIGN_LEAD, Type will be TYPE_TEXT, Position will be
+   * POSITION_INVISIBLE, Update Interval will be INTERVAL_INVALID_ONLY
+   * <p>
+   * TableCell listeners (Added, Refresh, Dispose, ToolTip) are added based on
+   * whether the class is an instance of them.
+   *
+   * @param sName Unique ID for column 
+   * @param iWidth See {@link TableColumn#setWidth(int)}
+   * @param sTableID See {@link TableManager}_TABLE*
+   */
   public CoreTableColumn(String sName, int iWidth, String sTableID) {
     super(sTableID, sName);
     setWidth(iWidth);
@@ -77,6 +93,17 @@ public class CoreTableColumn
     addListeners();
   }
 
+  /** Construct a new CoreTableColumn.<p>
+   * Alignment will be ALIGN_LEAD, Type will be TYPE_TEXT, Position will be
+   * POSITION_INVISIBLE, Width will be 50, Update Interval will be 
+   * INTERVAL_INVALID_ONLY
+   * <p>
+   * TableCell listeners (Added, Refresh, Dispose, ToolTip) are added based on
+   * whether the class is an instance of them.
+   *
+   * @param sName Unique ID for column 
+   * @param sTableID See {@link TableManager}_TABLE*
+   */
   public CoreTableColumn(String sName, String sTableID) {
     super(sTableID, sName);
     setUseCoreDataSource(true);
@@ -88,7 +115,6 @@ public class CoreTableColumn
     setWidth(iWidth);
     setType(TYPE_GRAPHIC);
     setRefreshInterval(INTERVAL_GRAPHIC);
-    addListeners();
   }
   
   private void addListeners() {
