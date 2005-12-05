@@ -55,9 +55,7 @@ BufferedTableRow
 {
 	private static final int VALUE_SIZE_INC	= 8;
 	
-	private static final  Color[] alternatingColors = {
-		Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
-		Colors.colorAltRow };
+	private static Color[] alternatingColors = null;
 	
 	protected Table table;
 	protected TableItem	item;
@@ -81,6 +79,11 @@ BufferedTableRow
 	{
 		table = _table;
 		item = null;
+		if (alternatingColors == null) {
+			alternatingColors = new Color[] {
+					Display.getCurrent().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+					Colors.colorAltRow };
+		}
 	}
 	
 	/**
