@@ -919,6 +919,9 @@ public class TableView
   private void addThisColumnSubMenu(int iColumn) {
     MenuItem item;
 
+    if (menuThisColumn == null || menuThisColumn.isDisposed())
+    	return;
+
     // Dispose of the old items
     MenuItem[] oldItems = menuThisColumn.getItems();
     for (int i = 0; i < oldItems.length; i++) {
