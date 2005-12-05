@@ -275,6 +275,9 @@ public class TableColumnEditorWindow {
     // For Windows, to get rid of the scrollbar
     p.y += 2;
     
+    if (p.y + 64 > display.getClientArea().height)
+    	p.y = display.getBounds().height - 64;
+    
     shell.setSize(p);
     
     Utils.centreWindow(shell);
