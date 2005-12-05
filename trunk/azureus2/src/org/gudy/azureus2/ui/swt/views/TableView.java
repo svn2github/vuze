@@ -1273,7 +1273,8 @@ public class TableView
   	if (!bImmediate) {
   		if (dataSourcesToAdd == null)
   			dataSourcesToAdd = new ArrayList(4);
-  		Collections.addAll(dataSourcesToAdd, dataSources);
+  		for (int i = 0; i < dataSources.length; i++)
+  			dataSourcesToAdd.add(dataSources[i]);
   		return;
   	}
   	
@@ -1410,7 +1411,8 @@ public class TableView
   	if (!bImmediate) {
   		if (dataSourcesToRemove == null)
   			dataSourcesToRemove = new ArrayList(4);
-  		Collections.addAll(dataSourcesToRemove, dataSources);
+  		for (int i = 0; i < dataSources.length; i++)
+  			dataSourcesToRemove.add(dataSources[i]);
   		return;
   	}
   	
