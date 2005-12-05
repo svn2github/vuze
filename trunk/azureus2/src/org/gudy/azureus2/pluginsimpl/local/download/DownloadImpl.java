@@ -332,10 +332,9 @@ DownloadImpl
 		throws DownloadException
 	{
 		if ( download_manager.getState() != DownloadManager.STATE_QUEUED){
-			
-			System.out.println( "Stop and Queue: " + getName() + " - state = " + download_manager.getState());
-			
+						
 			download_manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
+			
 		}else{
 			
 			throw( new DownloadException( "Download::stopAndQueue: download already queued" ));

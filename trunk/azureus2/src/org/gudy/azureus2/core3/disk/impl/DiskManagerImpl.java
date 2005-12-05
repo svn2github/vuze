@@ -1084,7 +1084,9 @@ DiskManagerImpl
 							this_file.setAccessMode( DiskManagerFileInfo.READ );
 									
 						}catch (Exception e) {
-									
+							
+							setFailed( "Disk access error - " + Debug.getNestedExceptionMessage(e));
+							
 							Debug.printStackTrace( e );
 						}
 						

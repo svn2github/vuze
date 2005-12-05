@@ -855,7 +855,7 @@ DMWriterAndCheckerImpl
 			
 			System.out.println( str );
 			*/
-			
+						
 			dispatch();
 		}	
 		
@@ -869,35 +869,98 @@ DMWriterAndCheckerImpl
 					
 				}else{
 					
-					Object[]	stuff = (Object[])chunks.get( chunk_index++ );
-					
-					DiskManagerFileInfoImpl	file = (DiskManagerFileInfoImpl)stuff[0];
-					
-					buffer.limit( DirectByteBuffer.SS_DR, ((Integer)stuff[2]).intValue());
-					
-					if ( file.getAccessMode() == DiskManagerFileInfo.READ ){
-						
-						if (Logger.isEnabled())
-							Logger.log(new LogEvent(disk_manager, LOGID, "Changing "
-									+ file.getFile(true).getName()
-									+ " to read/write"));
+					DiskAccessRequestListener	l;
 							
-						file.setAccessMode( DiskManagerFileInfo.WRITE );
+					if ( chunk_index == 1 && chunks.size() > 32 ){
+						
+							// for large numbers of chunks drop the recursion approach and
+							// do it linearly (but on the async thread)
+						
+						for (int i=1;i<chunks.size();i++){
+							
+							final AESemaphore	sem 	= new AESemaphore( "DMW&C:dispatch:asyncReq" );
+							final Throwable[]	error	= {null};
+							
+							doRequest( 
+								new DiskAccessRequestListener()
+								{
+									public void
+									requestComplete(
+										DiskAccessRequest	request )
+									{
+										sem.release();
+									}
+									
+									public void
+									requestCancelled(
+										DiskAccessRequest	request )
+									{
+										Debug.out( "shouldn't get here" );
+									}
+									
+									public void
+									requestFailed(
+										DiskAccessRequest	request,
+										Throwable			cause )
+									{
+										error[0]	= cause;
+										
+										sem.release();
+									}
+								});
+							
+							sem.reserve();
+							
+							if ( error[0] != null ){
+								
+								throw( error[0] );
+							}
+						}
+						
+						listener.writeCompleted( request );
+						
+					}else{
+						
+						doRequest( this );
 					}
-					
-					boolean	handover_buffer	= chunk_index == chunks.size(); 
-					
-					disk_access.queueWriteRequest(
-						file.getCacheFile(),
-						((Long)stuff[1]).longValue(),
-						buffer,
-						handover_buffer,
-						this );
 				}
 			}catch( Throwable e ){
 				
 				failed( e );
 			}
+		}
+		
+		protected void
+		doRequest(
+			DiskAccessRequestListener	l )
+		
+			throws CacheFileManagerException
+		{
+			Object[]	stuff = (Object[])chunks.get( chunk_index++ );
+
+			
+			DiskManagerFileInfoImpl	file = (DiskManagerFileInfoImpl)stuff[0];
+			
+			buffer.limit( DirectByteBuffer.SS_DR, ((Integer)stuff[2]).intValue());
+			
+			if ( file.getAccessMode() == DiskManagerFileInfo.READ ){
+				
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(disk_manager, LOGID, "Changing "
+							+ file.getFile(true).getName()
+							+ " to read/write"));
+					
+				file.setAccessMode( DiskManagerFileInfo.WRITE );
+			}
+			
+			boolean	handover_buffer	= chunk_index == chunks.size(); 
+			
+			disk_access.queueWriteRequest(
+				file.getCacheFile(),
+				((Long)stuff[1]).longValue(),
+				buffer,
+				handover_buffer,
+				l );
 		}
 		
 		public void

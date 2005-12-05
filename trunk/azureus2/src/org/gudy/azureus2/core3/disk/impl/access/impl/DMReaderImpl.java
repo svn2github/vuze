@@ -401,20 +401,84 @@ DMReaderImpl
 					
 				}else{
 					
-					Object[]	stuff = (Object[])chunks.get( chunk_index++ );
+					DiskAccessRequestListener	l;
 					
-					buffer.limit( DirectByteBuffer.SS_DR, ((Integer)stuff[2]).intValue());
-					
-					disk_access.queueReadRequest(
-						(CacheFile)stuff[0],
-						((Long)stuff[1]).longValue(),
-						buffer,
-						this );
+					if ( chunk_index == 1 && chunks.size() > 32 ){
+						
+							// for large numbers of chunks drop the recursion approach and
+							// do it linearly (but on the async thread)
+						
+						for (int i=1;i<chunks.size();i++){
+							
+							final AESemaphore	sem 	= new AESemaphore( "DMR:dispatch:asyncReq" );
+							final Throwable[]	error	= {null};
+							
+							doRequest( 
+								new DiskAccessRequestListener()
+								{
+									public void
+									requestComplete(
+										DiskAccessRequest	request )
+									{
+										sem.release();
+									}
+									
+									public void
+									requestCancelled(
+										DiskAccessRequest	request )
+									{
+										Debug.out( "shouldn't get here" );
+									}
+									
+									public void
+									requestFailed(
+										DiskAccessRequest	request,
+										Throwable			cause )
+									{
+										error[0]	= cause;
+										
+										sem.release();
+									}
+								});
+							
+							sem.reserve();
+							
+							if ( error[0] != null ){
+								
+								throw( error[0] );
+							}
+						}
+						
+						buffer.limit( DirectByteBuffer.SS_DR, buffer_length );
+						
+						buffer.position(  DirectByteBuffer.SS_DR, 0 );
+						
+						listener.readCompleted( dm_request, buffer );					
+					}else{
+						
+						doRequest( this );
+					}
 				}
 			}catch( Throwable e ){
 				
 				failed( e );
 			}
+		}
+		
+		protected void
+		doRequest(
+			DiskAccessRequestListener	l )
+		{
+			
+			Object[]	stuff = (Object[])chunks.get( chunk_index++ );
+			
+			buffer.limit( DirectByteBuffer.SS_DR, ((Integer)stuff[2]).intValue());
+			
+			disk_access.queueReadRequest(
+				(CacheFile)stuff[0],
+				((Long)stuff[1]).longValue(),
+				buffer,
+				l );
 		}
 		
 		public void
