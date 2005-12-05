@@ -67,11 +67,15 @@ DMWriterAndChecker
 	public boolean 
 	isChecking();
 
-	public void 
-	writeBlock(
+	public DiskManagerWriteRequest 
+	createWriteRequest(
 		int 							pieceNumber, 
 		int 							offset, 
 		DirectByteBuffer 				data,
-		Object 							user_data,
+		Object 							user_data );
+	
+	public void
+	writeBlock(
+		DiskManagerWriteRequest			request,
 		DiskManagerWriteRequestListener	listener );
 }

@@ -1637,19 +1637,30 @@ PEPeerControlImpl
     _stats = new PEPeerManagerStatsImpl( this );
   }
 
-  public void blockWritten(int pieceNumber, int offset, Object _user_data) {
-    PEPiece piece = _pieces[pieceNumber];
+  public void 
+  writeCompleted( 
+	DiskManagerWriteRequest 	request )
+  {
+    PEPiece piece = _pieces[request.getPieceNumber()];
     if (piece != null) {
-      piece.setWritten( (PEPeer)_user_data, offset / DiskManager.BLOCK_SIZE );
+      piece.setWritten( (PEPeer)request.getUserData(), request.getOffset() / DiskManager.BLOCK_SIZE );
     }    
   }
 
+  public void 
+  writeFailed( 
+	DiskManagerWriteRequest 	request, 
+	Throwable		 			cause )
+  {
+  }
+  
   public void writeBlock(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender) {
     PEPiece piece = _pieces[pieceNumber];
     int blockNumber = offset / DiskManager.BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBlockWritten(blockNumber);
-      _diskManager.enqueueWriteRequest(pieceNumber, offset, data, sender, this );
+      DiskManagerWriteRequest request = _diskManager.createWriteRequest(pieceNumber, offset, data, sender );
+      _diskManager.enqueueWriteRequest(request, this );
       if(endGameMode) {
         //In case we are in endGame mode, remove the piece from the chunk list
         removeFromEndGameModeChunks(pieceNumber,offset);
@@ -1684,7 +1695,10 @@ PEPeerControlImpl
     int blockNumber = offset / DiskManager.BLOCK_SIZE;
     if (piece != null && !piece.isWritten(blockNumber)) {
       piece.setBlockWritten(blockNumber);
-      _diskManager.enqueueWriteRequest(pieceNumber, offset, data, sender, this);
+      
+      DiskManagerWriteRequest request = _diskManager.createWriteRequest(pieceNumber, offset, data, sender);
+      
+      _diskManager.enqueueWriteRequest(request, this);
 
       //cancel any matching outstanding requests
       

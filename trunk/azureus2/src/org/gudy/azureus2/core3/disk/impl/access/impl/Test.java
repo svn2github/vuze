@@ -228,9 +228,10 @@ Test
 										
 										DirectByteBuffer b = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER, BLOCK_SIZE );
 										
-										dm.enqueueWriteRequest( piece_number, BLOCK_SIZE*block_number, b, null, null );	
+										dm.enqueueWriteRequest( 
+												dm.createWriteRequest( piece_number, BLOCK_SIZE*block_number, b, null ),
+												null );
 									}
-						
 								}
 								
 								if ( i %1000 == 0 ){

@@ -1309,15 +1309,22 @@ DiskManagerImpl
 		return( reader.readBlock( pieceNumber, offset, length ));
 	}
 	
+	public DiskManagerWriteRequest
+	createWriteRequest(
+		int 				pieceNumber,
+		int 				offset,
+		DirectByteBuffer 	data,
+		Object 				user_data )
+	{
+		return( writer_and_checker.createWriteRequest( pieceNumber, offset, data, user_data ));
+	}
+	
 	public void 
 	enqueueWriteRequest(
-		int 							pieceNumber, 
-		int 							offset, 
-		DirectByteBuffer 				data,
-		Object 							user_data,
+		DiskManagerWriteRequest			request,
 		DiskManagerWriteRequestListener	listener )
 	{
-		writer_and_checker.writeBlock( pieceNumber, offset, data, user_data, listener );
+		writer_and_checker.writeBlock( request, listener );
 	}
 	
 	

@@ -123,7 +123,7 @@ DMReaderImpl
 		int offset,
 		int length )
 	{
-		return( new DiskManagerRequestImpl( pieceNumber, offset, length ));
+		return( new DiskManagerReadRequestImpl( pieceNumber, offset, length ));
 	}
 		  
 		// returns null if the read can't be performed

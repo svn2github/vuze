@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.disk.impl.access.impl;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -52,37 +53,7 @@ DMWriterAndCheckerImpl
 	implements DMWriterAndChecker
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
-  
-	private static final long WRITE_THREAD_IDLE_LIMIT	= 60*1000;
-		
-	protected static final int	DEFAULT_WRITE_QUEUE_MAX	= 256;
-	protected static final int	DEFAULT_CHECK_QUEUE_MAX	= 128;
-	
-	protected static final int	QUEUE_REPORT_CHUNK		= 32;
-	
-		// global limit on size of write queue
-	
-	private static int			global_write_queue_block_sem_size;
-	private static AESemaphore	global_write_queue_block_sem;
-	private static int			global_write_queue_block_sem_next_report_size;
-	
-		// global limit on size of check queue
-	
-	static{
-		int	write_limit_blocks = COConfigurationManager.getIntParameter("DiskManager Write Queue Block Limit", 0);
-
-		global_write_queue_block_sem_size	= write_limit_blocks==0?DEFAULT_WRITE_QUEUE_MAX:write_limit_blocks;
-		
-		global_write_queue_block_sem_next_report_size	= global_write_queue_block_sem_size - QUEUE_REPORT_CHUNK;
-		
-		global_write_queue_block_sem = new AESemaphore("DMW&C::writeQ", global_write_queue_block_sem_size);
-		
-		if ( global_write_queue_block_sem_size == 0 ){
-			
-			global_write_queue_block_sem.releaseForever();
-		}
-	}
-  
+    
 	private static boolean 	friendly_hashing;
 
     static{
@@ -103,16 +74,15 @@ DMWriterAndCheckerImpl
 
 	private DiskManagerHelper		disk_manager;
 	private DiskAccessController	disk_access;
-	
-	private DiskWriteThread writeThread;
-	private List 			writeQueue			= new LinkedList();
-	private AESemaphore		writeCheckQueueSem	= new AESemaphore("writeCheckQ");				
-	
+		
 	private int				async_checks;
 	private AESemaphore		async_check_sem 	= new AESemaphore("DMW&C::asyncCheck");
 	
 	private int				async_reads;
 	private AESemaphore		async_read_sem 		= new AESemaphore("DMW&C::asyncRead");
+
+	private int				async_writes;
+	private AESemaphore		async_write_sem 		= new AESemaphore("DMW&C::asyncWrite");
 
 	private boolean	started;
 	
@@ -171,10 +141,9 @@ DMWriterAndCheckerImpl
 	public void
 	stop()
 	{
-		DiskWriteThread	current_write_thread;
-		
 		int	check_wait;
 		int	read_wait;
+		int write_wait;
 		
 		try{
 			this_mon.enter();
@@ -188,22 +157,15 @@ DMWriterAndCheckerImpl
 				// i.e. writes and checks (checks being doubly async)
 			
 			stopped	= true;
-         
-			current_write_thread	= writeThread;
-			
+         			
 			read_wait	= async_reads;
 			check_wait	= async_checks;
+			write_wait	= async_writes;
 			
 		}finally{
 			
 			this_mon.exit();
-		}
-			
-		if ( current_write_thread != null ){
-			
-			current_write_thread.stopWriteThread();
-		}
-				
+		}		
 	
 			// wait for reads
 		
@@ -219,8 +181,12 @@ DMWriterAndCheckerImpl
 			async_check_sem.reserve();
 		}
 		
-			// TODO wait for writes
+			// wait for writes
 		
+		for (int i=0;i<write_wait;i++){
+			
+			async_write_sem.reserve();
+		}	
 	}
 	
 	public boolean 
@@ -687,376 +653,288 @@ DMWriterAndCheckerImpl
 		}
 	}
 	 
-	/**
-	 * @param e
-	 * @return FALSE if the write failed for some reason. Error will have been reported
-	 * and queue element set back to initial state to allow a re-write attempt later
-	 */
-	
-	private boolean 
-	writeBlock(
-		QueueElement queue_entry ) 
+	public DiskManagerWriteRequest 
+	createWriteRequest(
+		int 									pieceNumber, 
+		int 									offset, 
+		DirectByteBuffer 						buffer,
+		Object 									user_data )
 	{
-		int pieceNumber 	= queue_entry.getPieceNumber();
-		int offset		 	= queue_entry.getOffset();
-		DirectByteBuffer buffer 	= queue_entry.getData();
-		int	initial_buffer_position = buffer.position(DirectByteBuffer.SS_DW);
-
-		PieceMapEntry current_piece = null;
-		
-		try{
-			int previousFilesLength = 0;
-			int currentFile = 0;
-			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
-			current_piece = pieceList.get(currentFile);
-			long fileOffset = current_piece.getOffset();
-			while ((previousFilesLength + current_piece.getLength()) < offset) {
-				previousFilesLength += current_piece.getLength();
-				currentFile++;
-				fileOffset = 0;
-				current_piece = pieceList.get(currentFile);
-			}
+		return( new DiskManagerWriteRequestImpl( pieceNumber, offset, buffer, user_data ));
+	}	
 	
-			boolean	buffer_handed_over	= false;
-			
-			//Now tempPiece points to the first file that contains data for this block
-			while (buffer.hasRemaining(DirectByteBuffer.SS_DW)) {
-				current_piece = pieceList.get(currentFile);
-	
-				if (current_piece.getFile().getAccessMode() == DiskManagerFileInfo.READ){
-		
-					if (Logger.isEnabled())
-						Logger.log(new LogEvent(disk_manager, LOGID, "Changing "
-								+ current_piece.getFile().getFile(true).getName()
-								+ " to read/write"));
-						
-					current_piece.getFile().setAccessMode( DiskManagerFileInfo.WRITE );
-				}
-				
-				int realLimit = buffer.limit(DirectByteBuffer.SS_DW);
-					
-				long limit = buffer.position(DirectByteBuffer.SS_DW) + ((current_piece.getFile().getLength() - current_piece.getOffset()) - (offset - previousFilesLength));
-	       
-				if (limit < realLimit){
-					
-					buffer.limit(DirectByteBuffer.SS_DW, (int)limit);
-				}
-	
-					// surely we always have remaining here?
-				
-				if ( buffer.hasRemaining(DirectByteBuffer.SS_DW) ){
-
-					long	pos = fileOffset + (offset - previousFilesLength);
-					
-					if ( limit < realLimit ){
-						
-						current_piece.getFile().getCacheFile().write( buffer, pos );
-						
-					}else{
-						
-						current_piece.getFile().getCacheFile().writeAndHandoverBuffer( buffer, pos );
-						
-						buffer_handed_over	= true;
-						
-						break;
-					}
-				}
-					
-				buffer.limit(DirectByteBuffer.SS_DW, realLimit);
-				
-				currentFile++;
-				fileOffset = 0;
-				previousFilesLength = offset;
-			}
-			
-			if ( !buffer_handed_over ){
-			
-					// the last write for a block should always be handed over, hence we
-					// shouln't get here....
-				
-				Debug.out( "buffer not handed over to file cache!" );
-				
-				buffer.returnToPool();
-			}
-			
-			return( true );
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-			
-			String file_name = current_piece==null?"<unknown>":current_piece.getFile().getFile(true).getName();
-				
-			disk_manager.setFailed( Debug.getNestedExceptionMessage(e) + " when processing file '" + file_name + "'" );
-			
-			buffer.position(DirectByteBuffer.SS_DW, initial_buffer_position);
-			
-			return( false );
-		}
-	}
-  
 	
 	public void 
 	writeBlock(
-		int 							pieceNumber, 
-		int 							offset, 
-		DirectByteBuffer 				data,
-		Object 							user_data,
-		DiskManagerWriteRequestListener	listener ) 
-	{		
-		global_write_queue_block_sem.reserve();		
-		
-		if ( global_write_queue_block_sem.getValue() < global_write_queue_block_sem_next_report_size ){
-			
-			if (Logger.isEnabled()) {
-				int x = global_write_queue_block_sem_size;
-				x -= global_write_queue_block_sem_next_report_size;
-				Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_WARNING,
-						"Disk Manager write queue size exceeds " + x));
-			}
+		DiskManagerWriteRequest					request,				
+		final DiskManagerWriteRequestListener	listener ) 
 
-			global_write_queue_block_sem_next_report_size -= QUEUE_REPORT_CHUNK;
-		}
-		
-		// System.out.println( "write queue size = " + ( global_write_queue_block_sem_size - global_write_queue_block_sem.getValue()));
-
-		// System.out.println( "reserved global write slot (buffer = " + data.limit() + ")" );
-		
+	{	
 		try{
-			this_mon.enter();
+			int					pieceNumber	= request.getPieceNumber();
+			DirectByteBuffer	buffer		= request.getBuffer();
+			int					offset		= request.getOffset();
 			
-	  		if ( stopped ){
-	  				  			
-	  			throw( new RuntimeException( "WriteChecker stopped" ));
-	  		}
-			
-			writeQueue.add(new QueueElement(pieceNumber, offset, data, user_data, listener ));
-			
-			writeCheckQueueSem.release();
-			
-			if ( writeThread == null ){
+			//Do not allow to write in a piece marked as done.
+					
+			if ( disk_manager.getPieces()[pieceNumber].getDone()){
 				
-				startDiskWriteThread();
-			}
+				buffer.returnToPool();
 
-		}finally{
-			
-			this_mon.exit();
-		}
-	}
-
-  
-	protected void
-	startDiskWriteThread()
-	{	     
-		writeThread = new DiskWriteThread();
-		
-		writeThread.start();
-	}
-
-	public class 
-	DiskWriteThread 
-		extends AEThread 
-	{
-		private volatile boolean bWriteContinue = true;
-		
-		private AESemaphore	stop_sem	= new AESemaphore( "DMW&C::stop");
-
-		public DiskWriteThread() 
-		{
-			super("Disk Writer & Checker");
-			
-			setDaemon(true);
-		}
-
-		public void 
-		runSupport() 
-		{
-			try{
-				while( bWriteContinue ){
+				listener.writeCompleted( request );
+				
+			}else{
+				
+				int	buffer_position = buffer.position(DirectByteBuffer.SS_DW);
+				int buffer_limit	= buffer.limit(DirectByteBuffer.SS_DW);
+				
+				int previousFilesLength = 0;
+				
+				int currentFile = 0;
+				
+				PieceList pieceList = disk_manager.getPieceList(pieceNumber);
+				
+				PieceMapEntry current_piece = pieceList.get(currentFile);
+				
+				long fileOffset = current_piece.getOffset();
+				
+				while ((previousFilesLength + current_piece.getLength()) < offset) {
 					
-					try{
-						int	entry_count = writeCheckQueueSem.reserveSet( 64, WRITE_THREAD_IDLE_LIMIT );
-							
-						if ( !bWriteContinue ){
-							
-							break;
-						}
-
-						if ( entry_count == 0 ){
-						
-							try{
-								this_mon.enter();
-								
-								if ( writeCheckQueueSem.getValue() == 0 ){
-																			
-									writeThread	= null;
-									
-									break;
-								}
-							}finally{
-								
-								this_mon.exit();
-							}
-						}
-						
-						for (int i=0;i<entry_count;i++){
-							
-							final QueueElement	elt;
-														
-							try{
-								this_mon.enter();
-								
-								if ( !bWriteContinue){
-																
-									break;
-								}
-																	
-								elt	= (QueueElement)writeQueue.remove(0);
-								
-								// System.out.println( "releasing global write slot" );
-	
-								global_write_queue_block_sem.release();
-																	
-							}finally{
-								
-								this_mon.exit();
-							}
-										
-								//Do not allow to write in a piece marked as done.
-							
-							int pieceNumber = elt.getPieceNumber();
-							
-							if(!disk_manager.getPieces()[pieceNumber].getDone()){
-								
-							  if ( writeBlock(elt)){
-							  
-							  	DiskManagerWriteRequestListener	listener = (DiskManagerWriteRequestListener)elt.getListener();
-							  	
-							  	if ( listener != null ){
-							  	
-							  		listener.blockWritten( elt.getPieceNumber(), elt.getOffset(),elt.getUserData());
-							  	}
-							  }else{
-							  	
-							  		// could try and recover if, say, disk full. however, not really
-							  		// worth the effort as user intervention is no doubt required to
-							  		// fix the problem 
-							  	
-								elt.data.returnToPool();
-										
-								elt.data = null;
-							  }
-							  
-							}else{
-		  
-								elt.data.returnToPool();
-								
-								elt.data = null;
-							}
-						}
-					}catch( Throwable e ){
-						
-						disk_manager.setFailed( "DiskWriteThread: error - " + Debug.getNestedExceptionMessage(e));
-
-						Debug.printStackTrace( e );
-						
-						Debug.out( "DiskWriteThread: error occurred during processing: " + e.toString());
-					}
+					previousFilesLength += current_piece.getLength();
+					
+					currentFile++;
+					
+					fileOffset = 0;
+					
+					current_piece = pieceList.get(currentFile);
 				}
-			}finally{
+		
+				List	chunks = new ArrayList();
+				
+					// Now current_piece points to the first file that contains data for this block
+				
+				while ( buffer_position < buffer_limit ){
+						
+					current_piece = pieceList.get(currentFile);
+	
+					int file_limit = (int)(buffer_position + 
+										((current_piece.getFile().getLength() - current_piece.getOffset()) - 
+											(offset - previousFilesLength)));
+		       
+					if ( file_limit > buffer_limit ){
+						
+						file_limit	= buffer_limit;
+					}
+						
+						// could be a zero-length file
 					
-				stop_sem.releaseForever();
-			}
-		}
-
-		protected void 
-		stopWriteThread()
-		{
-			try{
+					if ( file_limit > buffer_position ){
+	
+						long	file_pos = fileOffset + (offset - previousFilesLength);
+						
+						chunks.add( 
+								new Object[]{ current_piece.getFile(),
+								new Long( file_pos ),
+								new Integer( file_limit )});
+											
+						buffer_position = file_limit;
+					}
+					
+					currentFile++;
+					
+					fileOffset = 0;
+					
+					previousFilesLength = offset;
+				}
+				
+				
+				DiskManagerWriteRequestListener	l = 
+					new DiskManagerWriteRequestListener()
+					{
+						public void 
+						writeCompleted( 
+							DiskManagerWriteRequest 	request ) 
+						{
+							complete();
+							 
+							listener.writeCompleted( request );
+						}
+						  
+						public void 
+						writeFailed( 
+							DiskManagerWriteRequest 	request, 
+							Throwable		 			cause )
+						{
+							complete();
+							  
+							listener.writeFailed( request, cause );
+						}
+						  
+						protected void
+						complete()
+						{
+							try{
+								this_mon.enter();
+								
+								async_writes--;
+								  
+								if ( stopped ){
+									  
+									async_write_sem.release();
+								}
+							}finally{
+								  
+								this_mon.exit();
+							}
+						}
+					};
+				
 				try{
 					this_mon.enter();
 					
-					bWriteContinue = false;
+					if ( stopped ){
+						
+						throw( new Exception( "Disk writer has been stopped" ));
+					}
+					
+					async_writes++;
+					
 				}finally{
 					
 					this_mon.exit();
 				}
 				
-				writeCheckQueueSem.releaseForever();
-				
-				while (writeQueue.size() != 0){
-					
-					// System.out.println( "releasing global write slot (tidy up)" );
+				new requestDispatcher( request, l, buffer, chunks );
+			}
+		}catch( Throwable e ){
+						
+			request.getBuffer().returnToPool();
+			
+			disk_manager.setFailed( "Disk write error - " + Debug.getNestedExceptionMessage(e));
+			
+			Debug.printStackTrace( e );
+			
+			listener.writeFailed( request, e );
+		}
+	}
 	
-					global_write_queue_block_sem.release();
+	protected class
+	requestDispatcher
+		implements DiskAccessRequestListener
+	{
+		private DiskManagerWriteRequest			request;
+		private DiskManagerWriteRequestListener	listener;
+		private DirectByteBuffer				buffer;
+		private List							chunks;
+				
+		private int	chunk_index;
+		
+		protected
+		requestDispatcher(
+			DiskManagerWriteRequest			_request,
+			DiskManagerWriteRequestListener	_listener,
+			DirectByteBuffer				_buffer,
+			List							_chunks )
+		{	
+			request		= _request;
+			listener	= _listener;
+			buffer		= _buffer;
+			chunks		= _chunks;
+			
+			/*
+			String	str = "Write: " + request.getPieceNumber() + "/" + request.getOffset() + ":";
+
+			for (int i=0;i<chunks.size();i++){
+			
+				Object[]	entry = (Object[])chunks.get(i);
+				
+				String	str2 = entry[0] + "/" + entry[1] +"/" + entry[2];
+				
+				str += (i==0?"":",") + str2;
+			}
+			
+			System.out.println( str );
+			*/
+			
+			dispatch();
+		}	
+		
+		protected void
+		dispatch()
+		{
+			try{
+				if ( chunk_index == chunks.size()){
 					
-					QueueElement elt = (QueueElement)writeQueue.remove(0);
+					listener.writeCompleted( request );
 					
-					elt.data.returnToPool();
+				}else{
 					
-					elt.data = null;
+					Object[]	stuff = (Object[])chunks.get( chunk_index++ );
+					
+					DiskManagerFileInfoImpl	file = (DiskManagerFileInfoImpl)stuff[0];
+					
+					buffer.limit( DirectByteBuffer.SS_DR, ((Integer)stuff[2]).intValue());
+					
+					if ( file.getAccessMode() == DiskManagerFileInfo.READ ){
+						
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(disk_manager, LOGID, "Changing "
+									+ file.getFile(true).getName()
+									+ " to read/write"));
+							
+						file.setAccessMode( DiskManagerFileInfo.WRITE );
+					}
+					
+					boolean	handover_buffer	= chunk_index == chunks.size(); 
+					
+					disk_access.queueWriteRequest(
+						file.getCacheFile(),
+						((Long)stuff[1]).longValue(),
+						buffer,
+						handover_buffer,
+						this );
 				}
+			}catch( Throwable e ){
 				
-			}finally{
-				
-				stop_sem.reserve();
+				failed( e );
 			}
 		}
-	}
-	
-	public class 
-	QueueElement 
-	{
-		private int 				pieceNumber;
-		private int 				offset;
-		private DirectByteBuffer 	data;
-		private Object 				user_data; 
-		private	Object				listener;
-
-		public 
-		QueueElement(
-			int 				_pieceNumber, 
-			int 				_offset, 
-			DirectByteBuffer	_data, 
-			Object 				_user_data,
-			Object				_listener ) 
+		
+		public void
+		requestComplete(
+			DiskAccessRequest	request )
 		{
-			pieceNumber 	= _pieceNumber;
-			offset 			= _offset;
-			data 			= _data;
-			user_data 		= _user_data;
-			listener		= _listener;
-		}  
-
-		public int 
-		getPieceNumber() 
+			dispatch();
+		}
+		
+		public void
+		requestCancelled(
+			DiskAccessRequest	request )
 		{
-			return pieceNumber;
+				// we never cancel so nothing to do here
+			
+			Debug.out( "shouldn't get here" );
 		}
-
-		public int 
-		getOffset() 
+		
+		public void
+		requestFailed(
+			DiskAccessRequest	request,
+			Throwable			cause )
 		{
-			return offset;
+			failed( cause );
 		}
-
-		public DirectByteBuffer 
-		getData() 
+		
+		protected void
+		failed(
+			Throwable			cause )
 		{
-			return data;
-		}
-    
-	    public Object 
-		getUserData() 
-	    {
-	      return( user_data );
-		}
-	    
-	    public Object
-		getListener()
-	    {
-	    	return( listener );
-	    }
-	}
+			buffer.returnToPool();
+			
+			disk_manager.setFailed( "Disk write error - " + Debug.getNestedExceptionMessage(cause));
+			
+			Debug.printStackTrace( cause );
+			
+			listener.writeFailed( request, cause );
+		}	
+	}	
 }

@@ -63,6 +63,14 @@ DiskManager
 		int offset, 
 		int length );
 	
+	public DiskManagerWriteRequest
+	createWriteRequest(
+		int 				pieceNumber,
+		int 				offset,
+		DirectByteBuffer 	data,
+		Object 				user_data );
+
+	
 		/**
 		 * enqueue an async write request
 		 * @param pieceNumber
@@ -74,12 +82,8 @@ DiskManager
 	
 	public void 
 	enqueueWriteRequest(
-		int 							pieceNumber, 
-		int 							offset, 
-		DirectByteBuffer 				data,
-		Object 							user_data,
+		DiskManagerWriteRequest			request,
 		DiskManagerWriteRequestListener	listener );
-
 
 	public DiskManagerReadRequest
 	createReadRequest(
@@ -96,7 +100,7 @@ DiskManager
 	public void 
 	enqueueReadRequest( 
 		DiskManagerReadRequest 			request, 
-		DiskManagerReadRequestListener listener );
+		DiskManagerReadRequestListener 	listener );
 
 		/**
 		 * enqueue an asynchronous single piece check

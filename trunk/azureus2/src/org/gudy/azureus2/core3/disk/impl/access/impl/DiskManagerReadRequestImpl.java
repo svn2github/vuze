@@ -36,7 +36,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
  * 
  */
 public class 
-DiskManagerRequestImpl
+DiskManagerReadRequestImpl
 	implements DiskManagerReadRequest
 {
   //60 secs of expiration for any request.
@@ -56,7 +56,7 @@ DiskManagerRequestImpl
    * @param offset
    * @param length
    */
-  public DiskManagerRequestImpl(int _pieceNumber,int _offset,int _length)
+  public DiskManagerReadRequestImpl(int _pieceNumber,int _offset,int _length)
   {
     pieceNumber = _pieceNumber;
     offset = _offset;
@@ -114,9 +114,9 @@ DiskManagerRequestImpl
    */
   public boolean equals(Object o)
   {
-    if(! (o instanceof DiskManagerRequestImpl))
+    if(! (o instanceof DiskManagerReadRequestImpl))
       return false;    
-	DiskManagerRequestImpl otherRequest = (DiskManagerRequestImpl) o;
+	DiskManagerReadRequestImpl otherRequest = (DiskManagerReadRequestImpl) o;
     if(otherRequest.pieceNumber != this.pieceNumber)
       return false;
     if(otherRequest.offset != this.offset)
