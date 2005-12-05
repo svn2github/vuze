@@ -717,9 +717,9 @@ DMWriterAndCheckerImpl
 						
 					current_piece = pieceList.get(currentFile);
 	
-					int file_limit = (int)(buffer_position + 
+					long file_limit = buffer_position + 
 										((current_piece.getFile().getLength() - current_piece.getOffset()) - 
-											(offset - previousFilesLength)));
+											(offset - previousFilesLength));
 		       
 					if ( file_limit > buffer_limit ){
 						
@@ -735,9 +735,9 @@ DMWriterAndCheckerImpl
 						chunks.add( 
 								new Object[]{ current_piece.getFile(),
 								new Long( file_pos ),
-								new Integer( file_limit )});
+								new Integer((int)file_limit )});
 											
-						buffer_position = file_limit;
+						buffer_position = (int)file_limit;
 					}
 					
 					currentFile++;
