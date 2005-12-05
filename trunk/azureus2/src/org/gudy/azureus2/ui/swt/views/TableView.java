@@ -546,8 +546,7 @@ public class TableView
 	
 					TableRowCore row = (TableRowCore) item.getData("TableRow");
 					if (row == null || row.getIndex() != tableIndex) {
-						//System.out.println("SetData " + tableIndex + ": Filling Gaps..");
-						// fillGaps()
+						//System.out.println("SetData " + tableIndex + ": Sort..");
 						sortColumn(false, true);
 	
 						row = (TableRowCore) item.getData("TableRow");
@@ -559,7 +558,7 @@ public class TableView
 							return;
 						}
 					} else {
-						//System.out.println("SetData " + tableIndex + ": setValid False");
+						//System.out.println("SetData " + tableIndex + ": invalidate");
 						row.invalidate();
 					}
 					row.setIconSize(ptIconSize);
@@ -2084,7 +2083,7 @@ public class TableView
 					if (size.x > 600) {
 						size = toolTipLabel.computeSize(600, SWT.DEFAULT, true);
 					}
-					size.x += toolTipShell.getBorderWidth() * 2;
+					size.x += toolTipShell.getBorderWidth() * 2 + 2;
 					size.y += toolTipShell.getBorderWidth() * 2;
 					try {
 						size.x += toolTipShell.getBorderWidth() * 2 + (f.marginWidth * 2);
@@ -2306,11 +2305,11 @@ public class TableView
 				// XXX setSelection calls showSelection().  We don't want the table
 				//     to jump all over.  Quick fix is to reset topIndex, but
 				//     there might be a better way
-				table.setRedraw(false);
-				int iTopIndex = table.getTopIndex();
+//				table.setRedraw(false);
+//				int iTopIndex = table.getTopIndex();
 				table.setSelection(newSelectedRowIndices);
-				table.setTopIndex(iTopIndex);
-				table.setRedraw(true);
+//				table.setTopIndex(iTopIndex);
+//				table.setRedraw(true);
 			}
 		}
 
