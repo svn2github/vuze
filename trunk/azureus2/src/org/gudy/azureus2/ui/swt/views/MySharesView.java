@@ -200,13 +200,9 @@ MySharesView
 	   Utils.setMenuItemImage(itemRemove, "delete");
 
 
-	   menu.addListener(SWT.Show, new Listener() {
-		 public void handleEvent(Event e) {
-		   Object[] shares = getSelectedDataSources();
+	   Object[] shares = getSelectedDataSources();
 
-		   itemRemove.setEnabled(shares.length > 0);
-		 }
-	   });
+	   itemRemove.setEnabled(shares.length > 0);
 
 	   itemRemove.addListener(SWT.Selection, new Listener() {
 		 public void handleEvent(Event e) {

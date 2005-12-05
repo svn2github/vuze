@@ -168,54 +168,50 @@ MyTrackerView
 	   Messages.setLanguageText(itemRemove, "MyTorrentsView.menu.remove"); //$NON-NLS-1$
 	   Utils.setMenuItemImage(itemRemove, "delete");
 
-     menu.addListener(SWT.Show, new Listener() {
-		 public void handleEvent(Event e) {
-		   Object[] hostTorrents = getSelectedDataSources();
+	   Object[] hostTorrents = getSelectedDataSources();
 
-		   itemStart.setEnabled(false);
-		   itemStop.setEnabled(false);
-		   itemRemove.setEnabled(false);
+	   itemStart.setEnabled(false);
+	   itemStop.setEnabled(false);
+	   itemRemove.setEnabled(false);
 
-		   if (hostTorrents.length > 0) {
-		   	
-				boolean	start_ok 	= true;
-				boolean	stop_ok		= true;
-				boolean	remove_ok	= true;
+	   if (hostTorrents.length > 0) {
+	   	
+			boolean	start_ok 	= true;
+			boolean	stop_ok		= true;
+			boolean	remove_ok	= true;
+			
+			for (int i = 0; i < hostTorrents.length; i++) {
 				
-				for (int i = 0; i < hostTorrents.length; i++) {
+				TRHostTorrent	host_torrent = (TRHostTorrent)hostTorrents[i];
+				
+				int	status = host_torrent.getStatus();
+				
+				if ( status != TRHostTorrent.TS_STOPPED ){
 					
-					TRHostTorrent	host_torrent = (TRHostTorrent)hostTorrents[i];
+					start_ok	= false;
 					
-					int	status = host_torrent.getStatus();
-					
-					if ( status != TRHostTorrent.TS_STOPPED ){
-						
-						start_ok	= false;
-						
-					}
-					
-					if ( status != TRHostTorrent.TS_STARTED ){
-						
-						stop_ok = false;
-					}
-					
-					/*
-					try{
-						
-						host_torrent.canBeRemoved();
-						
-					}catch( TRHostTorrentRemovalVetoException f ){
-						
-						remove_ok = false;
-					}
-					*/
 				}
-		   		itemStart.setEnabled(start_ok);
-			 	itemStop.setEnabled(stop_ok);
-			 	itemRemove.setEnabled(remove_ok);
-		   }
-		 }
-	   });
+				
+				if ( status != TRHostTorrent.TS_STARTED ){
+					
+					stop_ok = false;
+				}
+				
+				/*
+				try{
+					
+					host_torrent.canBeRemoved();
+					
+				}catch( TRHostTorrentRemovalVetoException f ){
+					
+					remove_ok = false;
+				}
+				*/
+			}
+	   		itemStart.setEnabled(start_ok);
+		 	itemStop.setEnabled(stop_ok);
+		 	itemRemove.setEnabled(remove_ok);
+	   }
 
 	   itemStart.addListener(SWT.Selection, new Listener() {
 		 public void handleEvent(Event e) {

@@ -145,19 +145,15 @@ public class PeersView
     
     final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
 
-    menu.addListener(SWT.Show, new Listener() {
-      public void handleEvent(Event e) {
-        PEPeer peer = (PEPeer)getFirstSelectedDataSource();
+    PEPeer peer = (PEPeer)getFirstSelectedDataSource();
 
-        if( peer == null || !peer.getManager().getDownloadManager().isDownloadComplete()) {  //only allow upload blocking when seeding
-          block_item.setSelection( false );
-          block_item.setEnabled( false );
-          return;
-        }
-        block_item.setEnabled( true );
-        block_item.setSelection( peer.isSnubbed() );
-      }
-    });
+    if( peer == null || !peer.getManager().getDownloadManager().isDownloadComplete()) {  //only allow upload blocking when seeding
+      block_item.setSelection( false );
+      block_item.setEnabled( false );
+      return;
+    }
+    block_item.setEnabled( true );
+    block_item.setSelection( peer.isSnubbed() );
 
     Messages.setLanguageText(block_item, "PeersView.menu.blockupload"); //$NON-NLS-1$
     block_item.addListener(SWT.Selection, new SelectedTableRowsListener() {
