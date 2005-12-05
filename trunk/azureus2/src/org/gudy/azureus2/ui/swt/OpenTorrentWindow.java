@@ -54,11 +54,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.FileUtil;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -1191,13 +1187,17 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	 *         Bit 1: Data Files Table
 	 */
 	private void resizeTables(int which) {
+		if (Constants.isLinux)
+			return;
+
 		TableColumn[] tcs;
 		if ((which & 1) > 0) {
 			tcs = tableTorrents.getColumns();
 			int newSize = tableTorrents.getClientArea().width - 20;
 			for (int i = 1; i < tcs.length; i++)
 				newSize -= tcs[i].getWidth();
-			tcs[0].setWidth(newSize);
+			if (newSize > 10)
+				tcs[0].setWidth(newSize);
 		}
 
 		// Adjust only first column
@@ -1206,7 +1206,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			int newSize = dataFileTable.getClientArea().width - 20;
 			for (int i = 1; i < tcs.length; i++)
 				newSize -= tcs[i].getWidth();
-			tcs[0].setWidth(newSize);
+			if (newSize > 10)
+				tcs[0].setWidth(newSize);
 		}
 	}
 
