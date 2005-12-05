@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginView;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -533,7 +534,9 @@ MainWindow
     		
     		config_view.selectSection( ConfigSectionConnection.class );
     		
-    		Utils.openURL( "http://azureus.aelitis.com/wiki/index.php/NAT_problem" );
+    		if( azureus_core.getPluginManager().getDefaultPluginInterface().getConnectionManager().getNATStatus() != ConnectionManager.NAT_OK ) {
+    			Utils.openURL( "http://azureus.aelitis.com/wiki/index.php/NAT_problem" );
+    		}
     	}
     };
     
