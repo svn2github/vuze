@@ -29,9 +29,15 @@ DiskAccessControllerFactory
 {
 	public static DiskAccessController
 	create(
-		int		max_read_threads,
-		int 	max_write_threads )
+			int		max_read_threads,
+			int		max_read_requests,
+			int		max_read_mb,
+			int 	max_write_threads,
+			int		max_write_requests,
+			int		max_write_mb )
 	{
-		return( new DiskAccessControllerImpl( max_read_threads, max_write_threads ));
+		return( new DiskAccessControllerImpl(
+						max_read_threads, max_read_requests, max_read_mb,
+						max_write_threads, max_write_requests, max_write_mb ));
 	}
 }

@@ -81,8 +81,8 @@ DiskManagerImpl
 
 	private static DiskAccessController	disk_access_controller = 
 		DiskAccessControllerFactory.create(
-				MAX_READ_THREADS,
-				MAX_WRITE_THREADS );
+				MAX_READ_THREADS, 1000, 16,
+				MAX_WRITE_THREADS, 1000, 16 );
 
 	private boolean	used	= false;
 	

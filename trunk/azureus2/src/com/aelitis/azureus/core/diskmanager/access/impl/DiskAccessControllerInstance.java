@@ -25,7 +25,9 @@ package com.aelitis.azureus.core.diskmanager.access.impl;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -35,18 +37,28 @@ import org.gudy.azureus2.core3.util.Debug;
 public class 
 DiskAccessControllerInstance 
 {
-	public static int	MAX_MB_QUEUED	= 8;
+	private String	name;
 	
-	private AESemaphore	max_requests_sem 	= new AESemaphore("DiskAccessControllerImpl:maxReq", 100 );
-	private AESemaphore	max_mb_sem 			= new AESemaphore("DiskAccessControllerImpl:maxReadReq", MAX_MB_QUEUED );
+	private int	max_mb_queued;
 	
-	private long		request_bytes_queued	= 0;
+	private AESemaphore		max_requests_sem;
+	
+	private groupSemaphore	max_mb_sem;
+	
+	private long			request_bytes_queued;
+	private long			requests_queued;
 	
 	private requestDispatcher[]	dispatchers;
 	
 	private long		last_check		= 0;	
 	
 	private Map			request_map	= new HashMap();	
+	
+	private static final int REQUEST_NUM_LOG_CHUNK 		= 100;
+	private static final int REQUEST_BYTE_LOG_CHUNK 	= 1024*1024;
+	
+	private int			next_request_num_log	= REQUEST_NUM_LOG_CHUNK;
+	private long		next_request_byte_log	= REQUEST_BYTE_LOG_CHUNK;
 	
 	private static ThreadLocal		tls	= 
 		new ThreadLocal()
@@ -60,8 +72,18 @@ DiskAccessControllerInstance
 		
 	public
 	DiskAccessControllerInstance(
-		int		_max_threads )
+		String	_name,
+		int		_max_threads,
+		int		_max_requests,
+		int		_max_mb )
 	{		
+		name			= _name;
+		max_mb_queued	= _max_mb;
+		
+		max_requests_sem 	= new AESemaphore("DiskAccessControllerImpl:maxReq", _max_requests );
+		
+		max_mb_sem 			= new groupSemaphore( max_mb_queued );
+
 		dispatchers	= new requestDispatcher[_max_threads];
 		
 		for (int i=0;i<_max_threads;i++){
@@ -146,6 +168,80 @@ DiskAccessControllerInstance
 		dispatcher.queue( request );
 	}
 	
+	protected void
+	getSpaceAllowance(
+		DiskAccessRequestImpl	request )
+	{
+		int	mb_diff;
+				
+		synchronized( request_map ){
+			
+			int	old_mb = (int)(request_bytes_queued/(1024*1024));
+			
+			request_bytes_queued += request.getSize();
+							
+			int	new_mb = (int)(request_bytes_queued/(1024*1024));
+		
+			mb_diff = new_mb - old_mb;
+		
+			if ( mb_diff > max_mb_queued ){
+				
+					// if this request is bigger than the max allowed queueable then easiest
+					// approach is to bump up the limit
+									
+				max_mb_sem.releaseGroup( mb_diff - max_mb_queued );
+				
+				max_mb_queued	= mb_diff;
+			}
+			
+			requests_queued++;
+			
+			if ( requests_queued >= next_request_num_log ){
+				
+				System.out.println( "DAC:" + name + ": requests = " + requests_queued );
+				
+				next_request_num_log += REQUEST_NUM_LOG_CHUNK;
+			}
+			
+			if ( request_bytes_queued >= next_request_byte_log ){
+				
+				System.out.println( "DAC:" + name + ": bytes = " + request_bytes_queued );
+				
+				next_request_byte_log += REQUEST_BYTE_LOG_CHUNK;
+			}
+		}
+		
+		if ( mb_diff > 0 ){
+			
+			max_mb_sem.reserveGroup( mb_diff );
+		}
+	}
+	
+	protected void
+	releaseSpaceAllowance(
+		DiskAccessRequestImpl	request )
+	{
+		int	mb_diff;
+		
+		synchronized( request_map ){
+			
+			int	old_mb = (int)(request_bytes_queued/(1024*1024));
+			
+			request_bytes_queued -= request.getSize();
+							
+			int	new_mb = (int)(request_bytes_queued/(1024*1024));
+		
+			mb_diff = old_mb - new_mb;
+			
+			requests_queued--;
+		}
+		
+		if ( mb_diff > 0 ){
+			
+			max_mb_sem.releaseGroup( mb_diff );
+		}
+	}
+	
 	protected class
 	requestDispatcher
 	{
@@ -175,36 +271,7 @@ DiskAccessControllerInstance
 				
 				max_requests_sem.reserve();
 								
-				int	mb_diff;
-				
-				synchronized( request_map ){
-					
-					int	old_mb = (int)(request_bytes_queued/(1024*1024));
-					
-					request_bytes_queued += request.getSize();
-									
-					int	new_mb = (int)(request_bytes_queued/(1024*1024));
-				
-					mb_diff = new_mb - old_mb;
-				
-					if ( mb_diff > MAX_MB_QUEUED ){
-						
-							// if this request is bigget than the max allowed queueable then easiest
-							// approach is to bump up the limit
-						
-						for (int i=0;i<mb_diff-MAX_MB_QUEUED;i++){
-							
-							max_mb_sem.release();
-						}
-						
-						MAX_MB_QUEUED	= mb_diff;
-					}
-				}
-					
-				for (int i=0;i<mb_diff;i++){
-					
-					max_mb_sem.reserve();
-				}
+				getSpaceAllowance( request );
 				
 				synchronized( requests ){
 					
@@ -245,23 +312,7 @@ DiskAccessControllerInstance
 												
 											}finally{
 												
-												int	mb_diff;
-												
-												synchronized( request_map ){
-													
-													int	old_mb = (int)(request_bytes_queued/(1024*1024));
-													
-													request_bytes_queued -= request.getSize();
-																	
-													int	new_mb = (int)(request_bytes_queued/(1024*1024));
-												
-													mb_diff = old_mb - new_mb;
-												}
-												
-												for (int i=0;i<mb_diff;i++){
-													
-													max_mb_sem.release();
-												}
+												releaseSpaceAllowance( request );
 												
 												max_requests_sem.release();											
 											}
@@ -305,6 +356,204 @@ DiskAccessControllerInstance
 		size()
 		{
 			return( requests.size());
+		}
+	}
+	
+	protected static class
+	groupSemaphore
+	{
+		private int value;
+		
+		private List	waiters = new LinkedList();
+		
+		protected
+		groupSemaphore(
+			int	_value )
+		{
+			value	= _value;
+		}
+		
+		protected void
+		reserveGroup(
+			int	num )
+		{
+			mutableInteger	wait;
+			
+			synchronized( this ){
+				
+					// for fairness we only return immediately if we can and there are no waiters
+				
+				if ( num <= value && waiters.size() == 0 ){
+					
+					value -= num;
+					
+					return;
+					
+				}else{
+					
+					wait = new mutableInteger( num - value );
+										
+					value	= 0;
+					
+					waiters.add( wait );
+				}
+			}
+			
+			wait.reserve();
+		}
+			
+		protected void
+		releaseGroup(
+			int	num )
+		{
+			synchronized( this ){
+
+				if ( waiters.size() == 0 ){
+					
+						// no waiters we just increment the value
+					
+					value += num;
+					
+				}else{
+					
+						// otherwise we share num out amongst the waiters in order
+					
+					while( waiters.size() > 0 ){
+						
+						mutableInteger wait	= (mutableInteger)waiters.get(0);
+						
+						int	wait_num = wait.getValue();
+						
+						if ( wait_num <= num ){
+							
+								// we've got enough now to release this waiter
+							
+							wait.release();
+							
+							waiters.remove(0);
+							
+							num -= wait_num;
+							
+						}else{
+							
+							wait.setValue( wait_num - num );
+							
+							num	= 0;
+							
+							break;
+						}
+					}
+					
+						// if we have any left over then save it
+					
+					value = num;
+				}
+			}
+		}
+		
+		protected static class
+		mutableInteger
+		{
+			private int		i;
+			private boolean	released;
+			
+			protected
+			mutableInteger(
+				int	_i )
+			{
+				i	= _i;
+			}
+			
+			protected int
+			getValue()
+			{
+				return( i );
+			}
+			
+			protected void
+			setValue(
+				int	_i )
+			{
+				i	= _i;
+			}
+			
+			protected void
+			release()
+			{
+				synchronized( this ){
+					
+					released	= true;
+					
+					notify();
+				}
+			}
+			
+			protected void
+			reserve()
+			{
+				synchronized( this ){
+					
+					if ( released ){
+						
+						return;
+					}
+					
+					try{
+						wait();
+						
+					}catch( InterruptedException e ){
+						
+						throw( new RuntimeException("Semaphore: operation interrupted" ));
+					}
+				}
+			}
+		}
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		final groupSemaphore	sem = new groupSemaphore( 9 );
+		
+		for (int i=0;i<10;i++){
+			
+			final long seed = System.currentTimeMillis() + i;
+			
+			new Thread()
+			{
+				public void
+				run()
+				{
+					Random 	rand = new Random( seed );
+					
+					int	count = 0;
+					
+					while( true ){
+						
+						int	group = rand.nextInt( 10 );
+						
+						System.out.println( Thread.currentThread().getName() + " reserving " + group );
+						
+						sem.reserveGroup( group );
+						
+						try{
+							Thread.sleep(5 + rand.nextInt(5));
+							
+						}catch( Throwable e ){
+						}
+												
+						sem.releaseGroup( group );
+					
+						count++;
+						
+						if ( count %100 == 0 ){
+							
+							System.out.println( Thread.currentThread().getName() + ": " + count + " ops" );
+						}
+					}
+				}
+			}.start();
 		}
 	}
 }

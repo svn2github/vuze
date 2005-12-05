@@ -39,10 +39,14 @@ DiskAccessControllerImpl
 	public
 	DiskAccessControllerImpl(
 		int		_max_read_threads,
-		int 	_max_write_threads )
+		int		_max_read_requests,
+		int		_max_read_mb,
+		int 	_max_write_threads,
+		int		_max_write_requests,
+		int		_max_write_mb )
 	{		
-		read_dispatcher 	= new DiskAccessControllerInstance( _max_read_threads );
-		write_dispatcher 	= new DiskAccessControllerInstance( _max_write_threads );
+		read_dispatcher 	= new DiskAccessControllerInstance( "read", _max_read_threads, _max_read_requests, _max_read_mb );
+		write_dispatcher 	= new DiskAccessControllerInstance( "write", _max_write_threads, _max_write_requests, _max_write_mb );
 	}
 	
 	public DiskAccessRequest
