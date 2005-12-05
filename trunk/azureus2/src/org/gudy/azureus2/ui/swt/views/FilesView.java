@@ -143,53 +143,50 @@ public class FilesView
     itemDelete.setData("Priority", new Integer(3));
     Messages.setLanguageText(itemDelete, "wizard.multitracker.delete");	// lazy but we're near release
 
-    menu.addListener(SWT.Show, new Listener() {
-      public void handleEvent(Event e) {
-      	if (manager == null)
-      		return;
-    		
-        Object[] infos = getSelectedDataSources();
-        if (infos.length == 0) {
-          itemOpen.setEnabled(false);
-          itemPriority.setEnabled(false);
-          itemRename.setEnabled(false);
-          return;
-        }
-         
-        boolean open 		= true;
-        boolean	all_compact	= true;
-        
-        for (int i = 0; i < infos.length; i++){
-        	
-          DiskManagerFileInfo file_info = (DiskManagerFileInfo)infos[i];
-          
-          if (file_info.getAccessMode() != DiskManagerFileInfo.READ){
-        	  
-            open = false;
-          }
-          
-		  if ( file_info.getStorageType() != DiskManagerFileInfo.ST_COMPACT ){
+    new MenuItem(menu, SWT.SEPARATOR);
 
-			  all_compact	= false;
-		  }
-        }
-        
-        	// we can only open files if they are read-only
-        
-        itemOpen.setEnabled( open );
-        
-        	// can't rename files for non-persistent downloads (e.g. shares) as these
-        	// are managed "externally"
-        
-        itemRename.setEnabled(manager.isPersistent());
-                
-        	// no point in changing priority of completed downloads
-        
-        itemPriority.setEnabled(!manager.isDownloadComplete());
-        
-        itemDelete.setEnabled(!(manager.isDownloadComplete() || all_compact));
-      }
-    });       
+    super.fillMenu(menu);
+
+    Object[] infos = getSelectedDataSources();
+		if (infos.length == 0) {
+			itemOpen.setEnabled(false);
+			itemPriority.setEnabled(false);
+			itemRename.setEnabled(false);
+			return;
+		}
+
+		boolean open = true;
+		boolean all_compact = true;
+
+		for (int i = 0; i < infos.length; i++) {
+
+			DiskManagerFileInfo file_info = (DiskManagerFileInfo) infos[i];
+
+			if (file_info.getAccessMode() != DiskManagerFileInfo.READ) {
+
+				open = false;
+			}
+
+			if (file_info.getStorageType() != DiskManagerFileInfo.ST_COMPACT) {
+
+				all_compact = false;
+			}
+		}
+
+		// we can only open files if they are read-only
+
+		itemOpen.setEnabled(open);
+
+		// can't rename files for non-persistent downloads (e.g. shares) as these
+		// are managed "externally"
+
+		itemRename.setEnabled(manager.isPersistent());
+
+		// no point in changing priority of completed downloads
+
+		itemPriority.setEnabled(!manager.isDownloadComplete());
+
+		itemDelete.setEnabled(!(manager.isDownloadComplete() || all_compact));
 
     itemOpen.addListener(SWT.Selection, new SelectedTableRowsListener() {
       public void run(TableRowCore row) {
@@ -306,10 +303,6 @@ public class FilesView
     itemLow.addListener(SWT.Selection, priorityListener);
     itemSkipped.addListener(SWT.Selection, priorityListener); 
     itemDelete.addListener(SWT.Selection, priorityListener);
-
-    new MenuItem(menu, SWT.SEPARATOR);
-
-    super.fillMenu(menu);
   }
   
   protected void
