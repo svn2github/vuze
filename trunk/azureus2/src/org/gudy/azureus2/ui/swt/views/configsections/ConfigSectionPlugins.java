@@ -122,9 +122,9 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 
 			switch (field) {
 				case FIELD_LOAD: {
-					boolean b0 = COConfigurationManager.getBooleanParameter("Plugin."
+					boolean b0 = COConfigurationManager.getBooleanParameter("PluginInfo."
 							+ if0.getPluginID() + ".enabled", true);
-					boolean b1 = COConfigurationManager.getBooleanParameter("Plugin."
+					boolean b1 = COConfigurationManager.getBooleanParameter("PluginInfo."
 							+ if1.getPluginID() + ".enabled", true);
 					result = (b0 == b1 ? 0 : (b0 ? 1 : -1));
 					break;
@@ -413,7 +413,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 				}
 
 				item.setGrayed(pluginIF.isMandatory() || pluginIF.isBuiltIn());
-				boolean bEnabled = COConfigurationManager.getBooleanParameter("Plugin."
+				boolean bEnabled = COConfigurationManager.getBooleanParameter("PluginInfo."
 						+ pluginIF.getPluginID() + ".enabled", true);
 				item.setChecked(bEnabled);
 				item.setData("PluginID", pluginIF.getPluginID());
@@ -431,7 +431,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 						item.setChecked(true);
 					return;
 				}
-				COConfigurationManager.setParameter("Plugin."
+				COConfigurationManager.setParameter("PluginInfo."
 						+ item.getData("PluginID") + ".enabled", item.getChecked());
 			}
 		});
