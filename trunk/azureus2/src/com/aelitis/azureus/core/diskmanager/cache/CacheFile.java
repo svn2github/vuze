@@ -94,6 +94,12 @@ CacheFile
 	
 		throws CacheFileManagerException;
 	
+	public void
+	readAndFlush(
+		DirectByteBuffer	buffer,
+		long				offset )
+	
+		throws CacheFileManagerException;
 	
 	public void
 	write(

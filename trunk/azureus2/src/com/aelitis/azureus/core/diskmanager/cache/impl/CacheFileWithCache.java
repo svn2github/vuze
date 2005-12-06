@@ -1361,6 +1361,23 @@ CacheFileWithCache
 	}
 		
 	public void
+	readAndFlush(
+		DirectByteBuffer	buffer,
+		long				position )
+	
+		throws CacheFileManagerException
+	{
+		int	file_buffer_position	= buffer.position(DirectByteBuffer.SS_CACHE);
+		int	file_buffer_limit		= buffer.limit(DirectByteBuffer.SS_CACHE);
+		
+		int	read_length	= file_buffer_limit - file_buffer_position;
+				
+		flushCache( position, read_length, false, -1, 0, -1 );
+
+		read( buffer, position );
+	}
+	
+	public void
 	write(
 		DirectByteBuffer	buffer,
 		long				position )

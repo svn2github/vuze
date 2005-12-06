@@ -200,6 +200,16 @@ CacheFileWithoutCache
 	}
 		
 	public void
+	readAndFlush(
+		DirectByteBuffer	buffer,
+		long				position )
+	
+		throws CacheFileManagerException
+	{
+		read( buffer, position );
+	}
+	
+	public void
 	write(
 		DirectByteBuffer	buffer,
 		long				position )

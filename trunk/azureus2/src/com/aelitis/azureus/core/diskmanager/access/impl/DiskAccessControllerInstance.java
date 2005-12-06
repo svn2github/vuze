@@ -87,7 +87,7 @@ DiskAccessControllerInstance
 		dispatchers	= new requestDispatcher[_max_threads];
 		
 		for (int i=0;i<_max_threads;i++){
-			dispatchers[i]	= new requestDispatcher();
+			dispatchers[i]	= new requestDispatcher(i);
 		}
 	}
 	
@@ -245,11 +245,19 @@ DiskAccessControllerInstance
 	protected class
 	requestDispatcher
 	{
+		private int			index;
 		private AEThread	thread;
 		private LinkedList	requests 	= new LinkedList();
 		private AESemaphore	request_sem	= new AESemaphore("DiskAccessControllerInstance:requestDispatcher" );
 		
 		private long	last_request_time;
+		
+		protected
+		requestDispatcher(
+			int	_index )
+		{
+			index	= _index;
+		}
 		
 		protected void
 		queue(
@@ -284,7 +292,7 @@ DiskAccessControllerInstance
 					if ( thread == null ){
 						
 						thread = 
-							new AEThread("DiskAccessController:requestDispatcher", true )
+							new AEThread("DiskAccessController:requestDispatcher[" + index + "]", true )
 							{
 								public void
 								runSupport()

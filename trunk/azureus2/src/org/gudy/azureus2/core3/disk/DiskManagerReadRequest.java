@@ -30,4 +30,16 @@ DiskManagerReadRequest
 	public int getLength();
 	
 	public long getTimeCreated();
+	
+		/**
+		 * If flush is set then data held in memory will be flushed to disk during the read operation
+		 * @param flush
+		 */
+	
+	public void
+	setFlush(
+		boolean	flush );
+	
+	public boolean
+	getFlush();
 }

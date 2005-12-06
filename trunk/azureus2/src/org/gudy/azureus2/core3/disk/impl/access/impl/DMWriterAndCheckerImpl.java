@@ -361,7 +361,8 @@ DMWriterAndCheckerImpl
 		  	       					}
 		  	       				}
 							},
-							user_data );
+							user_data,
+							false );
 	  					
 	  					checks_submitted++;
 	  					
@@ -397,6 +398,16 @@ DMWriterAndCheckerImpl
 		int 									pieceNumber,
 		final DiskManagerCheckRequestListener 	listener,
 		Object									user_data ) 
+	{
+		enqueueCheckRequest( pieceNumber, listener, user_data, true );
+	}
+	
+	protected void 
+	enqueueCheckRequest(
+		int 									pieceNumber,
+		final DiskManagerCheckRequestListener 	listener,
+		Object									user_data,
+		boolean									read_flush ) 
 	{  	
 		checkPiece( 
 				pieceNumber, 
@@ -435,7 +446,7 @@ DMWriterAndCheckerImpl
 									user_data );
 						}
 					}
-				}, user_data, false);
+				}, user_data, false, read_flush );
 	}  
 	  
 	public void
@@ -444,6 +455,17 @@ DMWriterAndCheckerImpl
 		final CheckPieceResultHandler	_result_handler,
 		final Object					user_data,
 		final boolean					low_priorty )
+	{
+		checkPiece( pieceNumber, _result_handler, user_data, low_priorty, false );
+	}
+	
+	protected void
+	checkPiece(
+		final int 						pieceNumber,
+		final CheckPieceResultHandler	_result_handler,
+		final Object					user_data,
+		final boolean					low_priorty,
+		boolean							read_flush )
 	{
 		final CheckPieceResultHandler	result_handler =
 			new CheckPieceResultHandler()
@@ -508,6 +530,8 @@ DMWriterAndCheckerImpl
 		   		
 		   		this_mon.exit();
 		   	}
+		   	
+		   	read_request.setFlush( read_flush );
 		   	
 			disk_manager.enqueueReadRequest( 
 				read_request,

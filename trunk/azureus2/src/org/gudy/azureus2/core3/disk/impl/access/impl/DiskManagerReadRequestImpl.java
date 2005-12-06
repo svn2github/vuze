@@ -47,6 +47,7 @@ DiskManagerReadRequestImpl
   private int length;
   private long timeCreated;
   private final int hashcode;
+  private boolean	flush;
   
   
   
@@ -107,6 +108,19 @@ DiskManagerReadRequestImpl
     return this.length;
   }  
   
+	public void
+	setFlush(
+		boolean	_flush )
+	{
+		flush	= _flush;
+	}
+	
+	public boolean
+	getFlush()
+	{
+		return( flush );
+	}
+	
   /**
    * We override the equals method
    * 2 requests are equals if

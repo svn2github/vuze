@@ -906,7 +906,7 @@ DownloadManagerImpl
     
   		if ( disk_manager != null ){
     	
-  			disk_manager.storeFilePriorities();
+  			disk_manager.saveState();
   		}
     
   		download_manager_state.save();

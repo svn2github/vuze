@@ -37,6 +37,8 @@ DiskAccessRequestImpl
 	protected static final int	OP_READ				= 1;
 	protected static final int	OP_WRITE			= 2;
 	protected static final int	OP_WRITE_AND_FREE	= 3;
+	protected static final int	OP_READ_AND_FLUSH	= 4;
+	
 	
 	private CacheFile					file;
 	private long						offset;
@@ -87,6 +89,10 @@ DiskAccessRequestImpl
 			if ( op == OP_READ ){
 				
 				file.read( buffer, offset );
+				
+			}else if ( op == OP_READ_AND_FLUSH ){
+				
+				file.readAndFlush( buffer, offset );
 				
 			}else if ( op == OP_WRITE ){
 				

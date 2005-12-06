@@ -236,7 +236,8 @@ DiskManager
    * DownloadManager.getData( "file_priorities" ).
    */
 
-	public void storeFilePriorities();
+	public void 
+	saveState();
 	
 	public DownloadManager 
 	getDownloadManager();

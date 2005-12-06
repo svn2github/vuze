@@ -478,6 +478,7 @@ DMReaderImpl
 				(CacheFile)stuff[0],
 				((Long)stuff[1]).longValue(),
 				buffer,
+				dm_request.getFlush(),
 				l );
 		}
 		

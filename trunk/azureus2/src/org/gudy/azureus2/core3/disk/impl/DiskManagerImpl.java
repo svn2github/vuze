@@ -517,9 +517,21 @@ DiskManagerImpl
 					Debug.printStackTrace( e );
 				}
 			}
-		
-			storeFileDownloaded( download_manager, files );
 		}
+		
+		if ( getState() == DiskManager.READY ){
+		  	
+			try{
+				
+				dumpResumeDataToDisk(true, false);
+	  		
+			}catch( Exception e ){
+	  		
+				setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
+			}
+		}
+		
+		saveState();
 		
 		// removed until we work out how to fix this setState( STOPPED );
 
@@ -1916,7 +1928,7 @@ DiskManagerImpl
     catch (Throwable t) {Debug.printStackTrace( t );}
   }
   
-  public void 
+  protected void 
   storeFilePriorities() 
   {
 	  storeFilePriorities( download_manager, files );
@@ -1996,6 +2008,17 @@ DiskManagerImpl
 		 Debug.printStackTrace(e);
 	 }
 	
+  }
+  
+  public void
+  saveState()
+  {
+	  if ( files != null ){
+		
+		storeFileDownloaded( download_manager, files );
+		
+		storeFilePriorities();
+	}
   }
   
   public DownloadManager getDownloadManager() {

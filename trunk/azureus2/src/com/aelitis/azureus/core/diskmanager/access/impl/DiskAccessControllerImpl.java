@@ -54,10 +54,16 @@ DiskAccessControllerImpl
 		CacheFile					file,
 		long						offset,
 		DirectByteBuffer			buffer,
+		boolean						flush,
 		DiskAccessRequestListener	listener )
 	{
 		DiskAccessRequestImpl	request = 
-			new DiskAccessRequestImpl( file, offset, buffer, listener, DiskAccessRequestImpl.OP_READ );
+			new DiskAccessRequestImpl( 
+					file, 
+					offset, 
+					buffer, 
+					listener, 
+					flush?DiskAccessRequestImpl.OP_READ_AND_FLUSH:DiskAccessRequestImpl.OP_READ );
 
 		read_dispatcher.queueRequest( request );
 		

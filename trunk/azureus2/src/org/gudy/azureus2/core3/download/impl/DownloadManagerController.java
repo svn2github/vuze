@@ -613,34 +613,21 @@ DownloadManagerController
 						
 					peer_manager	= null;
 
-					if ( disk_manager != null ){
-						
+					if ( disk_manager != null ){	
+						  
+						disk_manager.stop();
+
 						stats.setCompleted(stats.getCompleted());
 						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			      
-						if (disk_manager.getState() == DiskManager.READY){
-					  	
-							try{
-								disk_manager.dumpResumeDataToDisk(true, false);
-					  		
-							}catch( Exception e ){
-					  		
-								errorDetail = "Resume data save fails: " + Debug.getNestedExceptionMessage(e);
-							
-								stateAfterStopping	= DownloadManager.STATE_ERROR;
-							}
-						}
-			      
+						disk_manager.saveState();
+
 					  		// we don't want to update the torrent if we're seeding
 					  
 						if ( !download_manager.getOnlySeeding()){
 					  	
 							download_manager.getDownloadState().save();
-						}
-					  					  
-						disk_manager.storeFilePriorities();
-					  
-						disk_manager.stop();
+						}			  					  
 					  							  
 						setDiskManager( null );
 					}
@@ -659,8 +646,12 @@ DownloadManagerController
 					   download_manager.deleteTorrentFile();
 				   }
          
-				   setState( stateAfterStopping, true );
-         
+				   		// only update the state if things haven't gone wrong
+				   
+				   if ( getState() == DownloadManager.STATE_STOPPING ){
+					   
+					   setState( stateAfterStopping, true );
+				   }
 				 }
 			}finally{
 				
