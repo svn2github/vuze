@@ -129,7 +129,7 @@ ThreadPool
 				
 				threadPoolWorker	recursive_worker = (threadPoolWorker)tls.get();
 				
-				if ( recursive_worker == null ){
+				if ( recursive_worker == null || recursive_worker.getOwner() != this ){
 	
 						// do a blocking reserve here, not recursive 
 					
@@ -141,7 +141,7 @@ ThreadPool
 					if ( runnable instanceof ThreadPoolTask ){
 						
 						ThreadPoolTask task = (ThreadPoolTask)runnable;
-						
+						                        
 						task.worker = recursive_worker;
 						
 						try{
@@ -151,7 +151,7 @@ ThreadPool
 							
 						}finally{
 							
-							task.taskCompleted();
+							task.taskCompleted();  
 						}
 					}else{
 					
@@ -179,7 +179,7 @@ ThreadPool
 				
 				if ( thread_pool.isEmpty()){
 							
-					allocated_worker = new threadPoolWorker();	
+					allocated_worker = new threadPoolWorker( this );	
 		
 				}else{
 									
@@ -303,6 +303,7 @@ ThreadPool
 	public class
 	threadPoolWorker
 	{
+		private ThreadPool	owner;
 		private String	worker_name;
 		
 		private Thread	worker_thread;
@@ -316,8 +317,11 @@ ThreadPool
 		private String	state	= "<none>";
 		
 		protected
-		threadPoolWorker()
+		threadPoolWorker(
+			ThreadPool	_owner )
 		{
+			owner	= _owner;
+			
 			worker_name = name + "[" + (thread_name_index++) +  "]";
 			
 			worker_thread = new AEThread( worker_name )
@@ -488,6 +492,12 @@ outer:
 		getWorkerName()
 		{
 			return( worker_name );
+		}
+		
+		protected ThreadPool
+		getOwner()
+		{
+			return( owner );
 		}
 		
 		protected void

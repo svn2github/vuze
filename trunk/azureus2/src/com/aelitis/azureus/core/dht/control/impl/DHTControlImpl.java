@@ -40,7 +40,6 @@ import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.ThreadPoolTask;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
@@ -2320,7 +2319,14 @@ DHTControlImpl
 		return( x );
 	}
 	
-	public long
+	public void
+	setEstimatedDHTSize(
+		int						size )
+	{
+		// System.out.println( "estimated dht size: " + size );
+	}
+	
+	public int
 	getEstimatedDHTSize()
 	{
 			// public method, trigger actual computation periodically
@@ -2334,7 +2340,7 @@ DHTControlImpl
 			estimateDHTSize( router.getID(), null, router.getK());
 		}
 		
-		return( dht_estimate );
+		return((int)dht_estimate );
 	}
 	
 	protected void

@@ -38,7 +38,8 @@ DHTTransportUDP
 	extends DHTTransport
 {
 	public static final byte PROTOCOL_VERSION_2304					= 8;	
-
+	public static final byte PROTOCOL_VERSION_2306					= 12;	
+	
 	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_2304;
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
@@ -53,14 +54,15 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_VIVALDI				= 10;
 	public static final byte PROTOCOL_VERSION_REMOVE_DIST_ADD_VER	= 11;
 	public static final byte PROTOCOL_VERSION_XFER_STATUS			= 12;
-	
+	public static final byte PROTOCOL_VERSION_SIZE_ESTIMATE			= 13;
+
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_XFER_STATUS;	
+	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_SIZE_ESTIMATE;	
 	
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_XFER_STATUS;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_SIZE_ESTIMATE;
 
 	public DHTTransportContact
 	importContact(

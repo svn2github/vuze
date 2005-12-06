@@ -293,6 +293,18 @@ Test
 		DHTTransportContact	contact )
 	{
 	}
+
+	public int
+	getEstimatedDHTSize()
+	{
+		return(0);
+	}
+	
+	public void
+	setEstimatedDHTSize(
+		int	size )
+	{
+	}
 	
 	public DHTTransportFullStats
 	statsRequest(

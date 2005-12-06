@@ -113,4 +113,17 @@ DHTTransportRequestCounter
 	{
 		delegate.contactRemoved( contact );
 	}
+	
+	public int
+	getEstimatedDHTSize()
+	{
+		return( delegate.getEstimatedDHTSize());
+	}
+	
+	public void
+	setEstimatedDHTSize(
+		int	size )
+	{
+		delegate.setEstimatedDHTSize(size);
+	}
 }

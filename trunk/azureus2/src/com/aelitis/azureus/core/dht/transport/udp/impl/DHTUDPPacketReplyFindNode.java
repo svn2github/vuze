@@ -39,6 +39,7 @@ DHTUDPPacketReplyFindNode
 	private DHTTransportContact[]	contacts;
 	private int						random_id;
 	private int						node_status	= DHTTransportUDPContactImpl.NODE_STATUS_UNKNOWN;
+	private int						estimated_dht_size;
 	
 	public
 	DHTUDPPacketReplyFindNode(
@@ -71,6 +72,11 @@ DHTUDPPacketReplyFindNode
 			node_status = is.readInt();
 		}	
 		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_SIZE_ESTIMATE ){
+
+			estimated_dht_size	= is.readInt();
+		}
+		
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
 
 			DHTUDPUtils.deserialiseVivaldi( is, this );
@@ -95,6 +101,11 @@ DHTUDPPacketReplyFindNode
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_XFER_STATUS ){
 			
 			 os.writeInt( node_status );
+		}
+		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_SIZE_ESTIMATE ){
+			
+			 os.writeInt( estimated_dht_size );
 		}
 		
 		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_VIVALDI ){
@@ -138,6 +149,19 @@ DHTUDPPacketReplyFindNode
 		return( node_status );
 	}
 		
+	protected void
+	setEstimatedDHTSize(
+		int	s )
+	{
+		estimated_dht_size	= s;
+	}
+	
+	protected int
+	getEstimatedDHTSize()
+	{
+		return( estimated_dht_size );
+	}
+	
 	protected DHTTransportContact[]
 	getContacts()
 	{

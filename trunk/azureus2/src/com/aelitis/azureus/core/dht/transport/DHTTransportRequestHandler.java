@@ -68,4 +68,11 @@ DHTTransportRequestHandler
 	public void
 	contactRemoved(
 		DHTTransportContact	contact );
+	
+	public int
+	getEstimatedDHTSize();
+	
+	public void
+	setEstimatedDHTSize(
+		int	size );
 }

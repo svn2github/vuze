@@ -1527,6 +1527,8 @@ DHTTransportUDPImpl
 														
 							updateContactStatus( contact, reply.getNodeStatus());
 							
+							request_handler.setEstimatedDHTSize( reply.getEstimatedDHTSize());
+							
 							stats.findNodeOK();
 								
 							handler.findNodeReply( contact, reply.getContacts());
@@ -2786,6 +2788,8 @@ DHTTransportUDPImpl
 						reply.setRandomID( originating_contact.getRandomID());
 						
 						reply.setNodeStatus( getNodeStatus());
+						
+						reply.setEstimatedDHTSize( request_handler.getEstimatedDHTSize());
 						
 						reply.setContacts( res );
 						
