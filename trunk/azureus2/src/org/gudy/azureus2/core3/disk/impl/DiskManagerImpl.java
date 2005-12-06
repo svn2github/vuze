@@ -88,6 +88,15 @@ DiskManagerImpl
 			DiskAccessControllerFactory.create(
 					max_read_threads, max_read_mb,
 					max_write_threads, max_write_mb );
+		
+		if (Logger.isEnabled()){
+			Logger.log(
+					new LogEvent( 
+							LOGID, 
+							"Disk access controller params: " +
+								max_read_threads + "/" + max_read_mb + "/" + max_write_threads + "/" + max_write_mb ));
+			
+		}
 	}
 
 	private boolean	used	= false;
