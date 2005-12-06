@@ -199,12 +199,12 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     		  
     		  if ( max < m ){
     			  
-    			  if ( m <= 4*max_primary ){
+    			  if ( m <= 2*max_primary ){
     		  
     				  max = m;
     			  }else{
     				  
-    				  max = 4*max_primary;
+    				  max = 2*max_primary;
     				  
     				  break;
     			  }
