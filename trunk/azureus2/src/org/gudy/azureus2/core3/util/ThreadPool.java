@@ -136,15 +136,27 @@ ThreadPool
 					thread_sem.reserve();
 	
 				}else{
-				
+						// run immediately
+							
 					if ( runnable instanceof ThreadPoolTask ){
 						
-						((ThreadPoolTask)runnable).worker = recursive_worker;
+						ThreadPoolTask task = (ThreadPoolTask)runnable;
+						
+						task.worker = recursive_worker;
+						
+						try{
+							task.taskStarted();
+							
+							task.run();
+							
+						}finally{
+							
+							task.taskCompleted();
+						}
+					}else{
+					
+						runnable.runSupport();
 					}
-					
-						// run immediately
-					
-					runnable.runSupport();
 					
 					return( recursive_worker );
 				}
