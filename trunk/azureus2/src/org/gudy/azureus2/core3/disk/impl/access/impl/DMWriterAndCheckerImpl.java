@@ -339,12 +339,16 @@ DMWriterAndCheckerImpl
 		            }
             
             
+		            final AESemaphore	 run_sem = new AESemaphore( "DMW&C::checker:runsem", 2 );
+		            
 	  				for ( int i=0; i < nbPieces; i++ ){
 	        
 	  					if ( stopped ){
 	  						
 	  						break;
 	  					}
+	  					
+	  					run_sem.reserve();
 	  					
 	  					enqueueCheckRequest( 
 	  	       				i, 
@@ -360,6 +364,8 @@ DMWriterAndCheckerImpl
 		  	       						listener.pieceChecked( _pieceNumber, _result, _user_data );
 		  	       						
 		  	       					}finally{
+		  	       						
+		  	       						run_sem.release();
 		  	       						
 		  	       						sem.release();
 		  	       					}
