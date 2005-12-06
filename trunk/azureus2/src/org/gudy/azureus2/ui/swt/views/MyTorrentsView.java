@@ -1171,7 +1171,7 @@ public class MyTorrentsView
 					bEnabled = true;
 					
 					// turn on check if just one dm is not enabled
-					for (int j = 0; i < dms.length; i++) {
+					for (int j = 0; j < dms.length; j++) {
 						DownloadManager dm = (DownloadManager) dms[j];
 						
 						if (!dm.getDownloadState().isPeerSourceEnabled(p)) {
@@ -1214,7 +1214,7 @@ public class MyTorrentsView
 				boolean bChecked = hasSelection;
 				if (bChecked) {
 					// turn on check if just one dm is not enabled
-					for (int j = 0; i < dms.length; i++) {
+					for (int j = 0; j < dms.length; j++) {
 						DownloadManager dm = (DownloadManager) dms[j];
 						
 						if (!dm.getDownloadState().isNetworkEnabled(nn)) {
