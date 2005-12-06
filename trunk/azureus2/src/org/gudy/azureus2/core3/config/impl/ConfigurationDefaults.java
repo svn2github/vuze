@@ -225,8 +225,6 @@ public class ConfigurationDefaults {
     def.put( "Watch Torrent Folder Interval", new Long(1) );
     def.put( "Start Watched Torrents Stopped", new Long(0) );
     def.put( "Watch Torrent Folder Path", "" );
-    def.put( "DiskManager Write Queue Block Limit", new Long(0) );
-    def.put( "DiskManager Check Queue Piece Limit", new Long(0) );
     def.put( "Prioritize First Piece", new Long(0) );
     def.put( "Use Lazy Bitfield", new Long(0) );
     def.put( "Move Completed When Done", new Long(0) );
@@ -371,8 +369,13 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.cache.enable.write", new Long(1));
     def.put( "diskmanager.perf.cache.size", new Long(4));		// 4 MB
     def.put( "diskmanager.perf.cache.notsmallerthan", new Long(1024));	// 1024 K
-    def.put( "File.truncate.if.too.large", new Long(0));
+    def.put( "diskmanager.perf.read.maxthreads", new Long(32));
+    def.put( "diskmanager.perf.read.maxmb", new Long(5));
+    def.put( "diskmanager.perf.write.maxthreads", new Long(32));
+    def.put( "diskmanager.perf.write.maxmb", new Long(5));
     def.put( "diskmanager.perf.cache.trace", new Long(0));
+    def.put( "diskmanager.perf.cache.flushpieces", new Long(1));
+    def.put( "File.truncate.if.too.large", new Long(0));
     def.put( "Enable System Tray", new Long(1));
     def.put( "config.style.table.sortDefaultAscending", new Long(1));
     def.put( "Ignore.peer.ports", "0" );

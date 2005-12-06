@@ -170,6 +170,13 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     gridData.horizontalSpan = 3;
     disk_cache_write.setLayoutData(gridData);
     
+    // diskmanager.perf.cache.flushpieces
+    
+    final BooleanParameter disk_cache_flush = new BooleanParameter(cSection, "diskmanager.perf.cache.flushpieces", "ConfigView.section.file.perf.cache.flushpieces");
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    disk_cache_flush.setLayoutData(gridData);
+    
      // diskmanager.perf.cache.trace
     
     final BooleanParameter disk_cache_trace = new BooleanParameter(cSection, "diskmanager.perf.cache.trace", "ConfigView.section.file.perf.cache.trace");
@@ -187,6 +194,10 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     		new ChangeSelectionActionPerformer( disk_cache_read.getControls() ));
     disk_cache.setAdditionalActionPerformer(
     		new ChangeSelectionActionPerformer( disk_cache_write.getControls() ));
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( disk_cache_flush.getControls() ));
+    disk_cache.setAdditionalActionPerformer(
+    		new ChangeSelectionActionPerformer( disk_cache_trace.getControls() ));
     
     if(userMode > 1) {
     	
@@ -206,17 +217,17 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.section.file.max_open_files.explain");
     
-    	// write block limit
+    	// write mb limit
     
     label = new Label(cSection, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
     String label_text = 
     	MessageText.getString( 
-    		"ConfigView.section.file.write_block_limit", 
-    		new String[]{ DisplayFormatters.formatByteCountToKiBEtc( DiskManager.BLOCK_SIZE )});
+    		"ConfigView.section.file.writemblimit", 
+    		new String[] { DisplayFormatters.getUnitBase10(DisplayFormatters.UNIT_MB) });
     label.setText(label_text);
-    IntParameter write_block_limit = new IntParameter(cSection, "DiskManager Write Queue Block Limit", 0);
+    IntParameter write_block_limit = new IntParameter(cSection, "diskmanager.perf.write.maxmb" );
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     gridData.widthHint = 30;
     write_block_limit.setLayoutData( gridData );
@@ -224,15 +235,19 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
     gridData.widthHint = 300;
     label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.file.write_block_limit.explain");
+    Messages.setLanguageText(label, "ConfigView.section.file.writemblimit.explain");
          
-    	// check piece limit
+    	// read mb limit
     
     label = new Label(cSection, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit");
-    IntParameter check_piece_limit = new IntParameter(cSection, "DiskManager Check Queue Piece Limit", 0);
+    label_text = 
+    	MessageText.getString( 
+    		"ConfigView.section.file.readmblimit", 
+    		new String[] { DisplayFormatters.getUnitBase10(DisplayFormatters.UNIT_MB) });
+    label.setText(label_text);
+    IntParameter check_piece_limit = new IntParameter(cSection, "diskmanager.perf.read.maxmb" );
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     gridData.widthHint = 30;
     check_piece_limit.setLayoutData( gridData );
@@ -240,7 +255,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING | GridData.FILL_HORIZONTAL);
     gridData.widthHint = 300;
     label.setLayoutData(gridData);
-    Messages.setLanguageText(label, "ConfigView.section.file.check_piece_limit.explain");
+    Messages.setLanguageText(label, "ConfigView.section.file.readmblimit.explain");
     
     }
     }

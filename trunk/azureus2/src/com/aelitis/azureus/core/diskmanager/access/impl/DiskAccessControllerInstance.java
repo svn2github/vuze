@@ -40,9 +40,7 @@ DiskAccessControllerInstance
 	private String	name;
 	
 	private int	max_mb_queued;
-	
-	private AESemaphore		max_requests_sem;
-	
+		
 	private groupSemaphore	max_mb_sem;
 	
 	private long			request_bytes_queued;
@@ -74,14 +72,11 @@ DiskAccessControllerInstance
 	DiskAccessControllerInstance(
 		String	_name,
 		int		_max_threads,
-		int		_max_requests,
 		int		_max_mb )
 	{		
 		name			= _name;
 		max_mb_queued	= _max_mb;
-		
-		max_requests_sem 	= new AESemaphore("DiskAccessControllerImpl:maxReq", _max_requests );
-		
+				
 		max_mb_sem 			= new groupSemaphore( max_mb_queued );
 
 		dispatchers	= new requestDispatcher[_max_threads];
@@ -198,14 +193,14 @@ DiskAccessControllerInstance
 			
 			if ( requests_queued >= next_request_num_log ){
 				
-				System.out.println( "DAC:" + name + ": requests = " + requests_queued );
+				//System.out.println( "DAC:" + name + ": requests = " + requests_queued );
 				
 				next_request_num_log += REQUEST_NUM_LOG_CHUNK;
 			}
 			
 			if ( request_bytes_queued >= next_request_byte_log ){
 				
-				System.out.println( "DAC:" + name + ": bytes = " + request_bytes_queued );
+				//System.out.println( "DAC:" + name + ": bytes = " + request_bytes_queued );
 				
 				next_request_byte_log += REQUEST_BYTE_LOG_CHUNK;
 			}
@@ -276,9 +271,7 @@ DiskAccessControllerInstance
 				}
 				
 			}else{
-				
-				max_requests_sem.reserve();
-								
+												
 				getSpaceAllowance( request );
 				
 				synchronized( requests ){
@@ -321,10 +314,7 @@ DiskAccessControllerInstance
 											}finally{
 												
 												releaseSpaceAllowance( request );
-												
-												max_requests_sem.release();											
-											}
-											
+											}										
 										}else{
 											
 											synchronized( requests ){

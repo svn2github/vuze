@@ -55,6 +55,7 @@ DMWriterAndCheckerImpl
 	private static final LogIDs LOGID = LogIDs.DISK;
     
 	private static boolean 	friendly_hashing;
+	private static boolean	flush_pieces;
 
     static{
     	
@@ -63,14 +64,17 @@ DMWriterAndCheckerImpl
 			parameterChanged( 
 				String  str ) 
     	    {
-    	      friendly_hashing = COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" ); 
+    	      friendly_hashing 	= COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
+    	  	  
+    	  	  flush_pieces		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.flushpieces" );
+
     	    }
     	 };
 
  		COConfigurationManager.addAndFireParameterListener( "diskmanager.friendly.hashchecking", param_listener );
-    }
+		COConfigurationManager.addParameterListener( "diskmanager.perf.cache.flushpieces", param_listener );
 
-  
+    }
 
 	private DiskManagerHelper		disk_manager;
 	private DiskAccessController	disk_access;
@@ -399,7 +403,7 @@ DMWriterAndCheckerImpl
 		final DiskManagerCheckRequestListener 	listener,
 		Object									user_data ) 
 	{
-		enqueueCheckRequest( pieceNumber, listener, user_data, true );
+		enqueueCheckRequest( pieceNumber, listener, user_data, flush_pieces );
 	}
 	
 	protected void 

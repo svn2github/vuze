@@ -76,13 +76,19 @@ DiskManagerImpl
 {  
 	private static final LogIDs LOGID = LogIDs.DISK;
 	
-	private static final int	MAX_READ_THREADS	= 32;
-	private static final int	MAX_WRITE_THREADS	= 32;
-
-	private static DiskAccessController	disk_access_controller = 
-		DiskAccessControllerFactory.create(
-				MAX_READ_THREADS, 1000, 16,
-				MAX_WRITE_THREADS, 1000, 16 );
+	private static DiskAccessController	disk_access_controller;
+	
+	static{
+		int	max_read_threads 	= COConfigurationManager.getIntParameter( "diskmanager.perf.read.maxthreads" );
+		int	max_read_mb 		= COConfigurationManager.getIntParameter( "diskmanager.perf.read.maxmb" );
+		int	max_write_threads 	= COConfigurationManager.getIntParameter( "diskmanager.perf.write.maxthreads" );
+		int	max_write_mb 		= COConfigurationManager.getIntParameter( "diskmanager.perf.write.maxmb" );
+		
+		disk_access_controller = 
+			DiskAccessControllerFactory.create(
+					max_read_threads, max_read_mb,
+					max_write_threads, max_write_mb );
+	}
 
 	private boolean	used	= false;
 	
@@ -191,11 +197,11 @@ DiskManagerImpl
 			});	
 	
 	private AEMonitor	start_stop_mon	= new AEMonitor( "DiskManager:startStop" );
-	private AEMonitor	file_piece_mon		= new AEMonitor( "DiskManager:filePiece" );
+	private AEMonitor	file_piece_mon	= new AEMonitor( "DiskManager:filePiece" );
 	
 	
 	private static int		max_read_block_size;
-
+	
 	static{    	
 	    	
 		ParameterListener param_listener = new ParameterListener() {
@@ -203,11 +209,11 @@ DiskManagerImpl
 				parameterChanged( 
 					String  str ) 
 	    	    { 	      
-	    	  	  max_read_block_size	= COConfigurationManager.getIntParameter( "BT Request Max Block Size" );
-	    	    }
+		    	  	  max_read_block_size	= COConfigurationManager.getIntParameter( "BT Request Max Block Size" );
+		    	    }
 	    	 };
 
-		COConfigurationManager.addAndFireParameterListener( "BT Request Max Block Size", param_listener );
+	 	COConfigurationManager.addAndFireParameterListener( "BT Request Max Block Size", param_listener );
 	}
 	   
 	public 

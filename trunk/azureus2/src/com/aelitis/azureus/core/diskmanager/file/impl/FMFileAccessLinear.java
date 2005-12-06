@@ -137,7 +137,6 @@ FMFileAccessLinear
 		FileChannel fc = raf.getChannel();
     
 		try{
-			
 			if (fc.isOpen()){
 				
 				long	expected_write 	= 0;
