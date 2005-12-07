@@ -115,6 +115,10 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     //         "ta="+table.getClientArea()+";bounds="+bounds, false);
 
     Rectangle imageBounds = image.getBounds();
+    
+    if (imageBounds.width <= 0 || imageBounds.height <= 0)
+    	return;
+
     if (fillCell) {
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
