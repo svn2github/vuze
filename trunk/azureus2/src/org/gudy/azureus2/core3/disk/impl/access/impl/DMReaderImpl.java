@@ -314,8 +314,12 @@ DMReaderImpl
 				this_mon.enter();
 				
 				if ( stopped ){
+				
+					buffer.returnToPool();
 					
-					throw( new Exception( "Disk reader has been stopped" ));
+					listener.readFailed( request, new Exception( "Disk reader has been stopped" ));
+					
+					return;
 				}
 				
 				async_reads++;

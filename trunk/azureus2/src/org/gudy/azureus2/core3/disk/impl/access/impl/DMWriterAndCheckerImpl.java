@@ -342,13 +342,13 @@ DMWriterAndCheckerImpl
 		            final AESemaphore	 run_sem = new AESemaphore( "DMW&C::checker:runsem", 2 );
 		            
 	  				for ( int i=0; i < nbPieces; i++ ){
-	        
+	  					
+	  					run_sem.reserve();
+	  					
 	  					if ( stopped ){
 	  						
 	  						break;
 	  					}
-	  					
-	  					run_sem.reserve();
 	  					
 	  					enqueueCheckRequest( 
 	  	       				i, 
@@ -376,7 +376,16 @@ DMWriterAndCheckerImpl
 	  					
 	  					checks_submitted++;
 	  					
-	  					if( delay > 0 )  Thread.sleep( delay );
+	  					if( delay > 0 ){
+	  						
+	  						try{
+	  						
+	  							Thread.sleep( delay );
+	  							
+	  						}catch( Throwable e ){
+	  							
+	  						}
+	  					}
 	  				}
 	  					  					
 	  					// wait for all to complete
@@ -385,12 +394,6 @@ DMWriterAndCheckerImpl
 	  						
 	  					sem.reserve();
 	  				}
-	  				
-	  	       }catch( Throwable e ){
-	  	       	
-	  	       			// we get here if the disk manager's stopped running
-	  	       	
-	  	       		Ignore.ignore(e);
 	  	       }finally{
 	  	       	
 	  	       		complete_recheck_in_progress	= false;
@@ -508,16 +511,26 @@ DMWriterAndCheckerImpl
 			
 			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
 
-			for (int i = 0; i < pieceList.size(); i++) {
-				
-				PieceMapEntry piece_entry = pieceList.get(i);
+			try{
+				for (int i = 0; i < pieceList.size(); i++) {
 					
-				if ( piece_entry.getFile().getCacheFile().getLength() < piece_entry.getOffset()){
+					PieceMapEntry piece_entry = pieceList.get(i);
 						
-					result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_FAILURE, user_data );
-					
-					return;
+					if ( piece_entry.getFile().getCacheFile().getLength() < piece_entry.getOffset()){
+							
+						result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_FAILURE, user_data );
+						
+						return;
+					}
 				}
+			}catch( Throwable e ){
+			
+					// we can fail here if the disk manager has been stopped as the cache file length access may be being
+					// performed on a "closed" (i.e. un-owned) file
+				
+				result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_CANCELLED, user_data );
+
+				return;
 			}
 			
 			int this_piece_length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
@@ -558,6 +571,8 @@ DMWriterAndCheckerImpl
 					   		this_mon.enter();
 					   	
 							if ( stopped ){
+								
+								buffer.returnToPool();
 								
 								result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_CANCELLED, user_data );
 								
@@ -619,10 +634,10 @@ DMWriterAndCheckerImpl
 					    							
 					    								async_checks--;
 					    								
-					    								  if ( stopped ){
+					    								if ( stopped ){
 					    									  
-					    									  async_check_sem.release();
-					    								  }
+					    									async_check_sem.release();
+					    								}
 					    							}finally{
 					    								
 					    								this_mon.exit();
@@ -822,22 +837,28 @@ DMWriterAndCheckerImpl
 							}
 						}
 					};
-				
+	
 				try{
 					this_mon.enter();
 					
 					if ( stopped ){
 						
-						throw( new Exception( "Disk writer has been stopped" ));
-					}
+						buffer.returnToPool();
+						
+						listener.writeFailed( request, new Exception( "Disk writer has been stopped" ));
+						
+						return;
+						
+					}else{
 					
-					async_writes++;
+						async_writes++;
+					}
 					
 				}finally{
 					
 					this_mon.exit();
 				}
-				
+									
 				new requestDispatcher( request, l, buffer, chunks );
 			}
 		}catch( Throwable e ){
