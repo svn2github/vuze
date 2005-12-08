@@ -6,7 +6,6 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -122,21 +121,25 @@ DHTControlImpl
 	
 	protected AEMonitor	estimate_mon		= new AEMonitor( "DHTControl:estimate" );
 	private long		last_dht_estimate_time;
-	private long		dht_estimate;
+	private long		local_dht_estimate;
+	private long		combined_dht_estimate;
 	
-	private static final int	ESTIMATE_HISTORY	= 32;
+	private static final int	LOCAL_ESTIMATE_HISTORY	= 32;
 	
-	private Map	estimate_values = 
-		new LinkedHashMap(ESTIMATE_HISTORY,0.75f,true)
+	private Map	local_estimate_values = 
+		new LinkedHashMap(LOCAL_ESTIMATE_HISTORY,0.75f,true)
 		{
 			protected boolean 
 			removeEldestEntry(
 		   		Map.Entry eldest) 
 			{
-				return( size() > ESTIMATE_HISTORY );
+				return( size() > LOCAL_ESTIMATE_HISTORY );
 			}
 		};
 		
+	private static final int	REMOTE_ESTIMATE_HISTORY	= 128;
+	
+	private List	remote_estimate_values = new LinkedList();
 		
 	protected AEMonitor	spoof_mon		= new AEMonitor( "DHTControl:spoof" );
 
@@ -1728,16 +1731,18 @@ DHTControlImpl
 				// maybe unterminated searches still going on so protect ourselves
 				// against concurrent modification of result set
 			
-			List	closest_res;
+			List	closest_res = null;
 			
 			try{
 				contacts_to_query_mon.enter();
 	
-				DHTLog.log( "lookup complete for " + DHTLog.getString( lookup_id ));
-				
-				DHTLog.log( "    queried = " + DHTLog.getString( contacts_queried ));
-				DHTLog.log( "    to query = " + DHTLog.getString( contacts_to_query ));
-				DHTLog.log( "    ok = " + DHTLog.getString( ok_contacts ));
+				if ( DHTLog.isOn()){
+					DHTLog.log( "lookup complete for " + DHTLog.getString( lookup_id ));
+					
+					DHTLog.log( "    queried = " + DHTLog.getString( contacts_queried ));
+					DHTLog.log( "    to query = " + DHTLog.getString( contacts_to_query ));
+					DHTLog.log( "    ok = " + DHTLog.getString( ok_contacts ));
+				}
 				
 				closest_res	= new ArrayList( ok_contacts );
 				
@@ -2320,10 +2325,32 @@ DHTControlImpl
 	}
 	
 	public void
-	setEstimatedDHTSize(
+	setTransportEstimatedDHTSize(
 		int						size )
 	{
+		if ( size > 0 ){
+			
+			try{
+				estimate_mon.enter();
+				
+				remote_estimate_values.add( new Integer( size ));
+				
+				if ( remote_estimate_values.size() > REMOTE_ESTIMATE_HISTORY ){
+					
+					remote_estimate_values.remove(0);
+				}
+			}finally{
+				
+				estimate_mon.exit();
+			}
+		}
 		// System.out.println( "estimated dht size: " + size );
+	}
+	
+	public int
+	getTransportEstimatedDHTSize()
+	{
+		return((int)local_dht_estimate );
 	}
 	
 	public int
@@ -2340,7 +2367,7 @@ DHTControlImpl
 			estimateDHTSize( router.getID(), null, router.getK());
 		}
 		
-		return((int)dht_estimate );
+		return((int)combined_dht_estimate );
 	}
 	
 	protected void
@@ -2397,83 +2424,99 @@ DHTControlImpl
 				
 					// can't estimate with less than 2
 				
-				if ( l.size() < 2 ){
+				if ( l.size() > 2 ){
 					
-					return;
-				}
 				
-				/*
-				<Gudy> if you call N0 yourself, N1 the nearest peer, N2 the 2nd nearest peer ... Np the pth nearest peer that you know (for example, N1 .. N20)
-				<Gudy> and if you call D1 the Kad distance between you and N1, D2 between you and N2 ...
-				<Gudy> then you have to compute :
-				<Gudy> Dc = sum(i * Di) / sum( i * i)
-				<Gudy> and then :
-				<Gudy> NbPeers = 2^160 / Dc
-				*/
-				
-				BigInteger	sum1 = new BigInteger("0");
-				BigInteger	sum2 = new BigInteger("0");
-				
-					// first entry should be us
+					/*
+					<Gudy> if you call N0 yourself, N1 the nearest peer, N2 the 2nd nearest peer ... Np the pth nearest peer that you know (for example, N1 .. N20)
+					<Gudy> and if you call D1 the Kad distance between you and N1, D2 between you and N2 ...
+					<Gudy> then you have to compute :
+					<Gudy> Dc = sum(i * Di) / sum( i * i)
+					<Gudy> and then :
+					<Gudy> NbPeers = 2^160 / Dc
+					*/
+					
+					BigInteger	sum1 = new BigInteger("0");
+					BigInteger	sum2 = new BigInteger("0");
+					
+						// first entry should be us
+							
+					for (int i=1;i<Math.min( l.size(), contacts_to_use );i++){
 						
-				for (int i=1;i<Math.min( l.size(), contacts_to_use );i++){
+						DHTTransportContact	node = (DHTTransportContact)l.get(i);
+						
+						byte[]	dist = computeDistance( id, node.getID());
+						
+						BigInteger b_dist = IDToBigInteger( dist );
+						
+						BigInteger	b_i = new BigInteger(""+i);
+						
+						sum1 = sum1.add( b_i.multiply(b_dist));
+						
+						sum2 = sum2.add( b_i.multiply( b_i ));
+					}
 					
-					DHTTransportContact	node = (DHTTransportContact)l.get(i);
+					byte[]	max = new byte[id.length+1];
 					
-					byte[]	dist = computeDistance( id, node.getID());
+					max[0] = 0x01;
 					
-					BigInteger b_dist = IDToBigInteger( dist );
+					long this_estimate;
 					
-					BigInteger	b_i = new BigInteger(""+i);
+					if ( sum1.compareTo( new BigInteger("0")) == 0 ){
+						
+						this_estimate = 0;
+						
+					}else{
+						
+						this_estimate = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
+					}
 					
-					sum1 = sum1.add( b_i.multiply(b_dist));
+						// there's always us!!!!
 					
-					sum2 = sum2.add( b_i.multiply( b_i ));
+					if ( this_estimate < 1 ){
+						
+						this_estimate	= 1;
+					}
+					
+					local_estimate_values.put( new HashWrapper( id ), new Long( this_estimate ));
+					
+					long	new_estimate	= 0;
+					
+					Iterator	it = local_estimate_values.values().iterator();
+					
+					String	sizes = "";
+						
+					while( it.hasNext()){
+						
+						long	estimate = ((Long)it.next()).longValue();
+						
+						sizes += (sizes.length()==0?"":",") + estimate;
+						
+						new_estimate += estimate;
+					}
+					
+					local_dht_estimate = new_estimate/local_estimate_values.size();
+					
+					// System.out.println( "getEstimatedDHTSize: " + sizes + "->" + dht_estimate + " (id=" + DHTLog.getString2(id) + ",cont=" + (contacts==null?"null":(""+contacts.size())) + ",use=" + contacts_to_use );
 				}
 				
-				byte[]	max = new byte[id.length+1];
+				List rems = new ArrayList(new TreeSet( remote_estimate_values ));
 				
-				max[0] = 0x01;
+				// ignore largest and smallest few values
 				
-				long this_estimate;
+				long	rem_average = local_dht_estimate;
+				int		rem_vals	= 1;
 				
-				if ( sum1.compareTo( new BigInteger("0")) == 0 ){
+				for (int i=3;i<rems.size()-3;i++){
+				
+					rem_average += ((Integer)rems.get(i)).intValue();
 					
-					this_estimate = 0;
-					
-				}else{
-					
-					this_estimate = IDToBigInteger(max).multiply( sum2 ).divide( sum1 ).longValue();
+					rem_vals++;
 				}
 				
-					// there's always us!!!!
+				combined_dht_estimate = rem_average / rem_vals;
 				
-				if ( this_estimate < 1 ){
-					
-					this_estimate	= 1;
-				}
-				
-				estimate_values.put( new HashWrapper( id ), new Long( this_estimate ));
-				
-				long	new_estimate	= 0;
-				
-				Iterator	it = estimate_values.values().iterator();
-				
-				String	sizes = "";
-					
-				while( it.hasNext()){
-					
-					long	estimate = ((Long)it.next()).longValue();
-					
-					sizes += (sizes.length()==0?"":",") + estimate;
-					
-					new_estimate += estimate;
-				}
-				
-				dht_estimate = new_estimate/estimate_values.size();
-				
-				// System.out.println( "getEstimatedDHTSize: " + sizes + "->" + dht_estimate + " (id=" + DHTLog.getString2(id) + ",cont=" + (contacts==null?"null":(""+contacts.size())) + ",use=" + contacts_to_use );
-				
+				// System.out.println( "estimateDHTSize: loc =" + local_dht_estimate + ", comb = " + combined_dht_estimate + " [" + remote_estimate_values.size() + "]");
 			}finally{
 				
 				estimate_mon.exit();
