@@ -129,7 +129,7 @@ public class SWTManagerImpl
 		PluginViewWrapper(
 			PluginViewModel	_model )
 		{
-			model	= model;
+			model	= _model;
 		}
 		
 		public String 
