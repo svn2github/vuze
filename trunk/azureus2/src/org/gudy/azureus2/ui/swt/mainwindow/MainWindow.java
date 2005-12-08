@@ -491,7 +491,7 @@ MainWindow
     
  
     natStatus = new CLabelPadding(statusBar,borderFlag);
-    natStatus.setText(MessageText.getString("MainWindow.nat.status.ledtext"));
+    natStatus.setText( "" );
     
 
     dhtStatus = new CLabelPadding(statusBar,borderFlag);

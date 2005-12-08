@@ -3,6 +3,12 @@ AZUREUS CHANGELOG
 
 2006.xx.xx | Azureus 2.3.0.7
 
+CHANGE: Core  | Clearer firewalled/NAT status reporting [Nolar]
+CHANGE: Core  | Do not open the wiki NAT problem page if firewall status is OK [Nolar]
+
+BUGFIX: Core  | Fix transfer stall bug when MTU size is greater than max upload/download rate [Nolar]
+
+
 
 
 2005.11.22 | Azureus 2.3.0.6

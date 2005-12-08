@@ -25,7 +25,6 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 import java.text.NumberFormat;
 import java.util.Iterator;
 
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
 import com.aelitis.azureus.core.*;
@@ -157,32 +156,38 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 
 						if (lastNATstatus != nat_status) {
 							String imgID;
-							String textID;
+							String tooltipID;
+							String statusID;
+							
 							switch (nat_status) {
 								case ConnectionManager.NAT_UNKNOWN:
 									imgID = "grayled";
-									textID = "MainWindow.nat.status.tooltip.unknown";
+									tooltipID = "MainWindow.nat.status.tooltip.unknown";
+									statusID = "MainWindow.nat.status.unknown";
 									break;
 
 								case ConnectionManager.NAT_OK:
 									imgID = "greenled";
-									textID = "MainWindow.nat.status.tooltip.ok";
+									tooltipID = "MainWindow.nat.status.tooltip.ok";
+									statusID = "MainWindow.nat.status.ok";
 									break;
 
 								case ConnectionManager.NAT_PROBABLY_OK:
 									imgID = "yellowled";
-									textID = "MainWindow.nat.status.tooltip.probok";
+									tooltipID = "MainWindow.nat.status.tooltip.probok";
+									statusID = "MainWindow.nat.status.probok";
 									break;
 
 								default:
 									imgID = "redled";
-									textID = "MainWindow.nat.status.tooltip.bad";
+								  tooltipID = "MainWindow.nat.status.tooltip.bad";
+								  statusID = "MainWindow.nat.status.bad";
 									break;
 							}
 
-							mainWindow.natStatus.setImage(ImageRepository.getImage(imgID));
-							mainWindow.natStatus
-									.setToolTipText(MessageText.getString(textID));
+							mainWindow.natStatus.setImage( ImageRepository.getImage(imgID) );
+							mainWindow.natStatus.setToolTipText( MessageText.getString(tooltipID) );
+							mainWindow.natStatus.setText( MessageText.getString(statusID) );
 							lastNATstatus = nat_status;
 						}
 
@@ -198,52 +203,39 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 						}
 
 						if (lastDHTstatus != dht_status || lastDHTcount != dht_count) {
-							String imgID = null;
-							String textID = null;
 							switch (dht_status) {
 								case DHTPlugin.STATUS_RUNNING:
-									if (dht_count == -1) {
-										imgID = "yellowled";
-										textID = "MainWindow.dht.status.unreachabletooltip";
-									} else {
-										imgID = "greenled";
-										textID = "MainWindow.dht.status.tooltip";
+									if (dht_count > 100*1000 ) {  //release dht has at least a half million users
+										mainWindow.dhtStatus.setImage(ImageRepository.getImage( "greenled" ));
+										mainWindow.dhtStatus.setToolTipText(MessageText.getString( "MainWindow.dht.status.tooltip" ));
+										mainWindow.dhtStatus.setText(numberFormat.format(dht_count)+ " " +MessageText.getString("MainWindow.dht.status.users"));
 									}
-									mainWindow.dhtStatus.setToolTipText(MessageText.getString(textID));
-
-									if (dht_count == 0) {
-										textID = "MainWindow.dht.status.running";
-									} else {
-										textID = null;
-										mainWindow.dhtStatus.setText(numberFormat.format(dht_count)
-												+ " "
-												+ MessageText.getString("MainWindow.dht.status.users"));
+									else {
+										mainWindow.dhtStatus.setImage(ImageRepository.getImage( "yellowled" ));
+										mainWindow.dhtStatus.setToolTipText(MessageText.getString( "MainWindow.dht.status.unreachabletooltip" ));
+										mainWindow.dhtStatus.setText( MessageText.getString( "MainWindow.dht.status.unreachable" ));
 									}
 									break;
 
 								case DHTPlugin.STATUS_DISABLED:
-									imgID = "grayled";
-									textID = "MainWindow.dht.status.disabled";
+									mainWindow.dhtStatus.setImage(ImageRepository.getImage( "grayled" ));
+									mainWindow.dhtStatus.setText( MessageText.getString( "MainWindow.dht.status.disabled" ));
 									break;
 
 								case DHTPlugin.STATUS_INITALISING:
-									imgID = "yellowled";
-									textID = "MainWindow.dht.status.initializing";
+									mainWindow.dhtStatus.setImage(ImageRepository.getImage( "yellowled" ));
+									mainWindow.dhtStatus.setText( MessageText.getString( "MainWindow.dht.status.initializing" ));
 									break;
 
 								case DHTPlugin.STATUS_FAILED:
-									imgID = "redled";
-									textID = "MainWindow.dht.status.failed";
+									mainWindow.dhtStatus.setImage(ImageRepository.getImage( "redled" ));
+									mainWindow.dhtStatus.setText( MessageText.getString( "MainWindow.dht.status.failed" ));
 									break;
+									
+								default:
+									mainWindow.dhtStatus.setImage(null);
+								 break;
 							}
-
-							if (imgID != null)
-								mainWindow.dhtStatus.setImage(ImageRepository.getImage(imgID));
-							else
-								mainWindow.dhtStatus.setImage(null);
-
-							if (textID != null)
-								mainWindow.dhtStatus.setText(MessageText.getString(textID));
 
 							lastDHTstatus = dht_status;
 							lastDHTcount = dht_count;
