@@ -187,23 +187,13 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 						}
 
 						// DHT Status Section
-						int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED
-								: dhtPlugin.getStatus();
+						int dht_status = (dhtPlugin == null) ? DHTPlugin.STATUS_DISABLED	: dhtPlugin.getStatus();
 						long dht_count = -1;
 						if (dht_status == DHTPlugin.STATUS_RUNNING) {
 							DHT[] dhts = dhtPlugin.getDHTs();
-
-							boolean reachable = dhts.length > 0
-									&& dhts[0].getTransport().isReachable();
 							
-							if (reachable) {
-								if (dhts.length == 0)
-									dht_count = 0;
-								else
-									dht_count = dhts[0].getControl().getStats()
-											.getEstimatedDHTSize();
-							} else { // not reachable
-								dht_count = -1;
+							if( dhts.length > 0	&& dhts[0].getTransport().isReachable() ) {
+								dht_count = dhts[0].getControl().getStats().getEstimatedDHTSize();
 							}
 						}
 
@@ -219,8 +209,7 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 										imgID = "greenled";
 										textID = "MainWindow.dht.status.tooltip";
 									}
-									mainWindow.dhtStatus.setToolTipText(MessageText
-											.getString(textID));
+									mainWindow.dhtStatus.setToolTipText(MessageText.getString(textID));
 
 									if (dht_count == 0) {
 										textID = "MainWindow.dht.status.running";
