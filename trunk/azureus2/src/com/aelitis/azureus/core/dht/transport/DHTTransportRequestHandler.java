@@ -70,9 +70,9 @@ DHTTransportRequestHandler
 		DHTTransportContact	contact );
 	
 	public int
-	getEstimatedDHTSize();
+	getTransportEstimatedDHTSize();
 	
 	public void
-	setEstimatedDHTSize(
+	setTransportEstimatedDHTSize(
 		int	size );
 }

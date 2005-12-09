@@ -28,6 +28,9 @@ import org.gudy.azureus2.core3.peer.util.*;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.impl.ConnectDisconnectManager;
 import com.aelitis.azureus.core.peermanager.*;
+import com.aelitis.azureus.core.peermanager.control.PeerControlInstance;
+import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
+import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.unchoker.*;
 
@@ -35,7 +38,7 @@ import com.aelitis.azureus.core.peermanager.unchoker.*;
 public class 
 PEPeerControlImpl
 	extends LogRelation
-	implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener,
+	implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener, PeerControlInstance,
 		DiskManagerCheckRequestListener, IPFilterListener
 {
 	private static final LogIDs LOGID = LogIDs.PEER;
@@ -107,8 +110,8 @@ PEPeerControlImpl
   
   
   private long mainloop_loop_count;
-  private static final int MAINLOOP_INTERVAL   = 100;
-  private static final int MAINLOOP_ONE_SECOND_INTERVAL = 1000 / MAINLOOP_INTERVAL;
+ 
+  private static final int MAINLOOP_ONE_SECOND_INTERVAL = 1000 / PeerControlScheduler.SCHEDULE_PERIOD_MILLIS;
   private static final int MAINLOOP_FIVE_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 5;
   private static final int MAINLOOP_TEN_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 10;
   private static final int MAINLOOP_THIRTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 30;
@@ -280,32 +283,21 @@ PEPeerControlImpl
 
     checkFinished( true );
 
-    new AEThread( "PEPeerControlImpl"){
-      public void
-      runSupport()
-      {
-        mainLoop();
-      }
-    }.start();
+    PeerControlSchedulerFactory.getSingleton().register( this );
+    
+    _timeStarted = SystemTime.getCurrentTime();
 
+    is_running = true;
   }
 
   
  
   
   
-  private void 
-  mainLoop() 
+  public void
+  schedule()
   {
-    is_running = true;
-
-    _timeStarted = SystemTime.getCurrentTime();
-
-    while( is_running ) { //loop until stopAll() kills us
-
       try {
-        long timeStart = SystemTime.getCurrentTime();
-
         updateTrackerAnnounceInterval();
         
         doConnectionChecks();
@@ -348,20 +340,12 @@ PEPeerControlImpl
 
         doUnchokes();
         
-
-        long loop_time = SystemTime.getCurrentTime() - timeStart;
-        if( loop_time < MAINLOOP_INTERVAL && loop_time >= 0 ) {
-          try {  Thread.sleep( MAINLOOP_INTERVAL - loop_time );  } catch(Exception e) {}
-        }
-        
-      }
-      catch (Throwable e) {
-
+      }catch (Throwable e) {
+   	
         Debug.printStackTrace( e );
       }
 
       mainloop_loop_count++;
-    }
   }
 
   
@@ -371,6 +355,8 @@ PEPeerControlImpl
   {
 
     is_running = false;
+    
+    PeerControlSchedulerFactory.getSingleton().unregister( this );
     
     // send stopped event
     _tracker.stop();

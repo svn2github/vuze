@@ -71,6 +71,12 @@ DHTLog
 	{
 		logging_on 	= on;
 	}
+	
+	public static boolean
+	isOn()
+	{
+		return( logging_on );
+	}
 
 	public static void
 	log(

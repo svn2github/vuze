@@ -923,9 +923,7 @@ DMWriterAndCheckerImpl
 					listener.writeCompleted( request );
 					
 				}else{
-					
-					DiskAccessRequestListener	l;
-							
+												
 					if ( chunk_index == 1 && chunks.size() > 32 ){
 						
 							// for large numbers of chunks drop the recursion approach and

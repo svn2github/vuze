@@ -115,15 +115,15 @@ DHTTransportRequestCounter
 	}
 	
 	public int
-	getEstimatedDHTSize()
+	getTransportEstimatedDHTSize()
 	{
-		return( delegate.getEstimatedDHTSize());
+		return( delegate.getTransportEstimatedDHTSize());
 	}
 	
 	public void
-	setEstimatedDHTSize(
+	setTransportEstimatedDHTSize(
 		int	size )
 	{
-		delegate.setEstimatedDHTSize(size);
+		delegate.setTransportEstimatedDHTSize(size);
 	}
 }

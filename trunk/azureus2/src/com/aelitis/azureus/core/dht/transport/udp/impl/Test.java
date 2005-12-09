@@ -295,13 +295,13 @@ Test
 	}
 
 	public int
-	getEstimatedDHTSize()
+	getTransportEstimatedDHTSize()
 	{
 		return(0);
 	}
 	
 	public void
-	setEstimatedDHTSize(
+	setTransportEstimatedDHTSize(
 		int	size )
 	{
 	}
