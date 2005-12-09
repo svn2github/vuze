@@ -2,9 +2,12 @@
  * Created on Sep 1, 2003 
  */
  
-package org.gudy.azureus2.core3.disk.impl;
+package org.gudy.azureus2.core3.disk.impl.piecemapper.impl;
 
 import java.util.List;
+
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
 
 /**
  * @author Moti
@@ -12,21 +15,24 @@ import java.util.List;
  * PieceList contains a list of pieces; it also provides accessor and
  * utility methods.
  */
-public class PieceList {
+public class 
+PieceListImpl
+	implements DMPieceList
+{
 	
-	final private PieceMapEntry[] pieces;	
+	final private PieceMapEntryImpl[] pieces;	
 	final private int[] cumulativeLengths;
 	
-	static public PieceList 
+	static public PieceListImpl 
 	convert(
 		List pieceList) 
 	{
-		return new PieceList((PieceMapEntry[])pieceList.toArray(new PieceMapEntry[pieceList.size()]));	
+		return new PieceListImpl((PieceMapEntryImpl[])pieceList.toArray(new PieceMapEntryImpl[pieceList.size()]));	
 	}
 	
 	protected
-	PieceList(
-		PieceMapEntry[] _pieces) 
+	PieceListImpl(
+		PieceMapEntryImpl[] _pieces) 
 	{
 		pieces = _pieces;
 		cumulativeLengths = new int[pieces.length];
@@ -52,7 +58,7 @@ public class PieceList {
 		return size() == 0;	
 	}
 	
-	public PieceMapEntry get(int index) {
+	public DMPieceMapEntry get(int index) {
 		return pieces[index];	
 	}
 	

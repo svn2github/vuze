@@ -35,7 +35,14 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.access.DMAccessFactory;
 import org.gudy.azureus2.core3.disk.impl.access.DMReader;
-import org.gudy.azureus2.core3.disk.impl.access.DMWriterAndChecker;
+import org.gudy.azureus2.core3.disk.impl.access.DMChecker;
+import org.gudy.azureus2.core3.disk.impl.access.DMReaderAdapter;
+import org.gudy.azureus2.core3.disk.impl.access.DMWriter;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapper;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFactory;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFile;
 import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePicker;
 import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePickerFactory;
 import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
@@ -72,7 +79,7 @@ import java.util.StringTokenizer;
 public class 
 DiskManagerImpl
 	extends LogRelation
-	implements DiskManagerHelper 
+	implements DiskManagerHelper, DMReaderAdapter
 {  
 	private static final LogIDs LOGID = LogIDs.DISK;
 	
@@ -124,16 +131,17 @@ DiskManagerImpl
 
 
 	private DMReader				reader;
-	private DMWriterAndChecker		writer_and_checker;
+	private DMChecker				checker;
+	private DMWriter				writer;
 	
 	private RDResumeHandler			resume_handler;
 	private DMPiecePicker			piece_picker;
-	private DiskManagerPieceMapper	piece_mapper;
+	private DMPieceMapper			piece_mapper;
 	
 	
 	
 	private DiskManagerPieceImpl[]	pieces;
-	private PieceList[] 			pieceMap;
+	private DMPieceList[] 			pieceMap;
 
 	private DiskManagerFileInfoImpl[] 	files;
 	
@@ -230,7 +238,7 @@ DiskManagerImpl
 		TOTorrent			_torrent, 
 		DownloadManager 	_dmanager) 
 	{
-	    torrent 	= _torrent;
+	    torrent 			= _torrent;
 	    download_manager 	= _dmanager;
 	 
 	    pieces		= new DiskManagerPieceImpl[0];	// in case things go wrong later
@@ -240,6 +248,8 @@ DiskManagerImpl
 	    percentDone = 0;
 	    
 		if ( torrent == null ){
+			
+			errorMessage	 = "Torrent not available";
 			
 			setState( FAULTY );
 			
@@ -255,7 +265,7 @@ DiskManagerImpl
 			
 			Debug.printStackTrace( e );
 			
-			this.errorMessage = TorrentUtils.exceptionToText(e) + " (Constructor)";
+			errorMessage = TorrentUtils.exceptionToText(e);
 			
 			setState( FAULTY );
 			
@@ -265,29 +275,25 @@ DiskManagerImpl
 			
 			Debug.printStackTrace( e );
 			
-			this.errorMessage = e.getMessage() + " (Constructor)";
+			errorMessage = "Initialisation failed - " + Debug.getNestedExceptionMessage(e);
 			
 			setState( FAULTY );
 			
 			return;
 		}
 		
-		piece_mapper	= new DiskManagerPieceMapper( this );
-
-			//build something to hold the filenames/sizes
+		piece_mapper	= DMPieceMapperFactory.create( torrent );
 		
-		TOTorrentFile[] torrent_files = torrent.getFiles();
+		try{
+			piece_mapper.construct( locale_decoder, download_manager.getAbsoluteSaveLocation().getName());
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
 
-		if ( torrent.isSimpleTorrent()){
-			 								
-			piece_mapper.buildFileLookupTables( torrent_files[0], download_manager.getAbsoluteSaveLocation().getName());
-
-		}else{
-
-			piece_mapper.buildFileLookupTables( torrent_files, locale_decoder );
-		}
-		
-		if ( getState() == FAULTY){
+			errorMessage = "Failed to build piece map - " + Debug.getNestedExceptionMessage(e);
+			
+			setState( FAULTY );
 			
 			return;
 		}
@@ -311,9 +317,11 @@ DiskManagerImpl
 		
 		reader 				= DMAccessFactory.createReader(this);
 		
-		writer_and_checker 	= DMAccessFactory.createWriterAndChecker(this);
+		checker 			= DMAccessFactory.createChecker(this);
 		
-		resume_handler		= new RDResumeHandler( this, writer_and_checker );
+		writer		 		= DMAccessFactory.createWriter(this);
+		
+		resume_handler		= new RDResumeHandler( this, checker );
 	
 		piece_picker		= DMPiecePickerFactory.create( this );
 	}
@@ -415,7 +423,9 @@ DiskManagerImpl
 
 		reader.start();
 		
-		writer_and_checker.start();
+		checker.start();
+		
+		writer.start();
 				
 			//allocate / check every file
 
@@ -429,7 +439,7 @@ DiskManagerImpl
 			return;
 		}
     
-        pieceMap = piece_mapper.constructPieceMap();
+        pieceMap = piece_mapper.getPieceMap();
 
 		constructFilesPieces();
 		
@@ -490,8 +500,10 @@ DiskManagerImpl
 					// to interrupt an alloc/recheck process that might be holding up the start
 					// operation
 				
-			   	writer_and_checker.stop();
+			   	checker.stop();
 		    	
+			   	writer.stop();
+			   	
 				reader.stop();
 				
 				resume_handler.stop();
@@ -510,8 +522,10 @@ DiskManagerImpl
 		
 		started_sem.reserve();
 		
-    	writer_and_checker.stop();
-    			
+    	checker.stop();
+    	
+    	writer.stop();
+    	
 		reader.stop();
 		
 		resume_handler.stop();
@@ -577,13 +591,13 @@ DiskManagerImpl
 		
 		// System.out.println( "root dir = " + root_dir_file );
 		
-		List btFileList	= piece_mapper.getFileList();
+		DMPieceMapperFile[]	pm_files = piece_mapper.getFiles();
 		
 		String[]	storage_types = getStorageTypes();
 		
-		for (int i = 0; i < btFileList.size(); i++) {
-				//get the BtFile
-			DiskManagerPieceMapper.fileInfo pm_info = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
+		for (int i = 0; i < pm_files.length; i++) {
+			
+			DMPieceMapperFile pm_info = pm_files[i];
 			
 			File	relative_file = pm_info.getDataFile();
 			
@@ -700,7 +714,9 @@ DiskManagerImpl
 	private int 
 	allocateFiles() 
 	{
-		DiskManagerFileInfoImpl[] allocated_files = new DiskManagerFileInfoImpl[piece_mapper.getFileList().size()];
+		DMPieceMapperFile[]	pm_files = piece_mapper.getFiles();
+		
+		DiskManagerFileInfoImpl[] allocated_files = new DiskManagerFileInfoImpl[pm_files.length];
 	      
 		try{
 			setState( ALLOCATING );
@@ -708,9 +724,7 @@ DiskManagerImpl
 			allocated = 0;
 			
 			int numNewFiles = 0;
-			
-			List btFileList	= piece_mapper.getFileList();
-		
+					
 			String	root_dir = download_manager.getAbsoluteSaveLocation().getParent();
 			
 			if ( !torrent.isSimpleTorrent()){
@@ -722,9 +736,9 @@ DiskManagerImpl
 			
 			String[]	storage_types = getStorageTypes();
 	
-			for ( int i=0;i<btFileList.size();i++ ){
+			for ( int i=0;i<pm_files.length;i++ ){
 				
-				final DiskManagerPieceMapper.fileInfo pm_info = (DiskManagerPieceMapper.fileInfo)btFileList.get(i);
+				final DMPieceMapperFile pm_info = pm_files[i];
 						
 				final long target_length = pm_info.getLength();
 	
@@ -863,7 +877,7 @@ DiskManagerImpl
 							
 							if( COConfigurationManager.getBooleanParameter("Zero New") ) {  //zero fill
 								
-								if ( !writer_and_checker.zeroFile( fileInfo, target_length )) {
+								if ( !writer.zeroFile( fileInfo, target_length )) {
 		                
 									try{
 											// failed to zero it, delete it so it gets done next start
@@ -1043,7 +1057,7 @@ DiskManagerImpl
 		
 		int	piece_length = piece.getLength();
 		
-		PieceList piece_list = pieceMap[piece_number];
+		DMPieceList piece_list = pieceMap[piece_number];
 
 		try{
 			file_piece_mon.enter();					
@@ -1063,7 +1077,7 @@ DiskManagerImpl
 									
 				for (int i = 0; i < piece_list.size(); i++) {
 								
-					PieceMapEntry piece_map_entry = piece_list.get(i);
+					DMPieceMapEntry piece_map_entry = piece_list.get(i);
 								
 					DiskManagerFileInfoImpl	this_file = piece_map_entry.getFile();
 						
@@ -1203,7 +1217,7 @@ DiskManagerImpl
 	constructFilesPieces() 
 	{
 		for (int i = 0; i < pieceMap.length; i++) {
-			PieceList pieceList = pieceMap[i];
+			DMPieceList pieceList = pieceMap[i];
 			//for each piece
 
 			for (int j = 0; j < pieceList.size(); j++) {
@@ -1281,7 +1295,7 @@ DiskManagerImpl
 
 	}
 	
-	public PieceList
+	public DMPieceList
 	getPieceList(
 		int		piece_number )
 	{
@@ -1312,7 +1326,7 @@ DiskManagerImpl
 		final DiskManagerCheckRequestListener 	listener,
 		final Object							user_data ) 
 	{
-	  	writer_and_checker.enqueueCompleteRecheckRequest( listener, user_data );
+	  	checker.enqueueCompleteRecheckRequest( listener, user_data );
 	}
 
 	public void 
@@ -1321,12 +1335,12 @@ DiskManagerImpl
 		DiskManagerCheckRequestListener listener,
 		Object							user_data ) 
 	{
-	  	writer_and_checker.enqueueCheckRequest( pieceNumber, listener, user_data );
+	  	checker.enqueueCheckRequest( pieceNumber, listener, user_data );
 	}
 	  
 	public boolean isChecking() 
 	{
-	  return ( writer_and_checker.isChecking());
+	  return ( checker.isChecking());
 	}
   
 	public DirectByteBuffer 
@@ -1345,7 +1359,7 @@ DiskManagerImpl
 		DirectByteBuffer 	data,
 		Object 				user_data )
 	{
-		return( writer_and_checker.createWriteRequest( pieceNumber, offset, data, user_data ));
+		return( writer.createWriteRequest( pieceNumber, offset, data, user_data ));
 	}
 	
 	public void 
@@ -1353,7 +1367,7 @@ DiskManagerImpl
 		DiskManagerWriteRequest			request,
 		DiskManagerWriteRequestListener	listener )
 	{
-		writer_and_checker.writeBlock( request, listener );
+		writer.writeBlock( request, listener );
 	}
 	
 	

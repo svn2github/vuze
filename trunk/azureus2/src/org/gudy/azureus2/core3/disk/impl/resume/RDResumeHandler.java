@@ -37,6 +37,8 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
 import org.gudy.azureus2.core3.disk.*;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
@@ -57,7 +59,7 @@ RDResumeHandler
 
 	
 	protected DiskManagerHelper		disk_manager;
-	protected DMWriterAndChecker	writer_and_checker;
+	protected DMChecker				checker;
 	protected DownloadManagerState	download_manager_state;
 	
 	protected TOTorrent				torrent;
@@ -73,10 +75,10 @@ RDResumeHandler
 	public 
 	RDResumeHandler(
 		DiskManagerHelper	_disk_manager,
-		DMWriterAndChecker	_writer_and_checker )
+		DMChecker	_writer_and_checker )
 	{
 		disk_manager		= _disk_manager;
-		writer_and_checker	= _writer_and_checker;
+		checker	= _writer_and_checker;
 		
 		download_manager_state	= disk_manager.getDownloadManager().getDownloadState();
 		
@@ -235,11 +237,11 @@ RDResumeHandler
 					
 							// at least check that file sizes are OK for this piece to be valid
 						
-						PieceList list = disk_manager.getPieceList(i);
+						DMPieceList list = disk_manager.getPieceList(i);
 						
 						for (int j=0;j<list.size();j++){
 							
-							PieceMapEntry	entry = list.get(j);
+							DMPieceMapEntry	entry = list.get(j);
 							
 							Long	file_size 		= (Long)file_sizes.get(entry.getFile());
 							
@@ -284,9 +286,9 @@ RDResumeHandler
 						if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
 						
 							try{								
-								writer_and_checker.checkPiece(
+								checker.checkPiece(
 									i,
-									new CheckPieceResultHandler()
+									new DMCheckerRequestListener()
 									{
 										public void
 										processResult(
@@ -296,11 +298,11 @@ RDResumeHandler
 										{
 											if (Logger.isEnabled())
 												Logger.log(new LogEvent(disk_manager, LOGID,
-													result == CheckPieceResultHandler.OP_SUCCESS
+													result == DMCheckerRequestListener.OP_SUCCESS
 															? LogEvent.LT_INFORMATION : LogEvent.LT_WARNING,
 													"Piece #"
 															+ piece_number
-															+ (result == CheckPieceResultHandler.OP_SUCCESS
+															+ (result == DMCheckerRequestListener.OP_SUCCESS
 																	? " passed" : " failed") + " re-check."));
 		
 											pending_checks_sem.release();
@@ -348,16 +350,16 @@ RDResumeHandler
 					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );						
 						
 					try{
-						writer_and_checker.checkPiece(i, new CheckPieceResultHandler() {
+						checker.checkPiece(i, new DMCheckerRequestListener() {
 							public void processResult(int piece_number, int result,
 									Object user_data) {
 								if (Logger.isEnabled())
 									Logger.log(new LogEvent(disk_manager, LOGID,
-											result == CheckPieceResultHandler.OP_SUCCESS
+											result == DMCheckerRequestListener.OP_SUCCESS
 													? LogEvent.LT_INFORMATION : LogEvent.LT_WARNING,
 											"Piece #"
 													+ piece_number
-													+ (result == CheckPieceResultHandler.OP_SUCCESS
+													+ (result == DMCheckerRequestListener.OP_SUCCESS
 															? " passed" : " failed") + " re-check."));
 								pending_checks_sem.release();
 							}

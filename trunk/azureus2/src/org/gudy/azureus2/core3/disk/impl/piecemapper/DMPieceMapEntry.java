@@ -1,7 +1,7 @@
 /*
- * Created on 31-Jul-2004
+ * Created on 09-Dec-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,42 +15,29 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SARL au capital de 30,000 euros
+ * AELITIS, SAS au capital de 46,603.30 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
+ 
+package org.gudy.azureus2.core3.disk.impl.piecemapper;
 
-package org.gudy.azureus2.core3.disk.impl.access;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 
-/**
- * @author parg
- *
- */
 
-import org.gudy.azureus2.core3.disk.impl.access.impl.*;
-import org.gudy.azureus2.core3.disk.impl.*;
+public interface 
+DMPieceMapEntry 
+{	
+	public DiskManagerFileInfoImpl 
+	getFile();
 
-public class 
-DMAccessFactory 
-{
-	public static DMReader
-	createReader(
-		DMReaderAdapter	adapter )
-	{
-		return( new DMReaderImpl( adapter ));
-	}
-	
-	public static DMWriter
-	createWriter(
-		DiskManagerHelper		disk_manager )
-	{
-		return( new DMWriterImpl( disk_manager ));
-	}
-	
-	public static DMChecker
-	createChecker(
-		DiskManagerHelper		disk_manager )
-	{
-		return( new DMCheckerImpl( disk_manager ));
-	}
+	public void 
+	setFile(
+		DiskManagerFileInfoImpl file );
+
+	public long 
+	getOffset();
+
+	public int
+	getLength();
 }

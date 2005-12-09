@@ -20,13 +20,19 @@
  *
  */
 
-package org.gudy.azureus2.core3.disk.impl;
+package org.gudy.azureus2.core3.disk.impl.piecemapper.impl;
 
 import java.io.*;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapper;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFile;
 
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.torrent.*;
@@ -39,25 +45,24 @@ import org.gudy.azureus2.core3.util.FileUtil;
 
 
 public class 
-DiskManagerPieceMapper 
+PieceMapperImpl 
+	implements DMPieceMapper
 {
-	protected DiskManagerHelper	disk_manager;
+	private TOTorrent			torrent;
 	
-	protected long 				total_length;
-	protected int				piece_count;
-	protected int				piece_length;
-	protected int				last_piece_length;
+	private long 			total_length;
+	private int				piece_count;
+	private int				piece_length;
+	private int				last_piece_length;
 	
 	protected ArrayList btFileList = new ArrayList();
 
 	
-	protected
-	DiskManagerPieceMapper(
-		DiskManagerHelper	_disk_manager )
+	public
+	PieceMapperImpl(
+		TOTorrent		_torrent )
 	{
-		disk_manager	= _disk_manager;
-		
-		TOTorrent	torrent = disk_manager.getTorrent();
+		torrent 		= _torrent;
 		
 		piece_length	= (int)torrent.getPieceLength();
 		
@@ -71,7 +76,27 @@ DiskManagerPieceMapper
 		}
 		
 		last_piece_length  	= (int) (total_length - ((long) (piece_count - 1) * (long)piece_length));
+	}
+	
+	public void
+	construct(
+		LocaleUtilDecoder	_locale_decoder,
+		String				_save_name )
+	
+		throws UnsupportedEncodingException
+	{
+			//build something to hold the filenames/sizes
+		
+		TOTorrentFile[] torrent_files = torrent.getFiles();
 
+		if ( torrent.isSimpleTorrent()){
+			 								
+			buildFileLookupTables( torrent_files[0], _save_name );
+
+		}else{
+
+			buildFileLookupTables( torrent_files, _locale_decoder );
+		}
 	}
 	
 	// method for simple torrents
@@ -81,13 +106,15 @@ DiskManagerPieceMapper
 		TOTorrentFile			torrent_file, 
 		String					fileName )
 	{
-		btFileList.add(new DiskManagerPieceMapper.fileInfo(torrent_file,"", fileName, total_length ));
+		btFileList.add(new PieceMapperImpl.fileInfo(torrent_file,"", fileName, total_length ));
 	}
 	
 	protected void 
 	buildFileLookupTables(
 		TOTorrentFile[]			torrent_files, 
 		LocaleUtilDecoder 		locale_decoder ) 
+	
+		throws UnsupportedEncodingException
 	{
 		char	separator = File.separatorChar;
 				
@@ -96,11 +123,6 @@ DiskManagerPieceMapper
 		for (int i = 0; i < torrent_files.length; i++) {
         	
 			buildFileLookupTable(torrent_files[i], locale_decoder, separator);
-
-			if (disk_manager.getState() == DiskManager.FAULTY){
-			
-				return;
-			}
 		}
 	}
 
@@ -120,6 +142,8 @@ DiskManagerPieceMapper
 		TOTorrentFile		torrent_file, 
 		LocaleUtilDecoder 	locale_decoder, 
 		final char 			separator) 
+	
+		throws UnsupportedEncodingException
 	{
 		long fileLength  = torrent_file.getLength();
 
@@ -133,47 +157,39 @@ DiskManagerPieceMapper
 		*/
 		StringBuffer pathBuffer = new StringBuffer(0);
 
-	    try{
-
-			int lastIndex = path_components.length - 1;
-			for (int j = 0; j < lastIndex; j++) {
-				//attach every element  
-				
-				String	comp = locale_decoder.decodeString( path_components[j]);
-				
-				comp = FileUtil.convertOSSpecificChars( comp );
-				
-				pathBuffer.append(comp);
-				pathBuffer.append(separator);
-			}
-	
-			//no, then we must be a part of the path
-			//add the file entry to the file holder list      
+		int lastIndex = path_components.length - 1;
+		for (int j = 0; j < lastIndex; j++) {
+			//attach every element  
 			
-			String	last_comp = locale_decoder.decodeString(path_components[lastIndex]);
+			String	comp = locale_decoder.decodeString( path_components[j]);
 			
-			last_comp = FileUtil.convertOSSpecificChars( last_comp );
+			comp = FileUtil.convertOSSpecificChars( comp );
 			
-			btFileList.add(
-				new fileInfo(
-					torrent_file,
-					pathBuffer.toString(),
-					last_comp,
-					fileLength));
-		}catch( UnsupportedEncodingException e ){
-
-			disk_manager.setFailed( e.getMessage() + " (buildFileLookupTable)" );
+			pathBuffer.append(comp);
+			pathBuffer.append(separator);
 		}
-	}
 
-  
+		//no, then we must be a part of the path
+		//add the file entry to the file holder list      
+		
+		String	last_comp = locale_decoder.decodeString(path_components[lastIndex]);
+		
+		last_comp = FileUtil.convertOSSpecificChars( last_comp );
+		
+		btFileList.add(
+			new fileInfo(
+				torrent_file,
+				pathBuffer.toString(),
+				last_comp,
+				fileLength));
+	}
 	
 	
 	
-	protected PieceList[] 
-	constructPieceMap()
+	public DMPieceList[] 
+	getPieceMap()
 	{
-		PieceList[]	pieceMap = new PieceList[piece_count];
+		DMPieceList[]	pieceMap = new DMPieceList[piece_count];
 
 
 		//for every piece, except the last one
@@ -204,13 +220,13 @@ DiskManagerPieceMapper
 				//get the available space
 				long availableSpace = length - fileOffset;
 
-				PieceMapEntry tempPieceEntry = null;
+				PieceMapEntryImpl tempPieceEntry = null;
 
 				//how much space do we need to use?                               
 				if (availableSpace <= (modified_piece_length - usedSpace)) {
 					//use the rest of the file's space
 						tempPieceEntry =
-							new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int)availableSpace //safe to convert here
+							new PieceMapEntryImpl(tempFile.getFileInfo(), fileOffset, (int)availableSpace //safe to convert here
 	);
 
 					//update the used space
@@ -221,7 +237,7 @@ DiskManagerPieceMapper
 					currentFile++;
 				} else //we don't need to use the whole file
 					{
-					tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, modified_piece_length - usedSpace);
+					tempPieceEntry = new PieceMapEntryImpl(tempFile.getFileInfo(), fileOffset, modified_piece_length - usedSpace);
 
 					//update the file offset
 					fileOffset += modified_piece_length - usedSpace;
@@ -234,13 +250,13 @@ DiskManagerPieceMapper
 			}
 
 			//add the list to the map
-			pieceMap[i] = PieceList.convert(pieceToFileList);
+			pieceMap[i] = PieceListImpl.convert(pieceToFileList);
 		}
 
 		//take care of final piece if there was more than 1 piece in the torrent
 		if (piece_count > 1) {
 			pieceMap[piece_count - 1] =
-				PieceList.convert(
+				PieceListImpl.convert(
 						buildLastPieceToFileList(
 									btFileList, 
 									currentFile, 
@@ -268,12 +284,12 @@ DiskManagerPieceMapper
 			//get the available space
 			long availableSpace = length - fileOffset;
 
-			PieceMapEntry tempPieceEntry = null;
+			PieceMapEntryImpl tempPieceEntry = null;
 
 			//how much space do we need to use?                               
 			if (availableSpace <= (piece_length - usedSpace)) {
 				//use the rest of the file's space
-				tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, (int)availableSpace);
+				tempPieceEntry = new PieceMapEntryImpl(tempFile.getFileInfo(), fileOffset, (int)availableSpace);
 
 				//update the used space
 				usedSpace += availableSpace;
@@ -283,7 +299,7 @@ DiskManagerPieceMapper
 				currentFile++;
 			} else //we don't need to use the whole file
 				{
-				tempPieceEntry = new PieceMapEntry(tempFile.getFileInfo(), fileOffset, last_piece_length - usedSpace);
+				tempPieceEntry = new PieceMapEntryImpl(tempFile.getFileInfo(), fileOffset, last_piece_length - usedSpace);
 
 				//update the file offset
 				fileOffset += piece_length - usedSpace;
@@ -298,26 +314,31 @@ DiskManagerPieceMapper
 		return pieceToFileList;
 	}
 
-	protected long
+	public long
 	getTotalLength()
 	{
 		return( total_length );
 	}
 
-	protected int
+	public int
 	getLastPieceLength()
 	{
 		return( last_piece_length );
 	}
 	
-	protected List
-	getFileList()
+	public DMPieceMapperFile[]
+	getFiles()
 	{
-		return( btFileList );
+		DMPieceMapperFile[]	res = new DMPieceMapperFile[ btFileList.size()];
+		
+		btFileList.toArray( res );
+		
+		return( res );
 	}
 	
 	protected static class 
 	fileInfo 
+		implements DMPieceMapperFile
 	{
 		private DiskManagerFileInfoImpl		file;
 		private TOTorrentFile				torrent_file;

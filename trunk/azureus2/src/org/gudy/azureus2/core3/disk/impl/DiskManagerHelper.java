@@ -28,6 +28,7 @@ package org.gudy.azureus2.core3.disk.impl;
  */
 
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.torrent.*;
 
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
@@ -39,7 +40,7 @@ DiskManagerHelper
 	public DiskAccessController
 	getDiskAccessController();
 	
-	public PieceList
+	public DMPieceList
 	getPieceList(
 		int	piece_number );
 		

@@ -29,6 +29,7 @@ import java.util.List;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.*;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.disk.impl.piecepicker.*;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -167,7 +168,7 @@ DMPiecePickerImpl
 			     continue;
 			   }
 	      
-				PieceList pieceList = disk_manager.getPieceList(i);
+				DMPieceList pieceList = disk_manager.getPieceList(i);
 				int completion = -1;
 				
 				int size=pieceList.size();

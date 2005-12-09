@@ -1,7 +1,7 @@
 /*
- * Created on 24-Sep-2004
+ * Created on 09-Dec-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,27 +15,35 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SARL au capital de 30,000 euros
+ * AELITIS, SAS au capital de 46,603.30 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package org.gudy.azureus2.core3.disk.impl.access;
+package org.gudy.azureus2.core3.disk.impl.piecemapper;
 
-/**
- * @author parg
- *
- */
+import java.io.UnsupportedEncodingException;
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
+
 public interface 
-CheckPieceResultHandler 
+DMPieceMapper 
 {
-	public static final int	OP_SUCCESS		= 1;
-	public static final int	OP_FAILURE		= 2;
-	public static final int	OP_CANCELLED	= 3;
-	
 	public void
-	processResult(
-		int			piece_number,
-		int			result,
-		Object		user_data );
+	construct(
+		LocaleUtilDecoder	_locale_decoder,
+		String				_save_name )
+	
+		throws UnsupportedEncodingException;
+	
+	public DMPieceList[] 
+	getPieceMap();
+	
+	public DMPieceMapperFile[]
+	getFiles();
+	
+	public int
+	getLastPieceLength();
+	
+	public long
+	getTotalLength();
 }

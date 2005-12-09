@@ -1,5 +1,5 @@
 /*
- * Created on 31-Jul-2004
+ * Created on 24-Sep-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -26,31 +26,16 @@ package org.gudy.azureus2.core3.disk.impl.access;
  * @author parg
  *
  */
-
-import org.gudy.azureus2.core3.disk.impl.access.impl.*;
-import org.gudy.azureus2.core3.disk.impl.*;
-
-public class 
-DMAccessFactory 
+public interface 
+DMCheckerRequestListener 
 {
-	public static DMReader
-	createReader(
-		DMReaderAdapter	adapter )
-	{
-		return( new DMReaderImpl( adapter ));
-	}
+	public static final int	OP_SUCCESS		= 1;
+	public static final int	OP_FAILURE		= 2;
+	public static final int	OP_CANCELLED	= 3;
 	
-	public static DMWriter
-	createWriter(
-		DiskManagerHelper		disk_manager )
-	{
-		return( new DMWriterImpl( disk_manager ));
-	}
-	
-	public static DMChecker
-	createChecker(
-		DiskManagerHelper		disk_manager )
-	{
-		return( new DMCheckerImpl( disk_manager ));
-	}
+	public void
+	processResult(
+		int			piece_number,
+		int			result,
+		Object		user_data );
 }

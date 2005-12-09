@@ -23,7 +23,6 @@
 package org.gudy.azureus2.core3.disk.impl.access.impl;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -31,9 +30,9 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
-import org.gudy.azureus2.core3.disk.impl.PieceList;
-import org.gudy.azureus2.core3.disk.impl.PieceMapEntry;
 import org.gudy.azureus2.core3.disk.impl.access.*;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -49,73 +48,37 @@ import com.aelitis.azureus.core.diskmanager.cache.*;
  */
 
 public class 
-DMWriterAndCheckerImpl 
-	implements DMWriterAndChecker
+DMWriterImpl 
+	implements DMWriter
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
-    
-	private static boolean 	friendly_hashing;
-	private static boolean	flush_pieces;
-
-    static{
-    	
-    	 ParameterListener param_listener = new ParameterListener() {
-    	    public void 
-			parameterChanged( 
-				String  str ) 
-    	    {
-    	      friendly_hashing 	= COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
-    	  	  
-    	  	  flush_pieces		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.flushpieces" );
-
-    	    }
-    	 };
-
- 		COConfigurationManager.addAndFireParameterListener( "diskmanager.friendly.hashchecking", param_listener );
-		COConfigurationManager.addParameterListener( "diskmanager.perf.cache.flushpieces", param_listener );
-
-    }
 
 	private DiskManagerHelper		disk_manager;
 	private DiskAccessController	disk_access;
 		
-	private int				async_checks;
-	private AESemaphore		async_check_sem 	= new AESemaphore("DMW&C::asyncCheck");
-	
-	private int				async_reads;
-	private AESemaphore		async_read_sem 		= new AESemaphore("DMW&C::asyncRead");
-
 	private int				async_writes;
-	private AESemaphore		async_write_sem 		= new AESemaphore("DMW&C::asyncWrite");
+	private AESemaphore		async_write_sem 		= new AESemaphore("DMWriter::asyncWrite");
 
 	private boolean	started;
 	
 	private volatile boolean	stopped;
 	
 	private int			pieceLength;
-	private int			lastPieceLength;
 	private long		totalLength;
-	
-	private int		nbPieces;
-	
+		
 	private boolean	complete_recheck_in_progress;
 	
-	private AEMonitor		this_mon	= new AEMonitor( "DMW&C" );
+	private AEMonitor		this_mon	= new AEMonitor( "DMWriter" );
 		
 	public
-	DMWriterAndCheckerImpl(
+	DMWriterImpl(
 		DiskManagerHelper	_disk_manager )
 	{
 		disk_manager	= _disk_manager;
 		disk_access		= disk_manager.getDiskAccessController();
 		
 		pieceLength		= disk_manager.getPieceLength();
-		lastPieceLength	= disk_manager.getLastPieceLength();
-		totalLength		= disk_manager.getTotalLength();
-		
-		nbPieces		= disk_manager.getNumberOfPieces();
-		
-		// System.out.println( "DMW&C: write sem = " + global_write_queue_block_sem.getValue() + ", check = " + global_check_queue_block_sem.getValue());
+		totalLength		= disk_manager.getTotalLength();	
 	}
 
 	public void
@@ -126,12 +89,12 @@ DMWriterAndCheckerImpl
 
 			if ( started ){
 				
-				throw( new RuntimeException( "DMW&C: start while started"));
+				throw( new RuntimeException( "DMWWriter: start while started"));
 			}
 			
 			if ( stopped ){
 				
-				throw( new RuntimeException( "DMW&C: start after stopped"));
+				throw( new RuntimeException( "DMWWriter: start after stopped"));
 			}
 
 			started	= true;
@@ -145,8 +108,6 @@ DMWriterAndCheckerImpl
 	public void
 	stop()
 	{
-		int	check_wait;
-		int	read_wait;
 		int write_wait;
 		
 		try{
@@ -156,34 +117,15 @@ DMWriterAndCheckerImpl
 			
 				return;
 			}
-					
-				// when we exit here we guarantee that all file usage operations have completed
-				// i.e. writes and checks (checks being doubly async)
-			
+								
 			stopped	= true;
          			
-			read_wait	= async_reads;
-			check_wait	= async_checks;
 			write_wait	= async_writes;
 			
 		}finally{
 			
 			this_mon.exit();
 		}		
-	
-			// wait for reads
-		
-		for (int i=0;i<read_wait;i++){
-			
-			async_read_sem.reserve();
-		}
-		
-			// wait for checks
-		
-		for (int i=0;i<check_wait;i++){
-			
-			async_check_sem.reserve();
-		}
 		
 			// wait for writes
 		
@@ -311,396 +253,7 @@ DMWriterAndCheckerImpl
 		return true;
 	}
 	  
-	public void 
-	enqueueCompleteRecheckRequest(
-		final DiskManagerCheckRequestListener 	listener,
-		final Object							user_data ) 
-	{  	
-	 	Thread t = new AEThread("DMW&C::checker")
-		{
-	  		public void
-			runSupport()
-	  		{
-	  			try{
-	  				complete_recheck_in_progress	= true;
-	  					
-	  				final AESemaphore	sem = new AESemaphore( "DMW&C::checker" );
-	  				
-	  				int	checks_submitted	= 0;
-	  				
-		            int delay = 0;  //if friendly hashing is enabled, no need to delay even more here
-		
-		            if( !friendly_hashing ) {
-		              //delay a bit normally anyway, as we don't want to kill the user's system
-		              //during the post-completion check (10k of piece = 1ms of sleep)
-		              delay = pieceLength /1024 /10;
-		              delay = Math.min( delay, 409 );
-		              delay = Math.max( delay, 12 );
-		            }
-            
-            
-		            final AESemaphore	 run_sem = new AESemaphore( "DMW&C::checker:runsem", 2 );
-		            
-	  				for ( int i=0; i < nbPieces; i++ ){
-	  					
-	  					run_sem.reserve();
-	  					
-	  					if ( stopped ){
-	  						
-	  						break;
-	  					}
-	  					
-	  					enqueueCheckRequest( 
-	  	       				i, 
-	  	       				new DiskManagerCheckRequestListener()
-							{
-		  	       				public void
-								pieceChecked( 
-									int 		_pieceNumber, 
-									boolean 	_result,
-									Object		_user_data )
-		  	       				{
-		  	       					try{
-		  	       						listener.pieceChecked( _pieceNumber, _result, _user_data );
-		  	       						
-		  	       					}finally{
-		  	       						
-		  	       						run_sem.release();
-		  	       						
-		  	       						sem.release();
-		  	       					}
-		  	       				}
-							},
-							user_data,
-							false );
-	  					
-	  					checks_submitted++;
-	  					
-	  					if( delay > 0 ){
-	  						
-	  						try{
-	  						
-	  							Thread.sleep( delay );
-	  							
-	  						}catch( Throwable e ){
-	  							
-	  						}
-	  					}
-	  				}
-	  					  					
-	  					// wait for all to complete
-	  					
-	  				for (int i=0;i<checks_submitted;i++){
-	  						
-	  					sem.reserve();
-	  				}
-	  	       }finally{
-	  	       	
-	  	       		complete_recheck_in_progress	= false;
-	  	       }
-	        }     			
-	 	};
-	
-	 	t.setDaemon(true);
-	 	
-	 	t.start();
-	}
-	
-	public void 
-	enqueueCheckRequest(
-		int 									pieceNumber,
-		final DiskManagerCheckRequestListener 	listener,
-		Object									user_data ) 
-	{
-		enqueueCheckRequest( pieceNumber, listener, user_data, flush_pieces );
-	}
-	
-	protected void 
-	enqueueCheckRequest(
-		int 									pieceNumber,
-		final DiskManagerCheckRequestListener 	listener,
-		Object									user_data,
-		boolean									read_flush ) 
-	{  	
-		checkPiece( 
-				pieceNumber, 
-				new CheckPieceResultHandler() 
-				{
-					public void 
-					processResult(
-						int 	pieceNumber, 
-						int 	result,
-						Object 	user_data ) 
-					{
-						if (result == CheckPieceResultHandler.OP_SUCCESS) {
-							if (Logger.isEnabled())
-								Logger.log(new LogEvent(disk_manager, LOGID, "Piece "
-										+ pieceNumber + " passed hash check."));
-		
-						} else if (result == CheckPieceResultHandler.OP_FAILURE) {
-							if (Logger.isEnabled())
-								Logger.log(new LogEvent(disk_manager, LOGID,
-										LogEvent.LT_ERROR, "Piece " + pieceNumber
-												+ " failed hash check."));
-		
-						} else {
-							if (Logger.isEnabled())
-								Logger.log(new LogEvent(disk_manager, LOGID,
-										LogEvent.LT_ERROR, "Piece " + pieceNumber
-												+ " hash check cancelled."));
-		
-						}
 
-						if ( listener != null){
-
-							listener.pieceChecked(
-									pieceNumber,
-									result == CheckPieceResultHandler.OP_SUCCESS,
-									user_data );
-						}
-					}
-				}, user_data, false, read_flush );
-	}  
-	  
-	public void
-	checkPiece(
-		final int 						pieceNumber,
-		final CheckPieceResultHandler	_result_handler,
-		final Object					user_data,
-		final boolean					low_priorty )
-	{
-		checkPiece( pieceNumber, _result_handler, user_data, low_priorty, false );
-	}
-	
-	protected void
-	checkPiece(
-		final int 						pieceNumber,
-		final CheckPieceResultHandler	_result_handler,
-		final Object					user_data,
-		final boolean					low_priorty,
-		boolean							read_flush )
-	{
-		final CheckPieceResultHandler	result_handler =
-			new CheckPieceResultHandler()
-			{
-				public void
-				processResult(
-					int		piece_number,
-					int		result,
-					Object	_user_data )
-				{
-					try{						
-						disk_manager.getPieces()[piece_number].setDone( result == CheckPieceResultHandler.OP_SUCCESS );
-						
-					}finally{
-						
-						if ( _result_handler != null ){
-							
-							_result_handler.processResult( pieceNumber, result, _user_data );
-						}
-					}
-				}
-			};
-					             		
-		try{
-			
-			final byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
-	        
-				// quick check that the files that make up this piece are at least big enough
-				// to warrant reading the data to check
-			
-			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
-
-			try{
-				for (int i = 0; i < pieceList.size(); i++) {
-					
-					PieceMapEntry piece_entry = pieceList.get(i);
-						
-					if ( piece_entry.getFile().getCacheFile().getLength() < piece_entry.getOffset()){
-							
-						result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_FAILURE, user_data );
-						
-						return;
-					}
-				}
-			}catch( Throwable e ){
-			
-					// we can fail here if the disk manager has been stopped as the cache file length access may be being
-					// performed on a "closed" (i.e. un-owned) file
-				
-				result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_CANCELLED, user_data );
-
-				return;
-			}
-			
-			int this_piece_length = pieceNumber < nbPieces - 1 ? pieceLength : lastPieceLength;
-
-			DiskManagerReadRequest read_request = disk_manager.createReadRequest( pieceNumber, 0, this_piece_length );
-			
-		   	try{
-		   		this_mon.enter();
-		   	
-				if ( stopped ){
-					
-					result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_CANCELLED, user_data );
-					
-					return;
-				}
-				
-				async_reads++;
-		   		
-		   	}finally{
-		   		
-		   		this_mon.exit();
-		   	}
-		   	
-		   	read_request.setFlush( read_flush );
-		   	
-			disk_manager.enqueueReadRequest( 
-				read_request,
-				new DiskManagerReadRequestListener()
-				{
-					public void 
-					readCompleted( 
-						DiskManagerReadRequest 	read_request, 
-						DirectByteBuffer 		buffer )
-					{
-						complete();
-						
-					   	try{
-					   		this_mon.enter();
-					   	
-							if ( stopped ){
-								
-								buffer.returnToPool();
-								
-								result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_CANCELLED, user_data );
-								
-								return;
-							}
-							
-							async_checks++;
-					   		
-					   	}finally{
-					   		
-					   		this_mon.exit();
-					   	}
-						
-						try{
-					    	final	DirectByteBuffer	f_buffer	= buffer;
-					    	
-						   	ConcurrentHasher.getSingleton().addRequest(
-					    			buffer.getBuffer(DirectByteBuffer.SS_DW),
-									new ConcurrentHasherRequestListener()
-									{
-					    				public void
-										complete(
-											ConcurrentHasherRequest	request )
-					    				{
-					    					int	async_result	= CheckPieceResultHandler.OP_CANCELLED;
-					    						    		    					
-					    					try{
-					    						
-												byte[] testHash = request.getResult();
-														    								
-												if ( testHash != null ){
-															
-				    								async_result = CheckPieceResultHandler.OP_SUCCESS;
-				    								
-				    								for (int i = 0; i < testHash.length; i++){
-				    									
-				    									if ( testHash[i] != required_hash[i]){
-				    										
-				    										async_result = CheckPieceResultHandler.OP_FAILURE;
-				    										
-				    										break;
-				    									}
-				    								}
-												}
-					    					}finally{
-					    						
-					    						try{
-						    						f_buffer.returnToPool();
-	
-						    						result_handler.processResult( 
-						    								pieceNumber, 
-															async_result,
-															user_data );
-						    						
-					    						}finally{
-					    							
-					    							try{
-					    								this_mon.enter();
-					    							
-					    								async_checks--;
-					    								
-					    								if ( stopped ){
-					    									  
-					    									async_check_sem.release();
-					    								}
-					    							}finally{
-					    								
-					    								this_mon.exit();
-					    							}
-					    						}
-					    					}
-					    				}
-					    				
-									},
-									low_priorty );
-						
-					    	
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace(e);
-							
-    						buffer.returnToPool();
-    						
-    						result_handler.processResult( 
-    								pieceNumber, 
-    								CheckPieceResultHandler.OP_FAILURE,
-									user_data );
-						}
-					}
-					  
-					public void 
-					readFailed( 
-						DiskManagerReadRequest 	request, 
-						Throwable		 		cause )
-					{
-						complete();
-						
-						result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_FAILURE, user_data );
-					}
-					
-					  protected void
-					  complete()
-					  {
-						  try{
-							  this_mon.enter();
-							
-							  async_reads--;
-							  
-							  if ( stopped ){
-								  
-								  async_read_sem.release();
-							  }
-						  }finally{
-							  
-							  this_mon.exit();
-						  }
-					  }
-				});
-				
-		}catch( Throwable e ){
-			
-			disk_manager.setFailed( "Piece check error - " + Debug.getNestedExceptionMessage(e));
-			
-			Debug.printStackTrace( e );
-			
-			result_handler.processResult( pieceNumber, CheckPieceResultHandler.OP_FAILURE, user_data );
-		}
-	}
 	 
 	public DiskManagerWriteRequest 
 	createWriteRequest(
@@ -741,9 +294,9 @@ DMWriterAndCheckerImpl
 				
 				int currentFile = 0;
 				
-				PieceList pieceList = disk_manager.getPieceList(pieceNumber);
+				DMPieceList pieceList = disk_manager.getPieceList(pieceNumber);
 				
-				PieceMapEntry current_piece = pieceList.get(currentFile);
+				DMPieceMapEntry current_piece = pieceList.get(currentFile);
 				
 				long fileOffset = current_piece.getOffset();
 				

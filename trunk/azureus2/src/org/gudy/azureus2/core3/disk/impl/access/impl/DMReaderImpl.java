@@ -28,6 +28,8 @@ import java.util.List;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -46,7 +48,7 @@ DMReaderImpl
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
 
-	private DiskManagerHelper		disk_manager;
+	private DMReaderAdapter			adapter;
 	private DiskAccessController	disk_access;	
 
 	private int						async_reads;
@@ -59,10 +61,11 @@ DMReaderImpl
 	
 	public
 	DMReaderImpl(
-		DiskManagerHelper		_disk_manager )
+		DMReaderAdapter		_adapter )
 	{
-		disk_manager	= _disk_manager;
-		disk_access		= disk_manager.getDiskAccessController();
+		adapter			= _adapter;
+		
+		disk_access		= adapter.getDiskAccessController();
 	}
 	
 	public void
@@ -193,7 +196,7 @@ DMReaderImpl
 			int	pieceNumber	= request.getPieceNumber();
 			int	offset		= request.getOffset();
 			
-			PieceList pieceList = disk_manager.getPieceList(pieceNumber);
+			DMPieceList pieceList = adapter.getPieceList(pieceNumber);
 	
 				// temporary fix for bug 784306
 			
@@ -231,7 +234,7 @@ DMReaderImpl
 			
 			while ( buffer_position < length && currentFile < pieceList.size()) {
 	     
-				PieceMapEntry map_entry = pieceList.get( currentFile );
+				DMPieceMapEntry map_entry = pieceList.get( currentFile );
 	      			
 				int	length_available = map_entry.getLength() - (int)( fileOffset - map_entry.getOffset());
 				
@@ -338,7 +341,7 @@ DMReaderImpl
 				buffer.returnToPool();
 			}
 			
-			disk_manager.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(e));
+			adapter.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(e));
 			
 			Debug.printStackTrace( e );
 			
@@ -514,7 +517,7 @@ DMReaderImpl
 		{
 			buffer.returnToPool();
 			
-			disk_manager.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(cause));
+			adapter.setFailed( "Disk read error - " + Debug.getNestedExceptionMessage(cause));
 			
 			Debug.printStackTrace( cause );
 			

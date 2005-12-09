@@ -2,11 +2,15 @@
  * Created on Sep 1, 2003 
  */
  
-package org.gudy.azureus2.core3.disk.impl;
+package org.gudy.azureus2.core3.disk.impl.piecemapper.impl;
+
+import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
 
 
 public class 
-PieceMapEntry 
+PieceMapEntryImpl 
+	implements DMPieceMapEntry
 {
 		/**
 		 * This class denotes the mapping of a piece onto a file. Typically a piece can
@@ -20,7 +24,7 @@ PieceMapEntry
 	private int						_length;
 
 	public 
-	PieceMapEntry(
+	PieceMapEntryImpl(
 		DiskManagerFileInfoImpl 	file, 
 		long 						offset, 
 		int 						length )

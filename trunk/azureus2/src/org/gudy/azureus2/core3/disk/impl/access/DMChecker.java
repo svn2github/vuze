@@ -22,35 +22,41 @@
 
 package org.gudy.azureus2.core3.disk.impl.access;
 
+import org.gudy.azureus2.core3.disk.*;
+
 /**
  * @author parg
  *
  */
-
-import org.gudy.azureus2.core3.disk.impl.access.impl.*;
-import org.gudy.azureus2.core3.disk.impl.*;
-
-public class 
-DMAccessFactory 
+public interface 
+DMChecker 
 {
-	public static DMReader
-	createReader(
-		DMReaderAdapter	adapter )
-	{
-		return( new DMReaderImpl( adapter ));
-	}
+	public void
+	start();
 	
-	public static DMWriter
-	createWriter(
-		DiskManagerHelper		disk_manager )
-	{
-		return( new DMWriterImpl( disk_manager ));
-	}
+	public void
+	stop();
 	
-	public static DMChecker
-	createChecker(
-		DiskManagerHelper		disk_manager )
-	{
-		return( new DMCheckerImpl( disk_manager ));
-	}
+	public void 
+	checkPiece(
+		int 					pieceNumber,
+		DMCheckerRequestListener	result_handler,
+		Object					user_data,
+		boolean					low_priority )
+	
+		throws Exception;
+	
+	public void 
+	enqueueCompleteRecheckRequest(
+		final DiskManagerCheckRequestListener 	listener,
+		final Object							user_data ) ;
+	
+	public void 
+	enqueueCheckRequest(
+		int 							pieceNumber,
+		DiskManagerCheckRequestListener	listener,
+		Object							user_data ); 
+	  
+	public boolean 
+	isChecking();
 }

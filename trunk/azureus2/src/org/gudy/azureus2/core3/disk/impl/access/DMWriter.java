@@ -31,7 +31,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
  *
  */
 public interface 
-DMWriterAndChecker 
+DMWriter 
 {
 	public void
 	start();
@@ -43,29 +43,6 @@ DMWriterAndChecker
 	zeroFile( 
 		DiskManagerFileInfoImpl file, 
 		long 					length );
-
-	public void 
-	checkPiece(
-		int 					pieceNumber,
-		CheckPieceResultHandler	result_handler,
-		Object					user_data,
-		boolean					low_priority )
-	
-		throws Exception;
-	
-	public void 
-	enqueueCompleteRecheckRequest(
-		final DiskManagerCheckRequestListener 	listener,
-		final Object							user_data ) ;
-	
-	public void 
-	enqueueCheckRequest(
-		int 							pieceNumber,
-		DiskManagerCheckRequestListener	listener,
-		Object							user_data ); 
-	  
-	public boolean 
-	isChecking();
 
 	public DiskManagerWriteRequest 
 	createWriteRequest(
