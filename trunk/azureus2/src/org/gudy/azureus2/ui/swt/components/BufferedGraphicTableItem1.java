@@ -128,6 +128,11 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
         if (ourGC)
           gc = new GC(table);
         if (gc != null) {
+          int iAdj = VerticalAligner.getTableAdjustVerticalBy(table);
+          bounds.y += iAdj;
+          iAdj = VerticalAligner.getTableAdjustHorizontallyBy(table);
+          bounds.x += iAdj;
+
           gc.drawImage(image, 0, 0, imageBounds.width, imageBounds.height, 
                        bounds.x, bounds.y, bounds.width, bounds.height);
           if (ourGC)
