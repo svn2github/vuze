@@ -413,7 +413,7 @@ public class TableView
     iTableStyle = table.getStyle();
     bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
 
-    table.setLinesVisible(false);
+    table.setLinesVisible(Constants.isLinux);
     table.setMenu(menu);
     table.setData("Name", sTableID);
     table.setData("TableView", this);
@@ -564,7 +564,8 @@ public class TableView
 					row.setIconSize(ptIconSize);
 					// User made the row visible, they want satisfaction now!
 					row.refresh(true);
-					Utils.alternateRowBackground(item);
+					if (!Constants.isLinux)
+						Utils.alternateRowBackground(item);
 				}
 	    });
 

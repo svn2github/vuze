@@ -221,6 +221,15 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 *               when getDownloadManagers() was called.
 	 */
 	public int getIndexOf(DownloadManager dm);
+	
+	/**
+	 * Retrieve the number of download managers the global manager is managing.
+	 * 
+	 * @param bCompleted True: Return count of completed downloads<br>
+	 *                    False: Return count of incomplete downloads
+	 * @return count
+	 */
+	public int downloadManagerCount(boolean bCompleted);
 
 	/**
 	 * Retrieve whether a DownloadManager can move down in the GlobalManager list

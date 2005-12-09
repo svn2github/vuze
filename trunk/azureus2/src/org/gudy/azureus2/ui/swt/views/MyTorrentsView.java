@@ -1701,8 +1701,22 @@ public class MyTorrentsView
 						e.doit = false;
 						return;
 					}
+
+					// Can't capture Ctrl-PGUP/DOWN for moving up/down in chunks
+					// (because those keys move through tabs), so use shift-ctrl-up/down
+					if (e.keyCode == SWT.ARROW_DOWN) {
+						moveSelectedTorrents(10);
+						e.doit = false;
+						return;
+					}
+
+					if (e.keyCode == SWT.ARROW_UP) {
+						moveSelectedTorrents(-10);
+						e.doit = false;
+						return;
+					}
 				}
-				
+
 				if (e.stateMask == SWT.CTRL) {
 					switch (e.keyCode) {
 						case SWT.ARROW_UP:
@@ -2017,6 +2031,52 @@ public class MyTorrentsView
     columnInvalidate("#");
     refresh(bForceSort);
   }
+
+	private void moveSelectedTorrents(int by) {
+		// Don't use runForSelectDataSources to ensure the order we want
+		Object[] dataSources = getSelectedDataSources();
+		if (dataSources.length <= 0)
+			return;
+
+		int[] newPositions = new int[dataSources.length];
+
+		if (by < 0) {
+			Arrays.sort(dataSources, new Comparator() {
+				public int compare(Object a, Object b) {
+					return ((DownloadManager) a).getPosition()
+							- ((DownloadManager) b).getPosition();
+				}
+			});
+		} else {
+			Arrays.sort(dataSources, new Comparator() {
+				public int compare(Object a, Object b) {
+					return ((DownloadManager) b).getPosition()
+							- ((DownloadManager) a).getPosition();
+				}
+			});
+		}
+
+		int count = globalManager.downloadManagerCount(isSeedingView); 
+		for (int i = 0; i < dataSources.length; i++) {
+			DownloadManager dm = (DownloadManager) dataSources[i];
+			int pos = dm.getPosition() + by;
+			if (pos < i + 1)
+				pos = i + 1;
+			else if (pos > count - i)
+				pos = count - i;
+
+			newPositions[i] = pos;
+		}
+
+		for (int i = 0; i < dataSources.length; i++) {
+			DownloadManager dm = (DownloadManager) dataSources[i];
+			globalManager.moveTo(dm, newPositions[i]);
+		}
+
+		boolean bForceSort = rowSorter.sColumnName.equals("#");
+		columnInvalidate("#");
+		refresh(bForceSort);
+	}
 
   private void moveSelectedTorrentsTop() {
     moveSelectedTorrentsTopOrEnd(true);

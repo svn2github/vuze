@@ -304,6 +304,14 @@ public class Utils {
   public static void alternateTableBackground(Table table) {
   	if (table == null || table.isDisposed())
   		return;
+
+  	// On linux, table lines are actually anternating background colors
+  	if (Constants.isLinux) {
+  		if (!table.getLinesVisible())
+  			table.setLinesVisible(true);
+  		return;
+  	}
+
   	int iTopIndex = table.getTopIndex();
     int iBottomIndex = Math.min(iTopIndex
 				+ (table.getClientArea().height / table.getItemHeight()), table

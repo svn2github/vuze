@@ -1552,6 +1552,16 @@ public class GlobalManagerImpl
 
     return manager.getPosition() > 1;
   }
+  
+  public int downloadManagerCount(boolean bCompleted) {
+    int numInGroup = 0;
+    for (Iterator it = managers_cow.iterator();it.hasNext();) {
+      DownloadManager dm = (DownloadManager)it.next();
+      if ((dm.getStats().getDownloadCompleted(false) == 1000) == bCompleted)
+        numInGroup++;
+    }
+    return numInGroup;
+  }
 
   public boolean isMoveableDown(DownloadManager manager) {
 
@@ -1562,13 +1572,7 @@ public class GlobalManagerImpl
         (COConfigurationManager.getBooleanParameter("StartStopManager_bAutoReposition")))
       return false;
 
-    int numInGroup = 0;
-    for (Iterator it = managers_cow.iterator();it.hasNext();) {
-      DownloadManager dm = (DownloadManager)it.next();
-      if ((dm.getStats().getDownloadCompleted(false) == 1000) == isCompleted)
-        numInGroup++;
-    }
-    return manager.getPosition() < numInGroup;
+    return manager.getPosition() < downloadManagerCount(isCompleted);
   }
 
   public void moveUp(DownloadManager manager) {
@@ -1619,7 +1623,9 @@ public class GlobalManagerImpl
   }
   
   public void moveTo(DownloadManager manager, int newPosition) {
-    if (newPosition < 1)
+    boolean curCompleted = (manager.getStats().getDownloadCompleted(false) == 1000);
+
+    if (newPosition < 1 || newPosition > downloadManagerCount(curCompleted))
       return;
 
       try{
@@ -1629,7 +1635,6 @@ public class GlobalManagerImpl
         if (newPosition > curPosition) {
           // move [manager] down
           // move everything between [curPosition+1] and [newPosition] up(-) 1
-          boolean curCompleted = (manager.getStats().getDownloadCompleted(false) == 1000);
           int numToMove = newPosition - curPosition;
           for (int i = 0; i < managers_cow.size(); i++) {
             DownloadManager dm = (DownloadManager) managers_cow.get(i);
@@ -1650,7 +1655,6 @@ public class GlobalManagerImpl
         else if (newPosition < curPosition && curPosition > 1) {
           // move [manager] up
           // move everything between [newPosition] and [curPosition-1] down(+) 1
-          boolean curCompleted = (manager.getStats().getDownloadCompleted(false) == 1000);
           int numToMove = curPosition - newPosition;
   
           for (int i = 0; i < managers_cow.size(); i++) {
