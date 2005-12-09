@@ -744,8 +744,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 						for (int i = 0; i < indexes.length; i++) {
 							TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
 							info.iStartID = l.intValue();
-							System.out.println("setting " + info.getTorrentName() + " to "
-									+ info.iStartID);
 						}
 						tableTorrents.clearAll();
 						updateOKButton();
@@ -768,7 +766,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			item.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					Long l = (Long) e.widget.getData("Value");
-					System.out.println(l);
 					if (l != null) {
 						TableItem[] items = tableTorrents.getSelection();
 						for (int i = 0; i < items.length; i++) {
