@@ -19,6 +19,7 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.io.PrintStream;
 import java.text.FieldPosition;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,6 +50,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
  * @since 2.3.0.5
  */
 public class LoggerView extends AbstractIView implements ILogEventListener {
+	private final static LogIDs LOGID = LogIDs.GUI;
 
 	private static final int COLOR_INFO = 0;
 
@@ -345,6 +347,10 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 			}
 		});
 
+		if (!Logger.isEnabled()) {
+			consoleText.setText(MessageText.getString("LoggerView.loggingDisabled")
+					+ "\n");
+		}
 	}
 
 	/* (non-Javadoc)
@@ -369,48 +375,57 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 					&& (sb.getSelection() == (sb.getMaximum() - sb.getThumb()));
 
 			for (int i = 0; i < buffer.size(); i++) {
-				LogEvent event = (LogEvent) buffer.get(i);
-
-				int nbLinesBefore = consoleText.getLineCount();
-				if (nbLinesBefore > MAX_LINES)
-					consoleText.replaceTextRange(0, consoleText
-							.getOffsetAtLine(PREFERRED_LINES), "");
-
-				final StringBuffer buf = new StringBuffer();
-				dateFormatter.format(event.timeStamp, buf, formatPos);
-				buf.append("{").append(event.logID).append("} ");
-
-				buf.append(event.text);
-				if (filter == null && event.relatedTo != null) {
-					buf.append("; \t| ");
-					for (int j = 0; j < event.relatedTo.length; j++) {
-						Object obj = event.relatedTo[j];
-						if (j > 0)
-							buf.append("; ");
-						if (obj instanceof LogRelation) {
-							buf.append(((LogRelation) obj).getRelationText());
-						} else {
-							buf.append(obj.getClass().getName() + ": '"
-									+ obj.toString() + "'");
+				try {
+					LogEvent event = (LogEvent) buffer.get(i);
+	
+					int nbLinesBefore = consoleText.getLineCount();
+					if (nbLinesBefore > MAX_LINES)
+						consoleText.replaceTextRange(0, consoleText
+								.getOffsetAtLine(PREFERRED_LINES), "");
+	
+					final StringBuffer buf = new StringBuffer();
+					dateFormatter.format(event.timeStamp, buf, formatPos);
+					buf.append("{").append(event.logID).append("} ");
+	
+					buf.append(event.text);
+					if (filter == null && event.relatedTo != null) {
+						buf.append("; \t| ");
+						for (int j = 0; j < event.relatedTo.length; j++) {
+							Object obj = event.relatedTo[j];
+							if (j > 0)
+								buf.append("; ");
+							if (obj instanceof LogRelation) {
+								buf.append(((LogRelation) obj).getRelationText());
+							} else {
+								buf.append(obj.getClass().getName() + ": '"
+										+ obj.toString() + "'");
+							}
 						}
 					}
+					buf.append('\n');
+	
+					consoleText.append(buf.toString());
+	
+					int nbLinesNow = consoleText.getLineCount();
+					int colorIdx = -1;
+					if (event.entryType == LogEvent.LT_INFORMATION)
+						colorIdx = COLOR_INFO;
+					else if (event.entryType == LogEvent.LT_WARNING)
+						colorIdx = COLOR_WARN;
+					else if (event.entryType == LogEvent.LT_ERROR)
+						colorIdx = COLOR_ERR;
+	
+					if (colors != null && colorIdx >= 0)
+						consoleText.setLineBackground(nbLinesBefore - 1, nbLinesNow
+								- nbLinesBefore, colors[colorIdx]);
+				} catch (Exception e) {
+					// don't send it to log, we might be feeding ourselves
+					PrintStream ps = Logger.getOldStdErr();
+					if (ps != null) {
+						ps.println("Error writing event to console:");
+						e.printStackTrace(ps);
+					}
 				}
-				buf.append('\n');
-
-				consoleText.append(buf.toString());
-
-				int nbLinesNow = consoleText.getLineCount();
-				int colorIdx = -1;
-				if (event.entryType == LogEvent.LT_INFORMATION)
-					colorIdx = COLOR_INFO;
-				else if (event.entryType == LogEvent.LT_WARNING)
-					colorIdx = COLOR_WARN;
-				else if (event.entryType == LogEvent.LT_ERROR)
-					colorIdx = COLOR_ERR;
-
-				if (colors != null && colorIdx >= 0)
-					consoleText.setLineBackground(nbLinesBefore - 1, nbLinesNow
-							- nbLinesBefore, colors[colorIdx]);
 
 			}
 			buffer.clear();
