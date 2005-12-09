@@ -878,9 +878,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		});
 		dataFileTable.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
-				TableItem item = (TableItem) event.item;
+				final TableItem item = (TableItem) event.item;
 				int index = dataFileTable.indexOf(item);
-				TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
+				final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
 
 				item.setChecked(file.bDownload);
 				item.setText(new String[] { file.sFileName,
@@ -900,7 +900,13 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				Utils.alternateRowBackground(item);
 				
 				// For OSX to hopefully refresh the checkbox.
-				item.getParent().redraw();
+				if (Constants.isOSX) {
+					item.getDisplay().asyncExec(new AERunnable() {
+						public void runSupport() {
+							item.setChecked(file.bDownload);
+						}
+					});
+				}
 			}
 		});
 
