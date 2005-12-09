@@ -141,46 +141,47 @@ public class PeersView
     }
   }
 
-  public void fillMenu(final Menu menu) {
-    
-    final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
+	public void fillMenu(final Menu menu) {
 
-    PEPeer peer = (PEPeer)getFirstSelectedDataSource();
+		final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
 
-    if( peer == null || !peer.getManager().getDownloadManager().isDownloadComplete()) {  //only allow upload blocking when seeding
-      block_item.setSelection( false );
-      block_item.setEnabled( false );
-      return;
-    }
-    block_item.setEnabled( true );
-    block_item.setSelection( peer.isSnubbed() );
+		PEPeer peer = (PEPeer) getFirstSelectedDataSource();
 
-    Messages.setLanguageText(block_item, "PeersView.menu.blockupload"); //$NON-NLS-1$
-    block_item.addListener(SWT.Selection, new SelectedTableRowsListener() {
-      public void run(TableRowCore row) {
-        ((PEPeer)row.getDataSource(true)).setSnubbed( block_item.getSelection() );
-      }
-    });
-    
-    
-    
-    final MenuItem ban_item = new MenuItem(menu, SWT.PUSH);
+		if (peer == null
+				|| !peer.getManager().getDownloadManager().isDownloadComplete()) {
+			// only allow upload blocking when seeding
+			block_item.setSelection(false);
+			block_item.setEnabled(false);
+		} else {
+			block_item.setEnabled(true);
+			block_item.setSelection(peer.isSnubbed());
+		}
 
-    Messages.setLanguageText(ban_item, "PeersView.menu.kickandban"); //$NON-NLS-1$
-    ban_item.addListener(SWT.Selection, new SelectedTableRowsListener() {
-      public void run(TableRowCore row) {
-        PEPeer peer = (PEPeer)row.getDataSource( true );
-        String msg = MessageText.getString( "PeersView.menu.kickandban.reason" );
-        IpFilterManagerFactory.getSingleton().getIPFilter().ban( peer.getIp(), msg );
-        peer.getManager().removePeer( peer );
-      }
-    });
-    
-    
-    new MenuItem(menu, SWT.SEPARATOR);
+		Messages.setLanguageText(block_item, "PeersView.menu.blockupload");
+		block_item.addListener(SWT.Selection, new SelectedTableRowsListener() {
+			public void run(TableRowCore row) {
+				((PEPeer) row.getDataSource(true))
+						.setSnubbed(block_item.getSelection());
+			}
+		});
 
-    super.fillMenu(menu);
-  }
+		final MenuItem ban_item = new MenuItem(menu, SWT.PUSH);
+
+		Messages.setLanguageText(ban_item, "PeersView.menu.kickandban");
+		ban_item.addListener(SWT.Selection, new SelectedTableRowsListener() {
+			public void run(TableRowCore row) {
+				PEPeer peer = (PEPeer) row.getDataSource(true);
+				String msg = MessageText.getString("PeersView.menu.kickandban.reason");
+				IpFilterManagerFactory.getSingleton().getIPFilter().ban(peer.getIp(),
+						msg);
+				peer.getManager().removePeer(peer);
+			}
+		});
+
+		new MenuItem(menu, SWT.SEPARATOR);
+
+		super.fillMenu(menu);
+	}
 
 
   public void delete() {
