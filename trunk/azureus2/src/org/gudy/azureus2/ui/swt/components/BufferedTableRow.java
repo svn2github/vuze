@@ -26,9 +26,9 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
@@ -79,11 +79,6 @@ BufferedTableRow
 	{
 		table = _table;
 		item = null;
-		if (alternatingColors == null) {
-			alternatingColors = new Color[] {
-					table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
-					Colors.colorAltRow };
-		}
 	}
 	
 	/**
@@ -97,8 +92,14 @@ BufferedTableRow
 	}
 	
 	private void setAlternatingBGColor() {
-		if (noTableItem())
+		if (noTableItem() || Constants.isLinux)
 			return;
+
+		if (alternatingColors == null) {
+			alternatingColors = new Color[] {
+					table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
+					Colors.colorAltRow };
+		}
 
 		int index = table.indexOf(item);
 		Color newColor = alternatingColors[index % alternatingColors.length];
@@ -439,7 +440,8 @@ BufferedTableRow
 
 	    if (bCopyFromOld) {
 	      copyToItem(newRow);
-	    } else {
+	    } else if ((table.getStyle() & SWT.VIRTUAL) > 0
+					&& newRow.getData("SD") != null) {
 	    	// clear causes too much flicker
 	    	//table.clear(table.indexOf(newRow));
 	  		newRow.setForeground(null);
@@ -534,8 +536,10 @@ BufferedTableRow
 			return false;
 
 		// Not visible if we haven't setData yet
-		if ((table.getStyle() & SWT.VIRTUAL) > 0 && item.getData("SD") == null)
+		if ((table.getStyle() & SWT.VIRTUAL) > 0 && item.getData("SD") == null) {
+			//System.out.println("Row " + index + " not SD yet");
 			return false;
+		}
 
 		return true;
 	}
