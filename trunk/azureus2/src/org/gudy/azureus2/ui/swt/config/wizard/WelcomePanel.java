@@ -97,7 +97,6 @@ public class WelcomePanel extends AbstractWizardPanel {
     
     //// USER MODE GROUP ////
     gridData = new GridData();
-    gridData.heightHint = 20;
     final Group gRadio = new Group(panel, SWT.WRAP);
     Messages.setLanguageText(gRadio, "ConfigView.section.mode.title");
     gRadio.setLayoutData(gridData);
