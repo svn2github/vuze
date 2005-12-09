@@ -173,25 +173,32 @@ public class LoggerImpl {
 	 *            event to log
 	 */
 	public void log(LogEvent event) {
-		if (bLogToStdOut)
+		if (bLogToStdOut && psOldOut != null)
 			psOldOut.println(event.text);
 
-		if (!bEventLoggingEnabled)
-			return;
+		if (!bEventLoggingEnabled) {
 
-		for (int i = 0; i < logListeners.size(); i++) {
-			try {
-				Object listener = logListeners.get(i);
-				if (listener instanceof ILogEventListener)
-					((ILogEventListener) listener).log(event);
-				else
-					// XXX ComponentID
-					((ILoggerListener) listener).log(0, event.entryType, event.entryType,
-							event.text);
-			} catch (Throwable e) {
-				if (psOldErr != null) {
-					psOldErr.println("Error while logging: " + e.getMessage());
-					e.printStackTrace(psOldErr);
+			if (event.logID == LogIDs.STDERR && psOldErr != null)
+				psOldErr.println(event.text);
+			else if (event.logID == LogIDs.STDOUT && psOldOut != null)
+				psOldOut.println(event.text);
+
+		} else {
+
+			for (int i = 0; i < logListeners.size(); i++) {
+				try {
+					Object listener = logListeners.get(i);
+					if (listener instanceof ILogEventListener)
+						((ILogEventListener) listener).log(event);
+					else
+						// XXX ComponentID
+						((ILoggerListener) listener).log(0, event.entryType, event.entryType,
+								event.text);
+				} catch (Throwable e) {
+					if (psOldErr != null) {
+						psOldErr.println("Error while logging: " + e.getMessage());
+						e.printStackTrace(psOldErr);
+					}
 				}
 			}
 		}
