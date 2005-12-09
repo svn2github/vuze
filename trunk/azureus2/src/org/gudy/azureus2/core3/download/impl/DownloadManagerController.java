@@ -400,31 +400,13 @@ DownloadManagerController
   	  					int 	oldDMState,
   	  					int		newDMState )
   	  				{
-  	  					if ( newDMState == DiskManager.STOPPED) {
-  	  						
-  							if ( disk_manager != null ){
-  							
-  								try {
-								
-  									disk_manager.dumpResumeDataToDisk(true, false);
-  									
-								} catch (Exception e) {
-							
-									// TODO Auto-generated catch block
-									e.printStackTrace();
-								}
-								
-								setDiskManager( null );	
-  							}
-  								
-  	  						download_manager.setOnlySeeding(false);
-	  							
-  	  					} if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
+  	  					if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
   	  						
   	  						if ( disk_manager == null ){
   	  								
   	  								// already closed down via stop
   	  							
+	  	  						download_manager.setOnlySeeding(false);
   	  							return;
   	  						}
   	  							

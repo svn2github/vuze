@@ -35,7 +35,6 @@ DiskManager
 	public static final int ALLOCATING = 2;
 	public static final int CHECKING = 3;
 	public static final int READY = 4;
-	public static final int STOPPED = 5;
 	public static final int FAULTY = 10;
 	
 	
