@@ -176,15 +176,7 @@ public class LoggerImpl {
 		if (bLogToStdOut && psOldOut != null)
 			psOldOut.println(event.text);
 
-		if (!bEventLoggingEnabled) {
-
-			if (event.logID == LogIDs.STDERR && psOldErr != null)
-				psOldErr.println(event.text);
-			else if (event.logID == LogIDs.STDOUT && psOldOut != null)
-				psOldOut.println(event.text);
-
-		} else {
-
+		if (bEventLoggingEnabled)
 			for (int i = 0; i < logListeners.size(); i++) {
 				try {
 					Object listener = logListeners.get(i);
@@ -201,7 +193,6 @@ public class LoggerImpl {
 					}
 				}
 			}
-		}
 
 		// Write error to stderr, which will eventually get back here
 		if (event.err != null)
