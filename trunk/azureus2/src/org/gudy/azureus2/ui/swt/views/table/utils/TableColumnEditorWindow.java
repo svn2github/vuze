@@ -31,6 +31,8 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
@@ -181,7 +183,7 @@ public class TableColumnEditorWindow {
     
     table.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
-				TableItem item = (TableItem) event.item;
+				final TableItem item = (TableItem) event.item;
 				int index = item.getParent().indexOf(item);
 				
 				TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(index);
@@ -189,7 +191,16 @@ public class TableColumnEditorWindow {
 		    item.setText(0, MessageText.getString(sTitleLanguageKey));
 		    item.setText(1, MessageText.getString(sTitleLanguageKey + ".info", ""));
 
-		    boolean bChecked = ((Boolean)newEnabledState.get(tableColumn)).booleanValue();
+		    final boolean bChecked = ((Boolean) newEnabledState.get(tableColumn))
+						.booleanValue();
+				// For OSX to hopefully refresh the checkbox.
+				if (Constants.isOSX) {
+					item.getDisplay().asyncExec(new AERunnable() {
+						public void runSupport() {
+							item.setChecked(bChecked);
+						}
+					});
+				}
 		    item.setChecked(bChecked);
 		    
 	      table.getColumn(1).pack();
