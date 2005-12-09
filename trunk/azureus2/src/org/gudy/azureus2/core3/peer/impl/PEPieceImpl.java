@@ -416,6 +416,12 @@ PEPieceImpl
   	return( dm_piece.getLastWriteTime());
   }
   
+  public boolean
+  isNeeded()
+  {
+	  return( dm_piece.isNeeded());
+  }
+  
   /**
    * @return Returns the manager.
    */

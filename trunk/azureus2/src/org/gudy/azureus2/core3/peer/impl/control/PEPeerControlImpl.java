@@ -1843,8 +1843,9 @@ PEPeerControlImpl
   public long getETA() {
     int writtenNotChecked = 0;
     for (int i = 0; i < _pieces.length; i++) {
-      if (_pieces[i] != null) {
-        writtenNotChecked += _pieces[i].getCompleted() * DiskManager.BLOCK_SIZE;
+      PEPieceImpl	piece = _pieces[i];
+      if (piece != null && piece.isNeeded()){
+        writtenNotChecked += piece.getCompleted() * DiskManager.BLOCK_SIZE;
       }
     }
     
