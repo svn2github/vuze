@@ -122,6 +122,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     if (fillCell) {
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
+        //System.out.println("doPaint() sizewrong #"+row.getIndex()+ ".  Image="+imageBounds +";us="+bounds);
 /**/
         // Enable this for semi-fast visual update with some flicker
         boolean ourGC = (gc == null);
@@ -137,7 +138,6 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
                        bounds.x, bounds.y, bounds.width, bounds.height);
           if (ourGC)
             gc.dispose();
-          return;
         }
         // _OR_ enable refresh() for slower visual update with lots of flicker
         //refresh();
@@ -146,7 +146,6 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
         
         // TODO: make config option to choose
 /**/
-        //debugOut("doPaint() sizewrong.  Image="+imageBounds +";us="+bounds, false);
         invalidate();
         return;
       }
@@ -201,7 +200,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     }
     gc.setClipping(clipping);
     gc.drawImage(image, bounds.x, bounds.y);
-    //debugOut("doPnt:"+gc+": ourGC="+ourGC+"clp:"+ gc.getClipping()+";bounds:"+bounds+";ca="+table.getClientArea(), false);
+    //System.out.println("doPnt#"+row.getIndex()+ ":"+gc+": ourGC="+ourGC+";clp:"+ gc.getClipping()+";bounds:"+bounds+";imgBounds="+imageBounds+";ca="+table.getClientArea());
     if (ourGC) {
       gc.dispose();
     }
