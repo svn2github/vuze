@@ -3,6 +3,8 @@
  */
 package org.gudy.azureus2.core3.logging;
 
+import java.io.PrintStream;
+
 import org.gudy.azureus2.core3.logging.impl.FileLogging;
 import org.gudy.azureus2.core3.logging.impl.LoggerImpl;
 import org.gudy.azureus2.core3.util.Constants;
@@ -188,4 +190,13 @@ public class Logger {
 		loggerImpl.removeListener(aListener);
 	}
 
+	/**
+	 * Retrieve the original stderr output before we hooked it.  Handy for
+	 * printing out critical errors that need to bypass the logger capture.
+	 * 
+	 * @return stderr
+	 */
+	public static PrintStream getOldStdErr() {
+		return loggerImpl.getOldStdErr();
+	}
 }
