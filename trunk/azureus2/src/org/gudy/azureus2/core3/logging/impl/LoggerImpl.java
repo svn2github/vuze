@@ -35,7 +35,7 @@ public class LoggerImpl {
 
 	private boolean bLogToStdOut = System.getProperty("azureus.log.stdout") != null;
 
-	private boolean bEnabled = false;
+	private boolean bEventLoggingEnabled = false;
 
 	private PrintStream psOldOut = null;
 
@@ -68,20 +68,20 @@ public class LoggerImpl {
 	public void init() {
 		// temporarily set to true, to log any errors between now and setting
 		// bEnabled properly.
-		bEnabled = true;
+		bEventLoggingEnabled = true;
 		
 		// Shorten from COConfigurationManager To make code more readable
 		final ConfigurationManager config = ConfigurationManager.getInstance();
 
 		boolean overrideLog = System.getProperty("azureus.overridelog") != null;
 		if (overrideLog) {
-			bEnabled = true;
+			bEventLoggingEnabled = true;
 		} else {
-			bEnabled = config.getBooleanParameter("Logger.Enabled");
+			bEventLoggingEnabled = config.getBooleanParameter("Logger.Enabled");
 
 			config.addParameterListener("Logger.Enabled", new ParameterListener() {
 				public void parameterChanged(String parameterName) {
-					bEnabled = config.getBooleanParameter("Logger.Enabled");
+					bEventLoggingEnabled = config.getBooleanParameter("Logger.Enabled");
 				}
 			});
 		}
@@ -120,7 +120,7 @@ public class LoggerImpl {
 	}
 
 	public boolean isEnabled() {
-		return bEnabled;
+		return bEventLoggingEnabled;
 	}
 
 	/**
@@ -175,6 +175,9 @@ public class LoggerImpl {
 	public void log(LogEvent event) {
 		if (bLogToStdOut)
 			psOldOut.println(event.text);
+
+		if (!bEventLoggingEnabled)
+			return;
 
 		for (int i = 0; i < logListeners.size(); i++) {
 			try {
@@ -308,5 +311,9 @@ public class LoggerImpl {
 
 	public void removeListener(ILogAlertListener l) {
 		alertListeners.remove(l);
+	}
+	
+	public PrintStream getOldStdErr() {
+		return psOldErr;
 	}
 }
