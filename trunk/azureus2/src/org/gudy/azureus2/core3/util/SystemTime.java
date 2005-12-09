@@ -22,13 +22,15 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.util.*;
+
 /**
  * Utility class to retrieve current system time,
  * and catch clock backward time changes.
  */
 public class SystemTime {
   
-  public static final long TIME_GRANULARITY_MILLIS = 30;   //internal update time ms
+  public static final long TIME_GRANULARITY_MILLIS = 25;   //internal update time ms
   
   private static final int STEPS_PER_SECOND = (int)(1000/TIME_GRANULARITY_MILLIS);
   
@@ -45,6 +47,8 @@ public class SystemTime {
   private volatile int		access_average_per_slice;
   private volatile int		drift_adjusted_granularity;
  
+  private volatile List		consumer_list	= new ArrayList();
+  
   private 
   SystemTime() 
   {
@@ -67,6 +71,8 @@ public class SystemTime {
              				
     				stepped_time = System.currentTimeMillis();  
           
+    				List	consumer_list_ref = consumer_list;
+    				
     				if ( last_second == 0 ){
     					
     					last_second	= stepped_time - 1000;
@@ -107,6 +113,19 @@ public class SystemTime {
   					
 					slice_access_count	= 0; 
 
+					for (int i=0;i<consumer_list_ref.size();i++){
+						
+  						consumer	cons = (consumer)consumer_list_ref.get(i);
+  						
+  						try{
+  							cons.timeRead( stepped_time );
+  							
+  						}catch( Throwable e ){
+  							
+  							Debug.printStackTrace(e);
+  						}
+					}
+					
     				try{  
     					Thread.sleep( TIME_GRANULARITY_MILLIS );
     					
@@ -169,6 +188,42 @@ public class SystemTime {
   getCurrentTime() 
   {
     return( instance.getApproximateTime());
+  }
+  
+  public static void
+  registerConsumer(
+	consumer	c )
+  {
+	synchronized( instance ){
+		
+		List	new_list = new ArrayList( instance.consumer_list );
+		
+		new_list.add( c );
+		
+		instance.consumer_list	= new_list;
+	}
+  }
+		
+  public static void
+  unregisterConsumer(
+	consumer	c )
+  {
+	synchronized( instance ){
+			
+		List	new_list = new ArrayList( instance.consumer_list );
+			
+		new_list.remove( c );
+			
+		instance.consumer_list	= new_list;
+	}  
+  }
+  
+  public interface
+  consumer
+  {
+	  public void
+	  timeRead(
+		long	time );
   }
   
   public static void

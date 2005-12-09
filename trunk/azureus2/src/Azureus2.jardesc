@@ -106,6 +106,7 @@
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.transport.udp.impl.packethandler"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.messaging.bittorrent"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.torrentdownloader.impl"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.control.impl"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.components.shell"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.remote.ipfilter"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.internat"/>
@@ -131,6 +132,7 @@
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.nat"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.router.impl"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.common"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.control"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.xml.schemas"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.launch"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.db"/>

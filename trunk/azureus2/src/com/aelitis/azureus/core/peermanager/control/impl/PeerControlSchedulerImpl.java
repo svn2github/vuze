@@ -7,6 +7,8 @@ import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.SystemTime.consumer;
+
 import com.aelitis.azureus.core.peermanager.control.PeerControlInstance;
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
 
@@ -22,11 +24,15 @@ PeerControlSchedulerImpl
 		return( singleton );
 	}
 	
+	private Random	random = new Random();
+	
 	private Map	instance_map = new HashMap();
 	
 	private List	pending_registrations = new ArrayList();
 	
 	private volatile boolean	registrations_changed;
+	
+	private volatile long		latest_time;
 	
 	protected AEMonitor	this_mon = new AEMonitor( "PeerControlScheduler" );
 	
@@ -47,31 +53,31 @@ PeerControlSchedulerImpl
 	protected void
 	schedule()
 	{
-		final int SLICE_PERIOD = 20;
+		latest_time	= SystemTime.getCurrentTime();
 		
-		final int SLICES = SCHEDULE_PERIOD_MILLIS / SLICE_PERIOD;
+		SystemTime.registerConsumer(
+			new SystemTime.consumer()
+			{
+				public void
+				timeRead(
+					long	time )
+				{
+					synchronized( PeerControlSchedulerImpl.this ){
+						
+						latest_time	= time;
+						
+						PeerControlSchedulerImpl.this.notify();
+					}
+				}
+			});
+						
 		
-		final int TICKS_PER_SEC = 1000 / SLICE_PERIOD;
+		List	instances = new LinkedList();
+
+		long	latest_time_used	= 0;
 		
-		List[]	slices = new List[ SLICES ];
-		
-		for (int i=0;i<slices.length;i++){
-			
-			slices[i] = new LinkedList();
-		}
-		
-		int	current_slice	= 0;
-		
-		long	second_start_time	= SystemTime.getCurrentTime();
-		long	ticks				= 0;
-		long	sleep_period		= 0;
-		Average	second_time_average = Average.getInstance( 1000, 5 );
-		
-		long period_start_time	= second_start_time;
-		long period_lag	= 0;
-		
-		final int	PERIOD_SECS			= 15;
-		final int	TICKS_PER_PERIOD	= PERIOD_SECS*TICKS_PER_SEC;
+		long	tick_count		= 0;
+		long 	last_stats_time	= latest_time;
 		
 		while( true ){
 			
@@ -80,35 +86,22 @@ PeerControlSchedulerImpl
 				try{
 					this_mon.enter();
 					
+					Iterator	it = instances.iterator();
+					
+					while( it.hasNext()){
+						
+						if (((instanceWrapper)it.next()).isUnregistered()){
+							
+							it.remove();
+						}
+					}
+
 					for (int i=0;i<pending_registrations.size();i++){
 						
-						int	min_index = current_slice;
-						int min_size  = Integer.MAX_VALUE;
-						
-						for (int j=0;j<slices.length;j++){
-							
-							if ( slices[j].size() < min_size ){
-								
-								min_index	= j;
-								min_size	= slices[j].size();
-							}
-						}
-						
-						slices[min_index].add( pending_registrations.get(i));
+						instances.add( pending_registrations.get(i));
 					}
 					
-					for (int i=0;i<slices.length;i++){
-						
-						Iterator	it = slices[i].iterator();
-						
-						while( it.hasNext()){
-							
-							if (((instanceWrapper)it.next()).isUnregistered()){
-								
-								it.remove();
-							}
-						}
-					}
+					pending_registrations.clear();
 					
 					registrations_changed	= false;
 					
@@ -117,80 +110,64 @@ PeerControlSchedulerImpl
 					this_mon.exit();
 				}	
 			}
-			
-			List	current_list = slices[current_slice++];
-			
-			if ( current_slice == SLICES ){
+							
+			for (int i=0;i<instances.size();i++){
 				
-				current_slice = 0;
+				instanceWrapper	inst = (instanceWrapper)instances.get(i);
+									
+				long	target = inst.getNextTick();
+				
+				long	diff = target - latest_time_used;			
+				
+				if ( diff <= 0 || diff > SCHEDULE_PERIOD_MILLIS ){
+					
+					tick_count++;
+					
+					inst.schedule();
+					
+					long new_target = target + SCHEDULE_PERIOD_MILLIS;
+					
+					diff = new_target - latest_time_used;
+					
+					if ( diff <= 0 || diff > SCHEDULE_PERIOD_MILLIS ){
+						
+						new_target = latest_time_used + SCHEDULE_PERIOD_MILLIS;
+					}
+					
+					inst.setNextTick( new_target );
+				}
 			}
 			
-			for (int i=0;i<current_list.size();i++){
+										
+			synchronized( this ){
 				
-				instanceWrapper	inst = (instanceWrapper)current_list.get(i);
-				
-				if ( !inst.isUnregistered()){
+				if ( latest_time == latest_time_used ){
 					
 					try{
-						inst.getInstance().schedule();
+						wait();
 						
-						Thread.sleep( 4);
 					}catch( Throwable e ){
 						
 						Debug.printStackTrace(e);
 					}
+					
+				}else{
+					
+					Thread.yield();
 				}
+				
+				latest_time_used	= latest_time;
 			}
 			
-			ticks++;
-
-			if ( ticks % TICKS_PER_SEC == 0 ){
-				
-				long second_end_time = SystemTime.getCurrentTime();
-				
-				if ( ticks % TICKS_PER_PERIOD == 0 ){
-					
-					period_lag = PERIOD_SECS * 1000 - ( second_end_time - period_start_time );
-					
-					period_start_time = second_end_time;
-				}
-				
-				long second_elapsed = second_end_time - second_start_time;
-				
-				if ( second_elapsed < 0 ){
-					
-					second_elapsed = 1000;
-				}
-				
-				second_time_average.addValue( second_elapsed );
-				
-				long average = second_time_average.getAverage();	
-				
-				if ( average < 1000 ){
-					
-					average = 1000;
-				}
-				
-				sleep_period = ( 2000 - average ) / TICKS_PER_SEC;
-				
-				if ( sleep_period < 1 ){
-					
-					sleep_period = 1;
-				}
-				
-				second_start_time = second_end_time;
-			}
+			long	stats_diff =  latest_time_used - last_stats_time;
 			
-			if (ticks % TICKS_PER_SEC == 0 ){
+			if ( stats_diff > 10000 ){
 				
-				System.out.println( "sleep = " + sleep_period + ", " + PERIOD_SECS + " sec lag = " + period_lag );
-			}
-										
-			try{
-				Thread.sleep( sleep_period );
+				// System.out.println( "stats: time = " + stats_diff + ", ticks = " + tick_count + ", inst = " + instances.size());
 				
-			}catch( Throwable e ){
+				last_stats_time	= latest_time_used;
 				
+				tick_count	= 0;
 			}
 		}
 	}
@@ -200,6 +177,8 @@ PeerControlSchedulerImpl
 		PeerControlInstance	instance )
 	{
 		instanceWrapper wrapper = new instanceWrapper( instance );
+		
+		wrapper.setNextTick( latest_time + random.nextInt( SCHEDULE_PERIOD_MILLIS ));
 		
 		try{
 			this_mon.enter();
@@ -256,6 +235,8 @@ PeerControlSchedulerImpl
 		private PeerControlInstance		instance;
 		private boolean					unregistered;
 		
+		private long					next_tick;
+		
 		protected
 		instanceWrapper(
 			PeerControlInstance	_instance )
@@ -275,10 +256,35 @@ PeerControlSchedulerImpl
 			return( unregistered );
 		}
 		
+		protected void
+		setNextTick(
+			long	t )
+		{
+			next_tick	= t;
+		}
+		
+		protected long
+		getNextTick()
+		{
+			return( next_tick );
+		}
+		
 		protected PeerControlInstance
 		getInstance()
 		{
 			return( instance );
+		}
+		
+		protected void
+		schedule()
+		{
+			try{
+				instance.schedule();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 }

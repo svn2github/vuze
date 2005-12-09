@@ -62,7 +62,7 @@ PEPeerControlImpl
   
   private int[] 	availability_cow;
   //Test of new availability computation
-  private int[]   availability_new;
+  // private int[]   availability_new;
   
   
   private volatile boolean is_running = false;  
@@ -173,7 +173,7 @@ PEPeerControlImpl
       
       ip_filter.addListener( this );
       
-      availability_new = new int[manager.getNbPieces()];
+      // availability_new = new int[manager.getNbPieces()];
  }
   
 	public DownloadManager
