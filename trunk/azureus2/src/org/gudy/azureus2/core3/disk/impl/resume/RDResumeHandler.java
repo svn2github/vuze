@@ -69,6 +69,7 @@ RDResumeHandler
 	protected int					lastPieceLength;
 	
 	protected boolean				bOverallContinue;
+	protected boolean				bStoppedMidCheck;
 	
 	protected boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
 
@@ -95,6 +96,7 @@ RDResumeHandler
 		COConfigurationManager.addParameterListener("Use Resume", this);
 		
 		bOverallContinue	= true;
+		bStoppedMidCheck = false;
 	}
 	
 	public void
@@ -168,6 +170,7 @@ RDResumeHandler
 						partialPieces = (Map)resume_data.get("blocks");
 						
 						resumeValid = ((Long)resume_data.get("valid")).intValue() == 1;
+						System.out.println("checkPieces: ResumeValid? " + resumeValid);
 						
 							// if the torrent download is complete we don't need to invalidate the
 							// resume data
@@ -222,7 +225,11 @@ RDResumeHandler
 					}
 				}
 				
-				for (int i = 0; i < pieces.length && bOverallContinue; i++){ 
+				for (int i = 0; i < pieces.length; i++){
+					if (!bOverallContinue) {
+						bStoppedMidCheck = true;
+						break;
+					}
 					
 					DiskManagerPiece	dm_piece	= pieces[i];
 					
@@ -345,7 +352,11 @@ RDResumeHandler
 				
 					// resume not enabled, recheck everything
 				
-				for (int i = 0; i < pieces.length && bOverallContinue; i++){ 
+				for (int i = 0; i < pieces.length; i++){
+					if (!bOverallContinue) {
+						bStoppedMidCheck = true;
+						break;
+					}
 										
 					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );						
 						
@@ -502,7 +513,10 @@ RDResumeHandler
 			// to see if they are actually complete.
 			// TODO: fix this up!!!!
 		
-		resume_data.put("valid", new Long( force_recheck?0:(savePartialPieces?1:0)));
+		long lValid = 0;
+		if (!force_recheck && savePartialPieces && !bStoppedMidCheck)
+			lValid = 1;
+		resume_data.put("valid", new Long(lValid));
 		
 		for (int i=0;i<files.length;i++){
 			
