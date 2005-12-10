@@ -160,11 +160,16 @@ public class Utils {
     }
 
     Rectangle shellRect = shell.getBounds();
-	
-    int x = (displayRect.width - shellRect.width) / 2;
-    int y = (displayRect.height - shellRect.height) / 2;
+    if (shellRect.width > displayRect.width - 100)
+    	shellRect.width = displayRect.width - 100;
 
-    shell.setLocation(x, y);
+    if (shellRect.height > displayRect.height - 64)
+    	shellRect.height = displayRect.height - 100;
+	
+    shellRect.x = (displayRect.width - shellRect.width) / 2;
+    shellRect.y = (displayRect.height - shellRect.height) / 2;
+
+    shell.setBounds(shellRect);
   }
 
   /**
