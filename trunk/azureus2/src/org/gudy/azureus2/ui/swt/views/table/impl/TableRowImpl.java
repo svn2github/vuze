@@ -147,16 +147,18 @@ public class TableRowImpl
 
   	bDisposed = true;
 
-    // Manually dispose of TableCellImpl objects, since row does
-    // not contain a list of them.
-    Iterator iter = mTableCells.values().iterator();
-    while(iter.hasNext()) {
-      TableCellCore item = (TableCellCore)iter.next();
-      item.dispose();
-    }
-
-    // Dispose of row
-    dispose();
+  	try {
+	    // Manually dispose of TableCellImpl objects, since row does
+	    // not contain a list of them.
+	    Iterator iter = mTableCells.values().iterator();
+	    while(iter.hasNext()) {
+	      TableCellCore item = (TableCellCore)iter.next();
+	      item.dispose();
+	    }
+  	} finally {
+	    // Dispose of row
+	    dispose();
+  	}
   }
   
   public void refresh(boolean bDoGraphics) {
