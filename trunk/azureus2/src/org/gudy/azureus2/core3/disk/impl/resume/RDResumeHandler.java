@@ -170,7 +170,6 @@ RDResumeHandler
 						partialPieces = (Map)resume_data.get("blocks");
 						
 						resumeValid = ((Long)resume_data.get("valid")).intValue() == 1;
-						System.out.println("checkPieces: ResumeValid? " + resumeValid);
 						
 							// if the torrent download is complete we don't need to invalidate the
 							// resume data
