@@ -57,6 +57,7 @@ RDResumeHandler
 	private static final byte		PIECE_DONE				= 1;
 	private static final byte		PIECE_RECHECK_REQUIRED	= 2;
 
+	private static AESemaphore		complete_recheck_sem = new AESemaphore( "RDResumeHandler:completeRecheck", 1 );   
 	
 	protected DiskManagerHelper		disk_manager;
 	protected DMChecker				checker;
@@ -120,7 +121,21 @@ RDResumeHandler
 	{
 		//long	start = System.currentTimeMillis();
 		
+		boolean	got_sem = false;
+		
+		while( bOverallContinue && !got_sem ){
+			
+			got_sem = complete_recheck_sem.reserve(250);
+		}
+		
 		try{
+			if ( !bOverallContinue ){
+				
+				bStoppedMidCheck = true;
+				
+				return;
+			}
+			
 			disk_manager.setState( DiskManager.CHECKING );
 						
 			boolean resumeEnabled = useFastResume;
@@ -412,6 +427,12 @@ RDResumeHandler
 			Debug.printStackTrace(e);
 			
 		}finally{
+			
+       		if ( got_sem ){
+       			
+       			complete_recheck_sem.release();
+       		}
+       		
 			// System.out.println( "Check of '" + disk_manager.getDownloadManager().getDisplayName() + "' completed in " + (System.currentTimeMillis() - start));
 		}
 	}

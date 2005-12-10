@@ -65,6 +65,8 @@ DMCheckerImpl
 
     }
 
+    private static AESemaphore		complete_recheck_sem = new AESemaphore( "DMChecker:completeRecheck", 1 );
+    
 	private DiskManagerHelper		disk_manager;
 		
 	private int				async_checks;
@@ -180,7 +182,19 @@ DMCheckerImpl
 	  		public void
 			runSupport()
 	  		{
+	  			boolean	got_sem = false;
+	  			
+	  			while( !( got_sem || stopped )){
+	  				
+	  				got_sem = complete_recheck_sem.reserve(250);
+	  			}
+	  			
 	  			try{
+	  				if ( stopped ){
+	  					
+	  					return;
+	  				}
+	  				
 	  				complete_recheck_in_progress	= true;
 	  					
 	  				final AESemaphore	sem = new AESemaphore( "DMChecker::completeRecheck" );
@@ -256,6 +270,11 @@ DMCheckerImpl
 	  	       }finally{
 	  	       	
 	  	       		complete_recheck_in_progress	= false;
+	  	       		
+	  	       		if ( got_sem ){
+	  	       			
+	  	       			complete_recheck_sem.release();
+	  	       		}
 	  	       }
 	        }     			
 	 	};
