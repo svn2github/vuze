@@ -25,7 +25,6 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.accessibility.*;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
@@ -96,7 +95,7 @@ public class TableView
 {
 	private final static LogIDs LOGID = LogIDs.GUI;
 	
-	public final static boolean DEBUGADDREMOVE = Constants.isWindows;
+	public final static boolean DEBUGADDREMOVE = false;
 	/** Virtual Tables still a work in progress */
 	private final static boolean DISABLEVIRTUAL = false;
 
@@ -1345,15 +1344,14 @@ public class TableView
 						if (row == null)
 							continue;
 						TableCellCore cell = row.getTableCellCore(rowSorter.sColumnName);
-						if (cell == null)
-							continue;
-
-						try {
-							cell.invalidate();
-							cell.refresh(true);
-						} catch (Exception e) {
-							Logger.log(new LogEvent(LOGID,
-									"Minor error adding a row to table " + sTableID, e));
+						if (cell != null) {
+							try {
+								cell.invalidate();
+								cell.refresh(true);
+							} catch (Exception e) {
+								Logger.log(new LogEvent(LOGID,
+										"Minor error adding a row to table " + sTableID, e));
+							}
 						}
 
 						try {
