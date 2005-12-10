@@ -431,6 +431,12 @@ DownloadManager
 	removePiece(
 		PEPiece		piece );
 	
+	public PEPiece[]
+	getCurrentPieces();
+	
+	public PEPeer[]
+	getCurrentPeers();
+	
 	public void
 	addListener(
 			DownloadManagerListener	listener );

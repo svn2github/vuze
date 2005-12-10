@@ -1840,6 +1840,10 @@ DownloadManagerImpl
 		}
 	}
 		
+	public PEPeer[] getCurrentPeers() {
+		return (PEPeer[])current_peers.toArray(new PEPeer[0]);
+	}
+
 	public void
 	addPiece(
 		PEPiece 	piece )
@@ -1873,6 +1877,11 @@ DownloadManagerImpl
 			peer_listeners_mon.exit();
 		}
 	}
+
+	public PEPiece[] getCurrentPieces() {
+		return (PEPiece[])current_pieces.toArray(new PEPiece[0]);
+	}
+
 
   	protected void
   	informPeerManagerAdded(

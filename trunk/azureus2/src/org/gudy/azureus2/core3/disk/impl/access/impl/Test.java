@@ -969,6 +969,16 @@ Test
 			// TODO Auto-generated method stub
 			
 		}
+
+		public PEPiece[] getCurrentPieces() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		public PEPeer[] getCurrentPeers() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 	
 	protected class
