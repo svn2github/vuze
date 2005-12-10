@@ -146,16 +146,11 @@ public class PiecesView
 	private void addExistingDatasources() {
 		if (manager == null)
 			return;
-		PEPeerManager pm = manager.getPeerManager();
-		if (pm == null)
-			return;
-		Object[] dataSources = pm.getPieces();
+		Object[] dataSources = manager.getCurrentPieces();
 		if (dataSources == null || dataSources.length == 0)
 			return;
-    Object dataSourcesCopy[] = new Object[dataSources.length]; 
-    System.arraycopy(dataSources, 0, dataSourcesCopy, 0, dataSources.length);
 		
-		addDataSources(dataSourcesCopy);
+		addDataSources(dataSources);
 	}
 
 	public void initializeTable(Table table) {

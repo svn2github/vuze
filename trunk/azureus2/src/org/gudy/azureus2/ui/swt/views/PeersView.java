@@ -211,12 +211,11 @@ public class PeersView
 	private void addExistingDatasources() {
 		if (manager == null)
 			return;
-		PEPeerManager pm = manager.getPeerManager();
-		if (pm == null)
+
+		Object[] dataSources = manager.getCurrentPeers();
+		if (dataSources == null || dataSources.length == 0)
 			return;
-		List peerList = manager.getPeerManager().getPeers();
-		if (peerList == null)
-			return;
-		addDataSources(peerList.toArray());
+		
+		addDataSources(dataSources);
 	}
 }
