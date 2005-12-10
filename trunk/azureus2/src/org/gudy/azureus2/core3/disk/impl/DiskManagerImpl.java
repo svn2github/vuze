@@ -562,8 +562,6 @@ DiskManagerImpl
 		
 		saveState();
 		
-		// removed until we work out how to fix this setState( STOPPED );
-
 			// can't be used after a stop so we might as well clear down the listeners
 		
 		listeners.clear();
