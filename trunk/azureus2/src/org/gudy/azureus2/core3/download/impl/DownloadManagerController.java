@@ -400,16 +400,14 @@ DownloadManagerController
   	  					int 	oldDMState,
   	  					int		newDMState )
   	  				{
+  	  					if (disk_manager == null) {
+  	  						// already closed down via stop
+  	  						download_manager.setOnlySeeding(false);
+  	  						return;
+  	  					}
+  							
   	  					if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
   	  						
-  	  						if ( disk_manager == null ){
-  	  								
-  	  								// already closed down via stop
-  	  							
-	  	  						download_manager.setOnlySeeding(false);
-  	  							return;
-  	  						}
-  	  							
 	  	  					force_start = wasForceStarted;
 		  					
 	  	  					stats.setDownloadCompleted(stats.getDownloadCompleted(true));
@@ -596,7 +594,6 @@ DownloadManagerController
 					peer_manager	= null;
 
 					if ( disk_manager != null ){	
-						  
 						disk_manager.stop();
 
 						stats.setCompleted(stats.getCompleted());
