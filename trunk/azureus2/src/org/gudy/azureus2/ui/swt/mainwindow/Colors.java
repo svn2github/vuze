@@ -73,11 +73,15 @@ public class Colors implements ParameterListener {
       r = COConfigurationManager.getIntParameter("Color Scheme.red", r);
       g = COConfigurationManager.getIntParameter("Color Scheme.green", g);
       b = COConfigurationManager.getIntParameter("Color Scheme.blue", b);
+      
+      boolean bGrayScale = (r == b) && (b == g);
+
       HSLColor hslColor = new HSLColor();
       Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
       int tR = colorTables.getRed();
       int tG = colorTables.getGreen();
       int tB = colorTables.getBlue();
+      
       // 0 == window background (white)
       // [blues.length-1] == rgb
       // in between == blend
@@ -92,12 +96,21 @@ public class Colors implements ParameterListener {
         int iSat = hslColor.getSaturation();
         if (iSat != 0)
           hslColor.setSaturation(iSat / 2);
-        // else black!
+        else if (bGrayScale) // gray
+        	hslColor.brighten(0.8f);
+
         faded[i] = new Color(display, hslColor.getRed(), hslColor.getGreen(),
             hslColor.getBlue());
         if (toBeDisposed != null && !toBeDisposed.isDisposed()) {
           toBeDisposed.dispose();
         }
+      }
+      
+      if (bGrayScale) {
+      	if (b > 200)
+      		b -= 20;
+      	else
+      		b += 20;
       }
       Color toBeDisposed = colorInverse;
       hslColor.initHSLbyRGB(r, g, b);
