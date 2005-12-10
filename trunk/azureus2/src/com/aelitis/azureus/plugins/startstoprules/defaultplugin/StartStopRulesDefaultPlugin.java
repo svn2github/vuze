@@ -350,9 +350,13 @@ public class StartStopRulesDefaultPlugin
       if (new_state == Download.ST_PREPARING) {
       	int numPreparing = 0;
 
-        Download[]  downloads = download_manager.getDownloads(false);
-        for (int i=0;i<downloads.length;i++){
-          Download  dl = downloads[i];
+      	// Use sort order
+        downloadData[] dlDataArray = 
+          (downloadData[])downloadDataMap.values().toArray(new downloadData[0]);
+        Arrays.sort(dlDataArray);
+
+        for (int i = 0; i < dlDataArray.length; i++) {
+          Download  dl = dlDataArray[i].getDownloadObject();
           if (dl.getState() == Download.ST_PREPARING) {
           	numPreparing++;
           	if (numPreparing > 1) {
@@ -866,29 +870,8 @@ public class StartStopRulesDefaultPlugin
 	
 	  	somethingChanged = false;
 	
-	    // Sort by SeedingRank
-	    if (iRankType != RANK_NONE)
-	      Arrays.sort(dlDataArray);
-	    else
-	      Arrays.sort(dlDataArray, new Comparator () {
-	        public final int compare (Object a, Object b) {
-	          Download aDL = ((downloadData)a).getDownloadObject();
-	          Download bDL = ((downloadData)b).getDownloadObject();
-	          boolean aIsComplete = aDL.getStats().getDownloadCompleted(false) == 1000;
-	          boolean bIsComplete = bDL.getStats().getDownloadCompleted(false) == 1000;
-	          if (aIsComplete && !bIsComplete)
-	            return 1;
-	          if (!aIsComplete && bIsComplete)
-	            return -1;
-	          boolean aIsFP = ((downloadData)a).isFirstPriority();
-	          boolean bIsFP = ((downloadData)b).isFirstPriority();
-	          if (aIsFP && !bIsFP)
-	            return -1;
-	          if (!aIsFP && bIsFP)
-	            return 1;
-	          return aDL.getPosition() - bDL.getPosition();
-	        }
-	      } );
+	    // Sort
+      Arrays.sort(dlDataArray);
 	
 	    // pre-included Forced Start torrents so a torrent "above" it doesn't 
 	    // start (since normally it would start and assume the torrent below it
@@ -998,6 +981,13 @@ public class StartStopRulesDefaultPlugin
 	        if (download.isForceStart())
 	          continue;
 	          
+          // Don't mess with preparing torrents.  they could be in the 
+          // middle of resume-data building, or file allocating.
+	        if (state == Download.ST_PREPARING) {
+	          numWaitingOrDLing++;
+	        	continue;
+	        }
+	          
 	        int maxDLs = 0;
 	        int DLmax = 0;
 	        if (maxActive == 0) {
@@ -1012,22 +1002,11 @@ public class StartStopRulesDefaultPlugin
 		        System.out.println("totalFirstPriority: " + totalFirstPriority + " / totalFPStalledSeeders: " + totalFPStalledSeeders + " / total0PeerSeeders: "  + total0PeerSeeders);	        	
 	        }
 	        
-	        if (state == Download.ST_PREPARING) {
-	          // Don't mess with preparing torrents.  they could be in the 
-	          // middle of resume-data building, or file allocating.
-	          numWaitingOrDLing++;
-	
-	        } else if ( state == Download.ST_READY ||
-	        		   state == Download.ST_DOWNLOADING ||
-	                   state == Download.ST_WAITING) {
-	
-	          boolean bActivelyDownloading = dlData.getActivelyDownloading();
+	        if (state == Download.ST_READY || state == Download.ST_DOWNLOADING
+							|| state == Download.ST_WAITING) {
+
+						boolean bActivelyDownloading = dlData.getActivelyDownloading();
 	          
-		      if (bDebugOn) {
-		    	  System.out.println("D : " + dlData.getDownloadObject().getName());
-		    	  System.out.println( "Before: numWaitingOrDLing: " + numWaitingOrDLing + " / " + "activeDLCount: " + activeDLCount);
-		      }
-		      
 	          // Stop torrent if over limit
 	          if ((maxDownloads != 0) &&
 	              (numWaitingOrDLing >= maxDLs) &&
@@ -1051,12 +1030,8 @@ public class StartStopRulesDefaultPlugin
 	            } catch (Exception ignore) {/*ignore*/}
 	            
 	            state = download.getState();
-	          } else if ( state == Download.ST_DOWNLOADING && bActivelyDownloading || state == Download.ST_READY) {
-	            numWaitingOrDLing++;
 	          }
 	        }
-	
-
 	
 	        if (state == Download.ST_READY) {
 	          if ((maxDownloads == 0) || (activeDLCount < maxDLs)) {
@@ -1071,7 +1046,6 @@ public class StartStopRulesDefaultPlugin
 	              // adjust counts
 	              totalWaitingToDL--;
 	              activeDLCount++;
-	              //numWaitingOrDLing++;
 	              maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
 	            } catch (Exception ignore) {/*ignore*/}
 	            state = download.getState();
@@ -1090,16 +1064,19 @@ public class StartStopRulesDefaultPlugin
 		
 		              // increase counts
 		              totalWaitingToDL++;
-		              numWaitingOrDLing++;
 		              maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
 		            } catch (Exception ignore) {/*ignore*/}
 		            state = download.getState();
 		          }
 		        }
 	        
-	        if (bDebugOn) {
-	        	System.out.println( "After: numWaitingOrDLing: " + numWaitingOrDLing + " / " + "activeDLCount: " + activeDLCount);
+	        if (state == Download.ST_READY ||
+	            state == Download.ST_WAITING ||
+	            state == Download.ST_PREPARING ||
+	            state == Download.ST_DOWNLOADING) {
+	          numWaitingOrDLing++;
 	        }
+	        
 	        if (bDebugLog) {
 	          String s = "<< state="+sStates.charAt(download.getState())+
 	                  ";shareRatio="+download.getStats().getShareRatio()+
@@ -1557,13 +1534,24 @@ public class StartStopRulesDefaultPlugin
     public int compareTo(Object obj)
     {
     	downloadData dlData = (downloadData) obj;
-    	
+    	// Test Completeness
+      boolean aIsComplete = dlData.dl.getStats().getDownloadCompleted(false) == 1000;
+      boolean bIsComplete = dl.getStats().getDownloadCompleted(false) == 1000;
+      if (aIsComplete && !bIsComplete)
+        return 1;
+      if (!aIsComplete && bIsComplete)
+        return -1;
+
     	// Test FP
 			if (dlData.bIsFirstPriority && !bIsFirstPriority)
 				return 1;
 			if (!dlData.bIsFirstPriority && bIsFirstPriority)
 				return -1;
 
+			if (iRankType == RANK_NONE) {
+	      return dlData.dl.getPosition() - dl.getPosition();
+			}
+			
 			// Check Rank
 			int value = dlData.dl.getSeedingRank() - dl.getSeedingRank();
 			if (value != 0)
