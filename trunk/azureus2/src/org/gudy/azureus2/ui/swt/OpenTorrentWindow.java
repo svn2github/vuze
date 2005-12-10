@@ -564,9 +564,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			}
 		});
 
-		Utils.centreWindow(shell);
-
 		shell.pack();
+
+		Utils.centreWindow(shell);
 		shell.open();
 	}
 
