@@ -21,6 +21,9 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
@@ -46,23 +49,29 @@ public class WritersItem
     PEPiece piece = (PEPiece)cell.getDataSource();
     PEPeer[] writers = piece.getWriters();
     StringBuffer sb = new StringBuffer();
-    
-    ArrayList list = new ArrayList();
+
+    Map map = new HashMap();
     for(int i = 0 ; i < writers.length ; i++) {
       if (writers[i] != null) {
       	String sIP = writers[i].getIp();
-      	if (sIP != null & sIP != "" && !list.contains(sIP))
-      		list.add(sIP);
+      	String value = (String)map.get(writers[i]);
+      	if (value == null)
+      		value = Integer.toString(i);
+      	else
+      		value += "," + i;
+      	map.put(writers[i], value);
       }
     }
     
-    for (int i = 0; i < list.size(); i++) {
-    	sb.append((String)list.get(i));
-    	if (i != 0)
-    		sb.append(";");
-    }
-    
-    
+    for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
+			PEPeer writer = (PEPeer) iter.next();
+			if (sb.length() != 0)
+				sb.append(";");
+			sb.append(writer.getIp());
+			sb.append("[");
+			sb.append((String)map.get(writer));
+			sb.append("]");
+		}
     
     String value = sb.toString();
     if( !cell.setSortValue( value ) && cell.isValid() ) {
