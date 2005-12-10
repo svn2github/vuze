@@ -1840,8 +1840,19 @@ DownloadManagerImpl
 		}
 	}
 		
-	public PEPeer[] getCurrentPeers() {
-		return (PEPeer[])current_peers.toArray(new PEPeer[0]);
+	public PEPeer[] 
+	getCurrentPeers() 
+	{
+		try{
+			peer_listeners_mon.enter();
+
+			return (PEPeer[])current_peers.toArray(new PEPeer[current_peers.size()]);
+			
+		}finally{
+			
+			peer_listeners_mon.exit();
+
+		}
 	}
 
 	public void
@@ -1878,8 +1889,19 @@ DownloadManagerImpl
 		}
 	}
 
-	public PEPiece[] getCurrentPieces() {
-		return (PEPiece[])current_pieces.toArray(new PEPiece[0]);
+	public PEPiece[] 
+	getCurrentPieces() 
+	{
+		try{
+			peer_listeners_mon.enter();
+
+			return (PEPiece[])current_pieces.toArray(new PEPiece[current_pieces.size()]);
+			
+		}finally{
+			
+			peer_listeners_mon.exit();
+
+		}	
 	}
 
 
