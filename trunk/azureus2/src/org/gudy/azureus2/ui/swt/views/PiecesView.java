@@ -92,11 +92,7 @@ public class PiecesView
     
     Legend.createLegendComposite(
     		getTableComposite(),
-        	new Color[] {
-        		Colors.blues[Colors.BLUES_MIDLIGHT],
-        		Colors.blues[Colors.BLUES_DARKEST],        		
-    			Colors.red,
-    			Colors.grey},
+    			BlocksItem.colors,
     		new String[] {
         			"PiecesView.legend.requested",
         			"PiecesView.legend.written",        			

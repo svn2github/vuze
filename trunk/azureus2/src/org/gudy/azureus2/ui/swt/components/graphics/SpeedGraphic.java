@@ -38,11 +38,16 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   
   private static final int	ENTRIES	= 2000;
   
-  public static Color	color_average		= Colors.red;
-  public static Color	color_value0		= Colors.blues[Colors.BLUES_MIDDARK];	// approx
-  public static Color	color_value1		= Colors.blue;
-  public static Color	color_value2plus	= Colors.grey;
-  public static Color	color_trimmed		= Colors.light_grey;
+  public static final int COLOR_AVERAGE = 0;
+  public static final int COLOR_VALUE0 = 1;
+  public static final int COLOR_VALUE1 = 2;
+  public static final int COLOR_VALUE2PLUS = 3;
+  public static final int COLOR_TRIMMED = 4;
+  
+  public static Color[] colors = new Color[] {
+  	Colors.red, Colors.blues[Colors.BLUES_MIDDARK], Colors.blue, Colors.grey,
+  	Colors.light_grey
+  };
   
   private int internalLoop;
   private int graphicsUpdate;
@@ -252,7 +257,9 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 	        		
 		        	int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
 	            	int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
-	            	gcImage.setForeground(z==1?color_value1:(trimmed>0?color_trimmed:color_value2plus));
+	            	gcImage.setForeground(z == 1 ? colors[COLOR_VALUE1]
+									: (trimmed > 0 ? colors[COLOR_TRIMMED]
+											: colors[COLOR_VALUE2PLUS]));
 	            	gcImage.drawLine(xDraw,h1,xDraw+1, h2);
 	        	}
 	        }
@@ -264,7 +271,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
         if(x > 6) {
           int h1 = bounds.height - scale.getScaledValue(average) - 2;
           int h2 = bounds.height - scale.getScaledValue(oldAverage) - 2;
-          gcImage.setForeground(color_average);
+          gcImage.setForeground(colors[COLOR_AVERAGE]);
           gcImage.drawLine(xDraw,h1,xDraw+1, h2);
         }
         oldAverage = average;
@@ -272,7 +279,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       
       if(nbValues > 0) {
         int height = bounds.height - scale.getScaledValue(computeAverage(currentPosition-6)) - 2;
-        gcImage.setForeground(color_average);
+        gcImage.setForeground(colors[COLOR_AVERAGE]);
         gcImage.drawText(formater.format(computeAverage(currentPosition-6)),bounds.width - 65,height - 12,true);
       }    
       

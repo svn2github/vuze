@@ -44,6 +44,16 @@ public class BlocksItem
        extends CoreTableColumn 
        implements TableCellAddedListener
 {
+	private final int COLOR_REQUESTED = 0;
+	private final int COLOR_WRITTEN = 1;
+	private final int COLOR_DOWNLOADED = 2;
+	private final int COLOR_INCACHE = 3;
+	public static Color[] colors = new Color[] {
+    Colors.blues[Colors.BLUES_MIDLIGHT],
+    Colors.blues[Colors.BLUES_DARKEST],
+    Colors.red,
+    Colors.grey
+	};
   
   /** Default Constructor */
   public BlocksItem() {
@@ -99,10 +109,6 @@ public class BlocksItem
         return;
       Image image = new Image(SWTThread.getInstance().getDisplay(), 
                               newWidth, newHeight);
-      Color blue = Colors.blues[Colors.BLUES_DARKEST];
-      Color green = Colors.blues[Colors.BLUES_MIDLIGHT];
-      Color downloaded = Colors.red;
-      Color cache = Colors.grey;
       Color color;
       GC gcImage = new GC(image);
       gcImage.setForeground(Colors.grey);
@@ -154,15 +160,15 @@ public class BlocksItem
         
         if ( (written == null && piece_done) || (written != null && written[i]) ){
         	
-          color = blue;
+          color = colors[COLOR_WRITTEN];
         	
         }else if (piece.getDownloaded()[i]) {
         	
-          color = downloaded;
+          color = colors[COLOR_DOWNLOADED];
           
         }else if (piece.getRequested()[i]) {
         	
-          color = green;
+          color = colors[COLOR_REQUESTED];
         }
   
         gcImage.setBackground(color);
@@ -174,7 +180,7 @@ public class BlocksItem
         long bytes = cacheStats == null ? 0 : cacheStats.getBytesInCache(torrent,pieceNumber,offset,length);
         // System.out.println(pieceNumber + "," + offset + " : "  + bytes + " / " + length);
         if(bytes == length) {
-          gcImage.setBackground(cache);
+          gcImage.setBackground(colors[COLOR_INCACHE]);
           gcImage.fillRectangle(drawnWidth + 1,1,nextWidth,3);
         }
         drawnWidth += nextWidth;

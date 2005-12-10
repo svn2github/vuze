@@ -115,12 +115,7 @@ public class ActivityView extends AbstractIView {
     
 	Legend.createLegendComposite(
 	    		panel,
-	        	new Color[] {
-	    			SpeedGraphic.color_value1,       		
-	    			SpeedGraphic.color_value0,
-	    			SpeedGraphic.color_average,
-	    			SpeedGraphic.color_value2plus,
-	    			SpeedGraphic.color_trimmed },
+	    		SpeedGraphic.colors,
 	    		new String[] {
 	        			"ActivityView.legend.limit",
 	        			"ActivityView.legend.achieved",        			

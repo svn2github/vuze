@@ -25,6 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.peer;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +37,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -96,8 +98,9 @@ public class PeerInfoView extends AbstractIView {
 
 	private Label imageLabel;
 
+	// More delay for this view because of high workload
 	private int graphicsUpdate = COConfigurationManager
-			.getIntParameter("Graphics Update");
+			.getIntParameter("Graphics Update") * 2;
 
 	private int loopFactor = 0;
 
@@ -119,7 +122,7 @@ public class PeerInfoView extends AbstractIView {
 		blockColors = new Color[] { Colors.blues[Colors.BLUES_DARKEST],
 				Colors.white, Colors.faded[Colors.FADED_DARKEST], Colors.grey,
 				Colors.red, Colors.colorInverse };
-
+		
 		// Pull in Country Information if the plugin exists
 		/**
 		 * If this view was a real plugin view, we could attach the CountryLocator.jar
@@ -526,6 +529,7 @@ public class PeerInfoView extends AbstractIView {
 			font.dispose();
 			font = null;
 		}
+		
 		super.delete();
 	}
 }
