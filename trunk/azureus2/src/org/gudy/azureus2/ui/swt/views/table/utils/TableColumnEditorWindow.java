@@ -195,13 +195,13 @@ public class TableColumnEditorWindow {
 						.booleanValue();
 				// For OSX to hopefully refresh the checkbox.
 				if (Constants.isOSX) {
-					item.getDisplay().asyncExec(new AERunnable() {
+					item.getDisplay().syncExec(new AERunnable() {
 						public void runSupport() {
 							item.setChecked(bChecked);
 						}
 					});
-				}
-		    item.setChecked(bChecked);
+				} else
+					item.setChecked(bChecked);
 		    
 	      table.getColumn(1).pack();
 			}
