@@ -29,6 +29,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
@@ -119,22 +120,32 @@ BufferedTableRow
 	dispose()
 	{
 		if (table != null && !table.isDisposed() && Utils.isThisThreadSWT()) {
-			if (noTableItem() || item.getData("TableRow") != this) {
+			if (noTableItem()) {
 				// No assigned spot yet, or not our spot:
 				// find a row with no TableRow data
 
 				TableItem[] items = table.getItems();
 				for (int i = items.length - 1; i >= 0; i--) {
 					TableItem item = items[i];
-					if (!item.isDisposed() && item.getData("TableRow") == null) {
-						this.item = item;
-						break;
+					if (!item.isDisposed()) {
+						Object itemRow = item.getData("TableRow");
+						if (itemRow == null || itemRow == this) {
+							this.item = item;
+							break;
+						}
 					}
 				}
 			}
 			
 			if (item != null && !item.isDisposed()) 
 				item.dispose();
+			else
+				System.err.println("No table row was found to dispose");
+		} else {
+			if (!Utils.isThisThreadSWT()) {
+				System.err.println("Calling BufferedTableRow.dispose on non-SWT thread!");
+				System.err.println(Debug.getStackTrace(false, false));
+			}
 		}
 		item = null;
 	}
