@@ -96,7 +96,7 @@ public class TableView
 {
 	private final static LogIDs LOGID = LogIDs.GUI;
 	
-	public final static boolean DEBUGADDREMOVE = false;
+	public final static boolean DEBUGADDREMOVE = Constants.isWindows;
 	/** Virtual Tables still a work in progress */
 	private final static boolean DISABLEVIRTUAL = false;
 
@@ -1112,7 +1112,8 @@ public class TableView
 			if (DEBUGADDREMOVE) {
 		    long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
 				if (lTimeDiff > 500)
-					System.out.println(lTimeDiff + "ms to refresh " + count + " visible rows");
+					System.out.println(sTableID + ": " + lTimeDiff + "ms to refresh "
+							+ count + " visible rows");
 			}
 	
 	    loopFactor++;
@@ -1137,18 +1138,22 @@ public class TableView
 	  			if (dataSourcesToRemove.contains(dataSources[i])) {
 	  				dataSourcesToRemove.remove(dataSources[i]);
 	  				dataSources[i] = null;
-  			//System.out.println("Saved time by not adding a row that was removed");
+	  				if (DEBUGADDREMOVE)
+	  					System.out.println(sTableID
+									+ ": Saved time by not adding a row that was removed");
 	  			}
   		}
   		
   		addDataSources(dataSources, true);
-//  		if (dataSources.length > 1)
-//  			System.out.println("Streamlined adding " + dataSources.length + " rows");
+  		if (DEBUGADDREMOVE && dataSources.length > 1)
+  			System.out.println(sTableID + ": Streamlined adding "
+						+ dataSources.length + " rows");
   	}
   	if (dataSourcesToRemove != null) {
   		Object[] dataSources = dataSourcesToRemove.toArray();
-//  		if (dataSources.length > 1)
-//  			System.out.println("Streamlining removing " + dataSources.length + " rows");
+  		if (DEBUGADDREMOVE && dataSources.length > 1)
+  			System.out.println(sTableID + ": Streamlining removing "
+						+ dataSources.length + " rows");
   		dataSourcesToRemove = null;
   		removeDataSources(dataSources, true);
   	}
@@ -1270,10 +1275,18 @@ public class TableView
    */
   public synchronized void addDataSources(final Object dataSources[],
 			boolean bImmediate) {
+  	
+  	if (dataSources == null)
+  		return;
+
   	// In order to save time, we cache entries to be added and process them
   	// in a refresh cycle.  This is a huge benefit to tables that have
   	// many rows being added and removed in rapid succession
   	if (!bImmediate) {
+  		if (DEBUGADDREMOVE)
+  			System.out.println(sTableID + ": Queueing " + dataSources.length
+						+ " dataSources to add");
+
   		if (dataSourcesToAdd == null)
   			dataSourcesToAdd = new ArrayList(4);
   		for (int i = 0; i < dataSources.length; i++)
@@ -1281,8 +1294,8 @@ public class TableView
   		return;
   	}
   	
-		if (dataSources == null || mainComposite == null || table == null
-				|| mainComposite.isDisposed() || table.isDisposed())
+		if (mainComposite == null || table == null || mainComposite.isDisposed()
+				|| table.isDisposed())
 			return;
 		
 		if (DEBUGADDREMOVE)
@@ -1304,6 +1317,9 @@ public class TableView
 					dataSourceToRow.put(dataSources[i], row);
 				}
 			}
+		} catch (Exception e) {
+			Logger.log(new LogEvent(LOGID, "Error while added row to Table "
+					+ sTableID, e));
 		} finally {
 			dataSourceToRow_mon.exit();
 		}
@@ -2161,7 +2177,11 @@ public class TableView
 	  try{
 		  dataSourceToRow_mon.enter();
 		  
-		  writer.println( "TableView: " + dataSourceToRow.size());
+		  writer.println( "TableView: " + dataSourceToRow.size() + " datasources");
+		  writer.println("DataSources scheduled to Add: "
+					+ (dataSourcesToAdd == null ? 0 : dataSourcesToAdd.size()));
+			writer.println("DataSources scheduled to Remove: "
+					+ (dataSourcesToRemove == null ? 0 : dataSourcesToRemove.size()));
 		  
 		  Iterator	it = dataSourceToRow.keySet().iterator();
 		  
@@ -2170,6 +2190,17 @@ public class TableView
 			  Object key = it.next();
 			  
 			  writer.println( "  " + key + " -> " + dataSourceToRow.get(key));
+		  }
+		  
+			writer.println("# of SubViews: " + tabViews.size());
+		  writer.indent();
+		  try {
+			  for (Iterator iter = tabViews.iterator(); iter.hasNext();) {
+					IView view = (IView) iter.next();
+					view.generateDiagnostics(writer);
+				}
+		  } finally {
+		  	writer.exdent();
 		  }
 	  }finally{
 		  
