@@ -537,14 +537,24 @@ BufferedTableRow
 		if (index < iTopIndex)
 			return false;
 
-		// iBottomIndex may be greater than # of rows, but that doesn't matter
-		// because index is always less than # of rows
-		int iBottomIndex = iTopIndex
-				+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table
-						.getItemHeight()) + 1;
+		// 2 offset to be on the safe side
+		TableItem bottomItem = table.getItem(new Point(2,
+				table.getClientArea().height - 1));
+		if (bottomItem != null) {
+			int iBottomIndex = table.indexOf(bottomItem);
+			if (index > iBottomIndex)
+				return false;
+		}
 
-		if (index > iBottomIndex)
-			return false;
+//   XXX: getItemHeight is very slow on linux!
+//		// iBottomIndex may be greater than # of rows, but that doesn't matter
+//		// because index is always less than # of rows
+//		int iBottomIndex = iTopIndex
+//				+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table
+//						.getItemHeight()) + 1;
+//
+//		if (index > iBottomIndex)
+//			return false;
 
 		// Not visible if we haven't setData yet
 		if ((table.getStyle() & SWT.VIRTUAL) > 0 && item.getData("SD") == null) {

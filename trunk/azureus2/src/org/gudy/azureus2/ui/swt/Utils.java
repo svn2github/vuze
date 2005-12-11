@@ -318,9 +318,16 @@ public class Utils {
   	}
 
   	int iTopIndex = table.getTopIndex();
+		TableItem bottomItem = table.getItem(new Point(2,
+				table.getClientArea().height - 1));
+  	int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem) :
+			table.getItemCount() - 1;
+
+/* getItemHeight slow on Linux.  Workaround is above
     int iBottomIndex = Math.min(iTopIndex
 				+ (table.getClientArea().height / table.getItemHeight()), table
 				.getItemCount() - 1);
+*/
 
   	Color[] colors = { table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
         Colors.colorAltRow };
@@ -503,9 +510,16 @@ public class Utils {
 	 * Bottom Index may be negative
 	 */ 
 	public static int getTableBottomIndex(Table table, int iTopIndex) {
+		TableItem bottomItem = table.getItem(new Point(2,
+				table.getClientArea().height - 1));
+  	int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem) :
+			table.getItemCount() - 1;
+  	return iBottomIndex;
+/* getItemHeight slow on Linux.  Workaround is above
 		return Math.min(iTopIndex
 				+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table
 						.getItemHeight()), table.getItemCount() - 1);
+*/
 	}
 	
 	public static void

@@ -95,7 +95,9 @@ public class TableView
 {
 	private final static LogIDs LOGID = LogIDs.GUI;
 	
+	/** Helpfull output when trying to debug add/removal of rows */
 	public final static boolean DEBUGADDREMOVE = false;
+	
 	/** Virtual Tables still a work in progress */
 	private final static boolean DISABLEVIRTUAL = false;
 
@@ -420,8 +422,16 @@ public class TableView
     // Setup table
     // -----------
 
+    // XXX On linux (an other OSes?), changing the column indicator doesn't 
+    //     work until the table is shown.  Since SWT.Show doesn't trigger,
+    //     use the first paint trigger.
     table.addPaintListener(new PaintListener() {
+    	boolean first = true;
       public void paintControl(PaintEvent event) {
+      	if (first) {
+  				changeColumnIndicator();
+  				first = false;
+      	}
         if(event.width == 0 || event.height == 0) return;
         doPaint(event.gc);
       }
@@ -546,7 +556,7 @@ public class TableView
 					TableRowCore row = (TableRowCore) item.getData("TableRow");
 					if (row == null || row.getIndex() != tableIndex) {
 						//System.out.println("SetData " + tableIndex + ": Sort..");
-						sortColumn(false, true);
+						fillRowGaps(false);
 	
 						row = (TableRowCore) item.getData("TableRow");
 						if (row == null || row.getIndex() != tableIndex) {
@@ -618,7 +628,7 @@ public class TableView
 							}
 						});
 					} else {
-						sortColumn(true, false);
+						sortColumn(true);
 					}
 					event.doit = false;
 				}
@@ -1091,7 +1101,7 @@ public class TableView
 	    //System.out.println("Refresh.. WillSort? " + bWillSort);
 	    
 			if (bWillSort)
-				sortColumn(true, false);
+				sortColumn(true);
 	
 	    lTimeStart = System.currentTimeMillis();
 	    
@@ -1364,6 +1374,8 @@ public class TableView
 										.size() - 1);
 								if (rowSorter.compare(row, lastRow) >= 0) {
 									sortedRows.add(row);
+									if (DEBUGADDREMOVE)
+										System.out.println("Adding new row to bottom");
 								} else {
 									int index = Collections.binarySearch(sortedRows, row,
 											rowSorter);
@@ -1373,9 +1385,14 @@ public class TableView
 									if (index > sortedRows.size())
 										index = sortedRows.size();
 
+									if (DEBUGADDREMOVE)
+										System.out.println("Adding new row at position " + index
+												+ " of " + (sortedRows.size() - 1));
 									sortedRows.add(index, row);
 								}
 							} else {
+								if (DEBUGADDREMOVE)
+									System.out.println("Adding new row to bottom (1st Entry)");
 								sortedRows.add(row);
 							}
 
@@ -1404,6 +1421,7 @@ public class TableView
 					dataSourceToRow_mon.exit();
 				}
 
+				fillRowGaps(false);
 				if (DEBUGADDREMOVE)
 					System.out.println("<<");
 			}
@@ -1725,7 +1743,7 @@ public class TableView
       for (int i = 0; i < tis.length; i++) {
         TableRowCore row = (TableRowCore)tis[i].getData("TableRow");
         if (row == null) {
-        	sortColumn(false, true);
+        	fillRowGaps(false);
 
         	// Try again
           row = (TableRowCore)tis[i].getData("TableRow");
@@ -2132,7 +2150,7 @@ public class TableView
 				
 				case SWT.Dispose:
 					if (mainShell != null)
-						mainShell.removeListener(SWT.FocusOut, this);
+						mainShell.removeListener(SWT.Deactivate, this);
 					// fall through
 				
 				default:
@@ -2240,8 +2258,16 @@ public class TableView
 		item.setControl(view.getComposite());
 		tabViews.add(view);
 	}
+	
+	private void fillRowGaps(boolean bForceDataRefresh) {
+		_sortColumn(bForceDataRefresh, true);
+	}
 
-	private synchronized void sortColumn(boolean bForceDataRefresh,
+	private synchronized void sortColumn(boolean bForceDataRefresh) {
+		_sortColumn(bForceDataRefresh, false);
+	}
+
+	private synchronized void _sortColumn(boolean bForceDataRefresh,
 			boolean bFillGapsOnly) {
 
 		long lTimeStart;
@@ -2373,7 +2399,7 @@ public class TableView
 		}
 
 		changeColumnIndicator();
-		sortColumn(!bSameColumn, false);
+		sortColumn(!bSameColumn);
 	}
 
 	private void changeColumnIndicator() {
@@ -2388,8 +2414,8 @@ public class TableView
 			for (int i = 0; i < tcs.length; i++) {
 				String sName = (String)tcs[i].getData("Name");
 				if (sName != null && sName.equals(rowSorter.sColumnName)) {
-					table.setSortColumn(tcs[i]);
 					table.setSortDirection(rowSorter.bAscending ? SWT.UP : SWT.DOWN);
+					table.setSortColumn(tcs[i]);
 					return;
 				}
 			}
