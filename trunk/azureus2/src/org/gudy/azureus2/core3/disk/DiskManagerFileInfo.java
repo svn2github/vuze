@@ -22,7 +22,7 @@ package org.gudy.azureus2.core3.disk;
 import java.io.File;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 
 /**
  * @author Olivier
@@ -90,6 +90,9 @@ DiskManagerFileInfo
 	public DiskManager getDiskManager();
 	
 	public File getFile( boolean follow_link );
+	
+	public TOTorrentFile
+	getTorrentFile();
 	
 	public void
 	flushCache()

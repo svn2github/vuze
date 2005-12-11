@@ -184,6 +184,12 @@ DiskManagerFileInfoImpl
 	  return( file );
   	}
 
+  	public TOTorrentFile
+	getTorrentFile()
+	{
+		return( torrent_file );
+	}
+	
 	public boolean
 	setLink(
 		File	link_destination )

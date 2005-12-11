@@ -50,40 +50,34 @@ public class PathItem
     
     if( fileInfo != null ) {
     	
-      File file = fileInfo.getFile(true);
-        
-      try {
-          path = file.getParentFile().getCanonicalPath();
-      }
-      catch( IOException e ) {
-          path = file.getParentFile().getAbsolutePath();
-      }
-      
-      if ( !path.endsWith( File.separator )){
+      if( FilesView.show_full_path ) { 
     	  
-    	  path += File.separator;
-      }
-      
-      if( !FilesView.show_full_path ) { //display as full disk path
+    	  File file = fileInfo.getFile(true);
+    	     
+	      try {
+	          path = file.getParentFile().getCanonicalPath();
+	      }
+	      catch( IOException e ) {
+	          path = file.getParentFile().getAbsolutePath();
+	      }
+	      
+	      if ( !path.endsWith( File.separator )){
+	    	  
+	    	  path += File.separator;
+	      }
+      }else{
  
-        DiskManager  dm = fileInfo.getDiskManager();
-
-        File	loc = dm.getSaveLocation();
-        
-        String root;
-        if( dm.getTorrent().isSimpleTorrent() ) {
-        	root = loc.getParent();
-        }else{
-        	root = loc.toString();
-        }
-         
-        int pos = path.indexOf( root );
-         
-        if( pos >= 0 ) {
-        	path = path.substring( pos + root.length() );
-        }else{
-        	path = File.separator;
-        }
+    	  path = fileInfo.getTorrentFile().getRelativePath();
+    	  
+    	  int	pos = path.lastIndexOf(File.separator);
+    	  
+    	  if (pos > 0 ){
+    		  
+    		  path = path.substring( pos+1 );
+    	  }else{
+    		  
+    		  path = File.separator;
+    	  }
       }
     }
     

@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -1172,6 +1173,12 @@ DownloadManagerController
 		getFile( boolean follow_link )
 		{
 			return( delegate.getFile( follow_link ));
+		}
+		
+		public TOTorrentFile
+		getTorrentFile()
+		{
+			return( delegate.getTorrentFile());
 		}
 		
 		public void
