@@ -189,7 +189,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     // New: GTK M8+ has a bounds.x bug.. works fine in M7, but assume people have M8 or higher (3.0final)
     iAdj = VerticalAligner.getTableAdjustHorizontallyBy(table);
     bounds.x += iAdj;
-    clipping.y += iAdj;
+    clipping.x += iAdj;
 
     boolean ourGC = (gc == null);
     if (ourGC) {
