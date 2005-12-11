@@ -140,11 +140,7 @@ public class ProgressGraphItem
           int nbPieces = fileInfo.getNbPieces();
        
           DiskManagerPiece[] dm_pieces = manager.getPieces();
-    
-          PEPeerManager pm = manager.getDownloadManager().getPeerManager();
-    
-          PEPiece[] pieces = pm==null?null:pm.getPieces();
-    
+       
           bNoRed = true;
           for (int i = 0; i < newWidth; i++) {
             int a0 = (i * nbPieces) / newWidth;
@@ -155,30 +151,30 @@ public class ProgressGraphItem
               a1 = nbPieces;
             int nbAvailable = 0;
             boolean written   = false;
-            boolean requested = false;
+            boolean partially_written = false;
             if (firstPiece >= 0) {
               for (int j = a0; j < a1; j++){
                 int this_index = j+firstPiece;
-                if (dm_pieces[this_index].getDone()) {
+                
+               	DiskManagerPiece	dm_piece = dm_pieces[this_index];
+                
+                if (dm_piece.getDone()) {
                   nbAvailable++;
                 }
                 
-                if (written || pieces == null)
+                if (written){
                   continue;
+                }
+                
+                written = written || (dm_piece.getLastWriteTime() + 500) > last_draw_time;
     
-                PEPiece  piece = pieces[this_index];
-                if (piece == null)
-                  continue;
+                if ((!written) && (!partially_written)) {
+                  boolean[] blocks = dm_piece.getWritten();
     
-                written = written || (piece.getLastWriteTime() + 500) > last_draw_time;
-    
-                if ((!written) && (!requested)) {
-                  boolean[] reqs = piece.getRequested();
-    
-                  if ( reqs != null ) {
-                    for (int k = 0; k < reqs.length; k++){
-                      if (reqs[k]){
-                        requested = true;
+                  if ( blocks != null ) {
+                    for (int k = 0; k < blocks.length; k++){
+                      if (blocks[k]){
+                    	  partially_written = true;
                         break;
                       }
                     }
@@ -191,7 +187,7 @@ public class ProgressGraphItem
             }
     
             gcImage.setBackground(written ? Colors.red
-                                          : requested ? Colors.grey 
+                                          : partially_written ? Colors.grey 
                                                       : Colors.blues[(nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0)]);
             gcImage.fillRectangle(i, 1, 1, newHeight - 2);
             if (written)

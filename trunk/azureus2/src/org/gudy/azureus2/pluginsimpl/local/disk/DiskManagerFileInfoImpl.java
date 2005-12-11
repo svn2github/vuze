@@ -99,6 +99,6 @@ public class DiskManagerFileInfoImpl
 	public Download getDownload()
          throws DownloadException
   {
-	return DownloadManagerImpl.getDownloadStatic( core.getDownloadManager());
+	return DownloadManagerImpl.getDownloadStatic( core.getDiskManager());
   }
 }

@@ -44,6 +44,7 @@ import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -427,6 +428,41 @@ DownloadManagerImpl
 		throw( new DownloadException( "DownloadManager not initialised"));
 	}
 	
+	public static Download
+	getDownloadStatic(
+		DiskManager	dm )
+	
+		throws DownloadException
+	{
+		if ( singleton != null ){
+			
+			return( singleton.getDownload( dm ));
+		}
+		
+		throw( new DownloadException( "DownloadManager not initialised"));
+	}
+	
+	public Download
+	getDownload(
+		DiskManager	dm )
+	
+		throws DownloadException
+	{
+		List	dls = global_manager.getDownloadManagers();
+
+		for (int i=0;i<dls.size();i++){
+			
+			DownloadManager	man = (DownloadManager)dls.get(i);
+			
+			if ( man.getDiskManager() == dm ){
+				
+				return( getDownload( man.getTorrent()));
+			}
+		}
+		
+		return( null );
+	}
+
 	protected Download
 	getDownload(
 		TOTorrent	torrent )

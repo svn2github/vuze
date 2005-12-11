@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.disk.impl;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.*;
 
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
@@ -64,6 +65,11 @@ DiskManagerHelper
 	setFailed(
 		String		reason );
 	
+	public void
+	setFailed(
+		DiskManagerFileInfo	file,
+		String				reason );
+	
 	public long
 	getAllocated();
 	
@@ -77,4 +83,27 @@ DiskManagerHelper
 		
 	public TOTorrent
 	getTorrent();
+	
+	public String[]
+	getStorageTypes();
+	
+	public void
+	accessModeChanged(
+		DiskManagerFileInfoImpl		file,
+		int							old_mode,
+		int							new_mode );
+	
+	public void
+    skippedFileSetChanged(
+	    	DiskManagerFileInfo	file );
+	
+	public void 
+	priorityChanged(
+		DiskManagerFileInfo	file );
+	
+	public String
+	getInternalName();
+	
+	public DownloadManagerState
+	getDownloadState();
 }

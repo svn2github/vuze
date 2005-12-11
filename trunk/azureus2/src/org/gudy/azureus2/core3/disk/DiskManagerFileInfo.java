@@ -88,8 +88,6 @@ DiskManagerFileInfo
 	public int	getIndex();
 	
 	public DiskManager getDiskManager();
-
-	public DownloadManager getDownloadManager();
 	
 	public File getFile( boolean follow_link );
 	

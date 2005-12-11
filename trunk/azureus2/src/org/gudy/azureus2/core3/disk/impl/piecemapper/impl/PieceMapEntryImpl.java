@@ -37,9 +37,6 @@ PieceMapEntryImpl
 	public DiskManagerFileInfoImpl getFile() {
 		return _file;
 	}
-	public void setFile(DiskManagerFileInfoImpl file) {
-		_file = file;
-	}
 	public long getOffset() {
 		return _offset;
 	}

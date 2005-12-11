@@ -52,15 +52,15 @@ DiskManagerFileInfoImpl
   private int 			firstPieceNumber = -1;
   private int 			nbPieces = 0;
   
-  private DiskManagerImpl 	diskManager;
-  private TOTorrentFile		torrent_file;
+  private DiskManagerHelper 	diskManager;
+  private TOTorrentFile			torrent_file;
   
   private boolean priority = false;  
   private boolean skipped = false;
   
-  protected
+  public
   DiskManagerFileInfoImpl(
-  	DiskManagerImpl		_disk_manager,
+	DiskManagerHelper	_disk_manager,
   	File				_file,
   	int					_file_index,
 	TOTorrentFile		_torrent_file,
@@ -81,7 +81,7 @@ DiskManagerFileInfoImpl
   	public String
   	getCacheFileOwnerName()
   	{
-  		return( diskManager.getDownloadManager().getInternalName());
+  		return( diskManager.getInternalName());
   	}
   	
 	public TOTorrentFile
@@ -93,7 +93,7 @@ DiskManagerFileInfoImpl
 	public File 
 	getCacheFileControlFile(String name) 
 	{
-		return( diskManager.getDownloadManager().getDownloadState().getStateFile( name ));
+		return( diskManager.getDownloadState().getStateFile( name ));
 	}
 	
   public void
@@ -138,7 +138,7 @@ DiskManagerFileInfoImpl
   	
   	if ( old_mode != mode ){
   		
-  		diskManager.fileAccessModeChanged( this, old_mode, mode );
+  		diskManager.accessModeChanged( this, old_mode, mode );
   	}
   }
   
@@ -196,17 +196,14 @@ DiskManagerFileInfoImpl
 	public File
 	getLink()
 	{
-		return( diskManager.getDownloadManager().getDownloadState().getFileLink( getFile( false )));
+		return( diskManager.getDownloadState().getFileLink( getFile( false )));
 	}
 	
 	public boolean
 	setStorageType(
 		int		type )
-	{
-
-		DownloadManager	download_manager = diskManager.getDownloadManager();
-		
-		String[]	types = DiskManagerImpl.getStorageTypes( download_manager );
+	{		
+		String[]	types = diskManager.getStorageTypes();
 
 		int	old_type = types[file_index].equals( "L")?ST_LINEAR:ST_COMPACT;
 		
@@ -240,7 +237,7 @@ DiskManagerFileInfoImpl
 			
 			types[file_index] = cache_file.getStorageType()==CacheFile.CT_LINEAR?"L":"C";
 			
-			DownloadManagerState	dm_state = download_manager.getDownloadState();
+			DownloadManagerState	dm_state = diskManager.getDownloadState();
 			
 			dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
 			
@@ -365,11 +362,4 @@ DiskManagerFileInfoImpl
   public DiskManager getDiskManager() {
     return diskManager;
   }
-  
-	public DownloadManager 
-	getDownloadManager()
-	{
-		return( diskManager.getDownloadManager());
-	}
-
 }

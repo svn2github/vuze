@@ -59,7 +59,7 @@ RDResumeHandler
 
 	private static AESemaphore		complete_recheck_sem = new AESemaphore( "RDResumeHandler:completeRecheck", 1 );   
 	
-	protected DiskManagerHelper		disk_manager;
+	protected DiskManagerImpl		disk_manager;
 	protected DMChecker				checker;
 	protected DownloadManagerState	download_manager_state;
 	
@@ -76,11 +76,11 @@ RDResumeHandler
 
 	public 
 	RDResumeHandler(
-		DiskManagerHelper	_disk_manager,
-		DMChecker	_writer_and_checker )
+		DiskManagerImpl		_disk_manager,
+		DMChecker			_writer_and_checker )
 	{
 		disk_manager		= _disk_manager;
-		checker	= _writer_and_checker;
+		checker				= _writer_and_checker;
 		
 		download_manager_state	= disk_manager.getDownloadManager().getDownloadState();
 		

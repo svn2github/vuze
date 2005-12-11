@@ -25,8 +25,8 @@ import java.io.IOException;
 
 
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.views.FilesView;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -66,7 +66,7 @@ public class PathItem
       
       if( !FilesView.show_full_path ) { //display as full disk path
  
-        DownloadManager dm = fileInfo.getDownloadManager();
+        DiskManager  dm = fileInfo.getDiskManager();
 
         File	loc = dm.getSaveLocation();
         

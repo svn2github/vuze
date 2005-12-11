@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.disk;
  
 import java.io.File;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.download.DownloadManager;
 
@@ -221,6 +222,12 @@ DiskManager
 		int length );
 		
    
+	public TOTorrent
+	getTorrent();
+	
+	public File
+	getSaveLocation();
+	
 	public void
 	addListener(
 		DiskManagerListener	l );
@@ -237,7 +244,4 @@ DiskManager
 
 	public void 
 	saveState();
-	
-	public DownloadManager 
-	getDownloadManager();
 }

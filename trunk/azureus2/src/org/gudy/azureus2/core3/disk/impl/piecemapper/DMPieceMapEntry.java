@@ -31,10 +31,6 @@ DMPieceMapEntry
 	public DiskManagerFileInfoImpl 
 	getFile();
 
-	public void 
-	setFile(
-		DiskManagerFileInfoImpl file );
-
 	public long 
 	getOffset();
 

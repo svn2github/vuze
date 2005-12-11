@@ -1144,8 +1144,8 @@ DiskManagerImpl
 		listeners.dispatch(LDT_PIECE_DONE_CHANGED, piece);
 	}
 		
-	protected void
-	fileAccessModeChanged(
+	public void
+	accessModeChanged(
 		DiskManagerFileInfoImpl		file,
 		int							old_mode,
 		int							new_mode )
@@ -1913,7 +1913,7 @@ DiskManagerImpl
         FileUtil.recursiveEmptyDirDelete(new File( torrent_save_dir, torrent_save_file ));
     }
 
-    protected void
+    public void
     skippedFileSetChanged(
     	DiskManagerFileInfo	file )
     {
@@ -1921,7 +1921,7 @@ DiskManagerImpl
 	    listeners.dispatch(LDT_PRIOCHANGED, file);
     }
 
-	protected void 
+	public void 
 	priorityChanged(
 		DiskManagerFileInfo	file ) 
 	{
@@ -2051,7 +2051,19 @@ DiskManagerImpl
   public DownloadManager getDownloadManager() {
     return download_manager;
   }
-    
+   
+	public String
+	getInternalName()
+	{
+		return( download_manager.getInternalName());
+	}
+	
+	public DownloadManagerState
+	getDownloadState()
+	{
+		return( download_manager.getDownloadState());
+	}
+	
   	public void 
 	computePriorityIndicator()
   	{
@@ -2069,7 +2081,13 @@ DiskManagerImpl
 	    return piece_picker.hasDownloadablePiece();
 	}
 	
-	protected String[]
+	public File
+	getSaveLocation()
+	{
+		return( download_manager.getSaveLocation());
+	}
+	
+	public String[]
 	getStorageTypes()                 
 	{
 		return( getStorageTypes( download_manager ));
