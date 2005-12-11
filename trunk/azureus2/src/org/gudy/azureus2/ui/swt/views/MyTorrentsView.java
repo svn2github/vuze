@@ -762,7 +762,7 @@ public class MyTorrentsView
 		itemDownSpeedManual.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				InputShell is = new InputShell(
-						"MyTorrentsView.dialog.setNumber.title",
+						"MyTorrentsView.dialog.setSpeed.title",
 						new String[] { MessageText
 								.getString("MyTorrentsView.dialog.setNumber.download") },
 						"MyTorrentsView.dialog.setNumber.text",
@@ -886,7 +886,7 @@ public class MyTorrentsView
 		itemUpSpeedManual.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				InputShell is = new InputShell(
-						"MyTorrentsView.dialog.setNumber.title",
+						"MyTorrentsView.dialog.setSpeed.title",
 						new String[] { MessageText
 								.getString("MyTorrentsView.dialog.setNumber.upload") },
 						"MyTorrentsView.dialog.setNumber.text",
