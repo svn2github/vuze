@@ -25,10 +25,8 @@ import java.io.IOException;
 
 
 import org.gudy.azureus2.plugins.ui.tables.*;
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.ui.swt.views.FilesView;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
@@ -50,7 +48,7 @@ public class PathItem
     
     if( fileInfo != null ) {
     	
-      if( FilesView.show_full_path ) { 
+      if ( FilesView.show_full_path || fileInfo.getLink() != null ){ 
     	  
     	  File file = fileInfo.getFile(true);
     	     
