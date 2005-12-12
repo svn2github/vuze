@@ -58,19 +58,13 @@ RDResumeHandler
 	private static final byte		PIECE_RECHECK_REQUIRED	= 2;
 
 	private static AESemaphore		complete_recheck_sem = new AESemaphore( "RDResumeHandler:completeRecheck", 1 );   
-	
-	protected DiskManagerImpl		disk_manager;
-	protected DMChecker				checker;
-	protected DownloadManagerState	download_manager_state;
-	
-	protected TOTorrent				torrent;
 		
-	protected int					nbPieces;
-	protected int					pieceLength;
-	protected int					lastPieceLength;
-	
-	protected boolean				bOverallContinue;
-	protected boolean				bStoppedMidCheck;
+	private DiskManagerImpl		disk_manager;
+	private DMChecker			checker;
+		
+	private boolean				started;
+	private boolean				stopped;
+	private boolean				bStoppedMidCheck;
 	
 	protected boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
 
@@ -81,29 +75,35 @@ RDResumeHandler
 	{
 		disk_manager		= _disk_manager;
 		checker				= _writer_and_checker;
-		
-		download_manager_state	= disk_manager.getDownloadManager().getDownloadState();
-		
-		torrent			= disk_manager.getTorrent();
-		nbPieces		= disk_manager.getNumberOfPieces();
-		pieceLength		= disk_manager.getPieceLength();
-		lastPieceLength	= disk_manager.getLastPieceLength();
-
 	}
 	
 	public void
 	start()
 	{
-		COConfigurationManager.addParameterListener("Use Resume", this);
+		if ( started ){
+			
+			Debug.out( "RDResumeHandler: reuse not supported" );	
+		}
 		
-		bOverallContinue	= true;
-		bStoppedMidCheck = false;
+		started	= true;
+		
+		COConfigurationManager.addParameterListener("Use Resume", this);
 	}
 	
 	public void
 	stop()
 	{
-		bOverallContinue	= false;
+			// there are two kinds of "complete recheck" - those initiated by calling the
+			// "checkAllPieces" method in this class, the other is the "recheck on complete" event
+			// that isn't handled by the resume handler, rather its handled by the "checker". If
+			// we interrupt this process we want to handle it in teh same way 
+		
+		if ( disk_manager.isChecking()){
+			
+			bStoppedMidCheck	= true;
+		}
+		
+		stopped	= true;
 		
 		COConfigurationManager.removeParameterListener("Use Resume", this);
 	}
@@ -121,21 +121,9 @@ RDResumeHandler
 	{
 		//long	start = System.currentTimeMillis();
 		
-		boolean	got_sem = false;
+		boolean	got_sem = false;		
 		
-		while( bOverallContinue && !got_sem ){
-			
-			got_sem = complete_recheck_sem.reserve(250);
-		}
-		
-		try{
-			if ( !bOverallContinue ){
-				
-				bStoppedMidCheck = true;
-				
-				return;
-			}
-			
+		try{			
 			disk_manager.setState( DiskManager.CHECKING );
 						
 			boolean resumeEnabled = useFastResume;
@@ -154,7 +142,6 @@ RDResumeHandler
 			int					pending_check_num	= 0;
 
 			DiskManagerPiece[]	pieces	= disk_manager.getPieces();
-
 
 			if ( resumeEnabled ){
 				
@@ -240,14 +227,10 @@ RDResumeHandler
 				}
 				
 				for (int i = 0; i < pieces.length; i++){
-					if (!bOverallContinue) {
-						bStoppedMidCheck = true;
-						break;
-					}
 					
 					DiskManagerPiece	dm_piece	= pieces[i];
 					
-					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );
+					disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNumberOfPieces() );
 					
 					byte	piece_state = resume_pieces[i];
 					
@@ -305,38 +288,55 @@ RDResumeHandler
 							// if the resume data is invalid or explicit recheck needed
 						
 						if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
-						
-							try{								
-								checker.checkPiece(
-									i,
-									new DMCheckerRequestListener()
-									{
-										public void
-										processResult(
-											int		piece_number,
-											int		result,
-											Object	user_data )
-										{
-											if (Logger.isEnabled())
-												Logger.log(new LogEvent(disk_manager, LOGID,
-													result == DMCheckerRequestListener.OP_SUCCESS
-															? LogEvent.LT_INFORMATION : LogEvent.LT_WARNING,
-													"Piece #"
-															+ piece_number
-															+ (result == DMCheckerRequestListener.OP_SUCCESS
-																	? " passed" : " failed") + " re-check."));
-		
-											pending_checks_sem.release();
-										}
-									},
-									null, 
-									true );
-								
-								pending_check_num++;
-								
-							}catch( Throwable e ){
+													
+							while( !( stopped || got_sem )){
+									
+								got_sem = complete_recheck_sem.reserve(250);
+							}
 							
-								Debug.printStackTrace(e);
+							if ( stopped ){
+								
+									// we only flag as stopped mid-check if the stop action has prevented
+									// a hash check from occurring
+								
+								bStoppedMidCheck	= true;
+								
+								break;
+								
+							}else{
+								
+								try{								
+									checker.checkPiece(
+										i,
+										new DMCheckerRequestListener()
+										{
+											public void
+											processResult(
+												int		piece_number,
+												int		result,
+												Object	user_data )
+											{
+												if (Logger.isEnabled())
+													Logger.log(new LogEvent(disk_manager, LOGID,
+														result == DMCheckerRequestListener.OP_SUCCESS
+																? LogEvent.LT_INFORMATION : LogEvent.LT_WARNING,
+														"Piece #"
+																+ piece_number
+																+ (result == DMCheckerRequestListener.OP_SUCCESS
+																		? " passed" : " failed") + " re-check."));
+			
+												pending_checks_sem.release();
+											}
+										},
+										null, 
+										true );
+									
+									pending_check_num++;
+									
+								}catch( Throwable e ){
+								
+									Debug.printStackTrace(e);
+								}
 							}
 						}
 					}
@@ -364,15 +364,23 @@ RDResumeHandler
 				}
 			}else{
 				
+				while( !( stopped || got_sem )){
+					
+					got_sem = complete_recheck_sem.reserve(250);
+				}
+				
 					// resume not enabled, recheck everything
 				
 				for (int i = 0; i < pieces.length; i++){
-					if (!bOverallContinue) {
+					
+					if ( stopped ){
+						
 						bStoppedMidCheck = true;
+						
 						break;
 					}
 										
-					disk_manager.setPercentDone(((i + 1) * 1000) / nbPieces );						
+					disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNumberOfPieces() );						
 						
 					try{
 						checker.checkPiece(i, new DMCheckerRequestListener() {
@@ -408,7 +416,7 @@ RDResumeHandler
 			
 				//dump the newly built resume data to the disk/torrent
 			
-			if ( bOverallContinue && !resume_data_complete ){
+			if ( !( stopped || resume_data_complete )){
 				
 				try{
 					dumpResumeDataToDisk(false, false);
@@ -534,8 +542,12 @@ RDResumeHandler
 			// TODO: fix this up!!!!
 		
 		long lValid = 0;
-		if (!force_recheck && savePartialPieces && !bStoppedMidCheck)
+		
+		if (!force_recheck && savePartialPieces && !bStoppedMidCheck){
+			
 			lValid = 1;
+		}
+		
 		resume_data.put("valid", new Long(lValid));
 		
 		for (int i=0;i<files.length;i++){
