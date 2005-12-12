@@ -86,6 +86,8 @@ public class PeerInfoView extends AbstractIView {
 
 	private final static int BLOCKCOLOR_NEXT = 5;
 
+	private final static int BLOCKCOLOR_AVAILCOUNT = 6;
+	
 	private Composite peerInfoComposite;
 
 	private ScrolledComposite sc;
@@ -121,7 +123,7 @@ public class PeerInfoView extends AbstractIView {
 	public PeerInfoView() {
 		blockColors = new Color[] { Colors.blues[Colors.BLUES_DARKEST],
 				Colors.white, Colors.faded[Colors.FADED_DARKEST], Colors.grey,
-				Colors.red, Colors.colorInverse };
+				Colors.red, Colors.colorInverse, Colors.black };
 		
 		// Pull in Country Information if the plugin exists
 		/**
@@ -255,7 +257,8 @@ public class PeerInfoView extends AbstractIView {
 								"PeersView.BlockView.NoAvail.Have",
 								"PeersView.BlockView.NoAvail.NoHave",
 								"PeersView.BlockView.Transfer",
-								"PeersView.BlockView.NextRequest" }, new GridData(SWT.FILL,
+								"PeersView.BlockView.NextRequest",
+								"PeersView.BlockView.AvailCount" }, new GridData(SWT.FILL,
 								SWT.DEFAULT, true, false, 2, 1));
 
 		int iFontPixelsHeight = 10;
@@ -485,7 +488,7 @@ public class PeerInfoView extends AbstractIView {
 				if (availability[i] < 100) {
 					int x = iXPos + (BLOCK_FILLSIZE / 2) - (size.x / 2);
 					int y = iYPos + (BLOCK_FILLSIZE / 2) - (size.y / 2);
-					gcImg.setForeground(Colors.black);
+					gcImg.setForeground(blockColors[BLOCKCOLOR_AVAILCOUNT]);
 					gcImg.drawText(sNumber, x, y, true);
 				}
 			}
