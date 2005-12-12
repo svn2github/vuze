@@ -240,16 +240,12 @@ FMFileAccessLinear
 					}
 				}
 			}else{
-				
-				Debug.out("file channel is not open !");
-				
-				throw( new FMFileManagerException( "write fails " ));
+								
+				throw( new FMFileManagerException( "write fails, channel not open" ));
 			}
 			
 		}catch (Exception e ){
-			
-			Debug.printStackTrace( e );
-			
+						
 			throw( new FMFileManagerException( "write fails", e ));
 		}		
 	}

@@ -37,25 +37,20 @@ DMChecker
 	public void
 	stop();
 	
-	public void 
-	checkPiece(
-		int 					pieceNumber,
-		DMCheckerRequestListener	result_handler,
-		Object					user_data,
-		boolean					low_priority )
-	
-		throws Exception;
+	public DiskManagerCheckRequest
+	createRequest(
+		int 	pieceNumber,
+		Object	user_data );
 	
 	public void 
 	enqueueCompleteRecheckRequest(
-		final DiskManagerCheckRequestListener 	listener,
-		final Object							user_data ) ;
-	
+		DiskManagerCheckRequest				request,
+		DiskManagerCheckRequestListener 	listener );
+
 	public void 
 	enqueueCheckRequest(
-		int 							pieceNumber,
-		DiskManagerCheckRequestListener	listener,
-		Object							user_data ); 
+		DiskManagerCheckRequest			request,
+		DiskManagerCheckRequestListener listener );
 	  
 	public boolean 
 	isChecking();

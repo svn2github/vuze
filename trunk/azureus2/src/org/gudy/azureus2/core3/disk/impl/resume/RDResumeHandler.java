@@ -295,31 +295,44 @@ RDResumeHandler
 								
 							}else{
 								
-								try{								
-									checker.checkPiece(
-										i,
-										new DMCheckerRequestListener()
+								try{	
+									DiskManagerCheckRequest	request = disk_manager.createCheckRequest( i, null );
+									
+									request.setLowPriority( true );
+									
+									checker.enqueueCheckRequest(
+										request,
+										new DiskManagerCheckRequestListener()
 										{
-											public void
-											processResult(
-												int		piece_number,
-												int		result,
-												Object	user_data )
+											public void 
+											checkCompleted( 
+												DiskManagerCheckRequest 	request,
+												boolean						passed )
 											{
-												if (Logger.isEnabled())
-													Logger.log(new LogEvent(disk_manager, LOGID,
-														result == DMCheckerRequestListener.OP_SUCCESS
-																? LogEvent.LT_INFORMATION : LogEvent.LT_WARNING,
-														"Piece #"
-																+ piece_number
-																+ (result == DMCheckerRequestListener.OP_SUCCESS
-																		? " passed" : " failed") + " re-check."));
-			
+												complete();
+											}
+											 
+											public void
+											checkCancelled(
+												DiskManagerCheckRequest		request )
+											{
+												complete();
+											}
+											
+											public void 
+											checkFailed( 
+												DiskManagerCheckRequest 	request, 
+												Throwable		 			cause )
+											{
+												complete();
+											}
+											
+											protected void
+											complete()
+											{
 												pending_checks_sem.release();
 											}
-										},
-										null, 
-										true );
+										});
 									
 									pending_check_num++;
 									
@@ -373,20 +386,43 @@ RDResumeHandler
 					disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNumberOfPieces() );						
 						
 					try{
-						checker.checkPiece(i, new DMCheckerRequestListener() {
-							public void processResult(int piece_number, int result,
-									Object user_data) {
-								if (Logger.isEnabled())
-									Logger.log(new LogEvent(disk_manager, LOGID,
-											result == DMCheckerRequestListener.OP_SUCCESS
-													? LogEvent.LT_INFORMATION : LogEvent.LT_WARNING,
-											"Piece #"
-													+ piece_number
-													+ (result == DMCheckerRequestListener.OP_SUCCESS
-															? " passed" : " failed") + " re-check."));
-								pending_checks_sem.release();
-							}
-						}, null, true);
+						DiskManagerCheckRequest	request = disk_manager.createCheckRequest( i, null );
+						
+						request.setLowPriority( true );
+
+						checker.enqueueCheckRequest(
+								request, 
+								new DiskManagerCheckRequestListener()
+								{
+									public void 
+									checkCompleted( 
+										DiskManagerCheckRequest 	request,
+										boolean						passed )
+									{
+										complete();
+									}
+									 
+									public void
+									checkCancelled(
+										DiskManagerCheckRequest		request )
+									{
+										complete();
+									}
+									
+									public void 
+									checkFailed( 
+										DiskManagerCheckRequest 	request, 
+										Throwable		 			cause )
+									{
+										complete();
+									}
+									
+									protected void
+									complete()
+									{
+										pending_checks_sem.release();
+									}
+								});
 						
 						pending_check_num++;
 						

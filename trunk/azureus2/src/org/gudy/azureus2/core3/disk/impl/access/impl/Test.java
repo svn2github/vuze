@@ -1069,7 +1069,7 @@ Test
 					
 					if ( offset == 0 ){
 						
-						dm.enqueueCheckRequest( pieceNumber, null, null );
+						dm.enqueueCheckRequest( dm.createCheckRequest( pieceNumber, null ), null );
 					}
 				}
 			}

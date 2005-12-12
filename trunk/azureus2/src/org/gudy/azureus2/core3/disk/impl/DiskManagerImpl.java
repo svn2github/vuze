@@ -1328,24 +1328,31 @@ DiskManagerImpl
 		int length )
 	{
 		return( reader.createRequest( pieceNumber, offset, length ));
+	}	
+  
+	public DiskManagerCheckRequest
+	createCheckRequest(
+		int 	pieceNumber,
+		Object	user_data )
+	{
+		return( checker.createRequest( pieceNumber, user_data ));
 	}
 	
-  
 	public void 
 	enqueueCompleteRecheckRequest(
-		final DiskManagerCheckRequestListener 	listener,
-		final Object							user_data ) 
+		DiskManagerCheckRequest				request,
+		DiskManagerCheckRequestListener 	listener )
+		
 	{
-	  	checker.enqueueCompleteRecheckRequest( listener, user_data );
+	  	checker.enqueueCompleteRecheckRequest( request, listener );
 	}
 
 	public void 
 	enqueueCheckRequest(
-		int 							pieceNumber,
-		DiskManagerCheckRequestListener listener,
-		Object							user_data ) 
+		DiskManagerCheckRequest			request,
+		DiskManagerCheckRequestListener listener )
 	{
-	  	checker.enqueueCheckRequest( pieceNumber, listener, user_data );
+	  	checker.enqueueCheckRequest( request, listener );
 	}
 	  
 	public boolean isChecking() 

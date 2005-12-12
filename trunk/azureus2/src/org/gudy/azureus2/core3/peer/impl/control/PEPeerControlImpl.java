@@ -676,7 +676,7 @@ PEPeerControlImpl
       	
         currentPiece.setBeingChecked();
         
-       _diskManager.enqueueCheckRequest(i,this, new Boolean(false));	
+       _diskManager.enqueueCheckRequest( _diskManager.createCheckRequest(i, new Boolean(false)), this );	
       }
     }
   }
@@ -752,10 +752,8 @@ PEPeerControlImpl
 	    		
 	    		Object[]	data = (Object[])it.next();
 	    		   		
-	    		processPieceCheckResult(
-	    			((Integer)data[0]).intValue(), 
-	    			((Boolean)data[1]).booleanValue(), 
-					data[2]);
+	    		processPieceCheckResult((DiskManagerCheckRequest)data[0],((Integer)data[1]).intValue());
+	    			
 	    	}
   		}
   	}
@@ -874,7 +872,7 @@ PEPeerControlImpl
       
       if (checkPieces && !start_of_day) {
       	
-      	_diskManager.enqueueCompleteRecheckRequest( this, new Boolean( true ));
+      	_diskManager.enqueueCompleteRecheckRequest( _diskManager.createCheckRequest( -1, new Boolean( true )), this );
       }
       
       _diskManager.downloadEnded();
@@ -2060,33 +2058,66 @@ PEPeerControlImpl
 	      offset += length;
 	    }        
 	  }
-					  
-
-  	public void
-	pieceChecked( 
-		int 		pieceNumber, 
-		boolean 	result,
-		Object		_user_data )
-  	{
-        try{
+	
+	public void 
+	checkCompleted( 
+		DiskManagerCheckRequest 	request,
+		boolean						passed )
+	{
+      try{
 	       	piece_check_result_list_mon.enter();
 	        
-	       	piece_check_result_list.add(new Object[]{new Integer(pieceNumber), new Boolean(result), _user_data });
+	       	piece_check_result_list.add(new Object[]{request, new Integer( passed?1:0 )});
+	       	
 	    }finally{
 	        	
 	    	piece_check_result_list_mon.exit();
 	    }
-  	}
-  	
+	}
+	
+	public void
+	checkCancelled(
+		DiskManagerCheckRequest		request )
+	{
+	   try{
+	       	piece_check_result_list_mon.enter();
+	        
+	       	piece_check_result_list.add(new Object[]{request, new Integer( 2 )});
+	       	
+	    }finally{
+	        	
+	    	piece_check_result_list_mon.exit();
+	    }	
+	}
+	
+	public void 
+	checkFailed( 
+		DiskManagerCheckRequest 	request, 
+		Throwable		 			cause )
+	{
+	   try{
+	       	piece_check_result_list_mon.enter();
+	        
+	       	piece_check_result_list.add(new Object[]{request, new Integer( 0 )});
+	       	
+	    }finally{
+	        	
+	    	piece_check_result_list_mon.exit();
+	    }		
+	}
+
   private void 
   processPieceCheckResult(
-  	int 		pieceNumber, 
-	boolean 	result,
-	Object		_user_data ) 
+	DiskManagerCheckRequest	request,
+	int						outcome )
   {
-  	boolean	recheck_on_completion = ((Boolean)_user_data).booleanValue();
+  	boolean	recheck_on_completion = ((Boolean)request.getUserData()).booleanValue();
   	
   	try{  		
+  		
+  			// passed = 1, failed = 0, cancelled = 2
+  		
+  		int	pieceNumber	= request.getPieceNumber();
   		
   			// piece can be null when running a recheck on completion
   		
@@ -2094,19 +2125,17 @@ PEPeerControlImpl
 	
 	    // System.out.println( "processPieceCheckResult(" + _finished + "/" + recheck_on_completion + "):" + pieceNumber + "/" + piece + " - " + result );
 	    
-	    if( result && piece != null ){
+	    if( outcome == 1 && piece != null ){
 	    	
 	    	pieceRemoved(piece);
 	    }
 	    
-	    if( recheck_on_completion ) {  //this is a recheck, so don't send HAVE msgs
+	    if ( recheck_on_completion ) {  //this is a recheck, so don't send HAVE msgs
 	    	
-	      if ( result){
-	        
-	        // ok
-	      	
-	      }else{  	//piece failed
-	      			//restart the download afresh
+	      if ( outcome == 0 ){
+
+	    	  //piece failed
+	      	  //restart the download afresh
 	      	
 	        Debug.out("Piece #" + pieceNumber + " failed final re-check. Re-downloading...");
 	        
@@ -2124,7 +2153,7 @@ PEPeerControlImpl
 	    
 	    	//  the piece has been written correctly
 	    
-	    if ( result ){
+	    if ( outcome == 1 ){
 	      
 			
 	      if(piece != null) {
@@ -2175,7 +2204,7 @@ PEPeerControlImpl
 	      
 	      sendHave(pieceNumber);
 	      
-	    }else{
+	    }else if ( outcome == 0 ){
 	    	
 	    		//    the piece is corrupt
 
@@ -2183,66 +2212,63 @@ PEPeerControlImpl
 	       	
 		      MD5CheckPiece(piece,false);
 
-	        PEPeer[] writers = piece.getWriters();
-          List uniqueWriters = new ArrayList();
-          int[] writesPerWriter = new int[writers.length];
-          for(int i = 0 ; i < writers.length;i++) {
-            PEPeer writer = writers[i];
-            if(writer != null) {
-              int writerId = uniqueWriters.indexOf(writer);
-              if(writerId == -1) {
-                uniqueWriters.add(writer);
-                writerId = uniqueWriters.size() - 1;
-              }
-              writesPerWriter[writerId]++;
-            }
-          }
-          int nbWriters = uniqueWriters.size();
-          if(nbWriters == 1) {
-            //Very simple case, only 1 peer contributed for that piece,
-            //so, let's mark it as a bad peer
-            badPeerDetected((PEPeerTransport) uniqueWriters.get(0));
-            
-            //and let's reset the whole piece
-            piece.reset();  
-            // Mark this piece as non downloading      
-            _downloading[pieceNumber] = false;
-          } else if(nbWriters > 1) {
-            int maxWrites = 0;
-            PEPeer bestWriter = null;
-            for(int i = 0 ; i < uniqueWriters.size() ; i++) {              
-              int writes = writesPerWriter[i];
-              PEPeer writer = (PEPeer) uniqueWriters.get(i);
-              if(writes > maxWrites && writer.getReservedPieceNumber() == -1) {
-                bestWriter = writer;
-                maxWrites = writes;
-              }
-            }
-            if(bestWriter != null) {
-              piece.setReservedBy(bestWriter);
-              bestWriter.setReservedPieceNumber(piece.getPieceNumber());
-              piece.setBeingChecked(false);
-              for(int i = 0 ; i < piece.getNbBlocs() ; i++) {
-                //If the block was contirbuted by someone else            
-                if(writers[i] == null || !writers[i].equals(bestWriter)) {
-                  piece.reDownloadBlock(i);
-                }
-              }
-            } else {
-              //In all cases, reset the piece
-              piece.reset();
-              //Mark this piece as non downloading      
-              _downloading[pieceNumber] = false;
-            }            
-          } else {
-            //In all cases, reset the piece
-            piece.reset();
-            //Mark this piece as non downloading      
-            _downloading[pieceNumber] = false;
-          } 
-            
-  
-	        
+		        PEPeer[] writers = piece.getWriters();
+	          List uniqueWriters = new ArrayList();
+	          int[] writesPerWriter = new int[writers.length];
+	          for(int i = 0 ; i < writers.length;i++) {
+	            PEPeer writer = writers[i];
+	            if(writer != null) {
+	              int writerId = uniqueWriters.indexOf(writer);
+	              if(writerId == -1) {
+	                uniqueWriters.add(writer);
+	                writerId = uniqueWriters.size() - 1;
+	              }
+	              writesPerWriter[writerId]++;
+	            }
+	          }
+	          int nbWriters = uniqueWriters.size();
+	          if(nbWriters == 1) {
+	            //Very simple case, only 1 peer contributed for that piece,
+	            //so, let's mark it as a bad peer
+	            badPeerDetected((PEPeerTransport) uniqueWriters.get(0));
+	            
+	            //and let's reset the whole piece
+	            piece.reset();  
+	            // Mark this piece as non downloading      
+	            _downloading[pieceNumber] = false;
+	          } else if(nbWriters > 1) {
+	            int maxWrites = 0;
+	            PEPeer bestWriter = null;
+	            for(int i = 0 ; i < uniqueWriters.size() ; i++) {              
+	              int writes = writesPerWriter[i];
+	              PEPeer writer = (PEPeer) uniqueWriters.get(i);
+	              if(writes > maxWrites && writer.getReservedPieceNumber() == -1) {
+	                bestWriter = writer;
+	                maxWrites = writes;
+	              }
+	            }
+	            if(bestWriter != null) {
+	              piece.setReservedBy(bestWriter);
+	              bestWriter.setReservedPieceNumber(piece.getPieceNumber());
+	              piece.setBeingChecked(false);
+	              for(int i = 0 ; i < piece.getNbBlocs() ; i++) {
+	                //If the block was contirbuted by someone else            
+	                if(writers[i] == null || !writers[i].equals(bestWriter)) {
+	                  piece.reDownloadBlock(i);
+	                }
+	              }
+	            } else {
+	              //In all cases, reset the piece
+	              piece.reset();
+	              //Mark this piece as non downloading      
+	              _downloading[pieceNumber] = false;
+	            }            
+	          } else {
+	            //In all cases, reset the piece
+	            piece.reset();
+	            //Mark this piece as non downloading      
+	            _downloading[pieceNumber] = false;
+	          } 
 	      }
 	           
 	      	//if we are in end-game mode, we need to re-add all the piece chunks
@@ -2266,6 +2292,11 @@ PEPeerControlImpl
 	      }
 	      	         
 	      _stats.hashFailed( piece.getLength());
+	      
+	    }else{
+	    		// cancelled, download stopped
+	    	
+	    	Debug.out( "cancelled" );
 	    }
   	}finally{
   		

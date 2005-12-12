@@ -172,10 +172,18 @@ DMCheckerImpl
 	   return( complete_recheck_in_progress );
 	}
 	  
+	public DiskManagerCheckRequest
+	createRequest(
+		int 	pieceNumber,
+		Object	user_data )
+	{
+		return( new DiskManagerCheckRequestImpl( pieceNumber, user_data ));
+	}
+	
 	public void 
 	enqueueCompleteRecheckRequest(
-		final DiskManagerCheckRequestListener 	listener,
-		final Object							user_data ) 
+		final DiskManagerCheckRequest			request,
+		final DiskManagerCheckRequestListener 	listener )
 	{  	
 		complete_recheck_in_progress	= true;
 
@@ -224,27 +232,69 @@ DMCheckerImpl
 	  					}
 	  					
 	  					enqueueCheckRequest( 
-	  	       				i, 
+	  						createRequest( i, request.getUserData()),
 	  	       				new DiskManagerCheckRequestListener()
 							{
-		  	       				public void
-								pieceChecked( 
-									int 		_pieceNumber, 
-									boolean 	_result,
-									Object		_user_data )
-		  	       				{
-		  	       					try{
-		  	       						listener.pieceChecked( _pieceNumber, _result, _user_data );
+			  	       			public void 
+			  	       			checkCompleted( 
+			  	       				DiskManagerCheckRequest 	request,
+			  	       				boolean						passed )
+			  	       			{
+			  	       				try{
+			  	       					listener.checkCompleted( request, passed );
+			  	       					
+			  	       				}catch( Throwable e ){
+			  	       					
+			  	       					Debug.printStackTrace(e);
+			  	       					
+			  	       				}finally{
+			  	       					
+			  	       					complete();
+			  	       				}
+			  	       			}
+			  	       			 
+			  	       			public void
+			  	       			checkCancelled(
+			  	       				DiskManagerCheckRequest		request )
+			  	       			{
+			  	       				try{
+			  	       					listener.checkCancelled( request );
+			  	       					
+			  	       				}catch( Throwable e ){
+			  	       					
+			  	       					Debug.printStackTrace(e);
+			  	       					
+			  	       				}finally{
+			  	       				
+			  	       					complete();
+			  	       				}
+			  	       			}
+			  	       			
+			  	       			public void 
+			  	       			checkFailed( 
+			  	       				DiskManagerCheckRequest 	request, 
+			  	       				Throwable		 			cause )
+			  	       			{
+			  	       				try{
+			  	       					listener.checkFailed( request, cause );
+			  	       					
+			  	       				}catch( Throwable e ){
+			  	       					
+			  	       					Debug.printStackTrace(e);
+			  	       					
+			  	       				}finally{
+			  	       				
+			  	       					complete();
+			  	       				}			  	       			}
+			  	       			
+			  	       			protected void
+			  	       			complete()
+			  	       			{
+	  	       						run_sem.release();
 		  	       						
-		  	       					}finally{
-		  	       						
-		  	       						run_sem.release();
-		  	       						
-		  	       						sem.release();
-		  	       					}
+	  	       						sem.release();
 		  	       				}
 							},
-							user_data,
 							false );
 	  					
 	  					checks_submitted++;
@@ -286,100 +336,98 @@ DMCheckerImpl
 	
 	public void 
 	enqueueCheckRequest(
-		int 									pieceNumber,
-		final DiskManagerCheckRequestListener 	listener,
-		Object									user_data ) 
+		DiskManagerCheckRequest				request,
+		DiskManagerCheckRequestListener 	listener )
 	{
-		enqueueCheckRequest( pieceNumber, listener, user_data, flush_pieces );
+		enqueueCheckRequest( request, listener, flush_pieces );
 	}
 	
 	protected void 
 	enqueueCheckRequest(
-		int 									pieceNumber,
+		final DiskManagerCheckRequest			request,
 		final DiskManagerCheckRequestListener 	listener,
-		Object									user_data,
 		boolean									read_flush ) 
 	{  	
-		checkPiece( 
-				pieceNumber, 
-				new DMCheckerRequestListener() 
+			// everything comes through here - the interceptor listener maintains the piece state and
+			// does logging
+		
+		enqueueCheckRequestSupport( 
+				request, 
+				new DiskManagerCheckRequestListener() 
 				{
 					public void 
-					processResult(
-						int 	pieceNumber, 
-						int 	result,
-						Object 	user_data ) 
+					checkCompleted( 
+						DiskManagerCheckRequest 	request,
+						boolean						passed )
 					{
-						if (result == DMCheckerRequestListener.OP_SUCCESS) {
-							if (Logger.isEnabled())
-								Logger.log(new LogEvent(disk_manager, LOGID, "Piece "
-										+ pieceNumber + " passed hash check."));
-		
-						} else if (result == DMCheckerRequestListener.OP_FAILURE) {
-							if (Logger.isEnabled())
-								Logger.log(new LogEvent(disk_manager, LOGID,
-										LogEvent.LT_ERROR, "Piece " + pieceNumber
-												+ " failed hash check."));
-		
-						} else {
-							if (Logger.isEnabled())
-								Logger.log(new LogEvent(disk_manager, LOGID,
-										LogEvent.LT_ERROR, "Piece " + pieceNumber
-												+ " hash check cancelled."));
-		
-						}
-
-						if ( listener != null){
-
-							listener.pieceChecked(
-									pieceNumber,
-									result == DMCheckerRequestListener.OP_SUCCESS,
-									user_data );
+						try{						
+							disk_manager.getPieces()[request.getPieceNumber()].setDone( passed );
+							
+						}finally{
+							
+							listener.checkCompleted( request, passed );
+							
+							if (Logger.isEnabled()){							
+								if ( passed ){
+							
+									Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_INFORMATION, 
+												"Piece " + request.getPieceNumber() + " passed hash check."));
+								}else{
+									Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_WARNING, 
+												"Piece " + request.getPieceNumber() + " failed hash check."));
+								}
+							}
 						}
 					}
-				}, user_data, false, read_flush );
+					 
+					public void
+					checkCancelled(
+						DiskManagerCheckRequest		request )
+					{
+						try{						
+							disk_manager.getPieces()[request.getPieceNumber()].setDone( false );
+							
+						}finally{
+							
+							listener.checkCancelled( request );
+							
+							if (Logger.isEnabled()){							
+								Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_WARNING, 
+												"Piece " + request.getPieceNumber() + " hash check cancelled."));
+							}
+						}					
+					}
+					
+					public void 
+					checkFailed( 
+						DiskManagerCheckRequest 	request, 
+						Throwable		 			cause )
+					{
+						try{						
+							disk_manager.getPieces()[request.getPieceNumber()].setDone( false );
+							
+						}finally{
+							
+							listener.checkFailed( request, cause );
+							
+							if (Logger.isEnabled()){							
+								Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_WARNING, 
+												"Piece " + request.getPieceNumber() + " failed hash check - " + Debug.getNestedExceptionMessage( cause )));
+							}
+						}						
+					}
+				}, read_flush );
 	}  
 	  
-	public void
-	checkPiece(
-		final int 						pieceNumber,
-		final DMCheckerRequestListener	_result_handler,
-		final Object					user_data,
-		final boolean					low_priorty )
-	{
-		checkPiece( pieceNumber, _result_handler, user_data, low_priorty, false );
-	}
 	
 	protected void
-	checkPiece(
-		final int 						pieceNumber,
-		final DMCheckerRequestListener	_result_handler,
-		final Object					user_data,
-		final boolean					low_priorty,
-		boolean							read_flush )
+	enqueueCheckRequestSupport(
+		final DiskManagerCheckRequest			request,
+		final DiskManagerCheckRequestListener	listener,
+		boolean									read_flush )
 	{
-		final DMCheckerRequestListener	result_handler =
-			new DMCheckerRequestListener()
-			{
-				public void
-				processResult(
-					int		piece_number,
-					int		result,
-					Object	_user_data )
-				{
-					try{						
-						disk_manager.getPieces()[piece_number].setDone( result == DMCheckerRequestListener.OP_SUCCESS );
-						
-					}finally{
-						
-						if ( _result_handler != null ){
-							
-							_result_handler.processResult( pieceNumber, result, _user_data );
-						}
-					}
-				}
-			};
-					             		
+		int	pieceNumber	= request.getPieceNumber();
+		
 		try{
 			
 			final byte[]	required_hash = disk_manager.getPieceHash(pieceNumber);
@@ -394,9 +442,9 @@ DMCheckerImpl
 					
 					DMPieceMapEntry piece_entry = pieceList.get(i);
 						
-					if ( piece_entry.getFile().getCacheFile().getLength() < piece_entry.getOffset()){
+					if ( piece_entry.getFile().getCacheFile().compareLength( piece_entry.getOffset()) < 0 ){
 							
-						result_handler.processResult( pieceNumber, DMCheckerRequestListener.OP_FAILURE, user_data );
+						listener.checkCompleted( request, false );
 						
 						return;
 					}
@@ -406,7 +454,7 @@ DMCheckerImpl
 					// we can fail here if the disk manager has been stopped as the cache file length access may be being
 					// performed on a "closed" (i.e. un-owned) file
 				
-				result_handler.processResult( pieceNumber, DMCheckerRequestListener.OP_CANCELLED, user_data );
+				listener.checkCancelled( request );
 
 				return;
 			}
@@ -420,7 +468,7 @@ DMCheckerImpl
 		   	
 				if ( stopped ){
 					
-					result_handler.processResult( pieceNumber, DMCheckerRequestListener.OP_CANCELLED, user_data );
+					listener.checkCancelled( request );
 					
 					return;
 				}
@@ -452,7 +500,7 @@ DMCheckerImpl
 								
 								buffer.returnToPool();
 								
-								result_handler.processResult( pieceNumber, DMCheckerRequestListener.OP_CANCELLED, user_data );
+								listener.checkCancelled( request );
 								
 								return;
 							}
@@ -473,23 +521,23 @@ DMCheckerImpl
 									{
 					    				public void
 										complete(
-											ConcurrentHasherRequest	request )
+											ConcurrentHasherRequest	hash_request )
 					    				{
-					    					int	async_result	= DMCheckerRequestListener.OP_CANCELLED;
+					    					int	async_result	= 3; // cancelled
 					    						    		    					
 					    					try{
 					    						
-												byte[] testHash = request.getResult();
+												byte[] testHash = hash_request.getResult();
 														    								
 												if ( testHash != null ){
 															
-				    								async_result = DMCheckerRequestListener.OP_SUCCESS;
+				    								async_result = 1; // success
 				    								
 				    								for (int i = 0; i < testHash.length; i++){
 				    									
 				    									if ( testHash[i] != required_hash[i]){
 				    										
-				    										async_result = DMCheckerRequestListener.OP_FAILURE;
+				    										async_result = 2; // failed;
 				    										
 				    										break;
 				    									}
@@ -500,10 +548,18 @@ DMCheckerImpl
 					    						try{
 						    						f_buffer.returnToPool();
 	
-						    						result_handler.processResult( 
-						    								pieceNumber, 
-															async_result,
-															user_data );
+						    						if ( async_result == 1 ){
+						    							
+						    							listener.checkCompleted( request, true );
+						    							
+						    						}else if ( async_result == 2 ){
+						    							
+						    							listener.checkCompleted( request, false );
+						    							
+						    						}else{
+						    							
+						    							listener.checkCancelled( request );
+						    						}
 						    						
 					    						}finally{
 					    							
@@ -525,7 +581,7 @@ DMCheckerImpl
 					    				}
 					    				
 									},
-									low_priorty );
+									request.isLowPriority());
 						
 					    	
 						}catch( Throwable e ){
@@ -534,21 +590,18 @@ DMCheckerImpl
 							
     						buffer.returnToPool();
     						
-    						result_handler.processResult( 
-    								pieceNumber, 
-    								DMCheckerRequestListener.OP_FAILURE,
-									user_data );
+    						listener.checkFailed( request, e );
 						}
 					}
 					  
 					public void 
 					readFailed( 
-						DiskManagerReadRequest 	request, 
+						DiskManagerReadRequest 	read_request, 
 						Throwable		 		cause )
 					{
 						complete();
 						
-						result_handler.processResult( pieceNumber, DMCheckerRequestListener.OP_FAILURE, user_data );
+						listener.checkFailed( request, cause );
 					}
 					
 					  protected void
@@ -576,7 +629,7 @@ DMCheckerImpl
 			
 			Debug.printStackTrace( e );
 			
-			result_handler.processResult( pieceNumber, DMCheckerRequestListener.OP_FAILURE, user_data );
+			listener.checkFailed( request, e );
 		}
 	}	 
 }

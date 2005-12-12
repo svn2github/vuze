@@ -97,8 +97,9 @@ CacheFileWithCache
 	
 	protected CacheFileManagerImpl		manager;
 	protected FMFile					file;
+	protected int						access_mode	= CF_READ;
 	protected TOTorrentFile				torrent_file;
-  protected TOTorrent       torrent = null;
+	protected TOTorrent      			torrent;
 	protected long						file_offset_in_torrent;
 	
 	protected long[]					read_history		= new long[ READAHEAD_HISTORY ];
@@ -699,8 +700,12 @@ CacheFileWithCache
 								write_length );
 					
 					try{
-
 						this_mon.enter();
+						
+						if ( access_mode != CF_WRITE ){
+							
+							throw( new CacheFileManagerException( "Write failed - cache file is read only" ));
+						}
 						
 							// if we are overwriting stuff already in the cache then force-write overlapped
 							// data (easiest solution as this should only occur on hash-fails)
@@ -777,6 +782,35 @@ CacheFileWithCache
 	
 	protected void
 	flushCache(
+		long				file_position,
+		long				length,					// -1 -> do all from position onwards
+		boolean				release_entries,
+		long				minimum_to_release,		// -1 -> all
+		long				oldest_dirty_time, 		// dirty entries newer than this won't be flushed
+													// 0 -> now
+		long				min_chunk_size )		// minimum contiguous size for flushing, -1 -> no limit
+	
+		throws CacheFileManagerException
+	{
+		try{
+			flushCacheSupport( file_position, length, release_entries, minimum_to_release, oldest_dirty_time, min_chunk_size );
+			
+		}catch( CacheFileManagerException	e ){
+			
+			if ( !release_entries ){
+			
+					// make sure we release the offending buffer entries otherwise they'll hang around
+					// in memory causing grief when the next attempt it made to flush them...
+				
+				flushCacheSupport( file_position, length, true, minimum_to_release, oldest_dirty_time, min_chunk_size );
+			}
+			
+			throw( e );
+		}
+	}
+	
+	protected void
+	flushCacheSupport(
 		long				file_position,
 		long				length,					// -1 -> do all from position onwards
 		boolean				release_entries,
@@ -1213,23 +1247,31 @@ CacheFileWithCache
 		throws CacheFileManagerException
 	{
 		try{
-			if ( getAccessMode() != mode ){
+			this_mon.enter();
+			
+			if ( access_mode != mode ){
 				
 				flushCache( false, -1 );
 			}
-			
+							
 			file.setAccessMode( mode==CF_READ?FMFile.FM_READ:FMFile.FM_WRITE );
 			
+			access_mode	= mode;
+
 		}catch( FMFileManagerException e ){
 			
 			manager.rethrow(e);
-		}	
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public int
 	getAccessMode()
 	{
-		return( file.getAccessMode()==FMFile.FM_READ?CF_READ:CF_WRITE );
+		return( access_mode );
 	}
 	
 	public void
@@ -1284,15 +1326,15 @@ CacheFileWithCache
 		try{
 				// bug found here with "incremental creation" failing with lots of hash
 				// fails. Caused by the reported length not taking into account the cache
-				// entries that have yet to be flushed.
-			
-			long	physical_size = file.getLength();
+				// entries that have yet to be flushed.			
 			
 			if ( manager.isCacheEnabled()){
 				
 				try{
 					this_mon.enter();
 			
+					long	physical_size = file.getLength();
+
 					Iterator	it = cache.iterator();
 					
 						// last entry is furthest down the file
@@ -1314,13 +1356,46 @@ CacheFileWithCache
 							}
 						}
 					}
+					
+					return( physical_size );
+
 				}finally{
 					
 					this_mon.exit();
 				}
+			}else{
+				
+				return( file.getLength());
+			}
+						
+		}catch( FMFileManagerException e ){
+			
+			manager.rethrow(e);
+			
+			return( 0 );
+		}
+	}
+	
+	public long
+	compareLength(
+		long	compare_to )
+	
+		throws CacheFileManagerException
+	{
+		try{
+				// we can optimise this if the file's already big enough as cache entries can
+				// only make it bigger
+			
+			long	physical_length = file.getLength();
+			
+			long	res = physical_length - compare_to;
+			
+			if ( res >= 0 ){
+				
+				return( res );
 			}
 			
-			return( physical_size );
+			return( getLength() - compare_to );
 			
 		}catch( FMFileManagerException e ){
 			

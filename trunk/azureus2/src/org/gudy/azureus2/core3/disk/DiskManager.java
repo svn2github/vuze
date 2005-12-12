@@ -102,6 +102,18 @@ DiskManager
 		DiskManagerReadRequestListener 	listener );
 
 		/**
+		 * Create a request to check a particular piece
+		 * @param pieceNumber	-1 for a complete recheck request
+		 * @param user_data
+		 * @return
+		 */
+	
+	public DiskManagerCheckRequest
+	createCheckRequest(
+		int 		pieceNumber,
+		Object		user_data );
+	
+		/**
 		 * enqueue an asynchronous single piece check
 		 * @param pieceNumber
 		 * @param listener
@@ -110,10 +122,8 @@ DiskManager
 	
 	public void
 	enqueueCheckRequest(
-		int								pieceNumber,
-		DiskManagerCheckRequestListener	listener,
-		Object							user_data );
-  
+		DiskManagerCheckRequest			request,
+		DiskManagerCheckRequestListener	listener );
 	
 		/**
 		 * recheck the entire torrent asynchronously, reporting each piece to the listener
@@ -123,8 +133,8 @@ DiskManager
 	
 	public void
 	enqueueCompleteRecheckRequest(
-		DiskManagerCheckRequestListener	listener,
-		Object							user_data );
+		DiskManagerCheckRequest			request,
+		DiskManagerCheckRequestListener	listener );
 	
 	public void
     dumpResumeDataToDisk(

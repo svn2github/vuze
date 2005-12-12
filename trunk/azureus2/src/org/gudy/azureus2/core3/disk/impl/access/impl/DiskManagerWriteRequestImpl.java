@@ -32,7 +32,6 @@ DiskManagerWriteRequestImpl
 {  
 	private int 				pieceNumber;
 	private int 				offset;
-	private int 				length;
 	private DirectByteBuffer	buffer;
 	private Object				user_data;
  

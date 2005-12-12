@@ -25,8 +25,6 @@ package org.gudy.azureus2.core3.disk.impl.access.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
@@ -277,10 +275,14 @@ DMWriterImpl
 			DirectByteBuffer	buffer		= request.getBuffer();
 			int					offset		= request.getOffset();
 			
-			//Do not allow to write in a piece marked as done.
-					
-			if ( disk_manager.getPieces()[pieceNumber].getDone()){
+				//Do not allow to write in a piece marked as done. we can get here if
 				
+			final DiskManagerPiece	piece = disk_manager.getPieces()[pieceNumber];
+			
+			if ( piece.getDone()){
+				
+				// Debug.out( "write: piece already done (" + request.getPieceNumber() + "/" + request.getOffset());
+
 				buffer.returnToPool();
 
 				listener.writeCompleted( request );
@@ -289,6 +291,8 @@ DMWriterImpl
 				
 				int	buffer_position = buffer.position(DirectByteBuffer.SS_DW);
 				int buffer_limit	= buffer.limit(DirectByteBuffer.SS_DW);
+				
+				// final long	write_length = buffer_limit - buffer_position;
 				
 				int previousFilesLength = 0;
 				
@@ -369,7 +373,29 @@ DMWriterImpl
 						{
 							complete();
 							  
-							listener.writeFailed( request, cause );
+							if ( piece.getDone()){
+
+									// There's a small chance of us ending up writing the same block twice around
+									// the time that a file completes and gets toggled to read-only which then
+									// fails with a non-writeable-channel exception
+								
+								// Debug.out( "writeFailed: piece already done (" + request.getPieceNumber() + "/" + request.getOffset() + "/" + write_length );
+								
+								if ( Logger.isEnabled()){
+									
+									Logger.log(new LogEvent(disk_manager, LOGID, "Piece " + piece.getPieceNumber() + " write failed but already marked as done" ));
+								}
+								
+								listener.writeCompleted( request );
+								
+							}else{
+								
+								disk_manager.setFailed( "Disk write error - " + Debug.getNestedExceptionMessage(cause));
+								
+								Debug.printStackTrace( cause );
+								
+								listener.writeFailed( request, cause );
+							}
 						}
 						  
 						protected void
@@ -598,10 +624,6 @@ DMWriterImpl
 			Throwable			cause )
 		{
 			buffer.returnToPool();
-			
-			disk_manager.setFailed( "Disk write error - " + Debug.getNestedExceptionMessage(cause));
-			
-			Debug.printStackTrace( cause );
 			
 			listener.writeFailed( request, cause );
 		}	

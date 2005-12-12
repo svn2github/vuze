@@ -81,6 +81,12 @@ CacheFile
 	
 		throws CacheFileManagerException;
 
+	public long
+	compareLength(
+		long	compare_to )
+	
+		throws CacheFileManagerException;
+	
 	public void
 	setLength(
 		long		length )

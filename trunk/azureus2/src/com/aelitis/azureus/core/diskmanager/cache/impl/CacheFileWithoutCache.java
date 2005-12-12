@@ -160,6 +160,15 @@ CacheFileWithoutCache
 		}
 	}
 	
+	public long
+	compareLength(
+		long	compare_to )
+	
+		throws CacheFileManagerException
+	{
+		return( getLength() - compare_to );
+	}
+	
 	public void
 	setLength(
 		long		length )
