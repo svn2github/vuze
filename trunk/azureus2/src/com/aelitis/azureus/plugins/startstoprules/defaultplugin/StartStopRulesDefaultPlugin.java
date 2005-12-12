@@ -63,16 +63,6 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt.StartStop
  * Other Notes:
  * "CD" is often used to refer to "Seed" or "Seeding", because "C" sounds like
  * "See"
- * 
- * 
- * If we had a function like Download.needsChecking(), we could
- * write something in process to handle only one check at a time, while
- * still allowing other torrents to start and stop.  As it stands,
- * we have to suspend start and stops until the check is complete.
- *
- * There are cases where two torrents will start at the same time and need
- * re-checking.  We check that in stateChanged (see comments there).  A
- * Download.needsChecking() would also eliminate the need for that code.
  */
 public class StartStopRulesDefaultPlugin
        implements Plugin, COConfigurationListener
@@ -341,36 +331,6 @@ public class StartStopRulesDefaultPlugin
 									+ " (" + old_state + ") to " + sStates.charAt(new_state)
 									+ " (" + new_state + ")");
       }
-      
-      // We have to stop a second torrent from "preparing" at stateChanged,
-      // before it has a chance to make a piece check queue (which would
-      // run even if we stop it)
-      // Checking and stopping in process() would queue the torrent, but
-      // there's a good chance all the pieces are queued for recheck.
-      /* PARG - removed this as we now single-thread teh rechecking process internally and this code
-       * causes downloads to flip between queued and waiting...
-      if (new_state == Download.ST_PREPARING) {
-      	int numPreparing = 0;
-
-      	// Use sort order
-        downloadData[] dlDataArray = 
-          (downloadData[])downloadDataMap.values().toArray(new downloadData[0]);
-        Arrays.sort(dlDataArray);
-
-        for (int i = 0; i < dlDataArray.length; i++) {
-          Download  dl = dlDataArray[i].getDownloadObject();
-          if (dl.getState() == Download.ST_PREPARING) {
-          	numPreparing++;
-          	if (numPreparing > 1) {
-          		try {
-          			download.stopAndQueue();
-          		} catch (Exception ignore) {}
-          		break;
-          	}
-          }
-        }
-      }
-      */
     }
 
     public void positionChanged(Download download, 
@@ -730,7 +690,6 @@ public class StartStopRulesDefaultPlugin
 	    int totalStalledSeeders = 0;
 	    int totalFPStalledSeeders = 0;
 	    int total0PeerSeeders = 0;
-	    int totalAllocatingOrChecking = 0;
 	    
 	    boolean bDebugOn = false;
 	
@@ -820,8 +779,6 @@ public class StartStopRulesDefaultPlugin
 	        }
 	      }
 
-	      if (state == Download.ST_PREPARING)
-	      	totalAllocatingOrChecking++;
 	    }
 	    
 	    int maxSeeders = calcMaxSeeders(activeDLCount + totalWaitingToDL);
@@ -881,7 +838,6 @@ public class StartStopRulesDefaultPlugin
 	    // would stop)
 	    int numWaitingOrSeeding = totalForcedSeeding; // Running Count
 	    int numWaitingOrDLing = 0;   // Running Count
-	    int numPreparing = 0; // Running Count
 	    /**
 	     * store whether there's a torrent higher in the list that is queued
 	     * We don't want to start a torrent lower in the list if there's a higherQueued
@@ -896,44 +852,6 @@ public class StartStopRulesDefaultPlugin
 	    // Loop 2 of 2:
 	    // - Start/Stop torrents based on criteria
 	    
-	    	// find the smallest entry ready to be initialised so that we hash-check
-	    	// the smallest files first
-	    
-	    long	smallest_size		= 0x7fffffffffffffffL;
-	    int		smallest_size_index = -1;
-	    
-	    for (int i = 0; i < dlDataArray.length; i++) {
-	    	
-	    	downloadData dlData = dlDataArray[i];
-		    Download download = dlData.getDownloadObject();
-			      
-		    if (	download.getState() == Download.ST_WAITING &&
-		      			( 	download.getStats().getDownloadCompleted(false) == 1000	||	// PARG - kick off all seeders straight away
-		      																			// as we don't want time-consuming rechecking 
-																						// to hold up seeding
-		      					totalAllocatingOrChecking == 0)) {
-		    
-		    	Torrent	t = download.getTorrent();
-		    	
-		    	if ( t == null ){
-		    	
-		    			// broken torrent, set index in case nothing else matches
-		    		
-		    		smallest_size_index	= i;
-		    		
-		    	}else{
-		    		long	size = t.getSize();
-		    		
-		    		if ( size < smallest_size ){
-		    			
-		    			smallest_size	= size;
-		    			
-		    			smallest_size_index	= i;
-		    		}
-		    	}
-		    }
-	    }	    
-	    
 	    for (int i = 0; i < dlDataArray.length; i++) {
 	      downloadData dlData = dlDataArray[i];
 	      Download download = dlData.getDownloadObject();
@@ -941,13 +859,14 @@ public class StartStopRulesDefaultPlugin
 	      dlData.sTrace = "";
 	
 	      // Initialize STATE_WAITING torrents
+				if ((download.getState() == Download.ST_WAITING)) {
+					try {
+						download.initialize();
+					} catch (Exception ignore) {
+						/*ignore*/
+					}
+				}
 
-	      if ( i == smallest_size_index ){
-	      	try{
-	          download.initialize();
-	        }catch (Exception ignore) {/*ignore*/}
-	      }
-	
 	      if (bAutoReposition &&
 	          (iRankType != RANK_NONE) &&
 	          download.getStats().getDownloadCompleted(false) == 1000 &&
@@ -963,9 +882,6 @@ public class StartStopRulesDefaultPlugin
 	        continue;
 	      }
 	      
-	      if (state == Download.ST_PREPARING)
-	      	numPreparing++;
-	
 	      // Handle incomplete DLs
 	      if (download.getStats().getDownloadCompleted(false) != 1000) {
 	        if (bDebugLog) {
@@ -1117,7 +1033,7 @@ public class StartStopRulesDefaultPlugin
 	        // Ignore rules and other auto-starting rules do not apply when 
 	        // bAutoStart0Peers and peers == 0. So, handle starting 0 peers 
 	        // right at the beginning, and loop early
-	        if (totalAllocatingOrChecking == 0 && bAutoStart0Peers
+	        if (bAutoStart0Peers
 							&& numPeers == 0 && scrapeResultOk(download)) {
 	          if (state == Download.ST_QUEUED) {
 	            try {
@@ -1234,7 +1150,7 @@ public class StartStopRulesDefaultPlugin
 	                   (maxActive == 0 || numWaitingOrSeeding < maxSeeders) && 
 //	                   (maxActive == 0 || (activeSeedingCount + activeDLCount) < maxActive) &&
 	                   (download.getSeedingRank() > -2) && 
-	                   !higherQueued && totalAllocatingOrChecking == 0) {
+	                   !higherQueued) {
 	          try {
 	            if (bDebugLog)
 	              sDebugLine += "\nrestart() numWaitingOrSeeding < maxSeeders";
@@ -1252,17 +1168,15 @@ public class StartStopRulesDefaultPlugin
 	        if (state == Download.ST_READY && activeSeedingCount < maxSeeders) {
 
 	          if (download.getSeedingRank() > -2 || download.isForceStart()) {
-	          	if (totalAllocatingOrChecking == 0) {
-		            try {
-		              if (bDebugLog)
-		                sDebugLine += "\nstart(); activeSeedingCount < maxSeeders";
-		              download.start();
-		              okToQueue = false;
-		            } catch (Exception ignore) {/*ignore*/}
-		            state = download.getState();
-		            activeSeedingCount++;
-		            numWaitingOrSeeding++;
-	          	}
+	            try {
+	              if (bDebugLog)
+	                sDebugLine += "\nstart(); activeSeedingCount < maxSeeders";
+	              download.start();
+	              okToQueue = false;
+	            } catch (Exception ignore) {/*ignore*/}
+	            state = download.getState();
+	            activeSeedingCount++;
+	            numWaitingOrSeeding++;
 	          } else if (okToQueue) {
 	            // In between switching from STATE_WAITING and STATE_READY,
 	            // and ignore rule was met, so move it back to Queued
@@ -1422,19 +1336,6 @@ public class StartStopRulesDefaultPlugin
         }
       }
   }
-
-  public boolean getAlreadyAllocatingOrChecking() {
-    Download[]  downloads = download_manager.getDownloads(false);
-    for (int i=0;i<downloads.length;i++){
-      Download  download = downloads[i];
-      int state = download.getState();
-      if (state == Download.ST_PREPARING)
-        return true;
-    }
-    return false;
-  }
-
-
 
   /**
    * Get # of peers not including us
