@@ -137,7 +137,7 @@ public class BlocksItem
       msg += ", pxRes = " + pxRes + ", pxBlockStep = " + pxBlockStep + ", addBlocks = " + addBlocks + ", x1 = " + x1;
       Debug.out(msg);*/
       
-      TOTorrent torrent = piece.getManager().getDownloadManager().getTorrent();
+      TOTorrent torrent = piece.getManager().getDiskManager().getTorrent();
       
       boolean[]	written 	= piece.getWritten();
       boolean	piece_done 	= piece.isComplete();

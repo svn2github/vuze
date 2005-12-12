@@ -36,10 +36,10 @@ PEPeerManagerFactory
 {
 	public static PEPeerManager
 	create(
-		DownloadManager 	manager,
-		TRTrackerAnnouncer 	tracker,
-	  	DiskManager 		diskManager )
+		PEPeerManagerAdapter	adapter,
+		TRTrackerAnnouncer 		tracker,
+	  	DiskManager 			diskManager )
 	{
-  		return( PEPeerControlFactory.create( manager, tracker, diskManager ));
+  		return( PEPeerControlFactory.create( adapter, tracker, diskManager ));
 	}
 }

@@ -117,7 +117,7 @@ PeerManagerImpl
 	
 		throws DownloadException
 	{
-		return( DownloadManagerImpl.getDownloadStatic( manager.getDownloadManager()));
+		return( DownloadManagerImpl.getDownloadStatic( manager.getDiskManager().getTorrent()));
 	}
 	
 	

@@ -28,12 +28,13 @@ package org.gudy.azureus2.core3.peer;
 
 import java.util.List;
 
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.download.DownloadManager;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
@@ -54,17 +55,20 @@ PEPeerManager
 	public int
 	getState();
 	
- 	public DownloadManager
-	getDownloadManager();
- 
+ 	public DiskManager
+	getDiskManager();
+  	
 	public void
 	start();
 		
 	public void
 	stopAll();
-		
+
 	public byte[]
 	getHash();
+
+	public String
+	getDisplayName();
 	
 	public PeerIdentityDataID
 	getPeerIdentityDataID();

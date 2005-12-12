@@ -360,14 +360,14 @@ DownloadManagerImpl
 			Debug.out( "DownloadManagerImpl: Illegal start state, " + _initialState );
 		}
 		
-		persistent	= _persistent;
+		persistent		= _persistent;
+		globalManager 	= _gm;
+		
 
 		stats = new DownloadManagerStatsImpl( this );
   	
 		controller	= new DownloadManagerController( this );
 
-		globalManager = _gm;
-	
 		stats.setMaxUploads( COConfigurationManager.getIntParameter("Max Uploads") );
 	 	
 		torrentFileName = _torrentFileName;

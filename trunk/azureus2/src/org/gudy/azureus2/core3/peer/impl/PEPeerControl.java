@@ -35,9 +35,7 @@ public interface
 PEPeerControl
 	extends PEPeerManager
 {
-
-  
-  public boolean 
+public boolean 
 	checkBlock(
 		int pieceNumber, 
 		int offset, 
@@ -54,23 +52,13 @@ PEPeerControl
 	    PEPeer peer,
 	    int pieceNumber);
 	
-  /*
-	public void
-	addListener(
-		PEPeerControlListener	l );
-	
-	public void
-	removeListener(
-		PEPeerControlListener	l );
-  */
+	public boolean
+	isAZMessagingEnabled();
   
+	public boolean
+	isPeerExchangeEnabled();
+	
 	public DiskManager getDiskManager();
 	
-
-  
-  /**
-   * Insert the given transport.
-   * @param transport to control
-   */
-  public void addPeerTransport( PEPeerTransport transport );
+	public void addPeerTransport( PEPeerTransport transport );
 }

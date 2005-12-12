@@ -124,7 +124,7 @@ public class PeerManager {
 										"Incoming TCP connection from [" + connection
 												+ "] dropped as IP address already "
 												+ "connected for ["
-												+ manager.getDownloadManager().getDisplayName() + "]"));
+												+ manager.getDisplayName() + "]"));
               connection.close();
               return;
             }
@@ -132,7 +132,7 @@ public class PeerManager {
             if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
 									+ connection + "] routed to legacy download ["
-									+ manager.getDownloadManager().getDisplayName() + "]"));
+									+ manager.getDisplayName() + "]"));
             manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
           }
         },

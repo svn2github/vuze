@@ -33,12 +33,20 @@ import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogRelation;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
@@ -47,9 +55,12 @@ import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 import org.gudy.azureus2.core3.util.NonDaemonTask;
 import org.gudy.azureus2.core3.util.NonDaemonTaskRunner;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
 
 public class 
 DownloadManagerController 
+	extends LogRelation
+	implements PEPeerManagerAdapter
 {
 		// DISK listeners
 	
@@ -117,13 +128,21 @@ DownloadManagerController
 	
 	private String errorDetail;
 
-
+	private GlobalManagerStats		global_stats;
+	
 	
 	protected
 	DownloadManagerController(
 		DownloadManagerImpl	_download_manager )
 	{
 		download_manager = _download_manager;
+		
+		GlobalManager	gm = download_manager.getGlobalManager();
+		
+		if ( gm != null ){
+			
+			global_stats = gm.getStats();
+		}
 		
 		stats	= (DownloadManagerStatsImpl)download_manager.getStats();
 	}
@@ -181,10 +200,10 @@ DownloadManagerController
 	
 		}
 		
-				// make sure it is started beore making it "visible"
+			// make sure it is started beore making it "visible"
 		
 		PEPeerManager temp = 
-				PEPeerManagerFactory.create( download_manager, tracker_client, disk_manager);
+				PEPeerManagerFactory.create( this, tracker_client, disk_manager);
 		
 		temp.start();
 	
@@ -656,13 +675,13 @@ DownloadManagerController
 		setState(DownloadManager.STATE_WAITING, true );
 	}
   
-  	protected void
+  	public void
   	setStateFinishing()
   	{
   		setState(DownloadManager.STATE_FINISHING, true);
   	}
   
-  	protected void
+  	public void
   	setStateSeeding()
   	{
   		setState(DownloadManager.STATE_SEEDING, true);
@@ -1046,6 +1065,180 @@ DownloadManagerController
 	  		
 	  		disk_listeners_mon.exit();
 	  	}
+	}
+	
+	public String
+	getDisplayName()
+	{
+		return( download_manager.getDisplayName());
+	}
+	
+	public int
+	getUploadRateLimitBytesPerSecond()
+	{
+		return( stats.getUploadRateLimitBytesPerSecond());
+	}
+	
+	public int
+	getDownloadRateLimitBytesPerSecond()
+	{
+		return( stats.getDownloadRateLimitBytesPerSecond());
+	}
+	
+	public int
+	getMaxUploads()
+	{
+		return( stats.getMaxUploads());
+	}
+	
+	public boolean
+	isAZMessagingEnabled()
+	{
+		return( download_manager.isAZMessagingEnabled());
+	}
+	
+	public boolean
+	isPeerExchangeEnabled()
+	{
+		return( download_manager.getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ));
+	}
+	
+	public boolean
+	isSeeding()
+	{
+		return( getState() == DownloadManager.STATE_DOWNLOADING );
+	}
+	
+	public boolean
+	isDownloading()
+	{
+		return( getState() == DownloadManager.STATE_DOWNLOADING );
+	}
+	
+	public int
+	getCompleted()
+	{
+		return( stats.getCompleted());
+	}
+	
+	public void
+	downloadEnded()
+	{
+		download_manager.downloadEnded();
+	}
+	
+	public TRTrackerScraperResponse
+	getTrackerScrapeResponse()
+	{
+		return( download_manager.getTrackerScrapeResponse());
+	}
+	
+	public String
+	getTrackerClientExtensions()
+	{
+		return( download_manager.getDownloadState().getTrackerClientExtensions());
+	}
+	
+	public boolean
+	isNATHealthy()
+	{
+		return( download_manager.getNATStatus() == ConnectionManager.NAT_OK );
+	}
+	
+	public void
+	addPeer(
+		PEPeer	peer )
+	{
+		download_manager.addPeer( peer );
+	}
+	
+	public void
+	removePeer(
+		PEPeer	peer )
+	{	
+		download_manager.removePeer( peer );
+	}
+	
+	public void
+	addPiece(
+		PEPiece	piece )
+	{
+		download_manager.addPiece( piece );
+	}
+	
+	public void
+	removePiece(
+		PEPiece	piece )
+	{
+		download_manager.removePiece( piece );
+	}
+	
+	public void
+	discarded(
+		int	bytes )
+	{
+		if ( global_stats != null ){
+			
+			global_stats.discarded( bytes );
+		}
+	}
+	
+	public void
+	protocolBytesReceived(
+		int	bytes )
+	{
+		if ( global_stats != null ){
+			
+			global_stats.protocolBytesReceived( bytes );
+		}
+	}
+	
+	public void
+	dataBytesReceived(
+		int	bytes )
+	{
+		if ( global_stats != null ){
+			
+			global_stats.dataBytesReceived( bytes );
+		}
+	}
+	
+	public void
+	protocolBytesSent(
+		int	bytes )
+	{
+		if ( global_stats != null ){
+			
+			global_stats.protocolBytesSent( bytes );
+		}
+	}
+	
+	public void
+	dataBytesSent(
+		int	bytes )
+	{
+		if ( global_stats != null ){
+			
+			global_stats.dataBytesSent( bytes );
+		}
+	}
+	
+	public LogRelation
+	getLogRelation()
+	{
+		return( this );
+	}
+	
+	public String
+	getRelationText() 
+	{
+		return( download_manager.getRelationText());
+	}
+
+	public Object[] 
+	getQueryableInterfaces() 
+	{
+		return new Object[] { download_manager };
 	}
 	
 	protected static class

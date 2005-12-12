@@ -1000,12 +1000,17 @@ Test
 			return( 0 );
 		}
 		
-	 	public DownloadManager
-		getDownloadManager()
+	 	public DiskManager
+		getDiskManager()
 	 	{
 	 		return( null );
 	 	}
 	 
+	 	public String
+	 	getDisplayName()
+	 	{
+	 		return( null );
+	 	}
     public LimitedRateGroup getUploadLimitedRateGroup() {  return null;  }
     public LimitedRateGroup getDownloadLimitedRateGroup() {  return null;  }
     

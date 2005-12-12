@@ -420,7 +420,7 @@ PEPeerTransportProtocol
     connection.getOutgoingMessageQueue().addMessage(
         new BTHandshake( manager.getHash(),
                          manager.getPeerId(),
-                         manager.getDownloadManager().isAZMessagingEnabled() ), false );
+                         manager.isAZMessagingEnabled() ), false );
   }
   
   
@@ -1197,7 +1197,7 @@ PEPeerTransportProtocol
     
     //extended protocol processing
     if( (handshake.getReserved()[0] & 128) == 128 ) {  //if first (high) bit is set
-      if( !manager.getDownloadManager().isAZMessagingEnabled() ) {
+      if( !manager.isAZMessagingEnabled() ) {
       	if (Logger.isEnabled())
 					Logger.log(new LogEvent(this, LOGID,
 							"Ignoring peer's extended AZ messaging support,"
@@ -1793,7 +1793,7 @@ PEPeerTransportProtocol
   
   private void doPostHandshakeProcessing() {
     //peer exchange registration
-    if( manager.getDownloadManager().getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ) ) {
+    if( manager.isPeerExchangeEnabled()) {
       //try and register all connections for their peer exchange info
       peer_exchange_item = manager.createPeerExchangeConnection( this );
     
@@ -1826,7 +1826,7 @@ PEPeerTransportProtocol
     if ( getPeerState() != TRANSFERING ) return;
     if( !peer_exchange_supported )  return;
 
-    if( peer_exchange_item != null && manager.getDownloadManager().getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ) ) {
+    if( peer_exchange_item != null && manager.isPeerExchangeEnabled()) {
       PeerItem[] adds = peer_exchange_item.getNewlyAddedPeerConnections();
       PeerItem[] drops = peer_exchange_item.getNewlyDroppedPeerConnections();  
       
@@ -1858,7 +1858,7 @@ PEPeerTransportProtocol
       return;
     }
 
-    if( peer_exchange_supported && peer_exchange_item != null && manager.getDownloadManager().getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ) ) {
+    if( peer_exchange_supported && peer_exchange_item != null && manager.isPeerExchangeEnabled()){
       if( added != null ) {
         for( int i=0; i < added.length; i++ ) {
           peer_exchange_item.addConnectedPeer( added[i] );

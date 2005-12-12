@@ -105,8 +105,6 @@ public class PiecesItem
       return;
     int newHeight = cell.getHeight();
 
-    DownloadManager dm = infoObj.getManager().getDownloadManager();
-
     int x0 = borderVerticalSize;
     int x1 = newWidth - 1 - borderVerticalSize;
     int y0 = completionHeight + borderHorizontalSize + borderSplit;
@@ -174,7 +172,7 @@ public class PiecesItem
       int nbComplete = 0;
       int nbPieces = available.length;
       
-      DiskManager disk_manager = dm.getDiskManager();
+      DiskManager disk_manager = infoObj.getManager().getDiskManager();
       
       DiskManagerPiece[]  pieces = disk_manager==null?null:disk_manager.getPieces();
                       

@@ -87,12 +87,6 @@ DownloadManager
 	setStateWaiting();
 	
 	public void
-	setStateFinishing();
-	
-	public void
-	setStateSeeding();
-	
-	public void
 	setStateQueued();
 	
 	public void
@@ -284,18 +278,6 @@ DownloadManager
 	
 	public void
 	setOnlySeeding(boolean onlySeeding);
-
-	public void
-	restartDownload(boolean use_fast_resume);  
-
-  /**
-   * Is called when a download is finished.
-   * Activates alerts for the user.
-   *
-   * @author Rene Leonhardt
-   */
-    public void downloadEnded();
- 
  
 	/**
 	 * @return the wealthy status of this download
@@ -348,8 +330,9 @@ DownloadManager
 	public void setDataAlreadyAllocated( boolean already_allocated );
   
 
-  public void setSeedingRank(int rank);
-  public int getSeedingRank();
+	public void setSeedingRank(int rank);
+	
+	public int getSeedingRank();
 
 		/**
 		 * Move data files to new location. Torrent must be in stopped/error state
@@ -415,21 +398,6 @@ DownloadManager
 	public void
 	destroy();
 	
-	public void
-	addPeer(
-		PEPeer 		peer );
-		
-	public void
-	removePeer(
-		PEPeer		peer );
-		
-	public void
-	addPiece(
-		PEPiece 	piece );
-		
-	public void
-	removePiece(
-		PEPiece		piece );
 	
 	public PEPiece[]
 	getCurrentPieces();

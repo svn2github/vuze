@@ -368,18 +368,16 @@ public class PeerInfoView extends AbstractIView {
 
 		DiskManagerPiece[] dm_pieces = null;
 
-		DownloadManager dlm = peer.getManager().getDownloadManager();
-		if (dlm != null) {
-			DiskManager dm = dlm.getDiskManager();
-			if (dm != null)
-				dm_pieces = dm.getPieces();
-		}
+		PEPeerManager	pm = peer.getManager();
+		
+		DiskManager dm = pm.getDiskManager();
+
+		dm_pieces = dm.getPieces();
 
 		int iNumCols = bounds.width / BLOCK_SIZE;
-		int iNeededHeight = (((dlm.getNbPieces() - 1) / iNumCols) + 1) * BLOCK_SIZE;
+		int iNeededHeight = (((dm.getNumberOfPieces() - 1) / iNumCols) + 1) * BLOCK_SIZE;
 		sc.setMinHeight(iNeededHeight);
 
-		PEPeerManager pm = dlm.getPeerManager();
 		PEPiece[] pieces = pm == null ? null : pm.getPieces();
 		int[] availability = pm == null ? null : pm.getAvailability();
 		int[] rarestPieceInfo = pm == null ? null : pm.getRarestPieceInfo(peer);

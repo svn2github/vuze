@@ -25,8 +25,6 @@ package org.gudy.azureus2.ui.swt.views;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Point;
@@ -279,11 +277,7 @@ public class FilesView
 	    						mb.open();	    					
 	    					}
 	        		  
-	    					TableCell cell = row.getTableCell("name");
-	    					if (cell != null) {
-	    						cell.invalidate();
-	    						row.refresh( true );
-	    					}
+	    					row.invalidate();
 	    				}
     				
 	    			}finally{

@@ -70,6 +70,7 @@ PEPeerControlImpl
   private volatile ArrayList peer_transports_cow = new ArrayList();	// Copy on write!
   private AEMonitor	peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
   
+  private PEPeerManagerAdapter	adapter;
   private DiskManager 			_diskManager;
   private DiskManagerPiece[]	dm_pieces;
   
@@ -104,9 +105,6 @@ PEPeerControlImpl
     //The list of chunks needing to be downloaded (the mechanism change when entering end-game mode)
   private List 		endGameModeChunks;
   private AEMonitor	endGameModeChunks_mon	= new AEMonitor( "PEPeerControl:EG");
-
-  
-  private final DownloadManager _downloadManager;
   
   
   private long mainloop_loop_count;
@@ -138,13 +136,13 @@ PEPeerControlImpl
   
   private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
     public int getRateLimitBytesPerSecond() {
-      return _downloadManager.getStats().getUploadRateLimitBytesPerSecond();
+      return adapter.getUploadRateLimitBytesPerSecond();
     }
   };
   
   private final LimitedRateGroup download_limited_rate_group = new LimitedRateGroup() {
     public int getRateLimitBytesPerSecond() {
-      return _downloadManager.getStats().getDownloadRateLimitBytesPerSecond();
+      return adapter.getDownloadRateLimitBytesPerSecond();
     }
   };
   
@@ -161,11 +159,11 @@ PEPeerControlImpl
   public 
   PEPeerControlImpl
   (
-    DownloadManager 	manager,
-	TRTrackerAnnouncer 	tracker,
-    DiskManager 		diskManager) 
+	PEPeerManagerAdapter 	_adapter,
+	TRTrackerAnnouncer 		tracker,
+    DiskManager 			diskManager) 
   {
-  	  this._downloadManager = manager;
+  	  this.adapter = _adapter;
   	  _tracker = tracker;
   	  this._diskManager = diskManager;
       COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
@@ -175,12 +173,6 @@ PEPeerControlImpl
       
       // availability_new = new int[manager.getNbPieces()];
  }
-  
-	public DownloadManager
-	getDownloadManager()
-	{
-		return( _downloadManager );
-	}
  
 	public int
 	getState()
@@ -213,7 +205,7 @@ PEPeerControlImpl
     			public String
 				getName()
     			{
-    				return( getDownloadManager().getDisplayName());
+    				return( adapter.getDisplayName());
     			}
     			
     			public long
@@ -239,7 +231,7 @@ PEPeerControlImpl
 				public String
 				getExtensions()
 				{
-					return( getDownloadManager().getDownloadState().getTrackerClientExtensions());
+					return( adapter.getTrackerClientExtensions());
 				}
     		});
     
@@ -634,7 +626,7 @@ PEPeerControlImpl
       int port ) 
   {    
     //make sure this connection isn't filtered
-    if( ip_filter.isInRange( address, _downloadManager.getDisplayName() ) ) {
+    if( ip_filter.isInRange( address, adapter.getDisplayName() ) ) {
       return false;
     }
     
@@ -857,7 +849,7 @@ PEPeerControlImpl
       }
       
       if (!start_of_day)
-      	_downloadManager.setStateFinishing();
+      	adapter.setStateFinishing();
       
       _timeFinished = SystemTime.getCurrentTime();
            
@@ -889,11 +881,11 @@ PEPeerControlImpl
       
       _timeStartedSeeding = SystemTime.getCurrentTime();
       
-      _downloadManager.setStateSeeding();
+      adapter.setStateSeeding();
       
       if ( !start_of_day ){
       
-      	_downloadManager.downloadEnded();
+      	adapter.downloadEnded();
       }
             		
       _tracker.complete( start_of_day );
@@ -971,12 +963,12 @@ PEPeerControlImpl
     final int WANT_LIMIT = 100;
   	
     //if we're not downloading, use normal re-check rate
-    if (_downloadManager.getState() == DownloadManager.STATE_DOWNLOADING ||
-        _downloadManager.getState() == DownloadManager.STATE_SEEDING ) {
+    if ( adapter.isDownloading() ||
+        adapter.isSeeding() ) {
       
       int num_wanted = PeerUtils.numNewConnectionsAllowed( _hash );
       
-      boolean has_remote = _downloadManager.getHealthStatus() == DownloadManager.WEALTH_OK;
+      boolean has_remote = adapter.isNATHealthy();
       if( has_remote ) {
         //is not firewalled, so can accept incoming connections,
         //which means no need to continually keep asking the tracker for peers
@@ -989,7 +981,7 @@ PEPeerControlImpl
       
       int current_connection_count = PeerIdentityManager.getIdentityCount( _hash );
       
-      TRTrackerScraperResponse tsr = _downloadManager.getTrackerScrapeResponse();
+      TRTrackerScraperResponse tsr = adapter.getTrackerScrapeResponse();
       
       if( tsr != null && tsr.isValid() ) {  //we've got valid scrape info
         int num_seeds = tsr.getSeeds();   
@@ -1340,7 +1332,7 @@ PEPeerControlImpl
   
   
   public void addPeerTransport( PEPeerTransport transport ) {
-    if (!ip_filter.isInRange(transport.getIp(), _downloadManager.getDisplayName())) {
+    if (!ip_filter.isInRange(transport.getIp(), adapter.getDisplayName())) {
       ArrayList peer_transports = peer_transports_cow;
         
       if (!peer_transports.contains( transport )) {
@@ -1362,7 +1354,7 @@ PEPeerControlImpl
   * Do all peer choke/unchoke processing.
   */
   private void doUnchokes() {  
-    int max_to_unchoke = _downloadManager.getStats().getMaxUploads();  //how many simultaneous uploads we should consider
+    int max_to_unchoke = adapter.getMaxUploads();  //how many simultaneous uploads we should consider
     ArrayList peer_transports = peer_transports_cow;
     
     //determine proper unchoker
@@ -1958,7 +1950,7 @@ PEPeerControlImpl
   peerAdded(
   	PEPeer pc) 
   {
-    _downloadManager.addPeer(pc);  //async downloadmanager notification
+    adapter.addPeer(pc);  //async downloadmanager notification
 
     //sync peermanager notification
     ArrayList peer_manager_listeners = peer_manager_listeners_cow;
@@ -1979,7 +1971,7 @@ PEPeerControlImpl
       superSeedPieces[piece].peerLeft();
     }
     
-    _downloadManager.removePeer(pc);  //async downloadmanager notification
+    adapter.removePeer(pc);  //async downloadmanager notification
     
     //sync peermanager notification
     ArrayList peer_manager_listeners = peer_manager_listeners_cow;
@@ -1991,11 +1983,11 @@ PEPeerControlImpl
 
   
   public void pieceAdded(PEPiece p) {
-    _downloadManager.addPiece(p);
+    adapter.addPiece(p);
   }
 
   public void pieceRemoved(PEPiece p) {
-    _downloadManager.removePiece(p);
+    adapter.removePiece(p);
   }
 
   public String getElapsedTime() {
@@ -2122,7 +2114,7 @@ PEPeerControlImpl
 	        	
 	        	restart_initiated	= true;
 	        	
-	        	_downloadManager.restartDownload( false );
+	        	adapter.restartDownload( false );
 	        }
 	      }
 	      
@@ -2320,7 +2312,7 @@ PEPeerControlImpl
     		
     			// if a block-ban occurred, check other connections
     		
-    		if ( ip_filter.ban(ip, _downloadManager.getDisplayName())){
+    		if ( ip_filter.ban(ip, adapter.getDisplayName())){
       		
     			checkForBannedConnections();
     		}
@@ -2434,7 +2426,7 @@ PEPeerControlImpl
   		for (int i=0; i < peer_transports.size(); i++) {
   			PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
   			
-  			if ( ip_filter.isInRange( conn.getIp(), _downloadManager.getDisplayName() )) {        	
+  			if ( ip_filter.isInRange( conn.getIp(), adapter.getDisplayName() )) {        	
   				if( to_close == null )  to_close = new ArrayList();
   				to_close.add( conn );
   			}
@@ -2464,7 +2456,7 @@ PEPeerControlImpl
     			if (Logger.isEnabled())
 						Logger.log(new LogEvent(_tracker.getTorrent(), LOGID,
 								"Abandoning end-game mode: "
-										+ _downloadManager.getDisplayName()));
+										+ adapter.getDisplayName()));
 
     		    try{
     		    	endGameModeChunks_mon.enter();
@@ -2508,7 +2500,7 @@ PEPeerControlImpl
 	    endGameMode = true;
 	    if (Logger.isEnabled())
 				Logger.log(new LogEvent(_tracker.getTorrent(), LOGID,
-						"Entering end-game mode: " + _downloadManager.getDisplayName()));
+						"Entering end-game mode: " + adapter.getDisplayName()));
 	    //System.out.println("End-Game Mode activated");
     }
   }
@@ -2647,7 +2639,7 @@ PEPeerControlImpl
     }
     
     //Use the same number of announces than unchoke
-    int nbUnchoke = _downloadManager.getStats().getMaxUploads();
+    int nbUnchoke = adapter.getMaxUploads();
     if(superSeedModeNumberOfAnnounces >= 2 * nbUnchoke)
       return;
     
@@ -2735,7 +2727,22 @@ PEPeerControlImpl
   
   public DiskManager getDiskManager() {  return _diskManager;   }
   
+  public PEPeerManagerAdapter	getAdapter(){ return( adapter ); }
   
+  public String getDisplayName(){ return( adapter.getDisplayName()); }
+  
+  public boolean
+  isAZMessagingEnabled()
+  {
+	  return( adapter.isAZMessagingEnabled());
+  }
+  
+  public boolean
+  isPeerExchangeEnabled()
+  {
+	  return( adapter.isPeerExchangeEnabled());
+  }
+
   public LimitedRateGroup getUploadLimitedRateGroup() {  return upload_limited_rate_group;  }
   
   public LimitedRateGroup getDownloadLimitedRateGroup() {  return download_limited_rate_group;  }
@@ -2821,7 +2828,7 @@ PEPeerControlImpl
       
       if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
 
-      if( _downloadManager.getHealthStatus() == DownloadManager.WEALTH_OK ) {  //if unfirewalled, leave slots avail for remote connections
+      if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
         int free = PeerUtils.MAX_CONNECTIONS_PER_TORRENT / 20;  //leave 5%
         allowed = allowed - free;
       }
@@ -2993,7 +3000,7 @@ PEPeerControlImpl
 		ArrayList peers = peer_transports_cow;
   	
   	if( peers != null ) {
-  		int comp = _downloadManager.getStats().getCompleted();
+  		int comp = adapter.getCompleted();
   		
   		int sum = comp == 1000 ? 0 : comp;  //add in our own percentage if not seeding
   		int num = comp == 1000 ? 0 : 1;
@@ -3013,20 +3020,28 @@ PEPeerControlImpl
   	return -1;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()
-	 */
-	public String getRelationText() {
-		if (_downloadManager instanceof LogRelation)
-			return ((LogRelation)_downloadManager).getRelationText();
 
-		return "";
+	public String 
+	getRelationText() 
+	{
+		return( adapter.getLogRelation().getRelationText());
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.core3.logging.LogRelation#castTo(java.lang.Class)
-	 */
-	public Object[] getQueryableInterfaces() {
-		return new Object[] { _downloadManager, _tracker, _diskManager };
+	public Object[] 
+	getQueryableInterfaces() 
+	{
+		List	interfaces = new ArrayList();
+		
+		Object[]	intf = adapter.getLogRelation().getQueryableInterfaces();
+		
+		for (int i=0;i<intf.length;i++){
+			
+			interfaces.add( intf[i] );
+		}
+		
+		interfaces.add( _tracker );
+		interfaces.add( _diskManager );
+		
+		return( interfaces.toArray());
 	}
 }

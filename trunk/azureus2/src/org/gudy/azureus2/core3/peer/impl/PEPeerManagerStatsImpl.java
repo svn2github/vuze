@@ -24,13 +24,14 @@ package org.gudy.azureus2.core3.peer.impl;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.impl.control.PEPeerControlImpl;
 import org.gudy.azureus2.core3.util.*;
 
 public class 
 PEPeerManagerStatsImpl 
 	implements PEPeerManagerStats
 {
-	private GlobalManagerStats		global_stats;
+	private PEPeerManagerAdapter	adapter;
 	
 	private long total_data_bytes_received = 0;
 	private long total_protocol_bytes_received = 0;
@@ -54,23 +55,15 @@ PEPeerManagerStatsImpl
 
 	public 
 	PEPeerManagerStatsImpl(
-		PEPeerManager	_manager ) 
+		PEPeerControlImpl	_manager ) 
 	{
-	 	GlobalManager gm = _manager.getDownloadManager().getGlobalManager();
-	 	
-	 	if ( gm != null ){
-	 		
-	 		global_stats	= gm.getStats();
-	 	}
+		adapter	= _manager.getAdapter();
 	}
   
 	public void discarded(int length) {
 	  this.totalDiscarded += length;
 	  
-	  if ( global_stats != null ){
-		  
-		  global_stats.discarded( length );
-	  }
+	  adapter.discarded( length );
 	}
 
 	public void
@@ -90,20 +83,14 @@ PEPeerManagerStatsImpl
 	  total_data_bytes_received += length;
 	  data_receive_speed.addValue(length);
 	  
-	  if ( global_stats != null ){
-		  
-		  global_stats.dataBytesReceived( length );
-	  }
+	  adapter.dataBytesReceived( length );
 	}
 
   public void protocolBytesReceived(int length) {
     total_protocol_bytes_received += length;
     protocol_receive_speed.addValue(length);
     
-    if ( global_stats != null ){
-		  
-		  global_stats.protocolBytesReceived( length );
-	  }
+    adapter.protocolBytesReceived( length );
   }
   
   
@@ -111,20 +98,14 @@ PEPeerManagerStatsImpl
 	  total_data_bytes_sent += length;
 	  data_send_speed.addValue(length);  
 	  
-	  if ( global_stats != null ){
-			  
-		  global_stats.dataBytesSent( length );
-	  }
+	  adapter.dataBytesSent( length );
 	}
   
   public void protocolBytesSent(int length) {
     total_protocol_bytes_sent += length;
     protocol_send_speed.addValue(length);
     
-    if ( global_stats != null ){
-		  
-	  global_stats.protocolBytesSent( length );
-	}
+ 	adapter.protocolBytesSent( length );
   }
   
 
