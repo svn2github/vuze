@@ -1362,13 +1362,20 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 					int iIndex = dmFileInfo[j].getIndex();
 					if (iIndex >= 0 && iIndex < files.length
 							&& files[iIndex].lSize == dmFileInfo[j].getLength()) {
-						if (!files[iIndex].bDownload)
-							dmFileInfo[j].setSkipped(true);
+
+						File fDest;
 						if (files[iIndex].sDestFileName != null) {
-							File fDest = new File(files[iIndex].sDestFileName);
+							fDest = new File(files[iIndex].sDestFileName);
 							dmFileInfo[j].setLink(fDest);
-							if (!fDest.exists())
-								dmFileInfo[i].setStorageType(DiskManagerFileInfo.ST_COMPACT);
+						} else {
+							fDest = new File(sDataDir, files[iIndex].sFullFileName);
+						}
+						
+						if (!files[iIndex].bDownload) {
+							dmFileInfo[j].setSkipped(true);
+							if (!fDest.exists()) {
+								dmFileInfo[j].setStorageType(DiskManagerFileInfo.ST_COMPACT);
+							}
 						}
 					}
 				}
