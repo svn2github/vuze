@@ -420,10 +420,20 @@ DownloadManagerController
   	  					int 	oldDMState,
   	  					int		newDMState )
   	  				{
-  	  					if (disk_manager == null) {
-  	  						// already closed down via stop
-  	  						download_manager.setOnlySeeding(false);
-  	  						return;
+  						try{
+   							this_mon.enter();
+
+   							if (disk_manager == null){
+   								
+	  	  							// already closed down via stop
+   								
+	  	  						download_manager.setOnlySeeding(false);
+	  	  						
+	  	  						return;
+  							}
+						}finally{
+  								
+							this_mon.exit();
   	  					}
   							
   	  					if ( newDMState == DiskManager.READY || newDMState == DiskManager.FAULTY ){
