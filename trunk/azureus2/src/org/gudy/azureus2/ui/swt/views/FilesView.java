@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.MessageBoxWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -278,7 +279,11 @@ public class FilesView
 	    						mb.open();	    					
 	    					}
 	        		  
-	    					row.refresh( true );
+	    					TableCell cell = row.getTableCell("name");
+	    					if (cell != null) {
+	    						cell.invalidate();
+	    						row.refresh( true );
+	    					}
 	    				}
     				
 	    			}finally{
