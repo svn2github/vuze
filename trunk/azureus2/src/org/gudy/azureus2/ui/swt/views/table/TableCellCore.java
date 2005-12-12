@@ -59,11 +59,27 @@ public interface TableCellCore
    */
   boolean setForeground(Color color);
 
-  /** Refresh the cell */
+  /** 
+   * Refresh the cell
+   * 
+   * @param bDoGraphics Whether to update graphic cells 
+   */
   public void refresh(boolean bDoGraphics);
 
-  /** Refresh the cell */
+  /** 
+   * Refresh the cell, including graphic types 
+   */
   public void refresh();
+  
+  /**
+   * Refresh the cell.  This method overide takes a bRowVisible paramater in
+   * order to reduce the number of calls to TableRow.isVisible() in cases where
+   * multiple cells on the same row are being refreshed.
+   * 
+   * @param bDoGraphics Whether to update graphic cells
+   * @param bRowVisible Visibility state of row
+   */
+  public void refresh(boolean bDoGraphics, boolean bRowVisible);
   
   /** dispose of the cell */
   public void dispose();

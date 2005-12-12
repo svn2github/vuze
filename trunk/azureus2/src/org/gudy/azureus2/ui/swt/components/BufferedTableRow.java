@@ -93,7 +93,7 @@ BufferedTableRow
 	}
 	
 	private void setAlternatingBGColor() {
-		if (noTableItem() || Constants.isLinux)
+		if (Constants.isLinux || !isVisible())
 			return;
 
 		if (alternatingColors == null) {
@@ -120,7 +120,7 @@ BufferedTableRow
 	dispose()
 	{
 		if (table != null && !table.isDisposed() && Utils.isThisThreadSWT()) {
-			if (noTableItem()) {
+			if (noTableItem(false)) {
 				// No assigned spot yet, or not our spot:
 				// find a row with no TableRow data
 
@@ -161,7 +161,7 @@ BufferedTableRow
    		int 	index,
 		Image	new_image )
 	{
-		if (noTableItem())
+		if (noTableItem(true))
 			return;
 
 		if ( index >= image_values.length ){
@@ -188,17 +188,23 @@ BufferedTableRow
 	}
 
 	public boolean
-	noTableItem()
-	{
-		return table.isDisposed() || item == null || item.isDisposed()
+	noTableItem(boolean bNoTableItemIfNoSetData) {
+		boolean result = table.isDisposed() || item == null || item.isDisposed()
 				|| item.getData("TableRow") != this;
+
+		if (bNoTableItemIfNoSetData && !result)
+			result = (table.getStyle() & SWT.VIRTUAL) != 0
+					&& item.getData("SD") == null;
+
+		return result;
 	}
 	
 	public Color
 	getForeground()
 	{
-  	if (item == null || item.isDisposed())
+  	if (noTableItem(true))
   	  return null;
+
 		return( item.getForeground());
 	}
 	
@@ -206,7 +212,7 @@ BufferedTableRow
 	setForeground(
 		Color	c )
 	{
-		if (noTableItem())
+		if (noTableItem(true))
 			return;
 
 		if (foreground != null && foreground.equals(c))
@@ -222,7 +228,7 @@ BufferedTableRow
 	  int index,
 		Color	new_color )
 	{
-		if (noTableItem())
+		if (noTableItem(true))
 			return false;
 				
 		if ( index >= foreground_colors.length ){
@@ -263,7 +269,7 @@ BufferedTableRow
 
 	public Color getForeground(int index)
 	{
-  	if (item == null || item.isDisposed())
+  	if (noTableItem(true))
   	  return null;
 		if (index >= foreground_colors.length)
 		  return item.getForeground();
@@ -275,7 +281,7 @@ BufferedTableRow
 	getText(
 		int		index )
 	{
-		if (noTableItem())
+		if (noTableItem(true))
 			return "";
 
 		// SWT >= 3041(Win),3014(GTK),3002(Carbon) and returns "" if range check
@@ -293,7 +299,7 @@ BufferedTableRow
 		int			index,
 		String		new_value )
 	{
-		if (noTableItem())
+		if (noTableItem(true))
 			return false;
 		
 		if (index < 0 || index >= table.getColumnCount())
@@ -311,7 +317,7 @@ BufferedTableRow
 	}
 	
   public Rectangle getBounds(int index) {
-		if (noTableItem())
+		if (noTableItem(true))
 			return null;
 		return item.getBounds(index);
 	}
@@ -321,7 +327,7 @@ BufferedTableRow
   }
   
   public Color getBackground() {
-    if(item == null || item.isDisposed())
+    if(noTableItem(true))
       return null;
     return item.getBackground();
   }
@@ -332,7 +338,7 @@ BufferedTableRow
    * @return Item's Position
    */
   public int getIndex() {
-  	if (noTableItem())
+  	if (noTableItem(false))
   		return -1;
 
     if (table == null)
@@ -400,7 +406,7 @@ BufferedTableRow
 	}
   
   public boolean isSelected() {
-  	if (noTableItem())
+  	if (noTableItem(false))
   		return false;
 
   	// Invalid Indexes are checked/ignored by SWT.
@@ -408,7 +414,7 @@ BufferedTableRow
   }
 
   public void setSelected(boolean bSelected) {
-  	if (noTableItem())
+  	if (noTableItem(false))
   		return;
 
     if (bSelected)
@@ -503,7 +509,7 @@ BufferedTableRow
   }
   
   public boolean setIconSize(Point pt) {
-		if (noTableItem())
+		if (noTableItem(true))
 			return false;
 		
     ptIconSize = pt;
@@ -526,7 +532,7 @@ BufferedTableRow
 	 * @return visibility
 	 */
 	public boolean isVisible() {
-		if (noTableItem())
+		if (noTableItem(true))
 			return false;
 
 		int index = table.indexOf(item);
@@ -537,34 +543,13 @@ BufferedTableRow
 		if (index < iTopIndex)
 			return false;
 
-		// 2 offset to be on the safe side
-		TableItem bottomItem = table.getItem(new Point(2,
-				table.getClientArea().height - 1));
-		if (bottomItem != null) {
-			int iBottomIndex = table.indexOf(bottomItem);
-			if (index > iBottomIndex)
-				return false;
-		}
-
-//   XXX: getItemHeight is very slow on linux!
-//		// iBottomIndex may be greater than # of rows, but that doesn't matter
-//		// because index is always less than # of rows
-//		int iBottomIndex = iTopIndex
-//				+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table
-//						.getItemHeight()) + 1;
-//
-//		if (index > iBottomIndex)
-//			return false;
-
-		// Not visible if we haven't setData yet
-		if ((table.getStyle() & SWT.VIRTUAL) > 0 && item.getData("SD") == null) {
-			//System.out.println("Row " + index + " not SD yet");
+		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+		if (index > iBottomIndex)
 			return false;
-		}
 
 		return true;
 	}
-  
+	
   /**
    * Overridable function that is called when row needs invalidation.
    *

@@ -171,7 +171,7 @@ public class TableRowImpl
     Iterator iter = mTableCells.values().iterator();
     while(iter.hasNext()) {
       TableCellCore item = (TableCellCore)iter.next();
-      item.refresh();
+      item.refresh(bDoGraphics, isVisible());
     }
   }
   

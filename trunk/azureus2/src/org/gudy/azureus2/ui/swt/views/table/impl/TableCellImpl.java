@@ -41,7 +41,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
@@ -224,7 +223,7 @@ public class TableCellImpl
   		bChanged = true;
   		sortValue = text;
     	if (bDebug)
-    		System.out.println("r" + tableRow.getIndex() + "; Setting SortValue to text;");
+    		debug("Setting SortValue to text;");
   	}
   	
   	if (!tableRow.isVisible())
@@ -261,7 +260,7 @@ public class TableCellImpl
     }
 
   	if (bDebug)
-  		System.out.println("r" + tableRow.getIndex() + "; Setting SortValue to "
+  		debug("Setting SortValue to "
 					+ ((valueToSort == null) ? "null" : valueToSort.getClass().getName()));
     sortValue = valueToSort;
 
@@ -289,17 +288,11 @@ public class TableCellImpl
   }
 
   public Comparable getSortValue() {
-  	if (bDebug) {
-  		Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-		  		System.out.println("r"
-							+ tableRow.getIndex()
-							+ "; GetSortValue;"
-							+ (sortValue == null ? "null" : sortValue.getClass().getName()
-									+ ";" + sortValue.toString()));
-				}
-  		}, true);
-  	}
+  	if (bDebug)
+			debug("GetSortValue;"
+					+ (sortValue == null ? "null" : sortValue.getClass().getName() + ";"
+							+ sortValue.toString()));
+
     if (sortValue == null) {
       if (bufferedTableItem != null)
         return bufferedTableItem.getText();
@@ -528,13 +521,8 @@ public class TableCellImpl
   public void invalidate(final boolean bMustRefresh) {
   	valid = false;
 
-  	if (bDebug) {
-  		Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-		  		System.out.println("r" + tableRow.getIndex() + "; Invalidate Cell;" + bMustRefresh);
-				}
-  		}, true);
-  	}
+  	if (bDebug)
+  		debug("Invalidate Cell;" + bMustRefresh);
 
   	if (bMustRefresh)
   		this.bMustRefresh = true;
@@ -543,9 +531,13 @@ public class TableCellImpl
   public void refresh() {
     refresh(true);
   }
+  
+  public void refresh(boolean bDoGraphics) {
+  	refresh(bDoGraphics, tableRow.isVisible());
+  }
 
   private boolean bInRefresh = false;
-  public void refresh(boolean bDoGraphics) {
+  public void refresh(boolean bDoGraphics, boolean bRowVisible) {
     if (refreshErrLoopCount > 2)
       return;
     int iErrCount = tableColumn.getConsecutiveErrCount();
@@ -557,24 +549,22 @@ public class TableCellImpl
     	// This could happen on virtual tables where SetData calls us again, or
     	// if we ever introduce plugins to refresh.
     	if (bDebug)
-    		System.out.println("Calling Refresh from Refresh :) Skipping.");
+    		debug("Calling Refresh from Refresh :) Skipping.");
     	return;
     }
   	bInRefresh = true;
 
-    boolean bVisible = tableRow.isVisible();
-
     // See bIsUpToDate variable comments
-    if (bVisible && !bIsUpToDate) {
+    if (bRowVisible && !bIsUpToDate) {
     	if (bDebug)
-    		System.out.println(tableRow.getIndex() + "; Setting Invalid because visible & not up to date");
+    		debug("Setting Invalid because visible & not up to date");
     	valid = false;
     	bIsUpToDate = true;
     }
 
     try {
     	if (bDebug)
-    		System.out.println("r" + tableRow.getIndex() + "; Cell Valid?" + valid + ";");
+    		debug("Cell Valid?" + valid + ";");
       int iInterval = tableColumn.getRefreshInterval();
     	if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid
     			&& !bMustRefresh && bSortValueIsText && sortValue != null
@@ -747,5 +737,13 @@ public class TableCellImpl
   
 	public void setUpToDate(boolean upToDate) {
 		bIsUpToDate = upToDate;
+	}
+	
+	private void debug(final String s) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				System.out.println("r" + tableRow.getIndex() + "; " + s);
+			}
+		}, true);
 	}
 }
