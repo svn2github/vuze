@@ -177,6 +177,8 @@ DMCheckerImpl
 		final DiskManagerCheckRequestListener 	listener,
 		final Object							user_data ) 
 	{  	
+		complete_recheck_in_progress	= true;
+
 	 	Thread t = new AEThread("DMChecker::completeRecheck")
 		{
 	  		public void
@@ -184,18 +186,16 @@ DMCheckerImpl
 	  		{
 	  			boolean	got_sem = false;
 	  			
-	  			while( !( got_sem || stopped )){
-	  				
-	  				got_sem = complete_recheck_sem.reserve(250);
-	  			}
-	  			
 	  			try{
+	  				while( !( got_sem || stopped )){
+		  				
+		  				got_sem = complete_recheck_sem.reserve(250);
+		  			}
+		  				
 	  				if ( stopped ){
 	  					
 	  					return;
 	  				}
-	  				
-	  				complete_recheck_in_progress	= true;
 	  					
 	  				final AESemaphore	sem = new AESemaphore( "DMChecker::completeRecheck" );
 	  				

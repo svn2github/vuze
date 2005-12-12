@@ -121,7 +121,11 @@ DownloadManagerController
 	private volatile int		substate;
 	private volatile boolean 	force_start;
 
-	private DiskManager 			disk_manager;
+		// to try and ensure people don't start using disk_manager without properly considering its
+		// access implications we've given it a silly name
+	
+	private volatile DiskManager 			disk_manager_use_accessors;
+	
 	private DiskManagerFileInfo[]	skeleton_files;
 	private fileInfoFacade[]		files_facade;
 	private PEPeerManager 			peer_manager;
@@ -172,6 +176,8 @@ DownloadManagerController
 	startDownload(
 		TRTrackerAnnouncer	tracker_client ) 
 	{
+		DiskManager	dm;
+		
 		try{
 			this_mon.enter();
 		
@@ -187,9 +193,13 @@ DownloadManagerController
 				Debug.out( "DownloadManagerController::startDownload: peer manager not null" );
 			}
 			
-			if ( disk_manager == null ){
+			dm	= getDiskManager();
+			
+			if ( dm == null ){
 				
 				Debug.out( "DownloadManagerController::startDownload: disk manager is null" );
+				
+				return;
 			}
 		
 			setState( DownloadManager.STATE_DOWNLOADING, false );
@@ -203,7 +213,7 @@ DownloadManagerController
 			// make sure it is started beore making it "visible"
 		
 		PEPeerManager temp = 
-				PEPeerManagerFactory.create( this, tracker_client, disk_manager);
+				PEPeerManagerFactory.create( this, tracker_client, dm);
 		
 		temp.start();
 	
@@ -235,13 +245,22 @@ DownloadManagerController
 	  					int 	oldDMState,
 	  					int		newDMState )
 	  				{
-	  					DiskManager	dm = disk_manager;
+	  					DiskManager	dm;
 	  					
-	  					if ( dm == null ){
+	  					try{
+	  						this_mon.enter();
+	  					
+		  					dm = getDiskManager();
+
+		  					if ( dm == null ){
 	  						
-	  							// already been cleared down
+	  								// already been cleared down
 	  							
-	  						return;
+		  						return;
+		  					}
+		  					
+	  					}finally{
+	  						this_mon.exit();
 	  					}
 	  					
 	  					try{
@@ -341,7 +360,7 @@ DownloadManagerController
 				return;
 			}
 	
-			if ( disk_manager != null ){
+			if ( getDiskManager() != null ){
 				
 				Debug.out( "DownloadManagerController::initializeDiskManager: disk manager is not null" );
 				
@@ -356,7 +375,7 @@ DownloadManagerController
 	  	      
 	  	  	setDiskManager( dm );
 	  	  		
-	  	  	disk_manager.addListener( listener );
+	  	  	dm.addListener( listener );
 	  	  	
 		}finally{
 			
@@ -376,7 +395,7 @@ DownloadManagerController
 	  	
 	  	return(		(state == DownloadManager.STATE_STOPPED ) ||
 	  	           	(state == DownloadManager.STATE_QUEUED ) ||
-	  	           	(state == DownloadManager.STATE_ERROR && disk_manager == null));
+	  	           	(state == DownloadManager.STATE_ERROR && getDiskManager() == null));
 	}
 
 	public void 
@@ -385,7 +404,7 @@ DownloadManagerController
 		try{
 			this_mon.enter();
 		
-			if ( disk_manager != null || !canForceRecheck() ){
+			if ( getDiskManager() != null || !canForceRecheck() ){
 				
 				Debug.out( "DownloadManagerController::forceRecheck: illegal entry state" );
 				
@@ -423,7 +442,7 @@ DownloadManagerController
   						try{
    							this_mon.enter();
 
-   							if (disk_manager == null){
+   							if ( getDiskManager() == null ){
    								
 	  	  							// already closed down via stop
    								
@@ -451,13 +470,15 @@ DownloadManagerController
 	  	  							try{
 	  	  								this_mon.enter();
 	  	  							
-	  	  								if ( disk_manager != null ){
+	  	  								DiskManager	dm = getDiskManager();
+	  	  								
+	  	  								if ( dm != null ){
 	  	  							
-	  	  									disk_manager.dumpResumeDataToDisk(true, false);
+	  	  									dm.dumpResumeDataToDisk(true, false);
 		  					  		
-	  	  									disk_manager.stop();
+	  	  									dm.stop();
 		  							
-	  	  									only_seeding	= disk_manager.getRemaining() == 0;
+	  	  									only_seeding	= dm.getRemaining() == 0;
 	  	  									
 	  	  									update_only_seeding	= true;
 	  	  								
@@ -497,7 +518,7 @@ DownloadManagerController
   	  							try{
   	  								this_mon.enter();
   	  							
-  	  								DiskManager	dm = disk_manager;
+  	  								DiskManager	dm = getDiskManager();
   	  								
   	  								if ( dm != null ){
 
@@ -556,7 +577,7 @@ DownloadManagerController
 			int	state = getState();
 		  
 			if ( 	state == DownloadManager.STATE_STOPPED ||
-					( state == DownloadManager.STATE_ERROR && disk_manager == null )) {
+					( state == DownloadManager.STATE_ERROR && getDiskManager() == null )) {
 	    
 				//already in stopped state, just do removals if necessary
 	    	
@@ -623,13 +644,16 @@ DownloadManagerController
 						
 					peer_manager	= null;
 
-					if ( disk_manager != null ){	
-						disk_manager.stop();
+					DiskManager	dm = getDiskManager();
+					
+					if ( dm != null ){
+						
+						dm.stop();
 
 						stats.setCompleted(stats.getCompleted());
 						stats.setDownloadCompleted(stats.getDownloadCompleted(true));
 			      
-						disk_manager.saveState();
+						dm.saveState();
 
 					  		// we don't want to update the torrent if we're seeding
 					  
@@ -715,7 +739,7 @@ DownloadManagerController
   			// regarding the DownloadManager::addListener call invoking this method while
   			// holding the listeners monitor.
   			// 
-  		DiskManager	dm = disk_manager;
+  		DiskManager	dm = getDiskManager();
    		
 	  	if ( dm == null){
 			
@@ -846,12 +870,14 @@ DownloadManagerController
 	{
 		boolean	was_force_start = isForceStart();
 		
-		if ( !use_fast_resume ){
+		DiskManager	dm = getDiskManager();
+		
+		if ( dm != null && !use_fast_resume ){
 	      
 				//invalidate resume info
 	    	
 			try{
-				disk_manager.dumpResumeDataToDisk(false, true);
+				dm.dumpResumeDataToDisk(false, true);
 				
 		  	}catch( Exception e ){
 		  		
@@ -923,7 +949,7 @@ DownloadManagerController
 	public boolean 
 	filesExist() 
 	{
-		DiskManager	dm = disk_manager;
+		DiskManager	dm = getDiskManager();
 		
 		String strErrMessage = "";
 		
@@ -953,7 +979,7 @@ DownloadManagerController
    	public DiskManagerFileInfo[]
     getDiskManagerFileInfo()
    	{
-  		DiskManager	dm = disk_manager;
+  		DiskManager	dm = getDiskManager();
 
    		DiskManagerFileInfo[]	res	= null;
    		
@@ -999,7 +1025,7 @@ DownloadManagerController
 	protected DiskManager
 	getDiskManager()
 	{
-		return( disk_manager );
+		return( disk_manager_use_accessors );
 	}
 	
 	protected String
@@ -1015,9 +1041,9 @@ DownloadManagerController
  	 	try{
 	  		disk_listeners_mon.enter();
 	  		
-	  		DiskManager	old_disk_manager = disk_manager;
+	  		DiskManager	old_disk_manager = disk_manager_use_accessors;
 	  		
-	  		disk_manager	= new_disk_manager;
+	  		disk_manager_use_accessors	= new_disk_manager;
 
 	  			// whether going from none->active or the other way, indicate that the file info
 	  			// has changed
@@ -1052,9 +1078,11 @@ DownloadManagerController
 	  		
 	  		disk_listeners.addListener( listener );
 	  		
-			if ( disk_manager != null ){
+	  		DiskManager	dm = getDiskManager();
+	  		
+			if ( dm != null ){
 		
-				disk_listeners.dispatch( listener, LDT_DL_ADDED, disk_manager );
+				disk_listeners.dispatch( listener, LDT_DL_ADDED, dm );
 			}
 	  	}finally{
 	  		

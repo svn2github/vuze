@@ -487,7 +487,7 @@ DiskManagerImpl
 			
 				return;
 			}
-		
+			
 				// we need to be careful if we're still starting up as this may be
 				// a re-entrant "stop" caused by a faulty state being reported during
 				// startup. Defer the actual stop until starting is complete
@@ -522,6 +522,8 @@ DiskManagerImpl
 		
 		started_sem.reserve();
 		
+		boolean	checking = checker.isChecking();
+		
     	checker.stop();
     	
     	writer.stop();
@@ -550,13 +552,23 @@ DiskManagerImpl
 		
 		if ( getState() == DiskManager.READY ){
 		  	
-			try{
+			if ( checking ){
 				
-				dumpResumeDataToDisk(true, false);
-	  		
-			}catch( Exception e ){
-	  		
-				setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
+					// we've interrupted a "recheck on complete" - clear the resume data so it rechecks on
+					// next start up
+				
+				resume_handler.clearResumeData();
+				
+			}else{
+				
+				try{
+					
+					dumpResumeDataToDisk(true, false);
+		  		
+				}catch( Exception e ){
+		  		
+					setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
+				}
 			}
 		}
 		

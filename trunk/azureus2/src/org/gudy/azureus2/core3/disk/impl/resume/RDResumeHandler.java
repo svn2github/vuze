@@ -92,17 +92,7 @@ RDResumeHandler
 	
 	public void
 	stop()
-	{
-			// there are two kinds of "complete recheck" - those initiated by calling the
-			// "checkAllPieces" method in this class, the other is the "recheck on complete" event
-			// that isn't handled by the resume handler, rather its handled by the "checker". If
-			// we interrupt this process we want to handle it in teh same way 
-		
-		if ( disk_manager.isChecking()){
-			
-			bStoppedMidCheck	= true;
-		}
-		
+	{	
 		stopped	= true;
 		
 		COConfigurationManager.removeParameterListener("Use Resume", this);
@@ -176,7 +166,7 @@ RDResumeHandler
 							// if the torrent download is complete we don't need to invalidate the
 							// resume data
 						
-						if ( isTorrentResumeDataComplete( disk_manager.getDownloadManager())){
+						if ( isTorrentResumeDataComplete( disk_manager.getDownloadManager(), resume_data )){
 							
 							resume_data_complete	= true;
 									
@@ -557,7 +547,7 @@ RDResumeHandler
 		
 	  		// OK, we've got valid resume data and flushed the cache
 	  
-		boolean	is_complete = isTorrentResumeDataComplete( disk_manager.getDownloadManager());
+		boolean	is_complete = isTorrentResumeDataComplete( disk_manager.getDownloadManager(), resume_data );
 	
 		if ( was_complete && is_complete ){
 	 
@@ -837,6 +827,23 @@ RDResumeHandler
 	
 	public static void
 	clearResumeData(
+		DownloadManager			download_manager )
+	{
+		Map	resume_data = new HashMap();
+		
+		resume_data.put( "valid", new Long(0));	
+
+		saveResumeData( download_manager.getDownloadState(), resume_data );
+	}
+	
+	public void
+	clearResumeData()
+	{
+		clearResumeData( disk_manager.getDownloadManager());
+	}
+	
+	public static void
+	clearResumeData(
 		DownloadManager			download_manager,
 		DiskManagerFileInfo		file )
 	{
@@ -893,17 +900,21 @@ RDResumeHandler
 	public static boolean
 	isTorrentResumeDataComplete(
 		DownloadManager			download_manager )
-	{
-		DownloadManagerState	download_manager_state = download_manager.getDownloadState();
-		
-		TOTorrent	torrent = download_manager_state.getTorrent();
-		
+	{				
 			// backwards compatability, resume data key is the dir
 		
 		Map	resume_data = getResumeData( download_manager );
-					
+		
+		return( isTorrentResumeDataComplete( download_manager, resume_data ));
+	}
+	
+	public static boolean
+	isTorrentResumeDataComplete(
+		DownloadManager		download_manager, 
+		Map					resume_data )
+	{
 		try{
-			int	piece_count = torrent.getNumberOfPieces();
+			int	piece_count = download_manager.getDownloadState().getTorrent().getNumberOfPieces();
 							
 			if ( resume_data != null ){
 				
