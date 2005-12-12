@@ -347,6 +347,8 @@ public class StartStopRulesDefaultPlugin
       // run even if we stop it)
       // Checking and stopping in process() would queue the torrent, but
       // there's a good chance all the pieces are queued for recheck.
+      /* PARG - removed this as we now single-thread teh rechecking process internally and this code
+       * causes downloads to flip between queued and waiting...
       if (new_state == Download.ST_PREPARING) {
       	int numPreparing = 0;
 
@@ -362,12 +364,13 @@ public class StartStopRulesDefaultPlugin
           	if (numPreparing > 1) {
           		try {
           			download.stopAndQueue();
-          		} catch (Exception ignore) {/*ignore*/}
+          		} catch (Exception ignore) {}
           		break;
           	}
           }
         }
       }
+      */
     }
 
     public void positionChanged(Download download, 
