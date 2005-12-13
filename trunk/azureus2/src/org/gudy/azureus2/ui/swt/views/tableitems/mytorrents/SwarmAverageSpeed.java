@@ -40,10 +40,6 @@ public class SwarmAverageSpeed
     setRefreshInterval(INTERVAL_LIVE);
   }
 
-  protected void finalize() throws Throwable {
-    super.finalize();
-  }
-
   public void refresh(TableCell cell) {
     long speed = -1;
 

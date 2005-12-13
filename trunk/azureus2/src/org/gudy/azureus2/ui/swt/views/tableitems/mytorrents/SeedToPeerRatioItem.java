@@ -40,10 +40,6 @@ public class SeedToPeerRatioItem
     setRefreshInterval(INTERVAL_LIVE);
   }
 
-  protected void finalize() throws Throwable {
-    super.finalize();
-  }
-
   public void refresh(TableCell cell) {
     float ratio = -1;
     

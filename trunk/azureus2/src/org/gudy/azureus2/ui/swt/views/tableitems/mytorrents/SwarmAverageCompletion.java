@@ -41,10 +41,6 @@ public class SwarmAverageCompletion
     setRefreshInterval(INTERVAL_GRAPHIC);
   }
 
-  protected void finalize() throws Throwable {
-    super.finalize();
-  }
-
   public void refresh(TableCell cell) {
     int average = -1;
 
