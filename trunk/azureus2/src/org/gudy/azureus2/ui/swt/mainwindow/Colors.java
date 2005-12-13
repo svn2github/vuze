@@ -211,7 +211,7 @@ public class Colors implements ParameterListener {
         int lum = hslBG.getLuminence();
     
         HSLColor hslColor = new HSLColor();
-        hslColor.initRGBbyHSL(25, 200, lum > 127 ? lum - 128 : lum + 92);
+        hslColor.initRGBbyHSL(25, 200, 128 + (lum < 160 ? 10 : -10));
         colorWarning = new AllocateColor("warning", 
                                           new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
                                           colorWarning).getColor();
