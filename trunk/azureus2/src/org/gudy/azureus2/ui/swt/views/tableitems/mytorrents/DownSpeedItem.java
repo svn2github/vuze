@@ -31,10 +31,14 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 
 
 /** Download Speed column
@@ -44,35 +48,28 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
  */
 public class DownSpeedItem
        extends CoreTableColumn 
-       implements TableCellAddedListener, ParameterListener
+       implements TableCellAddedListener
 {
   private final static String CONFIG_ID = "StartStopManager_iMinSpeedForActiveDL";
-  private int iMinActiveSpeed;
 
   /** Default Constructor */
   public DownSpeedItem() {
     super("downspeed", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_MYTORRENTS_INCOMPLETE);
 		setType(TableColumn.TYPE_TEXT);
     setRefreshInterval(INTERVAL_LIVE);
-
-    iMinActiveSpeed = COConfigurationManager.getIntParameter(CONFIG_ID);
-    COConfigurationManager.addParameterListener(CONFIG_ID, this);
+    setUseCoreDataSource(false);
   }
 
-  protected void finalize() throws Throwable {
-    super.finalize();
-    COConfigurationManager.removeParameterListener(CONFIG_ID, this);
-  }
-  
   public void cellAdded(TableCell cell) {
     cell.addRefreshListener(new RefreshListener());
   }
 
   public class RefreshListener implements TableCellRefreshListener {
     private int iLastState;
+    private int loop = 0;
 
     public void refresh(TableCell cell) {
-      DownloadManager dm = (DownloadManager)cell.getDataSource();
+      Download dm = (Download)cell.getDataSource();
       long value;
       int iState;
       if (dm == null) {
@@ -80,45 +77,36 @@ public class DownSpeedItem
         value = 0;
       } else {
         iState = dm.getState();
-        value = dm.getStats().getDataReceiveRate();
+        value = dm.getStats().getDownloadAverage();
       }
       
-      if (!cell.setSortValue(value) && cell.isValid() && (iState == iLastState))
-        return;
-  
-      if (cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value)) || 
-          (iState != iLastState) || !cell.isValid()) {
-        changeColor(cell, value, iState);
+      boolean bChangeColor = (++loop % 10) == 0;
+
+      if (cell.setSortValue(value) || !cell.isValid() || (iState != iLastState)) {
+      	cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
+      	bChangeColor = true;
+      }
+      
+      if (bChangeColor) {
+        changeColor(cell, dm, iState);
+        loop = 0;
       }
     }
 
-    private void changeColor(TableCell cell) {
+    private void changeColor(TableCell cell, Download dl, int iState) {
       try {
-        DownloadManager dm = (DownloadManager)cell.getDataSource();
-        if (dm == null) {
-          return;
-        }
-        changeColor(cell, dm.getStats().getDataReceiveRate(), dm.getState());
-      } catch (Exception e) {
-      	Debug.printStackTrace( e );
-      }
-    }
-  
-    private void changeColor(TableCell cell, long iSpeed, int iState) {
-      try {
-        Color newFG = (iSpeed < iMinActiveSpeed && 
-                       iState == DownloadManager.STATE_DOWNLOADING) ? Colors.colorWarning 
-                                                                    : null;
+      	DefaultRankCalculator calc = StartStopRulesDefaultPlugin.getRankCalculator(dl);
+      	
+        Color newFG = null;
+        if (calc != null && dl.getState() == Download.ST_DOWNLOADING
+						&& !calc.getActivelyDownloading())
+					newFG = Colors.colorWarning;
+
         ((TableCellCore)cell).setForeground(newFG);
         iLastState = iState;
       } catch (Exception e) {
       	Debug.printStackTrace( e );
       }
     }
-  }
-
-
-  public void parameterChanged(String parameterName) {
-    iMinActiveSpeed = COConfigurationManager.getIntParameter(CONFIG_ID);
   }
 }
