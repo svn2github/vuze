@@ -19,6 +19,8 @@ import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
+
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -172,7 +174,7 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iIgnoreSeedCount", new Long(0));
     def.put("StartStopManager_bPreferLargerSwarms", new Long(1));
     def.put("StartStopManager_bDebugLog", new Long(0));
-    def.put("StartStopManager_iFirstPriority_Type", new Long(com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.FIRSTPRIORITY_ANY));
+    def.put("StartStopManager_iFirstPriority_Type", new Long(DefaultRankCalculator.FIRSTPRIORITY_ANY));
     def.put("StartStopManager_iFirstPriority_ShareRatio", new Long(500));
     def.put("StartStopManager_iFirstPriority_SeedingMinutes", new Long(0));
     def.put("StartStopManager_iFirstPriority_DLMinutes", new Long(0));

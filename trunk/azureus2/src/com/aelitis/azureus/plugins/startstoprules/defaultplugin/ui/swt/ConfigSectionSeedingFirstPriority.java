@@ -33,6 +33,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.internat.MessageText;
 
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 
 /** First Priority Specific options.
@@ -106,8 +107,8 @@ public class ConfigSectionSeedingFirstPriority implements UISWTConfigSection {
 	Messages.setLanguageText(label, "ConfigView.label.seeding.firstPriority");
 	String fpLabels[] = { MessageText.getString("ConfigView.text.all"), 
 			MessageText.getString("ConfigView.text.any") };
-	int fpValues[] = { StartStopRulesDefaultPlugin.FIRSTPRIORITY_ALL, 
-			StartStopRulesDefaultPlugin.FIRSTPRIORITY_ANY };
+	int fpValues[] = { DefaultRankCalculator.FIRSTPRIORITY_ALL, 
+			DefaultRankCalculator.FIRSTPRIORITY_ANY };
 	new IntListParameter(cArea, "StartStopManager_iFirstPriority_Type", 
 			fpLabels, fpValues);
 	label = new Label(cArea, SWT.NULL);
