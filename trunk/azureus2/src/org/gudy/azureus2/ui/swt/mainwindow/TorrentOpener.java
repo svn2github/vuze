@@ -35,10 +35,13 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -156,10 +159,22 @@ public class TorrentOpener {
       
       for (int i = 0;(i < sourceNames.length); i++) {
         final File source = new File(sourceNames[i]);
-        if (source.isFile())
-        	openTorrentWindow(null, new String[] { source.getAbsolutePath() }, 
-        			bOverrideToStopped);
-        else if (source.isDirectory()){
+        if (source.isFile()) {
+        	String filename = source.getAbsolutePath();
+					try {
+						if (!FileUtil.isTorrentFile(filename)) {
+							Logger.log(new LogEvent(LogIDs.GUI,
+											"MainWindow::openTorrent: file it not a torrent file, sharing"));
+							ShareUtils.shareFile(azureus_core, filename);
+						} else {
+							openTorrentWindow(null, new String[] { filename },
+									bOverrideToStopped);
+						}
+					} catch (Exception e) {
+						Logger.log(new LogAlert(LogAlert.REPEATABLE,
+								"Torrent open fails for '" + filename + "'", e));
+					}
+        } else if (source.isDirectory()){
           
           String  dir_name = source.getAbsolutePath();
           
