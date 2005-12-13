@@ -1595,10 +1595,7 @@ public class MyTorrentsView
           event.feedback = DND.FEEDBACK_EXPAND | DND.FEEDBACK_SCROLL | DND.FEEDBACK_SELECT | DND.FEEDBACK_INSERT_BEFORE | DND.FEEDBACK_INSERT_AFTER;
           event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
         }
-			}
-
-			public void dragOperationChanged(DropTargetEvent event) {
-			}
+	  }
 
       public void drop(DropTargetEvent event) {
       	if (!(event.data instanceof String) || !((String)event.data).equals("moveRow")) {

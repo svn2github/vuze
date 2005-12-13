@@ -43,9 +43,6 @@ public class ScaledGraphic extends BackGroundGraphic {
     this.formater = formater;
   }
   
-  public void refresh() {    
-  }
-  
   protected void drawScale(boolean sizeChanged) {
     if(drawCanvas == null || drawCanvas.isDisposed())
       return;

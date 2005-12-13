@@ -100,12 +100,7 @@ public class IPWInstallModePanel extends AbstractWizardPanel {
 
 	bUserMode.addListener(SWT.Selection,modeListener);
 	bSharedMode.addListener(SWT.Selection,modeListener);
-}
-	public boolean 
-	isNextEnabled() 
-	{
-	   return false;
-	}
+  }
 	
 	public boolean 
 	isFinishEnabled() 

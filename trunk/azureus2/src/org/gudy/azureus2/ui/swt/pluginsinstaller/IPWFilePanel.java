@@ -132,13 +132,7 @@ public class IPWFilePanel extends AbstractWizardPanel {
 	   return valid;
 	}
 	
-	public boolean 
-	isFinishEnabled() 
-	{
-	   return( false );
+	public IWizardPanel getNextPanel() {
+	   return new IPWInstallModePanel(wizard,this);
 	}
-	
-	  public IWizardPanel getNextPanel() {
-	    return new IPWInstallModePanel(wizard,this);
-	  }
 }

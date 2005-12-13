@@ -98,10 +98,6 @@ public class SeedsItem extends CoreTableColumn implements
 			super(cell);
 		}
 
-		public void announceResult(TRTrackerAnnouncerResponse response) {
-			// Don't care about announce
-		}
-
 		public void scrapeResult(final TRTrackerScraperResponse response) {
 			if (checkScrapeResult(response)) {
 				lTotalSeeds = response.getSeeds();

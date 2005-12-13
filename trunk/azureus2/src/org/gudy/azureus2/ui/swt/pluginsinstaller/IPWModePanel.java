@@ -139,10 +139,4 @@ public class IPWModePanel extends AbstractWizardPanel {
 	{
 	   return true;
 	}
-	
-	public boolean 
-	isFinishEnabled() 
-	{
-	   return( false );
-	}
 }

@@ -212,12 +212,6 @@ public class UIPWListPanel extends AbstractWizardPanel {
   }
   
 	public boolean 
-	isNextEnabled() 
-	{
-		return( false );
-	}
-	
-	public boolean 
 	isFinishEnabled() 
 	{
 		return(((UnInstallPluginWizard)wizard).getPluginList().size() > 0 );

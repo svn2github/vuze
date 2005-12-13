@@ -450,12 +450,6 @@ public class ConfigView extends AbstractIView {
     return cConfig;
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#refresh()
-   */
-  public void refresh() {
-  }
-
   public void updateLanguage() {
     super.updateLanguage();
     updateHeader(tree.getSelection()[0]);

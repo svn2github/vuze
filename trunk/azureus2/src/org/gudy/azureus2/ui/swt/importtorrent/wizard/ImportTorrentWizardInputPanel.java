@@ -160,10 +160,4 @@ ImportTorrentWizardInputPanel
 	{
 	   return( file_valid );
 	}
-	
-	public boolean 
-	isFinishEnabled() 
-	{
-	   return( false );
-	}
 }

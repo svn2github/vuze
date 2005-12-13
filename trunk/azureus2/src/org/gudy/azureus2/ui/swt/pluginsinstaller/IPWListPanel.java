@@ -242,12 +242,6 @@ public class IPWListPanel extends AbstractWizardPanel {
 		return(((InstallPluginWizard)wizard).getPluginList().size() > 0 );
 	}
 	
-	public boolean 
-	isFinishEnabled() 
-	{
-	   return false ;
-	}
-	
   public IWizardPanel getNextPanel() {
     return new IPWInstallModePanel(wizard,this);
   }
