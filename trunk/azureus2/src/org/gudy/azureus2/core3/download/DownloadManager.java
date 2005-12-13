@@ -162,7 +162,12 @@ DownloadManager
 	getTrackerClient();
 	
 	public void
-	checkTracker();
+	checkTracker(
+		boolean		immediate );
+	
+	public void
+	scrapeTracker(
+		boolean		immediate );
 	
 	public TRTrackerScraperResponse
 	getTrackerScrapeResponse();

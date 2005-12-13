@@ -140,7 +140,7 @@ public class TrackerStatus {
   	try{
   		hashes_mon.enter();
   		
-  		return (TRTrackerScraperResponseImpl) hashes.get(hash.getHash());
+  		return (TRTrackerScraperResponseImpl) hashes.get(hash);
   	}finally{
   		
   		hashes_mon.exit();
@@ -154,7 +154,7 @@ public class TrackerStatus {
   	try{
   		hashes_mon.enter();
  
-  		return (TRTrackerScraperResponseImpl) hashes.get(hash);
+  		return (TRTrackerScraperResponseImpl) hashes.get( new HashWrapper(hash));
   	}finally{
   		
   		hashes_mon.exit();
@@ -199,7 +199,7 @@ public class TrackerStatus {
   			try{
   				hashes_mon.enter();
    		
-	    		response = (TRTrackerScraperResponseImpl)hashes.get(hash);
+	    		response = (TRTrackerScraperResponseImpl)hashes.get(new HashWrapper(hash));
 		    
 	    		if (response == null) {
 	    			
@@ -372,6 +372,13 @@ public class TrackerStatus {
 									new String(hash, Constants.BYTE_ENCODING),
 									Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 
+							String	extensions = scraper.getExtensions(hash);
+							
+							if ( extensions != null ){
+								
+								info_hash += extensions; 
+							}
+							
 							one_of_the_responses = response;
 							one_of_the_hashes = hash;
 						}
@@ -1140,7 +1147,7 @@ public class TrackerStatus {
   	try{
   		hashes_mon.enter();
   	
-  		hashes.put(hash, response);
+  		hashes.put(new HashWrapper(hash), response);
       
   	}finally{
   		
@@ -1157,7 +1164,7 @@ public class TrackerStatus {
   	try{
   		hashes_mon.enter();
   	
-  		hashes.remove( hash.getHash() );
+  		hashes.remove( hash );
   		
   	}finally{
   		

@@ -35,8 +35,8 @@ TRTrackerServerRequestImpl
 	implements TRTrackerServerRequest
 {
 	protected TRTrackerServerImpl			server;
-	protected TRTrackerServerPeerImpl		peer;
-	protected TRTrackerServerTorrentImpl	torrent;
+	protected TRTrackerServerPeer			peer;
+	protected TRTrackerServerTorrent		torrent;
 	protected int							type;
 	protected String						request;
 	protected Map							response;
@@ -44,8 +44,8 @@ TRTrackerServerRequestImpl
 	public
 	TRTrackerServerRequestImpl(
 		TRTrackerServerImpl				_server,
-		TRTrackerServerPeerImpl			_peer,
-		TRTrackerServerTorrentImpl		_torrent,
+		TRTrackerServerPeer				_peer,
+		TRTrackerServerTorrent			_torrent,
 		int								_type,
 		String							_request,
 		Map								_response )

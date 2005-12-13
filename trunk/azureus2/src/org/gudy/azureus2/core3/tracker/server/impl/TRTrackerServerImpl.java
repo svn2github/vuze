@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.tracker.server.impl;
 
 import java.util.*;
 import java.net.URL;
+import java.net.URLDecoder;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
@@ -793,17 +794,75 @@ TRTrackerServerImpl
 	
 	public void
 	preProcess(
-		TRTrackerServerPeerImpl		peer,
-		TRTrackerServerTorrentImpl	torrent,
+		TRTrackerServerPeer			peer,
+		TRTrackerServerTorrent		torrent,
 		int							type,
 		String						request,
 		Map							response )
 	
 		throws TRTrackerServerException
 	{
-		Map	result	= null;
-
 		if ( request_listeners.size() > 0 ){
+			
+				// if this is a scrape then we need to patch up stuff as it may be multi-scrape
+			
+			if ( type == TRTrackerServerRequest.RT_SCRAPE ){
+				
+				try{
+					int	request_pos = 10;
+					
+					while( true ){
+						
+						int	p = request.indexOf( "info_hash=", request_pos );
+						
+						String	bit;
+						
+						if ( p == -1 ){
+						
+							if ( request_pos == 10 ){
+								
+								break;	// only one entry, nothing to do
+							}
+							
+							bit = request.substring( request_pos );
+							
+						}else{
+							
+							bit = request.substring( request_pos, p );
+						}
+														
+						int	pos = bit.indexOf('&');
+						
+						String	hash_str = pos==-1?bit:bit.substring(0,pos);
+						
+						hash_str = URLDecoder.decode( hash_str, Constants.BYTE_ENCODING );
+						
+						byte[]	hash = hash_str.getBytes(Constants.BYTE_ENCODING);
+						
+						if ( Arrays.equals( hash, torrent.getHash().getBytes())){
+							
+							request = "info_hash=" + bit;
+							
+							if ( request.endsWith("&")){
+								
+								request = request.substring(0,request.length()-1);
+							}
+							
+							break;
+						}
+						
+						if ( p == -1 ){
+							
+							break;
+						}
+						
+						request_pos = p + 10;
+					}
+				}catch( Throwable e ){
+						
+					Debug.printStackTrace(e);
+				}
+			}
 			
 			TRTrackerServerRequestImpl	req = new TRTrackerServerRequestImpl( this, peer, torrent, type, request, response );
 			

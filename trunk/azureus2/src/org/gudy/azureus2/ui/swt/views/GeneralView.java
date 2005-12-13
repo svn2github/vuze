@@ -672,7 +672,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	    
 		updateButton.addSelectionListener(new SelectionAdapter() {
 	      public void widgetSelected(SelectionEvent event) {
-	        manager.checkTracker();
+	        manager.checkTracker(false);
 	      }
 	    });
     

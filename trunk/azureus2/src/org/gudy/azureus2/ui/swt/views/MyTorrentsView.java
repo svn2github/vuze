@@ -977,7 +977,7 @@ public class MyTorrentsView
 		itemManualUpdate.addListener(SWT.Selection,
 				new SelectedTableRowsListener() {
 					public void run(TableRowCore row) {
-						((DownloadManager) row.getDataSource(true)).checkTracker();
+						((DownloadManager) row.getDataSource(true)).checkTracker(false);
 					}
 				});
 		itemManualUpdate.setEnabled(manualUpdate);

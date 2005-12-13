@@ -1074,7 +1074,7 @@ TRHostImpl
 		
 				// can be null for multi-hash scrapes... should fix this sometime I guess
 			
-			if (ts_torrent != null ){
+			if ( ts_torrent != null ){
 				
 				HashWrapper	hash_wrapper = ts_torrent.getHash();
 				

@@ -843,6 +843,20 @@ RPDownload
  	}
  	
 	public void
+	requestTrackerAnnounce(
+		boolean		immediate )
+	{
+		notSupported();
+	}
+	
+	public void
+	requestTrackerScrape(
+		boolean		immediate )
+	{
+		notSupported();
+	}
+	
+	public void
 	setAnnounceResult(
 		DownloadAnnounceResult	result )
 	{

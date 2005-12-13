@@ -1559,19 +1559,10 @@ DownloadManagerImpl
 		
 		return( r );
 	}
-
   
- 
-  
-	public void 
-	checkTracker() 
-	{
-		checkTracker(false);
-	}
-  
-	protected void
+	public void
 	checkTracker(
-			boolean	force )
+		boolean	force )
 	{
 		TRTrackerAnnouncer tc = getTrackerClient();
 		
@@ -1580,6 +1571,18 @@ DownloadManagerImpl
 			tc.update( force );
 	}
 
+	public void
+	scrapeTracker(
+		boolean	force )
+	{
+		if ( globalManager != null && torrent != null ){
+	    	
+			TRTrackerScraper	scraper = globalManager.getTrackerScraper();
+ 
+			scraper.scrape( torrent, force );
+		}
+	}
+	
 	public String 
 	getTorrentComment() 
 	{

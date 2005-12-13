@@ -60,4 +60,8 @@ TRTrackerScraperClientResolver
 	isNetworkEnabled(
 		byte[]	hash,
 		URL		url );
+	
+	public String
+	getExtensions(
+		byte[]	hash );
 }

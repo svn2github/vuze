@@ -606,6 +606,24 @@ Download
   	public void
 	requestTrackerAnnounce();
   	
+  		/**
+		 * request a tracker announce 
+		 * @since 2.3.0.7
+		 */
+  	
+ 	public void
+	requestTrackerAnnounce(
+		boolean		immediate );
+ 	
+		/**
+		 * request a tracker announce 
+		 * @since 2.3.0.7
+		 */
+ 	
+	public void
+	requestTrackerScrape(
+		boolean		immediate );
+	
 	/**
 	 * Adds a listener to the download that will be informed of changes in the download's state
 	 * @param l

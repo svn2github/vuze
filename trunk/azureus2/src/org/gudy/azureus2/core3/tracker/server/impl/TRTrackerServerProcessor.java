@@ -175,7 +175,7 @@ TRTrackerServerProcessor
 				Map	files = new ByteEncodedKeyHashMap();
 				
 				root.put( "files", files );
-
+				
 				for (int i=0;i<hashes.length;i++){
 					
 					byte[]	hash = hashes[i];
@@ -224,6 +224,8 @@ TRTrackerServerProcessor
 						max_interval	= interval;
 					}
 					
+					server.preProcess( new lightweightPeer(client_ip_address), torrent, request_type, request, null );
+
 					// we don't cache local scrapes as if we do this causes the hosting of
 					// torrents to retrieve old values initially. Not a fatal error but not
 					// the best behaviour as the (local) seed isn't initially visible.
@@ -247,13 +249,15 @@ TRTrackerServerProcessor
 		}else{
 			
 			Map	files = new ByteEncodedKeyHashMap();
-						
+				
 			TRTrackerServerTorrentImpl[] torrents = server.getTorrents();
 			
 			for (int i=0;i<torrents.length;i++){
 				
 				TRTrackerServerTorrentImpl	this_torrent = torrents[i];
-								
+						
+				server.preProcess( new lightweightPeer(client_ip_address), this_torrent, request_type, request, null );
+
 				byte[]	torrent_hash = this_torrent.getHash().getHash();
 				
 				try{
@@ -306,6 +310,56 @@ TRTrackerServerProcessor
 			flags.put("min_request_interval", new Long(interval));
 			
 			root.put( "flags", flags );
+		}
+	}
+	
+	protected static class
+	lightweightPeer
+		implements TRTrackerServerPeer
+	{
+		private String	ip;
+		
+		protected
+		lightweightPeer(
+			String	_ip )
+		{
+			ip	= _ip;
+		}
+		
+		public long
+		getUploaded()
+		{
+			return( -1 );
+		}
+		
+		public long
+		getDownloaded()
+		{
+			return( -1 );
+		}
+		
+		public long
+		getAmountLeft()
+		{
+			return( -1 );
+		}
+		
+		public String
+		getIP()
+		{
+			return( ip );
+		}
+		
+		public String
+		getIPRaw()
+		{
+			return( ip );
+		}
+	
+		public byte
+		getNATStatus()
+		{
+			return( NAT_CHECK_UNKNOWN );
 		}
 	}
 }

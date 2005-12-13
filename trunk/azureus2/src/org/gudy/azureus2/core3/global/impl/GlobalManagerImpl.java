@@ -369,6 +369,20 @@ public class GlobalManagerImpl
     			
     			return( false );
     		}
+    		
+    		public String
+    		getExtensions(
+    			byte[]	hash )
+    		{
+     			DownloadManager	dm = getDownloadManager(hash);
+    			
+    			if ( dm == null ){
+    				
+    				return( "" );
+    			} 	
+    			
+    			return( dm.getDownloadState().getTrackerClientExtensions());
+    		}
 		});
     
     trackerScraper.addListener(

@@ -540,7 +540,15 @@ Test
 		}
 		
 		public void
-		checkTracker()
+		checkTracker(
+			boolean now )
+		{
+			
+		}
+		
+		public void
+		scrapeTracker(
+			boolean now )
 		{
 			
 		}

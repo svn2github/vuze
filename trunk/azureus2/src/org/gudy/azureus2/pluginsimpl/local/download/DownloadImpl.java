@@ -1270,9 +1270,23 @@ DownloadImpl
  	public void
 	requestTrackerAnnounce()
  	{
- 		download_manager.checkTracker();
+ 		download_manager.checkTracker( false );
  	}
  	
+	public void
+	requestTrackerAnnounce(
+		boolean		immediate )
+	{
+		download_manager.checkTracker( immediate );
+	}
+	
+	public void
+	requestTrackerScrape(
+		boolean		immediate )
+	{
+		download_manager.scrapeTracker( immediate );
+	}
+	
   public byte[] getDownloadPeerId() {
     TRTrackerAnnouncer announcer = download_manager.getTrackerClient();
     if(announcer == null) return null;

@@ -7,14 +7,11 @@ package org.gudy.azureus2.core3.tracker.client.impl.bt;
 import java.util.*;
 import java.net.*;
 
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.tracker.client.impl.TRTrackerScraperResponseImpl;
 import org.gudy.azureus2.core3.util.*;
-
-import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * @author Olivier
@@ -231,7 +228,7 @@ public class TrackerChecker implements TRTrackerScraperListener {
           	
 	          Map hashmap = ts.getHashes();
 	
-	          if ( hashmap.get( hash ) != null ){
+	          if ( hashmap.get( new HashWrapper( hash )) != null ){
 	          	
 	            ts.updateSingleHash( hash, true, false );
 	            
