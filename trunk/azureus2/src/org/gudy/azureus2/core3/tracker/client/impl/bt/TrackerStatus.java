@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.FileNotFoundException;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,7 +21,6 @@ import java.util.zip.GZIPInputStream;
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
@@ -237,7 +237,7 @@ public class TrackerStatus {
 			      	
 			        TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
 			        
-			        if (!r.getHash().equals(hash)) {
+			        if (!Arrays.equals( r.getHash(), hash)) {
 			        	
 			          long lTimeDiff = Math.abs(lMainNextScrapeStartTime - r.getNextScrapeStartTime());
 			          
