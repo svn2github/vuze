@@ -38,8 +38,6 @@ import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 
-import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.downloadData;
-
 /** A "My Torrents" column for displaying Seeding Rank.
  */
 public class SeedingRankColumnListener implements
@@ -66,12 +64,12 @@ public class SeedingRankColumnListener implements
 		if (dl == null)
 			return;
 
-		downloadData dlData = null;
+		DefaultRankCalculator dlData = null;
 		Object o = cell.getSortValue();
-		if (o instanceof downloadData)
-			dlData = (downloadData) o;
+		if (o instanceof DefaultRankCalculator)
+			dlData = (DefaultRankCalculator) o;
 		else {
-			dlData = (downloadData) downloadDataMap.get(dl);
+			dlData = (DefaultRankCalculator) downloadDataMap.get(dl);
 			cell.setSortValue(dlData);
 		}
 		if (dlData == null)
@@ -87,7 +85,7 @@ public class SeedingRankColumnListener implements
 
 			if (iRankType == StartStopRulesDefaultPlugin.RANK_TIMED) {
 				//sText += "" + sr + " ";
-				if (sr > StartStopRulesDefaultPlugin.SR_TIMED_QUEUED_ENDS_AT) {
+				if (sr > DefaultRankCalculator.SR_TIMED_QUEUED_ENDS_AT) {
 					long timeStarted = dl.getStats().getTimeStartedSeeding();
 					long timeLeft;
 					if (dl.isForceStart())
@@ -103,19 +101,19 @@ public class SeedingRankColumnListener implements
 			} else if (sr > 0) {
 				sText += String.valueOf(sr);
 			}
-		} else if (sr == StartStopRulesDefaultPlugin.SR_FP0PEERS)
+		} else if (sr == DefaultRankCalculator.SR_FP0PEERS)
 			sText = MessageText.getString("StartStopRules.FP0Peers");
-		else if (sr == StartStopRulesDefaultPlugin.SR_SPRATIOMET)
+		else if (sr == DefaultRankCalculator.SR_FP_SPRATIOMET)
 			sText = MessageText.getString("StartStopRules.SPratioMet");
-		else if (sr == StartStopRulesDefaultPlugin.SR_RATIOMET)
+		else if (sr == DefaultRankCalculator.SR_RATIOMET)
 			sText = MessageText.getString("StartStopRules.ratioMet");
-		else if (sr == StartStopRulesDefaultPlugin.SR_NUMSEEDSMET)
+		else if (sr == DefaultRankCalculator.SR_NUMSEEDSMET)
 			sText = MessageText.getString("StartStopRules.numSeedsMet");
-		else if (sr == StartStopRulesDefaultPlugin.SR_NOTQUEUED)
+		else if (sr == DefaultRankCalculator.SR_NOTQUEUED)
 			sText = "";
-		else if (sr == StartStopRulesDefaultPlugin.SR_0PEERS)
+		else if (sr == DefaultRankCalculator.SR_0PEERS)
 			sText = MessageText.getString("StartStopRules.0Peers");
-		else if (sr == StartStopRulesDefaultPlugin.SR_SHARERATIOMET)
+		else if (sr == DefaultRankCalculator.SR_SHARERATIOMET)
 			sText = MessageText.getString("StartStopRules.shareRatioMet");
 		else {
 			sText = "ERR" + sr;
