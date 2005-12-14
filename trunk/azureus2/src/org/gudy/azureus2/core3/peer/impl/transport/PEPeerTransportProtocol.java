@@ -1891,9 +1891,32 @@ PEPeerTransportProtocol
     reservedPiece = pieceNumber;
   }
 
-  public List getRequestedPieceNumbers() {
+  public List getIncomingRequestedPieceNumbers() {
   	return outgoing_piece_message_handler.getRequestedPieceNumbers();
   }
+  
+	public List getOutgoingRequestedPieceNumbers() {
+		List pieceNumberList = new ArrayList(); 
+		try{
+		  requested_mon.enter();
+    
+		  for (int i = 0; i < requested.size(); i++) {
+		  	DiskManagerReadRequest request = null;
+		  	try {
+		  		request = (DiskManagerReadRequest) requested.get(i);
+		  	}
+		  	catch (Exception e) { Debug.printStackTrace( e );}
+        
+		  	if (request != null)
+		  		pieceNumberList.add(new Long(request.getPieceNumber()));
+		  }
+		}finally{
+			
+			requested_mon.exit();
+		}
+		
+		return pieceNumberList;
+	}
 
 
 

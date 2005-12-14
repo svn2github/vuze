@@ -198,6 +198,14 @@ PEPeer
   
   /**
    * get a list of piece numbers the peer has requested
+   * @return list of Long() representing the piece number requested, in order
    */
-  public List getRequestedPieceNumbers();
+  public List getIncomingRequestedPieceNumbers();
+  
+  /**
+   * get a list of piece numbers the we have requested from peer
+   * @return list of Long() representing the piece number requested, oldest
+   *          to newest
+   */
+  public List getOutgoingRequestedPieceNumbers();
 }
