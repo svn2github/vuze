@@ -139,7 +139,7 @@ BufferedTableRow
 			
 			if (item != null && !item.isDisposed()) 
 				item.dispose();
-			else
+			else if (table.getItemCount() > 0)
 				System.err.println("No table row was found to dispose");
 		} else {
 			if (!Utils.isThisThreadSWT()) {
