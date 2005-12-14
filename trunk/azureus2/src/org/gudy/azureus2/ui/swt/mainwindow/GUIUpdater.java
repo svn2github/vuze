@@ -23,7 +23,10 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.text.NumberFormat;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.eclipse.swt.widgets.Display;
 
@@ -53,7 +56,10 @@ import org.gudy.azureus2.ui.swt.views.IView;
  */
 public class GUIUpdater extends AEThread implements ParameterListener {
 	private static final LogIDs LOGID = LogIDs.GUI;
-  
+
+	/** Calculate timer statistics for GUI update */
+	private static final boolean DEBUG_TIMER = Constants.isCVSVersion();
+
   private AzureusCore		azureus_core;
   private ConnectionManager	connection_manager;
   
@@ -69,7 +75,9 @@ public class GUIUpdater extends AEThread implements ParameterListener {
   boolean finished = false;
   boolean refreshed = true;
   
-  int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");   
+  int waitTime = COConfigurationManager.getIntParameter("GUI Refresh");
+  
+  Map averageTimes = DEBUG_TIMER ? new HashMap() : null;
   
   public 
   GUIUpdater(
@@ -120,6 +128,9 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
+			    long lTimeStart = System.currentTimeMillis();
+			    Map timeMap = DEBUG_TIMER ? new LinkedHashMap() : null;
+
 					if (display == null || display.isDisposed())
 						return;
 
@@ -129,9 +140,17 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 
 						view = mainWindow.getCurrentView();
 
+						if (DEBUG_TIMER)
+							timeMap.put("Init", new Long(System.currentTimeMillis()));
 						if (view != null) {
 							view.refresh();
+							if (DEBUG_TIMER) {
+								String s = view.getFullTitle().replaceAll("[0-9.]++\\% : ", "");
+								timeMap.put("'" + s + "' Refresh", new Long(System.currentTimeMillis()));
+							}
 							Tab.refresh();
+							if (DEBUG_TIMER)
+								timeMap.put("Tab Refresh", new Long(System.currentTimeMillis()));
 						}
 
 						// IP Filter Status Section
@@ -280,8 +299,14 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 						mainWindow.statusBar.layout();
 					}
 
+					if (DEBUG_TIMER)
+						timeMap.put("Status Bar", new Long(System.currentTimeMillis()));
+					
 					if (mainWindow.systemTraySWT != null)
 						mainWindow.systemTraySWT.update();
+
+					if (DEBUG_TIMER)
+						timeMap.put("SysTray", new Long(System.currentTimeMillis()));
 
 					try {
 						mainWindow.downloadBars_mon.enter();
@@ -295,6 +320,13 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 
 						mainWindow.downloadBars_mon.exit();
 					}
+
+					if (DEBUG_TIMER) {
+						timeMap.put("DLBars", new Long(System.currentTimeMillis()));
+
+						makeDebugToolTip(lTimeStart, timeMap);
+					}
+
 				} catch (Exception e) {
 					Logger.log(new LogEvent(LOGID, "Error while trying to update GUI", e));
 				} finally {
@@ -309,4 +341,70 @@ public class GUIUpdater extends AEThread implements ParameterListener {
     COConfigurationManager.removeParameterListener("GUI Refresh", this);
     COConfigurationManager.removeParameterListener("config.style.refreshMT", this);
   }
+  
+  private void makeDebugToolTip(long lTimeStart, Map timeMap) {
+		final int IDX_AVG = 0;
+		final int IDX_SIZE = 1;
+		final int IDX_MAX = 2;
+		final int IDX_LAST = 3;
+		final int IDX_TIME = 4;
+
+		long lastTime = lTimeStart;
+		for (Iterator iter = timeMap.keySet().iterator(); iter.hasNext();) {
+			String key = (String) iter.next();
+
+			if (!averageTimes.containsKey(key))
+				averageTimes.put(key, new Object[] { new Long(0), new Long(0),
+						new Long(0), new Long(0), new Long(System.currentTimeMillis()) });
+
+			Object[] average = (Object[]) averageTimes.get(key);
+
+			long l = ((Long) timeMap.get(key)).longValue();
+			long diff = l - lastTime;
+			if (diff > 0) {
+				long count = ((Long) average[IDX_SIZE]).longValue();
+				// Limit to 20.  Gives slightly scewed averages, but doesn't
+				// require storing all 20 values and averaging them each time
+				if (count >= 20)
+					count = 19;
+				long lNewAverage = ((((Long) average[IDX_AVG]).longValue() * count) + diff)
+						/ (count + 1);
+				average[IDX_AVG] = new Long(lNewAverage);
+				average[IDX_SIZE] = new Long(count + 1);
+				if (diff > ((Long) average[IDX_MAX]).longValue())
+					average[IDX_MAX] = new Long(diff);
+				average[IDX_LAST] = new Long(diff);
+				average[IDX_TIME] = new Long(System.currentTimeMillis());
+			} else {
+				average[IDX_LAST] = new Long(diff);
+			}
+			averageTimes.put(key, average);
+			lastTime = l;
+		}
+
+		StringBuffer sb = new StringBuffer();
+		for (Iterator iter = averageTimes.keySet().iterator(); iter.hasNext();) {
+			String key = (String) iter.next();
+			Object[] average = (Object[]) averageTimes.get(key);
+
+			long lLastUpdated = ((Long) average[IDX_TIME]).longValue();
+			if (System.currentTimeMillis() - lLastUpdated > 10000) {
+				iter.remove();
+				continue;
+			}
+
+			long lTime = ((Long) average[IDX_AVG]).longValue();
+			if (lTime > 0) {
+				if (sb.length() > 0)
+					sb.append("\n");
+				sb.append(average[IDX_AVG] + "ms avg: ");
+				sb.append("[" + key + "]");
+				sb.append(average[IDX_SIZE] + " samples");
+				sb.append("; max:" + average[IDX_MAX]);
+				sb.append("; last:" + average[IDX_LAST]);
+			}
+		}
+		if (!mainWindow.getShell().isDisposed())
+			mainWindow.statusText.setToolTipText(sb.toString());
+	}
 }

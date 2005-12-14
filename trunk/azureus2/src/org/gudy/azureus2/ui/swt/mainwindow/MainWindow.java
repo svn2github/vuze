@@ -104,7 +104,7 @@ MainWindow
   Composite statusBar;
   StackLayout layoutStatusArea;
   
-  private CLabel statusText;
+  CLabel statusText;
   private String statusTextKey = "";
   private String statusImageKey = null;
 
