@@ -501,21 +501,20 @@ public class Utils {
 	 * Bottom Index may be negative
 	 */ 
 	public static int getTableBottomIndex(Table table, int iTopIndex) {
-		if (Constants.isLinux) {
-			// getItemHeight is slow on Linux, use getItem/getClientArea
-			// getItem(Point) is slow on OSX
-			
-			// 2 offset to be on the safe side
-			TableItem bottomItem = table.getItem(new Point(2,
-					table.getClientArea().height - 1));
-	  	int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem) :
-				table.getItemCount() - 1;
-	  	return iBottomIndex;
-		}
-
-		return Math.min(iTopIndex
-				+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / table
-						.getItemHeight()) + 1, table.getItemCount() - 1);
+		// getItemHeight is slow on Linux, use getItem/getClientArea
+		// getItem(Point) is slow on OSX
+		
+		if (Constants.isOSX)
+			return Math.min(iTopIndex
+					+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / 
+							table.getItemHeight()), table.getItemCount() - 1);
+		
+		// 2 offset to be on the safe side
+		TableItem bottomItem = table.getItem(new Point(2,
+				table.getClientArea().height - 1));
+  	int iBottomIndex = (bottomItem != null) ? table.indexOf(bottomItem) :
+			table.getItemCount() - 1;
+  	return iBottomIndex;
 	}
 	
 	public static void

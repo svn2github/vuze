@@ -2432,6 +2432,9 @@ public class TableView
 
 		if (lastTopIndex != iTopIndex) {
 			if (iTopIndex < lastTopIndex) {
+				if (lastTopIndex > iBottomIndex + 1 && iBottomIndex >= 0)
+					lastTopIndex = iBottomIndex + 1;
+
 				try {
 					sortedRows_mon.enter();
 					for (int i = iTopIndex; i < lastTopIndex && i < sortedRows.size(); i++) {
@@ -2446,8 +2449,8 @@ public class TableView
 		}
 
 		if (lastBottomIndex != iBottomIndex) {
-			if (lastBottomIndex < 0)
-				lastBottomIndex = 0;
+			if (lastBottomIndex < iTopIndex - 1)
+				lastBottomIndex = iTopIndex - 1;
 
 			if (lastBottomIndex <= iBottomIndex) {
 				try {
