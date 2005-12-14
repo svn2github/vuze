@@ -496,7 +496,7 @@ BufferedTableRow
     if (item != null) {
    		setAlternatingBGColor();
 	    // XXX Move back to TableView
-	    if ((table.getStyle() & SWT.VIRTUAL) == 0)
+	    if ((table.getStyle() & SWT.VIRTUAL) == 0 && item.getData("SD") != null)
 	    	setIconSize(ptIconSize);
     }
  		invalidate();
