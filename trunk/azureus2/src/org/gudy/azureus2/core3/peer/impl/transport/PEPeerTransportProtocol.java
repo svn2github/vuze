@@ -1268,7 +1268,7 @@ PEPeerTransportProtocol
       }
     }
     
-    supported_messages = (Message[])messages.toArray( new Message[0] );
+    supported_messages = (Message[])messages.toArray( new Message[messages.size()] );
      
     changePeerState( PEPeer.TRANSFERING );
     

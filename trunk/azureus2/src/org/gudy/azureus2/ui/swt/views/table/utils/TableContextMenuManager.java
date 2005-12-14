@@ -99,7 +99,7 @@ public class TableContextMenuManager {
       mTypes = (Map)items.get(null);
       if (mTypes != null)
         l.addAll(mTypes.values());
-      return (TableContextMenuItem[])l.toArray(new TableContextMenuItem[0]);
+      return (TableContextMenuItem[])l.toArray(new TableContextMenuItem[l.size()]);
     }
     return new TableContextMenuItem[0];
   }

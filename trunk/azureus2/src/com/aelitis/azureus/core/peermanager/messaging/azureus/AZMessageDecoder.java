@@ -126,7 +126,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   public Message[] removeDecodedMessages() {
     if( messages_last_read.isEmpty() )  return null;
     
-    Message[] msgs = (Message[])messages_last_read.toArray( new Message[0] );
+    Message[] msgs = (Message[])messages_last_read.toArray( new Message[messages_last_read.size()] );
     messages_last_read.clear();
     
     return msgs;

@@ -174,7 +174,7 @@ public class TableColumnManager {
   public TableColumnCore[] getAllTableColumnCoreAsArray(String sTableID) {
     Map mTypes = (Map)items.get(sTableID);
     if (mTypes != null) {
-      return (TableColumnCore[])mTypes.values().toArray(new TableColumnCore[0]);
+      return (TableColumnCore[])mTypes.values().toArray(new TableColumnCore[mTypes.values().size()]);
     }
     return new TableColumnCore[0];
   }
@@ -193,7 +193,7 @@ public class TableColumnManager {
       return;
 
     TableColumnCore[] tableColumns = 
-      (TableColumnCore[])mTypes.values().toArray(new TableColumnCore[0]);
+      (TableColumnCore[])mTypes.values().toArray(new TableColumnCore[mTypes.values().size()]);
 
     Arrays.sort(tableColumns, new Comparator () {
       public final int compare (Object a, Object b) {

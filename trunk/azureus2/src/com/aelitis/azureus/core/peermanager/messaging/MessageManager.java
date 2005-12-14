@@ -143,7 +143,7 @@ public class MessageManager {
    * @return messages
    */
   public Message[] getRegisteredMessages() {
-    return (Message[])message_registrations.values().toArray( new Message[0] );
+    return (Message[])message_registrations.values().toArray( new Message[message_registrations.size()] );
   }
 
   

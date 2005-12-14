@@ -148,7 +148,7 @@ public class ClientConnection {
 			}
 			closed	= true;
 			if( !sending_msgs.isEmpty() ) {
-				messages = (ClientMessage[])sending_msgs.toArray( new ClientMessage[]{} );
+				messages = (ClientMessage[])sending_msgs.toArray( new ClientMessage[sending_msgs.size()] );
 			}
 		}
 		finally{ msg_mon.exit(); }

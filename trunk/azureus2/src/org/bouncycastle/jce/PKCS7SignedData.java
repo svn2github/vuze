@@ -397,7 +397,7 @@ public class PKCS7SignedData
      */
     public Certificate[] getCertificates()
     {
-        return (X509Certificate[])certs.toArray(new X509Certificate[0]);
+        return (X509Certificate[])certs.toArray(new X509Certificate[certs.size()]);
     }
 
     /**
