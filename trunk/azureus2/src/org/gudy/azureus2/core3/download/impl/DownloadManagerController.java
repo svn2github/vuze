@@ -159,7 +159,7 @@ DownloadManagerController
 		
 		for (int i=0;i<files_facade.length;i++){
 			
-			files_facade[i] = new fileInfoFacade();
+			files_facade[i] = new fileInfoFacade(i);
 		}
 		
 			// only take note if there's been no errors
@@ -979,34 +979,6 @@ DownloadManagerController
    	public DiskManagerFileInfo[]
     getDiskManagerFileInfo()
    	{
-  		DiskManager	dm = getDiskManager();
-
-   		DiskManagerFileInfo[]	res	= null;
-   		
-   		if ( dm != null ){
-   			
-   			skeleton_files	= null;
-   			
-   			res = dm.getFiles();
-   		}
-   		
-   		if ( res == null ){
-   			
-   			res = skeleton_files;
-   			
-   			if ( res == null ){
-
-   				res = DiskManagerFactory.getFileInfoSkeleton( download_manager );
-   				
-   				skeleton_files	= res;
-   			}
-   		}
-   		
-   		for (int i=0;i<res.length;i++){
-   			
-   			files_facade[i].setDelegate( res[i] );
-   		}
-   		
    		return( files_facade );
    	}
 	
@@ -1279,23 +1251,55 @@ DownloadManagerController
 		return new Object[] { download_manager };
 	}
 	
-	protected static class
+	protected class
 	fileInfoFacade
 		implements DiskManagerFileInfo
 	{
 		private DiskManagerFileInfo		delegate;
+		private int						index;
+		
+		protected 
+		fileInfoFacade(
+			int	_index )
+		{
+			index	= _index;
+		}
 		
 		protected void
-		setDelegate(
-				DiskManagerFileInfo	_d )
+		fixup()
 		{
-			delegate = _d;
+	 		DiskManager	dm = DownloadManagerController.this.getDiskManager();
+
+	   		DiskManagerFileInfo[]	res	= null;
+	   		
+	   		if ( dm != null ){
+	   			
+	   			skeleton_files	= null;
+	   			
+	   			res = dm.getFiles();
+	   		}
+	   		
+	   		if ( res == null ){
+	   			
+	   			res = skeleton_files;
+	   			
+	   			if ( res == null ){
+
+	   				res = DiskManagerFactory.getFileInfoSkeleton( download_manager );
+	   				
+	   				skeleton_files	= res;
+	   			}
+	   		}
+	
+	   		delegate = res[index];
 		}
 		
 		public void 
 		setPriority(
 			boolean b )
 		{
+			fixup();
+			
 			delegate.setPriority(b);
 		}
 		
@@ -1303,6 +1307,8 @@ DownloadManagerController
 		setSkipped(
 			boolean b)
 		{
+			fixup();
+			
 			delegate.setSkipped(b);
 		}
 		 
@@ -1311,12 +1317,16 @@ DownloadManagerController
 		setLink(
 			File	link_destination )
 		{
+			fixup();
+		
 			return( delegate.setLink( link_destination ));
 		}
 		
 		public File
 		getLink()
 		{
+			fixup();
+			
 			return( delegate.getLink());
 		}
 		
@@ -1324,12 +1334,16 @@ DownloadManagerController
 		setStorageType(
 			int		type )
 		{
+			fixup();
+			
 			return( delegate.setStorageType( type ));
 		}
 		
 		public int
 		getStorageType()
 		{
+			fixup();
+			
 			return( delegate.getStorageType());
 		}
 		
@@ -1337,78 +1351,104 @@ DownloadManagerController
 		public int 
 		getAccessMode()
 		{
+			fixup();
+			
 			return( delegate.getAccessMode());
 		}
 		
 		public long 
 		getDownloaded()
 		{
+			fixup();
+			
 			return( delegate.getDownloaded());
 		}
 		
 		public String 
 		getExtension()
 		{
+			fixup();
+			
 			return( delegate.getExtension());
 		}
 			
 		public int 
 		getFirstPieceNumber()
 		{
+			fixup();
+			
 			return( delegate.getFirstPieceNumber());
 		}
 	  
 		public int 
 		getLastPieceNumber()
 		{
+			fixup();
+			
 			return( delegate.getLastPieceNumber());
 		}
 		
 		public long 
 		getLength()
 		{
+			fixup();
+			
 			return( delegate.getLength());
 		}
 			
 		public int 
 		getNbPieces()
 		{
+			fixup();
+			
 			return( delegate.getNbPieces());
 		}
 				
 		public boolean 
 		isPriority()
 		{
+			fixup();
+			
 			return( delegate.isPriority());
 		}
 		
 		public boolean 
 		isSkipped()
 		{
+			fixup();
+			
 			return( delegate.isSkipped());
 		}
 		
 		public int	
 		getIndex()
 		{
+			fixup();
+			
 			return( delegate.getIndex());
 		}
 		
 		public DiskManager 
 		getDiskManager()
 		{
+			fixup();
+			
 			return( delegate.getDiskManager());
 		}
 		
 		public File 
 		getFile( boolean follow_link )
 		{
+			fixup();
+			
 			return( delegate.getFile( follow_link ));
 		}
 		
 		public TOTorrentFile
 		getTorrentFile()
 		{
+			fixup();
+			
 			return( delegate.getTorrentFile());
 		}
 		
@@ -1417,6 +1457,8 @@ DownloadManagerController
 		
 			throws	Exception
 		{
+			fixup();
+			
 			delegate.flushCache();
 		}
 	}

@@ -2143,13 +2143,19 @@ DiskManagerImpl
 	{
 		File	existing_link = FMFileManagerFactory.getSingleton().getFileLink( to_link );
 		
-		if ( existing_link != to_link ){
+		if ( !existing_link.equals( to_link )){
 			
-			Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-							"Attempt to link to existing link '" + existing_link.toString()
-									+ "'"));
+				// where we're mapping to is already linked somewhere else. Only case we support
+				// is where this is a remapping of the same file back to where it came from
 			
-			return( false );
+			if ( !from_link.equals( to_link )){
+				
+				Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
+								"Attempt to link to existing link '" + existing_link.toString()
+										+ "'"));
+				
+				return( false );
+			}
 		}
 		
 		for (int i=0;i<info.length;i++){

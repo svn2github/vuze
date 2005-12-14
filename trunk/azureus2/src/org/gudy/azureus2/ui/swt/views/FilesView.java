@@ -197,100 +197,15 @@ public class FilesView
     
     itemRename.addListener(
     	SWT.Selection, 
-    	new SelectedTableRowsListener() 
+    	new Listener() 
     	{
-    		public void 
-    		run(
-    			TableRowCore row) 
-    		{
-    			if (manager == null)
-    				return;
-
-    			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
-   
-    			FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
-    			
-    			File	existing_file = fileInfo.getFile(true);
-    			
-    			fDialog.setFilterPath(existing_file.getParent());
-    			
-    			fDialog.setFileName( existing_file.getName());
-    			
-    			fDialog.setText( MessageText.getString("FilesView.rename.choose.path"));
-          
-    			String	res = fDialog.open();
-          
-    			if ( res != null ){
-        	  
-    				boolean	paused = false;
-    				
-    				try{
-    					paused = manager.pause();
-    					
-    						// gotta pick up the skeleton entry if we paused
-    					
-    					fileInfo = manager.getDiskManagerFileInfo()[fileInfo.getIndex()];
-
-	    				File	target = new File( res );
-	        	  
-	    				boolean	ok = false;
-	        	  
-	    				if ( target.exists()){
-	        		 
-	    					if ( target.equals( existing_file )){
-	        			  
-	    						// nothing to do
-	    						
-	    					}else if ( !existing_file.exists()){
-		
-	    						ok	= true;
-	    						
-	    					}else{
-	        			  
-	    						if ( MessageBoxWindow.open( 
-	    								"FilesView.messagebox.rename.id",
-	    								SWT.OK | SWT.CANCEL,
-	    								SWT.OK,
-	    								getComposite().getDisplay(), 
-	    								MessageBoxWindow.ICON_WARNING,
-	    								MessageText.getString( "FilesView.rename.confirm.delete.title" ),
-	    								MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK ){
-		        		    			        		    		
-	    							ok	= true;
-	    						}
-	    					}
-	    				}else{
-	        			  
-	    					ok = true;
-	    				}
-	        	  
-	    				if ( ok ){
-	        		  
-	    					if ( !fileInfo.setLink( target )){
-	    						
-	    						MessageBox mb = new MessageBox(getComposite().getShell(),SWT.ICON_ERROR | SWT.OK );
-	    					    
-	    						mb.setText(MessageText.getString("FilesView.rename.failed.title"));
-	    					    
-	    						mb.setMessage(MessageText.getString("FilesView.rename.failed.text"));
-	    					    
-	    						mb.open();	    					
-	    					}
-	        		  
-	    					row.invalidate();
-	    				}
-    				
-	    			}finally{
-	    				
-	    				if ( paused ){
-	    					
-	    					manager.resume();
-	    				}
-	    			}
-    			}
-    		}
+			public void 
+			handleEvent(Event event) 
+			{
+				rename(	getSelectedRows());
+			}
     	});
-    
+  
     Listener priorityListener = new Listener() {
 			public void handleEvent(Event event) {
 				changePriority(((Integer) event.widget.getData("Priority")).intValue(),
@@ -304,112 +219,157 @@ public class FilesView
     itemDelete.addListener(SWT.Selection, priorityListener);
   }
   
+	protected void
+	rename(
+		TableRowCore[]	rows )
+	{
+	 	if ( manager == null ){
+	 		
+	  		return;
+	  	}
+	 	
+		boolean	paused	= false;
+		
+		try{
+			for (int i=0;i<rows.length;i++){
+				
+				TableRowCore	row = rows[i];
+				
+				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)row.getDataSource(true);
+	
+				FileDialog fDialog = new FileDialog(getComposite().getShell(), SWT.SYSTEM_MODAL | SWT.SAVE);  
+				
+				File	existing_file = fileInfo.getFile(true);
+				
+				fDialog.setFilterPath(existing_file.getParent());
+				
+				fDialog.setFileName( existing_file.getName());
+				
+				fDialog.setText( MessageText.getString("FilesView.rename.choose.path"));
+	      
+				String	res = fDialog.open();
+	      
+				if ( res != null ){
+	    	  				
+					if ( !paused ){
+						
+						paused = manager.pause();
+					}
+						
+    				File	target = new File( res );
+        	  
+    				boolean	ok = false;
+        	  
+    				if ( target.exists()){
+        		 
+    					if ( target.equals( existing_file )){
+        			  
+    						// nothing to do
+    						
+    					}else if ( !existing_file.exists()){
+	
+    						ok	= true;
+    						
+    					}else{
+        			  
+    						if ( MessageBoxWindow.open( 
+    								"FilesView.messagebox.rename.id",
+    								SWT.OK | SWT.CANCEL,
+    								SWT.OK,
+    								getComposite().getDisplay(), 
+    								MessageBoxWindow.ICON_WARNING,
+    								MessageText.getString( "FilesView.rename.confirm.delete.title" ),
+    								MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK ){
+	        		    			        		    		
+    							ok	= true;
+    						}
+    					}
+    				}else{
+        			  
+    					ok = true;
+    				}
+        	  
+    				if ( ok ){
+        		  
+    					if ( !fileInfo.setLink( target )){
+    						
+    						MessageBox mb = new MessageBox(getComposite().getShell(),SWT.ICON_ERROR | SWT.OK );
+    					    
+    						mb.setText(MessageText.getString("FilesView.rename.failed.title"));
+    					    
+    						mb.setMessage(MessageText.getString("FilesView.rename.failed.text"));
+    					    
+    						mb.open();	    					
+    					}
+        		  
+    					row.invalidate();
+    				}
+				}
+			}
+		}finally{
+			
+			if ( paused ){
+				
+				manager.resume();
+			}
+		}
+	}
+	
   protected void
   changePriority(
 	  int				type ,
 	  TableRowCore[]	rows )
   {
-  	if (manager == null)
-  		return;
+	  	if ( manager == null){
+	  		
+	  		return;
+	  	}
+  				
+		boolean	paused = false;		
 
-		DiskManagerFileInfo[] file_infos	= new DiskManagerFileInfo[rows.length];
-			
-		boolean	pause = false;
-		
-			// if the user has defaulted the storage switch option to "don't use compact" then
-			// we don't need to pause the download etc.
-		
-		boolean	compact_disabled = MessageBoxWindow.getRememberedDecision( 
-										"FilesView.messagebox.skip.id",
-										SWT.YES | SWT.NO ) == SWT.NO;
-				
-		for (int i=0;i<file_infos.length;i++){
-					
-			DiskManagerFileInfo file_info = file_infos[i] = (DiskManagerFileInfo)rows[i].getDataSource(true);
-				
-			int	storage_type = file_info.getStorageType();
-			
-			if ( storage_type == DiskManagerFileInfo.ST_COMPACT ){
-			
-					// we support compact -> anything without stopping the download
-				
-				continue;
-			}
-			
-			if ( type == 3 ){
-			
-					// delete always requires pausing if we're linear
-				
-				pause	= true;
-								
-			}else if ( type == 2 ){
-				
-					// dnd requires pausing if linear and user hasn't defaulted to staying-linear
-				
-				if ( !compact_disabled ){
-				
-					pause	= true;
-				}
-			}
-		}
-		
 		try{
-			if ( pause ){
-				
-				pause = manager.pause();
-				
-				if ( pause ){
-						// we've got to pick up the new info as stopping causes skeleton
-						// info to be returned and this is the only info that will
-						// accept changes in storage strategy...
-					
-					DiskManagerFileInfo[] new_info = manager.getDiskManagerFileInfo();
-					
-					for (int i=0;i<file_infos.length;i++){
-						
-						file_infos[i] = new_info[file_infos[i].getIndex()];
-					}
-				}
-			}
-		
-			for (int i=0;i<file_infos.length;i++){
+	
+			for (int i=0;i<rows.length;i++){
 
-				DiskManagerFileInfo	fileInfo = file_infos[i];
+				DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)rows[i].getDataSource(true);
+
+				boolean	this_paused;
 				
 				if ( type == 0){
 					
 		   			fileInfo.setPriority(true);
 		   			
-					setSkipped( fileInfo, compact_disabled, false, false );
+					this_paused = setSkipped( fileInfo, false, false );
 					
 				}else if ( type == 1 ){
 					
 		 			fileInfo.setPriority(false);
 		 			
-					setSkipped( fileInfo, compact_disabled, false, false );
+		 			this_paused = setSkipped( fileInfo, false, false );
 					
 				}else if ( type == 2 ){
 					
-					setSkipped( fileInfo, compact_disabled, true, false );
+					this_paused = setSkipped( fileInfo, true, false );
 					
 				}else{
 					
-					setSkipped( fileInfo, false, true, true );
+					this_paused = setSkipped( fileInfo, true, true );
 				}
+				
+				paused = paused || this_paused;
 			}
 		}finally{
 			
-			if ( pause ){
+			if ( paused ){
 			
 				manager.resume();
 			}
 		}
   }
   
-  protected void
+  protected boolean
   setSkipped(
 	 DiskManagerFileInfo	info,
-	 boolean				compact_disabled,
 	 boolean				skipped,
 	 boolean				force_compact )
   {
@@ -420,7 +380,7 @@ public class FilesView
 		
 		info.setSkipped( skipped );
 
-		return;
+		return( false );
 	}
 	
 	File	existing_file 			= info.getFile(true);	
@@ -462,6 +422,10 @@ public class FilesView
 		
 		if ( skipped ){
 			
+			boolean	compact_disabled = MessageBoxWindow.getRememberedDecision( 
+											"FilesView.messagebox.skip.id",
+											SWT.YES | SWT.NO ) == SWT.NO;
+
 			if ( compact_disabled ){
 				
 				new_storage_type	= DiskManagerFileInfo.ST_LINEAR;
@@ -479,7 +443,14 @@ public class FilesView
 	
 	boolean	ok;
 	
+	boolean	paused	= false;
+	
 	if ( existing_storage_type != new_storage_type ){
+		
+		if ( new_storage_type == DiskManagerFileInfo.ST_COMPACT ){
+			
+			paused = manager.pause();
+		}
 		
 		ok = info.setStorageType( new_storage_type );
 		
@@ -492,6 +463,8 @@ public class FilesView
 		
 		info.setSkipped( skipped );
 	}
+	
+	return( paused );
   }
 
   /* (non-Javadoc)
