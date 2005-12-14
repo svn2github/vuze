@@ -185,7 +185,6 @@ public class MyTorrentsView
 
     createDragDrop();
     activateCategory(currentCategory);
-    refreshTable(false);
   }
 
   public Composite createMainPanel(Composite composite) {
@@ -2351,7 +2350,8 @@ public class MyTorrentsView
 				managersToAdd.add(manager);
 			}
 		}
-    addDataSources(managersToAdd.toArray());
+    addDataSources(managersToAdd.toArray(), true);
+    refreshTable(false);
 	}
 
 
@@ -2364,7 +2364,6 @@ public class MyTorrentsView
 				runSupport() 
 	  			{
 	  				createTabs();
-	  				addCategorySubMenu();
 	  			}
 			});
   }
@@ -2377,7 +2376,6 @@ public class MyTorrentsView
 				runSupport() 
 	  			{
 	  				createTabs();
-	  				addCategorySubMenu();
 	  			}
 			});
   }
