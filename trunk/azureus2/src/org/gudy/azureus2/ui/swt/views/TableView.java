@@ -783,6 +783,9 @@ public class TableView
 			public void menuHidden(MenuEvent e) {
 				bShown = false;
 
+				if (Constants.isOSX)
+					return;
+
 				// Must dispose in an asyncExec, otherwise SWT.Selection doesn't
 				// get fired (async workaround provided by Eclipse Bug #87678)
 				e.widget.getDisplay().asyncExec(new AERunnable() {
