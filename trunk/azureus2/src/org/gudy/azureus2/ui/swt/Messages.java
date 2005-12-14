@@ -260,6 +260,8 @@ public class Messages {
         	// Disable Mnemonic when & is before a space.  Otherwise, it's most
         	// likely meant to be a Mnemonic
           ((Label) widget).setText(message.replaceAll("& ", "&& "));
+        else if (widget instanceof CLabel)
+          ((CLabel) widget).setText(message.replaceAll("& ", "&& "));
         else if (widget instanceof Group)
            ((Group) widget).setText(message);
         else if (widget instanceof Button)
