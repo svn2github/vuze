@@ -64,7 +64,7 @@ import java.util.List;
 public class 
 MySharesView 
 	extends TableView
-	implements ShareManagerListener, CategoryManagerListener
+	implements ShareManagerListener
 {
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
@@ -142,8 +142,6 @@ MySharesView
 		 });	
 		 
 		createRows();
-		 
-	    CategoryManager.addCategoryManagerListener(this);
 	}
 
   private void createRows() {
@@ -296,36 +294,6 @@ MySharesView
 
 	  }
 	
-	  public void 
-	  categoryAdded(Category category) 
-	  {
-	  	MainWindow.getWindow().getDisplay().asyncExec(
-		  		new AERunnable() 
-				{
-		  			public void 
-					runSupport() 
-		  			{
-		  				addCategorySubMenu();
-		  			}
-				});
-	  }
-
-	  public void 
-	  categoryRemoved(
-	  	Category category) 
-	  {
-	  	MainWindow.getWindow().getDisplay().asyncExec(
-	  		new AERunnable() 
-			{
-	  			public void 
-				runSupport() 
-	  			{
-	  				addCategorySubMenu();
-	  			}
-			});
-	  }
-	
-	  
 	  private void addCategory() {
 	    CategoryAdderWindow adderWindow = new CategoryAdderWindow(MainWindow.getWindow().getDisplay());
 	    Category newCategory = adderWindow.getNewCategory();
