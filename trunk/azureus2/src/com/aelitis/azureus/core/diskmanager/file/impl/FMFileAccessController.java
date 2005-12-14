@@ -66,7 +66,7 @@ FMFileAccessController
 	
 		if ( control_file == null ){
 			
-			Debug.out( "No control file" );
+			// Debug.out( "No control file" ); in optimised environments we don't support compact and return null here
 			
 			if ( _target_type == FMFile.FT_LINEAR ){
 				

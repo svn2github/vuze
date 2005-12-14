@@ -1583,7 +1583,7 @@ DiskManagerImpl
 	        	return;
 	        }
 	        
-	    	Debug.out( "Moving data files: " + rPath + " -> " + moveToDir +", def = " + defSaveDir ); 
+	    	// Debug.out( "Moving data files: " + rPath + " -> " + moveToDir +", def = " + defSaveDir ); 
 	    }
 	    
 	    boolean moveTorrent = COConfigurationManager.getBooleanParameter("Move Torrent When Done", true);
