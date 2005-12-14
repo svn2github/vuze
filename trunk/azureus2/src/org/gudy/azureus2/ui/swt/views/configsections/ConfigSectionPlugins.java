@@ -44,6 +44,7 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.BooleanParameterImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.DualChangeSelectionActionPerformer;
@@ -69,12 +70,12 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 	private final static String HEADER_PREFIX = "ConfigView.pluginlist.column.";
 
 	private final static String[] COLUMN_HEADERS = { "loadAtStartup", "type",
-			"name", "version", "directory", "isOperational" };
+			"name", "version", "directory" };
 
-	private final static int[] COLUMN_SIZES = { 110, 50, 150, 75, 100, 75 };
+	private final static int[] COLUMN_SIZES = { 110, 50, 150, 75, 100 };
 
 	private final static int[] COLUMN_ALIGNS = { SWT.CENTER, SWT.LEFT, SWT.LEFT,
-			SWT.RIGHT, SWT.LEFT, SWT.CENTER };
+			SWT.RIGHT, SWT.LEFT};
 
 	private ConfigView configView;
 
@@ -94,8 +95,6 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 		static final int FIELD_VERSION = 3;
 
 		static final int FIELD_DIRECTORY = 4;
-
-		static final int FIELD_OPERATIONAL = 5;
 
 		int field = FIELD_NAME;
 
@@ -134,13 +133,6 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 				case FIELD_DIRECTORY: {
 					result = getFieldValue(field, if0).compareToIgnoreCase(
 							getFieldValue(field, if1));
-					break;
-				}
-
-				case FIELD_OPERATIONAL: {
-					boolean b0 = if0.isOperational();
-					boolean b1 = if1.isOperational();
-					result = (b0 == b1 ? 0 : (b0 ? 1 : -1));
 					break;
 				}
 
@@ -198,10 +190,6 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 
 				case FIELD_NAME: {
 					return pluginIF.getPluginName();
-				}
-
-				case FIELD_OPERATIONAL: {
-					return pluginIF.isOperational() ? "O" : "X";
 				}
 
 				case FIELD_TYPE: {
@@ -406,6 +394,10 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 				PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
 
 				for (int i = 0; i < COLUMN_HEADERS.length; i++) {
+					if (i == FilterComparator.FIELD_NAME)
+						item.setImage(i, ImageRepository.getImage(pluginIF.isOperational()
+								? "greenled" : "redled")); 
+					
 					String sText = comparator.getFieldValue(i, pluginIF);
 					if (sText == null)
 						sText = "";
