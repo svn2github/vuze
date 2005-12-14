@@ -27,8 +27,6 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -61,7 +59,7 @@ public class ProgressGraphItem
           implements TableCellRefreshListener, TableCellDisposeListener
   {
     int lastPercentDone = 0;
-    private long last_draw_time;
+    private long last_draw_time	= SystemTime.getCurrentTime();
     private boolean bNoRed = false;
     private boolean	was_running = false;
 
