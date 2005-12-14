@@ -809,28 +809,35 @@ TRTrackerBTAnnouncerImpl
 	  			
 	  			TRTrackerAnnouncerResponsePeer	peer = peers[i];
 	  			
-	  			String	peer_address = peer.getAddress();
-	  			
-	  			String	peer_network = AENetworkClassifier.categoriseAddress( peer_address );
-	  			
-	  			boolean	added = false;
-	  			
-	  			for (int j=0;j<peer_networks.length;j++){
+	  			if ( peer_networks == null ){
 	  				
-	  				if ( peer_networks[j] == peer_network ){
-	  					
-	  					p.add( peer );
-	  					
-	  					added = true;
-	  					
-	  					break;
-	  				}
-	  			}
+	  				p.add( peer );
+	  				
+	  			}else{
+	  				
+		  			String	peer_address = peer.getAddress();
+		  			
+		  			String	peer_network = AENetworkClassifier.categoriseAddress( peer_address );
+		  			
+		  			boolean	added = false;
+		  			
+		  			for (int j=0;j<peer_networks.length;j++){
+		  				
+		  				if ( peer_networks[j] == peer_network ){
+		  					
+		  					p.add( peer );
+		  					
+		  					added = true;
+		  					
+		  					break;
+		  				}
+		  			}
 	  			
-	  			if (!added && Logger.isEnabled())
-						Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_WARNING,
-								"Tracker Announcer dropped peer '" + peer_address
-										+ "' as incompatible " + "with network selection"));
+		  			if (!added && Logger.isEnabled())
+							Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_WARNING,
+									"Tracker Announcer dropped peer '" + peer_address
+											+ "' as incompatible " + "with network selection"));
+	  			}
 	  		}
 	  		
 	  		peers = new TRTrackerAnnouncerResponsePeer[ p.size()];
@@ -895,6 +902,7 @@ TRTrackerBTAnnouncerImpl
 		  	last_failure_resp = 
 		  		new TRTrackerAnnouncerResponseImpl( 
 		  				url,
+		  				torrent_hash,
 		  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
 						"malformed URL '" + (request_url==null?"<null>":request_url.toString()) + "'" );
@@ -904,6 +912,7 @@ TRTrackerBTAnnouncerImpl
 		  	last_failure_resp = 
 		  		new TRTrackerAnnouncerResponseImpl(
 		  				url,
+		  				torrent_hash,
 		  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
 						e.getMessage()==null?e.toString():e.getMessage());
@@ -923,6 +932,7 @@ TRTrackerBTAnnouncerImpl
 		  	last_failure_resp = 
 		  		new TRTrackerAnnouncerResponseImpl( 
 		  				null,
+		  				torrent_hash,
 		  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 						getErrorRetryInterval(), 
 						"Reason Unknown" );
@@ -1617,17 +1627,24 @@ TRTrackerBTAnnouncerImpl
     boolean	network_ok			= false;
     boolean	normal_network_ok	= false;
     
-    for (int i=0;i<peer_networks.length;i++){
-    
-    	if ( peer_networks[i] == AENetworkClassifier.AT_PUBLIC ){
-    		
-    		normal_network_ok = true;
-    	}
+    if ( peer_networks == null ){
     	
-    	if ( peer_networks[i] == tracker_network ){
-    		
-    		network_ok	= true;
-    	}
+    	network_ok			= true;
+    	normal_network_ok	= true;
+    	
+    }else{
+	    for (int i=0;i<peer_networks.length;i++){
+	    
+	    	if ( peer_networks[i] == AENetworkClassifier.AT_PUBLIC ){
+	    		
+	    		normal_network_ok = true;
+	    	}
+	    	
+	    	if ( peer_networks[i] == tracker_network ){
+	    		
+	    		network_ok	= true;
+	    	}
+	    }
     }
     
     if ( !network_ok ){
@@ -2021,7 +2038,7 @@ TRTrackerBTAnnouncerImpl
 										"Problems with Tracker, will retry in "
 												+ getErrorRetryInterval() + "ms"));
 											   			
-				       return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), "Unknown cause" ));
+				       return( new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), "Unknown cause" ));
 	
 				     }else{
 				     	
@@ -2029,7 +2046,7 @@ TRTrackerBTAnnouncerImpl
 				     	
 				       failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
                             				
-				       return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
+				       return( new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
 				     }
 				   }
 				   
@@ -2173,7 +2190,7 @@ TRTrackerBTAnnouncerImpl
 					
 					addToTrackerCache( peers);
 					
-					TRTrackerAnnouncerResponseImpl resp = new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_ONLINE, time_to_wait, peers );
+					TRTrackerAnnouncerResponseImpl resp = new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_ONLINE, time_to_wait, peers );
           
 						//reset failure retry interval on successful connect
 					
@@ -2266,7 +2283,7 @@ TRTrackerBTAnnouncerImpl
 			}
   		}
 
-		return( new TRTrackerAnnouncerResponseImpl( url, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), failure_reason ));
+		return( new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), failure_reason ));
   	}
   	
 	protected void
@@ -2289,7 +2306,7 @@ TRTrackerBTAnnouncerImpl
 	{
 		if( last_response == null ){
 			
-			return new TRTrackerAnnouncerResponseImpl( null, TRTrackerAnnouncerResponse.ST_OFFLINE, TRTrackerAnnouncer.REFRESH_MINIMUM_SECS, "Initialising" );
+			return new TRTrackerAnnouncerResponseImpl( null, torrent_hash, TRTrackerAnnouncerResponse.ST_OFFLINE, TRTrackerAnnouncer.REFRESH_MINIMUM_SECS, "Initialising" );
 		}
 		
 		return( last_response );
@@ -2411,6 +2428,7 @@ TRTrackerBTAnnouncerImpl
 			
 	  		response = new TRTrackerAnnouncerResponseImpl(
 				  				result.getURL(),
+				  				torrent_hash,
 				  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 								result.getTimeToWait(), 
 								reason );
@@ -2436,7 +2454,7 @@ TRTrackerBTAnnouncerImpl
 		
 			status = MessageText.getString("PeerManager.status.ok");
 
-			response = new TRTrackerAnnouncerResponseImpl( result.getURL(), TRTrackerAnnouncerResponse.ST_ONLINE, result.getTimeToWait(), peers );
+			response = new TRTrackerAnnouncerResponseImpl( result.getURL(), torrent_hash, TRTrackerAnnouncerResponse.ST_ONLINE, result.getTimeToWait(), peers );
 		}
 		
 			// only make the user aware of the status if the underlying announce is

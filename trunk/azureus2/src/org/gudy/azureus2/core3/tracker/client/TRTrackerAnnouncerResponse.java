@@ -39,6 +39,12 @@ TRTrackerAnnouncerResponse
 	public int
 	getStatus();
 	
+	public String
+	getStatusString();
+	
+	public byte[]
+	getHash();
+	
 	/**
 	 * This value is always available
 	 * @return time to wait before requerying tracker

@@ -30,10 +30,11 @@ public class
 TRTrackerAnnouncerResponseImpl
 	implements TRTrackerAnnouncerResponse 
 {
-	protected URL		url;
-	protected int		status;
-	protected long		time_to_wait;
-	protected String	failure_reason;
+	private URL			url;
+	private byte[]		hash;
+	private int			status;
+	private long		time_to_wait;
+	private String		failure_reason;
 	
 	protected TRTrackerAnnouncerResponsePeer[]	peers;
 	
@@ -42,10 +43,12 @@ TRTrackerAnnouncerResponseImpl
 	public
 	TRTrackerAnnouncerResponseImpl(
 		URL		_url,
+		byte[]	_hash,
 		int		_status,
 		long	_time_to_wait  )
 	{
 		url				= _url;
+		hash			= _hash;
 		status			= _status;	
 		time_to_wait	= _time_to_wait;
 	}
@@ -53,11 +56,13 @@ TRTrackerAnnouncerResponseImpl
 	public
 	TRTrackerAnnouncerResponseImpl(
 		URL		_url,
+		byte[]	_hash,
 		int		_status,
 		long	_time_to_wait,
 		String	_failure_reason )
 	{
 		url				= _url;
+		hash			= _hash;
 		status			= _status;	
 		time_to_wait	= _time_to_wait;
 		failure_reason	= _failure_reason;
@@ -65,21 +70,54 @@ TRTrackerAnnouncerResponseImpl
 	
 	public
 	TRTrackerAnnouncerResponseImpl(
-		URL						_url,
-		int						_status,
-		long					_time_to_wait,
+		URL									_url,
+		byte[]								_hash,
+		int									_status,
+		long								_time_to_wait,
 		TRTrackerAnnouncerResponsePeer[]	_peers )
 	{
 		url				= _url;
+		hash			= _hash;
 		status			= _status;	
 		time_to_wait	= _time_to_wait;
 		peers			= _peers;
+	}
+	
+	public byte[]
+	getHash()
+	{
+		return( hash );
 	}
 	
 	public int
 	getStatus()
 	{
 		return( status );
+	}
+	
+	public String
+	getStatusString()
+	{
+		String	str = "";
+		
+		if ( status == ST_OFFLINE ){
+		
+			str = "Offline";
+			
+		}else if  (status == ST_ONLINE ){
+			
+			str = "OK";
+		}else{
+			
+			str = "Failed";
+		}
+		
+		if ( failure_reason != null && failure_reason.length() > 0 ){
+			
+			str += " - " + failure_reason;
+		}
+		
+		return( str );
 	}
 	
 	public long

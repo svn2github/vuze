@@ -28,6 +28,7 @@ import java.net.URL;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
@@ -52,8 +53,7 @@ TRTrackerDHTAnnouncerImpl
 	extends TRTrackerAnnouncerImpl
 {
 	private TOTorrent		torrent;
-	private String[]		networks;
-	
+	private byte[]			torrent_hash;
 	private byte[]			data_peer_id;
 	
 	private String						tracker_status_str;
@@ -71,8 +71,14 @@ TRTrackerDHTAnnouncerImpl
 		throws TRTrackerAnnouncerException
 	{
 		torrent		= _torrent;
-		networks	= _networks;
 		
+		try{
+			torrent_hash	= torrent.getHash();
+			
+		}catch( TOTorrentException e ){
+			
+			Debug.printStackTrace(e);
+		}
 		try{
 			data_peer_id = ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );
 			
@@ -84,6 +90,7 @@ TRTrackerDHTAnnouncerImpl
 		last_response = 
 			new TRTrackerAnnouncerResponseImpl( 
 				torrent.getAnnounceURL(),
+				torrent_hash,
 				TRTrackerAnnouncerResponse.ST_OFFLINE, 0, "Initialising" );
 		
 		tracker_status_str = MessageText.getString("PeerManager.status.checking") + "...";
@@ -229,6 +236,7 @@ TRTrackerDHTAnnouncerImpl
 			
 	  		response = new TRTrackerAnnouncerResponseImpl(
 				  				result.getURL(),
+				  				torrent_hash,
 				  				TRTrackerAnnouncerResponse.ST_OFFLINE, 
 								result.getTimeToWait(), 
 								reason );
@@ -254,7 +262,7 @@ TRTrackerDHTAnnouncerImpl
 		
 			tracker_status_str = MessageText.getString("PeerManager.status.ok");
 
-			response = new TRTrackerAnnouncerResponseImpl( result.getURL(), TRTrackerAnnouncerResponse.ST_ONLINE, result.getTimeToWait(), peers );
+			response = new TRTrackerAnnouncerResponseImpl( result.getURL(), torrent_hash, TRTrackerAnnouncerResponse.ST_ONLINE, result.getTimeToWait(), peers );
 		}
 		
 		last_response = response;

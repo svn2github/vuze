@@ -209,7 +209,9 @@ TRTrackerScraperImpl
 			return( false );
 		}
 		
-		return( client_resolver.getClient( hash ) != null );
+		int	state = client_resolver.getStatus( hash );
+		
+		return( state == TRTrackerScraperClientResolver.ST_RUNNING );
 	}
 	
 	public boolean
@@ -221,7 +223,9 @@ TRTrackerScraperImpl
 			return( false );
 		}
 		
-		return( client_resolver.getStatus( hash ) == TRTrackerScraperClientResolver.ST_RUNNING );
+		int	state = client_resolver.getStatus( hash );
+		
+		return( state == TRTrackerScraperClientResolver.ST_RUNNING || state == TRTrackerScraperClientResolver.ST_QUEUED );
 	}
 	
 	public boolean

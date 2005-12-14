@@ -1161,24 +1161,6 @@ DownloadManagerController
 		return( download_manager.getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ));
 	}
 	
-	public boolean
-	isSeeding()
-	{
-		return( getState() == DownloadManager.STATE_DOWNLOADING );
-	}
-	
-	public boolean
-	isDownloading()
-	{
-		return( getState() == DownloadManager.STATE_DOWNLOADING );
-	}
-	
-	public int
-	getCompleted()
-	{
-		return( stats.getCompleted());
-	}
-	
 	public TRTrackerScraperResponse
 	getTrackerScrapeResponse()
 	{

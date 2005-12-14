@@ -57,15 +57,6 @@ PEPeerManagerAdapter
 	restartDownload(
 		boolean	b );
 	
-	public boolean
-	isSeeding();
-	
-	public boolean
-	isDownloading();
-	
-	public int
-	getCompleted();
-	
 	public TRTrackerScraperResponse
 	getTrackerScrapeResponse();
 	

@@ -33,8 +33,9 @@ public interface
 TRTrackerScraperClientResolver 
 {
 	public static final int	ST_NOT_FOUND		= 1;
-	public static final int	ST_RUNNING			= 2;	// downloading, seeding or queued
-	public static final int	ST_OTHER			= 3;
+	public static final int	ST_RUNNING			= 2;	// downloading, seeding 
+	public static final int	ST_QUEUED			= 3;	
+	public static final int	ST_OTHER			= 4;
 
 		/**
 		 * Gives access to a restricted set of states for this torrent from ST_ set
@@ -44,16 +45,6 @@ TRTrackerScraperClientResolver
 	
 	public int
 	getStatus(
-		byte[]	torrent_hash );
-	
-		/**
-		 * returns the current tracker client for the torrent, if it exists
-		 * @param torrent_hash
-		 * @return
-		 */
-	
-	public TRTrackerAnnouncer
-	getClient(
 		byte[]	torrent_hash );
 	
 	public boolean

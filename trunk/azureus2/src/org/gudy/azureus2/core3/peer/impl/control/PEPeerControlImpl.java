@@ -778,19 +778,13 @@ PEPeerControlImpl
   checkFinished(
   	boolean	start_of_day ) 
   {
-    seeding_mode = true;
-   
-    //check if we still have (incomplete) pieces to download
-    for( int i = 0; i < _nbPieces; i++ ) {
-      seeding_mode = seeding_mode && dm_pieces[i].getDone();
-    	if( !seeding_mode ) {
-    		break;
-      }
-    }
+    boolean all_pieces_done = _diskManager.getRemaining() == 0;
 
-    if (seeding_mode) {
+    if (all_pieces_done) {
           	
-      if(endGameMode) {
+      seeding_mode	= true;
+      
+      if (endGameMode) {
 	      try{
 	      	endGameModeChunks_mon.enter();
 	      
@@ -904,67 +898,62 @@ PEPeerControlImpl
   updateTrackerAnnounceInterval() 
   {
   	if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL != 0 ){
+  		
   		return;
   	}
   	
-    final int WANT_LIMIT = 100;
-  	
-    //if we're not downloading, use normal re-check rate
-    if ( adapter.isDownloading() ||
-        adapter.isSeeding() ) {
+  	final int WANT_LIMIT = 100;
       
-      int num_wanted = PeerUtils.numNewConnectionsAllowed( _hash );
-      
-      boolean has_remote = adapter.isNATHealthy();
-      if( has_remote ) {
-        //is not firewalled, so can accept incoming connections,
-        //which means no need to continually keep asking the tracker for peers
-        num_wanted = (int)(num_wanted / 1.5);
-      }
-      
-      if ( num_wanted < 0 || num_wanted > WANT_LIMIT ) {
-        num_wanted = WANT_LIMIT;
-      }
-      
-      int current_connection_count = PeerIdentityManager.getIdentityCount( _hash );
-      
-      TRTrackerScraperResponse tsr = adapter.getTrackerScrapeResponse();
-      
-      if( tsr != null && tsr.isValid() ) {  //we've got valid scrape info
-        int num_seeds = tsr.getSeeds();   
-        int num_peers = tsr.getPeers();
-
-        int swarm_size;
-        
-        if( seeding_mode ) {
-          //Only use peer count when seeding, as other seeds are unconnectable.
-          //Since trackers return peers randomly (some of which will be seeds),
-          //backoff by the seed2peer ratio since we're given only that many peers
-          //on average each announce.
-          float ratio = (float)num_peers / (num_seeds + num_peers);
-          swarm_size = (int)(num_peers * ratio);
-        }
-        else {
-          swarm_size = num_peers + num_seeds;
-        }
-        
-        if( swarm_size < num_wanted ) {  //lower limit to swarm size if necessary
-          num_wanted = swarm_size;
-        }
-      }
-      
-      if( num_wanted < 1 ) {  //we dont need any more connections
-        adapter.setTrackerRefreshDelayOverrides( 100 );  //use normal announce interval
-        return;
-      }
-      
-      if( current_connection_count == 0 )  current_connection_count = 1;  //fudge it :)
-      
-      int current_percent = (current_connection_count * 100) / (current_connection_count + num_wanted);
-      
-      adapter.setTrackerRefreshDelayOverrides( current_percent );  //set dynamic interval override
-      return;
-    }
+	  int num_wanted = PeerUtils.numNewConnectionsAllowed( _hash );
+	  
+	  boolean has_remote = adapter.isNATHealthy();
+	  if( has_remote ) {
+	    //is not firewalled, so can accept incoming connections,
+	    //which means no need to continually keep asking the tracker for peers
+	    num_wanted = (int)(num_wanted / 1.5);
+	  }
+	  
+	  if ( num_wanted < 0 || num_wanted > WANT_LIMIT ) {
+	    num_wanted = WANT_LIMIT;
+	  }
+	  
+	  int current_connection_count = PeerIdentityManager.getIdentityCount( _hash );
+	  
+	  TRTrackerScraperResponse tsr = adapter.getTrackerScrapeResponse();
+	  
+	  if( tsr != null && tsr.isValid() ) {  //we've got valid scrape info
+	    int num_seeds = tsr.getSeeds();   
+	    int num_peers = tsr.getPeers();
+	
+	    int swarm_size;
+	    
+	    if( seeding_mode ) {
+	      //Only use peer count when seeding, as other seeds are unconnectable.
+	      //Since trackers return peers randomly (some of which will be seeds),
+	      //backoff by the seed2peer ratio since we're given only that many peers
+	      //on average each announce.
+	      float ratio = (float)num_peers / (num_seeds + num_peers);
+	      swarm_size = (int)(num_peers * ratio);
+	    }
+	    else {
+	      swarm_size = num_peers + num_seeds;
+	    }
+	    
+	    if( swarm_size < num_wanted ) {  //lower limit to swarm size if necessary
+	      num_wanted = swarm_size;
+	    }
+	  }
+	  
+	  if( num_wanted < 1 ) {  //we dont need any more connections
+	    adapter.setTrackerRefreshDelayOverrides( 100 );  //use normal announce interval
+	    return;
+	  }
+	  
+	  if( current_connection_count == 0 )  current_connection_count = 1;  //fudge it :)
+	  
+	  int current_percent = (current_connection_count * 100) / (current_connection_count + num_wanted);
+	  
+	  adapter.setTrackerRefreshDelayOverrides( current_percent );  //set dynamic interval override
   }
   	
  
@@ -2980,10 +2969,13 @@ PEPeerControlImpl
 		ArrayList peers = peer_transports_cow;
   	
   	if( peers != null ) {
-  		int comp = adapter.getCompleted();
   		
-  		int sum = comp == 1000 ? 0 : comp;  //add in our own percentage if not seeding
-  		int num = comp == 1000 ? 0 : 1;
+        long total = _diskManager.getTotalLength();
+        
+        int	my_completion =  total == 0 ? 1000 : (int) ((1000 * (total - _diskManager.getRemaining())) / total);
+          		
+  		int sum = my_completion == 1000 ? 0 : my_completion;  //add in our own percentage if not seeding
+  		int num = my_completion == 1000 ? 0 : 1;
   		
   		for( int i=0; i < peers.size(); i++ ) {
   			PEPeer peer = (PEPeer)peers.get( i );

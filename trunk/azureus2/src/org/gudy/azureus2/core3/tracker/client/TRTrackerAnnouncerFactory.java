@@ -30,6 +30,15 @@ TRTrackerAnnouncerFactory
 {
 	public static TRTrackerAnnouncer
 	create(
+		TOTorrent		torrent )
+		
+		throws TRTrackerAnnouncerException
+	{
+		return( create( torrent, null ));
+	}
+	
+	public static TRTrackerAnnouncer
+	create(
 		TOTorrent		torrent,
 		String[]		networks )
 		
