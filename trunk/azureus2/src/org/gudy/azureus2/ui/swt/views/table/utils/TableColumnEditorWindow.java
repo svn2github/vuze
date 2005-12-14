@@ -32,7 +32,6 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
@@ -114,6 +113,19 @@ public class TableColumnEditorWindow {
     table.setLayoutData(gridData);
     table.setLinesVisible (true);    
     table.setHeaderVisible(true);
+    Font f = table.getFont();
+    FontData fd = f.getFontData()[0];
+    fd.setHeight(9);
+    final Font fontNew = new Font(display, fd); 
+    table.setFont(fontNew);
+    
+    shell.addDisposeListener(new DisposeListener() {
+      public void widgetDisposed(DisposeEvent de) {
+        if (fontNew != null && !fontNew.isDisposed()) {
+          fontNew.dispose();
+        }
+      }
+    });
     
     Composite cButtonArea = new Composite(shell, SWT.NULL);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
@@ -190,14 +202,18 @@ public class TableColumnEditorWindow {
 		    String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
 		    item.setText(0, MessageText.getString(sTitleLanguageKey));
 		    item.setText(1, MessageText.getString(sTitleLanguageKey + ".info", ""));
+		    
+	      table.getColumn(1).pack();
 
 		    final boolean bChecked = ((Boolean) newEnabledState.get(tableColumn))
 						.booleanValue();
 				// For OSX to hopefully refresh the checkbox.
 				item.setChecked(!bChecked);
-				item.setChecked(bChecked);
-		    
-	      table.getColumn(1).pack();
+				table.getDisplay().asyncExec(new AERunnable() {
+					public void runSupport() {
+						item.setChecked(bChecked);
+					}
+				});
 			}
     });
     table.setItemCount(tableColumns.size());
