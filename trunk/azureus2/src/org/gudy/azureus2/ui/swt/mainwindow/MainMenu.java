@@ -630,7 +630,19 @@ public class MainMenu {
 				if (bResourceExists){
 					name = MessageText.getString(sResourceID);
 				}else{
-					name = sViewID.replace('.', ' ' );	// support old plugins
+						// try plain resource
+					
+					sResourceID	= sViewID;
+					bResourceExists = MessageText.keyExists(sResourceID);
+					
+					if ( bResourceExists){
+						
+						name = MessageText.getString(sResourceID);
+						
+					}else{
+						
+						name = sViewID.replace('.', ' ' );	// support old plugins
+					}
 				}
 					
 				MenuItem[] items = pluginMenu.getItems();
