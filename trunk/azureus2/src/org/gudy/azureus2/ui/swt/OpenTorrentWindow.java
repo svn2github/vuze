@@ -106,9 +106,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 	private Combo cmbDataDir;
 
-	private Combo cmbStartMode;
+	private Combo cmbStartMode = null;
 
-	private Combo cmbQueueLocation;
+	private Combo cmbQueueLocation = null;
 
 	// Link to the outside
 	private GlobalManager gm;
@@ -669,6 +669,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	}
 
 	private void updateStartModeCombo() {
+		if (cmbStartMode == null)
+			return;
+		
 		int[] indexes = tableTorrents.getSelectionIndices();
 		String[] sItemsText = new String[startModes.length];
 		int iMaxMatches = 0;
@@ -700,6 +703,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	}
 
 	private void updateQueueLocationCombo() {
+		if (cmbQueueLocation == null)
+			return;
+		
 		int[] indexes = tableTorrents.getSelectionIndices();
 		String[] sItemsText = new String[queueLocations.length];
 		int iMaxMatches = 0;
