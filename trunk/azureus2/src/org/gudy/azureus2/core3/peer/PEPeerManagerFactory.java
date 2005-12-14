@@ -26,9 +26,7 @@ package org.gudy.azureus2.core3.peer;
  *
  */
 
-import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 
 public class 
@@ -36,10 +34,10 @@ PEPeerManagerFactory
 {
 	public static PEPeerManager
 	create(
+		byte[]					peer_id,
 		PEPeerManagerAdapter	adapter,
-		TRTrackerAnnouncer 		tracker,
 	  	DiskManager 			diskManager )
 	{
-  		return( PEPeerControlFactory.create( adapter, tracker, diskManager ));
+  		return( PEPeerControlFactory.create( peer_id, adapter, diskManager ));
 	}
 }

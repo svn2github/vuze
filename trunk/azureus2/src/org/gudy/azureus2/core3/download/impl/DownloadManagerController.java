@@ -23,6 +23,8 @@
 package org.gudy.azureus2.core3.download.impl;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
@@ -43,9 +45,11 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.peer.impl.control.PEPeerControlImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -212,21 +216,62 @@ DownloadManagerController
 		
 			// make sure it is started beore making it "visible"
 		
-		PEPeerManager temp = 
-				PEPeerManagerFactory.create( this, tracker_client, dm);
+		final PEPeerManager temp = PEPeerManagerFactory.create( tracker_client.getPeerId(), this, dm );
 		
 		temp.start();
 	
+		   //The connection to the tracker
+		
+		tracker_client.setAnnounceDataProvider(
+	    		new TRTrackerAnnouncerDataProvider()
+	    		{
+	    			public String
+					getName()
+	    			{
+	    				return( getDisplayName());
+	    			}
+	    			
+	    			public long
+	    			getTotalSent()
+	    			{
+	    				return(temp.getStats().getTotalDataBytesSent());
+	    			}
+	    			public long
+	    			getTotalReceived()
+	    			{
+	    				long verified = 
+	    					temp.getStats().getTotalDataBytesReceived() - 
+	    					( temp.getStats().getTotalDiscarded() + temp.getStats().getTotalHashFailBytes());
+	    				
+	    				return( verified < 0?0:verified );
+	    			}
+	    			
+	    			public long
+	    			getRemaining()
+	    			{
+	    				return( temp.getRemaining());
+	    			}
+					
+					public String
+					getExtensions()
+					{
+						return( getTrackerClientExtensions());
+					}
+	    		});
+	    
+		
 		peer_manager = temp;
 
 		// Inform only after peer_manager.start(), because it 
 		// may have switched it to STATE_SEEDING (in which case we don't need to
 		// inform).
+		
 		if (getState() == DownloadManager.STATE_DOWNLOADING) {
+			
 			download_manager.informStateChanged();
 		}
 
-		download_manager.informPeerManagerAdded( temp );
+		download_manager.informStarted( temp );
 	}
   
   
@@ -640,7 +685,7 @@ DownloadManagerController
 					
 						// do this even if null as it also triggers tracker actions
 					
-					download_manager.informPeerManagerRemoved( peer_manager );
+					download_manager.informStopped( peer_manager );
 						
 					peer_manager	= null;
 
@@ -716,9 +761,12 @@ DownloadManagerController
   	}
   
   	public void
-  	setStateSeeding()
+  	setStateSeeding(
+  		boolean	never_downloaded )
   	{
   		setState(DownloadManager.STATE_SEEDING, true);
+  		
+		download_manager.downloadEnded( never_downloaded );
   	}
   
   	protected void
@@ -1131,12 +1179,6 @@ DownloadManagerController
 		return( stats.getCompleted());
 	}
 	
-	public void
-	downloadEnded()
-	{
-		download_manager.downloadEnded();
-	}
-	
 	public TRTrackerScraperResponse
 	getTrackerScrapeResponse()
 	{
@@ -1147,6 +1189,13 @@ DownloadManagerController
 	getTrackerClientExtensions()
 	{
 		return( download_manager.getDownloadState().getTrackerClientExtensions());
+	}
+	
+	public void
+	setTrackerRefreshDelayOverrides(
+		int	percent )
+	{
+		download_manager.setTrackerRefreshDelayOverrides( percent );
 	}
 	
 	public boolean
@@ -1248,7 +1297,25 @@ DownloadManagerController
 	public Object[] 
 	getQueryableInterfaces() 
 	{
-		return new Object[] { download_manager };
+		List	interfaces = new ArrayList();
+		
+		Object[]	intf = download_manager.getQueryableInterfaces();
+		
+		for (int i=0;i<intf.length;i++){
+			
+			interfaces.add( intf[i] );
+		}
+		
+		interfaces.add( download_manager );
+		
+		DiskManager	dm = getDiskManager();
+		
+		if ( dm != null ){
+			
+			interfaces.add( dm );
+		}
+		
+		return( interfaces.toArray());
 	}
 	
 	protected class

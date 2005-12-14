@@ -50,7 +50,8 @@ PEPeerManagerAdapter
 	setStateFinishing();
 	
 	public void
-	setStateSeeding();
+	setStateSeeding(
+		boolean	never_downloaded );
 	
 	public void
 	restartDownload(
@@ -65,14 +66,15 @@ PEPeerManagerAdapter
 	public int
 	getCompleted();
 	
-	public void
-	downloadEnded();
-	
 	public TRTrackerScraperResponse
 	getTrackerScrapeResponse();
 	
 	public String
 	getTrackerClientExtensions();
+	
+	public void
+	setTrackerRefreshDelayOverrides(
+		int	percent );
 	
 	public boolean
 	isNATHealthy();

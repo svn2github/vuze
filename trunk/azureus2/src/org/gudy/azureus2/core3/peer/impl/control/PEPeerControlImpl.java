@@ -18,7 +18,6 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -84,7 +83,7 @@ PEPeerControlImpl
   private int _nbPieces;
   private PEPieceImpl[] 				_pieces;
   private PEPeerManagerStats 		_stats;
-  private final TRTrackerAnnouncer _tracker;
+  //private final TRTrackerAnnouncer _tracker;
    //  private int _maxUploads;
   private int _seeds, _peers,_remotes;
   private long last_remote_time;
@@ -155,17 +154,17 @@ PEPeerControlImpl
   
   
   
-  
   public 
-  PEPeerControlImpl
-  (
+  PEPeerControlImpl(
+	byte[]					_peer_id,
 	PEPeerManagerAdapter 	_adapter,
-	TRTrackerAnnouncer 		tracker,
     DiskManager 			diskManager) 
   {
-  	  this.adapter = _adapter;
-  	  _tracker = tracker;
-  	  this._diskManager = diskManager;
+	  _myPeerId		= _peer_id;
+  	  adapter 		= _adapter;
+  
+  	  _diskManager = diskManager;
+  	  
       COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
       COConfigurationManager.addParameterListener( "Disconnect Seed", this );
       
@@ -188,7 +187,7 @@ PEPeerControlImpl
     
     try{
     
-    	_hash = PeerIdentityManager.createDataID( _tracker.getTorrent().getHash());
+    	_hash = PeerIdentityManager.createDataID( _diskManager.getTorrent().getHash());
     	
     }catch( TOTorrentException e ){
     	
@@ -198,45 +197,6 @@ PEPeerControlImpl
     	_hash = PeerIdentityManager.createDataID( new byte[20] ); 
     }
     
-    //The connection to the tracker
-    _tracker.setAnnounceDataProvider(
-    		new TRTrackerAnnouncerDataProvider()
-    		{
-    			public String
-				getName()
-    			{
-    				return( adapter.getDisplayName());
-    			}
-    			
-    			public long
-    			getTotalSent()
-    			{
-    				return(_stats.getTotalDataBytesSent());
-    			}
-    			public long
-    			getTotalReceived()
-    			{
-    				long verified = 
-    					_stats.getTotalDataBytesReceived() - ( _stats.getTotalDiscarded() + _stats.getTotalHashFailBytes());
-    				
-    				return( verified < 0?0:verified );
-    			}
-    			
-    			public long
-    			getRemaining()
-    			{
-    				return( PEPeerControlImpl.this.getRemaining());
-    			}
-				
-				public String
-				getExtensions()
-				{
-					return( adapter.getTrackerClientExtensions());
-				}
-    		});
-    
-    _myPeerId = _tracker.getPeerId();
-
     //The peer connections
     peer_transports_cow = new ArrayList();
 
@@ -349,11 +309,7 @@ PEPeerControlImpl
     is_running = false;
     
     PeerControlSchedulerFactory.getSingleton().unregister( this );
-    
-    // send stopped event
-    _tracker.stop();
-    
-    
+       
     peer_database = null;
     
     //remove legacy controller registration
@@ -642,7 +598,7 @@ PEPeerControlImpl
 
     if( PeerUtils.ignorePeerPort( port ) ) {
     	if (Logger.isEnabled())
-				Logger.log(new LogEvent(_tracker.getTorrent(), LOGID,
+				Logger.log(new LogEvent(_diskManager.getTorrent(), LOGID,
 						"Skipping connect with " + address + ":" + port
 								+ " as peer port is in ignore list."));
       return false;
@@ -879,14 +835,7 @@ PEPeerControlImpl
       
       _timeStartedSeeding = SystemTime.getCurrentTime();
       
-      adapter.setStateSeeding();
-      
-      if ( !start_of_day ){
-      
-      	adapter.downloadEnded();
-      }
-            		
-      _tracker.complete( start_of_day );
+      adapter.setStateSeeding( start_of_day );
     }
   }
 
@@ -1005,7 +954,7 @@ PEPeerControlImpl
       }
       
       if( num_wanted < 1 ) {  //we dont need any more connections
-        _tracker.setRefreshDelayOverrides( 100 );  //use normal announce interval
+        adapter.setTrackerRefreshDelayOverrides( 100 );  //use normal announce interval
         return;
       }
       
@@ -1013,7 +962,7 @@ PEPeerControlImpl
       
       int current_percent = (current_connection_count * 100) / (current_connection_count + num_wanted);
       
-      _tracker.setRefreshDelayOverrides( current_percent );  //set dynamic interval override
+      adapter.setTrackerRefreshDelayOverrides( current_percent );  //set dynamic interval override
       return;
     }
   }
@@ -2485,7 +2434,7 @@ PEPeerControlImpl
     			endGameModeAbandoned	= true;
 
     			if (Logger.isEnabled())
-						Logger.log(new LogEvent(_tracker.getTorrent(), LOGID,
+						Logger.log(new LogEvent(_diskManager.getTorrent(), LOGID,
 								"Abandoning end-game mode: "
 										+ adapter.getDisplayName()));
 
@@ -2530,7 +2479,7 @@ PEPeerControlImpl
 	    computeEndGameModeChunks();
 	    endGameMode = true;
 	    if (Logger.isEnabled())
-				Logger.log(new LogEvent(_tracker.getTorrent(), LOGID,
+				Logger.log(new LogEvent(_diskManager.getTorrent(), LOGID,
 						"Entering end-game mode: " + adapter.getDisplayName()));
 	    //System.out.println("End-Game Mode activated");
     }
@@ -3061,18 +3010,6 @@ PEPeerControlImpl
 	public Object[] 
 	getQueryableInterfaces() 
 	{
-		List	interfaces = new ArrayList();
-		
-		Object[]	intf = adapter.getLogRelation().getQueryableInterfaces();
-		
-		for (int i=0;i<intf.length;i++){
-			
-			interfaces.add( intf[i] );
-		}
-		
-		interfaces.add( _tracker );
-		interfaces.add( _diskManager );
-		
-		return( interfaces.toArray());
+		return( adapter.getLogRelation().getQueryableInterfaces());
 	}
 }

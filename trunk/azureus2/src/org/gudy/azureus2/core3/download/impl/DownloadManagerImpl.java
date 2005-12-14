@@ -991,16 +991,6 @@ DownloadManagerImpl
   	}
   
   	public void
-  	setStateSeeding()
-  	{
-  		controller.setStateSeeding();
-  		
-  			// sometimes, downloadEnded() doesn't get called, so we must check here too
-			  		
-  		setOnlySeeding(true);
-  	}
-  
-  	public void
   	setStateQueued()
   	{
   		controller.setStateQueued();
@@ -1583,6 +1573,18 @@ DownloadManagerImpl
 		}
 	}
 	
+	protected void
+	setTrackerRefreshDelayOverrides(
+		int	percent )
+	{
+		TRTrackerAnnouncer tc = getTrackerClient();
+		
+		if ( tc != null ){
+			
+			tc.setRefreshDelayOverrides( percent );
+		}
+	}
+	
 	public String 
 	getTorrentComment() 
 	{
@@ -1909,7 +1911,7 @@ DownloadManagerImpl
 
 
   	protected void
-  	informPeerManagerAdded(
+  	informStarted(
 		PEPeerManager	pm )
   	{
 		try{
@@ -1930,8 +1932,8 @@ DownloadManagerImpl
   	}
   
   	protected void
-  	informPeerManagerRemoved(
-		PEPeerManager	pm )	// can be null if controller was stopped....
+  	informStopped(
+		PEPeerManager	pm )	// can be null if controller was already stopped....
   	{
   		if ( pm != null ){
 		  
@@ -1945,10 +1947,7 @@ DownloadManagerImpl
   				peer_listeners_mon.exit();
   			}
   		}
-		
-			// kill the tracker client after the peer manager so that the
-			// peer manager's "stopped" event has a chance to get through
-		
+				
   		try{
   			this_mon.enter();
 	  
@@ -1959,7 +1958,9 @@ DownloadManagerImpl
   				tracker_client.removeListener( tracker_client_listener );
 		
  				download_manager_state.setTrackerResponseCache(	tracker_client.getTrackerResponseCache());
-				
+			
+ 				tracker_client.stop();
+ 				
   				tracker_client.destroy();
 				
   				tracker_client = null;
@@ -1996,17 +1997,28 @@ DownloadManagerImpl
 	   * @author Rene Leonhardt
 	   */
 	
-	public void 
-	downloadEnded()
+	protected void 
+	downloadEnded(
+		boolean	never_downloaded )
 	{
-		if (isForceStart()){
+	    if ( !never_downloaded ){
+		
+	    	if (isForceStart()){
     	
-			setForceStart(false);
-		}
+	    		setForceStart(false);
+	    	}
 
-		setOnlySeeding(true);
+	    	setOnlySeeding(true);
 	
-		informDownloadEnded();
+	    	informDownloadEnded();
+	    }
+	    
+	    TRTrackerAnnouncer	tc = tracker_client;
+	    
+	    if ( tc != null ){
+	    	
+	    	tc.complete( never_downloaded );
+	    }
 	}
 
  
