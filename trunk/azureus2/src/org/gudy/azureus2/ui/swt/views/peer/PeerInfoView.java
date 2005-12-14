@@ -378,12 +378,34 @@ public class PeerInfoView extends AbstractIView {
 		int iNeededHeight = (((dm.getNumberOfPieces() - 1) / iNumCols) + 1) * BLOCK_SIZE;
 		sc.setMinHeight(iNeededHeight);
 
-		PEPiece[] pieces = pm == null ? null : pm.getPieces();
 		int[] availability = pm == null ? null : pm.getAvailability();
-		int[] rarestPieceInfo = pm == null ? null : pm.getRarestPieceInfo(peer);
-		int rarestPieceNo = (rarestPieceInfo == null) ? -1 : rarestPieceInfo[0];
+		
+		int iNextDLPieceID = -1;
+		int iDLPieceID = -1;
+		List ourRequestedPieces = peer.getOutgoingRequestedPieceNumbers();
+		if (ourRequestedPieces != null) {
+			if (!peer.isChokingMe()) {
+				// !choking == downloading
+	
+				if (ourRequestedPieces.size() > 0) {
+					iDLPieceID = ((Long)ourRequestedPieces.get(0)).intValue();
+					if (ourRequestedPieces.size() > 1)
+						iNextDLPieceID = ((Long)ourRequestedPieces.get(1)).intValue();
+				}
+			} else {
+				if (ourRequestedPieces.size() > 0)
+					iNextDLPieceID = ((Long)ourRequestedPieces.get(0)).intValue();
+			}
+			
+			if (iNextDLPieceID == -1) {
+				int[] rarestPieceInfo = pm == null ? null : pm.getRarestPieceInfo(peer);
+				if (rarestPieceInfo != null && rarestPieceInfo.length >= 1) {
+					iNextDLPieceID = rarestPieceInfo[0];
+				}
+			}
+		}
 
-		List peerRequestedPieces = peer.getRequestedPieceNumbers();
+		List peerRequestedPieces = peer.getIncomingRequestedPieceNumbers();
 		int peerNextRequestedPiece = -1;
 		if (peerRequestedPieces.size() > 0)
 			peerNextRequestedPiece = ((Long) peerRequestedPieces.get(0)).intValue();
@@ -441,28 +463,20 @@ public class PeerInfoView extends AbstractIView {
 				gcImg.fillRectangle(x, iYPos, width, BLOCK_FILLSIZE);
 			}
 
-			// bottom right of a box around next download piece
-			if (i == rarestPieceNo) {
-				gcImg.setBackground(blockColors[BLOCKCOLOR_NEXT]);
-				gcImg.fillPolygon(new int[] { iXPos + 1, iYPos + 1,
-						iXPos + BLOCK_FILLSIZE - 1, iYPos + 1,
-						iXPos + (BLOCK_FILLSIZE / 2), iYPos + BLOCK_FILLSIZE - 1 });
+
+			// Down Arrow inside box for "dowloading" piece
+			if (i == iDLPieceID) {
+				gcImg.setBackground(blockColors[BLOCKCOLOR_TRANSFER]);
+				gcImg.fillPolygon(new int[] { iXPos, iYPos, iXPos + BLOCK_FILLSIZE,
+						iYPos, iXPos + (BLOCK_FILLSIZE / 2), iYPos + BLOCK_FILLSIZE });
 			}
 
-			// Find out if we are downloading from them
-			// Down Arrow inside box for "dowloading" piece
-			if (pieces != null && pieces[i] != null) {
-				PEPeer[] peers = pieces[i].getWriters();
-				if (peers != null)
-					for (int j = 0; j < peers.length; j++) {
-						if (peer == peers[j]) {
-							gcImg.setBackground(blockColors[BLOCKCOLOR_TRANSFER]);
-							gcImg.fillPolygon(new int[] { iXPos, iYPos,
-									iXPos + BLOCK_FILLSIZE, iYPos, iXPos + (BLOCK_FILLSIZE / 2),
-									iYPos + BLOCK_FILLSIZE });
-							break;
-						}
-					}
+			// Small Down Arrow inside box for next download piece
+			if (i == iNextDLPieceID) {
+				gcImg.setBackground(blockColors[BLOCKCOLOR_NEXT]);
+				gcImg.fillPolygon(new int[] { iXPos + 2, iYPos + 2,
+						iXPos + BLOCK_FILLSIZE - 1, iYPos + 2,
+						iXPos + (BLOCK_FILLSIZE / 2), iYPos + BLOCK_FILLSIZE - 1 });
 			}
 
 			// Up Arrow in uploading piece 
@@ -472,11 +486,11 @@ public class PeerInfoView extends AbstractIView {
 						iXPos + BLOCK_FILLSIZE, iYPos + BLOCK_FILLSIZE,
 						iXPos + (BLOCK_FILLSIZE / 2), iYPos });
 			} else if (Collections.binarySearch(peerRequestedPieces, new Long(i)) >= 0) {
-				// top left of a box around each upload request
+				// Small Up Arrow each upload request
 				gcImg.setBackground(blockColors[BLOCKCOLOR_NEXT]);
-				gcImg.fillPolygon(new int[] { iXPos + 1, iYPos + BLOCK_FILLSIZE - 1,
-						iXPos + BLOCK_FILLSIZE - 1, iYPos + BLOCK_FILLSIZE - 1,
-						iXPos + (BLOCK_FILLSIZE / 2), iYPos + 1 });
+				gcImg.fillPolygon(new int[] { iXPos + 1, iYPos + BLOCK_FILLSIZE - 2,
+						iXPos + BLOCK_FILLSIZE - 2, iYPos + BLOCK_FILLSIZE - 2,
+						iXPos + (BLOCK_FILLSIZE / 2), iYPos + 2 });
 			}
 
 			if (availability != null) {
