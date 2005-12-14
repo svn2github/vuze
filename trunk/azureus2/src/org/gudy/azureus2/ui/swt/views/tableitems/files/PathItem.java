@@ -71,7 +71,7 @@ public class PathItem
     	  
     	  if (pos > 0 ){
     		  
-    		  path = path.substring( pos+1 );
+    		  path = File.separator + path.substring( 0, pos );
     	  }else{
     		  
     		  path = File.separator;
