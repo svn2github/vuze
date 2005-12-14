@@ -20,6 +20,9 @@ import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTPluginView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.*;
 
 import java.util.HashMap;
@@ -112,60 +115,57 @@ public class Tab {
       tabItem = new TabItem(tabFolder, SWT.NULL,
 					(_view instanceof MyTorrentsSuperView) ? 0 : tabFolder.getItemCount());
     }
+    
+    Listener activateListener = new Listener() {
+			public void handleEvent(Event event) {
+				IView view = null;
+				Composite parent = (Composite)event.widget;
+				while (parent != null && !parent.isDisposed() && view == null) {
+					if (parent instanceof CTabFolder) {
+						CTabFolder folder = (CTabFolder)parent;
+						view = getView(folder.getSelection());
+					} else if (parent instanceof TabFolder) {
+						TabFolder folder = (TabFolder)parent;
+						TabItem[] selection = folder.getSelection();
+						if (selection.length > 0)
+							view = getView(selection[0]);
+					}
+					
+					if (view == null)
+						parent = parent.getParent();
+				}
+				
+				if (view != null) {
+					view.refresh();
+				}
+			}
+		};
 
-    if (!(_view instanceof MyTorrentsSuperView || _view instanceof MyTrackerView || _view instanceof MySharesView )) {
-      composite = new Composite(folder, SWT.NULL);
-      GridLayout layout = new GridLayout();
-      layout.numColumns = 1;
-      layout.horizontalSpacing = 0;
-      layout.verticalSpacing = 0;
-      layout.marginHeight = 0;
-      layout.marginWidth = 0;
-      composite.setLayout(layout);
-      GridData gridData = new GridData(GridData.FILL_BOTH);
-      try {
-        _view.initialize(composite);
-        _view.getComposite().setLayoutData(gridData);
-        if (useCustomTab) {
-          ((CTabItem) tabItem).setControl(composite);
-          ((CTabFolder) folder).setSelection((CTabItem) tabItem);
-        }
-        else {
-          ((TabItem) tabItem).setControl(composite);
-          TabItem items[] = {(TabItem) tabItem };
-          ((TabFolder) folder).setSelection(items);
-        }
-        tabItem.setText(escapeAccelerators(view.getShortTitle()));
-        tabs.put(tabItem, view);
-      }
-      catch (Exception e) {
-      	Debug.printStackTrace( e );
-      }
-    }
-    else {
-      try {
-        _view.initialize(folder);
-        tabItem.setText(escapeAccelerators(view.getShortTitle()));
-        if (useCustomTab) {
-          ((CTabItem) tabItem).setControl(_view.getComposite());
-          ((CTabItem) tabItem).setToolTipText(view.getFullTitle());
-          if (bFocus)
-          	((CTabFolder) folder).setSelection((CTabItem) tabItem);
-        }
-        else {
-          ((TabItem) tabItem).setControl(_view.getComposite());
-          ((TabItem) tabItem).setToolTipText(view.getFullTitle());
-          TabItem items[] = {(TabItem) tabItem };
-          if (bFocus)
-          	((TabFolder) folder).setSelection(items);
-        }
+    tabs.put(tabItem, view);
 
-        tabs.put(tabItem, view);
-      }
-      catch (Exception e) {
-      	Debug.printStackTrace( e );
-      }
-    }
+		try {
+			_view.initialize(folder);
+			tabItem.setText(escapeAccelerators(view.getShortTitle()));
+			if (useCustomTab) {
+				Composite viewComposite = _view.getComposite();
+				viewComposite.addListener(SWT.Activate, activateListener);
+				((CTabItem) tabItem).setControl(viewComposite);
+				((CTabItem) tabItem).setToolTipText(view.getFullTitle());
+				if (bFocus)
+					((CTabFolder) folder).setSelection((CTabItem) tabItem);
+			} else {
+				Composite viewComposite = _view.getComposite();
+				viewComposite.addListener(SWT.Activate, activateListener);
+				((TabItem) tabItem).setControl(viewComposite);
+				((TabItem) tabItem).setToolTipText(view.getFullTitle());
+				TabItem items[] = { (TabItem) tabItem };
+				if (bFocus)
+					((TabFolder) folder).setSelection(items);
+			}
+		} catch (Exception e) {
+			tabs.remove(tabItem);
+			Debug.printStackTrace(e);
+		}
     
     if (bFocus) {
     	MainWindow.getWindow().refreshIconBar();
