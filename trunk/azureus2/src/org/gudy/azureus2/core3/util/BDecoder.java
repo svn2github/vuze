@@ -73,7 +73,14 @@ public class BDecoder {
   
   	throws IOException 
   {
-      return((Map)decodeInputStream(data, 0));
+      Map	res = (Map)decodeInputStream(data, 0);
+      
+      if ( res == null ){
+    	  
+    	  throw( new IOException( "BDecoder: zero length file" ));
+      }
+      
+      return( res );
   }
 
   private Map 
@@ -82,7 +89,14 @@ public class BDecoder {
   
   	throws IOException 
   {
-      return (Map) decodeInputStream(data, 0);
+      Map res = (Map)decodeInputStream(data, 0);
+      
+      if ( res == null ){
+    	  
+    	  throw( new IOException( "BDecoder: zero length file" ));
+      }
+      
+      return( res );
   }
 
   private Object 
