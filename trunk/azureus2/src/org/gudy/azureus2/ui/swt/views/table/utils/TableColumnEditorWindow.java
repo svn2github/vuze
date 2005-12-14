@@ -211,7 +211,8 @@ public class TableColumnEditorWindow {
 				item.setChecked(!bChecked);
 				table.getDisplay().asyncExec(new AERunnable() {
 					public void runSupport() {
-						item.setChecked(bChecked);
+						if (!item.isDisposed())
+							item.setChecked(bChecked);
 					}
 				});
 			}
