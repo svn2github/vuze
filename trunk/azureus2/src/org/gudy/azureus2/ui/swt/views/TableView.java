@@ -25,15 +25,13 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.SashForm;
+import org.eclipse.swt.custom.*;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
@@ -204,12 +202,14 @@ public class TableView
 	/** TabViews */
 	public boolean bEnableTabViews = false;
 	/** TabViews */
-  private TabFolder tabFolder;
+  private CTabFolder tabFolder;
 	/** TabViews */
   private ArrayList tabViews = new ArrayList();
 
   private int lastTopIndex = 0;
   private int lastBottomIndex = -1;
+  
+  protected IView[] coreTabViews = null;
 
   /**
    * Main Initializer
@@ -300,48 +300,172 @@ public class TableView
   }
 
   
-  private Composite createSashForm(Composite composite) {
-  	if (!bEnableTabViews) {
-      tableComposite = createMainPanel(composite);
-      return tableComposite;
-  	}
-  		
-    GridData gridData;
-    final SashForm form = new SashForm(composite, SWT.VERTICAL);
-    gridData = new GridData(GridData.FILL_BOTH); 
-    form.setLayoutData(gridData);
+	private Composite createSashForm(final Composite composite) {
+		if (!bEnableTabViews) {
+			tableComposite = createMainPanel(composite);
+			return tableComposite;
+		}
 
-    tableComposite = createMainPanel(form);
-    GridLayout layout = new GridLayout();
-    layout.numColumns = 1;
-    layout.horizontalSpacing = 0;
-    layout.verticalSpacing = 0;
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    tableComposite.setLayout(layout);
-    tableComposite.addListener(SWT.Resize, new Listener() {
-      public void handleEvent(Event e) {
-        int[] weights = form.getWeights();
-        if (weights.length != 2)
-        	return;
-        int iSashValue = weights[0] * 100 / (weights[0] + weights[1]);
-        configMan.setParameter(sPropertiesPrefix + ".SplitAt", iSashValue);
-      }
-    });
-
-    tabFolder = new TabFolder(form, SWT.TOP);
-    // Don't set a new layout for TabFolder.  This will cause flicker
-    // on the bottom 1/2 of the folder when resizing
-    
-    addCoreTabViews();
-
-    // Call plugin listeners
+		int iNumViews = coreTabViews == null ? 0 : coreTabViews.length;
 		UISWTInstanceImpl pluginUI = MainWindow.getWindow().getUISWTInstanceImpl();
-		Map pluginViews = pluginUI.getViewListeners(UISWTInstance.VIEW_TORRENT_PEERS);
+		Map pluginViews = pluginUI
+				.getViewListeners(UISWTInstance.VIEW_TORRENT_PEERS);
+		if (pluginViews != null)
+			iNumViews += pluginViews.size();
+
+		if (iNumViews == 0) {
+			tableComposite = createMainPanel(composite);
+			return tableComposite;
+		}
+
+		FormData formData;
+
+		final Composite form = new Composite(composite, SWT.NONE);
+		FormLayout flayout = new FormLayout();
+		flayout.marginHeight = 0;
+		flayout.marginWidth = 0;
+		form.setLayout(flayout);
+		GridData gridData;
+		gridData = new GridData(GridData.FILL_BOTH);
+		form.setLayoutData(gridData);
+
+		// Create them in reverse order, so we can have the table auto-grow, and
+		// set the tabFolder's height manually
+
+		final int TABHEIGHT = 20;
+		tabFolder = new CTabFolder(form, SWT.TOP | SWT.BORDER);
+		tabFolder.setMinimizeVisible(true);
+		tabFolder.setMinimized(false);
+		tabFolder.setTabHeight(TABHEIGHT);
+		final int iFolderHeightAdj = tabFolder.computeSize(SWT.DEFAULT, 0).y;
+
+		final Sash sash = new Sash(form, SWT.HORIZONTAL);
+
+		tableComposite = createMainPanel(form);
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.horizontalSpacing = 0;
+		layout.verticalSpacing = 0;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		tableComposite.setLayout(layout);
+
+		// FormData for Folder
+		formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.bottom = new FormAttachment(100, 0);
+		int iSplitAt = configMan.getIntParameter(sPropertiesPrefix + ".SplitAt",
+				3000);
+		// Was stored at whole
+		if (iSplitAt < 100)
+			iSplitAt *= 100;
+
+		double pct = iSplitAt / 10000.0;
+		if (pct < 0.03)
+			pct = 0.03;
+		else if (pct > 0.97)
+			pct = 0.97;
+
+		// height will be set on first resize call
+		sash.setData("PCT", new Double(pct));
+		tabFolder.setLayoutData(formData);
+		final FormData tabFolderData = formData;
+
+		// FormData for Sash
+		formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.bottom = new FormAttachment(tabFolder);
+		formData.height = 5;
+		sash.setLayoutData(formData);
+
+		// FormData for table Composite
+		formData = new FormData();
+		formData.left = new FormAttachment(0, 0);
+		formData.right = new FormAttachment(100, 0);
+		formData.top = new FormAttachment(0, 0);
+		formData.bottom = new FormAttachment(sash);
+		tableComposite.setLayoutData(formData);
+
+		// Listeners to size the folder
+		sash.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+
+				if (tabFolder.getMinimized())
+					tabFolder.setMinimized(false);
+
+				Rectangle area = form.getClientArea();
+				tabFolderData.height = area.height - e.y - e.height - iFolderHeightAdj;
+				form.layout();
+
+				Double l = new Double((double) tabFolder.getBounds().height
+						/ form.getBounds().height);
+				sash.setData("PCT", l);
+				if (e.detail == SWT.DRAG)
+					configMan.setParameter(sPropertiesPrefix + ".SplitAt", (int) (l
+							.doubleValue() * 10000));
+			}
+		});
+
+		final CTabFolder2Adapter folderListener = new CTabFolder2Adapter() {
+			public void minimize(CTabFolderEvent event) {
+				tabFolder.setMinimized(true);
+				tabFolderData.height = iFolderHeightAdj;
+				form.layout();
+				
+				configMan.setParameter(sPropertiesPrefix + ".subViews.minimized", true);
+			}
+
+			public void restore(CTabFolderEvent event) {
+				tabFolder.setMinimized(false);
+				form.notifyListeners(SWT.Resize, null);
+				
+				configMan.setParameter(sPropertiesPrefix + ".subViews.minimized", false);
+			}
+		};
+		tabFolder.addCTabFolder2Listener(folderListener);
+		
+		tabFolder.addMouseListener(new MouseAdapter() {
+			public void mouseDown(MouseEvent e) {
+				if (tabFolder.getMinimized()) {
+					folderListener.restore(null);
+					// If the user clicked down on the restore button, and we restore
+					// before the CTabFolder does, CTabFolder will minimize us again
+					// There's no way that I know of to determine if the mouse is 
+					// on that button!
+					
+					// one of these will tell tabFolder to cancel
+					e.button = 0;
+					tabFolder.notifyListeners(SWT.MouseExit, null);
+				}
+			}
+		});
+
+		form.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event e) {
+				if (tabFolder.getMinimized())
+					return;
+
+				Double l = (Double) sash.getData("PCT");
+				if (l != null) {
+					tabFolderData.height = (int) (form.getBounds().height * l
+							.doubleValue())
+							- iFolderHeightAdj;
+					form.layout();
+				}
+			}
+		});
+
+		for (int i = 0; i < coreTabViews.length; i++)
+			addTabView(coreTabViews[i]);
+
+		// Call plugin listeners
 		if (pluginViews != null) {
-			String[] sNames = (String[])pluginViews.keySet().toArray(new String[0]);
+			String[] sNames = (String[]) pluginViews.keySet().toArray(new String[0]);
 			for (int i = 0; i < sNames.length; i++) {
-				UISWTViewEventListener l = (UISWTViewEventListener)pluginViews.get(sNames[i]);
+				UISWTViewEventListener l = (UISWTViewEventListener) pluginViews
+						.get(sNames[i]);
 				if (l != null) {
 					try {
 						UISWTViewImpl view = new UISWTViewImpl(
@@ -354,28 +478,16 @@ public class TableView
 			}
 		}
 		
-		if (tabViews == null || tabViews.size() == 0) {
-			tabFolder.dispose();
-			tabFolder = null;
-		} else {
-	    int weight = configMan.getIntParameter("PeersView.SplitAt", 70);
-	    if (weight > 100)
-	      weight = 100;
-	    form.setWeights(new int[] {weight, 100 - weight});
+		if (configMan.getBooleanParameter(
+				sPropertiesPrefix + ".subViews.minimized", false)) {
+			tabFolder.setMinimized(true);
+			tabFolderData.height = iFolderHeightAdj;
 		}
 
-    return form;
-  }
-  
+		tabFolder.setSelection(0);
 
-  /**
-   * Override this method to add your own predefined tab views.
-   * 
-   * (TableView will handle plugin tab views for you)
-   *
-   */
-  public void addCoreTabViews() {
-  }
+		return form;
+	}
   
   /** Creates a composite within the specified composite and sets its layout
    * to a default FillLayout().
@@ -2255,7 +2367,7 @@ public class TableView
 		if (view == null || tabFolder == null)
 			return;
 
-		TabItem item = new TabItem(tabFolder, SWT.NULL);
+		CTabItem item = new CTabItem(tabFolder, SWT.NULL);
 		Messages.setLanguageText(item, view.getData());
 		view.initialize(tabFolder);
 		item.setControl(view.getComposite());

@@ -21,10 +21,10 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.List;
-
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Table;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -93,6 +93,7 @@ public class PeersView
           basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
     setRowDefaultHeight(16);
     bEnableTabViews = true;
+	  coreTabViews = new IView[] { new PeerInfoView(), new LoggerView() };
   }
   
 	public void dataSourceChanged(Object newDataSource) {
@@ -112,13 +113,6 @@ public class PeersView
     }
 	}
 
-  public void addCoreTabViews() {
-	  final IView views[] = { new PeerInfoView(), new LoggerView() };
-
-		for (int i = 0; i < views.length; i++)
-			addTabView(views[i]);
-  }
-  
   
 	public void initializeTable(Table table) {
 		super.initializeTable(table);
