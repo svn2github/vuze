@@ -43,7 +43,7 @@ public class DefaultRankCalculator implements Comparable {
 	/** 
 	 * Amount to shift over the rank of the SEEDONLY ranking type, to make room
 	 * in case the user has fallback to SPRATIO set.
-	 */ 
+	 */
 	private static int SEEDONLY_SHIFT = SPRATIO_BASE_LIMIT + 1;
 
 	/**
@@ -184,7 +184,7 @@ public class DefaultRankCalculator implements Comparable {
 					}
 				};
 
-		    COConfigurationManager.addListener(configListener);
+				COConfigurationManager.addListener(configListener);
 				configListener.configurationSaved();
 			}
 		} finally {
@@ -452,8 +452,7 @@ public class DefaultRankCalculator implements Comparable {
 						return SR_0PEERS;
 					}
 
-					if (bFirstPriorityIgnore0Peer && (shareRatio < minQueueingShareRatio)
-							&& shareRatio != -1) {
+					if (bFirstPriorityIgnore0Peer) {
 						dl.setSeedingRank(SR_FP0PEERS);
 						return SR_FP0PEERS;
 					}
