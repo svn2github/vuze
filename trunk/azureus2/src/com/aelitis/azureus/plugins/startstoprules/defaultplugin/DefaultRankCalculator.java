@@ -4,6 +4,7 @@
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginConfig;
@@ -183,6 +184,7 @@ public class DefaultRankCalculator implements Comparable {
 					}
 				};
 
+		    COConfigurationManager.addListener(configListener);
 				configListener.configurationSaved();
 			}
 		} finally {
