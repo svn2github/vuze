@@ -303,31 +303,35 @@ public class OutgoingBTPieceMessageHandler {
   }
 
   /**
-   * Get a list of piece numbers being requested
-   *  
-   * @return list of Long values
-   */
-	public List getRequestedPieceNumbers() {
-		ArrayList list = new ArrayList();
-
-		/** Cheap hack to reduce (but not remove all) the # of duplicate entries */
-		int iLastNumber = -1;
+	 * Get a list of piece numbers being requested
+	 *  
+	 * @return list of Long values
+	 */
+	public int[] getRequestedPieceNumbers() {
 		try {
 			lock_mon.enter();
+
+			/** Cheap hack to reduce (but not remove all) the # of duplicate entries */
+			int iLastNumber = -1;
+
+			// allocate max size needed (we'll shrink it later)
+			int[] pieceNumbers = new int[queued_messages.size()
+					+ loading_messages.size() + requests.size()];
+			int pos = 0;
 
 			for (Iterator iter = queued_messages.keySet().iterator(); iter.hasNext();) {
 				BTPiece msg = (BTPiece) iter.next();
 				if (iLastNumber != msg.getPieceNumber()) {
 					iLastNumber = msg.getPieceNumber();
-					list.add(new Long(iLastNumber));
+					pieceNumbers[pos++] = iLastNumber;
 				}
 			}
-			
+
 			for (Iterator iter = loading_messages.iterator(); iter.hasNext();) {
 				DiskManagerReadRequest dmr = (DiskManagerReadRequest) iter.next();
 				if (iLastNumber != dmr.getPieceNumber()) {
 					iLastNumber = dmr.getPieceNumber();
-					list.add(new Long(iLastNumber));
+					pieceNumbers[pos++] = iLastNumber;
 				}
 			}
 
@@ -335,13 +339,16 @@ public class OutgoingBTPieceMessageHandler {
 				DiskManagerReadRequest dmr = (DiskManagerReadRequest) iter.next();
 				if (iLastNumber != dmr.getPieceNumber()) {
 					iLastNumber = dmr.getPieceNumber();
-					list.add(new Long(iLastNumber));
+					pieceNumbers[pos++] = iLastNumber;
 				}
 			}
+
+			int[] trimmed = new int[pos];
+			System.arraycopy(pieceNumbers, 0, trimmed, 0, pos);
+
+			return trimmed;
 		} finally {
 			lock_mon.exit();
 		}
-		
-		return list;
 	}
 }

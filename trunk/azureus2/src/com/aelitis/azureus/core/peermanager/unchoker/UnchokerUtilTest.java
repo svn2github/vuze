@@ -160,8 +160,8 @@ public class UnchokerUtilTest {
         public Message[] getSupportedMessages(){ return null; }
         public int getReservedPieceNumber() { return -1; }
         public void setReservedPieceNumber(int pieceNumber) {}
-				public List getIncomingRequestedPieceNumbers() { return null; }
-				public List getOutgoingRequestedPieceNumbers() { return null; }
+				public int[] getIncomingRequestedPieceNumbers() { return null; }
+				public int[] getOutgoingRequestedPieceNumbers() { return null; }
       };
       
       peers.add( peer );

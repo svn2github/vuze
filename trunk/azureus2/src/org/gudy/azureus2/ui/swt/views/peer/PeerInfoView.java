@@ -25,9 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.peer;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
@@ -38,18 +36,11 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -382,19 +373,19 @@ public class PeerInfoView extends AbstractIView {
 		
 		int iNextDLPieceID = -1;
 		int iDLPieceID = -1;
-		List ourRequestedPieces = peer.getOutgoingRequestedPieceNumbers();
+		int[] ourRequestedPieces = peer.getOutgoingRequestedPieceNumbers();
 		if (ourRequestedPieces != null) {
 			if (!peer.isChokingMe()) {
 				// !choking == downloading
 	
-				if (ourRequestedPieces.size() > 0) {
-					iDLPieceID = ((Long)ourRequestedPieces.get(0)).intValue();
-					if (ourRequestedPieces.size() > 1)
-						iNextDLPieceID = ((Long)ourRequestedPieces.get(1)).intValue();
+				if (ourRequestedPieces.length > 0) {
+					iDLPieceID = ourRequestedPieces[0];
+					if (ourRequestedPieces.length > 1)
+						iNextDLPieceID = ourRequestedPieces[1];
 				}
 			} else {
-				if (ourRequestedPieces.size() > 0)
-					iNextDLPieceID = ((Long)ourRequestedPieces.get(0)).intValue();
+				if (ourRequestedPieces.length > 0)
+					iNextDLPieceID = ourRequestedPieces[0];
 			}
 			
 			if (iNextDLPieceID == -1) {
@@ -405,11 +396,14 @@ public class PeerInfoView extends AbstractIView {
 			}
 		}
 
-		List peerRequestedPieces = peer.getIncomingRequestedPieceNumbers();
+		int[] peerRequestedPieces = peer.getIncomingRequestedPieceNumbers();
+		if (peerRequestedPieces == null)
+			peerRequestedPieces = new int[0];
+
 		int peerNextRequestedPiece = -1;
-		if (peerRequestedPieces.size() > 0)
-			peerNextRequestedPiece = ((Long) peerRequestedPieces.get(0)).intValue();
-		Collections.sort(peerRequestedPieces);
+		if (peerRequestedPieces.length > 0)
+			peerNextRequestedPiece = peerRequestedPieces[0];
+		Arrays.sort(peerRequestedPieces);
 
 		int iRow = 0;
 		int iCol = 0;
@@ -485,7 +479,7 @@ public class PeerInfoView extends AbstractIView {
 				gcImg.fillPolygon(new int[] { iXPos, iYPos + BLOCK_FILLSIZE,
 						iXPos + BLOCK_FILLSIZE, iYPos + BLOCK_FILLSIZE,
 						iXPos + (BLOCK_FILLSIZE / 2), iYPos });
-			} else if (Collections.binarySearch(peerRequestedPieces, new Long(i)) >= 0) {
+			} else if (Arrays.binarySearch(peerRequestedPieces, i) >= 0) {
 				// Small Up Arrow each upload request
 				gcImg.setBackground(blockColors[BLOCKCOLOR_NEXT]);
 				gcImg.fillPolygon(new int[] { iXPos + 1, iYPos + BLOCK_FILLSIZE - 2,

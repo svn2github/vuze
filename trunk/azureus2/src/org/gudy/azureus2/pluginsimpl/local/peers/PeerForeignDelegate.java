@@ -455,12 +455,12 @@ PeerForeignDelegate
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.core3.peer.PEPeer#getRequestedPieceNumbers()
 	 */
-	public List getIncomingRequestedPieceNumbers() {
+	public int[] getIncomingRequestedPieceNumbers() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public List getOutgoingRequestedPieceNumbers() {
+	public int[] getOutgoingRequestedPieceNumbers() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -25,7 +25,6 @@
  */
 package org.gudy.azureus2.core3.peer;
 
-import java.util.List;
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
@@ -200,12 +199,12 @@ PEPeer
    * get a list of piece numbers the peer has requested
    * @return list of Long() representing the piece number requested, in order
    */
-  public List getIncomingRequestedPieceNumbers();
+  public int[] getIncomingRequestedPieceNumbers();
   
   /**
    * get a list of piece numbers the we have requested from peer
    * @return list of Long() representing the piece number requested, oldest
    *          to newest
    */
-  public List getOutgoingRequestedPieceNumbers();
+  public int[] getOutgoingRequestedPieceNumbers();
 }

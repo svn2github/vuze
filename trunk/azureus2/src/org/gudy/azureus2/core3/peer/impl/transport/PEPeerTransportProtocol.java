@@ -1891,31 +1891,43 @@ PEPeerTransportProtocol
     reservedPiece = pieceNumber;
   }
 
-  public List getIncomingRequestedPieceNumbers() {
+  public int[] getIncomingRequestedPieceNumbers() {
   	return outgoing_piece_message_handler.getRequestedPieceNumbers();
   }
   
-	public List getOutgoingRequestedPieceNumbers() {
-		List pieceNumberList = new ArrayList(); 
-		try{
-		  requested_mon.enter();
-    
-		  for (int i = 0; i < requested.size(); i++) {
-		  	DiskManagerReadRequest request = null;
-		  	try {
-		  		request = (DiskManagerReadRequest) requested.get(i);
-		  	}
-		  	catch (Exception e) { Debug.printStackTrace( e );}
-        
-		  	if (request != null)
-		  		pieceNumberList.add(new Long(request.getPieceNumber()));
-		  }
-		}finally{
-			
+	public int[] getOutgoingRequestedPieceNumbers() {
+		try {
+			requested_mon.enter();
+
+			/** Cheap hack to reduce (but not remove all) the # of duplicate entries */
+			int iLastNumber = -1;
+
+			// allocate max size needed (we'll shrink it later)
+			int[] pieceNumbers = new int[requested.size()];
+			int pos = 0;
+
+			for (int i = 0; i < requested.size(); i++) {
+				DiskManagerReadRequest request = null;
+				try {
+					request = (DiskManagerReadRequest) requested.get(i);
+				} catch (Exception e) {
+					Debug.printStackTrace(e);
+				}
+
+				if (request != null && iLastNumber != request.getPieceNumber()) {
+					iLastNumber = request.getPieceNumber();
+					pieceNumbers[pos++] = iLastNumber;
+				}
+			}
+
+			int[] trimmed = new int[pos];
+			System.arraycopy(pieceNumbers, 0, trimmed, 0, pos);
+
+			return trimmed;
+
+		} finally {
 			requested_mon.exit();
 		}
-		
-		return pieceNumberList;
 	}
 
 
