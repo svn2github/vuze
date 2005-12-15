@@ -437,12 +437,10 @@ public class DefaultRankCalculator implements Comparable {
 			}
 			
 			if (!isFirstPriority()) {
-
-				/** 
-				 * XXX Check ignore rules
-				 */
+				// Check Ignore Rules
 				// never apply ignore rules to First Priority Matches
 				// (we don't want leechers circumventing the 0.5 rule)
+
 				//0 means unlimited
 				if (iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio
 						&& (numSeeds >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl))
@@ -451,16 +449,18 @@ public class DefaultRankCalculator implements Comparable {
 					return SR_SHARERATIOMET;
 				}
 
-				if (numPeers == 0 && bScrapeResultsOk){
-					
+				if (numPeers == 0 && bScrapeResultsOk) {
+					// If both bIgnore0Peers and bFirstPriorityIgnore0Peer are on,
+					// we won't know which one it is at this point.
+					// We have to use the normal SR_0PEERS in case it isn't FP
+					if (bIgnore0Peers) {
+						dl.setSeedingRank(SR_0PEERS);
+						return SR_0PEERS;
+					}
+
 					if (bFirstPriorityIgnore0Peer) {
 						dl.setSeedingRank(SR_FP0PEERS);
 						return SR_FP0PEERS;
-					}
-					
-					if ( bIgnore0Peers) {
-						dl.setSeedingRank(SR_0PEERS);
-						return SR_0PEERS;
 					}
 				}
 
