@@ -88,9 +88,9 @@ public class PeersItem extends CoreTableColumn implements
 					scrapeResult(dm.getTrackerScrapeResponse());
 			}
 
-			long value = lConnectedPeers;
+			long value = lConnectedPeers * 10000000;
 			if (lTotalPeers > 0)
-				value = value * 10000000 + lTotalPeers;
+				value = value + lTotalPeers;
 			if (!cell.setSortValue(value) && cell.isValid())
 				return;
 
