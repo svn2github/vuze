@@ -118,7 +118,12 @@ public class SeedsItem extends CoreTableColumn implements
 			}
 
 			// Allows for 2097151 of each type (connected seeds, seeds, peers)
-			long value = (lConnectedSeeds << 42) + (lTotalSeeds << 21) + lTotalPeers;
+			long value = (lConnectedSeeds << 42);
+			if (lTotalSeeds > 0)
+				value += (lTotalSeeds << 21);
+			if (lTotalPeers > 0)
+				value += lTotalPeers;
+
 			if (!cell.setSortValue(value) && cell.isValid())
 				return;
 
