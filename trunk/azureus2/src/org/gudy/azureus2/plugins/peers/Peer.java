@@ -137,7 +137,11 @@ Peer
 		boolean 	closedOnError,
 		boolean 	attemptReconnect );
 	
-
+	public int
+	getPercentDoneOfCurrentIncomingRequest();
+		  
+	public int
+	getPercentDoneOfCurrentOutgoingRequest();
   
   /**
    * Add peer listener.

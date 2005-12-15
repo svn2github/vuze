@@ -258,7 +258,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       }    
       
       
-      int percentSent = peer.getConnection().getIncomingMessageQueue().getPercentDoneOfCurrentMessage();
+      int percentSent = peer.getPercentDoneOfCurrentIncomingRequest();
       if(percentSent >= 0) {
         gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
         double r1 = r - r * percentSent / 100;
@@ -277,7 +277,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       
       
       
-      percentSent = peer.getConnection().getOutgoingMessageQueue().getPercentDoneOfCurrentMessage();
+      percentSent = peer.getPercentDoneOfCurrentOutgoingRequest();
       if(percentSent >= 0) {
         gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDLIGHT]);
         double r1 = r * percentSent / 100;

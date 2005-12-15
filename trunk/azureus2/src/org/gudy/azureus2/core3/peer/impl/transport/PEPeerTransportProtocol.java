@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.*;
@@ -91,6 +93,7 @@ PEPeerTransportProtocol
   private NetworkConnection connection;
   private OutgoingBTPieceMessageHandler outgoing_piece_message_handler;
   private OutgoingBTHaveMessageAggregator outgoing_have_message_aggregator;
+  private Connection	plugin_connection;
   
   private boolean identityAdded = false;  //needed so we don't remove id's in closeAll() on duplicate connection attempts
 
@@ -187,6 +190,7 @@ PEPeerTransportProtocol
     
     incoming = true;
     connection = _connection;
+    plugin_connection = new ConnectionImpl(connection);
     
     peer_stats = manager.createPeerStats();
 
@@ -255,6 +259,8 @@ PEPeerTransportProtocol
 
     
     connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder() );
+    
+    plugin_connection = new ConnectionImpl(connection);
     
     changePeerState( PEPeer.CONNECTING );
     
@@ -1701,8 +1707,8 @@ PEPeerTransportProtocol
   
   
   
-  public NetworkConnection getConnection() {
-    return connection;
+  public Connection getConnection() {
+    return plugin_connection;
   }
   
   
@@ -1930,7 +1936,17 @@ PEPeerTransportProtocol
 		}
 	}
 
-
+	 public int
+	 getPercentDoneOfCurrentIncomingRequest()
+	 {
+		 return( connection.getIncomingMessageQueue().getPercentDoneOfCurrentMessage());
+	 }
+	  
+	 public int
+	 getPercentDoneOfCurrentOutgoingRequest()
+	 {
+		 return( connection.getOutgoingMessageQueue().getPercentDoneOfCurrentMessage());
+	 }
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.core3.logging.LogRelation#getLogRelationText()

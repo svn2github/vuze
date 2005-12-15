@@ -29,7 +29,14 @@ import java.util.Map;
 import java.util.Random;
 
 import org.gudy.azureus2.plugins.messaging.Message;
+import org.gudy.azureus2.plugins.messaging.MessageStreamDecoder;
+import org.gudy.azureus2.plugins.messaging.MessageStreamEncoder;
 import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.network.ConnectionListener;
+import org.gudy.azureus2.plugins.network.IncomingMessageQueue;
+import org.gudy.azureus2.plugins.network.IncomingMessageQueueListener;
+import org.gudy.azureus2.plugins.network.OutgoingMessageQueue;
+import org.gudy.azureus2.plugins.network.OutgoingMessageQueueListener;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerListener;
@@ -57,6 +64,8 @@ ExternalSeedPeer
 	
 	private Monitor					connection_mon;
 	private boolean					peer_added;
+	
+	private esConnection			connection = new esConnection();
 	
 	protected
 	ExternalSeedPeer(
@@ -380,7 +389,7 @@ ExternalSeedPeer
 	public Connection 
 	getConnection()
 	{
-		return( null );
+		return( connection );
 	}
   
   
@@ -393,12 +402,136 @@ ExternalSeedPeer
 	public Message[] 
 	getSupportedMessages()
 	{
-		return( null );
+		return( new Message[0] );
+	}
+	
+	public int
+	getPercentDoneOfCurrentIncomingRequest()
+	{
+		return( 0 );
+	}
+		  
+	public int
+	getPercentDoneOfCurrentOutgoingRequest()
+	{
+		return( 0 );
 	}
 	
 	public Map
 	getProperties()
 	{
 		return( new HashMap());
+	}
+	
+	protected class
+	esConnection
+		implements Connection
+	{
+		private esOutQ		outq  	= new esOutQ();
+		private esInQ		inq  	= new esInQ();
+		
+		public void 
+		connect( 
+			ConnectionListener listener )
+		{	  
+		}
+		 
+		public void 
+		close()
+		{	  
+		}
+		  
+		public OutgoingMessageQueue 
+		getOutgoingMessageQueue()
+		{
+			return( outq );
+		}
+		  
+		public IncomingMessageQueue 
+		getIncomingMessageQueue()
+		{
+			return( inq );
+		}
+		  
+		public void 
+		startMessageProcessing()
+		{	  
+		}
+	}
+	
+	protected class
+	esOutQ
+		implements OutgoingMessageQueue
+	{
+		public void 
+		setEncoder( 
+			MessageStreamEncoder encoder )
+		{
+		}
+
+		public void 
+		sendMessage( 
+			Message message )
+		{	
+		}
+		  
+		public void 
+		registerListener( 
+			OutgoingMessageQueueListener listener )
+		{	
+		}
+		  
+		public void 
+		deregisterListener( 
+			OutgoingMessageQueueListener listener )
+		{
+		}
+		  
+		public void 
+		notifyOfExternalSend( Message message )
+		{
+		}
+		  
+		public int 
+		getPercentDoneOfCurrentMessage()
+		{
+			return( 0 );
+		}
+	}
+	
+	protected class
+	esInQ
+		implements IncomingMessageQueue
+	{
+		public void 
+		setDecoder( 
+			MessageStreamDecoder stream_decoder )
+		{
+		}
+		 	
+		public void 
+		registerListener( 
+			IncomingMessageQueueListener listener )
+		{
+		}
+		  
+	
+		public void 
+		deregisterListener( 
+			IncomingMessageQueueListener listener )
+		{
+		}  
+	
+		public void 
+		notifyOfExternalReceive( 
+			Message message )
+		{
+		}
+		  
+		public int 
+		getPercentDoneOfCurrentMessage()
+		{
+			return( 0 );
+		} 
 	}
 }

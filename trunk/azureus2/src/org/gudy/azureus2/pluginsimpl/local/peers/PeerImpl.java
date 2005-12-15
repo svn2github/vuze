@@ -47,8 +47,6 @@ PeerImpl
 	protected PEPeer		delegate;
 	protected AEMonitor		this_mon	= new AEMonitor( "Peer" );
   
-  private final Connection connection;
-  
   private HashMap peer_listeners;
   
 
@@ -59,8 +57,6 @@ PeerImpl
 		delegate	= _delegate;
 		
 		manager = PeerManagerImpl.getPeerManager( delegate.getManager());
-		
-		connection = new ConnectionImpl( delegate.getConnection() );
 	}
 
 	public PeerManager
@@ -71,7 +67,7 @@ PeerImpl
 	
   
   public Connection getConnection() {
-    return connection;
+    return delegate.getConnection();
   }
   
   
@@ -267,7 +263,17 @@ PeerImpl
 		throw( new RuntimeException( "not supported"));
 	}
 	
-
+	public int
+	getPercentDoneOfCurrentIncomingRequest()
+	{
+		return( delegate.getPercentDoneOfCurrentIncomingRequest());
+	}
+		  
+	public int
+	getPercentDoneOfCurrentOutgoingRequest()
+	{
+		return( delegate.getPercentDoneOfCurrentOutgoingRequest());
+	}
 
 	public void 
 	addListener( 

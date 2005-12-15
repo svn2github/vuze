@@ -26,6 +26,8 @@
 package org.gudy.azureus2.core3.peer;
 
 
+import org.gudy.azureus2.plugins.network.Connection;
+
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 
@@ -169,10 +171,11 @@ PEPeer
   
   
   /**
-   * Get the network connection that backs this peer.
+   * Get the connection that backs this peer.
    * @return connection
    */
-  public NetworkConnection getConnection();
+  
+  public Connection getConnection();
   
   
   /**
@@ -210,4 +213,10 @@ PEPeer
    *          to newest
    */
   public int[] getOutgoingRequestedPieceNumbers();
+  
+  public int
+  getPercentDoneOfCurrentIncomingRequest();
+  
+  public int
+  getPercentDoneOfCurrentOutgoingRequest();
 }

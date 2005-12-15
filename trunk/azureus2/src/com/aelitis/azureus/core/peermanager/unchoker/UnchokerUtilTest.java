@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.peermanager.unchoker;
 import java.util.*;
 
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.plugins.network.Connection;
 
 
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
@@ -156,13 +157,15 @@ public class UnchokerUtilTest {
         public int getUniqueAnnounce(){ return 0; }
         public Object getData (String key){ return null; }
         public void setData (String key, Object value){}
-        public NetworkConnection getConnection(){ return null; }
+        public Connection getConnection(){ return null; }
         public boolean supportsMessaging(){ return false;  }
         public Message[] getSupportedMessages(){ return null; }
         public int getReservedPieceNumber() { return -1; }
         public void setReservedPieceNumber(int pieceNumber) {}
-				public int[] getIncomingRequestedPieceNumbers() { return null; }
-				public int[] getOutgoingRequestedPieceNumbers() { return null; }
+		public int[] getIncomingRequestedPieceNumbers() { return null; }
+		public int[] getOutgoingRequestedPieceNumbers() { return null; }
+		public int getPercentDoneOfCurrentIncomingRequest(){ return 0; }  
+		public int getPercentDoneOfCurrentOutgoingRequest(){ return 0; }  
       };
       
       peers.add( peer );

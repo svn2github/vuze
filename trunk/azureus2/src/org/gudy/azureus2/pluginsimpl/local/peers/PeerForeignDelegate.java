@@ -36,6 +36,8 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
@@ -365,12 +367,23 @@ PeerForeignDelegate
 
   public void removeListener( PEPeerListener listener ) { /* nothing */ }
   
-  
-  
-  public NetworkConnection getConnection() {
-    return ((ConnectionImpl)foreign.getConnection()).getCoreConnection();
+  public Connection
+  getConnection()
+  {
+	  return( foreign.getConnection());
   }
   
+  public int
+  getPercentDoneOfCurrentIncomingRequest()
+  {
+	 return( foreign.getPercentDoneOfCurrentIncomingRequest());
+  }
+	  
+  public int
+  getPercentDoneOfCurrentOutgoingRequest()
+  {
+	 return( foreign.getPercentDoneOfCurrentOutgoingRequest());	
+  }
   
   public boolean supportsMessaging() {
     return foreign.supportsMessaging();
