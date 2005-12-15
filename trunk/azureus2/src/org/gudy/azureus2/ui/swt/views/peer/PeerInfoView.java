@@ -105,7 +105,7 @@ public class PeerInfoView extends AbstractIView {
 
 	private Font font = null;
 
-	Image img;
+	Image img = null;
 
 	/**
 	 * Initialize
@@ -331,29 +331,28 @@ public class PeerInfoView extends AbstractIView {
 			img.dispose();
 			img = null;
 		}
-		img = new Image(peerInfoCanvas.getDisplay(), bounds.width, bounds.height);
-		GC gcImg = new GC(img);
-		gcImg.setBackground(peerInfoCanvas.getBackground());
-		gcImg.fillRectangle(0, 0, bounds.width, bounds.height);
 
 		if (peer == null) {
 			GC gc = new GC(peerInfoCanvas);
-			gc.drawImage(img, 0, 0);
+			gc.fillRectangle(bounds);
 			gc.dispose();
 
-			gcImg.dispose();
 			return;
 		}
 
 		boolean[] piecesAvailable = peer.getAvailable();
 		if (piecesAvailable == null) {
 			GC gc = new GC(peerInfoCanvas);
-			gc.drawImage(img, 0, 0);
+			gc.fillRectangle(bounds);
 			gc.dispose();
 
-			gcImg.dispose();
 			return;
 		}
+
+		img = new Image(peerInfoCanvas.getDisplay(), bounds.width, bounds.height);
+		GC gcImg = new GC(img);
+		gcImg.setBackground(peerInfoCanvas.getBackground());
+		gcImg.fillRectangle(0, 0, bounds.width, bounds.height);
 
 		gcImg.setFont(font);
 
