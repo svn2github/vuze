@@ -26,7 +26,7 @@ import org.gudy.azureus2.plugins.peers.*;
 
 /**
  * @author parg
- *
+ * @deprecated 2307
  */
 
 public interface 

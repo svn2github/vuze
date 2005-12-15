@@ -100,6 +100,9 @@ PEPeer
   
 	public boolean[] getAvailable();
  
+	public boolean
+	transferAvailable();
+	
 	public void setSnubbed(boolean b);	// explicit un-snub
   
   /**

@@ -75,8 +75,6 @@ PeerProtocolManagerImpl
 						PEPeerControl	manager,
 						Map				details )
 					{
-							// TODO: create delegates
-						
 						PeerManagerImpl	peer_manager = PeerManagerImpl.getPeerManager( manager);
 						
 						Peer[] peers = handler.handleExtension(

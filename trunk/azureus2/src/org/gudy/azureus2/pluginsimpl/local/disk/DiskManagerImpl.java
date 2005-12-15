@@ -32,17 +32,17 @@ import java.util.WeakHashMap;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.disk.*;
 
 import org.gudy.azureus2.pluginsimpl.local.peers.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 public class 
 DiskManagerImpl
 	implements DiskManager
 {
 	protected PeerManagerImpl		peer_manager;
-	
-	protected Map			map	= new WeakHashMap();
 	
 	public
 	DiskManagerImpl(
@@ -51,42 +51,12 @@ DiskManagerImpl
 		peer_manager	= _peer_manager;
 	}
 	
-	public DiskManagerRequest
-	createRequest(
-	   int pieceNumber,
-	   int offset,
-	   int length )
-	{
-		DiskManagerRequestImpl	res = new DiskManagerRequestImpl( peer_manager.getDelegate(), pieceNumber, offset, length );
-		
-		map.put( res.getDelegate(), res );
-		
-		return(res );
-	}
-	
-	public DiskManagerRequest
-	lookupRequest(
-		org.gudy.azureus2.core3.disk.DiskManagerReadRequest	r )
-	{
-		return((DiskManagerRequest)map.get(r));
-	}
-	
-	public boolean 
-	checkBlock(
-		int 		pieceNumber, 
-		int 		offset, 
-		ByteBuffer 	data )
-	{
-		return( peer_manager.getDelegate().checkBlock( pieceNumber, offset, new DirectByteBuffer(data) ));
-	}
-	
 	public void 
 	writeBlock(
-		int 		pieceNumber, 
-		int 		offset, 
-		ByteBuffer 	data,
-		Peer 		sender)
+		PeerReadRequest		request,
+		PooledByteBuffer 	data,
+		Peer 				sender)
 	{
-		peer_manager.getDelegate().writeBlock( pieceNumber, offset, new DirectByteBuffer(data), peer_manager.mapForeignPeer( sender ));
+		peer_manager.getDelegate().writeBlock( request.getPieceNumber(), request.getOffset(), ((PooledByteBufferImpl)data).getBuffer(), peer_manager.mapForeignPeer( sender ));
 	}
 }

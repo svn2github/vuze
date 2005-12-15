@@ -136,6 +136,7 @@ public class UnchokerUtilTest {
         public int getTCPListenPort(){ return 0; }
         public int getUDPListenPort(){ return 0; }
         public boolean[] getAvailable(){ return null; }
+        public boolean transferAvailable(){ return true; }
         public void setSnubbed(boolean b){}
         public boolean isChokingMe(){ return true;  }
         public boolean isChokedByMe() {  return true;  }

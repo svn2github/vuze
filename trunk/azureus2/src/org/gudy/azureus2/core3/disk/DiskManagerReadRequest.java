@@ -1,5 +1,7 @@
 package org.gudy.azureus2.core3.disk;
 
+import org.gudy.azureus2.plugins.peers.PeerReadRequest;
+
 /**
  * 
  * This class represents a Bittorrent Request.
@@ -13,6 +15,7 @@ package org.gudy.azureus2.core3.disk;
  */
 public interface 
 DiskManagerReadRequest
+	extends PeerReadRequest
 {  
 	public boolean isExpired();
   

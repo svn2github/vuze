@@ -143,6 +143,11 @@ PluginInitializer
 					"azjpc", 
 					"azjpc",
 					"false" },
+	   		{	 PluginManagerDefaults.PID_EXTERNAL_SEED, 
+					"com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin", 
+					"azextseed", 
+					"azextseed",
+					"true" },
         };
  
   

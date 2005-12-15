@@ -46,7 +46,7 @@ PeerImpl
 {
 	protected PeerManager	manager;
 	protected PEPeer		delegate;
-	protected AEMonitor	this_mon	= new AEMonitor( "Peer" );
+	protected AEMonitor		this_mon	= new AEMonitor( "Peer" );
   
   private final Connection connection;
   
@@ -147,6 +147,12 @@ PeerImpl
 		return( delegate.getAvailable());
 	}
    
+	public boolean
+	isTransferAvailable()
+	{
+		return( delegate.transferAvailable());
+	}
+	
 	public boolean isChoked()
 	{
 		return( delegate.isChokingMe());
@@ -239,7 +245,7 @@ PeerImpl
 
 	public void
 	cancelRequest(
-		DiskManagerRequest	request )
+		PeerReadRequest	request )
 	{
 		throw( new RuntimeException( "not supported"));
 	}
@@ -247,9 +253,7 @@ PeerImpl
  
 	public boolean 
 	addRequest(
-		int pieceNumber, 
-		int pieceOffset, 
-		int pieceLength )
+		PeerReadRequest	request )
 	{
 		throw( new RuntimeException( "not supported"));
 	}

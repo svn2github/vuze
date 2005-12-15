@@ -73,6 +73,12 @@ PooledByteBufferImpl
 		return( res );
 	}
 	
+	public DirectByteBuffer
+	getBuffer()
+	{
+		return( buffer );
+	}
+	
 	public void
 	returnToPool()
 	{

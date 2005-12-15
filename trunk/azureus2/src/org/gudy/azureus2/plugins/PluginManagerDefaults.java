@@ -47,6 +47,7 @@ PluginManagerDefaults
 	public static final String	PID_DHT_TRACKER				= "DHT Tracker";
 	public static final String	PID_MAGNET					= "Magnet URI Handler";
 	public static final String	PID_JPC						= "JPC";
+	public static final String	PID_EXTERNAL_SEED			= "External Seed";
 	
 	public static final String[] PLUGIN_IDS = {
 			

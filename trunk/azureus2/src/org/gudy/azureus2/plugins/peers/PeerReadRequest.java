@@ -19,15 +19,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.plugins.disk;
+package org.gudy.azureus2.plugins.peers;
 
 /**
  * @author parg
  *
- * @since 2.1.0.0
+ * @since 2307
  */
+
 public interface 
-DiskManagerRequest 
+PeerReadRequest 
 {
 	public int
 	getPieceNumber();
@@ -46,4 +47,7 @@ DiskManagerRequest
 	
 	public void
 	cancel();
+	
+	public boolean
+	isCancelled();
 }

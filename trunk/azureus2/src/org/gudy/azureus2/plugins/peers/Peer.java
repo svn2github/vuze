@@ -29,7 +29,6 @@ package org.gudy.azureus2.plugins.peers;
 import java.util.List;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 
@@ -39,7 +38,7 @@ Peer
 	public final static int CONNECTING 		= PEPeer.CONNECTING;
 	public final static int HANDSHAKING 	= PEPeer.HANDSHAKING;
 	public final static int TRANSFERING 	= PEPeer.TRANSFERING;
-  public final static int DISCONNECTED  = PEPeer.DISCONNECTED;
+	public final static int DISCONNECTED 	= PEPeer.DISCONNECTED;
   
 
   
@@ -75,6 +74,9 @@ Peer
 	
 	public boolean[] getAvailable();
    
+	public boolean
+	isTransferAvailable();
+	
 	public boolean isChoked();
 
 	public boolean isChoking();
@@ -107,7 +109,7 @@ Peer
 
 	public boolean isOptimisticUnchoke();
   
-  public void setOptimisticUnchoke( boolean is_optimistic );
+	public void setOptimisticUnchoke( boolean is_optimistic );
 	
 	public void
 	initialize();
@@ -120,14 +122,12 @@ Peer
 
 	public void
 	cancelRequest(
-		DiskManagerRequest	request );
+		PeerReadRequest	request );
 
  
 	public boolean 
 	addRequest(
-		int pieceNumber, 
-		int pieceOffset, 
-		int pieceLength );
+		PeerReadRequest	request );
 
 
 	public void

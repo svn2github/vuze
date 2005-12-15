@@ -48,6 +48,7 @@ DiskManagerReadRequestImpl
   private long timeCreated;
   private final int hashcode;
   private boolean	flush;
+  private boolean	cancelled;
   
   
   
@@ -92,6 +93,12 @@ DiskManagerReadRequestImpl
       timeCreated = SystemTime.getCurrentTime();
   }
   
+  public void
+  resetTime()
+  {
+	  reSetTime();
+  }
+  
   //Getters  
   public int getPieceNumber()
   {
@@ -119,6 +126,18 @@ DiskManagerReadRequestImpl
 	getFlush()
 	{
 		return( flush );
+	}
+	
+	public void
+	cancel()
+	{
+		cancelled	= true;
+	}
+	
+	public boolean
+	isCancelled()
+	{
+		return( cancelled );
 	}
 	
   /**

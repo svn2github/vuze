@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.peers.*;
 
-import org.gudy.azureus2.pluginsimpl.local.disk.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
@@ -69,15 +68,6 @@ PeerForeignDelegate
 		foreign		= _foreign;
 	}
 	
-	public PEPeerTransport
-	getRealTransport()
-	{
-		foreign.initialize();
-			    
-		manager.peerAdded( foreign );	// add here so we see connect errors in the peers view
-
-		return( this );
-	}
 	
     /**
      * Should never be called
@@ -95,18 +85,18 @@ PeerForeignDelegate
     public void sendUnChoke() {}
 
     
-    /**
-     * HTTP seeds never choke us
-     */
-    public boolean transferAvailable() {
-      return true;
+ 
+    public boolean
+    transferAvailable() 
+    {
+    	return( foreign.isTransferAvailable());
     }
     
 	public void
 	sendCancel(
 		DiskManagerReadRequest	request )
 	{
-		foreign.cancelRequest(((DiskManagerImpl)manager.getDiskManager()).lookupRequest( request ));
+		foreign.cancelRequest( request );
 	}
 	
   /**
@@ -122,38 +112,21 @@ PeerForeignDelegate
 		int pieceOffset, 
 		int pieceLength )
 	{
-		return( foreign.addRequest( pieceNumber, pieceOffset, pieceLength ));
+		return( foreign.addRequest( manager.getDelegate().getDiskManager().createReadRequest( pieceNumber, pieceOffset, pieceLength )));
 	}
 		
   
-  public void closeConnection( String reason ) {
-    foreign.close( reason, false, false );  //TODO implement reconnect?
-    manager.peerRemoved(foreign);
-  }
-  
+	public void 
+	closeConnection( 
+		String reason ) 
+	{
+		foreign.close( reason, false, false ); 
+	}
 		
 	public List
 	getExpiredRequests()
 	{
-		DiskManagerImpl dm = (DiskManagerImpl)manager.getDiskManager();
-
-		List	reqs = foreign.getExpiredRequests();
-		
-		if ( reqs == null ){
-			
-			return( null );
-		}
-		
-		List	res = new ArrayList();
-		
-		for (int i=0;i<reqs.size();i++){
-			
-			DiskManagerRequestImpl	dmr = (DiskManagerRequestImpl)reqs.get(i);
-			
-			res.add( dmr.getDelegate());
-		}
-		
-		return( res );
+		return( foreign.getExpiredRequests());
 	}
   		
 	public int
@@ -165,8 +138,6 @@ PeerForeignDelegate
 	public PEPeerControl
 	getControl()
 	{
-			// bit of a con this
-		
 		return((PEPeerControl)manager.getDelegate());
 	}
   
@@ -179,7 +150,28 @@ PeerForeignDelegate
   }
   
   
-  public int getConnectionState() {  return 0;  }
+  public int 
+  getConnectionState() 
+  {
+	  int	peer_state = getPeerState();
+	  
+	  if ( peer_state == Peer.CONNECTING ){
+		  
+		  return( CONNECTION_CONNECTING );
+		  
+	  }else if ( peer_state == Peer.HANDSHAKING ){
+		  
+		  return( CONNECTION_WAITING_FOR_HANDSHAKE );
+			  
+	  }else if ( peer_state == Peer.TRANSFERING ){
+		  
+		  return( CONNECTION_FULLY_ESTABLISHED );
+		  
+	  }else{
+		
+		  return( CONNECTION_FULLY_ESTABLISHED );
+	  }
+  }
 	  
   
   public void doKeepAliveCheck() {}
@@ -219,7 +211,9 @@ PeerForeignDelegate
 	public int 
 	getPeerState()
 	{
-		return( foreign.getState());
+		int	peer_state = foreign.getState();
+		
+		return( peer_state );
 	}
 
   
@@ -289,14 +283,14 @@ PeerForeignDelegate
 	public boolean 
 	isInterestingToMe()
 	{
-		return( foreign.isInterested());
+		return( foreign.isInteresting());
 	}
 
 
 	public boolean 
 	isInterestedInMe()
 	{
-		return( foreign.isInteresting());
+		return( foreign.isInterested());
 	}
 
 

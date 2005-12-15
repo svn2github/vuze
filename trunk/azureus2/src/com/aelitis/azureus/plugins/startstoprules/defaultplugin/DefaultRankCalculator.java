@@ -430,6 +430,12 @@ public class DefaultRankCalculator implements Comparable {
 
 			int newSR = 0;
 
+			if ( dl.getName().startsWith("Seed")){
+				
+				int	a = 3;
+				int b = a;
+			}
+			
 			if (!isFirstPriority()) {
 
 				/** 

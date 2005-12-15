@@ -23,7 +23,7 @@ package org.gudy.azureus2.plugins.peers.protocol;
 
 /**
  * @author parg
- *
+ * @deprecated 2307
  */
 public interface 
 PeerProtocolManager 

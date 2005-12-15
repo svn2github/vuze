@@ -26,41 +26,15 @@ package org.gudy.azureus2.plugins.disk;
  *
  */
 
-import java.nio.ByteBuffer;
-
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
 public interface 
 DiskManager 
 {
-  /**
-   *
-   * @since 2.1.0.0
-   */
-	public DiskManagerRequest
-	createRequest(
-	   int pieceNumber,
-	   int offset,
-	   int length );
-	
-  /**
-   *
-   * @since 2.1.0.0
-   */
-	public boolean 
-	checkBlock(
-		int 		pieceNumber, 
-		int 		offset, 
-		ByteBuffer 	data );
-	
-  /**
-   *
-   * @since 2.1.0.0
-   */
 	public void 
 	writeBlock(
-		int 		pieceNumber, 
-		int 		offset, 
-		ByteBuffer 	data,
-		Peer 		sender);	
+		PeerReadRequest		request,
+		PooledByteBuffer 	data,
+		Peer 				sender);	
 }

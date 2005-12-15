@@ -182,9 +182,10 @@ public interface PluginInterface {
   /**
    * Gives access to the peer protocol manager
    * @return An object that allows management of Peer Protocols
-   *
+   * @decprecated 2307 If you want to handle extensions plugin into the announce protocol itself
    * @since 2.0.7.0
    */
+  
   public PeerProtocolManager
   getPeerProtocolManager();
   

@@ -38,6 +38,7 @@ import org.gudy.azureus2.pluginsimpl.local.download.*;
 
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 PeerManagerImpl
@@ -127,6 +128,8 @@ PeerManagerImpl
 		return( new PeerStatsImpl( manager, manager.createPeerStats()));
 	}
 	
+		// these are foreign peers
+	
 	public void
 	addPeer(
 		Peer		peer )
@@ -134,6 +137,12 @@ PeerManagerImpl
 		manager.addPeer(mapForeignPeer( peer ));
 	}
 	
+	public void
+	removePeer(
+		Peer		peer )
+	{
+		manager.removePeer(mapForeignPeer( peer ));
+	}
   
 	public void 
 	addPeer( 
@@ -144,13 +153,6 @@ PeerManagerImpl
 	}
   
   
-	public void
-	removePeer(
-		Peer		peer )
-	{
-		manager.removePeer(mapForeignPeer( peer ));
-	}
-	
 	public Peer[]
 	getPeers()
 	{
@@ -168,20 +170,6 @@ PeerManagerImpl
 		
 		return( res );
 	}
-
-	protected  void
-	peerAdded(
-		Peer		peer )
-	{
-		manager.peerAdded( mapForeignPeer( peer ));
-	}
-	
-	protected void
-	peerRemoved(
-		Peer		peer )
-	{
-		manager.peerRemoved( mapForeignPeer( peer ));
-	}
 	
 	public PEPeer
 	mapForeignPeer(
@@ -194,6 +182,14 @@ PeerManagerImpl
 			local 	= new PeerForeignDelegate( this, _foreign );
 			
 			foreign_map.put( _foreign, local );
+			
+			try{
+				_foreign.initialize();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 		
 		return( local );
