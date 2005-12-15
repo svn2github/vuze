@@ -22,13 +22,12 @@
 
 package com.aelitis.azureus.plugins.extseed;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
@@ -395,5 +394,11 @@ ExternalSeedPeer
 	getSupportedMessages()
 	{
 		return( null );
+	}
+	
+	public Map
+	getProperties()
+	{
+		return( new HashMap());
 	}
 }

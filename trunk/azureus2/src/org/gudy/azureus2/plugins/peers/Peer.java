@@ -27,6 +27,7 @@ package org.gudy.azureus2.plugins.peers;
  */
 
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.messaging.Message;
@@ -173,4 +174,11 @@ Peer
    */
   public Message[] getSupportedMessages();
 
+  /**
+   * Get a set of properties associated with the peer
+   * @return
+   */
+  
+  public Map
+  getProperties();
 }

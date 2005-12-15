@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
-import org.gudy.azureus2.plugins.disk.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
@@ -317,6 +316,12 @@ PeerImpl
 				delegate.removeListener( core_listener );
 			}
 		}
+	}
+	
+	public Map
+	getProperties()
+	{
+		return( new HashMap());
 	}
 	
 		// as we don't maintain a 1-1 mapping between these and delegates make sure
