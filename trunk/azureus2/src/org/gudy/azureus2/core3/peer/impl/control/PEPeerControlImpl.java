@@ -496,10 +496,27 @@ PEPeerControlImpl
     }
   
     for( int i=0; i < peer_transports.size(); i++ ) {
-      PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
-      
-      peer.closeConnection( reason );
-      peerRemoved( peer );  //notify listeners       
+	    PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+	      
+	    try{
+
+	    	peer.closeConnection( reason );
+	     
+	    }catch( Throwable e ){
+	    		
+    		// if something goes wrong with the close process (there's a bug in there somewhere whereby
+    		// we occasionally get NPEs then we want to make sure we carry on and close the rest
+    		
+	    	Debug.printStackTrace(e);
+	    }
+	    
+	    try{
+	    	peerRemoved( peer );  //notify listeners
+	    	
+	    }catch( Throwable e ){
+    		   		
+	    	Debug.printStackTrace(e);
+	    }
     }
     
     if( reconnect ) {
