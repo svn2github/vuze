@@ -451,16 +451,16 @@ public class DefaultRankCalculator implements Comparable {
 					return SR_SHARERATIOMET;
 				}
 
-				if (numPeers == 0 && bScrapeResultsOk) {
-					if (shareRatio >= minQueueingShareRatio && shareRatio != -1
-							&& bIgnore0Peers) {
-						dl.setSeedingRank(SR_0PEERS);
-						return SR_0PEERS;
-					}
-
+				if (numPeers == 0 && bScrapeResultsOk){
+					
 					if (bFirstPriorityIgnore0Peer) {
 						dl.setSeedingRank(SR_FP0PEERS);
 						return SR_FP0PEERS;
+					}
+					
+					if ( bIgnore0Peers) {
+						dl.setSeedingRank(SR_0PEERS);
+						return SR_0PEERS;
 					}
 				}
 
