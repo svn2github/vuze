@@ -38,6 +38,7 @@ public interface ConfigSection {
   public static final String SECTION_TRACKER = "tracker";
   public static final String SECTION_FILES = "files";
   public static final String SECTION_INTERFACE = "style";
+  public static final String SECTION_CONNECTION = "server";
 
   /**
    * Returns section you want your configuration panel to be under.
