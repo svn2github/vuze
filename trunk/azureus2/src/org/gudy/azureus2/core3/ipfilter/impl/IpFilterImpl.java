@@ -269,6 +269,15 @@ IpFilterImpl
 					}else if ( now - time >= BAN_IP_PERSIST_TIME ){
 						
 						drop	= true;
+						
+					    if (Logger.isEnabled()){
+					    	
+								Logger.log(
+									new LogEvent(
+										LOGID, LogEvent.LT_INFORMATION, 
+										"Persistent ban dropped as too old : "
+											+ ip + ", " + desc));
+					      }
 					}
 					
 					if ( !drop ){
