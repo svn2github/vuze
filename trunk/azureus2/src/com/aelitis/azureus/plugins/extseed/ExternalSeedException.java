@@ -26,6 +26,8 @@ public class
 ExternalSeedException 
 	extends Exception
 {
+	private boolean	permanent	= true;
+	
 	public
 	ExternalSeedException(
 		String		str )
@@ -39,5 +41,18 @@ ExternalSeedException
 		Throwable	e )
 	{
 		super( str, e );
+	}
+	
+	public void
+	setPermanentFailure(
+		boolean	b )
+	{
+		permanent = b;
+	}
+	
+	public boolean
+	isPermanentFailure()
+	{
+		return( permanent );
 	}
 }

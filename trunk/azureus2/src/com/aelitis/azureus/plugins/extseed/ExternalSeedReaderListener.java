@@ -34,5 +34,10 @@ ExternalSeedReaderListener
 		PooledByteBuffer	data );
 	
 	public void
-	readerFailed();
+	requestCancelled(
+		PeerReadRequest		request );
+	
+	public void
+	requestFailed(
+		PeerReadRequest		request );
 }

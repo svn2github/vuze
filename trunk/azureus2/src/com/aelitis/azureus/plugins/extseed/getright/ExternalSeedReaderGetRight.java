@@ -25,16 +25,20 @@ package com.aelitis.azureus.plugins.extseed.getright;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.Monitor;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.Semaphore;
 
+import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReaderListener;
+import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloader;
 
 public class 
 ExternalSeedReaderGetRight 
@@ -50,10 +54,13 @@ ExternalSeedReaderGetRight
 	private String			status;
 	
 	private boolean			active;
+	private boolean			permanent_fail;
 	
 	private long			peer_manager_change_time;
 	
 	private volatile PeerManager		current_manager;
+	
+	private ExternalSeedHTTPDownloader	http_downloader;
 	
 	private List			requests		= new LinkedList();
 	private volatile int	request_count;
@@ -84,6 +91,8 @@ ExternalSeedReaderGetRight
 			port = url.getDefaultPort();
 		}
 		
+		http_downloader  = new ExternalSeedHTTPDownloader( url );
+		
 		setActive( false );
 	}
 	
@@ -106,7 +115,13 @@ ExternalSeedReaderGetRight
 	}
 	
 	public boolean
-	checkConnection(
+	isPermanentlyUnavailable()
+	{
+		return( permanent_fail );
+	}
+	
+	public boolean
+	checkActivation(
 		PeerManager		peer_manager )
 	{
 		long now = plugin.getPluginInterface().getUtilities().getCurrentSystemTime();
@@ -133,11 +148,14 @@ ExternalSeedReaderGetRight
 						}
 					}else{
 						
-						if ( availability < 1.0 && now - peer_manager_change_time > 30000 ){
+						if ( !isPermanentlyUnavailable()){
 						
-							plugin.log( getName() + ": activating as availability is poor" );
-
-							setActive( true );				
+							if ( availability < 1.0 && now - peer_manager_change_time > 30000 ){
+							
+								plugin.log( getName() + ": activating as availability is poor" );
+	
+								setActive( true );				
+							}
 						}
 					}
 				}catch( DownloadException e ){
@@ -158,6 +176,15 @@ ExternalSeedReaderGetRight
 		}
 		
 		return( active );
+	}
+	
+	public void
+	deactivate(
+		String	reason )
+	{
+		plugin.log( getName() + ": deactivating (" + reason  + ")" );
+		
+		checkActivation( null );
 	}
 	
 	protected void
@@ -240,12 +267,21 @@ ExternalSeedReaderGetRight
 
 						request	= (PeerReadRequest)requests.remove(0);
 						
+						if ( !request.isCancelled()){
+						
+							request_count--;
+						}
+						
 					}finally{
 						
 						requests_mon.exit();
 					}
 					
-					if ( !request.isCancelled()){
+					if ( request.isCancelled()){
+						
+						informCancelled( request );
+
+					}else{
 						
 						processRequest( request );
 					}
@@ -260,8 +296,33 @@ ExternalSeedReaderGetRight
 	protected void
 	processRequest(
 		PeerReadRequest	request )
-	{
-		System.out.println( "process request" );
+	{	
+		try{
+			byte[] data = http_downloader.download( request.getPieceNumber() * torrent.getPieceSize() + request.getOffset(), request.getLength());
+			
+			PooledByteBuffer buffer = plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( data );
+			
+			informComplete( request, buffer );
+			
+		}catch( ExternalSeedException 	e ){
+			
+			if ( e.isPermanentFailure()){
+				
+				permanent_fail	= true;
+			}
+			
+			status = "Failed: " + Debug.getNestedExceptionMessage(e);
+			
+			informFailed( request );
+			
+		}catch( Throwable e ){
+			
+			request.cancel();
+
+			status = "Failed: " + Debug.getNestedExceptionMessage(e);
+			
+			informFailed( request );
+		}
 	}
 	
 	public void
@@ -273,11 +334,9 @@ ExternalSeedReaderGetRight
 			
 			if ( !active ){
 				
-				System.out.println( "request added when not active!!!!" );
+				Debug.out( "request added when not active!!!!" );
 			}
-					
-			System.out.println( getName() + ": addRequest: " + request.getPieceNumber() + "/" + request.getOffset());
-			
+								
 			requests.add( request );
 			
 			request_count	= requests.size();
@@ -332,14 +391,12 @@ ExternalSeedReaderGetRight
 		try{
 			requests_mon.enter();
 			
-			System.out.println( getName() + ": cancelAllRequests" );
-
 			for (int i=0;i<requests.size();i++){
 				
 				PeerReadRequest	request = (PeerReadRequest)requests.get(i);
 			
 				if ( !request.isCancelled()){
-					
+	
 					request.cancel();
 				
 					request_count--;
@@ -403,6 +460,55 @@ ExternalSeedReaderGetRight
 		}	
 		
 		return( res );
+	}
+	
+	protected void
+	informComplete(
+		PeerReadRequest		request,
+		PooledByteBuffer	buffer )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((ExternalSeedReaderListener)listeners.get(i)).requestComplete( request, buffer );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}		
+	}
+	
+	protected void
+	informCancelled(
+		PeerReadRequest		request )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((ExternalSeedReaderListener)listeners.get(i)).requestCancelled( request );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}		
+	}
+	
+	protected void
+	informFailed(
+		PeerReadRequest	request )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((ExternalSeedReaderListener)listeners.get(i)).requestFailed( request );
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void

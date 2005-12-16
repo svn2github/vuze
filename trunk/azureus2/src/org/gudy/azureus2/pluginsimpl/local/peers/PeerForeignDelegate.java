@@ -36,14 +36,10 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
-import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
-
-import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;

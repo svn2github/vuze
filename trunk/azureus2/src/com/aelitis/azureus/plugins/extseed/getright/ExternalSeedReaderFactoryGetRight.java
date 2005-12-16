@@ -28,9 +28,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
@@ -49,9 +48,9 @@ ExternalSeedReaderFactoryGetRight
 	public ExternalSeedReader[]
   	getSeedReaders(
   		ExternalSeedPlugin		plugin,
-  		Torrent					torrent )
-	{
-		PluginInterface	pi = plugin.getPluginInterface();
+  		Download				download )
+	{		
+		Torrent	torrent = download.getTorrent();
 		
 		try{
 			Object	obj = torrent.getAdditionalProperty( "url-list" );
@@ -69,15 +68,15 @@ ExternalSeedReaderFactoryGetRight
 						
 						String	protocol = url.getProtocol().toLowerCase();
 						
-						plugin.log( "GetRight: found seed: " + url );
+						plugin.log( download.getName() + ": GR found seed: " + url );
 						
-						if ( protocol.equals( "http" ) || protocol.equals( "https" )){
+						if ( protocol.equals( "http" )){
 							
 							readers.add( new ExternalSeedReaderGetRight(plugin,torrent, url));
 							
 						}else{
 							
-							System.out.println( "Unsupported protocol '" + protocol  + "'" );
+							plugin.log( download.getName() + ": GR unsupported protocol: " + url );
 						}
 					}catch( Throwable e ){
 						

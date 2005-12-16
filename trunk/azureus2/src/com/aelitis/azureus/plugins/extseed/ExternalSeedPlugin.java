@@ -33,7 +33,6 @@ import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
-import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
@@ -159,7 +158,7 @@ ExternalSeedPlugin
 		
 		for (int i=0;i<factories.length;i++){
 			
-			ExternalSeedReader[]	x = factories[i].getSeedReaders( this, torrent );
+			ExternalSeedReader[]	x = factories[i].getSeedReaders( this, download );
 			
 			for (int j=0;j<x.length;j++){
 				

@@ -29,14 +29,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.gudy.azureus2.plugins.messaging.Message;
-import org.gudy.azureus2.plugins.messaging.MessageStreamDecoder;
-import org.gudy.azureus2.plugins.messaging.MessageStreamEncoder;
 import org.gudy.azureus2.plugins.network.Connection;
-import org.gudy.azureus2.plugins.network.ConnectionListener;
-import org.gudy.azureus2.plugins.network.IncomingMessageQueue;
-import org.gudy.azureus2.plugins.network.IncomingMessageQueueListener;
-import org.gudy.azureus2.plugins.network.OutgoingMessageQueue;
-import org.gudy.azureus2.plugins.network.OutgoingMessageQueueListener;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerListener;
@@ -127,20 +120,16 @@ ExternalSeedPeer
 		try{
 			connection_mon.enter();
 			
-			boolean	active = reader.checkConnection( manager );
+			boolean	active = reader.checkActivation( manager );
 			
 			if ( manager != null && active != peer_added ){
 			
 				if ( active ){
-					
-					plugin.log( "Activating peer '" + reader.getName() + "'" );
-					
+										
 					manager.addPeer( this );
 					
 				}else{
 					
-					plugin.log( "Deactivating peer '" + reader.getName() + "'" );
-
 					manager.removePeer( this );
 				}
 				
@@ -158,33 +147,65 @@ ExternalSeedPeer
 		PeerReadRequest		request,
 		PooledByteBuffer	data )
 	{
-		if ( request.isCancelled()){
+		PeerManager	man = manager;
+		
+		if ( request.isCancelled() || man == null ){
 	
 			data.returnToPool();
 			
 		}else{
 			
-			manager.getDiskManager().writeBlock( request, data, this );
+			try{
+				man.requestComplete( request, data, this );
+					
+				stats.received( request.getLength());
+				
+			}catch( Throwable e ){
+				
+				data.returnToPool();
+				
+				e.printStackTrace();
+			}
 		}	
 	}
 	
 	public void
-	readerFailed()
+	requestCancelled(
+		PeerReadRequest		request )
 	{
-		try{
-			connection_mon.enter();
-			
-			plugin.log( "Peer failed '" + reader.getName() + "' - " + reader.getStatus());
+		PeerManager	man = manager;
 
-			if ( peer_added && manager != null ){
+		if ( man != null ){
+			
+			man.requestCancelled( request, this );
+		}
+	}
+	
+	public void
+	requestFailed(
+		PeerReadRequest		request )
+	{
+		PeerManager	man = manager;
+
+		if ( man != null ){
 				
-				manager.removePeer( this );
-			
-				peer_added	= false;
+			man.requestCancelled( request, this );
+
+			try{
+				connection_mon.enter();
+				
+				if ( peer_added ){
+					
+					plugin.log( "Peer failed '" + reader.getName() + "' - " + reader.getStatus());
+	
+					man.removePeer( this );
+				
+					peer_added	= false;
+				}
+			}finally{
+				
+				connection_mon.exit();
 			}
-		}finally{
-			
-			connection_mon.exit();
 		}
 	}
 	
@@ -323,13 +344,6 @@ ExternalSeedPeer
 	{
 		return( reader.getName());
 	}
-
-	
-	public void
-	initialize()
-	{
-		System.out.println( "External seed: initialise" );
-	}
 	
 	public List
 	getExpiredRequests()
@@ -372,9 +386,19 @@ ExternalSeedPeer
 		boolean 	closedOnError,
 		boolean 	attemptReconnect )
 	{
-		System.out.println( "External peer closed: " + reason + "/" + closedOnError + "/" + attemptReconnect );
-		
-		reader.cancelAllRequests();
+		try{
+			connection_mon.enter();
+
+			reader.cancelAllRequests();
+			
+			reader.deactivate( reason );
+			
+			peer_added	= false;
+			
+		}finally{
+			
+			connection_mon.exit();
+		}
 	}
 	
 

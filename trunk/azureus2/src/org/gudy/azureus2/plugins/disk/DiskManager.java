@@ -26,15 +26,7 @@ package org.gudy.azureus2.plugins.disk;
  *
  */
 
-import org.gudy.azureus2.plugins.peers.*;
-import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
-
 public interface 
 DiskManager 
 {
-	public void 
-	writeBlock(
-		PeerReadRequest		request,
-		PooledByteBuffer 	data,
-		Peer 				sender);	
 }

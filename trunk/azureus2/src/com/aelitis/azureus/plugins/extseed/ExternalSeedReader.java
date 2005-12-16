@@ -40,6 +40,9 @@ ExternalSeedReader
 	public String
 	getStatus();
 	
+	public boolean
+	isPermanentlyUnavailable();
+	
 	public String
 	getIP();
 	
@@ -50,7 +53,7 @@ ExternalSeedReader
 	isActive();
 	
 	public boolean
-	checkConnection(
+	checkActivation(
 		PeerManager		peer_manager );
 	
 	public void
@@ -72,6 +75,10 @@ ExternalSeedReader
 	
 	public List
 	getRequests();
+	
+	public void
+	deactivate(
+		String	reason );
 	
 	public void
 	addListener(

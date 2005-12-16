@@ -111,10 +111,7 @@ Peer
 	public boolean isOptimisticUnchoke();
   
 	public void setOptimisticUnchoke( boolean is_optimistic );
-	
-	public void
-	initialize();
-	
+		
 	public List
 	getExpiredRequests();
   		

@@ -30,12 +30,15 @@ import java.util.*;
 
 
 import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.disk.*;
 import org.gudy.azureus2.pluginsimpl.local.disk.*;
 import org.gudy.azureus2.pluginsimpl.local.download.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
@@ -128,6 +131,30 @@ PeerManagerImpl
 		return( new PeerStatsImpl( manager, manager.createPeerStats()));
 	}
 	
+	
+	public void 
+	requestComplete(
+		PeerReadRequest		request,
+		PooledByteBuffer 	data,
+		Peer 				sender)
+	{
+		manager.writeBlock( 
+			request.getPieceNumber(), 
+			request.getOffset(), 
+			((PooledByteBufferImpl)data).getBuffer(), 
+			mapForeignPeer( sender ));
+	}
+	
+	public void
+	requestCancelled(
+		PeerReadRequest		request,
+		Peer				sender )
+	{
+		manager.requestCanceled((DiskManagerReadRequest)request );
+	}
+	
+	
+	
 		// these are foreign peers
 	
 	public void
@@ -182,14 +209,6 @@ PeerManagerImpl
 			local 	= new PeerForeignDelegate( this, _foreign );
 			
 			foreign_map.put( _foreign, local );
-			
-			try{
-				_foreign.initialize();
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
 		}
 		
 		return( local );

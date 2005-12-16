@@ -23,6 +23,7 @@ package org.gudy.azureus2.plugins.peers;
 
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.disk.*;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
 /**
  * @author parg
@@ -75,6 +76,17 @@ PeerManager
 	
 	public PeerStats
 	createPeerStats();
+	
+	public void 
+	requestComplete(
+		PeerReadRequest		request,
+		PooledByteBuffer 	data,
+		Peer 				sender);
+	
+	public void
+	requestCancelled(
+		PeerReadRequest		request,
+		Peer				sender );
 	
 	public void
 	addListener(

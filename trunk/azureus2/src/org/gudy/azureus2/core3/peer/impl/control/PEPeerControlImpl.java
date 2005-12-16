@@ -419,16 +419,24 @@ PEPeerControlImpl
 		
 		PEPeerTransport	transport = (PEPeerTransport)_transport;
 		
-    ArrayList peer_transports = peer_transports_cow;
-				
-    if ( !peer_transports.contains(transport)){
-				
-      addToPeerTransports( transport );
-								
-    }else{
-			Debug.out( "addPeer():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
-      transport.closeConnection( "already connected" );
-    }
+	    if (!ip_filter.isInRange(transport.getIp(), adapter.getDisplayName())) {
+
+		    ArrayList peer_transports = peer_transports_cow;
+						
+		    if ( !peer_transports.contains(transport)){
+						
+		    	addToPeerTransports( transport );
+										
+		    }else{
+		    	
+				Debug.out( "addPeer():: peer_transports.contains(transport): SHOULD NEVER HAPPEN !" );
+		     
+				transport.closeConnection( "already connected" );
+		    }
+	    }else{
+	    	
+	        transport.closeConnection( "IP address blocked by filters" );
+	    }
 	}
 
   
