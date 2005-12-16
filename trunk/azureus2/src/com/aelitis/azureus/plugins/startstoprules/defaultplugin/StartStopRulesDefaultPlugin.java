@@ -952,7 +952,8 @@ public class StartStopRulesDefaultPlugin
 					+ ";shareRatio=" + download.getStats().getShareRatio()
 					+ ";numW8tngorDLing=" + vars.numWaitingOrDLing + ";maxCDrs="
 					+ totals.maxSeeders + ";forced=" + boolDebug(download.isForceStart())
-					+ ";actvDLs=" + totals.activelyDLing + ";maxDLs=" + maxDLs + "";
+					+ ";actvDLs=" + totals.activelyDLing + ";maxDLs=" + maxDLs
+					+ ";ActDLing=" + boolDebug(dlData.getActivelyDownloading());
 			log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 			dlData.sTrace += s + "\n";
 		}
@@ -1053,7 +1054,8 @@ public class StartStopRulesDefaultPlugin
 					+ ";shareRatio=" + download.getStats().getShareRatio()
 					+ ";numW8tngorDLing=" + vars.numWaitingOrDLing + ";maxCDrs="
 					+ totals.maxSeeders + ";forced=" + boolDebug(download.isForceStart())
-					+ ";actvDLs=" + totals.activelyDLing + "";
+					+ ";actvDLs=" + totals.activelyDLing 
+					+ ";ActDLing=" + boolDebug(dlData.getActivelyDownloading());
 			log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 			dlData.sTrace += s + "\n";
 		}
