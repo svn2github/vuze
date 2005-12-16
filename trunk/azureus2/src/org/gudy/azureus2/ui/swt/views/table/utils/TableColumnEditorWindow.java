@@ -113,19 +113,6 @@ public class TableColumnEditorWindow {
     table.setLayoutData(gridData);
     table.setLinesVisible (true);    
     table.setHeaderVisible(true);
-    Font f = table.getFont();
-    FontData fd = f.getFontData()[0];
-    fd.setHeight(9);
-    final Font fontNew = new Font(display, fd); 
-    table.setFont(fontNew);
-    
-    shell.addDisposeListener(new DisposeListener() {
-      public void widgetDisposed(DisposeEvent de) {
-        if (fontNew != null && !fontNew.isDisposed()) {
-          fontNew.dispose();
-        }
-      }
-    });
     
     Composite cButtonArea = new Composite(shell, SWT.NULL);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
