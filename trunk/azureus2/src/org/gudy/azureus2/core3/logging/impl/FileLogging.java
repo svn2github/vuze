@@ -215,7 +215,9 @@ public class FileLogging implements ILogEventListener {
 				if (obj instanceof LogRelation) {
 					text.append(((LogRelation) obj).getRelationText());
 				} else {
-					text.append("RelatedTo[" + obj.toString() + "]");
+					text.append("RelatedTo[")
+					    .append(obj.toString())
+					    .append("]");
 				}
 			}
 		} else {

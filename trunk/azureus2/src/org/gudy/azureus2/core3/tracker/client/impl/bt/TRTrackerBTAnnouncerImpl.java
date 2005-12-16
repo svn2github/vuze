@@ -1580,7 +1580,7 @@ TRTrackerBTAnnouncerImpl
     
     //TrackerID extension
     if( tracker_id.length() > 0 ) {
-      request.append( "&trackerid=" + tracker_id );
+      request.append( "&trackerid=").append(tracker_id );
     }
     
     
@@ -1599,7 +1599,7 @@ TRTrackerBTAnnouncerImpl
       int numwant = calculateNumWant();
 
 
-      request.append("&numwant=" + numwant);
+      request.append("&numwant=").append(numwant);
       
       //no_peer_id has been made obsolete by 'compact'
     }
@@ -1721,7 +1721,7 @@ TRTrackerBTAnnouncerImpl
 	
     if ( COConfigurationManager.getBooleanParameter("Tracker Key Enable Client", true )){
       	
-      	request.append( "&key=" + key_id);
+      	request.append( "&key=").append(key_id);
     }
     
 	String	ext = announce_data_provider.getExtensions();

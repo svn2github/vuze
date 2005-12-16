@@ -340,9 +340,13 @@ public class SystemTraySWT {
     toolTip.append(seeding);
     toolTip.append(seeding_text);
     toolTip.append(downloading);
-    toolTip.append(downloading_text + MessageText.getString("ConfigView.download.abbreviated") + " "); 
+    toolTip.append(downloading_text)
+           .append(MessageText.getString("ConfigView.download.abbreviated"))
+           .append(" "); 
     toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDataReceiveRate() + mainWindow.getGlobalManager().getStats().getProtocolReceiveRate() ));
-    toolTip.append(", " + MessageText.getString("ConfigView.upload.abbreviated") + " ");
+    toolTip.append(", ")
+           .append(MessageText.getString("ConfigView.upload.abbreviated"))
+           .append(" ");
     toolTip.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(mainWindow.getGlobalManager().getStats().getDataSendRate() + mainWindow.getGlobalManager().getStats().getProtocolSendRate()));
     
     

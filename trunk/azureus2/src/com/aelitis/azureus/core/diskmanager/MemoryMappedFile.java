@@ -164,7 +164,7 @@ public class MemoryMappedFile {
     private long total_size = 0;
   	private final AEMonitor		buffers_mon		= new AEMonitor( "MemoryMappedFile:buffers" );
 
-    private final Map buffers = new LinkedHashMap( new Float(MAX_SIZE/BLOCK_SIZE).intValue(), .75F, true ){
+    private final Map buffers = new LinkedHashMap( (int)(MAX_SIZE/BLOCK_SIZE), .75F, true ){
     	
     	//This method is called just after a new entry has been added
       public boolean removeEldestEntry(Map.Entry eldest) {

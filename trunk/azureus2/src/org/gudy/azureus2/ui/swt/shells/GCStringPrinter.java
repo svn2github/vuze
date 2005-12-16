@@ -71,7 +71,9 @@ public class GCStringPrinter {
           		ptWordSize = gc.stringExtent(word.substring(0, endIndex) + " ");
           	} while (endIndex > 3 && ptWordSize.x + iLineLength > printArea.width);
           	// append part that will fit
-          	outputLine.append(space + word.substring(0, endIndex) + "\n");
+          	outputLine.append(space)
+          			  .append(word.substring(0, endIndex))
+          			  .append("\n");
             height += ptWordSize.y;
 
             // setup word as the remaining part that didn't fit
@@ -90,7 +92,7 @@ public class GCStringPrinter {
           if (iLineHeight < ptWordSize.y)
             iLineHeight = ptWordSize.y;
            
-          outputLine.append(space + word);            
+          outputLine.append(space).append(word);            
           space = " ";
         }
       } else {

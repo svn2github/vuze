@@ -650,7 +650,12 @@ public class OutgoingMessageQueue {
     	
     	for( Iterator it = prev_sent.iterator(); it.hasNext(); ) {
     		RawMessage raw = (RawMessage)it.next();
-        trace.append( "[#h" +i+ "]: " +raw.getID()+ " [" +raw.getDescription()+ "]" + "\n" );
+        trace.append( "[#h" +i+ "]: ")
+             .append(raw.getID())
+             .append(" [")
+             .append(raw.getDescription())
+             .append("]")
+             .append("\n" );
         i++;
     	}      
       
@@ -664,7 +669,18 @@ public class OutgoingMessageQueue {
         int pos = raw.getRawData()[0].position(DirectByteBuffer.SS_NET);
         int length = raw.getRawData()[0].limit( DirectByteBuffer.SS_NET );
         
-        trace.append( "[#" +position+ " " +pos+ ":" +length+ "]: " +raw.getID()+ " [" +raw.getDescription()+ "]" + "\n" );
+        trace.append( "[#")
+             .append(position)
+             .append(" ")
+             .append(pos)
+             .append(":")
+             .append(length)
+             .append("]: ")
+             .append(raw.getID())
+             .append(" [")
+             .append(raw.getDescription())
+             .append("]")
+             .append("\n" );
         
         position--;
       }
