@@ -40,7 +40,7 @@ import org.gudy.azureus2.plugins.utils.Monitor;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
-import com.aelitis.azureus.plugins.extseed.getright.ExternalSeedReaderFactoryGetRight;
+import com.aelitis.azureus.plugins.extseed.impl.getright.ExternalSeedReaderFactoryGetRight;
 
 public class 
 ExternalSeedPlugin
@@ -65,9 +65,9 @@ ExternalSeedPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"External Seed" );
 		
-		log	= plugin_interface.getLogger().getChannel( "External Seeds" );
+		log	= plugin_interface.getLogger().getTimeStampedChannel( "External Seeds" );
 		
-		final BasicPluginViewModel	view_model = plugin_interface.getUIManager().createBasicPluginViewModel( "External Seed" );
+		final BasicPluginViewModel	view_model = plugin_interface.getUIManager().createBasicPluginViewModel( "External Seeds" );
 
 		
 		view_model.getActivity().setVisible( false );

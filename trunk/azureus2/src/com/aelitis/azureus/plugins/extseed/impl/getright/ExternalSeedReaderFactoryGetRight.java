@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.plugins.extseed.getright;
+package com.aelitis.azureus.plugins.extseed.impl.getright;
 
 import java.io.File;
 import java.net.URL;
@@ -28,7 +28,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 

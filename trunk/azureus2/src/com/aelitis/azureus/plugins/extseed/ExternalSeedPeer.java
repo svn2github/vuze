@@ -124,16 +124,21 @@ ExternalSeedPeer
 			
 			if ( manager != null && active != peer_added ){
 			
+				peer_added	= active;
+				
 				if ( active ){
 										
 					manager.addPeer( this );
 					
 				}else{
 					
-					manager.removePeer( this );
+						// might have already been removed
+					
+					if ( peer_added ){
+						
+						manager.removePeer( this );
+					}
 				}
-				
-				peer_added	= active;
 			}
 		}finally{
 			
@@ -196,7 +201,7 @@ ExternalSeedPeer
 				
 				if ( peer_added ){
 					
-					plugin.log( "Peer failed '" + reader.getName() + "' - " + reader.getStatus());
+					plugin.log( reader.getName() + " failed - " + reader.getStatus() + ", permanent = " + reader.isPermanentlyUnavailable());
 	
 					man.removePeer( this );
 				

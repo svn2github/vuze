@@ -26,7 +26,7 @@ public class
 ExternalSeedException 
 	extends Exception
 {
-	private boolean	permanent	= true;
+	private boolean	permanent	= false;
 	
 	public
 	ExternalSeedException(

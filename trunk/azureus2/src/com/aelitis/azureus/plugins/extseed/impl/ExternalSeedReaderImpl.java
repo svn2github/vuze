@@ -20,13 +20,11 @@
  *
  */
 
-package com.aelitis.azureus.plugins.extseed.getright;
+package com.aelitis.azureus.plugins.extseed.impl;
 
-import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -38,30 +36,26 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReader;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedReaderListener;
-import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloader;
 
-public class 
-ExternalSeedReaderGetRight 
+public abstract class 
+ExternalSeedReaderImpl 
 	implements ExternalSeedReader
 {
 	private ExternalSeedPlugin	plugin;
 	private Torrent				torrent;
-	
-	private URL			url;
-	private String		ip;
-	private int			port;
 	
 	private String			status;
 	
 	private boolean			active;
 	private boolean			permanent_fail;
 	
+	private long			last_failed_read;
+	private int				consec_failures;
+	
 	private long			peer_manager_change_time;
 	
 	private volatile PeerManager		current_manager;
-	
-	private ExternalSeedHTTPDownloader	http_downloader;
-	
+		
 	private List			requests		= new LinkedList();
 	private volatile int	request_count;
 	private Thread			request_thread;
@@ -71,27 +65,15 @@ ExternalSeedReaderGetRight
 	private List	listeners	= new ArrayList();
 	
 	protected
-	ExternalSeedReaderGetRight(
+	ExternalSeedReaderImpl(
 		ExternalSeedPlugin 		_plugin,
-		Torrent					_torrent,	
-		URL						_url )
+		Torrent					_torrent )	
 	{
 		plugin	= _plugin;
 		torrent	= _torrent;
-		url		= _url;
 		
 		requests_mon	= plugin.getPluginInterface().getUtilities().getMonitor();
 		request_sem		= plugin.getPluginInterface().getUtilities().getSemaphore();
-		
-		ip		= url.getHost();
-		port	= url.getPort();
-		
-		if ( port == -1 ){
-			
-			port = url.getDefaultPort();
-		}
-		
-		http_downloader  = new ExternalSeedHTTPDownloader( url );
 		
 		setActive( false );
 	}
@@ -103,15 +85,34 @@ ExternalSeedReaderGetRight
 	}
 	
 	public String
-	getName()
-	{
-		return( "GR: " + url );
-	}
-	
-	public String
 	getStatus()
 	{
 		return( status );
+	}
+	
+	protected void
+	log(
+		String	str )
+	{
+		plugin.log( str );
+	}
+	
+	protected long
+	getSystemTime()
+	{
+		return( plugin.getPluginInterface().getUtilities().getCurrentSystemTime());
+	}
+	
+	protected int
+	getFailureCount()
+	{
+		return( consec_failures );
+	}
+	
+	protected long
+	getLastFailTime()
+	{
+		return( last_failed_read );
 	}
 	
 	public boolean
@@ -120,11 +121,19 @@ ExternalSeedReaderGetRight
 		return( permanent_fail );
 	}
 	
+	protected abstract boolean
+	readyToActivate(
+		PeerManager		peer_manager );
+	
+	protected abstract boolean
+	readyToDeactivate(
+		PeerManager		peer_manager );
+	
 	public boolean
 	checkActivation(
 		PeerManager		peer_manager )
 	{
-		long now = plugin.getPluginInterface().getUtilities().getCurrentSystemTime();
+		long now = getSystemTime();
 		
 		if ( peer_manager == current_manager ){
 			
@@ -135,32 +144,21 @@ ExternalSeedReaderGetRight
 			
 			if ( peer_manager != null ){
 				
-				try{
-					float availability = peer_manager.getDownload().getStats().getAvailability();
-		
-					if ( active ){
-						
-						if ( availability >= 2.0 && now - peer_manager_change_time > 30000 ){
+				if ( active ){
+					
+					if ( now - peer_manager_change_time > 30000 && readyToDeactivate( peer_manager )){
+													
+						setActive( false );			
+					}
+				}else{
+					
+					if ( !isPermanentlyUnavailable()){
+					
+						if ( now - peer_manager_change_time > 30000 && readyToActivate( peer_manager )){
 							
-							plugin.log( getName() + ": deactivating as availability is good" );
-							
-							setActive( false );			
-						}
-					}else{
-						
-						if ( !isPermanentlyUnavailable()){
-						
-							if ( availability < 1.0 && now - peer_manager_change_time > 30000 ){
-							
-								plugin.log( getName() + ": activating as availability is poor" );
-	
-								setActive( true );				
-							}
+							setActive( true );				
 						}
 					}
-				}catch( DownloadException e ){
-					
-					e.printStackTrace();
 				}
 			}
 		}else{
@@ -208,18 +206,6 @@ ExternalSeedReaderGetRight
 	isActive()
 	{
 		return( active );
-	}
-	
-	public String
-	getIP()
-	{
-		return( ip );
-	}
-	
-	public int
-	getPort()
-	{
-		return( port );
 	}
 	
 	protected void
@@ -293,13 +279,24 @@ ExternalSeedReaderGetRight
 		}
 	}
 	
+	protected abstract byte[]
+	readData(
+		PeerReadRequest	request )
+	
+		throws ExternalSeedException;
+	
 	protected void
 	processRequest(
 		PeerReadRequest	request )
 	{	
+		boolean	ok = false;
+		
 		try{
-			byte[] data = http_downloader.download( request.getPieceNumber() * torrent.getPieceSize() + request.getOffset(), request.getLength());
 			
+			byte[] data = readData( request );
+			
+			ok	= true;
+						
 			PooledByteBuffer buffer = plugin.getPluginInterface().getUtilities().allocatePooledByteBuffer( data );
 			
 			informComplete( request, buffer );
@@ -322,6 +319,20 @@ ExternalSeedReaderGetRight
 			status = "Failed: " + Debug.getNestedExceptionMessage(e);
 			
 			informFailed( request );
+			
+		}finally{
+			
+			if ( ok ){
+				
+				last_failed_read	= 0;
+				
+				consec_failures		= 0;
+
+			}else{
+				last_failed_read	= getSystemTime();
+				
+				consec_failures++;
+			}
 		}
 	}
 	
