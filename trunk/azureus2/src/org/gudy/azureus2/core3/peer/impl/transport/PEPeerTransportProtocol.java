@@ -24,11 +24,9 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
@@ -107,7 +105,6 @@ PEPeerTransportProtocol
   
   //When downloading a piece in exclusivity mode the piece number being downloaded
   private int reservedPiece = -1;
-  private int rarest_piece	= -1;
 	
 	//Spread time (0 secs , fake default)
 	private int spreadTimeHint = 0 * 1000;
@@ -1896,19 +1893,6 @@ PEPeerTransportProtocol
   
   public void setReservedPieceNumber(int pieceNumber) {
     reservedPiece = pieceNumber;
-  }
-
-  public void
-  setRarestPieceNumber(
-		int	piece_number )
-  {
-	  rarest_piece	= piece_number;
-  }
-  
-  public int
-  getRarestPieceNumber()
-  {
-	  return( rarest_piece );
   }
   
   public int[] getIncomingRequestedPieceNumbers() {

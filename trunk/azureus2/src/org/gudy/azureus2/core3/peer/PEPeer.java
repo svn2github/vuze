@@ -200,13 +200,6 @@ PEPeer
    */
   public int getReservedPieceNumber();
   
-  public void
-  setRarestPieceNumber(
-		int	piece_number );
-  
-  public int
-  getRarestPieceNumber();
-  
   /**
    * get a list of piece numbers the peer has requested
    * @return list of Long() representing the piece number requested, in order

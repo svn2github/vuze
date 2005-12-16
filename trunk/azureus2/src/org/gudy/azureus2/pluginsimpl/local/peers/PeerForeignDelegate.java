@@ -58,7 +58,6 @@ PeerForeignDelegate
 	private Peer				foreign;
 	
 	private int	reserved_piece	= -1;
-	private int	rarest_piece	= -1;
 	
 	private Map		data;
 	
@@ -484,20 +483,6 @@ PeerForeignDelegate
   		reserved_piece	= pieceNumber;
   	}
 
-  	
-  	public void
-  	setRarestPieceNumber(
-  		int	piece_number )
-  	{
-  		 rarest_piece	= piece_number;
-  	}
-  	  
-  	public int
-  	getRarestPieceNumber()
-  	{
-  		return( rarest_piece );
-  	}
-  	
 	public int[] 
 	getIncomingRequestedPieceNumbers() 
 	{
