@@ -178,10 +178,69 @@ TRTrackerServerProcessorTCP
 					
 					if ( e_pos != -1 ){
 						
-						gzip_reply = input_header.substring(enc_pos+16,e_pos).toLowerCase().indexOf("gzip") != -1;
+							// check we've not found X-Accept-Encoding (for example)
+						
+						if ( enc_pos > 0 ){
+							
+							char	c = lowercase_input_header.charAt(enc_pos-1);
+							
+							if ( c != FF && c != ' ' ){
+								
+								enc_pos	= -1;
+							}
+						}
+						
+						if ( enc_pos != -1 ){
+							
+							String	accept_encoding = lowercase_input_header.substring(enc_pos+16,e_pos);
+														
+							int gzip_index = accept_encoding.indexOf("gzip");
+							
+							if ( gzip_index != -1 ){
+								
+								gzip_reply	= true;
+								
+								if ( accept_encoding.length() - gzip_index >= 8 ){
+								
+										// gzip;q=0
+										// look to see if there's a q=0 (or 0.0) disabling gzip
+	
+									char[]	chars = accept_encoding.toCharArray();
+									
+									boolean	q_value = false;
+																	
+									for (int i=gzip_index+4;i<chars.length;i++){
+										
+										char	c = chars[i];
+										
+										if ( c == ',' ){
+											
+											break;
+											
+										}else if ( c == '=' ){
+											
+											q_value		= true;
+											gzip_reply	= false;
+											
+										}else{
+											
+											if ( q_value ){
+												
+												if ( c != ' ' && c != '0' && c != '.' ){
+													
+													gzip_reply	= true;
+													
+													break;
+												}
+											}
+										}
+									}
+								}
+							}
+						}
 					}
 				}
-				
+								
 				setTaskState( "decoding announce/scrape" );
 
 				int	pos = 0;
