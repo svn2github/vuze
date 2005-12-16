@@ -44,6 +44,8 @@ IpFilterImpl
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
 
+	private final static long BAN_IP_PERSIST_TIME	= 7*24*60*60*1000;
+	
 	private final static int MAX_BLOCKS_TO_REMEMBER = 500;
   
 	private static IpFilterImpl ipFilter;
@@ -246,17 +248,35 @@ IpFilterImpl
 			
 			if ( ips != null ){
 				
+				long	now = SystemTime.getCurrentTime();
+				
 				for (int i=0;i<ips.size();i++){
 					
 					Map	entry = (Map)ips.get(i);
 					
 					String	ip 		= new String((byte[])entry.get("ip"));
 					String	desc 	= new String((byte[])entry.get("desc"));
-					Long	time	= (Long)entry.get("time");
+					Long	ltime	= (Long)entry.get("time");
 					
-					int	int_ip = range_manager.addressToInt( ip );
+					long	time = ltime.longValue();
 					
-					bannedIps.put( new Integer( int_ip ), new BannedIpImpl(ip, desc, time.longValue() ));
+					boolean	drop	= false;
+					
+					if ( time > now ){
+						
+						time	= now;
+						
+					}else if ( now - time >= BAN_IP_PERSIST_TIME ){
+						
+						drop	= true;
+					}
+					
+					if ( !drop ){
+						
+						int	int_ip = range_manager.addressToInt( ip );
+						
+						bannedIps.put( new Integer( int_ip ), new BannedIpImpl(ip, desc, time ));
+					}
 				}
 			}
 		}catch( Throwable e ){
