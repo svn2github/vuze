@@ -387,6 +387,24 @@ ExternalSeedReaderGetRight
 		return( res );
 	}
 	
+	public List
+	getRequests()
+	{
+		List	res = null;
+		
+		try{
+			requests_mon.enter();
+			
+			res = new ArrayList( requests );
+			
+		}finally{
+			
+			requests_mon.exit();
+		}	
+		
+		return( res );
+	}
+	
 	public void
 	addListener(
 		ExternalSeedReaderListener	l )

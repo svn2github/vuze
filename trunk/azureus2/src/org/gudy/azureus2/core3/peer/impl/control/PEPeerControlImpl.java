@@ -1029,12 +1029,16 @@ PEPeerControlImpl
    */
   private boolean findPieceToDownload(PEPeerTransport pc) {
 		int[] rarestPieceInfo = getRarestPieceInfo(pc);
-		if (rarestPieceInfo == null)
+		if (rarestPieceInfo == null){
+			pc.setRarestPieceNumber(-1);
 			return false;
-
+		}
+		
 		int pieceNumber = rarestPieceInfo[0];
 		int blockNumber = rarestPieceInfo[1];
 
+		pc.setRarestPieceNumber(pieceNumber);
+		
 		//Slower than 2KB/s is a slow peer
 		boolean slowPeer = pc.getStats().getDataReceiveRate() < 2 * 1024;
 

@@ -70,6 +70,9 @@ ExternalSeedReader
 	public List
 	getExpiredRequests();
 	
+	public List
+	getRequests();
+	
 	public void
 	addListener(
 		ExternalSeedReaderListener	l );

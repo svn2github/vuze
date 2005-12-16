@@ -54,10 +54,13 @@ PeerForeignDelegate
 {
 		// this implementation supports read-only peers (i.e. download only)
 	
-	protected PeerManagerImpl		manager;
-	protected Peer					foreign;
+	private PeerManagerImpl		manager;
+	private Peer				foreign;
 	
-	protected Map		data;
+	private int	reserved_piece	= -1;
+	private int	rarest_piece	= -1;
+	
+	private Map		data;
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "PeerForeignDelegate" );
 
@@ -144,57 +147,75 @@ PeerForeignDelegate
 	}
   
 	
-  public void updatePeerExchange(){}
+	public void 
+	updatePeerExchange()
+	{
+	}
   
   
-  public PeerItem getPeerItemIdentity() {
-    return PeerItemFactory.createPeerItem( foreign.getIp(), foreign.getPort(), PeerItemFactory.PEER_SOURCE_PLUGIN );
-  }
+	public PeerItem 
+	getPeerItemIdentity() 
+	{
+		return PeerItemFactory.createPeerItem( foreign.getIp(), foreign.getPort(), PeerItemFactory.PEER_SOURCE_PLUGIN );
+	}
   
   
-  public int 
-  getConnectionState() 
-  {
-	  int	peer_state = getPeerState();
+	public int 
+	getConnectionState() 
+	{
+		int	peer_state = getPeerState();
 	  
-	  if ( peer_state == Peer.CONNECTING ){
+		if ( peer_state == Peer.CONNECTING ){
 		  
-		  return( CONNECTION_CONNECTING );
+			return( CONNECTION_CONNECTING );
 		  
-	  }else if ( peer_state == Peer.HANDSHAKING ){
+		}else if ( peer_state == Peer.HANDSHAKING ){
 		  
-		  return( CONNECTION_WAITING_FOR_HANDSHAKE );
+			return( CONNECTION_WAITING_FOR_HANDSHAKE );
 			  
-	  }else if ( peer_state == Peer.TRANSFERING ){
+		}else if ( peer_state == Peer.TRANSFERING ){
 		  
-		  return( CONNECTION_FULLY_ESTABLISHED );
+			return( CONNECTION_FULLY_ESTABLISHED );
 		  
-	  }else{
+		}else{
 		
-		  return( CONNECTION_FULLY_ESTABLISHED );
-	  }
-  }
-	  
+			return( CONNECTION_FULLY_ESTABLISHED );
+		}
+	}  
   
-  public void doKeepAliveCheck() {}
+  	public void 
+  	doKeepAliveCheck() 
+  	{
+  	}
   
-  public boolean doTimeoutChecks() {
-    return false;
-  }
+  	public boolean 
+  	doTimeoutChecks() 
+  	{
+  		return false;
+  	}
   
-  public void doPerformanceTuningCheck() { }
+  	public void 
+  	doPerformanceTuningCheck() 
+  	{
+  	}
   
-  public long getTimeSinceConnectionEstablished() {
-    return 0;
-  }
+  	public long 
+  	getTimeSinceConnectionEstablished() 
+  	{
+  		return 0;
+  	}
   
-  public long getTimeSinceLastDataMessageReceived() {
-    return 0;
-  }
+  	public long 
+  	getTimeSinceLastDataMessageReceived() 
+  	{
+  		return 0;
+  	}
   
-  public long getTimeSinceLastDataMessageSent() {
-    return 0;
-  }
+  	public long 
+  	getTimeSinceLastDataMessageSent() 
+  	{
+  		return 0;
+  	}
 
 		// PEPeer stuff
 	
@@ -247,8 +268,8 @@ PeerForeignDelegate
 	}
 
 	
-  public int getTCPListenPort() {  return foreign.getTCPListenPort();  }
-  public int getUDPListenPort() {  return foreign.getUDPListenPort();  }
+	public int getTCPListenPort() {  return foreign.getTCPListenPort();  }
+	public int getUDPListenPort() {  return foreign.getUDPListenPort();  }
   
   
   
@@ -363,47 +384,48 @@ PeerForeignDelegate
 	public void setUploadHint(int timeToSpread) {}  
 	
 
-  public void addListener( PEPeerListener listener ) { /* nothing */ }
+	public void addListener( PEPeerListener listener ) { /* nothing */ }
 
-  public void removeListener( PEPeerListener listener ) { /* nothing */ }
+	public void removeListener( PEPeerListener listener ) { /* nothing */ }
   
-  public Connection
-  getConnection()
-  {
-	  return( foreign.getConnection());
-  }
+	public Connection
+	getConnection()
+	{
+		return( foreign.getConnection());
+	}
   
-  public int
-  getPercentDoneOfCurrentIncomingRequest()
-  {
-	 return( foreign.getPercentDoneOfCurrentIncomingRequest());
-  }
+	public int
+	getPercentDoneOfCurrentIncomingRequest()
+	{
+		return( foreign.getPercentDoneOfCurrentIncomingRequest());
+	}
 	  
-  public int
-  getPercentDoneOfCurrentOutgoingRequest()
-  {
-	 return( foreign.getPercentDoneOfCurrentOutgoingRequest());	
-  }
+	public int
+	getPercentDoneOfCurrentOutgoingRequest()
+	{
+		return( foreign.getPercentDoneOfCurrentOutgoingRequest());	
+	}
   
-  public boolean supportsMessaging() {
-    return foreign.supportsMessaging();
-  }
+	public boolean 
+	supportsMessaging() 
+	{
+		return foreign.supportsMessaging();
+	}
 
-  public Message[] getSupportedMessages() {
-    org.gudy.azureus2.plugins.messaging.Message[] plug_msgs = foreign.getSupportedMessages();
+	public Message[] 
+	getSupportedMessages() 
+	{
+		org.gudy.azureus2.plugins.messaging.Message[] plug_msgs = foreign.getSupportedMessages();
     
-    Message[] core_msgs = new Message[ plug_msgs.length ];
+		Message[] core_msgs = new Message[ plug_msgs.length ];
     
-    for( int i=0; i < plug_msgs.length; i++ ) {
-      core_msgs[i] = new MessageAdapter( plug_msgs[i] );
-    }
+		for( int i=0; i < plug_msgs.length; i++ ) {
+			core_msgs[i] = new MessageAdapter( plug_msgs[i] );
+		}
     
-    return core_msgs;
-  }
+		return core_msgs;
+	}
     
-  
-  
-  
 	 /** To retreive arbitrary objects against a peer. */
 	  public Object getData (String key) {
 	  	if (data == null) return null;
@@ -450,25 +472,50 @@ PeerForeignDelegate
   
   
   
-  public int getReservedPieceNumber() {
-    //TODO : Really implement it (Gudy)
-    return -1;
- }
+	public int 
+	getReservedPieceNumber() 
+	{
+		return( reserved_piece );
+	}
  
-  public void setReservedPieceNumber(int pieceNumber) {
-    //TODO : Really implement it (Gudy)
-  }
+  	public void 
+  	setReservedPieceNumber(int pieceNumber) 
+  	{
+  		reserved_piece	= pieceNumber;
+  	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.core3.peer.PEPeer#getRequestedPieceNumbers()
-	 */
-	public int[] getIncomingRequestedPieceNumbers() {
-		// TODO Auto-generated method stub
-		return null;
+  	
+  	public void
+  	setRarestPieceNumber(
+  		int	piece_number )
+  	{
+  		 rarest_piece	= piece_number;
+  	}
+  	  
+  	public int
+  	getRarestPieceNumber()
+  	{
+  		return( rarest_piece );
+  	}
+  	
+	public int[] 
+	getIncomingRequestedPieceNumbers() 
+	{
+		return( new int[0] );
 	}
 
-	public int[] getOutgoingRequestedPieceNumbers() {
-		// TODO Auto-generated method stub
-		return null;
+	public int[] 
+	getOutgoingRequestedPieceNumbers() 
+	{
+		List	l = foreign.getRequests();
+		
+		int[]	res = new int[l.size()];
+		
+		for (int i=0;i<l.size();i++){
+			
+			res[i] = ((PeerReadRequest)l.get(i)).getPieceNumber();
+		}
+		
+		return( res );
 	}
 }

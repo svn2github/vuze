@@ -388,10 +388,7 @@ public class PeerInfoView extends AbstractIView {
 			}
 			
 			if (iNextDLPieceID == -1) {
-				int[] rarestPieceInfo = pm == null ? null : pm.getRarestPieceInfo(peer);
-				if (rarestPieceInfo != null && rarestPieceInfo.length >= 1) {
-					iNextDLPieceID = rarestPieceInfo[0];
-				}
+				iNextDLPieceID = peer.getRarestPieceNumber();
 			}
 		}
 

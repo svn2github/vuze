@@ -107,6 +107,7 @@ PEPeerTransportProtocol
   
   //When downloading a piece in exclusivity mode the piece number being downloaded
   private int reservedPiece = -1;
+  private int rarest_piece	= -1;
 	
 	//Spread time (0 secs , fake default)
 	private int spreadTimeHint = 0 * 1000;
@@ -1897,6 +1898,19 @@ PEPeerTransportProtocol
     reservedPiece = pieceNumber;
   }
 
+  public void
+  setRarestPieceNumber(
+		int	piece_number )
+  {
+	  rarest_piece	= piece_number;
+  }
+  
+  public int
+  getRarestPieceNumber()
+  {
+	  return( rarest_piece );
+  }
+  
   public int[] getIncomingRequestedPieceNumbers() {
   	return outgoing_piece_message_handler.getRequestedPieceNumbers();
   }

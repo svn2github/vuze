@@ -47,8 +47,8 @@ PeerImpl
 	protected PEPeer		delegate;
 	protected AEMonitor		this_mon	= new AEMonitor( "Peer" );
   
-  private HashMap peer_listeners;
-  
+	private HashMap peer_listeners;
+  	
 
 	public
 	PeerImpl(
@@ -232,6 +232,12 @@ PeerImpl
 		throw( new RuntimeException( "not supported"));
 	}	
   		
+	public List
+	getRequests()
+	{
+		throw( new RuntimeException( "not supported"));
+	}
+	
 	public int
 	getNumberOfRequests()
 	{

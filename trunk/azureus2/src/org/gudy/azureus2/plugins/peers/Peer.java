@@ -118,6 +118,9 @@ Peer
 	public List
 	getExpiredRequests();
   		
+	public List
+	getRequests();
+	
 	public int
 	getNumberOfRequests();
 

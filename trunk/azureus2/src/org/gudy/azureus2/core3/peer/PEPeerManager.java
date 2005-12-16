@@ -272,6 +272,4 @@ PEPeerManager
    * @return average percent complete in thousand notation
    */
   public int getAverageCompletionInThousandNotation();
-  
-  public int[] getRarestPieceInfo(PEPeer pc);
 }

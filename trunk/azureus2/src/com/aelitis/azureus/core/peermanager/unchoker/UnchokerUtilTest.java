@@ -162,6 +162,8 @@ public class UnchokerUtilTest {
         public Message[] getSupportedMessages(){ return null; }
         public int getReservedPieceNumber() { return -1; }
         public void setReservedPieceNumber(int pieceNumber) {}
+        public int getRarestPieceNumber() { return -1; }
+        public void setRarestPieceNumber(int pieceNumber) {}
 		public int[] getIncomingRequestedPieceNumbers() { return null; }
 		public int[] getOutgoingRequestedPieceNumbers() { return null; }
 		public int getPercentDoneOfCurrentIncomingRequest(){ return 0; }  
