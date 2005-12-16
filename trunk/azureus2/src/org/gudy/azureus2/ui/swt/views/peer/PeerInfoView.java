@@ -387,9 +387,9 @@ public class PeerInfoView extends AbstractIView {
 					iNextDLPieceID = ourRequestedPieces[0];
 			}
 			
-			if (iNextDLPieceID == -1) {
-				iNextDLPieceID = peer.getRarestPieceNumber();
-			}
+//			if (iNextDLPieceID == -1) {
+//				iNextDLPieceID = peer.getNextPieceNumberGuess();
+//			}
 		}
 
 		int[] peerRequestedPieces = peer.getIncomingRequestedPieceNumbers();
