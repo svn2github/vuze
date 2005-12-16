@@ -74,13 +74,23 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     
     String[] drop_labels = new String[ locales.length ];
     String[] drop_values = new String[ locales.length ];
+    int iUsingLocale = -1;
     for( int i=0; i < locales.length; i++ ) {
       Locale locale = locales[ i ];
       drop_labels[ i ] = locale.getDisplayName( locale );
       drop_values[ i ] = locale.toString();
+      if (MessageText.isCurrentLocale(locale))
+      	iUsingLocale = i;
     }
     
     final StringListParameter locale_param = new StringListParameter( cMain, "locale", drop_labels, drop_values );
+    // There may be no "locale" setting stored in config, so set it to
+    // what we are using now.  Don't automatically write it to config, because
+    // the user may switch languages (or a new language file may become avail
+    // in the future that matches closer to their locale)
+    if (iUsingLocale >= 0)
+    	((Combo)locale_param.getControl()).select(iUsingLocale);
+    
     locale_param.addChangeListener( new ParameterChangeListener() {
       public void parameterChanged( Parameter p, boolean caused_internally ) {
         StartupUtils.setLocale();
