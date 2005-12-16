@@ -335,7 +335,6 @@ public class TableView
 		final int TABHEIGHT = 20;
 		tabFolder = new CTabFolder(form, SWT.TOP | SWT.BORDER);
 		tabFolder.setMinimizeVisible(true);
-		tabFolder.setMinimized(false);
 		tabFolder.setTabHeight(TABHEIGHT);
 		final int iFolderHeightAdj = tabFolder.computeSize(SWT.DEFAULT, 0).y;
 
@@ -392,8 +391,10 @@ public class TableView
 		sash.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 
-				if (tabFolder.getMinimized())
+				if (tabFolder.getMinimized()) {
 					tabFolder.setMinimized(false);
+					refreshSelectedSubView();
+				}
 
 				Rectangle area = form.getClientArea();
 				tabFolderData.height = area.height - e.y - e.height - iFolderHeightAdj;
@@ -421,6 +422,8 @@ public class TableView
 				tabFolder.setMinimized(false);
 				form.notifyListeners(SWT.Resize, null);
 				
+				refreshSelectedSubView();
+
 				configMan.setParameter(sPropertiesPrefix + ".subViews.minimized", false);
 			}
 		};
@@ -482,6 +485,8 @@ public class TableView
 				sPropertiesPrefix + ".subViews.minimized", false)) {
 			tabFolder.setMinimized(true);
 			tabFolderData.height = iFolderHeightAdj;
+		} else {
+			tabFolder.setMinimized(false);
 		}
 
 		tabFolder.setSelection(0);
@@ -489,6 +494,7 @@ public class TableView
 		return form;
 	}
   
+	
   /** Creates a composite within the specified composite and sets its layout
    * to a default FillLayout().
    *
@@ -1171,15 +1177,24 @@ public class TableView
   	
   	refreshTable(bForceSort);
 
-    if (tabViews != null && tabViews.size() > 0) {
-			for (int i = 0; i < tabViews.size(); i++) {
-				IView view = (IView)tabViews.get(i);
-				if (view != null)
-					view.refresh();
-			}
-    }
+  	if (bEnableTabViews && tabFolder != null && !tabFolder.isDisposed()
+				&& !tabFolder.getMinimized())
+  		refreshSelectedSubView();
   }
   
+	public void refreshSelectedSubView() {
+  	if (!bEnableTabViews || tabFolder == null || tabFolder.isDisposed()
+				|| tabFolder.getMinimized())
+  		return;
+
+		CTabItem item = tabFolder.getSelection();
+		if (item != null) {
+			IView view = (IView)item.getData("IView");
+			if (view != null)
+				view.refresh();
+		}
+	}
+
   public void refreshTable(boolean bForceSort) {
   	// don't refresh while there's no table
   	if (table == null)
@@ -2368,6 +2383,7 @@ public class TableView
 			return;
 
 		CTabItem item = new CTabItem(tabFolder, SWT.NULL);
+		item.setData("IView", view);
 		Messages.setLanguageText(item, view.getData());
 		view.initialize(tabFolder);
 		item.setControl(view.getComposite());
