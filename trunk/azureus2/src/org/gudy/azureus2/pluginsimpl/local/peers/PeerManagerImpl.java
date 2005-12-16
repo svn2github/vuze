@@ -143,6 +143,13 @@ PeerManagerImpl
 			request.getOffset(), 
 			((PooledByteBufferImpl)data).getBuffer(), 
 			mapForeignPeer( sender ));
+		
+		PeerForeignDelegate	delegate = lookupForeignPeer( sender );
+		
+		if ( delegate != null ){
+			
+			delegate.dataReceived();
+		}
 	}
 	
 	public void
@@ -208,10 +215,19 @@ PeerManagerImpl
 			
 			local 	= new PeerForeignDelegate( this, _foreign );
 			
+			_foreign.setUserData( PeerManagerImpl.class, local );
+			
 			foreign_map.put( _foreign, local );
 		}
 		
 		return( local );
+	}
+	
+	protected PeerForeignDelegate
+	lookupForeignPeer(
+		Peer	_foreign )
+	{
+		return((PeerForeignDelegate)_foreign.getUserData( PeerManagerImpl.class ));
 	}
 	
 	public List

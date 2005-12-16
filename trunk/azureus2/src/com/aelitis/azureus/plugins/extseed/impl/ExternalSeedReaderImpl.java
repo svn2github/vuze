@@ -381,8 +381,6 @@ ExternalSeedReaderImpl
 		try{
 			requests_mon.enter();
 			
-			System.out.println( getName() + ": cancelRequest: " + request.getPieceNumber() + "/" + request.getOffset());
-
 			if ( requests.contains( request ) && !request.isCancelled()){
 				
 				request.cancel();

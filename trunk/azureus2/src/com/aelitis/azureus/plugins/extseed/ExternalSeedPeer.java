@@ -47,6 +47,7 @@ ExternalSeedPeer
 	
 	private PeerManager				manager;
 	private PeerStats				stats;
+	private Map						user_data;
 	
 	private	ExternalSeedReader		reader;			
 	
@@ -455,4 +456,29 @@ ExternalSeedPeer
 	{
 		return( new HashMap());
 	}	
+	
+	public void
+	setUserData(
+		Object		key,
+		Object		value )
+	{
+		if ( user_data == null ){
+			
+			user_data	= new HashMap();
+		}
+		
+		user_data.put( key, value );
+	}
+	
+	public Object
+	getUserData(
+		Object	key )
+	{
+		if ( user_data == null ){
+			
+			return( null );
+		}
+		
+		return( user_data.get( key ));
+	}
 }

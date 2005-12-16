@@ -185,4 +185,13 @@ Peer
   
   public Map
   getProperties();
+  
+  public void
+  setUserData(
+	Object	key,
+	Object	value );
+  
+  public Object
+  getUserData(
+	Object	key );
 }

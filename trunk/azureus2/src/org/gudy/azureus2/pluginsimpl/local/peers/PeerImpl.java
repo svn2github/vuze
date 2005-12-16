@@ -36,7 +36,6 @@ import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
-import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 public class 
 PeerImpl 
@@ -47,6 +46,8 @@ PeerImpl
 	protected PEPeer		delegate;
 	protected AEMonitor		this_mon	= new AEMonitor( "Peer" );
   
+	private Map		user_data;
+	
 	private HashMap peer_listeners;
   	
 
@@ -334,6 +335,31 @@ PeerImpl
 	getProperties()
 	{
 		return( new HashMap());
+	}
+	
+	public void
+	setUserData(
+		Object		key,
+		Object		value )
+	{
+		if ( user_data == null ){
+			
+			user_data	= new HashMap();
+		}
+		
+		user_data.put( key, value );
+	}
+	
+	public Object
+	getUserData(
+		Object	key )
+	{
+		if ( user_data == null ){
+			
+			return( null );
+		}
+		
+		return( user_data.get( key ));
 	}
 	
 		// as we don't maintain a 1-1 mapping between these and delegates make sure

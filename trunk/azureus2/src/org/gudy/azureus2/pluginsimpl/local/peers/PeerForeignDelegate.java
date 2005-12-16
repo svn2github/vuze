@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 
@@ -53,7 +54,9 @@ PeerForeignDelegate
 	private PeerManagerImpl		manager;
 	private Peer				foreign;
 	
-	private int	reserved_piece	= -1;
+	private long	create_time		= SystemTime.getCurrentTime();
+	private long	last_data_received_time;
+	private int		reserved_piece	= -1;
 	
 	private Map		data;
 	
@@ -115,6 +118,11 @@ PeerForeignDelegate
 		return( foreign.addRequest( manager.getDelegate().getDiskManager().createReadRequest( pieceNumber, pieceOffset, pieceLength )));
 	}
 		
+	protected  void
+	dataReceived()
+	{
+		last_data_received_time	= SystemTime.getCurrentTime();
+	}
   
 	public void 
 	closeConnection( 
@@ -197,13 +205,27 @@ PeerForeignDelegate
   	public long 
   	getTimeSinceConnectionEstablished() 
   	{
-  		return 0;
+  		long	now = SystemTime.getCurrentTime();
+  		
+  		if ( now > create_time ){
+  			
+  			return( now - create_time );
+  		}
+  		
+  		return( 0 );
   	}
   
   	public long 
   	getTimeSinceLastDataMessageReceived() 
   	{
-  		return 0;
+  		long	now = SystemTime.getCurrentTime();
+  		
+  		if ( now > last_data_received_time ){
+  			
+  			return( now - last_data_received_time );
+  		}
+  		
+  		return( 0 );
   	}
   
   	public long 

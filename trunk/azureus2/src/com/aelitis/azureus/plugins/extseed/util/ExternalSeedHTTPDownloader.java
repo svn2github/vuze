@@ -64,23 +64,28 @@ ExternalSeedHTTPDownloader
 				
 				InputStream	is = connection.getInputStream();
 				
-				int	pos = 0;
-				
-				while( pos < length ){
+				try{
+					int	pos = 0;
 					
-					int	len = is.read( data, pos, length-pos );
-					
-					if ( len < 0 ){
+					while( pos < length ){
 						
-						break;
+						int	len = is.read( data, pos, length-pos );
+						
+						if ( len < 0 ){
+							
+							break;
+						}
+						
+						pos	+= len;
 					}
 					
-					pos	+= len;
-				}
-				
-				if ( pos != length ){
+					if ( pos != length ){
+						
+						throw( new ExternalSeedException("Connection failed: data too short" ));
+					}
+				}finally{
 					
-					throw( new ExternalSeedException("Connection failed: data too short" ));
+					is.close();
 				}
 				
 				return( data );
