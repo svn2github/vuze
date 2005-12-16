@@ -332,7 +332,7 @@ public class PeerInfoView extends AbstractIView {
 			img = null;
 		}
 
-		if (peer == null) {
+		if (peer == null || peer.getPeerState() != PEPeer.TRANSFERING) {
 			GC gc = new GC(peerInfoCanvas);
 			gc.fillRectangle(bounds);
 			gc.dispose();
