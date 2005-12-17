@@ -144,19 +144,33 @@ public class Tab {
     tabs.put(tabItem, view);
 
 		try {
-			_view.initialize(folder);
+			// Always create a composite around the IView, because a lot of them
+			// assume that their parent is of GridLayout layout.
+			Composite tabArea = new Composite(folder, SWT.NONE);
+			GridLayout layout = new GridLayout();
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			tabArea.setLayout(layout);
+
+			_view.initialize(tabArea);
 			tabItem.setText(escapeAccelerators(view.getShortTitle()));
-			if (useCustomTab) {
-				Composite viewComposite = _view.getComposite();
+			
+			Composite viewComposite = _view.getComposite();
+			if (viewComposite != null && !viewComposite.isDisposed()) {
 				viewComposite.addListener(SWT.Activate, activateListener);
-				((CTabItem) tabItem).setControl(viewComposite);
+
+				// make sure the view's layout data is of GridLayoutData
+				if (!(viewComposite.getLayoutData() instanceof GridData))
+					viewComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
+			}
+
+			if (useCustomTab) {
+				((CTabItem) tabItem).setControl(tabArea);
 				((CTabItem) tabItem).setToolTipText(view.getFullTitle());
 				if (bFocus)
 					((CTabFolder) folder).setSelection((CTabItem) tabItem);
 			} else {
-				Composite viewComposite = _view.getComposite();
-				viewComposite.addListener(SWT.Activate, activateListener);
-				((TabItem) tabItem).setControl(viewComposite);
+				((TabItem) tabItem).setControl(tabArea);
 				((TabItem) tabItem).setToolTipText(view.getFullTitle());
 				TabItem items[] = { (TabItem) tabItem };
 				if (bFocus)
