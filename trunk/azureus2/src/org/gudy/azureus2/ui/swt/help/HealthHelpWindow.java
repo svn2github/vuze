@@ -43,7 +43,7 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
  */
 public class HealthHelpWindow {
   
-  static Image grey,red,blue,yellow,green,share;
+  static Image grey,red,blue,yellow,green,share,error;
   
   public static void show(Display display) {    
     final Shell window = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display,SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
@@ -67,6 +67,9 @@ public class HealthHelpWindow {
     
     green = new Image(display,ImageRepository.getImage("st_ok"),SWT.IMAGE_COPY);
     green.setBackground(window.getBackground());
+    
+    error = new Image(display,ImageRepository.getImage("st_error"),SWT.IMAGE_COPY);
+    error.setBackground(window.getBackground());
     
     share = new Image(display,ImageRepository.getImage("st_shared"),SWT.IMAGE_COPY);
     share.setBackground(window.getBackground());
@@ -145,17 +148,30 @@ public class HealthHelpWindow {
     formData.left = new FormAttachment(lblGreenImage,5);
     lblGreenExplain.setLayoutData(formData);
     
+    Label lblErrorImage = new Label(window,SWT.NULL);
+    lblErrorImage.setImage(error);
+    formData = new FormData();
+    formData.top = new FormAttachment(lblGreenExplain,5);
+    lblErrorImage.setLayoutData(formData);
+    
+    Label lblErrorExplain = new Label(window,SWT.NULL);
+    lblErrorExplain.setText(MessageText.getString("health.explain.error"));
+    formData = new FormData();
+    formData.top = new FormAttachment(lblGreenExplain,5);
+    formData.left = new FormAttachment(lblErrorImage,5);
+    lblErrorExplain.setLayoutData(formData);
+    
     	// shared
     Label lblShareImage = new Label(window,SWT.NULL);
     lblShareImage.setImage(share);
     formData = new FormData();
-    formData.top = new FormAttachment(lblGreenExplain,5);
+    formData.top = new FormAttachment(lblErrorExplain,5);
     lblShareImage.setLayoutData(formData);
     
     Label lblShareExplain = new Label(window,SWT.NULL);
     lblShareExplain.setText(MessageText.getString("health.explain.share"));
     formData = new FormData();
-    formData.top = new FormAttachment(lblGreenExplain,5);
+    formData.top = new FormAttachment(lblErrorExplain,5);
     formData.left = new FormAttachment(lblShareImage,5);
     lblShareExplain.setLayoutData(formData);
 

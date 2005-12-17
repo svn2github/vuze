@@ -77,7 +77,7 @@ public class HealthItem
 
       
       String image_name;
-      String sHelpID;
+      String sHelpID = null;
 
       if(health == DownloadManager.WEALTH_KO) {
       	image_name = "st_ko";   
@@ -91,6 +91,8 @@ public class HealthItem
       }else if (health == DownloadManager.WEALTH_NO_REMOTE) {
       	image_name = "st_no_remote";   
       	sHelpID = "health.explain.yellow";
+      }else if (health == DownloadManager.WEALTH_ERROR) {
+      	image_name = "st_error";
       }else{
       	image_name = "st_stopped";
       	sHelpID = "health.explain.grey";
@@ -101,7 +103,8 @@ public class HealthItem
       }
       
       if( ((TableCellCore)cell).setGraphic(ImageRepository.getImage(image_name)) ) {
-        String sToolTip = MessageText.getString(sHelpID);
+        String sToolTip = (health == DownloadManager.WEALTH_ERROR) ? dm
+						.getErrorDetails() : MessageText.getString(sHelpID);
         if (ht != null)
           sToolTip += "\n" + MessageText.getString("health.explain.share");
         cell.setToolTip(sToolTip);

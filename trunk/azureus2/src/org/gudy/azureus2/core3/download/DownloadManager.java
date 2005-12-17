@@ -68,6 +68,7 @@ DownloadManager
 	public static final int WEALTH_NO_REMOTE  		= 3;
 	public static final int WEALTH_OK  				= 4;
 	public static final int WEALTH_KO 				= 5;
+	public static final int WEALTH_ERROR          = 6;
 
 	public void
 	initialize();

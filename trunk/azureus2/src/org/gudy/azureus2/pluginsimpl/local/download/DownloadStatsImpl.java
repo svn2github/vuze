@@ -197,6 +197,10 @@ DownloadStatsImpl
 				return( DownloadStats.HEALTH_KO );
 			
 			}
+			case DownloadManager.WEALTH_ERROR:
+			{
+				return( DownloadStats.HEALTH_ERROR );
+			}
 			default:
 			{
 				Debug.out( "Invalid health status" );

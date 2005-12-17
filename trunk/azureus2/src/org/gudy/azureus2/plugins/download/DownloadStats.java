@@ -33,7 +33,10 @@ DownloadStats
 	public static final int HEALTH_NO_TRACKER 		= 2;
 	public static final int HEALTH_NO_REMOTE  		= 3;
 	public static final int HEALTH_OK  				= 4;
+	/** not connected to any peer and downloading */
 	public static final int HEALTH_KO 				= 5;
+	/** download in STATE_ERROR, see {@link #getStatus()} for error */
+	public static final int HEALTH_ERROR 				= 6;
 	
 	/**
 	 * Returns an overall string representing the state of the download

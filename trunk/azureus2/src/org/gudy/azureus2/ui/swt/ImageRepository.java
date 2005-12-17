@@ -109,11 +109,13 @@ public class ImageRepository {
     loadImage(display, "org/gudy/azureus2/ui/icons/status/ok.gif", "st_ok");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/ko.gif", "st_ko");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped.gif", "st_stopped");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/error.gif", "st_error");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker.gif", "st_no_tracker");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote.gif", "st_no_remote");
 
     loadImage(display, "org/gudy/azureus2/ui/icons/status/ok_shared.gif", "st_ok_shared");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/ko_shared.gif", "st_ko_shared");
+    loadImage(display, "org/gudy/azureus2/ui/icons/status/error_shared.gif", "st_error_shared");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/stopped_shared.gif", "st_stopped_shared");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_tracker_shared.gif", "st_no_tracker_shared");
     loadImage(display, "org/gudy/azureus2/ui/icons/status/no_remote_shared.gif", "st_no_remote_shared");

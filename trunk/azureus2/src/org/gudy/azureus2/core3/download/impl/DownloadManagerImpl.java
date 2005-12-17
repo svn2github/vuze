@@ -2102,6 +2102,8 @@ DownloadManagerImpl
       
 			return WEALTH_OK;
       
+		} else if (state == STATE_ERROR) {
+			return WEALTH_ERROR;
 		}else{
     	
 			return WEALTH_STOPPED;
