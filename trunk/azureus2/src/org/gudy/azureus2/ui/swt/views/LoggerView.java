@@ -129,9 +129,8 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 		layout.verticalSpacing = 2;
 		layout.numColumns = 2;
 		panel.setLayout(layout);
-		GridData gd = new GridData(SWT.DEFAULT, SWT.DEFAULT, true, true);
-		gd.heightHint = 70;
-		panel.setLayoutData(gd);
+
+		GridData gd;
 
 		consoleText = new StyledText(panel, SWT.READ_ONLY | SWT.V_SCROLL
 				| SWT.H_SCROLL);
