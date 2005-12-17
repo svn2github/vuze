@@ -49,7 +49,10 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 
 public class ConfigSectionConnectionProxy implements UISWTConfigSection {
-	final static String CFG_PREFIX = "ConfigView.section.proxy.";
+
+	private final static String CFG_PREFIX = "ConfigView.section.proxy.";
+
+	private final int REQUIRED_MODE = 2;
 
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_CONNECTION;
@@ -77,27 +80,33 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		proxy_layout.numColumns = 2;
 		cSection.setLayout(proxy_layout);
 
-    int userMode = COConfigurationManager.getIntParameter("User Mode");
-    if (userMode <= 1) {
-    	Label label = new Label(cSection, SWT.WRAP);
-  		gridData = new GridData();
-  		gridData.horizontalSpan = 2;
-  		label.setLayoutData(gridData);
-  		
-  		final String[] modeKeys = { "ConfigView.section.mode.beginner", 
-  				"ConfigView.section.mode.intermediate", "ConfigView.section.mode.advanced"
-  		};
-  		String[] params;
-  		if (userMode < modeKeys.length)
-  			params = new String[] { MessageText.getString( modeKeys[userMode]) };
-  		else
-  			params = new String[] { "??" };
-  			
-  		
- 			label.setText(MessageText.getString("ConfigView.notAvailableForMode", params ));
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+		if (userMode < REQUIRED_MODE) {
+			Label label = new Label(cSection, SWT.WRAP);
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			label.setLayoutData(gridData);
 
- 			return cSection;
-    }
+			final String[] modeKeys = { "ConfigView.section.mode.beginner",
+					"ConfigView.section.mode.intermediate",
+					"ConfigView.section.mode.advanced" };
+
+			String param1, param2;
+			if (REQUIRED_MODE < modeKeys.length)
+				param1 = MessageText.getString(modeKeys[REQUIRED_MODE]);
+			else
+				param1 = String.valueOf(REQUIRED_MODE);
+					
+			if (userMode < modeKeys.length)
+				param2 = MessageText.getString(modeKeys[userMode]);
+			else
+				param2 = String.valueOf(userMode);
+
+			label.setText(MessageText.getString("ConfigView.notAvailableForMode",
+					new String[] { param1, param2 } ));
+
+			return cSection;
+		}
 
 		//////////////////////  PROXY GROUP /////////////////
 

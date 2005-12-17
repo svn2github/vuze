@@ -44,6 +44,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 	private final String CFG_PREFIX = "ConfigView.section.connection.advanced.";
+	
+	private final int REQUIRED_MODE = 2;
 
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_CONNECTION;
@@ -72,7 +74,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		cSection.setLayout(advanced_layout);
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
-		if (userMode <= 1) {
+		if (userMode < REQUIRED_MODE) {
 			Label label = new Label(cSection, SWT.WRAP);
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
@@ -81,14 +83,20 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 			final String[] modeKeys = { "ConfigView.section.mode.beginner",
 					"ConfigView.section.mode.intermediate",
 					"ConfigView.section.mode.advanced" };
-			String[] params;
-			if (userMode < modeKeys.length)
-				params = new String[] { MessageText.getString(modeKeys[userMode]) };
+
+			String param1, param2;
+			if (REQUIRED_MODE < modeKeys.length)
+				param1 = MessageText.getString(modeKeys[REQUIRED_MODE]);
 			else
-				params = new String[] { "??" };
+				param1 = String.valueOf(REQUIRED_MODE);
+					
+			if (userMode < modeKeys.length)
+				param2 = MessageText.getString(modeKeys[userMode]);
+			else
+				param2 = String.valueOf(userMode);
 
 			label.setText(MessageText.getString("ConfigView.notAvailableForMode",
-					params));
+					new String[] { param1, param2 } ));
 
 			return cSection;
 		}
