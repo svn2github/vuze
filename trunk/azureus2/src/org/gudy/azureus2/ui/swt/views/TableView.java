@@ -97,7 +97,7 @@ public class TableView
 	public final static boolean DEBUGADDREMOVE = false;
 	
 	/** Virtual Tables still a work in progress */
-	private final static boolean DISABLEVIRTUAL = false;
+	private final static boolean DISABLEVIRTUAL = SWT.getVersion() < 3138;
 
 	private static final boolean DEBUG_SORTER = false;
 
