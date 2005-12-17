@@ -3,22 +3,22 @@ $    Bem vindo ao Azureus 2.3.0.6
 $ 
 
 +1. O que há de novo no Azureus 2.3.0.6
-
- This is a further bug fix release and also contains various improvements including:
  
-    Better banning of peers that send corrupt data
-    Alternative upload controls when only seeding
-    Renaming and retargeting of files within a download
-    Better reporting of firewalled status
-    NAT traversal for magnet downloads
-    Java 5.0 support for OSX
-    Bugfixes
+ Isto é um lançamento de reparo de Bugs adicional e contém varios melhoramentos, incluindo:
+
+    Melhor banimento de pares que enviam dados corrompidos
+    Controles alternativos de upload quando está só semeando
+    Renomear e redirecionar arquivos dentro de um download
+    Melhor relatório dobre o status do firewall    
+    Inclusão de NAT para "magnet downloads"    
+    Supporte de Java 5.0 para OSX
+    Reparos de Bugs
     
-    Note: New Windows launcher exe might require allowing "Azureus.exe" internet access in your software firewall.
+    Nota: O novo executável para windows pode precisar da liberação do acesso a internet ,para o arquivo "Azureus.exe" ,no seu software de firewall. 
     
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
+    Registro completo das mudanças http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
    
-    See http://azureus.sourceforge.net/changelog.php?version=2.3.0.4 for previous changes.
+    Veja http://azureus.sourceforge.net/changelog.php?version=2.3.0.4 para mudanças prévias.
     
 +2. O que há de novo no Azureus 2.3.0.2
 
