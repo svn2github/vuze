@@ -655,8 +655,25 @@ public class StartStopRulesDefaultPlugin
 
 		int stalledFPSeeders = 0;
 
+		/**
+		 * Indicate whether it's ok to start seeding.
+		 * <p>
+		 * Seeding can start right away when there's no auto-ranking or we are on
+		 * timed ranking. Otherwise, we wait until one of the following happens:
+		 * <ul>
+		 * <li>Any non-stopped/errored torrent gets a scrape result AND it's after
+		 *   {@link #MIN_SEEDING_STARTUP_WAIT}
+		 * <li>All scrape results come in for completed, non-stopped/errored torrent
+		 * <li>Any completed non-stopped/errored torrent is FP
+		 * <li>Any torrent has 0 seeds (which, in most cases means it's the highest
+		 *   rank)
+		 * </ul>
+		 * <p>
+		 * If none of the above happen, then after {@link #MIN_FIRST_SCRAPE_WAIT}, 
+		 * the flag will turned on.
+		 */
 		// not a total :)
-		boolean bHasNonFPRank;
+		boolean bOkToStartSeeding;
 
 		int maxSeeders;
 
@@ -664,14 +681,20 @@ public class StartStopRulesDefaultPlugin
 
 		int maxTorrents;
 
+		/**
+		 * Default Constructor
+		 * 
+		 * @param dlDataArray list of download data (rank calculators) objects
+		 *                     to base calculations on.
+		 */
 		public TotalsStats(DefaultRankCalculator[] dlDataArray) {
-			// Start seeding right away if there's no auto-ranking
-			// Otherwise, wait a maximium of 90 seconds for scrape results to come in
-			// When the first scrape result comes in, bHasNonFPRank will turn to true
-			// (see logic in 1st loop)
-			bHasNonFPRank = (iRankType == RANK_NONE) || (iRankType == RANK_TIMED)
+			bOkToStartSeeding = (iRankType == RANK_NONE) || (iRankType == RANK_TIMED)
 					|| (SystemTime.getCurrentTime() - startedOn > MIN_FIRST_SCRAPE_WAIT);
 
+			// count the # of ok scrapes when !bOkToStartSeeding, and flip to true
+			// if all scrapes for non-stopped/errored completes are okay.
+			int totalOKScrapes = 0;
+			
 			// - Build a SeedingRank list for sorting
 			// - Build Count Totals
 			// - Do anything that doesn't need to be done in Queued order
@@ -691,17 +714,28 @@ public class StartStopRulesDefaultPlugin
 				int state = download.getState();
 
 				if (completionLevel == 1000) {
-					if (!bHasNonFPRank
-							&& (download.getSeedingRank() > 0)
+					// Only used when !bOkToStartSeeding.. set only to make compiler happy
+					boolean bScrapeOk = true;
+					if (!bOkToStartSeeding) {
+						bScrapeOk = scrapeResultOk(download);
+						if (calcSeedsNoUs(download) == 0 && bScrapeOk)
+							bOkToStartSeeding = true;
+						else if ((download.getSeedingRank() > 0)
 							&& (state == Download.ST_QUEUED || state == Download.ST_READY)
-							&& (SystemTime.getCurrentTime() - startedOn > MIN_SEEDING_STARTUP_WAIT)) {
-						bHasNonFPRank = true;
+							&& (SystemTime.getCurrentTime() - startedOn > MIN_SEEDING_STARTUP_WAIT))
+							bOkToStartSeeding = true;
 					}
 
 					if (state != Download.ST_ERROR && state != Download.ST_STOPPED) {
 						complete++;
+						
+						if (!bOkToStartSeeding && bScrapeOk)
+							totalOKScrapes++;
 
 						if (dlData.isFirstPriority()) {
+							if (!bOkToStartSeeding)
+								bOkToStartSeeding = true;
+
 							firstPriority++;
 							bIsFirstP = true;
 						}
@@ -741,6 +775,9 @@ public class StartStopRulesDefaultPlugin
 				} // if completionLevel
 			} // for
 
+			if (!bOkToStartSeeding && totalOKScrapes == complete)
+				bOkToStartSeeding = true;
+				
 			maxSeeders = calcMaxSeeders(activelyDLing + waitingToDL);
 			maxActive = getMaxActive();
 
@@ -812,7 +849,7 @@ public class StartStopRulesDefaultPlugin
 			if (bDebugLog) {
 				log.log(LoggerChannel.LT_INFORMATION, ">>process()");
 				mainDebugEntries = new String[] {
-						"bHasSR=" + boolDebug(totals.bHasNonFPRank),
+						"ok2Start=" + boolDebug(totals.bOkToStartSeeding),
 						"tFrcdCding=" + totals.forcedSeeding,
 						"actvCDs=" + totals.activelyCDing,
 						"tW8tingToCd=" + totals.waitingToSeed,
@@ -861,7 +898,7 @@ public class StartStopRulesDefaultPlugin
 
 				if (bAutoReposition && (iRankType != RANK_NONE)
 						&& download.getStats().getDownloadCompleted(false) == 1000
-						&& (totals.bHasNonFPRank || totals.firstPriority > 0))
+						&& (totals.bOkToStartSeeding || totals.firstPriority > 0))
 					download.setPosition(++vars.posComplete);
 
 				int state = download.getState();
@@ -875,7 +912,7 @@ public class StartStopRulesDefaultPlugin
 				// Handle incomplete DLs
 				if (download.getStats().getDownloadCompleted(false) != 1000) {
 					handleInCompleteDownload(dlData, vars, totals);
-				} else if (totals.bHasNonFPRank || totals.firstPriority > 0) {
+				} else if (totals.bOkToStartSeeding) {
 					handleCompletedDownload(dlDataArray, dlData, vars, totals);
 				}
 
@@ -883,7 +920,7 @@ public class StartStopRulesDefaultPlugin
 
 			if (bDebugLog) {
 				String[] mainDebugEntries2 = new String[] {
-						"bHasSR=" + boolDebug(totals.bHasNonFPRank),
+						"ok2Start=" + boolDebug(totals.bOkToStartSeeding),
 						"tFrcdCding=" + totals.forcedSeeding,
 						"actvCDs=" + totals.activelyCDing,
 						"tW8tingToCd=" + totals.waitingToSeed,
@@ -1062,8 +1099,12 @@ public class StartStopRulesDefaultPlugin
 	}
 
 	/**
-	 * @param vars 
-	 * @param totals 
+	 * Process Completed (Seeding) downloads, starting and stopping as needed
+	 * 
+	 * @param dlDataArray All download data (rank objects) we handle
+	 * @param dlData Current download data (rank object) we are processing
+	 * @param vars Running calculations
+	 * @param totals Summary values used in logic
 	 */
 	private void handleCompletedDownload(DefaultRankCalculator[] dlDataArray,
 			DefaultRankCalculator dlData, ProcessVars vars, TotalsStats totals) {
@@ -1084,8 +1125,7 @@ public class StartStopRulesDefaultPlugin
 		//    c) other
 		// 7) Seeding Torrent changes to Queued.  Go to step 1.
 
-		boolean isFP = dlData.isFirstPriority();
-		if (!totals.bHasNonFPRank && !isFP)
+		if (!totals.bOkToStartSeeding)
 			return;
 
 		int numPeers = calcPeersNoUs(download);
@@ -1132,6 +1172,7 @@ public class StartStopRulesDefaultPlugin
 		//			+ totals.maxActive);
 		//}
 
+		boolean isFP = dlData.isFirstPriority();
 		boolean bActivelySeeding = dlData.getActivelySeeding();
 		boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING)
 				&& (!isFP || (isFP && ((totals.maxActive != 0 && vars.numWaitingOrSeeding >= totals.maxSeeders))))
