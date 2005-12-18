@@ -991,6 +991,19 @@ public class MyTorrentsView
 				});
 		itemManualUpdate.setEnabled(manualUpdate);
 
+		boolean manualScrape = !COConfigurationManager.getBooleanParameter("Tracker Client Scrape Enable");
+		
+		final MenuItem itemManualScrape = new MenuItem(menuTracker, SWT.PUSH);
+		Messages.setLanguageText(itemManualScrape,
+				"GeneralView.label.trackerscrapeupdate");
+		//itemManualUpdate.setImage(ImageRepository.getImage("edit_trackers"));
+		itemManualScrape.addListener(SWT.Selection,
+				new SelectedTableRowsListener() {
+					public void run(TableRowCore row) {
+						((DownloadManager) row.getDataSource(true)).scrapeTracker(true);
+					}
+				});
+		itemManualScrape.setEnabled(manualScrape);
 
 		// advanced > move menu //
 

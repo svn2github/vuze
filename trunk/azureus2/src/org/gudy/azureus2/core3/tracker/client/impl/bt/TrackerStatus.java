@@ -345,8 +345,9 @@ public class TrackerStatus {
 
 							scraper.scrapeReceived(response);
 
-						} else if (disable_all_scrapes
-								|| (disable_stopped_scrapes && !scraper.isTorrentRunning(hash))) {
+						} else if ( !force && ( 
+									disable_all_scrapes ||
+									(disable_stopped_scrapes && !scraper.isTorrentRunning(hash)))){
 
 							response.setNextScrapeStartTime(SystemTime.getCurrentTime()
 									+ FAULTY_SCRAPE_RETRY_INTERVAL);
