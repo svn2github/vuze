@@ -20,9 +20,11 @@
  *
  */
 
-package com.aelitis.azureus.plugins.extseed.impl.getright;
+package com.aelitis.azureus.plugins.extseed.impl.webseed;
 
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.peers.PeerManager;
@@ -35,17 +37,16 @@ import com.aelitis.azureus.plugins.extseed.impl.ExternalSeedReaderImpl;
 import com.aelitis.azureus.plugins.extseed.util.ExternalSeedHTTPDownloader;
 
 public class 
-ExternalSeedReaderGetRight
+ExternalSeedReaderWebSeed
 	extends ExternalSeedReaderImpl
 {
 	private URL			url;
 	private String		ip;
 	private int			port;
-	
-	private ExternalSeedHTTPDownloader	http_downloader;
+	private String		url_prefix;
 	
 	protected
-	ExternalSeedReaderGetRight(
+	ExternalSeedReaderWebSeed(
 		ExternalSeedPlugin 		_plugin,
 		Torrent					_torrent,	
 		URL						_url )
@@ -62,14 +63,21 @@ ExternalSeedReaderGetRight
 			port = url.getDefaultPort();
 		}
 		
-		http_downloader  = new ExternalSeedHTTPDownloader( url, getUserAgent());
-		
+		try{
+			String hash_str = URLEncoder.encode(new String(_torrent.getHash(), "ISO-8859-1"), "ISO-8859-1").replaceAll("\\+", "%20");
+
+			url_prefix = url.toString()+"?info_hash=" + hash_str;
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 	}
 	
 	public String
 	getName()
 	{
-		return( "GR: " + url );
+		return( "WS: " + url );
 	}
 	
 	public String
@@ -159,9 +167,22 @@ ExternalSeedReaderGetRight
 		PeerReadRequest	request )
 	
 		throws ExternalSeedException
-	{
-		return( http_downloader.downloadRange( 
-						request.getPieceNumber() * getTorrent().getPieceSize() + request.getOffset(), 
-						request.getLength()));
+	{		
+		long	piece = request.getPieceNumber();
+		
+		long	piece_start = request.getOffset();
+		long	piece_end	= piece_start + request.getLength()-1;
+			
+		String	str = url_prefix + "&piece=" + piece + "&ranges=" + piece_start + "-" + piece_end;
+		
+		try{
+			ExternalSeedHTTPDownloader	http_downloader = new ExternalSeedHTTPDownloader( new URL( str ), getUserAgent());
+
+			return( http_downloader.downloadSocket(request.getLength()));
+			
+		}catch( MalformedURLException e ){
+			
+			throw( new ExternalSeedException( "URL encode fails", e ));
+		}
 	}
 }

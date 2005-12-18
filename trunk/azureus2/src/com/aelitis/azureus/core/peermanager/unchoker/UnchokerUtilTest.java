@@ -168,6 +168,7 @@ public class UnchokerUtilTest {
 		public int[] getOutgoingRequestedPieceNumbers() { return null; }
 		public int getPercentDoneOfCurrentIncomingRequest(){ return 0; }  
 		public int getPercentDoneOfCurrentOutgoingRequest(){ return 0; }  
+		public long getTimeSinceConnectionEstablished(){ return 0; }
       };
       
       peers.add( peer );

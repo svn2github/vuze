@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.azureus.plugins.extseed.impl.getright.ExternalSeedReaderFactoryGetRight;
+import com.aelitis.azureus.plugins.extseed.impl.webseed.ExternalSeedReaderFactoryWebSeed;
 
 public class 
 ExternalSeedPlugin
@@ -48,10 +49,13 @@ ExternalSeedPlugin
 {
 	private static ExternalSeedReaderFactory[]	factories = {
 		new ExternalSeedReaderFactoryGetRight(),
+		new ExternalSeedReaderFactoryWebSeed(),
 	};
 	
 	private PluginInterface		plugin_interface;
 	private LoggerChannel		log;
+	
+	private 		Random	random = new Random();
 	
 	private Map		download_map	= new HashMap();
 	private Monitor	download_mon;
@@ -124,11 +128,17 @@ ExternalSeedPlugin
 							
 							while( it.hasNext()){
 								
-								List	peers = (List)it.next();
+								List	peers = randomiseList((List)it.next());
 								
 								for (int i=0;i<peers.size();i++){
 									
-									((ExternalSeedPeer)peers.get(i)).checkConnection();
+										// bail out early if the state changed for this peer
+										// so one peer at a time gets a chance to activate
+									
+									if (((ExternalSeedPeer)peers.get(i)).checkConnection()){
+										
+										break;
+									}
 								}
 							}
 							
@@ -152,8 +162,6 @@ ExternalSeedPlugin
 			return;
 		}
 		
-		Random	random = new Random();
-		
 		final List	peers = new ArrayList();
 		
 		for (int i=0;i<factories.length;i++){
@@ -166,7 +174,7 @@ ExternalSeedPlugin
 				
 				ExternalSeedPeer	peer = new ExternalSeedPeer( this, reader );
 				
-				peers.add( random.nextInt( peers.size()+1 ), peer );
+				peers.add( peer );
 			}
 		}
 		
@@ -240,5 +248,24 @@ ExternalSeedPlugin
 	getPluginInterface()
 	{
 		return( plugin_interface );
+	}
+	
+	protected List
+	randomiseList(
+		List	l )
+	{
+		if ( l.size() < 2 ){
+			
+			return(l);
+		}
+		
+		List	new_list = new ArrayList();
+		
+		for (int i=0;i<l.size();i++){
+			
+			new_list.add( random.nextInt(new_list.size()+1), l.get(i));
+		}
+		
+		return( new_list );
 	}
 }

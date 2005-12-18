@@ -25,6 +25,8 @@ package com.aelitis.azureus.plugins.extseed.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -52,6 +54,8 @@ ExternalSeedReaderImpl
 	private long			last_failed_read;
 	private int				consec_failures;
 	
+	private String			user_agent;
+	
 	private long			peer_manager_change_time;
 	
 	private volatile PeerManager		current_manager;
@@ -75,6 +79,24 @@ ExternalSeedReaderImpl
 		requests_mon	= plugin.getPluginInterface().getUtilities().getMonitor();
 		request_sem		= plugin.getPluginInterface().getUtilities().getSemaphore();
 		
+		PluginInterface	pi = plugin.getPluginInterface();
+		
+		user_agent = pi.getAzureusName();
+		
+		try{
+			Properties	props = new Properties();
+		
+			pi.getClientIDManager().getGenerator().generateHTTPProperties( props );
+			
+			String ua = props.getProperty( ClientIDGenerator.PR_USER_AGENT );
+			
+			if ( ua != null ){
+				
+				user_agent	= ua;
+			}
+		}catch( Throwable e ){
+		}
+			
 		setActive( false );
 	}
 	
@@ -97,6 +119,11 @@ ExternalSeedReaderImpl
 		plugin.log( str );
 	}
 	
+	protected String
+	getUserAgent()
+	{
+		return( user_agent );
+	}
 	protected long
 	getSystemTime()
 	{

@@ -98,7 +98,7 @@ ExternalSeedPeer
 			
 			if ( manager != null ){
 				
-				stats = manager.createPeerStats();
+				stats = manager.createPeerStats( this );
 			}
 			
 			checkConnection();
@@ -115,9 +115,11 @@ ExternalSeedPeer
 		return( manager );
 	}
 	
-	protected void
+	protected boolean
 	checkConnection()
 	{
+		boolean	state_changed = false;
+		
 		try{
 			connection_mon.enter();
 			
@@ -125,6 +127,10 @@ ExternalSeedPeer
 			
 			if ( manager != null && active != peer_added ){
 			
+				state_changed	= true;
+				
+				boolean	peer_was_added	= peer_added;
+				
 				peer_added	= active;
 				
 				if ( active ){
@@ -132,10 +138,8 @@ ExternalSeedPeer
 					manager.addPeer( this );
 					
 				}else{
-					
-						// might have already been removed
-					
-					if ( peer_added ){
+										
+					if ( peer_was_added ){
 						
 						manager.removePeer( this );
 					}
@@ -143,9 +147,10 @@ ExternalSeedPeer
 			}
 		}finally{
 			
-		
 			connection_mon.exit();
 		}
+		
+		return( state_changed );
 	}
 	
 	public void
