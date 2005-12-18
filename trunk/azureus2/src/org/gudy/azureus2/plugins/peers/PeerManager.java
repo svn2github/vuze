@@ -75,7 +75,8 @@ PeerManager
 	isSuperSeeding();
 	
 	public PeerStats
-	createPeerStats();
+	createPeerStats(
+		Peer		peer );
 	
 	public void 
 	requestComplete(

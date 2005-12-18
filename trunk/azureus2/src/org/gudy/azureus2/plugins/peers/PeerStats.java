@@ -51,4 +51,7 @@ PeerStats
 	public void
 	discarded(
 		int		bytes );
+	
+	public long
+	getTimeSinceConnectionEstablished();
 }

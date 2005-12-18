@@ -232,6 +232,12 @@ ClientIDManagerImpl
 		}
 	}
 	
+	public ClientIDGenerator
+	getGenerator()
+	{
+		return( generator );
+	}
+	
 	public byte[]
 	generatePeerID(
 		TOTorrent	torrent,

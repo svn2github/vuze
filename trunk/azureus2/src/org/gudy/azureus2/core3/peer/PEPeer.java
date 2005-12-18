@@ -218,4 +218,13 @@ PEPeer
   
   public int
   getPercentDoneOfCurrentOutgoingRequest();
+  
+  /**
+   * Get the time since this connection was first established.
+   * NOTE: This method will always return 0 at any time before
+   * the underlying transport is fully connected, i.e. before
+   * handshaking begins.
+   * @return time count in ms
+   */
+  public long getTimeSinceConnectionEstablished();
 }

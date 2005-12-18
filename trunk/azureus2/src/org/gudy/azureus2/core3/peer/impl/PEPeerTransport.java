@@ -119,14 +119,6 @@ PEPeerTransport
    */
   public int getConnectionState();
   
-  /**
-   * Get the time since this connection was first established.
-   * NOTE: This method will always return 0 at any time before
-   * the underlying transport is fully connected, i.e. before
-   * handshaking begins.
-   * @return time count in ms
-   */
-  public long getTimeSinceConnectionEstablished();
   
   /**
    * Get the time since the last (most-recent) data (payload) message was received.

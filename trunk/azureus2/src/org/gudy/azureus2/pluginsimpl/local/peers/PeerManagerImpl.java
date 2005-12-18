@@ -126,9 +126,10 @@ PeerManagerImpl
 	
 	
 	public PeerStats
-	createPeerStats()
+	createPeerStats(
+		Peer	peer )
 	{
-		return( new PeerStatsImpl( manager, manager.createPeerStats()));
+		return( new PeerStatsImpl( this, peer, manager.createPeerStats()));
 	}
 	
 	
@@ -205,6 +206,26 @@ PeerManagerImpl
 		return( res );
 	}
 	
+	public long
+	getTimeSinceConnectionEstablished(
+		Peer		peer )
+	{
+		if ( peer instanceof PeerImpl ){
+			
+			return(((PeerImpl)peer).getDelegate().getTimeSinceConnectionEstablished());
+		}else{
+			PeerForeignDelegate	delegate = lookupForeignPeer( peer );
+			
+			if ( delegate != null ){
+				
+				return( delegate.getTimeSinceConnectionEstablished());
+				
+			}else{
+				
+				return( 0 );
+			}
+		}
+	}
 	public PEPeer
 	mapForeignPeer(
 		Peer	_foreign )

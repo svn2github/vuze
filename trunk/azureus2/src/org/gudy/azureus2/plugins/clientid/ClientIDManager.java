@@ -41,4 +41,7 @@ ClientIDManager
 	setGenerator(
 		ClientIDGenerator	generator,
 		boolean				use_http_filter );
+	
+	public ClientIDGenerator
+	getGenerator();
 }

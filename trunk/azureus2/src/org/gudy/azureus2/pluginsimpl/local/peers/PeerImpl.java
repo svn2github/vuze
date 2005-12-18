@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import org.gudy.azureus2.plugins.messaging.Message;
@@ -42,9 +43,9 @@ PeerImpl
 	extends LogRelation
 	implements Peer
 {
-	protected PeerManager	manager;
-	protected PEPeer		delegate;
-	protected AEMonitor		this_mon	= new AEMonitor( "Peer" );
+	protected PeerManagerImpl	manager;
+	protected PEPeer			delegate;
+	protected AEMonitor			this_mon	= new AEMonitor( "Peer" );
   
 	private Map		user_data;
 	
@@ -53,7 +54,7 @@ PeerImpl
 
 	public
 	PeerImpl(
-		PEPeer		_delegate )
+		PEPeer	_delegate )
 	{
 		delegate	= _delegate;
 		
@@ -66,6 +67,11 @@ PeerImpl
 		return( manager );
 	}
 	
+	protected PEPeer
+	getDelegate()
+	{
+		return( delegate );
+	}
   
   public Connection getConnection() {
     return delegate.getConnection();
@@ -201,7 +207,7 @@ PeerImpl
 	
 	public PeerStats getStats()
 	{
-		return( new PeerStatsImpl(((PeerManagerImpl)manager).getDelegate(), delegate.getStats()));
+		return( new PeerStatsImpl((PeerManagerImpl)manager, this, delegate.getStats()));
 	}
  	
 

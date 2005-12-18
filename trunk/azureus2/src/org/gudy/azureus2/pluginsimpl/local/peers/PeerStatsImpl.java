@@ -34,16 +34,21 @@ public class
 PeerStatsImpl 
 	implements PeerStats
 {
-	protected PEPeerManager		manager;
-	protected PEPeerStats		delegate;
+	private PeerManagerImpl		peer_manager;
+	private PEPeerManager		manager;
+	private PEPeerStats			delegate;
+	private Peer				owner;
 	
 	public
 	PeerStatsImpl(
-		PEPeerManager	_manager,
+		PeerManagerImpl	_peer_manager,
+		Peer			_owner,
 		PEPeerStats		_delegate )
 	{
-		manager		= _manager;
-		delegate	= _delegate;
+		peer_manager	= _peer_manager;
+		manager			= peer_manager.getDelegate();
+		delegate		= _delegate;
+		owner			= _owner;
 	}
 	
 	public PEPeerStats
@@ -108,5 +113,11 @@ PeerStatsImpl
 		delegate.bytesDiscarded( bytes );
 		
 		manager.discarded( bytes );
+	}
+	
+	public long
+	getTimeSinceConnectionEstablished()
+	{
+		return( peer_manager.getTimeSinceConnectionEstablished( owner ));
 	}
 }
