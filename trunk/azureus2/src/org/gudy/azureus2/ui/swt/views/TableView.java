@@ -2188,6 +2188,7 @@ public class TableView
 	  	table.addListener(SWT.MouseMove, this);
 	  	table.addListener(SWT.MouseHover, this);
 			mainShell.addListener(SWT.Deactivate, this);
+			getComposite().addListener(SWT.Deactivate, this);
 		}
 
 		public void handleEvent(Event event) {
@@ -2279,7 +2280,9 @@ public class TableView
 				}
 				
 				case SWT.Dispose:
-					if (mainShell != null)
+					if (mainShell != null && !mainShell.isDisposed())
+						mainShell.removeListener(SWT.Deactivate, this);
+					if (getComposite() != null && !getComposite().isDisposed())
 						mainShell.removeListener(SWT.Deactivate, this);
 					// fall through
 				
