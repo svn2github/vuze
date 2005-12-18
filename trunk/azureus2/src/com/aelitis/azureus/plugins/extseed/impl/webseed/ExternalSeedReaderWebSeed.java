@@ -40,10 +40,14 @@ public class
 ExternalSeedReaderWebSeed
 	extends ExternalSeedReaderImpl
 {
+	private static final int	RECONNECT_DEFAULT = 30*1000;
+	
 	private URL			url;
 	private String		ip;
 	private int			port;
 	private String		url_prefix;
+	
+	private int		reconnect_delay	= RECONNECT_DEFAULT;
 	
 	protected
 	ExternalSeedReaderWebSeed(
@@ -100,9 +104,9 @@ ExternalSeedReaderWebSeed
 		
 		if ( fail_count > 0 ){
 			
-			int	delay	= 30000;
+			int	delay	= reconnect_delay;
 			
-			for (int i=0;i<fail_count;i++){
+			for (int i=1;i<fail_count;i++){
 				
 				delay += delay;
 				
@@ -175,11 +179,25 @@ ExternalSeedReaderWebSeed
 			
 		String	str = url_prefix + "&piece=" + piece + "&ranges=" + piece_start + "-" + piece_end;
 		
+		reconnect_delay	= RECONNECT_DEFAULT;
+		
 		try{
 			ExternalSeedHTTPDownloader	http_downloader = new ExternalSeedHTTPDownloader( new URL( str ), getUserAgent());
 
-			return( http_downloader.downloadSocket(request.getLength()));
+			byte[]	data = http_downloader.downloadSocket(request.getLength());
 			
+			if ( http_downloader.getLastResponse() == 503 ){
+				
+				Integer	retry = new Integer( new String(data));
+				
+				reconnect_delay = retry.intValue() * 1000;
+				
+				throw( new ExternalSeedException( "Server temporarily unavailable, retrying in " + retry ));
+				
+			}else{
+						
+				return( data );
+			}
 		}catch( MalformedURLException e ){
 			
 			throw( new ExternalSeedException( "URL encode fails", e ));

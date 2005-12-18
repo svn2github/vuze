@@ -31,7 +31,6 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.util.StringTokenizer;
 
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
@@ -44,6 +43,8 @@ ExternalSeedHTTPDownloader
 
 	private URL			url;
 	private String		user_agent;
+	
+	private int			last_response;
 	
 	public
 	ExternalSeedHTTPDownloader(
@@ -95,6 +96,8 @@ ExternalSeedHTTPDownloader
 			}
 			
 			int	response = connection.getResponseCode();
+			
+			last_response	= response;
 			
 			if ( 	response == HttpURLConnection.HTTP_ACCEPTED || 
 					response == HttpURLConnection.HTTP_OK ||
@@ -204,55 +207,55 @@ ExternalSeedHTTPDownloader
 			
 			InputStream is = new BufferedInputStream( socket.getInputStream());
 			
-			String	header = "";
-			
-			while( true ){
+			try{
+				String	header = "";
 				
-				byte[]	buffer = new byte[1];
-				
-				int	len = is.read( buffer );
-				
-				if ( len < 0 ){
+				while( true ){
 					
-					throw( new IOException( "input too short reading header" ));
+					byte[]	buffer = new byte[1];
+					
+					int	len = is.read( buffer );
+					
+					if ( len < 0 ){
+						
+						throw( new IOException( "input too short reading header" ));
+					}
+					
+					header	+= (char)buffer[0];
+					
+					if ( header.endsWith(NL+NL)){
+					
+						break;
+					}
 				}
-				
-				header	+= (char)buffer[0];
-				
-				if ( header.endsWith(NL+NL)){
-				
-					break;
-				}
-			}
-			
-			System.out.println( "header = " + header );
-			
-			// HTTP/1.1 403 Forbidden
-			
-			int	line_end = header.indexOf(NL);
-			
-			if ( line_end == -1 ){
-				
-				throw( new IOException( "header too short" ));
-			}
-			
-			String	first_line = header.substring(0,line_end);
-			
-			StringTokenizer	tok = new StringTokenizer(first_line, " " );
-			
-			tok.nextToken();
-			
-			int	response = Integer.parseInt( tok.nextToken());
-			
-			String	response_str	= tok.nextToken();
-			
-			if ( 	response == HttpURLConnection.HTTP_ACCEPTED || 
-					response == HttpURLConnection.HTTP_OK ||
-					response == HttpURLConnection.HTTP_PARTIAL ){
-				
-				byte[]	data = new byte[length];
 								
-				try{
+				// HTTP/1.1 403 Forbidden
+				
+				int	line_end = header.indexOf(NL);
+				
+				if ( line_end == -1 ){
+					
+					throw( new IOException( "header too short" ));
+				}
+				
+				String	first_line = header.substring(0,line_end);
+				
+				StringTokenizer	tok = new StringTokenizer(first_line, " " );
+				
+				tok.nextToken();
+				
+				int	response = Integer.parseInt( tok.nextToken());
+				
+				last_response	= response;
+	
+				String	response_str	= tok.nextToken();				
+				
+				if ( 	response == HttpURLConnection.HTTP_ACCEPTED || 
+						response == HttpURLConnection.HTTP_OK ||
+						response == HttpURLConnection.HTTP_PARTIAL ){
+					
+					byte[]	data = new byte[length];
+								
 					int	pos = 0;
 					
 					while( pos < length ){
@@ -278,21 +281,44 @@ ExternalSeedHTTPDownloader
 						
 						throw( new ExternalSeedException("Connection failed: data too short - " + length + "/" + pos + " [" + data_str + "]" ));
 					}
-				}finally{
 					
-					is.close();
+					return( data );
+					
+				}else if ( 	response == 503 ){
+					
+						// webseed support for temp unavail - read the data
+					
+					String	data_str = "";
+					
+					while( true ){
+						
+						byte[]	buffer = new byte[1];
+						
+						int	len = is.read( buffer );
+						
+						if ( len < 0 ){
+							
+							break;
+						}
+						
+						data_str += (char)buffer[0];
+					}
+					
+					return( data_str.getBytes());
+				
+				}else{
+					
+					ExternalSeedException	error = new ExternalSeedException("Connection failed: " + response_str );
+					
+					error.setPermanentFailure( true );
+					
+					throw( error );
 				}
+			}finally{
 				
-				return( data );
-				
-			}else{
-				
-				ExternalSeedException	error = new ExternalSeedException("Connection failed: " + response_str );
-				
-				error.setPermanentFailure( true );
-				
-				throw( error );
+				is.close();
 			}
+			
 		}catch( Throwable e ){
 			
 			if ( e instanceof ExternalSeedException ){
@@ -313,5 +339,11 @@ ExternalSeedHTTPDownloader
 				}
 			}
 		}
+	}
+	
+	public int
+	getLastResponse()
+	{
+		return( last_response );
 	}
 }

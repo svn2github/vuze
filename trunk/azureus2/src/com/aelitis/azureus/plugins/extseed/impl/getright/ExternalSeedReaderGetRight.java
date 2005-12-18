@@ -94,7 +94,7 @@ ExternalSeedReaderGetRight
 			
 			int	delay	= 30000;
 			
-			for (int i=0;i<fail_count;i++){
+			for (int i=1;i<fail_count;i++){
 				
 				delay += delay;
 				
