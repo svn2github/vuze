@@ -8,8 +8,12 @@ package org.gudy.azureus2.core3.peer.util;
 
 
 import java.util.*;
+import java.util.Map.Entry;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 
 
 /**
@@ -22,9 +26,55 @@ public class PeerIdentityManager {
   private static final Map 				dataMap = new HashMap();
 
   private static int totalIDs = 0;
-  
-  
+ 
+  /*
+  static{
+	  new AEThread("mon",true)
+	  {
+		  public void
+		  runSupport()
+		  {
+			  monitor();
+		  }
+	  }.start();
+  }
     
+  static void
+  monitor()
+  {
+	  while( true ){
+		  
+		  try{
+		  
+			  class_mon.enter();
+			  
+			  System.out.println( "tot = " + getTotalIdentityCount());
+			  
+			  Iterator it = dataMap.entrySet().iterator();
+			  
+			  while( it.hasNext()){
+				  
+				  Map.Entry	entry = (Map.Entry)it.next();
+				  
+				  PeerIdentityDataID id = (PeerIdentityDataID)entry.getKey();
+				  
+				  Map	vals = (Map)entry.getValue();
+				  
+				  System.out.println( "  id " + ByteFormatter.encodeString( id.getDataID())+ " -> " + vals.size());
+			  }
+		  }finally{
+			  
+			  class_mon.exit();
+		  }
+		  try{
+			  Thread.sleep(10000);
+		  }catch( Throwable e ){
+			  
+		  }
+	  }
+  }
+  */
+  
   public static PeerIdentityDataID
   createDataID(
   	byte[]		data )
@@ -78,6 +128,12 @@ public class PeerIdentityManager {
     public int hashCode() {
       return hashcode;
     }
+    
+    protected String
+    getString()
+    {
+    	return( ByteFormatter.encodeString( id ));
+    }
   }
   
   
@@ -87,22 +143,26 @@ public class PeerIdentityManager {
    * @param peer_id unique id for this peer connection
    * @param ip remote peer's ip address
    */
-  public static void 
+  public static boolean 
   addIdentity( PeerIdentityDataID data_id, byte[] peer_id, String ip ) {
      PeerIdentity peerID = new PeerIdentity( peer_id );
     
     try{
       class_mon.enter();
-    
+        
       Map peerMap = (Map)dataMap.get( data_id );
       if( peerMap == null ) {
         peerMap = new HashMap();
         dataMap.put( data_id, peerMap );
       }
-      
-      Object old = peerMap.put( peerID, ip );
+           
+      PeerIdentity old = (PeerIdentity)peerMap.put( peerID, ip );
       if( old == null ) {
         totalIDs++;
+        
+        return( true );
+      }else{    	
+    	return( false );
       }
     }finally{
       class_mon.exit();
@@ -123,10 +183,13 @@ public class PeerIdentityManager {
       Map peerMap = (Map)dataMap.get( data_id );
       if( peerMap != null ) {
         PeerIdentity peerID = new PeerIdentity( peer_id );
-        
+               
         Object old = peerMap.remove( peerID );
         if( old != null ) {
           totalIDs--;
+        }else{
+      	  Debug.out( "id not present: id=" + peerID.getString());
+   	
         }
       }
     }finally{
@@ -142,7 +205,7 @@ public class PeerIdentityManager {
    * @return true if the peer identity is found, false if not found
    */
   public static boolean containsIdentity( PeerIdentityDataID data_id, byte[] peer_id ) {
-    PeerIdentity peerID = new PeerIdentity( peer_id );
+    PeerIdentity peerID = new PeerIdentity( peer_id);
     
     try{
     	class_mon.enter();

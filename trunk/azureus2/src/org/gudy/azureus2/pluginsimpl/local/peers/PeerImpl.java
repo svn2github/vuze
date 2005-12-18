@@ -121,7 +121,20 @@ PeerImpl
 
 	public byte[] getId()
 	{
-		return( delegate.getId());
+			// we *really* don't want a plugin to accidentally change our peerid (e.g. the Stuffer plugin did this)
+			// as this screws stuff up bigtime
+		
+		byte[]	id = delegate.getId();
+		
+		if ( id == null ){
+			return( null );
+		}
+		
+		byte[]	copy = new byte[id.length];
+		
+		System.arraycopy( id, 0, copy, 0, copy.length );
+		
+		return( copy );
 	}
 
 	public String getIp()

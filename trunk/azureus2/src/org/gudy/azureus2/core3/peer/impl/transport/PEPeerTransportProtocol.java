@@ -358,28 +358,29 @@ PEPeerTransportProtocol
     try{
       closing_mon.enter();
     
-      if( closing ){        
+      if( closing ){ 
+    	  
         return;
       }
       
       closing = true;
+      
+      if( identityAdded ) {  //remove identity
+      	if( peer_id != null ) {
+      		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), peer_id );
+      	}
+      	else {
+      		Debug.out( "PeerIdentity added but peer_id == null !!!" );
+      	}  
+      	
+      	identityAdded	= false;
+      }
       
     }finally{
       closing_mon.exit();
     }
     
     changePeerState( PEPeer.CLOSING );
-    
-       
-    if( identityAdded ) {  //remove identity
-    	if( peer_id != null ) {
-    		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), peer_id );
-    	}
-    	else {
-    		Debug.out( "PeerIdentity added but peer_id == null !!!" );
-    	}    	
-    }
-    
     
     if( outgoing_piece_message_handler != null ) {
       outgoing_piece_message_handler.destroy();
@@ -1177,9 +1178,36 @@ PEPeerTransportProtocol
       return;
     }
 
-    identityAdded = true;
-    PeerIdentityManager.addIdentity( my_peer_data_id, peer_id, ip );    
-
+    try{
+        closing_mon.enter();
+      
+        if( closing ){
+        	
+        	String msg = "connection already closing";
+        	
+        	closeConnectionInternally( msg );
+        	
+        	handshake.destroy();
+        	
+        	return;
+        }
+        
+        if ( !PeerIdentityManager.addIdentity( my_peer_data_id, peer_id, ip )){
+        	
+            closeConnectionInternally( "peer matches already-connected peer id" );
+            
+            handshake.destroy();
+            
+            return;
+        }
+        
+        identityAdded = true;
+        
+    }finally{
+    	
+    	closing_mon.exit();
+    }
+ 
     if (Logger.isEnabled())
 			Logger.log(new LogEvent(this, LOGID, "In: has sent their handshake"));
 
