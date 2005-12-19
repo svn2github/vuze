@@ -20,6 +20,7 @@
  
 package org.gudy.azureus2.ui.swt.components;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -78,17 +79,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
       image = img;
     }
 
-    if (bDoRedraw) {
-      Table table = getTable();
-      if (table != null && !table.isDisposed()) {
-        Rectangle bounds = getBoundsForCanvas();
-        if (bounds != null) table.redraw(bounds.x, bounds.y, 
-                                         bounds.width, bounds.height, true);
-      }
-      return bImageSet;
-    } else {
-      doPaint();
-    }
+    doPaint(bDoRedraw);
 
     return bImageSet;
   }
@@ -97,9 +88,36 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
   	return true;
   }
   
-  public void doPaint() {
-    doPaint((GC)null);
-  }
+
+  /**
+   * Clear old image from screen (if needed) and paint image
+   * 
+   * @param bForceClear Force clear of area before drawing.  Normally, a
+   *                     non-transparent image will draw overtop of the
+   *                     area, instead of first clearing it. 
+   */
+  private void doPaint(boolean bForceClear) {
+		if (image == null || image.isDisposed())
+			return;
+
+		if (bForceClear
+				|| image.getImageData().getTransparencyType() != SWT.TRANSPARENCY_NONE) {
+			// images with transparency need their area cleared first, otherwise we 
+			// end up multiplying values (alpha type) or not clearing pixels 
+			// (all types)
+			Table table = getTable();
+
+			Rectangle bounds = getBoundsForCanvas();
+			//In case item isn't displayed bounds is null
+			if (bounds == null)
+				return;
+
+			// This should trigger a doPaint(gc)
+			table.redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
+		} else {
+			doPaint((GC) null);
+		}
+	}
 
   /** Paint the bar without updating it's data.  Unless the size changed.
    */
