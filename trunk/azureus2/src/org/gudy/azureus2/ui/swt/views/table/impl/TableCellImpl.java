@@ -154,6 +154,8 @@ public class TableCellImpl
       };
     }
     tableColumn.invokeCellAddedListeners(this);
+    
+    //bDebug = (position == 1) && tableColumn.getTableID().equalsIgnoreCase("Peers");
   }
 
   private void pluginError(Throwable e) {
@@ -522,7 +524,7 @@ public class TableCellImpl
   	valid = false;
 
   	if (bDebug)
-  		debug("Invalidate Cell;" + bMustRefresh);
+  		debug("Invalidate Cell;" + bMustRefresh + "; Visible?" + tableRow.isVisible());
 
   	if (bMustRefresh)
   		this.bMustRefresh = true;
@@ -564,7 +566,7 @@ public class TableCellImpl
 
     try {
     	if (bDebug)
-    		debug("Cell Valid?" + valid + ";");
+    		debug("Cell Valid?" + valid + "; Visible?" + tableRow.isVisible());
       int iInterval = tableColumn.getRefreshInterval();
     	if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY && !valid
     			&& !bMustRefresh && bSortValueIsText && sortValue != null
