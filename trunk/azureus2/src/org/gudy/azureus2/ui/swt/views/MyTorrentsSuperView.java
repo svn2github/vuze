@@ -180,7 +180,17 @@ public class MyTorrentsSuperView extends AbstractIView  {
     torrentview.refresh();
   }
 
-  public String getFullTitle() {
+  public void updateLanguage() {
+  	// no super call, the views will do their own
+  	
+    if (getComposite() == null || getComposite().isDisposed())
+      return;
+
+    seedingview.updateLanguage();
+    torrentview.updateLanguage();
+	}
+
+	public String getFullTitle() {
     return MessageText.getString("MyTorrentsView.mytorrents");
   }
   
