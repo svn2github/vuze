@@ -1271,9 +1271,10 @@ public class StartStopRulesDefaultPlugin
 
 			boolean okToStop = bForceStop;
 			if (!okToStop)
-				// (at limit of seeders OR rank is set to ignore) AND
+				// not checking AND (at limit of seeders OR rank is set to ignore) AND
 				// (Actively Seeding OR StartingUp OR Seeding a non-active download) 
-				okToStop = (bOverLimit || rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
+				okToStop = !download.isChecking()
+						&& (bOverLimit || rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
 						&& (bActivelySeeding || !bSeeding || (!bActivelySeeding && bSeeding));
 
 			if (okToStop) {
