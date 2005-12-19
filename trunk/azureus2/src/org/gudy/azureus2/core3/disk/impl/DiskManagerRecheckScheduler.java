@@ -23,7 +23,6 @@
 package org.gudy.azureus2.core3.disk.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -31,7 +30,6 @@ import java.util.List;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AESemaphore;
 
 public class 
 DiskManagerRecheckScheduler 
@@ -59,7 +57,8 @@ DiskManagerRecheckScheduler
 	
 	public DiskManagerRecheckInstance
 	register(
-		DiskManagerHelper	helper )
+		DiskManagerHelper	helper,
+		boolean				low_priority )
 	{
 		try{
 			instance_mon.enter();
@@ -68,7 +67,8 @@ DiskManagerRecheckScheduler
 				new DiskManagerRecheckInstance( 
 						this, 
 						helper.getTorrent().getSize(),
-						(int)helper.getTorrent().getPieceLength());
+						(int)helper.getTorrent().getPieceLength(),
+						low_priority );
 			
 			instances.add( res );
 			
@@ -81,7 +81,7 @@ DiskManagerRecheckScheduler
 							Object	o1,
 							Object	o2 )
 						{
-							long	comp = ((DiskManagerRecheckInstance)o1).getSize() - ((DiskManagerRecheckInstance)o2).getSize();
+							long	comp = ((DiskManagerRecheckInstance)o1).getMetric() - ((DiskManagerRecheckInstance)o2).getMetric();
 							
 							if ( comp < 0 ){
 								
@@ -117,14 +117,18 @@ DiskManagerRecheckScheduler
 
 			if ( instances.get(0) == instance ){
 					    		
-	            if( friendly_hashing ) {
+	            if ( friendly_hashing ){
 	            	
-	            	delay	= 0;
+	            	delay	= 0;	// delay introduced elsewhere
+	            	
+	            }else if ( !instance.isLowPriority()){
+	            	
+	            	delay	= 1;	// high priority recheck, just a smidge of a delay
 	            	
 	            }else{
 	            	
-	            	//delay a bit normally anyway, as we don't want to kill the user's system
-	            	//during the post-completion check (10k of piece = 1ms of sleep)
+		            	//delay a bit normally anyway, as we don't want to kill the user's system
+		            	//during the post-completion check (10k of piece = 1ms of sleep)
 	            	
 	            	delay = instance.getPieceLength() /1024 /10;
 	              
@@ -136,6 +140,7 @@ DiskManagerRecheckScheduler
 	            result	= true;
 			}
 		}finally{
+			
 			instance_mon.exit();
 		}
 		

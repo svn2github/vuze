@@ -186,22 +186,9 @@ DMCheckerImpl
 	  		public void
 			runSupport()
 	  		{
-	  			DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager );
+	  			DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager, true );
 	  			
-	  			try{
-	  				while( ! stopped ){
-		  				
-		  				if ( recheck_inst.getPermission()){
-		  					
-		  					break;
-		  				}
-		  			}
-		  				
-	  				if ( stopped ){
-	  					
-	  					return;
-	  				}
-	  					
+	  			try{	  					
 	  				final AESemaphore	sem = new AESemaphore( "DMChecker::completeRecheck" );
 	  				
 	  				int	checks_submitted	= 0;
@@ -212,6 +199,14 @@ DMCheckerImpl
 	  					
 	  					run_sem.reserve();
 	  					
+		  				while( !stopped ){
+			  				
+			  				if ( recheck_inst.getPermission()){
+			  					
+			  					break;
+			  				}
+			  			}
+
 	  					if ( stopped ){
 	  						
 	  						break;

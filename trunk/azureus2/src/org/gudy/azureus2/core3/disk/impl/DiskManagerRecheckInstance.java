@@ -26,30 +26,39 @@ public class
 DiskManagerRecheckInstance 
 {
 	private DiskManagerRecheckScheduler	scheduler;
-	private long						size;
+	private long						metric;
 	private int							piece_length;
+	private boolean						low_priority;
+	
 	protected
 	DiskManagerRecheckInstance(
 		DiskManagerRecheckScheduler	_scheduler,
 		long						_size,
-		int							_piece_length )
+		int							_piece_length,
+		boolean						_low_priority )
 	{
 		scheduler		= _scheduler;
-		size			= _size;
+		metric			= (_low_priority?0:0x7000000000000000L) + _size;
 		piece_length	= _piece_length;
+		low_priority	= _low_priority;
 	}
 	
 	protected long
-	getSize()
+	getMetric()
 	{
-		return( size );
-		
+		return( metric );
 	}
 	
 	protected int
 	getPieceLength()
 	{
 		return( piece_length );
+	}
+	
+	protected boolean
+	isLowPriority()
+	{
+		return( low_priority );
 	}
 	
 	public boolean

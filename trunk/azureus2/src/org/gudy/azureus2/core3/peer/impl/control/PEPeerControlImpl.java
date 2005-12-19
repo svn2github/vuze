@@ -2258,9 +2258,7 @@ PEPeerControlImpl
 	      _stats.hashFailed( piece.getLength());
 	      
 	    }else{
-	    		// cancelled, download stopped
-	    	
-	    	Debug.out( "cancelled" );
+	    		// cancelled, download stopped	    	
 	    }
   	}finally{
   		

@@ -109,7 +109,7 @@ RDResumeHandler
 	{
 		//long	start = System.currentTimeMillis();
 				
-		DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager );
+		DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager, false );
 
 		try{			
 			disk_manager.setState( DiskManager.CHECKING );
