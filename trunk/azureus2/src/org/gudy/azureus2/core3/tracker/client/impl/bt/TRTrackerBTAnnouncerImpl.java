@@ -1015,7 +1015,7 @@ TRTrackerBTAnnouncerImpl
 				
 				if ( i == 0 ){//&& e.getMessage().indexOf("No trusted certificate found") != -1 ){
 					
-					if ( SESecurityManager.installServerCertificates( reqUrl )){
+					if ( SESecurityManager.installServerCertificates( reqUrl ) != null ){
 						
 							// certificate has been installed
 						

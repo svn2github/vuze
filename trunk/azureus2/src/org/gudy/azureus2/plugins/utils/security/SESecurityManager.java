@@ -28,6 +28,9 @@ package org.gudy.azureus2.plugins.utils.security;
  */
 
 import java.net.Authenticator;
+import java.net.URL;
+
+import javax.net.ssl.SSLSocketFactory;
 
 public interface 
 SESecurityManager 
@@ -68,4 +71,13 @@ SESecurityManager
 	public byte[]
 	calculateSHA1(
 		byte[]		data_in );
+	
+		/**
+		 * Installs the SSL certificate necessary to support the connection 
+		 * @param url
+		 */
+	
+	public SSLSocketFactory
+	installServerCertificate(
+		URL		url );
 }

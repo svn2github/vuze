@@ -83,7 +83,7 @@ SESecurityManager
 		return( SESecurityManagerImpl.getSingleton().getSSLServerSocketFactory());
 	}
 	
-	public static boolean
+	public static SSLSocketFactory
 	installServerCertificates(
 		URL		https_url )
 	{

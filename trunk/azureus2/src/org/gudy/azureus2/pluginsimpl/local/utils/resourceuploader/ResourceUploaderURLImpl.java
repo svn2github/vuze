@@ -190,7 +190,7 @@ ResourceUploaderURLImpl
 							
 							if ( i == 0 ){
 								
-								if ( SESecurityManager.installServerCertificates( url )){
+								if ( SESecurityManager.installServerCertificates( url ) != null ){
 									
 										// certificate has been installed
 									

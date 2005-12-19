@@ -506,7 +506,7 @@ SESecurityManagerImpl
 		return( SESecurityManagerBC.createSelfSignedCertificate( this, alias, cert_dn, strength ));
 	}
 	
-	public boolean
+	public SSLSocketFactory
 	installServerCertificates(
 		URL		https_url )
 	{
@@ -554,7 +554,7 @@ SESecurityManagerImpl
 				
 				if ( serverCerts.length == 0 ){
 									
-					return( false );
+					return( null );
 				}
 				
 				java.security.cert.Certificate	cert = serverCerts[0];
@@ -587,19 +587,17 @@ SESecurityManagerImpl
 						
 						String	alias = host.concat(":").concat(String.valueOf(port));
 				
-						addCertToTrustStore( alias, cert );
-				
-						return( true );
+						return( addCertToTrustStore( alias, cert ));
 					}
 				}
 				
-				return( false );
+				return( null );
 				
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace( e );
 				
-				return( false );
+				return( null );
 				
 			}finally{
 				
@@ -664,7 +662,7 @@ SESecurityManagerImpl
 		}
 	}
 	
-	protected void
+	protected SSLSocketFactory
 	addCertToTrustStore(
 		String							alias,
 		java.security.cert.Certificate	cert )
@@ -733,8 +731,11 @@ SESecurityManagerImpl
 			
 			ctx.init(null, tmf.getTrustManagers(), null);
 						
-			HttpsURLConnection.setDefaultSSLSocketFactory(ctx.getSocketFactory());
+			SSLSocketFactory	factory = ctx.getSocketFactory();
 			
+			HttpsURLConnection.setDefaultSSLSocketFactory( factory );
+			
+			return( factory );
 		}finally{
 			
 			this_mon.exit();

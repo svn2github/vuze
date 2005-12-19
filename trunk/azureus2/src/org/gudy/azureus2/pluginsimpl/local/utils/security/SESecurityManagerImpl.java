@@ -29,6 +29,8 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.net.ssl.SSLSocketFactory;
+
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 
@@ -152,5 +154,12 @@ SESecurityManagerImpl
 			
 			SESecurityManager.removeCertificateListener( sepl );
 		}
+	}
+	
+	public SSLSocketFactory
+	installServerCertificate(
+		URL		url )
+	{
+		return( SESecurityManager.installServerCertificates( url ));
 	}
 }
