@@ -390,10 +390,15 @@ public class TableView
 		// Listeners to size the folder
 		sash.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
+				final boolean FASTDRAG = true;
+
+				if (FASTDRAG && e.detail == SWT.DRAG)
+					return;
 
 				if (tabFolder.getMinimized()) {
 					tabFolder.setMinimized(false);
 					refreshSelectedSubView();
+					configMan.setParameter(sPropertiesPrefix + ".subViews.minimized", false);
 				}
 
 				Rectangle area = form.getClientArea();
@@ -403,7 +408,7 @@ public class TableView
 				Double l = new Double((double) tabFolder.getBounds().height
 						/ form.getBounds().height);
 				sash.setData("PCT", l);
-				if (e.detail == SWT.DRAG)
+				if (e.detail != SWT.DRAG)
 					configMan.setParameter(sPropertiesPrefix + ".SplitAt", (int) (l
 							.doubleValue() * 10000));
 			}
@@ -688,9 +693,12 @@ public class TableView
 						//System.out.println("SetData " + tableIndex + ": invalidate");
 						row.invalidate();
 					}
-					row.setIconSize(ptIconSize);
+					
 					// User made the row visible, they want satisfaction now!
+					if (row.setIconSize(ptIconSize))
+						visibleRowsChanged();
 					row.refresh(true);
+
 					if (!Constants.isLinux)
 						Utils.alternateRowBackground(item);
 				}
@@ -1238,13 +1246,7 @@ public class TableView
 	    //Refresh all visible items in table...
 	    runForAllRows(new GroupTableRowRunner() {
 	      public void run(TableRowCore row) {
-	      	if (row.isVisible()) {
-	      		// Every N GUI updates we refresh graphics
-	      		row.refresh(bDoGraphics);
-          	count++;
-	      	} else {
-	      		row.setUpToDate(false);
-	      	}
+      		row.refresh(bDoGraphics);
 	      }
 	    });
 
@@ -1848,6 +1850,11 @@ public class TableView
 	 */
 	public TableRowCore getRow(Object dataSource) {
 		return (TableRowCore)dataSourceToRow.get(dataSource);
+	}
+	
+	public int getRowCount() {
+		// don't use sortedRows here, it's not always up to date 
+		return dataSourceToRow.size();
 	}
   
   /* various selected rows functions */
@@ -2460,8 +2467,7 @@ public class TableView
 					TableRowCore row = (TableRowCore) sortedRows.get(i);
 					if (row.setTableItem(i)) {
 						iNumMoves++;
-						if (row.isVisible())
-							row.refresh(true);
+						row.refresh(true);
 					}
 				}
 			}
@@ -2569,6 +2575,7 @@ public class TableView
 				if (lastTopIndex > iBottomIndex + 1 && iBottomIndex >= 0)
 					lastTopIndex = iBottomIndex + 1;
 
+				//System.out.println("Refresh top rows " + iTopIndex + " to " + (lastTopIndex - 1));
 				try {
 					sortedRows_mon.enter();
 					for (int i = iTopIndex; i < lastTopIndex && i < sortedRows.size(); i++) {
@@ -2578,6 +2585,10 @@ public class TableView
 				} finally {
 					sortedRows_mon.exit();
 				}
+
+				// A refresh might have triggered a row height resize, so
+				// bottom index needs updating
+				iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 			}
 			lastTopIndex = table.getTopIndex();
 		}
@@ -2587,6 +2598,7 @@ public class TableView
 				lastBottomIndex = iTopIndex - 1;
 
 			if (lastBottomIndex <= iBottomIndex) {
+				//System.out.println("Refresh bottom rows " + (lastBottomIndex + 1) + " to " + iBottomIndex);
 				try {
 					sortedRows_mon.enter();
 					for (int i = lastBottomIndex + 1; i <= iBottomIndex
