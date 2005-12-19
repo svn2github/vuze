@@ -371,7 +371,7 @@ public class FilesView
   setSkipped(
 	 DiskManagerFileInfo	info,
 	 boolean				skipped,
-	 boolean				force_compact )
+	 boolean				delete_action )
   {
 		// if we're not managing the download then don't do anything other than
 		// change the file's priority
@@ -398,17 +398,33 @@ public class FilesView
 			
 		}else{
 	
-			boolean	delete_file = 
-				force_compact ||
-				MessageBoxWindow.open( 
-					"FilesView.messagebox.skip.id",
-					SWT.YES | SWT.NO,
-					SWT.YES | SWT.NO,
-					getComposite().getDisplay(), 
-					MessageBoxWindow.ICON_WARNING,
-					MessageText.getString( "FilesView.rename.confirm.delete.title" ),
-					MessageText.getString( "FilesView.skip.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.YES;
+			boolean	delete_file;
 			
+			if ( delete_action ){
+				
+				delete_file =
+					MessageBoxWindow.open( 
+						"FilesView.messagebox.delete.id",
+						SWT.OK | SWT.CANCEL,
+						SWT.OK,
+						getComposite().getDisplay(), 
+						MessageBoxWindow.ICON_WARNING,
+						MessageText.getString( "FilesView.rename.confirm.delete.title" ),
+						MessageText.getString( "FilesView.rename.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.OK;
+				
+			}else{
+				
+				delete_file =
+					MessageBoxWindow.open( 
+						"FilesView.messagebox.skip.id",
+						SWT.YES | SWT.NO,
+						SWT.YES | SWT.NO,
+						getComposite().getDisplay(), 
+						MessageBoxWindow.ICON_WARNING,
+						MessageText.getString( "FilesView.rename.confirm.delete.title" ),
+						MessageText.getString( "FilesView.skip.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.YES;
+			}
+
 			if ( delete_file ){
 				
 				new_storage_type	= DiskManagerFileInfo.ST_COMPACT;
