@@ -56,8 +56,6 @@ RDResumeHandler
 	private static final byte		PIECE_NOT_DONE			= 0;
 	private static final byte		PIECE_DONE				= 1;
 	private static final byte		PIECE_RECHECK_REQUIRED	= 2;
-
-	private static AESemaphore		complete_recheck_sem = new AESemaphore( "RDResumeHandler:completeRecheck", 1 );   
 		
 	private DiskManagerImpl		disk_manager;
 	private DMChecker			checker;
@@ -110,12 +108,13 @@ RDResumeHandler
 		boolean newfiles ) 
 	{
 		//long	start = System.currentTimeMillis();
-		
-		boolean	got_sem = false;		
-		
+				
+		DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager );
+
 		try{			
 			disk_manager.setState( DiskManager.CHECKING );
-						
+					
+			
 			boolean resumeEnabled = useFastResume;
 			
 				//disable fast resume if a new file was created
@@ -279,9 +278,12 @@ RDResumeHandler
 						
 						if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
 													
-							while( !( stopped || got_sem )){
+							while( !stopped ){
 									
-								got_sem = complete_recheck_sem.reserve(250);
+								if ( recheck_inst.getPermission()){
+									
+									break;
+								}
 							}
 							
 							if ( stopped ){
@@ -367,9 +369,12 @@ RDResumeHandler
 				}
 			}else{
 				
-				while( !( stopped || got_sem )){
+				while( ! stopped ){
 					
-					got_sem = complete_recheck_sem.reserve(250);
+					if ( recheck_inst.getPermission()){
+						
+						break;
+					}
 				}
 				
 					// resume not enabled, recheck everything
@@ -462,10 +467,7 @@ RDResumeHandler
 			
 		}finally{
 			
-       		if ( got_sem ){
-       			
-       			complete_recheck_sem.release();
-       		}
+			recheck_inst.unregister();
        		
 			// System.out.println( "Check of '" + disk_manager.getDownloadManager().getDisplayName() + "' completed in " + (System.currentTimeMillis() - start));
 		}

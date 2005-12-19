@@ -106,6 +106,8 @@ DiskManagerImpl
 		}
 	}
 
+	private static DiskManagerRecheckScheduler	recheck_scheduler = new DiskManagerRecheckScheduler();
+	
 	private boolean	used	= false;
 	
 	private boolean started = false;
@@ -2590,4 +2592,11 @@ DiskManagerImpl
 	public Object[] getQueryableInterfaces() {
 		return new Object[] { download_manager, torrent };
 	}
+	
+	public DiskManagerRecheckScheduler
+	getRecheckScheduler()
+	{
+		return( recheck_scheduler );
+	}
+
 }

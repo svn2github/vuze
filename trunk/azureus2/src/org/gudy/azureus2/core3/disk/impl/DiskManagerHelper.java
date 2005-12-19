@@ -106,4 +106,7 @@ DiskManagerHelper
 	
 	public DownloadManagerState
 	getDownloadState();
+	
+	public DiskManagerRecheckScheduler
+	getRecheckScheduler();
 }

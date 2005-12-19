@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerRecheckInstance;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
@@ -43,7 +44,6 @@ DMCheckerImpl
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
     
-	private static boolean 	friendly_hashing;
 	private static boolean	flush_pieces;
 
     static{
@@ -53,20 +53,14 @@ DMCheckerImpl
 			parameterChanged( 
 				String  str ) 
     	    {
-    	      friendly_hashing 	= COConfigurationManager.getBooleanParameter( "diskmanager.friendly.hashchecking" );
-    	  	  
     	  	  flush_pieces		= COConfigurationManager.getBooleanParameter( "diskmanager.perf.cache.flushpieces" );
 
     	    }
     	 };
 
- 		COConfigurationManager.addAndFireParameterListener( "diskmanager.friendly.hashchecking", param_listener );
-		COConfigurationManager.addParameterListener( "diskmanager.perf.cache.flushpieces", param_listener );
-
+ 		COConfigurationManager.addParameterListener( "diskmanager.perf.cache.flushpieces", param_listener );
     }
-
-    private static AESemaphore		complete_recheck_sem = new AESemaphore( "DMChecker:completeRecheck", 1 );
-    
+   
 	private DiskManagerHelper		disk_manager;
 		
 	private int				async_checks;
@@ -192,12 +186,15 @@ DMCheckerImpl
 	  		public void
 			runSupport()
 	  		{
-	  			boolean	got_sem = false;
+	  			DiskManagerRecheckInstance	recheck_inst = disk_manager.getRecheckScheduler().register( disk_manager );
 	  			
 	  			try{
-	  				while( !( got_sem || stopped )){
+	  				while( ! stopped ){
 		  				
-		  				got_sem = complete_recheck_sem.reserve(250);
+		  				if ( recheck_inst.getPermission()){
+		  					
+		  					break;
+		  				}
 		  			}
 		  				
 	  				if ( stopped ){
@@ -208,18 +205,7 @@ DMCheckerImpl
 	  				final AESemaphore	sem = new AESemaphore( "DMChecker::completeRecheck" );
 	  				
 	  				int	checks_submitted	= 0;
-	  				
-		            int delay = 0;  //if friendly hashing is enabled, no need to delay even more here
-		
-		            if( !friendly_hashing ) {
-		              //delay a bit normally anyway, as we don't want to kill the user's system
-		              //during the post-completion check (10k of piece = 1ms of sleep)
-		              delay = pieceLength /1024 /10;
-		              delay = Math.min( delay, 409 );
-		              delay = Math.max( delay, 12 );
-		            }
-            
-            
+	  				           
 		            final AESemaphore	 run_sem = new AESemaphore( "DMChecker::completeRecheck:runsem", 2 );
 		            
 	  				for ( int i=0; i < nbPieces; i++ ){
@@ -298,17 +284,6 @@ DMCheckerImpl
 							false );
 	  					
 	  					checks_submitted++;
-	  					
-	  					if( delay > 0 ){
-	  						
-	  						try{
-	  						
-	  							Thread.sleep( delay );
-	  							
-	  						}catch( Throwable e ){
-	  							
-	  						}
-	  					}
 	  				}
 	  					  					
 	  					// wait for all to complete
@@ -321,10 +296,7 @@ DMCheckerImpl
 	  	       	
 	  	       		complete_recheck_in_progress	= false;
 	  	       		
-	  	       		if ( got_sem ){
-	  	       			
-	  	       			complete_recheck_sem.release();
-	  	       		}
+	  	       		recheck_inst.unregister();
 	  	       }
 	        }     			
 	 	};
