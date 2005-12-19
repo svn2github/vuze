@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -110,6 +111,7 @@ public class MyTorrentsView
   private MenuItem menuItemChangeDir = null;
   private DragSource dragSource = null;
   private DropTarget dropTarget = null;
+  private Label tableLabel = null;
   
   int userMode;
   boolean isTrackerOn;
@@ -235,32 +237,28 @@ public class MyTorrentsView
 
     if (categories.length > 0 && showCat) {
       if (cCategories == null) {
-        cCategories = new Composite(getComposite(), SWT.NULL);
+        Composite parent = getComposite();
+
+        cCategories = new Composite(parent, SWT.NONE);
         gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
         cCategories.setLayoutData(gridData);
         RowLayout rowLayout = new RowLayout();
-        final int uniformPadding = (Constants.isOSX) ? 3 : 0; // this fixes display artifacts
+        final int uniformPadding = 0;
         rowLayout.marginTop = uniformPadding;
         rowLayout.marginBottom = uniformPadding;
         rowLayout.marginLeft = uniformPadding;
         rowLayout.marginRight = uniformPadding;
         rowLayout.spacing = uniformPadding;
         rowLayout.wrap = true;
-        try {
-        	rowLayout.fill = true;
-        } catch (NoSuchFieldError e) {
-        	// SWT 2.x
-        }
         cCategories.setLayout(rowLayout);
 
-        final Label l = new Label(getComposite(), SWT.WRAP);
-        gridData = new GridData();
+        tableLabel = new Label(parent, SWT.WRAP);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
         gridData.horizontalIndent = 5;
-        l.setLayoutData(gridData);
-        Messages.setLanguageText(l, sTableID + "View.header");
-        l.pack();
-        cCategories.moveAbove(null);
-        l.moveAbove(null);
+        tableLabel.setLayoutData(gridData);
+        updateTableLabel();
+        tableLabel.moveAbove(null);
+        cCategories.moveBelow(tableLabel);
       } else {
         Control[] controls = cCategories.getChildren();
         for (int i = 0; i < controls.length; i++) {
@@ -283,7 +281,7 @@ public class MyTorrentsView
         catButton.pack(true);
         if (catButton.computeSize(100,SWT.DEFAULT).y > 0) {
           RowData rd = new RowData();
-          rd.height = catButton.computeSize(100,SWT.DEFAULT).y - 3 + catButton.getBorderWidth() * 2;
+          rd.height = catButton.computeSize(100,SWT.DEFAULT).y - 2 + catButton.getBorderWidth() * 2;
           catButton.setLayoutData(rd);
         }
 
@@ -297,8 +295,6 @@ public class MyTorrentsView
         if (categories[i] == currentCategory) {
           catButton.setSelection(true);
         }
-
-        catButton.pack(true);
 
         catButton.addSelectionListener(new SelectionAdapter() {
           public void widgetSelected(SelectionEvent e) {
@@ -317,6 +313,47 @@ public class MyTorrentsView
             }
             activateCategory( (Category)curButton.getData("Category") );
           }
+        });
+        
+        catButton.addListener(SWT.MouseHover, new Listener() {
+        	public void handleEvent(Event event) {
+            Button curButton = (Button)event.widget;
+            Category curCategory = (Category)curButton.getData("Category");
+            List dms = curCategory.getDownloadManagers();
+            
+            int ttlActive = 0;
+            int ttlSize = 0;
+            int ttlRSpeed = 0;
+            int ttlSSpeed = 0;
+            int count = 0;
+            for (Iterator iter = dms.iterator(); iter.hasNext();) {
+							DownloadManager dm = (DownloadManager) iter.next();
+							
+							if (!isOurDownloadManager(dm))
+								continue;
+							
+							count++;
+							if (dm.getState() == DownloadManager.STATE_DOWNLOADING
+									|| dm.getState() == DownloadManager.STATE_SEEDING)
+								ttlActive++;
+							ttlSize += dm.getSize();
+							ttlRSpeed += dm.getStats().getDataReceiveRate();
+							ttlSSpeed += dm.getStats().getDataSendRate();
+						}
+
+            if (count == 0) {
+            	curButton.setToolTipText(null);
+            	return;
+            }
+            
+            curButton.setToolTipText("Total: " + count + "\n"
+            		+ "Downloading/Seeding: " + ttlActive + "\n"
+            		+ "\n"
+            		+ "Speed: "
+            		+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlRSpeed / count) + "/" 
+            		+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlSSpeed / count) + "\n"
+            		+ "Size: " + DisplayFormatters.formatByteCountToKiBEtc(ttlSize));
+        	}
         });
 
         final DropTarget tabDropTarget = new DropTarget(catButton, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
@@ -392,57 +429,46 @@ public class MyTorrentsView
       getComposite().layout();
 
       // layout hack - relayout
-      if(catResizeAdapter == null) {
-          catResizeAdapter = new ControlAdapter() {
-              public void controlResized(ControlEvent event) {
-                  if(getComposite().isDisposed() || cCategories.isDisposed())
-                      return;
+			if (catResizeAdapter == null) {
+				catResizeAdapter = new ControlAdapter() {
+					public void controlResized(ControlEvent event) {
+						if (getComposite().isDisposed() || cCategories.isDisposed())
+							return;
 
-                  final Shell shell = MainWindow.getWindow().getShell();
-                  if(shell.isDisposed() || !shell.isVisible())
-                      return;
+						GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 
-                  final Control[] childControls = getComposite().getChildren();
+						int parentWidth = cCategories.getParent().getClientArea().width;
+						int catsWidth = cCategories.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
+						// give text a 5 pixel right padding
+						int textWidth = 5
+								+ tableLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT).x
+								+ tableLabel.getBorderWidth() * 2;
 
-                  if(childControls.length < 1)
-                      return;
+						Object layoutData = tableLabel.getLayoutData();
+						if (layoutData instanceof GridData) {
+							GridData labelGrid = (GridData) layoutData;
+							textWidth += labelGrid.horizontalIndent;
+						}
 
-                  final Control label = childControls[0];
-                  if(label.isDisposed())
-                      return;
+						if (textWidth + catsWidth > parentWidth) {
+							gridData.widthHint = parentWidth - textWidth;
+						}
+						cCategories.setLayoutData(gridData);
+						cCategories.getParent().layout(true);
 
-                  final RowLayout buttonLayout = (RowLayout)cCategories.getLayout();
-                  int totalWidth = buttonLayout.marginLeft + buttonLayout.marginRight;
-                  try {
-                  	totalWidth += buttonLayout.marginWidth;
-                  } catch (NoSuchFieldError e) {
-                  	//Pre SWT 3.0
-                  }
-                  final Control[] buttons = cCategories.getChildren();
-                  for (int i = 0; i < buttons.length; i++) {
-                      totalWidth += buttons[i].getSize().x + buttonLayout.spacing;
-                  }
+					}
+				};
 
-                  final int labelWidth = label.getSize().x;
-                  int delta = MainWindow.getWindow().getShell().getSize().x - labelWidth - 5;
-                  GridData tmpData = (GridData)cCategories.getLayoutData();
-                  if(totalWidth > delta) {
-                      tmpData.widthHint = delta;
-                  }
-                  else {
-                      tmpData.widthHint = totalWidth;
-                  }
-                  cCategories.setLayoutData(tmpData);
-                  cCategories.layout();
-                  getComposite().layout();
-              }
-          };
-
-          MainWindow.getWindow().getShell().addControlListener(catResizeAdapter);
-      }
+				getTableComposite().addControlListener(catResizeAdapter);
+			}
 
       catResizeAdapter.controlResized(null);
     }
+  }
+  
+  private boolean isOurDownloadManager(DownloadManager dm) {
+    boolean bCompleted = dm.getStats().getDownloadCompleted(false) == 1000;
+    return ((bCompleted && isSeedingView) || (!bCompleted && !isSeedingView));
   }
 
   public Table createTable(Composite panel) {
@@ -2252,8 +2278,7 @@ public class MyTorrentsView
   // categorymanagerlistener Functions
   public void downloadManagerAdded(Category category, final DownloadManager manager)
   {
-    boolean bCompleted = manager.getStats().getDownloadCompleted(false) == 1000;
-    if ((bCompleted && isSeedingView) || (!bCompleted && !isSeedingView)) {
+  	if (isOurDownloadManager(manager)) {
       addDataSource(manager, true);
     }
   }
@@ -2355,9 +2380,7 @@ public class MyTorrentsView
 
 		for (int i = 0; i < managers.size(); i++) {
 			DownloadManager manager = (DownloadManager) managers.get(i);
-			boolean bCompleted = manager.getStats().getDownloadCompleted(false) == 1000;
-			boolean bForOurView = ((bCompleted && isSeedingView) || (!bCompleted && !isSeedingView));
-			if (bForOurView
+			if (isOurDownloadManager(manager)
 					&& (catType != Category.TYPE_UNCATEGORIZED || manager
 							.getDownloadState().getCategory() == null)) {
 				managersToAdd.add(manager);
@@ -2450,4 +2473,38 @@ public class MyTorrentsView
       }
     }
   }
+
+	public synchronized void addDataSources(Object[] dataSources, boolean bImmediate) {
+		super.addDataSources(dataSources, bImmediate);
+		if (bImmediate && tableLabel != null && !tableLabel.isDisposed()) {
+			updateTableLabel();
+		}
+	}
+
+	public synchronized void removeDataSources(Object[] dataSources, boolean bImmediate) {
+		super.removeDataSources(dataSources, bImmediate);
+		
+		if (bImmediate && tableLabel != null && !tableLabel.isDisposed()) {
+			updateTableLabel();
+		}
+	}
+	
+
+	public void updateLanguage() {
+		super.updateLanguage();
+		updateTableLabel();
+	}
+
+	/**
+	 * 
+	 */
+	private void updateTableLabel() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (tableLabel != null && !tableLabel.isDisposed())
+					tableLabel.setText(MessageText.getString(sTableID + "View.header")
+							+ " (" + getRowCount() + ")");
+			}
+		});
+	}
 }
