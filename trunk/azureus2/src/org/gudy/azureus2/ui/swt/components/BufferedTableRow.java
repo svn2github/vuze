@@ -516,6 +516,13 @@ BufferedTableRow
 
     if (pt == null)
       return false;
+    
+    Image oldImage = item.getImage(0);
+    if (oldImage != null) {
+    	Rectangle r = oldImage.getBounds();
+    	if (r.width == pt.x && r.height == pt.y)
+    		return false;
+    }
 		
     // set row height by setting image
     Image image = new Image(item.getDisplay(), pt.x, pt.y);
