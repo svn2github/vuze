@@ -5,10 +5,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import org.eclipse.swt.SWTException;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.Constants;
@@ -32,7 +29,7 @@ public class ImageRepository {
   private static final HashMap images;
   private static final HashMap registry;
   private static final String[] noCacheExtList = new String[] {".exe"};
-  private static final boolean doNotUseAWTIcon = Constants.isOSX || (Constants.isWindows && !Constants.isWindowsXP);
+  private static final boolean doNotUseAWTIcon = Constants.isOSX;
 
     static {
     images = new HashMap();
@@ -213,7 +210,7 @@ public class ImageRepository {
 
 	        ImageData imageData = program.getImageData();
 	        if (imageData != null) {
-	          image = new Image(null, imageData,imageData.getTransparencyMask());
+	          image = new Image(null, imageData);
 	          images.put(program, image);
 	        }
 	      }
@@ -240,116 +237,97 @@ public class ImageRepository {
   }
 
     /**
-     * <p>Gets a small-sized iconic representation of the file or directory at the path</p>
-     * <p>For most platforms, the icon is a 16x16 image; weak-referencing caching is used to avoid abundant reallocation.</p>
-     * @param path Absolute path to the file or directory
-     * @return The image
-     */
-    public static Image getPathIcon(final String path)
-    {
-        try
-        {
-            final File file = new File(path);
+	 * <p>Gets a small-sized iconic representation of the file or directory at the path</p>
+	 * <p>For most platforms, the icon is a 16x16 image; weak-referencing caching is used to avoid abundant reallocation.</p>
+	 * @param path Absolute path to the file or directory
+	 * @return The image
+	 */
+	public static Image getPathIcon(final String path) {
+		try {
+			final File file = new File(path);
 
-            // workaround for unsupported platforms
-            // notes:
-            // Mac OS X - Do not mix AWT with SWT (possible workaround: use IPC/Cocoa)
-            // Windows < XP - Improper Alpha Channel support
+			// workaround for unsupported platforms
+			// notes:
+			// Mac OS X - Do not mix AWT with SWT (possible workaround: use IPC/Cocoa)
 
-            String key;
-            if(file.isDirectory())
-            {
-                if(doNotUseAWTIcon)
-                    return getFolderImage();
+			String key;
+			if (file.isDirectory()) {
+				if (doNotUseAWTIcon)
+					return getFolderImage();
 
-                key = file.getPath();
-            }
-            else
-            {
-                final int lookIndex = file.getName().lastIndexOf(".");
+				key = file.getPath();
+			} else {
+				final int lookIndex = file.getName().lastIndexOf(".");
 
-                if(lookIndex == -1)
-                {
-                    if(doNotUseAWTIcon)
-                        return getFolderImage();
+				if (lookIndex == -1) {
+					if (doNotUseAWTIcon)
+						return getFolderImage();
 
-                    key = "?!blank";
-                }
-                else
-                {
-                    final String ext =  file.getName().substring(lookIndex);
-                    key = ext;
+					key = "?!blank";
+				} else {
+					final String ext = file.getName().substring(lookIndex);
+					key = ext;
 
-                    if(doNotUseAWTIcon)
-                         return getIconFromProgram(Program.findProgram(ext));
+					if (doNotUseAWTIcon)
+						return getIconFromProgram(Program.findProgram(ext));
 
-                    // case-insensitive file systems
-                    for (int i = 0; i < noCacheExtList.length; i++)
-                    {
-                        if(noCacheExtList[i].equalsIgnoreCase(ext))
-                        {
-                            key = file.getPath();
-                            break;
-                        }
-                    }
-                }
-            }
+					// case-insensitive file systems
+					for (int i = 0; i < noCacheExtList.length; i++) {
+						if (noCacheExtList[i].equalsIgnoreCase(ext)) {
+							key = file.getPath();
+							break;
+						}
+					}
+				}
+			}
 
-            // this method mostly deals with incoming torrent files, so there's less concern for
-            // custom icons (unless user sets a custom icon in a later session)
+			// this method mostly deals with incoming torrent files, so there's less concern for
+			// custom icons (unless user sets a custom icon in a later session)
 
-            // other platforms - try sun.awt
-            Image image = (Image)registry.get(key);
-            if(image != null)
-                return image;
+			// other platforms - try sun.awt
+			Image image = (Image) registry.get(key);
+			if (image != null)
+				return image;
 
-            final Class sfClass = Class.forName("sun.awt.shell.ShellFolder");
-            final Object sfInstance = sfClass.getMethod("getShellFolder", new Class[]{File.class}).invoke(null, new Object[]{file});
+			final Class sfClass = Class.forName("sun.awt.shell.ShellFolder");
+			final Object sfInstance = sfClass.getMethod("getShellFolder",
+					new Class[] { File.class }).invoke(null, new Object[] { file });
 
-            final java.awt.Image awtImage = (java.awt.Image)sfClass.getMethod("getIcon", new Class[]{Boolean.TYPE}).invoke(sfInstance, new Object[]{new Boolean(false)});
+			final java.awt.Image awtImage = (java.awt.Image) sfClass.getMethod(
+					"getIcon", new Class[] { Boolean.TYPE }).invoke(sfInstance,
+					new Object[] { new Boolean(false) });
 
-            final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-            ImageIO.write((BufferedImage)awtImage, "png", outStream);
-            final ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
+			if (awtImage != null) {
+        final ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+        ImageIO.write((BufferedImage)awtImage, "png", outStream);
+        final ByteArrayInputStream inStream = new ByteArrayInputStream(outStream.toByteArray());
 
-            image = new Image(null, inStream);
+        image = new Image(null, inStream);
 
-            // recomposite to avoid artifacts - transparency mask does not work
-            final Image dstImage = new Image(Display.getCurrent(), image.getBounds().width, image.getBounds().height);
-            GC gc = new GC(dstImage);
-            gc.drawImage(image, 0, 0);
-            gc.dispose();
+				registry.put(key, image);
 
-            registry.put(key, dstImage);
-            image.dispose();
+				return image;
+			}
+		} catch (Exception e) {
+			//Debug.printStackTrace(e);
+		}
 
-            return dstImage;
-        }
-        catch (Exception e)
-        {
-            //Debug.printStackTrace(e);
+		// Possible scenario: Method call before file creation
+		final int fileSepIndex = path.lastIndexOf(File.separator);
+		if (fileSepIndex == path.length() - 1)
+			return getFolderImage();
 
-            // Possible scenario: Method call before file creation
-            final int fileSepIndex = path.lastIndexOf(File.separator);
-            if(fileSepIndex == path.length() - 1)
-            {
-                return getFolderImage();
-            }
-            else
-            {
-                final int extIndex;
-                if(fileSepIndex == -1)
-                    extIndex = path.indexOf('.');
-                else
-                    extIndex = path.substring(fileSepIndex).indexOf('.');
+		final int extIndex;
+		if (fileSepIndex == -1)
+			extIndex = path.indexOf('.');
+		else
+			extIndex = path.substring(fileSepIndex).indexOf('.');
 
-                if(extIndex == -1)
-                    return getFolderImage();
-                else
-                    return getIconFromProgram(Program.findProgram(path.substring(extIndex)));
-            }
-        }
-    }
+		if (extIndex == -1)
+			return getFolderImage();
+
+		return getIconFromProgram(Program.findProgram(path.substring(extIndex)));
+	}
 
     /**
      * <p>Gets an image with the specified canvas size</p>
@@ -446,5 +424,4 @@ public class ImageRepository {
       
       return key;
     }
-    
 }
