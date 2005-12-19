@@ -196,7 +196,7 @@ public class TableColumnEditorWindow {
 						.booleanValue();
 				// For OSX to hopefully refresh the checkbox.
 				item.setChecked(!bChecked);
-				table.getDisplay().asyncExec(new AERunnable() {
+				table.getDisplay().syncExec(new AERunnable() {
 					public void runSupport() {
 						if (!item.isDisposed())
 							item.setChecked(bChecked);
