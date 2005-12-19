@@ -228,9 +228,17 @@ public class PeerInfoView extends AbstractIView {
 				if (e.width <= 0 || e.height <= 0)
 					return;
 				try {
-					if (img == null) {
+					Rectangle bounds = (img == null) ? null : img.getBounds();
+					if (bounds == null || e.x > bounds.width || e.y > bounds.height) {
 						e.gc.fillRectangle(e.x, e.y, e.width, e.height);
 					} else {
+						if (e.x + e.width > bounds.width)
+							e.gc.fillRectangle(bounds.width, e.y, e.x + e.width
+									- bounds.width + 1, e.height);
+						if (e.y + e.height > bounds.height)
+							e.gc.fillRectangle(e.x, bounds.height, e.width, e.y + e.height
+									- bounds.height + 1);
+
 						e.gc.drawImage(img, e.x, e.y, e.width, e.height, e.x, e.y, e.width,
 								e.height);
 					}
