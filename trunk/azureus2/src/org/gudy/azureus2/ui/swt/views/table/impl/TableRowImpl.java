@@ -165,13 +165,19 @@ public class TableRowImpl
     if (bDisposed)
       return;
     
-    // Must refresh even non-visible cells, since cell may want to set
-    // other things (like sort #)
+    // If this were called from a plugin, we'd have to refresh the sorted column
+    // even if we weren't visible
+    
+    boolean bVisible = isVisible();
+    if (!bVisible) {
+  		setUpToDate(false);
+  		return;
+  	}
 
     Iterator iter = mTableCells.values().iterator();
     while(iter.hasNext()) {
       TableCellCore item = (TableCellCore)iter.next();
-      item.refresh(bDoGraphics, isVisible());
+      item.refresh(bDoGraphics, bVisible);
     }
   }
   
