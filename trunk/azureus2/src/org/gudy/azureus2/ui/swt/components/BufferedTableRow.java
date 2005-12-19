@@ -96,7 +96,7 @@ BufferedTableRow
 		if (Constants.isLinux || !isVisible())
 			return;
 
-		if (alternatingColors == null) {
+		if (alternatingColors == null || alternatingColors[1].isDisposed()) {
 			alternatingColors = new Color[] {
 					table.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
 					Colors.colorAltRow };
