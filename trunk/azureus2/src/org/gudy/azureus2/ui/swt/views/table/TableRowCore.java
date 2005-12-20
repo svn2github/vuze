@@ -71,14 +71,6 @@ public interface TableRowCore
    */
   public Object getDataSource(boolean bCoreObject);
   
-  /** Move the row to a new location
-   *
-   * @param newIndex where to move the row to
-   * @return true - changed<br>
-   *         false - not changed or already at that index
-   */
-  public boolean setIndex(int newIndex);
-
   public int getIndex();
 
   /** Adjust cell height.  Don't use if any other column/cell uses setImage()
