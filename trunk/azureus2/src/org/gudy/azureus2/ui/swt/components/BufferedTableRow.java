@@ -57,6 +57,11 @@ BufferedTableRow
 	private static final int VALUE_SIZE_INC	= 8;
 	
 	private static Color[] alternatingColors = null;
+
+	// for checkWidget(int)
+	private final static int REQUIRE_TABLEITEM = 0;
+	private final static int REQUIRE_TABLEITEM_INITIALIZED = 1;
+	private final static int REQUIRE_VISIBILITY = 2;
 	
 	protected Table table;
 	protected TableItem	item;
@@ -104,7 +109,7 @@ BufferedTableRow
 
 		int index = table.indexOf(item);
 		Color newColor = alternatingColors[index % alternatingColors.length];
-		if (!getBackground().equals(newColor))
+		if (!newColor.equals(getBackground()))
 			item.setBackground(newColor);
 	}
 
@@ -120,7 +125,7 @@ BufferedTableRow
 	dispose()
 	{
 		if (table != null && !table.isDisposed() && Utils.isThisThreadSWT()) {
-			if (noTableItem(false)) {
+			if (!checkWidget(REQUIRE_TABLEITEM)) {
 				// No assigned spot yet, or not our spot:
 				// find a row with no TableRow data
 
@@ -161,7 +166,7 @@ BufferedTableRow
    		int 	index,
 		Image	new_image )
 	{
-		if (noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return;
 
 		if ( index >= image_values.length ){
@@ -187,22 +192,70 @@ BufferedTableRow
 		item.setImage( index, new_image );	
 	}
 
-	public boolean
-	noTableItem(boolean bNoTableItemIfNoSetData) {
-		boolean result = table.isDisposed() || item == null || item.isDisposed()
-				|| item.getData("TableRow") != this;
+	/**
+	 * Checks if the widget is valid
+	 * 
+	 * @param checkFlags REQUIRE_* flags (OR'd)
+	 * 
+	 * @return True: Ok; False: Not ok
+	 */
+	public boolean checkWidget(int checkFlags) {
+		boolean bWidgetOk = !table.isDisposed() && item != null
+				&& !item.isDisposed() && item.getData("TableRow") == this;
 
-		if (bNoTableItemIfNoSetData && !result)
-			result = (table.getStyle() & SWT.VIRTUAL) != 0
-					&& item.getData("SD") == null;
+		final boolean bCheckVisibility = (checkFlags & REQUIRE_VISIBILITY) > 0;
+		final boolean bCheckInitialized = (checkFlags & REQUIRE_TABLEITEM_INITIALIZED) > 0;
 
-		return result;
+		if (bWidgetOk && bCheckInitialized) {
+			bWidgetOk = (table.getStyle() & SWT.VIRTUAL) == 0
+					|| item.getData("SD") != null;
+		}
+
+		if (bWidgetOk && bCheckVisibility) {
+			if (_isVisible()) {
+				// Caller assumes that a visible item can be modified, so 
+				// make sure we initialize it.
+				if (!bCheckInitialized && (table.getStyle() & SWT.VIRTUAL) != 0
+						&& item.getData("SD") == null) {
+					// This is catch is temporary for SWT 3212, because there are cases where
+					// it says it isn't disposed, when it really almost is
+					try {
+						item.setData("SD", "1");
+					} catch (NullPointerException badSWT) {
+					}
+					invalidate();
+				}
+			} else {
+				bWidgetOk = false;
+			}
+		}
+
+		return bWidgetOk;
 	}
+	
+	private boolean _isVisible() {
+		// Least time consuming checks first
+		
+		int index = table.indexOf(item);
+		if (index == -1)
+			return false;
+
+		int iTopIndex = table.getTopIndex();
+		if (index < iTopIndex)
+			return false;
+
+		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
+		if (index > iBottomIndex)
+			return false;
+
+		return true;
+	}
+	
 	
 	public Color
 	getForeground()
 	{
-  	if (noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
   	  return null;
 
 		return( item.getForeground());
@@ -212,7 +265,7 @@ BufferedTableRow
 	setForeground(
 		Color	c )
 	{
-		if (noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return;
 
 		if (foreground != null && foreground.equals(c))
@@ -228,7 +281,7 @@ BufferedTableRow
 	  int index,
 		Color	new_color )
 	{
-		if (noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return false;
 				
 		if ( index >= foreground_colors.length ){
@@ -269,7 +322,7 @@ BufferedTableRow
 
 	public Color getForeground(int index)
 	{
-  	if (noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
   	  return null;
 		if (index >= foreground_colors.length)
 		  return item.getForeground();
@@ -281,7 +334,7 @@ BufferedTableRow
 	getText(
 		int		index )
 	{
-		if (noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return "";
 
 		// SWT >= 3041(Win),3014(GTK),3002(Carbon) and returns "" if range check
@@ -299,7 +352,7 @@ BufferedTableRow
 		int			index,
 		String		new_value )
 	{
-		if (noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return false;
 		
 		if (index < 0 || index >= table.getColumnCount())
@@ -317,7 +370,7 @@ BufferedTableRow
 	}
 	
   public Rectangle getBounds(int index) {
-		if (noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return null;
 		return item.getBounds(index);
 	}
@@ -327,7 +380,7 @@ BufferedTableRow
   }
   
   public Color getBackground() {
-    if(noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
       return null;
     return item.getBackground();
   }
@@ -338,38 +391,10 @@ BufferedTableRow
    * @return Item's Position
    */
   public int getIndex() {
-  	if (noTableItem(false))
+		if (!checkWidget(REQUIRE_TABLEITEM))
   		return -1;
 
-    if (table == null)
-      return -1;
     return table.indexOf(item);
-  }
-  
-  /** This flickers */
-  public boolean setIndex(int index) {
-    if (table == null)
-      return false;
-  	if (item != null) {
-	    int oldIndex = table.indexOf(item);
-	    if (oldIndex == index)
-	      return false;
-	    
-	    if (index > oldIndex)
-	       index--;
-  	}
-    //if (bDebug) System.out.println(this+": oldIndex="+oldIndex+"; index="+ index);
-		TableItem newItem = new TableItem( table, SWT.NULL, index );
-		copyToItem(newItem);
-
-		// don't use oldIndex
-  	if (item != null) {
-  		table.remove(table.indexOf(item));
-  	}
-		item = newItem;
-		if (bDebug) System.out.println("SetIndex=" + index);
-
-		return true;
   }
   
   private void copyToItem(TableItem newItem) {
@@ -406,7 +431,7 @@ BufferedTableRow
 	}
   
   public boolean isSelected() {
-  	if (noTableItem(false))
+		if (!checkWidget(REQUIRE_TABLEITEM))
   		return false;
 
   	// Invalid Indexes are checked/ignored by SWT.
@@ -414,7 +439,7 @@ BufferedTableRow
   }
 
   public void setSelected(boolean bSelected) {
-  	if (noTableItem(false))
+		if (!checkWidget(REQUIRE_TABLEITEM))
   		return;
 
     if (bSelected)
@@ -437,6 +462,7 @@ BufferedTableRow
   	if (newRow != null && !newRow.isDisposed()) {
   		// This is temporary for SWT 3212, because there are cases where
   		// it says it isn't disposed, when it really almost is
+  		// Eclipse Bug 119207
   		try {
   			newRow.setData("Test", "");
   		} catch (NullPointerException e) {
@@ -509,7 +535,7 @@ BufferedTableRow
   }
   
   public boolean setIconSize(Point pt) {
-		if (noTableItem(true))
+		if (!checkWidget(REQUIRE_TABLEITEM))
 			return false;
 		
     ptIconSize = pt;
@@ -538,24 +564,9 @@ BufferedTableRow
 	 * 
 	 * @return visibility
 	 */
-	public boolean isVisible() {
-		if (noTableItem(true))
-			return false;
-
-		int index = table.indexOf(item);
-		if (index == -1)
-			return false;
-
-		int iTopIndex = table.getTopIndex();
-		if (index < iTopIndex)
-			return false;
-
-		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
-		if (index > iBottomIndex)
-			return false;
-
-		return true;
-	}
+  public boolean isVisible() {
+  	return checkWidget(REQUIRE_VISIBILITY);
+  }
 	
   /**
    * Overridable function that is called when row needs invalidation.
