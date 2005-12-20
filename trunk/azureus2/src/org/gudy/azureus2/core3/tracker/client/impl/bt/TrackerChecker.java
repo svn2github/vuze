@@ -129,35 +129,45 @@ public class TrackerChecker implements TRTrackerScraperListener {
     	// result in significant hangs (several seconds....)
     
     String	url_str = trackerUrl.toString();
+        
+    try{
+        trackers_mon.enter();
+    	
+        TrackerStatus ts = (TrackerStatus) trackers.get(url_str);
     
-    if (trackers.containsKey(url_str)) {
-      final TrackerStatus ts = (TrackerStatus) trackers.get(url_str);
-      data = ts.getHashData(hashBytes);
-      if (data == null) {
-        //System.out.println("data == null: " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
-        data = ts.addHash(hashBytes);
-      }
-    } else {
-      //System.out.println( "adding hash for " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
-      TrackerStatus ts = new TrackerStatus(scraper.getScraper(),trackerUrl);
+        if ( ts != null ){
+	      
+	      data = ts.getHashData(hashBytes);
+	      
+	      if (data == null) {
+	    	  
+	        //System.out.println("data == null: " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
+	    	  
+	        data = ts.addHash(hashBytes);
+	      }
+	    }else{
+    
+	    	//System.out.println( "adding hash for " + trackerUrl + " : " + ByteFormatter.nicePrint(hashBytes, true));
       
-      if( ts.isTrackerScrapeUrlValid() ) {
-        try{
-          trackers_mon.enter();
-      	
-          trackers.put(url_str, ts);
-        }finally{
-      	
-          trackers_mon.exit();
-        }
+	    	ts = new TrackerStatus(scraper.getScraper(),trackerUrl);
       
-        data = ts.addHash(hashBytes);
-      } else {
-      	if (Logger.isEnabled())
-					Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hashBytes), LOGID,
-							LogEvent.LT_ERROR, "Can't scrape using url '" + trackerUrl
-									+ "' as it doesn't end in " + "'/announce', skipping."));
-      }
+	        trackers.put(url_str, ts);
+
+        	data = ts.addHash(hashBytes);
+
+	        if( !ts.isTrackerScrapeUrlValid() ) {
+  
+		      	if (Logger.isEnabled()){
+							Logger.log(new LogEvent(TorrentUtils.getDownloadManager(hashBytes), LOGID,
+									LogEvent.LT_ERROR, "Can't scrape using url '" + trackerUrl
+											+ "' as it doesn't end in " + "'/announce', skipping."));
+		      	}
+	        }
+	    }
+    
+    }finally{
+      	
+        trackers_mon.exit();
     }
     
     return data;
