@@ -105,8 +105,8 @@ public class Debug {
       StackTraceElement st[] = e.getStackTrace();
       if (st == null || st.length == 0)
       	return "??";
-      if (st.length > 2 + numToGoBackFurther)
-        return st[2 + numToGoBackFurther].toString();
+      if (st.length > 3 + numToGoBackFurther)
+        return st[3 + numToGoBackFurther].toString();
 
       return st[st.length - 1].toString();
     }
