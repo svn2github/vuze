@@ -129,7 +129,7 @@ UPnPRootDeviceImpl
 		}
 	}
 	
-	protected void
+	public void
 	portMappingResult(
 		boolean	ok )
 	{

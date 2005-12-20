@@ -32,7 +32,6 @@ import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
 import com.aelitis.net.upnp.*;
-import com.aelitis.net.upnp.impl.*;
 
 /**
  * @author parg
@@ -40,8 +39,8 @@ import com.aelitis.net.upnp.impl.*;
  */
 
 public class 
-SSDPImpl 
-	implements SSDP
+SSDPCore 
+	implements UPnPSSDP
 {
 	private static final LogIDs LOGID = LogIDs.NET;
 	private final static String		SSDP_GROUP_ADDRESS 	= "239.255.255.250";
@@ -67,11 +66,33 @@ SSDPImpl
 		}
 	}
 
+	private static SSDPCore		singleton;
+	private static AEMonitor	class_mon 	= new AEMonitor( "SSDPCore:class" );
 
-	private UPnPImpl		upnp;
+	public static SSDPCore
+	getSingleton(
+		UPnPAdapter		adapter )
 	
-	private long			last_explicit_search	= 0;
+		throws UPnPException
+	{
+		try{
+			class_mon.enter();
 		
+			if ( singleton == null ){
+				
+				singleton = new SSDPCore( adapter );
+			}
+			
+			return( singleton );
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
+	
+	private UPnPAdapter	adapter;
+	
 	private boolean		first_response			= true;
 	private boolean		ttl_problem_reported	= false;
 	private boolean		sso_problem_reported	= false;
@@ -83,23 +104,17 @@ SSDPImpl
 	private Map	current_registrations = new HashMap();
 	
 	public
-	SSDPImpl(
-		UPnPImpl		_upnp )
+	SSDPCore(
+		UPnPAdapter		_adapter )
 	
 		throws UPnPException
 	{	
-		upnp	= _upnp;
-	}
-	
-	public void
-	start()
-	
-		throws UPnPException
-	{
+		adapter	= _adapter;
+
 		try{	
 			processNetworkInterfaces( true );
 		
-			UTTimer timer = upnp.getAdapter().createTimer( "SSDP:refresher" );
+			UTTimer timer = adapter.createTimer( "SSDP:refresher" );
 			
 			timer.addPeriodicEvent(
 				60*1000,
@@ -118,17 +133,6 @@ SSDPImpl
 						}
 					}
 				});
-			
-			upnp.getAdapter().createThread(
-					"SSDP:queryLoop",
-					new AERunnable()
-					{
-						public void
-						runSupport()
-						{
-							queryLoop();
-						}	
-					});
 			
 		}catch( Throwable e ){
 			
@@ -187,7 +191,7 @@ SSDPImpl
 						
 						if ( log_ignored ){
 							
-							upnp.log( "UPnP::SSDP: ignoring loopback address " + ni_address );
+							adapter.trace( "UPnP::SSDP: ignoring loopback address " + ni_address );
 						}
 						
 						continue;
@@ -197,7 +201,7 @@ SSDPImpl
 			
 						if ( log_ignored ){
 							
-							upnp.log( "UPnP::SSDP: ignoring IPv6 address " + ni_address );
+							adapter.trace( "UPnP::SSDP: ignoring IPv6 address " + ni_address );
 						}
 						
 						continue;
@@ -236,7 +240,7 @@ SSDPImpl
 							addresses_string += (addresses_string.length()==0?"":",") + addr;
 						}
 						
-						upnp.log( "UPnP::SSDP: group = " + group_address +"/" + 
+						adapter.trace( "UPnP::SSDP: group = " + group_address +"/" + 
 									network_interface.getName()+":"+ 
 									network_interface.getDisplayName() + "-" + addresses_string +": started" );
 						
@@ -244,7 +248,9 @@ SSDPImpl
 					
 						mc_sock.setNetworkInterface( network_interface );
 						
-						mc_sock.setLoopbackMode(true);
+							// note that false ENABLES loopback mode which is what we want 
+						
+						mc_sock.setLoopbackMode(false);
 											
 						Runtime.getRuntime().addShutdownHook(
 								new AEThread("SSDP:VMShutdown")
@@ -290,7 +296,7 @@ SSDPImpl
 							
 						control_socket.bind( new InetSocketAddress(ni_address, SSDP_CONTROL_PORT ));
 			
-						upnp.getAdapter().createThread(
+						adapter.createThread(
 							"SSDP:listener",
 							new AERunnable()
 							{
@@ -339,44 +345,12 @@ SSDPImpl
 	}
 	
 	public void
-	searchNow()
-	{
-		long	now = SystemTime.getCurrentTime();
-		
-		if ( now - last_explicit_search < 10000 ){
-			
-			return;
-		}
-		
-		last_explicit_search	= now;
-		
-		search();
-	}
-	
-	protected void
-	queryLoop()
-	{
-		while(true){
-			
-			try{
-				search();
-				
-				Thread.sleep( 60000 );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-			
-		}
-	}
-	
-	protected void
-	search()
+	search(
+		String	ST )
 	{
 		String	str =
 			"M-SEARCH * HTTP/" + HTTP_VERSION + NL +  
-			"ST: upnp:rootdevice" + NL +
+			"ST: " + ST + NL +
 			"MX: 3" + NL +
 			"MAN: \"ssdp:discover\"" + NL + 
 			"HOST: " + SSDP_GROUP_ADDRESS + ":" + SSDP_GROUP_PORT + NL + NL;
@@ -470,7 +444,7 @@ SSDPImpl
 			
 			if ( !validNetworkAddress( network_interface, local_address )){
 				
-				upnp.log( "UPnP::SSDP: group = " + group_address +"/" + 
+				adapter.trace( "UPnP::SSDP: group = " + group_address +"/" + 
 						network_interface.getName()+":"+ 
 						network_interface.getDisplayName() + " - " + local_address + ": stopped" );
 				
@@ -517,280 +491,279 @@ SSDPImpl
 		InetAddress			local_address,
 	    DatagramPacket		packet )
 	{
-		try{
-			this_mon.enter();
+		String	str = new String( packet.getData(), 0, packet.getLength());
+				
+		if ( first_response ){
+			
+			first_response	= false;
+			
+			adapter.trace( "UPnP:SSDP: first response:\n" + str );
+		}
 		
-			String	str = new String( packet.getData(), 0, packet.getLength());
+				// example notify event
+			/*
+			NOTIFY * HTTP/1.1
+			HOST: 239.255.255.250:1900
+			CACHE-CONTROL: max-age=3600
+			LOCATION: http://192.168.0.1:49152/gateway.xml
+			NT: urn:schemas-upnp-org:service:WANIPConnection:1
+			NTS: ssdp:byebye
+			SERVER: Linux/2.4.17_mvl21-malta-mips_fp_le, UPnP/1.0, Intel SDK for UPnP devices /1.2
+			USN: uuid:ab5d9077-0710-4373-a4ea-5192c8781666::urn:schemas-upnp-org:service:WANIPConnection:1
+			*/
 			
-			boolean	log = first_response;
+		// System.out.println( str );
+		
+		List	lines = new ArrayList();
+		
+		int	pos = 0;
+		
+		while(true){
 			
-			if ( first_response ){
+			int	p1 = str.indexOf( NL, pos );
+			
+			String	line;
+			
+			if ( p1 == -1 ){
+			
+				line = str.substring(pos);
+			}else{
 				
-				first_response	= false;
+				line = str.substring(pos,p1);
 				
-				upnp.log( "UPnP:SSDP: first response:\n" + str );
+				pos	= p1+1;
 			}
 			
-			if ( str.startsWith("M-SEARCH")){
+			lines.add( line.trim());
+			
+			if ( p1 == -1 ){
 				
-					// hmm, loopack or another client announcing, ignore it
-				
-				return;
-				
+				break;
 			}
+		}
+		
+		if ( lines.size() == 0 ){
+			
+			adapter.trace( "SSDP::receive packet - 0 line reply" );
+			
+			return;
+		}
+		
+		String	header = (String)lines.get(0);
+		
+			// Gudy's  Root: http://192.168.0.1:5678/igd.xml, uuid:upnp-InternetGatewayDevice-1_0-12345678900001::upnp:rootdevice, upnp:rootdevice
+			// Parg's  Root: http://192.168.0.1:49152/gateway.xml, uuid:824ff22b-8c7d-41c5-a131-44f534e12555::upnp:rootdevice, upnp:rootdevice
+
+		URL		location	= null;
+		String	nt			= null;
+		String	nts			= null;
+		String	st			= null;
+		String	al			= null;
+		
+		for (int i=1;i<lines.size();i++){
+			
+			String	line = (String)lines.get(i);
+			
+			int	c_pos = line.indexOf(":");
+			
+			if ( c_pos == -1 ){
+				continue;
+			}
+			
+			String	key	= line.substring( 0, c_pos ).trim().toUpperCase();
+			String 	val = line.substring( c_pos+1 ).trim();
+			
+			if ( key.equals("LOCATION" )){
 				
-					// notify event
-	
+				try{
+					location	= new URL( val );
+					
+				}catch( MalformedURLException e ){
+					
+					adapter.trace( e );
+				}			
+			}else if ( key.equals( "NT" )){
+				
+				nt	= val;
+				
+			}else if ( key.equals( "NTS" )){
+				
+				nts	= val;
+				
+			}else if ( key.equals( "ST" )){
+				
+				st	= val;
+				
+			}else if ( key.equals( "AL" )){
+				
+				al	= val;
+			}
+		}
+			
+		if ( header.startsWith("M-SEARCH")){
+
+			if ( st != null ){
+				
 				/*
-				NOTIFY * HTTP/1.1
-				HOST: 239.255.255.250:1900
-				CACHE-CONTROL: max-age=3600
-				LOCATION: http://192.168.0.1:49152/gateway.xml
-				NT: urn:schemas-upnp-org:service:WANIPConnection:1
-				NTS: ssdp:byebye
-				SERVER: Linux/2.4.17_mvl21-malta-mips_fp_le, UPnP/1.0, Intel SDK for UPnP devices /1.2
-				USN: uuid:ab5d9077-0710-4373-a4ea-5192c8781666::urn:schemas-upnp-org:service:WANIPConnection:1
+				HTTP/1.1 200 OK
+				CACHE-CONTROL: max-age=600
+				DATE: Tue, 20 Dec 2005 13:07:31 GMT
+				EXT:
+				LOCATION: http://192.168.1.1:2869/gatedesc.xml
+				SERVER: Linux/2.4.17_mvl21-malta-mips_fp_le UPnP/1.0 
+				ST: upnp:rootdevice
+				USN: uuid:UUID-InternetGatewayDevice-1234::upnp:rootdevice
 				*/
 				
-			// System.out.println( str );
-			
-			List	lines = new ArrayList();
-			
-			int	pos = 0;
-			
-			while(true){
-				int	p1 = str.indexOf( NL, pos );
+				String	response = informSearch( network_interface, local_address, packet.getAddress(), st );
 				
-				String	line;
-				
-				if ( p1 == -1 ){
-				
-					line = str.substring(pos);
-				}else{
+				if ( response != null ){
 					
-					line = str.substring(pos,p1);
+					String	data = 
+						"HTTP/1.1 200 OK" + NL +
+						"SERVER: Azureus (UPnP/1.0)" + NL +
+						"CACHE-CONTROL: max-age=600" + NL +
+						"LOCATION: http://" + local_address.getHostAddress() + ":" + SSDP_CONTROL_PORT + "/" + NL +
+						"ST: " + st + NL + 
+						"USN: uuid:UUID-Azureus-1234::" + st + NL + 
+						"AL: " + response;
 					
-					pos	= p1+1;
-				}
-				
-				lines.add( line.trim());
-				
-				if ( p1 == -1 ){
+					DatagramSocket	reply_socket	= null;
 					
-					break;
-				}
-			}
-			
-			if ( lines.size() == 0 ){
-				
-				upnp.log( "SSDP::receive packet - 0 line reply" );
-				
-				return;
-			}
-			
-			String	header = (String)lines.get(0);
-			
-				// Gudy's  Root: http://192.168.0.1:5678/igd.xml, uuid:upnp-InternetGatewayDevice-1_0-12345678900001::upnp:rootdevice, upnp:rootdevice
-				// Parg's  Root: http://192.168.0.1:49152/gateway.xml, uuid:824ff22b-8c7d-41c5-a131-44f534e12555::upnp:rootdevice, upnp:rootdevice
-	
-			URL		location	= null;
-			String	nt			= null;
-			String	nts			= null;
-			
-			for (int i=1;i<lines.size();i++){
-				
-				String	line = (String)lines.get(i);
-				
-				int	c_pos = line.indexOf(":");
-				
-				if ( c_pos == -1 ){
-					continue;
-				}
-				
-				String	key	= line.substring( 0, c_pos ).trim();
-				String 	val = line.substring( c_pos+1 ).trim();
-				
-				if ( key.equalsIgnoreCase("LOCATION" )){
+					byte[]	data_bytes = data.getBytes();
 					
 					try{
-						location	= new URL( val );
+						reply_socket = new DatagramSocket();
 						
-					}catch( MalformedURLException e ){
+						DatagramPacket reply_packet = new DatagramPacket(data_bytes,data_bytes.length,packet.getSocketAddress());
 						
-						upnp.log( e );
-					}			
-				}else if ( key.equalsIgnoreCase( "NT" )){
-					
-					nt	= val;
-					
-				}else if ( key.equalsIgnoreCase( "NTS" )){
-					
-					nts	= val;
-				}
-			}
-				
-			if ( header.startsWith( "NOTIFY" )){
-				
-				if ( location != null && nt != null && nts != null ){
-					
-					if ( nt.indexOf( "upnp:rootdevice" ) != -1 ){
+						reply_socket.send( reply_packet );
 						
-						if ( nts.indexOf("alive") != -1 ){
-							
-								// alive can be reported on any interface
+					}catch( Throwable e ){
+						
+						adapter.trace(e);
+						
+					}finally{
+						
+						if ( reply_socket != null ){
 							
 							try{
-
-								InetAddress	dev = InetAddress.getByName( location.getHost());
+								reply_socket.close();
 								
-								byte[]	dev_bytes = dev.getAddress();
-																
-								boolean[]	dev_bits = bytesToBits( dev_bytes );
-								
-									// try and work out what bind address this location corresponds to
-								
-								NetworkInterface	best_ni 	= null;
-								InetAddress			best_addr	= null;
-								
-								int	best_prefix	= 0;
-								
-								Enumeration network_interfaces = NetworkInterface.getNetworkInterfaces();
-								
-								while (network_interfaces.hasMoreElements()){
-									
-									NetworkInterface this_ni = (NetworkInterface)network_interfaces.nextElement();
-															
-									Enumeration ni_addresses = this_ni.getInetAddresses();
-									
-									while (ni_addresses.hasMoreElements()){
-										
-										InetAddress this_address = (InetAddress)ni_addresses.nextElement();
-										
-										byte[]	this_bytes = this_address.getAddress();
-										
-										if ( dev_bytes.length == this_bytes.length ){
-											
-											boolean[]	this_bits = bytesToBits( this_bytes );
-
-											for (int i=0;i<this_bits.length;i++){
-												
-												if ( dev_bits[i] != this_bits[i] ){
-													
-													break;
-												}
-												
-												if ( i > best_prefix ){
-													
-													best_prefix	= i;
-													
-													best_ni		= this_ni;
-													best_addr	= this_address;
-												}
-											}
-										}
-									}
-								}
-								
-								if ( best_ni != null ){
-									
-									if ( log ){
-										
-										upnp.log( location + " -> " + best_ni.getDisplayName() + "/" + best_addr + " (prefix=" + (best_prefix + 1 ) + ")");
-									}
-									
-									gotRoot( best_ni, best_addr, location );
-									
-								}else{
-									
-									gotAlive( location );
-								}
 							}catch( Throwable e ){
 								
-								gotAlive( location );
+								adapter.trace(e);
 							}
-						}else if ( nts.indexOf( "byebye") != -1 ){
-								
-							lostRoot( local_address, location );
 						}
-					}		
-				}
-			}else if ( header.startsWith( "HTTP") && header.indexOf( "200") != -1 ){
-	
-				if ( location != null ){
+					}
 					
-					gotRoot( network_interface, local_address, location );
+					
 				}
 			}else{
 				
-				upnp.log( "UPnP::SSDP::receive packet - bad header:" + header );
+				adapter.trace( "SSDP::receive M-SEARCH - bad header:" + header );
 			}
-		}finally{
+		}else if ( header.startsWith( "NOTIFY" )){
 			
-			this_mon.exit();
-		}
-	}
-	
-	protected boolean[]
-	bytesToBits(
-		byte[]	bytes )
-	{
-		boolean[]	res = new boolean[bytes.length*8];
+			if ( location != null && nt != null && nts != null ){
+			
+				informNotify( network_interface, local_address, location, nt, nts );
+			}else{
+				
+				adapter.trace( "SSDP::receive NITOFY - bad header:" + header );
+			}
+		}else if ( header.startsWith( "HTTP") && header.indexOf( "200") != -1 ){
+			
+			if ( location != null && st != null ){
 		
-		for (int i=0;i<bytes.length;i++){
-			
-			byte	b = bytes[i];
-			
-			for (int j=0;j<8;j++){
+				informResult( network_interface, local_address, location, st, al  );
 				
-				res[i*8+j] = (b&(byte)(0x01<<(7-j))) != 0;
-			}
+			}else{
+				
+				adapter.trace( "SSDP::receive HTTP - bad header:" + header );
+			}			
+		}else{
+			
+			adapter.trace( "SSDP::receive packet - bad header:" + header );
 		}
-				
-		return( res );
 	}
 	
-	protected void
-	gotRoot(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		URL					location )
-	{
-		for (int i=0;i<listeners.size();i++){
-			
-			((SSDPListener)listeners.get(i)).rootDiscovered( network_interface, local_address, location );
-		}
-	}
 
 	protected void
-	gotAlive(
-		URL		location )
+	informResult(
+		NetworkInterface	network_interface,
+		InetAddress			local_address,
+		URL					location,
+		String				st,
+		String				al )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPListener)listeners.get(i)).rootAlive( location );
+			try{
+				((UPnPSSDPListener)listeners.get(i)).receivedResult(network_interface,local_address,location,st,al);
+				
+			}catch( Throwable e ){
+				
+				adapter.trace(e);
+			}
 		}
 	}
+	
 	protected void
-	lostRoot(
-		InetAddress	local_address,
-		URL		location )
+	informNotify(
+		NetworkInterface	network_interface,
+		InetAddress			local_address,
+		URL					location,
+		String				nt,
+		String				nts )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
-			((SSDPListener)listeners.get(i)).rootLost( local_address, location );
+			try{
+				((UPnPSSDPListener)listeners.get(i)).receivedNotify(network_interface,local_address,location,nt,nts);
+				
+			}catch( Throwable e ){
+				
+				adapter.trace(e);
+			}
 		}
+	}
+	
+	protected String
+	informSearch(
+		NetworkInterface	network_interface,
+		InetAddress			local_address,
+		InetAddress			originator,
+		String				st )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				String	res = ((UPnPSSDPListener)listeners.get(i)).receivedSearch(network_interface,local_address,originator,st );
+				
+				if ( res != null ){
+					
+					return( res );
+				}
+			}catch( Throwable e ){
+				
+				adapter.trace(e);
+			}
+		}
+		
+		return( null );
 	}
 	
 	public void
 	addListener(
-		SSDPListener	l )
+		UPnPSSDPListener	l )
 	{
 		listeners.add( l );
 	}
 	
 	public void
 	removeListener(
-		SSDPListener	l )
+			UPnPSSDPListener	l )
 	{
 		listeners.remove(l);
 	}

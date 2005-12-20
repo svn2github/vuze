@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.net.upnp.impl.device;
+package com.aelitis.net.upnp.impl.services;
 
 /**
  * @author parg
@@ -30,12 +30,12 @@ package com.aelitis.net.upnp.impl.device;
 import com.aelitis.net.upnp.services.*;
 
 public class 
-UPnPSSWANPPPConnectionImpl
+UPnPSSWANIPConnectionImpl
 	extends		UPnPSSWANConnectionImpl
 	implements 	UPnPWANIPConnection
 {
 	protected
-	UPnPSSWANPPPConnectionImpl(
+	UPnPSSWANIPConnectionImpl(
 		UPnPServiceImpl		_service )
 	{
 		super( _service );

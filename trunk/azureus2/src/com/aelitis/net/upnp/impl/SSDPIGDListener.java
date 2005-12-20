@@ -20,35 +20,31 @@
  *
  */
 
-package com.aelitis.net.upnp;
+package com.aelitis.net.upnp.impl;
 
 /**
  * @author parg
  *
  */
 
-import com.aelitis.net.upnp.impl.*;
-import com.aelitis.net.upnp.impl.ssdp.SSDPCore;
+import java.net.*;
 
-
-public class 
-UPnPFactory 
+public interface 
+SSDPIGDListener 
 {
-	public static UPnP
-	getSingleton(
-		UPnPAdapter		adapter )
+	public void
+	rootDiscovered(
+		NetworkInterface	network_interface,
+		InetAddress			local_address,
+		URL					location );
 	
-		throws UPnPException
-	{
-		return( UPnPImpl.getSingleton( adapter));
-	}
+	public void
+	rootAlive(
+		URL			location );
 	
-	public static UPnPSSDP
-	getSSDP(
-		UPnPAdapter		adapter )
-	
-		throws UPnPException
-	{
-		return( SSDPCore.getSingleton( adapter ));
-	}
+	public void
+	rootLost(
+		InetAddress	local_address,
+		URL			location );
+
 }

@@ -30,7 +30,7 @@ package com.aelitis.net.upnp.impl;
 import com.aelitis.net.upnp.*;
 
 public interface 
-SSDP 
+SSDPIGD 
 {
 	public void
 	start()
@@ -42,9 +42,9 @@ SSDP
 	
 	public void
 	addListener(
-		SSDPListener	l );
+		SSDPIGDListener	l );
 	
 	public void
 	removeListener(
-		SSDPListener	l );
+		SSDPIGDListener	l );
 }

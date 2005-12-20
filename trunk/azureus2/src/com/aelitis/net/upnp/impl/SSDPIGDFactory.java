@@ -27,24 +27,19 @@ package com.aelitis.net.upnp.impl;
  *
  */
 
-import java.net.*;
 
-public interface 
-SSDPListener 
+import com.aelitis.net.upnp.UPnPException;
+import com.aelitis.net.upnp.impl.ssdp.*;
+
+public class 
+SSDPIGDFactory 
 {
-	public void
-	rootDiscovered(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		URL					location );
+	public static SSDPIGD
+	create(
+		UPnPImpl	upnp )
 	
-	public void
-	rootAlive(
-		URL			location );
-	
-	public void
-	rootLost(
-		InetAddress	local_address,
-		URL			location );
-
+		throws UPnPException
+	{
+		return( new SSDPIGDImpl(upnp));
+	}
 }

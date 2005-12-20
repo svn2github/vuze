@@ -35,6 +35,7 @@ import java.util.*;
 
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.*;
+import com.aelitis.net.upnp.impl.services.UPnPServiceImpl;
 
 public class 
 UPnPDeviceImpl
@@ -102,7 +103,7 @@ UPnPDeviceImpl
 		}
 	}
 	
-	protected String
+	public String
 	getAbsoluteURL(
 		String	url )
 	{
@@ -115,7 +116,7 @@ UPnPDeviceImpl
 		return( root_device.getLocalAddress());
 	}
 	
-	protected UPnPImpl
+	public UPnPImpl
 	getUPnP()
 	{
 		return( (UPnPImpl)root_device.getUPnP());

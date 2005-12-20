@@ -1,5 +1,5 @@
 /*
- * Created on 14-Jun-2004
+ * Created on 15-Jun-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,26 +20,49 @@
  *
  */
 
-package com.aelitis.net.upnp.impl;
+package com.aelitis.net.upnp.impl.services;
 
 /**
  * @author parg
  *
  */
 
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
-import com.aelitis.net.upnp.UPnPException;
-import com.aelitis.net.upnp.impl.ssdp.*;
+import com.aelitis.net.upnp.*;
 
 public class 
-SSDPFactory 
+UPnPActionImpl
+	implements UPnPAction
 {
-	public static SSDP
-	create(
-		UPnPImpl	upnp )
+	protected UPnPServiceImpl		service;
+	protected String				name;
 	
-		throws UPnPException
+	protected 
+	UPnPActionImpl(
+		UPnPServiceImpl					_service,
+		SimpleXMLParserDocumentNode		node )
 	{
-		return( new SSDPImpl(upnp));
+		service	= _service;
+		
+		name	= node.getChild( "name" ).getValue().trim();
+	}
+
+	public String
+	getName()
+	{
+		return( name );
+	}
+	
+	public UPnPService
+	getService()
+	{
+		return( service );
+	}
+	
+	public UPnPActionInvocation
+	getInvocation()
+	{
+		return( new UPnPActionInvocationImpl( this ));
 	}
 }

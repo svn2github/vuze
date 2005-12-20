@@ -1,5 +1,5 @@
 /*
- * Created on 14-Jun-2004
+ * Created on 15-Jun-2004
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -20,35 +20,40 @@
  *
  */
 
-package com.aelitis.net.upnp;
+package com.aelitis.net.upnp.impl.services;
 
 /**
  * @author parg
  *
  */
 
-import com.aelitis.net.upnp.impl.*;
-import com.aelitis.net.upnp.impl.ssdp.SSDPCore;
-
+import com.aelitis.net.upnp.*;
 
 public class 
-UPnPFactory 
+UPnPActionArgumentImpl 
+	implements UPnPActionArgument
 {
-	public static UPnP
-	getSingleton(
-		UPnPAdapter		adapter )
+	protected String		name;
+	protected String		value;
 	
-		throws UPnPException
+	protected
+	UPnPActionArgumentImpl(
+		String		_name,
+		String		_value )
 	{
-		return( UPnPImpl.getSingleton( adapter));
+		name		= _name;
+		value		= _value;
 	}
 	
-	public static UPnPSSDP
-	getSSDP(
-		UPnPAdapter		adapter )
-	
-		throws UPnPException
+	public String
+	getName()
 	{
-		return( SSDPCore.getSingleton( adapter ));
+		return( name );
+	}
+	
+	public String
+	getValue()
+	{
+		return( value );
 	}
 }

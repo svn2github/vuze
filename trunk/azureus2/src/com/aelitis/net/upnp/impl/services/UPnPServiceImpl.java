@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.net.upnp.impl.device;
+package com.aelitis.net.upnp.impl.services;
 
 /**
  * @author parg
@@ -34,6 +34,7 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
 import com.aelitis.net.upnp.*;
+import com.aelitis.net.upnp.impl.device.UPnPDeviceImpl;
 import com.aelitis.net.upnp.services.UPnPSpecificService;
 
 public class 
@@ -49,7 +50,7 @@ UPnPServiceImpl
 	protected List				actions;
 	protected List				state_vars;
 	
-	protected
+	public
 	UPnPServiceImpl(
 		UPnPDeviceImpl					_device,
 		String							indent,

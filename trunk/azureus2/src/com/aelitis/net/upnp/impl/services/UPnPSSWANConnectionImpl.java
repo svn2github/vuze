@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.net.upnp.impl.device;
+package com.aelitis.net.upnp.impl.services;
 
 import java.util.*;
 
@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.Debug;
 
 
 import com.aelitis.net.upnp.*;
+import com.aelitis.net.upnp.impl.device.UPnPRootDeviceImpl;
 import com.aelitis.net.upnp.services.UPnPWANConnectionPortMapping;
 
 /**

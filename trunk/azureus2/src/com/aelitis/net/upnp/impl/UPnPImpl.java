@@ -32,7 +32,6 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.plugins.logging.*;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
@@ -49,7 +48,7 @@ import com.aelitis.net.upnp.services.UPnPWANIPConnection;
 public class 
 UPnPImpl
 	extends 	ResourceDownloaderAdapter
-	implements 	UPnP, SSDPListener
+	implements 	UPnP, SSDPIGDListener
 {	
 	public static final String	NL	= "\r\n";
 	
@@ -79,7 +78,7 @@ UPnPImpl
 	}
 	
 	private UPnPAdapter				adapter;
-	private SSDP					ssdp;
+	private SSDPIGD					ssdp;
 	
 	private Map			root_locations	= new HashMap();
 	
@@ -107,7 +106,7 @@ UPnPImpl
 	{
 		adapter	= _adapter;
 		
-		ssdp = SSDPFactory.create( this );
+		ssdp = SSDPIGDFactory.create( this );
 		
 		ssdp.addListener(this);
 		
