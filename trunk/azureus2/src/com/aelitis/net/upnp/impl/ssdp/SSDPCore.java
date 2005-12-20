@@ -71,7 +71,7 @@ SSDPCore
 
 	public static SSDPCore
 	getSingleton(
-		UPnPAdapter		adapter )
+		UPnPSSDPAdapter		adapter )
 	
 		throws UPnPException
 	{
@@ -91,7 +91,7 @@ SSDPCore
 		}
 	}
 	
-	private UPnPAdapter	adapter;
+	private UPnPSSDPAdapter	adapter;
 	
 	private boolean		first_response			= true;
 	private boolean		ttl_problem_reported	= false;
@@ -105,7 +105,7 @@ SSDPCore
 	
 	public
 	SSDPCore(
-		UPnPAdapter		_adapter )
+		UPnPSSDPAdapter		_adapter )
 	
 		throws UPnPException
 	{	
@@ -667,7 +667,7 @@ SSDPCore
 			
 			if ( location != null && nt != null && nts != null ){
 			
-				informNotify( network_interface, local_address, location, nt, nts );
+				informNotify( network_interface, local_address, packet.getAddress(), location, nt, nts );
 			}else{
 				
 				adapter.trace( "SSDP::receive NITOFY - bad header:" + header );
@@ -676,7 +676,7 @@ SSDPCore
 			
 			if ( location != null && st != null ){
 		
-				informResult( network_interface, local_address, location, st, al  );
+				informResult( network_interface, local_address, packet.getAddress(), location, st, al  );
 				
 			}else{
 				
@@ -693,6 +693,7 @@ SSDPCore
 	informResult(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
+		InetAddress			originator,
 		URL					location,
 		String				st,
 		String				al )
@@ -700,7 +701,7 @@ SSDPCore
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				((UPnPSSDPListener)listeners.get(i)).receivedResult(network_interface,local_address,location,st,al);
+				((UPnPSSDPListener)listeners.get(i)).receivedResult(network_interface,local_address,originator,location,st,al);
 				
 			}catch( Throwable e ){
 				
@@ -713,6 +714,7 @@ SSDPCore
 	informNotify(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
+		InetAddress			originator,
 		URL					location,
 		String				nt,
 		String				nts )
@@ -720,7 +722,7 @@ SSDPCore
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				((UPnPSSDPListener)listeners.get(i)).receivedNotify(network_interface,local_address,location,nt,nts);
+				((UPnPSSDPListener)listeners.get(i)).receivedNotify(network_interface,local_address,originator,location,nt,nts);
 				
 			}catch( Throwable e ){
 				

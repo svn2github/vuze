@@ -20,37 +20,17 @@
  *
  */
 
-package com.aelitis.net.upnp;
+package com.aelitis.azureus.core.instancemanager;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.URL;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 public interface 
-UPnPSSDPListener 
+AZInstanceManager 
 {
-	public void
-	receivedResult(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		URL					location,
-		String				ST,
-		String				AL );
+	public AZInstance[]
+	getInstances();
 	
-	public void
-	receivedNotify(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		URL					location,
-		String				NT,
-		String				NTS );
-
-	public String
-	receivedSearch(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		String				ST );
+	public AZInstance[]
+	getInstancesForTorrent(
+		TOTorrent	torrent );
 }

@@ -20,37 +20,18 @@
  *
  */
 
-package com.aelitis.net.upnp;
+package com.aelitis.azureus.core.instancemanager;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.URL;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.instancemanager.impl.AZInstanceManagerImpl;
 
-public interface 
-UPnPSSDPListener 
+public class 
+AZInstanceManagerFactory 
 {
-	public void
-	receivedResult(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		URL					location,
-		String				ST,
-		String				AL );
-	
-	public void
-	receivedNotify(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		URL					location,
-		String				NT,
-		String				NTS );
-
-	public String
-	receivedSearch(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		String				ST );
+	public static AZInstanceManager
+	getSingleton(
+		AzureusCore	core )
+	{
+		return( AZInstanceManagerImpl.getSingleton(core));
+	}
 }

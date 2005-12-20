@@ -134,6 +134,7 @@ SSDPIGDImpl
 	receivedResult(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
+		InetAddress			originator,
 		URL					location,
 		String				st,
 		String				al )
@@ -157,6 +158,7 @@ SSDPIGDImpl
 	receivedNotify(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
+		InetAddress			originator,
 		URL					location,
 		String				nt,
 		String				nts )

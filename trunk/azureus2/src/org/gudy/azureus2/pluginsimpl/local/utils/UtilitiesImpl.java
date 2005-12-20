@@ -65,14 +65,12 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.IPToHostNameResolver;
 import org.gudy.azureus2.core3.util.IPToHostNameResolverListener;
-import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.ui.common.UIImageRepository;
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
@@ -80,6 +78,9 @@ public class
 UtilitiesImpl
 	implements Utilities
 {
+	private static InetAddress		last_public_ip_address;
+	private static long				last_public_ip_address_time;
+	
 	private PluginInterface			pi;
 	
 	private static ThreadLocal		tls	= 
@@ -318,76 +319,96 @@ UtilitiesImpl
 	public InetAddress
 	getPublicAddress()
 	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < last_public_ip_address_time ){
+			
+			last_public_ip_address_time	 = now;
+			
+		}else{
+		
+			if ( last_public_ip_address != null && now - last_public_ip_address_time < 15*60*1000 ){
+				
+				return( last_public_ip_address );
+			}
+		}
+		
+		InetAddress res	= null;
+		
 		try{
 			
 			String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress();
 			
 			if ( vc_ip != null && vc_ip.length() > 0 ){
 								
-				return( InetAddress.getByName( vc_ip ));
-			}
-			
-			ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
-			
-			ExternalIPCheckerService[]	services = checker.getServices();
-			
-			final String[]	ip = new String[]{ null };
-			
-			for (int i=0;i<services.length && ip[0] == null;i++){
+				res = InetAddress.getByName( vc_ip );
 				
-				final ExternalIPCheckerService	service = services[i];
+			}else{
+			
+				ExternalIPChecker	checker = ExternalIPCheckerFactory.create();
 				
-				if ( service.supportsCheck()){
-
-					final AESemaphore	sem = new AESemaphore("Utilities:getExtIP");
+				ExternalIPCheckerService[]	services = checker.getServices();
+				
+				final String[]	ip = new String[]{ null };
+				
+				for (int i=0;i<services.length && ip[0] == null;i++){
 					
-					ExternalIPCheckerServiceListener	listener = 
-						new ExternalIPCheckerServiceListener()
-						{
-							public void
-							checkComplete(
-								ExternalIPCheckerService	_service,
-								String						_ip )
-							{
-								ip[0]	= _ip;
-								
-								sem.release();
-							}
-								
-							public void
-							checkFailed(
-								ExternalIPCheckerService	_service,
-								String						_reason )
-							{
-								sem.release();
-							}
-								
-							public void
-							reportProgress(
-								ExternalIPCheckerService	_service,
-								String						_message )
-							{
-							}
-						};
-						
-					services[i].addListener( listener );
+					final ExternalIPCheckerService	service = services[i];
 					
-					try{
+					if ( service.supportsCheck()){
+	
+						final AESemaphore	sem = new AESemaphore("Utilities:getExtIP");
 						
-						services[i].initiateCheck( 60000 );
+						ExternalIPCheckerServiceListener	listener = 
+							new ExternalIPCheckerServiceListener()
+							{
+								public void
+								checkComplete(
+									ExternalIPCheckerService	_service,
+									String						_ip )
+								{
+									ip[0]	= _ip;
+									
+									sem.release();
+								}
+									
+								public void
+								checkFailed(
+									ExternalIPCheckerService	_service,
+									String						_reason )
+								{
+									sem.release();
+								}
+									
+								public void
+								reportProgress(
+									ExternalIPCheckerService	_service,
+									String						_message )
+								{
+								}
+							};
+							
+						services[i].addListener( listener );
 						
-						sem.reserve( 60000 );
-						
-					}finally{
-						
-						services[i].removeListener( listener );
+						try{
+							
+							services[i].initiateCheck( 60000 );
+							
+							sem.reserve( 60000 );
+							
+						}finally{
+							
+							services[i].removeListener( listener );
+						}
 					}
-				}
-				
 					
-				if ( ip[0] != null ){
 						
-					return( InetAddress.getByName( ip[0] ));
+					if ( ip[0] != null ){
+							
+						res = InetAddress.getByName( ip[0] );
+						
+						break;
+					}
 				}
 			}
 		}catch( Throwable e ){
@@ -395,7 +416,20 @@ UtilitiesImpl
 			Debug.printStackTrace( e );
 		}
 		
-		return( null );
+		if ( res == null ){
+			
+				// if we failed then use any prior value if we've got one
+			
+			res	= last_public_ip_address;
+			
+		}else{
+			
+			last_public_ip_address		= res;
+			
+			last_public_ip_address_time	= now;
+		}
+		
+		return( res );
 	}
 	
 	public String

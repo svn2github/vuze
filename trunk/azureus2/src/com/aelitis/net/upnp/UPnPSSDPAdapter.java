@@ -22,35 +22,26 @@
 
 package com.aelitis.net.upnp;
 
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.URL;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.plugins.utils.UTTimer;
 
 public interface 
-UPnPSSDPListener 
+UPnPSSDPAdapter 
 {
+	public UTTimer
+	createTimer(
+		String	name );
+
 	public void
-	receivedResult(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		URL					location,
-		String				ST,
-		String				AL );
+	createThread(
+		String		name,
+		AERunnable	runnable );
 	
 	public void
-	receivedNotify(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		URL					location,
-		String				NT,
-		String				NTS );
-
-	public String
-	receivedSearch(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		String				ST );
+	trace(
+		Throwable	e );
+	
+	public void
+	trace(
+		String	str );
 }

@@ -45,7 +45,7 @@ UPnPFactory
 	
 	public static UPnPSSDP
 	getSSDP(
-		UPnPAdapter		adapter )
+		UPnPSSDPAdapter		adapter )
 	
 		throws UPnPException
 	{

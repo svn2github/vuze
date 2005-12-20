@@ -37,6 +37,9 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.instancemanager.AZInstance;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.download.session.TorrentSessionManager;
@@ -188,6 +191,15 @@ AzureusCoreImpl
 	        	}
 	       }.start();
          
+	   AZInstanceManager	inst_man = AZInstanceManagerFactory.getSingleton( this );
+	   
+	   AZInstance[]	instances = inst_man.getInstances();
+	   
+	   for (int i=0;i<instances.length;i++){
+		   
+		   System.out.println( "AZInstance: " + instances[i].getString());
+	   }
+	   
            
        //late inits
 	   NetworkManager.getSingleton().initialize(); 

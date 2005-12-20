@@ -24,14 +24,13 @@ package com.aelitis.net.upnp;
 
 import java.util.Comparator;
 
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 
 public interface 
 UPnPAdapter 
+	extends UPnPSSDPAdapter
 {
 	public SimpleXMLParserDocument
 	parseXML(
@@ -42,25 +41,9 @@ UPnPAdapter
 	public ResourceDownloaderFactory
 	getResourceDownloaderFactory();
 	
-	public UTTimer
-	createTimer(
-		String	name );
-
-	public void
-	createThread(
-		String		name,
-		AERunnable	runnable );
-	
 	public Comparator
 	getAlphanumericComparator();
 	
-	public void
-	trace(
-		Throwable	e );
-	
-	public void
-	trace(
-		String	str );
 	
 	public String
 	getTraceDir();
