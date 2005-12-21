@@ -62,6 +62,8 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
 
 /**
  * @author parg
+ * @author MjrTom
+ *			2005/Oct/08: pieceAdded => addPiece, getAvgAvail
  *
  */
 
@@ -1224,12 +1226,6 @@ Test
 		}
 
 	  
-	  public void pieceAdded(PEPiece piece)
-		{
-		
-	}
-
-	  
 	  public boolean needsMD5CheckOnCompletion(int pieceNumber)
 		{
 	  	return( false );
@@ -1388,6 +1384,15 @@ Test
 				return null;
 			}
 	
+	public void addPiece(PEPiece piece, int pieceNumber)
+	{
+	}
+
+
+	public float getAvgAvail()
+	{
+		return 0;
+	}
 
 	  
 	}

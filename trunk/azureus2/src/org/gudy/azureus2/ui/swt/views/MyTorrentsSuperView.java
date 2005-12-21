@@ -20,6 +20,10 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
+/**
+ * @author MjrTom
+ *			2005/Dec/08: Avg Avail Item
+ */
 
 public class MyTorrentsSuperView extends AbstractIView  {
   private AzureusCore	azureus_core;
@@ -58,6 +62,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new NetworksItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new PeerSourcesItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new AvailabilityItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
+    new AvgAvailItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SecondsSeedingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new SecondsDownloadingItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
     new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_INCOMPLETE),
@@ -92,6 +97,7 @@ public class MyTorrentsSuperView extends AbstractIView  {
     new NetworksItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new PeerSourcesItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new AvailabilityItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
+    new AvgAvailItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new SecondsSeedingItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new SecondsDownloadingItem(TableManager.TABLE_MYTORRENTS_COMPLETE),
     new OnlyCDing4Item(TableManager.TABLE_MYTORRENTS_COMPLETE),

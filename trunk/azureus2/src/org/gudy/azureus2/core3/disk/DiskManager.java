@@ -27,7 +27,11 @@ import java.io.File;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
- 
+/**
+* @author MjrTom
+*			2005/Oct/08: Priority, getPieces done, etc changes for new piece-picking
+*/
+
 public interface
 DiskManager
 {
@@ -144,15 +148,15 @@ DiskManager
 		throws Exception;
 
 	
-	public void
-	computePriorityIndicator();
+//	public void
+//	computePriorityIndicator();
 	
 	public DiskManagerPiece[] 
 	getPieces();
 
-	public int 
-	getPieceNumberToDownload(
-		boolean[] 	_piecesRarest );
+//	public int 
+//	getPieceNumberToDownload(
+//		boolean[]	pieceCandidates);
 	
 	public boolean
 	hasDownloadablePiece();
@@ -253,4 +257,8 @@ DiskManager
 
 	public void 
 	saveState();
+
+	public boolean getFirstPiecePriority();
+	public int getPiecesDone();
+
 }

@@ -23,6 +23,8 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 /**
  * @author parg
+ * @author MjrTom
+ *			2005/Oct/08: Add _lastPiece
  *
  */
 
@@ -50,7 +52,9 @@ PeerForeignDelegate
 	implements 	PEPeerTransport
 {
 		// this implementation supports read-only peers (i.e. download only)
-	
+
+	protected int					_lastPiece =-1;
+
 	private PeerManagerImpl		manager;
 	private Peer				foreign;
 	
@@ -364,7 +368,7 @@ PeerForeignDelegate
 	public int 
 	getPercentDoneInThousandNotation()
 	{
-		return( foreign.getPercentDone());
+		return foreign.getPercentDoneInThousandNotation();
 	}
 
 
@@ -521,4 +525,15 @@ PeerForeignDelegate
 		
 		return( res );
 	}
+
+	public int getLastPiece()
+	{
+		return _lastPiece;
+	}
+
+	public void setLastPiece(int pieceNumber)
+	{
+		_lastPiece =pieceNumber;
+	}
+
 }

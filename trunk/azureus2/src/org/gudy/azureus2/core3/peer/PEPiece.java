@@ -21,10 +21,14 @@
  
 package org.gudy.azureus2.core3.peer;
 
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+
 /**
  * Represents a Piece and the status of its different chunks (un-requested, requested, downloaded, written).
  * 
  * @author Olivier
+ * @author MjrTom
+ *			2005/Oct/08: various changes to support new piece-picking
  *
  */
 
@@ -53,9 +57,9 @@ PEPiece
   
   public boolean[] getDownloaded();   
   
-  public boolean isSlowPiece();
-  
-  public void setSlowPiece(boolean slowPiece);
+	public int getSpeed();
+	
+	public void setSpeed(int speed);
   
   /**
    * record details of a piece's blocks that have been completed for bad peer detection purposes
@@ -89,22 +93,36 @@ PEPiece
   
   public boolean isBeingChecked();
   
-  public int getAndMarkBlock();
-  
-  public int getNextUnrequestedBlock();
-   
-  public PEPeerManager getManager();
-  
-  public boolean isWritten(int blockNumber);
-  
-  public void setBlockWritten(int blockNumber);
-  
-  //A Piece can be reserved by a peer, so that only him can
-  //contribute to it.
+	public int getAndMarkBlock();
+
+	public int getBlock();
+
+	public PEPeerManager getManager();
+	
+	public boolean isWritten(int blockNumber);
+	
+	public void setBlockWritten(int blockNumber);
+	
+	//A Piece can be reserved by a peer, so that only s/he can
+	//contribute to it.
   public void setReservedBy(PEPeer peer);
   
   public PEPeer getReservedBy();
   
   public void reDownloadBlock(int blockNumber);
-  
+
+  	public DiskManagerPiece getDMPiece();
+
+	public long getPriority();
+
+	/**
+	 * @return long ResumePriority, as set by other methods
+	 */
+	public long getResumePriority();
+	
+	public int getNbRequests();
+	public int getNbUnrequested();
+
+	public long getCreationTime();
+
 }

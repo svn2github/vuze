@@ -31,6 +31,11 @@ import org.gudy.azureus2.plugins.network.Connection;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 
+/**
+* @author MjrTom
+*			2005/Oct/08: s/getLastPiece
+*/
+
 public class UnchokerUtilTest {
   
   private static final int NUM_PEERS_TO_TEST = 100;
@@ -169,6 +174,8 @@ public class UnchokerUtilTest {
 		public int getPercentDoneOfCurrentIncomingRequest(){ return 0; }  
 		public int getPercentDoneOfCurrentOutgoingRequest(){ return 0; }  
 		public long getTimeSinceConnectionEstablished(){ return 0; }
+		public int getLastPiece() { return -1; }
+		public void setLastPiece(int pieceNumber) {}
       };
       
       peers.add( peer );

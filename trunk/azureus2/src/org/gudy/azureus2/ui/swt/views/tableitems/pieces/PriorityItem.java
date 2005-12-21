@@ -17,40 +17,45 @@
  * AELITIS, SARL au capital de 30,000 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
-import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.peer.PEPiece;
-import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
  *
- * @author TuxPaper
- * @since 2.0.8.5
  * @author MjrTom
- *			2005/Oct/08: fast/slow changed to graduated, so >2 = fast now 
+ * @since 2.3.0.7
  */
 
-public class TypeItem
-       extends CoreTableColumn 
-       implements TableCellRefreshListener
+public class PriorityItem
+extends CoreTableColumn 
+implements TableCellRefreshListener
 {
-  /** Default Constructor */
-  public TypeItem() {
-    super("type", ALIGN_TRAIL, POSITION_LAST, 80, TableManager.TABLE_TORRENT_PIECES);
-    setRefreshInterval(INTERVAL_LIVE);
-  }
+	/** Default Constructor */
+	public PriorityItem() {
+		super("priority", ALIGN_TRAIL, POSITION_LAST, 80, TableManager.TABLE_TORRENT_PIECES);
+		setRefreshInterval(INTERVAL_LIVE);
+	}
+	
+	public void refresh(TableCell cell)
+	{
+		long	value =0;
+		PEPiece	piece = (PEPiece)cell.getDataSource();
+		if (null !=piece)
+		{
+			value =piece.getResumePriority();
 
-  public void refresh(TableCell cell) {
-    PEPiece piece = (PEPiece)cell.getDataSource();
-    long value = (piece == null) ? 0 : piece.getSpeed() >2 ? 1 : 0;
-    
-    if( !cell.setSortValue( value ) && cell.isValid() ) {
-      return;
-    }
-    
-    cell.setText(MessageText.getString("PiecesView.typeItem." + value));
-  }
+			if(!cell.setSortValue(value) &&cell.isValid())
+			{
+				return;
+			}
+		}    
+		cell.setText(""+value);
+	}
 }

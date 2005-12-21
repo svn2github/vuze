@@ -23,17 +23,22 @@ package org.gudy.azureus2.core3.peer.impl;
 
 /**
  * @author parg
+ * @author MjrTom
+ *			2005/Oct/08: numerous changes for new piece-picking
  *
  */
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
-import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
 PEPieceImpl
@@ -49,44 +54,45 @@ PEPieceImpl
 
   private PEPeer reservedBy;
     
-   public boolean isBeingChecked = false;
+	public boolean		isBeingChecked = false;
+	private long		creation_time;
 
-  //A Flag to indicate that this piece is for slow peers
-  //Slow peers can only continue/create slow pieces
-  //Fast peers can't continue/create slow pieces
-  //In end game mode, this limitation isn't used
-   
-  private boolean slowPiece;
-  
-  public PEPeerManager manager;
+	//In end game mode, this limitation isn't used
+	private int			pieceSpeed;			//slower peers dont slow down fast pieces too much
+
+	public PEPeerManager	manager;
 
   	// experimental class level lock
   
   protected static AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
 
-  public 
-  PEPieceImpl(
-  	PEPeerManager 		_manager, 
-	DiskManagerPiece	_dm_piece,
-	boolean				_slow_piece,
-	boolean				_recovered )
-  {  
-	manager 	= _manager;
-	dm_piece	= _dm_piece;
-	slowPiece	= _slow_piece;
-		
-	int	nbBlocs 	= dm_piece.getBlockCount();
-	
-	downloaded 	= new boolean[nbBlocs];
-	requested 	= new boolean[nbBlocs];
-	writers 	= new PEPeer[nbBlocs];
-	writes 		= new ArrayList(0);
-	
-	if ( !_recovered ){
-		
-		dm_piece.setInitialWriteTime();
+	public 
+	PEPieceImpl(
+		PEPeerManager 		_manager, 
+		DiskManagerPiece	_dm_piece,
+		int					_pieceSpeed,
+		boolean				_recovered )
+	{
+		manager 	= _manager;
+		dm_piece	= _dm_piece;
+		pieceSpeed	= _pieceSpeed;
+
+		int	nbBlocs 	= dm_piece.getBlockCount();
+
+		downloaded 	= new boolean[nbBlocs];
+		requested 	= new boolean[nbBlocs];
+		writers 	= new PEPeer[nbBlocs];
+		writes 		= new ArrayList(0);
+
+		creation_time =SystemTime.getCurrentTime();
+		if (!_recovered)
+		{
+			dm_piece.setInitialWriteTime();
+		} else
+		{
+			pieceSpeed =0;
+		}
 	}
-  }
 
   
   public int 
@@ -120,51 +126,50 @@ PEPieceImpl
 	requested[blocNumber] = false;
   }
 
-  // This method will return the first non requested bloc and
-  // will mark it as requested
-  
-  	/**
-  	 * Assumption - single threaded access to this
-  	 */
-  public int 
-  getAndMarkBlock() 
-  {
-		for (int i = 0; i < requested.length; i++) {
-			
-		  if (!requested[i] && !dm_piece.getWritten(i)) {
-			
-			requested[i] = true;
-	
-			return( i );
-		  }
-		}
-		
-		return( -1 );
-  }
-
-  public int getNextUnrequestedBlock() {
-		for (int i = 0; i < requested.length; i++)
-			if (!requested[i] && !dm_piece.getWritten(i) && !downloaded[i])
+	// This method will return the first non requested block and
+	// will mark it as requested, unless it's been too long since
+	// anything was written to the piece, in which case it'll return
+	// the first non-written block so it can be re-requested
+	/**
+	 * Assumption - single threaded access to this
+	 */
+	public int 
+	getAndMarkBlock() 
+	{
+		for (int i =0; i <requested.length; i++)
+		{
+			if (!requested[i] &&!downloaded[i] &&!dm_piece.getWritten(i))
+			{
+				requested[i] =true;
 				return i;
-
+			}
+		}
 		return -1;
 	}
 
-  	/**
-  	 * This method is safe in a multi-threaded situation as the worst that it can
-  	 * do is mark a block as not requested even though its downloaded which may lead
-  	 * to it being downloaded again
-  	 */
-  
-  public void 
-  unmarkBlock(
-  	int blocNumber) 
-  { 	
-  	if (!downloaded[blocNumber]){
-  		
-  		requested[blocNumber] = false;
-  	}
-  }
+	// find a block w/o requesting it
+	public int getBlock() 
+	{
+		for (int i =0; i <requested.length; i++)
+		{
+			if (!requested[i] &&!dm_piece.getWritten(i) &&!downloaded[i])
+			{
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * This method is safe in a multi-threaded situation as the worst that it can
+	 * do is mark a block as not requested even though its downloaded which may lead
+	 * to it being downloaded again
+	 */
+
+	public void unmarkBlock(int blocNumber)
+	{
+		requested[blocNumber] =downloaded[blocNumber];
+	}
   
   public void
   reDownloadBlocks(
@@ -181,21 +186,18 @@ PEPieceImpl
 	  }
   }
   
-  	/**
-  	 * Assumption - single threaded with getAndMarkBlock
-  	 */
-  
-  public boolean 
-  markBlock(int blocNumber) 
-  { 	
-  	if (!downloaded[blocNumber]){
-  		
-  		requested[blocNumber] = true;
-  		return true;
-  	}
-  	
-  	return false;
-  }
+	/**
+	 * Assumption - single threaded with getAndMarkBlock
+	 */
+	public boolean 
+	markBlock(int blockNumber) 
+	{
+		if (!downloaded[blockNumber])
+		{
+			return requested[blockNumber] =true;
+		}
+		return false;
+	}
 
   public int 
   getBlockSize(
@@ -374,13 +376,13 @@ PEPieceImpl
     return writers;
   }
   
-  public boolean isSlowPiece() {
-    return slowPiece;
-  }
-  
-  public void setSlowPiece(boolean _slowPiece) {
-    slowPiece = _slowPiece;
-  }
+	public int getSpeed() {
+		return pieceSpeed;
+	}
+
+	public void setSpeed(int speed) {
+		pieceSpeed =speed;
+	}
 
   	// written can be null, in which case if the piece is complete, all blocks are complete
   	// otherwise no blocks are complete
@@ -442,5 +444,60 @@ PEPieceImpl
     requested[blockNumber] = false;
     dm_piece.reDownloadBlock(blockNumber);
   }
-  
+
+	public long getCreationTime()
+	{
+		long now =SystemTime.getCurrentTime();
+		if (now >=creation_time)
+		{
+			return creation_time;
+		}
+		creation_time =now;
+		return creation_time;
+	}
+
+	public int getNbRequests()
+	{
+		int	result =0;
+		for (int i =dm_piece.getBlockCount() -1; i >=0 ;i--)
+		{
+			if (!downloaded[i] &&requested[i])
+				result++;
+		}
+		return result;
+	}
+
+	public DiskManagerPiece getDMPiece()
+	{
+		return dm_piece;
+	}
+
+	public long getPriority(){
+		return dm_piece.getPriority();
+	}
+
+	public void setResumePriority(long p)
+	{
+		dm_piece.setResumePriority(p);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.peer.PEPiece#getResumePriority()
+	 */
+	public long getResumePriority()
+	{
+		return dm_piece.getResumePriority();
+	}
+
+	public int getNbUnrequested()
+	{
+		int	result =0;
+		for (int i =dm_piece.getBlockCount() -1; i >=0 ;i--)
+		{
+			if (!downloaded[i] &&!requested[i])
+				result++;
+		}
+		return result;
+	}
+
 }

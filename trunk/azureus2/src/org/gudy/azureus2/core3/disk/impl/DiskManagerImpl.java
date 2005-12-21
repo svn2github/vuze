@@ -43,8 +43,8 @@ import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapper;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFactory;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFile;
-import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePicker;
-import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePickerFactory;
+//import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePicker;
+//import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePickerFactory;
 import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -74,6 +74,8 @@ import java.util.StringTokenizer;
  * The disk Wrapper.
  * 
  * @author Tdv_VgA
+ * @author MjrTom
+ *			2005/Oct/08: new piece-picking support changes
  *
  */
 public class 
@@ -85,11 +87,12 @@ DiskManagerImpl
 	
 	private static DiskAccessController	disk_access_controller;
 	
-	static{
-		int	max_read_threads 	= COConfigurationManager.getIntParameter( "diskmanager.perf.read.maxthreads" );
-		int	max_read_mb 		= COConfigurationManager.getIntParameter( "diskmanager.perf.read.maxmb" );
-		int	max_write_threads 	= COConfigurationManager.getIntParameter( "diskmanager.perf.write.maxthreads" );
-		int	max_write_mb 		= COConfigurationManager.getIntParameter( "diskmanager.perf.write.maxmb" );
+	static {
+		firstPiecePriority			= COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
+		int	max_read_threads 		= COConfigurationManager.getIntParameter( "diskmanager.perf.read.maxthreads" );
+		int	max_read_mb 			= COConfigurationManager.getIntParameter( "diskmanager.perf.read.maxmb" );
+		int	max_write_threads 		= COConfigurationManager.getIntParameter( "diskmanager.perf.write.maxthreads" );
+		int	max_write_mb 			= COConfigurationManager.getIntParameter( "diskmanager.perf.write.maxmb" );
 		
 		disk_access_controller = 
 			DiskAccessControllerFactory.create(
@@ -122,11 +125,12 @@ DiskManagerImpl
 	private int pieceLength;
 	private int lastPieceLength;
 
-	private int 		nbPieces;
-	private long 		totalLength;
-	private int 		percentDone;
-	private long 		allocated;
-	private long 		remaining;
+	private int			nbPieces;
+	private int			nbPiecesDone;
+	private long		totalLength;
+	private int			percentDone;
+	private long		allocated;
+	private long		remaining;
 
     
 	private	TOTorrent		torrent;
@@ -137,13 +141,13 @@ DiskManagerImpl
 	private DMWriter				writer;
 	
 	private RDResumeHandler			resume_handler;
-	private DMPiecePicker			piece_picker;
+//	private DMPiecePicker			piece_picker;
 	private DMPieceMapper			piece_mapper;
 	
 	
-	
+	protected static boolean	firstPiecePriority;
 	private DiskManagerPieceImpl[]	pieces;
-	private DMPieceList[] 			pieceMap;
+	private DMPieceList[]			pieceMap;
 
 	private DiskManagerFileInfoImpl[] 	files;
 	
@@ -228,11 +232,13 @@ DiskManagerImpl
 				parameterChanged( 
 					String  str ) 
 	    	    { 	      
-		    	  	  max_read_block_size	= COConfigurationManager.getIntParameter( "BT Request Max Block Size" );
-		    	    }
-	    	 };
+					max_read_block_size	= COConfigurationManager.getIntParameter( "BT Request Max Block Size" );
+					firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
+	    	    }
+		};
 
-	 	COConfigurationManager.addAndFireParameterListener( "BT Request Max Block Size", param_listener );
+		COConfigurationManager.addParameterListener("Prioritize First Piece", param_listener);
+	 	COConfigurationManager.addAndFireParameterListener( "BT Request Max Block Size", param_listener);
 	}
 	   
 	public 
@@ -311,12 +317,17 @@ DiskManagerImpl
 		lastPieceLength  	= piece_mapper.getLastPieceLength();
 		
 		pieces		= new DiskManagerPieceImpl[ nbPieces ];
-		
-		for (int i=0;i<pieces.length;i++){
-			
+
+		nbPiecesDone =0;
+		for (int i=0;i<pieces.length;i++)
+		{
 			pieces[i] = new DiskManagerPieceImpl( this, i );
+			if (pieces[i].getDone())
+			{
+				nbPiecesDone++;
+			}
 		}
-		
+
 		reader 				= DMAccessFactory.createReader(this);
 		
 		checker 			= DMAccessFactory.createChecker(this);
@@ -325,7 +336,7 @@ DiskManagerImpl
 		
 		resume_handler		= new RDResumeHandler( this, checker );
 	
-		piece_picker		= DMPiecePickerFactory.create( this );
+//		piece_picker		= DMPiecePickerFactory.create( this );
 	}
 
 	public void 
@@ -445,7 +456,7 @@ DiskManagerImpl
 
 		constructFilesPieces();
 		
-		piece_picker.start();
+//		piece_picker.start();
 		
 		if ( getState() == FAULTY  ){
 			
@@ -534,7 +545,7 @@ DiskManagerImpl
 		
 		resume_handler.stop();
 		
-		piece_picker.stop();
+//		piece_picker.stop();
 		
 		if ( files != null ){
 			
@@ -1079,12 +1090,12 @@ DiskManagerImpl
 				piece.setDoneSupport( done );
 	
 				if ( done ){
-	
+					
 					remaining -= piece_length;
-					
+					nbPiecesDone++;
 				}else{
-					
 					remaining += piece_length;
+					nbPiecesDone--;
 				}
 									
 				for (int i = 0; i < piece_list.size(); i++) {
@@ -1669,11 +1680,8 @@ DiskManagerImpl
 		            
 		            return;
 		            
-		          }else{
-		        	  
-		    		  destDir.mkdirs();
-  
-		          }
+		          }  
+	    		  destDir.mkdirs();
 	    	  }
 	      }
 	      
@@ -1982,7 +1990,7 @@ DiskManagerImpl
 	  storeFilePriorities( download_manager, files );
   }
   
-  private static void 
+  protected static void 
   storeFilePriorities(
 	DownloadManager			download_manager,
 	DiskManagerFileInfo[]	files )
@@ -2085,21 +2093,21 @@ DiskManagerImpl
 		return( download_manager.getDownloadState());
 	}
 	
-  	public void 
-	computePriorityIndicator()
-  	{
-  		piece_picker.computePriorityIndicator();
-  	}
-  	
-	public int 
-	getPieceNumberToDownload(
-		boolean[] _piecesRarest)
-	{
-		return( piece_picker.getPiecenumberToDownload( _piecesRarest ));
-	}
+//	public void 
+//	computePriorityIndicator()
+//	{
+//		piece_picker.computePriorityIndicator();
+//	}
+
+//	public int
+//	getPieceNumberToDownload(boolean[] pieceCandidates)
+//	{
+//		return piece_picker.getPiecenumberToDownload(pieceCandidates);
+//	}
 	
 	public boolean hasDownloadablePiece() {
-	    return piece_picker.hasDownloadablePiece();
+//		return piece_picker.hasDownloadablePiece();
+		return (0 <getRemainingExcludingDND());
 	}
 	
 	public File
@@ -2597,6 +2605,16 @@ DiskManagerImpl
 	getRecheckScheduler()
 	{
 		return( recheck_scheduler );
+	}
+
+	public boolean getFirstPiecePriority()
+	{
+		return firstPiecePriority;
+	}
+
+	public int getPiecesDone()
+	{
+		return nbPiecesDone;
 	}
 
 }

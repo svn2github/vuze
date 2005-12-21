@@ -24,6 +24,8 @@ package org.gudy.azureus2.core3.disk;
 
 /**
  * @author parg
+ * @author MjrTom
+ *			2005/Oct/08: priority & resumePriority handling
  *
  */
 
@@ -79,7 +81,16 @@ DiskManagerPiece
 	public long
 	getLastWriteTime();
   
-  public void
-  reDownloadBlock(int blockNumber);
+	public void
+	reDownloadBlock(int blockNumber);
 
+	public long getPriority();
+
+	/**
+	 * @param p the Resume Priority to set, to be read by other things
+	 */
+	public void setResumePriority(long p);
+	public long getResumePriority();
+
+	public DiskManager getManager();
 }

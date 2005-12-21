@@ -23,6 +23,8 @@ package org.gudy.azureus2.core3.peer;
 
 /**
  * @author parg
+ * @author MjrTom
+ *			2005/Oct/08: pieceAdded => addPiece to simplify new piece-picking, getAvgAvail
  *
  */
 
@@ -32,7 +34,6 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.*;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
@@ -118,7 +119,7 @@ PEPeerManager
 	removeListener(
 		PEPeerManagerListener	l );
   
-  public void pieceAdded(PEPiece piece);
+	public void addPiece(PEPiece piece, int pieceNumber);
   
   public boolean needsMD5CheckOnCompletion(int pieceNumber);
   
@@ -272,4 +273,7 @@ PEPeerManager
    * @return average percent complete in thousand notation
    */
   public int getAverageCompletionInThousandNotation();
+
+	public float getAvgAvail();
+
 }

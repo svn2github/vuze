@@ -1,4 +1,8 @@
 /*
+ * File    : PortItem.java
+ * Created : 24 nov. 2003
+ * By      : Olivier
+ *
  * Copyright (C) 2004 Aelitis SARL, All rights Reserved
  *
  * This program is free software; you can redistribute it and/or modify
@@ -18,39 +22,35 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
  
-package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
+package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
  *
- * @author TuxPaper
- * @since 2.0.8.5
  * @author MjrTom
- *			2005/Oct/08: fast/slow changed to graduated, so >2 = fast now 
+ * @since 2.3.0.7
  */
 
-public class TypeItem
+public class PieceItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
   /** Default Constructor */
-  public TypeItem() {
-    super("type", ALIGN_TRAIL, POSITION_LAST, 80, TableManager.TABLE_TORRENT_PIECES);
+  public PieceItem() {
+    super("piece", ALIGN_TRAIL, POSITION_INVISIBLE, 40, TableManager.TABLE_TORRENT_PEERS);
     setRefreshInterval(INTERVAL_LIVE);
-  }
+}
 
   public void refresh(TableCell cell) {
-    PEPiece piece = (PEPiece)cell.getDataSource();
-    long value = (piece == null) ? 0 : piece.getSpeed() >2 ? 1 : 0;
-    
-    if( !cell.setSortValue( value ) && cell.isValid() ) {
+    PEPeer peer = (PEPeer)cell.getDataSource();
+    int value = (peer == null) ? 0 : peer.getLastPiece();
+
+    if (!cell.setSortValue(value) && cell.isValid())
       return;
-    }
-    
-    cell.setText(MessageText.getString("PiecesView.typeItem." + value));
+
+    cell.setText(""+value);
   }
 }

@@ -41,7 +41,10 @@ import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
  * @author TuxPaper
  *         2004/Apr/20: Remove need for tableItemToObject
  *         2004/Apr/21: extends TableView instead of IAbstractView
- */
+ * @author MjrTom
+ *			2005/Oct/08: Add PriorityItem, SpeedItem
+*/
+
 public class PiecesView 
        extends TableView 
        implements DownloadManagerPeerListener
@@ -55,7 +58,9 @@ public class PiecesView
     new AvailabilityItem(),
     new TypeItem(),
     new ReservedByItem(),
-    new WritersItem()
+    new WritersItem(),
+    new PriorityItem(),
+    new SpeedItem()
   };
 
   DownloadManager manager;
@@ -64,11 +69,11 @@ public class PiecesView
    * Initialize
    *
    */
-  public PiecesView() {
-    super(TableManager.TABLE_TORRENT_PIECES, "PiecesView", basicItems,
-				basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
-    bEnableTabViews = true;
-  }
+	public PiecesView() {
+		super(TableManager.TABLE_TORRENT_PIECES, "PiecesView", basicItems,
+			basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		bEnableTabViews = true;
+	}
 
 	public void dataSourceChanged(Object newDataSource) {
   	if (manager != null)

@@ -33,6 +33,8 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
  * @author Olivier
+ * @author MjrTom
+ *			2005/Oct/08: lastPiece handling
  *
  */
 
@@ -227,4 +229,8 @@ PEPeer
    * @return time count in ms
    */
   public long getTimeSinceConnectionEstablished();
+
+	public void setLastPiece(int i);
+	public int getLastPiece();
+
 }

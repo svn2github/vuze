@@ -45,8 +45,11 @@ import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.utils.*;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
-
-
+/**
+ * 
+ * @author MjrTom
+ *			2005/Oct/08: lastPiece
+ */
 
 public class 
 PEPeerTransportProtocol
@@ -55,6 +58,8 @@ PEPeerTransportProtocol
 {
 	protected final static LogIDs LOGID = LogIDs.PEER;
   
+	private int	_lastPiece =-1;		//last piece that was requested from this peer (mostly to try to request fom same one)
+
 	private final PEPeerControl 	manager;
 	private String			peer_source;
 	private byte[] peer_id;
@@ -1992,4 +1997,15 @@ PEPeerTransportProtocol
 	public Object[] getQueryableInterfaces() {
 		return new Object[] { manager };
 	}
+
+	public int getLastPiece()
+	{
+		return _lastPiece;
+	}
+
+	public void setLastPiece(int pieceNumber)
+	{
+		_lastPiece =pieceNumber;
+	}
+
 }

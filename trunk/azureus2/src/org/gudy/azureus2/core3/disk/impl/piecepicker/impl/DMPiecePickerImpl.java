@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.disk.impl.piecepicker.*;
+import org.gudy.azureus2.core3.peer.impl.PEPieceImpl;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
@@ -47,9 +48,7 @@ DMPiecePickerImpl
 	private DiskManagerHelper		disk_manager;
 	
 	private boolean firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
-	private boolean completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
 	private int		nbPieces;
-	private int 	pieceCompletion[];
 	
 	private boolean	has_piece_to_download;
 	
@@ -111,25 +110,20 @@ DMPiecePickerImpl
 	start()
 	{
 		COConfigurationManager.addParameterListener("Prioritize First Piece", this);
-		COConfigurationManager.addParameterListener("Prioritize Most Completed Files", this);
     
 		disk_manager.addListener(myDiskManListener);
-		
-		pieceCompletion = new int[nbPieces];
 		
 		has_piece_to_download	= false;
         compute_priority_recalc_outstanding = true;
 		
-		priorityLists = new BitSet[100];
 		
-		computePriorityIndicator();
+//		computePriorityIndicator();
 	}
 	
 	public void
 	stop()
 	{
 		COConfigurationManager.removeParameterListener("Prioritize First Piece", this);
-		COConfigurationManager.removeParameterListener("Prioritize Most Completed Files", this);
 		disk_manager.removeListener(myDiskManListener);
 	}
 	
@@ -138,9 +132,9 @@ DMPiecePickerImpl
 		String parameterName ) 
 	{
 	   firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
-	   completionPriority = COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
 	}
-	
+
+/*
 	public void 
 	computePriorityIndicator() 
 	{
@@ -192,17 +186,6 @@ DMPiecePickerImpl
 					  if (completion < 98) completion = 98;
 					}
 					
-					//If the file is started but not completed
-					else if(completionPriority) {
-					  int percent = 0;
-					  if (fileInfo.getLength() != 0) {
-					    percent = (int) ((fileInfo.getDownloaded() * 100) / fileInfo.getLength());
-					  }
-					  //if percent is less than 100 AND higher than current completion level
-					  if (percent < 100 && completion < percent) {
-					    completion = percent;
-					  }
-					}
 					else {
 					  if(completion < 0) completion = 0;
 					}
@@ -247,60 +230,53 @@ DMPiecePickerImpl
 			}
 		}
 	}
-	
-	 /*
-	// searches from 0 to searchLength-1
-    public static int binarySearch(int[] a, int key, int searchLength) {
-		int low = 0;
-		int high = searchLength - 1;
 
-		while (low <= high) {
-			int mid = (low + high) >> 1;
-			int midVal = a[mid];
-
-			if (midVal < key)
-				low = mid + 1;
-			else if (midVal > key)
-				high = mid - 1;
-			else
-				return mid; // key found
+	public int[] getPiecenumberToDownload(boolean[] pieceCandidates) {
+		if (0 >=PriorityPiecesCnt)
+		{	//cant do anything if no pieces to startup
+			return null;
 		}
-		return - (low + 1); // key not found.
-	}
-  */
-
-	public int getPiecenumberToDownload(boolean[] _piecesRarest) {
-		//Added patch so that we try to complete most advanced files first.
-		List _pieces = new ArrayList();
-    
-		for (int i = 99; i >= 0; i--) {
-
-		  if (priorityLists[i].isEmpty()) {
-		    //nothing is set for this priority, so skip
-		    continue;
-		  }
-		  
-		  //Switch comments to enable sequential piece picking.
-		  //int k = 0;
-		  //for (int j = 0; j < nbPieces && k < 50; j++) {
-      
-		  for (int j = 0; j < nbPieces ; j++) {
-		    if (_piecesRarest[j] && priorityLists[i].get(j)) {
-		      _pieces.add( FlyWeightInteger.getInteger(j) );
-		      //k++;
-		    }
-		  }
-		  
-		  if (_pieces.size() != 0) {
-				break;
-		  }
+		
+		int startI;
+		int direction;
+		
+		if (1 ==PriorityPiecesCnt)
+		{
+			startI =piecesBestStart;
+			direction =1;
+		} else
+		{
+			// Mix it up!
+			startI =piecesBestStart +rand.nextInt(piecesBestEnd -piecesBestStart);
+			direction =rand.nextBoolean() ?-1 :1;
 		}
-
-		if (_pieces.size() == 0) {
-		  return -1;
+		
+		//For every Priority piece
+		for (i =startI; i >=piecesBestStart &&i <=piecesBestEnd ;i +=direction)
+		{
+			//is piece flagged and confirmed not in progress
+			if (pieceCandidates[i] &&(null ==_pieces[i]))
+			{
+				// This should be a piece we want to start    
+				PEPieceImpl piece =new PEPieceImpl(this, dm_pieces[i], peerSpeed /2, false);
+				if (null !=piece)
+				{
+					//send the request ...
+					blockNumber =piece.getBlock();
+					if (0 <=blockNumber)
+					{
+						return new int[] {i, blockNumber};
+					}
+					piece =null;
+				}
+				// seems to be something wrong with memory; can't create a new piece
+				System.runFinalization();
+				//keep trying
+			}
 		}
-
-		return ((Integer)_pieces.get((int) (Math.random() * _pieces.size()))).intValue();
+		//suan le - hui ba
+		System.gc();
+		return null;
 	}
 
 	public boolean
@@ -308,54 +284,6 @@ DMPiecePickerImpl
 	{
 		return( has_piece_to_download );
 	}  
+*/
 
-	/*
-	  public int getPiecenumberToDownload(boolean[] _piecesRarest) {
-		int pieceNumber;
-		//Added patch so that we try to complete most advanced files first.
-		_priorityPieces[nbPieces] = 0;
-		for (int i = priorityLists.length - 1; i >= 0; i--) {
-		  for (int j = 0; j < nbPieces; j++) {
-			if (_piecesRarest[j] && binarySearch(priorityLists[i], j, priorityLists[i][nbPieces]) >= 0) {
-			  _priorityPieces[_priorityPieces[nbPieces]++] = j;
-			}
-		  }
-		  if (_priorityPieces[nbPieces] != 0)
-			break;
-		}
-      
-		if (_priorityPieces[nbPieces] == 0)
-		  System.out.println("Size 0");
-      
-		int nPiece = (int) (Math.random() * _priorityPieces[nbPieces]);
-		pieceNumber = _priorityPieces[nPiece];
-		return pieceNumber;
-	  }
-	*/
-	
-	private static class FlyWeightInteger {
-	    private static Integer[] array = new Integer[1024];
-
-	    final static Integer getInteger(final int value) {
-	      Integer tmp = null;
-	      
-	      if (value >= array.length) {
-	        Integer[] arrayNew = new Integer[value + 256];
-	        System.arraycopy(array, 0, arrayNew, 0, array.length);
-	        array = arrayNew;
-	      }
-	      else {
-	        tmp = array[value];
-	      }
-	      
-	      if (tmp == null) {
-	        tmp = new Integer(value);
-	        array[value] = tmp;
-	      }
-	      
-	      return tmp;
-	    }
-		}
-	  
-	  
 }

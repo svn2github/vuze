@@ -45,7 +45,10 @@ import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
  *         2004/Apr/20: Use TableRowImpl instead of PeerRow
  *         2004/Apr/20: Remove need for tableItemToObject
  *         2004/Apr/21: extends TableView instead of IAbstractView
+ * @author MjrTom
+ *			2005/Oct/08: Add PieceItem
  */
+
 public class PeersView 
        extends TableView
        implements DownloadManagerPeerListener
@@ -79,7 +82,8 @@ public class PeersView
     new DLedFromOthersItem(),
     new UpRatioItem(),
     new StateItem(),
-    new ConnectedTimeItem()
+    new ConnectedTimeItem(),
+    new PieceItem()
   };
   private DownloadManager manager;
 
@@ -89,8 +93,8 @@ public class PeersView
    *
    */
   public PeersView() {
-    super(TableManager.TABLE_TORRENT_PEERS, "PeersView", 
-          basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+	    super(TableManager.TABLE_TORRENT_PEERS, "PeersView", 
+	          basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
     setRowDefaultHeight(16);
     bEnableTabViews = true;
 	  coreTabViews = new IView[] { new PeerInfoView(), new LoggerView() };

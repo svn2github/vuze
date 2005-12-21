@@ -32,6 +32,8 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 /**
  * @author Olivier Chalouhi
+ * @author MjrTom
+ *			2005/Dec/08: green
  *  
  */
 public class Colors implements ParameterListener {
@@ -57,6 +59,7 @@ public class Colors implements ParameterListener {
   public static Color black;
   public static Color light_grey;
   public static Color blue;
+  public static Color green;
   public static Color grey;
   public static Color red;
   public static Color white;
@@ -155,8 +158,8 @@ public class Colors implements ParameterListener {
             Colors.blues[i].dispose();
         }
         Color[] colorsToDispose = {colorInverse, colorShiftLeft, colorShiftRight,
-            colorError, grey, black, light_grey, blue, red, white, red_ConsoleView,
-            colorAltRow, colorWarning};
+        		colorError, grey, black, light_grey, blue, green, red, white,
+        		red_ConsoleView, colorAltRow, colorWarning};
         for (int i = 0; i < colorsToDispose.length; i++) {
           if (colorsToDispose[i] != null && !colorsToDispose[i].isDisposed()) {
             colorsToDispose[i].dispose();
@@ -301,6 +304,7 @@ public class Colors implements ParameterListener {
     black = new Color(display, new RGB(0, 0, 0));
     light_grey = new Color(display, new RGB(192, 192, 192));
     blue = new Color(display, new RGB(0, 0, 170));
+    green = new Color(display, new RGB(0, 170, 0));
     grey = new Color(display, new RGB(170, 170, 170));
     red = new Color(display, new RGB(255, 0, 0));
     white = new Color(display, new RGB(255, 255, 255));

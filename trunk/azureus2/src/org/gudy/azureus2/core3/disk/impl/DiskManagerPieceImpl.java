@@ -24,47 +24,60 @@ package org.gudy.azureus2.core3.disk.impl;
 
 /**
  * @author parg
- *
+ * @author MjrTom
+ *			2005/Oct/08: priority/resumePriority handling and minor clock fixes
  */
 
 
-import org.gudy.azureus2.core3.disk.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public class 
 DiskManagerPieceImpl
-	implements DiskManagerPiece
+implements DiskManagerPiece
 {
+	private static final long 	TIME_MIN_PRIORITY		=990;	// ms
+	private static final long	PRIORITY_W_FILE			=1010; 	//user sets file as "High"
+	private static final long	PRIORITY_W_1STLAST		=1009; 	//user select prioritize 1st/last
+
 	private DiskManagerImpl		disk_manager;
-	private int					piece_index;
+	private int					piece_index =-1;
 	private boolean				done;
-	private boolean				needed;
+	private boolean				needed =true;
 	
-		// to save memory the "written" field is only maintained for pieces that are
-		// downloading. A value of "null" means that either the piece hasn't started 
-		// download or that it is complete.
-		// access to "written" is single-threaded (by the peer manager) apart from when
-		// the disk manager is saving resume data.
-		// actually this is not longer strictly true, as setDone is called asynchronously
-		// however, this issue can be worked around by working on a reference to the written data
-		// as problems only occur when switching from all-written to done=true, both of which signify
-		// the same state of affairs.
+	// to save memory the "written" field is only maintained for pieces that are
+	// downloading. A value of "null" means that either the piece hasn't started 
+	// download or that it is complete.
+	// access to "written" is single-threaded (by the peer manager) apart from when
+	// the disk manager is saving resume data.
+	// actually this is not longer strictly true, as setDone is called asynchronously
+	// however, this issue can be worked around by working on a reference to the written data
+	// as problems only occur when switching from all-written to done=true, both of which signify
+	// the same state of affairs.
 	
-	protected boolean[] written;
-
-	protected long		last_write_time;
-
+	protected boolean[] 	written;
+	protected long			last_write_time;
+	
+	private long			priority;
+	private long			_time_last_priority;
+	private long			ResumePriority;
+	
 	protected
 	DiskManagerPieceImpl(
 		DiskManagerImpl		_disk_manager,
-		int					_piece_index )
+		int					_piece_index)
 	{
-		disk_manager	= _disk_manager;
+	    disk_manager	= _disk_manager;
 		piece_index		= _piece_index;
-		
+
 		needed	= true;	// starting position is that all pieces are needed
 	}
-	  
+	
 	public int
 	getPieceNumber()
 	{
@@ -78,10 +91,8 @@ DiskManagerPieceImpl
 			
 			return( disk_manager.getLastPieceLength());
 			
-		}else{
-			
-			return( disk_manager.getPieceLength());
 		}
+		return( disk_manager.getPieceLength());
 	}
 	
 	public int
@@ -100,18 +111,18 @@ DiskManagerPieceImpl
 	setDone(
 		boolean		_done )
 	{
-			// we delegate this operation to the disk manager so it can synchronise the activity
+		// we delegate this operation to the disk manager so it can synchronise the activity
 		
 		disk_manager.setPieceDone( this, _done );
-			
+		
 		if ( done ){
-				
+			
 			written = null;
 		}
 	}
 	
-		// this is ONLY used by the disk manager to update the done state while synchronized
-		// i.e. don't use it else where!
+	// this is ONLY used by the disk manager to update the done state while synchronized
+	// i.e. don't use it else where!
 	
 	protected void
 	setDoneSupport(
@@ -130,7 +141,7 @@ DiskManagerPieceImpl
 	setNeeded(
 		boolean	_needed )
 	{
-		needed	= _needed;
+		needed	=_needed;
 	}
 	
 	public void 
@@ -144,20 +155,20 @@ DiskManagerPieceImpl
 			written_ref = written = new boolean[getBlockCount()];
 		}
 		
-	    written_ref[blocNumber] = true;
-	    	    
+		written_ref[blocNumber] = true;
+
 	    last_write_time	= SystemTime.getCurrentTime();
 	}
-
+	
 	public boolean
 	getWritten(
-	 	int		bn )
+		int		bn )
 	{
 		if ( done ){
 			
 			return( true );
 		}
-				
+		
 		boolean[]	written_ref = written;
 		
 		if ( written_ref == null ){
@@ -165,15 +176,20 @@ DiskManagerPieceImpl
 			return( false );		
 		}
 		
-	  	return( written_ref[bn]);
+		return( written_ref[bn]);
 	}
-	  
-	public long
-	getLastWriteTime()
+	
+	public long getLastWriteTime()
 	{
-	 	return( last_write_time );
+		long now =SystemTime.getCurrentTime();
+		if (last_write_time >now)
+		{
+			last_write_time =now;
+		}
+		return last_write_time;
 	}
-	  
+	
+	
 	public int 
 	getCompleteCount() 
 	{
@@ -191,17 +207,17 @@ DiskManagerPieceImpl
 		
 		int	res = 0;
 		
-	  	for (int i = 0; i < written_ref.length; i++) {
-	  		
-	  		if ( written_ref[i] ){
-	  			
-	  			res++;
-	  		}
-	  	}
-	  	
-	  	return( res );
+		for (int i = 0; i < written_ref.length; i++) {
+			
+			if ( written_ref[i] ){
+				
+				res++;
+			}
+		}
+		
+		return( res );
 	}
-	  
+	
 	public boolean 
 	getCompleted() 
 	{
@@ -211,40 +227,38 @@ DiskManagerPieceImpl
 			
 			return( done );
 		}
-			  	
-	  	for (int i = 0; i < written_ref.length; i++) {
-	  		
-	  		if ( !written_ref[i] ){
-	  			
-	  			return( false );
-	  		}	  		
-	  	}
-	  	
+		
+		for (int i = 0; i < written_ref.length; i++) {
+			
+			if ( !written_ref[i] ){
+				
+				return( false );
+			}	  		
+		}
+		
 		return( true );
 	}
-	  
+	
 	public boolean[]
 	getWritten() 
 	{
-	 	return( written );
+		return( written );
 	}
-	  
+	
 	public void
 	reset()
 	{
 		written = null;
-    
 		setDone( false );
-		
 		last_write_time = SystemTime.getCurrentTime();
 	}
-	  
+	
 	public void
 	setInitialWriteTime()
 	{
 		last_write_time = SystemTime.getCurrentTime();		
 	}
-  
+	
   public void 
   reDownloadBlock(
 	 int blockNumber ) 
@@ -258,4 +272,104 @@ DiskManagerPieceImpl
 		  setDone(false);
 	  }
   }
+	
+	public long getPriority()
+	{
+		long now				=SystemTime.getCurrentTime();
+		long time_since_last	=now -_time_last_priority;
+		
+		if ((0 <=time_since_last) &&(TIME_MIN_PRIORITY >time_since_last))
+		{
+			return priority;
+		}
+//		if (!done)
+//		{
+			long filesPriority					=Long.MIN_VALUE;
+			long filePriority					=Long.MIN_VALUE;
+			boolean firstPiecePriority			=disk_manager.getFirstPiecePriority();
+			DiskManagerFileInfoImpl[] filesInfo	=getFiles();
+			priority =0;
+			for (int i =0; i <filesInfo.length; i++)
+			{
+				DiskManagerFileInfoImpl	fileInfo	=filesInfo[i];
+				long fileLength					=fileInfo.getLength();
+				if (!fileInfo.isSkipped() &&(0 <fileLength) &&(fileInfo.getDownloaded() <fileLength))
+				{
+					filePriority =0;
+					// user option "prioritize more completed files"
+//					if (completionPriority)
+//					{
+//						priority +=((1000 *fileInfo.getDownloaded()) /fileInfo.getLength());
+//					}
+					// user option "prioritize first and last piece"
+					// TODO: maybe should prioritize according to how far from edges of file (ie middle = no priority boost)
+					if (firstPiecePriority)
+					{
+						if (piece_index ==fileInfo.getFirstPieceNumber() || piece_index ==fileInfo.getLastPieceNumber())
+						{
+							filePriority +=PRIORITY_W_1STLAST;
+						}
+					}
+					//if the file is high-priority
+					//priority +=(1000 *fileInfo.getPriority()) /255;
+					if (fileInfo.isPriority())
+					{
+						filePriority +=PRIORITY_W_FILE;
+					}
+					if (filesPriority <filePriority)
+					{
+						filesPriority =filePriority;
+					}
+				}
+			}
+			if (0 <=filesPriority)
+			{
+				priority +=filesPriority;
+				needed =true;
+			} else
+			{
+				priority =Long.MIN_VALUE;
+				needed =false;
+			}
+//		} else
+//		{
+//			priority =Long.MIN_VALUE;
+//			needed =false;
+//		}
+		_time_last_priority =now;
+		return priority;
+	}
+	
+	public void setResumePriority(long p)
+	{
+		ResumePriority =p;
+	}
+	
+	public long getResumePriority()
+	{
+		return ResumePriority;
+	}
+	
+	public DiskManager getManager()
+	{
+		return disk_manager;
+	}
+
+	// maps out the list of files this piece spans
+  	public DiskManagerFileInfoImpl[] getFiles()
+  	{
+		List files =new ArrayList();
+		DMPieceList	pieceList =disk_manager.getPieceList(piece_index);
+		
+		for (int i =0; i <pieceList.size(); i++)
+		{
+			DiskManagerFileInfoImpl		fileInfo =(pieceList.get(i)).getFile();
+			files.add(fileInfo);
+		}
+  		
+		DiskManagerFileInfoImpl[] filesArray =new DiskManagerFileInfoImpl[files.size()];
+		files.toArray(filesArray);
+		return filesArray;
+	}
+
 }

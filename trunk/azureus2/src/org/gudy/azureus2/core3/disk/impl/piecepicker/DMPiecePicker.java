@@ -24,12 +24,14 @@ package org.gudy.azureus2.core3.disk.impl.piecepicker;
 
 /**
  * @author parg
- *
+ * @author MjrTom
+ * 		Dec 14, 2005:  new piece picking code
  */
 
 public interface 
 DMPiecePicker 
 {
+/*
 	public void
 	start();
 	
@@ -39,11 +41,11 @@ DMPiecePicker
 	public void 
 	computePriorityIndicator();
 	
-	public int 
+	public int[] 
 	getPiecenumberToDownload(
-		boolean[] _piecesRarest);
+		boolean[] pieceCandidates);
 	
 	public boolean
 	hasDownloadablePiece();
-
+*/
 }
