@@ -1144,7 +1144,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				int index = dataFileTable.indexOf(item);
 				final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
 
-				item.setChecked(file.bDownload);
 				item.setText(new String[] { file.sFullFileName,
 						DisplayFormatters.formatByteCountToKiBEtc(file.lSize),
 						file.sDestFileName });
@@ -1160,15 +1159,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 					item.setFont(font);
 				}
 				Utils.alternateRowBackground(item);
-
-				// For OSX to hopefully refresh the checkbox.
-				if (Constants.isOSX) {
-					item.getDisplay().asyncExec(new AERunnable() {
-						public void runSupport() {
-							item.setChecked(file.bDownload);
-						}
-					});
-				}
+		    Utils.setCheckedInSetData(item, file.bDownload);
 			}
 		});
 

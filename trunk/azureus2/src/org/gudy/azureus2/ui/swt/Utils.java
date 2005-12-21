@@ -38,6 +38,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -48,6 +49,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
  * 
  */
 public class Utils {
+	private static final boolean DIRECT_SETCHECKED = !Constants.isOSX
+			|| SWT.getVersion() >= 3212; 
   
   public static void disposeComposite(Composite composite,boolean disposeSelf) {
     if(composite == null || composite.isDisposed())
@@ -574,6 +577,27 @@ public class Utils {
 		String		url )
 	{
 		Program.launch( url );
+	}
+	
+	/**
+	 * Sets the checkbox in a Virtual Table while inside a SWT.SetData listener
+	 * trigger.  SWT 3.1 has an OSX bug that needs working around.
+	 * 
+	 * @param item
+	 * @param checked
+	 */
+	public static void setCheckedInSetData(final TableItem item,
+			final boolean checked) {
+		if (DIRECT_SETCHECKED) {
+			item.setChecked(checked);
+		} else {
+			item.setChecked(!checked);
+			item.getDisplay().asyncExec(new AERunnable() {
+				public void runSupport() {
+					item.setChecked(checked);
+				}
+			});
+		}
 	}
 }
 

@@ -195,18 +195,7 @@ public class TableColumnEditorWindow {
 
 		    final boolean bChecked = ((Boolean) newEnabledState.get(tableColumn))
 						.booleanValue();
-		    if (Constants.isOSX) {
-					// For OSX to hopefully refresh the checkbox.
-					item.setChecked(!bChecked);
-					table.getDisplay().syncExec(new AERunnable() {
-						public void runSupport() {
-							if (!item.isDisposed())
-								item.setChecked(bChecked);
-						}
-					});
-				} else {
-					item.setChecked(bChecked);
-				}
+		    Utils.setCheckedInSetData(item, bChecked);
 			}
     });
     table.setItemCount(tableColumns.size());

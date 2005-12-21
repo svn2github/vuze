@@ -407,7 +407,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection {
 				item.setGrayed(pluginIF.isMandatory() || pluginIF.isBuiltIn());
 				boolean bEnabled = COConfigurationManager.getBooleanParameter("PluginInfo."
 						+ pluginIF.getPluginID() + ".enabled", true);
-				item.setChecked(bEnabled);
+		    Utils.setCheckedInSetData(item, bEnabled);
 				item.setData("PluginID", pluginIF.getPluginID());
 				Utils.alternateRowBackground(item);
 			}
