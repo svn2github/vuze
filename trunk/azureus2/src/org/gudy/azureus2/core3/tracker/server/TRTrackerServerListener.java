@@ -35,6 +35,7 @@ TRTrackerServerListener
 	public boolean
 	handleExternalRequest(
 		String			client_address,
+		String			user,
 		String			url,
 		URL				absolute_url,
 		String			header,

@@ -40,6 +40,9 @@ TrackerWebPageRequest
 	public String
 	getClientAddress();
 	
+	public String
+	getUser();
+	
 		/**
 		 * This gives the relative URL of the request (e.g. /fred.html)
 		 * @return

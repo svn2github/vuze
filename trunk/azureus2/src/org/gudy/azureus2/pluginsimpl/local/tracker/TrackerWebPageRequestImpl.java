@@ -39,6 +39,7 @@ TrackerWebPageRequestImpl
 	private Tracker				tracker;
 	private TrackerWebContext	context;
 	private String				client_address;
+	private String				user;
 	private String				url;
 	private URL					absolute_url;
 	private String				header;
@@ -49,6 +50,7 @@ TrackerWebPageRequestImpl
 		Tracker				_tracker,
 		TrackerWebContext	_context,
 		String				_client_address,
+		String				_user,
 		String				_url,
 		URL					_absolute_url,
 		String				_header,
@@ -57,6 +59,7 @@ TrackerWebPageRequestImpl
 		tracker			= _tracker;
 		context			= _context;
 		client_address	= _client_address;
+		user			= _user;
 		url				= _url;
 		absolute_url	= _absolute_url;
 		header			= _header;
@@ -93,6 +96,12 @@ TrackerWebPageRequestImpl
 		return( client_address );
 	}
 
+	public String
+	getUser()
+	{
+		return( user );
+	}
+	
 	public InputStream
 	getInputStream()
 	{

@@ -255,6 +255,7 @@ MyTrackerView
 	public boolean
 	handleExternalRequest(
 		String			client,
+		String			user,
 		String			url,
 		URL				absolute_url,
 		String			header,

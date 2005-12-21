@@ -143,12 +143,14 @@ TRTrackerServerProcessorTCP
 					
 						// check non-tracker authentication
 						
-					if ( !doAuthentication( url_path, input_header, os, false )){
+					String user = doAuthentication( url_path, input_header, os, false );
 					
+					if ( user == null ){
+						
 						return;
 					}
 					
-					if ( handleExternalRequest( client_ip_address, str, input_header, is, os )){
+					if ( handleExternalRequest( client_ip_address, user, str, input_header, is, os )){
 					
 						return;
 					}
@@ -164,7 +166,7 @@ TRTrackerServerProcessorTCP
 				
 					// check tracker authentication
 					
-				if ( !doAuthentication( url_path, input_header, os, true )){
+				if ( doAuthentication( url_path, input_header, os, true ) == null ){
 					
 					return;
 				}
@@ -496,7 +498,7 @@ TRTrackerServerProcessorTCP
 		}
 	}
 	
-	protected boolean
+	protected String
 	doAuthentication(
 		String			url_path,
 		String			header,
@@ -518,7 +520,7 @@ TRTrackerServerProcessorTCP
 			
 			os.flush();
 				
-			return( false );
+			return( null );
 
 		}else if (	apply_torrent_password ||
 					apply_web_password ){
@@ -541,7 +543,7 @@ TRTrackerServerProcessorTCP
 					
 						if ( server.performExternalAuthorisation( resource, "", "" )){
 							
-							return( true );
+							return( "" );
 						}
 					}catch( MalformedURLException e ){
 						
@@ -579,7 +581,7 @@ TRTrackerServerProcessorTCP
 					
 						if ( server.performExternalAuthorisation( resource, user, pw )){
 							
-							return( true );
+							return( user );
 						}
 					}catch( MalformedURLException e ){
 						
@@ -614,12 +616,12 @@ TRTrackerServerProcessorTCP
 	
 							if ( Arrays.equals( internal_pw, server.getPassword())){
 								
-								return( true );
+								return( user );
 							}
 						}else if ( 	user.equalsIgnoreCase(server.getUsername()) &&
 									Arrays.equals(encoded, server.getPassword())){
 							 	
-							 return( true );			 	
+							 return( user );			 	
 						}
 					}catch( Exception e ){
 						
@@ -632,17 +634,18 @@ TRTrackerServerProcessorTCP
 			
 			os.flush();
 				
-			return( false );
+			return( null );
 
 		}else{
 		
-			return( true );
+			return( "" );
 		}
 	}
 		
 	protected boolean
 	handleExternalRequest(
 		String			client_address,
+		String			user,
 		String			url,
 		String			header,
 		InputStream		is,
@@ -652,6 +655,6 @@ TRTrackerServerProcessorTCP
 	{
 		URL	absolute_url = new URL( server_url + (url.startsWith("/")?url:("/"+url)));
 			
-		return( server.handleExternalRequest(client_address,url,absolute_url,header, is, os));
+		return( server.handleExternalRequest(client_address,user,url,absolute_url,header, is, os));
 	}
 }
