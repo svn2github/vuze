@@ -74,7 +74,7 @@ BufferedTableRow
 	// remove when things work
 	private static final boolean bDebug = false;
 	
-	private Point ptIconSize;
+	private Point ptIconSize = null;
 	
 	/**
 	 * Default constructor
@@ -223,6 +223,9 @@ BufferedTableRow
 						item.setData("SD", "1");
 					} catch (NullPointerException badSWT) {
 					}
+
+		   		setAlternatingBGColor();
+		    	setIconSize(ptIconSize);
 					invalidate();
 				}
 			} else {
@@ -519,12 +522,6 @@ BufferedTableRow
     	item.setData("TableRow", null);
 
     item = newRow;
-    if (item != null) {
-   		setAlternatingBGColor();
-	    // XXX Move back to TableView
-	    if ((table.getStyle() & SWT.VIRTUAL) == 0 && item.getData("SD") != null)
-	    	setIconSize(ptIconSize);
-    }
  		invalidate();
 
     return true;
@@ -535,14 +532,14 @@ BufferedTableRow
   }
   
   public boolean setIconSize(Point pt) {
-		if (!checkWidget(REQUIRE_TABLEITEM))
-			return false;
-		
     ptIconSize = pt;
 
     if (pt == null)
       return false;
     
+		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
+			return false;
+		
     Image oldImage = item.getImage(0);
     if (oldImage != null) {
     	Rectangle r = oldImage.getBounds();
