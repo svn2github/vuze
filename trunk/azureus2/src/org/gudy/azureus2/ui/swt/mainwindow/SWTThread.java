@@ -49,7 +49,7 @@ public class SWTThread {
     
     // set SWT specific config parameter defaults
     
-    boolean bGTKTableBug_default = Constants.isLinux && SWT.getPlatform().equals("gtk");
+    boolean bGTKTableBug_default = SWT.getPlatform().equals("gtk");
   
     COConfigurationManager.setBooleanDefault( "SWT_bGTKTableBug", bGTKTableBug_default );
     

@@ -154,7 +154,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
       });
     }
 
-    if ( Constants.isLinux && SWT.getPlatform().equals("gtk")) {
+    if (SWT.getPlatform().equals("gtk")) {
       // See Eclipse Bug #42416 ([Platform Inconsistency] GC(Table) has wrong origin)
       new BooleanParameter(cLook, "SWT_bGTKTableBug", true, "ConfigView.section.style.verticaloffset");
     }
