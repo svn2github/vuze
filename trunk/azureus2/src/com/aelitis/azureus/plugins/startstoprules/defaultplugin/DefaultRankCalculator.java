@@ -258,7 +258,7 @@ public class DefaultRankCalculator implements Comparable {
 			return -1;
 
 		if (iRankType == StartStopRulesDefaultPlugin.RANK_NONE) {
-			return dlData.dl.getPosition() - dl.getPosition();
+			return dl.getPosition() - dlData.dl.getPosition();
 		}
 
 		// Check Rank
