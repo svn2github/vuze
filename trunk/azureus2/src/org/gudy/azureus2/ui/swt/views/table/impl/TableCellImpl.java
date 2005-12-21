@@ -562,6 +562,8 @@ public class TableCellImpl
     		debug("Setting Invalid because visible & not up to date");
     	valid = false;
     	bIsUpToDate = true;
+    } else if (!bRowVisible && bIsUpToDate) {
+    	bIsUpToDate = false;
     }
 
     try {
