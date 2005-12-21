@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -76,6 +77,48 @@ public class Utils {
   
   public static void disposeComposite(Composite composite) {
     disposeComposite(composite,true);
+  }
+  
+  /**
+   * Dispose of a list of SWT objects
+   * 
+   * @param disposeList
+   */
+  public static void disposeSWTObjects(List disposeList) {
+  	boolean bResourceObjectExists = SWT.getVersion() >= 3129;
+  	
+		for (int i = 0; i < disposeList.size(); i++) {
+			Object o = disposeList.get(i);
+			if (o instanceof Widget && !((Widget) o).isDisposed())
+				((Widget) o).dispose();
+			else if (bResourceObjectExists && (o instanceof Resource)
+					&& !((Resource) o).isDisposed())
+				((Resource) o).dispose();
+			else {
+				if (o instanceof Resource) {
+					((Resource)o).dispose();
+				} else if (o instanceof Cursor) {
+					((Cursor)o).dispose();
+				} else if (o instanceof Font) {
+					((Font)o).dispose();
+				} else if (o instanceof GC) {
+					((GC)o).dispose();
+				} else if (o instanceof Image) {
+					((Image)o).dispose();
+				} else if (o instanceof Path) {
+					((Path)o).dispose();
+				} else if (o instanceof Pattern) {
+					((Pattern)o).dispose();
+				} else if (o instanceof Region) {
+					((Region)o).dispose();
+				} else if (o instanceof TextLayout) {
+					((TextLayout) o).dispose();
+				} else if (o instanceof Transform) {
+					((Transform) o).dispose();
+				}
+			}
+		}
+		disposeList.clear();
   }
   
   /**

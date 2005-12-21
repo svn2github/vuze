@@ -31,7 +31,6 @@ import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
-import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
@@ -39,9 +38,9 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Widget;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /**
  * 
@@ -169,14 +168,7 @@ public class Legend {
 					blockColors[i] = defaultColors[i];
 				}
 
-				for (int i = 0; i < disposeList.size(); i++) {
-					Object o = disposeList.get(i);
-					if (o instanceof Widget && !((Widget) o).isDisposed())
-						((Widget) o).dispose();
-					else if (o instanceof Resource && !((Resource) o).isDisposed())
-						((Resource) o).dispose();
-				}
-				disposeList.clear();
+				Utils.disposeSWTObjects(disposeList);
 			}
 		});
 

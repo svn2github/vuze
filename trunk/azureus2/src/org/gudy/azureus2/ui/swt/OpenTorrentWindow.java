@@ -29,7 +29,6 @@ import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
@@ -38,7 +37,6 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -767,14 +765,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			shell.dispose();
 		}
 
-		for (int i = 0; i < disposeList.size(); i++) {
-			Object o = disposeList.get(i);
-			if (o instanceof Widget && !((Widget) o).isDisposed())
-				((Widget) o).dispose();
-			else if (o instanceof Resource && !((Resource) o).isDisposed())
-				((Resource) o).dispose();
-		}
-		disposeList.clear();
+		Utils.disposeSWTObjects(disposeList);
 
 		if (downloaders.size() > 0) {
 			for (Iterator iter = downloaders.iterator(); iter.hasNext();) {
