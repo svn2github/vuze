@@ -697,10 +697,15 @@ public class TableView
 					// User made the row visible, they want satisfaction now!
 					if (row.setIconSize(ptIconSize))
 						visibleRowsChanged();
-					row.refresh(true);
+					else
+						row.refresh(true);
 
-					if (!Constants.isLinux)
+					if (!Constants.isLinux) {
 						Utils.alternateRowBackground(item);
+						// Bug, background color doesn't fully draw in SetData
+						Rectangle r = item.getBounds(0);
+						table.redraw(0, r.y, table.getClientArea().width, r.height, false);
+					}
 				}
 	    });
 
@@ -1253,8 +1258,7 @@ public class TableView
 			if (DEBUGADDREMOVE) {
 		    long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
 				if (lTimeDiff > 500)
-					System.out.println(sTableID + ": " + lTimeDiff + "ms to refresh "
-							+ count + " visible rows");
+					System.out.println(sTableID + ": " + lTimeDiff + "ms to refresh rows");
 			}
 	
 	    loopFactor++;
@@ -2567,18 +2571,27 @@ public class TableView
 	}
 
 	private void visibleRowsChanged() {
+		if (!table.isVisible()) {
+		  lastTopIndex = 0;
+		  lastBottomIndex = -1;
+		  return;
+		}
+		
 		int iTopIndex = table.getTopIndex();
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
 		if (lastTopIndex != iTopIndex) {
-			if (iTopIndex < lastTopIndex) {
-				if (lastTopIndex > iBottomIndex + 1 && iBottomIndex >= 0)
-					lastTopIndex = iBottomIndex + 1;
+			int tmpIndex = lastTopIndex;
+			lastTopIndex = iTopIndex;
+			
+			if (iTopIndex < tmpIndex) {
+				if (tmpIndex > iBottomIndex + 1 && iBottomIndex >= 0)
+					tmpIndex = iBottomIndex + 1;
 
-				//System.out.println("Refresh top rows " + iTopIndex + " to " + (lastTopIndex - 1));
+				//System.out.println("Refresh top rows " + iTopIndex + " to " + (tmpIndex - 1));
 				try {
 					sortedRows_mon.enter();
-					for (int i = iTopIndex; i < lastTopIndex && i < sortedRows.size(); i++) {
+					for (int i = iTopIndex; i < tmpIndex && i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
 						row.refresh(true);
 					}
@@ -2590,18 +2603,20 @@ public class TableView
 				// bottom index needs updating
 				iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 			}
-			lastTopIndex = table.getTopIndex();
 		}
 
 		if (lastBottomIndex != iBottomIndex) {
-			if (lastBottomIndex < iTopIndex - 1)
-				lastBottomIndex = iTopIndex - 1;
+			int tmpIndex = lastBottomIndex;
+			lastBottomIndex = iBottomIndex;
+			
+			if (tmpIndex < iTopIndex - 1)
+				tmpIndex = iTopIndex - 1;
 
-			if (lastBottomIndex <= iBottomIndex) {
-				//System.out.println("Refresh bottom rows " + (lastBottomIndex + 1) + " to " + iBottomIndex);
+			if (tmpIndex <= iBottomIndex) {
+				//System.out.println("Refresh bottom rows " + (tmpIndex + 1) + " to " + iBottomIndex);
 				try {
 					sortedRows_mon.enter();
-					for (int i = lastBottomIndex + 1; i <= iBottomIndex
+					for (int i = tmpIndex + 1; i <= iBottomIndex
 							&& i < sortedRows.size(); i++) {
 						TableRowCore row = (TableRowCore) sortedRows.get(i);
 						row.refresh(true);
@@ -2610,7 +2625,6 @@ public class TableView
 					sortedRows_mon.exit();
 				}
 			}
-			lastBottomIndex = iBottomIndex;
 		}
 	}
 
