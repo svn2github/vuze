@@ -547,11 +547,20 @@ public class Utils {
 		// getItemHeight is slow on Linux, use getItem/getClientArea
 		// getItem(Point) is slow on OSX
 		
+		if (!table.isVisible())
+			return -1;
+		
 		if (Constants.isOSX)
 			return Math.min(iTopIndex
 					+ ((table.getClientArea().height - table.getHeaderHeight() - 1) / 
 							table.getItemHeight()), table.getItemCount() - 1);
-		
+
+		// getItem will return null if clientArea's height is smaller than
+		// header height.
+		int areaHeight = table.getClientArea().height;
+		if (areaHeight <= table.getHeaderHeight())
+			return -1;
+
 		// 2 offset to be on the safe side
 		TableItem bottomItem = table.getItem(new Point(2,
 				table.getClientArea().height - 1));
