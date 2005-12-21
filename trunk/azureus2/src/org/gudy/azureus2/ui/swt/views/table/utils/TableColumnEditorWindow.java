@@ -32,6 +32,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.views.table.ITableStructureModificationListener;
@@ -194,14 +195,18 @@ public class TableColumnEditorWindow {
 
 		    final boolean bChecked = ((Boolean) newEnabledState.get(tableColumn))
 						.booleanValue();
-				// For OSX to hopefully refresh the checkbox.
-				item.setChecked(!bChecked);
-				table.getDisplay().syncExec(new AERunnable() {
-					public void runSupport() {
-						if (!item.isDisposed())
-							item.setChecked(bChecked);
-					}
-				});
+		    if (Constants.isOSX) {
+					// For OSX to hopefully refresh the checkbox.
+					item.setChecked(!bChecked);
+					table.getDisplay().syncExec(new AERunnable() {
+						public void runSupport() {
+							if (!item.isDisposed())
+								item.setChecked(bChecked);
+						}
+					});
+				} else {
+					item.setChecked(bChecked);
+				}
 			}
     });
     table.setItemCount(tableColumns.size());
