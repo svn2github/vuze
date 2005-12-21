@@ -98,7 +98,7 @@ BufferedTableRow
 	}
 	
 	private void setAlternatingBGColor() {
-		if (Constants.isLinux || !isVisible())
+		if (Constants.isLinux || Constants.isSolaris || !isVisible())
 			return;
 
 		if (alternatingColors == null || alternatingColors[1].isDisposed()) {

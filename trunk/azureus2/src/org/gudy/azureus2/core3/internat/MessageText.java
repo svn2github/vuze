@@ -213,6 +213,8 @@ public class MessageText {
         return "._mac";
     else if(Constants.isLinux)
         return "._linux";
+    else if(Constants.isSolaris)
+        return "._solaris";
      else if(Constants.isWindows)
        return "._windows";
      else

@@ -258,7 +258,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     Messages.setLanguageText(label, "GeneralView.label.maxuploads"); 
     maxUploads = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
-    if( Constants.isLinux )  gridData.widthHint = 40;
+    if( Constants.isLinux || Constants.isSolaris )  gridData.widthHint = 40;
     else gridData.widthHint = 35;
     
     maxUploads.setLayoutData(gridData);
@@ -315,7 +315,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     maxULSpeed = new Text(culdl, SWT.BORDER);
     gridData = new GridData();
     
-    if( Constants.isLinux )  gridData.widthHint = 40;
+    if( Constants.isLinux || Constants.isSolaris )  gridData.widthHint = 40;
     else gridData.widthHint = 35;
     
     maxULSpeed.setLayoutData(gridData);
@@ -359,7 +359,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       maxDLSpeed = new Text(culdl, SWT.BORDER);
       gridData = new GridData();
 
-      if( Constants.isLinux )  gridData.widthHint = 40;
+      if( Constants.isLinux || Constants.isSolaris )  gridData.widthHint = 40;
       else gridData.widthHint = 35;
       
       maxDLSpeed.setLayoutData(gridData);

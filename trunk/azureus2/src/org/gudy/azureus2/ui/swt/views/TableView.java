@@ -537,7 +537,7 @@ public class TableView
     iTableStyle = table.getStyle();
     bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
 
-    table.setLinesVisible(Constants.isLinux);
+    table.setLinesVisible(Constants.isLinux || Constants.isSolaris);
     table.setMenu(menu);
     table.setData("Name", sTableID);
     table.setData("TableView", this);

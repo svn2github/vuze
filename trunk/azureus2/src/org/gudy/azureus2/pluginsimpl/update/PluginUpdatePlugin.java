@@ -858,6 +858,7 @@ PluginUpdatePlugin
 																	
 										if ( 	(Constants.isWindows && platform.equalsIgnoreCase( "windows" )) ||
 												(Constants.isLinux && platform.equalsIgnoreCase( "linux" ))	||
+												(Constants.isSolaris && platform.equalsIgnoreCase( "solaris" ))	||
 												(Constants.isOSX && platform.equalsIgnoreCase( "osx" ))){
 											
 										

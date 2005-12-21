@@ -140,6 +140,12 @@ UtilitiesImpl
 	}
 	
 	public boolean
+	isSolaris()
+	{
+		return( Constants.isSolaris );
+	}
+	
+	public boolean
 	isOSX()
 	{
 		return( Constants.isOSX );

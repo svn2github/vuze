@@ -236,6 +236,12 @@ AzureusRestarterImpl
 	{
 		return( Constants.isLinux );
 	}
+
+	private boolean
+	isSolaris()
+	{
+		return( Constants.isSolaris );
+	}
 	
   
   // ****************** This code is copied into Restarter / Updater so make changes there too !!!
@@ -254,9 +260,9 @@ AzureusRestarterImpl
     	
     	restartAzureus_OSX(log,mainClass,properties,parameters);
     	
-    }else if( isLinux() ){
+    }else if( isLinux() || isSolaris() ){
     	
-    	restartAzureus_Linux(log,mainClass,properties,parameters);
+    	restartAzureus_Unix(log,mainClass,properties,parameters);
       
     }else{
     	
@@ -336,7 +342,7 @@ AzureusRestarterImpl
   
   
   private void 
-  restartAzureus_Linux(
+  restartAzureus_Unix(
     PrintWriter log,
   String    mainClass,
   String[]  properties,

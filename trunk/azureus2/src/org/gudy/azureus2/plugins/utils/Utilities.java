@@ -59,6 +59,9 @@ Utilities
 	isLinux();
 	
 	public boolean
+	isSolaris();
+	
+	public boolean
 	isOSX();
 	
 	public InputStream

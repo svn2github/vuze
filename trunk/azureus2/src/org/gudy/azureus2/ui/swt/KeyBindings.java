@@ -180,6 +180,8 @@ public final class KeyBindings
     {
         if(Constants.isLinux)
             return ".linux";
+        else if(Constants.isSolaris)
+            return ".solaris";
         else if(Constants.isOSX)
             return ".mac";
         else if(Constants.isWindows)
