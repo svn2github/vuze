@@ -32,6 +32,8 @@ import java.net.*;
 import java.io.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.ThreadPool;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
@@ -96,6 +98,8 @@ UPnPImpl
 	
 	private String	secondary_route_log = "";
 	
+	private ThreadPool	device_dispatcher	 = new ThreadPool("UPnPDispatcher", 1, true );
+	
 	protected AEMonitor	this_mon 	= new AEMonitor( "UPnP" );
 
 	protected
@@ -115,24 +119,24 @@ UPnPImpl
 	
 	public void
 	rootDiscovered(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		URL					location )
+		final NetworkInterface		network_interface,
+		final InetAddress			local_address,
+		final URL					location )
 
 	{
-		UPnPRootDeviceImpl root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
+		final UPnPRootDeviceImpl old_root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
 			
-		if ( root_device != null ){
+		if ( old_root_device != null ){
 	
 				// device is still there with same IP, however 
 			
-			if ( root_device.getLocation().equals( location )){
+			if ( old_root_device.getLocation().equals( location )){
 				
 				
 					// 1) port of UPnP device might have changed (it does on mine when enabling/disabling UPnP)
 					// 2) our local IP might have changed (DHCP reassignment)
 
-				if ( root_device.getLocalAddress().equals( local_address )){
+				if ( old_root_device.getLocalAddress().equals( local_address )){
 				
 					// everythings the same, nothing to do
 				
@@ -147,10 +151,10 @@ UPnPImpl
 					// use the interfate.getName (e.g. eth0) as the "equals" method includes the addresses and we want to
 					// detect when an address has changed
 				
-				if ( !root_device.getNetworkInterface().getName().equals( network_interface.getName())){
+				if ( !old_root_device.getNetworkInterface().getName().equals( network_interface.getName())){
 				
 					String	msg =  "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
-							root_device.getNetworkInterface();
+										old_root_device.getNetworkInterface();
 
 					if ( !secondary_route_log.equals( msg )){
 					
@@ -162,51 +166,62 @@ UPnPImpl
 					return;
 				}
 			}
-			
-				// something changed, resetablish everything
-			
-			root_locations.remove( location.getHost());
-			
-			root_device.destroy( true );
 		}
 		
-		log( "UPnP: root discovered = " + location + ", local = " + local_address.toString() );
+			// we need to take this operation off the main thread as it can take some time
 		
-		try{
-			root_device = new UPnPRootDeviceImpl( this, network_interface, local_address, location );
+		device_dispatcher.run(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					if ( old_root_device != null ){
+						
+							// something changed, resetablish everything
+						
+						root_locations.remove( location.getHost());
+						
+						old_root_device.destroy( true );
+					}
 		
-			List	listeners;
+					log( "UPnP: root discovered = " + location + ", local = " + local_address.toString() );
+					
+					try{
+						UPnPRootDeviceImpl new_root_device = new UPnPRootDeviceImpl( UPnPImpl.this, network_interface, local_address, location );
+					
+						final List	listeners;
+						
+						try{
+							rd_listeners_mon.enter();
+							
+							root_locations.put( location.getHost(), new_root_device );
 			
-			try{
-				rd_listeners_mon.enter();
-				
-				root_locations.put( location.getHost(), root_device );
-
-				listeners = new ArrayList( rd_listeners );
-				
-			}finally{
-				
-				rd_listeners_mon.exit();
-			}
+							listeners = new ArrayList( rd_listeners );
+							
+						}finally{
+							
+							rd_listeners_mon.exit();
+						}
 			
-			for (int i=0;i<listeners.size();i++){
-				
-				((UPnPListener)listeners.get(i)).rootDeviceFound( root_device );
-				
-			}
-		
-		}catch( UPnPException e ){
-			
-			log( e.toString());
-			
-			adapter.trace(e);
-		}
+						for (int i=0;i<listeners.size();i++){
+							
+							((UPnPListener)listeners.get(i)).rootDeviceFound( new_root_device );	
+						}
+					
+					}catch( UPnPException e ){
+						
+						log( e.toString());
+						
+						adapter.trace(e);
+					}
+				}
+			});
 	}
 	
 	public void
 	rootAlive(
 		URL			location )
-
 	{
 		UPnPRootDeviceImpl root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
 			
@@ -218,29 +233,39 @@ UPnPImpl
 	
 	public void
 	rootLost(
-		InetAddress	local_address,
-		URL			location )
+		final InetAddress	local_address,
+		final URL			location )
 	{
-		UPnPRootDeviceImpl	root_device;
-	
-		try{
-			rd_listeners_mon.enter();
-
-			root_device = (UPnPRootDeviceImpl)root_locations.remove( location.getHost());
-			
-		}finally{
-			
-			rd_listeners_mon.exit();
-		}
+			// we need to take this operation off the main thread as it can take some time
 		
-		if ( root_device == null ){
+		device_dispatcher.run(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					UPnPRootDeviceImpl	root_device;
+				
+					try{
+						rd_listeners_mon.enter();
 			
-			return;
-		}
-		
-		log( "UPnP: root lost = " + location +", local = " + local_address.toString() );
-	
-		root_device.destroy( false );
+						root_device = (UPnPRootDeviceImpl)root_locations.remove( location.getHost());
+						
+					}finally{
+						
+						rd_listeners_mon.exit();
+					}
+					
+					if ( root_device == null ){
+						
+						return;
+					}
+					
+					log( "UPnP: root lost = " + location +", local = " + local_address.toString() );
+				
+					root_device.destroy( false );
+				}
+			});
 	}
 	
 	public void
