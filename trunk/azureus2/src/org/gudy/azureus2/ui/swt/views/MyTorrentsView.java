@@ -606,8 +606,10 @@ public class MyTorrentsView
 				
 				boolean	scan = dm.getDownloadState().getFlag( DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES );
 				
-				allScanSelected 	= allScanSelected && scan;
-				allScanNotSelected 	= allScanNotSelected && !scan;
+				boolean	incomplete = !dm.isDownloadComplete();
+				
+				allScanSelected 	= incomplete && allScanSelected && scan;
+				allScanNotSelected 	= incomplete && allScanNotSelected && !scan;
 			}
 
 			fileRescan	= allScanSelected || allScanNotSelected;
