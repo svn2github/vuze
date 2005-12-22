@@ -51,6 +51,8 @@ import java.util.Set;
  */
 
 public class ConfigurationDefaults {
+  private static final Long FALSE	= new Long(0);
+  private static final Long TRUE	= new Long(1);
   
   private static ConfigurationDefaults configdefaults;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigDef");
@@ -92,73 +94,73 @@ public class ConfigurationDefaults {
     /** Core settings **/
 
     def.put("Override Ip", "");
-    def.put("Enable incremental file creation", new Long(0));
+    def.put("Enable incremental file creation", FALSE);
     def.put("TCP.Listen.Port", new Long(6881));
     def.put("max active torrents", new Long(4));
     def.put("max downloads", new Long(4));
-    def.put("Newly Seeding Torrents Get First Priority", new Long(1));
+    def.put("Newly Seeding Torrents Get First Priority", TRUE);
     def.put("Max.Peer.Connections.Per.Torrent", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT));
     def.put("Max.Peer.Connections.Total", new Long(COConfigurationManager.CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL));
 
     def.put( "File Max Open", new Long(50));
-    def.put( "Use Config File Backups", new Long(1));
+    def.put( "Use Config File Backups", TRUE);
     
     def.put( "Max Uploads", new Long(4) );
     def.put( "Max Download Speed KBs", new Long(0) );
     def.put( "Max Upload Speed KBs", new Long(0));
     def.put( "Max Upload Speed Seeding KBs", new Long(0) );
-    def.put( "enable.seedingonly.upload.rate", new Long(0) );
+    def.put( "enable.seedingonly.upload.rate", FALSE );
     
-    def.put("Use Resume", new Long(1));
+    def.put("Use Resume", TRUE);
     def.put("Save Resume Interval", new Long(5));
-    def.put("Check Pieces on Completion", new Long(1));
+    def.put("Check Pieces on Completion", TRUE);
     def.put("Stop Ratio", new Float(0));
     def.put("Stop Peers Ratio", new Long(0));
-    def.put("Disconnect Seed", new Long(1));
+    def.put("Disconnect Seed", TRUE);
     def.put("priorityExtensions", "");
-    def.put("priorityExtensionsIgnoreCase", new Long(0));
-    def.put("Ip Filter Enabled", new Long(1));
-    def.put("Ip Filter Allow",new Long(0));
-	def.put("Ip Filter Enable Banning", new Long(1));
+    def.put("priorityExtensionsIgnoreCase", FALSE);
+    def.put("Ip Filter Enabled", TRUE);
+    def.put("Ip Filter Allow",FALSE);
+	def.put("Ip Filter Enable Banning", TRUE);
 	def.put("Ip Filter Ban Block Limit", new Long(4));
-	def.put("Ip Filter Banning Persistent", new Long(1));
-    def.put("Allow Same IP Peers",new Long(0));
-    def.put("Use Super Seeding",new Long(0));
+	def.put("Ip Filter Banning Persistent", TRUE);
+    def.put("Allow Same IP Peers",FALSE);
+    def.put("Use Super Seeding",FALSE);
 
         
     /** SWT GUI Settings **/
     
     def.put("User Mode", new Long(0));
     
-    def.put("useCustomTab",new Long(1));    
+    def.put("useCustomTab",TRUE);    
     def.put("GUI Refresh",new Long(1000));
     def.put("Graphics Update",new Long(4));
     def.put("ReOrder Delay",new Long(0));
-    def.put("Send Version Info",new Long(1));
-    def.put("Show Download Basket",new Long(0));
+    def.put("Send Version Info",TRUE);
+    def.put("Show Download Basket",FALSE);
     def.put("config.style.refreshMT",new Long(0));
-    def.put("Open Details", new Long(0));    
+    def.put("Open Details", FALSE);    
     
     //default data location options
-    def.put("Use default data dir", new Long(0));	
+    def.put("Use default data dir", FALSE);	
     def.put("Default save path", "" );
     
-    def.put("GUI_SWT_bFancyTab", new Long(1));
-    def.put("GUI_SWT_bAlternateTablePainting", new Long(0));
-    def.put("update.start",new Long(1));
-    def.put("update.periodic",new Long(1));
-    def.put("update.opendialog",new Long(1));
-    def.put("Colors.progressBar.override", new Long(0));
+    def.put("GUI_SWT_bFancyTab", TRUE);
+    def.put("GUI_SWT_bAlternateTablePainting", FALSE);
+    def.put("update.start",TRUE);
+    def.put("update.periodic",TRUE);
+    def.put("update.opendialog",TRUE);
+    def.put("Colors.progressBar.override", FALSE);
     
     
-    def.put("Logger.Enabled", new Long(0));  //logging in general
-    def.put("Logging Enable", new Long(0));  //file logging
+    def.put("Logger.Enabled", FALSE);  //logging in general
+    def.put("Logging Enable", FALSE);  //file logging
     def.put("Logging Dir", "");
     def.put("Logging Max Size", new Long(5));
     int[] logComponents = { 0, 1, 2, 4 };
     for (int i = 0; i < logComponents.length; i++)
       for (int j = 0; j <= 3; j++)
-        def.put("bLog" + logComponents[i] + "-" + j, new Long(1));
+        def.put("bLog" + logComponents[i] + "-" + j, TRUE);
 
     // Start/Stop Automation Stuff
     def.put("StartStopManager_iNumPeersAsFullCopy", new Long(0));
@@ -168,42 +170,42 @@ public class ConfigurationDefaults {
     def.put("StartStopManager_iMinSpeedForActiveSeeding", new Long(512));
     def.put("StartStopManager_iRankType", new Long(com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin.RANK_SPRATIO));
     def.put("StartStopManager_iRankTypeSeedFallback", new Long(0));
-    def.put("StartStopManager_bAutoReposition", new Long(0));
+    def.put("StartStopManager_bAutoReposition", FALSE);
     def.put("StartStopManager_iMinSeedingTime", new Long(60*3));
-    def.put("StartStopManager_bIgnore0Peers", new Long(1));
+    def.put("StartStopManager_bIgnore0Peers", TRUE);
     def.put("StartStopManager_iIgnoreSeedCount", new Long(0));
-    def.put("StartStopManager_bPreferLargerSwarms", new Long(1));
-    def.put("StartStopManager_bDebugLog", new Long(0));
+    def.put("StartStopManager_bPreferLargerSwarms", TRUE);
+    def.put("StartStopManager_bDebugLog", FALSE);
     def.put("StartStopManager_iFirstPriority_Type", new Long(DefaultRankCalculator.FIRSTPRIORITY_ANY));
     def.put("StartStopManager_iFirstPriority_ShareRatio", new Long(500));
     def.put("StartStopManager_iFirstPriority_SeedingMinutes", new Long(0));
     def.put("StartStopManager_iFirstPriority_DLMinutes", new Long(0));
-    def.put("StartStopManager_bAutoStart0Peers", new Long(0));
+    def.put("StartStopManager_bAutoStart0Peers", FALSE);
 	// for ignore FP rules
 	def.put("StartStopManager_iFirstPriority_ignoreSPRatio", new Long(0));
-	def.put("StartStopManager_bFirstPriority_ignore0Peer", new Long(0));
+	def.put("StartStopManager_bFirstPriority_ignore0Peer", FALSE);
     // for "Stop Peers Ratio" ignore rule
     def.put("StartStopManager_iIgnoreRatioPeersSeedStart", new Long(0));
     // for "Stop Ratio" ignore rule
     def.put("StartStopManager_iIgnoreShareRatioSeedStart", new Long(0));
-    def.put("StartStopManager_bNewSeedsMoveTop", new Long(1));
+    def.put("StartStopManager_bNewSeedsMoveTop", TRUE);
     def.put("StartStopManager_iAddForSeedingDLCopyCount", new Long(1));
     def.put("StartStopManager_iMaxActiveTorrentsWhenSeeding", new Long(0));
-    def.put("StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled", new Long(0));
+    def.put("StartStopManager_bMaxActiveTorrentsWhenSeedingEnabled", FALSE);
     
     	//tracker proxy defaults
-    def.put( "Enable.Proxy", new Long(0) );
-    def.put( "Enable.SOCKS", new Long(0) );
+    def.put( "Enable.Proxy", FALSE );
+    def.put( "Enable.SOCKS", FALSE );
     def.put( "Proxy.Host", "" );
     def.put( "Proxy.Port", "" );
     def.put( "Proxy.Username", "" );
     def.put( "Proxy.Password", "" );
     
     	// data proxy defaults
-    def.put( "Proxy.Data.Enable", new Long(0));
+    def.put( "Proxy.Data.Enable", FALSE);
     def.put( "Proxy.Data.SOCKS.version", "V4" );
-    def.put( "Proxy.Data.SOCKS.inform", new Long(1));
-    def.put( "Proxy.Data.Same", new Long(1));
+    def.put( "Proxy.Data.SOCKS.inform", TRUE);
+    def.put( "Proxy.Data.Same", TRUE);
     def.put( "Proxy.Data.Host", "" );
     def.put( "Proxy.Data.Port", "" );
     def.put( "Proxy.Data.Username", "" );
@@ -213,40 +215,41 @@ public class ConfigurationDefaults {
     def.put( "Start Num Peers", new Long(-1) );
     def.put( "Max Upload Speed", new Long(-1) );
     def.put( "Max Clients", new Long(-1) );
-    def.put( "Server.shared.port", new Long(1) );
+    def.put( "Server.shared.port", TRUE );
     def.put( "Low Port", new Long(6881) );
-    def.put( "Already_Migrated", new Long(0) );
+    def.put( "Already_Migrated", FALSE );
     
     //misc
     def.put( "ID", "" );
-    def.put( "Play Download Finished", new Long(0) );
+    def.put( "Play Download Finished", FALSE );
     def.put( "Play Download Finished File", "" );
-    def.put( "Close To Tray", new Long(1) );
-    def.put( "Minimize To Tray", new Long(0) );
-    def.put( "Watch Torrent Folder", new Long(0) );
+    def.put( "Close To Tray", TRUE );
+    def.put( "Minimize To Tray", FALSE );
+    def.put( "Watch Torrent Folder", FALSE );
     def.put( "Watch Torrent Folder Interval", new Long(1) );
-    def.put( "Start Watched Torrents Stopped", new Long(0) );
+    def.put( "Start Watched Torrents Stopped", FALSE );
     def.put( "Watch Torrent Folder Path", "" );
-    def.put( "Prioritize First Piece", new Long(0) );
-    def.put( "Use Lazy Bitfield", new Long(0) );
-    def.put( "Move Completed When Done", new Long(0) );
+    def.put( "Prioritize First Piece", FALSE );
+    def.put( "Use Lazy Bitfield", FALSE );
+    def.put( "Move Completed When Done", FALSE );
     def.put( "Completed Files Directory", "" );
-    def.put( "Zero New", new Long(0) );
-    def.put( "Move Only When In Default Save Dir", new Long(1) );
-    def.put( "Copy And Delete Data Rather Than Move", new Long(0));
-    def.put( "Move Torrent When Done", new Long(1) );
-    def.put( "File.save.peers.enable", new Long(1) );
-    def.put( "Move Deleted Data To Recycle Bin", new Long(1));
+    def.put( "Zero New", FALSE );
+    def.put( "Move Only When In Default Save Dir", TRUE );
+    def.put( "Copy And Delete Data Rather Than Move", FALSE);
+    def.put( "Move Torrent When Done", TRUE );
+    def.put( "File.save.peers.enable", TRUE );
+    def.put( "File.strict.locking", TRUE );
+    def.put( "Move Deleted Data To Recycle Bin", TRUE);
     
     //default torrent directory option
-    def.put( "Save Torrent Files", new Long(1) );
+    def.put( "Save Torrent Files", TRUE );
     def.put("General_sDefaultTorrent_Directory", SystemProperties.getUserPath()+"torrents");
 
   
     def.put( "Bind IP", "" );
-    def.put( "Stats Export Peer Details", new Long(0) );
+    def.put( "Stats Export Peer Details", FALSE );
     def.put( "Stats XSL File", "" );
-    def.put( "Stats Enable", new Long(0) );
+    def.put( "Stats Enable", FALSE );
     def.put( "Stats Period", new Long(StatsWriterPeriodic.DEFAULT_SLEEP_PERIOD) );
     def.put( "Stats Dir", "" );
     def.put( "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME );
@@ -255,28 +258,28 @@ public class ConfigurationDefaults {
     
     	// tracker 
     
-    def.put( "Tracker Compact Enable", new Long(1) );
-    def.put( "Tracker Key Enable Client", new Long(1) );
-    def.put( "Tracker Key Enable Server", new Long(1) );
-    def.put( "Tracker Separate Peer IDs", new Long(0));
+    def.put( "Tracker Compact Enable", TRUE );
+    def.put( "Tracker Key Enable Client", TRUE );
+    def.put( "Tracker Key Enable Server", TRUE );
+    def.put( "Tracker Separate Peer IDs", FALSE);
     def.put( "Tracker Client Connect Timeout", new Long(120));
     def.put( "Tracker Client Read Timeout", new Long(60));
-	def.put( "Tracker Client Send OS and Java Version", new Long(1));
-	def.put( "Tracker Client Show Warnings", new Long(1));
+	def.put( "Tracker Client Send OS and Java Version", TRUE);
+	def.put( "Tracker Client Show Warnings", TRUE);
 	
-    def.put( "Tracker Public Enable", new Long(0) );
-    def.put( "Tracker Log Enable", new Long(0) );
-    def.put( "Tracker Port Enable", new Long(0) );
+    def.put( "Tracker Public Enable", FALSE );
+    def.put( "Tracker Log Enable", FALSE );
+    def.put( "Tracker Port Enable", FALSE );
     def.put( "Tracker Port", new Long( TRHost.DEFAULT_PORT ) );
     def.put( "Tracker Port Backups", "" );
-    def.put( "Tracker Port SSL Enable", new Long(0) );
+    def.put( "Tracker Port SSL Enable", FALSE );
     def.put( "Tracker Port SSL", new Long( TRHost.DEFAULT_PORT_SSL ) );
     def.put( "Tracker Port SSL Backups", "" );
-    def.put( "Tracker Port Force External", new Long(0) );
+    def.put( "Tracker Port Force External", FALSE );
     def.put( "Tracker IP", "" );
-    def.put( "Tracker Port UDP Enable", new Long(0) );
+    def.put( "Tracker Port UDP Enable", FALSE );
     def.put( "Tracker Port UDP Version", new Long(2) );
-    def.put( "Tracker Send Peer IDs", new Long(1) );
+    def.put( "Tracker Send Peer IDs", TRUE );
     def.put( "Tracker Max Peers Returned", new Long(100) );
     def.put( "Tracker Scrape Cache", new Long( TRTrackerServer.DEFAULT_SCRAPE_CACHE_PERIOD ) );
     def.put( "Tracker Announce Cache", new Long( TRTrackerServer.DEFAULT_ANNOUNCE_CACHE_PERIOD ) );
@@ -284,102 +287,102 @@ public class ConfigurationDefaults {
     def.put( "Tracker Poll Interval Min", new Long( TRTrackerServer.DEFAULT_MIN_RETRY_DELAY) );
     def.put( "Tracker Poll Interval Max", new Long( TRTrackerServer.DEFAULT_MAX_RETRY_DELAY) );
     def.put( "Tracker Scrape Retry Percentage", new Long( TRTrackerServer.DEFAULT_SCRAPE_RETRY_PERCENTAGE ) );
-    def.put( "Tracker Password Enable Web", new Long(0) );
-    def.put( "Tracker Password Web HTTPS Only", new Long(0));
-    def.put( "Tracker Password Enable Torrent", new Long(0) );
+    def.put( "Tracker Password Enable Web", FALSE );
+    def.put( "Tracker Password Web HTTPS Only", FALSE);
+    def.put( "Tracker Password Enable Torrent", FALSE );
     def.put( "Tracker Username", "" );
     def.put( "Tracker Password", null );
     def.put( "Tracker Poll Inc By", new Long( TRTrackerServer.DEFAULT_INC_BY ) );
     def.put( "Tracker Poll Inc Per", new Long( TRTrackerServer.DEFAULT_INC_PER ) );
-    def.put( "Tracker NAT Check Enable", new Long(1));
+    def.put( "Tracker NAT Check Enable", TRUE);
     def.put( "Tracker NAT Check Timeout", new Long(TRTrackerServer.DEFAULT_NAT_CHECK_SECS));
     def.put( "Tracker Max Seeds Retained", new Long( 0 ) );
     def.put( "Tracker Max Seeds", new Long( 0 ) );
     def.put( "Tracker Max GET Time", new Long(20));
     def.put( "Tracker Max POST Time Multiplier", new Long(1));
     def.put( "Tracker Max Threads", new Long( 48 ));
-    def.put( "Tracker TCP NonBlocking", new Long(0));
+    def.put( "Tracker TCP NonBlocking", FALSE);
     def.put( "Tracker TCP NonBlocking Conc Max", new Long(2048));
-    def.put( "Tracker Client Scrape Enable", new Long(1));
-    def.put( "Tracker Client Scrape Stopped Enable", new Long(1));
-    def.put( "Tracker Client Scrape Single Only", new Long(0));
+    def.put( "Tracker Client Scrape Enable", TRUE);
+    def.put( "Tracker Client Scrape Stopped Enable", TRUE);
+    def.put( "Tracker Client Scrape Single Only", FALSE);
     
-    def.put( "Network Selection Prompt", new Long(1));
-    def.put( "Network Selection Default.Public", new Long(1));
-    def.put( "Network Selection Default.I2P", new Long(1));
-    def.put( "Network Selection Default.Tor", new Long(1));
-    def.put( "Tracker Network Selection Default.Public", new Long(1));
-    def.put( "Tracker Network Selection Default.I2P", new Long(1));
-    def.put( "Tracker Network Selection Default.Tor", new Long(1));
+    def.put( "Network Selection Prompt", TRUE);
+    def.put( "Network Selection Default.Public", TRUE);
+    def.put( "Network Selection Default.I2P", TRUE);
+    def.put( "Network Selection Default.Tor", TRUE);
+    def.put( "Tracker Network Selection Default.Public", TRUE);
+    def.put( "Tracker Network Selection Default.I2P", TRUE);
+    def.put( "Tracker Network Selection Default.Tor", TRUE);
     
-    def.put( "Peer Source Selection Default.Tracker", new Long(1));
-    def.put( "Peer Source Selection Default.DHT", new Long(1));
-    def.put( "Peer Source Selection Default.PeerExchange", new Long(1));
-    def.put( "Peer Source Selection Default.Plugin", new Long(1));
-    def.put( "Peer Source Selection Default.Incoming", new Long(1));
+    def.put( "Peer Source Selection Default.Tracker", TRUE);
+    def.put( "Peer Source Selection Default.DHT", TRUE);
+    def.put( "Peer Source Selection Default.PeerExchange", TRUE);
+    def.put( "Peer Source Selection Default.Plugin", TRUE);
+    def.put( "Peer Source Selection Default.Incoming", TRUE);
     
-    def.put( "config.style.useSIUnits", new Long(0) );
-    def.put( "config.style.useUnitsRateBits", new Long(0) );
-    def.put( "Save Torrent Backup", new Long(0) );
+    def.put( "config.style.useSIUnits", FALSE );
+    def.put( "config.style.useUnitsRateBits", FALSE );
+    def.put( "Save Torrent Backup", FALSE );
     
     def.put( "Sharing Protocol", "HTTP" );
-    def.put( "Sharing Add Hashes", new Long(0) );
-    def.put( "Sharing Rescan Enable", new Long(0));
+    def.put( "Sharing Add Hashes", FALSE );
+    def.put( "Sharing Rescan Enable", FALSE);
     def.put( "Sharing Rescan Period", new Long(60));
     def.put( "Sharing Torrent Comment", "" );
-    def.put( "Sharing Permit DHT", new Long(1));
-    def.put( "Sharing Torrent Private", new Long(0));
+    def.put( "Sharing Permit DHT", TRUE);
+    def.put( "Sharing Torrent Private", FALSE);
 	
-    def.put( "File.Decoder.Prompt", new Long(0) );
+    def.put( "File.Decoder.Prompt", FALSE );
     def.put( "File.Decoder.Default", "" );
-    def.put( "File.Decoder.ShowLax", new Long(0));
-    def.put( "File.Decoder.ShowAll", new Long(0));
-    def.put( "Password enabled", new Long(0) );
+    def.put( "File.Decoder.ShowLax", FALSE);
+    def.put( "File.Decoder.ShowAll", FALSE);
+    def.put( "Password enabled", FALSE );
     def.put( "Password", null );
-    def.put( "Save detail views column widths", new Long(0) );
-    def.put( "config.interface.checkassoc", new Long(1) );
-    def.put( "Wizard Completed", new Long(0) );
-    def.put( "donations.donated", new Long(0) );
+    def.put( "Save detail views column widths", FALSE );
+    def.put( "config.interface.checkassoc", TRUE );
+    def.put( "Wizard Completed", FALSE );
+    def.put( "donations.donated", FALSE );
     def.put( "donations.lastVersion", "" );
     def.put( "donations.nextAskTime", new Long(0) );
     def.put( "Color Scheme.red", new Long(0) );
     def.put( "Color Scheme.green", new Long(128) );
     def.put( "Color Scheme.blue", new Long(255) );
-    def.put( "Show Splash", new Long(1) );
-    def.put( "window.maximized", new Long(1) );
+    def.put( "Show Splash", TRUE );
+    def.put( "window.maximized", TRUE );
     def.put( "window.rectangle", "" );
-    def.put( "Open Console", new Long(0) );
-    def.put( "Open Config", new Long(0) );
-    def.put( "Open Stats On Start", new Long(0));
-    def.put( "Start Minimized", new Long(0) );
-    def.put( "Open Bar", new Long(0) );
-    def.put( "confirmationOnExit", new Long(0) );
+    def.put( "Open Console", FALSE );
+    def.put( "Open Config", FALSE );
+    def.put( "Open Stats On Start", FALSE);
+    def.put( "Start Minimized", FALSE );
+    def.put( "Open Bar", FALSE );
+    def.put( "confirmationOnExit", FALSE );
     def.put( "locale", Locale.getDefault().toString() );
     def.put( "locale.set.complete.count", new Long(0));
-    def.put( "Add URL Silently", new Long(0) );
+    def.put( "Add URL Silently", FALSE );
     def.put( "config.style.dropdiraction", "0" );
     def.put( "MyTorrents.SplitAt", new Long(30) );
-    def.put( "Confirm Data Delete", new Long(1) );
+    def.put( "Confirm Data Delete", TRUE );
     def.put( "Password Confirm", null );
-    def.put( "Auto Update", new Long(1) );
-    def.put( "Alert on close", new Long(1) );
-    def.put( "diskmanager.friendly.hashchecking", new Long(0) );
-    def.put( "Default Start Torrents Stopped", new Long(0));
-    def.put( "Server Enable UDP", new Long(1));
-    def.put( "diskmanager.perf.cache.enable", new Long(1));
-    def.put( "diskmanager.perf.cache.enable.read", new Long(1));
-    def.put( "diskmanager.perf.cache.enable.write", new Long(1));
+    def.put( "Auto Update", TRUE );
+    def.put( "Alert on close", TRUE );
+    def.put( "diskmanager.friendly.hashchecking", FALSE );
+    def.put( "Default Start Torrents Stopped", FALSE);
+    def.put( "Server Enable UDP", TRUE);
+    def.put( "diskmanager.perf.cache.enable", TRUE);
+    def.put( "diskmanager.perf.cache.enable.read", TRUE);
+    def.put( "diskmanager.perf.cache.enable.write", TRUE);
     def.put( "diskmanager.perf.cache.size", new Long(4));		// 4 MB
     def.put( "diskmanager.perf.cache.notsmallerthan", new Long(1024));	// 1024 K
     def.put( "diskmanager.perf.read.maxthreads", new Long(32));
     def.put( "diskmanager.perf.read.maxmb", new Long(5));
     def.put( "diskmanager.perf.write.maxthreads", new Long(32));
     def.put( "diskmanager.perf.write.maxmb", new Long(5));
-    def.put( "diskmanager.perf.cache.trace", new Long(0));
-    def.put( "diskmanager.perf.cache.flushpieces", new Long(1));
-    def.put( "File.truncate.if.too.large", new Long(0));
-    def.put( "Enable System Tray", new Long(1));
-    def.put( "config.style.table.sortDefaultAscending", new Long(1));
+    def.put( "diskmanager.perf.cache.trace", FALSE);
+    def.put( "diskmanager.perf.cache.flushpieces", TRUE);
+    def.put( "File.truncate.if.too.large", FALSE);
+    def.put( "Enable System Tray", TRUE);
+    def.put( "config.style.table.sortDefaultAscending", TRUE);
     def.put( "Ignore.peer.ports", "0" );
     def.put( "Security.JAR.tools.dir", "" );
     def.put( "network.max.simultaneous.connect.attempts", new Long( 8 ));
@@ -387,19 +390,19 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.socket.SO_SNDBUF", new Long(0) );
     def.put( "network.tcp.socket.SO_RCVBUF", new Long(0) );
     def.put( "network.tcp.socket.IPTOS", "" );
-    def.put( "confirm_torrent_removal", new Long(0) );
-    def.put( "add_torrents_silently", new Long(0) );
-    def.put( "enable_small_osx_fonts", new Long(1) );
+    def.put( "confirm_torrent_removal", FALSE );
+    def.put( "add_torrents_silently", FALSE );
+    def.put( "enable_small_osx_fonts", TRUE );
     def.put( "Message Popup Autoclose in Seconds", new Long(5));
-    def.put( "Play Download Finished Announcement", new Long(0));
+    def.put( "Play Download Finished Announcement", FALSE);
     def.put( "Play Download Finished Announcement Text", "Download Complete");
-    def.put( "Play File Finished", new Long(0) );
+    def.put( "Play File Finished", FALSE );
     def.put( "Play File Finished File", "" );
-    def.put( "Play File Finished Announcement", new Long(0));
+    def.put( "Play File Finished Announcement", FALSE);
     def.put( "Play File Finished Announcement Text", "File Complete");
     
     def.put( "BT Request Max Block Size", new Long(65536));
-    def.put( "network.tcp.enable_safe_selector_mode", new Long(0) );
+    def.put( "network.tcp.enable_safe_selector_mode", FALSE );
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

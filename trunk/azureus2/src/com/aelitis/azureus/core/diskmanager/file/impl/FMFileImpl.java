@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.diskmanager.file.*;
@@ -511,7 +513,7 @@ FMFileImpl
 				
 				Object[]	entry = (Object[])it.next();
 			
-				if ( owner.getName().equals(entry[0])){
+				if ( owner.getName().equals(((FMFileOwner)entry[0]).getName())){
 				
 						// already present, start off read-access
 					
@@ -523,7 +525,7 @@ FMFileImpl
 				}
 			}
 			
-			owners.add( new Object[]{ owner.getName(), new Boolean( false ), "<reservation>" });
+			owners.add( new Object[]{ owner, new Boolean( false ), "<reservation>" });
 			
 		}finally{
 			
@@ -555,7 +557,7 @@ FMFileImpl
 					
 				Object[]	entry = (Object[])it.next();
 				
-				if ( owner.getName().equals(entry[0])){
+				if ( owner.getName().equals(((FMFileOwner)entry[0]).getName())){
 					
 					my_entry	= entry;
 				}
@@ -569,18 +571,30 @@ FMFileImpl
 			my_entry[1] = new Boolean( access_mode==FM_WRITE );
 			my_entry[2] = reason;
 			
-			int	read_access 	= 0;
-			int write_access	= 0;
+			int	read_access 		= 0;
+			int write_access		= 0;
+			int	write_access_lax	= 0;
+			
+			TOTorrentFile	my_torrent_file = owner.getTorrentFile();
 			
 			String	users = "";
 				
 			for (Iterator it=owners.iterator();it.hasNext();){
 				
 				Object[]	entry = (Object[])it.next();
-								
+							
 				if (((Boolean)entry[1]).booleanValue()){
 					
+					FMFileOwner	this_owner = (FMFileOwner)entry[0];
+					
 					write_access++;
+					
+					TOTorrentFile this_tf = this_owner.getTorrentFile();
+					
+					if ( my_torrent_file != null && this_tf != null && my_torrent_file.getLength() == this_tf.getLength()){
+						
+						write_access_lax++;
+					}
 					
 					users += (users.length()==0?"":",") + entry[0] + " [write]";
 
@@ -594,6 +608,17 @@ FMFileImpl
 
 			if ( 	write_access > 1 ||
 					( write_access == 1 && read_access > 0 )){
+				
+					// relax locking if strict is disabled and torrent file is same size
+				
+				
+				if ( !COConfigurationManager.getBooleanParameter( "File.strict.locking" )){
+					
+					if ( write_access_lax == write_access ){
+						
+						return;
+					}
+				}
 				
 				throw( new FMFileManagerException( "File '"+canonical_path+"' is in use by '" + users +"'"));
 			}
@@ -620,7 +645,7 @@ FMFileImpl
 					
 					Object[]	entry = (Object[])it.next();
 					
-					if ( owner.getName().equals(entry[0])){
+					if ( owner.getName().equals(((FMFileOwner)entry[0]).getName())){
 						
 						it.remove();
 						
@@ -751,11 +776,12 @@ FMFileImpl
 						
 						Object[]	entry = (Object[])it2.next();
 
-						String	owner 	= (String)entry[0];
-						Boolean	write	= (Boolean)entry[1];
-						String	reason	= (String)entry[2];
+						FMFileOwner	owner 	= (FMFileOwner)entry[0];
+						Boolean		write	= (Boolean)entry[1];
+						String		reason	= (String)entry[2];
 						
-						str += (owner.length()==0?"":", ") + owner + "[" + (write.booleanValue()?"write":"read")+ "/" + reason + "]";
+						
+						str += (str.length()==0?"":", ") + owner.getName() + "[" + (write.booleanValue()?"write":"read")+ "/" + reason + "]";
 					}
 					
 					writer.println( key + " -> " + str );

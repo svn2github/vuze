@@ -127,6 +127,16 @@ public class ConfigSectionFile implements UISWTConfigSection {
     	checkOnComp.setLayoutData(gridData);
     }
     
+
+    if( userMode > 1 ) {
+    	// check on complete
+    	BooleanParameter strictLocking = 
+    		new BooleanParameter(gFile, "File.strict.locking", true,
+                                    "ConfigView.label.strictfilelocking");
+    	gridData = new GridData();
+    	gridData.horizontalSpan = 2;
+    	strictLocking.setLayoutData(gridData);
+    }
     
     if( userMode > 0 ) {
     	// resume data
