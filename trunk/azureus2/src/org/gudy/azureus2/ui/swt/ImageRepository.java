@@ -304,6 +304,17 @@ public class ImageRepository {
 
         image = new Image(null, inStream);
 
+        if (Constants.isWindows) {
+					// recomposite to avoid artifacts - transparency mask does not work
+					final Image dstImage = new Image(Display.getCurrent(), image
+							.getBounds().width, image.getBounds().height);
+					GC gc = new GC(dstImage);
+					gc.drawImage(image, 0, 0);
+					gc.dispose();
+					image.dispose();
+					image = dstImage;
+				}
+
 				registry.put(key, image);
 
 				return image;
