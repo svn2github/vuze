@@ -129,7 +129,7 @@ public class ConfigSectionFile implements UISWTConfigSection {
     
 
     if( userMode > 1 ) {
-    	// check on complete
+    	
     	BooleanParameter strictLocking = 
     		new BooleanParameter(gFile, "File.strict.locking", true,
                                     "ConfigView.label.strictfilelocking");
