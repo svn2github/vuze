@@ -94,8 +94,8 @@ SSDPCore
 	private UPnPSSDPAdapter	adapter;
 	
 	private boolean		first_response			= true;
-	private boolean		ttl_problem_reported	= false;
-	private boolean		sso_problem_reported	= false;
+	private boolean		ttl_problem_reported	= true;	// remove these diagnostic reports on win98
+	private boolean		sso_problem_reported	= true; // remove these diagnostic reports on win98
 	
 	private List			listeners	= new ArrayList();
 	
