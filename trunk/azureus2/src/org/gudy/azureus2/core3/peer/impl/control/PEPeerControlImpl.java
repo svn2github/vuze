@@ -111,7 +111,7 @@ PEPeerControlImpl
 	private float			_globalAvgAvail;
 	private int				_rarestRunning;
 	private long			_time_last_avail;
-	private boolean[]		pieceCandidates;			//peer's pieces that are highest priority to start up
+
 //    private List            _rarestStartedPieces = new ArrayList(); //List of pieces started as rarest first
 
 	
@@ -1151,15 +1151,8 @@ PEPeerControlImpl
 		{
 			PEPieceImpl piece =new PEPieceImpl(this, dm_pieces[pieceNumber], (peerSpeed /2) -1, false);
 
-			if (null !=piece)
-			{
-				//Assign the created piece to the pieces array.
-				addPiece(piece, pieceNumber);
-			} else
-			{
-				System.runFinalization();
-				return false;
-			}
+			//Assign the created piece to the pieces array.
+			addPiece(piece, pieceNumber);
 		}
 
 		if (0 >blockNumber)
@@ -1240,14 +1233,8 @@ PEPeerControlImpl
 			return null;	// hmm this is an odd case that maybe should be handled better
 		}
 		
-		if (null !=pieceCandidates)
-		{
-			Arrays.fill(pieceCandidates, false);
-		} else
-		{	//memory or initialization error
-			System.runFinalization();
-			pieceCandidates =new boolean[nbPieces];
-		}
+		boolean[] pieceCandidates = new boolean[nbPieces];
+		
 		int 	piecesBestStart		=0;	//which piece is first in piecesPriority
 		int		piecesBestEnd		=0;	//which piece is last in piecesPriority
 		int 	PriorityPiecesCnt	=0;	//how many priority pieces have been found
@@ -1466,23 +1453,16 @@ PEPeerControlImpl
 			{
 				// This should be a piece we want to start    
 				PEPieceImpl piece =new PEPieceImpl(this, dm_pieces[i], peerSpeed /2, false);
-				if (null !=piece)
+				
+				blockNumber =piece.getBlock();
+				
+				if (0 <=blockNumber)
 				{
-					//send the request ...
-					blockNumber =piece.getBlock();
-					if (0 <=blockNumber)
-					{
-						return new int[] {i, blockNumber};
-					}
-					piece =null;
+					return new int[] {i, blockNumber};
 				}
-				// seems to be something wrong with memory; can't create a new piece
-				System.runFinalization();
-				//keep trying
-			}
+			}	
 		}
-		//suan le - hui ba
-		System.gc();
+
 		return null;
 	}
 	
@@ -1758,10 +1738,6 @@ PEPeerControlImpl
 		//the availability level of each piece in the network
 		if (null ==availability_cow)
 			availability_cow = new int[_nbPieces];
-
-		//which pieces are highest priority to try to start
-		if (null ==pieceCandidates)
-			pieceCandidates =new boolean[_nbPieces];
 		
 		//the stats
 		_stats =new PEPeerManagerStatsImpl(this);
