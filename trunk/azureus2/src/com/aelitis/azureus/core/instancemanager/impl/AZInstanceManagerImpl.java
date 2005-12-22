@@ -408,7 +408,7 @@ AZInstanceManagerImpl
 		getReply()
 		{
 			try{
-				Thread.sleep( 2500 );
+				Thread.sleep( 25000 );
 				
 			}catch( Throwable e ){
 				

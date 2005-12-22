@@ -582,11 +582,11 @@ FMFileImpl
 			for (Iterator it=owners.iterator();it.hasNext();){
 				
 				Object[]	entry = (Object[])it.next();
-							
+					
+				FMFileOwner	this_owner = (FMFileOwner)entry[0];
+				
 				if (((Boolean)entry[1]).booleanValue()){
-					
-					FMFileOwner	this_owner = (FMFileOwner)entry[0];
-					
+										
 					write_access++;
 					
 					TOTorrentFile this_tf = this_owner.getTorrentFile();
@@ -596,13 +596,13 @@ FMFileImpl
 						write_access_lax++;
 					}
 					
-					users += (users.length()==0?"":",") + entry[0] + " [write]";
+					users += (users.length()==0?"":",") + this_owner.getName() + " [write]";
 
 				}else{
 					
 					read_access++;
 					
-					users += (users.length()==0?"":",") + entry[0] + " [read]";
+					users += (users.length()==0?"":",") + this_owner.getName() + " [read]";
 				}
 			}
 

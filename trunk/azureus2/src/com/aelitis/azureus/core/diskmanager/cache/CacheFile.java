@@ -40,6 +40,10 @@ CacheFile
 	public static final int	CF_READ		= 1;
 	public static final int CF_WRITE	= 2;
 	
+	public static final short CP_NONE		= 0x0000;
+	public static final short CP_READ_CACHE	= 0x0001;
+	public static final short CP_FLUSH		= 0x0002;
+	
 	public TOTorrentFile
 	getTorrentFile();
 	
@@ -96,14 +100,8 @@ CacheFile
 	public void
 	read(
 		DirectByteBuffer	buffer,
-		long				offset )
-	
-		throws CacheFileManagerException;
-	
-	public void
-	readAndFlush(
-		DirectByteBuffer	buffer,
-		long				offset )
+		long				offset,
+		short				policy )
 	
 		throws CacheFileManagerException;
 	

@@ -556,9 +556,9 @@ DiskManagerImpl
 						
 						files[i].getCacheFile().close();
 					}
-				}catch (Exception e){
+				}catch ( Throwable e ){
 					
-					Debug.printStackTrace( e );
+					setFailed( "File close fails: " + Debug.getNestedExceptionMessage(e));
 				}
 			}
 		}
@@ -1275,7 +1275,7 @@ DiskManagerImpl
 				errorMessage	= reason;
 				
 				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
-						errorMessage));
+							errorMessage));
 				
 
 				setState( DiskManager.FAULTY );

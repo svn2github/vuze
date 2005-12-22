@@ -274,7 +274,7 @@ Test
 					
 					System.out.println( "read:" + start + "/" + len );
 					
-					cf.read( buffer, start );
+					cf.read( buffer, start, CacheFile.CP_READ_CACHE );
 					
 					buffer.position(DirectByteBuffer.SS_CACHE, 0);
 					

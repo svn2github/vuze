@@ -52,7 +52,7 @@ DiskAccessControllerImpl
 		CacheFile					file,
 		long						offset,
 		DirectByteBuffer			buffer,
-		boolean						flush,
+		short						cache_policy,
 		DiskAccessRequestListener	listener )
 	{
 		DiskAccessRequestImpl	request = 
@@ -61,7 +61,8 @@ DiskAccessControllerImpl
 					offset, 
 					buffer, 
 					listener, 
-					flush?DiskAccessRequestImpl.OP_READ_AND_FLUSH:DiskAccessRequestImpl.OP_READ );
+					DiskAccessRequestImpl.OP_READ,
+					cache_policy );
 
 		read_dispatcher.queueRequest( request );
 		
@@ -84,7 +85,8 @@ DiskAccessControllerImpl
 					offset, 
 					buffer, 
 					listener, 
-					free_buffer?DiskAccessRequestImpl.OP_WRITE_AND_FREE:DiskAccessRequestImpl.OP_WRITE );
+					free_buffer?DiskAccessRequestImpl.OP_WRITE_AND_FREE:DiskAccessRequestImpl.OP_WRITE,
+					CacheFile.CP_NONE );
 	
 		write_dispatcher.queueRequest( request );
 		

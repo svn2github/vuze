@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
@@ -512,9 +513,9 @@ public class MyTorrentsView
 		moveUp = moveDown = bChangeDir = hasSelection;
 
 		boolean start, stop, changeUrl, barsOpened, forceStart;
-		boolean forceStartEnabled, recheck, manualUpdate, changeSpeed, fileMove;
+		boolean forceStartEnabled, recheck, manualUpdate, changeSpeed, fileMove, fileRescan;
 
-		changeUrl = barsOpened = manualUpdate = changeSpeed = fileMove = true;
+		changeUrl = barsOpened = manualUpdate = changeSpeed = fileMove = fileRescan = true;
 		forceStart = forceStartEnabled = recheck = start = stop = false;
 
 		boolean upSpeedDisabled = false;
@@ -525,6 +526,9 @@ public class MyTorrentsView
 		long totalDownSpeed = 0;
 		boolean downSpeedUnlimited = false;
 
+		boolean	allScanSelected 	= true;
+		boolean allScanNotSelected	= true;
+		
 		if (hasSelection) {
 			bChangeDir = true;
 
@@ -599,8 +603,15 @@ public class MyTorrentsView
 				}
 				bChangeDir &= (dm.getState() == DownloadManager.STATE_ERROR && !dm
 						.filesExist());
+				
+				boolean	scan = dm.getDownloadState().getFlag( DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES );
+				
+				allScanSelected 	= allScanSelected && scan;
+				allScanNotSelected 	= allScanNotSelected && !scan;
 			}
 
+			fileRescan	= allScanSelected || allScanNotSelected;
+			
 		} else { // empty right-click
 			barsOpened = false;
 			forceStart = false;
@@ -609,6 +620,7 @@ public class MyTorrentsView
 			start = false;
 			stop = false;
 			fileMove = false;
+			fileRescan	= false;
 			upSpeedDisabled = true;
 			downSpeedDisabled = true;
 			changeUrl = false;
@@ -1031,16 +1043,15 @@ public class MyTorrentsView
 				});
 		itemManualScrape.setEnabled(manualScrape);
 
-		// advanced > move menu //
+		// advanced > files
 
-		final MenuItem itemFileMove = new MenuItem(menuAdvanced, SWT.CASCADE);
-		Messages.setLanguageText(itemFileMove, "MyTorrentsView.menu.movemenu");
-		itemFileMove.setEnabled(fileMove);
+		final MenuItem itemFiles = new MenuItem(menuAdvanced, SWT.CASCADE);
+		Messages.setLanguageText(itemFiles, "ConfigView.section.files");
 
-		final Menu menuFileMove = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
-		itemFileMove.setMenu(menuFileMove);
+		final Menu menuFiles = new Menu(getComposite().getShell(), SWT.DROP_DOWN);
+		itemFiles.setMenu(menuFiles);
 
-		final MenuItem itemFileMoveData = new MenuItem(menuFileMove, SWT.PUSH);
+		final MenuItem itemFileMoveData = new MenuItem(menuFiles, SWT.PUSH);
 		Messages.setLanguageText(itemFileMoveData, "MyTorrentsView.menu.movedata");
 		itemFileMoveData.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -1078,8 +1089,9 @@ public class MyTorrentsView
 				}
 			}
 		});
-
-		final MenuItem itemFileMoveTorrent = new MenuItem(menuFileMove, SWT.PUSH);
+		itemFileMoveData.setEnabled(fileMove);
+		
+		final MenuItem itemFileMoveTorrent = new MenuItem(menuFiles, SWT.PUSH);
 		Messages.setLanguageText(itemFileMoveTorrent,
 				"MyTorrentsView.menu.movetorrent");
 		itemFileMoveTorrent.addListener(SWT.Selection, new Listener() {
@@ -1117,8 +1129,25 @@ public class MyTorrentsView
 					}
 				}
 			}
+		});		
+		itemFileMoveTorrent.setEnabled(fileMove);
+		
+		final MenuItem itemFileRescan = new MenuItem(menuFiles, SWT.CHECK );
+		Messages.setLanguageText(itemFileRescan,
+				"MyTorrentsView.menu.rescanfile");
+		itemFileRescan.addListener(SWT.Selection, new SelectedTableRowsListener() {
+			public void run(TableRowCore row) {
+				DownloadManager dm = (DownloadManager) row.getDataSource(true);
+				
+				dm.getDownloadState().setFlag( 
+						DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES,
+						itemFileRescan.getSelection());
+			}
 		});
 
+		itemFileRescan.setSelection( allScanSelected );
+		itemFileRescan.setEnabled( fileRescan );
+		
 		// === advanced > export ===
 		// =========================
 

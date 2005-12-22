@@ -31,7 +31,7 @@ DiskManagerCheckRequestImpl
 	private int		piece_number;
 	private Object	user_data;
 	private boolean	low_priority;
-	
+	private boolean	ad_hoc		= true;
 	
 	protected 
 	DiskManagerCheckRequestImpl(
@@ -65,5 +65,18 @@ DiskManagerCheckRequestImpl
 	isLowPriority()
 	{
 		return( low_priority );
+	}
+	
+	public void
+	setAdHoc(
+		boolean	_ad_hoc )
+	{
+		ad_hoc	= _ad_hoc;
+	}
+	
+	public boolean
+	isAdHoc()
+	{
+		return( ad_hoc );
 	}
 }

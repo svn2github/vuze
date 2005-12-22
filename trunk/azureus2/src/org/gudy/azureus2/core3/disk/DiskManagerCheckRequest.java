@@ -37,4 +37,12 @@ DiskManagerCheckRequest
 	
 	public boolean
 	isLowPriority();
+	
+	public void
+	setAdHoc(
+		boolean	adhoc );
+	
+	public boolean
+	isAdHoc();
+	
 }

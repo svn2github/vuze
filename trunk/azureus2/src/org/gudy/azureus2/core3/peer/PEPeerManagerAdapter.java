@@ -46,6 +46,9 @@ PEPeerManagerAdapter
 	public boolean
 	isPeerExchangeEnabled();
 	
+	public boolean
+	isPeriodicRescanEnabled();
+	
 	public void
 	setStateFinishing();
 	

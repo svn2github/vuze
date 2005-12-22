@@ -34,17 +34,17 @@ DiskAccessRequestImpl
 	extends AERunnable
 	implements DiskAccessRequest
 {
-	protected static final int	OP_READ				= 1;
-	protected static final int	OP_WRITE			= 2;
-	protected static final int	OP_WRITE_AND_FREE	= 3;
-	protected static final int	OP_READ_AND_FLUSH	= 4;
+	protected static final short	OP_READ				= 1;
+	protected static final short	OP_WRITE			= 2;
+	protected static final short	OP_WRITE_AND_FREE	= 3;
 	
 	
 	private CacheFile					file;
 	private long						offset;
 	private DirectByteBuffer			buffer;
 	private DiskAccessRequestListener	listener;
-	private int							op;
+	private short						op;
+	private short						cache_policy;
 	
 	private int							size;
 	
@@ -56,13 +56,15 @@ DiskAccessRequestImpl
 		long						_offset,
 		DirectByteBuffer			_buffer,
 		DiskAccessRequestListener	_listener,
-		int							_op )
+		short						_op,
+		short						_cache_policy )
 	{
-		file		= _file;
-		offset		= _offset;
-		buffer		= _buffer;
-		listener	= _listener;
-		op			= _op;
+		file			= _file;
+		offset			= _offset;
+		buffer			= _buffer;
+		listener		= _listener;
+		op				= _op;
+		cache_policy	= _cache_policy;
 		
 		size = buffer.remaining( DirectByteBuffer.SS_FILE );
 	}
@@ -88,11 +90,7 @@ DiskAccessRequestImpl
 		try{
 			if ( op == OP_READ ){
 				
-				file.read( buffer, offset );
-				
-			}else if ( op == OP_READ_AND_FLUSH ){
-				
-				file.readAndFlush( buffer, offset );
+				file.read( buffer, offset, cache_policy );
 				
 			}else if ( op == OP_WRITE ){
 				

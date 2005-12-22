@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
@@ -479,11 +478,18 @@ DMReaderImpl
 			
 			buffer.limit( DirectByteBuffer.SS_DR, ((Integer)stuff[2]).intValue());
 			
+			short	cache_policy = dm_request.getUseCache()?CacheFile.CP_READ_CACHE:CacheFile.CP_NONE;
+			
+			if ( dm_request.getFlush()){
+				
+				cache_policy |= CacheFile.CP_FLUSH;
+			}
+			
 			disk_access.queueReadRequest(
 				(CacheFile)stuff[0],
 				((Long)stuff[1]).longValue(),
 				buffer,
-				dm_request.getFlush(),
+				cache_policy,
 				l );
 		}
 		

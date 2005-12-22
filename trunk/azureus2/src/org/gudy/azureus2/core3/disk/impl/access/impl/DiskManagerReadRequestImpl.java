@@ -49,6 +49,7 @@ DiskManagerReadRequestImpl
   private final int hashcode;
   private boolean	flush;
   private boolean	cancelled;
+  private boolean	use_cache	= true;
   
   
   
@@ -126,6 +127,19 @@ DiskManagerReadRequestImpl
 	getFlush()
 	{
 		return( flush );
+	}
+	
+	public void
+	setUseCache(
+		boolean	cache )
+	{
+		use_cache	= cache;
+	}
+	
+	public boolean
+	getUseCache()
+	{
+		return( use_cache );
 	}
 	
 	public void

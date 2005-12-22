@@ -188,7 +188,8 @@ CacheFileWithoutCache
 	public void
 	read(
 		DirectByteBuffer	buffer,
-		long				position )
+		long				position,
+		short				policy )
 	
 		throws CacheFileManagerException
 	{
@@ -206,16 +207,6 @@ CacheFileWithoutCache
 				
 			manager.rethrow(e);
 		}
-	}
-		
-	public void
-	readAndFlush(
-		DirectByteBuffer	buffer,
-		long				position )
-	
-		throws CacheFileManagerException
-	{
-		read( buffer, position );
 	}
 	
 	public void

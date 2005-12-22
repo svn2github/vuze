@@ -58,7 +58,7 @@ DMCheckerImpl
     	    }
     	 };
 
- 		COConfigurationManager.addParameterListener( "diskmanager.perf.cache.flushpieces", param_listener );
+ 		COConfigurationManager.addAndFireParameterListener( "diskmanager.perf.cache.flushpieces", param_listener );
     }
    
 	private DiskManagerHelper		disk_manager;
@@ -448,6 +448,8 @@ DMCheckerImpl
 		   	}
 		   	
 		   	read_request.setFlush( read_flush );
+		   	
+		   	read_request.setUseCache( !request.isAdHoc());
 		   	
 			disk_manager.enqueueReadRequest( 
 				read_request,

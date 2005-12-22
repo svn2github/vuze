@@ -45,4 +45,11 @@ DiskManagerReadRequest
 	
 	public boolean
 	getFlush();
+	
+	public void
+	setUseCache(
+		boolean	cache );
+	
+	public boolean
+	getUseCache();
 }

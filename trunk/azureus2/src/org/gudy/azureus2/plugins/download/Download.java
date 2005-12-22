@@ -107,7 +107,8 @@ Download
 		 * @since 2.3.0.5
 		 */
 	
-	public static final long FLAG_ONLY_EVER_SEEDED	= 0x00000001;
+	public static final long FLAG_ONLY_EVER_SEEDED			= 0x00000001;
+	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= 0x00000002;
 
 	/** get state from above ST_ set
    * @return ST_ constant

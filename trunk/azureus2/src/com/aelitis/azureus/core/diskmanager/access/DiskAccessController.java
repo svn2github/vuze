@@ -34,7 +34,7 @@ DiskAccessController
 		CacheFile					file,
 		long						offset,
 		DirectByteBuffer			buffer,
-		boolean						flush,
+		short						cache_policy,
 		DiskAccessRequestListener	listener );
 	
 	public DiskAccessRequest

@@ -1161,6 +1161,12 @@ DownloadManagerController
 		return( download_manager.getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_OTHER_PEER ));
 	}
 	
+	public boolean
+	isPeriodicRescanEnabled()
+	{
+		return( download_manager.getDownloadState().getFlag( DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES ));
+	}
+	
 	public TRTrackerScraperResponse
 	getTrackerScrapeResponse()
 	{

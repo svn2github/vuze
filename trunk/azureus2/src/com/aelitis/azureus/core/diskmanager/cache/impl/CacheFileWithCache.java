@@ -238,7 +238,8 @@ CacheFileWithCache
 	readCache(
 		final DirectByteBuffer	file_buffer,
 		final long				file_position,
-		final boolean			recursive )
+		final boolean			recursive,
+		final boolean			disable_read_cache )
 	
 		throws CacheFileManagerException
 	{
@@ -406,6 +407,7 @@ CacheFileWithCache
 							boolean	do_read_ahead	= 
 										i == 0 &&		// first time round
 										!recursive &&
+										!disable_read_cache && 
 										manager.isReadCacheEnabled() &&
 										read_length <  current_read_ahead_size &&
 										file_position + current_read_ahead_size <= file.getLength();
@@ -524,7 +526,7 @@ CacheFileWithCache
 									// there is the possibility that it could be flushed before then - hence the
 									// recursion flag that will avoid this happening next time around
 								
-								readCache( file_buffer, file_position, true );
+								readCache( file_buffer, file_position, true, disable_read_cache );
 							
 							}else{
 									
@@ -1428,30 +1430,27 @@ CacheFileWithCache
 	public void
 	read(
 		DirectByteBuffer	buffer,
-		long				position )
+		long				position,
+		short				policy )
 	
 		throws CacheFileManagerException
 	{
-		readCache( buffer, position, false );
-	}
-		
-	public void
-	readAndFlush(
-		DirectByteBuffer	buffer,
-		long				position )
-	
-		throws CacheFileManagerException
-	{
-		int	file_buffer_position	= buffer.position(DirectByteBuffer.SS_CACHE);
-		int	file_buffer_limit		= buffer.limit(DirectByteBuffer.SS_CACHE);
-		
-		int	read_length	= file_buffer_limit - file_buffer_position;
+		boolean	read_cache 	= ( policy & CP_READ_CACHE ) != 0;
+		boolean	flush		= ( policy & CP_FLUSH ) != 0;
 				
-		flushCache( position, read_length, false, -1, 0, -1 );
-
-		read( buffer, position );
+		if ( flush ){
+			
+			int	file_buffer_position	= buffer.position(DirectByteBuffer.SS_CACHE);
+			int	file_buffer_limit		= buffer.limit(DirectByteBuffer.SS_CACHE);
+			
+			int	read_length	= file_buffer_limit - file_buffer_position;
+					
+			flushCache( position, read_length, false, -1, 0, -1 );
+		}
+		
+		readCache( buffer, position, false, !read_cache );
 	}
-	
+		
 	public void
 	write(
 		DirectByteBuffer	buffer,
