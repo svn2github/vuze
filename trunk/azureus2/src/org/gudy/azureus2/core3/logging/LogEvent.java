@@ -76,15 +76,22 @@ public class LogEvent {
 
 	// Throwables
 
-	public LogEvent(Object[] relatedTo, LogIDs logID, String text, Throwable e) {
-		this(relatedTo, logID, LT_ERROR, text);
+	public LogEvent(Object[] relatedTo, LogIDs logID, int entryType, String text, Throwable e) {
+		this(relatedTo, logID, entryType, text);
 		this.err = e;
+	}
+	public LogEvent(Object[] relatedTo, LogIDs logID, String text, Throwable e) {
+		this(relatedTo, logID, LT_ERROR, text, e);
 	}
 	
 	public LogEvent(Object relatedTo, LogIDs logID, String text, Throwable e) {
 		this(new Object[] { relatedTo }, logID, text, e);
 	}
 
+	public LogEvent(LogIDs logID, int entryType, String text, Throwable e) {
+		this(null, logID, entryType, text, e);
+	}
+	
 	public LogEvent(LogIDs logID, String text, Throwable e) {
 		this(null, logID, text, e);
 	}

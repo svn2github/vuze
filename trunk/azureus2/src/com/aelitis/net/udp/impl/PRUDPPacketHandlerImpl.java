@@ -755,8 +755,12 @@ PRUDPPacketHandlerImpl
 													
 												}catch( Throwable e ){
 													// get occasional send fails, not very interesting
-													Logger.log(new LogEvent(LOGID, "PRUDPPacketHandler: "
-														+ "send failed", e)); 
+													Logger.log(
+														new LogEvent(
+															LOGID, 
+															LogEvent.LT_WARNING,
+															"PRUDPPacketHandler: send failed", 
+															e)); 
 												}
 											}
 										}

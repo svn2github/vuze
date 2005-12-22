@@ -195,8 +195,9 @@ public class LoggerImpl {
 			}
 
 		// Write error to stderr, which will eventually get back here
-		if (event.err != null)
+		if (event.err != null && event.entryType == LogEvent.LT_ERROR ){
 			Debug.printStackTrace(event.err);
+		}
 	}
 
 	public void logTextResource(LogEvent event) {
