@@ -1377,9 +1377,9 @@ Test
 		  public void setData (String key, Object value){}
 
 			/* (non-Javadoc)
-			 * @see org.gudy.azureus2.core3.peer.PEPeerManager#getRarestPieceInfo(org.gudy.azureus2.core3.peer.PEPeer)
+			 * @see org.gudy.azureus2.core3.peer.PEPeerManager#getRequestCandidate(org.gudy.azureus2.core3.peer.PEPeer)
 			 */
-			public int[] getRarestPieceInfo(PEPeer pc) {
+			public int[] getRequestCandidate(PEPeer pc, int candidateMode) {
 				// TODO Auto-generated method stub
 				return null;
 			}
