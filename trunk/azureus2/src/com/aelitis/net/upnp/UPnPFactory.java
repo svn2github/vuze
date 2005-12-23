@@ -45,10 +45,13 @@ UPnPFactory
 	
 	public static UPnPSSDP
 	getSSDP(
-		UPnPSSDPAdapter		adapter )
+		UPnPSSDPAdapter		adapter,
+		String				group_address,
+		int					group_port,
+		int					control_port )
 	
 		throws UPnPException
 	{
-		return( SSDPCore.getSingleton( adapter ));
+		return( SSDPCore.getSingleton( adapter, group_address, group_port, control_port ));
 	}
 }

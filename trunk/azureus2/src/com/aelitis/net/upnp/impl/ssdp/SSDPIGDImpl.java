@@ -39,6 +39,10 @@ public class
 SSDPIGDImpl 
 	implements SSDPIGD, UPnPSSDPListener
 {
+	private String				SSDP_GROUP_ADDRESS 	= "239.255.255.250"; 
+	private int					SSDP_GROUP_PORT		= 1900;	
+	private int					SSDP_CONTROL_PORT	= 8008;
+
 	private UPnPImpl		upnp;
 	private SSDPCore		ssdp_core;
 	
@@ -58,7 +62,12 @@ SSDPIGDImpl
 	{	
 		upnp	= _upnp;
 		
-		ssdp_core	= SSDPCore.getSingleton( upnp.getAdapter());
+		ssdp_core	= 
+			SSDPCore.getSingleton( 
+				upnp.getAdapter(),
+				SSDP_GROUP_ADDRESS,
+				SSDP_GROUP_PORT,
+				SSDP_CONTROL_PORT );
 		
 		ssdp_core.addListener( this );
 	}

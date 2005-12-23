@@ -43,9 +43,7 @@ SSDPCore
 	implements UPnPSSDP
 {
 	private static final LogIDs LOGID = LogIDs.NET;
-	private final static String		SSDP_GROUP_ADDRESS 	= "239.255.255.250";
-	private final static int		SSDP_GROUP_PORT		= 1900;
-	private final static int		SSDP_CONTROL_PORT	= 8008;
+	
 	private final static int		TTL					= 4;
 	
 	private final static int		PACKET_SIZE		= 8192;
@@ -53,34 +51,31 @@ SSDPCore
 	private static final String	HTTP_VERSION	= "1.1";
 	private static final String	NL				= "\r\n";
 	
-	
-	private static InetSocketAddress group_address;
-	
-	static{
-		try{
-			group_address = new InetSocketAddress(InetAddress.getByName(SSDP_GROUP_ADDRESS), 0 );
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e );
-		}
-	}
 
-	private static SSDPCore		singleton;
+	private static Map			singletons	= new HashMap();
 	private static AEMonitor	class_mon 	= new AEMonitor( "SSDPCore:class" );
 
 	public static SSDPCore
 	getSingleton(
-		UPnPSSDPAdapter		adapter )
+		UPnPSSDPAdapter		adapter,
+		String				group_address,
+		int					group_port,
+		int					control_port )
 	
 		throws UPnPException
 	{
 		try{
 			class_mon.enter();
 		
+			String	key = group_address + ":" + group_port + ":" + control_port;
+			
+			SSDPCore	singleton = (SSDPCore)singletons.get( key );
+			
 			if ( singleton == null ){
 				
-				singleton = new SSDPCore( adapter );
+				singleton = new SSDPCore( adapter, group_address, group_port, control_port );
+				
+				singletons.put( key, singleton );
 			}
 			
 			return( singleton );
@@ -91,8 +86,12 @@ SSDPCore
 		}
 	}
 	
-	private UPnPSSDPAdapter	adapter;
-	
+	private UPnPSSDPAdapter		adapter;
+	private String				group_address_str;
+	private int					group_port;
+	private int					control_port;
+	private InetSocketAddress 	group_address;
+
 	private boolean		first_response			= true;
 	private boolean		ttl_problem_reported	= true;	// remove these diagnostic reports on win98
 	private boolean		sso_problem_reported	= true; // remove these diagnostic reports on win98
@@ -105,13 +104,22 @@ SSDPCore
 	
 	public
 	SSDPCore(
-		UPnPSSDPAdapter		_adapter )
+		UPnPSSDPAdapter		_adapter,
+		String				_group_address,
+		int					_group_port,
+		int					_control_port )
 	
 		throws UPnPException
 	{	
 		adapter	= _adapter;
 
+		group_address_str	= _group_address;
+		group_port			= _group_port;
+		control_port		= _control_port;
+			
 		try{	
+			group_address = new InetSocketAddress(InetAddress.getByName(group_address_str), 0 );
+
 			processNetworkInterfaces( true );
 		
 			UTTimer timer = adapter.createTimer( "SSDP:refresher" );
@@ -210,7 +218,7 @@ SSDPCore
 					try{
 							// set up group
 						
-						final MulticastSocket mc_sock = new MulticastSocket(SSDP_GROUP_PORT);
+						final MulticastSocket mc_sock = new MulticastSocket( group_port );
 										
 						mc_sock.setReuseAddress(true);
 						
@@ -294,7 +302,7 @@ SSDPCore
 							
 						control_socket.setReuseAddress( true );
 							
-						control_socket.bind( new InetSocketAddress(ni_address, SSDP_CONTROL_PORT ));
+						control_socket.bind( new InetSocketAddress(ni_address, control_port ));
 			
 						adapter.createThread(
 							"SSDP:listener",
@@ -354,7 +362,7 @@ SSDPCore
 			"ST: " + ST + NL +
 			"MX: 3" + NL +
 			"MAN: \"ssdp:discover\"" + NL + 
-			"HOST: " + SSDP_GROUP_ADDRESS + ":" + SSDP_GROUP_PORT + NL +
+			"HOST: " + group_address_str + ":" + group_port + NL +
 			(user_agent==null?NL:("USER-AGENT: " + user_agent + NL + NL));
 
 		byte[]	data = str.getBytes();
@@ -393,13 +401,13 @@ SSDPCore
 						}
 					}
 					
-					mc_sock.bind( new InetSocketAddress( SSDP_CONTROL_PORT ));
+					mc_sock.bind( new InetSocketAddress( control_port ));
 	
 					mc_sock.setNetworkInterface( network_interface );
 					
 					// System.out.println( "querying interface " + network_interface );
 					
-					DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), SSDP_GROUP_PORT );
+					DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), group_port );
 					
 					mc_sock.send(packet);
 					
@@ -630,7 +638,7 @@ SSDPCore
 						"HTTP/1.1 200 OK" + NL +
 						"SERVER: Azureus (UPnP/1.0)" + NL +
 						"CACHE-CONTROL: max-age=600" + NL +
-						"LOCATION: http://" + local_address.getHostAddress() + ":" + SSDP_CONTROL_PORT + "/" + NL +
+						"LOCATION: http://" + local_address.getHostAddress() + ":" + control_port + "/" + NL +
 						"ST: " + st + NL + 
 						"USN: uuid:UUID-Azureus-1234::" + st + NL + 
 						"AL: " + response;

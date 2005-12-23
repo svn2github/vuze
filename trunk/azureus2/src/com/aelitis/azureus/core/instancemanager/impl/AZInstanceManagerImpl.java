@@ -55,6 +55,10 @@ AZInstanceManagerImpl
 {
 	private static final LogIDs LOGID = LogIDs.NET;
 	
+	private String				SSDP_GROUP_ADDRESS 	= "239.255.068.250";	// 239.255.000.000-239.255.255.255 
+	private int					SSDP_GROUP_PORT		= 16680;				//
+	private int					SSDP_CONTROL_PORT	= 16679;
+
 	private static AZInstanceManagerImpl	singleton;
 	
 	private static AEMonitor	class_mon = new AEMonitor( "AZInstanceManager:class" );
@@ -140,7 +144,10 @@ AZInstanceManagerImpl
 								Logger.log(new LogEvent( LOGID, str )); 
 							}
 						}
-					});
+					},
+					SSDP_GROUP_ADDRESS,
+					SSDP_GROUP_PORT,
+					SSDP_CONTROL_PORT );
 			
 			ssdp.addListener( this );
 			
