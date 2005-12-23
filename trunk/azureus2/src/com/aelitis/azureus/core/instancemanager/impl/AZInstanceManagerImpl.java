@@ -109,7 +109,11 @@ AZInstanceManagerImpl
 		core			= _core;
 		
 		my_instance	= new AZMyInstanceImpl( core );
-		
+	}
+	
+	public void
+	initialize()
+	{
 		final PluginInterface	pi = core.getPluginManager().getDefaultPluginInterface();
 		
 		try{
@@ -195,11 +199,7 @@ AZInstanceManagerImpl
 			
 			Debug.printStackTrace(e);
 		}
-	}
-	
-	public void
-	initialize()
-	{
+		
 		new AEThread( "AZInstanceManager:initialSearch", true )
 		{
 			public void

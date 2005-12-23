@@ -47,6 +47,7 @@ AZMyInstanceImpl
 	private int					tcp_port;
 	
 	private long				last_force_read_ext;
+	private InetAddress			last_external_address;
 	
 	protected
 	AZMyInstanceImpl(
@@ -165,15 +166,26 @@ AZMyInstanceImpl
 			}
 		}
 		
+			// no good address available
+		
 		if ( external_address == null ){
 				
-			try{
-				external_address = InetAddress.getByName("127.0.0.1");
+			if ( last_external_address != null ){
 				
-			}catch( Throwable e ){
+				external_address = last_external_address;
 				
-				Debug.printStackTrace(e);
+			}else{
+				try{
+					external_address = InetAddress.getByName("127.0.0.1");
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
+		}else{
+			
+			last_external_address	= external_address;
 		}
 		
 		return( external_address );
