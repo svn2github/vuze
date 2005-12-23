@@ -198,8 +198,11 @@ AZInstanceManagerImpl
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				user_agent,
 		String				ST )
 	{
+		System.out.println( "got search:" + user_agent + "/" + ST );
+		
 		if ( ST.startsWith("azureus:")){
 			
 			StringTokenizer	tok = new StringTokenizer( ST, ":" );
@@ -288,8 +291,14 @@ AZInstanceManagerImpl
 			// not interested
 	}
 
+	public AZInstance
+	getMyInstance()
+	{
+		return( null );
+	}
+	
 	public AZInstance[]
-	getInstances()
+	getOtherInstances()
 	{
 		if ( ssdp == null ){
 			
@@ -347,7 +356,7 @@ AZInstanceManagerImpl
 			
 			String	st = "azureus:" + _type + ":" + my_instance_id + ":" + id;
 			
-			ssdp.search( st );
+			ssdp.search( "azureus:sdsd", st );
 		}
 		
 		protected long

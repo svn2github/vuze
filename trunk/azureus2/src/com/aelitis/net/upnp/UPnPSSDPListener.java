@@ -52,5 +52,6 @@ UPnPSSDPListener
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				user_agent,
 		String				ST );
 }

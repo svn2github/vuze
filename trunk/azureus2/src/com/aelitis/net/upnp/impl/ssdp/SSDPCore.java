@@ -346,6 +346,7 @@ SSDPCore
 	
 	public void
 	search(
+		String	user_agent,
 		String	ST )
 	{
 		String	str =
@@ -353,7 +354,8 @@ SSDPCore
 			"ST: " + ST + NL +
 			"MX: 3" + NL +
 			"MAN: \"ssdp:discover\"" + NL + 
-			"HOST: " + SSDP_GROUP_ADDRESS + ":" + SSDP_GROUP_PORT + NL + NL;
+			"HOST: " + SSDP_GROUP_ADDRESS + ":" + SSDP_GROUP_PORT + NL +
+			(user_agent==null?NL:("USER-AGENT: " + user_agent + NL + NL));
 
 		byte[]	data = str.getBytes();
 		
@@ -559,6 +561,7 @@ SSDPCore
 		String	nts			= null;
 		String	st			= null;
 		String	al			= null;
+		String	server		= null;
 		
 		for (int i=1;i<lines.size();i++){
 			
@@ -597,6 +600,10 @@ SSDPCore
 			}else if ( key.equals( "AL" )){
 				
 				al	= val;
+				
+			}else if ( key.equals( "SERVER" )){
+				
+				server	= val;
 			}
 		}
 			
@@ -615,7 +622,7 @@ SSDPCore
 				USN: uuid:UUID-InternetGatewayDevice-1234::upnp:rootdevice
 				*/
 				
-				String	response = informSearch( network_interface, local_address, packet.getAddress(), st );
+				String	response = informSearch( network_interface, local_address, packet.getAddress(), server, st );
 				
 				if ( response != null ){
 					
@@ -736,12 +743,13 @@ SSDPCore
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				user_agent,
 		String				st )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
-				String	res = ((UPnPSSDPListener)listeners.get(i)).receivedSearch(network_interface,local_address,originator,st );
+				String	res = ((UPnPSSDPListener)listeners.get(i)).receivedSearch(network_interface,local_address,originator,user_agent,st );
 				
 				if ( res != null ){
 					

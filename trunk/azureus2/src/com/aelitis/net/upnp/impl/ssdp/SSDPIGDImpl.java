@@ -126,7 +126,7 @@ SSDPIGDImpl
 	protected void
 	search()
 	{
-		ssdp_core.search( "upnp:rootdevice" );
+		ssdp_core.search( null, "upnp:rootdevice" );
 	}
 	
 	
@@ -259,6 +259,7 @@ SSDPIGDImpl
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 		InetAddress			originator,
+		String				user_agent,
 		String				ST )
 	{
 		// not interested, loopback or other search

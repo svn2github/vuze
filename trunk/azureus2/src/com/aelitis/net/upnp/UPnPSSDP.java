@@ -27,6 +27,7 @@ UPnPSSDP
 {
 	public void
 	search(
+		String		user_agent,
 		String		ST );
 	
 	public void

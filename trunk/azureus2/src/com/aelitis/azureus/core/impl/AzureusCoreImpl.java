@@ -193,7 +193,7 @@ AzureusCoreImpl
          
 	   AZInstanceManager	inst_man = AZInstanceManagerFactory.getSingleton( this );
 	   
-	   AZInstance[]	instances = inst_man.getInstances();
+	   AZInstance[]	instances = inst_man.getOtherInstances();
 	   
 	   for (int i=0;i<instances.length;i++){
 		   
