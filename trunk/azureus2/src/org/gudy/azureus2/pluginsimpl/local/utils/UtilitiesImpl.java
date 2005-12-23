@@ -343,7 +343,7 @@ UtilitiesImpl
 		
 		try{
 			
-			String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress();
+			String	vc_ip = VersionCheckClient.getSingleton().getExternalIpAddress( false );
 			
 			if ( vc_ip != null && vc_ip.length() > 0 ){
 								

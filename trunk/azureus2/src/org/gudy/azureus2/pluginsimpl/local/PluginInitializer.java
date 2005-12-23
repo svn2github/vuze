@@ -147,6 +147,11 @@ PluginInitializer
 					"com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin", 
 					"azextseed", 
 					"azextseed",
+	   				"true" },
+	   		{	 PluginManagerDefaults.PID_EXTERNAL_SEED, 
+	   				"com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin", 
+	   				"azlocaltracker", 
+	   				"azlocaltracker",
 					"true" },
         };
  

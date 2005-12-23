@@ -27,23 +27,27 @@ import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
-import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
 import com.aelitis.net.upnp.UPnPFactory;
 import com.aelitis.net.upnp.UPnPSSDP;
 import com.aelitis.net.upnp.UPnPSSDPAdapter;
@@ -59,7 +63,11 @@ AZInstanceManagerImpl
 	private int					SSDP_GROUP_PORT		= 16680;				//
 	private int					SSDP_CONTROL_PORT	= 16679;
 
+	private static final long	ALIVE_PERIOD	= 30*60*1000;
+	
 	private static AZInstanceManagerImpl	singleton;
+	
+	private List	listeners	= new ArrayList();
 	
 	private static AEMonitor	class_mon = new AEMonitor( "AZInstanceManager:class" );
 	
@@ -84,9 +92,13 @@ AZInstanceManagerImpl
 	
 	private AzureusCore	core;
 	private UPnPSSDP 	ssdp;
-	private String		my_instance_id;
 	private long		search_id_next;
 	private List		requests = new ArrayList();
+	
+	private AZMyInstanceImpl		my_instance;
+	private Map						other_instances	= new HashMap();
+	
+	private AESemaphore	initial_search_sem	= new AESemaphore( "AZInstanceManager:initialSearch" );
 	
 	private AEMonitor	this_mon = new AEMonitor( "AZInstanceManager" );
 
@@ -96,12 +108,7 @@ AZInstanceManagerImpl
 	{
 		core			= _core;
 		
-		my_instance_id	= COConfigurationManager.getStringParameter( "ID", "" );
-		
-		if ( my_instance_id.length() == 0 ){
-			
-			my_instance_id	= "" + SystemTime.getCurrentTime();
-		}
+		my_instance	= new AZMyInstanceImpl( core );
 		
 		final PluginInterface	pi = core.getPluginManager().getDefaultPluginInterface();
 		
@@ -150,11 +157,63 @@ AZInstanceManagerImpl
 					SSDP_CONTROL_PORT );
 			
 			ssdp.addListener( this );
+		
+			core.addLifecycleListener(
+				new AzureusCoreLifecycleAdapter()
+				{
+					public void
+					stopping(
+						AzureusCore		core )
+					{
+						if ( other_instances.size() > 0 ){
+							
+							ssdp.notify( my_instance.encode(), "ssdp:byebye" );
+						}
+					}
+				});
 			
+			SimpleTimer.addPeriodicEvent(
+				ALIVE_PERIOD,
+				new TimerEventPerformer()
+				{
+					public void
+					perform(
+						TimerEvent	event )
+					{
+						checkTimeouts();
+						
+						if ( other_instances.size() > 0 ){
+							
+							ssdp.notify( my_instance.encode(), "ssdp:alive" );
+						}				
+					}
+				});
+		
 		}catch( Throwable e ){
+			
+			initial_search_sem.releaseForever();
 			
 			Debug.printStackTrace(e);
 		}
+	}
+	
+	public void
+	initialize()
+	{
+		new AEThread( "AZInstanceManager:initialSearch", true )
+		{
+			public void
+			runSupport()
+			{
+				try{
+					search();
+					
+				}finally{
+					
+					initial_search_sem.releaseForever();
+				}
+			}
+		}.start();
 	}
 	
 	public void
@@ -166,6 +225,8 @@ AZInstanceManagerImpl
 		String				ST,
 		String				AL )
 	{
+		// System.out.println( "received result: " + ST + "/" + AL );
+
 		if ( ST.startsWith("azureus:") && AL != null ){
 			
 			StringTokenizer	tok = new StringTokenizer( ST, ":" );
@@ -176,7 +237,7 @@ AZInstanceManagerImpl
 
 			String	az_id = tok.nextToken();	// az id
 			
-			if ( az_id.equals( my_instance_id )){
+			if ( az_id.equals( my_instance.getID())){
 			
 				long search_id = Long.parseLong( tok.nextToken());	// search id
 				
@@ -208,7 +269,17 @@ AZInstanceManagerImpl
 		String				user_agent,
 		String				ST )
 	{
-		System.out.println( "got search:" + user_agent + "/" + ST );
+		// System.out.println( "received search: " + user_agent + "/" + ST );
+		
+		if ( user_agent.startsWith("azureus:")){
+			
+			AZInstance	inst = AZOtherInstanceImpl.decode( originator, user_agent );
+			
+			if ( inst != null ){
+				
+				checkAdd( inst );
+			}
+		}
 		
 		if ( ST.startsWith("azureus:")){
 			
@@ -220,59 +291,10 @@ AZInstanceManagerImpl
 
 			String az_id = tok.nextToken();	// az id
 			
-			if ( !az_id.equals(my_instance_id )){
-				
-				String	internal_address = COConfigurationManager.getStringParameter("Bind IP");
-				
-				if ( internal_address.length() < 7 ){
-					
-					internal_address = "*";
-				}
-				
-				String	external_address = null;
-				
-				int	udp_port	= 0;
-				
-				try{
-				    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-				        
-			        	// may not be present
-			        	
-			        if ( dht_pi != null ){
-			        	
-			        	DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();
-			             
-			        	udp_port = dht.getPort();
-			        	
-			        	external_address = dht.getLocalAddress().getAddress().getAddress().getHostAddress();
-			        }
-				}catch( Throwable e ){
-				}
-				
-				if ( external_address == null ){
-					
-					InetAddress ia = core.getPluginManager().getDefaultPluginInterface().getUtilities().getPublicAddress();
-					
-					if ( ia != null ){
-						
-						external_address = ia.getHostAddress();
-						
-					}else{
-						
-						external_address = "127.0.0.1";
-					}
-				}
+			if ( !az_id.equals( my_instance.getID())){
 								
-				String	reply = my_instance_id;				
-
-				reply += ":" + mapAddress(internal_address);
-				
-				reply += ":" + mapAddress(external_address);
-				
-				reply += ":" + COConfigurationManager.getIntParameter("TCP.Listen.Port");
-				
-		        reply += ":" + udp_port;
-				
+				String	reply = my_instance.encode();
+	
 				if ( command.equals("btih")){
 					
 					
@@ -295,26 +317,108 @@ AZInstanceManagerImpl
 		String				NT,
 		String				NTS )
 	{
-			// not interested
+		// System.out.println( "received notify: " + NT + "/" + NTS );
+
+		if ( NT.startsWith("azureus:")){
+			
+			AZInstanceImpl	inst = AZOtherInstanceImpl.decode( originator, NT );
+
+			if ( inst != null ){
+			
+				if ( NTS.indexOf("alive") != -1 ){
+
+					checkAdd( inst );
+					
+				}else if ( NTS.indexOf("byebye") != -1 ){
+
+					checkRemove( inst );
+				}
+			}
+		}
 	}
 
+	protected void
+	checkAdd(
+		AZInstance	inst )
+	{
+		if ( inst.getID().equals( my_instance.getID())){
+			
+			return;
+		}
+		
+		boolean	added = false;
+		
+		try{
+			this_mon.enter();
+			
+			added = other_instances.put( inst.getID(), inst ) == null;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		if ( added ){
+			
+			informAdded( inst );
+		}
+	}
+	
+	protected void
+	checkRemove(
+		AZInstance	inst )
+	{
+		if ( inst.getID().equals( my_instance.getID())){
+			
+			return;
+		}
+		
+		boolean	removed = false;
+		
+		try{
+			this_mon.enter();
+			
+			removed = other_instances.remove( inst.getID()) != null;
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		if ( removed ){
+			
+			informRemoved( inst );
+		}
+	}
+	
 	public AZInstance
 	getMyInstance()
 	{
-		return( null );
+		return( my_instance );
+	}
+	
+	protected void
+	search()
+	{
+		request req = sendRequest( "instance" );
+		
+		req.getReply();
 	}
 	
 	public AZInstance[]
 	getOtherInstances()
 	{
-		if ( ssdp == null ){
+		initial_search_sem.reserve();
+		
+		try{
+			this_mon.enter();
+
+			return((AZInstance[])other_instances.values().toArray( new AZInstance[other_instances.size()]));
 			
-			return( new AZInstance[0]);
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		request req = sendRequest( "instance" );
-		
-		return( req.getReply());
 	}
 	
 	public AZInstance[]
@@ -329,6 +433,74 @@ AZInstanceManagerImpl
 		request req = sendRequest( "btih" );
 		
 		return( req.getReply());
+	}
+	
+	protected void
+	checkTimeouts()
+	{
+		long	now = SystemTime.getCurrentTime();
+	
+		List	removed = new ArrayList();
+		
+		try{
+			this_mon.enter();
+
+			Iterator	it = other_instances.values().iterator();
+			
+			while( it.hasNext()){
+				
+				AZInstanceImpl	inst = (AZInstanceImpl)it.next();
+	
+				if ( now - inst.getCreationTime() > ALIVE_PERIOD * 2.5 ){
+					
+					removed.add( inst );
+					
+					it.remove();
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		for (int i=0;i<removed.size();i++){
+			
+			AZInstance	inst = (AZInstance)removed.get(i);
+			
+			informRemoved( inst );
+		}
+	}
+	
+	protected void
+	informRemoved(
+		AZInstance	inst )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((AZInstanceManagerListener)listeners.get(i)).instanceLost( inst );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void
+	informAdded(
+		AZInstance	inst )
+	{
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((AZInstanceManagerListener)listeners.get(i)).instanceFound( inst );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	protected request
@@ -361,9 +533,9 @@ AZInstanceManagerImpl
 				this_mon.exit();
 			}
 			
-			String	st = "azureus:" + _type + ":" + my_instance_id + ":" + id;
+			String	st = "azureus:" + _type + ":" + my_instance.getID() + ":" + id;
 			
-			ssdp.search( "azureus:sdsd", st );
+			ssdp.search( my_instance.encode(), st );
 		}
 		
 		protected long
@@ -377,46 +549,38 @@ AZInstanceManagerImpl
 			InetAddress	internal_address,
 			String		AL )
 		{
-			try{
-				this_mon.enter();
+			AZInstanceImpl	inst = AZOtherInstanceImpl.decode( internal_address, AL );
 			
-				StringTokenizer	tok = new StringTokenizer( AL, ":" );
+			if ( inst != null ){
 				
-				String	instance_id = tok.nextToken();
-				String	int_ip		= unmapAddress(tok.nextToken());
-				String	ext_ip		= unmapAddress(tok.nextToken());
-				int		tcp			= Integer.parseInt(tok.nextToken());
-				int		udp			= Integer.parseInt(tok.nextToken());
-				
-				for (int i=0;i<replies.size();i++){
-					
-					AZInstance	rep = (AZInstance)replies.get(i);
-					
-					if ( rep.getID().equals( instance_id )){
-						
-						return;
-					}
-				}
+				boolean	added = false;
 				
 				try{
-					if ( !int_ip.equals("*")){
+					this_mon.enter();
+				
+					for (int i=0;i<replies.size();i++){
 						
-						internal_address = InetAddress.getByName( int_ip );
+						AZInstance	rep = (AZInstance)replies.get(i);
+						
+						if ( rep.getID().equals( inst.getID())){
+							
+							return;
+						}
 					}
-		
-					InetAddress	external_address = InetAddress.getByName( ext_ip );
 					
-					AZInstance	inst = new AZInstanceImpl(instance_id, internal_address, external_address, tcp, udp );
+					added = other_instances.put( inst.getID(), inst ) == null;
 					
 					replies.add( inst );
+										
+				}finally{
 					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
+					this_mon.exit();
 				}
-			}finally{
 				
-				this_mon.exit();
+				if ( added ){
+								
+					informAdded( inst );
+				}
 			}
 		}
 		
@@ -429,6 +593,7 @@ AZInstanceManagerImpl
 			}catch( Throwable e ){
 				
 			}
+			
 			try{
 				this_mon.enter();
 
@@ -442,18 +607,18 @@ AZInstanceManagerImpl
 			}
 		}
 	}
-	
-	protected String
-	mapAddress(
-		String	str )
+
+	public void
+	addListener(
+		AZInstanceManagerListener	l )
 	{
-		return( str.replace(':','$'));
+		listeners.add( l );
 	}
 	
-	protected String
-	unmapAddress(
-		String	str )
+	public void
+	removeListener(
+		AZInstanceManagerListener	l )
 	{
-		return( str.replace('$',':'));
+		listeners.remove( l );
 	}
 }

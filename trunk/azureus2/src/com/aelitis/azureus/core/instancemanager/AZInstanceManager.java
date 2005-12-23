@@ -27,6 +27,9 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 public interface 
 AZInstanceManager 
 {
+	public void
+	initialize();
+	
 	public AZInstance
 	getMyInstance();
 	
@@ -36,4 +39,12 @@ AZInstanceManager
 	public AZInstance[]
 	getInstancesForTorrent(
 		TOTorrent	torrent );
+	
+	public void
+	addListener(
+		AZInstanceManagerListener	l );
+	
+	public void
+	removeListener(
+		AZInstanceManagerListener	l );
 }

@@ -31,6 +31,11 @@ UPnPSSDP
 		String		ST );
 	
 	public void
+	notify(
+		String		NT,
+		String		NTS );
+	
+	public void
 	addListener(
 		UPnPSSDPListener	l );
 	

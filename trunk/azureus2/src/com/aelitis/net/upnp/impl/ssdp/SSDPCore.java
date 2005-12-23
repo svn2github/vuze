@@ -353,6 +353,35 @@ SSDPCore
 	}
 	
 	public void
+	notify(
+		String		NT,
+		String		NTS )
+	{
+		/*
+		NOTIFY * HTTP/1.1
+		HOST: 239.255.255.250:1900
+		CACHE-CONTROL: max-age=3600
+		LOCATION: http://192.168.0.1:49152/gateway.xml
+		NT: urn:schemas-upnp-org:service:WANIPConnection:1
+		NTS: ssdp:byebye
+		SERVER: Linux/2.4.17_mvl21-malta-mips_fp_le, UPnP/1.0, Intel SDK for UPnP devices /1.2
+		USN: uuid:ab5d9077-0710-4373-a4ea-5192c8781666::urn:schemas-upnp-org:service:WANIPConnection:1
+		*/
+		
+		String	str =
+			"NOTIFY * HTTP/" + HTTP_VERSION + NL +  
+			"HOST: " + group_address_str + ":" + group_port + NL +
+			"CACHE-CONTROL: max-age=3600" + NL +
+			"LOCATION: http://127.0.0.1:" + control_port + "/" + NL +
+			"NT: " + NT + NL + 
+			"NTS: " + NTS + NL + 
+			"SERVER: Azureus (UPnP/1.0)" + NL +
+			"USN: uuid:UUID-Azureus-1234::" + NT + NL + NL; 
+		
+		sendMC( str );;
+	}
+	
+	public void
 	search(
 		String	user_agent,
 		String	ST )
@@ -364,7 +393,14 @@ SSDPCore
 			"MAN: \"ssdp:discover\"" + NL + 
 			"HOST: " + group_address_str + ":" + group_port + NL +
 			(user_agent==null?NL:("USER-AGENT: " + user_agent + NL + NL));
-
+		
+		sendMC( str );
+	}
+	
+	protected void
+	sendMC(
+		String	str )
+	{
 		byte[]	data = str.getBytes();
 		
 		try{
@@ -569,7 +605,7 @@ SSDPCore
 		String	nts			= null;
 		String	st			= null;
 		String	al			= null;
-		String	server		= null;
+		String	user_agent	= null;
 		
 		for (int i=1;i<lines.size();i++){
 			
@@ -609,9 +645,9 @@ SSDPCore
 				
 				al	= val;
 				
-			}else if ( key.equals( "SERVER" )){
+			}else if ( key.equals( "USER-AGENT" )){
 				
-				server	= val;
+				user_agent	= val;
 			}
 		}
 			
@@ -630,14 +666,14 @@ SSDPCore
 				USN: uuid:UUID-InternetGatewayDevice-1234::upnp:rootdevice
 				*/
 				
-				String	response = informSearch( network_interface, local_address, packet.getAddress(), server, st );
+				String	response = informSearch( network_interface, local_address, packet.getAddress(), user_agent, st );
 				
 				if ( response != null ){
 					
 					String	data = 
 						"HTTP/1.1 200 OK" + NL +
 						"SERVER: Azureus (UPnP/1.0)" + NL +
-						"CACHE-CONTROL: max-age=600" + NL +
+						"CACHE-CONTROL: max-age=3600" + NL +
 						"LOCATION: http://" + local_address.getHostAddress() + ":" + control_port + "/" + NL +
 						"ST: " + st + NL + 
 						"USN: uuid:UUID-Azureus-1234::" + st + NL + 

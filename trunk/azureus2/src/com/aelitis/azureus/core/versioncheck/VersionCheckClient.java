@@ -82,12 +82,21 @@ public class VersionCheckClient {
    * @return reply data, possibly cached, if the server was already checked within the last minute
    */
   public Map getVersionCheckInfo( String reason ) {
+	  return( getVersionCheckInfo( reason, false ));
+  }
+
+  public Map getVersionCheckInfo( String reason, boolean only_if_cached ) {
     try {  check_mon.enter();
     
       long time_diff = SystemTime.getCurrentTime() - last_check_time;
       boolean force = time_diff > CACHE_PERIOD || time_diff < 0;
       
       if( last_check_data == null || last_check_data.size() == 0 || force ) {
+    	  // if we've never checked before then we go ahead even if the "only_if_cached"
+    	  // flag is set as its had not chance of being cached yet!
+    	if ( only_if_cached && last_check_data != null ){
+    		return( new HashMap() );
+    	}
         try {
           last_check_data = performVersionCheck( constructVersionCheckMessage( reason ) );
         }
@@ -120,15 +129,18 @@ public class VersionCheckClient {
    * NOTE: This information may be cached, see getVersionCheckInfo().
    * @return external ip address, or empty string if no address information found
    */
-  public String getExternalIpAddress() {
-    Map reply = getVersionCheckInfo( REASON_EXTERNAL_IP );
+  public String 
+  getExternalIpAddress(
+		boolean	only_if_cached )
+  {
+    Map reply = getVersionCheckInfo( REASON_EXTERNAL_IP, only_if_cached );
     
     byte[] address = (byte[])reply.get( "source_ip_address" );
     if( address != null ) {
       return new String( address );
     }
     
-    return new String();
+    return( null );
   }
   
   

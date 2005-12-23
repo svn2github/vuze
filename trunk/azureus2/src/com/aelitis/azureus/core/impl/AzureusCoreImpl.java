@@ -102,7 +102,7 @@ AzureusCoreImpl
 
 	private PluginInitializer 	pi;
 	private GlobalManager		global_manager;
-	
+	private AZInstanceManager	instance_manager;
 	
 	private boolean				running;
 	private List				listeners				= new ArrayList();
@@ -128,6 +128,8 @@ AzureusCoreImpl
         TorrentSessionManager.getSingleton().init();
     
 		pi = PluginInitializer.getSingleton(this,this);
+		
+		instance_manager = AZInstanceManagerFactory.getSingleton( this );
 	}
 	
 	public LocaleUtil
@@ -168,8 +170,14 @@ AzureusCoreImpl
 
 		for (int i = 0; i < lifecycle_listeners.size(); i++) {
 
-			((AzureusCoreLifecycleListener) lifecycle_listeners.get(i))
+			try{
+				((AzureusCoreLifecycleListener) lifecycle_listeners.get(i))
 					.componentCreated(this, global_manager);
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 
 		pi.initialisePlugins();
@@ -186,24 +194,22 @@ AzureusCoreImpl
 	        		
 	        		for (int i=0;i<lifecycle_listeners.size();i++){
 	        			
-	        			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).started( AzureusCoreImpl.this );
+	        			try{
+	        				((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).started( AzureusCoreImpl.this );
+	        				
+	        			}catch( Throwable e ){
+	        				
+	        				Debug.printStackTrace(e);
+	        			}
 	        		}
 	        	}
 	       }.start();
-         
-	   AZInstanceManager	inst_man = AZInstanceManagerFactory.getSingleton( this );
-	   
-	   AZInstance[]	instances = inst_man.getOtherInstances();
-	   
-	   for (int i=0;i<instances.length;i++){
-		   
-		   System.out.println( "AZInstance: " + instances[i].getString());
-	   }
-	   
            
        //late inits
 	   NetworkManager.getSingleton().initialize(); 
-           
+          
+	   instance_manager.initialize();
+	   
             
 	   //Catch non-user-initiated VM shutdown
 		ShutdownHook.install(new ShutdownHook.Handler() {
@@ -328,11 +334,28 @@ AzureusCoreImpl
 			this_mon.exit();
 		}
 		
+		for (int i=0;i<lifecycle_listeners.size();i++){
+			
+			try{
+				((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopping( this );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
 		global_manager.stopGlobalManager();
 			
 		for (int i=0;i<lifecycle_listeners.size();i++){
 				
-			((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopped( this );
+			try{
+				((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopped( this );
+		
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 			
 		NonDaemonTaskRunner.waitUntilIdle();
@@ -489,11 +512,17 @@ AzureusCoreImpl
 		return( IpFilterManagerFactory.getSingleton());
 	}
 	
+	public AZInstanceManager
+	getInstanceManager()
+	{
+		return( instance_manager );
+	}
+	
 	public void 
 	reportCurrentTask(
 		String currentTask )
 	{
-		pi.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_TASK, currentTask );
+		PluginInitializer.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_TASK, currentTask );
 		
 		for (int i=0;i<listeners.size();i++){
 			
@@ -511,7 +540,7 @@ AzureusCoreImpl
 	reportPercent(
 		int percent )
 	{
-		pi.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_PERCENT, new Integer( percent ));
+		PluginInitializer.fireEvent( PluginEvent.PEV_INITIALISATION_PROGRESS_PERCENT, new Integer( percent ));
 
 		for (int i=0;i<listeners.size();i++){
 			

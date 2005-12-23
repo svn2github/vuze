@@ -40,6 +40,10 @@ AzureusCoreLifecycleListener
 		AzureusCore		core );
 	
 	public void
+	stopping(
+		AzureusCore		core );
+	
+	public void
 	stopped(
 		AzureusCore		core );
 	

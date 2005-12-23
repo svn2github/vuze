@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.internat.LocaleUtil;
 
 import org.gudy.azureus2.plugins.*;
 
+import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
+
 public interface 
 AzureusCore 
 {	
@@ -117,6 +119,9 @@ AzureusCore
 	getIpFilterManager()
 	
 		throws AzureusCoreException;
+	
+	public AZInstanceManager
+	getInstanceManager();
 	
 	public void
 	addLifecycleListener(

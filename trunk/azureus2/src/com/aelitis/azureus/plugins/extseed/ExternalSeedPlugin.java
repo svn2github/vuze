@@ -68,10 +68,11 @@ ExternalSeedPlugin
 		
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		"External Seed" );
-		
+				
 		log	= plugin_interface.getLogger().getTimeStampedChannel( "External Seeds" );
 		
-		final BasicPluginViewModel	view_model = plugin_interface.getUIManager().createBasicPluginViewModel( "External Seeds" );
+		final BasicPluginViewModel	view_model = 
+			plugin_interface.getUIManager().createBasicPluginViewModel( "Plugin.extseed.name" );
 
 		
 		view_model.getActivity().setVisible( false );

@@ -1,5 +1,5 @@
 /*
- * Created on 20-Dec-2005
+ * Created on 23-Dec-2005
  * Created by Paul Gardner
  * Copyright (C) 2005 Aelitis, All Rights Reserved.
  *
@@ -22,69 +22,69 @@
 
 package com.aelitis.azureus.core.instancemanager.impl;
 
-import java.net.InetAddress;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 
-public class 
-AZInstanceImpl
+public abstract class 
+AZInstanceImpl 
 	implements AZInstance
 {
-	private String				id;
-	private InetAddress			internal_address;
-	private InetAddress			external_address;
-	private int					tcp_port;
-	private int					udp_port;
+	private long	create_time;
 	
 	protected
-	AZInstanceImpl(
-		String			_id,
-		InetAddress		_internal_address,
-		InetAddress		_external_address,
-		int				_tcp_port,
-		int				_udp_port )
+	AZInstanceImpl()
 	{
-		id					= _id;
-		internal_address	= _internal_address;
-		external_address	= _external_address;
-		tcp_port			= _tcp_port;
-		udp_port			= _udp_port;
+		create_time	= SystemTime.getCurrentTime();
 	}
 	
-	public String
-	getID()
+	protected long
+	getCreationTime()
 	{
-		return( id );
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < create_time ){
+			
+			create_time	= now;
+		}
+		
+		return( create_time );
 	}
 	
-	public InetAddress
-	getInternalAddress()
+	protected static String
+	mapAddress(
+		String	str )
 	{
-		return( internal_address );
+		return( str.replace(':','$'));
 	}
 	
-	public InetAddress
-	getExternalAddress()
+	protected static String
+	unmapAddress(
+		String	str )
 	{
-		return( external_address );
+		return( str.replace('$',':'));
 	}
 	
-	public int
-	getTCPPort()
+	protected String
+	encode()
 	{
-		return( tcp_port );
-	}
-	
-	public int
-	getUDPPort()
-	{
-		return( udp_port );
+		String	reply = "azureus:" + getID();				
+
+		reply += ":" + mapAddress(getInternalAddress().getHostAddress());
+		
+		reply += ":" + mapAddress(getExternalAddress().getHostAddress());
+		
+		reply += ":" + getTCPPort();
+		
+        reply += ":" + getUDPPort();
+        
+        return( reply );
 	}
 	
 	public String
 	getString()
 	{
-		return( "id=" + id + ",int=" + internal_address.getHostAddress() + ",ext=" + 
-				external_address.getHostAddress() +	",tcp=" + tcp_port + ",udp=" + udp_port );
+		return( "int=" + getInternalAddress().getHostAddress() + ",ext=" + 
+				getExternalAddress().getHostAddress() +	",tcp=" + getTCPPort() + ",udp=" + getUDPPort() );
 	}
 }
