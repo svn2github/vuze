@@ -548,6 +548,7 @@ PEPeerTransportProtocol
       	recent_outgoing_requests_mon.exit();
       }
       connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ), false );
+      _lastPiece =pieceNumber;
   		return true;
   	}
   	return false;
