@@ -529,6 +529,8 @@ public class MyTorrentsView
 		boolean	allScanSelected 	= true;
 		boolean allScanNotSelected	= true;
 		
+		boolean	allStopped			= true;
+		
 		if (hasSelection) {
 			bChangeDir = true;
 
@@ -581,7 +583,11 @@ public class MyTorrentsView
 
 				forceStart = forceStart || dm.isForceStart();
 
-				fileMove = fileMove && ManagerUtils.isStopped(dm) && dm.isPersistent();
+				boolean	stopped = ManagerUtils.isStopped(dm);
+				
+				allStopped &= stopped;
+					
+				fileMove = fileMove && stopped && dm.isPersistent();
 
 				if (!dm.isMoveableDown()) {
 					moveDown = false;
@@ -1031,7 +1037,13 @@ public class MyTorrentsView
 				});
 		itemManualUpdate.setEnabled(manualUpdate);
 
-		boolean manualScrape = !COConfigurationManager.getBooleanParameter("Tracker Client Scrape Enable");
+		boolean	scrape_enabled = COConfigurationManager.getBooleanParameter("Tracker Client Scrape Enable");
+		
+		boolean scrape_stopped = COConfigurationManager.getBooleanParameter("Tracker Client Scrape Stopped Enable");
+		
+		boolean manualScrape = 
+			(!scrape_enabled) ||
+			((!scrape_stopped) && allStopped );
 		
 		final MenuItem itemManualScrape = new MenuItem(menuTracker, SWT.PUSH);
 		Messages.setLanguageText(itemManualScrape,

@@ -32,7 +32,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.gudy.azureus2.ui.swt.Messages;
 
-import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -96,8 +95,7 @@ ConfigSectionTrackerClient
     
     scrape.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( scrape_stopped.getControls()));
 
-    BooleanParameter	single_scrapes = 
-    	new BooleanParameter(scrapeGroup, "Tracker Client Scrape Single Only", false,
+    new BooleanParameter(scrapeGroup, "Tracker Client Scrape Single Only", false,
     							"ConfigView.section.tracker.client.scrapesingleonly");
     
     /////////////////////////
