@@ -678,9 +678,9 @@ DownloadManagerController
 		  								
 					if ( peer_manager != null ){
 						
-					  stats.saveSessionTotals();
-					  						  
 					  peer_manager.stopAll(); 
+					  
+					  stats.saveSessionTotals();
 					}
 					
 						// do this even if null as it also triggers tracker actions
