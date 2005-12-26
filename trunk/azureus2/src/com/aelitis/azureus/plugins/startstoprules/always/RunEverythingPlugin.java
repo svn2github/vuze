@@ -260,47 +260,27 @@ RunEverythingPlugin
 					it.remove();
 				}
 			}		
-			
-				// collect some stats
-			
-			int	num_initialising		= 0;
-	
-						
+									
+				// execute an "initialize" on any waiting ones
+				
 			it = dls.iterator();
 			
-			while( it.hasNext()){
+			while (it.hasNext()){
 				
-				downloadData	dd  = (downloadData)it.next();
-					
-				if ( dd.getState() == Download.ST_PREPARING ){
-					
-					num_initialising++;
-				}
-			}
-						
-				// execute an "initialize" on a WAITING one, if it exists
-
-			if ( num_initialising == 0 ){
+				downloadData	dd = (downloadData)it.next();
 				
-				it = dls.iterator();
-				
-				while (it.hasNext()){
+				if ( dd.getState() == Download.ST_WAITING ){
 					
-					downloadData	dd = (downloadData)it.next();
+					it.remove();
 					
-					if ( dd.getState() == Download.ST_WAITING ){
+					try{
+						log( "initialising " + dd.getName());
 						
-						it.remove();
+						dd.getDownload().initialize();
 						
-						try{
-							log( "initialising " + dd.getName());
-							
-							dd.getDownload().initialize();
-							
-						}catch( DownloadException e ){
-							
-							e.printStackTrace();
-						}
+					}catch( DownloadException e ){
+						
+						e.printStackTrace();
 					}
 				}
 			}
