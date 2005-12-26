@@ -1769,7 +1769,7 @@ public class MyTorrentsView
   public void delete() {
     super.delete();
 
-    if (dragSource != null & !dragSource.isDisposed()) {
+    if (dragSource != null && !dragSource.isDisposed()) {
     	dragSource.dispose();
     	dragSource = null;
     }

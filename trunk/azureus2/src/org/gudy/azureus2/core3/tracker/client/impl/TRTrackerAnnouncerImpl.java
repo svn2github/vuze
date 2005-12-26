@@ -302,7 +302,7 @@ TRTrackerAnnouncerImpl
 		Map		map1,
 		Map		map2 )
 	{
-		if ( map1 == null & map2 == null ){
+		if ( map1 == null && map2 == null ){
 			return( new HashMap());
 		}else if ( map1 == null ){
 			return( map2 );

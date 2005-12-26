@@ -346,7 +346,7 @@ public class MinimizedWindow {
         location.y += downloadBar.getShell().getBounds().height;
         //Stucking to someone else
         if (downloadBar != this && downloadBar.getStucked() == null || downloadBar.getStucked() == this) {
-          if (Math.abs(location.x - currentLoc.x) < 10 && location.y - currentLoc.y < 10 & location.y - currentLoc.y > 0) {
+          if (Math.abs(location.x - currentLoc.x) < 10 && location.y - currentLoc.y < 10 && location.y - currentLoc.y > 0) {
             downloadBar.setStucked(this);
             currentLoc.x = location.x;
             currentLoc.y = location.y - 1;
