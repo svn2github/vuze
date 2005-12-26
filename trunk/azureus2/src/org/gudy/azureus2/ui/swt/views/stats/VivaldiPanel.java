@@ -172,9 +172,13 @@ public class VivaldiPanel {
     
     
     gc.setForeground(blue);
-    gc.setBackground(blue);       
+    gc.setBackground(white);       
+    
+    
     
     Coordinates ownCoords = self.getVivaldiPosition().getCoordinates();    
+    
+    gc.drawText("" + self.getVivaldiPosition().getErrorEstimate(),10,10);
     
     Iterator iter = contacts.iterator();
     while(iter.hasNext()) {
