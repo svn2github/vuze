@@ -223,6 +223,8 @@ public class TrackerChecker implements TRTrackerScraperListener {
     
     try {
       byte[] hash = torrent.getHash();
+    
+      TrackerStatus matched_ts = null;
       
       try{
       	trackers_mon.enter();
@@ -240,15 +242,20 @@ public class TrackerChecker implements TRTrackerScraperListener {
 	
 	          if ( hashmap.get( new HashWrapper( hash )) != null ){
 	          	
-	            ts.updateSingleHash( hash, true, false );
-	            
-	            return;
+	        	matched_ts	= ts;
+	        	  
+	        	break;
 	          }
           }
         }
       }finally{
       	
       	trackers_mon.exit();
+      }
+      
+      if ( matched_ts != null ){
+    	  
+    	  matched_ts.updateSingleHash( hash, true, false );
       }
     }
     catch (Throwable e) {
