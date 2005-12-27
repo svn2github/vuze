@@ -24,24 +24,41 @@ package com.aelitis.azureus.plugins.tracker.local;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.*;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
+import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.plugins.utils.Monitor;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
 
 public class 
 LocalTrackerPlugin
-	implements Plugin, AZInstanceManagerListener
+	implements Plugin, AZInstanceManagerListener, DownloadManagerListener
 {
 	private static final String	PLUGIN_NAME	= "Local Tracker";
 	
+	private static final long	ANNOUNCE_PERIOD	= 20*60*1000;
+	
 	private PluginInterface		plugin_interface;
+	private AZInstanceManager	instance_manager;
+	private boolean				active;
+	private TorrentAttribute 	ta_networks;
+
+	private Map 				downloads = new HashMap();
+	
 	private LoggerChannel 		log;
+	private Monitor 			mon;
 	
 	public void
 	initialize(
@@ -52,6 +69,10 @@ LocalTrackerPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	"1.0" );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
 
+		ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
+
+		mon	= plugin_interface.getUtilities().getMonitor();
+		
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 		
 		final BasicPluginViewModel	view_model = 
@@ -93,7 +114,11 @@ LocalTrackerPlugin
 					}
 				});
 		
-		AzureusCoreFactory.getSingleton().getInstanceManager().addListener( this );
+		instance_manager	= AzureusCoreFactory.getSingleton().getInstanceManager();
+		
+		instance_manager.addListener( this );
+		
+		plugin_interface.getDownloadManager().addListener( this );
 	}
 	
 	public void
@@ -101,6 +126,32 @@ LocalTrackerPlugin
 		AZInstance		instance )
 	{
 		log.log( "Found: " + instance.getString());
+		
+		try{
+			mon.enter();
+		
+			if ( active ){
+				
+				return;
+			}
+			
+			active	= true;
+			
+			plugin_interface.getUtilities().createThread(
+				"Tracker",
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						track();
+					}
+				});
+			
+		}finally{
+			
+			mon.exit();
+		}
 	}
 	
 	public void
@@ -108,6 +159,166 @@ LocalTrackerPlugin
 		AZInstance		instance )
 	{
 		log.log( "Lost: " + instance.getString());
+	}
 	
+	public void
+	instanceTracked(
+		AZInstance		instance )
+	{
+		log.log( "Tracked: " + instance.getString());
+		
+		handleTrackResult( instance );
+	}
+	
+	protected void
+	track()
+	{
+		while( true ){
+	
+			try{
+				long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+				
+				List	todo = new ArrayList();
+				
+				try{
+					mon.enter();
+					
+					Iterator	it = downloads.entrySet().iterator();
+					
+					while( it.hasNext()){
+						
+						Map.Entry	entry = (Map.Entry)it.next();
+						
+						Download	dl 		= (Download)entry.getKey();
+						long		when	= ((Long)entry.getValue()).longValue();
+						
+						if ( when > now || now - when > ANNOUNCE_PERIOD ){
+							
+							todo.add( dl );
+						}
+					}
+					
+					for (int i=0;i<todo.size();i++){
+						
+						downloads.put( todo.get(i), new Long( now ));
+					}
+				}finally{
+					
+					mon.exit();
+				}
+				
+				for (int i=0;i<todo.size();i++){
+				
+					track((Download)todo.get(i));
+				}
+				
+				Thread.sleep(60*1000);
+				
+			}catch( Throwable e ){
+				
+				log.log(e);
+			}
+		}
+	}
+	
+	protected void
+	track(
+		Download	download )
+	{
+		int	state = download.getState();
+		
+		if ( state == Download.ST_ERROR || state == Download.ST_STOPPED ){
+			
+			return;
+		}
+		
+		AZInstance[]	peers = instance_manager.track( download );
+		
+		for (int i=0;i<peers.length;i++){
+			
+			handleTrackResult( peers[i] );
+		}
+	}
+	
+	protected void
+	handleTrackResult(
+		AZInstance		inst )
+	{
+		Download	download = (Download)inst.getProperty( AZInstance.PR_DOWNLOAD );
+		
+		boolean	is_seed = ((Boolean)inst.getProperty(AZInstance.PR_SEED)).booleanValue();
+		
+		if ( download.isComplete() && is_seed ){
+			
+			return;
+		}
+		
+		PeerManager	peer_manager = download.getPeerManager();
+		
+		if ( peer_manager != null ){
+			
+			String	peer_ip		= inst.getInternalAddress().getHostAddress();
+			int		peer_port	= inst.getTCPPort();
+			
+			log.log( download.getName() + ": Injecting peer " + peer_ip + ":" + peer_port );
+			
+			peer_manager.addPeer( peer_ip, peer_port );
+		}
+	}
+	
+	public void
+	downloadAdded(
+		Download	download )
+	{
+		try{
+			mon.enter();
+		
+			Torrent	torrent = download.getTorrent();
+			
+			if ( torrent == null || torrent.isPrivate()){
+				
+				return;
+			}
+			
+			String[]	networks = download.getListAttribute( ta_networks );
+			
+			boolean	public_net = false;
+			
+			for (int i=0;i<networks.length;i++){
+				
+				if ( networks[i].equalsIgnoreCase( "Public" )){
+						
+					public_net	= true;
+					
+					break;
+				}
+			}
+			
+			if ( !public_net ){
+				
+				return;
+			}
+			
+			downloads.put( download, new Long(0));
+			
+		}finally{
+			
+			mon.exit();
+		}
+	}
+	
+	public void
+	downloadRemoved(
+		Download	download )
+	{
+		try{
+			mon.enter();
+		
+			downloads.remove( download );
+			
+		}finally{
+			
+			mon.exit();
+		}
 	}
 }

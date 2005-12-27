@@ -27,6 +27,9 @@ import java.net.InetAddress;
 public interface 
 AZInstance 
 {
+	public static final String	PR_DOWNLOAD		= "download";	// value is Download object
+	public static final String	PR_SEED			= "seed";		// value is Boolean
+	
 	public String
 	getID();
 	
@@ -41,6 +44,10 @@ AZInstance
 	
 	public int
 	getUDPPort();
+	
+	public Object
+	getProperty(
+		String	name );
 	
 	public String
 	getString();

@@ -32,4 +32,8 @@ AZInstanceManagerListener
 	public void
 	instanceLost(
 		AZInstance		instance );
+	
+	public void
+	instanceTracked(
+		AZInstance		instance );
 }

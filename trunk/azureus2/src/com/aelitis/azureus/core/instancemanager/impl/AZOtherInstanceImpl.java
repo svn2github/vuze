@@ -23,11 +23,9 @@
 package com.aelitis.azureus.core.instancemanager.impl;
 
 import java.net.InetAddress;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
-
-import com.aelitis.azureus.core.instancemanager.AZInstance;
 
 
 public class 
@@ -39,6 +37,7 @@ AZOtherInstanceImpl
 	private InetAddress			external_address;
 	private int					tcp_port;
 	private int					udp_port;
+	private List				extra_args;
 	
 	protected static AZInstanceImpl
 	decode(
@@ -54,6 +53,13 @@ AZOtherInstanceImpl
 		int		tcp			= Integer.parseInt(tok.nextToken());
 		int		udp			= Integer.parseInt(tok.nextToken());
 		
+		List	extra_args = new ArrayList();
+		
+		while( tok.hasMoreTokens()){
+			
+			extra_args.add( tok.nextToken());
+		}
+		
 		try{
 			if ( !int_ip.equals("0.0.0.0")){
 				
@@ -62,7 +68,7 @@ AZOtherInstanceImpl
 
 			InetAddress	external_address = InetAddress.getByName( ext_ip );
 			
-			return( new AZOtherInstanceImpl(instance_id, internal_address, external_address, tcp, udp ));
+			return( new AZOtherInstanceImpl(instance_id, internal_address, external_address, tcp, udp, extra_args ));
 			
 		}catch( Throwable e ){
 			
@@ -78,13 +84,15 @@ AZOtherInstanceImpl
 		InetAddress		_internal_address,
 		InetAddress		_external_address,
 		int				_tcp_port,
-		int				_udp_port )
+		int				_udp_port,
+		List			_extra_args )
 	{
 		id					= _id;
 		internal_address	= _internal_address;
 		external_address	= _external_address;
 		tcp_port			= _tcp_port;
 		udp_port			= _udp_port;
+		extra_args			= _extra_args;
 	}
 	
 	public String
@@ -115,5 +123,11 @@ AZOtherInstanceImpl
 	getUDPPort()
 	{
 		return( udp_port );
+	}
+	
+	protected List
+	getExtraArgs()
+	{
+		return( extra_args );
 	}
 }

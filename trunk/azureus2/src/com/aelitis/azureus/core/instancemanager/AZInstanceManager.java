@@ -22,7 +22,8 @@
 
 package com.aelitis.azureus.core.instancemanager;
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
 AZInstanceManager 
@@ -37,8 +38,8 @@ AZInstanceManager
 	getOtherInstances();
 	
 	public AZInstance[]
-	getInstancesForTorrent(
-		TOTorrent	torrent );
+	track(
+		Download		torrent );
 	
 	public void
 	addListener(

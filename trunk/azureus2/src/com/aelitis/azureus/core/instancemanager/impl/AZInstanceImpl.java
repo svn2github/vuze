@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.instancemanager.impl;
 
+import java.util.*;
+
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.instancemanager.AZInstance;
@@ -31,6 +33,7 @@ AZInstanceImpl
 	implements AZInstance
 {
 	private long	create_time;
+	private Map		properties	= new HashMap();
 	
 	protected
 	AZInstanceImpl()
@@ -79,6 +82,21 @@ AZInstanceImpl
         reply += ":" + getUDPPort();
         
         return( reply );
+	}
+	
+	public Object
+	getProperty(
+		String	name )
+	{
+		return(properties.get(name));
+	}
+	
+	protected void
+	setProperty(
+		String	name,
+		Object	value )
+	{
+		properties.put( name, value );
 	}
 	
 	public String
