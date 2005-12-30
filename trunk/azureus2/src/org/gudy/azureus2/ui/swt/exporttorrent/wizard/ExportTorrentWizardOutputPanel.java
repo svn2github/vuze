@@ -93,7 +93,7 @@ ExportTorrentWizardOutputPanel
 			
 		  public void handleEvent(Event arg0){
 		  	
-			FileDialog fd = new FileDialog(wizard.getWizardWindow());
+			FileDialog fd = new FileDialog(wizard.getWizardWindow(), SWT.SAVE );
 			
 			fd.setFileName(textPath.getText());
 			

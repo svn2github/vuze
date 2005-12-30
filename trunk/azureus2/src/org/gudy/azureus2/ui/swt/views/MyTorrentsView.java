@@ -1193,7 +1193,7 @@ public class MyTorrentsView
 				public void handleEvent(Event event) {
 					DownloadManager dm = (DownloadManager) getFirstSelectedDataSource();
 					if (dm != null) {
-						FileDialog fd = new FileDialog(getComposite().getShell());
+						FileDialog fd = new FileDialog(getComposite().getShell(), SWT.SAVE );
 	
 						fd.setFileName(dm.getTorrentFileName());
 	
