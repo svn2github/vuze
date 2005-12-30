@@ -86,6 +86,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeSimpleStyle( peerID, 10, "BG", "BTGetit" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "OP", "Opera" )) != null ) return decoded;
       
+      
       if( (decoded = decodeSimpleStyle( peerID, 0, "a00---0", "Swarmy" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "a02---0", "Swarmy" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "T00---0", "Teeweety" )) != null ) return decoded;
@@ -102,6 +103,13 @@ public class BTPeerIDByteDecoder {
       if (turbobt.equals("turbobt")) {
         return "TurboBT " + new String(peerID, 7, 5, Constants.BYTE_ENCODING);
       }
+      
+      
+      String btpd = new String( peerID, 0, 4, Constants.BYTE_ENCODING );
+      if( btpd.equals( "btpd" ) ) {
+      	return "BT Protocol Daemon " + new String( peerID, 5, 3, Constants.BYTE_ENCODING );
+      }
+      
       
       //not 100% sure on this one
       String plus = new String(peerID, 0, 4, Constants.BYTE_ENCODING);
