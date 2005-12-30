@@ -1975,7 +1975,7 @@ TRTrackerBTAnnouncerImpl
 								
 									String last_warning_message = (String)tracker_report_map.get( url.getHost());
 									
-									if ( 	last_warning_message != null &&
+									if ( 	last_warning_message == null ||
 											!warning_message.equals( last_warning_message )){
 		 							
 										log_it	= true;
