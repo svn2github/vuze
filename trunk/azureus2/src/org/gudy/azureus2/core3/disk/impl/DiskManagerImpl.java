@@ -109,7 +109,8 @@ DiskManagerImpl
 		}
 	}
 
-	private static DiskManagerRecheckScheduler	recheck_scheduler = new DiskManagerRecheckScheduler();
+	private static DiskManagerRecheckScheduler		recheck_scheduler 		= new DiskManagerRecheckScheduler();
+	private static DiskManagerAllocationScheduler	allocation_scheduler 	= new DiskManagerAllocationScheduler();
 	
 	private boolean	used	= false;
 	
@@ -742,6 +743,8 @@ DiskManagerImpl
 		DiskManagerFileInfoImpl[] allocated_files = new DiskManagerFileInfoImpl[pm_files.length];
 	      
 		try{
+			allocation_scheduler.register( this );
+			
 			setState( ALLOCATING );
 			
 			allocated = 0;
@@ -885,6 +888,21 @@ DiskManagerImpl
 						return( -1 );
 					}
 	       
+					while( started ){
+						
+						if ( allocation_scheduler.getPermission( this )){
+							
+							break;
+						}
+					}
+					
+					if ( !started ){
+					
+							// allocation interrupted
+						
+						return( -1 );
+					}
+					
 					try{	          	          
 						fileInfo.setAccessMode( DiskManagerFileInfo.WRITE );
 		          
@@ -952,6 +970,8 @@ DiskManagerImpl
 			return( numNewFiles );
 			
 		}finally{
+			
+			allocation_scheduler.unregister( this );
 			
 				// if we failed to do the allocation make sure we close all the files that
 				// we might have opened
