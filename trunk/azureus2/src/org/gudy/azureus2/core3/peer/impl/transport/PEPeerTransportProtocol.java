@@ -312,9 +312,9 @@ PEPeerTransportProtocol
     other_peer_has_pieces = new boolean[ manager.getPiecesNumber() ];
     Arrays.fill( other_peer_has_pieces, false );
 
-    recent_outgoing_requests = new LinkedHashMap( 32, .75F, true ) {
+    recent_outgoing_requests = new LinkedHashMap( 16, .75F, true ) {
       public boolean removeEldestEntry(Map.Entry eldest) {
-        return size() > 32;
+        return size() > 16;
       }
     };
     recent_outgoing_requests_mon  = new AEMonitor( "PEPeerTransportProtocol:ROR" );
