@@ -33,8 +33,8 @@ COConfigurationManager
 {
 	public static final int CONFIG_DEFAULT_MIN_MAX_UPLOAD_SPEED			= 5;
 	public static final int CONFIG_DEFAULT_MAX_DOWNLOAD_SPEED			= 0;
-	public static final int	CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT	= 80;
-	public static final int	CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL		= 400;
+	public static final int	CONFIG_DEFAULT_MAX_CONNECTIONS_PER_TORRENT	= 70;
+	public static final int	CONFIG_DEFAULT_MAX_CONNECTIONS_GLOBAL		= 300;
 	
 	public static final int CONFIG_CACHE_SIZE_MAX_MB;
 	
