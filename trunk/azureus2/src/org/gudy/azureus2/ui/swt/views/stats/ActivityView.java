@@ -117,9 +117,9 @@ public class ActivityView extends AbstractIView {
 	    		panel,
 	    		SpeedGraphic.colors,
 	    		new String[] {
-	        			"ActivityView.legend.limit",
-	        			"ActivityView.legend.achieved",        			
 	        			"ActivityView.legend.peeraverage",        			
+	        			"ActivityView.legend.achieved",        			
+	        			"ActivityView.legend.limit",
 	    				"ActivityView.legend.swarmaverage",
 	    				"ActivityView.legend.trimmed"}
 	        	);
