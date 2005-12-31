@@ -98,25 +98,24 @@ public class Utils {
 					&& !((Resource) o).isDisposed())
 				((Resource) o).dispose();
 			else {
-				if (o instanceof Resource) {
-					((Resource)o).dispose();
-				} else if (o instanceof Cursor) {
+				// For Pre-SWT 3.1
+				if ((o instanceof Cursor) && ((Cursor)o).isDisposed()) {
 					((Cursor)o).dispose();
-				} else if (o instanceof Font) {
+				} else if ((o instanceof Font) && ((Font)o).isDisposed()) {
 					((Font)o).dispose();
-				} else if (o instanceof GC) {
+				} else if ((o instanceof GC) && ((GC)o).isDisposed()) {
 					((GC)o).dispose();
-				} else if (o instanceof Image) {
+				} else if ((o instanceof Image) && ((Image)o).isDisposed()) {
 					((Image)o).dispose();
-				} else if (o instanceof Path) {
+				} else if ((o instanceof Path) && ((Path)o).isDisposed()) {
 					((Path)o).dispose();
-				} else if (o instanceof Pattern) {
+				} else if ((o instanceof Pattern) && ((Pattern)o).isDisposed()) {
 					((Pattern)o).dispose();
-				} else if (o instanceof Region) {
+				} else if ((o instanceof Region) && ((Region)o).isDisposed()) {
 					((Region)o).dispose();
-				} else if (o instanceof TextLayout) {
+				} else if ((o instanceof TextLayout) && ((TextLayout)o).isDisposed()) {
 					((TextLayout) o).dispose();
-				} else if (o instanceof Transform) {
+				} else if ((o instanceof Transform) && ((Transform)o).isDisposed()) {
 					((Transform) o).dispose();
 				}
 			}
