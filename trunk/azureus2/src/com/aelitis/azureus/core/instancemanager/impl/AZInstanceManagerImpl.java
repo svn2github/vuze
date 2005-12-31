@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -45,7 +44,6 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
@@ -438,6 +436,8 @@ AZInstanceManagerImpl
 				
 			}else{
 				
+				existing.setAlive();
+
 				inst	= existing;
 			}
 		}finally{
@@ -573,7 +573,7 @@ AZInstanceManagerImpl
 				
 				AZInstanceImpl	inst = (AZInstanceImpl)it.next();
 	
-				if ( now - inst.getCreationTime() > ALIVE_PERIOD * 2.5 ){
+				if ( now - inst.getAliveTime() > ALIVE_PERIOD * 2.5 ){
 					
 					removed.add( inst );
 					

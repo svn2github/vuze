@@ -34,6 +34,9 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.Monitor;
 
@@ -46,7 +49,7 @@ public class
 LocalTrackerPlugin
 	implements Plugin, AZInstanceManagerListener, DownloadManagerListener
 {
-	private static final String	PLUGIN_NAME	= "Local Tracker";
+	private static final String	PLUGIN_NAME	= "LAN Peer Finder";
 	
 	private static final long	ANNOUNCE_PERIOD	= 20*60*1000;
 	
@@ -56,6 +59,8 @@ LocalTrackerPlugin
 	private TorrentAttribute 	ta_networks;
 
 	private Map 				downloads = new HashMap();
+	
+	private BooleanParameter	enabled;
 	
 	private LoggerChannel 		log;
 	private Monitor 			mon;
@@ -75,6 +80,14 @@ LocalTrackerPlugin
 		
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
 		
+		UIManager	ui_manager = plugin_interface.getUIManager();
+		
+		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( "Plugins", "Plugin.localtracker.name" );
+
+		config.addLabelParameter2( "Plugin.localtracker.info" );
+		
+		enabled = config.addBooleanParameter2( "Plugin.localtracker.enable", "Plugin.localtracker.enable", true );
+
 		final BasicPluginViewModel	view_model = 
 			plugin_interface.getUIManager().createBasicPluginViewModel( "Plugin.localtracker.name" );
 
@@ -125,6 +138,11 @@ LocalTrackerPlugin
 	instanceFound(
 		AZInstance		instance )
 	{
+		if ( !enabled.getValue()){
+		
+			return;
+		}
+		
 		log.log( "Found: " + instance.getString());
 		
 		try{
@@ -158,6 +176,11 @@ LocalTrackerPlugin
 	instanceLost(
 		AZInstance		instance )
 	{
+		if ( !enabled.getValue()){
+			
+			return;
+		}
+		
 		log.log( "Lost: " + instance.getString());
 	}
 	
@@ -165,6 +188,11 @@ LocalTrackerPlugin
 	instanceTracked(
 		AZInstance		instance )
 	{
+		if ( !enabled.getValue()){
+			
+			return;
+		}
+		
 		log.log( "Tracked: " + instance.getString());
 		
 		handleTrackResult( instance );
@@ -225,6 +253,11 @@ LocalTrackerPlugin
 	track(
 		Download	download )
 	{
+		if ( !enabled.getValue()){
+			
+			return;
+		}
+		
 		int	state = download.getState();
 		
 		if ( state == Download.ST_ERROR || state == Download.ST_STOPPED ){

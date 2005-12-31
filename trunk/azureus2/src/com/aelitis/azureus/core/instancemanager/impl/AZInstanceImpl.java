@@ -32,26 +32,32 @@ public abstract class
 AZInstanceImpl 
 	implements AZInstance
 {
-	private long	create_time;
+	private long	alive_time;
 	private Map		properties	= new HashMap();
 	
 	protected
 	AZInstanceImpl()
 	{
-		create_time	= SystemTime.getCurrentTime();
+		alive_time	= SystemTime.getCurrentTime();
 	}
 	
 	protected long
-	getCreationTime()
+	getAliveTime()
 	{
 		long	now = SystemTime.getCurrentTime();
 		
-		if ( now < create_time ){
+		if ( now < alive_time ){
 			
-			create_time	= now;
+			alive_time	= now;
 		}
 		
-		return( create_time );
+		return( alive_time );
+	}
+	
+	protected void
+	setAlive()
+	{
+		alive_time	= SystemTime.getCurrentTime();
 	}
 	
 	protected static String
