@@ -950,7 +950,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 					if (info.files.length == 1) {
 						FileDialog fDialog = new FileDialog(shellForChildren,
-								SWT.SYSTEM_MODAL);
+								SWT.SYSTEM_MODAL | SWT.SAVE);
 						fDialog.setFilterPath(sDefPath);
 						fDialog.setText(info.getTorrentName() + ": "
 								+ MessageText.getString("MainWindow.dialog.choose.savepath"));
