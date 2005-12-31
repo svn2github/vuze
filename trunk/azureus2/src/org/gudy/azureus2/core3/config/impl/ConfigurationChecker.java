@@ -240,19 +240,21 @@ ConfigurationChecker
 	    		changed	= true;	    		
 	    	}
 	    	 	
-	    	//make sure we set and save the random listen port
+	    	//make sure we set and save a random listen port
 	    	if( !COConfigurationManager.doesParameterNonDefaultExist( "TCP.Listen.Port" ) ) {
-	    		COConfigurationManager.setParameter( "TCP.Listen.Port", COConfigurationManager.getIntParameter( "TCP.Listen.Port" ) );
+	    		COConfigurationManager.setParameter( "TCP.Listen.Port", RandomUtils.generateRandomNetworkListenPort() );
 	    		changed = true;
 	    	}
 	    	
 	    }
 	    else {  //this is a pre-existing installation, called every time after first
+	    	
 	   	 //enable Advanced user mode for existing users by default, to ease 2304-->2306 migrations
 	   	 if( !COConfigurationManager.doesParameterNonDefaultExist( "User Mode" ) ) {
 	   		 COConfigurationManager.setParameter( "User Mode", 2 );
 	   		 changed	= true;
 	   	 }
+	   	 
 	    }
 	    
 	    
