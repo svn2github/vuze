@@ -17,6 +17,7 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
@@ -95,7 +96,7 @@ public class ConfigurationDefaults {
 
     def.put("Override Ip", "");
     def.put("Enable incremental file creation", FALSE);
-    def.put("TCP.Listen.Port", new Long(6881));
+    def.put("TCP.Listen.Port", new Long( RandomUtils.generateRandomNetworkListenPort() ));
     def.put("max active torrents", new Long(4));
     def.put("max downloads", new Long(4));
     def.put("Newly Seeding Torrents Get First Priority", TRUE);
@@ -121,9 +122,9 @@ public class ConfigurationDefaults {
     def.put("priorityExtensionsIgnoreCase", FALSE);
     def.put("Ip Filter Enabled", TRUE);
     def.put("Ip Filter Allow",FALSE);
-	def.put("Ip Filter Enable Banning", TRUE);
-	def.put("Ip Filter Ban Block Limit", new Long(4));
-	def.put("Ip Filter Banning Persistent", TRUE);
+    def.put("Ip Filter Enable Banning", TRUE);
+    def.put("Ip Filter Ban Block Limit", new Long(4));
+    def.put("Ip Filter Banning Persistent", TRUE);
     def.put("Allow Same IP Peers",FALSE);
     def.put("Use Super Seeding",FALSE);
 

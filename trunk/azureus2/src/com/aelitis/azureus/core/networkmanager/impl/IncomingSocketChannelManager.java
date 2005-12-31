@@ -232,7 +232,7 @@ public class IncomingSocketChannelManager {
           String msg = "Invalid incoming listen port configured, " +listen_port+ ". Port reset to default. Please check your config!";
           Debug.out( msg );
           Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg));
-          listen_port = 6881;
+          listen_port = RandomUtils.generateRandomNetworkListenPort();
           COConfigurationManager.setParameter( "TCP.Listen.Port", listen_port );
         }
   	

@@ -947,7 +947,7 @@ public class TrackerStatus {
 			auth = SESecurityManager.getPasswordAuthentication( "UDP Tracker", reqUrl );
 		}		
 	
-		int port = COConfigurationManager.getIntParameter("TCP.Listen.Port", 6881);
+		int port = COConfigurationManager.getIntParameter("TCP.Listen.Port");
 		
 		PRUDPPacketHandler handler = PRUDPPacketHandlerFactory.getHandler( port );
 		

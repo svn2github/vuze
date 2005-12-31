@@ -24,6 +24,7 @@ CHANGE: Core  | reworked compact storage type to support migration of formats [P
 CHANGE: Core  | less requirements to pause downloads when changing file priorities [Parg]
 CHANGE: Core  | only 1 torrent can now be checking at a time [Parg]
 CHANGE: Core  | DHT size estimation improved [Parg]
+CHANGE: Core  | Default listen port number now randomized [Nolar]
 
 BUGFIX: Core  | Fix transfer stall bug when MTU size is greater than max upload/download rate [Nolar]
 BUGFIX: UI    | Selection moves properly with CTRL+<UP,DOWN,HOME,END> and sorting [TuxPaper]
@@ -33,6 +34,8 @@ BUGFIX: Core  | Tracker wasn't handling "accept-encoding" properly [Parg]
 BUGFIX: Core  | Multiple file renames/retargets wasn't working [Parg]
 BUGFIX: Core  | synchronous scrape wasn't working [Parg]
 BUGFIX: Core  | fixed move-on-complete bug when target was a link [Parg]
+
+
 
 2005.11.22 | Azureus 2.3.0.6
 

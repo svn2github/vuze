@@ -240,6 +240,12 @@ ConfigurationChecker
 	    		changed	= true;	    		
 	    	}
 	    	 	
+	    	//make sure we set and save the random listen port
+	    	if( !COConfigurationManager.doesParameterNonDefaultExist( "TCP.Listen.Port" ) ) {
+	    		COConfigurationManager.setParameter( "TCP.Listen.Port", COConfigurationManager.getIntParameter( "TCP.Listen.Port" ) );
+	    		changed = true;
+	    	}
+	    	
 	    }
 	    else {  //this is a pre-existing installation, called every time after first
 	   	 //enable Advanced user mode for existing users by default, to ease 2304-->2306 migrations
@@ -309,7 +315,7 @@ ConfigurationChecker
 	
 	    String uniqueId = COConfigurationManager.getStringParameter("ID",null);
 	    if(uniqueId == null || uniqueId.length() != 20) {
-	      uniqueId = generatePeerId();      
+	      uniqueId = RandomUtils.generateRandomAlphanumerics( 20 );
 	      COConfigurationManager.setParameter("ID", uniqueId);
 	      changed = true;
 	    }
@@ -415,26 +421,14 @@ ConfigurationChecker
   	}
   }
   
-  public static String generatePeerId() {
-    String uniqueId = "";
-    long currentTime = SystemTime.getCurrentTime();
-    for(int i = 0 ; i < currentTime % 1000 ; i++)
-      Math.random();            
-    //Allocate 20 random chars ID
-    String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    for(int i = 0 ; i < 20 ; i++) {
-      int pos = (int) ( Math.random() * chars.length());
-      uniqueId += chars.charAt(pos);
-    }
-    return uniqueId;
-  }
+  
   
   public static void main(String args[]) {
     Integer obj = new Integer(1);
     HashMap test = new HashMap();
     int collisions = 0;
     for(int i = 0 ; i < 1000000 ; i++) {
-      String id = generatePeerId();
+      String id = RandomUtils.generateRandomAlphanumerics( 20 );
       if(test.containsKey(id)) {
         collisions++;
       } else {

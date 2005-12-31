@@ -22,9 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.utils;
 
-import java.util.Random;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 /**
  *
@@ -34,7 +33,7 @@ public class AZPeerIdentityManager {
   private static byte[] identity = COConfigurationManager.getByteParameter( "az_identity", null );
   static {
     if( identity == null || identity.length != 20 ) {
-      identity = generateRandomBytes( 20 );
+      identity = RandomUtils.generateRandomBytes( 20 );
       COConfigurationManager.setParameter( "az_identity", identity );
     }
   }
@@ -42,19 +41,6 @@ public class AZPeerIdentityManager {
   
   public static byte[] getAZPeerIdentity() {
     return identity;
-  }
-  
-  
-  
-  private static byte[] generateRandomBytes( int num_to_generate ) {
-    byte[] id = new byte[ num_to_generate ];
-    
-    Random rand = new Random( System.currentTimeMillis() );
-    rand.nextBytes( id );
-    
-    return id;
-  }
-  
-  
+  }  
 
 }
