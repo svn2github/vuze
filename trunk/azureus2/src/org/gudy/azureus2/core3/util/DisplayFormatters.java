@@ -704,9 +704,15 @@ DisplayFormatters
     }
     return nf.format(value);
     */
-  	
-  	String	res = String.valueOf( value );
-  	
+
+  	// String.valueOf may returns x.xxxEx or x.xxE-x.  We don't want to deal
+  	// with that, so use numberformat to pull all digits needed (plus one,
+  	// so it doesn't round)
+		NumberFormat nf =  NumberFormat.getNumberInstance();
+		nf.setMaximumFractionDigits(precision + 1);
+		String res = nf.format(value);
+
+		// Fill in trailing zeros
   	int	pos = res.indexOf('.');
   	
   	if ( pos == -1 ){
@@ -817,4 +823,24 @@ DisplayFormatters
   			return( str.substring( 0, width-3 ) + "..." );
   		}
   	}
+  	
+  	// Used to test fractions and displayformatter.
+  	// Keep until everything works okay.
+  	public static void main(String[] args) {
+  		double d = 0.000003721630774821635;
+  		NumberFormat nf =  NumberFormat.getNumberInstance();
+  		nf.setMaximumFractionDigits(6);
+  		String s = nf.format(d);
+  		
+  		System.out.println(d);  // Displays 3.721630774821635E-6 
+  		System.out.println(s);  // Displays 0.000004
+  		// should display 0.000003
+			System.out.println(DisplayFormatters.formatDecimal(d , 6));
+  		// should display 0.000000
+			System.out.println(DisplayFormatters.formatDecimal(0 , 6));
+  		// should display 0
+			System.out.println(DisplayFormatters.formatDecimal(0 , 0));
+  		// should display 0
+			System.out.println(DisplayFormatters.formatDecimal(d , 0));
+		}
 }
