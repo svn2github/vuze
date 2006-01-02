@@ -915,8 +915,9 @@ CacheFileManagerImpl
 	
 	public void
 	setFileLinks(
+		TOTorrent			torrent,
 		Map					links )
 	{
-		file_manager.setFileLinks( links );
+		file_manager.setFileLinks( torrent, links );
 	}
 }

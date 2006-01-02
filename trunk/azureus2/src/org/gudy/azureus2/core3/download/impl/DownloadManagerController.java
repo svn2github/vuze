@@ -45,7 +45,6 @@ import org.gudy.azureus2.core3.peer.PEPeerManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPeerManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.PEPiece;
-import org.gudy.azureus2.core3.peer.impl.control.PEPeerControlImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -1329,9 +1328,16 @@ DownloadManagerController
 	   		
 	   		if ( dm != null ){
 	   			
-	   			skeleton_files	= null;
+	   			int	dm_state = dm.getState();
 	   			
-	   			res = dm.getFiles();
+	   				// grab the live file info if available
+	   			
+	   			if ( dm_state == DiskManager.CHECKING || dm_state == DiskManager.READY ){
+	   			
+	   				skeleton_files	= null;
+	   			
+	   				res = dm.getFiles();
+	   			}
 	   		}
 	   		
 	   		if ( res == null ){

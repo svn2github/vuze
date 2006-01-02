@@ -29,6 +29,8 @@ package com.aelitis.azureus.core.diskmanager.file;
 import java.io.File;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+
 public interface 
 FMFileManager 
 {
@@ -42,9 +44,11 @@ FMFileManager
 	
 	public void
 	setFileLinks(
+		TOTorrent			torrent,
 		Map					links );
 	
 	public File
 	getFileLink(
+		TOTorrent			torrent,
 		File				from_file );
 }

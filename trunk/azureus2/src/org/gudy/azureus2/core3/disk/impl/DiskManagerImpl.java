@@ -2171,7 +2171,7 @@ DiskManagerImpl
 		File					from_link,
 		File					to_link )
 	{
-		File	existing_link = FMFileManagerFactory.getSingleton().getFileLink( to_link );
+		File	existing_link = FMFileManagerFactory.getSingleton().getFileLink( download_manager.getTorrent(), to_link );
 		
 		if ( !existing_link.equals( to_link )){
 			
@@ -2598,7 +2598,7 @@ DiskManagerImpl
 		Map					links )
 	{
 		try{
-			CacheFileManagerFactory.getSingleton().setFileLinks( links );
+			CacheFileManagerFactory.getSingleton().setFileLinks( download_manager.getTorrent(), links );
 			
 		}catch( Throwable e ){
 			

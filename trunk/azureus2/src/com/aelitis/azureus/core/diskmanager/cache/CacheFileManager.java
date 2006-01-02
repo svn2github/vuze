@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.diskmanager.cache;
 import java.io.File;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+
 
 /**
  * @author parg
@@ -47,5 +49,6 @@ CacheFileManager
 	
 	public void
 	setFileLinks(
+		TOTorrent			torrent,
 		Map					links );
 }

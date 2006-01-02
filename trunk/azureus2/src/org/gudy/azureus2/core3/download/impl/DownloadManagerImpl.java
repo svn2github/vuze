@@ -431,10 +431,9 @@ DownloadManagerImpl
 							}
 						});
 						
-				 setFileLinks();
-				 
 				 torrent	= download_manager_state.getTorrent();
 				 
+				 setFileLinks();
 				 
 				 	// We can't have the identity of this download changing as this will screw up
 				 	// anyone who tries to maintain a unique set of downloads (e.g. the GlobalManager)

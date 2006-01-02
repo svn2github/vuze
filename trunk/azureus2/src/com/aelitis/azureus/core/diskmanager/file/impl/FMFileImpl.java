@@ -88,7 +88,7 @@ FMFileImpl
 		owner			= _owner;
 		manager			= _manager;
 		
-		linked_file		= manager.getFileLink( _file );
+		linked_file		= manager.getFileLink( owner.getTorrentFile().getTorrent(), _file );
 		
 		boolean	file_was_created	= false;
 		boolean	file_reserved		= false;
@@ -243,7 +243,7 @@ FMFileImpl
 			this_mon.enter();
 		
 			String	new_canonical_path;
-			File	new_linked_file	= manager.getFileLink( new_unlinked_file );
+			File	new_linked_file	= manager.getFileLink( owner.getTorrentFile().getTorrent(), new_unlinked_file );
 			
 			try{
         

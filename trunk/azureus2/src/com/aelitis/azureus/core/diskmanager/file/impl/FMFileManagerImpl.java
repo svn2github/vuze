@@ -29,6 +29,7 @@ package com.aelitis.azureus.core.diskmanager.file.impl;
 import java.util.*;
 import java.io.File;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 
@@ -116,12 +117,44 @@ FMFileManagerImpl
 		}
 	}
 	
+	protected Map
+	getLinksEntry(
+		TOTorrent	torrent )
+	{
+		Object	links_key;
+		
+		try{
+			
+			links_key = torrent.getHashWrapper();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			links_key	= "";
+		}
+		
+		Map	links_entry = (Map)links.get( links_key );
+		
+		if ( links_entry == null ){
+			
+			links_entry	= new HashMap();
+			
+			links.put( links_key, links_entry );
+		}
+		
+		return( links_entry );
+	}
+	
 	public void
 	setFileLinks(
+		TOTorrent 			torrent,
 		Map					new_links )
 	{
 		try{
 			links_mon.enter();
+			
+			Map	links_entry = getLinksEntry( torrent );
 			
 			Iterator	it = new_links.keySet().iterator();
 			
@@ -134,10 +167,10 @@ FMFileManagerImpl
 				
 				if ( target != null ){
 					
-					links.put( source, target );
+					links_entry.put( source, target );
 				}else{
 					
-					links.remove( source );
+					links_entry.remove( source );
 				}
 			}
 		}finally{
@@ -148,12 +181,15 @@ FMFileManagerImpl
 	
 	public File
 	getFileLink(
-		File	file )
+		TOTorrent	torrent,
+		File		file )
 	{
 		try{
 			links_mon.enter();
 			
-			File	res = (File)links.get( file );
+			Map	links_entry = getLinksEntry( torrent );
+
+			File	res = (File)links_entry.get( file );
 			
 			if ( res == null ){
 				
