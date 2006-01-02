@@ -9,26 +9,40 @@ package org.gudy.azureus2.core3.util;
  * 
  */
 public class TimeFormatter {
+  // XXX should be i18n'd
+	static final String[] TIME_SUFFIXES = { "s", "m", "h", "d" };
 
-    public static String format(long time)
-    {
-      if (time >= Constants.INFINITY_AS_INT) return Constants.INFINITY_STRING;
-      
-      int secs = (int) time % 60;
-      int mins = (int) (time / 60) % 60;
-      int hours = (int) (time /3600) % 24;
-      int days = (int) (time / 86400);
-      
-      String result = "";
-      if (days > 0) result = days + "d ";
-      if (hours > 0 || days > 0) result += hours + "h ";
-      if ((days == 0) && ((mins > 0 || hours > 0) && mins < 10)) result += "0" + mins + "m ";
-      if ((days == 0) && ((mins > 0 || hours > 0) && mins >= 10)) result += mins + "m ";
-      if ((hours == 0 && days == 0) && ((secs > 0 || mins > 0) && secs < 10)) result += "0" + secs + "s ";
-      if ((hours == 0 && days == 0) && ((secs > 0 || mins > 0) && secs >= 10)) result += secs + "s ";
-      
-      return result.length() == 0 ? "" : result.substring(0, result.length() - 1);
-    }
+	/**
+	 * Format time in 0d 00h 00m 00s format, with all units displaying two digits,
+	 * except the first
+	 * 
+	 * @param time time in ms
+	 * @return Formatted time string
+	 */
+	public static String format(long time) {
+		if (time >= Constants.INFINITY_AS_INT)
+			return Constants.INFINITY_STRING;
+
+		if (time < 0)
+			return "";
+
+		// secs, mins, hours, days
+		int[] vals = { (int) time % 60, (int) (time / 60) % 60,
+				(int) (time / 3600) % 24, (int) (time / 86400) };
+
+		int end = vals.length - 1;
+		while (vals[end] == 0 && end > 0) {
+			end--;
+		}
+		
+		// First one is bare, the rest get two digits
+		String result = vals[end] + TIME_SUFFIXES[end];
+
+		for (int i = end - 1; i >= 0; i--)
+			result += " " + twoDigits(vals[i]) + TIME_SUFFIXES[i];
+
+		return result;
+	}
 
     public static String formatColon(long time)
     {
