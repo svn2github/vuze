@@ -270,6 +270,8 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
         this.filename = temp.getName();
       }
 
+      this.filename = FileUtil.convertOSSpecificChars( this.filename );
+      
       this.directoryname = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
       boolean useTorrentSave = COConfigurationManager.getBooleanParameter("Save Torrent Files", true);
 
