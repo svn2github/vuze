@@ -185,6 +185,18 @@ DHTTransportLoopbackImpl
 		return( local_contact );
 	}
 	
+	public void
+	setPort(
+		int	port )
+	{	
+	}
+	
+	public int
+	getPort()
+	{
+		return( 0 );
+	}
+	
 	public boolean
 	isReachable()
 	{

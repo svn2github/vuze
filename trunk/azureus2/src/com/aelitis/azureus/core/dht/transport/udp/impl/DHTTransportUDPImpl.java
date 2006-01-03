@@ -92,7 +92,9 @@ DHTTransportUDPImpl
 	private long				store_timeout;
 	private boolean				reachable;
 	private boolean				reachable_accurate;
-	
+	private int					dht_send_delay;
+	private int					dht_receive_delay;
+
 	private DHTLogger			logger;
 		
 	private DHTUDPPacketHandler			packet_handler;
@@ -209,6 +211,8 @@ DHTTransportUDPImpl
 		max_fails_for_live		= _max_fails_for_live;
 		max_fails_for_unknown	= _max_fails_for_unknown;
 		request_timeout			= _timeout;
+		dht_send_delay			= _dht_send_delay;
+		dht_receive_delay		= _dht_receive_delay;
 		bootstrap_node			= _bootstrap_node;
 		reachable				= _initial_reachability;
 		logger					= _logger;
@@ -225,27 +229,7 @@ DHTTransportUDPImpl
 			logger.log( e );
 		}
 		
-		DHTUDPPacketHelper.registerCodecs();
-
-			// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
-			// if you change it :)
-		
-		try{
-			packet_handler = DHTUDPPacketHandlerFactory.getHandler( this, this );
-			
-		}catch( Throwable e ){
-			
-			throw( new DHTTransportException( "Failed to get packet handler", e ));
-		}
-
-			// limit send and receive rates. Receive rate is lower as we want a stricter limit
-			// on the max speed we generate packets than those we're willing to process.
-		
-		// logger.log( "send delay = " + _dht_send_delay + ", recv = " + _dht_receive_delay );
-		
-		packet_handler.setDelays( _dht_send_delay, _dht_receive_delay, (int)request_timeout );
-		
-		stats =  new DHTTransportUDPStatsImpl( protocol_version, packet_handler.getStats());
+		createPacketHandler();
 		
 		SimpleTimer.addPeriodicEvent(
 			STATS_PERIOD,
@@ -268,6 +252,48 @@ DHTTransportUDPImpl
 		logger.log( "Initial external address: " + address );
 		
 		local_contact = new DHTTransportUDPContactImpl( this, address, address, protocol_version, random.nextInt(), 0);
+	}
+	
+	protected void
+	createPacketHandler()
+	
+		throws DHTTransportException
+	{
+		DHTUDPPacketHelper.registerCodecs();
+
+		// DHTPRUDPPacket relies on the request-handler being an instanceof THIS so watch out
+		// if you change it :)
+	
+		try{
+			if ( packet_handler != null ){
+				
+				packet_handler.destroy();
+			}
+			
+			packet_handler = DHTUDPPacketHandlerFactory.getHandler( this, this );
+			
+		}catch( Throwable e ){
+			
+			throw( new DHTTransportException( "Failed to get packet handler", e ));
+		}
+	
+			// limit send and receive rates. Receive rate is lower as we want a stricter limit
+			// on the max speed we generate packets than those we're willing to process.
+		
+		// logger.log( "send delay = " + _dht_send_delay + ", recv = " + _dht_receive_delay );
+		
+		packet_handler.setDelays( dht_send_delay, dht_receive_delay, (int)request_timeout );
+		
+		stats_start_time	= SystemTime.getCurrentTime();
+		
+		if ( stats == null ){
+			
+			stats =  new DHTTransportUDPStatsImpl( protocol_version, packet_handler.getStats());
+			
+		}else{
+			
+			stats.setStats( packet_handler.getStats());
+		}
 	}
 	
 	protected void
@@ -379,6 +405,24 @@ DHTTransportUDPImpl
 	getPort()
 	{
 		return( port );
+	}
+	
+	public void
+	setPort(
+		int	new_port )
+	
+		throws DHTTransportException
+	{
+		if ( new_port == port ){
+			
+			return;
+		}
+		
+		port	= new_port;
+		
+		createPacketHandler();
+		
+		setLocalContact();
 	}
 	
 	public int
@@ -709,27 +753,7 @@ DHTTransportUDPImpl
 					return;
 				}
 				
-				InetSocketAddress	s_address = new InetSocketAddress( external_address, port );
-		
-				try{
-					local_contact = new DHTTransportUDPContactImpl( DHTTransportUDPImpl.this, s_address, s_address, protocol_version, random.nextInt(), 0);
-			
-					logger.log( "External address changed: " + s_address );
-					
-					for (int i=0;i<listeners.size();i++){
-						
-						try{
-							((DHTTransportListener)listeners.get(i)).localContactChanged( local_contact );
-							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace(e);
-						}
-					}
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
+				setLocalContact();
 			}
 		}.start();
 	}
@@ -829,6 +853,32 @@ DHTTransportUDPImpl
 	getLocalContact()
 	{
 		return( local_contact );
+	}
+	
+	protected void
+	setLocalContact()
+	{
+		InetSocketAddress	s_address = new InetSocketAddress( external_address, port );
+		
+		try{
+			local_contact = new DHTTransportUDPContactImpl( DHTTransportUDPImpl.this, s_address, s_address, protocol_version, random.nextInt(), 0);
+	
+			logger.log( "External address changed: " + s_address );
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					((DHTTransportListener)listeners.get(i)).localContactChanged( local_contact );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
 	}
 	
 	public DHTTransportContact

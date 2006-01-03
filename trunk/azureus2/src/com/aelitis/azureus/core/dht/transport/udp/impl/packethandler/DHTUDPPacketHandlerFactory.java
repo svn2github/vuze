@@ -90,12 +90,49 @@ DHTUDPPacketHandlerFactory
 				throw( new DHTUDPPacketHandlerException( "Network already added" ));
 			}
 			
-			DHTUDPPacketHandler ph = new DHTUDPPacketHandler( network, (PRUDPPacketHandler)port_details[0], request_handler );
+			DHTUDPPacketHandler ph = new DHTUDPPacketHandler( this, network, (PRUDPPacketHandler)port_details[0], request_handler );
 			
 			network_map.put( new Integer( network ), new Object[]{ transport, ph });
 			
 			return( ph );
 			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	protected void
+	destroy(
+		DHTUDPPacketHandler	handler )
+	{
+		PRUDPPacketHandler	packet_handler = handler.getPacketHandler();
+		
+		try{
+			packet_handler.setRequestHandler(null);
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		int	port 	= packet_handler.getPort();
+		int	network = handler.getNetwork();
+		
+		try{
+			this_mon.enter();
+			
+			Object[]	port_details = (Object[])port_map.remove( new Integer( port ));
+
+			if ( port_details == null ){
+			
+				return;
+			}
+		
+			Map network_map = (Map)port_details[1];
+		
+			network_map.remove( new Integer( network ));
+
 		}finally{
 			
 			this_mon.exit();

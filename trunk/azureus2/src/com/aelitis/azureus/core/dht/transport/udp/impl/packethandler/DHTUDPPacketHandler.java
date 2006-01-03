@@ -36,9 +36,9 @@ import com.aelitis.net.udp.*;
 
 public class 
 DHTUDPPacketHandler 
-
 {
-	private int			network;
+	private DHTUDPPacketHandlerFactory	factory;
+	private int							network;
 	
 	private PRUDPPacketHandler		packet_handler;
 	private DHTUDPRequestHandler	request_handler;
@@ -55,10 +55,12 @@ DHTUDPPacketHandler
 	
 	protected
 	DHTUDPPacketHandler( 
-		int						_network,
-		PRUDPPacketHandler		_packet_handler,
-		DHTUDPRequestHandler	_request_handler )
+		DHTUDPPacketHandlerFactory	_factory,
+		int							_network,
+		PRUDPPacketHandler			_packet_handler,
+		DHTUDPRequestHandler		_request_handler )
 	{
+		factory			= _factory;
 		network			= _network;
 		packet_handler	= _packet_handler;
 		request_handler	= _request_handler;
@@ -80,6 +82,18 @@ DHTUDPPacketHandler
 	getRequestHandler()
 	{
 		return( request_handler );
+	}
+	
+	protected PRUDPPacketHandler
+	getPacketHandler()
+	{
+		return( packet_handler );
+	}
+	
+	protected int
+	getNetwork()
+	{
+		return( network );
 	}
 	
 	public void
@@ -254,6 +268,12 @@ DHTUDPPacketHandler
 			// TODO: hmm
 		
 		packet_handler.setDelays( send_delay, receive_delay, queued_request_timeout );
+	}
+	
+	public void
+	destroy()
+	{
+		factory.destroy( this );
 	}
 	
 	public DHTUDPPacketHandlerStats

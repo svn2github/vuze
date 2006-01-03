@@ -124,7 +124,7 @@ PRUDPPacketHandlerImpl
 		init_sem.reserve();
 	}
 	
-	protected void
+	public void
 	setRequestHandler(
 		PRUDPRequestHandler		_request_handler )
 	{
@@ -149,6 +149,12 @@ PRUDPPacketHandlerImpl
 	getRequestHandler()
 	{
 		return( request_handler );
+	}
+	
+	public int
+	getPort()
+	{
+		return( port );
 	}
 	
 	protected void
@@ -430,9 +436,14 @@ PRUDPPacketHandlerImpl
 													
 													recv_queue_data_size -= ((Integer)data[1]).intValue();
 													
-													request_handler.process( p );
+													PRUDPRequestHandler	handler = request_handler;
 													
-													Thread.sleep( receive_delay );
+													if ( handler != null ){
+														
+														handler.process( p );
+													
+														Thread.sleep( receive_delay );
+													}
 													
 												}catch( Throwable e ){
 													
@@ -442,9 +453,9 @@ PRUDPPacketHandlerImpl
 										}
 									};
 								
-									recv_thread.setDaemon( true );
+								recv_thread.setDaemon( true );
 								
-									recv_thread.start();
+								recv_thread.start();
 							}
 						}
 					}finally{
@@ -453,7 +464,12 @@ PRUDPPacketHandlerImpl
 					}
 				}else{
 				
-					request_handler.process( (PRUDPPacketRequest)packet );
+					PRUDPRequestHandler	handler = request_handler;
+					
+					if ( handler != null ){
+						
+						handler.process( (PRUDPPacketRequest)packet );
+					}
 				}
 	
 			}else{

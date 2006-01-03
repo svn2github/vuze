@@ -48,6 +48,13 @@ DHTTransportUDPStatsImpl
 		stats	= _stats;
 	}
 	
+	protected void
+	setStats(
+		DHTUDPPacketHandlerStats	_stats )
+	{
+		stats = _stats;
+	}
+
 	public long
 	getPacketsSent()
 	{

@@ -66,6 +66,7 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
 
+import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 /**
@@ -113,7 +114,7 @@ DHTPlugin
 	private ActionParameter		reseed;
 		
 	private boolean				enabled;
-	private int					dht_data_port_default, dht_data_port;
+	private int					dht_data_port;
 	
 	private boolean				got_extended_use;
 	private boolean				extended_use;
@@ -121,6 +122,8 @@ DHTPlugin
 	private AESemaphore			init_sem = new AESemaphore("DHTPlugin:init" );
 	
 	private BooleanParameter	ipfilter_logging;
+	
+	private UPnPMapping			upnp_mapping;
 	
 	private LoggerChannel		log;
 	private DHTLogger			dht_log;
@@ -135,11 +138,9 @@ DHTPlugin
 		plugin_interface.getPluginProperties().setProperty( "plugin.version", 	PLUGIN_VERSION );
 		plugin_interface.getPluginProperties().setProperty( "plugin.name", 		PLUGIN_NAME );
 
-		dht_data_port_default = dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+		dht_data_port = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
 
 		log = plugin_interface.getLogger().getTimeStampedChannel(PLUGIN_NAME);
-
-
 		
 		UIManager	ui_manager = plugin_interface.getUIManager();
 
@@ -173,22 +174,40 @@ DHTPlugin
 		    	}
 	        }
 	      });
-	    
-	    use_default_port.addListener(new ParameterListener() {
-	    	public void parameterChanged(Parameter p){
-	    		boolean useDefault = use_default_port.getValue();
-	    		
-	    		if(useDefault){
-	    			dht_port_param.setValue(dht_data_port_default);
-	    		}
-	    	}
-	    });
 		
 		if ( !use_default_port.getValue()){
 		
 			dht_data_port	= dht_port_param.getValue();
 		}
-				
+			
+		plugin_interface.getPluginconfig().addListener(
+				new PluginConfigListener()
+				{
+					public void
+					configSaved()
+					{
+						int	new_dht_data_port_default = plugin_interface.getPluginconfig().getIntParameter( "TCP.Listen.Port" );
+						
+						int	new_dht_data_port = dht_port_param.getValue();
+						
+						if ( use_default_port.getValue()){
+							
+							if ( new_dht_data_port != new_dht_data_port_default ){
+								
+								dht_port_param.setValue( new_dht_data_port_default );
+								
+								changePort( new_dht_data_port_default );
+							}
+						}else{
+							
+							if ( new_dht_data_port != dht_data_port ){
+								
+								changePort( new_dht_data_port );
+							}
+						}
+					}
+				});
+		
 		LabelParameter	reseed_label = config.addLabelParameter2( "dht.reseed.label" );
 		
 		final StringParameter	reseed_ip	= config.addStringParameter2( "dht.reseed.ip", "dht.reseed.ip", "" );
@@ -540,7 +559,7 @@ DHTPlugin
 			
 		}else{
 			
-			((UPnPPlugin)pi_upnp.getPlugin()).addMapping( 
+			upnp_mapping = ((UPnPPlugin)pi_upnp.getPlugin()).addMapping( 
 							plugin_interface.getPluginName(), 
 							false, 
 							dht_data_port, 
@@ -614,6 +633,37 @@ DHTPlugin
 	}
 	
 	protected void
+	changePort(
+		int	new_port )
+	{
+		if ( new_port == dht_data_port ){
+			
+			return;
+		}
+		
+		dht_data_port	= new_port;
+		
+		if ( upnp_mapping != null ){
+			
+			if ( upnp_mapping.getPort() != new_port ){
+				
+				upnp_mapping.setPort( new_port );
+			}
+		}
+		
+		if ( status == STATUS_RUNNING ){
+			
+			if ( dhts != null ){
+				
+				for (int i=0;i<dhts.length;i++){
+					
+					dhts[i].setPort( new_port );
+				}
+			}
+		}
+	}
+	
+	protected void
 	initComplete(
 		final UITextField		status_area,
 		final boolean			logging,
@@ -682,6 +732,13 @@ DHTPlugin
 					}finally{
 						
 						init_sem.releaseForever();
+					}
+					
+						// pick up any port changes that occurred during init
+					
+					if ( status == STATUS_RUNNING ){
+					
+						changePort( dht_data_port );
 					}
 				}
 			};

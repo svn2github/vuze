@@ -46,6 +46,15 @@ DHTTransport
 	public DHTTransportContact
 	getLocalContact();
 	
+	public int
+	getPort();
+	
+	public void
+	setPort(
+		int	port )
+	
+		throws DHTTransportException;
+	
 	public DHTTransportContact
 	importContact(
 		DataInputStream		is )

@@ -315,7 +315,27 @@ DHTPluginImpl
 	public void
 	tick()
 	{
+	}
+	
+	public int
+	getPort()
+	{
+		return( port );
+	}
+	
+	public void
+	setPort(
+		int	new_port )
+	{
+		port	= new_port;
 		
+		try{
+			transport.setPort( port );
+			
+		}catch( Throwable e ){
+			
+			log.log( e );
+		}
 	}
 	
 	public void
