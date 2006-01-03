@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
@@ -58,7 +59,8 @@ LocalTrackerPlugin
 	private boolean				active;
 	private TorrentAttribute 	ta_networks;
 
-	private Map 				downloads = new HashMap();
+	private Map 				downloads 	= new HashMap();
+	private Map					track_times	= new HashMap();
 	
 	private BooleanParameter	enabled;
 	
@@ -173,9 +175,31 @@ LocalTrackerPlugin
 	}
 	
 	public void
+	instanceChanged(
+		AZInstance		instance )
+	{
+		if ( !enabled.getValue()){
+			
+			return;
+		}
+		
+		log.log( "Changed: " + instance.getString());
+	}
+	
+	public void
 	instanceLost(
 		AZInstance		instance )
 	{
+		try{
+			mon.enter();
+			
+			track_times.remove( instance );
+			
+		}finally{
+			
+			mon.exit();
+		}
+		
 		if ( !enabled.getValue()){
 			
 			return;
@@ -192,8 +216,6 @@ LocalTrackerPlugin
 			
 			return;
 		}
-		
-		log.log( "Tracked: " + instance.getString());
 		
 		handleTrackResult( instance );
 	}
@@ -278,9 +300,55 @@ LocalTrackerPlugin
 		AZInstance		inst )
 	{
 		Download	download = (Download)inst.getProperty( AZInstance.PR_DOWNLOAD );
-		
+				
 		boolean	is_seed = ((Boolean)inst.getProperty(AZInstance.PR_SEED)).booleanValue();
 		
+		long	now		= SystemTime.getCurrentTime();
+		
+		boolean	skip 	= false;
+		
+			// this code is here to deal with multiple interface machines that receive the result multiple times
+		
+		try{
+			mon.enter();
+			
+			Map	map = (Map)track_times.get( inst );
+			
+			if ( map == null ){
+				
+				map	= new HashMap();
+				
+				track_times.put( inst, map );
+			}
+			
+			String	dl_key = plugin_interface.getUtilities().getFormatters().encodeBytesToString(download.getTorrent().getHash());
+			
+			Long	last_track = (Long)map.get( dl_key );
+			
+			if ( last_track != null ){
+				
+				long	lt = last_track.longValue();
+				
+				if ( now - lt < 60*1000 ){
+					
+					skip	= true;
+				}
+			}
+			
+			map.put( dl_key, new Long(now));
+			
+		}finally{
+			
+			mon.exit();
+		}
+		
+		if ( skip ){
+		
+			return;
+		}
+		
+		log.log( "Tracked: " + inst.getString() + ": " + download.getName() + ", seed = " + is_seed );
+
 		if ( download.isComplete() && is_seed ){
 			
 			return;
@@ -293,7 +361,7 @@ LocalTrackerPlugin
 			String	peer_ip		= inst.getInternalAddress().getHostAddress();
 			int		peer_port	= inst.getTCPPort();
 			
-			log.log( download.getName() + ": Injecting peer " + peer_ip + ":" + peer_port );
+			log.log( "    " + download.getName() + ": Injecting peer " + peer_ip + ":" + peer_port );
 			
 			peer_manager.addPeer( peer_ip, peer_port );
 		}

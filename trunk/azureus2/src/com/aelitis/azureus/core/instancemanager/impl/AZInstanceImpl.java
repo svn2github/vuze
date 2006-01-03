@@ -24,7 +24,6 @@ package com.aelitis.azureus.core.instancemanager.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 
@@ -32,32 +31,11 @@ public abstract class
 AZInstanceImpl 
 	implements AZInstance
 {
-	private long	alive_time;
 	private Map		properties	= new HashMap();
 	
 	protected
 	AZInstanceImpl()
 	{
-		alive_time	= SystemTime.getCurrentTime();
-	}
-	
-	protected long
-	getAliveTime()
-	{
-		long	now = SystemTime.getCurrentTime();
-		
-		if ( now < alive_time ){
-			
-			alive_time	= now;
-		}
-		
-		return( alive_time );
-	}
-	
-	protected void
-	setAlive()
-	{
-		alive_time	= SystemTime.getCurrentTime();
 	}
 	
 	protected static String
@@ -108,7 +86,14 @@ AZInstanceImpl
 	public String
 	getString()
 	{
-		return( "int=" + getInternalAddress().getHostAddress() + ",ext=" + 
+		String	id = getID();
+		
+		if ( id.length() > 8 ){
+			
+			id = id.substring(0,8) + "...";
+		}
+		
+		return( "id=" + id + ",int=" + getInternalAddress().getHostAddress() + ",ext=" + 
 				getExternalAddress().getHostAddress() +	",tcp=" + getTCPPort() + ",udp=" + getUDPPort() );
 	}
 }

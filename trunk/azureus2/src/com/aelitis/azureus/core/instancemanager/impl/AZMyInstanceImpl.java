@@ -26,11 +26,15 @@ import java.net.InetAddress;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
@@ -40,7 +44,8 @@ AZMyInstanceImpl
 {
 	public static final long	FORCE_READ_EXT_MIN	= 8*60*60*1000;
 	
-	private AzureusCore			core;
+	private AzureusCore				core;
+	private AZInstanceManagerImpl	manager;
 	
 	private String				id;
 	private InetAddress			internal_address;
@@ -49,29 +54,17 @@ AZMyInstanceImpl
 	private long				last_force_read_ext;
 	private InetAddress			last_external_address;
 	
+	private boolean				dht_listener_added;
+	
 	protected
 	AZMyInstanceImpl(
-		AzureusCore		_core )
+		AzureusCore				_core,
+		AZInstanceManagerImpl	_manager )
 
 	{
 		core	= _core;
+		manager	= _manager;
 		
-		COConfigurationManager.addListener( 
-			new COConfigurationListener()
-			{
-				public void
-				configurationSaved()
-				{
-					readConfig();
-				}
-			});
-		
-		readConfig();
-	}
-	
-	protected void
-	readConfig()
-	{
 		id	= COConfigurationManager.getStringParameter( "ID", "" );
 		
 		if ( id.length() == 0 ){
@@ -79,6 +72,25 @@ AZMyInstanceImpl
 			id	= "" + SystemTime.getCurrentTime();
 		}
 		
+		id = ByteFormatter.encodeString( new SHA1Simple().calculateHash( id.getBytes()));
+		
+		COConfigurationManager.addListener( 
+			new COConfigurationListener()
+			{
+				public void
+				configurationSaved()
+				{
+					readConfig( false );
+				}
+			});
+		
+		readConfig( true );
+	}
+	
+	protected void
+	readConfig(
+		boolean	first_time )
+	{
 		InetAddress	new_internal_address	= null;
 		
 		String internal_address_str = COConfigurationManager.getStringParameter("Bind IP");
@@ -100,10 +112,24 @@ AZMyInstanceImpl
 			}catch( Throwable e ){			
 			}
 		}
+				
+		int	new_tcp_port = COConfigurationManager.getIntParameter("TCP.Listen.Port");
 		
-		internal_address = new_internal_address;
+		boolean	same = true;
 		
-		tcp_port = COConfigurationManager.getIntParameter("TCP.Listen.Port");
+		if ( !first_time ){
+			
+			same = internal_address.equals( new_internal_address) && tcp_port == new_tcp_port;
+		}
+		
+		internal_address 	= new_internal_address;
+		tcp_port			= new_tcp_port;
+		
+		
+		if ( !same ){
+			
+			manager.informChanged( this );
+		}
 	}
 	
 	protected InetAddress
@@ -142,6 +168,34 @@ AZMyInstanceImpl
 		        	DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();
 		             	        	
 		        	external_address = dht.getLocalAddress().getAddress().getAddress();
+		        	
+		        	if ( !dht_listener_added ){
+		        		
+		        		dht_listener_added	= true;
+		        		
+			        	dht.getDHTs()[0].getTransport().addListener(
+			        		new DHTTransportListener()
+			        		{
+			        			public void
+			        			localContactChanged(
+			        				DHTTransportContact	local_contact )
+			        			{
+			        				manager.informChanged( AZMyInstanceImpl.this );
+			        			}
+			        			
+			        			public void
+			        			currentAddress(
+			        				String		address )
+			        			{
+			        			}
+			        			
+			        			public void
+			        			reachabilityChanged(
+			        				boolean	reacheable )
+			        			{
+			        			}
+			        		});
+		        	}
 		        }
 			}catch( Throwable e ){
 			}

@@ -26,20 +26,14 @@ import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 
 public class 
 AZOtherInstanceImpl
 	extends AZInstanceImpl
 {
-	private String				id;
-	private InetAddress			internal_address;
-	private InetAddress			external_address;
-	private int					tcp_port;
-	private int					udp_port;
-	private List				extra_args;
-	
-	protected static AZInstanceImpl
+	protected static AZOtherInstanceImpl
 	decode(
 		InetAddress		internal_address,
 		String			str )
@@ -78,6 +72,17 @@ AZOtherInstanceImpl
 		return( null );
 	}
 	
+	
+	private String				id;
+	private List				internal_addresses	= new ArrayList();
+	private InetAddress			external_address;
+	private int					tcp_port;
+	private int					udp_port;
+	private List				extra_args;
+	
+	private long	alive_time;
+
+
 	protected
 	AZOtherInstanceImpl(
 		String			_id,
@@ -88,11 +93,46 @@ AZOtherInstanceImpl
 		List			_extra_args )
 	{
 		id					= _id;
-		internal_address	= _internal_address;
+		
+		internal_addresses.add( _internal_address );
+		
 		external_address	= _external_address;
 		tcp_port			= _tcp_port;
 		udp_port			= _udp_port;
 		extra_args			= _extra_args;
+		
+		alive_time	= SystemTime.getCurrentTime();
+	}
+	
+	protected boolean
+	update(
+		AZOtherInstanceImpl	new_inst )
+	{		
+		alive_time	= SystemTime.getCurrentTime();
+		
+		InetAddress	new_address = new_inst.getInternalAddress();
+		
+		boolean	same = true;
+		
+		if ( !internal_addresses.contains( new_address )){
+			
+			same	= false;
+			
+			internal_addresses.add( 0, new_address );
+		}
+		
+		same	 = 	same && 
+					external_address.equals( new_inst.external_address ) &&
+					tcp_port == new_inst.tcp_port  &&
+					udp_port == new_inst.udp_port;
+		
+		
+		external_address	= new_inst.external_address;
+		tcp_port			= new_inst.tcp_port;
+		udp_port			= new_inst.udp_port;
+		extra_args			= new_inst.extra_args;
+		
+		return( !same );
 	}
 	
 	public String
@@ -104,7 +144,7 @@ AZOtherInstanceImpl
 	public InetAddress
 	getInternalAddress()
 	{
-		return( internal_address );
+		return((InetAddress)internal_addresses.get(0));
 	}
 	
 	public InetAddress
@@ -129,5 +169,18 @@ AZOtherInstanceImpl
 	getExtraArgs()
 	{
 		return( extra_args );
+	}
+	
+	protected long
+	getAliveTime()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < alive_time ){
+			
+			alive_time	= now;
+		}
+		
+		return( alive_time );
 	}
 }

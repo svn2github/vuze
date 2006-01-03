@@ -112,7 +112,9 @@ AZInstanceManagerImpl
 	{
 		core			= _core;
 		
-		my_instance	= new AZMyInstanceImpl( core );
+		my_instance	= new AZMyInstanceImpl( core, this );
+		
+		new AZPortClashHandler( this );
 	}
 	
 	public void
@@ -192,7 +194,7 @@ AZInstanceManagerImpl
 						
 						if ( other_instances.size() > 0 ){
 							
-							ssdp.notify( my_instance.encode(), "ssdp:alive" );
+							sendAlive();
 						}				
 					}
 				});
@@ -218,6 +220,12 @@ AZInstanceManagerImpl
 				}
 			}
 		}.start();
+	}
+	
+	protected void
+	sendAlive()
+	{
+		ssdp.notify( my_instance.encode(), "ssdp:alive" );
 	}
 	
 	public void
@@ -275,7 +283,7 @@ AZInstanceManagerImpl
 	{
 		// System.out.println( "received search: " + user_agent + "/" + ST );
 		
-		AZInstanceImpl	caller = null;
+		AZOtherInstanceImpl	caller = null;
 		
 		if ( user_agent.startsWith("azureus:")){
 			
@@ -396,7 +404,7 @@ AZInstanceManagerImpl
 
 		if ( NT.startsWith("azureus:")){
 			
-			AZInstanceImpl	inst = AZOtherInstanceImpl.decode( originator, NT );
+			AZOtherInstanceImpl	inst = AZOtherInstanceImpl.decode( originator, NT );
 
 			if ( inst != null ){
 			
@@ -412,21 +420,22 @@ AZInstanceManagerImpl
 		}
 	}
 
-	protected AZInstanceImpl
+	protected AZOtherInstanceImpl
 	checkAdd(
-		AZInstanceImpl	inst )
+		AZOtherInstanceImpl	inst )
 	{
 		if ( inst.getID().equals( my_instance.getID())){
 			
 			return( inst );
 		}
 		
-		boolean	added = false;
+		boolean	added 	= false;
+		boolean	changed	= false;
 		
 		try{
 			this_mon.enter();
 			
-			AZInstanceImpl	existing = (AZInstanceImpl)other_instances.get( inst.getID());
+			AZOtherInstanceImpl	existing = (AZOtherInstanceImpl)other_instances.get( inst.getID());
 			
 			if ( existing == null ){
 				
@@ -435,8 +444,8 @@ AZInstanceManagerImpl
 				other_instances.put( inst.getID(), inst );
 				
 			}else{
-				
-				existing.setAlive();
+								
+				changed = existing.update( inst );
 
 				inst	= existing;
 			}
@@ -448,6 +457,10 @@ AZInstanceManagerImpl
 		if ( added ){
 			
 			informAdded( inst );
+			
+		}else if ( changed ){
+			
+			informChanged( inst );
 		}
 		
 		return( inst );
@@ -571,7 +584,7 @@ AZInstanceManagerImpl
 			
 			while( it.hasNext()){
 				
-				AZInstanceImpl	inst = (AZInstanceImpl)it.next();
+				AZOtherInstanceImpl	inst = (AZOtherInstanceImpl)it.next();
 	
 				if ( now - inst.getAliveTime() > ALIVE_PERIOD * 2.5 ){
 					
@@ -617,6 +630,27 @@ AZInstanceManagerImpl
 			
 			try{
 				((AZInstanceManagerListener)listeners.get(i)).instanceFound( inst );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	protected void
+	informChanged(
+		AZInstance	inst )
+	{
+		if ( inst == my_instance ){
+			
+			sendAlive();
+		}
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((AZInstanceManagerListener)listeners.get(i)).instanceChanged( inst );
 				
 			}catch( Throwable e ){
 				

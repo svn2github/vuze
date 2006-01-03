@@ -30,6 +30,10 @@ AZInstanceManagerListener
 		AZInstance		instance );
 	
 	public void
+	instanceChanged(
+		AZInstance		instance );
+	
+	public void
 	instanceLost(
 		AZInstance		instance );
 	

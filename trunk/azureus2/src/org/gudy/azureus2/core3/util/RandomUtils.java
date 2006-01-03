@@ -61,15 +61,18 @@ public class RandomUtils {
   }
 	
 	
+	public static final int LISTEN_PORT_MIN = 10000;
+	public static final int LISTEN_PORT_MAX = 65535;
+	
 	
 	/**
 	 * Generate a random port number for binding a network IP listening socket to.
-	 * NOTE: Will return a valid non-privileged port number >= 10000 and <= 65535.
+	 * NOTE: Will return a valid non-privileged port number >= LISTEN_PORT_MIN and <= LISTEN_PORT_MAX.
 	 * @return random port number
 	 */
 	public static int generateRandomNetworkListenPort() {
-		int min = 10000;
-		int port = min + RANDOM.nextInt( 65536 - min );
+		int min = LISTEN_PORT_MIN;
+		int port = min + RANDOM.nextInt( LISTEN_PORT_MAX + 1 - min );
 		return port;
 	}
 
