@@ -230,6 +230,11 @@ public class OutgoingBTPieceMessageHandler {
       int num_queued = queued_messages.size();
       int num_removed = 0;
       
+      if( num_queued != num_messages_in_queue ) {
+      	Debug.out( "num_queued[" +num_queued+ "] != num_messages_in_queue[" +num_messages_in_queue+ "]" );
+      }
+      
+      
       for( Iterator i = queued_messages.keySet().iterator(); i.hasNext(); ) {
         BTPiece msg = (BTPiece)i.next();
         if( outgoing_message_queue.removeMessage( msg, true ) ) {
@@ -315,8 +320,7 @@ public class OutgoingBTPieceMessageHandler {
 			int iLastNumber = -1;
 
 			// allocate max size needed (we'll shrink it later)
-			int[] pieceNumbers = new int[queued_messages.size()
-					+ loading_messages.size() + requests.size()];
+			int[] pieceNumbers = new int[queued_messages.size()	+ loading_messages.size() + requests.size()];
 			int pos = 0;
 
 			for (Iterator iter = queued_messages.keySet().iterator(); iter.hasNext();) {
