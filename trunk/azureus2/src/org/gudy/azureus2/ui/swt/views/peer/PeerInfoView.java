@@ -39,8 +39,12 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -167,6 +171,12 @@ public class PeerInfoView extends AbstractIView {
 	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#initialize(org.eclipse.swt.widgets.Composite)
 	 */
 	public void initialize(Composite composite) {
+		if (peerInfoComposite != null && !peerInfoComposite.isDisposed()) {
+			Logger.log(new LogEvent(LogIDs.GUI, LogEvent.LT_ERROR,
+					"PeerInfoView already initialized! Stack: "
+							+ Debug.getStackTrace(true, false)));
+			delete();
+		}
 		createPeerInfoPanel(composite);
 	}
 
@@ -359,158 +369,163 @@ public class PeerInfoView extends AbstractIView {
 
 		img = new Image(peerInfoCanvas.getDisplay(), bounds.width, bounds.height);
 		GC gcImg = new GC(img);
-		gcImg.setBackground(peerInfoCanvas.getBackground());
-		gcImg.fillRectangle(0, 0, bounds.width, bounds.height);
-
-		gcImg.setFont(font);
-
-		DiskManagerPiece[] dm_pieces = null;
-
-		PEPeerManager	pm = peer.getManager();
 		
-		DiskManager dm = pm.getDiskManager();
-
-		dm_pieces = dm.getPieces();
-
-		int iNumCols = bounds.width / BLOCK_SIZE;
-		int iNeededHeight = (((dm.getNumberOfPieces() - 1) / iNumCols) + 1) * BLOCK_SIZE;
-		sc.setMinHeight(iNeededHeight);
-
-		int[] availability = pm == null ? null : pm.getAvailability();
-		
-		int iNextDLPieceID = -1;
-		int iDLPieceID = -1;
-		int[] ourRequestedPieces = peer.getOutgoingRequestedPieceNumbers();
-		if (ourRequestedPieces != null) {
-			if (!peer.isChokingMe()) {
-				// !choking == downloading
+		try {
+			gcImg.setBackground(peerInfoCanvas.getBackground());
+			gcImg.fillRectangle(0, 0, bounds.width, bounds.height);
 	
-				if (ourRequestedPieces.length > 0) {
-					iDLPieceID = ourRequestedPieces[0];
-					if (ourRequestedPieces.length > 1)
-						iNextDLPieceID = ourRequestedPieces[1];
-				}
-			} else {
-				if (ourRequestedPieces.length > 0)
-					iNextDLPieceID = ourRequestedPieces[0];
-			}
+			gcImg.setFont(font);
+	
+			DiskManagerPiece[] dm_pieces = null;
+	
+			PEPeerManager	pm = peer.getManager();
 			
-//			if (iNextDLPieceID == -1) {
-//				iNextDLPieceID = peer.getNextPieceNumberGuess();
-//			}
-		}
-
-		int[] peerRequestedPieces = peer.getIncomingRequestedPieceNumbers();
-		if (peerRequestedPieces == null)
-			peerRequestedPieces = new int[0];
-
-		int peerNextRequestedPiece = -1;
-		if (peerRequestedPieces.length > 0)
-			peerNextRequestedPiece = peerRequestedPieces[0];
-		Arrays.sort(peerRequestedPieces);
-
-		int iRow = 0;
-		int iCol = 0;
-		for (int i = 0; i < piecesAvailable.length; i++) {
-			int colorIndex;
-			boolean done = (dm_pieces == null) ? false : dm_pieces[i].getDone();
-			int iXPos = iCol * BLOCK_SIZE;
-			int iYPos = iRow * BLOCK_SIZE;
-
-			if (done) {
-				if (piecesAvailable[i])
-					colorIndex = BLOCKCOLOR_AVAIL_HAVE;
-				else
-					colorIndex = BLOCKCOLOR_NOAVAIL_HAVE;
-
-				gcImg.setBackground(blockColors[colorIndex]);
-				gcImg.fillRectangle(iXPos, iYPos, BLOCK_FILLSIZE, BLOCK_FILLSIZE);
-			} else {
-				// !done
-				boolean partiallyDone = (dm_pieces == null) ? false : dm_pieces[i]
-						.getCompleteCount() > 0;
-
-				int x = iXPos;
-				int width = BLOCK_FILLSIZE;
-				if (partiallyDone) {
+			DiskManager dm = pm.getDiskManager();
+	
+			dm_pieces = dm.getPieces();
+	
+			int iNumCols = bounds.width / BLOCK_SIZE;
+			int iNeededHeight = (((dm.getNumberOfPieces() - 1) / iNumCols) + 1) * BLOCK_SIZE;
+			sc.setMinHeight(iNeededHeight);
+	
+			int[] availability = pm == null ? null : pm.getAvailability();
+			
+			int iNextDLPieceID = -1;
+			int iDLPieceID = -1;
+			int[] ourRequestedPieces = peer.getOutgoingRequestedPieceNumbers();
+			if (ourRequestedPieces != null) {
+				if (!peer.isChokingMe()) {
+					// !choking == downloading
+		
+					if (ourRequestedPieces.length > 0) {
+						iDLPieceID = ourRequestedPieces[0];
+						if (ourRequestedPieces.length > 1)
+							iNextDLPieceID = ourRequestedPieces[1];
+					}
+				} else {
+					if (ourRequestedPieces.length > 0)
+						iNextDLPieceID = ourRequestedPieces[0];
+				}
+				
+	//			if (iNextDLPieceID == -1) {
+	//				iNextDLPieceID = peer.getNextPieceNumberGuess();
+	//			}
+			}
+	
+			int[] peerRequestedPieces = peer.getIncomingRequestedPieceNumbers();
+			if (peerRequestedPieces == null)
+				peerRequestedPieces = new int[0];
+	
+			int peerNextRequestedPiece = -1;
+			if (peerRequestedPieces.length > 0)
+				peerNextRequestedPiece = peerRequestedPieces[0];
+			Arrays.sort(peerRequestedPieces);
+	
+			int iRow = 0;
+			int iCol = 0;
+			for (int i = 0; i < piecesAvailable.length; i++) {
+				int colorIndex;
+				boolean done = (dm_pieces == null) ? false : dm_pieces[i].getDone();
+				int iXPos = iCol * BLOCK_SIZE;
+				int iYPos = iRow * BLOCK_SIZE;
+	
+				if (done) {
 					if (piecesAvailable[i])
 						colorIndex = BLOCKCOLOR_AVAIL_HAVE;
 					else
 						colorIndex = BLOCKCOLOR_NOAVAIL_HAVE;
-
+	
 					gcImg.setBackground(blockColors[colorIndex]);
-
-					int iNewWidth = (int) (((float) dm_pieces[i].getCompleteCount() / dm_pieces[i]
-							.getBlockCount()) * width);
-					if (iNewWidth >= width)
-						iNewWidth = width - 1;
-					else if (iNewWidth <= 0)
-						iNewWidth = 1;
-
-					gcImg.fillRectangle(x, iYPos, iNewWidth, BLOCK_FILLSIZE);
-					width -= iNewWidth;
-					x += iNewWidth;
+					gcImg.fillRectangle(iXPos, iYPos, BLOCK_FILLSIZE, BLOCK_FILLSIZE);
+				} else {
+					// !done
+					boolean partiallyDone = (dm_pieces == null) ? false : dm_pieces[i]
+							.getCompleteCount() > 0;
+	
+					int x = iXPos;
+					int width = BLOCK_FILLSIZE;
+					if (partiallyDone) {
+						if (piecesAvailable[i])
+							colorIndex = BLOCKCOLOR_AVAIL_HAVE;
+						else
+							colorIndex = BLOCKCOLOR_NOAVAIL_HAVE;
+	
+						gcImg.setBackground(blockColors[colorIndex]);
+	
+						int iNewWidth = (int) (((float) dm_pieces[i].getCompleteCount() / dm_pieces[i]
+								.getBlockCount()) * width);
+						if (iNewWidth >= width)
+							iNewWidth = width - 1;
+						else if (iNewWidth <= 0)
+							iNewWidth = 1;
+	
+						gcImg.fillRectangle(x, iYPos, iNewWidth, BLOCK_FILLSIZE);
+						width -= iNewWidth;
+						x += iNewWidth;
+					}
+	
+					if (piecesAvailable[i])
+						colorIndex = BLOCKCOLOR_AVAIL_NOHAVE;
+					else
+						colorIndex = BLOCKCOLOR_NOAVAIL_NOHAVE;
+	
+					gcImg.setBackground(blockColors[colorIndex]);
+					gcImg.fillRectangle(x, iYPos, width, BLOCK_FILLSIZE);
 				}
-
-				if (piecesAvailable[i])
-					colorIndex = BLOCKCOLOR_AVAIL_NOHAVE;
-				else
-					colorIndex = BLOCKCOLOR_NOAVAIL_NOHAVE;
-
-				gcImg.setBackground(blockColors[colorIndex]);
-				gcImg.fillRectangle(x, iYPos, width, BLOCK_FILLSIZE);
-			}
-
-
-			// Down Arrow inside box for "dowloading" piece
-			if (i == iDLPieceID) {
-				gcImg.setBackground(blockColors[BLOCKCOLOR_TRANSFER]);
-				gcImg.fillPolygon(new int[] { iXPos, iYPos, iXPos + BLOCK_FILLSIZE,
-						iYPos, iXPos + (BLOCK_FILLSIZE / 2), iYPos + BLOCK_FILLSIZE });
-			}
-
-			// Small Down Arrow inside box for next download piece
-			if (i == iNextDLPieceID) {
-				gcImg.setBackground(blockColors[BLOCKCOLOR_NEXT]);
-				gcImg.fillPolygon(new int[] { iXPos + 2, iYPos + 2,
-						iXPos + BLOCK_FILLSIZE - 1, iYPos + 2,
-						iXPos + (BLOCK_FILLSIZE / 2), iYPos + BLOCK_FILLSIZE - 1 });
-			}
-
-			// Up Arrow in uploading piece 
-			if (i == peerNextRequestedPiece) {
-				gcImg.setBackground(blockColors[BLOCKCOLOR_TRANSFER]);
-				gcImg.fillPolygon(new int[] { iXPos, iYPos + BLOCK_FILLSIZE,
-						iXPos + BLOCK_FILLSIZE, iYPos + BLOCK_FILLSIZE,
-						iXPos + (BLOCK_FILLSIZE / 2), iYPos });
-			} else if (Arrays.binarySearch(peerRequestedPieces, i) >= 0) {
-				// Small Up Arrow each upload request
-				gcImg.setBackground(blockColors[BLOCKCOLOR_NEXT]);
-				gcImg.fillPolygon(new int[] { iXPos + 1, iYPos + BLOCK_FILLSIZE - 2,
-						iXPos + BLOCK_FILLSIZE - 2, iYPos + BLOCK_FILLSIZE - 2,
-						iXPos + (BLOCK_FILLSIZE / 2), iYPos + 2 });
-			}
-
-			if (availability != null) {
-				String sNumber = String.valueOf(availability[i]);
-				Point size = gcImg.stringExtent(sNumber);
-
-				if (availability[i] < 100) {
-					int x = iXPos + (BLOCK_FILLSIZE / 2) - (size.x / 2);
-					int y = iYPos + (BLOCK_FILLSIZE / 2) - (size.y / 2);
-					gcImg.setForeground(blockColors[BLOCKCOLOR_AVAILCOUNT]);
-					gcImg.drawText(sNumber, x, y, true);
+	
+	
+				// Down Arrow inside box for "dowloading" piece
+				if (i == iDLPieceID) {
+					gcImg.setBackground(blockColors[BLOCKCOLOR_TRANSFER]);
+					gcImg.fillPolygon(new int[] { iXPos, iYPos, iXPos + BLOCK_FILLSIZE,
+							iYPos, iXPos + (BLOCK_FILLSIZE / 2), iYPos + BLOCK_FILLSIZE });
+				}
+	
+				// Small Down Arrow inside box for next download piece
+				if (i == iNextDLPieceID) {
+					gcImg.setBackground(blockColors[BLOCKCOLOR_NEXT]);
+					gcImg.fillPolygon(new int[] { iXPos + 2, iYPos + 2,
+							iXPos + BLOCK_FILLSIZE - 1, iYPos + 2,
+							iXPos + (BLOCK_FILLSIZE / 2), iYPos + BLOCK_FILLSIZE - 1 });
+				}
+	
+				// Up Arrow in uploading piece 
+				if (i == peerNextRequestedPiece) {
+					gcImg.setBackground(blockColors[BLOCKCOLOR_TRANSFER]);
+					gcImg.fillPolygon(new int[] { iXPos, iYPos + BLOCK_FILLSIZE,
+							iXPos + BLOCK_FILLSIZE, iYPos + BLOCK_FILLSIZE,
+							iXPos + (BLOCK_FILLSIZE / 2), iYPos });
+				} else if (Arrays.binarySearch(peerRequestedPieces, i) >= 0) {
+					// Small Up Arrow each upload request
+					gcImg.setBackground(blockColors[BLOCKCOLOR_NEXT]);
+					gcImg.fillPolygon(new int[] { iXPos + 1, iYPos + BLOCK_FILLSIZE - 2,
+							iXPos + BLOCK_FILLSIZE - 2, iYPos + BLOCK_FILLSIZE - 2,
+							iXPos + (BLOCK_FILLSIZE / 2), iYPos + 2 });
+				}
+	
+				if (availability != null) {
+					String sNumber = String.valueOf(availability[i]);
+					Point size = gcImg.stringExtent(sNumber);
+	
+					if (availability[i] < 100) {
+						int x = iXPos + (BLOCK_FILLSIZE / 2) - (size.x / 2);
+						int y = iYPos + (BLOCK_FILLSIZE / 2) - (size.y / 2);
+						gcImg.setForeground(blockColors[BLOCKCOLOR_AVAILCOUNT]);
+						gcImg.drawText(sNumber, x, y, true);
+					}
+				}
+	
+				iCol++;
+				if (iCol >= iNumCols) {
+					iCol = 0;
+					iRow++;
 				}
 			}
-
-			iCol++;
-			if (iCol >= iNumCols) {
-				iCol = 0;
-				iRow++;
-			}
+		} catch (Exception e) {
+			Logger.log(new LogEvent(LogIDs.GUI, "drawing piece map", e));
+		} finally {
+			gcImg.dispose();
 		}
-
-		gcImg.dispose();
 
 		GC gc = new GC(peerInfoCanvas);
 		gc.drawImage(img, 0, 0);
