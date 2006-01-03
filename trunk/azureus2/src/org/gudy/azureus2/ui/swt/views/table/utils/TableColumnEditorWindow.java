@@ -90,7 +90,9 @@ public class TableColumnEditorWindow {
     newEnabledState = new HashMap();
     for (Iterator iter = tableColumns.iterator(); iter.hasNext();) {
 			TableColumnCore item = (TableColumnCore) iter.next();
-			newEnabledState.put(item, new Boolean(item.getPosition() >= 0));
+			Boolean value = new Boolean(
+					item.getPosition() != org.gudy.azureus2.plugins.ui.tables.TableColumn.POSITION_INVISIBLE); 
+			newEnabledState.put(item, value);
 		}
     
     blue = new Color(display,0,0,128);
@@ -299,7 +301,10 @@ public class TableColumnEditorWindow {
     int position = 0;
     for(int i = 0 ; i < items.length ; i++) {
       TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(i);
-      tableColumn.setPositionNoShift(items[i].getChecked() ? position++ : -1);
+      
+	    boolean bChecked = ((Boolean) newEnabledState.get(tableColumn))
+					.booleanValue();
+      tableColumn.setPositionNoShift(bChecked ? position++ : -1);
       tableColumn.saveSettings();
     }
     listener.tableStructureChanged();
