@@ -25,6 +25,10 @@ package com.aelitis.net.upnp;
 public interface 
 UPnPSSDP 
 {
+	public static final String				SSDP_GROUP_ADDRESS 	= "239.255.255.250"; 
+	public static final int					SSDP_GROUP_PORT		= 1900;	
+	public static final int					SSDP_CONTROL_PORT	= 8008;
+
 	public void
 	search(
 		String		user_agent,
