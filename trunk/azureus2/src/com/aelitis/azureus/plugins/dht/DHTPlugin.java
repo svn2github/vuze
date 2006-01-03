@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Constants;
@@ -120,6 +121,10 @@ DHTPlugin
 	private boolean				extended_use;
 	
 	private AESemaphore			init_sem = new AESemaphore("DHTPlugin:init" );
+	
+	private AEMonitor			port_change_mon	= new AEMonitor( "DHTPlugin:portChanger" );
+	private boolean				port_changing;
+	private int					port_change_outstanding;
 	
 	private BooleanParameter	ipfilter_logging;
 	
@@ -634,33 +639,91 @@ DHTPlugin
 	
 	protected void
 	changePort(
-		int	new_port )
+		int	_new_port )
 	{
-		if ( new_port == dht_data_port ){
-			
-			return;
-		}
+			// don't check for new_port being dht_data_port here as we want to continue to pick up
+			// changes that occurred during dht init
 		
-		dht_data_port	= new_port;
+		try{
+			port_change_mon.enter();
 		
-		if ( upnp_mapping != null ){
+			port_change_outstanding	= _new_port;
 			
-			if ( upnp_mapping.getPort() != new_port ){
-				
-				upnp_mapping.setPort( new_port );
+			if ( port_changing ){
+								
+				return;
 			}
+			
+			port_changing			= true;
+			
+		}finally{
+			
+			port_change_mon.exit();
 		}
 		
-		if ( status == STATUS_RUNNING ){
-			
-			if ( dhts != null ){
-				
-				for (int i=0;i<dhts.length;i++){
+		new AEThread("DHTPlugin:portChanger", true )
+		{
+			public void
+			runSupport()
+			{
+				while( true ){
 					
-					dhts[i].setPort( new_port );
+					int	new_port;
+				
+					try{
+						port_change_mon.enter();
+
+						new_port	= port_change_outstanding;
+						
+					}finally{
+						
+						port_change_mon.exit();
+					}	
+						
+					try{
+						dht_data_port	= new_port;
+						
+						if ( upnp_mapping != null ){
+							
+							if ( upnp_mapping.getPort() != new_port ){
+								
+								upnp_mapping.setPort( new_port );
+							}
+						}
+						
+						if ( status == STATUS_RUNNING ){
+							
+							if ( dhts != null ){
+								
+								for (int i=0;i<dhts.length;i++){
+									
+									if ( dhts[i].getPort() != new_port ){
+										
+										dhts[i].setPort( new_port );
+									}
+								}
+							}
+						}
+					}finally{
+						
+						try{
+							port_change_mon.enter();
+
+							if ( new_port == port_change_outstanding ){
+								
+								port_changing	= false;
+								
+								break;
+							}
+							
+						}finally{
+							
+							port_change_mon.exit();
+						}						
+					}
 				}
 			}
-		}
+		}.start();
 	}
 	
 	protected void
