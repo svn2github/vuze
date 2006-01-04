@@ -5,6 +5,7 @@
 package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.net.*;
 
 import org.gudy.azureus2.core3.logging.*;
@@ -17,7 +18,7 @@ import org.gudy.azureus2.core3.util.*;
  * @author Olivier
  * 
  */
-public class TrackerChecker implements TRTrackerScraperListener {
+public class TrackerChecker implements AEDiagnosticsEvidenceGenerator {
 	private final static LogIDs LOGID = LogIDs.TRACKER;
 
   /** List of Trackers. 
@@ -30,29 +31,17 @@ public class TrackerChecker implements TRTrackerScraperListener {
   /** TRTrackerScraperImpl object associated with this object.
    */
   private TRTrackerBTScraperImpl    scraper;
-  
-  /* Time when next scrape needs to be performed. */
-  private long lNextScrapeTime = 0;
-  /* The next scrape belongs to this TrackerStatus */
-  private TrackerStatus nextTrackerStatus = null;
-  /* Next scrape will be for this torrent's hash.  */
-  private byte[] nextTrackerHash;
-  
-  
-  private AEMonitor this_mon 	= new AEMonitor( "TrackerChecker" );
-
+    
   /** Initialize TrackerChecker.  
    *
    * @note Since there is only one TRTrackerScraperImpl, there will only be one
    *       TrackerChecker instance.
    *
-   * XXX: would Timer be better? "Timer tasks should complete quickly"
    */
+  
   protected TrackerChecker(TRTrackerBTScraperImpl  _scraper) {
     scraper   = _scraper;
-    
-    scraper.getScraper().addListener(this);
-    
+       
     trackers  = new HashMap();
     
     Thread t = new AEThread("Tracker Scrape") {
@@ -64,6 +53,8 @@ public class TrackerChecker implements TRTrackerScraperListener {
     t.setDaemon(true);
     t.setPriority(Thread.MIN_PRIORITY);
     t.start();
+    
+    AEDiagnostics.addEvidenceGenerator( this );
   }
   
 
@@ -112,8 +103,11 @@ public class TrackerChecker implements TRTrackerScraperListener {
    *
    * @return The cached scrape response.  Can be null.
    */
-  protected TRTrackerScraperResponseImpl getHashData(URL trackerUrl,
-                                                     final HashWrapper hash) {
+  protected TRTrackerScraperResponseImpl 
+  getHashData(
+	URL trackerUrl,
+    final HashWrapper hash) 
+  {
     // can be null when first called and url not yet set up...
     if ( trackerUrl == null ){
       return( null );
@@ -240,12 +234,19 @@ public class TrackerChecker implements TRTrackerScraperListener {
           	
 	          Map hashmap = ts.getHashes();
 	
-	          if ( hashmap.get( new HashWrapper( hash )) != null ){
-	          	
-	        	matched_ts	= ts;
-	        	  
-	        	break;
-	          }
+		      try{
+		    	  ts.getHashesMonitor().enter();
+
+		          if ( hashmap.get( new HashWrapper( hash )) != null ){
+		          	
+		        	matched_ts	= ts;
+		        	  
+		        	break;
+		          }
+		      }finally{
+		    	  
+		    	  ts.getHashesMonitor().exit();
+		      }
           }
         }
       }finally{
@@ -266,105 +267,172 @@ public class TrackerChecker implements TRTrackerScraperListener {
   
   /** Loop indefinitely, waiting for the next scrape, and scraping.
    */
-  private void runScrapes() {
-    while (true) {
-      while (lNextScrapeTime == 0 || lNextScrapeTime > SystemTime.getCurrentTime()) {        
-        try { 
-          Thread.sleep(1000); 
-        } catch (Exception e) {/**/}
-      }
+  private void 
+  runScrapes() 
+  {
+	TRTrackerBTScraperResponseImpl next_response_to_scrape	= null;
 
-      if (nextTrackerStatus != null) {
-        nextTrackerStatus.updateSingleHash(nextTrackerHash, false);
-        try { Thread.sleep(250); } catch (Exception e) {/**/}
-      }
+    while( true ){
+
+    	long	delay;
+    	
+      	if ( next_response_to_scrape == null ){
+        
+      		delay	= 60000;	// nothing going on, recheck in a min
+      		
+      	}else{
+      		
+      		long	scrape_time = next_response_to_scrape.getNextScrapeStartTime();
+      		
+      		long	time_to_scrape = scrape_time - SystemTime.getCurrentTime();
+      		
+      		if ( time_to_scrape <= 0 ){
+      			
+	      		try{
+	      			next_response_to_scrape.getTrackerStatus().updateSingleHash(
+	      					next_response_to_scrape.getHash(), false);
+	        
+	      			delay	= 250;	// pick up next scrape fairly quickly
+	      			
+	      		}catch( Throwable e ){
+	      			
+	      			Debug.printStackTrace(e);
+	      			
+	      			delay	= 30000;
+	      		}
+      		}else{
+      			
+      			delay	= time_to_scrape;
+      			
+      			if ( delay > 30000 ){
+      				
+      				delay	= 30000;	// don't sleep too long in case new hashes are added etc.
+      			}
+      		}
+      	}
+      	
+      	try{ 
+      		Thread.sleep(delay); 
+      		
+      	}catch(Exception e){
+      	}
       
-      checkForNextScrape();
+      	next_response_to_scrape = checkForNextScrape();
     }
   }
   
   /** Finds the torrent that will be needing a scrape next.
    *
-   * XXX: Timer.schedule 
    */
-  private void checkForNextScrape() 
+  
+  private TRTrackerBTScraperResponseImpl 
+  checkForNextScrape() 
   {
-  	try{
-  		this_mon.enter();
-  	
 	    // search for the next scrape
-	    TRTrackerBTScraperResponseImpl nextResponse = null;
-	    long lNewNextScrapeTime = 0;
+	  
+	    TRTrackerBTScraperResponseImpl next_response_to_scrape = null;
+	    
+	    long earliest = Long.MAX_VALUE;
 	
 	    try{
 	    	trackers_mon.enter();
 	    	
-	      Iterator iter = trackers.values().iterator();
-	      while (iter.hasNext()) {
-	        TrackerStatus ts = (TrackerStatus) iter.next();
-	        Map hashmap = ts.getHashes();
-	        
-	        try{
-	        	ts.getHashesMonitor().enter();
+	    	Iterator iter = trackers.values().iterator();
+	      
+	    	while (iter.hasNext()) {
+	    		
+	    		TrackerStatus ts = (TrackerStatus) iter.next();
+	    		
+	    		Map hashmap = ts.getHashes();
+	    		  
+	    		try{
+	    			ts.getHashesMonitor().enter();
 	        	
-	          Iterator iterHashes = hashmap.values().iterator();
-	          while( iterHashes.hasNext() ) {
-	            TRTrackerBTScraperResponseImpl response = (TRTrackerBTScraperResponseImpl)iterHashes.next();
-	            long lResponseNextScrapeTime = response.getNextScrapeStartTime();
-	            if ((response.getStatus() != TRTrackerScraperResponse.ST_SCRAPING) &&
-	                (nextResponse == null || lResponseNextScrapeTime < lNewNextScrapeTime) && 
-	                (nextTrackerStatus != response.getTrackerStatus() ||
-	                 nextTrackerHash != response.getHash())) {
-	              lNewNextScrapeTime = lResponseNextScrapeTime;
-	              nextResponse = response;
-	            }
-	          } // while hashes
-	        }finally{
+	    			Iterator iterHashes = hashmap.values().iterator();
+	    			
+	    			while( iterHashes.hasNext() ) {
+	            
+	    				TRTrackerBTScraperResponseImpl response = (TRTrackerBTScraperResponseImpl)iterHashes.next();    				
+	            
+	    					// ignore ones already scraping
+	    				
+	    				if ( response.getStatus() != TRTrackerScraperResponse.ST_SCRAPING ){
+	    				
+	    					if ( response.getNextScrapeStartTime() < earliest ){
+	    						
+	    						earliest	= response.getNextScrapeStartTime();
+	    						
+	    						next_response_to_scrape	= response;
+	    					}
+	    				}
+	    			}
+	    		}finally{
 	        	
-	        	ts.getHashesMonitor().exit();
-	        }
-	      } // while trackers
+	    			ts.getHashesMonitor().exit();
+	    		}
+	    	} 
 	    }finally{
 	    	
 	    	trackers_mon.exit();
 	    }
 	    
-	    // no next scrape was found.  search again in a minute
-	    if (nextResponse == null) {
-	      nextTrackerStatus = null;
-	      lNextScrapeTime = SystemTime.getCurrentTime() + 1000 * 60;
-	    } else {
-	      nextTrackerStatus = nextResponse.getTrackerStatus();
-	      nextTrackerHash = nextResponse.getHash();
-	      lNextScrapeTime = lNewNextScrapeTime;
-	    }
-  	}finally{
-  		
-  		this_mon.exit();
+	    return( next_response_to_scrape );
   	}
-  }
 
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		writer.println( "BTScraper - now = " + SystemTime.getCurrentTime());
+		
+		try{
+			writer.indent();
 
-  // TRTrackerScraperListener
-  /** Check if the new scrape's next scrape time is next in line.
-    */
-  public void 
-  scrapeReceived(
-  		TRTrackerScraperResponse _response) 
-  {
-  	if ( _response instanceof TRTrackerBTScraperResponseImpl){
-  		
-  		TRTrackerBTScraperResponseImpl	response = (TRTrackerBTScraperResponseImpl)_response;
-  		
-	    long lResponseNextScrapeTime = response.getNextScrapeStartTime();
-	    if (lResponseNextScrapeTime < lNextScrapeTime) {
-	      // next in line
-	      nextTrackerStatus = response.getTrackerStatus();
-	      nextTrackerHash = response.getHash();
-	      lNextScrapeTime = lResponseNextScrapeTime;
-	      //System.out.println("Next Scrape Time set to " + lNextScrapeTime);
-	      // XXX Timer.schedule(timetask, ..)
-	    }
-  	}
-  }
+		    try{
+		    	trackers_mon.enter();
+			    	
+			    Iterator iter = trackers.entrySet().iterator();
+			    
+			    while (iter.hasNext()){
+			    	
+			    	Map.Entry	entry = (Map.Entry)iter.next();
+			    	
+			        TrackerStatus 	ts = (TrackerStatus)entry.getValue();
+			    	
+			    	writer.println( "Tracker: " + ts.getString());   	
+			        
+			        try{
+			        	writer.indent();
+			        	
+			        	ts.getHashesMonitor().enter();
+			        	
+				        Map hashmap = 	ts.getHashes();
+				        
+				        Iterator iter_hashes = hashmap.entrySet().iterator();
+	
+				        while (iter_hashes.hasNext()){
+				        	
+					    	Map.Entry	hash_entry = (Map.Entry)iter_hashes.next();
+					    	
+					    	TRTrackerBTScraperResponseImpl	response = (TRTrackerBTScraperResponseImpl)hash_entry.getValue();
+					    	
+					    	writer.println( response.getString());
+				        }
+			        }finally{
+			        	
+			        	ts.getHashesMonitor().exit();
+			        	
+			        	writer.exdent();
+			        }
+			    }
+		    }finally{
+		    	
+		    	trackers_mon.exit();
+		    }
+			    
+		}finally{
+			
+			writer.exdent();
+		}
+	}
 }

@@ -130,7 +130,9 @@ public class TrackerStatus {
   }
 
   
-  protected boolean isTrackerScrapeUrlValid() {
+  protected boolean 
+  isTrackerScrapeUrlValid() 
+  {
     return scrapeURL != null;
   }
   
@@ -1195,5 +1197,11 @@ public class TrackerStatus {
 
 	public boolean getSupportsMultipeHashScrapes() {
 		return !bSingleHashScrapes;
+	}
+	
+	protected String
+	getString()
+	{	  
+	  return( tracker_url + ", " + scrapeURL + ", multi-scrape=" + !bSingleHashScrapes );
 	}
 }

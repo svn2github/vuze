@@ -12,6 +12,7 @@ package org.gudy.azureus2.core3.tracker.client.impl;
 
 
 import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 
 public abstract class 
 TRTrackerScraperResponseImpl 
@@ -176,5 +177,12 @@ TRTrackerScraperResponseImpl
 			scrapeInterval = MAX;
 
 		return scrapeInterval;
+	}
+	
+	public String
+	getString()
+	{
+	  return( ByteFormatter.encodeString(hash) +",seeds=" + seeds + ",peers=" + peers +",state="+status+
+			  "/"+sStatus+",last="+last_status+"/"+sLastStatus+",start="+scrapeStartTime+",next="+nextScrapeStartTime);
 	}
 }
