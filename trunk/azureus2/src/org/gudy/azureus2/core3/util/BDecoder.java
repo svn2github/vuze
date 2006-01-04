@@ -219,6 +219,11 @@ public class BDecoder {
     	  
     	  int	rem_len = bais.available();
     	  
+    	  if ( rem_len > 256 ){
+    		  
+    		  rem_len	= 256;
+    	  }
+    	  
     	  byte[] rem_data = new byte[rem_len];
     	  
     	  bais.read( rem_data );
