@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.instancemanager.impl;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.*;
@@ -101,6 +102,11 @@ AZInstanceManagerImpl
 	
 	private AZMyInstanceImpl		my_instance;
 	private Map						other_instances	= new HashMap();
+	
+	private Map			tcp_lan_to_ext	= new HashMap();
+	private Map			udp_lan_to_ext	= new HashMap();
+	private Map			tcp_ext_to_lan	= new HashMap();
+	private Map			udp_ext_to_lan	= new HashMap();
 	
 	private AESemaphore	initial_search_sem	= new AESemaphore( "AZInstanceManager:initialSearch" );
 	
@@ -214,12 +220,22 @@ AZInstanceManagerImpl
 				try{
 					search();
 					
+						// pick up our own details as soon as we can
+					
+					addAddresses( my_instance );
+					
 				}finally{
 					
 					initial_search_sem.releaseForever();
 				}
 			}
 		}.start();
+	}
+	
+	public boolean
+	isInitialized()
+	{
+		return( initial_search_sem.isReleasedForever());
 	}
 	
 	protected void
@@ -442,7 +458,7 @@ AZInstanceManagerImpl
 				added	= true;
 			
 				other_instances.put( inst.getID(), inst );
-				
+								
 			}else{
 								
 				changed = existing.update( inst );
@@ -468,7 +484,7 @@ AZInstanceManagerImpl
 	
 	protected void
 	checkRemove(
-		AZInstance	inst )
+		AZOtherInstanceImpl	inst )
 	{
 		if ( inst.getID().equals( my_instance.getID())){
 			
@@ -521,6 +537,139 @@ AZInstanceManagerImpl
 			
 			this_mon.exit();
 		}
+	}
+	
+	protected void
+	addAddresses(
+		AZInstance	inst )
+	{
+		InetAddress	internal_address 	= inst.getInternalAddress();
+		InetAddress	external_address	= inst.getExternalAddress();
+		int			tcp					= inst.getTrackerClientPort();
+		int			udp					= inst.getDHTPort();
+		
+		modifyAddresses( internal_address, external_address, tcp, udp, true );
+	}
+	
+	protected void
+	removeAddresses(
+		AZOtherInstanceImpl	inst )
+	{
+		List		internal_addresses 	= inst.getInternalAddresses();
+		InetAddress	external_address	= inst.getExternalAddress();
+		int			tcp					= inst.getTrackerClientPort();
+		int			udp					= inst.getDHTPort();
+		
+		for (int i=0;i<internal_addresses.size();i++){
+			
+			modifyAddresses( (InetAddress)internal_addresses.get(i), external_address, tcp, udp, false );
+		}
+	}
+	
+	protected void
+	modifyAddresses(
+		InetAddress		internal_address,
+		InetAddress		external_address,
+		int				tcp,
+		int				udp,
+		boolean			add )	
+	{
+		if ( internal_address.isAnyLocalAddress()){
+			
+			try{
+				internal_address = InetAddress.getLocalHost();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		try{
+			this_mon.enter();
+ 
+			InetSocketAddress	int_tcp = new InetSocketAddress(internal_address, tcp);
+			InetSocketAddress	ext_tcp = new InetSocketAddress(external_address, tcp);
+			InetSocketAddress	int_udp = new InetSocketAddress(internal_address, udp);
+			InetSocketAddress	ext_udp = new InetSocketAddress(external_address, udp);
+			
+				// not the most efficient code in the world this... will need rev
+			
+			tcp_ext_to_lan = modifyAddress( tcp_ext_to_lan, ext_tcp, int_tcp, add );
+			tcp_lan_to_ext = modifyAddress( tcp_lan_to_ext, int_tcp, ext_tcp, add );
+			udp_ext_to_lan = modifyAddress( udp_ext_to_lan, ext_udp, int_udp, add );
+			udp_lan_to_ext = modifyAddress( udp_lan_to_ext, int_udp, ext_udp, add );
+	
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+		
+	protected Map
+	modifyAddress(
+		Map					map,
+		InetSocketAddress	key,
+		InetSocketAddress	value,
+		boolean				add )
+	{
+		// System.out.println( "ModAddress: " + key + " -> " + value + " - " + (add?"add":"remove"));
+		
+		InetSocketAddress	old_value = (InetSocketAddress)map.get(key);
+
+		boolean	same = old_value != null && old_value.equals( value );
+		
+		Map	new_map = map;
+		
+		if ( add ){
+			
+			if ( !same ){
+				
+				new_map	= new HashMap( map );
+	
+				new_map.put( key, value );
+			}
+		}else{
+			
+			if ( same ){
+				
+				new_map	= new HashMap( map );
+				
+				new_map.remove( key );
+			}
+		}	
+		
+		return( new_map );
+	}
+	
+	public InetSocketAddress
+	getLANAddress(
+		InetSocketAddress	external_address,
+		boolean				is_tcp )
+	{
+		Map	map = is_tcp?tcp_ext_to_lan:udp_ext_to_lan;
+		
+		if ( map.size() == 0 ){
+			
+			return( null );
+		}
+		
+		return((InetSocketAddress)map.get( external_address ));
+	}
+	
+	public InetSocketAddress
+	getExternalAddress(
+		InetSocketAddress	lan_address,
+		boolean				is_tcp )
+	{
+		Map	map = is_tcp?tcp_lan_to_ext:udp_lan_to_ext;
+		
+		if ( map.size() == 0 ){
+			
+			return( null );
+		}
+		
+		return((InetSocketAddress)map.get( lan_address ));	
 	}
 	
 	public AZInstance[]
@@ -600,7 +749,7 @@ AZInstanceManagerImpl
 		
 		for (int i=0;i<removed.size();i++){
 			
-			AZInstance	inst = (AZInstance)removed.get(i);
+			AZOtherInstanceImpl	inst = (AZOtherInstanceImpl)removed.get(i);
 			
 			informRemoved( inst );
 		}
@@ -608,8 +757,10 @@ AZInstanceManagerImpl
 	
 	protected void
 	informRemoved(
-		AZInstance	inst )
+		AZOtherInstanceImpl	inst )
 	{
+		removeAddresses( inst );
+		
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
@@ -626,6 +777,8 @@ AZInstanceManagerImpl
 	informAdded(
 		AZInstance	inst )
 	{
+		addAddresses( inst );
+
 		for (int i=0;i<listeners.size();i++){
 			
 			try{
@@ -642,6 +795,8 @@ AZInstanceManagerImpl
 	informChanged(
 		AZInstance	inst )
 	{
+		addAddresses( inst );
+		
 		if ( inst == my_instance ){
 			
 			sendAlive();
@@ -735,45 +890,37 @@ AZInstanceManagerImpl
 			InetAddress	internal_address,
 			String		AL )
 		{
-			AZInstanceImpl	inst = AZOtherInstanceImpl.decode( internal_address, AL );
+			AZOtherInstanceImpl	inst = AZOtherInstanceImpl.decode( internal_address, AL );
 			
 			if ( inst != null ){
-				
-				boolean	added = false;
-				
+												
 				try{
 					this_mon.enter();
 				
+					boolean	duplicate_reply	= false;
+					
 					for (int i=0;i<replies.size();i++){
 						
 						AZInstance	rep = (AZInstance)replies.get(i);
 						
 						if ( rep.getID().equals( inst.getID())){
 							
-							return;
+							duplicate_reply	= true;
+							
+							break;
 						}
 					}
 					
-					AZInstanceImpl	existing = (AZInstanceImpl)other_instances.get( inst.getID());
-					
-					if ( existing == null ){
+					if ( !duplicate_reply ){
 						
-						added	= true;
-					
-						other_instances.put( inst.getID(), inst );
-					}	
-											
-					replies.add( inst );
-										
+						replies.add( inst );
+					}								
 				}finally{
 					
 					this_mon.exit();
 				}
 				
-				if ( added ){
-								
-					informAdded( inst );
-				}
+				checkAdd( inst );
 			}
 		}
 		

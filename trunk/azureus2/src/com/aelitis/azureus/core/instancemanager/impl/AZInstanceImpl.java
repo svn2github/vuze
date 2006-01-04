@@ -61,9 +61,9 @@ AZInstanceImpl
 		
 		reply += ":" + mapAddress(getExternalAddress().getHostAddress());
 		
-		reply += ":" + getTCPPort();
+		reply += ":" + getTrackerClientPort();
 		
-        reply += ":" + getUDPPort();
+        reply += ":" + getDHTPort();
         
         return( reply );
 	}
@@ -94,6 +94,6 @@ AZInstanceImpl
 		}
 		
 		return( "id=" + id + ",int=" + getInternalAddress().getHostAddress() + ",ext=" + 
-				getExternalAddress().getHostAddress() +	",tcp=" + getTCPPort() + ",udp=" + getUDPPort() );
+				getExternalAddress().getHostAddress() +	",tcp=" + getTrackerClientPort() + ",udp=" + getDHTPort() );
 	}
 }

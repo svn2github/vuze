@@ -35,8 +35,8 @@ AZOtherInstanceImpl
 {
 	protected static AZOtherInstanceImpl
 	decode(
-		InetAddress		internal_address,
-		String			str )
+		InetAddress				internal_address,
+		String					str )
 	{
 		StringTokenizer	tok = new StringTokenizer( str, ":" );
 		
@@ -72,25 +72,24 @@ AZOtherInstanceImpl
 		return( null );
 	}
 	
-	
-	private String				id;
-	private List				internal_addresses	= new ArrayList();
-	private InetAddress			external_address;
-	private int					tcp_port;
-	private int					udp_port;
-	private List				extra_args;
+	private String					id;
+	private List					internal_addresses	= new ArrayList();
+	private InetAddress				external_address;
+	private int						tcp_port;
+	private int						udp_port;
+	private List					extra_args;
 	
 	private long	alive_time;
 
 
 	protected
 	AZOtherInstanceImpl(
-		String			_id,
-		InetAddress		_internal_address,
-		InetAddress		_external_address,
-		int				_tcp_port,
-		int				_udp_port,
-		List			_extra_args )
+		String					_id,
+		InetAddress				_internal_address,
+		InetAddress				_external_address,
+		int						_tcp_port,
+		int						_udp_port,
+		List					_extra_args )
 	{
 		id					= _id;
 		
@@ -118,7 +117,11 @@ AZOtherInstanceImpl
 			
 			same	= false;
 			
-			internal_addresses.add( 0, new_address );
+			List	new_addresses = new ArrayList( internal_addresses );
+			
+			new_addresses.add( 0, new_address );
+			
+			internal_addresses	= new_addresses;
 		}
 		
 		same	 = 	same && 
@@ -131,7 +134,7 @@ AZOtherInstanceImpl
 		tcp_port			= new_inst.tcp_port;
 		udp_port			= new_inst.udp_port;
 		extra_args			= new_inst.extra_args;
-		
+	
 		return( !same );
 	}
 	
@@ -147,6 +150,12 @@ AZOtherInstanceImpl
 		return((InetAddress)internal_addresses.get(0));
 	}
 	
+	protected List
+	getInternalAddresses()
+	{
+		return( internal_addresses );
+	}
+	
 	public InetAddress
 	getExternalAddress()
 	{
@@ -154,13 +163,13 @@ AZOtherInstanceImpl
 	}
 	
 	public int
-	getTCPPort()
+	getTrackerClientPort()
 	{
 		return( tcp_port );
 	}
 	
 	public int
-	getUDPPort()
+	getDHTPort()
 	{
 		return( udp_port );
 	}

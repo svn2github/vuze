@@ -22,13 +22,18 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.net.InetSocketAddress;
 import java.net.URL;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 public class 
 AddressUtils 
 {
+	private static AZInstanceManager	instance_manager;
+	
 	public static URL
 	adjustURL(
 		URL		url )
@@ -36,5 +41,49 @@ AddressUtils
 		url = AEProxyFactory.getAddressMapper().internalise( url );
 
 		return( url );
+	}
+	
+	public static InetSocketAddress
+	adjustDHTAddress(
+		InetSocketAddress	address,
+		boolean				ext_to_lan )
+	{
+		if ( instance_manager == null ){
+			
+			try{
+				instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		if ( instance_manager == null || !instance_manager.isInitialized()){
+			
+			return( address );
+		}
+		
+		InetSocketAddress	adjusted_address;
+		
+		if ( ext_to_lan ){
+			
+			adjusted_address	= instance_manager.getLANAddress( address, false );
+			
+		}else{
+
+			adjusted_address	= instance_manager.getExternalAddress( address, false );
+		}
+		
+		if ( adjusted_address == null ){
+			
+			adjusted_address	= address;
+			
+		}else{
+		
+			// System.out.println( "adj: " + address + "/" + ext_to_lan + " -> " + adjusted_address );
+		}
+		
+		return( adjusted_address );
 	}
 }

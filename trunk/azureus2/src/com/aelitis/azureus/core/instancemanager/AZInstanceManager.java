@@ -22,14 +22,18 @@
 
 package com.aelitis.azureus.core.instancemanager;
 
+import java.net.InetSocketAddress;
+
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
 AZInstanceManager 
 {
 	public void
 	initialize();
+	
+	public boolean
+	isInitialized();
 	
 	public AZInstance
 	getMyInstance();
@@ -40,6 +44,16 @@ AZInstanceManager
 	public AZInstance[]
 	track(
 		Download		torrent );
+	
+	public InetSocketAddress
+	getLANAddress(
+		InetSocketAddress	external_address,
+		boolean				is_tcp );
+	
+	public InetSocketAddress
+	getExternalAddress(
+		InetSocketAddress	lan_address,
+		boolean				is_tcp );
 	
 	public void
 	addListener(

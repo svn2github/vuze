@@ -359,7 +359,7 @@ LocalTrackerPlugin
 		if ( peer_manager != null ){
 			
 			String	peer_ip		= inst.getInternalAddress().getHostAddress();
-			int		peer_port	= inst.getTCPPort();
+			int		peer_port	= inst.getTrackerClientPort();
 			
 			log.log( "    " + download.getName() + ": Injecting peer " + peer_ip + ":" + peer_port );
 			

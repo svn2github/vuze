@@ -68,18 +68,18 @@ AZPortClashHandler
 
 			String	warning = null;
 			
-			int	my_tcp = my_instance.getTCPPort();
+			int	my_tcp = my_instance.getTrackerClientPort();
 			
-			if ( my_tcp != 0 && my_tcp != last_warned_tcp && my_tcp == instance.getTCPPort()){
+			if ( my_tcp != 0 && my_tcp != last_warned_tcp && my_tcp == instance.getTrackerClientPort()){
 				
 				warning = "TCP " + my_tcp;
 				
 				last_warned_tcp	= my_tcp;
 			}
 			
-			int	my_udp = my_instance.getUDPPort();
+			int	my_udp = my_instance.getDHTPort();
 			
-			if ( my_udp != 0 && my_udp != last_warned_udp && my_udp == instance.getUDPPort()){
+			if ( my_udp != 0 && my_udp != last_warned_udp && my_udp == instance.getDHTPort()){
 				
 				warning = (warning==null?"":(warning + ", ")) + "UDP " + my_udp;
 				

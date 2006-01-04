@@ -57,9 +57,7 @@ DHTTransportUDPContactImpl
 	private long				skew;
 	private int					random_id;
 	private int					node_status	= NODE_STATUS_UNKNOWN;
-	
-	private boolean				hairpin;
-	
+		
 	private VivaldiPosition		vivaldi_position;
 	
 	protected
@@ -90,12 +88,6 @@ DHTTransportUDPContactImpl
 				transport_address.getAddress().equals( external_address.getAddress())){
 
 			id = DHTUDPUtils.getNodeID( external_address );
-			
-		}else if ( external_address.getAddress().equals( transport.getLocalContact().getAddress().getAddress())){
-			
-			id = DHTUDPUtils.getNodeID( external_address );
-			
-			hairpin	= true;
 		}
 		
 		vivaldi_position	= VivaldiPositionFactory.createPosition();
@@ -156,7 +148,7 @@ DHTTransportUDPContactImpl
 	isValid()
 	{
 		return( 	addressMatchesID() &&
-					( hairpin || !transport.invalidExternalAddress( external_address.getAddress())));
+					!transport.invalidExternalAddress( external_address.getAddress()));
 	}
 	
 	protected boolean

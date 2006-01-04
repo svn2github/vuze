@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl.packethandler;
 
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -108,6 +109,8 @@ DHTUDPPacketHandler
 	{
 			// send and receive pair
 		
+		destination_address	= AddressUtils.adjustDHTAddress( destination_address, true );
+		
 		try{
 			request.setNetwork( network );
 			
@@ -190,6 +193,8 @@ DHTUDPPacketHandler
 		throws DHTUDPPacketHandlerException
 
 	{
+		destination_address	= AddressUtils.adjustDHTAddress( destination_address, true );
+		
 			// one way send (no matching reply expected )
 		
 		try{
@@ -218,6 +223,8 @@ DHTUDPPacketHandler
 	
 		throws DHTUDPPacketHandlerException
 	{
+		destination_address	= AddressUtils.adjustDHTAddress( destination_address, true );
+
 			// send reply to a request
 		
 		try{
@@ -248,6 +255,8 @@ DHTUDPPacketHandler
 		
 		if ( test_network_alive ){
 		
+			request.setAddress( AddressUtils.adjustDHTAddress( request.getAddress(), false ));
+
 				// an alien request is one that originates from a peer that we haven't recently
 				// talked to
 			

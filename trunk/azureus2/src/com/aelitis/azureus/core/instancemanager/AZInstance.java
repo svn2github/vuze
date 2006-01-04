@@ -40,10 +40,10 @@ AZInstance
 	getExternalAddress();
 	
 	public int
-	getTCPPort();
+	getTrackerClientPort();
 	
 	public int
-	getUDPPort();
+	getDHTPort();
 	
 	public Object
 	getProperty(

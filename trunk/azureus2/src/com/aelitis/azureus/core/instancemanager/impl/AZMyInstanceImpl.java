@@ -215,7 +215,7 @@ AZMyInstanceImpl
 			}
 		}
 		
-			// no good address available
+			// no good address available		
 		
 		if ( external_address == null ){
 				
@@ -259,13 +259,13 @@ AZMyInstanceImpl
 	}
 	
 	public int
-	getTCPPort()
+	getTrackerClientPort()
 	{
 		return( tcp_port );
 	}
 	
 	public int
-	getUDPPort()
+	getDHTPort()
 	{
 	    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
         
