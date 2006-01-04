@@ -38,7 +38,8 @@ public class TimeFormatter {
 		// First one is bare, the rest get two digits
 		String result = vals[end] + TIME_SUFFIXES[end];
 
-		for (int i = end - 1; i >= 0; i--)
+		int count = 0;
+		for (int i = end - 1; i >= 0 && count < 2; i--, count++)
 			result += " " + twoDigits(vals[i]) + TIME_SUFFIXES[i];
 
 		return result;
