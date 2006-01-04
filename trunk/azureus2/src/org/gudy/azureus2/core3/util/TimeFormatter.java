@@ -13,8 +13,9 @@ public class TimeFormatter {
 	static final String[] TIME_SUFFIXES = { "s", "m", "h", "d" };
 
 	/**
-	 * Format time in 0d 00h 00m 00s format, with all units displaying two digits,
-	 * except the first
+	 * Format time into two time sections, the first chunk trimmed, the second
+	 * with always with 2 digits.  Sections are *d, **h, **m, **s.  Section
+	 * will be skipped if 0.   
 	 * 
 	 * @param time time in ms
 	 * @return Formatted time string
@@ -35,12 +36,15 @@ public class TimeFormatter {
 			end--;
 		}
 		
-		// First one is bare, the rest get two digits
 		String result = vals[end] + TIME_SUFFIXES[end];
 
-		int count = 0;
-		for (int i = end - 1; i >= 0 && count < 2; i--, count++)
-			result += " " + twoDigits(vals[i]) + TIME_SUFFIXES[i];
+		// skip until we have a non-zero time section
+		do {
+			end--;
+		} while (end >= 0 && vals[end] == 0);
+		
+		if (end >= 0)
+			result += " " + twoDigits(vals[end]) + TIME_SUFFIXES[end];
 
 		return result;
 	}
