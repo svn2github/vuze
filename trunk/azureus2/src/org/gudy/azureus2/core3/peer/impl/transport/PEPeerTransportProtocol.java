@@ -1468,8 +1468,7 @@ PEPeerTransportProtocol
     }
     */
     
-    String error_msg = "Peer has sent #" + number + ":" + offset + "->"
-				+ (offset + length) + ", ";
+    String error_msg = "Peer has sent #" + number + ":" + offset + "->"	+ (offset + length) + ", ";
     
     if( !manager.checkBlock( number, offset, payload ) ) {
     	if (Logger.isEnabled())
@@ -1544,7 +1543,7 @@ PEPeerTransportProtocol
 								"Protocol:In: " + error_msg + "but expired piece block "
 										+ "discarded as never requested."));
           
-          System.out.println( error_msg + "but expired piece block discarded as never requested." );
+          System.out.println( "[" +client+ "]" +error_msg + "but expired piece block discarded as never requested." );
           
           peer_stats.bytesDiscarded( length );
           manager.discarded( length );
