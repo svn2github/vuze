@@ -32,11 +32,10 @@ import javax.net.ssl.SSLSession;
 
 import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.resourceuploader.*;
-
-import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 public class 
 ResourceUploaderURLImpl
@@ -111,7 +110,7 @@ ResourceUploaderURLImpl
 					}
 				}
 				
-				url = AEProxyFactory.getAddressMapper().internalise( url );
+				url = AddressUtils.adjustURL( url );
 				
 				try{
 					if ( user_name != null ){

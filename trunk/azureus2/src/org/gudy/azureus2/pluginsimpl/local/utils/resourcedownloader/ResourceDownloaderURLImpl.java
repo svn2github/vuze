@@ -33,12 +33,11 @@ import java.net.*;
 import javax.net.ssl.*;
 import java.net.PasswordAuthentication;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-
-import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 public class 
 ResourceDownloaderURLImpl
@@ -180,7 +179,7 @@ ResourceDownloaderURLImpl
 			try{
 				URL	url = new URL( original_url.toString().replaceAll( " ", "%20" ));
 			      
-				url = AEProxyFactory.getAddressMapper().internalise( url );
+				url = AddressUtils.adjustURL( url );
 
 				try{
 					if ( auth_supplied ){
@@ -396,7 +395,7 @@ ResourceDownloaderURLImpl
 					}
 				}
 				
-				url = AEProxyFactory.getAddressMapper().internalise( url );
+				url = AddressUtils.adjustURL( url );
 				
 				try{
 					if ( auth_supplied ){

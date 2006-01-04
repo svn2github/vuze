@@ -55,7 +55,6 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.net.udp.*;
 
 
@@ -1067,7 +1066,7 @@ TRTrackerBTAnnouncerImpl
  		
  		reqUrl = TRTrackerUtilsImpl.adjustURLForHosting( reqUrl );
  		
- 		reqUrl = AEProxyFactory.getAddressMapper().internalise( reqUrl );
+ 		reqUrl = AddressUtils.adjustURL( reqUrl );
  		
  		String	failure_reason = null;
  		

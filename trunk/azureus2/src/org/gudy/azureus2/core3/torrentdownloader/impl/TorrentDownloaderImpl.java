@@ -29,7 +29,6 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.torrent.*;
 
-import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 /**
  * @author Tobias Minich
@@ -126,7 +125,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   	}
  
     try {      
-    	url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str));
+    	url = AddressUtils.adjustURL( new URL(url_str));
       
     	String	protocol = url.getProtocol().toLowerCase();
 	  
@@ -135,7 +134,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	  
     	if ( protocol.equals( "magnet" )){
 		  
-    		url = AEProxyFactory.getAddressMapper().internalise( new URL(url_str+"&pause_on_error=true"));
+    		url = AddressUtils.adjustURL( new URL(url_str+"&pause_on_error=true"));
     	}
 	  
     	for (int i=0;i<2;i++){

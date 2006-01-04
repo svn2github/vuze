@@ -61,8 +61,10 @@ import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
+import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
+import com.aelitis.azureus.core.instancemanager.impl.AZMyInstanceImpl;
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
@@ -133,6 +135,7 @@ DHTPlugin
 	private LoggerChannel		log;
 	private DHTLogger			dht_log;
 	
+	private List				listeners	= new ArrayList();
 	
 	public void
 	initialize(
@@ -786,6 +789,32 @@ DHTPlugin
 							
 							status_area.setText( dhts[0].getStatusText());
 						
+							dhts[0].getDHT().getTransport().addListener(
+					        		new DHTTransportListener()
+					        		{
+					        			public void
+					        			localContactChanged(
+					        				DHTTransportContact	local_contact )
+					        			{
+					        				for (int i=0;i<listeners.size();i++){
+					        					
+					        					((DHTPluginListener)listeners.get(i)).localAddressChanged(dhts[0].getLocalAddress());
+					        				}
+					        			}
+					        			
+					        			public void
+					        			currentAddress(
+					        				String		address )
+					        			{
+					        			}
+					        			
+					        			public void
+					        			reachabilityChanged(
+					        				boolean	reacheable )
+					        			{
+					        			}
+					        		});							
+							
 						}else{
 							
 							status	= STATUS_DISABLED;
@@ -1162,6 +1191,20 @@ DHTPlugin
 		}
 		
 		return( res );
+	}
+	
+	public void
+	addListener(
+		DHTPluginListener	l )
+	{
+		listeners.add(l);
+	}
+	
+	public void
+	removeListener(
+		DHTPluginListener	l )
+	{
+		listeners.remove(l);
 	}
 	
 	public void

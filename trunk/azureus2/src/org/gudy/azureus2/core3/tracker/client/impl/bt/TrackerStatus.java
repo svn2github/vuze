@@ -34,7 +34,6 @@ import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
-import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.net.udp.PRUDPPacket;
 import com.aelitis.net.udp.PRUDPPacketHandler;
 import com.aelitis.net.udp.PRUDPPacketHandlerException;
@@ -766,7 +765,7 @@ public class TrackerStatus {
   	
     reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
 
-    reqUrl = AEProxyFactory.getAddressMapper().internalise( reqUrl );
+    reqUrl = AddressUtils.adjustURL( reqUrl );
     
   	// System.out.println( "scraping " + reqUrl.toString());
   	

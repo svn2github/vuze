@@ -33,10 +33,10 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
-import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.dht.DHTPluginContact;
+import com.aelitis.azureus.plugins.dht.DHTPluginListener;
 
 public class 
 AZMyInstanceImpl
@@ -135,68 +135,63 @@ AZMyInstanceImpl
 	protected InetAddress
 	readExternalAddress()
 	{
+	    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+        
+	    DHTPlugin dht = null;
+	    
+	    if ( dht_pi != null ){
+    	
+	    	dht = (DHTPlugin)dht_pi.getPlugin();
+	    	
+	    	if ( dht != null ){
+	    		
+	        	if ( !dht_listener_added ){
+	        		
+	        		dht_listener_added	= true;
+	        		
+		        	dht.addListener(
+		        		new DHTPluginListener()
+		        		{
+		        			public void
+		        			localAddressChanged(
+		        				DHTPluginContact	local_contact )
+		        			{
+		        				manager.informChanged( AZMyInstanceImpl.this );
+		        			}
+		        		});
+	        	}
+	    	}
+	    }
+	    
 		InetAddress	 external_address = null;
 		
-			// use cached version if available
+			// use cached version if available and the DHT isn't
 		
-		String	str_address = VersionCheckClient.getSingleton().getExternalIpAddress( true );
+		if ( dht == null || dht.getStatus() != DHTPlugin.STATUS_RUNNING ){
 		
-		if ( str_address != null ){
-			
-			try{
+			String	str_address = VersionCheckClient.getSingleton().getExternalIpAddress( true );
+		
+			if ( str_address != null ){
 				
-				external_address	= InetAddress.getByName( str_address );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
+				try{
+					
+					external_address	= InetAddress.getByName( str_address );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 		
-		if ( external_address == null ){
+		if ( external_address == null && dht != null  ){
 			
 				// no cache, use DHT (this will hang during initialisation, hence the use of cached
 				// version above
 			
 			try{
-			    PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-			        
-		        	// may not be present
-		        	
-		        if ( dht_pi != null ){
-		        	
-		        	DHTPlugin dht = (DHTPlugin)dht_pi.getPlugin();
-		             	        	
-		        	external_address = dht.getLocalAddress().getAddress().getAddress();
-		        	
-		        	if ( !dht_listener_added ){
-		        		
-		        		dht_listener_added	= true;
-		        		
-			        	dht.getDHTs()[0].getTransport().addListener(
-			        		new DHTTransportListener()
-			        		{
-			        			public void
-			        			localContactChanged(
-			        				DHTTransportContact	local_contact )
-			        			{
-			        				manager.informChanged( AZMyInstanceImpl.this );
-			        			}
-			        			
-			        			public void
-			        			currentAddress(
-			        				String		address )
-			        			{
-			        			}
-			        			
-			        			public void
-			        			reachabilityChanged(
-			        				boolean	reacheable )
-			        			{
-			        			}
-			        		});
-		        	}
-		        }
+				external_address = dht.getLocalAddress().getAddress().getAddress();
+	        	
 			}catch( Throwable e ){
 			}
 		}
