@@ -28,6 +28,9 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.text.NumberFormat;
 
@@ -695,71 +698,21 @@ DisplayFormatters
   	int		precision,
   	boolean bTruncateZeros)
   {
-    // this call returns a cached instance.. however, it might be worth
-    // checking if caching the object ourselves gives any noticable perf gains.
-  	/* Don't use DecimalFormat - it ROUNDS which is not what we want
-    NumberFormat nf = NumberFormat.getInstance();
-    if (!lastDecimalFormat.equals(sFormat) && (nf instanceof DecimalFormat)) {
-      ((DecimalFormat)nf).applyPattern(sFormat);
-    }
-    return nf.format(value);
-    */
-
-  	// String.valueOf may returns x.xxxEx or x.xxE-x.  We don't want to deal
-  	// with that, so use numberformat to pull all digits needed (plus one,
-  	// so it doesn't round)
-		NumberFormat nf =  NumberFormat.getNumberInstance();
-		nf.setMaximumFractionDigits(precision + 1);
-		String res = nf.format(value);
-
-		// Fill in trailing zeros
-  	int	pos = res.indexOf('.');
-  	
-  	if ( pos == -1 ){
-  		
-  		if ( precision != 0 && !bTruncateZeros ){
-  			
-	  		res += ".";
-	  		
-	  		for (int i=0;i<precision;i++){
-	  		
-	  			res += '0';
-	  		}
-  		}
-  	}else{
-  		
-  		if ( precision == 0 ){
-  			
-  			res = res.substring(0,pos);
-  			
-  		}else{
-  			
-	  		int	digits = res.length() - pos - 1;
-	  		
-	  		if ( digits < precision ){
-	  			
-		  		for (int i=0;i<precision-digits;i++){
-			  	
-			  		res += '0';
-			  	}
-	  			
-	  		}else if ( digits > precision ){
-	  		
-	  			res = res.substring( 0, pos+1+precision );
-	  		}
-  		}
-
-  		if (bTruncateZeros && value != 0 && res.charAt(res.length() - 1) == '0') {
-  			int iFirstTrailingZero = res.lastIndexOf('0');
-  			
-  			if (iFirstTrailingZero == pos + 1)
-  				res = res.substring(0, pos);
-  			else
-  				res = res.substring(0, iFirstTrailingZero);
-  		}
+  	// NumberFormat rounds, so truncate at precision
+  	double tValue;
+  	if (precision == 0) {
+  		tValue = (long)value; 
+  	} else {
+  		double shift =  Math.pow(10, precision);
+  		tValue = ((long)(value * shift)) / shift;
   	}
   	
-  	return( res );
+		NumberFormat nf =  NumberFormat.getNumberInstance();
+		nf.setGroupingUsed(false); // no commas
+		if (!bTruncateZeros)
+			nf.setMinimumFractionDigits(precision);
+
+		return nf.format(tValue);
   }
   
   		/**
@@ -827,20 +780,30 @@ DisplayFormatters
   	// Used to test fractions and displayformatter.
   	// Keep until everything works okay.
   	public static void main(String[] args) {
-  		double d = 0.000003721630774821635;
+  		// set decimal display to ","
+  		Locale.setDefault(Locale.GERMAN);
+  		
+  		double d = 0.000003991630774821635;
   		NumberFormat nf =  NumberFormat.getNumberInstance();
   		nf.setMaximumFractionDigits(6);
+  		nf.setMinimumFractionDigits(6);
   		String s = nf.format(d);
   		
-  		System.out.println(d);  // Displays 3.721630774821635E-6 
-  		System.out.println(s);  // Displays 0.000004
+  		System.out.println("Actual: " + d);  // Displays 3.991630774821635E-6 
+  		System.out.println("NF/6:   " + s);  // Displays 0.000004
   		// should display 0.000003
-			System.out.println(DisplayFormatters.formatDecimal(d , 6));
+			System.out.println("DF:     " + DisplayFormatters.formatDecimal(d , 6));
+  		// should display 0
+			System.out.println("DF 0:   " + DisplayFormatters.formatDecimal(d , 0));
   		// should display 0.000000
-			System.out.println(DisplayFormatters.formatDecimal(0 , 6));
+			System.out.println("0.000000:" + DisplayFormatters.formatDecimal(0 , 6));
+  		// should display 0.001
+			System.out.println("0.001:" + DisplayFormatters.formatDecimal(0.001, 6, true));
   		// should display 0
-			System.out.println(DisplayFormatters.formatDecimal(0 , 0));
-  		// should display 0
-			System.out.println(DisplayFormatters.formatDecimal(d , 0));
+			System.out.println("0:" + DisplayFormatters.formatDecimal(0 , 0));
+  		// should display 123456
+			System.out.println("123456:" + DisplayFormatters.formatDecimal(123456, 0));
+  		// should display 123456
+			System.out.println("123456:" + DisplayFormatters.formatDecimal(123456.999, 0));
 		}
 }
