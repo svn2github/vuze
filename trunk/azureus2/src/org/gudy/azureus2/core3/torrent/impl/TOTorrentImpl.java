@@ -586,7 +586,7 @@ TOTorrentImpl
 	{
 		Object o = additional_info_properties.get( TK_PRIVATE );
 		
-		if ( o != null && o instanceof Long ){
+		if ( o instanceof Long ){
 			
 			return(((Long)o).intValue() != 0 );
 		}
@@ -751,7 +751,14 @@ TOTorrentImpl
 	getAdditionalByteArrayProperty(
 		String		name )
 	{
-		return((byte[])additional_properties.get( name ));
+		Object	obj = additional_properties.get( name );
+		
+		if ( obj instanceof byte[] ){
+			
+			return((byte[])obj);
+		}
+		
+		return( null );
 	}
 	
 	public void
@@ -766,7 +773,14 @@ TOTorrentImpl
 	getAdditionalLongProperty(
 		String		name )
 	{
-		return((Long)additional_properties.get( name ));
+		Object	obj = additional_properties.get( name );
+		
+		if ( obj instanceof Long ){
+			
+			return((Long)obj);
+		}
+		
+		return( null );
 	}
 	
 	public void
@@ -781,7 +795,14 @@ TOTorrentImpl
 	getAdditionalListProperty(
 		String		name )
 	{
-		return((List)additional_properties.get( name ));
+		Object	obj = additional_properties.get( name );
+		
+		if ( obj instanceof List ){
+			
+			return((List)obj);
+		}
+		
+		return( null );	
 	}
 	
 	public void
@@ -796,7 +817,14 @@ TOTorrentImpl
 	getAdditionalMapProperty(
 		String		name )
 	{
-		return((Map)additional_properties.get( name ));
+		Object	obj = additional_properties.get( name );
+		
+		if ( obj instanceof Map ){
+			
+			return((Map)obj);
+		}
+		
+		return( null );	
 	}
 	
 	public Object
@@ -862,7 +890,14 @@ TOTorrentImpl
 		
 		throws TOTorrentException
 	{
-		return(readStringFromMetaData((byte[])meta_data.get(name)));			
+		Object	obj = meta_data.get(name);
+		
+		if ( obj instanceof byte[]){
+			
+			return(readStringFromMetaData((byte[])obj));
+		}
+		
+		return( null );
 	}
 	
 	protected String

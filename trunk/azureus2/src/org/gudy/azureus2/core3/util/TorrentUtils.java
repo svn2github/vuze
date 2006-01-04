@@ -46,6 +46,11 @@ import org.gudy.azureus2.plugins.PluginInterface;
 public class 
 TorrentUtils 
 {
+	private static final String		TORRENT_AZ_PROP_DHT_BACKUP_ENABLE		= "dht_backup_enable";
+	private static final String		TORRENT_AZ_PROP_DHT_BACKUP_REQUESTED	= "dht_backup_requested";
+	
+	private static final Set	torrent_az_reserved_properties = new HashSet();
+	
 	private static ThreadLocal		tls	= 
 		new ThreadLocal()
 		{
@@ -859,9 +864,15 @@ TorrentUtils
 			torrent.setAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES, m );
 		}
 		
-		Map p = (Map)m.get( "plugins" );
+		Object obj = m.get( "plugins" );
 		
-		if ( p == null ){
+		Map	p;
+		
+		if ( obj instanceof Map ){
+			
+			p = (Map)obj;
+			
+		}else{
 			
 			p = new HashMap();
 			
@@ -890,21 +901,21 @@ TorrentUtils
 			return( null );
 		}
 		
-		Map p = (Map)m.get( "plugins" );
+		Object	obj = m.get( "plugins" );
 		
-		if ( p == null ){
-	
-			return( null );
-		}
+		if ( obj instanceof Map ){
 		
-		byte[]	v = (byte[])p.get( name );
-		
-		if ( v == null ){
+			Map p = (Map)obj;
 			
-			return( null );
+			obj = p.get( name );
+			
+			if ( obj instanceof byte[]){
+			
+				return( new String((byte[])obj));
+			}
 		}
 		
-		return( new String(v));
+		return( null );
 	}
 	
 	public static void
@@ -922,9 +933,15 @@ TorrentUtils
 			torrent.setAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES, m );
 		}
 		
-		Map p = (Map)m.get( "plugins" );
+		Object obj = m.get( "plugins" );
 		
-		if ( p == null ){
+		Map	p;
+		
+		if ( obj instanceof Map ){
+			
+			p = (Map)obj;
+			
+		}else{
 			
 			p = new HashMap();
 			
@@ -953,39 +970,23 @@ TorrentUtils
 			return( null );
 		}
 		
-		Map p = (Map)m.get( "plugins" );
+		Object	obj = m.get( "plugins" );
 		
-		if ( p == null ){
-	
-			return( null );
-		}
+		if ( obj instanceof Map ){
 		
-		Map	v = (Map)p.get( name );
-		
-		return( v );
-	}
-	
-	public static List
-	getPluginStringProperties(
-		TOTorrent		torrent )
-	{
-		Map	m = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES );
-		
-		if ( m == null ){
+			Map p = (Map)obj;
 			
-			return( new ArrayList());
+			obj = p.get( name );
+			
+			if ( obj instanceof Map ){
+		
+				return((Map)obj);
+			}
 		}
 		
-		Map p = (Map)m.get( "plugins" );
-		
-		if ( p == null ){
-	
-			return( new ArrayList() );
-		}
-	
-		return( new ArrayList( p.keySet()));
-	
+		return( null );
 	}
+	
 	public static void
 	setDHTBackupEnabled(
 		TOTorrent		torrent,
@@ -1000,7 +1001,7 @@ TorrentUtils
 			torrent.setAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES, m );
 		}
 		
-		m.put( "dht_backup_enable", new Long(enabled?1:0));
+		m.put( TORRENT_AZ_PROP_DHT_BACKUP_ENABLE, new Long(enabled?1:0));
 	}
 	
 	public static boolean
@@ -1016,14 +1017,14 @@ TorrentUtils
 			return( true );
 		}
 		
-		Long	l = (Long)m.get( "dht_backup_enable" );
+		Object	obj = m.get( TORRENT_AZ_PROP_DHT_BACKUP_ENABLE );
 		
-		if ( l == null ){
-			
-			return( true );
+		if ( obj instanceof Long ){
+		
+			return( ((Long)obj).longValue() == 1 );
 		}
 		
-		return( l.longValue() == 1 );
+		return( true );
 	}
 	
 	public static boolean
@@ -1039,14 +1040,14 @@ TorrentUtils
 			return( false );
 		}
 		
-		Long	l = (Long)m.get( "dht_backup_requested" );
+		Object obj = m.get( TORRENT_AZ_PROP_DHT_BACKUP_REQUESTED );
 		
-		if ( l == null ){
-			
-			return( false );
+		if ( obj instanceof Long ){
+		
+			return( ((Long)obj).longValue() == 1 );
 		}
 		
-		return( l.longValue() == 1 );
+		return( false );
 	}
 	
 	public static void
@@ -1063,7 +1064,7 @@ TorrentUtils
 			torrent.setAdditionalMapProperty( TOTorrent.AZUREUS_PROPERTIES, m );
 		}
 		
-		m.put( "dht_backup_requested", new Long(requested?1:0));
+		m.put( TORRENT_AZ_PROP_DHT_BACKUP_REQUESTED, new Long(requested?1:0));
 	}
 	
 	public static boolean
