@@ -39,6 +39,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.*;
 
@@ -98,7 +99,7 @@ ExportTorrentWizardInputPanel
 			
 			fd.setFileName(textPath.getText());
 			
-			fd.setFilterExtensions(new String[]{"*.torrent", "*.tor", "*.*"});
+			fd.setFilterExtensions(new String[]{"*.torrent", "*.tor", Constants.FILE_WILDCARD});
 			
 			String path = fd.open();
 			

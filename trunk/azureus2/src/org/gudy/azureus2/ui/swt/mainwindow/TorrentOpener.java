@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
@@ -127,8 +128,8 @@ public class TorrentOpener {
 				FileDialog fDialog = new FileDialog(shell, SWT.OPEN | SWT.MULTI);
 				fDialog.setFilterPath(getFilterPathTorrent());
 				fDialog
-						.setFilterExtensions(new String[] { "*.torrent", "*.tor", "*.*" });
-				fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", "*.*" });
+						.setFilterExtensions(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
+				fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
 				fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file"));
 				String path = setFilterPathTorrent(fDialog.open());
 				if (path == null)

@@ -53,6 +53,8 @@ Constants
  
   public static final String	JAVA_VERSION = System.getProperty("java.version");
   
+  public static final String	FILE_WILDCARD = isWindows?"*.*":"*";
+  
   	/**
   	 * Gets the current version, or if a CVS version, the one on which it is based 
   	 * @return
