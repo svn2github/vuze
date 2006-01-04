@@ -29,8 +29,6 @@ package org.gudy.azureus2.core3.util;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.text.DecimalFormatSymbols;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.text.NumberFormat;
 
