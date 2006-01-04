@@ -274,7 +274,8 @@ MainWindow
     folder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
 				public void handleEvent(Event event) {
 					// Another window has control, skip filter
-					if (display.getFocusControl().getShell() != mainWindow)
+					Control focus_control = display.getFocusControl();
+					if (focus_control != null && focus_control.getShell() != mainWindow)
 						return;
 
 					int key = event.character;
