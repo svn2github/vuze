@@ -103,10 +103,13 @@ AZInstanceManagerImpl
 	private AZMyInstanceImpl		my_instance;
 	private Map						other_instances	= new HashMap();
 	
-	private Map			tcp_lan_to_ext	= new HashMap();
-	private Map			udp_lan_to_ext	= new HashMap();
-	private Map			tcp_ext_to_lan	= new HashMap();
-	private Map			udp_ext_to_lan	= new HashMap();
+	private volatile Map			tcp_lan_to_ext	= new HashMap();
+	private volatile Map			udp_lan_to_ext	= new HashMap();
+	private volatile Map			tcp_ext_to_lan	= new HashMap();
+	private volatile Map			udp_ext_to_lan	= new HashMap();
+	
+	private volatile Set			lan_addresses	= new HashSet();
+	private volatile Set			ext_addresses	= new HashSet();
 	
 	private AESemaphore	initial_search_sem	= new AESemaphore( "AZInstanceManager:initialSearch" );
 	
@@ -297,7 +300,7 @@ AZInstanceManagerImpl
 		String				user_agent,
 		String				ST )
 	{
-		// System.out.println( "received search: " + user_agent + "/" + ST );
+		// System.out.println( "received search: loc = " + local_address + ":" + user_agent + "/" + ST );
 		
 		AZOtherInstanceImpl	caller = null;
 		
@@ -600,6 +603,23 @@ AZInstanceManagerImpl
 			udp_ext_to_lan = modifyAddress( udp_ext_to_lan, ext_udp, int_udp, add );
 			udp_lan_to_ext = modifyAddress( udp_lan_to_ext, int_udp, ext_udp, add );
 	
+			if ( !lan_addresses.contains( internal_address )){
+				
+				Set	new_lan_addresses = new HashSet( lan_addresses );
+				
+				new_lan_addresses.add( internal_address );
+				
+				lan_addresses	= new_lan_addresses;
+			}
+			
+			if ( !ext_addresses.contains( external_address )){
+				
+				Set	new_ext_addresses = new HashSet( ext_addresses );
+				
+				new_ext_addresses.add( external_address );
+				
+				ext_addresses	= new_ext_addresses;
+			}
 		}finally{
 			
 			this_mon.exit();
@@ -670,6 +690,30 @@ AZInstanceManagerImpl
 		}
 		
 		return((InetSocketAddress)map.get( lan_address ));	
+	}
+	
+	public boolean
+	isLANAddress(
+		InetAddress			address )
+	{
+		if ( address.isLoopbackAddress()){
+			
+			return( true );
+		}
+		
+		if ( lan_addresses.contains( address )){
+			
+			return( true );
+		}
+		
+		return( false );
+	}
+	
+	public boolean
+	isExternalAddress(
+		InetAddress			address )
+	{
+		return( ext_addresses.contains( address ));
 	}
 	
 	public AZInstance[]

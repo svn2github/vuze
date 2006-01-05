@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 
@@ -85,5 +86,29 @@ AddressUtils
 		}
 		
 		return( adjusted_address );
+	}
+	
+	public static boolean
+	isLANAddress(
+		InetAddress	address )
+
+	{
+		if ( instance_manager == null ){
+			
+			try{
+				instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+		
+		if ( instance_manager == null || !instance_manager.isInitialized()){
+			
+			return( false );
+		}
+		
+		return( instance_manager.isLANAddress( address ));
 	}
 }

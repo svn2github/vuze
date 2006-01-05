@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.instancemanager;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -54,6 +55,14 @@ AZInstanceManager
 	getExternalAddress(
 		InetSocketAddress	lan_address,
 		boolean				is_tcp );
+	
+	public boolean
+	isLANAddress(
+		InetAddress			address );
+	
+	public boolean
+	isExternalAddress(
+		InetAddress			address );
 	
 	public void
 	addListener(
