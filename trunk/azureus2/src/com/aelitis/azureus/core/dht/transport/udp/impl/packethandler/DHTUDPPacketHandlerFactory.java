@@ -31,6 +31,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
 import com.aelitis.net.udp.*;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 
 public class 
 DHTUDPPacketHandlerFactory 

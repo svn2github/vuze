@@ -28,6 +28,11 @@ import java.util.*;
 
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 import com.aelitis.net.udp.*;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketReply;
+import com.aelitis.net.udp.uc.PRUDPPacketReplyDecoder;
+import com.aelitis.net.udp.uc.PRUDPPacketRequest;
+import com.aelitis.net.udp.uc.PRUDPPacketRequestDecoder;
 
 
 /**

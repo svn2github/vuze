@@ -1,7 +1,7 @@
 /*
- * Created on Jul 24, 2004
+ * Created on 05-Jan-2006
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,28 +15,27 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SARL au capital de 30,000 euros
+ * AELITIS, SAS au capital de 46,603.30 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
- 
- package org.gudy.azureus2.plugins.utils.xml.simpleparser;
+
+package com.aelitis.net.udp.mc;
+
+import com.aelitis.net.udp.mc.impl.MCGroupImpl;
 
 public class 
-SimpleXMLParserDocumentException
-	extends Exception
+MCGroupFactory 
 {
-	public
-	SimpleXMLParserDocumentException(
-		String	str )
-	{
-		super( str );
-	}
+	public static MCGroup
+	getSingleton(
+		MCGroupAdapter		adapter,
+		String				group_address,
+		int					group_port,
+		int					control_port )
 	
-	public
-	SimpleXMLParserDocumentException(
-		Throwable		e )
+		throws MCGroupException
 	{
-		super( e );
+		return( MCGroupImpl.getSingleton( adapter, group_address, group_port, control_port ));
 	}
 }

@@ -56,6 +56,11 @@ import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.net.udp.*;
+import com.aelitis.net.udp.uc.PRUDPPacket;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
+import com.aelitis.net.udp.uc.PRUDPPacketRequest;
 
 
 /**

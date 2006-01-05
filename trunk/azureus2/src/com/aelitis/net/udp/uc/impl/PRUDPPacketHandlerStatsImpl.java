@@ -20,11 +20,11 @@
  *
  */
 
-package com.aelitis.net.udp.impl;
+package com.aelitis.net.udp.uc.impl;
 
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.net.udp.PRUDPPacketHandlerStats;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerStats;
 
 /**
  * @author parg

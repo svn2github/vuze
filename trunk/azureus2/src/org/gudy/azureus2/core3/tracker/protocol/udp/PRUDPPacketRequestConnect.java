@@ -28,7 +28,7 @@ package org.gudy.azureus2.core3.tracker.protocol.udp;
 
 import java.io.*;
 
-import com.aelitis.net.udp.PRUDPPacketRequest;
+import com.aelitis.net.udp.uc.PRUDPPacketRequest;
 
 public class 
 PRUDPPacketRequestConnect

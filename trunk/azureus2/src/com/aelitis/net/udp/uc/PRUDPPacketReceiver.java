@@ -1,5 +1,5 @@
 /*
- * Created on Jul 24, 2004
+ * Created on 21-Jan-2005
  * Created by Paul Gardner
  * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
@@ -19,24 +19,31 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
- 
- package org.gudy.azureus2.plugins.utils.xml.simpleparser;
 
-public class 
-SimpleXMLParserDocumentException
-	extends Exception
+package com.aelitis.net.udp.uc;
+
+import java.net.InetSocketAddress;
+
+/**
+ * @author parg
+ *
+ */
+
+public interface 
+PRUDPPacketReceiver 
 {
-	public
-	SimpleXMLParserDocumentException(
-		String	str )
-	{
-		super( str );
-	}
+	public void
+	packetReceived(
+		PRUDPPacketHandlerRequest	request,
+		PRUDPPacket					packet,
+		InetSocketAddress			from_address );
 	
-	public
-	SimpleXMLParserDocumentException(
-		Throwable		e )
-	{
-		super( e );
-	}
+		/**
+		 * receive failed - timeout
+		 * @param e
+		 */
+	
+	public void
+	error(
+		PRUDPPacketHandlerException	e );
 }

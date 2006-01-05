@@ -22,8 +22,8 @@
 
 package com.aelitis.azureus.core.dht.transport.udp.impl.packethandler;
 
-import com.aelitis.net.udp.PRUDPPacketHandler;
-import com.aelitis.net.udp.PRUDPPacketHandlerStats;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerStats;
 
 
 public class 

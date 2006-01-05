@@ -1,7 +1,7 @@
 /*
- * Created on 21-Jan-2005
+ * Created on 05-Jan-2006
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,35 +15,28 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  * 
- * AELITIS, SARL au capital de 30,000 euros
+ * AELITIS, SAS au capital de 46,603.30 euros
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
 
-package com.aelitis.net.udp;
+package com.aelitis.net.udp.mc;
 
 import java.net.InetSocketAddress;
 
-/**
- * @author parg
- *
- */
-
 public interface 
-PRUDPPacketReceiver 
+MCGroup 
 {
 	public void
-	packetReceived(
-		PRUDPPacketHandlerRequest	request,
-		PRUDPPacket					packet,
-		InetSocketAddress			from_address );
+	sendToGroup(
+		byte[]	data )
 	
-		/**
-		 * receive failed - timeout
-		 * @param e
-		 */
+		throws MCGroupException;
 	
 	public void
-	error(
-		PRUDPPacketHandlerException	e );
+	sendToMember(
+		InetSocketAddress	address,
+		byte[]				data )
+	
+		throws MCGroupException;
 }

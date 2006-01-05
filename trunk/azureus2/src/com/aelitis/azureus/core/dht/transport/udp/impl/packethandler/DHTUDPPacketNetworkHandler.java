@@ -28,8 +28,8 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacket;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketReply;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
-import com.aelitis.net.udp.PRUDPPacketRequest;
-import com.aelitis.net.udp.PRUDPRequestHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketRequest;
+import com.aelitis.net.udp.uc.PRUDPRequestHandler;
 
 public class 
 DHTUDPPacketNetworkHandler 

@@ -1,5 +1,5 @@
 /*
- * File    : PRUDPPacketHandlerException.java
+ * File    : PRUDPPacketReceiverFactory.java
  * Created : 20-Jan-2004
  * By      : parg
  * 
@@ -19,27 +19,30 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package com.aelitis.net.udp;
+package com.aelitis.net.udp.uc;
 
 /**
  * @author parg
  *
  */
+
+import com.aelitis.net.udp.uc.impl.PRUDPPacketHandlerFactoryImpl;
+
 public class 
-PRUDPPacketHandlerException
-	extends Exception
+PRUDPPacketHandlerFactory
 {
-	public
-	PRUDPPacketHandlerException(
-		String		str )
+	public static PRUDPPacketHandler 
+	getHandler(
+		int		port )
 	{
-		super( str );
+		return( getHandler( port, null ));
 	}
 	
-	public PRUDPPacketHandlerException(
-		String		str,
-		Throwable 	cause )
+	public static PRUDPPacketHandler 
+	getHandler(
+		int						port,
+		PRUDPRequestHandler		handler )
 	{
-		super( str, cause );
+		return( PRUDPPacketHandlerFactoryImpl.getHandler( port, handler ));
 	}
 }

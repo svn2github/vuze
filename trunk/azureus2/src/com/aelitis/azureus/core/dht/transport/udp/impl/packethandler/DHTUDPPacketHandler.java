@@ -33,6 +33,11 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.net.udp.*;
+import com.aelitis.net.udp.uc.PRUDPPacket;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerRequest;
+import com.aelitis.net.udp.uc.PRUDPPacketReceiver;
 
 
 public class 

@@ -30,7 +30,7 @@ import java.io.*;
 
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.net.udp.PRUDPPacketRequest;
+import com.aelitis.net.udp.uc.PRUDPPacketRequest;
 
 public class 
 PRUDPPacketRequestScrape 

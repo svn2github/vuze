@@ -1,7 +1,7 @@
 /*
- * Created on 22-Jun-2005
+ * Created on 14-Jun-2004
  * Created by Paul Gardner
- * Copyright (C) 2005 Aelitis, All Rights Reserved.
+ * Copyright (C) 2004 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,11 +20,28 @@
  *
  */
 
-package com.aelitis.net.udp;
+package com.aelitis.net.udp.mc;
 
-public interface 
-PRUDPPacketHandlerRequest 
+/**
+ * @author parg
+ *
+ */
+
+public class 
+MCGroupException
+	extends Exception
 {
-	public long
-	getElapsedTime();
+	public 
+	MCGroupException(
+		String		str )
+	{
+		super( str );
+	}	
+	public 
+	MCGroupException(
+		String		str,
+		Throwable 	cause )
+	{
+		super( str, cause );
+	}
 }

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package com.aelitis.net.udp.impl;
+package com.aelitis.net.udp.uc.impl;
 
 /**
  * @author parg
@@ -34,14 +34,14 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
-import com.aelitis.net.udp.PRUDPPacket;
-import com.aelitis.net.udp.PRUDPPacketHandler;
-import com.aelitis.net.udp.PRUDPPacketHandlerException;
-import com.aelitis.net.udp.PRUDPPacketHandlerStats;
-import com.aelitis.net.udp.PRUDPPacketReceiver;
-import com.aelitis.net.udp.PRUDPPacketReply;
-import com.aelitis.net.udp.PRUDPPacketRequest;
-import com.aelitis.net.udp.PRUDPRequestHandler;
+import com.aelitis.net.udp.uc.PRUDPPacket;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerStats;
+import com.aelitis.net.udp.uc.PRUDPPacketReceiver;
+import com.aelitis.net.udp.uc.PRUDPPacketReply;
+import com.aelitis.net.udp.uc.PRUDPPacketRequest;
+import com.aelitis.net.udp.uc.PRUDPRequestHandler;
 
 import org.bouncycastle.util.encoders.Base64;
 

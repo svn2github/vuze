@@ -34,10 +34,10 @@ import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
-import com.aelitis.net.udp.PRUDPPacket;
-import com.aelitis.net.udp.PRUDPPacketHandler;
-import com.aelitis.net.udp.PRUDPPacketHandlerException;
-import com.aelitis.net.udp.PRUDPPacketHandlerFactory;
+import com.aelitis.net.udp.uc.PRUDPPacket;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 
 /**
  * @author Olivier

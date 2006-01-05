@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
-import com.aelitis.net.udp.PRUDPPacketRequest;
+import com.aelitis.net.udp.uc.PRUDPPacketRequest;
 
 /**
  * @author parg

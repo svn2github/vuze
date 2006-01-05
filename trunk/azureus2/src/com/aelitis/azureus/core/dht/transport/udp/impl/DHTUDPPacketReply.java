@@ -32,7 +32,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 import com.aelitis.azureus.core.dht.vivaldi.maths.VivaldiPosition;
-import com.aelitis.net.udp.PRUDPPacketReply;
+import com.aelitis.net.udp.uc.PRUDPPacketReply;
 
 /**
  * @author parg

@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package com.aelitis.net.udp.impl;
+package com.aelitis.net.udp.uc.impl;
 
 /**
  * @author parg
@@ -30,8 +30,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 
-import com.aelitis.net.udp.PRUDPPacketHandler;
-import com.aelitis.net.udp.PRUDPRequestHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPRequestHandler;
 
 public class 
 PRUDPPacketHandlerFactoryImpl 

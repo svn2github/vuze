@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.net.udp;
+package com.aelitis.net.udp.uc;
 
 import java.io.DataInputStream;
 import java.io.IOException;
