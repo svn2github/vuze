@@ -48,6 +48,16 @@ DownloadStats
 	getStatus();
 	
 	/**
+	 * Returns an overall string representing the state of the download
+	 * *localised*
+	 * @return
+   *
+   * @since 2.3.0.7
+	 */
+	public String
+	getStatus( boolean localised);
+	
+	/**
 	 * Gives access to the directory into which the download is being saved
 	 * @return
    *

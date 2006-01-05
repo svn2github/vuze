@@ -53,6 +53,13 @@ DownloadStatsImpl
 	}
 	
 	public String
+	getStatus(boolean localised)
+	{
+		return (localised)? DisplayFormatters.formatDownloadStatus( dm ) : getStatus();
+			
+	}
+	
+	public String
 	getDownloadDirectory()
 	{
 		return( dm.getSaveLocation().getParent());
