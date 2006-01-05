@@ -35,24 +35,14 @@ AZOtherInstanceImpl
 {
 	protected static AZOtherInstanceImpl
 	decode(
-		InetAddress				internal_address,
-		String					str )
+		InetAddress		internal_address,
+		Map				map )
 	{
-		StringTokenizer	tok = new StringTokenizer( str, ":" );
-		
-		tok.nextToken();	// skip 'azureus'
-		String	instance_id = tok.nextToken();
-		String	int_ip		= unmapAddress(tok.nextToken());
-		String	ext_ip		= unmapAddress(tok.nextToken());
-		int		tcp			= Integer.parseInt(tok.nextToken());
-		int		udp			= Integer.parseInt(tok.nextToken());
-		
-		List	extra_args = new ArrayList();
-		
-		while( tok.hasMoreTokens()){
-			
-			extra_args.add( tok.nextToken());
-		}
+		String	id			= new String((byte[])map.get( "id" ));
+		String	int_ip		= new String((byte[])map.get( "iip" ));
+		String	ext_ip		= new String((byte[])map.get( "eip" ));
+		int		tcp			= ((Long)map.get("tp" )).intValue();
+		int		udp			= ((Long)map.get("dp" )).intValue();
 		
 		try{
 			if ( !int_ip.equals("0.0.0.0")){
@@ -62,7 +52,7 @@ AZOtherInstanceImpl
 
 			InetAddress	external_address = InetAddress.getByName( ext_ip );
 			
-			return( new AZOtherInstanceImpl(instance_id, internal_address, external_address, tcp, udp, extra_args ));
+			return( new AZOtherInstanceImpl(id, internal_address, external_address, tcp, udp ));
 			
 		}catch( Throwable e ){
 			
@@ -77,7 +67,6 @@ AZOtherInstanceImpl
 	private InetAddress				external_address;
 	private int						tcp_port;
 	private int						udp_port;
-	private List					extra_args;
 	
 	private long	alive_time;
 
@@ -88,8 +77,7 @@ AZOtherInstanceImpl
 		InetAddress				_internal_address,
 		InetAddress				_external_address,
 		int						_tcp_port,
-		int						_udp_port,
-		List					_extra_args )
+		int						_udp_port )
 	{
 		id					= _id;
 		
@@ -98,7 +86,6 @@ AZOtherInstanceImpl
 		external_address	= _external_address;
 		tcp_port			= _tcp_port;
 		udp_port			= _udp_port;
-		extra_args			= _extra_args;
 		
 		alive_time	= SystemTime.getCurrentTime();
 	}
@@ -133,7 +120,6 @@ AZOtherInstanceImpl
 		external_address	= new_inst.external_address;
 		tcp_port			= new_inst.tcp_port;
 		udp_port			= new_inst.udp_port;
-		extra_args			= new_inst.extra_args;
 	
 		return( !same );
 	}
@@ -172,12 +158,6 @@ AZOtherInstanceImpl
 	getDHTPort()
 	{
 		return( udp_port );
-	}
-	
-	protected List
-	getExtraArgs()
-	{
-		return( extra_args );
 	}
 	
 	protected long

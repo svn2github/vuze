@@ -42,7 +42,7 @@ AZInstanceManager
 	public AZInstance[]
 	getOtherInstances();
 	
-	public AZInstance[]
+	public AZInstanceTracked[]
 	track(
 		Download		torrent );
 	

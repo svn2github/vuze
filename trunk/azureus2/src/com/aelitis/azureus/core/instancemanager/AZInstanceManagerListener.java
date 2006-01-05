@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.instancemanager;
 
+
 public interface 
 AZInstanceManagerListener 
 {
@@ -39,5 +40,5 @@ AZInstanceManagerListener
 	
 	public void
 	instanceTracked(
-		AZInstance		instance );
+		AZInstanceTracked	instance );
 }

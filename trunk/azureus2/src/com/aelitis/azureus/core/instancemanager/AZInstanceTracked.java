@@ -1,7 +1,7 @@
 /*
- * Created on 20-Dec-2005
+ * Created on 05-Jan-2006
  * Created by Paul Gardner
- * Copyright (C) 2005 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,26 +22,17 @@
 
 package com.aelitis.azureus.core.instancemanager;
 
-import java.net.InetAddress;
+import org.gudy.azureus2.plugins.download.Download;
 
 public interface 
-AZInstance 
+AZInstanceTracked 
 {
-	public String
-	getID();
+	public AZInstance
+	getInstance();
 	
-	public InetAddress
-	getInternalAddress();
+	public Download
+	getDownload();
 	
-	public InetAddress
-	getExternalAddress();
-	
-	public int
-	getTrackerClientPort();
-	
-	public int
-	getDHTPort();
-	
-	public String
-	getString();
+	public boolean
+	isSeed();
 }

@@ -31,56 +31,24 @@ public abstract class
 AZInstanceImpl 
 	implements AZInstance
 {
-	private Map		properties	= new HashMap();
-	
 	protected
 	AZInstanceImpl()
 	{
 	}
-	
-	protected static String
-	mapAddress(
-		String	str )
-	{
-		return( str.replace(':','$'));
-	}
-	
-	protected static String
-	unmapAddress(
-		String	str )
-	{
-		return( str.replace('$',':'));
-	}
-	
-	protected String
-	encode()
-	{
-		String	reply = "azureus:" + getID();				
-
-		reply += ":" + mapAddress(getInternalAddress().getHostAddress());
 		
-		reply += ":" + mapAddress(getExternalAddress().getHostAddress());
-		
-		reply += ":" + getTrackerClientPort();
-		
-        reply += ":" + getDHTPort();
-        
-        return( reply );
-	}
-	
-	public Object
-	getProperty(
-		String	name )
-	{
-		return(properties.get(name));
-	}
-	
 	protected void
-	setProperty(
-		String	name,
-		Object	value )
+	encode(
+		Map		map )
 	{
-		properties.put( name, value );
+		map.put( "id", getID().getBytes());				
+
+		map.put( "iip", getInternalAddress().getHostAddress().getBytes());
+		
+		map.put( "eip", getExternalAddress().getHostAddress().getBytes());
+		
+		map.put( "tp", new Long( getTrackerClientPort()));
+		
+        map.put( "dp", new Long( getDHTPort()));
 	}
 	
 	public String

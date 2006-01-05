@@ -22,11 +22,14 @@
 
 package com.aelitis.azureus.core.instancemanager.impl;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.*;
+import java.util.Map.Entry;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -36,6 +39,8 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
@@ -53,21 +58,31 @@ import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
-import com.aelitis.net.upnp.UPnPFactory;
-import com.aelitis.net.upnp.UPnPSSDP;
-import com.aelitis.net.upnp.UPnPSSDPAdapter;
-import com.aelitis.net.upnp.UPnPSSDPListener;
+import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
+import com.aelitis.net.udp.mc.MCGroup;
+import com.aelitis.net.udp.mc.MCGroupAdapter;
+import com.aelitis.net.udp.mc.MCGroupFactory;
 
 public class 
 AZInstanceManagerImpl 
-	implements AZInstanceManager, UPnPSSDPListener
+	implements AZInstanceManager, MCGroupAdapter
 {
 	private static final LogIDs LOGID = LogIDs.NET;
 	
-	private String				SSDP_GROUP_ADDRESS 	= "239.255.068.250";	// 239.255.000.000-239.255.255.255 
-	private int					SSDP_GROUP_PORT		= 16680;				//
-	private int					SSDP_CONTROL_PORT	= 16679;
+	private String				MC_GROUP_ADDRESS 	= "239.255.067.250";	// 239.255.000.000-239.255.255.255 
+	private int					MC_GROUP_PORT		= 16680;				//
+	private int					MC_CONTROL_PORT		= 16679;
 
+	private static final int	MT_VERSION		= 1;
+	
+	private static final int	MT_ALIVE		= 1;
+	private static final int	MT_BYE			= 2;
+	private static final int	MT_REQUEST		= 3;
+	private static final int	MT_REPLY		= 4;
+	
+	private static final int	MT_REQUEST_SEARCH	= 1;
+	private static final int	MT_REQUEST_TRACK	= 2;
+	
 	private static final long	ALIVE_PERIOD	= 30*60*1000;
 	
 	private static AZInstanceManagerImpl	singleton;
@@ -96,7 +111,7 @@ AZInstanceManagerImpl
 	}
 	
 	private AzureusCore	core;
-	private UPnPSSDP 	ssdp;
+	private MCGroup	 	mc_group;
 	private long		search_id_next;
 	private List		requests = new ArrayList();
 	
@@ -128,55 +143,15 @@ AZInstanceManagerImpl
 	
 	public void
 	initialize()
-	{
-		final PluginInterface	pi = core.getPluginManager().getDefaultPluginInterface();
-		
+	{		
 		try{
-			ssdp = 
-				UPnPFactory.getSSDP( 
-					new UPnPSSDPAdapter()
-					{
-						public UTTimer
-						createTimer(
-							String	name )
-						{
-							return( pi.getUtilities().createTimer( name ));
-						}
-		
-						public void
-						createThread(
-							String		name,
-							AERunnable	runnable )
-						{
-							pi.getUtilities().createThread( name, runnable );
-						}
-						
-						public void
-						trace(
-							Throwable	e )
-						{
-							Debug.printStackTrace( e );
-							
-							Logger.log(new LogEvent(LOGID, "SSDP: failed ", e)); 
-
-						}
-						
-						public void
-						trace(
-							String	str )
-						{
-							if ( Logger.isEnabled()){
-								
-								Logger.log(new LogEvent( LOGID, str )); 
-							}
-						}
-					},
-					SSDP_GROUP_ADDRESS,
-					SSDP_GROUP_PORT,
-					SSDP_CONTROL_PORT );
-			
-			ssdp.addListener( this );
-		
+			mc_group = 
+				MCGroupFactory.getSingleton(
+					this,
+					MC_GROUP_ADDRESS,
+					MC_GROUP_PORT,
+					MC_CONTROL_PORT );
+					
 			core.addLifecycleListener(
 				new AzureusCoreLifecycleAdapter()
 				{
@@ -184,10 +159,7 @@ AZInstanceManagerImpl
 					stopping(
 						AzureusCore		core )
 					{
-						if ( other_instances.size() > 0 ){
-							
-							ssdp.notify( my_instance.encode(), "ssdp:byebye" );
-						}
+						sendByeBye();
 					}
 				});
 			
@@ -200,11 +172,8 @@ AZInstanceManagerImpl
 						TimerEvent	event )
 					{
 						checkTimeouts();
-						
-						if ( other_instances.size() > 0 ){
-							
-							sendAlive();
-						}				
+													
+						sendAlive();				
 					}
 				});
 		
@@ -235,6 +204,16 @@ AZInstanceManagerImpl
 		}.start();
 	}
 	
+	public void
+	trace(
+		String	str )
+	{
+		if ( Logger.isEnabled()){
+				
+			Logger.log(new LogEvent( LOGID, str )); 
+		}
+	}
+	
 	public boolean
 	isInitialized()
 	{
@@ -244,200 +223,233 @@ AZInstanceManagerImpl
 	protected void
 	sendAlive()
 	{
-		ssdp.notify( my_instance.encode(), "ssdp:alive" );
+		sendMessage( MT_ALIVE );
 	}
 	
+	protected void
+	sendByeBye()
+	{
+		sendMessage( MT_BYE );
+	}
+	
+	protected void
+	sendMessage(
+		int		type )
+	{
+		sendMessage( type, null );
+	}
+	
+	protected void
+	sendMessage(
+		int		type,
+		Map		body )
+	{
+		sendMessage( type, body, null );
+	}
+	
+	protected void
+	sendMessage(
+		int					type,
+		Map					body,
+		InetSocketAddress	member )
+	{
+		Map	map = new HashMap();
+		
+		map.put( "ver", new Long(MT_VERSION));
+		map.put( "type", new Long(type));
+		
+		Map	originator = new HashMap();
+		
+		map.put( "orig", originator );
+		
+		my_instance.encode( originator );
+		
+		if ( body != null ){
+			
+			map.put( "body", body );
+		}
+		
+		try{
+			byte[]	data = BEncoder.encode( map );
+			
+			if ( member == null ){
+				
+				mc_group.sendToGroup( data );
+				
+			}else{
+				
+				mc_group.sendToMember( member, data );
+			}
+		}catch( Throwable e ){
+			
+		}
+	}
+
 	public void
-	receivedResult(
+	received(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
-		InetAddress			originator,
-		URL					location,
-		String				ST,
-		String				AL )
+		InetSocketAddress	originator,
+		byte[]				data,
+		int					length )
+	{
+		try{
+			Map	map = BDecoder.decode(new BufferedInputStream(new ByteArrayInputStream( data, 0, length )));
+			
+			long	version = ((Long)map.get( "ver" )).longValue();
+			long	type	= ((Long)map.get( "type" )).longValue();
+			
+			AZOtherInstanceImpl	instance = AZOtherInstanceImpl.decode( originator.getAddress(), (Map)map.get( "orig" ));
+			
+			if ( type == MT_ALIVE ){
+				
+				checkAdd( instance );
+				
+			}else if ( type == MT_BYE ){
+				
+				checkRemove( instance );
+				
+			}else{
+				
+				checkAdd( instance );
+				
+				Map	body = (Map)map.get( "body" );
+				
+				if ( type == MT_REQUEST ){
+					
+					String	originator_id	= instance.getID();
+					
+					if ( !originator_id.equals( my_instance.getID())){
+						
+						Map	reply = requestReceived( instance, body );
+					
+						if ( reply != null ){
+						
+							reply.put( "oid", originator_id.getBytes());
+							reply.put( "rid", body.get( "rid" ));
+							
+							sendMessage( MT_REPLY, reply, originator );
+						}
+					}
+				}else if ( 	type == MT_REPLY ){
+					
+					String	originator_id	= new String((byte[])body.get( "oid" ));
+					
+					if ( originator_id.equals( my_instance.getID())){
+						
+						long req_id = ((Long)body.get("rid")).longValue();
+						
+						try{
+							this_mon.enter();
+							
+							for (int i=0;i<requests.size();i++){
+								
+								request	req = (request)requests.get(i);
+								
+								if ( req.getID() == req_id ){
+									
+									req.addReply( instance, body );
+								}
+							}
+						}finally{
+							
+							this_mon.exit();
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+
+	protected Map
+	requestReceived(
+		AZInstance		instance,
+		Map				body )
 	{
 		// System.out.println( "received result: " + ST + "/" + AL );
+		
 
-		if ( ST.startsWith("azureus:") && AL != null ){
+		long	type = ((Long)body.get( "type")).longValue();
+		
+		if ( type == MT_REQUEST_SEARCH ){
 			
-			StringTokenizer	tok = new StringTokenizer( ST, ":" );
+			return( new HashMap());
 			
-			tok.nextToken();	// az
+		}else if ( type == MT_REQUEST_TRACK ){
+							
+			byte[]	hash = (byte[])body.get( "hash" );
 			
-			tok.nextToken();	// command 
+			boolean	seed = ((Long)body.get( "seed" )).intValue() == 1;
+			
+			List	dms = core.getGlobalManager().getDownloadManagers();
+			
+			Iterator	it = dms.iterator();
+			
+			DownloadManager	matching_dm = null;
+			
+			try{
+				while( it.hasNext()){
+					
+					DownloadManager	dm = (DownloadManager)it.next();
+					
+					byte[]	sha1_hash = (byte[])dm.getData( "AZInstanceManager::sha1_hash" );
+					
+					if ( sha1_hash == null ){			
 
-			String	az_id = tok.nextToken();	// az id
-			
-			if ( az_id.equals( my_instance.getID())){
-			
-				long search_id = Long.parseLong( tok.nextToken());	// search id
+						sha1_hash	= new SHA1Simple().calculateHash( dm.getTorrent().getHash());
+						
+						dm.setData( "AZInstanceManager::sha1_hash", sha1_hash );
+					}
+					
+					if ( Arrays.equals( hash, sha1_hash )){
+						
+						matching_dm	= dm;
+						
+						break;
+					}
+				}
+			}catch( Throwable e ){
 				
-				try{
-					this_mon.enter();
-					
-					for (int i=0;i<requests.size();i++){
-						
-						request	req = (request)requests.get(i);
-						
-						if ( req.getID() == search_id ){
-							
-							req.addReply( originator, AL );
-						}
-					}
-				}finally{
-					
-					this_mon.exit();
-				}
+				Debug.printStackTrace(e);
 			}
-		}
-	}
-	
-	public String
-	receivedSearch(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		String				user_agent,
-		String				ST )
-	{
-		// System.out.println( "received search: loc = " + local_address + ":" + user_agent + "/" + ST );
-		
-		AZOtherInstanceImpl	caller = null;
-		
-		if ( user_agent.startsWith("azureus:")){
 			
-			caller = AZOtherInstanceImpl.decode( originator, user_agent );
-			
-			if ( caller != null ){
+			if ( matching_dm == null ){
 				
-				caller = checkAdd( caller );
+				return( null );
 			}
-		}
-		
-		if ( ST.startsWith("azureus:")){
 			
-			StringTokenizer	tok = new StringTokenizer( ST, ":" );
+			int	dm_state = matching_dm.getState();
 			
-			tok.nextToken();	// az
-			
-			String	command = tok.nextToken();
-
-			String az_id = tok.nextToken();	// az id
-			
-			if ( !az_id.equals( my_instance.getID())){
-							
-				tok.nextToken();	// req id
-
-				String	reply = my_instance.encode();
-	
-				if ( command.equals("btih")){
-					
-					String	hash_str = tok.nextToken();
-					
-					byte[]	hash = ByteFormatter.decodeString( hash_str );
-					
-					boolean	seed = tok.nextToken().equals( "true" );
-					
-					List	dms = core.getGlobalManager().getDownloadManagers();
-					
-					Iterator	it = dms.iterator();
-					
-					DownloadManager	matching_dm = null;
-					
-					try{
-						while( it.hasNext()){
-							
-							DownloadManager	dm = (DownloadManager)it.next();
-							
-							byte[]	sha1_hash = (byte[])dm.getData( "AZInstanceManager::sha1_hash" );
-							
-							if ( sha1_hash == null ){			
-	
-								sha1_hash	= new SHA1Simple().calculateHash( dm.getTorrent().getHash());
-								
-								dm.setData( "AZInstanceManager::sha1_hash", sha1_hash );
-							}
-							
-							if ( Arrays.equals( hash, sha1_hash )){
-								
-								matching_dm	= dm;
-								
-								break;
-							}
-						}
-					}catch( Throwable e ){
-						
-						Debug.printStackTrace(e);
-					}
-					
-					if ( matching_dm == null ){
-						
-						return( null );
-					}
-					
-					int	dm_state = matching_dm.getState();
-					
-					if ( dm_state == DownloadManager.STATE_ERROR || dm_state == DownloadManager.STATE_STOPPED ){
-						
-						return( null );
-					}
-					
-					if ( caller != null ){
-					
-						try{
-							caller.setProperty( AZInstance.PR_DOWNLOAD, DownloadManagerImpl.getDownloadStatic( matching_dm ));
-							caller.setProperty( AZInstance.PR_SEED, new Boolean( seed ));
-							
-							informTracked( caller );
-							
-						}catch( Throwable e ){
-							
-							Debug.printStackTrace(e);
-						}
-					}
-					
-					reply += ":" + (matching_dm.isDownloadComplete()?"true":"false");
-					
-					return( reply );
-					
-				}else if ( command.equals( "instance" )){
-					
-					return( reply );
-				}
+			if ( dm_state == DownloadManager.STATE_ERROR || dm_state == DownloadManager.STATE_STOPPED ){
+				
+				return( null );
 			}
-		}
-		
-		return( null );
-	}
-	
-	public void
-	receivedNotify(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		InetAddress			originator,
-		URL					location,
-		String				NT,
-		String				NTS )
-	{
-		// System.out.println( "received notify: " + NT + "/" + NTS );
-
-		if ( NT.startsWith("azureus:")){
-			
-			AZOtherInstanceImpl	inst = AZOtherInstanceImpl.decode( originator, NT );
-
-			if ( inst != null ){
-			
-				if ( NTS.indexOf("alive") != -1 ){
-
-					checkAdd( inst );
+							
+			try{		
+				informTracked( 
+					new trackedInstance( instance, DownloadManagerImpl.getDownloadStatic( matching_dm ), seed ));
 					
-				}else if ( NTS.indexOf("byebye") != -1 ){
-
-					checkRemove( inst );
-				}
+			}catch( Throwable e ){
+					
+				Debug.printStackTrace(e);
 			}
+			
+			Map	reply = new HashMap();
+			
+			reply.put( "seed", new Long( matching_dm.isDownloadComplete()?1:0));		
+			
+			return( reply );
+			
+		}else{
+			
+			return( null );
 		}
 	}
+	
 
 	protected AZOtherInstanceImpl
 	checkAdd(
@@ -521,9 +533,7 @@ AZInstanceManagerImpl
 	protected void
 	search()
 	{
-		request req = sendRequest( "instance" );
-		
-		req.getReply();
+		sendRequest( MT_REQUEST_SEARCH );
 	}
 	
 	public AZInstance[]
@@ -716,51 +726,42 @@ AZInstanceManagerImpl
 		return( ext_addresses.contains( address ));
 	}
 	
-	public AZInstance[]
+	public AZInstanceTracked[]
 	track(
 		Download		download )
 	{
-		if ( ssdp == null || download.getTorrent() == null  ){
+		if ( mc_group == null || download.getTorrent() == null  ){
 			
-			return( new AZInstance[0]);
+			return( new AZInstanceTracked[0]);
 		}
 		
-		request req = 
-			sendRequest( 
-				"btih", 
-				new String[]{
-					ByteFormatter.encodeString( new SHA1Simple().calculateHash(download.getTorrent().getHash())),
-					download.isComplete()?"true":"false"
-				});
+		Map	body = new HashMap();
 		
-		AZInstance[]	replies = req.getReply();
+		body.put( "hash", new SHA1Simple().calculateHash(download.getTorrent().getHash()));
 		
-		List	res = new ArrayList();
+		body.put( "seed", new Long( download.isComplete()?1:0 ));
 		
-		for (int i=0;i<replies.length;i++){
+		Map	replies = sendRequest( MT_REQUEST_TRACK, body ); 
+				
+		AZInstanceTracked[]	res = new AZInstanceTracked[replies.size()];
+		
+		Iterator	it = replies.entrySet().iterator();
+		
+		int	pos = 0;
+		
+		while( it.hasNext()){
 			
-			AZInstance	_reply = replies[i];
+			Map.Entry	entry = (Map.Entry)it.next();
 			
-			if ( _reply instanceof AZOtherInstanceImpl ){
-				
-				AZOtherInstanceImpl	reply = (AZOtherInstanceImpl)_reply;
-				
-				List	args = reply.getExtraArgs();
-				
-				if ( args.size() >= 1 ){
-					
-					boolean	seed = ((String)args.get(0)).equals("true");
-					
-					reply.setProperty( AZInstance.PR_SEED, new Boolean( seed ));
-					
-					reply.setProperty(AZInstance.PR_DOWNLOAD, download );
-					
-					res.add( reply );
-				}
-			}
+			AZInstance	inst 	= (AZInstance)entry.getKey();
+			Map			reply	= (Map)entry.getValue();
+	
+			boolean	seed = ((Long)reply.get( "seed" )).intValue() == 1;
+	
+			res[ pos++ ] = new trackedInstance( inst, download, seed );
 		}
 		
-		return( (AZInstance[])res.toArray( new AZInstance[res.size()]));
+		return( res );
 	}
 	
 	protected void
@@ -860,7 +861,7 @@ AZInstanceManagerImpl
 	
 	protected void
 	informTracked(
-		AZInstance	inst )
+		AZInstanceTracked	inst )
 	{
 		for (int i=0;i<listeners.size();i++){
 			
@@ -874,19 +875,19 @@ AZInstanceManagerImpl
 		}
 	}
 	
-	protected request
+	protected Map
 	sendRequest(
-		String	type )
+		int		type )
 	{
-		return( new request( type, new String[0] ));
+		return( new request( type, new HashMap()).getReplies());
 	}
 	
-	protected request
+	protected Map
 	sendRequest(
-		String	type,
-		String	[]args )
+		int		type,
+		Map		body )
 	{
-		return( new request( type, args ));
+		return( new request( type, body ).getReplies());
 	}
 	
 	protected class
@@ -894,12 +895,14 @@ AZInstanceManagerImpl
 	{
 		private long	id;
 		
-		private List	replies = new ArrayList();
+		private Set	reply_instances	= new HashSet();
+		
+		private Map	replies			= new HashMap();
 		
 		protected
 		request(
-			String		_type,
-			String[]	_args )
+			int			type,
+			Map			body  )
 		{
 			try{
 				this_mon.enter();
@@ -913,14 +916,11 @@ AZInstanceManagerImpl
 				this_mon.exit();
 			}
 			
-			String	st = "azureus:" + _type + ":" + my_instance.getID() + ":" + id;
+			body.put( "type", new Long( type ));
 			
-			for (int i=0;i<_args.length;i++){
-				
-				st += ":" + _args[i];
-			}
+			body.put( "rid", new Long( id ));
 			
-			ssdp.search( my_instance.encode(), st );
+			sendMessage( MT_REQUEST, body );
 		}
 		
 		protected long
@@ -931,45 +931,27 @@ AZInstanceManagerImpl
 		
 		protected void
 		addReply(
-			InetAddress	internal_address,
-			String		AL )
+			AZInstance	instance,
+			Map			body )
 		{
-			AZOtherInstanceImpl	inst = AZOtherInstanceImpl.decode( internal_address, AL );
-			
-			if ( inst != null ){
-												
-				try{
-					this_mon.enter();
+			try{
+				this_mon.enter();
 				
-					boolean	duplicate_reply	= false;
-					
-					for (int i=0;i<replies.size();i++){
+				if ( !reply_instances.contains( instance.getID())){
 						
-						AZInstance	rep = (AZInstance)replies.get(i);
-						
-						if ( rep.getID().equals( inst.getID())){
-							
-							duplicate_reply	= true;
-							
-							break;
-						}
-					}
+					reply_instances.add( instance.getID());
 					
-					if ( !duplicate_reply ){
-						
-						replies.add( inst );
-					}								
-				}finally{
-					
-					this_mon.exit();
+					replies.put( instance, body );
 				}
+						
+			}finally{
 				
-				checkAdd( inst );
+				this_mon.exit();
 			}
 		}
 		
-		protected AZInstance[]
-		getReply()
+		protected Map
+		getReplies()
 		{
 			try{
 				Thread.sleep( 2500 );
@@ -983,7 +965,7 @@ AZInstanceManagerImpl
 
 				requests.remove( this );
 				
-				return(( AZInstance[])replies.toArray(new AZInstance[replies.size()]));			
+				return( replies );	
 				
 			}finally{
 				
@@ -1004,5 +986,42 @@ AZInstanceManagerImpl
 		AZInstanceManagerListener	l )
 	{
 		listeners.remove( l );
+	}
+	
+	protected static class
+	trackedInstance
+		implements AZInstanceTracked
+	{
+		private AZInstance		instance;
+		private Download		download;
+		private boolean			seed;
+		
+		protected
+		trackedInstance(
+			AZInstance		_instance,
+			Download		_download,
+			boolean			_seed )
+		{
+			instance		= _instance;
+			download		= _download;
+			seed			= _seed;
+		}
+		public AZInstance
+		getInstance()
+		{
+			return( instance );
+		}
+		
+		public Download
+		getDownload()
+		{
+			return( download );
+		}
+		
+		public boolean
+		isSeed()
+		{
+			return( seed );
+		}
 	}
 }

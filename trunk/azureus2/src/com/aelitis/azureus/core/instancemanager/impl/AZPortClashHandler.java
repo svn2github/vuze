@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.RandomUtils;
 
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
+import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
 
 public class 
 AZPortClashHandler 
@@ -115,14 +116,12 @@ AZPortClashHandler
 	public void
 	instanceLost(
 		AZInstance		instance )
-	{
-		
+	{	
 	}
 	
 	public void
 	instanceTracked(
-		AZInstance		instance )
+		AZInstanceTracked		instance )
 	{
-		
 	}
 }

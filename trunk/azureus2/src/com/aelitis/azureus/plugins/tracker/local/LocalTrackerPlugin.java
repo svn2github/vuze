@@ -29,6 +29,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
@@ -45,14 +46,16 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
+import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
 
 public class 
 LocalTrackerPlugin
-	implements Plugin, AZInstanceManagerListener, DownloadManagerListener
+	implements Plugin, AZInstanceManagerListener, DownloadManagerListener, DownloadListener
 {
 	private static final String	PLUGIN_NAME	= "LAN Peer Finder";
 	
-	private static final long	ANNOUNCE_PERIOD	= 20*60*1000;
+	private static final long	ANNOUNCE_PERIOD		= 20*60*1000;
+	private static final long	RE_ANNOUNCE_PERIOD	= 1*60*1000;
 	
 	private PluginInterface		plugin_interface;
 	private AZInstanceManager	instance_manager;
@@ -193,7 +196,7 @@ LocalTrackerPlugin
 		try{
 			mon.enter();
 			
-			track_times.remove( instance );
+			track_times.remove( instance.getID());
 			
 		}finally{
 			
@@ -210,7 +213,7 @@ LocalTrackerPlugin
 	
 	public void
 	instanceTracked(
-		AZInstance		instance )
+		AZInstanceTracked 		instance )
 	{
 		if ( !enabled.getValue()){
 			
@@ -225,8 +228,9 @@ LocalTrackerPlugin
 	{
 		while( true ){
 	
+			long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+
 			try{
-				long	now = plugin_interface.getUtilities().getCurrentSystemTime();
 				
 				List	todo = new ArrayList();
 				
@@ -247,11 +251,7 @@ LocalTrackerPlugin
 							todo.add( dl );
 						}
 					}
-					
-					for (int i=0;i<todo.size();i++){
-						
-						downloads.put( todo.get(i), new Long( now ));
-					}
+
 				}finally{
 					
 					mon.exit();
@@ -275,6 +275,44 @@ LocalTrackerPlugin
 	track(
 		Download	download )
 	{
+		long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+
+		boolean	ok = false;
+		
+		try{
+			mon.enter();
+			
+			Long		l_last_track	= (Long)downloads.get( download );
+			
+			if ( l_last_track == null ){
+				
+				return;
+			}
+			
+			long	last_track = l_last_track.longValue();
+			
+			if ( last_track > now || now - last_track > RE_ANNOUNCE_PERIOD ){
+					
+				ok	= true;
+	
+				downloads.put( download, new Long( now ));
+			}
+			
+		}finally{
+			
+			mon.exit();
+		}
+		
+		if ( ok ){
+			
+			trackSupport( download );
+		}
+	}
+	
+	protected void
+	trackSupport(
+		Download	download )
+	{
 		if ( !enabled.getValue()){
 			
 			return;
@@ -287,7 +325,7 @@ LocalTrackerPlugin
 			return;
 		}
 		
-		AZInstance[]	peers = instance_manager.track( download );
+		AZInstanceTracked[]	peers = instance_manager.track( download );
 		
 		for (int i=0;i<peers.length;i++){
 			
@@ -297,11 +335,13 @@ LocalTrackerPlugin
 	
 	protected void
 	handleTrackResult(
-		AZInstance		inst )
+		AZInstanceTracked		tracked_inst )
 	{
-		Download	download = (Download)inst.getProperty( AZInstance.PR_DOWNLOAD );
+		AZInstance	inst	= tracked_inst.getInstance();
+		
+		Download	download = tracked_inst.getDownload();
 				
-		boolean	is_seed = ((Boolean)inst.getProperty(AZInstance.PR_SEED)).booleanValue();
+		boolean	is_seed = tracked_inst.isSeed();
 		
 		long	now		= SystemTime.getCurrentTime();
 		
@@ -312,13 +352,13 @@ LocalTrackerPlugin
 		try{
 			mon.enter();
 			
-			Map	map = (Map)track_times.get( inst );
+			Map	map = (Map)track_times.get( inst.getID() );
 			
 			if ( map == null ){
 				
 				map	= new HashMap();
 				
-				track_times.put( inst, map );
+				track_times.put( inst.getID(), map );
 			}
 			
 			String	dl_key = plugin_interface.getUtilities().getFormatters().encodeBytesToString(download.getTorrent().getHash());
@@ -357,6 +397,7 @@ LocalTrackerPlugin
 		PeerManager	peer_manager = download.getPeerManager();
 		
 		if ( peer_manager != null ){
+			
 			
 			String	peer_ip		= inst.getInternalAddress().getHostAddress();
 			int		peer_port	= inst.getTrackerClientPort();
@@ -402,6 +443,8 @@ LocalTrackerPlugin
 			
 			downloads.put( download, new Long(0));
 			
+			download.addListener( this );
+			
 		}finally{
 			
 			mon.exit();
@@ -417,9 +460,32 @@ LocalTrackerPlugin
 		
 			downloads.remove( download );
 			
+			download.removeListener( this );
+			
 		}finally{
 			
 			mon.exit();
 		}
+	}
+	
+	public void
+	stateChanged(
+		Download		download,
+		int				old_state,
+		int				new_state )
+	{
+		if ( 	new_state == Download.ST_DOWNLOADING ||
+				new_state == Download.ST_SEEDING ){
+			
+			track( download );
+		}
+	}
+	
+	public void
+	positionChanged(
+		Download	download, 
+		int oldPosition,
+		int newPosition )
+	{
 	}
 }
