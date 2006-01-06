@@ -27,30 +27,24 @@ import java.io.ByteArrayInputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
-import java.net.URL;
 import java.util.*;
-import java.util.Map.Entry;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -71,7 +65,7 @@ AZInstanceManagerImpl
 	
 	private String				MC_GROUP_ADDRESS 	= "239.255.067.250";	// 239.255.000.000-239.255.255.255 
 	private int					MC_GROUP_PORT		= 16680;				//
-	private int					MC_CONTROL_PORT		= 16679;
+	private int					MC_CONTROL_PORT		= 0;
 
 	private static final int	MT_VERSION		= 1;
 	
@@ -730,7 +724,7 @@ AZInstanceManagerImpl
 	track(
 		Download		download )
 	{
-		if ( mc_group == null || download.getTorrent() == null  ){
+		if ( mc_group == null || download.getTorrent() == null || getOtherInstances().length == 0 ){
 			
 			return( new AZInstanceTracked[0]);
 		}

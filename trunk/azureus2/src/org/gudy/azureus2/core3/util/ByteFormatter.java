@@ -161,6 +161,19 @@ public class ByteFormatter
   	return( nicePrint( bytes, true ));
   }
   
+  public static String
+  encodeString(
+  	byte[]		bytes,
+  	int			offset,
+  	int			len )
+  {
+	  byte[]	x = new byte[len];
+	  
+	  System.arraycopy( bytes, offset, x, 0, len );
+	  
+  	  return( nicePrint( x, true ));
+  }
+  
   public static byte[]
   decodeString(
   	String		str )

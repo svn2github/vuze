@@ -96,7 +96,7 @@ MCGroupImpl
 
 	private boolean		ttl_problem_reported	= true;	// remove these diagnostic reports on win98
 	private boolean		sso_problem_reported	= true; // remove these diagnostic reports on win98
-		
+			
 	protected AEMonitor		this_mon	= new AEMonitor( "MCGroup" );
 
 	private Map	current_registrations = new HashMap();
@@ -140,7 +140,7 @@ MCGroupImpl
 						}
 					}
 				});
-			
+						
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
@@ -297,7 +297,14 @@ MCGroupImpl
 						control_socket.setReuseAddress( true );
 							
 						control_socket.bind( new InetSocketAddress(ni_address, control_port ));
-			
+		
+						if ( control_port == 0 ){
+							
+							control_port	= control_socket.getLocalPort();
+							
+							// System.out.println( "local port = " + control_port );
+						}
+						
 						new AEThread( "MCGroup:CtrlListener", true )
 							{
 								public void
@@ -350,7 +357,7 @@ MCGroupImpl
 		byte[]	data )
 	
 		throws MCGroupException
-	{
+	{	
 		try{
 			Enumeration	x = NetworkInterface.getNetworkInterfaces();
 			
@@ -358,10 +365,23 @@ MCGroupImpl
 				
 				NetworkInterface	network_interface = (NetworkInterface)x.nextElement();
 				
-				if ( !network_interface.getInetAddresses().hasMoreElements()){
+				Enumeration ni_addresses = network_interface.getInetAddresses();
+				
+				boolean	ok = false;
+				
+				while( ni_addresses.hasMoreElements()){
 					
-						// skip any interface that have no addresses as this will
-						// cause an error when we try and set the mc_socks's NI
+					InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
+				
+					if ( !( ni_address instanceof Inet6Address || ni_address.isLoopbackAddress())){
+						
+						ok	= true;
+						
+						break;
+					}
+				}
+				
+				if ( !ok ){
 					
 					continue;
 				}
@@ -389,7 +409,7 @@ MCGroupImpl
 	
 					mc_sock.setNetworkInterface( network_interface );
 					
-					// System.out.println( "querying interface " + network_interface );
+					// System.out.println( "sendToGroup: ni = " + network_interface.getName() + ", data = " + new String(data));
 					
 					DatagramPacket packet = new DatagramPacket(data, data.length, group_address.getAddress(), group_port );
 					
@@ -485,12 +505,17 @@ MCGroupImpl
 		InetAddress			local_address,
 	    DatagramPacket		packet )
 	{
+		byte[]	data 	= packet.getData();
+		int		len		= packet.getLength();
+		
+		// System.out.println( "receive: add = " + local_address + ", data = " + new String( data, 0, len ));
+
 		adapter.received( 
 				network_interface, 
 				local_address, 
 				(InetSocketAddress)packet.getSocketAddress(), 
-				packet.getData(), 
-				packet.getLength());
+				data, 
+				len );
 	}
 	
 	public void
@@ -501,7 +526,9 @@ MCGroupImpl
 		throws MCGroupException
 	{
 		DatagramSocket	reply_socket	= null;
-				
+			
+		// System.out.println( "sendToMember: add = " + address + ", data = " +new String( data ));
+
 		try{
 			reply_socket = new DatagramSocket();
 			
