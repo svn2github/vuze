@@ -87,7 +87,6 @@ RPDownloadStats
 		downloadCompletedLive		= delegate.getDownloadCompleted(true);
 		downloadCompletedStored		= delegate.getDownloadCompleted(false);
 		status						= delegate.getStatus();
-		status_default				= delegate.getStatus(false);
 		status_localised			= delegate.getStatus(true);
 		upload_average				= delegate.getUploadAverage();
 		download_average			= delegate.getDownloadAverage();
@@ -126,7 +125,7 @@ RPDownloadStats
 	public String
 	getStatus(boolean localised)
 	{
-		return (localised)? status_localised : status_default;
+		return (localised)? status_localised : status;
 	}
 	
 	public String
