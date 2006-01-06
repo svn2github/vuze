@@ -494,15 +494,42 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       }
   }
 
-  public boolean equals(Object obj) {
-    if (this == obj)
+  public boolean 
+  equals(Object obj) 
+  {
+    if (this == obj){
+    	
       return true;
-    if ((obj != null) && (obj instanceof TorrentDownloaderImpl)) {
-      TorrentDownloaderImpl other = (TorrentDownloaderImpl) obj;
-      if (other.getURL().equals(this.url.toString()) && other.getFile().getAbsolutePath().equals(this.file.getAbsolutePath()))
-        return true;
     }
-    return false;
+    
+    if ( obj instanceof TorrentDownloaderImpl ){
+    	
+      TorrentDownloaderImpl other = (TorrentDownloaderImpl) obj;
+      
+      if (other.getURL().equals(this.url.toString())){
+    	  
+    	  File	other_file 	= other.getFile();
+    	  File	this_file	= file;
+    	  
+    	  if ( other_file == this_file ){
+    		  
+    		  return( true );
+    	  }
+    	  
+    	  if ( other_file == null || this_file == null ){
+    		  
+    		  return( false );
+    	  }
+    	  
+    	  return( other_file.getAbsolutePath().equals(this_file.getAbsolutePath()));
+    	  
+      	}else{
+      
+      		return false;
+      	}
+    }else{
+    	return false;
+    }
   }
 
   
