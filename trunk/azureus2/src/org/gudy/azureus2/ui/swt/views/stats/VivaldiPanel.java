@@ -126,12 +126,21 @@ public class VivaldiPanel {
         }
         if(mouseRightDown) {
           int deltaY = event.y - yDown;
-          float scaleFactor = 1 + (float) deltaY / 100;
+          // scaleFactor>1 means zoom in, this happens when
+          // deltaY<0 which happens when the mouse is moved up.
+          float scaleFactor = 1 - (float) deltaY / 300;
           if(scaleFactor <= 0) scaleFactor = 0.01f;
-          scale.minX = scale.saveMinX * scaleFactor;
-          scale.maxX = scale.saveMaxX * scaleFactor;
-          scale.minY = scale.saveMinY * scaleFactor;
-          scale.maxY = scale.saveMaxY * scaleFactor;
+
+          // Scalefactor of e.g. 3 makes elements 3 times larger
+          float moveFactor = 1 - 1/scaleFactor;
+          
+          float centerX = (scale.saveMinX + scale.saveMaxX)/2;
+          scale.minX = scale.saveMinX + moveFactor * (centerX - scale.saveMinX);
+          scale.maxX = scale.saveMaxX - moveFactor * (scale.saveMaxX - centerX);
+
+          float centerY = (scale.saveMinY + scale.saveMaxY)/2;
+          scale.minY = scale.saveMinY + moveFactor * (centerY - scale.saveMinY);
+          scale.maxY = scale.saveMaxY - moveFactor * (scale.saveMaxY - centerY);
         }
       }
     });
@@ -172,14 +181,19 @@ public class VivaldiPanel {
     
     
     gc.setForeground(blue);
-    gc.setBackground(white);       
+    gc.setBackground(white);     
     
+    VivaldiPosition ownPosition = self.getVivaldiPosition();
+    float ownErrorEstimate = ownPosition.getErrorEstimate();
+    HeightCoordinatesImpl ownCoords =
+    	(HeightCoordinatesImpl) ownPosition.getCoordinates();
     
+    gc.drawText("Our error: " + ownErrorEstimate,10,10);
     
-    Coordinates ownCoords = self.getVivaldiPosition().getCoordinates();    
-    
-    gc.drawText("" + self.getVivaldiPosition().getErrorEstimate(),10,10);
-    
+    Color black = new Color(display, 0, 0, 0);
+    gc.setBackground(black); // Color of the squares
+
+    // Draw all known positions of other contacts
     Iterator iter = contacts.iterator();
     while(iter.hasNext()) {
       DHTControlContact contact = (DHTControlContact) iter.next();
@@ -190,6 +204,14 @@ public class VivaldiPanel {
       }
     }
     
+    // Mark our own position
+    Color red = new Color(display, 255, 0, 0);
+		gc.setForeground(red);
+		red.dispose();
+    drawSelf(gc, ownCoords.getX(), ownCoords.getY(),
+						 ownCoords.getH(), ownErrorEstimate);
+    
+    
     gc.dispose();
     
     gc = new GC(canvas);
@@ -198,6 +220,7 @@ public class VivaldiPanel {
     img.dispose();
     white.dispose();
     blue.dispose();
+    black.dispose();
   }
   
   public void refresh(List vivaldiPositions) {
@@ -266,6 +289,15 @@ public class VivaldiPanel {
     int lineReturn = text.indexOf("\n");
     int xOffset = gc.getFontMetrics().getAverageCharWidth() * (lineReturn != -1 ? lineReturn:text.length()) / 2;
     gc.drawText(text,x0-xOffset,y0,true);
+  }
+  
+  // Mark our own position
+  private void drawSelf(GC gc, float x, float y, float h, float errorEstimate){
+  	int x0 = scale.getX(x, y);
+		int y0 = scale.getY(x, y);
+		//gc.drawOval(x0-50, y0-50, 100, 100);
+		gc.drawLine(x0-15, y0, x0+15, y0); // Horizontal
+		gc.drawLine(x0, y0-15, x0, y0+15); // Vertical
   }
   
   private void drawBorder(GC gc) {
