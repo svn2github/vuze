@@ -521,10 +521,12 @@ public class MyTorrentsView
 		boolean upSpeedDisabled = false;
 		long totalUpSpeed = 0;
 		boolean upSpeedUnlimited = false;
-
+		long	upSpeedSetMax = 0;
+		
 		boolean downSpeedDisabled = false;
 		long totalDownSpeed = 0;
 		boolean downSpeedUnlimited = false;
+		long	downSpeedSetMax	= 0;
 
 		boolean	allScanSelected 	= true;
 		boolean allScanNotSelected	= true;
@@ -541,6 +543,10 @@ public class MyTorrentsView
 					int maxul = dm.getStats().getUploadRateLimitBytesPerSecond();
 					if (maxul == 0) {
 						upSpeedUnlimited = true;
+					}else{
+						if ( maxul > upSpeedSetMax ){
+							upSpeedSetMax	= maxul;
+						}
 					}
 					if (maxul == -1) {
 						maxul = 0;
@@ -551,6 +557,10 @@ public class MyTorrentsView
 					int maxdl = dm.getStats().getDownloadRateLimitBytesPerSecond();
 					if (maxdl == 0) {
 						downSpeedUnlimited = true;
+					}else{
+						if ( maxdl > downSpeedSetMax ){
+							downSpeedSetMax	= maxdl;
+						}
 					}
 					if (maxdl == -1) {
 						maxdl = 0;
@@ -776,18 +786,23 @@ public class MyTorrentsView
 		itemsDownSpeed[1].addListener(SWT.Selection, itemsDownSpeedListener);
 
 		if (hasSelection) {
-			int maxDownload = COConfigurationManager.getIntParameter(
+			long maxDownload = COConfigurationManager.getIntParameter(
 					"Max Download Speed KBs", 0) * 1024;
 			//using 200KiB/s as the default limit when no limit set.
-			if (maxDownload == 0)
-				maxDownload = 200 * 1024;
+			if (maxDownload == 0){		
+				if ( downSpeedSetMax == 0 ){
+					maxDownload = 200 * 1024;
+				}else{
+					maxDownload	= 4 * ( downSpeedSetMax/1024 ) * 1024;
+				}
+			}
 
 			for (int i = 2; i < 12; i++) {
 				itemsDownSpeed[i] = new MenuItem(menuDownSpeed, SWT.PUSH);
 				itemsDownSpeed[i].addListener(SWT.Selection, itemsDownSpeedListener);
 	
 				// dms.length has to be > 0 when hasSelection
-				int limit = maxDownload / (10 * dms.length) * (12 - i);
+				int limit = (int)(maxDownload / (10 * dms.length) * (12 - i));
 				StringBuffer speed = new StringBuffer();
 				speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
 						* dms.length));
@@ -901,17 +916,23 @@ public class MyTorrentsView
 		itemsUpSpeed[1].addListener(SWT.Selection, itemsUpSpeedListener);
 
 		if (hasSelection) {
-			int maxUpload = COConfigurationManager.getIntParameter(
+			long maxUpload = COConfigurationManager.getIntParameter(
 					"Max Upload Speed KBs", 0) * 1024;
 			//using 75KiB/s as the default limit when no limit set.
-			if (maxUpload == 0)
+			if (maxUpload == 0){
 				maxUpload = 75 * 1024;
-
+			}else{
+				if ( upSpeedSetMax == 0 ){
+					maxUpload = 200 * 1024;
+				}else{
+					maxUpload = 4 * ( upSpeedSetMax/1024 ) * 1024;
+				}
+			}
 			for (int i = 2; i < 12; i++) {
 				itemsUpSpeed[i] = new MenuItem(menuUpSpeed, SWT.PUSH);
 				itemsUpSpeed[i].addListener(SWT.Selection, itemsUpSpeedListener);
 
-				int limit = maxUpload / (10 * dms.length) * (12 - i);
+				int limit = (int)( maxUpload / (10 * dms.length) * (12 - i));
 				StringBuffer speed = new StringBuffer();
 				speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
 						* dms.length));
