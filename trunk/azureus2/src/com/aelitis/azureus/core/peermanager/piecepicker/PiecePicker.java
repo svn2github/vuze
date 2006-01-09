@@ -55,5 +55,5 @@ public interface PiecePicker
 	public void		setGlobalMin(int i);
 	public void		setRarestRunning(int i);
 
-	public long		getStartPriority(int pieceNumber);
+	public void		calcStartPriority(int pieceNumber);
 }

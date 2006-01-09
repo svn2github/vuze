@@ -42,6 +42,8 @@ public class DiskManagerPieceImpl
 	private DiskManagerImpl		disk_mgr;
 	private int					piece_index			=-1;
 	private int					statusFlags;
+	private long				startPriority;
+
 	private long				time_last_write;
 	// to save memory the "written" field is only maintained for pieces that are
 	// downloading. A value of "null" means that either the piece hasn't started 
@@ -435,6 +437,16 @@ public class DiskManagerPieceImpl
 		DiskManagerFileInfo[] filesArray =new DiskManagerFileInfo[files.size()];
 		files.toArray(filesArray);
 		return filesArray;
+	}
+	
+	public long getStartPriority()
+	{
+		return startPriority;
+	}
+	
+	public void setStartPriority(long l)
+	{
+		startPriority =l;
 	}
 
 }

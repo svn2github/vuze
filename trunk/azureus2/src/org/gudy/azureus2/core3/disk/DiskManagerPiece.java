@@ -98,4 +98,7 @@ public interface DiskManagerPiece
 	// a piece is Interesting if it's Needed and Requestable
 	// note that Avail and Requested isn't considered here
 	public boolean isInteresting();
+
+	public long getStartPriority();
+	public void setStartPriority(long l);
 }

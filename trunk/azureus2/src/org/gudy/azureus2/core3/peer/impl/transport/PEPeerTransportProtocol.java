@@ -626,7 +626,7 @@ PEPeerTransportProtocol
 
 			for (int i =0; i <dm_pieces.length; i++ )
 			{
-				if (other_peer_has_pieces[i] &&dm_pieces[i].isInteresting())
+				if (other_peer_has_pieces[i] &&dm_pieces[i].isNeeded() &&!dm_pieces[i].isDone())
 				{
 					is_interesting =true;
 					break;
@@ -659,7 +659,7 @@ PEPeerTransportProtocol
     if (disk_mgr.hasDownloadablePiece() ) {  //there is a piece worth being interested in
       DiskManagerPiece dmPiece =disk_mgr.getPieces()[pieceNumber];
       
-      is_interesting =dmPiece.isInteresting();	//we dont have that piece yet
+      is_interesting =dmPiece.isNeeded() &&!dmPiece.isDone();	//we dont have that piece yet
     }
     
     if ( is_interesting && !interested_in_other_peer ) {

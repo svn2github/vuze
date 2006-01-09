@@ -72,8 +72,6 @@ public class PiecePickerImpl
 	private int				_nbPieces;
 
 	protected long			nowish =SystemTime.getCurrentTime();	// very recent time
-	private long			startPriority;
-	private long			time_last_priority;
 
 	private boolean			has_piece_to_download =true;
 
@@ -172,12 +170,13 @@ public class PiecePickerImpl
 		return disk_mgr;
 	}
 
-	public long calcStartPriority(int pieceNumber)
+	public void calcStartPriority(int pieceNumber)
 	{
+		long startPriority =0;
 		long filesPriority =Long.MIN_VALUE;
 		long filePriority =Long.MIN_VALUE;
-		DiskManagerFileInfo[] filesInfo =disk_mgr.getPiece(pieceNumber).getFiles();
-		startPriority =0;
+		DiskManagerPiece dmPiece =disk_mgr.getPiece(pieceNumber);
+		DiskManagerFileInfo[] filesInfo =dmPiece.getFiles();
 		for (int i =0; i <filesInfo.length; i++ )
 		{
 			DiskManagerFileInfo fileInfo =filesInfo[i];
@@ -221,17 +220,8 @@ public class PiecePickerImpl
 			startPriority =Long.MIN_VALUE;
 			disk_mgr.getPiece(pieceNumber).clearNeeded();
 		}
-		time_last_priority =nowish;
-		return startPriority;
-	}
-
-	public long getStartPriority(int pieceNumber)
-	{
-		long time_since_last =nowish -time_last_priority;
-
-		if ((time_since_last >=0) &&(time_since_last <TIME_MIN_PRIORITY))
-			return startPriority;
-		return calcStartPriority(pieceNumber);
+		disk_mgr.getPiece(pieceNumber).setStartPriority(startPriority);
+		return;
 	}
 
 	public void parameterChanged(String parameterName)
@@ -242,7 +232,7 @@ public class PiecePickerImpl
 	public PieceBlock getPieceToStart(PEPeerTransport pc, BitFlags startCandidates, int candidateMode)
 	{
 		if (startCandidates.getNbSet()<= 0)
-		{ // cant do anything if no pieces to startup
+		{	// cant do anything if no pieces to startup
 			return null;
 		}
 
@@ -376,7 +366,7 @@ public class PiecePickerImpl
 				DiskManagerPiece dmPiece =dm_pieces[i];
 				int avail =availability[i];
 
-				long priority =getStartPriority(i);
+				long priority =dmPiece.getStartPriority();
 				if (priority >=0)
 				{
 					// is the piece loaded (therefore in progress DLing)
