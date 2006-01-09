@@ -76,7 +76,7 @@ CacheFileManagerFactory
 									
 				}catch( Throwable e ){
 					
-					throw( new CacheFileManagerException( "Failed to instantiate manager '" + impl + "'", e ));
+					throw( new CacheFileManagerException( null, "Failed to instantiate manager '" + impl + "'", e ));
 				}
 			}
 			

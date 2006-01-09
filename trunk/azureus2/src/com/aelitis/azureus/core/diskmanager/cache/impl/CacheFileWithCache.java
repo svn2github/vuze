@@ -126,6 +126,9 @@ CacheFileWithCache
 		
 	protected AEMonitor				this_mon		= new AEMonitor( "CacheFile" );
 	
+	protected volatile CacheFileManagerException	pending_exception;
+	
+	
 	protected
 	CacheFileWithCache(
 		CacheFileManagerImpl	_manager,
@@ -243,6 +246,8 @@ CacheFileWithCache
 	
 		throws CacheFileManagerException
 	{
+		checkPendingException();
+		
 		final int	file_buffer_position	= file_buffer.position(SS_CACHE);
 		final int	file_buffer_limit		= file_buffer.limit(SS_CACHE);
 		
@@ -563,7 +568,7 @@ CacheFileWithCache
 							
 							if ( i == 1 ){
 								
-								manager.rethrow(e);
+								manager.rethrow(this,e);
 							}
 						}
 					}				
@@ -577,7 +582,7 @@ CacheFileWithCache
 		
 				}catch( FMFileManagerException e ){
 						
-					manager.rethrow(e);
+					manager.rethrow(this,e);
 				}
 			}
 		}finally{
@@ -616,6 +621,8 @@ CacheFileWithCache
 	
 		throws CacheFileManagerException
 	{
+		checkPendingException();
+		
 		boolean	buffer_cached	= false;
 		boolean	failed			= false;
 		
@@ -706,7 +713,7 @@ CacheFileWithCache
 						
 						if ( access_mode != CF_WRITE ){
 							
-							throw( new CacheFileManagerException( "Write failed - cache file is read only" ));
+							throw( new CacheFileManagerException( this,"Write failed - cache file is read only" ));
 						}
 						
 							// if we are overwriting stuff already in the cache then force-write overlapped
@@ -768,7 +775,7 @@ CacheFileWithCache
 			
 			failed	= true;
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 			
 		}finally{
 			
@@ -804,7 +811,7 @@ CacheFileWithCache
 					// make sure we release the offending buffer entries otherwise they'll hang around
 					// in memory causing grief when the next attempt it made to flush them...
 				
-				flushCacheSupport( file_position, length, true, minimum_to_release, oldest_dirty_time, min_chunk_size );
+				flushCacheSupport( 0, -1, true, -1, 0, -1 );
 			}
 			
 			throw( e );
@@ -824,8 +831,8 @@ CacheFileWithCache
 		throws CacheFileManagerException
 	{
 		try{
-			this_mon.enter();
-			
+			this_mon.enter();	
+
 			if ( cache.size() == 0 ){
 				
 				return;
@@ -941,9 +948,7 @@ CacheFileWithCache
 						}
 					}
 				}catch( Throwable e ){
-					
-					Debug.out( "cacheFlush fails: " + e.getMessage());
-					
+										
 					last_failure	= e;
 					
 				}finally{
@@ -1012,7 +1017,7 @@ CacheFileWithCache
 					throw((CacheFileManagerException)last_failure );
 				}
 				
-				throw( new CacheFileManagerException( "cache flush failed", last_failure ));
+				throw( new CacheFileManagerException( this,"cache flush failed", last_failure ));
 			}
 		}finally{
 			
@@ -1051,7 +1056,7 @@ CacheFileWithCache
 				
 				if ( buffer.limit(SS_CACHE) - buffer.position(SS_CACHE) != entry.getLength()){
 					
-					throw( new CacheFileManagerException( "flush: inconsistent entry length, position wrong" ));
+					throw( new CacheFileManagerException( this,"flush: inconsistent entry length, position wrong" ));
 				}
 				
 				expected_per_entry_write	+= entry.getLength();
@@ -1063,7 +1068,7 @@ CacheFileWithCache
 
 			if ( expected_per_entry_write != expected_overall_write ){
 		
-				throw( new CacheFileManagerException( "flush: inconsistent write length, entrys = " + expected_per_entry_write + " overall = " + expected_overall_write ));
+				throw( new CacheFileManagerException( this,"flush: inconsistent write length, entrys = " + expected_per_entry_write + " overall = " + expected_overall_write ));
 				
 			}
 			
@@ -1075,7 +1080,7 @@ CacheFileWithCache
 			
 		}catch( FMFileManagerException e ){
 			
-			throw( new CacheFileManagerException( "flush fails", e ));
+			throw( new CacheFileManagerException( this,"flush fails", e ));
 			
 		}finally{			
 			
@@ -1118,13 +1123,20 @@ CacheFileWithCache
 		}
 	}
 	
+		// this is the flush method used by the public methods directly (as opposed to those use when reading, writing etc)
+		// and it is the place that pending exceptions are checked for. We don't want to check for this in the internal
+		// logic for flushing as we need to be able to flush from files that have a pending error to clear the cache
+		// state
+	
 	protected void
-	flushCache(
+	flushCachePublic(
 		boolean				release_entries,
 		long				minumum_to_release )
 	
 		throws CacheFileManagerException
 	{
+		checkPendingException();
+		
 		flushCache(0, release_entries, minumum_to_release );
 	}
 	
@@ -1204,7 +1216,24 @@ CacheFileWithCache
 	
 		// support methods
 	
+	protected void
+	checkPendingException()
 	
+		throws CacheFileManagerException
+	{
+		if ( pending_exception != null ){
+			
+			throw( pending_exception );
+		}
+	}
+	
+	protected void
+	setPendingException(
+		CacheFileManagerException	e )
+	{
+		pending_exception	= e;
+	}
+
 	protected String
 	getName()
 	{
@@ -1232,13 +1261,13 @@ CacheFileWithCache
 		throws CacheFileManagerException
 	{
 		try{
-			flushCache( true, -1 );
+			flushCachePublic( true, -1 );
 			
 			file.moveFile( new_file );
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}	
 	}
 	
@@ -1253,7 +1282,7 @@ CacheFileWithCache
 			
 			if ( access_mode != mode ){
 				
-				flushCache( false, -1 );
+				flushCachePublic( false, -1 );
 			}
 							
 			file.setAccessMode( mode==CF_READ?FMFile.FM_READ:FMFile.FM_WRITE );
@@ -1262,7 +1291,7 @@ CacheFileWithCache
 
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 			
 		}finally{
 			
@@ -1283,13 +1312,23 @@ CacheFileWithCache
 		throws CacheFileManagerException
 	{
 		try{
+			this_mon.enter();
+			
+			if ( getStorageType() != type ){
+				
+				flushCachePublic( false, -1 );
+			}
 			
 			file.setStorageType( type==CT_COMPACT?FMFile.FT_COMPACT:FMFile.FT_LINEAR );
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
-		}			
+			manager.rethrow(this,e);
+			
+		}finally{
+			
+			this_mon.exit();
+		}		
 	}
 	
 	public int
@@ -1311,7 +1350,7 @@ CacheFileWithCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}	
 	}
 
@@ -1372,7 +1411,7 @@ CacheFileWithCache
 						
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 			
 			return( 0 );
 		}
@@ -1401,7 +1440,7 @@ CacheFileWithCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 			
 			return( 0 );
 		}
@@ -1417,13 +1456,13 @@ CacheFileWithCache
 			
 				// flush in case length change will invalidate cache data (unlikely but possible) 
 			
-			flushCache( true, -1 );
+			flushCachePublic( true, -1 );
 			
 			file.setLength( length );
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}
 	}
 	
@@ -1477,13 +1516,13 @@ CacheFileWithCache
 		throws CacheFileManagerException
 	{
 		try{
-			flushCache( false, -1 );
+			flushCachePublic( false, -1 );
 			
 			file.flush();
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}
 	}
 	
@@ -1492,7 +1531,7 @@ CacheFileWithCache
 	
 		throws CacheFileManagerException
 	{
-		flushCache(true, -1);
+		flushCachePublic(true, -1);
 	}
 	
 	public void
@@ -1505,7 +1544,7 @@ CacheFileWithCache
 		boolean	fm_file_closed = false;
 		
 		try{
-			flushCache( true, -1 );
+			flushCachePublic( true, -1 );
 			
 			file.close();
 			
@@ -1513,7 +1552,7 @@ CacheFileWithCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 			
 		}finally{
 			
@@ -1526,10 +1565,10 @@ CacheFileWithCache
 					
 						// we're already on our way out via exception, no need to
 						// throw a new one
-					
-					Debug.printStackTrace( e );
+
 				}
 			}
+			
 			manager.closeFile( this );
 		}
 	}
@@ -1545,7 +1584,7 @@ CacheFileWithCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);			
+			manager.rethrow(this,e);			
 		}
 	}
 }

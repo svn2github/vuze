@@ -272,7 +272,7 @@ CacheFileManagerImpl
 			
 		}catch( FMFileManagerException e ){
 			
-			rethrow( e );
+			rethrow( null, e );
 			
 			return( null );
 		}
@@ -307,6 +307,7 @@ CacheFileManagerImpl
 		 * @return
 		 * @throws CacheFileManagerException
 		 */
+	
 	protected CacheEntry
 	allocateCacheSpace(
 		int					entry_type,
@@ -351,7 +352,25 @@ CacheFileManagerImpl
 			
 				CacheFileWithCache	oldest_file = oldest_entry.getFile();
 				
-				oldest_file.flushCache( oldest_entry.getFilePosition(), true, cache_minimum_free_size );
+				try{
+					
+					oldest_file.flushCache( oldest_entry.getFilePosition(), true, cache_minimum_free_size );
+					
+				}catch( CacheFileManagerException e ){
+					
+						// if the flush failed on a file other than this one then we don't report the error here,
+						// rather we tag the existing file as failed so that when it is next accessed the error
+						// will be reported
+					
+					if ( oldest_file != file ){
+												
+						oldest_file.setPendingException( e );
+						
+					}else{
+						
+						throw( e );
+					}
+				}
 				
 				long	flushed = cache_space_free - old_free;
 				
@@ -374,7 +393,7 @@ CacheFileManagerImpl
 								// hmm, something wrong with cache as the flush should have got rid
 								// of at least the oldest entry
 							
-							throw( new CacheFileManagerException( "Cache inconsistent: 0 flushed"));
+							throw( new CacheFileManagerException( null, "Cache inconsistent: 0 flushed"));
 						}
 					}finally{
 						
@@ -476,8 +495,9 @@ CacheFileManagerImpl
 				
 				while( it.hasNext()){
 					
+					CacheFileWithCache	file = (CacheFileWithCache)it.next();
+
 					try{
-						CacheFileWithCache	file = (CacheFileWithCache)it.next();
 						
 						TOTorrentFile	tf = file.getTorrentFile();
 						
@@ -491,10 +511,16 @@ CacheFileManagerImpl
 						
 						file.flushOldDirtyData( oldest, min_flush_size );
 						
-					}catch( Throwable e ){
+					}catch( CacheFileManagerException e ){
+						
+						file.setPendingException( e );
 						
 							// if this fails then the error should reoccur on a "proper"
 							// flush later and be reported
+						
+						Debug.printStackTrace( e );
+						
+					}catch( Throwable e ){
 						
 						Debug.printStackTrace( e );
 					}
@@ -547,7 +573,7 @@ CacheFileManagerImpl
 					
 					Debug.out( "Cache inconsistency: my count = " + my_count + ", file = " + file.cache.size());
 					
-					throw( new CacheFileManagerException( "Cache inconsistency: counts differ"));
+					throw( new CacheFileManagerException( null, "Cache inconsistency: counts differ"));
 					
 				}else{
 					
@@ -558,7 +584,7 @@ CacheFileManagerImpl
 					
 					Debug.out( "Cache inconsistency: used_size = " + total_cache_size + ", free = " + cache_space_free + ", size = " + cache_size );
 					
-					throw( new CacheFileManagerException( "Cache inconsistency: sizes differ"));
+					throw( new CacheFileManagerException( null, "Cache inconsistency: sizes differ"));
 					
 				}else{
 					
@@ -586,7 +612,7 @@ CacheFileManagerImpl
 				
 				Debug.out( "Cache inconsistency: entry missing on usage" );
 				
-				throw( new CacheFileManagerException( "Cache inconsistency: entry missing on usage"));
+				throw( new CacheFileManagerException( null, "Cache inconsistency: entry missing on usage"));
 				
 			}else{
 				
@@ -615,7 +641,7 @@ CacheFileManagerImpl
 				
 				Debug.out( "Cache inconsistency: entry missing on removal" );
 
-				throw( new CacheFileManagerException( "Cache inconsistency: entry missing on removal"));
+				throw( new CacheFileManagerException( null, "Cache inconsistency: entry missing on removal"));
 			}
 
 			/*
@@ -857,7 +883,8 @@ CacheFileManagerImpl
 	
 	protected void
 	rethrow(
-		FMFileManagerException e )
+		CacheFile				file,
+		FMFileManagerException 	e )
 	
 		throws CacheFileManagerException
 	{
@@ -865,10 +892,10 @@ CacheFileManagerImpl
 		
 		if ( cause != null ){
 			
-			throw( new CacheFileManagerException( e.getMessage(), cause ));
+			throw( new CacheFileManagerException( file, e.getMessage(), cause ));
 		}
 		
-		throw( new CacheFileManagerException( e.getMessage(), e ));
+		throw( new CacheFileManagerException( file, e.getMessage(), e ));
 	}
 	
 	public void

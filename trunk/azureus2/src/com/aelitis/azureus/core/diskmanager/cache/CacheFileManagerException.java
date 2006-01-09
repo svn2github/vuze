@@ -30,18 +30,32 @@ public class
 CacheFileManagerException 
 	extends Exception
 {
+	private CacheFile	file;
+	
 	public
 	CacheFileManagerException(
-		String		str )
+		CacheFile	_file,
+		String		_str )
 	{
-		super(str);
+		super(_str);
+		
+		file		= _file;
 	}
 	
 	public
 	CacheFileManagerException(
-		String		str,
-		Throwable	cause )
+		CacheFile	_file,
+		String		_str,
+		Throwable	_cause )
 	{
-		super( str, cause );
+		super( _str, _cause );
+		
+		file	= _file;
+	}
+	
+	public CacheFile
+	getFile()
+	{
+		return( file );
 	}
 }

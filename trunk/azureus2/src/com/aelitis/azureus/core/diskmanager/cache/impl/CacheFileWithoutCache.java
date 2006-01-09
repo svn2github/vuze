@@ -79,7 +79,7 @@ CacheFileWithoutCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}	
 	}
 	
@@ -95,7 +95,7 @@ CacheFileWithoutCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}	
 	}
 	
@@ -117,7 +117,7 @@ CacheFileWithoutCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}			
 	}
 	
@@ -139,7 +139,7 @@ CacheFileWithoutCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}	
 	}
 
@@ -154,7 +154,7 @@ CacheFileWithoutCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 			
 			return( 0 );
 		}
@@ -181,7 +181,7 @@ CacheFileWithoutCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}
 	}
 	
@@ -205,7 +205,7 @@ CacheFileWithoutCache
 
 		}catch( FMFileManagerException e ){
 				
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}
 	}
 	
@@ -228,7 +228,7 @@ CacheFileWithoutCache
 
 		}catch( FMFileManagerException e ){
 				
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}
 	}
 	
@@ -255,7 +255,7 @@ CacheFileWithoutCache
 			
 		}catch( FMFileManagerException e ){
 				
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 			
 		}finally{
 			
@@ -276,7 +276,7 @@ CacheFileWithoutCache
 		
 		}catch( FMFileManagerException e ){
 		
-			manager.rethrow(e);
+			manager.rethrow(this,e);
 		}
 	}
 	
@@ -298,7 +298,7 @@ CacheFileWithoutCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);			
+			manager.rethrow(this,e);			
 		}
 	}
 	
@@ -313,7 +313,7 @@ CacheFileWithoutCache
 			
 		}catch( FMFileManagerException e ){
 			
-			manager.rethrow(e);			
+			manager.rethrow(this,e);			
 		}
 	}
 }
