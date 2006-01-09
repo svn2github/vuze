@@ -48,7 +48,6 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -2071,7 +2070,17 @@ public class GlobalManagerImpl
 				
 				DownloadManager	manager = (DownloadManager)managers_cow.get(i);
 				
-				writer.println( "    " + manager.getDisplayName() + " (" + manager + ")");
+				TOTorrent	torrent = manager.getTorrent();
+				
+				String	hash = "<unknown>";
+				
+				try{
+					hash = ByteFormatter.encodeString( torrent.getHash());
+					
+				}catch( Throwable e ){
+				}
+				
+				writer.println( "    " + manager.getDisplayName() + "/" + hash + " (" + manager + ")");
 			}
 
 	    }finally{
