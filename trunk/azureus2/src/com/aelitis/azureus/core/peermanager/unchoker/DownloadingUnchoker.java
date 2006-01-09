@@ -134,7 +134,7 @@ public class DownloadingUnchoker implements Unchoker {
         if( peer.isInterestingToMe() && UnchokerUtil.isUnchokable( peer, false ) && !best_peers.contains( peer ) ) {  //viable peer found
           long uploaded_ratio = peer.getStats().getTotalDataBytesSent() / (peer.getStats().getTotalDataBytesReceived() + (DiskManager.BLOCK_SIZE-1));
           //make sure we haven't already uploaded several times as much data as they've sent us
-          if( uploaded_ratio < 10 ) {
+          if( uploaded_ratio <3) {
             UnchokerUtil.updateLargestValueFirstSort( peer.getStats().getTotalDataBytesReceived(), bests, peer, best_peers, start_pos );
           }  
         }
@@ -152,7 +152,7 @@ public class DownloadingUnchoker implements Unchoker {
     
     //if we still have remaining slots
     while( best_peers.size() < max_to_unchoke ) { 
-      PEPeer peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, true );  //just pick one optimistically
+      PEPeer peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, false);  //just pick one optimistically
       if( peer == null )  break;  //no more new unchokes avail
       
       if( !best_peers.contains( peer ) ) {

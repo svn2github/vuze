@@ -27,10 +27,12 @@ package org.gudy.azureus2.core3.disk.impl;
  *
  */
 
-import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
 
@@ -109,4 +111,5 @@ DiskManagerHelper
 	
 	public DiskManagerRecheckScheduler
 	getRecheckScheduler();
+
 }

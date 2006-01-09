@@ -1047,7 +1047,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	      	
 	 		for (int i=0;i<pieces.length;i++){
 	      		 	
-	 			new_pieces[i] = dm_pieces[i].getDone();
+	 			new_pieces[i] = dm_pieces[i].isDone();
 	       }
 	    }
 

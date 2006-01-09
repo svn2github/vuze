@@ -27,8 +27,8 @@ package org.gudy.azureus2.core3.peer.impl;
  */
 
 
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 
 
 public interface
@@ -57,8 +57,6 @@ public boolean
   
 	public boolean
 	isPeerExchangeEnabled();
-	
-	public DiskManager getDiskManager();
 	
 	public void addPeerTransport( PEPeerTransport transport );
 }

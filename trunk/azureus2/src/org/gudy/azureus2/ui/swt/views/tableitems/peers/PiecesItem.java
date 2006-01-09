@@ -201,7 +201,7 @@ public class PiecesItem
           int nbAvailable = 0;
           for (int j = a0; j < a1; j++) {
             if (available[j]) {
-              if (pieces==null || !pieces[j].getDone()) {
+              if (pieces==null || !pieces[j].isDone()) {
                 nbNeeded++;
               }
               nbAvailable++;

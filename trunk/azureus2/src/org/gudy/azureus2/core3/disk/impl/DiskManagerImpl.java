@@ -22,45 +22,6 @@
 
 package org.gudy.azureus2.core3.disk.impl;
 
-import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
-import com.aelitis.azureus.core.diskmanager.access.DiskAccessControllerFactory;
-import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
-import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
-import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
-import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
-import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
-
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.access.DMAccessFactory;
-import org.gudy.azureus2.core3.disk.impl.access.DMReader;
-import org.gudy.azureus2.core3.disk.impl.access.DMChecker;
-import org.gudy.azureus2.core3.disk.impl.access.DMReaderAdapter;
-import org.gudy.azureus2.core3.disk.impl.access.DMWriter;
-import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
-import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
-import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapper;
-import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFactory;
-import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFile;
-//import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePicker;
-//import org.gudy.azureus2.core3.disk.impl.piecepicker.DMPiecePickerFactory;
-import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.internat.LocaleUtil;
-import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
-import org.gudy.azureus2.core3.internat.LocaleUtilEncodingException;
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.torrent.TOTorrentFile;
-import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.platform.PlatformManagerFactory;
-import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
-
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -69,6 +30,67 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerCheckRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerCheckRequestListener;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerListener;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
+import org.gudy.azureus2.core3.disk.DiskManagerWriteRequest;
+import org.gudy.azureus2.core3.disk.DiskManagerWriteRequestListener;
+import org.gudy.azureus2.core3.disk.impl.access.DMAccessFactory;
+import org.gudy.azureus2.core3.disk.impl.access.DMChecker;
+import org.gudy.azureus2.core3.disk.impl.access.DMReader;
+import org.gudy.azureus2.core3.disk.impl.access.DMReaderAdapter;
+import org.gudy.azureus2.core3.disk.impl.access.DMWriter;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapper;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFactory;
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapperFile;
+import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.internat.LocaleUtil;
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
+import org.gudy.azureus2.core3.internat.LocaleUtilEncodingException;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.LogRelation;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.ListenerManager;
+import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
+import com.aelitis.azureus.core.diskmanager.access.DiskAccessControllerFactory;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
+import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
+import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePickerFactory;
+
 /**
  * 
  * The disk Wrapper.
@@ -76,8 +98,10 @@ import java.util.StringTokenizer;
  * @author Tdv_VgA
  * @author MjrTom
  *			2005/Oct/08: new piece-picking support changes
+ *			2006/Jan/02: refactoring piece picking related code
  *
  */
+
 public class 
 DiskManagerImpl
 	extends LogRelation
@@ -88,7 +112,6 @@ DiskManagerImpl
 	private static DiskAccessController	disk_access_controller;
 	
 	static {
-		firstPiecePriority			= COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
 		int	max_read_threads 		= COConfigurationManager.getIntParameter( "diskmanager.perf.read.maxthreads" );
 		int	max_read_mb 			= COConfigurationManager.getIntParameter( "diskmanager.perf.read.maxmb" );
 		int	max_write_threads 		= COConfigurationManager.getIntParameter( "diskmanager.perf.write.maxthreads" );
@@ -142,17 +165,16 @@ DiskManagerImpl
 	private DMWriter				writer;
 	
 	private RDResumeHandler			resume_handler;
-//	private DMPiecePicker			piece_picker;
 	private DMPieceMapper			piece_mapper;
 	
 	
-	protected static boolean	firstPiecePriority;
+	private PiecePicker				piecePicker;
+	
 	private DiskManagerPieceImpl[]	pieces;
 	private DMPieceList[]			pieceMap;
 
 	private DiskManagerFileInfoImpl[] 	files;
-	
-    private DownloadManager 			download_manager;
+    private DownloadManager 		download_manager;
 
 	private boolean alreadyMoved = false;
 
@@ -234,7 +256,6 @@ DiskManagerImpl
 					String  str ) 
 	    	    { 	      
 					max_read_block_size	= COConfigurationManager.getIntParameter( "BT Request Max Block Size" );
-					firstPiecePriority = COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
 	    	    }
 		};
 
@@ -323,7 +344,7 @@ DiskManagerImpl
 		for (int i=0;i<pieces.length;i++)
 		{
 			pieces[i] = new DiskManagerPieceImpl( this, i );
-			if (pieces[i].getDone())
+			if (pieces[i].isDone())
 			{
 				nbPiecesDone++;
 			}
@@ -337,7 +358,7 @@ DiskManagerImpl
 		
 		resume_handler		= new RDResumeHandler( this, checker );
 	
-//		piece_picker		= DMPiecePickerFactory.create( this );
+		piecePicker			=PiecePickerFactory.create(this);
 	}
 
 	public void 
@@ -457,7 +478,7 @@ DiskManagerImpl
 
 		constructFilesPieces();
 		
-//		piece_picker.start();
+		piecePicker.start();
 		
 		if ( getState() == FAULTY  ){
 			
@@ -546,7 +567,7 @@ DiskManagerImpl
 		
 		resume_handler.stop();
 		
-//		piece_picker.stop();
+		piecePicker.stop();
 		
 		if ( files != null ){
 			
@@ -1089,25 +1110,22 @@ DiskManagerImpl
 		allocated	= num;
 	}
 	
-		// called when status has CHANGED and should only be called by DiskManagerPieceImpl
-	
+	// called when status has CHANGED and should only be called by DiskManagerPieceImpl
 	protected void
 	setPieceDone(
-		DiskManagerPieceImpl	piece,
+		DiskManagerPieceImpl	dmPiece,
 		boolean					done )
 	{
-		int	piece_number = piece.getPieceNumber();
-		
-		int	piece_length = piece.getLength();
-		
+		int	piece_number = dmPiece.getPieceNumber();
+		int	piece_length = dmPiece.getLength();
 		DMPieceList piece_list = pieceMap[piece_number];
 
 		try{
 			file_piece_mon.enter();					
 			
-			if ( piece.getDone() != done ){
+			if ( dmPiece.isDone() != done ){
 				
-				piece.setDoneSupport( done );
+				dmPiece.setDoneSupport( done );
 	
 				if ( done ){
 					
@@ -1186,9 +1204,9 @@ DiskManagerImpl
 			file_piece_mon.exit();
 		}			
 		
-		listeners.dispatch(LDT_PIECE_DONE_CHANGED, piece);
+		listeners.dispatch(LDT_PIECE_DONE_CHANGED, dmPiece);
 	}
-		
+
 	public void
 	accessModeChanged(
 		DiskManagerFileInfoImpl		file,
@@ -1200,10 +1218,14 @@ DiskManagerImpl
 			new Object[]{ file, new Integer(old_mode), new Integer(new_mode)});
 	}
 	
-	public DiskManagerPiece[]
-	getPieces()
+	public DiskManagerPieceImpl[] getPieces()
 	{
-		return( pieces );
+		return pieces;
+	}
+
+	public DiskManagerPieceImpl getPiece(int PieceNumber)
+	{
+		return pieces[PieceNumber];
 	}
 
 	public int getPieceLength() {
@@ -1338,11 +1360,9 @@ DiskManagerImpl
 
 	}
 	
-	public DMPieceList
-	getPieceList(
-		int		piece_number )
+	public DMPieceList getPieceList(int piece_number)
 	{
-		return( pieceMap[piece_number] );
+		return (pieceMap[piece_number]);
 	}
 	
 	public byte[]
@@ -1526,7 +1546,7 @@ DiskManagerImpl
 								+ " > pLength=" + pLength));
 		  return false;
 		}
-		if(!getPieces()[pieceNumber].getDone()) {
+		if(!getPieces()[pieceNumber].isDone()) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
 						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " not done"));
@@ -2116,20 +2136,19 @@ DiskManagerImpl
 //	public void 
 //	computePriorityIndicator()
 //	{
-//		piece_picker.computePriorityIndicator();
+//		piecePicker.computePriorityIndicator();
 //	}
 
-//	public int
-//	getPieceNumberToDownload(boolean[] pieceCandidates)
+//	public PieceBlock getPieceToStart(BitFlags candidatePieces, int candidateMode)
 //	{
-//		return piece_picker.getPiecenumberToDownload(pieceCandidates);
+//		return piecePicker.getPieceToStart(candidatePieces, candidateMode);
 //	}
-	
+
 	public boolean hasDownloadablePiece() {
-//		return piece_picker.hasDownloadablePiece();
-		return (0 <getRemainingExcludingDND());
+//		return piecePicker.hasDownloadablePiece();
+		return (getRemainingExcludingDND() >0);
 	}
-	
+
 	public File
 	getSaveLocation()
 	{
@@ -2627,14 +2646,13 @@ DiskManagerImpl
 		return( recheck_scheduler );
 	}
 
-	public boolean getFirstPiecePriority()
-	{
-		return firstPiecePriority;
-	}
-
 	public int getPiecesDone()
 	{
 		return nbPiecesDone;
 	}
 
+	public PiecePicker getPiecePicker()
+	{
+		return piecePicker;
+	}
 }

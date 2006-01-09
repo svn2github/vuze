@@ -56,9 +56,8 @@ PEPeerManager
 	public int
 	getState();
 	
- 	public DiskManager
-	getDiskManager();
-  	
+	public DiskManager getDiskManager();
+	
 	public void
 	start();
 		
@@ -95,6 +94,8 @@ PEPeerManager
 	public int getNbPeers();
 
 	public int getNbSeeds();
+	
+	public int getNbPieces();
 	
 	public int getPiecesNumber();
 

@@ -24,17 +24,19 @@ package com.aelitis.azureus.core.diskmanager.test;
 
 import java.io.*;
 import java.nio.channels.*;
-import java.util.Random;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 import com.aelitis.azureus.core.diskmanager.MemoryMappedFile;
 
 /**
- *
+ * @author MjrTom
+ * 			2006/Jan/02:	use RandomUtils
  */
+
 public class MemoryMappedFileTester {
   static long MAX_SIZE = 1L*1024*1024*1024;
   //static long MAX_SIZE = 237*1024*1024;
@@ -42,7 +44,6 @@ public class MemoryMappedFileTester {
 
   static DirectByteBuffer dbb = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_OTHER,BUFF_SIZE );
   static byte[] raw = new byte[ BUFF_SIZE ];
-  static Random rand = new Random();
   
 	public static void main(String[] args) {
     try {
@@ -64,7 +65,7 @@ public class MemoryMappedFileTester {
       while( written < MAX_SIZE ) {
         System.out.print("|");  if (loop % 80 == 0) System.out.println();
         refreshBuffers();
-        long start_pos = new Float(rand.nextFloat()*(MAX_SIZE-BUFF_SIZE)).longValue();
+        long start_pos = new Float(RandomUtils.nextFloat()*(MAX_SIZE-BUFF_SIZE)).longValue();
 ///////////////////////////////////////////////////////
         long start = System.currentTimeMillis();
         //raf.seek( start_pos );  raf.write( raw );
@@ -95,7 +96,7 @@ public class MemoryMappedFileTester {
   
 
   private static void refreshBuffers() {
-    rand.nextBytes( raw );
+    RandomUtils.nextBytes( raw );
     dbb.clear(DirectByteBuffer.SS_OTHER);
     dbb.put( DirectByteBuffer.SS_OTHER,raw );
     dbb.flip(DirectByteBuffer.SS_OTHER);

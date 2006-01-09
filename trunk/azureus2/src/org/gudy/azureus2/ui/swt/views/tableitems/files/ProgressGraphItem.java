@@ -156,7 +156,7 @@ public class ProgressGraphItem
                 
                	DiskManagerPiece	dm_piece = dm_pieces[this_index];
                 
-                if (dm_piece.getDone()) {
+                if (dm_piece.isDone()) {
                   nbAvailable++;
                 }
                 

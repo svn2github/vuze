@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 public class 
 DiskAccessControllerInstance 
@@ -516,27 +517,23 @@ DiskAccessControllerInstance
 		
 		for (int i=0;i<10;i++){
 			
-			final long seed = System.currentTimeMillis() + i;
-			
 			new Thread()
 			{
 				public void
 				run()
 				{
-					Random 	rand = new Random( seed );
-					
 					int	count = 0;
 					
 					while( true ){
 						
-						int	group = rand.nextInt( 10 );
+						int	group =RandomUtils.generateRandomIntUpto( 10 );
 						
 						System.out.println( Thread.currentThread().getName() + " reserving " + group );
 						
 						sem.reserveGroup( group );
 						
 						try{
-							Thread.sleep(5 + rand.nextInt(5));
+							Thread.sleep(5 + RandomUtils.generateRandomIntUpto(5));
 							
 						}catch( Throwable e ){
 						}

@@ -18,111 +18,78 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
+
 package org.gudy.azureus2.core3.peer;
 
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 
+import com.aelitis.azureus.core.util.Piece;
+
 /**
- * Represents a Piece and the status of its different chunks (un-requested, requested, downloaded, written).
+ * Represents a Peer Piece and the status of its different blocks (un-requested, requested, downloaded, written).
  * 
  * @author Olivier
  * @author MjrTom
  *			2005/Oct/08: various changes to support new piece-picking
- *
+ *			2006/Jan/2: refactoring, mostly to base Piece interface
  */
 
-public interface 
-PEPiece 
+public interface PEPiece
+	extends Piece
 {  
-  public void setWritten(PEPeer peer,int blocNumber);
- 
-  public void unmarkBlock(int blocNumber);
-  
-  public boolean markBlock(int blocNumber);
- 
-  public int getAvailability();
-   
-  public int getPieceNumber();
-  
-  public int getLength();
-  
-  public int getNbBlocs();  
- 
-  public int getCompleted();
- 
-  public boolean[] getWritten();
-  
-  public boolean[] getRequested();
-  
-  public boolean[] getDownloaded();   
-  
-	public int getSpeed();
-	
-	public void setSpeed(int speed);
-  
-  /**
-   * record details of a piece's blocks that have been completed for bad peer detection purposes
-   * @param blockNumber
-   * @param sender
-   * @param hash
-   * @param correct
-   */
-  
-  public void 
-  addWrite(
-  		int blockNumber,
+	public PEPeerManager	getManager();
+
+	/**
+	 * record details of a piece's blocks that have been completed for bad peer detection purposes
+	 * @param blockNumber
+	 * @param sender
+	 * @param hash
+	 * @param correct
+	 */
+	public void 
+	addWrite(
+		int blockNumber,
 		PEPeer sender, 
 		byte[] hash,
 		boolean correct	);
-    
-  public long
-  getLastWriteTime();
 
-  public void reset();
-  
-  public PEPeer[] getWriters();
-  
-  public int getBlockSize(int blockNumber);
-  
-  public boolean isComplete();
-  
-  public void setBeingChecked();
-  
-  public void setBeingChecked(boolean checking);
-  
-  public boolean isBeingChecked();
-  
-	public int getAndMarkBlock();
+	public DiskManagerPiece	getDMPiece();
 
-	public int getBlock();
+	public int			getAvailability();
 
-	public PEPeerManager getManager();
-	
-	public boolean isWritten(int blockNumber);
-	
-	public void setBlockWritten(int blockNumber);
-	
+	public int			getBlock();
+	public int			getAndMarkBlock();
+	public boolean		markBlock(int blocNumber);
+	public void			unmarkBlock(int blocNumber);
+	public int			getNbRequests();
+	public int			getNbUnrequested();
+	public boolean[]	getRequested();
+
+	public int			getBlockSize(int blockNumber);
+
+	public long			getCreationTime();
+
+	public boolean[]	getDownloaded();   
+
+	public int			getPieceNumber();
+
 	//A Piece can be reserved by a peer, so that only s/he can
 	//contribute to it.
-  public void setReservedBy(PEPeer peer);
-  
-  public PEPeer getReservedBy();
-  
-  public void reDownloadBlock(int blockNumber);
-
-  	public DiskManagerPiece getDMPiece();
-
-	public long getPriority();
+	public PEPeer		getReservedBy();
+	public void			setReservedBy(PEPeer peer);
 
 	/**
 	 * @return long ResumePriority, as set by other methods
 	 */
-	public long getResumePriority();
-	
-	public int getNbRequests();
-	public int getNbUnrequested();
+	public long			getResumePriority();
+	/**
+	 * @param p the Resume Priority to set, to be read by other things
+	 */
+	public void			setResumePriority(long p);
 
-	public long getCreationTime();
+	public PEPeer[] 	getWriters();
+	public void			setWritten(PEPeer peer,int blockNumber);
 
+	public int 			getSpeed();
+	public void			setSpeed(int speed);
 }

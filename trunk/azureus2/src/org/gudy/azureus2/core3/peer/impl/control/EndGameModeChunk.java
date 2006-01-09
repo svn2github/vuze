@@ -21,53 +21,58 @@
 package org.gudy.azureus2.core3.peer.impl.control;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+
+import com.aelitis.azureus.core.util.PieceBlock;
 
 /**
  * @author Olivier
- *
+ * @author MjrTom
+ * 			2006/Jan/06 Refactoring, change to use PieceBlock
  */
-public class EndGameModeChunk {
-    
-  //private PEPiece piece;
-  private int blockNumber;
-  
-  private int pieceNumber;
-  private int length;
-  private int offset;
-  
-  public EndGameModeChunk(PEPiece piece,int blockNumber) {
-    //this.piece = piece;
-    this.blockNumber = blockNumber;
-    this.pieceNumber = piece.getPieceNumber();
-    this.length = piece.getBlockSize(blockNumber);
-    this.offset = DiskManager.BLOCK_SIZE * blockNumber;
-  }
-  
-  public boolean compare(int pieceNumber,int offset) {
-    return (   (this.pieceNumber == pieceNumber)
-        		&& (this.offset == offset));
-  }
-  
-  public int getPieceNumber() {
-    return this.pieceNumber;
-  }
-  
-  public int getLength() {
-    return this.length;
-  }
-  
-  public int getOffset() {
-    return this.offset;
-  }
-  
-  
-  /**
-   * @return Returns the blockNumber.
-   */
-  public int getBlockNumber() {
-    return blockNumber;
-  }
+public class EndGameModeChunk
+{
+	private PieceBlock	chunk;
 
+	private int	offset;
+	private int	length;
+
+	public EndGameModeChunk(PEPiece pePiece, int blockNumber)
+	{
+		//this.piece = piece;
+		chunk =new PieceBlock(pePiece.getPieceNumber(), blockNumber);
+		length =pePiece.getBlockSize(blockNumber);
+		offset =blockNumber *DiskManager.BLOCK_SIZE;
+	}
+
+	public boolean compare(int pieceNumber, int os)
+	{
+		return ((chunk.getPieceNumber() ==pieceNumber) &&(this.offset ==os));
+	}
+
+	/**
+	 * @return int Returns the pieceNumber.
+	 */
+	public int getPieceNumber()
+	{
+		return chunk.getPieceNumber();
+	}
+
+	/**
+	 * @return int Returns the blockNumber.
+	 */
+	public int getBlockNumber()
+	{
+		return chunk.getBlockNumber();
+	}
+
+	public int getOffset()
+	{
+		return offset;
+	}
+
+	public int getLength()
+	{
+		return length;
+	}
 }

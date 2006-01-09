@@ -25,15 +25,16 @@ package com.aelitis.azureus.core.peermanager.unchoker;
 import java.util.*;
 
 import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.network.Connection;
 
 
-import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
 * @author MjrTom
 *			2005/Oct/08: s/getLastPiece
+*			2006/Jan/02: use RandomUtils
 */
 
 public class UnchokerUtilTest {
@@ -42,7 +43,6 @@ public class UnchokerUtilTest {
   private static final int BYTE_RANGE = 100*1024*1024;
   private static final int TEST_ROUNDS = 1000000;
   
-  private static final Random rand = new Random();
   
 
   public static void main(String[] args) {
@@ -102,8 +102,8 @@ public class UnchokerUtilTest {
     ArrayList peers = new ArrayList();
 
     for( int i=0; i < NUM_PEERS_TO_TEST; i++ ) {
-      final int bytes_received = rand.nextInt( BYTE_RANGE );
-      final int bytes_sent = rand.nextInt( BYTE_RANGE );
+      final int bytes_received = RandomUtils.nextInt( BYTE_RANGE );
+      final int bytes_sent = RandomUtils.nextInt( BYTE_RANGE );
       
       final PEPeerStats stats = new PEPeerStats() {
         public void dataBytesSent( int num_bytes ){}

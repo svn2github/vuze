@@ -55,7 +55,7 @@ public class RemainingPiecesItem
       int end = start + fileInfo.getNbPieces();
       DiskManagerPiece[] pieces = dm.getPieces();
       for( int i = start; i < end; i++ ) {
-        if( !pieces[ i ].getDone() )  remaining++;
+        if( !pieces[ i ].isDone() )  remaining++;
       }
     }else{
 		

@@ -200,7 +200,7 @@ public class PiecesItem
             int nbAvailable = 0;
             int nbCompleteThisColumn = 0;
             for (int j = a0; j < a1; j++)
-              if (pieces != null && pieces[j].getDone())
+              if (pieces != null && pieces[j].isDone())
                 nbAvailable++;
             nbComplete += nbAvailable;
             index = (nbAvailable * Colors.BLUES_DARKEST) / (a1 - a0);

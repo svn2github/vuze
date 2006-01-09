@@ -24,8 +24,11 @@ package org.gudy.azureus2.core3.disk;
  
 import java.io.File;
 
+import org.gudy.azureus2.core3.disk.impl.DiskManagerPieceImpl;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 
 /**
 * @author MjrTom
@@ -148,15 +151,12 @@ DiskManager
 		throws Exception;
 
 	
-//	public void
-//	computePriorityIndicator();
+//	public void computePriorityIndicator();
 	
-	public DiskManagerPiece[] 
+	public DiskManagerPieceImpl[] 
 	getPieces();
 
-//	public int 
-//	getPieceNumberToDownload(
-//		boolean[]	pieceCandidates);
+//	public PieceBlock getPieceToStart(BitFlags candidatePieces, int candidateMode);
 	
 	public boolean
 	hasDownloadablePiece();
@@ -164,8 +164,8 @@ DiskManager
 	public int 
 	getNumberOfPieces();
 
-	public DiskManagerFileInfo[]
-	getFiles();
+	public DiskManagerFileInfo[] getFiles();
+	public DiskManagerPieceImpl getPiece(int PieceNumber);
 
 	public int
 	getState();
@@ -258,7 +258,7 @@ DiskManager
 	public void 
 	saveState();
 
-	public boolean getFirstPiecePriority();
 	public int getPiecesDone();
 
+	public PiecePicker getPiecePicker();
 }

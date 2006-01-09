@@ -363,7 +363,7 @@ RDResumeHandler
 						
 						while (iterBlock.hasNext()) {
 							
-							pieces[pieceNumber].setWritten(((Long)iterBlock.next()).intValue());
+							pieces[pieceNumber].setBlockWritten(((Long)iterBlock.next()).intValue());
 						}
 					}
 				}
@@ -514,7 +514,7 @@ RDResumeHandler
 				
 			for (int i = 0; i < resume_pieces.length; i++) {
 		  	
-			  	if ( pieces[i].getDone()){
+			  	if ( pieces[i].isDone()){
 			  		
 					resume_pieces[i] = PIECE_DONE;
 			  		
@@ -542,7 +542,7 @@ RDResumeHandler
 				
 				boolean[] downloaded = piece.getWritten();
 
-				if (( !piece.getDone()) && piece.getCompleteCount() > 0 && downloaded != null ){
+				if (( !piece.isDone()) && piece.getNbWritten() > 0 && downloaded != null ){
 					
 					
 					List blocks = new ArrayList();

@@ -277,9 +277,9 @@ DMWriterImpl
 			
 				//Do not allow to write in a piece marked as done. we can get here if
 				
-			final DiskManagerPiece	piece = disk_manager.getPieces()[pieceNumber];
+			final DiskManagerPiece	dmPiece = disk_manager.getPieces()[pieceNumber];
 			
-			if ( piece.getDone()){
+			if ( dmPiece.isDone()){
 				
 				// Debug.out( "write: piece already done (" + request.getPieceNumber() + "/" + request.getOffset());
 
@@ -373,7 +373,7 @@ DMWriterImpl
 						{
 							complete();
 							  
-							if ( piece.getDone()){
+							if ( dmPiece.isDone()){
 
 									// There's a small chance of us ending up writing the same block twice around
 									// the time that a file completes and gets toggled to read-only which then
@@ -383,7 +383,7 @@ DMWriterImpl
 								
 								if ( Logger.isEnabled()){
 									
-									Logger.log(new LogEvent(disk_manager, LOGID, "Piece " + piece.getPieceNumber() + " write failed but already marked as done" ));
+									Logger.log(new LogEvent(disk_manager, LOGID, "Piece " + dmPiece.getPieceNumber() + " write failed but already marked as done" ));
 								}
 								
 								listener.writeCompleted( request );

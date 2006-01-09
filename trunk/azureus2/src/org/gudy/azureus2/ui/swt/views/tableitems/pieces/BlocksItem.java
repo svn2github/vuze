@@ -89,14 +89,14 @@ public class BlocksItem
     }
 
     public void refresh(TableCell cell) {
-      PEPiece piece = (PEPiece)cell.getDataSource();
-      if (piece == null) {
+      PEPiece pePiece = (PEPiece)cell.getDataSource();
+      if (pePiece == null) {
         cell.setSortValue(0);
         return;
       }
 
-      cell.setSortValue(piece.getCompleted());
-      long lNumBlocks = piece.getNbBlocs();
+      cell.setSortValue(pePiece.getNbWritten());
+      long lNumBlocks = pePiece.getNbBlocks();
 
       int newWidth = cell.getWidth();
       if (newWidth <= 0)
@@ -137,10 +137,10 @@ public class BlocksItem
       msg += ", pxRes = " + pxRes + ", pxBlockStep = " + pxBlockStep + ", addBlocks = " + addBlocks + ", x1 = " + x1;
       Debug.out(msg);*/
       
-      TOTorrent torrent = piece.getManager().getDiskManager().getTorrent();
+      TOTorrent torrent = pePiece.getManager().getDiskManager().getTorrent();
       
-      boolean[]	written 	= piece.getWritten();
-      boolean	piece_done 	= piece.isComplete();
+      boolean[]	written 	= pePiece.getWritten();
+      boolean	piece_written 	= pePiece.isWritten();
       int	drawnWidth	= 0;
       int	blockStep	= 0;
       
@@ -158,15 +158,15 @@ public class BlocksItem
         }
         color = Colors.white;
         
-        if ( (written == null && piece_done) || (written != null && written[i]) ){
+        if ( (written == null && piece_written) || (written != null && written[i]) ){
         	
           color = colors[COLOR_WRITTEN];
         	
-        }else if (piece.getDownloaded()[i]) {
+        }else if (pePiece.getDownloaded()[i]) {
         	
           color = colors[COLOR_DOWNLOADED];
           
-        }else if (piece.getRequested()[i]) {
+        }else if (pePiece.getRequested()[i]) {
         	
           color = colors[COLOR_REQUESTED];
         }
@@ -174,8 +174,8 @@ public class BlocksItem
         gcImage.setBackground(color);
         gcImage.fillRectangle(drawnWidth + 1,1,nextWidth,y1);
         
-        int pieceNumber = piece.getPieceNumber();
-        int length = piece.getBlockSize(i);
+        int pieceNumber = pePiece.getPieceNumber();
+        int length = pePiece.getBlockSize(i);
         int offset = DiskManager.BLOCK_SIZE * i;        
         long bytes = cacheStats == null ? 0 : cacheStats.getBytesInCache(torrent,pieceNumber,offset,length);
         // System.out.println(pieceNumber + "," + offset + " : "  + bytes + " / " + length);
