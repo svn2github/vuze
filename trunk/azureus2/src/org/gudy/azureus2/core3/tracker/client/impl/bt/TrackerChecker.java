@@ -343,6 +343,11 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator {
 	    		
 	    		TrackerStatus ts = (TrackerStatus) iter.next();
 	    		
+	    		if ( !ts.isTrackerScrapeUrlValid()){
+	    			
+	    			continue;
+	    		}
+	    		
 	    		Map hashmap = ts.getHashes();
 	    		  
 	    		try{
