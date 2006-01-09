@@ -303,7 +303,7 @@ public class PiecePickerImpl
 			return null;
 		PEPeerControl 	pc =pt.getControl();
 
-		DiskManagerPieceImpl[] dm_pieces =disk_mgr.getPieces();
+		DiskManagerPiece[] dm_pieces =disk_mgr.getPieces();
 		int i;
 		int nbPieces= _nbPieces;
 		// piece number and its block number that we'll try to DL
@@ -323,7 +323,7 @@ public class PiecePickerImpl
 		// If there's a piece Reserved to this peer or a FORCE_PIECE, start/resume it and only it (if possible)
 		if (pieceNumber >=0)
 		{
-			DiskManagerPieceImpl dmPiece =dm_pieces[pieceNumber];
+			DiskManagerPiece dmPiece =dm_pieces[pieceNumber];
 			if (piecesAvailable[pieceNumber] &&dmPiece.isInteresting() &&!dmPiece.isRequested())
 				return new PieceBlock(pieceNumber, blockNumber);
 			return null; // this is an odd case that maybe should be handled better
@@ -630,7 +630,7 @@ public class PiecePickerImpl
 	public void computeEndGameModeChunks(PEPeerControlImpl pc)
 	{
 		endGameModeChunks =new ArrayList();
-		DiskManagerPieceImpl[]	dm_pieces =disk_mgr.getPieces();
+		DiskManagerPiece[]	dm_pieces =disk_mgr.getPieces();
 		PEPiece[] _pieces =pc.getPieces();
 		if (_pieces ==null)
 			return;

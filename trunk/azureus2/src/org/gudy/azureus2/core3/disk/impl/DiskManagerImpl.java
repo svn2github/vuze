@@ -1218,12 +1218,12 @@ DiskManagerImpl
 			new Object[]{ file, new Integer(old_mode), new Integer(new_mode)});
 	}
 	
-	public DiskManagerPieceImpl[] getPieces()
+	public DiskManagerPiece[] getPieces()
 	{
 		return pieces;
 	}
 
-	public DiskManagerPieceImpl getPiece(int PieceNumber)
+	public DiskManagerPiece getPiece(int PieceNumber)
 	{
 		return pieces[PieceNumber];
 	}

@@ -153,7 +153,7 @@ DiskManager
 	
 //	public void computePriorityIndicator();
 	
-	public DiskManagerPieceImpl[] 
+	public DiskManagerPiece[] 
 	getPieces();
 
 //	public PieceBlock getPieceToStart(BitFlags candidatePieces, int candidateMode);
@@ -165,7 +165,7 @@ DiskManager
 	getNumberOfPieces();
 
 	public DiskManagerFileInfo[] getFiles();
-	public DiskManagerPieceImpl getPiece(int PieceNumber);
+	public DiskManagerPiece getPiece(int PieceNumber);
 
 	public int
 	getState();

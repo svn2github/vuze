@@ -622,7 +622,7 @@ PEPeerTransportProtocol
 		DiskManager disk_mgr =manager.getDiskManager();
 		if (disk_mgr.hasDownloadablePiece())
 		{	// there is a piece worth being interested in
-			DiskManagerPieceImpl[] dm_pieces =disk_mgr.getPieces();
+			DiskManagerPiece[] dm_pieces =disk_mgr.getPieces();
 
 			for (int i =0; i <dm_pieces.length; i++ )
 			{

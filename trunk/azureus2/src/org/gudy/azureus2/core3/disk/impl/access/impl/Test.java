@@ -167,7 +167,7 @@ Test
 														
 							if ( !READ_TEST ){
 								
-								DiskManagerPieceImpl[]	x = dm.getPieces();
+								DiskManagerPiece[]	x = dm.getPieces();
 								
 								for (int i=0;i<x.length;i++){
 									
