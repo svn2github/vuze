@@ -67,6 +67,8 @@ LocalTrackerPlugin
 	
 	private BooleanParameter	enabled;
 	
+	private long				plugin_start_time;
+	
 	private LoggerChannel 		log;
 	private Monitor 			mon;
 	
@@ -132,6 +134,8 @@ LocalTrackerPlugin
 					}
 				});
 		
+		plugin_start_time = plugin_interface.getUtilities().getCurrentSystemTime();
+
 		instance_manager	= AzureusCoreFactory.getSingleton().getInstanceManager();
 		
 		instance_manager.addListener( this );
@@ -226,9 +230,22 @@ LocalTrackerPlugin
 	protected void
 	track()
 	{
+		long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+
+		if ( now - plugin_start_time < 60*1000 ){
+			
+			try{
+					// initial small delay to let things stabilise
+				
+				Thread.sleep( 15*1000 );
+				
+			}catch( Throwable e ){
+			}
+		}
+		
 		while( true ){
 	
-			long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+			now = plugin_interface.getUtilities().getCurrentSystemTime();
 
 			try{
 				
