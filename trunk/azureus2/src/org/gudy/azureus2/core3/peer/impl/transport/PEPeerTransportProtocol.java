@@ -24,14 +24,15 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.*;
-
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerPieceImpl;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
@@ -609,50 +610,56 @@ PEPeerTransportProtocol
   
 
   /**
-   * Global checkInterested method.
-   * Scans the whole pieces to determine if it's interested or not
-   */
-  private void checkInterested() {
-    if ( getPeerState() == CLOSING ) return;
-    
-		boolean is_interesting = false;
-    
-    if( manager.getDiskManager().hasDownloadablePiece() ) {  //there is a piece worth being interested in
-      DiskManagerPiece[]  pieces = manager.getDiskManager().getPieces();
+	 * Global checkInterested method.
+	 * Scans the whole pieces to determine if it's interested or not
+	 */
+	private void checkInterested()
+	{
+		if (getPeerState() ==CLOSING)
+			return;
 
-      for (int i = 0; i < pieces.length; i++) {
-        if ( !pieces[i].getDone() && pieces[i].isNeeded() && other_peer_has_pieces[i] ) {
-          is_interesting = true;
-          break;
-        }
-      }
-    }
-    
-    if ( is_interesting && !interested_in_other_peer ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTInterested(), false );
-    }
-    else if ( !is_interesting && interested_in_other_peer ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTUninterested(), false );
-    }
-    
-    interested_in_other_peer = is_interesting;
-  }
+		boolean is_interesting =false;
+		DiskManager disk_mgr =manager.getDiskManager();
+		if (disk_mgr.hasDownloadablePiece())
+		{	// there is a piece worth being interested in
+			DiskManagerPieceImpl[] dm_pieces =disk_mgr.getPieces();
+
+			for (int i =0; i <dm_pieces.length; i++ )
+			{
+				if (other_peer_has_pieces[i] &&dm_pieces[i].isInteresting())
+				{
+					is_interesting =true;
+					break;
+				}
+			}
+		}
+
+		if (is_interesting &&!interested_in_other_peer)
+			connection.getOutgoingMessageQueue().addMessage(new BTInterested(), false);
+		else if (!is_interesting &&interested_in_other_peer)
+			connection.getOutgoingMessageQueue().addMessage(new BTUninterested(), false);
+
+		interested_in_other_peer =is_interesting;
+	}
 
   
   
   /**
-   * Checks interested given a new piece received
-   * @param pieceNumber the piece number that has been received
-   */
+	 * Checks interested given a new piece received
+	 * 
+	 * @param pieceNumber
+	 *            the piece number that has been received
+	 */
   private void checkInterested( int pieceNumber ) {
     if ( getPeerState() == CLOSING ) return;
 
     boolean is_interesting = false;
+    DiskManager disk_mgr =manager.getDiskManager();
     
-    if( manager.getDiskManager().hasDownloadablePiece() ) {  //there is a piece worth being interested in
-      DiskManagerPiece piece = manager.getDiskManager().getPieces()[ pieceNumber ];
+    if (disk_mgr.hasDownloadablePiece() ) {  //there is a piece worth being interested in
+      DiskManagerPiece dmPiece =disk_mgr.getPieces()[pieceNumber];
       
-      is_interesting = !piece.getDone() && piece.isNeeded();  //we dont have that piece yet
+      is_interesting =dmPiece.isInteresting();	//we dont have that piece yet
     }
     
     if ( is_interesting && !interested_in_other_peer ) {
@@ -689,7 +696,7 @@ PEPeerTransportProtocol
 		for (; i < pieces.length; i++) {
 			if ( (i % 8) == 0 ) bToSend = 0;
 			bToSend = bToSend << 1;
-			if ( pieces[i].getDone()) {
+			if ( pieces[i].isDone()) {
         if( ENABLE_LAZY_BITFIELD ) {
           if( i < 8 || i >= (pieces.length - (pieces.length % 8)) ) {  //first and last bytes
             if( lazies == null ) lazies = new ArrayList();
