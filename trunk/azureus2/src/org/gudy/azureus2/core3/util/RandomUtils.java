@@ -24,8 +24,10 @@ package org.gudy.azureus2.core3.util;
 import java.util.Random;
 
 /**
- * 
+ *	@author MjrTom
+ *		2006/Jan/02:	added various methods, including some java.util.Random method aliases 
  */
+
 public class RandomUtils {
 	public static final Random RANDOM = new Random( System.currentTimeMillis() );
 	
@@ -76,4 +78,43 @@ public class RandomUtils {
 		return port;
 	}
 
+	/**
+	 * Generates a random +1 or -1
+	 * @return +1 or -1
+	 */
+	public static int generateRandomPlusMinus1()
+	{
+		return RANDOM.nextBoolean() ? -1:1;
+	}
+
+	public static float nextFloat()
+	{
+		return RANDOM.nextFloat();
+	}
+	
+    public static void nextBytes(byte[] bytes)
+	{
+    	RANDOM.nextBytes(bytes);
+	}
+    	
+    public static int nextInt(int n)
+	{
+    	return RANDOM.nextInt(n);
+	}
+    	
+	/**
+	 * @return random int between 0 and max, inclusive
+	 */
+	public static int generateRandomIntUpto(int max)
+	{
+		return nextInt(max);
+	}
+
+	/**
+	 * @return random int between min and max, inclusive
+	 */
+	public static int generateRandomIntBetween(int min, int max)
+	{
+		return min +generateRandomIntUpto(max -min);
+	}
 }
