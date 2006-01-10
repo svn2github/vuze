@@ -735,4 +735,8 @@ WebPlugin
 	{
 		return( config_model );
 	}
+	
+	protected BasicPluginViewModel getViewModel() {
+		return this.view_model;
+	}
 }
