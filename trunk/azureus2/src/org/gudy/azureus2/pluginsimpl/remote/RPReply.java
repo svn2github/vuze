@@ -2,7 +2,7 @@
  * File    : RPReply.java
  * Created : 28-Jan-2004
  * By      : parg
- * 
+ *
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 package org.gudy.azureus2.pluginsimpl.remote;
 
 import java.io.Serializable;
+import org.gudy.azureus2.pluginsimpl.remote.rpexceptions.*;
 
 /**
  * @author parg
@@ -30,49 +31,42 @@ import java.io.Serializable;
 
 import java.util.*;
 
-public class 
-RPReply 
-	implements Serializable
+public class
+RPReply
+    implements Serializable
 {
-	public Object	response;
-	
-	transient protected Map		properties	= new HashMap();
-	
-	public
-	RPReply(
-		Object		_response )
-	{
-		response	= _response;
-	}
-	
-	public Object
-	getResponse()
-	
-		throws RPException
-	{
-		if ( response instanceof RPException ){
-			
-			throw((RPException)response);
-			
-		}else if ( response instanceof Throwable ){
-			
-			throw( new RPException("RPReply: exception occurred", (Throwable)response ));
-		}
-		
-		return( response );
-	}
-	
-	public void
-	setProperty(
-		String		name,
-		String		value )
-	{
-		properties.put( name, value );
-	}
-	
-	public Map
-	getProperties()
-	{
-		return( properties );
-	}
+    public Object   response;
+
+    transient protected Map     properties  = new HashMap();
+
+    public
+    RPReply(
+        Object      _response )
+    {
+        response    = _response;
+    }
+
+    public Object getResponse() throws RPException {
+        if (response instanceof RPException){
+            throw((RPException)response);
+        }
+        else if (response instanceof Throwable) {
+            throw new RPThrowableAsReplyException((Throwable)response);
+        }
+        return response;
+    }
+
+    public void
+    setProperty(
+        String      name,
+        String      value )
+    {
+        properties.put( name, value );
+    }
+
+    public Map
+    getProperties()
+    {
+        return( properties );
+    }
 }
