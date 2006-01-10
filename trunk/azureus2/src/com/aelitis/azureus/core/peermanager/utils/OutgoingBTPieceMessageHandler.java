@@ -44,11 +44,11 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 public class OutgoingBTPieceMessageHandler {
   private final OutgoingMessageQueue outgoing_message_queue;
   private final DiskManager disk_manager;
+  
   private final LinkedList requests = new LinkedList();
-  private final List		loading_messages 		= new ArrayList();
-  private final Map queued_messages = new HashMap();
-  private int num_messages_loading = 0;
-  private int num_messages_in_queue = 0;
+  private final ArrayList	loading_messages = new ArrayList();
+  private final HashMap  queued_messages = new HashMap();
+  
   private final AEMonitor	lock_mon	= new AEMonitor( "OutgoingBTPieceMessageHandler:lock");
   private boolean destroyed = false;
   private int request_read_ahead = 2;
@@ -60,7 +60,6 @@ public class OutgoingBTPieceMessageHandler {
   
   private final DiskManagerReadRequestListener read_req_listener = new DiskManagerReadRequestListener() {
     public void readCompleted( DiskManagerReadRequest request, DirectByteBuffer data ) {
-      BTPiece msg;
       try{
       	lock_mon.enter();
 
@@ -70,10 +69,8 @@ public class OutgoingBTPieceMessageHandler {
       	}
       	loading_messages.remove( request );
 
-        num_messages_loading--; 
-        msg = new BTPiece( request.getPieceNumber(), request.getOffset(), data );
+        BTPiece msg = new BTPiece( request.getPieceNumber(), request.getOffset(), data );
         queued_messages.put( msg, request );
-        num_messages_in_queue++;
 
         outgoing_message_queue.addMessage( msg, true );    
       }
@@ -83,6 +80,7 @@ public class OutgoingBTPieceMessageHandler {
 
       outgoing_message_queue.doListenerNotifications();
     }
+    
     public void 
     readFailed( 
     	DiskManagerReadRequest 	request, 
@@ -95,8 +93,7 @@ public class OutgoingBTPieceMessageHandler {
           	  return;
           	}
           	loading_messages.remove( request );
-
-            num_messages_loading--;   
+          	
           }
           finally{
           	lock_mon.exit();
@@ -114,7 +111,6 @@ public class OutgoingBTPieceMessageHandler {
           lock_mon.enter();
 
           queued_messages.remove( message );
-          num_messages_in_queue--;
    
         }finally{
           lock_mon.exit();
@@ -152,10 +148,8 @@ public class OutgoingBTPieceMessageHandler {
    * @param length
    */
   public void addPieceRequest( int piece_number, int piece_offset, int length ) {
-    if( destroyed ) {
-      return;
-    }
-     
+    if( destroyed )  return;
+         
     DiskManagerReadRequest dmr = disk_manager.createReadRequest( piece_number, piece_offset, length );
 
     try{
@@ -178,6 +172,8 @@ public class OutgoingBTPieceMessageHandler {
    * @param length
    */
   public void removePieceRequest( int piece_number, int piece_offset, int length ) {
+  	if( destroyed )  return;
+  	
     DiskManagerReadRequest dmr = disk_manager.createReadRequest( piece_number, piece_offset, length );
     
     try{
@@ -190,7 +186,6 @@ public class OutgoingBTPieceMessageHandler {
       
       if( loading_messages.contains( dmr ) ) {
         loading_messages.remove( dmr );
-        num_messages_loading--;
         return;
       }
       
@@ -201,7 +196,6 @@ public class OutgoingBTPieceMessageHandler {
           BTPiece msg = (BTPiece)entry.getKey();
           if( outgoing_message_queue.removeMessage( msg, true ) ) {
             i.remove();
-            num_messages_in_queue--;
           }
           break;  //do manual listener notify
         }
@@ -220,26 +214,20 @@ public class OutgoingBTPieceMessageHandler {
    * Remove all outstanding piece data requests.
    */
   public void removeAllPieceRequests() {
+  	if( destroyed )  return;
+  	
     try{
       lock_mon.enter();
-
       
-      String before_trace = outgoing_message_queue.getQueueTrace();  //TODO
-      
+      String before_trace = outgoing_message_queue.getQueueTrace();  //TODO      
       
       int num_queued = queued_messages.size();
       int num_removed = 0;
-      
-      if( num_queued != num_messages_in_queue ) {
-      	Debug.out( "num_queued[" +num_queued+ "] != num_messages_in_queue[" +num_messages_in_queue+ "]" );
-      }
-      
       
       for( Iterator i = queued_messages.keySet().iterator(); i.hasNext(); ) {
         BTPiece msg = (BTPiece)i.next();
         if( outgoing_message_queue.removeMessage( msg, true ) ) {
           i.remove();
-          num_messages_in_queue--;
           num_removed++;
         }
       }
@@ -250,7 +238,6 @@ public class OutgoingBTPieceMessageHandler {
       
       requests.clear();
       loading_messages.clear();
-      num_messages_loading = 0;
     }
     finally{
       lock_mon.exit();
@@ -271,9 +258,10 @@ public class OutgoingBTPieceMessageHandler {
     try{
       lock_mon.enter();
   
-      requests.clear();
-      loading_messages.clear();
-      num_messages_loading = 0;
+      removeAllPieceRequests();
+      
+      queued_messages.clear();
+      
       destroyed = true;
     }
     finally{
@@ -283,19 +271,16 @@ public class OutgoingBTPieceMessageHandler {
   
   
   private void doReadAheadLoads() {
-	List	to_submit = null;
-	try{
-		lock_mon.enter();
-		while( num_messages_loading + num_messages_in_queue < request_read_ahead && !requests.isEmpty() && !destroyed ) {
-			DiskManagerReadRequest dmr = (DiskManagerReadRequest)requests.removeFirst();
-			loading_messages.add( dmr );
-			if ( to_submit == null ){
-				to_submit = new ArrayList();
-			}
-			to_submit.add( dmr );
-     
-			num_messages_loading++;
-		}	
+  	List	to_submit = null;
+  	try{
+  		lock_mon.enter();
+		
+  		while( loading_messages.size() + queued_messages.size() < request_read_ahead && !requests.isEmpty() && !destroyed ) {
+  			DiskManagerReadRequest dmr = (DiskManagerReadRequest)requests.removeFirst();
+  			loading_messages.add( dmr );  			
+  			if( to_submit == null )  to_submit = new ArrayList();
+  			to_submit.add( dmr );
+  		}	
     }finally{
     	lock_mon.exit();
     }
@@ -313,15 +298,18 @@ public class OutgoingBTPieceMessageHandler {
 	 * @return list of Long values
 	 */
 	public int[] getRequestedPieceNumbers() {
+		if( destroyed )  return new int[0];
+		
+		/** Cheap hack to reduce (but not remove all) the # of duplicate entries */
+		int iLastNumber = -1;
+		int pos = 0;		
+		int[] pieceNumbers;
+	
 		try {
-			lock_mon.enter();
-
-			/** Cheap hack to reduce (but not remove all) the # of duplicate entries */
-			int iLastNumber = -1;
+			lock_mon.enter();			
 
 			// allocate max size needed (we'll shrink it later)
-			int[] pieceNumbers = new int[queued_messages.size()	+ loading_messages.size() + requests.size()];
-			int pos = 0;
+			pieceNumbers = new int[queued_messages.size()	+ loading_messages.size() + requests.size()];
 
 			for (Iterator iter = queued_messages.keySet().iterator(); iter.hasNext();) {
 				BTPiece msg = (BTPiece) iter.next();
@@ -346,13 +334,15 @@ public class OutgoingBTPieceMessageHandler {
 					pieceNumbers[pos++] = iLastNumber;
 				}
 			}
-
-			int[] trimmed = new int[pos];
-			System.arraycopy(pieceNumbers, 0, trimmed, 0, pos);
-
-			return trimmed;
+			
 		} finally {
 			lock_mon.exit();
 		}
+
+		int[] trimmed = new int[pos];
+		System.arraycopy(pieceNumbers, 0, trimmed, 0, pos);
+
+		return trimmed;		
 	}
+	
 }
