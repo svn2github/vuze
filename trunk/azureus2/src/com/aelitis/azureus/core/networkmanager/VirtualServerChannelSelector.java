@@ -26,10 +26,7 @@ import java.net.*;
 import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 
 
 
@@ -42,7 +39,6 @@ public class VirtualServerChannelSelector {
   private final InetSocketAddress bind_address;
   private final int receive_buffer_size;
   private final SelectListener listener;
-  private boolean running = false;
   
   protected AEMonitor	this_mon	= new AEMonitor( "VirtualServerChannelSelector" );
 
@@ -55,8 +51,8 @@ public class VirtualServerChannelSelector {
    * @param so_rcvbuf_size new socket receive buffer size
    * @param listener to notify of incoming connections
    */
-  public VirtualServerChannelSelector( InetSocketAddress bind_address, int so_rcvbuf_size, SelectListener listener ) {
-    this.bind_address = bind_address;
+  public VirtualServerChannelSelector( InetSocketAddress _bind_address, int so_rcvbuf_size, SelectListener listener ) {
+    this.bind_address = _bind_address;
     this.receive_buffer_size = so_rcvbuf_size;
     this.listener = listener;
   }
@@ -70,7 +66,7 @@ public class VirtualServerChannelSelector {
   	try{
   		this_mon.enter();
   	
-	    if( !running ) {
+	    if( !isRunning() ) {
 	      try {
 	        server_channel = ServerSocketChannel.open();
 	        
@@ -79,13 +75,10 @@ public class VirtualServerChannelSelector {
 	        
 	        server_channel.socket().bind( bind_address, 1024 );
 	        
-	        if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID, "TCP incoming server socket "
-								+ bind_address));
+	        if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "TCP incoming server socket "	+ bind_address));
 	        
 	        AEThread accept_thread = new AEThread( "VServerSelector:port" + bind_address.getPort() ) {
 	          public void runSupport() {
-	            running = true;
 	            accept_loop();
 	          }
 	        };
@@ -93,10 +86,8 @@ public class VirtualServerChannelSelector {
 	        accept_thread.start();  
 	      }
 	      catch( Throwable t ) {
-            Debug.out( t );
-            Logger.log(new LogAlert(LogAlert.UNREPEATABLE,
-							"ERROR, unable to bind TCP incoming server socket to "
-									+ bind_address.getPort(), t));
+	      	Debug.out( t );
+	      	Logger.log(new LogAlert(LogAlert.UNREPEATABLE,	"ERROR, unable to bind TCP incoming server socket to " +bind_address.getPort(), t));
 	      }
 	      
 	      last_accept_time = SystemTime.getCurrentTime();  //init to now
@@ -114,8 +105,7 @@ public class VirtualServerChannelSelector {
   public void stop() {
   	try{
   		this_mon.enter();
-  	
-	    running = false;
+
 	    if( server_channel != null ) {
 	      try {
 	        server_channel.close();
@@ -131,7 +121,7 @@ public class VirtualServerChannelSelector {
   
   
   private void accept_loop() {
-    while( running ) {
+    while( isRunning() ) {
       try {
         SocketChannel client_channel = server_channel.accept();
         last_accept_time = SystemTime.getCurrentTime();
