@@ -35,7 +35,6 @@ import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -150,6 +149,8 @@ public class StartStopRulesDefaultPlugin
   private TableColumn seedingRankColumn;
   // UI
   private TableContextMenuItem debugMenuItem = null;
+  
+  private boolean bSWTUI = false;
 
   public void initialize(PluginInterface _plugin_interface) {
   	if (bAlreadyInitialized) {
@@ -208,7 +209,7 @@ public class StartStopRulesDefaultPlugin
 					UIInstance		instance )
 				{
 					if ( instance instanceof UISWTInstance ){
-						
+						bSWTUI = true;
 						new StartStopRulesDefaultPluginSWTUI( plugin_interface );
 					}
 				}
@@ -475,7 +476,6 @@ public class StartStopRulesDefaultPlugin
   	try{
   		this_mon.enter();
   	
-	    // int iOldIgnoreShareRatio = iIgnoreShareRatio;
 	    int iNewRankType = plugin_config.getIntParameter("StartStopManager_iRankType");
 	    minSpeedForActiveSeeding = plugin_config.getIntParameter("StartStopManager_iMinSpeedForActiveSeeding");
 	    _maxActive = plugin_config.getIntParameter("max active torrents");
@@ -535,37 +535,57 @@ public class StartStopRulesDefaultPlugin
 */
 	    
 	    recalcAllSeedingRanks(true);
-	    somethingChanged = true;
-	    if (bDebugLog) {
-	      log.log(LoggerChannel.LT_INFORMATION,
-	              "somethingChanged: config reload");
-	      try {
-	        if (debugMenuItem == null ){
-	        	
-	        	debugMenuItem = seedingRankColumn.addContextMenuItem("StartStopRules.menu.viewDebug");
-	        	
-	        	debugMenuItem.addListener(new MenuItemListener() {
-	        		public void 
-	        		selected(MenuItem _menu, Object _target) 
-	        		{
-	        			Download dl = (Download)((TableRow)_target).getDataSource();
-	        			
-	        			DefaultRankCalculator dlData = (DefaultRankCalculator)downloadDataMap.get(dl);
-	  
-	        			if ( dlData != null ){
-	        				plugin_interface.getUIManager().showTextMessage(null, null, dlData.sExplainFP + "\n" + dlData.sExplainSR + dlData.sTrace);
-	        			}
-	        		}
-	        	});
-	        }
-	      } catch (Throwable t) { 
-	    	  Debug.printStackTrace( t );
-	      }
-	    }
-  	}finally{
-  		
-  		this_mon.exit();
-  	}
+			somethingChanged = true;
+			if (bDebugLog) {
+				log.log(LoggerChannel.LT_INFORMATION,
+								"somethingChanged: config reload");
+				try {
+					if (debugMenuItem == null) {
+						final String DEBUG_MENU_ID = "StartStopRules.menu.viewDebug";
+						MenuItemListener menuListener = new MenuItemListener() {
+							public void selected(MenuItem menu, Object target) {
+								if (!(target instanceof TableRow))
+									return;
+
+								TableRow tr = (TableRow) target;
+								Object ds = tr.getDataSource();
+
+								if (!(ds instanceof Download))
+									return;
+
+								DefaultRankCalculator dlData = (DefaultRankCalculator) downloadDataMap
+										.get(ds);
+
+								if (dlData != null) {
+									if (bSWTUI)
+										StartStopRulesDefaultPluginSWTUI.openDebugWindow(dlData);
+									else
+										plugin_interface.getUIManager().showTextMessage(
+												null,
+												null,
+												"FP:\n" + dlData.sExplainFP + "\n" + "SR:"
+														+ dlData.sExplainSR + "\n" + "TRACE:\n"
+														+ dlData.sTrace);
+								}
+							}
+						};
+						TableManager tm = plugin_interface.getUIManager().getTableManager();
+						TableContextMenuItem menu;
+						menu = tm.addContextMenuItem(
+								TableManager.TABLE_MYTORRENTS_COMPLETE, DEBUG_MENU_ID);
+						menu.addListener(menuListener);
+						menu = tm.addContextMenuItem(
+								TableManager.TABLE_MYTORRENTS_INCOMPLETE, DEBUG_MENU_ID);
+						menu.addListener(menuListener);
+					}
+				} catch (Throwable t) {
+					Debug.printStackTrace(t);
+				}
+			}
+
+		} finally {
+			this_mon.exit();
+		}
   }
   
   private int calcMaxSeeders(int iDLs) {
@@ -859,7 +879,7 @@ public class StartStopRulesDefaultPlugin
 						"tCom=" + totals.complete,
 						"tIncQd=" + totals.incompleteQueued,
 						"mxCdrs=" + totals.maxSeeders,
-						"t1stPr=" + totals.firstPriority,
+						"tFP=" + totals.firstPriority,
 						"maxT=" + totals.maxTorrents };
 			}
 
@@ -930,7 +950,7 @@ public class StartStopRulesDefaultPlugin
 						"tCom=" + totals.complete,
 						"tIncQd=" + totals.incompleteQueued,
 						"mxCdrs=" + totals.maxSeeders,
-						"t1stPr=" + totals.firstPriority,
+						"tFP=" + totals.firstPriority,
 						"maxT=" + totals.maxTorrents };
 				printDebugChanges("<<process() ", mainDebugEntries, mainDebugEntries2,
 						"", "", true, null);
@@ -990,7 +1010,8 @@ public class StartStopRulesDefaultPlugin
 					+ ";numW8tngorDLing=" + vars.numWaitingOrDLing + ";maxCDrs="
 					+ totals.maxSeeders + ";forced=" + boolDebug(download.isForceStart())
 					+ ";actvDLs=" + totals.activelyDLing + ";maxDLs=" + maxDLs
-					+ ";ActDLing=" + boolDebug(dlData.getActivelyDownloading());
+					+ ";ActDLing=" + boolDebug(dlData.getActivelyDownloading())
+					+ ";isCmplt="+boolDebug(download.isComplete());
 			log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 			dlData.sTrace += s + "\n";
 		}
@@ -1013,7 +1034,8 @@ public class StartStopRulesDefaultPlugin
 							+ totals.activelyDLing >= totals.maxActive))) {
 				try {
 					if (bDebugLog) {
-						String s = "   stopAndQueue() > maxDownloads";
+						String s = "   stopAndQueue: " + vars.numWaitingOrDLing
+								+ " waiting or downloading, when limit is " + maxDownloads;
 						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 						dlData.sTrace += s + "\n";
 					}
@@ -1040,7 +1062,8 @@ public class StartStopRulesDefaultPlugin
 			if ((maxDownloads == 0) || (totals.activelyDLing < maxDLs)) {
 				try {
 					if (bDebugLog) {
-						String s = "   start() activeDLCount < maxDownloads";
+						String s = "   start: READY && activelyDLing (" + totals.activelyDLing
+								+ ") < maxDLs (" + maxDownloads + ")";
 						log.log(download.getTorrent(), LoggerChannel.LT_INFORMATION, s);
 						dlData.sTrace += s + "\n";
 					}
@@ -1062,7 +1085,8 @@ public class StartStopRulesDefaultPlugin
 			if ((maxDownloads == 0) || (vars.numWaitingOrDLing < maxDLs)) {
 				try {
 					if (bDebugLog) {
-						String s = "   restart()";
+						String s = "   restart: QUEUED && numWaitingOrDLing ("
+								+ vars.numWaitingOrDLing + ") < maxDLS (" + maxDLs + ")";
 						log.log(LoggerChannel.LT_INFORMATION, s);
 						dlData.sTrace += s + "\n";
 					}
@@ -1130,225 +1154,282 @@ public class StartStopRulesDefaultPlugin
 
 		int numPeers = calcPeersNoUs(download);
 
-		// Ignore rules and other auto-starting rules do not apply when 
-		// bAutoStart0Peers and peers == 0. So, handle starting 0 peers 
-		// right at the beginning, and loop early
-		if (bAutoStart0Peers && numPeers == 0 && scrapeResultOk(download)) {
-			if (state == Download.ST_QUEUED) {
-				try {
-					if (bDebugLog)
-						sDebugLine += "\nrestart() 0Peers";
-					download.restart(); // set to Waiting
-					totals.waitingToSeed++;
-					vars.numWaitingOrSeeding++;
-
-					state = download.getState();
-					if (state == Download.ST_READY) {
-						if (bDebugLog)
-							sDebugLine += "\nstart(); 0Peers";
-						download.start();
-						totals.activelyCDing++;
-					}
-				} catch (Exception ignore) {/*ignore*/
-				}
-			}
-			if (state == Download.ST_READY) {
-				try {
-					if (bDebugLog)
-						sDebugLine += "\nstart(); 0Peers";
-					download.start();
-					totals.activelyCDing++;
-					vars.numWaitingOrSeeding++;
-				} catch (Exception ignore) {/*ignore*/
-				}
-			}
-			return;
-		}
-
-		//if (bDebugOn) {
-		//	System.out.println("S : " + dlData.getDownloadObject().getName());
-		//	System.out.println("numWaitingOrSeeding " + vars.numWaitingOrSeeding
-		//			+ " / " + "maxSeeders " + totals.maxSeeders + " / " + "maxActive "
-		//			+ totals.maxActive);
-		//}
-
-		boolean isFP = dlData.isFirstPriority();
-		boolean bActivelySeeding = dlData.getActivelySeeding();
-		boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING)
-				&& (!isFP || (isFP && ((totals.maxActive != 0 && vars.numWaitingOrSeeding >= totals.maxSeeders))))
-				//&& (!isFP || (isFP && ((vars.numWaitingOrSeeding >= totals.maxSeeders) || (!bActivelySeeding && (vars.numWaitingOrSeeding + totals.totalStalledSeeders) >= totals.maxSeeders))) )
-				&& (!download.isForceStart());
-		int rank = download.getSeedingRank();
-
-
-		// in RANK_TIMED mode, we use minTimeAlive for rotation time, so
-		// skip check
-		// XXX do we want changes to take effect immediately  ?
-		if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
-			long timeAlive = (SystemTime.getCurrentTime() - download.getStats()
-					.getTimeStarted());
-			okToQueue = (timeAlive >= minTimeAlive);
-		}
-
-		if (state != Download.ST_QUEUED
-				&& // Short circuit.
-				(state == Download.ST_READY || state == Download.ST_WAITING
-						|| state == Download.ST_PREPARING ||
-				// Forced Start torrents are pre-included in count
-				(state == Download.ST_SEEDING && bActivelySeeding && !download
-						.isForceStart()))) {
-			vars.numWaitingOrSeeding++;
-		}
-		
 		if (bDebugLog) {
 			debugEntries = new String[] { "state=" + sStates.charAt(state),
 					"shareR=" + download.getStats().getShareRatio(),
 					"nWorCDing=" + vars.numWaitingOrSeeding,
 					"nWorDLing=" + vars.numWaitingOrDLing,
-					"ok2Q=" + boolDebug(okToQueue), "sr=" + rank,
+					"sr=" + download.getSeedingRank(),
 					"hgherQd=" + boolDebug(vars.higherQueued),
 					"maxCDrs=" + totals.maxSeeders,
-					"1stP=" + boolDebug(dlData.isFirstPriority()),
-					"actCDingCount=" + totals.activelyCDing,
-					"ActCDing=" + boolDebug(bActivelySeeding) };
+					"FP=" + boolDebug(dlData.isFirstPriority()),
+					"nActCDing=" + totals.activelyCDing,
+					"ActCDing=" + boolDebug(dlData.getActivelySeeding()) };
 		}
 
-		// Note: First Priority are sorted to the top, 
-		//       so they will always start first
-
-		// XXX Change to waiting if queued and we have an open slot
-		if (!okToQueue
-				&& (state == Download.ST_QUEUED)
-				&& (totals.maxActive == 0 || vars.numWaitingOrSeeding < totals.maxSeeders)
-				//&& (totals.maxActive == 0 || (activeSeedingCount + activeDLCount) < totals.maxActive) &&
-				&& (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN) && !vars.higherQueued) {
-			try {
-				if (bDebugLog)
-					sDebugLine += "\nrestart() numWaitingOrSeeding < maxSeeders";
-				download.restart(); // set to Waiting
-				okToQueue = false;
-				totals.waitingToSeed++;
-				vars.numWaitingOrSeeding++;
-				if (iRankType == RANK_TIMED)
-					dlData.recalcSeedingRank();
-			} catch (Exception ignore) {/*ignore*/
+		try {
+			
+			boolean bScrapeOk = scrapeResultOk(download);
+			
+			// Ignore rules and other auto-starting rules do not apply when 
+			// bAutoStart0Peers and peers == 0. So, handle starting 0 peers 
+			// right at the beginning, and loop early
+			if (bAutoStart0Peers && numPeers == 0 && bScrapeOk) {
+				if (state == Download.ST_QUEUED) {
+					try {
+						if (bDebugLog)
+							sDebugLine += "\nrestart() 0Peers";
+						download.restart(); // set to Waiting
+						totals.waitingToSeed++;
+						vars.numWaitingOrSeeding++;
+	
+						state = download.getState();
+						if (state == Download.ST_READY) {
+							if (bDebugLog)
+								sDebugLine += "\nstart(); 0Peers";
+							download.start();
+							totals.activelyCDing++;
+						}
+					} catch (Exception ignore) {/*ignore*/
+					}
+				}
+				if (state == Download.ST_READY) {
+					try {
+						if (bDebugLog)
+							sDebugLine += "\nstart(); 0Peers";
+						download.start();
+						totals.activelyCDing++;
+						vars.numWaitingOrSeeding++;
+					} catch (Exception ignore) {/*ignore*/
+					}
+				}
+				return;
 			}
-			state = download.getState();
-		}
+			
+			if (bDebugLog && bAutoStart0Peers && numPeers == 0 && !bScrapeOk 
+					&& (state == Download.ST_QUEUED || state == Download.ST_READY)) {
+				sDebugLine += "\n  NOT starting 0 Peer torrent because scrape isn't ok";
+			}
+			
+	
+			boolean isFP = dlData.isFirstPriority();
+			boolean bActivelySeeding = dlData.getActivelySeeding();
+			boolean okToQueue = (state == Download.ST_READY || state == Download.ST_SEEDING)
+					&& (!isFP || (isFP && ((totals.maxActive != 0 && vars.numWaitingOrSeeding >= totals.maxSeeders))))
+					//&& (!isFP || (isFP && ((vars.numWaitingOrSeeding >= totals.maxSeeders) || (!bActivelySeeding && (vars.numWaitingOrSeeding + totals.totalStalledSeeders) >= totals.maxSeeders))) )
+					&& (!download.isForceStart());
+			int rank = download.getSeedingRank();
+	
+	
+			// in RANK_TIMED mode, we use minTimeAlive for rotation time, so
+			// skip check
+			// XXX do we want changes to take effect immediately  ?
+			if (okToQueue && (state == Download.ST_SEEDING) && iRankType != RANK_TIMED) {
+				long timeAlive = (SystemTime.getCurrentTime() - download.getStats()
+						.getTimeStarted());
+				okToQueue = (timeAlive >= minTimeAlive);
 
-		boolean bForceStop = false;
-		// Start download if ready and slot is available
-		if (state == Download.ST_READY && totals.activelyCDing < totals.maxSeeders) {
-
-			if (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN || download.isForceStart()) {
+				if (!okToQueue && bDebugLog)
+					sDebugLine += "\n  Torrent can't be stopped yet, timeAlive("
+							+ timeAlive + ") < minTimeAlive(" + minTimeAlive + ")";
+			}
+	
+			if (state != Download.ST_QUEUED
+					&& // Short circuit.
+					(state == Download.ST_READY || state == Download.ST_WAITING
+							|| state == Download.ST_PREPARING ||
+					// Forced Start torrents are pre-included in count
+					(state == Download.ST_SEEDING && bActivelySeeding && !download
+							.isForceStart()))) {
+				vars.numWaitingOrSeeding++;
+				if (bDebugLog)
+					sDebugLine += "\n  Torrent is waiting or seeding";
+			}
+			
+			// Note: First Priority are sorted to the top, 
+			//       so they will always start first
+	
+			// XXX Change to waiting if queued and we have an open slot
+			if (!okToQueue
+					&& (state == Download.ST_QUEUED)
+					&& (totals.maxActive == 0 || vars.numWaitingOrSeeding < totals.maxSeeders)
+					//&& (totals.maxActive == 0 || (activeSeedingCount + activeDLCount) < totals.maxActive) &&
+					&& (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN) && !vars.higherQueued) {
 				try {
 					if (bDebugLog)
-						sDebugLine += "\nstart(); activeSeedingCount < maxSeeders";
-					download.start();
+						sDebugLine += "\n  restart: ok2Q=" + okToQueue
+								+ "; QUEUED && numWaitingOrSeeding( " + vars.numWaitingOrSeeding
+								+ ") < maxSeeders (" + totals.maxSeeders + ")";
+
+					download.restart(); // set to Waiting
 					okToQueue = false;
-				} catch (Exception ignore) {
-					/*ignore*/
+					totals.waitingToSeed++;
+					vars.numWaitingOrSeeding++;
+					if (iRankType == RANK_TIMED)
+						dlData.recalcSeedingRank();
+				} catch (Exception ignore) {/*ignore*/
 				}
 				state = download.getState();
-				totals.activelyCDing++;
-				bActivelySeeding = true;
-				vars.numWaitingOrSeeding++;
-			} else if (okToQueue) {
-				// In between switching from STATE_WAITING and STATE_READY,
-				// and ignore rule was met, so move it back to Queued
-				bForceStop = true;
+			} else if (bDebugLog && state == Download.ST_QUEUED) {
+				sDebugLine += "\n  NOT restarting:";
+				if (rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
+					sDebugLine += " torrent is being ignored";
+				else if (vars.higherQueued)
+					sDebugLine += " a torrent with a higher rank is queued";
+				else {
+					if (okToQueue)
+						sDebugLine += " no starting of okToQueue'd;";
+					
+					if (vars.numWaitingOrSeeding >= totals.maxSeeders)
+						sDebugLine += " at limit, numWaitingOrSeeding("
+								+ vars.numWaitingOrSeeding + ") >= maxSeeders("
+								+ totals.maxSeeders + ")";
+				}
 			}
-		}
+	
+			boolean bForceStop = false;
+			// Start download if ready and slot is available
+			if (state == Download.ST_READY && totals.activelyCDing < totals.maxSeeders) {
+	
+				if (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN || download.isForceStart()) {
+					try {
+						if (bDebugLog)
+							sDebugLine += "\n  start: READY && total activelyCDing("
+									+ totals.activelyCDing + ") < maxSeeders("
+									+ totals.maxSeeders + ")";
 
-		// if there's more torrents waiting/seeding than our max, or if
-		// there's a higher ranked torrent queued, stop this one
-    if (okToQueue || bForceStop) {
-    	
-    	// break up the logic into variables to make more readable
-			boolean bOverLimit = vars.numWaitingOrSeeding > totals.maxSeeders
-					|| (vars.numWaitingOrSeeding >= totals.maxSeeders && vars.higherQueued);
-			boolean bSeeding = state == Download.ST_SEEDING;
+						download.start();
+						okToQueue = false;
+					} catch (Exception ignore) {
+						/*ignore*/
+					}
+					state = download.getState();
+					totals.activelyCDing++;
+					bActivelySeeding = true;
+					vars.numWaitingOrSeeding++;
+				} else if (okToQueue) {
+					// In between switching from STATE_WAITING and STATE_READY,
+					// and ignore rule was met, so move it back to Queued
+					bForceStop = true;
+				}
+			}
+	
+			// if there's more torrents waiting/seeding than our max, or if
+			// there's a higher ranked torrent queued, stop this one
+	    if (okToQueue || bForceStop) {
+	    	
+				boolean okToStop = bForceStop;
+				if (!okToStop) {
+					// break up the logic into variables to make more readable
+					boolean bOverLimit = vars.numWaitingOrSeeding > totals.maxSeeders
+							|| (vars.numWaitingOrSeeding >= totals.maxSeeders && vars.higherQueued);
+					boolean bSeeding = state == Download.ST_SEEDING;
 
-			boolean okToStop = bForceStop;
-			if (!okToStop)
-				// not checking AND (at limit of seeders OR rank is set to ignore) AND
-				// (Actively Seeding OR StartingUp OR Seeding a non-active download) 
-				okToStop = !download.isChecking()
-						&& (bOverLimit || rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
-						&& (bActivelySeeding || !bSeeding || (!bActivelySeeding && bSeeding));
-
-			if (okToStop) {
-				try {
+					// not checking AND (at limit of seeders OR rank is set to ignore) AND
+					// (Actively Seeding OR StartingUp OR Seeding a non-active download) 
+					okToStop = !download.isChecking()
+							&& (bOverLimit || rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
+							&& (bActivelySeeding || !bSeeding || (!bActivelySeeding && bSeeding));
+					
 					if (bDebugLog) {
-						sDebugLine += "\nstopAndQueue()";
-						if (vars.numWaitingOrSeeding > totals.maxSeeders)
-							sDebugLine += "; > Max";
-						if (vars.higherQueued)
-							sDebugLine += "; higherQueued (it should be seeding instead of this one)";
-						if (rank <= -2)
-							sDebugLine += "; ignoreRule met";
+						if (okToStop) {
+							sDebugLine += "\n  stopAndQueue: ";
+							if (bOverLimit) {
+								if (vars.higherQueued)
+									sDebugLine += "higherQueued (it should be seeding instead of this one)";
+								else
+									sDebugLine += "over limit";
+							} else if (rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
+								sDebugLine += "ignoreRule met";
+							
+							sDebugLine += " && ";
+							if (bActivelySeeding)
+								sDebugLine += "activelySeeding";
+							else if (!bSeeding)
+								sDebugLine += "not SEEDING";
+							else if (!bActivelySeeding && bSeeding)
+								sDebugLine += "SEEDING, but not actively";
+						}
+					} else {
+						sDebugLine += "\n  NOT queuing: ";
+						if (download.isChecking())
+							sDebugLine += "can't auto-queue a checking torrent";
+						else if (!bOverLimit)
+							sDebugLine += "not over limit.  numWaitingOrSeeding("
+									+ vars.numWaitingOrSeeding + ") <= maxSeeders("
+									+ totals.maxSeeders + ")";
+						else
+							sDebugLine += "bActivelySeeding="+bActivelySeeding + ";bSeeding" + bSeeding;
 					}
-
-					if (state == Download.ST_READY)
-						totals.waitingToSeed--;
-
-					download.stopAndQueue();
-					vars.bStopAndQueued = true;
-					// okToQueue only allows READY and SEEDING state.. and in both cases
-					// we have to reduce counts
-					if (bActivelySeeding) {
-						totals.activelyCDing--;
-						bActivelySeeding = false;
-						vars.numWaitingOrSeeding--;
+				} else {
+					if (bDebugLog)
+						sDebugLine += "\n  Forcing a stop..";
+				}
+	
+				if (okToStop) {
+					try {
+						if (state == Download.ST_READY)
+							totals.waitingToSeed--;
+	
+						download.stopAndQueue();
+						vars.bStopAndQueued = true;
+						// okToQueue only allows READY and SEEDING state.. and in both cases
+						// we have to reduce counts
+						if (bActivelySeeding) {
+							totals.activelyCDing--;
+							bActivelySeeding = false;
+							vars.numWaitingOrSeeding--;
+						}
+						// force stop allows READY states in here, so adjust counts 
+						if (state == Download.ST_READY)
+							totals.waitingToSeed--;
+					} catch (Exception ignore) {
+						/*ignore*/
 					}
-					// force stop allows READY states in here, so adjust counts 
-					if (state == Download.ST_READY)
-						totals.waitingToSeed--;
-				} catch (Exception ignore) {
-					/*ignore*/
-				}
-
-				state = download.getState();
-			}
-		}
-
-		// move completed timed rank types to bottom of the list
-		if (vars.bStopAndQueued && iRankType == RANK_TIMED) {
-			for (int j = 0; j < dlDataArray.length; j++) {
-				Download dl = dlDataArray[j].getDownloadObject();
-				int sr = dl.getSeedingRank();
-				if (sr > 0 && sr < DefaultRankCalculator.SR_TIMED_QUEUED_ENDS_AT) {
-					// Move everyone up
-					// We always start by setting SR to SR_TIMED_QUEUED_ENDS_AT - position
-					// then, the torrent with the biggest starts seeding which is
-					// (SR_TIMED_QUEUED_ENDS_AT - 1), leaving a gap.
-					// when it's time to stop the torrent, move everyone up, and put 
-					// us at the end
-					dl.setSeedingRank(sr + 1);
+	
+					state = download.getState();
 				}
 			}
-			rank = DefaultRankCalculator.SR_TIMED_QUEUED_ENDS_AT - totals.complete;
-			download.setSeedingRank(rank);
-		}
+	
+			// move completed timed rank types to bottom of the list
+			if (vars.bStopAndQueued && iRankType == RANK_TIMED) {
+				for (int j = 0; j < dlDataArray.length; j++) {
+					Download dl = dlDataArray[j].getDownloadObject();
+					int sr = dl.getSeedingRank();
+					if (sr > 0 && sr < DefaultRankCalculator.SR_TIMED_QUEUED_ENDS_AT) {
+						// Move everyone up
+						// We always start by setting SR to SR_TIMED_QUEUED_ENDS_AT - position
+						// then, the torrent with the biggest starts seeding which is
+						// (SR_TIMED_QUEUED_ENDS_AT - 1), leaving a gap.
+						// when it's time to stop the torrent, move everyone up, and put 
+						// us at the end
+						dl.setSeedingRank(sr + 1);
+					}
+				}
+				rank = DefaultRankCalculator.SR_TIMED_QUEUED_ENDS_AT - totals.complete;
+				download.setSeedingRank(rank);
+			}
+	
+			if (download.getState() == Download.ST_QUEUED
+					&& rank >= 0)
+				vars.higherQueued = true;
 
-		if (download.getState() == Download.ST_QUEUED
-				&& rank >= 0)
-			vars.higherQueued = true;
-
-		if (bDebugLog) {
-			String[] debugEntries2 = new String[] {
-					"state=" + sStates.charAt(download.getState()),
-					"shareR=" + download.getStats().getShareRatio(),
-					"nWorCDing=" + vars.numWaitingOrSeeding,
-					"nWorDLing=" + vars.numWaitingOrDLing,
-					"ok2Q=" + boolDebug(okToQueue), "sr=" + rank,
-					"hgherQd=" + boolDebug(vars.higherQueued),
-					"maxCDrs=" + totals.maxSeeders,
-					"1stP=" + boolDebug(dlData.isFirstPriority()),
-					"actCDingCount=" + totals.activelyCDing,
-					"ActCDing=" + boolDebug(bActivelySeeding) };
-			printDebugChanges("", debugEntries, debugEntries2, sDebugLine, "  ",
-					true, dlData);
+		} finally {
+			if (bDebugLog) {
+				String[] debugEntries2 = new String[] {
+						"state=" + sStates.charAt(download.getState()),
+						"shareR=" + download.getStats().getShareRatio(),
+						"nWorCDing=" + vars.numWaitingOrSeeding,
+						"nWorDLing=" + vars.numWaitingOrDLing,
+						"sr=" + download.getSeedingRank(),
+						"hgherQd=" + boolDebug(vars.higherQueued),
+						"maxCDrs=" + totals.maxSeeders,
+						"FP=" + boolDebug(dlData.isFirstPriority()),
+						"nActCDing=" + totals.activelyCDing,
+						"ActCDing=" + boolDebug(dlData.getActivelySeeding()) };
+				printDebugChanges("", debugEntries, debugEntries2, sDebugLine, "  ",
+						true, dlData);
+			}
 		}
 	}
 

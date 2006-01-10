@@ -123,7 +123,8 @@ public class SeedingRankColumnListener implements
 			sText = "* " + sText;
 		cell.setText(sText);
 		if (bDebugLog) {
-			cell.setToolTip(dlData.sExplainFP + "\n" + dlData.sExplainSR + dlData.sTrace);
+			cell.setToolTip("FP:\n" + dlData.sExplainFP + "\n" + "SR:" + dlData.sExplainSR
+					+ "\n" + "TRACE:\n" + dlData.sTrace);
 		} else {
 			cell.setToolTip(null);
 		}

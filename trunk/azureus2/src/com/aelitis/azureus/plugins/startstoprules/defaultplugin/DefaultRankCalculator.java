@@ -289,7 +289,7 @@ public class DefaultRankCalculator implements Comparable {
 		return dl.getPosition() - dlData.dl.getPosition();
 	}
 
-	Download getDownloadObject() {
+	public Download getDownloadObject() {
 		return dl;
 	}
 
@@ -407,12 +407,14 @@ public class DefaultRankCalculator implements Comparable {
 		try {
 			downloadData_this_mon.enter();
 
+			if (rules.bDebugLog)
+				sExplainSR = "";
+
 			int oldSR = dl.getSeedingRank();
 			DownloadStats stats = dl.getStats();
 			int numCompleted = stats.getDownloadCompleted(false);
 
 			// make undownloaded sort to top so they can start first.
-
 			if (numCompleted < 1000) {
 				dl.setSeedingRank(SR_COMPLETE_STARTS_AT + (10000 - dl.getPosition()));
 				return oldSR;
@@ -430,12 +432,6 @@ public class DefaultRankCalculator implements Comparable {
 
 			int newSR = 0;
 
-			if ( dl.getName().startsWith("Seed")){
-				
-				int	a = 3;
-				int b = a;
-			}
-			
 			if (!isFirstPriority()) {
 				// Check Ignore Rules
 				// never apply ignore rules to First Priority Matches
@@ -445,8 +441,20 @@ public class DefaultRankCalculator implements Comparable {
 				if (iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio
 						&& (numSeeds >= iIgnoreShareRatio_SeedStart || !scrapeResultOk(dl))
 						&& shareRatio != -1) {
+					
+					if (rules.bDebugLog)
+						sExplainSR += "  shareratio met: shareRatio(" + shareRatio
+								+ ") >= " + iIgnoreShareRatio + "\n";
+
 					dl.setSeedingRank(SR_SHARERATIOMET);
 					return SR_SHARERATIOMET;
+				} else if (rules.bDebugLog && iIgnoreShareRatio != 0
+						&& shareRatio >= iIgnoreShareRatio) {
+					sExplainSR += "  shareratio NOT met: ";
+					if (numSeeds >= iIgnoreShareRatio_SeedStart) 
+						sExplainSR += numSeeds + " below seed threshold of "
+								+ iIgnoreShareRatio_SeedStart;
+					sExplainSR += "\n";
 				}
 
 				if (numPeers == 0 && bScrapeResultsOk) {
@@ -454,24 +462,42 @@ public class DefaultRankCalculator implements Comparable {
 					// we won't know which one it is at this point.
 					// We have to use the normal SR_0PEERS in case it isn't FP
 					if (bIgnore0Peers) {
+						if (rules.bDebugLog)
+							sExplainSR += "  Ignore 0 Peers criteria met\n";
+
 						dl.setSeedingRank(SR_0PEERS);
 						return SR_0PEERS;
 					}
 
 					if (bFirstPriorityIgnore0Peer) {
+						if (rules.bDebugLog)
+							sExplainSR += "  Ignore 0 Peers criteria for FP met\n";
+
 						dl.setSeedingRank(SR_FP0PEERS);
 						return SR_FP0PEERS;
 					}
+				} else if (rules.bDebugLog && numPeers == 0) {
+					sExplainSR += "  0 Peer Ignore rule NOT applied: Scrape invalid\n";
 				}
 
 				if (numPeers != 0 && iFirstPriorityIgnoreSPRatio != 0
 						&& numSeeds / numPeers >= iFirstPriorityIgnoreSPRatio) {
+					if (rules.bDebugLog)
+						sExplainSR += "  Ignore rule for S:P Ratio for FP met.  Current: ("
+								+ (numSeeds / numPeers)
+								+ ") >= Threshold("
+								+ iFirstPriorityIgnoreSPRatio + ")\n";
+
 					dl.setSeedingRank(SR_FP_SPRATIOMET);
 					return SR_FP_SPRATIOMET;
 				}
 
 				//0 means disabled
 				if ((iIgnoreSeedCount != 0) && (numSeeds >= iIgnoreSeedCount)) {
+					if (rules.bDebugLog)
+						sExplainSR += "  SeedCount Ignore rule met.  numSeeds("
+								+ numSeeds + " >= iIgnoreSeedCount(" + iIgnoreSeedCount + ")\n"; 
+
 					dl.setSeedingRank(SR_NUMSEEDSMET);
 					return SR_NUMSEEDSMET;
 				}
@@ -483,6 +509,11 @@ public class DefaultRankCalculator implements Comparable {
 					float ratio = (float) numPeers / numSeeds;
 					if (ratio <= iIgnoreRatioPeers
 							&& numSeeds >= iIgnoreRatioPeers_SeedStart) {
+
+						if (rules.bDebugLog)
+							sExplainSR += "  P:S Ignore rule met.  ratio(" + ratio
+									+ " <= threshold(" + iIgnoreRatioPeers_SeedStart + ")\n";
+
 						dl.setSeedingRank(SR_RATIOMET);
 						return SR_RATIOMET;
 					}
@@ -491,6 +522,9 @@ public class DefaultRankCalculator implements Comparable {
 
 			// Never do anything with rank type of none
 			if (iRankType == StartStopRulesDefaultPlugin.RANK_NONE) {
+				if (rules.bDebugLog)
+					sExplainSR += "  Ranking Type set to none.. blanking seeding rank\n";
+				
 				// everythink ok!
 				dl.setSeedingRank(newSR);
 				return newSR;
@@ -606,8 +640,9 @@ public class DefaultRankCalculator implements Comparable {
 
 	private boolean pisFirstPriority() {
 		if (rules.bDebugLog)
-			sExplainFP = "FP Calculations.  Using "
-					+ (iFirstPriorityType == FIRSTPRIORITY_ALL ? "All" : "Any") + ":\n";
+			sExplainFP = "FP if "
+					+ (iFirstPriorityType == FIRSTPRIORITY_ALL ? "all" : "any")
+					+ " criteria match:\n";
 
 		if (!dl.isPersistent()) {
 			if (rules.bDebugLog)
@@ -654,6 +689,7 @@ public class DefaultRankCalculator implements Comparable {
 		if (rules.bDebugLog)
 			sExplainFP += "  shareRatio(" + shareRatio + ") < "
 					+ minQueueingShareRatio + "=" + bLastMatched + "\n";
+
 		if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
 			if (rules.bDebugLog)
 				sExplainFP += "..Not FP.  Exit Early\n";
@@ -685,7 +721,7 @@ public class DefaultRankCalculator implements Comparable {
 				}
 			}
 		} else if (rules.bDebugLog) {
-			sExplainFP += "  SeedingTime setting == 0:  Ignored";
+			sExplainFP += "  Skipping Seeding Time check (user disabled)\n";
 		}
 
 		bLastMatched = (iFirstPriorityDLMinutes == 0);
@@ -708,7 +744,7 @@ public class DefaultRankCalculator implements Comparable {
 				}
 			}
 		} else if (rules.bDebugLog) {
-			sExplainFP += "  DLTime setting == 0:  Ignored";
+			sExplainFP += "  Skipping DL Time check (user disabled)\n";
 		}
 
 		if (iFirstPriorityType == FIRSTPRIORITY_ALL) {
