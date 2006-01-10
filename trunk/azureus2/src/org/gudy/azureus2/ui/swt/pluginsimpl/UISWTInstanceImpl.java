@@ -55,8 +55,11 @@ import org.gudy.azureus2.plugins.ui.UIInstanceFactory;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
+import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
@@ -66,6 +69,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableColumnImpl;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnManager;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -245,6 +251,37 @@ UISWTInstanceImpl
 				
 				break;
 			}
+			case UIManagerEvent.ET_CREATE_TABLE_COLUMN:{
+				
+	 			String[]	args = (String[])data;
+	 			
+	 			event.setResult( new TableColumnImpl(args[0], args[1]));
+	 			
+	 			break;
+			} 
+			case UIManagerEvent.ET_ADD_TABLE_COLUMN:{
+				
+				TableColumn	_col = (TableColumn)data;
+				
+				if ( _col instanceof TableColumnImpl ){
+					
+					TableColumnManager.getInstance().addColumn((TableColumnImpl)_col);
+					
+				}else{
+					
+					throw(new UIRuntimeException("TableManager.addColumn(..) can only add columns created by createColumn(..)"));
+				}
+				
+				break;
+			} 
+			case UIManagerEvent.ET_ADD_TABLE_CONTEXT_MENU_ITEM:{
+				
+				TableContextMenuItem	item = (TableContextMenuItem)data;
+				
+				TableContextMenuManager.getInstance().addContextMenuItem(item);
+				
+				break;
+			} 
 			default:
 			{
 				done	= false;

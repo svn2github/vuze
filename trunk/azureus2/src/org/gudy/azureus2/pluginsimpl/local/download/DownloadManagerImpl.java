@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.pluginsimpl.local.torrent.*;
+import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerEventAdapter;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.Download;
@@ -191,21 +192,7 @@ DownloadManagerImpl
 	addDownload(
 		final File fileName ) 
 	{
-		UIManagerImpl.fireEvent(
-			new UIManagerEvent()
-			{
-				public int
-				getType()
-				{
-					return( UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE );
-				}
-				
-				public Object
-				getData()
-				{
-					return( fileName );
-				}
-			});
+		UIManagerImpl.fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_FILE, fileName );
 	}
 
 	public void 
@@ -220,21 +207,7 @@ DownloadManagerImpl
 		final URL	url,
 		final URL 	referrer) 
 	{
-		UIManagerImpl.fireEvent(
-				new UIManagerEvent()
-				{
-					public int
-					getType()
-					{
-						return( UIManagerEvent.ET_OPEN_TORRENT_VIA_URL );
-					}
-					
-					public Object
-					getData()
-					{
-						return( new URL[]{ url, referrer });
-					}
-				});
+		UIManagerImpl.fireEvent( UIManagerEvent.ET_OPEN_TORRENT_VIA_URL, new URL[]{ url, referrer });
 	}
 	
 	protected void

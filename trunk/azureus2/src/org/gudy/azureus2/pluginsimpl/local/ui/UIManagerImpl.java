@@ -75,6 +75,8 @@ UIManagerImpl
 	protected PluginConfig			plugin_config;
 	protected String				key_prefix;
 	
+	protected TableManager			table_manager;
+	
 	public
 	UIManagerImpl(
 		PluginInterface		_pi )
@@ -84,6 +86,8 @@ UIManagerImpl
 		plugin_config	= pi.getPluginconfig();
 		
 		key_prefix		= plugin_config.getPluginConfigKeyPrefix();
+		
+		table_manager	= new TableManagerImpl( this );
 	}
 		
 	public PluginInterface
@@ -121,21 +125,7 @@ UIManagerImpl
 	{
 		final BasicPluginViewModel	model = new BasicPluginViewModelImpl( this, name );
 				
-		fireEvent(
-			new UIManagerEvent()
-			{
-				public int
-				getType()
-				{
-					return( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED );
-				}
-				
-				public Object
-				getData()
-				{
-					return( model );
-				}
-			});
+		fireEvent( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED, model );
 		
 		return( model );
 	}
@@ -144,21 +134,7 @@ UIManagerImpl
 	destroy(
 		final BasicPluginViewModel		model )
 	{
-		fireEvent(
-				new UIManagerEvent()
-				{
-					public int
-					getType()
-					{
-						return( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED );
-					}
-					
-					public Object
-					getData()
-					{
-						return( model );
-					}
-				});
+		fireEvent( UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED, model );
 	}
 	
 	public BasicPluginConfigModel
@@ -176,21 +152,7 @@ UIManagerImpl
 	{
 		final BasicPluginConfigModel	model = new BasicPluginConfigModelImpl( this, parent_section, section_name );
 		
-		fireEvent(
-			new UIManagerEvent()
-			{
-				public int
-				getType()
-				{
-					return( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED );
-				}
-				
-				public Object
-				getData()
-				{
-					return( model );
-				}
-			});
+		fireEvent( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED, model );
 		
 		return( model );
 	}
@@ -199,21 +161,7 @@ UIManagerImpl
 	destroy(
 		final BasicPluginConfigModel		model )
 	{
-		fireEvent(
-				new UIManagerEvent()
-				{
-					public int
-					getType()
-					{
-						return( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED );
-					}
-					
-					public Object
-					getData()
-					{
-						return( model );
-					}
-				});
+		fireEvent( UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_DESTROYED, model );
 	}
 	
 	public void
@@ -222,21 +170,7 @@ UIManagerImpl
 	
 		throws UIException
 	{
-		boolean ok = fireEvent(
-				new UIManagerEvent()
-				{
-					public int
-					getType()
-					{
-						return( UIManagerEvent.ET_COPY_TO_CLIPBOARD );
-					}
-					
-					public Object
-					getData()
-					{
-						return( data );
-					}
-				});
+		boolean ok = fireEvent( UIManagerEvent.ET_COPY_TO_CLIPBOARD, data );
 		
 		if ( !ok ){
 			
@@ -250,21 +184,7 @@ UIManagerImpl
 	
 		throws UIException
 	{
-		boolean ok = fireEvent(
-				new UIManagerEvent()
-				{
-					public int
-					getType()
-					{
-						return( UIManagerEvent.ET_OPEN_URL );
-					}
-					
-					public Object
-					getData()
-					{
-						return( url );
-					}
-				});
+		boolean ok = fireEvent( UIManagerEvent.ET_OPEN_URL, url );
 		
 		if ( !ok ){
 			
@@ -273,7 +193,7 @@ UIManagerImpl
 	}
 	
   public TableManager getTableManager() {
-    return TableManagerImpl.getSingleton();
+    return( table_manager );
   }
 
   public SWTManager getSWTManager() {
@@ -474,6 +394,14 @@ UIManagerImpl
   		}		
  	}
  	
+	public static boolean
+ 	fireEvent(
+ 		int			type,
+ 		Object		data )
+ 	{
+		return( fireEvent( new UIManagerEventAdapter( type, data )));
+ 	}
+	
  	public static boolean
  	fireEvent(
  		UIManagerEvent	event )
@@ -501,7 +429,8 @@ UIManagerImpl
  			// some events need to be replayed when new UIs attach
  		
  		if ( 	type == UIManagerEvent.ET_PLUGIN_VIEW_MODEL_CREATED ||
- 				type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED ){
+ 				type == UIManagerEvent.ET_PLUGIN_CONFIG_MODEL_CREATED || 
+ 				type == UIManagerEvent.ET_ADD_TABLE_CONTEXT_MENU_ITEM ){
  			
  			delivered = true;
  			
@@ -544,20 +473,6 @@ UIManagerImpl
 		final String		message_resource,
 		final String		contents )
 	{
-		fireEvent(
-			new UIManagerEvent()
-			{
-				public int
-				getType()
-				{
-					return( UIManagerEvent.ET_SHOW_TEXT_MESSAGE );
-				}
-				
-				public Object
-				getData()
-				{
-					return( new String[]{ title_resource, message_resource, contents });
-				}
-			});
+		fireEvent( UIManagerEvent.ET_SHOW_TEXT_MESSAGE, new String[]{ title_resource, message_resource, contents });
 	}		
 }

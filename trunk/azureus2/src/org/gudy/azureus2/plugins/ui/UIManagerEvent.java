@@ -34,10 +34,20 @@ UIManagerEvent
 	public static final int ET_PLUGIN_VIEW_MODEL_DESTROYED		= 7;		// data is PluginViewModel (or subtype)
 	public static final int ET_PLUGIN_CONFIG_MODEL_DESTROYED	= 8;		// data is PluginConfigModel (or subtype)
 	public static final int ET_OPEN_URL							= 9;		// data is URL
+	public static final int ET_CREATE_TABLE_COLUMN				= 10;		// data is String[] - table_id, cell_id: result is TableColumn
+	public static final int ET_ADD_TABLE_COLUMN					= 11;		// data is TableColumn previously created
+	public static final int ET_ADD_TABLE_CONTEXT_MENU_ITEM		= 12;		// data is TableContextMenuItem
 
 	public int
 	getType();
 	
 	public Object
 	getData();
+	
+	public void
+	setResult(
+		Object	result );
+	
+	public Object
+	getResult();
 }

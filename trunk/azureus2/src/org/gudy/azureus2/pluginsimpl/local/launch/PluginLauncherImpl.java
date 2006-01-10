@@ -217,18 +217,32 @@ PluginLauncherImpl
 			
 			boolean	restart = false;
 			
+			boolean	process_succeeded	= false;
+			
 			try{
 				restart = launchables[0].process();
 				
+				process_succeeded	= true;
+				
 			}finally{
 				
-				if ( restart ){
+				try{
+					if ( restart ){
+						
+						AzureusCoreFactory.getSingleton().restart();
+	
+					}else{
+						
+						AzureusCoreFactory.getSingleton().stop();
+					}
+				}catch( Throwable e ){
 					
-					AzureusCoreFactory.getSingleton().restart();
-
-				}else{
+						// only report this exception if we're not already failing
 					
-					AzureusCoreFactory.getSingleton().stop();
+					if ( process_succeeded ){
+						
+						throw( e );
+					}
 				}
 			}
 			
