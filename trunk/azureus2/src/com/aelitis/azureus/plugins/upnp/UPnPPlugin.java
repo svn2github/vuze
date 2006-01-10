@@ -105,7 +105,7 @@ UPnPPlugin
 				}
 			});
 		
-		log = plugin_interface.getLogger().getChannel("UPnP");
+		log = plugin_interface.getLogger().getTimeStampedChannel("UPnP");
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
