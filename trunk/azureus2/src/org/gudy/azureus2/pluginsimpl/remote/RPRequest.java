@@ -2,7 +2,7 @@
  * File    : RPRequest.java
  * Created : 28-Jan-2004
  * By      : parg
- * 
+ *
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,98 +22,121 @@
 package org.gudy.azureus2.pluginsimpl.remote;
 
 import java.io.Serializable;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 /**
  * @author parg
  *
  */
-public class 
+public class
 RPRequest
-	implements Serializable
+    implements Serializable
 {
-		// don't change these names as they end up in XML serialised data
-	
-	public RPObject	object;
-	public String	method;
-	public Object[]	params;
-	
-	public long		connection_id;
-	public long		request_id;
-	
-	protected transient String		client_ip;
-	
-		// public constructor for XML deserialiser
-	
-	public
-	RPRequest()
-	{
-	}
-	
-	public
-	RPRequest(
-		RPObject			_object,
-		String				_method,
-		Object[]			_params )
-	{
-		object		= _object;
-		method		= _method;
-		params		= _params;
-		
-		if ( object != null ){
-			
-			RPPluginInterface	pi = object.getDispatcher().getPlugin();
-			
-			connection_id	= pi._getConectionId();
-			request_id		= pi._getNextRequestId();
-		}
-	}
+        // don't change these names as they end up in XML serialised data
 
-	public void
-	setClientIP(
-		String		str )
-	{
-		client_ip		= str;
-	}
-	
-	public String
-	getClientIP()
-	{
-		return( client_ip );
-	}
-	
-	public long
-	getConnectionId()
-	{
-		return( connection_id );
-	}
-	
-	public long
-	getRequestId()
-	{
-		return( request_id );
-	}
-	
-	public String
-	getString()
-	{
-		return( "obj=" + object+", method=" + method + ",params=" + params );
-	}
-	
-	public RPObject
-	getObject()
-	{
-		return( object );
-	}
-	
-	public String
-	getMethod()
-	{
-		return( method );
-	}
-	
-	public Object[]
-	getParams()
-	{
-		return( params );
-	}
+    public RPObject object;
+    public String   method;
+    public Object[] params;
+    protected transient PluginInterface plugin_interface;
+    protected transient LoggerChannel channel;
+
+    public long     connection_id;
+    public long     request_id;
+
+    protected transient String      client_ip;
+
+        // public constructor for XML deserialiser
+
+    public
+    RPRequest()
+    {
+    }
+
+    public
+    RPRequest(
+        RPObject            _object,
+        String              _method,
+        Object[]            _params )
+    {
+        object      = _object;
+        method      = _method;
+        params      = _params;
+
+        if ( object != null ){
+
+            RPPluginInterface   pi = object.getDispatcher().getPlugin();
+
+            connection_id   = pi._getConectionId();
+            request_id      = pi._getNextRequestId();
+            plugin_interface = (PluginInterface)pi._getDelegate();
+        }
+    }
+
+    public void
+    setClientIP(
+        String      str )
+    {
+        client_ip       = str;
+    }
+
+    public String
+    getClientIP()
+    {
+        return( client_ip );
+    }
+
+    public long
+    getConnectionId()
+    {
+        return( connection_id );
+    }
+
+    public long
+    getRequestId()
+    {
+        return( request_id );
+    }
+
+    public String
+    getString()
+    {
+        return( "object=" + object + ", method=" + method + ", params=" + params );
+    }
+
+    public RPObject
+    getObject()
+    {
+        return( object );
+    }
+
+    public String
+    getMethod()
+    {
+        return( method );
+    }
+
+    public Object[]
+    getParams()
+    {
+        return( params );
+    }
+
+    public PluginInterface getPluginInterface() {
+        return this.plugin_interface;
+    }
+
+    public void setPluginInterface(PluginInterface pi) {
+        this.plugin_interface = pi;
+    }
+
+    public LoggerChannel getRPLoggerChannel() {
+        return this.channel;
+    }
+
+    public void setRPLoggerChannel(LoggerChannel channel) {
+        this.channel = channel;
+    }
+
+
 }
