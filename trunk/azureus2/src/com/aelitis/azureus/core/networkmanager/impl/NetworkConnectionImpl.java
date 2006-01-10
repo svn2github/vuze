@@ -27,6 +27,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 
 
@@ -115,9 +116,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
 
   
   public void close() {
-    NetworkManager.getSingleton().getUploadProcessor().deregisterPeerConnection( this );
-    NetworkManager.getSingleton().getDownloadProcessor().deregisterPeerConnection( this );
-    
+  	NetworkManager.getSingleton().stopTransferProcessing( this );    
     tcp_transport.close();
     incoming_message_queue.destroy();
     outgoing_message_queue.destroy();  
@@ -141,19 +140,16 @@ public class NetworkConnectionImpl implements NetworkConnection {
   
 
   public void startMessageProcessing( LimitedRateGroup upload_group, LimitedRateGroup download_group ) {
-    NetworkManager.getSingleton().getUploadProcessor().registerPeerConnection( this, upload_group );
-    NetworkManager.getSingleton().getDownloadProcessor().registerPeerConnection( this, download_group );
+  	NetworkManager.getSingleton().startTransferProcessing( this, upload_group, download_group );
   }
   
   
   public void enableEnhancedMessageProcessing( boolean enable ) {
     if( enable ) {
-      NetworkManager.getSingleton().getUploadProcessor().upgradePeerConnection( this );
-      NetworkManager.getSingleton().getDownloadProcessor().upgradePeerConnection( this );
+    	NetworkManager.getSingleton().upgradeTransferProcessing( this );
     }
     else {
-      NetworkManager.getSingleton().getUploadProcessor().downgradePeerConnection( this );
-      NetworkManager.getSingleton().getDownloadProcessor().downgradePeerConnection( this );
+      NetworkManager.getSingleton().downgradeTransferProcessing( this );
     }
   }
   
@@ -174,4 +170,9 @@ public class NetworkConnectionImpl implements NetworkConnection {
 		return is_connected;
 	}
   
+	
+	public boolean isLANLocal() {
+		return AddressUtils.isLANAddress( remote_address.getAddress() );
+	}
+	
 }

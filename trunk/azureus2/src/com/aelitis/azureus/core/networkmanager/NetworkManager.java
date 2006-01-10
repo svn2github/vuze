@@ -54,8 +54,14 @@ public class NetworkManager {
   private static int max_upload_rate_bps_seeding_only;
   private static int max_upload_rate_bps;
   
+  private static int max_lan_upload_rate_bps = UNLIMITED_RATE;  //TODO
+  private static int max_lan_download_rate_bps = UNLIMITED_RATE;
+  
   private static boolean seeding_only_mode_allowed;
   private static boolean seeding_only_mode = false;
+  
+  
+  
   
   
   static {
@@ -116,6 +122,20 @@ public class NetworkManager {
   private final TransferProcessor download_processor = new TransferProcessor( TransferProcessor.TYPE_DOWNLOAD, new LimitedRateGroup(){
     public int getRateLimitBytesPerSecond() {  return max_download_rate_bps;  }
   });
+  
+  
+  private final TransferProcessor lan_upload_processor = new TransferProcessor( TransferProcessor.TYPE_UPLOAD, new LimitedRateGroup(){
+    public int getRateLimitBytesPerSecond() {  return max_lan_upload_rate_bps;  }
+  });
+  private final TransferProcessor lan_download_processor = new TransferProcessor( TransferProcessor.TYPE_DOWNLOAD, new LimitedRateGroup(){
+    public int getRateLimitBytesPerSecond() {  return max_lan_download_rate_bps;  }
+  });
+  
+  
+  private final LimitedRateGroup disabled_rate_group = new LimitedRateGroup() {
+  	public int getRateLimitBytesPerSecond() {  return 0;  }
+  };
+  
   
   
   
@@ -305,19 +325,83 @@ public class NetworkManager {
   public VirtualChannelSelector getWriteSelector() {  return write_controller.getWriteSelector();  }
   
   
+  /**
+   * Register peer connection for network upload and download handling.
+   * NOTE: The given max rate limits are ignored until the connection is upgraded.
+   * NOTE: The given max rate limits are ignored for LANLocal connections.
+   * @param peer_connection to register for network transfer processing
+   * @param upload_group upload rate limit group
+   * @param download_group download rate limit group
+   */
+  public void startTransferProcessing( NetworkConnection peer_connection, LimitedRateGroup upload_group, LimitedRateGroup download_group ) {
+  	if( peer_connection.isLANLocal() ) {
+  		
+  		System.out.println( "LANLocal start: " +peer_connection.getAddress() );
+  		
+  		lan_upload_processor.registerPeerConnection( peer_connection, disabled_rate_group );
+  		lan_download_processor.registerPeerConnection( peer_connection, disabled_rate_group );
+  	}
+  	else {
+  		upload_processor.registerPeerConnection( peer_connection, upload_group );
+  		download_processor.registerPeerConnection( peer_connection, download_group );
+  	}
+  }
+  
   
   /**
-   * Get the upload message processor.
-   * @return processor
+   * Cancel network upload and download handling for the given connection.
+   * @param peer_connection to cancel
    */
-  public TransferProcessor getUploadProcessor() {  return upload_processor;  }
+  public void stopTransferProcessing( NetworkConnection peer_connection ) {
+  	if( peer_connection.isLANLocal() ) {
+
+  		System.out.println( "LANLocal stop: " +peer_connection.getAddress() );
+  		
+  		lan_upload_processor.deregisterPeerConnection( peer_connection );
+  		lan_download_processor.deregisterPeerConnection( peer_connection );
+  	}
+  	else {
+  		upload_processor.deregisterPeerConnection( peer_connection );
+  		download_processor.deregisterPeerConnection( peer_connection );
+  	}
+  }
   
   
   /**
-   * Get the download message processor.
-   * @return processor
+   * Upgrade the given connection to high-speed network transfer handling.
+   * @param peer_connection to upgrade
    */
-  public TransferProcessor getDownloadProcessor() {  return download_processor;  }
+  public void upgradeTransferProcessing( NetworkConnection peer_connection ) {
+  	if( peer_connection.isLANLocal() ) {
+
+  		System.out.println( "LANLocal upgrade: " +peer_connection.getAddress() );
+  		
+  		lan_upload_processor.upgradePeerConnection( peer_connection );
+  		lan_download_processor.upgradePeerConnection( peer_connection );
+  	}
+  	else {
+  		upload_processor.upgradePeerConnection( peer_connection );
+  		download_processor.upgradePeerConnection( peer_connection );
+  	}
+  }
+
+  /**
+   * Downgrade the given connection back to a normal-speed network transfer handling.
+   * @param peer_connection to downgrade
+   */
+  public void downgradeTransferProcessing( NetworkConnection peer_connection ) {
+  	if( peer_connection.isLANLocal() ) {
+
+  		System.out.println( "LANLocal downgrade: " +peer_connection.getAddress() );
+  		
+  		lan_upload_processor.downgradePeerConnection( peer_connection );
+  		lan_download_processor.downgradePeerConnection( peer_connection );
+  	}
+  	else {
+  		upload_processor.downgradePeerConnection( peer_connection );
+  		download_processor.downgradePeerConnection( peer_connection );
+  	}
+  }
   
   
   
