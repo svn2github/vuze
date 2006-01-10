@@ -2269,7 +2269,7 @@ public class TableView
 					} catch (NoSuchFieldError e) {
 						/* Ignore for Pre 3.0 SWT.. */
 					}
-					Point pt = table.toDisplay(event.x, event.y + 21);
+					Point pt = table.toDisplay(event.x, event.y);
 					Rectangle displayRect;
 					try {
 						displayRect = toolTipShell.getMonitor().getClientArea();
@@ -2281,7 +2281,9 @@ public class TableView
 					}
 					
 					if (pt.y + size.y > displayRect.y + displayRect.height) {
-						pt.y -= (size.y * 2 - 23);
+						pt.y -= size.y + 2;
+					} else {
+						pt.y += 21;
 					}
 
 					toolTipShell.setBounds(pt.x, (pt.y < 0) ? 0 : pt.y, size.x, size.y);
