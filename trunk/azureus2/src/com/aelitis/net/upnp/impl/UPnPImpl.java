@@ -124,51 +124,8 @@ UPnPImpl
 		final URL					location )
 
 	{
-		final UPnPRootDeviceImpl old_root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
-			
-		if ( old_root_device != null ){
-	
-				// device is still there with same IP, however 
-			
-			if ( old_root_device.getLocation().equals( location )){
-				
-				
-					// 1) port of UPnP device might have changed (it does on mine when enabling/disabling UPnP)
-					// 2) our local IP might have changed (DHCP reassignment)
-
-				if ( old_root_device.getLocalAddress().equals( local_address )){
-				
-					// everythings the same, nothing to do
-				
-					return;
-				}
-			
-					// an alternative situation is where the same device is discovered by two network interfaces
-					// (see https://sourceforge.net/forum/message.php?msg_id=2912370 )
-					// if this is the case we just use the first NI through which it was discovered and
-					// map to that NI's local address
-			
-					// use the interfate.getName (e.g. eth0) as the "equals" method includes the addresses and we want to
-					// detect when an address has changed
-				
-				if ( !old_root_device.getNetworkInterface().getName().equals( network_interface.getName())){
-				
-					String	msg =  "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
-										old_root_device.getNetworkInterface();
-
-					if ( !secondary_route_log.equals( msg )){
-					
-						secondary_route_log	= msg;
-						
-						log( msg );
-					}
-	
-					return;
-				}
-			}
-		}
-		
-			// we need to take this operation off the main thread as it can take some time
+			// we need to take this operation off the main thread as it can take some time. This is a single
+			// concurrency queued thread pool so things get done serially in the right order
 		
 		device_dispatcher.run(
 			new AERunnable()
@@ -176,11 +133,75 @@ UPnPImpl
 				public void
 				runSupport()
 				{
+					final UPnPRootDeviceImpl old_root_device;
+					
+					try{
+						rd_listeners_mon.enter();
+
+						old_root_device = (UPnPRootDeviceImpl)root_locations.get( location.getHost());
+						
+					}finally{
+						
+						rd_listeners_mon.exit();
+					}
+					
+					if ( old_root_device != null ){
+				
+							// device is still there with same IP, however 
+						
+						if ( old_root_device.getLocation().equals( location )){		
+							
+								// 1) port of UPnP device might have changed (it does on mine when enabling/disabling UPnP)
+								// 2) our local IP might have changed (DHCP reassignment)
+
+							if ( old_root_device.getLocalAddress().equals( local_address )){
+							
+								// everythings the same, nothing to do
+							
+								return;
+							}
+						
+								// an alternative situation is where the same device is discovered by two network interfaces
+								// (see https://sourceforge.net/forum/message.php?msg_id=2912370 )
+								// if this is the case we just use the first NI through which it was discovered and
+								// map to that NI's local address
+						
+								// use the interfate.getName (e.g. eth0) as the "equals" method includes the addresses and we want to
+								// detect when an address has changed
+							
+							if ( !old_root_device.getNetworkInterface().getName().equals( network_interface.getName())){
+							
+								String	msg =  "UPnP: secondary route to = " + location + ", local = " + local_address.toString() + " - using initial network interface (" + 
+													old_root_device.getNetworkInterface();
+
+								if ( !secondary_route_log.equals( msg )){
+								
+									secondary_route_log	= msg;
+									
+									log( msg );
+								}
+				
+								return;
+							}
+						}
+					}
+					
 					if ( old_root_device != null ){
 						
 							// something changed, resetablish everything
 						
-						root_locations.remove( location.getHost());
+						try{
+								// not the best "atomic" code here but it'll do as the code that adds roots (this)
+								// is single threaded via the dispatcher
+							
+							rd_listeners_mon.enter();
+
+							root_locations.remove( location.getHost());
+						
+						}finally{
+							
+							rd_listeners_mon.exit();
+						}
 						
 						old_root_device.destroy( true );
 					}
