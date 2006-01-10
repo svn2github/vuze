@@ -1,149 +1,104 @@
-$ 
-$    Willkommen zum Azureus 2.3.0.6
+$
+$    Willkommen bei Azureus 2.3.0.6
 $
 
-+1. What's new in Azureus 2.3.0.6
++1. Was ist neu in Azureus 2.3.0.6?
 
- This is a further bug fix release and also contains various improvements including:
+ Dies ist ein weiterer Patch, der außerdem verschiedene Verbesserungen enthält:
  
-    Better banning of peers that send corrupt data
-    Alternative upload controls when only seeding
-    Renaming and retargeting of files within a download
-    Better reporting of firewalled status
-    NAT traversal for magnet downloads
-    Java 5.0 support for OSX
+    Besseres Bannen von Peers die korrupte Daten senden
+    Alternative Upload Steuerung wenn man nur "seeded"
+    Umbenennung von Dateien und ändern des Zielverzeichnisses noch während des Downloads
+    Genauere Informationen zum Firewall Status
+    NAT Weiterleitung für magnet downloads
+    Java 5.0 Unterstützung für OSX
     Bugfixes
     
-    Note: New Windows launcher exe might require allowing "Azureus.exe" internet access in your software firewall.
+    Anmerkung: Die neue Windows launcher exe erfordert möglicherweise bei Benutzung einer Software Firewall die Berechtigung das "Azureus.exe" Internet Zugang erhält.
     
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
+    Detaillierter ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
+    Siehe auch http://azureus.sourceforge.net/changelog.php?version=2.3.0.4 für die vorigen Änderungen.
+	
 
-	Volles änderung protokoll http://azureus.sourceforge.net/changelog.php?version=2.3.0.4
++2. Was ist neu in Azureus 2.3.0.2?
 
+ Dieser Patch behebt in erster Linie Fehler und verbesssert die Leistung. Von besonderem Interesse sind:
+ 
+    JDK 1.4 Kompatibilität bei Windows OS wieder hergestestellt
+    Distributed Database bootstrap und IP change handling verbessert
+    RAM Speicherbedarf reduziert
+    Thread Nutzung für "idle torrents" reduziert
+    Verbindungsmanagement für Langzeit Verbindungen und Peer Exchange verbessert
+    UI Konsole unterstützt jetzt Benachrichtigung und Versions/Update Prüfung
+ 
+    Detaillierter ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.2
 
-+2. Was ist neues beim Azureus 2.3.0.2
+    
++3. Was ist neu in Azureus 2.3.0.0?
 
- Dieses ist hauptsächlich eine leistung verlegenheit freigabe. 
- Vom bemerkenswerten Interesse seien sie:
-
-	JDK 1.4 Kompatibilität wieder hergestellt auf Windows
-	Stiefelriemen der dezentralisierten Datenbank und IP Änderung Behandlung verbessert
-	Memory verbrauch verringert
-	Gewindeverbrauch fur untätige Ströme verringert
-	Verbesserter Anschlussmanagement fur langfristige Anschlüsse und Gleichaustausch
-	Konsole UI stützt jetzt das Alarmieren und die Version Update überprüfung
-
-
-	Volles änderung protokoll http://azureus.sourceforge.net/changelog.php?version=2.3.0.2
-
-
-+3. Was ist neues beim Azureus 2.3.0.0
-
-
-!3.1 Dezentralisierte Datenbank
-
-Azureus hat jetzt eine verteilte, dezentralisierte Datenbank, die benutzt werden kann, um dezentralisierte Ströme aufzuspüren. Dieses ermöglicht beide “trackerless” Ströme und die Wartung der Schwärme, in denen der Verfolger nicht erreichbar geworden ist, oder wo der Strom vom Verfolger entfernt wurde. Es verwendet das UDP Protokoll, wenn Sie ein firewall/router haben, sie benötigten open/forward das UDP Tor in der gleichen Weise, die Sie mit TCP taten, um Daten zu downloaden.
-
-
-*3.1.1 Magnet-Verbindungen
- Für Ströme, die dezentralisierten aufgespürt werden, kann Azureus eine “Magnet-Verbindung” exportieren. Dieses ist von der form "magnet:?xt=urn:btih:..." und kann verwendet warden, den Strom von der dezentralisierten Datenbank über das “geöffnetes URL” Menüeinzeilteil zu donwloaden.
- http://azureus.aelitis.com/wiki/index.php/Magnet_link
-
-
-!3.2 Erhöhtes Protokoll
-
- Azureus stützt jetzt ein erhöhtes Zwischen-Klient Nachrichtenübermittlung Protokoll, das angestrebt wird, plugins die Anschlüsse benutzen lassend, die von Azureus verursacht werden, um Funktionalität des Programs hinzuzügen. Andere Klienten Entwickler können die Spezifikationen für dieses Protokoll ansehen http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol.
- Plugins Entwickler können die steckbaren javadocs überprüfen, um zu sehen, wie man es verwendet. Z.B. die JPC und die Schwätzchen plugins werden diese Nachtichtenübermittlung gebrauchen.
-
+!3.1 Distributed Database
+ Azureus hat nun eine verteilte "distributed" und dezentralisierte Datenbank, die dazu verwendet werden kann um dezentralisierte Torrents zu verfolgen. Dies erlaubt sowohl die Nutzung von "trackerless" torrents als auch die Verarbeitung von Schwärmen bei denen der Tracker nicht mehr verfügbar ist oder der Torrent vom Tracker entfernt wurde.
+ Die Datenbank nutzt das UDP Protokoll. Falls Sie eine Firewall/Router nutzen, müssen Sie den benötigten UDP Port in der selben Art und Weise öffnen bzw. weiterleiten wie Sie es mit dem TCP port zum Download der Daten getan haben.
+ 
+*3.1.1 Magnet Links
+ Für die Torrents die dezentral verfolgt werden kann Azureus einen "Magnet Link" exportieren. Dieser hat die Form "magnet:?xt=urn:btih:..." und kann dazu benutzt werden den Torrent von der "Distributed Database" über das "open->url" Menü zu laden.
+ 
+!3.2 Verbessertes Protokoll
+ Azureus unterstützt nun ein verbessertes inter-client messaging protocol, welches dazu dient plugins die Nutzung der von Azureus geschaffenen Internetverbindungen für Ihre Zwecke zu nutzen. 
+ Die Entwickler anderer Clients können die Spezifikationen für dieses Protokoll unter "http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol" einsehen. Plugin Entwickler können das Plugin javadocs nutzen um sich mit der Nutzung der Funktion vertraut zu machen.
+ Zum Beispiel machen das JPC and Chat Plugin Gebrauch von dieser Messaging Extension Funktion.
 
 !3.3 JPC
-
- Joltid Gleich-Pufferspeicher (JPC) wird jetzt in Azureus integriert. Für benutzer deren ISP diese Unterstützen, JPC sollte erlauben für schnellere Downloads, Hilft auch beim verringern der Bandbreite Kosten von ISP’s. Das JPC, das plugin ist in der Weise sicher, der ihr ISP nicht weiss, was sie Donwloaden, und es nicht verwenden kann auf sie zu spionieren. Das JPC, das plugin kann durch Werkzeug-Wählen Plugins JPC untauglich sein. 
-
-
-!3.4 Gekennzeichnetes Plugin
-
- Die dezentralisierte Datenbank und das erhöhte Protokoll erlaubt uns neue plugins zu entwickeln. Wir werden sie nicht für sie selber bringen, aber wir empfehlen alle Benutzer die an ihnen interessiert sein könnten, das Plugin Installation Zaubermenü verwendet.  
-
-
-
-*3.4.1 Schwätzchen
-
- Dieser plugin wird einige verursachen eine Diskussion Führen für jeden Strom den Sie downloaden. Jede Führung ist unabhängig und Sie sind frei zu besprechen, was auch immer Sie innerhalb der Führung wünschen.
- Dieses plugin gebraucht das erhöhte Protokoll. Entwickler anderer Klienten, die die Schwätzchenfunktionalität in ihrem Klienten einzuführen, sind willkommen, einen Blick am sehr einfachen Protokoll zu nehmen, das hier verwendet wird und beschrieben ist: http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
- Sie können auch create/join eine willkürkliche Führung, indem Sie in seinem Namen innerhalb des plugins schreiben. Dieses hat den Effekt des Herstellens eines “virtuellen” Stromes, ohne Samen, um Benutzern zu erlauben Anschlusse zum Schwätzchen zu verursachen. Die “virtuellen” Strome gebraucht die dezentralisierte Datenbank als ihr Verfolger, also, während Sie das Schwätzchen verwenden können, das ohne die dezentralisierte Datenbank steckbar ist, SIND Sie nicht in der Lage, die virtuelle Führung Funktion zu benutzen, wenn Sie die dezentralisierte Datenbank sperren.
-
-
-
-
-*3.4.2 Bewertung und Anmerkungen
-
- Dieser plugin wird Ihnen erlauben, bewertungen und anmerkungen von anderen Benutzern zu sehen, sowie veranschlagen und kommnetieren eines Stromes; (rechtes Klicken des Stromes in “meinen Strömen” wählt dann “Bewertung und Anmerkungen”. Dieses müssen steckbarer Gebrauchen die dezentralisierte Datenbank, also die dezentralisierte Datenbank haben, damit sie ermöglicht wird um zu arbeiten.
-
-
-
-+4. Aufsteigen-Rat
-
-!4.1 Java 5.0
-
- Azureus wird in Java geschrieben und die Java Laufzeit erfordert. Wir empfehlen Java 5.0 (1.5 alias) da es bessere Leistung und Zuverlassigkeit – bitte wenn notwendig verbessern lasst.
- Sie warden Ströme finden, um Java hier zu aktualisieren:
- http://azureus.sourceforge.net/download.php
- Downloaden Sie das für Ihr System, nahes Azureus, führen Sie die downloadete Akte durch, dann beginnen Sie Azureus wieder. WinXP Benutzer müssen zur Werkzeugeconfig-Schnittstelle Anzeige gehen und prüfen die “ermöglichen XP Art” Wahl nach.
-
-
-
-!4.2 NOD32
- NOD32 (http://www.nod32.com/) ist ein antivirus, das bekannt ist um Problem emit Azureus zu haben und verursacht CPU Verbrauch 100%. Sehen Sie http://azureus.aeletis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
-
-
-
-+5. Allgemeine Ausgaben
-
-!5.1 NAT "fehler"
- Nationale Mittell “Endsystemadresse-?bersetzung”. Der Nationale Test in Azureus erklart Ihnen, ob oder nicht Sie von den Leuten auf dem Internet anschliessbar sind. Die erhalten bessere Geschwindigkeit wenn Sie anschliessbar sind. Bitte treten Sie mit uns nicht in Verbindung, um Nationale Ausgaben zu lösen, da vielbetriebsmittel auf dem Internet über das vorhanden sind. Erste ?berprüfung:
- - http://azureus.aelitis.com/wiki/index.php/PortForwarding
- - http://www.portforward.com
-
-
-
-!5.2 Azureus zusammenstossen
-
- Wenn Ihr Azureus zusammenstösst, ist der wahrscheinlichste Grund eine Ausgabe mit Ihren Netzbestandteilen (Karte, Treiber, OS). Wir empfehlen in hohem Grade, dass Sie alle Netz bezogenen Bestandteile aktualisieren. Wenn dieses nicht hilft, dann ist der Grund vermutlich dass Ihr System nicht anfassen kann diese vielen Gleichanschlussen.
- Senken Sie die Zahl Anschlüssen in Azureus (Werkzeug-Wahlen bringen Hochstzahl der Anschlusse pro Strom/global), versuchen Sie einen niedrigen Wert wie 30 als erstes.
-
-
-
-!5.3 Unterstützung
-
- Bevor Sie mit der Unterstützungsmannschaft in Verbindung treten, seien Sie sicher, die vorhandenen Betriebsmittel an zu überprüfen.
- - Die offiziele WebSite : http://azureus.sourceforge.net/
- - Die offiziele Wiki : http://azureus.aelitis.com/wiki/
- - Die offiziele IRC Channel : #azureus-users on irc.freenode.net
- - Die offiziele SF forums :http://sourceforge.net/forum/?group_id=84122
- - Wenn (und nur wenn) Sie nicht Ihre Ausgabe lösen können, nachdem Sie alle jene Mittel versucht haben, können Sie mit uns an azureus@gmail.com in Verbindung treten.
-
-
-
-
-+6. Volles Anderung Protokoll
-
-	http://azureus.sourceforge.net/changelog.php?version=2.3.0.0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ Joltid Peer Cache (JPC) ist nun in Azureus integriert. Für Benutzer deren ISP dies unterstützt, sollte JPC schnellere Downloads ermöglichen und gleichzeitig dazubeitragen die Bandbreitenkosten des ISP zu reduzieren. Das JPC Plugin ist sicher in der Hinsicht, daß Ihr ISP nicht weiß, daß Sie Herunterladen und somit es auch nicht nutzen kann um Sie auszuspionieren. Das JPC plugin kann abgeschaltet werden im Menü "Tools > Options > Plugins > JPC".
+  
+!3.4 Unterstützte Plugins
+ Die "Distributed Database" und das verbessserte Protokoll erlaubte uns einige neue Plugins zu entwickeln. Wir werden diese jedoch nicht automatisch installieren, aber wir empfehlen allen Nutzern die interessiert sind, diese über das Menü "Plugins > Installation Wizard" zu installieren und zu erproben.
+ 
+*3.4.1 Chat
+ Dieses Plugin erzeugt einen "Discussion Channel" für jeden Torrent den Sie herunterladen. Jeder Channel ist unabhängig und Sie sind frei darin zu diskutieren was immer Sie möchten. Dieses Plugin nutzt das verbesserte Protokoll. Entwickler anderer Clients die diese Chat Funktionalität implementieren möchten, sind eingeladen einen Blick auf das darin benutzte und sehr einfache Protokoll zu werfen. Dieses ist beschrieben unter: "http://azureus.aelitis.com/wiki/index.php/ChatPlugin".
+ Sie können außerdem einen freizugänglichen Channel erzeugen bzw. beitreten durch Eingabe des gewünschten Namen innerhalb des Plugins. Damit schaffen Sie einen "virtuellen" Torrent ohne "Seeds" und erlauben anderen Nutzern die Verbindung zu diesem Chat Channel aufzubauen. Dieser "virtuelle" Torrent benutzt die "Distributed Database" als seinen Tracker, das hat zur Folge, daß Sie zwar das Chat Plugin ohne die "Distributed Database" verwenden können, aber nicht in der Lage sein werden den "virtuellen" Channel zu nutzen, falls Sie die "Distributed Database" deaktiviert haben.
+ 
+*3.4.2 Bewertungen & Kommentare
+ Dieses Plugin wird es Ihnen erlauben Bewertungen & Kommentare der anderen Nutzer zu sehen, ebenso können Sie selbst Torrents bewerten und kommentieren (Klicken Sie rechts auf den Torrent in "My Torrents" dann wählen Sie "Bewertungen & Kommentare"). Dieses Plugin nutzt die "Distributed Database", aus diesem Grund muß die "Distributed Database" aktiviert sein, damit dieses Plugin genutzt werden kann.
  
 
++4. Upgrade Empfehlung
+
+!4.1 Java 5.0
+ Azureus ist in Java geschrieben und benötigt eine Java Umgebung (Java Runtime Environment). Wir empfehlen Java 5.0 (auch bekannt unter 1.5) da diese eine bessere Leistung aufweist und verlässlicher ist - Bitte installieren Sie das Upgrade falls Sie Schwierigkeiten haben.
+ Sie finden Torrents für ein Java Upgrade hier: http://azureus.sourceforge.net/download.php
+ Laden Sie das für Ihr Betriebssystem passende Java Paket, schliessen Sie Azureus, führen Sie die heruntergeladene Datei aus und starten Sie Azureus erneut.
+ WinXP Benutzer müssen in das Menü "Tools > Options > Interface > Display" gehen und überprüfen ob die Option "Enable XP Style" aktiviert ist.
+ 
+!4.2 NOD32
+ NOD32 (http://www.nod32.com/) is ein Antiviren Programm von dem bekannt ist daß es Probleme mit Azureus hat, die dazuführen daß eine 100% CPU Auslastung auftritt.
+ Siehe dazu http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
+ 
+
++5. Allgemeine Probleme
+
+!5.1 NAT "error"
+ NAT bedeutet "Network Address Translation". Der NAT test in Azureus zeigt ob eine Verbindung aus dem Internet zu Ihrem Computer aufgebaut werden kann oder nicht. Sie werden bessere Übertragungsraten haben, falls Sie von AUßEN ERREICHBAR SIND.
+ Bitte kontaktieren Sie uns nicht um NAT Probleme zu lösen, da es bereits eine Vielzahl von Quellen und Hilfen zu diesem Thema im Internet gibt. 
+Bitte gehen Sie als erstes zu:
+ - http://azureus.aelitis.com/wiki/index.php/PortForwarding
+ - http://www.portforward.com
+ 
+
+!5.2 Azureus Absturz
+ Falls Ihr Azureus abstürzt, ist der wahrscheinlichste Grund ein Problem mit ihren Netzwerk Komponenten (Netzwerkkarte, Treiber, Betriebssystem). Wir empfehlen dringendst daß Sie alle Netzwerk Komponenten aktualisieren. Falls das nicht hilft, liegt der Grund wahrscheinlich darin, daß ihr System nicht in der Lage ist die vielen Peer Verbindungen zu verwalten.
+ Verringern Sie die Anzahl der Verbindugen in Azureus (Tools > Options > Transfer > Maximum number of connections per torrent / globally). Versuchen Sie es zu es zuerst einmal mit einem niedrigen Wert, z.B. 30.
+
+!5.3 Support
+ Bevor Sie das Support team kontaktieren, versichern Sie sich daß Sie die folgenden Quellen konsultiert haben:
+ - Die offizielle WebSite : http://azureus.sourceforge.net/
+ - Die offizielle Wiki : http://azureus.aelitis.com/wiki/
+ - Der offizielle IRC Channel: #azureus-users on irc.freenode.net
+ - Das offizielle SF Forum: http://sourceforge.net/forum/?group_id=84122
+ - FALLS Sie das Problem nach Durchsicht all dieser Quellen nicht lösen können (aber bitte nur dann), kontaktieren Sie uns bitte unter: azureus@gmail.com
+
+
++6. Detailierter ChangeLog
+
+	http://azureus.sourceforge.net/changelog.php?version=2.3.0.0
+	
