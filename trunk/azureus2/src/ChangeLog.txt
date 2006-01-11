@@ -12,6 +12,7 @@ FEATURE: Plug | HTTP webseed support [Parg]
 FEATURE: Plug | "GetRight" HTTP seed proposal support (http://www.getright.com/seedtorrent.html) [Parg]
 FEATURE: UI   | Manual tracker scrape option if auto-scrape disabled [Parg]
 FEATURE: Plug | New "team seeder" plugin [Parg]
+FEATURE: Core | Separate high-speed transfer rates between peers within the local LAN [Parg,Nolar]
 
 CHANGE: Core  | Clearer firewalled/NAT status reporting [Nolar]
 CHANGE: Core  | Do not open the wiki NAT problem page if firewall status is OK [Nolar]
@@ -35,6 +36,7 @@ BUGFIX: Core  | Multiple file renames/retargets wasn't working [Parg]
 BUGFIX: Core  | Synchronous scrape wasn't working [Parg]
 BUGFIX: Core  | Fixed move-on-complete bug when target was a link [Parg]
 BUGFIX: Core  | Replaced all piece-picking code; fixes all known previous piece picking bugs [MjrTom]
+
 
 
 

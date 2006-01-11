@@ -360,9 +360,6 @@ public class NetworkManager {
    */
   public void startTransferProcessing( NetworkConnection peer_connection, LimitedRateGroup upload_group, LimitedRateGroup download_group ) {
   	if( peer_connection.isLANLocal() ) {
-  		
-  		System.out.println( "LANLocal start: " +peer_connection.getAddress() );
-  		
   		lan_upload_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
   		lan_download_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
   	}
@@ -379,9 +376,6 @@ public class NetworkManager {
    */
   public void stopTransferProcessing( NetworkConnection peer_connection ) {
   	if( peer_connection.isLANLocal() ) {
-
-  		System.out.println( "LANLocal stop: " +peer_connection.getAddress() );
-  		
   		lan_upload_processor.deregisterPeerConnection( peer_connection );
   		lan_download_processor.deregisterPeerConnection( peer_connection );
   	}
@@ -398,9 +392,6 @@ public class NetworkManager {
    */
   public void upgradeTransferProcessing( NetworkConnection peer_connection ) {
   	if( peer_connection.isLANLocal() ) {
-
-  		System.out.println( "LANLocal upgrade: " +peer_connection.getAddress() );
-  		
   		lan_upload_processor.upgradePeerConnection( peer_connection );
   		lan_download_processor.upgradePeerConnection( peer_connection );
   	}
@@ -416,9 +407,6 @@ public class NetworkManager {
    */
   public void downgradeTransferProcessing( NetworkConnection peer_connection ) {
   	if( peer_connection.isLANLocal() ) {
-
-  		System.out.println( "LANLocal downgrade: " +peer_connection.getAddress() );
-  		
   		lan_upload_processor.downgradePeerConnection( peer_connection );
   		lan_download_processor.downgradePeerConnection( peer_connection );
   	}
