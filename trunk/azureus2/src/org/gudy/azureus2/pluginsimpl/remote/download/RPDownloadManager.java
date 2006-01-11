@@ -294,6 +294,14 @@ RPDownloadManager
 		return( null );
 	}
 	
+	public Download
+	getDownload(
+		byte[]		hash )
+	{
+		notSupported();
+		
+		return( null );
+	}
 	
 	public Download[]
 	getDownloads()

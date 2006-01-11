@@ -139,6 +139,20 @@ DownloadManager
 		Torrent		torrent );
 	
 	/**
+	 * Gets a download given its hash
+	 * @param hash
+	 * @return
+	 * @throws DownloadException
+	 * @since 2.3.0.7
+	 */
+
+	public Download
+	getDownload(
+		byte[]		hash )
+	
+		throws DownloadException;
+	
+	/**
 	 * Gets all the downloads. Returned in Download "index" order
 	 * @return
    *
@@ -190,6 +204,11 @@ DownloadManager
 	
 	public void
 	stopAllDownloads();
+	
+	/**
+	 * Get the download manager statistics
+	 * @return
+	 */
 	
 	public DownloadManagerStats
 	getStats();

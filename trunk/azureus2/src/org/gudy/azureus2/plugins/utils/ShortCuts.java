@@ -32,17 +32,37 @@ import org.gudy.azureus2.plugins.download.*;
 public interface 
 ShortCuts 
 {
+		/**
+		 * A quick way of looking up a download given its hash
+		 * @param hash
+		 * @return
+		 * @throws DownloadException
+		 */
+	
 	public Download
 	getDownload(
 		byte[]		hash )
 	
 		throws DownloadException;
 	
+		/**
+		 * A quick way of getting a download's statistics given its hash
+		 * @param hash
+		 * @return
+		 * @throws DownloadException
+		 */
+		
 	public DownloadStats
 	getDownloadStats(
 		byte[]		hash )
 	
 		throws DownloadException;
+	
+		/**
+		 * A quick way of restarting a download given its hash
+		 * @param hash
+		 * @throws DownloadException
+		 */
 	
 	public void
 	restartDownload(
@@ -50,11 +70,24 @@ ShortCuts
 	
 		throws DownloadException;
 	
+		/**
+		 * A quick way of stopping a download given its hash
+		 * @param hash
+		 * @throws DownloadException
+		 */
+	
 	public void
 	stopDownload(
 		byte[]		hash )
 	
 		throws DownloadException;
+	
+		/**
+		 * A quick way of deleting a download given its hash
+		 * @param hash
+		 * @throws DownloadException
+		 * @throws DownloadRemovalVetoException
+		 */
 	
 	public void
 	removeDownload(
