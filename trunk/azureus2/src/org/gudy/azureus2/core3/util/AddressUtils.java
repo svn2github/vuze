@@ -89,7 +89,7 @@ AddressUtils
 	}
 	
 	public static boolean
-	isLANAddress(
+	isLANLocalAddress(
 		InetAddress	address )
 
 	{
@@ -111,4 +111,17 @@ AddressUtils
 		
 		return( instance_manager.isLANAddress( address ));
 	}
+	
+	
+	public static boolean isLANLocalAddress( String address ) {
+		boolean is_lan_local = false;
+		
+		try {
+			is_lan_local = isLANLocalAddress( InetAddress.getByName( address ) );
+		}
+		catch( Throwable t ) {  t.printStackTrace();  }
+		
+		return is_lan_local;
+	}
+	
 }

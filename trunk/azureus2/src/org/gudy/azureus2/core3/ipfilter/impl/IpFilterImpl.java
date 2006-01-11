@@ -382,6 +382,12 @@ IpFilterImpl
 		  return( false );
 	  }
 	  
+	  //never block lan local addresses
+	  if( AddressUtils.isLANLocalAddress( ipAddress ) ) {
+	  	return false;
+	  }
+	  
+	  
 	  if(!COConfigurationManager.getBooleanParameter("Ip Filter Enabled",true)){
 		  
 	    return false;

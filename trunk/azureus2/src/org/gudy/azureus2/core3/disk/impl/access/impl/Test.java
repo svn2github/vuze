@@ -1386,7 +1386,7 @@ Test
 	  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender)
 		{
 		
-	}
+		}
 
 	  
 	  public boolean isBlockAlreadyWritten( int piece_number, int offset )
@@ -1415,6 +1415,8 @@ Test
 		return 0;
 	}
 
+	
+	public PEPeerTransport getTransportFromIdentity( byte[] peer_id ) { return null;  }
 	  
 	}
 	/*

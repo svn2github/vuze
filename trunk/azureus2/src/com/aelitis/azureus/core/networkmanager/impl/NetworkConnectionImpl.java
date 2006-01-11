@@ -172,7 +172,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
   
 	
 	public boolean isLANLocal() {
-		return AddressUtils.isLANAddress( remote_address.getAddress() );
+		return AddressUtils.isLANLocalAddress( remote_address.getAddress() );
 	}
 	
 }

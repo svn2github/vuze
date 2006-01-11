@@ -26,12 +26,10 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.DiskManagerPieceImpl;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
-import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.network.Connection;
@@ -1152,6 +1150,7 @@ PEPeerTransportProtocol
       return;
     }
 
+    
     //make sure we are not already connected to this peer
     boolean sameIdentity = PeerIdentityManager.containsIdentity( my_peer_data_id, peer_id );
     boolean sameIP = false;
@@ -1165,10 +1164,23 @@ PEPeerTransportProtocol
       }
     }
       
-    if( sameIdentity ) {
-      closeConnectionInternally( "peer matches already-connected peer id" );
-      handshake.destroy();
-      return;
+    if( sameIdentity ) {    	
+    	boolean close = true;
+    	
+    	if( connection.isLANLocal() ) {   //this new connection is lan-local    		
+    		PEPeerTransport existing = manager.getTransportFromIdentity( peer_id );
+    		if( existing != null && !existing.isLANLocal() ) {  //so drop the existing connection if it is an external (non lan-local) one
+    			Debug.out( "dropping existing non-lanlocal peer connection [" +existing+ "]" );
+    			manager.removePeer( existing );
+    			close = false;    			
+    		}
+    	}
+    	
+      if( close ) {
+      	closeConnectionInternally( "peer matches already-connected peer id" );
+      	handshake.destroy();
+      	return;
+      }
     }
     
     if( sameIP ) {
@@ -2013,6 +2025,13 @@ PEPeerTransportProtocol
 	public void setLastPiece(int pieceNumber)
 	{
 		_lastPiece =pieceNumber;
+	}
+	
+	
+
+	public boolean isLANLocal() {
+		if( connection == null )  return AddressUtils.isLANLocalAddress( ip );
+		return connection.isLANLocal();		
 	}
 
 }

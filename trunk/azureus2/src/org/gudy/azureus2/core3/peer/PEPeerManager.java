@@ -277,4 +277,11 @@ PEPeerManager
 
 	public float getAvgAvail();
 
+	/**
+	 * Locate an existing transport via peer id byte identity.
+	 * @param peer_id to look for
+	 * @return transport with matching identity, or null if no match is found
+	 */
+	public PEPeerTransport getTransportFromIdentity( byte[] peer_id );
+	
 }

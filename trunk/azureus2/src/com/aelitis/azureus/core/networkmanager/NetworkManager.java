@@ -132,7 +132,7 @@ public class NetworkManager {
   });
   
   
-  private final LimitedRateGroup disabled_rate_group = new LimitedRateGroup() {
+  private final LimitedRateGroup unlimited_rate_group = new LimitedRateGroup() {
   	public int getRateLimitBytesPerSecond() {  return 0;  }
   };
   
@@ -338,8 +338,8 @@ public class NetworkManager {
   		
   		System.out.println( "LANLocal start: " +peer_connection.getAddress() );
   		
-  		lan_upload_processor.registerPeerConnection( peer_connection, disabled_rate_group );
-  		lan_download_processor.registerPeerConnection( peer_connection, disabled_rate_group );
+  		lan_upload_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
+  		lan_download_processor.registerPeerConnection( peer_connection, unlimited_rate_group );
   	}
   	else {
   		upload_processor.registerPeerConnection( peer_connection, upload_group );

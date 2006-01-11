@@ -10,6 +10,7 @@
 package org.gudy.azureus2.core3.peer.impl.control;
 
 
+import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
@@ -528,15 +529,13 @@ PEPeerControlImpl
 	
 	
 	
-	public void addPeer( final String ip_address, final int port ) {
-		TRTrackerAnnouncerResponsePeer peer = new TRTrackerAnnouncerResponsePeer() {
-			public String getSource(){ return PEPeerSource.PS_PLUGIN; }
-			public byte[] getPeerID() {  return new byte[20];  }     
-			public String getAddress() {  return ip_address;  }         
-			public int getPort() {  return port;  }
-		};
-		
-		addPeersFromTracker( new TRTrackerAnnouncerResponsePeer[]{ peer } );
+	public void addPeer( String ip_address, int port ) {		
+		PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ) );
+	
+		if( !isAlreadyConnected( peer_item ) ) {
+			boolean added = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, port );  //directly inject the the imported peer
+			if( !added )  Debug.out( "injected peer was not added" );
+		}		
 	}
 	
 	
@@ -553,7 +552,7 @@ PEPeerControlImpl
 			
 			boolean already_connected = false;
 			
-      		for( int x=0; x < peer_transports.size(); x++ ) {
+			for( int x=0; x < peer_transports.size(); x++ ) {
 				PEPeerTransport transport = (PEPeerTransport)peer_transports.get( x );
 				
 				// allow loopback connects for co-located proxy-based connections and testing
@@ -2203,6 +2202,11 @@ PEPeerControlImpl
   }
 	
 	
+  
+  
+  
+  
+  
 	private void checkEndGameMode()
 	{
 		// We can't come back from end-game mode
@@ -2686,5 +2690,16 @@ PEPeerControlImpl
 	getQueryableInterfaces() 
 	{
 		return( adapter.getLogRelation().getQueryableInterfaces());
+	}
+	
+	
+	
+	public PEPeerTransport getTransportFromIdentity( byte[] peer_id ) {
+		ArrayList	peer_transports = peer_transports_cow;      	
+		for( int i=0; i < peer_transports.size(); i++ ) {
+			PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );			
+			if( Arrays.equals( peer_id, conn.getId() ) )   return conn;
+		}
+		return null;
 	}
 }

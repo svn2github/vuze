@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
@@ -351,6 +352,12 @@ PeerForeignDelegate
 		return( foreign.isSnubbed());
 	}
 
+	
+	public boolean isLANLocal() {
+		if( AddressUtils.isLANLocalAddress( foreign.getIp() ) )  return true;
+		return false;
+	}
+	
  
 	public PEPeerStats 
 	getStats()
