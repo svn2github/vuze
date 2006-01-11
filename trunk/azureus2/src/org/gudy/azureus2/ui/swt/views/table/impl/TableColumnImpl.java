@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -61,6 +62,7 @@ public class TableColumnImpl
 	private ArrayList cellAddedListeners;
 	private ArrayList cellDisposeListeners;
 	private ArrayList cellToolTipListeners;
+	private ArrayList cellMouseListeners;
 	private int iConsecutiveErrCount;
   private ArrayList menuItems;
   
@@ -288,11 +290,56 @@ public class TableColumnImpl
   	}
   }
 
+	public void addCellMouseListener(TableCellMouseListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellMouseListeners == null)
+				cellMouseListeners = new ArrayList();
+
+			cellMouseListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeCellMouseListener(TableCellMouseListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellMouseListeners == null)
+				return;
+
+			cellMouseListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
   public void invalidateCells() {
     TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
     tsed.columnInvalidate(this);
   }
   
+	public void addListeners(Object listenerObject) {
+		if (listenerObject instanceof TableCellDisposeListener)
+			addCellDisposeListener((TableCellDisposeListener)listenerObject);
+
+		if (listenerObject instanceof TableCellRefreshListener)
+			addCellRefreshListener((TableCellRefreshListener)listenerObject);
+
+		if (listenerObject instanceof TableCellToolTipListener)
+			addCellToolTipListener((TableCellToolTipListener)listenerObject);
+
+		if (listenerObject instanceof TableCellAddedListener)
+			addCellAddedListener((TableCellAddedListener)listenerObject);
+
+		if (listenerObject instanceof TableCellMouseListener)
+			addCellMouseListener((TableCellMouseListener)listenerObject);
+	}
+
   /* Start of not plugin public API functions */
   //////////////////////////////////////////////
 
@@ -383,6 +430,23 @@ public class TableColumnImpl
       }
     }
   }
+
+  public void invokeCellMouseListeners(TableCellMouseEvent event) {
+		if (cellMouseListeners == null)
+			return;
+
+		for (int i = 0; i < cellMouseListeners.size(); i++) {
+			try {
+				TableCellMouseListener l = (TableCellMouseListener) (cellMouseListeners
+						.get(i));
+
+				l.cellMouseTrigger(event);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
 
   public void setPositionNoShift(int position) {
     iPosition = position;

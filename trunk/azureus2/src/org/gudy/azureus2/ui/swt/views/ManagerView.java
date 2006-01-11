@@ -8,8 +8,8 @@ import java.util.ArrayList;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.MessageBox;
@@ -159,7 +159,7 @@ public class ManagerView extends AbstractIView implements
 		
     
     // Initialize view when user selects it
-    folder.addSelectionListener(new SelectionListener() {
+    folder.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent e) {
         TabItem item = (TabItem)e.item;
         if (item != null && item.getControl() == null) {
@@ -169,8 +169,6 @@ public class ManagerView extends AbstractIView implements
         	item.setControl(view.getComposite());
         }
         refresh();
-      }
-      public void widgetDefaultSelected(SelectionEvent e) {
       }
     });
     

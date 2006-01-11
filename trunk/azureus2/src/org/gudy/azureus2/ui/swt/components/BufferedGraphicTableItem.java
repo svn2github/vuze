@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.ui.swt.components;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Image;
 
@@ -45,11 +46,12 @@ public abstract class BufferedGraphicTableItem
    */
   public int marginWidth = 1;
 
-  /** Whether the graphic fills the whole cell.  If true, update() will be
-   * called when the size of the cell has changed.
+  /** Orientation of cell.  SWT.LEFT, SWT.RIGHT, SWT.CENTER, or SWT.FILL.
+   * When SWT.FILL, update() will be called when the size of the cell has 
+   * changed.
    */
-  public boolean fillCell = false;
-
+  public int orientation = SWT.CENTER;
+  
   public BufferedGraphicTableItem(BufferedTableRow row,int position) {
     super(row, position);
   }

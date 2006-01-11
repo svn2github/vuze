@@ -138,7 +138,7 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
 				|| bounds.height <= 0)
     	return;
 
-    if (fillCell) {
+    if (orientation == SWT.FILL) {
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
         //System.out.println("doPaint() sizewrong #"+row.getIndex()+ ".  Image="+imageBounds +";us="+bounds);
@@ -169,7 +169,10 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
         return;
       }
     } else if (imageBounds.width < bounds.width) {
-      bounds.x += (bounds.width - imageBounds.width) / 2;
+    	if (orientation == SWT.CENTER)
+    		bounds.x += (bounds.width - imageBounds.width) / 2;
+    	else if (orientation == SWT.RIGHT)
+    		bounds.x = (bounds.x + bounds.width) - imageBounds.width;
     }
     
     Rectangle tableBounds = table.getClientArea();

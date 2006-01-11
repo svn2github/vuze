@@ -51,7 +51,7 @@ public class CoreTableColumn
     super(sTableID, sName);
     super.initialize(iAlignment, iPosition, iWidth);
     setUseCoreDataSource(true);
-    addListeners();
+    addListeners(this);
   }
 
   /** Construct a new CoreTableColumn.<p>
@@ -72,7 +72,7 @@ public class CoreTableColumn
     setPosition(iPosition);
     setWidth(iWidth);
     setUseCoreDataSource(true);
-    addListeners();
+    addListeners(this);
   }
 
   /** Construct a new CoreTableColumn.<p>
@@ -90,7 +90,7 @@ public class CoreTableColumn
     super(sTableID, sName);
     setWidth(iWidth);
     setUseCoreDataSource(true);
-    addListeners();
+    addListeners(this);
   }
 
   /** Construct a new CoreTableColumn.<p>
@@ -107,7 +107,7 @@ public class CoreTableColumn
   public CoreTableColumn(String sName, String sTableID) {
     super(sTableID, sName);
     setUseCoreDataSource(true);
-    addListeners();
+    addListeners(this);
   }
   
   public void initializeAsGraphic(int iPosition, int iWidth) {
@@ -115,16 +115,6 @@ public class CoreTableColumn
     setWidth(iWidth);
     setType(TYPE_GRAPHIC);
     setRefreshInterval(INTERVAL_GRAPHIC);
-  }
-  
-  private void addListeners() {
-    if (this instanceof TableCellAddedListener)
-      addCellAddedListener((TableCellAddedListener)this);
-    if (this instanceof TableCellRefreshListener)
-      addCellRefreshListener((TableCellRefreshListener)this);
-    if (this instanceof TableCellDisposeListener)
-      addCellDisposeListener((TableCellDisposeListener)this);
-    if (this instanceof TableCellToolTipListener)
-      addCellToolTipListener((TableCellToolTipListener)this);
+    setAlignment(TableColumn.ALIGN_CENTER);
   }
 }

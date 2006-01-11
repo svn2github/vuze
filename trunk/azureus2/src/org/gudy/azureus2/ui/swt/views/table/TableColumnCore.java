@@ -20,6 +20,7 @@
  
 package org.gudy.azureus2.ui.swt.views.table;
 
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
@@ -80,6 +81,9 @@ public interface TableColumnCore extends TableColumn {
   public void invokeCellDisposeListeners(TableCellCore cell);
 
   public void invokeCellToolTipListeners(TableCellCore cell, int type);
+
+  public void invokeCellMouseListeners(TableCellMouseEvent event);
+
 
   /** Sets the position of the column without adjusting the other columns.
    * This will cause duplicate columns, and is only usefull if you are

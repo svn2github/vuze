@@ -208,6 +208,31 @@ public interface TableColumn {
   public void addCellToolTipListener(TableCellToolTipListener listener);
   public void removeCellToolTipListener(TableCellToolTipListener listener);
 
+  /**
+   * Adds a listener that triggers when a TableCell that belongs to this column
+   * has a mouse event.
+   * 
+   * @param listener
+   * 
+   * @since 2.3.0.7
+   */
+  public void addCellMouseListener(TableCellMouseListener listener);
+  /** Remove a previously added TableCellMouseListener
+  *
+  * @param listener Previously added listener
+   * @since 2.3.0.7
+  */
+  public void removeCellMouseListener(TableCellMouseListener listener);
+
+  /**
+   * A listener is added for every type of cell listener the supplied object 
+   * implements
+   *  
+   * @param listenerObject Object implementing some cell listeneters
+   */
+  public void addListeners(Object listenerObject);
+
+  
   /** Invalidate all cells in this column.  The cells will be forced to
    * update on the next refresh.
    */

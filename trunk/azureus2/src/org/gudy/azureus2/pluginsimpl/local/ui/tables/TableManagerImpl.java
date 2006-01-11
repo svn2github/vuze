@@ -31,13 +31,7 @@ import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerEventAdapter;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 
@@ -443,6 +437,21 @@ TableManagerImpl
 			}
 		} 
   	
+		public void addCellMouseListener(TableCellMouseListener listener) {
+			if (delegate != null)
+				delegate.addCellMouseListener(listener);
+		}
+
+		public void removeCellMouseListener(TableCellMouseListener listener) {
+			if (delegate != null)
+				delegate.removeCellMouseListener(listener);
+		}
+
+		public void addListeners(Object listenerObject) {
+			if (delegate != null)
+				delegate.addListeners(listenerObject);
+		}
+
 	  	protected class
 	  	TableContextMenuItemDelegate
 	  		implements TableContextMenuItem

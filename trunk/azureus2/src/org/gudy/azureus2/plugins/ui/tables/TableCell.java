@@ -277,7 +277,7 @@ public interface TableCell {
    * @param listener Listener Object to be called when refresh is needed.
    */
   public void addRefreshListener(TableCellRefreshListener listener);
-  /** Removed a previously added TableCellRefreshListener
+  /** Remove a previously added TableCellRefreshListener
    *
    * @param listener Previously added listener
    */
@@ -288,7 +288,7 @@ public interface TableCell {
    * @param listener listener object to be called
    */
   public void addDisposeListener(TableCellDisposeListener listener);
-  /** Removed a previously added TableCellDisposeListener
+  /** Remove a previously added TableCellDisposeListener
    *
    * @param listener Previously added listener
    */
@@ -299,11 +299,27 @@ public interface TableCell {
    * @param listener listener object to be called
    */
   public void addToolTipListener(TableCellToolTipListener listener);
-  /** Removed a previously added TableCellToolTipListener
+  /** Remove a previously added TableCellToolTipListener
    *
    * @param listener Previously added listener
    */
   public void removeToolTipListener(TableCellToolTipListener listener);
+  
+  /**
+   * Adds a listener that triggers when a TableCell that belongs to this column
+   * has a mouse event.
+   * 
+   * @param listener
+   * 
+   * @since 2.3.0.7
+   */
+  public void addMouseListener(TableCellMouseListener listener);
+  /** Remove a previously added TableCellMouseListener
+  *
+  * @param listener Previously added listener
+   * @since 2.3.0.7
+  */
+  public void removeMouseListener(TableCellMouseListener listener);
   
   /**
    * A listener is added for every type of cell listener the supplied object 

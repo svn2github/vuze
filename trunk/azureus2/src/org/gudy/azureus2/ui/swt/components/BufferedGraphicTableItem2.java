@@ -67,7 +67,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedGraphicTableItem
     // send a paint listener after setBackground() (causing another doPaint),
     // and some do not.
     int iStyle = SWT.NO_FOCUS | SWT.NO_BACKGROUND;
-    if (fillCell) {
+    if (orientation == SWT.FILL) {
       iStyle |= SWT.NO_REDRAW_RESIZE;
     }
     cBlockView = new Canvas(getTable(), iStyle);
@@ -178,7 +178,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedGraphicTableItem
       return;
     }
     if (!rNewCanvas.equals(canvasBounds) ||
-        (!fillCell && !getRowBackground(table).equals(lastBackColor))) {
+        (orientation != SWT.FILL && !getRowBackground(table).equals(lastBackColor))) {
       rNewCanvas.x -= canvasBounds.x;
       rNewCanvas.y -= canvasBounds.y;
       doPaint(rNewCanvas);
@@ -216,7 +216,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedGraphicTableItem
     //debugOut("doPaint()" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
     //         "ta="+table.getClientArea()+";bounds="+bounds, false);
     
-    if (fillCell) {
+    if (orientation == SWT.FILL) {
       Rectangle imageBounds = image.getBounds();
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
@@ -264,7 +264,7 @@ public abstract class BufferedGraphicTableItem2 extends BufferedGraphicTableItem
     if (gc == null) {
       return;
     }
-    if (fillCell) {
+    if (orientation == SWT.FILL) {
       gc.setClipping(clipping);
       gc.drawImage(image, 0, 0);
     } else {

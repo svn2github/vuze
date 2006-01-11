@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.Graphic;
+import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -210,6 +211,8 @@ public class TableView
   private int lastBottomIndex = -1;
   
   protected IView[] coreTabViews = null;
+  
+  private long lCancelSelectionTriggeredOn = -1;
 
   /**
    * Main Initializer
@@ -562,7 +565,59 @@ public class TableView
     
     // Deselect rows if user clicks on a black spot (a spot with no row)
     table.addMouseListener(new MouseAdapter() {
+    	private TableCellMouseEvent createMouseEvent(TableCellCore cell,
+					MouseEvent e, int type) {
+				TableCellMouseEvent event = new TableCellMouseEvent();
+				event.cell = cell;
+				event.eventType = type;
+				event.button = e.button;
+				// TODO: Change to not use SWT masks
+				event.keyboardState = e.stateMask;
+				event.skipCoreFunctionality = false;
+				Rectangle r = cell.getBounds();
+				event.x = e.x - r.x;
+				event.y = e.y - r.y;
+				return event;
+    	}
+    	
+    	public void mouseDoubleClick(MouseEvent e) {
+    		TableColumnCore tc = getTableColumnByOffset(e.x);
+				TableCellCore cell = getTableCell(e.x, e.y);
+				if (cell != null && tc != null) {
+					TableCellMouseEvent event = createMouseEvent(cell, e,
+							TableCellMouseEvent.EVENT_MOUSEDOUBLECLICK);
+					tc.invokeCellMouseListeners(event);
+					cell.invokeMouseListeners(event);
+					if (event.skipCoreFunctionality)
+						lCancelSelectionTriggeredOn = System.currentTimeMillis();
+				}
+    	}
+
+    	public void mouseUp(MouseEvent e) {
+    		TableColumnCore tc = getTableColumnByOffset(e.x);
+				TableCellCore cell = getTableCell(e.x, e.y);
+				if (cell != null && tc != null) {
+					TableCellMouseEvent event = createMouseEvent(cell, e,
+							TableCellMouseEvent.EVENT_MOUSEUP);
+					tc.invokeCellMouseListeners(event);
+					cell.invokeMouseListeners(event);
+					if (event.skipCoreFunctionality)
+						lCancelSelectionTriggeredOn = System.currentTimeMillis();
+				}
+    	}
+
       public void mouseDown(MouseEvent e) {
+    		TableColumnCore tc = getTableColumnByOffset(e.x);
+				TableCellCore cell = getTableCell(e.x, e.y);
+				if (cell != null && tc != null) {
+					TableCellMouseEvent event = createMouseEvent(cell, e,
+							TableCellMouseEvent.EVENT_MOUSEDOWN);
+					tc.invokeCellMouseListeners(event);
+					cell.invokeMouseListeners(event);
+					if (event.skipCoreFunctionality)
+						lCancelSelectionTriggeredOn = System.currentTimeMillis();
+				}
+
         iMouseX = e.x;
         try {
           if (table.getItemCount() <= 0)
@@ -642,12 +697,14 @@ public class TableView
       }
 
 			public void widgetDefaultSelected(SelectionEvent e) {
-				MenuItem item = menu.getDefaultItem();
-				if (item == null || item.isDisposed() || !item.isEnabled())
-					return;
-				// This probably won't work if the default item is SWT.CHECK or
-				// SWT.RADIO.
-				item.notifyListeners(SWT.Selection, null);
+				System.out.println(lCancelSelectionTriggeredOn + ";" + (System.currentTimeMillis() - lCancelSelectionTriggeredOn));
+				if (lCancelSelectionTriggeredOn > 0
+						&& System.currentTimeMillis() - lCancelSelectionTriggeredOn < 200) {
+					e.doit = false;
+					lCancelSelectionTriggeredOn = -1;
+				} else {
+					runDefaultAction();
+				}
 			}
     });
     
@@ -778,6 +835,10 @@ public class TableView
     table.setHeaderVisible(true);
 
     initializeTableColumns(table);
+  }
+  
+  public void runDefaultAction() {
+  	
   }
 
   protected void initializeTableColumns(final Table table) {
@@ -946,8 +1007,7 @@ public class TableView
     return menu;
   }
 
-  /** Fill the Context Menu with items.  Only called at TableView initialization
-   * and when Table Structure changes.
+  /** Fill the Context Menu with items.  Called when menu is about to be shown.
    *
    * By default, a "Edit Columns" menu and a Column specific menu is set up.
    *
@@ -2208,21 +2268,7 @@ public class TableView
 					if (toolTipShell != null && !toolTipShell.isDisposed())
 						toolTipShell.dispose();
 
-					TableItem item = table.getItem(new Point(event.x, event.y));
-					if (item == null)
-						return;
-					TableRowCore row = (TableRowCore) item.getData("TableRow");
-					if (row == null)
-						return;
-					int iColumn = getColumnNo(event.x);
-					if (iColumn < 0)
-						return;
-					TableColumn tcColumn = table.getColumn(iColumn);
-					String sCellName = (String) tcColumn.getData("Name");
-					if (sCellName == null)
-						return;
-
-					TableCellCore cell = row.getTableCellCore(sCellName);
+					TableCellCore cell = getTableCell(event.x, event.y);
 					if (cell == null)
 						return;
 					cell.invokeToolTipListeners(TableCellCore.TOOLTIPLISTENER_HOVER);
@@ -2252,7 +2298,6 @@ public class TableView
 					toolTipLabel = new Label(toolTipShell, SWT.WRAP);
 					toolTipLabel.setForeground(d.getSystemColor(SWT.COLOR_INFO_FOREGROUND));
 					toolTipLabel.setBackground(d.getSystemColor(SWT.COLOR_INFO_BACKGROUND));
-					toolTipShell.setData("_TABLEITEM", item);
 					toolTipShell.setData("TableCellCore", cell);
 					toolTipLabel.setText(sToolTip.replaceAll("&", "&&"));
 					// compute size on label instead of shell because label
@@ -2330,6 +2375,33 @@ public class TableView
     return iColumn;
   }
   
+  private TableCellCore getTableCell(int x, int y) {
+		int iColumn = getColumnNo(x);
+		if (iColumn < 0)
+			return null;
+		
+		TableItem item = table.getItem(new Point(2, y));
+		if (item == null)
+			return null;
+		TableRowCore row = (TableRowCore) item.getData("TableRow");
+
+		TableColumn tcColumn = table.getColumn(iColumn);
+		String sCellName = (String) tcColumn.getData("Name");
+		if (sCellName == null)
+			return null;
+
+		return row.getTableCellCore(sCellName);
+  }
+  
+  private TableColumnCore getTableColumnByOffset(int x) {
+		int iColumn = getColumnNo(x);
+		if (iColumn < 0)
+			return null;
+		
+		TableColumn column = table.getColumn(iColumn);
+    return (TableColumnCore)column.getData("TableColumnCore");
+  }
+
   public void
   generateDiagnostics(
 	IndentWriter	writer )

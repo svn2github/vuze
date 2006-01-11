@@ -31,12 +31,11 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Locale;
 
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -44,11 +43,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
-import org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem1;
@@ -82,6 +77,7 @@ public class TableCellImpl
   private ArrayList refreshListeners;
   private ArrayList disposeListeners;
   private ArrayList tooltipListeners;
+	private ArrayList cellMouseListeners;
   private TableColumnCore tableColumn;
   private boolean valid;
   private int refreshErrLoopCount;
@@ -110,6 +106,19 @@ public class TableCellImpl
   
   private AEMonitor 	this_mon 	= new AEMonitor( "TableCell" );
 
+  private static final String CFG_PAINT = "GUI_SWT_bAlternateTablePainting";
+  private static boolean bAlternateTablePainting;
+  
+  static {
+  	COConfigurationManager.addAndFireParameterListener(CFG_PAINT,
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						bAlternateTablePainting = COConfigurationManager
+								.getBooleanParameter(CFG_PAINT);
+					}
+				});
+  }
+
   /**
    * Initialize
    *  
@@ -125,26 +134,31 @@ public class TableCellImpl
     refreshErrLoopCount = 0;
     tooltipErrLoopCount = 0;
     loopFactor = 0;
-    if (tableColumn.getType() != TableColumnCore.TYPE_GRAPHIC) {
-      bufferedTableItem = new BufferedTableItem((BufferedTableRow)tableRow, position) {
-        public void refresh() {
-          TableCellImpl.this.refresh();
-        }
-        public void invalidate() {
-          TableCellImpl.this.valid = false;
-        }
-      };
-    } else if (COConfigurationManager.getBooleanParameter("GUI_SWT_bAlternateTablePainting")) {
-      bufferedTableItem = new BufferedGraphicTableItem2((BufferedTableRow)tableRow, position) {
-        public void refresh() {
-          TableCellImpl.this.refresh();
-        }
-        public void invalidate() {
-          TableCellImpl.this.valid = false;
-        }
-      };
+
+    BufferedTableRow bufRow = (BufferedTableRow)tableRow;
+    if (tableColumn.getType() == TableColumnCore.TYPE_GRAPHIC) {
+    	if (bAlternateTablePainting) {
+	      bufferedTableItem = new BufferedGraphicTableItem2(bufRow, position) {
+	        public void refresh() {
+	          TableCellImpl.this.refresh();
+	        }
+	        public void invalidate() {
+	          TableCellImpl.this.valid = false;
+	        }
+	      };
+	    } else {
+	      bufferedTableItem = new BufferedGraphicTableItem1(bufRow, position) {
+	        public void refresh() {
+	          TableCellImpl.this.refresh();
+	        }
+	        public void invalidate() {
+	          TableCellImpl.this.valid = false;
+	        }
+	      };
+	    }
+    	setOrientationViaColumn();
     } else {
-      bufferedTableItem = new BufferedGraphicTableItem1((BufferedTableRow)tableRow, position) {
+      bufferedTableItem = new BufferedTableItem(bufRow, position) {
         public void refresh() {
           TableCellImpl.this.refresh();
         }
@@ -153,6 +167,7 @@ public class TableCellImpl
         }
       };
     }
+
     tableColumn.invokeCellAddedListeners(this);
     
     //bDebug = (position == 1) && tableColumn.getTableID().equalsIgnoreCase("Peers");
@@ -390,10 +405,14 @@ public class TableCellImpl
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
-    ((BufferedGraphicTableItem)bufferedTableItem).fillCell = bFillCell;
+    
+    if (bFillCell)
+    	((BufferedGraphicTableItem)bufferedTableItem).orientation = SWT.FILL;
+    else
+    	setOrientationViaColumn();
   }
 
-  public void setMarginHeight(int height) {
+	public void setMarginHeight(int height) {
   	checkCellForSetting();
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
@@ -497,6 +516,34 @@ public class TableCellImpl
   }
   
   
+	public void addMouseListener(TableCellMouseListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellMouseListeners == null)
+				cellMouseListeners = new ArrayList();
+
+			cellMouseListeners.add(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
+	public void removeMouseListener(TableCellMouseListener listener) {
+		try {
+			this_mon.enter();
+
+			if (cellMouseListeners == null)
+				return;
+
+			cellMouseListeners.remove(listener);
+
+		} finally {
+			this_mon.exit();
+		}
+	}
+
 	public void addListeners(Object listenerObject) {
 		if (listenerObject instanceof TableCellDisposeListener)
 			addDisposeListener((TableCellDisposeListener)listenerObject);
@@ -506,6 +553,9 @@ public class TableCellImpl
 
 		if (listenerObject instanceof TableCellToolTipListener)
 			addToolTipListener((TableCellToolTipListener)listenerObject);
+
+		if (listenerObject instanceof TableCellMouseListener)
+			addMouseListener((TableCellMouseListener)listenerObject);
 	}
 
 	/**
@@ -731,7 +781,25 @@ public class TableCellImpl
 						"TableCell's tooltip will not be refreshed anymore this session."));
     }
   }
-  
+
+  public void invokeMouseListeners(TableCellMouseEvent event) {
+		if (cellMouseListeners == null)
+			return;
+
+		for (int i = 0; i < cellMouseListeners.size(); i++) {
+			try {
+				TableCellMouseListener l = (TableCellMouseListener) (cellMouseListeners
+						.get(i));
+
+				l.cellMouseTrigger(event);
+
+			} catch (Throwable e) {
+				Debug.printStackTrace(e);
+			}
+		}
+	}
+
+
   public static final Comparator TEXT_COMPARATOR = new TextComparator();
   private static class TextComparator implements Comparator {
 		public int compare(Object arg0, Object arg1) {
@@ -749,5 +817,26 @@ public class TableCellImpl
 				System.out.println("r" + tableRow.getIndex() + "; " + s);
 			}
 		}, true);
+	}
+
+	public Rectangle getBounds() {
+    if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
+      return new Rectangle(0,0,0,0);
+    return ((BufferedGraphicTableItem)bufferedTableItem).getBounds();
+	}
+
+	private void setOrientationViaColumn() {
+		if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
+			return;
+		
+		BufferedGraphicTableItem ti = (BufferedGraphicTableItem) bufferedTableItem;
+
+		int align = tableColumn.getAlignment();
+    if (align == TableColumn.ALIGN_CENTER)
+    	ti.orientation = SWT.CENTER; 
+    else if (align == TableColumn.ALIGN_LEAD)
+    	ti.orientation = SWT.LEFT; 
+    else if (align == TableColumn.ALIGN_TRAIL)
+    	ti.orientation = SWT.RIGHT; 
 	}
 }

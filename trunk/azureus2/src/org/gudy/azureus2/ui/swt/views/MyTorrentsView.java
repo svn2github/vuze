@@ -487,16 +487,16 @@ public class MyTorrentsView
 			    }
 		    });    
 			}
-
-      public void widgetDefaultSelected(SelectionEvent e) {
-        DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
-        if (dm != null)
-          MainWindow.getWindow().openManagerView(dm);
-      }
     });
 
     cTablePanel.layout();
     return table;
+  }
+  
+  public void runDefaultAction() {
+    DownloadManager dm = (DownloadManager)getFirstSelectedDataSource();
+    if (dm != null)
+      MainWindow.getWindow().openManagerView(dm);
   }
 
   public void fillMenu(final Menu menu) {
