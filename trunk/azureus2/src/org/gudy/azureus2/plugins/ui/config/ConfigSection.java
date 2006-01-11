@@ -39,6 +39,7 @@ public interface ConfigSection {
   public static final String SECTION_FILES = "files";
   public static final String SECTION_INTERFACE = "style";
   public static final String SECTION_CONNECTION = "server";
+  public static final String SECTION_TRANSFER = "transfer";
 
   /**
    * Returns section you want your configuration panel to be under.

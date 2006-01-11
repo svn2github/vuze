@@ -54,8 +54,8 @@ public class NetworkManager {
   private static int max_upload_rate_bps_seeding_only;
   private static int max_upload_rate_bps;
   
-  private static int max_lan_upload_rate_bps = UNLIMITED_RATE;  //TODO
-  private static int max_lan_download_rate_bps = UNLIMITED_RATE;
+  private static int max_lan_upload_rate_bps;
+  private static int max_lan_download_rate_bps;
   
   private static boolean seeding_only_mode_allowed;
   private static boolean seeding_only_mode = false;
@@ -69,15 +69,28 @@ public class NetworkManager {
       public void parameterChanged( String parameterName ) {
         max_upload_rate_bps_normal = COConfigurationManager.getIntParameter( "Max Upload Speed KBs" ) * 1024;
         if( max_upload_rate_bps_normal < 1024 )  max_upload_rate_bps_normal = UNLIMITED_RATE;
+        if( max_upload_rate_bps_normal > UNLIMITED_RATE )  max_upload_rate_bps_normal = UNLIMITED_RATE;
         refreshRates();
       }
     });
     
+    
+    COConfigurationManager.addAndFireParameterListener( "Max LAN Upload Speed KBs", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        max_lan_upload_rate_bps = COConfigurationManager.getIntParameter( "Max LAN Upload Speed KBs" ) * 1024;
+        if( max_lan_upload_rate_bps < 1024 )  max_lan_upload_rate_bps = UNLIMITED_RATE;
+        if( max_lan_upload_rate_bps > UNLIMITED_RATE )  max_lan_upload_rate_bps = UNLIMITED_RATE;
+        //refreshRates();
+      }
+    });
 
+    
+    
     COConfigurationManager.addAndFireParameterListener( "Max Upload Speed Seeding KBs", new ParameterListener() {
       public void parameterChanged( String parameterName ) {
         max_upload_rate_bps_seeding_only = COConfigurationManager.getIntParameter( "Max Upload Speed Seeding KBs" ) * 1024;
         if( max_upload_rate_bps_seeding_only < 1024 )  max_upload_rate_bps_seeding_only = UNLIMITED_RATE;
+        if( max_upload_rate_bps_seeding_only > UNLIMITED_RATE )  max_upload_rate_bps_seeding_only = UNLIMITED_RATE;
         refreshRates();
       }
     });
@@ -95,9 +108,21 @@ public class NetworkManager {
       public void parameterChanged( String parameterName ) {
         max_download_rate_bps = COConfigurationManager.getIntParameter( "Max Download Speed KBs" ) * 1024;
         if( max_download_rate_bps < 1024 )  max_download_rate_bps = UNLIMITED_RATE;
+        if( max_download_rate_bps > UNLIMITED_RATE )  max_download_rate_bps = UNLIMITED_RATE;
         refreshRates();
       }
     });
+    
+    
+    COConfigurationManager.addAndFireParameterListener( "Max LAN Download Speed KBs", new ParameterListener() {
+      public void parameterChanged( String parameterName ) {
+        max_lan_download_rate_bps = COConfigurationManager.getIntParameter( "Max LAN Download Speed KBs" ) * 1024;
+        if( max_lan_download_rate_bps < 1024 )  max_lan_download_rate_bps = UNLIMITED_RATE;
+        if( max_lan_download_rate_bps > UNLIMITED_RATE )  max_lan_download_rate_bps = UNLIMITED_RATE;
+        //refreshRates();
+      }
+    });
+    
     
     COConfigurationManager.addAndFireParameterListener( "network.tcp.mtu.size", new ParameterListener() {
       public void parameterChanged( String parameterName ) {

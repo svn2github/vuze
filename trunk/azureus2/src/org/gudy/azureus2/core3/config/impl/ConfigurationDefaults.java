@@ -17,7 +17,6 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
@@ -111,6 +110,11 @@ public class ConfigurationDefaults {
     def.put( "Max Upload Speed KBs", new Long(0));
     def.put( "Max Upload Speed Seeding KBs", new Long(0) );
     def.put( "enable.seedingonly.upload.rate", FALSE );
+    
+    def.put( "Max LAN Download Speed KBs", new Long(0) );
+    def.put( "Max LAN Upload Speed KBs", new Long(0) );
+    
+    
     
     def.put("Use Resume", TRUE);
     def.put("Save Resume Interval", new Long(5));

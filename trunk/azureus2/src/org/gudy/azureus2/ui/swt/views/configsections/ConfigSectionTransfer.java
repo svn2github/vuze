@@ -47,7 +47,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
   }
 
 	public String configSectionGetName() {
-		return "transfer";
+		return ConfigSection.SECTION_TRANSFER;
 	}
 
   public void configSectionSave() {

@@ -181,6 +181,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionConnectionProxy(),
                                          new ConfigSectionConnectionAdvanced(),
                                          new ConfigSectionTransfer(),
+                                         new ConfigSectionTransferLAN(),
                                          new ConfigSectionFile(), 
                                          new ConfigSectionFileTorrents(),
                                          new ConfigSectionFilePerformance(),
@@ -195,7 +196,7 @@ public class ConfigView extends AbstractIView {
                                          new ConfigSectionTracker(azureus_core),
                                          new ConfigSectionTrackerClient(),
                                          new ConfigSectionTrackerServer(azureus_core),
- 										 new ConfigSectionSecurity(),
+                                         new ConfigSectionSecurity(),
                                          new ConfigSectionSharing(),
                                          new ConfigSectionLogging()
                                         };
