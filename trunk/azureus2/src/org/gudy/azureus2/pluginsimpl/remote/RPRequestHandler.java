@@ -41,6 +41,10 @@ RPRequestHandler
 
     protected Map   reply_cache = new HashMap();
     protected boolean generic_classes;
+    
+    public RPRequestHandler(PluginInterface _pi) {
+    	this(_pi, false);
+    }
 
     public
     RPRequestHandler(
