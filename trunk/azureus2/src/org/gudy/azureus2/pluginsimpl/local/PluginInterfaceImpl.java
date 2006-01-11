@@ -284,7 +284,7 @@ PluginInterfaceImpl
   public boolean
   isBuiltIn()
   {
-  	return( getPluginDirectoryName().length() == 0 );
+  	return( getPluginDirectoryName().length() == 0 || getPluginID().equals( "azupdater" ));
   }
   
 	public void

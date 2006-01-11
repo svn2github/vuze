@@ -783,7 +783,7 @@ PluginInitializer
 	      	
 	    		  load_failure	= e;
 	      	
-	    		  plugin = new FailedPlugin();
+	    		  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
 	    	  }
 	      }else{
 	    	  
@@ -808,6 +808,7 @@ PluginInitializer
 	      boolean bEnabled = COConfigurationManager
 							.getBooleanParameter("PluginInfo."
 									+ plugin_interface.getPluginID() + ".enabled", true);
+	      
 	      plugin_interface.setDisabled(!bEnabled);
 
 	      try{
@@ -1000,9 +1001,10 @@ PluginInitializer
 				
   				plugin.initialize(plugin_interface);
       	
-  				if (!(plugin instanceof FailedPlugin))
+  				if (!(plugin instanceof FailedPlugin)){
+  					
   					plugin_interface.setOperational( true );
-  				
+  				}
   			}catch( Throwable e ){
       	
   				load_failure	= e;
@@ -1110,9 +1112,11 @@ PluginInitializer
 		 
   		plugin.initialize(plugin_interface);
   		
-  		if (!(plugin instanceof FailedPlugin))
+  		if (!(plugin instanceof FailedPlugin)){
+  			
   			plugin_interface.setOperational( true );
-  	
+  		}
+  		
    		plugins.add( plugin );
    		
    		plugin_interfaces.add( plugin_interface );
@@ -1156,8 +1160,10 @@ PluginInitializer
 
   		plugin.initialize(plugin_interface);
   		
-  		if (!(plugin instanceof FailedPlugin))
+  		if (!(plugin instanceof FailedPlugin)){
+  			
   			plugin_interface.setOperational( true );
+  		}
   		
    		plugins.add( plugin );
    		
