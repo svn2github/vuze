@@ -27,8 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
-import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
+import org.gudy.azureus2.core3.disk.impl.*;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.impl.control.EndGameModeChunk;
@@ -68,9 +67,10 @@ public class PiecePickerImpl
 	protected static boolean		firstPiecePriority	=COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
 //	protected static boolean		completionPriority	=COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
 
-	protected DiskManagerHelper	disk_mgr;
+	protected DiskManagerHelper		disk_mgr;
 	private MyDiskManagerListener	myDiskManListener;
-	protected int			nbPieces;
+	protected int					nbPieces;
+	protected DiskManagerPiece[]	dm_pieces;
 
 	protected boolean		hasNeededUndonePiece =true;
 	protected boolean		hasNeededUndonePieceChange;
@@ -109,16 +109,16 @@ public class PiecePickerImpl
 	public void start()
 	{
 		nbPieces =disk_mgr.getNbPieces();
+		dm_pieces =disk_mgr.getPieces();
+		startPriorities =new long[nbPieces];
 
 		myDiskManListener =new MyDiskManagerListener();
 		disk_mgr.addListener(myDiskManListener);
 
-		startPriorities =new long[nbPieces];
-
 		// initialize the true Needed state for each piece
 		// on going changes will use event driven tracking
 		for (int i =0; i <nbPieces; i++)
-			disk_mgr.calcNeeded(i);
+			dm_pieces[i].calcNeeded();
 
 		checkDownloadablePiece();
 	}
@@ -155,8 +155,8 @@ public class PiecePickerImpl
 			boolean foundPieceToDownload =false;
 			// the first piece can span multiple files
 			int i =file.getFirstPieceNumber();
-			if (!disk_mgr.isDone(i))
-				foundPieceToDownload |=calcStartPriority(disk_mgr.getPiece(i));
+			if (!dm_pieces[i].isDone())
+				foundPieceToDownload |=calcStartPriority(dm_pieces[i]);
 			i++;
 			int lastPieceNumber =file.getLastPieceNumber();
 			// intermediary pieces, if any, are all in the one file
@@ -166,14 +166,14 @@ public class PiecePickerImpl
 				// don't need pieces if file is 0 length, or downloaded, or DND/Delete
 				if (fileLength >0 &&file.getDownloaded() <fileLength &&!file.isSkipped())
 				{
-					if (!disk_mgr.isDone(i))
-						foundPieceToDownload |=calcStartPriorityFile(disk_mgr.getPiece(i), file);
+					if (!dm_pieces[i].isDone())
+						foundPieceToDownload |=calcStartPriorityFile(dm_pieces[i], file);
 				} else	// but need ot be sure every not needed piece is marked as such
-					disk_mgr.clearNeeded(i);
+					dm_pieces[i].clearNeeded();
 			}
 			// maybe the last piece is the same as the first (or maybe it's already done)
-			if (i ==lastPieceNumber &&!disk_mgr.isDone(i))
-				foundPieceToDownload |=calcStartPriority(disk_mgr.getPiece(i));
+			if (i ==lastPieceNumber &&!dm_pieces[i].isDone())
+				foundPieceToDownload |=calcStartPriority(dm_pieces[i]);
 			// if we found a piece to download and didn't have one before, need to checkInterested on peers
 			if (foundPieceToDownload)
 			{
@@ -214,7 +214,7 @@ public class PiecePickerImpl
 	{
 		for (int i =0; i <nbPieces; i++)
 		{
-			if (disk_mgr.calcNeeded(i) &&!disk_mgr.isDone(i))
+			if (dm_pieces[i].calcNeeded() &&!dm_pieces[i].isDone())
 			{
 				if (!hasNeededUndonePiece)
 				{
@@ -439,7 +439,7 @@ public class PiecePickerImpl
 		// If there's a piece Reserved to this peer or a FORCE_PIECE, start/resume it and only it (if possible)
 		if (pieceNumber >=0)
 		{
-			if (piecesAvailable[pieceNumber] &&disk_mgr.isInteresting(pieceNumber) &&!disk_mgr.isRequested(pieceNumber))
+			if (piecesAvailable[pieceNumber] &&dm_pieces[pieceNumber].isInteresting() &&!dm_pieces[pieceNumber].isRequested())
 				return new int[]{pieceNumber, blockNumber};
 			return null; // this is an odd case that maybe should be handled better
 		}
@@ -490,7 +490,7 @@ public class PiecePickerImpl
 			// is the piece not completed already?
 			// does this peer make this piece available?
 			// is the piece not fully requested/downloaded/written/checking/done already?
-			if (piecesAvailable[i] &&disk_mgr.isInteresting(i) &&disk_mgr.isRequestable(i) &&!disk_mgr.isRequested(i))
+			if (piecesAvailable[i] &&dm_pieces[i].isInteresting() &&!dm_pieces[i].isRequested() &&dm_pieces[i].isRequestable())
 			{
 				long priority =startPriorities[i];
 				if (priority >=0)
@@ -508,7 +508,7 @@ public class PiecePickerImpl
 						int freeReqs =pePiece.getNbUnrequested();
 						if (freeReqs <=0)
 						{
-							disk_mgr.setRequested(i);
+							dm_pieces[i].setRequested();
 							continue;
 						}
 
@@ -540,17 +540,17 @@ public class PiecePickerImpl
 							priority +=(i ==pt.getLastPiece()) ?PRIORITY_W_SAME_PIECE :0;
 							// Adjust priority for purpose of continuing pieces
 							// how long since last written to
-							long staleness =now -disk_mgr.getLastWriteTime(i);
+							long staleness =now -dm_pieces[i].getLastWriteTime();
 							if (staleness >0)
 								priority +=staleness /PRIORITY_DW_STALE;
 							// how long since piece was started
 							long pieceAge =now -pePiece.getCreationTime();
 							if (pieceAge >0)
-								priority +=PRIORITY_W_AGE *pieceAge /(PRIORITY_DW_AGE *disk_mgr.getNbBlocks(i));
+								priority +=PRIORITY_W_AGE *pieceAge /(PRIORITY_DW_AGE *dm_pieces[i].getNbBlocks());
 							// how much is already written to disk
-							priority +=(PRIORITY_W_PIECE_DONE *disk_mgr.getNbWritten(i)) /disk_mgr.getNbBlocks(i);
+							priority +=(PRIORITY_W_PIECE_DONE *dm_pieces[i].getNbWritten()) /dm_pieces[i].getNbBlocks();
 
-							pc.getPiece(i).setResumePriority(priority);
+							pePiece.setResumePriority(priority);
 
 							int testAvail =avail -(int) (priority /1001);
 							// fake availability a little if priority has gotten too high
@@ -562,7 +562,7 @@ public class PiecePickerImpl
 								// Make sure it's possible to get a block to request from this piece
 								// Returns -1 if no more blocks need to be requested
 								// Or a valid blockNumnber >= 0 otherwise
-								int tempBlock =pc.getPiece(i).getBlock();
+								int tempBlock =pePiece.getBlock();
 
 								// So, if there is a block to request in that piece
 								if (tempBlock >=0)
@@ -579,7 +579,7 @@ public class PiecePickerImpl
 								{
 									// this piece can't yield free blocks to req, but is not marked as fully requested
 									// mark it as fully requested
-									disk_mgr.setRequested(i);
+									dm_pieces[i].setRequested();
 								}
 							}
 						}
@@ -635,9 +635,9 @@ public class PiecePickerImpl
 	 *            the PeerConnection we're working on
 	 * @return true if a request was assigned, false otherwise
 	 */
-	public boolean findPieceToDownload(PEPeerTransport pc, int candidateMode)
+	public boolean findPieceToDownload(PEPeerTransport pt, int candidateMode)
 	{
-		int[] candidateInfo =getRequestCandidate(pc, candidateMode);
+		int[] candidateInfo =getRequestCandidate(pt, candidateMode);
 		if (candidateInfo ==null)
 			return false;
 
@@ -647,30 +647,32 @@ public class PiecePickerImpl
 		if (pieceNumber <0)
 			return false;
 
-		int peerSpeed =(int) pc.getStats().getDataReceiveRate() /1024;
+		
+		int peerSpeed =(int) pt.getStats().getDataReceiveRate() /1024;
 
-		PEPiece[] _pieces =pc.getControl().getPieces();
-		if (_pieces[pieceNumber] ==null)
+		PEPeerControl pc =pt.getControl();
+		PEPieceImpl piece =(PEPieceImpl)pc.getPiece(pieceNumber);
+		if (piece ==null)
 		{
-			PEPieceImpl piece =new PEPieceImpl(pc.getManager(), disk_mgr.getPiece(pieceNumber), (peerSpeed /2) -1, false);
+			piece =new PEPieceImpl(pt.getManager(), dm_pieces[pieceNumber], (peerSpeed /2) -1, false);
 
 			// Assign the created piece to the pieces array.
-			pc.getControl().addPiece(piece, pieceNumber);
+			pc.addPiece(piece, pieceNumber);
 		}
 
 		if (blockNumber <0)
-			blockNumber =_pieces[pieceNumber].getBlock();
+			blockNumber =piece.getBlock();
 
 		if (blockNumber <0)
 			return false;
 
 		// really try to send the request to the peer
-		if (pc.request(pieceNumber, blockNumber *DiskManager.BLOCK_SIZE, _pieces[pieceNumber].getBlockSize(blockNumber)))
+		if (pt.request(pieceNumber, blockNumber *DiskManager.BLOCK_SIZE, piece.getBlockSize(blockNumber)))
 		{
-			_pieces[pieceNumber].markBlock(blockNumber);
+			piece.markBlock(blockNumber);
 			// Up the speed on this piece?
-			if (peerSpeed >_pieces[pieceNumber].getSpeed())
-				_pieces[pieceNumber].incSpeed();
+			if (peerSpeed >piece.getSpeed())
+				piece.incSpeed();
 			// have requested a block
 			return true;
 		}
@@ -679,29 +681,35 @@ public class PiecePickerImpl
 
 	public boolean findPieceInEndGameMode(PEPeerTransport pc)
 	{
-		//Ok, we try one, if it doesn't work, we'll try another next time
-		try{
+		// Ok, we try one, if it doesn't work, we'll try another next time
+		try
+		{
 			endGameModeChunks_mon.enter();
-			
-			int nbChunks = endGameModeChunks.size();   
-			if(nbChunks > 0) {
+
+			int nbChunks =endGameModeChunks.size();
+			if (nbChunks >0)
+			{
 				int random =RandomUtils.generateRandomIntUpto(nbChunks);
-				EndGameModeChunk chunk =(EndGameModeChunk)endGameModeChunks.get(random);
-				int pieceNumber = chunk.getPieceNumber();
-				if(pc.getAvailable()[pieceNumber]) {		      
+				EndGameModeChunk chunk =(EndGameModeChunk) endGameModeChunks.get(random);
+				int pieceNumber =chunk.getPieceNumber();
+				if (pc.getAvailable()[pieceNumber])
+				{
 					PEPiece pePiece =pc.getControl().getPiece(pieceNumber);
-					if(pePiece != null) {
-						boolean result = pc.request(pieceNumber,chunk.getOffset(),chunk.getLength());
+					if (pePiece !=null)
+					{
+						boolean result =pc.request(pieceNumber, chunk.getOffset(), chunk.getLength());
 						pePiece.markBlock(chunk.getBlockNumber());
 						return result;
 					}
-					
+
 					endGameModeChunks.remove(chunk);
-					//System.out.println("End Game Mode :: Piece is null : chunk remove !!!NOT REQUESTED!!!" + chunk.getPieceNumber() + ":" + chunk.getOffset() + ":" + chunk.getLength());
+					// System.out.println("End Game Mode :: Piece is null : chunk remove !!!NOT REQUESTED!!!" +
+					// chunk.getPieceNumber() + ":" + chunk.getOffset() + ":" + chunk.getLength());
 					return false;
 				}
 			}
-		}finally{
+		} finally
+		{
 			endGameModeChunks_mon.exit();
 		}
 		return false;
@@ -738,7 +746,6 @@ public class PiecePickerImpl
 	public void computeEndGameModeChunks(PEPeerControlImpl pc)
 	{
 		endGameModeChunks =new ArrayList();
-		DiskManagerPiece[]	dm_pieces =disk_mgr.getPieces();
 		PEPiece[] _pieces =pc.getPieces();
 		if (_pieces ==null)
 			return;
@@ -747,7 +754,7 @@ public class PiecePickerImpl
 		{
 			endGameModeChunks_mon.enter();
 
-			for (int i =0; i <dm_pieces.length; i++ )
+			for (int i =0; i <nbPieces; i++ )
 			{
 				// Pieces already downloaded are of no interest
 				if (!dm_pieces[i].isRequestable())
