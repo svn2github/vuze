@@ -698,7 +698,6 @@ public class TableView
       }
 
 			public void widgetDefaultSelected(SelectionEvent e) {
-				System.out.println(lCancelSelectionTriggeredOn + ";" + (System.currentTimeMillis() - lCancelSelectionTriggeredOn));
 				if (lCancelSelectionTriggeredOn > 0
 						&& System.currentTimeMillis() - lCancelSelectionTriggeredOn < 200) {
 					e.doit = false;
