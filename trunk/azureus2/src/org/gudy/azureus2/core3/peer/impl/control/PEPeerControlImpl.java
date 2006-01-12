@@ -10,18 +10,19 @@
 package org.gudy.azureus2.core3.peer.impl.control;
 
 
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
 import org.gudy.azureus2.core3.peer.util.*;
-import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -92,7 +93,7 @@ PEPeerControlImpl
 	
 	private int				_nbPieces =-1;			//how many pieces in the torrent
 	volatile private PEPieceImpl[]	_pieces;		//pieces that are currently in progress
-	private int				_piecesNbr;				//how many in _pieces[] based on Added and Removed
+	private int				nbActivePieces;			//how many in _pieces[] based on Added and Removed
 	private float			_globalAvail;
 	private float			_globalAvgAvail;
 	private long			_time_last_avail;
@@ -266,6 +267,18 @@ PEPeerControlImpl
 				updateStats();
 				checkSpeedAndReserved();
 
+				// see if need to recheck Interested on all peers
+				if (piecePicker.hasDownloadableChanged())
+				{
+					List peer_transports =peer_transports_cow;
+
+					for (int i =0; i <peer_transports.size(); i++ )
+					{
+						PEPeerTransport pc =(PEPeerTransport)peer_transports.get(i);
+						pc.checkInterested();
+					}
+				}
+
 				boolean forcenoseeds = disconnect_seeds_when_seeding;
 				if (!seeding_mode) 
 				{	// if we're not finished
@@ -274,7 +287,7 @@ PEPeerControlImpl
 					// then we disconnect seeds and avoid calling these methods
 					// to save CPU.
 //					disk_mgr.computePriorityIndicator();
-					
+
 					if (disk_mgr.hasDownloadablePiece()) 
 					{
 						checkRequests();	//check the requests
@@ -531,11 +544,11 @@ PEPeerControlImpl
 	
 	public void addPeer( String ip_address, int port ) {		
 		PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ) );
-	
+		
 		if( !isAlreadyConnected( peer_item ) ) {
 			boolean added = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, port );  //directly inject the the imported peer
 			if( !added )  Debug.out( "injected peer was not added" );
-		}		
+	}
 	}
 	
 	
@@ -552,7 +565,7 @@ PEPeerControlImpl
 			
 			boolean already_connected = false;
 			
-			for( int x=0; x < peer_transports.size(); x++ ) {
+      		for( int x=0; x < peer_transports.size(); x++ ) {
 				PEPeerTransport transport = (PEPeerTransport)peer_transports.get( x );
 				
 				// allow loopback connects for co-located proxy-based connections and testing
@@ -632,7 +645,7 @@ PEPeerControlImpl
 		//for every piece
 		int	nbPieces	=_nbPieces;
 		for (int i = 0; i < nbPieces; i++) {
-			PEPiece piece = _pieces[i]; //get the piece
+			PEPiece piece = _pieces[i];		//get the piece
 			//if piece is loaded, and completed
 			if (piece !=null &&dm_pieces[i].calcWritten() &&!dm_pieces[i].isChecking())
 			{
@@ -672,41 +685,36 @@ PEPeerControlImpl
 		//for every piece
 		for (int i =0; i <nbPieces; i++)
 		{
-			// these checks are only against pieces being downloaded
-			// yet needing requests still/again
+			// these checks are only against pieces being downloaded yet needing requests still/again
 			if (pieces[i] !=null)
 			{
 				long time_since_write	=now -dm_pieces[i].getLastWriteTime();
 				if (time_since_write >4001 &&(mainloop_loop_count %MAINLOOP_FIVE_SECOND_INTERVAL) ==0)
 				{
 					// maybe piece's speed is too high for it to get new data
-					int getSpeed =pieces[i].getSpeed();
-					if (getSpeed >0)
+					if (pieces[i].getSpeed() >0)
 					{
-						//System.out.println("fast > slow : " + currentTime + " - " + currentPiece.getLastWriteTime());
 					    if (!dm_pieces[i].isRequested())
-					    {
 					    	_pieces[i].decSpeed();
-					    } else
-					    {
+					    else
 					    	_pieces[i].setSpeed(0);
-					    }
 					} else if (time_since_write >(120 *1000))
 					{
-						// has reserved piece gone stagnant?
 						dm_pieces[i].clearRequested();
-						if (pieces[i].getReservedBy() !=null)
+						// has reserved piece gone stagnant?
+						PEPeerTransport pt =(PEPeerTransport)pieces[i].getReservedBy();
+						if (pt !=null)
 						{
 							// Peer is too slow; Ban them and unallocate the piece
-							// but, banning is no good for peer types that gert pieces reserved
+							// but, banning is no good for peer types that get pieces reserved
 							// to them for other reasons, such as special seed peers
-					        badPeerDetected((PEPeerTransport) pieces[i].getReservedBy());
-//							closeAndRemovePeer((PEPeerTransport) pieces[i].getReservedBy(), "Reserved piece data timeout; 120 seconds" );
+							if (pt.isSeed())
+								closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds" );
+							else
+								badPeerDetected(pt);
 							_pieces[i].setReservedBy(null);
 						} else if (time_since_write >(240 *1000))
-						{
 							checkEmptyPiece(i);
-						}
 					}
 				}
 			}
@@ -750,48 +758,61 @@ PEPeerControlImpl
 			}
 		}
 	}
-	
-	private void checkDLPossible(int candidateMode) {
-		List bestUploaders = new ArrayList();
-		
-		List	peer_transports = peer_transports_cow;
-		
-		long[] upRates = new long[peer_transports.size()];
+
+	/**
+	 * one reason requests stem from here (PeerControl) rather than within each peer object themselves
+	 * is so the connections can be sorted by best uploaders, which provides some effort to download
+	 * the most important (ie; rarest and/or highest priority) pieces faster/more reliably
+	 * @param candidateMode specifies how pieces should be selected
+	 *	soon-to-be implemented features include; sequantial, reverse order, ignore rarity, full pieces only 
+	 */
+	private void checkDLPossible(int candidateMode)
+	{
+		List bestUploaders =new ArrayList();
+
+		List peer_transports =peer_transports_cow;
+
+		long[] upRates =new long[peer_transports.size()];
 		Arrays.fill(upRates, -1);
-		
-		for (int i = 0; i < peer_transports.size(); i++) {
-			PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
-			
-			if (pc.transferAvailable()) {
-				long upRate = pc.getStats().getSmoothDataReceiveRate();
-				UnchokerUtil.updateLargestValueFirstSort( upRate, upRates, pc, bestUploaders, 0 );
+
+		for (int i =0; i <peer_transports.size(); i++ )
+		{
+			PEPeerTransport pc =(PEPeerTransport) peer_transports.get(i);
+
+			if (pc.transferAvailable())
+			{
+				long upRate =pc.getStats().getSmoothDataReceiveRate();
+				UnchokerUtil.updateLargestValueFirstSort(upRate, upRates, pc, bestUploaders, 0);
 			}
 		}
 
 		checkEndGameMode();
-		for (int i = 0; i < bestUploaders.size(); i++) {
-			//get a connection 
-			PEPeerTransport pc = (PEPeerTransport) bestUploaders.get(i);
-			//can we transfer something?
-			if (pc.transferAvailable()) {
-				boolean found = true;
-				//If queue is too low, we will enqueue another request
-				int maxRequests = MIN_REQUESTS + (int) (pc.getStats().getDataReceiveRate() / SLOPE_REQUESTS);
-				if(maxRequests > MAX_REQUESTS || maxRequests < 0) maxRequests = MAX_REQUESTS;
-				
+		for (int i =0; i <bestUploaders.size(); i++ )
+		{
+			// get a connection
+			PEPeerTransportProtocol pc =(PEPeerTransportProtocol) bestUploaders.get(i);
+			// can we transfer something?
+			if (pc.transferAvailable())
+			{
+				boolean found =true;
+				// If queue is too low, we will enqueue another request
+				int maxRequests =MIN_REQUESTS +(int) (pc.getStats().getDataReceiveRate() /SLOPE_REQUESTS);
+				if (maxRequests >MAX_REQUESTS ||maxRequests <0)
+					maxRequests =MAX_REQUESTS;
+
 				if (endGameMode)
-					maxRequests = 2;
+					maxRequests =2;
 				if (pc.isSnubbed())
-					maxRequests = 1;  
-				
-				//Only loop when 3/5 of the queue is empty,
-				//in order to make more consecutive requests, and improve
-				//cache efficiency
-				if(pc.getNbRequests() <= (3 * maxRequests) / 5)
+					maxRequests =1;
+
+				// Only loop when 3/5 of the queue is empty,
+				// in order to make more consecutive requests, and improve
+				// cache efficiency
+				if (pc.getNbRequests() <=(3 *maxRequests) /5)
 				{
-					while ((pc.getPeerState() == PEPeer.TRANSFERING) && found && (pc.getNbRequests() < maxRequests))
+					while ((pc.getPeerState() ==PEPeer.TRANSFERING) &&found &&(pc.getNbRequests() <maxRequests))
 					{
-						//is there anything else to download?
+						// is there anything else to download?
 						if (endGameMode)
 							found =piecePicker.findPieceInEndGameMode(pc);
 						else
@@ -914,7 +935,7 @@ PEPeerControlImpl
 			seeding_mode =true;
 			if (endGameMode)
 			{
-				piecePicker.finishEndGameMode();
+				piecePicker.clearEndGameChunks();
 				endGameMode =false;
 			}
 
@@ -980,7 +1001,7 @@ PEPeerControlImpl
 						//get the block offset
 						int pieceOffset = request.getOffset();
 						//unmark the block
-						if (null !=_pieces[pieceNumber])
+						if (_pieces[pieceNumber] !=null)
 							_pieces[pieceNumber].unmarkBlock(pieceOffset /DiskManager.BLOCK_SIZE);
 						//set piece to not fulle requested
 						dm_pieces[pieceNumber].clearRequested();
@@ -998,7 +1019,7 @@ PEPeerControlImpl
 						//get the piece offset
 						int pieceOffset = request.getOffset();
 						//unmark the block
-						if (null !=_pieces[pieceNumber])
+						if (_pieces[pieceNumber] !=null)
 							_pieces[pieceNumber].unmarkBlock(pieceOffset /DiskManager.BLOCK_SIZE);
 						//set piece to not being downloaded
 						dm_pieces[pieceNumber].clearRequested();
@@ -1086,9 +1107,7 @@ PEPeerControlImpl
 		long time_since_last	=SystemTime.getCurrentTime() -_time_last_avail;
 
 		if ((time_since_last >=0) &&(time_since_last <TIME_MIN_AVAILABILITY))
-		{
 			return;
-		}
 		int 	i;
 		int		nbPieces		=_nbPieces;
 		//reset the availability
@@ -1123,7 +1142,7 @@ PEPeerControlImpl
 			if (dm_pieces[i].isDone())
 				availability[i]++;
 			else if (availability[i] >0 &&availability[i] <othersMin &&dm_pieces[i].isNeeded() &&!dm_pieces[i].isRequested() &&dm_pieces[i].isRequestable())
-				othersMin =availability[i];	// what we might want from others
+				othersMin =availability[i];	// only what we want to target for near future requests from others
 
 			if (availability[i] <allMin)
 				allMin =availability[i];
@@ -1355,11 +1374,6 @@ PEPeerControlImpl
 		return _myPeerId;
 	}
 	
-//	get the number of pieces
-	public int getPiecesNumber() {
-		return _nbPieces;
-	}
-	
 //	get the remaining percentage
 	public long getRemaining() {
 		return disk_mgr.getRemaining();
@@ -1409,7 +1423,7 @@ PEPeerControlImpl
 		//the diskManager that handles read/write operations
 		disk_mgr	= diskManager;
 		dm_pieces		= disk_mgr.getPieces();
-		_nbPieces		= disk_mgr.getNumberOfPieces();
+		_nbPieces		= disk_mgr.getNbPieces();
 		
 		//the pieces in progress
 		if (_pieces ==null) 
@@ -1579,9 +1593,9 @@ PEPeerControlImpl
 		return _remotes;
 	}
 	
-	public int getNbPieces()
+	public int getNbActive()
 	{
-		return _piecesNbr;
+		return nbActivePieces;
 	}
 	
   public long getLastRemoteConnectionTime()
@@ -1605,10 +1619,8 @@ PEPeerControlImpl
 		int writtenNotChecked = 0;
 		for (int i = 0; i < _pieces.length; i++)
 		{
-			if (dm_pieces[i].isNeeded() &&!dm_pieces[i].isDone())
-			{
+			if (dm_pieces[i].isInteresting())
 				writtenNotChecked +=dm_pieces[i].getNbWritten() *DiskManager.BLOCK_SIZE;
-			}
 		}
 		
 		long dataRemaining = disk_mgr.getRemainingExcludingDND() - writtenNotChecked;
@@ -1756,13 +1768,13 @@ PEPeerControlImpl
 	{
 		_pieces[pieceNumber] =(PEPieceImpl)piece;
 		adapter.addPiece(piece);
-		_piecesNbr++;
+		nbActivePieces++;
 	}
 	
 	public void pieceRemoved(PEPiece p) {
 		adapter.removePiece(p);
 		_pieces[p.getPieceNumber()] =null;
-		_piecesNbr--;
+		nbActivePieces--;
 	}
 	
 	public String getElapsedTime() {
@@ -2089,6 +2101,11 @@ PEPeerControlImpl
 		}
 	}
 
+	public PEPiece getPiece(int pieceNumber)
+	{
+		return _pieces[pieceNumber];
+	}
+	
 	public PEPiece[] getPieces()
 	{
 		return _pieces;
@@ -2202,11 +2219,6 @@ PEPeerControlImpl
   }
 	
 	
-  
-  
-  
-  
-  
 	private void checkEndGameMode()
 	{
 		// We can't come back from end-game mode
@@ -2222,7 +2234,7 @@ PEPeerControlImpl
 					if (Logger.isEnabled())
 						Logger.log(new LogEvent(disk_mgr.getTorrent(), LOGID, "Abandoning end-game mode: "
 							+adapter.getDisplayName()));
-					piecePicker.finishEndGameMode();
+					piecePicker.clearEndGameChunks();
 				}
 			}
 
@@ -2233,15 +2245,15 @@ PEPeerControlImpl
 
 		for (int i =0; i <_pieces.length; i++ )
 		{
-			// If the piece is downloaded, let's simply continue
-			if (!dm_pieces[i].isRequestable())
-				continue;
 			// If the piece is being downloaded (fully requested), let's simply continue
 			if (dm_pieces[i].isRequested())
 			{
 				active_pieces++ ;
 				continue;
 			}
+			// If the piece is downloaded, let's simply continue
+			if (!dm_pieces[i].isRequestable())
+				continue;
 
 			// Else, the piece is not downloaded / not fully requested, this isn't end game mode
 			return;
@@ -2699,7 +2711,7 @@ PEPeerControlImpl
 		for( int i=0; i < peer_transports.size(); i++ ) {
 			PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );			
 			if( Arrays.equals( peer_id, conn.getId() ) )   return conn;
-		}
+}
 		return null;
 	}
 }
