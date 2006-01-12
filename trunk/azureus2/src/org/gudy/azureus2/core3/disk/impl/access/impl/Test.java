@@ -30,44 +30,16 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerFactory;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.disk.DiskManagerListener;
-import org.gudy.azureus2.core3.disk.DiskManagerPiece;
-import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
-import org.gudy.azureus2.core3.disk.DiskManagerReadRequestListener;
-import org.gudy.azureus2.core3.disk.impl.DiskManagerPieceImpl;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
-import org.gudy.azureus2.core3.download.DownloadManagerListener;
-import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
-import org.gudy.azureus2.core3.download.DownloadManagerStats;
-import org.gudy.azureus2.core3.download.DownloadManagerTrackerListener;
+import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.logging.ILogEventListener;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPeerManagerListener;
-import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
-import org.gudy.azureus2.core3.peer.PEPeerStats;
-import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.DirectByteBufferPool;
-import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
@@ -1133,6 +1105,11 @@ Test
 		}
 
 
+		public PEPiece getPiece(int pieceNumber)
+		{
+			return null;
+		}
+
 		public PEPiece[] getPieces()
 		{
 			return( null );
@@ -1165,7 +1142,7 @@ Test
 			return( 0 );
 		}
 
-		public int getNbPieces()
+		public int getNbActive()
 		{
 			return 0;
 		}
@@ -1386,7 +1363,7 @@ Test
 	  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender)
 		{
 		
-		}
+	}
 
 	  
 	  public boolean isBlockAlreadyWritten( int piece_number, int offset )
@@ -1415,7 +1392,7 @@ Test
 		return 0;
 	}
 
-	
+	  
 	public PEPeerTransport getTransportFromIdentity( byte[] peer_id ) { return null;  }
 	  
 	}
