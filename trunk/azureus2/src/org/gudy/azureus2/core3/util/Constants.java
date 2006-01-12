@@ -6,6 +6,8 @@
  */
 package org.gudy.azureus2.core3.util;
 
+import org.eclipse.swt.SWT;
+
 /**
  *  
  * @author Olivier
@@ -49,6 +51,8 @@ Constants
   public static final boolean isWindowsME		= OSName.equalsIgnoreCase("Windows ME");
   public static final boolean isWindows9598ME	= isWindows95 || isWindows98 || isWindowsME;
   
+  public static final boolean isGTK	= SWT.getPlatform().equals("gtk");
+
   public static final boolean isWindows	= !(isOSX || isLinux || isSolaris); 
  
   public static final String	JAVA_VERSION = System.getProperty("java.version");
