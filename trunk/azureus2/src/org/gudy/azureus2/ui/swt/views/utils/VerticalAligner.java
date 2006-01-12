@@ -23,12 +23,12 @@
  */
 package org.gudy.azureus2.ui.swt.views.utils;
 
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.swt.Utils;
 
 /** Workaround Eclipse Bug Bug 42416
  *   "[Platform Inconsistency] GC(Table) has wrong origin"
@@ -45,7 +45,7 @@ public class VerticalAligner {
 						// only apply to GTK, even if it was enabled prior
 						bFixGTKBug = COConfigurationManager
 								.getBooleanParameter("SWT_bGTKTableBug")
-								&& SWT.getPlatform().equals("gtk");
+								&& Utils.isGTK;
 					}
 				});
 	}
