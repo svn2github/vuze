@@ -2611,6 +2611,12 @@ DiskManagerImpl
 		return piecePicker;
 	}
 
+	public boolean isInteresting(int pieceNumber)
+	{
+		return pieces[pieceNumber].isInteresting();
+	}
+
+/*
 	public boolean calcNeeded(int pieceNumber)
 	{
 		return pieces[pieceNumber].calcNeeded();
@@ -2631,11 +2637,6 @@ DiskManagerImpl
 		return pieces[pieceNumber].isDone();
 	}
 	
-	public boolean isInteresting(int pieceNumber)
-	{
-		return pieces[pieceNumber].isInteresting();
-	}
-
 	public boolean isRequested(int pieceNumber)
 	{
 		return pieces[pieceNumber].isRequested();
@@ -2660,5 +2661,5 @@ DiskManagerImpl
 	{
 		return pieces[pieceNumber].getNbWritten();
 	}
-
+*/
 }

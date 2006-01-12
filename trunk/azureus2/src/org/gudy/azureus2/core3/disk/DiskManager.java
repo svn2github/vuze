@@ -256,18 +256,20 @@ DiskManager
 
 	public PiecePicker getPiecePicker();
 
+	/**
+	 * @param pieceNumber
+	 * @return true if the pieceNumber is Needed and not Done
+	 */
+	public boolean isInteresting(int pieceNumber);
+/*
 	public boolean calcNeeded(int pieceNumber);
 	public void clearNeeded(int pieceNumber);
 	public long getLastWriteTime(int pieceNumber);
 	public long getNbBlocks(int pieceNumber);
 	public long getNbWritten(int pieceNumber);
 	public boolean isDone(int pieceNumber);
-	/**
-	 * @param pieceNumber
-	 * @return true if the pieceNumber is Needed and not Done
-	 */
-	public boolean isInteresting(int pieceNumber);
 	public boolean isRequestable(int pieceNumber);
 	public boolean isRequested(int pieceNumber);
 	public void setRequested(int pieceNumber);
+*/
 }
