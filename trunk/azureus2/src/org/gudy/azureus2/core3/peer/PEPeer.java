@@ -124,13 +124,13 @@ PEPeer
    * Am I Interested in the peer.
    * @return true if peer is interesting, false if not
    */
-	public boolean isInterestingToMe();
+	public boolean isInteresting();
 
   /**
    * Is the peer Interested in me.
    * @return true if the peer is interested in me, false if not
    */
-	public boolean isInterestedInMe();
+	public boolean isInterested();
 
   
 	public boolean isSeed();

@@ -39,9 +39,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
-import org.gudy.azureus2.core3.logging.LogEvent;
-import org.gudy.azureus2.core3.logging.LogIDs;
-import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.Debug;
@@ -385,7 +383,7 @@ public class PeerInfoView extends AbstractIView {
 		dm_pieces = dm.getPieces();
 
 		int iNumCols = bounds.width / BLOCK_SIZE;
-		int iNeededHeight = (((dm.getNumberOfPieces() - 1) / iNumCols) + 1) * BLOCK_SIZE;
+		int iNeededHeight = (((dm.getNbPieces() - 1) / iNumCols) + 1) * BLOCK_SIZE;
 		sc.setMinHeight(iNeededHeight);
 
 		int[] availability = pm == null ? null : pm.getAvailability();

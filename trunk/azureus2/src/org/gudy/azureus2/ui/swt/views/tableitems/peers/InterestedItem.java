@@ -44,7 +44,7 @@ public class InterestedItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : (peer.isInterestingToMe() ? 1 : 0);
+    long value = (peer == null) ? 0 : (peer.isInteresting() ? 1 : 0);
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;

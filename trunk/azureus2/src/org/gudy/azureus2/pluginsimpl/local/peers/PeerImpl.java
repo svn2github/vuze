@@ -29,10 +29,9 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LogRelation;
-import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
-
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
@@ -180,12 +179,12 @@ PeerImpl
 
 	public boolean isInterested()
 	{
-		return( delegate.isInterestingToMe());
+		return( delegate.isInteresting());
 	}
 
 	public boolean isInteresting()
 	{
-		return( delegate.isInterestedInMe());
+		return( delegate.isInterested());
 	}
 
 	public boolean isSeed()
