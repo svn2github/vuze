@@ -219,7 +219,7 @@ RDResumeHandler
 					
 					DiskManagerPiece	dm_piece	= pieces[i];
 					
-					disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNumberOfPieces() );
+					disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNbPieces() );
 					
 					byte	piece_state = resume_pieces[i];
 					
@@ -388,7 +388,7 @@ RDResumeHandler
 						break;
 					}
 										
-					disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNumberOfPieces() );						
+					disk_manager.setPercentDone(((i + 1) * 1000) / disk_manager.getNbPieces() );						
 						
 					try{
 						DiskManagerCheckRequest	request = disk_manager.createCheckRequest( i, null );

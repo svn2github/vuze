@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.network.Connection;
 
-
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 
 /**
@@ -146,8 +145,8 @@ public class UnchokerUtilTest {
         public void setSnubbed(boolean b){}
         public boolean isChokingMe(){ return true;  }
         public boolean isChokedByMe() {  return true;  }
-        public boolean isInterestingToMe(){  return true;  }
-        public boolean isInterestedInMe(){  return true;  }
+        public boolean isInteresting(){  return true;  }
+        public boolean isInterested(){  return true;  }
         public boolean isSeed(){ return false;  }
         public boolean isSnubbed(){ return false;  }
         public PEPeerStats getStats(){  return stats;  }
