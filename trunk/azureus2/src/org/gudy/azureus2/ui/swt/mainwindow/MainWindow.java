@@ -670,26 +670,7 @@ MainWindow
    
     globalManager.addListener(this);
 
-    boolean isMaximized = COConfigurationManager.getBooleanParameter("window.maximized", mainWindow.getMaximized());
-    mainWindow.setMaximized(isMaximized);
-    
-    String windowRectangle = COConfigurationManager.getStringParameter("window.rectangle", null);
-    if (null != windowRectangle) {
-      int i = 0;
-      int[] values = new int[4];
-      StringTokenizer st = new StringTokenizer(windowRectangle, ",");
-      try {
-        while (st.hasMoreTokens() && i < 4) {
-          values[i++] = Integer.valueOf(st.nextToken()).intValue();
-          if (values[i - 1] < 0)
-            values[i - 1] = 0;
-        }
-        if (i == 4) {
-          mainWindow.setBounds(values[0], values[1], values[2], values[3]);
-        }
-      }
-      catch (Exception e) {}
-    }
+    Utils.linkShellMetricsToConfig(mainWindow, "window");
     
     //NICO catch the dispose event from file/quit on osx
     mainWindow.addDisposeListener(new DisposeListener() {
@@ -1175,16 +1156,6 @@ MainWindow
       updater.stopIt();
     }
     
-    COConfigurationManager.setParameter("window.maximized", mainWindow.getMaximized());
-    // unmaximize to get correct window rect
-    if (mainWindow.getMaximized())
-      mainWindow.setMaximized(false);
-
-    Rectangle windowRectangle = mainWindow.getBounds();
-    COConfigurationManager.setParameter(
-      "window.rectangle",
-      windowRectangle.x + "," + windowRectangle.y + "," + windowRectangle.width + "," + windowRectangle.height);
-
     COConfigurationManager.save();
     
     initializer.stopIt( for_restart, close_already_in_progress );

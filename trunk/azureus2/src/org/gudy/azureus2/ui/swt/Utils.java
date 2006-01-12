@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
@@ -32,11 +33,14 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -49,8 +53,13 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
  * 
  */
 public class Utils {
+	/** Some platforms expand the last column to fit the remaining width of
+	 * the table.
+	 */
+	public static final boolean LAST_TABLECOLUMN_EXPANDS = Constants.isLinux;
+
 	private static final boolean DIRECT_SETCHECKED = !Constants.isOSX
-			|| SWT.getVersion() >= 3212; 
+			|| SWT.getVersion() >= 3212;
   
   public static void disposeComposite(Composite composite,boolean disposeSelf) {
     if(composite == null || composite.isDisposed())
@@ -341,6 +350,13 @@ public class Utils {
   } // class
 
   public static void alternateRowBackground(TableItem item) {
+  	// On linux, table lines are actually alternating background colors
+  	if (Constants.isLinux) {
+  		if (!item.getParent().getLinesVisible())
+  			item.getParent().setLinesVisible(true);
+  		return;
+  	}
+
   	if (item == null || item.isDisposed())
   		return;
   	Color[] colors = { item.getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND),
@@ -355,7 +371,7 @@ public class Utils {
   	if (table == null || table.isDisposed())
   		return;
 
-  	// On linux, table lines are actually anternating background colors
+  	// On linux, table lines are actually alternating background colors
   	if (Constants.isLinux) {
   		if (!table.getLinesVisible())
   			table.setLinesVisible(true);
@@ -597,6 +613,52 @@ public class Utils {
 				}
 			});
 		}
+	}
+	
+	
+	public static boolean linkShellMetricsToConfig(final Shell shell,
+			final String sConfigPrefix) {
+		boolean isMaximized = COConfigurationManager.getBooleanParameter(
+				sConfigPrefix + ".maximized", false);
+		shell.setMaximized(isMaximized);
+
+		String windowRectangle = COConfigurationManager.getStringParameter(
+				sConfigPrefix + ".rectangle", null);
+		boolean bDidResize = false;
+		if (null != windowRectangle) {
+			int i = 0;
+			int[] values = new int[4];
+			StringTokenizer st = new StringTokenizer(windowRectangle, ",");
+			try {
+				while (st.hasMoreTokens() && i < 4) {
+					values[i++] = Integer.valueOf(st.nextToken()).intValue();
+					if (values[i - 1] < 0)
+						values[i - 1] = 0;
+				}
+				if (i == 4) {
+					shell.setBounds(values[0], values[1], values[2], values[3]);
+					bDidResize = true;
+				}
+			} catch (Exception e) {
+			}
+		}
+
+		shell.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				COConfigurationManager.setParameter(sConfigPrefix + ".maximized", shell
+						.getMaximized());
+				// unmaximize to get correct window rect
+				if (shell.getMaximized())
+					shell.setMaximized(false);
+
+				Rectangle windowRectangle = shell.getBounds();
+				COConfigurationManager.setParameter(sConfigPrefix + ".rectangle",
+						windowRectangle.x + "," + windowRectangle.y + ","
+								+ windowRectangle.width + "," + windowRectangle.height);
+			}
+		});
+
+		return bDidResize;
 	}
 }
 

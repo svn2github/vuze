@@ -225,54 +225,12 @@ BlockedIpsWindow
 		}
     });
     
-    // Copied from MainWindow
-    boolean isMaximized = COConfigurationManager.getBooleanParameter(
-				"BlockedIpsWindow.maximized", false);
-		window.setMaximized(isMaximized);
-
-		String windowRectangle = COConfigurationManager.getStringParameter(
-				"BlockedIpsWindow.rectangle", null);
-		boolean bDidResize = false;
-		if (null != windowRectangle) {
-			int i = 0;
-			int[] values = new int[4];
-			StringTokenizer st = new StringTokenizer(windowRectangle, ",");
-			try {
-				while (st.hasMoreTokens() && i < 4) {
-					values[i++] = Integer.valueOf(st.nextToken()).intValue();
-					if (values[i - 1] < 0)
-						values[i - 1] = 0;
-				}
-				if (i == 4) {
-					window.setBounds(values[0], values[1], values[2], values[3]);
-					bDidResize = true;
-				}
-			} catch (Exception e) {
-			}
-		}
-
-		if (!bDidResize) {
+		if (!Utils.linkShellMetricsToConfig(window, "BlockedIpsWindow")) {
 			window.setSize(620, 450);
 			if (!Constants.isOSX)
 				Utils.centreWindow(window);
 		}
 		window.layout();
-
-		window.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				COConfigurationManager.setParameter("BlockedIpsWindow.maximized",
-						window.getMaximized());
-				// unmaximize to get correct window rect
-				if (window.getMaximized())
-					window.setMaximized(false);
-
-				Rectangle windowRectangle = window.getBounds();
-				COConfigurationManager.setParameter("BlockedIpsWindow.rectangle",
-						windowRectangle.x + "," + windowRectangle.y + ","
-								+ windowRectangle.width + "," + windowRectangle.height);
-			}
-		});
-    
     window.open();
     return window;
   }
