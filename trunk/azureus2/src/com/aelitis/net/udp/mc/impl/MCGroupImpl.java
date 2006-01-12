@@ -92,7 +92,7 @@ MCGroupImpl
 	private String				group_address_str;
 	private int					group_port;
 	private int					control_port;
-	private InetSocketAddress 	group_address;
+	protected InetSocketAddress 	group_address;
 
 	private boolean		ttl_problem_reported	= true;	// remove these diagnostic reports on win98
 	private boolean		sso_problem_reported	= true; // remove these diagnostic reports on win98

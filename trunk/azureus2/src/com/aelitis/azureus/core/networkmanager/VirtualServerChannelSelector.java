@@ -120,7 +120,7 @@ public class VirtualServerChannelSelector {
   }
   
   
-  private void accept_loop() {
+  protected void accept_loop() {
     while( isRunning() ) {
       try {
         SocketChannel client_channel = server_channel.accept();

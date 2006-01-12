@@ -36,7 +36,7 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
  * Provides a simplified and safe (selectable-channel) socket single-op selector.
  */
 public class VirtualChannelSelectorImpl {
-    private Selector selector;
+    protected Selector selector;
     private final SelectorGuard selector_guard;
     
     private final LinkedList 	register_cancel_list 		= new LinkedList();
@@ -47,7 +47,7 @@ public class VirtualChannelSelectorImpl {
     private final int 		INTEREST_OP;
     private final boolean	pause_after_select;
 
-    private final VirtualChannelSelector parent;
+    protected final VirtualChannelSelector parent;
     
     
     private int[] select_counts = new int[ 50 ];
@@ -97,7 +97,7 @@ public class VirtualChannelSelectorImpl {
     
   
     
-    private Selector openNewSelector() {
+    protected Selector openNewSelector() {
       Selector sel = null;
       
       try {
@@ -531,7 +531,7 @@ public class VirtualChannelSelectorImpl {
     	destroyed	= true;
     }
     
-    private void closeExistingSelector() {
+    protected void closeExistingSelector() {
       for( Iterator i = selector.keys().iterator(); i.hasNext(); ) {
         SelectionKey key = (SelectionKey)i.next();
         RegistrationData data = (RegistrationData)key.attachment();
@@ -548,11 +548,11 @@ public class VirtualChannelSelectorImpl {
     
     
     private static class RegistrationData {
-        private final SocketChannel channel;
-        private final VirtualChannelSelector.VirtualSelectorListener listener;
-        private final Object attachment;
+        protected final SocketChannel channel;
+        protected final VirtualChannelSelector.VirtualSelectorListener listener;
+        protected final Object attachment;
         
-        private int non_progress_count;
+        protected int non_progress_count;
         
       	private RegistrationData( SocketChannel _channel, VirtualChannelSelector.VirtualSelectorListener _listener, Object _attachment ) {
       		channel 		= _channel;
