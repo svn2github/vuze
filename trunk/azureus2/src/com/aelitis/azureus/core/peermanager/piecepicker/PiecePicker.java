@@ -27,7 +27,6 @@ import org.gudy.azureus2.core3.peer.impl.PEPieceImpl;
 import org.gudy.azureus2.core3.peer.impl.control.PEPeerControlImpl;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
-import com.aelitis.azureus.core.util.PieceBlock;
 
 /**
  * @author MjrTom
@@ -39,21 +38,23 @@ public interface PiecePicker
 	public void		start();
 	public void		stop();
 	
-	public			PieceBlock getRequestCandidate(PEPeerTransport pc, int candidateMode);
-	public			PieceBlock getPieceToStart(PEPeerTransport pc, BitFlags candidates, int candidateMode);
+	public			int[] getRequestCandidate(PEPeerTransport pc, int candidateMode);
+	public			int[] getPieceToStart(PEPeerTransport pc, BitFlags candidates, int candidateMode);
 	public boolean	findPieceToDownload(PEPeerTransport pc, int candidateMode);
 	
 	public boolean	findPieceInEndGameMode(PEPeerTransport pc);
-	public void		finishEndGameMode();
+	public void		clearEndGameChunks();
 	public void		addEndGameChunks(PEPieceImpl pePiece);
 	public void		removeFromEndGameModeChunks(int pieceNumber, int offset);
 	public void		computeEndGameModeChunks(PEPeerControlImpl pc);
 	
-	public boolean	hasDownloadablePiece();
-
 	public void		setGlobalMinOthers(int i);
 	public void		setGlobalMin(int i);
 	public void		setRarestRunning(int i);
 
-	public void		calcStartPriority(int pieceNumber);
+	public boolean	hasDownloadablePiece();
+	/**
+	 * @return true if isInterested should be re-checked on transports
+	 */
+	public boolean	hasDownloadableChanged();
 }
