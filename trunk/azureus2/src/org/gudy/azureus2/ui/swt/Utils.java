@@ -58,6 +58,8 @@ public class Utils {
 	 */
 	public static final boolean LAST_TABLECOLUMN_EXPANDS = Constants.isLinux;
 
+  public static final boolean isGTK	= SWT.getPlatform().equals("gtk");
+
 	private static final boolean DIRECT_SETCHECKED = !Constants.isOSX
 			|| SWT.getVersion() >= 3212;
   
@@ -613,6 +615,13 @@ public class Utils {
 				}
 			});
 		}
+
+    if (Constants.isWindowsXP || Constants.isGTK) {
+    	Rectangle r = item.getBounds(0);
+    	Rectangle rTable = item.getParent().getClientArea();
+    	
+    	item.getParent().redraw(rTable.x, r.y, rTable.width, r.height, true);
+    }
 	}
 	
 	
