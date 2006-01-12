@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.disk;
 
+import java.util.List;
+
 import com.aelitis.azureus.core.util.Piece;
 
 /**
@@ -37,12 +39,12 @@ public interface DiskManagerPiece
 	extends Piece
 {
 	public DiskManager	getManager();
-	public DiskManagerFileInfo[] getFiles();
-	
-	public void		setLastWriteTime();
-	public long		getLastWriteTime();
+	public List			getFiles();
 
-	// a piece is Needed if any file it covers is neither Do Not Download nor Delete, without concern for downloaded already or not
+	public void			setLastWriteTime();
+	public long			getLastWriteTime();
+
+	// a piece is Needed if any file it covers is neither Do Not Download nor Delete, without concern for other status
 	public boolean		calcNeeded();
 	public void			clearNeeded();
 	public boolean		isNeeded();
@@ -92,13 +94,10 @@ public interface DiskManagerPiece
 	public void			setDone();
 	public void			setDone(boolean b);
 
-	// a piece is Requestable if it's not; Downlaoded, Written, Checking, or Done
+	// a piece is Requestable if it's not; Downloaded, Written, Checking, or Done
 	// note that Needed, Avail, and Requested isn't considered
-	public boolean isRequestable();
-	// a piece is Interesting if it's Needed and Requestable
-	// note that Avail and Requested isn't considered here
-	public boolean isInteresting();
+	public boolean		isRequestable();
+	// a piece is Interesting if it's Needed and not Done
+	public boolean		isInteresting();
 
-	public long getStartPriority();
-	public void setStartPriority(long l);
 }
