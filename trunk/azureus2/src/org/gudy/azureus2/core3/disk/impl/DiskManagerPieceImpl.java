@@ -40,9 +40,8 @@ public class DiskManagerPieceImpl
 	implements DiskManagerPiece
 {
 	private DiskManagerImpl		disk_mgr;
-	private int					piece_index			=-1;
-	private int					statusFlags;
-	private long				startPriority;
+	private int					piece_index	=-1;
+	private int					statusFlags =PIECE_STATUS_NEEDED; // starting position is that all pieces are needed
 
 	private long				time_last_write;
 	// to save memory the "written" field is only maintained for pieces that are
@@ -60,8 +59,6 @@ public class DiskManagerPieceImpl
 	{
 		disk_mgr =_disk_manager;
 		piece_index =_piece_index;
-
-		statusFlags =PIECE_STATUS_NEEDED; // starting position is that all pieces are needed
 	}
 
 	public DiskManager getManager()
@@ -79,12 +76,9 @@ public class DiskManagerPieceImpl
 	 */
 	public int getLength()
 	{
-		if (piece_index ==disk_mgr.getNumberOfPieces() -1)
-		{
-			return (disk_mgr.getLastPieceLength());
-
-		}
-		return (disk_mgr.getPieceLength());
+		if (piece_index !=disk_mgr.getNbPieces() -1)
+			return (disk_mgr.getPieceLength());
+		return (disk_mgr.getLastPieceLength());
 	}
 
 	public int getNbBlocks()
@@ -97,10 +91,23 @@ public class DiskManagerPieceImpl
 		return (statusFlags &PIECE_STATUS_NEEDED) !=0;
 	}
 
-	//TODO: implement
 	public boolean calcNeeded()
 	{
-		return isNeeded();
+		boolean filesNeeded =false;
+		List filesInfo =getFiles();
+		for (int i =0; i <filesInfo.size(); i++)
+		{
+			DiskManagerFileInfoImpl file =(DiskManagerFileInfoImpl)filesInfo.get(i);
+			long fileLength =file.getLength();
+			filesNeeded |=fileLength >0 &&file.getDownloaded() <fileLength &&!file.isSkipped();
+		}
+		if (filesNeeded)
+		{
+			statusFlags |=PIECE_STATUS_NEEDED;
+			return true;
+		}
+		statusFlags &=~PIECE_STATUS_NEEDED;
+		return false;
 	}
 
 	public void clearNeeded()
@@ -208,6 +215,27 @@ public class DiskManagerPieceImpl
 			clearDownloaded();
 	}
 
+	public boolean calcWritten()
+	{
+		if (written ==null)
+		{
+			setWritten(isDone());
+			return isWritten();
+		}
+
+		boolean[] written_ref =written;
+		for (int i =0; i <written_ref.length; i++ )
+		{
+			if (!written_ref[i])
+			{
+				clearWritten();
+				return false;
+			}
+		}
+		setWritten();
+		return true;
+	}
+
 	public void clearWritten()
 	{
 		statusFlags &=~PIECE_STATUS_WRITTEN;
@@ -231,7 +259,7 @@ public class DiskManagerPieceImpl
 			clearWritten();
 	}
 
-	// written can be null, in which case if the piece is complete, all blocks are complete
+	// written[] can be null, in which case if the piece is complete, all blocks are complete
 	// otherwise no blocks are complete
 	public boolean[] getWritten()
 	{
@@ -243,31 +271,9 @@ public class DiskManagerPieceImpl
 		if (isDone())
 			return true;
 
-		boolean[] written_ref =written;
-		if (written_ref ==null)
-			return false;
-		return written_ref[blockNumber];
-	}
-
-	public boolean calcWritten()
-	{
 		if (written ==null)
-		{
-			setWritten(isDone());
-			return isWritten();
-		}
-
-		boolean[] written_ref =written;
-		for (int i =0; i <written_ref.length; i++ )
-		{
-			if (!written_ref[i])
-			{
-				clearWritten();
-				return false;
-			}
-		}
-		setWritten();
-		return true;
+			return false;
+		return written[blockNumber];
 	}
 
 	public int getNbWritten()
@@ -369,18 +375,15 @@ public class DiskManagerPieceImpl
 	public long getLastWriteTime()
 	{
 		long now =SystemTime.getCurrentTime();
-		if (time_last_write >now)
-		{
-			time_last_write =now;
-		}
-		return time_last_write;
+		if (time_last_write <=now)
+			return time_last_write;
+		return time_last_write =now;
 	}
 
 	/**
 	 * Clears [almost] all flags that say this piece has advanced to the
-	 *  point where no more /downloading is needed for it.
-	 *  
-	 * Needed, and Avail flags are purposefully NOT affected by this!!
+	 *  point where no more downloading is needed for it.
+	 * Needed, and Avail flags are purposefully NOT affected by this!
 	 */
 	public void setRequestable()
 	{
@@ -389,16 +392,19 @@ public class DiskManagerPieceImpl
 
 	/**
 	 * @return true if no flag shows we need not download more of this piece
-	 * Requested, Needed, and Avail flags are purposefully NOT considered by this!!
+	 * Needed, Avail, and Requested flags are purposefully NOT considered by this!!
 	 */
 	public boolean isRequestable()
 	{
 		return (statusFlags &PIECE_STATUS_REQUESTABLE) ==0;
 	}
 
+	/**
+	 * @return true if the piece is Needed and not Done
+	 */
 	public boolean isInteresting()
 	{
-		return ((statusFlags ^PIECE_STATUS_NEEDED) &PIECE_STATUS_REQUESTABLE) ==0;
+		return (statusFlags &PIECE_STATUS_NEEDED) !=0 &&(statusFlags &PIECE_STATUS_DONE) ==0;
 	}
 
 	public void reset()
@@ -423,30 +429,16 @@ public class DiskManagerPieceImpl
 	}
 
 	// maps out the list of files this piece spans
-	public DiskManagerFileInfo[] getFiles()
+	public List getFiles()
 	{
 		List files =new ArrayList();
 		DMPieceList pieceList =disk_mgr.getPieceList(piece_index);
 
 		for (int i =0; i <pieceList.size(); i++ )
 		{
-			DiskManagerFileInfoImpl fileInfo =(pieceList.get(i)).getFile();
-			files.add(fileInfo);
+			files.add((pieceList.get(i)).getFile());
 		}
-
-		DiskManagerFileInfo[] filesArray =new DiskManagerFileInfo[files.size()];
-		files.toArray(filesArray);
-		return filesArray;
+		return files;
 	}
 	
-	public long getStartPriority()
-	{
-		return startPriority;
-	}
-	
-	public void setStartPriority(long l)
-	{
-		startPriority =l;
-	}
-
 }
