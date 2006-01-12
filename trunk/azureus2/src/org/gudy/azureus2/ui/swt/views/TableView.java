@@ -58,6 +58,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowComparator;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.*;
+import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 
 /** 
@@ -575,8 +576,8 @@ public class TableView
 				event.keyboardState = e.stateMask;
 				event.skipCoreFunctionality = false;
 				Rectangle r = cell.getBounds();
-				event.x = e.x - r.x;
-				event.y = e.y - r.y;
+				event.x = e.x - r.x + VerticalAligner.getTableAdjustHorizontallyBy(table);
+				event.y = e.y - r.y + VerticalAligner.getTableAdjustVerticalBy(table);
 				return event;
     	}
     	
