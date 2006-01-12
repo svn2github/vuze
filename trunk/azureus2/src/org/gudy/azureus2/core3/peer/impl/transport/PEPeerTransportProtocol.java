@@ -24,11 +24,13 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -37,7 +39,8 @@ import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
@@ -308,8 +311,8 @@ PEPeerTransportProtocol
   private void initializeConnection() {
     if( closing )  return;
 
-    other_peer_has_pieces = new boolean[ manager.getPiecesNumber() ];
-    Arrays.fill( other_peer_has_pieces, false );
+    other_peer_has_pieces = new boolean[manager.getDiskManager().getNbPieces()];
+    //Arrays.fill( other_peer_has_pieces, false );
 
     recent_outgoing_requests = new LinkedHashMap( 16, .75F, true ) {
       public boolean removeEldestEntry(Map.Entry eldest) {
@@ -609,9 +612,9 @@ PEPeerTransportProtocol
 
   /**
 	 * Global checkInterested method.
-	 * Scans the whole pieces to determine if it's interested or not
+	 * Scans all the pieces to determine if the peer is interesting or not
 	 */
-	private void checkInterested()
+	public void checkInterested()
 	{
 		if (getPeerState() ==CLOSING)
 			return;
@@ -619,12 +622,12 @@ PEPeerTransportProtocol
 		boolean is_interesting =false;
 		DiskManager disk_mgr =manager.getDiskManager();
 		if (disk_mgr.hasDownloadablePiece())
-		{	// there is a piece worth being interested in
-			DiskManagerPiece[] dm_pieces =disk_mgr.getPieces();
-
-			for (int i =0; i <dm_pieces.length; i++ )
+		{
+			int nbPieces =disk_mgr.getNbPieces();
+			// there is a piece worth being interested in
+			for (int i =0; i <nbPieces; i++ )
 			{
-				if (other_peer_has_pieces[i] &&dm_pieces[i].isNeeded() &&!dm_pieces[i].isDone())
+				if (other_peer_has_pieces[i] &&disk_mgr.isInteresting(i))
 				{
 					is_interesting =true;
 					break;
@@ -640,93 +643,93 @@ PEPeerTransportProtocol
 		interested_in_other_peer =is_interesting;
 	}
 
-  
-  
-  /**
-	 * Checks interested given a new piece received
+	/**
+	 * Checks if a particular piece makes us interested in the peer
 	 * 
 	 * @param pieceNumber
 	 *            the piece number that has been received
 	 */
-  private void checkInterested( int pieceNumber ) {
-    if ( getPeerState() == CLOSING ) return;
+	private void checkInterested(int pieceNumber)
+	{
+		if (getPeerState() ==CLOSING)
+			return;
 
-    boolean is_interesting = false;
-    DiskManager disk_mgr =manager.getDiskManager();
-    
-    if (disk_mgr.hasDownloadablePiece() ) {  //there is a piece worth being interested in
-      DiskManagerPiece dmPiece =disk_mgr.getPieces()[pieceNumber];
-      
-      is_interesting =dmPiece.isNeeded() &&!dmPiece.isDone();	//we dont have that piece yet
-    }
-    
-    if ( is_interesting && !interested_in_other_peer ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTInterested(), false );
-    }
-    else if ( !is_interesting && interested_in_other_peer ) {
-      connection.getOutgoingMessageQueue().addMessage( new BTUninterested(), false );
-    }
-    
-    interested_in_other_peer = is_interesting;
-  }
+		// Do we need this piece and it's not Done?
+		boolean is_interesting =manager.getDiskManager().isInteresting(pieceNumber);
+
+		if (is_interesting &&!interested_in_other_peer)
+			connection.getOutgoingMessageQueue().addMessage(new BTInterested(), false);
+		else if (!is_interesting &&interested_in_other_peer)
+			connection.getOutgoingMessageQueue().addMessage(new BTUninterested(), false);
+
+		interested_in_other_peer =is_interesting;
+	}
   
 
 
     
   /**
-   * Private method to send the bitfield.
-   */
-  private void sendBitField() {
-    if ( getPeerState() == CLOSING ) return;
-    
-		//In case we're in super seed mode, we don't send our bitfield
-		if ( manager.isSuperSeedMode() ) return;
-    
-    ArrayList lazies = null;
-    
-    //create bitfield
-		DirectByteBuffer buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, (manager.getPiecesNumber() + 7) / 8 );
-		
-		DiskManagerPiece[]	pieces = manager.getDiskManager().getPieces();
-		
-		int bToSend = 0;
-		int i = 0;
-		for (; i < pieces.length; i++) {
-			if ( (i % 8) == 0 ) bToSend = 0;
-			bToSend = bToSend << 1;
-			if ( pieces[i].isDone()) {
-        if( ENABLE_LAZY_BITFIELD ) {
-          if( i < 8 || i >= (pieces.length - (pieces.length % 8)) ) {  //first and last bytes
-            if( lazies == null ) lazies = new ArrayList();
-            lazies.add( new Integer( i ) );  //send as a Have message instead
-          }
-          else {
-            bToSend += 1;
-          }
-        }
-        else {
-          bToSend += 1;
-        }
+	 * Private method to send the bitfield.
+	 */
+  private void sendBitField()
+	{
+		if (getPeerState() ==CLOSING)
+			return;
+
+		// In case we're in super seed mode, we don't send our bitfield
+		if (manager.isSuperSeedMode())
+			return;
+
+		ArrayList lazies =null;
+
+		DiskManager disk_mgr =manager.getDiskManager();
+		// create bitfield
+		DirectByteBuffer buffer =DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_MSG, (disk_mgr.getNbPieces() +7) /8);
+		DiskManagerPiece[] pieces =disk_mgr.getPieces();
+
+		int bToSend =0;
+		int i =0;
+		for (; i <pieces.length; i++ )
+		{
+			if ((i %8) ==0)
+				bToSend =0;
+			bToSend =bToSend <<1;
+			if (pieces[i].isDone())
+			{
+				if (ENABLE_LAZY_BITFIELD)
+				{
+					if (i <8 ||i >=(pieces.length -(pieces.length %8)))
+					{ // first and last bytes
+						if (lazies ==null)
+							lazies =new ArrayList();
+						lazies.add(new Integer(i)); // send as a Have message instead
+					} else
+						bToSend +=1;
+				} else
+					bToSend +=1;
 			}
-			if ( (i % 8) == 7 ) buffer.put( DirectByteBuffer.SS_BT, (byte)bToSend );
+			if ((i %8) ==7)
+				buffer.put(DirectByteBuffer.SS_BT, (byte) bToSend);
 		}
-		if ( (i % 8) != 0 ) {
-			bToSend = bToSend << (8 - (i % 8));
-			buffer.put( DirectByteBuffer.SS_BT, (byte)bToSend );
+		if ((i %8) !=0)
+		{
+			bToSend =bToSend <<(8 -(i %8));
+			buffer.put(DirectByteBuffer.SS_BT, (byte) bToSend);
 		}
 
-    buffer.flip( DirectByteBuffer.SS_BT );
-    
-    connection.getOutgoingMessageQueue().addMessage( new BTBitfield( buffer ), false );
-    
-    if( lazies != null ) {
-      for( int x=0; x < lazies.size(); x++ ) {
-        Integer num = (Integer)lazies.get( x );
-      
-        connection.getOutgoingMessageQueue().addMessage( new BTHave( num.intValue() ), false );
-      }
-    }
-                                   
+		buffer.flip(DirectByteBuffer.SS_BT);
+
+		connection.getOutgoingMessageQueue().addMessage(new BTBitfield(buffer), false);
+
+		if (lazies !=null)
+		{
+			for (int x =0; x <lazies.size(); x++ )
+			{
+				Integer num =(Integer) lazies.get(x);
+				connection.getOutgoingMessageQueue().addMessage(new BTHave(num.intValue()), false);
+			}
+		}
+
 	}
 
   
@@ -755,8 +758,14 @@ PEPeerTransportProtocol
   
   public boolean isChokingMe() {  return choked_by_other_peer;  }
   public boolean isChokedByMe() {  return choking_other_peer;  }
-  public boolean isInterestingToMe() {  return interested_in_other_peer;  }
-  public boolean isInterestedInMe() {  return other_peer_interested_in_me;  }
+  /**
+   * @return true if the peer is interesting to us
+   */
+  public boolean isInteresting() {  return interested_in_other_peer;  }
+  /**
+   * @return true if the peer is interested in what we're offering
+   */
+  public boolean isInterested() {  return other_peer_interested_in_me;  }
   public boolean isSeed() {  return seed;  }
   public boolean isSnubbed() {  return snubbed;  }
   public void setSnubbed(boolean b) {  snubbed = b;  }
@@ -1150,7 +1159,6 @@ PEPeerTransportProtocol
       return;
     }
 
-    
     //make sure we are not already connected to this peer
     boolean sameIdentity = PeerIdentityManager.containsIdentity( my_peer_data_id, peer_id );
     boolean sameIP = false;
@@ -1164,7 +1172,7 @@ PEPeerTransportProtocol
       }
     }
       
-    if( sameIdentity ) {    	
+    if( sameIdentity ) {
     	boolean close = true;
     	
     	if( connection.isLANLocal() ) {   //this new connection is lan-local    		
@@ -1177,10 +1185,10 @@ PEPeerTransportProtocol
     	}
     	
       if( close ) {
-      	closeConnectionInternally( "peer matches already-connected peer id" );
-      	handshake.destroy();
-      	return;
-      }
+      closeConnectionInternally( "peer matches already-connected peer id" );
+      handshake.destroy();
+      return;
+    }
     }
     
     if( sameIP ) {
@@ -1345,7 +1353,7 @@ PEPeerTransportProtocol
   private void decodeBitfield( BTBitfield bitfield ) {
     DirectByteBuffer field = bitfield.getBitfield();
    
-    byte[] dataf = new byte[ (manager.getPiecesNumber() + 7) / 8 ];
+    byte[] dataf = new byte[ (manager.getDiskManager().getNbPieces() + 7) / 8 ];
          
     if( field.remaining( DirectByteBuffer.SS_PEER ) < dataf.length ) {
       Debug.out( toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]" );
@@ -2026,7 +2034,7 @@ PEPeerTransportProtocol
 	{
 		_lastPiece =pieceNumber;
 	}
-	
+
 	
 
 	public boolean isLANLocal() {
