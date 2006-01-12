@@ -404,7 +404,7 @@ public class DiskManagerPieceImpl
 	 */
 	public boolean isInteresting()
 	{
-		return (statusFlags &PIECE_STATUS_NEEDED) !=0 &&(statusFlags &PIECE_STATUS_DONE) ==0;
+		return (statusFlags &PIECE_STATUS_NEEDED_DONE) ==PIECE_STATUS_NEEDED;
 	}
 
 	public void reset()

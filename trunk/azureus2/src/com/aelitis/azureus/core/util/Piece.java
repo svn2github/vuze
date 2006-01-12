@@ -41,6 +41,8 @@ public interface Piece
 	public static final int	PIECE_STATUS_REQUESTABLE =
 		(PIECE_STATUS_DOWNLOADED |PIECE_STATUS_WRITTEN |PIECE_STATUS_CHECKING |PIECE_STATUS_DONE);
 
+	public static final int	PIECE_STATUS_NEEDED_DONE =(PIECE_STATUS_NEEDED |PIECE_STATUS_DONE);
+
 	public void			clearChecking();
 
 	/**
