@@ -33,8 +33,8 @@ import java.util.List;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
-import org.gudy.azureus2.core3.peer.util.*;
-import org.gudy.azureus2.core3.tracker.client.*;
+import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -82,7 +82,8 @@ PEPeerManager
 	
 	public float getMinAvailability();
 
-	public PEPiece[] getPieces();
+	public PEPiece[]	getPieces();
+	public PEPiece		getPiece(int pieceNumber);
 
 	public PEPeerManagerStats
 	getStats();
@@ -95,10 +96,8 @@ PEPeerManager
 
 	public int getNbSeeds();
 	
-	public int getNbPieces();
+	public int getNbActive();
 	
-	public int getPiecesNumber();
-
 	public int getPieceLength(int pieceNumber);
 		
 	public long getRemaining();
