@@ -31,19 +31,15 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
-import org.gudy.azureus2.core3.peer.PEPeerListener;
-import org.gudy.azureus2.core3.peer.PEPeerSource;
-import org.gudy.azureus2.core3.peer.PEPeerStats;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AddressUtils;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.Connection;
-import org.gudy.azureus2.plugins.peers.*;
-
+import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
+
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
@@ -54,7 +50,7 @@ PeerForeignDelegate
 {
 		// this implementation supports read-only peers (i.e. download only)
 
-	protected int					_lastPiece =-1;
+	protected int				_lastPiece =-1;
 
 	private PeerManagerImpl		manager;
 	private Peer				foreign;
@@ -326,14 +322,14 @@ PeerForeignDelegate
 
 
 	public boolean 
-	isInterestingToMe()
+	isInteresting()
 	{
 		return( foreign.isInteresting());
 	}
 
 
 	public boolean 
-	isInterestedInMe()
+	isInterested()
 	{
 		return( foreign.isInterested());
 	}
@@ -352,7 +348,7 @@ PeerForeignDelegate
 		return( foreign.isSnubbed());
 	}
 
-	
+ 
 	public boolean isLANLocal() {
 		if( AddressUtils.isLANLocalAddress( foreign.getIp() ) )  return true;
 		return false;
@@ -542,5 +538,10 @@ PeerForeignDelegate
 	{
 		_lastPiece =pieceNumber;
 	}
+
+    /**
+     * Nothing to do if called
+     */
+    public void checkInterested() {}
 
 }
