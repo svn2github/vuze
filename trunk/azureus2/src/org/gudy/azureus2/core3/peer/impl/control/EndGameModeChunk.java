@@ -23,8 +23,6 @@ package org.gudy.azureus2.core3.peer.impl.control;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 
-import com.aelitis.azureus.core.util.PieceBlock;
-
 /**
  * @author Olivier
  * @author MjrTom
@@ -32,22 +30,24 @@ import com.aelitis.azureus.core.util.PieceBlock;
  */
 public class EndGameModeChunk
 {
-	private PieceBlock	chunk;
+	private int	pieceNumber;
+	private int	blockNumber;
 
 	private int	offset;
 	private int	length;
 
-	public EndGameModeChunk(PEPiece pePiece, int blockNumber)
+	public EndGameModeChunk(PEPiece pePiece, int blockNum)
 	{
 		//this.piece = piece;
-		chunk =new PieceBlock(pePiece.getPieceNumber(), blockNumber);
+		pieceNumber =pePiece.getPieceNumber();
+		blockNumber =blockNum;
 		length =pePiece.getBlockSize(blockNumber);
 		offset =blockNumber *DiskManager.BLOCK_SIZE;
 	}
 
-	public boolean compare(int pieceNumber, int os)
+	public boolean compare(int pieceNum, int os)
 	{
-		return ((chunk.getPieceNumber() ==pieceNumber) &&(this.offset ==os));
+		return ((pieceNumber ==pieceNum) &&(this.offset ==os));
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class EndGameModeChunk
 	 */
 	public int getPieceNumber()
 	{
-		return chunk.getPieceNumber();
+		return pieceNumber;
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class EndGameModeChunk
 	 */
 	public int getBlockNumber()
 	{
-		return chunk.getBlockNumber();
+		return blockNumber;
 	}
 
 	public int getOffset()
