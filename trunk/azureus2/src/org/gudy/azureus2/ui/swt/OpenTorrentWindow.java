@@ -662,7 +662,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 		shell.pack();
 
-		Utils.centreWindow(shell);
+		if (!Utils.linkShellMetricsToConfig(shell, "OpenTorrentWindow")) {
+			if (!Constants.isOSX)
+				Utils.centreWindow(shell);
+		}
 		shell.open();
 	}
 
@@ -802,6 +805,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		gridData = new GridData(GridData.FILL_HORIZONTAL
 				| GridData.VERTICAL_ALIGN_FILL);
+		gridData.heightHint = 50;
 		gridData.widthHint = 450;
 		tableTorrents.setLayoutData(gridData);
 
@@ -817,6 +821,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		tc = new TableColumn(tableTorrents, SWT.NULL);
 		Messages.setLanguageText(tc, "OpenTorrentWindow.addPosition");
 		tc.setWidth(80);
+
+		if (Utils.LAST_TABLECOLUMN_EXPANDS)
+			tc.setData("Width", new Long(80));
 
 		tableTorrents.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
@@ -1131,12 +1138,15 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		Messages.setLanguageText(tc, "OpenTorrentWindow.fileTable.fileName");
 		tc.setWidth(150);
 		tc = new TableColumn(dataFileTable, SWT.NULL);
+		Messages.setLanguageText(tc, "OpenTorrentWindow.fileTable.destinationName");
+		tc.setWidth(140);
+		tc = new TableColumn(dataFileTable, SWT.NULL);
 		Messages.setLanguageText(tc, "OpenTorrentWindow.fileTable.size");
 		tc.setAlignment(SWT.TRAIL);
 		tc.setWidth(90);
-		tc = new TableColumn(dataFileTable, SWT.NULL);
-		Messages.setLanguageText(tc, "OpenTorrentWindow.fileTable.destinationName");
-		tc.setWidth(140);
+		
+		if (Utils.LAST_TABLECOLUMN_EXPANDS)
+			tc.setData("Width", new Long(90));
 
 		dataFileTable.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
@@ -1144,9 +1154,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				int index = dataFileTable.indexOf(item);
 				final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
 
-				item.setText(new String[] { file.sFullFileName,
-						DisplayFormatters.formatByteCountToKiBEtc(file.lSize),
-						file.sDestFileName });
+				item.setText(new String[] { file.sFullFileName, file.sDestFileName,
+						DisplayFormatters.formatByteCountToKiBEtc(file.lSize) });
 				if (!file.isValid) {
 					item.setForeground(Colors.red);
 					Font font = item.getFont();
@@ -1512,27 +1521,41 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	 *         Bit 1: Data Files Table
 	 */
 	private void resizeTables(int which) {
-		if (Constants.isLinux)
-			return;
-
-		TableColumn[] tcs;
-		if ((which & 1) > 0) {
-			tcs = tableTorrents.getColumns();
-			int newSize = tableTorrents.getClientArea().width - 20;
-			for (int i = 1; i < tcs.length; i++)
-				newSize -= tcs[i].getWidth();
-			if (newSize > 10)
-				tcs[0].setWidth(newSize);
-		}
-
-		// Adjust only first column
-		if ((which & 2) > 0) {
-			tcs = dataFileTable.getColumns();
-			int newSize = dataFileTable.getClientArea().width - 20;
-			for (int i = 1; i < tcs.length; i++)
-				newSize -= tcs[i].getWidth();
-			if (newSize > 10)
-				tcs[0].setWidth(newSize);
+		try {
+			TableColumn[] tcs;
+			if ((which & 1) > 0) {
+				tcs = tableTorrents.getColumns();
+				int newSize = tableTorrents.getClientArea().width - 20;
+				int iLength = tcs.length;
+				if (Utils.LAST_TABLECOLUMN_EXPANDS) {
+					iLength--;
+					newSize -= ((Long)tcs[iLength].getData("Width")).intValue();
+				}
+	
+				for (int i = 1; i < iLength; i++)
+					newSize -= tcs[i].getWidth();
+				if (newSize > 10)
+					tcs[0].setWidth(newSize);
+			}
+	
+			// Adjust only first column
+			if ((which & 2) > 0) {
+				tcs = dataFileTable.getColumns();
+				int newSize = dataFileTable.getClientArea().width - 20;
+				int iLength = tcs.length;
+				if (Utils.LAST_TABLECOLUMN_EXPANDS) {
+					iLength--;
+					newSize -= ((Long)tcs[iLength].getData("Width")).intValue();
+				}
+	
+				for (int i = 1; i < iLength; i++)
+					newSize -= tcs[i].getWidth();
+				if (newSize > 10)
+					tcs[0].setWidth(newSize);
+			}
+		} catch (Exception e) {
+			// ignore
+			e.printStackTrace();
 		}
 	}
 
