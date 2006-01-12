@@ -27,7 +27,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
 import org.gudy.azureus2.core3.disk.impl.DiskManagerRecheckInstance;
-import org.gudy.azureus2.core3.disk.impl.access.*;
+import org.gudy.azureus2.core3.disk.impl.access.DMChecker;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceMapEntry;
 import org.gudy.azureus2.core3.logging.*;
@@ -42,7 +42,7 @@ public class
 DMCheckerImpl 
 	implements DMChecker
 {
-	private static final LogIDs LOGID = LogIDs.DISK;
+	protected static final LogIDs LOGID = LogIDs.DISK;
     
 	private static boolean	flush_pieces;
 
@@ -61,26 +61,26 @@ DMCheckerImpl
  		COConfigurationManager.addAndFireParameterListener( "diskmanager.perf.cache.flushpieces", param_listener );
     }
    
-	private DiskManagerHelper		disk_manager;
+	protected DiskManagerHelper		disk_manager;
 		
-	private int				async_checks;
-	private AESemaphore		async_check_sem 	= new AESemaphore("DMChecker::asyncCheck");
+	protected int			async_checks;
+	protected AESemaphore	async_check_sem 	= new AESemaphore("DMChecker::asyncCheck");
 	
-	private int				async_reads;
-	private AESemaphore		async_read_sem 		= new AESemaphore("DMChecker::asyncRead");
+	protected int			async_reads;
+	protected AESemaphore	async_read_sem 		= new AESemaphore("DMChecker::asyncRead");
 
 	private boolean	started;
 	
-	private volatile boolean	stopped;
+	protected volatile boolean	stopped;
 	
 	private int			pieceLength;
 	private int			lastPieceLength;
 	
-	private int		nbPieces;
+	protected int		nbPieces;
 	
 	private boolean	complete_recheck_in_progress;
 	
-	private AEMonitor		this_mon	= new AEMonitor( "DMChecker" );
+	protected AEMonitor	this_mon	= new AEMonitor( "DMChecker" );
 		
 	public
 	DMCheckerImpl(
@@ -91,7 +91,7 @@ DMCheckerImpl
 		pieceLength		= disk_manager.getPieceLength();
 		lastPieceLength	= disk_manager.getLastPieceLength();
 		
-		nbPieces		= disk_manager.getNumberOfPieces();
+		nbPieces		= disk_manager.getNbPieces();
 	}
 
 	public void
