@@ -133,7 +133,16 @@ SecureMessageServiceClientImpl
 	
 	protected void
 	sendMessagesSupport()
-	{
+	{	
+			// user name must be defined, however we allow a blank password
+		
+		if ( adapter.getUser().length() == 0 ){
+			
+			adapter.authenticationFailed();
+			
+			return;
+		}
+		
 		List	outstanding_messages;
 		
 		try{
