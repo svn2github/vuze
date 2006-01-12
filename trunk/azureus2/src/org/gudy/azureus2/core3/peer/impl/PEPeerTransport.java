@@ -153,4 +153,9 @@ PEPeerTransport
    */
   public boolean isLANLocal();
   
+	/**
+	 * if it doesn't go as expected when trying to find a piece to ask a peer for,
+	 * need to double check if we're still interested in them, and get the BT protocol sycnhed
+	 */
+	public void checkInterested();
 }
