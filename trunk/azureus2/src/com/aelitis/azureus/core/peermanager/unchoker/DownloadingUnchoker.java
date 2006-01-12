@@ -22,7 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.unchoker;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
@@ -114,7 +115,7 @@ public class DownloadingUnchoker implements Unchoker {
     for( int i=0; i < all_peers.size(); i++ ) {
       PEPeer peer = (PEPeer)all_peers.get( i );
 
-      if( peer.isInterestingToMe() && UnchokerUtil.isUnchokable( peer, false ) && !best_peers.contains( peer ) ) {  //viable peer found
+      if( peer.isInteresting() && UnchokerUtil.isUnchokable( peer, false ) && !best_peers.contains( peer ) ) {  //viable peer found
         long rate = peer.getStats().getSmoothDataReceiveRate();
         if( rate > 256 ) {  //filter out really slow peers
           UnchokerUtil.updateLargestValueFirstSort( rate, bests, peer, best_peers, start_pos );
@@ -131,7 +132,7 @@ public class DownloadingUnchoker implements Unchoker {
       for( int i=0; i < all_peers.size(); i++ ) {
         PEPeer peer = (PEPeer)all_peers.get( i );
 
-        if( peer.isInterestingToMe() && UnchokerUtil.isUnchokable( peer, false ) && !best_peers.contains( peer ) ) {  //viable peer found
+        if( peer.isInteresting() && UnchokerUtil.isUnchokable( peer, false ) && !best_peers.contains( peer ) ) {  //viable peer found
           long uploaded_ratio = peer.getStats().getTotalDataBytesSent() / (peer.getStats().getTotalDataBytesReceived() + (DiskManager.BLOCK_SIZE-1));
           //make sure we haven't already uploaded several times as much data as they've sent us
           if( uploaded_ratio <3) {
