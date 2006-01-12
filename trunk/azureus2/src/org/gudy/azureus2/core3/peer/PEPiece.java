@@ -79,11 +79,11 @@ public interface PEPiece
 	public void			setReservedBy(PEPeer peer);
 
 	/**
-	 * @return long ResumePriority, as set by other methods
+	 * @return long ResumePriority (startPriority + resuming adjustments)
 	 */
 	public long			getResumePriority();
 	/**
-	 * @param p the Resume Priority to set, to be read by other things
+	 * @param p the Resume Priority to set, for display purposes
 	 */
 	public void			setResumePriority(long p);
 
@@ -92,4 +92,6 @@ public interface PEPiece
 
 	public int 			getSpeed();
 	public void			setSpeed(int speed);
+	public void			incSpeed();
+	public void			decSpeed();
 }
