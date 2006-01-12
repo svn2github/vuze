@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
 /**
  * @author Olivier
@@ -616,12 +617,14 @@ public class Utils {
 			});
 		}
 
-    if (Constants.isWindowsXP || Constants.isGTK) {
-    	Rectangle r = item.getBounds(0);
-    	Rectangle rTable = item.getParent().getClientArea();
-    	
-    	item.getParent().redraw(rTable.x, r.y, rTable.width, r.height, true);
-    }
+		if (Constants.isWindowsXP || isGTK) {
+			Rectangle r = item.getBounds(0);
+			Table table = item.getParent();
+			Rectangle rTable = table.getClientArea();
+			
+			r.y += VerticalAligner.getTableAdjustVerticalBy(table);
+			table.redraw(0, r.y, rTable.width, r.height, true);
+		}
 	}
 	
 	

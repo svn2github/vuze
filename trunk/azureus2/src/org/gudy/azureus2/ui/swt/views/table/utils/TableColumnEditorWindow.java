@@ -198,14 +198,6 @@ public class TableColumnEditorWindow {
 		    final boolean bChecked = ((Boolean) newEnabledState.get(tableColumn))
 						.booleanValue();
 		    Utils.setCheckedInSetData(item, bChecked);
-		    
-		    if (Constants.isWindowsXP) {
-		    	Rectangle r = item.getBounds(0);
-		    	Rectangle rTable = table.getClientArea();
-		    	
-		    	table.redraw(rTable.x, r.y, rTable.width, r.height, true);
-		    }
-		    
 			}
     });
     table.setItemCount(tableColumns.size());
