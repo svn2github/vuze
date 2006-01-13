@@ -372,7 +372,14 @@ DHTControlImpl
 	public long
 	getRouterUptime()
 	{
-		return( SystemTime.getCurrentTime() - router_start_time );
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < router_start_time ){
+			
+			router_start_time	= now;
+		}
+		
+		return(  now - router_start_time );
 	}
 	
 	public int
@@ -643,7 +650,14 @@ DHTControlImpl
 		
 		sem.reserve();
 		
-		long	remaining = 60*1000 - ( SystemTime.getCurrentTime() - start );
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now < start ){
+			
+			start	= now;
+		}
+		
+		long	remaining = 60*1000 - ( now - start );
 
 		if ( remaining > 0 && !full_wait ){
 			
@@ -664,7 +678,8 @@ DHTControlImpl
 	{
 		long	now = SystemTime.getCurrentTime();
 		
-		if ( now - last_lookup > RANDOM_QUERY_PERIOD ){
+		if ( 	now < last_lookup ||
+				now - last_lookup > RANDOM_QUERY_PERIOD ){
 			
 			last_lookup	= now;
 			
@@ -1329,6 +1344,13 @@ DHTControlImpl
 				if ( timeout > 0 ){
 					
 					long	now = SystemTime.getCurrentTime();
+					
+						// check for clock being set back
+					
+					if ( now < start ){
+						
+						start	= now;
+					}
 					
 					long remaining = timeout - ( now - start );
 						
