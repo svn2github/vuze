@@ -60,8 +60,8 @@ public class SystemTime {
     		public void 
     		run() 
     		{
-    			Average access_average 	= Average.getInstance( 1000, 10 );
-    			Average drift_average 	= Average.getInstance( 1000, 10 );
+    			Average access_average	= null;
+    			Average drift_average	= null;
 
     			long	last_second	= 0;
     			
@@ -78,13 +78,18 @@ public class SystemTime {
     					last_second	= stepped_time - 1000;
     				}else{
     					
-    					if ( stepped_time < last_second ){
+    					long	offset = stepped_time - last_second;
+    					
+    					if ( offset < 0 || offset > 5000 ){
     						
     							// clock's changed
     						
     						last_approximate_time	= 0;
     						
     						last_second	= stepped_time - 1000;
+    						
+    						access_average 	= null;
+    						drift_average	= null;
     					}
     				}
     				
@@ -92,6 +97,13 @@ public class SystemTime {
     				    				
   					if ( tick_count == STEPS_PER_SECOND ){
 
+  						if ( access_average == null ){
+  							
+  				   			access_average 	= Average.getInstance( 1000, 10 );
+  				   			
+  			    			drift_average 	= Average.getInstance( 1000, 10 );
+
+  						}
   		   				long drift = stepped_time - last_second -1000;
   		   			 
   		   				last_second	= stepped_time;
@@ -239,6 +251,7 @@ public class SystemTime {
 			  public void
 			  run()
 			  {
+				  /*
 				  Average access_average 	= Average.getInstance( 1000, 10 );
 						 
 				  long	last = SystemTime.getCurrentTime();
@@ -271,6 +284,22 @@ public class SystemTime {
 						  
 					  }catch( Throwable e ){
 						  
+					  }
+				  }
+				  */
+				  
+				  long start = SystemTime.getCurrentTime();
+				  
+				  while( true ){
+					  
+					  long now = SystemTime.getCurrentTime();
+					  
+					  System.out.println( now - start );
+					  
+					  try{
+						  Thread.sleep(1000);
+					  }catch( Throwable e ){
+					  
 					  }
 				  }
 			  }
