@@ -812,7 +812,10 @@ public class PiecePickerImpl
 	{
 		return hasNeededUndonePiece;
 	}
-	
+
+	/** Do not use this method.  It's Only for the PeerController to
+	 *  determine if every peer should recheck if it's interested.
+	 */
 	public boolean hasDownloadableChanged()
 	{
 		if (!hasNeededUndonePieceChange)

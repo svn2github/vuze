@@ -53,8 +53,10 @@ public interface PiecePicker
 	public void		setRarestRunning(int i);
 
 	public boolean	hasDownloadablePiece();
-	/**
-	 * @return true if isInterested should be re-checked on transports
+
+	/** Do not use this method.  It's Only for the PeerController to
+	 *  determine if every peer should recheck if it's interested.
+	 *  @return true if isInterested should be re-checked on transports
 	 */
 	public boolean	hasDownloadableChanged();
 }
