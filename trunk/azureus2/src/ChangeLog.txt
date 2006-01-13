@@ -36,7 +36,7 @@ BUGFIX: Core  | Multiple file renames/retargets wasn't working [Parg]
 BUGFIX: Core  | Synchronous scrape wasn't working [Parg]
 BUGFIX: Core  | Fixed move-on-complete bug when target was a link [Parg]
 BUGFIX: Core  | Replaced all piece-picking code; fixes all known previous piece picking bugs [MjrTom]
-
+BUGFIX: Core  | Hopefully solved all DND/Delete vs piece needed/interested in peer issues [MjrTom]
 
 
 
