@@ -161,6 +161,22 @@ RPTrackerTorrent
 		//***************************************************************************8
 	
 	public void
+	start()
+	
+		throws TrackerException
+	{
+		notSupported();
+	}
+	
+	public void
+	stop()
+	
+		throws TrackerException
+	{
+		notSupported();
+	}
+	
+	public void
 	remove()
 	
 		throws TrackerTorrentRemovalVetoException

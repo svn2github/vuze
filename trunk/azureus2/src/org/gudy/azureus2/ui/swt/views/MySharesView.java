@@ -32,13 +32,16 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
-import org.gudy.azureus2.core3.category.CategoryManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.sharing.*;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.tracker.Tracker;
+import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.ui.swt.Alerts;
@@ -52,7 +55,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.myshares.CategoryItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.NameItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.TypeItem;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -338,25 +341,51 @@ MySharesView
 
   private boolean start,stop,remove;
   
-  private void computePossibleActions() {
+  private void 
+  computePossibleActions() 
+  {
     start = stop = remove = false;
-    Object[] shares = getSelectedDataSources();
-    if (shares.length > 0) {
+    
+	List	items = getSelectedItems();
+	
+    if (items.size() > 0) {
+    
+  	  PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+
+  	  org.gudy.azureus2.plugins.download.DownloadManager	dm 		= pi.getDownloadManager();
+
       remove = true;
-      for (int i=0; i < shares.length; i++){        
-        /*
-        ShareResource	share = (ShareResource)shares[i];
+      
+      for (int i=0; i < items.size(); i++){        
+       
+    	ShareItem	item = (ShareItem)items.get(i);
         
-        int	status = host_torrent.getStatus();
-        
-        if ( status == TRHostTorrent.TS_STOPPED ){          
-          start	= true;          
-        }
-        
-        if ( status == TRHostTorrent.TS_STARTED ){          
-          stop = true;
-        }
-        */
+        try{
+    		Torrent	t = item.getTorrent();
+    		       		
+    		Download	download = dm.getDownload( t );
+    		
+    		if ( download == null ){
+    			    			
+    			continue;
+    		}
+    		
+    		int	dl_state = download.getState();
+    		
+    		if ( 	dl_state == Download.ST_ERROR ){
+    			
+    		}else if ( dl_state != Download.ST_STOPPED ){
+    			
+    			stop = true;
+    			
+    		}else{
+    			
+    			start = true;
+    		}
+    	}catch( Throwable e ){
+    		
+    		Debug.printStackTrace(e);
+    	}
       }
     }
   }
@@ -376,12 +405,184 @@ MySharesView
     if(itemKey.equals("remove")){
       removeSelectedShares();
       return;
+    }else if ( itemKey.equals( "stop" )){
+    	stopSelectedShares();
+    }else if ( itemKey.equals( "start" )){
+    	startSelectedShares();
     }
+  }
+  
+  private List
+  getSelectedItems()
+  {
+	  Object[] shares = getSelectedDataSources();
+	    
+	  List	items = new ArrayList();
+	  
+	  if ( shares.length > 0 ){
+	      		    
+	      for (int i=0; i < shares.length; i++){        
+	       
+	        ShareResource	share = (ShareResource)shares[i];
+	       
+	        int	type = share.getType();
+	        	        
+	        if ( type == ShareResource.ST_DIR ){
+	        	
+	        	ShareResourceDir	sr = (ShareResourceDir)share;
+	        	
+	        	items.add( sr.getItem());
+	        	
+	        }else if ( type == ShareResource.ST_FILE ){
+	        	
+	        	ShareResourceFile	sr = (ShareResourceFile)share;
+	        	
+	        	items.add( sr.getItem());
+	        	
+	        }else{
+	        	
+	        	ShareResourceDirContents	cont = (ShareResourceDirContents)share;
+	        	
+	        	List	entries = new ArrayList();
+	        	
+	        	getEntries( entries, cont );
+	        	
+	        	for (int j=0;j<entries.size();j++){
+	        		
+	    	        share = (ShareResource)entries.get(j);
+	    		       
+	    	        type = share.getType();
+	    	            	        
+	    	        if ( type == ShareResource.ST_DIR ){
+	    	        	
+	    	        	ShareResourceDir	sr = (ShareResourceDir)share;
+	    	        	
+	    	        	items.add( sr.getItem());
+	    	        	
+	    	        }else if ( type == ShareResource.ST_FILE ){
+	    	        	
+	    	        	ShareResourceFile	sr = (ShareResourceFile)share;
+	    	        	
+	    	        	items.add( sr.getItem());
+	    	        }
+	        	}
+	        }
+	      }
+	  }
+	  
+	  return( items );
+  }
+  
+  private void
+  getEntries(
+	List						entries,
+	ShareResourceDirContents	cont )
+  {
+	  ShareResource[]	kids = cont.getChildren();
+	  
+	  for ( int i=0;i<kids.length;i++){
+		  
+		  ShareResource	share = kids[i];
+		  
+		  int	type  = share.getType();
+		  
+		  if ( type == ShareResource.ST_DIR_CONTENTS ){
+			  
+			  getEntries( entries, (ShareResourceDirContents)share );
+			  
+		  }else{
+	
+			  entries.add( share );
+		  }
+	  }
+  }
+  
+  private void 
+  startStopSelectedShares(
+	boolean	do_stop )
+  {
+	  List	items = getSelectedItems();
+	
+	  PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
+	    
+	  org.gudy.azureus2.plugins.download.DownloadManager	dm 		= pi.getDownloadManager();
+	    
+	  Tracker			tracker = pi.getTracker();
+	    
+
+      for (int i=0;i<items.size();i++){
+    	  
+    	  ShareItem	item = (ShareItem)items.get(i);
+        
+        	try{
+        		Torrent	t = item.getTorrent();
+        		
+        		TrackerTorrent	tracker_torrent = tracker.getTorrent( t );
+        		
+        		Download	download = dm.getDownload( t );
+        		
+        		if ( tracker_torrent == null || download == null ){
+        				        			
+        			continue;
+        		}
+        		
+        		int	dl_state = download.getState();
+        		
+        		if ( 	dl_state == Download.ST_ERROR ){
+        			
+        		}else if ( dl_state != Download.ST_STOPPED ){
+        			
+        			if ( do_stop ){
+        				
+        				try{
+        					download.stop();
+        				}catch( Throwable e ){
+        				}
+        				
+        				try{
+        					tracker_torrent.stop();
+        				}catch( Throwable e ){
+        				}
+        			}
+        			
+        		}else{
+        			
+        			if ( !do_stop ){
+        				
+        				try{
+        					download.restart();
+        				}catch( Throwable e ){
+        				}
+        				
+        				try{
+        					tracker_torrent.start();
+        				}catch( Throwable e ){
+        				}
+        			}
+        		}
+        	}catch( Throwable e ){
+        		
+        		Debug.printStackTrace(e);
+        	}
+        }
+  }
+  
+  private void 
+  startSelectedShares()
+  {  
+	  startStopSelectedShares( false );
+  }
+  
+  private void 
+  stopSelectedShares()
+  {
+	  startStopSelectedShares( true );
   }
   
   private void 
   removeSelectedShares()
   {
+	stopSelectedShares();
     Object[] shares = getSelectedDataSources();
     for (int i = 0; i < shares.length; i++) {
     	try{

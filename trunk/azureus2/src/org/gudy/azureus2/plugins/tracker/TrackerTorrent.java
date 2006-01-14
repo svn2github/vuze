@@ -36,16 +36,25 @@ TrackerTorrent
 	public static final int	TS_PUBLISHED	= 2;
 	
 	public void
+	start()
+	
+		throws TrackerException;
+	
+	public void
+	stop()
+	
+		throws TrackerException;
+
+	public void
 	remove()
 	
 		throws TrackerTorrentRemovalVetoException;
-
+	
 	public boolean
 	canBeRemoved()
 	
 		throws TrackerTorrentRemovalVetoException;
-	
-	
+
 	public Torrent
 	getTorrent();
 	

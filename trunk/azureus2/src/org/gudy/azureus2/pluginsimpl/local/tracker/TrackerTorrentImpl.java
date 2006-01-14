@@ -59,6 +59,34 @@ TrackerTorrentImpl
 	}
 	
 	public void
+	start()
+	
+		throws TrackerException
+	{
+		try{
+			host_torrent.start();
+			
+		}catch( Throwable e ){
+			
+			throw( new TrackerException("Start failed", e ));
+		}
+	}
+	
+	public void
+	stop()
+	
+		throws TrackerException
+	{
+		try{
+			host_torrent.stop();
+			
+		}catch( Throwable e ){
+			
+			throw( new TrackerException("Start failed", e ));
+		}
+	}
+	
+	public void
 	remove()
 	
 		throws TrackerTorrentRemovalVetoException
