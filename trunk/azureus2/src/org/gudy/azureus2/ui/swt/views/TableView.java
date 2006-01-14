@@ -155,11 +155,12 @@ public class TableView
    * key = DataSource
    * value = TableRowCore
    */
-  private Map 		  dataSourceToRow;
+  private Map 		dataSourceToRow;
   private AEMonitor dataSourceToRow_mon 	= new AEMonitor( "TableView:OTSI" );
   private List      sortedRows;
   private AEMonitor sortedRows_mon 	= new AEMonitor( "TableView:sR" );
-
+  private AEMonitor sortColumn_mon 	= new AEMonitor( "TableView:sC" );
+  
   /** Sorting functions */
   protected TableRowComparator rowSorter;
   /* position of mouse in table.  Used for context menu. */
@@ -1332,35 +1333,51 @@ public class TableView
    * Process the queue of datasources to be added and removed
    *
    */
-  public void processDataSourceQueue() {
-  	if (dataSourcesToAdd != null) {
-  		Object[] dataSources = dataSourcesToAdd.toArray();
-  		dataSourcesToAdd = null;
+  public void 
+  processDataSourceQueue() 
+  {
+	Object[] dataSourcesAdd = null;
+	Object[] dataSourcesRemove = null;
+	
+	try{
+		dataSourceToRow_mon.enter();
+	  	if (dataSourcesToAdd != null) {
+	  		dataSourcesAdd = dataSourcesToAdd.toArray();
+	  		dataSourcesToAdd = null;
+	  		
+	  		// remove the ones we are going to add then delete
+	  		if (dataSourcesToRemove != null) {
+		  		for (int i = 0; i < dataSourcesAdd.length; i++)
+		  			if (dataSourcesToRemove.contains(dataSourcesAdd[i])) {
+		  				dataSourcesToRemove.remove(dataSourcesAdd[i]);
+		  				dataSourcesAdd[i] = null;
+		  				if (DEBUGADDREMOVE)
+		  					System.out.println(sTableID
+										+ ": Saved time by not adding a row that was removed");
+		  			}
+	  		}
+	  	}
+	  	
+	 	if (dataSourcesToRemove != null) {
+	  		dataSourcesRemove = dataSourcesToRemove.toArray();
+	  		if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
+	  			System.out.println(sTableID + ": Streamlining removing "
+							+ dataSourcesRemove.length + " rows");
+	  		dataSourcesToRemove = null;
+	 	}
+	}finally{
+		dataSourceToRow_mon.exit();
+	}
   		
-  		// remove the ones we are going to add then delete
-  		if (dataSourcesToRemove != null) {
-	  		for (int i = 0; i < dataSources.length; i++)
-	  			if (dataSourcesToRemove.contains(dataSources[i])) {
-	  				dataSourcesToRemove.remove(dataSources[i]);
-	  				dataSources[i] = null;
-	  				if (DEBUGADDREMOVE)
-	  					System.out.println(sTableID
-									+ ": Saved time by not adding a row that was removed");
-	  			}
-  		}
-  		
-  		addDataSources(dataSources, true);
-  		if (DEBUGADDREMOVE && dataSources.length > 1)
+	if ( dataSourcesAdd != null ){
+  		addDataSources(dataSourcesAdd, true);
+  		if (DEBUGADDREMOVE && dataSourcesAdd.length > 1)
   			System.out.println(sTableID + ": Streamlined adding "
-						+ dataSources.length + " rows");
+						+ dataSourcesAdd.length + " rows");
   	}
-  	if (dataSourcesToRemove != null) {
-  		Object[] dataSources = dataSourcesToRemove.toArray();
-  		if (DEBUGADDREMOVE && dataSources.length > 1)
-  			System.out.println(sTableID + ": Streamlining removing "
-						+ dataSources.length + " rows");
-  		dataSourcesToRemove = null;
-  		removeDataSources(dataSources, true);
+	
+	if ( dataSourcesRemove != null ){
+  		removeDataSources(dataSourcesRemove, true);
   	}
   }
   
@@ -1478,7 +1495,7 @@ public class TableView
    * @param dataSources
    * @param bImmediate Add immediately, or queue and add at next refresh
    */
-  public synchronized void addDataSources(final Object dataSources[],
+  public void addDataSources(final Object dataSources[],
 			boolean bImmediate) {
   	
   	if (dataSources == null)
@@ -1492,11 +1509,18 @@ public class TableView
   			System.out.println(sTableID + ": Queueing " + dataSources.length
 						+ " dataSources to add");
 
-  		if (dataSourcesToAdd == null)
-  			dataSourcesToAdd = new ArrayList(4);
-  		for (int i = 0; i < dataSources.length; i++)
-  			dataSourcesToAdd.add(dataSources[i]);
-  		return;
+  		try{
+  			dataSourceToRow_mon.enter();
+  		
+  			if (dataSourcesToAdd == null)
+	  			dataSourcesToAdd = new ArrayList(4);
+	  		for (int i = 0; i < dataSources.length; i++)
+	  			dataSourcesToAdd.add(dataSources[i]);
+	  		return;
+  		}finally{
+  			
+  			dataSourceToRow_mon.exit();
+  		}
   	}
   	
 		if (mainComposite == null || table == null || mainComposite.isDisposed()
@@ -1637,14 +1661,20 @@ public class TableView
    * @param dataSources data sources to be removed
    * @param bImmediate Remove immediately, or queue and remove at next refresh
    */
-  public synchronized void removeDataSources(final Object[] dataSources,
+  public void removeDataSources(final Object[] dataSources,
 			boolean bImmediate) {
   	if (!bImmediate) {
-  		if (dataSourcesToRemove == null)
-  			dataSourcesToRemove = new ArrayList(4);
-  		for (int i = 0; i < dataSources.length; i++)
-  			dataSourcesToRemove.add(dataSources[i]);
-  		return;
+  		try{
+  			dataSourceToRow_mon.enter();	
+  	
+	  		if (dataSourcesToRemove == null)
+	  			dataSourcesToRemove = new ArrayList(4);
+	  		for (int i = 0; i < dataSources.length; i++)
+	  			dataSourcesToRemove.add(dataSources[i]);
+	  		return;
+  		}finally{
+  			dataSourceToRow_mon.exit();
+  		}
   	}
   	
   	if (DEBUGADDREMOVE)
@@ -2482,120 +2512,126 @@ public class TableView
 		_sortColumn(bForceDataRefresh, true);
 	}
 
-	private synchronized void sortColumn(boolean bForceDataRefresh) {
+	private void sortColumn(boolean bForceDataRefresh) {
 		_sortColumn(bForceDataRefresh, false);
 	}
 
-	private synchronized void _sortColumn(boolean bForceDataRefresh,
-			boolean bFillGapsOnly) {
-
-		long lTimeStart;
-		if (DEBUG_SORTER) {
-			//System.out.println(">>> Sort.. ");
-			lTimeStart = System.currentTimeMillis();
-		}
-
-		int iNumMoves = 0;
-
-		// This actually gets the focus, assuming the focus is selected
-		int iFocusIndex = table.getSelectionIndex();
-		TableRowCore focusedRow = (iFocusIndex == -1) ? null : (TableRowCore) table
-				.getItem(iFocusIndex).getData("TableRow");
-
-		int[] selectedRowIndices = table.getSelectionIndices();
-		TableRowCore[] selectedRows = new TableRowCore[selectedRowIndices.length];
-		for (int i = 0; i < selectedRowIndices.length; i++) {
-			selectedRows[i] = (TableRowCore) table.getItem(selectedRowIndices[i])
-					.getData("TableRow");
-		}
-
-		try {
-			sortedRows_mon.enter();
-
-			if (bForceDataRefresh) {
-				for (Iterator iter = sortedRows.iterator(); iter.hasNext();) {
-					TableRowCore row = (TableRowCore) iter.next();
-					TableCellCore cell = row.getTableCellCore(rowSorter.sColumnName);
-					if (cell != null) {
-						cell.refresh();
+	private void _sortColumn(boolean bForceDataRefresh,
+			boolean bFillGapsOnly) 
+	{
+		try{
+			sortColumn_mon.enter();
+		
+			long lTimeStart;
+			if (DEBUG_SORTER) {
+				//System.out.println(">>> Sort.. ");
+				lTimeStart = System.currentTimeMillis();
+			}
+	
+			int iNumMoves = 0;
+	
+			// This actually gets the focus, assuming the focus is selected
+			int iFocusIndex = table.getSelectionIndex();
+			TableRowCore focusedRow = (iFocusIndex == -1) ? null : (TableRowCore) table
+					.getItem(iFocusIndex).getData("TableRow");
+	
+			int[] selectedRowIndices = table.getSelectionIndices();
+			TableRowCore[] selectedRows = new TableRowCore[selectedRowIndices.length];
+			for (int i = 0; i < selectedRowIndices.length; i++) {
+				selectedRows[i] = (TableRowCore) table.getItem(selectedRowIndices[i])
+						.getData("TableRow");
+			}
+	
+			try {
+				sortedRows_mon.enter();
+	
+				if (bForceDataRefresh) {
+					for (Iterator iter = sortedRows.iterator(); iter.hasNext();) {
+						TableRowCore row = (TableRowCore) iter.next();
+						TableCellCore cell = row.getTableCellCore(rowSorter.sColumnName);
+						if (cell != null) {
+							cell.refresh();
+						}
 					}
 				}
-			}
-
-			if (!bFillGapsOnly) {
-				Collections.sort(sortedRows, rowSorter);
-
-				if (DEBUG_SORTER) {
-					long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
-					if (lTimeDiff > 150)
-						System.out.println("--- Build & Sort took " + lTimeDiff + "ms");
-				}
-			}
-
-			if (bTableVirtual) {
-				// No Refresh for virtual, OS will trigger a SWT.SetData almost 
-				// immediately where we refresh
-				for (int i = 0; i < sortedRows.size(); i++) {
-					TableRowCore row = (TableRowCore) sortedRows.get(i);
-					if (row.setTableItem(i))
-						iNumMoves++;
-				}
-			} else {
-				for (int i = 0; i < sortedRows.size(); i++) {
-					TableRowCore row = (TableRowCore) sortedRows.get(i);
-					if (row.setTableItem(i)) {
-						iNumMoves++;
-						row.refresh(true);
+	
+				if (!bFillGapsOnly) {
+					Collections.sort(sortedRows, rowSorter);
+	
+					if (DEBUG_SORTER) {
+						long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
+						if (lTimeDiff > 150)
+							System.out.println("--- Build & Sort took " + lTimeDiff + "ms");
 					}
 				}
+	
+				if (bTableVirtual) {
+					// No Refresh for virtual, OS will trigger a SWT.SetData almost 
+					// immediately where we refresh
+					for (int i = 0; i < sortedRows.size(); i++) {
+						TableRowCore row = (TableRowCore) sortedRows.get(i);
+						if (row.setTableItem(i))
+							iNumMoves++;
+					}
+				} else {
+					for (int i = 0; i < sortedRows.size(); i++) {
+						TableRowCore row = (TableRowCore) sortedRows.get(i);
+						if (row.setTableItem(i)) {
+							iNumMoves++;
+							row.refresh(true);
+						}
+					}
+				}
+			} finally {
+				sortedRows_mon.exit();
 			}
-		} finally {
-			sortedRows_mon.exit();
-		}
-
-		// move cursor to selected row
-		/** SWT/Windows Bug:
-		 * When we set selection, the first index is the focus row.
-		 * This works visually, however, if you press shift-up or shift-down,
-		 * it uses an older selection index.
-		 * 
-		 * ie. User selects row #10
-		 *     Programmically change selection to Row #15 only
-		 *     Shift-down
-		 *     Rows 10 through 26 will be selected
-		 *     
-		 * This is Eclipse bug #77106, and is marked WONTFIX 
-		 */
-		if (focusedRow != null) {
-			int pos = 1;
-			int numSame = 0;
-			int[] newSelectedRowIndices = new int[selectedRows.length];
-			Arrays.sort(selectedRowIndices);
-			for (int i = 0; i < selectedRows.length; i++) {
-				int index = selectedRows[i].getIndex();
-				newSelectedRowIndices[(selectedRows[i] == focusedRow) ? 0 : pos++] = index;
-				if (Arrays.binarySearch(selectedRowIndices, index) >= 0)
-					numSame++;
+	
+			// move cursor to selected row
+			/** SWT/Windows Bug:
+			 * When we set selection, the first index is the focus row.
+			 * This works visually, however, if you press shift-up or shift-down,
+			 * it uses an older selection index.
+			 * 
+			 * ie. User selects row #10
+			 *     Programmically change selection to Row #15 only
+			 *     Shift-down
+			 *     Rows 10 through 26 will be selected
+			 *     
+			 * This is Eclipse bug #77106, and is marked WONTFIX 
+			 */
+			if (focusedRow != null) {
+				int pos = 1;
+				int numSame = 0;
+				int[] newSelectedRowIndices = new int[selectedRows.length];
+				Arrays.sort(selectedRowIndices);
+				for (int i = 0; i < selectedRows.length; i++) {
+					int index = selectedRows[i].getIndex();
+					newSelectedRowIndices[(selectedRows[i] == focusedRow) ? 0 : pos++] = index;
+					if (Arrays.binarySearch(selectedRowIndices, index) >= 0)
+						numSame++;
+				}
+				
+				if (numSame < selectedRows.length) {
+					// XXX setSelection calls showSelection().  We don't want the table
+					//     to jump all over.  Quick fix is to reset topIndex, but
+					//     there might be a better way
+	//				table.setRedraw(false);
+	//				int iTopIndex = table.getTopIndex();
+					table.setSelection(newSelectedRowIndices);
+	//				table.setTopIndex(iTopIndex);
+	//				table.setRedraw(true);
+				}
 			}
-			
-			if (numSame < selectedRows.length) {
-				// XXX setSelection calls showSelection().  We don't want the table
-				//     to jump all over.  Quick fix is to reset topIndex, but
-				//     there might be a better way
-//				table.setRedraw(false);
-//				int iTopIndex = table.getTopIndex();
-				table.setSelection(newSelectedRowIndices);
-//				table.setTopIndex(iTopIndex);
-//				table.setRedraw(true);
+	
+			if (DEBUG_SORTER) {
+				long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
+				if (lTimeDiff >= 500)
+					System.out.println("<<< Sort & Assign took " + lTimeDiff + "ms with "
+							+ iNumMoves + " rows (of " + sortedRows.size() + ") moved. "
+							+ focusedRow);
 			}
-		}
-
-		if (DEBUG_SORTER) {
-			long lTimeDiff = (System.currentTimeMillis() - lTimeStart);
-			if (lTimeDiff >= 500)
-				System.out.println("<<< Sort & Assign took " + lTimeDiff + "ms with "
-						+ iNumMoves + " rows (of " + sortedRows.size() + ") moved. "
-						+ focusedRow);
+		}finally{
+			sortColumn_mon.exit();
 		}
 	}
 
