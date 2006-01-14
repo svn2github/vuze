@@ -29,6 +29,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.clientmessageservice.ClientMessageService;
 import com.aelitis.azureus.core.clientmessageservice.secure.SecureMessageServiceClient;
@@ -66,6 +67,9 @@ SecureMessageServiceClientImpl
 	private AEMonitor			message_mon;
 	private AESemaphore			message_sem;
 		
+	private String				last_failed_user_pw			= "";
+	private long				last_failed_user_pw_time;
+	
 	private List				messages 	= new ArrayList();
 	private List				listeners	= new ArrayList();
 	
@@ -134,13 +138,33 @@ SecureMessageServiceClientImpl
 	protected void
 	sendMessagesSupport()
 	{	
+		String	user 		= adapter.getUser();
+		byte[]	password	= adapter.getPassword();
+		
+		String	user_password = user + "/" + new String( password );
+		
 			// user name must be defined, however we allow a blank password
 		
-		if ( adapter.getUser().length() == 0 ){
+		if ( user.length() == 0 ){
 			
 			adapter.authenticationFailed();
 			
 			return;
+		}
+		
+			// if user-name + password hasn't changed recently and logon failed then
+			// don't re-attempt
+		
+		if ( user_password.equals( last_failed_user_pw )){
+			
+			long	now = SystemTime.getCurrentTime();
+			
+			if ( now - last_failed_user_pw_time < 60*1000 ){
+				
+				adapter.authenticationFailed();
+				
+				return;
+			}
 		}
 		
 		List	outstanding_messages;
@@ -187,11 +211,13 @@ SecureMessageServiceClientImpl
 			
 						long	sequence = adapter.getMessageSequence();
 						
-						content.put( "user", 		adapter.getUser());
-						content.put( "password", 	adapter.getPassword());
+						content.put( "user", 		user );
+						content.put( "password", 	password );
 						content.put( "seq", 		new Long( sequence ));
 						content.put( "request", 	message.getRequest());
-										
+							
+						last_failed_user_pw = "";
+						
 						message_service = SecureMessageServiceClientHelper.getServerService( host, port, timeout_secs, SERVICE_NAME, public_key );					
 
 						message_service.sendMessage( content );
@@ -244,6 +270,9 @@ SecureMessageServiceClientImpl
 							complete_messages.add( message );
 							
 						}else if ( status == STATUS_LOGON_FAIL ){
+							
+							last_failed_user_pw 		= user_password;
+							last_failed_user_pw_time	= SystemTime.getCurrentTime();
 							
 							adapter.serverOK();
 							
