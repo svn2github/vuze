@@ -35,7 +35,7 @@ public interface
 PEPeerControl
 	extends PEPeerManager
 {
-public boolean 
+	public boolean 
 	checkBlock(
 		int pieceNumber, 
 		int offset, 
@@ -59,4 +59,7 @@ public boolean
 	isPeerExchangeEnabled();
 	
 	public void addPeerTransport( PEPeerTransport transport );
+	
+	public int
+	getMaxConnections();
 }

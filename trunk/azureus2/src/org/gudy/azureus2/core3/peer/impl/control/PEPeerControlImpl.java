@@ -610,7 +610,7 @@ PEPeerControlImpl
 		}
 		
 		//make sure we need a new connection
-		int needed = PeerUtils.numNewConnectionsAllowed( _hash );
+		int needed = getMaxNewConnectionsAllowed();
 		if( needed == 0 )  return false;
 		
 		//make sure not already connected to the same IP address; allow loopback connects for co-located proxy-based connections and testing
@@ -1041,7 +1041,7 @@ PEPeerControlImpl
   	
   	final int WANT_LIMIT = 100;
       
-	  int num_wanted = PeerUtils.numNewConnectionsAllowed( _hash );
+	  int num_wanted = getMaxNewConnectionsAllowed();
 	  
 	  boolean has_remote = adapter.isNATHealthy();
 	  if( has_remote ) {
@@ -2480,7 +2480,7 @@ PEPeerControlImpl
 			}
 			
 			//pass from storage to connector
-			int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
+			int allowed = getMaxNewConnectionsAllowed();
 			
 			if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
 			
@@ -2538,7 +2538,7 @@ PEPeerControlImpl
 			}
 			
 			//update storage capacity
-			int allowed = PeerUtils.numNewConnectionsAllowed( _hash );
+			int allowed = getMaxNewConnectionsAllowed();
 			if( allowed == -1 )  allowed = 100;
 		}
 		
@@ -2557,7 +2557,7 @@ PEPeerControlImpl
 		if ( mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0 ) {
 			//if we're at our connection limit, time out the least-useful
 			//one so we can establish a possibly-better new connection
-			if( PeerUtils.numNewConnectionsAllowed( _hash ) == 0 ) {  //we've reached limit        
+			if( getMaxNewConnectionsAllowed() == 0 ) {  //we've reached limit        
 				ArrayList peer_transports = peer_transports_cow;
 				PEPeerTransport max_transport = null;
 				long max_time = 0;
@@ -2691,6 +2691,21 @@ PEPeerControlImpl
 		return -1;
 	}
 
+	public int
+	getMaxConnections()
+	{
+		return( adapter.getMaxConnections());
+	}
+	
+	public int
+	getMaxNewConnectionsAllowed()
+	{
+		int	dl_max = getMaxConnections();
+
+		int	allowed_peers = PeerUtils.numNewConnectionsAllowed(getPeerIdentityDataID(), dl_max );
+				
+		return( allowed_peers );
+	}
 
 	public String 
 	getRelationText() 

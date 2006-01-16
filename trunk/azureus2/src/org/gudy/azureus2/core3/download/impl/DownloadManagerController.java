@@ -256,6 +256,12 @@ DownloadManagerController
 					{
 						return( getTrackerClientExtensions());
 					}
+					
+					public int
+					getMaxNewConnectionsAllowed()
+					{
+						return( temp.getMaxNewConnectionsAllowed());
+					}
 	    		});
 	    
 		
@@ -1146,6 +1152,12 @@ DownloadManagerController
 	getMaxUploads()
 	{
 		return( stats.getMaxUploads());
+	}
+	
+	public int
+	getMaxConnections()
+	{
+		return( download_manager.getMaxConnections());
 	}
 	
 	public boolean

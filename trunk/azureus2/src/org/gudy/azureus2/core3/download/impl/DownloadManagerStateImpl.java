@@ -70,6 +70,17 @@ DownloadManagerStateImpl
 		}
 	}
 	
+	private static final Map	default_parameters;
+	
+	static{
+		default_parameters  = new HashMap();
+		
+		for (int i=0;i<PARAMETERS.length;i++){
+			
+			default_parameters.put( PARAMETERS[i][0], PARAMETERS[i][1] );
+		}
+	}
+	
 	private static AEMonitor	class_mon	= new AEMonitor( "DownloadManagerState:class" );
 	
 	private static Map					state_map = new HashMap();
@@ -88,6 +99,8 @@ DownloadManagerStateImpl
 	private List		listeners	= new ArrayList();
 	
 	private List		will_be_read_list	= new ArrayList();
+	
+	private Map			parameters;
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 
@@ -301,6 +314,13 @@ DownloadManagerStateImpl
         		setCategory( cat );
         	}
         }
+        
+        parameters	= getMapAttribute( AT_PARAMETERS );
+        
+        if ( parameters == null ){
+        	
+        	parameters	= new HashMap();
+        }
 	}
 	
 	public DownloadManager
@@ -394,7 +414,15 @@ DownloadManagerStateImpl
 	public Map
 	getResumeData()
 	{
-		return( torrent.getAdditionalMapProperty(RESUME_KEY));
+		try{
+			this_mon.enter();
+		
+			return( torrent.getAdditionalMapProperty(RESUME_KEY));
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	public void
@@ -562,6 +590,83 @@ DownloadManagerStateImpl
 		long	value = getLongAttribute( AT_FLAGS );
 	
 		return(( value & flag ) != 0 );
+	}
+	
+	public Integer
+	getIntParameter(
+		String	name )
+	{
+		try{
+			this_mon.enter();
+		
+			Object	value = parameters.get( name );
+	
+			if ( value == null ){
+				
+				value = default_parameters.get( name );
+				
+				if ( value == null ){
+					
+					Debug.out( "Unknown parameter '" + name + "' - must be defined in DownloadManagerState" );
+				
+					return( null );
+				}
+			}
+			
+			if ( value instanceof Integer ){
+				
+				return((Integer)value );
+			}
+			
+			if ( value instanceof Long ){
+				
+				return( new Integer(((Long)value).intValue()));
+			}
+			
+			Debug.out( "Invalid parameter value for '" + name + "' - " + value );
+			
+			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public void
+	setIntParameter(
+		String	name,
+		Integer	value )
+	{
+		Object	default_value = default_parameters.get( name );
+
+		if ( default_value == null ){
+			
+			Debug.out( "Unknown parameter '" + name + "' - must be defined in DownloadManagerState" );
+		}
+			
+		try{
+			this_mon.enter();
+		
+				// gotta clone here otherwise we update the underlying  map and the setMapAttribute code
+				// doesn't think it has changed
+			
+			parameters	= new HashMap( parameters );
+			
+			if ( value == null ){
+				
+				parameters.remove( name );
+				
+			}else{
+				
+				parameters.put( name, new Long( value.intValue()));
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		setMapAttribute( AT_PARAMETERS, parameters );
 	}
 	
 	public void
@@ -1005,28 +1110,35 @@ DownloadManagerStateImpl
 	{
 		informWillRead( attribute_name );
 		
-		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-		
-		if ( attributes == null || !(attributes.get( attribute_name) instanceof byte[] )){
-			
-			return( null );
-		}
-		
-		byte[]	bytes = (byte[])attributes.get( attribute_name );
-		
-		if ( bytes == null ){
-			
-			return( null );
-		}
-		
 		try{
-			return( new String( bytes, Constants.DEFAULT_ENCODING ));
+			this_mon.enter();
+		
+			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 			
-		}catch( UnsupportedEncodingException e ){
+			if ( attributes == null || !(attributes.get( attribute_name) instanceof byte[] )){
+				
+				return( null );
+			}
 			
-			Debug.printStackTrace(e);
+			byte[]	bytes = (byte[])attributes.get( attribute_name );
 			
-			return( null );
+			if ( bytes == null ){
+				
+				return( null );
+			}
+			
+			try{
+				return( new String( bytes, Constants.DEFAULT_ENCODING ));
+				
+			}catch( UnsupportedEncodingException e ){
+				
+				Debug.printStackTrace(e);
+				
+				return( null );
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 	}
 	
@@ -1035,51 +1147,59 @@ DownloadManagerStateImpl
 		final String	attribute_name,
 		final String	attribute_value )
 	{
-		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-		
-		if ( attributes == null ){
-			
-			if ( attribute_value == null ){
-			
-					// nothing to do, no attributes and we're removing a value
-				
-				return;
-			}
-			
-			attributes = new HashMap();
-			
-			torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
-		}
-	
 		boolean	changed	= false;
+
+		try{
+			this_mon.enter();
 		
-		if ( attribute_value == null ){
+			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 			
-			if ( attributes.containsKey( attribute_name )){
-			
-				attributes.remove( attribute_name );
-			
-				changed	= true;
-			}
-		}else{
-		
-			try{
-				byte[]	existing_bytes = (byte[])attributes.get( attribute_name );
+			if ( attributes == null ){
 				
-				byte[]	new_bytes = attribute_value.getBytes( Constants.DEFAULT_ENCODING );
+				if ( attribute_value == null ){
 				
-				if ( 	existing_bytes == null || 
-						!Arrays.equals( existing_bytes, new_bytes )){
-				
-					attributes.put( attribute_name, new_bytes );
+						// nothing to do, no attributes and we're removing a value
 					
-					changed	= true;
+					return;
 				}
 				
-			}catch( UnsupportedEncodingException e ){
+				attributes = new HashMap();
 				
-				Debug.printStackTrace(e);
+				torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
 			}
+		
+			
+			if ( attribute_value == null ){
+				
+				if ( attributes.containsKey( attribute_name )){
+				
+					attributes.remove( attribute_name );
+				
+					changed	= true;
+				}
+			}else{
+			
+				try{
+					byte[]	existing_bytes = (byte[])attributes.get( attribute_name );
+					
+					byte[]	new_bytes = attribute_value.getBytes( Constants.DEFAULT_ENCODING );
+					
+					if ( 	existing_bytes == null || 
+							!Arrays.equals( existing_bytes, new_bytes )){
+					
+						attributes.put( attribute_name, new_bytes );
+						
+						changed	= true;
+					}
+					
+				}catch( UnsupportedEncodingException e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		if ( changed ){
@@ -1096,21 +1216,29 @@ DownloadManagerStateImpl
 	{
 		informWillRead( attribute_name );
 		
-		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		try{
+			this_mon.enter();
 		
-		if ( attributes == null ){
+			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 			
-			return( 0 );
-		}
-		
-		Long	l = (Long)attributes.get( attribute_name );
-		
-		if ( l == null ){
+			if ( attributes == null ){
+				
+				return( 0 );
+			}
 			
-			return( 0 );
+			Long	l = (Long)attributes.get( attribute_name );
+			
+			if ( l == null ){
+				
+				return( 0 );
+			}
+			
+			return( l.longValue());
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-		
-		return( l.longValue());
 	}
 	
 	protected void
@@ -1118,22 +1246,36 @@ DownloadManagerStateImpl
 		final String	attribute_name,
 		final long		attribute_value )
 	{
-		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		boolean	changed	= false;
 		
-		if ( attributes == null ){
+		try{
+			this_mon.enter();
+		
+			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 			
-			attributes = new HashMap();
+			if ( attributes == null ){
+				
+				attributes = new HashMap();
+				
+				torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
+			}
+		
+			Long	existing_value = (Long)attributes.get( attribute_name );
+					
+			if ( 	existing_value == null ||
+					existing_value.longValue() != attribute_value ){
+					
+				attributes.put( attribute_name, new Long( attribute_value) );
+									
+				changed	= true;
+			}
+		}finally{
 			
-			torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
+			this_mon.exit();
 		}
-	
-		Long	existing_value = (Long)attributes.get( attribute_name );
-				
-		if ( 	existing_value == null ||
-				existing_value.longValue() != attribute_value ){
-				
-			attributes.put( attribute_name, new Long( attribute_value) );
-						
+		
+		if ( changed ){
+			
 			write_required	= true;
 			
 			informWritten( attribute_name );
@@ -1207,40 +1349,48 @@ DownloadManagerStateImpl
 	{
 		informWillRead( attribute_name );
 		
-		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		try{
+			this_mon.enter();
 		
-		List	res = new ArrayList();
-
-		if ( attributes != null ){
+			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 			
-			List	values = (List)attributes.get( attribute_name );
-		
-			if ( values != null ){
+			List	res = new ArrayList();
+	
+			if ( attributes != null ){
 				
-				for (int i=0;i<values.size();i++){
-				
-					Object	o = values.get(i);
+				List	values = (List)attributes.get( attribute_name );
+			
+				if ( values != null ){
 					
-					if ( o instanceof byte[] ){
+					for (int i=0;i<values.size();i++){
+					
+						Object	o = values.get(i);
 						
-						byte[]	bytes = (byte[])o;
-						
-						try{
-							res.add( new String( bytes, Constants.DEFAULT_ENCODING ));
+						if ( o instanceof byte[] ){
 							
-						}catch( UnsupportedEncodingException e ){
+							byte[]	bytes = (byte[])o;
 							
-							Debug.printStackTrace(e);					
+							try{
+								res.add( new String( bytes, Constants.DEFAULT_ENCODING ));
+								
+							}catch( UnsupportedEncodingException e ){
+								
+								Debug.printStackTrace(e);					
+							}
+						}else if ( o instanceof String ){
+							
+							res.add( o );
 						}
-					}else if ( o instanceof String ){
-						
-						res.add( o );
 					}
 				}
 			}
+		
+			return( res );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-	
-		return( res );
 	}
 	
 	protected void
@@ -1248,51 +1398,58 @@ DownloadManagerStateImpl
 		final String	attribute_name,
 		final List		attribute_value )
 	{
-		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-		
-		if ( attributes == null ){
-			
-			if ( attribute_value == null ){
-			
-					// nothing to do, no attributes and we're removing a value
-				
-				return;
-			}
-			
-			attributes = new HashMap();
-			
-			torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
-		}
-	
 		boolean	changed	= false;
-		
-		if ( attribute_value == null ){
+
+		try{
+			this_mon.enter();
 			
-			if ( attributes.containsKey( attribute_name )){
+			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 			
-				attributes.remove( attribute_name );
-			
-				changed	= true;
-			}
-		}else{
-		
-			List old_value = getListAttributeSupport( attribute_name );
-								
-			if ( old_value == null || old_value.size() != attribute_value.size()){
+			if ( attributes == null ){
 				
-				attributes.put( attribute_name, attribute_value );
+				if ( attribute_value == null ){
+				
+						// nothing to do, no attributes and we're removing a value
 					
-				changed	= true;
+					return;
+				}
 				
+				attributes = new HashMap();
+				
+				torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
+			}
+						
+			if ( attribute_value == null ){
+				
+				if ( attributes.containsKey( attribute_name )){
+				
+					attributes.remove( attribute_name );
+				
+					changed	= true;
+				}
 			}else{
-				
-				changed = !BEncoder.listsAreIdentical( old_value, attribute_value ); 
-				
-				if ( changed ){
+			
+				List old_value = getListAttributeSupport( attribute_name );
+									
+				if ( old_value == null || old_value.size() != attribute_value.size()){
 					
 					attributes.put( attribute_name, attribute_value );
+						
+					changed	= true;
+					
+				}else{
+					
+					changed = !BEncoder.listsAreIdentical( old_value, attribute_value ); 
+					
+					if ( changed ){
+						
+						attributes.put( attribute_name, attribute_value );
+					}
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
 		if ( changed ){
@@ -1309,16 +1466,24 @@ DownloadManagerStateImpl
 	{
 		informWillRead( attribute_name );
 		
-		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
+		try{
+			this_mon.enter();
 		
-		if ( attributes != null ){
+			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 			
-			Map	value = (Map)attributes.get( attribute_name );
+			if ( attributes != null ){
+				
+				Map	value = (Map)attributes.get( attribute_name );
+			
+				return( value );
+			}
 		
-			return( value );
+			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
 		}
-	
-		return( null );
 	}
 	
 	public void
@@ -1326,54 +1491,70 @@ DownloadManagerStateImpl
 		final String	attribute_name,
 		final Map		attribute_value )
 	{
-		Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
-		
-		if ( attributes == null ){
-			
-			if ( attribute_value == null ){
-			
-					// nothing to do, no attributes and we're removing a value
-				
-				return;
-			}
-			
-			attributes = new HashMap();
-			
-			torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
-		}
+		setMapAttribute( attribute_name, attribute_value, false );
+	}
 	
+	protected void
+	setMapAttribute(
+		final String	attribute_name,
+		final Map		attribute_value,
+		boolean			disable_change_notification )
+	{
 		boolean	changed	= false;
-		
-		if ( attribute_value == null ){
+
+		try{
+			this_mon.enter();
+
+			Map	attributes = torrent.getAdditionalMapProperty( ATTRIBUTE_KEY );
 			
-			if ( attributes.containsKey( attribute_name )){
-			
-				attributes.remove( attribute_name );
-			
-				changed	= true;
-			}
-		}else{
-		
-			Map old_value = getMapAttribute( attribute_name );
-								
-			if ( old_value == null || old_value.size() != attribute_value.size()){
+			if ( attributes == null ){
 				
-				attributes.put( attribute_name, attribute_value );
+				if ( attribute_value == null ){
+				
+						// nothing to do, no attributes and we're removing a value
 					
-				changed	= true;
+					return;
+				}
 				
+				attributes = new HashMap();
+				
+				torrent.setAdditionalMapProperty( ATTRIBUTE_KEY, attributes );
+			}
+		
+			if ( attribute_value == null ){
+				
+				if ( attributes.containsKey( attribute_name )){
+				
+					attributes.remove( attribute_name );
+				
+					changed	= true;
+				}
 			}else{
-				
-				changed = !BEncoder.mapsAreIdentical( old_value, attribute_value ); 
-				
-				if ( changed ){
+			
+				Map old_value = getMapAttribute( attribute_name );
+									
+				if ( old_value == null || old_value.size() != attribute_value.size()){
 					
 					attributes.put( attribute_name, attribute_value );
+						
+					changed	= true;
+					
+				}else{
+					
+					changed = !BEncoder.mapsAreIdentical( old_value, attribute_value ); 
+					
+					if ( changed ){
+						
+						attributes.put( attribute_name, attribute_value );
+					}
 				}
 			}
+		}finally{
+			
+			this_mon.exit();
 		}
 		
-		if ( changed ){
+		if ( changed && !disable_change_notification ){
 			
 			write_required	= true;
 			
@@ -1580,6 +1761,20 @@ DownloadManagerStateImpl
 			long		flag )
 		{
 			return( false );
+		}
+		
+		public Integer
+		getIntParameter(
+			String	name )
+		{
+			return( null );
+		}
+		
+		public void
+		setIntParameter(
+			String	name,
+			Integer	value )
+		{	
 		}
 		
 		public void

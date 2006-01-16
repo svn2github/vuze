@@ -328,13 +328,15 @@ DownloadManagerImpl
   
 	private long	creation_time	= SystemTime.getCurrentTime();
   
-  private int iSeedingRank;
+	private int iSeedingRank;
 
 	private boolean az_messaging_enabled = true;
    
 	private boolean	dl_identity_obtained;
 	private byte[]	dl_identity;
     private int 	dl_identity_hashcode;
+
+    private int		max_connections;
     
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
@@ -411,6 +413,8 @@ DownloadManagerImpl
 					 	DownloadManagerStateImpl.getDownloadState(
 					 			this, torrentFileName, torrent_hash );
 				 
+				 readParameters();
+				 
 					// establish any file links
 					
 				 download_manager_state.addListener(
@@ -423,9 +427,15 @@ DownloadManagerImpl
 							{
 								if ( event.getType() == DownloadManagerStateEvent.ET_ATTRIBUTE_WRITTEN ){
 									
-									if (((String)event.getData()).equals( DownloadManagerState.AT_FILE_LINKS )){
+									String	attribute_name = (String)event.getData();
+									
+									if ( attribute_name.equals( DownloadManagerState.AT_FILE_LINKS )){
 										
 										setFileLinks();
+										
+									}else if ( attribute_name.equals( DownloadManagerState.AT_PARAMETERS )){
+										
+										readParameters();
 									}
 								}
 							}
@@ -735,6 +745,28 @@ DownloadManagerImpl
 				((Integer)read_torrent_state[6]).intValue());
 
 	}
+	
+	protected void
+	readParameters()
+	{
+		Integer	max_peers = getDownloadState().getIntParameter( "max.peers" );
+		
+		if ( max_peers != null ){
+			
+			max_connections	= max_peers.intValue();
+			
+		}else{
+			
+			max_connections	= 0;
+		}
+	}
+	
+	protected int
+	getMaxConnections()
+	{
+		return( max_connections );
+	}
+	
 	protected void
 	setFileLinks()
 	{

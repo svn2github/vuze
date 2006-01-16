@@ -45,9 +45,15 @@ DownloadManagerState
 	public static final String AT_FILE_STORE_TYPES			= "storetypes";
 	public static final String AT_FILE_DOWNLOADED			= "filedownloaded";
 	public static final String AT_FLAGS						= "flags";
+	public static final String AT_PARAMETERS				= "parameters";
 	
 	public static final long FLAG_ONLY_EVER_SEEDED			= Download.FLAG_ONLY_EVER_SEEDED;
 	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= Download.FLAG_SCAN_INCOMPLETE_PIECES;
+	
+	
+	public static Object[][] PARAMETERS = {
+		{ "max.peers", new Integer( 0 ) },
+	};
 	
 	public TOTorrent
 	getTorrent();
@@ -67,6 +73,15 @@ DownloadManagerState
 	public boolean
 	getFlag(
 		long		flag );
+	
+	public Integer
+	getIntParameter(
+		String	name );
+	
+	public void
+	setIntParameter(
+		String	name,
+		Integer	value );
 	
 	public void
 	clearResumeData();

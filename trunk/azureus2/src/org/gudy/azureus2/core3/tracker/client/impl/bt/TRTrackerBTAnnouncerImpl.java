@@ -43,7 +43,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.tracker.client.impl.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.internat.*;
-import org.gudy.azureus2.core3.peer.util.*;
+//import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.peer.*;
 
 import org.gudy.azureus2.core3.tracker.protocol.*;
@@ -55,7 +55,6 @@ import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.net.udp.*;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -123,7 +122,6 @@ TRTrackerBTAnnouncerImpl
   	private URL lastUsedUrl;
     
   	private byte[]				torrent_hash;
-  	private PeerIdentityDataID	peer_data_id;
   	
 	private String	last_tracker_message;		// per torrent memory
 	
@@ -217,9 +215,7 @@ TRTrackerBTAnnouncerImpl
 	try {
 	
 		torrent_hash = _torrent.getHash();
-		
-		peer_data_id = PeerIdentityManager.createDataID( torrent_hash );
-		
+				
 		this.info_hash += URLEncoder.encode(new String(torrent_hash, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
 	  
 		this.tracker_peer_id_str += URLEncoder.encode(new String(tracker_peer_id, Constants.BYTE_ENCODING), Constants.BYTE_ENCODING).replaceAll("\\+", "%20");
@@ -1743,7 +1739,7 @@ TRTrackerBTAnnouncerImpl
   {
     int MAX_PEERS = 100;
     
-    int maxAllowed = PeerUtils.numNewConnectionsAllowed( peer_data_id );
+    int maxAllowed = announce_data_provider.getMaxNewConnectionsAllowed();
     
     if ( maxAllowed < 0 || maxAllowed > MAX_PEERS ) {
       maxAllowed = MAX_PEERS;

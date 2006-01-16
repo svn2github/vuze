@@ -37,6 +37,8 @@ public abstract class
 Parameter 
 	implements IParameter
 {
+	protected ConfigParameterAdapter	config_adapter = new ConfigParameterAdapter( this );
+	
 	protected  List	change_listeners;
 	
 	private static AEMonitor	class_mon	= new AEMonitor( "Parameter:class" );

@@ -40,6 +40,9 @@ PEPeerManagerAdapter
 	public int
 	getMaxUploads();
 	
+	public int
+	getMaxConnections();
+	
 	public boolean
 	isAZMessagingEnabled();
 	

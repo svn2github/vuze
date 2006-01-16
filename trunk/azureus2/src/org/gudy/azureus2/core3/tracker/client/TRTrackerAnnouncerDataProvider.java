@@ -43,4 +43,7 @@ TRTrackerAnnouncerDataProvider
 	
 	public String
 	getExtensions();
+	
+	public int
+	getMaxNewConnectionsAllowed();
 }

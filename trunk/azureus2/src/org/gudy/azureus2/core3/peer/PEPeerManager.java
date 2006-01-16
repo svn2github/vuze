@@ -130,6 +130,9 @@ PEPeerManager
   
   public long getLastRemoteConnectionTime();
   
+  public int
+  getMaxNewConnectionsAllowed();
+  
   /**
    * Data bytes received.
    * @param l

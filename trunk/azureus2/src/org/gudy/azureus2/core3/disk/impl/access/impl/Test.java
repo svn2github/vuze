@@ -1246,6 +1246,11 @@ Test
 	  {
 		  return(0);
 	  }
+	  
+	  public int getMaxNewConnectionsAllowed()
+		{
+	  	return( 0 );
+	}
 		public void
 		dataBytesReceived(
 			int		l )

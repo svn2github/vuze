@@ -1198,13 +1198,13 @@ PEPeerTransportProtocol
     }
 
     //make sure we haven't reached our connection limit
-    int maxAllowed = PeerUtils.numNewConnectionsAllowed( my_peer_data_id );
+    int maxAllowed = manager.getMaxNewConnectionsAllowed();
     if( maxAllowed == 0 ) {
     	String msg = "too many existing peer connections [p" +
     								PeerIdentityManager.getIdentityCount( my_peer_data_id )+
     								"/g" +PeerIdentityManager.getTotalIdentityCount()+
     								", pmx" +PeerUtils.MAX_CONNECTIONS_PER_TORRENT+ "/gmx" +
-    								PeerUtils.MAX_CONNECTIONS_TOTAL+ "]";
+    								PeerUtils.MAX_CONNECTIONS_TOTAL+"/dmx" + manager.getMaxConnections()+ "]";
     	//System.out.println( msg );
       closeConnectionInternally( msg );
       handshake.destroy();

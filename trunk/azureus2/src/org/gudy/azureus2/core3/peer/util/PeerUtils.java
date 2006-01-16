@@ -58,13 +58,15 @@ public class PeerUtils {
    * within the configured per-torrent and global connection limits.
    * @return max number of new connections allowed, or -1 if there is no limit
    */
-  public static int numNewConnectionsAllowed( PeerIdentityDataID data_id ) {
+  public static int numNewConnectionsAllowed( PeerIdentityDataID data_id, int specific_max ) {
     int curConnPerTorrent = PeerIdentityManager.getIdentityCount( data_id );
     int curConnTotal = PeerIdentityManager.getTotalIdentityCount();
 	    
+    int	PER_TORRENT_LIMIT = specific_max > 0?specific_max:MAX_CONNECTIONS_PER_TORRENT;
+    
     int perTorrentAllowed = -1;  //default unlimited
-    if ( MAX_CONNECTIONS_PER_TORRENT != 0 ) {  //if limited
-      int allowed = MAX_CONNECTIONS_PER_TORRENT - curConnPerTorrent;
+    if ( PER_TORRENT_LIMIT != 0 ) {  //if limited
+      int allowed = PER_TORRENT_LIMIT - curConnPerTorrent;
       if ( allowed < 0 )  allowed = 0;
       perTorrentAllowed = allowed;
     }
