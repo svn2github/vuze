@@ -42,7 +42,7 @@ AEDiagnostics
 	public static final boolean	CHECK_DUMMY_FILE_DATA			= false;
 
 	// these can safely be set true, things will work just slower
-	public static final boolean	DEBUG_MONITOR_SEM_USAGE			= true;
+	public static final boolean	DEBUG_MONITOR_SEM_USAGE			= false;
     public static final boolean DEBUG_THREADS			        = true; // Leave this on by default for the moment
 
 	public static final boolean	TRACE_DIRECT_BYTE_BUFFERS		= false;
