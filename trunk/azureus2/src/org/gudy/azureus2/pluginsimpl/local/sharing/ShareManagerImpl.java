@@ -461,15 +461,29 @@ ShareManagerImpl
 	protected ShareResourceImpl
 	getResource(
 		File		file )
+	
+		throws ShareException
 	{
-		return((ShareResourceImpl)shares.get(file.toString()));
+		try{
+			return((ShareResourceImpl)shares.get(file.getCanonicalFile().toString()));
+			
+		}catch( IOException e ){
+			
+			throw( new ShareException( "getCanonicalFile fails", e ));
+		}
 	}
 	
 	public ShareResource
 	getShare(
 		File	file_or_dir )
 	{
-		return( getResource( file_or_dir ));
+		try{
+			return( getResource( file_or_dir ));
+			
+		}catch( ShareException e ){
+						
+			return( null );
+		}
 	}
 	
 	public ShareResourceFile
@@ -570,7 +584,7 @@ ShareManagerImpl
 		try{
 			this_mon.enter();
 		
-			String	name = file.toString();
+			String	name = file.getCanonicalFile().toString();
 			
 			ShareResource	old_resource = (ShareResource)shares.get(name);
 			
@@ -625,6 +639,10 @@ ShareManagerImpl
 			
 			return( new_resource );
 			
+		}catch( IOException e ){
+			
+			throw( new ShareException( "getCanoncialFile fails", e ));
+			
 		}finally{
 			
 			this_mon.exit();
@@ -647,7 +665,7 @@ ShareManagerImpl
 		try{
 			this_mon.enter();
 			
-			String	name = dir.toString();
+			String	name = dir.getCanonicalFile().toString();
 			
 			reportCurrentTask( "Adding dir contents '" + name + "', recursive = " + recursive );
 	
@@ -678,6 +696,12 @@ ShareManagerImpl
 			
 			return( new_resource );
 			
+		}catch( IOException e ){
+			
+			reportError(e);
+			
+			throw( new ShareException( "getCanoncialFile fails", e ));
+			
 		}catch( ShareException e ){
 			
 			reportError(e);
@@ -688,7 +712,6 @@ ShareManagerImpl
 			
 			this_mon.exit();
 		}
-		
 	}	
 	
 	protected void
