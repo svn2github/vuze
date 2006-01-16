@@ -389,6 +389,10 @@ ShareResourceDirContentsImpl
 			TorrentAttribute		attribute,
 			String					value )
 		{
+			for (int i=0;i<node_children.length;i++){
+				
+				node_children[i].setAttribute( attribute, value );
+			}
 		}
 		
 		public String
