@@ -20,6 +20,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 
 /**
  * @author Olivier
@@ -170,16 +171,31 @@ StartServer
     	return;
     }
            	
+    boolean	open	= true;
+    
     for (int i = 1; i < args.length; i++) {
 
     	String	arg = args[i];
-        	  
-  	    if ( arg.equalsIgnoreCase( "--closedown" )){
-
-  	    	MainWindow.getWindow().destroyRequest();
-  	    	
-  	    	return;
-  	    }
+        	
+    	if ( i == 1 ){
+    		
+	  	    if ( arg.equalsIgnoreCase( "--closedown" )){
+	
+	  	    	MainWindow.getWindow().destroyRequest();
+	  	    	
+	  	    	return;
+	  	    	
+	  	    }else if ( arg.equalsIgnoreCase( "--open" )){
+	  	    	
+	  	    	continue;
+	  	    	
+	  	    }else if ( arg.equalsIgnoreCase( "--share" )){
+	  	    	
+	  	    	open	= false;
+	  	    	
+	  	    	continue;
+	  	    }
+    	}
   	    
         String file_name = arg;
         
@@ -219,7 +235,7 @@ StartServer
 
           if (!core_started) {
 
-            queued_torrents.add(file_name);
+            queued_torrents.add( new Object[]{ file_name, new Boolean( open )});
 
             queued = true;
           }
@@ -229,15 +245,40 @@ StartServer
         }
 
         if ( !queued ){
-            try {
-
-              TorrentOpener.openTorrent(file_name);
-
-            } catch (Throwable e) {
-
-              Debug.printStackTrace(e);
-            }
+ 
+        	handleFile( azureus_core, file_name, open );
         }
+      }
+  }
+  
+  protected void
+  handleFile(
+	AzureusCore	azureus_core,
+	String		file_name,
+	boolean		open )
+  {
+      try {
+
+      	if ( open ){
+      		
+      		TorrentOpener.openTorrent(file_name);
+      		
+      	}else{
+      		
+      		File	f = new File( file_name );
+      		
+      		if ( f.isDirectory()){
+      			
+      			ShareUtils.shareDir( azureus_core, file_name );
+      			
+      		}else{
+      			
+         		ShareUtils.shareFile( azureus_core, file_name );            		 
+      		}
+      	}
+      } catch (Throwable e) {
+
+        Debug.printStackTrace(e);
       }
   }
   
@@ -257,13 +298,12 @@ StartServer
      	
     for (int i=0;i<queued_torrents.size();i++){
     	
-    	try{
-    		TorrentOpener.openTorrent((String)queued_torrents.get(i));
-    		
-    	}catch( Throwable e ){
-    		
-    		Debug.printStackTrace(e);
-    	}
+    	Object[]	entry = (Object[])queued_torrents.get(i);
+    	
+    	String	file_name 	= (String)entry[0];
+    	boolean	open		= ((Boolean)entry[1]).booleanValue();
+    	
+    	handleFile( azureus_core, file_name, open );
     }
   }
   
