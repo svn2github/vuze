@@ -97,12 +97,21 @@ public class Set extends IConsoleCommand {
 					type = (String) args.get(2);
 				
 				boolean success = false;
-				if( type.equalsIgnoreCase("int") ) {
+				if( type.equalsIgnoreCase("int") || type.equalsIgnoreCase("integer") ) {
 					COConfigurationManager.setParameter( internal_name, Integer.parseInt( setto ) );
 					success = true;
 				}
-				else if( type.equalsIgnoreCase("bool") ) {
-					COConfigurationManager.setParameter( internal_name, setto.equalsIgnoreCase("true") ? true : false );
+				else if( type.equalsIgnoreCase("bool") || type.equalsIgnoreCase("boolean") ) {
+					
+					boolean	value;
+					
+					if ( setto.equalsIgnoreCase("true") || setto.equalsIgnoreCase("y") || setto.equals("1" )){
+						value = true;
+					}else{
+						value = false;
+					}
+						
+					COConfigurationManager.setParameter( internal_name, value );
 					success = true;
 				}
 				else if( type.equalsIgnoreCase("float") ) {
