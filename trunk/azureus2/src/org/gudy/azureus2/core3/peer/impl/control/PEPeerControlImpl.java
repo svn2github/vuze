@@ -152,6 +152,9 @@ PEPeerControlImpl
 	private int				next_rescan_piece		= -1;
 	private long			rescan_piece_time		= -1;
 	
+	private long			last_eta;
+	private long			last_eta_calculation;
+	
 	private final LimitedRateGroup upload_limited_rate_group = new LimitedRateGroup() {
 		public int getRateLimitBytesPerSecond() {
       		return adapter.getUploadRateLimitBytesPerSecond();
@@ -1620,49 +1623,55 @@ PEPeerControlImpl
 	{	
 		long	now = SystemTime.getCurrentTime();
 		
-		long dataRemaining = disk_mgr.getRemainingExcludingDND();
-
-		if ( dataRemaining > 0 ){
+		if ( now < last_eta_calculation || now - last_eta_calculation > 900 ){
 			
-			int writtenNotChecked = 0;
+			long dataRemaining = disk_mgr.getRemainingExcludingDND();
+	
+			if ( dataRemaining > 0 ){
+				
+				int writtenNotChecked = 0;
+				
+				for (int i = 0; i < _pieces.length; i++)
+				{
+					if (dm_pieces[i].isInteresting()){
+						writtenNotChecked +=dm_pieces[i].getNbWritten() *DiskManager.BLOCK_SIZE;
+					}
+				}
 			
-			for (int i = 0; i < _pieces.length; i++)
-			{
-				if (dm_pieces[i].isInteresting()){
-					writtenNotChecked +=dm_pieces[i].getNbWritten() *DiskManager.BLOCK_SIZE;
+				dataRemaining = dataRemaining - writtenNotChecked;
+			
+				if  (dataRemaining < 0 ){
+					
+					dataRemaining	= 0;
 				}
 			}
-		
-			dataRemaining = dataRemaining - writtenNotChecked;
-		
-			if  (dataRemaining < 0 ){
-				
-				dataRemaining	= 0;
-			}
-		}
-		
-		long	result;
-		
-		if (dataRemaining == 0) {
-			long timeElapsed = (_timeFinished - _timeStarted)/1000;
-			//if time was spent downloading....return the time as negative
-			if(timeElapsed > 1){
-				result = timeElapsed * -1;
+			
+			long	result;
+			
+			if (dataRemaining == 0) {
+				long timeElapsed = (_timeFinished - _timeStarted)/1000;
+				//if time was spent downloading....return the time as negative
+				if(timeElapsed > 1){
+					result = timeElapsed * -1;
+				}else{
+					result = 0;
+				}
 			}else{
-				result = 0;
+			
+				long averageSpeed = _averageReceptionSpeed.getAverage();
+				long lETA = (averageSpeed == 0) ? Constants.INFINITY_AS_INT : dataRemaining / averageSpeed;
+				// stop the flickering of ETA from "Finished" to "x seconds" when we are 
+				// just about complete, but the data rate is jumpy.
+				if (lETA == 0)
+					lETA = 1;
+				result = lETA;
 			}
-		}else{
 		
-			long averageSpeed = _averageReceptionSpeed.getAverage();
-			long lETA = (averageSpeed == 0) ? Constants.INFINITY_AS_INT : dataRemaining / averageSpeed;
-			// stop the flickering of ETA from "Finished" to "x seconds" when we are 
-			// just about complete, but the data rate is jumpy.
-			if (lETA == 0)
-				lETA = 1;
-			result = lETA;
+			last_eta				= result;
+			last_eta_calculation	= now;
 		}
 		
-		return( result );
+		return( last_eta );
 	}
 	
 	
