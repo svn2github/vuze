@@ -32,6 +32,8 @@ import java.net.*;
 
 import javax.net.ssl.*;
 import java.net.PasswordAuthentication;
+import java.util.zip.GZIPInputStream;
+
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
@@ -438,6 +440,10 @@ ResourceDownloaderURLImpl
 				  
 							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
 				  
+					 		con.setRequestProperty( "Connection", "close" );
+
+							con.addRequestProperty( "Accept-Encoding", "gzip" );
+							 
 							con.connect();
 				
 							int response = con.getResponseCode();
@@ -452,6 +458,14 @@ ResourceDownloaderURLImpl
 								
 								input_stream = con.getInputStream();
 								
+								String encoding = con.getHeaderField( "content-encoding");
+				 				
+				 				boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
+				 								 				
+				 				if ( gzip ){
+				 									 					
+				 					input_stream = new GZIPInputStream( input_stream );
+				 				}
 							}finally{
 								
 								this_mon.exit();
