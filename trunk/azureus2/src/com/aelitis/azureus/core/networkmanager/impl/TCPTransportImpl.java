@@ -92,7 +92,7 @@ public class TCPTransportImpl implements TCPTransport {
    * @param bytes_already_read data
    */
   public void setAlreadyRead( ByteBuffer bytes_already_read ) {
-    if( bytes_already_read.hasRemaining() ) {
+    if( bytes_already_read != null && bytes_already_read.hasRemaining() ) {
       data_already_read = bytes_already_read;
     }
   }

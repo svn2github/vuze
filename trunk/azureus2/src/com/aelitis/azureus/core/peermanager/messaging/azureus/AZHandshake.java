@@ -98,7 +98,10 @@ public class AZHandshake implements AZMessage {
     
   public String getID() {  return AZMessage.ID_AZ_HANDSHAKE;  }
   
-  public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
+  public String getFeatureID() {  return AZMessage.AZ_FEATURE_ID;  }  
+  
+  public int getFeatureSubID() { return AZMessage.SUBID_AZ_HANDSHAKE;  }
+  
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
@@ -108,7 +111,7 @@ public class AZHandshake implements AZMessage {
       for( int i=0; i < avail_ids.length; i++ ) {
         String id = avail_ids[ i ];
         byte ver = avail_versions[ i ];
-        if( id.equals( getID() ) && ver == getVersion() )  continue;  //skip ourself
+        if( id.equals( getID() ) )  continue;  //skip ourself
         msgs_desc += "[" +id+ ":" +ver+ "]";
       }
       description = getID()+ " from [" +ByteFormatter.nicePrint( identity, true )+ ", " +client+ " " +client_version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+ "] supports " +msgs_desc;
@@ -135,7 +138,7 @@ public class AZHandshake implements AZMessage {
         String id = avail_ids[ i ];
         byte ver = avail_versions[ i ];
         
-        if( id.equals( getID() ) && ver == getVersion() )  continue;  //skip ourself
+        if( id.equals( getID() ))  continue;  //skip ourself
 
         Map msg = new HashMap();
         msg.put( "id", id );
@@ -155,7 +158,7 @@ public class AZHandshake implements AZMessage {
   
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {
-    Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 100, getID(), getVersion() );
+    Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 100, getID() );
 
     byte[] id = (byte[])root.get( "identity" );
     if( id == null )  throw new MessageException( "id == null" );

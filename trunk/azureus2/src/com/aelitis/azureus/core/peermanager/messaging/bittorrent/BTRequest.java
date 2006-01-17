@@ -61,7 +61,9 @@ public class BTRequest implements BTMessage {
     
   public String getID() {  return BTMessage.ID_BT_REQUEST;  }
   
-  public byte getVersion() {  return BTMessage.BT_DEFAULT_VERSION;  }
+public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  } 
+  
+  public int getFeatureSubID() {  return BTMessage.SUBID_BT_REQUEST;  }
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
@@ -89,26 +91,26 @@ public class BTRequest implements BTMessage {
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {   
     if( data == null ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
+      throw new MessageException( "[" +getID() + "] decode error: data == null" );
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) != 12 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 12" );
+      throw new MessageException( "[" +getID() + "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 12" );
     }
     
     int num = data.getInt( DirectByteBuffer.SS_MSG );
     if( num < 0 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: num < 0" );
+      throw new MessageException( "[" +getID() + "] decode error: num < 0" );
     }
     
     int offset = data.getInt( DirectByteBuffer.SS_MSG );
     if( offset < 0 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: offset < 0" );
+      throw new MessageException( "[" +getID() + "] decode error: offset < 0" );
     }
     
     int lngth = data.getInt( DirectByteBuffer.SS_MSG );
     if( lngth < 0 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: lngth < 0" );
+      throw new MessageException( "[" +getID() + "] decode error: lngth < 0" );
     }
     
     data.returnToPool();

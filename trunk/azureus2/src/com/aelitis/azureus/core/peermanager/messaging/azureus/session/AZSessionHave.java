@@ -53,7 +53,8 @@ public class AZSessionHave implements AZMessage {
 
   public String getID() {  return AZMessage.ID_AZ_SESSION_HAVE;  }
   
-  public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
+  public String getFeatureID() {  throw new RuntimeException( "not implemented" );  }   //TODO  
+  public int getFeatureSubID() {  throw new RuntimeException( "not implemented" );  }   //TODO
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
@@ -90,17 +91,17 @@ public class AZSessionHave implements AZMessage {
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data == null ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
+      throw new MessageException( "[" +getID() +"] decode error: data == null" );
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) < 8 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 8" );
+      throw new MessageException( "[" +getID() +"] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 8" );
     }
     
     int id = data.getInt( DirectByteBuffer.SS_MSG );
 
     if( data.remaining( DirectByteBuffer.SS_MSG ) % 4 != 0 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] % 4 != 0" );
+      throw new MessageException( "[" +getID() + "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] % 4 != 0" );
     }
     
     int[] numbers = new int[ data.remaining( DirectByteBuffer.SS_MSG ) / 4 ];
@@ -109,7 +110,7 @@ public class AZSessionHave implements AZMessage {
       numbers[i] = data.getInt( DirectByteBuffer.SS_MSG );
       
       if( numbers[i] < 0 ) {
-        throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: number < 0" );
+        throw new MessageException( "[" +getID() + "] decode error: number < 0" );
       }
     }
 

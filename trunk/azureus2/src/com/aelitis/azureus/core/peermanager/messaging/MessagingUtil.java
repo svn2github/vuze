@@ -60,18 +60,17 @@ public class MessagingUtil {
    * @param stream to convert
    * @param min_size of stream
    * @param id of message
-   * @param version of message
    * @return mapped deserialization
    * @throws MessageException on convertion error
    * NOTE: Does not auto-return given direct buffer on thrown exception.
    */
-  public static Map convertBencodedByteStreamToPayload( DirectByteBuffer stream, int min_size, String id, byte version ) throws MessageException {
+  public static Map convertBencodedByteStreamToPayload( DirectByteBuffer stream, int min_size, String id ) throws MessageException {
     if( stream == null ) {
-      throw new MessageException( "[" +id + ":" +version+ "] decode error: stream == null" );
+      throw new MessageException( "[" +id +"] decode error: stream == null" );
     }
     
     if( stream.remaining( DirectByteBuffer.SS_MSG ) < min_size ) {
-      throw new MessageException( "[" +id + ":" +version+ "] decode error: stream.remaining[" +stream.remaining( DirectByteBuffer.SS_MSG )+ "] < " +min_size );
+      throw new MessageException( "[" +id +"] decode error: stream.remaining[" +stream.remaining( DirectByteBuffer.SS_MSG )+ "] < " +min_size );
     }
 
     byte[] raw = new byte[ stream.remaining( DirectByteBuffer.SS_MSG ) ];
@@ -82,7 +81,7 @@ public class MessagingUtil {
       return BDecoder.decode( raw );
     }
     catch( Throwable t ) {
-      throw new MessageException( "[" +id+ ":" +version+ "] payload stream b-decode error: " +t.getMessage() );
+      throw new MessageException( "[" +id+ "] payload stream b-decode error: " +t.getMessage() );
     } 
   }
   

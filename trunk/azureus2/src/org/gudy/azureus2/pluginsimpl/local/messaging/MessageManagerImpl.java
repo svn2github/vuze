@@ -61,7 +61,7 @@ public class MessageManagerImpl implements MessageManager {
                           Map.Entry entry = (Map.Entry)it.next();
                           Message message = (Message)entry.getKey();
                           
-                          if( msg.getID().equals( message.getID() ) && msg.getVersion() == message.getVersion() ) {  //it does !
+                          if( msg.getID().equals( message.getID() ) ) {  //it does !
                             MessageManagerListener listener = (MessageManagerListener)entry.getValue();
                             
                             listener.compatiblePeerFound( download, peer, message );

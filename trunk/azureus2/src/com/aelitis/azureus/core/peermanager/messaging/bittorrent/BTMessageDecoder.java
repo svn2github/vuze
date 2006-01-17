@@ -276,7 +276,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           ref_buff.returnToPool();
           
           try {
-            Message handshake = MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HANDSHAKE, BTMessage.BT_DEFAULT_VERSION, handshake_data );
+            Message handshake = MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HANDSHAKE, handshake_data );
             messages_last_read.add( handshake );
           }
           catch( MessageException me ) {
@@ -337,7 +337,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
           last_received_was_keepalive = true;
           
           try{
-            Message keep_alive = MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
+            Message keep_alive = MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, null );
             messages_last_read.add( keep_alive );
           }
           catch( MessageException me ) {

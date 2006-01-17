@@ -70,14 +70,12 @@ public class MessageManager {
   public void registerMessageType( Message message ) throws MessageException {
   	try{
   		this_mon.enter();
-  		
-	    Object key = new String( message.getID() + message.getVersion() );
 	    
-	    if( message_registrations.containsKey( key ) ) {
-	      throw new MessageException( "message type [" +message.getID()+ ":" +message.getVersion()+ "] already registered!" );
+	    if( message_registrations.containsKey( message.getID() ) ) {
+	      throw new MessageException( "message type [" +message.getID()+ "] already registered!" );
 	    }
 	    
-	    message_registrations.put( key, message );
+	    message_registrations.put( message.getID(), message );
 	    
   	}finally{
   		
@@ -93,9 +91,7 @@ public class MessageManager {
    */
   public void deregisterMessageType( Message message ) {
     try{  this_mon.enter();
-    
-      Object key = new String( message.getID() + message.getVersion() );
-      message_registrations.remove( key );
+      message_registrations.remove( message.getID() );
     }
     finally{  this_mon.exit();  }
   }
@@ -104,18 +100,15 @@ public class MessageManager {
   /**
    * Construct a new message instance from the given message information.
    * @param id of message
-   * @param version of message
    * @param message_data payload
    * @return decoded/deserialized message
    * @throws MessageException if message creation failed
    */
-  public Message createMessage( String id, byte version, DirectByteBuffer message_data ) throws MessageException {
-    Object key = new String( id + version );
-    
-    Message message = (Message)message_registrations.get( key );
+  public Message createMessage( String id, DirectByteBuffer message_data ) throws MessageException {    
+    Message message = (Message)message_registrations.get( id );
     
     if( message == null ) {
-      throw new MessageException( "message id[" +id+ "] / version[" +version+ "] not registered" );
+      throw new MessageException( "message id[" +id+ "] not registered" );
     }
     
     return message.deserialize( message_data );    
@@ -126,13 +119,10 @@ public class MessageManager {
   /**
    * Lookup a registered message type via id and version.
    * @param id to look for
-   * @param version to look for
    * @return the default registered message instance if found, otherwise returns null if this message type is not registered
    */
-  public Message lookupMessage( String id, byte version ) {
-    Object key = new String( id + version );
-    
-    return (Message)message_registrations.get( key );
+  public Message lookupMessage( String id ) {
+    return (Message)message_registrations.get( id );
   }
   
   

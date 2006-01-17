@@ -53,20 +53,22 @@ public class RawMessageImpl implements RawMessage {
    */  
   public RawMessageImpl( Message source,
                             DirectByteBuffer[] raw_payload,
-                            int priority,
-                            boolean is_no_delay,
-                            Message[] to_remove ) {
+                            int _priority,
+                            boolean _is_no_delay,
+                            Message[] _to_remove ) {
     this.message = source;
     this.payload = raw_payload;
-    this.priority = priority;
-    this.is_no_delay = is_no_delay;
-    this.to_remove = to_remove;
+    this.priority = _priority;
+    this.is_no_delay = _is_no_delay;
+    this.to_remove = _to_remove;
   }
   
   //message impl
   public String getID() {  return message.getID();  }
   
-  public byte getVersion() {  return message.getVersion();  }
+  public String getFeatureID() {  return message.getFeatureID();  }  
+  
+  public int getFeatureSubID() {  return message.getFeatureSubID();  }
   
   public int getType() {  return message.getType();  }
   

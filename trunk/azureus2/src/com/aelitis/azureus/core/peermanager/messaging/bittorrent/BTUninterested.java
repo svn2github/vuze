@@ -40,7 +40,9 @@ public class BTUninterested implements BTMessage {
     
   public String getID() {  return BTMessage.ID_BT_UNINTERESTED;  }
   
-  public byte getVersion() {  return BTMessage.BT_DEFAULT_VERSION;  }
+public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  } 
+  
+  public int getFeatureSubID() {  return BTMessage.SUBID_BT_UNINTERESTED;  }
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
@@ -50,7 +52,7 @@ public class BTUninterested implements BTMessage {
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data != null && data.hasRemaining( DirectByteBuffer.SS_MSG ) ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload not empty" );
+      throw new MessageException( "[" +getID() +"] decode error: payload not empty" );
     }
     
     if( data != null )  data.returnToPool();

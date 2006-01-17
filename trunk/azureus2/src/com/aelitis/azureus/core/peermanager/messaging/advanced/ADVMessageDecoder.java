@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.azureus;
+package com.aelitis.azureus.core.peermanager.messaging.advanced;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -32,23 +32,24 @@ import com.aelitis.azureus.core.networkmanager.TCPTransport;
 import com.aelitis.azureus.core.peermanager.messaging.*;
 
 
+//based on http://82.182.115.6/extension.txt  //TODO
 
-/**
- * Length-prefixed message decoding.
- */
-public class AZMessageDecoder implements MessageStreamDecoder {
-  private static final int MIN_MESSAGE_LENGTH = 6;  //4 byte id length + at least 1 byte for id + 1 byte version
-  private static final int MAX_MESSAGE_LENGTH = 131072;  //128K arbitrary limit
+public class ADVMessageDecoder implements MessageStreamDecoder {
+	private static final byte SS = DirectByteBuffer.SS_MSG;
+	private static final int MAX_MESSAGE_LENGTH = 262144;  //256K arbitrary limit
+
+	private DirectByteBuffer payload_buffer = null;
+	private final ByteBuffer[] decode_array = new ByteBuffer[] { null, null };
+	
+	
+	private final ADVHeaderReader header_reader = new ADVHeaderReader();
+	
   
-  private static final byte SS = DirectByteBuffer.SS_MSG;
-  
-  
-  private DirectByteBuffer payload_buffer = null;
-  private final DirectByteBuffer length_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG, 4 );
-  private final ByteBuffer[] decode_array = new ByteBuffer[] { null, length_buffer.getBuffer( SS ) };
   
   private boolean reading_length_mode = true;
   
+  
+ 
   private int message_length;
   private int pre_read_start_buffer;
   private int pre_read_start_position;
@@ -66,7 +67,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   
   
   
-  public AZMessageDecoder() {
+  public ADVMessageDecoder() {
     /*nothing*/
   }
   
@@ -80,19 +81,19 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     
     while( bytes_remaining > 0 ) {
       if( destroyed ) {
-        Debug.out( "AZ decoder already destroyed: " +transport.getDescription() );
+        Debug.out( "ADV decoder already destroyed: " +transport.getDescription() );
         break;
       }
 
       if( is_paused ) {
-        Debug.out( "AZ decoder paused" );
+        Debug.out( "ADV decoder paused" );
         break;
       }
       
       int bytes_possible = preReadProcess( bytes_remaining );
 
       if( bytes_possible < 1 ) {
-        Debug.out( "ERROR AZ: bytes_possible < 1" );
+        Debug.out( "ERROR ADV: bytes_possible < 1" );
         break;
       }
       
@@ -144,35 +145,8 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   public ByteBuffer destroy() {
     is_paused = true;
     destroyed = true;
-
-    /*
-    int lbuff_read = 0;
-    int pbuff_read = 0;
-    length_buffer.limit( SS, 4 );
     
-    if( reading_length_mode ) {
-      lbuff_read = length_buffer.position( SS );
-    }
-    else { //reading payload
-      length_buffer.position( SS, 4 );
-      lbuff_read = 4;
-      pbuff_read = payload_buffer == null ? 0 : payload_buffer.position( SS );
-    }
-    
-    ByteBuffer unused = ByteBuffer.allocate( lbuff_read + pbuff_read ); 
-    
-    length_buffer.flip( SS );
-    unused.put( length_buffer.getBuffer( SS ) );
-    
-    if ( payload_buffer != null ) {
-      payload_buffer.flip( SS );
-      unused.put( payload_buffer.getBuffer( SS ) );
-    }
-    
-    unused.flip();
-    */
-    
-    length_buffer.returnToPool();
+    header_reader.destroy();
     
     if( payload_buffer != null ) {
       payload_buffer.returnToPool();
@@ -185,7 +159,6 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     }
     messages_last_read.clear();
     
-    //return unused;
     return null;  //NOTE: we don't bother returning any already-read data
   }
   
@@ -199,6 +172,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     }
     
     decode_array[ 0 ] = payload_buffer == null ? null : payload_buffer.getBuffer( SS );  //ensure the decode array has the latest payload pointer
+    decode_array[ 1 ] = header_reader.getReadBuffer();  //ensure it has the latest header buffer ref
     
     int bytes_available = 0;
     boolean shrink_remaining_buffers = false;
@@ -211,7 +185,6 @@ public class AZMessageDecoder implements MessageStreamDecoder {
       if( bb == null ) {
         Debug.out( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed );
       }
-      
       
       if( shrink_remaining_buffers ) {
         bb.limit( 0 );  //ensure no read into this next buffer is possible
@@ -251,11 +224,8 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     if( !reading_length_mode && !destroyed ) {  //reading payload data mode
       //ensure-restore proper buffer limits
       payload_buffer.limit( SS, message_length );
-      length_buffer.limit( SS, 4 );
       
-      int read = payload_buffer.position( SS ) - pre_read_start_position;
-      
-      bytes_read += read;
+      bytes_read += payload_buffer.position( SS ) - pre_read_start_position;
 
       if( !payload_buffer.hasRemaining( SS ) && !is_paused ) {  //full message received!
         payload_buffer.position( SS, 0 );  //prepare for use
@@ -264,7 +234,9 @@ public class AZMessageDecoder implements MessageStreamDecoder {
         payload_buffer = null;
         
         try {
-          Message msg = AZMessageFactory.createAZMessage( ref_buff );
+          Message msg = null;//AZMessageFactory.createAZMessage( ref_buff );  //TODO
+          if( false )  throw new MessageException( "" );  //TODO
+          
           messages_last_read.add( msg );
 
           //we only learn what type of message it is AFTER we are done decoding it, so we probably need to work off the count post-hoc
@@ -274,7 +246,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
         }
         catch( MessageException me ) {
           ref_buff.returnToPool();
-          throw new IOException( "AZ message decode failed: " + me.getMessage() );
+          throw new IOException( "ADV message decode failed: " + me.getMessage() );
         }
         
         reading_length_mode = true;  //see if we've already read the next message's length
@@ -287,25 +259,18 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     
     
     if( reading_length_mode && !destroyed ) {
-      length_buffer.limit( SS, 4 );  //ensure proper buffer limit
+      bytes_read += (pre_read_start_buffer == 1) ? decode_array[1].position() - pre_read_start_position : decode_array[1].position();
       
-      int read = (pre_read_start_buffer == 1) ? length_buffer.position( SS ) - pre_read_start_position : length_buffer.position( SS );
-      bytes_read += read;
-      
-      if( !length_buffer.hasRemaining( SS ) ) {  //done reading the length
-        reading_length_mode = false;        
-        length_buffer.position( SS, 0 );
-        
-        message_length = length_buffer.getInt( SS );
-        
-        length_buffer.position( SS, 0 );  //reset it for next length read      
-
-        if( message_length < MIN_MESSAGE_LENGTH || message_length > MAX_MESSAGE_LENGTH ) {
-          throw new IOException( "Invalid message length given for AZ message decode: " + message_length );
+      if( header_reader.isHeaderReadComplete() ) {  //done reading the length and message id header
+      	reading_length_mode = false;
+      	message_length = header_reader.getMessageLength();      	
+      	
+      	if( message_length > MAX_MESSAGE_LENGTH ) {
+          throw new IOException( "Invalid message length given for ADV message decode: " + message_length );
         }
         
         payload_buffer = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_MSG_AZ_PAYLOAD, message_length );
-      }
+      }      
     }
     
     if( bytes_read < data_bytes_owed ) {

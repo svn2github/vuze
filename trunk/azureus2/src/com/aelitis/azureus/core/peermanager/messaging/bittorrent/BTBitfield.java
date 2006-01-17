@@ -47,8 +47,11 @@ public class BTBitfield implements BTMessage {
   
 
   public String getID() {  return BTMessage.ID_BT_BITFIELD;  }
+
+  public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  } 
   
-  public byte getVersion() {  return BTMessage.BT_DEFAULT_VERSION;  }
+  public int getFeatureSubID() {  return BTMessage.SUBID_BT_BITFIELD;  }
+  
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
@@ -58,7 +61,7 @@ public class BTBitfield implements BTMessage {
 
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data == null ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
+      throw new MessageException( "[" +getID() +"] decode error: data == null" );
     }
         
     return new BTBitfield( data );

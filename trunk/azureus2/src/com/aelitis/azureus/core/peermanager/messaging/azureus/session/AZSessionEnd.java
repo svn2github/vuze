@@ -54,7 +54,8 @@ public class AZSessionEnd implements AZMessage {
     
   public String getID() {  return AZMessage.ID_AZ_SESSION_END;  }
   
-  public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
+  public String getFeatureID() {  throw new RuntimeException( "not implemented" );  }   //TODO  
+  public int getFeatureSubID() {  throw new RuntimeException( "not implemented" );  }   //TODO
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
@@ -82,7 +83,7 @@ public class AZSessionEnd implements AZMessage {
   
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
-    Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 20, getID(), getVersion() );
+    Map root = MessagingUtil.convertBencodedByteStreamToPayload( data, 20, getID() );
 
     byte[] hash = (byte[])root.get( "infohash" );
     if( hash == null )  throw new MessageException( "hash == null" );

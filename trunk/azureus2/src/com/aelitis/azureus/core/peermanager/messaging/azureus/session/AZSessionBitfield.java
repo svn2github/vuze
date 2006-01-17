@@ -52,7 +52,8 @@ public class AZSessionBitfield implements AZMessage {
 
   public String getID() {  return AZMessage.ID_AZ_SESSION_BITFIELD;  }
   
-  public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
+  public String getFeatureID() {  throw new RuntimeException( "not implemented" );  }   //TODO  
+  public int getFeatureSubID() {  throw new RuntimeException( "not implemented" );  }   //TODO
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
@@ -68,11 +69,11 @@ public class AZSessionBitfield implements AZMessage {
 
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data == null ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
+      throw new MessageException( "[" +getID()+ "] decode error: data == null" );
     }
         
     if( data.remaining( DirectByteBuffer.SS_MSG ) < 4 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 4" );
+      throw new MessageException( "[" +getID() + "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] < 4" );
     }
     
     int id = data.getInt( DirectByteBuffer.SS_MSG );

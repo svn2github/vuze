@@ -53,7 +53,10 @@ public class AZGenericMapPayload implements AZMessage {
     
   public String getID() {  return type_id;  }
   
-  public byte getVersion() {  return AZMessage.AZ_DEFAULT_VERSION;  }
+  public String getFeatureID() {  return AZMessage.AZ_FEATURE_ID;  }  
+  
+  public int getFeatureSubID() { return AZMessage.SUBID_AZ_GENERIC_MAP;  }
+  
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
  
@@ -72,7 +75,7 @@ public class AZGenericMapPayload implements AZMessage {
   
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {
-    Map payload = MessagingUtil.convertBencodedByteStreamToPayload( data, 1, getID(), getVersion() );
+    Map payload = MessagingUtil.convertBencodedByteStreamToPayload( data, 1, getID() );
     return new AZGenericMapPayload( getID(), payload );
   }
   

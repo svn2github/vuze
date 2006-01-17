@@ -94,31 +94,31 @@ public class BTMessageFactory {
     
     switch( id ) {
       case 0:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CHOKE, BTMessage.BT_DEFAULT_VERSION, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CHOKE, stream_payload );
         
       case 1:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNCHOKE, BTMessage.BT_DEFAULT_VERSION, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNCHOKE, stream_payload );
         
       case 2:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_INTERESTED, BTMessage.BT_DEFAULT_VERSION, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_INTERESTED, stream_payload );
         
       case 3:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNINTERESTED, BTMessage.BT_DEFAULT_VERSION, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_UNINTERESTED, stream_payload );
         
       case 4:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HAVE, BTMessage.BT_DEFAULT_VERSION, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_HAVE, stream_payload );
         
       case 5:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_BITFIELD, BTMessage.BT_DEFAULT_VERSION, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_BITFIELD, stream_payload );
         
       case 6:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_REQUEST, BTMessage.BT_DEFAULT_VERSION, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_REQUEST, stream_payload );
         
       case 7:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_PIECE, BTMessage.BT_DEFAULT_VERSION, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_PIECE, stream_payload );
         
       case 8:
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL, BTMessage.BT_DEFAULT_VERSION, stream_payload );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_CANCEL, stream_payload );
         
       case 20:
         //Clients seeing our handshake reserved bit will send us the old 'extended' messaging hello message accidentally.
@@ -127,7 +127,7 @@ public class BTMessageFactory {
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
 							"Old extended messaging hello received, "
 									+ "ignoring and faking as keep-alive."));
-        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, BTMessage.BT_DEFAULT_VERSION, null );
+        return MessageManager.getSingleton().createMessage( BTMessage.ID_BT_KEEP_ALIVE, null );
         
       default: {  System.out.println( "Unknown BT message id [" +id+ "]" );
         					throw new MessageException( "Unknown BT message id [" +id+ "]" );

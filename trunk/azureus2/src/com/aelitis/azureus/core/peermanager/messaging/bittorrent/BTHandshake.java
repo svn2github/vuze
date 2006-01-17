@@ -108,7 +108,9 @@ public class BTHandshake implements BTMessage, RawMessage {
   // message
   public String getID() {  return BTMessage.ID_BT_HANDSHAKE;  }
   
-  public byte getVersion() {  return BTMessage.BT_DEFAULT_VERSION;  }
+public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  } 
+  
+  public int getFeatureSubID() {  return BTMessage.SUBID_BT_HANDSHAKE;  }
   
   public int getType() {  return Message.TYPE_PROTOCOL_PAYLOAD;  }
     
@@ -133,22 +135,22 @@ public class BTHandshake implements BTMessage, RawMessage {
   
   public Message deserialize( DirectByteBuffer data ) throws MessageException {    
     if( data == null ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: data == null" );
+      throw new MessageException( "[" +getID() + "] decode error: data == null" );
     }
     
     if( data.remaining( DirectByteBuffer.SS_MSG ) != 68 ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 68" );
+      throw new MessageException( "[" +getID() + "] decode error: payload.remaining[" +data.remaining( DirectByteBuffer.SS_MSG )+ "] != 68" );
     }
     
     if( data.get( DirectByteBuffer.SS_MSG ) != (byte)PROTOCOL.length() ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: payload.get() != (byte)PROTOCOL.length()" );
+      throw new MessageException( "[" +getID() + "] decode error: payload.get() != (byte)PROTOCOL.length()" );
     }
     
     byte[] header = new byte[ PROTOCOL.getBytes().length ];
     data.get( DirectByteBuffer.SS_MSG, header );
     
     if( !PROTOCOL.equals( new String( header ) ) ) {
-      throw new MessageException( "[" +getID() + ":" +getVersion()+ "] decode error: invalid protocol given: " + new String( header ) );
+      throw new MessageException( "[" +getID() + "] decode error: invalid protocol given: " + new String( header ) );
     }
     
     byte[] reserved = new byte[ 8 ];

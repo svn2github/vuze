@@ -444,7 +444,7 @@ PEPeerTransportProtocol
     
     for( int i=0; i < avail_msgs.length; i++ ) {
       avail_ids[i] = avail_msgs[i].getID();
-      avail_vers[i] = avail_msgs[i].getVersion();
+      avail_vers[i] = (byte)1;  //NOTE: hack for ADV messaging transition
     }
     
     int local_udp_port = 0;
@@ -1326,7 +1326,7 @@ PEPeerTransportProtocol
     ArrayList messages = new ArrayList();
 
     for( int i=0; i < handshake.getMessageIDs().length; i++ ) {
-      Message msg = MessageManager.getSingleton().lookupMessage( handshake.getMessageIDs()[i], handshake.getMessageVersions()[i] );
+      Message msg = MessageManager.getSingleton().lookupMessage( handshake.getMessageIDs()[i] );
       
       if( msg != null ) {  //mutual support!
         messages.add( msg );

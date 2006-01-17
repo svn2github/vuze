@@ -229,7 +229,7 @@ public class OutgoingMessageQueue {
         RawMessage msg = (RawMessage)i.next();
         
         for( int t=0; t < message_types.length; t++ ) {
-          boolean same_type = message_types[t].getID().equals( msg.getID() ) && message_types[t].getVersion() == msg.getVersion();
+          boolean same_type = message_types[t].getID().equals( msg.getID() );
           
           if( same_type && msg.getRawData()[0].position(DirectByteBuffer.SS_NET) == 0 ) {   //dont remove a half-sent message
             if( msg == urgent_message ) urgent_message = null;

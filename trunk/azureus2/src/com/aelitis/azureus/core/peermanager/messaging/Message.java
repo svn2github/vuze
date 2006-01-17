@@ -42,8 +42,7 @@ public interface Message {
    */
   public static final int TYPE_DATA_PAYLOAD     = 1;
 
-  
-  
+
   
   /**
    * Get message id.
@@ -51,11 +50,19 @@ public interface Message {
    */
   public String getID();
   
+  
   /**
-   * Get message version.
-   * @return version
+   * Get the main feature set name this message belongs to.
+   * @return feature id
    */
-  public byte getVersion();
+  public String getFeatureID();
+  
+  /**
+   * Get the static message sub-id for the feature.
+   * @return sub id
+   */
+  public int getFeatureSubID();
+  
   
   /**
    * Get message type.

@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.peermanager.messaging.azureus;
+package com.aelitis.azureus.core.peermanager.messaging.advanced;
 
 import java.util.*;
 
@@ -29,6 +29,9 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
 import com.aelitis.azureus.core.peermanager.messaging.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZGenericMapPayload;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZHandshake;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.AZPeerExchange;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.session.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
@@ -39,7 +42,7 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
  * Factory for handling AZ message creation.
  * NOTE: wire format: [total message length] + [id length] + [id bytes] + [version byte] + [payload bytes]
  */
-public class AZMessageFactory {
+public class ADVMessageFactory {
   private static final byte bss = DirectByteBuffer.SS_MSG;
   
   
@@ -140,7 +143,7 @@ public class AZMessageFactory {
     header.putInt( bss, 5 + id_bytes.length + payload_size );
     header.putInt( bss, id_bytes.length );
     header.put( bss, id_bytes );
-    header.put( bss, (byte)1 );  //NOTE: this is a hack as we transition to ADV messaging.
+    //header.put( bss, base_message.getVersion() );
     header.flip( bss );
     
     DirectByteBuffer[] raw_buffs = new DirectByteBuffer[ payload.length + 1 ];

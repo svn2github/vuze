@@ -51,11 +51,6 @@ public interface Message {
    */
   public String getID();
   
-  /**
-   * Get message version.
-   * @return version
-   */
-  public byte getVersion();
   
   /**
    * Get message type.

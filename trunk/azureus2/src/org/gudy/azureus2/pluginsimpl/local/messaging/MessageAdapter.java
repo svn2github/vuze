@@ -27,6 +27,8 @@ import java.nio.ByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.messaging.*;
 
+import com.aelitis.azureus.core.peermanager.messaging.advanced.ADVMessage;
+
 
 
 
@@ -89,9 +91,6 @@ public class MessageAdapter implements Message, com.aelitis.azureus.core.peerman
     return core_msg == null ? plug_msg.getID() : core_msg.getID();
   }
   
-  public byte getVersion() {
-    return core_msg == null ? plug_msg.getVersion() : core_msg.getVersion();
-  }
   
   public int getType() {
     return core_msg == null ? plug_msg.getType() : core_msg.getType();
@@ -108,7 +107,13 @@ public class MessageAdapter implements Message, com.aelitis.azureus.core.peerman
   
   
   
-  //core Message implementation 
+  //core Message implementation
+  
+  public String getFeatureID() {  return ADVMessage.PLUGIN_MESSAGE_FEATURE_ID;  }
+  
+  public int getFeatureSubID() {  return -1;  }  
+  
+  
   public DirectByteBuffer[] getData() {
     if( plug_msg == null ) {
       return core_msg.getData();
