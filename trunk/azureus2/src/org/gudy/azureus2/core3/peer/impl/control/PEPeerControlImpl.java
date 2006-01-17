@@ -1615,32 +1615,54 @@ PEPeerControlImpl
 	 * If the returned time is negative, the download
 	 * is complete and it took -xxx time to complete.
 	 */
-	public long getETA() {
-		int writtenNotChecked = 0;
-		for (int i = 0; i < _pieces.length; i++)
-		{
-			if (dm_pieces[i].isInteresting())
-				writtenNotChecked +=dm_pieces[i].getNbWritten() *DiskManager.BLOCK_SIZE;
+	public long 
+	getETA() 
+	{	
+		long	now = SystemTime.getCurrentTime();
+		
+		long dataRemaining = disk_mgr.getRemainingExcludingDND();
+
+		if ( dataRemaining > 0 ){
+			
+			int writtenNotChecked = 0;
+			
+			for (int i = 0; i < _pieces.length; i++)
+			{
+				if (dm_pieces[i].isInteresting()){
+					writtenNotChecked +=dm_pieces[i].getNbWritten() *DiskManager.BLOCK_SIZE;
+				}
+			}
+		
+			dataRemaining = dataRemaining - writtenNotChecked;
+		
+			if  (dataRemaining < 0 ){
+				
+				dataRemaining	= 0;
+			}
 		}
 		
-		long dataRemaining = disk_mgr.getRemainingExcludingDND() - writtenNotChecked;
-		if  (dataRemaining < 0 ){
-			dataRemaining	= 0;
-		}
+		long	result;
+		
 		if (dataRemaining == 0) {
 			long timeElapsed = (_timeFinished - _timeStarted)/1000;
 			//if time was spent downloading....return the time as negative
-			if(timeElapsed > 1) return timeElapsed * -1;
-			return 0;
+			if(timeElapsed > 1){
+				result = timeElapsed * -1;
+			}else{
+				result = 0;
+			}
+		}else{
+		
+			long averageSpeed = _averageReceptionSpeed.getAverage();
+			long lETA = (averageSpeed == 0) ? Constants.INFINITY_AS_INT : dataRemaining / averageSpeed;
+			// stop the flickering of ETA from "Finished" to "x seconds" when we are 
+			// just about complete, but the data rate is jumpy.
+			if (lETA == 0)
+				lETA = 1;
+			result = lETA;
 		}
 		
-		long averageSpeed = _averageReceptionSpeed.getAverage();
-		long lETA = (averageSpeed == 0) ? Constants.INFINITY_AS_INT : dataRemaining / averageSpeed;
-		// stop the flickering of ETA from "Finished" to "x seconds" when we are 
-		// just about complete, but the data rate is jumpy.
-		if (lETA == 0)
-			lETA = 1;
-		return lETA;
+		return( result );
 	}
 	
 	

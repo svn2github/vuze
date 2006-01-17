@@ -35,24 +35,24 @@ import org.gudy.azureus2.core3.util.*;
  */
 public class TCPTransportHelper {
 	
-	private static boolean enable_efficient_io = Constants.JAVA_VERSION.startsWith("1.5");
+	private static boolean enable_efficient_io = !Constants.JAVA_VERSION.startsWith("1.4");
 
-	private final SocketChannel channel;
-	
+	private	final TCPTransportHelperFilter	filter;
+		
 	public TCPTransportHelper( SocketChannel _channel ) {
-		this.channel = _channel;
+		filter = new TCPTransportHelperFilterDecoder( _channel );
 	}
 	
 
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-  	if( channel == null ) {
+  	if( filter == null ) {
       Debug.out( "channel == null" );
       return 0;
     }
     
   	if( enable_efficient_io ) {
   		try {
-  			return channel.write( buffers, array_offset, length );
+  			return filter.write( buffers, array_offset, length );
   		}
   		catch( IOException ioe ) {
   			//a bug only fixed in Tiger (1.5 series):
@@ -73,7 +73,7 @@ public class TCPTransportHelper {
   	long written_sofar = 0;
   	for( int i=array_offset; i < (array_offset + length); i++ ) {
   		int data_length = buffers[ i ].remaining();
-  		int written = channel.write( buffers[ i ] );
+  		int written = filter.write( buffers[ i ] );
   		written_sofar += written;
   		if( written < data_length ) {
   			break;
@@ -86,7 +86,7 @@ public class TCPTransportHelper {
   
   
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {  	
-    if( channel == null ) {
+    if( filter == null ) {
       Debug.out( "channel == null" );
       return 0;
     }
@@ -101,7 +101,7 @@ public class TCPTransportHelper {
     
     if( enable_efficient_io ) {
       try{
-        bytes_read = channel.read( buffers, array_offset, length );
+        bytes_read = filter.read( buffers, array_offset, length );
       }
       catch( IOException ioe ) {
         //a bug only fixed in Tiger (1.5 series):
@@ -121,7 +121,7 @@ public class TCPTransportHelper {
       //single-buffer mode
       for( int i=array_offset; i < (array_offset + length); i++ ) {
         int data_length = buffers[ i ].remaining();
-        int read = channel.read( buffers[ i ] );
+        int read = filter.read( buffers[ i ] );
         bytes_read += read;
         if( read < data_length ) {
           break;
@@ -138,6 +138,6 @@ public class TCPTransportHelper {
   
 
   
-  public SocketChannel getSocketChannel(){  return channel;  }
+  public SocketChannel getSocketChannel(){  return filter==null?null:filter.getChannel(); }
 	
 }
