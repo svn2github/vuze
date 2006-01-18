@@ -234,7 +234,7 @@ DiskManagerFileInfoImpl
 			
 			Debug.printStackTrace(e);
 			
-			diskManager.setFailed( this, "Failed to change storge type for '" + getFile(true) + "': " + Debug.getNestedExceptionMessage(e));
+			diskManager.setFailed( this, "Failed to change storage type for '" + getFile(true) + "': " + Debug.getNestedExceptionMessage(e));
 			
 			return( false );
 			

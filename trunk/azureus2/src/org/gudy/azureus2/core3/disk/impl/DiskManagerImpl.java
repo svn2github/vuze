@@ -2514,7 +2514,7 @@ DiskManagerImpl
 									new LogAlert(
 											LogAlert.REPEATABLE, 
 											LogAlert.AT_ERROR,
-											"Failed to change storge type for '" + getFile(true) +"': " + Debug.getNestedExceptionMessage(e)));
+											"Failed to change storage type for '" + getFile(true) +"': " + Debug.getNestedExceptionMessage(e)));
 
 									// download's not running - tag for recheck
 								
