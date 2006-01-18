@@ -59,7 +59,9 @@ public class TrackerStatus {
    * When scraping a single hash, also scrape other hashes that are going to
    * be scraped within this range.
    */
-  private final static int GROUP_SCRAPES_MS = 60 * 15 * 1000;
+  private final static int GROUP_SCRAPES_MS 	= 60 * 15 * 1000;
+  private final static int GROUP_SCRAPES_LIMIT	= 20;
+  
   
   static{
   	PRUDPTrackerCodecs.registerCodecs();
@@ -236,7 +238,11 @@ public class TrackerStatus {
 		    		
 			      Iterator iterHashes = hashes.values().iterator();
 			      
-			      while( iterHashes.hasNext() ) {
+			      	// if we hit trackers with excessive scrapes they respond in varying fashions - from no reply
+			      	// to returning 414 to whatever. Rather than hit trackers with large payloads that they then
+			      	// reject we limit to MULTI_SCRAPE_LIMIT in one go
+			      
+			      while( iterHashes.hasNext() && responsesToUpdate.size() < GROUP_SCRAPES_LIMIT ){
 			      	
 			        TRTrackerScraperResponseImpl r = (TRTrackerScraperResponseImpl)iterHashes.next();
 			        
