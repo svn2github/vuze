@@ -26,16 +26,30 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-public interface 
-TCPTransportHelperFilter 
+public class 
+TCPTransportHelperFilterXOR
+	implements TCPTransportHelperFilter
 {
+	protected TCPTransportHelper		transport;
+	
+	protected
+	TCPTransportHelperFilterXOR(
+		TCPTransportHelper		_transport,
+		byte[]					_mask )
+	{
+		transport	= _transport;
+	}
+	
 	public long 
 	write( 
 		ByteBuffer[] 	buffers, 
 		int 			array_offset, 
 		int 			length ) 
 	
-		throws IOException;
+		throws IOException
+	{
+		throw( new IOException( "not imp" ));
+	}
 
 	public long 
 	read( 
@@ -43,8 +57,14 @@ TCPTransportHelperFilter
 		int 			array_offset, 
 		int 			length ) 
 	
-		throws IOException;
+		throws IOException
+	{
+		throw( new IOException( "not imp" ));
+	}
 	
 	public SocketChannel
-	getSocketChannel();
+	getSocketChannel()
+	{
+		return( transport.getSocketChannel());
+	}
 }

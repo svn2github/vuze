@@ -30,13 +30,22 @@ public class
 TCPTransportHelperFilterTransparent 
 	implements TCPTransportHelperFilter
 {
-	private SocketChannel		channel;
+	private TCPTransportHelper		transport;
+	
+	private ByteBuffer			read_insert;
 	
 	protected 
 	TCPTransportHelperFilterTransparent(
-		SocketChannel	_channel )
+		TCPTransportHelper	_transport )
 	{
-		channel	= _channel;
+		transport	= _transport;
+	}
+	
+	protected void
+	insertRead(
+		ByteBuffer	_read_insert )
+	{
+		read_insert	= _read_insert;
 	}
 	
 	public long 
@@ -47,7 +56,7 @@ TCPTransportHelperFilterTransparent
 	
 		throws IOException
 	{
-		return( channel.write( buffers, array_offset, length ));
+		return( transport.write( buffers, array_offset, length ));
 	}
 
 	public int 
@@ -56,7 +65,7 @@ TCPTransportHelperFilterTransparent
 	
 		throws IOException
 	{
-		return( channel.write( buffer ));
+		return( transport.write( buffer ));
 	}
 	
 	public long 
@@ -67,7 +76,35 @@ TCPTransportHelperFilterTransparent
 	
 		throws IOException
 	{
-		return( channel.read( buffers, array_offset, length ));
+		int	len = 0;
+		
+		if ( read_insert != null ){
+		
+			int	pos_before	= read_insert.position();
+			
+			for (int i=array_offset;i<length;i++){
+				
+				buffers[i].put( read_insert );
+				
+				if ( !read_insert.hasRemaining()){
+										
+					break;
+				}
+			}
+			
+			len	= read_insert.position() - pos_before;
+			
+			if ( read_insert.hasRemaining()){
+				
+				return( len );
+				
+			}else{
+				
+				read_insert	= null;
+			}
+		}
+		
+		return( len + transport.read( buffers, array_offset, length ));
 	}
 
 	public int 
@@ -76,12 +113,18 @@ TCPTransportHelperFilterTransparent
 	
 		throws IOException
 	{
-		return( channel.read( buffer ));
+
+		if ( read_insert != null ){
+			
+			return((int)read( new ByteBuffer[]{ buffer }, 0, 1 ));
+		}
+		
+		return( transport.read( buffer ));
 	}
 	
 	public SocketChannel
-	getChannel()
+	getSocketChannel()
 	{
-		return( channel );
+		return( transport.getSocketChannel());
 	}
 }

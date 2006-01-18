@@ -291,19 +291,19 @@ public class IncomingSocketChannelManager {
     if( match_buffers.isEmpty() ) {  //no match registrations, just close
     	if (Logger.isEnabled())
     		Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
-    				+ filter.getChannel().socket().getInetAddress().getHostAddress() + ":"
-    				+ filter.getChannel().socket().getPort()+ "] dropped because zero routing handlers registered"));
-    	NetworkManager.getSingleton().closeSocketChannel( filter.getChannel() );
+    				+ filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ":"
+    				+ filter.getSocketChannel().socket().getPort()+ "] dropped because zero routing handlers registered"));
+    	NetworkManager.getSingleton().closeSocketChannel( filter.getSocketChannel() );
       return;
     }
     
     //set advanced socket options
     try {
       int so_sndbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
-      if( so_sndbuf_size > 0 )  filter.getChannel().socket().setSendBufferSize( so_sndbuf_size );
+      if( so_sndbuf_size > 0 )  filter.getSocketChannel().socket().setSendBufferSize( so_sndbuf_size );
       
       String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
-      if( ip_tos.length() > 0 )  filter.getChannel().socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+      if( ip_tos.length() > 0 )  filter.getSocketChannel().socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
     }
     catch( Throwable t ) {
       t.printStackTrace();
@@ -315,11 +315,11 @@ public class IncomingSocketChannelManager {
 
       connections.add( ic );
       
-      NetworkManager.getSingleton().getReadSelector().register( ic.filter.getChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+      NetworkManager.getSingleton().getReadSelector().register( ic.filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
         //SUCCESS
         public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {
           try {                 
-          	int bytes_read = ic.filter.read( ic.buffer );
+          	long bytes_read = ic.filter.read( new ByteBuffer[]{ ic.buffer }, 0, 1 );
             
             if( bytes_read < 0 ) {
               throw new IOException( "end of stream on socket read" );
@@ -431,13 +431,13 @@ public class IncomingSocketChannelManager {
   protected void removeConnection( IncomingConnection connection, boolean close_as_well ) {
     try{  connections_mon.enter();
     
-      NetworkManager.getSingleton().getReadSelector().cancel( connection.filter.getChannel() );  //cancel read op
+      NetworkManager.getSingleton().getReadSelector().cancel( connection.filter.getSocketChannel() );  //cancel read op
       connections.remove( connection );   //remove from connection list
       
     } finally {  connections_mon.exit();  }
     
     if( close_as_well ) {
-      NetworkManager.getSingleton().closeSocketChannel( connection.filter.getChannel() );  //async close it
+      NetworkManager.getSingleton().closeSocketChannel( connection.filter.getSocketChannel() );  //async close it
     }
   }
   
@@ -495,8 +495,8 @@ public class IncomingSocketChannelManager {
           else if( now - ic.last_read_time > 10*1000 ) {  //10s read timeout
           	if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
-									+ ic.filter.getChannel().socket().getInetAddress().getHostAddress() + ":"
-									+ ic.filter.getChannel().socket().getPort()
+									+ ic.filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ":"
+									+ ic.filter.getSocketChannel().socket().getPort()
 									+ "] forcibly timed out due to socket read inactivity ["
 									+ ic.buffer.position() + " bytes read: "
 									+ new String(ic.buffer.array()) + "]"));
@@ -511,7 +511,7 @@ public class IncomingSocketChannelManager {
           else if( now - ic.initial_connect_time > 60*1000 ) {  //60s connect timeout
           	if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
-									+ ic.filter.getChannel() + "] forcibly timed out after "
+									+ ic.filter.getSocketChannel() + "] forcibly timed out after "
 									+ "60sec due to socket inactivity"));
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );

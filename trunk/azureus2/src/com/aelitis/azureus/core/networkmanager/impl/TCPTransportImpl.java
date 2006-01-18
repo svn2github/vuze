@@ -41,7 +41,7 @@ import com.aelitis.azureus.core.networkmanager.*;
 public class TCPTransportImpl implements TCPTransport {
 	private static final LogIDs LOGID = LogIDs.NET;
   
-  protected TCPTransportHelper helper;
+  protected TCPTransportHelperFilter filter;
 
   protected volatile boolean is_ready_for_write = false;
   protected volatile boolean is_ready_for_read = false;
@@ -69,7 +69,7 @@ public class TCPTransportImpl implements TCPTransport {
    * Constructor for disconnected (outbound) transport.
    */
   public TCPTransportImpl( boolean _use_crypto ) {
-  	helper = null;
+	  filter = null;
     is_inbound_connection = false;
     connect_with_crypto = _use_crypto;
   }
@@ -81,11 +81,11 @@ public class TCPTransportImpl implements TCPTransport {
    * @param already_read bytes from the channel
    */
   public TCPTransportImpl( TCPTransportHelperFilter	filter, ByteBuffer already_read ) {
-    this.helper = new TCPTransportHelper( filter );
+    this.filter = filter;
     this.data_already_read = already_read;   
     is_inbound_connection = true;
     connect_with_crypto = false;  //inbound connections will automatically be using crypto if necessary
-    description = ( is_inbound_connection ? "R" : "L" ) + ": " + filter.getChannel().socket().getInetAddress().getHostAddress() + ": " + filter.getChannel().socket().getPort();
+    description = ( is_inbound_connection ? "R" : "L" ) + ": " + filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ": " + filter.getSocketChannel().socket().getPort();
     
     registerSelectHandling();
   }
@@ -106,7 +106,7 @@ public class TCPTransportImpl implements TCPTransport {
    * Get the socket channel used by the transport.
    * @return the socket channel
    */
-  public SocketChannel getSocketChannel() {  return helper.getSocketChannel();  }
+  public SocketChannel getSocketChannel() {  return filter.getSocketChannel();  }
   
   
   /**
@@ -144,7 +144,7 @@ public class TCPTransportImpl implements TCPTransport {
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
   	if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
     
-  	long written = helper.write( buffers, array_offset, length );
+  	long written = filter.write( buffers, array_offset, length );
 
   	if( stats != null )  stats.bytesWritten( (int)written );  //TODO
        
@@ -157,29 +157,29 @@ public class TCPTransportImpl implements TCPTransport {
   
   private void requestWriteSelect() {
     is_ready_for_write = false;
-    if( helper != null ){
-      NetworkManager.getSingleton().getWriteSelector().resumeSelects( helper.getSocketChannel() );
+    if( filter != null ){
+      NetworkManager.getSingleton().getWriteSelector().resumeSelects( filter.getSocketChannel() );
     }
   }
   
   
   private void requestReadSelect() {
     is_ready_for_read = false;
-    if( helper != null ){
-      NetworkManager.getSingleton().getReadSelector().resumeSelects( helper.getSocketChannel() );
+    if( filter != null ){
+      NetworkManager.getSingleton().getReadSelector().resumeSelects( filter.getSocketChannel() );
     }
   } 
   
 
   
   private void registerSelectHandling() {
-    if( helper == null ) {
+    if( filter == null ) {
       Debug.out( "ERROR: registerSelectHandling():: socket_channel == null" );
       return;
     }
 
     //read selection
-    NetworkManager.getSingleton().getReadSelector().register( helper.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+    NetworkManager.getSingleton().getReadSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
         is_ready_for_read = true;
         return true;
@@ -193,7 +193,7 @@ public class TCPTransportImpl implements TCPTransport {
     
     
     //write selection
-    NetworkManager.getSingleton().getWriteSelector().register( helper.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+    NetworkManager.getSingleton().getWriteSelector().register( filter.getSocketChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
       public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,Object attachment ) {
         is_ready_for_write = true;
         return true;
@@ -256,7 +256,7 @@ public class TCPTransportImpl implements TCPTransport {
     }
  
         
-    long bytes_read = helper.read( buffers, array_offset, length );
+    long bytes_read = filter.read( buffers, array_offset, length );
 
     if( stats != null )  stats.bytesRead( (int)bytes_read );  //TODO
     
@@ -279,7 +279,7 @@ public class TCPTransportImpl implements TCPTransport {
   public void establishOutboundConnection( final InetSocketAddress address, final ConnectListener listener ) {
     if( has_been_closed )  return;
     
-    if( helper != null ) {  //already connected
+    if( filter != null ) {  //already connected
       Debug.out( "socket_channel != null" );
       listener.connectSuccess();
       return;
@@ -349,8 +349,8 @@ public class TCPTransportImpl implements TCPTransport {
   	if( connect_with_crypto ) {
     	//attempt encrypted transport
     	TransportCryptoManager.getSingleton().manageCrypto( channel, false, new TransportCryptoManager.HandshakeListener() {
-    		public void handshakeSuccess( TCPTransportHelperFilter filter ) {
-    			helper = new TCPTransportHelper( filter );    	
+    		public void handshakeSuccess( TCPTransportHelperFilter _filter ) {
+    			filter = _filter;    	
         	registerSelectHandling();
           listener.connectSuccess();
     		}
@@ -361,7 +361,7 @@ public class TCPTransportImpl implements TCPTransport {
     	});
   	}
   	else {  //no crypto
-  		helper = new TCPTransportHelper( TCPTransportHelperFilterFactory.createTransparentFilter( channel ) );    	
+  		filter = TCPTransportHelperFilterFactory.createTransparentFilter( channel );    	
     	registerSelectHandling();
       listener.connectSuccess();
   	}
@@ -371,17 +371,17 @@ public class TCPTransportImpl implements TCPTransport {
   
 
   private void setTransportBuffersSize( int size_in_bytes ) {
-  	if( helper == null ) {
+  	if( filter == null ) {
   		Debug.out( "socket_channel == null" );
   		return;
   	}
   	
     try{
-    	helper.getSocketChannel().socket().setSendBufferSize( size_in_bytes );
-    	helper.getSocketChannel().socket().setReceiveBufferSize( size_in_bytes );
+    	filter.getSocketChannel().socket().setSendBufferSize( size_in_bytes );
+    	filter.getSocketChannel().socket().setReceiveBufferSize( size_in_bytes );
       
-      int snd_real = helper.getSocketChannel().socket().getSendBufferSize();
-      int rcv_real = helper.getSocketChannel().socket().getReceiveBufferSize();
+      int snd_real = filter.getSocketChannel().socket().getSendBufferSize();
+      int rcv_real = filter.getSocketChannel().socket().getReceiveBufferSize();
       
       Logger.log(new LogEvent(LOGID, "Setting new transport [" + description
 					+ "] buffer sizes: SND=" + size_in_bytes + " [" + snd_real
@@ -443,10 +443,10 @@ public class TCPTransportImpl implements TCPTransport {
     is_ready_for_read = false;
     is_ready_for_write = false;
 
-    if( helper != null ){
-      NetworkManager.getSingleton().getReadSelector().cancel( helper.getSocketChannel() );
-      NetworkManager.getSingleton().getWriteSelector().cancel( helper.getSocketChannel() );
-      NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( helper.getSocketChannel() );
+    if( filter != null ){
+      NetworkManager.getSingleton().getReadSelector().cancel( filter.getSocketChannel() );
+      NetworkManager.getSingleton().getWriteSelector().cancel( filter.getSocketChannel() );
+      NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( filter.getSocketChannel() );
     }
   }
      

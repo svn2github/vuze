@@ -37,22 +37,29 @@ public class TCPTransportHelper {
 	
 	private static boolean enable_efficient_io = !Constants.JAVA_VERSION.startsWith("1.4");
 
-	private	final TCPTransportHelperFilter	filter;
+	private	final SocketChannel	channel;
 		
-	public TCPTransportHelper( TCPTransportHelperFilter	_filter ) {
-		filter = _filter;
+	public TCPTransportHelper( SocketChannel _channel ) {
+		channel = _channel;
 	}
 	
+	 public int write( ByteBuffer buffer ) throws IOException {  	
+		    if( channel == null ) {
+		      Debug.out( "channel == null" );
+		      return 0;
+		    }
+		    return( channel.write( buffer ));
+	  }
 
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-  	if( filter == null ) {
+  	if( channel == null ) {
       Debug.out( "channel == null" );
       return 0;
     }
     
   	if( enable_efficient_io ) {
   		try {
-  			return filter.write( buffers, array_offset, length );
+  			return channel.write( buffers, array_offset, length );
   		}
   		catch( IOException ioe ) {
   			//a bug only fixed in Tiger (1.5 series):
@@ -73,7 +80,7 @@ public class TCPTransportHelper {
   	long written_sofar = 0;
   	for( int i=array_offset; i < (array_offset + length); i++ ) {
   		int data_length = buffers[ i ].remaining();
-  		int written = filter.write( buffers[ i ] );
+  		int written = channel.write( buffers[ i ] );
   		written_sofar += written;
   		if( written < data_length ) {
   			break;
@@ -83,10 +90,16 @@ public class TCPTransportHelper {
   	return written_sofar;
   }
 
-  
+  public int read( ByteBuffer buffer ) throws IOException {  	
+	    if( channel == null ) {
+	      Debug.out( "channel == null" );
+	      return 0;
+	    }
+	    return( channel.read( buffer ));
+  }
   
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {  	
-    if( filter == null ) {
+    if( channel == null ) {
       Debug.out( "channel == null" );
       return 0;
     }
@@ -101,7 +114,7 @@ public class TCPTransportHelper {
     
     if( enable_efficient_io ) {
       try{
-        bytes_read = filter.read( buffers, array_offset, length );
+        bytes_read = channel.read( buffers, array_offset, length );
       }
       catch( IOException ioe ) {
         //a bug only fixed in Tiger (1.5 series):
@@ -121,7 +134,7 @@ public class TCPTransportHelper {
       //single-buffer mode
       for( int i=array_offset; i < (array_offset + length); i++ ) {
         int data_length = buffers[ i ].remaining();
-        int read = filter.read( buffers[ i ] );
+        int read = channel.read( buffers[ i ] );
         bytes_read += read;
         if( read < data_length ) {
           break;
@@ -138,6 +151,6 @@ public class TCPTransportHelper {
   
 
   
-  public SocketChannel getSocketChannel(){  return filter==null?null:filter.getChannel(); }
+  public SocketChannel getSocketChannel(){  return channel; }
 	
 }

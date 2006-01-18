@@ -1,5 +1,5 @@
 /*
- * Created on 17-Jan-2006
+ * Created on 18-Jan-2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -22,29 +22,16 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-
 public interface 
-TCPTransportHelperFilter 
+TCPProtocolDecoderAdapter 
 {
-	public long 
-	write( 
-		ByteBuffer[] 	buffers, 
-		int 			array_offset, 
-		int 			length ) 
+	public void
+	decodeComplete(
+		TCPProtocolDecoder	decoder );
 	
-		throws IOException;
-
-	public long 
-	read( 
-		ByteBuffer[] 	buffers, 
-		int 			array_offset, 
-		int 			length ) 
+	public void
+	decodeFailed(
+		TCPProtocolDecoder	decoder,
+		Throwable			cause );
 	
-		throws IOException;
-	
-	public SocketChannel
-	getSocketChannel();
 }

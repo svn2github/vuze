@@ -78,7 +78,7 @@ public class NetworkConnectionImpl implements NetworkConnection {
    * @param decoder default message stream decoder to use for the incoming queue
    */
   public NetworkConnectionImpl( TCPTransportHelperFilter filter, ByteBuffer data_already_read, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
-    remote_address = new InetSocketAddress( filter.getChannel().socket().getInetAddress(), filter.getChannel().socket().getPort() );
+    remote_address = new InetSocketAddress( filter.getSocketChannel().socket().getInetAddress(), filter.getSocketChannel().socket().getPort() );
     tcp_transport = TransportFactory.createTCPTransport( filter, data_already_read );
     is_connected = true;
     outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );

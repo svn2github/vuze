@@ -26,21 +26,26 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import javax.crypto.Cipher;
+
 public class 
-TCPTransportHelperFilterDecoder
+TCPTransportHelperFilterCipherStream 
 	implements TCPTransportHelperFilter
 {
-	private SocketChannel	channel;
-	
-	private TCPTransportHelperFilter		delegate;
+	private TCPTransportHelper		transport;
+	private Cipher					read_cipher;
+	private Cipher					write_cipher;
 	
 	protected
-	TCPTransportHelperFilterDecoder(
-		SocketChannel	_channel )
+	TCPTransportHelperFilterCipherStream(
+		TCPTransportHelper		_transport,
+		Cipher					_read_cipher,
+		Cipher					_write_cipher )
 	{
-		channel	= _channel;
+		transport	= _transport;
 		
-		delegate	= new TCPTransportHelperFilterTransparent( channel );
+		read_cipher		= _read_cipher;
+		write_cipher	= _write_cipher;
 	}
 	
 	public long 
@@ -51,18 +56,9 @@ TCPTransportHelperFilterDecoder
 	
 		throws IOException
 	{
-		return( delegate.write( buffers, array_offset, length ));
+		throw( new IOException( "not imp" ));
 	}
 
-	public int 
-	write( 
-		ByteBuffer 		buffer )
-	
-		throws IOException
-	{
-		return( delegate.write( buffer ));
-	}
-	
 	public long 
 	read( 
 		ByteBuffer[] 	buffers, 
@@ -71,21 +67,12 @@ TCPTransportHelperFilterDecoder
 	
 		throws IOException
 	{
-		return( delegate.read( buffers, array_offset, length ));	
-	}
-
-	public int 
-	read( 
-		ByteBuffer 		buffer )
-	
-		throws IOException
-	{
-		return( delegate.read( buffer ));
+		throw( new IOException( "not imp" ));
 	}
 	
 	public SocketChannel
-	getChannel()
+	getSocketChannel()
 	{
-		return( channel );
+		return( transport.getSocketChannel());
 	}
 }

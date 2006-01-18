@@ -35,10 +35,35 @@ public class TransportCryptoManager {
 
 
 	
-	public void manageCrypto( SocketChannel channel, boolean is_incoming, HandshakeListener listener ) {
+	public void manageCrypto( SocketChannel channel, boolean is_incoming, final HandshakeListener listener ) {
 		
 		//TODO base on config options for incoming
-		listener.handshakeSuccess( TCPTransportHelperFilterFactory.createCryptoFilter( channel ) );
+		
+		try{
+			new TCPProtocolDecoderInitial( 
+					channel, 
+					!is_incoming,
+					new TCPProtocolDecoderAdapter()
+					{
+						public void
+						decodeComplete(
+							TCPProtocolDecoder	decoder )
+						{
+							listener.handshakeSuccess( decoder.getFilter());
+						}
+						
+						public void
+						decodeFailed(
+							TCPProtocolDecoder	decoder,
+							Throwable			cause )
+						{
+							listener.handshakeFailure( cause );
+						}
+					});
+		}catch( Throwable e ){
+			
+			listener.handshakeFailure( e );
+		}
 	}
 	
 	

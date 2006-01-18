@@ -34,24 +34,24 @@ import com.aelitis.azureus.core.networkmanager.TCPTransport;
  */
 public class LightweightTCPTransport implements TCPTransport {
 	
-	private final TCPTransportHelper helper;	
+	private final TCPTransportHelperFilter filter;	
 	
 	public LightweightTCPTransport( TCPTransportHelperFilter filter ) {
-		this.helper = new TCPTransportHelper( filter );
+		this.filter = filter;
 	}
 	
 
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-  	return helper.write( buffers, array_offset, length );
+  	return filter.write( buffers, array_offset, length );
   }
 
   
   public long read( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
-  	return helper.read( buffers, array_offset, length );
+  	return filter.read( buffers, array_offset, length );
   }
   
 
-  public SocketChannel getSocketChannel(){  return helper.getSocketChannel();  }
+  public SocketChannel getSocketChannel(){  return filter.getSocketChannel();  }
   
   public String getDescription(){  return getSocketChannel().socket().getInetAddress().getHostAddress() + ": " + getSocketChannel().socket().getPort();  }
   
