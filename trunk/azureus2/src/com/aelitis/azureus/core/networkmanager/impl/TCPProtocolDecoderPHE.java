@@ -401,10 +401,8 @@ TCPProtocolDecoderPHE
 						write_buffer.put( dh_public_key_bytes );
 														
 							// 4 bytes for my supported protocols
-						
-						write_buffer.put( write_cipher.update( new byte[3] ));
-						
-						write_buffer.put( write_cipher.update( new byte[]{ my_supported_protocols }));
+											
+						write_buffer.put( write_cipher.update( new byte[]{ 0, 0, 0, my_supported_protocols }));
 						
 						write_buffer.put( write_cipher.update( new byte[]{ (byte)(padding.length>>8),(byte)padding.length }));
 					
@@ -430,11 +428,11 @@ TCPProtocolDecoderPHE
 						
 						byte[]	padding = getPadding();
 						
-						write_buffer = ByteBuffer.allocate( 20 + 1 + 2 + padding.length );
+						write_buffer = ByteBuffer.allocate( 20 + 4 + 2 + padding.length );
 						
 						write_buffer.put( sha1_secret_bytes );
 														
-						write_buffer.put( write_cipher.update( new byte[]{ selected_protocol }));
+						write_buffer.put( write_cipher.update( new byte[]{ 0, 0, 0, selected_protocol }));
 						
 						write_buffer.put( write_cipher.update( new byte[]{ (byte)(padding.length>>8),(byte)padding.length }));
 					
@@ -578,7 +576,7 @@ TCPProtocolDecoderPHE
 							
 							if ( match ){
 							
-								read_buffer = ByteBuffer.allocate( 3 );
+								read_buffer = ByteBuffer.allocate( 6 );
 								
 								protocol_substate	= 2;
 								
@@ -601,9 +599,9 @@ TCPProtocolDecoderPHE
 								
 							byte[]	etc = read_cipher.update( read_buffer.array());
 							
-							selected_protocol = etc[0];
+							selected_protocol = etc[3];
 							
-							int	padding	= (( etc[1] & 0xff ) << 8 ) + ( etc[2] & 0xff );
+							int	padding	= (( etc[4] & 0xff ) << 8 ) + ( etc[5] & 0xff );
 							
 							read_buffer = ByteBuffer.allocate( padding );
 							
