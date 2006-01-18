@@ -24,9 +24,9 @@ package com.aelitis.azureus.core.networkmanager;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 import com.aelitis.azureus.core.networkmanager.impl.NetworkConnectionImpl;
+import com.aelitis.azureus.core.networkmanager.impl.TCPTransportHelperFilter;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 
@@ -42,8 +42,8 @@ public class NetworkConnectionFactory {
    * @param decoder
    * @return outbound connection
    */
-  protected static NetworkConnection create( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
-    return new NetworkConnectionImpl( remote_address, encoder, decoder );
+  protected static NetworkConnection create( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto ) {
+    return new NetworkConnectionImpl( remote_address, encoder, decoder, connect_with_crypto );
   }
 
   
@@ -55,7 +55,7 @@ public class NetworkConnectionFactory {
    * @param decoder
    * @return inbound connection
    */
-  protected static NetworkConnection create( SocketChannel remote_channel, ByteBuffer data_already_read, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
-    return new NetworkConnectionImpl( remote_channel, data_already_read, encoder, decoder );
+  protected static NetworkConnection create( TCPTransportHelperFilter filter, ByteBuffer data_already_read, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
+    return new NetworkConnectionImpl( filter, data_already_read, encoder, decoder );
   }
 }

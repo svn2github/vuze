@@ -60,9 +60,9 @@ public class NetworkConnectionImpl implements NetworkConnection {
    * @param encoder default message stream encoder to use for the outgoing queue
    * @param decoder default message stream decoder to use for the incoming queue
    */
-  public NetworkConnectionImpl( InetSocketAddress _remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
+  public NetworkConnectionImpl( InetSocketAddress _remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto ) {
     remote_address = _remote_address;
-    tcp_transport = TransportFactory.createTCPTransport();
+    tcp_transport = TransportFactory.createTCPTransport( connect_with_crypto );
     is_connected = false;
     outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );
     incoming_message_queue = new IncomingMessageQueue( decoder, this );
@@ -77,9 +77,9 @@ public class NetworkConnectionImpl implements NetworkConnection {
    * @param encoder default message stream encoder to use for the outgoing queue
    * @param decoder default message stream decoder to use for the incoming queue
    */
-  public NetworkConnectionImpl( SocketChannel _remote_channel, ByteBuffer data_already_read, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
-    remote_address = new InetSocketAddress( _remote_channel.socket().getInetAddress(), _remote_channel.socket().getPort() );
-    tcp_transport = TransportFactory.createTCPTransport( _remote_channel, data_already_read );
+  public NetworkConnectionImpl( TCPTransportHelperFilter filter, ByteBuffer data_already_read, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
+    remote_address = new InetSocketAddress( filter.getChannel().socket().getInetAddress(), filter.getChannel().socket().getPort() );
+    tcp_transport = TransportFactory.createTCPTransport( filter, data_already_read );
     is_connected = true;
     outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );
     incoming_message_queue = new IncomingMessageQueue( decoder, this );

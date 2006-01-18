@@ -39,8 +39,8 @@ public class TCPTransportHelper {
 
 	private	final TCPTransportHelperFilter	filter;
 		
-	public TCPTransportHelper( SocketChannel _channel ) {
-		filter = new TCPTransportHelperFilterDecoder( _channel );
+	public TCPTransportHelper( TCPTransportHelperFilter	_filter ) {
+		filter = _filter;
 	}
 	
 

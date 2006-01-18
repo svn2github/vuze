@@ -29,24 +29,20 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
 import com.aelitis.azureus.core.peermanager.messaging.*;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZGenericMapPayload;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZHandshake;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZPeerExchange;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.session.*;
+import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 
 
 
 
 /**
- * Factory for handling AZ message creation.
- * NOTE: wire format: [total message length] + [id length] + [id bytes] + [version byte] + [payload bytes]
+ * Factory for handling ADV message creation.
  */
+//based on http://82.182.115.6/extension.txt  //TODO
+
 public class ADVMessageFactory {
   private static final byte bss = DirectByteBuffer.SS_MSG;
-  
-  
-  
+
   private static final Map legacy_data = new HashMap();
   static {
     legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke(), new BTPiece(-1, -1, null )} ) );
@@ -64,25 +60,21 @@ public class ADVMessageFactory {
   
   
   
+  private static Message[] registered_messages;
+  
+  private static final HashMap mapping_table = new HashMap();
+  
+  
+  
   /**
    * Initialize the factory, i.e. register the messages with the message manager.
    */
   public static void init() {
-    try {
-      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], "", "", 0, 0, new String[0], new byte[0]) );
-      MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null ) );
-      /*
-      MessageManager.getSingleton().registerMessageType( new AZSessionSyn( new byte[20], -1, null) );
-      MessageManager.getSingleton().registerMessageType( new AZSessionAck( new byte[20], -1, null) );
-      MessageManager.getSingleton().registerMessageType( new AZSessionEnd( new byte[20], "" ) );
-      MessageManager.getSingleton().registerMessageType( new AZSessionBitfield( -1, null ) );
-      MessageManager.getSingleton().registerMessageType( new AZSessionCancel( -1, -1, -1, -1 ) );
-      MessageManager.getSingleton().registerMessageType( new AZSessionHave( -1, new int[]{-1} ) );
-      MessageManager.getSingleton().registerMessageType( new AZSessionPiece( -1, -1, -1, null ) );
-      MessageManager.getSingleton().registerMessageType( new AZSessionRequest( -1, (byte)-1, -1, -1, -1 ) );
-      */
+/*    try {
+
     }
     catch( MessageException me ) {  me.printStackTrace();  }
+*/
   }
   
   
@@ -91,25 +83,62 @@ public class ADVMessageFactory {
    * @param type_id to register
    * @throws MessageException on registration error
    */
-  public static void registerGenericMapPayloadMessageType( String type_id ) throws MessageException {
+  //TODO plugin mapping
+  private static void registerGenericMapPayloadMessageType( String type_id ) throws MessageException {
   	MessageManager.getSingleton().registerMessageType( new AZGenericMapPayload( type_id, null ) );
   }
   
   
   
+  
+  private static void refreshMappingTables() {
+  	Message[] new_msgs = MessageManager.getSingleton().getRegisteredMessages();
+  	
+  	if( !Arrays.equals( registered_messages, new_msgs ) ) {  //cached table is out of date
+  		registered_messages = new_msgs;
+  		mapping_table.clear();
+  		
+  		for( int i=0; i < registered_messages.length; i++ ) {
+  			
+  			String feature_id = registered_messages[i].getFeatureID();
+  			int sub_id = registered_messages[i].getFeatureSubID();
+  			
+  			
+  			byte[] raw_message_id = (byte[])mapping_table.get( feature_id );
+  			
+  			if( raw_message_id == null ) {
+  				raw_message_id = new byte[3];
+  				mapping_table.put( feature_id, raw_message_id );
+  			}
+  			
+  			if( raw_message_id.length != 3 )  Debug.out( "raw_message_id.length[" +raw_message_id.length+ "] != 3" );
+  			
+  			  			
+  			
+  			
+  			
+  			
+  		}
+  		
+  	}
+  }
+  
+  
+  
+  
   /**
-   * Construct a new AZ message instance from the given message raw byte stream.
+   * Construct a new ADV message instance from the given message raw byte stream.
    * @param stream_payload data
-   * @return decoded/deserialized AZ message
+   * @return decoded/deserialized ADV message
    * @throws MessageException if message creation failed.
    * NOTE: Does not auto-return given direct buffer on thrown exception.
    */
-  public static Message createAZMessage( DirectByteBuffer stream_payload ) throws MessageException {
+  public static Message createADVMessage( int id, int sub_id, DirectByteBuffer stream_payload ) throws MessageException {
     int id_length = stream_payload.getInt( bss );
 
     if( id_length < 1 || id_length > 1024 || id_length > stream_payload.remaining( bss ) - 1 ) {
       byte bt_id = stream_payload.get( (byte)0, 0 );
-      throw new MessageException( "invalid AZ id length given: " +id_length+ ", stream_payload.remaining(): " +stream_payload.remaining( bss )+ ", BT id?=" +bt_id );
+      throw new MessageException( "invalid ADV id length given: " +id_length+ ", stream_payload.remaining(): " +stream_payload.remaining( bss )+ ", BT id?=" +bt_id );
     }
     
     byte[] id_bytes = new byte[ id_length ];
@@ -125,11 +154,11 @@ public class ADVMessageFactory {
   
   
   /**
-   * Create the proper AZ raw message from the given base message.
+   * Create the proper ADV raw message from the given base message.
    * @param base_message to create from
-   * @return AZ raw message
+   * @return ADV raw message
    */
-  public static RawMessage createAZRawMessage( Message base_message ) {
+  public static RawMessage createADVRawMessage( Message base_message ) {
     byte[] id_bytes = base_message.getID().getBytes();
     DirectByteBuffer[] payload = base_message.getData();
     

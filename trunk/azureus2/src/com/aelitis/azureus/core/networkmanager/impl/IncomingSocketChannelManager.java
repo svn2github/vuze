@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
+import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager.HandshakeListener;
 
 
 /**
@@ -252,133 +253,22 @@ public class IncomingSocketChannelManager {
 	      }
 	      
 	      server_selector = new VirtualServerChannelSelector( address, so_rcvbuf_size, new VirtualServerChannelSelector.SelectListener() {
-	        public void newConnectionAccepted( SocketChannel channel ) {
-	          //do timeout check if necessary
-	          long now = SystemTime.getCurrentTime();
-	          if( now < last_timeout_check_time || now - last_timeout_check_time > 5*1000 ) {
-	            doTimeoutChecks();
-	            last_timeout_check_time = now;
-	          }
-	          
-	          if( match_buffers.isEmpty() ) {  //no match registrations, just close
-	          	if (Logger.isEnabled())
-										Logger.log(new LogEvent(LOGID,
-												"Incoming TCP connection from ["
-														+ channel.socket().getInetAddress()
-																.getHostAddress() + ":"
-														+ channel.socket().getPort()
-														+ "] dropped because zero "
-														+ "routing handlers registered"));
-              NetworkManager.getSingleton().closeSocketChannel( channel );
-	            return;
-	          }
-	          
-	          //set advanced socket options
-	          try {
-	            int so_sndbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
-	            if( so_sndbuf_size > 0 )  channel.socket().setSendBufferSize( so_sndbuf_size );
-	            
-	            String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
-	            if( ip_tos.length() > 0 )  channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
-	          }
-	          catch( Throwable t ) {
-	            t.printStackTrace();
-	          }
-	          
-	          final IncomingConnection ic = new IncomingConnection( channel, max_match_buffer_size );
-	          
-	          try{  connections_mon.enter();
-	
-	            connections.add( ic );
-	            
-	            NetworkManager.getSingleton().getReadSelector().register( channel, new VirtualChannelSelector.VirtualSelectorListener() {
-	              //SUCCESS
-	              public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {
-	                try {                 
-	                  int bytes_read = sc.read( ic.buffer );
-	                  
-	                  if( bytes_read < 0 ) {
-	                    throw new IOException( "end of stream on socket read" );
-	                  }
-	                  
-	                  if( bytes_read == 0 ) {
-	                    return false;
-	                  }
-	                  
-	                  ic.last_read_time = SystemTime.getCurrentTime();
-	                  
-	                  MatchListener listener = checkForMatch( ic.buffer );
-	                  
-	                  if( listener == null ) {  //no match found
-	                    if( ic.buffer.position() >= max_match_buffer_size ) { //we've already read in enough bytes to have compared against all potential match buffers
-	                      ic.buffer.flip();
-	                      if (Logger.isEnabled())
-	                      	Logger.log(new LogEvent(LOGID,
-	                      			LogEvent.LT_WARNING,
-	                      			"Incoming TCP stream from ["
-	                      			+ sc.socket().getInetAddress()
-	                      			.getHostAddress()
-	                      			+ ":"
-	                      			+ sc.socket().getPort()
-	                      			+ "] does not match "
-	                      			+ "any known byte pattern: "
-	                      			+ ByteFormatter.nicePrint(ic.buffer.array())));
-	                      removeConnection( ic, true );
-	                    }
-	                  }
-	                  else {  //match found!
-	                    ic.buffer.flip();
-	                    if (Logger.isEnabled())
-	                    	Logger.log(new LogEvent(LOGID,
-	                    			"Incoming TCP stream from ["
-	                    			+ sc.socket().getInetAddress()
-	                    			.getHostAddress()
-	                    			+ ":"
-	                    			+ sc.socket().getPort()
-	                    			+ "] recognized as "
-	                    			+ "known byte pattern: "
-	                    			+ ByteFormatter.nicePrint(ic.buffer.array())));
-	                    removeConnection( ic, false );
-	                    listener.connectionMatched( sc, ic.buffer );
-	                  }
-	                }
-	                catch( Throwable t ) {
-	                  try {
-	                  	if (Logger.isEnabled())
-	                  		Logger.log(new LogEvent(LOGID,
-	                  				LogEvent.LT_ERROR,
-	                  				"Incoming TCP connection ["
-	                  				+ sc.socket().getInetAddress()
-	                  				.getHostAddress() + ":"
-	                  				+ sc.socket().getPort()
-	                  				+ "] socket read exception: "
-	                  				+ t.getMessage()));
-	                  }
-	                  catch( Throwable x ) {
-	                    Debug.out( "Caught exception on incoming exception log:" );
-	                    x.printStackTrace();
-	                    System.out.println( "CAUSED BY:" );
-	                    t.printStackTrace();
-	                  }
-	                  
-	                  removeConnection( ic, true );
-	                }
-	                
-	                return true;
-	              }
-	              
-	              //FAILURE
-	              public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
-	              	if (Logger.isEnabled())
-	              		Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-	              				"Incoming TCP connection [" + sc
-	              				+ "] socket select op failure: "
-	              				+ msg.getMessage()));
-	                removeConnection( ic, true );
-	              }
-	            }, null );
-	            
-	          } finally {  connections_mon.exit();  }
+	        public void newConnectionAccepted( final SocketChannel channel ) {
+	        	
+	        	//check for encrypted transport
+	        	TransportCryptoManager.getSingleton().manageCrypto( channel, true, new TransportCryptoManager.HandshakeListener() {
+	        		public void handshakeSuccess( TCPTransportHelperFilter filter ) {
+	        			process( filter );
+	        		}
+
+	            public void handshakeFailure( Throwable failure_msg ) {
+	            	System.out.println( "[" +channel+ "] incoming crypto handshake failure: " + failure_msg.getMessage() );
+	            	
+	            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure", failure_msg ));
+	            	NetworkManager.getSingleton().closeSocketChannel( channel );
+	            }
+	        	});
+	        	
 	        }
 	      });
 	      
@@ -389,6 +279,135 @@ public class IncomingSocketChannelManager {
   		this_mon.exit();
   	}
   }
+  
+  
+  protected void process( TCPTransportHelperFilter filter ) {
+    //do timeout check if necessary
+    long now = SystemTime.getCurrentTime();
+    if( now < last_timeout_check_time || now - last_timeout_check_time > 5*1000 ) {
+      doTimeoutChecks();
+      last_timeout_check_time = now;
+    }
+    
+    if( match_buffers.isEmpty() ) {  //no match registrations, just close
+    	if (Logger.isEnabled())
+    		Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
+    				+ filter.getChannel().socket().getInetAddress().getHostAddress() + ":"
+    				+ filter.getChannel().socket().getPort()+ "] dropped because zero routing handlers registered"));
+    	NetworkManager.getSingleton().closeSocketChannel( filter.getChannel() );
+      return;
+    }
+    
+    //set advanced socket options
+    try {
+      int so_sndbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
+      if( so_sndbuf_size > 0 )  filter.getChannel().socket().setSendBufferSize( so_sndbuf_size );
+      
+      String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPTOS" );
+      if( ip_tos.length() > 0 )  filter.getChannel().socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+    }
+    catch( Throwable t ) {
+      t.printStackTrace();
+    }
+    
+    final IncomingConnection ic = new IncomingConnection( filter, max_match_buffer_size );
+    
+    try{  connections_mon.enter();
+
+      connections.add( ic );
+      
+      NetworkManager.getSingleton().getReadSelector().register( ic.filter.getChannel(), new VirtualChannelSelector.VirtualSelectorListener() {
+        //SUCCESS
+        public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {
+          try {                 
+            int bytes_read = sc.read( ic.buffer );
+            
+            if( bytes_read < 0 ) {
+              throw new IOException( "end of stream on socket read" );
+            }
+            
+            if( bytes_read == 0 ) {
+              return false;
+            }
+            
+            ic.last_read_time = SystemTime.getCurrentTime();
+            
+            MatchListener listener = checkForMatch( ic.buffer );
+            
+            if( listener == null ) {  //no match found
+              if( ic.buffer.position() >= max_match_buffer_size ) { //we've already read in enough bytes to have compared against all potential match buffers
+                ic.buffer.flip();
+                if (Logger.isEnabled())
+                	Logger.log(new LogEvent(LOGID,
+                			LogEvent.LT_WARNING,
+                			"Incoming TCP stream from ["
+                			+ sc.socket().getInetAddress()
+                			.getHostAddress()
+                			+ ":"
+                			+ sc.socket().getPort()
+                			+ "] does not match "
+                			+ "any known byte pattern: "
+                			+ ByteFormatter.nicePrint(ic.buffer.array())));
+                removeConnection( ic, true );
+              }
+            }
+            else {  //match found!
+              ic.buffer.flip();
+              if (Logger.isEnabled())
+              	Logger.log(new LogEvent(LOGID,
+              			"Incoming TCP stream from ["
+              			+ sc.socket().getInetAddress()
+              			.getHostAddress()
+              			+ ":"
+              			+ sc.socket().getPort()
+              			+ "] recognized as "
+              			+ "known byte pattern: "
+              			+ ByteFormatter.nicePrint(ic.buffer.array())));
+              removeConnection( ic, false );
+              listener.connectionMatched( ic.filter, ic.buffer );
+            }
+          }
+          catch( Throwable t ) {
+            try {
+            	if (Logger.isEnabled())
+            		Logger.log(new LogEvent(LOGID,
+            				LogEvent.LT_ERROR,
+            				"Incoming TCP connection ["
+            				+ sc.socket().getInetAddress()
+            				.getHostAddress() + ":"
+            				+ sc.socket().getPort()
+            				+ "] socket read exception: "
+            				+ t.getMessage()));
+            }
+            catch( Throwable x ) {
+              Debug.out( "Caught exception on incoming exception log:" );
+              x.printStackTrace();
+              System.out.println( "CAUSED BY:" );
+              t.printStackTrace();
+            }
+            
+            removeConnection( ic, true );
+          }
+          
+          return true;
+        }
+        
+        //FAILURE
+        public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
+        	if (Logger.isEnabled())
+        		Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+        				"Incoming TCP connection [" + sc
+        				+ "] socket select op failure: "
+        				+ msg.getMessage()));
+          removeConnection( ic, true );
+        }
+      }, null );
+      
+    } finally {  connections_mon.exit();  }  	
+  }
+  
+  
+  
   
   
   private void restart() {
@@ -410,21 +429,21 @@ public class IncomingSocketChannelManager {
   }
   
   
-  private void removeConnection( IncomingConnection connection, boolean close_as_well ) {
+  protected void removeConnection( IncomingConnection connection, boolean close_as_well ) {
     try{  connections_mon.enter();
     
-      NetworkManager.getSingleton().getReadSelector().cancel( connection.channel );  //cancel read op
+      NetworkManager.getSingleton().getReadSelector().cancel( connection.filter.getChannel() );  //cancel read op
       connections.remove( connection );   //remove from connection list
       
     } finally {  connections_mon.exit();  }
     
     if( close_as_well ) {
-      NetworkManager.getSingleton().closeSocketChannel( connection.channel );  //async close it
+      NetworkManager.getSingleton().closeSocketChannel( connection.filter.getChannel() );  //async close it
     }
   }
   
 
-  private MatchListener checkForMatch( ByteBuffer to_check ) { 
+  protected MatchListener checkForMatch( ByteBuffer to_check ) { 
     try {  match_buffers_mon.enter();
     
       //remember original values for later restore
@@ -461,7 +480,7 @@ public class IncomingSocketChannelManager {
   
   
 
-  private void doTimeoutChecks() {
+  protected void doTimeoutChecks() {
     try{  connections_mon.enter();
 
       ArrayList to_close = null;
@@ -477,8 +496,8 @@ public class IncomingSocketChannelManager {
           else if( now - ic.last_read_time > 10*1000 ) {  //10s read timeout
           	if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
-									+ ic.channel.socket().getInetAddress().getHostAddress() + ":"
-									+ ic.channel.socket().getPort()
+									+ ic.filter.getChannel().socket().getInetAddress().getHostAddress() + ":"
+									+ ic.filter.getChannel().socket().getPort()
 									+ "] forcibly timed out due to socket read inactivity ["
 									+ ic.buffer.position() + " bytes read: "
 									+ new String(ic.buffer.array()) + "]"));
@@ -493,7 +512,7 @@ public class IncomingSocketChannelManager {
           else if( now - ic.initial_connect_time > 60*1000 ) {  //60s connect timeout
           	if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
-									+ ic.channel + "] forcibly timed out after "
+									+ ic.filter.getChannel() + "] forcibly timed out after "
 									+ "60sec due to socket inactivity"));
             if( to_close == null )  to_close = new ArrayList();
             to_close.add( ic );
@@ -517,13 +536,13 @@ public class IncomingSocketChannelManager {
  
   
   private static class IncomingConnection {
-    private final SocketChannel channel;
+    private final TCPTransportHelperFilter filter;
     private final ByteBuffer buffer;
     private long initial_connect_time;
     private long last_read_time = -1;
     
-    private IncomingConnection( SocketChannel channel, int buff_size ) {
-      this.channel = channel;
+    private IncomingConnection( TCPTransportHelperFilter filter, int buff_size ) {
+      this.filter = filter;
       this.buffer = ByteBuffer.allocate( buff_size );
       this.initial_connect_time = SystemTime.getCurrentTime();
     }
@@ -544,7 +563,7 @@ public class IncomingSocketChannelManager {
      * @param channel matching accepted connection
      * @param read_so_far bytes already read
      */
-    public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far );
+    public void connectionMatched( TCPTransportHelperFilter filter, ByteBuffer read_so_far );
   }
   
   

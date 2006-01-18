@@ -178,13 +178,13 @@ public class BTMessageFactory {
 
   
   
-  private static class LegacyData {
-    private final int priority;
-    private final boolean is_no_delay;
-    private final Message[] to_remove;
-    private final byte bt_id;
+  protected static class LegacyData {
+  	protected final int priority;
+  	protected final boolean is_no_delay;
+  	protected final Message[] to_remove;
+  	protected final byte bt_id;
     
-    private LegacyData( int prio, boolean no_delay, Message[] remove, byte btid ) {
+  	protected LegacyData( int prio, boolean no_delay, Message[] remove, byte btid ) {
       this.priority = prio;
       this.is_no_delay = no_delay;
       this.to_remove = remove;

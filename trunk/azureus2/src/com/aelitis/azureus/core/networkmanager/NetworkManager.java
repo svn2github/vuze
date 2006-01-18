@@ -47,18 +47,18 @@ public class NetworkManager {
   
   private static final NetworkManager instance = new NetworkManager();
 
-  private static int tcp_mss_size;
-  private static int max_download_rate_bps;
+  protected static int tcp_mss_size;
+  protected static int max_download_rate_bps;
   
-  private static int max_upload_rate_bps_normal;
-  private static int max_upload_rate_bps_seeding_only;
-  private static int max_upload_rate_bps;
+  protected static int max_upload_rate_bps_normal;
+  protected static int max_upload_rate_bps_seeding_only;
+  protected static int max_upload_rate_bps;
   
-  private static int max_lan_upload_rate_bps;
-  private static int max_lan_download_rate_bps;
+  protected static int max_lan_upload_rate_bps;
+  protected static int max_lan_download_rate_bps;
   
-  private static boolean seeding_only_mode_allowed;
-  private static boolean seeding_only_mode = false;
+  protected static boolean seeding_only_mode_allowed;
+  protected static boolean seeding_only_mode = false;
   
   
   
@@ -242,8 +242,8 @@ public class NetworkManager {
    * @param decoder default message stream decoder to use for the incoming queue
    * @return a new connection
    */
-  public NetworkConnection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) { 
-    return NetworkConnectionFactory.create( remote_address, encoder, decoder );
+  public NetworkConnection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto ) { 
+    return NetworkConnectionFactory.create( remote_address, encoder, decoder, connect_with_crypto );
   }
   
   
@@ -256,8 +256,8 @@ public class NetworkManager {
    */
   public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener, final MessageStreamFactory factory ) {
     incoming_socketchannel_manager.registerMatchBytes( matcher, new IncomingSocketChannelManager.MatchListener() {
-      public void connectionMatched( SocketChannel channel, ByteBuffer read_so_far ) {
-        listener.connectionRouted( NetworkConnectionFactory.create( channel, read_so_far, factory.createEncoder(), factory.createDecoder() ) );
+      public void connectionMatched( TCPTransportHelperFilter filter, ByteBuffer read_so_far ) {
+        listener.connectionRouted( NetworkConnectionFactory.create( filter, read_so_far, factory.createEncoder(), factory.createDecoder() ) );
       }
     });
   }

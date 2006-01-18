@@ -234,8 +234,12 @@ public class ADVMessageDecoder implements MessageStreamDecoder {
         payload_buffer = null;
         
         try {
+        	
+        	header_reader.getMessageID();
+        	header_reader.getMessageSubID();
+        	
           Message msg = null;//AZMessageFactory.createAZMessage( ref_buff );  //TODO
-          if( false )  throw new MessageException( "" );  //TODO
+          if( false )  throw new MessageException( "" );  //TODO remove
           
           messages_last_read.add( msg );
 

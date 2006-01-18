@@ -263,7 +263,9 @@ PEPeerTransportProtocol
     }
 
     
-    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder() );
+    boolean use_crypto = true;  //TODO base on config options
+    
+    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder(), use_crypto );
     
     plugin_connection = new ConnectionImpl(connection);
     

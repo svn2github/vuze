@@ -41,12 +41,12 @@ import com.aelitis.azureus.core.networkmanager.*;
 public class TCPTransportImpl implements TCPTransport {
 	private static final LogIDs LOGID = LogIDs.NET;
   
-  private TCPTransportHelper helper;
+  protected TCPTransportHelper helper;
 
-  private volatile boolean is_ready_for_write = false;
-  private volatile boolean is_ready_for_read = false;
-  private Throwable write_select_failure = null;
-  private Throwable read_select_failure = null;
+  protected volatile boolean is_ready_for_write = false;
+  protected volatile boolean is_ready_for_read = false;
+  protected Throwable write_select_failure = null;
+  protected Throwable read_select_failure = null;
 
   
   private ConnectDisconnectManager.ConnectListener connect_request_key = null;
@@ -61,27 +61,31 @@ public class TCPTransportImpl implements TCPTransport {
   private static final TransportStats stats = AEDiagnostics.TRACE_TCP_TRANSPORT_STATS ? new TransportStats() : null;
   
   
+  private final boolean connect_with_crypto;
+  
   
   
   /**
-   * Constructor for disconnected transport.
+   * Constructor for disconnected (outbound) transport.
    */
-  public TCPTransportImpl() {
+  public TCPTransportImpl( boolean _use_crypto ) {
   	helper = null;
     is_inbound_connection = false;
+    connect_with_crypto = _use_crypto;
   }
   
   
   /**
-   * Constructor for connected transport.
+   * Constructor for connected (inbound) transport.
    * @param channel connection
    * @param already_read bytes from the channel
    */
-  public TCPTransportImpl( SocketChannel channel, ByteBuffer already_read ) {
-    this.helper = new TCPTransportHelper( channel );
+  public TCPTransportImpl( TCPTransportHelperFilter	filter, ByteBuffer already_read ) {
+    this.helper = new TCPTransportHelper( filter );
     this.data_already_read = already_read;   
     is_inbound_connection = true;
-    description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
+    connect_with_crypto = false;  //inbound connections will automatically be using crypto if necessary
+    description = ( is_inbound_connection ? "R" : "L" ) + ": " + filter.getChannel().socket().getInetAddress().getHostAddress() + ": " + filter.getChannel().socket().getPort();
     
     registerSelectHandling();
   }
@@ -289,7 +293,7 @@ public class TCPTransportImpl implements TCPTransport {
         listener.connectAttemptStarted();
       }
       
-      public void connectSuccess( SocketChannel channel ) {
+      public void connectSuccess( final SocketChannel channel ) {
       	if( channel == null ) {
       		String msg = "connectSuccess:: given channel == null";
       		Debug.out( msg );
@@ -302,21 +306,17 @@ public class TCPTransportImpl implements TCPTransport {
           return;
         }
         
-        helper = new TCPTransportHelper( channel );
         connect_request_key = null;
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
         if( use_proxy ) {  //proxy server connection established, login
         	Logger.log(new LogEvent(LOGID,
-							"Socket connection established to proxy server [" + description
-									+ "], login initiated..."));
+							"Socket connection established to proxy server [" +description+ "], login initiated..."));
           
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
-            	Logger.log(new LogEvent(LOGID,
-            			"Proxy [" +description+ "] login successful." ));
-              registerSelectHandling();
-              listener.connectSuccess();
+            	Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
+              handleCrypto( channel, listener );
             }
             
             public void connectFailure( Throwable failure_msg ) {
@@ -325,8 +325,7 @@ public class TCPTransportImpl implements TCPTransport {
           });
         }
         else {  //direct connection established, notify
-          registerSelectHandling();
-          listener.connectSuccess();
+        	handleCrypto( channel, listener );
         }
       }
 
@@ -344,6 +343,30 @@ public class TCPTransportImpl implements TCPTransport {
   }
   
     
+  
+  
+  protected void handleCrypto( SocketChannel channel, final ConnectListener listener ) {  	
+  	if( connect_with_crypto ) {
+    	//attempt encrypted transport
+    	TransportCryptoManager.getSingleton().manageCrypto( channel, false, new TransportCryptoManager.HandshakeListener() {
+    		public void handshakeSuccess( TCPTransportHelperFilter filter ) {
+    			helper = new TCPTransportHelper( filter );    	
+        	registerSelectHandling();
+          listener.connectSuccess();
+    		}
+
+        public void handshakeFailure( Throwable failure_msg ) {
+        	listener.connectFailure( failure_msg );
+        }
+    	});
+  	}
+  	else {  //no crypto
+  		helper = new TCPTransportHelper( TCPTransportHelperFilterFactory.createTransparentFilter( channel ) );    	
+    	registerSelectHandling();
+      listener.connectSuccess();
+  	}
+  }
+  
   
   
 

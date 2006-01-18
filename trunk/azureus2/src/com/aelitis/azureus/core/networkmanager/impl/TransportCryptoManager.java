@@ -1,5 +1,5 @@
 /*
- * Created on Jan 13, 2006
+ * Created on Jan 18, 2006
  * Created by Alon Rohter
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -19,22 +19,35 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  *
  */
-package com.aelitis.azureus.core.peermanager.messaging.advanced;
+package com.aelitis.azureus.core.networkmanager.impl;
 
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-
+import java.nio.channels.SocketChannel;
 
 /**
  * 
  */
-public interface ADVMessage extends Message {
+public class TransportCryptoManager {
 	
-	public static final String PLUGIN_MESSAGE_FEATURE_ID = "AZPLUGMSG";
+	private static final TransportCryptoManager instance = new TransportCryptoManager();
 	
+	
+	public static TransportCryptoManager getSingleton() {  return instance;  }
 
-	public static final String ADV_FEATURE_ID = "ADV1";
 
-  public static final String ID_ADV_HANDSHAKE    	    = "ADV_HANDSHAKE";
-  public static final int SUBID_ADV_HANDSHAKE					= 0;
 	
+	public void manageCrypto( SocketChannel channel, boolean is_incoming, HandshakeListener listener ) {
+		
+		//TODO base on config options for incoming
+		listener.handshakeSuccess( TCPTransportHelperFilterFactory.createCryptoFilter( channel ) );
+	}
+	
+	
+	
+	
+	public interface HandshakeListener {
+
+    public void handshakeSuccess( TCPTransportHelperFilter filter );
+
+    public void handshakeFailure( Throwable failure_msg );
+  }
 }

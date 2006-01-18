@@ -24,8 +24,7 @@ package com.aelitis.azureus.core.networkmanager;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import com.aelitis.azureus.core.networkmanager.impl.LightweightTCPTransport;
-import com.aelitis.azureus.core.networkmanager.impl.TCPTransportImpl;
+import com.aelitis.azureus.core.networkmanager.impl.*;
 
 /**
  * 
@@ -36,8 +35,8 @@ public class TransportFactory {
 	 * Create a disconnected TCP transport (the core runs the select ops automatically).
 	 * @return outgoing transport
 	 */
-	public static TCPTransport createTCPTransport() {
-		return new TCPTransportImpl();
+	public static TCPTransport createTCPTransport( boolean connect_with_crypto ) {
+		return new TCPTransportImpl( connect_with_crypto );
 	}
 
 	/**
@@ -46,8 +45,8 @@ public class TransportFactory {
 	 * @param already_read bytes from the channel
 	 * @return incoming transport
 	 */
-	public static TCPTransport createTCPTransport( SocketChannel channel, ByteBuffer already_read ) {
-		return new TCPTransportImpl( channel, already_read );
+	public static TCPTransport createTCPTransport( TCPTransportHelperFilter filter, ByteBuffer already_read ) {
+		return new TCPTransportImpl( filter, already_read );
 	}
 	
   
@@ -57,7 +56,7 @@ public class TransportFactory {
 	 * @return lightweight transport
 	 */
   public static TCPTransport createLightweightTCPTransport( SocketChannel channel ) {
-  	return new LightweightTCPTransport( channel );
+  	return new LightweightTCPTransport( TCPTransportHelperFilterFactory.createTransparentFilter( channel ) );
   }
                                                                                      
                                                                                   

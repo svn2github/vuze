@@ -36,8 +36,8 @@ public class LightweightTCPTransport implements TCPTransport {
 	
 	private final TCPTransportHelper helper;	
 	
-	public LightweightTCPTransport( SocketChannel channel ) {
-		this.helper = new TCPTransportHelper( channel );
+	public LightweightTCPTransport( TCPTransportHelperFilter filter ) {
+		this.helper = new TCPTransportHelper( filter );
 	}
 	
 
