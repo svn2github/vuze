@@ -890,7 +890,7 @@ DownloadManagerController
 	
 	  					File	save_dir_file	= download_manager.getAbsoluteSaveLocation();
 	
-	  					if ( save_dir_file.exists() && save_dir_file.isDirectory()){
+	  					if ( save_dir_file != null && save_dir_file.exists() && save_dir_file.isDirectory()){
 		      		
 	  						FileUtil.recursiveEmptyDirDelete( save_dir_file, false );
 	  					}
