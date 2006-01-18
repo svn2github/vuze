@@ -81,6 +81,7 @@ public class GenericRPAttributes {
             map.put("downloadCompletedLive",   stats.getDownloadCompleted(true));
             map.put("downloadCompletedStored", stats.getDownloadCompleted(false));
             map.put("status",                  stats.getStatus());
+            map.put("status_localised",        stats.getStatus(true));
             map.put("upload_average",          stats.getUploadAverage());
             map.put("download_average",        stats.getDownloadAverage());
             map.put("eta",                     stats.getETA());
@@ -104,11 +105,13 @@ public class GenericRPAttributes {
             PluginConfig pconfig = (PluginConfig)object;
             String[] property_names = new String[] {
                 PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_KBYTES_PER_SEC,
+                PluginConfig.CORE_PARAM_INT_MAX_UPLOAD_SPEED_SEEDING_KBYTES_PER_SEC,
                 PluginConfig.CORE_PARAM_INT_MAX_DOWNLOAD_SPEED_KBYTES_PER_SEC,
                 PluginConfig.CORE_PARAM_INT_MAX_CONNECTIONS_PER_TORRENT,
                 PluginConfig.CORE_PARAM_INT_MAX_CONNECTIONS_GLOBAL,
                 PluginConfig.CORE_PARAM_INT_MAX_DOWNLOADS,
-                PluginConfig.CORE_PARAM_INT_MAX_ACTIVE
+                PluginConfig.CORE_PARAM_INT_MAX_ACTIVE,
+                PluginConfig.CORE_PARAM_INT_MAX_ACTIVE_SEEDING,
             };
             // All integers at the moment.
             int[] property_values = new int[property_names.length];
@@ -200,6 +203,7 @@ public class GenericRPAttributes {
         attributes.put("downloadCompletedLive",   int.class);
         attributes.put("downloadCompletedStored", int.class);
         attributes.put("status",                  String.class);
+        attributes.put("status_localised",        String.class);
         attributes.put("upload_average",          long.class);
         attributes.put("download_average",        long.class);
         attributes.put("eta",                     String.class);
