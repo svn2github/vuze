@@ -45,7 +45,6 @@ RPDownloadStats
 	public int				downloadCompletedLive;
 	public int				downloadCompletedStored;
 	public String			status;
-	public String			status_default;
 	public String			status_localised;
 	public long				upload_average;
 	public long				download_average;
