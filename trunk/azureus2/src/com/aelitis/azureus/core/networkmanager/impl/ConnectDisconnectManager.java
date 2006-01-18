@@ -283,6 +283,7 @@ public class ConnectDisconnectManager {
           finally{ pending_closes_mon.exit();  }
         }
         else {
+        	connect_selector.cancel( request.channel );
           request.listener.connectSuccess( request.channel );
         }
       }
