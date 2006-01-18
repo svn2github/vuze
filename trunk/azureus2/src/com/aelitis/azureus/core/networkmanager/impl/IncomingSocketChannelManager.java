@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager.HandshakeListener;
 
 
 /**
@@ -320,7 +319,7 @@ public class IncomingSocketChannelManager {
         //SUCCESS
         public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {
           try {                 
-            int bytes_read = sc.read( ic.buffer );
+          	int bytes_read = ic.filter.read( ic.buffer );
             
             if( bytes_read < 0 ) {
               throw new IOException( "end of stream on socket read" );
@@ -535,13 +534,13 @@ public class IncomingSocketChannelManager {
     
  
   
-  private static class IncomingConnection {
-    private final TCPTransportHelperFilter filter;
-    private final ByteBuffer buffer;
-    private long initial_connect_time;
-    private long last_read_time = -1;
+  protected static class IncomingConnection {
+  	protected final TCPTransportHelperFilter filter;
+  	protected final ByteBuffer buffer;
+  	protected long initial_connect_time;
+  	protected long last_read_time = -1;
     
-    private IncomingConnection( TCPTransportHelperFilter filter, int buff_size ) {
+  	protected IncomingConnection( TCPTransportHelperFilter filter, int buff_size ) {
       this.filter = filter;
       this.buffer = ByteBuffer.allocate( buff_size );
       this.initial_connect_time = SystemTime.getCurrentTime();
