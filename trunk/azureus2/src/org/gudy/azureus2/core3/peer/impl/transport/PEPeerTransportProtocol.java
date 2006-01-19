@@ -152,22 +152,25 @@ PEPeerTransportProtocol
   //certain Optimum Online networks block peer seeding via "complete" bitfield message filtering
   //lazy mode makes sure we never send a complete (seed) bitfield
   private static boolean ENABLE_LAZY_BITFIELD;
+  private static boolean REQUIRE_CRYPTO;
   
   static {
     
-    COConfigurationManager.addAndFireParameterListener(
-    		"Use Lazy Bitfield",
+    COConfigurationManager.addAndFireParameterListeners(
+    		new String[]{ "Use Lazy Bitfield", "network.transport.encrypted.require" },
     		new ParameterListener()
     		{
     			 public void 
     			 parameterChanged(
-    				String parameterName )
+    				String ignore )
     			 {
     				 String  prop = System.getProperty( "azureus.lazy.bitfield" );
     				 
     				 ENABLE_LAZY_BITFIELD = prop != null && prop.equals( "1" );
  
     				 ENABLE_LAZY_BITFIELD |= COConfigurationManager.getBooleanParameter( "Use Lazy Bitfield" );
+    				 
+    				 REQUIRE_CRYPTO	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
     			 }
     		});
   }
@@ -262,10 +265,8 @@ PEPeerTransportProtocol
       return;
     }
 
-    
-    boolean use_crypto = true;  //TODO base on config options
-    
-    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder(), use_crypto );
+        
+    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder(), REQUIRE_CRYPTO );
     
     plugin_connection = new ConnectionImpl(connection);
     

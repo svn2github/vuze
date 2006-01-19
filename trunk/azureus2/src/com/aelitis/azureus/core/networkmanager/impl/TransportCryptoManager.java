@@ -44,9 +44,7 @@ public class TransportCryptoManager {
 			listener.handshakeSuccess( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
 		
 		}else{
-			
-			//TODO base on config options for incoming
-			
+						
 			try{
 				new TCPProtocolDecoderInitial( 
 						channel, 

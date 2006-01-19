@@ -42,6 +42,8 @@ import javax.crypto.spec.DHPublicKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -62,10 +64,10 @@ TCPProtocolDecoderPHE
 {
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
-	private static final byte		SUPPORTED_PLAIN	= 0x00;
-	private static final byte		SUPPORTED_XOR	= 0x01;
-	private static final byte		SUPPORTED_RC4	= 0x02;
-	private static final byte		SUPPORTED_AES	= 0x04;
+	private static final byte		CRYPTO_PLAIN	= 0x01;
+	private static final byte		CRYPTO_XOR		= 0x02;
+	private static final byte		CRYPTO_RC4		= 0x04;
+	private static final byte		CRYPTO_AES		= 0x08;
 
 	private static final int		DH_SIZE	= 512;
 	private static final int		DH_SIZE_BYTES = DH_SIZE/8;
@@ -160,8 +162,48 @@ TCPProtocolDecoderPHE
 		return( crypto_ok );
 	}
 	
-	private static final byte SUPPORTED_PROTOCOLS = (byte)((aes_ok?SUPPORTED_AES:0) | SUPPORTED_RC4 | SUPPORTED_XOR );
+	private static final byte SUPPORTED_PROTOCOLS = (byte)((aes_ok?CRYPTO_AES:0) | CRYPTO_RC4 | CRYPTO_XOR | CRYPTO_PLAIN );
+
 	
+	private static boolean 	REQUIRE_CRYPTO;
+	private static byte 	MIN_CRYPTO;
+	
+	static{
+	    COConfigurationManager.addAndFireParameterListeners(
+	    		new String[]{ "network.transport.encrypted.require",  "network.transport.encrypted.min_level" },
+	    		new ParameterListener()
+	    		{
+	    			 public void 
+	    			 parameterChanged(
+	    				String ignore )
+	    			 {
+	    				 REQUIRE_CRYPTO	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
+
+	    				 String	min	= COConfigurationManager.getStringParameter( "network.transport.encrypted.min_level");
+	    				 
+	    				 if ( min.equals( "XOR" )){
+	    					 
+	    					 MIN_CRYPTO	= CRYPTO_XOR | CRYPTO_RC4 | CRYPTO_AES;
+	    					 
+	    				 }else if ( min.equals( "RC4" )){
+	    					 
+	    					 MIN_CRYPTO	= CRYPTO_RC4 | CRYPTO_AES;
+	    					 
+	    				 }else if ( min.equals( "AES" )){
+	    					
+	    					 MIN_CRYPTO	= CRYPTO_AES;
+	    					 
+	    				 }else{
+	    					 
+	    					 MIN_CRYPTO	= CRYPTO_PLAIN | CRYPTO_XOR | CRYPTO_RC4 | CRYPTO_AES;
+	    				 } 
+	    				 
+	    				 MIN_CRYPTO = (byte)(MIN_CRYPTO & SUPPORTED_PROTOCOLS);
+	    			 }
+	    		});
+	}
+	
+		
 	private static VirtualChannelSelector	read_selector	= NetworkManager.getSingleton().getReadSelector();
 	private static VirtualChannelSelector	write_selector	= NetworkManager.getSingleton().getWriteSelector();
 
@@ -230,13 +272,26 @@ TCPProtocolDecoderPHE
 		outbound	= _header == null;
 		
 		my_supported_protocols = SUPPORTED_PROTOCOLS;
-		
-			// TODO: modify from config
-		
+				
 		if ( outbound ){
 			
-			//my_supported_protocols	&= ~( SUPPORTED_AES );
-			// my_supported_protocols	= SUPPORTED_XOR;
+			if ( !REQUIRE_CRYPTO ){
+				
+				throw( new IOException( "Crypto encoder selected for outbound but crypto not required" ));
+			}
+			
+				// outbound connection, we require a certain minimal level of support
+			
+			my_supported_protocols = MIN_CRYPTO;
+			
+		}else{
+			
+				// incoming. If we require crypto then we use minimum otherwise available
+			
+			if ( REQUIRE_CRYPTO ){
+				
+				my_supported_protocols = MIN_CRYPTO;
+			}
 		}
 		
 		initCrypto();
@@ -330,22 +385,22 @@ TCPProtocolDecoderPHE
 	{
 		TCPTransportHelper	helper = new TCPTransportHelper( channel );
 		
-		if ( selected_protocol == SUPPORTED_PLAIN ){
+		if ( selected_protocol == CRYPTO_PLAIN ){
 			
 			filter = new TCPTransportHelperFilterTransparent( helper );
 			
-		}else if ( selected_protocol == SUPPORTED_XOR ){
+		}else if ( selected_protocol == CRYPTO_XOR ){
 		
 			filter = new TCPTransportHelperFilterStreamXOR( helper, secret_bytes );
 						
-		}else if ( selected_protocol == SUPPORTED_RC4 ){
+		}else if ( selected_protocol == CRYPTO_RC4 ){
 			
 			filter = new TCPTransportHelperFilterStreamCipher( 
 							helper,
 							read_cipher,
 							write_cipher );
 
-		}else{
+		}else if ( selected_protocol == CRYPTO_RC4 ){
 			
 			try{
 		        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 32, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
@@ -365,6 +420,9 @@ TCPProtocolDecoderPHE
 				
 				throw( new IOException( "AES crypto init failed: " + Debug.getNestedExceptionMessage(e)));
 			}
+		}else{
+			
+			throw( new IOException( "Invalid selected protocol '" + selected_protocol + "'" ));
 		}
 		
 		read_cipher		= null;
@@ -575,21 +633,29 @@ TCPProtocolDecoderPHE
 							
 							int	common_protocols = my_supported_protocols & other_supported_protocols;
 							
-							if (( common_protocols & SUPPORTED_AES )!= 0 ){
+							if (( common_protocols & CRYPTO_PLAIN )!= 0 ){
 								
-								selected_protocol = SUPPORTED_AES;
+								selected_protocol = CRYPTO_PLAIN;
 								
-							}else if (( common_protocols & SUPPORTED_RC4 )!= 0 ){
+							}else if (( common_protocols & CRYPTO_XOR )!= 0 ){
 								
-								selected_protocol = SUPPORTED_RC4;
+								selected_protocol = CRYPTO_XOR;
 								
-							}else if (( common_protocols & SUPPORTED_XOR )!= 0 ){
+							}else if (( common_protocols & CRYPTO_RC4 )!= 0 ){
 								
-								selected_protocol = SUPPORTED_XOR;
+								selected_protocol = CRYPTO_RC4;
+								
+							}else if (( common_protocols & CRYPTO_AES )!= 0 ){
+								
+								selected_protocol = CRYPTO_AES;
 								
 							}else{
 								
-								selected_protocol = SUPPORTED_PLAIN;
+								throw( new IOException( 
+										"No crypto protocol in common: mine = " + 
+											Integer.toHexString((byte)my_supported_protocols) + ", theirs = " +
+											Integer.toHexString((byte)other_supported_protocols)));
+				
 							}
 								
 							int	padding	= (( etc[4] & 0xff ) << 8 ) + ( etc[5] & 0xff );

@@ -27,6 +27,8 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -60,6 +62,23 @@ TCPProtocolDecoderInitial
 		System.arraycopy( bytes, 0, BT_HEADER, 1, bytes.length );
 	}
 	
+	private static boolean 	REQUIRE_CRYPTO;
+	
+	static{
+	    COConfigurationManager.addAndFireParameterListener(
+	    		"network.transport.encrypted.require",
+	    		new ParameterListener()
+	    		{
+	    			 public void 
+	    			 parameterChanged(
+	    				String ignore )
+	    			 {
+	    				 REQUIRE_CRYPTO	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
+	    			 }
+	    		});
+	}
+	
+	
 	private ByteBuffer	decode_buffer; 
 	
 	private long	start_time	= SystemTime.getCurrentTime();
@@ -86,15 +105,17 @@ TCPProtocolDecoderInitial
 		filter	= transparent_filter;
 		
 		if ( _outgoing ){
-			
-				// we decide the protocol
-			
-				// TODO:
-			
-			if ( TCPProtocolDecoderPHE.isCryptoOK()){
 				
-				decodePHE( null );
+			if ( REQUIRE_CRYPTO ){
+		
+				if ( TCPProtocolDecoderPHE.isCryptoOK()){
+					
+					decodePHE( null );
+					
+				}else{
 				
+					throw( new IOException( "Crypto required but unavailable" ));
+				}
 			}else{
 				
 				complete();
@@ -142,6 +163,11 @@ TCPProtocolDecoderInitial
 							decode_buffer.flip();
 							
 							if ( Arrays.equals( bytes, BT_HEADER )){
+								
+								if ( REQUIRE_CRYPTO ){
+								
+									throw( new IOException( "Crypto required but incoming connection is plain" ));
+								}
 								
 								transparent_filter.insertRead( decode_buffer );
 								
