@@ -185,6 +185,12 @@ PEPeer
    */
   public boolean supportsMessaging();
   
+  /**
+   * Returns name of encryption used by the peer
+   * @return
+   */
+  public String
+  getEncryption();
   
   /**
    * Get the list of messages that this peer and us both understand.

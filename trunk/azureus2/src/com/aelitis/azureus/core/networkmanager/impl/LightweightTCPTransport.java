@@ -70,4 +70,5 @@ public class LightweightTCPTransport implements TCPTransport {
   public void setTransportMode( int mode ){ throw new RuntimeException( "not implemented" ); } 
   public int getTransportMode(){ throw new RuntimeException( "not implemented" );  }
 
+  public String getEncryption(){ return( filter.getName()); }
 }

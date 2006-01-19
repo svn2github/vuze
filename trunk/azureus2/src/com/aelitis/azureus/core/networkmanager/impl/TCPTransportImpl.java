@@ -427,7 +427,7 @@ public class TCPTransportImpl implements TCPTransport {
    */
   public int getTransportMode() {  return transport_mode;  }
   
-  
+  public String getEncryption(){ return( filter.getName()); }
 
   
   /**

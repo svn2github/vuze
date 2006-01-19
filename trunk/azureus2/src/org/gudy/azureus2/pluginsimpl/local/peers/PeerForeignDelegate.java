@@ -436,6 +436,12 @@ PeerForeignDelegate
 		return foreign.supportsMessaging();
 	}
 
+	public String
+	getEncryption()
+	{
+		return( "" );
+	}
+	
 	public Message[] 
 	getSupportedMessages() 
 	{

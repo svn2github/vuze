@@ -58,6 +58,7 @@ public class PeersView
     new ClientItem(),
     new TypeItem(),
     new MessagingItem(),
+    new EncryptionItem(),
     new PiecesItem(),
     new PercentItem(),
     new DownSpeedItem(),

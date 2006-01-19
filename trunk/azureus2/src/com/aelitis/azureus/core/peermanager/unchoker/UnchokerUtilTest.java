@@ -164,6 +164,7 @@ public class UnchokerUtilTest {
         public Connection getConnection(){ return null; }
         public boolean supportsMessaging(){ return false;  }
         public Message[] getSupportedMessages(){ return null; }
+        public String getEncryption(){ return( "" ); };
         public int getReservedPieceNumber() { return -1; }
         public void setReservedPieceNumber(int pieceNumber) {}
         public int getRarestPieceNumber() { return -1; }

@@ -1781,7 +1781,11 @@ PEPeerTransportProtocol
     return supported_messages != null;
   }
   
-  
+  public String
+  getEncryption()
+  {
+	  return( connection.getTCPTransport().getEncryption());
+  }
   
   public void 
   addListener( 

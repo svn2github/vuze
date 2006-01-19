@@ -59,6 +59,12 @@ public interface TCPTransport {
   
   
   /**
+   * Return a textual description of the encryption for this transport
+   * @return
+   */
+  public String getEncryption();
+  
+  /**
    * Is the transport ready to write,
    * i.e. will a write request result in >0 bytes written.
    * @return true if the transport is write ready, false if not yet ready
