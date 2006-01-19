@@ -86,9 +86,10 @@ TCPProtocolDecoderPHE
 	private static final String		AES_STREAM_CIPHER			= "AES/CFB8/NoPadding";
 	private static final int		AES_STREAM_KEY_SIZE			= 128;
 	private static final int		AES_STREAM_KEY_SIZE_BYTES	= AES_STREAM_KEY_SIZE/8;
-    private static final byte[]		AES_STREAM_IV				= 
-    	{ 	(byte)0x15, (byte)0xE0, (byte)0x6B, (byte)0x7E, (byte)0x98, (byte)0x59, (byte)0xE4, (byte)0xA7, 
-    		(byte)0x34, (byte)0x66, (byte)0xAD, (byte)0x48, (byte)0x35, (byte)0xE2, (byte)0xD0, (byte)0x24 };
+   
+	//private static final byte[]		AES_STREAM_IV				= 
+    //	{ 	(byte)0x15, (byte)0xE0, (byte)0x6B, (byte)0x7E, (byte)0x98, (byte)0x59, (byte)0xE4, (byte)0xA7, 
+    //		(byte)0x34, (byte)0x66, (byte)0xAD, (byte)0x48, (byte)0x35, (byte)0xE2, (byte)0xD0, (byte)0x24 };
     
     
 	private static final String		RC4_STREAM_ALG				= "RC4";
@@ -124,7 +125,7 @@ TCPProtocolDecoderPHE
 	        	 
 				SecretKeySpec	aes_test_secret_key_spec = new SecretKeySpec(aes_test_secret, 0, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
 		        	        
-				AlgorithmParameterSpec	spec = 	new IvParameterSpec( AES_STREAM_IV );
+				AlgorithmParameterSpec	spec = 	new IvParameterSpec( aes_test_secret );
 		        
 		        TCPTransportCipher aes_cipher = new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.ENCRYPT_MODE, aes_test_secret_key_spec, spec );
 		        
@@ -234,7 +235,7 @@ TCPProtocolDecoderPHE
 		
 		if ( outbound ){
 			
-			my_supported_protocols	&= ~( SUPPORTED_AES );
+			//my_supported_protocols	&= ~( SUPPORTED_AES );
 			// my_supported_protocols	= SUPPORTED_XOR;
 		}
 		
@@ -349,7 +350,7 @@ TCPProtocolDecoderPHE
 			try{
 		        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 32, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
 			        		        
-		        AlgorithmParameterSpec	spec = 	new IvParameterSpec( AES_STREAM_IV );
+		        AlgorithmParameterSpec	spec = 	new IvParameterSpec( secret_bytes, 48, AES_STREAM_KEY_SIZE_BYTES );
 		        
 		        write_cipher 	= new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.ENCRYPT_MODE, secret_key_spec, spec );
 				    
