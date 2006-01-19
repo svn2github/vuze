@@ -74,14 +74,22 @@ TCPProtocolDecoderPHE
 	
 	private static boolean	crypto_ok;
 	
-	private static final String		STREAM_ALG				= "AES";
-	private static final String		STREAM_CIPHER			= "AES/CFB8/NoPadding";
-	private static final int		STREAM_KEY_SIZE			= 128;
-	private static final int		STREAM_KEY_SIZE_BYTES	= STREAM_KEY_SIZE/8;
-    private static final byte[]		STREAM_IV				= 
+	private static final boolean	USE_AES	= false;
+	
+	private static final String		AES_STREAM_ALG				= "AES";
+	private static final String		AES_STREAM_CIPHER			= "AES/CFB8/NoPadding";
+	private static final int		AES_STREAM_KEY_SIZE			= 128;
+	private static final int		AES_STREAM_KEY_SIZE_BYTES	= AES_STREAM_KEY_SIZE/8;
+    private static final byte[]		AES_STREAM_IV				= 
     	{ 	(byte)0x15, (byte)0xE0, (byte)0x6B, (byte)0x7E, (byte)0x98, (byte)0x59, (byte)0xE4, (byte)0xA7, 
     		(byte)0x34, (byte)0x66, (byte)0xAD, (byte)0x48, (byte)0x35, (byte)0xE2, (byte)0xD0, (byte)0x24 };
-    	
+    
+    
+	private static final String		RC4_STREAM_ALG				= "RC4";
+	private static final String		RC4_STREAM_CIPHER			= "RC4";
+	private static final int		RC4_STREAM_KEY_SIZE			= 128;
+	private static final int		RC4_STREAM_KEY_SIZE_BYTES	= RC4_STREAM_KEY_SIZE/8;
+    
     
     private static final int		PADDING_MAX	= 512;
     
@@ -98,18 +106,33 @@ TCPProtocolDecoderPHE
 			dh_key_generator.generateKeyPair();
 	        
 	        byte[]	test_secret = new byte[DH_SIZE_BYTES];
-	        	        
-	        SecretKeySpec	test_secret_key_spec = new SecretKeySpec(test_secret, 0, STREAM_KEY_SIZE_BYTES, STREAM_ALG );
-	        	        
-	        AlgorithmParameterSpec	spec = 	new IvParameterSpec( STREAM_IV );
-	        
-	        Cipher cipher = Cipher.getInstance( STREAM_CIPHER );
-	        
-	        cipher.init( Cipher.ENCRYPT_MODE, test_secret_key_spec, spec );
-	        
-	        cipher = Cipher.getInstance( STREAM_CIPHER );
-	        
-	        cipher.init( Cipher.DECRYPT_MODE, test_secret_key_spec, spec );
+	        	    
+	        if ( USE_AES ){
+	        	
+		        SecretKeySpec	test_secret_key_spec = new SecretKeySpec(test_secret, 0, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
+		        	        
+		        AlgorithmParameterSpec	spec = 	new IvParameterSpec( AES_STREAM_IV );
+		        
+		        Cipher cipher = Cipher.getInstance( AES_STREAM_CIPHER );
+		        
+		        cipher.init( Cipher.ENCRYPT_MODE, test_secret_key_spec, spec );
+		        
+		        cipher = Cipher.getInstance( AES_STREAM_CIPHER );
+		        
+		        cipher.init( Cipher.DECRYPT_MODE, test_secret_key_spec, spec );
+		        
+	        }else{
+	        	
+		        SecretKeySpec	test_secret_key_spec = new SecretKeySpec(test_secret, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
+		        
+		        Cipher cipher = Cipher.getInstance( RC4_STREAM_CIPHER );
+		        
+		        cipher.init( Cipher.ENCRYPT_MODE, test_secret_key_spec );
+		        
+		        cipher = Cipher.getInstance( RC4_STREAM_CIPHER );
+		        
+		        cipher.init( Cipher.DECRYPT_MODE, test_secret_key_spec );
+	        }
 	        
 	        crypto_ok	= true;
 	        
@@ -191,7 +214,7 @@ TCPProtocolDecoderPHE
 		channel	= _channel;
 		adapter	= _adapter;
 		
-		my_supported_protocols = SUPPORTED_XOR; // SUPPORTED_AES | SUPPORTED_XOR;
+		my_supported_protocols = SUPPORTED_AES | SUPPORTED_XOR;
 		
 		initCrypto();
 
@@ -263,18 +286,32 @@ TCPProtocolDecoderPHE
 	
 		    sha1_secret_bytes	= new SHA1Simple().calculateHash( secret_bytes );
 		    
-	        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 0, STREAM_KEY_SIZE_BYTES, STREAM_ALG );
-	        		        
-	        AlgorithmParameterSpec	spec = 	new IvParameterSpec( STREAM_IV );
+		    if ( USE_AES ){
+		    	
+		        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 0, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
+		        		        
+		        AlgorithmParameterSpec	spec = 	new IvParameterSpec( AES_STREAM_IV );
 	        
-	        write_cipher = Cipher.getInstance( STREAM_CIPHER );
+		        write_cipher = Cipher.getInstance( AES_STREAM_CIPHER );
+		        
+		        write_cipher.init( Cipher.ENCRYPT_MODE, secret_key_spec, spec );
+			    
+		        read_cipher = Cipher.getInstance( AES_STREAM_CIPHER );
+		        
+		        read_cipher.init( Cipher.DECRYPT_MODE, secret_key_spec, spec );
 	        
-	        write_cipher.init( Cipher.ENCRYPT_MODE, secret_key_spec, spec );
-		    
-	        read_cipher = Cipher.getInstance( STREAM_CIPHER );
-	        
-	        read_cipher.init( Cipher.DECRYPT_MODE, secret_key_spec, spec );
-	        
+		    }else{
+		    	
+		        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
+		        	        
+		        write_cipher = Cipher.getInstance( RC4_STREAM_CIPHER );
+		        
+		        write_cipher.init( Cipher.ENCRYPT_MODE, secret_key_spec );
+			    
+		        read_cipher = Cipher.getInstance( RC4_STREAM_CIPHER );
+		        
+		        read_cipher.init( Cipher.DECRYPT_MODE, secret_key_spec );
+		    }
 		}catch( Throwable e ){
 			
 			throw( new IOException( Debug.getNestedExceptionMessage(e)));
