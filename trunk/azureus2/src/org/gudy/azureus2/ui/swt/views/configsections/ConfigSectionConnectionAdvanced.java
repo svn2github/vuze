@@ -190,11 +190,8 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 				SO_SNDBUF.getControl(), lsend, SO_RCVBUF.getControl(), lreceiv,
 				IPTOS.getControl(), ltos };
 
-		enable_advanced
-				.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
-						advanced_controls));
-		enable_advanced
-				.setAdditionalActionPerformer(new IAdditionalActionPerformer() {
+		enable_advanced.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(advanced_controls));
+		enable_advanced.setAdditionalActionPerformer(new IAdditionalActionPerformer() {
 					boolean checked;
 
 					public void performAction() {
@@ -221,6 +218,31 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 					}
 				});
 
+		
+		
+		final BooleanParameter require = new BooleanParameter(cSection,	"network.transport.encrypted.require", false, CFG_PREFIX + "require_encrypted_transport");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		require.setLayoutData(gridData);
+		
+		
+		String[] encryption_types = { "XOR", "RC4", "AES" };
+		String dropLabels[] = new String[encryption_types.length];
+		String dropValues[] = new String[encryption_types.length];
+		for (int i = 0; i < encryption_types.length; i++) {
+			dropLabels[i] = encryption_types[i];
+			dropValues[i] = encryption_types[i];
+		}
+		
+		final StringListParameter min_level = new StringListParameter(cSection,	"network.transport.encrypted.min_level", encryption_types[0], dropLabels, dropValues);
+		Label lmin = new Label(cSection, SWT.NULL);
+		Messages.setLanguageText(lmin, CFG_PREFIX + "min_encryption_level");
+		
+		
+		Control[] encryption_controls = {	min_level.getControl(), lmin };
+		require.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(encryption_controls));
+		
+		
 		///////////////////////   
 
 		return cSection;

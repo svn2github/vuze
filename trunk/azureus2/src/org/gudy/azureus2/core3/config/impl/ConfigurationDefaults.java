@@ -408,6 +408,11 @@ public class ConfigurationDefaults {
     
     def.put( "BT Request Max Block Size", new Long(65536));
     def.put( "network.tcp.enable_safe_selector_mode", FALSE );
+    
+    def.put( "network.transport.encrypted.require", FALSE );
+    def.put( "network.transport.encrypted.min_level", "XOR" );
+    
+    
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {
