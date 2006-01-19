@@ -119,7 +119,7 @@ TCPProtocolDecoderInitial
 							
 							if ( len < 0 ){
 								
-								failed( new Exception( "read returned " + len ));
+								failed( new IOException( "end of stream on socket read" ));
 								
 							}else if ( len == 0 ){
 								
