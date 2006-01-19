@@ -29,6 +29,7 @@ import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -99,7 +100,7 @@ PHETester
 							decodeComplete(
 								TCPProtocolDecoder	decoder )
 							{
-								System.out.println( "incoming decode complete: " +  decoder.getFilter());
+								System.out.println( "incoming decode complete: " +  decoder.getFilter().getName());
 																
 								readStream( "incoming", decoder.getFilter() );
 								
@@ -207,9 +208,11 @@ PHETester
 						decodeComplete(
 							TCPProtocolDecoder	decoder )
 						{
-							System.out.println( "outgoing decode complete: " +  decoder.getFilter());
+							System.out.println( "outgoing decode complete: " +  decoder.getFilter().getName());
 														
 							readStream( "incoming", decoder.getFilter() );
+							
+							writeStream( TCPProtocolDecoderInitial.BT_HEADER,  decoder.getFilter());
 							
 							writeStream( "two jolly porkers", decoder.getFilter() );
 						}
@@ -287,8 +290,16 @@ PHETester
 		String						str,
 		TCPTransportHelperFilter	filter )
 	{
+		writeStream( str.getBytes(), filter );
+	}
+	
+	protected void
+	writeStream(
+		byte[]						data,
+		TCPTransportHelperFilter	filter )
+	{
 		try{
-			filter.write( new ByteBuffer[]{ ByteBuffer.wrap( str.getBytes())}, 0, 1 );
+			filter.write( new ByteBuffer[]{ ByteBuffer.wrap(data)}, 0, 1 );
 			
 		}catch( Throwable e ){
 			
@@ -303,7 +314,7 @@ PHETester
 		AEDiagnostics.startup();
 		
 		COConfigurationManager.initialiseFromMap( new HashMap());
-		
+				
 		new PHETester();
 		
 		try{

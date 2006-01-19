@@ -37,7 +37,7 @@ public class
 TCPProtocolDecoderInitial 
 	extends TCPProtocolDecoder
 {
-	private static final int PROTOCOL_DECODE_TIMEOUT = 30*1000;
+	private static final int PROTOCOL_DECODE_TIMEOUT = 15*1000;
 	
 	private static VirtualChannelSelector	read_selector	= NetworkManager.getSingleton().getReadSelector();
 	private static VirtualChannelSelector	write_selector	= NetworkManager.getSingleton().getWriteSelector();
@@ -48,7 +48,7 @@ TCPProtocolDecoderInitial
 	
 	private SocketChannel	channel;
 	
-	private static final byte[]	BT_HEADER;
+	public static final byte[]	BT_HEADER;
 	
 	static{
 		byte[]	bytes = "BitTorrent protocol".getBytes();

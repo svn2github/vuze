@@ -42,6 +42,10 @@ import javax.crypto.spec.DHPublicKeySpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
@@ -56,9 +60,12 @@ TCPProtocolDecoderPHE
 	extends TCPProtocolDecoder 
 	implements VirtualSelectorListener
 {
+	private static final LogIDs LOGID = LogIDs.NWMAN;
+
 	private static final byte		SUPPORTED_PLAIN	= 0x00;
 	private static final byte		SUPPORTED_XOR	= 0x01;
-	private static final byte		SUPPORTED_AES	= 0x02;
+	private static final byte		SUPPORTED_RC4	= 0x02;
+	private static final byte		SUPPORTED_AES	= 0x04;
 
 	private static final int		DH_SIZE	= 512;
 	private static final int		DH_SIZE_BYTES = DH_SIZE/8;
@@ -73,8 +80,7 @@ TCPProtocolDecoderPHE
 	private static long					last_dh_key_generate;
 	
 	private static boolean	crypto_ok;
-	
-	private static final boolean	USE_AES	= false;
+	private static boolean	aes_ok;
 	
 	private static final String		AES_STREAM_ALG				= "AES";
 	private static final String		AES_STREAM_CIPHER			= "AES/CFB8/NoPadding";
@@ -104,45 +110,44 @@ TCPProtocolDecoderPHE
 			dh_key_generator.initialize(dh_param_spec);
 	        
 			dh_key_generator.generateKeyPair();
+	               	
+		    byte[]	rc4_test_secret = new byte[RC4_STREAM_KEY_SIZE_BYTES];
+
+		    SecretKeySpec	rc4_test_secret_key_spec = new SecretKeySpec(rc4_test_secret, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
+		        		        
+		    TCPTransportCipher rc4_cipher = new TCPTransportCipher( RC4_STREAM_CIPHER, Cipher.ENCRYPT_MODE, rc4_test_secret_key_spec );
+		         
+		    rc4_cipher = new TCPTransportCipher( RC4_STREAM_CIPHER, Cipher.DECRYPT_MODE, rc4_test_secret_key_spec );
 	        
-	        byte[]	test_secret = new byte[DH_SIZE_BYTES];
-	        	    
-	        if ( USE_AES ){
-	        	
-		        SecretKeySpec	test_secret_key_spec = new SecretKeySpec(test_secret, 0, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
+			try{
+				byte[]	aes_test_secret = new byte[AES_STREAM_KEY_SIZE_BYTES];
+	        	 
+				SecretKeySpec	aes_test_secret_key_spec = new SecretKeySpec(aes_test_secret, 0, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
 		        	        
-		        AlgorithmParameterSpec	spec = 	new IvParameterSpec( AES_STREAM_IV );
+				AlgorithmParameterSpec	spec = 	new IvParameterSpec( AES_STREAM_IV );
 		        
-		        Cipher cipher = Cipher.getInstance( AES_STREAM_CIPHER );
+		        TCPTransportCipher aes_cipher = new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.ENCRYPT_MODE, aes_test_secret_key_spec, spec );
 		        
-		        cipher.init( Cipher.ENCRYPT_MODE, test_secret_key_spec, spec );
+		        aes_cipher = new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.DECRYPT_MODE, aes_test_secret_key_spec, spec );
 		        
-		        cipher = Cipher.getInstance( AES_STREAM_CIPHER );
+		        aes_ok	= true;
 		        
-		        cipher.init( Cipher.DECRYPT_MODE, test_secret_key_spec, spec );
-		        
-	        }else{
-	        	
-		        SecretKeySpec	test_secret_key_spec = new SecretKeySpec(test_secret, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
-		        
-		        Cipher cipher = Cipher.getInstance( RC4_STREAM_CIPHER );
-		        
-		        cipher.init( Cipher.ENCRYPT_MODE, test_secret_key_spec );
-		        
-		        cipher = Cipher.getInstance( RC4_STREAM_CIPHER );
-		        
-		        cipher.init( Cipher.DECRYPT_MODE, test_secret_key_spec );
-	        }
+			}catch( Throwable e ){
+				
+				Debug.out( "AES unavailable" );
+			}
 	        
 	        crypto_ok	= true;
 	        
-	        	// TODO: logging
-	        
-	        System.out.println( "PHE Crypto OK" );
+	     	if (Logger.isEnabled()){
+	     		
+        		Logger.log(	new LogEvent(LOGID, "PHE crypto initialised" ));
+	     	}
+
 	        
 		}catch( Throwable e ){
-			
-			e.printStackTrace();
+				     		
+        	Logger.log(	new LogEvent(LOGID, "PHE crypto initialisation failed", e ));
 			
 			crypto_ok	= false;
 		}
@@ -154,9 +159,20 @@ TCPProtocolDecoderPHE
 		return( crypto_ok );
 	}
 	
+	private static final byte SUPPORTED_PROTOCOLS = (byte)((aes_ok?SUPPORTED_AES:0) | SUPPORTED_RC4 | SUPPORTED_XOR );
+	
 	private static VirtualChannelSelector	read_selector	= NetworkManager.getSingleton().getReadSelector();
 	private static VirtualChannelSelector	write_selector	= NetworkManager.getSingleton().getWriteSelector();
 
+	private static final int		PS_OUTBOUND_1	= 0;
+	private static final int		PS_OUTBOUND_2	= 1;
+	private static final int		PS_OUTBOUND_3	= 2;
+	
+	private static final int		PS_INBOUND_1	= 10;
+	private static final int		PS_INBOUND_2	= 11;
+	private static final int		PS_INBOUND_3	= 12;
+
+	
 	private SocketChannel		channel;
 	private ByteBuffer			write_buffer;
 	private ByteBuffer			read_buffer;
@@ -170,19 +186,13 @@ TCPProtocolDecoderPHE
 	private byte[]			secret_bytes;
 	private byte[]			sha1_secret_bytes;
 	
-	private Cipher			write_cipher;
-	private Cipher			read_cipher;
+	private TCPTransportCipher		write_cipher;
+	private TCPTransportCipher		read_cipher;
 	
 	private byte			my_supported_protocols;
 	private byte			selected_protocol;
-	
-	private static final int		PS_OUTBOUND_1	= 0;
-	private static final int		PS_OUTBOUND_2	= 1;
-	private static final int		PS_OUTBOUND_3	= 2;
-	
-	private static final int		PS_INBOUND_1	= 10;
-	private static final int		PS_INBOUND_2	= 11;
-	private static final int		PS_INBOUND_3	= 12;
+		
+	private boolean	outbound;
 	
 	private int		protocol_state;
 	private int		protocol_substate;
@@ -195,6 +205,8 @@ TCPProtocolDecoderPHE
 	private TCPTransportHelperFilter		filter;
 	
 	private boolean processing_complete;
+	
+	private AEMonitor	process_mon	= new AEMonitor( "TCPProtocolDecoder:process" );
 	
 	public 
 	TCPProtocolDecoderPHE(
@@ -214,7 +226,16 @@ TCPProtocolDecoderPHE
 		channel	= _channel;
 		adapter	= _adapter;
 		
-		my_supported_protocols = SUPPORTED_AES | SUPPORTED_XOR;
+		outbound	= _header == null;
+		
+		my_supported_protocols = SUPPORTED_PROTOCOLS;
+		
+			// TODO: modify from config
+		
+		if ( outbound ){
+			
+			my_supported_protocols	&= ~( SUPPORTED_AES );
+		}
 		
 		initCrypto();
 
@@ -223,7 +244,7 @@ TCPProtocolDecoderPHE
 		
 		write_selector.pauseSelects( channel );
 		
-		if ( _header == null ){
+		if ( outbound ){
 		
 			protocol_state	= PS_OUTBOUND_1;
 
@@ -285,33 +306,15 @@ TCPProtocolDecoderPHE
 		    secret_bytes = key_agreement.generateSecret();
 	
 		    sha1_secret_bytes	= new SHA1Simple().calculateHash( secret_bytes );
-		    
-		    if ( USE_AES ){
-		    	
-		        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 0, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
-		        		        
-		        AlgorithmParameterSpec	spec = 	new IvParameterSpec( AES_STREAM_IV );
-	        
-		        write_cipher = Cipher.getInstance( AES_STREAM_CIPHER );
+		    		    	
+		    SecretKeySpec	secret_key_spec_a = new SecretKeySpec( secret_bytes, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
 		        
-		        write_cipher.init( Cipher.ENCRYPT_MODE, secret_key_spec, spec );
-			    
-		        read_cipher = Cipher.getInstance( AES_STREAM_CIPHER );
-		        
-		        read_cipher.init( Cipher.DECRYPT_MODE, secret_key_spec, spec );
-	        
-		    }else{
-		    	
-		        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
+		    SecretKeySpec	secret_key_spec_b = new SecretKeySpec( secret_bytes, 16, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
 		        	        
-		        write_cipher = Cipher.getInstance( RC4_STREAM_CIPHER );
-		        
-		        write_cipher.init( Cipher.ENCRYPT_MODE, secret_key_spec );
+		    write_cipher 	= new TCPTransportCipher( RC4_STREAM_CIPHER, Cipher.ENCRYPT_MODE, outbound?secret_key_spec_a:secret_key_spec_b );
 			    
-		        read_cipher = Cipher.getInstance( RC4_STREAM_CIPHER );
-		        
-		        read_cipher.init( Cipher.DECRYPT_MODE, secret_key_spec );
-		    }
+		    read_cipher 	= new TCPTransportCipher( RC4_STREAM_CIPHER, Cipher.DECRYPT_MODE, outbound?secret_key_spec_b:secret_key_spec_a );
+		    
 		}catch( Throwable e ){
 			
 			throw( new IOException( Debug.getNestedExceptionMessage(e)));
@@ -320,15 +323,9 @@ TCPProtocolDecoderPHE
 	
 	protected void
 	handshakeComplete()
+	
+		throws IOException
 	{
-		read_buffer		= null;
-		write_buffer	= null;
-		
-		key_agreement		= null;
-		dh_public_key_bytes	= null;
-		secret_bytes		= null;
-		sha1_secret_bytes	= null;
-		
 		TCPTransportHelper	helper = new TCPTransportHelper( channel );
 		
 		if ( selected_protocol == SUPPORTED_PLAIN ){
@@ -339,13 +336,33 @@ TCPProtocolDecoderPHE
 		
 			filter = new TCPTransportHelperFilterStreamXOR( helper, secret_bytes );
 						
-		}else{
+		}else if ( selected_protocol == SUPPORTED_RC4 ){
 			
 			filter = new TCPTransportHelperFilterStreamCipher( 
 							helper,
 							read_cipher,
 							write_cipher );
 
+		}else{
+			
+			try{
+		        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 32, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
+			        		        
+		        AlgorithmParameterSpec	spec = 	new IvParameterSpec( AES_STREAM_IV );
+		        
+		        write_cipher 	= new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.ENCRYPT_MODE, secret_key_spec, spec );
+				    
+		        read_cipher 	= new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.DECRYPT_MODE, secret_key_spec, spec );
+		        
+				filter = new TCPTransportHelperFilterStreamCipher( 
+						helper,
+						read_cipher,
+						write_cipher );
+				
+			}catch( Throwable e ){
+				
+				throw( new IOException( "AES crypto init failed: " + Debug.getNestedExceptionMessage(e)));
+			}
 		}
 		
 		read_cipher		= null;
@@ -395,6 +412,15 @@ TCPProtocolDecoderPHE
 		throws IOException
 	{
 		try{
+			process_mon.enter();
+			
+			if ( handshake_complete ){
+				
+				Debug.out( "Handshake process already completed" );
+				
+				return;
+			}
+			
 			boolean	loop = true;
 		
 			while( loop ){
@@ -524,10 +550,15 @@ TCPProtocolDecoderPHE
 						protocol_substate	= 1;
 					}					
 						
-					read( read_buffer );
+					while( true ){
+						
+						read( read_buffer );
+								
+						if ( read_buffer.hasRemaining()){
 							
-					if ( !read_buffer.hasRemaining()){
-											
+							break;
+						}
+						
 						if ( protocol_substate == 1 ){
 							
 							read_buffer.flip();
@@ -545,6 +576,10 @@ TCPProtocolDecoderPHE
 							if (( common_protocols & SUPPORTED_AES )!= 0 ){
 								
 								selected_protocol = SUPPORTED_AES;
+								
+							}else if (( common_protocols & SUPPORTED_RC4 )!= 0 ){
+								
+								selected_protocol = SUPPORTED_RC4;
 								
 							}else if (( common_protocols & SUPPORTED_XOR )!= 0 ){
 								
@@ -566,6 +601,8 @@ TCPProtocolDecoderPHE
 							read_buffer	= null;
 				        						
 							protocol_state	= PS_OUTBOUND_3;
+							
+							break;
 						}
 					}
 				}else if ( protocol_state == PS_INBOUND_3 ){
@@ -643,9 +680,7 @@ TCPProtocolDecoderPHE
 							read_buffer = ByteBuffer.allocate( padding );
 							
 							protocol_substate	= 3;
-							
-							break;
-							
+														
 						}else{
 							
 							read_buffer	= null;
@@ -695,6 +730,8 @@ TCPProtocolDecoderPHE
 			}
 		}catch( Throwable e ){
 			
+			e.printStackTrace();
+			
 			failed( e );
 			
 			if ( e instanceof IOException ){
@@ -705,6 +742,9 @@ TCPProtocolDecoderPHE
 				
 				throw( new IOException( Debug.getNestedExceptionMessage(e)));
 			}
+		}finally{
+			
+			process_mon.exit();
 		}
 	}
 	

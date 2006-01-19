@@ -47,4 +47,7 @@ TCPTransportHelperFilter
 	
 	public SocketChannel
 	getSocketChannel();
+	
+	public String
+	getName();
 }

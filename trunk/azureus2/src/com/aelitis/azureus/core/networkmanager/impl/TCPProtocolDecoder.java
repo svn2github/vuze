@@ -24,6 +24,9 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -31,7 +34,10 @@ import org.gudy.azureus2.core3.util.SystemTime;
 public abstract class 
 TCPProtocolDecoder 
 {
-	private static final long TIMEOUT_CHECK		= 5000;
+	private static final LogIDs LOGID = LogIDs.NWMAN;
+
+	private static final int	TIMEOUT_CHECK		= 5000;
+	private static final int	LOG_TICKS			= 60000 / TIMEOUT_CHECK;
 		
 	private static List			decoders	= new ArrayList();
 	
@@ -43,14 +49,24 @@ TCPProtocolDecoder
 			public void
 			runSupport()
 			{
+				int	loop = 0;
+				
 				while( true ){
+					
+					loop++;
 					
 					long	now = SystemTime.getCurrentTime();
 					
 					try{
 						class_mon.enter();
 					
-						System.out.println( "pending prot = " + decoders.size());
+						if ( loop % LOG_TICKS == 0 ){
+							
+					     	if (Logger.isEnabled()){
+					     		
+				        		Logger.log(	new LogEvent(LOGID, "Active protocol decoders = " + decoders.size()));
+					     	}
+						}
 						
 						Iterator	it = decoders.iterator();
 						

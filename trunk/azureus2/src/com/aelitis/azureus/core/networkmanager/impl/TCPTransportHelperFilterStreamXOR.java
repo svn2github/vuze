@@ -29,12 +29,16 @@ public class
 TCPTransportHelperFilterStreamXOR
 	extends TCPTransportHelperFilterStream
 {
+	private byte[]		mask;
+	
 	protected
 	TCPTransportHelperFilterStreamXOR(
 		TCPTransportHelper		_transport,
 		byte[]					_mask )
 	{
 		super( _transport );
+		
+		mask		= _mask;
 	}
 	
 	protected void
@@ -55,5 +59,11 @@ TCPTransportHelperFilterStreamXOR
 		throws IOException
 	{		
 		target_buffer.put( source_buffer );
-	}	
+	}
+	
+	public String
+	getName()
+	{
+		return( "XOR-" + mask.length*8 );
+	}
 }

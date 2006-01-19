@@ -25,8 +25,6 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import javax.crypto.Cipher;
-import javax.crypto.ShortBufferException;
 
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -34,14 +32,14 @@ public class
 TCPTransportHelperFilterStreamCipher 
 	extends TCPTransportHelperFilterStream
 {
-	private Cipher					read_cipher;
-	private Cipher					write_cipher;
+	private TCPTransportCipher					read_cipher;
+	private TCPTransportCipher					write_cipher;
 		
 	protected
 	TCPTransportHelperFilterStreamCipher(
 		TCPTransportHelper		_transport,
-		Cipher					_read_cipher,
-		Cipher					_write_cipher )
+		TCPTransportCipher		_read_cipher,
+		TCPTransportCipher		_write_cipher )
 	{
 		super( _transport );
 		
@@ -56,13 +54,7 @@ TCPTransportHelperFilterStreamCipher
 	
 		throws IOException
 	{
-		try{
-			write_cipher.update( source_buffer, target_buffer );
-			
-		}catch( ShortBufferException e ){
-			
-			throw( new IOException( Debug.getNestedExceptionMessage( e )));
-		}
+		write_cipher.update( source_buffer, target_buffer );
 	}
 	
 	protected void
@@ -72,12 +64,12 @@ TCPTransportHelperFilterStreamCipher
 	
 		throws IOException
 	{
-		try{
-			read_cipher.update( source_buffer, target_buffer );
-			
-		}catch( ShortBufferException e ){
-			
-			throw( new IOException( Debug.getNestedExceptionMessage( e )));
-		}
-	}		
+		read_cipher.update( source_buffer, target_buffer );
+	}	
+	
+	public String
+	getName()
+	{
+		return( read_cipher.getName());
+	}
 }

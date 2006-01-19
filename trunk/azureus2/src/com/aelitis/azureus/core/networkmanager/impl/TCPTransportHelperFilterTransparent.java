@@ -127,4 +127,10 @@ TCPTransportHelperFilterTransparent
 	{
 		return( transport.getSocketChannel());
 	}
+	
+	public String
+	getName()
+	{
+		return( "Plain" );
+	}
 }
