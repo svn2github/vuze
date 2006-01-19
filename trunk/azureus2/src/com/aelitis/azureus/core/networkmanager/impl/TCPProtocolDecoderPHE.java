@@ -44,6 +44,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
@@ -137,7 +138,7 @@ TCPProtocolDecoderPHE
 		        
 			}catch( Throwable e ){
 				
-				Debug.out( "AES unavailable" );
+				Logger.log(	new LogEvent(LOGID, "AES Unavailable", e ));
 			}
 	        
 	        crypto_ok	= true;
@@ -146,8 +147,6 @@ TCPProtocolDecoderPHE
 	     		
         		Logger.log(	new LogEvent(LOGID, "PHE crypto initialised" ));
 	     	}
-
-	        
 		}catch( Throwable e ){
 				     		
         	Logger.log(	new LogEvent(LOGID, "PHE crypto initialisation failed", e ));
@@ -177,8 +176,15 @@ TCPProtocolDecoderPHE
 	    			 parameterChanged(
 	    				String ignore )
 	    			 {
+	    				 boolean	old = REQUIRE_CRYPTO;
+	    				 
 	    				 REQUIRE_CRYPTO	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
 
+	    				 if ( REQUIRE_CRYPTO && old != REQUIRE_CRYPTO && !isCryptoOK()){
+	    					 
+	    				       	Logger.log( new LogAlert(true,LogAlert.AT_ERROR,"Connection encryption unavailable, please update your Java version" ));
+	    				 }
+	    				 
 	    				 String	min	= COConfigurationManager.getStringParameter( "network.transport.encrypted.min_level");
 	    				 
 	    				 if ( min.equals( "XOR" )){
@@ -985,6 +991,12 @@ TCPProtocolDecoderPHE
 	getFilter()
 	{
 		return( filter );
+	}
+	
+	public String
+	getString()
+	{
+		return( "state=" + protocol_state + ",sub=" + protocol_substate + ",in=" + bytes_read + ",out=" + bytes_written);
 	}
 	
 	public SocketChannel

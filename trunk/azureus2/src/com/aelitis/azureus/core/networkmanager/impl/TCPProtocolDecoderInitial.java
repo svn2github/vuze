@@ -39,7 +39,7 @@ public class
 TCPProtocolDecoderInitial 
 	extends TCPProtocolDecoder
 {
-	private static final int PROTOCOL_DECODE_TIMEOUT = 15*1000;
+	private static final int PROTOCOL_DECODE_TIMEOUT = 30*1000;
 	
 	private static VirtualChannelSelector	read_selector	= NetworkManager.getSingleton().getReadSelector();
 	private static VirtualChannelSelector	write_selector	= NetworkManager.getSingleton().getWriteSelector();
@@ -80,8 +80,11 @@ TCPProtocolDecoderInitial
 	
 	
 	private ByteBuffer	decode_buffer; 
+	private int			decode_read;
 	
 	private long	start_time	= SystemTime.getCurrentTime();
+	
+	private TCPProtocolDecoderPHE	phe_decoder;
 	
 	private boolean processing_complete;
 	
@@ -146,6 +149,8 @@ TCPProtocolDecoderInitial
 								
 								return( false );
 							}
+							
+							decode_read += len;
 							
 							if ( decode_buffer.hasRemaining()){
 								
@@ -231,7 +236,7 @@ TCPProtocolDecoderInitial
 				}
 			};
 		
-		new TCPProtocolDecoderPHE( channel, buffer, phe_adapter );
+		phe_decoder = new TCPProtocolDecoderPHE( channel, buffer, phe_adapter );
 	}
 	
 	public boolean
@@ -259,7 +264,14 @@ TCPProtocolDecoderInitial
 						
 					}
 					
-					failed( new Throwable( "Protocol decode aborted: timed out after " + PROTOCOL_DECODE_TIMEOUT/1000+ "sec" ));
+					String	phe_str = "";
+					
+					if ( phe_decoder != null ){
+						
+						phe_str = ", crypto: " + phe_decoder.getString();
+					}
+					
+					failed( new Throwable( "Protocol decode aborted: timed out after " + PROTOCOL_DECODE_TIMEOUT/1000+ "sec: " + decode_read + " bytes read" + phe_str ));
 				}
 			}
 		}
