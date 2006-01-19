@@ -30,6 +30,8 @@ TCPTransportHelperFilterStreamXOR
 	extends TCPTransportHelperFilterStream
 {
 	private byte[]		mask;
+	private int			read_position;
+	private int			write_position;
 	
 	protected
 	TCPTransportHelperFilterStreamXOR(
@@ -48,7 +50,21 @@ TCPTransportHelperFilterStreamXOR
 	
 		throws IOException
 	{		
-		target_buffer.put( source_buffer );
+		int	rem = source_buffer.remaining();
+		
+		for (int i=0;i<rem;i++){
+			
+			byte	b = source_buffer.get();
+			
+			b = (byte)( b ^ mask[ write_position++ ]);
+			
+			target_buffer.put( b );
+			
+			if ( write_position == mask.length  ){
+				
+				write_position	= 0;
+			}
+		}
 	}
 	
 	protected void
@@ -58,7 +74,21 @@ TCPTransportHelperFilterStreamXOR
 	
 		throws IOException
 	{		
-		target_buffer.put( source_buffer );
+		int	rem = source_buffer.remaining();
+		
+		for (int i=0;i<rem;i++){
+			
+			byte	b = source_buffer.get();
+			
+			b = (byte)( b ^ mask[ read_position++ ]);
+			
+			target_buffer.put( b );
+			
+			if ( read_position == mask.length  ){
+				
+				read_position	= 0;
+			}
+		}	
 	}
 	
 	public String

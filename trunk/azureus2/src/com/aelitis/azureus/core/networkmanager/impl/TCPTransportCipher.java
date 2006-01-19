@@ -184,7 +184,14 @@ TCPTransportCipher
 				s = s.substring(0,pos);
 			}
 			
-			s += "-" + cipher.getBlockSize()*8;
+			if ( s.equals( "RC4" )){
+				
+				s = "RC4-128";
+				
+			}else{
+				
+				s += "-" + cipher.getBlockSize()*8;
+			}
 			
 			return( s );
 		}else{

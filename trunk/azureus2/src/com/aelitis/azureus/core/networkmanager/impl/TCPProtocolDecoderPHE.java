@@ -235,6 +235,7 @@ TCPProtocolDecoderPHE
 		if ( outbound ){
 			
 			my_supported_protocols	&= ~( SUPPORTED_AES );
+			// my_supported_protocols	= SUPPORTED_XOR;
 		}
 		
 		initCrypto();
