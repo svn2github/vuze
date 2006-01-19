@@ -82,7 +82,7 @@ TCPTransportHelperFilterTransparent
 		
 			int	pos_before	= read_insert.position();
 			
-			for (int i=array_offset;i<length;i++){
+			for (int i=array_offset;i<array_offset+length;i++){
 				
 				buffers[i].put( read_insert );
 				

@@ -1,5 +1,5 @@
 /*
- * Created on 17-Jan-2006
+ * Created on 19-Jan-2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -26,33 +26,21 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import javax.crypto.Cipher;
-import javax.crypto.ShortBufferException;
 
-import org.gudy.azureus2.core3.util.Debug;
-
-public class 
-TCPTransportHelperFilterCipherStream 
+public abstract class 
+TCPTransportHelperFilterStream 
 	implements TCPTransportHelperFilter
 {
 	private TCPTransportHelper		transport;
-	private Cipher					read_cipher;
-	private Cipher					write_cipher;
-	
+
 	private ByteBuffer	write_buffer_pending;
-	private boolean		write_buffer_pending_byte_outstanding;
 	private ByteBuffer	write_buffer_pending_byte;
 	
 	protected
-	TCPTransportHelperFilterCipherStream(
-		TCPTransportHelper		_transport,
-		Cipher					_read_cipher,
-		Cipher					_write_cipher )
+	TCPTransportHelperFilterStream(
+		TCPTransportHelper		_transport )
 	{
 		transport	= _transport;
-		
-		read_cipher		= _read_cipher;
-		write_cipher	= _write_cipher;
 	}
 	
 	public long 
@@ -62,17 +50,17 @@ TCPTransportHelperFilterCipherStream
 		int 			length ) 
 	
 		throws IOException
-	{
+	{		
 			// deal with any outstanding cached crypted data first
 		
-		if  ( write_buffer_pending_byte_outstanding ){
+		if  ( write_buffer_pending_byte != null ){
 			
 			if ( transport.write( write_buffer_pending_byte ) == 0 ){
 				
 				return( 0 );
 			}
 			
-			write_buffer_pending_byte_outstanding	= false;
+			write_buffer_pending_byte	= null;
 		}
 		
 		long	total_written = 0;
@@ -81,7 +69,7 @@ TCPTransportHelperFilterCipherStream
 			
 			int	max_writable = 0;
 			
-			for (int i=array_offset;i<length;i++){
+			for (int i=array_offset;i<array_offset+length;i++){
 				
 				ByteBuffer	source_buffer = buffers[i];
 				
@@ -107,45 +95,56 @@ TCPTransportHelperFilterCipherStream
 			
 			int	written = transport.write( write_buffer_pending );
 			
-			write_buffer_pending.limit( pending_limit );
-			
-			total_written += written;
-			
-				// skip "written" bytes in the source
-			
-			int skip = written;
-			
-			for (int i=array_offset;i<length;i++){
+			if ( written > 0 ){
 				
-				ByteBuffer	source_buffer = buffers[i];
+				total_written = written;
 				
-				int	position 	= source_buffer.position();
-				int	limit		= source_buffer.limit();
+				write_buffer_pending.limit( pending_limit );
 				
-				int	size = limit - position;
+				if ( write_buffer_pending.remaining() == 0 ){
+					
+					write_buffer_pending	= null;
+				}
 				
-				if ( size <= skip ){
+					// skip "written" bytes in the source
+				
+				int skip = written;
+				
+				for (int i=array_offset;i<array_offset+length;i++){
 					
-					source_buffer.position( limit );
+					ByteBuffer	source_buffer = buffers[i];
 					
-					skip	-= size;
+					int	position 	= source_buffer.position();
+					int	limit		= source_buffer.limit();
 					
-				}else{
+					int	size = limit - position;
 					
-					source_buffer.position( position + skip );
+					if ( size <= skip ){
+						
+						source_buffer.position( limit );
+						
+						skip	-= size;
+						
+					}else{
+						
+						source_buffer.position( position + skip );
+						
+						skip	= 0;
+						
+						break;
+					}
+				}
+				
+				if ( skip != 0 ){
 					
-					skip	= 0;
-					
-					break;
+					throw( new IOException( "skip inconsistent - " + skip ));
 				}
 			}
 			
-			if ( skip != 0 ){
-				
-				throw( new IOException( "skip inconsistent - " + skip ));
-			}
+				// if write came up short or we've filled the source buffer then we can't do
+				// any more 
 			
-			if ( written < pending_size || written == max_writable ){
+			if ( total_written < pending_size || total_written == max_writable ){
 				
 				return( total_written );
 			}
@@ -155,7 +154,7 @@ TCPTransportHelperFilterCipherStream
 			// to be sent (else the stream will get out of sync).
 			// so we have to turn this into single buffer operations
 		
-		for (int i=array_offset;i<length;i++){
+		for (int i=array_offset;i<array_offset+length;i++){
 			
 			ByteBuffer	source_buffer = buffers[i];
 			
@@ -166,13 +165,7 @@ TCPTransportHelperFilterCipherStream
 			
 			ByteBuffer	target_buffer = ByteBuffer.allocate( size );
 		
-			try{
-				write_cipher.update( source_buffer, target_buffer );
-				
-			}catch( ShortBufferException e ){
-				
-				throw( new IOException( Debug.getNestedExceptionMessage( e )));
-			}
+			write( source_buffer, target_buffer );
 			
 			target_buffer.position( 0 );
 			
@@ -190,11 +183,9 @@ TCPTransportHelperFilterCipherStream
 					
 						// we gotta pretend at least 1 byte was written to
 						// guarantee that the caller writes the rest
-					
-					write_buffer_pending_byte_outstanding = true;
-					
-					write_buffer_pending_byte = ByteBuffer.wrap(new byte[]{target_buffer.get()});
 										
+					write_buffer_pending_byte = ByteBuffer.wrap(new byte[]{target_buffer.get()});
+												
 					source_buffer.get();
 					
 					total_written++;
@@ -214,9 +205,47 @@ TCPTransportHelperFilterCipherStream
 		int 			length ) 
 	
 		throws IOException
-	{
-		throw( new IOException( "not imp" ));
+	{		
+		ByteBuffer[]	copy = new ByteBuffer[buffers.length];
+		
+		for (int i=array_offset;i<array_offset+length;i++){
+			
+			copy[i]	= ByteBuffer.allocate( buffers[i].remaining());
+		}
+		
+		long	read = transport.read( copy, array_offset, length );
+		
+		for (int i=array_offset;i<array_offset+length;i++){
+
+			ByteBuffer	target_buffer 	= buffers[i];
+			ByteBuffer	source_buffer	= copy[i];
+			
+			int	source_position	= source_buffer.position();
+						
+			if ( source_position > 0 ){
+				
+				source_buffer.flip();
+				
+				read( source_buffer, target_buffer );
+			}
+		}
+		
+		return( read );
 	}
+	
+	protected abstract void
+	write(
+		ByteBuffer	source_buffer,
+		ByteBuffer	target_buffer )
+	
+		throws IOException;
+	
+	protected abstract void
+	read(
+		ByteBuffer	source_buffer,
+		ByteBuffer	target_buffer )
+	
+		throws IOException;
 	
 	public SocketChannel
 	getSocketChannel()

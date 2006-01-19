@@ -48,7 +48,17 @@ TCPProtocolDecoderInitial
 	
 	private SocketChannel	channel;
 	
-	private static final byte[]	BT_HEADER = "19Bittorrent Protocol".getBytes();
+	private static final byte[]	BT_HEADER;
+	
+	static{
+		byte[]	bytes = "BitTorrent protocol".getBytes();
+		
+		BT_HEADER	= new byte[bytes.length+1];
+		
+		BT_HEADER[0] = (byte)bytes.length;
+		
+		System.arraycopy( bytes, 0, BT_HEADER, 1, bytes.length );
+	}
 	
 	private ByteBuffer	decode_buffer; 
 	

@@ -191,7 +191,7 @@ TCPProtocolDecoderPHE
 		channel	= _channel;
 		adapter	= _adapter;
 		
-		my_supported_protocols = SUPPORTED_AES | SUPPORTED_XOR;
+		my_supported_protocols = SUPPORTED_XOR; // SUPPORTED_AES | SUPPORTED_XOR;
 		
 		initCrypto();
 
@@ -300,11 +300,11 @@ TCPProtocolDecoderPHE
 			
 		}else if ( selected_protocol == SUPPORTED_XOR ){
 		
-			filter = new TCPTransportHelperFilterXOR( helper, secret_bytes );
+			filter = new TCPTransportHelperFilterStreamXOR( helper, secret_bytes );
 						
 		}else{
 			
-			filter = new TCPTransportHelperFilterCipherStream( 
+			filter = new TCPTransportHelperFilterStreamCipher( 
 							helper,
 							read_cipher,
 							write_cipher );

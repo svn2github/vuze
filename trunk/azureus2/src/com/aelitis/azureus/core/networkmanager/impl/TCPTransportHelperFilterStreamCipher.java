@@ -24,47 +24,60 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+
+import javax.crypto.Cipher;
+import javax.crypto.ShortBufferException;
+
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
-TCPTransportHelperFilterXOR
-	implements TCPTransportHelperFilter
+TCPTransportHelperFilterStreamCipher 
+	extends TCPTransportHelperFilterStream
 {
-	protected TCPTransportHelper		transport;
-	
+	private Cipher					read_cipher;
+	private Cipher					write_cipher;
+		
 	protected
-	TCPTransportHelperFilterXOR(
+	TCPTransportHelperFilterStreamCipher(
 		TCPTransportHelper		_transport,
-		byte[]					_mask )
+		Cipher					_read_cipher,
+		Cipher					_write_cipher )
 	{
-		transport	= _transport;
+		super( _transport );
+		
+		read_cipher		= _read_cipher;
+		write_cipher	= _write_cipher;
 	}
 	
-	public long 
-	write( 
-		ByteBuffer[] 	buffers, 
-		int 			array_offset, 
-		int 			length ) 
-	
-		throws IOException
-	{
-		throw( new IOException( "not imp" ));
-	}
-
-	public long 
-	read( 
-		ByteBuffer[] 	buffers, 
-		int 			array_offset, 
-		int 			length ) 
+	protected void
+	write(
+		ByteBuffer	source_buffer,
+		ByteBuffer	target_buffer )
 	
 		throws IOException
 	{
-		throw( new IOException( "not imp" ));
+		try{
+			write_cipher.update( source_buffer, target_buffer );
+			
+		}catch( ShortBufferException e ){
+			
+			throw( new IOException( Debug.getNestedExceptionMessage( e )));
+		}
 	}
 	
-	public SocketChannel
-	getSocketChannel()
+	protected void
+	read(
+		ByteBuffer	source_buffer,
+		ByteBuffer	target_buffer )
+	
+		throws IOException
 	{
-		return( transport.getSocketChannel());
-	}
+		try{
+			read_cipher.update( source_buffer, target_buffer );
+			
+		}catch( ShortBufferException e ){
+			
+			throw( new IOException( Debug.getNestedExceptionMessage( e )));
+		}
+	}		
 }

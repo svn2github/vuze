@@ -28,6 +28,8 @@ import java.nio.channels.SocketChannel;
  */
 public class TransportCryptoManager {
 	
+	public static final boolean	NO_CRYPTO	= false;
+	
 	private static final TransportCryptoManager instance = new TransportCryptoManager();
 	
 	
@@ -37,9 +39,12 @@ public class TransportCryptoManager {
 	
 	public void manageCrypto( SocketChannel channel, boolean is_incoming, final HandshakeListener listener ) {
 		
-		listener.handshakeSuccess( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
+		if ( NO_CRYPTO ){
 		
-		if ( false ){
+			listener.handshakeSuccess( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
+		
+		}else{
+			
 			//TODO base on config options for incoming
 			
 			try{
