@@ -100,7 +100,7 @@ TCPProtocolDecoderInitial
 		
 		final TCPTransportHelper transport_helper	= new TCPTransportHelper( channel);
 
-		final TCPTransportHelperFilterTransparent transparent_filter = new TCPTransportHelperFilterTransparent( transport_helper );
+		final TCPTransportHelperFilterTransparent transparent_filter = new TCPTransportHelperFilterTransparent( transport_helper, false );
 				
 		filter	= transparent_filter;
 		

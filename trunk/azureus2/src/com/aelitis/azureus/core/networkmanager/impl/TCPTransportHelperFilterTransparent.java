@@ -31,14 +31,17 @@ TCPTransportHelperFilterTransparent
 	implements TCPTransportHelperFilter
 {
 	private TCPTransportHelper		transport;
+	private boolean					is_plain;
 	
 	private ByteBuffer			read_insert;
 	
 	protected 
 	TCPTransportHelperFilterTransparent(
-		TCPTransportHelper	_transport )
+		TCPTransportHelper	_transport,
+		boolean				_is_plain )
 	{
 		transport	= _transport;
+		is_plain	= _is_plain;
 	}
 	
 	protected void
@@ -131,6 +134,6 @@ TCPTransportHelperFilterTransparent
 	public String
 	getName()
 	{
-		return( "Plain" );
+		return( is_plain?"Plain":"None" );
 	}
 }

@@ -387,7 +387,7 @@ TCPProtocolDecoderPHE
 		
 		if ( selected_protocol == CRYPTO_PLAIN ){
 			
-			filter = new TCPTransportHelperFilterTransparent( helper );
+			filter = new TCPTransportHelperFilterTransparent( helper, true );
 			
 		}else if ( selected_protocol == CRYPTO_XOR ){
 		
@@ -400,7 +400,7 @@ TCPProtocolDecoderPHE
 							read_cipher,
 							write_cipher );
 
-		}else if ( selected_protocol == CRYPTO_RC4 ){
+		}else if ( selected_protocol == CRYPTO_AES ){
 			
 			try{
 		        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 32, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );

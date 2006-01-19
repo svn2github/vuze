@@ -30,6 +30,6 @@ public class TCPTransportHelperFilterFactory {
 	
 	
 	public static TCPTransportHelperFilter createTransparentFilter( SocketChannel channel ) {
-		return new TCPTransportHelperFilterTransparent( new TCPTransportHelper( channel ));
+		return new TCPTransportHelperFilterTransparent( new TCPTransportHelper( channel ), false);
 	}
 }
