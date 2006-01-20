@@ -114,13 +114,27 @@ SESecurityManagerImpl
 		
 		installAuthenticator();
 		
-		try{
-			Security.addProvider((java.security.Provider)
-				Class.forName("com.sun.net.ssl.internal.ssl.Provider").newInstance());
+	
+		String[]	providers = { "com.sun.net.ssl.internal.ssl.Provider", "org.metastatic.jessie.provider.Jessie" };
 			
-		}catch( Throwable e ){
+		String	provider = null;
+		
+		for (int i=0;i<providers.length;i++){
+				
+			try{
+				Class.forName(providers[i]).newInstance();
+		
+				provider	 = providers[i];
+				
+				break;
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		if ( provider == null ){
 			
-			Debug.printStackTrace( e );
+			Debug.out( "No SSL provider available" );
 		}
 		
 		try{
