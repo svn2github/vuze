@@ -37,7 +37,6 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -241,6 +240,12 @@ AzureusCoreImpl
 				Debug.printStackTrace(e);
 			}
 		}
+		// shutdownCore is always the last method to run (because of the shutdown
+		// hooks).  Make sure configuration is saved, even if !running, since
+		// some code may have set a config value after the running flag was turned
+		// off (ex. if code is running on a seperate thread or timer)
+		if (COConfigurationManager.isInitialized())
+			COConfigurationManager.save();
 	}
   
   

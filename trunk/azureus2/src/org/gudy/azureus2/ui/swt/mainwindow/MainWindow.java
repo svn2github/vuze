@@ -1156,8 +1156,6 @@ MainWindow
       updater.stopIt();
     }
     
-    COConfigurationManager.save();
-    
     initializer.stopIt( for_restart, close_already_in_progress );
 
     //NICO swt disposes the mainWindow all by itself (thanks... ;-( ) on macosx

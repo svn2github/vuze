@@ -25,7 +25,7 @@ ConfigurationManager
 	implements AEDiagnosticsEvidenceGenerator
 {
   
-  private static ConfigurationManager config;
+  private static ConfigurationManager config = null;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
   
   private Map propertiesMap;
@@ -36,6 +36,9 @@ ConfigurationManager
   private AEMonitor	this_mon	= new AEMonitor( "ConfigMan");
   
  
+  public static boolean isInitialized() {
+  	return (config != null);
+  }
   
  
   public static ConfigurationManager getInstance() {
