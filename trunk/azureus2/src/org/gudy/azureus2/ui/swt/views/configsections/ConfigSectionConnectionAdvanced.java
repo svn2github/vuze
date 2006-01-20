@@ -225,7 +225,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData.horizontalSpan = 2;
 		require.setLayoutData(gridData);
 		
-		
+		/*
 		//String[] encryption_types = { "XOR", "RC4", "AES" };
 		String[] encryption_types = { "RC4" };
 		String dropLabels[] = new String[encryption_types.length];
@@ -242,7 +242,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		
 		Control[] encryption_controls = {	min_level.getControl(), lmin };
 		require.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(encryption_controls));
-		
+		*/
 		
 		///////////////////////   
 
