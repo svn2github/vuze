@@ -322,10 +322,10 @@ public class MyTorrentsView
             Category curCategory = (Category)curButton.getData("Category");
             List dms = curCategory.getDownloadManagers();
             
-            int ttlActive = 0;
-            int ttlSize = 0;
-            int ttlRSpeed = 0;
-            int ttlSSpeed = 0;
+            long ttlActive = 0;
+            long ttlSize = 0;
+            long ttlRSpeed = 0;
+            long ttlSSpeed = 0;
             int count = 0;
             for (Iterator iter = dms.iterator(); iter.hasNext();) {
 							DownloadManager dm = (DownloadManager) iter.next();
