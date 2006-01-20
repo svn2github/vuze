@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2006.xx.xx | Azureus 2.3.0.7
+2006.02.xx | Azureus 2.3.0.7
 
 FEATURE: Core | Logging seperated into sections [TuxPaper]
 FEATURE: Core | Plugins can be disabled from starting up [TuxPaper]
@@ -13,6 +13,7 @@ FEATURE: Plug | "GetRight" HTTP seed proposal support (http://www.getright.com/s
 FEATURE: UI   | Manual tracker scrape option if auto-scrape disabled [Parg]
 FEATURE: Plug | New "team seeder" plugin [Parg]
 FEATURE: Core | Separate high-speed transfer rates between peers within the local LAN [Parg,Nolar]
+FEATURE: Core | Encrypted peer connections [Parg,Nolar]
 
 CHANGE: Core  | Clearer firewalled/NAT status reporting [Nolar]
 CHANGE: Core  | Do not open the wiki NAT problem page if firewall status is OK [Nolar]
