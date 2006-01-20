@@ -20,12 +20,9 @@
  */
 package org.gudy.azureus2.ui.swt;
 
-import java.util.StringTokenizer;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -39,7 +36,6 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.aelitis.azureus.core.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.util.Constants;
