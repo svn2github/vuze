@@ -226,7 +226,8 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		require.setLayoutData(gridData);
 		
 		
-		String[] encryption_types = { "XOR", "RC4", "AES" };
+		//String[] encryption_types = { "XOR", "RC4", "AES" };
+		String[] encryption_types = { "RC4" };
 		String dropLabels[] = new String[encryption_types.length];
 		String dropValues[] = new String[encryption_types.length];
 		for (int i = 0; i < encryption_types.length; i++) {

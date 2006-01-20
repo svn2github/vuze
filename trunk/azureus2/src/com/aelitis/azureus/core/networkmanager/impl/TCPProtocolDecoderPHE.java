@@ -161,7 +161,8 @@ TCPProtocolDecoderPHE
 		return( crypto_ok );
 	}
 	
-	private static final byte SUPPORTED_PROTOCOLS = (byte)((aes_ok?CRYPTO_AES:0) | CRYPTO_RC4 | CRYPTO_XOR | CRYPTO_PLAIN );
+	// private static final byte SUPPORTED_PROTOCOLS = (byte)((aes_ok?CRYPTO_AES:0) | CRYPTO_RC4 | CRYPTO_XOR | CRYPTO_PLAIN );
+	private static final byte SUPPORTED_PROTOCOLS = (byte)(CRYPTO_RC4 | CRYPTO_PLAIN );
 
 	
 	private static boolean 	REQUIRE_CRYPTO;
