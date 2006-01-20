@@ -17,7 +17,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -30,6 +29,8 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.stats.transfer.OverallStats;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginView;
@@ -114,6 +115,7 @@ MainWindow
   
   //Package visibility for GUIUpdater
   CLabel ipBlocked;
+  CLabel srStatus;
   CLabel natStatus;
   CLabel dhtStatus;
   CLabel statusDown;
@@ -395,9 +397,8 @@ MainWindow
     formData.right = new FormAttachment(100, 0);  // 2 params for Pre SWT 3.0
     folder.setLayoutData(formData);
     
-
     GridLayout layout_status = new GridLayout();
-    layout_status.numColumns = 6;
+    layout_status.numColumns = 7;
     layout_status.horizontalSpacing = 0;
     layout_status.verticalSpacing = 0;
     layout_status.marginHeight = 0;
@@ -490,15 +491,48 @@ MainWindow
     layoutStatusArea.topControl = statusText;
     statusBar.layout();
     
- 
+    srStatus = new CLabelPadding(statusBar,borderFlag);
+    srStatus.setText( "" );
+   
+    COConfigurationManager.addAndFireParameterListener(
+    		"Status Area Show SR",
+    		new ParameterListener()
+    		{
+    			public void parameterChanged(String parameterName)
+    			{
+    				srStatus.setVisible( COConfigurationManager.getBooleanParameter(parameterName,true));
+    				statusBar.layout();
+    			}
+    		});
+    
     natStatus = new CLabelPadding(statusBar,borderFlag);
     natStatus.setText( "" );
-    
+
+    COConfigurationManager.addAndFireParameterListener(
+    		"Status Area Show NAT",
+    		new ParameterListener()
+    		{
+    			public void parameterChanged(String parameterName)
+    			{
+    				natStatus.setVisible( COConfigurationManager.getBooleanParameter(parameterName,true));
+    				statusBar.layout();
+    			}
+    		});
 
     dhtStatus = new CLabelPadding(statusBar,borderFlag);
     dhtStatus.setText("");
     dhtStatus.setToolTipText(MessageText.getString("MainWindow.dht.status.tooltip"));
     
+    COConfigurationManager.addAndFireParameterListener(
+    		"Status Area Show DDB",
+    		new ParameterListener()
+    		{
+    			public void parameterChanged(String parameterName)
+    			{
+    				dhtStatus.setVisible( COConfigurationManager.getBooleanParameter(parameterName,true));
+    				statusBar.layout();
+    			}
+    		});
     ipBlocked = new CLabelPadding(statusBar, borderFlag);
     ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
     Messages.setLanguageText(ipBlocked,"MainWindow.IPs.tooltip");
@@ -528,6 +562,26 @@ MainWindow
     statusDown.addListener(SWT.MouseDoubleClick,lStats);
     statusUp.addListener(SWT.MouseDoubleClick,lStats);
     dhtStatus.addListener(SWT.MouseDoubleClick,lStats);
+    
+    Listener lSR = new Listener() {
+    	public void handleEvent(Event e) {
+     		   		
+    		OverallStats	stats = StatsFactory.getStats();
+    		
+    	    long ratio = (1000* stats.getUploadedBytes() / (stats.getDownloadedBytes()+1) );
+
+    	    if ( ratio < 900 ){
+    	    	
+    	    	showStats();
+    	    	
+    	    	((StatsView)stats_tab.getView()).showTransfers();
+    	    	
+    			Utils.openURL( "http://azureus.aelitis.com/wiki/index.php/Share_Ratio" );
+    		}
+    	}
+    };
+    
+    srStatus.addListener(SWT.MouseDoubleClick,lSR);
     
     Listener lNAT = new Listener() {
     	public void handleEvent(Event e) {
@@ -2016,6 +2070,9 @@ MainWindow
 		 * @see org.eclipse.swt.custom.CLabel#computeSize(int, int, boolean)
 		 */
 		public Point computeSize(int wHint, int hHint, boolean changed) {
+			if ( !isVisible()){
+				return( new Point(0,0));
+			}
 			Point pt = super.computeSize(wHint, hHint, changed);
 			pt.x += 4;
 			

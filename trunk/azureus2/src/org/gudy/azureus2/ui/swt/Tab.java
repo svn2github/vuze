@@ -202,6 +202,12 @@ public class Tab {
     return (IView) tabs.get(item);
   }
 
+  public IView
+  getView()
+  {
+	  return( view );
+  }
+  
   public static Item
   getTab(
 		IView	view )

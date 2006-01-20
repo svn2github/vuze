@@ -96,6 +96,22 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
     bpCustomTab.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
     new BooleanParameter(cLook, "Show Download Basket",false, "ConfigView.section.style.showdownloadbasket");
+    
+    Composite cStatusBar = new Composite(cLook, SWT.NULL);
+    layout = new GridLayout();
+    layout.marginHeight = 0;
+    layout.marginWidth = 0;
+    layout.numColumns = 5;
+    cStatusBar.setLayout(layout);
+    cStatusBar.setLayoutData(new GridData());
+    
+    label = new Label(cStatusBar, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.section.style.status");
+    new BooleanParameter(cStatusBar, "Status Area Show SR",true, 	"ConfigView.section.style.status.show_sr");
+    new BooleanParameter(cStatusBar, "Status Area Show NAT",true, 	"ConfigView.section.style.status.show_nat");
+    new BooleanParameter(cStatusBar, "Status Area Show DDB",true, 	"ConfigView.section.style.status.show_ddb");
+    
+    
     new BooleanParameter(cLook, "Add URL Silently",false, "ConfigView.section.style.addurlsilently");
     new BooleanParameter(cLook, "add_torrents_silently",false, "ConfigView.section.interface.display.add_torrents_silently");
     

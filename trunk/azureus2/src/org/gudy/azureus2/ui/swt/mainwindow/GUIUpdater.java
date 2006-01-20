@@ -40,6 +40,8 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.stats.transfer.OverallStats;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -62,12 +64,13 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 
   private AzureusCore		azureus_core;
   private ConnectionManager	connection_manager;
-  
+  private OverallStats		overall_stats;
   private DHTPlugin     	dhtPlugin;
   private NumberFormat  	numberFormat;
   private MainWindow 		mainWindow;
   private Display 			display;
   
+  private int last_sr_status = -1;
   private int lastNATstatus = -1;
   private int lastDHTstatus = -1;
   private long lastDHTcount = -1;
@@ -94,6 +97,9 @@ public class GUIUpdater extends AEThread implements ParameterListener {
     
     connection_manager = pm.getDefaultPluginInterface().getConnectionManager();
     
+	overall_stats = StatsFactory.getStats();
+		
+
     PluginInterface dht_pi = pm.getPluginInterfaceByClass( DHTPlugin.class );
     if ( dht_pi != null ){
     	dhtPlugin = (DHTPlugin)dht_pi.getPlugin();
@@ -170,7 +176,59 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 								+ numberFormat.format(azureus_core.getIpFilterManager()
 										.getBadIps().getNbBadIps()));
 
+						// SR status section
+						
+			    	    long ratio = (1000* overall_stats.getUploadedBytes() / (overall_stats.getDownloadedBytes()+1) );
+
+			    	    int	sr_status;
+			    	    
+			    	    if ( ratio < 500 ){
+			    	    	
+			    	    	sr_status = 0;
+			    	    	
+			    	    }else if ( ratio < 900 ){
+			    	    	
+			    	    	sr_status = 1;
+			    	    	
+			    	    }else{
+			    	    	
+			    	    	sr_status = 2;
+			    	    }
+						
+			    	    if ( sr_status != last_sr_status ){
+			    	    	
+							String imgID;
+							String tooltipID;
+							// String statusID;
+							
+							switch (sr_status) {
+									case 2:
+									imgID = "greenled";
+									tooltipID = "MainWindow.sr.status.tooltip.ok";
+									//statusID = "MainWindow.sr.status.ok";
+									break;
+
+								case 1:
+									imgID = "yellowled";
+									tooltipID = "MainWindow.sr.status.tooltip.poor";
+									//statusID = "MainWindow.sr.status.poor";
+									break;
+
+								default:
+									imgID = "redled";
+								  	tooltipID = "MainWindow.sr.status.tooltip.bad";
+								  	//statusID = "MainWindow.sr.status.bad";
+									break;
+							}
+
+							mainWindow.srStatus.setImage( ImageRepository.getImage(imgID) );
+							mainWindow.srStatus.setToolTipText( MessageText.getString(tooltipID) );
+							//mainWindow.srStatus.setText( MessageText.getString(statusID) );
+			    	    	last_sr_status	= sr_status;
+			    	    }
+			    	    
 						// NAT status Section
+						
 						int nat_status = connection_manager.getNATStatus();
 
 						if (lastNATstatus != nat_status) {
