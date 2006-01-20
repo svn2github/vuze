@@ -309,6 +309,10 @@ public class IncomingSocketChannelManager {
       t.printStackTrace();
     }
     
+    	// note that the filter may have some data internally queued in it after the crypto handshake decode
+    	// (in particular the BT header). However, there should be some data right behind it that will trigger
+    	// a read-select below, thus giving prompt access to the queued data
+    
     final IncomingConnection ic = new IncomingConnection( filter, max_match_buffer_size );
     
     try{  connections_mon.enter();
