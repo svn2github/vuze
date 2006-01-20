@@ -37,6 +37,7 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -218,9 +219,25 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 					}
 				});
 
+		Composite gCrypto = new Composite(cSection, SWT.NULL);
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gridData.horizontalSpan = 2;
+		gCrypto.setLayoutData(gridData);
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 2;
+		layout.marginHeight=0;
+		layout.marginWidth=0;
+		gCrypto.setLayout(layout);
 		
+		Label lcrypto = new Label(gCrypto, SWT.NULL);
+		Messages.setLanguageText(lcrypto, CFG_PREFIX + "encrypt.info");
+
 		
-		final BooleanParameter require = new BooleanParameter(cSection,	"network.transport.encrypted.require", false, CFG_PREFIX + "require_encrypted_transport");
+	    gridData = new GridData();
+	    gridData.horizontalSpan = 1;
+	    new LinkLabel( gCrypto, gridData, CFG_PREFIX + "encrypt.info.link", "http://azureus.aelitis.com/wiki/index.php/Message_Stream_Encryption" );
+		
+		final BooleanParameter require = new BooleanParameter(gCrypto,	"network.transport.encrypted.require", false, CFG_PREFIX + "require_encrypted_transport");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		require.setLayoutData(gridData);
