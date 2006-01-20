@@ -26,6 +26,9 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+
 
 public abstract class 
 TCPTransportHelperFilterStream 
@@ -33,8 +36,8 @@ TCPTransportHelperFilterStream
 {
 	private TCPTransportHelper		transport;
 
-	private ByteBuffer	write_buffer_pending;
-	private ByteBuffer	write_buffer_pending_byte;
+	private DirectByteBuffer	write_buffer_pending_db;
+	private ByteBuffer			write_buffer_pending_byte;
 	
 	protected
 	TCPTransportHelperFilterStream(
@@ -65,7 +68,9 @@ TCPTransportHelperFilterStream
 		
 		long	total_written = 0;
 		
-		if ( write_buffer_pending != null ){
+		if ( write_buffer_pending_db != null ){
+			
+			ByteBuffer	write_buffer_pending = write_buffer_pending_db.getBuffer( DirectByteBuffer.SS_NET );
 			
 			int	max_writable = 0;
 			
@@ -103,7 +108,9 @@ TCPTransportHelperFilterStream
 				
 				if ( write_buffer_pending.remaining() == 0 ){
 					
-					write_buffer_pending	= null;
+					write_buffer_pending_db.returnToPool();
+					
+					write_buffer_pending_db	= null;
 				}
 				
 					// skip "written" bytes in the source
@@ -163,35 +170,52 @@ TCPTransportHelperFilterStream
 			
 			int	size = limit - position;
 			
-			ByteBuffer	target_buffer = ByteBuffer.allocate( size );
-		
-			write( source_buffer, target_buffer );
-			
-			target_buffer.position( 0 );
-			
-			int	written = transport.write( target_buffer );
-			
-			total_written += written;
-			
-			if ( written < size ){
+			if ( size == 0 ){
 				
-				source_buffer.position( position + written );
+				continue;
+			}
+			
+			DirectByteBuffer	target_buffer_db = DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_NET_CRYPT,  size );
+			
+			try{
+				ByteBuffer	target_buffer = target_buffer_db.getBuffer( DirectByteBuffer.SS_NET );
+			
+				write( source_buffer, target_buffer );
 				
-				write_buffer_pending	= target_buffer;
+				target_buffer.position( 0 );
 				
-				if ( written == 0 ){
+				int	written = transport.write( target_buffer );
+				
+				total_written += written;
+				
+				if ( written < size ){
 					
-						// we gotta pretend at least 1 byte was written to
-						// guarantee that the caller writes the rest
-										
-					write_buffer_pending_byte = ByteBuffer.wrap(new byte[]{target_buffer.get()});
-												
-					source_buffer.get();
+					source_buffer.position( position + written );
 					
-					total_written++;
+					write_buffer_pending_db	= target_buffer_db;
+					
+					target_buffer_db	= null;
+					
+					if ( written == 0 ){
+						
+							// we gotta pretend at least 1 byte was written to
+							// guarantee that the caller writes the rest
+											
+						write_buffer_pending_byte = ByteBuffer.wrap(new byte[]{target_buffer.get()});
+													
+						source_buffer.get();
+						
+						total_written++;
+					}
+					
+					break;
 				}
+			}finally{
 				
-				break;
+				if ( target_buffer_db != null ){
+					
+					target_buffer_db.returnToPool();
+				}
 			}
 		}
 		
@@ -206,31 +230,60 @@ TCPTransportHelperFilterStream
 	
 		throws IOException
 	{		
-		ByteBuffer[]	copy = new ByteBuffer[buffers.length];
+		DirectByteBuffer[]	copy_db = new DirectByteBuffer[buffers.length];
+		ByteBuffer[]		copy	= new ByteBuffer[buffers.length];
 		
-		for (int i=array_offset;i<array_offset+length;i++){
+		try{
+			for (int i=array_offset;i<array_offset+length;i++){
+				
+				ByteBuffer	buffer = buffers[i];
+				
+				int	size = buffer.remaining();
+				
+				if ( size > 0 ){
+					
+					copy_db[i]	= DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_NET_CRYPT, size );
+					
+					copy[i]	= copy_db[i].getBuffer( DirectByteBuffer.SS_NET );
+				}else{
+					
+					copy[i] = ByteBuffer.allocate(0);
+				}
+			}
 			
-			copy[i]	= ByteBuffer.allocate( buffers[i].remaining());
-		}
-		
-		long	read = transport.read( copy, array_offset, length );
-		
-		for (int i=array_offset;i<array_offset+length;i++){
+			long	read = transport.read( copy, array_offset, length );
+			
+			for (int i=array_offset;i<array_offset+length;i++){
+	
+				ByteBuffer	source_buffer	= copy[i];
 
-			ByteBuffer	target_buffer 	= buffers[i];
-			ByteBuffer	source_buffer	= copy[i];
-			
-			int	source_position	= source_buffer.position();
+				if ( source_buffer != null ){
+					
+					ByteBuffer	target_buffer 	= buffers[i];
+					
+					int	source_position	= source_buffer.position();
+								
+					if ( source_position > 0 ){
 						
-			if ( source_position > 0 ){
+						source_buffer.flip();
+						
+						read( source_buffer, target_buffer );
+					}
+				}
+			}
+			
+			return( read );
+			
+		}finally{
+			
+			for (int i=0;i<copy_db.length;i++){
 				
-				source_buffer.flip();
-				
-				read( source_buffer, target_buffer );
+				if ( copy_db[i] != null ){
+					
+					copy_db[i].returnToPool();
+				}
 			}
 		}
-		
-		return( read );
 	}
 	
 	protected abstract void

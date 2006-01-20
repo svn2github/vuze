@@ -66,6 +66,7 @@ DirectByteBuffer
     public static final byte        AL_MSG_BT_PAYLOAD     = 23;
     public static final byte        AL_MSG_AZ_PAYLOAD     = 24;
     public static final byte        AL_FILE				  = 25;
+    public static final byte        AL_NET_CRYPT		  = 26;
     
 	public static final String[] AL_DESCS =
 	{ "None", "Ext", "Other", "PeerRead", "PeerLen",
@@ -83,8 +84,9 @@ DirectByteBuffer
     "AZHeader",
     "BTPayload",
     "AZPayload",
-    "File" };
-	
+    "File",
+    "MsgCrypt"};
+	 
     
     
 		// subsystem ids

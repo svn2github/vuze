@@ -22,8 +22,8 @@
 
 package org.gudy.azureus2.core3.util;
 
-import sun.misc.Signal;
-import sun.misc.SignalHandler;
+//import sun.misc.Signal;
+//import sun.misc.SignalHandler;
 
 
 
@@ -41,6 +41,7 @@ public class ShutdownHook {
    */
   public static void install( final Handler handler) {
     try{
+    	/*
       final SignalHandler[] old_handlers = new SignalHandler[2];
     
       //ctrl-c signal
@@ -74,6 +75,7 @@ public class ShutdownHook {
           }
         }
       });
+      */
     }
     catch( Throwable t ) {
       Debug.out( t );

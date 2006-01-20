@@ -229,6 +229,8 @@ TCPProtocolDecoderPHE
 
 	private TCPProtocolDecoderAdapter	adapter;
 
+	private boolean			dh_based_exchange	= true;
+	
 	private KeyAgreement 	key_agreement;
 	private byte[]			dh_public_key_bytes;
 	
@@ -317,7 +319,7 @@ TCPProtocolDecoderPHE
 			
 			protocol_state	= PS_INBOUND_1;
 
-			read_buffer = ByteBuffer.allocate( dh_public_key_bytes.length );					
+			read_buffer = ByteBuffer.allocate( 1 + dh_public_key_bytes.length );					
 				
 			read_buffer.put( _header );
 		
@@ -442,7 +444,7 @@ TCPProtocolDecoderPHE
 	  
 	 	**** OUTBOUND_1
 	 	
-	A sends B Ya + Pa
+	A sends B odd/even byte + Ya + Pa
 	 
 	 	**** INBOUND_1
 	 	
@@ -495,11 +497,14 @@ TCPProtocolDecoderPHE
 					
 					if ( write_buffer == null ){
 						
-							// A sends B Ya + Pa
+							// A sends B odd/even Ya + Pa
+						
 						
 						byte[]	padding = getPadding();
 												
-						write_buffer = ByteBuffer.allocate( dh_public_key_bytes.length + padding.length );
+						write_buffer = ByteBuffer.allocate( 1 + dh_public_key_bytes.length + padding.length );
+						
+						write_buffer.put( getInitialMarker( dh_based_exchange ));
 						
 						write_buffer.put( dh_public_key_bytes );
 						
@@ -581,7 +586,7 @@ TCPProtocolDecoderPHE
 					
 				}else if ( protocol_state == PS_INBOUND_1 ){
 							
-						// B receives Ya
+						// B receives marker + Ya
 		
 					read( read_buffer );
 							
@@ -589,7 +594,14 @@ TCPProtocolDecoderPHE
 											
 						read_buffer.flip();
 						
-						byte[] other_dh_public_key_bytes = new byte[read_buffer.limit()];
+						byte	marker = read_buffer.get();
+						
+						if ((marker & 0x01 )!= 0 ){
+							
+							throw( new IOException( "Shared-secret handshake not supported" ));
+						}
+						
+						byte[] other_dh_public_key_bytes = new byte[read_buffer.remaining()];
 						
 						read_buffer.get( other_dh_public_key_bytes );
 			
@@ -834,7 +846,7 @@ TCPProtocolDecoderPHE
 		
 		if ( len < 0 ){
 			
-			throw( new IOException( "bytes read < 0 " ));
+			throw( new IOException( "end of stream on socket read" ));
 		}
 		
 		bytes_read += len;
@@ -919,7 +931,7 @@ TCPProtocolDecoderPHE
 		return( new BigInteger( ByteFormatter.encodeString( bytes, offset, len  ), 16 ));
 	}
 	
-	protected static byte[]
+	protected static synchronized byte[]
 	getPadding()
 	{
 		byte[]	bytes = new byte[ random.nextInt(PADDING_MAX)];
@@ -928,6 +940,24 @@ TCPProtocolDecoderPHE
 		
 		return( bytes );
 	}
+	
+	protected static synchronized byte
+   	getInitialMarker(
+   		boolean		dh_based )
+   	{
+   		int	res = (byte)random.nextInt();
+   		
+   		if ( dh_based ){
+   			
+   			res = res & 0xfe;
+   			
+   		}else{
+   			
+   			res = res | 0x01;
+   		}
+   		
+   		return((byte)res);
+   	}
 	
 	protected static KeyPair
 	generateDHKeyPair()
