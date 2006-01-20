@@ -228,8 +228,6 @@ TCPProtocolDecoderPHE
 	
 
 	private TCPProtocolDecoderAdapter	adapter;
-
-	private boolean			dh_based_exchange	= true;
 	
 	private KeyAgreement 	key_agreement;
 	private byte[]			dh_public_key_bytes;
@@ -252,6 +250,8 @@ TCPProtocolDecoderPHE
 
 	private int		bytes_read;
 	private int		bytes_written;
+	
+	private long	last_read_time	= SystemTime.getCurrentTime();
 	
 	private TCPTransportHelperFilter		filter;
 	
@@ -319,7 +319,7 @@ TCPProtocolDecoderPHE
 			
 			protocol_state	= PS_INBOUND_1;
 
-			read_buffer = ByteBuffer.allocate( 1 + dh_public_key_bytes.length );					
+			read_buffer = ByteBuffer.allocate( dh_public_key_bytes.length );					
 				
 			read_buffer.put( _header );
 		
@@ -502,10 +502,8 @@ TCPProtocolDecoderPHE
 						
 						byte[]	padding = getPadding();
 												
-						write_buffer = ByteBuffer.allocate( 1 + dh_public_key_bytes.length + padding.length );
-						
-						write_buffer.put( getInitialMarker( dh_based_exchange ));
-						
+						write_buffer = ByteBuffer.allocate( dh_public_key_bytes.length + padding.length );
+												
 						write_buffer.put( dh_public_key_bytes );
 						
 						write_buffer.put( padding );
@@ -593,13 +591,6 @@ TCPProtocolDecoderPHE
 					if ( !read_buffer.hasRemaining()){
 											
 						read_buffer.flip();
-						
-						byte	marker = read_buffer.get();
-						
-						if ((marker & 0x01 )!= 0 ){
-							
-							throw( new IOException( "Shared-secret handshake not supported" ));
-						}
 						
 						byte[] other_dh_public_key_bytes = new byte[read_buffer.remaining()];
 						
@@ -887,7 +878,14 @@ TCPProtocolDecoderPHE
 				
 			}else{
 				
-				return( bytes_read != old_bytes_read );
+				boolean	progress = bytes_read != old_bytes_read;
+				
+				if ( progress ){
+					
+					last_read_time = SystemTime.getCurrentTime();
+				}
+				
+				return( progress );
 			}
 			
 		}catch( Throwable  e ){
@@ -940,24 +938,6 @@ TCPProtocolDecoderPHE
 		
 		return( bytes );
 	}
-	
-	protected static synchronized byte
-   	getInitialMarker(
-   		boolean		dh_based )
-   	{
-   		int	res = (byte)random.nextInt();
-   		
-   		if ( dh_based ){
-   			
-   			res = res & 0xfe;
-   			
-   		}else{
-   			
-   			res = res | 0x01;
-   		}
-   		
-   		return((byte)res);
-   	}
 	
 	protected static KeyPair
 	generateDHKeyPair()
@@ -1021,6 +1001,19 @@ TCPProtocolDecoderPHE
 	getFilter()
 	{
 		return( filter );
+	}
+	
+	public long
+	getLastReadTime()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( last_read_time > now ){
+			
+			last_read_time	= now;
+		}
+		
+		return( last_read_time );
 	}
 	
 	public String

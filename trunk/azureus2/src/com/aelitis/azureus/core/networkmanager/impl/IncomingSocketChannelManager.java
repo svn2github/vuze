@@ -42,6 +42,9 @@ import com.aelitis.azureus.core.networkmanager.*;
 public class IncomingSocketChannelManager {
   private static final LogIDs LOGID = LogIDs.NWMAN;
 
+  public static final int READ_TIMEOUT		= 10*1000;
+  public static final int CONNECT_TIMEOUT	= 60*1000;
+  
   private final ArrayList connections = new ArrayList();
   private final AEMonitor connections_mon = new AEMonitor( "IncomingConnectionManager:conns" );
   
@@ -496,7 +499,7 @@ public class IncomingSocketChannelManager {
           if( now < ic.last_read_time ) {  //time went backwards!
             ic.last_read_time = now;
           }
-          else if( now - ic.last_read_time > 10*1000 ) {  //10s read timeout
+          else if( now - ic.last_read_time > READ_TIMEOUT ) {  //10s read timeout
           	if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
 									+ ic.filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ":"
@@ -512,7 +515,7 @@ public class IncomingSocketChannelManager {
           if( now < ic.initial_connect_time ) {  //time went backwards!
             ic.initial_connect_time = now;
           }
-          else if( now - ic.initial_connect_time > 60*1000 ) {  //60s connect timeout
+          else if( now - ic.initial_connect_time > CONNECT_TIMEOUT ) {  //60s connect timeout
           	if (Logger.isEnabled())
 							Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
 									+ ic.filter.getSocketChannel() + "] forcibly timed out after "

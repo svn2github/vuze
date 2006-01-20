@@ -29,6 +29,9 @@ import java.util.Arrays;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -38,9 +41,9 @@ import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSel
 public class 
 TCPProtocolDecoderInitial 
 	extends TCPProtocolDecoder
-{
-	private static final int PROTOCOL_DECODE_TIMEOUT = 30*1000;
-	
+{	
+	private static final LogIDs LOGID = LogIDs.NWMAN;
+
 	private static VirtualChannelSelector	read_selector	= NetworkManager.getSingleton().getReadSelector();
 	private static VirtualChannelSelector	write_selector	= NetworkManager.getSingleton().getWriteSelector();
 
@@ -85,6 +88,8 @@ TCPProtocolDecoderInitial
 	private long	start_time	= SystemTime.getCurrentTime();
 	
 	private TCPProtocolDecoderPHE	phe_decoder;
+	
+	private long	last_read_time		= 0;
 	
 	private boolean processing_complete;
 	
@@ -149,6 +154,8 @@ TCPProtocolDecoderInitial
 								
 								return( false );
 							}
+							
+							last_read_time = SystemTime.getCurrentTime();
 							
 							decode_read += len;
 							
@@ -248,31 +255,58 @@ TCPProtocolDecoderInitial
 			if ( start_time > now ){
 				
 				start_time	= now;
+			}
+			
+			if ( last_read_time > now ){
+				
+				last_read_time	= now;
+			}
+			
+			if ( phe_decoder != null ){
+				
+				last_read_time	= phe_decoder.getLastReadTime();
+			}
+				
+			long	timeout;
+			long	time;
+			
+			if ( last_read_time == 0 ){
+				
+				timeout = IncomingSocketChannelManager.CONNECT_TIMEOUT;
+				time	= start_time;
 				
 			}else{
 				
-				if ( now - start_time > PROTOCOL_DECODE_TIMEOUT ){
+				timeout = IncomingSocketChannelManager.READ_TIMEOUT;
+				time	= last_read_time;
+			}
+			
+			if ( now - time > timeout ){
+				
+				try{
+					read_selector.cancel( channel );
 					
-					try{
-						read_selector.cancel( channel );
-						
-						write_selector.cancel( channel );
-						
-						channel.close();
-						
-					}catch( Throwable e ){
-						
-					}
+					write_selector.cancel( channel );
+											
+				}catch( Throwable e ){
 					
-					String	phe_str = "";
-					
-					if ( phe_decoder != null ){
-						
-						phe_str = ", crypto: " + phe_decoder.getString();
-					}
-					
-					failed( new Throwable( "Protocol decode aborted: timed out after " + PROTOCOL_DECODE_TIMEOUT/1000+ "sec: " + decode_read + " bytes read" + phe_str ));
 				}
+				
+				String	phe_str = "";
+				
+				if ( phe_decoder != null ){
+					
+					phe_str = ", crypto: " + phe_decoder.getString();
+				}
+				
+		       	if ( Logger.isEnabled()){
+		       		
+					Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
+							+ channel + "] forcibly timed out after "
+							+ timeout/1000 + "sec due to socket inactivity"));
+		       	}
+		       	
+				failed( new Throwable( "Protocol decode aborted: timed out after " + timeout/1000+ "sec: " + decode_read + " bytes read" + phe_str ));
 			}
 		}
 		
