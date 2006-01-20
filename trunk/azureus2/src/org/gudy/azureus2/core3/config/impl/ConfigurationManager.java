@@ -239,14 +239,13 @@ ConfigurationManager
   }
   
   private String getStringParameter(String parameter, byte[] defaultValue) {
-    try {
-      return new String(getByteParameter(parameter, defaultValue));
-    } catch (Exception e) {
-      byte[] bytesReturn = getByteParameter(parameter, null);
-      if (bytesReturn == null)
+	  byte[] bp = getByteParameter(parameter, defaultValue);
+	  if ( bp == null ){
+		  bp = getByteParameter(parameter, null);
+	  }
+      if (bp == null)
         return null;
-      return new String(bytesReturn);
-    }
+      return new String(bp);
   }
   
   public String getStringParameter(String parameter, String defaultValue) {
