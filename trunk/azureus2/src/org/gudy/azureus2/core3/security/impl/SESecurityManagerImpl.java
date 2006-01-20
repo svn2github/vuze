@@ -44,7 +44,35 @@ SESecurityManagerImpl
 {
 	private static final LogIDs LOGID = LogIDs.NET; 
 
-  protected static SESecurityManagerImpl	singleton = new SESecurityManagerImpl();
+	protected static SESecurityManagerImpl	singleton = new SESecurityManagerImpl();
+	
+	protected static String	KEYSTORE_TYPE;
+	
+	static{
+		String[]	types = { "JKS", "GKR" };
+		
+		for (int i=0;i<types.length;i++){
+			try{
+				KeyStore.getInstance( types[i] );
+				
+				KEYSTORE_TYPE	= types[i];
+				
+				break;
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		if ( KEYSTORE_TYPE == null ){
+			
+				// it'll fail later but we need to use something here
+			
+			KEYSTORE_TYPE	= "JKS";
+		}
+		
+		Logger.log( new LogEvent(LOGID, "Keystore type is " + KEYSTORE_TYPE ));
+
+	}
 	
 	protected String	keystore_name;
 	protected String	truststore_name;
@@ -334,7 +362,7 @@ SESecurityManagerImpl
 		try{
 			this_mon.enter();
 		
-			KeyStore keystore = KeyStore.getInstance("JKS");
+			KeyStore keystore = KeyStore.getInstance( KEYSTORE_TYPE );
 			
 			if ( !new File(name).exists()){
 		
@@ -389,7 +417,7 @@ SESecurityManagerImpl
 		
 		throws Exception
 	{
-		KeyStore key_store = KeyStore.getInstance("JKS");
+		KeyStore key_store = KeyStore.getInstance( KEYSTORE_TYPE );
 		
 		if ( !new File(keystore_name).exists()){
 			
@@ -672,7 +700,7 @@ SESecurityManagerImpl
 		try{
 			this_mon.enter();
 		
-			KeyStore keystore = KeyStore.getInstance("JKS");
+			KeyStore keystore = KeyStore.getInstance( KEYSTORE_TYPE );
 			
 			if ( !new File(truststore_name).exists()){
 		
