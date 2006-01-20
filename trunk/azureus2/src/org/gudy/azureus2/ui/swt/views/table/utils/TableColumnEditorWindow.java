@@ -186,7 +186,11 @@ public class TableColumnEditorWindow {
     table.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
 				final TableItem item = (TableItem) event.item;
+				if (item == null)
+					return;
 				int index = item.getParent().indexOf(item);
+				if (index < 0)
+					return;
 				
 				TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(index);
 		    String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
