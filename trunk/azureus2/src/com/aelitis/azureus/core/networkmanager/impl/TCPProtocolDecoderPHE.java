@@ -818,9 +818,7 @@ TCPProtocolDecoderPHE
 				}
 			}
 		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
+						
 			failed( e );
 			
 			if ( e instanceof IOException ){
