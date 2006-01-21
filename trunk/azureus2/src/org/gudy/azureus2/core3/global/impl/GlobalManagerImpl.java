@@ -65,6 +65,8 @@ import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
 public class GlobalManagerImpl 
 	implements 	GlobalManager, DownloadManagerListener, AEDiagnosticsEvidenceGenerator
 {
+	private static final LogIDs LOGID = LogIDs.CORE;
+	
 		// GlobalManagerListener support
 		// Must be an async listener to support the non-synchronised invocation of
 		// listeners when a new listener is added and existing downloads need to be
@@ -288,7 +290,7 @@ public class GlobalManagerImpl
     	
     }catch( Throwable e ){
     	
-    	LGLogger.log( "Stats unavailable", e );
+    	Logger.log(new LogEvent(LOGID, "Stats unavailable", e ));
     }
            
     if (listener != null)
@@ -392,7 +394,7 @@ public class GlobalManagerImpl
 
     }catch( Throwable e ){
     	
-    	LGLogger.log( "Hosting unavailable", e );
+    	Logger.log(new LogEvent(LOGID, "Hosting unavailable", e));
     }
     
     checker = new Checker();   
@@ -773,11 +775,8 @@ public class GlobalManagerImpl
       return( download_manager );
     }
     else {
-      LGLogger.log(
-        0,
-        LGLogger.ERROR,
-        LGLogger.ERROR,
-        "Tried to add a DownloadManager after shutdown of GlobalManager.");
+    	Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+        "Tried to add a DownloadManager after shutdown of GlobalManager."));
       return( null );
     }
   }
@@ -1356,8 +1355,9 @@ public class GlobalManagerImpl
           //Do nothing and process next.
         }
         catch (Throwable e) {
-          LGLogger.log("Error while loading downloads.  One download may not have been added to the list.");
-          Debug.printStackTrace( e );
+        	Logger.log(new LogEvent(LOGID,
+									"Error while loading downloads.  " +
+									"One download may not have been added to the list.", e));
         }
       }
       
@@ -1391,7 +1391,8 @@ public class GlobalManagerImpl
       // Someone could have mucked with the config file and set weird positions,
       // so fix them up.
       fixUpDownloadManagerPositions();
-      LGLogger.log("Loaded " + managers_cow.size() + " torrents");
+      Logger.log(new LogEvent(LOGID, "Loaded " + managers_cow.size()
+					+ " torrents"));
   	}catch( Throwable e ){
   			// there's been problems with corrupted download files stopping AZ from starting
   			// added this to try and prevent such foolishness
@@ -1419,7 +1420,9 @@ public class GlobalManagerImpl
   	try{
   		managers_mon.enter();
   	
-      if( LGLogger.isEnabled() )  LGLogger.log("Saving Download List (" + managers_cow.size() + " items)");
+      if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Saving Download List ("
+						+ managers_cow.size() + " items)"));
 	    Map map = new HashMap();
 	    List list = new ArrayList(managers_cow.size());
 	    for (int i = 0; i < managers_cow.size(); i++) {
@@ -2022,7 +2025,8 @@ public class GlobalManagerImpl
 					
 					if ( now - last_network_change > 30*60*1000 ){
 					
-						LGLogger.log( "Network interfaces have changed, updating trackers" );
+						Logger.log(new LogEvent(LOGID,
+								"Network interfaces have changed, updating trackers"));
 						
 						List	managers = managers_cow;
 						
@@ -2039,7 +2043,8 @@ public class GlobalManagerImpl
 						}
 					}else{
 						
-						LGLogger.log( "Network interfaces have changed, not updating trackers as too soon after previous change" );
+						Logger.log(new LogEvent(LOGID, "Network interfaces have changed, "
+								+ "not updating trackers as too soon after previous change"));
 	
 					}
 				}
