@@ -178,7 +178,7 @@ TCPProtocolDecoderInitial
 								
 								if ( REQUIRE_CRYPTO ){
 								
-									throw( new IOException( "Crypto required but incoming connection is plain" ));
+									throw( new IOException( "Crypto required but incoming connection has none" ));
 								}
 								
 								transparent_filter.insertRead( decode_buffer );
