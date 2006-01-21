@@ -28,6 +28,7 @@ package org.gudy.azureus2.plugins.tracker.web;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.tracker.*;
 
@@ -53,6 +54,15 @@ TrackerWebPageRequest
 	
 	public String
 	getHeader();
+	
+		/**
+		 * Returns a map containing the separate headers. Keys are lowercase
+		 * @return
+		 * @since 2.3.0.7
+		 */
+	
+	public Map 
+	getHeaders();
 	
 	public InputStream
 	getInputStream();

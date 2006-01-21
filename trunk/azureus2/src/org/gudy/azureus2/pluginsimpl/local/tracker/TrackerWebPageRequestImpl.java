@@ -28,6 +28,8 @@ package org.gudy.azureus2.pluginsimpl.local.tracker;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.tracker.*;
 import org.gudy.azureus2.plugins.tracker.web.*;
@@ -112,5 +114,24 @@ TrackerWebPageRequestImpl
 	getHeader()
 	{
 		return( header );
+	}
+	
+	public Map 
+	getHeaders()
+	{
+        Map headers = new HashMap();
+
+        String[] header_parts = header.split("\r\n");
+
+        headers.put("status", header_parts[0].trim());
+
+        for (int i = 1;i<header_parts.length;i++) {
+
+        	String[] key_value = header_parts[i].split(":",2);
+
+            headers.put(key_value[0].trim().toLowerCase(), key_value[1].trim());
+        }
+
+        return headers;
 	}
 }	
