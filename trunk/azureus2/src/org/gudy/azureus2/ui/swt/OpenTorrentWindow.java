@@ -37,6 +37,8 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -283,9 +285,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		browseTorrent.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				FileDialog fDialog = new FileDialog(shell, SWT.OPEN | SWT.MULTI);
-				fDialog
-						.setFilterExtensions(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
-				fDialog.setFilterNames(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
+				fDialog.setFilterExtensions(new String[] { "*.torrent", "*.tor",
+						Constants.FILE_WILDCARD });
+				fDialog.setFilterNames(new String[] { "*.torrent", "*.tor",
+						Constants.FILE_WILDCARD });
 				fDialog.setFilterPath(TorrentOpener.getFilterPathTorrent());
 				fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file"));
 				String fileName = fDialog.open();
@@ -432,7 +435,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				int[] indexes = tableTorrents.getSelectionIndices();
 				for (int i = 0; i < indexes.length; i++) {
 					TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
-					info.sDestDir = sDestDir;
+					if (!info.allFilesMoving())
+						info.sDestDir = sDestDir;
 				}
 
 				tableTorrents.clearAll();
@@ -672,7 +676,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	private void updateStartModeCombo() {
 		if (cmbStartMode == null)
 			return;
-		
+
 		int[] indexes = tableTorrents.getSelectionIndices();
 		String[] sItemsText = new String[startModes.length];
 		int iMaxMatches = 0;
@@ -706,7 +710,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	private void updateQueueLocationCombo() {
 		if (cmbQueueLocation == null)
 			return;
-		
+
 		int[] indexes = tableTorrents.getSelectionIndices();
 		String[] sItemsText = new String[queueLocations.length];
 		int iMaxMatches = 0;
@@ -829,10 +833,23 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			public void handleEvent(Event event) {
 				TableItem item = (TableItem) event.item;
 				int index = tableTorrents.indexOf(item);
+				if (index < 0)
+					return;
+
 				TorrentInfo info = (TorrentInfo) torrentList.get(index);
+				String sRealDestDir;
+
+				TorrentFileInfo[] files = info.getFiles();
+				if (files.length > 1 && !info.allFilesMoving()) {
+					File f = new File(info.sDestDir, info.getTorrentName());
+					sRealDestDir = f.getAbsolutePath();
+				} else {
+					sRealDestDir = info.sDestDir;
+				}
+
 				item.setText(new String[] {
 						info.getTorrentName(),
-						info.sDestDir,
+						sRealDestDir,
 						MessageText.getString("OpenTorrentWindow.startMode."
 								+ startModes[info.iStartID]),
 						MessageText.getString("OpenTorrentWindow.addPosition."
@@ -955,7 +972,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				for (int i = 0; i < indexes.length; i++) {
 					TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
 
-					if (info.files.length == 1) {
+					TorrentFileInfo[] files = info.getFiles();
+					if (files.length == 1) {
 						FileDialog fDialog = new FileDialog(shellForChildren,
 								SWT.SYSTEM_MODAL | SWT.SAVE);
 						fDialog.setFilterPath(sDefPath);
@@ -964,7 +982,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 						String sNewFile = fDialog.open();
 
 						if (sNewFile != null) {
-							info.files[0].sDestFileName = sNewFile;
+							File f = new File(sNewFile);
+							info.sDestDir = f.getParent();
+
+							files[0].sDestFileName = sNewFile;
 							String sNewPath = new File(sNewFile).getParent();
 							if (sNewPath != null)
 								sDefPath = sNewPath;
@@ -982,7 +1003,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 						if (sNewDir == null)
 							return;
 
-						TorrentFileInfo[] files = info.getFiles();
+						info.sDestDir = sNewDir;
 						for (int j = 0; j < files.length; j++) {
 							TorrentFileInfo fileInfo = files[j];
 							File file = new File(sNewDir, fileInfo.sFileName);
@@ -1144,7 +1165,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		Messages.setLanguageText(tc, "OpenTorrentWindow.fileTable.size");
 		tc.setAlignment(SWT.TRAIL);
 		tc.setWidth(90);
-		
+
 		if (Utils.LAST_TABLECOLUMN_EXPANDS)
 			tc.setData("Width", new Long(90));
 
@@ -1154,7 +1175,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				int index = dataFileTable.indexOf(item);
 				final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
 
-				item.setText(new String[] { file.sFullFileName, file.sDestFileName,
+				item.setText(new String[] { file.sFileName, file.sDestFileName,
 						DisplayFormatters.formatByteCountToKiBEtc(file.lSize) });
 				if (!file.isValid) {
 					item.setForeground(Colors.red);
@@ -1168,7 +1189,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 					item.setFont(font);
 				}
 				Utils.alternateRowBackground(item);
-		    Utils.setCheckedInSetData(item, file.bDownload);
+				Utils.setCheckedInSetData(item, file.bDownload);
 			}
 		});
 
@@ -1211,9 +1232,25 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 							? SWT.OPEN : SWT.SAVE;
 					FileDialog fDialog = new FileDialog(shellForChildren,
 							SWT.SYSTEM_MODAL | style);
-					fDialog.setFilterPath(cmbDataDir.getText());
-					fDialog.setFileName(fileInfo.sDestFileName == null
-							? fileInfo.sFullFileName : fileInfo.sDestFileName);
+
+					String sFilterPath = fileInfo.getDestPath();
+					String sFileName = new File(fileInfo.sFileName).getName();
+
+					File f = new File(sFilterPath);
+					if (!f.isDirectory()) {
+						sFileName = new File(sFilterPath, sFileName).getAbsolutePath();
+						// Move up the tree until we have an existing path
+						while (sFilterPath != null) {
+							sFilterPath = f.getParent();
+							f = new File(sFilterPath);
+							if (f.isDirectory())
+								break;
+						}
+					}
+
+					if (sFilterPath != null)
+						fDialog.setFilterPath(sFilterPath);
+					fDialog.setFileName(sFileName);
 					fDialog.setText(MessageText
 							.getString("MainWindow.dialog.choose.savepath")
 							+ " (" + fileInfo.sFullFileName + ")");
@@ -1371,9 +1408,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				&& !shell.isDisposed()) {
 			int iTotal = torrentList.size();
 			tableTorrents.setItemCount(iTotal);
-			tableTorrents.clearAll();
 			// select the ones we just added
 			tableTorrents.select(iTotal - numAdded, iTotal - 1);
+			tableTorrents.clearAll();
 			// select doesn't notify listeners? Do it manually.
 			tableTorrents.notifyListeners(SWT.Selection, new Event());
 
@@ -1487,11 +1524,12 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 						continue;
 
 					String sFullPath;
-					if (fileInfo.sDestFileName == null)
-						sFullPath = ensureTrailingSeparator(cmbDataDir.getText())
-								+ fileInfo.sFullFileName;
-					else
+					if (fileInfo.sDestFileName == null) {
+						File f = new File(info.sDestDir, fileInfo.sFullFileName);
+						sFullPath = f.getAbsolutePath();
+					} else {
 						sFullPath = fileInfo.sDestFileName;
+					}
 
 					file = new File(sFullPath);
 					if (!file.exists()) {
@@ -1529,15 +1567,19 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				int iLength = tcs.length;
 				if (Utils.LAST_TABLECOLUMN_EXPANDS) {
 					iLength--;
-					newSize -= ((Long)tcs[iLength].getData("Width")).intValue();
+					newSize -= ((Long) tcs[iLength].getData("Width")).intValue();
 				}
-	
-				for (int i = 1; i < iLength; i++)
-					newSize -= tcs[i].getWidth();
+
+				final int columnToExpand = 1;
+
+				for (int i = 0; i < iLength; i++)
+					if (i != columnToExpand)
+						newSize -= tcs[i].getWidth();
+
 				if (newSize > 10)
-					tcs[0].setWidth(newSize);
+					tcs[columnToExpand].setWidth(newSize);
 			}
-	
+
 			// Adjust only first column
 			if ((which & 2) > 0) {
 				tcs = dataFileTable.getColumns();
@@ -1545,13 +1587,17 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				int iLength = tcs.length;
 				if (Utils.LAST_TABLECOLUMN_EXPANDS) {
 					iLength--;
-					newSize -= ((Long)tcs[iLength].getData("Width")).intValue();
+					newSize -= ((Long) tcs[iLength].getData("Width")).intValue();
 				}
-	
-				for (int i = 1; i < iLength; i++)
-					newSize -= tcs[i].getWidth();
+
+				final int columnToExpand = 0;
+
+				for (int i = 0; i < iLength; i++)
+					if (i != columnToExpand)
+						newSize -= tcs[i].getWidth();
+
 				if (newSize > 10)
-					tcs[0].setWidth(newSize);
+					tcs[columnToExpand].setWidth(newSize);
 			}
 		} catch (Exception e) {
 			// ignore
@@ -1595,8 +1641,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				if (iStartMode == STARTMODE_FORCESTARTED)
 					dm.setForceStart(true);
 
-				DiskManagerFileInfo[] dmFileInfo = dm.getDiskManagerFileInfo();
 				TorrentFileInfo[] files = info.getFiles();
+				DiskManagerFileInfo[] dmFileInfo = dm.getDiskManagerFileInfo();
 				for (int j = 0; j < dmFileInfo.length; j++) {
 					int iIndex = dmFileInfo[j].getIndex();
 					if (iIndex >= 0 && iIndex < files.length
@@ -1788,6 +1834,16 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				return "TextDecodingError";
 			}
 		}
+
+		public boolean allFilesMoving() {
+			TorrentFileInfo[] files = getFiles();
+			for (int j = 0; j < files.length; j++) {
+				if (files[j].sDestFileName == null) {
+					return false;
+				}
+			}
+			return true;
+		}
 	}
 
 	/**
@@ -1834,6 +1890,16 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				sFullFileName = parent.getTorrentName() + File.separator
 						+ torrentFile.getRelativePath();
 			}
+		}
+
+		public String getDestPath() {
+			if (sDestFileName != null)
+				return new File(sDestFileName).getParent();
+
+			if (parent.torrent.isSimpleTorrent())
+				return parent.sDestDir;
+
+			return new File(parent.sDestDir, sFullFileName).getParent();
 		}
 	}
 
