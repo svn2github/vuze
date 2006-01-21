@@ -264,9 +264,9 @@ public class IncomingSocketChannelManager {
 	        		}
 
 	            public void handshakeFailure( Throwable failure_msg ) {
-	            	System.out.println( "[" +channel+ "] incoming crypto handshake failure: " + failure_msg.getMessage() );
 	            	
-	            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure", failure_msg ));
+	            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
+	            	
 	            	NetworkManager.getSingleton().closeSocketChannel( channel );
 	            }
 	        	});
