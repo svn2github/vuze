@@ -471,7 +471,16 @@ PluginLauncherImpl
   			res.clear();
   		}
   		
-  		Iterator	it = version_map.keySet().iterator();
+			// fix a problem we had with the rating plugin. It went out as rating_x.jar when it should
+			// have been azrating_x.jar. If there are any azrating entries then we remove any rating ones
+			// to avoid load problems
+		
+  		if ( version_map.containsKey( "azrating" )){
+  			 			
+  			version_map.remove( "rating" );
+  		}
+  		
+  		Iterator it = version_map.keySet().iterator();
   		
   		while(it.hasNext()){
   			
@@ -498,6 +507,8 @@ PluginLauncherImpl
   				}
   			}
   		}
+  		
+  		
   		
   		File[]	res_array = new File[res.size()];
   		

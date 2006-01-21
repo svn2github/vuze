@@ -27,6 +27,7 @@
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.client.impl"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.server.impl.tcp.blocking"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.diskmanager.cache"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.networkmanager.impl.test"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.diskmanager.test"/>
         <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.proxy.socks"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.shells"/>
@@ -179,6 +180,7 @@
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.utils.xml.rss"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.remote.disk"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.peers"/>
+        <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager.messaging.advanced"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.update"/>
         <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.web2.stages.hdapi.impl"/>
         <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.animations"/>
