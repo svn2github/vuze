@@ -111,10 +111,9 @@ public class TableColumnEditorWindow {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     label.setLayoutData(gridData);
     
-    table = new Table (shell, SWT.VIRTUAL | SWT.CHECK | SWT.BORDER | SWT.SINGLE | SWT.FULL_SELECTION);
+    table = new Table (shell, SWT.VIRTUAL | SWT.CHECK | SWT.SINGLE | SWT.BORDER | SWT.FULL_SELECTION);
     gridData = new GridData(GridData.FILL_BOTH);
     table.setLayoutData(gridData);
-    table.setLinesVisible (true);    
     table.setHeaderVisible(true);
     
     Composite cButtonArea = new Composite(shell, SWT.NULL);
@@ -188,9 +187,18 @@ public class TableColumnEditorWindow {
 				final TableItem item = (TableItem) event.item;
 				if (item == null)
 					return;
-				int index = item.getParent().indexOf(item);
-				if (index < 0)
-					return;
+				Table table = item.getParent();
+				int index = table.indexOf(item);
+				if (index < 0) {
+					// Trigger a Table._getItem, which assigns the item to the array
+					// in Table, so indexOf(..) can find it.  This is a workaround for
+					// a WinXP bug.
+					Rectangle r = item.getBounds(0);
+					table.getItem(new Point(r.x, r.y));
+					index = table.indexOf(item);
+					if (index < 0)
+						return;
+				}
 				
 				TableColumnCore tableColumn = (TableColumnCore)tableColumns.get(index);
 		    String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
@@ -202,6 +210,7 @@ public class TableColumnEditorWindow {
 		    final boolean bChecked = ((Boolean) newEnabledState.get(tableColumn))
 						.booleanValue();
 		    Utils.setCheckedInSetData(item, bChecked);
+		    Utils.alternateRowBackground(item);
 			}
     });
     table.setItemCount(tableColumns.size());
@@ -276,7 +285,6 @@ public class TableColumnEditorWindow {
         gc.fillRectangle(oldPoint.x,oldPoint.y,bounds.width,2);
       }
     });
-    table.redraw();
 
     shell.pack();
     Point p = shell.getSize();
