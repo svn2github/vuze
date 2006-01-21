@@ -66,15 +66,20 @@ TCPProtocolDecoderPHE
 	private static final LogIDs LOGID = LogIDs.NWMAN;
 
 	private static final byte		CRYPTO_PLAIN	= 0x01;
-	private static final byte		CRYPTO_XOR		= 0x02;
-	private static final byte		CRYPTO_RC4		= 0x04;
+	private static final byte		CRYPTO_RC4		= 0x02;
+	private static final byte		CRYPTO_XOR		= 0x04;
 	private static final byte		CRYPTO_AES		= 0x08;
 
 	private static final int		DH_SIZE	= 512;
 	private static final int		DH_SIZE_BYTES = DH_SIZE/8;
 	
-	private static final String 	DH_P = "92d862b3a95bff4e6cbdce3a266ff4b46e6e1ecad76c0a877d92a3dae4999e6414efde56fc14d1cca6d5408a8ef9ea248389168876b6e8f4503845dfe373549f";
-	private static final String 	DH_G = "4383b53ee650fd73e41e8c9e8527997ab8cb41e1cbd73ac7685493e1e5d091e3e3789dea03ab9d5b2c368faa617bb30e427cbaeb23c268edb38eb8c747756080";
+	//private static final String 	DH_P = "92d862b3a95bff4e6cbdce3a266ff4b46e6e1ecad76c0a877d92a3dae4999e6414efde56fc14d1cca6d5408a8ef9ea248389168876b6e8f4503845dfe373549f";
+	//private static final String 	DH_G = "4383b53ee650fd73e41e8c9e8527997ab8cb41e1cbd73ac7685493e1e5d091e3e3789dea03ab9d5b2c368faa617bb30e427cbaeb23c268edb38eb8c747756080";
+	
+	private static final String 	DH_P = "f3f90c790c63b119f9c1be43fdb12dc6ed6f26325999c01ba6ed373e75d6b2dee8d1c0475652a987c8df57b23d395bdb142be316d780b9361f85629535030873";
+	private static final String 	DH_G = "02";
+	
+	
 	
 	private static final BigInteger	DH_P_BI = new BigInteger( DH_P, 16 );
 	private static final BigInteger	DH_G_BI = new BigInteger( DH_G, 16 );
@@ -369,8 +374,14 @@ TCPProtocolDecoderPHE
 	        		
 		    key_agreement.doPhase( other_public_key, true );
 		    
-		    secret_bytes = key_agreement.generateSecret();
+		    byte[]	secret_bytes_64 = key_agreement.generateSecret();
 	
+		    	// we only want the first 32 bytes of the secret
+		    
+		    secret_bytes = new byte[32];
+		    
+		    System.arraycopy( secret_bytes_64, 0, secret_bytes, 0, 32 );
+		    
 		    sha1_secret_bytes	= new SHA1Simple().calculateHash( secret_bytes );
 		    		    	
 		    SecretKeySpec	secret_key_spec_a = new SecretKeySpec( secret_bytes, 0, RC4_STREAM_KEY_SIZE_BYTES, RC4_STREAM_ALG );
