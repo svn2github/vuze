@@ -847,7 +847,7 @@ TCPProtocolDecoderPHE
 		
 		if ( len < 0 ){
 			
-			throw( new IOException( "end of stream on socket read" ));
+			throw( new IOException( "end of stream on socket read - phe: " + getString()));
 		}
 		
 		bytes_read += len;
