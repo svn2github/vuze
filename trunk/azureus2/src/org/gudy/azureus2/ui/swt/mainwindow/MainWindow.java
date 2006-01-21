@@ -565,17 +565,17 @@ MainWindow
     
     Listener lSR = new Listener() {
     	public void handleEvent(Event e) {
-     		   		
+     		   
+  	    	showStats();
+	    	
+	    	((StatsView)stats_tab.getView()).showTransfers();
+
     		OverallStats	stats = StatsFactory.getStats();
     		
     	    long ratio = (1000* stats.getUploadedBytes() / (stats.getDownloadedBytes()+1) );
 
     	    if ( ratio < 900 ){
-    	    	
-    	    	showStats();
-    	    	
-    	    	((StatsView)stats_tab.getView()).showTransfers();
-    	    	
+    	    	     	    	
     			Utils.openURL( "http://azureus.aelitis.com/wiki/index.php/Share_Ratio" );
     		}
     	}
