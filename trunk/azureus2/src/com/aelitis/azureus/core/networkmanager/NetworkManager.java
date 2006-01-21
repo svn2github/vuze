@@ -161,7 +161,7 @@ public class NetworkManager {
   	public int getRateLimitBytesPerSecond() {  return 0;  }
   };
   
-  
+  private NetworkManagerStats	stats = new NetworkManagerStats();
   
   
   private NetworkManager() {
@@ -434,7 +434,11 @@ public class NetworkManager {
   public int getTCPListeningPortNumber() {  return incoming_socketchannel_manager.getTCPListeningPortNumber();  }
   
   
-  
+  public NetworkManagerStats
+  getStats()
+  {
+	  return( stats );
+  }
   
   
   /**
