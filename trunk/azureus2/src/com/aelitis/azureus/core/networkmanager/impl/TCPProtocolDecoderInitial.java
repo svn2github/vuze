@@ -148,7 +148,7 @@ TCPProtocolDecoderInitial
 							
 							if ( len < 0 ){
 								
-								failed( new IOException( "end of stream on socket read" ));
+								failed( new IOException( "end of stream on socket read: in=" + decode_buffer.position()));
 								
 							}else if ( len == 0 ){
 								

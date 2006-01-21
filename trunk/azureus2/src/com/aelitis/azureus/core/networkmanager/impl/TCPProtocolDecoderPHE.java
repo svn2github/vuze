@@ -681,6 +681,11 @@ TCPProtocolDecoderPHE
 								
 							int	padding	= (( etc[4] & 0xff ) << 8 ) + ( etc[5] & 0xff );
 							
+							if ( padding > PADDING_MAX ){
+								
+								throw( new IOException( "Invalid padding '" + padding + "'" ));
+							}
+							
 							read_buffer = ByteBuffer.allocate( padding );
 							
 							protocol_substate	= 2;
@@ -766,6 +771,11 @@ TCPProtocolDecoderPHE
 							
 							int	padding	= (( etc[4] & 0xff ) << 8 ) + ( etc[5] & 0xff );
 							
+							if ( padding > PADDING_MAX ){
+								
+								throw( new IOException( "Invalid padding '" + padding + "'" ));
+							}
+
 							read_buffer = ByteBuffer.allocate( padding );
 							
 							protocol_substate	= 3;
