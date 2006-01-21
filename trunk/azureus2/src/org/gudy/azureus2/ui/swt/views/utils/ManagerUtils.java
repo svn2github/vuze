@@ -23,6 +23,8 @@
  */
 package org.gudy.azureus2.ui.swt.views.utils;
 
+import java.io.File;
+
 import com.aelitis.azureus.core.AzureusCore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.program.Program;
@@ -57,25 +59,29 @@ public class ManagerUtils {
   * Opens the parent folder of dm's path
   * @param dm DownloadManager instance
   */
-  public static void open(DownloadManager dm) {
-    if(dm != null) {
-        PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
+	public static void open(DownloadManager dm) {
+		if (dm != null) {
+			File f = dm.getSaveLocation();
+			while (f != null && !f.isDirectory())
+				f = f.getParentFile();
 
-        if(mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
-            try
-            {
-                PlatformManagerFactory.getPlatformManager().showFile(dm.getSaveLocation().toString());
-                return;
-            }
-            catch (PlatformManagerException e)
-            {
-                Debug.printStackTrace(e);
-            }
-        }
+			if (f == null)
+				return;
 
-        Program.launch(dm.getSaveLocation().getParent()); // default launcher
-    }
-  }
+			PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
+
+			if (mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
+				try {
+					PlatformManagerFactory.getPlatformManager().showFile(f.toString());
+					return;
+				} catch (PlatformManagerException e) {
+					Debug.printStackTrace(e);
+				}
+			}
+
+			Program.launch(f.toString()); // default launcher
+		}
+	}
   
   public static boolean isStartable(DownloadManager dm) {
     if(dm == null)
