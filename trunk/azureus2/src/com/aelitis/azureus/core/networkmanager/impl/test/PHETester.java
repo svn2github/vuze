@@ -26,10 +26,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.HashMap;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -129,7 +128,7 @@ PHETester
 			outgoing();
 			
 			try{
-				Thread.sleep(10000000);
+				Thread.sleep(1000);
 				
 			}catch( Throwable e ){
 	
@@ -313,8 +312,8 @@ PHETester
 	{
 		AEDiagnostics.startup();
 		
-		COConfigurationManager.initialiseFromMap( new HashMap());
-				
+		COConfigurationManager.setParameter( "network.transport.encrypted.require", true );
+						
 		new PHETester();
 		
 		try{

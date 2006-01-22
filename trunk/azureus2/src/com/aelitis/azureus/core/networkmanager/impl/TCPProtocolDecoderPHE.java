@@ -31,7 +31,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.spec.AlgorithmParameterSpec;
 import java.util.Random;
 
 import javax.crypto.Cipher;
@@ -39,7 +38,6 @@ import javax.crypto.KeyAgreement;
 import javax.crypto.interfaces.DHPublicKey;
 import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.DHPublicKeySpec;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -57,6 +55,8 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
+import com.aelitis.azureus.core.util.bloom.BloomFilter;
+import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 
 public class 
 TCPProtocolDecoderPHE 
@@ -85,16 +85,23 @@ TCPProtocolDecoderPHE
 	private static final BigInteger	DH_G_BI = new BigInteger( DH_G, 16 );
 	
 	private static KeyPairGenerator		dh_key_generator;
-	private static long					last_dh_key_generate;
+	private static long					last_dh_incoming_key_generate;
+	
+	private static final int			BLOOM_RECREATE				= 30*1000;
+	private static final int			BLOOM_INCREASE				= 1000;
+	private static BloomFilter			generate_bloom				= BloomFilterFactory.createAddRemove4Bit(BLOOM_INCREASE);
+	private static long					generate_bloom_create_time	= SystemTime.getCurrentTime();
 	
 	private static boolean	crypto_ok;
-	private static boolean	aes_ok;
+	//private static boolean	aes_ok;
 	
+	/*
 	private static final String		AES_STREAM_ALG				= "AES";
 	private static final String		AES_STREAM_CIPHER			= "AES/CFB8/NoPadding";
 	private static final int		AES_STREAM_KEY_SIZE			= 128;
 	private static final int		AES_STREAM_KEY_SIZE_BYTES	= AES_STREAM_KEY_SIZE/8;
-   
+   	*/
+	
 	//private static final byte[]		AES_STREAM_IV				= 
     //	{ 	(byte)0x15, (byte)0xE0, (byte)0x6B, (byte)0x7E, (byte)0x98, (byte)0x59, (byte)0xE4, (byte)0xA7, 
     //		(byte)0x34, (byte)0x66, (byte)0xAD, (byte)0x48, (byte)0x35, (byte)0xE2, (byte)0xD0, (byte)0x24 };
@@ -128,6 +135,7 @@ TCPProtocolDecoderPHE
 		         
 		    rc4_cipher = new TCPTransportCipher( RC4_STREAM_CIPHER, Cipher.DECRYPT_MODE, rc4_test_secret_key_spec );
 	        
+		    /*
 			try{
 				byte[]	aes_test_secret = new byte[AES_STREAM_KEY_SIZE_BYTES];
 	        	 
@@ -145,7 +153,8 @@ TCPProtocolDecoderPHE
 				
 				Logger.log(	new LogEvent(LOGID, "AES Unavailable", e ));
 			}
-	        
+	        */
+		    
 	        crypto_ok	= true;
 	        
 	     	if (Logger.isEnabled()){
@@ -341,7 +350,7 @@ TCPProtocolDecoderPHE
 		throws IOException
 	{
 		try{
-	        KeyPair key_pair = generateDHKeyPair();
+	        KeyPair key_pair = generateDHKeyPair( channel, outbound );
 	    	    
 	        key_agreement = KeyAgreement.getInstance("DH");
 	        
@@ -420,6 +429,7 @@ TCPProtocolDecoderPHE
 							read_cipher,
 							write_cipher );
 
+			/*
 		}else if ( selected_protocol == CRYPTO_AES ){
 			
 			try{
@@ -440,6 +450,7 @@ TCPProtocolDecoderPHE
 				
 				throw( new IOException( "AES crypto init failed: " + Debug.getNestedExceptionMessage(e)));
 			}
+			*/
 		}else{
 			
 			throw( new IOException( "Invalid selected protocol '" + selected_protocol + "'" ));
@@ -960,30 +971,63 @@ TCPProtocolDecoderPHE
 	}
 	
 	protected static KeyPair
-	generateDHKeyPair()
+	generateDHKeyPair(
+		SocketChannel	channel,
+		boolean			outbound )
+	
+		throws IOException
 	{
 		synchronized( dh_key_generator ){
 			
-			long	now = SystemTime.getCurrentTime();
-			
-			long	since_last = now - last_dh_key_generate;
-			
-			long	delay = 100 - since_last;
-			
-				// limit key gen operations to 10 a second
-			
-			if ( delay > 0 && delay < 100 ){
+			if ( !outbound ){
 				
-				try{
-					Thread.sleep( delay );
+				int	hit_count = generate_bloom.add( channel.socket().getInetAddress().getAddress());
+				
+				long	now = SystemTime.getCurrentTime();
+	
+					// allow up to 10% bloom filter utilisation
+				
+				if ( generate_bloom.getSize() / generate_bloom.getEntryCount() < 10 ){
 					
-				}catch( Throwable e ){
+					generate_bloom = BloomFilterFactory.createAddRemove4Bit(generate_bloom.getSize() + BLOOM_INCREASE );
+					
+					generate_bloom_create_time	= now;
+					
+		     		Logger.log(	new LogEvent(LOGID, "PHE bloom: size increased to " + generate_bloom.getSize()));
+	
+				}else if ( now < generate_bloom_create_time || now - generate_bloom_create_time > BLOOM_RECREATE ){
+					
+					generate_bloom = BloomFilterFactory.createAddRemove4Bit(generate_bloom.getSize());
+					
+					generate_bloom_create_time	= now;
 				}
+					
+				if ( hit_count >= 15 ){
+					
+		     		Logger.log(	new LogEvent(LOGID, "PHE bloom: too many recent connection attempts from " + channel.socket().getInetAddress()));
+		     		
+					throw( new IOException( "Too many recent connection attempts (phe)"));
+				}
+				
+				long	since_last = now - last_dh_incoming_key_generate;
+				
+				long	delay = 100 - since_last;
+				
+					// limit key gen operations to 10 a second
+				
+				if ( delay > 0 && delay < 100 ){
+					
+					try{
+						Thread.sleep( delay );
+						
+					}catch( Throwable e ){
+					}
+				}
+				
+				last_dh_incoming_key_generate = now;
 			}
 			
 			KeyPair	res = dh_key_generator.generateKeyPair();
-			
-			last_dh_key_generate = now;
 			
 			return( res );
 		}
