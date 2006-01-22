@@ -110,26 +110,26 @@ public class Utils {
 					&& !((Resource) o).isDisposed())
 				((Resource) o).dispose();
 			else {
-				// For Pre-SWT 3.1
-				if ((o instanceof Cursor) && !((Cursor)o).isDisposed()) {
-					((Cursor)o).dispose();
-				} else if ((o instanceof Font) && !((Font)o).isDisposed()) {
-					((Font)o).dispose();
-				} else if ((o instanceof GC) && !((GC)o).isDisposed()) {
-					((GC)o).dispose();
-				} else if ((o instanceof Image) && !((Image)o).isDisposed()) {
-					((Image)o).dispose();
-				} else if ((o instanceof Path) && !((Path)o).isDisposed()) {
-					((Path)o).dispose();
-				} else if ((o instanceof Pattern) && !((Pattern)o).isDisposed()) {
-					((Pattern)o).dispose();
-				} else if ((o instanceof Region) && !((Region)o).isDisposed()) {
-					((Region)o).dispose();
-				} else if ((o instanceof TextLayout) && !((TextLayout)o).isDisposed()) {
-					((TextLayout) o).dispose();
-				} else if ((o instanceof Transform) && !((Transform)o).isDisposed()) {
-					((Transform) o).dispose();
+				try {
+					// For Pre-SWT 3.1
+					if ((o instanceof Cursor) && !((Cursor)o).isDisposed()) {
+						((Cursor)o).dispose();
+					} else if ((o instanceof Font) && !((Font)o).isDisposed()) {
+						((Font)o).dispose();
+					} else if ((o instanceof GC) && !((GC)o).isDisposed()) {
+						((GC)o).dispose();
+					} else if ((o instanceof Image) && !((Image)o).isDisposed()) {
+						((Image)o).dispose();
+					} else if ((o instanceof Region) && !((Region)o).isDisposed()) {
+						((Region)o).dispose();  // 3.0
+					} else if ((o instanceof TextLayout) && !((TextLayout)o).isDisposed()) {
+						((TextLayout) o).dispose(); // 3.0
+					}
+				} catch (NoClassDefFoundError e) {
+					// ignore
 				}
+				// Path, Pattern, Transform are all 3.1, which will be instances of 
+				// Resource
 			}
 		}
 		disposeList.clear();
