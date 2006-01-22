@@ -823,11 +823,11 @@ DHTDBMapping
 		
 		if ( increase_size ){
 			
-			new_filter = BloomFilterFactory.createAddRemove8Bit( ip_count_bloom_filter.getSize() + IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
+			new_filter = BloomFilterFactory.createAddRemove4Bit( ip_count_bloom_filter.getSize() + IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK );
 			
 		}else{
 			
-			new_filter = BloomFilterFactory.createAddRemove8Bit( ip_count_bloom_filter.getSize());
+			new_filter = BloomFilterFactory.createAddRemove4Bit( ip_count_bloom_filter.getSize());
 			
 		}
 		
