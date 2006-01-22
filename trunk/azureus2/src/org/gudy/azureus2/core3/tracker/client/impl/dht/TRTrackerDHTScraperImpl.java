@@ -91,6 +91,10 @@ TRTrackerDHTScraperImpl
 							
 				resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
 				
+				resp.setScrapeStartTime( result.getScrapeStartTime());
+				
+				resp.setNextScrapeStartTime( result.getNextScrapeStartTime());
+				
 				resp.setStatus( 
 						result.getResponseType()==DownloadScrapeResult.RT_SUCCESS?
 								TRTrackerScraperResponse.ST_ONLINE:
