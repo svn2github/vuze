@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Utils;
 /**
  * @author Olivier Chalouhi
  * @author MjrTom
@@ -149,7 +150,7 @@ public class Colors implements ParameterListener {
     if(display == null || display.isDisposed())
       return;
     
-    display.syncExec(new AERunnable() {
+    Utils.execSWTThread(new AERunnable() {
       public void runSupport() {
         if (Colors.colorProgressBar != null
             && !Colors.colorProgressBar.isDisposed())
@@ -167,7 +168,7 @@ public class Colors implements ParameterListener {
           }
         }
       }
-    });
+    }, false);
   }
   
   /**
@@ -182,69 +183,63 @@ public class Colors implements ParameterListener {
   }
   
   private void allocateColorProgressBar() {
-    if(display == null || display.isDisposed())
-      return;
-    
-    display.syncExec(new AERunnable() {
-      public void runSupport() {
-        colorProgressBar = new AllocateColor("progressBar", colorShiftRight.getRGB(), colorProgressBar).getColor();
-      }
-    });
-  }
+		if (display == null || display.isDisposed())
+			return;
 
-  private void allocateColorError() {
-    if(display == null || display.isDisposed())
-      return;
-    
-    display.syncExec(new AERunnable() {
-      public void runSupport() {
-        colorError = new AllocateColor("error", new RGB(255, 68, 68), colorError).getColor();
-      }
-    });
-  }
+		colorProgressBar = new AllocateColor("progressBar", colorShiftRight,
+				colorProgressBar).getColor();
+	}
 
-  private void allocateColorWarning() {
-    if(display == null || display.isDisposed())
-      return;
-    
-    display.syncExec(new AERunnable() {
-      public void runSupport() {
-        Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-        HSLColor hslBG = new HSLColor();
-        hslBG.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(), colorTables.getBlue());
-        int lum = hslBG.getLuminence();
-    
-        HSLColor hslColor = new HSLColor();
-        hslColor.initRGBbyHSL(25, 200, 128 + (lum < 160 ? 10 : -10));
-        colorWarning = new AllocateColor("warning", 
-                                          new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
-                                          colorWarning).getColor();
-      }
-    });
-  }
+	private void allocateColorError() {
+		if (display == null || display.isDisposed())
+			return;
 
-  private void allocateColorAltRow() {
-    if(display == null || display.isDisposed())
-      return;
-    
-    display.syncExec(new AERunnable() {
-      public void runSupport() {
-    Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-    HSLColor hslColor = new HSLColor();
-    hslColor.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(), colorTables.getBlue());
+		colorError = new AllocateColor("error", new RGB(255, 68, 68), colorError)
+				.getColor();
+	}
 
-    int lum = hslColor.getLuminence();
-    if (lum > 127)
-      lum -= 10;
-    else
-      lum += 30; // it's usually harder to see difference in darkness
-    hslColor.setLuminence(lum);
-    colorAltRow = new AllocateColor("altRow", 
-                                    new RGB(hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue()), 
-                                    colorAltRow).getColor();
-      }
-    });    
-  }
+	private void allocateColorWarning() {
+		if (display == null || display.isDisposed())
+			return;
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+				HSLColor hslBG = new HSLColor();
+				hslBG.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(),
+						colorTables.getBlue());
+				int lum = hslBG.getLuminence();
+
+				HSLColor hslColor = new HSLColor();
+				hslColor.initRGBbyHSL(25, 200, 128 + (lum < 160 ? 10 : -10));
+				colorWarning = new AllocateColor("warning", new RGB(hslColor.getRed(),
+						hslColor.getGreen(), hslColor.getBlue()), colorWarning).getColor();
+			}
+		}, false);
+	}
+
+	private void allocateColorAltRow() {
+		if (display == null || display.isDisposed())
+			return;
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+				HSLColor hslColor = new HSLColor();
+				hslColor.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(),
+						colorTables.getBlue());
+
+				int lum = hslColor.getLuminence();
+				if (lum > 127)
+					lum -= 10;
+				else
+					lum += 30; // it's usually harder to see difference in darkness
+				hslColor.setLuminence(lum);
+				colorAltRow = new AllocateColor("altRow", new RGB(hslColor.getRed(),
+						hslColor.getGreen(), hslColor.getBlue()), colorAltRow).getColor();
+			}
+		}, false);
+	}
 
   /** Allocates a color */
   private class AllocateColor extends AERunnable {
@@ -259,8 +254,21 @@ public class Colors implements ParameterListener {
       this.rgbDefault = rgbDefault;
     }
     
+    public AllocateColor(String sName, final Color colorDefault, Color colorOld) {
+			toBeDeleted = colorOld;
+			this.sName = sName;
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (!colorDefault.isDisposed())
+						AllocateColor.this.rgbDefault = colorDefault.getRGB();
+					else
+						AllocateColor.this.rgbDefault = new RGB(0, 0, 0);
+				}
+			}, false);
+		}
+    
     public Color getColor() {
-      display.syncExec(this);
+    	Utils.execSWTThread(this, false);
       return newColor;
     }
 
@@ -289,12 +297,12 @@ public class Colors implements ParameterListener {
     if(display == null || display.isDisposed())
       return;
     
-    display.syncExec(new AERunnable(){
+    Utils.execSWTThread(new AERunnable(){
       public void runSupport() {
         allocateBlues();
         allocateColorProgressBar();
       }
-    });
+    }, false);
   }
 
   private void allocateNonDynamicColors() {
