@@ -200,7 +200,9 @@ public class PeersView
   public void pieceAdded(PEPiece piece) {  }
   public void pieceRemoved(PEPiece piece) {  }
   public void peerManagerAdded(PEPeerManager manager) {	}
-  public void peerManagerRemoved(PEPeerManager manager) { }
+  public void peerManagerRemoved(PEPeerManager manager) {
+  	removeAllTableRows();
+  }
 
 	/**
 	 * Add datasources already in existance before we called addListener.

@@ -86,7 +86,11 @@ import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
  *   
  * @future TableView should be split into two.  One for non SWT functions, and
  *          the other extending the first, with extra SWT stuff. 
- *        
+ *
+ * @future dataSourcesToRemove should be removed after a certain amount of time
+ *          has passed.  Currently, dataSourcesToRemove is processed every
+ *          refresh IF the table is visible, or it is processed when we collect
+ *          20 items to remove. 
  */
 public class TableView 
   extends AbstractIView 
@@ -1671,10 +1675,15 @@ public class TableView
 	  			dataSourcesToRemove = new ArrayList(4);
 	  		for (int i = 0; i < dataSources.length; i++)
 	  			dataSourcesToRemove.add(dataSources[i]);
-	  		return;
   		}finally{
   			dataSourceToRow_mon.exit();
   		}
+
+  		// .size() not modifying the structure of List, so sync not needed
+  		if (dataSourcesToRemove.size() >= 20)
+  			processDataSourceQueue();
+
+  		return;
   	}
   	
   	if (DEBUGADDREMOVE)
@@ -1755,6 +1764,13 @@ public class TableView
 
 			dataSourceToRow.clear();
 			sortedRows.clear();
+			
+			if (dataSourcesToAdd != null)
+				dataSourcesToAdd.clear();
+			
+			if (dataSourcesToRemove != null)
+				dataSourcesToRemove.clear();
+
 			if (DEBUGADDREMOVE)
 				System.out.println(sTableID + " removeAll");
 
