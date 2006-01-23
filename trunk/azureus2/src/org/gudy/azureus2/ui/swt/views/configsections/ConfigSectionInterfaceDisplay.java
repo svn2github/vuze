@@ -49,14 +49,6 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.Constants;
 
 public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
-  private static final String[] sColorsToOverride = { "progressBar", "error", "warning", "altRow" };
-  private Color[] colorsToOverride = { Colors.colorProgressBar, 
-      Colors.colorError,
-      Colors.colorWarning,
-      Colors.colorAltRow
-                                      };
-  private Button[] btnColorReset = new Button[sColorsToOverride.length];
-
   public String configSectionGetParentSection() {
     return ConfigSection.SECTION_INTERFACE;
   }
@@ -197,60 +189,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
     cArea.setLayout(layout);
     cArea.setLayoutData(new GridData());
     
-    label = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.colorScheme");
-    ColorParameter colorScheme = new ColorParameter(cArea, "Color Scheme",0,128,255);
-    gridData = new GridData();
-    gridData.widthHint = 50;
-    colorScheme.setLayoutData(gridData);
-    
-    Group cColorOverride = new Group(cArea, SWT.NULL);
-    Messages.setLanguageText(cColorOverride, "ConfigView.section.style.colorOverrides");
-    layout = new GridLayout();
-    layout.numColumns = 3;
-    cColorOverride.setLayout(layout);
-    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 2;
-    cColorOverride.setLayoutData(gridData);
-    
-    for (int i = 0; i < sColorsToOverride.length; i++) {
-      String sConfigID = "Colors."  + sColorsToOverride[i];
-      label = new Label(cColorOverride, SWT.NULL);
-      Messages.setLanguageText(label, "ConfigView.section.style.colorOverride." + sColorsToOverride[i]);
-      ColorParameter colorParm = 
-          new ColorParameter(cColorOverride, sConfigID,
-                             colorsToOverride[i].getRed(), 
-                             colorsToOverride[i].getGreen(), 
-                             colorsToOverride[i].getBlue()) {
-        public void newColorChosen() {
-          COConfigurationManager.setParameter(sParamName + ".override", true);
-          for (int i = 0; i < sColorsToOverride.length; i++) {
-            if (sParamName.equals("Colors." + sColorsToOverride[i])) {
-              btnColorReset[i].setEnabled(true);
-              break;
-            }
-          }
-        }
-      };
-      gridData = new GridData();
-      gridData.widthHint = 50;
-      colorParm.setLayoutData(gridData);
-      btnColorReset[i] = new Button(cColorOverride, SWT.PUSH);
-      Messages.setLanguageText(btnColorReset[i], "ConfigView.section.style.colorOverrides.reset");
-      btnColorReset[i].setEnabled(COConfigurationManager.getBooleanParameter(sConfigID + ".override", false));
-      btnColorReset[i].setData("ColorName", sConfigID);
-      btnColorReset[i].addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event event) {
-          Button btn = (Button)event.widget;
-          String sName = (String)btn.getData("ColorName");
-          if (sName != null) {
-            COConfigurationManager.setParameter(sName + ".override", false);
-            btn.setEnabled(false);
-          }
-        }
-      });
-    }
-
     label = new Label(cArea, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate");
     int[] values = { 100 , 250 , 500 , 1000 , 2000 , 5000 };
