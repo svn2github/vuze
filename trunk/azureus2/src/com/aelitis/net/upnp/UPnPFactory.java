@@ -36,11 +36,12 @@ UPnPFactory
 {
 	public static UPnP
 	getSingleton(
-		UPnPAdapter		adapter )
+		UPnPAdapter		adapter,
+		String[]		selected_interfaces )
 	
 		throws UPnPException
 	{
-		return( UPnPImpl.getSingleton( adapter));
+		return( UPnPImpl.getSingleton( adapter, selected_interfaces ));
 	}
 	
 	public static UPnPSSDP
@@ -48,10 +49,11 @@ UPnPFactory
 		UPnPSSDPAdapter		adapter,
 		String				group_address,
 		int					group_port,
-		int					control_port )
+		int					control_port,
+		String[]			selected_interfaces )
 	
 		throws UPnPException
 	{
-		return( SSDPCore.getSingleton( adapter, group_address, group_port, control_port ));
+		return( SSDPCore.getSingleton( adapter, group_address, group_port, control_port, selected_interfaces ));
 	}
 }

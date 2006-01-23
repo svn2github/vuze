@@ -61,7 +61,8 @@ MCGroupImpl
 		MCGroupAdapter		adapter,
 		String				group_address,
 		int					group_port,
-		int					control_port )
+		int					control_port,
+		String[]			interfaces )
 	
 		throws MCGroupException
 	{
@@ -74,7 +75,7 @@ MCGroupImpl
 			
 			if ( singleton == null ){
 				
-				singleton = new MCGroupImpl( adapter, group_address, group_port, control_port );
+				singleton = new MCGroupImpl( adapter, group_address, group_port, control_port, interfaces );
 				
 				singletons.put( key, singleton );
 			}
@@ -93,6 +94,8 @@ MCGroupImpl
 	private int					group_port;
 	private int					control_port;
 	protected InetSocketAddress 	group_address;
+	private String[]				selected_interfaces;
+	
 
 	private boolean		ttl_problem_reported	= true;	// remove these diagnostic reports on win98
 	private boolean		sso_problem_reported	= true; // remove these diagnostic reports on win98
@@ -106,7 +109,8 @@ MCGroupImpl
 		MCGroupAdapter		_adapter,
 		String				_group_address,
 		int					_group_port,
-		int					_control_port )
+		int					_control_port,
+		String[]			_interfaces )
 	
 		throws MCGroupException
 	{	
@@ -115,7 +119,8 @@ MCGroupImpl
 		group_address_str	= _group_address;
 		group_port			= _group_port;
 		control_port		= _control_port;
-			
+		selected_interfaces	= _interfaces;
+		
 		try{	
 			group_address = new InetSocketAddress(InetAddress.getByName(group_address_str), 0 );
 
@@ -166,6 +171,16 @@ MCGroupImpl
 				
 				final NetworkInterface network_interface = (NetworkInterface)network_interfaces.nextElement();
 	
+				if ( !interfaceSelected( network_interface )){
+					
+					if ( log_ignored ){
+						
+						adapter.trace( "ignoring interface " + network_interface.getName() + ":" + network_interface.getDisplayName() + ", not selected" );
+					}
+					
+					continue;
+				}
+				
 				Set old_address_set = (Set)current_registrations.get( network_interface );
 					
 				if ( old_address_set == null ){
@@ -198,7 +213,7 @@ MCGroupImpl
 						
 						if ( log_ignored ){
 							
-							adapter.trace( "ignoring loopback address " + ni_address );
+							adapter.trace( "ignoring loopback address " + ni_address + ", interface " + network_interface.getName());
 						}
 						
 						continue;
@@ -208,7 +223,7 @@ MCGroupImpl
 			
 						if ( log_ignored ){
 							
-							adapter.trace( "ignoring IPv6 address " + ni_address );
+							adapter.trace( "ignoring IPv6 address " + ni_address + ", interface " + network_interface.getName());
 						}
 						
 						continue;
@@ -329,6 +344,31 @@ MCGroupImpl
 	}
 	
 	protected boolean
+	interfaceSelected(
+		NetworkInterface	ni )
+	{
+		if ( selected_interfaces != null && selected_interfaces.length > 0 ){
+			
+			boolean	ok 	= false;
+			
+			for (int i=0;i<selected_interfaces.length;i++){
+			
+				if ( ni.getName().equalsIgnoreCase( selected_interfaces[i] )){
+					
+					ok	= true;
+					
+					break;
+				}
+			}
+			
+			return( ok );
+		}else{
+			
+			return( true );
+		}
+	}
+	
+	protected boolean
 	validNetworkAddress(
 		final NetworkInterface	network_interface,
 		final InetAddress		ni_address )
@@ -364,6 +404,11 @@ MCGroupImpl
 			while( x != null && x.hasMoreElements()){
 				
 				NetworkInterface	network_interface = (NetworkInterface)x.nextElement();
+				
+				if ( !interfaceSelected( network_interface )){
+					
+					continue;
+				}
 				
 				Enumeration ni_addresses = network_interface.getInetAddresses();
 				

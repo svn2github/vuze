@@ -59,7 +59,8 @@ UPnPImpl
 	
 	public static UPnP
 	getSingleton(
-		UPnPAdapter		adapter )
+		UPnPAdapter		adapter,
+		String[]		selected_interfaces )
 	
 		throws UPnPException
 	{
@@ -68,7 +69,7 @@ UPnPImpl
 		
 			if ( singleton == null ){
 				
-				singleton = new UPnPImpl( adapter );
+				singleton = new UPnPImpl( adapter, selected_interfaces );
 			}
 			
 			return( singleton );
@@ -104,13 +105,14 @@ UPnPImpl
 
 	protected
 	UPnPImpl(
-		UPnPAdapter		_adapter )
+		UPnPAdapter		_adapter,
+		String[]		_selected_interfaces )
 	
 		throws UPnPException
 	{
 		adapter	= _adapter;
 		
-		ssdp = SSDPIGDFactory.create( this );
+		ssdp = SSDPIGDFactory.create( this, _selected_interfaces );
 		
 		ssdp.addListener(this);
 		
@@ -773,7 +775,7 @@ UPnPImpl
 		String[]		args )
 	{
 		try{
-			UPnP	upnp = UPnPFactory.getSingleton(null);	// won't work with null ....
+			UPnP	upnp = UPnPFactory.getSingleton(null,null);	// won't work with null ....
 				
 			upnp.addRootDeviceListener(
 					new UPnPListener()

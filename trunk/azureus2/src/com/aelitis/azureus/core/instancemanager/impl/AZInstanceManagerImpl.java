@@ -144,7 +144,8 @@ AZInstanceManagerImpl
 					this,
 					MC_GROUP_ADDRESS,
 					MC_GROUP_PORT,
-					MC_CONTROL_PORT );
+					MC_CONTROL_PORT,
+					null );
 					
 			core.addLifecycleListener(
 				new AzureusCoreLifecycleAdapter()

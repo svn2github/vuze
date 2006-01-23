@@ -32,10 +32,11 @@ MCGroupFactory
 		MCGroupAdapter		adapter,
 		String				group_address,
 		int					group_port,
-		int					control_port )
+		int					control_port,
+		String[]			selected_interfaces )
 	
 		throws MCGroupException
 	{
-		return( MCGroupImpl.getSingleton( adapter, group_address, group_port, control_port ));
+		return( MCGroupImpl.getSingleton( adapter, group_address, group_port, control_port, selected_interfaces ));
 	}
 }

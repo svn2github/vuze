@@ -64,6 +64,7 @@ UPnPPlugin
 	protected BooleanParameter	alert_other_port_param;
 	protected BooleanParameter	alert_device_probs_param;
 	protected BooleanParameter	release_mappings_param;
+	protected StringParameter	selected_interfaces_param;
 	
 	protected List	mappings	= new ArrayList();
 	protected List	services	= new ArrayList();
@@ -168,7 +169,7 @@ UPnPPlugin
 		
 		alert_device_probs_param = config.addBooleanParameter2( "upnp.alertdeviceproblems", "upnp.alertdeviceproblems", true );
 		
-		
+		selected_interfaces_param = config.addStringParameter2( "upnp.selectedinterfaces", "upnp.selectedinterfaces", "" );
 
 		enable_param.addEnabledOnSelection( alert_success_param );
 		enable_param.addEnabledOnSelection( grab_ports_param );
@@ -302,12 +303,20 @@ UPnPPlugin
 							Debug.printStackTrace( e );
 						}
 						
+						public void
+						log(
+							String	str )
+						{
+							log.log( str );
+						}
+						
 						public String
 						getTraceDir()
 						{
 							return( plugin_interface.getUtilities().getAzureusUserDir());
 						}
-					});
+					},
+					getSelectedInterfaces());
 				
 			upnp.addRootDeviceListener(
 				new UPnPListener()
@@ -470,6 +479,28 @@ UPnPPlugin
 				service.removeMapping( log, mapping, end_of_day );
 			}
 		}		
+	}
+
+	protected String[]
+	getSelectedInterfaces()
+	{
+		String	si = selected_interfaces_param.getValue().trim();
+		
+		StringTokenizer	tok = new StringTokenizer( si, ";" );
+		
+		List	res = new ArrayList();
+		
+		while( tok.hasMoreTokens()){
+			
+			String	s = tok.nextToken().trim();
+			
+			if ( s.length() > 0 ){
+				
+				res.add( s );
+			}
+		}
+		
+		return( (String[])res.toArray( new String[res.size()]));
 	}
 	
 	protected void

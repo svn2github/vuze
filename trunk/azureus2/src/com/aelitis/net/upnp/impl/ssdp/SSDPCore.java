@@ -53,7 +53,8 @@ SSDPCore
 		UPnPSSDPAdapter		adapter,
 		String				group_address,
 		int					group_port,
-		int					control_port )
+		int					control_port,
+		String[]			selected_interfaces )
 	
 		throws UPnPException
 	{
@@ -66,7 +67,7 @@ SSDPCore
 			
 			if ( singleton == null ){
 				
-				singleton = new SSDPCore( adapter, group_address, group_port, control_port );
+				singleton = new SSDPCore( adapter, group_address, group_port, control_port, selected_interfaces );
 				
 				singletons.put( key, singleton );
 			}
@@ -98,7 +99,8 @@ SSDPCore
 		UPnPSSDPAdapter		_adapter,
 		String				_group_address,
 		int					_group_port,
-		int					_control_port )
+		int					_control_port,
+		String[]			_selected_interfaces )
 	
 		throws UPnPException
 	{	
@@ -109,7 +111,7 @@ SSDPCore
 		control_port		= _control_port;
 		
 		try{
-			mc_group = MCGroupFactory.getSingleton( this, _group_address, group_port, control_port );
+			mc_group = MCGroupFactory.getSingleton( this, _group_address, group_port, control_port, _selected_interfaces );
 			
 		}catch( Throwable e ){
 			
@@ -123,7 +125,7 @@ SSDPCore
 	trace(
 		String	str )
 	{
-		adapter.trace( "SSDP: " + str );
+		adapter.log( str );
 	}
 	
 	public void

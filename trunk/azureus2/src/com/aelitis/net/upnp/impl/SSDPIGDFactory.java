@@ -36,10 +36,11 @@ SSDPIGDFactory
 {
 	public static SSDPIGD
 	create(
-		UPnPImpl	upnp )
+		UPnPImpl	upnp,
+		String[]	selected_interfaces )
 	
 		throws UPnPException
 	{
-		return( new SSDPIGDImpl(upnp));
+		return( new SSDPIGDImpl(upnp, selected_interfaces ));
 	}
 }

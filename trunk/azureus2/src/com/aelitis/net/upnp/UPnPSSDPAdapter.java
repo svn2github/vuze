@@ -44,4 +44,13 @@ UPnPSSDPAdapter
 	public void
 	trace(
 		String	str );
+	
+		/**
+		 * Logs are generally more informative for the user than trace
+		 * @param str
+		 */
+	
+	public void
+	log(
+		String	str );
 }
