@@ -70,7 +70,8 @@ public class GUIUpdater extends AEThread implements ParameterListener {
   private MainWindow 		mainWindow;
   private Display 			display;
   
-  private int last_sr_status = -1;
+  private long last_sr_ratio	= -1;
+  private int  last_sr_status	= -1;
   private int lastNATstatus = -1;
   private int lastDHTstatus = -1;
   private long lastDHTcount = -1;
@@ -198,35 +199,60 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 			    	    if ( sr_status != last_sr_status ){
 			    	    	
 							String imgID;
-							String tooltipID;
-							// String statusID;
 							
 							switch (sr_status) {
 									case 2:
 									imgID = "greenled";
-									tooltipID = "MainWindow.sr.status.tooltip.ok";
-									//statusID = "MainWindow.sr.status.ok";
 									break;
 
 								case 1:
 									imgID = "yellowled";
-									tooltipID = "MainWindow.sr.status.tooltip.poor";
-									//statusID = "MainWindow.sr.status.poor";
 									break;
 
 								default:
 									imgID = "redled";
-								  	tooltipID = "MainWindow.sr.status.tooltip.bad";
-								  	//statusID = "MainWindow.sr.status.bad";
 									break;
 							}
 
 							mainWindow.srStatus.setImage( ImageRepository.getImage(imgID) );
-							mainWindow.srStatus.setToolTipText( MessageText.getString(tooltipID) );
-							//mainWindow.srStatus.setText( MessageText.getString(statusID) );
+							
 			    	    	last_sr_status	= sr_status;
 			    	    }
 			    	    
+			    	    if ( ratio != last_sr_ratio ){
+			    	    	
+							String tooltipID;
+							
+							switch (sr_status) {
+									case 2:
+									tooltipID = "MainWindow.sr.status.tooltip.ok";
+									break;
+
+								case 1:
+									tooltipID = "MainWindow.sr.status.tooltip.poor";
+									break;
+
+								default:
+								  	tooltipID = "MainWindow.sr.status.tooltip.bad";
+									break;
+							}
+
+							String ratio_str = "";
+							
+						    String partial = "" + ratio%1000;
+						    
+						    while(partial.length() < 3){
+						    	
+						    	partial = "0" + partial;
+						    }
+						    
+						    ratio_str = (ratio/1000) + "." + partial;
+
+							mainWindow.srStatus.setToolTipText( MessageText.getString(tooltipID,new String[]{ratio_str}));
+				    	   
+							last_sr_ratio	= ratio;
+			    	    }
+		    	    
 						// NAT status Section
 						
 						int nat_status = connection_manager.getNATStatus();

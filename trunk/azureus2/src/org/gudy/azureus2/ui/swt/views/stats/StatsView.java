@@ -218,6 +218,12 @@ public class StatsView extends AbstractIView {
 	  folder.setSelection( new TabItem[]{ itemStats });
   }
   
+  public void
+  showDHT()
+  {
+	  folder.setSelection( new TabItem[]{ itemDHT });
+  }
+  
   public Composite getComposite() {
     return folder;
   }

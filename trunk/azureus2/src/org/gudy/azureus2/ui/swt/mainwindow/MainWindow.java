@@ -561,7 +561,17 @@ MainWindow
 
     statusDown.addListener(SWT.MouseDoubleClick,lStats);
     statusUp.addListener(SWT.MouseDoubleClick,lStats);
-    dhtStatus.addListener(SWT.MouseDoubleClick,lStats);
+    
+    Listener lDHT = new Listener() {
+    	public void handleEvent(Event e) {
+     		   
+  	    	showStats();
+	    	
+	    	((StatsView)stats_tab.getView()).showDHT();
+    	}
+    };
+    
+    dhtStatus.addListener(SWT.MouseDoubleClick,lDHT);
     
     Listener lSR = new Listener() {
     	public void handleEvent(Event e) {
