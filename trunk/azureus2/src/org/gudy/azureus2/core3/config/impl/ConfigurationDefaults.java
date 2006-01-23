@@ -387,7 +387,7 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.perf.cache.flushpieces", TRUE);
     def.put( "File.truncate.if.too.large", FALSE);
     def.put( "Enable System Tray", TRUE);
-    def.put( "config.style.table.sortDefaultAscending", TRUE);
+    def.put( "config.style.table.defaultSortOrder", new Long(0));
     def.put( "Ignore.peer.ports", "0" );
     def.put( "Security.JAR.tools.dir", "" );
     def.put( "network.max.simultaneous.connect.attempts", new Long( 8 ));

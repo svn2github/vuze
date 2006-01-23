@@ -111,7 +111,7 @@ public class TableView
 	private static final ConfigurationManager configMan = ConfigurationManager
 			.getInstance();
 
-	private static final String CFG_SORTDIRECTION = "config.style.table.sortDefaultAscending";
+	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
 
   /** TableID (from {@link org.gudy.azureus2.plugins.ui.tables.TableManager}) 
    * of the table this class is
@@ -938,8 +938,9 @@ public class TableView
     // Initialize the sorter after the columns have been added
 		String sSortColumn = configMan.getStringParameter(sTableID
 				+ ".sortColumn", sDefaultSortOn);
+		int iSortDirection = configMan.getIntParameter(CFG_SORTDIRECTION);
 		boolean bSortAscending = configMan.getBooleanParameter(sTableID
-				+ ".sortAsc", configMan.getBooleanParameter(CFG_SORTDIRECTION));
+				+ ".sortAsc", iSortDirection == 1 ? false : true);
 
 		rowSorter = new TableRowComparator(sSortColumn, bSortAscending);
 		changeColumnIndicator();
@@ -2649,8 +2650,11 @@ public class TableView
 	public void sortColumnReverse(TableColumnCore tableColumn) {
 		boolean bSameColumn = (rowSorter.sColumnName.equals(tableColumn.getName()));
 		if (!bSameColumn) {
-			if (configMan.getBooleanParameter(CFG_SORTDIRECTION))
+			int iSortDirection = configMan.getIntParameter(CFG_SORTDIRECTION);
+			if (iSortDirection == 0) 
 				rowSorter.bAscending = true;
+			else if (iSortDirection == 1)
+				rowSorter.bAscending = false;
 			else
 				rowSorter.bAscending = !rowSorter.bAscending;
 			rowSorter.sColumnName = tableColumn.getName();

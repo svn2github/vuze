@@ -43,177 +43,188 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.Constants;
 
 public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
-  public String configSectionGetParentSection() {
-    return ConfigSection.SECTION_INTERFACE;
-  }
+	private final static String MSG_PREFIX = "ConfigView.section.style.";
+
+	public String configSectionGetParentSection() {
+		return ConfigSection.SECTION_INTERFACE;
+	}
 
 	public String configSectionGetName() {
 		return "display";
 	}
 
-  public void configSectionSave() {
-  }
+	public void configSectionSave() {
+	}
 
-  public void configSectionDelete() {
-  }
-  
+	public void configSectionDelete() {
+	}
 
-  public Composite configSectionCreate(final Composite parent) {
-    // "Display" Sub-Section:
-    // ----------------------
-    // Any Look & Feel settings that don't really change the way the user 
-    // normally interacts
-    Label label;
-    GridLayout layout;
-    GridData gridData;
-    Composite cLook = new Composite(parent,  SWT.NULL);
-    cLook.setLayoutData(new GridData(GridData.FILL_BOTH));
-    layout = new GridLayout();
-    layout.numColumns = 1;
-    cLook.setLayout(layout);
-    
-    BooleanParameter bpCustomTab = new BooleanParameter(cLook, "useCustomTab",
-                                                        true, 
-                                                        "ConfigView.section.style.useCustomTabs");
-    Control cFancyTab = new BooleanParameter(cLook, "GUI_SWT_bFancyTab", true,
-                                                    "ConfigView.section.style.useFancyTabs").getControl();
+	public Composite configSectionCreate(final Composite parent) {
+		// "Display" Sub-Section:
+		// ----------------------
+		// Any Look & Feel settings that don't really change the way the user 
+		// normally interacts
+		Label label;
+		GridLayout layout;
+		GridData gridData;
+		Composite cLook = new Composite(parent, SWT.NULL);
+		cLook.setLayoutData(new GridData(GridData.FILL_BOTH));
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		cLook.setLayout(layout);
 
-    Control[] controls = { cFancyTab };
-    bpCustomTab.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
+		BooleanParameter bpCustomTab = new BooleanParameter(cLook, "useCustomTab",
+				true, MSG_PREFIX + "useCustomTabs");
+		Control cFancyTab = new BooleanParameter(cLook, "GUI_SWT_bFancyTab", true,
+				MSG_PREFIX + "useFancyTabs").getControl();
 
-    new BooleanParameter(cLook, "Show Download Basket",false, "ConfigView.section.style.showdownloadbasket");
-    
-    Composite cStatusBar = new Composite(cLook, SWT.NULL);
-    layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    layout.numColumns = 5;
-    cStatusBar.setLayout(layout);
-    cStatusBar.setLayoutData(new GridData());
-    
-    label = new Label(cStatusBar, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.status");
-    new BooleanParameter(cStatusBar, "Status Area Show SR",true, 	"ConfigView.section.style.status.show_sr");
-    new BooleanParameter(cStatusBar, "Status Area Show NAT",true, 	"ConfigView.section.style.status.show_nat");
-    new BooleanParameter(cStatusBar, "Status Area Show DDB",true, 	"ConfigView.section.style.status.show_ddb");
-    
-    
-    new BooleanParameter(cLook, "Add URL Silently",false, "ConfigView.section.style.addurlsilently");
-    new BooleanParameter(cLook, "add_torrents_silently",false, "ConfigView.section.interface.display.add_torrents_silently");
-    
-    if ( Constants.isWindowsXP ) {
-      final Button enableXPStyle = new Button(cLook, SWT.CHECK);
-      Messages.setLanguageText(enableXPStyle, "ConfigView.section.style.enableXPStyle");
-      
-      boolean enabled = false;
-      boolean valid = false;
-      try {
-        File f =
-          new File(
-            System.getProperty("java.home")
-              + "\\bin\\javaw.exe.manifest");
-        if (f.exists()) {
-          enabled = true;
-        }
-        f= FileUtil.getApplicationFile("javaw.exe.manifest");
-        if(f.exists()) {
-            valid = true;
-        }
-      } catch (Exception e) {
-      	Debug.printStackTrace( e );
-        valid = false;
-      }
-      enableXPStyle.setEnabled(valid);
-      enableXPStyle.setSelection(enabled);
-      enableXPStyle.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event arg0) {
-          //In case we enable the XP Style
-          if (enableXPStyle.getSelection()) {
-            try {
-              File fDest =
-                new File(
-                  System.getProperty("java.home")
-                    + "\\bin\\javaw.exe.manifest");
-              File fOrigin = new File("javaw.exe.manifest");
-              if (!fDest.exists() && fOrigin.exists()) {
-                FileUtil.copyFile(fOrigin, fDest);
-              }
-            } catch (Exception e) {
-            	Debug.printStackTrace( e );
-            }
-          } else {
-            try {
-              File fDest =
-                new File(
-                  System.getProperty("java.home")
-                    + "\\bin\\javaw.exe.manifest");
-              fDest.delete();
-            } catch (Exception e) {
-            	Debug.printStackTrace( e );
-            }
-          }
-        }
-      });
-    }
+		Control[] controls = { cFancyTab };
+		bpCustomTab
+				.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+						controls));
 
-    if (SWT.getPlatform().equals("gtk")) {
-      // See Eclipse Bug #42416 ([Platform Inconsistency] GC(Table) has wrong origin)
-      new BooleanParameter(cLook, "SWT_bGTKTableBug", true, "ConfigView.section.style.verticaloffset");
-    }
-    
-    
-    if( Constants.isOSX ) {
-      new BooleanParameter(cLook, "enable_small_osx_fonts", true, "ConfigView.section.style.osx_small_fonts");
-    }
+		new BooleanParameter(cLook, "Show Download Basket", false, MSG_PREFIX
+				+ "showdownloadbasket");
 
-    new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", 
-                         "ConfigView.section.style.alternateTablePainting");
-    
+		Composite cStatusBar = new Composite(cLook, SWT.NULL);
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.numColumns = 5;
+		cStatusBar.setLayout(layout);
+		cStatusBar.setLayoutData(new GridData());
 
-    new BooleanParameter(cLook, "config.style.useSIUnits",false, "ConfigView.section.style.useSIUnits");
-    new BooleanParameter(cLook, "config.style.useUnitsRateBits",false, "ConfigView.section.style.useUnitsRateBits");
-    new BooleanParameter(cLook, "config.style.doNotUseGB",false, "ConfigView.section.style.doNotUseGB");
+		label = new Label(cStatusBar, SWT.NULL);
+		Messages.setLanguageText(label, MSG_PREFIX + "status");
+		new BooleanParameter(cStatusBar, "Status Area Show SR", true, MSG_PREFIX
+				+ "status.show_sr");
+		new BooleanParameter(cStatusBar, "Status Area Show NAT", true, MSG_PREFIX
+				+ "status.show_nat");
+		new BooleanParameter(cStatusBar, "Status Area Show DDB", true, MSG_PREFIX
+				+ "status.show_ddb");
 
-    
-    Composite cArea = new Composite(cLook, SWT.NULL);
-    layout = new GridLayout();
-    layout.marginHeight = 0;
-    layout.marginWidth = 0;
-    layout.numColumns = 2;
-    cArea.setLayout(layout);
-    cArea.setLayoutData(new GridData());
-    
-    label = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.guiUpdate");
-    int[] values = { 100 , 250 , 500 , 1000 , 2000 , 5000 };
-    String[] labels = { "100 ms" , "250 ms" , "500 ms" , "1 s" , "2 s" , "5 s" };
-    new IntListParameter(cArea, "GUI Refresh", 1000, labels, values);
+		new BooleanParameter(cLook, "Add URL Silently", false, MSG_PREFIX
+				+ "addurlsilently");
+		new BooleanParameter(cLook, "add_torrents_silently", false,
+				"ConfigView.section.interface.display.add_torrents_silently");
 
-    
-    label = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.graphicsUpdate");
-    gridData = new GridData();
-    gridData.widthHint = 15;
-    IntParameter graphicUpdate = new IntParameter(cArea, "Graphics Update", 1, -1, false, false );
-    graphicUpdate.setLayoutData(gridData);
-    
-    
-    label = new Label(cArea, SWT.NULL);
-    Messages.setLanguageText(label, "ConfigView.section.style.reOrderDelay");
-    gridData = new GridData();
-    gridData.widthHint = 15;
-    IntParameter reorderDelay = new IntParameter(cArea, "ReOrder Delay");
-    reorderDelay.setLayoutData(gridData);
-    
-    new BooleanParameter(cArea, "config.style.table.sortDefaultAscending", true, "ConfigView.section.style.sortDefaultAscending");
+		if (Constants.isWindowsXP) {
+			final Button enableXPStyle = new Button(cLook, SWT.CHECK);
+			Messages.setLanguageText(enableXPStyle, MSG_PREFIX + "enableXPStyle");
 
-    
-    return cLook;
-  }
+			boolean enabled = false;
+			boolean valid = false;
+			try {
+				File f = new File(System.getProperty("java.home")
+						+ "\\bin\\javaw.exe.manifest");
+				if (f.exists()) {
+					enabled = true;
+				}
+				f = FileUtil.getApplicationFile("javaw.exe.manifest");
+				if (f.exists()) {
+					valid = true;
+				}
+			} catch (Exception e) {
+				Debug.printStackTrace(e);
+				valid = false;
+			}
+			enableXPStyle.setEnabled(valid);
+			enableXPStyle.setSelection(enabled);
+			enableXPStyle.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event arg0) {
+					//In case we enable the XP Style
+					if (enableXPStyle.getSelection()) {
+						try {
+							File fDest = new File(System.getProperty("java.home")
+									+ "\\bin\\javaw.exe.manifest");
+							File fOrigin = new File("javaw.exe.manifest");
+							if (!fDest.exists() && fOrigin.exists()) {
+								FileUtil.copyFile(fOrigin, fDest);
+							}
+						} catch (Exception e) {
+							Debug.printStackTrace(e);
+						}
+					} else {
+						try {
+							File fDest = new File(System.getProperty("java.home")
+									+ "\\bin\\javaw.exe.manifest");
+							fDest.delete();
+						} catch (Exception e) {
+							Debug.printStackTrace(e);
+						}
+					}
+				}
+			});
+		}
+
+		if (Utils.isGTK) {
+			// See Eclipse Bug #42416 ([Platform Inconsistency] GC(Table) has wrong origin)
+			new BooleanParameter(cLook, "SWT_bGTKTableBug", true, MSG_PREFIX
+					+ "verticaloffset");
+		}
+
+		if (Constants.isOSX) {
+			new BooleanParameter(cLook, "enable_small_osx_fonts", true, MSG_PREFIX
+					+ "osx_small_fonts");
+		}
+
+		new BooleanParameter(cLook, "GUI_SWT_bAlternateTablePainting", MSG_PREFIX
+				+ "alternateTablePainting");
+
+		new BooleanParameter(cLook, "config.style.useSIUnits", false, MSG_PREFIX
+				+ "useSIUnits");
+		new BooleanParameter(cLook, "config.style.useUnitsRateBits", false,
+				MSG_PREFIX + "useUnitsRateBits");
+		new BooleanParameter(cLook, "config.style.doNotUseGB", false, MSG_PREFIX
+				+ "doNotUseGB");
+
+		Composite cArea = new Composite(cLook, SWT.NULL);
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.numColumns = 2;
+		cArea.setLayout(layout);
+		cArea.setLayoutData(new GridData());
+
+		label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(label, MSG_PREFIX + "guiUpdate");
+		int[] values = { 100, 250, 500, 1000, 2000, 5000 };
+		String[] labels = { "100 ms", "250 ms", "500 ms", "1 s", "2 s", "5 s" };
+		new IntListParameter(cArea, "GUI Refresh", 1000, labels, values);
+
+		label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(label, MSG_PREFIX + "graphicsUpdate");
+		gridData = new GridData();
+		gridData.widthHint = 15;
+		IntParameter graphicUpdate = new IntParameter(cArea, "Graphics Update", 1,
+				-1, false, false);
+		graphicUpdate.setLayoutData(gridData);
+
+		label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(label, MSG_PREFIX + "reOrderDelay");
+		gridData = new GridData();
+		gridData.widthHint = 15;
+		IntParameter reorderDelay = new IntParameter(cArea, "ReOrder Delay");
+		reorderDelay.setLayoutData(gridData);
+
+		label = new Label(cArea, SWT.NULL);
+		Messages.setLanguageText(label, MSG_PREFIX + "defaultSortOrder");
+		int[] sortOrderValues = { 0, 1, 2 };
+		String[] sortOrderLabels = {
+				MessageText.getString(MSG_PREFIX + "defaultSortOrder.asc"),
+				MessageText.getString(MSG_PREFIX + "defaultSortOrder.desc"),
+				MessageText.getString(MSG_PREFIX + "defaultSortOrder.flip") };
+		new IntListParameter(cArea, "config.style.table.defaultSortOrder",
+				sortOrderLabels, sortOrderValues);
+
+		return cLook;
+	}
 }
