@@ -369,7 +369,7 @@ public class TCPTransportImpl implements TCPTransport {
     	TransportCryptoManager.getSingleton().manageCrypto( channel, false, new TransportCryptoManager.HandshakeListener() {
     		public void handshakeSuccess( TCPTransportHelperFilter _filter ) {
     			
-    			// System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
+    			System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
     			
     			filter = _filter;    	
         	registerSelectHandling();
@@ -381,6 +381,9 @@ public class TCPTransportImpl implements TCPTransport {
         		if( Logger.isEnabled() ) Logger.log(new LogEvent(LOGID, description+ " | crypto handshake failure [" +failure_msg.getMessage()+ "], attempting non-crypto fallback." ));
         		connect_with_crypto = false;
         		fallback_count++;
+        		NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
+        		close();
+        		has_been_closed = false;
         		establishOutboundConnection( address, listener );
         	}
         	else {
