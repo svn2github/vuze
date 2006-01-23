@@ -41,7 +41,6 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-import org.gudy.azureus2.pluginsimpl.local.logging.LoggerChannelImpl;
 import org.gudy.azureus2.pluginsimpl.local.logging.LoggerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
@@ -581,7 +580,7 @@ CoreUpdateChecker
 				}
 			};
 			
-		ResourceDownloader[]	primaries = checker.getPrimaryDownloaders( "azureus-2.0.0.8-src.jar" );
+		ResourceDownloader[]	primaries = checker.getPrimaryDownloaders( "Azureus-2.0.3.0.jar" );
 		
 		for (int i=0;i<primaries.length;i++){
 			
