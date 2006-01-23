@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -65,8 +66,21 @@ public class TCPTransportImpl implements TCPTransport {
   protected int fallback_count;
   
   
-  private static final boolean use_noncrypto_fallback = true;
-  
+	private static boolean 	OUTGOING_FALLBACK_ALLOWED;
+	
+	static{
+	    COConfigurationManager.addAndFireParameterListener(
+	    		"network.transport.encrypted.fallback.outgoing",
+	    		new ParameterListener()
+	    		{
+	    			 public void 
+	    			 parameterChanged(
+	    				String ignore )
+	    			 {
+	    				 OUTGOING_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.fallback.outgoing");
+	    			 }
+	    		});
+	} 
   
   
   /**
@@ -355,7 +369,7 @@ public class TCPTransportImpl implements TCPTransport {
     	TransportCryptoManager.getSingleton().manageCrypto( channel, false, new TransportCryptoManager.HandshakeListener() {
     		public void handshakeSuccess( TCPTransportHelperFilter _filter ) {
     			
-    			System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
+    			// System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
     			
     			filter = _filter;    	
         	registerSelectHandling();
@@ -363,7 +377,7 @@ public class TCPTransportImpl implements TCPTransport {
     		}
 
         public void handshakeFailure( Throwable failure_msg ) {        	
-        	if( use_noncrypto_fallback ) {        		
+        	if( OUTGOING_FALLBACK_ALLOWED ) {        		
         		if( Logger.isEnabled() ) Logger.log(new LogEvent(LOGID, description+ " | crypto handshake failure [" +failure_msg.getMessage()+ "], attempting non-crypto fallback." ));
         		connect_with_crypto = false;
         		fallback_count++;

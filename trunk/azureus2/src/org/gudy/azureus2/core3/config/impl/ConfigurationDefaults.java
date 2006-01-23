@@ -410,9 +410,10 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.enable_safe_selector_mode", FALSE );
     
     def.put( "network.transport.encrypted.require", FALSE );
-    def.put( "network.transport.encrypted.min_level", "XOR" );
-    
-    
+    def.put( "network.transport.encrypted.min_level", "RC4" );
+    def.put( "network.transport.encrypted.fallback.outgoing", FALSE );
+    def.put( "network.transport.encrypted.fallback.incoming", FALSE );
+   
   }
   
   public String getStringParameter(String p) throws ConfigurationParameterNotFoundException {

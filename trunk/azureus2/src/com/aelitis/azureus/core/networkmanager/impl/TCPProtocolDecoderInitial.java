@@ -66,17 +66,19 @@ TCPProtocolDecoderInitial
 	}
 	
 	private static boolean 	REQUIRE_CRYPTO;
+	private static boolean 	INCOMING_FALLBACK_ALLOWED;
 	
 	static{
-	    COConfigurationManager.addAndFireParameterListener(
-	    		"network.transport.encrypted.require",
+	    COConfigurationManager.addAndFireParameterListeners(
+	    		new String[]{ "network.transport.encrypted.require", "network.transport.encrypted.fallback.incoming" },
 	    		new ParameterListener()
 	    		{
 	    			 public void 
 	    			 parameterChanged(
 	    				String ignore )
 	    			 {
-	    				 REQUIRE_CRYPTO	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
+	    				 REQUIRE_CRYPTO				= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
+	    				 INCOMING_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.fallback.incoming");
 	    			 }
 	    		});
 	}
@@ -178,7 +180,14 @@ TCPProtocolDecoderInitial
 								
 								if ( REQUIRE_CRYPTO ){
 								
-									throw( new IOException( "Crypto required but incoming connection has none" ));
+									if ( INCOMING_FALLBACK_ALLOWED ){
+										
+										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
+												+ channel + "] is not encrypted but has been accepted as fallback is enabled" ));
+									}else{
+										
+										throw( new IOException( "Crypto required but incoming connection has none" ));
+									}
 								}
 								
 								transparent_filter.insertRead( decode_buffer );

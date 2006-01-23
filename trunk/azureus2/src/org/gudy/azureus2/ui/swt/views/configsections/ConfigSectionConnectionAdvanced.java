@@ -26,6 +26,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
@@ -67,8 +68,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 		Composite cSection = new Composite(parent, SWT.NULL);
 
-		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
-				| GridData.HORIZONTAL_ALIGN_FILL);
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		cSection.setLayoutData(gridData);
 		GridLayout advanced_layout = new GridLayout();
 		advanced_layout.numColumns = 2;
@@ -219,20 +219,18 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 					}
 				});
 
-		Composite gCrypto = new Composite(cSection, SWT.NULL);
+		Group gCrypto = new Group(cSection, SWT.NULL);
+		Messages.setLanguageText(gCrypto, "ConfigView.section.connection.advanced.encrypt.group");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		gridData.horizontalSpan = 2;
 		gCrypto.setLayoutData(gridData);
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 2;
-		layout.marginHeight=0;
-		layout.marginWidth=0;
 		gCrypto.setLayout(layout);
 		
 		Label lcrypto = new Label(gCrypto, SWT.NULL);
 		Messages.setLanguageText(lcrypto, CFG_PREFIX + "encrypt.info");
 
-		
 	    gridData = new GridData();
 	    gridData.horizontalSpan = 1;
 	    new LinkLabel( gCrypto, gridData, CFG_PREFIX + "encrypt.info.link", "http://azureus.aelitis.com/wiki/index.php/Message_Stream_Encryption" );
@@ -250,12 +248,37 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 			dropValues[i] = encryption_types[i];
 		}
 		
-		final StringListParameter min_level = new StringListParameter(cSection,	"network.transport.encrypted.min_level", encryption_types[1], dropLabels, dropValues);
-		Label lmin = new Label(cSection, SWT.NULL);
+		Composite cEncryptLevel = new Composite(gCrypto, SWT.NULL);
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gridData.horizontalSpan = 2;
+		gCrypto.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		layout.marginWidth = 0;
+		layout.marginHeight = 0;
+		cEncryptLevel.setLayout(layout);
+		
+		final StringListParameter min_level = new StringListParameter(cEncryptLevel,	"network.transport.encrypted.min_level", encryption_types[1], dropLabels, dropValues);
+		Label lmin = new Label(cEncryptLevel, SWT.NULL);
 		Messages.setLanguageText(lmin, CFG_PREFIX + "min_encryption_level");
 		
+		Label lcryptofb = new Label(gCrypto, SWT.NULL);
+		Messages.setLanguageText(lcryptofb, CFG_PREFIX + "encrypt.fallback_info");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		lcryptofb.setLayoutData(gridData);
+
+		BooleanParameter fallback_outgoing = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.outgoing", false, CFG_PREFIX + "encrypt.fallback_outgoing");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		fallback_outgoing.setLayoutData(gridData);
 		
-		Control[] encryption_controls = {	min_level.getControl(), lmin };
+		BooleanParameter fallback_incoming = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.incoming", false, CFG_PREFIX + "encrypt.fallback_incoming");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		fallback_incoming.setLayoutData(gridData);
+		
+		Control[] encryption_controls = {	min_level.getControl(), lmin, lcryptofb, fallback_outgoing.getControl(), fallback_incoming.getControl() };
 		require.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(encryption_controls));
 		
 		///////////////////////   
