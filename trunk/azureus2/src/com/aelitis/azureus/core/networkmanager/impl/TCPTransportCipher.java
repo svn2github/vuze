@@ -86,6 +86,13 @@ TCPTransportCipher
 	    		
 	    		rc4_engine.init( mode == Cipher.ENCRYPT_MODE, params ); 
 	    	}
+	    	
+    			// skip first 1024 bytes of stream to protected against a Fluhrer, Mantin and Shamir attack
+    	
+	    	byte[]	temp = new byte[1024];
+    	
+	    	cipher.update( temp );
+	    	
 	    }else{
 	    	
 	    	cipher = Cipher.getInstance( algorithm );
