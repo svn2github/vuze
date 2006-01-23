@@ -142,7 +142,7 @@ public class PeerInfoView extends AbstractIView {
 							countryLocator, new Object[] { new Integer(0) });
 				}
 			}
-		} catch (Exception e) {
+		} catch (Throwable t) {
 
 		}
 	}

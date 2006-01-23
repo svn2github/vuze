@@ -246,10 +246,6 @@ public class TableView
     if (DISABLEVIRTUAL)
     	iTableStyle &= ~(SWT.VIRTUAL);
     bTableVirtual = (iTableStyle & SWT.VIRTUAL) != 0;
-    if (bTableVirtual && SWT.getVersion() < 3044) {
-    	bTableVirtual = false;
-    	iTableStyle &= ~iTableStyle;
-    }
 
     dataSourceToRow = new HashMap();
     sortedRows = new ArrayList();
@@ -258,10 +254,16 @@ public class TableView
   /**
    * Main Initializer. Table Style will be SWT.SINGLE | SWT.FULL_SELECTION
    *
-   * @param _sTableID Which table to handle (see {@link TableManager}).  Config settings are stored with the prefix of  "Table.<i>TableID</i>"
-   * @param _sPropertiesPrefix Prefix for retrieving text from the properties file (MessageText).  Typically <i>TableID</i> + "View"
+   * @param _sTableID Which table to handle (see 
+   *                   {@link org.gudy.azureus2.plugins.ui.tables.TableManager}
+   *                   ).  Config settings are stored with the prefix of 
+   *                   "Table.<i>TableID</i>"
+   * @param _sPropertiesPrefix Prefix for retrieving text from the properties
+   *                            file (MessageText).  
+   *                            Typically <i>TableID</i> + "View"
    * @param _basicItems Column Definitions
-   * @param _sDefaultSortOn Column name to sort on if user hasn't chosen one yet
+   * @param _sDefaultSortOn Column name to sort on if user hasn't chosen one
+   *                         yet
    */  
   public TableView(String _sTableID, 
                    String _sPropertiesPrefix,
@@ -285,14 +287,7 @@ public class TableView
     tableColumns = tcManager.getAllTableColumnCoreAsArray(sTableID);
   }
 
-  /**
-   * This method is called when the view is instanciated, it should initialize 
-   * all GUI components. Must NOT be blocking, or it'll freeze the whole GUI.
-   * Caller is the GUI Thread.
-   *
-   * @param composite the parent composite. Each view should create a child 
-   *        composite, and then use this child composite to add all elements to.
-   */
+  // AbstractIView::initialize
   public void initialize(Composite composite) {
   	mainComposite = createSashForm(composite);
     menu = createMenu();
