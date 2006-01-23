@@ -367,10 +367,8 @@ public class TCPTransportImpl implements TCPTransport {
   	if( connect_with_crypto ) {
     	//attempt encrypted transport
     	TransportCryptoManager.getSingleton().manageCrypto( channel, false, new TransportCryptoManager.HandshakeListener() {
-    		public void handshakeSuccess( TCPTransportHelperFilter _filter ) {
-    			
-    			System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
-    			
+    		public void handshakeSuccess( TCPTransportHelperFilter _filter ) {    			
+    			//System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" );     			
     			filter = _filter;    	
         	registerSelectHandling();
           listener.connectSuccess();
