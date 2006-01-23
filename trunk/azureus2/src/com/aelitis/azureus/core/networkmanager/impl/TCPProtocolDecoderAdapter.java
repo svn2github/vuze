@@ -22,9 +22,22 @@
 
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import java.nio.ByteBuffer;
+
 public interface 
 TCPProtocolDecoderAdapter 
 {
+	public static final int MATCH_NONE							= 1;
+	public static final int MATCH_CRYPTO_NO_AUTO_FALLBACK		= 2;
+	public static final int MATCH_CRYPTO_AUTO_FALLBACK			= 3;
+	
+	public int
+	getMaximumPlainHeaderLength();
+	
+	public int
+	matchPlainHeader(
+		ByteBuffer			buffer );
+	
 	public void
 	decodeComplete(
 		TCPProtocolDecoder	decoder );

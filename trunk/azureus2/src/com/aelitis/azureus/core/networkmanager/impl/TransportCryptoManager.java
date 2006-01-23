@@ -21,6 +21,7 @@
  */
 package com.aelitis.azureus.core.networkmanager.impl;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 /**
@@ -51,6 +52,19 @@ public class TransportCryptoManager {
 						!is_incoming,
 						new TCPProtocolDecoderAdapter()
 						{
+							public int
+							getMaximumPlainHeaderLength()
+							{
+								return( listener.getMaximumPlainHeaderLength());
+							}
+							
+							public int
+							matchPlainHeader(
+								ByteBuffer			buffer )
+							{
+								return( listener.matchPlainHeader( buffer ));
+							}
+							
 							public void
 							decodeComplete(
 								TCPProtocolDecoder	decoder )
@@ -77,9 +91,16 @@ public class TransportCryptoManager {
 	
 	
 	public interface HandshakeListener {
+		public static final int MATCH_NONE						= TCPProtocolDecoderAdapter.MATCH_NONE;
+		public static final int MATCH_CRYPTO_NO_AUTO_FALLBACK	= TCPProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK;
+		public static final int MATCH_CRYPTO_AUTO_FALLBACK		= TCPProtocolDecoderAdapter.MATCH_CRYPTO_AUTO_FALLBACK;
+		
+		public void handshakeSuccess( TCPTransportHelperFilter filter );
 
-    public void handshakeSuccess( TCPTransportHelperFilter filter );
-
-    public void handshakeFailure( Throwable failure_msg );
+		public void handshakeFailure( Throwable failure_msg );
+		
+		public int getMaximumPlainHeaderLength();
+		
+		public int matchPlainHeader( ByteBuffer buffer );
   }
 }

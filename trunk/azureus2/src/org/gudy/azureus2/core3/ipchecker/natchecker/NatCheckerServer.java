@@ -62,7 +62,8 @@ public class NatCheckerServer extends AEThread {
         
         matcher = new NetworkManager.ByteMatcher() {
           public int size() {  return incoming_handshake.getBytes().length;  }
-
+          public int minSize(){ return size(); }
+        
           public boolean matches( ByteBuffer to_compare ) {             
             int old_limit = to_compare.limit();
             to_compare.limit( to_compare.position() + size() );
@@ -70,6 +71,7 @@ public class NatCheckerServer extends AEThread {
             to_compare.limit( old_limit );  //restore buffer structure
             return matches;
           }
+          public boolean minMatches( ByteBuffer to_compare ) { return( matches( to_compare )); } 
         };
         
         NetworkManager.getSingleton().requestIncomingConnectionRouting(
@@ -92,6 +94,11 @@ public class NatCheckerServer extends AEThread {
                 }
                 
                 connection.close();
+              }
+              public boolean
+          	  autoCryptoFallback()
+              {
+            	  return( true );
               }
             },
             new MessageStreamFactory() {

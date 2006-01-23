@@ -388,6 +388,18 @@ public class TCPTransportImpl implements TCPTransport {
         		listener.connectFailure( failure_msg );
         	}
         }
+		public int
+		getMaximumPlainHeaderLength()
+		{
+			throw( new RuntimeException());	// this is outgoing
+		}
+		
+		public int
+		matchPlainHeader(
+			ByteBuffer			buffer )
+		{
+			throw( new RuntimeException());	// this is outgoing
+		}
     	});
   	}
   	else {  //no crypto

@@ -80,7 +80,8 @@ public class PeerManager {
   public void registerLegacyManager( final PEPeerControl manager ) {
     NetworkManager.ByteMatcher matcher = new NetworkManager.ByteMatcher() {
       public int size() {  return 48;  }
-
+      public int minSize() { return 20; }
+      
       public boolean matches( ByteBuffer to_compare ) { 
         boolean matches = false;
         
@@ -104,6 +105,24 @@ public class PeerManager {
         
         return matches;
       }
+      public boolean minMatches( ByteBuffer to_compare ) { 
+          boolean matches = false;
+          
+          int old_limit = to_compare.limit();
+          int old_position = to_compare.position();
+          
+          to_compare.limit( old_position + 20 );
+          
+          if( to_compare.equals( legacy_handshake_header ) ) { 
+        	  matches = true;
+          }
+  
+          //restore buffer structure
+          to_compare.limit( old_limit );
+          to_compare.position( old_position );
+          
+          return matches;
+        }
     };
     
     
@@ -134,6 +153,11 @@ public class PeerManager {
 									+ connection + "] routed to legacy download ["
 									+ manager.getDisplayName() + "]"));
             manager.addPeerTransport( PEPeerTransportFactory.createTransport( manager, PEPeerSource.PS_INCOMING, connection ) );
+          }
+          public boolean
+      	  autoCryptoFallback()
+          {
+        	  return( false );
           }
         },
         new MessageStreamFactory() {

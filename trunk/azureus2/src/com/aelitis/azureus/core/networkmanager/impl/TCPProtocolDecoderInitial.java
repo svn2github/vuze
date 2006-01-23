@@ -53,17 +53,6 @@ TCPProtocolDecoderInitial
 	
 	private SocketChannel	channel;
 	
-	public static final byte[]	BT_HEADER;
-	
-	static{
-		byte[]	bytes = "BitTorrent protocol".getBytes();
-		
-		BT_HEADER	= new byte[bytes.length+1];
-		
-		BT_HEADER[0] = (byte)bytes.length;
-		
-		System.arraycopy( bytes, 0, BT_HEADER, 1, bytes.length );
-	}
 	
 	private static boolean 	REQUIRE_CRYPTO;
 	private static boolean 	INCOMING_FALLBACK_ALLOWED;
@@ -133,7 +122,7 @@ TCPProtocolDecoderInitial
 			
 		}else{
 			
-			decode_buffer = ByteBuffer.allocate( BT_HEADER.length );
+			decode_buffer = ByteBuffer.allocate( adapter.getMaximumPlainHeaderLength());
 			
 			read_selector.register(
 				channel,
@@ -161,24 +150,13 @@ TCPProtocolDecoderInitial
 							
 							decode_read += len;
 							
-							if ( decode_buffer.hasRemaining()){
+							int	match =  adapter.matchPlainHeader( decode_buffer );
+							
+							if ( match != TCPProtocolDecoderAdapter.MATCH_NONE ){
 								
-								return( true );
-							}
-								
-							read_selector.cancel( channel );
-							
-							decode_buffer.flip();
-							
-							byte[]	bytes = new byte[decode_buffer.limit()];
-							
-							decode_buffer.get( bytes );
-							
-							decode_buffer.flip();
-							
-							if ( Arrays.equals( bytes, BT_HEADER )){
-								
-								if ( REQUIRE_CRYPTO ){
+								read_selector.cancel( channel );
+																		
+								if ( REQUIRE_CRYPTO && match == TCPProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
 								
 									if ( INCOMING_FALLBACK_ALLOWED ){
 										
@@ -190,13 +168,22 @@ TCPProtocolDecoderInitial
 									}
 								}
 								
+								decode_buffer.flip();
+								
 								transparent_filter.insertRead( decode_buffer );
 								
 								complete();
 								
 							}else{
 								
-								decodePHE( decode_buffer );
+								if ( !decode_buffer.hasRemaining()){
+									
+									read_selector.cancel( channel );
+
+									decode_buffer.flip();
+									
+									decodePHE( decode_buffer );
+								}
 							}
 							
 							return( true );
@@ -249,6 +236,19 @@ TCPProtocolDecoderInitial
 					Throwable			cause )
 				{
 					failed( cause );
+				}
+				
+				public int
+				getMaximumPlainHeaderLength()
+				{
+					throw( new RuntimeException());
+				}
+				
+				public int
+				matchPlainHeader(
+					ByteBuffer			buffer )
+				{
+					throw( new RuntimeException());
 				}
 			};
 		

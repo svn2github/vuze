@@ -256,6 +256,11 @@ public class NetworkManager {
    */
   public void requestIncomingConnectionRouting( ByteMatcher matcher, final RoutingListener listener, final MessageStreamFactory factory ) {
     incoming_socketchannel_manager.registerMatchBytes( matcher, new IncomingSocketChannelManager.MatchListener() {
+      public boolean
+      autoCryptoFallback()
+      {
+    	return( listener.autoCryptoFallback());
+      }
       public void connectionMatched( TCPTransportHelperFilter filter, ByteBuffer read_so_far ) {
         listener.connectionRouted( NetworkConnectionFactory.create( filter, read_so_far, factory.createEncoder(), factory.createDecoder() ) );
       }
@@ -452,11 +457,25 @@ public class NetworkManager {
     public int size();
     
     /**
+     * Get the minimum number of bytes required to determine if this matcher applies
+     * @return
+     */
+    
+    public int minSize();
+    
+    /**
      * Check byte stream for match.
      * @param to_compare
      * @return true if a match, false if not a match
      */
     public boolean matches( ByteBuffer to_compare );
+    
+    /**
+     * Check for a minimum match
+     * @param to_compare
+     * @return
+     */
+    public boolean minMatches( ByteBuffer to_compare );
   }
   
   
@@ -465,6 +484,17 @@ public class NetworkManager {
    * Listener for routing events.
    */
   public interface RoutingListener {
+	  
+	  /**
+	   * Currently if message crypto is on and default fallback for incoming not
+	   * enabled then we would bounce incoming messages from non-crypto transports
+	   * For example, NAT check
+	   * This method allows auto-fallback for such transports
+	   * @return
+	   */
+	public boolean
+	autoCryptoFallback();
+	
     /**
      * The given incoming connection has been accepted.
      * @param connection accepted

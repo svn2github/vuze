@@ -46,6 +46,10 @@ PHETester
 {
 	private final VirtualChannelSelector connect_selector = new VirtualChannelSelector( VirtualChannelSelector.OP_CONNECT, true );
 	 
+	private byte[]	TEST_HEADER	= "TestHeader".getBytes();
+	
+	private static boolean	OUTGOING_PLAIN = false;
+	
 	public
 	PHETester()
 	{
@@ -112,6 +116,31 @@ PHETester
 								Throwable			cause )
 							{
 								System.out.println( "incoming decode failed: " + Debug.getNestedExceptionMessage(cause));
+							}
+							
+							public int
+							getMaximumPlainHeaderLength()
+							{
+								return( TEST_HEADER.length );
+							}
+							
+							public int
+							matchPlainHeader(
+								ByteBuffer			buffer )
+							{
+								int	pos = buffer.position();
+								int lim = buffer.limit();
+								
+								buffer.flip();
+								
+								boolean	match = buffer.compareTo( ByteBuffer.wrap( TEST_HEADER )) == 0;
+								
+								buffer.position( pos );
+								buffer.limit( lim );
+								
+								System.out.println( "Match - " + match );
+								
+								return( match?TCPProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK:TCPProtocolDecoderAdapter.MATCH_NONE );
 							}
 						});
 		}catch( Throwable e ){
@@ -197,35 +226,55 @@ PHETester
 		SocketChannel	channel )
 	{
 		try{
-			final TCPProtocolDecoderInitial decoder =
-				new TCPProtocolDecoderInitial( 
-					channel,
-					true,
-					new TCPProtocolDecoderAdapter()
-					{
-						public void
-						decodeComplete(
-							TCPProtocolDecoder	decoder )
-						{
-							System.out.println( "outgoing decode complete: " +  decoder.getFilter().getName());
-														
-							readStream( "incoming", decoder.getFilter() );
-							
-							writeStream( TCPProtocolDecoderInitial.BT_HEADER,  decoder.getFilter());
-							
-							writeStream( "two jolly porkers", decoder.getFilter() );
-						}
-						
-						public void
-						decodeFailed(
-							TCPProtocolDecoder	decoder,
-							Throwable			cause )
-						{
-							System.out.println( "outgoing decode failed: " + Debug.getNestedExceptionMessage(cause));
 
-						}
-					});
-			
+			if ( OUTGOING_PLAIN ){
+				
+				writeStream( TEST_HEADER,  channel);
+				
+				writeStream( "two jolly porkers".getBytes(), channel );
+				
+			}else{
+				final TCPProtocolDecoderInitial decoder =
+					new TCPProtocolDecoderInitial( 
+						channel,
+						true,
+						new TCPProtocolDecoderAdapter()
+						{
+							public void
+							decodeComplete(
+								TCPProtocolDecoder	decoder )
+							{
+								System.out.println( "outgoing decode complete: " +  decoder.getFilter().getName());
+															
+								readStream( "incoming", decoder.getFilter() );
+								
+								writeStream( TEST_HEADER,  decoder.getFilter());
+								
+								writeStream( "two jolly porkers", decoder.getFilter() );
+							}
+							
+							public void
+							decodeFailed(
+								TCPProtocolDecoder	decoder,
+								Throwable			cause )
+							{
+								System.out.println( "outgoing decode failed: " + Debug.getNestedExceptionMessage(cause));
+	
+							}
+							public int
+							getMaximumPlainHeaderLength()
+							{
+								throw( new RuntimeException());
+							}
+							
+							public int
+							matchPlainHeader(
+								ByteBuffer			buffer )
+							{
+								throw( new RuntimeException());
+							}
+						});
+			}
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
@@ -306,11 +355,27 @@ PHETester
 		}
 	}
 	
+	protected void
+	writeStream(
+		byte[]						data,
+		SocketChannel				channel )
+	{
+		try{
+			channel.write( new ByteBuffer[]{ ByteBuffer.wrap(data)}, 0, 1 );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
 	public static void
 	main(
 		String[]	args )
 	{
 		AEDiagnostics.startup();
+		
+		// OUTGOING_PLAIN	= true;
 		
 		COConfigurationManager.setParameter( "network.transport.encrypted.require", true );
 						
