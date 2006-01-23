@@ -41,6 +41,9 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
+import org.gudy.azureus2.pluginsimpl.local.logging.LoggerChannelImpl;
+import org.gudy.azureus2.pluginsimpl.local.logging.LoggerImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 import com.aelitis.azureus.core.versioncheck.*;
 
@@ -545,6 +548,58 @@ CoreUpdateChecker
 		}catch( Throwable e ){
 			
 			rd.reportActivity("Update install failed:" + e.getMessage());
+		}
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		AEDiagnostics.startup();
+		
+		CoreUpdateChecker	checker = new CoreUpdateChecker();
+		
+		checker.log = new LoggerImpl(null).getTimeStampedChannel("");
+		checker.rdf	= new ResourceDownloaderFactoryImpl();
+		checker.rd_logger = 
+			new ResourceDownloaderAdapter()
+			{
+				public void
+				reportActivity(
+					ResourceDownloader	downloader,
+					String				activity )
+				{
+					System.out.println( activity );
+				}
+				
+				public void
+				reportPercentComplete(
+					ResourceDownloader	downloader,
+					int					percentage )
+				{
+					System.out.println( "    % = " + percentage );
+				}
+			};
+			
+		ResourceDownloader[]	primaries = checker.getPrimaryDownloaders( "azureus-2.0.0.8-src.jar" );
+		
+		for (int i=0;i<primaries.length;i++){
+			
+			System.out.println( "primary: " + primaries[i].getName());
+		}
+		
+		try{
+			ResourceDownloader	rd = primaries[0];
+			
+			rd.addListener( checker.rd_logger );
+			
+			rd.download();
+			
+			System.out.println( "done" );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
 		}
 	}
 }
