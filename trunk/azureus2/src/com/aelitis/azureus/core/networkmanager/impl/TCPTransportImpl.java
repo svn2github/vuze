@@ -61,7 +61,11 @@ public class TCPTransportImpl implements TCPTransport {
   private static final TransportStats stats = AEDiagnostics.TRACE_TCP_TRANSPORT_STATS ? new TransportStats() : null;
   
   
-  private final boolean connect_with_crypto;
+  protected boolean connect_with_crypto;
+  protected int fallback_count;
+  
+  
+  private static final boolean use_noncrypto_fallback = true;
   
   
   
@@ -316,7 +320,7 @@ public class TCPTransportImpl implements TCPTransport {
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
             	Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
-              handleCrypto( channel, listener );
+              handleCrypto( address, channel, listener );
             }
             
             public void connectFailure( Throwable failure_msg ) {
@@ -325,7 +329,7 @@ public class TCPTransportImpl implements TCPTransport {
           });
         }
         else {  //direct connection established, notify
-        	handleCrypto( channel, listener );
+        	handleCrypto( address, channel, listener );
         }
       }
 
@@ -345,22 +349,36 @@ public class TCPTransportImpl implements TCPTransport {
     
   
   
-  protected void handleCrypto( SocketChannel channel, final ConnectListener listener ) {  	
+  protected void handleCrypto( final InetSocketAddress address, final SocketChannel channel, final ConnectListener listener ) {  	
   	if( connect_with_crypto ) {
     	//attempt encrypted transport
     	TransportCryptoManager.getSingleton().manageCrypto( channel, false, new TransportCryptoManager.HandshakeListener() {
     		public void handshakeSuccess( TCPTransportHelperFilter _filter ) {
+    			
+    			System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" ); 
+    			
     			filter = _filter;    	
         	registerSelectHandling();
           listener.connectSuccess();
     		}
 
-        public void handshakeFailure( Throwable failure_msg ) {
-        	listener.connectFailure( failure_msg );
+        public void handshakeFailure( Throwable failure_msg ) {        	
+        	if( use_noncrypto_fallback ) {        		
+        		if( Logger.isEnabled() ) Logger.log(new LogEvent(LOGID, description+ " | crypto handshake failure [" +failure_msg.getMessage()+ "], attempting non-crypto fallback." ));
+        		connect_with_crypto = false;
+        		fallback_count++;
+        		establishOutboundConnection( address, listener );
+        	}
+        	else {
+        		listener.connectFailure( failure_msg );
+        	}
         }
     	});
   	}
   	else {  //no crypto
+  		//if( fallback_count > 0 ) {
+  		//	System.out.println( channel.socket()+ " | non-crypto fallback successful!" );
+  		//}
   		filter = TCPTransportHelperFilterFactory.createTransparentFilter( channel );    	
     	registerSelectHandling();
       listener.connectSuccess();
