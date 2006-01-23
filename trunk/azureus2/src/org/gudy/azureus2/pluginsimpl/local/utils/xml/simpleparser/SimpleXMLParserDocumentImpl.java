@@ -130,18 +130,30 @@ SimpleXMLParserDocumentImpl
 			// Step 3: parse the input file
 					
 			document = db.parse( input_stream );
-			
-			// new SXPDocumentDomPrint( document );
-			
+						
 			SimpleXMLParserDocumentNodeImpl[] root_nodes = parseNode( document, false );
+	
+			int	root_node_count	= 0;
 			
-			if ( root_nodes.length != 1 ){
+				// remove any processing instructions such as <?xml-stylesheet
+			
+			for (int i=0;i<root_nodes.length;i++){
 				
-				throw( new SimpleXMLParserDocumentException( "invalid document - " + root_nodes.length + " root elements" ));
+				SimpleXMLParserDocumentNodeImpl	node = root_nodes[i];
+				
+				if ( node.getNode().getNodeType() != Node.PROCESSING_INSTRUCTION_NODE ){
+					
+					root_node	= node;
+					
+					root_node_count++;
+				}
 			}
 			
-			root_node = root_nodes[0];
-			
+			if ( root_node_count != 1 ){
+								
+				throw( new SimpleXMLParserDocumentException( "invalid document - " + root_nodes.length + " root elements" ));
+			}
+						
 		}catch( Throwable e ){
 			
 			// e.printStackTrace();
@@ -282,5 +294,18 @@ SimpleXMLParserDocumentImpl
 			
             throw new SAXException(message);
         }
+    }
+    
+    public static void
+    main(
+    	String[]	args )
+    {
+    	try{
+    		new SimpleXMLParserDocumentImpl(new File( "C:\\temp\\getRSS.php")).print();
+    		
+    	}catch( Throwable e ){
+    		
+    		e.printStackTrace();
+    	}
     }
 }

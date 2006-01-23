@@ -49,6 +49,12 @@ SimpleXMLParserDocumentNodeImpl
 		node			= _node;
 	}
 	
+	protected Node
+	getNode()
+	{
+		return( node );
+	}
+	
 	public String
 	getName()
 	{
