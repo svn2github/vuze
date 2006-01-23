@@ -317,8 +317,7 @@ public class TableView
 
 		int iNumViews = coreTabViews == null ? 0 : coreTabViews.length;
 		UISWTInstanceImpl pluginUI = MainWindow.getWindow().getUISWTInstanceImpl();
-		Map pluginViews = pluginUI
-				.getViewListeners(UISWTInstance.VIEW_TORRENT_PEERS);
+		Map pluginViews = pluginUI.getViewListeners(sTableID);
 		if (pluginViews != null)
 			iNumViews += pluginViews.size();
 
@@ -474,8 +473,9 @@ public class TableView
 			}
 		});
 
-		for (int i = 0; i < coreTabViews.length; i++)
-			addTabView(coreTabViews[i]);
+		if (coreTabViews != null)
+			for (int i = 0; i < coreTabViews.length; i++)
+				addTabView(coreTabViews[i]);
 
 		// Call plugin listeners
 		if (pluginViews != null) {
@@ -485,11 +485,10 @@ public class TableView
 						.get(sNames[i]);
 				if (l != null) {
 					try {
-						UISWTViewImpl view = new UISWTViewImpl(
-								UISWTInstance.VIEW_TORRENT_PEERS, sNames[i], l);
+						UISWTViewImpl view = new UISWTViewImpl(sTableID, sNames[i], l);
 						addTabView(view);
 					} catch (Exception e) {
-						// skip
+						// skip, plugin probably specifically asked to not be added
 					}
 				}
 			}
@@ -1747,16 +1746,17 @@ public class TableView
   public void removeAllTableRows() {
   	long lTimeStart = System.currentTimeMillis();
   	
-		if (table != null && !table.isDisposed()) {
-			table.removeAll();
-		}
+  	Utils.execSWTThread(new AERunnable() {
+  		public void runSupport() {
+  			if (table != null && !table.isDisposed())
+  				table.removeAll();
 
-		// Image Disposal handled by each cell
-		runForAllRows(new GroupTableRowRunner() {
-			public void run(TableRowCore row) {
-				row.delete();
-			}
-		});
+  			// Image Disposal handled by each cell
+  			TableRowCore[] rows = getRows();
+  			for (int i = 0; i < rows.length; i++)
+  				rows[i].delete();
+  		}
+  	});
 
 		try {
 			dataSourceToRow_mon.enter();
