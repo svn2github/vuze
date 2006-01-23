@@ -35,6 +35,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.logging.impl.FileLogging;
@@ -49,7 +50,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
  *
  * @since 2.3.0.5
  */
-public class LoggerView extends AbstractIView implements ILogEventListener {
+public class LoggerView extends AbstractIView implements ILogEventListener,
+		ParameterListener {
 	private final static LogIDs LOGID = LogIDs.GUI;
 
 	private static final int COLOR_INFO = 0;
@@ -72,7 +74,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 
 	private Composite panel;
 
-	private StyledText consoleText;
+	private StyledText consoleText = null;
 
 	private Object[] filter = null;
 
@@ -115,12 +117,8 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 	public void initialize(Composite composite) {
 		display = composite.getDisplay();
 
-		if (colors == null) {
-			colors = new Color[3];
-			colors[COLOR_INFO] = Colors.blues[Colors.BLUES_MIDLIGHT];
-			colors[COLOR_WARN] = Colors.colorWarning;
-			colors[COLOR_ERR] = Colors.red_ConsoleView;
-		}
+    Colors.getInstance().addColorsChangedListener(this);
+    parameterChanged("Color");
 
 		panel = new Composite(composite, SWT.NULL);
 		GridLayout layout = new GridLayout();
@@ -369,9 +367,6 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 		synchronized (buffer) {
 			if (consoleText == null || consoleText.isDisposed())
 				return;
-			ScrollBar sb = consoleText.getVerticalBar();
-			boolean autoScroll = !bSupressScrolling
-					&& (sb.getSelection() == (sb.getMaximum() - sb.getThumb()));
 
 			for (int i = 0; i < buffer.size(); i++) {
 				try {
@@ -430,7 +425,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 
 			}
 			buffer.clear();
-			if (autoScroll)
+			if (!bSupressScrolling)
 				consoleText.setSelection(consoleText.getText().length());
 		}
 	}
@@ -443,6 +438,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 		Logger.removeListener(this);
 		if (consoleText != null && !consoleText.isDisposed())
 			consoleText.dispose();
+    Colors.getInstance().removeColorsChangedListener(this);
 	}
 
 	/* (non-Javadoc)
@@ -577,5 +573,36 @@ public class LoggerView extends AbstractIView implements ILogEventListener {
 				return LogEvent.LT_ERROR;
 		}
 		return LogEvent.LT_INFORMATION;
+	}
+
+	public void parameterChanged(String parameterName) {
+    if (parameterName.startsWith("Color")) {
+    	Utils.execSWTThread(new AERunnable() {
+    		public void runSupport() {
+    			if (display == null || display.isDisposed())
+    				return;
+
+      		if (colors == null)
+      			colors = new Color[3];
+      		
+      		final Color[] newColors = { Colors.blues[Colors.BLUES_MIDLIGHT],
+							Colors.colorWarning, Colors.red_ConsoleView };
+      		boolean bColorChanged = false;
+      		
+      		for (int i = 0; i < newColors.length; i++) {
+						if (colors[i] == null || colors[i].isDisposed()) {
+							colors[i] = newColors[i];
+							bColorChanged = true;
+						}
+					}
+    			
+    			if (bColorChanged && consoleText != null) {
+    				// remove color
+    				String text = consoleText.getText();
+    				consoleText.setText(text);
+    			}
+    		}
+    	});
+    }
 	}
 }
