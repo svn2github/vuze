@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.plugins;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
  * Tools to manage a SWT Instance
@@ -37,18 +38,32 @@ public interface UISWTInstance extends UIInstance {
 	public static final String VIEW_MAIN = "Main";
 
 	/** 
-	 * ID of "My Torrents" view  (not supported yet)
+	 * ID of "My Torrents" view
 	 * 
 	 * @since 2.3.0.7
 	 */
 	public static final String VIEW_MYTORRENTS = "MyTorrents";
 
 	/** 
-	 * ID of "Peers" view  (not supported yet)
+	 * ID of "Peers" view
 	 * 
 	 * @since 2.3.0.7
 	 */
-	public static final String VIEW_TORRENT_PEERS = "Peers";
+	public static final String VIEW_TORRENT_PEERS = TableManager.TABLE_TORRENT_PEERS;
+
+	/**
+	 * ID of "Pieces" view
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public static final String VIEW_TORRENT_PIECES = TableManager.TABLE_TORRENT_PIECES;
+
+	/**
+	 * ID of "Files" view
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public static final String VIEW_TORRENT_FILES = TableManager.TABLE_TORRENT_FILES;
 
 	/** Retrieve the SWT Display object that Azureus uses (when in SWT mode).
 	 * If you have a thread that does some periodic/asynchronous stuff, Azureus 
