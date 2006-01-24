@@ -656,7 +656,7 @@ DownloadImpl
  		
  		if ( dm != null ){
  			
- 			return( dm.isChecking());
+ 			return( dm.getCompleteRecheckStatus() != -1 );
  		}
  		
  		return( false );

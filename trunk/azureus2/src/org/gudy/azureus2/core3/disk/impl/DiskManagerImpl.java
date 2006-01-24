@@ -513,7 +513,7 @@ DiskManagerImpl
 		
 		started_sem.reserve();
 		
-		boolean	checking = checker.isChecking();
+		boolean	checking = checker.getCompleteRecheckStatus() != -1;
 		
 		piecePicker.stop();
 		
@@ -1364,9 +1364,9 @@ DiskManagerImpl
 	  	checker.enqueueCheckRequest( request, listener );
 	}
 	  
-	public boolean isChecking() 
+	public int getCompleteRecheckStatus() 
 	{
-	  return ( checker.isChecking());
+	  return ( checker.getCompleteRecheckStatus());
 	}
   
 	public DirectByteBuffer 

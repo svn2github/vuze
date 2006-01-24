@@ -52,6 +52,6 @@ DMChecker
 		DiskManagerCheckRequest			request,
 		DiskManagerCheckRequestListener listener );
 	  
-	public boolean 
-	isChecking();
+	public int 
+	getCompleteRecheckStatus();
 }

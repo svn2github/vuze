@@ -507,8 +507,16 @@ DisplayFormatters
          
 			  DiskManager diskManager = manager.getDiskManager();
 			  
-			  if ((diskManager != null) && diskManager.isChecking()) {
-				  tmp = ManagerItem_seeding + " + " + ManagerItem_checking ;
+			  if ((diskManager != null) && diskManager.getCompleteRecheckStatus() != -1) {
+				  
+				  int	done = diskManager.getCompleteRecheckStatus();
+				  
+				  if ( done == -1 ){
+					  done = 1000;
+				  }
+				  
+				  tmp = ManagerItem_seeding + " + " + ManagerItem_checking + ": " + formatPercentFromThousands( done );
+				  
 			  }else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
 				  tmp = ManagerItem_superseeding;
 			  }else{
@@ -546,6 +554,8 @@ DisplayFormatters
 
 		String	tmp = "";
 
+		DiskManager	dm = manager.getDiskManager();
+		
 		switch (state) {
 		  case DownloadManager.STATE_WAITING :
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.waiting");
@@ -572,10 +582,16 @@ DisplayFormatters
 			tmp = MessageText.getDefaultLocaleString("ManagerItem.downloading");
 			break;
 		  case DownloadManager.STATE_SEEDING :
-		  	if (manager.getDiskManager().isChecking()) {
-		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding").concat(
-		  		" + ").concat(
-		  		MessageText.getDefaultLocaleString("ManagerItem.checking"));
+		  	if (dm != null && dm.getCompleteRecheckStatus() != -1 ) {
+		  		int	done = dm.getCompleteRecheckStatus();
+				  
+				if ( done == -1 ){
+				  done = 1000;
+				}
+				  
+		  		tmp = MessageText.getDefaultLocaleString("ManagerItem.seeding") + " + " + 
+		  				MessageText.getDefaultLocaleString("ManagerItem.checking") +
+		  				": " + formatPercentFromThousands( done );
 		  	}
 		  	else if(manager.getPeerManager()!= null && manager.getPeerManager().isSuperSeedMode()){
 

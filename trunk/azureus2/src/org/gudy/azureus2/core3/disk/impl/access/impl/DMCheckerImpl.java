@@ -78,7 +78,8 @@ DMCheckerImpl
 	
 	protected int		nbPieces;
 	
-	private boolean	complete_recheck_in_progress;
+	private volatile boolean	complete_recheck_in_progress;
+	private volatile int		complete_recheck_progress;
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "DMChecker" );
 		
@@ -160,10 +161,17 @@ DMCheckerImpl
 		}
 	}
 	
-	public boolean 
-	isChecking() 
+	public int 
+	getCompleteRecheckStatus() 
 	{
-	   return( complete_recheck_in_progress );
+	   if (complete_recheck_in_progress ){
+		   
+		   return( complete_recheck_progress );
+		   
+	   }else{
+		   
+		   return( -1 );
+	   }
 	}
 	  
 	public DiskManagerCheckRequest
@@ -179,6 +187,7 @@ DMCheckerImpl
 		final DiskManagerCheckRequest			request,
 		final DiskManagerCheckRequestListener 	listener )
 	{  	
+		complete_recheck_progress		= 0;
 		complete_recheck_in_progress	= true;
 
 	 	Thread t = new AEThread("DMChecker::completeRecheck")
@@ -211,6 +220,8 @@ DMCheckerImpl
 	  						
 	  						break;
 	  					}
+	  					
+	  					complete_recheck_progress = 1000*i / nbPieces;
 	  					
 	  					enqueueCheckRequest( 
 	  						createRequest( i, request.getUserData()),

@@ -193,12 +193,12 @@ DiskManager
 		File	new_parent_dir );
 	
 		/**
-		 * returns true if a complete recheck is in progress
+		 * returns -1 if no recheck in progress, percentage complete in 1000 notation otherwise
 		 * @return
 		 */
 	
-	public boolean 
-	isChecking();
+	public int 
+	getCompleteRecheckStatus();
   
 		/**
 		 * method for checking that the block details are sensible
