@@ -109,12 +109,7 @@ DiskManagerFileInfoImpl
   
   	throws CacheFileManagerException
   {
-	  	// don't do anything to the actual file if this is a linked file
-	  
-	  if ( !isLinked()){
-		  
-		  cache_file.moveFile( newFile );
-	  }
+	  cache_file.moveFile( newFile );
 	  
 	  file	= newFile;
   }

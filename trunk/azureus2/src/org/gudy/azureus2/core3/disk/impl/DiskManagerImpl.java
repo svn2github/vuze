@@ -1618,7 +1618,9 @@ DiskManagerImpl
     	boolean	move_torrent,
     	boolean	change_to_read_only )
     {
-	    String move_from_dir = download_manager.getAbsoluteSaveLocation().getParent();
+	    File save_location = download_manager.getAbsoluteSaveLocation();
+
+	    String move_from_dir = save_location.getParent();
 
     	try{
     	  start_stop_mon.enter();
@@ -1629,8 +1631,35 @@ DiskManagerImpl
 	      File[]	old_files	= new File[files.length];
 	      
 	      for (int i=0; i < files.length; i++) {
-	          	    	  
+	          	      	  
 	          File old_file = files[i].getFile(false);
+	          
+	          File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
+	            
+	          boolean	skip = false;
+	            
+	          if ( linked_file != old_file ){
+	        	  
+		       	  if ( save_location.isDirectory()){
+		                       		
+		        	  	// if we are linked to a file outside of the torrent's save directory then we don't
+		        	  	// move the file
+		        	  
+		        	  if ( !linked_file.getCanonicalPath().startsWith( save_location.getCanonicalPath())){
+		            			
+		        		  skip = true;
+		        	  }
+		          }
+
+           		  old_file	= linked_file;
+	          }
+	          
+	          if ( skip ){
+	        	  
+	        	  	// actual file is outside the dir, ignore it
+	        	  
+	        	  continue;
+	          }
 	          
 	          old_files[i]	= old_file;
 	          
@@ -1656,35 +1685,40 @@ DiskManagerImpl
 	          File newFile = new File(destDir, old_file.getName());
 	
 	          new_files[i]	= newFile;
-
-	    	  if ( !files[i].isLinked()){
 		             
-		          if ( newFile.exists()){
+	          if ( newFile.exists()){
 		          	
-		            String msg = "" + old_file.getName() + " already exists in MoveTo destination dir";
-		            
-		            if (Logger.isEnabled())
-		            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-		            			msg));
-		            
-		            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-		            		LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
-		            		new String[] { old_file.getName() });
+	            String msg = "" + linked_file.getName() + " already exists in MoveTo destination dir";
 	            
-		            
-		            Debug.out(msg);
-		            
-		            return;
-		            
-		          }  
-	    		  destDir.mkdirs();
-	    	  }
+	            if (Logger.isEnabled())
+	            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+	            			msg));
+	            
+	            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+	            		LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
+	            		new String[] { old_file.getName() });
+            
+	            
+	            Debug.out(msg);
+	            
+	            return;
+	            
+	          }  
+	          
+    		  destDir.mkdirs();
 	      }
 	      
 	      for (int i=0; i < files.length; i++){
 	      		 	          
 	          File new_file = new_files[i];
-	          	          
+	          	 
+	          if ( new_file == null ){
+	        	
+	        	  	// not moving this one
+	        	  
+	        	  continue;
+	          }
+	          
 	          try{
 	          	
 	          	files[i].moveFile( new_file );
@@ -1713,6 +1747,11 @@ DiskManagerImpl
 	            
 	            for (int j=0;j<i;j++){
 	            	
+	            	if (new_files[j] == null ){
+	            		
+	            		continue;
+	            	}
+	            	
 	            	try{
 	            		files[j].moveFile( old_files[j]);
 		         		
@@ -1732,20 +1771,16 @@ DiskManagerImpl
 	      }
 	      
 	      	//remove the old dir
-	      
-	      File tFile = download_manager.getAbsoluteSaveLocation();
-	      
-	      if (	tFile.isDirectory() && 
-	      		!move_to_dir.equals(move_from_dir)){
-	      	
-	      		deleteDataFiles(torrent, tFile.getParent(), tFile.getName());
+	      	      
+	      if (	save_location.isDirectory()){
+	    	  
+	    	  FileUtil.recursiveEmptyDirDelete( save_location, false );
 	      }
 	        
 	      download_manager.setTorrentSaveDir( move_to_dir );
 	      
 	      	//move the torrent file as well
-	      
-	      
+	       
 	      if ( move_torrent ){
 	      	
 	          String oldFullName = download_manager.getTorrentFileName();
@@ -1860,11 +1895,16 @@ DiskManagerImpl
 		try{
 			if (torrent.isSimpleTorrent()){
 
-				FileUtil.deleteWithRecycle(new File( torrent_save_dir, torrent_save_file ));
+				File	target = new File( torrent_save_dir, torrent_save_file );
+				
+				target = FMFileManagerFactory.getSingleton().getFileLink( torrent, target.getCanonicalFile());
+				
+				FileUtil.deleteWithRecycle( target );
 
 			}else{
 
                 PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
+                
                 if( Constants.isOSX &&
                       torrent_save_file.length() > 0 &&
                       COConfigurationManager.getBooleanParameter("Move Deleted Data To Recycle Bin" ) &&
@@ -1872,7 +1912,18 @@ DiskManagerImpl
 
                     try
                     {
-                        mgr.performRecoverableFileDelete(torrent_save_dir + File.separatorChar + torrent_save_file + File.separatorChar);
+                    	String	dir = torrent_save_dir + File.separatorChar + torrent_save_file + File.separatorChar;
+                    	
+                    		// only delete the dir if there's only this torrent's files in it!
+                    	
+                    	if ( countFiles( new File(dir)) == countDataFiles( torrent, torrent_save_dir, torrent_save_file )){
+                    		
+                    		mgr.performRecoverableFileDelete( dir );
+                    		
+                    	}else{
+                    		
+                    		deleteDataFileContents( torrent, torrent_save_dir, torrent_save_file );
+                    	}
                     }
                     catch(PlatformManagerException ex)
                     {
@@ -1890,12 +1941,102 @@ DiskManagerImpl
 		}
 	}
 
-    private static void deleteDataFileContents(TOTorrent torrent, String torrent_save_dir, String torrent_save_file)
+	private static int
+	countFiles(
+		File	f )
+	{
+		if ( f.isFile()){
+			
+			return( 1 );
+		}else{
+			
+			int	res = 0;
+			
+			File[]	files = f.listFiles();
+			
+			if ( files != null ){
+				
+				for (int i=0;i<files.length;i++){
+					
+					res += countFiles( files[i] );
+				}
+			}
+			
+			return( res );
+		}
+	}
+	
+	private static int 
+	countDataFiles(
+		TOTorrent torrent, 
+	    String torrent_save_dir, 
+	    String torrent_save_file )
+	{
+		try{
+			int	res = 0;
+			
+			LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
+
+	        TOTorrentFile[] files = torrent.getFiles();
+
+	        for (int i=0;i<files.length;i++){
+
+	            byte[][]path_comps = files[i].getPathComponents();
+
+	            String	path_str = torrent_save_dir + File.separator + torrent_save_file + File.separator;
+
+	            for (int j=0;j<path_comps.length;j++){
+
+                    String comp = locale_decoder.decodeString( path_comps[j] );
+
+                    comp = FileUtil.convertOSSpecificChars( comp );
+
+                    path_str += (j==0?"":File.separator) + comp;
+	            }
+
+	            File file = new File(path_str).getCanonicalFile();
+
+	            File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, file );
+	            
+	            boolean	skip = false;
+	            
+	            if ( linked_file != file ){
+	                       		            	
+	           		if ( !linked_file.getCanonicalPath().startsWith(new File( torrent_save_dir ).getCanonicalPath())){
+	            			
+	           			skip = true;
+	           		}
+	            }
+	            
+	            if ( !skip && file.exists() && !file.isDirectory()){
+
+	            	res++;
+	            }
+	        }
+	        
+	        return( res );
+	        
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( -1 );
+		} 
+	}
+
+    private static void 
+    deleteDataFileContents(
+    	TOTorrent torrent, 
+    	String torrent_save_dir, 
+    	String torrent_save_file )
+    
             throws TOTorrentException, UnsupportedEncodingException, LocaleUtilEncodingException
     {
         LocaleUtilDecoder locale_decoder = LocaleUtil.getSingleton().getTorrentEncoding( torrent );
 
         TOTorrentFile[] files = torrent.getFiles();
+
+        String	root_path = torrent_save_dir + File.separator + torrent_save_file + File.separator;
 
         // delete all files, then empty directories
 
@@ -1903,8 +2044,8 @@ DiskManagerImpl
 
             byte[][]path_comps = files[i].getPathComponents();
 
-            String	path_str = torrent_save_dir + File.separator + torrent_save_file + File.separator;
-
+            String	path_str	= root_path;
+            
             for (int j=0;j<path_comps.length;j++){
 
                 try{
@@ -1917,13 +2058,45 @@ DiskManagerImpl
 
                 }catch( UnsupportedEncodingException e ){
 
-                    System.out.println( "file - unsupported encoding!!!!");
+                    Debug.out( "file - unsupported encoding!!!!");
                 }
             }
 
             File file = new File(path_str);
 
-            if (file.exists() && !file.isDirectory()){
+            File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, file );
+            
+            boolean	delete;
+            
+            if ( linked_file == file ){
+            	
+            	delete	= true;
+            	
+            }else{
+            	
+            		// only consider linked files for deletion if they are in the torrent save dir
+            		// i.e. a rename probably instead of a retarget to an existing file elsewhere
+            	
+            	try{
+            		if ( linked_file.getCanonicalPath().startsWith(new File( root_path ).getCanonicalPath())){
+            			
+            			file	= linked_file;
+            			
+            			delete 	= true;
+            			
+            		}else{
+            			
+            			delete = false;
+            		}
+            	}catch( Throwable e ){
+            		
+            		Debug.printStackTrace(e);
+            		
+            		delete = false;
+            	}
+            }
+            
+            if ( delete && file.exists() && !file.isDirectory()){
 
                 try{
                     FileUtil.deleteWithRecycle( file );

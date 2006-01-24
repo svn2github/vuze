@@ -788,12 +788,14 @@ DownloadManagerImpl
 	protected void
 	updateFileLinks(
 		String		_old_dir,
-		String		_new_dir )
+		String		_new_dir,
+		File		_old_save_dir )
 	{
 		try{
-			String	old_dir = new File( _old_dir ).getCanonicalPath();
-			String	new_dir = new File( _new_dir ).getCanonicalPath();
-	
+			String	old_dir 		= new File( _old_dir ).getCanonicalPath();
+			String	new_dir 		= new File( _new_dir ).getCanonicalPath();
+			String	old_save_dir 	= _old_save_dir.getCanonicalPath();
+			
 			Map	links = download_manager_state.getFileLinks();
 			
 			Iterator	it = links.keySet().iterator();
@@ -810,19 +812,39 @@ DownloadManagerImpl
 				
 				String	from_str = from.getCanonicalPath();
 				
-				if ( from_str.startsWith( old_dir )){
+				if ( from_str.startsWith( old_save_dir )){
 					
 					String	new_from_str;
 					
-					String	suffix = from_str.substring( old_dir.length());
+					String	from_suffix = from_str.substring( old_dir.length());
 					
-					if ( suffix.startsWith( File.separator )){
+					if ( from_suffix.startsWith( File.separator )){
 						
-						new_from_str = new_dir + suffix;
+						new_from_str = new_dir + from_suffix;
 						
 					}else{
 						
-						new_from_str = new_dir + File.separator + suffix;
+						new_from_str = new_dir + File.separator + from_suffix;
+					}
+					
+					String	to_str = to.getCanonicalPath();
+
+					if ( to_str.startsWith( old_save_dir )){
+
+						String	new_to_str;
+						
+						String	to_suffix = to_str.substring( old_dir.length());
+						
+						if ( to_suffix.startsWith( File.separator )){
+							
+							new_to_str = new_dir + to_suffix;
+							
+						}else{
+							
+							new_to_str = new_dir + File.separator + to_suffix;
+						}
+						
+						to	= new File( new_to_str );
 					}
 					
 					// System.out.println( "Updating file link:" + from + "->" + to + ":" + new_from_str );
@@ -1438,7 +1460,7 @@ DownloadManagerImpl
   		// The UI can call it as long as the torrent is stopped.
   		// Calling it while a download is active will in general result in unpredictable behaviour!
  
-		updateFileLinks( old_dir, new_dir );
+		updateFileLinks( old_dir, new_dir, torrent.isSimpleTorrent()?old_location.getParentFile():old_location );
 
 		torrent_save_location = new File( new_dir, old_location.getName());
 
@@ -2345,7 +2367,7 @@ DownloadManagerImpl
 	  		  
 			// old file will be a "file" for simple torrents, a dir for non-simple
 		  
-	  File	old_file = torrent_save_location;
+	  File	old_file = getSaveLocation();
 		  
 	  try{
 		  old_file = old_file.getCanonicalFile();
