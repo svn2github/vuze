@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
+import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoderAdapter.secretMatcher;
 
 public class 
 TCPProtocolDecoderInitial 
@@ -72,7 +73,8 @@ TCPProtocolDecoderInitial
 	    		});
 	}
 	
-	
+
+	private byte[]		shared_secret;
 	private ByteBuffer	decode_buffer; 
 	private int			decode_read;
 	
@@ -87,6 +89,7 @@ TCPProtocolDecoderInitial
 	public
 	TCPProtocolDecoderInitial(
 		SocketChannel				_channel,
+		byte[]						_shared_secret,
 		boolean						_outgoing,
 		TCPProtocolDecoderAdapter	_adapter )
 	
@@ -94,8 +97,9 @@ TCPProtocolDecoderInitial
 	{
 		super( true );
 		
-		channel	= _channel;
-		adapter	= _adapter;
+		channel			= _channel;
+		shared_secret	= _shared_secret;
+		adapter			= _adapter;
 		
 		final TCPTransportHelper transport_helper	= new TCPTransportHelper( channel);
 
@@ -238,6 +242,13 @@ TCPProtocolDecoderInitial
 					failed( cause );
 				}
 				
+				public boolean
+				matchSharedSecret(
+					secretMatcher		matcher )
+				{
+					return( adapter.matchSharedSecret( matcher ));
+				}
+				
 				public int
 				getMaximumPlainHeaderLength()
 				{
@@ -252,7 +263,7 @@ TCPProtocolDecoderInitial
 				}
 			};
 		
-		phe_decoder = new TCPProtocolDecoderPHE( channel, buffer, phe_adapter );
+		phe_decoder = new TCPProtocolDecoderPHE( channel, shared_secret, buffer, phe_adapter );
 	}
 	
 	public boolean

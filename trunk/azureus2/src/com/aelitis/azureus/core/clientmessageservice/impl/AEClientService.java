@@ -89,7 +89,7 @@ public class AEClientService implements ClientMessageService {
 
 	//NOTE: blocking op
 	private void connect() throws IOException {
-    final TCPTransport transport = TransportFactory.createTCPTransport( false );  //use transport for proxy capabilities
+    final TCPTransport transport = TransportFactory.createTCPTransport( false, null );  //use transport for proxy capabilities
     
     transport.establishOutboundConnection( new InetSocketAddress( address, port ), new TCPTransport.ConnectListener() {  //NOTE: async operation!
     	public void connectAttemptStarted() {  /*nothing*/ }

@@ -60,9 +60,9 @@ public class NetworkConnectionImpl implements NetworkConnection {
    * @param encoder default message stream encoder to use for the outgoing queue
    * @param decoder default message stream decoder to use for the incoming queue
    */
-  public NetworkConnectionImpl( InetSocketAddress _remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto ) {
+  public NetworkConnectionImpl( InetSocketAddress _remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, byte[] shared_secret ) {
     remote_address = _remote_address;
-    tcp_transport = TransportFactory.createTCPTransport( connect_with_crypto );
+    tcp_transport = TransportFactory.createTCPTransport( connect_with_crypto, shared_secret );
     is_connected = false;
     outgoing_message_queue = new OutgoingMessageQueue( encoder, tcp_transport );
     incoming_message_queue = new IncomingMessageQueue( decoder, this );

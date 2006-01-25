@@ -42,8 +42,8 @@ public class NetworkConnectionFactory {
    * @param decoder
    * @return outbound connection
    */
-  protected static NetworkConnection create( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto ) {
-    return new NetworkConnectionImpl( remote_address, encoder, decoder, connect_with_crypto );
+  protected static NetworkConnection create( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, byte[] shared_secret ) {
+    return new NetworkConnectionImpl( remote_address, encoder, decoder, connect_with_crypto, shared_secret );
   }
 
   

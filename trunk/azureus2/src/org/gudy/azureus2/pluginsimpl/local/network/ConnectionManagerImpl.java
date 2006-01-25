@@ -64,7 +64,7 @@ public class ConnectionManagerImpl implements ConnectionManager {
 
   public Connection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {    
     com.aelitis.azureus.core.networkmanager.NetworkConnection core_conn =
-      NetworkManager.getSingleton().createConnection( remote_address, new MessageStreamEncoderAdapter( encoder ), new MessageStreamDecoderAdapter( decoder ), false );
+      NetworkManager.getSingleton().createConnection( remote_address, new MessageStreamEncoderAdapter( encoder ), new MessageStreamDecoderAdapter( decoder ), false, null );
     return new ConnectionImpl( core_conn );
   }
   

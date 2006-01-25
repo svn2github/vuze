@@ -242,8 +242,8 @@ public class NetworkManager {
    * @param decoder default message stream decoder to use for the incoming queue
    * @return a new connection
    */
-  public NetworkConnection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto ) { 
-    return NetworkConnectionFactory.create( remote_address, encoder, decoder, connect_with_crypto );
+  public NetworkConnection createConnection( InetSocketAddress remote_address, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, byte[] shared_secret ) { 
+    return NetworkConnectionFactory.create( remote_address, encoder, decoder, connect_with_crypto, shared_secret );
   }
   
   
@@ -476,6 +476,13 @@ public class NetworkManager {
      * @return
      */
     public boolean minMatches( ByteBuffer to_compare );
+    
+    /**
+     * Returns true if this shared secret is recognised by the matcher
+     * @param shared_secret
+     * @return
+     */
+    public byte[] getSharedSecret();
   }
   
   

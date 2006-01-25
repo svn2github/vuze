@@ -50,7 +50,7 @@ public class IncomingSocketChannelManager
   private final ArrayList connections = new ArrayList();
   private final AEMonitor connections_mon = new AEMonitor( "IncomingConnectionManager:conns" );
   
-  private final HashMap match_buffers = new HashMap();
+  private volatile Map match_buffers_cow = new HashMap();	// copy-on-write
   private final AEMonitor match_buffers_mon = new AEMonitor( "IncomingConnectionManager:match" );
   private int max_match_buffer_size = 0;
   private int max_min_match_buffer_size = 0;
@@ -202,7 +202,11 @@ public class IncomingSocketChannelManager
     	  max_min_match_buffer_size = matcher.minSize();
       }
       
-      match_buffers.put( matcher, listener );
+      Map	new_match_buffers = new HashMap( match_buffers_cow );
+      
+      new_match_buffers.put( matcher, listener );
+      
+      match_buffers_cow = new_match_buffers;
     
     } finally {  match_buffers_mon.exit();  }
     
@@ -215,12 +219,13 @@ public class IncomingSocketChannelManager
    */
   public void deregisterMatchBytes( NetworkManager.ByteMatcher to_remove ) {
     try {  match_buffers_mon.enter();
+      Map	new_match_buffers = new HashMap( match_buffers_cow );
     
-      match_buffers.remove( to_remove );
+      new_match_buffers.remove( to_remove );
     
       if( to_remove.size() == max_match_buffer_size ) { //recalc longest buffer if necessary
         max_match_buffer_size = 0;
-        for( Iterator i = match_buffers.keySet().iterator(); i.hasNext(); ) {
+        for( Iterator i = new_match_buffers.keySet().iterator(); i.hasNext(); ) {
           NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)i.next();
           if( bm.size() > max_match_buffer_size ) {
             max_match_buffer_size = bm.size();
@@ -228,6 +233,8 @@ public class IncomingSocketChannelManager
         }
       }
     
+      match_buffers_cow = new_match_buffers;
+      
     } finally {  match_buffers_mon.exit();  }  
   } 
   
@@ -265,7 +272,7 @@ public class IncomingSocketChannelManager
 	        public void newConnectionAccepted( final SocketChannel channel ) {
 	        	
 	        	//check for encrypted transport
-	        	TransportCryptoManager.getSingleton().manageCrypto( channel, true, new TransportCryptoManager.HandshakeListener() {
+	        	TransportCryptoManager.getSingleton().manageCrypto( channel, null, true, new TransportCryptoManager.HandshakeListener() {
 	        		public void handshakeSuccess( TCPTransportHelperFilter filter ) {
 	        			process( filter );
 	        		}
@@ -305,6 +312,12 @@ public class IncomingSocketChannelManager
 	    				}
 	    			}
 	    		}
+				public boolean
+				matchSharedSecret(
+					TCPProtocolDecoderAdapter.secretMatcher 	matcher )
+				{					
+					return( IncomingSocketChannelManager.this.matchSharedSecret( matcher ));
+				}
 	        	});
 	        	
 	        }
@@ -327,7 +340,7 @@ public class IncomingSocketChannelManager
       last_timeout_check_time = now;
     }
     
-    if( match_buffers.isEmpty() ) {  //no match registrations, just close
+    if( match_buffers_cow.isEmpty() ) {  //no match registrations, just close
     	if (Logger.isEnabled())
     		Logger.log(new LogEvent(LOGID, "Incoming TCP connection from ["
     				+ filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ":"
@@ -491,10 +504,11 @@ public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,
   }
   
 
-  protected MatchListener checkForMatch( ByteBuffer to_check, boolean min_match ) { 
-    try {  match_buffers_mon.enter();
-    
-      //remember original values for later restore
+  protected MatchListener 
+  checkForMatch( 
+		 ByteBuffer to_check, boolean min_match ) 
+  { 
+       //remember original values for later restore
       int orig_position = to_check.position();
       int orig_limit = to_check.limit();
       
@@ -502,8 +516,8 @@ public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,
       to_check.position( 0 );
 
       MatchListener listener = null;
-      
-      for( Iterator i = match_buffers.entrySet().iterator(); i.hasNext(); ) {
+           
+      for( Iterator i = match_buffers_cow.entrySet().iterator(); i.hasNext(); ) {
         Map.Entry entry = (Map.Entry)i.next();
         NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)entry.getKey();
         
@@ -533,10 +547,24 @@ public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,
       to_check.limit( orig_limit );
       
       return listener;
-      
-    } finally {  match_buffers_mon.exit();  }
   }
   
+  protected boolean 
+  matchSharedSecret( 
+	  TCPProtocolDecoderAdapter.secretMatcher 	matcher )
+  {
+	  for( Iterator i = match_buffers_cow.keySet().iterator(); i.hasNext(); ) {
+	
+		  NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)i.next();
+		  
+		  if ( matcher.match( bm.getSharedSecret())){
+			  
+			  return( true );
+		  }
+	  }  
+	  
+	  return( false );
+  }
   
 
   protected void doTimeoutChecks() {

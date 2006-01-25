@@ -266,7 +266,7 @@ PEPeerTransportProtocol
     }
 
         
-    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder(), REQUIRE_CRYPTO );
+    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder(), REQUIRE_CRYPTO, manager.getTorrentHash());
     
     plugin_connection = new ConnectionImpl(connection);
     

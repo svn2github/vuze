@@ -1361,6 +1361,20 @@ PEPeerControlImpl
 		return( this );
 	}
 	
+	public byte[]
+	getTorrentHash()
+	{
+		try{
+			return( disk_mgr.getTorrent().getHash());
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
+	
 //	get the hash value
 	public byte[] getHash() {
 		return _hash.getDataID();

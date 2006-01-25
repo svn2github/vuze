@@ -38,6 +38,10 @@ TCPProtocolDecoderAdapter
 	matchPlainHeader(
 		ByteBuffer			buffer );
 	
+	public boolean
+	matchSharedSecret(
+		secretMatcher		matcher );
+	
 	public void
 	decodeComplete(
 		TCPProtocolDecoder	decoder );
@@ -47,4 +51,11 @@ TCPProtocolDecoderAdapter
 		TCPProtocolDecoder	decoder,
 		Throwable			cause );
 	
+	public interface
+	secretMatcher
+	{
+		public boolean
+		match(
+			byte[]	shared_secret );
+	}
 }

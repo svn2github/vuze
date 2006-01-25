@@ -123,6 +123,14 @@ public class PeerManager {
           
           return matches;
         }
+      
+      public byte[] 
+      getSharedSecret()
+      {
+    	  byte[] hash = manager.getTorrentHash();
+    	  
+    	  return( hash );
+      }
     };
     
     

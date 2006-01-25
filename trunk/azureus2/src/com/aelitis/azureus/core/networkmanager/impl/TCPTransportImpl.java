@@ -62,8 +62,9 @@ public class TCPTransportImpl implements TCPTransport {
   private static final TransportStats stats = AEDiagnostics.TRACE_TCP_TRANSPORT_STATS ? new TransportStats() : null;
   
   
-  protected boolean connect_with_crypto;
-  protected int fallback_count;
+  private boolean 	connect_with_crypto;
+  private byte[]	shared_secret;
+  private int		fallback_count;
   
   
 	private static boolean 	OUTGOING_FALLBACK_ALLOWED;
@@ -86,10 +87,11 @@ public class TCPTransportImpl implements TCPTransport {
   /**
    * Constructor for disconnected (outbound) transport.
    */
-  public TCPTransportImpl( boolean _use_crypto ) {
+  public TCPTransportImpl( boolean _use_crypto, byte[] _shared_secret ) {
 	  filter = null;
     is_inbound_connection = false;
     connect_with_crypto = _use_crypto;
+    shared_secret		= _shared_secret;
   }
   
   
@@ -366,7 +368,7 @@ public class TCPTransportImpl implements TCPTransport {
   protected void handleCrypto( final InetSocketAddress address, final SocketChannel channel, final ConnectListener listener ) {  	
   	if( connect_with_crypto ) {
     	//attempt encrypted transport
-    	TransportCryptoManager.getSingleton().manageCrypto( channel, false, new TransportCryptoManager.HandshakeListener() {
+    	TransportCryptoManager.getSingleton().manageCrypto( channel, shared_secret, false, new TransportCryptoManager.HandshakeListener() {
     		public void handshakeSuccess( TCPTransportHelperFilter _filter ) {    			
     			//System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" );     			
     			filter = _filter;    	
@@ -397,6 +399,12 @@ public class TCPTransportImpl implements TCPTransport {
 		public int
 		matchPlainHeader(
 			ByteBuffer			buffer )
+		{
+			throw( new RuntimeException());	// this is outgoing
+		}
+		public boolean
+		matchSharedSecret(
+			TCPProtocolDecoderAdapter.secretMatcher matcher )
 		{
 			throw( new RuntimeException());	// this is outgoing
 		}

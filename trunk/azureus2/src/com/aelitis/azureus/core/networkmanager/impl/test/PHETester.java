@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
@@ -50,6 +49,7 @@ PHETester
 	
 	private static boolean	OUTGOING_PLAIN = false;
 	
+	private static byte[]	shared_secret = "sdsjdksjdkj".getBytes();
 	public
 	PHETester()
 	{
@@ -96,6 +96,7 @@ PHETester
 			final TCPProtocolDecoderInitial	decoder = 
 				new TCPProtocolDecoderInitial( 
 						channel, 
+						null,
 						false,
 						new TCPProtocolDecoderAdapter()
 						{
@@ -118,6 +119,15 @@ PHETester
 								System.out.println( "incoming decode failed: " + Debug.getNestedExceptionMessage(cause));
 							}
 							
+							public boolean
+							matchSharedSecret(
+								secretMatcher		matcher )
+							{
+								System.out.println( "match shared secret" );
+								
+								return( matcher.match( shared_secret ));
+							}
+
 							public int
 							getMaximumPlainHeaderLength()
 							{
@@ -233,10 +243,11 @@ PHETester
 				
 				writeStream( "two jolly porkers".getBytes(), channel );
 				
-			}else{
+			}else{				
 				final TCPProtocolDecoderInitial decoder =
 					new TCPProtocolDecoderInitial( 
 						channel,
+						shared_secret,
 						true,
 						new TCPProtocolDecoderAdapter()
 						{
@@ -261,6 +272,14 @@ PHETester
 								System.out.println( "outgoing decode failed: " + Debug.getNestedExceptionMessage(cause));
 	
 							}
+							
+							public boolean
+							matchSharedSecret(
+								secretMatcher		matcher )
+							{
+								throw( new RuntimeException());
+							}
+							
 							public int
 							getMaximumPlainHeaderLength()
 							{

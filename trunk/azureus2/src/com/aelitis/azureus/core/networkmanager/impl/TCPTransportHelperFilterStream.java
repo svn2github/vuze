@@ -36,6 +36,8 @@ TCPTransportHelperFilterStream
 {
 	private TCPTransportHelper		transport;
 
+	private ByteBuffer			read_insert;
+
 	private DirectByteBuffer	write_buffer_pending_db;
 	private ByteBuffer			write_buffer_pending_byte;
 	
@@ -44,6 +46,23 @@ TCPTransportHelperFilterStream
 		TCPTransportHelper		_transport )
 	{
 		transport	= _transport;
+	}
+	
+	protected void
+	insertRead(
+		ByteBuffer	_read_insert )
+	
+		throws IOException
+	{
+		if ( read_insert != null ){
+			
+			throw( new IOException( "Read insert already performed" ));
+		}
+		
+		if ( _read_insert.hasRemaining()){
+			
+			read_insert	= _read_insert;
+		}
 	}
 	
 	public long 
@@ -180,7 +199,7 @@ TCPTransportHelperFilterStream
 			try{
 				ByteBuffer	target_buffer = target_buffer_db.getBuffer( DirectByteBuffer.SS_NET );
 			
-				write( source_buffer, target_buffer );
+				cryptoOut( source_buffer, target_buffer );
 				
 				target_buffer.position( 0 );
 				
@@ -219,6 +238,8 @@ TCPTransportHelperFilterStream
 			}
 		}
 		
+		// System.out.println( "...write " + total_written );
+		
 		return( total_written );
 	}
 
@@ -229,7 +250,35 @@ TCPTransportHelperFilterStream
 		int 			length ) 
 	
 		throws IOException
-	{		
+	{	
+		int	total_read	= 0;
+		
+		if ( read_insert != null ){
+			
+			int	pos_before	= read_insert.position();
+			
+			for (int i=array_offset;i<array_offset+length;i++){
+				
+				buffers[i].put( read_insert );
+				
+				if ( !read_insert.hasRemaining()){
+										
+					break;
+				}
+			}
+			
+			total_read	= read_insert.position() - pos_before;
+			
+			if ( read_insert.hasRemaining()){
+				
+				return( total_read );
+				
+			}else{
+				
+				read_insert	= null;
+			}
+		}
+		
 		DirectByteBuffer[]	copy_db = new DirectByteBuffer[buffers.length];
 		ByteBuffer[]		copy	= new ByteBuffer[buffers.length];
 		
@@ -251,7 +300,7 @@ TCPTransportHelperFilterStream
 				}
 			}
 			
-			long	read = transport.read( copy, array_offset, length );
+			total_read += transport.read( copy, array_offset, length );
 			
 			for (int i=array_offset;i<array_offset+length;i++){
 	
@@ -267,12 +316,14 @@ TCPTransportHelperFilterStream
 						
 						source_buffer.flip();
 						
-						read( source_buffer, target_buffer );
+						cryptoIn( source_buffer, target_buffer );
 					}
 				}
 			}
 			
-			return( read );
+			// System.out.println( "...read " + total_read );
+			
+			return( total_read );
 			
 		}finally{
 			
@@ -287,14 +338,14 @@ TCPTransportHelperFilterStream
 	}
 	
 	protected abstract void
-	write(
+	cryptoOut(
 		ByteBuffer	source_buffer,
 		ByteBuffer	target_buffer )
 	
 		throws IOException;
 	
 	protected abstract void
-	read(
+	cryptoIn(
 		ByteBuffer	source_buffer,
 		ByteBuffer	target_buffer )
 	

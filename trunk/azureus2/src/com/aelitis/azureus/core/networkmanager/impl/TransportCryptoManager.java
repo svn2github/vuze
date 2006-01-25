@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
+import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoderAdapter.secretMatcher;
+
 /**
  * 
  */
@@ -38,7 +40,13 @@ public class TransportCryptoManager {
 
 
 	
-	public void manageCrypto( SocketChannel channel, boolean is_incoming, final HandshakeListener listener ) {
+	public void 
+	manageCrypto( 
+		SocketChannel 				channel,
+		byte[]						shared_secret,
+		boolean 					is_incoming, 
+		final HandshakeListener 	listener ) 
+	{
 		
 		if ( NO_CRYPTO ){
 		
@@ -49,6 +57,7 @@ public class TransportCryptoManager {
 			try{
 				new TCPProtocolDecoderInitial( 
 						channel, 
+						shared_secret,
 						!is_incoming,
 						new TCPProtocolDecoderAdapter()
 						{
@@ -65,6 +74,13 @@ public class TransportCryptoManager {
 								return( listener.matchPlainHeader( buffer ));
 							}
 							
+							public boolean
+							matchSharedSecret(
+								secretMatcher		matcher )
+							{
+								return( listener.matchSharedSecret( matcher ));
+							}
+
 							public void
 							decodeComplete(
 								TCPProtocolDecoder	decoder )
@@ -102,5 +118,7 @@ public class TransportCryptoManager {
 		public int getMaximumPlainHeaderLength();
 		
 		public int matchPlainHeader( ByteBuffer buffer );
+		
+		public boolean matchSharedSecret( TCPProtocolDecoderAdapter.secretMatcher	matcher );
   }
 }

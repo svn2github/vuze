@@ -48,7 +48,7 @@ TCPTransportHelperFilterStreamCipher
 	}
 	
 	protected void
-	write(
+	cryptoOut(
 		ByteBuffer	source_buffer,
 		ByteBuffer	target_buffer )
 	
@@ -58,7 +58,7 @@ TCPTransportHelperFilterStreamCipher
 	}
 	
 	protected void
-	read(
+	cryptoIn(
 		ByteBuffer	source_buffer,
 		ByteBuffer	target_buffer )
 	
