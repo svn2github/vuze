@@ -262,7 +262,7 @@ TCPProtocolDecoderPHE
 	private byte[]			secret_bytes;
 	
 	private byte[]			initial_data_out		= {};
-	private byte[]			initial_data_in;
+	private byte[]			initial_data_in			= {};
 	
 	private TCPTransportCipher		write_cipher;
 	private TCPTransportCipher		read_cipher;
@@ -576,7 +576,7 @@ TCPProtocolDecoderPHE
 		
 			X_4
 			
-		B->A: ENCRYPT(VC, crypto_select, len(padD), padD, len(IB)), ENCRYPT(IB)
+		B->A: ENCRYPT(VC, crypto_select, len(padD), padD ) // , len(IB)), ENCRYPT(IB)
 	*/
 
 	
@@ -1002,13 +1002,13 @@ TCPProtocolDecoderPHE
 					
 				}else if ( protocol_state == PS_OUTBOUND_4 ){
 					
-						// B->A: ENCRYPT(VC, crypto_select, len(padD), padD, len(IB)), ENCRYPT(IB)
+						// B->A: ENCRYPT(VC, crypto_select, len(padD) // , padD, len(IB)), ENCRYPT(IB)
 	
 					if ( write_buffer == null ){
 								
 						byte[]	padding_d = getZeroPadding();
 						
-						write_buffer = ByteBuffer.allocate( VC.length + 4 + 2 + padding_d.length + 2 + initial_data_out.length );
+						write_buffer = ByteBuffer.allocate( VC.length + 4 + 2 + padding_d.length ); // + 2 + initial_data_out.length );
 						
 						write_buffer.put( write_cipher.update( VC ));
 						
@@ -1018,9 +1018,9 @@ TCPProtocolDecoderPHE
 						
 						write_buffer.put( write_cipher.update( padding_d ));
 						
-						write_buffer.put( write_cipher.update( new byte[]{ (byte)(initial_data_out.length>>8),(byte)initial_data_out.length }));
+						//write_buffer.put( write_cipher.update( new byte[]{ (byte)(initial_data_out.length>>8),(byte)initial_data_out.length }));
 											
-						write_buffer.put( write_cipher.update( initial_data_out ));
+						//write_buffer.put( write_cipher.update( initial_data_out ));
 						
 						write_buffer.flip();
 					}
@@ -1036,7 +1036,7 @@ TCPProtocolDecoderPHE
 				
 				}else if ( protocol_state == PS_INBOUND_4 ){
 					
-						// B->A: ENCRYPT(VC, crypto_select, len(padD), padD, len(IB)), ENCRYPT(IB)
+						// B->A: ENCRYPT(VC, crypto_select, len(padD), padD // , len(IB)), ENCRYPT(IB)
 					
 					if ( read_buffer == null ){
 												
@@ -1130,7 +1130,7 @@ TCPProtocolDecoderPHE
 								throw( new IOException( "Invalid pad length '" + pad_len + "'" ));
 							}
 	
-							read_buffer = ByteBuffer.allocate( pad_len + 2 );
+							read_buffer = ByteBuffer.allocate( pad_len ); // + 2 );
 									
 							protocol_substate	= 3;
 														
@@ -1144,6 +1144,12 @@ TCPProtocolDecoderPHE
 
 							data = read_cipher.update( data );
 							
+							handshakeComplete();
+							
+							read_buffer	= null;
+				        
+							break;
+							/*
 							int	ib_len	= 0xffff & ((( data[data.length-2] & 0xff ) << 8 ) + ( data[data.length-1] & 0xff ));
 
 							if ( ib_len > 65535 ){
@@ -1170,6 +1176,7 @@ TCPProtocolDecoderPHE
 							read_buffer	= null;
 				        
 							break;
+							*/
 						}
 					}
 				}
