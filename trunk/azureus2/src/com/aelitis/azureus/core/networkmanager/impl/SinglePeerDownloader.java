@@ -36,8 +36,6 @@ public class SinglePeerDownloader implements RateControlledEntity {
   private final NetworkConnection connection;
   private final RateHandler rate_handler;
   
-  private int recursion_count = 0;
-  
   
   public SinglePeerDownloader( NetworkConnection connection, RateHandler rate_handler ) {
     this.connection = connection;
@@ -102,14 +100,6 @@ public class SinglePeerDownloader implements RateControlledEntity {
     }
     
     rate_handler.bytesProcessed( bytes_read );
-
-    //if( bytes_read == mss && recursion_count < 10) {  //we've read in a full packet, so give the socket another chance to read to allow for bursting
-    //  recursion_count++;
-    //  doProcessing();
-    //}
-    //else {
-    //  recursion_count = 0;
-    //}
     
     return true;
   }

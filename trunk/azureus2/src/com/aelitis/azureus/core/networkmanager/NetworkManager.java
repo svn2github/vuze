@@ -80,7 +80,7 @@ public class NetworkManager {
         max_lan_upload_rate_bps = COConfigurationManager.getIntParameter( "Max LAN Upload Speed KBs" ) * 1024;
         if( max_lan_upload_rate_bps < 1024 )  max_lan_upload_rate_bps = UNLIMITED_RATE;
         if( max_lan_upload_rate_bps > UNLIMITED_RATE )  max_lan_upload_rate_bps = UNLIMITED_RATE;
-        //refreshRates();
+        refreshRates();
       }
     });
 
@@ -119,7 +119,7 @@ public class NetworkManager {
         max_lan_download_rate_bps = COConfigurationManager.getIntParameter( "Max LAN Download Speed KBs" ) * 1024;
         if( max_lan_download_rate_bps < 1024 )  max_lan_download_rate_bps = UNLIMITED_RATE;
         if( max_lan_download_rate_bps > UNLIMITED_RATE )  max_lan_download_rate_bps = UNLIMITED_RATE;
-        //refreshRates();
+        refreshRates();
       }
     });
     
@@ -183,8 +183,11 @@ public class NetworkManager {
       Debug.out( "max_upload_rate_bps < 1024=" +max_upload_rate_bps);
     }
     
+    //ensure that mss isn't greater than up/down rate limits
     if( tcp_mss_size > max_upload_rate_bps )  tcp_mss_size = max_upload_rate_bps - 1;
     if( tcp_mss_size > max_download_rate_bps )  tcp_mss_size = max_download_rate_bps - 1;
+    if( tcp_mss_size > max_lan_upload_rate_bps )  tcp_mss_size = max_lan_upload_rate_bps -1;
+    if( tcp_mss_size > max_lan_download_rate_bps )  tcp_mss_size = max_lan_download_rate_bps -1;
     
     if( tcp_mss_size < 512 )  tcp_mss_size = 512; 
   }
