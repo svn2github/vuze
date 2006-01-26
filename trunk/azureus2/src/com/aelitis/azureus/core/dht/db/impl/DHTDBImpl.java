@@ -29,13 +29,11 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 
 import com.aelitis.azureus.core.dht.DHT;
@@ -111,7 +109,7 @@ DHTDBImpl
 		int					_cache_republish_interval,
 		DHTLogger			_logger )
 	{
-		adapter							= new adapterFacade( _adapter );
+		adapter							= _adapter==null?null:new adapterFacade( _adapter );
 		original_republish_interval		= _original_republish_interval;
 		cache_republish_interval		= _cache_republish_interval;
 		logger							= _logger;
@@ -1427,7 +1425,14 @@ DHTDBImpl
 				
 				next_value_version_left = VALUE_VERSION_CHUNK;
 				
-				next_value_version = adapter.getNextValueVersions( VALUE_VERSION_CHUNK );
+				if ( adapter == null ){
+					
+						// no persistent manager, just carry on incrementing
+					
+				}else{
+					
+					next_value_version = adapter.getNextValueVersions( VALUE_VERSION_CHUNK );
+				}
 				
 				//System.out.println( "next chunk:" + next_value_version );
 			}
