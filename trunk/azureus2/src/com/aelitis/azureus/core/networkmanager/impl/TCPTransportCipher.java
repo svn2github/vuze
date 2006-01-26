@@ -32,12 +32,13 @@ import javax.crypto.spec.SecretKeySpec;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.engines.RC4Engine;
 import org.bouncycastle.crypto.params.KeyParameter;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 TCPTransportCipher 
 {
-	private static boolean	internal_rc4;
+	private static boolean	internal_rc4	= true;	// force internal as we want 160 bit and JCE no supports it
 	
 	private Cipher		cipher;
 	private RC4Engine	rc4_engine;
@@ -87,12 +88,15 @@ TCPTransportCipher
 	    		rc4_engine.init( mode == Cipher.ENCRYPT_MODE, params ); 
 	    	}
 	    	
+	    	//System.out.println( "RC4 key: " + ByteFormatter.encodeString( key_spec.getEncoded()));
+	    	
     			// skip first 1024 bytes of stream to protected against a Fluhrer, Mantin and Shamir attack
     	
 	    	byte[]	temp = new byte[1024];
     	
-	    	cipher.update( temp );
+	    	temp = update( temp );
 	    	
+	    	//System.out.println( "RC4: first discard = " + ByteFormatter.encodeString( temp, 0, 4 ));
 	    }else{
 	    	
 	    	cipher = Cipher.getInstance( algorithm );
@@ -172,9 +176,7 @@ TCPTransportCipher
 			target_buffer.put( target_bytes );
 			
 		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
+						
 			throw( new IOException( Debug.getNestedExceptionMessage( e )));
 		}
 	}
@@ -195,7 +197,7 @@ TCPTransportCipher
 			
 			if ( s.equals( "RC4" )){
 				
-				s = "RC4-128";
+				s = "RC4-160";
 				
 			}else{
 				
@@ -205,7 +207,7 @@ TCPTransportCipher
 			return( s );
 		}else{
 			
-			return( "RC4-128" );
+			return( "RC4-160" );
 		}
 	}
 }
