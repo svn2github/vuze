@@ -38,14 +38,53 @@ AEWin32AccessInterface
 	public static final int	HKEY_LOCAL_MACHINE		= AEWin32Access.HKEY_LOCAL_MACHINE;
 	public static final int	HKEY_CURRENT_USER		= AEWin32Access.HKEY_CURRENT_USER;
 
+	private static AEWin32AccessCallback		cb;
+	
 	static{
 		System.loadLibrary( PlatformManagerImpl.DLL_NAME );
+		
+		try{
+			initialise();
+			
+		}catch( Throwable e ){
+			
+			System.out.println( "Old aereg version, please update!" );
+		}
 	}
 	
 	protected static void
-	load()
+	load(
+		AEWin32AccessCallback	_callback )
 	{	
+		cb = _callback;
 	}
+	
+	public static long
+	callback(
+		int		msg,
+		int		param1,
+		long	param2 )
+	{
+		if ( cb == null ){
+			
+			System.out.println( "callback: " + msg + "/" + param1 + "/" + param2 );
+			
+			return( -1 );
+		}else{
+			
+			return( cb.windowsMessage( msg, param1, param2 ));
+		}
+	}
+	
+	protected static native void
+	initialise()
+	
+		throws AEWin32AccessExceptionImpl;
+	
+	protected static native void
+	destroy()
+	
+		throws AEWin32AccessExceptionImpl;
 	
 	protected static native String
 	getVersion();

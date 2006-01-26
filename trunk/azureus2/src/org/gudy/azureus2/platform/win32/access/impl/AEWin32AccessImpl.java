@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.util.*;
 
 public class 
 AEWin32AccessImpl
-	implements AEWin32Access
+	implements AEWin32Access, AEWin32AccessCallback
 {
 	protected static AEWin32AccessImpl	singleton;
 	protected static AEMonitor			class_mon	= new AEMonitor( "AEWin32Access" );
@@ -45,8 +45,6 @@ AEWin32AccessImpl
 		
 			if ( singleton == null ){
 				
-				AEWin32AccessInterface.load();
-				
 				singleton = new AEWin32AccessImpl();
 			}
 			
@@ -56,6 +54,23 @@ AEWin32AccessImpl
 			
 			class_mon.exit();
 		}
+	}
+	
+	protected
+	AEWin32AccessImpl()
+	{
+		AEWin32AccessInterface.load( this );
+	}
+	
+	public long
+	windowsMessage(
+		int		msg,
+		int		param1,
+		long	param2 )
+	{
+		System.out.println( "windows msg: " + msg + "/" + param1 + "/" + param2 );
+		
+		return( -1 );
 	}
 	
 	public String

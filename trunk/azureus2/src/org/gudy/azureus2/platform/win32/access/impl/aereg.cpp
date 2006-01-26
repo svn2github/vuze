@@ -34,22 +34,30 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.9.1"
+#define VERSION "1.10"
 
 
 HMODULE	application_module;
 bool	non_unicode			= false;
 
+UINT uThreadId;
+HINSTANCE hInstance;
+LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
+void RegisterWindowClass();
+JavaVM*	jvm;
+
 BOOL APIENTRY 
 DllMain( 
-	HANDLE hModule, 
-    DWORD  ul_reason_for_call, 
-    LPVOID lpReserved )
+	HINSTANCE	hModule, 
+    DWORD		ul_reason_for_call, 
+    LPVOID		lpReserved )
 {
     switch (ul_reason_for_call)
 	{
 		case DLL_PROCESS_ATTACH:
 		{
+			hInstance	= hModule;
+
 			OSVERSIONINFOA	osvi;
 
 			application_module = (HMODULE)hModule;
@@ -59,6 +67,8 @@ DllMain(
 			GetVersionExA(&osvi);
 
 			non_unicode = ( osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS );
+
+			RegisterWindowClass();
 
 			break;
 		}
@@ -198,6 +208,147 @@ jstringToCharsW(
 	}
 
 	return( true );
+}
+
+
+// WINDOWS HOOK
+
+void
+ RegisterWindowClass() 
+{
+	WNDCLASSEX wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEX); 
+	wcex.style			= CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc	= WndProc;
+	wcex.cbClsExtra		= 0;
+	wcex.cbWndExtra		= 0;
+	wcex.hInstance		= hInstance;
+	wcex.hIcon			= 0;
+	wcex.hCursor		= 0;
+	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.lpszMenuName	= 0;
+	wcex.lpszClassName	= L"Azureus Window Hook";
+	wcex.hIconSm		= 0;
+
+	RegisterClassEx(&wcex);
+}
+
+HRESULT
+callback(
+	UINT	Msg, 
+	WPARAM	wParam, 
+	LPARAM	lParam) 
+{
+	JNIEnv *env; 
+
+	if ( jvm->AttachCurrentThread((void **)&env, NULL )){
+
+		fprintf( stderr, "AESNOCAP: failed to attach current thread to JVM\n" );
+
+		return( -1 );
+	}
+
+	jclass callback_class = env->FindClass("org/gudy/azureus2/platform/win32/access/impl/AEWin32AccessInterface" );
+
+	jlong result = -1;
+
+	if ( callback_class != NULL ){
+
+		jint	j_msg		= Msg;
+		jint	j_param1	= wParam;
+		jlong	j_param2	= lParam;
+
+
+		jmethodID method = env->GetStaticMethodID(callback_class, "callback", "(IIJ)J");
+
+		result = env->CallStaticLongMethod(callback_class, method, j_msg, j_param1, j_param2 );
+	}
+
+	if ( callback_class != NULL ){
+
+		env->DeleteLocalRef( callback_class );
+	}
+
+	jvm->DetachCurrentThread();
+
+	return((HRESULT)result );
+}
+
+
+LRESULT CALLBACK 
+WndProc(
+	HWND hWnd, 
+	UINT Msg, 
+	WPARAM wParam, 
+	LPARAM lParam) 
+{
+	long res = callback( Msg, wParam, lParam );
+
+	if ( res != -1 ){
+
+		return( res );
+	}
+
+	return DefWindowProc(hWnd, Msg, wParam, lParam);
+}
+
+unsigned WINAPI 
+CreateWndThread(
+	LPVOID pThreadParam) 
+{
+	HANDLE hWnd = CreateWindow( L"Azureus Window Hook", NULL, WS_OVERLAPPEDWINDOW,
+									CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+									NULL, NULL, hInstance, NULL);
+	if( hWnd == NULL){
+
+		printf( "Failed to create window\n" );
+
+		return( 0 );
+
+	}else{
+
+		MSG Msg;
+
+		while(GetMessage(&Msg, 0, 0, 0)) {
+
+			TranslateMessage(&Msg);
+
+			DispatchMessage(&Msg);
+		}
+
+		return Msg.wParam;
+	}
+} 
+
+
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_initialise(
+	JNIEnv *env, 
+	jclass	cla )
+{
+	HANDLE hThread;
+
+	env->GetJavaVM(&jvm);
+
+	hThread = (HANDLE)_beginthreadex(NULL, 0, &CreateWndThread, NULL, 0, &uThreadId);
+
+	if(!hThread){
+
+		throwException( env, "_beginthreadex", "initialisation failed" );
+	}
+}
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_destroy(
+	JNIEnv *env, 
+	jclass	cla )
+{
+	if ( uThreadId ){
+
+		PostThreadMessage(uThreadId, WM_QUIT, 0, 0);
+	}
 }
 
 // UNICODE METHODS
