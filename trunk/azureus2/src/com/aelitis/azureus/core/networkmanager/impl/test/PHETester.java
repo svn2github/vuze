@@ -167,7 +167,7 @@ PHETester
 			outgoing();
 			
 			try{
-				Thread.sleep(1000);
+				Thread.sleep(1000000);
 				
 			}catch( Throwable e ){
 	
@@ -397,6 +397,7 @@ PHETester
 		// OUTGOING_PLAIN	= true;
 		
 		COConfigurationManager.setParameter( "network.transport.encrypted.require", true );
+		COConfigurationManager.setParameter( "network.transport.encrypted.min_level", "Plain" );
 						
 		new PHETester();
 		

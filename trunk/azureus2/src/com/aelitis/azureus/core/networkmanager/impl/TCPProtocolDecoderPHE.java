@@ -261,8 +261,10 @@ TCPProtocolDecoderPHE
 	private byte[]			shared_secret;
 	private byte[]			secret_bytes;
 	
-	private byte[]			initial_data_out		= {};
-	private byte[]			initial_data_in			= {};
+	private static final int	OUTBOUND_IA	= 0;
+	
+	private int				initial_data_out_len;
+	private int				initial_data_in_len;
 	
 	private TCPTransportCipher		write_cipher;
 	private TCPTransportCipher		read_cipher;
@@ -316,6 +318,11 @@ TCPProtocolDecoderPHE
 		}
 		
 		outbound	= _header == null;
+		
+		if ( outbound ){
+			
+			initial_data_out_len	= OUTBOUND_IA;
+		}
 		
 		my_supported_protocols = SUPPORTED_PROTOCOLS;
 				
@@ -503,60 +510,58 @@ TCPProtocolDecoderPHE
 		
 		if ( selected_protocol == CRYPTO_PLAIN ){
 			
-			TCPTransportHelperFilterTransparent _filter = new TCPTransportHelperFilterTransparent( helper, true );
-			
-			_filter.insertRead( ByteBuffer.wrap( initial_data_in ));
-			
-			filter	= _filter;
-			
-		}else{
-			TCPTransportHelperFilterStream	_filter;
+			filter = new TCPTransportHelperFilterTransparent( helper, true );
+									
+		}else if ( selected_protocol == CRYPTO_XOR ){
 		
-			if ( selected_protocol == CRYPTO_XOR ){
-		
-				_filter = new TCPTransportHelperFilterStreamXOR( helper, secret_bytes );
+			filter = new TCPTransportHelperFilterStreamXOR( helper, secret_bytes );
 						
-			}else if ( selected_protocol == CRYPTO_RC4 ){
-			
-				_filter = new TCPTransportHelperFilterStreamCipher( 
-							helper,
-							read_cipher,
-							write_cipher );
+		}else if ( selected_protocol == CRYPTO_RC4 ){
+		
+			filter = new TCPTransportHelperFilterStreamCipher( 
+						helper,
+						read_cipher,
+						write_cipher );
 
-				/*
-			}else if ( selected_protocol == CRYPTO_AES ){
+			/*
+		}else if ( selected_protocol == CRYPTO_AES ){
+			
+			try{
+		        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 32, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
+			        		        
+		        AlgorithmParameterSpec	spec = 	new IvParameterSpec( secret_bytes, 48, AES_STREAM_KEY_SIZE_BYTES );
+		        
+		        write_cipher 	= new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.ENCRYPT_MODE, secret_key_spec, spec );
+				    
+		        read_cipher 	= new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.DECRYPT_MODE, secret_key_spec, spec );
+		        
+				filter = new TCPTransportHelperFilterStreamCipher( 
+						helper,
+						read_cipher,
+						write_cipher );
 				
-				try{
-			        SecretKeySpec	secret_key_spec = new SecretKeySpec( secret_bytes, 32, AES_STREAM_KEY_SIZE_BYTES, AES_STREAM_ALG );
-				        		        
-			        AlgorithmParameterSpec	spec = 	new IvParameterSpec( secret_bytes, 48, AES_STREAM_KEY_SIZE_BYTES );
-			        
-			        write_cipher 	= new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.ENCRYPT_MODE, secret_key_spec, spec );
-					    
-			        read_cipher 	= new TCPTransportCipher( AES_STREAM_CIPHER, Cipher.DECRYPT_MODE, secret_key_spec, spec );
-			        
-					filter = new TCPTransportHelperFilterStreamCipher( 
-							helper,
-							read_cipher,
-							write_cipher );
-					
-				}catch( Throwable e ){
-					
-					throw( new IOException( "AES crypto init failed: " + Debug.getNestedExceptionMessage(e)));
-				}
-			*/
-			
-			
-			}else{
+			}catch( Throwable e ){
 				
-				throw( new IOException( "Invalid selected protocol '" + selected_protocol + "'" ));
-			}	
+				throw( new IOException( "AES crypto init failed: " + Debug.getNestedExceptionMessage(e)));
+			}
+		*/
+		
+		
+		}else{
 			
-			_filter.insertRead( ByteBuffer.wrap( initial_data_in ));
+			throw( new IOException( "Invalid selected protocol '" + selected_protocol + "'" ));
+		}	
 			
-			filter	= _filter;
+		if ( selected_protocol != CRYPTO_RC4 ){
+			
+			filter = 
+				new TCPTransportHelperFilterSwitcher(
+					 new TCPTransportHelperFilterStreamCipher( helper, read_cipher,	write_cipher ),
+					 filter,
+					 initial_data_in_len,
+					 initial_data_out_len );
 		}
-			
+		
 		handshake_complete	= true;
 	}
 	
@@ -716,7 +721,7 @@ TCPProtocolDecoderPHE
 
 						byte[]	padding_c = getZeroPadding();
 						
-						write_buffer = ByteBuffer.allocate( padding_a.length + 20 + 20 + ( VC.length + 4 + 2 + padding_c.length + 2 + initial_data_out.length ));
+						write_buffer = ByteBuffer.allocate( padding_a.length + 20 + 20 + ( VC.length + 4 + 2 + padding_c.length + 2 ));
 						
 						write_buffer.put( padding_a );
 						
@@ -764,10 +769,8 @@ TCPProtocolDecoderPHE
 					
 						write_buffer.put( write_cipher.update( padding_c ));
 						
-						write_buffer.put( write_cipher.update( new byte[]{ (byte)(initial_data_out.length>>8),(byte)initial_data_out.length }));
-						
-						write_buffer.put( write_cipher.update( initial_data_out ));
-						
+						write_buffer.put( write_cipher.update( new byte[]{ (byte)(initial_data_out_len>>8),(byte)initial_data_out_len }));
+												
 						write_buffer.flip();
 					}
 					
@@ -978,31 +981,19 @@ TCPProtocolDecoderPHE
 								throw( new IOException( "Invalid IA length '" + ia_len + "'" ));
 							}
 							
-							read_buffer = ByteBuffer.allocate( ia_len );
-							
-							protocol_substate	= 4;
-							
-						}else{
-							
-							read_buffer.flip();
-							
-							byte[]	data = new byte[read_buffer.remaining()];
-							
-							read_buffer.get( data );
-
-							initial_data_in = read_cipher.update( data );
+							initial_data_in_len = ia_len;
 							
 							read_buffer	= null;
-				        
+					        
 							protocol_state = PS_OUTBOUND_4;
 							
-							break;
+							break;							
 						}
 					}
 					
 				}else if ( protocol_state == PS_OUTBOUND_4 ){
 					
-						// B->A: ENCRYPT(VC, crypto_select, len(padD) // , padD, len(IB)), ENCRYPT(IB)
+						// B->A: ENCRYPT(VC, crypto_select, len(padD), padD, // len(IB)), ENCRYPT(IB)
 	
 					if ( write_buffer == null ){
 								

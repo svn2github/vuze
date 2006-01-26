@@ -36,8 +36,6 @@ TCPTransportHelperFilterStream
 {
 	private TCPTransportHelper		transport;
 
-	private ByteBuffer			read_insert;
-
 	private DirectByteBuffer	write_buffer_pending_db;
 	private ByteBuffer			write_buffer_pending_byte;
 	
@@ -48,21 +46,10 @@ TCPTransportHelperFilterStream
 		transport	= _transport;
 	}
 	
-	protected void
-	insertRead(
-		ByteBuffer	_read_insert )
-	
-		throws IOException
+	public boolean
+	isFlushed()
 	{
-		if ( read_insert != null ){
-			
-			throw( new IOException( "Read insert already performed" ));
-		}
-		
-		if ( _read_insert.hasRemaining()){
-			
-			read_insert	= _read_insert;
-		}
+		return( write_buffer_pending_db == null && write_buffer_pending_byte == null );
 	}
 	
 	public long 
@@ -207,9 +194,9 @@ TCPTransportHelperFilterStream
 				
 				total_written += written;
 				
+				source_buffer.position( position + written );
+				
 				if ( written < size ){
-					
-					source_buffer.position( position + written );
 					
 					write_buffer_pending_db	= target_buffer_db;
 					
@@ -252,32 +239,6 @@ TCPTransportHelperFilterStream
 		throws IOException
 	{	
 		int	total_read	= 0;
-		
-		if ( read_insert != null ){
-			
-			int	pos_before	= read_insert.position();
-			
-			for (int i=array_offset;i<array_offset+length;i++){
-				
-				buffers[i].put( read_insert );
-				
-				if ( !read_insert.hasRemaining()){
-										
-					break;
-				}
-			}
-			
-			total_read	= read_insert.position() - pos_before;
-			
-			if ( read_insert.hasRemaining()){
-				
-				return( total_read );
-				
-			}else{
-				
-				read_insert	= null;
-			}
-		}
 		
 		DirectByteBuffer[]	copy_db = new DirectByteBuffer[buffers.length];
 		ByteBuffer[]		copy	= new ByteBuffer[buffers.length];

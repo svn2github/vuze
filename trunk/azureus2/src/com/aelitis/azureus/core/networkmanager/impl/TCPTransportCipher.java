@@ -167,6 +167,8 @@ TCPTransportCipher
 			
 			byte[]	target_bytes = update( source_bytes, offset, length ); 
 			
+			source_buffer.position( source_buffer.limit());
+			
 			target_buffer.put( target_bytes );
 			
 		}catch( Throwable e ){

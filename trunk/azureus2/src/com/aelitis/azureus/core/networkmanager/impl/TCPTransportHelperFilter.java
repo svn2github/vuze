@@ -45,6 +45,9 @@ TCPTransportHelperFilter
 	
 		throws IOException;
 	
+	public boolean
+	isFlushed();
+	
 	public SocketChannel
 	getSocketChannel();
 	

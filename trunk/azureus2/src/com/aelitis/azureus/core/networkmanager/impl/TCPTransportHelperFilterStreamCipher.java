@@ -26,8 +26,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 
-import org.gudy.azureus2.core3.util.Debug;
-
 public class 
 TCPTransportHelperFilterStreamCipher 
 	extends TCPTransportHelperFilterStream

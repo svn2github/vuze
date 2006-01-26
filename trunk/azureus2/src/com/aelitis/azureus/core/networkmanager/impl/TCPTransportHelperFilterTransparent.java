@@ -51,6 +51,12 @@ TCPTransportHelperFilterTransparent
 		read_insert	= _read_insert;
 	}
 	
+	public boolean
+	isFlushed()
+	{
+		return( true );
+	}
+	
 	public long 
 	write( 
 		ByteBuffer[] 	buffers, 
