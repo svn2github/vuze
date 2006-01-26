@@ -654,7 +654,7 @@ TCPProtocolDecoderPHE
 
 					if ( write_buffer == null ){
 						
-						byte[]	padding_b = getRandomPadding( PADDING_MAX );
+						byte[]	padding_b = getRandomPadding( PADDING_MAX/2 );
 						
 						write_buffer = ByteBuffer.allocate( dh_public_key_bytes.length + padding_b.length );
 						
@@ -1006,9 +1006,13 @@ TCPProtocolDecoderPHE
 	
 					if ( write_buffer == null ){
 								
+						byte[]	padding_b = getRandomPadding( PADDING_MAX/2 );	// half padding b sent here
+
 						byte[]	padding_d = getZeroPadding();
 						
-						write_buffer = ByteBuffer.allocate( VC.length + 4 + 2 + padding_d.length ); // + 2 + initial_data_out.length );
+						write_buffer = ByteBuffer.allocate( padding_b.length + VC.length + 4 + 2 + padding_d.length ); // + 2 + initial_data_out.length );
+						
+						write_buffer.put( padding_b );
 						
 						write_buffer.put( write_cipher.update( VC ));
 						
