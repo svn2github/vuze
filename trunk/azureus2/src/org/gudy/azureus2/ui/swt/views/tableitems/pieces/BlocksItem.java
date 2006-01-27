@@ -128,8 +128,8 @@ public class BlocksItem
       pxRes = (int) (x1 - ((lNumBlocks / blocksPerPixel) * iPixelsPerBlock)); // kolik mi zbyde
       if (pxRes<=0)
         pxRes=1;
-      pxBlockStep = (long) ((lNumBlocks*factor) / pxRes);	// kolikaty blok na +1 k sirce
-      long addBlocks = (long) ((lNumBlocks*factor) / pxBlockStep);
+      pxBlockStep =(lNumBlocks*factor) / pxRes;	// kolikaty blok na +1 k sirce
+      long addBlocks =(lNumBlocks*factor) / pxBlockStep;
       if ( (addBlocks*iPixelsPerBlock) > pxRes)
         pxBlockStep+=1;
       
@@ -154,7 +154,7 @@ public class BlocksItem
 		}
 	
         if (i >= lNumBlocks - blocksPerPixel) {	// pokud je posledni, at zasahuje az na konec
-	    nextWidth = (int)( x1 - drawnWidth);
+	    nextWidth = x1 - drawnWidth;
         }
         color = Colors.white;
         
@@ -162,11 +162,11 @@ public class BlocksItem
         	
           color = colors[COLOR_WRITTEN];
         	
-        }else if (pePiece.getDownloaded()[i]) {
+        }else if (pePiece.isDownloaded(i)) {
         	
           color = colors[COLOR_DOWNLOADED];
           
-        }else if (pePiece.getRequested()[i]) {
+        }else if (pePiece.isRequested(i)) {
         	
           color = colors[COLOR_REQUESTED];
         }
