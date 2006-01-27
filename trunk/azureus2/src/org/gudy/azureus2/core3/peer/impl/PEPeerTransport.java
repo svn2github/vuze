@@ -27,8 +27,8 @@ package org.gudy.azureus2.core3.peer.impl;
 
 import java.util.List;
 
-import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.peer.PEPeer;
 
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 
@@ -126,6 +126,11 @@ PEPeerTransport
    */
   public long getTimeSinceLastDataMessageReceived();
   
+  /**
+   * Get the time since the most-recent data that was actually written to disk was received.
+   * @return time count in ms, or -1 if we've never received usefull data from them
+   */
+  public long getTimeSinceGoodDataReceived();
   
   /**
    * Get the time since the last (most-recent) data (payload) message was sent.
@@ -158,4 +163,5 @@ PEPeerTransport
 	 * need to double check if we're still interested in them, and get the BT protocol sycnhed
 	 */
 	public void checkInterested();
+	
 }
