@@ -30,6 +30,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 /**
  *
  * @author TuxPaper
+ * @author MjrTom Jan/14/2006 subtract discarded bytes
  */
 public class UpDownRatioItem
        extends CoreTableColumn 
@@ -47,7 +48,7 @@ public class UpDownRatioItem
     long lDivisor = 0;
     long lDivident = 0;
     if (peer != null) {
-      lDivisor = peer.getStats().getTotalDataBytesReceived();
+      lDivisor = peer.getStats().getTotalDataBytesReceived() -peer.getStats().getTotalBytesDiscarded();
       lDivident = peer.getStats().getTotalDataBytesSent();
       // skip if divisor is small (most likely handshake) or 0 (DivisionByZero)
       if (lDivisor > 1024) {
