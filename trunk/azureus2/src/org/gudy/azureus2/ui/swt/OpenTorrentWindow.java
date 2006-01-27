@@ -291,7 +291,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 						Constants.FILE_WILDCARD });
 				fDialog.setFilterPath(TorrentOpener.getFilterPathTorrent());
 				fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file"));
-				String fileName = fDialog.open();
+				String fileName = TorrentOpener.setFilterPathTorrent(fDialog.open());
 				if (fileName != null) {
 					addTorrents(fDialog.getFilterPath(), fDialog.getFileNames());
 				}
@@ -1190,6 +1190,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				}
 				Utils.alternateRowBackground(item);
 				Utils.setCheckedInSetData(item, file.bDownload);
+
+				item.setGrayed(file.lSize <= MIN_NODOWNLOAD_SIZE
+						&& file.parent.iStartID != STARTMODE_SEEDING);
 			}
 		});
 
