@@ -47,6 +47,7 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 
 
 /**
@@ -693,13 +694,6 @@ Test
 			
 		}
 		
-		public boolean[]
-		getPiecesStatus()
-		{
-			return( null );
-			
-		}
-		
 		public int
 		getNbSeeds()
 		{
@@ -1004,7 +998,12 @@ Test
 	 	{
 	 		return( null );
 	 	}
-	 
+	 	
+	 	public PiecePicker getPiecePicker()
+	 	{
+	 		return null;
+	 	}
+	 	
 	 	public String
 	 	getDisplayName()
 	 	{
@@ -1080,7 +1079,7 @@ Test
 			int pieceNumber, 
 			boolean result )
 		{
-			dm.getPieces()[pieceNumber].setDone( false );
+			dm.getPiece(pieceNumber).setDone( false );
 		}
 
 		public int[] getAvailability()
@@ -1088,6 +1087,11 @@ Test
 			return( null );
 		}
 
+		public int calcAvailability(int pieceNumber)
+		{
+			return( 0 );
+		}
+		
 		public int getAvailability(int pieceNumber)
 		{
 			return( 0 );
@@ -1096,12 +1100,6 @@ Test
 	    public float getMinAvailability()
 		{
 	    	return( 0 );
-		}
-
-
-		public boolean[] getPiecesStatus()
-		{
-			return( null );
 		}
 
 
@@ -1142,11 +1140,6 @@ Test
 			return( 0 );
 		}
 
-		public int getNbActive()
-		{
-			return 0;
-		}
-		
 		public int getNbHashFails()
 		{
 			return( 0 );
@@ -1379,14 +1372,6 @@ Test
 		  /** To store arbitrary objects against this object. */
 		  public void setData (String key, Object value){}
 
-			/* (non-Javadoc)
-			 * @see org.gudy.azureus2.core3.peer.PEPeerManager#getRequestCandidate(org.gudy.azureus2.core3.peer.PEPeer)
-			 */
-			public int[] getRequestCandidate(PEPeer pc, int candidateMode) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-	
 	public void addPiece(PEPiece piece, int pieceNumber)
 	{
 	}
@@ -1400,6 +1385,7 @@ Test
 	  
 	public PEPeerTransport getTransportFromIdentity( byte[] peer_id ) { return null;  }
 	  
+	public PEPeerTransport getTransportFromAddress(String peer) { return null;  }
 	}
 	/*
 	protected class
