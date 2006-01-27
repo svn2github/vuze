@@ -37,6 +37,8 @@ import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+
 public class 
 PeerImpl 
 	extends LogRelation
@@ -156,15 +158,25 @@ PeerImpl
   public int getUDPListenPort() {  return delegate.getUDPListenPort();  }
   
 	
-	public boolean[] getAvailable()
+	public final BitFlags getAvailable()
 	{
 		return( delegate.getAvailable());
+	}
+   
+	public boolean isPieceAvailable(int pieceNumber)
+	{
+		return delegate.isPieceAvailable(pieceNumber);
 	}
    
 	public boolean
 	isTransferAvailable()
 	{
 		return( delegate.transferAvailable());
+	}
+	
+	public boolean isDownloadPossible()
+	{
+		return delegate.isDownloadPossible();
 	}
 	
 	public boolean isChoked()
@@ -206,7 +218,7 @@ PeerImpl
 	
 	public PeerStats getStats()
 	{
-		return( new PeerStatsImpl((PeerManagerImpl)manager, this, delegate.getStats()));
+		return( new PeerStatsImpl(manager, this, delegate.getStats()));
 	}
  	
 

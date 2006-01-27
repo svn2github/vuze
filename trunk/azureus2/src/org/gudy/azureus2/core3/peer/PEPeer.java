@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.peer;
 import org.gudy.azureus2.plugins.network.Connection;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 
 /**
@@ -101,8 +102,13 @@ PEPeer
 
   
   
-	public boolean[] getAvailable();
- 
+	public BitFlags getAvailable();
+	/**
+	 * @param pieceNumber int
+	 * @return true if this peers makes this piece available
+	 */
+	public boolean isPieceAvailable(int pieceNumber);
+
 	public boolean
 	transferAvailable();
 	
@@ -132,7 +138,13 @@ PEPeer
    */
 	public boolean isInterested();
 
-  
+	/**
+	 * checks several factors within the object so the caller wouldn't need to
+	 * for convienience and speed.
+	 * @return true if none of several criteria indicate a request can't be made of the peer  
+	 */
+	public boolean isDownloadPossible();
+	
 	public boolean isSeed();
  
 	public boolean isSnubbed();
@@ -238,5 +250,8 @@ PEPeer
 
 	public void setLastPiece(int i);
 	public int getLastPiece();
+	
+	public boolean isAvailabilityAdded();
+	public void clearAvailabilityAdded();
 
 }
