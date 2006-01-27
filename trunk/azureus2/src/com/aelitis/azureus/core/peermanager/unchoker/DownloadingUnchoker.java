@@ -153,7 +153,7 @@ public class DownloadingUnchoker implements Unchoker {
     
     //if we still have remaining slots
     while( best_peers.size() < max_to_unchoke ) { 
-      PEPeer peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, false);  //just pick one optimistically
+      PEPeer peer = UnchokerUtil.getNextOptimisticPeer( all_peers, true, true );  //just pick one optimistically
       if( peer == null )  break;  //no more new unchokes avail
       
       if( !best_peers.contains( peer ) ) {
