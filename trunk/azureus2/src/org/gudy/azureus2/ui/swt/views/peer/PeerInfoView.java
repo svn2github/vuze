@@ -51,6 +51,8 @@ import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.AbstractIView;
 
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+
 /**
  * Piece Map subview for Peers View.
  * Testing bed for SubView stuff.
@@ -85,7 +87,7 @@ public class PeerInfoView extends AbstractIView {
 
 	private ScrolledComposite sc;
 
-	private Canvas peerInfoCanvas;
+	protected Canvas peerInfoCanvas;
 
 	private Color[] blockColors;
 
@@ -338,7 +340,7 @@ public class PeerInfoView extends AbstractIView {
 		}
 	}
 
-	private void refreshInfoCanvas() {
+	protected void refreshInfoCanvas() {
 		Rectangle bounds = peerInfoCanvas.getClientArea();
 		if (bounds.width <= 0 || bounds.height <= 0)
 			return;
@@ -356,8 +358,8 @@ public class PeerInfoView extends AbstractIView {
 			return;
 		}
 
-		boolean[] piecesAvailable = peer.getAvailable();
-		if (piecesAvailable == null) {
+		BitFlags peerHavePieces = peer.getAvailable();
+		if (peerHavePieces == null) {
 			GC gc = new GC(peerInfoCanvas);
 			gc.fillRectangle(bounds);
 			gc.dispose();
@@ -421,14 +423,14 @@ public class PeerInfoView extends AbstractIView {
 
 		int iRow = 0;
 		int iCol = 0;
-		for (int i = 0; i < piecesAvailable.length; i++) {
+		for (int i = 0; i < peerHavePieces.length; i++) {
 			int colorIndex;
 			boolean done = (dm_pieces == null) ? false : dm_pieces[i].isDone();
 			int iXPos = iCol * BLOCK_SIZE;
 			int iYPos = iRow * BLOCK_SIZE;
 
 			if (done) {
-				if (piecesAvailable[i])
+				if (peerHavePieces.flags[i])
 					colorIndex = BLOCKCOLOR_AVAIL_HAVE;
 				else
 					colorIndex = BLOCKCOLOR_NOAVAIL_HAVE;
@@ -443,7 +445,7 @@ public class PeerInfoView extends AbstractIView {
 				int x = iXPos;
 				int width = BLOCK_FILLSIZE;
 				if (partiallyDone) {
-					if (piecesAvailable[i])
+					if (peerHavePieces.flags[i])
 						colorIndex = BLOCKCOLOR_AVAIL_HAVE;
 					else
 						colorIndex = BLOCKCOLOR_NOAVAIL_HAVE;
@@ -462,7 +464,7 @@ public class PeerInfoView extends AbstractIView {
 					x += iNewWidth;
 				}
 
-				if (piecesAvailable[i])
+				if (peerHavePieces.flags[i])
 					colorIndex = BLOCKCOLOR_AVAIL_NOHAVE;
 				else
 					colorIndex = BLOCKCOLOR_NOAVAIL_NOHAVE;

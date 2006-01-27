@@ -24,20 +24,19 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
-
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.disk.*;
+import org.eclipse.swt.graphics.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableCellCore;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 /**
  *
@@ -163,10 +162,11 @@ public class PiecesItem
       gcImage = new GC(image);
     }
 
-    boolean available[] = infoObj.getAvailable();
+    final BitFlags peerHave = infoObj.getAvailable();
     boolean established = ((PEPeerTransport)infoObj).getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
     
-    if (established && available != null && available.length > 0) {
+    if (established && peerHave != null && peerHave.length > 0) {
+        final boolean available[] =peerHave.flags;
     try {
       
       int nbComplete = 0;
