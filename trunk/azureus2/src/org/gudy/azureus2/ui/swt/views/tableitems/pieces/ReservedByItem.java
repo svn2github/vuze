@@ -20,7 +20,6 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
-import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -36,14 +35,14 @@ public class ReservedByItem
 {
   /** Default Constructor */
   public ReservedByItem() {
-    super("reservedby", ALIGN_TRAIL, CoreTableColumn.POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PIECES);
+    super("reservedby", ALIGN_TRAIL, POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PIECES);
     setRefreshInterval(INTERVAL_LIVE);
   }
 
   public void refresh(TableCell cell) {
     PEPiece piece = (PEPiece)cell.getDataSource();
-    PEPeer reservedBy = (piece == null) ? null : piece.getReservedBy();
-    String value = reservedBy == null ? "---" : reservedBy.getIp();    
+    String reservedBy = (piece == null) ? null : piece.getReservedBy();
+    String value = reservedBy == null ? "---" : reservedBy;    
     if( !cell.setSortValue( value ) && cell.isValid() ) {
       return;
     }

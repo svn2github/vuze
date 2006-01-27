@@ -20,12 +20,8 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
-import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -41,19 +37,18 @@ public class WritersItem
 {
   /** Default Constructor */
   public WritersItem() {
-    super("writers", ALIGN_TRAIL, CoreTableColumn.POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PIECES);
+    super("writers", ALIGN_LEAD, POSITION_INVISIBLE, 80, TableManager.TABLE_TORRENT_PIECES);
     setRefreshInterval(4);
   }
 
   public void refresh(TableCell cell) {
     PEPiece piece = (PEPiece)cell.getDataSource();
-    PEPeer[] writers = piece.getWriters();
+    String[] writers = piece.getWriters();
     StringBuffer sb = new StringBuffer();
 
     Map map = new HashMap();
     for(int i = 0 ; i < writers.length ; i++) {
       if (writers[i] != null) {
-      	String sIP = writers[i].getIp();
       	String value = (String)map.get(writers[i]);
       	if (value == null)
       		value = Integer.toString(i);
@@ -64,10 +59,10 @@ public class WritersItem
     }
     
     for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
-			PEPeer writer = (PEPeer) iter.next();
+			String writer =(String)iter.next();
 			if (sb.length() != 0)
 				sb.append(";");
-			sb.append(writer.getIp());
+			sb.append(writer);
 			sb.append("[");
 			sb.append((String)map.get(writer));
 			sb.append("]");
