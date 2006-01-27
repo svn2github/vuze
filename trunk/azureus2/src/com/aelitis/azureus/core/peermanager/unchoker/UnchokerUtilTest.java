@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.network.Connection;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 /**
 * @author MjrTom
@@ -140,8 +141,10 @@ public class UnchokerUtilTest {
         public String getIPHostName(){ return null; }
         public int getTCPListenPort(){ return 0; }
         public int getUDPListenPort(){ return 0; }
-        public boolean[] getAvailable(){ return null; }
+        public BitFlags getAvailable(){ return null; }
+        public boolean isPieceAvailable(int pieceNumber){ return false; }
         public boolean transferAvailable(){ return true; }
+        public boolean isDownloadPossible() { return true; }
         public void setSnubbed(boolean b){}
         public boolean isChokingMe(){ return true;  }
         public boolean isChokedByMe() {  return true;  }
@@ -176,6 +179,8 @@ public class UnchokerUtilTest {
 		public long getTimeSinceConnectionEstablished(){ return 0; }
 		public int getLastPiece() { return -1; }
 		public void setLastPiece(int pieceNumber) {}
+		public boolean isAvailabilityAdded() {return false;};
+		public void clearAvailabilityAdded() {};
       };
       
       peers.add( peer );
