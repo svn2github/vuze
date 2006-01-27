@@ -29,21 +29,19 @@ package org.gudy.azureus2.core3.disk.impl;
  *			2006/Jan/02: refactoring, change booleans to statusFlags
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public class DiskManagerPieceImpl
 	implements DiskManagerPiece
 {
-	private DiskManagerImpl		disk_mgr;
-	private int					piece_index	=-1;
-	private int					statusFlags =PIECE_STATUS_NEEDED; // starting position is that all pieces are needed
+	private final DiskManagerImpl	disk_mgr;
+	private final int				pieceNumber;
+	private volatile int			statusFlags;
 
-	private long				time_last_write;
+	private volatile long			time_last_write;
 	// to save memory the "written" field is only maintained for pieces that are
 	// downloading. A value of "null" means that either the piece hasn't started 
 	// download or that it is complete.
@@ -55,10 +53,10 @@ public class DiskManagerPieceImpl
 	// the same state of affairs.
 	protected boolean[]	written;
 
-	protected DiskManagerPieceImpl(DiskManagerImpl _disk_manager, int _piece_index)
+	protected DiskManagerPieceImpl(DiskManagerImpl _disk_manager, int pieceIndex)
 	{
 		disk_mgr =_disk_manager;
-		piece_index =_piece_index;
+		pieceNumber =pieceIndex;
 	}
 
 	public DiskManager getManager()
@@ -68,7 +66,7 @@ public class DiskManagerPieceImpl
 
 	public int getPieceNumber()
 	{
-		return piece_index;
+		return pieceNumber;
 	}
 
 	/**
@@ -76,7 +74,7 @@ public class DiskManagerPieceImpl
 	 */
 	public int getLength()
 	{
-		if (piece_index !=disk_mgr.getNbPieces() -1)
+		if (pieceNumber !=disk_mgr.getNbPieces() -1)
 			return (disk_mgr.getPieceLength());
 		return (disk_mgr.getLastPieceLength());
 	}
@@ -94,10 +92,10 @@ public class DiskManagerPieceImpl
 	public boolean calcNeeded()
 	{
 		boolean filesNeeded =false;
-		List filesInfo =getFiles();
-		for (int i =0; i <filesInfo.size(); i++)
+		final DMPieceList pieceList =disk_mgr.getPieceList(pieceNumber);
+		for (int i =0; i <pieceList.size(); i++)
 		{
-			DiskManagerFileInfoImpl file =(DiskManagerFileInfoImpl)filesInfo.get(i);
+			DiskManagerFileInfoImpl file =pieceList.get(i).getFile();
 			long fileLength =file.getLength();
 			filesNeeded |=fileLength >0 &&file.getDownloaded() <fileLength &&!file.isSkipped();
 		}
@@ -210,9 +208,9 @@ public class DiskManagerPieceImpl
 	public void setDownloaded(boolean b)
 	{
 		if (b)
-			setDownloaded();
+			statusFlags |=PIECE_STATUS_DOWNLOADED;
 		else
-			clearDownloaded();
+			statusFlags &=~PIECE_STATUS_DOWNLOADED;
 	}
 
 	public boolean calcWritten()
@@ -328,9 +326,9 @@ public class DiskManagerPieceImpl
 	public void setChecking(boolean b)
 	{
 		if (b)
-			setChecking();
+			statusFlags |=PIECE_STATUS_CHECKING;
 		else
-			clearChecking();
+			statusFlags &=~PIECE_STATUS_CHECKING;
 	}
 
 	public boolean calcDone()
@@ -364,7 +362,7 @@ public class DiskManagerPieceImpl
 
 	// this is ONLY used by the disk manager to update the done state while synchronized
 	// i.e. don't use it else where!
-	protected void setDoneSupport(boolean b)
+	protected void setDoneSupport(final boolean b)
 	{
 		if (b)
 			statusFlags |=PIECE_STATUS_DONE;
@@ -381,22 +379,24 @@ public class DiskManagerPieceImpl
 	}
 
 	/**
-	 * Clears [almost] all flags that say this piece has advanced to the
-	 *  point where no more downloading is needed for it.
-	 * Needed, and Avail flags are purposefully NOT affected by this!
+	 * Clears flags that show the piece has progressed to a point where no more downloading is needed for it,
+	 * Including; Needed, Requested, Downloaded, Written, Checking, and Done.
+	 * Avail isn't affected by this.
 	 */
 	public void setRequestable()
 	{
-		statusFlags &=~(PIECE_STATUS_REQUESTED |PIECE_STATUS_REQUESTABLE);
+		statusFlags &=~(PIECE_STATUS_REQUESTABLE);
+		calcNeeded();
 	}
 
 	/**
-	 * @return true if no flag shows we need not download more of this piece
-	 * Needed, Avail, and Requested flags are purposefully NOT considered by this!!
+	 * @return true if no flag shows we need not download more of this piece 
+	 * including; Needed, Requested, Downloaded, Written, Checking, Done
+	 * Avail isn't checked by this.
 	 */
 	public boolean isRequestable()
 	{
-		return (statusFlags &PIECE_STATUS_REQUESTABLE) ==0;
+		return (statusFlags &PIECE_STATUS_REQUESTABLE) ==PIECE_STATUS_NEEDED;
 	}
 
 	/**
@@ -428,17 +428,4 @@ public class DiskManagerPieceImpl
 		}
 	}
 
-	// maps out the list of files this piece spans
-	public List getFiles()
-	{
-		List files =new ArrayList();
-		DMPieceList pieceList =disk_mgr.getPieceList(piece_index);
-
-		for (int i =0; i <pieceList.size(); i++ )
-		{
-			files.add((pieceList.get(i)).getFile());
-		}
-		return files;
-	}
-	
 }
