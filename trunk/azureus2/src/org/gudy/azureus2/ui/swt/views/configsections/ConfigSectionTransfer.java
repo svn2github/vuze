@@ -247,25 +247,23 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
     BooleanParameter allowSameIP = new BooleanParameter(cTransfer, "Allow Same IP Peers", false, "ConfigView.label.allowsameip");
     allowSameIP.setLayoutData( gridData );
     
-    // prioritise 1st piece
-    gridData = new GridData();
-    gridData.horizontalSpan = 4;
-    BooleanParameter firstPiece = new BooleanParameter(cTransfer, "Prioritize First Piece", false, "ConfigView.label.prioritizefirstpiece");
-    firstPiece.setLayoutData( gridData );
-    
     // lazy bit field
     gridData = new GridData();
     gridData.horizontalSpan = 4;
     BooleanParameter lazybf = new BooleanParameter(cTransfer, "Use Lazy Bitfield", false, "ConfigView.label.lazybitfield");
     lazybf.setLayoutData( gridData );
     
-    	/* BAD BAD BAD
-		// prioritise most completed files
+    // prioritise first/last pieces
+    gridData = new GridData();
+    gridData.horizontalSpan = 4;
+    BooleanParameter firstPiece = new BooleanParameter(cTransfer, "Prioritize First Piece", false, "ConfigView.label.prioritizefirstpiece");
+    firstPiece.setLayoutData( gridData );
+    
+	// Further prioritize High priority files according to % complete and size of file
     gridData = new GridData();
     gridData.horizontalSpan = 4;
     BooleanParameter mostCompletedFiles = new BooleanParameter(cTransfer, "Prioritize Most Completed Files", false, "ConfigView.label.prioritizemostcompletedfiles");
     mostCompletedFiles.setLayoutData(gridData);
-    */
     
     // ignore ports
     
