@@ -43,6 +43,7 @@ import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 public class 
 PeerForeignDelegate
@@ -50,13 +51,14 @@ PeerForeignDelegate
 {
 		// this implementation supports read-only peers (i.e. download only)
 
-	protected int				_lastPiece =-1;
+	protected volatile int		_lastPiece =-1;
 
 	private PeerManagerImpl		manager;
 	private Peer				foreign;
 	
 	private long	create_time		= SystemTime.getCurrentTime();
-	private long	last_data_received_time;
+	private long	last_data_received_time =-1;
+	protected long	last_data_message_received_time =-1;
 	private int		reserved_piece	= -1;
 	
 	private Map		data;
@@ -94,6 +96,11 @@ PeerForeignDelegate
     transferAvailable() 
     {
     	return( foreign.isTransferAvailable());
+    }
+    
+    public boolean isDownloadPossible()
+    {
+    	return foreign.isDownloadPossible();
     }
     
 	public void
@@ -216,18 +223,36 @@ PeerForeignDelegate
   		return( 0 );
   	}
   
-  	public long 
-  	getTimeSinceLastDataMessageReceived() 
-  	{
-  		long	now = SystemTime.getCurrentTime();
-  		
-  		if ( now > last_data_received_time ){
-  			
-  			return( now - last_data_received_time );
-  		}
-  		
-  		return( 0 );
-  	}
+    public long getTimeSinceLastDataMessageReceived() {
+        if (last_data_message_received_time ==-1)
+          return -1;	//never received
+        
+        long now =SystemTime.getCurrentTime();
+        long time_since =now -last_data_message_received_time;
+        
+        if (time_since <0)
+        {	//time went backwards
+        	last_data_message_received_time =now;
+        	time_since =0;
+        }
+        return time_since;    
+      }
+  
+	public long getTimeSinceGoodDataReceived()
+	{
+		if (last_data_received_time ==-1)
+			return -1;	// never received
+		long now =SystemTime.getCurrentTime();
+		long time_since =now -last_data_received_time;
+
+		if (time_since <0)
+		{	// time went backwards
+			last_data_received_time =now;
+			time_since =0;
+		}
+
+		return time_since;
+	}
   
   	public long 
   	getTimeSinceLastDataMessageSent() 
@@ -293,13 +318,17 @@ PeerForeignDelegate
   
   
   
-	public boolean[] 
+	public BitFlags 
 	getAvailable()
 	{
 		return( foreign.getAvailable());
 	}
 
- 
+	public boolean isPieceAvailable(int pieceNumber)
+	{
+		return foreign.isPieceAvailable(pieceNumber);
+	}
+
 	public void 
 	setSnubbed(boolean b)
 	{
@@ -549,5 +578,14 @@ PeerForeignDelegate
      * Nothing to do if called
      */
     public void checkInterested() {}
+    
+    /**
+     * Apaprently nothing significant to do if called
+     */
+	public boolean isAvailabilityAdded() {return false;}
 
+    /**
+     * Nothing to do if called
+     */
+	public void clearAvailabilityAdded() {};
 }
