@@ -281,7 +281,7 @@ public class IncomingSocketChannelManager
 	            handshakeFailure( 
 	            	Throwable failure_msg ) 
 	            {
-	            		// we can have problems with sockets stuck in a CLOSE_WAIT state if we just
+	            		// we can have problems with sockets stuck in a TIME_WAIT state if we just
 	            		// close an incoming channel - to clear things down properly the client needs
 	            		// to initiate the close. So what we do is send some random bytes to the client
 	            		// under the assumption this will cause them to close, and we delay our socket close
@@ -290,7 +290,7 @@ public class IncomingSocketChannelManager
 	            	try{
 	            		Random	random = new Random();
 	            		
-	            		byte[]	random_bytes = new byte[64+random.nextInt(512-64)];
+	            		byte[]	random_bytes = new byte[68+random.nextInt(128-68)];
 	            		
 	            		random.nextBytes( random_bytes );
 	            		
