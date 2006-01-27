@@ -28,15 +28,11 @@ package org.gudy.azureus2.core3.peer.impl;
  *			2006/Jan/02: refactoring piece picking to elsewhere, and consolidations
  */
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
-import org.gudy.azureus2.core3.peer.PEPeer;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -44,18 +40,18 @@ public class
 PEPieceImpl
 implements PEPiece
 {
-	private DiskManagerPiece	dm_piece;
+	final private DiskManagerPiece	dm_piece;
 	public PEPeerManager		manager;
 
 	private long		creation_time;
+	private int			nbBlocks;		// number of blocks in this piece
 
-	private boolean[]	requested;
-	private boolean[]	downloaded;
+	private final String[]	requested;
+	private final boolean[]	downloaded;
+	private final String[] 	writers;
+	private List 			writes;
 
-	private PEPeer[] 	writers;
-	private List 		writes;
-
-	private PEPeer		reservedBy;
+	private String			reservedBy;	// using address for when they send bad/disconnect/reconnect
 
 	//In end game mode, this limitation isn't used
 	private int			speed;			//slower peers dont slow down fast pieces too much
@@ -74,11 +70,11 @@ implements PEPiece
 		manager =_manager;
 		dm_piece =_dm_piece;
 
-		int nbBlocs =dm_piece.getNbBlocks();
+		nbBlocks =dm_piece.getNbBlocks();
 
-		downloaded =new boolean[nbBlocs];
-		requested =new boolean[nbBlocs];
-		writers =new PEPeer[nbBlocs];
+		requested =new String[nbBlocks];
+		downloaded =new boolean[nbBlocks];
+		writers =new String[nbBlocks];
 		writes =new ArrayList(0);
 
 		creation_time =SystemTime.getCurrentTime();
@@ -90,26 +86,18 @@ implements PEPiece
 			speed =0;
 	}
 
+//	public int calcAvailability()
+//	{
+//		if (manager ==null)
+//			return 0;
+//		return manager.calcAvailability(dm_piece.getPieceNumber());
+//	}
+
 	public int getAvailability()
 	{
-		if (manager ==null)
-			return 0;
-		return manager.getAvailability(dm_piece.getPieceNumber());
-	}
-
-	public boolean[] getRequested()
-	{
-		return (requested);
-	}
-
-	public boolean[] getDownloaded()
-	{
-		return (downloaded);
-	}
-
-	public boolean[] getWritten()
-	{
-		return dm_piece.getWritten();
+		if (manager !=null)
+			return manager.getAvailability(dm_piece.getPieceNumber());
+		return 0;
 	}
 
 	public int getNbWritten()
@@ -117,52 +105,76 @@ implements PEPiece
 		return dm_piece.getNbWritten();
 	}
 	
+	public boolean isRequested(int blockNumber)
+	{
+		return requested[blockNumber] !=null;
+	}
+
+	public boolean isDownloaded(int blockNumber)
+	{
+		return downloaded[blockNumber];
+	}
+
+	public boolean[] getWritten()
+	{
+		return dm_piece.getWritten();
+	}
+
 	public void setBlockWritten(int blockNumber)
 	{
 		downloaded[blockNumber] =true;
 	}
 
-	public void setWritten(PEPeer peer,int blockNumber)
+	public void setWritten(PEPeerTransport peer,int blockNumber)
 	{
-		writers[blockNumber] =peer;
+		writers[blockNumber] =peer.getIp();
 		dm_piece.setBlockWritten(blockNumber);
 	}
 	
 	// This method is used to clear the requested information
 	public void clearRequested(int blockNumber)
 	{
-		requested[blockNumber] =false;
+		requested[blockNumber] =null;
 	}
 
-	// find a block w/o requesting it
-	public int getBlock()
+	// determines if a piece has any unrequested blocks
+	public boolean hasUnrequestedBlock()
 	{
-		for (int i =0; i <requested.length; i++ )
+		for (int i =0; i <nbBlocks; i++ )
 		{
-			if (!requested[i] &&!downloaded[i] &&!dm_piece.isWritten(i))
-				return i;
+			if (!downloaded[i] &&requested[i] ==null &&!dm_piece.isWritten(i))
+				return true;
 		}
-		return -1;
+		// this should have only been called because the piece was believed to have free blocks
+		// mark it as not having any free blocks now
+		dm_piece.setRequested();
+		return false;
 	}
 
 	/**
-	 * This method will return the first non requested block and
+	 * This method scans a piece for the first unrequested block.  Upon finding it,
+	 * it counts how many are unrequested up to the quantity of want.
+	 * The blocks are marked as requested by the PEPeer
 	 * will mark it as requested, unless it's been too long since
 	 * anything was written to the piece, in which case it'll return
 	 * the first non-written block so it can be re-requested
 	 * Assumption - single threaded access to this
 	 */
-	public int getAndMarkBlock()
+	public int[] getAndMarkBlocks(PEPeerTransport peer, int wants)
 	{
-		for (int i =0; i <requested.length; i++ )
+		int blocksFound =0;
+		// scan piece to find first free block
+		for (int i =0; i <nbBlocks; i++)
 		{
-			if (!requested[i] &&!downloaded[i] &&!dm_piece.isWritten(i))
+			while (blocksFound <=wants &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound] &&requested[i +blocksFound] ==null &&!dm_piece.isWritten(i +blocksFound))
 			{
-				requested[i] =true;
-				return i;
+				requested[i +blocksFound] =peer.getIp();
+				blocksFound++;
 			}
+			if (blocksFound >0)
+				return new int[] {i, blocksFound};
 		}
-		return -1;
+		return new int[] {-1, 0};
 	}
 
 	/**
@@ -171,16 +183,19 @@ implements PEPiece
 	 */
 	public void unmarkBlock(int blockNumber)
 	{
-		requested[blockNumber] =downloaded[blockNumber];
+		requested[blockNumber] =downloaded[blockNumber] ?writers[blockNumber] :null;
 	}
 
 	/**
 	 * Assumption - single threaded with getAndMarkBlock
 	 */
-	public boolean markBlock(int blockNumber)
+	public boolean markBlock(PEPeerTransport peer, int blockNumber)
 	{
 		if (!downloaded[blockNumber])
-			return requested[blockNumber] =true;
+		{
+			requested[blockNumber] =peer.getIp();
+			return true;
+		}
 		return false;
 	}
 	
@@ -204,13 +219,6 @@ implements PEPiece
 	public int getNbBlocks()
 	{
 		return downloaded.length;
-	}
-
-	/**
-	 * @param manager the PEPeerManager managing this piece
-	 */
-	public void setManager(PEPeerManager _manager) {
-		manager = _manager;
 	}
 
 	public List getPieceWrites()
@@ -289,7 +297,7 @@ implements PEPiece
 			
 			PEPieceWriteImpl write = (PEPieceWriteImpl) iter.next();
 			
-			if ( !write.getSender().getIp().equals( ip )){
+			if ( !write.getSender().equals( ip )){
 				
 				iter.remove();
 			}
@@ -302,11 +310,12 @@ implements PEPiece
 	{
 		dm_piece.reset();
 
-		int nbBlocs =downloaded.length;
-
-		downloaded =new boolean[nbBlocs];
-		requested =new boolean[nbBlocs];
-		writers =new PEPeer[nbBlocs];
+		for (int i =0; i <nbBlocks; i++)
+		{
+			downloaded[i] =false;
+			requested[i] =null;
+			writers[i] =null;
+		}
 
 		reservedBy =null;
 	}
@@ -326,14 +335,14 @@ implements PEPiece
 	public void 
 	addWrite(
 		int blockNumber,
-		PEPeer sender, 
+		String sender, 
 		byte[] hash,
 		boolean correct	)
 	{
 		addWrite( new PEPieceWriteImpl( blockNumber, sender, hash, correct ));
 	}
 
-	public PEPeer[] getWriters()
+	public String[] getWriters()
 	{
 		return writers;
 	}
@@ -367,12 +376,12 @@ implements PEPiece
 		return manager;
 	}
 
-	public void setReservedBy(PEPeer peer)
+	public void setReservedBy(String peer)
 	{
 		this.reservedBy =peer;
 	}
 
-	public PEPeer getReservedBy()
+	public String getReservedBy()
 	{
 		return this.reservedBy;
 	}
@@ -380,17 +389,17 @@ implements PEPiece
 	public void reDownloadBlock(int blockNumber)
 	{
 		downloaded[blockNumber] =false;
-		requested[blockNumber] =false;
+		requested[blockNumber] =null;
 		dm_piece.reDownloadBlock(blockNumber);
 	}
 
-	public void reDownloadBlocks(String writer)
+	public void reDownloadBlocks(String culprit)
 	{
 		for (int i =0; i <writers.length; i++ )
 		{
-			PEPeer peer =writers[i];
+			String writer =writers[i];
 
-			if (peer !=null &&peer.getIp().equals(writer))
+			if (writer !=null &&writer.equals(culprit))
 				reDownloadBlock(i);
 		}
 	}
@@ -409,10 +418,10 @@ implements PEPiece
 	public int getNbRequests()
 	{
 		int result =0;
-		for (int i =dm_piece.getNbBlocks() -1; i >=0; i-- )
+		for (int i =0; i <nbBlocks; i++)
 		{
-			if (!downloaded[i] &&requested[i])
-				result++ ;
+			if (!downloaded[i] &&requested[i] !=null)
+				result++;
 		}
 		return result;
 	}
@@ -420,11 +429,13 @@ implements PEPiece
 	public int getNbUnrequested()
 	{
 		int result =0;
-		for (int i =dm_piece.getNbBlocks() -1; i >=0; i-- )
+		for (int i =0; i <nbBlocks; i++)
 		{
-			if (!downloaded[i] &&!requested[i])
-				result++ ;
+			if (!downloaded[i] &&requested[i] ==null)
+				result++;
 		}
+		if (result ==0)
+			dm_piece.setRequested();
 		return result;
 	}
 
@@ -466,20 +477,25 @@ implements PEPiece
 		return dm_piece.isWritten();
 	}
 
-	public boolean isRequestable()
-	{
-		return dm_piece.isRequestable();
-	}
-
 	public void setRequestable()
 	{
 		dm_piece.setRequestable();
 	}
 	
-/*	
 	public boolean isChecking()
 	{
 		return dm_piece.isChecking();
+	}
+
+/*
+	public int getNbWritten()
+	{
+		return dm_piece.getNbWritten();
+	}
+	
+	public boolean isRequestable()
+	{
+		return dm_piece.isRequestable();
 	}
 
 	public void setChecking(boolean b)
