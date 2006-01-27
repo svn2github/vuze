@@ -101,13 +101,12 @@ DiskManagerImpl
 	
 	
 	private int state_set_via_method;
-	private String errorMessage = "";
+	protected String errorMessage = "";
 
 	private int pieceLength;
 	private int lastPieceLength;
 
 	private int			nbPieces;		// total # pieces in this torrent
-	private int			nbPiecesDone;	// number of pieces that are already Done
 	private long		totalLength;	// total # bytes in this torrent
 	private int			percentDone; 
 	private long		allocated;
@@ -124,7 +123,6 @@ DiskManagerImpl
 	private RDResumeHandler			resume_handler;
 	private DMPieceMapper			piece_mapper;
 	
-	
 	private PiecePicker				piecePicker;
 	
 	private DiskManagerPieceImpl[]	pieces;
@@ -135,7 +133,7 @@ DiskManagerImpl
 
 	private boolean alreadyMoved = false;
 
-	private boolean				skipped_file_set_changed;
+	private boolean				skipped_file_set_changed =true;	// go over them once when starting
 	private long				skipped_file_set_size;
 	private long				skipped_but_downloaded;
 	
@@ -285,23 +283,20 @@ DiskManagerImpl
 		}
 
 		totalLength	= piece_mapper.getTotalLength();
-		
 		remaining 	= totalLength;
 
 		nbPieces 	= torrent.getNumberOfPieces();
 		
 		pieceLength		= (int)torrent.getPieceLength();
-		
 		lastPieceLength	= piece_mapper.getLastPieceLength();
 		
 		pieces		= new DiskManagerPieceImpl[nbPieces];
-		nbPiecesDone =0;
 		for (int i =0; i <nbPieces; i++)
 		{
 			pieces[i] =new DiskManagerPieceImpl(this, i);
-			if (pieces[i].isDone())
-				nbPiecesDone++;
 		}
+
+		piecePicker =PiecePickerFactory.create(this);
 
 		reader			= DMAccessFactory.createReader(this);
 		
@@ -311,7 +306,6 @@ DiskManagerImpl
 		
 		resume_handler	= new RDResumeHandler( this, checker );
 	
-		piecePicker		=PiecePickerFactory.create(this);
 	}
 
 	public void 
@@ -438,6 +432,8 @@ DiskManagerImpl
 			return;
 		}
 
+		piecePicker.start();
+		
 		resume_handler.start();
 		  
 		if ( newFiles == 0 ){
@@ -455,8 +451,6 @@ DiskManagerImpl
 			
 			return;
 		}
-
-		piecePicker.start();
 		
 			// in all the above cases we want to continue to here if we have been "stopped" as
 			// other components require that we end up either FAULTY or READY
@@ -489,8 +483,6 @@ DiskManagerImpl
 					// to interrupt an alloc/recheck process that might be holding up the start
 					// operation
 				
-				piecePicker.stop();
-
 			   	checker.stop();
 		    	
 			   	writer.stop();
@@ -498,7 +490,9 @@ DiskManagerImpl
 				reader.stop();
 				
 				resume_handler.stop();
-								
+
+				piecePicker.stop();
+
 				return;
 			}
 			
@@ -515,8 +509,6 @@ DiskManagerImpl
 		
 		boolean	checking = checker.getCompleteRecheckStatus() != -1;
 		
-		piecePicker.stop();
-		
     	checker.stop();
     	
     	writer.stop();
@@ -524,7 +516,6 @@ DiskManagerImpl
 		reader.stop();
 		
 		resume_handler.stop();
-		
 		if ( files != null ){
 			
 			for (int i = 0; i < files.length; i++){
@@ -565,9 +556,15 @@ DiskManagerImpl
 		
 		saveState();
 		
-			// can't be used after a stop so we might as well clear down the listeners
-		
+		piecePicker.stop();
+
+		// can't be used after a stop so we might as well clear down the listeners
 		listeners.clear();
+	}
+	
+	public PiecePicker getPiecePicker()
+	{
+		return piecePicker;
 	}
 	
 	public boolean
@@ -1072,94 +1069,87 @@ DiskManagerImpl
 		DiskManagerPieceImpl	dmPiece,
 		boolean					done )
 	{
-		int	piece_number = dmPiece.getPieceNumber();
-		int	piece_length = dmPiece.getLength();
-		DMPieceList piece_list = pieceMap[piece_number];
+		int piece_number =dmPiece.getPieceNumber();
+		int piece_length =dmPiece.getLength();
+		DMPieceList piece_list =pieceMap[piece_number];
 
-		try{
-			file_piece_mon.enter();					
-			
-			if ( dmPiece.isDone() != done ){
-				
-				dmPiece.setDoneSupport( done );
-	
-				if ( done ){
-					
-					remaining -= piece_length;
-					nbPiecesDone++;
-				}else{
-					remaining += piece_length;
-					nbPiecesDone--;
-				}
-									
-				for (int i = 0; i < piece_list.size(); i++) {
-								
-					DMPieceMapEntry piece_map_entry = piece_list.get(i);
-								
-					DiskManagerFileInfoImpl	this_file = piece_map_entry.getFile();
-						
-					long file_length = this_file.getLength();
-					
-					long file_done = this_file.getDownloaded();
-						
-					long file_done_before = file_done;
-					
-					if ( done ){
-						
-						file_done += piece_map_entry.getLength();
-						
-					}else{
-						
-						file_done -= piece_map_entry.getLength();
+		try
+		{
+			file_piece_mon.enter();
+
+			if (dmPiece.isDone() !=done)
+			{
+				dmPiece.setDoneSupport(done);
+
+				if (done)
+					remaining -=piece_length;
+				else
+					remaining +=piece_length;
+
+				for (int i =0; i <piece_list.size(); i++)
+				{
+
+					DMPieceMapEntry piece_map_entry =piece_list.get(i);
+
+					DiskManagerFileInfoImpl this_file =piece_map_entry.getFile();
+
+					long file_length =this_file.getLength();
+
+					long file_done =this_file.getDownloaded();
+
+					long file_done_before =file_done;
+
+					if (done)
+						file_done +=piece_map_entry.getLength();
+					else
+						file_done -=piece_map_entry.getLength();
+
+					if (file_done <0)
+					{
+						Debug.out("piece map entry length negative");
+
+						file_done =0;
+
+					} else if (file_done >file_length)
+					{
+						Debug.out("piece map entry length too large");
+
+						file_done =file_length;
 					}
-					
-					if ( file_done < 0 ){
-						
-						Debug.out( "piece map entry length negative" );
-						
-						file_done = 0;
-						
-					}else if ( file_done > file_length ){
-						
-						Debug.out( "piece map entry length too large" );
-						
-						file_done = file_length;
+
+					if (this_file.isSkipped())
+					{
+						skipped_but_downloaded +=(file_done -file_done_before);
 					}
-					
-					if ( this_file.isSkipped()){
-						
-						skipped_but_downloaded += ( file_done - file_done_before );
-					}
-					
-					this_file.setDownloaded( file_done );
-						
-						// change file modes based on whether or not the file is complete or not
-					
-					if (	file_done == file_length &&
-							this_file.getAccessMode() == DiskManagerFileInfo.WRITE){
-												
-						try{
-							this_file.setAccessMode( DiskManagerFileInfo.READ );
-									
-						}catch (Exception e) {
-							
-							setFailed( "Disk access error - " + Debug.getNestedExceptionMessage(e));
-							
-							Debug.printStackTrace( e );
+
+					this_file.setDownloaded(file_done);
+
+					// change file modes based on whether or not the file is complete or not
+					if (file_done ==file_length &&this_file.getAccessMode() ==DiskManagerFileInfo.WRITE)
+					{
+						try
+						{
+							this_file.setAccessMode(DiskManagerFileInfo.READ);
+
+						} catch (Exception e)
+						{
+							setFailed("Disk access error - " +Debug.getNestedExceptionMessage(e));
+
+							Debug.printStackTrace(e);
 						}
-						
-						// note - we don't set the access mode to write if incomplete as we may 
+
+						// note - we don't set the access mode to write if incomplete as we may
 						// be rechecking a file and during this process the "file_done" amount
 						// will not be file_length until the end. If the file is read-only then
 						// changing to write will cause trouble!
 					}
 				}
 			}
-		}finally{
-				
+		} finally
+		{
 			file_piece_mon.exit();
-		}			
-		
+		}
+
 		listeners.dispatch(LDT_PIECE_DONE_CHANGED, dmPiece);
 	}
 
@@ -1502,7 +1492,7 @@ DiskManagerImpl
 								+ " > pLength=" + pLength));
 		  return false;
 		}
-		if(!getPieces()[pieceNumber].isDone()) {
+		if(!pieces[pieceNumber].isDone()) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
 						"CHECKBLOCK2: pieceNumber=" + pieceNumber + " not done"));
@@ -1631,7 +1621,7 @@ DiskManagerImpl
 	      File[]	old_files	= new File[files.length];
 	      
 	      for (int i=0; i < files.length; i++) {
-	          	      	  
+	          	    	  
 	          File old_file = files[i].getFile(false);
 	          
 	          File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
@@ -1685,33 +1675,32 @@ DiskManagerImpl
 	          File newFile = new File(destDir, old_file.getName());
 	
 	          new_files[i]	= newFile;
-		             
-	          if ( newFile.exists()){
+
+		          if ( newFile.exists()){
 		          	
 	            String msg = "" + linked_file.getName() + " already exists in MoveTo destination dir";
+		            
+		            if (Logger.isEnabled())
+		            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+		            			msg));
+		            
+		            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+		            		LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
+		            		new String[] { old_file.getName() });
 	            
-	            if (Logger.isEnabled())
-	            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-	            			msg));
-	            
-	            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-	            		LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
-	            		new String[] { old_file.getName() });
-            
-	            
-	            Debug.out(msg);
-	            
-	            return;
-	            
-	          }  
-	          
-    		  destDir.mkdirs();
-	      }
+		            
+		            Debug.out(msg);
+		            
+		            return;
+		            
+		          }  
+	    		  destDir.mkdirs();
+	    	  }
 	      
 	      for (int i=0; i < files.length; i++){
 	      		 	          
 	          File new_file = new_files[i];
-	          	 
+	          	          
 	          if ( new_file == null ){
 	        	
 	        	  	// not moving this one
@@ -1771,16 +1760,17 @@ DiskManagerImpl
 	      }
 	      
 	      	//remove the old dir
-	      	      
+	      
 	      if (	save_location.isDirectory()){
-	    	  
+	      
 	    	  FileUtil.recursiveEmptyDirDelete( save_location, false );
 	      }
 	        
 	      download_manager.setTorrentSaveDir( move_to_dir );
 	      
 	      	//move the torrent file as well
-	       
+	      
+	      
 	      if ( move_torrent ){
 	      	
 	          String oldFullName = download_manager.getTorrentFileName();
@@ -1896,7 +1886,7 @@ DiskManagerImpl
 			if (torrent.isSimpleTorrent()){
 
 				File	target = new File( torrent_save_dir, torrent_save_file );
-				
+
 				target = FMFileManagerFactory.getSingleton().getFileLink( torrent, target.getCanonicalFile());
 				
 				FileUtil.deleteWithRecycle( target );
@@ -1904,7 +1894,6 @@ DiskManagerImpl
 			}else{
 
                 PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
-                
                 if( Constants.isOSX &&
                       torrent_save_file.length() > 0 &&
                       COConfigurationManager.getBooleanParameter("Move Deleted Data To Recycle Bin" ) &&
@@ -1923,7 +1912,7 @@ DiskManagerImpl
                     	}else{
                     		
                     		deleteDataFileContents( torrent, torrent_save_dir, torrent_save_file );
-                    	}
+                    }
                     }
                     catch(PlatformManagerException ex)
                     {
@@ -2045,7 +2034,7 @@ DiskManagerImpl
             byte[][]path_comps = files[i].getPathComponents();
 
             String	path_str	= root_path;
-            
+
             for (int j=0;j<path_comps.length;j++){
 
                 try{
@@ -2065,7 +2054,7 @@ DiskManagerImpl
             File file = new File(path_str);
 
             File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, file );
-            
+
             boolean	delete;
             
             if ( linked_file == file ){
@@ -2077,7 +2066,7 @@ DiskManagerImpl
             		// only consider linked files for deletion if they are in the torrent save dir
             		// i.e. a rename probably instead of a retarget to an existing file elsewhere
             	
-            	try{
+                try{
             		if ( linked_file.getCanonicalPath().startsWith(new File( root_path ).getCanonicalPath())){
             			
             			file	= linked_file;
@@ -2774,19 +2763,19 @@ DiskManagerImpl
 		return( recheck_scheduler );
 	}
 
-	public int getNbPiecesDone()
-	{
-		return nbPiecesDone;
-	}
-
-	public PiecePicker getPiecePicker()
-	{
-		return piecePicker;
-	}
-
 	public boolean isInteresting(int pieceNumber)
 	{
 		return pieces[pieceNumber].isInteresting();
+	}
+
+	public boolean isDone(int pieceNumber)
+	{
+		return pieces[pieceNumber].isDone();
+	}
+	
+	public boolean isRequestable(int pieceNumber)
+	{
+		return pieces[pieceNumber].isRequestable();
 	}
 
 /*
@@ -2805,19 +2794,9 @@ DiskManagerImpl
 		pieces[pieceNumber].setRequested();
 	}
 
-	public boolean isDone(int pieceNumber)
-	{
-		return pieces[pieceNumber].isDone();
-	}
-	
 	public boolean isRequested(int pieceNumber)
 	{
 		return pieces[pieceNumber].isRequested();
-	}
-
-	public boolean isRequestable(int pieceNumber)
-	{
-		return pieces[pieceNumber].isRequestable();
 	}
 
 	public long getLastWriteTime(int pieceNumber)
