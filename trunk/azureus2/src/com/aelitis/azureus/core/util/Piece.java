@@ -30,20 +30,21 @@ package com.aelitis.azureus.core.util;
 
 public interface Piece
 {
-	public static final int	PIECE_STATUS_NEEDED		=1;		//want to have the piece
-	public static final int	PIECE_STATUS_AVAIL		=1 <<1;	//piece is available from others
-	public static final int	PIECE_STATUS_REQUESTED	=1 <<2;	//piece fully requested
-	public static final int	PIECE_STATUS_DOWNLOADED	=1 <<3;	//piece fully downloaded
-	public static final int	PIECE_STATUS_WRITTEN	=1 <<4;	//piece fully written to storage
-	public static final int	PIECE_STATUS_CHECKING	=1 <<5;	//piece is being hash checked
-	public static final int	PIECE_STATUS_DONE		=1 <<7;	//everything completed - piece 100%
+	public static final int	PIECE_STATUS_NEEDED		=0x00000001;	//want to have the piece
+	public static final int	PIECE_STATUS_AVAIL		=0x00000002;	//piece is available from others
+	public static final int	PIECE_STATUS_REQUESTED	=0x00000004;	//piece fully requested
+	public static final int	PIECE_STATUS_DOWNLOADED	=0x00000010;	//piece fully downloaded
+	public static final int	PIECE_STATUS_WRITTEN	=0x00000020;	//piece fully written to storage
+	public static final int	PIECE_STATUS_CHECKING	=0x00000040;	//piece is being hash checked
+	public static final int	PIECE_STATUS_DONE		=0x00000080;	//everything completed - piece 100%
 
-	public static final int	PIECE_STATUS_REQUESTABLE =
-		(PIECE_STATUS_DOWNLOADED |PIECE_STATUS_WRITTEN |PIECE_STATUS_CHECKING |PIECE_STATUS_DONE);
+	public static final int	PIECE_STATUS_NEEDED_DONE =0x00000081;
 
-	public static final int	PIECE_STATUS_NEEDED_DONE =(PIECE_STATUS_NEEDED |PIECE_STATUS_DONE);
+	// Needed isn't included in this since it has to be set/cleared independently
+	public static final int	PIECE_STATUS_REQUESTABLE =0x000000F5;	//(PIECE_STATUS_NEEDED |PIECE_STATUS_REQUESTED |PIECE_STATUS_DOWNLOADED |PIECE_STATUS_WRITTEN |PIECE_STATUS_CHECKING |PIECE_STATUS_DONE);
 
 	public void			clearChecking();
+	public boolean		isChecking();
 
 	/**
 	 * @return int the number of bytes in the piece
@@ -53,13 +54,11 @@ public interface Piece
 	public int			getPieceNumber();
 
 	public boolean		isWritten();					//TODO: double check usage of this
-	public int			getNbWritten();
 	public boolean[]	getWritten();
 
 	public void			reDownloadBlock(int blockNumber);
 	public void			reset();
 	
-	public boolean		isRequestable();
 	public void			setRequestable();
 
 }
