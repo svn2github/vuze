@@ -22,22 +22,16 @@
 
 package com.aelitis.azureus.plugins.extseed;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
-import org.gudy.azureus2.plugins.peers.PeerReadRequest;
-import org.gudy.azureus2.plugins.peers.Peer;
-import org.gudy.azureus2.plugins.peers.PeerListener;
-import org.gudy.azureus2.plugins.peers.PeerManager;
-import org.gudy.azureus2.plugins.peers.PeerStats;
+import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.Monitor;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 public class 
 ExternalSeedPeer
@@ -52,7 +46,7 @@ ExternalSeedPeer
 	private	ExternalSeedReader		reader;			
 	
 	private byte[]					peer_id;
-	private boolean[]				available;
+	private BitFlags				available;
 	private boolean					snubbed;
 	private boolean					is_optimistic;
 	
@@ -71,9 +65,8 @@ ExternalSeedPeer
 		
 		Torrent	torrent = reader.getTorrent();
 				
-		available	= new boolean[(int)torrent.getPieceCount()];
-		
-		Arrays.fill( available, true );
+		available	= new BitFlags((int)torrent.getPieceCount());
+		available.setAll();
 		
 		peer_id	= new byte[20];
 		
@@ -258,16 +251,26 @@ ExternalSeedPeer
 	}
 	
 	
-	public boolean[] 
+	public final BitFlags 
 	getAvailable()
 	{
 		return( available );
 	}
    
+	public final boolean isPieceAvailable(int pieceNumber)
+	{
+		return available.flags[pieceNumber];
+	}
+	              
 	public boolean
 	isTransferAvailable()
 	{
 		return( reader.isActive());
+	}
+	
+	public boolean isDownloadPossible()
+	{
+		return peer_added &&reader.isActive() &&available.nbSet >0;
 	}
 	
 	public boolean 

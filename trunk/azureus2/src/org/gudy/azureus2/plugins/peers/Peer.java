@@ -33,6 +33,8 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+
 public interface 
 Peer 
 {
@@ -73,10 +75,24 @@ Peer
  
 	public int getPort();
 	
-	public boolean[] getAvailable();
+	public BitFlags getAvailable();
+	/**
+	 * @param pieceNumber int
+	 * @return true if this peers makes this piece available
+	 */
+	public boolean isPieceAvailable(int pieceNumber);
    
 	public boolean
 	isTransferAvailable();
+	
+	/**
+	 * This is much list isTransferAvailable(), except is more comprehensive.
+	 * That is; it checks a few more factors, within the object for speed,
+	 * so that a more timely status is considered and the caller doesn't need
+	 * to try to check each thing on it's own.
+	 * @return true if several factors say downloading can be tried.
+	 */
+	public boolean isDownloadPossible();
 	
 	public boolean isChoked();
 
