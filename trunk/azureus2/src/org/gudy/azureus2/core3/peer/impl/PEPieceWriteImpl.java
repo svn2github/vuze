@@ -26,24 +26,23 @@ package org.gudy.azureus2.core3.peer.impl;
  *
  */
 
-import org.gudy.azureus2.core3.peer.*;
 
 public class 
 PEPieceWriteImpl
 {	
 	protected int blockNumber;
-	protected PEPeer sender;
+	protected String sender;
 	protected byte[] hash;
 	protected boolean correct;
 		
-	public PEPieceWriteImpl(int blockNumber,PEPeer sender, byte[] hash,boolean correct) {
+	public PEPieceWriteImpl(int blockNumber,String sender, byte[] hash,boolean correct) {
 		this.blockNumber = blockNumber;
 		this.sender = sender;
 		this.hash = hash;
 		this.correct = correct;
 	}
 	
-	public PEPeer
+	public String
 	getSender()
 	{
 		return( sender );
