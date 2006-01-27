@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.net.*;
 import java.nio.channels.*;
 import java.util.*;
+import java.util.Map.Entry;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -81,7 +82,9 @@ public class ConnectDisconnectManager {
   
   private final HashMap pending_attempts = new HashMap();
   
-  private final LinkedList pending_closes = new LinkedList();
+  private final LinkedList 	pending_closes 	= new LinkedList();
+  private final Map			delayed_closes	= new HashMap();
+  
   private final AEMonitor	pending_closes_mon = new AEMonitor( "ConnectDisconnectManager:PC");
      
   private final Random random = new Random();
@@ -197,10 +200,9 @@ public class ConnectDisconnectManager {
           
           public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
             pending_attempts.remove( request );
-            try{  pending_closes_mon.enter();
-              pending_closes.addLast( request.channel );
-            }
-            finally{   pending_closes_mon.exit();  }
+            
+            closeConnection( request.channel );
+           
             request.listener.connectFailure( msg );
           }
         }, null );
@@ -238,14 +240,7 @@ public class ConnectDisconnectManager {
       
       
       if( request.channel != null ) {
-        try{
-        	pending_closes_mon.enter();
-        
-        	pending_closes.addLast( request.channel );
-        }finally{
-        	
-        	pending_closes_mon.exit();
-        }
+    	  closeConnection( request.channel );
       }
       request.listener.connectFailure( t );
     }
@@ -277,10 +272,7 @@ public class ConnectDisconnectManager {
         finally{ new_canceled_mon.exit(); }
         
         if( canceled ) {
-          try{  pending_closes_mon.enter();
-            pending_closes.addLast( request.channel );  //just close it
-          }
-          finally{ pending_closes_mon.exit();  }
+        	closeConnection( request.channel );
         }
         else {
         	connect_selector.cancel( request.channel );
@@ -291,13 +283,7 @@ public class ConnectDisconnectManager {
         Debug.out( "finishConnect() failed" );
         request.listener.connectFailure( new Throwable( "finishConnect() failed" ) );
         
-        try{
-          pending_closes_mon.enter();
-            
-          pending_closes.addLast( request.channel );
-        }finally{
-          pending_closes_mon.exit();
-        }
+        closeConnection( request.channel );
       }
     }
     catch( Throwable t ) {
@@ -314,14 +300,8 @@ public class ConnectDisconnectManager {
       }
           
       request.listener.connectFailure( t );
-      try{
-        pending_closes_mon.enter();
-          
-        pending_closes.addLast( request.channel );
-      }finally{
-            
-        pending_closes_mon.exit();
-      }
+      
+      closeConnection( request.channel );
     }
   }
   
@@ -342,14 +322,7 @@ public class ConnectDisconnectManager {
           if( request.listener == key ) {
             connect_selector.cancel( request.channel );
             
-            try{
-              pending_closes_mon.enter();
-            
-              pending_closes.addLast( request.channel );
-            }
-            finally{
-              pending_closes_mon.exit();
-            }
+            closeConnection( request.channel );
             
             to_remove = request;
             break;
@@ -386,14 +359,7 @@ public class ConnectDisconnectManager {
 
         connect_selector.cancel( request.channel );
         
-        try{
-        	pending_closes_mon.enter();
-        
-        	pending_closes.addLast( request.channel );
-        }finally{
-        	
-        	pending_closes_mon.exit();
-        }
+        closeConnection( request.channel );
         
         request.listener.connectFailure( new Throwable( "Connection attempt aborted: timed out after " +CONNECT_ATTEMPT_TIMEOUT/1000+ "sec" ) );
       }
@@ -431,20 +397,46 @@ public class ConnectDisconnectManager {
     try{
     	pending_closes_mon.enter();
     
-      while( !pending_closes.isEmpty() ) {
-        SocketChannel channel = (SocketChannel)pending_closes.removeFirst();
-        if( channel != null ) {
+    	long	now = SystemTime.getCurrentTime();
+    	
+    	if ( delayed_closes.size() > 0 ){
+    		   		
+    		Iterator	it = delayed_closes.entrySet().iterator();
+    		
+    		while( it.hasNext()){
+    			
+    			Map.Entry	entry = (Map.Entry)it.next();
+    			
+    			long	wait = ((Long)entry.getValue()).longValue() - now;
+    			
+    			if ( wait < 0 || wait > 60*1000 ){
+    				
+    				pending_closes.addLast( entry.getKey());
+    				
+    				it.remove();
+    				
+    			}else{
+    				
+    				break;
+    			}
+    		}
+    	}
+    	
+    	while( !pending_closes.isEmpty() ) {
+    		
+    		SocketChannel channel = (SocketChannel)pending_closes.removeFirst();
+    		if( channel != null ) {
         	
-        	connect_selector.cancel( channel );
+    			connect_selector.cancel( channel );
         	
-          try{ 
-            channel.close();
-          }
-          catch( Throwable t ) {
-            /*Debug.printStackTrace(t);*/
-          }
-        }
-      }
+    			try{ 
+    				channel.close();
+    			}
+    			catch( Throwable t ) {
+    				/*Debug.printStackTrace(t);*/
+    			}
+    		}
+    	}
     }finally{
     	
     	pending_closes_mon.exit();
@@ -478,11 +470,30 @@ public class ConnectDisconnectManager {
    * Close the given connection.
    * @param channel to close
    */
-  public void closeConnection( SocketChannel channel ) {
+  public void 
+  closeConnection( 
+	SocketChannel channel ) 
+  {
+	  closeConnection( channel, 0 );
+  }
+
+  public void closeConnection( SocketChannel channel, int delay ) {
     try{
     	pending_closes_mon.enter();
     
-    	pending_closes.addLast( channel );
+    	if ( delay == 0 ){
+    		
+    		if ( !delayed_closes.containsKey( channel )){
+    		
+	    		if ( !pending_closes.contains( channel )){
+	    			
+	    			pending_closes.addLast( channel );
+	    		}
+    		}
+    	}else{
+    		
+    		delayed_closes.put( channel, new Long( SystemTime.getCurrentTime() + delay ));
+    	}
     }finally{
     	
     	pending_closes_mon.exit();

@@ -341,7 +341,10 @@ public class NetworkManager {
   public void closeSocketChannel( SocketChannel channel ) {
     connect_disconnect_manager.closeConnection( channel );
   }
-
+  
+  public void closeSocketChannel( SocketChannel channel, int delay ) {
+	    connect_disconnect_manager.closeConnection( channel, delay );
+  }
   
   
   /**

@@ -277,11 +277,31 @@ public class IncomingSocketChannelManager
 	        			process( filter );
 	        		}
 
-	            public void handshakeFailure( Throwable failure_msg ) {
+	            public void 
+	            handshakeFailure( 
+	            	Throwable failure_msg ) 
+	            {
+	            		// we can have problems with sockets stuck in a CLOSE_WAIT state if we just
+	            		// close an incoming channel - to clear things down properly the client needs
+	            		// to initiate the close. So what we do is send some random bytes to the client
+	            		// under the assumption this will cause them to close, and we delay our socket close
+	            		// for 10 seconds to give them a chance to do so.
 	            	
+	            	try{
+	            		Random	random = new Random();
+	            		
+	            		byte[]	random_bytes = new byte[64+random.nextInt(512-64)];
+	            		
+	            		random.nextBytes( random_bytes );
+	            		
+	            		channel.write( ByteBuffer.wrap( random_bytes ));
+	            		
+	            	}catch( Throwable e ){
+	            		// ignore anything here
+	            	}
 	            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
 	            	
-	            	NetworkManager.getSingleton().closeSocketChannel( channel );
+	            	NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
 	            }
 	    		public int
 	    		getMaximumPlainHeaderLength()
