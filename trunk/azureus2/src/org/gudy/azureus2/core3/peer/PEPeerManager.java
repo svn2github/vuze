@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerExchangerItem;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 
 
 public interface 
@@ -57,6 +58,7 @@ PEPeerManager
 	getState();
 	
 	public DiskManager getDiskManager();
+	public PiecePicker getPiecePicker();
 	
 	public void
 	start();
@@ -80,6 +82,8 @@ PEPeerManager
 
 	public int getAvailability(int pieceNumber);
 	
+	public float getAvgAvail();
+
 	public float getMinAvailability();
 
 	public PEPiece[]	getPieces();
@@ -95,8 +99,6 @@ PEPeerManager
 	public int getNbPeers();
 
 	public int getNbSeeds();
-	
-	public int getNbActive();
 	
 	public int getPieceLength(int pieceNumber);
 		
@@ -277,13 +279,18 @@ PEPeerManager
    */
   public int getAverageCompletionInThousandNotation();
 
-	public float getAvgAvail();
-
 	/**
 	 * Locate an existing transport via peer id byte identity.
 	 * @param peer_id to look for
 	 * @return transport with matching identity, or null if no match is found
 	 */
 	public PEPeerTransport getTransportFromIdentity( byte[] peer_id );
+	
+	/**
+	 * Locate an existing transport via [IP] Address.
+	 * @param peer String to look for
+	 * @return PEPeerTransport with matching address String, or null if no match is found
+	 */
+	public PEPeerTransport getTransportFromAddress(String peer);
 	
 }
