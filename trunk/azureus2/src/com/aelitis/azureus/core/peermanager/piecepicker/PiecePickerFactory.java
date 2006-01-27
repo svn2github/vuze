@@ -22,7 +22,7 @@
 
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
-import org.gudy.azureus2.core3.disk.impl.DiskManagerHelper;
+import org.gudy.azureus2.core3.disk.DiskManager;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.impl.PiecePickerImpl;
 
@@ -34,9 +34,9 @@ import com.aelitis.azureus.core.peermanager.piecepicker.impl.PiecePickerImpl;
 public class PiecePickerFactory
 {
 	public static PiecePicker
-	create(DiskManagerHelper disk_manager)
+	create(DiskManager diskManager)
 	{
-		return new PiecePickerImpl(disk_manager);
+		return new PiecePickerImpl(diskManager);
 	}
 
 }
