@@ -22,9 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
-import org.gudy.azureus2.core3.peer.impl.PEPieceImpl;
-import org.gudy.azureus2.core3.peer.impl.control.PEPeerControlImpl;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.peer.impl.*;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
@@ -35,28 +34,55 @@ import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 public interface PiecePicker
 {
-	public void		start();
-	public void		stop();
+	public void				start();
+	public void				stop();
+	public DiskManager		getDiskManager();
+	public void 			setPeerControl(final PEPeerControl pc);
+	public PEPeerControl	getPeerControl();
 	
-	public			int[] getRequestCandidate(PEPeerTransport pc, int candidateMode);
-	public			int[] getPieceToStart(PEPeerTransport pc, BitFlags candidates, int candidateMode);
-	public boolean	findPieceToDownload(PEPeerTransport pc, int candidateMode);
-	
-	public boolean	findPieceInEndGameMode(PEPeerTransport pc);
-	public void		clearEndGameChunks();
-	public void		addEndGameChunks(PEPieceImpl pePiece);
-	public void		removeFromEndGameModeChunks(int pieceNumber, int offset);
-	public void		computeEndGameModeChunks(PEPeerControlImpl pc);
-	
-	public void		setGlobalMinOthers(int i);
-	public void		setGlobalMin(int i);
-	public void		setRarestRunning(int i);
+	public boolean	checkDownloadPossible();
+	/** @return int the piece number that should be started, according to selection criteria
+	 * 
+	 * @param pt PEPeer the piece would be started for
+	 * @param startCandidates BitFlags of potential candidates to choose from
+	 * @return int the piece number that was chosen to be started
+	 */
+	public int		getPieceToStart(final PEPeerTransport pt, final BitFlags startCandidates);
 
+//	public boolean	findPiece(final PEPeerTransport pt);
+
+	public boolean	isInEndGameMode();
+	public void		clearEndGameChunks();
+	public void		addEndGameChunks(final PEPieceImpl pePiece);
+	public void		removeFromEndGameModeChunks(final int pieceNumber, final int offset);
+	
 	public boolean	hasDownloadablePiece();
 
-	/** Do not use this method.  It's Only for the PeerController to
-	 *  determine if every peer should recheck if it's interested.
-	 *  @return true if isInterested should be re-checked on transports
+	/** @return long value indicated serial number of current count of changes
+	 * to hasNeededUndonePiece.
+	 * A method interesting in tracking changes can compare this with a locally stored
+	 * value to determine if the hasNeededUndonePiece status has changed since the last check. 
 	 */
-	public boolean	hasDownloadableChanged();
+	public long		getNeededUndonePieceChange();
+	
+	public void		addHavePiece(final int pieceNumber);
+	public void		addBitfield(final BitFlags peerHasPieces);
+	/**
+	 * Takes away the given pieces from availability
+	 * @param peerHasPieces
+	 */
+	public void		removeBitfield(final BitFlags peerHasPieces);
+	
+	/**
+	 * Currently unused.
+	 * This methd will compute the pieces' overall availability (including ourself)
+	 * and the _globalMinOthers & _globalAvail
+	 */
+//	protected int	calcAvailability(final int pieceNumber);
+//	protected void	computeAvailability();
+	public int[]	getAvailability();
+	public int		getAvailability(final int pieceNumber);
+	
+	public float	getMinAvailability();
+	public float	getAvgAvail();
 }
