@@ -18,7 +18,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-package org.gudy.azureus2.core3.peer.impl.control;
+package com.aelitis.azureus.core.peermanager.piecepicker;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
@@ -26,15 +26,15 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 /**
  * @author Olivier
  * @author MjrTom
- * 			2006/Jan/06 Refactoring, change to use PieceBlock
+ * 			2006/Jan/06 Refactoring
  */
 public class EndGameModeChunk
 {
-	private int	pieceNumber;
-	private int	blockNumber;
+	private final int	pieceNumber;
+	private final int	blockNumber;
 
-	private int	offset;
-	private int	length;
+	private final int	offset;
+	private final int	length;
 
 	public EndGameModeChunk(PEPiece pePiece, int blockNum)
 	{
