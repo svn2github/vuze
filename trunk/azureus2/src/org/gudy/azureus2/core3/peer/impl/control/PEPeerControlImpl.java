@@ -1257,10 +1257,17 @@ PEPeerControlImpl
 			
 			ArrayList peers_to_unchoke = unchoker.getImmediateUnchokes( max_to_unchoke, peer_transports );
 			
+			//ensure that lan-local peers always get unchoked
+			for( int i=0; i < peer_transports.size(); i++ ) {
+				PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );				
+				if( peer.isLANLocal() ) {
+					peers_to_unchoke.add( peer );
+				}
+			}
+						
 			//do unchokes
 			for( int i=0; i < peers_to_unchoke.size(); i++ ) {
-				PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );
-				
+				PEPeerTransport peer = (PEPeerTransport)peers_to_unchoke.get( i );				
 				if( peer.isChokedByMe() ) {
 					peer.sendUnChoke();
 				}
