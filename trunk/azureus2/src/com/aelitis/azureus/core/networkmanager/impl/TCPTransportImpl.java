@@ -330,8 +330,7 @@ public class TCPTransportImpl implements TCPTransport {
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
         if( use_proxy ) {  //proxy server connection established, login
-        	Logger.log(new LogEvent(LOGID,
-							"Socket connection established to proxy server [" +description+ "], login initiated..."));
+        	Logger.log(new LogEvent(LOGID,"Socket connection established to proxy server [" +description+ "], login initiated..."));
           
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
@@ -340,6 +339,7 @@ public class TCPTransportImpl implements TCPTransport {
             }
             
             public void connectFailure( Throwable failure_msg ) {
+            	NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
               listener.connectFailure( failure_msg );
             }
           });
@@ -376,7 +376,7 @@ public class TCPTransportImpl implements TCPTransport {
           listener.connectSuccess();
     		}
 
-        public void handshakeFailure( Throwable failure_msg ) {        	
+    		public void handshakeFailure( Throwable failure_msg ) {        	
         	if( OUTGOING_FALLBACK_ALLOWED ) {        		
         		if( Logger.isEnabled() ) Logger.log(new LogEvent(LOGID, description+ " | crypto handshake failure [" +failure_msg.getMessage()+ "], attempting non-crypto fallback." ));
         		connect_with_crypto = false;
@@ -387,27 +387,30 @@ public class TCPTransportImpl implements TCPTransport {
         		establishOutboundConnection( address, listener );
         	}
         	else {
+        		NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );
         		listener.connectFailure( failure_msg );
         	}
         }
-		public int
-		getMaximumPlainHeaderLength()
-		{
-			throw( new RuntimeException());	// this is outgoing
-		}
+    		
+    		public int
+    		getMaximumPlainHeaderLength()
+    		{
+    			throw( new RuntimeException());	// this is outgoing
+    		}
 		
-		public int
-		matchPlainHeader(
-			ByteBuffer			buffer )
-		{
-			throw( new RuntimeException());	// this is outgoing
-		}
-		public boolean
-		matchSharedSecret(
-			TCPProtocolDecoderAdapter.secretMatcher matcher )
-		{
-			throw( new RuntimeException());	// this is outgoing
-		}
+    		public int
+    		matchPlainHeader(
+    				ByteBuffer			buffer )
+    		{
+    			throw( new RuntimeException());	// this is outgoing
+    		}
+    		
+    		public boolean
+    		matchSharedSecret(
+    				TCPProtocolDecoderAdapter.secretMatcher matcher )
+    		{
+    			throw( new RuntimeException());	// this is outgoing
+    		}
     	});
   	}
   	else {  //no crypto
