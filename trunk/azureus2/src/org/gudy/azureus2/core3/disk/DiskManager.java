@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.disk;
  
 import java.io.File;
 
+import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
@@ -54,6 +55,8 @@ DiskManager
 	
 	public void
 	stop();
+	
+	public PiecePicker getPiecePicker();
 
 	/**
 	  * @return whether all files exist and sizes match
@@ -161,6 +164,8 @@ DiskManager
 	public DiskManagerFileInfo[] getFiles();
 	public DiskManagerPiece getPiece(int PieceNumber);
 
+	public DMPieceList getPieceList(int pieceNumber);
+	
 	public int
 	getState();
 	
@@ -252,23 +257,19 @@ DiskManager
 	public void 
 	saveState();
 
-	public int getNbPiecesDone();
-
-	public PiecePicker getPiecePicker();
-
 	/**
 	 * @param pieceNumber
 	 * @return true if the pieceNumber is Needed and not Done
 	 */
 	public boolean isInteresting(int pieceNumber);
+	public boolean isDone(int pieceNumber);
+	public boolean isRequestable(int pieceNumber);
 /*
 	public boolean calcNeeded(int pieceNumber);
 	public void clearNeeded(int pieceNumber);
 	public long getLastWriteTime(int pieceNumber);
 	public long getNbBlocks(int pieceNumber);
 	public long getNbWritten(int pieceNumber);
-	public boolean isDone(int pieceNumber);
-	public boolean isRequestable(int pieceNumber);
 	public boolean isRequested(int pieceNumber);
 	public void setRequested(int pieceNumber);
 */
