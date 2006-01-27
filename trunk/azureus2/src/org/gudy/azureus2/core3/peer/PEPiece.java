@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.peer;
 
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
 import com.aelitis.azureus.core.util.Piece;
 
@@ -49,34 +50,36 @@ public interface PEPiece
 	public void 
 	addWrite(
 		int blockNumber,
-		PEPeer sender, 
+		String sender, 
 		byte[] hash,
 		boolean correct	);
 
 	public DiskManagerPiece	getDMPiece();
+	public int			getNbWritten();
 
 	public int			getAvailability();
 
-	public int			getBlock();
-	public int			getAndMarkBlock();
-	public boolean		markBlock(int blocNumber);
+	public boolean		hasUnrequestedBlock();
+	public int[]		getAndMarkBlocks(PEPeerTransport peer, int wants);
+	public boolean		markBlock(PEPeerTransport peer, int blockNumber);
 	public void			unmarkBlock(int blocNumber);
+	
 	public int			getNbRequests();
 	public int			getNbUnrequested();
-	public boolean[]	getRequested();
 
 	public int			getBlockSize(int blockNumber);
 
 	public long			getCreationTime();
 
-	public boolean[]	getDownloaded();   
+	public boolean		isDownloaded(int blockNumber);   
+	public boolean		isRequested(int blockNumber);
 
 	public int			getPieceNumber();
 
 	//A Piece can be reserved by a peer, so that only s/he can
 	//contribute to it.
-	public PEPeer		getReservedBy();
-	public void			setReservedBy(PEPeer peer);
+	public String		getReservedBy();
+	public void			setReservedBy(String peer);
 
 	/**
 	 * @return long ResumePriority (startPriority + resuming adjustments)
@@ -87,8 +90,8 @@ public interface PEPiece
 	 */
 	public void			setResumePriority(long p);
 
-	public PEPeer[] 	getWriters();
-	public void			setWritten(PEPeer peer,int blockNumber);
+	public String[] 	getWriters();
+	public void			setWritten(PEPeerTransport peer, int blockNumber);
 
 	public int 			getSpeed();
 	public void			setSpeed(int speed);
