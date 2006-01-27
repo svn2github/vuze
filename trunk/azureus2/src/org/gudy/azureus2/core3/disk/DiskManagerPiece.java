@@ -22,8 +22,6 @@
 
 package org.gudy.azureus2.core3.disk;
 
-import java.util.List;
-
 import com.aelitis.azureus.core.util.Piece;
 
 /**
@@ -39,14 +37,17 @@ public interface DiskManagerPiece
 	extends Piece
 {
 	public DiskManager	getManager();
-	public List			getFiles();
 
 	public void			setLastWriteTime();
 	public long			getLastWriteTime();
 
-	// a piece is Needed if any file it covers is neither Do Not Download nor Delete, without concern for other status
 	public boolean		calcNeeded();
 	public void			clearNeeded();
+	/** @return true if any file the piece covers is neither Do Not Download nor Delete.
+	 * This is not a real-time indicator.  Also, the results are not reliable for pieces that are Done.
+	 * Use calcNeeded() for guaranteed correct and up to date results
+	 * @see calcNeeded(), clearNeeded(), setNeeded(), setNeeded(boolean)
+	 */
 	public boolean		isNeeded();
 	public void			setNeeded();
 	public void			setNeeded(boolean b);
@@ -73,31 +74,40 @@ public interface DiskManagerPiece
 	public void			setDownloaded(boolean b);
 
 	// a piece is Written if data has been written to storage for every block (without concern for if it's checked)  
+	public int			getNbWritten();
 	public boolean		calcWritten();
 	public void			clearWritten();
 	public void			setWritten();
 	public void			setWritten(boolean b);
+	/**
+	 * @param blockNumber int
+	 * @return true if the given blockNumber has already been written to disk
+	 */
 	public boolean		isWritten(int blockNumber);		//TODO: double check usage of this
 	public void			setBlockWritten(int blockNumber);
 
 	// a piece is Checking if a hash check has been setup and the hash check hasn't finalized the result yet
 	// this flag is asynch, so be careful, and it's also transitory (comapared to most of the others being kinda sticky)
 	public boolean		calcChecking();
-	public boolean		isChecking();
 	public void			setChecking();
 	public void			setChecking(boolean b);
 
-	// a piece is Done when the hash check has passed
 	public boolean		calcDone();
 	public void			clearDone();
+	/** @return true when the hash check has passed and the DiskManager has asyncronously updated the Done status.
+	 * There is nothing further to be done regarding downloading for pieces that are Done.
+	 */
 	public boolean		isDone();
 	public void			setDone();
 	public void			setDone(boolean b);
 
-	// a piece is Requestable if it's not; Downloaded, Written, Checking, or Done
-	// note that Needed, Avail, and Requested isn't considered
+	/**
+	 * @return true is a piece is Needed and not Requested, Downloaded, Written, Checking, or Done.
+	 */
 	public boolean		isRequestable();
-	// a piece is Interesting if it's Needed and not Done
+	/**
+	 * @return true if a piece is not Done and is Needed
+	 */
 	public boolean		isInteresting();
 
 }
