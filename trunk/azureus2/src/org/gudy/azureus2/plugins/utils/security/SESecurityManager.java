@@ -29,6 +29,8 @@ package org.gudy.azureus2.plugins.utils.security;
 
 import java.net.Authenticator;
 import java.net.URL;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
 
 import javax.net.ssl.SSLSocketFactory;
 
@@ -80,4 +82,31 @@ SESecurityManager
 	public SSLSocketFactory
 	installServerCertificate(
 		URL		url );
+	
+	public KeyStore
+	getKeyStore()
+	
+		throws Exception;
+	
+	public KeyStore
+	getTrustStore()
+	
+		throws Exception;
+	
+		/**
+		 * creates and installs a certificate capable of supporting SSL of type MD5withRSA
+		 * @param alias		alias - e.g. "mycert"
+		 * @param cert_dn	dn for the cert  e.g. "CN=fred,OU=wap,O=wip,L=here,ST=there,C=GB"
+		 * @param strength	keyt strength - e.g. 1024
+		 * @return
+		 * @throws Exception
+		 */
+	
+	public Certificate
+	createSelfSignedCertificate(
+		String		alias,
+		String		cert_dn,
+		int			strength )
+	
+		throws Exception;
 }

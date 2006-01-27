@@ -25,6 +25,8 @@ package org.gudy.azureus2.pluginsimpl.local.utils.security;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
@@ -161,5 +163,33 @@ SESecurityManagerImpl
 		URL		url )
 	{
 		return( SESecurityManager.installServerCertificates( url ));
+	}
+	
+	public KeyStore
+	getKeyStore()
+	
+		throws Exception
+	{
+		return( SESecurityManager.getKeyStore());
+	}
+	
+	public KeyStore
+	getTrustStore()
+	
+		throws Exception
+	{
+		return( SESecurityManager.getTrustStore());
+	}
+	
+	
+	public Certificate
+	createSelfSignedCertificate(
+		String		alias,
+		String		cert_dn,
+		int			strength )
+	
+		throws Exception
+	{
+		return( SESecurityManager.createSelfSignedCertificate(alias, cert_dn, strength ));		
 	}
 }

@@ -28,6 +28,8 @@ package org.gudy.azureus2.core3.security;
 
 import java.net.URL;
 import java.net.PasswordAuthentication;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
 
 import javax.net.ssl.*;
 
@@ -90,7 +92,7 @@ SESecurityManager
 		return( SESecurityManagerImpl.getSingleton().installServerCertificates(https_url));
 	}
 	
-	public static void
+	public static Certificate
 	createSelfSignedCertificate(
 		String		alias,
 		String		cert_dn,
@@ -98,7 +100,7 @@ SESecurityManager
 	
 		throws Exception
 	{
-		SESecurityManagerImpl.getSingleton().createSelfSignedCertificate( alias, cert_dn, strength );
+		return( SESecurityManagerImpl.getSingleton().createSelfSignedCertificate( alias, cert_dn, strength ));
 	}
 	
 	public static SEKeyDetails
@@ -108,6 +110,22 @@ SESecurityManager
 		throws Exception
 	{
 		return( SESecurityManagerImpl.getSingleton().getKeyDetails( alias ));
+	}
+	
+	public static KeyStore
+	getKeyStore()
+	
+		throws Exception
+	{
+		return( SESecurityManagerImpl.getSingleton().getKeyStore());
+	}
+	
+	public static KeyStore
+	getTrustStore()
+	
+		throws Exception
+	{
+		return( SESecurityManagerImpl.getSingleton().getTrustStore());
 	}
 	
 	public static PasswordAuthentication

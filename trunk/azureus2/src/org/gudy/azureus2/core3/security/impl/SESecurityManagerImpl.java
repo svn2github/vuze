@@ -415,6 +415,46 @@ SESecurityManagerImpl
 		}
 	}
 	
+	public KeyStore
+	getKeyStore()
+	
+		throws Exception
+	{
+		return( loadKeyStore());
+	}
+	
+	public KeyStore
+	getTrustStore()
+	
+		throws Exception
+	{
+		KeyStore keystore = KeyStore.getInstance( KEYSTORE_TYPE );
+		
+		if ( !new File(truststore_name).exists()){
+	
+			keystore.load(null,null);
+			
+		}else{
+		
+			FileInputStream		in 	= null;
+
+			try{
+				in = new FileInputStream(truststore_name);
+		
+				keystore.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());
+				
+			}finally{
+				
+				if ( in != null ){
+					
+					in.close();
+				}
+			}
+		}
+		
+		return( keystore );
+	}
+	
 	protected KeyStore
 	loadKeyStore()
 	
@@ -714,29 +754,7 @@ SESecurityManagerImpl
 		try{
 			this_mon.enter();
 		
-			KeyStore keystore = KeyStore.getInstance( KEYSTORE_TYPE );
-			
-			if ( !new File(truststore_name).exists()){
-		
-				keystore.load(null,null);
-				
-			}else{
-			
-				FileInputStream		in 	= null;
-	
-				try{
-					in = new FileInputStream(truststore_name);
-			
-					keystore.load(in, SESecurityManager.SSL_PASSWORD.toCharArray());
-					
-				}finally{
-					
-					if ( in != null ){
-						
-						in.close();
-					}
-				}
-			}
+			KeyStore keystore = getTrustStore();
 			
 			if ( cert != null ){
 				
