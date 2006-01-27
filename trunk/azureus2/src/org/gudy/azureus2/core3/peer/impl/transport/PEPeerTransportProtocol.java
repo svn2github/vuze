@@ -24,13 +24,11 @@ package org.gudy.azureus2.core3.peer.impl.transport;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -39,11 +37,12 @@ import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.*;
-import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
+import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
@@ -60,13 +59,18 @@ PEPeerTransportProtocol
 {
 	protected final static LogIDs LOGID = LogIDs.PEER;
   
-	private int	_lastPiece =-1;		//last piece that was requested from this peer (mostly to try to request fom same one)
-
-	private final PEPeerControl 	manager;
+	private volatile int	_lastPiece =-1;		//last piece that was requested from this peer (mostly to try to request from same one)
+	
+	protected final PEPeerControl 	manager;
+	protected final DiskManager		diskManager;
+	protected final PiecePicker		piecePicker;
+	
+	protected int		nbPieces =-1;
+	
 	private String			peer_source;
 	private byte[] peer_id;
 	private String ip;
-	private String ip_resolved;
+	protected String ip_resolved;
 	private IPToHostNameResolverRequest	ip_resolver_request;
 	
 	private int port;
@@ -75,34 +79,39 @@ PEPeerTransportProtocol
   private int tcp_listen_port = 0;
   private int udp_listen_port = 0;
 	
-	private final PEPeerStats peer_stats;
+  protected final PEPeerStats peer_stats;
   
   private final ArrayList requested = new ArrayList();
   private final AEMonitor	requested_mon = new AEMonitor( "PEPeerTransportProtocol:Req" );
 
   private HashMap data;
-  
-  private boolean choked_by_other_peer = true;
-  private boolean choking_other_peer = true;
+  	
+	private long lastNeededUndonePieceChange;
+	
+  protected boolean choked_by_other_peer = true;
+  protected boolean choking_other_peer = true;
   private boolean interested_in_other_peer = false;
   private boolean other_peer_interested_in_me = false;
   private boolean snubbed = false;
-  private boolean[] other_peer_has_pieces;
+
+  private BitFlags peerHavePieces;
+  private volatile boolean	availabilityAdded =false;
+
   private boolean seed = false;
  
   private boolean incoming;
-  private volatile boolean closing = false;
   
+  protected volatile boolean closing = false;
   private int current_peer_state;
   
-  private NetworkConnection connection;
+  protected NetworkConnection connection;
   private OutgoingBTPieceMessageHandler outgoing_piece_message_handler;
   private OutgoingBTHaveMessageAggregator outgoing_have_message_aggregator;
   private Connection	plugin_connection;
   
   private boolean identityAdded = false;  //needed so we don't remove id's in closeAll() on duplicate connection attempts
 
-  private int connection_state = PEPeerTransport.CONNECTION_PENDING;
+  protected int connection_state = PEPeerTransport.CONNECTION_PENDING;
 
   //The client name identification	
 	private String client = "";
@@ -116,10 +125,11 @@ PEPeerTransportProtocol
 	//Spread time (0 secs , fake default)
 	private int spreadTimeHint = 0 * 1000;
 
-  private long last_message_sent_time = 0;
-  private long last_message_received_time = 0;
-  private long last_data_message_received_time = -1;
-  private long last_data_message_sent_time = -1;
+	protected long last_message_sent_time = 0;
+	protected long last_message_received_time = 0;
+	protected long last_data_message_received_time = -1;
+	private long last_good_data_time =-1;			// time usefull data was received
+	protected long last_data_message_sent_time = -1;
   
   private long connection_established_time = 0;
 
@@ -151,8 +161,8 @@ PEPeerTransportProtocol
   
   //certain Optimum Online networks block peer seeding via "complete" bitfield message filtering
   //lazy mode makes sure we never send a complete (seed) bitfield
-  private static boolean ENABLE_LAZY_BITFIELD;
-  private static boolean REQUIRE_CRYPTO;
+  protected static boolean ENABLE_LAZY_BITFIELD;
+  protected static boolean REQUIRE_CRYPTO;
   
   static {
     
@@ -181,7 +191,7 @@ PEPeerTransportProtocol
   private PeerExchangerItem peer_exchange_item = null;
   private boolean peer_exchange_supported = false;
     
-  private PeerMessageLimiter message_limiter;
+  protected PeerMessageLimiter message_limiter;
   
   
   
@@ -190,6 +200,10 @@ PEPeerTransportProtocol
   //INCOMING
   public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, NetworkConnection _connection ) {
     manager = _manager;
+    diskManager =manager.getDiskManager();
+    piecePicker =diskManager.getPiecePicker();
+    nbPieces =diskManager.getNbPieces();
+    
     peer_source	= _peer_source;
     ip    = _connection.getAddress().getAddress().getHostAddress();
     port  = _connection.getAddress().getPort();
@@ -249,6 +263,10 @@ PEPeerTransportProtocol
   //OUTGOING
   public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, String _ip, int _port ) {
     manager = _manager;
+    diskManager =manager.getDiskManager();
+    piecePicker =diskManager.getPiecePicker();
+    nbPieces =diskManager.getNbPieces();
+
     peer_source	= _peer_source;
     ip    = _ip;
     port  = _port;
@@ -311,11 +329,10 @@ PEPeerTransportProtocol
   
 
   
-  private void initializeConnection() {
+  protected void initializeConnection() {
     if( closing )  return;
 
-    other_peer_has_pieces = new boolean[manager.getDiskManager().getNbPieces()];
-    //Arrays.fill( other_peer_has_pieces, false );
+    peerHavePieces =new BitFlags(nbPieces);
 
     recent_outgoing_requests = new LinkedHashMap( 16, .75F, true ) {
       public boolean removeEldestEntry(Map.Entry eldest) {
@@ -327,7 +344,7 @@ PEPeerTransportProtocol
     message_limiter = new PeerMessageLimiter();
 
     //link in outgoing piece handler
-    outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler( manager.getDiskManager(), connection.getOutgoingMessageQueue() );
+    outgoing_piece_message_handler = new OutgoingBTPieceMessageHandler(diskManager, connection.getOutgoingMessageQueue() );
 
     //link in outgoing have message aggregator
     outgoing_have_message_aggregator = new OutgoingBTHaveMessageAggregator( connection.getOutgoingMessageQueue() );
@@ -353,7 +370,7 @@ PEPeerTransportProtocol
 
 
   //close the peer connection internally
-  private void closeConnectionInternally( String reason ) {
+  protected void closeConnectionInternally( String reason ) {
     performClose( reason, false );
   }
   
@@ -431,7 +448,7 @@ PEPeerTransportProtocol
   
   
   
-  private void sendBTHandshake() {
+  protected void sendBTHandshake() {
     connection.getOutgoingMessageQueue().addMessage(
         new BTHandshake( manager.getHash(),
                          manager.getPeerId(),
@@ -486,24 +503,26 @@ PEPeerTransportProtocol
 
   public int getPeerState() {  return current_peer_state;  }
 
-  
-  
-  public int getPercentDoneInThousandNotation() {
-    if( other_peer_has_pieces == null ) {  return 0;  }
-    
-    int sum = 0;
-    for( int i=0; i < other_peer_has_pieces.length; i++ ) {
-      if( other_peer_has_pieces[i] ) {
-        sum++;
-      }
-    }
-
-    int length = other_peer_has_pieces.length;
-    
-    if( length < 1 )  return 0;
-    
-    return (sum * 1000) / length;
+	public boolean isDownloadPossible()
+	{
+		if (lastNeededUndonePieceChange <piecePicker.getNeededUndonePieceChange())
+		{
+			checkInterested();
+			lastNeededUndonePieceChange =piecePicker.getNeededUndonePieceChange();
+		}
+		if (interested_in_other_peer &&!choked_by_other_peer &&current_peer_state ==PEPeer.TRANSFERING)
+			return true;
+	  return false;
   }
+  
+  
+  public int getPercentDoneInThousandNotation()
+	{
+		if (peerHavePieces ==null ||peerHavePieces.nbSet <1)
+			return 0;
+
+		return (peerHavePieces.nbSet *1000) /peerHavePieces.length;
+	}
   
 
   public boolean transferAvailable() {
@@ -524,17 +543,17 @@ PEPeerTransportProtocol
 
   
 
-  /**
-	 * Checks if it's a seed or not.
+  	/**
+	 * Checks if this peer is a seed or not.
 	 */
-  private void checkSeed() {
-    for (int i = 0; i < other_peer_has_pieces.length; i++) {
-      if (!other_peer_has_pieces[i]) {
-        return;
-      }
-    }
-    seed = true;
-  }
+  	private void checkSeed()
+	{
+  		// seed implicitly means *something* to send (right?)
+  		if (peerHavePieces.nbSet >0 &&peerHavePieces.length >0)
+  			seed =peerHavePieces.nbSet ==peerHavePieces.length;
+  		else
+  			seed =false;
+	}
 
 
   public boolean request( int pieceNumber, int pieceOffset, int pieceLength) {
@@ -553,7 +572,6 @@ PEPeerTransportProtocol
       	recent_outgoing_requests_mon.exit();
       }
       connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ), false );
-      _lastPiece =pieceNumber;
   		return true;
   	}
   	return false;
@@ -572,7 +590,7 @@ PEPeerTransportProtocol
   public void sendHave( int pieceNumber ) {
 		if ( getPeerState() != TRANSFERING ) return;
     //only force if the other peer doesn't have this piece and is not yet interested
-    boolean force = !other_peer_has_pieces[ pieceNumber ] && !other_peer_interested_in_me;
+    boolean force = !peerHavePieces.flags[pieceNumber] && !other_peer_interested_in_me;
     outgoing_have_message_aggregator.queueHaveMessage( pieceNumber, force );
 		checkInterested();
 	}
@@ -615,29 +633,27 @@ PEPeerTransportProtocol
 
   /**
 	 * Global checkInterested method.
-	 * Scans all the pieces to determine if the peer is interesting or not
+	 * Early-out scan of pieces to determine if the peer is interesting or not.
+	 * They're interesting if they have a piece that we need and isn't Done
 	 */
 	public void checkInterested()
 	{
-		if (getPeerState() ==CLOSING)
+		if (peerHavePieces ==null ||peerHavePieces.nbSet ==0)
 			return;
 
 		boolean is_interesting =false;
-		DiskManager disk_mgr =manager.getDiskManager();
-		if (disk_mgr.hasDownloadablePiece())
+		if (getPeerState() <CLOSING &&piecePicker.hasDownloadablePiece())
 		{
-			int nbPieces =disk_mgr.getNbPieces();
 			// there is a piece worth being interested in
-			for (int i =0; i <nbPieces; i++ )
+			for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++ )
 			{
-				if (other_peer_has_pieces[i] &&disk_mgr.isInteresting(i))
+				if (peerHavePieces.flags[i] && diskManager.isInteresting(i))
 				{
 					is_interesting =true;
 					break;
 				}
 			}
 		}
-
 		if (is_interesting &&!interested_in_other_peer)
 			connection.getOutgoingMessageQueue().addMessage(new BTInterested(), false);
 		else if (!is_interesting &&interested_in_other_peer)
@@ -654,11 +670,11 @@ PEPeerTransportProtocol
 	 */
 	private void checkInterested(int pieceNumber)
 	{
-		if (getPeerState() ==CLOSING)
+		if (getPeerState() >=CLOSING)
 			return;
 
 		// Do we need this piece and it's not Done?
-		boolean is_interesting =manager.getDiskManager().isInteresting(pieceNumber);
+		boolean is_interesting =diskManager.isInteresting(pieceNumber);
 
 		if (is_interesting &&!interested_in_other_peer)
 			connection.getOutgoingMessageQueue().addMessage(new BTInterested(), false);
@@ -685,10 +701,9 @@ PEPeerTransportProtocol
 
 		ArrayList lazies =null;
 
-		DiskManager disk_mgr =manager.getDiskManager();
 		// create bitfield
-		DirectByteBuffer buffer =DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_MSG, (disk_mgr.getNbPieces() +7) /8);
-		DiskManagerPiece[] pieces =disk_mgr.getPieces();
+		DirectByteBuffer buffer =DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_MSG, (nbPieces +7) /8);
+		DiskManagerPiece[] pieces =diskManager.getPieces();
 
 		int bToSend =0;
 		int i =0;
@@ -757,8 +772,14 @@ PEPeerTransportProtocol
   public PEPeerManager getManager() {  return manager;  }
   public PEPeerStats getStats() {  return peer_stats;  }
   
-  public boolean[] getAvailable() {  return other_peer_has_pieces;  }
-  
+  	public BitFlags getAvailable()
+	{
+		return peerHavePieces;
+	}
+  public boolean isPieceAvailable(int pieceNumber)
+  {
+	  return peerHavePieces.flags[pieceNumber];
+  };
   public boolean isChokingMe() {  return choked_by_other_peer;  }
   public boolean isChokedByMe() {  return choking_other_peer;  }
   /**
@@ -919,6 +940,7 @@ PEPeerTransportProtocol
 				
 				requested_mon.exit();
 			}
+	        _lastPiece =request.getPieceNumber();
 		}
 		
 		protected void
@@ -1097,6 +1119,19 @@ PEPeerTransportProtocol
     return time_since;    
   }
   
+	public long getTimeSinceGoodDataReceived()
+	{
+		if (last_good_data_time ==-1)
+			return -1;	// never received
+		long now =SystemTime.getCurrentTime();
+		long time_since =now -last_good_data_time;
+		if (time_since <0)
+		{	// time went backwards
+			last_good_data_time =now;
+			time_since =0;
+		}
+		return time_since;
+	}
   
   
   public long getTimeSinceLastDataMessageSent() {
@@ -1133,7 +1168,7 @@ PEPeerTransportProtocol
   
   
   
-  private void decodeBTHandshake( BTHandshake handshake ) {
+  protected void decodeBTHandshake( BTHandshake handshake ) {
     PeerIdentityDataID  my_peer_data_id = manager.getPeerIdentityDataID();
       
     if( !Arrays.equals( manager.getHash(), handshake.getDataHash() ) ) {
@@ -1247,9 +1282,6 @@ PEPeerTransportProtocol
     if (Logger.isEnabled())
 			Logger.log(new LogEvent(this, LOGID, "In: has sent their handshake"));
 
-    handshake.destroy();
-    
-    
     /*
      * Waiting until we've received the initiating-end's full handshake, before sending back our own,
      * really should be the "proper" behavior.  However, classic BT trackers running NAT checking will
@@ -1290,6 +1322,9 @@ PEPeerTransportProtocol
       }
     }
 
+    handshake.destroy();
+    
+    
     /*
     for( int i=0; i < reserved.length; i++ ) {
       int val = reserved[i] & 0xFF;
@@ -1314,7 +1349,7 @@ PEPeerTransportProtocol
   
   
   
-  private void decodeAZHandshake( AZHandshake handshake ) {
+  protected void decodeAZHandshake( AZHandshake handshake ) {
     client = handshake.getClient()+ " " +handshake.getClientVersion();
 
     if( incoming && handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
@@ -1353,65 +1388,68 @@ PEPeerTransportProtocol
   
   
   
-  private void decodeBitfield( BTBitfield bitfield ) {
-    DirectByteBuffer field = bitfield.getBitfield();
-   
-    byte[] dataf = new byte[ (manager.getDiskManager().getNbPieces() + 7) / 8 ];
-         
-    if( field.remaining( DirectByteBuffer.SS_PEER ) < dataf.length ) {
-      Debug.out( toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]" );
-      if (Logger.isEnabled())
-				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-						"Protocol:Err: invalid Bitfield from peer: too short ["
-								+ field.remaining(DirectByteBuffer.SS_PEER) + "<"
-								+ dataf.length + "]"));
-      bitfield.destroy();
-      return;
-    }
-       
-    field.get( DirectByteBuffer.SS_PEER, dataf );
-    
-    for (int i = 0; i < other_peer_has_pieces.length; i++) {
-      int index = i / 8;
-      int bit = 7 - (i % 8);
-      byte bData = dataf[index];
-      byte b = (byte) (bData >> bit);
-      if ((b & 0x01) == 1) {
-        other_peer_has_pieces[i] = true;
-        manager.updateSuperSeedPiece(this,i);
-      }
-      else {
-        other_peer_has_pieces[i] = false;
-      }
-    }
+  	protected void decodeBitfield( BTBitfield bitfield ) {
+	  DirectByteBuffer field =bitfield.getBitfield();
+	  
+	  byte[] dataf = new byte[ (nbPieces + 7) / 8 ];
+	  
+	  if( field.remaining( DirectByteBuffer.SS_PEER ) < dataf.length ) {
+		  Debug.out( toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]" );
+		  if (Logger.isEnabled())
+			  Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+				  "Protocol:Err: invalid Bitfield from peer: too short ["
+				  + field.remaining(DirectByteBuffer.SS_PEER) + "<"
+				  + dataf.length + "]"));
+		  bitfield.destroy();
+		  return;
+	  }
+	  
+	  field.get(DirectByteBuffer.SS_PEER, dataf);
+	  
+	  for (int i = 0; i < peerHavePieces.length; i++) {
+		  int index = i / 8;
+		  int bit = 7 - (i % 8);
+		  byte bData = dataf[index];
+		  byte b = (byte) (bData >> bit);
+		  if ((b & 0x01) == 1) {
+			  peerHavePieces.set(i);
+			  manager.updateSuperSeedPiece(this, i);
+		  }
+	  }
 
-    checkInterested();
-    checkSeed();
-    bitfield.destroy();
+	  bitfield.destroy();
+
+	  piecePicker.addBitfield(peerHavePieces);
+	  availabilityAdded =true;
+	  
+	  checkInterested();
+	  checkSeed();
   }
   
   
   
-  private void decodeChoke( BTChoke choke ) {    
+  protected void decodeChoke( BTChoke choke ) {    
     choked_by_other_peer = true;
     cancelRequests();
     choke.destroy();
   }
   
   
-  private void decodeUnchoke( BTUnchoke unchoke ) {
+  protected void decodeUnchoke( BTUnchoke unchoke ) {
     choked_by_other_peer = false;
     unchoke.destroy();
   }
   
   
-  private void decodeInterested( BTInterested interested ) {
-    other_peer_interested_in_me = true;
-    interested.destroy();                                                   
+  protected void decodeInterested( BTInterested interested ) {
+	    interested.destroy();                                                   
+	  // Don't allow known seeds to be interested in us
+	  if (!seed)
+		  other_peer_interested_in_me =true;
   }
   
   
-  private void decodeUninterested( BTUninterested uninterested ) {
+  protected void decodeUninterested( BTUninterested uninterested ) {
     other_peer_interested_in_me = false;
 
     //force send any pending haves in case one of them would make the other peer interested again
@@ -1425,16 +1463,17 @@ PEPeerTransportProtocol
   
   
   
-  private void decodeHave( BTHave have ) {
+  protected void decodeHave( BTHave have ) {
     int piece_number = have.getPieceNumber();
+	have.destroy();
     
-    if ((piece_number >= other_peer_has_pieces.length) || (piece_number < 0)) {
+    if ((piece_number >= peerHavePieces.length) || (piece_number < 0)) {
       closeConnectionInternally( "invalid piece_number: " + piece_number );
       have.destroy();
       return;
     }
 
-    other_peer_has_pieces[piece_number] = true;
+    peerHavePieces.set(piece_number);
     int pieceLength = manager.getPieceLength(piece_number);
     peer_stats.hasNewPiece(pieceLength);
     manager.havePiece(piece_number, pieceLength, this);
@@ -1444,13 +1483,11 @@ PEPeerTransportProtocol
     }
     
     checkSeed();
-     
-    have.destroy();
   }
   
   
   
-  private void decodeRequest( BTRequest request ) {
+  protected void decodeRequest( BTRequest request ) {
     int number = request.getPieceNumber();
     int offset = request.getPieceOffset();
     int length = request.getLength();
@@ -1476,7 +1513,8 @@ PEPeerTransportProtocol
   
   
   
-  private void decodePiece( BTPiece piece ) {
+  protected void decodePiece( BTPiece piece ) {
+	  long now =SystemTime.getCurrentTime();
     int number = piece.getPieceNumber();
     int offset = piece.getPieceOffset();
     DirectByteBuffer payload = piece.getPieceData();
@@ -1543,6 +1581,7 @@ PEPeerTransportProtocol
       }
       else {  //successfully received block!
         manager.writeBlock( number, offset, payload, this );
+        last_good_data_time =now;
         requests_completed++;
         piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
       }
@@ -1563,6 +1602,7 @@ PEPeerTransportProtocol
           setSnubbed( false );
           reSetRequestsTime();
           manager.writeBlockAndCancelOutstanding( number, offset, payload, this );
+          last_good_data_time =now;
           requests_recovered++;
           printRequestStats();
           piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
@@ -1599,7 +1639,7 @@ PEPeerTransportProtocol
   
   
   
-  private void decodeCancel( BTCancel cancel ) {
+  protected void decodeCancel( BTCancel cancel ) {
     int number = cancel.getPieceNumber();
     int offset = cancel.getPieceOffset();
     int length = cancel.getLength();
@@ -1788,6 +1828,7 @@ PEPeerTransportProtocol
 	  return( connection.getTCPTransport().getEncryption());
   }
   
+  
   public void 
   addListener( 
 	 PEPeerListener listener ) 
@@ -1854,7 +1895,7 @@ PEPeerTransportProtocol
     	  
         PEPeerListener l = (PEPeerListener)peer_listeners_ref.get( i );
       
-        l.stateChanged( current_peer_state );
+        l.stateChanged( current_peer_state);
       }
     }
   }
@@ -1909,18 +1950,18 @@ PEPeerTransportProtocol
  
   
   
-  private void decodeAZPeerExchange( AZPeerExchange exchange ) {
+  protected void decodeAZPeerExchange( AZPeerExchange exchange ) {
     PeerItem[] added = exchange.getAddedPeers();
     PeerItem[] dropped = exchange.getDroppedPeers();
     
-    exchange.destroy();
-    
     //make sure they're not spamming us
-    if( !message_limiter.countIncomingMessage( exchange.getID(), 7, 120*1000 ) ) {  //allow max 7 PEX per 2min  //TODO reduce max after 2306 release?
+    if( !message_limiter.countIncomingMessage( exchange.getID(), 7, 120*1000 ) ) {  //allow max 7 PEX per 2min  //TODO reduce max after 2308 release?
    	System.out.println( "Incoming PEX message flood detected, dropping spamming peer connection." +PEPeerTransportProtocol.this );
       closeConnectionInternally( "Incoming PEX message flood detected, dropping spamming peer connection." );
       return;
     }
+    
+    exchange.destroy();
     
     if( added != null && added.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY || dropped != null && dropped.length > PeerExchangerItem.MAX_PEERS_PER_VOLLEY ) {
       //drop these too-large messages as they seem to be used for DOS by swarm poisoners
@@ -2049,4 +2090,13 @@ PEPeerTransportProtocol
 		return connection.isLANLocal();		
 	}
 
+	public boolean isAvailabilityAdded()
+	{
+		return availabilityAdded;
+	}
+	
+	public void clearAvailabilityAdded()
+	{
+		availabilityAdded =false;
+	}
 }
