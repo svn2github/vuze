@@ -26,57 +26,27 @@ import java.util.Arrays;
 
 /**
  * @author MjrTom
- * This provides a boolean array of bit flags with administrative fields and methods
+ * A fairly light-weight, versitle boolean array of bit flags with administrative fields and methods
  * Originaly designed as a boolean array to correspond to the pieces in a torrent,
  * for example to show which pieces are; downloading, high priority, rarest, available, or whatever
- * 
  */
 
 public class BitFlags
 {
-	private int			start =Integer.MAX_VALUE;	// first one that is set
-	private int			end =Integer.MIN_VALUE;		// last one that is set
-	private int			size;
-	private int			nb =-1;				// how many are set
-	private boolean[]	flags;				// the array of the flags
+	// These are public so they can be read quickly.  Please don't try to modify them outside of the given methods. 
+	public int			nbSet;		// how many are set
+	public int			start;		// first one that is set
+	public int			end;		// last one that is set
+	final public int	length;
+	public boolean[]	flags;		// the array of the flags
 
 	public BitFlags(int count)
 	{
-		size =count;
-		flags =new boolean[size];
+		length =count;
+		flags =new boolean[length];
 		start =0;
 		end =0;
-		nb =0;
-	}
-
-	public int getNbSet()
-	{
-		return nb;
-	}
-	
-	public int getStartIndex()
-	{
-		return start;
-	}
-	
-	public int getEndIndex()
-	{
-		return end;
-	}
-	
-	public boolean[] getFlags()
-	{
-		return flags;
-	}
-	
-	public boolean get(int i)
-	{
-		return flags[i];
-	}
-
-	public void copy(boolean[] b)
-	{
-		flags =b;
+		nbSet =0;
 	}
 
 	public void clear()
@@ -84,26 +54,87 @@ public class BitFlags
 		Arrays.fill(flags, false);
 		start =0;
 		end =0;
-		nb =0;
+		nbSet =0;
 	}
 
-	public void set(int i)
+	public void setStart(final int i)
 	{
 		flags[i] =true;
-		nb++;
-		if (start >i)
-			start =i;
-		if (end <i)
-			end =i;
+		nbSet++;
+		start =i;
 	}
 
-	public void setOnly(int i)
+	public void set(final int i)
+	{
+		if (!flags[i])
+		{
+			flags[i] =true;
+			nbSet++;
+			if (start >i)
+				start =i;
+			if (end <i)
+				end =i;
+		}
+	}
+
+	public void setEnd(final int i)
+	{
+		flags[i] =true;
+		nbSet++;
+		end =i;
+	}
+
+	public void setOnly(final int i)
 	{
 		Arrays.fill(flags, start, end, false);
-		nb =1;
+		nbSet =1;
 		start =i;
-		flags[i] =true;
 		end =i;
+		flags[i] =true;
+	}
+
+	public void setAll()
+	{
+		Arrays.fill(flags, start, end, true);
+		nbSet =length;
+		start =0;
+		end =length -1;
+	}
+	
+	/**
+	 * Experimental.  Returns a new BitFlags with the flags set as the logical and of
+	 *  both BitFlags and a length the same as the larger (union) of the two.
+	 * @param other BitFlags to be ANDed with this BitFlags
+	 * @return new BitFlags
+	 */
+	public BitFlags andUnion(final BitFlags other)
+	{
+		if (other ==null)
+			return null;
+		int resultSize =Math.max(this.length, other.length);
+		BitFlags result =new BitFlags(resultSize);
+		if (this.nbSet >0 &&other.nbSet >0)
+		{
+			int startI =Math.max(this.start, other.start);
+			int endI =Math.min(this.end, other.end);
+			int i =startI;
+			for (; i <=endI; i++)
+			{
+				if (this.flags[i] &&other.flags[i])
+				{
+					result.set(i);
+					break;
+				}
+			}
+			for (; i <=endI; i++)
+			{
+				if (this.flags[i] &&other.flags[i])
+				{
+					result.setEnd(i);
+				}
+			}
+		}
+		return result;
 	}
 
 }
