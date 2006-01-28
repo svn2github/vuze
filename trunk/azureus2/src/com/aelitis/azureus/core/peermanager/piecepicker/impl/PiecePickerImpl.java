@@ -55,7 +55,7 @@ public class PiecePickerImpl
 	private static final long PRIORITY_W_FIRSTLAST	=1300;			// user select prioritize first/last
 	private static final long FIRST_PIECE_MIN_NB	=4;				// min # pieces in file for first/last prioritization
 	private static final long PRIORITY_W_FILE		=1100;			// user sets file as "High"
-	private static final long PRIORITY_W_COMPLETION	=800;			// Additional boost for more completed HIgh priority
+	private static final long PRIORITY_W_COMPLETION	=800;			// Additional boost for more completed High priority
 
 	private static final long PRIORITY_W_RAREST		=1300;			// Additional boost for globally rarest piece
 	private static final long PRIORITY_W_RARE		=1250;			// boost for rarity
@@ -84,7 +84,7 @@ public class PiecePickerImpl
 
 	private DiskManagerListenerImpl	diskManagerListener;
 	
-	private long			time_next_avail =Long.MAX_VALUE;
+	private long			time_last_avail;
 
 	protected int			nbPieces =-1;
 	protected volatile int	nbPiecesDone;
@@ -149,7 +149,7 @@ public class PiecePickerImpl
 		nbPiecesDone =0;
 		availabilityChange =Long.MIN_VALUE;
 		availabilityComputeChange =Long.MIN_VALUE;
-		time_next_avail =Long.MIN_VALUE;
+		time_last_avail =Long.MIN_VALUE;
 
 		doneAvailable =new boolean[nbPieces];
 		availability_cow =new int[nbPieces];
@@ -243,7 +243,8 @@ public class PiecePickerImpl
 	protected void computeAvailability()
 	{
 		final long now =SystemTime.getCurrentTime();
-		if (now <time_next_avail ||availabilityComputeChange >=availabilityChange)
+		if (availabilityComputeChange >=availabilityChange
+			||(now >time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY))
 			return;
 
 		final int[] availability =availability_cow;
@@ -280,7 +281,7 @@ public class PiecePickerImpl
 			{
 				if (avail >allMin)
 					total++;
-				if (avail <=rarestMin &&peerControl !=null &&diskManager.isRequestable(i) &&peerControl.getPiece(i) !=null)
+				if (avail <=rarestMin &&peerControl !=null &&dm_pieces[i].isRequestable() &&peerControl.getPiece(i) !=null)
 					rarestActive++;
 				totalAvail +=availability[i];
 			}
@@ -292,7 +293,7 @@ public class PiecePickerImpl
 			nbRarestActive =rarestActive;
 			globalAvgAvail =totalAvail /(float) (nbPieces) /(1 +peerControl.getNbSeeds() +peerControl.getNbPeers());
 		}
-		time_next_avail =now +TIME_MIN_AVAILABILITY;
+		time_last_avail =now;
 		availabilityComputeChange =availabilityChange;
 	}
 
@@ -396,14 +397,15 @@ public class PiecePickerImpl
 				// and improve cache efficiency
 				if (pt.getNbRequests() <=(maxRequests *3) /5)
 				{
-					while (pt.isDownloadPossible() &&(pt.getNbRequests() +found) <maxRequests)
+					while (pt.isDownloadPossible() &&pt.getNbRequests() <maxRequests)
 					{
 						// is there anything else to download?
 						if (!endGameMode)
 							found =findPieceToDownload(pt, maxRequests);
 						else
 							found =findPieceInEndGameMode(pt, maxRequests);
-						if (found <=0)
+						maxRequests -=found;
+						if (found <=0 ||maxRequests <=0)
 							break;
 					}
 				}
@@ -973,11 +975,8 @@ public class PiecePickerImpl
 
 						pePiece.setResumePriority(priority);
 
-						if ((avail <=globalMinOthers &&!rarestOverride &&!resumeIsRarest)
-							||(avail <=globalMinOthers &&pieceNumber ==-1)
-							||(priority >resumeMaxPriority &&!resumeIsRarest)
-							||(priority >resumeMaxPriority &&rarestOverride)
-							||(priority >resumeMaxPriority &&avail <=globalMinOthers))
+						if ((avail <=globalMinOthers &&(pieceNumber ==-1 ||(!rarestOverride &&!resumeIsRarest)))
+							||(priority >resumeMaxPriority &&(!resumeIsRarest ||rarestOverride ||avail <=globalMinOthers)))
 						{ // this piece seems like best choice for resuming
 							// Make sure it's possible to get a block to request from this piece
 							if (pePiece.hasUnrequestedBlock())
@@ -1033,7 +1032,7 @@ public class PiecePickerImpl
 		if (pieceNumber >=0 &&(rarestOverride ||resumeIsRarest ||!rarestCanStart))
 			return pieceNumber;
 
-		// Gets to here when no block was successfully continued
+		// Gets here when no resume piece choice was made
 		return getPieceToStart(pt, startCandidates); // pick piece from candidates bitfield
 	}
 
