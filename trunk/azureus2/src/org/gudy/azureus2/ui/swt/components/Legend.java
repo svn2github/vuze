@@ -38,7 +38,9 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -138,25 +140,57 @@ public class Legend {
 						cd.setRGB(blockColors[index].getRGB());
 						
 						RGB rgb = cd.open();
-						if (rgb != null) {
-							Color color = new Color(panel.getDisplay(), rgb);
-							disposeList.add(color);
-							blockColors[index] = color;
-							lblColor.setBackground(blockColors[index]);
+						if (rgb != null)
 							config.setRGBParameter(keys[index], rgb.red, rgb.green, rgb.blue);
-						}
 					} else {
-						blockColors[index] = defaultColors[index];
-						lblColor.setBackground(defaultColors[index]);
-						config.removeParameter(keys[index] + ".red");
-						config.removeParameter(keys[index] + ".green");
-						config.removeParameter(keys[index] + ".blue");
+						config.removeRGBParameter(keys[index]);
 					}
 				}
 			});
 
 			BufferedLabel lblDesc = new BufferedLabel(colorSet, SWT.NULL);
 			Messages.setLanguageText(lblDesc, keys[i]);
+
+			// If color changes, update our legend
+			config.addParameterListener(keys[i], new ParameterListener() {
+				public void parameterChanged(String parameterName) {
+					for (int j = 0; j < keys.length; j++) {
+						if (keys[j].equals(parameterName)) {
+							final int index = j;
+
+							int r = config.getIntParameter(keys[j] + ".red", -1);
+							if (r >= 0) {
+								int g = config.getIntParameter(keys[j] + ".green");
+								int b = config.getIntParameter(keys[j] + ".blue");
+								
+								final RGB rgb = new RGB(r, g, b);
+								if (!rgb.equals(blockColors[j].getRGB())) {
+
+									Utils.execSWTThread(new AERunnable() {
+										public void runSupport() {
+											Color color = new Color(panel.getDisplay(), rgb);
+											disposeList.add(color);
+											blockColors[index] = color;
+											lblColor.setBackground(blockColors[index]);
+										}
+									});
+								}
+							} else {
+								if (!blockColors[j].equals(defaultColors[j])) {
+									blockColors[j] = defaultColors[j];
+	
+									Utils.execSWTThread(new AERunnable() {
+										public void runSupport() {
+											blockColors[index] = defaultColors[index];
+											lblColor.setBackground(blockColors[index]);
+										}
+									});
+								}
+							}
+						}
+					}
+				}
+			});
 		}
 		
 		legend.addDisposeListener(new DisposeListener() {
