@@ -675,24 +675,26 @@ PEPeerControlImpl
 		//for every piece
 		for (int i =0; i <nbPieces; i++)
 		{
+			PEPieceImpl pePiece =pieces[i];
 			// these checks are only against pieces being downloaded yet needing requests still/again
-			if (pieces[i] !=null)
+			if (pePiece !=null)
 			{
-				long time_since_write	=now -dm_pieces[i].getLastWriteTime();
+				DiskManagerPiece dmPiece	=dm_pieces[i];
+				long time_since_write		=now -dmPiece.getLastWriteTime();
 				if (time_since_write >4001 &&(mainloop_loop_count %MAINLOOP_FIVE_SECOND_INTERVAL) ==0)
 				{
 					// maybe piece's speed is too high for it to get new data
-					if (pieces[i].getSpeed() >0)
+					if (pePiece.getSpeed() >0)
 					{
-					    if (!dm_pieces[i].isRequested())
-					    	_pieces[i].decSpeed();
+					    if (!dmPiece.isRequested())
+					    	pePiece.setSpeed((int)((dmPiece.getNbWritten() *DiskManager.BLOCK_SIZE) /(now -pePiece.getCreationTime())));
 					    else
-					    	_pieces[i].setSpeed(0);
+					    	pePiece.setSpeed(0);
 					} else if (time_since_write >(120 *1000))
 					{
-						dm_pieces[i].clearRequested();
+						dmPiece.clearRequested();
 						// has reserved piece gone stagnant?
-						final String peer =pieces[i].getReservedBy();
+						final String peer =pePiece.getReservedBy();
 						if (peer !=null)
 						{
 							// Peer is too slow; Ban them and unallocate the piece
@@ -703,7 +705,7 @@ PEPeerControlImpl
 								closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds" );
 							else
 								badPeerDetected(pt);
-							_pieces[i].setReservedBy(null);
+							pePiece.setReservedBy(null);
 						} else if (time_since_write >(240 *1000))
 							checkEmptyPiece(i);
 					}
@@ -1614,16 +1616,6 @@ PEPeerControlImpl
 		if(piece != -1 && superSeedMode ) {
 			superSeedModeNumberOfAnnounces--;
 			superSeedPieces[piece].peerLeft();
-		}
-		
-		if (pc.isAvailabilityAdded())
-		{
-			BitFlags peerHave =pc.getAvailable();
-			if (peerHave !=null)
-			{
-				piecePicker.removeBitfield(peerHave);
-				pc.clearAvailabilityAdded();
-			}
 		}
 		
 		adapter.removePeer(pc);  //async downloadmanager notification
