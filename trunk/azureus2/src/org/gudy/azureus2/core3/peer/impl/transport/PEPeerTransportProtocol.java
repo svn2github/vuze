@@ -432,6 +432,7 @@ PEPeerTransportProtocol
       ip_resolver_request.cancel();
     }
     
+    removeAvailability();
 
     changePeerState( PEPeer.DISCONNECTED );
     
@@ -2090,13 +2091,16 @@ PEPeerTransportProtocol
 		return connection.isLANLocal();		
 	}
 
-	public boolean isAvailabilityAdded()
+	protected void removeAvailability()
 	{
-		return availabilityAdded;
+		if (availabilityAdded)
+		{
+			if (peerHavePieces !=null &&peerHavePieces.flags !=null)
+			{
+				piecePicker.removeBitfield(peerHavePieces);
+				availabilityAdded =false;
+			}
+		}
 	}
-	
-	public void clearAvailabilityAdded()
-	{
-		availabilityAdded =false;
-	}
+
 }

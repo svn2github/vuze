@@ -251,7 +251,4 @@ PEPeer
 	public void setLastPiece(int i);
 	public int getLastPiece();
 	
-	public boolean isAvailabilityAdded();
-	public void clearAvailabilityAdded();
-
 }
