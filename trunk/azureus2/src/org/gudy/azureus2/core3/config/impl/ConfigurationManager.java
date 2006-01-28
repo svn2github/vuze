@@ -425,7 +425,21 @@ ConfigurationManager
    * @return true if found and removed, false if not
    */
   public boolean removeParameter( String parameter ) {
-    return propertiesMap.remove( parameter ) == null ? false : true;
+    boolean removed = propertiesMap.remove( parameter ) != null;
+    if (removed)
+    	notifyParameterListeners(parameter);
+    return removed;
+  }
+  
+  public boolean removeRGBParameter(String parameter) {
+    boolean bAnyChanged = false;
+    bAnyChanged |= removeParameter(parameter + ".red");
+    bAnyChanged |= removeParameter(parameter + ".green");
+    bAnyChanged |= removeParameter(parameter + ".blue");
+    if (bAnyChanged)
+      notifyParameterListeners(parameter);
+
+    return bAnyChanged;
   }
   
   /**
