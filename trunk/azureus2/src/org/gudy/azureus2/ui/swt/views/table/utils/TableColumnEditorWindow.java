@@ -169,6 +169,7 @@ public class TableColumnEditorWindow {
         column.setText(MessageText.getString("columnChooser." + columnsHeader[i]));
     }
     table.getColumn(0).setWidth(160);
+    table.getColumn(1).setWidth(1000);
 
     table.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event e) {
@@ -205,7 +206,8 @@ public class TableColumnEditorWindow {
 		    item.setText(0, MessageText.getString(sTitleLanguageKey));
 		    item.setText(1, MessageText.getString(sTitleLanguageKey + ".info", ""));
 		    
-	      table.getColumn(1).pack();
+		    //Causes SetData listener to be triggered again, which messes up SWT 
+	      //table.getColumn(1).pack();
 
 		    final boolean bChecked = ((Boolean) newEnabledState.get(tableColumn))
 						.booleanValue();
