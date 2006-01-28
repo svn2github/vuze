@@ -404,8 +404,7 @@ public class PiecePickerImpl
 							found =findPieceToDownload(pt, maxRequests);
 						else
 							found =findPieceInEndGameMode(pt, maxRequests);
-						maxRequests -=found;
-						if (found <=0 ||maxRequests <=0)
+						if (found <=0)
 							break;
 					}
 				}
@@ -428,19 +427,19 @@ public class PiecePickerImpl
 		int peerSpeed =(int) pt.getStats().getDataReceiveRate() /1024;
 
 		PEPeerControl pc =pt.getControl();
-		PEPiece piece =pc.getPiece(pieceNumber);
-		if (piece ==null)
+		PEPiece pePiece =pc.getPiece(pieceNumber);
+		if (pePiece ==null)
 		{
-			piece =new PEPieceImpl(pt.getManager(), dm_pieces[pieceNumber], peerSpeed >>1, false);
+			pePiece =new PEPieceImpl(pt.getManager(), dm_pieces[pieceNumber], peerSpeed >>1, false);
 
 			// Assign the created piece to the pieces array.
-			pc.addPiece(piece, pieceNumber);
-			
+			pc.addPiece(pePiece, pieceNumber);
+			pePiece.setResumePriority(startPriorities[pieceNumber]);
 			if (availability_cow[pieceNumber] <=globalMinOthers)
 				nbRarestActive++;
 		}
 
-		final int[] blocksFound =piece.getAndMarkBlocks(pt, wants);
+		final int[] blocksFound =pePiece.getAndMarkBlocks(pt, wants);
 		final int blockNumber =blocksFound[0];
 		final int blocks =blocksFound[1];
 
@@ -452,13 +451,13 @@ public class PiecePickerImpl
 		for (int i =0; i <blocks; i++)
 		{
 			final int thisBlock =blockNumber +i;
-			if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, piece.getBlockSize(thisBlock)))
+			if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock)))
 			{
 				requested++;
 				pt.setLastPiece(pieceNumber);
 				// Up the speed on this piece?
-				if (peerSpeed >piece.getSpeed())
-					piece.incSpeed();
+				if (peerSpeed >pePiece.getSpeed())
+					pePiece.incSpeed();
 				// have requested a block
 			}
 		}
@@ -984,10 +983,6 @@ public class PiecePickerImpl
 								pieceNumber =i;
 								resumeMaxPriority =priority;
 								resumeIsRarest =avail <=globalMinOthers; // only going to try to resume one
-							} else
-							{ // this piece can't yield free blocks to req, but is not marked as fully requested
-								// probably should double check last time written and see if any requests went bad
-								dmPiece.setRequested(); // mark it as fully requested
 							}
 						}
 					} else if ((!resumeIsRarest &&priority >=startMaxPriority)
