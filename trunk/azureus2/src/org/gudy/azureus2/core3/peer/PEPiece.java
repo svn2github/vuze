@@ -66,6 +66,7 @@ public interface PEPiece
 	
 	public int			getNbRequests();
 	public int			getNbUnrequested();
+	public int			checkRequests();
 
 	public int			getBlockSize(int blockNumber);
 
