@@ -240,6 +240,7 @@ PEPeerControlImpl
 
 		PeerControlSchedulerFactory.getSingleton().register(this);
 
+		lastNeededUndonePieceChange =Long.MIN_VALUE;
 		_timeStarted =SystemTime.getCurrentTime();
 
 		is_running =true;
@@ -653,16 +654,21 @@ PEPeerControlImpl
 		}
 	}
 
-	private void checkEmptyPiece(int pieceNumber)
+	/** Checks given piece to see if it's empty, and if so removes it.
+	 * @param pieceNumber
+	 * @return true if the piece was removed and is now null
+	 */ 
+	private boolean checkEmptyPiece(final int pieceNumber)
 	{
 		if (_pieces[pieceNumber] ==null ||dm_pieces[pieceNumber].isRequested())
-			return;
+			return false;
 		PEPieceImpl piece =_pieces[pieceNumber];
 		if (dm_pieces[pieceNumber].getNbWritten() >0 ||piece.getNbRequests() >0 ||piece.getSpeed() >0 ||piece.getReservedBy() !=null)
-			return;
+			return false;
 		pieceRemoved(_pieces[pieceNumber]);
+		return true;
 	}
-
+	
 	/**
 	 * Check if a piece's Speed is too fast for it to be getting new data
 	 * and if a reserved pieced failed to get data within 120 seconds
@@ -692,6 +698,7 @@ PEPeerControlImpl
 					    	pePiece.setSpeed(0);
 					} else if (time_since_write >(120 *1000))
 					{
+						pePiece.checkRequests();
 						dmPiece.clearRequested();
 						// has reserved piece gone stagnant?
 						final String peer =pePiece.getReservedBy();
@@ -704,7 +711,7 @@ PEPeerControlImpl
 							if (pt.isSeed())
 								closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds" );
 							else
-								badPeerDetected(pt);
+								badPeerDetected(peer);
 							pePiece.setReservedBy(null);
 						} else if (time_since_write >(240 *1000))
 							checkEmptyPiece(i);
@@ -901,9 +908,10 @@ PEPeerControlImpl
 	 */
 	private void checkRequests()
 	{
+		final long now =SystemTime.getCurrentTime();
+
 		//for every connection
-		List peer_transports	= peer_transports_cow;
-		
+		final List peer_transports	= peer_transports_cow;
 		for (int i =peer_transports.size() -1; i >=0 ; i--)
 		{
 			PEPeerTransport pc =(PEPeerTransport)peer_transports.get(i);
@@ -913,21 +921,22 @@ PEPeerControlImpl
 				
 				if (expired !=null &&expired.size() >0)
 				{
-					if (pc.getTimeSinceGoodDataReceived() <0 ||pc.getTimeSinceGoodDataReceived() >60 *1000)
+					final long goodTime =pc.getTimeSinceGoodDataReceived();
+					if (goodTime <0 ||goodTime >60 *1000)
 						pc.setSnubbed(true);
 					
 					//Only cancel first request if more than 2 mins have passed
 					DiskManagerReadRequest request =(DiskManagerReadRequest) expired.get(0);
 					
-					long wait_time =SystemTime.getCurrentTime() -request.getTimeCreated();
+					long wait_time =now -request.getTimeCreated();
 					
 					if (wait_time >120 *1000)
 					{
 						pc.sendCancel(request); //cancel the request object
 						//get the piece number
-						int pieceNumber = request.getPieceNumber();
+						final int pieceNumber = request.getPieceNumber();
 						//get the block offset
-						int pieceOffset = request.getOffset();
+						final int pieceOffset = request.getOffset();
 						//unmark the block
 						if (_pieces[pieceNumber] !=null)
 							_pieces[pieceNumber].unmarkBlock(pieceOffset /DiskManager.BLOCK_SIZE);
@@ -1819,8 +1828,7 @@ PEPeerControlImpl
 									if (!Arrays.equals(write.getHash(), correctHash))
 									{
 										// Bad peer found here
-										final PEPeerTransport badPeer =getTransportFromAddress(write.getSender());
-										badPeerDetected(badPeer);
+										badPeerDetected(write.getSender());
 									}
 								}
 							}
@@ -1860,7 +1868,7 @@ PEPeerControlImpl
 					{
 						// Very simple case, only 1 peer contributed for that piece,
 						// so, let's mark it as a bad peer
-						badPeerDetected(getTransportFromAddress((String)uniqueWriters.get(0)));
+						badPeerDetected((String)uniqueWriters.get(0));
 
 						// and let's reset the whole piece
 						pePiece.reset();
@@ -1922,15 +1930,15 @@ PEPeerControlImpl
 		}
 	}
 
-	private void badPeerDetected(PEPeerTransport peer)
+	private void badPeerDetected(String ip)
 	{
-		String ip =peer.getIp();
-		// Debug.out("Bad Peer Detected: " + ip + " [" + peer.getClient() + "]");
+		final PEPeerTransport peer =getTransportFromAddress(ip);
+		// Debug.out("Bad Peer Detected: " + peerIP + " [" + peer.getClient() + "]");
 
-		IpFilterManager filter_manager =IpFilterManagerFactory.getSingleton();
+		final IpFilterManager filter_manager =IpFilterManagerFactory.getSingleton();
 
 		// Ban fist to avoid a fast reco of the bad peer
-		int nbWarnings =filter_manager.getBadIps().addWarningForIp(ip);
+		final int nbWarnings =filter_manager.getBadIps().addWarningForIp(ip);
 
 		// no need to reset the bad chunk count as the peer is going to be disconnected and
 		// if it comes back it'll start afresh
@@ -1938,26 +1946,29 @@ PEPeerControlImpl
 		{
 			if (COConfigurationManager.getBooleanParameter("Ip Filter Enable Banning"))
 			{
-				int ps =peer.getPeerState();
-
-				// might have been through here very recently and already started closing
-				// the peer (due to multiple bad blocks being found from same peer when checking piece)
-				if (!(ps ==PEPeer.CLOSING ||ps ==PEPeer.DISCONNECTED))
-				{
-					// Close connection
-					closeAndRemovePeer(peer, "has sent too many bad pieces, " +WARNINGS_LIMIT +" max.");
-				}
-
 				// if a block-ban occurred, check other connections
 				if (ip_filter.ban(ip, adapter.getDisplayName()))
 				{
 					checkForBannedConnections();
 				}
 
-				// Trace the ban in third
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_ERROR, ip +" : has been banned and won't be able "
-						+"to connect until you restart azureus"));
+				if (peer !=null)
+				{
+					int ps =peer.getPeerState();
+	
+					// might have been through here very recently and already started closing
+					// the peer (due to multiple bad blocks being found from same peer when checking piece)
+					if (!(ps ==PEPeer.CLOSING ||ps ==PEPeer.DISCONNECTED))
+					{
+						// Close connection
+						closeAndRemovePeer(peer, "has sent too many bad pieces, " +WARNINGS_LIMIT +" max.");
+					}
+	
+					// Trace the ban
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(peer, LOGID, LogEvent.LT_ERROR, ip +" : has been banned and won't be able "
+							+"to connect until you restart azureus"));
+				}
 			}
 		}
 	}
