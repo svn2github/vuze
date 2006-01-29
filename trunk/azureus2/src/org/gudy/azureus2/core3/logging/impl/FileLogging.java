@@ -202,6 +202,8 @@ public class FileLogging implements ILogEventListener {
 
 		if (event.relatedTo != null) {
 			lastWidth = padAndAppend(text, event.text, lastWidth, 1);
+			if (lastWidth > 200)
+				lastWidth = 200;
 
 			for (int i = 0; i < event.relatedTo.length; i++) {
 				Object obj = event.relatedTo[i];
