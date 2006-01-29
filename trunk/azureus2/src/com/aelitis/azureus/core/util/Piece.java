@@ -40,8 +40,8 @@ public interface Piece
 
 	public static final int	PIECE_STATUS_NEEDED_DONE =0x00000081;
 
-	// Needed isn't included in this since it has to be set/cleared independently
-	public static final int	PIECE_STATUS_REQUESTABLE =0x000000F5;	//(PIECE_STATUS_NEEDED |PIECE_STATUS_REQUESTED |PIECE_STATUS_DOWNLOADED |PIECE_STATUS_WRITTEN |PIECE_STATUS_CHECKING |PIECE_STATUS_DONE);
+	// Needed isn't included in this (really :) since it has to be set/cleared independently
+	public static final int	PIECE_STATUS_REQUESTABLE =0x000000F4;	//(PIECE_STATUS_REQUESTED |PIECE_STATUS_DOWNLOADED |PIECE_STATUS_WRITTEN |PIECE_STATUS_CHECKING |PIECE_STATUS_DONE);
 
 	public void			clearChecking();
 	public boolean		isChecking();
