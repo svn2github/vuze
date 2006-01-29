@@ -76,9 +76,9 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 
 	private StyledText consoleText = null;
 
-	private Object[] filter = null;
+	private Button buttonAutoScroll = null;
 
-	private boolean bSupressScrolling = false;
+	private Object[] filter = null;
 
 	// LinkedList is better for removing entries when full
 	private LinkedList buffer = new LinkedList();
@@ -88,6 +88,8 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	private boolean bRealtime = false;
 
 	private boolean bEnabled = false;
+
+	private boolean bAutoScroll = true;
 
 	// List of components we don't log.  
 	// Array represents LogTypes (info, warning, error)
@@ -117,8 +119,8 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	public void initialize(Composite composite) {
 		display = composite.getDisplay();
 
-    Colors.getInstance().addColorsChangedListener(this);
-    parameterChanged("Color");
+		Colors.getInstance().addColorsChangedListener(this);
+		parameterChanged("Color");
 
 		panel = new Composite(composite, SWT.NULL);
 		GridLayout layout = new GridLayout();
@@ -142,12 +144,21 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 				GC gc = new GC(consoleText);
 				int charWidth = gc.getFontMetrics().getAverageCharWidth();
 				gc.dispose();
-				
+
 				int areaWidth = consoleText.getBounds().width;
 				consoleText.setTabs(areaWidth / 6 / charWidth);
 			}
 		});
-		
+
+		ScrollBar sb = consoleText.getVerticalBar();
+		sb.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				bAutoScroll = false;
+				if (buttonAutoScroll != null && !buttonAutoScroll.isDisposed())
+					buttonAutoScroll.setSelection(false);
+			}
+		});
+
 		Composite cLeft = new Composite(panel, SWT.NULL);
 		layout = new GridLayout();
 		layout.marginHeight = 0;
@@ -186,6 +197,20 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 			}
 		});
 
+		buttonAutoScroll = new Button(cLeft, SWT.CHECK);
+		Messages.setLanguageText(buttonAutoScroll, "LoggerView.autoscroll");
+		gd = new GridData();
+		buttonAutoScroll.setLayoutData(gd);
+		buttonAutoScroll.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				if (e.widget == null || !(e.widget instanceof Button))
+					return;
+				Button btn = (Button) e.widget;
+				bAutoScroll = btn.getSelection();
+			}
+		});
+		buttonAutoScroll.setSelection(true);
+
 		Button buttonClear = new Button(cLeft, SWT.PUSH);
 		Messages.setLanguageText(buttonClear, "LoggerView.clear");
 		gd = new GridData();
@@ -215,7 +240,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 
 		final Label labelCatFilter = new Label(gLogIDs, SWT.NONE);
 		labelCatFilter.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
-		
+
 		final List listLogTypes = new List(gLogIDs, SWT.BORDER | SWT.SINGLE
 				| SWT.V_SCROLL);
 		gd = new GridData(SWT.NULL, SWT.BEGINNING, false, false);
@@ -237,7 +262,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		layout.marginWidth = 0;
 		cChecksAndButtons.setLayout(layout);
 		cChecksAndButtons.setLayoutData(new GridData());
-		
+
 		final Composite cChecks = new Composite(cChecksAndButtons, SWT.NULL);
 		RowLayout rowLayout = new RowLayout(SWT.VERTICAL);
 		rowLayout.wrap = true;
@@ -267,21 +292,21 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 			btn.setData("LOGID", logIDs[i]);
 
 			btn.addSelectionListener(buttonClickListener);
-			
+
 			if (i == 0) {
 				gd = new GridData(SWT.FILL, SWT.FILL, false, false, 1, 2);
 				gd.heightHint = (btn.computeSize(SWT.DEFAULT, SWT.DEFAULT).y + 2) * 3;
 				cChecks.setLayoutData(gd);
 			}
 		}
-		
+
 		// Update table when list selection changes
 		listLogTypes.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				int index = listLogTypes.getSelectionIndex();
 				if (index < 0 || index >= logTypes.length)
 					return;
-				
+
 				labelCatFilter.setText(MessageText.getString(
 						"ConfigView.section.logging.showLogsFor", listLogTypes
 								.getSelection()));
@@ -289,7 +314,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 				Control[] items = cChecks.getChildren();
 				for (int i = 0; i < items.length; i++) {
 					if (items[i] instanceof Button) {
-						LogIDs ID = (LogIDs)items[i].getData("LOGID");
+						LogIDs ID = (LogIDs) items[i].getData("LOGID");
 						if (ID != null) {
 							boolean checked = !ignoredComponents[index].contains(ID);
 							((Button) items[i]).setSelection(checked);
@@ -313,7 +338,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 				Control[] items = cChecks.getChildren();
 				for (int i = 0; i < items.length; i++) {
 					if (items[i] instanceof Button) {
-						LogIDs ID = (LogIDs)items[i].getData("LOGID");
+						LogIDs ID = (LogIDs) items[i].getData("LOGID");
 						if (ID != null && ignoredComponents[index].contains(ID)) {
 							((Button) items[i]).setSelection(true);
 							ignoredComponents[index].remove(ID);
@@ -334,7 +359,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 				Control[] items = cChecks.getChildren();
 				for (int i = 0; i < items.length; i++) {
 					if (items[i] instanceof Button) {
-						LogIDs ID = (LogIDs)items[i].getData("LOGID");
+						LogIDs ID = (LogIDs) items[i].getData("LOGID");
 						if (ID != null && !ignoredComponents[index].contains(ID)) {
 							((Button) items[i]).setSelection(false);
 							ignoredComponents[index].add(ID);
@@ -371,16 +396,16 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 			for (int i = 0; i < buffer.size(); i++) {
 				try {
 					LogEvent event = (LogEvent) buffer.get(i);
-	
+
 					int nbLinesBefore = consoleText.getLineCount();
 					if (nbLinesBefore > MAX_LINES)
 						consoleText.replaceTextRange(0, consoleText
 								.getOffsetAtLine(PREFERRED_LINES), "");
-	
+
 					final StringBuffer buf = new StringBuffer();
 					dateFormatter.format(event.timeStamp, buf, formatPos);
 					buf.append("{").append(event.logID).append("} ");
-	
+
 					buf.append(event.text);
 					if (filter == null && event.relatedTo != null) {
 						buf.append("; \t| ");
@@ -391,17 +416,15 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 							if (obj instanceof LogRelation) {
 								buf.append(((LogRelation) obj).getRelationText());
 							} else if (obj != null) {
-								buf.append(obj.getClass().getName())
-								   .append(": '")
-								   .append(obj.toString())
-								   .append("'");
+								buf.append(obj.getClass().getName()).append(": '").append(
+										obj.toString()).append("'");
 							}
 						}
 					}
 					buf.append('\n');
-	
+
 					consoleText.append(buf.toString());
-	
+
 					int nbLinesNow = consoleText.getLineCount();
 					int colorIdx = -1;
 					if (event.entryType == LogEvent.LT_INFORMATION)
@@ -410,7 +433,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 						colorIdx = COLOR_WARN;
 					else if (event.entryType == LogEvent.LT_ERROR)
 						colorIdx = COLOR_ERR;
-	
+
 					if (colors != null && colorIdx >= 0)
 						consoleText.setLineBackground(nbLinesBefore - 1, nbLinesNow
 								- nbLinesBefore, colors[colorIdx]);
@@ -425,7 +448,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 
 			}
 			buffer.clear();
-			if (!bSupressScrolling)
+			if (bAutoScroll)
 				consoleText.setSelection(consoleText.getText().length());
 		}
 	}
@@ -438,7 +461,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		Logger.removeListener(this);
 		if (consoleText != null && !consoleText.isDisposed())
 			consoleText.dispose();
-    Colors.getInstance().removeColorsChangedListener(this);
+		Colors.getInstance().removeColorsChangedListener(this);
 	}
 
 	/* (non-Javadoc)
@@ -494,7 +517,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 					buffer.removeFirst();
 				buffer.add(event);
 			}
-			
+
 			if (bRealtime && !bPaused) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
@@ -576,33 +599,33 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	}
 
 	public void parameterChanged(String parameterName) {
-    if (parameterName.startsWith("Color")) {
-    	Utils.execSWTThread(new AERunnable() {
-    		public void runSupport() {
-    			if (display == null || display.isDisposed())
-    				return;
+		if (parameterName.startsWith("Color")) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (display == null || display.isDisposed())
+						return;
 
-      		if (colors == null)
-      			colors = new Color[3];
-      		
-      		final Color[] newColors = { Colors.blues[Colors.BLUES_MIDLIGHT],
+					if (colors == null)
+						colors = new Color[3];
+
+					final Color[] newColors = { Colors.blues[Colors.BLUES_MIDLIGHT],
 							Colors.colorWarning, Colors.red_ConsoleView };
-      		boolean bColorChanged = false;
-      		
-      		for (int i = 0; i < newColors.length; i++) {
+					boolean bColorChanged = false;
+
+					for (int i = 0; i < newColors.length; i++) {
 						if (colors[i] == null || colors[i].isDisposed()) {
 							colors[i] = newColors[i];
 							bColorChanged = true;
 						}
 					}
-    			
-    			if (bColorChanged && consoleText != null) {
-    				// remove color
-    				String text = consoleText.getText();
-    				consoleText.setText(text);
-    			}
-    		}
-    	});
-    }
+
+					if (bColorChanged && consoleText != null) {
+						// remove color
+						String text = consoleText.getText();
+						consoleText.setText(text);
+					}
+				}
+			});
+		}
 	}
 }
