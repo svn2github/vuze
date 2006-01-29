@@ -45,17 +45,6 @@ import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 public interface 
 PEPeerManager 
 {
-	public static final int PS_INITIALISED	= 1;
-	public static final int PS_DOWNLOADING	= 2;
-	public static final int PS_SEEDING		= 3;
-	public static final int PS_STOPPED		= 4;
-	
-	/**
-	 * Get the state from above PS_ set
-	 * @return current state
-	 */
-	public int
-	getState();
 	
 	public DiskManager getDiskManager();
 	public PiecePicker getPiecePicker();

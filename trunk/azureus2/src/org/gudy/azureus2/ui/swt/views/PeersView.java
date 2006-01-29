@@ -146,11 +146,12 @@ public class PeersView
 
 		PEPeer peer = (PEPeer) getFirstSelectedDataSource();
 
-		if ( peer == null || peer.getManager().getState() == PEPeerManager.PS_DOWNLOADING ){
-			// only allow upload blocking when seeding
+		if ( peer == null || peer.getManager().getDiskManager().getRemaining() > 0 ){
+			// disallow peer upload blocking when downloading
 			block_item.setSelection(false);
 			block_item.setEnabled(false);
-		} else {
+		}
+		else {
 			block_item.setEnabled(true);
 			block_item.setSelection(peer.isSnubbed());
 		}

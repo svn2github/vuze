@@ -987,11 +987,6 @@ Test
 			dm	= _dm;
 		}
 		
-		public int
-		getState()
-		{
-			return( 0 );
-		}
 		
 	 	public DiskManager
 		getDiskManager()

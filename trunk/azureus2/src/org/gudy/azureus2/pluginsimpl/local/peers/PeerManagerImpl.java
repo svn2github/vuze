@@ -108,8 +108,9 @@ PeerManagerImpl
 	public boolean
 	isSeeding()
 	{
-		return( manager.getState() == PEPeerManager.PS_SEEDING );
+		return( manager.getDiskManager().getRemaining() == 0 ); //yuck
 	}
+	
 	public boolean
 	isSuperSeeding()
 	{
@@ -283,8 +284,6 @@ PeerManagerImpl
 			final Map	peer_map = new HashMap();
 			
       PEPeerManagerListener core_listener = new PEPeerManagerListener() {
-        public void stateChanged( int state ) { /* nothing */ }
-
         public void peerAdded( PEPeerManager manager, PEPeer peer ) {
           PeerImpl pi = new PeerImpl( peer );
           peer_map.put( peer, pi );

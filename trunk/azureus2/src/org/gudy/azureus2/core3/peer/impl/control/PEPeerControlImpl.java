@@ -60,8 +60,6 @@ PEPeerControlImpl
 
 	private static IpFilter ip_filter = IpFilterManagerFactory.getSingleton().getIPFilter();
 
-	private int				peer_manager_state = PS_INITIALISED;
-
 	private volatile boolean	is_running = false;  
 
 	private volatile ArrayList	peer_transports_cow = new ArrayList();	// Copy on write!
@@ -163,12 +161,7 @@ PEPeerControlImpl
 		piecePicker.setPeerControl(this);
 	}
  
-	public int
-	getState()
-	{
-		return( peer_manager_state );
-	}
-	
+
 	public void
 	start()
 	{
@@ -2000,21 +1993,7 @@ PEPeerControlImpl
 	}
 	
 	
-	
-	protected void
-	changeState(
-		int		new_state )
-	{
-		peer_manager_state = new_state;
-		
-		ArrayList peer_manager_listeners = peer_manager_listeners_cow;
-		
-		for (int i=0;i<peer_manager_listeners.size();i++){
-			
-			((PEPeerManagerListener)peer_manager_listeners.get(i)).stateChanged( peer_manager_state );
-		}
-		
-	}
+
 	
 	public void
 	addListener(

@@ -28,10 +28,6 @@ package org.gudy.azureus2.core3.peer;
 public interface 
 PEPeerManagerListener 
 {
-	public void
-	stateChanged(
-		int		state );
-  
   
   /**
    * The given peer has been added to the given manager.
