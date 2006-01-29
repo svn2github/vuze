@@ -373,30 +373,30 @@ public class DiskManagerPieceImpl
 	public long getLastWriteTime()
 	{
 		long now =SystemTime.getCurrentTime();
-		if (time_last_write <=now)
+		if (time_last_write >0 &&now >=time_last_write)
 			return time_last_write;
 		return time_last_write =now;
 	}
 
 	/**
-	 * Clears flags that show the piece has progressed to a point where no more downloading is needed for it,
-	 * Including; Needed, Requested, Downloaded, Written, Checking, and Done.
+	 * Clears flags that show the piece doesn't need more downloading requested of it
+	 * Including; Requested, Downloaded, Written, Checking, and Done.
 	 * Avail isn't affected by this.
 	 */
 	public void setRequestable()
 	{
 		statusFlags &=~(PIECE_STATUS_REQUESTABLE);
-		calcNeeded();
+		calcNeeded();	// Needed wouldn't have been calced before if couldn't download more
 	}
 
 	/**
 	 * @return true if no flag shows we need not download more of this piece 
-	 * including; Needed, Requested, Downloaded, Written, Checking, Done
-	 * Avail isn't checked by this.
+	 * including; Requested, Downloaded, Written, Checking, Done
+	 * Needed & Avail isn't checked by this.
 	 */
 	public boolean isRequestable()
 	{
-		return (statusFlags &PIECE_STATUS_REQUESTABLE) ==PIECE_STATUS_NEEDED;
+		return (statusFlags &PIECE_STATUS_REQUESTABLE) ==0;
 	}
 
 	/**
