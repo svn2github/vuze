@@ -93,6 +93,10 @@ implements PEPiece
 //		return manager.calcAvailability(dm_piece.getPieceNumber());
 //	}
 
+	/**
+	 * @return int of availability in the swarm for this piece
+	 * @see org.gudy.azureus2.core3.peer.PEPeerManager.getAvailability(int pieceNumber)
+	 */
 	public int getAvailability()
 	{
 		if (manager !=null)
@@ -100,44 +104,102 @@ implements PEPiece
 		return 0;
 	}
 
+	/** This support method returns how many blocks have already been
+	 * written from the dmPiece
+	 * @return int from dmPiece.getNbWritten()
+	 * @see org.gudy.azureus2.core3.disk.DiskManagerPiece.getNbWritten()
+	 */
 	public int getNbWritten()
 	{
 		return dm_piece.getNbWritten();
 	}
 	
+	/** Tells if a block has been requested
+	 * @param blockNumber the block in question
+	 * @return true if the block is Requested already
+	 */
 	public boolean isRequested(int blockNumber)
 	{
 		return requested[blockNumber] !=null;
 	}
 
+	/** Tells if a block has been downloaded
+	 * @param blockNumber the block in question
+	 * @return true if the block is downloaded already
+	 */
 	public boolean isDownloaded(int blockNumber)
 	{
 		return downloaded[blockNumber];
 	}
 
+	/** This is a support method to return the dmPiece's written array
+	 * @return boolean[] from the dmPiece
+	 * @see com.aelitis.azureus.core.util.Piece.getWritten()
+	 */
 	public boolean[] getWritten()
 	{
 		return dm_piece.getWritten();
 	}
 
+	/** This flags the given block as having been downloaded
+	 * @param blockNumber
+	 */
 	public void setBlockWritten(int blockNumber)
 	{
 		downloaded[blockNumber] =true;
 	}
 
+	/** This marks a given block as having been written by the given peer
+	 * @param peer the PEPeerTransport that sent the data
+	 * @param blockNumber the block we're operating on
+	 */
 	public void setWritten(PEPeerTransport peer,int blockNumber)
 	{
 		writers[blockNumber] =peer.getIp();
 		dm_piece.setBlockWritten(blockNumber);
 	}
 	
-	// This method is used to clear the requested information
+	/** This method clear the requested information for the given block
+	 */
 	public void clearRequested(int blockNumber)
 	{
 		requested[blockNumber] =null;
 	}
 
-	// determines if a piece has any unrequested blocks
+	/** This will scan each block looking for requested blocks. For each one, it'll verify
+	 * if the PEPeer for it still exists and is still willing and able to upload data.
+	 * If not, it'll unmark the block as requested. This should probably only be called
+	 * after a piece has timed out, for performance
+	 * @return int of how many were cleared (0 to nbBlocks)
+	 */
+	public int checkRequests()
+	{
+		int cleared =0;
+		for (int i =0; i <nbBlocks; i++)
+		{
+			final String			requester =requested[i];
+			final PEPeerTransport	pt;
+			if (requester !=null)
+			{
+				pt =manager.getTransportFromAddress(requester);
+				if (pt ==null ||!pt.isDownloadPossible() ||downloaded[i])
+				{
+					requested[i] =null;
+					cleared++;
+				}
+			}
+		}
+		if (cleared >0)
+			dm_piece.clearRequested();
+		return cleared;
+	}
+
+	/** This method presumes the caller believes the piece to probably have
+	 * requestable blocks.  As such, this method marks it as Requested when
+	 * no blocks are found.
+	 *  @return true if the piece has any blocks that are not;
+	 *  Downloaded, Requested, and Written
+	 */
 	public boolean hasUnrequestedBlock()
 	{
 		for (int i =0; i <nbBlocks; i++ )
@@ -145,7 +207,7 @@ implements PEPiece
 			if (!downloaded[i] &&requested[i] ==null &&!dm_piece.isWritten(i))
 				return true;
 		}
-		// this should have only been called because the piece was believed to have free blocks
+		// this should have only been called if piece was believed to have free blocks
 		// mark it as not having any free blocks now
 		dm_piece.setRequested();
 		return false;
@@ -153,20 +215,17 @@ implements PEPiece
 
 	/**
 	 * This method scans a piece for the first unrequested block.  Upon finding it,
-	 * it counts how many are unrequested up to the quantity of want.
+	 * it counts how many are unrequested up to nbWanted.
 	 * The blocks are marked as requested by the PEPeer
-	 * will mark it as requested, unless it's been too long since
-	 * anything was written to the piece, in which case it'll return
-	 * the first non-written block so it can be re-requested
 	 * Assumption - single threaded access to this
 	 */
-	public int[] getAndMarkBlocks(PEPeerTransport peer, int wants)
+	public int[] getAndMarkBlocks(PEPeerTransport peer, int nbWanted)
 	{
 		int blocksFound =0;
 		// scan piece to find first free block
 		for (int i =0; i <nbBlocks; i++)
 		{
-			while (blocksFound <=wants &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound] &&requested[i +blocksFound] ==null &&!dm_piece.isWritten(i +blocksFound))
+			while (blocksFound <=nbWanted &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound] &&requested[i +blocksFound] ==null &&!dm_piece.isWritten(i +blocksFound))
 			{
 				requested[i +blocksFound] =peer.getIp();
 				blocksFound++;
@@ -203,7 +262,7 @@ implements PEPiece
 	getBlockSize(
 		int blockNumber) 
 	{
-		if ( blockNumber == (downloaded.length - 1)){
+		if ( blockNumber == (nbBlocks - 1)){
 			
 			int	length = dm_piece.getLength();
 			
@@ -218,7 +277,7 @@ implements PEPiece
 	
 	public int getNbBlocks()
 	{
-		return downloaded.length;
+		return nbBlocks;
 	}
 
 	public List getPieceWrites()
@@ -357,15 +416,17 @@ implements PEPiece
 		speed =newSpeed;
 	}
 
+	/** @deprecated
+	*/
 	public void decSpeed()
 	{
 		if (speed >0)
-			speed -=1;
+			speed--;
 	}
 
 	public void incSpeed()
 	{
-		speed +=1;
+		speed++;
 	}
 
 	/**
@@ -386,6 +447,10 @@ implements PEPiece
 		return this.reservedBy;
 	}
 
+	/** for a block that's already downloadedt, mark up the piece
+	 * so that the block will get downloaded again.  This is used
+	 * when the piece fails hash-checking.
+	 */
 	public void reDownloadBlock(int blockNumber)
 	{
 		downloaded[blockNumber] =false;
@@ -393,13 +458,17 @@ implements PEPiece
 		dm_piece.reDownloadBlock(blockNumber);
 	}
 
-	public void reDownloadBlocks(String culprit)
+	/** finds all blocks downloaded by the given address
+	 * and marks them up for re-downloading 
+	 * @param address String
+	 */
+	public void reDownloadBlocks(String address)
 	{
 		for (int i =0; i <writers.length; i++ )
 		{
 			String writer =writers[i];
 
-			if (writer !=null &&writer.equals(culprit))
+			if (writer !=null &&writer.equals(address))
 				reDownloadBlock(i);
 		}
 	}
@@ -407,10 +476,8 @@ implements PEPiece
 	public long getCreationTime()
 	{
 		long now =SystemTime.getCurrentTime();
-		if (now >=creation_time)
-		{
+		if (now >=creation_time &&creation_time >0)
 			return creation_time;
-		}
 		creation_time =now;
 		return creation_time;
 	}
@@ -436,6 +503,8 @@ implements PEPiece
 		}
 		if (result ==0)
 			dm_piece.setRequested();
+		else
+			dm_piece.clearRequested();
 		return result;
 	}
 
@@ -449,9 +518,6 @@ implements PEPiece
 		resumePriority =p;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.core3.peer.PEPiece#getResumePriority()
-	 */
 	public long getResumePriority()
 	{
 		return resumePriority;
