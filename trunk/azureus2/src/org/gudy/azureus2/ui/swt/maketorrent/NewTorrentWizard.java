@@ -53,7 +53,8 @@ NewTorrentWizard
 
 	static String	default_open_dir 	= COConfigurationManager.getStringParameter( "CreateTorrent.default.open", "" );
 	static String	default_save_dir 	= COConfigurationManager.getStringParameter( "CreateTorrent.default.save", "" );
-	
+	static String	comment 			= COConfigurationManager.getStringParameter( "CreateTorrent.default.comment", "" );
+
 	static{
 			// default the default to the "save torrents to" location
 		
@@ -68,7 +69,6 @@ NewTorrentWizard
   String singlePath = "";
   String directoryPath = "";
   String savePath = "";
-  String comment = "";
   
   static final int	TT_LOCAL		= 1;
   static final int	TT_EXTERNAL		= 2;
@@ -149,6 +149,8 @@ NewTorrentWizard
   
   void setComment(String s) {
     comment = s;
+    
+    COConfigurationManager.setParameter("CreateTorrent.default.comment",comment);
   }
 
   String getComment() {
