@@ -266,6 +266,7 @@ PEPeerTransportProtocol
     diskManager =manager.getDiskManager();
     piecePicker =diskManager.getPiecePicker();
     nbPieces =diskManager.getNbPieces();
+    lastNeededUndonePieceChange =Long.MIN_VALUE;
 
     peer_source	= _peer_source;
     ip    = _ip;
