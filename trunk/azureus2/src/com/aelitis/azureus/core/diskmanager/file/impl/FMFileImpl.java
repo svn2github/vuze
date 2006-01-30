@@ -289,7 +289,10 @@ FMFileImpl
 				
 				reserveFile();
 				
-				openSupport( "moveFile target" );
+				if ( was_open ){
+					
+					openSupport( "moveFile target" );
+				}
 				
 			}else{
 			
