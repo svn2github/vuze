@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
@@ -242,43 +241,20 @@ AzureusCoreImpl
 	   //Catch non-user-initiated VM shutdown
 		ShutdownHook.install(new ShutdownHook.Handler() {
 			public void shutdown(String signal_name) {
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, "Caught signal " + signal_name));
-				shutdownCore();
+				Logger.log(new LogEvent(LOGID, "Caught signal " + signal_name));
+				AzureusCoreImpl.this.stop();
 			}
 		});  
          
 	   Runtime.getRuntime().addShutdownHook( new AEThread("Shutdown Hook") {
 	     public void runSupport() {
-           shutdownCore();
+			Logger.log(new LogEvent(LOGID, "Shutdown hook triggered" ));
+			AzureusCoreImpl.this.stop();
 	     }
-	   });
-		   
-	}
-
-
-	private void shutdownCore() {
-		if (started) {
-			try {
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID,
-							"Caught VM shutdown event; auto-stopping Azureus"));
-
-				AzureusCoreImpl.this.stop();
-			} catch (Throwable e) {
-				Debug.printStackTrace(e);
-			}
-		}
-		// shutdownCore is always the last method to run (because of the shutdown
-		// hooks).  Make sure configuration is saved, even if !running, since
-		// some code may have set a config value after the running flag was turned
-		// off (ex. if code is running on a seperate thread or timer)
-		if (COConfigurationManager.isInitialized())
-			COConfigurationManager.save();
+	   });		   
 	}
   
-  
-  
+ 
 	
 	private void
 	runNonDaemon(
@@ -358,6 +334,14 @@ AzureusCoreImpl
 		
 			if ( stopped ){
 				
+					// ensure config is saved as there may be pending changes to persist and we've got here
+					// via a shutdown hook
+				
+				if ( COConfigurationManager.isInitialized()){
+					
+					COConfigurationManager.save();
+				}
+				
 				Logger.log(new LogEvent(LOGID, "Waiting for stop to complete"));
 				
 				stopping_sem.reserve();
@@ -407,6 +391,8 @@ AzureusCoreImpl
 			}
 				
 			NonDaemonTaskRunner.waitUntilIdle();
+			
+				// shut down diags - this marks the shutdown as tidy and saves the config
 			
 			AEDiagnostics.shutdown();
 	

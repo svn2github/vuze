@@ -244,7 +244,7 @@ callback(
 
 	if ( jvm->AttachCurrentThread((void **)&env, NULL )){
 
-		fprintf( stderr, "AESNOCAP: failed to attach current thread to JVM\n" );
+		fprintf( stderr, "failed to attach current thread to JVM\n" );
 
 		return( -1 );
 	}
@@ -297,7 +297,7 @@ unsigned WINAPI
 CreateWndThread(
 	LPVOID pThreadParam) 
 {
-	HANDLE hWnd = CreateWindow( L"Azureus Window Hook", NULL, WS_OVERLAPPEDWINDOW,
+	HWND hWnd = CreateWindow( L"Azureus Window Hook", NULL, WS_OVERLAPPEDWINDOW,
 									CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 									NULL, NULL, hInstance, NULL);
 	if( hWnd == NULL){
@@ -310,7 +310,7 @@ CreateWndThread(
 
 		MSG Msg;
 
-		while(GetMessage(&Msg, 0, 0, 0)) {
+		while(GetMessage(&Msg, hWnd, 0, 0)) {
 
 			TranslateMessage(&Msg);
 
