@@ -237,14 +237,6 @@ AzureusCoreImpl
           
 	   instance_manager.initialize();
 	   
-            
-	   //Catch non-user-initiated VM shutdown
-		ShutdownHook.install(new ShutdownHook.Handler() {
-			public void shutdown(String signal_name) {
-				Logger.log(new LogEvent(LOGID, "Caught signal " + signal_name));
-				AzureusCoreImpl.this.stop();
-			}
-		});  
          
 	   Runtime.getRuntime().addShutdownHook( new AEThread("Shutdown Hook") {
 	     public void runSupport() {
