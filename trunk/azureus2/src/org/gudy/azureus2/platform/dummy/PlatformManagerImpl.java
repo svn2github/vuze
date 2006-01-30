@@ -5,6 +5,7 @@ import java.io.File;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 
@@ -181,6 +182,18 @@ public class PlatformManagerImpl implements PlatformManager
      * Does nothing
      */
     public void dispose()
+    {
+    }
+    
+    public void
+    addListener(
+    	PlatformManagerListener		listener )
+    {
+    }
+    
+    public void
+    removeListener(
+    	PlatformManagerListener		listener )
     {
     }
 }

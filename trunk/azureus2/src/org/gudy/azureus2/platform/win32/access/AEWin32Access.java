@@ -120,4 +120,12 @@ AEWin32Access
 		String	file_name )
 	
 		throws AEWin32AccessException;
+	
+	public void
+	addListener(
+		AEWin32AccessListener	listener );
+	
+	public void
+	removeListener(
+		AEWin32AccessListener	listener );
 }

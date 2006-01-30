@@ -38,6 +38,9 @@ AEWin32AccessInterface
 	public static final int	HKEY_LOCAL_MACHINE		= AEWin32Access.HKEY_LOCAL_MACHINE;
 	public static final int	HKEY_CURRENT_USER		= AEWin32Access.HKEY_CURRENT_USER;
 
+	public static final int	WM_QUERYENDSESSION		=       0x0011;
+	public static final int	WM_ENDSESSION           =       0x0016;
+	
 	private static AEWin32AccessCallback		cb;
 	
 	static{

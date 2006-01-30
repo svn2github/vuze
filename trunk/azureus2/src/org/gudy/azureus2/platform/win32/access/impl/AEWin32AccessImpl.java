@@ -27,6 +27,8 @@ package org.gudy.azureus2.platform.win32.access.impl;
  *
  */
 
+import java.util.*;
+
 import org.gudy.azureus2.platform.win32.access.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -56,6 +58,8 @@ AEWin32AccessImpl
 		}
 	}
 	
+	private List	listeners = new ArrayList();
+	
 	protected
 	AEWin32AccessImpl()
 	{
@@ -68,7 +72,16 @@ AEWin32AccessImpl
 		int		param1,
 		long	param2 )
 	{
-		System.out.println( "windows msg: " + msg + "/" + param1 + "/" + param2 );
+		for (int i=0;i<listeners.size();i++){
+			
+			try{
+				((AEWin32AccessListener)listeners.get(i)).eventOccurred( msg );
+				
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
 		
 		return( -1 );
 	}
@@ -204,4 +217,18 @@ AEWin32AccessImpl
 	{
 		AEWin32AccessInterface.moveToRecycleBin( file_name );
 	}
+	
+	public void
+    addListener(
+    	AEWin32AccessListener		listener )
+    {
+    	listeners.add( listener );
+    }
+    
+    public void
+    removeListener(
+    	AEWin32AccessListener		listener )
+    {
+    	listeners.remove( listener );
+    }
 }

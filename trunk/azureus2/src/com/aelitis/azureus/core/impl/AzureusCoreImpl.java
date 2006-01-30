@@ -33,6 +33,9 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
@@ -118,6 +121,24 @@ AzureusCoreImpl
 		
 		AETemporaryFileHandler.startup();
     
+		PlatformManagerFactory.getPlatformManager().addListener(
+			new PlatformManagerListener()
+			{
+				public void
+				eventOccurred(
+					int		type )
+				{
+					if ( type == ET_SHUTDOWN ){
+						
+						if (Logger.isEnabled()){
+							Logger.log(new LogEvent(LOGID, "Platform manager requested shutdown"));
+						}
+						
+						stop();
+					}
+				}
+			});
+		
 			//ensure early initialization
 		
 		NetworkManager.getSingleton();

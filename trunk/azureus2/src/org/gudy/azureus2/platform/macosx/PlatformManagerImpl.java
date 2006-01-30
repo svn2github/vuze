@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import java.io.BufferedReader;
@@ -607,5 +608,17 @@ public class PlatformManagerImpl implements PlatformManager
 
             return "Finder";
         }
+    }
+    
+    public void
+    addListener(
+    	PlatformManagerListener		listener )
+    {
+    }
+    
+    public void
+    removeListener(
+    	PlatformManagerListener		listener )
+    {
     }
 }

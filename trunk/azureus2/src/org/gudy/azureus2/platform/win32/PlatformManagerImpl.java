@@ -33,18 +33,20 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.platform.win32.access.AEWin32Access;
+import org.gudy.azureus2.platform.win32.access.AEWin32AccessListener;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.*;
 
 
 public class 
 PlatformManagerImpl
-	implements PlatformManager
+	implements PlatformManager, AEWin32AccessListener
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
 	public static final int			RT_NONE		= 0;
@@ -53,13 +55,15 @@ PlatformManagerImpl
 	
 	public static final String					DLL_NAME = "aereg";
 	
-	protected static boolean					init_tried;
+	private static boolean					init_tried;
 	
-	protected static PlatformManagerImpl		singleton;
-	protected static AEMonitor					class_mon	= new AEMonitor( "PlatformManager");
+	private static PlatformManagerImpl		singleton;
+	private static AEMonitor				class_mon	= new AEMonitor( "PlatformManager");
 
-    protected final HashSet capabilitySet = new HashSet();
+	private final Set capabilitySet = new HashSet();
 
+	private List	listeners = new ArrayList();
+	
 	public static PlatformManagerImpl
 	getSingleton()
 	
@@ -110,6 +114,8 @@ PlatformManagerImpl
 	{
 		access	= _access;
 
+		access.addListener( this );
+		
 		app_exe_name	= SystemProperties.getApplicationName() + ".exe";
 		
         initializeCapabilities();
@@ -679,5 +685,49 @@ PlatformManagerImpl
      */
     public void dispose()
     {
+    }
+    
+	public void
+	eventOccurred(
+		int		type )
+	{
+		int	t_type;
+		
+		if ( type == AEWin32AccessListener.ET_SHUTDOWN ){
+			
+			t_type = PlatformManagerListener.ET_SHUTDOWN;
+			
+		}else{
+			
+			return;
+		}
+		
+		if ( t_type != -1 ){
+			
+			for (int i=0;i<listeners.size();i++){
+				
+				try{
+					((PlatformManagerListener)listeners.get(i)).eventOccurred( t_type );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+	}
+	
+    public void
+    addListener(
+    	PlatformManagerListener		listener )
+    {
+    	listeners.add( listener );
+    }
+    
+    public void
+    removeListener(
+    	PlatformManagerListener		listener )
+    {
+    	listeners.remove( listener );
     }
 }

@@ -110,4 +110,12 @@ PlatformManager
      */
     public void
     dispose();
+    
+    public void
+    addListener(
+    	PlatformManagerListener		listener );
+    
+    public void
+    removeListener(
+    	PlatformManagerListener		listener );
 }
