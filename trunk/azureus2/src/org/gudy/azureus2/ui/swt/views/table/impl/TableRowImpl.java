@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
+import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -70,6 +71,8 @@ public class TableRowImpl
   private Object coreDataSource;
   private Object pluginDataSource;
   private boolean bDisposed;
+
+  private static AEMonitor sortedDisposal_mon = new AEMonitor( "TableRowImpl" );
 
   /**
    * Default constructor
@@ -139,27 +142,34 @@ public class TableRowImpl
   ///////////////////////////////
 
   public void delete() {
-  	if (bDisposed)
-  		return;
-  	
-  	if (!table.isDisposed() && TableView.DEBUGADDREMOVE)
-  		System.out.println(table.getData("Name") + " row delete; index=" + getIndex());
+		sortedDisposal_mon.enter();
 
-  	bDisposed = true;
+		try {
+			if (bDisposed)
+				return;
 
-  	try {
-	    // Manually dispose of TableCellImpl objects, since row does
-	    // not contain a list of them.
-	    Iterator iter = mTableCells.values().iterator();
-	    while(iter.hasNext()) {
-	      TableCellCore item = (TableCellCore)iter.next();
-	      item.dispose();
-	    }
-  	} finally {
-	    // Dispose of row
-	    dispose();
-  	}
-  }
+			if (!table.isDisposed() && TableView.DEBUGADDREMOVE)
+				System.out.println(table.getData("Name") + " row delete; index="
+						+ getIndex());
+
+			try {
+				// Manually dispose of TableCellImpl objects, since row does
+				// not contain a list of them.
+				Iterator iter = mTableCells.values().iterator();
+				while (iter.hasNext()) {
+					TableCellCore item = (TableCellCore) iter.next();
+					item.dispose();
+				}
+			} finally {
+				// Dispose of row
+				dispose();
+			}
+
+			bDisposed = true;
+		} finally {
+			sortedDisposal_mon.exit();
+		}
+	}
   
   public void refresh(boolean bDoGraphics) {
     if (bDisposed)
