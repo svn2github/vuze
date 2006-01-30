@@ -111,7 +111,9 @@ AzureusCoreImpl
 	private List				listeners				= new ArrayList();
 	private List				lifecycle_listeners		= new ArrayList();
 	
-	private AEMonitor			this_mon	= new AEMonitor( "AzureusCore" );
+	private AESemaphore			stopping_sem	= new AESemaphore( "AzureusCore::stopping" );
+	
+	private AEMonitor			this_mon		= new AEMonitor( "AzureusCore" );
 
 	protected
 	AzureusCoreImpl()
@@ -356,7 +358,9 @@ AzureusCoreImpl
 		
 			if ( stopped ){
 				
-				Logger.log(new LogEvent(LOGID, "Core already stopped"));
+				Logger.log(new LogEvent(LOGID, "Waiting for stop to complete"));
+				
+				stopping_sem.reserve();
 				
 				return;
 			}
@@ -367,6 +371,8 @@ AzureusCoreImpl
 				
 				Logger.log(new LogEvent(LOGID, "Core not started"));
 				
+				stopping_sem.releaseForever();
+				
 				return;
 			}		
 			
@@ -375,43 +381,48 @@ AzureusCoreImpl
 			this_mon.exit();
 		}
 		
-		for (int i=0;i<lifecycle_listeners.size();i++){
-			
-			try{
-				((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopping( this );
+		try{
+			for (int i=0;i<lifecycle_listeners.size();i++){
 				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
+				try{
+					((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopping( this );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
-		}
-		
-		global_manager.stopGlobalManager();
 			
-		for (int i=0;i<lifecycle_listeners.size();i++){
+			global_manager.stopGlobalManager();
 				
-			try{
-				((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopped( this );
-		
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
+			for (int i=0;i<lifecycle_listeners.size();i++){
+					
+				try{
+					((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopped( this );
+			
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
 			}
-		}
+				
+			NonDaemonTaskRunner.waitUntilIdle();
 			
-		NonDaemonTaskRunner.waitUntilIdle();
-		
-		AEDiagnostics.shutdown();
-
-		if (Logger.isEnabled())
-			Logger.log(new LogEvent(LOGID, "Stop operation completes"));
-
-			// if any installers exist then we need to closedown via the updater
-		
-		if ( 	apply_updates && 
-				getPluginManager().getDefaultPluginInterface().getUpdateManager().getInstallers().length > 0 ){
+			AEDiagnostics.shutdown();
+	
+			if (Logger.isEnabled())
+				Logger.log(new LogEvent(LOGID, "Stop operation completes"));
+	
+				// if any installers exist then we need to closedown via the updater
 			
-			AzureusRestarterFactory.create( this ).restart( true );
+			if ( 	apply_updates && 
+					getPluginManager().getDefaultPluginInterface().getUpdateManager().getInstallers().length > 0 ){
+				
+				AzureusRestarterFactory.create( this ).restart( true );
+			}
+		}finally{
+			
+			stopping_sem.releaseForever();
 		}
 	}
 	
