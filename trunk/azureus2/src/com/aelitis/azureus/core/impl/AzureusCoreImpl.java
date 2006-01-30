@@ -106,7 +106,8 @@ AzureusCoreImpl
 	private GlobalManager		global_manager;
 	private AZInstanceManager	instance_manager;
 	
-	private boolean				running;
+	private boolean				started;
+	private boolean				stopped;
 	private List				listeners				= new ArrayList();
 	private List				lifecycle_listeners		= new ArrayList();
 	
@@ -166,12 +167,17 @@ AzureusCoreImpl
 		try{
 			this_mon.enter();
 		
-			if ( running ){
+			if ( started ){
 				
-				throw( new AzureusCoreException( "Core: already running" ));
+				throw( new AzureusCoreException( "Core: already started" ));
 			}
 			
-			running	= true;
+			if ( stopped ){
+				
+				throw( new AzureusCoreException( "Core: already stopped" ));
+			}
+			
+			started	= true;
 			
 		}finally{
 			
@@ -250,7 +256,7 @@ AzureusCoreImpl
 
 
 	private void shutdownCore() {
-		if (running) {
+		if (started) {
 			try {
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID,
@@ -348,12 +354,21 @@ AzureusCoreImpl
 		try{
 			this_mon.enter();
 		
-			if ( !running ){
+			if ( stopped ){
 				
-				throw( new AzureusCoreException( "Core not running" ));
-			}		
+				Logger.log(new LogEvent(LOGID, "Core already stopped"));
+				
+				return;
+			}
 			
-			running	= false;
+			stopped	= true;
+			
+			if ( !started ){
+				
+				Logger.log(new LogEvent(LOGID, "Core not started"));
+				
+				return;
+			}		
 			
 		}finally{
 			
