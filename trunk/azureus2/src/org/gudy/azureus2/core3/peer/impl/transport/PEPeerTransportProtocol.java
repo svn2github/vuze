@@ -298,7 +298,7 @@ PEPeerTransportProtocol
  
       public void connectSuccess() {
         if( closing ) {
-          Debug.out( "PEPeerTransportProtocol::connectSuccess() called when closing." );
+          //Debug.out( "PEPeerTransportProtocol::connectSuccess() called when closing." );
           return;
         }
         
