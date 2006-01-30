@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.extseed;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
@@ -47,7 +48,7 @@ ExternalSeedPeer
 	
 	private byte[]					peer_id;
 	private BitFlags				available;
-	private boolean					snubbed;
+	private long					snubbed;
 	private boolean					is_optimistic;
 	
 	private Monitor					connection_mon;
@@ -306,14 +307,27 @@ ExternalSeedPeer
 	public boolean 
 	isSnubbed()
 	{
-		return( snubbed );
+		return snubbed !=0;
+	}
+ 
+	public long	getSnubbedTime()
+	{
+		if (snubbed ==0)
+			return 0;
+		final long now =SystemTime.getCurrentTime();
+		if (now <snubbed)
+			snubbed =now -26;	// odds are ...
+		return now -snubbed;
 	}
  
 	public void 
 	setSnubbed( 
-		boolean _snubbed )
+		boolean b)
 	{
-		snubbed	= _snubbed;
+		if (b)
+			snubbed =SystemTime.getCurrentTime();
+		else
+			snubbed =0;
 	}
 	
 	public boolean 

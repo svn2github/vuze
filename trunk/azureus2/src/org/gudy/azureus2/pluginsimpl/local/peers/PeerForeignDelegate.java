@@ -376,6 +376,11 @@ PeerForeignDelegate
 	{
 		return( foreign.isSnubbed());
 	}
+	
+	public long getSnubbedTime()
+	{
+		return foreign.getSnubbedTime();
+	}
 
  
 	public boolean isLANLocal() {

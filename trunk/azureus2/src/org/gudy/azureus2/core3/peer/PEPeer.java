@@ -148,6 +148,8 @@ PEPeer
 	public boolean isSeed();
  
 	public boolean isSnubbed();
+	
+	public long getSnubbedTime();
  
 	public PEPeerStats getStats();
  	

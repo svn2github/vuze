@@ -30,7 +30,6 @@ import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.control.*;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
-import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.unchoker.*;
 
 /**
@@ -692,22 +691,20 @@ PEPeerControlImpl
 					} else if (time_since_write >(120 *1000))
 					{
 						pePiece.checkRequests();
-						dmPiece.clearRequested();
 						// has reserved piece gone stagnant?
-						final String peer =pePiece.getReservedBy();
-						if (peer !=null)
+						final String reservingPeer =pePiece.getReservedBy();
+						if (reservingPeer !=null)
 						{
-							// Peer is too slow; Ban them and unallocate the piece
-							// but, banning is no good for peer types that get pieces reserved
-							// to them for other reasons, such as special seed peers
-							final PEPeerTransport pt =getTransportFromAddress(peer);
-							if (pt.isSeed())
-								closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds" );
+							if (needsMD5CheckOnCompletion(i))
+								badPeerDetected(reservingPeer);
 							else
-								badPeerDetected(peer);
-							pePiece.setReservedBy(null);
-						} else if (time_since_write >(240 *1000))
-							checkEmptyPiece(i);
+							{
+								final PEPeerTransport pt =getTransportFromAddress(reservingPeer);
+								if (pt !=null)
+									closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds");
+							}
+						}
+						checkEmptyPiece(i);
 					}
 				}
 			}
@@ -915,7 +912,7 @@ PEPeerControlImpl
 				if (expired !=null &&expired.size() >0)
 				{
 					final long goodTime =pc.getTimeSinceGoodDataReceived();
-					if (goodTime <0 ||goodTime >60 *1000)
+					if (goodTime ==-1 ||goodTime >60 *1000)
 						pc.setSnubbed(true);
 					
 					//Only cancel first request if more than 2 mins have passed
@@ -1872,12 +1869,15 @@ PEPeerControlImpl
 						for (int i =0; i <uniqueWriters.size(); i++ )
 						{
 							final int writes =writesPerWriter[i];
-							final String writer =(String) uniqueWriters.get(i);
-							final PEPeerTransport pt =getTransportFromAddress(writer);
-							if (pt !=null &&writes >maxWrites &&pt.getReservedPieceNumber() ==-1)
+							if (writes >maxWrites)
 							{
-								bestWriter =writer;
-								maxWrites =writes;
+								final String writer =(String) uniqueWriters.get(i);
+								final PEPeerTransport pt =getTransportFromAddress(writer);
+								if (pt !=null &&pt.getReservedPieceNumber() ==-1 &&!ip_filter.isInRange(writer, adapter.getDisplayName()))
+								{
+									bestWriter =writer;
+									maxWrites =writes;
+								}
 							}
 						}
 						if (bestWriter !=null)
@@ -2367,7 +2367,7 @@ PEPeerControlImpl
 							}
 						}
 						else {
-							long time = peer.getTimeSinceLastDataMessageReceived();
+							long time = peer.getTimeSinceGoodDataReceived();
 							
 							if( time == -1 ) {  //never received
 								last_time = peer.getTimeSinceConnectionEstablished();
@@ -2375,6 +2375,8 @@ PEPeerControlImpl
 							else {
 								last_time = time;
 							}
+							
+							last_time +=peer.getSnubbedTime();
 						}
 						
 						if( !peer.isIncoming() ) {  //prefer to drop a local connection, to make room for more remotes
@@ -2539,7 +2541,7 @@ PEPeerControlImpl
 		for (int i =0; i <peer_transports.size(); i++)
 		{
 			PEPeerTransport pt =(PEPeerTransport) peer_transports.get(i);
-			if (pt.getPeerItemIdentity().equals(peer))
+			if (peer.equals(pt.getPeerItemIdentity().getAddressString()))
 				return pt;
 		}
 		return null;

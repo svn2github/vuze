@@ -209,6 +209,11 @@ PeerImpl
 		return( delegate.isSnubbed());
 	}
  
+	public long getSnubbedTime()
+	{
+		return delegate.getSnubbedTime();
+	}
+	
 	public void
 	setSnubbed(
 		boolean	b )

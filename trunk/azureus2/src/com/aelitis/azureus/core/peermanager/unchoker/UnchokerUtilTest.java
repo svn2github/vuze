@@ -152,6 +152,7 @@ public class UnchokerUtilTest {
         public boolean isInterested(){  return true;  }
         public boolean isSeed(){ return false;  }
         public boolean isSnubbed(){ return false;  }
+        public long getSnubbedTime() { return 0; }
         public PEPeerStats getStats(){  return stats;  }
         public boolean isIncoming(){ return false;  }
         public int getPercentDoneInThousandNotation(){ return 0; }

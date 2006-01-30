@@ -153,7 +153,7 @@ implements PEPiece
 	 * @param peer the PEPeerTransport that sent the data
 	 * @param blockNumber the block we're operating on
 	 */
-	public void setWritten(PEPeerTransport peer,int blockNumber)
+	public void setWritten(PEPeerTransport peer, int blockNumber)
 	{
 		writers[blockNumber] =peer.getIp();
 		dm_piece.setBlockWritten(blockNumber);
@@ -181,8 +181,16 @@ implements PEPiece
 			final PEPeerTransport	pt;
 			if (requester !=null)
 			{
+				boolean clearBlock =false;
 				pt =manager.getTransportFromAddress(requester);
-				if (pt ==null ||!pt.isDownloadPossible() ||downloaded[i])
+				if (pt !=null)
+				{
+					if (!pt.isSnubbed())
+						pt.setSnubbed(true);
+					clearBlock =true;
+				} else
+					clearBlock =true;
+				if (clearBlock)
 				{
 					requested[i] =null;
 					cleared++;
@@ -218,6 +226,7 @@ implements PEPiece
 	 * it counts how many are unrequested up to nbWanted.
 	 * The blocks are marked as requested by the PEPeer
 	 * Assumption - single threaded access to this
+	 * TODO: this should return the largest span equal or smaller than nbWanted
 	 */
 	public int[] getAndMarkBlocks(PEPeerTransport peer, int nbWanted)
 	{
@@ -376,7 +385,7 @@ implements PEPiece
 			writers[i] =null;
 		}
 
-		reservedBy =null;
+//		reservedBy =null;
 	}
 
 	protected void addWrite(PEPieceWriteImpl write) {
@@ -439,12 +448,12 @@ implements PEPiece
 
 	public void setReservedBy(String peer)
 	{
-		this.reservedBy =peer;
+		reservedBy =peer;
 	}
 
 	public String getReservedBy()
 	{
-		return this.reservedBy;
+		return reservedBy;
 	}
 
 	/** for a block that's already downloadedt, mark up the piece

@@ -92,7 +92,7 @@ PEPeerTransportProtocol
   protected boolean choking_other_peer = true;
   private boolean interested_in_other_peer = false;
   private boolean other_peer_interested_in_me = false;
-  private boolean snubbed = false;
+  private long snubbed =0;
 
   private BitFlags peerHavePieces;
   private volatile boolean	availabilityAdded =false;
@@ -793,8 +793,25 @@ PEPeerTransportProtocol
    */
   public boolean isInterested() {  return other_peer_interested_in_me;  }
   public boolean isSeed() {  return seed;  }
-  public boolean isSnubbed() {  return snubbed;  }
-  public void setSnubbed(boolean b) {  snubbed = b;  }
+  public boolean isSnubbed() {  return snubbed !=0;  }
+
+	public long getSnubbedTime()
+	{
+		if (snubbed ==0)
+			return 0;
+		final long now =SystemTime.getCurrentTime();
+		if (now <snubbed)
+			snubbed =now -26; // odds are ...
+		return now -snubbed;
+	}
+
+	public void setSnubbed(boolean b)
+	{
+		if (b)
+			snubbed =SystemTime.getCurrentTime();
+		else
+			snubbed =0;
+	}
   public void setUploadHint(int spreadTime) {  spreadTimeHint = spreadTime;  }
   public int getUploadHint() {  return spreadTimeHint;  }
   public void setUniqueAnnounce(int _uniquePiece) {  uniquePiece = _uniquePiece;  }
@@ -1541,14 +1558,14 @@ PEPeerTransportProtocol
     String error_msg = "Peer has sent #" + number + ":" + offset + "->"	+ (offset + length) + ", ";
     
     if( !manager.checkBlock( number, offset, payload ) ) {
-    	if (Logger.isEnabled())
-				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, "Protocol:In: "
-						+ error_msg + "but piece block discarded as invalid."));
       peer_stats.bytesDiscarded( length );
       manager.discarded( length );
       requests_discarded++;
       printRequestStats();
       piece.destroy();
+  	if (Logger.isEnabled())
+		Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, "Protocol:In: "
+				+ error_msg + "but piece block discarded as invalid."));
       return;
     }
     
@@ -1557,7 +1574,6 @@ PEPeerTransportProtocol
 
     if( hasBeenRequested( request ) ) {  //from active request
       removeRequest( request );
-      setSnubbed( false );
       reSetRequestsTime();
         
       if( manager.isBlockAlreadyWritten( number, offset ) ) {  //oops, looks like this block has already been downloaded
@@ -1582,6 +1598,7 @@ PEPeerTransportProtocol
         printRequestStats();
       }
       else {  //successfully received block!
+          setSnubbed( false );
         manager.writeBlock( number, offset, payload, this );
         last_good_data_time =now;
         requests_completed++;
@@ -1598,22 +1615,18 @@ PEPeerTransportProtocol
         finally{  recent_outgoing_requests_mon.exit();  }
         
         if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
-        	if (Logger.isEnabled())
-						Logger.log(new LogEvent(this, LOGID, "Protocol:In: " + error_msg
-								+ "expired piece block data " + "recovered as useful."));
-          setSnubbed( false );
+            setSnubbed( false );
           reSetRequestsTime();
           manager.writeBlockAndCancelOutstanding( number, offset, payload, this );
           last_good_data_time =now;
           requests_recovered++;
           printRequestStats();
           piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
+      	if (Logger.isEnabled())
+			Logger.log(new LogEvent(this, LOGID, "Protocol:In: " + error_msg
+					+ "expired piece block data " + "recovered as useful."));
         }
         else {
-        	if (Logger.isEnabled())
-						Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-								"Protocol:In: " + error_msg + "but expired piece block "
-										+ "discarded as never requested."));
           
           System.out.println( "[" +client+ "]" +error_msg + "but expired piece block discarded as never requested." );
           
@@ -1621,18 +1634,22 @@ PEPeerTransportProtocol
           manager.discarded( length );
           requests_discarded++;
           printRequestStats();
+      	if (Logger.isEnabled())
+			Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+					"Protocol:In: " + error_msg + "but expired piece block "
+							+ "discarded as never requested."));
         }
       }
       else {
-      	if (Logger.isEnabled())
-					Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-							"Protocol:In: " + error_msg
-									+ "but expired piece block discarded "
-									+ "as already written."));
         peer_stats.bytesDiscarded( length );
         manager.discarded( length );
         requests_discarded++;
         printRequestStats();
+      	if (Logger.isEnabled())
+			Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+					"Protocol:In: " + error_msg
+							+ "but expired piece block discarded "
+							+ "as already written."));
       }
     }
     

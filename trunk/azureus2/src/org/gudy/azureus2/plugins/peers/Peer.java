@@ -105,8 +105,10 @@ Peer
 	public boolean isSeed();
  
 	public boolean isSnubbed();
+	
+	public long getSnubbedTime();
  
-	public void setSnubbed( boolean snubbed );
+	public void setSnubbed( boolean b);
 	
 	public PeerStats getStats();
  	
