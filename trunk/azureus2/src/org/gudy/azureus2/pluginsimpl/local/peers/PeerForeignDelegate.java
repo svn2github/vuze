@@ -58,10 +58,12 @@ PeerForeignDelegate
 	
 	private long	create_time		= SystemTime.getCurrentTime();
 	private long	last_data_received_time =-1;
-	protected long	last_data_message_received_time =-1;
+	private long	last_data_message_received_time =-1;
 	private int		reserved_piece	= -1;
 	
-	private Map		data;
+	private BitFlags	bit_flags;
+	
+	private Map			data;
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "PeerForeignDelegate" );
 
@@ -321,7 +323,14 @@ PeerForeignDelegate
 	public BitFlags 
 	getAvailable()
 	{
-		return( foreign.getAvailable());
+		boolean[]	flags = foreign.getAvailable();
+		
+		if ( bit_flags == null || bit_flags.flags != flags ){
+			
+			bit_flags = new BitFlags( flags );
+		}
+		
+		return( bit_flags );
 	}
 
 	public boolean isPieceAvailable(int pieceNumber)

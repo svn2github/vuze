@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.*;
-import org.gudy.azureus2.core3.peer.impl.transport.PEPeerTransportProtocol;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.*;
@@ -148,7 +147,7 @@ public class PiecePickerImpl
 		doneAvailable =new boolean[nbPieces];
 
 		time_last_avail =Long.MIN_VALUE;
-		availabilityChange =Long.MIN_VALUE;
+		availabilityChange =Long.MIN_VALUE + 1;	// ensure at least one compute gets done
 		availabilityComputeChange =Long.MIN_VALUE;
 
 		globalAvail =0;
@@ -412,7 +411,7 @@ public class PiecePickerImpl
 		for (int i =0; i <bestUploaders.size(); i++)
 		{
 			// get a connection
-			final PEPeerTransportProtocol pt =(PEPeerTransportProtocol) bestUploaders.get(i);
+			final PEPeerTransport pt =(PEPeerTransport) bestUploaders.get(i);
 			// can we transfer something?
 			if (pt.isDownloadPossible())
 			{

@@ -47,7 +47,7 @@ ExternalSeedPeer
 	private	ExternalSeedReader		reader;			
 	
 	private byte[]					peer_id;
-	private BitFlags				available;
+	private boolean[]				available;
 	private long					snubbed;
 	private boolean					is_optimistic;
 	
@@ -66,8 +66,9 @@ ExternalSeedPeer
 		
 		Torrent	torrent = reader.getTorrent();
 				
-		available	= new BitFlags((int)torrent.getPieceCount());
-		available.setAll();
+		available	= new boolean[(int)torrent.getPieceCount()];
+		
+		Arrays.fill( available, true );
 		
 		peer_id	= new byte[20];
 		
@@ -252,7 +253,7 @@ ExternalSeedPeer
 	}
 	
 	
-	public final BitFlags 
+	public final boolean[] 
 	getAvailable()
 	{
 		return( available );
@@ -260,7 +261,7 @@ ExternalSeedPeer
    
 	public final boolean isPieceAvailable(int pieceNumber)
 	{
-		return available.flags[pieceNumber];
+		return( true );
 	}
 	              
 	public boolean
@@ -271,7 +272,7 @@ ExternalSeedPeer
 	
 	public boolean isDownloadPossible()
 	{
-		return peer_added &&reader.isActive() &&available.nbSet >0;
+		return peer_added &&reader.isActive();
 	}
 	
 	public boolean 

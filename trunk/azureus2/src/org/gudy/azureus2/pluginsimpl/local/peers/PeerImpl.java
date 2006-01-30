@@ -158,9 +158,9 @@ PeerImpl
   public int getUDPListenPort() {  return delegate.getUDPListenPort();  }
   
 	
-	public final BitFlags getAvailable()
+	public final boolean[] getAvailable()
 	{
-		return( delegate.getAvailable());
+		return( delegate.getAvailable().flags );
 	}
    
 	public boolean isPieceAvailable(int pieceNumber)

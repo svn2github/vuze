@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 
-import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 public interface 
 Peer 
@@ -75,7 +74,7 @@ Peer
  
 	public int getPort();
 	
-	public BitFlags getAvailable();
+	public boolean[] getAvailable();
 	/**
 	 * @param pieceNumber int
 	 * @return true if this peers makes this piece available

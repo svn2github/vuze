@@ -49,6 +49,21 @@ public class BitFlags
 		nbSet =0;
 	}
 
+	public BitFlags( boolean[]	_flags )
+	{
+		flags	= _flags;
+		length	= flags.length;
+		for (int i=0;i<length;i++){
+			if ( flags[i]){
+				nbSet++;
+				if ( start == 0 ){
+					start = i;
+				}
+				end	= i;
+			}
+		}
+	}
+	
 	public void clear()
 	{
 		Arrays.fill(flags, false);
