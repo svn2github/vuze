@@ -67,6 +67,8 @@ import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
  * Torrent Opener Window.
  * 
  * @author TuxPaper
+ * 
+ * @TODO: Category Option
  */
 public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
@@ -484,20 +486,14 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		// File List
 		// =========
 
-		cArea = new Composite(shell, SWT.NULL);
-		layout = new GridLayout();
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		cArea.setLayout(layout);
+		Group gFilesArea = new Group(shell, SWT.NONE);
 		gridData = new GridData(GridData.FILL_BOTH);
-		cArea.setLayoutData(gridData);
+		gFilesArea.setLayoutData(gridData);
+		layout = new GridLayout();
+		gFilesArea.setLayout(layout);
+		Messages.setLanguageText(gFilesArea, "OpenTorrentWindow.fileList");
 
-		label = new Label(cArea, SWT.WRAP);
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		label.setLayoutData(gridData);
-		Messages.setLanguageText(label, "OpenTorrentWindow.fileList");
-
-		createTableDataFiles(cArea);
+		createTableDataFiles(gFilesArea);
 
 		// Ok, cancel
 
@@ -1191,8 +1187,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				Utils.alternateRowBackground(item);
 				Utils.setCheckedInSetData(item, file.bDownload);
 
-				item.setGrayed(file.lSize <= MIN_NODOWNLOAD_SIZE
-						&& file.parent.iStartID != STARTMODE_SEEDING);
+				item.setGrayed(!file.okToDisable());
 			}
 		});
 
@@ -1205,8 +1200,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 					TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
 					// don't allow disabling of small files
 					// XXX Maybe warning prompt instead?
-					if (!item.getChecked() && file.lSize <= MIN_NODOWNLOAD_SIZE
-							&& file.parent.iStartID != STARTMODE_SEEDING)
+					if (!item.getChecked() && !file.okToDisable())
 						item.setChecked(true);
 					else
 						file.bDownload = item.getChecked();
@@ -1279,12 +1273,62 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				updateOKButton();
 			}
 		});
+
+		Composite cButtons = new Composite(cArea, SWT.NONE);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		cButtons.setLayoutData(gridData);
+		RowLayout rLayout = new RowLayout(SWT.HORIZONTAL);
+		rLayout.marginBottom = 0;
+		rLayout.marginLeft = 0;
+		rLayout.marginRight = 0;
+		rLayout.marginTop = 0;
+		rLayout.spacing = 5;
+		cButtons.setLayout(rLayout);
+
+		Button btnSelectAll = new Button(cButtons, SWT.PUSH);
+		Messages.setLanguageText(btnSelectAll, "Button.selectAll");
+		btnSelectAll.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				dataFileTable.selectAll();
+			}
+		});
+
+		Button btnMarkSelected = new Button(cButtons, SWT.PUSH);
+		Messages.setLanguageText(btnMarkSelected, "Button.markSelected");
+		btnMarkSelected.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				int[] indexes = dataFileTable.getSelectionIndices();
+				for (int i = 0; i < indexes.length; i++) {
+					TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(indexes[i]);
+					file.bDownload = true;
+				}
+				dataFileTable.clearAll();
+			}
+		});
+
+		Button btnUnmarkSelected = new Button(cButtons, SWT.PUSH);
+		Messages.setLanguageText(btnUnmarkSelected, "Button.unmarkSelected");
+		btnUnmarkSelected.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				int[] indexes = dataFileTable.getSelectionIndices();
+				for (int i = 0; i < indexes.length; i++) {
+					TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(indexes[i]);
+					if (file.okToDisable())
+						file.bDownload = false;
+				}
+				dataFileTable.clearAll();
+			}
+		});
 	}
 
 	/**
 	 * Add Torrent(s) to Window using a text list of files/urls/torrents
 	 * 
 	 * @param sClipText Text to parse
+	 * @param bVerifyOnly Only check if there's potential torrents in the text,
+	 *                     do not try to add the torrents.
+	 * 
+	 * @return Number of torrents added or found
 	 */
 	private int addTorrentsFromTextList(String sClipText, boolean bVerifyOnly) {
 		String[] lines = null;
@@ -1903,6 +1947,11 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				return parent.sDestDir;
 
 			return new File(parent.sDestDir, sFullFileName).getParent();
+		}
+
+		public boolean okToDisable() {
+			return lSize >= MIN_NODOWNLOAD_SIZE
+					|| parent.iStartID == STARTMODE_SEEDING;
 		}
 	}
 
