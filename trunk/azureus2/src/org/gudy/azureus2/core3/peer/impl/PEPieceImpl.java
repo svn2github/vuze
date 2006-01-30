@@ -177,23 +177,20 @@ implements PEPiece
 		int cleared =0;
 		for (int i =0; i <nbBlocks; i++)
 		{
-			final String			requester =requested[i];
-			final PEPeerTransport	pt;
-			if (requester !=null)
+			if (!downloaded[i])
 			{
-				boolean clearBlock =false;
-				pt =manager.getTransportFromAddress(requester);
-				if (pt !=null)
+				final String			requester =requested[i];
+				final PEPeerTransport	pt;
+				if (requester !=null)
 				{
-					if (!pt.isSnubbed())
-						pt.setSnubbed(true);
-					clearBlock =true;
-				} else
-					clearBlock =true;
-				if (clearBlock)
-				{
-					requested[i] =null;
-					cleared++;
+					pt =manager.getTransportFromAddress(requester);
+					if (pt !=null &&!pt.isSnubbed())
+							pt.setSnubbed(true);
+					if (pt ==null ||!pt.isDownloadPossible())
+					{
+						requested[i] =null;
+						cleared++;
+					}
 				}
 			}
 		}

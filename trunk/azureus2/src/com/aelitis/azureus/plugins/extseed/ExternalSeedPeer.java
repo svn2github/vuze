@@ -324,10 +324,10 @@ ExternalSeedPeer
 	setSnubbed( 
 		boolean b)
 	{
-		if (b)
-			snubbed =SystemTime.getCurrentTime();
-		else
+		if (!b)
 			snubbed =0;
+		else if (snubbed ==0)
+			snubbed =SystemTime.getCurrentTime();
 	}
 	
 	public boolean 

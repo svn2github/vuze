@@ -284,7 +284,6 @@ PEPeerControlImpl
 				processPieceChecks();
 				checkCompletedPieces();		//check to see if we've completed anything else
 				updateStats();
-				checkSpeedAndReserved();
 
 				// see if need to recheck Interested on all peers
 				if (lastNeededUndonePieceChange <piecePicker.getNeededUndonePieceChange())
@@ -308,6 +307,7 @@ PEPeerControlImpl
 					// we disconnect seeds and avoid calling these methods to save CPU.
 					forcenoseeds =!piecePicker.checkDownloadPossible();	//download blocks if possible
 					checkRescan();
+					checkSpeedAndReserved();
 				}
 				
 				checkSeeds( forcenoseeds );
@@ -668,17 +668,17 @@ PEPeerControlImpl
 	private void checkSpeedAndReserved()
 	{
 		final long		now			=SystemTime.getCurrentTime();
-		int				nbPieces	=_nbPieces;
-		PEPieceImpl[]	pieces		=_pieces;
+		final int				nbPieces	=_nbPieces;
+		final PEPieceImpl[]	pieces		=_pieces;
 		//for every piece
 		for (int i =0; i <nbPieces; i++)
 		{
-			PEPieceImpl pePiece =pieces[i];
+			final PEPieceImpl pePiece =pieces[i];
 			// these checks are only against pieces being downloaded yet needing requests still/again
 			if (pePiece !=null)
 			{
-				DiskManagerPiece dmPiece	=dm_pieces[i];
-				long time_since_write		=now -dmPiece.getLastWriteTime();
+				final DiskManagerPiece dmPiece	=dm_pieces[i];
+				final long time_since_write		=now -dmPiece.getLastWriteTime();
 				if (time_since_write >4001 &&(mainloop_loop_count %MAINLOOP_FIVE_SECOND_INTERVAL) ==0)
 				{
 					// maybe piece's speed is too high for it to get new data
@@ -703,6 +703,7 @@ PEPeerControlImpl
 								if (pt !=null)
 									closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds");
 							}
+							pePiece.setReservedBy(null);
 						}
 						checkEmptyPiece(i);
 					}
