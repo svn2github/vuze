@@ -24,7 +24,6 @@ package com.aelitis.azureus.plugins.extseed;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
@@ -32,7 +31,6 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.Monitor;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 
-import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 public class 
 ExternalSeedPeer
@@ -315,7 +313,7 @@ ExternalSeedPeer
 	{
 		if (snubbed ==0)
 			return 0;
-		final long now =SystemTime.getCurrentTime();
+		final long now =plugin.getPluginInterface().getUtilities().getCurrentSystemTime();
 		if (now <snubbed)
 			snubbed =now -26;	// odds are ...
 		return now -snubbed;
@@ -328,7 +326,7 @@ ExternalSeedPeer
 		if (!b)
 			snubbed =0;
 		else if (snubbed ==0)
-			snubbed =SystemTime.getCurrentTime();
+			snubbed =plugin.getPluginInterface().getUtilities().getCurrentSystemTime();
 	}
 	
 	public boolean 
