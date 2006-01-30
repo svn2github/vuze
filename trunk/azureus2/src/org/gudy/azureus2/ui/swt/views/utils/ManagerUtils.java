@@ -62,8 +62,9 @@ public class ManagerUtils {
 	public static void open(DownloadManager dm) {
 		if (dm != null) {
 			File f = dm.getSaveLocation();
-			while (f != null && !f.isDirectory())
-				f = f.getParentFile();
+			if (!f.isFile())
+				while (f != null && !f.isDirectory())
+					f = f.getParentFile();
 
 			if (f == null)
 				return;
