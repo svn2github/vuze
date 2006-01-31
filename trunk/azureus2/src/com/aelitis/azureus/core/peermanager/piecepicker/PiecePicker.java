@@ -66,12 +66,12 @@ public interface PiecePicker
 	public long		getNeededUndonePieceChange();
 	
 	public void		addHavePiece(final int pieceNumber);
-	public void		addBitfield(final BitFlags peerHasPieces);
+//	public void		addBitfield(final BitFlags peerHasPieces);
 	/**
 	 * Takes away the given pieces from availability
 	 * @param peerHasPieces
 	 */
-	public void		removeBitfield(final BitFlags peerHasPieces);
+//	public void		removeBitfield(final BitFlags peerHasPieces);
 	
 	/**
 	 * Currently unused.
