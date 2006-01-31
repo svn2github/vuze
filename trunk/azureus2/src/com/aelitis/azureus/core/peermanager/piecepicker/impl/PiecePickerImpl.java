@@ -77,6 +77,7 @@ public class PiecePickerImpl
 	
 	protected static volatile boolean	firstPiecePriority	=COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
 	protected static volatile boolean	completionPriority	=COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
+	protected static volatile long		paramPriorityChange =Long.MIN_VALUE;	// event # of parameters controlling priority changes
 
 	protected DiskManager	diskManager;
 	protected PEPeerControl	peerControl;
@@ -84,15 +85,15 @@ public class PiecePickerImpl
 
 	private DiskManagerListenerImpl	diskManagerListener;
 
+	protected Map					peerListeners;
+	protected PEPeerManagerListener	peerManagerListener;
+	
 	protected int			nbPieces =-1;
 	protected volatile int	nbPiecesDone;
 
 	protected final DiskManagerPiece[]	dm_pieces;
 	protected volatile PEPiece[]		pePieces;
 
-	protected Map					peerListeners;
-	protected PEPeerManagerListener	peerManagerListener;
-	
 	protected volatile int[]	availability_cow;	// the dynamically modified availability
 	protected final AEMonitor	availabilityMon =new AEMonitor( "PiecePicker:avail");
 	protected boolean[]			doneAvailable;			// the pieces already added to availability
@@ -112,17 +113,18 @@ public class PiecePickerImpl
 	 */
 	private int		globalMinOthers;
 	
-	private ParameterListenerImpl	parameterListener;
-
 	private boolean				rarestOverride;
 	
+	protected volatile long		filePriorityChange;		// event # of user file priority settings changes
+	
+	private volatile long		priorityParamChange;	// last user parameter settings event # when priority bases were calculated
+	private volatile long		priorityFileChange;		// last user priority event # when priority bases were calculated
+	private volatile long		priorityAvailChange;	// last availability event # when priority bases were calculated
+
+	private long				timeLastPriorities;		// time that base priorities were last computed
+
 	private volatile long[]		startPriorities;		// the priority for starting each piece/base priority for resuming
-	protected volatile long		userPriorityChange;		// event # of user priority settings changes 
-	
-	private long				timeLastPriorities;
-	private volatile long		priorityUserChange;			// last user priority event # when priority bases were calculated
-	private volatile long		priorityAvailabilityChange;	// last availability event # when priority bases were calculated
-	
+
 	protected volatile boolean	hasNeededUndonePiece;
 	protected volatile long		neededUndonePieceChange;
 	
@@ -136,47 +138,51 @@ public class PiecePickerImpl
 	private List 				endGameModeChunks;
 	private final AEMonitor		endGameModeChunks_mon =new AEMonitor( "PiecePicker:EG");
 
+	static
+	{
+		class ParameterListenerImpl
+			implements ParameterListener
+		{
+			public void parameterChanged(String parameterName)
+			{
+				if (parameterName.equals("Prioritize Most Completed Files"))
+				{
+					completionPriority =COConfigurationManager.getBooleanParameter(parameterName, false);
+					paramPriorityChange++;	// this is a user's priority change event
+				} else if (parameterName.equals("Prioritize First Piece"))
+				{
+					firstPiecePriority =COConfigurationManager.getBooleanParameter(parameterName, false);
+					paramPriorityChange++;	// this is a user's priority change event
+			    }
+		    }
+		}
+
+		ParameterListenerImpl	parameterListener =new ParameterListenerImpl();;
+
+		COConfigurationManager.addParameterListener("Prioritize Most Completed Files", parameterListener);
+		COConfigurationManager.addAndFireParameterListener("Prioritize First Piece", parameterListener);
+
+	}
+	
+	
 	public PiecePickerImpl(final DiskManager dm)
 	{
 		diskManager =dm;
 		dm_pieces =diskManager.getPieces();
-	}
-	
-	public void start()
-	{
  		nbPieces =diskManager.getNbPieces();
 		nbPiecesDone =0;
+
 		
 		availability_cow =new int[nbPieces];
 		doneAvailable =new boolean[nbPieces];
+
+		hasNeededUndonePiece =false;
+		neededUndonePieceChange =0;
 
 		time_last_avail =Long.MIN_VALUE;
 		availabilityChange =Long.MIN_VALUE + 1;	// ensure at least one compute gets done
 		availabilityComputeChange =Long.MIN_VALUE;
 
-		globalAvail =0;
-		globalAvgAvail =0;
-		nbRarestActive =0;
-		globalMin =0;
-		globalMinOthers =0;
-		
-		rarestOverride =true;
-
-//		startPriorities =new long[nbPieces];
-		userPriorityChange =0;
-		
-		timeLastPriorities =Long.MIN_VALUE;
-		priorityUserChange =Long.MIN_VALUE;
-		priorityAvailabilityChange =Long.MIN_VALUE;
-		
-		hasNeededUndonePiece =false;
-		neededUndonePieceChange =0;
-
-		endGameMode =false;
-		endGameModeAbandoned =false;
-		timeEndGameModeEntered =0;
-		
-		
 		// initialize each piece; on going changes will use event driven tracking
 		for (int i =0; i <nbPieces; i++)
 		{
@@ -197,37 +203,60 @@ public class PiecePickerImpl
 		if (hasNeededUndonePiece)
 			neededUndonePieceChange++;
 		
+		globalAvail =0;
+		globalAvgAvail =0;
+		nbRarestActive =0;
+		globalMin =0;
+		globalMinOthers =0;
+		
+
 		diskManagerListener =new DiskManagerListenerImpl();
 		diskManager.addListener(diskManagerListener);
 		
-		parameterListener =new ParameterListenerImpl();
-		COConfigurationManager.addParameterListener("Prioritize Most Completed Files", parameterListener);
-		COConfigurationManager.addAndFireParameterListener("Prioritize First Piece", parameterListener);
 
+		rarestOverride =true;
+		
+		startPriorities =new long[nbPieces];
+		filePriorityChange =Long.MIN_VALUE;
+		
+		priorityParamChange =Long.MIN_VALUE;
+		priorityFileChange =Long.MIN_VALUE;
+		priorityAvailChange =Long.MIN_VALUE;
+
+		timeLastPriorities =Long.MIN_VALUE;
+
+		
+		endGameMode =false;
+		endGameModeAbandoned =false;
+		timeEndGameModeEntered =0;
+		
 		computeAvailability();
 	}
-
-	public void stop()
-	{
-		hasNeededUndonePiece =false;
-		neededUndonePieceChange++;
-		
-		peerListeners.clear();	// since we're stopping, doesn't seem like need to .removeListener ... ?
-		peerControl.removeListener(peerManagerListener);
-		
-		diskManager.removeListener(diskManagerListener);
-		
-		COConfigurationManager.removeParameterListener("Prioritize First Piece", parameterListener);
-		COConfigurationManager.removeParameterListener("Prioritize Most Completed Files", parameterListener);
-		parameterListener =null;
-		
-		startPriorities =null;
-		peerManagerListener =null;
-		peerControl =null;
-		
-		diskManagerListener =null;
-		nbPieces =-1;
-	}
+	
+//	public void stop()
+//	{
+//		hasNeededUndonePiece =false;
+//		neededUndonePieceChange++;
+//		
+//		if (peerListeners !=null)
+//			peerListeners.clear();	// since we're stopping, doesn't seem like need to .removeListener ... ?
+//		if (peerControl !=null)
+//			peerControl.removeListener(peerManagerListener);
+//		
+//		diskManager.removeListener(diskManagerListener);
+//		
+//		COConfigurationManager.removeParameterListener("Prioritize First Piece", parameterListener);
+//		COConfigurationManager.removeParameterListener("Prioritize Most Completed Files", parameterListener);
+//		parameterListener =null;
+//		
+//		startPriorities =null;
+//		peerManagerListener =null;
+//		
+//		diskManagerListener =null;
+//		nbPieces =-1;
+//
+//		peerControl =null;
+//	}
 
 	public DiskManager getDiskManager()
 	{
@@ -774,8 +803,9 @@ public class PiecePickerImpl
 	private void computeBasePriorities()
 	{
 		final long now =SystemTime.getCurrentTime();
-		if (priorityUserChange >=userPriorityChange &&priorityAvailabilityChange >=availabilityChange
-			||(now >timeLastPriorities &&now <time_last_avail +TIME_MIN_PRIORITIES))
+		if ((now >timeLastPriorities &&now <time_last_avail +TIME_MIN_PRIORITIES)
+			||(priorityParamChange >=paramPriorityChange &&priorityFileChange >=filePriorityChange
+				&&priorityAvailChange >=availabilityChange))
 			return;		// *somehow* nothing changed, so nothing to do
 		
 		final int 		nbSeeds		=peerControl.getNbSeeds();
@@ -869,9 +899,11 @@ public class PiecePickerImpl
 		{
 			Debug.printStackTrace(e);
 		}
-		priorityUserChange =userPriorityChange;
-		priorityAvailabilityChange =availabilityChange;
-		
+		priorityParamChange =paramPriorityChange;
+		priorityFileChange =filePriorityChange;
+		priorityAvailChange =availabilityChange;
+		timeLastPriorities =SystemTime.getCurrentTime();
+				
 		if (foundPieceToDownload)
 		{
 			if (!hasNeededUndonePiece)
@@ -1096,23 +1128,6 @@ public class PiecePickerImpl
 		return avail;
 	}
 	
-	private class ParameterListenerImpl
-		implements ParameterListener
-	{
-		public void parameterChanged(String parameterName)
-		{
-			if (parameterName.equals("Prioritize Most Completed Files"))
-			{
-				completionPriority =COConfigurationManager.getBooleanParameter(parameterName, false);
-				userPriorityChange++;	// this is a user's priority change event
-			} else if (parameterName.equals("Prioritize First Piece"))
-			{
-				firstPiecePriority =COConfigurationManager.getBooleanParameter(parameterName, false);
-				userPriorityChange++;	// this is a user's priority change event
-		    }
-	    }
-	}
-
 	/**
 	 * An instance of this listener is registered with peerControl
 	 * Through this, we learn of peers leaving and joining
@@ -1197,7 +1212,7 @@ public class PiecePickerImpl
 		public void filePriorityChanged(DiskManagerFileInfo file)
 		{
 			// record that user-based priorities changed
-			userPriorityChange++;	// this is a user's priority change event
+			filePriorityChange++;	// this is a user's priority change event
 			
 			// only need to re-calc Needed on file's pieces; priority is calculated seperatly
 			boolean foundPieceToDownload =false;

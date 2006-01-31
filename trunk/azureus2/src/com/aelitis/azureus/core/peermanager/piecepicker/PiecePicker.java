@@ -34,8 +34,8 @@ import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 public interface PiecePicker
 {
-	public void				start();
-	public void				stop();
+//	public void				start();
+//	public void				stop();
 	public DiskManager		getDiskManager();
 	public void 			setPeerControl(final PEPeerControl pc);
 	public PEPeerControl	getPeerControl();
