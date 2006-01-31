@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -124,6 +125,11 @@ public class Legend {
 			final Label lblColor = new Label(colorSet, SWT.BORDER);
 			lblColor.setData("Index", new Integer(i));
 			lblColor.setBackground(blockColors[i]);
+			if (Constants.isOSX && SWT.getVersion() == 3221) {
+				// Temporary measure for background not be drawn on OSX
+				lblColor.setForeground(blockColors[i]);
+				lblColor.setText("*");
+			}
 			data = new RowData();
 			data.width = 20;
 			data.height = 10;
@@ -177,8 +183,6 @@ public class Legend {
 								}
 							} else {
 								if (!blockColors[j].equals(defaultColors[j])) {
-									blockColors[j] = defaultColors[j];
-	
 									Utils.execSWTThread(new AERunnable() {
 										public void runSupport() {
 											blockColors[index] = defaultColors[index];
