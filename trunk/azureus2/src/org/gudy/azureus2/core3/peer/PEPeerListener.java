@@ -29,15 +29,22 @@ public interface PEPeerListener {
   
   /**
    * The peer has changed to the given state.
+   * @param peer the peer the message is about
    * @param new_state of peer
    */
-  public void stateChanged( int new_state );
+  public void stateChanged(PEPeer peer, int new_state );
   
   /**
    * The peer has sent us a bad piece data chunk.
+   * @param peer the peer the message is about
    * @param piece_num piece that failed hash check
    * @param total_bad_chunks total number of bad chunks sent by this peer so far
    */
-  public void sentBadChunk( int piece_num, int total_bad_chunks );
+  public void sentBadChunk(PEPeer peer, int piece_num, int total_bad_chunks );
 
+  /** A bitfield message has been received from the peer and properly decoded.
+   * The subscriber may now reliably retrieve the availability data using getAvailable() 
+   * @param peer the peer the message is about
+   */
+  public void receivedBitfield(final PEPeer peer);
 }
