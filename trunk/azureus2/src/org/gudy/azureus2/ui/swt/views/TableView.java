@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
@@ -219,6 +220,9 @@ public class TableView
   protected IView[] coreTabViews = null;
   
   private long lCancelSelectionTriggeredOn = -1;
+
+  // XXX Remove after column selection is no longered triggered on column resize (OSX)
+  private long lLastColumnResizeOn = -1;
 
   /**
    * Main Initializer
@@ -948,6 +952,15 @@ public class TableView
     // Add move listener at the very end, so we don't get a bazillion useless 
     // move triggers
     if (SWT.getVersion() >= 3100) {
+    	boolean bResizeListener = Constants.isOSX && SWT.getVersion() == 3221;
+
+			Listener columnResizeListener = (!bResizeListener) ? null
+					: new Listener() {
+						public void handleEvent(Event event) {
+							lLastColumnResizeOn = System.currentTimeMillis();
+						}
+					};
+    	
 	    for (int i = 0; i < tableColumns.length; i++) {
 	      int position = tableColumns[i].getPosition();
 	      if (position == -1)
@@ -959,6 +972,8 @@ public class TableView
 	      
 	      TableColumn column = table.getColumn(adjusted_position);
 	      column.addListener(SWT.Move, columnMoveListener);
+	    	if (bResizeListener)
+	    		column.addListener(SWT.Resize, columnResizeListener);
 	    }
     }
   }
@@ -2220,7 +2235,30 @@ public class TableView
     /** Process a Table Header click
      * @param event event information
      */
-    public void handleEvent(Event event) {
+    public void handleEvent(final Event event) {
+    	if (Constants.isOSX && SWT.getVersion() == 3221) {
+				// temporary for OSX.. resizing column triggers selection, so cancel
+				// if a resize was recent. 
+				final Timer timer = new Timer("Column Selection Wait");
+				timer.addEvent(System.currentTimeMillis() + 50,
+						new TimerEventPerformer() {
+							public void perform(TimerEvent timerEvent) {
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										if (lLastColumnResizeOn == -1
+												|| System.currentTimeMillis() - lLastColumnResizeOn > 150)
+											reallyHandleEvent(event);
+									}
+								});
+								timer.destroy();
+							}
+						});
+			} else {
+				reallyHandleEvent(event);
+			}
+		}
+    
+    private void reallyHandleEvent(Event event) {
 			TableColumn column = (TableColumn) event.widget;
 			if (column == null)
 				return;
