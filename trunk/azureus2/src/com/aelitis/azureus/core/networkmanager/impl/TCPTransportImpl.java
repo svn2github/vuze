@@ -405,9 +405,9 @@ public class TCPTransportImpl implements TCPTransport {
     			throw( new RuntimeException());	// this is outgoing
     		}
     		
-    		public boolean
-    		matchSharedSecret(
-    				TCPProtocolDecoderAdapter.secretMatcher matcher )
+    		public byte[]
+    		untransformSecret(
+    			byte[]	ss  )
     		{
     			throw( new RuntimeException());	// this is outgoing
     		}

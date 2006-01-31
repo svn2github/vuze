@@ -50,9 +50,12 @@ PHETester
 	private static boolean	OUTGOING_PLAIN = false;
 	
 	private static byte[]	shared_secret = "sdsjdksjdkj".getBytes();
+	
 	public
 	PHETester()
 	{
+		TCPProtocolDecoder.addSecret( shared_secret );
+		
 		VirtualServerChannelSelector
 			accept_server = new VirtualServerChannelSelector( 
 					new InetSocketAddress( 8765 ), 
@@ -117,15 +120,6 @@ PHETester
 								Throwable			cause )
 							{
 								System.out.println( "incoming decode failed: " + Debug.getNestedExceptionMessage(cause));
-							}
-							
-							public boolean
-							matchSharedSecret(
-								secretMatcher		matcher )
-							{
-								System.out.println( "match shared secret" );
-								
-								return( matcher.match( shared_secret ));
 							}
 
 							public int
@@ -271,13 +265,6 @@ PHETester
 							{
 								System.out.println( "outgoing decode failed: " + Debug.getNestedExceptionMessage(cause));
 	
-							}
-							
-							public boolean
-							matchSharedSecret(
-								secretMatcher		matcher )
-							{
-								throw( new RuntimeException());
 							}
 							
 							public int

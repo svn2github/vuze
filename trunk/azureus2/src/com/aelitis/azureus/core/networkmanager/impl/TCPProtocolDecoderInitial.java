@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
-import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoderAdapter.secretMatcher;
 
 public class 
 TCPProtocolDecoderInitial 
@@ -239,13 +238,6 @@ TCPProtocolDecoderInitial
 					Throwable			cause )
 				{
 					failed( cause );
-				}
-				
-				public boolean
-				matchSharedSecret(
-					secretMatcher		matcher )
-				{
-					return( adapter.matchSharedSecret( matcher ));
 				}
 				
 				public int

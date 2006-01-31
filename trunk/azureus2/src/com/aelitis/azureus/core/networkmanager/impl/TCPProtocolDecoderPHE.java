@@ -31,8 +31,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
@@ -50,6 +49,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -118,6 +118,8 @@ TCPProtocolDecoderPHE
     
 	private static final Random	random = new SecureRandom();
 	
+	private static Map	shared_secrets	= new HashMap();
+	
 	static{
 		try{
 			DHParameterSpec dh_param_spec = new DHParameterSpec( DH_P_BI, DH_G_BI, DH_L );
@@ -174,6 +176,40 @@ TCPProtocolDecoderPHE
 	isCryptoOK()
 	{
 		return( crypto_ok );
+	}
+	
+	public static void
+	addSecretSupport(
+		byte[]		secret )
+	{
+		SHA1Hasher hasher = new SHA1Hasher();
+   		
+   		hasher.update( REQ2_IV );
+   		hasher.update( secret );
+   		
+   		byte[]	encoded = hasher.getDigest();
+		                  	
+		synchronized( shared_secrets ){
+			
+			shared_secrets.put( new HashWrapper( encoded ), secret );
+		}
+	}
+	
+	public static void
+	removeSecretSupport(
+		byte[]		secret )
+	{
+		SHA1Hasher hasher = new SHA1Hasher();
+   		
+   		hasher.update( REQ2_IV );
+   		hasher.update( secret );
+   		
+   		byte[]	encoded = hasher.getDigest();
+		                  	
+		synchronized( shared_secrets ){
+			
+			shared_secrets.remove( new HashWrapper( encoded ));
+		}
 	}
 	
 	// private static final byte SUPPORTED_PROTOCOLS = (byte)((aes_ok?CRYPTO_AES:0) | CRYPTO_RC4 | CRYPTO_XOR | CRYPTO_PLAIN );
@@ -877,39 +913,10 @@ TCPProtocolDecoderPHE
 								decode[i] ^= sha1[i];
 							}
 							
-							shared_secret	= null;
-							
-							adapter.matchSharedSecret(
-								new TCPProtocolDecoderAdapter.secretMatcher()
-								{
-									public boolean
-									match(
-										byte[]	ss )
-									{
-										if ( ss == null ){
-											
-											ss = new byte[0];
-										}
-										
-										SHA1Hasher hasher = new SHA1Hasher();
-										
-										hasher.update( REQ2_IV );
-										hasher.update( ss );
-										
-										byte[] sha1 = hasher.getDigest();
-										
-										if ( Arrays.equals( sha1, decode )){
-											
-											shared_secret	= ss;
-											
-											return( true );
-											
-										}else{
-											
-											return( false );
-										}
-									}
-								});
+							synchronized( shared_secrets ){
+								
+								shared_secret	= (byte[])shared_secrets.get( new HashWrapper( decode ));
+							}
 							
 							if ( shared_secret == null ){
 								

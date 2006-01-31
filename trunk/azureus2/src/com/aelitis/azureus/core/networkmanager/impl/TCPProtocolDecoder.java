@@ -119,4 +119,18 @@ TCPProtocolDecoder
 	
 	public abstract TCPTransportHelperFilter
 	getFilter();
+	
+	public static void
+	addSecret(
+		byte[]		secret )
+	{
+		TCPProtocolDecoderPHE.addSecretSupport( secret );
+	}
+	
+	public static void
+	removeSecret(
+		byte[]		secret )
+	{
+		TCPProtocolDecoderPHE.removeSecretSupport( secret );
+	}
 }

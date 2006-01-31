@@ -54,7 +54,7 @@ public class IncomingSocketChannelManager
   private final AEMonitor match_buffers_mon = new AEMonitor( "IncomingConnectionManager:match" );
   private int max_match_buffer_size = 0;
   private int max_min_match_buffer_size = 0;
-  
+   
   private int listen_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
   private int so_rcvbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
   private String bind_address = COConfigurationManager.getStringParameter( "Bind IP" );
@@ -208,6 +208,12 @@ public class IncomingSocketChannelManager
       
       match_buffers_cow = new_match_buffers;
     
+      byte[]	secret = matcher.getSharedSecret();
+      
+      if ( secret != null ){
+    	  
+	     TCPProtocolDecoder.addSecret( secret );
+      }
     } finally {  match_buffers_mon.exit();  }
     
   }
@@ -235,6 +241,12 @@ public class IncomingSocketChannelManager
     
       match_buffers_cow = new_match_buffers;
       
+      byte[]	secret = to_remove.getSharedSecret();
+      
+      if ( secret != null ){
+    	  
+	      TCPProtocolDecoder.removeSecret( secret );
+      }
     } finally {  match_buffers_mon.exit();  }  
   } 
   
@@ -332,12 +344,6 @@ public class IncomingSocketChannelManager
 	    				}
 	    			}
 	    		}
-				public boolean
-				matchSharedSecret(
-					TCPProtocolDecoderAdapter.secretMatcher 	matcher )
-				{					
-					return( IncomingSocketChannelManager.this.matchSharedSecret( matcher ));
-				}
 	        	});
 	        	
 	        }
@@ -569,24 +575,6 @@ public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,
       return listener;
   }
   
-  protected boolean 
-  matchSharedSecret( 
-	  TCPProtocolDecoderAdapter.secretMatcher 	matcher )
-  {
-	  for( Iterator i = match_buffers_cow.keySet().iterator(); i.hasNext(); ) {
-	
-		  NetworkManager.ByteMatcher bm = (NetworkManager.ByteMatcher)i.next();
-		  
-		  if ( matcher.match( bm.getSharedSecret())){
-			  
-			  return( true );
-		  }
-	  }  
-	  
-	  return( false );
-  }
-  
-
   protected void doTimeoutChecks() {
     try{  connections_mon.enter();
 
