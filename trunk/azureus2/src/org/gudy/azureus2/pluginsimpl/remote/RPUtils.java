@@ -156,7 +156,17 @@ public class RPUtils {
     }
 
     private static Class getPluginAPIInterfacesForClass(Class c, ArrayList l) {
-        if (c.isInterface() && isPluginAPIPackage(c.getPackage())) {
+        /**
+         * Hack - this change allows the PluginManager class to be available, even though it
+         * isn't an interface. Some further thought needs to go into how we are going to support
+         * classes (or whether PluginManager should be an interface...)
+         */
+        boolean special_class = false;
+        if (org.gudy.azureus2.plugins.PluginManager.class.isAssignableFrom(c)) {
+            special_class = true;
+        }
+
+        if (special_class || (c.isInterface() && isPluginAPIPackage(c.getPackage()))) {
             if (l == null) {return c;}
             l.add(c);
         }
