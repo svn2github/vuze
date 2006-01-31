@@ -32,17 +32,14 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.impl.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.Connection;
-import org.gudy.azureus2.plugins.peers.Peer;
-import org.gudy.azureus2.plugins.peers.PeerReadRequest;
+import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
-import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
-import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
+import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 public class 
@@ -64,7 +61,9 @@ PeerForeignDelegate
 	private BitFlags	bit_flags;
 	
 	private Map			data;
-	
+
+	private HashMap		peer_listeners;
+
 	protected AEMonitor	this_mon	= new AEMonitor( "PeerForeignDelegate" );
 
 	protected
@@ -451,9 +450,53 @@ PeerForeignDelegate
 	public void setUploadHint(int timeToSpread) {}  
 	
 
-	public void addListener( PEPeerListener listener ) { /* nothing */ }
+	public void addListener(final PEPeerListener l )
+	{
+		final PEPeer self =this;
+		// add a listener to the foreign, then call our listeners when it calls us
+		PeerListener core_listener = 
+			new PeerListener() 
+			{
+				public void 
+				stateChanged(
+					int new_state ) 
+				{
+					l.stateChanged(self, new_state );
+				}
+      
+				public void 
+				sentBadChunk( 
+					int piece_num, 
+					int total_bad_chunks )
+				{
+					l.sentBadChunk(self, piece_num, total_bad_chunks );
+				}
+				
+			};
+    
+			foreign.addListener( core_listener );
+    
+		if( peer_listeners == null ){
+			
+			peer_listeners = new HashMap();
+		}
+		
+		peer_listeners.put( l, core_listener );
+		
+	}
 
-	public void removeListener( PEPeerListener listener ) { /* nothing */ }
+	public void removeListener( PEPeerListener l )
+	{
+		if ( peer_listeners != null ){
+			
+			PeerListener core_listener = (PeerListener)peer_listeners.remove( l );
+    
+			if( core_listener != null ) {
+      
+				foreign.removeListener( core_listener );
+			}
+		}
+	}
   
 	public Connection
 	getConnection()
