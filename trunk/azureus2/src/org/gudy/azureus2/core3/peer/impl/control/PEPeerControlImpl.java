@@ -298,6 +298,8 @@ PEPeerControlImpl
 					lastNeededUndonePieceChange =piecePicker.getNeededUndonePieceChange();
 				}
 
+				piecePicker.update();
+				
 				boolean forcenoseeds = disconnect_seeds_when_seeding;
 				if (!seeding_mode) 
 				{	// if we're not finished
