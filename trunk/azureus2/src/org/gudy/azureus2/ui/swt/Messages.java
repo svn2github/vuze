@@ -209,6 +209,9 @@ public class Messages {
 				if (!key.endsWith(".info"))
 					key += ".info";
 				String toolTip = MessageText.getString(key, (String) null);
+				if (toolTip == null)
+					toolTip = MessageText.getString(key.substring(0, key.length() - 5),
+							(String) null);
 				if (toolTip != null) {
 					try {
 						((TableColumn) widget).setToolTipText(toolTip);
