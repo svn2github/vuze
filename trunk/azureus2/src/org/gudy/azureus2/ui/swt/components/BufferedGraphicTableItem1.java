@@ -49,6 +49,11 @@ import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem {
   //The Buffered image
   private Image image;
+  /** Track if we have ever drawn the cell.  Don't draw the cell using our
+   * own GC if we've never drawn before.  ie.  If we setGraphic before the
+   * cell is visible, don't paint.
+   */
+  private boolean neverDrawn = true;
   
   
   public BufferedGraphicTableItem1(BufferedTableRow row,int position) {
@@ -122,13 +127,21 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
   /** Paint the bar without updating it's data.  Unless the size changed.
    */
   public void doPaint(GC gc) {
-    Table table = getTable();
+  	if (neverDrawn) {
+  		if (gc == null)
+  			return;
+  		neverDrawn = false;
+  	}
+
     //Compute bounds ...
     Rectangle bounds = getBoundsForCanvas();
     //In case item isn't displayed bounds is null
     if (bounds == null || image == null || image.isDisposed()) {
       return;
     }
+    
+    Table table = getTable();
+
     //debugOut("doPnt:" + ((gc == null) ? "GC NULL" : String.valueOf(gc.getClipping())) + 
     //         "ta="+table.getClientArea()+";bounds="+bounds, false);
 
@@ -222,7 +235,11 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     }
     gc.setClipping(clipping);
     gc.drawImage(image, bounds.x, bounds.y);
-    //System.out.println("doPnt#"+row.getIndex()+ ":"+gc+": ourGC="+ourGC+";clp:"+ gc.getClipping()+";bounds:"+bounds+";imgBounds="+imageBounds+";ca="+table.getClientArea());
+//    System.out
+//				.println("doPnt#" + row.getIndex() + ":" + gc + ";"
+//						+ (ourGC ? "" : "!") + "ourGC;clp:" + gc.getClipping()
+//						+ ";bnds:" + bounds + ";imgBnds=" + imageBounds + ";ca="
+//						+ table.getClientArea());
     if (ourGC) {
       gc.dispose();
     }
