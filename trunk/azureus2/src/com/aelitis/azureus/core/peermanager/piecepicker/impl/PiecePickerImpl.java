@@ -910,7 +910,7 @@ public class PiecePickerImpl
 	 */
 	private int getRequestCandidate(final PEPeerTransport pt)
 	{
-		if (pt ==null ||pt.getPeerState() !=PEPeer.TRANSFERING)
+		if (peerControl ==null || pt ==null ||pt.getPeerState() !=PEPeer.TRANSFERING)
 			return -1;
 		final BitFlags	peerHavePieces =pt.getAvailable();
 
@@ -1099,18 +1099,18 @@ public class PiecePickerImpl
 	private class ParameterListenerImpl
 		implements ParameterListener
 	{
-			public void parameterChanged(String parameterName)
+		public void parameterChanged(String parameterName)
+		{
+			if (parameterName.equals("Prioritize Most Completed Files"))
 			{
-				if (parameterName.equals("Prioritize Most Completed Files"))
-				{
-					completionPriority =COConfigurationManager.getBooleanParameter(parameterName, false);
-					userPriorityChange++;	// this is a user's priority change event
-				} else if (parameterName.equals("Prioritize First Piece"))
-				{
-					firstPiecePriority =COConfigurationManager.getBooleanParameter(parameterName, false);
-					userPriorityChange++;	// this is a user's priority change event
-			    }
+				completionPriority =COConfigurationManager.getBooleanParameter(parameterName, false);
+				userPriorityChange++;	// this is a user's priority change event
+			} else if (parameterName.equals("Prioritize First Piece"))
+			{
+				firstPiecePriority =COConfigurationManager.getBooleanParameter(parameterName, false);
+				userPriorityChange++;	// this is a user's priority change event
 		    }
+	    }
 	}
 
 	/**
@@ -1150,9 +1150,15 @@ public class PiecePickerImpl
 	{
 		public void stateChanged(final PEPeer peer, final int new_state )
 		{
-			if (new_state ==PEPeer.TRANSFERING)
+			if (new_state ==PEPeer.CONNECTING)
 			{
-				
+				int placeholder =new_state;
+			} else if (new_state ==PEPeer.HANDSHAKING)
+			{
+				int placeholder =new_state;
+			} else if (new_state ==PEPeer.TRANSFERING)
+			{
+				addBitfield(peer.getAvailable());
 			} else if (new_state ==PEPeer.CLOSING)
 			{
 				// remove the bitfield from availability
