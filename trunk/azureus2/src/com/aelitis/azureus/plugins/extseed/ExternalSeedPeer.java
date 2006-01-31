@@ -28,8 +28,7 @@ import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.utils.Monitor;
-import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+import org.gudy.azureus2.plugins.utils.*;
 
 
 public class 
@@ -42,7 +41,9 @@ ExternalSeedPeer
 	private PeerStats				stats;
 	private Map						user_data;
 	
-	private	ExternalSeedReader		reader;			
+	private	ExternalSeedReader		reader;
+	
+	private int						state;
 	
 	private byte[]					peer_id;
 	private boolean[]				available;
@@ -51,6 +52,9 @@ ExternalSeedPeer
 	
 	private Monitor					connection_mon;
 	private boolean					peer_added;
+	
+	private List					listenerList;
+	private Monitor					listenerListMon;
 		
 	protected
 	ExternalSeedPeer(
@@ -77,6 +81,9 @@ ExternalSeedPeer
 		peer_id[2]='t';
 		peer_id[3]=' ';
 		
+		listenerList =new ArrayList();
+		listenerListMon	= plugin.getPluginInterface().getUtilities().getMonitor();
+		
 		_reader.addListener( this );
 	}
 	
@@ -84,6 +91,7 @@ ExternalSeedPeer
 	setManager(
 		PeerManager	_manager )
 	{
+		setState(Peer.CONNECTING);
 		try{
 			connection_mon.enter();
 
@@ -108,6 +116,25 @@ ExternalSeedPeer
 		return( manager );
 	}
 	
+	protected void setState(int newState)
+	{
+		state =newState;
+		
+		try
+		{	listenerListMon.enter();
+			if (!listenerList.isEmpty())
+			{
+				for (int i =0; i <listenerList.size(); i++)
+				{
+					final PeerListener peerListener =(PeerListener)listenerList.get(i);
+					if (peerListener !=null)
+						peerListener.stateChanged(newState);
+				}
+			}
+		} finally {listenerListMon.exit();}
+
+	}
+	
 	protected boolean
 	checkConnection()
 	{
@@ -119,7 +146,7 @@ ExternalSeedPeer
 			boolean	active = reader.checkActivation( manager );
 			
 			if ( manager != null && active != peer_added ){
-			
+				setState(Peer.HANDSHAKING);
 				state_changed	= true;
 				
 				boolean	peer_was_added	= peer_added;
@@ -129,11 +156,11 @@ ExternalSeedPeer
 				if ( active ){
 										
 					manager.addPeer( this );
-					
+					setState(Peer.TRANSFERING);
 				}else{
 										
 					if ( peer_was_added ){
-						
+						setState(Peer.CLOSING);
 						manager.removePeer( this );
 					}
 				}
@@ -216,7 +243,7 @@ ExternalSeedPeer
 	public int 
 	getState()
 	{
-		return( Peer.TRANSFERING );
+		return state;
 	}
 
 	public byte[] 
@@ -433,12 +460,25 @@ ExternalSeedPeer
 	addListener( 
 		PeerListener	listener )
 	{
+		try
+		{	listenerListMon.enter();
+			
+			if (!listenerList.contains(listener))
+				listenerList.add(listener);
+			
+		} finally {listenerListMon.exit();}
 	}
 	
 	public void 
 	removeListener(	
 		PeerListener listener )
 	{	
+		try
+		{	listenerListMon.enter();
+		
+		listenerList.remove(listener);
+		
+		} finally {listenerListMon.exit();}
 	}
   
 	public Connection 
