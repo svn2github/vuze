@@ -184,7 +184,7 @@ FMFileImpl
 		try{
 			this_mon.enter();
 
-			boolean	was_open	= raf != null;
+			boolean	was_open = isOpen();
 			
 			if ( was_open ){
 				
@@ -276,9 +276,9 @@ FMFileImpl
 				throw( new FMFileManagerException( "moveFile fails - file '" + new_canonical_path + "' already exists"));	
 			}
 			
-			boolean	was_open	= raf != null;
+			boolean	was_open	= isOpen();
 			
-			close();
+			close();	// full close, this will release any slots in the limited file case
 			
 			createDirs( new_linked_file );
 	        
@@ -291,7 +291,7 @@ FMFileImpl
 				
 				if ( was_open ){
 					
-					openSupport( "moveFile target" );
+					ensureOpen( "moveFile target" );	// ensure open will regain slots in limited file case
 				}
 				
 			}else{
@@ -307,7 +307,7 @@ FMFileImpl
 				if ( was_open ){
 					
 					try{
-						openSupport( "moveFile recovery" );
+						ensureOpen( "moveFile recovery" );
 						
 					}catch( FMFileManagerException e){
 						
@@ -332,9 +332,9 @@ FMFileImpl
 		try{
 			this_mon.enter();
 	
-			if ( raf != null ){
+			if ( isOpen()){
 				
-			  return;
+				return;
 			}
 					  		
 			openSupport( reason );
@@ -370,7 +370,7 @@ FMFileImpl
 	{
 		if ( raf != null ){
 			
-			closeSupport(true);
+			throw( new FMFileManagerException( "file already open" ));
 		}
 
 		reserveAccess( reason );
@@ -751,6 +751,12 @@ FMFileImpl
 		}
 	}
 	
+	protected String
+	getString()
+	{
+		return( "can=" + canonical_path + ",link=" + linked_file + ",raf=" + raf + ",acc=" + access_mode + ",ctrl = " + file_access.getString());
+	}
+	
 	protected static void
 	generateEvidence(
 		IndentWriter	writer )
@@ -793,6 +799,9 @@ FMFileImpl
 				
 				file_map_mon.exit();
 			}
+			
+			FMFileManagerImpl.generateEvidence( writer );
+			
 		}finally{
 			
 			writer.exdent();

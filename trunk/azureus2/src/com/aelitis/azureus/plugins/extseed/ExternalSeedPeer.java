@@ -92,6 +92,7 @@ ExternalSeedPeer
 		PeerManager	_manager )
 	{
 		setState(Peer.CONNECTING);
+		
 		try{
 			connection_mon.enter();
 
@@ -116,23 +117,25 @@ ExternalSeedPeer
 		return( manager );
 	}
 	
-	protected void setState(int newState)
+	protected void 
+	setState(
+		int newState )
 	{
-		state =newState;
-		
-		try
-		{	listenerListMon.enter();
-			if (!listenerList.isEmpty())
-			{
-				for (int i =0; i <listenerList.size(); i++)
-				{
-					final PeerListener peerListener =(PeerListener)listenerList.get(i);
-					if (peerListener !=null)
-						peerListener.stateChanged(newState);
-				}
-			}
-		} finally {listenerListMon.exit();}
+		try{
+			listenerListMon.enter();
 
+			state = newState;
+			
+			for (int i =0; i <listenerList.size(); i++){
+				
+				PeerListener peerListener =(PeerListener)listenerList.get(i);
+					
+				peerListener.stateChanged(newState);
+			}
+		}finally{
+			
+			listenerListMon.exit();
+		}
 	}
 	
 	protected boolean
@@ -146,7 +149,7 @@ ExternalSeedPeer
 			boolean	active = reader.checkActivation( manager );
 			
 			if ( manager != null && active != peer_added ){
-				setState(Peer.HANDSHAKING);
+				
 				state_changed	= true;
 				
 				boolean	peer_was_added	= peer_added;
@@ -154,14 +157,14 @@ ExternalSeedPeer
 				peer_added	= active;
 				
 				if ( active ){
-										
-					manager.addPeer( this );
-					setState(Peer.TRANSFERING);
+					
+					addPeer();
+					
 				}else{
 										
 					if ( peer_was_added ){
-						setState(Peer.CLOSING);
-						manager.removePeer( this );
+						
+						removePeer();
 					}
 				}
 			}
@@ -171,6 +174,24 @@ ExternalSeedPeer
 		}
 		
 		return( state_changed );
+	}
+	
+	protected void
+	addPeer()
+	{
+		setState(Peer.HANDSHAKING);
+
+		manager.addPeer( this );
+		
+		setState(Peer.TRANSFERING);
+	}
+	
+	protected void
+	removePeer()
+	{	
+		setState(Peer.CLOSING);
+	
+		manager.removePeer( this );
 	}
 	
 	public void
@@ -229,8 +250,8 @@ ExternalSeedPeer
 					
 					plugin.log( reader.getName() + " failed - " + reader.getStatus() + ", permanent = " + reader.isPermanentlyUnavailable());
 	
-					man.removePeer( this );
-				
+					removePeer();
+					
 					peer_added	= false;
 				}
 			}finally{

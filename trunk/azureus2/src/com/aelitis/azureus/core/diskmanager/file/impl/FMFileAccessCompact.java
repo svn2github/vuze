@@ -468,4 +468,10 @@ FMFileAccessCompact
 			}
 		}
 	}
+	
+	public String
+	getString()
+	{
+		return( "compact" );
+	}
 }

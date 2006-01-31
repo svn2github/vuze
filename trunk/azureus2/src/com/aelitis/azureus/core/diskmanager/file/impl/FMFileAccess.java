@@ -64,4 +64,7 @@ FMFileAccess
 	flush()
 	
 		throws FMFileManagerException;
+	
+	public String
+	getString();
 }

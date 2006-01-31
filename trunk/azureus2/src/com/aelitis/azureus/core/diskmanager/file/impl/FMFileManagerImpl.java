@@ -421,4 +421,43 @@ FMFileManagerImpl
 			}
 		}
 	}
+	
+	protected void
+	generate(
+		IndentWriter	writer )
+	{
+		writer.println( "FMFileManager slots" );
+		
+		try{
+			writer.indent();
+			
+			try{
+				map_mon.enter();
+							
+				Iterator it = map.keySet().iterator();
+					
+				while( it.hasNext()){
+					
+					FMFileLimited	file = (FMFileLimited)it.next();
+					
+					writer.println( file.getString());
+				}
+							
+			}finally{
+				
+				map_mon.exit();
+			}
+		}finally{
+			
+			writer.exdent();
+		}
+	}
+	protected static void
+	generateEvidence(
+		IndentWriter	writer )
+	{
+		getSingleton();
+		
+		singleton.generate( writer );
+	}
 }

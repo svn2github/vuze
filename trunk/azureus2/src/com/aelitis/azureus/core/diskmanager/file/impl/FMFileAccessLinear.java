@@ -257,4 +257,10 @@ FMFileAccessLinear
 	{
 		// no state to flush
 	}
+	
+	public String
+	getString()
+	{
+		return( "linear" );
+	}
 }

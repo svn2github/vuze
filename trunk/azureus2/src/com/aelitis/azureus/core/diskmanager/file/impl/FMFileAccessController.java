@@ -370,4 +370,10 @@ FMFileAccessController
 	{
 	
 	}
+	
+	public String
+	getString()
+	{
+		return( "type=" + type + ",acc=" + file_access.getString());
+	}
 }
