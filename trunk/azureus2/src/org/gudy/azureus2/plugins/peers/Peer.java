@@ -40,6 +40,7 @@ Peer
 	public final static int CONNECTING 		= PEPeer.CONNECTING;
 	public final static int HANDSHAKING 	= PEPeer.HANDSHAKING;
 	public final static int TRANSFERING 	= PEPeer.TRANSFERING;
+	public final static int CLOSING 		= PEPeer.CLOSING;
 	public final static int DISCONNECTED 	= PEPeer.DISCONNECTED;
   
 
