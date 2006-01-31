@@ -25,10 +25,7 @@ package org.gudy.azureus2.ui.swt.components;
 import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
@@ -125,10 +122,14 @@ public class Legend {
 			final Label lblColor = new Label(colorSet, SWT.BORDER);
 			lblColor.setData("Index", new Integer(i));
 			lblColor.setBackground(blockColors[i]);
-			if (Constants.isOSX && SWT.getVersion() == 3221) {
-				// Temporary measure for background not be drawn on OSX
-				lblColor.setForeground(blockColors[i]);
-				lblColor.setText("*");
+			if ((Constants.isOSX || Constants.isLinux) && SWT.getVersion() == 3221) {
+				// Temporary measure for background not be drawn
+				lblColor.addPaintListener(new PaintListener() {
+					public void paintControl(PaintEvent e) {
+						e.gc.setBackground(lblColor.getBackground());
+						e.gc.fillRectangle(e.x, e.y, e.width, e.height);
+					}
+				});
 			}
 			data = new RowData();
 			data.width = 20;
