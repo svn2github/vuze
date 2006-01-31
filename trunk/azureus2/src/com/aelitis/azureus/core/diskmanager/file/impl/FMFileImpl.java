@@ -520,7 +520,7 @@ FMFileImpl
 				
 						// already present, start off read-access
 					
-					Debug.out( "FMFileImpl:reserve file - entry already present" );
+					Debug.out( "reserve file - entry already present" );
 					
 					entry[1] = new Boolean( false );
 					
@@ -553,6 +553,8 @@ FMFileImpl
 					
 			if ( owners == null ){
 				
+				Debug.out( "reserveAccess fail" );
+				
 				throw( new FMFileManagerException( "File '"+canonical_path+"' has not been reserved (no entries), '" + owner.getName()+"'"));
 			}
 			
@@ -567,6 +569,8 @@ FMFileImpl
 			}				
 			
 			if ( my_entry == null ){
+				
+				Debug.out( "reserveAccess fail" );
 				
 				throw( new FMFileManagerException( "File '"+canonical_path+"' has not been reserved (not found), '" + owner.getName()+"'"));
 			}
@@ -622,6 +626,8 @@ FMFileImpl
 						return;
 					}
 				}
+				
+				Debug.out( "reserveAccess fail" );
 				
 				throw( new FMFileManagerException( "File '"+canonical_path+"' is in use by '" + users +"'"));
 			}
