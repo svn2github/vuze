@@ -224,6 +224,7 @@ implements PEPiece
 	 * The blocks are marked as requested by the PEPeer
 	 * Assumption - single threaded access to this
 	 * TODO: this should return the largest span equal or smaller than nbWanted
+	 * OR, probably a different method should do that, so this one can support 'more sequential' picking
 	 */
 	public int[] getAndMarkBlocks(PEPeerTransport peer, int nbWanted)
 	{
