@@ -2539,7 +2539,7 @@ PEPeerControlImpl
 		for (int i =0; i <peer_transports.size(); i++)
 		{
 			PEPeerTransport pt =(PEPeerTransport) peer_transports.get(i);
-			if (peer.equals(pt.getPeerItemIdentity().getAddressString()))
+			if (peer.equals( pt.getIp() ))
 				return pt;
 		}
 		return null;
