@@ -83,14 +83,18 @@ public class PiecePickerImpl
 	protected PiecePriorityShaper	priorityShaper;
 
 	private DiskManagerListenerImpl	diskManagerListener;
-	
+
 	protected int			nbPieces =-1;
 	protected volatile int	nbPiecesDone;
 
 	protected final DiskManagerPiece[]	dm_pieces;
 	protected volatile PEPiece[]		pePieces;
 
+	protected Map					peerListeners;
+	protected PEPeerManagerListener	peerManagerListener;
+	
 	protected volatile int[]	availability_cow;	// the dynamically modified availability
+	protected final AEMonitor	availabilityMon =new AEMonitor( "PiecePicker:avail");
 	protected boolean[]			doneAvailable;			// the pieces already added to availability
 
 	private long				time_last_avail;
@@ -112,7 +116,7 @@ public class PiecePickerImpl
 
 	private boolean				rarestOverride;
 	
-	private volatile long[]		startPriorities;
+	private volatile long[]		startPriorities;		// the priority for starting each piece/base priority for resuming
 	protected volatile long		userPriorityChange;		// event # of user priority settings changes 
 	
 	private long				timeLastPriorities;
@@ -130,7 +134,7 @@ public class PiecePickerImpl
 	private volatile long		timeEndGameModeEntered;
 	//The list of chunks needing to be downloaded (the mechanism change when entering end-game mode)
 	private List 				endGameModeChunks;
-	private final AEMonitor		endGameModeChunks_mon	= new AEMonitor( "PiecePicker:EG");
+	private final AEMonitor		endGameModeChunks_mon =new AEMonitor( "PiecePicker:EG");
 
 	public PiecePickerImpl(final DiskManager dm)
 	{
@@ -206,14 +210,22 @@ public class PiecePickerImpl
 	public void stop()
 	{
 		hasNeededUndonePiece =false;
+		neededUndonePieceChange++;
+		
+		peerListeners.clear();	// since we're stopping, doesn't seem like need to .removeListener ... ?
+		peerControl.removeListener(peerManagerListener);
+		
 		diskManager.removeListener(diskManagerListener);
+		
 		COConfigurationManager.removeParameterListener("Prioritize First Piece", parameterListener);
 		COConfigurationManager.removeParameterListener("Prioritize Most Completed Files", parameterListener);
-
 		parameterListener =null;
-		diskManagerListener =null;
+		
 		startPriorities =null;
+		peerManagerListener =null;
 		peerControl =null;
+		
+		diskManagerListener =null;
 		nbPieces =-1;
 	}
 
@@ -225,6 +237,12 @@ public class PiecePickerImpl
 	public void setPeerControl(final PEPeerControl pc)
 	{
 		peerControl =pc;
+		
+		peerListeners =new HashMap();
+		
+		peerManagerListener =new PEPeerManagerListenerImpl();
+		peerControl.addListener(peerManagerListener);
+		
 		computeBasePriorities();
 	}
 	
@@ -236,32 +254,41 @@ public class PiecePickerImpl
 	
 	public void addHavePiece(final int pieceNumber)
 	{
-		availability_cow[pieceNumber]++;
-		availabilityChange++;
+		try
+		{	availabilityMon.enter();
+			availability_cow[pieceNumber]++;
+			availabilityChange++;
+		} finally {availabilityMon.exit();}
 	}
 
-	public void addBitfield(final BitFlags peerHasPieces)
+	protected void addBitfield(final BitFlags peerHasPieces)
 	{
 		if (peerHasPieces ==null ||peerHasPieces.nbSet <=0)
 			return;
-		for (int i =peerHasPieces.start; i <=peerHasPieces.end; i++)
-		{
-			if (peerHasPieces.flags[i])
-				availability_cow[i]++;
-		}
-		availabilityChange++;
+		try
+		{	availabilityMon.enter();
+			for (int i =peerHasPieces.start; i <=peerHasPieces.end; i++)
+			{
+				if (peerHasPieces.flags[i])
+					availability_cow[i]++;
+			}
+			availabilityChange++;
+		} finally {availabilityMon.exit();}
 	}
 
-	public void removeBitfield(final BitFlags peerHasPieces)
+	protected void removeBitfield(final BitFlags peerHasPieces)
 	{
 		if (peerHasPieces ==null ||peerHasPieces.nbSet <=0)
 			return;
-		for (int i =peerHasPieces.start; i <=peerHasPieces.end; i++)
-		{
-			if (peerHasPieces.flags[i] &&availability_cow[i] >0)
-				availability_cow[i]--;
-		}
-		availabilityChange++;
+		try
+		{	availabilityMon.enter();
+			for (int i =peerHasPieces.start; i <=peerHasPieces.end; i++)
+			{
+				if (peerHasPieces.flags[i] &&availability_cow[i] >0)
+					availability_cow[i]--;
+			}
+			availabilityChange++;
+		} finally {availabilityMon.exit();}
 	}
 	
 	protected void computeAvailability()
@@ -270,9 +297,6 @@ public class PiecePickerImpl
 		if (availabilityComputeChange >=availabilityChange
 			||(now >time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY))
 			return;
-		
-		if (availability ==null)
-			availability =availability_cow;
 		
 		int i;
 		final BitFlags newPreQualifiedPieces =new BitFlags(nbPieces);
@@ -328,12 +352,12 @@ public class PiecePickerImpl
 
 	public int[] getAvailability()
 	{
-		return availability_cow;
+		return availability;
 	}
 
 	public int getAvailability(final int pieceNumber)
 	{
-		return availability_cow[pieceNumber];
+		return availability[pieceNumber];
 	}
 	
 	//this only gets called when the My Torrents view is displayed
@@ -402,7 +426,7 @@ public class PiecePickerImpl
 		}
 
 		// lock in a consistent availability ...
-		availability =availability_cow;
+		availability =(int[])availability_cow.clone();
 
 		checkEndGameMode();
 		computeAvailability();
@@ -468,7 +492,7 @@ public class PiecePickerImpl
 			// Assign the created piece to the pieces array.
 			pc.addPiece(pePiece, pieceNumber);
 			pePiece.setResumePriority(startPriorities[pieceNumber]);
-			if (availability_cow[pieceNumber] <=globalMinOthers)
+			if (availability[pieceNumber] <=globalMinOthers)
 				nbRarestActive++;
 		}
 
@@ -1064,8 +1088,11 @@ public class PiecePickerImpl
 			if (pt.getPeerState() ==PEPeer.TRANSFERING &&pt.isPieceAvailable(pieceNumber))
 				avail++;
 		}
-		availability_cow[pieceNumber] =avail;
-		availabilityChange++;
+		try
+		{	availabilityMon.enter();
+			availability_cow[pieceNumber] =avail;
+			availabilityChange++;
+		} finally {availabilityMon.exit();}
 		return avail;
 	}
 	
@@ -1086,9 +1113,71 @@ public class PiecePickerImpl
 		    }
 	}
 
+	/**
+	 * An instance of this listener is registered with peerControl
+	 * Through this, we learn of peers leaving and joining
+	 */
+	private class PEPeerManagerListenerImpl
+		implements PEPeerManagerListener
+	{
+		public void peerAdded(final PEPeerManager manager, final PEPeer peer )
+		{
+			PEPeerListenerImpl peerListener;
+			if (peerListeners.containsKey(peer))
+			{
+				peerListener =(PEPeerListenerImpl)peerListeners.get(peer);
+			} else
+			{
+				peerListener =new PEPeerListenerImpl();
+				peerListeners.put(peer, peerListener);
+			}
+			peer.addListener(peerListener);
+		}
+		
+		public void peerRemoved(final PEPeerManager manager, final PEPeer peer )
+		{
+			// the listener should be gone already, but nullify it just in case it isn't
+			if (peer !=null)
+				peerListeners.remove(peer);
+		}
+	}
 	
 	/**
-	 * An instance of this listener is registered at diskManager.
+	 * An instance of this listener is registered with each peer
+	 */
+	private class PEPeerListenerImpl
+		implements PEPeerListener
+	{
+		public void stateChanged(final PEPeer peer, final int new_state )
+		{
+			if (new_state ==PEPeer.TRANSFERING)
+			{
+				
+			} else if (new_state ==PEPeer.CLOSING)
+			{
+				// remove the bitfield from availability
+				removeBitfield(peer.getAvailable());
+				
+				// remove this listener from the peer
+				final PEPeerListenerImpl peerListener =(PEPeerListenerImpl)peerListeners.remove(peer);
+				if (peer !=null &&peerListener !=null)
+					peer.removeListener(peerListener);
+			}
+		}
+		
+		public void sentBadChunk(final PEPeer peer, final int piece_num, final int total_bad_chunks )
+		{
+			/* nothing to do here */
+		}
+		
+		public void receivedBitfield(final PEPeer peer)
+		{
+			addBitfield(peer.getAvailable());
+		}
+	}
+	
+	/**
+	 * An instance of this listener is registered peerControl
 	 * @author MjrTom
 	 */
 	private class DiskManagerListenerImpl
@@ -1179,15 +1268,21 @@ public class PiecePickerImpl
 				if (!doneAvailable[pieceNumber])
 				{
 					doneAvailable[pieceNumber] =true;
+					try
+					{	availabilityMon.enter();
 					availability_cow[pieceNumber]++;
 					availabilityChange++;
+					} finally {availabilityMon.exit();}
 					nbPiecesDone++;
 				}
 			} else if (doneAvailable[pieceNumber])
 			{
 				doneAvailable[pieceNumber] =false;
+				try
+				{	availabilityMon.enter();
 				availability_cow[pieceNumber]--;
 				availabilityChange++;
+				} finally {availabilityMon.exit();}
 				nbPiecesDone--;
 				if (dmPiece.calcNeeded() &&dmPiece.isRequestable() &&!hasNeededUndonePiece)
 				{
