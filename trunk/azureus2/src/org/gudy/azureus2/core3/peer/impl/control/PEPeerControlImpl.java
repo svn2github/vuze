@@ -303,9 +303,9 @@ PEPeerControlImpl
 				{	// if we're not finished
 					checkRequests();	//check the requests
 					
-					// if we have no downloadable pieces (due to "do not download") then 
+					// if we have no downloadable pieces (due to "do not download") then
 					// we disconnect seeds and avoid calling these methods to save CPU.
-					forcenoseeds =!piecePicker.checkDownloadPossible();	//download blocks if possible
+					forcenoseeds &=!piecePicker.checkDownloadPossible();	//download blocks if possible
 					checkRescan();
 					checkSpeedAndReserved();
 				}
@@ -1351,7 +1351,7 @@ PEPeerControlImpl
       
       disk_mgr.enqueueWriteRequest(request, this);
 
-			//cancel any matching outstanding requests
+			//cancel any matching outstanding download requests
 			List	peer_transports = peer_transports_cow;
 			for (int i=0;i<peer_transports.size();i++){
 				PEPeerTransport connection = (PEPeerTransport)peer_transports.get(i);
