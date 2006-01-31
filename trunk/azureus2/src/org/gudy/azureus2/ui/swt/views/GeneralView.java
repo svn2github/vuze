@@ -622,7 +622,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     trackerUrlValue = new BufferedTruncatedLabel(gInfo, SWT.LEFT,70);        
     
     trackerUrlValue.addMouseListener(new MouseAdapter() {
-      public void mouseUp(MouseEvent event) {        
+      public void mouseDown(MouseEvent event) {        
         if(event.button == 1) {
 	        String url = trackerUrlValue.getText();
 	        if(url.startsWith("http://" ) || url.startsWith("https://")) {
@@ -1299,7 +1299,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 				 
 				comment.addMouseListener(new MouseAdapter() {
 					public void 
-					mouseUp(
+					mouseDown(
 						MouseEvent event) 
 					{        
 			          if(event.button == 1) {
