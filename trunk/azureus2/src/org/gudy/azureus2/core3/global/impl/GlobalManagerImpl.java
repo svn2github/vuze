@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -1817,11 +1818,11 @@ public class GlobalManagerImpl
     
     	//run seeding-only-mode check
     
-   DiskManager	disk_manager = manager.getDiskManager();
+   PEPeerManager	pm_manager = manager.getPeerManager();
     
     if ( 	new_state == DownloadManager.STATE_DOWNLOADING && 
-    		disk_manager != null &&
-    		disk_manager.hasDownloadablePiece()){
+    		pm_manager != null &&
+    		pm_manager.hasDownloadablePiece()){
     	
     	//the new state is downloading, so can skip the full check
     	
@@ -1844,9 +1845,9 @@ public class GlobalManagerImpl
     	  
         DownloadManager dm = (DownloadManager)managers.get( i );
 
-        DiskManager disk_manager = dm.getDiskManager();
+        PEPeerManager pm = dm.getPeerManager();
         
-        if ( disk_manager == null ){
+        if ( dm.getDiskManager() == null || pm == null ){
         	
         		// download not running, not interesting
         	
@@ -1857,7 +1858,7 @@ public class GlobalManagerImpl
         
         if ( state == DownloadManager.STATE_DOWNLOADING ){
         	
-        	if (!dm.getDiskManager().hasDownloadablePiece()){
+        	if (!pm.hasDownloadablePiece()){
         		
         			// complete DND file
         		

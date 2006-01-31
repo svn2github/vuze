@@ -28,8 +28,6 @@ import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
-import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
-
 /**
 * @author MjrTom
 *			2005/Oct/08: Priority, getPieces done, etc changes for new piece-picking
@@ -56,8 +54,6 @@ DiskManager
 	public void
 	stop();
 	
-	public PiecePicker getPiecePicker();
-
 	/**
 	  * @return whether all files exist and sizes match
 	  */
@@ -155,8 +151,6 @@ DiskManager
 	
 	public DiskManagerPiece[] 
 	getPieces();
-
-	public boolean hasDownloadablePiece();
 	
 	public int 
 	getNbPieces();

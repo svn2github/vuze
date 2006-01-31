@@ -45,8 +45,7 @@ import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
 import com.aelitis.azureus.core.diskmanager.access.DiskAccessControllerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
-import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
-import com.aelitis.azureus.core.peermanager.piecepicker.PiecePickerFactory;
+
 
 /**
  * 
@@ -122,9 +121,7 @@ DiskManagerImpl
 	
 	private RDResumeHandler			resume_handler;
 	private DMPieceMapper			piece_mapper;
-	
-	private PiecePicker				piecePicker;
-	
+		
 	private DiskManagerPieceImpl[]	pieces;
 	private DMPieceList[]			pieceMap;
 
@@ -296,8 +293,6 @@ DiskManagerImpl
 			pieces[i] =new DiskManagerPieceImpl(this, i);
 		}
 
-		piecePicker =PiecePickerFactory.create(this);
-
 		reader			= DMAccessFactory.createReader(this);
 		
 		checker			= DMAccessFactory.createChecker(this);
@@ -431,8 +426,6 @@ DiskManagerImpl
 
 			return;
 		}
-
-		piecePicker.start();
 		
 		resume_handler.start();
 		  
@@ -490,8 +483,6 @@ DiskManagerImpl
 				reader.stop();
 				
 				resume_handler.stop();
-
-				piecePicker.stop();
 
 				return;
 			}
@@ -556,15 +547,8 @@ DiskManagerImpl
 		
 		saveState();
 		
-		piecePicker.stop();
-
 		// can't be used after a stop so we might as well clear down the listeners
 		listeners.clear();
-	}
-	
-	public PiecePicker getPiecePicker()
-	{
-		return piecePicker;
 	}
 	
 	public boolean
@@ -2249,21 +2233,6 @@ DiskManagerImpl
 	getDownloadState()
 	{
 		return( download_manager.getDownloadState());
-	}
-	
-//	public void 
-//	computePriorityIndicator()
-//	{
-//		piecePicker.computePriorityIndicator();
-//	}
-
-//	public int[] getPieceToStart(BitFlags candidatePieces, int candidateMode)
-//	{
-//		return piecePicker.getPieceToStart(candidatePieces, candidateMode);
-//	}
-
-	public boolean hasDownloadablePiece() {
-		return piecePicker.hasDownloadablePiece();
 	}
 
 	public File

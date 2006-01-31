@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
-import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.impl.*;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
@@ -36,9 +35,9 @@ public interface PiecePicker
 {
 //	public void				start();
 //	public void				stop();
-	public DiskManager		getDiskManager();
-	public void 			setPeerControl(final PEPeerControl pc);
-	public PEPeerControl	getPeerControl();
+//	public DiskManager		getDiskManager();
+//	public void 			setPeerControl(final PEPeerControl pc);
+//	public PEPeerControl	getPeerControl();
 	
 	public boolean	checkDownloadPossible();
 	/** @return int the piece number that should be started, according to selection criteria

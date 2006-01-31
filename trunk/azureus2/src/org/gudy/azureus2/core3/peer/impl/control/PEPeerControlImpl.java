@@ -30,6 +30,7 @@ import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.control.*;
 import com.aelitis.azureus.core.peermanager.peerdb.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePickerFactory;
 import com.aelitis.azureus.core.peermanager.unchoker.*;
 
 /**
@@ -150,14 +151,13 @@ PEPeerControlImpl
 		disk_mgr = diskManager;
 		_nbPieces =disk_mgr.getNbPieces();
 
-		piecePicker =disk_mgr.getPiecePicker();
+		piecePicker = PiecePickerFactory.create( this );
 
 		COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
 		COConfigurationManager.addParameterListener( "Disconnect Seed", this );
 
 		ip_filter.addListener( this );
-      
-		piecePicker.setPeerControl(this);
+
 	}
  
 
@@ -1021,29 +1021,26 @@ PEPeerControlImpl
 	  adapter.setTrackerRefreshDelayOverrides( current_percent );  //set dynamic interval override
   }
 
+  	public boolean
+  	hasDownloadablePiece()
+  	{
+  		return( piecePicker.hasDownloadablePiece());
+  	}
+  	
 	public int[] getAvailability() 
 	{
-		if (piecePicker !=null)
-			return piecePicker.getAvailability();
-		Debug.out("PEPeerControlImpl:getAvailability() piecePicker can't be null");
-		return null;
+		return piecePicker.getAvailability();
 	}
 	
 	//this only gets called when the My Torrents view is displayed
 	public float getMinAvailability()
 	{
-		if (piecePicker !=null)
-			return piecePicker.getMinAvailability();
-		Debug.out("PEPeerControlImpl:getMinAvailability() piecePicker can't be null");
-		return 0;
+		return piecePicker.getMinAvailability();
 	}
 
 	public float getAvgAvail()
 	{
-		if (piecePicker !=null)
-			return piecePicker.getAvgAvail();
-		Debug.out("PEPeerControlImpl:getAvgAvail() piecePicker can't be null");
-		return 0;
+		return piecePicker.getAvgAvail();
 	}
 
 	public void addPeerTransport( PEPeerTransport transport ) {
@@ -1378,9 +1375,7 @@ PEPeerControlImpl
 	
 	public int getAvailability(int pieceNumber)
 	{
-		if (piecePicker !=null)
-			return piecePicker.getAvailability(pieceNumber); 
-		return 0;
+		return piecePicker.getAvailability(pieceNumber); 
 	}
 	
 	public void havePiece(int pieceNumber, int pieceLength, PEPeer pcOrigin) {

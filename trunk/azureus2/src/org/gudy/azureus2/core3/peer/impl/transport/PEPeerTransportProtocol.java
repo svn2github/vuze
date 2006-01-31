@@ -201,7 +201,7 @@ PEPeerTransportProtocol
   public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, NetworkConnection _connection ) {
     manager = _manager;
     diskManager =manager.getDiskManager();
-    piecePicker =diskManager.getPiecePicker();
+    piecePicker =manager.getPiecePicker();
     nbPieces =diskManager.getNbPieces();
     
     peer_source	= _peer_source;
@@ -264,7 +264,7 @@ PEPeerTransportProtocol
   public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, String _ip, int _port ) {
     manager = _manager;
     diskManager =manager.getDiskManager();
-    piecePicker =diskManager.getPiecePicker();
+    piecePicker =manager.getPiecePicker();
     nbPieces =diskManager.getNbPieces();
     lastNeededUndonePieceChange =Long.MIN_VALUE;
 

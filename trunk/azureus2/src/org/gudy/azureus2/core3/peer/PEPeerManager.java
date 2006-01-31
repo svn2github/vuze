@@ -75,6 +75,8 @@ PEPeerManager
 
 	public float getMinAvailability();
 
+	public boolean hasDownloadablePiece();
+	
 	public PEPiece[]	getPieces();
 	public PEPiece		getPiece(int pieceNumber);
 

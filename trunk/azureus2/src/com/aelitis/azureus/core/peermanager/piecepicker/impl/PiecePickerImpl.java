@@ -165,9 +165,10 @@ public class PiecePickerImpl
 	}
 	
 	
-	public PiecePickerImpl(final DiskManager dm)
+	public PiecePickerImpl(final PEPeerControl pc)
 	{
-		diskManager =dm;
+		peerControl	= pc;
+		diskManager = peerControl.getDiskManager();
 		dm_pieces =diskManager.getPieces();
  		nbPieces =diskManager.getNbPieces();
 		nbPiecesDone =0;
@@ -231,6 +232,15 @@ public class PiecePickerImpl
 		timeEndGameModeEntered =0;
 		
 		computeAvailability();
+
+		peerListeners =new HashMap();
+		
+		peerManagerListener =new PEPeerManagerListenerImpl();
+		peerControl.addListener(peerManagerListener);
+		
+		computeBasePriorities();
+		
+		computeAvailability();
 	}
 	
 //	public void stop()
@@ -258,27 +268,16 @@ public class PiecePickerImpl
 //		peerControl =null;
 //	}
 
-	public DiskManager getDiskManager()
-	{
-		return diskManager;
-	}
-
-	public void setPeerControl(final PEPeerControl pc)
-	{
-		peerControl =pc;
-		
-		peerListeners =new HashMap();
-		
-		peerManagerListener =new PEPeerManagerListenerImpl();
-		peerControl.addListener(peerManagerListener);
-		
-		computeBasePriorities();
-	}
+//	public DiskManager getDiskManager()
+//	{
+//		return diskManager;
+//	}
 	
-	public PEPeerControl getPeerControl()
-	{
-		return peerControl;
-	}
+
+//	public PEPeerControl getPeerControl()
+//	{
+//		return peerControl;
+//	}
 	
 	
 	public void addHavePiece(final int pieceNumber)
@@ -808,6 +807,14 @@ public class PiecePickerImpl
 				&&priorityAvailChange >=availabilityChange))
 			return;		// *somehow* nothing changed, so nothing to do
 		
+			// store the latest change indicators before we start making dependent calculations so that a
+			// further change while computing stuff doesn't get lost
+		
+		priorityParamChange =paramPriorityChange;
+		priorityFileChange =filePriorityChange;
+		priorityAvailChange =availabilityChange;
+		timeLastPriorities =SystemTime.getCurrentTime();
+		
 		final int 		nbSeeds		=peerControl.getNbSeeds();
 		final int 		nbPeers		=peerControl.getNbPeers();
 		final boolean	bootstrap	=nbPiecesDone <4;
@@ -899,10 +906,6 @@ public class PiecePickerImpl
 		{
 			Debug.printStackTrace(e);
 		}
-		priorityParamChange =paramPriorityChange;
-		priorityFileChange =filePriorityChange;
-		priorityAvailChange =availabilityChange;
-		timeLastPriorities =SystemTime.getCurrentTime();
 				
 		if (foundPieceToDownload)
 		{

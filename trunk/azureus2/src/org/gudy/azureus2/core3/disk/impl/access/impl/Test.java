@@ -1103,6 +1103,11 @@ Test
 			return null;
 		}
 
+		public boolean
+		hasDownloadablePiece()
+		{
+			return( false );
+		}
 		public PEPiece[] getPieces()
 		{
 			return( null );
