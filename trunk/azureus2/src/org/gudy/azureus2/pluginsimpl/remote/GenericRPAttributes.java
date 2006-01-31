@@ -122,8 +122,11 @@ public class GenericRPAttributes {
             map.put("cached_property_values", property_values);
         }
         else if (obj_class == PluginInterface.class) {
+            PluginInterface pi = (PluginInterface)object;
             map.put("azureus_name",    Constants.AZUREUS_NAME);
             map.put("azureus_version", Constants.AZUREUS_VERSION);
+            map.put("plugin_id",       pi.getPluginID());
+            map.put("plugin_name",     pi.getPluginName());
         }
         else if (obj_class == Torrent.class) {
             Torrent torrent = (Torrent)object;
@@ -236,6 +239,8 @@ public class GenericRPAttributes {
         plugin_class = PluginInterface.class;
         attributes.put("azureus_name",    String.class);
         attributes.put("azureus_version", String.class);
+        attributes.put("plugin_id",       String.class);
+        attributes.put("plugin_name",     String.class);
         class_definitions.put(plugin_class, attributes);
 
         attributes = new HashMap();
