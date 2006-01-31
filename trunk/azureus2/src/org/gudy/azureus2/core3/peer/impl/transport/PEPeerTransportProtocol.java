@@ -92,7 +92,7 @@ PEPeerTransportProtocol
   protected boolean choking_other_peer = true;
   private boolean interested_in_other_peer = false;
   private boolean other_peer_interested_in_me = false;
-  private long snubbed =0;
+  private volatile long snubbed =0;
 
   private BitFlags peerHavePieces;
   private volatile boolean	availabilityAdded =false;
@@ -433,8 +433,6 @@ PEPeerTransportProtocol
       ip_resolver_request.cancel();
     }
     
-    removeAvailability();
-
     changePeerState( PEPeer.DISCONNECTED );
     
     if (Logger.isEnabled())
@@ -1438,10 +1436,18 @@ PEPeerTransportProtocol
 
 	  bitfield.destroy();
 
-	  piecePicker.addBitfield(peerHavePieces);
-	  availabilityAdded =true;
-	  
-	  checkInterested();
+	  checkInterested();	// done early because might send message
+
+	  final List peer_listeners_ref =peer_listeners_cow;
+	  if (peer_listeners_ref !=null)
+	  {
+		  for (int i =0; i <peer_listeners_ref.size(); i++)
+		  {
+			  final PEPeerListener peerListener =(PEPeerListener) peer_listeners_ref.get(i);
+			  peerListener.receivedBitfield(this);
+		  }
+	  }
+
 	  checkSeed();
   }
   
@@ -1533,11 +1539,11 @@ PEPeerTransportProtocol
   
   
   protected void decodePiece( BTPiece piece ) {
-	  long now =SystemTime.getCurrentTime();
-    int number = piece.getPieceNumber();
-    int offset = piece.getPieceOffset();
-    DirectByteBuffer payload = piece.getPieceData();
-    int length = payload.remaining( DirectByteBuffer.SS_PEER );
+	  final long now =SystemTime.getCurrentTime();
+	  final int number = piece.getPieceNumber();
+	  final int offset = piece.getPieceOffset();
+	  final DirectByteBuffer payload = piece.getPieceData();
+	  final int length = payload.remaining( DirectByteBuffer.SS_PEER );
     
     /*
     if ( AEDiagnostics.CHECK_DUMMY_FILE_DATA ){
@@ -1555,7 +1561,7 @@ PEPeerTransportProtocol
     }
     */
     
-    String error_msg = "Peer has sent #" + number + ":" + offset + "->"	+ (offset + length) + ", ";
+	  final String error_msg = "Peer has sent #" + number + ":" + offset + "->"	+ (offset + length) + ", ";
     
     if( !manager.checkBlock( number, offset, payload ) ) {
       peer_stats.bytesDiscarded( length );
@@ -1598,9 +1604,9 @@ PEPeerTransportProtocol
         printRequestStats();
       }
       else {  //successfully received block!
+          manager.writeBlock( number, offset, payload, this );
+          last_good_data_time =now;
           setSnubbed( false );
-        manager.writeBlock( number, offset, payload, this );
-        last_good_data_time =now;
         requests_completed++;
         piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
       }
@@ -1615,10 +1621,10 @@ PEPeerTransportProtocol
         finally{  recent_outgoing_requests_mon.exit();  }
         
         if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
+            manager.writeBlockAndCancelOutstanding( number, offset, payload, this );
+            last_good_data_time =now;
+            reSetRequestsTime();
             setSnubbed( false );
-          reSetRequestsTime();
-          manager.writeBlockAndCancelOutstanding( number, offset, payload, this );
-          last_good_data_time =now;
           requests_recovered++;
           printRequestStats();
           piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
@@ -1914,7 +1920,7 @@ PEPeerTransportProtocol
     	  
         PEPeerListener l = (PEPeerListener)peer_listeners_ref.get( i );
       
-        l.stateChanged( current_peer_state);
+        l.stateChanged(this, current_peer_state);
       }
     }
   }
@@ -2107,18 +2113,6 @@ PEPeerTransportProtocol
 	public boolean isLANLocal() {
 		if( connection == null )  return AddressUtils.isLANLocalAddress( ip );
 		return connection.isLANLocal();		
-	}
-
-	protected void removeAvailability()
-	{
-		if (availabilityAdded)
-		{
-			if (peerHavePieces !=null &&peerHavePieces.flags !=null)
-			{
-				piecePicker.removeBitfield(peerHavePieces);
-				availabilityAdded =false;
-			}
-		}
 	}
 
 }
