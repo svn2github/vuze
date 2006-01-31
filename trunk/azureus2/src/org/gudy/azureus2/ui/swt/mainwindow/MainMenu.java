@@ -404,6 +404,7 @@ public class MainMenu {
               AboutWindow.show(display);
             }
           });
+          new MenuItem(helpMenu,SWT.SEPARATOR);
       }
 
       MenuItem help_health = new MenuItem(helpMenu, SWT.NULL);
@@ -422,19 +423,13 @@ public class MainMenu {
         }
       });
 
-      if ( !SystemProperties.isJavaWebStartInstance()){
-          MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
-          KeyBindings.setAccelerator(help_checkupdate, "MainWindow.menu.help.checkupdate");
-          Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
-          help_checkupdate.addListener(SWT.Selection, new Listener() {
-      public void handleEvent(Event e) {
-        mainWindow.getShell().setFocus();
-        UpdateMonitor.getSingleton( mainWindow.getAzureusCore()).performCheck();
-      }
-    });
-      }
-
-      new MenuItem(helpMenu,SWT.SEPARATOR);
+      MenuItem help_new = new MenuItem(helpMenu, SWT.NULL);
+      Messages.setLanguageText(help_new, "MainWindow.menu.help.whatsnew"); //$NON-NLS-1$
+      help_new.addListener(SWT.Selection, new Listener() {
+        public void handleEvent(Event e) {
+          Program.launch("http://azureus.sourceforge.net/changelog.php?version=" + Constants.AZUREUS_VERSION);
+        }
+      });
 
       MenuItem help_faq = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_faq, "MainWindow.menu.help.faq"); //$NON-NLS-1$
@@ -445,18 +440,7 @@ public class MainMenu {
         }
       });
 
-      MenuItem help_new = new MenuItem(helpMenu, SWT.NULL);
-      Messages.setLanguageText(help_new, "MainWindow.menu.help.whatsnew"); //$NON-NLS-1$
-      help_new.addListener(SWT.Selection, new Listener() {
-        public void handleEvent(Event e) {
-          Program.launch("http://azureus.sourceforge.net/changelog.php?version=" + Constants.AZUREUS_VERSION);
-        }
-      });
 
-      new MenuItem(helpMenu,SWT.SEPARATOR);
-
-
-      
       MenuItem help_plugin= new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_plugin, "MainWindow.menu.help.plugins"); //$NON-NLS-1$
       help_plugin.addListener(SWT.Selection, new Listener() {
@@ -465,6 +449,20 @@ public class MainMenu {
             Program.launch(pluginString);
           }
         });
+      
+      new MenuItem(helpMenu,SWT.SEPARATOR);
+      
+      if ( !SystemProperties.isJavaWebStartInstance()){
+        MenuItem help_checkupdate = new MenuItem(helpMenu, SWT.NULL);
+        KeyBindings.setAccelerator(help_checkupdate, "MainWindow.menu.help.checkupdate");
+        Messages.setLanguageText(help_checkupdate, "MainWindow.menu.help.checkupdate"); //$NON-NLS-1$
+        help_checkupdate.addListener(SWT.Selection, new Listener() {
+        	public void handleEvent(Event e) {
+        		mainWindow.getShell().setFocus();
+        		UpdateMonitor.getSingleton( mainWindow.getAzureusCore()).performCheck();
+        	}
+        });
+      }
 
       MenuItem help_donate = new MenuItem(helpMenu, SWT.NULL);
       Messages.setLanguageText(help_donate, "MainWindow.menu.help.donate"); //$NON-NLS-1$
