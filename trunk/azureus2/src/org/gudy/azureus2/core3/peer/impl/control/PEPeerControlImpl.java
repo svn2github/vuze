@@ -2521,6 +2521,8 @@ PEPeerControlImpl
 		return null;
 	}
 	
+	
+	/*
 	public PEPeerTransport getTransportFromPeerItem(PeerItem peerItem)
 	{
 		ArrayList peer_transports =peer_transports_cow;
@@ -2532,6 +2534,7 @@ PEPeerControlImpl
 		}
 		return null;
 	}
+	*/
 
 	public PEPeerTransport getTransportFromAddress(String peer)
 	{
