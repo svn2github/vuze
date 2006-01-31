@@ -413,11 +413,7 @@ public class ConnectDisconnectManager {
     				
     				pending_closes.addLast( entry.getKey());
     				
-    				it.remove();
-    				
-    			}else{
-    				
-    				break;
+    				it.remove();    				
     			}
     		}
     	}
