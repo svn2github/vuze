@@ -293,28 +293,33 @@ public class IncomingSocketChannelManager
 	            handshakeFailure( 
 	            	Throwable failure_msg ) 
 	            {
+	            	
+	            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
+	            	
+	            	/*
 	            		// we can have problems with sockets stuck in a TIME_WAIT state if we just
 	            		// close an incoming channel - to clear things down properly the client needs
 	            		// to initiate the close. So what we do is send some random bytes to the client
 	            		// under the assumption this will cause them to close, and we delay our socket close
-	            		// for 10 seconds to give them a chance to do so.
-	            	
-	            	try{
-	            		Random	random = new Random();
+	            		// for 10 seconds to give them a chance to do so.	            	
+	            		try{
+	            			Random	random = new Random();
 	            		
-	            		byte[]	random_bytes = new byte[68+random.nextInt(128-68)];
+	            			byte[]	random_bytes = new byte[68+random.nextInt(128-68)];
 	            		
-	            		random.nextBytes( random_bytes );
+	            			random.nextBytes( random_bytes );
 	            		
-	            		channel.write( ByteBuffer.wrap( random_bytes ));
+	            			channel.write( ByteBuffer.wrap( random_bytes ));
 	            		
-	            	}catch( Throwable e ){
-	            		// ignore anything here
-	            	}
-	            	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "incoming crypto handshake failure: " + Debug.getNestedExceptionMessage( failure_msg )));
-	            	
-	            	NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
+	            		}catch( Throwable e ){
+	            			// ignore anything here
+	            		}
+	            		NetworkManager.getSingleton().closeSocketChannel( channel, 10*1000 );
+	            	*/
+	            
+	            	NetworkManager.getSingleton().closeSocketChannel( channel );
 	            }
+	            
 	    		public int
 	    		getMaximumPlainHeaderLength()
 	    		{
