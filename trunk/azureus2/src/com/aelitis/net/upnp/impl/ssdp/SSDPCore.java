@@ -25,7 +25,8 @@ package com.aelitis.net.upnp.impl.ssdp;
 import java.net.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+
 
 import com.aelitis.net.udp.mc.MCGroup;
 import com.aelitis.net.udp.mc.MCGroupAdapter;
@@ -114,9 +115,7 @@ SSDPCore
 			mc_group = MCGroupFactory.getSingleton( this, _group_address, group_port, control_port, _selected_interfaces );
 			
 		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-			
+						
 			throw( new UPnPException( "Failed to initialise SSDP", e ));
 		}
 	}
@@ -126,6 +125,13 @@ SSDPCore
 		String	str )
 	{
 		adapter.log( str );
+	}
+	
+	public void
+	log(
+		Throwable	e )
+	{
+		adapter.log( e );
 	}
 	
 	public void
@@ -184,8 +190,6 @@ SSDPCore
 			mc_group.sendToGroup( data );
 			
 		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
 		}
 	}
 	
@@ -289,7 +293,7 @@ SSDPCore
 					
 				}catch( MalformedURLException e ){
 					
-					adapter.trace( e );
+					adapter.log( e );
 				}			
 			}else if ( key.equals( "NT" )){
 				
@@ -348,7 +352,7 @@ SSDPCore
 						
 					}catch( Throwable e ){
 						
-						adapter.trace(e);
+						adapter.log(e);
 					}	
 				}
 			}else{
@@ -397,7 +401,7 @@ SSDPCore
 				
 			}catch( Throwable e ){
 				
-				adapter.trace(e);
+				adapter.log(e);
 			}
 		}
 	}
@@ -418,7 +422,7 @@ SSDPCore
 				
 			}catch( Throwable e ){
 				
-				adapter.trace(e);
+				adapter.log(e);
 			}
 		}
 	}
@@ -442,7 +446,7 @@ SSDPCore
 				}
 			}catch( Throwable e ){
 				
-				adapter.trace(e);
+				adapter.log(e);
 			}
 		}
 		

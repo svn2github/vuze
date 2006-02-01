@@ -209,6 +209,13 @@ AZInstanceManagerImpl
 		}
 	}
 	
+	public void
+	log(
+		Throwable e )
+	{
+		Debug.printStackTrace(e);
+	}
+	
 	public boolean
 	isInitialized()
 	{

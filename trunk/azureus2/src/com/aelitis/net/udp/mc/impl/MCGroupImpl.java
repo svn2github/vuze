@@ -25,8 +25,8 @@ package com.aelitis.net.udp.mc.impl;
 import java.net.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
@@ -46,8 +46,6 @@ public class
 MCGroupImpl 
 	implements MCGroup
 {
-	private static final LogIDs LOGID = LogIDs.NET;
-	
 	private final static int		TTL					= 4;
 	
 	private final static int		PACKET_SIZE		= 8192;
@@ -141,15 +139,13 @@ MCGroupImpl
 							
 						}catch( Throwable e ){
 							
-							Debug.printStackTrace(e);
+							adapter.log(e);
 						}
 					}
 				});
 						
 		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-			
+						
 			throw( new MCGroupException( "Failed to initialise MCGroup", e ));
 		}
 	}
@@ -247,7 +243,7 @@ MCGroupImpl
 								
 								ttl_problem_reported	= true;
 								
-								Debug.printStackTrace( e );
+								adapter.log( e );
 							}
 						}
 						
@@ -285,7 +281,7 @@ MCGroupImpl
 											
 										}catch( Throwable e ){
 											
-											Debug.printStackTrace( e );
+											adapter.log( e );
 										}
 									}
 								});
@@ -301,7 +297,7 @@ MCGroupImpl
 						
 					}catch( Throwable e ){
 						
-						Debug.printStackTrace( e );
+						adapter.log( e );
 					}						
 				
 						// now do the incoming control listener
@@ -331,7 +327,7 @@ MCGroupImpl
 														
 					}catch( Throwable e ){
 					
-						Debug.printStackTrace( e );
+						adapter.log( e );
 					}
 				}
 			}
@@ -446,7 +442,7 @@ MCGroupImpl
 							
 							ttl_problem_reported	= true;
 							
-							Debug.printStackTrace( e );
+							adapter.log( e );
 						}
 					}
 					
@@ -468,7 +464,7 @@ MCGroupImpl
 						
 						sso_problem_reported	= true;
 					
-						Debug.printStackTrace( e );
+						adapter.log( e );
 					}
 				}
 			}
@@ -530,14 +526,12 @@ MCGroupImpl
 				
 				failed_accepts++;
 				
-				Logger.log(new LogEvent(LOGID, "MCGroup: receive failed on port " + port, e)); 
+				adapter.trace( "MCGroup: receive failed on port " + port + ":" + e.getMessage()); 
 
 				if (( failed_accepts > 100 && successful_accepts == 0 ) || failed_accepts > 1000 ){
 					
-						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-							LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
-							"" + port, "UDP" });
-			
+					adapter.trace( "    too many failures, abandoning" );
+
 					break;
 				}
 			}

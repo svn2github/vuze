@@ -126,7 +126,13 @@ UTTimerImpl
 				perform(
 					TimerEvent		ev )
 				{
-					UtilitiesImpl.setPluginThreadContext( plugin_interface );
+					try{
+							// may not be here in some cut down distributions
+						
+						UtilitiesImpl.setPluginThreadContext( plugin_interface );
+						
+					}catch( Throwable e ){
+					}
 					
 					res.perform( ext_performer );
 				}

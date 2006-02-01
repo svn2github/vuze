@@ -22,7 +22,6 @@
 
 package com.aelitis.net.upnp;
 
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 
 public interface 
@@ -35,11 +34,7 @@ UPnPSSDPAdapter
 	public void
 	createThread(
 		String		name,
-		AERunnable	runnable );
-	
-	public void
-	trace(
-		Throwable	e );
+		Runnable	runnable );
 	
 	public void
 	trace(
@@ -53,4 +48,8 @@ UPnPSSDPAdapter
 	public void
 	log(
 		String	str );
+	
+	public void
+	log(
+		Throwable	e );
 }

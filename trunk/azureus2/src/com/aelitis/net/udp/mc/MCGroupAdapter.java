@@ -39,5 +39,9 @@ MCGroupAdapter
 	
 	public void
 	trace(
-		String	str );
+		String		str );
+	
+	public void
+	log(
+		Throwable	e );
 }

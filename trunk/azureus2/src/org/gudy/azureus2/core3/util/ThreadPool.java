@@ -269,14 +269,14 @@ ThreadPool
 					
 					if ( LOG_WARNINGS ){
 						
-						Debug.out( x.getWorkerName() + ": running, elapsed = " + elapsed + ", state = " + x.state );
+						DebugLight.out( x.getWorkerName() + ": running, elapsed = " + elapsed + ", state = " + x.state );
 					}
 					
 					if ( execution_limit > 0 && elapsed > execution_limit ){
 						
 						if ( LOG_WARNINGS ){
 							
-							Debug.out( x.getWorkerName() + ": interrupting" );
+							DebugLight.out( x.getWorkerName() + ": interrupting" );
 						}
 						
 						AERunnable r = x.runnable;
@@ -292,7 +292,7 @@ ThreadPool
 							}
 						}catch( Throwable e ){
 							
-							Debug.printStackTrace( e );
+							DebugLight.printStackTrace( e );
 						}
 					}
 				}
@@ -414,7 +414,7 @@ outer:
 										
 									}catch( Throwable e ){
 										
-										Debug.printStackTrace( e );		
+										DebugLight.printStackTrace( e );		
 	
 									}finally{
 																					
@@ -424,7 +424,7 @@ outer:
 											
 											if ( elapsed > WARN_TIME && LOG_WARNINGS ){
 												
-												Debug.out( getWorkerName() + ": terminated, elapsed = " + elapsed + ", state = " + state );
+												DebugLight.out( getWorkerName() + ": terminated, elapsed = " + elapsed + ", state = " + state );
 											}
 											
 											busy.remove( threadPoolWorker.this );
@@ -450,7 +450,7 @@ outer:
 								}
 							}catch( Throwable e ){
 									
-								Debug.printStackTrace( e );
+								DebugLight.printStackTrace( e );
 											
 							}finally{
 										

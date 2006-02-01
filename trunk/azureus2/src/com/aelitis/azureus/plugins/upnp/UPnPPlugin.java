@@ -276,7 +276,7 @@ UPnPPlugin
 						public void
 						createThread(
 							String		name,
-							AERunnable	runnable )
+							Runnable	runnable )
 						{
 							plugin_interface.getUtilities().createThread( name, runnable );
 						}
@@ -295,7 +295,7 @@ UPnPPlugin
 						}
 						
 						public void
-						trace(
+						log(
 							Throwable	e )
 						{
 							core_log.log( e );

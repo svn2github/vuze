@@ -236,7 +236,7 @@ UPnPImpl
 						
 						log( e.toString());
 						
-						adapter.trace(e);
+						adapter.log(e);
 					}
 				}
 			});
@@ -390,7 +390,7 @@ UPnPImpl
 				
 			}catch( Throwable f ){
 				
-				adapter.trace(f);
+				adapter.log(f);
 			}
 			
 			if ( e instanceof SimpleXMLParserDocumentException ){
@@ -421,7 +421,7 @@ UPnPImpl
 			
 		}catch( Throwable e ){
 			
-			adapter.trace( e );
+			adapter.log( e );
 
 			if (e instanceof UPnPException ){
 				

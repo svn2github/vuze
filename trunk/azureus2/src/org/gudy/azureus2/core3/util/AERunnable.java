@@ -39,7 +39,7 @@ AERunnable
 			
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace(e);
+			DebugLight.printStackTrace(e);
 		}
 	}
 	
