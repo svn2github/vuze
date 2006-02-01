@@ -280,6 +280,9 @@ public class VersionCheckClient {
     	
       message.put( "id", id );
       message.put( "os", Constants.OSName );
+      
+      message.put( "os_version", System.getProperty( "os.version" ) );
+      message.put( "os_arch", System.getProperty( "os.arch" ) );   //see http://lopica.sourceforge.net/os.html
     
       if ( last_send_time != -1 && last_send_time < current_send_time ){
     	  
