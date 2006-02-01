@@ -44,18 +44,18 @@ UPnPRootDeviceImpl
 {
 	public static final String	ROUTERS[]				= 
 		{ 	"3Com ADSL 11g",
-			"WRT54G",
+			//"WRT54G",
 		};
 	
 	public static final String	BAD_ROUTER_VERSIONS[]	= 
 		{ 	"2.05",
-			"any",
+			//"any",
 		};
 	
 	public static final boolean BAD_ROUTER_REPORT_FAIL[]	=
 		{
 			true,		// report on fail
-			false,		// report always
+			//true,		// report always	removed, apparently it works OK now according to manufacturer
 		};
 	
 	private UPnPImpl			upnp;
