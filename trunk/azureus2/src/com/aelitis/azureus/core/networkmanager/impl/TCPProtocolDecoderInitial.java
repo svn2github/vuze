@@ -26,11 +26,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
+
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -134,12 +134,13 @@ TCPProtocolDecoderInitial
 																		
 								if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && match == TCPProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
 								
-									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){
-										
-										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
-												+ channel + "] is not encrypted but has been accepted as fallback is enabled" ));
-									}else{
-										
+									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){										
+										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ channel + "] is not encrypted but has been accepted as fallback is enabled" ));
+									}
+									else if( AddressUtils.isLANLocalAddress( channel.socket().getInetAddress().getHostAddress() ) ) {
+										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["+ channel + "] is not encrypted but has been accepted as lan-local" ));
+									}
+									else{										
 										throw( new IOException( "Crypto required but incoming connection has none" ));
 									}
 								}

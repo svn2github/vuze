@@ -283,6 +283,8 @@ PEPeerTransportProtocol
 
     boolean use_crypto = require_crypto_handshake || NetworkManager.REQUIRE_CRYPTO_HANDSHAKE;  //either peer specific or global pref
     
+    if( isLANLocal() )  use_crypto = false;  //dont bother with PHE for lan peers
+    
     connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder(), use_crypto, !require_crypto_handshake, manager.getTorrentHash());
     
     plugin_connection = new ConnectionImpl(connection);
