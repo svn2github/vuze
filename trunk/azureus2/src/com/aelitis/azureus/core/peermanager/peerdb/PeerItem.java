@@ -39,8 +39,9 @@ public class PeerItem {
   private final int port;
   private final int source;
   private final int hashcode;
+  private final int handshake;
   
-  protected PeerItem( String _address, int port, int source ) {
+  protected PeerItem( String _address, int port, int source, int handshake_type ) {
     byte[] raw;
     try{
       //see if we can resolve the address into a compact raw IPv4/6 byte array (4 or 16 bytes)
@@ -56,6 +57,7 @@ public class PeerItem {
     this.port = port;
     this.source = source;
     this.hashcode = new String( address ).hashCode() + port;
+    this.handshake = handshake_type;
     
     if( address.length != 4 ) {
       System.out.println( "PeerItem OUT: address byte size=" +address.length);
@@ -63,7 +65,7 @@ public class PeerItem {
   }
   
 
-  protected PeerItem( byte[] serialization, int source ) {
+  protected PeerItem( byte[] serialization, int source, int handshake_type ) {
     //extract address and port
     address = new byte[ serialization.length -2 ];
     System.arraycopy( serialization, 0, address, 0, serialization.length -2 );
@@ -74,6 +76,7 @@ public class PeerItem {
     
     this.source = source;
     this.hashcode = new String( address ).hashCode() + port;
+    this.handshake = handshake_type;
     
     if( address.length > 15 ) {
       System.out.println( "PeerItem IN: address byte size=" +address.length);
@@ -108,6 +111,8 @@ public class PeerItem {
   
   public int getSource() {  return source;  }
 
+  public int getHandshakeType() {  return handshake;  }
+  
 
   public boolean equals( Object obj ) {
     if( this == obj )  return true;

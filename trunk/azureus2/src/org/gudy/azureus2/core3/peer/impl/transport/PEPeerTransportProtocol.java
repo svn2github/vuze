@@ -162,12 +162,11 @@ PEPeerTransportProtocol
   //certain Optimum Online networks block peer seeding via "complete" bitfield message filtering
   //lazy mode makes sure we never send a complete (seed) bitfield
   protected static boolean ENABLE_LAZY_BITFIELD;
-  protected static boolean REQUIRE_CRYPTO;
   
   static {
     
     COConfigurationManager.addAndFireParameterListeners(
-    		new String[]{ "Use Lazy Bitfield", "network.transport.encrypted.require" },
+    		new String[]{ "Use Lazy Bitfield" },
     		new ParameterListener()
     		{
     			 public void 
@@ -179,8 +178,6 @@ PEPeerTransportProtocol
     				 ENABLE_LAZY_BITFIELD = prop != null && prop.equals( "1" );
  
     				 ENABLE_LAZY_BITFIELD |= COConfigurationManager.getBooleanParameter( "Use Lazy Bitfield" );
-    				 
-    				 REQUIRE_CRYPTO	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
     			 }
     		});
   }
@@ -208,7 +205,7 @@ PEPeerTransportProtocol
     ip    = _connection.getAddress().getAddress().getHostAddress();
     port  = _connection.getAddress().getPort();
     
-    peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ) );
+    peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN );  //this will be recreated upon az handshake decode
     
     incoming = true;
     connection = _connection;
@@ -261,7 +258,7 @@ PEPeerTransportProtocol
   
   
   //OUTGOING
-  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, String _ip, int _port ) {
+  public PEPeerTransportProtocol( PEPeerControl _manager, String _peer_source, String _ip, int _port, boolean require_crypto_handshake ) {
     manager = _manager;
     diskManager =manager.getDiskManager();
     piecePicker =manager.getPiecePicker();
@@ -273,7 +270,7 @@ PEPeerTransportProtocol
     port  = _port;
     tcp_listen_port = _port;
     
-    peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( _peer_source ) );
+    peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN );  //this will be recreated upon az handshake decode
     
     incoming = false;
     
@@ -284,8 +281,9 @@ PEPeerTransportProtocol
       return;
     }
 
-        
-    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder(), REQUIRE_CRYPTO, manager.getTorrentHash());
+    boolean use_crypto = require_crypto_handshake || NetworkManager.REQUIRE_CRYPTO_HANDSHAKE;  //either peer specific or global pref
+    
+    connection = NetworkManager.getSingleton().createConnection( new InetSocketAddress( ip, port ), new BTMessageEncoder(), new BTMessageDecoder(), use_crypto, !require_crypto_handshake, manager.getTorrentHash());
     
     plugin_connection = new ConnectionImpl(connection);
     
@@ -492,7 +490,8 @@ PEPeerTransportProtocol
         COConfigurationManager.getIntParameter( "TCP.Listen.Port" ),
         local_udp_port,
         avail_ids,
-        avail_vers );        
+        avail_vers,
+        NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN );        
     
     connection.getOutgoingMessageQueue().addMessage( az_handshake, false );
   }
@@ -1369,12 +1368,13 @@ PEPeerTransportProtocol
   protected void decodeAZHandshake( AZHandshake handshake ) {
     client = handshake.getClient()+ " " +handshake.getClientVersion();
 
-    if( incoming && handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
+    if( handshake.getTCPListenPort() > 0 ) {  //use the ports given in handshake
       tcp_listen_port = handshake.getTCPListenPort();
       udp_listen_port = handshake.getUDPListenPort();
+      int type = handshake.getHandshakeType() == AZHandshake.HANDSHAKE_TYPE_CRYPTO ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
       
       //remake the id using the peer's remote listen port instead of their random local port
-      peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ) );
+      peer_item_identity = PeerItemFactory.createPeerItem( ip, tcp_listen_port, PeerItem.convertSourceID( peer_source ), type );
     }
 
     //find mutually available message types

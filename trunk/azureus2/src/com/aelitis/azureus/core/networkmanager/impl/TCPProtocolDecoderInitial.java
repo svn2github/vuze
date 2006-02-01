@@ -51,26 +51,6 @@ TCPProtocolDecoderInitial
 	private TCPTransportHelperFilter	filter;
 	
 	private SocketChannel	channel;
-	
-	
-	private static boolean 	REQUIRE_CRYPTO;
-	private static boolean 	INCOMING_FALLBACK_ALLOWED;
-	
-	static{
-	    COConfigurationManager.addAndFireParameterListeners(
-	    		new String[]{ "network.transport.encrypted.require", "network.transport.encrypted.fallback.incoming" },
-	    		new ParameterListener()
-	    		{
-	    			 public void 
-	    			 parameterChanged(
-	    				String ignore )
-	    			 {
-	    				 REQUIRE_CRYPTO				= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
-	    				 INCOMING_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.fallback.incoming");
-	    			 }
-	    		});
-	}
-	
 
 	private byte[]		shared_secret;
 	private ByteBuffer	decode_buffer; 
@@ -105,23 +85,17 @@ TCPProtocolDecoderInitial
 				
 		filter	= transparent_filter;
 		
-		if ( _outgoing ){
-				
-			if ( REQUIRE_CRYPTO ){
-		
-				if ( TCPProtocolDecoderPHE.isCryptoOK()){
+		if ( _outgoing ){  //we assume that for outgoing connections, if we are here, we want to use crypto
+
+			if ( TCPProtocolDecoderPHE.isCryptoOK()){
 					
-					decodePHE( null );
+				decodePHE( null );
 					
-				}else{
-				
-					throw( new IOException( "Crypto required but unavailable" ));
-				}
 			}else{
 				
-				complete();
+				throw( new IOException( "Crypto required but unavailable" ));
 			}
-			
+		
 		}else{
 			
 			decode_buffer = ByteBuffer.allocate( adapter.getMaximumPlainHeaderLength());
@@ -158,9 +132,9 @@ TCPProtocolDecoderInitial
 								
 								read_selector.cancel( channel );
 																		
-								if ( REQUIRE_CRYPTO && match == TCPProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
+								if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && match == TCPProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
 								
-									if ( INCOMING_FALLBACK_ALLOWED ){
+									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){
 										
 										Logger.log(new LogEvent(LOGID, "Incoming TCP connection ["
 												+ channel + "] is not encrypted but has been accepted as fallback is enabled" ));

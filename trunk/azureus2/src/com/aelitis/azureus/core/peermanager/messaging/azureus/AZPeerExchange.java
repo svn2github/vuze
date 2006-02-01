@@ -58,12 +58,15 @@ public class AZPeerExchange implements AZMessage {
   private void insertPeers( String key_name, Map root_map, PeerItem[] peers ) {
     if( peers != null && peers.length > 0 ) {
       ArrayList raw_peers = new ArrayList();
-
+      byte[] handshake_types = new byte[ peers.length ];
+      
       for( int i=0; i < peers.length; i++ ) {
         raw_peers.add( peers[i].getSerialization() );
+        handshake_types[i] = (byte)peers[i].getHandshakeType();
       }
 
       root_map.put( key_name, raw_peers );
+      root_map.put( key_name + "_HST", handshake_types );
     }
   }
   
@@ -75,10 +78,21 @@ public class AZPeerExchange implements AZMessage {
 
     List raw_peers = (List)root_map.get( key_name );
     if( raw_peers != null ) {
+    	byte[] handshake_types = (byte[])root_map.get( key_name + "_HST" );
+    	
+    	int pos = 0;
+    	
       for( Iterator it = raw_peers.iterator(); it.hasNext(); ) {
         byte[] full_address = (byte[])it.next();
-        PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE );
+        
+        int type = PeerItemFactory.HANDSHAKE_TYPE_PLAIN;        
+        if( handshake_types != null ) { //only 2307+ send types
+        	type = handshake_types[pos];
+        }
+        
+        PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type );
         peers.add( peer );
+        pos++;
       }
     }
     

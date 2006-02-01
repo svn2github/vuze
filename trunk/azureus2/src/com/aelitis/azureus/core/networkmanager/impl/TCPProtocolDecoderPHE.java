@@ -216,25 +216,19 @@ TCPProtocolDecoderPHE
 	private static final byte SUPPORTED_PROTOCOLS = (byte)(CRYPTO_RC4 | CRYPTO_PLAIN );
 
 	
-	private static boolean 	REQUIRE_CRYPTO;
 	private static byte 	MIN_CRYPTO;
 	
 	static{
 	    COConfigurationManager.addAndFireParameterListeners(
-	    		new String[]{ "network.transport.encrypted.require",  "network.transport.encrypted.min_level" },
+	    		new String[]{ "network.transport.encrypted.min_level" },
 	    		new ParameterListener()
 	    		{
 	    			 public void 
 	    			 parameterChanged(
 	    				String ignore )
 	    			 {
-	    				 boolean	old = REQUIRE_CRYPTO;
-	    				 
-	    				 REQUIRE_CRYPTO	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require");
-
-	    				 if ( REQUIRE_CRYPTO && old != REQUIRE_CRYPTO && !isCryptoOK()){
-	    					 
-	    				       	Logger.log( new LogAlert(true,LogAlert.AT_ERROR,"Connection encryption unavailable, please update your Java version" ));
+	    				 if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && !isCryptoOK() ){	    					 
+	    					 Logger.log( new LogAlert(true,LogAlert.AT_ERROR,"Connection encryption unavailable, please update your Java version" ));
 	    				 }
 	    				 
 	    				 String	min	= COConfigurationManager.getStringParameter( "network.transport.encrypted.min_level");
@@ -364,10 +358,9 @@ TCPProtocolDecoderPHE
 				
 		if ( outbound ){
 			
-			if ( !REQUIRE_CRYPTO ){
-				
-				throw( new IOException( "Crypto encoder selected for outbound but crypto not required" ));
-			}
+			//if ( !NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ){				
+			//	throw( new IOException( "Crypto encoder selected for outbound but crypto not required" ));
+			//}
 			
 				// outbound connection, we require a certain minimal level of support
 			
@@ -377,7 +370,7 @@ TCPProtocolDecoderPHE
 			
 				// incoming. If we require crypto then we use minimum otherwise available
 			
-			if ( REQUIRE_CRYPTO ){
+			if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ){
 				
 				my_supported_protocols = MIN_CRYPTO;
 			}

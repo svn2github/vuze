@@ -1013,9 +1013,9 @@ Test
 			
 		}
 			
-    public PeerExchangerItem createPeerExchangeConnection( PEPeer base_peer ) {  return null;  }
+    public PeerExchangerItem createPeerExchangeConnection( PEPeerTransport base_peer ) {  return null;  }
     
-    public void peerVerifiedAsSelf( PEPeer self ){}
+    public void peerVerifiedAsSelf( PEPeerTransport self ){}
     
 		public void
 		stopAll()

@@ -35,8 +35,8 @@ public class TransportFactory {
 	 * Create a disconnected TCP transport (the core runs the select ops automatically).
 	 * @return outgoing transport
 	 */
-	public static TCPTransport createTCPTransport( boolean connect_with_crypto, byte[] shared_secret ) {
-		return new TCPTransportImpl( connect_with_crypto, shared_secret );
+	public static TCPTransport createTCPTransport( boolean connect_with_crypto, boolean allow_fallback, byte[] shared_secret ) {
+		return new TCPTransportImpl( connect_with_crypto, allow_fallback, shared_secret );
 	}
 
 	/**

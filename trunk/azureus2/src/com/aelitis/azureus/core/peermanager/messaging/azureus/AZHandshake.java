@@ -37,6 +37,11 @@ import com.aelitis.azureus.core.peermanager.messaging.MessagingUtil;
  * AZ handshake message.
  */
 public class AZHandshake implements AZMessage {
+	
+	public static final int HANDSHAKE_TYPE_PLAIN  = 0;
+	public static final int HANDSHAKE_TYPE_CRYPTO = 1;
+	
+	
   private static final byte bss = DirectByteBuffer.SS_MSG;
 
   private DirectByteBuffer buffer = null;
@@ -49,23 +54,26 @@ public class AZHandshake implements AZMessage {
   private final byte[] avail_versions;
   private int tcp_port;
   private int udp_port;
+  private final int handshake_type;
   
   
   public AZHandshake( byte[] peer_identity,
-                      String client,
+                      String _client,
                       String version,
                       int tcp_listen_port,
                       int udp_listen_port,
                       String[] avail_msg_ids,
-                      byte[] avail_msg_versions ) {
+                      byte[] avail_msg_versions,
+                      int _handshake_type ) {
     
     this.identity = peer_identity;
-    this.client = client;
+    this.client = _client;
     this.client_version = version;
     this.avail_ids = avail_msg_ids;
     this.avail_versions = avail_msg_versions;
     this.tcp_port = tcp_listen_port;
     this.udp_port = udp_listen_port;
+    this.handshake_type = _handshake_type;
     
     //verify given port info is ok
     if( tcp_port < 0 || tcp_port > 65535 ) {
@@ -94,6 +102,7 @@ public class AZHandshake implements AZMessage {
   public int getTCPListenPort() {  return tcp_port;  }
   public int getUDPListenPort() {  return udp_port;  }
   
+  public int getHandshakeType() {  return handshake_type;  }
   
     
   public String getID() {  return AZMessage.ID_AZ_HANDSHAKE;  }
@@ -114,7 +123,10 @@ public class AZHandshake implements AZMessage {
         if( id.equals( getID() ) )  continue;  //skip ourself
         msgs_desc += "[" +id+ ":" +ver+ "]";
       }
-      description = getID()+ " from [" +ByteFormatter.nicePrint( identity, true )+ ", " +client+ " " +client_version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+ "] supports " +msgs_desc;
+      description = getID()+ " from [" +ByteFormatter.nicePrint( identity, true )+ ", " +
+      							client+ " " +client_version+ ", TCP/UDP ports " +tcp_port+ "/" +udp_port+
+      							", handshake " + (getHandshakeType() == HANDSHAKE_TYPE_PLAIN ? "plain" : "crypto") +
+      							"] supports " +msgs_desc;
     }
     
     return description;
@@ -131,6 +143,7 @@ public class AZHandshake implements AZMessage {
       payload_map.put( "version", client_version );
       payload_map.put( "tcp_port", new Long( tcp_port ) );
       payload_map.put( "udp_port", new Long( udp_port ) );
+      payload_map.put( "handshake_type", new Long( handshake_type ) );
           
       //available message list
       List message_list = new ArrayList();
@@ -182,6 +195,10 @@ public class AZHandshake implements AZMessage {
       udp_lport = new Long( 0 );
     }
 
+    Long h_type = (Long)root.get( "handshake_type" );
+    if( h_type == null ) {  //only 2307+ send type
+    	h_type = new Long( HANDSHAKE_TYPE_PLAIN );
+    }
 
     List raw_msgs = (List) root.get("messages");
     if (raw_msgs == null)  throw new MessageException("raw_msgs == null");
@@ -207,7 +224,7 @@ public class AZHandshake implements AZMessage {
       pos++;
     }
 
-    return new AZHandshake( id, name, version, tcp_lport.intValue(), udp_lport.intValue(), ids, vers );
+    return new AZHandshake( id, name, version, tcp_lport.intValue(), udp_lport.intValue(), ids, vers, h_type.intValue() );
   }
   
   

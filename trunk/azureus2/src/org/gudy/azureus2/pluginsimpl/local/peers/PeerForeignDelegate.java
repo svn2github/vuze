@@ -168,7 +168,7 @@ PeerForeignDelegate
 	public PeerItem 
 	getPeerItemIdentity() 
 	{
-		return PeerItemFactory.createPeerItem( foreign.getIp(), foreign.getPort(), PeerItemFactory.PEER_SOURCE_PLUGIN );
+		return PeerItemFactory.createPeerItem( foreign.getIp(), foreign.getPort(), PeerItemFactory.PEER_SOURCE_PLUGIN, PeerItemFactory.HANDSHAKE_TYPE_PLAIN );
 	}
   
   

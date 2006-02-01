@@ -39,7 +39,11 @@ public class PeerItemFactory {
   public static final int PEER_SOURCE_PLUGIN        = 3;
   public static final int PEER_SOURCE_INCOMING      = 4;
   
-
+  public static final int HANDSHAKE_TYPE_PLAIN  = 0;
+  public static final int HANDSHAKE_TYPE_CRYPTO = 1;
+  
+  
+  
   private static final WeakHashMap peer_items = new WeakHashMap();
 
   private static final AEMonitor item_mon = new AEMonitor( "PeerItemFactory" );
@@ -52,8 +56,8 @@ public class PeerItemFactory {
    * @param source this peer info was obtained from
    * @return peer
    */
-  public static PeerItem createPeerItem( String address, int port, int source ) {
-    return getLightweight( new PeerItem( address, port, source ) );
+  public static PeerItem createPeerItem( String address, int port, int source, int handshake_type ) {
+    return getLightweight( new PeerItem( address, port, source, handshake_type ) );
   }
   
   /**
@@ -62,8 +66,8 @@ public class PeerItemFactory {
    * @param source this peer info was obtained from
    * @return peer
    */
-  public static PeerItem createPeerItem( byte[] serialization, int source ) {
-    return getLightweight( new PeerItem( serialization, source ) );
+  public static PeerItem createPeerItem( byte[] serialization, int source, int handshake_type ) {
+    return getLightweight( new PeerItem( serialization, source, handshake_type ) );
   }
   
   

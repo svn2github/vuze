@@ -517,7 +517,8 @@ PEPeerControlImpl
         PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
         
         if( peer.getTCPListenPort() > 0 ) {
-          PEPeerTransport new_conn = PEPeerTransportFactory.createTransport( this, peer.getPeerSource(), peer.getIp(), peer.getTCPListenPort() );
+        	boolean use_crypto = peer.getPeerItemIdentity().getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+          PEPeerTransport new_conn = PEPeerTransportFactory.createTransport( this, peer.getPeerSource(), peer.getIp(), peer.getTCPListenPort(), use_crypto );
           addToPeerTransports( new_conn );
         }
       }
@@ -527,13 +528,14 @@ PEPeerControlImpl
 	
 	
 	
-	public void addPeer( String ip_address, int port ) {		
-		PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ) );
+	public void addPeer( String ip_address, int port ) {	//TODO do plugins need a way to force crypto???	
+		PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN );
 		
 		if( !isAlreadyConnected( peer_item ) ) {
-			boolean added = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, port );  //directly inject the the imported peer
+			boolean use_crypto = peer_item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+			boolean added = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, port, use_crypto );  //directly inject the the imported peer
 			if( !added )  Debug.out( "injected peer was not added" );
-	}
+		}
 	}
 	
 	
@@ -570,7 +572,7 @@ PEPeerControlImpl
 			if( already_connected )  continue;
 			
 			if( peer_database != null ) {
-				PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ) );
+				PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN );  //TODO allow force crypto from tracker-obtained peers
 				peer_database.addDiscoveredPeer( item );
 			}
 		}
@@ -587,7 +589,8 @@ PEPeerControlImpl
 	makeNewOutgoingConnection( 
 		String	peer_source,
 		String 	address, 
-		int port ) 
+		int port,
+		boolean require_crypto ) 
 	{    
 		//make sure this connection isn't filtered
     if( ip_filter.isInRange( address, adapter.getDisplayName() ) ) {
@@ -613,7 +616,7 @@ PEPeerControlImpl
 		}
 		
 		//start the connection
-		PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, port );
+		PEPeerTransport real = PEPeerTransportFactory.createTransport( this, peer_source, address, port, require_crypto );
 		
 		addToPeerTransports( real );
 		return true;
@@ -2301,7 +2304,9 @@ PEPeerControlImpl
         	if( !isAlreadyConnected( item ) ) {
         		String source = PeerItem.convertSourceString( item.getSource() );
 
-        		if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort() ) ) {
+        		boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+        		
+        		if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort(), use_crypto ) ) {
         			num_waiting_establishments++;
         		}
         	}          
@@ -2407,9 +2412,12 @@ PEPeerControlImpl
 	}
 	
 	
-	public PeerExchangerItem createPeerExchangeConnection( final PEPeer base_peer ) {
+	public PeerExchangerItem createPeerExchangeConnection( final PEPeerTransport base_peer ) {
 		if( peer_database != null && base_peer.getTCPListenPort() > 0 ) {  //only accept peers whose remote port is known
-			PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp(), base_peer.getTCPListenPort(), PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE );
+			PeerItem peer = PeerItemFactory.createPeerItem( base_peer.getIp(),
+																											base_peer.getTCPListenPort(),
+																											PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE,
+																											base_peer.getPeerItemIdentity().getHandshakeType() );
 			
 			return peer_database.registerPeerConnection( peer, new PeerExchangerItem.Helper(){
 				public boolean isSeed(){  return base_peer.isSeed();  }
@@ -2431,9 +2439,9 @@ PEPeerControlImpl
 	}
 	
 	
-	public void peerVerifiedAsSelf( PEPeer self ) {
+	public void peerVerifiedAsSelf( PEPeerTransport self ) {
 		if( peer_database != null && self.getTCPListenPort() > 0 ) {  //only accept self if remote port is known
-			PeerItem peer = PeerItemFactory.createPeerItem( self.getIp(), self.getTCPListenPort(), PeerItem.convertSourceID( self.getPeerSource() ) );
+			PeerItem peer = PeerItemFactory.createPeerItem( self.getIp(), self.getTCPListenPort(), PeerItem.convertSourceID( self.getPeerSource() ), self.getPeerItemIdentity().getHandshakeType() );
 			peer_database.setSelfPeer( peer );
 		}
 	}

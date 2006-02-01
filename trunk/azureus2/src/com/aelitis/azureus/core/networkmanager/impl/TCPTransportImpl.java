@@ -65,33 +65,19 @@ public class TCPTransportImpl implements TCPTransport {
   private boolean 	connect_with_crypto;
   private byte[]	shared_secret;
   private int		fallback_count;
+  private final boolean fallback_allowed;
   
-  
-	private static boolean 	OUTGOING_FALLBACK_ALLOWED;
-	
-	static{
-	    COConfigurationManager.addAndFireParameterListener(
-	    		"network.transport.encrypted.fallback.outgoing",
-	    		new ParameterListener()
-	    		{
-	    			 public void 
-	    			 parameterChanged(
-	    				String ignore )
-	    			 {
-	    				 OUTGOING_FALLBACK_ALLOWED	= COConfigurationManager.getBooleanParameter( "network.transport.encrypted.fallback.outgoing");
-	    			 }
-	    		});
-	} 
   
   
   /**
    * Constructor for disconnected (outbound) transport.
    */
-  public TCPTransportImpl( boolean _use_crypto, byte[] _shared_secret ) {
+  public TCPTransportImpl( boolean use_crypto, boolean allow_fallback, byte[] _shared_secret ) {
 	  filter = null;
     is_inbound_connection = false;
-    connect_with_crypto = _use_crypto;
+    connect_with_crypto = use_crypto;
     shared_secret		= _shared_secret;
+    fallback_allowed  = allow_fallback;
   }
   
   
@@ -105,6 +91,7 @@ public class TCPTransportImpl implements TCPTransport {
     this.data_already_read = already_read;   
     is_inbound_connection = true;
     connect_with_crypto = false;  //inbound connections will automatically be using crypto if necessary
+    fallback_allowed = false;
     description = ( is_inbound_connection ? "R" : "L" ) + ": " + filter.getSocketChannel().socket().getInetAddress().getHostAddress() + ": " + filter.getSocketChannel().socket().getPort();
     
     registerSelectHandling();
@@ -377,7 +364,7 @@ public class TCPTransportImpl implements TCPTransport {
     		}
 
     		public void handshakeFailure( Throwable failure_msg ) {        	
-        	if( OUTGOING_FALLBACK_ALLOWED ) {        		
+        	if( fallback_allowed && NetworkManager.OUTGOING_HANDSHAKE_FALLBACK_ALLOWED ) {        		
         		if( Logger.isEnabled() ) Logger.log(new LogEvent(LOGID, description+ " | crypto handshake failure [" +failure_msg.getMessage()+ "], attempting non-crypto fallback." ));
         		connect_with_crypto = false;
         		fallback_count++;

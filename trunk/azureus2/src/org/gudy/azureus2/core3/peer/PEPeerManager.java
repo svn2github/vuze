@@ -235,14 +235,14 @@ PEPeerManager
    * @param base_peer exchaning with
    * @return peer database connection item, or null if creation failed
    */
-  public PeerExchangerItem createPeerExchangeConnection( PEPeer base_peer );
+  public PeerExchangerItem createPeerExchangeConnection( PEPeerTransport base_peer );
   
   
   /**
    * Notify that the given peer connection represents our own client.
    * @param self peer
    */
-  public void peerVerifiedAsSelf( PEPeer self );
+  public void peerVerifiedAsSelf( PEPeerTransport self );
   
   
   /**
