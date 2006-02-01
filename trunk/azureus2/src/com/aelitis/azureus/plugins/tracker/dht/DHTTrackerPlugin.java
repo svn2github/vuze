@@ -1158,6 +1158,12 @@ DHTTrackerPlugin
 												{
 													return( null );
 												}
+												
+												public short
+												getProtocol()
+												{
+													return( PROTOCOL_NORMAL );
+												}
 											};
 										
 									}

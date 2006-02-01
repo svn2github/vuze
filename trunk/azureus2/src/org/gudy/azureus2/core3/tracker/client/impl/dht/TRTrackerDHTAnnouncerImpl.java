@@ -255,7 +255,8 @@ TRTrackerDHTAnnouncerImpl
 									ext_peers[i].getSource(),
 									ext_peers[i].getPeerID(),
 									ext_peers[i].getAddress(), 
-									ext_peers[i].getPort());
+									ext_peers[i].getPort(),
+									ext_peers[i].getProtocol());
 			}
 			
 			addToTrackerCache( peers);

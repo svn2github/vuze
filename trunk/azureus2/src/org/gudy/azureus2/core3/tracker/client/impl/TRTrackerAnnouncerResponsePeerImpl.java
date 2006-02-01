@@ -32,18 +32,21 @@ TRTrackerAnnouncerResponsePeerImpl
 	private byte[]		peer_id;
 	private String		address;
 	private int			port;
+	private short		crypto;
 	
 	public
 	TRTrackerAnnouncerResponsePeerImpl(
 		String		_source,
 		byte[]		_peer_id,
 		String		_address,
-		int			_port )
+		int			_port,
+		short		_crypto )
 	{
 		source		= _source;
 		peer_id		= _peer_id;
 		address		= _address;
 		port		= _port;
+		crypto		= _crypto;
 	}
 	
 	public String
@@ -68,5 +71,11 @@ TRTrackerAnnouncerResponsePeerImpl
 	getPort()
 	{
 		return( port );
+	}
+	
+	public short
+	getProtocol()
+	{
+		return( crypto );
 	}
 }

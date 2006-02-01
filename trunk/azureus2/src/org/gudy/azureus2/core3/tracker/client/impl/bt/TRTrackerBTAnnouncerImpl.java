@@ -2139,7 +2139,13 @@ TRTrackerBTAnnouncerImpl
 									Logger.log(new LogEvent(torrent, LOGID,
 											"NON-COMPACT PEER: ip=" + ip + " port=" + peer_port));
 
-								valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
+								valid_meta_peers.add(
+									new TRTrackerAnnouncerResponsePeerImpl( 
+											PEPeerSource.PS_BT_TRACKER, 
+											peer_peer_id, 
+											ip, 
+											peer_port,
+											TRTrackerAnnouncerResponsePeer.PROTOCOL_NORMAL ));
 								
 							} 
 						}
@@ -2176,7 +2182,13 @@ TRTrackerBTAnnouncerImpl
 									Logger.log(new LogEvent(torrent, LOGID, "COMPACT PEER: ip="
 											+ ip + " port=" + peer_port));
 
-				    		valid_meta_peers.add(new TRTrackerAnnouncerResponsePeerImpl( PEPeerSource.PS_BT_TRACKER, peer_peer_id, ip, peer_port ));
+				    		valid_meta_peers.add(
+				    			new TRTrackerAnnouncerResponsePeerImpl( 
+				    					PEPeerSource.PS_BT_TRACKER, 
+				    					peer_peer_id, 
+				    					ip, 
+				    					peer_port,
+				    					TRTrackerAnnouncerResponsePeer.PROTOCOL_NORMAL ));
                 			
 				    	}
 				    }else{
@@ -2447,7 +2459,8 @@ TRTrackerBTAnnouncerImpl
 									ext_peers[i].getSource(),
 									ext_peers[i].getPeerID(),
 									ext_peers[i].getAddress(), 
-									ext_peers[i].getPort());
+									ext_peers[i].getPort(),
+									ext_peers[i].getProtocol());
 			}
 			
 			addToTrackerCache( peers);

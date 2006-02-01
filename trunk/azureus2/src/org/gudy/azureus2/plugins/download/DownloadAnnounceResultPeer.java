@@ -30,6 +30,9 @@ package org.gudy.azureus2.plugins.download;
 public interface 
 DownloadAnnounceResultPeer 
 {
+	public static final short	PROTOCOL_NORMAL		= 1;
+	public static final short	PROTOCOL_CRYPT		= 2;
+	
 	public String
 	getSource();
 	
@@ -41,4 +44,7 @@ DownloadAnnounceResultPeer
 	
 	public byte[]
 	getPeerID();
+	
+	public short
+	getProtocol();
 }

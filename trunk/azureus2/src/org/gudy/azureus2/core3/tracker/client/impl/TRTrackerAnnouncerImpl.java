@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 
 /**
  * @author parg
@@ -141,6 +142,7 @@ TRTrackerAnnouncerImpl
 				entry.put( "ip", peer.getAddress().getBytes());
 				entry.put( "src", peer.getSource().getBytes());
 				entry.put( "port", new Long(peer.getPort()));
+				entry.put( "prot", new Long(peer.getProtocol()));
 				
 				peers.add( entry );
 			}
@@ -230,12 +232,18 @@ TRTrackerAnnouncerImpl
 					String	peer_ip_address = new String((byte[])peer.get("ip"));
 					int		peer_port		= ((Long)peer.get("port")).intValue();
 					byte[]	peer_peer_id	= getAnonymousPeerId( peer_ip_address, peer_port );
-						
+					Long	l_protocol		= (Long)peer.get( "prot" );
+					short	protocol		= l_protocol==null?DownloadAnnounceResultPeer.PROTOCOL_NORMAL:l_protocol.shortValue();
 					//System.out.println( "recovered " + ip_address + ":" + port );
 
-          tracker_peer_cache.put( 
-              peer_ip_address, 
-              new TRTrackerAnnouncerResponsePeerImpl(peer_source, peer_peer_id, peer_ip_address, peer_port ));
+					tracker_peer_cache.put( 
+							peer_ip_address, 
+							new TRTrackerAnnouncerResponsePeerImpl(
+									peer_source, 
+									peer_peer_id, 
+									peer_ip_address, 
+									peer_port,
+									protocol ));
 					
 				}
 				
