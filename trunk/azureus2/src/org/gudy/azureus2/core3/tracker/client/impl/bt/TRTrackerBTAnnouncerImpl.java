@@ -2134,10 +2134,12 @@ TRTrackerBTAnnouncerImpl
 								
 									peer_peer_id = (byte[])s_peerid ; 
 								}
-																	
+								
+								short protocol = TRTrackerAnnouncerResponsePeer.PROTOCOL_NORMAL;
+								
 								if (Logger.isEnabled())
 									Logger.log(new LogEvent(torrent, LOGID,
-											"NON-COMPACT PEER: ip=" + ip + " port=" + peer_port));
+											"NON-COMPACT PEER: ip=" + ip + ",port=" + peer_port + ",prot=" + protocol));
 
 								valid_meta_peers.add(
 									new TRTrackerAnnouncerResponsePeerImpl( 
@@ -2145,7 +2147,7 @@ TRTrackerBTAnnouncerImpl
 											peer_peer_id, 
 											ip, 
 											peer_port,
-											TRTrackerAnnouncerResponsePeer.PROTOCOL_NORMAL ));
+											protocol  ));
 								
 							} 
 						}
@@ -2178,9 +2180,11 @@ TRTrackerBTAnnouncerImpl
                 
 				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
+				    		short protocol = TRTrackerAnnouncerResponsePeer.PROTOCOL_NORMAL;
+				    		
 				    		if (Logger.isEnabled())
 									Logger.log(new LogEvent(torrent, LOGID, "COMPACT PEER: ip="
-											+ ip + " port=" + peer_port));
+											+ ip + ",port=" + peer_port + ",prot=" + protocol ));
 
 				    		valid_meta_peers.add(
 				    			new TRTrackerAnnouncerResponsePeerImpl( 
@@ -2188,7 +2192,7 @@ TRTrackerBTAnnouncerImpl
 				    					peer_peer_id, 
 				    					ip, 
 				    					peer_port,
-				    					TRTrackerAnnouncerResponsePeer.PROTOCOL_NORMAL ));
+				    					protocol ));
                 			
 				    	}
 				    }else{

@@ -65,6 +65,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.plugins.dht.*;
 
 /**
@@ -86,7 +87,7 @@ DHTTrackerPlugin
 	
 	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
 	
-	private static final int	NUM_WANT			= 35;	// Limit to ensure replies fit in 1 packet
+	private static final int	NUM_WANT			= 30;	// Limit to ensure replies fit in 1 packet
 
 	private static URL	DEFAULT_URL;
 	
@@ -813,12 +814,17 @@ DHTTrackerPlugin
 		  	    		}
 		  	    	}
 			  	    
-			  	    	// format is [ip_override:]port
+			  	    	// format is [ip_override:]port[;C]
 			  	    
 			  	    String	value_to_put = override_ip==null?"":(override_ip+":");
 			  	    
 			  	    value_to_put += port;
 			  	    	
+			  	    if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE ){
+			  	    	
+			  	    	value_to_put += ";C";
+			  	    }
+			  	    
 			  	    // don't let a put block an announce as we don't want to be waiting for 
 			  	    // this at start of day to get a torrent running
 			  	    
@@ -1020,6 +1026,7 @@ DHTTrackerPlugin
 							{
 								List	addresses 	= new ArrayList();
 								List	ports		= new ArrayList();
+								List	flags		= new ArrayList();
 								
 								int		seed_count;
 								int		leecher_count;
@@ -1030,15 +1037,28 @@ DHTTrackerPlugin
 									DHTPluginValue		value )
 								{
 									String	str_val = new String(value.getValue());
-									
-										// for future hacks we trim anything after a ';'
-									
+											
 									int sep = str_val.indexOf(';');
+									
+									String	flag = null;
 									
 									if ( sep != -1 ){
 										
+										flag = str_val.substring( sep+1 );
+
 										str_val = str_val.substring(0,sep);
+																				
+											// for future hacks we trim anything after a ';'
+										
+										sep = flag.indexOf( ';' );
+										
+										if ( sep != -1 ){
+											
+											flag = flag.substring(0,sep);
+										}
 									}
+									
+									flags.add( flag );
 									
 									try{
 										sep = str_val.indexOf(':');
@@ -1162,7 +1182,20 @@ DHTTrackerPlugin
 												public short
 												getProtocol()
 												{
-													return( PROTOCOL_NORMAL );
+													String	flag = (String)flags.get(f_i);
+													
+													short protocol;
+													
+													if ( flag != null && flag.indexOf("C") != -1 ){
+														
+														protocol = PROTOCOL_CRYPT;
+														
+													}else{
+														
+														protocol = PROTOCOL_NORMAL;
+													}
+													
+													return( protocol );
 												}
 											};
 										

@@ -358,7 +358,11 @@ public class TCPTransportImpl implements TCPTransport {
     	TransportCryptoManager.getSingleton().manageCrypto( channel, shared_secret, false, new TransportCryptoManager.HandshakeListener() {
     		public void handshakeSuccess( TCPTransportHelperFilter _filter ) {    			
     			//System.out.println( description+ " | crypto handshake success [" +_filter.getName()+ "]" );     			
-    			filter = _filter;    	
+    			filter = _filter; 
+    			if ( Logger.isEnabled()){
+    		      Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + filter.getName()));
+    			}
+    			
         	registerSelectHandling();
           listener.connectSuccess();
     		}
@@ -391,20 +395,17 @@ public class TCPTransportImpl implements TCPTransport {
     		{
     			throw( new RuntimeException());	// this is outgoing
     		}
-    		
-    		public byte[]
-    		untransformSecret(
-    			byte[]	ss  )
-    		{
-    			throw( new RuntimeException());	// this is outgoing
-    		}
     	});
   	}
   	else {  //no crypto
   		//if( fallback_count > 0 ) {
   		//	System.out.println( channel.socket()+ " | non-crypto fallback successful!" );
   		//}
-  		filter = TCPTransportHelperFilterFactory.createTransparentFilter( channel );    	
+  		filter = TCPTransportHelperFilterFactory.createTransparentFilter( channel );
+  		
+		if ( Logger.isEnabled()){
+		  Logger.log(new LogEvent(LOGID, "Outgoing TCP stream to " + channel.socket().getRemoteSocketAddress() + " established, type = " + filter.getName() + ", fallback = " + (fallback_count==0?"no":"yes" )));
+		}
     	registerSelectHandling();
       listener.connectSuccess();
   	}
