@@ -324,7 +324,7 @@ public class PiecePickerImpl
 				
 				System.out.println( "avail rebuild: errors = " + errors );
 				
-				availabilityAsynch	= new_availability;
+				//availabilityAsynch	= new_availability;
 				
 				availabilityDrift =0;
 				availabilityChange++;
@@ -1218,7 +1218,7 @@ public class PiecePickerImpl
 		}
 		
 		public void addAvailability(final PEPeer peer, final BitFlags peerHavePieces)
-		{
+		{			
 			if (peerHavePieces ==null ||peerHavePieces.nbSet <=0)
 				return;
 			try
@@ -1228,7 +1228,9 @@ public class PiecePickerImpl
 				}
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++)
 				{
-					++availabilityAsynch[i];
+					if ( peerHavePieces.flags[i] ){
+						++availabilityAsynch[i];
+					}
 				}
 				availabilityChange++;
 			} finally {availabilityMon.exit();}
@@ -1245,10 +1247,12 @@ public class PiecePickerImpl
 				}
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++)
 				{
-					if (availabilityAsynch[i] !=0)
-						--availabilityAsynch[i];
-					else
-						availabilityDrift++;
+					if ( peerHavePieces.flags[i] ){
+						if (availabilityAsynch[i] !=0)
+							--availabilityAsynch[i];
+						else
+							availabilityDrift++;
+					}
 				}
 				availabilityChange++;
 			} finally {availabilityMon.exit();}
