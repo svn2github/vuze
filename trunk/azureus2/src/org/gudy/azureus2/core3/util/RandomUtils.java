@@ -103,7 +103,7 @@ public class RandomUtils {
 	}
     	
 	/**
-	 * @return random int between 0 and max, inclusive
+	 * @return random int between 0 and max-1. e.g. param of 10 returns 0->9
 	 */
 	public static int generateRandomIntUpto(int max)
 	{
@@ -111,10 +111,10 @@ public class RandomUtils {
 	}
 
 	/**
-	 * @return random int between min and max, inclusive
+	 * @return random int between min and max, e.g params of [5,7] returns 5,6 or 7
 	 */
 	public static int generateRandomIntBetween(int min, int max)
 	{
-		return min +generateRandomIntUpto(max -min);
+		return min +generateRandomIntUpto(max + 1 - min);
 	}
 }
