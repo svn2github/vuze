@@ -1407,50 +1407,56 @@ PEPeerTransportProtocol
   
   
   
-  	protected void decodeBitfield( BTBitfield bitfield ) {
+  protected void decodeBitfield( BTBitfield bitfield ) {  	
 	  DirectByteBuffer field =bitfield.getBitfield();
 	  
 	  byte[] dataf = new byte[ (nbPieces + 7) / 8 ];
 	  
 	  if( field.remaining( DirectByteBuffer.SS_PEER ) < dataf.length ) {
-		  Debug.out( toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]" );
-		  if (Logger.isEnabled())
-			  Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-				  "Protocol:Err: invalid Bitfield from peer: too short ["
-				  + field.remaining(DirectByteBuffer.SS_PEER) + "<"
-				  + dataf.length + "]"));
+	  	String error = toString() + " has sent invalid Bitfield: too short [" +field.remaining( DirectByteBuffer.SS_PEER )+ "<" +dataf.length+ "]";
+		  Debug.out( error );
+		  if (Logger.isEnabled())  Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, error ));
 		  bitfield.destroy();
 		  return;
 	  }
 	  
 	  field.get(DirectByteBuffer.SS_PEER, dataf);
 	  
-	  for (int i = 0; i < peerHavePieces.length; i++) {
-		  int index = i / 8;
-		  int bit = 7 - (i % 8);
-		  byte bData = dataf[index];
-		  byte b = (byte) (bData >> bit);
-		  if ((b & 0x01) == 1) {
-			  peerHavePieces.set(i);
-			  manager.updateSuperSeedPiece(this, i);
-		  }
-	  }
+	  try{
+      closing_mon.enter();
+    
+      if( !closing ) {      
+      	for (int i = 0; i < peerHavePieces.length; i++) {
+      		int index = i / 8;
+      		int bit = 7 - (i % 8);
+      		byte bData = dataf[index];
+      		byte b = (byte) (bData >> bit);
+      		if ((b & 0x01) == 1) {
+  				  peerHavePieces.set(i);
+  				  manager.updateSuperSeedPiece(this, i);
+      		}
+      	}      
+      
+      	checkInterested();	// done early because might send message
 
-	  bitfield.destroy();
+      	final List peer_listeners_ref =peer_listeners_cow;
+      	if (peer_listeners_ref !=null)
+      	{
+      		for (int i =0; i <peer_listeners_ref.size(); i++)
+      		{
+      			final PEPeerListener peerListener =(PEPeerListener) peer_listeners_ref.get(i);
+      			peerListener.receivedBitfield(this);
+      		}
+      	}
 
-	  checkInterested();	// done early because might send message
+      	checkSeed();      
+      }
+    }
+	  finally{
+      closing_mon.exit();
+    }
 
-	  final List peer_listeners_ref =peer_listeners_cow;
-	  if (peer_listeners_ref !=null)
-	  {
-		  for (int i =0; i <peer_listeners_ref.size(); i++)
-		  {
-			  final PEPeerListener peerListener =(PEPeerListener) peer_listeners_ref.get(i);
-			  peerListener.receivedBitfield(this);
-		  }
-	  }
-
-	  checkSeed();
+	  bitfield.destroy();	  
   }
   
   
