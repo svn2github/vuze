@@ -50,7 +50,8 @@ public class PiecePickerImpl
 
 	private static final long TIME_MIN_AVAILABILITY	=949;	// min ms for recalculating availability - reducing this has serious ramifications
 	private static final long TIME_MIN_PRIORITIES	=974;	// min ms for recalculating base priorities
-
+	private static final long TIME_AVAIL_REBUILD	=2*60*1000;	// min ms for total availability rebuild 
+	
 	// The following are added to the base User setting based priorities (for all inspected pieces)
 	private static final long PRIORITY_W_FIRSTLAST	=1300;			// user select prioritize first/last
 	private static final long FIRST_PIECE_MIN_NB	=4;				// min # pieces in file for first/last prioritization
@@ -304,7 +305,7 @@ public class PiecePickerImpl
 		final long now =SystemTime.getCurrentTime();
 		if (now >time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY)
 			return;
-		if (availabilityDrift >0 || now-time_last_rebuild > 30000){
+		if (availabilityDrift >0 || now < time_last_rebuild ||  now - time_last_rebuild > TIME_AVAIL_REBUILD ){
 			try
 			{	availabilityMon.enter();
 		
@@ -312,6 +313,7 @@ public class PiecePickerImpl
 				
 				int[]	new_availability = recomputeAvailability();
 				
+				/*
 				int[]	old_availability = availabilityAsynch==null?availability:availabilityAsynch;
 				
 				int	errors	= 0;
@@ -323,8 +325,9 @@ public class PiecePickerImpl
 				}
 				
 				System.out.println( "avail rebuild: errors = " + errors );
+				*/
 				
-				//availabilityAsynch	= new_availability;
+				availabilityAsynch	= new_availability;
 				
 				availabilityDrift =0;
 				availabilityChange++;
