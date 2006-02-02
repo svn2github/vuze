@@ -39,6 +39,8 @@ public class
 PEPieceImpl
 implements PEPiece
 {
+	private static final LogIDs LOGID = LogIDs.PIECES;
+
 	final private DiskManagerPiece	dm_piece;
 	public PEPeerManager		manager;
 
@@ -171,6 +173,7 @@ implements PEPiece
 	public int checkRequests()
 	{
 		int cleared =0;
+		boolean nullPeer =false;
 		for (int i =0; i <nbBlocks; i++)
 		{
 			if (!downloaded[i] &&!dm_piece.isWritten(i))
@@ -191,10 +194,7 @@ implements PEPiece
 						}
 					} else
 					{
-						final LogIDs LOGID = LogIDs.PEER;
-                        if (Logger.isEnabled())
-                                Logger.log(new LogEvent(dm_piece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
-                                        "Piece:"+getPieceNumber()+" Chunk:"+i+"; Peer doesn't exist:"+requested[i]));
+						nullPeer =true;
 						requested[i] =null;
 						cleared++;
 					}
@@ -205,6 +205,10 @@ implements PEPiece
 		{
 			dm_piece.clearRequested();
 			manager.getPiecePicker().addEndGameBlocks(this);
+            if (Logger.isEnabled())
+                Logger.log(new LogEvent(dm_piece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
+                        "Piece:"+getPieceNumber()+" cleared "+cleared+" requests."
+                        + (nullPeer ?" Null peer was detected." :" ")));
 		}
 		return cleared;
 	}
@@ -217,9 +221,10 @@ implements PEPiece
 	 */
 	public boolean hasUnrequestedBlock()
 	{
+		final boolean[] written =dm_piece.getWritten();
 		for (int i =0; i <nbBlocks; i++ )
 		{
-			if (!downloaded[i] &&requested[i] ==null &&!dm_piece.isWritten(i))
+			if (!downloaded[i] &&requested[i] ==null &&(written ==null ||!written[i]))
 				return true;
 		}
 		// this should have only been called if piece was believed to have free blocks
