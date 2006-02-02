@@ -31,6 +31,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
@@ -329,7 +330,12 @@ PeerImpl
 					final PEPeer peer,	// seems don't need this here
 					int new_state ) 
 				{
-					l.stateChanged( new_state );
+					try{
+						l.stateChanged( new_state );
+						
+					}catch( Throwable e ){
+						Debug.printStackTrace(e);
+					}
 				}
       
 				public void 
@@ -338,7 +344,12 @@ PeerImpl
 					int piece_num, 
 					int total_bad_chunks )
 				{
-					l.sentBadChunk( piece_num, total_bad_chunks );
+					try{
+						l.sentBadChunk( piece_num, total_bad_chunks );
+					
+					}catch( Throwable e ){
+						Debug.printStackTrace(e);
+					}
 				}
 				
 				public void addAvailability(final PEPeer peer, BitFlags peerHavePieces)
@@ -414,12 +425,17 @@ PeerImpl
 					final int		type,
 					final Object	data )
 				{
-					l.eventOccurred(
-						new PeerEvent()
-						{
-							public int getType(){ return( type );}
-							public Object getData(){ return( data );}
-						});
+					try{
+						l.eventOccurred(
+							new PeerEvent()
+							{
+								public int getType(){ return( type );}
+								public Object getData(){ return( data );}
+							});
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
 				}
 			};
     

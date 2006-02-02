@@ -105,6 +105,7 @@ public class PiecePickerImpl
 	private long			time_last_avail;
 	protected volatile long	availabilityChange;
 	private volatile long	availabilityComputeChange;
+	private long			time_last_rebuild;
 	
 	private float		globalAvail;
 	private float		globalAvgAvail;
@@ -179,7 +180,7 @@ public class PiecePickerImpl
 
 		
 		// now do stuff related to availability
-		availabilityAsynch =new int[nbPieces];
+		availability =new int[nbPieces];
 
 		hasNeededUndonePiece =false;
 		neededUndonePieceChange =0;
@@ -301,10 +302,35 @@ public class PiecePickerImpl
 		final long now =SystemTime.getCurrentTime();
 		if (now >time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY)
 			return;
-		if (availabilityDrift >0)
-			recomputeAvailability();
-		if (availabilityComputeChange >=availabilityChange)
+		if (availabilityDrift >0 || now-time_last_rebuild > 30000){
+			try
+			{	availabilityMon.enter();
+		
+				time_last_rebuild	= now;
+				
+				int[]	new_availability = recomputeAvailability();
+				
+				int[]	old_availability = availabilityAsynch==null?availability:availabilityAsynch;
+				
+				int	errors	= 0;
+				
+				for (int i=0;i<new_availability.length;i++){
+					if ( new_availability[i] != old_availability[i]){
+						errors++;
+					}
+				}
+				
+				System.out.println( "avail rebuild: errors = " + errors );
+				
+				availabilityAsynch	= new_availability;
+				
+				availabilityDrift =0;
+				availabilityChange++;
+			} finally {availabilityMon.exit();}
+			
+		}else if (availabilityComputeChange >=availabilityChange){
 			return;
+		}
 		
 		try
 		{	availabilityMon.enter();
@@ -312,8 +338,10 @@ public class PiecePickerImpl
 			availabilityComputeChange =availabilityChange;
 
 			// take a snapshot of availabilityAsynch
-			availability 		= availabilityAsynch;
-			availabilityAsynch	= null;
+			if ( availabilityAsynch != null ){
+				availability 		= availabilityAsynch;
+				availabilityAsynch	= null;
+			}
 		} finally {availabilityMon.exit();}
 		
 		int i;
@@ -361,43 +389,38 @@ public class PiecePickerImpl
 		globalAvgAvail =totalAvail /(float) (nbPieces) /(1 +peerControl.getNbSeeds() +peerControl.getNbPeers());
 	}
 	
-	private void recomputeAvailability()
+	private int[] recomputeAvailability()
 	{
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(diskManager.getTorrent(), LOGID, LogEvent.LT_WARNING, "Recomputing availabiliy from scratch "
 				+peerControl.getDisplayName()));
 		final List	peerTransports =peerControl.getPeers();
-		try
-		{	availabilityMon.enter();
-			if ( availabilityAsynch == null ){
-				availabilityAsynch = (int[])availability.clone();
-			}
-			int j;
-			int i;
-			// first our pieces
-			for (j =0; j <nbPieces; j++)
-				availabilityAsynch[j] =dmPieces[j].isDone() ?1 :0;
-			//for all peers
-			for (i =0; i <peerTransports.size(); i++)
-			{	//get the peer connection
-				final PEPeerTransport pt =(PEPeerTransport)peerTransports.get(i);
-				if (pt !=null &&pt.getPeerState() ==PEPeer.TRANSFERING)
+
+		int[]	newAvailability = new int[nbPieces];
+		int j;
+		int i;
+		// first our pieces
+		for (j =0; j <nbPieces; j++)
+			newAvailability[j] =dmPieces[j].isDone() ?1 :0;
+		//for all peers
+		for (i =0; i <peerTransports.size(); i++)
+		{	//get the peer connection
+			final PEPeerTransport pt =(PEPeerTransport)peerTransports.get(i);
+			if (pt !=null &&pt.getPeerState() ==PEPeer.TRANSFERING)
+			{
+				//cycle trhough the pieces they actually have
+				final BitFlags peerHavePieces =pt.getAvailable();
+				if (peerHavePieces !=null &&peerHavePieces.nbSet >0)
 				{
-					//cycle trhough the pieces they actually have
-					final BitFlags peerHavePieces =pt.getAvailable();
-					if (peerHavePieces !=null &&peerHavePieces.nbSet >0)
+					for (j =peerHavePieces.start; j <=peerHavePieces.end; j++)
 					{
-						for (j =peerHavePieces.start; j <=peerHavePieces.end; j++)
-						{
-							if (peerHavePieces.flags[j])
-								++availabilityAsynch[j];
-						}
+						if (peerHavePieces.flags[j])
+							++newAvailability[j];
 					}
 				}
 			}
-			availabilityDrift =0;
-			availabilityChange++;
-		} finally {availabilityMon.exit();}
+		}
+		return newAvailability;
 	}
 	
 	
