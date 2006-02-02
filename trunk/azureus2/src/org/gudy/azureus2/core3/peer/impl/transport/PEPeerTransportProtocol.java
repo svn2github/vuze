@@ -1681,7 +1681,10 @@ PEPeerTransportProtocol
     
     //INCOMING MESSAGES
     connection.getIncomingMessageQueue().registerQueueListener( new IncomingMessageQueue.MessageQueueListener() {
-      public boolean messageReceived( Message message ) {      
+      public boolean messageReceived( Message message ) {
+      	
+      	if( closing )  return true;
+      	
       	if (Logger.isEnabled())
 							Logger.log(new LogEvent(PEPeerTransportProtocol.this, LogIDs.NET,
 									"Received [" + message.getDescription() + "] message"));
