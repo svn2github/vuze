@@ -22,7 +22,8 @@
 
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
-import org.gudy.azureus2.core3.peer.impl.*;
+import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
@@ -54,7 +55,14 @@ public interface PiecePicker
 
 	public boolean	isInEndGameMode();
 	public void		clearEndGameChunks();
-	public void		addEndGameChunks(final PEPieceImpl pePiece);
+	/** adds all blocks in the piece to endGameModeChunks
+	 * @param pePiece
+	 */
+	public void		addEndGameChunks(final PEPiece pePiece);
+	/** adds only the blocks that aren't downloaded or written to endGameModeChunks
+	 * @param pePiece
+	 */
+	public void 	addEndGameBlocks(final PEPiece pePiece);
 	public void		removeFromEndGameModeChunks(final int pieceNumber, final int offset);
 	
 	public boolean	hasDownloadablePiece();

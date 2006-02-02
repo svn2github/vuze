@@ -937,7 +937,8 @@ PEPeerControlImpl
 							pePiece.unmarkBlock(request.getOffset() /DiskManager.BLOCK_SIZE);
 						//set piece to not fully requested
 						dm_pieces[pieceNumber].clearRequested();
-						checkEmptyPiece(pieceNumber);
+						if (!checkEmptyPiece(pieceNumber))
+							piecePicker.addEndGameBlocks(pePiece);
 					}
 				}
 			}

@@ -51,7 +51,7 @@ public class PiecePickerImpl
 	private static final long TIME_MIN_AVAILABILITY	=949;	// min ms for recalculating availability - reducing this has serious ramifications
 	private static final long TIME_MIN_PRIORITIES	=974;	// min ms for recalculating base priorities
 	private static final long TIME_AVAIL_REBUILD	=2*60*1000;	// min ms for total availability rebuild 
-	
+
 	// The following are added to the base User setting based priorities (for all inspected pieces)
 	private static final long PRIORITY_W_FIRSTLAST	=1300;			// user select prioritize first/last
 	private static final long FIRST_PIECE_MIN_NB	=4;				// min # pieces in file for first/last prioritization
@@ -200,7 +200,7 @@ public class PiecePickerImpl
 				nbPiecesDone++;
 			}else{
 				hasNeededUndonePiece |=dmPieces[i].calcNeeded();
-			}
+		}
 		}
 		if (hasNeededUndonePiece)
 			neededUndonePieceChange++;
@@ -303,7 +303,7 @@ public class PiecePickerImpl
 	public void updateAvailability()
 	{
 		final long now =SystemTime.getCurrentTime();
-		if (now >time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY)
+		if (now >=time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY)
 			return;
 		if (availabilityDrift >0 || now < time_last_rebuild ||  now - time_last_rebuild > TIME_AVAIL_REBUILD ){
 			try
@@ -383,7 +383,7 @@ public class PiecePickerImpl
 			{
 				if (avail >allMin)
 					total++;
-				if (avail <=rarestMin &&dmPiece.isNeeded()&&dmPiece.isRequestable() &&peerControl.getPiece(i) !=null)
+				if (avail <=rarestMin &&dmPiece.isNeeded() &&dmPiece.isRequestable() &&peerControl.getPiece(i) !=null)
 					rarestActive++;
 				totalAvail +=avail;
 			}
@@ -402,29 +402,29 @@ public class PiecePickerImpl
 		final List	peerTransports =peerControl.getPeers();
 
 		int[]	newAvailability = new int[nbPieces];
-		int j;
-		int i;
-		// first our pieces
-		for (j =0; j <nbPieces; j++)
-			newAvailability[j] =dmPieces[j].isDone() ?1 :0;
-		//for all peers
-		for (i =0; i <peerTransports.size(); i++)
-		{	//get the peer connection
-			final PEPeerTransport pt =(PEPeerTransport)peerTransports.get(i);
-			if (pt !=null &&pt.getPeerState() ==PEPeer.TRANSFERING)
-			{
-				//cycle trhough the pieces they actually have
-				final BitFlags peerHavePieces =pt.getAvailable();
-				if (peerHavePieces !=null &&peerHavePieces.nbSet >0)
+			int j;
+			int i;
+			// first our pieces
+			for (j =0; j <nbPieces; j++)
+				newAvailability[j] =dmPieces[j].isDone() ?1 :0;
+			//for all peers
+			for (i =0; i <peerTransports.size(); i++)
+			{	//get the peer connection
+				final PEPeerTransport pt =(PEPeerTransport)peerTransports.get(i);
+				if (pt !=null &&pt.getPeerState() ==PEPeer.TRANSFERING)
 				{
-					for (j =peerHavePieces.start; j <=peerHavePieces.end; j++)
+					//cycle trhough the pieces they actually have
+					final BitFlags peerHavePieces =pt.getAvailable();
+					if (peerHavePieces !=null &&peerHavePieces.nbSet >0)
 					{
-						if (peerHavePieces.flags[j])
-							++newAvailability[j];
+						for (j =peerHavePieces.start; j <=peerHavePieces.end; j++)
+						{
+							if (peerHavePieces.flags[j])
+								++newAvailability[j];
+						}
 					}
 				}
 			}
-		}
 		return newAvailability;
 	}
 	
@@ -687,7 +687,7 @@ public class PiecePickerImpl
 		return endGameMode;
 	}
 	
-	public void addEndGameChunks(final PEPieceImpl pePiece)
+	public void addEndGameChunks(final PEPiece pePiece)
 	{
 		if (!endGameMode)
 			return;
@@ -698,6 +698,26 @@ public class PiecePickerImpl
 			for (int i =0; i <nbChunks; i++ )
 			{
 				endGameModeChunks.add(new EndGameModeChunk(pePiece, i));
+			}
+		} finally
+		{
+			endGameModeChunks_mon.exit();
+		}
+	}
+
+	public void addEndGameBlocks(final PEPiece pePiece)
+	{
+		if (!endGameMode ||pePiece ==null)
+			return;
+		final DiskManagerPiece dmPiece =pePiece.getDMPiece();
+		final int nbChunks =pePiece.getNbBlocks();
+		try
+		{
+			endGameModeChunks_mon.enter();
+			for (int i =0; i <nbChunks; i++ )
+			{
+				if (!pePiece.isDownloaded(i) &&!dmPiece.isWritten(i));
+					endGameModeChunks.add(new EndGameModeChunk(pePiece, i));
 			}
 		} finally
 		{
@@ -794,11 +814,11 @@ public class PiecePickerImpl
 	
 	private void computeEndGameModeChunks()
 	{
-		endGameModeChunks =new ArrayList();
 		PEPiece[] _pieces =peerControl.getPieces();
 		if (_pieces ==null)
 			return;
 
+		endGameModeChunks =new ArrayList();
 		try
 		{
 			endGameModeChunks_mon.enter();
@@ -1101,7 +1121,7 @@ public class PiecePickerImpl
 
 						pePiece.setResumePriority(priority);
 
-						if ((avail <=globalMinOthers &&(!rarestOverride &&!resumeIsRarest))
+						if (pieceNumber ==-1 ||(avail <=globalMinOthers &&(!rarestOverride &&!resumeIsRarest))
 							||(priority >resumeMaxPriority &&(!resumeIsRarest ||rarestOverride ||avail <=globalMinOthers)))
 						{ // this piece seems like best choice for resuming
 							// Verify it's still possible to get a block to request from this piece
@@ -1122,13 +1142,11 @@ public class PiecePickerImpl
 						{ // yes; a rarest piece so we do can-start-rarest handling
 							if (startCandidates ==null)
 								startCandidates =new BitFlags(nbPieces);
-							// are we switching into this mode, OR have we somehow found even rarer pieces (ie; skewed
-							// avail)
+							// are we switching into this mode, OR have we somehow found even rarer pieces (ie; skewed avail)
 							if (!rarestCanStart ||avail <startCandidatesMinAvail)
 							{ // yep; switched to can-start-rarest detection mode so lock onto real rarest
 								rarestCanStart =true;
-
-
+								startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
 								startMaxPriority =priority;
 								startCandidatesMinAvail =avail;
 							} else
@@ -1221,7 +1239,7 @@ public class PiecePickerImpl
 		}
 		
 		public void addAvailability(final PEPeer peer, final BitFlags peerHavePieces)
-		{			
+		{
 			if (peerHavePieces ==null ||peerHavePieces.nbSet <=0)
 				return;
 			try
@@ -1232,8 +1250,8 @@ public class PiecePickerImpl
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++)
 				{
 					if ( peerHavePieces.flags[i] ){
-						++availabilityAsynch[i];
-					}
+					++availabilityAsynch[i];
+				}
 				}
 				availabilityChange++;
 			} finally {availabilityMon.exit();}
@@ -1251,11 +1269,11 @@ public class PiecePickerImpl
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++)
 				{
 					if ( peerHavePieces.flags[i] ){
-						if (availabilityAsynch[i] !=0)
-							--availabilityAsynch[i];
-						else
-							availabilityDrift++;
-					}
+					if (availabilityAsynch[i] !=0)
+						--availabilityAsynch[i];
+					else
+						availabilityDrift++;
+				}
 				}
 				availabilityChange++;
 			} finally {availabilityMon.exit();}

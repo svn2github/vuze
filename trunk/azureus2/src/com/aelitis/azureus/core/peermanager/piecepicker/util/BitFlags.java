@@ -110,10 +110,10 @@ public class BitFlags
 
 	public void setAll()
 	{
-		Arrays.fill(flags, start, end, true);
-		nbSet =length;
 		start =0;
 		end =length -1;
+		Arrays.fill(flags, start, end, true);
+		nbSet =length;
 	}
 	
 	/**

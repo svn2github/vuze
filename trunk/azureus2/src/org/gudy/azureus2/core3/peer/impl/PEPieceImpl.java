@@ -202,7 +202,10 @@ implements PEPiece
 			}
 		}
 		if (cleared >0)
+		{
 			dm_piece.clearRequested();
+			manager.getPiecePicker().addEndGameBlocks(this);
+		}
 		return cleared;
 	}
 
@@ -235,13 +238,14 @@ implements PEPiece
 	 */
 	public int[] getAndMarkBlocks(PEPeerTransport peer, int nbWanted)
 	{
+		final String ip =peer.getIp();
 		int blocksFound =0;
 		// scan piece to find first free block
 		for (int i =0; i <nbBlocks; i++)
 		{
 			while (blocksFound <=nbWanted &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound] &&requested[i +blocksFound] ==null &&!dm_piece.isWritten(i +blocksFound))
 			{
-				requested[i +blocksFound] =peer.getIp();
+				requested[i +blocksFound] =ip;
 				blocksFound++;
 			}
 			if (blocksFound >0)
