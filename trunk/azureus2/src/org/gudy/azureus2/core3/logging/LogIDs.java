@@ -58,4 +58,6 @@ public class LogIDs implements Comparable {
 	public final static LogIDs ALERT = new LogIDs("alert");
 
 	public final static LogIDs CACHE = new LogIDs("cache");
+
+	public final static LogIDs PIECES = new LogIDs("pieces");
 }
