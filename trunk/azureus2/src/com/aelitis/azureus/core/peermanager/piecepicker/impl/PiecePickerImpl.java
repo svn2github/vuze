@@ -273,6 +273,9 @@ public class PiecePickerImpl
 	{
 		try
 		{	availabilityMon.enter();
+			if ( availabilityAsynch == null ){
+				availabilityAsynch = (int[])availability.clone();
+			}
 			++availabilityAsynch[pieceNumber];
 			availabilityChange++;
 		} finally {availabilityMon.exit();}
@@ -282,6 +285,9 @@ public class PiecePickerImpl
 	{
 		try
 		{	availabilityMon.enter();
+			if ( availabilityAsynch == null ){
+				availabilityAsynch = (int[])availability.clone();
+			}
 			if (availabilityAsynch[pieceNumber] !=0)
 				--availabilityAsynch[pieceNumber];
 			else
@@ -306,7 +312,8 @@ public class PiecePickerImpl
 			availabilityComputeChange =availabilityChange;
 
 			// take a snapshot of availabilityAsynch
-			availability =(int[])availabilityAsynch.clone();
+			availability 		= availabilityAsynch;
+			availabilityAsynch	= null;
 		} finally {availabilityMon.exit();}
 		
 		int i;
@@ -362,6 +369,9 @@ public class PiecePickerImpl
 		final List	peerTransports =peerControl.getPeers();
 		try
 		{	availabilityMon.enter();
+			if ( availabilityAsynch == null ){
+				availabilityAsynch = (int[])availability.clone();
+			}
 			int j;
 			int i;
 			// first our pieces
@@ -1187,6 +1197,9 @@ public class PiecePickerImpl
 				return;
 			try
 			{	availabilityMon.enter();
+				if ( availabilityAsynch == null ){
+					availabilityAsynch = (int[])availability.clone();
+				}
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++)
 				{
 					++availabilityAsynch[i];
@@ -1201,6 +1214,9 @@ public class PiecePickerImpl
 				return;
 			try
 			{	availabilityMon.enter();
+				if ( availabilityAsynch == null ){
+					availabilityAsynch = (int[])availability.clone();
+				}
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++)
 				{
 					if (availabilityAsynch[i] !=0)
