@@ -194,10 +194,12 @@ public class PiecePickerImpl
 		// initialize each piece; on going changes will use event driven tracking
 		for (int i =0; i <nbPieces; i++)
 		{
-			if (dmPieces[i].isDone())
+			if (dmPieces[i].isDone()){
+				availability[i]++;
 				nbPiecesDone++;
-			else
+			}else{
 				hasNeededUndonePiece |=dmPieces[i].calcNeeded();
+			}
 		}
 		if (hasNeededUndonePiece)
 			neededUndonePieceChange++;
@@ -1122,7 +1124,8 @@ public class PiecePickerImpl
 							if (!rarestCanStart ||avail <startCandidatesMinAvail)
 							{ // yep; switched to can-start-rarest detection mode so lock onto real rarest
 								rarestCanStart =true;
-								startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
+
+
 								startMaxPriority =priority;
 								startCandidatesMinAvail =avail;
 							} else
