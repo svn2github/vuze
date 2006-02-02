@@ -710,7 +710,7 @@ PEPeerControlImpl
 							}
 							pePiece.setReservedBy(null);
 						}
-						pePiece.checkRequests();
+//						pePiece.checkRequests();
 						checkEmptyPiece(i);
 					}
 				}
