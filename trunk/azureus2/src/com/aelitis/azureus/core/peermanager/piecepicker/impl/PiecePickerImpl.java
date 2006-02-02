@@ -46,7 +46,7 @@ import com.aelitis.azureus.core.peermanager.unchoker.UnchokerUtil;
 public class PiecePickerImpl
 	implements PiecePicker
 {
-	private static final LogIDs LOGID = LogIDs.PEER;
+	private static final LogIDs LOGID = LogIDs.PIECES;
 
 	private static final long TIME_MIN_AVAILABILITY	=949;	// min ms for recalculating availability - reducing this has serious ramifications
 	private static final long TIME_MIN_PRIORITIES	=974;	// min ms for recalculating base priorities
@@ -99,9 +99,9 @@ public class PiecePickerImpl
 	private PEPiece[]	pePieces;
 	
 	protected volatile int[]	availabilityAsynch;	// asyncronously updated availability
-	protected volatile long	availabilityDrift;	// indicates availability needs to be recomputed from scratch due to drift
+	protected volatile long		availabilityDrift;	// indicates availability needs to be recomputed from scratch due to drift
 	
-	private volatile int[]	availability;		// periodically updated consistent view of availability for calculating
+	protected volatile int[]	availability;		// periodically updated consistent view of availability for calculating
 	
 	private long			time_last_avail;
 	protected volatile long	availabilityChange;
