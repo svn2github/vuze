@@ -55,6 +55,9 @@ PlatformManagerImpl
 	
 	public static final String					DLL_NAME = "aereg";
 	
+	public static final String				NEW_MAIN_ASSOC	= "Azureus";
+	public static final String				OLD_MAIN_ASS0C	= "BitTorrent";
+	
 	private static boolean					init_tried;
 	
 	private static PlatformManagerImpl		singleton;
@@ -148,7 +151,7 @@ PlatformManagerImpl
 			String	current = 
 				access.readStringValue(
 					AEWin32Access.HKEY_CLASSES_ROOT,
-					"BitTorrent\\DefaultIcon",
+					NEW_MAIN_ASSOC + "\\DefaultIcon",
 					"" );
 
 			//System.out.println( "current = " + current );
@@ -163,7 +166,7 @@ PlatformManagerImpl
 				
 				access.writeStringValue( 	
 						AEWin32Access.HKEY_CLASSES_ROOT,
-						"BitTorrent\\DefaultIcon",
+						NEW_MAIN_ASSOC + "\\DefaultIcon",
 						"",
 						target );
 			}
@@ -328,7 +331,12 @@ PlatformManagerImpl
 			Debug.printStackTrace(e);
 		}
 		
-		return( isAdditionalFileTypeRegistered( "BitTorrent", ".torrent" ));
+		if ( isAdditionalFileTypeRegistered( OLD_MAIN_ASS0C, ".torrent" )){
+			
+			registerAdditionalFileType( NEW_MAIN_ASSOC, "BitTorrent File", ".torrent", "application/x-bittorrent" );
+		}
+		
+		return( isAdditionalFileTypeRegistered( NEW_MAIN_ASSOC, ".torrent" ));
 	}
 	
 	public boolean
@@ -447,7 +455,7 @@ PlatformManagerImpl
 	{
 		registerMagnet();
 		
-		registerAdditionalFileType( "BitTorrent", "Bittorrent File", ".torrent", "application/x-bittorrent" );
+		registerAdditionalFileType( NEW_MAIN_ASSOC, "BitTorrent File", ".torrent", "application/x-bittorrent" );
 	}
 	
 	protected void
@@ -468,7 +476,7 @@ PlatformManagerImpl
 	}
 	public void
 	registerAdditionalFileType(
-		String		name,				// e.g. "BitTorrent"
+		String		name,				// e.g. "Azureus"
 		String		description,		// e.g. "BitTorrent File"
 		String		type,				// e.g. ".torrent"
 		String		content_type )		// e.g. "application/x-bittorrent"
@@ -488,12 +496,12 @@ PlatformManagerImpl
 		
 		throws PlatformManagerException
 	{
-		// 	WriteRegStr HKCR ".torrent" "" "BitTorrent"
-		// 	WriteRegStr HKCR "BitTorrent" "" "Bittorrent File"
-		// 	WriteRegStr HKCR "BitTorrent\shell" "" "open"
-		// 	WriteRegStr HKCR "BitTorrent\DefaultIcon" "" $INSTDIR\Azureus.exe,1
-		// 	WriteRegStr HKCR "BitTorrent\shell\open\command" "" '"$INSTDIR\Azureus.exe" "%1"'
-		// 	WriteRegStr HKCR "BitTorrent\Content Type" "" "application/x-bittorrent"
+		// 	WriteRegStr HKCR ".torrent" "" "Azureus"
+		// 	WriteRegStr HKCR "Azureus" "" "BitTorrent File"
+		// 	WriteRegStr HKCR "Azureus\shell" "" "open"
+		// 	WriteRegStr HKCR "Azureus\DefaultIcon" "" $INSTDIR\Azureus.exe,1
+		// 	WriteRegStr HKCR "Azureus\shell\open\command" "" '"$INSTDIR\Azureus.exe" "%1"'
+		// 	WriteRegStr HKCR "Azureus\Content Type" "" "application/x-bittorrent"
 		
 
 		try{
@@ -558,7 +566,7 @@ PlatformManagerImpl
 	
 	public void
 	unregisterAdditionalFileType(
-		String		name,				// e.g. "BitTorrent"
+		String		name,				// e.g. "Azureus"
 		String		type )				// e.g. ".torrent"
 		
 		throws PlatformManagerException
