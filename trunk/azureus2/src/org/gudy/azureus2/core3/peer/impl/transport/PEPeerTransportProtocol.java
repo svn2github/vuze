@@ -1569,11 +1569,19 @@ PEPeerTransportProtocol
 			peerHavePieces =new BitFlags(nbPieces);
 		}
     
-    	peerHavePieces.set(piece_number);
-    	int pieceLength = manager.getPieceLength(piece_number);
-    	peer_stats.hasNewPiece(pieceLength);
-    	manager.havePiece(piece_number, pieceLength, this);
-    
+		if ( peerHavePieces.flags[piece_number]){
+			
+				// BitComet 0.6 (for example) sometimes sends haves for bits already marked.
+			
+			// Debug.out( "Received have but bit already set: " + this );
+			
+		}else{
+	    	peerHavePieces.set(piece_number);
+	    	int pieceLength = manager.getPieceLength(piece_number);
+	    	peer_stats.hasNewPiece(pieceLength);
+	    	manager.havePiece(piece_number, pieceLength, this);
+		}
+		
     	checkSeed();
 
     	if (!interested_in_other_peer) {
