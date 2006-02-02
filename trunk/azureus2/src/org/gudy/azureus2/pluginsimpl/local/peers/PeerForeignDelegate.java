@@ -472,6 +472,16 @@ PeerForeignDelegate
 					l.sentBadChunk(self, piece_num, total_bad_chunks );
 				}
 				
+				public void addAvailability(boolean[] peerHavePieces)
+				{
+					l.addAvailability(self, getAvailable());
+				}
+				
+				public void removeAvailability(boolean[] peerHavePieces)
+				{
+					l.removeAvailability(self, getAvailable());
+				}
+				
 			};
     
 			foreign.addListener( core_listener );

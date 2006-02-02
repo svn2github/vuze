@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.peer;
 
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+
 /**
  * Listener for peer events.
  */
@@ -42,9 +44,22 @@ public interface PEPeerListener {
    */
   public void sentBadChunk(PEPeer peer, int piece_num, int total_bad_chunks );
 
-  /** A bitfield message has been received from the peer and properly decoded.
-   * The subscriber may now reliably retrieve the availability data using getAvailable() 
-   * @param peer the peer the message is about
+  /** The peer asserts that their availability should be added to the torrent-global availability pool
+   * The peer must send when, and only when, their availability is known
+   * but not after going to CLOSING state.  Upon sending this message, the peer must remember it was
+   * sent, and then later send a corresponding removeAvailability message
+   * @param peer the message is about
+   * @param peerHavePieces BitFlags of pieces availabile
    */
-  public void receivedBitfield(final PEPeer peer);
+  public void addAvailability(final PEPeer peer, final BitFlags peerHavePieces);
+
+  /** The peer asserts that their availability must now be taken from the torrent-global availability pool
+   * The peer must send this only after having sent a corresponding addAvailability message,
+   * and must not send it in a state prior to CLOSING state.  The BitFlags must be complete, with all
+   * pieces from any Bitfield message as well as those from any Have messages.
+   * @param peer the message is about
+   * @param peerHavePieces BitFlags of pieces no longer available
+   */
+  public void removeAvailability(final PEPeer peer, final BitFlags peerHavePieces);
+
 }

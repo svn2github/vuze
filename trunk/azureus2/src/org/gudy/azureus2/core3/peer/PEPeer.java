@@ -48,6 +48,11 @@ PEPeer
 	public final static int CLOSING      	= 40;
 	public final static int DISCONNECTED 	= 50;
 	
+	// these should be maintained to match above list ordinals /10
+	// if they don't than some debug info won't work right (not too big of a deal)
+	public final static String[] StateNames = { "Twinkle",
+		"Connecting", "Handshaking", "Transfering", "Closing", "Disconnected"
+	};
 	
   /**
    * Add peer listener.

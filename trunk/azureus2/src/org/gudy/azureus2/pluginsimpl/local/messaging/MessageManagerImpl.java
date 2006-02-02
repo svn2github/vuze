@@ -73,6 +73,8 @@ public class MessageManagerImpl implements MessageManager {
                 }
                 
                 public void sentBadChunk( int piece_num, int total_bad_chunks ) { /*nothing*/ }
+                public void addAvailability(boolean[] peerHavePieces) { /*nothing*/ }
+                public void removeAvailability(boolean[] peerHavePieces) { /*nothing*/ }
               });
             }
 

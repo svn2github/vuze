@@ -36,6 +36,9 @@ import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+
+
 public class 
 PeerImpl 
 	extends LogRelation
@@ -338,9 +341,14 @@ PeerImpl
 					l.sentBadChunk( piece_num, total_bad_chunks );
 				}
 				
-				public void receivedBitfield(final PEPeer peer)
+				public void addAvailability(final PEPeer peer, BitFlags peerHavePieces)
 				{
-					/* currently do nothing, not even pass down */
+					l.addAvailability(peerHavePieces.flags );
+				}
+
+				public void removeAvailability(final PEPeer peer, BitFlags peerHavePieces)
+				{
+					l.removeAvailability(peerHavePieces.flags );
 				}
 			};
     

@@ -30,11 +30,10 @@ package org.gudy.azureus2.core3.peer.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 
 public class 
 PEPieceImpl
@@ -73,7 +72,11 @@ implements PEPiece
 		nbBlocks =dm_piece.getNbBlocks();
 
 		requested =new String[nbBlocks];
-		downloaded =new boolean[nbBlocks];
+
+		if (dm_piece.getWritten() ==null)
+			downloaded =new boolean[nbBlocks];
+		else
+			downloaded =(boolean[])dm_piece.getWritten().clone();
 		writers =new String[nbBlocks];
 		writes =new ArrayList(0);
 
@@ -85,13 +88,6 @@ implements PEPiece
 		} else
 			speed =0;
 	}
-
-//	public int calcAvailability()
-//	{
-//		if (manager ==null)
-//			return 0;
-//		return manager.calcAvailability(dm_piece.getPieceNumber());
-//	}
 
 	/**
 	 * @return int of availability in the swarm for this piece
@@ -177,17 +173,28 @@ implements PEPiece
 		int cleared =0;
 		for (int i =0; i <nbBlocks; i++)
 		{
-			if (!downloaded[i])
+			if (!downloaded[i] &&!dm_piece.isWritten(i))
 			{
 				final String			requester =requested[i];
 				final PEPeerTransport	pt;
 				if (requester !=null)
 				{
 					pt =manager.getTransportFromAddress(requester);
-					if (pt !=null &&!pt.isSnubbed())
-							pt.setSnubbed(true);
-					if (pt ==null ||!pt.isDownloadPossible())
+					if (pt !=null)
 					{
+						if (!pt.isSnubbed())
+							pt.setSnubbed(true);
+						if (!pt.isDownloadPossible())
+						{
+							requested[i] =null;
+							cleared++;
+						}
+					} else
+					{
+						final LogIDs LOGID = LogIDs.PEER;
+                        if (Logger.isEnabled())
+                                Logger.log(new LogEvent(dm_piece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
+                                        "Piece:"+getPieceNumber()+" Chunk:"+i+"; Peer doesn't exist:"+requested[i]));
 						requested[i] =null;
 						cleared++;
 					}

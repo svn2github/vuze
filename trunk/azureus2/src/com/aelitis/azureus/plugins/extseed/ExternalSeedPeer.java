@@ -47,6 +47,7 @@ ExternalSeedPeer
 	
 	private byte[]					peer_id;
 	private boolean[]				available;
+	private boolean					availabilityAdded =false;
 	private long					snubbed;
 	private boolean					is_optimistic;
 	
@@ -184,6 +185,21 @@ ExternalSeedPeer
 		manager.addPeer( this );
 		
 		setState(Peer.TRANSFERING);
+
+		try{
+			listenerListMon.enter();
+
+			for (int i =0; i <listenerList.size(); i++){
+				
+				PeerListener peerListener =(PeerListener)listenerList.get(i);
+					
+				peerListener.addAvailability(getAvailable());
+			}
+			availabilityAdded =true;
+		}finally{
+			
+			listenerListMon.exit();
+		}
 	}
 	
 	protected void
@@ -192,6 +208,22 @@ ExternalSeedPeer
 		setState(Peer.CLOSING);
 	
 		manager.removePeer( this );
+		if (availabilityAdded)
+		{
+			try{
+				listenerListMon.enter();
+	
+				for (int i =0; i <listenerList.size(); i++){
+					
+					PeerListener peerListener =(PeerListener)listenerList.get(i);
+						
+					peerListener.removeAvailability(getAvailable());
+				}
+			}finally{
+				
+				listenerListMon.exit();
+			}
+		}
 	}
 	
 	public void

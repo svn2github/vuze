@@ -81,7 +81,7 @@ public class PiecePriorityShaperImpl
 		// get the aggregate mode from the torrent-global shapes
 		try
 		{	torrentPriorityShapesMon.enter();
-			for (int i =0; i <=torrentPriorityShapes.size(); i++)
+			for (int i =0; i <torrentPriorityShapes.size(); i++)
 			{
 				final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
 				// does the shape cover the range we're interested in
@@ -99,7 +99,7 @@ public class PiecePriorityShaperImpl
 		
 		// aggregate the peer's shapes' modes
 		List peerPriorityShapes =getPeerPriorityShapes(pt);
-		for (int i =0; i <=peerPriorityShapes.size(); i++)
+		for (int i =0; i <peerPriorityShapes.size(); i++)
 		{
 			final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
 			// does the shape cover the range we're interested in

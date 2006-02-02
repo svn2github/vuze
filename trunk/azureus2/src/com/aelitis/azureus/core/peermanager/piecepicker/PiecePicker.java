@@ -39,7 +39,7 @@ public interface PiecePicker
 //	public void 			setPeerControl(final PEPeerControl pc);
 //	public PEPeerControl	getPeerControl();
 	
-	public void	update();
+	public void	updateAvailability();
 	
 	public boolean	checkDownloadPossible();
 	/** @return int the piece number that should be started, according to selection criteria
