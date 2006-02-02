@@ -1689,7 +1689,10 @@ PEPeerTransportProtocol
     connection.getIncomingMessageQueue().registerQueueListener( new IncomingMessageQueue.MessageQueueListener() {
       public boolean messageReceived( Message message ) {
       	
-      	if( closing )  return true;
+      	if( closing ) {
+      		message.destroy();
+      		return true;
+      	}
       	
       	if (Logger.isEnabled())
 							Logger.log(new LogEvent(PEPeerTransportProtocol.this, LogIDs.NET,
