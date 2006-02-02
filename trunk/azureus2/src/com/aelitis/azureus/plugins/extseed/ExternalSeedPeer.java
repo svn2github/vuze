@@ -560,41 +560,46 @@ ExternalSeedPeer
 
 			for (int i =0; i <listenerList.size(); i++){
 				
-				Object	 _listener = listenerList.get(i);
-					
-				if ( _listener instanceof PeerListener ){
-					
-					PeerListener	listener = (PeerListener)_listener;
-					
-					if ( type == PeerEvent.ET_STATE_CHANGED ){
+				try{
+					Object	 _listener = listenerList.get(i);
 						
-						listener.stateChanged(((Integer)data).intValue());
+					if ( _listener instanceof PeerListener ){
 						
-					}else if ( type == PeerEvent.ET_BAD_CHUNK ){
+						PeerListener	listener = (PeerListener)_listener;
 						
-						Integer[]	d = (Integer[])data;
-						
-						listener.sentBadChunk(d[0].intValue(),d[1].intValue());
-					}
-				}else{
-					
-					PeerListener2	listener = (PeerListener2)_listener;
-
-					listener.eventOccurred(
-						new PeerEvent()
-						{
-							public int
-							getType()
-							{
-								return( type );
-							}
+						if ( type == PeerEvent.ET_STATE_CHANGED ){
 							
-							public Object
-							getData()
+							listener.stateChanged(((Integer)data).intValue());
+							
+						}else if ( type == PeerEvent.ET_BAD_CHUNK ){
+							
+							Integer[]	d = (Integer[])data;
+							
+							listener.sentBadChunk(d[0].intValue(),d[1].intValue());
+						}
+					}else{
+						
+						PeerListener2	listener = (PeerListener2)_listener;
+	
+						listener.eventOccurred(
+							new PeerEvent()
 							{
-								return( data );
-							}
-						});
+								public int
+								getType()
+								{
+									return( type );
+								}
+								
+								public Object
+								getData()
+								{
+									return( data );
+								}
+							});
+					}
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
 				}
 			}
 		}finally{

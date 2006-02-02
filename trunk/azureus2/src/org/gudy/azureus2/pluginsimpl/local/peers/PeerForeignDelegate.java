@@ -466,16 +466,20 @@ PeerForeignDelegate
 					switch( event.getType() ){
 						case PeerEvent.ET_STATE_CHANGED:{
 							l.stateChanged(self, ((Integer)data).intValue());
+							break;
 						}
 						case PeerEvent.ET_BAD_CHUNK:{
 							Integer[] d = (Integer[])data;
 							l.sentBadChunk(self, d[0].intValue(), d[1].intValue() );
+							break;
 						}
 						case PeerEvent.ET_ADD_AVAILABILITY:{
 							l.addAvailability(self, new BitFlags((boolean[])data));
+							break;
 						}
 						case PeerEvent.ET_REMOVE_AVAILABILITY:{
 							l.removeAvailability(self, new BitFlags((boolean[])data));
+							break;
 						}
 					}
 				}	
