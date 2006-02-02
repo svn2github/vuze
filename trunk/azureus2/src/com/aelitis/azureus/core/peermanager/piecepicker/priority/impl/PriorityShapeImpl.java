@@ -31,7 +31,7 @@ abstract public class PriorityShapeImpl
 	implements PriorityShape
 {
 	public int	mode =0;
-	public int	priority =0;	
+	public long	priority =0;	
 
 	public PriorityShapeImpl()
 	{
@@ -49,7 +49,7 @@ abstract public class PriorityShapeImpl
 	}
 
 	
-	public int getPriority()
+	public long getPriority()
 	{
 		return priority;
 	}
