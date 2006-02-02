@@ -500,11 +500,19 @@ PeerForeignDelegate
 	{
 		if ( peer_listeners != null ){
 			
-			PeerListener core_listener = (PeerListener)peer_listeners.remove( l );
+			Object core_listener = peer_listeners.remove( l );
     
-			if( core_listener != null ) {
-      
-				foreign.removeListener( core_listener );
+			if ( core_listener != null ){
+				
+				if( core_listener instanceof PeerListener ) {
+	      
+					foreign.removeListener((PeerListener)core_listener );
+					
+				}else{
+					
+					foreign.removeListener((PeerListener2)core_listener );
+
+				}
 			}
 		}
 	}

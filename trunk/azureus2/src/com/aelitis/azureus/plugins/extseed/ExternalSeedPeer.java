@@ -122,6 +122,8 @@ ExternalSeedPeer
 	setState(
 		int newState )
 	{
+		state	= newState;
+		
 		fireEvent( PeerEvent.ET_STATE_CHANGED, new Integer( newState ));
 	}
 	
