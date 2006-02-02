@@ -343,12 +343,10 @@ PeerImpl
 				
 				public void addAvailability(final PEPeer peer, BitFlags peerHavePieces)
 				{
-					l.addAvailability(peerHavePieces.flags );
 				}
 
 				public void removeAvailability(final PEPeer peer, BitFlags peerHavePieces)
 				{
-					l.removeAvailability(peerHavePieces.flags );
 				}
 			};
     
@@ -366,6 +364,79 @@ PeerImpl
 	public void	
 	removeListener( 
 		PeerListener	l ) 
+	{
+		if ( peer_listeners != null ){
+			
+			PEPeerListener core_listener = (PEPeerListener)peer_listeners.remove( l );
+    
+			if( core_listener != null ) {
+      
+				delegate.removeListener( core_listener );
+			}
+		}
+	}
+	
+	public void 
+	addListener( 
+		final PeerListener2	l ) 
+	{
+		PEPeerListener core_listener = 
+			new PEPeerListener() 
+			{
+				public void 
+				stateChanged(
+					final PEPeer peer,	// seems don't need this here
+					int new_state ) 
+				{
+					fireEvent( PeerEvent.ET_STATE_CHANGED, new Integer( new_state ));
+				}
+      
+				public void 
+				sentBadChunk( 
+					final PEPeer peer,	// seems don't need this here
+					int piece_num, 
+					int total_bad_chunks )
+				{
+					fireEvent( PeerEvent.ET_BAD_CHUNK, new Integer[]{ new Integer(piece_num), new Integer(total_bad_chunks)});
+				}
+				
+				public void addAvailability(final PEPeer peer, BitFlags peerHavePieces)
+				{
+					fireEvent( PeerEvent.ET_ADD_AVAILABILITY,peerHavePieces.flags );
+				}
+
+				public void removeAvailability(final PEPeer peer, BitFlags peerHavePieces)
+				{
+					fireEvent( PeerEvent.ET_REMOVE_AVAILABILITY,peerHavePieces.flags );
+				}
+				protected void
+				fireEvent(
+					final int		type,
+					final Object	data )
+				{
+					l.eventOccurred(
+						new PeerEvent()
+						{
+							public int getType(){ return( type );}
+							public Object getData(){ return( data );}
+						});
+				}
+			};
+    
+		delegate.addListener( core_listener );
+    
+		if( peer_listeners == null ){
+			
+			peer_listeners = new HashMap();
+		}
+		
+		peer_listeners.put( l, core_listener );
+	}
+	
+
+	public void	
+	removeListener( 
+		PeerListener2	l ) 
 	{
 		if ( peer_listeners != null ){
 			

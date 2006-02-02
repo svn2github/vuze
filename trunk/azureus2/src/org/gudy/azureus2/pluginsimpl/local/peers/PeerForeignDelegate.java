@@ -454,34 +454,31 @@ PeerForeignDelegate
 	{
 		final PEPeer self =this;
 		// add a listener to the foreign, then call our listeners when it calls us
-		PeerListener core_listener = 
-			new PeerListener() 
+		PeerListener2 core_listener = 
+			new PeerListener2() 
 			{
-				public void 
-				stateChanged(
-					int new_state ) 
+				public void
+				eventOccurred(
+					PeerEvent	event )
 				{
-					l.stateChanged(self, new_state );
-				}
-      
-				public void 
-				sentBadChunk( 
-					int piece_num, 
-					int total_bad_chunks )
-				{
-					l.sentBadChunk(self, piece_num, total_bad_chunks );
-				}
-				
-				public void addAvailability(boolean[] peerHavePieces)
-				{
-					l.addAvailability(self, getAvailable());
-				}
-				
-				public void removeAvailability(boolean[] peerHavePieces)
-				{
-					l.removeAvailability(self, getAvailable());
-				}
-				
+					Object	data = event.getData();
+					
+					switch( event.getType() ){
+						case PeerEvent.ET_STATE_CHANGED:{
+							l.stateChanged(self, ((Integer)data).intValue());
+						}
+						case PeerEvent.ET_BAD_CHUNK:{
+							Integer[] d = (Integer[])data;
+							l.sentBadChunk(self, d[0].intValue(), d[1].intValue() );
+						}
+						case PeerEvent.ET_ADD_AVAILABILITY:{
+							l.addAvailability(self, new BitFlags((boolean[])data));
+						}
+						case PeerEvent.ET_REMOVE_AVAILABILITY:{
+							l.removeAvailability(self, new BitFlags((boolean[])data));
+						}
+					}
+				}	
 			};
     
 			foreign.addListener( core_listener );

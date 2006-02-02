@@ -164,6 +164,7 @@ Peer
   /**
    * Add peer listener.
    * @param listener
+   * @deprecated use addListener( PeerListener2 )
    */
 	public void	addListener( PeerListener	listener );
 	
@@ -171,9 +172,22 @@ Peer
   /**
    * Remove peer listener.
    * @param listener
+   * @deprecated use removeListener( PeerListener2 )
    */
 	public void removeListener(	PeerListener listener );
   
+	  /**
+	   * Add peer listener.
+	   * @param listener
+	   */
+	public void	addListener( PeerListener2	listener );
+	
+
+  /**
+   * Remove peer listener.
+   * @param listener
+   */
+	public void removeListener(	PeerListener2 listener );
   
   
   /**

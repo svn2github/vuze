@@ -122,21 +122,7 @@ ExternalSeedPeer
 	setState(
 		int newState )
 	{
-		try{
-			listenerListMon.enter();
-
-			state = newState;
-			
-			for (int i =0; i <listenerList.size(); i++){
-				
-				PeerListener peerListener =(PeerListener)listenerList.get(i);
-					
-				peerListener.stateChanged(newState);
-			}
-		}finally{
-			
-			listenerListMon.exit();
-		}
+		fireEvent( PeerEvent.ET_STATE_CHANGED, new Integer( newState ));
 	}
 	
 	protected boolean
@@ -189,13 +175,10 @@ ExternalSeedPeer
 		try{
 			listenerListMon.enter();
 
-			for (int i =0; i <listenerList.size(); i++){
-				
-				PeerListener peerListener =(PeerListener)listenerList.get(i);
-					
-				peerListener.addAvailability(getAvailable());
-			}
-			availabilityAdded =true;
+			fireEvent( PeerEvent.ET_ADD_AVAILABILITY, getAvailable());
+		
+			availabilityAdded	= true;
+		
 		}finally{
 			
 			listenerListMon.exit();
@@ -207,23 +190,21 @@ ExternalSeedPeer
 	{	
 		setState(Peer.CLOSING);
 	
-		manager.removePeer( this );
-		if (availabilityAdded)
-		{
-			try{
-				listenerListMon.enter();
-	
-				for (int i =0; i <listenerList.size(); i++){
-					
-					PeerListener peerListener =(PeerListener)listenerList.get(i);
-						
-					peerListener.removeAvailability(getAvailable());
-				}
-			}finally{
+		try{
+			listenerListMon.enter();
+			
+			if ( availabilityAdded ){
 				
-				listenerListMon.exit();
+				fireEvent( PeerEvent.ET_REMOVE_AVAILABILITY, getAvailable());
+				
+				availabilityAdded	= false;
 			}
+		}finally{
+			
+			listenerListMon.exit();
 		}
+		
+		manager.removePeer( this );
 	}
 	
 	public void
@@ -513,27 +494,114 @@ ExternalSeedPeer
 	addListener( 
 		PeerListener	listener )
 	{
-		try
-		{	listenerListMon.enter();
+		try{
+			listenerListMon.enter();
+						
+			listenerList.add(listener);
 			
-			if (!listenerList.contains(listener))
-				listenerList.add(listener);
+		}finally{
 			
-		} finally {listenerListMon.exit();}
+			listenerListMon.exit();
+		}
 	}
 	
 	public void 
 	removeListener(	
 		PeerListener listener )
 	{	
-		try
-		{	listenerListMon.enter();
+		try{
+			listenerListMon.enter();
 		
-		listenerList.remove(listener);
+			listenerList.remove(listener);
 		
-		} finally {listenerListMon.exit();}
+		}finally{
+			
+			listenerListMon.exit();
+		}
+	}
+	
+	public void	
+	addListener( 
+		PeerListener2	listener )
+	{
+		try{
+			listenerListMon.enter();
+						
+			listenerList.add(listener);
+			
+		}finally{
+			
+			listenerListMon.exit();
+		}
+	}
+	
+	public void 
+	removeListener(	
+		PeerListener2 listener )
+	{	
+		try{
+			listenerListMon.enter();
+		
+			listenerList.remove(listener);
+		
+		}finally{
+			
+			listenerListMon.exit();
+		}
 	}
   
+	protected void
+	fireEvent(
+		final int		type,
+		final Object	data )
+	{
+		try{
+			listenerListMon.enter();
+
+			for (int i =0; i <listenerList.size(); i++){
+				
+				Object	 _listener = listenerList.get(i);
+					
+				if ( _listener instanceof PeerListener ){
+					
+					PeerListener	listener = (PeerListener)_listener;
+					
+					if ( type == PeerEvent.ET_STATE_CHANGED ){
+						
+						listener.stateChanged(((Integer)data).intValue());
+						
+					}else if ( type == PeerEvent.ET_BAD_CHUNK ){
+						
+						Integer[]	d = (Integer[])data;
+						
+						listener.sentBadChunk(d[0].intValue(),d[1].intValue());
+					}
+				}else{
+					
+					PeerListener2	listener = (PeerListener2)_listener;
+
+					listener.eventOccurred(
+						new PeerEvent()
+						{
+							public int
+							getType()
+							{
+								return( type );
+							}
+							
+							public Object
+							getData()
+							{
+								return( data );
+							}
+						});
+				}
+			}
+		}finally{
+			
+			listenerListMon.exit();
+		}
+	}
 	public Connection 
 	getConnection()
 	{
