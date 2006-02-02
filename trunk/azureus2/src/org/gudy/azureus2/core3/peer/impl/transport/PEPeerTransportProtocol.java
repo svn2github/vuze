@@ -1498,24 +1498,29 @@ PEPeerTransportProtocol
   
   protected void decodeHave( BTHave have ) {
     int piece_number = have.getPieceNumber();
-	have.destroy();
+    have.destroy();
     
     if ((piece_number >= peerHavePieces.length) || (piece_number < 0)) {
       closeConnectionInternally( "invalid piece_number: " + piece_number );
-      have.destroy();
       return;
     }
 
-    peerHavePieces.set(piece_number);
-    int pieceLength = manager.getPieceLength(piece_number);
-    peer_stats.hasNewPiece(pieceLength);
-    manager.havePiece(piece_number, pieceLength, this);
+    try{  closing_mon.enter();
     
-    if (!interested_in_other_peer) {
-      checkInterested(piece_number);
+    	if( closing )  return;
+    
+    	peerHavePieces.set(piece_number);
+    	int pieceLength = manager.getPieceLength(piece_number);
+    	peer_stats.hasNewPiece(pieceLength);
+    	manager.havePiece(piece_number, pieceLength, this);
+    
+    	if (!interested_in_other_peer) {
+    		checkInterested(piece_number);
+    	}
+    
+    	checkSeed();
     }
-    
-    checkSeed();
+    finally{ closing_mon.exit();  }    
   }
   
   
