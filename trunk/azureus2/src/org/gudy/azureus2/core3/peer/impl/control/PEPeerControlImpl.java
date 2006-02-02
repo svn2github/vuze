@@ -571,8 +571,9 @@ PEPeerControlImpl
 			
 			if( already_connected )  continue;
 			
-			if( peer_database != null ) {
-				PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN );  //TODO allow force crypto from tracker-obtained peers
+			if( peer_database != null ) {				
+				int type = peer.getProtocol() == TRTrackerAnnouncerResponsePeer.PROTOCOL_CRYPT ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+				PeerItem item = PeerItemFactory.createPeerItem( peer.getAddress(), peer.getPort(), PeerItem.convertSourceID( peer.getSource() ), type );
 				peer_database.addDiscoveredPeer( item );
 			}
 		}
