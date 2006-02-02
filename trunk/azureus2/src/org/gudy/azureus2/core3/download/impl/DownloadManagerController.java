@@ -188,12 +188,20 @@ DownloadManagerController
 			
 				Debug.out( "DownloadManagerController::startDownload state must be ready, " + getState());
 				
+				setFailed( "Inconsistent download state: startDownload, state = " + getState());
+
 				return;
 			}
 			
 			if ( peer_manager != null ){
 				
 				Debug.out( "DownloadManagerController::startDownload: peer manager not null" );
+				
+					// try and continue....
+				
+				peer_manager.stopAll();
+				
+				peer_manager	= null;
 			}
 			
 			dm	= getDiskManager();
@@ -407,14 +415,22 @@ DownloadManagerController
 					
 				Debug.out( "DownloadManagerController::initializeDiskManager: Illegal initialize state, " + entry_state );
 				
+				setFailed( "Inconsistent download state: initSupport, state = " + entry_state );
+				
 				return;
 			}
 	
-			if ( getDiskManager() != null ){
+			DiskManager	old_dm = getDiskManager();
+			 
+			if ( old_dm != null ){
 				
 				Debug.out( "DownloadManagerController::initializeDiskManager: disk manager is not null" );
 				
-				return;
+					// we shouldn't get here but try to recover the situation
+				
+				old_dm.stop();
+				
+				setDiskManager( null );
 			}
 		
 			errorDetail	= "";
