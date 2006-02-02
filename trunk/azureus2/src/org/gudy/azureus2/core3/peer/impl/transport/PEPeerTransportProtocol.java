@@ -538,14 +538,17 @@ PEPeerTransportProtocol
 
 	public boolean isDownloadPossible()
 	{
-		if (lastNeededUndonePieceChange <piecePicker.getNeededUndonePieceChange())
+		if (!closing)
 		{
-			checkInterested();
-			lastNeededUndonePieceChange =piecePicker.getNeededUndonePieceChange();
+			if (lastNeededUndonePieceChange <piecePicker.getNeededUndonePieceChange())
+			{
+				checkInterested();
+				lastNeededUndonePieceChange =piecePicker.getNeededUndonePieceChange();
+			}
+			if (interested_in_other_peer &&!choked_by_other_peer &&current_peer_state ==PEPeer.TRANSFERING)
+				return true;
 		}
-		if (interested_in_other_peer &&!choked_by_other_peer &&current_peer_state ==PEPeer.TRANSFERING)
-			return true;
-	  return false;
+		return false;
   }
   
   
@@ -1563,7 +1566,7 @@ PEPeerTransportProtocol
 		if (peerHavePieces ==null)
 		{
 			if (Logger.isEnabled())
-				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, "Peer:decodeHave() Have decoding before bitfield: "
+				Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_ERROR, "Peer:decodeHave() Have decoding before bitfield: "
 					+manager.getDisplayName()));
 	
 			peerHavePieces =new BitFlags(nbPieces);
@@ -1668,14 +1671,14 @@ PEPeerTransportProtocol
 
         if( manager.isInEndGameMode() ) {  //we're probably in end-game mode then
         	if (Logger.isEnabled())
-						Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING,
+						Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
 								"Protocol:In: " + error_msg + "but piece block ignored as "
 										+ "already written in end-game mode."));      
           requests_discarded_endgame++;
         }
         else {
         	if (Logger.isEnabled())
-						Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING,
+						Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
 								"Protocol:In: " + error_msg + "but piece block discarded as "
 										+ "already written."));
           requests_discarded++;
@@ -1709,7 +1712,7 @@ PEPeerTransportProtocol
           printRequestStats();
           piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
       	if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LOGID, "Protocol:In: " + error_msg
+			Logger.log(new LogEvent(this, LogIDs.PIECES, "Protocol:In: " + error_msg
 					+ "expired piece block data " + "recovered as useful."));
         }
         else {
@@ -1721,7 +1724,7 @@ PEPeerTransportProtocol
           requests_discarded++;
           printRequestStats();
       	if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+			Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_ERROR,
 					"Protocol:In: " + error_msg + "but expired piece block "
 							+ "discarded as never requested."));
         }
@@ -1732,7 +1735,7 @@ PEPeerTransportProtocol
         requests_discarded++;
         printRequestStats();
       	if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+			Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_ERROR,
 					"Protocol:In: " + error_msg
 							+ "but expired piece block discarded "
 							+ "as already written."));
