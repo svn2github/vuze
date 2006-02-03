@@ -914,6 +914,9 @@ public class StartStopRulesDefaultPlugin
 					} catch (Exception ignore) {
 						/*ignore*/
 					}
+					if (bDebugLog && download.getState() == Download.ST_WAITING) {
+						dlData.sTrace += "still in waiting state after initialize!\n";
+					}
 				}
 
 				if (bAutoReposition && (iRankType != RANK_NONE)
