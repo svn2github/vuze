@@ -32,24 +32,30 @@ import org.gudy.azureus2.core3.peer.PEPiece;
 
 public interface PiecePicker
 {
-//	public void				start();
-//	public void				stop();
-//	public DiskManager		getDiskManager();
-//	public void 			setPeerControl(final PEPeerControl pc);
-//	public PEPeerControl	getPeerControl();
-	
-	public void	updateAvailability();
-	
-	public boolean	checkDownloadPossible();
-	/** @return int the piece number that should be started, according to selection criteria
-	 * 
-	 * @param pt PEPeer the piece would be started for
-	 * @param startCandidates BitFlags of potential candidates to choose from
-	 * @return int the piece number that was chosen to be started
-	 */
-	//public int		getPieceToStart(final PEPeerTransport pt, final BitFlags startCandidates);
+    public boolean  hasDownloadablePiece();
+    /** @return long value indicated serial number of current count of changes
+     * to hasNeededUndonePiece.
+     * A method interesting in tracking changes can compare this with a locally stored
+     * value to determine if the hasNeededUndonePiece status has changed since the last check. 
+     */
+    public long     getNeededUndonePieceChange();
+    
 
-//	public boolean	findPiece(final PEPeerTransport pt);
+    public void     addHavePiece(final int pieceNumber);
+    
+    /** This is called periodically by the peer control scheduler.
+     * It should not normally be called by other methods.
+     * It will update the global availability if neccesary
+     * and then update the derived information 
+     */
+    public void     updateAvailability();
+    public int[]    getAvailability();
+    public int      getAvailability(final int pieceNumber);
+    
+    public float    getMinAvailability();
+    public float    getAvgAvail();
+
+	public boolean	checkDownloadPossible();
 
 	public boolean	isInEndGameMode();
 	public void		clearEndGameChunks();
@@ -62,34 +68,4 @@ public interface PiecePicker
 	 */
 	public void 	addEndGameBlocks(final PEPiece pePiece);
 	public void		removeFromEndGameModeChunks(final int pieceNumber, final int offset);
-	
-	public boolean	hasDownloadablePiece();
-
-	/** @return long value indicated serial number of current count of changes
-	 * to hasNeededUndonePiece.
-	 * A method interesting in tracking changes can compare this with a locally stored
-	 * value to determine if the hasNeededUndonePiece status has changed since the last check. 
-	 */
-	public long		getNeededUndonePieceChange();
-	
-	public void		addHavePiece(final int pieceNumber);
-//	public void		addBitfield(final BitFlags peerHasPieces);
-	/**
-	 * Takes away the given pieces from availability
-	 * @param peerHasPieces
-	 */
-//	public void		removeBitfield(final BitFlags peerHasPieces);
-	
-	/**
-	 * Currently unused.
-	 * This methd will compute the pieces' overall availability (including ourself)
-	 * and the _globalMinOthers & _globalAvail
-	 */
-//	protected int	calcAvailability(final int pieceNumber);
-//	protected void	computeAvailability();
-	public int[]	getAvailability();
-	public int		getAvailability(final int pieceNumber);
-	
-	public float	getMinAvailability();
-	public float	getAvgAvail();
 }

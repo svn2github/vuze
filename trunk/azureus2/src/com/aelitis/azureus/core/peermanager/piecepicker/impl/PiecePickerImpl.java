@@ -236,44 +236,8 @@ public class PiecePickerImpl
 		diskManager.addListener(diskManagerListener);
 	}
 	
-//	public void stop()
-//	{
-//		hasNeededUndonePiece =false;
-//		neededUndonePieceChange++;
-//		
-//		if (peerListeners !=null)
-//			peerListeners.clear();	// since we're stopping, doesn't seem like need to .removeListener ... ?
-//		if (peerControl !=null)
-//			peerControl.removeListener(peerManagerListener);
-//		
-//		diskManager.removeListener(diskManagerListener);
-//		
-//		COConfigurationManager.removeParameterListener("Prioritize First Piece", parameterListener);
-//		COConfigurationManager.removeParameterListener("Prioritize Most Completed Files", parameterListener);
-//		parameterListener =null;
-//		
-//		startPriorities =null;
-//		peerManagerListener =null;
-//		
-//		diskManagerListener =null;
-//		nbPieces =-1;
-//
-//		peerControl =null;
-//	}
 
-//	public DiskManager getDiskManager()
-//	{
-//		return diskManager;
-//	}
-	
-
-//	public PEPeerControl getPeerControl()
-//	{
-//		return peerControl;
-//	}
-	
-	
-	public void addHavePiece(final int pieceNumber)
+    public void addHavePiece(final int pieceNumber)
 	{
 		try
 		{	availabilityMon.enter();
@@ -300,6 +264,10 @@ public class PiecePickerImpl
 		} finally {availabilityMon.exit();}
 	}
 	
+    /**
+     * This methd will compute the pieces' overall availability (including ourself)
+     * and the _globalMinOthers & _globalAvail
+     */
 	public void updateAvailability()
 	{
 		final long now =SystemTime.getCurrentTime();
@@ -919,7 +887,13 @@ public class PiecePickerImpl
     }
     
     
-	public int getPieceToStart(final PEPeerTransport pt, final BitFlags startCandidates)
+    /** @return int the piece number that should be started, according to selection criteria
+     * 
+     * @param pt PEPeer the piece would be started for
+     * @param startCandidates BitFlags of potential candidates to choose from
+     * @return int the piece number that was chosen to be started
+     */
+	protected int getPieceToStart(final PEPeerTransport pt, final BitFlags startCandidates)
 	{
 		if (startCandidates ==null ||startCandidates.nbSet <=0)
 		{	// cant do anything if no pieces to startup
@@ -1281,6 +1255,11 @@ public class PiecePickerImpl
 			} finally {availabilityMon.exit();}
 		}
 
+        /**
+         * Takes away the given pieces from global availability
+         * @param PEPeer peer this is about
+         * @param peerHasPieces BitFlags of the pieces
+         */
 		public void removeAvailability(final PEPeer peer, final BitFlags peerHavePieces)
 		{
 			if (peerHavePieces ==null ||peerHavePieces.nbSet <=0)
