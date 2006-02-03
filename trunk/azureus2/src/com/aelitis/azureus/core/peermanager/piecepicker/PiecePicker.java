@@ -23,9 +23,7 @@
 package com.aelitis.azureus.core.peermanager.piecepicker;
 
 import org.gudy.azureus2.core3.peer.PEPiece;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
-import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 /**
  * @author MjrTom
@@ -49,7 +47,7 @@ public interface PiecePicker
 	 * @param startCandidates BitFlags of potential candidates to choose from
 	 * @return int the piece number that was chosen to be started
 	 */
-	public int		getPieceToStart(final PEPeerTransport pt, final BitFlags startCandidates);
+	//public int		getPieceToStart(final PEPeerTransport pt, final BitFlags startCandidates);
 
 //	public boolean	findPiece(final PEPeerTransport pt);
 
