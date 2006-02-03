@@ -101,7 +101,7 @@ public interface DiskManagerPiece
 	public void			setDone();
 	public void			setDone(boolean b);
 
-	/**
+	/** This must not be used to qualify pieces in End Game Mode.
 	 * @return true is a piece is Needed and not Requested, Downloaded, Written, Checking, or Done.
 	 */
 	public boolean		isRequestable();
