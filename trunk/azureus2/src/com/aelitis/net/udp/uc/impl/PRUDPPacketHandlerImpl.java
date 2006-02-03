@@ -50,6 +50,7 @@ PRUDPPacketHandlerImpl
 	implements PRUDPPacketHandler
 {	
 	private static final LogIDs LOGID = LogIDs.NET;
+	
 	private boolean			TRACE_REQUESTS	= false;
 	
 	private static final long	MAX_SEND_QUEUE_DATA_SIZE	= 2*1024*1024;
@@ -69,8 +70,7 @@ PRUDPPacketHandlerImpl
 	
 	private AEMonitor	send_queue_mon	= new AEMonitor( "PRUDPPH:sd" );
 	private long		send_queue_data_size;
-	private List		send_queue_hp		= new ArrayList();
-	private List		send_queue_lp		= new ArrayList();
+	private List[]		send_queues		= new List[]{ new LinkedList(),new LinkedList(),new LinkedList()};
 	private AESemaphore	send_queue_sem	= new AESemaphore( "PRUDPPH:sq" );
 	private AEThread	send_thread;
 	
@@ -544,7 +544,7 @@ PRUDPPacketHandlerImpl
 		throws PRUDPPacketHandlerException
 	{
 		PRUDPPacketHandlerRequestImpl	request = 
-			sendAndReceive( auth, request_packet,destination_address, null, PRUDPPacket.DEFAULT_UDP_TIMEOUT, false );
+			sendAndReceive( auth, request_packet,destination_address, null, PRUDPPacket.DEFAULT_UDP_TIMEOUT, PRUDPPacketHandler.PRIORITY_MEDIUM );
 		
 		return( request.getReply());
 	}
@@ -555,11 +555,11 @@ PRUDPPacketHandlerImpl
 		InetSocketAddress			destination_address,
 		PRUDPPacketReceiver			receiver,
 		long						timeout,
-		boolean						low_priority )
+		int							priority )
 	
 		throws PRUDPPacketHandlerException
 	{
-		sendAndReceive( null, request_packet, destination_address, receiver, timeout, low_priority );
+		sendAndReceive( null, request_packet, destination_address, receiver, timeout, priority );
 	}
 	
 	public PRUDPPacketHandlerRequestImpl
@@ -569,7 +569,7 @@ PRUDPPacketHandlerImpl
 		InetSocketAddress			destination_address,
 		PRUDPPacketReceiver			receiver,
 		long						timeout,
-		boolean						low_priority )
+		int							priority )
 	
 		throws PRUDPPacketHandlerException
 	{
@@ -680,19 +680,17 @@ PRUDPPacketHandlerImpl
 						}else{
 							
 							send_queue_data_size	+= dg_packet.getLength();
-														
-							if ( low_priority ){
 								
-								send_queue_lp.add( new Object[]{ dg_packet, request });
-								
-							}else{
-								
-								send_queue_hp.add( new Object[]{ dg_packet, request });
-							}
+							send_queues[priority].add( new Object[]{ dg_packet, request });
 							
 							if ( TRACE_REQUESTS ){
 								
-								System.out.println( "send queue: hp = " + send_queue_hp.size()+ ", lp = " + send_queue_lp.size());
+								String	str = "";
+								
+								for (int i=0;i<send_queues.length;i++){
+									str += (i==0?"":",") + send_queues[i].size();
+								}
+								System.out.println( "send queue sizes: " + str );
 							}
 							
 							send_queue_sem.release();
@@ -705,7 +703,7 @@ PRUDPPacketHandlerImpl
 										public void
 										runSupport()
 										{
-											int		consecutive_hps = 0;
+											int[]		consecutive_sends = new int[send_queues.length];
 											
 											while( true ){
 												
@@ -713,34 +711,41 @@ PRUDPPacketHandlerImpl
 													send_queue_sem.reserve();
 													
 													Object[]	data;
+													int			selected_priority	= 0;
 													
 													try{
 														send_queue_mon.enter();
 													
-															// need a bit of fairness here. just ensure that we send 
-															// a low priority one now and then
+															// invariant: at least one queue must have an entry
 														
-														if ( consecutive_hps >= 4 && send_queue_lp.size() > 0 ){
+														for (int i=0;i<send_queues.length;i++){
 															
-															data	= (Object[])send_queue_lp.remove(0);
+															List	queue = send_queues[i];
 															
-															consecutive_hps	= 0;
-															
-														}else{
-															
-															if ( send_queue_hp.size() > 0 ){
-															
-																data	= (Object[])send_queue_hp.remove(0);
-															
-																consecutive_hps++;
+															if ( queue.size() > 0 ){
 																
+																selected_priority	= i;
+																
+																if ( consecutive_sends[i] >= 4 ){
+																	
+																		// too many consecutive, see if there are
+																		// lower priority queues with entries
+																	
+																	consecutive_sends[i]	= 0;
+																	
+																}else{
+																	
+																	consecutive_sends[i]++;
+																	
+																	break;
+																}
 															}else{
-														
-																data	= (Object[])send_queue_lp.remove(0);
 																
-																consecutive_hps	= 0;
+																consecutive_sends[i]	= 0;
 															}
 														}
+														
+														data = (Object[])send_queues[selected_priority].remove(0);
 														
 													}finally{
 														
@@ -767,7 +772,14 @@ PRUDPPacketHandlerImpl
 																	+ p.getAddress()));											
 													}														
 												
-													Thread.sleep( send_delay );
+													long	delay = send_delay;
+													
+													if ( selected_priority == PRIORITY_HIGH ){
+														
+														delay	= delay/2;
+													}
+													
+													Thread.sleep( delay );
 													
 												}catch( Throwable e ){
 													// get occasional send fails, not very interesting
@@ -910,7 +922,11 @@ PRUDPPacketHandlerImpl
 	public long
 	getSendQueueLength()
 	{
-		return( send_queue_hp.size() + send_queue_lp.size());
+		int	res = 0;
+		for (int i=0;i<send_queues.length;i++){
+			res += send_queues[i].size();
+		}
+		return(res);
 	}
 	
 	public long

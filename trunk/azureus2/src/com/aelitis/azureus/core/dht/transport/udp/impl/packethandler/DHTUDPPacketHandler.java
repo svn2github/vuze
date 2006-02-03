@@ -32,7 +32,6 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketReply;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
-import com.aelitis.net.udp.*;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -108,7 +107,7 @@ DHTUDPPacketHandler
 		InetSocketAddress					destination_address,
 		final DHTUDPPacketReceiver			receiver,
 		long								timeout,
-		boolean								low_priority )
+		int									priority )
 	
 		throws DHTUDPPacketHandlerException
 	{
@@ -174,7 +173,7 @@ DHTUDPPacketHandler
 						}
 					}, 
 					timeout, 
-					low_priority );
+					priority );
 			}else{
 				
 				receiver.error( new DHTUDPPacketHandlerException( new Exception( "Test network disabled" )));

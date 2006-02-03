@@ -53,6 +53,7 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPReque
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 
 /**
  * @author parg
@@ -1134,7 +1135,7 @@ DHTTransportUDPImpl
 						handler.failed( contact,e );
 					}
 				},
-				request_timeout, false );
+				request_timeout, PRUDPPacketHandler.PRIORITY_MEDIUM );
 			
 		}catch( Throwable e ){
 			
@@ -1211,7 +1212,7 @@ DHTTransportUDPImpl
 						handler.failed( contact, e );
 					}
 				},
-				request_timeout, true );
+				request_timeout, PRUDPPacketHandler.PRIORITY_LOW );
 			
 		}catch( Throwable e ){
 			
@@ -1288,7 +1289,7 @@ DHTTransportUDPImpl
 						}
 					}
 				},
-				5000, false );
+				5000, PRUDPPacketHandler.PRIORITY_HIGH );
 			
 			sem.reserve( 5000 );
 			
@@ -1511,7 +1512,7 @@ DHTTransportUDPImpl
 						}
 					},
 					store_timeout,
-					true );	// low priority
+					PRUDPPacketHandler.PRIORITY_LOW );
 
 			}
 		}catch( Throwable e ){
@@ -1604,7 +1605,7 @@ DHTTransportUDPImpl
 						handler.failed( contact, e );
 					}
 				},
-				request_timeout, false );
+				request_timeout, PRUDPPacketHandler.PRIORITY_MEDIUM );
 			
 		}catch( Throwable e ){
 			
@@ -1700,7 +1701,7 @@ DHTTransportUDPImpl
 						handler.failed( contact, e );
 					}
 				},
-				request_timeout, false );
+				request_timeout, PRUDPPacketHandler.PRIORITY_HIGH );
 			
 		}catch( Throwable e ){
 			

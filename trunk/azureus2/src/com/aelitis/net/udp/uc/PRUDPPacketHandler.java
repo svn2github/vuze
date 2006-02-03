@@ -31,6 +31,10 @@ import java.net.*;
 public interface 
 PRUDPPacketHandler 
 {
+	public static final int	PRIORITY_LOW		= 2;
+	public static final int	PRIORITY_MEDIUM		= 1;
+	public static final int	PRIORITY_HIGH		= 0;
+	
 		/**
 		 * Asynchronous send and receive
 		 * @param request_packet
@@ -45,7 +49,7 @@ PRUDPPacketHandler
 		InetSocketAddress			destination_address,
 		PRUDPPacketReceiver			receiver,
 		long						timeout,
-		boolean						low_priority )
+		int							priority )
 	
 		throws PRUDPPacketHandlerException;
 	
