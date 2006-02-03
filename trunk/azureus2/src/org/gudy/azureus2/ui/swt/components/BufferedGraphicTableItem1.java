@@ -151,6 +151,12 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
 				|| bounds.height <= 0)
     	return;
 
+    Rectangle tableBounds = table.getClientArea();
+    if (bounds.y + bounds.height < table.getHeaderHeight() || bounds.y > tableBounds.height) {
+      //debugOut("doPaint() "+String.valueOf(bounds.y + bounds.height)+"<"+tableBounds.y, false);
+      return;
+    }
+    
     if (orientation == SWT.FILL) {
       if (imageBounds.width != bounds.width ||
           imageBounds.height != bounds.height) {
@@ -186,12 +192,6 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     		bounds.x += (bounds.width - imageBounds.width) / 2;
     	else if (orientation == SWT.RIGHT)
     		bounds.x = (bounds.x + bounds.width) - imageBounds.width;
-    }
-    
-    Rectangle tableBounds = table.getClientArea();
-    if (bounds.y + bounds.height < table.getHeaderHeight() || bounds.y > tableBounds.height) {
-      //debugOut("doPaint() "+String.valueOf(bounds.y + bounds.height)+"<"+tableBounds.y, false);
-      return;
     }
     
     Rectangle clipping = new Rectangle(bounds.x, bounds.y, 
