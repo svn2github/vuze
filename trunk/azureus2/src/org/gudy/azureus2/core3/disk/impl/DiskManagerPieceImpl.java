@@ -374,7 +374,7 @@ public class DiskManagerPieceImpl
 	public long getLastWriteTime()
 	{
 		long now =SystemTime.getCurrentTime();
-		if (time_last_write >0 &&now >=time_last_write)
+		if (now >=time_last_write)
 			return time_last_write;
 		return time_last_write =now;
 	}
