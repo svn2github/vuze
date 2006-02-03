@@ -1867,7 +1867,13 @@ PEPeerTransportProtocol
       public void dataBytesReceived( int byte_count ) {
         //update stats
         peer_stats.dataBytesReceived( byte_count );
+        
         manager.dataBytesReceived( byte_count );
+        
+        	// pick up very slow peers as they may deliver an entire block so slowly that the
+        	// request times out if we only use block reception to measure when data's received
+        
+        last_good_data_time	= SystemTime.getCurrentTime();
       }
     });
     
