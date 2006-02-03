@@ -1604,6 +1604,15 @@ MainWindow
   }
   
 
+  public boolean showConfig(String id) {
+    if (config == null){
+      config_view = new ConfigView( azureus_core );
+      config = new Tab(config_view);
+    }else{
+      config.setFocus();
+    }
+    return config_view.selectSection(id);
+  }
   
 
   

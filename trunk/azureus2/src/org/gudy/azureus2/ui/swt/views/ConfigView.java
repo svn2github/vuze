@@ -487,6 +487,15 @@ public class ConfigView extends AbstractIView {
     return MessageText.getString("ConfigView.title.full"); //$NON-NLS-1$
   }
 
+  public boolean selectSection(String id) {
+		TreeItem ti = findTreeItem(id);
+		if (ti == null)
+			return false;
+		tree.setSelection(new TreeItem[] { ti });
+		showSection(ti);
+		return true;
+	}
+
   public void
   selectSection(
   	Class	config_section_class )
