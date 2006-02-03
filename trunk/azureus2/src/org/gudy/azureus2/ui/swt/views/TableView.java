@@ -106,6 +106,9 @@ public class TableView
 	/** Virtual Tables still a work in progress */
 	private final static boolean DISABLEVIRTUAL = SWT.getVersion() < 3138;
 
+	private final static boolean COLUMN_CLICK_DELAY = Constants.isOSX
+			&& SWT.getVersion() >= 3221 && SWT.getVersion() <= 3222;
+
 	private static final boolean DEBUG_SORTER = false;
 
 	// Shorter name for ConfigManager, easier to read code
@@ -952,9 +955,7 @@ public class TableView
     // Add move listener at the very end, so we don't get a bazillion useless 
     // move triggers
     if (SWT.getVersion() >= 3100) {
-    	boolean bResizeListener = Constants.isOSX && SWT.getVersion() == 3221;
-
-			Listener columnResizeListener = (!bResizeListener) ? null
+			Listener columnResizeListener = (!COLUMN_CLICK_DELAY) ? null
 					: new Listener() {
 						public void handleEvent(Event event) {
 							lLastColumnResizeOn = System.currentTimeMillis();
@@ -972,7 +973,7 @@ public class TableView
 	      
 	      TableColumn column = table.getColumn(adjusted_position);
 	      column.addListener(SWT.Move, columnMoveListener);
-	    	if (bResizeListener)
+	    	if (COLUMN_CLICK_DELAY)
 	    		column.addListener(SWT.Resize, columnResizeListener);
 	    }
     }
@@ -2236,17 +2237,17 @@ public class TableView
      * @param event event information
      */
     public void handleEvent(final Event event) {
-    	if (Constants.isOSX && SWT.getVersion() == 3221) {
+    	if (COLUMN_CLICK_DELAY) {
 				// temporary for OSX.. resizing column triggers selection, so cancel
 				// if a resize was recent. 
 				final Timer timer = new Timer("Column Selection Wait");
-				timer.addEvent(System.currentTimeMillis() + 50,
+				timer.addEvent(System.currentTimeMillis() + 75,
 						new TimerEventPerformer() {
 							public void perform(TimerEvent timerEvent) {
 								Utils.execSWTThread(new AERunnable() {
 									public void runSupport() {
 										if (lLastColumnResizeOn == -1
-												|| System.currentTimeMillis() - lLastColumnResizeOn > 150)
+												|| System.currentTimeMillis() - lLastColumnResizeOn > 200)
 											reallyHandleEvent(event);
 									}
 								});
