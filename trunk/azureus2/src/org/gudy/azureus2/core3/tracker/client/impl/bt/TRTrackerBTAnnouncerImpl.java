@@ -2455,16 +2455,18 @@ TRTrackerBTAnnouncerImpl
 				
 			for (int i=0;i<ext_peers.length;i++){
 				
+				DownloadAnnounceResultPeer	ext_peer = ext_peers[i];
+				
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(torrent, LOGID, "EXTERNAL PEER: ip="
-							+ ext_peers[i].getAddress() + " port=" + ext_peers[i].getPort()));
+							+ ext_peer.getAddress() + ",port=" + ext_peer.getPort()+",prot=" + ext_peer.getProtocol()));
 
 				peers[i] = new TRTrackerAnnouncerResponsePeerImpl( 
-									ext_peers[i].getSource(),
-									ext_peers[i].getPeerID(),
-									ext_peers[i].getAddress(), 
-									ext_peers[i].getPort(),
-									ext_peers[i].getProtocol());
+								ext_peer.getSource(),
+								ext_peer.getPeerID(),
+								ext_peer.getAddress(), 
+								ext_peer.getPort(),
+								ext_peer.getProtocol());
 			}
 			
 			addToTrackerCache( peers);
