@@ -59,9 +59,9 @@ BufferedTableRow
 	private static Color[] alternatingColors = null;
 
 	// for checkWidget(int)
-	private final static int REQUIRE_TABLEITEM = 0;
-	private final static int REQUIRE_TABLEITEM_INITIALIZED = 1;
-	private final static int REQUIRE_VISIBILITY = 2;
+	public final static int REQUIRE_TABLEITEM = 0;
+	public final static int REQUIRE_TABLEITEM_INITIALIZED = 1;
+	public final static int REQUIRE_VISIBILITY = 2;
 	
 	protected Table table;
 	protected TableItem	item;
