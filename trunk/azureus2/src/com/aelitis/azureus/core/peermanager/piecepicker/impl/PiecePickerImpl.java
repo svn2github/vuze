@@ -256,7 +256,7 @@ public class PiecePickerImpl
 			if ( availabilityAsynch == null ){
 				availabilityAsynch = (int[])availability.clone();
 			}
-			if (availabilityAsynch[pieceNumber] !=0)
+			if (availabilityAsynch[pieceNumber] >(dmPieces[pieceNumber].isDone() ?1 :0))
 				--availabilityAsynch[pieceNumber];
 			else
 				availabilityDrift++;
@@ -367,7 +367,7 @@ public class PiecePickerImpl
 	{
 	    if (Logger.isEnabled())
 	        Logger.log(new LogEvent(diskManager.getTorrent(), LOGID, LogEvent.LT_INFORMATION,
-	            "Recomputing availabiliy from scratch:"	+peerControl.getDisplayName()));
+	            "Recomputing availabiliy. Drift="+availabilityDrift+":"+peerControl.getDisplayName()));
 	    final List	peerTransports =peerControl.getPeers();
 	    
 	    int[]	newAvailability = new int[nbPieces];
@@ -659,7 +659,7 @@ public class PiecePickerImpl
 		PEPiece pePiece =pc.getPiece(pieceNumber);
 		if (pePiece ==null)
 		{
-			pePiece =new PEPieceImpl(pt.getManager(), dmPieces[pieceNumber], peerSpeed >>1, false);
+			pePiece =new PEPieceImpl(pt.getManager(), dmPieces[pieceNumber], peerSpeed >>1);
 
 			// Assign the created piece to the pieces array.
 			pc.addPiece(pePiece, pieceNumber);
@@ -817,10 +817,11 @@ public class PiecePickerImpl
                         priority +=pieceSpeed;
                         priority +=(i ==lastPiece) ?PRIORITY_W_SAME_PIECE :0;
                         // Adjust priority for purpose of continuing pieces
-                        // how long since last written to
-                        staleness =now -dmPiece.getLastWriteTime();
-                        if (staleness >0)
-                            priority +=staleness /PRIORITY_DW_STALE;
+                        // how long since last written to (if written to)
+                        staleness =dmPiece.getLastWriteTime();
+                        if (staleness ==0)
+                            staleness =pePiece.getCreationTime();
+                        priority +=(now -staleness) /PRIORITY_DW_STALE;
                         // how long since piece was started
                         pieceAge =now -pePiece.getCreationTime();
                         if (pieceAge >0)
@@ -1114,7 +1115,7 @@ public class PiecePickerImpl
                         final DiskManagerPiece dmPiece =dmPieces[pieceNumber];
                         if (dmPiece.isNeeded() &&!dmPiece.isDownloaded() &&!dmPiece.isWritten() &&!dmPiece.isChecking() &&!dmPiece.isDone())
                         {
-                            pePiece =new PEPieceImpl(peerControl, dmPiece, 0, false);
+                            pePiece =new PEPieceImpl(peerControl, dmPiece, 0);
                             peerControl.addPiece(pePiece, pieceNumber);
                         } else if (dmPiece.isWritten(chunk.getBlockNumber()))
                         {
@@ -1274,7 +1275,7 @@ public class PiecePickerImpl
                 {
                     if (peerHavePieces.flags[i])
                     {
-                        if (availabilityAsynch[i] !=0)
+                        if (availabilityAsynch[i] >(dmPieces[i].isDone() ?1 :0))
                             --availabilityAsynch[i];
                         else
                             availabilityDrift++;
