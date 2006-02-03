@@ -151,6 +151,18 @@ UIManager
 	
 	public SWTManager getSWTManager();
   
+	
+	/**
+	 * Open Config View to the section specified
+	 * 
+	 * @param sectionID ID of section to open to.
+	 *         {@link org.gudy.azureus2.plugins.ui.config.ConfigSection}.SECTION_* constants
+	 * @return true-Section opened; false-Section invalid or UI does not support config views
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public boolean showConfigSection(String sectionID);
+
 	  /* Future
 	  public MenuManager getMenuManager();
 	  In MenuManager..

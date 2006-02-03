@@ -281,7 +281,21 @@ UISWTInstanceImpl
 				TableContextMenuManager.getInstance().addContextMenuItem(item);
 				
 				break;
-			} 
+			}
+			
+			case UIManagerEvent.ET_SHOW_CONFIG_SECTION: {
+				event.setResult(new Boolean(false));
+
+				if (!(data instanceof String))
+					break;
+
+		    final MainWindow window = MainWindow.getWindow();
+		    
+		    if ( window != null )
+		    	event.setResult(new Boolean(window.showConfig((String)data)));
+
+				break;
+			}
 			default:
 			{
 				done	= false;

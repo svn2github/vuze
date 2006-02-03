@@ -475,4 +475,16 @@ UIManagerImpl
 	{
 		fireEvent( UIManagerEvent.ET_SHOW_TEXT_MESSAGE, new String[]{ title_resource, message_resource, contents });
 	}		
+
+	public boolean showConfigSection(String sectionID) {
+		UIManagerEventAdapter event = new UIManagerEventAdapter(
+				UIManagerEvent.ET_SHOW_CONFIG_SECTION, sectionID);
+		if (!fireEvent(event))
+			return false;
+
+		if (event.getResult() instanceof Boolean)
+			return false;
+
+		return ((Boolean)event.getResult()).booleanValue();
+	}
 }
