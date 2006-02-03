@@ -117,7 +117,7 @@ BasicPluginViewImpl
      * ]
      */
 		
-		Composite topSection = new Composite(panel, SWT.NONE);
+	Composite topSection = new Composite(panel, SWT.NONE);
     gridLayout = new GridLayout();
     gridLayout.numColumns = 2;
     gridLayout.marginHeight = 0;
@@ -158,8 +158,19 @@ BasicPluginViewImpl
     }
     
     if (sConfigSectionID != null) {
-    	Button btnConfig = new Button(panel, SWT.PUSH);
-      Messages.setLanguageText(btnConfig, "plugins.basicview.config");
+    	Composite configSection = new Composite(panel, SWT.NONE);
+        gridLayout = new GridLayout();
+        gridLayout.numColumns = 2;
+        gridLayout.marginHeight = 0;
+        gridLayout.marginWidth = 2;
+        configSection.setLayout(gridLayout);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        configSection.setLayoutData(gridData);
+        Label padding = new Label(configSection,SWT.NULL);
+        gridData = new GridData(GridData.FILL_HORIZONTAL);
+        padding.setLayoutData(gridData);
+    	Button btnConfig = new Button(configSection, SWT.PUSH);
+    	Messages.setLanguageText(btnConfig, "plugins.basicview.config");
     	btnConfig.addSelectionListener(new SelectionAdapter() {
     		public void widgetSelected(SelectionEvent e) {
     			MainWindow.getWindow().showConfig(model.getConfigSectionID());
