@@ -1,92 +1,72 @@
 $ 
-$    Tervetuloa käyttämään versiota 2.3.0.6
+$    Tervetuloa käyttämään versiota 2.4.0.0
 $ 
 
-+1. Mitä uutta on Azureus 2.3.0.6:ssa
++1. Mitä uutta on Azureus 2.4.0.0:ssa
 
- Pääasiassa korjaa paljon ohjelmavirheitä, mutta sisältää myös mm. seuraavat uudistukset:
- 
-    Korruptoitunutta tietoa lähettävät käyttäjät estetään tehokkaammin
-    Vaihtoehtoiset lähetysasetukset pelkästään lähetettäessä (kun ei ladata mitään)
-    Torrent-tiedoston käsittämien tiedostojen uudelleennimeäminen ja kohteen uudelleenvalitseminen
-    Jos palomuuri estää Azureuksen toiminnan, siitä ilmoitetaan kattavammin
-    NAT traversal -tuki hajautettua tietokantaa hyödyntäville torrent-tiedostoille
-    Java 5.0 -tuki Mac OSX:lle
+ PLEASE DON'T TRANSLATE YET!!!!
     
     Huom.: Nykyisin Windows-ympäristössä Internet-yhteyttä käyttävänä prosessina ei näy Java, vaan itse Azureus.exe. Niinpä ohjelmistopohjaiseen palomuuriin saattaa joutua tekemään uuden Azureuksen liikenteen sallivan säännön.
     
-    Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
+    Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
 
-    Edellisen version muutokset: http://azureus.sourceforge.net/changelog.php?version=2.3.0.4
+    Edellisen version muutokset: http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4, 2.3.0.2
     
-+2. Mitä uutta on Azureus 2.3.0.2:ssa
++2. Mitä uutta on Azureus 2.3.0.0:ssa
 
- Pääosin korjaa ohjelmavirheitä/parantaa suorituskykyä. Muutamia mainittavia seikkoja:
- 
-    JDK 1.4 -yhteensopivuus palautettu Windows-ympäristössä
-    Hajautetun tietokannan bootstrap-toimintaa sekä toimimista IP-osoitteen vaihtuessa parannettu
-    Vähentynyt muistinkäyttö
-    Pysäytettyjen torrent-tiedostojen kuluttamia resursseja vähennetty
-    Pitkäaikaisten yhteyksien ja yhteystietojen vaihtamisen toimintaa parannettu
-    Konsolikäyttöliittymä tukee nyt versiontarkastusta
- 
-    Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.3.0.2
-    
-+3. Mitä uutta on Azureus 2.3.0.0:ssa
-
-!3.1 Hajautettu tietokanta
+!2.1 Hajautettu tietokanta
  Azureuksessa on nyt ns. hajautettu tietokanta, jota voidaan käyttää torrent-tiedostojen jakamiseen. Tämä mahdollistaa muutamia hyödyllisiä asioita: torrent-tiedosto ei tarvitse trackeria levitäkseen, ja jos trackeri on syystä tai toisesta pois käytettävistä tai torrent-tiedosto on poistettu trackerilta, voidaan tiedostojen siirtämistä siltikin jatkaa. Tietoja siis levitetään suoraan hajautetun tietokannan avulla käyttäjien välillä.
  Hajautettu tietokanta käyttää UDP-protokollaa. Niinpä palomuureista/reitittimistä täytyy avata haluttu UDP-portti.
  
-*3.1.1 Magnet-linkit
+*2.1.1 Magnet-linkit
  Hajautettua tietokantaa käyttäville torrent-tiedostoille voidaan luoda ns. Magnet-linkki. Tämä on muotoa "magnet:?xt=urn:btih:..." ja sitä voidaan käyttää varsinaisen torrent-tiedoston lataamiseen hajautetusta tietokannasta (Tiedosto | Avaa | Torrent-tiedosto url-osoitteesta).
  http://azureus.aelitis.com/wiki/index.php/Magnet_link
  
-!3.2 Parannettu protokolla
+!2.2 Parannettu protokolla
  Azureus tukee nyt uutta viestintään tarkoitettua protokollaa, jonka avulla lisäosat voivat hyödyntää Azureuksen luomia yhteyksiä uudenlaisissa käyttötarkoituksissa. Muiden asiakasohjelmien kehittäjät voivat katsoa protokollan määrittelyn osoitteesta http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Lisäosien kehittäjät voivat katsoa lisäosien javadocs-tiedostoista, kuinka käyttää tätä protokollaa.
  Esimerkiksi JPC- ja Chat-lisäosat hyödyntävät tätä uutta ominaisuutta.
 
-!3.3 JPC
+!2.3 JPC
  Joltid Peer Cache (JPC) on nyt sisällytetty Azureukseen. Jos käyttäjän ISP (Internet-yhteyden tarjoaja) tukee tätä, pitäisi latauksien onnistua nopeammin. Samalla palveluntarjoajan oma liikenne vähenee. JPC-lisäosa on turvallinen, sillä palveluntarjoaja ei näe mitä lataat/lähetät, eikä pysty millään tavoin vakoilemaan toimiasi. JPC-lisäosa voidaan kytkeä pois käytöstä asetuksista (Työkalut | Asetukset | Lisäosat | JPC).
   
-!3.4 Uudet lisäosat
+!2.4 Uudet lisäosat
  Hajautettu tietokanta ja uusi viestinnän salliva protokolla mahdollistivat uudenlaisten lisäosien kehittämisen. Mitään näistä ei asenneta automaattisesti, mutta jos kiinnostusta riittää, voit tutustua niihin käyttämällä ohjattua lisäosien asennustoimintoa (Lisäosat | Ohjattu asennustoiminto).
  
-*3.4.1 Chat-lisäosa
+*2.4.1 Chat-lisäosa
  Tämän lisäosan avulla jokaiselle lataamallesi torrent-tiedostolle perustetaan oma "keskustelukanava". Jokainen kanava on itsenäinen ja voit keskustella niillä mistä haluat. Tämä lisäosa hyödyntää uudistettua protokollaa. Muiden asiakasohjelmien kehittäjät voivat katsoa lisätietoja tästä protokollasta sekä lisäosasta täältä: http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
  Voit myös luoda oman erityisen kanavasi ilman torrent-tiedostoa (tai liittyä tällaiselle kanavalle). Tällöin luodaan ns. virtuaalinen torrent-tiedosto, jolla ei ole lähettäjiä, jotta käyttäjät vain pääsevät keskustelemaan. Nämä "virtuaaliset" torrent-tiedostot hyödyntävät hajautettua tietokantaa trackerina, joten et voi käyttää "virtuaalisia" torrent-tiedostoja ja kanavia, jos hajautettu tietokanta ei ole käytettävissä (tällöin normaalit Chat-lisäosan luomat torrent-kohtaiset keskustelut kuitenkin toimivat).
  
-*3.4.2 Arvostelut ja kommentit
+*2.4.2 Arvostelut ja kommentit
  Tämän lisäosan avulla voit nähdä muiden käyttäjien torrent-tiedostoille kirjoittamat arvostelut ja kommentit, mutta voit myös arvostella torrent-tiedoston ja kirjoittaa sille kommentin itse (hiiren kakkosnapin klikkaus torrent-tiedoston kohdalla Siirrot-ikkunassa -> Ratings & comments). Lisäosa hyödyntää hajautettua tietokantaa, joten sen täytyy olla toiminnassa.
  
 
-+4. Päivityskehotus
++3. Päivityskehotus
 
-!4.1 Java 5.0
+!3.1 Java 5.0
  Azureus on kirjoitettu Java-kielellä ja vaatii näin ollen Javan ajonaikaiset tiedostot (Java JRE). Suositus on Java 5.0 (tunnetaan myös versionumerolla 1.5), koska sen avulla saavutetaan parempi suorituskyky ja luotettavuus - päivitä, jos tarpeellista.
  Java-päivitykset löydät täältä: http://azureus.sourceforge.net/download.php
  Lataa käyttöjärjestelmällesi sopiva versio, sulje Azureus, poista aikaisempi Javan versio (jos asennettu), käynnistä tietokone uudelleen, asenna ladattu uusi Javan versio, käynnistä tietokone uudelleen ja vihdoin käynnistä Azureus.
  Jos käytät Windows XP:tä ja haluat käyttää Windows XP -tyyliä myös Azureuksen ulkonäössä, käy kytkemässä ominaisuus päivityksen jälkeen uudelleen päälle asetuksista (Työkalut | Asetukset | Käyttöliittymä | Ulkoasu | Käytä Windows XP -tyyliä).
  
-!4.2 NOD32
+!3.2 NOD32
  NOD32 (http://www.nod32.com/) on virustentorjuntaohjelma, jonka tiedetään aiheuttavan ongelmia Azureuksen kanssa (aiheuttaa 100 % -prosessorikäytön).
  Katso lisätietoja osoitteesta http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
 
-+5. Yleiset ongelmat
++4. Yleiset ongelmat
 
-!5.1 NAT-ongelma
+!4.1 NAT-ongelma
  NAT-lyhenne tulee sanoista Network Address Translation. Azureuksen NAT- ja palomuuritesti kertoo, saadaanko sinuun esteittä yhteys ulkoapäin. Esteettömällä yhteydellä saavutetaan paremmat siirtonopeudet.
  Älä suoraan ota yhteyttä Azureuksen kehittäjiin, jos törmäät NAT-ongelmaan. Internetissä on paljon ohjeita ongelman ratkaisemiseksi. Katso ensin:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
 
-!5.2 Azureus kaatuu?
+!4.2 Azureus kaatuu?
  Jos Azureus kaatuilee usein, todennäköisin syy on tietokoneen verkkokomponenteissa (verkkokortti, sen ajurit, käyttöjärjestelmän verkko-ominaisuudet). Suositus on, että päivität kaikki verkkoyhteyteen vaikuttavien laitteiden ajurit. Jos tämä ei auta, järjestelmä ei todennäköisesti kestä kovin suurta yhteysmäärää kerrallaan.
  Alenna avattavien yhteyksien määrää Azureuksessa (Työkalut | Asetukset | Siirrot | Yhteyksien maks.lkm/torrent ja Yhteyksien maks.lkm kaikkiaan). Kokeile pieniä arvoja, kuten 30.
 
-!5.3 Tuki
+!4.3 Tuki
  Ennen kuin otat yhteyttä Azureuksen tukeen, tarkasta ensin seuraavat resurssit:
  - Viralliset kotisivut: http://azureus.sourceforge.net/
  - Virallinen Wiki-ympäristö: http://azureus.aelitis.com/wiki/
@@ -95,7 +75,7 @@ $
  - jos (ja vain jos) et onnistu ratkaisemaan ongelmaasi vieläkään, voit ottaa yhteyttä Azureuksen kehittäjiin sähköpostilla. Osoite on azureus@gmail.com.
 
 
-+6. Kaikki muutokset
++5. Kaikki muutokset
 
 	http://azureus.sourceforge.net/changelog.php?version=2.3.0.0
 	

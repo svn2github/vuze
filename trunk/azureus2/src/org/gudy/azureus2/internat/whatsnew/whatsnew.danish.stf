@@ -1,93 +1,72 @@
 $ 
-$    Velkommen til Azureus 2.3.0.6
+$    Velkommen til Azureus 2.4.0.0
 $ 
 
-+1. Hvad er nyt i Azureus 2.3.0.6
++1. Hvad er nyt i Azureus 2.4.0.0
 
- This is a further bug fix release and also contains various improvements including:
- 
-    Better banning of peers that send corrupt data
-    Alternative upload controls when only seeding
-    Renaming and retargeting of files within a download
-    Better reporting of firewalled status
-    NAT traversal for magnet downloads
-    Java 5.0 support for OSX
-    Bugfixes
+PLEASE DON'T TRANSLATE YET!!!!
     
     Note: New Windows launcher exe might require allowing "Azureus.exe" internet access in your software firewall.
     
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.3.0.6
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
    
-    See http://azureus.sourceforge.net/changelog.php?version=2.3.0.4 for previous changes.
+    See http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 and 2.3.0.3 for previous changes.
     
-+2. Hvad er nyt i Azureus 2.3.0.2
-
- Dette er hovedsagligt en fejl rettelses og ydelses udgivelse. Af betydelig interesse er:
- 
-    JDK 1.4 kompatabilitet gendannet i Windows
-    Distribueret Database bootstrap og IP ændrings handling forbedret
-    Hukommelsesbrug formindsket
-    Tråd brug for tomgangs torrents formindsket
-    Forbindelsesstyring forbedret for longtids forbindelser og peer udveksling
-    Konsol UI understøtter nu alarmer og version opdateringstjek
- 
-    Fuld ændringslog http://azureus.sourceforge.net/changelog.php?version=2.3.0.2
-    
-+3. Hvad er nyt i Azureus 2.3.0.0
++2. Hvad er nyt i Azureus 2.3.0.0
 
 !3.1 Distribuerede Database
  Azureus har nu en distributeret, decentraliseret database som kan bruges til at spore decentraliserede torrents. Dette tillader både "trackerless" torrents og vedligeholdelsen af swarms hvor trackeren er blevet utilgængelig eller hvor den pågældende torrent er fjernet fra trackeren.
  Den bruger UDP protokolen, hvis du har en firewall/router, vil du være nødt til at åbne/forward UDP porten på samme måde du gjorde med TCP for at hente data.
  
-*3.1.1 Magnet links
+*2.1.1 Magnet links
  For torrents som er sporet decentralt, kan Azureus eksportere et "Magnet Link". Dette er af formen "magnet:?xt=urn:btih:..." og kan bruges til at hente torrent fra den distributerede database via menu punktet "Åbn->URL".
  http://azureus.aelitis.com/wiki/index.php/Magnet_link
  
-!3.2 Udvidet protokol
+!2.2 Udvidet protokol
  Azureus understøtter nu en udvidet mellem-klient besked protokol, som er sigtet efter at tilade plugins at bruge forbindelseren oprettet af Azureus til at tilføje funktionalitet til programmet. Andre klient udviklere kan se specifikationerne for denne protokol på http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Plugin udviklere kan tjekke plugin javadocs for at se hvordan den skal benyttes.
  For eksempel, både JPC og Chat plugin gør brug af denne udvidelse.
 
-!3.3 JPC
+!2.3 JPC
  Joltid Peer Cache (JPC) er nu integreret i Azureus. For brugere hvis ISP understøtter dette, skulle JPC give hurtigere nedhentninger, mens ISP'en får hjælp til at reduseret sin bandwidth omkostninger. JPC pluginen er sikker på den måde at din ISP ikke vil vide hvad det er du henter, og kan ikke bruges til at se hvad du laver. JPC pluginen kan deaktiveres gennem Tools > Konfiguration > Plugins > JPC.
   
-!3.4 Specielle plugins
+!2.4 Specielle plugins
  Den Distributerede Database og den udvidet protokol giver os mulighed for at udvikle nogle nye plugins. Vi vil ikke installere dem alle for dig automatisk, men vi anbefaler alle brugere som kunne være interesset i dem til at benytte sig af Plugins > Installation Wizard.
  
-*3.4.1 Chat
+*2.4.1 Chat
  Denne plugin vil oprette en diskusions kanal for hver torrent du henter. Hver kanal er uafhængig, og du er fri til at diskutere hvad du har lyst til i kanalen. Denne plugin gør burg af den udvidede protokol. Udviklere der vil implementere chat funktionen i deres klient kan se mere her : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
  Du kan altså oprette/gå med i en kanal ved at indtaste dens navn i denne plugin. Dette vil have den effekt at der oprettes en "virtuel" torrent, uden seeds, for at kunne tillade brugere at oprette forbindelse til chat. De "virtuelle" torrents gør brug af den Distributerede Database som deres tracker, så mens du godt kan bruge denne plugin uden den Distributerede Database, så kan du ikke bruge den virtuelle kanal egenskab hvis du deaktivere den Distributerede Database.
  
-*3.4.2 Ratings & kommentarer
+*2.4.2 Ratings & kommentarer
  Denne plugin giver dig mulighed for at se ratings & kommentarer fra andre brugere, og du kan også selv tilføje (højre klik den torrent du vil tilføje noget til i "Mine torrents" og vælg "ratings & comments". Denne plugin bruger den Distributerede Database.
  
 
-+4. Opgraderingsråd
++3. Opgraderingsråd
 
-!4.1 Java 5.0
+!3.1 Java 5.0
  Azureus er skrevet i Java og kræver Java runtime. Vi anbefaler Java 5.0 (også kendt som 1.5) da den har bedre ydelse og stabilitet - opgrader hvis det er nødvendigt.
  Du kan finde torrents til Java her : http://azureus.sourceforge.net/download.php
  Hent den som passer til dit system, luk Azureus, kør den hentede fil, og genstart Azureus.
  WinXP brugere kan gå til Tools > Konfiguration > Brugergrænseflade > Udseende, og gentjekke "Brug Windows XP udseende" indstillingen.
  
-!4.2 NOD32
+!3.2 NOD32
  NOD32 (http://www.nod32.com/) is an antivirus which is known to have problems with Azureus, causing 100% CPU usage.
  See http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
 
-+5. Fælles fejl
++4. Fælles fejl
 
-!5.1 NAT "fejl"
+!4.1 NAT "fejl"
  NAT betyder "Network Address Translation". NAT testen i Azureus fortæller dig om folk fra internettet kan oprette forbindelser til dig. Du vil få bedre hastighedder hvis du KAN.
  Kontakt os venligst ikke med NAT fejl, der er mange sider på nettet der kan hjælpe. Tjek først :
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
 
-!5.2 Azureus crasher
+!4.2 Azureus crasher
  Hvis din Azureus crasher, er det højst sandsynligt på grund af dine netværks komponenter (kort, drivers, OS). Vi anbefaler at du opdaterer alle netværks relaterede komponenter. Hvis dette ikke hjælper, så er grunden sikkert at dit system ikke kan håndtere så mange peer forbindelser.
  Sænk antallet af forbindelser i Azureus (Tools > Konfiguration > Overførsel > Maksimalt antal forbindelser pr torrent / i alt), prøv at sænke den til 30 først.
 
-!5.3 Support
+!4.3 Support
  Før du kontakter support teamet, så vær sikke på at tjekke her først :
  - Den officielle hjemmeside : http://azureus.sourceforge.net/
  - Den officielle Wiki : http://azureus.aelitis.com/wiki/
@@ -96,7 +75,7 @@ $
  - Hvis (og kun hvis) du ikke kan løse dit problem efter du har prøvet alle disse medier, kan du kontakte os på azureus@gmail.com
 
 
-+6. Fuld ændringslog
++5. Fuld ændringslog
 
 	http://azureus.sourceforge.net/changelog.php?version=2.3.0.0
 	
