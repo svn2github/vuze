@@ -254,6 +254,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     layoutInfo.marginWidth = 0;
     culdl.setLayout(layoutInfo);
     
+    /* max uploads moved to per-torrent options
     label = new Label(culdl, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.maxuploads"); 
     maxUploads = new Text(culdl, SWT.BORDER);
@@ -300,7 +301,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
         catch (Exception e) {}
       }
     });
-
+	*/
+    
     //Disabled for release. Need to convert from user-specified units to
     //KB/s before restoring the following line
     //String k_unit = DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)
