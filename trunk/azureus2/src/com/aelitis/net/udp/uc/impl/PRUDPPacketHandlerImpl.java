@@ -722,13 +722,17 @@ PRUDPPacketHandlerImpl
 															
 															List	queue = send_queues[i];
 															
-															if ( queue.size() > 0 ){
+															int	queue_size = queue.size();
+															
+															if ( queue_size > 0 ){
 																
 																selected_priority	= i;
 																
-																if ( consecutive_sends[i] >= 4 ){
+																if ( 	consecutive_sends[i] >= 4 ||
+																		(	i < send_queues.length - 1 &&
+																			send_queues[i+1].size() - queue_size > 500 )){	
 																	
-																		// too many consecutive, see if there are
+																		// too many consecutive or too imbalanced, see if there are
 																		// lower priority queues with entries
 																	
 																	consecutive_sends[i]	= 0;
