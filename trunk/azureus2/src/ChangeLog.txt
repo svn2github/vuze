@@ -14,6 +14,8 @@ FEATURE: Dev  | Plugins can now add views/tabs to Torrent Details, Peers View, e
 FEATURE: UI   | Draggable column reordering and column indicator (w/SWT 3.2+) [TuxPaper]
 FEATURE: UI   | Peer piece map in Peers Tab [TuxPaper]
 FEATURE: UI   | Manual tracker scrape option if auto-scrape disabled [Parg]
+FEATURE: UI   | Share-ratio indicator and options to hide the various indicators [Parg]
+FEATURE: UI   | Separate per-torrent options panel [Parg]
 
 CHANGE: Core  | Clearer firewalled/NAT status reporting [Nolar]
 CHANGE: Core  | Do not open the wiki NAT problem page if firewall status is OK [Nolar]
@@ -25,6 +27,8 @@ CHANGE: Core  | Less requirements to pause downloads when changing file prioriti
 CHANGE: Core  | Only one torrent can now be checking at a time [Parg]
 CHANGE: Core  | DHT size estimation improved [Parg]
 CHANGE: Core  | Default listen port number now randomized for new installs [Nolar]
+CHANGE: Core  | Interrupted "seeding+checking" files now rechecked on startup [Parg]
+CHANGE: UI    | Sedding+checking completeness now shown in status [Parg]
 CHANGE: UI    | Faster filling of tables (Mac/some Linux) [TuxPaper]
 CHANGE: UI    | Opening torrents changed to use one opener dialog (w/options to change destination filenames, disable files, etc) [TuxPaper]
 
