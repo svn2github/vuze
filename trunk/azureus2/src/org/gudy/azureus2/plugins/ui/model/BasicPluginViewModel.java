@@ -49,4 +49,22 @@ BasicPluginViewModel
 	
 	public UIProgressBar
 	getProgress();
+
+	/**
+	 * 
+	 * @param id
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public void
+	setConfigSectionID(String id);
+
+	/**
+	 * 
+	 * @return
+	 * 
+	 * @since 2.3.0.7
+	 */
+	public String
+	getConfigSectionID();
 }

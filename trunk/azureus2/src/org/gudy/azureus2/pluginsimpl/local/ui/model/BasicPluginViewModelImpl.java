@@ -44,6 +44,7 @@ BasicPluginViewModelImpl
 	private UITextField	activity;
 	private UITextArea	log;
 	private UIProgressBar	progress;
+	private String sConfigSectionID;
 	
 	public
 	BasicPluginViewModelImpl(
@@ -87,6 +88,18 @@ BasicPluginViewModelImpl
 	getProgress()
 	{
 		return( progress );
+	}
+	
+	public void
+	setConfigSectionID(String id)
+	{
+		sConfigSectionID = id;
+	}
+	
+	public String
+	getConfigSectionID()
+	{
+		return sConfigSectionID;
 	}
 	
 	public void

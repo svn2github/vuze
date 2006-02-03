@@ -25,6 +25,8 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -34,6 +36,7 @@ import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
@@ -91,12 +94,15 @@ BasicPluginViewImpl
 	}
 
   private void initialize(Composite composite) {
+    GridData gridData;
+    GridLayout gridLayout;
+    String sConfigSectionID = model.getConfigSectionID();
+
     this.display = composite.getDisplay();
     panel = new Composite(composite,SWT.NULL);
-    GridLayout panelLayout = new GridLayout();
-    GridData gridData;
-    panelLayout.numColumns = 2;
-    panel.setLayout(panelLayout);
+    gridLayout = new GridLayout();
+    gridLayout.numColumns = 2;
+    panel.setLayout(gridLayout);
 		gridData = new GridData(GridData.FILL_BOTH);
 		panel.setLayoutData(gridData);
     
@@ -110,27 +116,38 @@ BasicPluginViewImpl
      * 
      * ]
      */
+		
+		Composite topSection = new Composite(panel, SWT.NONE);
+    gridLayout = new GridLayout();
+    gridLayout.numColumns = 2;
+    gridLayout.marginHeight = 0;
+    gridLayout.marginWidth = 0;
+    topSection.setLayout(gridLayout);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		if (sConfigSectionID == null)
+			gridData.horizontalSpan = 2;
+		topSection.setLayoutData(gridData);
     
     if(model.getStatus().getVisible()) {
-      Label statusTitle = new Label(panel,SWT.NULL);
+      Label statusTitle = new Label(topSection,SWT.NULL);
       Messages.setLanguageText(statusTitle,"plugins.basicview.status");
     
-      status = new BufferedLabel(panel,SWT.NULL);
+      status = new BufferedLabel(topSection,SWT.NULL);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
       status.setLayoutData(gridData);
     }
     
     if(model.getActivity().getVisible()) {
-      Label activityTitle = new Label(panel,SWT.NULL);
+      Label activityTitle = new Label(topSection,SWT.NULL);
       Messages.setLanguageText(activityTitle,"plugins.basicview.activity");
     
-      task = new BufferedLabel(panel,SWT.NULL);
+      task = new BufferedLabel(topSection,SWT.NULL);
       gridData = new GridData(GridData.FILL_HORIZONTAL);
       task.setLayoutData(gridData);
     }
     
     if(model.getProgress().getVisible()) {
-      Label progressTitle = new Label(panel,SWT.NULL);
+      Label progressTitle = new Label(topSection,SWT.NULL);
       Messages.setLanguageText(progressTitle,"plugins.basicview.progress");
     
       progress = new ProgressBar(panel,SWT.NULL);
@@ -140,14 +157,25 @@ BasicPluginViewImpl
       progress.setLayoutData(gridData);
     }
     
+    if (sConfigSectionID != null) {
+    	Button btnConfig = new Button(panel, SWT.PUSH);
+      Messages.setLanguageText(btnConfig, "plugins.basicview.config");
+    	btnConfig.addSelectionListener(new SelectionAdapter() {
+    		public void widgetSelected(SelectionEvent e) {
+    			MainWindow.getWindow().showConfig(model.getConfigSectionID());
+    		}
+    	});
+    	btnConfig.setLayoutData(new GridData());
+    }
+    
     if(model.getLogArea().getVisible()) {
-      Label logTitle = new Label(panel,SWT.NULL);
+      Label logTitle = new Label(topSection,SWT.NULL);
       Messages.setLanguageText(logTitle,"plugins.basicview.log");
     //  gridData = new GridData(GridData.FILL_HORIZONTAL);
     //  gridData.horizontalSpan = 1;
     //  logTitle.setLayoutData(gridData);
       
-      Button button = new Button( panel, SWT.PUSH );
+      Button button = new Button( topSection, SWT.PUSH );
       Messages.setLanguageText(button,"plugins.basicview.clear");
       
       button.addListener(SWT.Selection, new Listener() {
