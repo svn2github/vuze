@@ -58,6 +58,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -78,6 +79,7 @@ DHTTrackerPlugin
 	implements Plugin, DownloadListener, DownloadPropertyListener, DownloadTrackerListener
 {
 	private static final String	PLUGIN_NAME			= "Distributed Tracker";
+	private static final String PLUGIN_CONFIGSECTION_ID = "plugins.dhttracker";
 	
 	private static final int	ANNOUNCE_TIMEOUT	= 2*60*1000;
 	private static final int	SCRAPE_TIMEOUT		= 30*1000;
@@ -144,8 +146,11 @@ DHTTrackerPlugin
 		final BasicPluginViewModel model = 
 			ui_manager.createBasicPluginViewModel( PLUGIN_NAME);
 		
+		model.setConfigSectionID(PLUGIN_CONFIGSECTION_ID);
+		
 		BasicPluginConfigModel	config = 
-			ui_manager.createBasicPluginConfigModel( "Plugins", "plugins.dhttracker" );
+			ui_manager.createBasicPluginConfigModel( ConfigSection.SECTION_PLUGINS, 
+					PLUGIN_CONFIGSECTION_ID);
 			
 		track_normal_when_offline = config.addBooleanParameter2( "dhttracker.tracknormalwhenoffline", "dhttracker.tracknormalwhenoffline", TRACK_NORMAL_DEFAULT );
 

@@ -43,13 +43,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.components.UITextField;
-import org.gudy.azureus2.plugins.ui.config.ActionParameter;
-import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
-import org.gudy.azureus2.plugins.ui.config.IntParameter;
-import org.gudy.azureus2.plugins.ui.config.LabelParameter;
-import org.gudy.azureus2.plugins.ui.config.Parameter;
-import org.gudy.azureus2.plugins.ui.config.ParameterListener;
-import org.gudy.azureus2.plugins.ui.config.StringParameter;
+import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
@@ -95,6 +89,7 @@ DHTPlugin
 
 	private static final String	PLUGIN_VERSION	= "1.0";
 	private static final String	PLUGIN_NAME		= "Distributed DB";
+	private static final String	PLUGIN_CONFIGSECTION_ID	= "plugins.dht";
 	
 	private static final boolean	TRACE_NON_MAIN = false;
 	private static final boolean	MAIN_DHT_ENABLE	= true;
@@ -154,8 +149,10 @@ DHTPlugin
 
 		final BasicPluginViewModel model = 
 			ui_manager.createBasicPluginViewModel( PLUGIN_NAME);
+
+		model.setConfigSectionID(PLUGIN_CONFIGSECTION_ID);
 		
-		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( "Plugins", "plugins.dht" );
+		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel(ConfigSection.SECTION_PLUGINS, PLUGIN_CONFIGSECTION_ID);
 			
 		config.addLabelParameter2( "dht.info" );
 		

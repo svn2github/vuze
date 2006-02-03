@@ -164,6 +164,9 @@ WebPlugin
 			view_model = ui_manager.createBasicPluginViewModel( plugin_interface.getPluginName());
 		}
 		
+		String sConfigSectionID = "plugins." + plugin_interface.getPluginID();
+		
+		view_model.setConfigSectionID(sConfigSectionID);
 		view_model.getStatus().setText( "Running" );
 		view_model.getActivity().setVisible( false );
 		view_model.getProgress().setVisible( false );
@@ -195,7 +198,7 @@ WebPlugin
 
 		if ( config_model == null ){
 			
-			config_model = ui_manager.createBasicPluginConfigModel( "plugins", "plugins." + plugin_interface.getPluginID());
+			config_model = ui_manager.createBasicPluginConfigModel(ConfigSection.SECTION_PLUGINS, sConfigSectionID);
 		}
 		
 		boolean	save_needed = false;

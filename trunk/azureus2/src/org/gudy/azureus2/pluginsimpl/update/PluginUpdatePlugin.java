@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.pluginsimpl.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
@@ -54,6 +55,8 @@ public class
 PluginUpdatePlugin
 	implements Plugin
 {
+	private static final String PLUGIN_CONFIGSECTION_ID = "plugins.update";
+
 	public static final int	RD_SIZE_RETRIES	= 3;
 	public static final int	RD_SIZE_TIMEOUT	= 10000;
 		
@@ -84,6 +87,7 @@ PluginUpdatePlugin
 		
 		boolean enabled = plugin_config.getPluginBooleanParameter( "enable.update", true );
 
+		model.setConfigSectionID(PLUGIN_CONFIGSECTION_ID);
 		model.getStatus().setText( enabled?"Running":"Optional checks disabled" );
 		model.getActivity().setVisible( false );
 		model.getProgress().setVisible( false );
@@ -122,7 +126,7 @@ PluginUpdatePlugin
 				}
 			});
 				
-		BasicPluginConfigModel config = ui_manager.createBasicPluginConfigModel( "plugins", "plugins.update");
+		BasicPluginConfigModel config = ui_manager.createBasicPluginConfigModel(ConfigSection.SECTION_PLUGINS, PLUGIN_CONFIGSECTION_ID);
 		
 		config.addBooleanParameter2( "enable.update", "Plugin.pluginupdate.enablecheck", true );
 				

@@ -52,6 +52,8 @@ public class
 UPnPPlugin
 	implements Plugin, UPnPMappingListener
 {
+	private static final String PLUGIN_CONFIGSECTION_ID = "UPnP";
+
 	protected PluginInterface		plugin_interface;
 	protected LoggerChannel 		log;
 	
@@ -113,8 +115,9 @@ UPnPPlugin
 		final BasicPluginViewModel model = 
 			ui_manager.createBasicPluginViewModel( 
 					"UPnP");
+		model.setConfigSectionID(PLUGIN_CONFIGSECTION_ID);
 		
-		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( "Plugins", "UPnP" );
+		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel(ConfigSection.SECTION_PLUGINS, PLUGIN_CONFIGSECTION_ID );
 		
 		config.addLabelParameter2( "upnp.info" );
 		

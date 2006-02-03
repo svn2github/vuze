@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.utils.Monitor;
@@ -53,6 +54,7 @@ LocalTrackerPlugin
 	implements Plugin, AZInstanceManagerListener, DownloadManagerListener, DownloadListener
 {
 	private static final String	PLUGIN_NAME	= "LAN Peer Finder";
+	private static final String PLUGIN_CONFIGSECTION_ID = "Plugin.localtracker.name";
 	
 	private static final long	ANNOUNCE_PERIOD		= 20*60*1000;
 	private static final long	RE_ANNOUNCE_PERIOD	= 1*60*1000;
@@ -89,7 +91,7 @@ LocalTrackerPlugin
 		
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
-		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( "Plugins", "Plugin.localtracker.name" );
+		BasicPluginConfigModel	config = ui_manager.createBasicPluginConfigModel( ConfigSection.SECTION_PLUGINS, PLUGIN_CONFIGSECTION_ID );
 
 		config.addLabelParameter2( "Plugin.localtracker.info" );
 		
@@ -98,7 +100,7 @@ LocalTrackerPlugin
 		final BasicPluginViewModel	view_model = 
 			plugin_interface.getUIManager().createBasicPluginViewModel( "Plugin.localtracker.name" );
 
-		
+		view_model.setConfigSectionID(PLUGIN_CONFIGSECTION_ID);
 		view_model.getActivity().setVisible( false );
 		view_model.getProgress().setVisible( false );
 		
