@@ -122,7 +122,8 @@ public class Legend {
 			final Label lblColor = new Label(colorSet, SWT.BORDER);
 			lblColor.setData("Index", new Integer(i));
 			lblColor.setBackground(blockColors[i]);
-			if ((Constants.isOSX || Constants.isLinux) && SWT.getVersion() == 3221) {
+			if ((Constants.isOSX || Constants.isLinux)
+					&& (SWT.getVersion() == 3221 || SWT.getVersion() == 3222)) {
 				// Temporary measure for background not be drawn
 				lblColor.addPaintListener(new PaintListener() {
 					public void paintControl(PaintEvent e) {
