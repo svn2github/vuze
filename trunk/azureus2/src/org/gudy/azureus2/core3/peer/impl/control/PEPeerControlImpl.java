@@ -691,6 +691,9 @@ PEPeerControlImpl
 				final long time_since_write		=now -dmPiece.getLastWriteTime(); //last write time 0 ok
 				if (time_since_write >4001)
 				{
+                    final long pieceCreationTime =pePiece.getCreationTime();
+                    if (now ==pieceCreationTime)
+                        break;
 					// maybe piece's speed is too high for it to get new data
 					if (pePiece.getSpeed() >0)
 					{
