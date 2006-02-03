@@ -181,14 +181,14 @@ PEPeerControlImpl
 		// setup the diskManager
 		dm_pieces =disk_mgr.getPieces();
 
-		// the active pieces
+		// the recovered active pieces
 		_pieces =new PEPieceImpl[_nbPieces];
 		for (int i =0; i <_nbPieces; i++ )
 		{
 			DiskManagerPiece dmPiece =dm_pieces[i];
 			if (!dmPiece.isDone() &&dmPiece.getNbWritten() >0)
 			{
-				addPiece(new PEPieceImpl(this, dmPiece, 0, true), i);
+				addPiece(new PEPieceImpl(this, dmPiece, 0), i);
 			}
 		}
 
@@ -688,7 +688,7 @@ PEPeerControlImpl
 			if (pePiece !=null)
 			{
 				final DiskManagerPiece dmPiece	=dm_pieces[i];
-				final long time_since_write		=now -dmPiece.getLastWriteTime();
+				final long time_since_write		=now -dmPiece.getLastWriteTime(); //last write time 0 ok
 				if (time_since_write >4001)
 				{
 					// maybe piece's speed is too high for it to get new data
@@ -1314,7 +1314,7 @@ PEPeerControlImpl
     PEPiece piece = _pieces[pieceNumber];
     int blockNumber = offset / DiskManager.BLOCK_SIZE;
     if (piece != null && !dm_pieces[pieceNumber].isWritten(blockNumber)) {
-      _pieces[pieceNumber].setBlockWritten(blockNumber);
+      _pieces[pieceNumber].setDownloaded(blockNumber);
       DiskManagerWriteRequest request = disk_mgr.createWriteRequest(pieceNumber, offset, data, sender );
       disk_mgr.enqueueWriteRequest(request, this );
       if (piecePicker.isInEndGameMode())
@@ -1348,7 +1348,7 @@ PEPeerControlImpl
 		PEPiece pePiece = _pieces[pieceNumber];
 		if (pePiece ==null)
 		{
-			pePiece =new PEPieceImpl(this, dmPiece, 0, false);
+			pePiece =new PEPieceImpl(this, dmPiece, 0);
 			addPiece(pePiece, pieceNumber);
 		}
 		if (!dmPiece.isWritten(blockNumber))
