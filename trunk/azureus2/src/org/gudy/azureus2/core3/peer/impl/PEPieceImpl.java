@@ -78,7 +78,7 @@ implements PEPiece
 		if (dm_piece.getWritten() ==null)
 			downloaded =new boolean[nbBlocks];
 		else
-			downloaded =(boolean[])dm_piece.getWritten().clone();
+			downloaded =dm_piece.getWritten();
 		writers =new String[nbBlocks];
 		writes =new ArrayList(0);
 
@@ -91,27 +91,20 @@ implements PEPiece
 			speed =0;
 	}
 
-	/**
-	 * @return int of availability in the swarm for this piece
-	 * @see org.gudy.azureus2.core3.peer.PEPeerManager.getAvailability(int pieceNumber)
-	 */
-	public int getAvailability()
-	{
-		if (manager !=null)
-			return manager.getAvailability(dm_piece.getPieceNumber());
-		return 0;
-	}
+    public DiskManagerPiece getDMPiece()
+    {
+        return dm_piece;
+    }
 
-	/** This support method returns how many blocks have already been
-	 * written from the dmPiece
-	 * @return int from dmPiece.getNbWritten()
-	 * @see org.gudy.azureus2.core3.disk.DiskManagerPiece.getNbWritten()
-	 */
-	public int getNbWritten()
-	{
-		return dm_piece.getNbWritten();
-	}
-	
+    public long getCreationTime()
+    {
+        long now =SystemTime.getCurrentTime();
+        if (now >=creation_time &&creation_time >0)
+            return creation_time;
+        creation_time =now;
+        return creation_time;
+    }
+
 	/** Tells if a block has been requested
 	 * @param blockNumber the block in question
 	 * @return true if the block is Requested already
@@ -128,15 +121,6 @@ implements PEPiece
 	public boolean isDownloaded(int blockNumber)
 	{
 		return downloaded[blockNumber];
-	}
-
-	/** This is a support method to return the dmPiece's written array
-	 * @return boolean[] from the dmPiece
-	 * @see com.aelitis.azureus.core.util.Piece.getWritten()
-	 */
-	public boolean[] getWritten()
-	{
-		return dm_piece.getWritten();
 	}
 
 	/** This flags the given block as having been downloaded
@@ -157,7 +141,7 @@ implements PEPiece
 		dm_piece.setBlockWritten(blockNumber);
 	}
 	
-	/** This method clear the requested information for the given block
+	/** This method clears the requested information for the given block
 	 */
 	public void clearRequested(int blockNumber)
 	{
@@ -185,8 +169,7 @@ implements PEPiece
 					pt =manager.getTransportFromAddress(requester);
 					if (pt !=null)
 					{
-						if (!pt.isSnubbed())
-							pt.setSnubbed(true);
+						pt.setSnubbed(true);
 						if (!pt.isDownloadPossible())
 						{
 							requested[i] =null;
@@ -204,7 +187,7 @@ implements PEPiece
 		if (cleared >0)
 		{
 			dm_piece.clearRequested();
-			manager.getPiecePicker().addEndGameBlocks(this);
+//			manager.getPiecePicker().addEndGameBlocks(this);
             if (Logger.isEnabled())
                 Logger.log(new LogEvent(dm_piece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
                         "Piece:"+getPieceNumber()+" cleared "+cleared+" requests."
@@ -213,10 +196,7 @@ implements PEPiece
 		return cleared;
 	}
 
-	/** This method presumes the caller believes the piece to probably have
-	 * requestable blocks.  As such, this method marks it as Requested when
-	 * no blocks are found.
-	 *  @return true if the piece has any blocks that are not;
+	/** @return true if the piece has any blocks that are not;
 	 *  Downloaded, Requested, and Written
 	 */
 	public boolean hasUnrequestedBlock()
@@ -227,9 +207,6 @@ implements PEPiece
 			if (!downloaded[i] &&requested[i] ==null &&(written ==null ||!written[i]))
 				return true;
 		}
-		// this should have only been called if piece was believed to have free blocks
-		// mark it as not having any free blocks now
-		dm_piece.setRequested();
 		return false;
 	}
 
@@ -244,11 +221,13 @@ implements PEPiece
 	public int[] getAndMarkBlocks(PEPeerTransport peer, int nbWanted)
 	{
 		final String ip =peer.getIp();
+        final boolean[] written =dm_piece.getWritten();
 		int blocksFound =0;
 		// scan piece to find first free block
 		for (int i =0; i <nbBlocks; i++)
 		{
-			while (blocksFound <=nbWanted &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound] &&requested[i +blocksFound] ==null &&!dm_piece.isWritten(i +blocksFound))
+			while (blocksFound <nbWanted &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound]
+			    &&requested[i +blocksFound] ==null &&(written ==null ||!written[i]))
 			{
 				requested[i +blocksFound] =ip;
 				blocksFound++;
@@ -258,6 +237,29 @@ implements PEPiece
 		}
 		return new int[] {-1, 0};
 	}
+
+    public int getNbRequests()
+    {
+        int result =0;
+        for (int i =0; i <nbBlocks; i++)
+        {
+            if (!downloaded[i] &&requested[i] !=null)
+                result++;
+        }
+        return result;
+    }
+
+    public int getNbUnrequested()
+    {
+        int result =0;
+        final boolean[] written =dm_piece.getWritten();
+        for (int i =0; i <nbBlocks; i++ )
+        {
+            if (!downloaded[i] &&requested[i] ==null &&(written ==null ||!written[i]))
+                result++;
+        }
+        return result;
+    }
 
 	/**
 	 * This method is safe in a multi-threaded situation as the worst that it can do is mark a block as not requested even
@@ -496,46 +498,6 @@ implements PEPiece
 		}
 	}
 
-	public long getCreationTime()
-	{
-		long now =SystemTime.getCurrentTime();
-		if (now >=creation_time &&creation_time >0)
-			return creation_time;
-		creation_time =now;
-		return creation_time;
-	}
-
-	public int getNbRequests()
-	{
-		int result =0;
-		for (int i =0; i <nbBlocks; i++)
-		{
-			if (!downloaded[i] &&requested[i] !=null)
-				result++;
-		}
-		return result;
-	}
-
-	public int getNbUnrequested()
-	{
-		int result =0;
-		for (int i =0; i <nbBlocks; i++)
-		{
-			if (!downloaded[i] &&requested[i] ==null)
-				result++;
-		}
-		if (result ==0)
-			dm_piece.setRequested();
-		else
-			dm_piece.clearRequested();
-		return result;
-	}
-
-	public DiskManagerPiece getDMPiece()
-	{
-		return dm_piece;
-	}
-
 	public void setResumePriority(long p)
 	{
 		resumePriority =p;
@@ -545,6 +507,34 @@ implements PEPiece
 	{
 		return resumePriority;
 	}
+
+    /**
+     * @return int of availability in the swarm for this piece
+     * @see org.gudy.azureus2.core3.peer.PEPeerManager.getAvailability(int pieceNumber)
+     */
+    public int getAvailability()
+    {
+        return manager.getAvailability(dm_piece.getPieceNumber());
+    }
+
+    /** This support method returns how many blocks have already been
+     * written from the dmPiece
+     * @return int from dmPiece.getNbWritten()
+     * @see org.gudy.azureus2.core3.disk.DiskManagerPiece.getNbWritten()
+     */
+    public int getNbWritten()
+    {
+        return dm_piece.getNbWritten();
+    }
+    
+    /** This is a support method to return the dmPiece's written array
+     * @return boolean[] from the dmPiece
+     * @see com.aelitis.azureus.core.util.Piece.getWritten()
+     */
+    public boolean[] getWritten()
+    {
+        return dm_piece.getWritten();
+    }
 
 	public int getPieceNumber()
 	{
@@ -561,6 +551,9 @@ implements PEPiece
 		dm_piece.clearChecking();
 	}
 
+    /**
+     * @see DiskManagerPiece.isWritten()
+     */
 	public boolean isWritten()
 	{
 		return dm_piece.isWritten();

@@ -708,7 +708,7 @@ PEPeerControlImpl
 								if (pt !=null)
 									closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds");
 							}
-							pePiece.setReservedBy(null);
+                            pePiece.setReservedBy(null);
 						}
 //						pePiece.checkRequests();
 						checkEmptyPiece(i);
@@ -930,16 +930,18 @@ PEPeerControlImpl
 						if (j >0 ||(now -request.getTimeCreated() >120 *1000))
 						{
 							pc.sendCancel(request);				//cancel the request object
-							//get the piece number
-							final int pieceNumber = request.getPieceNumber();
-							final PEPiece pePiece =_pieces[pieceNumber];
-							//unmark the block
-							if (pePiece !=null)
-								pePiece.unmarkBlock(request.getOffset() /DiskManager.BLOCK_SIZE);
-							//set piece to not fully requested
-							dm_pieces[pieceNumber].clearRequested();
-							if (!checkEmptyPiece(pieceNumber))
-								piecePicker.addEndGameBlocks(pePiece);
+                            if (!piecePicker.isInEndGameMode())
+                            {
+                                //get the piece number
+                                final int pieceNumber = request.getPieceNumber();
+                                final PEPiece pePiece =_pieces[pieceNumber];
+                                //unmark the block
+                                if (pePiece !=null)
+                                    pePiece.unmarkBlock(request.getOffset() /DiskManager.BLOCK_SIZE);
+                                //set piece to not fully requested
+                                dm_pieces[pieceNumber].clearRequested();
+                                checkEmptyPiece(pieceNumber);
+                            }
 						}
 					}
 				}
