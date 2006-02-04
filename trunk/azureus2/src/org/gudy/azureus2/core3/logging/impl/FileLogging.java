@@ -27,7 +27,7 @@ public class FileLogging implements ILogEventListener {
 
 	public static final String BAK_FILE_NAME = "az.log.bak";
 
-	public static LogIDs[] configurableLOGIDs = {LogIDs.STDOUT, LogIDs.STDERR, LogIDs.ALERT, LogIDs.CORE,
+	public static LogIDs[] configurableLOGIDs = {LogIDs.STDOUT, LogIDs.ALERT, LogIDs.CORE,
 			LogIDs.DISK, LogIDs.GUI, LogIDs.NET, LogIDs.NWMAN, LogIDs.PEER,
 			LogIDs.PLUGIN, LogIDs.TRACKER, LogIDs.CACHE, LogIDs.PIECES };
 
