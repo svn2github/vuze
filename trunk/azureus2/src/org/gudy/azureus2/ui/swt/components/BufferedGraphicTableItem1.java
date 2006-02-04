@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Table;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
 
@@ -158,8 +159,9 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
     }
     
     if (orientation == SWT.FILL) {
-      if (imageBounds.width != bounds.width ||
-          imageBounds.height != bounds.height) {
+      if (!Constants.isOSX
+					&& (imageBounds.width != bounds.width 
+							|| imageBounds.height != bounds.height)) {
         //System.out.println("doPaint() sizewrong #"+row.getIndex()+ ".  Image="+imageBounds +";us="+bounds);
 /**/
         // Enable this for semi-fast visual update with some flicker
