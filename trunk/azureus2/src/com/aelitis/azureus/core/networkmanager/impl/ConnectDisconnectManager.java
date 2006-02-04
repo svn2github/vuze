@@ -25,7 +25,6 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.net.*;
 import java.nio.channels.*;
 import java.util.*;
-import java.util.Map.Entry;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -167,13 +166,19 @@ public class ConnectDisconnectManager {
           request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
         }
 
+      
+        int port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+        request.channel.socket().setReuseAddress( true );
+        
         String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
         if ( bindIP.length() > 6 ) {
-        	if (Logger.isEnabled())
-        		Logger.log(new LogEvent(LOGID, "Binding outgoing connection ["
-        				+ request.address + "] to local IP address: " + bindIP));
-          request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), 0 ) );
+        	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP));
+          request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), port ) );
         }
+        else {        	
+        	request.channel.socket().bind( new InetSocketAddress( port ) );     
+        }
+
       }
       catch( Throwable t ) {
         String msg = "Error while processing advanced socket options.";
