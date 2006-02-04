@@ -58,9 +58,9 @@ public class InputShell {
     GridLayout layout = new GridLayout();
 		shell.setLayout(layout);
 
-		Label label = new Label(shell, SWT.NONE);
+		Label label = new Label(shell, SWT.WRAP);
 		Messages.setLanguageText(label, sLabelKey, p1);
-		GridData gridData = new GridData();
+		GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.widthHint = 200;
 		label.setLayoutData(gridData);
 
@@ -111,6 +111,7 @@ public class InputShell {
 		});
 
 		shell.pack();
+		Utils.centreWindow(shell);
 		Utils.createURLDropTarget(shell, text);
 		result = null;
 		shell.open();
