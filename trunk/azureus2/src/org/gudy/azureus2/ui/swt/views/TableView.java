@@ -2241,13 +2241,13 @@ public class TableView
 				// temporary for OSX.. resizing column triggers selection, so cancel
 				// if a resize was recent. 
 				final Timer timer = new Timer("Column Selection Wait");
-				timer.addEvent(System.currentTimeMillis() + 75,
+				timer.addEvent(System.currentTimeMillis() + 85,
 						new TimerEventPerformer() {
 							public void perform(TimerEvent timerEvent) {
 								Utils.execSWTThread(new AERunnable() {
 									public void runSupport() {
 										if (lLastColumnResizeOn == -1
-												|| System.currentTimeMillis() - lLastColumnResizeOn > 200)
+												|| System.currentTimeMillis() - lLastColumnResizeOn > 220)
 											reallyHandleEvent(event);
 									}
 								});
