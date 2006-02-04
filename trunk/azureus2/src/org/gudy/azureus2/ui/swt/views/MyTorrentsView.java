@@ -1340,6 +1340,46 @@ public class MyTorrentsView
 			}
 		}
 
+		final MenuItem itemPositionManual = new MenuItem(menuAdvanced, SWT.PUSH);
+		Messages.setLanguageText(itemPositionManual,
+				"MyTorrentsView.menu.reposition.manual");
+		itemPositionManual.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				InputShell is = new InputShell(
+						"MyTorrentsView.dialog.setPosition.title",
+						"MyTorrentsView.dialog.setPosition.text");
+
+				String sReturn = is.getText();
+				if (sReturn == null)
+					return;
+
+				int newPosition = -1;
+				try {
+					newPosition = Integer.valueOf(sReturn).intValue();
+				} catch (NumberFormatException er) {
+					// Ignore
+				}
+
+				int size = globalManager.downloadManagerCount(isSeedingView);
+				if (newPosition > size)
+					newPosition = size;
+
+				if (newPosition <= 0) {
+					MessageBox mb = new MessageBox(MainWindow.getWindow().getShell(),
+							SWT.ICON_ERROR | SWT.OK);
+					mb.setText(MessageText
+							.getString("MyTorrentsView.dialog.NumberError.title"));
+					mb.setMessage(MessageText
+							.getString("MyTorrentsView.dialog.NumberError.text"));
+
+					mb.open();
+					return;
+				}
+
+				moveSelectedTorrentsTo(newPosition);
+			}
+		});
+
 		// back to main menu
 
 		if (userMode > 0 && isTrackerOn) {
@@ -1741,18 +1781,21 @@ public class MyTorrentsView
     if (drag_drop_line_end == drag_drop_line_start)
       return;
 
-    java.util.List list = getSelectedRowsList();
-    if (list.size() == 0)
-      return;
-
     TableItem ti = getTable().getItem(drag_drop_line_end);
     TableRowCore row = (TableRowCore)ti.getData("TableRow");
     DownloadManager dm = (DownloadManager)row.getDataSource(true);
     
-    int iNewPos = dm.getPosition();
+    moveSelectedTorrentsTo(dm.getPosition());
+  }
+  
+  private void moveSelectedTorrentsTo(int iNewPos) {
+    java.util.List list = getSelectedRowsList();
+    if (list.size() == 0)
+      return;
+
     for (Iterator iter = list.iterator(); iter.hasNext();) {
-      row = (TableRowCore)iter.next();
-      dm = (DownloadManager)row.getDataSource(true);
+      TableRowCore row = (TableRowCore)iter.next();
+      DownloadManager dm = (DownloadManager)row.getDataSource(true);
       int iOldPos = dm.getPosition();
       
       globalManager.moveTo(dm, iNewPos);
