@@ -677,9 +677,9 @@ PEPeerControlImpl
 			return;
 		}
 		
-		final long		now			=SystemTime.getCurrentTime();
-		final int				nbPieces	=_nbPieces;
-		final PEPieceImpl[]	pieces		=_pieces;
+		final long now =SystemTime.getCurrentTime();
+		final int nbPieces =_nbPieces;
+		final PEPieceImpl[] pieces =_pieces;
 		//for every piece
 		for (int i =0; i <nbPieces; i++)
 		{
@@ -688,20 +688,18 @@ PEPeerControlImpl
 			if (pePiece !=null)
 			{
 				final DiskManagerPiece dmPiece	=dm_pieces[i];
-				final long time_since_write		=now -dmPiece.getLastWriteTime(); //last write time 0 ok
-				if (time_since_write >4001)
+                final long lastWriteTime =dmPiece.getLastWriteTime();
+                final long timeSinceLastWrite =now -lastWriteTime;
+				if (lastWriteTime >0 &&timeSinceLastWrite >4001 &&now >pePiece.getCreationTime())
 				{
-                    final long pieceCreationTime =pePiece.getCreationTime();
-                    if (now ==pieceCreationTime)
-                        break;
 					// maybe piece's speed is too high for it to get new data
 					if (pePiece.getSpeed() >0)
 					{
-					    if (!dmPiece.isRequested())
-					    	pePiece.setSpeed((int)((dmPiece.getNbWritten() *DiskManager.BLOCK_SIZE) /(now -pePiece.getCreationTime())));
+					    if (dmPiece.isRequested())
+                            pePiece.setSpeed(0);
 					    else
-					    	pePiece.setSpeed(0);
-					} else if (time_since_write >(120 *1000))
+                            pePiece.setSpeed((int)((dmPiece.getNbWritten() *DiskManager.BLOCK_SIZE) /(now -pePiece.getCreationTime())));
+					} else if (timeSinceLastWrite >(120 *1000))
 					{
 						// has reserved piece gone stagnant?
 						final String reservingPeer =pePiece.getReservedBy();
