@@ -32,9 +32,12 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
+import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
 
@@ -44,7 +47,9 @@ TorrentOptionsView
 {
 	private static final String	TEXT_PREFIX	= "TorrentOptionsView.param.";
 	
-	private static final String	MAX_UPLOADS	= "max.uploads";
+	private static final String	MAX_UPLOAD		= "max.upload";
+	private static final String	MAX_DOWNLOAD	= "max.download";
+	private static final String	MAX_UPLOADS		= "max.uploads";
 	
 	private DownloadManager			manager;
 	
@@ -104,29 +109,91 @@ TorrentOptionsView
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		gTransfer.setLayoutData(gridData);
 		layout = new GridLayout();
-		layout.numColumns = 2;
+		layout.numColumns = 3;
 		gTransfer.setLayout(layout);
 
+		//Disabled for release. Need to convert from user-specified units to
+	    //KB/s before restoring the following line
+	    //String k_unit = DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB).trim()
+	    String k_unit = DisplayFormatters.getRateUnitBase10(DisplayFormatters.UNIT_KB).trim();
+
+			// max upload speed
+		
+		GenericIntParameter	max_upload = new GenericIntParameter( adhoc_param_adapter, gTransfer, MAX_UPLOAD, false );
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		max_upload.setLayoutData(gridData);
+		
+		Label label = new Label(gTransfer, SWT.NULL);
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		label.setLayoutData( gridData );
+		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxuploadspeed.tooltip" ));
+
+			// max download speed
+		
+		GenericIntParameter	max_download = new GenericIntParameter( adhoc_param_adapter, gTransfer, MAX_DOWNLOAD, false );
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		max_download.setLayoutData(gridData);
+		
+		label = new Label(gTransfer, SWT.NULL);
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		label.setLayoutData( gridData );
+		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxdownloadspeed.tooltip" ));
+	     
 			// max uploads
 		
 		GenericIntParameter	max_uploads = new GenericIntParameter( adhoc_param_adapter, gTransfer, MAX_UPLOADS, false );
 		max_uploads.setMinimumValue(2);
-		GridData gd = new GridData();
-		gd.widthHint = 40;
-		max_uploads.setLayoutData(gd);
-		
-		Label label = new Label(gTransfer, SWT.NULL);
-		Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads" );
-		
-		
-			// max peers
-		
-		GenericIntParameter	max_peers = new GenericIntParameter( ds_param_adapter, gTransfer, "max.peers", false );
-		gd = new GridData();
-		gd.widthHint = 40;
-		max_peers.setLayoutData(gd);
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		max_uploads.setLayoutData(gridData);
 		
 		label = new Label(gTransfer, SWT.NULL);
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		label.setLayoutData( gridData );
+		Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads" );
+		
+			//	max uploads when seeding enabled
+		
+		label = new Label(gTransfer, SWT.NULL);
+		gridData = new GridData();
+		gridData.horizontalIndent = 20;
+		GenericBooleanParameter	max_uploads_when_seeding_enabled = 
+			new GenericBooleanParameter( 
+					ds_param_adapter, 
+					gTransfer, 
+					DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED,
+					false,
+					TEXT_PREFIX + "max.uploads.when.seeding.enable");
+		max_uploads_when_seeding_enabled.setLayoutData( gridData );
+		
+
+		GenericIntParameter	max_uploads_when_seeding = 
+			new GenericIntParameter( ds_param_adapter, gTransfer, DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING, false );
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		max_uploads_when_seeding.setMinimumValue(2);
+		max_uploads_when_seeding.setLayoutData(gridData);
+		
+		max_uploads_when_seeding_enabled.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer( max_uploads_when_seeding.getControl()));
+				
+			// max peers
+		
+		GenericIntParameter	max_peers = 
+			new GenericIntParameter( ds_param_adapter, gTransfer, DownloadManagerState.PARAM_MAX_PEERS, false );
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		max_peers.setLayoutData(gridData);
+		
+		label = new Label(gTransfer, SWT.NULL);
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		label.setLayoutData( gridData );
 		Messages.setLanguageText(label, TEXT_PREFIX + "max.peers");
 	}
 	
@@ -166,6 +233,10 @@ TorrentOptionsView
 		{
 			if ( key == MAX_UPLOADS ){
 				return( manager.getStats().getMaxUploads());
+			}else if ( key == MAX_UPLOAD ){
+				return( manager.getStats().getUploadRateLimitBytesPerSecond()/1024);
+			}else if ( key == MAX_DOWNLOAD ){
+				return( manager.getStats().getDownloadRateLimitBytesPerSecond()/1024);
 			}else{
 				return(0);
 			}
@@ -178,6 +249,10 @@ TorrentOptionsView
 		{
 			if ( key == MAX_UPLOADS ){
 				manager.getStats().setMaxUploads(value);
+			}else if ( key == MAX_UPLOAD ){
+				manager.getStats().setUploadRateLimitBytesPerSecond(value*1024);
+			}else if ( key == MAX_DOWNLOAD ){
+				manager.getStats().setDownloadRateLimitBytesPerSecond(value*1024);
 			}
 		}		
 	}
@@ -198,16 +273,7 @@ TorrentOptionsView
 			String	key,
 			int		def )
 		{
-			Integer	i = manager.getDownloadState().getIntParameter( key );
-			
-			if ( i == null ){
-				
-				return( def );
-				
-			}else{
-				
-				return( i.intValue());
-			}	
+			return( manager.getDownloadState().getIntParameter( key ));
 		}
 		
 		public void
@@ -215,7 +281,30 @@ TorrentOptionsView
 			String	key,
 			int		value )
 		{
-			manager.getDownloadState().setIntParameter( key, new Integer( value ));
-		}		
+			manager.getDownloadState().setIntParameter( key, value );
+		}	
+		
+		public boolean
+		getBooleanValue(
+			String	key )
+		{
+			return( getBooleanValue(key,false));
+		}
+		
+		public boolean
+		getBooleanValue(
+			String		key,
+			boolean		def )
+		{
+			return( manager.getDownloadState().getBooleanParameter( key ));
+		}
+		
+		public void
+		setBooleanValue(
+			String		key,
+			boolean		value )
+		{
+			manager.getDownloadState().setBooleanParameter( key, value );
+		}
 	}
 }

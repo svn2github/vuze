@@ -51,8 +51,14 @@ DownloadManagerState
 	public static final long FLAG_SCAN_INCOMPLETE_PIECES	= Download.FLAG_SCAN_INCOMPLETE_PIECES;
 	
 	
+	public static final String	PARAM_MAX_PEERS							= "max.peers";
+	public static final String	PARAM_MAX_UPLOADS_WHEN_SEEDING			= "max.uploads.when.seeding";
+	public static final String	PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED	= "max.uploads.when.seeding.enabled";
+	
 	public static Object[][] PARAMETERS = {
-		{ "max.peers", new Integer( 0 ) },
+		{ PARAM_MAX_PEERS,							new Integer( 0 ) },
+		{ PARAM_MAX_UPLOADS_WHEN_SEEDING, 			new Integer( 0 ) },
+		{ PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED, 	new Boolean( false ) },
 	};
 	
 	public TOTorrent
@@ -74,14 +80,23 @@ DownloadManagerState
 	getFlag(
 		long		flag );
 	
-	public Integer
+	public int
 	getIntParameter(
 		String	name );
 	
 	public void
 	setIntParameter(
 		String	name,
-		Integer	value );
+		int		value );
+	
+	public boolean
+	getBooleanParameter(
+		String	name );
+	
+	public void
+	setBooleanParameter(
+		String		name,
+		boolean		value );
 	
 	public void
 	clearResumeData();

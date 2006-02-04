@@ -48,6 +48,30 @@ GenericParameterAdapter
 		throw( new RuntimeException( "Not implemented" ));
 	}
 	
+	public boolean
+	getBooleanValue(
+		String	key )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public boolean
+	getBooleanValue(
+		String		key,
+		boolean		def )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public void
+	setBooleanValue(
+		String		key,
+		boolean		value )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	
 	public void
 	informChanged(
 		boolean	value_is_changing_internally )

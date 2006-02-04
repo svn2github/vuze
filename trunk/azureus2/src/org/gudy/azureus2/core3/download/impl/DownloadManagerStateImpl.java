@@ -592,7 +592,7 @@ DownloadManagerStateImpl
 		return(( value & flag ) != 0 );
 	}
 	
-	public Integer
+	public int
 	getIntParameter(
 		String	name )
 	{
@@ -609,23 +609,26 @@ DownloadManagerStateImpl
 					
 					Debug.out( "Unknown parameter '" + name + "' - must be defined in DownloadManagerState" );
 				
-					return( null );
+					return( 0 );
 				}
 			}
 			
-			if ( value instanceof Integer ){
+			if ( value instanceof Boolean ){
 				
-				return((Integer)value );
-			}
-			
-			if ( value instanceof Long ){
+				return(((Boolean)value).booleanValue()?1:0);
 				
-				return( new Integer(((Long)value).intValue()));
+			}else if ( value instanceof Integer ){
+				
+				return( ((Integer)value).intValue());
+				
+			}else if ( value instanceof Long ){
+				
+				return( ((Long)value).intValue());
 			}
 			
 			Debug.out( "Invalid parameter value for '" + name + "' - " + value );
 			
-			return( null );
+			return( 0 );
 			
 		}finally{
 			
@@ -636,7 +639,7 @@ DownloadManagerStateImpl
 	public void
 	setIntParameter(
 		String	name,
-		Integer	value )
+		int		value )
 	{
 		Object	default_value = default_parameters.get( name );
 
@@ -653,20 +656,29 @@ DownloadManagerStateImpl
 			
 			parameters	= new HashMap( parameters );
 			
-			if ( value == null ){
-				
-				parameters.remove( name );
-				
-			}else{
-				
-				parameters.put( name, new Long( value.intValue()));
-			}
+			parameters.put( name, new Long(value));
+			
 		}finally{
 			
 			this_mon.exit();
 		}
 		
 		setMapAttribute( AT_PARAMETERS, parameters );
+	}
+	
+	public boolean
+	getBooleanParameter(
+		String	name )
+	{
+		return( getIntParameter( name ) != 0 );
+	}
+	
+	public void
+	setBooleanParameter(
+		String		name,
+		boolean		value )
+	{
+		setIntParameter( name, value?1:0 );
 	}
 	
 	public void
@@ -1763,18 +1775,32 @@ DownloadManagerStateImpl
 			return( false );
 		}
 		
-		public Integer
+		public int
 		getIntParameter(
 			String	name )
 		{
-			return( null );
+			return( 0 );
 		}
 		
 		public void
 		setIntParameter(
 			String	name,
-			Integer	value )
+			int		value )
 		{	
+		}
+		
+		public boolean
+		getBooleanParameter(
+			String	name )
+		{
+			return( false );
+		}
+		
+		public void
+		setBooleanParameter(
+			String		name,
+			boolean		value )
+		{
 		}
 		
 		public void

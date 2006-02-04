@@ -80,11 +80,11 @@ public class GeneralView extends AbstractIView implements ParameterListener {
   BufferedLabel timeRemaining;
   BufferedLabel download;
   BufferedLabel downloadSpeed;
-  Text 			maxDLSpeed;
+  //Text 			maxDLSpeed;
   BufferedLabel upload;
   BufferedLabel uploadSpeed;
-  Text 			maxULSpeed;
-  Text maxUploads;
+  //Text 			maxULSpeed;
+  //Text maxUploads;
   BufferedLabel totalSpeed;
   BufferedLabel ave_completion;
   BufferedLabel seeds;
@@ -303,6 +303,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     });
 	*/
     
+    /*
     //Disabled for release. Need to convert from user-specified units to
     //KB/s before restoring the following line
     //String k_unit = DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB)
@@ -393,6 +394,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
       
       maxDLSpeed.addListener(SWT.Modify, maxDLSpeedListener);
       maxDLSpeed.addListener(SWT.FocusOut, maxDLSpeedListener);
+    */
     
     	// blah
     
@@ -1173,6 +1175,7 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 	totalSpeed.setText( ts );
 	ave_completion.setText( ave_comp );
 	
+	/*
 	if ( !maxDLSpeed.getText().equals( dl_speed )){
 		
 		maxDLSpeed.setText( dl_speed );
@@ -1182,6 +1185,8 @@ public class GeneralView extends AbstractIView implements ParameterListener {
 		
 		maxULSpeed.setText( ul_speed );
 	}
+	*/
+	
 	seeds.setText( s);
 	peers.setText( p); 
 	hashFails.setText( hash_fails);

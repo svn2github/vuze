@@ -337,6 +337,8 @@ DownloadManagerImpl
     private int 	dl_identity_hashcode;
 
     private int		max_connections;
+    private int		max_uploads_when_seeding;
+    private boolean	max_uploads_when_seeding_enabled;
     
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
@@ -749,22 +751,27 @@ DownloadManagerImpl
 	protected void
 	readParameters()
 	{
-		Integer	max_peers = getDownloadState().getIntParameter( "max.peers" );
-		
-		if ( max_peers != null ){
-			
-			max_connections	= max_peers.intValue();
-			
-		}else{
-			
-			max_connections	= 0;
-		}
+		max_connections						= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_PEERS );
+		max_uploads_when_seeding_enabled 	= getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED );
+		max_uploads_when_seeding 			= getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING );
 	}
 	
 	protected int
 	getMaxConnections()
 	{
 		return( max_connections );
+	}
+	
+	protected boolean
+	isMaxUploadsWhenSeedingEnabled()
+	{
+		return( max_uploads_when_seeding_enabled );
+	}
+	
+	protected int
+	getMaxUploadsWhenSeeding()
+	{
+		return( max_uploads_when_seeding );
 	}
 	
 	protected void

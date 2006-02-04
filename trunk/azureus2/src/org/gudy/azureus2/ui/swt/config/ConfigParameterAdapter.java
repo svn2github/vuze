@@ -61,6 +61,29 @@ ConfigParameterAdapter
 		COConfigurationManager.setParameter( key, value );
 	}
 	
+	public boolean
+	getBooleanValue(
+		String	key )
+	{
+		return( COConfigurationManager.getBooleanParameter(key));
+	}
+	
+	public boolean
+	getBooleanValue(
+		String		key,
+		boolean		def )
+	{
+		return( COConfigurationManager.getBooleanParameter(key,def));
+	}
+	
+	public void
+	setBooleanValue(
+		String		key,
+		boolean		value )
+	{
+		COConfigurationManager.setParameter(key,value);
+	}
+	
 	public void
 	informChanged(
 		boolean	internally )
