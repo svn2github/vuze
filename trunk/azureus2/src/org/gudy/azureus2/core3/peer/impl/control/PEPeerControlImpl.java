@@ -1298,10 +1298,13 @@ PEPeerControlImpl
 	public void writeCompleted(DiskManagerWriteRequest request)
 	{
 		int pieceNumber =request.getPieceNumber();
-		if (_pieces[pieceNumber] !=null)
-		{
-			_pieces[pieceNumber].setWritten( (PEPeerTransport)request.getUserData(), request.getOffset() / DiskManager.BLOCK_SIZE );
-		}
+        PEPiece pePiece =_pieces[pieceNumber];
+        if (pePiece ==null)
+        {
+            pePiece =new PEPieceImpl(this, dm_pieces[pieceNumber], 0);
+            addPiece(pePiece, pieceNumber);
+        }
+		_pieces[pieceNumber].setWritten( (PEPeer)request.getUserData(), request.getOffset() /DiskManager.BLOCK_SIZE );
 	}
 
   public void 
@@ -1354,10 +1357,10 @@ PEPeerControlImpl
 		}
 		if (!dmPiece.isWritten(blockNumber))
 		{
-			dmPiece.setBlockWritten(blockNumber);
-			
 			DiskManagerWriteRequest request =disk_mgr.createWriteRequest(pieceNumber, offset, data, sender);
 			disk_mgr.enqueueWriteRequest(request, this);
+
+            pePiece.setWritten(sender, blockNumber);
 			
 			// cancel any matching outstanding download requests
 			List peer_transports =peer_transports_cow;

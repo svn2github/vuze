@@ -60,8 +60,8 @@ public interface PEPiece
 	public int			getAvailability();
 
 	public boolean		hasUnrequestedBlock();
-	public int[]		getAndMarkBlocks(PEPeerTransport peer, int wants);
-	public boolean		markBlock(PEPeerTransport peer, int blockNumber);
+	public int[]		getAndMarkBlocks(PEPeer peer, int wants);
+	public boolean		markBlock(PEPeer peer, int blockNumber);
 	public void			unmarkBlock(int blocNumber);
 	
 	public int			getNbRequests();
@@ -92,7 +92,7 @@ public interface PEPiece
 	public void			setResumePriority(long p);
 
 	public String[] 	getWriters();
-	public void			setWritten(PEPeerTransport peer, int blockNumber);
+	public void			setWritten(PEPeer peer, int blockNumber);
 
 	public int 			getSpeed();
 	public void			setSpeed(int speed);

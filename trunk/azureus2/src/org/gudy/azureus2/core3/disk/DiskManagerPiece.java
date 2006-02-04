@@ -78,13 +78,13 @@ public interface DiskManagerPiece
 	public boolean		calcWritten();
 	public void			clearWritten();
 	public void			setWritten();
-	public void			setWritten(boolean b);
+//	public void			setWritten(boolean b);
 	/**
 	 * @param blockNumber int
 	 * @return true if the given blockNumber has already been written to disk
 	 */
-	public boolean		isWritten(int blockNumber);		//TODO: double check usage of this
-	public void			setBlockWritten(int blockNumber);
+	public boolean		isWritten(int blockNumber);
+	public void			setWritten(int blockNumber);
 
 	// a piece is Checking if a hash check has been setup and the hash check hasn't finalized the result yet
 	// this flag is asynch, so be careful, and it's also transitory (comapared to most of the others being kinda sticky)

@@ -80,12 +80,12 @@ implements PEPiece
 		nbBlocks =dmPiece.getNbBlocks();
 
 		requested =new String[nbBlocks];
-
+        
         final boolean[] written =dmPiece.getWritten();
 		if (written ==null)
 			downloaded =new boolean[nbBlocks];
 		else
-			downloaded =written;
+			downloaded =(boolean[])written.clone();
 
         writers =new String[nbBlocks];
 		writes =new ArrayList(0);
@@ -142,10 +142,10 @@ implements PEPiece
 	 * @param peer the PEPeerTransport that sent the data
 	 * @param blockNumber the block we're operating on
 	 */
-	public void setWritten(PEPeerTransport peer, int blockNumber)
+	public void setWritten(PEPeer peer, int blockNumber)
 	{
 		writers[blockNumber] =peer.getIp();
-		dmPiece.setBlockWritten(blockNumber);
+		dmPiece.setWritten(blockNumber);
 	}
 	
 	/** This method clears the requested information for the given block
@@ -225,7 +225,7 @@ implements PEPiece
 	 * TODO: this should return the largest span equal or smaller than nbWanted
 	 * OR, probably a different method should do that, so this one can support 'more sequential' picking
 	 */
-	public int[] getAndMarkBlocks(PEPeerTransport peer, int nbWanted)
+	public int[] getAndMarkBlocks(PEPeer peer, int nbWanted)
 	{
 		final String ip =peer.getIp();
         final boolean[] written =dmPiece.getWritten();
@@ -280,7 +280,7 @@ implements PEPiece
 	/**
 	 * Assumption - single threaded with getAndMarkBlock
 	 */
-	public boolean markBlock(PEPeerTransport peer, int blockNumber)
+	public boolean markBlock(PEPeer peer, int blockNumber)
 	{
 		if (!downloaded[blockNumber])
 		{

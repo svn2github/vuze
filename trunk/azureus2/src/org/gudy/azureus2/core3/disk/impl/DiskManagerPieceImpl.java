@@ -217,8 +217,13 @@ public class DiskManagerPieceImpl
 	{
 		if (written ==null)
 		{
-			setWritten(isDone());
-			return isWritten();
+            if (isDone())
+            {
+                setWritten();
+                return true;
+            }
+            clearWritten();
+            return false;
 		}
 
 		boolean[] written_ref =written;
@@ -249,13 +254,13 @@ public class DiskManagerPieceImpl
 		statusFlags |=PIECE_STATUS_WRITTEN;
 	}
 
-	public void setWritten(boolean b)
-	{
-		if (b)
-			setWritten();
-		else
-			clearWritten();
-	}
+//	public void setWritten(boolean b)
+//	{
+//		if (b)
+//			setWritten();
+//		else
+//			clearWritten();
+//	}
 
 	/** written[] can be null, in which case if the piece is complete, all blocks are complete
 	* otherwise no blocks are complete
@@ -294,7 +299,7 @@ public class DiskManagerPieceImpl
 		return res;
 	}
 
-	public void setBlockWritten(int blockNumber)
+	public void setWritten(int blockNumber)
 	{
 		if (written ==null)
 			written =new boolean[getNbBlocks()];

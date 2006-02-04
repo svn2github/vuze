@@ -363,7 +363,7 @@ RDResumeHandler
 						
 						while (iterBlock.hasNext()) {
 							
-							pieces[pieceNumber].setBlockWritten(((Long)iterBlock.next()).intValue());
+							pieces[pieceNumber].setWritten(((Long)iterBlock.next()).intValue());
 						}
 					}
 				}
