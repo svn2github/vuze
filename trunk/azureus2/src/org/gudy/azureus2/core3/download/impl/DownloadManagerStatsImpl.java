@@ -28,10 +28,8 @@ package org.gudy.azureus2.core3.download.impl;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.internat.MessageText;
 
 public class 
 DownloadManagerStatsImpl 
@@ -226,6 +224,18 @@ DownloadManagerStatsImpl
 	  return maxUploads;
 	}
 
+	public int
+	getEffectiveMaxUploads()
+	{
+		if ( download_manager.isMaxUploadsWhenSeedingEnabled() && download_manager.getState() == DownloadManager.STATE_SEEDING ){
+			
+			return( download_manager.getMaxUploadsWhenSeeding());
+			
+		}else{
+			
+			return( maxUploads );
+		}
+	}
 	/**
 	 * @param i
 	 */

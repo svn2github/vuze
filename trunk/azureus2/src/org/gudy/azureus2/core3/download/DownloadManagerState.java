@@ -57,7 +57,7 @@ DownloadManagerState
 	
 	public static Object[][] PARAMETERS = {
 		{ PARAM_MAX_PEERS,							new Integer( 0 ) },
-		{ PARAM_MAX_UPLOADS_WHEN_SEEDING, 			new Integer( 0 ) },
+		{ PARAM_MAX_UPLOADS_WHEN_SEEDING, 			new Integer( 4 ) },
 		{ PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED, 	new Boolean( false ) },
 	};
 	

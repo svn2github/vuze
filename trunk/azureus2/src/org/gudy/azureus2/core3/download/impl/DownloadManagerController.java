@@ -1167,7 +1167,7 @@ DownloadManagerController
 	public int
 	getMaxUploads()
 	{
-		return( stats.getMaxUploads());
+		return( stats.getEffectiveMaxUploads());
 	}
 	
 	public int

@@ -40,7 +40,7 @@ public class MaxUploadsItem
 
   public void refresh(TableCell cell) {
     DownloadManager dm = (DownloadManager)cell.getDataSource();
-    long value = (dm == null) ? 0 : dm.getStats().getMaxUploads();
+    long value = (dm == null) ? 0 : dm.getStats().getEffectiveMaxUploads();
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;
