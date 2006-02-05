@@ -166,43 +166,10 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 				peer_source.setLayoutData(gridData);
 			}
 
-			///////////////////////
-
-			cMiniArea = new Composite(cSection, SWT.NULL);
-			layout = new GridLayout();
-			layout.numColumns = 2;
-			layout.marginHeight = 0;
-			layout.marginWidth = 0;
-			cMiniArea.setLayout(layout);
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			cMiniArea.setLayoutData(gridData);
-
-			label = new Label(cMiniArea, SWT.NULL);
-			Messages
-					.setLanguageText(label,
-							"ConfigView.section.connection.network.max.simultaneous.connect.attempts");
-			gridData = new GridData();
-			label.setLayoutData(gridData);
-
-			IntParameter max_connects = new IntParameter(cMiniArea,
-					"network.max.simultaneous.connect.attempts", 1, 100, false, false);
-			gridData = new GridData();
-			gridData.widthHint = 20;
-			max_connects.setLayoutData(gridData);
 
 			//////////////////////
 
 			if (userMode > 1) {
-
-				label = new Label(cMiniArea, SWT.NULL);
-				Messages.setLanguageText(label, "ConfigView.label.bindip");
-				gridData = new GridData();
-				label.setLayoutData(gridData);
-
-				StringParameter bindip = new StringParameter(cMiniArea, "Bind IP", "");
-				gridData = new GridData();
-				gridData.widthHint = 105;
-				bindip.setLayoutData(gridData);
 
 				/////////////////////// NETWORKS GROUP ///////////////////
 

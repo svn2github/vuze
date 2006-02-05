@@ -22,6 +22,8 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -102,52 +104,82 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 			return cSection;
 		}
 
-		///////////////////////   ADVANCED NETWORK SETTINGS GROUP //////////
-
-		final BooleanParameter enable_advanced = new BooleanParameter(cSection,
-				"config.connection.show_advanced", false);
-		Messages.setLanguageText(enable_advanced, "ConfigView.section."
-				+ configSectionGetName());
-		gridData = new GridData();
+		///////////////////////   ADVANCED SOCKET SETTINGS GROUP //////////
+		
+		Group gSocket = new Group(cSection, SWT.NULL);
+		Messages.setLanguageText(gSocket, "ConfigView.section.connection.advanced.socket.group");
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		gridData.horizontalSpan = 2;
-		enable_advanced.setLayoutData(gridData);
+		gSocket.setLayoutData(gridData);
+		GridLayout glayout = new GridLayout();
+		glayout.numColumns = 3;
+		gSocket.setLayout(glayout);
 
-		///////////////////////
+		
+    IntParameter max_connects = new IntParameter(gSocket, "network.max.simultaneous.connect.attempts", 1, 100, false, false );    
+    gridData = new GridData();
+    gridData.widthHint = 30;
+		max_connects.setLayoutData(gridData);
+		Label lmaxout = new Label(gSocket, SWT.NULL);
+    Messages.setLanguageText(lmaxout, "ConfigView.section.connection.network.max.simultaneous.connect.attempts");
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    lmaxout.setLayoutData( gridData );
+    
+    
+    StringParameter bindip = new StringParameter(gSocket, "Bind IP", "");
+    gridData = new GridData();
+    gridData.widthHint = 100;
+    gridData.horizontalSpan = 2;
+    bindip.setLayoutData(gridData);
+    Label lbind = new Label(gSocket, SWT.NULL);
+    Messages.setLanguageText(lbind, "ConfigView.label.bindip");
 
-		GridData advanced_grid_data;
-
-		final IntParameter mtu_size = new IntParameter(cSection,
-				"network.tcp.mtu.size");
+    BooleanParameter bind_port = new BooleanParameter(gSocket,	"network.bind.local.port", false, CFG_PREFIX + "bind_port");
+		gridData = new GridData();
+		gridData.horizontalSpan = 3;
+		bind_port.setLayoutData(gridData);
+		
+	
+		
+		
+		final IntParameter mtu_size = new IntParameter(gSocket,"network.tcp.mtu.size");
 		mtu_size.setMaximumValue(512 * 1024);
-		advanced_grid_data = new GridData();
-		advanced_grid_data.widthHint = 40;
-		mtu_size.setLayoutData(advanced_grid_data);
-		Label lmtu = new Label(cSection, SWT.NULL);
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		gridData.horizontalSpan = 2;
+		mtu_size.setLayoutData(gridData);
+		Label lmtu = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lmtu, CFG_PREFIX + "mtu");
 
-		final IntParameter SO_SNDBUF = new IntParameter(cSection,
-				"network.tcp.socket.SO_SNDBUF");
-		advanced_grid_data = new GridData();
-		advanced_grid_data.widthHint = 40;
-		SO_SNDBUF.setLayoutData(advanced_grid_data);
-		Label lsend = new Label(cSection, SWT.NULL);
+
+		final IntParameter SO_SNDBUF = new IntParameter(gSocket,	"network.tcp.socket.SO_SNDBUF");
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		gridData.horizontalSpan = 2;
+		SO_SNDBUF.setLayoutData(gridData);
+		Label lsend = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lsend, CFG_PREFIX + "SO_SNDBUF");
 
-		final IntParameter SO_RCVBUF = new IntParameter(cSection,
-				"network.tcp.socket.SO_RCVBUF");
-		advanced_grid_data = new GridData();
-		advanced_grid_data.widthHint = 40;
-		SO_RCVBUF.setLayoutData(advanced_grid_data);
-		Label lreceiv = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lreceiv, CFG_PREFIX + "SO_RCVBUF");
 
-		final StringParameter IPTOS = new StringParameter(cSection,
-				"network.tcp.socket.IPTOS");
+		final IntParameter SO_RCVBUF = new IntParameter(gSocket,	"network.tcp.socket.SO_RCVBUF");
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		gridData.horizontalSpan = 2;
+		SO_RCVBUF.setLayoutData(gridData);
+		Label lreceiv = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lreceiv, CFG_PREFIX + "SO_RCVBUF");
+		
+
+		final StringParameter IPTOS = new StringParameter(gSocket,	"network.tcp.socket.IPTOS");
 		gridData = new GridData();
 		gridData.widthHint = 30;
+		gridData.horizontalSpan = 2;
 		IPTOS.setLayoutData(gridData);
-		Label ltos = new Label(cSection, SWT.NULL);
+		Label ltos = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(ltos, CFG_PREFIX + "IPTOS");
+
 
 		//do simple input verification, and registry key setting for TOS field
 		IPTOS.addChangeListener(new ParameterChangeListener() {
@@ -166,8 +198,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 				}
 
 				if (value < 0 || value > 255) { //invalid or no value entered
-					ConfigurationManager.getInstance().removeParameter(
-							"network.tcp.socket.IPTOS");
+					ConfigurationManager.getInstance().removeParameter(	"network.tcp.socket.IPTOS");
 
 					if (raw != null && raw.length() > 0) { //error state
 						IPTOS.getControl().setBackground(Colors.red);
@@ -186,39 +217,10 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 				}
 			}
 		});
-
-		Control[] advanced_controls = { mtu_size.getControl(), lmtu,
-				SO_SNDBUF.getControl(), lsend, SO_RCVBUF.getControl(), lreceiv,
-				IPTOS.getControl(), ltos };
-
-		enable_advanced.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(advanced_controls));
-		enable_advanced.setAdditionalActionPerformer(new IAdditionalActionPerformer() {
-					boolean checked;
-
-					public void performAction() {
-						if (!checked) { //revert all advanced options back to defaults
-							ConfigurationManager.getInstance().removeParameter(
-									"network.tcp.mtu.size");
-							ConfigurationManager.getInstance().removeParameter(
-									"network.tcp.socket.SO_SNDBUF");
-							ConfigurationManager.getInstance().removeParameter(
-									"network.tcp.socket.SO_RCVBUF");
-							ConfigurationManager.getInstance().removeParameter(
-									"network.tcp.socket.IPTOS");
-						}
-					}
-
-					public void setSelected(boolean selected) {
-						checked = selected;
-					}
-
-					public void setIntValue(int value) {
-					}
-
-					public void setStringValue(String value) {
-					}
-				});
-
+		
+		//////////////////////////////////////////////////////////////////////////
+		
+		
 		Group gCrypto = new Group(cSection, SWT.NULL);
 		Messages.setLanguageText(gCrypto, "ConfigView.section.connection.advanced.encrypt.group");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -230,10 +232,9 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		
 		Label lcrypto = new Label(gCrypto, SWT.NULL);
 		Messages.setLanguageText(lcrypto, CFG_PREFIX + "encrypt.info");
-
-	    gridData = new GridData();
-	    gridData.horizontalSpan = 1;
-	    new LinkLabel( gCrypto, gridData, CFG_PREFIX + "encrypt.info.link", "http://azureus.aelitis.com/wiki/index.php/Message_Stream_Encryption" );
+		gridData = new GridData();
+		gridData.horizontalSpan = 1;
+		new LinkLabel( gCrypto, gridData, CFG_PREFIX + "encrypt.info.link", "http://azureus.aelitis.com/wiki/index.php/Message_Stream_Encryption" );
 		
 		final BooleanParameter require = new BooleanParameter(gCrypto,	"network.transport.encrypted.require", false, CFG_PREFIX + "require_encrypted_transport");
 		gridData = new GridData();
