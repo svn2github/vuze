@@ -38,10 +38,12 @@ public interface Piece
 	public static final int	PIECE_STATUS_CHECKING	=0x00000040;	//piece is being hash checked
 	public static final int	PIECE_STATUS_DONE		=0x00000080;	//everything completed - piece 100%
 
-	public static final int	PIECE_STATUS_NEEDED_DONE =0x00000081;
+	public static final int	PIECE_STATUS_NEEDED_DONE=0x00000081;
 
-	// Needed IS once again included in this
-	public static final int	PIECE_STATUS_REQUESTABLE =0x000000F5;
+	public static final int	PIECE_STATUS_REQUESTABLE=0x000000F5;    // Needed IS once again included in this
+
+    public static final int PIECE_STATUS_EGM_ACTIVE =0x00000005;    //requested and needed
+    public static final int PIECE_STATUS_EGM_IGNORED=0x000000F1;    //EGM ignores these pieces
 
     public int          getPieceNumber();
     public int          getNbBlocks();

@@ -925,6 +925,8 @@ public class PiecePickerImpl
     
     private void checkEndGameMode()
     {
+        if (peerControl.getNbSeeds() +peerControl.getNbPeers() <3)
+            return;
         final long now =SystemTime.getCurrentTime();
         // We can't come back from end-game mode
         if (endGameMode ||endGameModeAbandoned)
@@ -950,13 +952,13 @@ public class PiecePickerImpl
         {
             final DiskManagerPiece dmPiece =dmPieces[i];
             // If the piece is being downloaded (fully requested), let's simply continue
-            if (dmPiece.isRequested())
+            if (dmPiece.isEGMActive())
             {
-                active_pieces++ ;
+                active_pieces++;
                 continue;
             }
             // If the piece isn't even needed, or doesn't need more downloading, simply continue
-            if (!dmPiece.isInteresting() ||dmPiece.isDownloaded() ||dmPiece.isWritten() ||dmPiece.isChecking())
+            if (dmPiece.isEGMIgnored())
                 continue;
 
             // Else, some piece is Needed, not downloaded/fully requested; this isn't end game mode

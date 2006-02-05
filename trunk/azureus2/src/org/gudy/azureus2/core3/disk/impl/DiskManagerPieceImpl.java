@@ -396,6 +396,16 @@ public class DiskManagerPieceImpl
 	{
 		return (statusFlags &PIECE_STATUS_NEEDED_DONE) ==PIECE_STATUS_NEEDED;
 	}
+    
+    public boolean      isEGMActive()
+    {
+        return (statusFlags &PIECE_STATUS_EGM_ACTIVE) ==PIECE_STATUS_EGM_ACTIVE;
+    }
+
+    public boolean isEGMIgnored()
+    {
+        return (statusFlags &PIECE_STATUS_EGM_IGNORED) !=PIECE_STATUS_NEEDED;
+    }
 
 	public void reset()
 	{

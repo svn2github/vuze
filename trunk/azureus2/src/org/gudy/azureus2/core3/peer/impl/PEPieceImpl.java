@@ -148,6 +148,7 @@ implements PEPiece
                 return;
         }
         dmPiece.setDownloaded();
+        dmPiece.clearRequested();
 	}
 
     /** This flags the block at the given offset as NOT having been downloaded

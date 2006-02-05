@@ -106,5 +106,16 @@ public interface DiskManagerPiece
 	 * @return true if a piece is Needed and not Done
 	 */
 	public boolean		isInteresting();
+    
+    /** End Game Mode considers a piece to be active that is;
+     * fully requested, but not fully; Downlaoded, Written, Checking, or Done
+     * @return true if EGM should count the piece as active
+     */
+    public boolean      isEGMActive();
 
+    /** End Game Mode ignores pieces that are not Needed, or are fully; 
+     * Downlaoded, Written, Checking, or Done
+     * @return true if EGM should ignore the piece
+     */
+    public boolean      isEGMIgnored();
 }
