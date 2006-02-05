@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.views;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -35,6 +36,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
@@ -109,7 +111,7 @@ TorrentOptionsView
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		gTransfer.setLayoutData(gridData);
 		layout = new GridLayout();
-		layout.numColumns = 3;
+		layout.numColumns = 2;
 		gTransfer.setLayout(layout);
 
 		//Disabled for release. Need to convert from user-specified units to
@@ -119,31 +121,34 @@ TorrentOptionsView
 
 			// max upload speed
 		
+		Label label = new Label(gTransfer, SWT.NULL);
+		gridData = new GridData();
+		label.setLayoutData( gridData );
+		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxuploadspeed.tooltip" ));
+
 		GenericIntParameter	max_upload = new GenericIntParameter( adhoc_param_adapter, gTransfer, MAX_UPLOAD, false );
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		max_upload.setLayoutData(gridData);
 		
-		Label label = new Label(gTransfer, SWT.NULL);
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		label.setLayoutData( gridData );
-		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxuploadspeed.tooltip" ));
-
 			// max download speed
 		
+		label = new Label(gTransfer, SWT.NULL);
+		gridData = new GridData();
+		label.setLayoutData( gridData );
+		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxdownloadspeed.tooltip" ));
+	     
 		GenericIntParameter	max_download = new GenericIntParameter( adhoc_param_adapter, gTransfer, MAX_DOWNLOAD, false );
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		max_download.setLayoutData(gridData);
 		
+			// max uploads
+		
 		label = new Label(gTransfer, SWT.NULL);
 		gridData = new GridData();
-		gridData.horizontalSpan = 2;
 		label.setLayoutData( gridData );
-		label.setText(k_unit + " " + MessageText.getString( "GeneralView.label.maxdownloadspeed.tooltip" ));
-	     
-			// max uploads
+		Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads" );
 		
 		GenericIntParameter	max_uploads = new GenericIntParameter( adhoc_param_adapter, gTransfer, MAX_UPLOADS, false );
 		max_uploads.setMinimumValue(2);
@@ -151,21 +156,31 @@ TorrentOptionsView
 		gridData.widthHint = 40;
 		max_uploads.setLayoutData(gridData);
 		
-		label = new Label(gTransfer, SWT.NULL);
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		label.setLayoutData( gridData );
-		Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads" );
-		
 			//	max uploads when seeding enabled
 		
-		label = new Label(gTransfer, SWT.NULL);
+    final Composite cMaxUploadsOptionsArea = new Composite(gTransfer, SWT.NULL);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    layout.marginWidth = 0;
+    layout.marginHeight = 0;
+    cMaxUploadsOptionsArea.setLayout(layout);
+    gridData = new GridData();
+    gridData.horizontalIndent = 15;
+    gridData.horizontalSpan = 2;
+    cMaxUploadsOptionsArea.setLayoutData(gridData);
+    
+    label = new Label(cMaxUploadsOptionsArea, SWT.NULL);
+    Image img = ImageRepository.getImage("subitem");
+    img.setBackground(label.getBackground());
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    label.setLayoutData(gridData);
+    label.setImage(img);
+
 		gridData = new GridData();
-		gridData.horizontalIndent = 20;
 		GenericBooleanParameter	max_uploads_when_seeding_enabled = 
 			new GenericBooleanParameter( 
 					ds_param_adapter, 
-					gTransfer, 
+					cMaxUploadsOptionsArea, 
 					DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED,
 					false,
 					TEXT_PREFIX + "max.uploads.when.seeding.enable");
@@ -173,7 +188,9 @@ TorrentOptionsView
 		
 
 		GenericIntParameter	max_uploads_when_seeding = 
-			new GenericIntParameter( ds_param_adapter, gTransfer, DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING, false );
+			new GenericIntParameter(
+					ds_param_adapter, cMaxUploadsOptionsArea, 
+					DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING, false );
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		max_uploads_when_seeding.setMinimumValue(2);
@@ -184,17 +201,16 @@ TorrentOptionsView
 				
 			// max peers
 		
+		label = new Label(gTransfer, SWT.NULL);
+		gridData = new GridData();
+		label.setLayoutData( gridData );
+		Messages.setLanguageText(label, TEXT_PREFIX + "max.peers");
+		
 		GenericIntParameter	max_peers = 
 			new GenericIntParameter( ds_param_adapter, gTransfer, DownloadManagerState.PARAM_MAX_PEERS, false );
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		max_peers.setLayoutData(gridData);
-		
-		label = new Label(gTransfer, SWT.NULL);
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		label.setLayoutData( gridData );
-		Messages.setLanguageText(label, TEXT_PREFIX + "max.peers");
 	}
 	
 	public Composite 
