@@ -180,7 +180,7 @@ TRNonBlockingServer
 		while( true ){
 			
 			try{
-				selector.select( 1000 );
+				selector.select( 100 );
 				
 					// only use one selector to trigger the timeouts!
 				
