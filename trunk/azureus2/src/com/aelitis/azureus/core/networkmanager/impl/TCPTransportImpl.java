@@ -494,6 +494,8 @@ public class TCPTransportImpl implements TCPTransport {
       NetworkManager.getSingleton().getReadSelector().cancel( filter.getSocketChannel() );
       NetworkManager.getSingleton().getWriteSelector().cancel( filter.getSocketChannel() );
       NetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( filter.getSocketChannel() );
+      
+      filter = null;
     }
   }
      
