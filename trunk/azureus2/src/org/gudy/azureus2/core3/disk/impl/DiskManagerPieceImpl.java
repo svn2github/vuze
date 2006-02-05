@@ -29,15 +29,14 @@ package org.gudy.azureus2.core3.disk.impl;
  *			2006/Jan/02: refactoring, change booleans to statusFlags
  */
 
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public class DiskManagerPieceImpl
 	implements DiskManagerPiece
 {
-	private final DiskManagerImpl	disk_mgr;
+	private final DiskManagerImpl	diskManager;
 	private final int				pieceNumber;
 	private volatile int			statusFlags;
 
@@ -55,13 +54,14 @@ public class DiskManagerPieceImpl
 
 	protected DiskManagerPieceImpl(DiskManagerImpl _disk_manager, int pieceIndex)
 	{
-		disk_mgr =_disk_manager;
+		diskManager =_disk_manager;
 		pieceNumber =pieceIndex;
+        statusFlags =PIECE_STATUS_NEEDED;
 	}
 
 	public DiskManager getManager()
 	{
-		return disk_mgr;
+		return diskManager;
 	}
 
 	public int getPieceNumber()
@@ -74,9 +74,9 @@ public class DiskManagerPieceImpl
 	 */
 	public int getLength()
 	{
-		if (pieceNumber !=disk_mgr.getNbPieces() -1)
-			return (disk_mgr.getPieceLength());
-		return (disk_mgr.getLastPieceLength());
+		if (pieceNumber !=diskManager.getNbPieces() -1)
+			return (diskManager.getPieceLength());
+		return (diskManager.getLastPieceLength());
 	}
 
 	public int getNbBlocks()
@@ -84,6 +84,17 @@ public class DiskManagerPieceImpl
 		return ((getLength() +DiskManager.BLOCK_SIZE -1) /DiskManager.BLOCK_SIZE);
 	}
 
+    public int getBlockSize(int blockNumber)
+    {
+        if (blockNumber ==(getNbBlocks() -1))
+        {
+            final int length =getLength();
+            if ((length %DiskManager.BLOCK_SIZE) !=0)
+                return (length %DiskManager.BLOCK_SIZE);
+        }
+        return DiskManager.BLOCK_SIZE;
+    }
+    
 	public boolean isNeeded()
 	{
 		return (statusFlags &PIECE_STATUS_NEEDED) !=0;
@@ -92,7 +103,7 @@ public class DiskManagerPieceImpl
 	public boolean calcNeeded()
 	{
 		boolean filesNeeded =false;
-		final DMPieceList pieceList =disk_mgr.getPieceList(pieceNumber);
+		final DMPieceList pieceList =diskManager.getPieceList(pieceNumber);
 		for (int i =0; i <pieceList.size(); i++)
 		{
 			DiskManagerFileInfoImpl file =pieceList.get(i).getFile();
@@ -205,24 +216,16 @@ public class DiskManagerPieceImpl
 		statusFlags |=PIECE_STATUS_DOWNLOADED;
 	}
 
-	public void setDownloaded(boolean b)
-	{
-		if (b)
-			statusFlags |=PIECE_STATUS_DOWNLOADED;
-		else
-			statusFlags &=~PIECE_STATUS_DOWNLOADED;
-	}
-
 	public boolean calcWritten()
 	{
 		if (written ==null)
 		{
             if (isDone())
             {
-                setWritten();
+                statusFlags |=PIECE_STATUS_WRITTEN;
                 return true;
             }
-            clearWritten();
+            statusFlags &=~PIECE_STATUS_WRITTEN;
             return false;
 		}
 
@@ -231,11 +234,11 @@ public class DiskManagerPieceImpl
 		{
 			if (!written_ref[i])
 			{
-				clearWritten();
+                statusFlags &=~PIECE_STATUS_WRITTEN;
 				return false;
 			}
 		}
-		setWritten();
+        statusFlags |=PIECE_STATUS_WRITTEN;
 		return true;
 	}
 
@@ -253,14 +256,6 @@ public class DiskManagerPieceImpl
 	{
 		statusFlags |=PIECE_STATUS_WRITTEN;
 	}
-
-//	public void setWritten(boolean b)
-//	{
-//		if (b)
-//			setWritten();
-//		else
-//			clearWritten();
-//	}
 
 	/** written[] can be null, in which case if the piece is complete, all blocks are complete
 	* otherwise no blocks are complete
@@ -342,25 +337,15 @@ public class DiskManagerPieceImpl
 		return isDone();
 	}
 
-	public void clearDone()
-	{
-		setDone(false);
-	}
-
 	public boolean isDone()
 	{
 		return (statusFlags &PIECE_STATUS_DONE) !=0;
 	}
 
-	public void setDone()
-	{
-		setDone(true);
-	}
-
 	public void setDone(boolean b)
 	{
 		// we delegate this operation to the disk manager so it can synchronise the activity
-		disk_mgr.setPieceDone(this, b);
+		diskManager.setPieceDone(this, b);
 
 		if (isDone())
 			written =null;
@@ -371,9 +356,13 @@ public class DiskManagerPieceImpl
 	protected void setDoneSupport(final boolean b)
 	{
 		if (b)
+        {
 			statusFlags |=PIECE_STATUS_DONE;
-		else
+            written =null;
+        } else
+        {
 			statusFlags &=~PIECE_STATUS_DONE;
+        }
 	}
 
 	public long getLastWriteTime()
@@ -395,14 +384,9 @@ public class DiskManagerPieceImpl
 		calcNeeded();	// Needed wouldn't have been calced before if couldn't download more
 	}
 
-	/**
-	 * @return true if no flag shows we need not download more of this piece 
-	 * including; Requested, Downloaded, Written, Checking, Done
-	 * Needed & Avail isn't checked by this.
-	 */
 	public boolean isRequestable()
 	{
-		return (statusFlags &PIECE_STATUS_REQUESTABLE) ==0;
+		return (statusFlags &PIECE_STATUS_REQUESTABLE) ==PIECE_STATUS_NEEDED;
 	}
 
 	/**
@@ -415,14 +399,9 @@ public class DiskManagerPieceImpl
 
 	public void reset()
 	{
+        setRequestable();
 		written =null;
-		setRequestable();
 		time_last_write =0;
-	}
-
-	public void setLastWriteTime()
-	{
-		time_last_write =SystemTime.getCurrentTime();
 	}
 
 	public void reDownloadBlock(int blockNumber)

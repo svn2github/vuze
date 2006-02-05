@@ -40,28 +40,28 @@ PEPieceImpl
 implements PEPiece
 {
 	private static final LogIDs LOGID = LogIDs.PIECES;
-
+	
 	final private DiskManagerPiece	dmPiece;
-	public PEPeerManager		manager;
-
-	private long		creation_time;
-	private int			nbBlocks;		// number of blocks in this piece
-
+	final private PEPeerManager		manager;
+	
+    final private int       nbBlocks;       // number of blocks in this piece
+    private long            creationTime;
+    
 	private final String[]	requested;
 	private final boolean[]	downloaded;
 	private final String[] 	writers;
 	private List 			writes;
-
-	private String			reservedBy;	// using address for when they send bad/disconnect/reconnect
-
-	//In end game mode, this limitation isn't used
-	private int			speed;			//slower peers dont slow down fast pieces too much
-
-	private long	resumePriority;
 	
+	private String			reservedBy;	// using address for when they send bad/disconnect/reconnect
+	
+	//In end game mode, this limitation isn't used
+    private int             speed;      //slower peers dont slow down fast pieces too much
+    
+    private long            resumePriority;
+    
 	// experimental class level lock
 	protected static AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
-
+	
     /** piece for tracking partially downloaded pieces
      * @param _manager the PEPeerManager
      * @param _dm_piece the backing dmPiece
@@ -72,7 +72,7 @@ implements PEPiece
 		DiskManagerPiece	_dm_piece,
         int                 _pieceSpeed)
 	{
-        creation_time =SystemTime.getCurrentTime();
+        creationTime =SystemTime.getCurrentTime();
 		manager =_manager;
 		dmPiece =_dm_piece;
         speed =_pieceSpeed;
@@ -99,10 +99,22 @@ implements PEPiece
     public long getCreationTime()
     {
         long now =SystemTime.getCurrentTime();
-        if (now >=creation_time &&creation_time >0)
-            return creation_time;
-        creation_time =now;
-        return creation_time;
+        if (now >=creationTime &&creationTime >0)
+            return creationTime;
+        creationTime =now;
+        return now;
+    }
+    
+    public long getTimeSinceLastActivity()
+    {
+        final long now =SystemTime.getCurrentTime();
+        long lastWriteTime =dmPiece.getLastWriteTime();
+        if (lastWriteTime >0)
+            return now -lastWriteTime;
+        if (creationTime >0)
+            return now -creationTime;
+        creationTime =now;
+        return creationTime;
     }
 
 	/** Tells if a block has been requested
@@ -123,13 +135,13 @@ implements PEPiece
 		return downloaded[blockNumber];
 	}
 
-	/** This flags the given block as having been downloaded
+	/** This flags the block at the given offset as having been downloaded
      * If all blocks are now downloaed, sets the dmPiece as downloaded
 	 * @param blockNumber
 	 */
-	public void setDownloaded(int blockNumber)
+	public void setDownloaded(int offset)
 	{
-		downloaded[blockNumber] =true;
+		downloaded[offset /DiskManager.BLOCK_SIZE] =true;
         for (int i =0; i <nbBlocks; i++)
         {
             if (!downloaded[i])
@@ -138,8 +150,18 @@ implements PEPiece
         dmPiece.setDownloaded();
 	}
 
+    /** This flags the block at the given offset as NOT having been downloaded
+     * and the whole piece as not having been fully downloaded
+     * @param blockNumber
+     */
+    public void clearDownloaded(int offset)
+    {
+        downloaded[offset /DiskManager.BLOCK_SIZE] =false;
+        dmPiece.clearDownloaded();
+    }
+
 	/** This marks a given block as having been written by the given peer
-	 * @param peer the PEPeerTransport that sent the data
+	 * @param peer the PEPeer that sent the data
 	 * @param blockNumber the block we're operating on
 	 */
 	public void setWritten(PEPeer peer, int blockNumber)
@@ -149,62 +171,73 @@ implements PEPiece
 	}
 	
 	/** This method clears the requested information for the given block
+     * unless the block has already been downloaded, in which case the writer's
+     * IP is recorded as a request for the block.
 	 */
 	public void clearRequested(int blockNumber)
 	{
-		requested[blockNumber] =null;
+		requested[blockNumber] =downloaded[blockNumber] ?writers[blockNumber] :null;
 	}
 
-	/** This will scan each block looking for requested blocks. For each one, it'll verify
-	 * if the PEPeer for it still exists and is still willing and able to upload data.
-	 * If not, it'll unmark the block as requested. This should probably only be called
-	 * after a piece has timed out, for performance
-	 * @return int of how many were cleared (0 to nbBlocks)
-	 */
-	public int checkRequests()
-	{
-		int cleared =0;
-		boolean nullPeer =false;
-		for (int i =0; i <nbBlocks; i++)
-		{
-			if (!downloaded[i] &&!dmPiece.isWritten(i))
-			{
-				final String			requester =requested[i];
-				final PEPeerTransport	pt;
-				if (requester !=null)
-				{
-					pt =manager.getTransportFromAddress(requester);
-					if (pt !=null)
-					{
-						pt.setSnubbed(true);
-						if (!pt.isDownloadPossible())
-						{
-							requested[i] =null;
-							cleared++;
-						}
-					} else
-					{
-						nullPeer =true;
-						requested[i] =null;
-						cleared++;
-					}
-				}
-			}
-		}
-		if (cleared >0)
-		{
-			dmPiece.clearRequested();
-//			manager.getPiecePicker().addEndGameBlocks(this);
-            if (Logger.isEnabled())
-                Logger.log(new LogEvent(dmPiece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
-                        "Piece:"+getPieceNumber()+" cleared "+cleared+" requests."
-                        + (nullPeer ?" Null peer was detected." :" ")));
-		}
-		return cleared;
-	}
+    /** @deprecated
+     * This method is safe in a multi-threaded situation as the worst that it can do is mark a block as not requested even
+     * though its downloaded which may lead to it being downloaded again
+     */
+    public void unmarkBlock(int blockNumber)
+    {
+        requested[blockNumber] =downloaded[blockNumber] ?writers[blockNumber] :null;
+    }
+
+//	/** This will scan each block looking for requested blocks. For each one, it'll verify
+//	 * if the PEPeer for it still exists and is still willing and able to upload data.
+//	 * If not, it'll unmark the block as requested. This should probably only be called
+//	 * after a piece has timed out, and not during end game mode
+//	 * @return int of how many were cleared (0 to nbBlocks)
+//	 */
+//	public int checkRequests()
+//	{
+//		int cleared =0;
+//		boolean nullPeer =false;
+//		for (int i =0; i <nbBlocks; i++)
+//		{
+//			if (!downloaded[i] &&!dmPiece.isWritten(i))
+//			{
+//				final String			requester =requested[i];
+//				final PEPeerTransport	pt;
+//				if (requester !=null)
+//				{
+//					pt =manager.getTransportFromAddress(requester);
+//					if (pt !=null)
+//					{
+//						pt.setSnubbed(true);
+//						if (!pt.isDownloadPossible())
+//						{
+//							requested[i] =null;
+//							cleared++;
+//						}
+//					} else
+//					{
+//						nullPeer =true;
+//						requested[i] =null;
+//						cleared++;
+//					}
+//				}
+//			}
+//		}
+//		if (cleared >0)
+//		{
+//			dmPiece.clearRequested();
+////			manager.getPiecePicker().addEndGameBlocks(this);
+//            if (Logger.isEnabled())
+//                Logger.log(new LogEvent(dmPiece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
+//                        "Piece:"+getPieceNumber()+" cleared "+cleared+" requests."
+//                        + (nullPeer ?" Null peer was detected." :" ")));
+//		}
+//		return cleared;
+//	}
 
 	/** @return true if the piece has any blocks that are not;
-	 *  Downloaded, Requested, and Written
+	 *  Downloaded, Requested, or Written
 	 */
 	public boolean hasUnrequestedBlock()
 	{
@@ -269,18 +302,9 @@ implements PEPiece
     }
 
 	/**
-	 * This method is safe in a multi-threaded situation as the worst that it can do is mark a block as not requested even
-	 * though its downloaded which may lead to it being downloaded again
-	 */
-	public void unmarkBlock(int blockNumber)
-	{
-		requested[blockNumber] =downloaded[blockNumber] ?writers[blockNumber] :null;
-	}
-
-	/**
 	 * Assumption - single threaded with getAndMarkBlock
 	 */
-	public boolean markBlock(PEPeer peer, int blockNumber)
+	public boolean setRequested(PEPeer peer, int blockNumber)
 	{
 		if (!downloaded[blockNumber])
 		{
@@ -306,6 +330,11 @@ implements PEPiece
 		
 		return DiskManager.BLOCK_SIZE;
 	}
+    
+    public int getBlockNumber(int offset)
+    {
+        return offset /DiskManager.BLOCK_SIZE;
+    }
 	
 	public int getNbBlocks()
 	{
@@ -400,15 +429,13 @@ implements PEPiece
 	public void reset()
 	{
 		dmPiece.reset();
-
 		for (int i =0; i <nbBlocks; i++)
 		{
+            requested[i] =null;
 			downloaded[i] =false;
-			requested[i] =null;
 			writers[i] =null;
 		}
-
-//		reservedBy =null;
+		reservedBy =null;
 	}
 
 	protected void addWrite(PEPieceWriteImpl write) {
@@ -534,9 +561,9 @@ implements PEPiece
         return dmPiece.getNbWritten();
     }
     
-    /** This is a support method to return the dmPiece's written array
+    /** This support method returns the dmPiece's written array
      * @return boolean[] from the dmPiece
-     * @see com.aelitis.azureus.core.util.Piece.getWritten()
+     * @see org.gudy.azureus2.core3.disk.DiskManagerPiece.getWritten()
      */
     public boolean[] getWritten()
     {
@@ -551,11 +578,6 @@ implements PEPiece
 	public int getLength()
 	{
 		return dmPiece.getLength();
-	}
-
-	public void clearChecking()
-	{
-		dmPiece.clearChecking();
 	}
 
     /**
@@ -577,6 +599,11 @@ implements PEPiece
 	}
 
 /*
+    public void clearChecking()
+    {
+        dmPiece.clearChecking();
+    }
+
 	public int getNbWritten()
 	{
 		return dmPiece.getNbWritten();

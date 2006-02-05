@@ -22,7 +22,6 @@
 package org.gudy.azureus2.core3.peer;
 
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 
 import com.aelitis.azureus.core.util.Piece;
 
@@ -39,6 +38,25 @@ public interface PEPiece
 	extends Piece
 {  
 	public PEPeerManager	getManager();
+    public DiskManagerPiece getDMPiece();
+    public int          getPieceNumber();
+    /**
+     * @param offset int bytes into piece 
+     * @return block int number corresponding to given offset
+     */
+    public int          getBlockNumber(int offset);
+
+    /** The time the pePiece was [re]created
+     */
+    public long         getCreationTime();
+
+    /** How many ms since a write to the piece, or since the piece
+     * was created if no last write time is known.
+     * The return value will be 0 when there's no writes and the piece is new.
+     * @return long
+     */
+    public long         getTimeSinceLastActivity();
+
 
 	/**
 	 * record details of a piece's blocks that have been completed for bad peer detection purposes
@@ -54,28 +72,28 @@ public interface PEPiece
 		byte[] hash,
 		boolean correct	);
 
-	public DiskManagerPiece	getDMPiece();
 	public int			getNbWritten();
 
 	public int			getAvailability();
 
 	public boolean		hasUnrequestedBlock();
-	public int[]		getAndMarkBlocks(PEPeer peer, int wants);
-	public boolean		markBlock(PEPeer peer, int blockNumber);
-	public void			unmarkBlock(int blocNumber);
-	
+	public int[]		getAndMarkBlocks(PEPeer peer, int nbWanted);
+	public boolean		setRequested(PEPeer peer, int blockNumber);
+	public void			clearRequested(int blocNumber);
+    public boolean      isRequested(int blockNumber);
+    /** @deprecated
+     * Use clearRequested(int blocNumber) instead 
+     * @param blockNumber
+     */
+    public void         unmarkBlock(int blockNumber);
+    
 	public int			getNbRequests();
 	public int			getNbUnrequested();
-	public int			checkRequests();
-
-	public int			getBlockSize(int blockNumber);
-
-	public long			getCreationTime();
+//	public int			checkRequests();
 
 	public boolean		isDownloaded(int blockNumber);   
-	public boolean		isRequested(int blockNumber);
-
-	public int			getPieceNumber();
+    public void         setDownloaded(int offset);
+    public void         clearDownloaded(int offset);
 
 	//A Piece can be reserved by a peer, so that only s/he can
 	//contribute to it.
@@ -97,5 +115,9 @@ public interface PEPiece
 	public int 			getSpeed();
 	public void			setSpeed(int speed);
 	public void			incSpeed();
+    /**
+     * @deprecated
+     * This is not good for high speed transfers
+     */
 	public void			decSpeed();
 }

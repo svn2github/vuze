@@ -128,7 +128,7 @@ PEPeerTransportProtocol
 	protected long last_message_sent_time = 0;
 	protected long last_message_received_time = 0;
 	protected long last_data_message_received_time = -1;
-	private long last_good_data_time =-1;			// time usefull data was received
+	protected long last_good_data_time =-1;			// time data written to disk was recieved
 	protected long last_data_message_sent_time = -1;
   
   private long connection_established_time = 0;
@@ -463,7 +463,7 @@ PEPeerTransportProtocol
 
   	private void removeAvailability()
 	{
-		if (availabilityAdded)
+		if (availabilityAdded &&peerHavePieces !=null)
 		{
 			final List peer_listeners_ref =peer_listeners_cow;
 			if (peer_listeners_ref !=null)
@@ -1564,13 +1564,7 @@ PEPeerTransportProtocol
     	if( closing )  return;
     
 		if (peerHavePieces ==null)
-		{
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_ERROR, "Peer:decodeHave() Have decoding before bitfield: "
-					+manager.getDisplayName()));
-	
 			peerHavePieces =new BitFlags(nbPieces);
-		}
     
 		if ( peerHavePieces.flags[piece_number]){
 			
@@ -1623,7 +1617,7 @@ PEPeerTransportProtocol
   
   protected void decodePiece( BTPiece piece ) {
 	  final long now =SystemTime.getCurrentTime();
-	  final int number = piece.getPieceNumber();
+	  final int pieceNumber = piece.getPieceNumber();
 	  final int offset = piece.getPieceOffset();
 	  final DirectByteBuffer payload = piece.getPieceData();
 	  final int length = payload.remaining( DirectByteBuffer.SS_PEER );
@@ -1644,9 +1638,9 @@ PEPeerTransportProtocol
     }
     */
     
-	  final String error_msg = "Peer has sent #" + number + ":" + offset + "->"	+ (offset + length) + ", ";
+	  final String error_msg = "Peer has sent #" + pieceNumber + ":" + offset + "->"	+ (offset + length) + ", ";
     
-    if( !manager.checkBlock( number, offset, payload ) ) {
+    if( !manager.checkBlock( pieceNumber, offset, payload ) ) {
       peer_stats.bytesDiscarded( length );
       manager.discarded( length );
       requests_discarded++;
@@ -1658,20 +1652,24 @@ PEPeerTransportProtocol
       return;
     }
     
-    DiskManagerReadRequest request = manager.createDiskManagerRequest( number, offset, length );
+    final PEPiece pePiece =manager.getPiece(pieceNumber);
+    if (pePiece !=null)
+        pePiece.setDownloaded(offset);
+    
+    DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
     boolean piece_error = true;
 
     if( hasBeenRequested( request ) ) {  //from active request
       removeRequest( request );
       reSetRequestsTime();
         
-      if( manager.isBlockAlreadyWritten( number, offset ) ) {  //oops, looks like this block has already been downloaded
+      if( manager.isWritten( pieceNumber, offset ) ) {  //oops, looks like this block has already been written
         peer_stats.bytesDiscarded( length );
         manager.discarded( length );
 
         if( manager.isInEndGameMode() ) {  //we're probably in end-game mode then
         	if (Logger.isEnabled())
-						Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
+						Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_INFORMATION,
 								"Protocol:In: " + error_msg + "but piece block ignored as "
 										+ "already written in end-game mode."));      
           requests_discarded_endgame++;
@@ -1687,7 +1685,7 @@ PEPeerTransportProtocol
         printRequestStats();
       }
       else {  //successfully received block!
-          manager.writeBlock( number, offset, payload, this );
+          manager.writeBlock( pieceNumber, offset, payload, this, false);
           last_good_data_time =now;
           setSnubbed( false );
         requests_completed++;
@@ -1695,7 +1693,7 @@ PEPeerTransportProtocol
       }
     }
     else {  //initial request may have already expired, but check if we can use the data anyway
-      if( !manager.isBlockAlreadyWritten( number, offset ) ) {
+      if( !manager.isWritten( pieceNumber, offset ) ) {
         boolean ever_requested;
         
         try{  recent_outgoing_requests_mon.enter();
@@ -1704,7 +1702,7 @@ PEPeerTransportProtocol
         finally{  recent_outgoing_requests_mon.exit();  }
         
         if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
-            manager.writeBlockAndCancelOutstanding( number, offset, payload, this );
+            manager.writeBlock( pieceNumber, offset, payload, this, true);
             last_good_data_time =now;
             reSetRequestsTime();
             setSnubbed( false );
@@ -1742,7 +1740,12 @@ PEPeerTransportProtocol
       }
     }
     
-    if( piece_error )  piece.destroy();
+    if( piece_error )
+    {
+        piece.destroy();
+        if (!manager.isWritten(pieceNumber, offset) &&pePiece !=null)
+            pePiece.clearDownloaded(offset);
+    }
   }
   
   
@@ -1873,7 +1876,9 @@ PEPeerTransportProtocol
         	// pick up very slow peers as they may deliver an entire block so slowly that the
         	// request times out if we only use block reception to measure when data's received
         
-        last_good_data_time	= SystemTime.getCurrentTime();
+        //last_good_data_time	= SystemTime.getCurrentTime();
+        //last_good_data_time is expresely for data that's fully validated, wanted, and actually written to disk
+        //last_data_message_received_time is set for all incoming data messages (even worthless data) 
       }
     });
     

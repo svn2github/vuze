@@ -30,8 +30,7 @@ package org.gudy.azureus2.core3.peer;
 
 import java.util.List;
 
-import org.gudy.azureus2.core3.disk.DiskManager;
-import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
+import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerIdentityDataID;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
@@ -77,9 +76,16 @@ PEPeerManager
 
 	public boolean hasDownloadablePiece();
 	
+    
+    /** Often better to use getPiece(pieceNumber)
+     */
 	public PEPiece[]	getPieces();
+
+    /** @return PEPiece or null if piece not currently active
+     */
 	public PEPiece		getPiece(int pieceNumber);
 
+    
 	public PEPeerManagerStats
 	getStats();
 
@@ -209,11 +215,12 @@ PEPeerManager
 		int 		pieceNumber, 
 		int 		offset, 
 		DirectByteBuffer 	data,
-		PEPeer 		sender);		
+		PEPeer 		sender,
+        boolean     cancel);		
   
-  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender);
+//  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender);
   
-  public boolean isBlockAlreadyWritten( int piece_number, int offset );
+  public boolean isWritten( int piece_number, int offset );
 
   /**
    * Are we in end-game mode?

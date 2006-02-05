@@ -1352,19 +1352,20 @@ Test
 			int 		pieceNumber, 
 			int 		offset, 
 			DirectByteBuffer 	data,
-			PEPeer 		sender)
+			PEPeer 		sender,
+            boolean     cancel)
 		{
 			
 		}
 
 	  
-	  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender)
-		{
-		
-	}
+//	  public void writeBlockAndCancelOutstanding(int pieceNumber, int offset, DirectByteBuffer data,PEPeer sender)
+//		{
+//		
+//	}
 
 	  
-	  public boolean isBlockAlreadyWritten( int piece_number, int offset )
+	  public boolean isWritten( int piece_number, int offset )
 		{
 		return( false );
 		}

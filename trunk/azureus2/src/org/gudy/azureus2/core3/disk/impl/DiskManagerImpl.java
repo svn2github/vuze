@@ -22,18 +22,15 @@
 
 package org.gudy.azureus2.core3.disk.impl;
 
-import java.io.File;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.access.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.*;
 import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -41,8 +38,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
-import com.aelitis.azureus.core.diskmanager.access.DiskAccessController;
-import com.aelitis.azureus.core.diskmanager.access.DiskAccessControllerFactory;
+import com.aelitis.azureus.core.diskmanager.access.*;
 import com.aelitis.azureus.core.diskmanager.cache.*;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
 
@@ -1128,13 +1124,13 @@ DiskManagerImpl
 						// changing to write will cause trouble!
 					}
 				}
+                listeners.dispatch(LDT_PIECE_DONE_CHANGED, dmPiece);
 			}
 		} finally
 		{
 			file_piece_mon.exit();
 		}
 
-		listeners.dispatch(LDT_PIECE_DONE_CHANGED, dmPiece);
 	}
 
 	public void
@@ -2742,12 +2738,12 @@ DiskManagerImpl
 		return pieces[pieceNumber].isDone();
 	}
 	
-	public boolean isRequestable(int pieceNumber)
-	{
-		return pieces[pieceNumber].isRequestable();
-	}
-
 /*
+    public boolean isRequestable(int pieceNumber)
+    {
+        return pieces[pieceNumber].isRequestable();
+    }
+
 	public boolean calcNeeded(int pieceNumber)
 	{
 		return pieces[pieceNumber].calcNeeded();

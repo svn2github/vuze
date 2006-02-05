@@ -257,8 +257,8 @@ DiskManager
 	 */
 	public boolean isInteresting(int pieceNumber);
 	public boolean isDone(int pieceNumber);
-	public boolean isRequestable(int pieceNumber);
 /*
+    public boolean isRequestable(int pieceNumber);
 	public boolean calcNeeded(int pieceNumber);
 	public void clearNeeded(int pieceNumber);
 	public long getLastWriteTime(int pieceNumber);

@@ -21,7 +21,7 @@
 
 package org.gudy.azureus2.core3.disk.impl.access.impl;
 
-import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 /**
@@ -76,12 +76,12 @@ DiskManagerReadRequestImpl
    */
   public boolean isExpired()
   {
-    long wait_time = SystemTime.getCurrentTime() - timeCreated;
-    if( wait_time < 0 ) {  //time went backwards
-      timeCreated = SystemTime.getCurrentTime();
+      final long now =SystemTime.getCurrentTime();
+      if (timeCreated >0 &&now >timeCreated)
+          return (now -timeCreated) >EXPIRATION_TIME;
+      //time error
+      timeCreated =now;
       return false;
-    }
-    return wait_time > EXPIRATION_TIME;    
   }
   
   /**

@@ -339,7 +339,7 @@ DMCheckerImpl
 						boolean						passed )
 					{
 						try{						
-							disk_manager.getPieces()[request.getPieceNumber()].setDone( passed );
+							disk_manager.getPiece(request.getPieceNumber()).setDone( passed );
 							
 						}finally{
 							
@@ -363,7 +363,7 @@ DMCheckerImpl
 						DiskManagerCheckRequest		request )
 					{
 						try{						
-							disk_manager.getPieces()[request.getPieceNumber()].setDone( false );
+							disk_manager.getPiece(request.getPieceNumber()).setDone( false );
 							
 						}finally{
 							
@@ -382,7 +382,7 @@ DMCheckerImpl
 						Throwable		 			cause )
 					{
 						try{						
-							disk_manager.getPieces()[request.getPieceNumber()].setDone( false );
+							disk_manager.getPiece(request.getPieceNumber()).setDone( false );
 							
 						}finally{
 							

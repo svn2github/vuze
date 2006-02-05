@@ -28,20 +28,16 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 import java.util.*;
 
-
-import org.gudy.azureus2.plugins.peers.*;
-import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
-import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.plugins.disk.*;
-import org.gudy.azureus2.pluginsimpl.local.disk.*;
-import org.gudy.azureus2.pluginsimpl.local.download.*;
-import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
-
-
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.disk.DiskManager;
+import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.peers.*;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 public class 
 PeerManagerImpl
@@ -144,7 +140,8 @@ PeerManagerImpl
 			request.getPieceNumber(), 
 			request.getOffset(), 
 			((PooledByteBufferImpl)data).getBuffer(), 
-			mapForeignPeer( sender ));
+			mapForeignPeer( sender ),
+            false);
 		
 		PeerForeignDelegate	delegate = lookupForeignPeer( sender );
 		

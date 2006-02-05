@@ -38,7 +38,6 @@ public interface DiskManagerPiece
 {
 	public DiskManager	getManager();
 
-	public void			setLastWriteTime();
 	public long			getLastWriteTime();
 
 	public boolean		calcNeeded();
@@ -71,14 +70,12 @@ public interface DiskManagerPiece
 	public void			clearDownloaded();
 	public boolean		isDownloaded();
 	public void			setDownloaded();
-	public void			setDownloaded(boolean b);
 
 	// a piece is Written if data has been written to storage for every block (without concern for if it's checked)  
 	public int			getNbWritten();
 	public boolean		calcWritten();
 	public void			clearWritten();
 	public void			setWritten();
-//	public void			setWritten(boolean b);
 	/**
 	 * @param blockNumber int
 	 * @return true if the given blockNumber has already been written to disk
@@ -91,22 +88,22 @@ public interface DiskManagerPiece
 	public boolean		calcChecking();
 	public void			setChecking();
 	public void			setChecking(boolean b);
+    public void         clearChecking();
 
 	public boolean		calcDone();
-	public void			clearDone();
 	/** @return true when the hash check has passed and the DiskManager has asyncronously updated the Done status.
 	 * There is nothing further to be done regarding downloading for pieces that are Done.
 	 */
 	public boolean		isDone();
-	public void			setDone();
 	public void			setDone(boolean b);
 
 	/** This must not be used to qualify pieces in End Game Mode.
-	 * @return true is a piece is Needed and not Requested, Downloaded, Written, Checking, or Done.
+	 * @return true is a piece is Needed but is not fully; Requested, Downloaded, Written, Checking, or Done.
+     * Avail isn't checked by this.
 	 */
 	public boolean		isRequestable();
 	/**
-	 * @return true if a piece is not Done and is Needed
+	 * @return true if a piece is Needed and not Done
 	 */
 	public boolean		isInteresting();
 
