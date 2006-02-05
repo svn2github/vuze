@@ -51,7 +51,8 @@ AEWin32AccessInterface
 			
 		}catch( Throwable e ){
 			
-			System.out.println( "Old aereg version, please update!" );
+			// get here when running 2400 java against old non-updated aereg.dll (for example)
+			// System.out.println( "Old aereg version, please update!" );
 		}
 	}
 	
