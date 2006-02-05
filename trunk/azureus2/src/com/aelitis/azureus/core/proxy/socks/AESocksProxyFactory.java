@@ -66,4 +66,19 @@ AESocksProxyFactory
 	{
 		return( new AESocksProxyImpl( port, connect_timeout, read_timeout, connection_factory ));
 	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		try{
+			AESocksProxy	proxy = create( 1080, 30*1000, 30*1000 );
+			
+			Thread.sleep(24*60*60*10000);
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
 }
