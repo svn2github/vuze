@@ -188,7 +188,11 @@ public class SWTUpdateChecker implements UpdatableComponent
           
           installer.addMoveAction(name,installer.getInstallDir() + File.separator + name);
   
-       }else{
+        }else if ( name.equals("javaw.exe.manifest")){
+        	
+        	// silently ignore this one 
+        }else{
+        	
     	   Debug.out( "SWTUpdate: ignoring zip entry '" + name + "'" );
        }
       }
