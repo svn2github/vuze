@@ -176,7 +176,7 @@ public class ConnectDisconnectManager {
           request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), port ) );
         }
         else {        	
-        	request.channel.socket().bind( new InetSocketAddress( port ) );     
+        	//request.channel.socket().bind( new InetSocketAddress( port ) );     
         }
 
       }
