@@ -708,7 +708,6 @@ AZInstanceManagerImpl
 	isLANAddress(
 		InetAddress			address )
 	{
-		if ( true ){return( false );}
 		if ( address.isLoopbackAddress()){
 			
 			return( true );
