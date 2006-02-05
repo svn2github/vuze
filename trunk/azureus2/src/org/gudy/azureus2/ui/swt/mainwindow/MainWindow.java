@@ -492,7 +492,7 @@ MainWindow
     statusBar.layout();
     
     srStatus = new CLabelPadding(statusBar,borderFlag);
-    srStatus.setText( "" );
+    srStatus.setText( MessageText.getString("SpeedView.stats.ratio" ));
    
     COConfigurationManager.addAndFireParameterListener(
     		"Status Area Show SR",
