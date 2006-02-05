@@ -60,7 +60,8 @@ public class PiecesView
     new ReservedByItem(),
     new WritersItem(),
     new PriorityItem(),
-    new SpeedItem()
+    new SpeedItem(),
+    new RequestedItem()
   };
 
   DownloadManager manager;
