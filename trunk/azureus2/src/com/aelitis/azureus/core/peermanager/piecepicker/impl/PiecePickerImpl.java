@@ -790,7 +790,7 @@ public class PiecePickerImpl
                         avail =1;
                     }
                     
-                    // is the active
+                    // is the piece active
                     pePiece =peerControl.getPiece(i);
                     if (pePiece !=null)
                     {
@@ -873,16 +873,20 @@ public class PiecePickerImpl
                             { // already handling really rarest-only pieces; just add this one
                                 startCandidates.setEnd(i);
                             }
-                        } else if (priority >startMaxPriority)
-                        { // didn't need rarest handling, but it's higher priority than before
-                            if (startCandidates ==null)
-                                startCandidates =new BitFlags(nbPieces);
-                            startCandidates.setOnly(i);
-                            startMaxPriority =priority;
-                            startCandidatesMinAvail =avail;
-                        } else
-                        { // this is a valid start candidate, no better than any before it
-                            startCandidates.setEnd(i);
+                        } else if (!rarestCanStart ||rarestOverride)
+                        {
+//                          didn't need rarest handling, but it's higher priority than before
+                            if (priority >startMaxPriority)
+                            {
+                                if (startCandidates ==null)
+                                    startCandidates =new BitFlags(nbPieces);
+                                startCandidates.setOnly(i);
+                                startMaxPriority =priority;
+                                startCandidatesMinAvail =avail;
+                            } else
+                            { // this is a valid start candidate, no better than any before it
+                                startCandidates.setEnd(i);
+                            }
                         }
                     }
                 }
@@ -893,6 +897,7 @@ public class PiecePickerImpl
         if (pieceNumber <0 &&(startCandidates ==null ||startCandidates.nbSet <1))
             return -1;
 
+//        boolean resumeIsBetter =false;
         // See if have found a valid (piece;block) to request from a piece in progress
         if (pieceNumber >=0)
         {
@@ -905,7 +910,7 @@ public class PiecePickerImpl
         
 //        if (Logger.isEnabled())
 //            Logger.log(new LogEvent(pt, LOGID, LogEvent.LT_INFORMATION,
-//                "Starting new piece. pieceNumber;"+pieceNumber+", rarestOverride="+rarestOverride
+//                "Starting new piece. Resume pieceNumber;"+pieceNumber+", rarestOverride="+rarestOverride
 //                +" resumeIsRarest=" +resumeIsRarest +" rarestCanStart=" +rarestCanStart
 //                +" globalMinOthers=" +globalMinOthers 
 //                +(pieceNumber >=0 ?" avail=" +availability[pieceNumber ] +" resumeMaxPriority =" +resumeMaxPriority +" resumeIsBetter =" +resumeIsBetter
