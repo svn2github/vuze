@@ -48,29 +48,45 @@ public class PiecePickerImpl
 {
 	private static final LogIDs LOGID = LogIDs.PIECES;
 
-	private static final long TIME_MIN_AVAILABILITY	=949;	// min ms for recalculating availability - reducing this has serious ramifications
-	private static final long TIME_MIN_PRIORITIES	=974;	// min ms for recalculating base priorities
-	private static final long TIME_AVAIL_REBUILD	=2*60*1000;	// min ms for total availability rebuild 
+    /** min ms for recalculating availability - reducing this has serious ramifications */
+    private static final long TIME_MIN_AVAILABILITY	=974;
+    /** min ms for recalculating base priorities */
+    private static final long TIME_MIN_PRIORITIES	=999;
+    /** min ms for total availability rebuild */
+    private static final long TIME_AVAIL_REBUILD	=2*60*1000; 
 
 	// The following are added to the base User setting based priorities (for all inspected pieces)
-	private static final long PRIORITY_W_FIRSTLAST	=1300;			// user select prioritize first/last
-	private static final long FIRST_PIECE_MIN_NB	=4;				// min # pieces in file for first/last prioritization
-	private static final long PRIORITY_W_FILE		=1100;			// user sets file as "High"
-	private static final long PRIORITY_W_COMPLETION	=800;			// Additional boost for more completed High priority
+    /** user select prioritize first/last */
+	private static final long PRIORITY_W_FIRSTLAST	=1300;
+    /** min # pieces in file for first/last prioritization */
+    private static final long FIRST_PIECE_MIN_NB	=4;
+    /** user sets file as "High" */
+    private static final long PRIORITY_W_FILE		=1100;
+    /** Additional boost for more completed High priority */
+    private static final long PRIORITY_W_COMPLETION	=800;
 
-	private static final long PRIORITY_W_RAREST		=1300;			// Additional boost for globally rarest piece
-	private static final long PRIORITY_W_RARE		=1250;			// boost for rarity
+    /** Additional boost for globally rarest piece */
+    private static final long PRIORITY_W_RAREST		=1300;
+    /** boost for rarity */
+    private static final long PRIORITY_W_RARE		=1250;
 
 	// The following are only used when resuming already running pieces
-	private static final long PRIORITY_W_AGE		=1000;			// priority boost due to being too old
-	private static final long PRIORITY_DW_AGE		=20 *1000 *3;	// ms a block is expected to complete in, with leeway factor
-	private static final long PRIORITY_DW_STALE		=120 *1000;		// ms since last write
-	private static final long PRIORITY_W_PIECE_DONE	=600;			// finish pieces already almost done
-	private static final long PRIORITY_W_SAME_PIECE	=300;			// keep working on same piece
+    /** priority boost due to being too old */
+    private static final long PRIORITY_W_AGE		=1000;
+    /** ms a block is expected to complete in, with leeway factor */
+    private static final long PRIORITY_DW_AGE		=20 *1000 *3;
+    /** ms since last write */
+    private static final long PRIORITY_DW_STALE		=120 *1000;
+    /** finish pieces already almost done */
+    private static final long PRIORITY_W_PIECE_DONE	=700;
+    /** keep working on same piece */
+    private static final long PRIORITY_W_SAME_PIECE	=400;
 
-	private static final int REQUESTS_MIN	=2;			//Min number of requests sent to a peer
-	private static final int REQUESTS_MAX	=256;		//Max number of request sent to a peer
-	//Default number of requests sent to a peer, (for each X B/s another request will be used)
+    /** Min number of requests sent to a peer */
+    private static final int REQUESTS_MIN	=2;
+    /** Max number of request sent to a peer */
+    private static final int REQUESTS_MAX	=256;
+	/** Default number of requests sent to a peer, (for each X B/s another request will be used) */
 	private static final int SLOPE_REQUESTS	=4 *1024;
 	
 	private static final long END_GAME_MODE_SIZE_TRIGGER	=20 *1024 *1024;
@@ -78,7 +94,8 @@ public class PiecePickerImpl
 	
 	protected static volatile boolean	firstPiecePriority	=COConfigurationManager.getBooleanParameter("Prioritize First Piece", false);
 	protected static volatile boolean	completionPriority	=COConfigurationManager.getBooleanParameter("Prioritize Most Completed Files", false);
-	protected static volatile long		paramPriorityChange =Long.MIN_VALUE;	// event # of user settings controlling priority changes
+    /** event # of user settings controlling priority changes */
+    protected static volatile long		paramPriorityChange =Long.MIN_VALUE;
 
 	private final DiskManager			diskManager;
 	private final PEPeerControl			peerControl;
@@ -97,10 +114,13 @@ public class PiecePickerImpl
 
 	protected volatile int	nbPiecesDone;
 	
-	protected volatile int[]	availabilityAsynch;	// asyncronously updated availability
-	protected volatile long		availabilityDrift;	// indicates availability needs to be recomputed from scratch due to drift
+    /** asyncronously updated availability */
+    protected volatile int[]	availabilityAsynch;
+    /** indicates availability needs to be recomputed due to detected drift */
+    protected volatile long		availabilityDrift;
 	
-	protected volatile int[]	availability;		// periodically updated consistent view of availability for calculating
+    /** periodically updated consistent view of availability for calculating */
+    protected volatile int[]	availability;
 	
 	private long			time_last_avail;
 	protected volatile long	availabilityChange;
@@ -117,28 +137,32 @@ public class PiecePickerImpl
 	 */
 	private volatile int		globalMinOthers;
 	
-	private volatile boolean    rarestOverride;			// under a few conditions, we don't want to target rarest pieces
+    /** event # of user file priority settings changes */
+    protected volatile long		filePriorityChange;
 	
-	protected volatile long		filePriorityChange;		// event # of user file priority settings changes
+    /** last user parameter settings event # when priority bases were calculated */
+    private volatile long		priorityParamChange;
+    /** last user priority event # when priority bases were calculated */
+    private volatile long		priorityFileChange;
+    /** last availability event # when priority bases were calculated */
+    private volatile long		priorityAvailChange;
 	
-	private volatile long		priorityParamChange;	// last user parameter settings event # when priority bases were calculated
-	private volatile long		priorityFileChange;		// last user priority event # when priority bases were calculated
-	private volatile long		priorityAvailChange;	// last availability event # when priority bases were calculated
+    /** time that base priorities were last computed */
+    private long				timeLastPriorities;
 	
-	private long				timeLastPriorities;		// time that base priorities were last computed
-	
-	private long[]				startPriorities;		// the priority for starting each piece/base priority for resuming
+    /** the priority for starting each piece/base priority for resuming */
+    private long[]				startPriorities;
 	
 	protected volatile boolean	hasNeededUndonePiece;
 	protected volatile long		neededUndonePieceChange;
 	
 	private BitFlags			preQualifiedPieces;
 	
-	//A flag to indicate when we're in endgame mode
+	/** A flag to indicate when we're in endgame mode */
 	private volatile boolean	endGameMode;
 	private volatile boolean	endGameModeAbandoned;
 	private volatile long		timeEndGameModeEntered;
-	//The list of chunks needing to be downloaded (the mechanism change when entering end-game mode)
+	/** The list of chunks needing to be downloaded (the mechanism change when entering end-game mode) */
 	private List 				endGameModeChunks;
 	
 	static
@@ -213,8 +237,6 @@ public class PiecePickerImpl
 		
 		
 		// now do stuff related to starting/continuing pieces
-		rarestOverride =true;
-		
 		startPriorities =new long[nbPieces];
 		filePriorityChange =Long.MIN_VALUE;
 		
@@ -351,9 +373,9 @@ public class PiecePickerImpl
 	
 	private int[] recomputeAvailability()
 	{
-	    if (Logger.isEnabled())
+	    if (availabilityDrift >0 &&availabilityDrift !=nbPieces &&Logger.isEnabled())
 	        Logger.log(new LogEvent(diskManager.getTorrent(), LOGID, LogEvent.LT_INFORMATION,
-	            "Recomputing availabiliy. Drift="+availabilityDrift+":"+peerControl.getDisplayName()));
+	            "Recomputing availabiliy. Drift=" +availabilityDrift +":" +peerControl.getDisplayName()));
 	    final List	peerTransports =peerControl.getPeers();
 	    
 	    int[]	newAvailability = new int[nbPieces];
@@ -519,15 +541,12 @@ public class PiecePickerImpl
         priorityAvailChange =availabilityChange;
         timeLastPriorities =SystemTime.getCurrentTime();
         
-        final int       nbSeeds     =peerControl.getNbSeeds();
-        final int       nbPeers     =peerControl.getNbPeers();
-        final boolean   bootstrap   =nbPiecesDone <4;
-        
         boolean         changedPriority =false;
         boolean         foundPieceToDownload =false;
         long[]          newPriorities   =new long[nbPieces];
         try
         {
+            final boolean rarestOverride =getRarestOverride();
             // calculate all base (starting) priorities for all pieces needing requesting
             for (int i =0; i <nbPieces; i++)
             {
@@ -535,24 +554,6 @@ public class PiecePickerImpl
                 DiskManagerPiece dmPiece =dmPieces[i];
                 if (dmPiece.isDone())
                     continue;   // nothing to do for pieces not needing requesting
-                
-                // Dont seek rarest this time around under a few circumstances, so that other factors work better
-                // never seek rarest when bootstrapping torrent
-                boolean newRarestOverride =bootstrap ||endGameMode;
-                if (!newRarestOverride &&nbRarestActive >=nbSeeds &&globalMinOthers >1)
-                {
-                    // if already getting some rarest, dont get more if swarm is healthy or too many pieces running
-                    newRarestOverride =globalMinOthers >globalMin
-                    ||(globalMinOthers >=(2 *nbSeeds) &&(2 *globalMinOthers) >=nbPeers)
-                    ||nbRarestActive >=(nbSeeds +nbPeers);
-                    // Interest in Rarest pieces (compared to user priority settings) could be influenced by several factors;
-                    // less demand closer to 0% and 100% of the torrent/farther from 50% of the torrent
-                    // less demand closer to 0% and 100% of peers interestd in us/farther from 50% of peers interested in us
-                    // less demand the more pieces are in progress (compared to swarm size)
-                    // less demand the farther ahead from absolute global minimum we're at already
-                    // less demand the healthier a swarm is (rarity compared to # seeds and # peers)
-                }
-                rarestOverride =newRarestOverride;
                 
                 long startPriority =Long.MIN_VALUE;
                 long priority =Long.MIN_VALUE;
@@ -592,7 +593,8 @@ public class PiecePickerImpl
                     if (avail >0)
                     {
                         // boost priority for rarity
-                        startPriority +=(PRIORITY_W_RARE +nbPeers -nbSeeds) /avail;
+                        startPriority +=(PRIORITY_W_RARE +peerControl.getNbPeers() -peerControl.getNbSeeds())
+                            /avail;
                         // Boost priority even a little more if it's a globally rarest piece
                         if (!rarestOverride &&avail <=globalMinOthers)
                             startPriority +=PRIORITY_W_RAREST /avail;
@@ -626,6 +628,28 @@ public class PiecePickerImpl
         
         if (changedPriority)
             startPriorities =newPriorities;
+    }
+    
+    private boolean getRarestOverride()
+    {
+        final int nbSeeds =peerControl.getNbSeeds();
+        final int nbPeers =peerControl.getNbPeers();
+        // Dont seek rarest this time around under a few circumstances, so that other factors work better
+        // never seek rarest when bootstrapping torrent
+        boolean rarestOverride =nbPiecesDone <4 ||endGameMode ||nbRarestActive >=(nbSeeds +nbPeers);
+        if (!rarestOverride &&nbRarestActive >=nbSeeds &&globalMinOthers >1)
+        {
+            // if already getting some rarest, dont get more if swarm is healthy or too many pieces running
+            rarestOverride =globalMinOthers >globalMin
+                ||(globalMinOthers >=(2 *nbSeeds) &&(2 *globalMinOthers) >=nbPeers);
+            // Interest in Rarest pieces (compared to user priority settings) could be influenced by several factors;
+            // less demand closer to 0% and 100% of the torrent/farther from 50% of the torrent
+            // less demand closer to 0% and 100% of peers interestd in us/farther from 50% of peers interested in us
+            // less demand the more pieces are in progress (compared to swarm size)
+            // less demand the farther ahead from absolute global minimum we're at already
+            // less demand the healthier a swarm is (rarity compared to # seeds and # peers)
+        }
+        return rarestOverride;
     }
     
 	/**
@@ -724,24 +748,25 @@ public class PiecePickerImpl
             return -1; // this is an odd case that maybe should be handled better, but checkers might fully handle it
         }
 
-        final int           peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;  // how many KB/s has the peer has been sending
-        final int           lastPiece =pt.getLastPiece();
+        final int       peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;  // how many KB/s has the peer has been sending
+        final int       lastPiece =pt.getLastPiece();
+        final boolean   rarestOverride =getRarestOverride();
 
-        long resumeMaxPriority =Long.MIN_VALUE;
-        boolean resumeIsRarest =false; // can the peer continuea piece with lowest avail of all pieces we want
+        long        resumeMaxPriority =Long.MIN_VALUE;
+        boolean     resumeIsRarest =false; // can the peer continuea piece with lowest avail of all pieces we want
 
-        BitFlags            startCandidates =null;
-        int                 startCandidatesMinAvail =Integer.MAX_VALUE;
-        long                startMaxPriority =Long.MIN_VALUE;
-        boolean             rarestCanStart =false;
+        BitFlags    startCandidates =null;
+        int         startCandidatesMinAvail =Integer.MAX_VALUE;
+        long        startMaxPriority =Long.MIN_VALUE;
+        boolean     rarestCanStart =false;
 
-        PEPiece             pePiece;    // the PEPiece under inspection 
-        long                priority;   // aggregate priority of piece under inspection (start priority or resume priority for pieces to be resumed)
-        int                 avail;      // the swarm-wide availability level of the piece under inspection
-        int                 freeReqs;   // the number of unrequested (free) blocks in the piece under inspection
-        int                 pieceSpeed; // the current speed rating of the PEPiece under inspection
-        long                staleness;  // how long since there's been a write to the resume piece under inspection
-        long                pieceAge;   // how long since the PEPiece first started downloading (requesting, actually)
+        PEPiece     pePiece;    // the PEPiece under inspection 
+        long        priority;   // aggregate priority of piece under inspection (start priority or resume priority for pieces to be resumed)
+        int         avail =0;   // the swarm-wide availability level of the piece under inspection
+        int         freeReqs;   // the number of unrequested (free) blocks in the piece under inspection
+        int         pieceSpeed; // the current speed rating of the PEPiece under inspection
+        long        staleness;  // how long since there's been a write to the resume piece under inspection
+        long        pieceAge;   // how long since the PEPiece first started downloading (requesting, actually)
         
         final int   startI =preQualifiedPieces.start >peerHavePieces.start ?preQualifiedPieces.start :peerHavePieces.start;
         final int   endI =preQualifiedPieces.end <peerHavePieces.end ?preQualifiedPieces.end :peerHavePieces.end;
@@ -759,8 +784,11 @@ public class PiecePickerImpl
                 if (priority >=0)
                 {
                     avail =availability[i];
-                    if (avail ==0)     // maybe we didn't know we could get it before
-                        avail =++availability[i];   // but the peer says s/he has it
+                    if (avail ==0)
+                    {   // maybe we didn't know we could get it before
+                        availability[i] =1;    // but the peer says s/he has it
+                        avail =1;
+                    }
                     
                     // is the active
                     pePiece =peerControl.getPiece(i);
@@ -813,8 +841,8 @@ public class PiecePickerImpl
                         
                         pePiece.setResumePriority(priority);  // this is only for display
                         
-                        if ((avail <=globalMinOthers &&priority >=resumeMaxPriority &&!rarestOverride)
-                            ||(priority >resumeMaxPriority &&(rarestOverride ||!resumeIsRarest)))
+                        if ((avail <=globalMinOthers &&priority >=resumeMaxPriority)
+                            ||(priority >resumeMaxPriority &&!resumeIsRarest))
                         {   // this piece seems like best choice for resuming
                             // Verify it's still possible to get a block to request from this piece
                             if (pePiece.hasUnrequestedBlock())
@@ -861,9 +889,27 @@ public class PiecePickerImpl
             }
         }
 
+        // Didnt find anything to do
+        if (pieceNumber <0 &&(startCandidates ==null ||startCandidates.nbSet <1))
+            return -1;
+
         // See if have found a valid (piece;block) to request from a piece in progress
-        if (pieceNumber >=0 &&(rarestOverride ||resumeIsRarest ||!rarestCanStart))
-            return pieceNumber;
+        if (pieceNumber >=0)
+        {
+            boolean resumeIsBetter =availability[pieceNumber] <=globalMinOthers ||rarestOverride ||!rarestCanStart ||startCandidates ==null ||startCandidates.nbSet <1;
+            if (!resumeIsBetter &&globalMinOthers >0)
+                resumeIsBetter =resumeMaxPriority /availability[pieceNumber] > startMaxPriority /globalMinOthers; 
+            if (resumeIsBetter)
+                return pieceNumber;
+        }
+        
+//        if (Logger.isEnabled())
+//            Logger.log(new LogEvent(pt, LOGID, LogEvent.LT_INFORMATION,
+//                "Starting new piece. pieceNumber;"+pieceNumber+", rarestOverride="+rarestOverride
+//                +" resumeIsRarest=" +resumeIsRarest +" rarestCanStart=" +rarestCanStart
+//                +" globalMinOthers=" +globalMinOthers 
+//                +(pieceNumber >=0 ?" avail=" +availability[pieceNumber ] +" resumeMaxPriority =" +resumeMaxPriority +" resumeIsBetter =" +resumeIsBetter
+//                    :"")));
 
         // Gets here when no resume piece choice was made
         return getPieceToStart(pt, startCandidates); // pick piece from candidates bitfield
@@ -1303,10 +1349,13 @@ public class PiecePickerImpl
 				if (!dmPiece.isDone())
 					foundPieceToDownload |=dmPiece.calcNeeded();
 			}
-			if (foundPieceToDownload &&!hasNeededUndonePiece)
+			if (foundPieceToDownload)
 			{
-				hasNeededUndonePiece =true;
-				neededUndonePieceChange++;
+                if (!hasNeededUndonePiece)
+                {
+                    hasNeededUndonePiece =true;
+                    neededUndonePieceChange++;
+                }
 			} else if (startI ==0 &&hasNeededUndonePiece)
             {
                 hasNeededUndonePiece =false;
