@@ -28,7 +28,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -319,6 +318,10 @@ public class TCPTransportImpl implements TCPTransport {
         if( use_proxy ) {  //proxy server connection established, login
         	Logger.log(new LogEvent(LOGID,"Socket connection established to proxy server [" +description+ "], login initiated..."));
           
+        		// set up a transparent filter for socks negotiation
+        	
+          filter = TCPTransportHelperFilterFactory.createTransparentFilter( channel );
+      		
           new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
             public void connectSuccess() {
             	Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
