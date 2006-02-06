@@ -791,8 +791,7 @@ PRUDPPacketHandlerImpl
 														new LogEvent(
 															LOGID, 
 															LogEvent.LT_WARNING,
-															"PRUDPPacketHandler: send failed", 
-															e)); 
+															"PRUDPPacketHandler: send failed: " + Debug.getNestedExceptionMessage(e)));
 												}
 											}
 										}
@@ -850,8 +849,8 @@ PRUDPPacketHandlerImpl
 			
 		}catch( Throwable e ){
 			
-			Logger.log(new LogEvent(LOGID,
-					"PRUDPPacketHandler: sendAndReceive failed", e)); 
+			Logger.log(new LogEvent(LOGID,LogEvent.LT_ERROR,
+					"PRUDPPacketHandler: sendAndReceive to " + destination_address + " failed: " + Debug.getNestedExceptionMessage(e))); 
 			
 			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:sendAndReceive failed", e ));
 		}
@@ -898,7 +897,7 @@ PRUDPPacketHandlerImpl
 			
 		}catch( Throwable e ){
 			
-			Logger.log(new LogEvent(LOGID, "PRUDPPacketHandler: send failed", e)); 
+			Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR, "PRUDPPacketHandler: send to " + destination_address + " failed: " + Debug.getNestedExceptionMessage(e)));
 			
 			throw( new PRUDPPacketHandlerException( "PRUDPPacketHandler:send failed", e ));
 		}
