@@ -205,7 +205,7 @@ public class PiecePickerImpl
 		
 		
 		// now do stuff related to availability
-		availability =new int[nbPieces];
+		availability =new int[nbPieces];  //always needed
 		
 		hasNeededUndonePiece =false;
 		neededUndonePieceChange =Long.MIN_VALUE;
@@ -251,7 +251,7 @@ public class PiecePickerImpl
 		endGameModeAbandoned =false;
 		timeEndGameModeEntered =0;
 		
-		computeBasePriorities();
+//		computeBasePriorities();
 		
 		// with priorities charged and primed, ready for dm messages
 		diskManagerListener =new DiskManagerListenerImpl();
@@ -482,7 +482,7 @@ public class PiecePickerImpl
 
 		checkEndGameMode();
 		computeBasePriorities();
-
+		
 		for (int i =0; i <bestUploaders.size(); i++)
 		{
 			// get a connection
@@ -1381,7 +1381,7 @@ public class PiecePickerImpl
                     hasNeededUndonePiece =true;
                     neededUndonePieceChange++;
                 }
-			} else if (startI ==0 &&hasNeededUndonePiece)
+			} else if (hasNeededUndonePiece)
             {
                 hasNeededUndonePiece =false;
                 neededUndonePieceChange++;
