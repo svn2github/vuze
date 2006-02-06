@@ -88,18 +88,18 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 		paramMaxUploadSpeed.setLayoutData(gridData);
 
 		//  max upload speed when seeding
-		final Composite cMaxUploadsOptionsArea = new Composite(cSection, SWT.NULL);
+		final Composite cMaxUploadSpeedOptionsArea = new Composite(cSection, SWT.NULL);
 		layout = new GridLayout();
 		layout.numColumns = 3;
 		layout.marginWidth = 0;
 		layout.marginHeight = 0;
-		cMaxUploadsOptionsArea.setLayout(layout);
+		cMaxUploadSpeedOptionsArea.setLayout(layout);
 		gridData = new GridData();
 		gridData.horizontalIndent = 15;
 		gridData.horizontalSpan = 2;
-		cMaxUploadsOptionsArea.setLayoutData(gridData);
+		cMaxUploadSpeedOptionsArea.setLayoutData(gridData);
 
-		label = new Label(cMaxUploadsOptionsArea, SWT.NULL);
+		label = new Label(cMaxUploadSpeedOptionsArea, SWT.NULL);
 		Image img = ImageRepository.getImage("subitem");
 		img.setBackground(label.getBackground());
 		gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
@@ -108,14 +108,14 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 
 		gridData = new GridData();
 		BooleanParameter enable_seeding_rate = new BooleanParameter(
-				cMaxUploadsOptionsArea, "enable.seedingonly.upload.rate", false,
+				cMaxUploadSpeedOptionsArea, "enable.seedingonly.upload.rate", false,
 				"ConfigView.label.maxuploadspeedseeding");
 		enable_seeding_rate.setLayoutData(gridData);
 
 		gridData = new GridData();
 		gridData.widthHint = 35;
 		IntParameter paramMaxUploadSpeedSeeding = new IntParameter(
-				cMaxUploadsOptionsArea, "Max Upload Speed Seeding KBs", 1, -1, true,
+				cMaxUploadSpeedOptionsArea, "Max Upload Speed Seeding KBs", 1, -1, true,
 				false);
 		paramMaxUploadSpeedSeeding.setLayoutData(gridData);
 		enable_seeding_rate
@@ -222,6 +222,55 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 					2, -1, false, false);
 			paramMaxUploads.setLayoutData(gridData);
 
+				// max uploads when seeding
+			
+			final Composite cMaxUploadsOptionsArea = new Composite(cSection, SWT.NULL);
+			layout = new GridLayout();
+			layout.numColumns = 3;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			cMaxUploadsOptionsArea.setLayout(layout);
+			gridData = new GridData();
+			gridData.horizontalIndent = 15;
+			gridData.horizontalSpan = 2;
+			cMaxUploadsOptionsArea.setLayoutData(gridData);
+			label = new Label(cMaxUploadsOptionsArea, SWT.NULL);
+			img = ImageRepository.getImage("subitem");
+			img.setBackground(label.getBackground());
+			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			label.setLayoutData(gridData);
+			label.setImage(img);
+			
+			gridData = new GridData();
+			BooleanParameter enable_seeding_uploads = new BooleanParameter(
+					cMaxUploadsOptionsArea, "enable.seedingonly.maxuploads", false,
+					"ConfigView.label.maxuploadsseeding");
+			enable_seeding_uploads.setLayoutData(gridData);
+
+			gridData = new GridData();
+			gridData.widthHint = 35;
+			IntParameter paramMaxUploadsSeeding = new IntParameter(
+					cMaxUploadsOptionsArea, "Max Uploads Seeding", 2, -1, false,
+					false);
+			paramMaxUploadsSeeding.setLayoutData(gridData);
+			enable_seeding_uploads
+					.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+							paramMaxUploadsSeeding.getControl()));
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			////
 
 			gridData = new GridData();

@@ -106,6 +106,8 @@ public class ConfigurationDefaults {
     def.put( "Use Config File Backups", TRUE);
     
     def.put( "Max Uploads", new Long(4) );
+    def.put( "Max Uploads Seeding", new Long(4));
+    def.put( "enable.seedingonly.maxuploads", FALSE );
     def.put( "Max Download Speed KBs", new Long(0) );
     def.put( "Max Upload Speed KBs", new Long(0));
     def.put( "Max Upload Speed Seeding KBs", new Long(0) );

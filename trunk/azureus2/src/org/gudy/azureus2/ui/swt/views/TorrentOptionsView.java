@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -78,6 +79,8 @@ TorrentOptionsView
 		layout.marginWidth = 0;
 		layout.numColumns = 1;
 		panel.setLayout(layout);
+
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
 
 			// header 
 		
@@ -145,72 +148,74 @@ TorrentOptionsView
 		
 			// max uploads
 		
-		label = new Label(gTransfer, SWT.NULL);
-		gridData = new GridData();
-		label.setLayoutData( gridData );
-		Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads" );
-		
-		GenericIntParameter	max_uploads = new GenericIntParameter( adhoc_param_adapter, gTransfer, MAX_UPLOADS, false );
-		max_uploads.setMinimumValue(2);
-		gridData = new GridData();
-		gridData.widthHint = 40;
-		max_uploads.setLayoutData(gridData);
-		
-			//	max uploads when seeding enabled
-		
-    final Composite cMaxUploadsOptionsArea = new Composite(gTransfer, SWT.NULL);
-    layout = new GridLayout();
-    layout.numColumns = 3;
-    layout.marginWidth = 0;
-    layout.marginHeight = 0;
-    cMaxUploadsOptionsArea.setLayout(layout);
-    gridData = new GridData();
-    gridData.horizontalIndent = 15;
-    gridData.horizontalSpan = 2;
-    cMaxUploadsOptionsArea.setLayoutData(gridData);
-    
-    label = new Label(cMaxUploadsOptionsArea, SWT.NULL);
-    Image img = ImageRepository.getImage("subitem");
-    img.setBackground(label.getBackground());
-    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
-    label.setLayoutData(gridData);
-    label.setImage(img);
-
-		gridData = new GridData();
-		GenericBooleanParameter	max_uploads_when_seeding_enabled = 
-			new GenericBooleanParameter( 
-					ds_param_adapter, 
-					cMaxUploadsOptionsArea, 
-					DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED,
-					false,
-					TEXT_PREFIX + "max.uploads.when.seeding.enable");
-		max_uploads_when_seeding_enabled.setLayoutData( gridData );
-		
-
-		GenericIntParameter	max_uploads_when_seeding = 
-			new GenericIntParameter(
-					ds_param_adapter, cMaxUploadsOptionsArea, 
-					DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING, false );
-		gridData = new GridData();
-		gridData.widthHint = 40;
-		max_uploads_when_seeding.setMinimumValue(2);
-		max_uploads_when_seeding.setLayoutData(gridData);
-		
-		max_uploads_when_seeding_enabled.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer( max_uploads_when_seeding.getControl()));
-				
-			// max peers
-		
-		label = new Label(gTransfer, SWT.NULL);
-		gridData = new GridData();
-		label.setLayoutData( gridData );
-		Messages.setLanguageText(label, TEXT_PREFIX + "max.peers");
-		
-		GenericIntParameter	max_peers = 
-			new GenericIntParameter( ds_param_adapter, gTransfer, DownloadManagerState.PARAM_MAX_PEERS, false );
-		gridData = new GridData();
-		gridData.widthHint = 40;
-		max_peers.setLayoutData(gridData);
+		if (userMode > 0) {
+			label = new Label(gTransfer, SWT.NULL);
+			gridData = new GridData();
+			label.setLayoutData( gridData );
+			Messages.setLanguageText(label, TEXT_PREFIX + "max.uploads" );
+			
+			GenericIntParameter	max_uploads = new GenericIntParameter( adhoc_param_adapter, gTransfer, MAX_UPLOADS, false );
+			max_uploads.setMinimumValue(2);
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			max_uploads.setLayoutData(gridData);
+			
+				//	max uploads when seeding enabled
+			
+			final Composite cMaxUploadsOptionsArea = new Composite(gTransfer, SWT.NULL);
+			layout = new GridLayout();
+			layout.numColumns = 3;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			cMaxUploadsOptionsArea.setLayout(layout);
+			gridData = new GridData();
+			gridData.horizontalIndent = 15;
+			gridData.horizontalSpan = 2;
+			cMaxUploadsOptionsArea.setLayoutData(gridData);
+			
+			label = new Label(cMaxUploadsOptionsArea, SWT.NULL);
+			Image img = ImageRepository.getImage("subitem");
+			img.setBackground(label.getBackground());
+			gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+			label.setLayoutData(gridData);
+			label.setImage(img);
+	
+			gridData = new GridData();
+			GenericBooleanParameter	max_uploads_when_seeding_enabled = 
+				new GenericBooleanParameter( 
+						ds_param_adapter, 
+						cMaxUploadsOptionsArea, 
+						DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED,
+						false,
+						TEXT_PREFIX + "max.uploads.when.seeding.enable");
+			max_uploads_when_seeding_enabled.setLayoutData( gridData );
+			
+	
+			GenericIntParameter	max_uploads_when_seeding = 
+				new GenericIntParameter(
+						ds_param_adapter, cMaxUploadsOptionsArea, 
+						DownloadManagerState.PARAM_MAX_UPLOADS_WHEN_SEEDING, false );
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			max_uploads_when_seeding.setMinimumValue(2);
+			max_uploads_when_seeding.setLayoutData(gridData);
+			
+			max_uploads_when_seeding_enabled.setAdditionalActionPerformer(
+					new ChangeSelectionActionPerformer( max_uploads_when_seeding.getControl()));
+					
+				// max peers
+			
+			label = new Label(gTransfer, SWT.NULL);
+			gridData = new GridData();
+			label.setLayoutData( gridData );
+			Messages.setLanguageText(label, TEXT_PREFIX + "max.peers");
+			
+			GenericIntParameter	max_peers = 
+				new GenericIntParameter( ds_param_adapter, gTransfer, DownloadManagerState.PARAM_MAX_PEERS, false );
+			gridData = new GridData();
+			gridData.widthHint = 40;
+			max_peers.setLayoutData(gridData);
+		}
 	}
 	
 	public Composite 

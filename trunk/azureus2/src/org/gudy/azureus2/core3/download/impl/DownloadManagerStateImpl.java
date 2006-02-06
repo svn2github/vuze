@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.category.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
@@ -51,7 +53,7 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 
 public class 
 DownloadManagerStateImpl
-	implements DownloadManagerState
+	implements DownloadManagerState, ParameterListener
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
 	private static final String			RESUME_KEY			= "resume";
@@ -321,6 +323,32 @@ DownloadManagerStateImpl
         	
         	parameters	= new HashMap();
         }
+        
+        addListeners();
+	}
+	
+	public void 
+	parameterChanged(
+		String parameterName)
+	{
+			// get any listeners to pick up new values as their defaults are based on core params
+		
+		informWritten( AT_PARAMETERS );
+	}
+	
+	protected void
+	addListeners()
+	{
+		COConfigurationManager.addParameterListener( "Max Uploads Seeding", this );
+		COConfigurationManager.addParameterListener( "enable.seedingonly.maxuploads", this );
+	}
+	
+	protected void
+	removeListeners()
+	{
+		COConfigurationManager.removeParameterListener( "Max Uploads Seeding", this );
+		COConfigurationManager.removeParameterListener( "enable.seedingonly.maxuploads", this );
+
 	}
 	
 	public DownloadManager
@@ -518,6 +546,9 @@ DownloadManagerStateImpl
 				
 				FileUtil.recursiveDelete( dir );
 			}
+			
+			removeListeners();
+			
 		}catch( Throwable e ){
 	    	
 	    	Debug.printStackTrace( e );
@@ -610,6 +641,23 @@ DownloadManagerStateImpl
 					Debug.out( "Unknown parameter '" + name + "' - must be defined in DownloadManagerState" );
 				
 					return( 0 );
+				}else{
+					
+						// default overrides
+					
+					if ( name == PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED ){
+						
+						if ( COConfigurationManager.getBooleanParameter( "enable.seedingonly.maxuploads" )){
+							
+							value = new Boolean( true );
+						}
+						
+					}else if ( name == PARAM_MAX_UPLOADS_WHEN_SEEDING ){
+						
+						int	def = COConfigurationManager.getIntParameter( "Max Uploads Seeding" );
+						
+						value = new Integer( def );
+					}
 				}
 			}
 			
