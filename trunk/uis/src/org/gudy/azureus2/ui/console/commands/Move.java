@@ -13,6 +13,7 @@ package org.gudy.azureus2.ui.console.commands;
 import java.util.List;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
 /**
@@ -66,23 +67,25 @@ public class Move extends IConsoleCommand {
 		if (name == null)
 			name = "?";
 		
+		GlobalManager	gm = dm.getGlobalManager();
+
 		if (moveto) {
 			ci.gm.moveTo(dm, nmoveto - 1);
 			ci.gm.fixUpDownloadManagerPositions();
 			ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to #" + Integer.toString(nmoveto) + ".");
 		} else if (ncommand > 0) {
-			if (dm.isMoveableUp()) {
-				while (dm.isMoveableUp())
-					dm.moveUp();
+			if (gm.isMoveableUp(dm)) {
+				while (gm.isMoveableUp(dm))
+					gm.moveUp(dm);
 				ci.gm.fixUpDownloadManagerPositions();
 				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to top.");
 			} else {
 				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") already at top.");
 			}
 		} else {
-			if (dm.isMoveableDown()) {
-				while (dm.isMoveableDown())
-					dm.moveDown();
+			if (gm.isMoveableDown(dm)) {
+				while (gm.isMoveableDown(dm))
+					gm.moveDown(dm);
 				ci.gm.fixUpDownloadManagerPositions();
 				ci.out.println("> Torrent #" + Integer.toString(number) + " (" + name + ") moved to bottom.");
 			} else {
