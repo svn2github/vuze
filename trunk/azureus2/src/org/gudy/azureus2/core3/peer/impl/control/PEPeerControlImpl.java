@@ -289,13 +289,13 @@ PEPeerControlImpl
 				piecePicker.updateAvailability();
 				
 				boolean forcenoseeds = disconnect_seeds_when_seeding;
-				if (!seeding_mode) 
+				if (!seeding_mode)
 				{	// if we're not finished
 					checkRequests();	//check the requests
 					
 					// if we have no downloadable pieces (due to "do not download") then
 					// we disconnect seeds and avoid calling these methods to save CPU.
-					forcenoseeds &=!piecePicker.checkDownloadPossible();	//download blocks if possible
+                    forcenoseeds =!piecePicker.checkDownloadPossible();	//download blocks if possible
 					checkRescan();
 					checkSpeedAndReserved();
 				}
@@ -1165,10 +1165,11 @@ PEPeerControlImpl
 	
   //Method that checks if we are connected to another seed, and if so, disconnect from him.
   private void checkSeeds(boolean forceDisconnect) {
-	//proceed on mainloop 1 second intervals if we're a seed and we want to force disconnects
-  	if (!forceDisconnect ||!seeding_mode ||!disconnect_seeds_when_seeding
-  		||(mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL) != 0)
-  		return;
+    //proceed on mainloop 1 second intervals if we're a seed and we want to force disconnects
+    if ((mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL) != 0)
+        return;
+  	if (!disconnect_seeds_when_seeding ||(!forceDisconnect &&!seeding_mode))
+        return;
 	
     ArrayList to_close = null;
     
