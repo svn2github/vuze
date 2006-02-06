@@ -238,7 +238,7 @@ public class PiecePickerImpl
 		
 		
 		// now do stuff related to starting/continuing pieces
-		startPriorities =new long[nbPieces];
+//		startPriorities =new long[nbPieces];    //allocate on demand
 		filePriorityChange =Long.MIN_VALUE;
 		
 		priorityParamChange =Long.MIN_VALUE;
@@ -562,25 +562,30 @@ public class PiecePickerImpl
                 final DMPieceList pieceList =diskManager.getPieceList(dmPiece.getPieceNumber());
                 for (int j =0; j <pieceList.size(); j++)
                 {
-                    final DiskManagerFileInfoImpl file =pieceList.get(j).getFile();
-                    final long fileLength =file.getLength();
-                    if (fileLength >0 &&file.getDownloaded() <fileLength &&!file.isSkipped())
+                    final DiskManagerFileInfoImpl fileInfo =pieceList.get(j).getFile();
+                    final long length =fileInfo.getLength();
+                    final long downloaded =fileInfo.getDownloaded();
+                    if (length >0 &&downloaded <length &&!fileInfo.isSkipped())
                     {
                         priority =0;
                         // user option "prioritize first and last piece"
                         // TODO: should prioritize ~10% to ~%25 from edges of file
-                        if (firstPiecePriority &&file.getNbPieces() >FIRST_PIECE_MIN_NB)
+                        if (firstPiecePriority &&fileInfo.getNbPieces() >FIRST_PIECE_MIN_NB)
                         {
-                            if (i ==file.getFirstPieceNumber() ||i ==file.getLastPieceNumber())
+                            if (i ==fileInfo.getFirstPieceNumber() ||i ==fileInfo.getLastPieceNumber())
                                 priority +=PRIORITY_W_FIRSTLAST;
                         }
                         // if the file is high-priority
                         // startPriority +=(1000 *fileInfo.getPriority()) /255;
-                        if (file.isPriority())
+                        if (fileInfo.isPriority())
                         {
                             priority +=PRIORITY_W_FILE;
                             if (completionPriority)
-                                priority +=(PRIORITY_W_COMPLETION *file.getDownloaded()) /diskManager.getTotalLength();
+                            {
+                                final long percent =(1000 *downloaded) /length;
+                                if (percent >=900)
+                                    priority +=(PRIORITY_W_COMPLETION *downloaded) /diskManager.getTotalLength();
+                            }
                         }
                         if (priority >startPriority)
                             startPriority =priority;
@@ -674,7 +679,8 @@ public class PiecePickerImpl
 
 			// Assign the created piece to the pieces array.
 			pc.addPiece(pePiece, pieceNumber);
-			pePiece.setResumePriority(startPriorities[pieceNumber]);
+            if (startPriorities !=null)
+                pePiece.setResumePriority(startPriorities[pieceNumber]);
 			if (availability[pieceNumber] <=globalMinOthers)
 				nbRarestActive++;
 		}
