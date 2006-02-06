@@ -4,29 +4,29 @@ $
 
 +1. Mitä uutta on Azureus 2.4.0.0:ssa
 
-!1.1 Encrypted/Obfuscated Data Transfer
- Support for encrypting the data between Azureus and other compatible clients is included. This both provides a level of protection of data and can help with ISPs that block or restrict peer-to-peer traffic.
+!1.1 Liikenteen salaaminen/peittäminen
+ Azureus tukee nyt siirrettävän tiedon salausta tätä tukevien asiakasohjelmien kanssa. Tietojen suojauksen ohella tästä on apua siinä tapauksessa, jos Internet-palveluntarjoaja yrittää estää tai rajoittaa P2P-liikennettä verkossaan - estot ja rajoitukset voidaan kiertää, sillä Azureus peittää kaikki BitTorrent-liikenteeseen viittaavat tiedot.
   
-!1.2 High Speed LAN Transfers
- Multiple copies of Azureus running on the same local network support high speed direct connections.
+!1.2 Lähiverkkokäyttö
+ Jos samassa lähiverkkoympäristössä on käytössä useita Azureus-asiakasohjelmia, niiden välille voidaan muodostaa suorat, nopeat tiedonsiirtoyhteydet. Näin tiedon jakaminen tehostuu huomattavasti.
 
-!1.3 Improved Download Algorithm
- The algorithm used to determine which pieces of a download to request from which peers has been rewritten to improve its behaviour and performance.
+!1.3 Parannettu latausmenetelmä
+ Ladattavien osien ja käyttäjien paikallistamiseen käytettyjä tapoja on muutettu, jotta toiminta olisi tehokkaampaa ja nopeampaa.
 
-!1.4 Webseed Support
- Basic webseed support is included. Webseeds will only be used when a download's availability is less than 1.0.
+!1.4 Webseed-tuki
+ Azureus tukee nyt Webseed-menetelmän perustoimintoja. Webseed-kohteita käytetään vain, jos torrent-tiedoston saatavuus on alle 1.0.
 
-!1.5 Other
+!1.5 Muuta
 
- Various user interface improvements.
- Performance improvements.
- Bug fixes.
+ Lukuisia parannuksia käyttöliittymään.
+ Parannuksia suorituskykyyn.
+ Ohjelmavirhekorjauksia.
     
-    Huom.: Nykyisin Windows-ympäristössä Internet-yhteyttä käyttävänä prosessina ei näy Java, vaan itse Azureus.exe. Niinpä ohjelmistopohjaiseen palomuuriin saattaa joutua tekemään uuden Azureuksen liikenteen sallivan säännön.
+    Huom.: Windows-ympäristössä ohjelmistopohjaiseen palomuuriin tarvitaan liikenteen salliva sääntö prosessille Azureus.exe.
     
     Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
 
-    Edellisen version muutokset: http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4, 2.3.0.2
+    Edellisten versioiden muutokset: http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4 ja 2.3.0.2.
     
 +2. Mitä uutta on Azureus 2.3.0.0:ssa
 
@@ -43,7 +43,7 @@ $
  Esimerkiksi JPC- ja Chat-lisäosat hyödyntävät tätä uutta ominaisuutta.
 
 !2.3 JPC
- Joltid Peer Cache (JPC) on nyt sisällytetty Azureukseen. Jos käyttäjän ISP (Internet-yhteyden tarjoaja) tukee tätä, pitäisi latauksien onnistua nopeammin. Samalla palveluntarjoajan oma liikenne vähenee. JPC-lisäosa on turvallinen, sillä palveluntarjoaja ei näe mitä lataat/lähetät, eikä pysty millään tavoin vakoilemaan toimiasi. JPC-lisäosa voidaan kytkeä pois käytöstä asetuksista (Työkalut | Asetukset | Lisäosat | JPC).
+ Joltid Peer Cache (JPC) on nyt sisällytetty Azureukseen. Jos käyttäjän Internet-palveluntarjoaja tukee tätä, pitäisi latauksien onnistua nopeammin. Samalla palveluntarjoajan oma liikenne vähenee. JPC-lisäosa on turvallinen, sillä palveluntarjoaja ei näe mitä lataat/lähetät, eikä pysty millään tavoin vakoilemaan toimiasi. JPC-lisäosa voidaan kytkeä pois käytöstä asetuksista (Työkalut | Asetukset | Lisäosat | JPC).
   
 !2.4 Uudet lisäosat
  Hajautettu tietokanta ja uusi viestinnän salliva protokolla mahdollistivat uudenlaisten lisäosien kehittämisen. Mitään näistä ei asenneta automaattisesti, mutta jos kiinnostusta riittää, voit tutustua niihin käyttämällä ohjattua lisäosien asennustoimintoa (Lisäosat | Ohjattu asennustoiminto).
@@ -80,7 +80,7 @@ $
 
 !4.2 Azureus kaatuu?
  Jos Azureus kaatuilee usein, todennäköisin syy on tietokoneen verkkokomponenteissa (verkkokortti, sen ajurit, käyttöjärjestelmän verkko-ominaisuudet). Suositus on, että päivität kaikki verkkoyhteyteen vaikuttavien laitteiden ajurit. Jos tämä ei auta, järjestelmä ei todennäköisesti kestä kovin suurta yhteysmäärää kerrallaan.
- Alenna avattavien yhteyksien määrää Azureuksessa (Työkalut | Asetukset | Siirrot | Yhteyksien maks.lkm/torrent ja Yhteyksien maks.lkm kaikkiaan). Kokeile pieniä arvoja, kuten 30.
+ Alenna avattavien yhteyksien määrää Azureuksessa (Työkalut | Asetukset | Siirrot | Yhteyksien oletusenimmäismäärä/torrent-tiedosto ja Yhteyksien enimmäismäärä kaikkiaan). Kokeile pieniä arvoja, kuten 30.
 
 !4.3 Tuki
  Ennen kuin otat yhteyttä Azureuksen tukeen, tarkasta ensin seuraavat resurssit:
