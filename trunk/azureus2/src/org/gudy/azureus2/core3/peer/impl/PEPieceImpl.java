@@ -109,12 +109,12 @@ implements PEPiece
     {
         final long now =SystemTime.getCurrentTime();
         long lastWriteTime =dmPiece.getLastWriteTime();
-        if (lastWriteTime >0)
+        if (lastWriteTime >0 &&now >=lastWriteTime)
             return now -lastWriteTime;
-        if (creationTime >0)
+        if (creationTime >0 &&now >=creationTime)
             return now -creationTime;
         creationTime =now;
-        return creationTime;
+        return 0;
     }
 
 	/** Tells if a block has been requested
