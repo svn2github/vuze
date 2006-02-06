@@ -345,8 +345,11 @@ public class DiskManagerPieceImpl
 	public void setDone(boolean b)
 	{
 		// we delegate this operation to the disk manager so it can synchronise the activity
-		diskManager.setPieceDone(this, b);
-
+        if (b !=isDone())
+        {
+            diskManager.setPieceDone(this, b);
+        }
+        
 		if (isDone())
 			written =null;
 	}
