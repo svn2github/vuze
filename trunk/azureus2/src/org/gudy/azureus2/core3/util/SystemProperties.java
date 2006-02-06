@@ -191,7 +191,22 @@ public class SystemProperties {
 	    
 	    }else{
 	    	
-	      temp_user_path = userhome + SEP + "." + APPLICATION_NAME + SEP;
+	      temp_user_path = userhome + SEP + "." + APPLICATION_NAME.toLowerCase() + SEP;
+	      
+	      File home = new File( temp_user_path );
+	      if( !home.exists() ) {  //might be a fresh install or might be an old non-migrated install
+	      	String old_home_path = userhome + SEP + "." + APPLICATION_NAME + SEP;
+	      	File old_home = new File( old_home_path );
+	      	if( old_home.exists() ) {  //migrate
+	      		String msg = "Migrating unix user config dir [" +old_home_path+ "] ===> [" +temp_user_path+ "]";
+	      		System.out.println( msg );
+	      		Logger.log(new LogEvent(LOGID, "SystemProperties::getUserPath(Unix): " +msg ));
+	      		try {
+	      			old_home.renameTo( home );
+	      		}
+	      		catch( Throwable t ) {  t.printStackTrace();  }
+	      	}
+	      }
 	      
 	      if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID,
