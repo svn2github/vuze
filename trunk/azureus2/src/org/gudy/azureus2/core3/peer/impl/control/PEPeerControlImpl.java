@@ -676,19 +676,23 @@ PEPeerControlImpl
 			// these checks are only against pieces being downloaded yet needing requests still/again
 			if (pePiece !=null)
 			{
-				final DiskManagerPiece dmPiece	=dm_pieces[i];
-                final long lastWriteTime =dmPiece.getLastWriteTime();
-                final long timeSinceLastWrite =now -lastWriteTime;
-				if (lastWriteTime >0 &&timeSinceLastWrite >4001 &&now >pePiece.getCreationTime())
+                final long timeSinceActivity =pePiece.getTimeSinceLastActivity();
+				if (timeSinceActivity >4 *1000)
 				{
+                    final int oldSpeed =pePiece.getSpeed();
 					// maybe piece's speed is too high for it to get new data
-					if (pePiece.getSpeed() >0)
-					{
-					    if (dmPiece.isRequested())
+					if (oldSpeed >0)
+                    {
+                        final DiskManagerPiece dmPiece =dm_pieces[i];
+                        if (dmPiece.isRequested() ||timeSinceActivity >29 *1000)
                             pePiece.setSpeed(0);
-					    else
-                            pePiece.setSpeed((int)((dmPiece.getNbWritten() *DiskManager.BLOCK_SIZE) /(now -pePiece.getCreationTime())));
-					} else if (timeSinceLastWrite >(120 *1000))
+                        else
+                        {
+                            final long calcSpeed =((dmPiece.getNbWritten() *DiskManager.BLOCK_SIZE) /timeSinceActivity) -1;
+                            if (calcSpeed <oldSpeed)
+                                pePiece.setSpeed((int)(calcSpeed >0 ?calcSpeed :0));
+                        }
+                    } else if (timeSinceActivity >(120 *1000))
 					{
 						// has reserved piece gone stagnant?
 						final String reservingPeer =pePiece.getReservedBy();
