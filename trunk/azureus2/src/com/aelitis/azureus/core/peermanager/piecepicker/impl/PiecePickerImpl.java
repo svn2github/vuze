@@ -152,6 +152,7 @@ public class PiecePickerImpl
 	
     /** the priority for starting each piece/base priority for resuming */
     private long[]				startPriorities;
+//    private volatile boolean    computingCandidate;
 	
 	protected volatile boolean	hasNeededUndonePiece;
 	protected volatile long		neededUndonePieceChange;
@@ -641,7 +642,7 @@ public class PiecePickerImpl
         {
             // if already getting some rarest, dont get more if swarm is healthy or too many pieces running
             rarestOverride =globalMinOthers >globalMin
-                ||(globalMinOthers >=(2 *nbSeeds) &&(2 *globalMinOthers) >=nbPeers);
+            	||(globalMinOthers >=(2 *nbSeeds) &&(2 *globalMinOthers) >=nbPeers);
             // Interest in Rarest pieces (compared to user priority settings) could be influenced by several factors;
             // less demand closer to 0% and 100% of the torrent/farther from 50% of the torrent
             // less demand closer to 0% and 100% of peers interestd in us/farther from 50% of peers interested in us
@@ -663,7 +664,7 @@ public class PiecePickerImpl
 		if (pieceNumber <0)
 			return 0;
 
-		int peerSpeed =(int) pt.getStats().getDataReceiveRate() /1024;
+		int peerSpeed =(int) pt.getStats().getDataReceiveRate() /1000;
 
 		PEPeerControl pc =pt.getControl();
 		PEPiece pePiece =pc.getPiece(pieceNumber);
@@ -729,6 +730,16 @@ public class PiecePickerImpl
         final BitFlags  peerHavePieces =pt.getAvailable();
         if (peerHavePieces ==null ||peerHavePieces.nbSet <=0)
             return -1;
+        
+//        if (computingCandidate)
+//        {
+//            if (Logger.isEnabled())
+//                Logger.log(new LogEvent(pt, LOGID, LogEvent.LT_ERROR,
+//                    "PiecePickerImpl:getRequestCandidate() entered while executing (re-entered).  " +
+//                    "This is not intended."));
+//            return -1;
+//        }
+//        computingCandidate =true;
 
         // piece number and its block number that we'll try to DL
         int pieceNumber;                // will be set to the piece # we want to resume
@@ -743,6 +754,7 @@ public class PiecePickerImpl
         if (pieceNumber >=0)
         {
             dmPiece =dmPieces[pieceNumber];
+//            computingCandidate =false;
             if (peerHavePieces.flags[pieceNumber] &&dmPiece.isRequestable())
                 return pieceNumber;
             return -1; // this is an odd case that maybe should be handled better, but checkers might fully handle it
@@ -811,6 +823,7 @@ public class PiecePickerImpl
                                 continue;   //reserved to somebody else
                             // the peer forgot this is reserved to him, but we located it
                             pt.setReservedPieceNumber(i);
+//                            computingCandidate =false;
                             return i;
                         }
                         
@@ -893,6 +906,7 @@ public class PiecePickerImpl
             }
         }
 
+//        computingCandidate =false;
         // Didnt find anything to do
         if (pieceNumber <0 &&(startCandidates ==null ||startCandidates.nbSet <1))
             return -1;
@@ -1376,6 +1390,8 @@ public class PiecePickerImpl
 			{
 				addHavePiece(pieceNumber);
 				nbPiecesDone++;
+                if (nbPiecesDone >=nbPieces)
+                    checkDownloadablePiece();
 			}else
 			{
                 try
