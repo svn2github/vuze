@@ -13,7 +13,7 @@ $
 !1.3 Improved Download Algorithm
  The algorithm used to determine which pieces of a download to request from which peers has been rewritten to improve its behaviour and performance.
 
-!1.4 Webseed Suport
+!1.4 Webseed Support
  Basic webseed support is included. Webseeds will only be used when a download's availability is less than 1.0.
 
 !1.5 Other
@@ -22,7 +22,7 @@ $
  Performance improvements.
  Bug fixes.
  
-    Note: New Windows launcher exe might require allowing "Azureus.exe" internet access in your software firewall.
+    Note: New Windows launcher exe might require allowing "Azureus.exe" Internet access in your software firewall.
     
     Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
 
@@ -71,8 +71,8 @@ $
 +4. Common Issues
 
 !4.1 NAT "error"
- NAT means "Network Address Translation". The NAT test in Azureus tells you whether or not you are connectable from people on the internet. You'll get better speeds if you ARE connectable.
- Please don't contact us in order to solve NAT issues, as plenty resources are available on the internet about it. First check :
+ NAT means "Network Address Translation". The NAT test in Azureus tells you whether or not you are connectable from people on the Internet. You'll get better speeds if you ARE connectable.
+ Please don't contact us in order to solve NAT issues, as plenty resources are available on the Internet about it. First check :
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  

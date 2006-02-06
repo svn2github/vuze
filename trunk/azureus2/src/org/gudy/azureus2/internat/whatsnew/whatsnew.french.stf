@@ -72,7 +72,7 @@ $
 +4. Problèmes courants
 
 !4.1 "Erreur" NAT
- NAT signifie "Network Address Translation" ("traduction d'adresse réseau"). Le test NAT d'Azureus vous dit si vous êtes accessibles de l'extérieur (internet). Vous obtiendrez de meilleures performances si vous êtres accessibles.
+ NAT signifie "Network Address Translation" ("traduction d'adresse réseau"). Le test NAT d'Azureus vous dit si vous êtes accessibles de l'extérieur (Internet). Vous obtiendrez de meilleures performances si vous êtres accessibles.
  Pour régler vos problèmes NAT, voir:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com

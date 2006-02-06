@@ -13,7 +13,7 @@ $
 !1.3 Improved Download Algorithm
  The algorithm used to determine which pieces of a download to request from which peers has been rewritten to improve its behaviour and performance.
 
-!1.4 Webseed Suport
+!1.4 Webseed Support
  Basic webseed support is included. Webseeds will only be used when a download's availability is less than 1.0.
 
 !1.5 Other
