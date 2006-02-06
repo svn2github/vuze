@@ -21,32 +21,18 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Control;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.peer.PEPeerSource;
-import org.gudy.azureus2.core3.util.AENetworkClassifier;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerCapabilities;
-import org.gudy.azureus2.platform.PlatformManagerFactory;
-import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.mainwindow.Cursors;
-import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 
@@ -70,15 +56,16 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 
 	public Composite configSectionCreate(final Composite parent) {
 		GridData gridData;
+		GridLayout layout;
 
 		Composite cSection = new Composite(parent, SWT.NULL);
 
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL
 				| GridData.HORIZONTAL_ALIGN_FILL);
 		cSection.setLayoutData(gridData);
-		GridLayout proxy_layout = new GridLayout();
-		proxy_layout.numColumns = 2;
-		cSection.setLayout(proxy_layout);
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		cSection.setLayout(layout);
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 		if (userMode < REQUIRED_MODE) {
@@ -109,59 +96,81 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		}
 
 		//////////////////////  PROXY GROUP /////////////////
-
-		final BooleanParameter enableProxy = new BooleanParameter(cSection,
+		
+		Group gProxyTracker = new Group(cSection, SWT.NULL);
+		Messages.setLanguageText(gProxyTracker, CFG_PREFIX + "group.tracker");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		gProxyTracker.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		gProxyTracker.setLayout(layout);
+		
+		final BooleanParameter enableProxy = new BooleanParameter(gProxyTracker,
 				"Enable.Proxy", false, CFG_PREFIX + "enable_proxy");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		enableProxy.setLayoutData(gridData);
 
-		final BooleanParameter enableSocks = new BooleanParameter(cSection,
+		final BooleanParameter enableSocks = new BooleanParameter(gProxyTracker,
 				"Enable.SOCKS", false, CFG_PREFIX + "enable_socks");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		enableSocks.setLayoutData(gridData);
 
-		StringParameter pHost = new StringParameter(cSection, "Proxy.Host", "");
+		Label lHost = new Label(gProxyTracker, SWT.NULL);
+		Messages.setLanguageText(lHost, CFG_PREFIX + "host");
+		StringParameter pHost = new StringParameter(gProxyTracker, "Proxy.Host", "");
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pHost.setLayoutData(gridData);
-		Label lHost = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lHost, CFG_PREFIX + "host");
 
-		StringParameter pPort = new StringParameter(cSection, "Proxy.Port", "");
+		Label lPort = new Label(gProxyTracker, SWT.NULL);
+		Messages.setLanguageText(lPort, CFG_PREFIX + "port");
+		StringParameter pPort = new StringParameter(gProxyTracker, "Proxy.Port", "");
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		pPort.setLayoutData(gridData);
-		Label lPort = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lPort, CFG_PREFIX + "port");
 
-		StringParameter pUser = new StringParameter(cSection, "Proxy.Username", "");
+		Label lUser = new Label(gProxyTracker, SWT.NULL);
+		Messages.setLanguageText(lUser, CFG_PREFIX + "username");
+		StringParameter pUser = new StringParameter(gProxyTracker, "Proxy.Username", "");
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pUser.setLayoutData(gridData);
-		Label lUser = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lUser, CFG_PREFIX + "username");
 
-		StringParameter pPass = new StringParameter(cSection, "Proxy.Password", "");
+		Label lPass = new Label(gProxyTracker, SWT.NULL);
+		Messages.setLanguageText(lPass, CFG_PREFIX + "password");
+		StringParameter pPass = new StringParameter(gProxyTracker, "Proxy.Password", "");
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pPass.setLayoutData(gridData);
-		Label lPass = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lPass, CFG_PREFIX + "password");
 
-		final BooleanParameter enableSocksPeer = new BooleanParameter(cSection,
+		////////////////////////////////////////////////
+		
+		Group gProxyPeer = new Group(cSection, SWT.NULL);
+		Messages.setLanguageText(gProxyPeer, CFG_PREFIX + "group.peer");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		gProxyPeer.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		gProxyPeer.setLayout(layout);
+
+		final BooleanParameter enableSocksPeer = new BooleanParameter(gProxyPeer,
 				"Proxy.Data.Enable", false, CFG_PREFIX + "enable_socks.peer");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		enableSocksPeer.setLayoutData(gridData);
 
-		final BooleanParameter socksPeerInform = new BooleanParameter(cSection,
+		final BooleanParameter socksPeerInform = new BooleanParameter(gProxyPeer,
 				"Proxy.Data.SOCKS.inform", true, CFG_PREFIX + "peer.informtracker");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		socksPeerInform.setLayoutData(gridData);
 
+		Label lSocksVersion = new Label(gProxyPeer, SWT.NULL);
+		Messages.setLanguageText(lSocksVersion, CFG_PREFIX + "socks.version");
 		String[] socks_types = { "V4", "V4a", "V5" };
 		String dropLabels[] = new String[socks_types.length];
 		String dropValues[] = new String[socks_types.length];
@@ -169,48 +178,46 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 			dropLabels[i] = socks_types[i];
 			dropValues[i] = socks_types[i];
 		}
-		final StringListParameter socksType = new StringListParameter(cSection,
+		final StringListParameter socksType = new StringListParameter(gProxyPeer,
 				"Proxy.Data.SOCKS.version", "V4", dropLabels, dropValues);
-		Label lSocksVersion = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lSocksVersion, CFG_PREFIX + "socks.version");
 
-		final BooleanParameter sameConfig = new BooleanParameter(cSection,
+		final BooleanParameter sameConfig = new BooleanParameter(gProxyPeer,
 				"Proxy.Data.Same", true, CFG_PREFIX + "peer.same");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		sameConfig.setLayoutData(gridData);
 
-		StringParameter pDataHost = new StringParameter(cSection,
+		Label lDataHost = new Label(gProxyPeer, SWT.NULL);
+		Messages.setLanguageText(lDataHost, CFG_PREFIX + "host");
+		StringParameter pDataHost = new StringParameter(gProxyPeer,
 				"Proxy.Data.Host", "");
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pDataHost.setLayoutData(gridData);
-		Label lDataHost = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lDataHost, CFG_PREFIX + "host");
 
-		StringParameter pDataPort = new StringParameter(cSection,
+		Label lDataPort = new Label(gProxyPeer, SWT.NULL);
+		Messages.setLanguageText(lDataPort, CFG_PREFIX + "port");
+		StringParameter pDataPort = new StringParameter(gProxyPeer,
 				"Proxy.Data.Port", "");
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		pDataPort.setLayoutData(gridData);
-		Label lDataPort = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lDataPort, CFG_PREFIX + "port");
 
-		StringParameter pDataUser = new StringParameter(cSection,
+		Label lDataUser = new Label(gProxyPeer, SWT.NULL);
+		Messages.setLanguageText(lDataUser, CFG_PREFIX + "username");
+		StringParameter pDataUser = new StringParameter(gProxyPeer,
 				"Proxy.Data.Username", "");
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pDataUser.setLayoutData(gridData);
-		Label lDataUser = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lDataUser, CFG_PREFIX + "username");
 
-		StringParameter pDataPass = new StringParameter(cSection,
+		Label lDataPass = new Label(gProxyPeer, SWT.NULL);
+		Messages.setLanguageText(lDataPass, CFG_PREFIX + "password");
+		StringParameter pDataPass = new StringParameter(gProxyPeer,
 				"Proxy.Data.Password", "");
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pDataPass.setLayoutData(gridData);
-		Label lDataPass = new Label(cSection, SWT.NULL);
-		Messages.setLanguageText(lDataPass, CFG_PREFIX + "password");
 
 		final Control[] proxy_controls = new Control[] { enableSocks.getControl(),
 				lHost, pHost.getControl(), lPort, pPort.getControl(), lUser,

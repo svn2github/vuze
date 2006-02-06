@@ -70,17 +70,15 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 		Composite cSection = new Composite(parent, SWT.NULL);
 
-		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL + GridData.VERTICAL_ALIGN_FILL);
 		cSection.setLayoutData(gridData);
 		GridLayout advanced_layout = new GridLayout();
-		advanced_layout.numColumns = 2;
 		cSection.setLayout(advanced_layout);
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 		if (userMode < REQUIRED_MODE) {
 			Label label = new Label(cSection, SWT.WRAP);
 			gridData = new GridData();
-			gridData.horizontalSpan = 2;
 			label.setLayoutData(gridData);
 
 			final String[] modeKeys = { "ConfigView.section.mode.beginner",
@@ -103,38 +101,40 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 			return cSection;
 		}
+		
+		LinkLabel linkLabel = new LinkLabel(cSection, gridData, CFG_PREFIX
+				+ "encrypt.info.link", MessageText.getString(CFG_PREFIX + "url"));
 
 		///////////////////////   ADVANCED SOCKET SETTINGS GROUP //////////
 		
 		Group gSocket = new Group(cSection, SWT.NULL);
-		Messages.setLanguageText(gSocket, "ConfigView.section.connection.advanced.socket.group");
+		Messages.setLanguageText(gSocket, CFG_PREFIX + "socket.group");
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-		gridData.horizontalSpan = 2;
 		gSocket.setLayoutData(gridData);
 		GridLayout glayout = new GridLayout();
 		glayout.numColumns = 3;
 		gSocket.setLayout(glayout);
 
 		
+		Label lmaxout = new Label(gSocket, SWT.NULL);
+    Messages.setLanguageText(lmaxout, "ConfigView.section.connection.network.max.simultaneous.connect.attempts");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    lmaxout.setLayoutData( gridData );
+
     IntParameter max_connects = new IntParameter(gSocket, "network.max.simultaneous.connect.attempts", 1, 100, false, false );    
     gridData = new GridData();
     gridData.widthHint = 30;
 		max_connects.setLayoutData(gridData);
-		Label lmaxout = new Label(gSocket, SWT.NULL);
-    Messages.setLanguageText(lmaxout, "ConfigView.section.connection.network.max.simultaneous.connect.attempts");
-    
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    lmaxout.setLayoutData( gridData );
     
     
+    Label lbind = new Label(gSocket, SWT.NULL);
+    Messages.setLanguageText(lbind, "ConfigView.label.bindip");
     StringParameter bindip = new StringParameter(gSocket, "Bind IP", "");
     gridData = new GridData();
     gridData.widthHint = 100;
     gridData.horizontalSpan = 2;
     bindip.setLayoutData(gridData);
-    Label lbind = new Label(gSocket, SWT.NULL);
-    Messages.setLanguageText(lbind, "ConfigView.label.bindip");
 
     BooleanParameter bind_port = new BooleanParameter(gSocket,	"network.bind.local.port", false, CFG_PREFIX + "bind_port");
 		gridData = new GridData();
@@ -144,41 +144,41 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 	
 		
 		
+		Label lmtu = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lmtu, CFG_PREFIX + "mtu");
 		final IntParameter mtu_size = new IntParameter(gSocket,"network.tcp.mtu.size");
 		mtu_size.setMaximumValue(512 * 1024);
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		gridData.horizontalSpan = 2;
 		mtu_size.setLayoutData(gridData);
-		Label lmtu = new Label(gSocket, SWT.NULL);
-		Messages.setLanguageText(lmtu, CFG_PREFIX + "mtu");
 
 
+		Label lsend = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lsend, CFG_PREFIX + "SO_SNDBUF");
 		final IntParameter SO_SNDBUF = new IntParameter(gSocket,	"network.tcp.socket.SO_SNDBUF");
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		gridData.horizontalSpan = 2;
 		SO_SNDBUF.setLayoutData(gridData);
-		Label lsend = new Label(gSocket, SWT.NULL);
-		Messages.setLanguageText(lsend, CFG_PREFIX + "SO_SNDBUF");
 
 
+		Label lreceiv = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lreceiv, CFG_PREFIX + "SO_RCVBUF");
 		final IntParameter SO_RCVBUF = new IntParameter(gSocket,	"network.tcp.socket.SO_RCVBUF");
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		gridData.horizontalSpan = 2;
 		SO_RCVBUF.setLayoutData(gridData);
-		Label lreceiv = new Label(gSocket, SWT.NULL);
-		Messages.setLanguageText(lreceiv, CFG_PREFIX + "SO_RCVBUF");
 		
 
+		Label ltos = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(ltos, CFG_PREFIX + "IPTOS");
 		final StringParameter IPTOS = new StringParameter(gSocket,	"network.tcp.socket.IPTOS");
 		gridData = new GridData();
 		gridData.widthHint = 30;
 		gridData.horizontalSpan = 2;
 		IPTOS.setLayoutData(gridData);
-		Label ltos = new Label(gSocket, SWT.NULL);
-		Messages.setLanguageText(ltos, CFG_PREFIX + "IPTOS");
 
 
 		//do simple input verification, and registry key setting for TOS field
@@ -222,19 +222,25 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		
 		
 		Group gCrypto = new Group(cSection, SWT.NULL);
-		Messages.setLanguageText(gCrypto, "ConfigView.section.connection.advanced.encrypt.group");
-		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-		gridData.horizontalSpan = 2;
+		Messages.setLanguageText(gCrypto, CFG_PREFIX + "encrypt.group");
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gCrypto.setLayoutData(gridData);
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 2;
 		gCrypto.setLayout(layout);
 		
-		Label lcrypto = new Label(gCrypto, SWT.NULL);
+		Label lcrypto = new Label(gCrypto, SWT.WRAP);
 		Messages.setLanguageText(lcrypto, CFG_PREFIX + "encrypt.info");
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 2;
+		gridData.widthHint = 200;  // needed for wrap
+		lcrypto.setLayoutData(gridData);
+
 		gridData = new GridData();
-		gridData.horizontalSpan = 1;
-		new LinkLabel( gCrypto, gridData, CFG_PREFIX + "encrypt.info.link", "http://azureus.aelitis.com/wiki/index.php/Message_Stream_Encryption" );
+		gridData.horizontalSpan = 2;
+		linkLabel = new LinkLabel(gCrypto, gridData, CFG_PREFIX
+				+ "encrypt.info.link",
+				"http://azureus.aelitis.com/wiki/index.php/Message_Stream_Encryption");
 		
 		final BooleanParameter require = new BooleanParameter(gCrypto,	"network.transport.encrypted.require", false, CFG_PREFIX + "require_encrypted_transport");
 		gridData = new GridData();
@@ -252,21 +258,22 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Composite cEncryptLevel = new Composite(gCrypto, SWT.NULL);
 		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
 		gridData.horizontalSpan = 2;
-		gCrypto.setLayoutData(gridData);
+		cEncryptLevel.setLayoutData(gridData);
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		layout.marginWidth = 0;
 		layout.marginHeight = 0;
 		cEncryptLevel.setLayout(layout);
 		
-		final StringListParameter min_level = new StringListParameter(cEncryptLevel,	"network.transport.encrypted.min_level", encryption_types[1], dropLabels, dropValues);
 		Label lmin = new Label(cEncryptLevel, SWT.NULL);
 		Messages.setLanguageText(lmin, CFG_PREFIX + "min_encryption_level");
+		final StringListParameter min_level = new StringListParameter(cEncryptLevel,	"network.transport.encrypted.min_level", encryption_types[1], dropLabels, dropValues);
 		
-		Label lcryptofb = new Label(gCrypto, SWT.NULL);
+		Label lcryptofb = new Label(gCrypto, SWT.WRAP);
 		Messages.setLanguageText(lcryptofb, CFG_PREFIX + "encrypt.fallback_info");
-		gridData = new GridData();
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
+		gridData.widthHint = 200;  // needed for wrap
 		lcryptofb.setLayoutData(gridData);
 
 		BooleanParameter fallback_outgoing = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.outgoing", false, CFG_PREFIX + "encrypt.fallback_outgoing");

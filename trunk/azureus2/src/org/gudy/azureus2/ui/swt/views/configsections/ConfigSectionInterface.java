@@ -113,7 +113,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
     layout.marginWidth = 0;
     layout.numColumns = 4;
     cArea.setLayout(layout);
-    cArea.setLayoutData(new GridData());
+    cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
     	
     BooleanParameter d_play_sound = new BooleanParameter(cArea, "Play Download Finished",false, "ConfigView.label.playdownloadfinished");
@@ -211,8 +211,11 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 	      }
 	    });
 	    
-	    Label d_sound_info = new Label(cArea, SWT.NULL);
+	    Label d_sound_info = new Label(cArea, SWT.WRAP);
 	    Messages.setLanguageText(d_sound_info, "ConfigView.section.interface.wavlocation.info");
+	    gridData = new GridData(GridData.FILL_HORIZONTAL);
+	    gridData.widthHint = 100;
+	    d_sound_info.setLayoutData(gridData);
 
 	    d_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( d_pathParameter.getControls()));
 	    d_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( new Control[]{d_browse,d_sound_info }));
@@ -322,8 +325,11 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 	      }
 	    });
 	    
-	  Label f_sound_info = new Label(cArea, SWT.NULL);
+	  Label f_sound_info = new Label(cArea, SWT.WRAP);
 	  Messages.setLanguageText(f_sound_info, "ConfigView.section.interface.wavlocation.info");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 100;
+    f_sound_info.setLayoutData(gridData);
 
 	  f_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( f_pathParameter.getControls()));
 	  f_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( new Control[]{f_browse,f_sound_info }));
