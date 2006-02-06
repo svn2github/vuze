@@ -1217,7 +1217,7 @@ DownloadManagerImpl
 			  	  // -1 position means it hasn't been added to the global list.  We shouldn't
 			  	  // touch it, since it'll get a position once it's adding is complete
 			
-			if (globalManager != null && position != -1) {
+			if ( position != -1) {
   		  
 				DownloadManager[] dms = { DownloadManagerImpl.this };
 				
@@ -1287,7 +1287,7 @@ DownloadManagerImpl
     
   			// no tracker, return scrape
   		
-  		if (torrent != null && globalManager != null) {
+  		if (torrent != null ) {
   			
   			TRTrackerScraperResponse response = getTrackerScrapeResponse();
       
@@ -1380,7 +1380,7 @@ DownloadManagerImpl
 		
 			// no tracker, return scrape
 			
-		if ( torrent != null && globalManager != null) {
+		if ( torrent != null ) {
 				
 			TRTrackerScraperResponse response = getTrackerScrapeResponse();
 				
@@ -1509,100 +1509,97 @@ DownloadManagerImpl
 	getTrackerScrapeResponse() 
 	{
 		TRTrackerScraperResponse r = null;
-    
-		if ( globalManager != null) {
-    	
-			TRTrackerScraper	scraper = globalManager.getTrackerScraper();
-    	
-			TRTrackerAnnouncer tc = getTrackerClient();
-			
-			if ( tc != null ){
+       	
+		TRTrackerScraper	scraper = globalManager.getTrackerScraper();
+	
+		TRTrackerAnnouncer tc = getTrackerClient();
+		
+		if ( tc != null ){
+  	
+			r = scraper.scrape( tc );
+		}
+  
+		if ( r == null && torrent != null){
       	
-				r = scraper.scrape( tc );
-			}
-      
-			if ( r == null && torrent != null){
-	      	
-					// torrent not running. For multi-tracker torrents we need to behave sensibly
-	      			// here
-	      	
-				TRTrackerScraperResponse	non_null_response = null;
-	    	
-				TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
-	    	
-				if ( sets.length == 0 ){
-	    	
-					r = scraper.scrape(torrent);
-	    		
-				}else{
-	    			    			
-						// we use a fixed seed so that subsequent scrapes will randomise
-	    				// in the same order, as required by the spec. Note that if the
-	    				// torrent's announce sets are edited this all works fine (if we
-	    				// cached the randomised URL set this wouldn't work)
-	    		
-					Random	scrape_random = new Random(scrape_random_seed);
-	    		
-					for (int i=0;r==null && i<sets.length;i++){
-	    			
-						TOTorrentAnnounceURLSet	set = sets[i];
-	    			
-						URL[]	urls = set.getAnnounceURLs();
-	    			
-						List	rand_urls = new ArrayList();
-	    							 	
-						for (int j=0;j<urls.length;j++ ){
-				  		
-							URL url = urls[j];
-						            									
-							int pos = (int)(scrape_random.nextDouble() *  (rand_urls.size()+1));
-						
-							rand_urls.add(pos,url);
-						}
-				 	
-						for (int j=0;r==null && j<rand_urls.size();j++){
-							URL url = (URL)rand_urls.get(j);
-							r = scraper.scrape(torrent, url);
-				 		
-							if ( r!= null ){
-								
-								int status = r.getStatus();
-								
-								// Exit if online
-								if (status == TRTrackerScraperResponse.ST_ONLINE) {
-									// trigger listeners of new scrape
-									if (torrent.setAnnounceURL(url))
-								  	setTrackerScrapeResponse(r);
-									break;
-								}
-
-								// Scrape 1 at a time to save on outgoing connections
-								if (status == TRTrackerScraperResponse.ST_INITIALIZING || 
-										status == TRTrackerScraperResponse.ST_SCRAPING) {
-									break;
-								}
-									
-									// treat bad scrapes as missing so we go on to 
-				 					// the next tracker
-				 			
-								if ( (!r.isValid()) || status == TRTrackerScraperResponse.ST_ERROR ){
-				 				
-									if ( non_null_response == null ){
-				 					
-										non_null_response	= r;
-									}
-				 				
-									r	= null;
-								}
-								
+				// torrent not running. For multi-tracker torrents we need to behave sensibly
+      			// here
+      	
+			TRTrackerScraperResponse	non_null_response = null;
+    	
+			TOTorrentAnnounceURLSet[]	sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+    	
+			if ( sets.length == 0 ){
+    	
+				r = scraper.scrape(torrent);
+    		
+			}else{
+    			    			
+					// we use a fixed seed so that subsequent scrapes will randomise
+    				// in the same order, as required by the spec. Note that if the
+    				// torrent's announce sets are edited this all works fine (if we
+    				// cached the randomised URL set this wouldn't work)
+    		
+				Random	scrape_random = new Random(scrape_random_seed);
+    		
+				for (int i=0;r==null && i<sets.length;i++){
+    			
+					TOTorrentAnnounceURLSet	set = sets[i];
+    			
+					URL[]	urls = set.getAnnounceURLs();
+    			
+					List	rand_urls = new ArrayList();
+    							 	
+					for (int j=0;j<urls.length;j++ ){
+			  		
+						URL url = urls[j];
+					            									
+						int pos = (int)(scrape_random.nextDouble() *  (rand_urls.size()+1));
+					
+						rand_urls.add(pos,url);
+					}
+			 	
+					for (int j=0;r==null && j<rand_urls.size();j++){
+						URL url = (URL)rand_urls.get(j);
+						r = scraper.scrape(torrent, url);
+			 		
+						if ( r!= null ){
+							
+							int status = r.getStatus();
+							
+							// Exit if online
+							if (status == TRTrackerScraperResponse.ST_ONLINE) {
+								// trigger listeners of new scrape
+								if (torrent.setAnnounceURL(url))
+							  	setTrackerScrapeResponse(r);
+								break;
 							}
+
+							// Scrape 1 at a time to save on outgoing connections
+							if (status == TRTrackerScraperResponse.ST_INITIALIZING || 
+									status == TRTrackerScraperResponse.ST_SCRAPING) {
+								break;
+							}
+								
+								// treat bad scrapes as missing so we go on to 
+			 					// the next tracker
+			 			
+							if ( (!r.isValid()) || status == TRTrackerScraperResponse.ST_ERROR ){
+			 				
+								if ( non_null_response == null ){
+			 					
+									non_null_response	= r;
+								}
+			 				
+								r	= null;
+							}
+							
 						}
 					}
-	    		
-					if ( r == null ){
-	    			
-						r = non_null_response;
-					}
+				}
+    		
+				if ( r == null ){
+    			
+					r = non_null_response;
 				}
 			}
 		}
@@ -1625,7 +1622,7 @@ DownloadManagerImpl
 	scrapeTracker(
 		boolean	force )
 	{
-		if ( globalManager != null && torrent != null ){
+		if ( torrent != null ){
 	    	
 			TRTrackerScraper	scraper = globalManager.getTrackerScraper();
  
@@ -1667,29 +1664,6 @@ DownloadManagerImpl
 		return( torrent.getCreationDate());
 	}
   
- 
-  public boolean isMoveableUp() {
-	if(globalManager != null)
-	  return globalManager.isMoveableUp(this);
-	return false;
-  }
-  
-  public boolean isMoveableDown() {
-	if(globalManager != null)
-	  return globalManager.isMoveableDown(this);
-	return false;
-  }
-  
-  public void moveUp() {
-	if(globalManager != null)
-	  globalManager.moveUp(this);
-  }
-  
-  public void moveDown() {
-	if(globalManager != null)
-	  globalManager.moveDown(this);
-  }      
-  
 
 	public GlobalManager
 	getGlobalManager()
@@ -1697,11 +1671,11 @@ DownloadManagerImpl
 		return( globalManager );
 	}
 	
-  public DiskManager
-  getDiskManager()
-  {
-  	return( controller.getDiskManager());
-  }
+	public DiskManager
+	getDiskManager()
+	{
+		return( controller.getDiskManager());
+	}
   
 	public DiskManagerFileInfo[]
    	getDiskManagerFileInfo()

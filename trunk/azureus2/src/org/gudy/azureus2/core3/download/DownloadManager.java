@@ -254,20 +254,6 @@ DownloadManager
 	
 	public String
 	getErrorDetails();
-				
-		// what are these doing here?
-		
-	public boolean
-	isMoveableDown();
-	
-	public boolean
-	isMoveableUp();
-	
-	public void
-	moveDown();
-	
-	public void
-	moveUp();
 	
 	public DownloadManagerStats
 	getStats();

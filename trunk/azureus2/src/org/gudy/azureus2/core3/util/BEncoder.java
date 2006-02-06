@@ -20,24 +20,6 @@ import java.util.*;
 public class 
 BEncoder 
 {          	
-	 Charset	default_charset;
-	 Charset	byte_charset;
-
-	 /** Creates a new instance of BEncoder */
-	 
-    public 
-	BEncoder() 
-    {
-     	try{
-     		default_charset = Charset.forName( Constants.DEFAULT_ENCODING );
-     		byte_charset 	= Charset.forName( Constants.BYTE_ENCODING );
-      		
-    	}catch( Throwable e ){
-    		
-    		Debug.printStackTrace( e );
-    	}
-    }
-    
     public static byte[] encode(Map object) throws IOException{
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         new BEncoder().encode(baos, object);
@@ -56,9 +38,9 @@ BEncoder
         	
             String tempString = (object instanceof String) ? (String)object : String.valueOf((Float)object);
 
-            ByteBuffer	bb 	= default_charset.encode( tempString );           
+            ByteBuffer	bb 	= BDecoder.DEFAULT_CHARSET.encode( tempString );           
             
-            write(baos,default_charset.encode(String.valueOf(bb.limit())));
+            write(baos,BDecoder.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
             
             baos.write(':');
             
@@ -120,7 +102,7 @@ BEncoder
 		                		   		
 		   					try{
 		  					
-		   				 		encode( baos, byte_charset.encode(key));
+		   				 		encode( baos, BDecoder.BYTE_CHARSET.encode(key));
 		      				
 		      					encode( baos, tempMap.get(key));
 		      		
@@ -162,27 +144,27 @@ BEncoder
             Long tempLong = (Long)object;         
             //write out the l       
                baos.write('i');
-               write(baos,default_charset.encode(tempLong.toString()));
+               write(baos,BDecoder.DEFAULT_CHARSET.encode(tempLong.toString()));
                baos.write('e');
          }else if(object instanceof Integer){
          	
 			Integer tempInteger = (Integer)object;         
 			//write out the l       
 			baos.write('i');
-			write(baos,default_charset.encode(tempInteger.toString()));
+			write(baos,BDecoder.DEFAULT_CHARSET.encode(tempInteger.toString()));
 			baos.write('e');
 			
        }else if(object instanceof byte[]){
        	
             byte[] tempByteArray = (byte[])object;
-            write(baos,default_charset.encode(String.valueOf(tempByteArray.length)));
+            write(baos,BDecoder.DEFAULT_CHARSET.encode(String.valueOf(tempByteArray.length)));
             baos.write(':');
             baos.write(tempByteArray);
             
        }else if(object instanceof ByteBuffer ){
        	
        		ByteBuffer  bb = (ByteBuffer)object;
-       		write(baos,default_charset.encode(String.valueOf(bb.limit())));
+       		write(baos,BDecoder.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
             baos.write(':');
             write(baos,bb);
         }   

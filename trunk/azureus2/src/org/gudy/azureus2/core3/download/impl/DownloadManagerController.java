@@ -145,11 +145,8 @@ DownloadManagerController
 		download_manager = _download_manager;
 		
 		GlobalManager	gm = download_manager.getGlobalManager();
-		
-		if ( gm != null ){
-			
-			global_stats = gm.getStats();
-		}
+					
+		global_stats = gm.getStats();
 		
 		stats	= (DownloadManagerStatsImpl)download_manager.getStats();
 	}

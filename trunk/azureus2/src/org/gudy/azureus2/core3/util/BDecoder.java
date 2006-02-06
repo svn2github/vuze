@@ -20,10 +20,22 @@ import java.nio.charset.*;
  */
 public class BDecoder {
 	
+	protected static Charset	BYTE_CHARSET;
+	protected static Charset	DEFAULT_CHARSET;
+
+	static{
+	 	try{
+	  		BYTE_CHARSET 	= Charset.forName( Constants.BYTE_ENCODING );
+	 		DEFAULT_CHARSET = Charset.forName( Constants.DEFAULT_ENCODING );
+
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+	}
+	
 	private boolean recovery_mode;
 		
-	private Charset	byte_charset;
-	private Charset	default_charset;
 
 	
 	public static Map
@@ -48,14 +60,6 @@ public class BDecoder {
   public 
   BDecoder() 
   {	
-  	try{
-  		byte_charset 	= Charset.forName( Constants.BYTE_ENCODING );
- 		default_charset = Charset.forName( Constants.DEFAULT_ENCODING );
-
-	}catch( Throwable e ){
-		
-		Debug.printStackTrace( e );
-	}
   }
 
   public Map 
@@ -73,14 +77,18 @@ public class BDecoder {
   
   	throws IOException 
   {
-      Map	res = (Map)decodeInputStream(data, 0);
+      Object	res = decodeInputStream(data, 0);
       
       if ( res == null ){
     	  
     	  throw( new IOException( "BDecoder: zero length file" ));
+    	  
+      }else if ( !(res instanceof Map )){
+    	  
+    	  throw( new IOException( "BDecoder: top level isn't a Map" ));
       }
       
-      return( res );
+      return((Map)res );
   }
 
   private Map 
@@ -89,14 +97,18 @@ public class BDecoder {
   
   	throws IOException 
   {
-      Map res = (Map)decodeInputStream(data, 0);
+      Object res = decodeInputStream(data, 0);
       
       if ( res == null ){
     	  
     	  throw( new IOException( "BDecoder: zero length file" ));
+    	  
+      }else if ( !(res instanceof Map )){
+    	  
+    	  throw( new IOException( "BDecoder: top level isn't a Map" ));
       }
       
-      return( res );
+      return((Map)res );
   }
 
   private Object 
@@ -135,7 +147,7 @@ public class BDecoder {
 	          
 	          	//add the value to the map
 	          
-	          CharBuffer	cb = byte_charset.decode(ByteBuffer.wrap(tempByteArray));
+	          CharBuffer	cb = BYTE_CHARSET.decode(ByteBuffer.wrap(tempByteArray));
 	          
 	          String	key = new String(cb.array(),0,cb.limit());
 	                    
@@ -269,7 +281,7 @@ public class BDecoder {
 
     //return the value
     
-    CharBuffer	cb = default_charset.decode(ByteBuffer.wrap(tempArray));
+    CharBuffer	cb = DEFAULT_CHARSET.decode(ByteBuffer.wrap(tempArray));
     
     String	str_value = new String(cb.array(),0,cb.limit());
 

@@ -436,6 +436,18 @@ Download
 	public void
 	moveDown();
 	
+		/**
+		 * Moves a download and re-orders the others appropriately. Note that setPosition does not do this, it
+		 * merely sets the position thus making it possible, for example, for two downloads to have the same
+		 * position 
+		 * @param position
+		 * @since 2.3.0.7
+		 */
+	
+	public void
+	moveTo(
+		int		position );
+	
 	/**
 	 * Tests whether or not a download can be removed. Due to synchronization issues it is possible
 	 * for a download to report OK here but still fail removal.

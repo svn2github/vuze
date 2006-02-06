@@ -393,13 +393,20 @@ DownloadImpl
 	public void
 	moveUp()
 	{
-		download_manager.moveUp();
+		download_manager.getGlobalManager().moveUp(download_manager);
 	}
 	
 	public void
 	moveDown()
 	{
-		download_manager.moveDown();
+		download_manager.getGlobalManager().moveDown(download_manager);
+	}
+	
+	public void
+	moveTo(
+		int	pos )
+	{
+		download_manager.getGlobalManager().moveTo( download_manager, pos );
 	}
 	
 	public String 

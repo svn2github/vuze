@@ -255,6 +255,14 @@ RPDownload
 			delegate.moveDown();
 			
 			return( null );
+	
+		}else if ( method.equals( "moveTo[int]")){
+			
+			int	p = ((Integer)request.getParams()[0]).intValue();
+			
+			delegate.setPosition( p );
+			
+			return( null );
 			
 		}else if ( method.equals( "setPriority[int]")){
 			
@@ -616,6 +624,13 @@ RPDownload
 	moveDown()
 	{
 		_dispatcher.dispatch( new RPRequest( this, "moveDown", null)).getResponse();
+	}
+	
+	public void
+	moveTo(
+		int		position )
+	{
+		_dispatcher.dispatch( new RPRequest( this, "moveTo[int]", new Object[]{new Integer(position )})).getResponse();	
 	}
 	
 	public void stopAndQueue() throws DownloadException {

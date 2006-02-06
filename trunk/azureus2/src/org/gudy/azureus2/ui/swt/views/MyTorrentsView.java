@@ -599,11 +599,11 @@ public class MyTorrentsView
 					
 				fileMove = fileMove && stopped && dm.isPersistent();
 
-				if (!dm.isMoveableDown()) {
+				if (!dm.getGlobalManager().isMoveableDown(dm)) {
 					moveDown = false;
 				}
 
-				if (!dm.isMoveableUp()) {
+				if (!dm.getGlobalManager().isMoveableUp(dm)) {
 					moveUp = false;
 				}
 
@@ -2163,8 +2163,8 @@ public class MyTorrentsView
     });
     for (int i = dataSources.length - 1; i >= 0; i--) {
       DownloadManager dm = (DownloadManager)dataSources[i];
-      if (dm.isMoveableDown()) {
-        dm.moveDown();
+      if (dm.getGlobalManager().isMoveableDown(dm)) {
+        dm.getGlobalManager().moveDown(dm);
       }
     }
 
@@ -2183,8 +2183,8 @@ public class MyTorrentsView
     });
     for (int i = 0; i < dataSources.length; i++) {
       DownloadManager dm = (DownloadManager)dataSources[i];
-      if (dm.isMoveableUp()) {
-        dm.moveUp();
+      if (dm.getGlobalManager().isMoveableUp(dm)) {
+        dm.getGlobalManager().moveUp(dm);
       }
     }
 
@@ -2284,9 +2284,9 @@ public class MyTorrentsView
         start =  true;
       if(!stop && ManagerUtils.isStopable(dm))
         stop = true;
-      if(!top && dm.isMoveableUp())
+      if(!top && dm.getGlobalManager().isMoveableUp(dm))
         top = true;
-      if(!bottom && dm.isMoveableDown())
+      if(!bottom && dm.getGlobalManager().isMoveableDown(dm))
         bottom = true;
       
       if(userMode>0 && isTrackerOn)
