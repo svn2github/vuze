@@ -221,7 +221,12 @@ public class MessagePopupShell implements AnimableShell {
       }
     });
     
-    Rectangle bounds = display.getClientArea();
+    Rectangle bounds;
+    try {
+    	bounds = shell.getMonitor().getClientArea();
+    } catch (NoSuchMethodError e) {
+    	bounds = display.getClientArea();
+    }
     x0 = bounds.x + bounds.width - popupWidth - 5;
     x1 = bounds.x + bounds.width;
 
