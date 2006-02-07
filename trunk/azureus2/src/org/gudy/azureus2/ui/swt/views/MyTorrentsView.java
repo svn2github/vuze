@@ -135,6 +135,7 @@ public class MyTorrentsView
   
   private String sLastSearch = "";
   private long lLastSearchTime;
+  private boolean bRegexSearch = false;
 
   /**
    * Initialize
@@ -477,12 +478,16 @@ public class MyTorrentsView
     boolean bOurs = ((bCompleted && isSeedingView) || (!bCompleted && !isSeedingView));
     
     if (bOurs && sLastSearch.length() > 0) {
-    	String name = dm.getDisplayName();
-			Pattern pattern = Pattern.compile("\\Q" + sLastSearch + "\\E",
-					Pattern.CASE_INSENSITIVE);
-			
-			if (!pattern.matcher(name).find())
-				bOurs = false;
+    	try {
+	    	String name = dm.getDisplayName();
+				String s = bRegexSearch ? sLastSearch : "\\Q" + sLastSearch + "\\E"; 
+				Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+				
+				if (!pattern.matcher(name).find())
+					bOurs = false;
+    	} catch (Exception e) {
+    		// Future: report PatternSyntaxException message to user.
+    	}
     }
 
     return bOurs;
@@ -1931,9 +1936,13 @@ public class MyTorrentsView
 					stopSelectedTorrents();
 					e.doit = false;
 					break;
+				case 0x18: // CTRL-X: RexEx search switch
+					bRegexSearch = !bRegexSearch;
+					e.doit = false;
+					break;
 			}
 
-			if (!e.doit)
+			if (!e.doit && e.character != 0x18)
 				return;
 		}
 
@@ -1944,7 +1953,7 @@ public class MyTorrentsView
 			return;
 		}
 
-		if (e.character < 32 && e.keyCode != SWT.BS)
+		if (e.character < 32 && e.keyCode != SWT.BS && e.keyCode != 0x18)
 			return;
 
 		// normal character: jump to next item with a name beginning with this character
@@ -1976,8 +1985,8 @@ public class MyTorrentsView
 			if (index < 0) {
 
 				int iEarliest = -1;
-				Pattern pattern = Pattern.compile("\\Q" + sLastSearch + "\\E",
-						Pattern.CASE_INSENSITIVE);
+				String s = bRegexSearch ? sLastSearch : "\\Q" + sLastSearch + "\\E"; 
+				Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
 				for (int i = 0; i < cells.length; i++) {
 					Matcher m = pattern.matcher(cells[i].getText());
 					if (m.find() && (m.start() < iEarliest || iEarliest == -1)) {
@@ -2635,10 +2644,18 @@ public class MyTorrentsView
 				if (tableLabel != null && !tableLabel.isDisposed()) {
 					String sText = MessageText.getString(sTableID + "View.header") + " ("
 							+ getRowCount() + ")";
-					if (sLastSearch.length() > 0)
+					if (sLastSearch.length() > 0) {
 						sText += " "
 								+ MessageText.getString("MyTorrentsView.filter",
 										new String[] { sLastSearch });
+						if (bRegexSearch) {
+							try {
+								Pattern.compile(sLastSearch, Pattern.CASE_INSENSITIVE);
+							} catch (Exception e) {
+								sText += " " + e.getMessage();
+							}
+						}
+					}
 					tableLabel.setText(sText);
 				}
 			}
