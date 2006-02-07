@@ -861,7 +861,7 @@ public class PiecePickerImpl
                             }
                         }
                     } else if (avail <=globalMinOthers &&!rarestOverride) 
-                    {   // rarest pieces
+                    {   // rarest pieces only from now on
                         if (!startIsRarest)
                         {   // 1st rarest piece
                             if (startCandidates ==null)
@@ -875,7 +875,7 @@ public class PiecePickerImpl
                             startCandidates.setEnd(i);
                         }
                     } else if (!startIsRarest)
-                    {
+                    {   // not doing rarest pieces (yet)
                         if (priority >startMaxPriority)
                         {   // new priority level
                             if (startCandidates ==null)
@@ -917,9 +917,11 @@ public class PiecePickerImpl
         if (Logger.isEnabled())
             Logger.log(new LogEvent(peerControl.getDisplayName(), LOGID, "Starting Piece. "
                 +"resume piece #= " +pieceNumber +" globalMinOthers=" +globalMinOthers
-                +" resumeMaxPriority=" +resumeMaxPriority +" resumeMinAvail=" +resumeMinAvail +" resumeIsRarest=" +resumeIsRarest  
                 +" startMaxPriority=" +startMaxPriority +" startMinAvail=" +startMinAvail +" startIsRarest=" +startIsRarest
-                +" availabiliy[pieceNumber]=" +availability[pieceNumber] 
+                +(pieceNumber >0 ?
+                    " resumeMaxPriority=" +resumeMaxPriority +" resumeMinAvail=" +resumeMinAvail +" resumeIsRarest=" +resumeIsRarest
+                    +" availabiliy[pieceNumber]=" +availability[pieceNumber] :""
+                 ) 
                 +"  " +peerControl.getDisplayName()));
         
         // Gets here when no resume piece choice was made
