@@ -915,13 +915,12 @@ public class PiecePickerImpl
         }
         
         if (Logger.isEnabled())
-            Logger.log(new LogEvent(peerControl.getDisplayName(), LOGID, "Starting Piece. "
+            Logger.log(new LogEvent(pt, LOGID, "Starting Piece. "
                 +"resume piece #= " +pieceNumber +" globalMinOthers=" +globalMinOthers
                 +" startMaxPriority=" +startMaxPriority +" startMinAvail=" +startMinAvail +" startIsRarest=" +startIsRarest
-                +(pieceNumber >0 ?
-                    " resumeMaxPriority=" +resumeMaxPriority +" resumeMinAvail=" +resumeMinAvail +" resumeIsRarest=" +resumeIsRarest
-                    +" availabiliy[pieceNumber]=" +availability[pieceNumber] :""
-                 ) 
+                +(pieceNumber >0
+                    ?" resumeMaxPriority=" +resumeMaxPriority +" resumeMinAvail=" +resumeMinAvail +" resumeIsRarest=" +resumeIsRarest
+                 :"") 
                 +"  " +peerControl.getDisplayName()));
         
         // Gets here when no resume piece choice was made
