@@ -199,6 +199,7 @@ public class PiecePickerImpl
 		peerControl	= pc;
 		diskManager = peerControl.getDiskManager();
 		dmPieces =diskManager.getPieces();
+
  		nbPieces =diskManager.getNbPieces();
 		nbPiecesDone =0;
 		
@@ -1009,15 +1010,15 @@ public class PiecePickerImpl
         for (int i =0; i <nbPieces; i++)
         {
             final DiskManagerPiece dmPiece =dmPieces[i];
-            // If the piece is being downloaded (fully requested), let's simply continue
+            // If the piece isn't even Needed, or doesn't need more downloading, simply continue
+            if (dmPiece.isEGMIgnored())
+                continue;
+            // If the piece is being downloaded (fully requested), count it and continue
             if (dmPiece.isEGMActive())
             {
                 active_pieces++;
                 continue;
             }
-            // If the piece isn't even needed, or doesn't need more downloading, simply continue
-            if (dmPiece.isEGMIgnored())
-                continue;
 
             // Else, some piece is Needed, not downloaded/fully requested; this isn't end game mode
             return;
