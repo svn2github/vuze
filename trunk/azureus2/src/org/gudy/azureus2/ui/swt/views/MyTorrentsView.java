@@ -227,13 +227,14 @@ public class MyTorrentsView
     GridData gridData;
     Category[] categories = CategoryManager.getCategories();
     Arrays.sort(categories);
-    boolean showCat = false;
-    for(int i = 0; i < categories.length; i++) {
-        if(categories[i].getType() == Category.TYPE_USER) {
-            showCat = true;
-            break;
-        }
-    }
+    boolean showCat = sLastSearch.length() > 0;
+    if (!showCat)
+	    for(int i = 0; i < categories.length; i++) {
+	        if(categories[i].getType() == Category.TYPE_USER) {
+	            showCat = true;
+	            break;
+	        }
+	    }
 
     if(cCategories != null && !showCat) {
         Control[] controls = cCategories.getChildren();
@@ -1971,6 +1972,9 @@ public class MyTorrentsView
 			sLastSearch += String.valueOf(e.character);
 
 		if (ASYOUTYPE_MODE == ASYOUTYPE_MODE_FILTER) {
+			if (tableLabel == null || tableLabel.isDisposed())
+				createTabs();
+			
 			activateCategory(currentCategory);
 		} else {
 			Table table = getTable();
