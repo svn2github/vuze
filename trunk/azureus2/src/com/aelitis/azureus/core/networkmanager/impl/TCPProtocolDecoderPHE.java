@@ -164,6 +164,14 @@ TCPProtocolDecoderPHE
 	     		
         		Logger.log(	new LogEvent(LOGID, "PHE crypto initialised" ));
 	     	}
+		}catch( NoClassDefFoundError e ){
+			
+				// running without PHE classes, not such a severe error
+      	
+			Logger.log(	new LogEvent(LOGID, "PHE crypto disabled as classes unavailable" ));
+			
+			crypto_ok	= false;
+			
 		}catch( Throwable e ){
 				     		
         	Logger.log(	new LogEvent(LOGID, "PHE crypto initialisation failed", e ));
