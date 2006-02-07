@@ -96,9 +96,14 @@ public class MyTorrentsView
                   ParameterListener,
                   DownloadManagerListener,
                   CategoryManagerListener,
-                  CategoryListener
+                  CategoryListener,
+                  KeyListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
+	private static final int ASYOUTYPE_MODE_FIND = 0;
+	private static final int ASYOUTYPE_MODE_FILTER = 1;
+	private static final int ASYOUTYPE_MODE = ASYOUTYPE_MODE_FILTER; 
+	
 	private AzureusCore		azureus_core;
 
   private GlobalManager globalManager;
@@ -469,14 +474,25 @@ public class MyTorrentsView
   
   private boolean isOurDownloadManager(DownloadManager dm) {
     boolean bCompleted = dm.getStats().getDownloadCompleted(false) == 1000;
-    return ((bCompleted && isSeedingView) || (!bCompleted && !isSeedingView));
+    boolean bOurs = ((bCompleted && isSeedingView) || (!bCompleted && !isSeedingView));
+    
+    if (bOurs && sLastSearch.length() > 0) {
+    	String name = dm.getDisplayName();
+			Pattern pattern = Pattern.compile("\\Q" + sLastSearch + "\\E",
+					Pattern.CASE_INSENSITIVE);
+			
+			if (!pattern.matcher(name).find())
+				bOurs = false;
+    }
+
+    return bOurs;
   }
 
   public Table createTable(Composite panel) {
     Table table = new Table(cTablePanel, iTableStyle);
     table.setLayoutData(new GridData(GridData.FILL_BOTH));
     
-    table.addKeyListener(createKeyListener());
+    table.addKeyListener(this);
 
     table.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
@@ -1852,138 +1868,146 @@ public class MyTorrentsView
     COConfigurationManager.removeParameterListener("Confirm Data Delete", this);
   }
 
-  private KeyListener createKeyListener() {
-    return new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
-				if (e.stateMask == (SWT.CTRL | SWT.SHIFT)) {
-					// CTRL+SHIFT+S stop all Torrents
-					if (e.character == 0x13) {
-						ManagerUtils.asyncStopAll();
-						e.doit = false;
-						return;
-					}
-
-					// Can't capture Ctrl-PGUP/DOWN for moving up/down in chunks
-					// (because those keys move through tabs), so use shift-ctrl-up/down
-					if (e.keyCode == SWT.ARROW_DOWN) {
-						moveSelectedTorrents(10);
-						e.doit = false;
-						return;
-					}
-
-					if (e.keyCode == SWT.ARROW_UP) {
-						moveSelectedTorrents(-10);
-						e.doit = false;
-						return;
-					}
-				}
-
-				if (e.stateMask == SWT.CTRL) {
-					switch (e.keyCode) {
-						case SWT.ARROW_UP:
-							moveSelectedTorrentsUp();
-							e.doit = false;
-							break;
-						case SWT.ARROW_DOWN:
-							moveSelectedTorrentsDown();
-							e.doit = false;
-							break;
-						case SWT.HOME:
-							moveSelectedTorrentsTop();
-							e.doit = false;
-							break;
-						case SWT.END:
-							moveSelectedTorrentsEnd();
-							e.doit = false;
-							break;
-					}
-					if (!e.doit)
-						return;
-
-					switch (e.character) {
-						case 0x1: // CTRL+A select all Torrents
-							getTable().selectAll();
-							e.doit = false;
-							break;
-						case 0x03: // CTRL+C
-							clipboardSelected();
-							e.doit = false;
-							break;
-						case 0x12: // CTRL+R resume/start selected Torrents
-							resumeSelectedTorrents();
-							e.doit = false;
-							break;
-						case 0x13: // CTRL+S stop selected Torrents
-							stopSelectedTorrents();
-							e.doit = false;
-							break;
-					}
-
-					if (!e.doit)
-						return;
-				} 
-
-				// DEL remove selected Torrents
-				if (e.stateMask == 0 && e.keyCode == SWT.DEL) {
-					removeSelectedTorrents();
-					e.doit = false;
-					return;
-				}
-
-				if (e.character < 32 && e.keyCode != SWT.BS)
-					return;
-				
-				// normal character: jump to next item with a name beginning with this character
-				Table table = getTable();
-
-				if (System.currentTimeMillis() - lLastSearchTime > 3000)
-					sLastSearch = "";
-
-				if (e.keyCode == SWT.BS) {
-					if (sLastSearch.length() > 0)
-						sLastSearch = sLastSearch.substring(0, sLastSearch.length() - 1);
-				} else
-					sLastSearch += String.valueOf(e.character);
-
-				TableCellCore[] cells = getColumnCells("name");
-
-				//System.out.println(sLastSearch);
-				
-				Arrays.sort(cells, TableCellImpl.TEXT_COMPARATOR);
-				int index = Arrays.binarySearch(cells, sLastSearch,
-						TableCellImpl.TEXT_COMPARATOR);
-				if (index < 0) {
-					
-					int iEarliest = -1;
-					Pattern pattern = Pattern.compile("\\Q" + sLastSearch + "\\E",
-							Pattern.CASE_INSENSITIVE);
-					for (int i = 0; i < cells.length; i++) {
-						Matcher m = pattern.matcher(cells[i].getText());
-						if (m.find() && (m.start() < iEarliest || iEarliest == -1)) {
-							iEarliest = m.start();
-							index = i;
-						}
-					}
-					
-					if (index < 0)
-						// Insertion Point (best guess)
-						index = -1 * index - 1;
-				}
-				
-
-				if (index >= 0) {
-					if (index >= cells.length)
-						index = cells.length - 1;
-					int iTableIndex = cells[index].getTableRowCore().getIndex();
-					if (iTableIndex >= 0) {
-						table.setSelection(iTableIndex);
-					}
-				}
-				lLastSearchTime = System.currentTimeMillis();
+	public void keyPressed(KeyEvent e) {
+		if (e.stateMask == (SWT.CTRL | SWT.SHIFT)) {
+			// CTRL+SHIFT+S stop all Torrents
+			if (e.character == 0x13) {
+				ManagerUtils.asyncStopAll();
 				e.doit = false;
+				return;
 			}
-		};
-  }
+
+			// Can't capture Ctrl-PGUP/DOWN for moving up/down in chunks
+			// (because those keys move through tabs), so use shift-ctrl-up/down
+			if (e.keyCode == SWT.ARROW_DOWN) {
+				moveSelectedTorrents(10);
+				e.doit = false;
+				return;
+			}
+
+			if (e.keyCode == SWT.ARROW_UP) {
+				moveSelectedTorrents(-10);
+				e.doit = false;
+				return;
+			}
+		}
+
+		if (e.stateMask == SWT.CTRL) {
+			switch (e.keyCode) {
+				case SWT.ARROW_UP:
+					moveSelectedTorrentsUp();
+					e.doit = false;
+					break;
+				case SWT.ARROW_DOWN:
+					moveSelectedTorrentsDown();
+					e.doit = false;
+					break;
+				case SWT.HOME:
+					moveSelectedTorrentsTop();
+					e.doit = false;
+					break;
+				case SWT.END:
+					moveSelectedTorrentsEnd();
+					e.doit = false;
+					break;
+			}
+			if (!e.doit)
+				return;
+
+			switch (e.character) {
+				case 0x1: // CTRL+A select all Torrents
+					getTable().selectAll();
+					e.doit = false;
+					break;
+				case 0x03: // CTRL+C
+					clipboardSelected();
+					e.doit = false;
+					break;
+				case 0x12: // CTRL+R resume/start selected Torrents
+					resumeSelectedTorrents();
+					e.doit = false;
+					break;
+				case 0x13: // CTRL+S stop selected Torrents
+					stopSelectedTorrents();
+					e.doit = false;
+					break;
+			}
+
+			if (!e.doit)
+				return;
+		}
+
+		// DEL remove selected Torrents
+		if (e.stateMask == 0 && e.keyCode == SWT.DEL) {
+			removeSelectedTorrents();
+			e.doit = false;
+			return;
+		}
+
+		if (e.character < 32 && e.keyCode != SWT.BS)
+			return;
+
+		// normal character: jump to next item with a name beginning with this character
+		if (ASYOUTYPE_MODE == ASYOUTYPE_MODE_FIND) {
+			if (System.currentTimeMillis() - lLastSearchTime > 3000)
+				sLastSearch = "";
+		}
+
+		if (e.keyCode == SWT.BS) {
+			if (e.stateMask == SWT.CONTROL)
+				sLastSearch = "";
+			else if (sLastSearch.length() > 0)
+				sLastSearch = sLastSearch.substring(0, sLastSearch.length() - 1);
+		} else
+			sLastSearch += String.valueOf(e.character);
+
+		if (ASYOUTYPE_MODE == ASYOUTYPE_MODE_FILTER) {
+			activateCategory(currentCategory);
+		} else {
+			Table table = getTable();
+
+			TableCellCore[] cells = getColumnCells("name");
+
+			//System.out.println(sLastSearch);
+
+			Arrays.sort(cells, TableCellImpl.TEXT_COMPARATOR);
+			int index = Arrays.binarySearch(cells, sLastSearch,
+					TableCellImpl.TEXT_COMPARATOR);
+			if (index < 0) {
+
+				int iEarliest = -1;
+				Pattern pattern = Pattern.compile("\\Q" + sLastSearch + "\\E",
+						Pattern.CASE_INSENSITIVE);
+				for (int i = 0; i < cells.length; i++) {
+					Matcher m = pattern.matcher(cells[i].getText());
+					if (m.find() && (m.start() < iEarliest || iEarliest == -1)) {
+						iEarliest = m.start();
+						index = i;
+					}
+				}
+
+				if (index < 0)
+					// Insertion Point (best guess)
+					index = -1 * index - 1;
+			}
+
+			if (index >= 0) {
+				if (index >= cells.length)
+					index = cells.length - 1;
+				int iTableIndex = cells[index].getTableRowCore().getIndex();
+				if (iTableIndex >= 0) {
+					table.setSelection(iTableIndex);
+				}
+			}
+			lLastSearchTime = System.currentTimeMillis();
+			updateTableLabel();
+		}
+		e.doit = false;
+	}
+
+	public void keyReleased(KeyEvent e) {
+		// ignore
+	}
 
   private void changeDirSelectedTorrents() {
     Object[] dataSources = getSelectedDataSources();
@@ -2608,9 +2632,15 @@ public class MyTorrentsView
 	private void updateTableLabel() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (tableLabel != null && !tableLabel.isDisposed())
-					tableLabel.setText(MessageText.getString(sTableID + "View.header")
-							+ " (" + getRowCount() + ")");
+				if (tableLabel != null && !tableLabel.isDisposed()) {
+					String sText = MessageText.getString(sTableID + "View.header") + " ("
+							+ getRowCount() + ")";
+					if (sLastSearch.length() > 0)
+						sText += " "
+								+ MessageText.getString("MyTorrentsView.filter",
+										new String[] { sLastSearch });
+					tableLabel.setText(sText);
+				}
 			}
 		});
 	}
