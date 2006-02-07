@@ -874,22 +874,25 @@ public class PiecePickerImpl
                         {   // continuing rarest
                             startCandidates.setEnd(i);
                         }
-                    } else if (priority >startMaxPriority)
-                    {   // new priority level
-                        if (startCandidates ==null)
-                            startCandidates =new BitFlags(nbPieces);
-                        startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
-                        startMaxPriority =priority;
-                        startMinAvail =avail;
-                    } else if (priority ==startMaxPriority)
-                    {   // continuing same priority
-                        if (avail <startMinAvail)
-                        {   // same priority, new availability level
-                            startCandidates.setEnd(i);
+                    } else if (!startIsRarest)
+                    {
+                        if (priority >startMaxPriority)
+                        {   // new priority level
+                            if (startCandidates ==null)
+                                startCandidates =new BitFlags(nbPieces);
+                            startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
+                            startMaxPriority =priority;
                             startMinAvail =avail;
-                        } else if (avail ==startMinAvail)
-                        {   // same priority, same availability
-                            startCandidates.setEnd(i);
+                        } else if (priority ==startMaxPriority)
+                        {   // continuing same priority
+                            if (avail <startMinAvail)
+                            {   // same priority, new availability level
+                                startCandidates.setOnly(i);
+                                startMinAvail =avail;
+                            } else if (avail ==startMinAvail)
+                            {   // same priority, same availability
+                                startCandidates.setEnd(i);
+                            }
                         }
                     }
                 }
@@ -901,14 +904,23 @@ public class PiecePickerImpl
             return -1;
 
         // See if have found a valid (piece;block) to request from a piece in progress
+        boolean resumeIsBetter =false;
         if (pieceNumber >=0)
         {
-            boolean resumeIsBetter =availability[pieceNumber] <=globalMinOthers ||rarestOverride ||!startIsRarest ||startCandidates ==null ||startCandidates.nbSet <1;
+            resumeIsBetter =availability[pieceNumber] <=globalMinOthers ||rarestOverride ||!startIsRarest ||startCandidates ==null ||startCandidates.nbSet <1;
             if (!resumeIsBetter &&globalMinOthers >0)
-                resumeIsBetter =resumeMaxPriority /availability[pieceNumber] > startMaxPriority /globalMinOthers; 
+                resumeIsBetter =(resumeMaxPriority /availability[pieceNumber]) >(startMaxPriority /globalMinOthers); 
             if (resumeIsBetter)
                 return pieceNumber;
         }
+        
+        if (Logger.isEnabled())
+            Logger.log(new LogEvent(peerControl.getDisplayName(), LOGID, "Starting Piece. "
+                +"resume piece #= " +pieceNumber +" globalMinOthers=" +globalMinOthers
+                +" resumeMaxPriority=" +resumeMaxPriority +" resumeMinAvail=" +resumeMinAvail +" resumeIsRarest=" +resumeIsRarest  
+                +" startMaxPriority=" +startMaxPriority +" startMinAvail=" +startMinAvail +" startIsRarest=" +startIsRarest
+                +" availabiliy[pieceNumber]=" +availability[pieceNumber] 
+                +"  " +peerControl.getDisplayName()));
         
         // Gets here when no resume piece choice was made
         return getPieceToStart(pt, startCandidates); // pick piece from candidates bitfield
