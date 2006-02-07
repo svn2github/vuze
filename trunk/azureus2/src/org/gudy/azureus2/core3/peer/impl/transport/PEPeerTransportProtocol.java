@@ -1616,7 +1616,6 @@ PEPeerTransportProtocol
   
   
   protected void decodePiece( BTPiece piece ) {
-	  final long now =SystemTime.getCurrentTime();
 	  final int pieceNumber = piece.getPieceNumber();
 	  final int offset = piece.getPieceOffset();
 	  final DirectByteBuffer payload = piece.getPieceData();
@@ -1686,10 +1685,12 @@ PEPeerTransportProtocol
       }
       else {  //successfully received block!
           manager.writeBlock( pieceNumber, offset, payload, this, false);
-          last_good_data_time =now;
-          setSnubbed( false );
+          final long now =SystemTime.getCurrentTime();
+          if (last_good_data_time !=-1 &&now -last_good_data_time <60 *1000)
+              setSnubbed(false);
         requests_completed++;
         piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
+        last_good_data_time =now;
       }
     }
     else {  //initial request may have already expired, but check if we can use the data anyway
@@ -1703,12 +1704,14 @@ PEPeerTransportProtocol
         
         if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
             manager.writeBlock( pieceNumber, offset, payload, this, true);
-            last_good_data_time =now;
+            final long now =SystemTime.getCurrentTime();
+            if (last_good_data_time !=-1 &&now -last_good_data_time <60 *1000)
+                setSnubbed(false);
             reSetRequestsTime();
-            setSnubbed( false );
           requests_recovered++;
           printRequestStats();
           piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
+          last_good_data_time =now;
       	if (Logger.isEnabled())
 			Logger.log(new LogEvent(this, LogIDs.PIECES, "Protocol:In: " + error_msg
 					+ "expired piece block data " + "recovered as useful."));

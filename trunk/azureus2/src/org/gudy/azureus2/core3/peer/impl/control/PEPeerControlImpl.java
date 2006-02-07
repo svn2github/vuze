@@ -937,40 +937,37 @@ PEPeerControlImpl
 				final List expired = pc.getExpiredRequests();
 				if (expired !=null &&expired.size() >0)
 				{
-					final long goodTime =pc.getTimeSinceGoodDataReceived();
-					
-						// snub peers that haven't sent any good data for a minute
-					
-					if (goodTime ==-1 ||goodTime >60 *1000)
-						pc.setSnubbed(true);
-				
-						// if a peer hasn't said any good data in the last 30 seconds then consider
-						// expired requests for cancellation
-					
-					if (goodTime ==-1 ||goodTime > 30 *1000){
-						
-					    for (int j =0; j <expired.size(); j++)
-					    {
-					        //for every expired request                              
-					        //get the request object
-					        final DiskManagerReadRequest request =(DiskManagerReadRequest) expired.get(j);
-					        //Only cancel first request if more than 2 mins have passed
-					        if (j >0 ||(now -request.getTimeCreated() >120 *1000))
-					        {
-					            pc.sendCancel(request);				//cancel the request object
-					            //get the piece number
-					            final int pieceNumber = request.getPieceNumber();
-					            final PEPiece pePiece =pePieces[pieceNumber];
-					            //unmark the request on the block
-					            if (pePiece !=null)
-					                pePiece.clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
-					            //set piece to not fully requested
-                                dm_pieces[pieceNumber].clearRequested();
-					            if (!piecePicker.isInEndGameMode())
-					                checkEmptyPiece(pieceNumber);
-					        }
-					    }
-					}
+                    // snub peers that haven't sent any good data for a minute
+                    final long goodTime =pc.getTimeSinceGoodDataReceived();
+                    if (goodTime ==-1 ||goodTime >60 *1000)
+                    {
+                        pc.setSnubbed(true);
+                    }
+                    
+                    final long dataTime =pc.getTimeSinceLastDataMessageReceived();
+                    final boolean noData =(dataTime ==-1) ||((now -dataTime) >1000 *(pc.isSeed() ?120 :60)); 
+                    
+                    for (int j =0; j <expired.size(); j++)
+                    {
+                        //for every expired request                              
+                        //get the request object
+                        final DiskManagerReadRequest request =(DiskManagerReadRequest) expired.get(j);
+                        //Only cancel first request if more than 2 mins have passed
+                        if (j >0 ||(noData &&(now -request.getTimeCreated() >120 *1000)))
+                        {
+                            pc.sendCancel(request);             //cancel the request object
+                            //get the piece number
+                            final int pieceNumber = request.getPieceNumber();
+                            final PEPiece pePiece =pePieces[pieceNumber];
+                            //unmark the request on the block
+                            if (pePiece !=null)
+                                pePiece.clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
+                            //set piece to not fully requested
+                            dm_pieces[pieceNumber].clearRequested();
+                            if (!piecePicker.isInEndGameMode())
+                                checkEmptyPiece(pieceNumber);
+                        }
+                    }
 				}
 			}
 		}
