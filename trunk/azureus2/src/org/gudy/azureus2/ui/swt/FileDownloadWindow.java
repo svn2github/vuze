@@ -101,7 +101,7 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
       } catch(Exception egnore) {}
     }
     if(dirName == null) {
-      DirectoryDialog dd = new DirectoryDialog(shell, SWT.NULL);
+      DirectoryDialog dd = new DirectoryDialog(parent, SWT.NULL);
       dd.setText(MessageText.getString("fileDownloadWindow.saveTorrentIn"));
       dirName = dd.open();
     }
