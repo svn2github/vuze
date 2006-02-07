@@ -31,12 +31,15 @@ package org.gudy.azureus2.core3.disk.impl;
 
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
+import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 public class DiskManagerPieceImpl
 	implements DiskManagerPiece
 {
-	private final DiskManagerImpl	diskManager;
+    private static final LogIDs LOGID = LogIDs.PIECES;
+
+    private final DiskManagerImpl	diskManager;
 	private final int				pieceNumber;
 	private volatile int			statusFlags;
 
@@ -51,6 +54,8 @@ public class DiskManagerPieceImpl
 	// as problems only occur when switching from all-written to done=true, both of which signify
 	// the same state of affairs.
 	protected boolean[]	written;
+    
+    private static boolean statusTested =false;
 
 	protected DiskManagerPieceImpl(DiskManagerImpl _disk_manager, int pieceIndex)
 	{
@@ -426,4 +431,31 @@ public class DiskManagerPieceImpl
 		}
 	}
 
+    public void testStatus()
+    {
+        if (statusTested)
+            return;
+        
+        statusTested =true;
+        int originalStatus =statusFlags;
+        
+        for (int i =0; i <0x100; i++)
+        {
+            statusFlags =i;
+            Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION,
+                "Done:" +isDone()
+                +"  Checking:" +isChecking()
+                +"  Written:" +isWritten()
+                +"  Downloaded:" +isDownloaded()
+                +"  Requested:" +isRequested()
+//                +"  Avail:" +isAvail()
+                +"  Needed:" +isNeeded()
+                +"  Interesting:" +isInteresting()
+                +"  Requestable:" +isRequestable()
+                +"  EGMActive:" +isEGMActive()
+                +"  EGMIgnored:" +isEGMIgnored()
+            ));
+        }
+        statusFlags =originalStatus;
+    }
 }

@@ -37,6 +37,7 @@ public interface DiskManagerPiece
 	extends Piece
 {
 	public DiskManager	getManager();
+    public void         testStatus();   //verification method
 
 	public long			getLastWriteTime();
 
@@ -97,18 +98,19 @@ public interface DiskManagerPiece
 	public boolean		isDone();
 	public void			setDone(boolean b);
 
-	/** This must not be used to qualify pieces in End Game Mode.
+    /**
+     * @return true if a piece is Needed and not Done
+     */
+    public boolean      isInteresting();
+
+    /** This must not be used to qualify pieces in End Game Mode.
 	 * @return true is a piece is Needed but is not fully; Requested, Downloaded, Written, Checking, or Done.
      * Avail isn't checked by this.
 	 */
 	public boolean		isRequestable();
-	/**
-	 * @return true if a piece is Needed and not Done
-	 */
-	public boolean		isInteresting();
     
     /** End Game Mode considers a piece to be active that is;
-     * fully requested, but not fully; Downlaoded, Written, Checking, or Done
+     * Needed and fully Requested, but not fully Downloaded, fully Written, hash Checking, or Done
      * @return true if EGM should count the piece as active
      */
     public boolean      isEGMActive();
