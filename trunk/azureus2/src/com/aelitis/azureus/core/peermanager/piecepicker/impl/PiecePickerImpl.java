@@ -885,7 +885,7 @@ public class PiecePickerImpl
                     {   // continuing same priority
                         if (avail <startMinAvail)
                         {   // same priority, new availability level
-                            startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
+                            startCandidates.setEnd(i);
                             startMinAvail =avail;
                         } else if (avail ==startMinAvail)
                         {   // same priority, same availability
