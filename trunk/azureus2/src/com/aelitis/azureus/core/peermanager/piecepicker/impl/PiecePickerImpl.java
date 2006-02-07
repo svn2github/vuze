@@ -595,15 +595,14 @@ public class PiecePickerImpl
                 {
                     dmPiece.setNeeded();
                     foundPieceToDownload =true;
-//                    if (avail >0)
-//                    {
-//                        // boost priority for rarity
-//                        startPriority +=(PRIORITY_W_RARE +peerControl.getNbPeers()) /avail;
-//                        // Boost priority even a little more if it's a globally rarest piece
-//                        if (!rarestOverride &&avail <=globalMinOthers)
-//                            startPriority +=PRIORITY_W_RAREST /avail;
-//                    }
-                    
+                    if (avail >0)
+                    {
+                        // boost priority for rarity
+                        startPriority +=(PRIORITY_W_RARE +peerControl.getNbPeers()) /avail;
+                        // Boost priority even a little more if it's a globally rarest piece
+                        if (!rarestOverride &&avail <=globalMinOthers)
+                            startPriority +=PRIORITY_W_RAREST /avail;
+                    }
                 } else
                 {
                     dmPiece.clearNeeded();

@@ -710,7 +710,8 @@ PEPeerControlImpl
 							}
                             pePiece.setReservedBy(null);
 						}
-//						pePiece.checkRequests();
+//						if (!piecePicker.isInEndGameMode())
+//							pePiece.checkRequests();
 						checkEmptyPiece(i);
 					}
 				}
