@@ -416,7 +416,7 @@ public class ConfigurationDefaults {
     def.put( "network.transport.encrypted.fallback.outgoing", FALSE );
     def.put( "network.transport.encrypted.fallback.incoming", FALSE );
     
-    def.put( "network.bind.local.port", FALSE );
+    def.put( "network.bind.local.port", new Long(0) );
    
   }
   

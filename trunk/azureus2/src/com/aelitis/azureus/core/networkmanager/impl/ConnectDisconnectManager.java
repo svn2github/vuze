@@ -167,22 +167,20 @@ public class ConnectDisconnectManager {
         }
 
       
-        int local_port = 0;
-        boolean bind_port = COConfigurationManager.getBooleanParameter( "network.bind.local.port" );        
+        int local_bind_port = COConfigurationManager.getIntParameter( "network.bind.local.port" );
         
-        if( bind_port ) {
-        	local_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
+        if( local_bind_port > 0 ) {
         	request.channel.socket().setReuseAddress( true );
         }
         
         String bindIP = COConfigurationManager.getStringParameter("Bind IP", "");
         if ( bindIP.length() > 6 ) {
         	if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP));
-          request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), local_port ) );
+          request.channel.socket().bind( new InetSocketAddress( InetAddress.getByName( bindIP ), local_bind_port ) );
         }
-        else if( bind_port ) {       
-        	if (Logger.isEnabled()) Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local port #: " +local_port));
-        	request.channel.socket().bind( new InetSocketAddress( local_port ) );     
+        else if( local_bind_port > 0 ) {       
+        	if (Logger.isEnabled()) Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local port #: " +local_bind_port));
+        	request.channel.socket().bind( new InetSocketAddress( local_bind_port ) );     
         }
 
       }

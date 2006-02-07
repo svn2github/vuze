@@ -135,13 +135,15 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
     gridData.widthHint = 100;
     gridData.horizontalSpan = 2;
     bindip.setLayoutData(gridData);
-
-    BooleanParameter bind_port = new BooleanParameter(gSocket,	"network.bind.local.port", false, CFG_PREFIX + "bind_port");
-		gridData = new GridData();
-		gridData.horizontalSpan = 3;
-		bind_port.setLayoutData(gridData);
-		
 	
+    
+    Label lpbind = new Label(gSocket, SWT.NULL);
+		Messages.setLanguageText(lpbind, CFG_PREFIX + "bind_port");
+		final IntParameter port_bind = new IntParameter(gSocket, "network.bind.local.port", 0, 65535, true, false );
+		gridData = new GridData();
+		gridData.widthHint = 40;
+		gridData.horizontalSpan = 2;
+		port_bind.setLayoutData(gridData);
 		
 		
 		Label lmtu = new Label(gSocket, SWT.NULL);
