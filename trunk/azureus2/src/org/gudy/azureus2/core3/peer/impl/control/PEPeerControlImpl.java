@@ -427,10 +427,10 @@ PEPeerControlImpl
 		
 		PEPeerTransport	transport = (PEPeerTransport)_transport;
 		
-		closeAndRemovePeer( transport, "remove peer" );
+		closeAndRemovePeer( transport, "remove peer", true );
 	}
 
-  private void closeAndRemovePeer( PEPeerTransport peer, String reason ) {
+  private void closeAndRemovePeer( PEPeerTransport peer, String reason, boolean log_if_not_found ) {
     boolean removed = false;
     
 	// copy-on-write semantics
@@ -457,7 +457,9 @@ PEPeerControlImpl
       peerRemoved( peer );  //notify listeners      
     }
     else {
-    	Debug.out( "closeAndRemovePeer(): peer not removed" );
+    	if ( log_if_not_found ){
+    		Debug.out( "closeAndRemovePeer(): peer not removed" );
+    	}
     }
   }
   
@@ -704,7 +706,7 @@ PEPeerControlImpl
 							{
 								final PEPeerTransport pt =getTransportFromAddress(reservingPeer);
 								if (pt !=null)
-									closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds");
+									closeAndRemovePeer(pt, "Reserved piece data timeout; 120 seconds", true);
 							}
                             pePiece.setReservedBy(null);
 						}
@@ -1185,7 +1187,7 @@ PEPeerControlImpl
 		
 		if( to_close != null ) {		
 			for( int i=0; i < to_close.size(); i++ ) {  			
-				closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "disconnect other seed when seeding" );
+				closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "disconnect other seed when seeding", false );
 			}
 		}
   }
@@ -1989,7 +1991,7 @@ PEPeerControlImpl
 					if (!(ps ==PEPeer.CLOSING ||ps ==PEPeer.DISCONNECTED))
 					{
 						// Close connection
-						closeAndRemovePeer(peer, "has sent too many bad pieces, " +WARNINGS_LIMIT +" max.");
+						closeAndRemovePeer(peer, "has sent too many bad pieces, " +WARNINGS_LIMIT +" max.", true);
 					}
 	
 					// Trace the ban
@@ -2098,7 +2100,7 @@ PEPeerControlImpl
   		
   		if( to_close != null ) {		
   			for( int i=0; i < to_close.size(); i++ ) {  			
-  				closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "IPFilter banned IP address" );
+  				closeAndRemovePeer( (PEPeerTransport)to_close.get(i), "IPFilter banned IP address", true );
   			}
   		}
   	}
@@ -2428,7 +2430,7 @@ PEPeerControlImpl
 				}
 				
 				if( max_transport != null && max_time > 60*1000 ) {  //ensure a 1min minimum
-					closeAndRemovePeer( max_transport, "timed out by optimistic-connect" );
+					closeAndRemovePeer( max_transport, "timed out by optimistic-connect", true );
 				}
 			}
 		}
