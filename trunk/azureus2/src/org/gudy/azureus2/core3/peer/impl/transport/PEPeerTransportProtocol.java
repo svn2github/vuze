@@ -368,13 +368,19 @@ PEPeerTransportProtocol
   
 
 
-  //close the peer connection internally
+  /**
+   * Close the peer connection from within the PEPeerTransport object.
+   * @param reason
+   */
   protected void closeConnectionInternally( String reason ) {
     performClose( reason, false );
   }
   
   
-  //close the peer connection externally
+  /**
+   * Close the peer connection from the PEPeerControl manager side.
+   * NOTE: This method assumes PEPeerControl already knows about the close.
+   */
   public void closeConnection( String reason ) {
     performClose( reason, true );
   }
