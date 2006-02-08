@@ -69,7 +69,7 @@ public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  }
     
   public String getDescription() {
     if( description == null ) {
-      description = BTMessage.ID_BT_REQUEST + " piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
+      description = BTMessage.ID_BT_REQUEST + " piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length);
     }
     
     return description;
