@@ -60,29 +60,31 @@ public class ManagerUtils {
   * @param dm DownloadManager instance
   */
 	public static void open(DownloadManager dm) {
-		if (dm != null) {
-			File f = dm.getSaveLocation();
-			if (f.isFile()) {
-				PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
+		if (dm != null)
+			open(dm.getSaveLocation());
+	}
+	
+	public static void open(File f) {
+		if (f.isFile()) {
+			PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
 
-				if (mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
-					try {
-						PlatformManagerFactory.getPlatformManager().showFile(f.toString());
-						return;
-					} catch (PlatformManagerException e) {
-						Debug.printStackTrace(e);
-					}
+			if (mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
+				try {
+					PlatformManagerFactory.getPlatformManager().showFile(f.toString());
+					return;
+				} catch (PlatformManagerException e) {
+					Debug.printStackTrace(e);
 				}
 			}
-
-			while (f != null && !f.isDirectory())
-				f = f.getParentFile();
-
-			if (f == null)
-				return;
-
-			Program.launch(f.toString()); // default launcher
 		}
+
+		while (f != null && !f.isDirectory())
+			f = f.getParentFile();
+
+		if (f == null)
+			return;
+
+		Program.launch(f.toString()); // default launcher
 	}
   
   public static boolean isStartable(DownloadManager dm) {
