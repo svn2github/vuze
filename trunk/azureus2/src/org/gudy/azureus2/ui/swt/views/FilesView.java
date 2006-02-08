@@ -39,6 +39,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnCore;
 import org.gudy.azureus2.ui.swt.views.table.TableRowCore;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 /**
  * @author Olivier
@@ -100,12 +101,30 @@ public class FilesView
 	}
 
 	public void fillMenu(final Menu menu) {
+		Object[] infos = getSelectedDataSources();
+		boolean hasSelection = (infos.length > 0);
+
     final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemOpen, "FilesView.menu.open");
     Utils.setMenuItemImage(itemOpen, "run");
     // Invoke open on enter, double click
     menu.setDefaultItem(itemOpen);
-    
+
+		// Explore  (Copied from MyTorrentsView)
+		final MenuItem itemExplore = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemExplore, "MyTorrentsView.menu.explore");
+		itemExplore.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+		    Object[] dataSources = getSelectedDataSources();
+		    for (int i = dataSources.length - 1; i >= 0; i--) {
+		    	DiskManagerFileInfo info = (DiskManagerFileInfo)dataSources[i];
+		      if (info != null)
+		        ManagerUtils.open(info.getFile(true));
+		    }
+			}
+		});
+		itemExplore.setEnabled(hasSelection);
+
     final MenuItem itemRename = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemRename, "FilesView.menu.rename");
 
@@ -135,8 +154,7 @@ public class FilesView
 
     super.fillMenu(menu);
 
-    Object[] infos = getSelectedDataSources();
-		if (infos.length == 0) {
+		if (!hasSelection) {
 			itemOpen.setEnabled(false);
 			itemPriority.setEnabled(false);
 			itemRename.setEnabled(false);
