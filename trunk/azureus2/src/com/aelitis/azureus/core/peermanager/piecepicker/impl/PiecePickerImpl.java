@@ -57,13 +57,13 @@ public class PiecePickerImpl
 
 	// The following are added to the base User setting based priorities (for all inspected pieces)
     /** user select prioritize first/last */
-	private static final long PRIORITY_W_FIRSTLAST	=1000;
+	private static final long PRIORITY_W_FIRSTLAST	=1100;
     /** min # pieces in file for first/last prioritization */
     private static final long FIRST_PIECE_MIN_NB	=4;
     /** user sets file as "High" */
-    private static final long PRIORITY_W_FILE		=900;
+    private static final long PRIORITY_W_FILE		=1000;
     /** Additional boost for more completed High priority */
-    private static final long PRIORITY_W_COMPLETION	=700;
+    private static final long PRIORITY_W_COMPLETION	=900;
 
     /** Additional boost for globally rarest piece */
     private static final long PRIORITY_W_RAREST		=1300;
@@ -78,9 +78,9 @@ public class PiecePickerImpl
     /** ms since last write */
     private static final long PRIORITY_DW_STALE		=120 *1000;
     /** finish pieces already almost done */
-    private static final long PRIORITY_W_PIECE_DONE	=800;
+    private static final long PRIORITY_W_PIECE_DONE	=900;
     /** keep working on same piece */
-    private static final long PRIORITY_W_SAME_PIECE	=600;
+    private static final long PRIORITY_W_SAME_PIECE	=500;
 
     /** Min number of requests sent to a peer */
     private static final int REQUESTS_MIN	=2;
@@ -641,7 +641,7 @@ public class PiecePickerImpl
         // Dont seek rarest this time around under a few circumstances, so that other factors work better
         // never seek rarest when bootstrapping torrent
         boolean rarestOverride =nbPiecesDone <4 ||endGameMode ||nbRarestActive >=(nbSeeds +nbPeers);
-        if (!rarestOverride &&nbRarestActive >=nbSeeds &&globalMinOthers >1)
+        if (!rarestOverride &&nbRarestActive >1 &&globalMinOthers >1)
         {
             // if already getting some rarest, dont get more if swarm is healthy or too many pieces running
             rarestOverride =globalMinOthers >globalMin
@@ -869,31 +869,39 @@ public class PiecePickerImpl
                         {   // 1st rarest piece
                             if (startCandidates ==null)
                                 startCandidates =new BitFlags(nbPieces);
-                            startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
                             startMaxPriority =priority;
                             startMinAvail =avail;
-                            startIsRarest =true;
-                        } else
-                        {   // continuing rarest
+                            startIsRarest =avail <=globalMinOthers;
+                            startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
+                        } else if (priority >startMaxPriority)
+                        {   // continuing rarest, higher priority level
+                            if (startCandidates ==null)
+                                startCandidates =new BitFlags(nbPieces);
+                            startMaxPriority =priority;
+                            startCandidates.setOnly(i);
+                        } else if (priority ==startMaxPriority)
+                        {   // continuing rares, same priority level
                             startCandidates.setEnd(i);
                         }
-                    } else if (!startIsRarest)
-                    {   // not doing rarest pieces (yet)
+                    } else if (!startIsRarest ||rarestOverride)
+                    {   // not doing rarest pieces
                         if (priority >startMaxPriority)
                         {   // new priority level
                             if (startCandidates ==null)
                                 startCandidates =new BitFlags(nbPieces);
-                            startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
                             startMaxPriority =priority;
                             startMinAvail =avail;
+                            startIsRarest =avail <=globalMinOthers;
+                            startCandidates.setOnly(i);
                         } else if (priority ==startMaxPriority)
-                        {   // continuing same priority
+                        {   // continuing same priority level
                             if (avail <startMinAvail)
                             {   // same priority, new availability level
-                                startCandidates.setOnly(i);
                                 startMinAvail =avail;
+                                startIsRarest =avail <=globalMinOthers;
+                                startCandidates.setOnly(i);
                             } else if (avail ==startMinAvail)
-                            {   // same priority, same availability
+                            {   // same priority level, same availability level
                                 startCandidates.setEnd(i);
                             }
                         }
