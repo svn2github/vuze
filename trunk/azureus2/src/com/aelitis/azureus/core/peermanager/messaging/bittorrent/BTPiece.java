@@ -68,7 +68,7 @@ public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  }
     
   public String getDescription() {
     if( description == null ) {
-      description = BTMessage.ID_BT_PIECE + " data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + piece_length);
+      description = BTMessage.ID_BT_PIECE + " data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + piece_length -1);
     }
     
     return description;
