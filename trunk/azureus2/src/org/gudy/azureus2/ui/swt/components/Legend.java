@@ -176,6 +176,8 @@ public class Legend {
 
 									Utils.execSWTThread(new AERunnable() {
 										public void runSupport() {
+											if (panel == null || panel.isDisposed())
+												return;
 											Color color = new Color(panel.getDisplay(), rgb);
 											disposeList.add(color);
 											blockColors[index] = color;
@@ -187,6 +189,8 @@ public class Legend {
 								if (!blockColors[j].equals(defaultColors[j])) {
 									Utils.execSWTThread(new AERunnable() {
 										public void runSupport() {
+											if (panel == null || panel.isDisposed())
+												return;
 											blockColors[index] = defaultColors[index];
 											lblColor.setBackground(blockColors[index]);
 										}
