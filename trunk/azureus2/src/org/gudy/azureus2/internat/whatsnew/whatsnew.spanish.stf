@@ -4,25 +4,25 @@ $
 
 +1. Lo nuevo en Azureus 2.4.0.0
 
-!1.1 Encrypted/Obfuscated Data Transfer
- Support for encrypting the data between Azureus and other compatible clients is included. This both provides a level of protection of data and can help with ISPs that block or restrict peer-to-peer traffic.
+!1.1 Transferencia de Datos Encriptados/Ofuscados
+ Se incluye el soporte para encriptado de datos entre Azureus y cualquier otro cliente compatible. Esto proporciona una protección para los datos y también puede servir de ayuda con los ISPs que impiden o restrigen el tráfico entre pares.
   
-!1.2 High Speed LAN Transfers
- Multiple copies of Azureus running on the same local network support high speed direct connections.
+!1.2 Transferencia de Alta Velocidad en Redes de Área Local
+ Varias copias de Azureus corriendo en la misma red local soportarán conexiones directas de alta velocidad.
 
-!1.3 Improved Download Algorithm
- The algorithm used to determine which pieces of a download to request from which peers has been rewritten to improve its behaviour and performance.
+!1.3 Algoritmo de Descarga Mejorado
+ Se ha reescrito el algoritmo utilizado para determinar qué partes de una descarga hay que pedir a qué cliente, de modo que mejore su comportamiento y rendimiento.
 
-!1.4 Webseed Support
- Basic webseed support is included. Webseeds will only be used when a download's availability is less than 1.0.
+!1.4 Soporte para Webseed
+ Se incluye un soporte básico para webseed. Los webseeds se utilizarán sólo cuando la disponibilidad de una descarga sea menor de 1.0.
 
-!1.5 Other
+!1.5 Otros
 
- Various user interface improvements.
- Performance improvements.
- Bug fixes.
+ Diverssas mejoras en el interface de usuario.
+ Mejoras en el rendimiento.
+ Arreglo de errores.
     
-    Nota: El nuevo lanzador ejecutable para Windows necesitará que tu cortafuegos permita "Azureus.exe" acceder a Internet.
+    Nota: El nuevo lanzador ejecutable para Windows necesitará que tu cortafuegos permita a "Azureus.exe" acceder a Internet.
     
     Informe completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.4.0.0
    
