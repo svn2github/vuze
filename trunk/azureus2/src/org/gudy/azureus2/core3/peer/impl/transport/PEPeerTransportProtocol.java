@@ -380,6 +380,8 @@ PEPeerTransportProtocol
   /**
    * Close the peer connection from the PEPeerControl manager side.
    * NOTE: This method assumes PEPeerControl already knows about the close.
+   * This method is inteded to be only invoked by select administrative methods.
+   * You probably should not invoke this directly.
    */
   public void closeConnection( String reason ) {
     performClose( reason, true );
