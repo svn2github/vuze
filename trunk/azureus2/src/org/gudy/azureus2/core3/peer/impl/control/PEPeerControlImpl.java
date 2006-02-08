@@ -934,6 +934,7 @@ PEPeerControlImpl
 			final PEPeerTransport pc =(PEPeerTransport)peer_transports.get(i);
 			if (pc.getPeerState() ==PEPeer.TRANSFERING)
 			{
+                final boolean isSeed =pc.isSeed();
 				final List expired = pc.getExpiredRequests();
 				if (expired !=null &&expired.size() >0)
 				{
@@ -945,7 +946,7 @@ PEPeerControlImpl
                     }
                     
                     final long dataTime =pc.getTimeSinceLastDataMessageReceived();
-                    final boolean noData =(dataTime ==-1) ||((now -dataTime) >1000 *(pc.isSeed() ?120 :60)); 
+                    final boolean noData =(dataTime ==-1) ||((now -dataTime) >1000 *(isSeed ?120 :60)); 
                     
                     for (int j =0; j <expired.size(); j++)
                     {
@@ -968,6 +969,10 @@ PEPeerControlImpl
                                 checkEmptyPiece(pieceNumber);
                         }
                     }
+                    // if they never respond to our requests, must disconnect them - after 240 secons
+                    if (noData &&(goodTime ==-1 ||goodTime >240 *1000)
+                        &&piecePicker.getMinAvailability() >(isSeed ?2 :1))
+                        closeAndRemovePeer(pc, "Peer not responsive to piece requests.", true);
 				}
 			}
 		}
