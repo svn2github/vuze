@@ -822,13 +822,15 @@ public class PiecePickerImpl
                         
                         pieceSpeed =pePiece.getSpeed();
                         // peers allowed to continue same piece as last requested from them
+                        // or pieces only they have
+                        // or pieces with 0 speed
                         if (pieceSpeed >0 &&i !=lastPiece)
                         {
                             // if the peer is snubbed, only request on slow pieces
                             if (peerSpeed <pieceSpeed ||pt.isSnubbed())
                             {
                                 // peer allowed when free blocks is >= 3 and enough to not slow piece down too much
-                                if (freeReqs <3 ||pieceSpeed -1 >=freeReqs *peerSpeed)
+                                if (avail >1 &&(freeReqs <3 ||pieceSpeed -1 >=freeReqs *peerSpeed))
                                     continue;
                             }
                         }
