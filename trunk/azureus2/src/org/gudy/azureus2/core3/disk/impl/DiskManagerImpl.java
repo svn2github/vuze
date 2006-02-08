@@ -1472,6 +1472,18 @@ DiskManagerImpl
 								+ " > pLength=" + pLength));
 		  return false;
 		}
+        
+        // Regarding the bug on this check asserting even though we've sent a HAVE:
+        // When the peice is found to have passes hash check, we then send a HAVE message
+        // However the piece itself gets marked as Done by the concurrent hash checker
+        // see PEPeerCntrolImpl.processPieceChecks()
+        // see PEPeerControlImpl.processPieceCheckResult(DiskManagerCheckRequest request, int outcome)
+        //
+        // see DMCheckerImpl line 533
+        // see DMCheckerImpl line 342 checkCompleted(DiskManagerCheckRequest request, boolean passed)
+        // see DiskManagerPieceImpl.setDone(boolean b)
+        // see setPieceDone(DiskManagerPieceImpl dmPiece, boolean done)
+        // see DiskManagerPieceImpl.setDoneSupport(final boolean b)
 		if(!pieces[pieceNumber].isDone()) {
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,

@@ -1868,7 +1868,7 @@ PEPeerControlImpl
                 pieceRemoved(pePiece);
 
                 // send all clients a have message
-                sendHave(pieceNumber);
+                sendHave(pieceNumber);  //XXX: Done isn't set yet, so we might refuse to send this piece
 			} else if (outcome ==0)
 			{
                 // the piece is corrupt
