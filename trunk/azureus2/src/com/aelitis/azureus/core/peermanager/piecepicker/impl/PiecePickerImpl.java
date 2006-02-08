@@ -529,9 +529,9 @@ public class PiecePickerImpl
     private void computeBasePriorities()
     {
         final long now =SystemTime.getCurrentTime();
-        if ((now >timeLastPriorities &&now <time_last_avail +TIME_MIN_PRIORITIES)
+        if (startPriorities !=null &&((now >timeLastPriorities &&now <time_last_avail +TIME_MIN_PRIORITIES)
             ||(priorityParamChange >=paramPriorityChange &&priorityFileChange >=filePriorityChange
-                &&priorityAvailChange >=availabilityChange))
+                &&priorityAvailChange >=availabilityChange)))
             return;     // *somehow* nothing changed, so nothing to do
         
             // store the latest change indicators before we start making dependent calculations so that a
@@ -540,7 +540,7 @@ public class PiecePickerImpl
         priorityParamChange =paramPriorityChange;
         priorityFileChange =filePriorityChange;
         priorityAvailChange =availabilityChange;
-        timeLastPriorities =SystemTime.getCurrentTime();
+        timeLastPriorities =now;
         
         boolean         changedPriority =false;
         boolean         foundPieceToDownload =false;
