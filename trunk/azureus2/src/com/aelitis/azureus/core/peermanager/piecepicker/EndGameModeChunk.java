@@ -45,10 +45,21 @@ public class EndGameModeChunk
 		offset =blockNumber *DiskManager.BLOCK_SIZE;
 	}
 
+    /** @deprecated
+     * This implementation is suitable for equals(); compare() should return int for sorting
+     * @param pieceNum
+     * @param os
+     * @return
+     */
 	public boolean compare(int pieceNum, int os)
 	{
 		return ((pieceNumber ==pieceNum) &&(this.offset ==os));
 	}
+	
+    public boolean equals(int pieceNum, int os)
+    {
+        return ((pieceNumber ==pieceNum) &&(this.offset ==os));
+    }
 
 	/**
 	 * @return int Returns the pieceNumber.
