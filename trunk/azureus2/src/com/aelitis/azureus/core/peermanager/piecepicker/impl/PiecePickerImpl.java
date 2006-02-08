@@ -1134,8 +1134,8 @@ public class PiecePickerImpl
 			endGameModeChunks_mon.enter();
 			for (int i =0; i <nbChunks; i++ )
 			{
-				if (!pePiece.isDownloaded(i) &&!dmPiece.isWritten(i));
-					endGameModeChunks.add(new EndGameModeChunk(pePiece, i));
+				if (!pePiece.isDownloaded(i) &&!dmPiece.isWritten(i))
+                    endGameModeChunks.add(new EndGameModeChunk(pePiece, i));
 			}
 		} finally
 		{
