@@ -827,6 +827,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 		tableTorrents.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
+				if (bClosed)
+					return;
+
 				TableItem item = (TableItem) event.item;
 				int index = tableTorrents.indexOf(item);
 				if (index < 0)
@@ -1167,6 +1170,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 		dataFileTable.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
+				if (bClosed)
+					return;
+
 				final TableItem item = (TableItem) event.item;
 				int index = dataFileTable.indexOf(item);
 				final TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
