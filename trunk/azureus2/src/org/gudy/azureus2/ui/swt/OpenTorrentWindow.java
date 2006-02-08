@@ -277,7 +277,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		rLayout.marginLeft = 0;
 		rLayout.marginRight = 0;
 		rLayout.marginTop = 0;
-		rLayout.spacing = 5;
 		cButtons.setLayout(rLayout);
 
 		// Buttons for tableTorrents
@@ -1150,7 +1149,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		dataFileTable = new Table(cArea, SWT.BORDER | SWT.CHECK
 				| SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.MULTI);
 		gridData = new GridData(GridData.FILL_BOTH);
-		gridData.heightHint = 100;
+		gridData.heightHint = (Constants.isOSX) ? 150 : 100;
 		gridData.widthHint = 100;
 		dataFileTable.setLayoutData(gridData);
 
@@ -1288,7 +1287,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		rLayout.marginLeft = 0;
 		rLayout.marginRight = 0;
 		rLayout.marginTop = 0;
-		rLayout.spacing = 5;
 		cButtons.setLayout(rLayout);
 
 		Button btnSelectAll = new Button(cButtons, SWT.PUSH);
