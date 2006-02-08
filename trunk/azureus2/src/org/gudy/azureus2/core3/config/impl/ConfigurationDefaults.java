@@ -400,7 +400,7 @@ public class ConfigurationDefaults {
     def.put( "confirm_torrent_removal", FALSE );
     def.put( "add_torrents_silently", FALSE );
     def.put( "enable_small_osx_fonts", TRUE );
-    def.put( "Message Popup Autoclose in Seconds", new Long(5));
+    def.put( "Message Popup Autoclose in Seconds", new Long(10));
     def.put( "Play Download Finished Announcement", FALSE);
     def.put( "Play Download Finished Announcement Text", "Download Complete");
     def.put( "Play File Finished", FALSE );
