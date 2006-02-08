@@ -1361,7 +1361,7 @@ public class TableView
 	  		dataSourcesToAdd.clear();
 	  		
 	  		// remove the ones we are going to add then delete
-	  		if (dataSourcesToRemove != null) {
+	  		if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
 		  		for (int i = 0; i < dataSourcesAdd.length; i++)
 		  			if (dataSourcesToRemove.contains(dataSourcesAdd[i])) {
 		  				dataSourcesToRemove.remove(dataSourcesAdd[i]);
@@ -1373,7 +1373,7 @@ public class TableView
 	  		}
 	  	}
 	  	
-	 	if (dataSourcesToRemove != null) {
+	 	if (dataSourcesToRemove != null && dataSourcesToRemove.size() > 0) {
 	  		dataSourcesRemove = dataSourcesToRemove.toArray();
 	  		if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
 	  			System.out.println(sTableID + ": Streamlining removing "
