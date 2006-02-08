@@ -1358,7 +1358,7 @@ public class TableView
 		dataSourceToRow_mon.enter();
 	  	if (dataSourcesToAdd != null) {
 	  		dataSourcesAdd = dataSourcesToAdd.toArray();
-	  		dataSourcesToAdd = null;
+	  		dataSourcesToAdd.clear();
 	  		
 	  		// remove the ones we are going to add then delete
 	  		if (dataSourcesToRemove != null) {
@@ -1378,7 +1378,7 @@ public class TableView
 	  		if (DEBUGADDREMOVE && dataSourcesRemove.length > 1)
 	  			System.out.println(sTableID + ": Streamlining removing "
 							+ dataSourcesRemove.length + " rows");
-	  		dataSourcesToRemove = null;
+	  		dataSourcesToRemove.clear();
 	 	}
 	}finally{
 		dataSourceToRow_mon.exit();
