@@ -40,6 +40,7 @@ import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
 import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
 
 import java.lang.ref.WeakReference;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -179,7 +180,7 @@ public class MessagePopupShell implements AnimableShell {
     btnDetails.setEnabled(details != null);
     
     final Button btnHide = new Button(shell,SWT.PUSH);
-    Messages.setLanguageText(btnHide,"popup.error.hide");    
+    Messages.setLanguageText(btnHide,"popup.error.hide");
     
     Label lblImage = new Label(shell,SWT.NULL);
 	
@@ -203,6 +204,41 @@ public class MessagePopupShell implements AnimableShell {
     formData.left = new FormAttachment(0,0);
     formData.top = new FormAttachment(0,0);
     lblImage.setLayoutData(formData);
+    
+    Button btnHideAll = null;
+    if (viewStack.size() > 0) {
+    	System.out.println("MOOO");
+    	btnHideAll = new Button(shell, SWT.PUSH);
+    	btnHideAll.moveAbove(btnDetails);
+    	Messages.setLanguageText(btnHideAll, "popup.error.hideall");
+    	
+    	formData = new FormData();
+    	formData.right = new FormAttachment(btnDetails, -5);
+    	formData.bottom  = new FormAttachment(100,-5);
+    	btnHideAll.setLayoutData(formData);
+    	
+    	btnHideAll.addListener(SWT.Selection, new Listener() {
+    		public void handleEvent(Event event) {
+          btnHide.setEnabled(false);
+          btnDetails.setEnabled(false);
+          
+          for (Iterator iter = viewStack.iterator(); iter.hasNext();) {
+						WeakReference wr = (WeakReference) iter.next();
+						MessagePopupShell popup = (MessagePopupShell) wr.get();
+						iter.remove();
+
+						if (popup == null)
+							return;
+
+						popup.shell.dispose();
+						popup.detailsShell.dispose();
+						if (popup.shellImg != null) {
+							popup.shellImg.dispose();
+						}
+					}
+    		}
+    	});
+    }
     
     shell.layout();
     shell.setTabList(new Control[] {btnDetails, btnHide});
