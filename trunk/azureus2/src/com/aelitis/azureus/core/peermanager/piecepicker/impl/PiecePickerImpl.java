@@ -918,9 +918,9 @@ public class PiecePickerImpl
         boolean resumeIsBetter =false;
         if (pieceNumber >=0)
         {
-            resumeIsBetter =resumeIsRarest ||rarestOverride ||!startIsRarest ||startCandidates ==null ||startCandidates.nbSet <1;
-//            if (!resumeIsBetter &&globalMinOthers >0)
-//                resumeIsBetter =(resumeMaxPriority /availability[pieceNumber]) >(startMaxPriority /globalMinOthers); 
+            resumeIsBetter =startCandidates ==null ||startCandidates.nbSet <1
+                ||resumeIsRarest ||!startIsRarest ||rarestOverride 
+                ||(resumeMaxPriority /resumeMinAvail) >(startMaxPriority /globalMinOthers);
             if (resumeIsBetter)
                 return pieceNumber;
         }
@@ -1197,7 +1197,7 @@ public class PiecePickerImpl
 			while (iter.hasNext())
 			{
 				EndGameModeChunk chunk =(EndGameModeChunk) iter.next();
-				if (chunk.compare(pieceNumber, offset))
+				if (chunk.equals(pieceNumber, offset))
 					iter.remove();
 			}
 		} finally
