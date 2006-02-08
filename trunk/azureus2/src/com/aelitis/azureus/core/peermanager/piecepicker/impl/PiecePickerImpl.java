@@ -57,13 +57,13 @@ public class PiecePickerImpl
 
 	// The following are added to the base User setting based priorities (for all inspected pieces)
     /** user select prioritize first/last */
-	private static final long PRIORITY_W_FIRSTLAST	=1300;
+	private static final long PRIORITY_W_FIRSTLAST	=1000;
     /** min # pieces in file for first/last prioritization */
     private static final long FIRST_PIECE_MIN_NB	=4;
     /** user sets file as "High" */
-    private static final long PRIORITY_W_FILE		=1100;
+    private static final long PRIORITY_W_FILE		=900;
     /** Additional boost for more completed High priority */
-    private static final long PRIORITY_W_COMPLETION	=800;
+    private static final long PRIORITY_W_COMPLETION	=700;
 
     /** Additional boost for globally rarest piece */
     private static final long PRIORITY_W_RAREST		=1300;
@@ -74,13 +74,13 @@ public class PiecePickerImpl
     /** priority boost due to being too old */
     private static final long PRIORITY_W_AGE		=1000;
     /** ms a block is expected to complete in, with leeway factor */
-    private static final long PRIORITY_DW_AGE		=20 *1000 *3;
+    private static final long PRIORITY_DW_AGE		=60 *1000;
     /** ms since last write */
     private static final long PRIORITY_DW_STALE		=120 *1000;
     /** finish pieces already almost done */
-    private static final long PRIORITY_W_PIECE_DONE	=700;
+    private static final long PRIORITY_W_PIECE_DONE	=800;
     /** keep working on same piece */
-    private static final long PRIORITY_W_SAME_PIECE	=400;
+    private static final long PRIORITY_W_SAME_PIECE	=600;
 
     /** Min number of requests sent to a peer */
     private static final int REQUESTS_MIN	=2;
@@ -596,14 +596,14 @@ public class PiecePickerImpl
                 {
                     dmPiece.setNeeded();
                     foundPieceToDownload =true;
-                    if (avail >0)
-                    {
-                        // boost priority for rarity
-                        startPriority +=(PRIORITY_W_RARE +peerControl.getNbPeers()) /avail;
-                        // Boost priority even a little more if it's a globally rarest piece
-                        if (!rarestOverride &&avail <=globalMinOthers)
-                            startPriority +=PRIORITY_W_RAREST /avail;
-                    }
+//                    if (avail >0)
+//                    {
+//                        // boost priority for rarity
+//                        startPriority +=(PRIORITY_W_RARE +peerControl.getNbPeers()) /avail;
+//                        // Boost priority even a little more if it's a globally rarest piece
+//                        if (!rarestOverride &&avail <=globalMinOthers)
+//                            startPriority +=PRIORITY_W_RAREST /avail;
+//                    }
                 } else
                 {
                     dmPiece.clearNeeded();
@@ -850,7 +850,7 @@ public class PiecePickerImpl
                             
                             pePiece.setResumePriority(priority);  // this is only for display
                             
-                            if ((avail <resumeMinAvail &&priority >=resumeMaxPriority)
+                            if (avail <resumeMinAvail &&(!rarestOverride ||priority >=resumeMaxPriority)
                                 ||(priority >resumeMaxPriority &&(!resumeIsRarest ||rarestOverride)))
                             {   // this piece seems like best choice for resuming
                                 // Verify it's still possible to get a block to request from this piece
@@ -910,9 +910,9 @@ public class PiecePickerImpl
         boolean resumeIsBetter =false;
         if (pieceNumber >=0)
         {
-            resumeIsBetter =availability[pieceNumber] <=globalMinOthers ||rarestOverride ||!startIsRarest ||startCandidates ==null ||startCandidates.nbSet <1;
-            if (!resumeIsBetter &&globalMinOthers >0)
-                resumeIsBetter =(resumeMaxPriority /availability[pieceNumber]) >(startMaxPriority /globalMinOthers); 
+            resumeIsBetter =resumeIsRarest ||rarestOverride ||!startIsRarest ||startCandidates ==null ||startCandidates.nbSet <1;
+//            if (!resumeIsBetter &&globalMinOthers >0)
+//                resumeIsBetter =(resumeMaxPriority /availability[pieceNumber]) >(startMaxPriority /globalMinOthers); 
             if (resumeIsBetter)
                 return pieceNumber;
         }
