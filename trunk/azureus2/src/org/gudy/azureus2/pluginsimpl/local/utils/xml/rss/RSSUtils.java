@@ -25,6 +25,7 @@ package org.gudy.azureus2.pluginsimpl.local.utils.xml.rss;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -48,11 +49,11 @@ RSSUtils
 			
 			if ( date_str.indexOf( "," ) == -1 ){
 				
-				format = new SimpleDateFormat("dd MMM yyyy HH:mm:ss z");
+				format = new SimpleDateFormat("dd MMM yyyy HH:mm:ss z", Locale.US );
 				
 			}else{
 				
-				format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z");
+				format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US );
 			}
 			
 			return( format.parse( date_str ));
