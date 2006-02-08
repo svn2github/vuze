@@ -207,7 +207,6 @@ public class MessagePopupShell implements AnimableShell {
     
     Button btnHideAll = null;
     if (viewStack.size() > 0) {
-    	System.out.println("MOOO");
     	btnHideAll = new Button(shell, SWT.PUSH);
     	btnHideAll.moveAbove(btnDetails);
     	Messages.setLanguageText(btnHideAll, "popup.error.hideall");
