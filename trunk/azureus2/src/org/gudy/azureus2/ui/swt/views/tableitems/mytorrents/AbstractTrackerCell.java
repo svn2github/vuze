@@ -4,6 +4,7 @@ import java.net.URL;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerTrackerListener;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
@@ -48,7 +49,12 @@ abstract class AbstractTrackerCell implements TableCellRefreshListener,
 			if (dm == null || dm != this.dm)
 				return false;
 
-			URL announceURL = dm.getTorrent().getAnnounceURL();
+			TOTorrent	torrent = dm.getTorrent();
+			
+			if ( torrent == null ){
+				return( false );
+			}
+			URL announceURL = torrent.getAnnounceURL();
 			URL responseURL = response.getURL();
 			if (announceURL != responseURL && announceURL != null
 					&& responseURL != null

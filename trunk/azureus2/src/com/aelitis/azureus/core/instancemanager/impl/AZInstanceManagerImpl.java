@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -398,11 +399,18 @@ AZInstanceManagerImpl
 					
 					DownloadManager	dm = (DownloadManager)it.next();
 					
+					TOTorrent	torrent = dm.getTorrent();
+					
+					if ( torrent == null ){
+						
+						continue;
+					}
+					
 					byte[]	sha1_hash = (byte[])dm.getData( "AZInstanceManager::sha1_hash" );
 					
 					if ( sha1_hash == null ){			
 
-						sha1_hash	= new SHA1Simple().calculateHash( dm.getTorrent().getHash());
+						sha1_hash	= new SHA1Simple().calculateHash( torrent.getHash());
 						
 						dm.setData( "AZInstanceManager::sha1_hash", sha1_hash );
 					}

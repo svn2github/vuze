@@ -531,6 +531,10 @@ public class GeneralView extends AbstractIView implements ParameterListener {
     		{
     			final TOTorrent	torrent = manager.getTorrent();
     		
+    			if ( torrent == null ){
+    				return;
+    			}
+    			
 	    		List	group = TorrentUtils.announceGroupsToList( torrent );
 	    		
 	    		new MultiTrackerEditor(null,group,
