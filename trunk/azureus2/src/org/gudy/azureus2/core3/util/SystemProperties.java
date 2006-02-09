@@ -37,6 +37,10 @@ public class SystemProperties {
   
   	private static String user_path;
   	private static String app_path;
+  	
+  	
+  	private static final Object migrate_lock = new Object();
+  	
   
 	public static void
 	setApplicationName(
@@ -98,7 +102,7 @@ public class SystemProperties {
 	
   /**
    * Returns the full path to the user's home azureus directory.
-   * Under unix, this is usually ~/.Azureus/
+   * Under unix, this is usually ~/.azureus/
    * Under Windows, this is usually .../Documents and Settings/username/Application Data/Azureus/
    * Under OSX, this is usually /Users/username/Library/Application Support/Azureus/
    */
@@ -193,19 +197,24 @@ public class SystemProperties {
 	    	
 	      temp_user_path = userhome + SEP + "." + APPLICATION_NAME.toLowerCase() + SEP;
 	      
-	      File home = new File( temp_user_path );
-	      if( !home.exists() ) {  //might be a fresh install or might be an old non-migrated install
-	      	String old_home_path = userhome + SEP + "." + APPLICATION_NAME + SEP;
-	      	File old_home = new File( old_home_path );
-	      	if( old_home.exists() ) {  //migrate
-	      		String msg = "Migrating unix user config dir [" +old_home_path+ "] ===> [" +temp_user_path+ "]";
-	      		System.out.println( msg );
-	      		Logger.log(new LogEvent(LOGID, "SystemProperties::getUserPath(Unix): " +msg ));
-	      		try {
-	      			old_home.renameTo( home );
-	      		}
-	      		catch( Throwable t ) {  t.printStackTrace();  }
-	      	}
+	      synchronized( migrate_lock ) {
+	      	File home = new File( temp_user_path );
+		      if( !home.exists() ) {  //might be a fresh install or might be an old non-migrated install
+		      	String old_home_path = userhome + SEP + "." + APPLICATION_NAME + SEP;
+		      	File old_home = new File( old_home_path );
+		      	if( old_home.exists() ) {  //migrate
+		      		String msg = "Migrating unix user config dir [" +old_home_path+ "] ===> [" +temp_user_path+ "]";
+		      		System.out.println( msg );
+		      		Logger.log(new LogEvent(LOGID, "SystemProperties::getUserPath(Unix): " +msg ));
+		      		try {
+		      			old_home.renameTo( home );
+		      		}
+		      		catch( Throwable t ) {
+		      			t.printStackTrace();  
+		      			Logger.log( new LogEvent( LOGID, "migration rename failed:",  t ) );
+		      		}
+		      	}
+		      }	      	
 	      }
 	      
 	      if (Logger.isEnabled())
