@@ -242,7 +242,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData.horizontalSpan = 2;
 		linkLabel = new LinkLabel(gCrypto, gridData, CFG_PREFIX
 				+ "encrypt.info.link",
-				"http://azureus.aelitis.com/wiki/index.php/Message_Stream_Encryption");
+				"http://azureus.aelitis.com/wiki/index.php/Avoid_traffic_shaping");
 		
 		final BooleanParameter require = new BooleanParameter(gCrypto,	"network.transport.encrypted.require", false, CFG_PREFIX + "require_encrypted_transport");
 		gridData = new GridData();
