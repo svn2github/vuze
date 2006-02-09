@@ -71,7 +71,7 @@ public class AZSessionPiece implements AZMessage {
     
   public String getDescription() {
     if( description == null ) {
-      description = getID()+ " session #" +session_id+ " data for #" + piece_number + ": " + piece_offset + "->" + (piece_offset + piece_length -1);
+      description = getID()+ " session #" +session_id+ " data for piece #" + piece_number + ":" + piece_offset + "->" + (piece_offset + piece_length -1);
     }
     
     return description;

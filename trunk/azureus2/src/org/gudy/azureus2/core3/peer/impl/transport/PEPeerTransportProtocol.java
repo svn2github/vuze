@@ -1605,7 +1605,7 @@ PEPeerTransportProtocol
     request.destroy();  
     
     if( !manager.checkBlock( number, offset, length ) ) {
-      closeConnectionInternally( "request #" + number + ":" + offset + "->" + (offset + length -1) + " is an invalid request" );
+      closeConnectionInternally( "request for piece #" + number + ":" + offset + "->" + (offset + length -1) + " is an invalid request" );
       return;
     }
       
@@ -1614,9 +1614,9 @@ PEPeerTransportProtocol
     }
     else {
     	if (Logger.isEnabled())
-				Logger.log(new LogEvent(this, LOGID, "Protocol:In: peer requested #"
+				Logger.log(new LogEvent(this, LOGID, "Protocol:In: peer request for piece #"
 						+ number + ":" + offset + "->" + (offset + length -1)
-						+ " but peer is currently choked. Request ignored."));
+						+ " ignored as peer is currently choked."));
     }
 
   }
@@ -1645,7 +1645,7 @@ PEPeerTransportProtocol
     }
     */
     
-	  final String error_msg = "Peer has sent #" + pieceNumber + ":" + offset + "->"	+ (offset + length -1) + ", ";
+	  final String error_msg = "Peer has sent piece #" + pieceNumber + ":" + offset + "->"	+ (offset + length -1) + ", ";
     
     if( !manager.checkBlock( pieceNumber, offset, payload ) ) {
       peer_stats.bytesDiscarded( length );

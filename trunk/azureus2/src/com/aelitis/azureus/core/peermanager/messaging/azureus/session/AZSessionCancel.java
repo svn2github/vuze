@@ -70,7 +70,7 @@ public class AZSessionCancel implements AZMessage {
     
   public String getDescription() {
     if( description == null ) {
-      description = getID()+ " session #" +session_id+ " piece #" + piece_number + ": " + piece_offset + "->" + (piece_offset + length -1);
+      description = getID()+ " session #" +session_id+ " piece #" + piece_number + ":" + piece_offset + "->" + (piece_offset + length -1);
     }
     
     return description; 
