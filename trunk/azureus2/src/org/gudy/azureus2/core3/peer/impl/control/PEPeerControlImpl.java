@@ -254,7 +254,7 @@ PEPeerControlImpl
 		for (int i =0; i <_nbPieces; i++ )
 		{
 			if (pePieces[i] !=null)
-				pieceRemoved(pePieces[i]);
+				removePiece(pePieces[i]);
 		}
 
 		// 5. Remove listeners
@@ -654,7 +654,7 @@ PEPeerControlImpl
 			return false;
 		if (dmPiece.getNbWritten() >0 ||pePiece.getNbRequests() >0 ||pePiece.getSpeed() >0 ||pePiece.getReservedBy() !=null)
 			return false;
-		pieceRemoved(pePiece);
+		removePiece(pePiece);
 		return true;
 	}
 	
@@ -1675,9 +1675,10 @@ PEPeerControlImpl
      * The piece will be null upon return
      * @param pePiece the piece to remove
      */
-	public void pieceRemoved(PEPiece pePiece) {
+	public void removePiece(PEPiece pePiece) {
 		adapter.removePiece(pePiece);
-		pePieces[pePiece.getPieceNumber()] =null;
+        if (pePiece !=null)
+            pePieces[pePiece.getPieceNumber()] =null;
 	}
 	
 	public String getElapsedTime() {
@@ -1865,7 +1866,7 @@ PEPeerControlImpl
 						}
 					}
 				}
-                pieceRemoved(pePiece);
+                removePiece(pePiece);
 
                 // send all clients a have message
                 sendHave(pieceNumber);  //XXX: Done isn't set yet, so we might refuse to send this piece
