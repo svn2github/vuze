@@ -165,7 +165,7 @@ Download
 	getTorrent();
 	
 	/**
-	 * See lifecylce description above 
+	 * See lifecycle description above 
 	 * @throws DownloadException
    *
    * @since 2.0.7.0
@@ -176,7 +176,7 @@ Download
 		throws DownloadException;
 
 	/**
-	 * See lifecylce description above 
+	 * See lifecycle description above 
 	 * @throws DownloadException
    *
    * @since 2.0.7.0
@@ -187,7 +187,7 @@ Download
 		throws DownloadException;
 	
 	/**
-	 * See lifecylce description above 
+	 * See lifecycle description above 
 	 * @throws DownloadException
    *
    * @since 2.0.7.0
@@ -198,7 +198,7 @@ Download
 		throws DownloadException;
 	
 	/**
-	 * See lifecylce description above 
+	 * See lifecycle description above 
 	 * @throws DownloadException
    *
    * @since 2.0.8.0
@@ -209,7 +209,7 @@ Download
 		throws DownloadException;
 
 	/**
-	 * See lifecylce description above 
+	 * See lifecycle description above 
 	 * @throws DownloadException
    *
    * @since 2.0.7.0
