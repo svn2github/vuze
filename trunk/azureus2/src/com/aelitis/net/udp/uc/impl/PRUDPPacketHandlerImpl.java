@@ -84,7 +84,8 @@ PRUDPPacketHandlerImpl
 	private int			receive_delay			= 0;
 	private int			queued_request_timeout	= 0;
 	
-	private long		total_requests;
+	private long		total_requests_received;
+	private long		total_requests_processed;
 	private long		total_replies;
 	private long		last_error_report;
 	
@@ -352,7 +353,7 @@ PRUDPPacketHandlerImpl
 			
 			if ( request_packet ){
 					
-				total_requests++;
+				total_requests_received++;
 				
 				// System.out.println( "Incoming from " + dg_packet.getAddress());
 				
@@ -380,7 +381,7 @@ PRUDPPacketHandlerImpl
 								
 								Debug.out( "Receive queue size limit exceeded (" + 
 											MAX_RECV_QUEUE_DATA_SIZE + "), dropping request packet [" +
-											total_requests + "/" + total_replies + "]");
+											total_requests_received + "/" + total_requests_processed + ":" + total_replies + "]");
 							}
 							
 						}else if ( receive_delay * recv_queue.size() > queued_request_timeout ){
@@ -396,7 +397,7 @@ PRUDPPacketHandlerImpl
 
 								Debug.out( "Receive queue entry limit exceeded (" + 
 											recv_queue.size() + "), dropping request packet ]" +
-											total_requests + "/" + total_replies + "]");
+											total_requests_received + "/" + total_requests_processed + ":" + total_replies + "]");
 							}
 							
 						}else{
@@ -426,6 +427,8 @@ PRUDPPacketHandlerImpl
 														recv_queue_mon.enter();
 													
 														data = (Object[])recv_queue.remove(0);
+														
+														total_requests_processed++;
 														
 													}finally{
 														
