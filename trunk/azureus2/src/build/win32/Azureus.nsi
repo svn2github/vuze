@@ -3,11 +3,11 @@
 ;Written by Joost Verburg
 
 
-!define AZ_VERSION "2.3.0.6"        ;Define your own software version here
+!define AZ_VERSION "2.4.0.0"        ;Define your own software version here
 !define SWT_VERSION "3139"          ;SWT lib version
-!define AZPLUGINS_VERSION "1.8.6"   ;azplugins plugin version
-!define AZUPDATER_VERSION "1.8.2"   ;azupdater plugin version
-!define RATING_VERSION "1.2"        ;torrent rating plugin version
+!define AZPLUGINS_VERSION "1.9"     ;azplugins plugin version
+!define AZUPDATER_VERSION "1.8.3"   ;azupdater plugin version
+!define AZRATING_VERSION "1.3"      ;torrent rating plugin version
 
 
 !include "MUI.nsh"
@@ -96,9 +96,9 @@ Section "Azureus Core Files" SecCopyUI
   File "plugins\azupdater\plugin.properties"
   File "plugins\azupdater\azupdaterpatcher_${AZUPDATER_VERSION}.jar"
   
-  ;CreateDirectory "$INSTDIR\plugins\rating"
-  SetOutPath "$INSTDIR\plugins\rating"
-  File "plugins\rating\rating_${RATING_VERSION}.jar"
+  ;CreateDirectory "$INSTDIR\plugins\azrating"
+  SetOutPath "$INSTDIR\plugins\azrating"
+  File "plugins\azrating\azrating_${AZRATING_VERSION}.jar"
   
   
   ;Store install folder
