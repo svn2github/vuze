@@ -57,13 +57,13 @@ public class PiecePickerImpl
 
 	// The following are added to the base User setting based priorities (for all inspected pieces)
     /** user select prioritize first/last */
-	private static final long PRIORITY_W_FIRSTLAST	=1100;
+	private static final long PRIORITY_W_FIRSTLAST	=1200;
     /** min # pieces in file for first/last prioritization */
     private static final long FIRST_PIECE_MIN_NB	=4;
     /** user sets file as "High" */
-    private static final long PRIORITY_W_FILE		=1000;
+    private static final long PRIORITY_W_FILE		=1100;
     /** Additional boost for more completed High priority */
-    private static final long PRIORITY_W_COMPLETION	=900;
+    private static final long PRIORITY_W_COMPLETION	=1000;
 
     /** Additional boost for globally rarest piece */
     private static final long PRIORITY_W_RAREST		=1300;
@@ -155,8 +155,6 @@ public class PiecePickerImpl
 	
 	protected volatile boolean	hasNeededUndonePiece;
 	protected volatile long		neededUndonePieceChange;
-	
-	private BitFlags			preQualifiedPieces;
 	
 	/** A flag to indicate when we're in endgame mode */
 	private volatile boolean	endGameMode;
@@ -274,8 +272,6 @@ public class PiecePickerImpl
     /**
      * This methd will compute the pieces' overall availability (including ourself)
      * and the _globalMinOthers & _globalAvail
-     * preQualifiedPieces is computed here as well (so it's critical this executes
-     * reasonably often when downloading)
      */
 	public void updateAvailability()
 	{
@@ -327,19 +323,14 @@ public class PiecePickerImpl
 		} finally {availabilityMon.exit();}
 		
 		int i;
-		final BitFlags newPreQualifiedPieces =new BitFlags(nbPieces);
 		int allMin =Integer.MAX_VALUE;
 		int rarestMin =Integer.MAX_VALUE;
 		for (i =0; i <nbPieces; i++)
 		{
 			final int avail =availability[i];
 			final DiskManagerPiece dmPiece =dmPieces[i];
-			if (avail >0 &&dmPiece.isRequestable())
-			{
-				newPreQualifiedPieces.set(i);
-				if (avail <rarestMin) 
+			if (avail >0 &&avail <rarestMin &&dmPiece.isRequestable()) 
 					rarestMin =avail;	// most important targets for near future requests from others
-			}
 			
 			if (avail <allMin)
 				allMin =avail;
@@ -347,7 +338,6 @@ public class PiecePickerImpl
 		// copy updated local variables into globals
 		globalMin =allMin;
 		globalMinOthers =rarestMin;
-		preQualifiedPieces =newPreQualifiedPieces;
 		
 		int total =0;
 		int rarestActive =0;
@@ -481,6 +471,7 @@ public class PiecePickerImpl
 		}
 
 		checkEndGameMode();
+
 		computeBasePriorities();
 		
 		for (int i =0; i <bestUploaders.size(); i++)
@@ -774,135 +765,138 @@ public class PiecePickerImpl
         long        staleness;  // how long since there's been a write to the resume piece under inspection
         long        pieceAge;   // how long since the PEPiece first started downloading (requesting, actually)
         
-        final int   startI =preQualifiedPieces.start >peerHavePieces.start ?preQualifiedPieces.start :peerHavePieces.start;
-        final int   endI =preQualifiedPieces.end <peerHavePieces.end ?preQualifiedPieces.end :peerHavePieces.end;
+        final int	startI =peerHavePieces.start;
+        final int	endI =peerHavePieces.end;
         int         i;
 
         final long  now =SystemTime.getCurrentTime();
         // Try to continue a piece already loaded, according to priority
         for (i =startI; i <=endI; i++)
         {
-            // is the piece: Needed, not fully: Requested, Downloaded, Written, hash-Checking or Done?
-            // and is the piece available from this peer?
-            if (preQualifiedPieces.flags[i] &&peerHavePieces.flags[i])
+            // is the piece available from this peer?
+            if (peerHavePieces.flags[i])
             {
-                priority =startPriorities[i];
-                if (priority >=0)
+                dmPiece =dmPieces[i];
+                // is the piece: Needed, not fully: Requested, Downloaded, Written, hash-Checking or Done?
+                if (dmPiece.isRequestable())
                 {
-                    avail =availability[i];
-                    if (avail ==0)
-                    {   // maybe we didn't know we could get it before
-                        availability[i] =1;    // but the peer says s/he has it
-                        avail =1;
-                    }
-                    
-                    // is the piece active
-                    pePiece =peerControl.getPiece(i);
-                    if (pePiece !=null)
+                    priority =startPriorities[i];
+                    if (priority >=0)
                     {
-                        // How many requests can still be made on this piece?
-                        dmPiece =dmPieces[i];
-                        freeReqs =pePiece.getNbUnrequested();
-                        if (freeReqs <=0)
-                        {
-                            dmPiece.setRequested();
-                            continue;
+                        avail =availability[i];
+                        if (avail ==0)
+                        {   // maybe we didn't know we could get it before
+                            availability[i] =1;    // but the peer says s/he has it
+                            avail =1;
                         }
                         
-                        // Don't touch pieces reserved for others
-                        String peerReserved =pePiece.getReservedBy();
-                        if (peerReserved !=null)
+                        // is the piece active
+                        pePiece =peerControl.getPiece(i);
+                        if (pePiece !=null)
                         {
-                            if (!peerReserved.equals(pt.getIp()))
-                                continue;   //reserved to somebody else
-                            // the peer forgot this is reserved to him, but we located it
-                            pt.setReservedPieceNumber(i);
-                            return i;
-                        }
-                        
-                        pieceSpeed =pePiece.getSpeed();
-                        // peers allowed to continue same piece as last requested from them
-                        // or pieces only they have
-                        // or pieces with 0 speed
-                        if (pieceSpeed >0 &&i !=lastPiece)
-                        {
-                            // if the peer is snubbed, only request on slow pieces
-                            if (peerSpeed <pieceSpeed ||pt.isSnubbed())
+                            // How many requests can still be made on this piece?
+                            freeReqs =pePiece.getNbUnrequested();
+                            if (freeReqs <=0)
                             {
-                                // peer allowed when free blocks is >= 3 and enough to not slow piece down too much
-                                if (avail >1 &&(freeReqs <3 ||pieceSpeed -1 >=freeReqs *peerSpeed))
-                                    continue;
+                                dmPiece.setRequested();
+                                continue;
                             }
-                        }
-                        if (avail <=resumeMinAvail)
-                        {
-                            priority +=pieceSpeed;
-                            priority +=(i ==lastPiece) ?PRIORITY_W_SAME_PIECE :0;
-                            // Adjust priority for purpose of continuing pieces
-                            // how long since last written to (if written to)
-                            priority +=pePiece.getTimeSinceLastActivity() /PRIORITY_DW_STALE;
-                            // how long since piece was started
-                            pieceAge =now -pePiece.getCreationTime();
-                            if (pieceAge >0)
-                                priority +=PRIORITY_W_AGE *pieceAge /(PRIORITY_DW_AGE *dmPiece.getNbBlocks());
-                            // how much is already written to disk
-                            priority +=(PRIORITY_W_PIECE_DONE *dmPiece.getNbWritten()) /dmPiece.getNbBlocks();
                             
-                            pePiece.setResumePriority(priority);  // this is only for display
+                            // Don't touch pieces reserved for others
+                            String peerReserved =pePiece.getReservedBy();
+                            if (peerReserved !=null)
+                            {
+                                if (!peerReserved.equals(pt.getIp()))
+                                    continue;   //reserved to somebody else
+                                // the peer forgot this is reserved to him, but we located it
+                                pt.setReservedPieceNumber(i);
+                                return i;
+                            }
                             
-                            if (avail <resumeMinAvail &&(!rarestOverride ||priority >=resumeMaxPriority)
-                                ||(priority >resumeMaxPriority &&(!resumeIsRarest ||rarestOverride)))
-                            {   // this piece seems like best choice for resuming
-                                // Verify it's still possible to get a block to request from this piece
-                                if (pePiece.hasUnrequestedBlock())
-                                {   // change the different variables to reflect interest in this block
-                                    pieceNumber =i;
-                                    resumeMinAvail =avail;
-                                    resumeMaxPriority =priority;
-                                    resumeIsRarest =avail <=globalMinOthers; // only going to try to resume one
+                            pieceSpeed =pePiece.getSpeed();
+                            // peers allowed to continue same piece as last requested from them
+                            // or pieces only they have
+                            // or pieces with 0 speed
+                            if (pieceSpeed >0 &&i !=lastPiece)
+                            {
+                                // if the peer is snubbed, only request on slow pieces
+                                if (peerSpeed <pieceSpeed ||pt.isSnubbed())
+                                {
+                                    // peer allowed when free blocks is >= 3 and enough to not slow piece down too much
+                                    if (avail >1 &&(freeReqs <3 ||pieceSpeed -1 >=freeReqs *peerSpeed))
+                                        continue;
                                 }
                             }
-                        }
-                    } else if (avail <=globalMinOthers &&!rarestOverride) 
-                    {   // rarest pieces only from now on
-                        if (!startIsRarest)
-                        {   // 1st rarest piece
-                            if (startCandidates ==null)
-                                startCandidates =new BitFlags(nbPieces);
-                            startMaxPriority =priority;
-                            startMinAvail =avail;
-                            startIsRarest =avail <=globalMinOthers;
-                            startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
-                        } else if (priority >startMaxPriority)
-                        {   // continuing rarest, higher priority level
-                            if (startCandidates ==null)
-                                startCandidates =new BitFlags(nbPieces);
-                            startMaxPriority =priority;
-                            startCandidates.setOnly(i);
-                        } else if (priority ==startMaxPriority)
-                        {   // continuing rares, same priority level
-                            startCandidates.setEnd(i);
-                        }
-                    } else if (!startIsRarest ||rarestOverride)
-                    {   // not doing rarest pieces
-                        if (priority >startMaxPriority)
-                        {   // new priority level
-                            if (startCandidates ==null)
-                                startCandidates =new BitFlags(nbPieces);
-                            startMaxPriority =priority;
-                            startMinAvail =avail;
-                            startIsRarest =avail <=globalMinOthers;
-                            startCandidates.setOnly(i);
-                        } else if (priority ==startMaxPriority)
-                        {   // continuing same priority level
-                            if (avail <startMinAvail)
-                            {   // same priority, new availability level
+                            if (avail <=resumeMinAvail)
+                            {
+                                priority +=pieceSpeed;
+                                priority +=(i ==lastPiece) ?PRIORITY_W_SAME_PIECE :0;
+                                // Adjust priority for purpose of continuing pieces
+                                // how long since last written to (if written to)
+                                priority +=pePiece.getTimeSinceLastActivity() /PRIORITY_DW_STALE;
+                                // how long since piece was started
+                                pieceAge =now -pePiece.getCreationTime();
+                                if (pieceAge >0)
+                                    priority +=PRIORITY_W_AGE *pieceAge /(PRIORITY_DW_AGE *dmPiece.getNbBlocks());
+                                // how much is already written to disk
+                                priority +=(PRIORITY_W_PIECE_DONE *dmPiece.getNbWritten()) /dmPiece.getNbBlocks();
+                                
+                                pePiece.setResumePriority(priority);  // this is only for display
+                                
+                                if (avail <resumeMinAvail &&(!rarestOverride ||priority >=resumeMaxPriority)
+                                    ||(priority >resumeMaxPriority &&(!resumeIsRarest ||rarestOverride)))
+                                {   // this piece seems like best choice for resuming
+                                    // Verify it's still possible to get a block to request from this piece
+                                    if (pePiece.hasUnrequestedBlock())
+                                    {   // change the different variables to reflect interest in this block
+                                        pieceNumber =i;
+                                        resumeMinAvail =avail;
+                                        resumeMaxPriority =priority;
+                                        resumeIsRarest =avail <=globalMinOthers; // only going to try to resume one
+                                    }
+                                }
+                            }
+                        } else if (avail <=globalMinOthers &&!rarestOverride) 
+                        {   // rarest pieces only from now on
+                            if (!startIsRarest)
+                            {   // 1st rarest piece
+                                if (startCandidates ==null)
+                                    startCandidates =new BitFlags(nbPieces);
+                                startMaxPriority =priority;
+                                startMinAvail =avail;
+                                startIsRarest =avail <=globalMinOthers;
+                                startCandidates.setOnly(i); // clear the non-rarest bits in favor of only rarest
+                            } else if (priority >startMaxPriority)
+                            {   // continuing rarest, higher priority level
+                                if (startCandidates ==null)
+                                    startCandidates =new BitFlags(nbPieces);
+                                startMaxPriority =priority;
+                                startCandidates.setOnly(i);
+                            } else if (priority ==startMaxPriority)
+                            {   // continuing rares, same priority level
+                                startCandidates.setEnd(i);
+                            }
+                        } else if (!startIsRarest ||rarestOverride)
+                        {   // not doing rarest pieces
+                            if (priority >startMaxPriority)
+                            {   // new priority level
+                                if (startCandidates ==null)
+                                    startCandidates =new BitFlags(nbPieces);
+                                startMaxPriority =priority;
                                 startMinAvail =avail;
                                 startIsRarest =avail <=globalMinOthers;
                                 startCandidates.setOnly(i);
-                            } else if (avail ==startMinAvail)
-                            {   // same priority level, same availability level
-                                startCandidates.setEnd(i);
+                            } else if (priority ==startMaxPriority)
+                            {   // continuing same priority level
+                                if (avail <startMinAvail)
+                                {   // same priority, new availability level
+                                    startMinAvail =avail;
+                                    startIsRarest =avail <=globalMinOthers;
+                                    startCandidates.setOnly(i);
+                                } else if (avail ==startMinAvail)
+                                {   // same priority level, same availability level
+                                    startCandidates.setEnd(i);
+                                }
                             }
                         }
                     }
@@ -1334,7 +1328,7 @@ public class PiecePickerImpl
 	}
 	
 	/**
-	 * An instance of this listener is registered peerControl
+	 * An instance of this listener is registered with peerControl
 	 * @author MjrTom
 	 */
 	private class DiskManagerListenerImpl
