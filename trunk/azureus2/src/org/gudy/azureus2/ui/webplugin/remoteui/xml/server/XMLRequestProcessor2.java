@@ -388,7 +388,25 @@ public class XMLRequestProcessor2 {
 
         if (rp_lookup) {
             debug_in("About to see if there is an object reference to process.");
-            SimpleXMLParserDocumentNode obj_node = node.getChild("_object_id");
+            SimpleXMLParserDocumentNode obj_node_parent, obj_node = null;
+
+            /**
+             * We'll be a bit flexible with how we handle object references.
+             *
+             * In most cases, they should be embedded in a OBJECT/_object_id
+             * tag. However, that's not always possible - an RPRequest instance
+             * never has the ID in an OBJECT tag.
+             *
+             * Given that we can be called when node is either the parent of
+             * an OBJECT tag or an _object_id tag, we'll cope with both
+             * situations.
+             */
+            obj_node_parent = node.getChild("OBJECT");
+            if (obj_node_parent == null) {
+                obj_node_parent = node;
+            }
+
+            obj_node = obj_node_parent.getChild("_object_id");
 
             if (obj_node != null) {
                 debug_in("Found object ID node, processing...");
