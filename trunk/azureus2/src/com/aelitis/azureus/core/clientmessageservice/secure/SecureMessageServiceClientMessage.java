@@ -1,7 +1,7 @@
 /*
  * Created on 07-Nov-2005
  * Created by Paul Gardner
- * Copyright (C) 2005 Aelitis, All Rights Reserved.
+ * Copyright (C) 2005, 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

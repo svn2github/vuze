@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  * 
- * Copyright (C) 2004 Aelitis SARL, All rights Reserved
+ * Copyright (C) 2004, 2005, 2006 Aelitis SAS, All rights Reserved
  */
 package org.gudy.azureus2.core3.util;
 
