@@ -3,7 +3,7 @@
  * Modified Apr 13, 2004 by Alon Rohter
  * Heavily modified Sep 2005 by Joseph Bridgewater
  * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
- *
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -47,7 +47,7 @@ import com.aelitis.azureus.core.peermanager.unchoker.*;
 
 /**
  * manages all peer transports for a torrent
- *
+ * 
  * @author MjrTom
  *			2005/Oct/08: Numerous changes for new piece-picking. Also
  *						a few optimizations and multi-thread cleanups
@@ -1879,11 +1879,11 @@ PEPeerControlImpl
 							}
 						}
 					}
-                    removePiece(pePiece, pieceNumber);
+                	removePiece(pePiece, pieceNumber);
 				}
 
                 // send all clients a have message
-                sendHave(pieceNumber);  //XXX: Done isn't set yet, so we might refuse to send this piece
+				sendHave(pieceNumber);  //XXX: if Done isn't set yet, might refuse to send this piece
 			} else if (outcome ==0)
 			{
                 // the piece is corrupt
