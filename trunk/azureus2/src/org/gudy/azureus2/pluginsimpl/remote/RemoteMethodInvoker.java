@@ -188,6 +188,19 @@ public class RemoteMethodInvoker {
         catch (InvocationTargetException ite) {
             error = new RPRemoteMethodInvocationException(ite.getCause());
         }
+
+        /**
+         * If we happen to return a plugin interface, we need to ensure that
+         * it maintains the same connection ID as the one we are currently
+         * using, otherwise clients will think a new connection has been
+         * opened.
+         */
+        if (reply instanceof RPPluginInterface) {
+            if (r.connection_id != 0) {
+                ((RPPluginInterface)reply)._connection_id = r.connection_id;
+            }
+        }
+
         return new RPReply((error == null) ? reply : error);
     }
 
