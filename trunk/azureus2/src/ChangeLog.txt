@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2006.02.xx | Azureus 2.4.0.0
+2006.02.11 | Azureus 2.4.0.0
 
 FEATURE: Core | Logging seperated into sections [TuxPaper]
 FEATURE: Core | Plugins can be disabled from starting up [TuxPaper]
