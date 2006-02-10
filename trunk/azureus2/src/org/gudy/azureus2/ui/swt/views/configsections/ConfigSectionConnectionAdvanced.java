@@ -103,7 +103,7 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		}
 		
 		LinkLabel linkLabel = new LinkLabel(cSection, gridData, CFG_PREFIX
-				+ "encrypt.info.link", MessageText.getString(CFG_PREFIX + "url"));
+				+ "info.link", MessageText.getString(CFG_PREFIX + "url"));
 
 		///////////////////////   ADVANCED SOCKET SETTINGS GROUP //////////
 		
@@ -221,77 +221,6 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		});
 		
 		//////////////////////////////////////////////////////////////////////////
-		
-		
-		Group gCrypto = new Group(cSection, SWT.NULL);
-		Messages.setLanguageText(gCrypto, CFG_PREFIX + "encrypt.group");
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gCrypto.setLayoutData(gridData);
-		GridLayout layout = new GridLayout();
-		layout.numColumns = 2;
-		gCrypto.setLayout(layout);
-		
-		Label lcrypto = new Label(gCrypto, SWT.WRAP);
-		Messages.setLanguageText(lcrypto, CFG_PREFIX + "encrypt.info");
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.horizontalSpan = 2;
-		gridData.widthHint = 200;  // needed for wrap
-		lcrypto.setLayoutData(gridData);
-
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		linkLabel = new LinkLabel(gCrypto, gridData, CFG_PREFIX
-				+ "encrypt.info.link",
-				"http://azureus.aelitis.com/wiki/index.php/Avoid_traffic_shaping");
-		
-		final BooleanParameter require = new BooleanParameter(gCrypto,	"network.transport.encrypted.require", false, CFG_PREFIX + "require_encrypted_transport");
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		require.setLayoutData(gridData);
-		
-		String[] encryption_types = { "Plain", "RC4" };
-		String dropLabels[] = new String[encryption_types.length];
-		String dropValues[] = new String[encryption_types.length];
-		for (int i = 0; i < encryption_types.length; i++) {
-			dropLabels[i] = encryption_types[i];
-			dropValues[i] = encryption_types[i];
-		}
-		
-		Composite cEncryptLevel = new Composite(gCrypto, SWT.NULL);
-		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-		gridData.horizontalSpan = 2;
-		cEncryptLevel.setLayoutData(gridData);
-		layout = new GridLayout();
-		layout.numColumns = 2;
-		layout.marginWidth = 0;
-		layout.marginHeight = 0;
-		cEncryptLevel.setLayout(layout);
-		
-		Label lmin = new Label(cEncryptLevel, SWT.NULL);
-		Messages.setLanguageText(lmin, CFG_PREFIX + "min_encryption_level");
-		final StringListParameter min_level = new StringListParameter(cEncryptLevel,	"network.transport.encrypted.min_level", encryption_types[1], dropLabels, dropValues);
-		
-		Label lcryptofb = new Label(gCrypto, SWT.WRAP);
-		Messages.setLanguageText(lcryptofb, CFG_PREFIX + "encrypt.fallback_info");
-		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		gridData.horizontalSpan = 2;
-		gridData.widthHint = 200;  // needed for wrap
-		lcryptofb.setLayoutData(gridData);
-
-		BooleanParameter fallback_outgoing = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.outgoing", false, CFG_PREFIX + "encrypt.fallback_outgoing");
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		fallback_outgoing.setLayoutData(gridData);
-		
-		BooleanParameter fallback_incoming = new BooleanParameter(gCrypto, "network.transport.encrypted.fallback.incoming", false, CFG_PREFIX + "encrypt.fallback_incoming");
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		fallback_incoming.setLayoutData(gridData);
-		
-		Control[] encryption_controls = {	min_level.getControl(), lmin, lcryptofb, fallback_outgoing.getControl(), fallback_incoming.getControl() };
-		require.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(encryption_controls));
-		
-		///////////////////////   
 
 		return cSection;
 
