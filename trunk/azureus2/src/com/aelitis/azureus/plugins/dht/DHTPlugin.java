@@ -818,6 +818,18 @@ DHTPlugin
 
 							status_area.setText( "Disabled administratively due to network problems" );
 						}
+					}catch( Throwable e ){
+						
+						enabled	= false;
+						
+						status	= STATUS_DISABLED;
+
+						status_area.setText( "Disabled due to error during initialisation" );
+
+						log.log( e );
+						
+						Debug.printStackTrace(e);
+						
 					}finally{
 						
 						init_sem.releaseForever();

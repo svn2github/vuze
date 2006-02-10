@@ -1,7 +1,7 @@
 /*
  * Created on 24-Jan-2005
  * Created by Paul Gardner
- * Copyright (C) 2004 Aelitis, All Rights Reserved.
+ * Copyright (C) 2004 Aelitis, All Rights Reserved
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -77,6 +77,7 @@ public class
 DHTPluginImpl
 {
 	private static final String	SEED_ADDRESS	= "dht.aelitis.com";
+	private static final String	SEED_IP			= "85.31.105.2";	// fallback in case DNS resolution fails
 	private static final int	SEED_PORT		= 6881;
 		
 	private static final long	MIN_ROOT_SEED_IMPORT_PERIOD	= 8*60*60*1000;
@@ -593,7 +594,7 @@ outer:
 		}catch( Throwable e ){
 			
 			try{
-				return( InetAddress.getByName("213.186.46.164"));
+				return( InetAddress.getByName( SEED_IP ));
 				
 			}catch( Throwable f ){
 				
