@@ -38,6 +38,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.animations.Animator;
 import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
 import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
@@ -258,8 +259,8 @@ public class MessagePopupShell implements AnimableShell {
     
     Rectangle bounds;
     try {
-    	bounds = shell.getMonitor().getClientArea();
-    } catch (NoSuchMethodError e) {
+    	bounds = MainWindow.getWindow().getShell().getMonitor().getClientArea();
+    } catch (Exception e) {
     	bounds = display.getClientArea();
     }
     x0 = bounds.x + bounds.width - popupWidth - 5;
