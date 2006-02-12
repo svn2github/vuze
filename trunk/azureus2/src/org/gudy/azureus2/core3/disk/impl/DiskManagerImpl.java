@@ -1616,6 +1616,8 @@ DiskManagerImpl
 	            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
 								LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
 								new String[] {from_file.toString(), msg });
+	            
+	            move_data	= false;
 	    	}
 	    	
 	    }catch( Throwable e ){
