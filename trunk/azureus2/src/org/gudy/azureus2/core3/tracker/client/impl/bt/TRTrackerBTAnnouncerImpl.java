@@ -673,7 +673,12 @@ TRTrackerBTAnnouncerImpl
 					
 					response = completeSupport();
 					
-					if ( response.getStatus() == TRTrackerAnnouncerResponse.ST_ONLINE ){
+						// treat the "complete" as processed if the tracker replies either OK or an explicit
+						// error. In particular, if the tracker has returned an error to control seed limits
+						// we don't want to treat this as an error and report completed again next time around
+						// as this causes the tracker to double count stats
+					
+					if ( response.getStatus() != TRTrackerAnnouncerResponse.ST_OFFLINE ){
 						
 						complete_reported	= true;
 				
