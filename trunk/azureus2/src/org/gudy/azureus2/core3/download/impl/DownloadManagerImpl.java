@@ -35,7 +35,9 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.*;
+import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogRelation;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.torrent.*;
@@ -2385,15 +2387,37 @@ DownloadManagerImpl
 		  }
 			  
 		  File new_file = new File( new_parent_dir, old_file.getName());
+			 
+		  try{
+			  new_file	= new_file.getCanonicalFile();
 			  
-		  if ( FileUtil.renameFile( old_file, new_file )){
-				  
-			  setTorrentSaveDir( new_parent_dir.toString());
+		  }catch( Throwable e ){
 			  
+			  Debug.printStackTrace(e);
+		  }
+		  
+		  if ( old_file.equals( new_file )){
+		  
+			  // nothing to do
+			  
+		  }else if ( new_file.getPath().startsWith( old_file.getPath())){
+		    		
+	            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+						LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
+						new String[] {old_file.toString(), "Target is sub-directory of files" });
+	            
+	            throw( new DownloadManagerException( "rename operation failed" ));
+	            
 		  }else{
+			  if ( FileUtil.renameFile( old_file, new_file )){
+		  
 				  
-			  throw( new DownloadManagerException( "rename operation failed" ));
-	
+				  setTorrentSaveDir( new_parent_dir.toString());
+			  
+			  }else{
+				  
+				  throw( new DownloadManagerException( "rename operation failed" ));
+			  }
 		  }
 	  }else{
 		  

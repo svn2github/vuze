@@ -1592,162 +1592,193 @@ DiskManagerImpl
 
 	    String move_from_dir = save_location.getParent();
 
+	    	// sanity check - never move a dir into itself
+	    
+	    boolean	move_data = true;
+	    
+	    try{
+	    	File	from_file 	= new File(move_from_dir).getCanonicalFile();
+	    	File	to_file		= new File(move_to_dir).getCanonicalFile();
+	    	
+	    	move_from_dir	= from_file.getPath();
+	    	move_to_dir		= to_file.getPath();
+	    	
+	    	if ( from_file.equals( to_file )){
+	    		
+	    		move_data	= false;
+	    		
+	    	}else if ( to_file.getPath().startsWith( from_file.getPath())){
+	    		
+	    		String msg = "Target is sub-directory of files";
+	            
+				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,	msg));
+	            
+	            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+								LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
+								new String[] {from_file.toString(), msg });
+	    	}
+	    	
+	    }catch( Throwable e ){
+	    	
+	    		// carry on
+	    	
+	    	Debug.out(e);
+	    }
+	    
     	try{
     	  start_stop_mon.enter();
 	      
-	      	// first of all check that no destination files already exist
-	      
-	      File[]	new_files 	= new File[files.length];
-	      File[]	old_files	= new File[files.length];
-	      
-	      for (int i=0; i < files.length; i++) {
-	          	    	  
-	          File old_file = files[i].getFile(false);
-	          
-	          File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
-	            
-	          boolean	skip = false;
-	            
-	          if ( linked_file != old_file ){
-	        	  
-		       	  if ( save_location.isDirectory()){
-		                       		
-		        	  	// if we are linked to a file outside of the torrent's save directory then we don't
-		        	  	// move the file
+    	  if ( move_data ){
+    		  
+		      	// first of all check that no destination files already exist
+		      
+		      File[]	new_files 	= new File[files.length];
+		      File[]	old_files	= new File[files.length];
+		      
+		      for (int i=0; i < files.length; i++) {
+		          	    	  
+		          File old_file = files[i].getFile(false);
+		          
+		          File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
+		            
+		          boolean	skip = false;
+		            
+		          if ( linked_file != old_file ){
 		        	  
-		        	  if ( !linked_file.getCanonicalPath().startsWith( save_location.getCanonicalPath())){
-		            			
-		        		  skip = true;
-		        	  }
-		          }
-
-           		  old_file	= linked_file;
-	          }
-	          
-	          if ( skip ){
-	        	  
-	        	  	// actual file is outside the dir, ignore it
-	        	  
-	        	  continue;
-	          }
-	          
-	          old_files[i]	= old_file;
-	          
-	          	//get old file's parent path
-	          
-	          String fullPath = old_file.getParent();
-	          
-	           	//compute the file's sub-path off from the default save path
-	          
-	          String subPath = fullPath.substring(fullPath.indexOf(move_from_dir) + move_from_dir.length());
-	    
-	          	//create the destination dir
-	          
-	          if ( subPath.startsWith( File.separator )){
-	          	
-	          	subPath = subPath.substring(1);
-	          }
-	          
-	          File destDir = new File(move_to_dir, subPath);
-	     
-	          	//create the destination file pointer
-	          
-	          File newFile = new File(destDir, old_file.getName());
+			       	  if ( save_location.isDirectory()){
+			                       		
+			        	  	// if we are linked to a file outside of the torrent's save directory then we don't
+			        	  	// move the file
+			        	  
+			        	  if ( !linked_file.getCanonicalPath().startsWith( save_location.getCanonicalPath())){
+			            			
+			        		  skip = true;
+			        	  }
+			          }
 	
-	          new_files[i]	= newFile;
-
-		          if ( newFile.exists()){
+	           		  old_file	= linked_file;
+		          }
+		          
+		          if ( skip ){
+		        	  
+		        	  	// actual file is outside the dir, ignore it
+		        	  
+		        	  continue;
+		          }
+		          
+		          old_files[i]	= old_file;
+		          
+		          	//get old file's parent path
+		          
+		          String fullPath = old_file.getParent();
+		          
+		           	//compute the file's sub-path off from the default save path
+		          
+		          String subPath = fullPath.substring(fullPath.indexOf(move_from_dir) + move_from_dir.length());
+		    
+		          	//create the destination dir
+		          
+		          if ( subPath.startsWith( File.separator )){
 		          	
-	            String msg = "" + linked_file.getName() + " already exists in MoveTo destination dir";
+		          	subPath = subPath.substring(1);
+		          }
+		          
+		          File destDir = new File(move_to_dir, subPath);
+		     
+		          	//create the destination file pointer
+		          
+		          File newFile = new File(destDir, old_file.getName());
+		
+		          new_files[i]	= newFile;
+	
+			          if ( newFile.exists()){
+			          	
+			        	  String msg = "" + linked_file.getName() + " already exists in MoveTo destination dir";
+			            
+			        	  Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+			            			msg));
+			            
+			        	  Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+			            		LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
+			            		new String[] { old_file.getName() });
 		            
-		            if (Logger.isEnabled())
-		            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-		            			msg));
+			            
+			            Debug.out(msg);
+			            
+			            return;
+			            
+			          }  
+		    		  destDir.mkdirs();
+		    	  }
+		      
+		      for (int i=0; i < files.length; i++){
+		      		 	          
+		          File new_file = new_files[i];
+		          	          
+		          if ( new_file == null ){
+		        	
+		        	  	// not moving this one
+		        	  
+		        	  continue;
+		          }
+		          
+		          try{
+		          	
+		          	files[i].moveFile( new_file );
+		           	
+		          	if ( change_to_read_only ){
+		          		
+		          		files[i].setAccessMode(DiskManagerFileInfo.READ);
+		          	}
 		            
-		            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-		            		LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
-		            		new String[] { old_file.getName() });
-	            
+		          }catch( CacheFileManagerException e ){
+		          	
+		            String msg = "Failed to move " + old_files[i].toString() + " to destination dir";
 		            
-		            Debug.out(msg);
+					Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,	msg));
+		            
+		            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+									LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
+									new String[] { old_files[i].toString(),
+											Debug.getNestedExceptionMessage(e) });
+			            
+		            	// try some recovery by moving any moved files back...
+		            
+		            for (int j=0;j<i;j++){
+		            	
+		            	if (new_files[j] == null ){
+		            		
+		            		continue;
+		            	}
+		            	
+		            	try{
+		            		files[j].moveFile( old_files[j]);
+			         		
+		            	}catch( CacheFileManagerException f ){
+		              
+		            		Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+											LogAlert.AT_ERROR,
+											"DiskManager.alert.movefilerecoveryfails"),
+											new String[] { old_files[j].toString(),
+													Debug.getNestedExceptionMessage(f) });
+		           		
+		            	}
+		            }
 		            
 		            return;
-		            
-		          }  
-	    		  destDir.mkdirs();
-	    	  }
-	      
-	      for (int i=0; i < files.length; i++){
-	      		 	          
-	          File new_file = new_files[i];
-	          	          
-	          if ( new_file == null ){
-	        	
-	        	  	// not moving this one
-	        	  
-	        	  continue;
-	          }
-	          
-	          try{
-	          	
-	          	files[i].moveFile( new_file );
-	           	
-	          	if ( change_to_read_only ){
-	          		
-	          		files[i].setAccessMode(DiskManagerFileInfo.READ);
-	          	}
-	            
-	          }catch( CacheFileManagerException e ){
-	          	
-	            String msg = "Failed to move " + old_files[i].toString() + " to destination dir";
-	            
-	            if (Logger.isEnabled())
-								Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-										msg));
-	            
-	            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-								LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-								new String[] { old_files[i].toString(),
-										Debug.getNestedExceptionMessage(e) });
-	
-	            Debug.out(msg);
-	            
-	            	// try some recovery by moving any moved files back...
-	            
-	            for (int j=0;j<i;j++){
-	            	
-	            	if (new_files[j] == null ){
-	            		
-	            		continue;
-	            	}
-	            	
-	            	try{
-	            		files[j].moveFile( old_files[j]);
-		         		
-	            	}catch( CacheFileManagerException f ){
-	              
-	            		Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-										LogAlert.AT_ERROR,
-										"DiskManager.alert.movefilerecoveryfails"),
-										new String[] { old_files[j].toString(),
-												Debug.getNestedExceptionMessage(f) });
-	           		
-	            	}
-	            }
-	            
-	            return;
-	          }
-	      }
-	      
-	      	//remove the old dir
-	      
-	      if (	save_location.isDirectory()){
-	      
-	    	  FileUtil.recursiveEmptyDirDelete( save_location, false );
-	      }
-	        
-	      download_manager.setTorrentSaveDir( move_to_dir );
-	      
+		          }
+		      }
+		      
+		      	//remove the old dir
+		      
+		      if (	save_location.isDirectory()){
+		      
+		    	  FileUtil.recursiveEmptyDirDelete( save_location, false );
+		      }
+		        
+		      download_manager.setTorrentSaveDir( move_to_dir );
+    	  }
+    	  
 	      	//move the torrent file as well
 	      
 	      
@@ -1774,7 +1805,7 @@ DiskManagerImpl
 		            if (Logger.isEnabled())
 		            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
 		            
-		            Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+		            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
 									LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
 									new String[] { oldTorrentFile.toString(),
 											newTorrentFile.toString() });
