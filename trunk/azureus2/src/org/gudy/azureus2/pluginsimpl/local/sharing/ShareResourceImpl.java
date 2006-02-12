@@ -305,9 +305,11 @@ ShareResourceImpl
 		throws ShareException
 	{
 		try{
-			String	finger_print = getFingerPrintSupport( file, TorrentUtils.getIgnoreSet());
+			StringBuffer	buffer = new StringBuffer();
+			
+			getFingerPrintSupport( buffer, file, TorrentUtils.getIgnoreSet());
 							
-			return( hasher.calculateHash(finger_print.getBytes()));
+			return( hasher.calculateHash(buffer.toString().getBytes()));
 			
 		}catch( ShareException e ){
 			
@@ -319,10 +321,11 @@ ShareResourceImpl
 		}
 	}
 	
-	protected String
+	protected void
 	getFingerPrintSupport(
-		File		file,
-		Set			ignore_set )
+		StringBuffer	buffer,
+		File			file,
+		Set				ignore_set )
 	
 		throws ShareException
 	{
@@ -335,20 +338,13 @@ ShareResourceImpl
 				String	file_name = file.getName();
 				
 				if  ( ignore_set.contains( file_name.toLowerCase())){
-					
-					return( "" );
-					
+										
 				}else{
 					
-					String	finger_print = file_name + ":" + String.valueOf(mod) + ":" + String.valueOf(size);
-			
-					return( finger_print );
-				}
-				
+					buffer.append( file_name ).append( ":" ).append( mod ).append( ":" ).append( size );
+				}	
 			}else if ( file.isDirectory()){
-				
-				String	res = "";
-				
+								
 				File[]	dir_file_list = file.listFiles();
 										
 				List file_list = new ArrayList(Arrays.asList(dir_file_list));
@@ -363,20 +359,19 @@ ShareResourceImpl
 					
 					if ( !(file_name.equals( "." ) || file_name.equals( ".." ))){
 						
-						String	sub_print = getFingerPrintSupport( f, ignore_set );
+						StringBuffer	sub_print	= new StringBuffer();
+						
+						getFingerPrintSupport( sub_print, f, ignore_set );
 						
 						if  ( sub_print.length() > 0 ){
 							
-							res = res + ":" + getFingerPrintSupport( f, ignore_set );
+							buffer.append( ":" ).append( sub_print );
 						}
 					}
 				}
-				
-				return( res );
-				
 			}else{
 				
-				throw( new ShareException( "ShareResource::getFingetPrint: '".concat(file.toString()).concat("' doesn't exist" )));
+				throw( new ShareException( "ShareResource::getFingetPrint: '" + file.toString() + "' doesn't exist" ));
 			}
 			
 		}catch( Throwable e ){
