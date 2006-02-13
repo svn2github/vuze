@@ -27,6 +27,7 @@ import java.util.Set;
 import java.io.IOException;
 
 import org.gudy.azureus2.core3.config.impl.*;
+import org.gudy.azureus2.core3.util.Constants;
 
 public class 
 COConfigurationManager 
@@ -45,9 +46,52 @@ COConfigurationManager
 	    CONFIG_CACHE_SIZE_MAX_MB = (int)(( max_mem_bytes - mb_32 )/mb_1);
 	}
 	
+	private static boolean	pre_initialised;
+	
+	public static synchronized void
+	preInitialise()
+	{	  	
+		if ( !pre_initialised ){
+			
+			pre_initialised	= true;
+		
+		  	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
+		  	
+		  	if ( handlers == null ){
+		  		
+		  		handlers = "org.gudy.azureus2.core3.util.protocol";
+		  		
+		  	}else{
+		  		
+		  		handlers += "|org.gudy.azureus2.core3.util.protocol";
+		  	}
+		  	
+		  	System.setProperty( "java.protocol.handler.pkgs", handlers );
+		  	 	
+		  		// DNS cache timeouts
+		  	
+		  	System.setProperty("sun.net.inetaddr.ttl", "60");
+		  	System.setProperty("networkaddress.cache.ttl", "60");
+	      
+		  		// defaults, overridden later if needed
+	      
+		  	System.setProperty( "sun.net.client.defaultConnectTimeout", "120000" );	
+		  	System.setProperty(	"sun.net.client.defaultReadTimeout", "60000" ); 
+		  			
+		      //see http://developer.apple.com/releasenotes/Java/Java142RN/ResolvedIssues/chapter_3_section_7.html
+		      //fixes the osx kernel panic bug caused by Apple's faulty kqueue implementation (as of 10.3.6)
+		  	
+		    if( Constants.isOSX ) {
+		        System.setProperty( "java.nio.preferSelect", "true" );
+		    }
+		}
+	}
+	
 	public static void
 	initialise()
 	{
+		preInitialise();
+		
 		ConfigurationManager.getInstance();
 	}
 	
@@ -55,6 +99,8 @@ COConfigurationManager
 	initialiseFromMap(
 		Map		data )
 	{
+		preInitialise();
+		
 		ConfigurationManager.getInstance(data);
 	}
 	

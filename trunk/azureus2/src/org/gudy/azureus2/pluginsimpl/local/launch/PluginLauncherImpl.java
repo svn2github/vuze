@@ -26,6 +26,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.LaunchablePlugin;
@@ -47,6 +48,10 @@ PluginLauncherImpl
 	launch(
 		String[]		args )
 	{
+			// This *has* to be done first as it sets system properties that are read and cached by Java
+  		
+  		COConfigurationManager.preInitialise();
+ 
 			// try and infer the application name. this is only required on OSX as the app name
 			// is a component of the "application path" used to find plugins etc.
 		

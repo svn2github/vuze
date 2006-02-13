@@ -69,32 +69,7 @@ ConfigurationChecker
 	  		return;
 	  	}
 	  	
-	  	system_properties_set	= true;
-	    	  	
-	  	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
-	  	
-	  	if ( handlers == null ){
-	  		
-	  		handlers = "org.gudy.azureus2.core3.util.protocol";
-	  	}else{
-	  		
-	  		handlers += "|org.gudy.azureus2.core3.util.protocol";
-	  	}
-	  	
-	  	System.setProperty( "java.protocol.handler.pkgs", handlers );
-	  	 	
-	  		// DNS cache timeouts
-	  	
-	  	System.setProperty("sun.net.inetaddr.ttl", "60");
-	  	System.setProperty("networkaddress.cache.ttl", "60");
-      
-      
-      //see http://developer.apple.com/releasenotes/Java/Java142RN/ResolvedIssues/chapter_3_section_7.html
-      //fixes the osx kernel panic bug caused by Apple's faulty kqueue implementation (as of 10.3.6)
-      if( Constants.isOSX ) {
-        System.setProperty( "java.nio.preferSelect", "true" );
-      }
-      
+	  	COConfigurationManager.preInitialise();
       
       // socket connect/read timeouts
 	  	

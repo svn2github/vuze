@@ -24,8 +24,8 @@ import java.io.File;
 
 import com.aelitis.azureus.core.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.Initializer;
 
 /**
@@ -45,6 +45,10 @@ Main
   	String args[]) 
   {
   	try{
+  			// This *has* to be done first as it sets system properties that are read and cached by Java
+  		
+  		COConfigurationManager.preInitialise();
+  		
 	  	String	mi_str = System.getProperty( PR_MULTI_INSTANCE );
 	  	
 	  	boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
