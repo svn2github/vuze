@@ -42,6 +42,7 @@ import org.apache.log4j.varia.DenyAllFilter;
 
 import com.aelitis.azureus.core.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UserInterfaceFactory;
 /**
@@ -115,7 +116,10 @@ public class Main {
   main(
 		String[] args ) 
   {
-        
+		// This *has* to be done first as it sets system properties that are read and cached by Java
+		
+	COConfigurationManager.preInitialise();
+ 
     String  mi_str = System.getProperty( "MULTI_INSTANCE" );
     
     boolean mi = mi_str != null && mi_str.equalsIgnoreCase("true");
