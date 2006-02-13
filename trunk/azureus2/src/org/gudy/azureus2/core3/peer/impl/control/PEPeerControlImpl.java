@@ -164,6 +164,8 @@ PEPeerControlImpl
 		disk_mgr = diskManager;
 		_nbPieces =disk_mgr.getNbPieces();
 
+		pePieces =new PEPieceImpl[_nbPieces];
+
 		piecePicker = PiecePickerFactory.create( this );
 
 		COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
@@ -196,7 +198,7 @@ PEPeerControlImpl
 		dm_pieces =disk_mgr.getPieces();
 
 		// the recovered active pieces
-		pePieces =new PEPieceImpl[_nbPieces];
+
 		for (int i =0; i <_nbPieces; i++ )
 		{
 			final DiskManagerPiece dmPiece =dm_pieces[i];
