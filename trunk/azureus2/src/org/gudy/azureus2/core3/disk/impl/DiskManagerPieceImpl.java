@@ -223,7 +223,9 @@ public class DiskManagerPieceImpl
 
 	public boolean calcWritten()
 	{
-		if (written ==null)
+		boolean[] written_ref =written;
+		
+		if (written_ref ==null)
 		{
             if (isDone())
             {
@@ -234,7 +236,7 @@ public class DiskManagerPieceImpl
             return false;
 		}
 
-		boolean[] written_ref =written;
+		
 		for (int i =0; i <written_ref.length; i++ )
 		{
 			if (!written_ref[i])
@@ -275,9 +277,11 @@ public class DiskManagerPieceImpl
 		if (isDone())
 			return true;
 
-		if (written ==null)
+		boolean[] written_ref =written;
+		
+		if (written_ref ==null)
 			return false;
-		return written[blockNumber];
+		return written_ref[blockNumber];
 	}
 
 	public int getNbWritten()
@@ -285,10 +289,12 @@ public class DiskManagerPieceImpl
 		if (isDone())
 			return getNbBlocks();
 
-		if (written ==null)
+		boolean[] written_ref =written;
+		
+		if (written_ref ==null)
 			return 0;
 
-		boolean[] written_ref =written;
+		
 		int res =0;
 
 		for (int i =0; i <written_ref.length; i++ )
@@ -301,10 +307,12 @@ public class DiskManagerPieceImpl
 
 	public void setWritten(int blockNumber)
 	{
-		if (written ==null)
-			written =new boolean[getNbBlocks()];
+		boolean[] written_ref =written;
+		
+		if (written_ref ==null)
+			written_ref = written = new boolean[getNbBlocks()];
 
-		written[blockNumber] =true;
+		written_ref[blockNumber] =true;
 		time_last_write =SystemTime.getCurrentTime();
 	}
 
@@ -424,9 +432,10 @@ public class DiskManagerPieceImpl
 
 	public void reDownloadBlock(int blockNumber)
 	{
-		if (written !=null)
+		boolean[] written_ref = written;
+		if (written_ref !=null)
 		{
-			written[blockNumber] =false;
+			written_ref[blockNumber] =false;
 			setRequestable();
 		}
 	}
