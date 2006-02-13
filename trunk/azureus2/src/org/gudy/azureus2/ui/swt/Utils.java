@@ -31,10 +31,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTException;
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.events.ControlAdapter;
-import org.eclipse.swt.events.ControlEvent;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -630,10 +627,6 @@ public class Utils {
 	
 	public static boolean linkShellMetricsToConfig(final Shell shell,
 			final String sConfigPrefix) {
-		boolean isMaximized = COConfigurationManager.getBooleanParameter(
-				sConfigPrefix + ".maximized", false);
-		shell.setMaximized(isMaximized);
-
 		String windowRectangle = COConfigurationManager.getStringParameter(
 				sConfigPrefix + ".rectangle", null);
 		boolean bDidResize = false;
@@ -655,22 +648,60 @@ public class Utils {
 			}
 		}
 
-		shell.addDisposeListener(new DisposeListener() {
-			public void widgetDisposed(DisposeEvent e) {
-				COConfigurationManager.setParameter(sConfigPrefix + ".maximized", shell
-						.getMaximized());
-				// unmaximize to get correct window rect
-				if (shell.getMaximized())
-					shell.setMaximized(false);
+		boolean isMaximized = COConfigurationManager.getBooleanParameter(
+				sConfigPrefix + ".maximized", false);
+		shell.setMaximized(isMaximized);
 
-				Rectangle windowRectangle = shell.getBounds();
-				COConfigurationManager.setParameter(sConfigPrefix + ".rectangle",
-						windowRectangle.x + "," + windowRectangle.y + ","
-								+ windowRectangle.width + "," + windowRectangle.height);
-			}
-		});
-
+		new ShellMetricsResizeListener(shell, sConfigPrefix);
+		
 		return bDidResize;
+	}
+	
+	private static class ShellMetricsResizeListener implements Listener {
+		private int state = -1;
+
+		private String sConfigPrefix;
+
+		private Rectangle bounds = null;
+
+		ShellMetricsResizeListener(Shell shell, String sConfigPrefix) {
+			this.sConfigPrefix = sConfigPrefix;
+			state = calcState(shell);
+			if (state == SWT.NONE)
+				bounds = shell.getBounds();
+			
+			shell.addListener(SWT.Resize, this);
+			shell.addListener(SWT.Dispose, this);
+		}
+
+		private int calcState(Shell shell) {
+			return shell.getMinimized() ? SWT.MIN : shell.getMaximized() ? SWT.MAX
+					: SWT.NONE;
+		}
+
+		private void saveMetrics() {
+			COConfigurationManager.setParameter(sConfigPrefix + ".maximized",
+					state == SWT.MAX);
+
+			if (bounds == null)
+				return;
+
+			COConfigurationManager.setParameter(sConfigPrefix + ".rectangle",
+					bounds.x + "," + bounds.y + "," + bounds.width + "," + bounds.height);
+			System.out.println(state + "saveSize: " + bounds.x + "," + bounds.y + ","
+					+ bounds.width + "," + bounds.height);
+		}
+
+		public void handleEvent(Event event) {
+			Shell shell = (Shell) event.widget;
+			state = calcState(shell);
+
+			if (event.type == SWT.Resize && state == SWT.NONE)
+				bounds = shell.getBounds();
+
+			if (event.type == SWT.Dispose)
+				saveMetrics();
+		}
 	}
 }
 
