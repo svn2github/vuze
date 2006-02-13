@@ -688,8 +688,6 @@ public class Utils {
 
 			COConfigurationManager.setParameter(sConfigPrefix + ".rectangle",
 					bounds.x + "," + bounds.y + "," + bounds.width + "," + bounds.height);
-			System.out.println(state + "saveSize: " + bounds.x + "," + bounds.y + ","
-					+ bounds.width + "," + bounds.height);
 		}
 
 		public void handleEvent(Event event) {
