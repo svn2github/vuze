@@ -150,6 +150,8 @@ public class TCPTransportImpl implements TCPTransport {
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
   	if( write_select_failure != null )  throw new IOException( "write_select_failure: " + write_select_failure.getMessage() );
     
+  	if( filter == null )  return 0;
+  	
   	long written = filter.write( buffers, array_offset, length );
 
   	if( stats != null )  stats.bytesWritten( (int)written );  //TODO
