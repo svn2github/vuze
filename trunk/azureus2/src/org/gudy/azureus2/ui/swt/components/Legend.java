@@ -172,7 +172,8 @@ public class Legend {
 								int b = config.getIntParameter(keys[j] + ".blue");
 								
 								final RGB rgb = new RGB(r, g, b);
-								if (!rgb.equals(blockColors[j].getRGB())) {
+								if (blockColors[j].isDisposed()
+										|| !rgb.equals(blockColors[j].getRGB())) {
 
 									Utils.execSWTThread(new AERunnable() {
 										public void runSupport() {
@@ -186,7 +187,8 @@ public class Legend {
 									});
 								}
 							} else {
-								if (!blockColors[j].equals(defaultColors[j])) {
+								if (blockColors[j].isDisposed()
+										|| !blockColors[j].equals(defaultColors[j])) {
 									Utils.execSWTThread(new AERunnable() {
 										public void runSupport() {
 											if (panel == null || panel.isDisposed())
