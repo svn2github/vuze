@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelector;
+import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelectorFactory;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
 import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TCPProtocolDecoderInitial;
@@ -57,7 +58,7 @@ PHETester
 		TCPProtocolDecoder.addSecret( shared_secret );
 		
 		VirtualServerChannelSelector
-			accept_server = new VirtualServerChannelSelector( 
+			accept_server = VirtualServerChannelSelectorFactory.createNonBlocking( 
 					new InetSocketAddress( 8765 ), 
 					0, 
 					new VirtualServerChannelSelector.SelectListener() 

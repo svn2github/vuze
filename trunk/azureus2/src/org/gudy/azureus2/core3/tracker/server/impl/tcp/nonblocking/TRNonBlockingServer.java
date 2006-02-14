@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelector;
+import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelectorFactory;
 
 /**
  * @author parg
@@ -99,7 +100,7 @@ TRNonBlockingServer
 				address = new InetSocketAddress( InetAddress.getByName( bind_ip ), _port );			
 			}
 			
-			VirtualServerChannelSelector accept_server = new VirtualServerChannelSelector( address, 0, this );
+			VirtualServerChannelSelector accept_server = VirtualServerChannelSelectorFactory.createBlocking( address, 0, this );
 
 			accept_server.start();
 		      

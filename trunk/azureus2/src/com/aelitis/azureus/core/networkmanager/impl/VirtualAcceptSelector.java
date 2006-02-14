@@ -20,13 +20,15 @@
  *
  */
 
-package com.aelitis.azureus.core.networkmanager;
+package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
+
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 
 
@@ -37,12 +39,20 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 VirtualAcceptSelector 
 {
+	private static final VirtualAcceptSelector	singleton = new VirtualAcceptSelector();
+	
+	public static VirtualAcceptSelector
+	getSingleton()
+	{
+		return( singleton );
+	}
+	
 	private static final LogIDs LOGID = LogIDs.NWMAN;
   
 	private final VirtualChannelSelector accept_selector = 
 						new VirtualChannelSelector( VirtualChannelSelector.OP_ACCEPT, false );
 
-	public
+	protected
 	VirtualAcceptSelector()
 	{
 		AEThread select_thread = new AEThread( "Accept Selector" ) {
@@ -69,7 +79,7 @@ VirtualAcceptSelector
 	public void
 	register(
 		ServerSocketChannel			channel,
-		final SelectListener		listener )
+		final AcceptListener		listener )
 	{
 		accept_selector.register( 
 			channel,
@@ -89,6 +99,8 @@ VirtualAcceptSelector
 							return( false );
 						}
 					
+						new_channel.configureBlocking( false );
+						
 						listener.newConnectionAccepted( new_channel );
 						
 						return( true );
@@ -126,7 +138,7 @@ VirtualAcceptSelector
 	   */
 	
 	public interface 
-	SelectListener
+	AcceptListener
 	{
 	    /**
 	     * The given connection has just been accepted.
