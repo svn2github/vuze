@@ -142,6 +142,7 @@ TRTrackerBTAnnouncerImpl
   
 	private String 		port;
 	private String 		ip_override;
+	private int			port_override	= -1;
 	private String[]	peer_networks;
 		
 	private TRTrackerAnnouncerDataProvider 	announce_data_provider;
@@ -336,7 +337,7 @@ TRTrackerBTAnnouncerImpl
   	protected void
 	setPort()
   	{
-  			// we currently don't support incoming connections when SOCKs proxying
+   			// we currently don't support incoming connections when SOCKs proxying
   		
   		int	port_num;
   		
@@ -349,24 +350,34 @@ TRTrackerBTAnnouncerImpl
   			port_num	= NetworkManager.getSingleton().getTCPListeningPortNumber();
   		}
   		
-  		String portOverride = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
-  		if(! portOverride.equals("")) {
-  		  
-  		  port = "&port=" + portOverride;
-  		  
-  		} else {
-  		  
-  		  port = "&port=" + port_num;
-  		  
-  		  //  BitComet extension for no incoming connections
-  		
-  		  if ( port_num == 0 ){
-  			
-  				port += "&hide=1";
-  		  }
-  		}
+ 		if ( port_override != -1 ){
+ 			
+ 			port_num = port_override;
+ 			
+ 		}else{
 
-		
+	  		String portOverride = COConfigurationManager.getStringParameter("TCP.Announce.Port","");
+	  		
+	  		if(! portOverride.equals("")) {
+	  		  
+	  			try{
+	  				port_num = Integer.parseInt( portOverride );
+	  				
+	  			}catch( Throwable e ){
+	  				
+	  				Debug.printStackTrace(e);
+	  			}
+	  		}
+ 		}
+  		  
+  		port = "&port=" + port_num;
+  		  
+  		  	//  BitComet extension for no incoming connections
+  		
+  		if ( port_num == 0 ){
+  			
+  			port += "&hide=1";
+  		}		
   	}
   	
 	protected long
@@ -1849,6 +1860,23 @@ TRTrackerBTAnnouncerImpl
 		ip_override = null;
 	}
 		
+	public void
+	setPortOverride(
+		int		port )
+	{
+		port_override	= port;
+		
+		setPort();
+	}
+	
+	public void
+	clearPortOverride()
+	{
+		port_override	= -1;
+		
+		setPort();
+	}
+	
 	private void 
 	constructTrackerUrlLists(
 		boolean	shuffle )

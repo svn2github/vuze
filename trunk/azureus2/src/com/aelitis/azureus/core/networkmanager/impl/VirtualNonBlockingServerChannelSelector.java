@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.net.*;
 import java.nio.channels.*;
+import java.util.*;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.*;
@@ -35,32 +36,55 @@ import com.aelitis.azureus.core.networkmanager.VirtualServerChannelSelector;
 /**
  * Virtual server socket channel for listening and accepting incoming connections.
  */
-public class VirtualNonBlockingServerChannelSelector
-	implements VirtualServerChannelSelector{
+public class 
+VirtualNonBlockingServerChannelSelector
+	implements VirtualServerChannelSelector
+{
 	private static final LogIDs LOGID = LogIDs.NWMAN;
-  private ServerSocketChannel server_channel = null;
-  private final InetSocketAddress bind_address;
-  private final int receive_buffer_size;
-  private final VirtualBlockingServerChannelSelector.SelectListener listener;
+	
+	private List	server_channels	= new ArrayList();
   
-  protected AEMonitor	this_mon	= new AEMonitor( "VirtualNonBlockingServerChannelSelector" );
+	private final InetAddress bind_address;
+	private int		start_port;
+	private int		num_ports;
+	private final int receive_buffer_size;
+	private final VirtualBlockingServerChannelSelector.SelectListener listener;
+  
+	protected AEMonitor	this_mon	= new AEMonitor( "VirtualNonBlockingServerChannelSelector" );
 
-  private long last_accept_time;
+	private long last_accept_time;
   
   
-  /**
-   * Create a new server listening on the given address and reporting to the given listener.
-   * @param bind_address ip+port to listen on
-   * @param so_rcvbuf_size new socket receive buffer size
-   * @param listener to notify of incoming connections
-   */
-  public VirtualNonBlockingServerChannelSelector( 
-		  InetSocketAddress _bind_address, int so_rcvbuf_size, VirtualBlockingServerChannelSelector.SelectListener listener ) {
-    this.bind_address = _bind_address;
-    this.receive_buffer_size = so_rcvbuf_size;
-    this.listener = listener;
-  }
+	  /**
+	   * Create a new server listening on the given address and reporting to the given listener.
+	   * @param bind_address ip+port to listen on
+	   * @param so_rcvbuf_size new socket receive buffer size
+	   * @param listener to notify of incoming connections
+	   */
+	
+	public 
+	VirtualNonBlockingServerChannelSelector( 
+		InetSocketAddress 										bind_address, 
+		int 													so_rcvbuf_size, 
+		VirtualBlockingServerChannelSelector.SelectListener 	listener ) 
+	{
+		this( bind_address.getAddress(), bind_address.getPort(), 1, so_rcvbuf_size, listener );
+	}
   
+	public 
+	VirtualNonBlockingServerChannelSelector( 
+		InetAddress 										_bind_address, 
+		int													_start_port,
+		int													_num_ports,
+		int 												_so_rcvbuf_size, 
+		VirtualBlockingServerChannelSelector.SelectListener _listener ) 
+	{
+		bind_address		= _bind_address;
+		start_port			= _start_port;
+		num_ports			= _num_ports;
+		receive_buffer_size	= _so_rcvbuf_size;
+		listener			= _listener;
+	}
   
   /**
    * Start the server and begin accepting incoming connections.
@@ -71,38 +95,45 @@ public class VirtualNonBlockingServerChannelSelector
   		this_mon.enter();
   	
 	    if( !isRunning() ) {
-	      try {
-	        server_channel = ServerSocketChannel.open();
-	        
-	        server_channel.socket().setReuseAddress( true );
-	        if( receive_buffer_size > 0 )  server_channel.socket().setReceiveBufferSize( receive_buffer_size );
-	        
-	        server_channel.socket().bind( bind_address, 1024 );
-	        
-	        if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "TCP incoming server socket "	+ bind_address));
-	        
-	        server_channel.configureBlocking( false );
-	        
-	        VirtualAcceptSelector.getSingleton().register( 
-	        		server_channel,
-	        		new VirtualAcceptSelector.AcceptListener()
-	        		{
-	        			public void 
-	        			newConnectionAccepted( 
-	        				SocketChannel channel )
-	        			{
-	        			    last_accept_time = SystemTime.getCurrentTime();
-	        			    
-	        				listener.newConnectionAccepted( channel );
-	        			}
-	        		});
-	      }
-	      catch( Throwable t ) {
-	      	Debug.out( t );
-	      	Logger.log(new LogAlert(LogAlert.UNREPEATABLE,	"ERROR, unable to bind TCP incoming server socket to " +bind_address.getPort(), t));
-	      }
+	    	for (int i=start_port;i<start_port+num_ports;i++){
 	      
-	      last_accept_time = SystemTime.getCurrentTime();  //init to now
+	    		try {
+	    			ServerSocketChannel	server_channel = ServerSocketChannel.open();
+	        
+	    			server_channels.add( server_channel );
+	    			
+	    			server_channel.socket().setReuseAddress( true );
+	    			
+	    			if( receive_buffer_size > 0 )  server_channel.socket().setReceiveBufferSize( receive_buffer_size );
+	        
+	    			System.out.println( "binding '" + i + "'" );
+	    			
+	    			server_channel.socket().bind( new InetSocketAddress( bind_address, i ), 1024 );
+	        
+	    			if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "TCP incoming server socket "	+ bind_address));
+	        
+	    			server_channel.configureBlocking( false );
+	        
+			        VirtualAcceptSelector.getSingleton().register( 
+			        		server_channel,
+			        		new VirtualAcceptSelector.AcceptListener()
+			        		{
+			        			public void 
+			        			newConnectionAccepted( 
+			        				SocketChannel channel )
+			        			{
+			        			    last_accept_time = SystemTime.getCurrentTime();
+			        			    
+			        				listener.newConnectionAccepted( channel );
+			        			}
+			        		});
+	    		}catch( Throwable t ) {
+	    			Debug.out( t );
+	    			Logger.log(new LogAlert(LogAlert.UNREPEATABLE,	"ERROR, unable to bind TCP incoming server socket to " +i, t));
+	    		}
+	    	}
+	      
+	    	last_accept_time = SystemTime.getCurrentTime();  //init to now
 	    }
   	}finally{
   		
@@ -118,14 +149,19 @@ public class VirtualNonBlockingServerChannelSelector
   	try{
   		this_mon.enter();
 
-	    if( server_channel != null ) {
+	    for (int i=0;i<server_channels.size();i++){
 	      try {
-	    	VirtualAcceptSelector.getSingleton().cancel( server_channel );
-	        server_channel.close();
-	        server_channel = null;
+	    	  ServerSocketChannel	server_channel = (ServerSocketChannel)server_channels.get(i);
+	    	
+	    	  VirtualAcceptSelector.getSingleton().cancel( server_channel );
+	        
+	    	  server_channel.close();
+	       
 	      }
 	      catch( Throwable t ) {  Debug.out( t );  }
 	    }
+	    
+	    server_channels.clear();
   	}finally{
   		
   		this_mon.exit();
@@ -138,16 +174,24 @@ public class VirtualNonBlockingServerChannelSelector
    * @return true if enabled, false if not running
    */
   public boolean isRunning() {
-  	if( server_channel != null && server_channel.isOpen() )  return true;
-  	return false;
+	  if ( server_channels.size() == 0 ){
+		  return( false);
+	  }
+	  
+	  ServerSocketChannel	server_channel = (ServerSocketChannel)server_channels.get(0);
+	  
+  	  if( server_channel != null && server_channel.isOpen() )  return true;
+  	  return false;
   }
   
   
   public InetAddress getBoundToAddress() {
-  	if( server_channel != null ) {
-  		return server_channel.socket().getInetAddress();
-  	}
-  	return null;
+	  if ( server_channels.size() == 0 ){
+		  return( null);
+	  }
+	  ServerSocketChannel	server_channel = (ServerSocketChannel)server_channels.get(0);
+ 	
+	  return server_channel.socket().getInetAddress();
   }
   
   

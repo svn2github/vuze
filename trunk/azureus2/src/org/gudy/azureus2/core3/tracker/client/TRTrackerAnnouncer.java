@@ -64,6 +64,13 @@ TRTrackerAnnouncer
 	public void
 	clearIPOverride();
 		
+	public void
+	setPortOverride(
+		int		port );
+	
+	public void
+	clearPortOverride();
+	
 	public byte[]
 	getPeerId();
 	

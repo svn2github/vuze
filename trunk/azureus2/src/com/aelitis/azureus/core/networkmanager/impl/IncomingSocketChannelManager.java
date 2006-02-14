@@ -280,7 +280,7 @@ public class IncomingSocketChannelManager
 	        address = new InetSocketAddress( listen_port );
 	      }
 	      
-	      server_selector = VirtualServerChannelSelectorFactory.createBlocking( address, so_rcvbuf_size, new VirtualBlockingServerChannelSelector.SelectListener() {
+	      server_selector = VirtualServerChannelSelectorFactory.createTest( address, so_rcvbuf_size, new VirtualBlockingServerChannelSelector.SelectListener() {
 	        public void newConnectionAccepted( final SocketChannel channel ) {
 	        	
 	        	//check for encrypted transport

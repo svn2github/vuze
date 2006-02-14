@@ -139,6 +139,17 @@ TRTrackerDHTAnnouncerImpl
 	{
 	}
 		
+	public void
+	setPortOverride(
+		int		port )
+	{	
+	}
+	
+	public void
+	clearPortOverride()
+	{
+	}
+	
 	public byte[]
 	getPeerId()
 	{
