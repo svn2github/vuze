@@ -1,5 +1,53 @@
 AZUREUS CHANGELOG
----------
+-----------------
+
+2006.02.11 | Azureus 2.4.0.0
+
+FEATURE: Core | Logging seperated into sections [TuxPaper]
+FEATURE: Core | Plugins can be disabled from starting up [TuxPaper]
+FEATURE: Core | Separate high-speed transfer rates between peers within the local LAN [Parg,Nolar]
+FEATURE: Core | Encrypted peer connections [Parg,Nolar]
+FEATURE: Core | Revamped and much improved piece-picking code [MjrTom]
+FEATURE: Core | Option to bind outgoing connections to the same local port, may help with NAT router instability [Nolar]
+FEATURE: Plug | HTTP webseed support (http://www.getright.com/seedtorrent.html) [Parg]
+FEATURE: Plug | New "team seeder" plugin [Parg]
+FEATURE: Dev  | Plugins can now add views/tabs to Torrent Details, Peers View, etc [TuxPaper]
+FEATURE: UI   | Draggable column reordering and column indicator (w/SWT 3.2+) [TuxPaper]
+FEATURE: UI   | Peer piece map in Peers Tab [TuxPaper]
+FEATURE: UI   | Manual tracker scrape option if auto-scrape disabled [Parg]
+FEATURE: UI   | Share-ratio indicator and options to hide the various indicators [Parg]
+FEATURE: UI   | Separate per-torrent options panel [Parg]
+
+CHANGE: Core  | Clearer firewalled/NAT status reporting [Nolar]
+CHANGE: Core  | Do not open the wiki NAT problem page if firewall status is OK [Nolar]
+CHANGE: Core  | Disk manager threads - limited pool now serves all disk read/write requests [Parg]
+CHANGE: Core  | Single thread now serves torrent piece picking etc (was one per download) [Parg]
+CHANGE: Core  | Persistent IP bans now have limited lifetime [Parg]
+CHANGE: Core  | Reworked compact storage type to support migration of formats [Parg]
+CHANGE: Core  | Less requirements to pause downloads when changing file priorities [Parg]
+CHANGE: Core  | Only one torrent can now be checking at a time [Parg]
+CHANGE: Core  | DHT size estimation improved [Parg]
+CHANGE: Core  | Default listen port number now randomized for new installs [Nolar]
+CHANGE: Core  | Interrupted "seeding+checking" files now rechecked on startup [Parg]
+ChANGE: Core  | Under unix, use all-lowercase ~/.azureus/ as the config dir [Nolar]
+CHANGE: UI    | Seeding+checking completeness now shown in status [Parg]
+CHANGE: UI    | Faster filling of tables (Mac/some Linux) [TuxPaper]
+CHANGE: UI    | Opening torrents changed to use one opener dialog (w/options to change destination filenames, disable files, etc) [TuxPaper]
+CHANGE: UI    | Find-As-You-Type in 'My Torrents' changed to Filter-As-You-Type.  Ctrl-BS to clear filter. [TuxPaper]
+
+BUGFIX: Core  | Fix transfer stall bug when MTU size is greater than max upload/download rate [Nolar]
+BUGFIX: Core  | Improved peer connection counting [Parg]
+BUGFIX: Core  | Tracker wasn't handling "accept-encoding" properly [Parg]
+BUGFIX: Core  | Multiple file renames/retargets wasn't working [Parg]
+BUGFIX: Core  | Synchronous scrape wasn't working [Parg]
+BUGFIX: Core  | Fixed move-on-complete bug when target was a link [Parg]
+BUGFIX: Core  | Fixed DND/Delete vs piece needed/interested in peer issues [MjrTom]
+BUGFIX: Core  | Properly catch Windows shutdown/logoff events [Parg]
+BUGFIX: UI    | Selection moves properly with CTRL+<UP,DOWN,HOME,END> and sorting [TuxPaper]
+BUGFIX: UI    | URL Drag'nDrop Improvements - Unicode, IE Links (Windows) [TuxPaper]
+
+
+
 
 2005.11.22 | Azureus 2.3.0.6
 
