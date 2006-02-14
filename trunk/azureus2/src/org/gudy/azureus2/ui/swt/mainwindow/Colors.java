@@ -61,6 +61,7 @@ public class Colors implements ParameterListener {
   public static Color light_grey;
   public static Color blue;
   public static Color green;
+  public static Color fadedGreen;
   public static Color grey;
   public static Color red;
   public static Color fadedRed;
@@ -315,6 +316,7 @@ public class Colors implements ParameterListener {
     light_grey = new Color(display, new RGB(192, 192, 192));
     blue = new Color(display, new RGB(0, 0, 170));
     green = new Color(display, new RGB(0, 170, 0));
+    fadedGreen = new Color(display, new RGB(96,160,96));
     grey = new Color(display, new RGB(170, 170, 170));
     red = new Color(display, new RGB(255, 0, 0));
     fadedRed = new Color(display, new RGB(160, 96, 96));

@@ -116,9 +116,9 @@ public class PeerInfoView extends AbstractIView {
 	 *
 	 */
 	public PeerInfoView() {
-		blockColors = new Color[] { Colors.blues[Colors.BLUES_DARKEST],
-				Colors.faded[Colors.FADED_DARKEST], Colors.white, Colors.fadedRed,
-				Colors.red, Colors.colorInverse, Colors.black };
+		blockColors = new Color[] { Colors.blues[Colors.BLUES_MIDLIGHT],
+				Colors.fadedGreen, Colors.blues[Colors.BLUES_MIDDARK], Colors.white,
+				Colors.red, Colors.fadedRed, Colors.black };
 
 		// Pull in Country Information if the plugin exists
 		/**
