@@ -297,7 +297,16 @@ PEPeerControlImpl
 				updateTrackerAnnounceInterval();
 				doConnectionChecks();
 				processPieceChecks();
-				checkCompletedPieces();		//check to see if we've completed anything else
+				
+					// note that seeding_mode -> torrent totally downloaded, not just non-dnd files
+					// complete, so there is no change of a new piece appearing done by a means such as
+					// background periodic file rescans
+				
+				if ( !seeding_mode ){
+					
+					checkCompletedPieces();		//check to see if we've completed anything else
+				}
+				
 				updateStats();
 				
                 checkInterested();      // see if need to recheck Interested on all peers
