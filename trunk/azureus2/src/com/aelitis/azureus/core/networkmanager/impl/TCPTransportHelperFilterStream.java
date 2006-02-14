@@ -95,22 +95,22 @@ TCPTransportHelperFilterStream
 			int	pending_position 	= write_buffer_pending.position();
 			int pending_limit		= write_buffer_pending.limit();
 			
-			int	pending_size = pending_limit - pending_position;
+			int	pending_writable = pending_limit - pending_position;
 			
-			if ( pending_size > max_writable ){
+			if ( pending_writable > max_writable ){
 								
-				pending_size = max_writable;
+				pending_writable = max_writable;
 				
-				write_buffer_pending.limit( pending_position + pending_size );
+				write_buffer_pending.limit( pending_position + pending_writable );
 			}
 			
 			int	written = transport.write( write_buffer_pending );
 			
+			write_buffer_pending.limit( pending_limit );
+			
 			if ( written > 0 ){
 				
 				total_written = written;
-				
-				write_buffer_pending.limit( pending_limit );
 				
 				if ( write_buffer_pending.remaining() == 0 ){
 					
@@ -157,7 +157,7 @@ TCPTransportHelperFilterStream
 				// if write came up short or we've filled the source buffer then we can't do
 				// any more 
 			
-			if ( total_written < pending_size || total_written == max_writable ){
+			if ( total_written < pending_writable || total_written == max_writable ){
 				
 				return( total_written );
 			}
