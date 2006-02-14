@@ -35,10 +35,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
@@ -107,6 +104,8 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 	private Button ok;
 
 	private Combo cmbDataDir;
+
+	private Composite cSaveTo;
 
 	private Combo cmbStartMode = null;
 
@@ -410,20 +409,21 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		// Save To..
 		// =========
 
-		Composite cSaveTo = new Composite(cTorrentOptions, SWT.NONE);
+		cSaveTo = new Composite(cTorrentOptions, SWT.NONE);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		cSaveTo.setLayoutData(gridData);
 		layout = new GridLayout();
-		layout.marginHeight = 0;
+		layout.marginHeight = 1;
 		layout.marginWidth = 0;
+		layout.verticalSpacing = 2;
 		layout.numColumns = 2;
 		cSaveTo.setLayout(layout);
 
-		label = new Label(cSaveTo, SWT.NONE);
+		Label lblDataDir = new Label(cSaveTo, SWT.NONE);
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
 		gridData.horizontalSpan = 2;
-		label.setLayoutData(gridData);
-		Messages.setLanguageText(label, "OpenTorrentWindow.dataLocation");
+		lblDataDir.setLayoutData(gridData);
+		Messages.setLanguageText(lblDataDir, "OpenTorrentWindow.dataLocation");
 
 		cmbDataDir = new Combo(cSaveTo, SWT.BORDER);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -504,7 +504,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		cArea.setLayoutData(gridData);
 
 		ok = new Button(cArea, SWT.PUSH);
-		ok.setEnabled(false);
 		Messages.setLanguageText(ok, "Button.ok");
 		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		gridData.widthHint = 70;
@@ -578,6 +577,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				close(true, false);
 			}
 		});
+		updateOKButton();
 
 		Button cancel = new Button(cArea, SWT.PUSH);
 		Messages.setLanguageText(cancel, "Button.cancel");
@@ -1558,9 +1558,16 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		if (ok == null || bClosed)
 			return;
 
+		boolean bEnable = torrentList != null && torrentList.size() > 0
+				&& downloaders.size() == 0;
+
 		File file = new File(cmbDataDir.getText());
-		boolean bEnable = file.isDirectory() && torrentList != null
-				&& torrentList.size() > 0 && downloaders.size() == 0;
+		if (!file.isDirectory()) {
+			bEnable = false;
+			setBackground(cSaveTo, Colors.colorErrorBG);
+		} else {
+			setBackground(cSaveTo, null);
+		}
 
 		// Check for seeding
 		for (int i = 0; i < torrentList.size(); i++) {
@@ -1600,6 +1607,14 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		ok.setEnabled(bEnable);
 		tableTorrents.clearAll();
 		dataFileTable.clearAll();
+	}
+
+	private void setBackground(Composite composite, Color color) {
+		composite.setBackground(color);
+		Control[] controls = composite.getChildren();
+		for (int i = 0; i < controls.length; i++) {
+			controls[i].setBackground(color);
+		}
 	}
 
 	/**
