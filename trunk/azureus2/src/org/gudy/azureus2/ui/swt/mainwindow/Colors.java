@@ -55,6 +55,7 @@ public class Colors implements ParameterListener {
   public static Color colorShiftLeft;
   public static Color colorShiftRight;
   public static Color colorError;
+  public static Color colorErrorBG;
   public static Color colorAltRow;
   public static Color colorWarning;
   public static Color black;
@@ -192,6 +193,33 @@ public class Colors implements ParameterListener {
 				colorProgressBar).getColor();
 	}
 
+  private void allocateColorErrorBG() {
+		if (display == null || display.isDisposed())
+			return;
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				Color colorTables = display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+				HSLColor hslColor = new HSLColor();
+				hslColor.initHSLbyRGB(colorTables.getRed(), colorTables.getGreen(),
+						colorTables.getBlue());
+				int lum = hslColor.getLuminence();
+				int sat = hslColor.getSaturation();
+
+				lum = (int)((lum > 127) ? lum * 0.8 : lum * 1.3);
+				
+				if (sat == 0) {
+					sat = 80;
+				}
+				
+				hslColor.initRGBbyHSL(0, sat, lum);
+				
+				colorErrorBG = new AllocateColor("errorBG", new RGB(hslColor.getRed(),
+						hslColor.getGreen(), hslColor.getBlue()), colorErrorBG).getColor();
+			}
+		}, false);
+	}
+
 	private void allocateColorError() {
 		if (display == null || display.isDisposed())
 			return;
@@ -303,6 +331,7 @@ public class Colors implements ParameterListener {
       public void runSupport() {
         allocateBlues();
         allocateColorProgressBar();
+        allocateColorErrorBG();
       }
     }, false);
   }
