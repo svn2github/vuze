@@ -279,6 +279,7 @@ public class MessagePopupShell implements AnimableShell {
 
     private void hideShell()
     {
+    	try {
         if(currentAnimator == null) {
           closeTimer.cancel();
           detailsShell.setVisible(false);
@@ -288,6 +289,10 @@ public class MessagePopupShell implements AnimableShell {
           currentAnimator.start();
           closeAfterAnimation = true;
         }
+    	} catch (Exception e) {
+    		closeAfterAnimation = true;
+    		animationEnded(null);
+    	}
     }
 
 

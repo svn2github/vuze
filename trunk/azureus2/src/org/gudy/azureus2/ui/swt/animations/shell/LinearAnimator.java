@@ -65,20 +65,23 @@ public class LinearAnimator extends Animator{
   }
   
   public void runSupport() {
-    shell.animationStarted(this);
-    int step = 0;
-    while(step <= nbSteps && !interrupted) {
-      setShellAtStep(step);
-      shell.reportPercent(100 * step  /nbSteps);
-      step++;
-      try {
-        Thread.sleep(period);
-      } catch(Exception e) {
-        //Stop animating
-        step = nbSteps;
-      }
-    }
-    shell.animationEnded(this);
+  	try {
+	    shell.animationStarted(this);
+	    int step = 0;
+	    while(step <= nbSteps && !interrupted) {
+	      setShellAtStep(step);
+	      shell.reportPercent(100 * step  /nbSteps);
+	      step++;
+	      try {
+	        Thread.sleep(period);
+	      } catch(Exception e) {
+	        //Stop animating
+	        step = nbSteps;
+	      }
+	    }
+  	} finally {
+  		shell.animationEnded(this);
+  	}
   }
   
   public void interrupt() {
