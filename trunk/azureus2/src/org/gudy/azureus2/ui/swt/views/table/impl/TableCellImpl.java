@@ -665,9 +665,10 @@ public class TableCellImpl
   public void dispose() {
   	bDisposed = true;
 
+    tableColumn.invokeCellDisposeListeners(this);
+
     if (disposeListeners != null) {
       try {
-        tableColumn.invokeCellDisposeListeners(this);
         for (Iterator iter = disposeListeners.iterator(); iter.hasNext();) {
           TableCellDisposeListener listener = (TableCellDisposeListener)iter.next();
           listener.dispose(this);

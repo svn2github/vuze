@@ -148,9 +148,9 @@ public class TableRowImpl
 			if (bDisposed)
 				return;
 
-			if (!table.isDisposed() && TableView.DEBUGADDREMOVE)
-				System.out.println(table.getData("Name") + " row delete; index="
-						+ getIndex());
+			if (TableView.DEBUGADDREMOVE)
+				System.out.println((table.isDisposed() ? "" : table.getData("Name"))
+						+ " row delete; index=" + getIndex());
 
 			try {
 				// Manually dispose of TableCellImpl objects, since row does
