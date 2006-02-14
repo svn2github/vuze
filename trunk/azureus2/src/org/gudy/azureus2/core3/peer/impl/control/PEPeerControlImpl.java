@@ -2332,8 +2332,8 @@ PEPeerControlImpl
 			
 			if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
 			
-      if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
-				int free = PeerUtils.MAX_CONNECTIONS_PER_TORRENT / 20;  //leave 5%
+			if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
+				int free = getMaxConnections() / 20;  //leave 5%
 				allowed = allowed - free;
 			}
 			

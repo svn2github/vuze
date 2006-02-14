@@ -77,7 +77,10 @@ public class PeerUtils {
     int curConnPerTorrent = PeerIdentityManager.getIdentityCount( data_id );
     int curConnTotal = PeerIdentityManager.getTotalIdentityCount();
 	    
-    int	PER_TORRENT_LIMIT = specific_max > 0?specific_max:MAX_CONNECTIONS_PER_TORRENT;
+    	// specific max here will default to the global per-torrent default if not explicitly set
+    	// so we don't need to consider CONFIG_MAX_CONN_PER_TORRENT seperately
+    
+    int	PER_TORRENT_LIMIT = specific_max;
     
     int perTorrentAllowed = -1;  //default unlimited
     if ( PER_TORRENT_LIMIT != 0 ) {  //if limited
