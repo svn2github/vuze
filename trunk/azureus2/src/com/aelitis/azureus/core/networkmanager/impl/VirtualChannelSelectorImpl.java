@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 
 import java.nio.channels.*;
+import java.nio.channels.spi.AbstractSelectableChannel;
 import java.util.*;
 
 import org.gudy.azureus2.core3.logging.*;
@@ -143,8 +144,8 @@ public class VirtualChannelSelectorImpl {
 
     public void 
 	register( 
-		SocketChannel 			channel, 
-		VirtualChannelSelector.VirtualSelectorListener listener, 
+		AbstractSelectableChannel 								channel, 
+		VirtualChannelSelector.VirtualAbstractSelectorListener listener, 
 		Object attachment ) 
     {
     	addRegOrCancel( new RegistrationData( channel, listener, attachment ));
@@ -153,7 +154,7 @@ public class VirtualChannelSelectorImpl {
 
 
     
-    public void pauseSelects( SocketChannel channel ) {
+    public void pauseSelects( AbstractSelectableChannel channel ) {
       
       if( channel == null ) {
         return;
@@ -179,7 +180,7 @@ public class VirtualChannelSelectorImpl {
 
 
     
-    public void resumeSelects( SocketChannel channel ) {
+    public void resumeSelects( AbstractSelectableChannel channel ) {
       if( channel == null ) {
         Debug.printStackTrace( new Exception( "resumeSelects():: channel == null" ) );
         return;
@@ -208,7 +209,7 @@ public class VirtualChannelSelectorImpl {
     
     public void 
 	cancel( 
-		SocketChannel channel ) 
+			AbstractSelectableChannel channel ) 
     {
       pauseSelects( channel );
     	addRegOrCancel( channel ); 
@@ -225,7 +226,7 @@ public class VirtualChannelSelectorImpl {
     {
     	if ( destroyed ){
     		
-    		if ( obj_to_add instanceof SocketChannel ){
+    		if ( obj_to_add instanceof AbstractSelectableChannel ){
     		
     				// don't worry too much about cancels
     		}else{
@@ -246,7 +247,7 @@ public class VirtualChannelSelectorImpl {
     			
     			boolean	remove_it	= false;
     		
-    			if ( obj_to_add instanceof SocketChannel ){
+    			if ( obj_to_add instanceof AbstractSelectableChannel ){
     				
     				if ( obj_to_add == obj ||
     						(	obj instanceof RegistrationData &&
@@ -324,11 +325,11 @@ public class VirtualChannelSelectorImpl {
         	
           Object	obj = register_cancel_list.remove(0);
          
-          if ( obj instanceof SocketChannel ){
+          if ( obj instanceof AbstractSelectableChannel ){
            
          		// process cancellation
          	
-            SocketChannel	canceled_channel = (SocketChannel)obj;
+        	  AbstractSelectableChannel	canceled_channel = (AbstractSelectableChannel)obj;
   
             try{
               SelectionKey key = canceled_channel.keyFor( selector );
@@ -402,8 +403,8 @@ public class VirtualChannelSelectorImpl {
       if ( select_fail_data != null ){
       	
       	try{
-	      	select_fail_data.listener.selectFailure(
-	      	        parent, 
+	      	parent.selectFailure( 
+	      			select_fail_data.listener,
 					select_fail_data.channel, 
 					select_fail_data.attachment, 
 					select_fail_excep );
@@ -474,7 +475,7 @@ public class VirtualChannelSelectorImpl {
             key.interestOps( key.interestOps() & ~INTEREST_OP );
           }
                         
-          boolean	progress_made = data.listener.selectSuccess( parent, data.channel, data.attachment );
+          boolean	progress_made = parent.selectSuccess( data.listener, data.channel, data.attachment );
             
           if ( progress_made ){
             
@@ -487,7 +488,10 @@ public class VirtualChannelSelectorImpl {
             		
               System.out.println( 
                   "VirtualChannelSelector: No progress for op " + INTEREST_OP + ": " + data.non_progress_count +
-                  ", socket: open = " + data.channel.isOpen() + ", connected = " + data.channel.isConnected());
+                  ", socket: open = " + data.channel.isOpen() + 
+                  (INTEREST_OP==VirtualChannelSelector.OP_ACCEPT?"":
+                	  	(", connected = " + ((SocketChannel)data.channel).isConnected())));
+                			  
             		
               if ( data.non_progress_count == 1000 ){
                 
@@ -505,7 +509,7 @@ public class VirtualChannelSelectorImpl {
         }
         else {
           key.cancel();
-          data.listener.selectFailure( parent, data.channel, data.attachment, new Throwable( "key is invalid" ) );
+          parent.selectFailure( data.listener, data.channel, data.attachment, new Throwable( "key is invalid" ) );
           // can get this if socket has been closed between select and here
         }
       }
@@ -535,7 +539,7 @@ public class VirtualChannelSelectorImpl {
       for( Iterator i = selector.keys().iterator(); i.hasNext(); ) {
         SelectionKey key = (SelectionKey)i.next();
         RegistrationData data = (RegistrationData)key.attachment();
-        data.listener.selectFailure( parent, data.channel, data.attachment, new Throwable( "selector destroyed" ) );
+        parent.selectFailure(data.listener, data.channel, data.attachment, new Throwable( "selector destroyed" ) );
       }
       
       try{
@@ -548,13 +552,13 @@ public class VirtualChannelSelectorImpl {
     
     
     private static class RegistrationData {
-        protected final SocketChannel channel;
-        protected final VirtualChannelSelector.VirtualSelectorListener listener;
+        protected final AbstractSelectableChannel channel;
+        protected final VirtualChannelSelector.VirtualAbstractSelectorListener listener;
         protected final Object attachment;
         
         protected int non_progress_count;
         
-      	private RegistrationData( SocketChannel _channel, VirtualChannelSelector.VirtualSelectorListener _listener, Object _attachment ) {
+      	private RegistrationData( AbstractSelectableChannel _channel, VirtualChannelSelector.VirtualAbstractSelectorListener _listener, Object _attachment ) {
       		channel 		= _channel;
       		listener		= _listener;
       		attachment 		= _attachment;

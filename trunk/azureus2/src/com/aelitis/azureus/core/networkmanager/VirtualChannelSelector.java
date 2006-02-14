@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.networkmanager;
 
 import java.nio.channels.*;
+import java.nio.channels.spi.AbstractSelectableChannel;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -36,6 +37,7 @@ import com.aelitis.azureus.core.networkmanager.impl.VirtualChannelSelectorImpl;
 
 public class VirtualChannelSelector {
   private static final LogIDs LOGID = LogIDs.NWMAN;
+  public static final int OP_ACCEPT  = SelectionKey.OP_ACCEPT;
   public static final int OP_CONNECT  = SelectionKey.OP_CONNECT;
   public static final int OP_READ   = SelectionKey.OP_READ;
   public static final int OP_WRITE  = SelectionKey.OP_WRITE;
@@ -60,7 +62,7 @@ public class VirtualChannelSelector {
   
   /**
    * Create a new virtual selectable-channel selector, selecting over the given interest-op.
-   * @param interest_op operation set of OP_CONNECT, OP_READ, or OP_WRITE
+   * @param interest_op operation set of OP_CONNECT, OP_ACCEPT, OP_READ, or OP_WRITE
    * @param pause_after_select whether or not to auto-disable interest op after select  
    */
   public VirtualChannelSelector( int interest_op, boolean pause_after_select ) { 
@@ -90,8 +92,14 @@ public class VirtualChannelSelector {
   }
   
   
-  
-  
+  public void register( SocketChannel channel, VirtualSelectorListener listener, Object attachment ) {
+	  registerSupport( channel, listener, attachment );
+  }
+  public void register( ServerSocketChannel channel, VirtualAcceptSelectorListener listener, Object attachment ) {
+	  registerSupport( channel, listener, attachment );
+  }
+	  
+	  
   /**
    * Register the given selectable channel, using the given listener for notification
    * of completed select operations.
@@ -103,7 +111,7 @@ public class VirtualChannelSelector {
    * @param listener op-complete listener
    * @param attachment object to be passed back with listener notification
    */
-  public void register( SocketChannel channel, VirtualSelectorListener listener, Object attachment ) {
+  protected void registerSupport( AbstractSelectableChannel channel, VirtualAbstractSelectorListener listener, Object attachment ) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
@@ -124,14 +132,14 @@ public class VirtualChannelSelector {
         if( selectors.size() >= MAX_SAFEMODE_SELECTORS ) {
       	  String msg = "Error: MAX_SAFEMODE_SELECTORS reached [" +selectors.size()+ "], no more socket channels can be registered. Too many peer connections.";
       	  Debug.out( msg );
-      	  listener.selectFailure( this, channel, attachment, new Throwable( msg ) );  //reject registration    	  
+      	  selectFailure( listener, channel, attachment, new Throwable( msg ) );  //reject registration    	  
       	  return;
         }
         
         if ( destroyed ){
           String	msg = "socket registered after controller destroyed";
        	  Debug.out( msg );
-      	  listener.selectFailure( this, channel, attachment, new Throwable( msg ) );  //reject registration    	  
+      	  selectFailure( listener, channel, attachment, new Throwable( msg ) );  //reject registration    	  
       	  return;
         }
 
@@ -154,7 +162,7 @@ public class VirtualChannelSelector {
    * Pause selection operations for the given channel
    * @param channel to pause
    */
-  public void pauseSelects( SocketChannel channel ) {
+  public void pauseSelects( AbstractSelectableChannel channel ) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
@@ -183,7 +191,7 @@ public class VirtualChannelSelector {
    * Resume selection operations for the given channel
    * @param channel to resume
    */
-  public void resumeSelects( SocketChannel channel ) {
+  public void resumeSelects( AbstractSelectableChannel channel ) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
@@ -212,7 +220,7 @@ public class VirtualChannelSelector {
    * Cancel the selection operations for the given channel.
    * @param channel channel originally registered
    */
-  public void cancel( SocketChannel channel ) {
+  public void cancel( AbstractSelectableChannel channel ) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
       try{  selectors_mon.enter();
         for( Iterator it = selectors.entrySet().iterator(); it.hasNext(); ) {
@@ -304,12 +312,47 @@ public class VirtualChannelSelector {
     }
   }
   
+  public boolean
+  selectSuccess(
+	VirtualAbstractSelectorListener		listener,
+	AbstractSelectableChannel 			sc, 
+	Object 								attachment )
+  {
+	  if ( op == OP_ACCEPT ){
+		  
+		  return(((VirtualAcceptSelectorListener)listener).selectSuccess( VirtualChannelSelector.this, (ServerSocketChannel)sc, attachment ));
+	  }else{
+		
+		  return(((VirtualSelectorListener)listener).selectSuccess( VirtualChannelSelector.this, (SocketChannel)sc, attachment ));
+	  }
+  }
   
+  public void
+  selectFailure(
+	VirtualAbstractSelectorListener		listener,
+	AbstractSelectableChannel 			sc, 
+	Object 								attachment, 
+	Throwable							msg)
+  {
+	  if ( op == OP_ACCEPT ){
+		  
+		  ((VirtualAcceptSelectorListener)listener).selectFailure( VirtualChannelSelector.this, (ServerSocketChannel)sc, attachment, msg );
+	  }else{
+		
+		  ((VirtualSelectorListener)listener).selectFailure( VirtualChannelSelector.this, (SocketChannel)sc, attachment, msg );
 
+	  }
+  }
+
+  public interface
+  VirtualAbstractSelectorListener
+  {
+  }
+  
   /**
    * Listener for notification upon socket channel selection.
    */
-  public interface VirtualSelectorListener {
+  public interface VirtualSelectorListener extends VirtualAbstractSelectorListener{
     /**
      * Called when a channel is successfully selected for readyness.
      * @param attachment originally given with the channel's registration
@@ -325,5 +368,20 @@ public class VirtualChannelSelector {
     public void selectFailure(VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg);
   }
 
+  public interface VirtualAcceptSelectorListener extends VirtualAbstractSelectorListener{
+    /**
+     * Called when a channel is successfully selected for readyness.
+     * @param attachment originally given with the channel's registration
+     * @return indicator of whether or not any 'progress' was made due to this select
+     *         e.g. read-select -> read >0 bytes, write-select -> wrote > 0 bytes
+     */
+    public boolean selectSuccess(VirtualChannelSelector selector, ServerSocketChannel sc, Object attachment);
+
+    /**
+     * Called when a channel selection fails.
+     * @param msg  failure message
+     */
+    public void selectFailure(VirtualChannelSelector selector, ServerSocketChannel sc, Object attachment, Throwable msg);
+  }
 
 }
