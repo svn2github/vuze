@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
@@ -92,21 +93,29 @@ public class BlocksItem
       PEPiece pePiece = (PEPiece)cell.getDataSource();
       if (pePiece == null) {
         cell.setSortValue(0);
+      	dispose(cell);
+        cell.setGraphic(null);
         return;
       }
 
       cell.setSortValue(pePiece.getNbWritten());
       long lNumBlocks = pePiece.getNbBlocks();
-
+      
       int newWidth = cell.getWidth();
-      if (newWidth <= 0)
+      if (newWidth <= 0) {
+      	dispose(cell);
+        cell.setGraphic(null);
         return;
+      }
       int newHeight = cell.getHeight();
   
       int x1 = newWidth - 2;
       int y1 = newHeight - 3;
-      if (x1 < 10 || y1 < 3)
+      if (x1 < 10 || y1 < 3) {
+      	dispose(cell);
+        cell.setGraphic(null);
         return;
+      }
       Image image = new Image(SWTThread.getInstance().getDisplay(), 
                               newWidth, newHeight);
       Color color;
