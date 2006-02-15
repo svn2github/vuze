@@ -2080,7 +2080,11 @@ public class TableView
 		int iTopIndex = table.getTopIndex();
 		int iBottomIndex = Utils.getTableBottomIndex(table, iTopIndex);
 
-		TableRowCore[] rows = new TableRowCore[iBottomIndex - iTopIndex + 1];
+		int size = iBottomIndex - iTopIndex + 1;
+		if (size <= 0)
+			return new TableRowCore[0];
+
+		TableRowCore[] rows = new TableRowCore[size];
 		int pos = 0;
 		for (int i = iTopIndex; i <= iBottomIndex; i++) {
 			TableRowCore row = (TableRowCore) table.getItem(i).getData("TableRow");
