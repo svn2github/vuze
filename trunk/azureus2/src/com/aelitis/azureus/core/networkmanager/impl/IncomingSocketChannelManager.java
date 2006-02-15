@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.*;
 
@@ -40,7 +41,6 @@ import com.aelitis.azureus.core.networkmanager.*;
  * to registered handlers.
  */
 public class IncomingSocketChannelManager
-	implements VirtualChannelSelector.VirtualSelectorListener
 {
   private static final LogIDs LOGID = LogIDs.NWMAN;
 
@@ -281,12 +281,12 @@ public class IncomingSocketChannelManager
 	      }
 	      
 	      server_selector = VirtualServerChannelSelectorFactory.createTest( address, so_rcvbuf_size, new VirtualBlockingServerChannelSelector.SelectListener() {
-	        public void newConnectionAccepted( final SocketChannel channel ) {
+	        public void newConnectionAccepted( final ServerSocketChannel server, final SocketChannel channel ) {
 	        	
 	        	//check for encrypted transport
 	        	TransportCryptoManager.getSingleton().manageCrypto( channel, null, true, new TransportCryptoManager.HandshakeListener() {
 	        		public void handshakeSuccess( TCPTransportHelperFilter filter ) {
-	        			process( filter );
+	        			process( server, filter );
 	        		}
 
 	            public void 
@@ -330,7 +330,7 @@ public class IncomingSocketChannelManager
 	    		matchPlainHeader(
 	    			ByteBuffer			buffer )
 	    		{
-	    			MatchListener	match = checkForMatch( buffer, true );
+	    			MatchListener	match = checkForMatch( server.socket().getLocalPort(), buffer, true );
 	    			
 	    			if ( match == null ){
 	    				
@@ -363,7 +363,7 @@ public class IncomingSocketChannelManager
   }
   
   
-  protected void process( TCPTransportHelperFilter filter ) {
+  protected void process( ServerSocketChannel	server, TCPTransportHelperFilter filter ) {
     //do timeout check if necessary
     long now = SystemTime.getCurrentTime();
     if( now < last_timeout_check_time || now - last_timeout_check_time > 5*1000 ) {
@@ -400,107 +400,26 @@ public class IncomingSocketChannelManager
     
     VirtualChannelSelector	selector = NetworkManager.getSingleton().getReadSelector();
     
+    SelectorListener	sel_listener = new SelectorListener( server );
+    
     try{  connections_mon.enter();
 
       connections.add( ic );
       
-      selector.register(  ic.filter.getSocketChannel(), this, ic );
+      selector.register(  
+    		 ic.filter.getSocketChannel(),
+    		 sel_listener,
+    		 ic );
       
     } finally {  connections_mon.exit();  } 
 
     	// might be stuff queued up in the filter - force one process cycle (NAT check in particular )
     
-    selectSuccess( selector, ic.filter.getSocketChannel(), ic );
+    sel_listener.selectSuccess( selector, ic.filter.getSocketChannel(), ic );
   }
   
   
-public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {
-	IncomingConnection	ic = (IncomingConnection)attachment;
-	
-    try {                 
-    	long bytes_read = ic.filter.read( new ByteBuffer[]{ ic.buffer }, 0, 1 );
-      
-      if( bytes_read < 0 ) {
-        throw new IOException( "end of stream on socket read" );
-      }
-      
-      if( bytes_read == 0 ) {
-        return false;
-      }
-      
-      ic.last_read_time = SystemTime.getCurrentTime();
-      
-      MatchListener listener = checkForMatch( ic.buffer, false );
-      
-      if( listener == null ) {  //no match found
-        if( ic.buffer.position() >= max_match_buffer_size ) { //we've already read in enough bytes to have compared against all potential match buffers
-          ic.buffer.flip();
-          if (Logger.isEnabled())
-          	Logger.log(new LogEvent(LOGID,
-          			LogEvent.LT_WARNING,
-          			"Incoming TCP stream from ["
-          			+ sc.socket().getInetAddress()
-          			.getHostAddress()
-          			+ ":"
-          			+ sc.socket().getPort()
-          			+ "] does not match "
-          			+ "any known byte pattern: "
-          			+ ByteFormatter.nicePrint(ic.buffer.array())));
-          removeConnection( ic, true );
-        }
-      }
-      else {  //match found!
-        ic.buffer.flip();
-        if (Logger.isEnabled())
-        	Logger.log(new LogEvent(LOGID,
-        			"Incoming TCP stream from ["
-        			+ sc.socket().getInetAddress()
-        			.getHostAddress()
-        			+ ":"
-        			+ sc.socket().getPort()
-        			+ "] recognized as "
-        			+ "known byte pattern: "
-        			+ ByteFormatter.nicePrint(ic.buffer.array())));
-        removeConnection( ic, false );
-        listener.connectionMatched( ic.filter, ic.buffer );
-      }
-    }
-    catch( Throwable t ) {
-      try {
-      	if (Logger.isEnabled())
-      		Logger.log(new LogEvent(LOGID,
-      				LogEvent.LT_ERROR,
-      				"Incoming TCP connection ["
-      				+ sc.socket().getInetAddress()
-      				.getHostAddress() + ":"
-      				+ sc.socket().getPort()
-      				+ "] socket read exception: "
-      				+ t.getMessage()));
-      }
-      catch( Throwable x ) {
-        Debug.out( "Caught exception on incoming exception log:" );
-        x.printStackTrace();
-        System.out.println( "CAUSED BY:" );
-        t.printStackTrace();
-      }
-      
-      removeConnection( ic, true );
-    }
-    
-    return true;
-  }
-  
-  //FAILURE
-  public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
-	IncomingConnection	ic = (IncomingConnection)attachment;
-  	if (Logger.isEnabled())
-  		Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-  				"Incoming TCP connection [" + sc
-  				+ "] socket select op failure: "
-  				+ msg.getMessage()));
-    removeConnection( ic, true );
-  }
-  
+
   
   private void restart() {
   	try{
@@ -537,7 +456,7 @@ public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,
 
   protected MatchListener 
   checkForMatch( 
-		 ByteBuffer to_check, boolean min_match ) 
+	 int	incoming_port, ByteBuffer to_check, boolean min_match ) 
   { 
        //remember original values for later restore
       int orig_position = to_check.position();
@@ -557,7 +476,7 @@ public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,
   	          continue;
   	        }
   	                
-  	        if( bm.minMatches( to_check ) ) {  //match found!
+  	        if( bm.minMatches( to_check, incoming_port ) ) {  //match found!
   	          listener = (MatchListener)entry.getValue();
   	          break;
   	        }      	
@@ -566,7 +485,7 @@ public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,
 	          continue;
 	        }
 	                
-	        if( bm.matches( to_check ) ) {  //match found!
+	        if( bm.matches( to_check, incoming_port ) ) {  //match found!
 	          listener = (MatchListener)entry.getValue();
 	          break;
 	        }
@@ -649,8 +568,105 @@ public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc,
   }
   
   
-  
-    
+  protected class
+  SelectorListener
+	 implements VirtualChannelSelector.VirtualSelectorListener
+ {
+	  private ServerSocketChannel	server;
+	  protected
+	  SelectorListener(
+		  ServerSocketChannel	_server )
+	  {
+		  server = _server;
+	  }
+	  
+	  public boolean selectSuccess( VirtualChannelSelector selector, SocketChannel sc, Object attachment ) {
+		  IncomingConnection	ic = (IncomingConnection)attachment;
+		  
+		  try {                 
+			  long bytes_read = ic.filter.read( new ByteBuffer[]{ ic.buffer }, 0, 1 );
+			  
+			  if( bytes_read < 0 ) {
+				  throw new IOException( "end of stream on socket read" );
+			  }
+			  
+			  if( bytes_read == 0 ) {
+				  return false;
+			  }
+			  
+			  ic.last_read_time = SystemTime.getCurrentTime();
+			  
+			  MatchListener listener = checkForMatch( server.socket().getLocalPort(), ic.buffer, false );
+			  
+			  if( listener == null ) {  //no match found
+				  if( ic.buffer.position() >= max_match_buffer_size ) { //we've already read in enough bytes to have compared against all potential match buffers
+					  ic.buffer.flip();
+					  if (Logger.isEnabled())
+						  Logger.log(new LogEvent(LOGID,
+								  LogEvent.LT_WARNING,
+								  "Incoming TCP stream from ["
+								  + sc.socket().getInetAddress()
+								  .getHostAddress()
+								  + ":"
+								  + sc.socket().getPort()
+								  + "] does not match "
+								  + "any known byte pattern: "
+								  + ByteFormatter.nicePrint(ic.buffer.array())));
+					  removeConnection( ic, true );
+				  }
+			  }
+			  else {  //match found!
+				  ic.buffer.flip();
+				  if (Logger.isEnabled())
+					  Logger.log(new LogEvent(LOGID,
+							  "Incoming TCP stream from ["
+							  + sc.socket().getInetAddress()
+							  .getHostAddress()
+							  + ":"
+							  + sc.socket().getPort()
+							  + "] recognized as "
+							  + "known byte pattern: "
+							  + ByteFormatter.nicePrint(ic.buffer.array())));
+				  removeConnection( ic, false );
+				  listener.connectionMatched( ic.filter, ic.buffer );
+			  }
+		  }
+		  catch( Throwable t ) {
+			  try {
+				  if (Logger.isEnabled())
+					  Logger.log(new LogEvent(LOGID,
+							  LogEvent.LT_ERROR,
+							  "Incoming TCP connection ["
+							  + sc.socket().getInetAddress()
+							  .getHostAddress() + ":"
+							  + sc.socket().getPort()
+							  + "] socket read exception: "
+							  + t.getMessage()));
+			  }
+			  catch( Throwable x ) {
+				  Debug.out( "Caught exception on incoming exception log:" );
+				  x.printStackTrace();
+				  System.out.println( "CAUSED BY:" );
+				  t.printStackTrace();
+			  }
+			  
+			  removeConnection( ic, true );
+		  }
+		  
+		  return true;
+	  }
+	  
+	  //FAILURE
+	  public void selectFailure( VirtualChannelSelector selector, SocketChannel sc, Object attachment, Throwable msg ) {
+		  IncomingConnection	ic = (IncomingConnection)attachment;
+		  if (Logger.isEnabled())
+			  Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+					  "Incoming TCP connection [" + sc
+					  + "] socket select op failure: "
+					  + msg.getMessage()));
+		  removeConnection( ic, true );
+	  }
+ }
   
   
   /**

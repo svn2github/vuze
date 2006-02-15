@@ -452,14 +452,14 @@ public class NetworkManager {
      * @param to_compare
      * @return true if a match, false if not a match
      */
-    public boolean matches( ByteBuffer to_compare );
+    public boolean matches( ByteBuffer to_compare, int port );
     
     /**
      * Check for a minimum match
      * @param to_compare
      * @return
      */
-    public boolean minMatches( ByteBuffer to_compare );
+    public boolean minMatches( ByteBuffer to_compare, int port );
     
     /**
      * Returns true if this shared secret is recognised by the matcher

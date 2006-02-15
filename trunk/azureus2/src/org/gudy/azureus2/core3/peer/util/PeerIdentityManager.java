@@ -23,10 +23,9 @@ package org.gudy.azureus2.core3.peer.util;
 
 
 import java.util.*;
-import java.util.Map.Entry;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 
@@ -35,6 +34,8 @@ import org.gudy.azureus2.core3.util.Debug;
  * Maintains peer identity information.
  */
 public class PeerIdentityManager {
+
+  private static final boolean MUTLI_CONTROLLERS	= COConfigurationManager.getBooleanParameter( "peer.multiple.controllers.per.torrent.enable", false );
 
   private static final AEMonitor 		class_mon	= new AEMonitor( "PeerIdentityManager:class");
 
@@ -124,10 +125,12 @@ public class PeerIdentityManager {
   //to this class if/when needed.
   private static class PeerIdentity {
     private final byte[] id;
+    private final short	port;
     private final int hashcode;
     
-    private PeerIdentity( byte[] _id ) {
+    private PeerIdentity( byte[] _id, int local_port ) {
       this.id = _id;
+      port = (short)local_port;
       this.hashcode = new String( id ).hashCode();
     }
     
@@ -135,6 +138,11 @@ public class PeerIdentityManager {
       if (this == obj)  return true;
       if (obj != null && obj instanceof PeerIdentity) {
         PeerIdentity other = (PeerIdentity)obj;
+        if ( MUTLI_CONTROLLERS ){
+        	if ( port != other.port ){
+        		return( false );
+        	}
+        }
         return Arrays.equals(this.id, other.id);
       }
       return false;
@@ -159,8 +167,8 @@ public class PeerIdentityManager {
    * @param ip remote peer's ip address
    */
   public static boolean 
-  addIdentity( PeerIdentityDataID data_id, byte[] peer_id, String ip ) {
-     PeerIdentity peerID = new PeerIdentity( peer_id );
+  addIdentity( PeerIdentityDataID data_id, byte[] peer_id, int local_port, String ip ) {
+     PeerIdentity peerID = new PeerIdentity( peer_id, local_port );
     
     try{
       class_mon.enter();
@@ -190,14 +198,14 @@ public class PeerIdentityManager {
    * @param data_id id for the data item associated with this connection
    * @param peer_id id for this peer connection
    */
-  public static void removeIdentity( PeerIdentityDataID data_id, byte[] peer_id ) {
+  public static void removeIdentity( PeerIdentityDataID data_id, byte[] peer_id, int local_port  ) {
      
     try{
     	class_mon.enter();
       
       Map peerMap = (Map)dataMap.get( data_id );
       if( peerMap != null ) {
-        PeerIdentity peerID = new PeerIdentity( peer_id );
+        PeerIdentity peerID = new PeerIdentity( peer_id, local_port );
                
         Object old = peerMap.remove( peerID );
         if( old != null ) {
@@ -219,8 +227,8 @@ public class PeerIdentityManager {
    * @param peer_id id for this peer connection
    * @return true if the peer identity is found, false if not found
    */
-  public static boolean containsIdentity( PeerIdentityDataID data_id, byte[] peer_id ) {
-    PeerIdentity peerID = new PeerIdentity( peer_id);
+  public static boolean containsIdentity( PeerIdentityDataID data_id, byte[] peer_id, int local_port ) {
+    PeerIdentity peerID = new PeerIdentity( peer_id, local_port );
     
     try{
     	class_mon.enter();

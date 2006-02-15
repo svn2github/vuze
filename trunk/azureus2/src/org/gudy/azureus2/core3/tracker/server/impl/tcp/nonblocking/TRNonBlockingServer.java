@@ -26,6 +26,7 @@ import java.util.*;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -209,7 +210,8 @@ TRNonBlockingServer
 	
     public void 
 	newConnectionAccepted( 
-		SocketChannel channel ) 
+		ServerSocketChannel	server,
+		SocketChannel 		channel ) 
     {
         final TRNonBlockingServerProcessor processor = new TRNonBlockingServerProcessor( this, channel );
         

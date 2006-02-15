@@ -52,7 +52,7 @@ public interface VirtualServerChannelSelector {
      * The given connection has just been accepted.
      * @param channel new connection
      */
-    public void newConnectionAccepted( SocketChannel channel );
+    public void newConnectionAccepted( ServerSocketChannel	server, SocketChannel channel );
   }
 
   

@@ -129,7 +129,7 @@ public class VirtualBlockingServerChannelSelector
         SocketChannel client_channel = server_channel.accept();
         last_accept_time = SystemTime.getCurrentTime();
         client_channel.configureBlocking( false );
-        listener.newConnectionAccepted( client_channel );
+        listener.newConnectionAccepted( server_channel, client_channel );
       }
       catch( AsynchronousCloseException e ) {
         /* is thrown when stop() is called */

@@ -65,4 +65,7 @@ PEPeerControl
 	
 	public int
 	getMaxConnections();
+	
+	public int
+	getPort();
 }

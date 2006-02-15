@@ -140,6 +140,7 @@ TRTrackerBTAnnouncerImpl
   
   
   
+	private int			port_number;
 	private String 		port;
 	private String 		ip_override;
 	private int			port_override	= -1;
@@ -370,6 +371,8 @@ TRTrackerBTAnnouncerImpl
 	  		}
  		}
   		  
+ 		port_number	= port_num;
+ 		
   		port = "&port=" + port_num;
   		  
   		  	//  BitComet extension for no incoming connections
@@ -1875,6 +1878,12 @@ TRTrackerBTAnnouncerImpl
 		port_override	= -1;
 		
 		setPort();
+	}
+	
+	public int
+	getPort()
+	{
+		return( port_number );
 	}
 	
 	private void 

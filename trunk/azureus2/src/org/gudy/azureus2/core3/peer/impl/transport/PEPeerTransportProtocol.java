@@ -401,7 +401,7 @@ PEPeerTransportProtocol
       
       if( identityAdded ) {  //remove identity
       	if( peer_id != null ) {
-      		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), peer_id );
+      		PeerIdentityManager.removeIdentity( manager.getPeerIdentityDataID(), peer_id, getPort());
       	}
       	else {
       		Debug.out( "PeerIdentity added but peer_id == null !!!" );
@@ -1269,7 +1269,7 @@ PEPeerTransportProtocol
     }
 
     //make sure we are not already connected to this peer
-    boolean sameIdentity = PeerIdentityManager.containsIdentity( my_peer_data_id, peer_id );
+    boolean sameIdentity = PeerIdentityManager.containsIdentity( my_peer_data_id, peer_id, getPort());
     boolean sameIP = false;
       
       
@@ -1334,7 +1334,7 @@ PEPeerTransportProtocol
         	return;
         }
         
-        if ( !PeerIdentityManager.addIdentity( my_peer_data_id, peer_id, ip )){
+        if ( !PeerIdentityManager.addIdentity( my_peer_data_id, peer_id, getPort(), ip )){
         	
             closeConnectionInternally( "peer matches already-connected peer id" );
             

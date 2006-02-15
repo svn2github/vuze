@@ -2571,6 +2571,12 @@ PEPeerControlImpl
 		return( allowed_peers );
 	}
 
+	public int
+	getPort()
+	{
+		return( adapter.getPort());
+	}
+	
 	public String 
 	getRelationText() 
 	{

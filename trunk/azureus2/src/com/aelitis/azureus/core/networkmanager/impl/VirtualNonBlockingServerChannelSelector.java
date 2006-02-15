@@ -98,7 +98,7 @@ VirtualNonBlockingServerChannelSelector
 	    	for (int i=start_port;i<start_port+num_ports;i++){
 	      
 	    		try {
-	    			ServerSocketChannel	server_channel = ServerSocketChannel.open();
+	    			final ServerSocketChannel	server_channel = ServerSocketChannel.open();
 	        
 	    			server_channels.add( server_channel );
 	    			
@@ -124,7 +124,7 @@ VirtualNonBlockingServerChannelSelector
 			        			{
 			        			    last_accept_time = SystemTime.getCurrentTime();
 			        			    
-			        				listener.newConnectionAccepted( channel );
+			        				listener.newConnectionAccepted( server_channel, channel );
 			        			}
 			        		});
 	    		}catch( Throwable t ) {

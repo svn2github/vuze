@@ -1173,6 +1173,19 @@ DownloadManagerController
 		return( download_manager.getMaxConnections());
 	}
 	
+	public int
+	getPort()
+	{
+		TRTrackerAnnouncer	announcer = download_manager.getTrackerClient();
+		
+		if ( announcer != null ){
+			
+			return( announcer.getPort());
+		}
+		
+		return(0);
+	}
+	
 	public boolean
 	isAZMessagingEnabled()
 	{

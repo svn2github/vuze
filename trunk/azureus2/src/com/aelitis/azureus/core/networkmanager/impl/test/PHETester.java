@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl.test;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -65,7 +66,8 @@ PHETester
 					{
 						public void 
 						newConnectionAccepted( 
-							SocketChannel channel ) 
+							ServerSocketChannel	server,
+							SocketChannel 		channel ) 
 						{      
 							incoming( channel );
 						}

@@ -45,6 +45,8 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 public class PeerManager {
 	private static final LogIDs LOGID = LogIDs.PEER;
 
+	private static final boolean MUTLI_CONTROLLERS	= COConfigurationManager.getBooleanParameter( "peer.multiple.controllers.per.torrent.enable", false );
+	
   private static final PeerManager instance = new PeerManager();
 
   private final HashMap legacy_managers = new HashMap();
@@ -82,7 +84,14 @@ public class PeerManager {
       public int size() {  return 48;  }
       public int minSize() { return 20; }
       
-      public boolean matches( ByteBuffer to_compare ) { 
+      public boolean matches( ByteBuffer to_compare, int port ) { 
+    	
+    	if ( MUTLI_CONTROLLERS ){
+    		if ( port != manager.getPort()){
+    			return( false);
+    		}
+    	}
+    	  
         boolean matches = false;
         
         int old_limit = to_compare.limit();
@@ -105,7 +114,13 @@ public class PeerManager {
         
         return matches;
       }
-      public boolean minMatches( ByteBuffer to_compare ) { 
+      public boolean minMatches( ByteBuffer to_compare, int port ) { 
+    	  if ( MUTLI_CONTROLLERS ){
+        	if ( port != manager.getPort()){
+        		return( false);
+        	}
+    	  }
+    	  
           boolean matches = false;
           
           int old_limit = to_compare.limit();

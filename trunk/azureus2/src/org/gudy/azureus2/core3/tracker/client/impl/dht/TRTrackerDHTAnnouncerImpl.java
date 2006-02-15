@@ -150,6 +150,12 @@ TRTrackerDHTAnnouncerImpl
 	{
 	}
 	
+	public int
+	getPort()
+	{
+		return(0);
+	}
+	
 	public byte[]
 	getPeerId()
 	{
