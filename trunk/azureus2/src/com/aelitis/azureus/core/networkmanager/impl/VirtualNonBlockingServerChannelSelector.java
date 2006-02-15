@@ -105,9 +105,7 @@ VirtualNonBlockingServerChannelSelector
 	    			server_channel.socket().setReuseAddress( true );
 	    			
 	    			if( receive_buffer_size > 0 )  server_channel.socket().setReceiveBufferSize( receive_buffer_size );
-	        
-	    			System.out.println( "binding '" + i + "'" );
-	    			
+	        	    			
 	    			server_channel.socket().bind( new InetSocketAddress( bind_address, i ), 1024 );
 	        
 	    			if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "TCP incoming server socket "	+ bind_address));
