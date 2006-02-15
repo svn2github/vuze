@@ -70,65 +70,65 @@ PEPeerControlImpl
 	private static final int	CHECK_REASON_SCAN			= 3;
 
 	private static boolean disconnect_seeds_when_seeding = COConfigurationManager.getBooleanParameter("Disconnect Seed", true);
-
+	
 	private static IpFilter ip_filter = IpFilterManagerFactory.getSingleton().getIPFilter();
+    
+    private volatile boolean    is_running = false;
 
-	private volatile boolean	is_running = false;  
+    private volatile ArrayList  peer_transports_cow = new ArrayList();  // Copy on write!
+	private final AEMonitor     peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
 
-	private volatile ArrayList	peer_transports_cow = new ArrayList();	// Copy on write!
-	private AEMonitor			peer_transports_mon	= new AEMonitor( "PEPeerControl:PT");
-	
-	protected PEPeerManagerAdapter adapter;
-	private DiskManager			disk_mgr;
-	private DiskManagerPiece[]	dm_pieces;
-	
-	private PiecePicker			piecePicker;
-	private long				lastNeededUndonePieceChange;
-	
+    protected final PEPeerManagerAdapter	adapter;
+    private final DiskManager           disk_mgr;
+    private final DiskManagerPiece[]    dm_pieces;
+
+    private final PiecePicker	piecePicker;
+    private long            	lastNeededUndonePieceChange;
+    
 	private boolean 		seeding_mode;
 	private boolean			restart_initiated;
-	
-	protected int			_nbPieces =-1; //how many pieces in the torrent
-	private PEPieceImpl[]	pePieces;      //pieces that are currently in progress
 
-	private PeerIdentityDataID	_hash;
-	private byte[]				_myPeerId;
-	protected PEPeerManagerStats	_stats;
+    private final int       _nbPieces;     //how many pieces in the torrent
+    private PEPieceImpl[]	pePieces;      //pieces that are currently in progress
+
+    private PeerIdentityDataID	_hash;
+    private final byte[]        _myPeerId;
+    private PEPeerManagerStats        _stats;
 	//private final TRTrackerAnnouncer _tracker;
 	//  private int _maxUploads;
 	private int		_seeds, _peers,_remotes;
-	private long last_remote_time;
+    private long    last_remote_time;
 	private long	_timeStarted;
 	private long	_timeStartedSeeding = -1;
 	private long	_timeFinished;
 	private Average	_averageReceptionSpeed;
-	
+
 	private long mainloop_loop_count;
- 
-	private static final int MAINLOOP_ONE_SECOND_INTERVAL = 1000 / PeerControlScheduler.SCHEDULE_PERIOD_MILLIS;
-	private static final int MAINLOOP_FIVE_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 5;
-	private static final int MAINLOOP_TEN_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 10;
-	private static final int MAINLOOP_THIRTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 30;
-	private static final int MAINLOOP_SIXTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 60;
-	private static final int MAINLOOP_TEN_MINUTE_INTERVAL = MAINLOOP_SIXTY_SECOND_INTERVAL * 10;
-	
-	
-	private volatile ArrayList peer_manager_listeners_cow = new ArrayList();  //copy on write
-	
-	
-	private List	piece_check_result_list 	= new ArrayList();
-	private AEMonitor	piece_check_result_list_mon	= new AEMonitor( "PEPeerControl:PCRL");
-	
+
+    private static final int MAINLOOP_ONE_SECOND_INTERVAL = 1000 / PeerControlScheduler.SCHEDULE_PERIOD_MILLIS;
+    private static final int MAINLOOP_FIVE_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 5;
+    private static final int MAINLOOP_TEN_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 10;
+    private static final int MAINLOOP_THIRTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 30;
+    private static final int MAINLOOP_SIXTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 60;
+    private static final int MAINLOOP_TEN_MINUTE_INTERVAL = MAINLOOP_SIXTY_SECOND_INTERVAL * 10;
+    
+
+    private volatile ArrayList  peer_manager_listeners_cow = new ArrayList();  //copy on write
+
+
+    private final List		piece_check_result_list     = new ArrayList();
+    private final AEMonitor	piece_check_result_list_mon  = new AEMonitor( "PEPeerControl:PCRL");
+    
 	private boolean 			superSeedMode;
 	private int 				superSeedModeCurrentPiece;
 	private int 				superSeedModeNumberOfAnnounces;
 	private SuperSeedPiece[]	superSeedPieces;
 	
-	private AEMonitor	this_mon	= new AEMonitor( "PEPeerControl");
-	
+    private final AEMonitor     this_mon = new AEMonitor( "PEPeerControl");
+
 	private long		ip_filter_last_update_time;
-	
-	private Map	user_data;
+
+    private Map                 user_data;
 
 	private Unchoker		unchoker;
 	
@@ -163,8 +163,7 @@ PEPeerControlImpl
   
 		disk_mgr = diskManager;
 		_nbPieces =disk_mgr.getNbPieces();
-
-		pePieces =new PEPieceImpl[_nbPieces];
+        dm_pieces =disk_mgr.getPieces();
 
 		piecePicker = PiecePickerFactory.create( this );
 
@@ -194,19 +193,17 @@ PEPeerControlImpl
 			_hash =PeerIdentityManager.createDataID(new byte[20]);
 		}
 
-		// setup the diskManager
-		dm_pieces =disk_mgr.getPieces();
+        pePieces =new PEPieceImpl[_nbPieces];
 
-		// the recovered active pieces
-
-		for (int i =0; i <_nbPieces; i++ )
-		{
-			final DiskManagerPiece dmPiece =dm_pieces[i];
-			if (!dmPiece.isDone() &&dmPiece.getNbWritten() >0)
-			{
-				addPiece(new PEPieceImpl(this, dmPiece, 0), i);
-			}
-		}
+        // the recovered active pieces
+        for (int i =0; i <_nbPieces; i++ )
+        {
+            final DiskManagerPiece dmPiece =dm_pieces[i];
+            if (!dmPiece.isDone() &&dmPiece.getNbWritten() >0)
+            {
+                addPiece(new PEPieceImpl(this, dmPiece, 0), i);
+            }
+        }
 
 		// The peer connections
 		peer_transports_cow =new ArrayList();
@@ -221,8 +218,8 @@ PEPeerControlImpl
 
 		_averageReceptionSpeed =Average.getInstance(1000, 30);
 
-		// the stats
-		_stats =new PEPeerManagerStatsImpl(this);
+        // the stats
+        _stats =new PEPeerManagerStatsImpl(this);
 
 		superSeedMode =(COConfigurationManager.getBooleanParameter("Use Super Seeding") &&this.getRemaining() ==0);
 
@@ -801,7 +798,7 @@ PEPeerControlImpl
 		}
 	}
 
-	protected void
+	private void
 	checkRescan()
 	{
 		if ( rescan_piece_time == 0 ){
@@ -964,14 +961,15 @@ PEPeerControlImpl
 				if (expired !=null &&expired.size() >0)
 				{
                     // snub peers that haven't sent any good data for a minute
-                    final long goodTime =pc.getTimeSinceGoodDataReceived();
-                    if (goodTime ==-1 ||goodTime >60 *1000)
+                    final long timeSinceGoodData =pc.getTimeSinceGoodDataReceived();
+                    if (timeSinceGoodData ==-1 ||timeSinceGoodData >60 *1000)
                     {
                         pc.setSnubbed(true);
                     }
                     
-                    final long dataTime =pc.getTimeSinceLastDataMessageReceived();
-                    final boolean noData =(dataTime ==-1) ||((now -dataTime) >1000 *(isSeed ?120 :60)); 
+                    final long timeSinceData =pc.getTimeSinceLastDataMessageReceived();
+                    final boolean noData =(timeSinceData ==-1) ||timeSinceData >(1000 *(isSeed ?120 :60));
+                    final long timeSinceOldestRequest =now -((DiskManagerReadRequest) expired.get(0)).getTimeCreated();
                     
                     for (int j =0; j <expired.size(); j++)
                     {
@@ -995,9 +993,11 @@ PEPeerControlImpl
                         }
                     }
                     // if they never respond to our requests, must disconnect them - after 240 secons
-                    if (noData &&(goodTime ==-1 ||goodTime >240 *1000)
+                    if (noData &&timeSinceOldestRequest >240 *1000 &&(timeSinceGoodData ==-1 ||timeSinceGoodData >240 *1000)
                         &&piecePicker.getMinAvailability() >(isSeed ?2 :1))
-                        closeAndRemovePeer(pc, "Peer not responsive to piece requests.", true);
+                        closeAndRemovePeer(pc, "Peer not responsive to piece requests."
+//                          +" oldest request:" +timeSinceOldestRequest/1000 +" any data:" +timeSinceData /1000 +" good data:" +timeSinceGoodData/1000
+                            , true);
 				}
 			}
 		}
@@ -2042,6 +2042,13 @@ PEPeerControlImpl
 		return pePieces[pieceNumber];
 	}
 	
+    public boolean isPieceActive(int pieceNumber)
+    {
+        if (pePieces ==null ||pePieces[pieceNumber] ==null)
+            return false;
+        return true;
+    }
+    
 	public PEPeerStats
 	createPeerStats()
 	{
@@ -2111,7 +2118,7 @@ PEPeerControlImpl
 		}
 	}
 	
-  protected void
+  private void
   checkForBannedConnections()
   {	 	
   	if ( ip_filter.isEnabled()){  //if ipfiltering is enabled, remove any existing filtered connections    	
@@ -2341,7 +2348,7 @@ PEPeerControlImpl
 			
 			if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
 			
-			if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
+      if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
 				int free = getMaxConnections() / 20;  //leave 5%
 				allowed = allowed - free;
 			}
