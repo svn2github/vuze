@@ -596,8 +596,8 @@ PEPeerTransportProtocol
   	private void checkSeed()
 	{
   		// seed implicitly means *something* to send (right?)
-  		if (peerHavePieces !=null &&peerHavePieces.nbSet >0)
-  			seed =(peerHavePieces.nbSet ==peerHavePieces.length);
+  		if (peerHavePieces !=null &&nbPieces >0)
+  			seed =(peerHavePieces.nbSet ==nbPieces);
   		else
   			seed =false;
 	}
@@ -1543,6 +1543,8 @@ PEPeerTransportProtocol
 	  // Don't allow known seeds to be interested in us
 	  if (!seed)
 		  other_peer_interested_in_me =true;
+      else
+          other_peer_interested_in_me =false;
   }
   
   
@@ -1584,14 +1586,14 @@ PEPeerTransportProtocol
 			
 		}else{
 	    	peerHavePieces.set(piece_number);
-	    	int pieceLength = manager.getPieceLength(piece_number);
+	    	final int pieceLength = manager.getPieceLength(piece_number);
 	    	peer_stats.hasNewPiece(pieceLength);
 	    	manager.havePiece(piece_number, pieceLength, this);
 		}
 		
     	checkSeed();
         // maybe a seed using lazy bitfield, or suddenly became a seed;
-        // never consider them intersted in us
+        // never consider seeds interested in us
         if (seed &&other_peer_interested_in_me)
             other_peer_interested_in_me =false;
 
