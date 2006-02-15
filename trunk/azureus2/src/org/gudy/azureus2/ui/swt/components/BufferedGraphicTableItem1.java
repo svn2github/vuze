@@ -235,15 +235,20 @@ public abstract class BufferedGraphicTableItem1 extends BufferedGraphicTableItem
         return;
       }
     }
+
+    Rectangle originalClipping = gc.getClipping();
+    clipping = clipping.intersection(originalClipping);
     gc.setClipping(clipping);
     gc.drawImage(image, bounds.x, bounds.y);
 //    System.out
 //				.println("doPnt#" + row.getIndex() + ":" + gc + ";"
 //						+ (ourGC ? "" : "!") + "ourGC;clp:" + gc.getClipping()
 //						+ ";bnds:" + bounds + ";imgBnds=" + imageBounds + ";ca="
-//						+ table.getClientArea());
+//						+ table.getClientArea() + ";" + originalClipping);
     if (ourGC) {
       gc.dispose();
+    } else {
+      gc.setClipping(originalClipping);
     }
   }
 
