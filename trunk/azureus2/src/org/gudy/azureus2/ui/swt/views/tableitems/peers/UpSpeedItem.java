@@ -47,11 +47,18 @@ public class UpSpeedItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : peer.getStats().getDataSendRate();
-
-    if (!cell.setSortValue(value) && cell.isValid())
+    long data_value	= 0;
+    long prot_value	= 0;
+    
+    if ( peer != null ){
+    	data_value = peer.getStats().getDataSendRate();
+       	prot_value = peer.getStats().getProtocolSendRate();
+    }
+    long	sort_value = ( data_value<<32 ) + prot_value;
+    
+    if (!cell.setSortValue(sort_value) && cell.isValid())
       return;
 
-    cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
+    cell.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(data_value,prot_value));
   }
 }

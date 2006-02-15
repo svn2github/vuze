@@ -27,10 +27,8 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import java.io.File;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
@@ -40,11 +38,9 @@ import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -185,6 +181,12 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				MSG_PREFIX + "useUnitsRateBits");
 		new BooleanParameter(cLook, "config.style.doNotUseGB", false, MSG_PREFIX
 				+ "doNotUseGB");
+
+		new BooleanParameter(cLook, "config.style.dataStatsOnly", false, MSG_PREFIX
+				+ "dataStatsOnly");
+
+		new BooleanParameter(cLook, "config.style.separateProtDataStats", false, MSG_PREFIX
+				+ "separateProtDataStats");
 
 		Composite cArea = new Composite(cLook, SWT.NULL);
 		layout = new GridLayout();

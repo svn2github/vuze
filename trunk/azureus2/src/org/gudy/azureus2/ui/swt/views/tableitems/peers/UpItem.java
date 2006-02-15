@@ -47,11 +47,18 @@ public class UpItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : peer.getStats().getTotalDataBytesSent();
-
-    if (!cell.setSortValue(value) && cell.isValid())
+    long data_value	= 0;
+    long prot_value	= 0;
+    
+    if ( peer != null ){
+    	data_value = peer.getStats().getTotalDataBytesSent();
+       	prot_value = peer.getStats().getTotalProtocolBytesSent();
+    }
+    long	sort_value = ( data_value<<32 ) + prot_value;
+    
+    if (!cell.setSortValue(sort_value) && cell.isValid())
       return;
 
-    cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));
+    cell.setText(DisplayFormatters.formatDataProtByteCountToKiBEtc(data_value,prot_value));
   }
 }

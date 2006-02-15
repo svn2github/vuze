@@ -67,6 +67,9 @@ DisplayFormatters
 
     private static int message_text_state = 0;
     
+    private static boolean	separate_prot_data_stats;
+    private static boolean	data_stats_only;
+    
 	// private static String lastDecimalFormat = "";
 
 	static{
@@ -100,22 +103,22 @@ DisplayFormatters
 					}
 				});
 
-    not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB", false);
-    unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
-
-    COConfigurationManager.addParameterListener( "config.style.doNotUseGB",
-        new ParameterListener()
-        {
-          public void
-          parameterChanged(
-            String  value )
-          {
-            not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB", false);
-            unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
-
-						setUnits();
-          }
-        });
+	    not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB", false);
+	    unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
+	
+	    COConfigurationManager.addParameterListener( "config.style.doNotUseGB",
+	        new ParameterListener()
+	        {
+	          public void
+	          parameterChanged(
+	            String  value )
+	          {
+	            not_use_GB_TB = COConfigurationManager.getBooleanParameter("config.style.doNotUseGB", false);
+	            unitsStopAt = (not_use_GB_TB) ? UNIT_MB : UNIT_TB;
+	
+							setUnits();
+	          }
+	        });
 
     	COConfigurationManager.addListener(
     		new COConfigurationListener()
@@ -130,7 +133,19 @@ DisplayFormatters
 
     		});
 		
-		
+		COConfigurationManager.addAndFireParameterListeners( 
+				new String[]{ "config.style.dataStatsOnly", "config.style.separateProtDataStats" },
+				new ParameterListener()
+				{
+					public void
+					parameterChanged(
+						String	x )
+					{
+						separate_prot_data_stats = COConfigurationManager.getBooleanParameter("config.style.separateProtDataStats");
+						data_stats_only			 = COConfigurationManager.getBooleanParameter("config.style.dataStatsOnly");
+					}
+				});
+
 		setUnits();
 		
 		loadMessages();
@@ -323,8 +338,8 @@ DisplayFormatters
 		return( formatByteCountToKiBEtc((long)n));
 	}
 
-	public static
-	String formatByteCountToKiBEtc(
+	public static String 
+	formatByteCountToKiBEtc(
 		long n )
 	{
 		return( formatByteCountToKiBEtc( n, false, false ));
@@ -357,6 +372,50 @@ DisplayFormatters
 				( rate ? units_rate[unitIndex] : units[unitIndex]));
 	}
 
+	public static String
+	formatDataProtByteCountToKiBEtc(
+		long	data,
+		long	prot )
+	{
+		if ( separate_prot_data_stats ){
+			if ( data == 0 && prot == 0 ){
+				return( formatByteCountToKiBEtc(0));
+			}else if ( data == 0 ){
+				return( "(" + formatByteCountToKiBEtc( prot) + ")");
+			}else if ( prot == 0 ){
+				return( formatByteCountToKiBEtc( data ));
+			}else{
+				return(formatByteCountToKiBEtc(data)+" ("+ formatByteCountToKiBEtc(prot)+")");
+			}
+		}else if ( data_stats_only ){
+			return( formatByteCountToKiBEtc( data ));
+		}else{
+			return( formatByteCountToKiBEtc( prot + data ));
+		}
+	}
+	
+	public static String
+	formatDataProtByteCountToKiBEtcPerSec(
+		long	data,
+		long	prot )
+	{
+		if ( separate_prot_data_stats ){
+			if ( data == 0 && prot == 0 ){
+				return(formatByteCountToKiBEtcPerSec(0));
+			}else if ( data == 0 ){
+				return( "(" + formatByteCountToKiBEtcPerSec( prot) + ")");
+			}else if ( prot == 0 ){
+				return( formatByteCountToKiBEtcPerSec( data ));
+			}else{
+				return(formatByteCountToKiBEtcPerSec(data)+" ("+ formatByteCountToKiBEtcPerSec(prot)+")");
+			}
+		}else if ( data_stats_only ){
+			return( formatByteCountToKiBEtcPerSec( data ));
+		}else{	
+			return( formatByteCountToKiBEtcPerSec( prot + data ));
+		}
+	}
+	
 	public static String
 	formatByteCountToKiBEtcPerSec(
 		long		n )
@@ -492,7 +551,7 @@ DisplayFormatters
 			tmp = ManagerItem_allocating;
 			break;
 		  case DownloadManager.STATE_CHECKING :
-			tmp = ManagerItem_checking;;
+			tmp = ManagerItem_checking;
 			break;
 		  case DownloadManager.STATE_FINISHING :
 		    tmp = ManagerItem_finishing;

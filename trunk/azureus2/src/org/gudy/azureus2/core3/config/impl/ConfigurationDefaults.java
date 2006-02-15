@@ -344,6 +344,9 @@ public class ConfigurationDefaults {
     
     def.put( "config.style.useSIUnits", FALSE );
     def.put( "config.style.useUnitsRateBits", FALSE );
+    def.put( "config.style.separateProtDataStats", FALSE );
+    def.put( "config.style.dataStatsOnly", FALSE );
+    
     def.put( "Save Torrent Backup", FALSE );
     
     def.put( "Sharing Protocol", "HTTP" );

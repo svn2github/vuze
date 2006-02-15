@@ -365,19 +365,17 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 						mainWindow.statusDown.setText(
 								(dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
 								+ DisplayFormatters
-										.formatByteCountToKiBEtcPerSec(mainWindow.globalManager
-												.getStats().getDataReceiveRate()
-												+ mainWindow.globalManager.getStats()
-														.getProtocolReceiveRate()));
+										.formatDataProtByteCountToKiBEtcPerSec(
+												mainWindow.globalManager.getStats().getDataReceiveRate(),
+												mainWindow.globalManager.getStats().getProtocolReceiveRate()));
 
 						mainWindow.statusUp.setText(
 								(ul_limit_norm == 0 ? "" : "[" + ul_limit_norm + "K"
 										+ seeding_only + "] ")
 								+ DisplayFormatters
-										.formatByteCountToKiBEtcPerSec(mainWindow.globalManager
-												.getStats().getDataSendRate()
-												+ mainWindow.globalManager.getStats()
-														.getProtocolSendRate()));
+										.formatDataProtByteCountToKiBEtcPerSec(
+												mainWindow.globalManager.getStats().getDataSendRate(),
+												mainWindow.globalManager.getStats().getProtocolSendRate()));
 
 						// End of Status Sections
 						mainWindow.statusBar.layout();
