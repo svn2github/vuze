@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt.components;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -580,5 +581,11 @@ BufferedTableRow
    *
    */
   public void invalidate() {
+  	if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED | REQUIRE_VISIBILITY))
+  		return;
+
+		Rectangle r = item.getBounds(0);
+
+		table.redraw(0, r.y, table.getClientArea().width, r.height, true);
   }
 }
