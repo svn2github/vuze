@@ -94,7 +94,8 @@ PEPeerTransportProtocol
   private boolean other_peer_interested_in_me = false;
   private volatile long snubbed =0;
 
-  private volatile BitFlags	peerHavePieces =null;		// lazy allocation; null until needed
+  /** lazy allocation; null until needed */
+  private volatile BitFlags	peerHavePieces =null; 
   private volatile boolean	availabilityAdded =false;
 
   private boolean seed = false;
@@ -398,6 +399,8 @@ PEPeerTransportProtocol
       }
       
       closing = true;
+      // immediatly lose interest in peer
+      interested_in_other_peer =false;
       
       if( identityAdded ) {  //remove identity
       	if( peer_id != null ) {
@@ -546,14 +549,14 @@ PEPeerTransportProtocol
 
 	public boolean isDownloadPossible()
 	{
-		if (!closing)
+		if (!closing &&!choked_by_other_peer)
 		{
 			if (lastNeededUndonePieceChange <piecePicker.getNeededUndonePieceChange())
 			{
 				checkInterested();
 				lastNeededUndonePieceChange =piecePicker.getNeededUndonePieceChange();
 			}
-			if (interested_in_other_peer &&!choked_by_other_peer &&current_peer_state ==PEPeer.TRANSFERING)
+			if (interested_in_other_peer &&current_peer_state ==PEPeer.TRANSFERING)
 				return true;
 		}
 		return false;
@@ -678,22 +681,21 @@ PEPeerTransportProtocol
   /**
 	 * Global checkInterested method.
 	 * Early-out scan of pieces to determine if the peer is interesting or not.
-	 * They're interesting if they have a piece that we need and isn't Done
+	 * They're interesting if they have a piece that we Need and isn't Done
 	 */
 	public void checkInterested()
 	{
 		if (closing ||peerHavePieces ==null ||peerHavePieces.nbSet ==0)
-			return;
-
-		boolean is_interesting =false;
+		    return;
+        
+        boolean is_interesting =false;
 		if (piecePicker.hasDownloadablePiece())
-		{
+		{   // there is a piece worth being interested in
 			if (!seed)
-			{
-				// there is a piece worth being interested in
+			{   // check individually if don't have all
 				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++ )
 				{
-					if (peerHavePieces.flags[i] && diskManager.isInteresting(i))
+					if (peerHavePieces.flags[i] &&diskManager.isInteresting(i))
 					{
 						is_interesting =true;
 						break;
@@ -1588,6 +1590,10 @@ PEPeerTransportProtocol
 		}
 		
     	checkSeed();
+        // maybe a seed using lazy bitfield, or suddenly became a seed;
+        // never consider them intersted in us
+        if (seed &&other_peer_interested_in_me)
+            other_peer_interested_in_me =false;
 
     	if (!interested_in_other_peer) {
     		checkInterested(piece_number);
@@ -1654,8 +1660,9 @@ PEPeerTransportProtocol
       printRequestStats();
       piece.destroy();
   	if (Logger.isEnabled())
-		Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, "Protocol:In: "
-				+ error_msg + "but piece block discarded as invalid."));
+		Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+            "decodePiece(): " +error_msg
+            +"but piece block discarded as invalid."));
       return;
     }
     
@@ -1675,17 +1682,21 @@ PEPeerTransportProtocol
         manager.discarded( length );
 
         if( manager.isInEndGameMode() ) {  //we're probably in end-game mode then
+            final long now =SystemTime.getCurrentTime();
+            if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
+                setSnubbed(false);
+            last_good_data_time =now;
+            requests_discarded_endgame++;
         	if (Logger.isEnabled())
 						Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_INFORMATION,
-								"Protocol:In: " + error_msg + "but piece block ignored as "
-										+ "already written in end-game mode."));      
-          requests_discarded_endgame++;
+                            "decodePiece(): " +error_msg
+                            +"but piece block ignored as already written in end-game mode."));      
         }
         else {
         	if (Logger.isEnabled())
 						Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
-								"Protocol:In: " + error_msg + "but piece block discarded as "
-										+ "already written."));
+                            "decodePiece(): " +error_msg
+                            +"but piece block discarded as already written."));
           requests_discarded++;
         }
         
@@ -1694,11 +1705,11 @@ PEPeerTransportProtocol
       else {  //successfully received block!
           manager.writeBlock( pieceNumber, offset, payload, this, false);
           final long now =SystemTime.getCurrentTime();
-          if (last_good_data_time !=-1 &&now -last_good_data_time <60 *1000)
+          if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
               setSnubbed(false);
+          last_good_data_time =now;
         requests_completed++;
         piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
-        last_good_data_time =now;
       }
     }
     else {  //initial request may have already expired, but check if we can use the data anyway
@@ -1713,16 +1724,17 @@ PEPeerTransportProtocol
         if( ever_requested ) { //security-measure: we dont want to be accepting any ol' random block
             manager.writeBlock( pieceNumber, offset, payload, this, true);
             final long now =SystemTime.getCurrentTime();
-            if (last_good_data_time !=-1 &&now -last_good_data_time <60 *1000)
+            if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
                 setSnubbed(false);
+            last_good_data_time =now;
             reSetRequestsTime();
           requests_recovered++;
           printRequestStats();
           piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
-          last_good_data_time =now;
       	if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LogIDs.PIECES, "Protocol:In: " + error_msg
-					+ "expired piece block data " + "recovered as useful."));
+			Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_INFORMATION,
+                "decodePiece(): " +error_msg
+                +"expired piece block data recovered as useful."));
         }
         else {
           
@@ -1734,8 +1746,8 @@ PEPeerTransportProtocol
           printRequestStats();
       	if (Logger.isEnabled())
 			Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_ERROR,
-					"Protocol:In: " + error_msg + "but expired piece block "
-							+ "discarded as never requested."));
+                "decodePiece(): " +error_msg
+                +"but expired piece block discarded as never requested."));
         }
       }
       else {
@@ -1744,10 +1756,9 @@ PEPeerTransportProtocol
         requests_discarded++;
         printRequestStats();
       	if (Logger.isEnabled())
-			Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_ERROR,
-					"Protocol:In: " + error_msg
-							+ "but expired piece block discarded "
-							+ "as already written."));
+			Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
+                "decodePiece(): " +error_msg
+                +"but expired piece block discarded as already written."));
       }
     }
     
@@ -1879,17 +1890,14 @@ PEPeerTransportProtocol
       }
       
       public void dataBytesReceived( int byte_count ) {
-        //update stats
-        peer_stats.dataBytesReceived( byte_count );
-        
-        manager.dataBytesReceived( byte_count );
-        
-        	// pick up very slow peers as they may deliver an entire block so slowly that the
-        	// request times out if we only use block reception to measure when data's received
-        
-        //last_good_data_time	= SystemTime.getCurrentTime();
-        //last_good_data_time is expresely for data that's fully validated, wanted, and actually written to disk
-        //last_data_message_received_time is set for all incoming data messages (even worthless data) 
+          // Observe that the peer is sending data so that if theyre so slow that the whole
+          // data block times out, we don't think theyre not sending anything at all
+          last_data_message_received_time =SystemTime.getCurrentTime();
+
+          //update stats
+          peer_stats.dataBytesReceived( byte_count );
+          
+          manager.dataBytesReceived( byte_count );
       }
     });
     
