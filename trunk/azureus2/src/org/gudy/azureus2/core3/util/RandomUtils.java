@@ -102,6 +102,21 @@ public class RandomUtils {
     	return RANDOM.nextInt(n);
 	}
     	
+    public static byte nextByte()
+    {
+        return (byte)RANDOM.nextInt();
+    }
+        
+    public static int nextInt()
+    {
+        return RANDOM.nextInt();
+    }
+        
+    public static long nextLong()
+    {
+        return RANDOM.nextLong();
+    }
+        
 	/**
 	 * @return random int between 0 and max-1. e.g. param of 10 returns 0->9
 	 */
