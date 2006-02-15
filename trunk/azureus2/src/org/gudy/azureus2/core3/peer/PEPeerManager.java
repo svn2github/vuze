@@ -77,6 +77,10 @@ PEPeerManager
 	public boolean hasDownloadablePiece();
 	
     
+    /** @return true if the piece is loaded into the active array
+     */
+    public boolean      isPieceActive(int pieceNumber);
+
     /** Often better to use getPiece(pieceNumber)
      */
 	public PEPiece[]	getPieces();

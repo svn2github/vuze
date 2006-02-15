@@ -1098,6 +1098,11 @@ Test
 		}
 
 
+        public boolean isPieceActive(int pieceNumber)
+        {
+            return false;
+        }
+
 		public PEPiece getPiece(int pieceNumber)
 		{
 			return null;
