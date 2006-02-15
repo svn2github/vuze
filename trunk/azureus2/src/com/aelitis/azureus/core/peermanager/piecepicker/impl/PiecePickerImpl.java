@@ -26,7 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.*;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.core3.disk.impl.piecemapper.DMPieceList;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -350,7 +350,7 @@ public class PiecePickerImpl
 			{
 				if (avail >allMin)
 					total++;
-				if (avail <=rarestMin &&dmPiece.isRequestable() &&peerControl.getPiece(i) !=null)
+				if (avail <=rarestMin &&dmPiece.isRequestable() &&peerControl.isPieceActive(i))
 					rarestActive++;
 				totalAvail +=avail;
 			}
@@ -454,13 +454,14 @@ public class PiecePickerImpl
 		if (!hasNeededUndonePiece)
 			return false;
 
-		final List bestUploaders =new ArrayList();
 		final List peer_transports =peerControl.getPeers();
+        final int peerTransportsSize =peer_transports.size();
+        final List bestUploaders =new ArrayList();
 
-		final long[] upRates =new long[peer_transports.size()];
-		Arrays.fill(upRates, -1);
+		final long[] upRates =new long[peerTransportsSize];
+//		Arrays.fill(upRates, -1);
 
-		for (int i =0; i <peer_transports.size(); i++)
+		for (int i =0; i <peerTransportsSize; i++)
 		{
 			final PEPeerTransport pt =(PEPeerTransport) peer_transports.get(i);
 			if (pt.isDownloadPossible())
@@ -481,29 +482,32 @@ public class PiecePickerImpl
 			// can we transfer something?
 			if (pt.isDownloadPossible())
 			{
-				// If queue is too low, we will enqueue another request
-				int found =0;
-				int maxRequests =REQUESTS_MIN +(int) (pt.getStats().getDataReceiveRate() /SLOPE_REQUESTS);
-				if (maxRequests >REQUESTS_MAX ||maxRequests <0)
-					maxRequests =REQUESTS_MAX;
-
-				if (endGameMode)
-					maxRequests =2;
-				if (pt.isSnubbed())
-					maxRequests =1;
+				// If request queue is too low, enqueue another request
+				int found =1;
+				int maxRequests;
+                
+                if (!pt.isSnubbed())
+                {
+                    if (!endGameMode)
+                    {
+                        maxRequests =REQUESTS_MIN +(int) (pt.getStats().getDataReceiveRate() /SLOPE_REQUESTS);
+                        if (maxRequests >REQUESTS_MAX ||maxRequests <0)
+                            maxRequests =REQUESTS_MAX;
+                    } else
+                        maxRequests =2;
+                } else
+                    maxRequests =1;
 
 				// Only loop when 3/5 of the queue is empty, in order to make more consecutive requests,
 				// and improve cache efficiency
 				if (pt.getNbRequests() <=(maxRequests *3) /5)
 				{
-					while (pt.isDownloadPossible() &&pt.getNbRequests() <maxRequests)
+					while (found >0 &&pt.isDownloadPossible() &&pt.getNbRequests() <maxRequests)
 					{   // is there anything else to download?
                         if (!endGameMode)
                             found =findPieceToDownload(pt, maxRequests);
                         else
                             found =findPieceInEndGameMode(pt, maxRequests);
-                        if (found <=0)
-                            break;
 					}
 				}
 			}
@@ -1153,21 +1157,14 @@ public class PiecePickerImpl
                     endGameModeChunks.remove(chunk);
                     return 0;
                 }
-                if (pt.isPieceAvailable(pieceNumber))
+                if (pt.isPieceAvailable(pieceNumber)
+                    &&peerControl.isPieceActive(pieceNumber)
+                    &&pt.request(pieceNumber, chunk.getOffset(), chunk.getLength()))
                 {
-                    PEPiece pePiece =peerControl.getPiece(pieceNumber);
-                    if (pePiece !=null)
-                    {
-                        if (pt.request(pieceNumber, chunk.getOffset(), chunk.getLength()))
-                        {
-                            pePiece.setRequested(pt, chunk.getBlockNumber());
-                            pt.setLastPiece(pieceNumber);
-                            return 1;
-                        }
-                    }
-                    // System.out.println("End Game Mode :: Piece is null : chunk remove !!!NOT REQUESTED!!!" +
-                    // chunk.getPieceNumber() + ":" + chunk.getOffset() + ":" + chunk.getLength());
-                    return 0;
+                    final PEPiece pePiece =peerControl.getPiece(pieceNumber);
+                    pePiece.setRequested(pt, chunk.getBlockNumber());
+                    pt.setLastPiece(pieceNumber);
+                    return 1;
                 }
             }
         } finally
