@@ -1600,6 +1600,8 @@ DiskManagerImpl
 	    	File	from_file 	= new File(move_from_dir).getCanonicalFile();
 	    	File	to_file		= new File(move_to_dir).getCanonicalFile();
 	    	
+	    	save_location	= save_location.getCanonicalFile();
+	    	
 	    	move_from_dir	= from_file.getPath();
 	    	move_to_dir		= to_file.getPath();
 	    	
@@ -1607,18 +1609,23 @@ DiskManagerImpl
 	    		
 	    		move_data	= false;
 	    		
-	    	}else if ( 	(!download_manager.getTorrent().isSimpleTorrent()) &&
-	    				to_file.getPath().startsWith( from_file.getPath())){
+	    	}else{
 	    		
-	    		String msg = "Target is sub-directory of files";
-	            
-				Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,	msg));
-	            
-	            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
-								LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-								new String[] {from_file.toString(), msg });
-	            
-	            move_data	= false;
+	    		if ( !download_manager.getTorrent().isSimpleTorrent()){
+	
+	    			if ( to_file.getPath().startsWith( save_location.getPath())){
+	    		
+			    		String msg = "Target is sub-directory of files";
+			            
+						Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,	msg));
+			            
+			            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+										LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
+										new String[] {save_location.toString(), msg });
+			            
+			            move_data	= false;
+	    			}
+	    		}
 	    	}
 	    	
 	    }catch( Throwable e ){
