@@ -45,6 +45,13 @@ AEWin32AccessInterface
 	
 	static{
 		System.loadLibrary( PlatformManagerImpl.DLL_NAME );
+	}
+	
+	protected static void
+	load(
+		AEWin32AccessCallback	_callback )
+	{	
+		cb = _callback;
 		
 		try{
 			initialise();
@@ -54,13 +61,6 @@ AEWin32AccessInterface
 			// get here when running 2400 java against old non-updated aereg.dll (for example)
 			// System.out.println( "Old aereg version, please update!" );
 		}
-	}
-	
-	protected static void
-	load(
-		AEWin32AccessCallback	_callback )
-	{	
-		cb = _callback;
 	}
 	
 	public static long
