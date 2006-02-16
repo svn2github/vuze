@@ -42,7 +42,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  */
 public class NameItem
        extends CoreTableColumn 
-       implements TableCellRefreshListener , TableCellDisposeListener
+       implements TableCellRefreshListener
 {
   /** Default Constructor */
   public NameItem() {
@@ -61,16 +61,12 @@ public class NameItem
       if (fileInfo == null) {
         icon = null;
       } else {
+				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
     	  icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath());
       }
       // cheat for core, since we really know it's a TabeCellImpl and want to use
       // those special functions not available to Plugins
       ((TableCellCore)cell).setImage(icon);
     }
-  }
-  
-  public void dispose(TableCell cell) {
-    DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    ImageRepository.unloadPathIcon(fileInfo.getFile(true).getPath());
   }
 }

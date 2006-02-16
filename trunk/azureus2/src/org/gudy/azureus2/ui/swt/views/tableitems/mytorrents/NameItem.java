@@ -40,7 +40,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class NameItem extends CoreTableColumn implements
-		TableCellRefreshListener, TableCellDisposeListener {
+		TableCellRefreshListener {
 	/** Default Constructor */
 	public NameItem(String sTableID) {
 		super("name", POSITION_LAST, 250, sTableID);
@@ -58,6 +58,7 @@ public class NameItem extends CoreTableColumn implements
 		//setText returns true only if the text is updated
 		if (cell.setText(name) || !cell.isValid()) {
 			if (dm != null) {
+				// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 				Image icon = ImageRepository.getPathIcon(dm.getSaveLocation()
 						.toString());
 				// cheat for core, since we really know it's a TabeCellImpl and want to
@@ -65,11 +66,5 @@ public class NameItem extends CoreTableColumn implements
 				((TableCellCore) cell).setImage(icon);
 			}
 		}
-	}
-
-	public void dispose(TableCell cell) {
-		DownloadManager dm = (DownloadManager) cell.getDataSource();
-		if (dm != null)
-			ImageRepository.unloadPathIcon(dm.getSaveLocation().toString());
 	}
 }
