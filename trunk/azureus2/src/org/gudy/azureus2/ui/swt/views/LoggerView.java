@@ -407,7 +407,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 					buf.append("{").append(event.logID).append("} ");
 
 					buf.append(event.text);
-					if (filter == null && event.relatedTo != null) {
+					if (event.relatedTo != null) {
 						buf.append("; \t| ");
 						for (int j = 0; j < event.relatedTo.length; j++) {
 							Object obj = event.relatedTo[j];
