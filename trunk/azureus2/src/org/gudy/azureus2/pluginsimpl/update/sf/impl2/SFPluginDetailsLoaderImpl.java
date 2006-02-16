@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.html.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.logging.*;
 
@@ -51,10 +52,18 @@ SFPluginDetailsLoaderImpl
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
 
-	public static final String	site_prefix = "http://azureus.sourceforge.net/";
+	private static final String	site_prefix = "http://azureus.sourceforge.net/";
 	
-	public static String	page_url 	= site_prefix + "update/pluginlist3.php?type=&version=" + Constants.AZUREUS_VERSION;
+	private static final String	base_url_params;
+	
+	static{
+		
+		base_url_params = "version=" + Constants.AZUREUS_VERSION + "&app=" + SystemProperties.getApplicationName();
+	}
+	
+	private static String	page_url 	= site_prefix + "update/pluginlist3.php?type=&" + base_url_params;
 
+	
 	static{
 		try{
 			PlatformManager pm = PlatformManagerFactory.getPlatformManager();
@@ -69,10 +78,10 @@ SFPluginDetailsLoaderImpl
 		}
 	}
 	
-	protected static SFPluginDetailsLoaderImpl		singleton;
-  	protected static AEMonitor		class_mon		= new AEMonitor( "SFPluginDetailsLoader:class" );
+	private static SFPluginDetailsLoaderImpl		singleton;
+	private static AEMonitor		class_mon		= new AEMonitor( "SFPluginDetailsLoader:class" );
 
-  	public static final int		RELOAD_MIN_TIME	= 60*60*1000;
+	private static final int		RELOAD_MIN_TIME	= 60*60*1000;
 	
 	public static SFPluginDetailsLoader
 	getSingleton()
@@ -184,7 +193,7 @@ SFPluginDetailsLoaderImpl
 		throws SFPluginDetailsException
 	{
 		try{
-			ResourceDownloader p_dl = rd_factory.create( new URL( site_prefix + "plugin_details.php?plugin=" + details.getId() + "&version=" + Constants.AZUREUS_VERSION ));
+			ResourceDownloader p_dl = rd_factory.create( new URL( site_prefix + "plugin_details.php?plugin=" + details.getId() + "&" + base_url_params ));
 		
 			p_dl = rd_factory.getRetryDownloader( p_dl, 5 );
 		

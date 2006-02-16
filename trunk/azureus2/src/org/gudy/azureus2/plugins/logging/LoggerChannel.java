@@ -45,6 +45,14 @@ LoggerChannel
 	public boolean
 	isEnabled();
 	
+		/**
+		 * This causes the channel to also write to logs/<name> files in a cyclic fashion (c.f. the debug_1/2._log
+		 * files)
+		 */
+	
+	public void
+	setDiagnostic();
+	
 	public void
 	log(
 		int		log_type,

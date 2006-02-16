@@ -31,7 +31,10 @@ import java.util.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 
 public class 
 LoggerChannelImpl 
@@ -43,6 +46,8 @@ LoggerChannelImpl
 	private boolean		timestamp;
 	private boolean		no_output;
 	private List		listeners = new ArrayList();
+	
+	private AEDiagnosticsLogger	diagnostic_logger;
 	
 	protected
 	LoggerChannelImpl(
@@ -75,7 +80,36 @@ LoggerChannelImpl
 		return org.gudy.azureus2.core3.logging.Logger.isEnabled();
 	}
 
-    
+	public void
+	setDiagnostic()
+	{
+		if ( diagnostic_logger == null ){
+			
+			diagnostic_logger = AEDiagnostics.getLogger( FileUtil.convertOSSpecificChars( name ));
+			
+			addListener(
+				new LoggerChannelListener()
+				{
+					public void
+					messageLogged(
+						int		type,
+						String	content )
+					{
+						diagnostic_logger.log( content );
+					}
+					
+					public void
+					messageLogged(
+						String		str,
+						Throwable	error )
+					{
+						diagnostic_logger.log( str );
+						diagnostic_logger.log( error );
+					}
+				});
+		}
+	}
+	
 	private int LogTypePluginToCore(int pluginLogType) {
     switch (pluginLogType) {
       case LT_INFORMATION:
@@ -129,7 +163,7 @@ LoggerChannelImpl
 	}
 	
 	public void log(Object[] relatedTo, int log_type, String data) {
-		// TODO Auto-generated method stub
+		
 		notifyListeners(log_type, addTimeStamp(data));
 		
 		if (isEnabled() && !no_output) {
