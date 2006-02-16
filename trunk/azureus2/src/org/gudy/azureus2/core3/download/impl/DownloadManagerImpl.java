@@ -2400,7 +2400,8 @@ DownloadManagerImpl
 		  
 			  // nothing to do
 			  
-		  }else if ( new_file.getPath().startsWith( old_file.getPath())){
+		  }else if ((	!torrent.isSimpleTorrent()) &&
+				  		new_file.getPath().startsWith( old_file.getPath())){
 		    		
 	            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
 						LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
@@ -2410,8 +2411,7 @@ DownloadManagerImpl
 	            
 		  }else{
 			  if ( FileUtil.renameFile( old_file, new_file )){
-		  
-				  
+		  			  
 				  setTorrentSaveDir( new_parent_dir.toString());
 			  
 			  }else{

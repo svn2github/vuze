@@ -1607,7 +1607,8 @@ DiskManagerImpl
 	    		
 	    		move_data	= false;
 	    		
-	    	}else if ( to_file.getPath().startsWith( from_file.getPath())){
+	    	}else if ( 	(!download_manager.getTorrent().isSimpleTorrent()) &&
+	    				to_file.getPath().startsWith( from_file.getPath())){
 	    		
 	    		String msg = "Target is sub-directory of files";
 	            
