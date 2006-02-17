@@ -1564,9 +1564,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		File file = new File(cmbDataDir.getText());
 		if (!file.isDirectory()) {
 			bEnable = false;
-			setBackground(cSaveTo, Colors.colorErrorBG);
+			cmbDataDir.setBackground(Colors.colorErrorBG);
 		} else {
-			setBackground(cSaveTo, null);
+			cmbDataDir.setBackground(null);
 		}
 
 		// Check for seeding
