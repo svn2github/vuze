@@ -4,6 +4,9 @@ AZUREUS CHANGELOG
 2006.xx.xx | Azureus 2.4.0.1
 
 
+BUGFIX: Core  | Ensure SO_REUSEADDR is set when binding during NAT test [Nolar]
+
+
 
 
 2006.02.11 | Azureus 2.4.0.0

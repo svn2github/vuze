@@ -113,21 +113,30 @@ public class NatCheckerServer extends AEThread {
   				Logger.log(new LogEvent(LOGID, "NAT tester using central routing for "
   						+ "server socket"));
       }
-      else {  //different port than already listening on, start new listen server
+      else {  //different port than already listening on, start new listen server     	
         try {
           String bind_ip  = COConfigurationManager.getStringParameter("Bind IP", "");
 
-          if ( bind_ip.length() < 7 ){
-            server = new ServerSocket( _port );
-  					if (Logger.isEnabled())
-  						Logger.log(new LogEvent(LOGID, "NAT tester server socket "
-  								+ "bound to port " + _port));
-  				} else {
-  					server = new ServerSocket(_port, 8, InetAddress.getByName(bind_ip));
-  					if (Logger.isEnabled())
-  						Logger.log(new LogEvent(LOGID, "NAT tester server socket "
-  								+ "bound to " + bind_ip + ":" + _port));
-          }
+          server = new ServerSocket();  //unbound          
+          server.setReuseAddress( true );  //set SO_REUSEADDR 
+          
+          InetSocketAddress address;
+  	      try{
+  	        if( bind_ip.length() > 6 ) {
+  	          address = new InetSocketAddress( InetAddress.getByName( bind_ip ), _port );
+  	        }
+  	        else {
+  	          address = new InetSocketAddress( _port );
+  	        }
+  	      }
+  	      catch( UnknownHostException e ) {
+  	        Debug.out( e );
+  	        address = new InetSocketAddress( _port );
+  	      }
+            	      
+  	      server.bind( address );
+  	      
+  	      if (Logger.isEnabled())	Logger.log(new LogEvent(LOGID, "NAT tester server socket bound to " +address ));
           
           valid = true;
         }
@@ -174,7 +183,7 @@ public class NatCheckerServer extends AEThread {
         try {
           server.close();
         }
-        catch(Exception e) { /*nothing*/ }
+        catch(Throwable t) { t.printStackTrace(); }
       }
     }
     

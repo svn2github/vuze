@@ -268,7 +268,7 @@ public class IncomingSocketChannelManager
 	    if( server_selector == null ) {
 	      InetSocketAddress address;
 	      try{
-	        if( bind_address.length() > 0 ) {
+	        if( bind_address.length() > 6 ) {
 	          address = new InetSocketAddress( InetAddress.getByName( bind_address ), listen_port );
 	        }
 	        else {
