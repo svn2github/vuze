@@ -5,7 +5,7 @@ AZUREUS CHANGELOG
 
 
 BUGFIX: Core  | Ensure SO_REUSEADDR is set when binding during NAT test [Nolar]
-
+BUGFIX: Core  | Retain data from terribly slow senders [MjrTom]
 
 
 
