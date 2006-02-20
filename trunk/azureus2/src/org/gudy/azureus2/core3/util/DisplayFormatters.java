@@ -38,6 +38,8 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.internat.*;
 
+import com.sun.org.apache.xpath.internal.operations.Div;
+
 public class
 DisplayFormatters
 {
@@ -771,6 +773,14 @@ DisplayFormatters
   	int		precision,
   	boolean bTruncateZeros)
   {
+  	try {
+	  	if (value == 1.0 / 0) {
+	  		return Constants.INFINITY_STRING;
+	  	}
+  	} catch (Exception e) {
+  		// for compilers that throw on division by 0
+  	}
+  	
   	// NumberFormat rounds, so truncate at precision
   	double tValue;
   	if (precision == 0) {
