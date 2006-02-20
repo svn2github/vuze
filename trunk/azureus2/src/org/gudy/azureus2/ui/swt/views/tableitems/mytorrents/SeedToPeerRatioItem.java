@@ -24,6 +24,7 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -70,24 +71,7 @@ public class SeedToPeerRatioItem
       cell.setText( "" );
     }
     else {
-      String value = Float.toString( ratio );
-      
-      if( value.equalsIgnoreCase( "NaN" ) ) {  //no peers
-        value = Float.toString( 0F );
-      }
-      
-      int dot_index = value.indexOf( (char)46 );
-      
-      if( value.length() > dot_index + 3 ) {
-        value = value.substring( 0, dot_index + 4 );
-      }
-      else {
-        while( value.length() < dot_index + 4 ) {
-          value = value + "0";
-        }
-      }
-      
-      cell.setText( value );
+      cell.setText( DisplayFormatters.formatDecimal(ratio, 3) );
     }
   }
 
