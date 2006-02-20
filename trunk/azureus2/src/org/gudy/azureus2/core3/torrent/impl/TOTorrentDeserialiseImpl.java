@@ -423,6 +423,11 @@ TOTorrentDeserialiseImpl
 													TOTorrentException.RT_DECODE_FAILS ));
 				}
 			}
+			
+			if ( ! ( got_announce_list || got_announce )){
+				
+				setAnnounceURL( TorrentUtils.getDecentralisedEmptyURL());
+			}
 
 			Map	info = (Map)meta_data.get( TK_INFO );
 
