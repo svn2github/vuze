@@ -35,9 +35,8 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.util.*;
 
-public class 
-PEPieceImpl
-implements PEPiece
+public class PEPieceImpl
+    implements PEPiece
 {
 	private static final LogIDs LOGID = LogIDs.PIECES;
 	
@@ -57,7 +56,7 @@ implements PEPiece
 	//In end game mode, this limitation isn't used
     private int             speed;      //slower peers dont slow down fast pieces too much
     
-    private long            resumePriority;
+    private int             resumePriority;
     
 	// experimental class level lock
 	protected static AEMonitor 	class_mon	= new AEMonitor( "PEPiece:class");
@@ -189,53 +188,53 @@ implements PEPiece
         requested[blockNumber] =downloaded[blockNumber] ?writers[blockNumber] :null;
     }
 
-//	/** This will scan each block looking for requested blocks. For each one, it'll verify
-//	 * if the PEPeer for it still exists and is still willing and able to upload data.
-//	 * If not, it'll unmark the block as requested. This should probably only be called
-//	 * after a piece has timed out, and not during end game mode
-//	 * @return int of how many were cleared (0 to nbBlocks)
-//	 */
-//	public int checkRequests()
-//	{
-//		int cleared =0;
-//		boolean nullPeer =false;
-//		for (int i =0; i <nbBlocks; i++)
-//		{
-//			if (!downloaded[i] &&!dmPiece.isWritten(i))
-//			{
-//				final String			requester =requested[i];
-//				final PEPeerTransport	pt;
-//				if (requester !=null)
-//				{
-//					pt =manager.getTransportFromAddress(requester);
-//					if (pt !=null)
-//					{
-//						pt.setSnubbed(true);
-//						if (!pt.isDownloadPossible())
-//						{
-//							requested[i] =null;
-//							cleared++;
-//						}
-//					} else
-//					{
-//						nullPeer =true;
-//						requested[i] =null;
-//						cleared++;
-//					}
-//				}
-//			}
-//		}
-//		if (cleared >0)
-//		{
-//			dmPiece.clearRequested();
-////			manager.getPiecePicker().addEndGameBlocks(this);
-//            if (Logger.isEnabled())
-//                Logger.log(new LogEvent(dmPiece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
-//                        "Piece:"+getPieceNumber()+" cleared "+cleared+" requests."
-//                        + (nullPeer ?" Null peer was detected." :" ")));
-//		}
-//		return cleared;
-//	}
+	/** This will scan each block looking for requested blocks. For each one, it'll verify
+	 * if the PEPeer for it still exists and is still willing and able to upload data.
+	 * If not, it'll unmark the block as requested.
+	 * @return int of how many were cleared (0 to nbBlocks)
+	 */
+	public int checkRequests()
+	{
+        if (getTimeSinceLastActivity() <30 *1000)
+            return 0;
+		int cleared =0;
+		boolean nullPeer =false;
+		for (int i =0; i <nbBlocks; i++)
+		{
+			if (!downloaded[i] &&!dmPiece.isWritten(i))
+			{
+				final String			requester =requested[i];
+				final PEPeerTransport	pt;
+				if (requester !=null)
+				{
+					pt =manager.getTransportFromAddress(requester);
+					if (pt !=null)
+					{
+						pt.setSnubbed(true);
+						if (!pt.isDownloadPossible())
+						{
+                            clearRequested(i);
+							cleared++;
+						}
+					} else
+					{
+						nullPeer =true;
+                        clearRequested(i);
+						cleared++;
+					}
+				}
+			}
+		}
+		if (cleared >0)
+		{
+			dmPiece.clearRequested();
+            if (Logger.isEnabled())
+                Logger.log(new LogEvent(dmPiece.getManager().getTorrent(), LOGID, LogEvent.LT_WARNING,
+                        "checkRequests(): piece #" +getPieceNumber()+" cleared " +cleared +" requests."
+                        + (nullPeer ?" Null peer was detected." :"")));
+		}
+		return cleared;
+	}
 
 	/** @return true if the piece has any blocks that are not;
 	 *  Downloaded, Requested, or Written
@@ -533,12 +532,12 @@ implements PEPiece
 		}
 	}
 
-	public void setResumePriority(long p)
+	public void setResumePriority(int p)
 	{
 		resumePriority =p;
 	}
 
-	public long getResumePriority()
+	public int getResumePriority()
 	{
 		return resumePriority;
 	}

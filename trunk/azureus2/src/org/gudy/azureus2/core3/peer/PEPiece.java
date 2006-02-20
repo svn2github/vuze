@@ -101,13 +101,13 @@ public interface PEPiece
 	public void			setReservedBy(String peer);
 
 	/**
-	 * @return long ResumePriority (startPriority + resuming adjustments)
+	 * @return int ResumePriority (startPriority + resuming adjustments)
 	 */
-	public long			getResumePriority();
+	public int			getResumePriority();
 	/**
 	 * @param p the Resume Priority to set, for display purposes
 	 */
-	public void			setResumePriority(long p);
+	public void			setResumePriority(int p);
 
 	public String[] 	getWriters();
 	public void			setWritten(PEPeer peer, int blockNumber);

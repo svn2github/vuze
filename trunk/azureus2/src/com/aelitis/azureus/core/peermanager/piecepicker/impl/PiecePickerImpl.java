@@ -57,30 +57,30 @@ public class PiecePickerImpl
 
 	// The following are added to the base User setting based priorities (for all inspected pieces)
     /** user select prioritize first/last */
-	private static final long PRIORITY_W_FIRSTLAST	=1100;
+	private static final int PRIORITY_W_FIRSTLAST	=1300;
     /** min # pieces in file for first/last prioritization */
     private static final long FIRST_PIECE_MIN_NB	=4;
     /** user sets file as "High" */
-    private static final long PRIORITY_W_FILE		=1000;
+    private static final int PRIORITY_W_FILE		=1000;
     /** Additional boost for more completed High priority */
-    private static final long PRIORITY_W_COMPLETION	=1000;
+    private static final int PRIORITY_W_COMPLETION	=1000;
     
     /** Additional boost for globally rarest piece */
-    private static final long PRIORITY_W_RAREST		=1300;
+    private static final int PRIORITY_W_RAREST		=1300;
     /** boost for rarity */
-    private static final long PRIORITY_W_RARE		=2300;
+    private static final int PRIORITY_W_RARE		=2300;
 
 	// The following are only used when resuming already running pieces
     /** priority boost due to being too old */
-    private static final long PRIORITY_W_AGE		=900;
+    private static final int PRIORITY_W_AGE		=900;
     /** ms a block is expected to complete in */
-    private static final long PRIORITY_DW_AGE		=60 *1000;
+    private static final int PRIORITY_DW_AGE		=60 *1000;
     /** ms since last write */
-    private static final long PRIORITY_DW_STALE		=120 *1000;
+    private static final int PRIORITY_DW_STALE		=120 *1000;
     /** finish pieces already almost done */
-    private static final long PRIORITY_W_PIECE_DONE	=900;
+    private static final int PRIORITY_W_PIECE_DONE	=900;
     /** keep working on same piece */
-    private static final long PRIORITY_W_SAME_PIECE	=700;
+    private static final int PRIORITY_W_SAME_PIECE	=700;
 
     /** Min number of requests sent to a peer */
     private static final int REQUESTS_MIN	=2;
@@ -151,7 +151,7 @@ public class PiecePickerImpl
     private long				timeLastPriorities;
 	
     /** the priority for starting each piece/base priority for resuming */
-    private long[]				startPriorities;
+    private int[]				startPriorities;
 	
 	protected volatile boolean	hasNeededUndonePiece;
 	protected volatile long		neededUndonePieceChange;
@@ -273,94 +273,94 @@ public class PiecePickerImpl
      * This methd will compute the pieces' overall availability (including ourself)
      * and the _globalMinOthers & _globalAvail
      */
-	public void updateAvailability()
-	{
-		final long now =SystemTime.getCurrentTime();
-		if (now >=time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY)
-			return;
-		if (availabilityDrift >0 || now < time_last_rebuild ||  now - time_last_rebuild > TIME_AVAIL_REBUILD ){
-			try
-			{	availabilityMon.enter();
-		
-				time_last_rebuild	= now;
-				
-				int[]	new_availability = recomputeAvailability();
-				
-				/*
+    public void updateAvailability()
+    {
+        final long now =SystemTime.getCurrentTime();
+        if (now >=time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY)
+            return;
+        if (availabilityDrift >0 || now < time_last_rebuild ||  (now - time_last_rebuild) > TIME_AVAIL_REBUILD ){
+            try
+            {	availabilityMon.enter();
+
+            time_last_rebuild	= now;
+
+            int[]	new_availability = recomputeAvailability();
+
+            /*
 				int[]	old_availability = availabilityAsynch==null?availability:availabilityAsynch;
-				
+
 				int	errors	= 0;
-				
+
 				for (int i=0;i<new_availability.length;i++){
 					if ( new_availability[i] != old_availability[i]){
 						errors++;
 					}
 				}
-				
-				System.out.println( "avail rebuild: errors = " + errors );
-				*/
-				
-				availabilityAsynch	= new_availability;
-				
-				availabilityDrift =0;
-				availabilityChange++;
-			} finally {availabilityMon.exit();}
-			
-		}else if (availabilityComputeChange >=availabilityChange){
-			return;
-		}
-		
-		try
-		{	availabilityMon.enter();
-			time_last_avail =now;
-			availabilityComputeChange =availabilityChange;
 
-			// take a snapshot of availabilityAsynch
-			if ( availabilityAsynch != null ){
-				availability 		= availabilityAsynch;
-				availabilityAsynch	= null;
-			}
-		} finally {availabilityMon.exit();}
-		
-		int i;
-		int allMin =Integer.MAX_VALUE;
-		int rarestMin =Integer.MAX_VALUE;
-		for (i =0; i <nbPieces; i++)
-		{
-			final int avail =availability[i];
-			final DiskManagerPiece dmPiece =dmPieces[i];
-			if (avail >0 &&avail <rarestMin &&dmPiece.isRequestable()) 
-					rarestMin =avail;	// most important targets for near future requests from others
-			
-			if (avail <allMin)
-				allMin =avail;
-		}
-		// copy updated local variables into globals
-		globalMin =allMin;
-		globalMinOthers =rarestMin;
-		
-		int total =0;
-		int rarestActive =0;
-		long totalAvail =0;
-		for (i =0; i <nbPieces; i++ )
-		{
-			final int avail =availability[i];
-			final DiskManagerPiece dmPiece =dmPieces[i];
-			if (avail >0)
-			{
-				if (avail >allMin)
-					total++;
-				if (avail <=rarestMin &&dmPiece.isRequestable() &&peerControl.isPieceActive(i))
-					rarestActive++;
-				totalAvail +=avail;
-			}
-		}
-		// copy updated local variables into globals
-		globalAvail =(total /(float) nbPieces) +allMin;
-		nbRarestActive =rarestActive;
-		globalAvgAvail =totalAvail /(float)(nbPieces)
-            /(1 +peerControl.getNbSeeds() +peerControl.getNbPeers());
-	}
+				System.out.println( "avail rebuild: errors = " + errors );
+             */
+
+            availabilityAsynch	= new_availability;
+
+            availabilityDrift =0;
+            availabilityChange++;
+            } finally {availabilityMon.exit();}
+
+        }else if (availabilityComputeChange >=availabilityChange){
+            return;
+        }
+
+        try
+        {	availabilityMon.enter();
+        time_last_avail =now;
+        availabilityComputeChange =availabilityChange;
+
+        // take a snapshot of availabilityAsynch
+        if ( availabilityAsynch != null ){
+            availability 		= availabilityAsynch;
+            availabilityAsynch	= null;
+        }
+        } finally {availabilityMon.exit();}
+
+        int i;
+        int allMin =Integer.MAX_VALUE;
+        int rarestMin =Integer.MAX_VALUE;
+        for (i =0; i <nbPieces; i++)
+        {
+            final int avail =availability[i];
+            final DiskManagerPiece dmPiece =dmPieces[i];
+            if (avail >0 &&avail <rarestMin &&dmPiece.isRequestable()) 
+                rarestMin =avail;	// most important targets for near future requests from others
+
+            if (avail <allMin)
+                allMin =avail;
+        }
+        // copy updated local variables into globals
+        globalMin =allMin;
+        globalMinOthers =rarestMin;
+
+        int total =0;
+        int rarestActive =0;
+        long totalAvail =0;
+        for (i =0; i <nbPieces; i++ )
+        {
+            final int avail =availability[i];
+            final DiskManagerPiece dmPiece =dmPieces[i];
+            if (avail >0)
+            {
+                if (avail >allMin)
+                    total++;
+                if (avail <=rarestMin &&dmPiece.isRequestable() &&peerControl.isPieceActive(i))
+                    rarestActive++;
+                totalAvail +=avail;
+            }
+        }
+        // copy updated local variables into globals
+        globalAvail =(total /(float) nbPieces) +allMin;
+        nbRarestActive =rarestActive;
+        globalAvgAvail =totalAvail /(float)(nbPieces)
+        /(1 +peerControl.getNbSeeds() +peerControl.getNbPeers());
+    }
 	
 	private int[] recomputeAvailability()
 	{
@@ -538,7 +538,7 @@ public class PiecePickerImpl
         
         boolean         changedPriority =false;
         boolean         foundPieceToDownload =false;
-        long[]          newPriorities   =new long[nbPieces];
+        final int[]		newPriorities   =new int[nbPieces];
         try
         {
             final boolean rarestOverride =getRarestOverride();
@@ -550,8 +550,8 @@ public class PiecePickerImpl
                 if (dmPiece.isDone())
                     continue;   // nothing to do for pieces not needing requesting
                 
-                long startPriority =Long.MIN_VALUE;
-                long priority =Long.MIN_VALUE;
+                int startPriority =Integer.MIN_VALUE;
+                int priority =Integer.MIN_VALUE;
                 
                 final DMPieceList pieceList =diskManager.getPieceList(dmPiece.getPieceNumber());
                 for (int j =0; j <pieceList.size(); j++)
@@ -754,15 +754,15 @@ public class PiecePickerImpl
         final boolean   rarestOverride =getRarestOverride();
 
         long        resumeMinAvail =Long.MAX_VALUE;
-        long        resumeMaxPriority =Long.MIN_VALUE;
+        int         resumeMaxPriority =Integer.MIN_VALUE;
         boolean     resumeIsRarest =false; // can the peer continuea piece with lowest avail of all pieces we want
 
         BitFlags    startCandidates =null;
-        long        startMaxPriority =Long.MIN_VALUE;
+        int         startMaxPriority =Integer.MIN_VALUE;
         int         startMinAvail =Integer.MAX_VALUE;
         boolean     startIsRarest =false;
 
-        long        priority;   // aggregate priority of piece under inspection (start priority or resume priority for pieces to be resumed)
+        int         priority;   // aggregate priority of piece under inspection (start priority or resume priority for pieces to be resumed)
         int         avail =0;   // the swarm-wide availability level of the piece under inspection
         long        staleness;  // how long since there's been a write to the resume piece under inspection
         long        pieceAge;   // how long since the PEPiece first started downloading (requesting, actually)
