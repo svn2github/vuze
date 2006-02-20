@@ -28,17 +28,20 @@ package com.aelitis.azureus.core.peermanager.piecepicker.priority;
  */
 public interface PriorityShape
 {
-	public static final int PRIORITY_MODE_NO_RANDOM		=0x00000001;	// random selection will not occur
-	public static final int PRIORITY_MODE_IGNORE_RARITY	=0x00000002;	// priority boosts for rarity will not be applied
-	public static final int PRIORITY_MODE_FULL_PIECES	=0x00000004;	// requests of full pieces are prefered over blocks requests
-	public static final int PRIORITY_MODE_AUTO_RESERVE	=0x00000008;	// when a request is made, the piece will automatically be reserved to the peer
-	public static final int PRIORITY_MODE_REVERSE_ORDER	=0x00000010;	// inverse ordering (ie end to front and/or falling ramp)
-	public static final int PRIORITY_MODE_AUTO_SLIDE	=0x00000020;	// I don't know if this can be practically implemented
-	public static final int PRIORITY_MODE_RAMP			=0x00000040;	// priority adjustment ramps (otherwise flat)
-	public static final int PRIORITY_MODE_STATIC_PRIORITY =0x00000080;	// base (start) priority is not further modified
+	public static final long PRIORITY_MODE_NO_RANDOM		=0x00000001;	// random selection will not occur
+	public static final long PRIORITY_MODE_IGNORE_RARITY	=0x00000002;	// priority boosts for rarity will not be applied
+    public static final long PRIORITY_MODE_FULL_PIECES      =0x00000004;	// requests of full pieces are prefered over blocks requests
+    public static final long PRIORITY_MODE_AUTO_RESERVE     =0x00000008;	// when a request is made, the piece will automatically be reserved to the peer
+	public static final long PRIORITY_MODE_REVERSE_ORDER	=0x00000010;	// inverse ordering (ie end to front and/or falling ramp)
+    public static final long PRIORITY_MODE_AUTO_SLIDE       =0x00000020;	// I don't know if this can be practically implemented
+    public static final long PRIORITY_MODE_RAMP             =0x00000040;	// priority adjustment ramps (otherwise flat)
+    public static final long PRIORITY_MODE_STATIC_PRIORITY  =0x00000080;	// base (start) priority is not further modified
 
 	public int getStart();
 	public int getEnd();
-	public int getMode();
-	public long getPriority();
+	public long getMode();
+	public int getPriority();
+    
+    public boolean isNoRandom();
+    
 }

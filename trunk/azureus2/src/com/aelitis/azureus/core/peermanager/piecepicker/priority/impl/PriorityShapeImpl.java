@@ -30,32 +30,42 @@ import com.aelitis.azureus.core.peermanager.piecepicker.priority.PriorityShape;
 abstract public class PriorityShapeImpl
 	implements PriorityShape
 {
-	public int	mode =0;
-	public long	priority =0;	
+    public long mode =0;
+    public int  priority =0;	
 
 	public PriorityShapeImpl()
 	{
 		
 	}
 	
-	public int getMode()
+    public void setPriority(final int i)
+    {
+        priority =i;
+    }
+
+    public int getPriority()
+    {
+        return priority;
+    }
+
+
+    public void setMode(final long i)
+    {
+        mode =i;
+    }
+
+    public long getMode()
 	{
 		return mode;
 	}
 
-	public void setMode(int i)
-	{
-		mode =i;
-	}
+    public boolean isNoRandom()
+    {
+        return (mode &PRIORITY_MODE_NO_RANDOM) ==PRIORITY_MODE_NO_RANDOM;
+    }
 
-	
-	public long getPriority()
-	{
-		return priority;
-	}
-
-	public void setPriority(int i)
-	{
-		priority =i;
-	}
+    public boolean isReverse()
+    {
+        return (mode &PRIORITY_MODE_REVERSE_ORDER) ==PRIORITY_MODE_REVERSE_ORDER;
+    }
 }

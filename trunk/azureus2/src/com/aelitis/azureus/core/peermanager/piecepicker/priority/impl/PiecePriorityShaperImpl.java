@@ -24,7 +24,7 @@ package com.aelitis.azureus.core.peermanager.piecepicker.priority.impl;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.AEMonitor;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.priority.*;
@@ -35,94 +35,155 @@ import com.aelitis.azureus.core.peermanager.piecepicker.priority.*;
 public class PiecePriorityShaperImpl
 	implements PiecePriorityShaper
 {
-	protected List			torrentPriorityShapes =new ArrayList();
-	protected static final	AEMonitor torrentPriorityShapesMon = new AEMonitor("torrentPriorityShapes");
-
-	protected Map			peersShapesMap =new HashMap();
-	protected static final	AEMonitor peersShapesMapMon = new AEMonitor("peersShapesMap");
-
-	public void addPriorityShape(final PriorityShape shape)
+	protected List			torrentPriorityShapes;
+	protected static final	AEMonitor torrentPriorityShapesMon =new AEMonitor("torrentPriorityShapes");
+	
+	protected Map			peersShapesMap;
+	protected static final	AEMonitor peersShapesMapMon =new AEMonitor("peersShapesMap");
+	
+    
+	/**
+     * @param shape the PriorityShape to globally add to the shaper.
+     * Do not pass a null shape. 
+	 */
+    public void addPriorityShape(final PriorityShape shape)
 	{
-		try
-		{	torrentPriorityShapesMon.enter();
+        try
+        {   torrentPriorityShapesMon.enter();
+            if (torrentPriorityShapes ==null)
+                torrentPriorityShapes =new ArrayList();
 			torrentPriorityShapes.add(shape);
 		} finally { torrentPriorityShapesMon.exit(); }
 	}
 
-	public void addPriorityShape(final PriorityShape shape, final PEPeerTransport pt)
+    /**
+     * @param shape the PriorityShape to add to the shaper for the given peer.
+     * Do not pass a null shape or null peer. 
+     */
+	public void addPriorityShape(final PriorityShape shape, final PEPeer peer)
 	{
-		ArrayList ptPriorityShapes =getPeerPriorityShapes(pt);
-		if (ptPriorityShapes ==null)
-			return;
-		ptPriorityShapes.add(shape);
-		peersShapesMap.put(pt, ptPriorityShapes);
+        try
+        {   peersShapesMapMon.enter();
+		    List ptPriorityShapes =getPeerPriorityShapes(peer);
+		    if (ptPriorityShapes ==null)
+		        ptPriorityShapes =new ArrayList();
+		    ptPriorityShapes.add(shape);
+		    peersShapesMap.put(peer, ptPriorityShapes);
+        } finally {peersShapesMapMon.exit();}
 	}
-
-
-	public boolean removePriorityShape(final PriorityShape shape)
+    
+    /**
+     * @param peer the PEPeer to get the list of shapes for, if any
+     * @return null if no shapes else a List of Shapes
+     */
+    protected List getPeerPriorityShapes(final PEPeer peer)
+    {
+        if (peersShapesMap ==null)
+            return null;
+        if (peersShapesMap.containsKey(peer))
+            return (List)peersShapesMap.get(peer);
+        return null;
+    }
+    
+    // TODO: implement
+    public boolean removePriorityShape(final PriorityShape shape)
 	{
 		return false;
 	}
 
-	public boolean removePriorityShape(final PriorityShape shape, final PEPeerTransport pt)
+    // TODO: implement
+	public boolean removePriorityShape(final PriorityShape shape, final PEPeer peer)
 	{
 		return false;
 	}
 
 
-	/** possibly this should never be used since the PEPeerTransport version must be called when the peer is know
+	/** possibly this should never be used since the PEPeer version must be called when the peer is known
 	 * and it probably should always be known whenever this might be called
 	 */
-	protected int getMode(int start, int end)
+	public long getMode(final int start, final int end)
 	{
 		if (torrentPriorityShapes ==null)
 			return 0;
-		int mode =0;
+		long mode =0;
 		// get the aggregate mode from the torrent-global shapes
 		try
 		{	torrentPriorityShapesMon.enter();
 			for (int i =0; i <torrentPriorityShapes.size(); i++)
 			{
-				final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
-				// does the shape cover the range we're interested in
+				final PriorityShapeImpl shape =(PriorityShapeImpl)torrentPriorityShapes.get(i);
+				// does the shape cover the range of interest
 				if (shape.getStart() <=start &&shape.getEnd() >=end)
-					mode |=shape.getMode();
+					mode |=shape.mode;
 			}
 		} finally { torrentPriorityShapesMon.exit(); }
 		
 		return mode;
 	}
 	
-	public int getMode(int start, int end, final PEPeerTransport pt)
+	public long getMode(final int start, final int end, final PEPeer peer)
 	{
-		int mode =getMode(start, end);
-		
-		// aggregate the peer's shapes' modes
-		List peerPriorityShapes =getPeerPriorityShapes(pt);
-		for (int i =0; i <peerPriorityShapes.size(); i++)
-		{
-			final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
-			// does the shape cover the range we're interested in
-			if (shape.getStart() <=start &&shape.getEnd() >=end)
-				mode |=shape.getMode();
-		}
-		
-		return mode;
+	    long mode =getMode(start, end);
+
+	    try
+	    {   peersShapesMapMon.enter();
+    	    // aggregate the peer's shapes' modes
+    	    List peerPriorityShapes =getPeerPriorityShapes(peer);
+    	    if (peerPriorityShapes ==null)
+    	        return mode;
+    
+    	    for (int i =0; i <peerPriorityShapes.size(); i++)
+    	    {
+    	        final PriorityShapeImpl shape =(PriorityShapeImpl)peerPriorityShapes.get(i);
+    	        // does the shape cover the range of interest
+    	        if (shape.getStart() <=start &&shape.getEnd() >=end)
+    	            mode |=shape.mode;
+    	    }
+	    } finally {peersShapesMapMon.exit();}
+
+	    return mode;
 	}
 	
+    public boolean isNoRandom(final int start, final int end)
+    {
+        if (torrentPriorityShapes ==null)
+            return false;
+        // get the aggregate mode from the torrent-global shapes
+        try
+        {   torrentPriorityShapesMon.enter();
+            for (int i =0; i <torrentPriorityShapes.size(); i++)
+            {
+                final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
+                // does the shape cover the range of interest and specify the mode in question
+                if (shape.getStart() <=start &&shape.getEnd() >=end &&shape.isNoRandom())
+                    return true;
+            }
+        } finally { torrentPriorityShapesMon.exit(); }
+        
+        return false;
+    }
+    
+    public boolean isNoRandom(final int start, final int end, final PEPeer peer)
+    {   // if it's globally true, it's true for this peer
+        if (isNoRandom(start, end))
+            return true;
 
-	protected ArrayList getPeerPriorityShapes(final PEPeerTransport pt)
-	{
-		final ArrayList ptPriorityShapes;
-		try
-		{	peersShapesMapMon.enter();
-			if (!peersShapesMap.containsKey(pt))
-			{
-				ptPriorityShapes =new ArrayList();
-				peersShapesMap.put(pt, ptPriorityShapes);
-			} else
-				ptPriorityShapes =(ArrayList)peersShapesMap.get(pt);
-			return ptPriorityShapes;
-		} finally {peersShapesMapMon.exit();}
-	}
+        try
+        {   peersShapesMapMon.enter();
+            // check any/all per-peer shapes
+            final List peerPriorityShapes =getPeerPriorityShapes(peer);
+            if (peerPriorityShapes ==null)
+                return false;
+            for (int i =0; i <peerPriorityShapes.size(); i++)
+            {
+                final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
+                // does the shape cover the range of interest and specify the mode in question
+                if (shape.getStart() <=start &&shape.getEnd() >=end &&shape.isNoRandom())
+                    return true;
+            }
+        } finally {peersShapesMapMon.exit();}
+        
+        return false;
+    }
+    
 }

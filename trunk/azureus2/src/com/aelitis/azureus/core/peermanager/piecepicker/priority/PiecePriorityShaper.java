@@ -22,7 +22,7 @@
 
 package com.aelitis.azureus.core.peermanager.piecepicker.priority;
 
-import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.PEPeer;
 
 /**
  * @author MjrTom Jan 17, 2006
@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 public interface PiecePriorityShaper
 {
 	public void addPriorityShape(final PriorityShape shape);
-	public void addPriorityShape(final PriorityShape shape, final PEPeerTransport pt);
+	public void addPriorityShape(final PriorityShape shape, final PEPeer pt);
 	/**
 	 * Removes a priority shape that was set with addPriorityShape
 	 * @param shape the shape reference to remove
@@ -41,5 +41,9 @@ public interface PiecePriorityShaper
 	 */
 	public boolean removePriorityShape(final PriorityShape shape);
 	
-	public int getMode(final int start, final int end, final PEPeerTransport pt);
+	public long getMode(final int start, final int end, final PEPeer pt);
+    
+    public boolean isNoRandom(final int start, final int end);
+    public boolean isNoRandom(final int start, final int end, final PEPeer pt);
+    
 }
