@@ -331,7 +331,20 @@ LocaleUtil
   		throws TOTorrentException, UnsupportedEncodingException, LocaleUtilEncodingException
   	{
 		String	encoding = torrent.getAdditionalStringProperty( "encoding" );
-    boolean bSaveToFile = true;
+    
+			// we can only persist the torrent if it has a filename defined for it
+		
+		boolean bSaveToFile;
+		
+		try{
+			TorrentUtils.getTorrentFileName( torrent );
+			
+			bSaveToFile	= true;
+			
+		}catch( Throwable e ){
+			
+			bSaveToFile	= false;
+		}
 		
 		if ( encoding != null ){
 			
@@ -383,6 +396,7 @@ LocaleUtil
 	    		
 	    		break;
 	    	} else {
+	    		
 	    		bSaveToFile = false;
 	    	}
 	    }
@@ -403,9 +417,10 @@ LocaleUtil
 		        	
 		torrent.setAdditionalStringProperty("encoding", selected_decoder.getName());
 
-		if (bSaveToFile)
+		if (bSaveToFile){
 			TorrentUtils.writeToFile( torrent );
-			
+		}
+		
 		return( selected_decoder );
   	}
 	

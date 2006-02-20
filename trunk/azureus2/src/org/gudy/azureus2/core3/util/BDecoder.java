@@ -419,9 +419,9 @@ public class BDecoder {
 		  
 		  BDecoder decoder = new BDecoder();
 		  
-		  decoder.setRecoveryMode( true );
+		  decoder.setRecoveryMode( false );
 		  
-		  Map res = decoder.decodeStream( new BufferedInputStream( new FileInputStream( new File( "C:\\temp\\scrape.php" ))));
+		  Map res = decoder.decodeStream( new BufferedInputStream( new FileInputStream( new File( "C:\\Temp\\cdf\\corrupted database files\\8FADB6C18A19A0EBBAE1B29F843791C425C78C94.dat" ))));
 		  
 		  decoder.print( res );
 		  

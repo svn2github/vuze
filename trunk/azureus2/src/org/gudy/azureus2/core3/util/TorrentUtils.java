@@ -155,6 +155,22 @@ TorrentUtils
 		}
 	}
 
+	public static TOTorrent
+	readFromBEncodedInputStream(
+		InputStream		is )
+		
+		throws TOTorrentException
+	{
+		TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedInputStream( is );
+		
+			// as we've just imported this torrent we want to clear out any possible attributes that we
+			// don't want such as "torrent filename"
+		
+		torrent.removeAdditionalProperties();
+		
+		return( torrent );
+	}
+	
 	public static void
 	writeToFile(
 		final TOTorrent		torrent )
@@ -185,7 +201,7 @@ TorrentUtils
 	    		
 	    		throw (new TOTorrentException("TorrentUtils::writeToFile: no 'torrent filename' attribute defined", TOTorrentException.RT_FILE_NOT_FOUND));
 	    	}
-	    		    	
+	    		  	    	
 	    	File torrent_file = new File(str);
 	    	
 	    	if ( 	( force_backup ||COConfigurationManager.getBooleanParameter("Save Torrent Backup", false)) &&
