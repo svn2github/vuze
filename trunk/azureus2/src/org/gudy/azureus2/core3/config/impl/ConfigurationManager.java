@@ -42,7 +42,7 @@ ConfigurationManager
   private static ConfigurationManager config = null;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
   
-  private Map propertiesMap;
+  private Map propertiesMap	= new HashMap();
   
   private List		listeners 			= new ArrayList();
   private Hashtable parameterListeners 	= new Hashtable();
@@ -77,8 +77,11 @@ ConfigurationManager
   	try{
   		class_mon.enter();
 
-	  	if (config == null)
+	  	if (config == null){
+	  		
 	  		config = new ConfigurationManager(data);
+	  	}
+	  	
 	  	return config;
   	}finally{
   		
@@ -90,7 +93,6 @@ ConfigurationManager
   private 
   ConfigurationManager() 
   {
-   	load();
   }
   
   private 
@@ -103,6 +105,8 @@ ConfigurationManager
   private void
   initialise()
   {
+	load();
+	
    //ConfigurationChecker.migrateConfig();  //removed 2201
   	
   	ConfigurationChecker.checkConfiguration();
@@ -110,6 +114,48 @@ ConfigurationManager
   	ConfigurationChecker.setSystemProperties();
 	
 	AEDiagnostics.addEvidenceGenerator( this );
+	
+		// fire any parameter listeners that might have been registered during the load of the config.
+		// nasty recursive stuff happening here...
+	
+	Map	copy;
+	
+	try{
+  		this_mon.enter();
+  		
+  		copy = new HashMap(parameterListeners );
+  		
+	}finally{
+		
+		this_mon.exit();
+	}
+	
+	Iterator	it = copy.entrySet().iterator();
+ 		 
+  	while( it.hasNext()){
+  			
+  		Map.Entry	entry = (Map.Entry)it.next();
+  		
+  		String	name = (String)entry.getKey();
+  		
+  		Vector listeners = (Vector)entry.getValue();
+  		
+  	    if ( listeners != null) {
+  	    	try{
+  	    		for (int i=0;i<listeners.size();i++){
+  	        
+  	    			ParameterListener	listener = (ParameterListener)listeners.get(i);
+  	    			
+  	    			if(listener != null) {
+  	    				listener.parameterChanged(name);
+  	    			}
+  	    		}
+  	    	}catch( Throwable e ){
+  	    			    		
+  	    		e.printStackTrace();
+  	    	}
+  	    }
+  	}
   }
   
   public void load(String filename) 

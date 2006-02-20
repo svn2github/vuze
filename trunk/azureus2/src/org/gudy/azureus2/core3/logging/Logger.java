@@ -65,6 +65,7 @@ public class Logger {
 
 			log(new LogEvent(LOGID, "user.home=" + System.getProperty("user.home")));
 		} catch (Throwable t) {
+			t.printStackTrace();
 			Debug.out("Error initializing Logger", t);
 			// loggerImpl will always be set, except for cases where there wasn't
 			// enough memory. In that case, app will blork with null pointer exception

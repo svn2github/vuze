@@ -39,6 +39,7 @@ DHTTransportUDP
 {
 	public static final byte PROTOCOL_VERSION_2304					= 8;	
 	public static final byte PROTOCOL_VERSION_2306					= 12;	
+	public static final byte PROTOCOL_VERSION_2400					= 13;	
 	
 	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_2304;
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
