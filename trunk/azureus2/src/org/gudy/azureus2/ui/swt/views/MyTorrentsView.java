@@ -1749,7 +1749,8 @@ public class MyTorrentsView
                                 DND.DROP_DEFAULT | DND.DROP_MOVE |
                                 DND.DROP_COPY | DND.DROP_LINK |
                                 DND.DROP_TARGET_MOVE);
-    dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(),
+    dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
+    																				URLTransfer.getInstance(),
                                             FileTransfer.getInstance(),
                                             TextTransfer.getInstance()});
     dropTarget.addDropListener(new DropTargetAdapter() {
@@ -1759,7 +1760,6 @@ public class MyTorrentsView
 			}
 
 			public void dragEnter(DropTargetEvent event) {
-				//System.out.println("DragEnter " + event.operations);
       	// no event.data on dragOver, use drag_drop_line_start to determine if
       	// ours
         if(drag_drop_line_start < 0) {
@@ -1777,7 +1777,7 @@ public class MyTorrentsView
 
       public void drop(DropTargetEvent event) {
       	if (!(event.data instanceof String) || !((String)event.data).equals("moveRow")) {
-          TorrentOpener.openDroppedTorrents(azureus_core, event);
+          TorrentOpener.openDroppedTorrents(azureus_core, event, true);
       		return;
       	}
 
@@ -1954,8 +1954,10 @@ public class MyTorrentsView
 			return;
 		}
 
-		if (e.character < 32 && e.keyCode != SWT.BS && e.keyCode != 0x18)
-			return;
+		if (e.keyCode != SWT.BS && e.keyCode != 0x18) {
+			if (e.stateMask != 0 || e.character < 32)
+				return;
+		}
 
 		// normal character: jump to next item with a name beginning with this character
 		if (ASYOUTYPE_MODE == ASYOUTYPE_MODE_FIND) {
