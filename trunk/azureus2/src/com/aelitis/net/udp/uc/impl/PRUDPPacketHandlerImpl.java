@@ -139,11 +139,9 @@ PRUDPPacketHandlerImpl
 				
 				throw( new RuntimeException( "Multiple handlers per endpoint not supported" ));
 			}
-			
-		}else{
-		
-			request_handler	= _request_handler;
 		}
+		
+		request_handler	= _request_handler;
 	}
 	
 	public PRUDPRequestHandler
