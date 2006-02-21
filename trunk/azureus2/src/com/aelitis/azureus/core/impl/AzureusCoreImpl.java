@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.ipfilter.*;
+import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -409,9 +410,25 @@ AzureusCoreImpl
 					
 					if ( t != null && t != Thread.currentThread() && !t.isDaemon()){
 						
-						Debug.out( "killing non-daemon thread '" + t.getName());
+						new AEThread( "VMKiller", true )
+						{
+							public void
+							runSupport()
+							{
+								try{
+									Thread.sleep(10*1000);
+								
+									Debug.out( "Non-daemon thread found, force closing VM" );
+									
+									SESecurityManager.exitVM(0);
+									
+								}catch( Throwable e ){
+									
+								}
+							}
+						}.start();
 						
-						t.stop();
+						break;
 					}
 				}
 			}catch( Throwable e ){
