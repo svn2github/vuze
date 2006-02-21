@@ -65,9 +65,7 @@ public class ConfigSectionFilePerformance implements UISWTConfigSection {
     int userMode = COConfigurationManager.getIntParameter("User Mode");
 
     Composite cSection = new Composite(parent, SWT.NULL);
-    if ( SWT.getVersion() < 3138 ){ // this screws up scrolling on 3.2M2
-    	cSection.addControlListener(new Utils.LabelWrapControlListener());
-    }
+  	cSection.addControlListener(new Utils.LabelWrapControlListener());
     layout = new GridLayout();
     layout.numColumns = 3;
     cSection.setLayout(layout);
