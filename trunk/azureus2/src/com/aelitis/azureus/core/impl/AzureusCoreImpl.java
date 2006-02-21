@@ -407,7 +407,7 @@ AzureusCoreImpl
 					
 					Thread	t = threads[i];
 					
-					if ( !t.isDaemon()){
+					if ( t != null && t != Thread.currentThread() && !t.isDaemon()){
 						
 						Debug.out( "killing non-daemon thread '" + t.getName());
 						
