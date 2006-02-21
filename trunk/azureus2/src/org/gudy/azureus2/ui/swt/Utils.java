@@ -44,7 +44,10 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.views.utils.VerticalAligner;
+
+import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 
 /**
  * @author Olivier
@@ -241,31 +244,69 @@ public class Utils {
       );
   }
 
-  /**
-   * @param control the control (usually a Shell) to add the DropTarget
-   * @param url the Text control where to set the link text
-   *
-   * @author Rene Leonhardt
-   */
-  public static void createURLDropTarget(final Control control, final Text url) {
-    DropTarget dropTarget = new DropTarget(control, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
-    dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance()});
-    dropTarget.addDropListener(new DropTargetAdapter() {
+  public static DropTarget createTorrentDropTarget(Control control,
+			boolean bAllowShareAdd) {
+		return createDropTarget(control, bAllowShareAdd, null);
+	}
+
+	/**
+	 * @param control the control (usually a Shell) to add the DropTarget
+	 * @param url the Text control where to set the link text
+	 *
+	 * @author Rene Leonhardt
+	 */
+	public static DropTarget createURLDropTarget(final Control control,
+			final Text url) {
+		return createDropTarget(control, false, url);
+	}
+
+	private static DropTarget createDropTarget(final Control control,
+			final boolean bAllowShareAdd, final Text url) {
+  	DropTarget dropTarget = new DropTarget(control, DND.DROP_DEFAULT
+				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
+		dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
+				URLTransfer.getInstance(), FileTransfer.getInstance(), 
+				TextTransfer.getInstance() });
+		dropTarget.addDropListener(new DropTargetAdapter() {
 			public void dropAccept(DropTargetEvent event) {
 				event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
 						event.currentDataType);
 			}
-      public void dragOver(DropTargetEvent event) {
-      	if ((event.operations & DND.DROP_LINK) > 0)
-      		event.detail = DND.DROP_LINK;
-      	else if ((event.operations & DND.DROP_COPY) > 0)
-      		event.detail = DND.DROP_COPY;
-      }
-      public void drop(DropTargetEvent event) {
-        if (((URLTransfer.URLType)event.data).linkURL != null)
-        	url.setText(((URLTransfer.URLType)event.data).linkURL);
-      }
-    });
+
+			public void dragOver(DropTargetEvent event) {
+				// skip setting detail if user is forcing a drop type (ex. via the
+				// ctrl key), providing that the operation is valid
+				if (event.detail != DND.DROP_DEFAULT
+						&& ((event.operations & event.detail) > 0))
+					return;
+
+				if ((event.operations & DND.DROP_LINK) > 0)
+					event.detail = DND.DROP_LINK;
+				else if ((event.operations & DND.DROP_DEFAULT) > 0)
+					event.detail = DND.DROP_DEFAULT;
+				else if ((event.operations & DND.DROP_COPY) > 0)
+					event.detail = DND.DROP_COPY;
+			}
+
+			public void drop(DropTargetEvent event) {
+				if (url == null || url.isDisposed()) {
+					TorrentOpener.openDroppedTorrents(AzureusCoreImpl.getSingleton(),
+							event, bAllowShareAdd);
+				} else {
+					if (event.data instanceof URLTransfer.URLType) {
+						if (((URLTransfer.URLType) event.data).linkURL != null)
+							url.setText(((URLTransfer.URLType) event.data).linkURL);
+					} else if (event.data instanceof String) {
+						String sURL = TorrentOpener.parseTextForURL((String) event.data);
+						if (sURL != null) {
+							url.setText(sURL);
+						}
+					}
+				}
+			}
+		});
+		
+		return dropTarget;
   }
 
   /**
@@ -671,6 +712,7 @@ public class Utils {
 				bounds = shell.getBounds();
 			
 			shell.addListener(SWT.Resize, this);
+			shell.addListener(SWT.Move, this);
 			shell.addListener(SWT.Dispose, this);
 		}
 
@@ -694,7 +736,7 @@ public class Utils {
 			Shell shell = (Shell) event.widget;
 			state = calcState(shell);
 
-			if (event.type == SWT.Resize && state == SWT.NONE)
+			if (event.type != SWT.Dispose && state == SWT.NONE)
 				bounds = shell.getBounds();
 
 			if (event.type == SWT.Dispose)

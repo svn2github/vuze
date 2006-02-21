@@ -27,7 +27,6 @@ import com.aelitis.azureus.core.AzureusCoreException;
 import com.aelitis.azureus.core.AzureusCoreListener;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
-import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
@@ -52,7 +51,6 @@ import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -229,7 +227,7 @@ MainWindow
     mainMenu = new MainMenu(this);
 
     try {
-      createDropTarget(mainWindow);
+    	Utils.createTorrentDropTarget(mainWindow, true);
     } catch (Throwable e) {
     	Logger.log(new LogEvent(LOGID, "Drag and Drop not available", e));
     }
@@ -1038,21 +1036,6 @@ MainWindow
         }
       }
 
-    });
-  }
-
-  private void createDropTarget(final Control control) {
-    DropTarget dropTarget = new DropTarget(control, DND.DROP_DEFAULT | DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
-    dropTarget.setTransfer(new Transfer[] {URLTransfer.getInstance(), FileTransfer.getInstance()});
-    dropTarget.addDropListener(new DropTargetAdapter() {
-      public void dragOver(DropTargetEvent event) {
-        if(URLTransfer.getInstance().isSupportedType(event.currentDataType)) {
-          event.detail = DND.DROP_LINK;
-        }
-      }
-      public void drop(DropTargetEvent event) {
-        TorrentOpener.openDroppedTorrents(azureus_core,event);
-      }
     });
   }
 

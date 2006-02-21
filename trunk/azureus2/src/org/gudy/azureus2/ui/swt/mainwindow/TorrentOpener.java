@@ -24,10 +24,13 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.HTMLTransfer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -140,32 +143,48 @@ public class TorrentOpener {
 		});
   }
   
-  public static void 
-  openDroppedTorrents(
-  	AzureusCore		azureus_core,
-  	DropTargetEvent event) 
-  {
-    if(event.data == null)
-      return;
+  public static String parseTextForURL(String text) {
+  	// examples:
+  	// <A HREF=http://abc.om/moo>test</a>
+  	// <A style=cow HREF="http://abc.om/moo">test</a>
+  	// <a href="http://www.gnu.org/licenses/fdl.html" target="_top">moo</a>
+  	
+		Pattern pat = Pattern.compile("<.*a\\s++.*href=\"?([^\\'\"\\s>]++).*", Pattern.CASE_INSENSITIVE);
+		Matcher m = pat.matcher(text);
+		if (m.matches()) {
+			return m.group(1);
+		}
+		
+		return null;
+  }
+  
+  public static void openDroppedTorrents(AzureusCore azureus_core,
+			DropTargetEvent event, boolean bAllowShareAdd) {
+		if (event.data == null)
+			return;
 
-    boolean bOverrideToStopped = event.detail == DND.DROP_COPY;
-    
-    if(event.data instanceof String[] || event.data instanceof String) {
-      final String[] sourceNames = (event.data instanceof String[]) ?
-      		(String[]) event.data : new String[] { (String) event.data };
-      if (sourceNames == null)
-        event.detail = DND.DROP_NONE;
-      if (event.detail == DND.DROP_NONE)
-        return;
-      
-      for (int i = 0;(i < sourceNames.length); i++) {
-        final File source = new File(sourceNames[i]);
-        if (source.isFile()) {
-        	String filename = source.getAbsolutePath();
+		boolean bOverrideToStopped = event.detail == DND.DROP_COPY;
+
+		if (event.data instanceof String[] || event.data instanceof String) {
+			final String[] sourceNames = (event.data instanceof String[])
+					? (String[]) event.data : new String[] { (String) event.data };
+			if (sourceNames == null)
+				event.detail = DND.DROP_NONE;
+			if (event.detail == DND.DROP_NONE)
+				return;
+
+			for (int i = 0; (i < sourceNames.length); i++) {
+				final File source = new File(sourceNames[i]);
+				String sURL = parseTextForURL(sourceNames[i]);
+
+				if (sURL != null || !source.exists()) {
+					openTorrentWindow(null, new String[] { sURL }, bOverrideToStopped);
+				} else if (source.isFile()) {
+					String filename = source.getAbsolutePath();
 					try {
-						if (!FileUtil.isTorrentFile(filename)) {
+						if (!FileUtil.isTorrentFile(filename) && bAllowShareAdd) {
 							Logger.log(new LogEvent(LogIDs.GUI,
-											"MainWindow::openTorrent: file it not a torrent file, sharing"));
+											"openDroppedTorrents: file not a torrent file, sharing"));
 							ShareUtils.shareFile(azureus_core, filename);
 						} else {
 							openTorrentWindow(null, new String[] { filename },
@@ -175,33 +194,34 @@ public class TorrentOpener {
 						Logger.log(new LogAlert(LogAlert.REPEATABLE,
 								"Torrent open fails for '" + filename + "'", e));
 					}
-        } else if (source.isDirectory()){
-          
-          String  dir_name = source.getAbsolutePath();
-          
-          String  drop_action = COConfigurationManager.getStringParameter("config.style.dropdiraction", "0");
-        
-          if ( drop_action.equals("1")){
-            ShareUtils.shareDir(azureus_core,dir_name);
-          }else if ( drop_action.equals("2")){
-            ShareUtils.shareDirContents( azureus_core,dir_name, false );
-          }else if ( drop_action.equals("3")){
-            ShareUtils.shareDirContents( azureus_core,dir_name, true );
-          }else{
-          	openTorrentWindow(dir_name, null, bOverrideToStopped);
-          }
-        } else {
-        	// Probably a URL.. let torrentwindow handle it
-        	openTorrentWindow(null, new String[] { sourceNames[i] },
-        			bOverrideToStopped);
-        }
-      }
-    } else if (event.data instanceof URLTransfer.URLType) {
-    	openTorrentWindow(null,
+				} else if (source.isDirectory()) {
+					
+					String dir_name = source.getAbsolutePath();
+
+					if (!bAllowShareAdd) {
+						openTorrentWindow(dir_name, null, bOverrideToStopped);
+					} else {
+						String drop_action = COConfigurationManager.getStringParameter(
+								"config.style.dropdiraction", "0");
+	
+						if (drop_action.equals("1")) {
+							ShareUtils.shareDir(azureus_core, dir_name);
+						} else if (drop_action.equals("2")) {
+							ShareUtils.shareDirContents(azureus_core, dir_name, false);
+						} else if (drop_action.equals("3")) {
+							ShareUtils.shareDirContents(azureus_core, dir_name, true);
+						} else {
+							openTorrentWindow(dir_name, null, bOverrideToStopped);
+						}
+					}
+				}
+			}
+		} else if (event.data instanceof URLTransfer.URLType) {
+			openTorrentWindow(null,
 					new String[] { ((URLTransfer.URLType) event.data).linkURL },
 					bOverrideToStopped);
-    }
-  }
+		}
+	}
   
   
   public static String getFilterPathData() {

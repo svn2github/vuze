@@ -30,6 +30,7 @@ import java.util.Map;
 
 import org.eclipse.swt.dnd.ByteArrayTransfer;
 import org.eclipse.swt.dnd.TransferData;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * URL Transfer type for Drag and Drop of URLs
@@ -43,185 +44,255 @@ import org.eclipse.swt.dnd.TransferData;
  * @author TuxPaper (require incoming string types have an URL prefix)
  * @author TuxPaper (UTF-8, UTF-16, BOM stuff)
  * 
- * @TODO check FileTransfer.getInstance().isSupportedType() and 
- *        .nativeToJava(..).  Open the file and get the text, check if it's a
- *        real URL.
+ * TuxPaper's Notes:
+ * This class is flakey.  It's better to use HTMLTransfer, and then parse
+ * the URL from the HTML.  However, IE drag and drops do not support 
+ * HTMLTransfer, so this class must stay
+ * 
+ * Windows
+ * ---
+ * TypeIDs seem to be assigned differently on different platform versions 
+ * (or maybe even different installations!).   Here's some examples
+ * 49314: Moz/IE 0x01 4-0x00 0x80 lots-of-0x00 "[D]URL" lots-more-0x00
+ * 49315: Moz/IE Same as 49315, except unicode
+ * 49313: Moz/IE URL in .url format  "[InternetShortcut]\nURL=%1"
+ * 49324: Moz/IE URL in text format
+ * 49395: Moz Same as 49324, except unicode
+ * 49319: Moz Dragged HTML Fragment with position information
+ * 49398: Moz Dragged HTML Fragment (NO position information, just HTML), unicode
+ * 49396: Moz HTML.  Unknown.
+ * 
+ * There's probably a link to the ID and they type name in the registry, or
+ * via a Windows API call.  We don't want to do that, and fortunately, 
+ * SWT doesn't seem to pay attention to getTypeIds() on Windows, so we check
+ * every typeid we get to see if we can parse an URL from it.
+ * 
+ * Also, dragging from the IE URL bar hangs SWT (sometimes for a very long 
+ * time).  Fortunately, most people willdrag the URL from the actual content
+ * window.
+ * 
+ * Dragging an IE bookmark is actually dragging the .url file, and should be
+ * handled by the FileTranfer (and then opening it and extracting the URL).
+ * Moz Bookmarks are processed as HTML.
+ * 
+ * Linux
+ * ---
+ * For Linux, this class isn't required.  
+ * HTMLTransfer will take care of Gecko and Konquerer.
+ * 
+ * Opera
+ * ---
+ * As of 8.5, Opera still doesn't allow dragging outside of itself (at least on
+ * windows)
+ * 
  */
 
 public class URLTransfer extends ByteArrayTransfer {
-
-
 	/** We are in the process of checking a string to see if it's a valid URL */
 	private boolean bCheckingString = false;
-  
+	
+	private static boolean DEBUG = false;
+
   private static URLTransfer _instance = new URLTransfer();
 
-  // these types work on Windows XP: IE6 link=49367/49362, IE6 bookmark=13,
-	// Mozilla link (text)=13, Mozilla bookmark=13
   // Opera 7 LINK DRAG & DROP IMPOSSIBLE (just inside Opera)
   private static final String[] supportedTypes = new String[] {
-			"UniformResourceLocatorW", 
-			"UniformResourceLocator",// IE Dragged Link from page
-			"UniformResourceLocator",// IE Dragged Link from URL Bar
-			"UniformResourceLocator", 
 			"CF_UNICODETEXT", 
 			"CF_TEXT",
-			"OEM_TEXT",
+			"OEM_TEXT"
 			};
 
 	private static final int[] supportedTypeIds = new int[] { 
-		49476, 
-		49318,
-		49367, 
-		49362, 
 		13, 
 		1, 
-		17 
+		17
 		}; 
-	// 15="CF_HDROP" (File), 
-	// 49368="UniformResourceLocator" (File+IE bookmark), 
-	// 49458="UniformResourceLocatorW" (IE bookmark)
 
   public static URLTransfer getInstance() {
-    return _instance;
-  }
-  public void javaToNative(Object object, TransferData transferData) {
-    if (object == null || !(object instanceof URLType[]))
-      return;
+		return _instance;
+	}
 
-    if (isSupportedType(transferData)) {
-      URLType[] myTypes = (URLType[]) object;
-      try {
-        // write data to a byte array and then ask super to convert to pMedium
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        DataOutputStream writeOut = new DataOutputStream(out);
-        for (int i = 0, length = myTypes.length; i < length; i++) {
-          writeOut.writeBytes(myTypes[i].linkURL);
-          writeOut.writeBytes("\n");
-          writeOut.writeBytes(myTypes[i].linkText);
-        }
-        byte[] buffer = out.toByteArray();
-        writeOut.close();
+	public void javaToNative(Object object, TransferData transferData) {
+		if (DEBUG)
+			System.out.println("javaToNative called");
 
-        super.javaToNative(buffer, transferData);
+		if (object == null || !(object instanceof URLType[]))
+			return;
 
-      } catch (IOException e) {}
-    }
-  }
-  public Object nativeToJava(TransferData transferData) {
+		if (isSupportedType(transferData)) {
+			URLType[] myTypes = (URLType[]) object;
+			try {
+				// write data to a byte array and then ask super to convert to pMedium
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				DataOutputStream writeOut = new DataOutputStream(out);
+				for (int i = 0, length = myTypes.length; i < length; i++) {
+					writeOut.writeBytes(myTypes[i].linkURL);
+					writeOut.writeBytes("\n");
+					writeOut.writeBytes(myTypes[i].linkText);
+				}
+				byte[] buffer = out.toByteArray();
+				writeOut.close();
 
-    if (bCheckingString || isSupportedType(transferData)) {
-      byte[] buffer = (byte[]) super.nativeToJava(transferData);
-      if (buffer == null)
-        return null;
+				super.javaToNative(buffer, transferData);
 
-      URLType myData = null;
-      try {
-      	String data;
-      	if (buffer.length > 1) {
-      		boolean bFirst0 = buffer[0] == 0;
-      		boolean bSecond0 = buffer[1] == 0;
-  				if (bFirst0 && bSecond0)
-  					// This is probably UTF-32 Big Endian.  
-  					// Let's hope default constructor can handle it (It can't)
-  					data = new String(buffer);
-  				else if (bFirst0)
-  					data = new String(buffer, "UTF-16BE");
-  				else if (bSecond0)
-  					data = new String(buffer, "UTF-16LE");
-  				else if (buffer[0] == (byte) 0xEF && buffer[1] == (byte) 0xBB
-  						&& buffer.length > 3 && buffer[2] == (byte) 0xBF)
-  					data = new String(buffer, 3, buffer.length - 3, "UTF-8");
-  				else if (buffer[0] == (byte) 0xFF || buffer[0] == (byte) 0xFE)
-  					data = new String(buffer, "UTF-16");
-  				else {
-  					data = new String(buffer);
-  				}
-      	} else {
-      		// Older Code:
-					// Remove 0 values from byte array, messing up any Unicode strings 
-					byte[] text = new byte[buffer.length];
-					int j = 0;
+			} catch (IOException e) {
+			}
+		}
+	}
+
+	public Object nativeToJava(TransferData transferData) {
+		if (DEBUG) System.out.println("nativeToJava called");
+		try {
+			if (isSupportedType(transferData)) {
+				byte [] buffer = (byte[]) super.nativeToJava(transferData);
+				return bytebufferToJava(buffer);
+			}
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+
+		return null;
+	}
+	
+	public URLType bytebufferToJava(byte[] buffer) {
+
+		if (buffer == null) {
+			if (DEBUG) System.out.println("buffer null");
+			return null;
+		}
+
+		URLType myData = null;
+		try {
+			String data;
+			if (buffer.length > 1) {
+				if (DEBUG) {
 					for (int i = 0; i < buffer.length; i++) {
-						if (buffer[i] != 0)
-							text[j++] = buffer[i];
+						if (buffer[i] >= 32)
+							System.out.print(((char) buffer[i]));
+						else
+							System.out.print("#");
 					}
-
-	        data = new String(text, 0, j);
+					System.out.println();
+				}
+				boolean bFirst0 = buffer[0] == 0;
+				boolean bSecond0 = buffer[1] == 0;
+				if (bFirst0 && bSecond0)
+					// This is probably UTF-32 Big Endian.  
+					// Let's hope default constructor can handle it (It can't)
+					data = new String(buffer);
+				else if (bFirst0)
+					data = new String(buffer, "UTF-16BE");
+				else if (bSecond0)
+					data = new String(buffer, "UTF-16LE");
+				else if (buffer[0] == (byte) 0xEF && buffer[1] == (byte) 0xBB
+						&& buffer.length > 3 && buffer[2] == (byte) 0xBF)
+					data = new String(buffer, 3, buffer.length - 3, "UTF-8");
+				else if (buffer[0] == (byte) 0xFF || buffer[0] == (byte) 0xFE)
+					data = new String(buffer, "UTF-16");
+				else {
+					data = new String(buffer);
+				}
+			} else {
+				// Older Code:
+				// Remove 0 values from byte array, messing up any Unicode strings 
+				byte[] text = new byte[buffer.length];
+				int j = 0;
+				for (int i = 0; i < buffer.length; i++) {
+					if (buffer[i] != 0)
+						text[j++] = buffer[i];
 				}
 
-        if (data == null)
-        	return null;
+				data = new String(text, 0, j);
+			}
 
-        String[] split = data.split("[\r\n]+", 2);
+			if (data == null) {
+				if (DEBUG) System.out.println("data null");
+				return null;
+			}
 
-        myData = new URLType();
-       	myData.linkURL = (split.length > 0) ? split[0] : "";
-     		myData.linkText = (split.length > 1) ? split[1] : "";
-      } catch (Exception ex) {
-      	ex.printStackTrace();
-        return null;
-      }
-      return myData;
-    }
+			int iPos = data.indexOf("\nURL=");
+			if (iPos > 0) {
+				int iEndPos = data.indexOf("\r", iPos);
+				if (iEndPos < 0) {
+					iEndPos = data.length();
+				}
+				myData = new URLType();
+				myData.linkURL = data.substring(iPos + 5, iEndPos);
+				myData.linkText = "";
+			} else {
+				String[] split = data.split("[\r\n]+", 2);
 
-    return null;
-  }
-  protected String[] getTypeNames() {
-    return supportedTypes;
-  }
-  protected int[] getTypeIds() {
-    return supportedTypeIds;
-  }
-  /**
+				myData = new URLType();
+				myData.linkURL = (split.length > 0) ? split[0] : "";
+				myData.linkText = (split.length > 1) ? split[1] : "";
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
+		return myData;
+	}
+
+	protected String[] getTypeNames() {
+		return supportedTypes;
+	}
+
+	protected int[] getTypeIds() {
+		return supportedTypeIds;
+	}
+
+	/**
 	 * @param transferData
 	 * @see org.eclipse.swt.dnd.Transfer#isSupportedType(org.eclipse.swt.dnd.TransferData)
 	 * @return
 	 */
-  public boolean isSupportedType(TransferData transferData) {
-  	if (bCheckingString)
-  		return true;
+	public boolean isSupportedType(TransferData transferData) {
+		if (bCheckingString)
+			return true;
 
-  	if (transferData != null) {
-			for (int i = 0; i < supportedTypeIds.length; i++) {
-				if (transferData.type == supportedTypeIds[i]) {
-					if (transferData.type == 13 || transferData.type == 1) {
-						// TODO: Check if it's a string list of URLs
-						
-						// String -- Check if URL, skip to next if not
-						URLType url = null;
-						
-						// nativeToJava will call isSupportedType, so we need to prevent
-						// infinite recursion
-						bCheckingString = true;
-						try {
-							url = (URLType)nativeToJava(transferData);
-						} finally {
-							bCheckingString = false;
-						}
-						
-						if (url == null) {
-							continue;
-						}
-						
-						if (!isURL(url.linkURL)) {
-							continue;
-						}
-					}
-					return true;
-				}
-			}
+		if (transferData == null)
+			return false;
+
+		// TODO: Check if it's a string list of URLs
+
+		// String -- Check if URL, skip to next if not
+		URLType url = null;
+
+		if (DEBUG) System.out.println("Checking if type #" + transferData.type + " is URL");
+
+		bCheckingString = true;
+		try {
+			byte[] buffer = (byte[]) super.nativeToJava(transferData);
+			url = bytebufferToJava(buffer);
+		} catch (Exception e) {
+			Debug.out(e);
+		} finally {
+			bCheckingString = false;
 		}
-//  	System.out.println("Drop type not supported: " + transferData.type);
-    return false;
-  }
 
-	private boolean isURL(String sURL) {
+		if (url == null) {
+			if (DEBUG) System.out.println("no, Null URL for type #" + transferData.type);
+			return false;
+		}
+
+		if (isURL(url.linkURL)) {
+			if (DEBUG) System.out.println("Yes, type #" + transferData.type);
+			return true;
+		}
+
+		if (DEBUG) System.out.println("no, " + url.linkURL + " not URL for type #" + transferData.type);
+		return false;
+	}
+
+	public boolean isURL(String sURL) {
+		if (sURL == null || sURL.length() < 5)
+			return false;
+
 		String sLower = sURL.toLowerCase();
 		return sLower.startsWith("http://") || sLower.startsWith("https://")
 				|| sLower.startsWith("magnet:") || sLower.startsWith("ftp://");
 	}
-	
+
 	/**
 	 * Sometimes, CF_Text will be in currentDataType even though CF_UNICODETEXT 
 	 * is present.  This is a workaround until its fixed properly.
@@ -237,7 +308,8 @@ public class URLTransfer extends ByteArrayTransfer {
 	 * @param def
 	 * @return
 	 */
-	public static TransferData pickBestType(TransferData[] dataTypes, TransferData def) {
+	public static TransferData pickBestType(TransferData[] dataTypes,
+			TransferData def) {
 		for (int i = 0; i < supportedTypeIds.length; i++) {
 			int supportedTypeID = supportedTypeIds[i];
 			for (int j = 0; j < dataTypes.length; j++) {
@@ -249,35 +321,35 @@ public class URLTransfer extends ByteArrayTransfer {
 		return def;
 	}
 
-  public class URLType {
-    public String linkURL;
-    public String linkText;
-    public String toString() {
-      return linkURL + "\n" + linkText;
-    }
-  }
+	public class URLType {
+		public String linkURL;
 
-  /**
-   * Test for varioud UTF Strings
-   * BOM information from http://www.unicode.org/faq/utf_bom.html
-   * @param args
-   */
-  public static void main(String[] args) {
-  	
-  	Map map = new LinkedHashMap();
-  	map.put("UTF-8", 
-  			new byte[] { (byte)0xEF, (byte)0xbb, (byte)0xbf, 'H', 'i' });
-  	map.put("UTF-32 BE BOM", 
-  			new byte[] { 0, 0, (byte)0xFE, (byte)0xFF, 'H', 0,0,0, 'i', 0,0,0 });
-    map.put("UTF-16 LE BOM", 
-    		new byte[] { (byte)0xFF, (byte)0xFE, 'H', 0, 'i', 0 });
-    map.put("UTF-16 BE BOM", 
-    		new byte[] { (byte) 0xFE, (byte) 0xFF, 0, 'H', 0, 'i' });
-    map.put("UTF-16 LE", 
-    		new byte[] { 'H', 0, 'i', 0 });
-    map.put("UTF-16 BE", 
-    		new byte[] { 0, 'H', 0, 'i' });
-    
+		public String linkText;
+
+		public String toString() {
+			return linkURL + "\n" + linkText;
+		}
+	}
+
+	/**
+	 * Test for varioud UTF Strings
+	 * BOM information from http://www.unicode.org/faq/utf_bom.html
+	 * @param args
+	 */
+	public static void main(String[] args) {
+
+		Map map = new LinkedHashMap();
+		map.put("UTF-8", new byte[] { (byte) 0xEF, (byte) 0xbb, (byte) 0xbf, 'H',
+				'i' });
+		map.put("UTF-32 BE BOM", new byte[] { 0, 0, (byte) 0xFE, (byte) 0xFF, 'H',
+				0, 0, 0, 'i', 0, 0, 0 });
+		map.put("UTF-16 LE BOM", new byte[] { (byte) 0xFF, (byte) 0xFE, 'H', 0,
+				'i', 0 });
+		map.put("UTF-16 BE BOM", new byte[] { (byte) 0xFE, (byte) 0xFF, 0, 'H', 0,
+				'i' });
+		map.put("UTF-16 LE", new byte[] { 'H', 0, 'i', 0 });
+		map.put("UTF-16 BE", new byte[] { 0, 'H', 0, 'i' });
+
 		for (Iterator iterator = map.keySet().iterator(); iterator.hasNext();) {
 			String element = (String) iterator.next();
 			System.out.println(element + ":");
@@ -311,4 +383,5 @@ public class URLTransfer extends ByteArrayTransfer {
 			System.out.println(data);
 		}
 	}
+
 }

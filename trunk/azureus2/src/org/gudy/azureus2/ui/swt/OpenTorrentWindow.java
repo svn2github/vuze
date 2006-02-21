@@ -630,35 +630,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 		setPasteKeyListener(shell, pasteKeyListener);
 
-		DropTarget dropTarget = new DropTarget(shell, DND.DROP_DEFAULT
-				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
-		// Order is important
-		dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(),
-				FileTransfer.getInstance(), TextTransfer.getInstance() });
-		dropTarget.addDropListener(new DropTargetAdapter() {
-			public void dropAccept(DropTargetEvent event) {
-				event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
-						event.currentDataType);
-			}
-
-			public void dragEnter(DropTargetEvent event) {
-				if ((event.operations & DND.DROP_LINK) > 0)
-					event.detail = DND.DROP_LINK;
-				else if ((event.operations & DND.DROP_COPY) > 0)
-					event.detail = DND.DROP_COPY;
-			}
-
-			public void drop(DropTargetEvent event) {
-				if (event.data instanceof URLTransfer.URLType)
-					addTorrents(null,
-							new String[] { ((URLTransfer.URLType) event.data).linkURL });
-				else if (event.data instanceof String[])
-					addTorrents(null, (String[]) event.data);
-				else if (event.data instanceof String)
-					addTorrents(null, new String[] { (String) event.data });
-			}
-		});
-
+		Utils.createTorrentDropTarget(shell, false);
 		shell.pack();
 
 		if (!Utils.linkShellMetricsToConfig(shell, "OpenTorrentWindow")) {
