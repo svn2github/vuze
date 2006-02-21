@@ -1955,7 +1955,7 @@ public class MyTorrentsView
 		}
 
 		if (e.keyCode != SWT.BS && e.keyCode != 0x18) {
-			if (e.stateMask != 0 || e.character < 32)
+			if ((e.stateMask & (~SWT.SHIFT)) != 0 || e.character < 32)
 				return;
 		}
 
