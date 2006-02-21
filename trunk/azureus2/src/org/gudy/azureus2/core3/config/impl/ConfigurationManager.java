@@ -38,11 +38,11 @@ public class
 ConfigurationManager 
 	implements AEDiagnosticsEvidenceGenerator
 {
-  
-  private static ConfigurationManager config = null;
+  private static ConfigurationManager 	config_temp = null;
+  private static ConfigurationManager 	config 		= null;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
   
-  private Map propertiesMap	= new HashMap();
+  private Map propertiesMap;	// leave this NULL - it picks up errors caused by initialisation sequence errors
   
   private List		listeners 			= new ArrayList();
   private Hashtable parameterListeners 	= new Hashtable();
@@ -50,20 +50,37 @@ ConfigurationManager
   private AEMonitor	this_mon	= new AEMonitor( "ConfigMan");
   
  
-  public static boolean isInitialized() {
-  	return (config != null);
-  }
-  
- 
   public static ConfigurationManager getInstance() {
   	try{
   		class_mon.enter();
   	
-	  	if (config == null){
+	  	if ( config == null){
 	  		
-	  		config = new ConfigurationManager();
+	  			// this is nasty but I can't see an easy way around it. Unfortunately while reading the config
+	  			// we hit other code (logging for example) that needs access to the config data. Things are
+	  			// cunningly (?) arranged so that a recursive call here *won't* result in a further (looping)
+	  			// recursive call if we attempt to load the config again. Hence this disgusting code that
+	  			// goes for a second load attempt
 	  		
-	  		config.initialise();
+	  		if ( config_temp == null ){
+	  			
+	  			config_temp = new ConfigurationManager();
+	  		
+	  			config_temp.load();
+	  			
+	  			config_temp.initialise();
+	  			
+	  		  	config	= config_temp;
+	  		  	
+	  		}else{
+	  			
+	  			if ( config_temp.propertiesMap == null ){
+	  				
+	  				config_temp.load();
+	  			}
+	  			
+	  			return( config_temp );
+	  		}
 	  	}
 	  	
 	  	return config;
@@ -102,65 +119,30 @@ ConfigurationManager
   	propertiesMap	= data;
   }
   
-  private void
+  protected void
   initialise()
   {
-	load();
-	
-   //ConfigurationChecker.migrateConfig();  //removed 2201
-  	
-  	ConfigurationChecker.checkConfiguration();
-
-  	ConfigurationChecker.setSystemProperties();
-	
-	AEDiagnostics.addEvidenceGenerator( this );
-	
-		// fire any parameter listeners that might have been registered during the load of the config.
-		// nasty recursive stuff happening here...
-	
-	Map	copy;
-	
-	try{
-  		this_mon.enter();
-  		
-  		copy = new HashMap(parameterListeners );
-  		
-	}finally{
 		
-		this_mon.exit();
-	}
-	
-	Iterator	it = copy.entrySet().iterator();
- 		 
-  	while( it.hasNext()){
-  			
-  		Map.Entry	entry = (Map.Entry)it.next();
-  		
-  		String	name = (String)entry.getKey();
-  		
-  		Vector listeners = (Vector)entry.getValue();
-  		
-  	    if ( listeners != null) {
-  	    	try{
-  	    		for (int i=0;i<listeners.size();i++){
-  	        
-  	    			ParameterListener	listener = (ParameterListener)listeners.get(i);
-  	    			
-  	    			if(listener != null) {
-  	    				listener.parameterChanged(name);
-  	    			}
-  	    		}
-  	    	}catch( Throwable e ){
-  	    			    		
-  	    		e.printStackTrace();
-  	    	}
-  	    }
-  	}
+	  //ConfigurationChecker.migrateConfig();  //removed 2201
+	 	
+	 ConfigurationChecker.checkConfiguration();
+
+	 ConfigurationChecker.setSystemProperties();
+		 	
+	 AEDiagnostics.addEvidenceGenerator( this );
   }
   
   public void load(String filename) 
   {
-  	propertiesMap = FileUtil.readResilientConfigFile( filename, false );
+  	Map	data = FileUtil.readResilientConfigFile( filename, false );
+  	
+  		// horrendous recursive loading going on here due to logger + config depedencies. If already loaded
+  		// then use the existing data as it might have already been written to...
+  	
+  	if ( propertiesMap == null ){
+  		
+  		propertiesMap	= data;
+  	}
   	
 /* 
  * Can't do this yet.  Sometimes, there's a default set to x, but the code

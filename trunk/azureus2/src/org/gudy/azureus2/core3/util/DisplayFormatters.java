@@ -142,8 +142,8 @@ DisplayFormatters
 					parameterChanged(
 						String	x )
 					{
-						separate_prot_data_stats = COConfigurationManager.getBooleanParameter("config.style.separateProtDataStats");
-						data_stats_only			 = COConfigurationManager.getBooleanParameter("config.style.dataStatsOnly");
+						separate_prot_data_stats = COConfigurationManager.getBooleanParameter("config.style.separateProtDataStats", false );
+						data_stats_only			 = COConfigurationManager.getBooleanParameter("config.style.dataStatsOnly", false);
 					}
 				});
 

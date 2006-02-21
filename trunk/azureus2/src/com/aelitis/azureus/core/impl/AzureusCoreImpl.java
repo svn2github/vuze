@@ -328,11 +328,8 @@ AzureusCoreImpl
 				
 					// ensure config is saved as there may be pending changes to persist and we've got here
 					// via a shutdown hook
-				
-				if ( COConfigurationManager.isInitialized()){
-					
-					COConfigurationManager.save();
-				}
+									
+				COConfigurationManager.save();
 				
 				Logger.log(new LogEvent(LOGID, "Waiting for stop to complete"));
 				

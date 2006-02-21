@@ -103,10 +103,6 @@ COConfigurationManager
 		
 		ConfigurationManager.getInstance(data);
 	}
-	
-  public static boolean isInitialized() {
-  	return ConfigurationManager.isInitialized();
-  }
 
 	public static String
 	getStringParameter(

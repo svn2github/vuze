@@ -62,9 +62,9 @@ public class Debug {
   	String		str,
 	boolean		stderr)
   {
-    diag_logger.logAndOut("DEBUG::"+ new Date(SystemTime.getCurrentTime()).toString(), stderr );
+    diagLoggerLogAndOut("DEBUG::"+ new Date(SystemTime.getCurrentTime()).toString(), stderr );
     
-    diag_logger.logAndOut("  " + str, stderr );
+    diagLoggerLogAndOut("  " + str, stderr );
   }
   
   /**
@@ -94,15 +94,15 @@ public class Debug {
     	trace_trace_tail = getCompressedStackTrace(e, 3, 200);
     }
     
-    diag_logger.logAndOut(header+className+(methodName)+lineNumber+":", true);
+    diagLoggerLogAndOut(header+className+(methodName)+lineNumber+":", true);
     if (_debug_msg.length() > 0) {
-    	diag_logger.logAndOut("  " + _debug_msg, true);
+    	diagLoggerLogAndOut("  " + _debug_msg, true);
     }
     if ( trace_trace_tail != null ){
-    	diag_logger.logAndOut( "    " + trace_trace_tail, true);
+    	diagLoggerLogAndOut( "    " + trace_trace_tail, true);
     }
     if (_exception != null) {
-    	diag_logger.logAndOut(_exception);
+    	diagLoggerLogAndOut(_exception);
     }
   }
   
@@ -130,7 +130,7 @@ public class Debug {
 
   public static void outStackTrace() {
     // skip the last, since they'll most likely be main
-  	diag_logger.logAndOut(getStackTrace(1));
+	  diagLoggerLogAndOut(getStackTrace(1),false);
   }
 
   private static String getStackTrace(int endNumToSkip) {
@@ -383,7 +383,7 @@ public class Debug {
 	      }
 	    }
 	      
-	    diag_logger.logAndOut(header+className+(methodName)+lineNumber+":", true);
+	    diagLoggerLogAndOut(header+className+(methodName)+lineNumber+":", true);
 	      
 		try{
 			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
@@ -396,7 +396,7 @@ public class Debug {
 			
 			String	stack = baos.toString();
 					    
-			diag_logger.logAndOut("  " + stack, true );			
+			diagLoggerLogAndOut("  " + stack, true );			
 		}catch( Throwable ignore ){
 			
 			e.printStackTrace();
@@ -417,6 +417,38 @@ public class Debug {
 
 		} catch (Throwable ignore) {
 			return "";
+		}
+	}
+	
+	private static void
+	diagLoggerLogAndOut(
+		String	str,
+		boolean	stderr )
+	{
+			// handle possible recursive initialisation problems where the init of diag-logger gets
+			// back here....
+		
+		if ( diag_logger == null ){
+			if ( stderr ){
+				System.err.println( str );
+			}else{
+				System.out.println( str );
+			}
+		}else{
+			diag_logger.logAndOut( str, stderr );
+		}
+	}
+	private static void
+	diagLoggerLogAndOut(
+		Throwable e )
+	{
+			// handle possible recursive initialisation problems where the init of diag-logger gets
+			// back here....
+		
+		if ( diag_logger == null ){
+			e.printStackTrace();
+		}else{
+			diag_logger.logAndOut( e );
 		}
 	}
 }
