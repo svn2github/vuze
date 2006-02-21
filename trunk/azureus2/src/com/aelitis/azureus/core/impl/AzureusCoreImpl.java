@@ -395,6 +395,27 @@ AzureusCoreImpl
 				
 				AzureusRestarterFactory.create( this ).restart( true );
 			}
+			
+			try{
+				ThreadGroup	tg = Thread.currentThread().getThreadGroup();
+				
+				Thread[]	threads = new Thread[tg.activeCount()+32];
+				
+				tg.enumerate( threads );
+				
+				for (int i=0;i<threads.length;i++){
+					
+					Thread	t = threads[i];
+					
+					if ( !t.isDaemon()){
+						
+						Debug.out( "killing non-daemon thread '" + t.getName());
+						
+						t.stop();
+					}
+				}
+			}catch( Throwable e ){
+			}
 		}finally{
 			
 			stopping_sem.releaseForever();
