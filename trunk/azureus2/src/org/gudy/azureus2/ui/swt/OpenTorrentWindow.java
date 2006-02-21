@@ -1482,6 +1482,24 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		// actually made a copy.
 		try {
 			File fOriginal = new File(sFileName);
+			
+			if (!fOriginal.isFile() || !fOriginal.exists()) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (shell == null)
+							new MessagePopupShell(MessagePopupShell.ICON_ERROR,
+									"OpenTorrentWindow.mb.openError", "",
+									new String[] { sOriginatingLocation, "Not a File" },
+									MainWindow.getWindow().getDisplay());
+						else
+							Utils.openMessageBox(shell, SWT.OK,
+									"OpenTorrentWindow.mb.openError", new String[] {
+											sOriginatingLocation, "Not a File" });
+					}
+				});
+				return null;
+			}
+			
 			torrentFile = TorrentUtils.copyTorrentFileToSaveDir(fOriginal, true);
 			bDeleteFileOnCancel = !fOriginal.equals(torrentFile);
 			// TODO if the files are still equal, and it isn't in the save
