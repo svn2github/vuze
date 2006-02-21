@@ -187,6 +187,13 @@ ConfigurationManager
   
   public void save(String filename) 
   {
+	if ( propertiesMap == null ){
+		
+			// nothing to save, initialisation not complete
+		
+		return;
+	}
+	
   	FileUtil.writeResilientConfigFile( filename, propertiesMap );
     
   	List	listeners_copy;
