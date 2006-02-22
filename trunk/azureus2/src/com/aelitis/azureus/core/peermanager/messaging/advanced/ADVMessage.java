@@ -35,6 +35,8 @@ public interface ADVMessage extends Message {
 	public static final String ADV_FEATURE_ID = "ADV1";
 
   public static final String ID_ADV_HANDSHAKE    	    = "ADV_HANDSHAKE";
+  public static final byte[] ID_ADV_HANDSHAKE_BYTES     = ID_ADV_HANDSHAKE.getBytes();
+  
   public static final int SUBID_ADV_HANDSHAKE					= 0;
 	
 }

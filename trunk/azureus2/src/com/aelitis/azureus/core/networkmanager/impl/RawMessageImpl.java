@@ -65,7 +65,8 @@ public class RawMessageImpl implements RawMessage {
   
   //message impl
   public String getID() {  return message.getID();  }
-  
+  public byte[] getIDBytes() {  return message.getIDBytes();  }
+   
   public String getFeatureID() {  return message.getFeatureID();  }  
   
   public int getFeatureSubID() {  return message.getFeatureSubID();  }

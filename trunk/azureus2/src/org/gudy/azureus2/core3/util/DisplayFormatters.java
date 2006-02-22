@@ -26,6 +26,7 @@ package org.gudy.azureus2.core3.util;
  *
  */
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -54,6 +55,11 @@ DisplayFormatters
 	                                                     2, //GB
 	                                                     3 //TB
 	                                                  };
+	
+	final private static NumberFormat[]	cached_number_formats = new NumberFormat[10];
+	
+	private static NumberFormat	percentage_format;
+
 	private static String[] units;
 	private static String[] units_rate;
 	private static int unitsStopAt = UNIT_TB;
@@ -71,8 +77,6 @@ DisplayFormatters
     private static boolean	separate_prot_data_stats;
     private static boolean	data_stats_only;
     
-	// private static String lastDecimalFormat = "";
-
 	static{
 		use_si_units = COConfigurationManager.getBooleanParameter("config.style.useSIUnits", false);
 
@@ -151,14 +155,6 @@ DisplayFormatters
 		
 		loadMessages();
 	}
-
-	static NumberFormat	percentage_format;
-	
-	static{
-		percentage_format = NumberFormat.getPercentInstance();
-		percentage_format.setMinimumFractionDigits(1);
-		percentage_format.setMaximumFractionDigits(1);
-	}
 	
   public static void
   setUnits()
@@ -222,8 +218,11 @@ DisplayFormatters
       units_rate[i] = units_rate[i] + per_sec;
     }
     
-    NumberFormat.getPercentInstance().setMinimumFractionDigits(1);
-    NumberFormat.getPercentInstance().setMaximumFractionDigits(1);
+	Arrays.fill( cached_number_formats, null );
+
+	percentage_format = NumberFormat.getPercentInstance();
+	percentage_format.setMinimumFractionDigits(1);
+	percentage_format.setMaximumFractionDigits(1);
    }
   
 	private static String
@@ -780,7 +779,8 @@ DisplayFormatters
   		// for compilers that throw on division by 0
   	}
   	
-  	// NumberFormat rounds, so truncate at precision
+  		// NumberFormat rounds, so truncate at precision
+  	
   	double tValue;
   	if (precision == 0) {
   		tValue = (long)value; 
@@ -789,12 +789,29 @@ DisplayFormatters
   		tValue = ((long)(value * shift)) / shift;
   	}
   	
-		NumberFormat nf =  NumberFormat.getNumberInstance();
-		nf.setGroupingUsed(false); // no commas
-		if (!bTruncateZeros)
-			nf.setMinimumFractionDigits(precision);
-
-		return nf.format(tValue);
+  	int	cache_index = precision*2 + (bTruncateZeros?1:0);
+  	
+  	NumberFormat nf	= null;
+  	
+  	if ( cache_index < cached_number_formats.length ){
+  		
+  		nf = cached_number_formats[cache_index];
+  	}
+  	
+  	if ( nf == null ){
+  		nf =  NumberFormat.getNumberInstance();
+  		nf.setGroupingUsed(false); // no commas
+  		if (!bTruncateZeros){
+  			nf.setMinimumFractionDigits(precision);
+  		}
+  		
+  		if ( cache_index < cached_number_formats.length ){
+  			
+  			cached_number_formats[cache_index] = nf;
+  		}
+  	}
+  	
+	return nf.format(tValue);
   }
   
   		/**

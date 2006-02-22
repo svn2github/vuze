@@ -63,6 +63,7 @@ public class AZSessionPiece implements AZMessage {
   
 
   public String getID() {  return AZMessage.ID_AZ_SESSION_PIECE;  }
+  public byte[] getIDBytes() {  return AZMessage.ID_AZ_SESSION_PIECE_BYTES;  }
   
   public String getFeatureID() {  throw new RuntimeException( "not implemented" );  }   //TODO  
   public int getFeatureSubID() {  throw new RuntimeException( "not implemented" );  }   //TODO

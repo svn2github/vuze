@@ -117,8 +117,9 @@ public class AZPeerExchange implements AZMessage {
   
     
   public String getID() {  return AZMessage.ID_AZ_PEER_EXCHANGE;  }
+  public byte[] getIDBytes() {  return AZMessage.ID_AZ_PEER_EXCHANGE_BYTES;  }
   
-public String getFeatureID() {  return AZMessage.AZ_FEATURE_ID;  }  
+  public String getFeatureID() {  return AZMessage.AZ_FEATURE_ID;  }  
   
   public int getFeatureSubID() { return AZMessage.SUBID_AZ_PEER_EXCHANGE;  }
   

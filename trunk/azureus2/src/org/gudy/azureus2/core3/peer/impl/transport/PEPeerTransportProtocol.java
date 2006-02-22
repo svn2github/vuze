@@ -1655,7 +1655,15 @@ PEPeerTransportProtocol
     }
     */
     
-	  final String error_msg = "Peer has sent piece #" + pieceNumber + ":" + offset + "->"	+ (offset + length -1) + ", ";
+	Object error_msg = 
+		new Object()
+		{
+			public String
+			toString()
+			{
+				return( "Peer has sent piece #" + pieceNumber + ":" + offset + "->"	+ (offset + length -1) + ", " );
+			}
+		};
     
     if( !manager.checkBlock( pieceNumber, offset, payload ) ) {
       peer_stats.bytesDiscarded( length );

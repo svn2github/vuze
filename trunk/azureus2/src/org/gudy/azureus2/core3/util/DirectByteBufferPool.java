@@ -850,7 +850,7 @@ DirectByteBufferPool
 
 			synchronized( my_slice_entries ){
 			
-				my_slice_entries.add( 0, new sliceBuffer((sliceDBB)ddb ));
+				my_slice_entries.add( 0, ((sliceDBB)ddb).getSliceBuffer());
 			}
 		}
 	}
@@ -1000,15 +1000,6 @@ DirectByteBufferPool
 			slice_id	= _slice_id;
 		}
 		
-		protected
-		sliceBuffer(
-			sliceDBB	dbb  )
-		{
-			buffer		= dbb.getBufferInternal();
-			alloc_id	= dbb.getAllocID();
-			slice_id	= dbb.getSliceID();		
-		}
-		
 		protected ByteBuffer
 		getBuffer()
 		{
@@ -1032,8 +1023,7 @@ DirectByteBufferPool
 	sliceDBB
 		extends DirectByteBuffer
 	{
-		private short		alloc_id;
-		private short		slice_id;
+		private sliceBuffer	slice_buffer;
 
 		protected
 		sliceDBB(
@@ -1041,21 +1031,14 @@ DirectByteBufferPool
 			sliceBuffer	_sb )
 		{	
 			super( _allocator, _sb.getBuffer(), pool );
-			
-			alloc_id		= _sb.getAllocID();
-			slice_id		= _sb.getSliceID();
+	
+			slice_buffer	= _sb;
 		}
 		
-		protected short
-		getAllocID()
+		protected sliceBuffer
+		getSliceBuffer()
 		{
-			return( alloc_id );
-		}
-		
-		protected short
-		getSliceID()
-		{
-			return( slice_id );
+			return( slice_buffer );
 		}
 	}
 	

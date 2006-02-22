@@ -30,26 +30,41 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 public interface AZMessage extends Message {
 	public static final String AZ_FEATURE_ID = "AZ1";
 
-  public static final String ID_AZ_HANDSHAKE        = "AZ_HANDSHAKE";
-  public static final int SUBID_AZ_HANDSHAKE				= 0;
+  public static final String ID_AZ_HANDSHAKE        	= "AZ_HANDSHAKE";
+  public static final byte[] ID_AZ_HANDSHAKE_BYTES      = ID_AZ_HANDSHAKE.getBytes();
+  public static final int SUBID_AZ_HANDSHAKE			= 0;
   
-  public static final String ID_AZ_PEER_EXCHANGE    = "AZ_PEER_EXCHANGE";
+  public static final String ID_AZ_PEER_EXCHANGE    	= "AZ_PEER_EXCHANGE";
+  public static final byte[] ID_AZ_PEER_EXCHANGE_BYTES  = ID_AZ_PEER_EXCHANGE.getBytes();
   public static final int SUBID_AZ_PEER_EXCHANGE		= 1;
   
-  public static final String ID_AZ_GENERIC_MAP    	= "AZ_GENERIC_MAP";
+  public static final String ID_AZ_GENERIC_MAP    		= "AZ_GENERIC_MAP";
+  public static final byte[] ID_AZ_GENERIC_MAP_BYTES    = ID_AZ_GENERIC_MAP.getBytes();;
   public static final int SUBID_AZ_GENERIC_MAP			= 2;
   
   
   //TODO
-  public static final String ID_AZ_SESSION_SYN      = "AZ_SESSION_SYN";
-  public static final String ID_AZ_SESSION_ACK      = "AZ_SESSION_ACK";
-  public static final String ID_AZ_SESSION_END      = "AZ_SESSION_END";
-  public static final String ID_AZ_SESSION_BITFIELD = "AZ_SESSION_BITFIELD";
-  public static final String ID_AZ_SESSION_CANCEL   = "AZ_SESSION_CANCEL";
-  public static final String ID_AZ_SESSION_HAVE     = "AZ_SESSION_HAVE";
-  public static final String ID_AZ_SESSION_PIECE    = "AZ_SESSION_PIECE";
-  public static final String ID_AZ_SESSION_REQUEST  = "AZ_SESSION_REQUEST";
+  public static final String ID_AZ_SESSION_SYN      	= "AZ_SESSION_SYN";
+  public static final byte[] ID_AZ_SESSION_SYN_BYTES    = ID_AZ_SESSION_SYN.getBytes();
   
+  public static final String ID_AZ_SESSION_ACK      	= "AZ_SESSION_ACK";
+  public static final byte[] ID_AZ_SESSION_ACK_BYTES    = ID_AZ_SESSION_ACK.getBytes();
   
+  public static final String ID_AZ_SESSION_END      	= "AZ_SESSION_END";
+  public static final byte[] ID_AZ_SESSION_END_BYTES    = ID_AZ_SESSION_END.getBytes();
+   
+  public static final String ID_AZ_SESSION_BITFIELD 		= "AZ_SESSION_BITFIELD";
+  public static final byte[] ID_AZ_SESSION_BITFIELD_BYTES 	= ID_AZ_SESSION_BITFIELD.getBytes();
   
+  public static final String ID_AZ_SESSION_CANCEL   	= "AZ_SESSION_CANCEL";
+  public static final byte[] ID_AZ_SESSION_CANCEL_BYTES = ID_AZ_SESSION_CANCEL.getBytes();
+  
+  public static final String ID_AZ_SESSION_HAVE     	= "AZ_SESSION_HAVE";
+  public static final byte[] ID_AZ_SESSION_HAVE_BYTES   = ID_AZ_SESSION_HAVE.getBytes();
+  
+  public static final String ID_AZ_SESSION_PIECE    	= "AZ_SESSION_PIECE";
+  public static final byte[] ID_AZ_SESSION_PIECE_BYTES  = ID_AZ_SESSION_PIECE.getBytes();
+  
+  public static final String ID_AZ_SESSION_REQUEST  		= "AZ_SESSION_REQUEST";
+  public static final byte[] ID_AZ_SESSION_REQUEST_BYTES  	= ID_AZ_SESSION_REQUEST.getBytes();
 }

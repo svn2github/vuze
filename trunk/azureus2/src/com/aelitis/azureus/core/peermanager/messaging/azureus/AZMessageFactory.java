@@ -127,7 +127,7 @@ public class AZMessageFactory {
    * @return AZ raw message
    */
   public static RawMessage createAZRawMessage( Message base_message ) {
-    byte[] id_bytes = base_message.getID().getBytes();
+    byte[] id_bytes = base_message.getIDBytes();
     DirectByteBuffer[] payload = base_message.getData();
     
     int payload_size = 0;

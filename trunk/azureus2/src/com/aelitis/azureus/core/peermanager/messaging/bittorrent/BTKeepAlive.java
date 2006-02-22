@@ -44,8 +44,9 @@ public class BTKeepAlive implements BTMessage, RawMessage {
   
   // message
   public String getID() {  return BTMessage.ID_BT_KEEP_ALIVE;  }
+  public byte[] getIDBytes() {  return BTMessage.ID_BT_KEEP_ALIVE_BYTES;  }
   
-public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  } 
+  public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  } 
   
   public int getFeatureSubID() {  return BTMessage.SUBID_BT_KEEP_ALIVE;  }
   

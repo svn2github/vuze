@@ -52,6 +52,7 @@ public class AZSessionHave implements AZMessage {
   
 
   public String getID() {  return AZMessage.ID_AZ_SESSION_HAVE;  }
+  public byte[] getIDBytes() {  return AZMessage.ID_AZ_SESSION_HAVE_BYTES;  }
   
   public String getFeatureID() {  throw new RuntimeException( "not implemented" );  }   //TODO  
   public int getFeatureSubID() {  throw new RuntimeException( "not implemented" );  }   //TODO

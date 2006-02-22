@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.peermanager.messaging.*;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.AZMessage;
+import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessage;
 
 
 
@@ -56,6 +57,7 @@ public class AZSessionSyn implements AZMessage {
   
     
   public String getID() {  return AZMessage.ID_AZ_SESSION_SYN;  }
+  public byte[] getIDBytes() {  return AZMessage.ID_AZ_SESSION_SYN_BYTES;  }
   
   public String getFeatureID() {  throw new RuntimeException( "not implemented" );  }   //TODO  
   public int getFeatureSubID() {  throw new RuntimeException( "not implemented" );  }   //TODO

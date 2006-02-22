@@ -59,8 +59,9 @@ public class BTPiece implements BTMessage {
   
 
   public String getID() {  return BTMessage.ID_BT_PIECE;  }
-  
-public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  } 
+  public byte[] getIDBytes() {  return BTMessage.ID_BT_PIECE_BYTES;  }
+
+  public String getFeatureID() {  return BTMessage.BT_FEATURE_ID;  } 
   
   public int getFeatureSubID() {  return BTMessage.SUBID_BT_PIECE;  }
   

@@ -50,7 +50,7 @@ public interface Message {
    */
   public String getID();
   
-  
+  public byte[] getIDBytes();
   /**
    * Get the main feature set name this message belongs to.
    * @return feature id

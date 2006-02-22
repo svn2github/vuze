@@ -51,6 +51,7 @@ public class AZSessionBitfield implements AZMessage {
   
 
   public String getID() {  return AZMessage.ID_AZ_SESSION_BITFIELD;  }
+  public byte[] getIDBytes() {  return AZMessage.ID_AZ_SESSION_BITFIELD_BYTES;  }
   
   public String getFeatureID() {  throw new RuntimeException( "not implemented" );  }   //TODO  
   public int getFeatureSubID() {  throw new RuntimeException( "not implemented" );  }   //TODO

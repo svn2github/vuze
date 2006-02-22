@@ -91,6 +91,9 @@ public class MessageAdapter implements Message, com.aelitis.azureus.core.peerman
     return core_msg == null ? plug_msg.getID() : core_msg.getID();
   }
   
+  public byte[] getIDBytes() {
+	    return core_msg == null ? plug_msg.getID().getBytes() : core_msg.getIDBytes();
+	  }
   
   public int getType() {
     return core_msg == null ? plug_msg.getType() : core_msg.getType();

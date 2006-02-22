@@ -79,7 +79,8 @@ public class ADVHandshake implements ADVMessage {
 
   // message
   public String getID() {  return ADVMessage.ID_ADV_HANDSHAKE;  }
-  
+  public byte[] getIDBytes() {  return ADVMessage.ID_ADV_HANDSHAKE_BYTES;  }
+   
 public String getFeatureID() {  return ADVMessage.ADV_FEATURE_ID;  } 
   
   public int getFeatureSubID() {  return ADVMessage.SUBID_ADV_HANDSHAKE;  }

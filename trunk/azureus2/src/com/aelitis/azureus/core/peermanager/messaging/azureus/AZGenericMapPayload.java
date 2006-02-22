@@ -52,6 +52,7 @@ public class AZGenericMapPayload implements AZMessage {
   
     
   public String getID() {  return type_id;  }
+  public byte[] getIDBytes() {  return type_id.getBytes();  }
   
   public String getFeatureID() {  return AZMessage.AZ_FEATURE_ID;  }  
   

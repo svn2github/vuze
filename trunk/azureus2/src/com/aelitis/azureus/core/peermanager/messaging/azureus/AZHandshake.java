@@ -106,6 +106,7 @@ public class AZHandshake implements AZMessage {
   
     
   public String getID() {  return AZMessage.ID_AZ_HANDSHAKE;  }
+  public byte[] getIDBytes() {  return AZMessage.ID_AZ_HANDSHAKE_BYTES;  }
   
   public String getFeatureID() {  return AZMessage.AZ_FEATURE_ID;  }  
   
