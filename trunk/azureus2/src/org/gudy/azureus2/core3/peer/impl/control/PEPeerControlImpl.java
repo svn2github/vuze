@@ -648,7 +648,7 @@ PEPeerControlImpl
 		for (int i = 0; i <_nbPieces; i++) {
 			final DiskManagerPiece dmPiece =dm_pieces[i];
 			//if piece is completly written, not already checking, and not Done
-			if (dmPiece.calcWritten() &&!dmPiece.isChecking() &&!dmPiece.isDone())
+			if (!dmPiece.isDone() &&dmPiece.calcWritten() &&!dmPiece.isChecking())
 			{
 				//check the piece from the disk
 				dmPiece.setChecking();
@@ -956,19 +956,19 @@ PEPeerControlImpl
 			final PEPeerTransport pc =(PEPeerTransport)peer_transports.get(i);
 			if (pc.getPeerState() ==PEPeer.TRANSFERING)
 			{
-                final boolean isSeed =pc.isSeed();
 				final List expired = pc.getExpiredRequests();
 				if (expired !=null &&expired.size() >0)
 				{
+                    final boolean isSeed =pc.isSeed();
                     // snub peers that haven't sent any good data for a minute
                     final long timeSinceGoodData =pc.getTimeSinceGoodDataReceived();
-                    if (timeSinceGoodData ==-1 ||timeSinceGoodData >60 *1000)
+                    if (timeSinceGoodData <0 ||timeSinceGoodData >60 *1000)
                     {
                         pc.setSnubbed(true);
                     }
                     
                     final long timeSinceData =pc.getTimeSinceLastDataMessageReceived();
-                    final boolean noData =(timeSinceData ==-1) ||timeSinceData >(1000 *(isSeed ?120 :60));
+                    final boolean noData =(timeSinceData <0) ||timeSinceData >(1000 *(isSeed ?120 :60));
                     final long timeSinceOldestRequest =now -((DiskManagerReadRequest) expired.get(0)).getTimeCreated();
                     
                     for (int j =0; j <expired.size(); j++)
@@ -988,6 +988,7 @@ PEPeerControlImpl
                                 pePiece.clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
                             //set piece to not fully requested
                             dm_pieces[pieceNumber].clearRequested();
+                            // (if not in end game) remove piece if empty so peers can choose something else
                             if (!piecePicker.isInEndGameMode())
                                 checkEmptyPiece(pieceNumber);
                         }
@@ -2523,11 +2524,7 @@ PEPeerControlImpl
 		for (int i =0; i <_nbPieces; i++ )
 		{
 			if (pePieces[i] !=null)
-			{
                 pePieces[i].reDownloadBlocks(ip.getIp());
-				if (!dm_pieces[i].isWritten())
-					dm_pieces[i].clearRequested();
-			}
 		}
 	}
 	
