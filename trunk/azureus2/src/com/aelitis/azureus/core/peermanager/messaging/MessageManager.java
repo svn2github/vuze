@@ -39,8 +39,9 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageFactor
 public class MessageManager {
   private static final MessageManager instance = new MessageManager();
   
-  private final HashMap message_registrations = new HashMap();
-
+  private final ByteArrayHashMap 	message_map 	= new ByteArrayHashMap();
+  private final List				messages		= new ArrayList();
+  
   protected AEMonitor	this_mon = new AEMonitor( "MessageManager" );
   
   private MessageManager() {
@@ -71,12 +72,15 @@ public class MessageManager {
   	try{
   		this_mon.enter();
 	    
-	    if( message_registrations.containsKey( message.getID() ) ) {
+  		byte[]	id_bytes = message.getIDBytes();
+  		 		
+	    if( message_map.containsKey( id_bytes ) ) {
 	      throw new MessageException( "message type [" +message.getID()+ "] already registered!" );
 	    }
 	    
-	    message_registrations.put( message.getID(), message );
+	    message_map.put( id_bytes, message );
 	    
+	    messages.add( message );
   	}finally{
   		
   		this_mon.exit();
@@ -91,7 +95,10 @@ public class MessageManager {
    */
   public void deregisterMessageType( Message message ) {
     try{  this_mon.enter();
-      message_registrations.remove( message.getID() );
+     
+      message_map.remove( message.getIDBytes() );
+      
+      messages.remove( message );
     }
     finally{  this_mon.exit();  }
   }
@@ -104,11 +111,11 @@ public class MessageManager {
    * @return decoded/deserialized message
    * @throws MessageException if message creation failed
    */
-  public Message createMessage( String id, DirectByteBuffer message_data ) throws MessageException {    
-    Message message = (Message)message_registrations.get( id );
+  public Message createMessage( byte[] id_bytes, DirectByteBuffer message_data ) throws MessageException {    
+    Message message = (Message)message_map.get( id_bytes );
     
     if( message == null ) {
-      throw new MessageException( "message id[" +id+ "] not registered" );
+      throw new MessageException( "message id[" + new String( id_bytes) + "] not registered" );
     }
     
     return message.deserialize( message_data );    
@@ -122,7 +129,7 @@ public class MessageManager {
    * @return the default registered message instance if found, otherwise returns null if this message type is not registered
    */
   public Message lookupMessage( String id ) {
-    return (Message)message_registrations.get( id );
+    return (Message)message_map.get( id.getBytes());
   }
   
   
@@ -133,7 +140,7 @@ public class MessageManager {
    * @return messages
    */
   public Message[] getRegisteredMessages() {
-    return (Message[])message_registrations.values().toArray( new Message[message_registrations.size()] );
+    return (Message[])messages.toArray( new Message[messages.size()] );
   }
 
   

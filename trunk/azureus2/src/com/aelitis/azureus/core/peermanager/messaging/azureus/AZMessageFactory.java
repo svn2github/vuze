@@ -115,7 +115,7 @@ public class AZMessageFactory {
     
     byte version = stream_payload.get( bss );
     
-    return MessageManager.getSingleton().createMessage( new String( id_bytes ), stream_payload );
+    return MessageManager.getSingleton().createMessage( id_bytes, stream_payload );
   }
   
   
