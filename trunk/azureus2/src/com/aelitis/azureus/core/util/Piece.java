@@ -31,7 +31,7 @@ package com.aelitis.azureus.core.util;
 public interface Piece
 {
 	public static final int	PIECE_STATUS_NEEDED		=0x00000001;	//want to have the piece
-	public static final int	PIECE_STATUS_AVAIL		=0x00000002;	//piece is available from others
+//	public static final int	PIECE_STATUS_AVAIL		=0x00000002;	//piece is available from others
 	public static final int	PIECE_STATUS_REQUESTED	=0x00000004;	//piece fully requested
 	public static final int	PIECE_STATUS_DOWNLOADED	=0x00000010;	//piece fully downloaded
 	public static final int	PIECE_STATUS_WRITTEN	=0x00000020;	//piece fully written to storage
@@ -55,7 +55,6 @@ public interface Piece
 
 	public boolean		isChecking();
 
-	public boolean		isWritten();					//TODO: double check usage of this
 	public boolean[]	getWritten();
 
 	public void			reDownloadBlock(int blockNumber);

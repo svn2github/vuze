@@ -580,14 +580,6 @@ public class PEPieceImpl
 		return dmPiece.getLength();
 	}
 
-    /**
-     * @see DiskManagerPiece.isWritten()
-     */
-	public boolean isWritten()
-	{
-		return dmPiece.isWritten();
-	}
-
 	public void setRequestable()
 	{
 		dmPiece.setRequestable();
@@ -599,6 +591,11 @@ public class PEPieceImpl
 	}
 
 /*
+    public boolean isWritten()
+    {
+        return dmPiece.isWritten();
+    }
+
     public void clearChecking()
     {
         dmPiece.clearChecking();

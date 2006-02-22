@@ -52,12 +52,14 @@ public interface DiskManagerPiece
 	public void			setNeeded();
 	public void			setNeeded(boolean b);
 
-	// a piece is Avail if any other peer in the swarm makes the piece available, independant of if we have it or not
+/*
+    // a piece is Avail if any other peer in the swarm makes the piece available, independant of if we have it or not
 	public boolean		calcAvail();
 	public void			clearAvail();
 	public boolean		isAvail();
 	public void			setAvail();
 	public void			setAvail(boolean b);
+*/
 
 	// a piece is Requested if there is at least 1 outstanding request on it AND there's no more blocks that need to be requested
 	public boolean		calcRequested();
@@ -73,6 +75,7 @@ public interface DiskManagerPiece
 	public void			setDownloaded();
 
 	// a piece is Written if data has been written to storage for every block (without concern for if it's checked)  
+    public boolean      isWritten();
 	public int			getNbWritten();
 	public boolean		calcWritten();
 	public void			clearWritten();
@@ -120,4 +123,13 @@ public interface DiskManagerPiece
      * @return true if EGM should ignore the piece
      */
     public boolean      isEGMIgnored();
+    
+    /** This returns a single concise status for the stage of progression the entire piece
+     * has reached.  The statuses are defined in Piece.java.
+     * @return may be;  PIECE_STATUS_DONE, PIECE_STATUS_CHECKING, PIECE_STATUS_WRITTEN
+     * PIECE_STATUS_DOWNLOADED, PIECE_STATUS_REQUESTED, or if nothing else PIECE_STATUS_NEEDED.
+     * A status of 0 means that the piece has not progressed to any stage of completion and is
+     * not even needed according to the current priority settings.
+     */
+    public int          getStatus();
 }

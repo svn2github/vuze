@@ -38,12 +38,13 @@ public class DiskManagerPieceImpl
 	implements DiskManagerPiece
 {
     private static final LogIDs LOGID = LogIDs.PIECES;
+    private static boolean statusTested =false;
 
     private final DiskManagerImpl	diskManager;
 	private final int				pieceNumber;
-	private volatile int			statusFlags;
+    private volatile int            statusFlags;
 
-	private volatile long			time_last_write;
+	private volatile long	        time_last_write;
 	// to save memory the "written" field is only maintained for pieces that are
 	// downloading. A value of "null" means that either the piece hasn't started 
 	// download or that it is complete.
@@ -54,8 +55,6 @@ public class DiskManagerPieceImpl
 	// as problems only occur when switching from all-written to done=true, both of which signify
 	// the same state of affairs.
 	protected boolean[]	written;
-    
-    private static boolean statusTested =false;
 
 	protected DiskManagerPieceImpl(DiskManagerImpl _disk_manager, int pieceIndex)
 	{
@@ -142,7 +141,8 @@ public class DiskManagerPieceImpl
 			clearNeeded();
 	}
 
-	public boolean isAvail()
+/*
+    public boolean isAvail()
 	{
 		return (statusFlags &PIECE_STATUS_AVAIL) !=0;
 	}
@@ -170,6 +170,7 @@ public class DiskManagerPieceImpl
 		else
 			clearAvail();
 	}
+*/
 
 	public boolean isRequested()
 	{
@@ -308,7 +309,7 @@ public class DiskManagerPieceImpl
 	public void setWritten(int blockNumber)
 	{
 		boolean[] written_ref =written;
-		
+
 		if (written_ref ==null)
 			written_ref = written = new boolean[getNbBlocks()];
 
@@ -362,9 +363,6 @@ public class DiskManagerPieceImpl
         {
             diskManager.setPieceDone(this, b);
         }
-        
-		if (isDone())
-			written =null;
 	}
 
 	// this is ONLY used by the disk manager to update the done state while synchronized
@@ -439,6 +437,29 @@ public class DiskManagerPieceImpl
 			setRequestable();
 		}
 	}
+    
+    public int getStatus()
+    {
+        if ((statusFlags &PIECE_STATUS_DONE) !=0)
+            return PIECE_STATUS_DONE;
+        
+        if ((statusFlags &PIECE_STATUS_CHECKING) !=0)
+            return PIECE_STATUS_CHECKING;
+
+        if ((statusFlags &PIECE_STATUS_WRITTEN) !=0)
+            return PIECE_STATUS_WRITTEN;
+        
+        if ((statusFlags &PIECE_STATUS_DOWNLOADED) !=0)
+            return PIECE_STATUS_DOWNLOADED;
+        
+        if ((statusFlags &PIECE_STATUS_REQUESTED) !=0)
+            return PIECE_STATUS_REQUESTED;
+        
+        if ((statusFlags &PIECE_STATUS_NEEDED) !=0)
+            return PIECE_STATUS_NEEDED;
+        
+        return 0;
+    }
 
     public void testStatus()
     {
