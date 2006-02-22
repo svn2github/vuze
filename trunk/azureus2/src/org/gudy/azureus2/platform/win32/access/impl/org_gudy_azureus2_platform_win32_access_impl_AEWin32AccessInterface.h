@@ -15,6 +15,11 @@ extern "C" {
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_HKEY_LOCAL_MACHINE 3L
 #undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_HKEY_CURRENT_USER
 #define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_HKEY_CURRENT_USER 4L
+#undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_QUERYENDSESSION
+#define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_QUERYENDSESSION 17L
+#undef org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_ENDSESSION
+#define org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_WM_ENDSESSION 22L
+/* Inaccessible static: cb */
 /*
  * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
  * Method:    initialise
@@ -102,6 +107,14 @@ JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32
  */
 JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBin
   (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface
+ * Method:    copyPermission
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPermission
+  (JNIEnv *, jclass, jstring, jstring);
 
 #ifdef __cplusplus
 }

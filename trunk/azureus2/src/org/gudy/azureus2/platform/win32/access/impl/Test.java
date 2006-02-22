@@ -40,6 +40,7 @@ Test
 		String[]	args )
 	{
 		try{
+			/*
 			AEWin32Access access = AEWin32Manager.getAccessor();
 			
 			String	app_data = access.getUserAppData();
@@ -111,10 +112,13 @@ Test
 				
 				System.out.println( "can't find Azureus.exe");
 			}
+		*/
+			
+			AEWin32AccessInterface.copyPermission( "C:\\temp\\fred", "C:\\temp\\bill" );
 			
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace( e );
+			e.printStackTrace();
 		}
 	}
 }

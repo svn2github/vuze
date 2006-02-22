@@ -661,6 +661,21 @@ PlatformManagerImpl
 		}		
 	}
 
+	public void
+    copyFilePermissions(
+		String	from_file_name,
+		String	to_file_name )
+	
+		throws PlatformManagerException
+	{
+		try{
+			access.copyFilePermissions( from_file_name, to_file_name );
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "Failed to write registry details", e ));
+		}		}
+	
     /**
      * {@inheritDoc}
      */

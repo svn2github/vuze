@@ -156,4 +156,11 @@ AEWin32AccessInterface
 		String		file_name )
 	
 		throws AEWin32AccessException;
+	
+	public static native void
+	copyPermission(
+		String		from_file_name,
+		String		to_file_name )
+	
+		throws AEWin32AccessException;
 }

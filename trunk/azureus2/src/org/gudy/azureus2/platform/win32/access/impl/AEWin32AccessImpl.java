@@ -219,6 +219,16 @@ AEWin32AccessImpl
 	}
 	
 	public void
+    copyFilePermissions(
+		String	from_file_name,
+		String	to_file_name )
+	
+		throws AEWin32AccessException
+	{
+		AEWin32AccessInterface.copyPermission( from_file_name, to_file_name ); 
+	}
+	
+	public void
     addListener(
     	AEWin32AccessListener		listener )
     {

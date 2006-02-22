@@ -89,7 +89,12 @@ PlatformManager
 		
 		throws PlatformManagerException;
 
- 
+	public void
+    copyFilePermissions(
+		String	from_file_name,
+		String	to_file_name )
+	
+		throws PlatformManagerException;
 
     /**
      * <p>Gets whether the platform manager supports a capability</p>

@@ -122,6 +122,13 @@ AEWin32Access
 		throws AEWin32AccessException;
 	
 	public void
+    copyFilePermissions(
+		String	from_file_name,
+		String	to_file_name )
+	
+		throws AEWin32AccessException;
+	
+	public void
 	addListener(
 		AEWin32AccessListener	listener );
 	

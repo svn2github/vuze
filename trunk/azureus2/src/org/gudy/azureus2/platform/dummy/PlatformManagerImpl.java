@@ -178,6 +178,16 @@ public class PlatformManagerImpl implements PlatformManager
         throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
 
+	public void
+    copyFilePermissions(
+		String	from_file_name,
+		String	to_file_name )
+	
+		throws PlatformManagerException
+	{
+	    throw new PlatformManagerException("Unsupported capability called on platform manager");		
+	}
+	
     /**
      * {@inheritDoc}
      */

@@ -34,7 +34,7 @@
 #include "org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface.h"
 
 
-#define VERSION "1.10"
+#define VERSION "1.11"
 
 
 HMODULE	application_module;
@@ -822,6 +822,96 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToR
     }
 }
 
+#define myheapalloc(x) (HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, x))
+#define myheapfree(x)  (HeapFree(GetProcessHeap(), 0, x))
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPermissionW(
+	JNIEnv *env, 
+	jclass	cla, 
+	jstring _fileNameIn,
+	jstring _fileNameOut )
+{
+	WCHAR		file_name_in[2048];
+	WCHAR		file_name_out[2048];
+    
+	if ( !jstringToCharsW( env, _fileNameIn, file_name_in, sizeof( file_name_in )-1)){
+
+		return;
+	}
+
+	if ( !jstringToCharsW( env, _fileNameOut, file_name_out, sizeof( file_name_out )-1)){
+
+		return;
+	}
+
+	SECURITY_INFORMATION secInfo	= DACL_SECURITY_INFORMATION;
+	DWORD				 cbFileSD   = 0;
+	PSECURITY_DESCRIPTOR pFileSD	= NULL;
+
+    BOOL ok = GetFileSecurityW(file_name_in, secInfo, pFileSD, 0, &cbFileSD);
+
+      // API should have failed with insufficient buffer.
+
+	if ( ok ){
+     
+		throwException( env, "copyPermission", "GetFileSecurity ok" );
+
+        return;
+
+    }else if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+
+		throwException( env, "copyPermission", "from file not found" );
+
+		return;
+
+	}else if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+
+		throwException( env, "copyPermission", "GetFileSecurity unexpected response", GetLastError() );
+
+        return;
+	
+	}else{
+
+		pFileSD	= myheapalloc( cbFileSD );
+      
+		if (!pFileSD) {
+  
+			throwException( env, "copyPermission", "no memory" );
+
+			return;
+		}
+
+		ok = GetFileSecurityW(file_name_in, secInfo, pFileSD, cbFileSD, &cbFileSD );
+      
+		if (!ok) {
+
+			myheapfree( pFileSD );
+
+			throwException( env, "copyPermission", "GetFileSecurity", GetLastError());
+
+			return;
+		}	
+
+		ok = SetFileSecurityW( file_name_out, secInfo, pFileSD );
+
+	 	myheapfree( pFileSD );
+
+		if ( !ok ){
+
+			if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+
+				throwException( env, "copyPermission", "to file not found" );
+
+			}else{
+
+				throwException( env, "copyPermission", "SetFileSecurity unexpected response", GetLastError() );
+
+			}
+		}
+	}
+}
+
 
 // NON-UNICODE VARIANT FOR WIN95,98,ME
 
@@ -1331,6 +1421,94 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToR
     }
 }
 
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPermissionA(
+	JNIEnv *env, 
+	jclass	cla, 
+	jstring _fileNameIn,
+	jstring _fileNameOut )
+{
+	char		file_name_in[2048];
+	char		file_name_out[2048];
+    
+	if ( !jstringToCharsA( env, _fileNameIn, file_name_in, sizeof( file_name_in )-1)){
+
+		return;
+	}
+
+	if ( !jstringToCharsA( env, _fileNameOut, file_name_out, sizeof( file_name_out )-1)){
+
+		return;
+	}
+
+	SECURITY_INFORMATION secInfo	= DACL_SECURITY_INFORMATION;
+	DWORD				 cbFileSD   = 0;
+	PSECURITY_DESCRIPTOR pFileSD	= NULL;
+
+    BOOL ok = GetFileSecurityA(file_name_in, secInfo, pFileSD, 0, &cbFileSD);
+
+      // API should have failed with insufficient buffer.
+
+	if ( ok ){
+     
+		throwException( env, "copyPermission", "GetFileSecurity ok" );
+
+        return;
+
+    }else if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+
+		throwException( env, "copyPermission", "from file not found" );
+
+		return;
+
+	}else if (GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+
+		throwException( env, "copyPermission", "GetFileSecurity unexpected response", GetLastError() );
+
+        return;
+	
+	}else{
+
+		pFileSD	= myheapalloc( cbFileSD );
+      
+		if (!pFileSD) {
+  
+			throwException( env, "copyPermission", "no memory" );
+
+			return;
+		}
+
+		ok = GetFileSecurityA(file_name_in, secInfo, pFileSD, cbFileSD, &cbFileSD );
+      
+		if (!ok) {
+
+			myheapfree( pFileSD );
+
+			throwException( env, "copyPermission", "GetFileSecurity", GetLastError());
+
+			return;
+		}	
+
+		ok = SetFileSecurityA( file_name_out, secInfo, pFileSD );
+
+	 	myheapfree( pFileSD );
+
+		if ( !ok ){
+
+			if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+
+				throwException( env, "copyPermission", "to file not found" );
+
+			}else{
+
+				throwException( env, "copyPermission", "SetFileSecurity unexpected response", GetLastError() );
+
+			}
+		}
+	}
+}
+
+
 
 
 // BLAH
@@ -1475,5 +1653,21 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToR
 		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBinA( env, cla, _file_name );
 	}else{
 		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_moveToRecycleBinW( env, cla, _file_name );
+	}
+}
+
+
+
+JNIEXPORT void JNICALL 
+Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPermission(
+	JNIEnv *env, 
+	jclass	cla, 
+	jstring _fileNameIn,
+	jstring _fileNameOut )
+{
+	if ( non_unicode ){
+		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPermissionA( env, cla, _fileNameIn, _fileNameOut );
+	}else{
+		Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_copyPermissionW( env, cla, _fileNameIn, _fileNameOut );
 	}
 }

@@ -2,11 +2,11 @@
 <jardesc>
 <jar path="C:/Inetpub/ftproot/Azureus2_parg.jar"/>
 <options buildIfNeeded="true" compress="true" descriptionLocation="/azureus3/Azureus2.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
-<refactoring endStamp="9223372036854775806" startStamp="1137348540296" structuralOnly="false"/>
+<refactoring structuralOnly="false"/>
 <selectedProjects>
+<project name="azureus3"/>
 <project name="azuis"/>
 <project name="azdiag"/>
-<project name="azureus3"/>
 </selectedProjects>
 <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
 <sealing sealJar="false">
@@ -22,6 +22,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.remote.rpexceptions"/>
 <javaElement handleIdentifier="=azuis/&lt;org.gudy.azureus2.ui.common.util"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.download"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform.win32.access.impl{Test.java"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.server.impl.dht"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.platform"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform.macosx.access.cocoa"/>
@@ -30,6 +31,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.asn1.misc"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.config.wizard"/>
 <javaElement handleIdentifier="=azuis/&lt;HTML"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform.win32.access.impl{AEWin32AccessImpl.java"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.client.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.server.impl.tcp.blocking"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.diskmanager.cache"/>
@@ -144,7 +146,6 @@
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.nat.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.utils.xml.rss"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.util.test"/>
-<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform.win32.access.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.tableitems.peers"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.ui"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.transport.util"/>
@@ -296,6 +297,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.server.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.logging.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.jce.provider"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform.win32.access.impl{AEWin32AccessInterface.java"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.asn1.teletrust"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.components"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.udp.uc.impl"/>
@@ -359,6 +361,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.help"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.util.protocol.udp"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.utils"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform.win32.access.impl{AEWin32AccessCallback.java"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.peers.protocol"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.logging"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.net.upnp"/>
@@ -374,6 +377,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.crypto"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.views.utils"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.remote"/>
+<javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.platform.win32.access.impl{AEWin32AccessExceptionImpl.java"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.extseed"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ui"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.impl"/>

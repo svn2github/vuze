@@ -29,6 +29,7 @@ package org.gudy.azureus2.pluginsimpl.local.update;
 
 import java.io.*;
 
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -219,6 +220,22 @@ UpdateInstallerImpl
 				}
 			}
 			
+			if ( Constants.isWindows ){
+				
+				try{
+				
+					String	parent_str = parent.getAbsolutePath();
+					
+					System.out.println( "copying permissions from " + parent_str + " to " + from_file_or_resource );
+					
+					PlatformManagerFactory.getPlatformManager().copyFilePermissions(
+							parent_str, from_file_or_resource );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
 		}catch( Throwable e ){
 			
 		}
