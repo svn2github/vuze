@@ -1108,8 +1108,15 @@ PEPeerControlImpl
 	/**
 	 * Do all peer choke/unchoke processing.
 	 */
-	private void doUnchokes() {  
-    int max_to_unchoke = adapter.getMaxUploads();  //how many simultaneous uploads we should consider
+	private void doUnchokes() {
+			
+			// logic below is either 1 second or 10 secondly, bail out early id neither
+		
+		if( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL != 0 ) { 
+			return;
+		}
+
+		int max_to_unchoke = adapter.getMaxUploads();  //how many simultaneous uploads we should consider
 		ArrayList peer_transports = peer_transports_cow;
 		
 		//determine proper unchoker
@@ -1158,8 +1165,8 @@ PEPeerControlImpl
 			ArrayList peers_to_unchoke = unchoker.getImmediateUnchokes( max_to_unchoke, peer_transports );
 			
 			//ensure that lan-local peers always get unchoked
-			for( int i=0; i < peer_transports.size(); i++ ) {
-				PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );				
+			for( Iterator it=peer_transports.iterator();it.hasNext();) {
+				PEPeerTransport peer = (PEPeerTransport)it.next();				
 				if( peer.isLANLocal() ) {
 					peers_to_unchoke.add( peer );
 				}
@@ -1223,12 +1230,19 @@ PEPeerControlImpl
   
   
 	private void updateStats() {   
-		//calculate seeds vs peers
+		
+	   if ( (mainloop_loop_count %MAINLOOP_ONE_SECOND_INTERVAL) != 0 ){
+		   return;
+	   }
+	   
+			//calculate seeds vs peers
+	   
 		List	peer_transports = peer_transports_cow;
 		
 		_seeds = _peers = _remotes = 0;
-		for (int i = 0; i < peer_transports.size(); i++) {
-			PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+		
+		for (Iterator it=peer_transports.iterator();it.hasNext();){
+			PEPeerTransport pc = (PEPeerTransport) it.next();
 			if (pc.getPeerState() == PEPeer.TRANSFERING) {
 				if (pc.isSeed())
 					_seeds++;
@@ -2329,61 +2343,61 @@ PEPeerControlImpl
 		//every 1 second
 		if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ){
 			ArrayList peer_transports = peer_transports_cow;
-			
+
 			int num_waiting_establishments = 0;
-			
+
 			for( int i=0; i < peer_transports.size(); i++ ) {
 				PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
-				
+
 				//update waiting count
 				int state = transport.getConnectionState();
 				if( state == PEPeerTransport.CONNECTION_PENDING || state == PEPeerTransport.CONNECTION_CONNECTING ) {
 					num_waiting_establishments++;
 				}
 			}
-			
+
 			//pass from storage to connector
 			int allowed = getMaxNewConnectionsAllowed();
-			
+
 			if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
-			
-      if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
+
+			if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
 				int free = getMaxConnections() / 20;  //leave 5%
 				allowed = allowed - free;
 			}
-			
+
 			if( allowed > 0 ) {
 				//try and connect only as many as necessary
 				int wanted = ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
 				if( wanted > allowed ) {
 					num_waiting_establishments += wanted - allowed;
 				}
-				
-        //load stored peer-infos to be established
-        while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
-        	if( peer_database == null || !is_running )  break;        	
-       
-        	PeerItem item = peer_database.getNextOptimisticConnectPeer();
-        	
-        	if( item == null || !is_running )  break;
 
-        	PeerItem self = peer_database.getSelfPeer();
-        	if( self != null && self.equals( item ) ) {
-        		continue;
-        	}
-        	
-        	if( !isAlreadyConnected( item ) ) {
-        		String source = PeerItem.convertSourceString( item.getSource() );
+				//load stored peer-infos to be established
+				while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
+					if( peer_database == null || !is_running )  break;        	
 
-        		boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
-        		
-        		if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort(), use_crypto ) ) {
-        			num_waiting_establishments++;
-        		}
-        	}          
-        }
-      }
-    }
+					PeerItem item = peer_database.getNextOptimisticConnectPeer();
+
+					if( item == null || !is_running )  break;
+
+					PeerItem self = peer_database.getSelfPeer();
+					if( self != null && self.equals( item ) ) {
+						continue;
+					}
+
+					if( !isAlreadyConnected( item ) ) {
+						String source = PeerItem.convertSourceString( item.getSource() );
+
+						boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+
+						if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort(), use_crypto ) ) {
+							num_waiting_establishments++;
+						}
+					}          
+				}
+			}
+		}
     
 		//every 5 seconds
 		if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL == 0 ) {
