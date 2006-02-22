@@ -26,19 +26,24 @@ import java.util.Arrays;
 
 /**
  * @author MjrTom
- * A fairly light-weight, versitle boolean array of bit flags with administrative fields and methods
+ * A fairly light-weight, versatile boolean array of bit flags with administrative fields and methods
  * Originaly designed as a boolean array to correspond to the pieces in a torrent,
  * for example to show which pieces are; downloading, high priority, rarest, available, or whatever
  */
-
 public class BitFlags
+    implements Cloneable
 {
-	// These are public so they can be read quickly.  Please don't try to modify them outside of the given methods. 
-	public int			nbSet;		// how many are set
-	public int			start;		// first one that is set
-	public int			end;		// last one that is set
+	// These are public so they can be read quickly.  Please don't try to modify them outside of the given methods.
+    /** how many bits are set */
+	public int			nbSet;
+    /** Index of first set bit */
+	public int			start;
+    /** Index of last set bit */
+	public int			end;
+    /** Total # of bits in the array */
 	final public int	length;
-	public boolean[]	flags;		// the array of the flags
+    /** The array of bit flags */
+	public boolean[]	flags;
 
 	public BitFlags(int count)
 	{
@@ -63,7 +68,15 @@ public class BitFlags
 			}
 		}
 	}
-	
+    
+    /** You can read .length instead (but please don't modify it)
+     * @return int number of elements in the array
+     */
+    public int size()
+    {
+        return length;
+    }
+    
 	public void clear()
 	{
 		Arrays.fill(flags, false);
@@ -117,37 +130,42 @@ public class BitFlags
 	}
 	
 	/**
-	 * Experimental.  Returns a new BitFlags with the flags set as the logical and of
-	 *  both BitFlags and a length the same as the larger (union) of the two.
-	 * @param other BitFlags to be ANDed with this BitFlags
-	 * @return new BitFlags
+	 * Experimental.  Returns a new BitFlags with flags set as the logical and of both BitFlags
+     * The length of both must be the same.
+	 * @param other BitFlags to be ANDed with this BitFlags. Must not be null.
+	 * @return new BitFlags representing the logical AND of the two
 	 */
-	public BitFlags andUnion(final BitFlags other)
+	public BitFlags and(final BitFlags other)
 	{
-		if (other ==null)
-			return null;
-		int resultSize =Math.max(this.length, other.length);
-		BitFlags result =new BitFlags(resultSize);
+		final BitFlags result =new BitFlags(length);
 		if (this.nbSet >0 &&other.nbSet >0)
 		{
-			int startI =Math.max(this.start, other.start);
-			int endI =Math.min(this.end, other.end);
-			int i =startI;
+            // setup outer union bounds
+			int i =this.start >other.start ?this.start :other.start;
+			final int endI =this.end <other.end ?this.end :other.end;
+            // find the first common set bit
 			for (; i <=endI; i++)
 			{
 				if (this.flags[i] &&other.flags[i])
 				{
-					result.set(i);
+                    result.flags[i] =true;
+                    result.nbSet++;
+                    result.start =i;
 					break;
 				}
 			}
+            // find any remaining common bits
 			for (; i <=endI; i++)
 			{
 				if (this.flags[i] &&other.flags[i])
 				{
-					result.setEnd(i);
+                    result.flags[i] =true;
+                    result.nbSet++;
+                    result.end =i;
 				}
 			}
+            if (result.end <result.start)
+                result.end =result.start;
 		}
 		return result;
 	}
