@@ -264,10 +264,17 @@ public class Utils {
 			final boolean bAllowShareAdd, final Text url) {
   	DropTarget dropTarget = new DropTarget(control, DND.DROP_DEFAULT
 				| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
-		dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
-				URLTransfer.getInstance(), FileTransfer.getInstance(), 
-				TextTransfer.getInstance() });
-		dropTarget.addDropListener(new DropTargetAdapter() {
+
+  	if (SWT.getVersion() >= 3107) {
+			dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
+					URLTransfer.getInstance(), FileTransfer.getInstance(),
+					TextTransfer.getInstance() });
+		} else {
+			dropTarget.setTransfer(new Transfer[] { URLTransfer.getInstance(),
+					FileTransfer.getInstance(), TextTransfer.getInstance() });
+		}
+
+  	dropTarget.addDropListener(new DropTargetAdapter() {
 			public void dropAccept(DropTargetEvent event) {
 				event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
 						event.currentDataType);

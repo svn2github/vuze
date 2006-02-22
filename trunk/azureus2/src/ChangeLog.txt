@@ -5,7 +5,7 @@ AZUREUS CHANGELOG
 
 BUGFIX: Core  | Ensure SO_REUSEADDR is set when binding during NAT test [Nolar]
 BUGFIX: Core  | Retain data from terribly slow senders [MjrTom]
-BUGFIX: Plug  | Column dispose listener wasn't being called when there was no cell dispose listener
+BUGFIX: Plug  | Column dispose listener wasn't being called when there was no cell dispose listener [TuxPaper]
 BUGFIX: UI    | Fixed window size/position not always being saved [TuxPaper]
 BUGFIX: UI    | Fix default language: Use same language from diff. country when user's lang/country doesn't exist [TuxPaper]
 BUGFIX: UI    | Fixed new table rows getting last graphic cell's image [TuxPaper]
