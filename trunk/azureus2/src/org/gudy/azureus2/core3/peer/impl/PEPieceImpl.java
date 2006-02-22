@@ -569,7 +569,11 @@ public class PEPieceImpl
     {
         return dmPiece.getWritten();
     }
-
+    public boolean isWritten()
+    {
+        return dmPiece.isWritten();
+    }
+    
 	public int getPieceNumber()
 	{
 		return dmPiece.getPieceNumber();

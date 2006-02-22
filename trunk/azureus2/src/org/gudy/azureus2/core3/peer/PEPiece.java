@@ -111,7 +111,7 @@ public interface PEPiece
 
 	public String[] 	getWriters();
 	public void			setWritten(PEPeer peer, int blockNumber);
-
+	public boolean isWritten();
 	public int 			getSpeed();
 	public void			setSpeed(int speed);
 	public void			incSpeed();
