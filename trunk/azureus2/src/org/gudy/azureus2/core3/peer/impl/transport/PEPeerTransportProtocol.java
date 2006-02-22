@@ -588,10 +588,10 @@ PEPeerTransportProtocol
   }
   
 
-  
-
   	/**
-	 * Checks if this peer is a seed or not.
+	 * Checks if this peer is a seed or not by trivially checking if
+     * thier Have bitflags exisits and shows a number of bits set equal
+     * to the torrent # of pieces (and the torrent # of pieces is >0)
 	 */
   	private void checkSeed()
 	{
@@ -1067,16 +1067,17 @@ PEPeerTransportProtocol
   
   
   public void doKeepAliveCheck() {
-    long wait_time = SystemTime.getCurrentTime() - last_message_sent_time;
+      final long now =SystemTime.getCurrentTime();
+    long wait_time =now - last_message_sent_time;
     
     if( last_message_sent_time == 0 || wait_time < 0 ) {
-      last_message_sent_time = SystemTime.getCurrentTime(); //don't send if brand new connection
+      last_message_sent_time =now; //don't send if brand new connection
       return;
     }
     
     if( wait_time > 2*60*1000 ) {  //2min keep-alive timer
       sendKeepAlive();
-      last_message_sent_time = SystemTime.getCurrentTime();  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
+      last_message_sent_time =now;  //not quite true, but we don't want to queue multiple keep-alives before the first is actually sent
     }
   }
 
@@ -1086,12 +1087,13 @@ PEPeerTransportProtocol
     //PEPeerTransport.CONNECTION_CONNECTING are handled by the ConnectDisconnectManager
     //so we don't need to deal with them here.
     
+      final long now =SystemTime.getCurrentTime();
     //make sure we time out stalled connections
     if( connection_state == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
-      long dead_time = SystemTime.getCurrentTime() - last_message_received_time;
+      long dead_time =now - last_message_received_time;
       
       if( dead_time < 0 ) {  //oops, system clock went backwards
-        last_message_received_time = SystemTime.getCurrentTime();
+        last_message_received_time =now;
         return false;
       }
       
@@ -1102,10 +1104,10 @@ PEPeerTransportProtocol
     }
     //ensure we dont get stuck in the handshaking phases
     else if( connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ) {
-      long wait_time = SystemTime.getCurrentTime() - connection_established_time;
+      long wait_time =now - connection_established_time;
       
       if( wait_time < 0 ) {  //oops, system clock went backwards
-        connection_established_time = SystemTime.getCurrentTime();
+        connection_established_time =now;
         return false;
       }
       
@@ -1563,7 +1565,7 @@ PEPeerTransportProtocol
   
   
   protected void decodeHave( BTHave have ) {
-    int piece_number = have.getPieceNumber();
+    final int piece_number = have.getPieceNumber();
 	have.destroy();
 	
     if ((piece_number >=nbPieces) || (piece_number < 0)) {
@@ -1794,10 +1796,10 @@ PEPeerTransportProtocol
       	if (Logger.isEnabled())
 							Logger.log(new LogEvent(PEPeerTransportProtocol.this, LogIDs.NET,
 									"Received [" + message.getDescription() + "] message"));
-        
-        last_message_received_time = SystemTime.getCurrentTime();
+        final long now =SystemTime.getCurrentTime();
+        last_message_received_time =now;
         if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
-          last_data_message_received_time = SystemTime.getCurrentTime();
+          last_data_message_received_time =now;
         }
             
           if( message.getID().equals( BTMessage.ID_BT_PIECE ) ) {
@@ -1914,10 +1916,11 @@ PEPeerTransportProtocol
         
       public void messageSent( Message message ) {
         //update keep-alive info
-        last_message_sent_time = SystemTime.getCurrentTime();
+          final long now =SystemTime.getCurrentTime();
+        last_message_sent_time =now;
         
         if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
-          last_data_message_sent_time = SystemTime.getCurrentTime();
+          last_data_message_sent_time =now;
         }
 
         if( message.getID().equals( BTMessage.ID_BT_UNCHOKE ) ) { // is about to send piece data
