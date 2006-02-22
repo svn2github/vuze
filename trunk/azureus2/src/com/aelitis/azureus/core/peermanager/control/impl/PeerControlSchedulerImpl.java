@@ -129,9 +129,9 @@ PeerControlSchedulerImpl
 				}	
 			}
 							
-			for (int i=0;i<instances.size();i++){
+			for (Iterator it=instances.iterator();it.hasNext();){
 				
-				instanceWrapper	inst = (instanceWrapper)instances.get(i);
+				instanceWrapper	inst = (instanceWrapper)it.next();
 									
 				long	target = inst.getNextTick();
 				
