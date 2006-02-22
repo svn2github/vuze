@@ -963,9 +963,7 @@ PEPeerControlImpl
                     // snub peers that haven't sent any good data for a minute
                     final long timeSinceGoodData =pc.getTimeSinceGoodDataReceived();
                     if (timeSinceGoodData <0 ||timeSinceGoodData >60 *1000)
-                    {
                         pc.setSnubbed(true);
-                    }
                     
                     final long timeSinceData =pc.getTimeSinceLastDataMessageReceived();
                     final boolean noData =(timeSinceData <0) ||timeSinceData >(1000 *(isSeed ?120 :60));
@@ -977,7 +975,7 @@ PEPeerControlImpl
                         //get the request object
                         final DiskManagerReadRequest request =(DiskManagerReadRequest) expired.get(j);
                         //Only cancel first request if more than 2 mins have passed
-                        if (j >0 ||(noData &&(now -request.getTimeCreated() >120 *1000)))
+                        if (j >0 ||(noData &&(timeSinceOldestRequest >120 *1000)))
                         {
                             pc.sendCancel(request);             //cancel the request object
                             //get the piece number
@@ -988,13 +986,13 @@ PEPeerControlImpl
                                 pePiece.clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
                             //set piece to not fully requested
                             dm_pieces[pieceNumber].clearRequested();
-                            // (if not in end game) remove piece if empty so peers can choose something else
+                            // remove piece if empty so peers can choose something else, except in end game
                             if (!piecePicker.isInEndGameMode())
                                 checkEmptyPiece(pieceNumber);
                         }
                     }
                     // if they never respond to our requests, must disconnect them - after 240 secons
-                    if (noData &&timeSinceOldestRequest >240 *1000 &&(timeSinceGoodData ==-1 ||timeSinceGoodData >240 *1000)
+                    if (noData &&(timeSinceGoodData ==-1 ||timeSinceGoodData >240 *1000)
                         &&piecePicker.getMinAvailability() >(isSeed ?2 :1))
                         closeAndRemovePeer(pc, "Peer not responsive to piece requests."
 //                          +" oldest request:" +timeSinceOldestRequest/1000 +" any data:" +timeSinceData /1000 +" good data:" +timeSinceGoodData/1000
