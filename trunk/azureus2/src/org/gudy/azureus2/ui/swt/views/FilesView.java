@@ -421,6 +421,12 @@ public class FilesView
 				
 			}else{
 				
+					// OK, too many users have got confused over the option to truncate files when selecting
+					// do-not-download so I'm removing it
+				
+				delete_file	= false;
+				
+				/*
 				delete_file =
 					MessageBoxWindow.open( 
 						"FilesView.messagebox.skip.id",
@@ -430,6 +436,7 @@ public class FilesView
 						MessageBoxWindow.ICON_WARNING,
 						MessageText.getString( "FilesView.rename.confirm.delete.title" ),
 						MessageText.getString( "FilesView.skip.confirm.delete.text", new String[]{ existing_file.toString()})) == SWT.YES;
+				*/
 			}
 
 			if ( delete_file ){
