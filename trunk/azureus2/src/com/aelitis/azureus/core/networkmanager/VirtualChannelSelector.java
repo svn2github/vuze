@@ -53,6 +53,7 @@ public class VirtualChannelSelector {
   
   //ONLY USED IN FAULTY MODE
   private HashMap selectors;
+  private HashSet selectors_keyset_cow;
   private AEMonitor selectors_mon;
   private final int op;
   private final boolean pause;
@@ -75,6 +76,7 @@ public class VirtualChannelSelector {
     else {
       selector_impl = new VirtualChannelSelectorImpl( this, op, pause );
       selectors = null;
+      selectors_keyset_cow	= null;
       selectors_mon = null;
     }
   }
@@ -89,6 +91,7 @@ public class VirtualChannelSelector {
     selectors = new HashMap();
     selectors_mon = new AEMonitor( "VirtualChannelSelector:FM" );
     selectors.put( new VirtualChannelSelectorImpl( this, op, pause ), new ArrayList() );
+    selectors_keyset_cow = new HashSet( selectors.keySet());
   }
   
   
@@ -148,6 +151,7 @@ public class VirtualChannelSelector {
         selectors.put( sel, chans );
         sel.register( channel, listener, attachment );
         chans.add( channel );
+        selectors_keyset_cow = new HashSet( selectors.keySet());
       }
       finally{ selectors_mon.exit();  }
     }
@@ -252,12 +256,7 @@ public class VirtualChannelSelector {
    */
   public int select(long timeout) {
     if( SAFE_SELECTOR_MODE_ENABLED ) {
-      HashSet sels = null;
-      
-      try{  selectors_mon.enter();
-        sels = new HashSet( selectors.keySet() );
-      }
-      finally{ selectors_mon.exit();  }
+      HashSet sels = selectors_keyset_cow;
 
       int count = 0;
       
