@@ -958,7 +958,7 @@ PEPeerControlImpl
 			{
 				final List expired = pc.getExpiredRequests();
 				if (expired !=null &&expired.size() >0)
-				{
+				{   // now we know there's a request that's > 60 seconds old
                     final boolean isSeed =pc.isSeed();
                     // snub peers that haven't sent any good data for a minute
                     final long timeSinceGoodData =pc.getTimeSinceGoodDataReceived();
@@ -966,7 +966,6 @@ PEPeerControlImpl
                         pc.setSnubbed(true);
                     
                     final long timeSinceData =pc.getTimeSinceLastDataMessageReceived();
-                    final boolean noData =(timeSinceData <0) ||timeSinceData >(1000 *(isSeed ?120 :60));
                     final long timeSinceOldestRequest =now -((DiskManagerReadRequest) expired.get(0)).getTimeCreated();
                     
                     for (int j =0; j <expired.size(); j++)
@@ -975,15 +974,15 @@ PEPeerControlImpl
                         //get the request object
                         final DiskManagerReadRequest request =(DiskManagerReadRequest) expired.get(j);
                         //Only cancel first request if more than 2 mins have passed
-                        if (j >0 ||(noData &&(timeSinceOldestRequest >120 *1000)))
+                        if (j >0 ||(timeSinceOldestRequest >120 *1000
+                            &&(timeSinceData <0 ||timeSinceData >(isSeed ?120 :60) *1000)))
                         {
                             pc.sendCancel(request);             //cancel the request object
                             //get the piece number
                             final int pieceNumber = request.getPieceNumber();
-                            final PEPiece pePiece =pePieces[pieceNumber];
                             //unmark the request on the block
-                            if (pePiece !=null)
-                                pePiece.clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
+                            if (isPieceActive(pieceNumber))
+                                pePieces[pieceNumber].clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
                             //set piece to not fully requested
                             dm_pieces[pieceNumber].clearRequested();
                             // remove piece if empty so peers can choose something else, except in end game
@@ -991,12 +990,20 @@ PEPeerControlImpl
                                 checkEmptyPiece(pieceNumber);
                         }
                     }
-                    // if they never respond to our requests, must disconnect them - after 240 secons
-                    if (noData &&(timeSinceGoodData ==-1 ||timeSinceGoodData >240 *1000)
+/*
+                    // if they never respond to our requests, disconnect them
+                    if (timeSinceOldestRequest >120 *1000
+                        &&(timeSinceData <0 ||timeSinceData >300 *1000)
+                        &&(timeSinceGoodData <0 ||timeSinceGoodData >300 *1000)
+                        &&pc.getTimeSinceConnectionEstablished() >300 *1000
                         &&piecePicker.getMinAvailability() >(isSeed ?2 :1))
                         closeAndRemovePeer(pc, "Peer not responsive to piece requests."
-//                          +" oldest request:" +timeSinceOldestRequest/1000 +" any data:" +timeSinceData /1000 +" good data:" +timeSinceGoodData/1000
+                            +" connected time:" +pc.getTimeSinceConnectionEstablished() /1000
+                            +" oldest request:" +timeSinceOldestRequest /1000
+                            +" any data:" +timeSinceData /1000
+                            +" good data:" +timeSinceGoodData/1000
                             , true);
+*/
 				}
 			}
 		}
@@ -1108,7 +1115,7 @@ PEPeerControlImpl
 	/**
 	 * Do all peer choke/unchoke processing.
 	 */
-	private void doUnchokes() {
+	private void doUnchokes() {  
 			
 			// logic below is either 1 second or 10 secondly, bail out early id neither
 		
@@ -1116,7 +1123,7 @@ PEPeerControlImpl
 			return;
 		}
 
-		int max_to_unchoke = adapter.getMaxUploads();  //how many simultaneous uploads we should consider
+    int max_to_unchoke = adapter.getMaxUploads();  //how many simultaneous uploads we should consider
 		ArrayList peer_transports = peer_transports_cow;
 		
 		//determine proper unchoker
@@ -1235,8 +1242,7 @@ PEPeerControlImpl
 		   return;
 	   }
 	   
-			//calculate seeds vs peers
-	   
+		//calculate seeds vs peers
 		List	peer_transports = peer_transports_cow;
 		
 		_seeds = _peers = _remotes = 0;
@@ -2343,61 +2349,61 @@ PEPeerControlImpl
 		//every 1 second
 		if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ){
 			ArrayList peer_transports = peer_transports_cow;
-
+			
 			int num_waiting_establishments = 0;
-
+			
 			for( int i=0; i < peer_transports.size(); i++ ) {
 				PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
-
+				
 				//update waiting count
 				int state = transport.getConnectionState();
 				if( state == PEPeerTransport.CONNECTION_PENDING || state == PEPeerTransport.CONNECTION_CONNECTING ) {
 					num_waiting_establishments++;
 				}
 			}
-
+			
 			//pass from storage to connector
 			int allowed = getMaxNewConnectionsAllowed();
-
+			
 			if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
-
-			if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
+			
+      if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
 				int free = getMaxConnections() / 20;  //leave 5%
 				allowed = allowed - free;
 			}
-
+			
 			if( allowed > 0 ) {
 				//try and connect only as many as necessary
 				int wanted = ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
 				if( wanted > allowed ) {
 					num_waiting_establishments += wanted - allowed;
 				}
+				
+        //load stored peer-infos to be established
+        while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
+        	if( peer_database == null || !is_running )  break;        	
+       
+        	PeerItem item = peer_database.getNextOptimisticConnectPeer();
+        	
+        	if( item == null || !is_running )  break;
 
-				//load stored peer-infos to be established
-				while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
-					if( peer_database == null || !is_running )  break;        	
+        	PeerItem self = peer_database.getSelfPeer();
+        	if( self != null && self.equals( item ) ) {
+        		continue;
+        	}
+        	
+        	if( !isAlreadyConnected( item ) ) {
+        		String source = PeerItem.convertSourceString( item.getSource() );
 
-					PeerItem item = peer_database.getNextOptimisticConnectPeer();
-
-					if( item == null || !is_running )  break;
-
-					PeerItem self = peer_database.getSelfPeer();
-					if( self != null && self.equals( item ) ) {
-						continue;
-					}
-
-					if( !isAlreadyConnected( item ) ) {
-						String source = PeerItem.convertSourceString( item.getSource() );
-
-						boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
-
-						if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort(), use_crypto ) ) {
-							num_waiting_establishments++;
-						}
-					}          
-				}
-			}
-		}
+        		boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+        		
+        		if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort(), use_crypto ) ) {
+        			num_waiting_establishments++;
+        		}
+        	}          
+        }
+      }
+    }
     
 		//every 5 seconds
 		if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL == 0 ) {
