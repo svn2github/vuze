@@ -40,16 +40,29 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
  *
  */
 public class InputShell {
-	private String result;
+	private String sTitleKey;
+	private String[] p0;
+	private String sLabelKey;
+	private String[] p1;
+	private String textValue;
 
 	public InputShell(String sTitleKey, String sLabelKey) {
 		this(sTitleKey, null, sLabelKey, null);
 	}
 
 	public InputShell(String sTitleKey, String[] p0, String sLabelKey, String[] p1) {
+		this.sTitleKey = sTitleKey;
+		this.p0 = p0;
+		this.sLabelKey = sLabelKey;
+		this.p1 = p1;
+		
+		this.setTextValue("");
+	}
+	
+	public String open() {
 		final Display display = SWTThread.getInstance().getDisplay();
 		if (display == null)
-			return;
+			return null;
 
 		final Shell shell = ShellFactory.createShell(display.getActiveShell());
 		Messages.setLanguageText(shell, sTitleKey, p0);
@@ -68,6 +81,8 @@ public class InputShell {
 		gridData = new GridData();
 		gridData.widthHint = 300;
 		text.setLayoutData(gridData);
+		text.setText(textValue);
+		text.selectAll();
 
 		Composite panel = new Composite(shell, SWT.NULL);
 		layout = new GridLayout();
@@ -88,7 +103,7 @@ public class InputShell {
 			 */
 			public void handleEvent(Event event) {
 				try {
-					result = text.getText();
+					setTextValue(text.getText());
 					shell.dispose();
 				} catch (Exception e) {
 					Debug.printStackTrace(e);
@@ -113,19 +128,31 @@ public class InputShell {
 		shell.pack();
 		Utils.centreWindow(shell);
 		Utils.createURLDropTarget(shell, text);
-		result = null;
+		setTextValue(null);
 		shell.open();
 
 		while (!shell.isDisposed())
 			if (!display.readAndDispatch())
 				display.sleep();
+		
+		return getTextValue();
 	}
 
 	/**
-	 * 
-	 * @return Null if cancelled
+	 * @param textValue The textValue to set.
 	 */
-	public String getText() {
-		return result;
+	public void setTextValue(String textValue) {
+		this.textValue = textValue;
+	}
+
+	/**
+	 * @return Returns the textValue.
+	 */
+	public String getTextValue() {
+		return textValue;
+	}
+	
+	public void setLabelParameters(String[] p1) {
+		this.p1 = p1;
 	}
 }
