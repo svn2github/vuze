@@ -105,19 +105,26 @@ public class AboutWindow {
     label.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
     
-    Group gJava = new Group(window, SWT.NULL);
-    gJava.setLayout(new GridLayout());
-    Messages.setLanguageText(gJava, "MainWindow.about.section.system"); //$NON-NLS-1$
+    Group gSys = new Group(window, SWT.NULL);
+    gSys.setLayout(new GridLayout());
+    Messages.setLanguageText(gSys, "MainWindow.about.section.system"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.verticalSpan = 1;
-    gJava.setLayoutData(gridData);
+    gSys.setLayoutData(gridData);
   
-    label = new Label(gJava, SWT.LEFT);
+    label = new Label(gSys, SWT.LEFT);
     label.setText("Java " + System.getProperty("java.version") + "\n " + System.getProperty("java.vendor")); //$NON-NLS-1$ //$NON-NLS-2$
+    label.setLayoutData(gridData = new GridData());
+    
+    label = new Label(gSys, SWT.LEFT);
+    label.setText("SWT version " + SWT.getVersion()); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
   
     Group gInternet = new Group(window, SWT.NULL);
-    gInternet.setLayout(new GridLayout());
+    GridLayout gridLayout = new GridLayout();
+    gridLayout.numColumns = 3;
+    gridLayout.horizontalSpacing = 5;
+    gInternet.setLayout(gridLayout);
     Messages.setLanguageText(gInternet, "MainWindow.about.section.internet"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.horizontalSpan = 3;
@@ -139,7 +146,9 @@ public class AboutWindow {
       linkLabel.setData(link[1][i]);
       linkLabel.setCursor(Cursors.handCursor);
       linkLabel.setForeground(Colors.blue);
-      linkLabel.setLayoutData(gridData = new GridData());
+      gridData = new GridData();
+      gridData.horizontalSpan = 1;
+      linkLabel.setLayoutData(gridData);
       linkLabel.addMouseListener(new MouseAdapter() {
         public void mouseDoubleClick(MouseEvent arg0) {
           Program.launch((String) ((CLabel) arg0.widget).getData());
@@ -152,7 +161,6 @@ public class AboutWindow {
     
     Listener keyListener =  new Listener() {
       public void handleEvent(Event e) {
-        System.out.println(e.character);
         if(e.character == SWT.ESC) {
           window.dispose();                
         }
