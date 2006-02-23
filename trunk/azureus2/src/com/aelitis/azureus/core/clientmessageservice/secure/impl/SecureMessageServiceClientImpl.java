@@ -157,12 +157,12 @@ SecureMessageServiceClientImpl
 		
 		if ( user_password.equals( last_failed_user_pw )){
 			
-			long	now = SystemTime.getCurrentTime();
-			
-			if ( now - last_failed_user_pw_time < 60*1000 ){
-				
+			final long now =SystemTime.getCurrentTime();
+
+            if (now >last_failed_user_pw_time &&now -last_failed_user_pw_time <60 *1000){
+
 				adapter.authenticationFailed();
-				
+
 				return;
 			}
 		}

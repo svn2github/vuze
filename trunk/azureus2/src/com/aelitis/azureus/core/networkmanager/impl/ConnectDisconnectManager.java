@@ -320,73 +320,73 @@ public class ConnectDisconnectManager {
     //do cancellations
     try{
       new_canceled_mon.enter();
-      
-      for( Iterator can_it = canceled_requests.iterator(); can_it.hasNext(); ) {
-        ConnectListener key = (ConnectListener)can_it.next();
-        
-        ConnectionRequest to_remove = null;
-        
-        for( Iterator pen_it = pending_attempts.keySet().iterator(); pen_it.hasNext(); ) {
-          ConnectionRequest request = (ConnectionRequest)pen_it.next();
-          if( request.listener == key ) {
-            connect_selector.cancel( request.channel );
-            
-            closeConnection( request.channel );
-            
-            to_remove = request;
+
+      for (Iterator can_it =canceled_requests.iterator(); can_it.hasNext();) {
+        ConnectListener key =(ConnectListener) can_it.next();
+
+        ConnectionRequest to_remove =null;
+
+        for (Iterator pen_it =pending_attempts.keySet().iterator(); pen_it.hasNext();) {
+          ConnectionRequest request =(ConnectionRequest) pen_it.next();
+          if (request.listener ==key) {
+            connect_selector.cancel(request.channel);
+
+            closeConnection(request.channel);
+
+            to_remove =request;
             break;
           }
         }
-        
+
         if( to_remove != null ) {
           pending_attempts.remove( to_remove );
         }
       }
-      
+
       canceled_requests.clear();
     }
     finally{
       new_canceled_mon.exit();
     }
-    
-    
+
     //run select
     try{
-      connect_selector.select( 100 );
+      connect_selector.select(100);
     }
     catch( Throwable t ) {
-      Debug.out( "connnectSelectLoop() EXCEPTION: ", t );
+      Debug.out("connnectSelectLoop() EXCEPTION: ", t);
     }
 
     //do connect attempt timeout checks
-    int num_stalled_requests = 0;
-    for( Iterator i = pending_attempts.keySet().iterator(); i.hasNext(); ) {
-      ConnectionRequest request = (ConnectionRequest)i.next();
-      long waiting_time = SystemTime.getCurrentTime() - request.connect_start_time;
+    int num_stalled_requests =0;
+    final long now =SystemTime.getCurrentTime();
+    for (Iterator i =pending_attempts.keySet().iterator(); i.hasNext();) {
+      final ConnectionRequest request =(ConnectionRequest) i.next();
+      final long waiting_time =now -request.connect_start_time;
       if( waiting_time > CONNECT_ATTEMPT_TIMEOUT ) {
         i.remove();
 
         connect_selector.cancel( request.channel );
-        
+
         closeConnection( request.channel );
-        
+
         request.listener.connectFailure( new Throwable( "Connection attempt aborted: timed out after " +CONNECT_ATTEMPT_TIMEOUT/1000+ "sec" ) );
       }
       else if( waiting_time >= CONNECT_ATTEMPT_STALL_TIME ) {
         num_stalled_requests++;
       }
       else if( waiting_time < 0 ) {  //time went backwards
-        request.connect_start_time = SystemTime.getCurrentTime();
+        request.connect_start_time =now;
       }
     }
-    
+
     //check if our connect queue is stalled, and expand if so
-    if( num_stalled_requests == pending_attempts.size() && pending_attempts.size() < MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {
-      ConnectionRequest cr = null;
-      
+    if (num_stalled_requests ==pending_attempts.size() &&pending_attempts.size() <MAX_SIMULTANIOUS_CONNECT_ATTEMPTS) {
+      ConnectionRequest cr =null;
+
       try{
         new_canceled_mon.enter();
-      
+
         if( !new_requests.isEmpty() ) {
           cr = (ConnectionRequest)new_requests.removeFirst();
         }
@@ -394,7 +394,7 @@ public class ConnectDisconnectManager {
       finally{
         new_canceled_mon.exit();
       }
-      
+
       if( cr != null ) {
         addNewRequest( cr );
       }

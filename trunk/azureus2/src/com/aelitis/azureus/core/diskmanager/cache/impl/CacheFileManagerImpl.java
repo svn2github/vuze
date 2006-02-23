@@ -451,11 +451,9 @@ CacheFileManagerImpl
 				
 				cleaner_ticks	= CACHE_CLEANER_TICKS;
 				
-				Set		dirty_files	= new HashSet();
+				final Set	dirty_files	= new HashSet();
 	
-				long	now 	= SystemTime.getCurrentTime();
-							
-				long	oldest	= now - DIRTY_CACHE_WRITE_MAX_AGE;
+				final long	oldest	=SystemTime.getCurrentTime() - DIRTY_CACHE_WRITE_MAX_AGE;
 				
 				try{
 					this_mon.enter();

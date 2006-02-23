@@ -128,19 +128,17 @@ public class ByteBucket {
   
   
   private void update_avail_byte_count() {
-    long current_time = SystemTime.getCurrentTime();
-    long time_diff = current_time - prev_update_time;
-    if( time_diff > 0 ) {
-      long num_new_bytes = (time_diff * rate) / 1000;
-      prev_update_time = current_time;
-      avail_bytes += num_new_bytes;
-      if( avail_bytes < 0 )  Debug.out("ERROR: avail_bytes < 0: " + avail_bytes);
-      if( avail_bytes > burst_rate ) avail_bytes = burst_rate;
-    }
-    else if( time_diff < 0 ) {  //oops, time went backwards
-      prev_update_time = current_time;
-      avail_bytes = burst_rate;
-    }
+      final long now =SystemTime.getCurrentTime();
+      if (prev_update_time <now) {
+          avail_bytes +=((now -prev_update_time) * rate) / 1000;
+          prev_update_time =now;
+          if( avail_bytes > burst_rate ) avail_bytes = burst_rate;
+          else if( avail_bytes < 0 )  Debug.out("ERROR: avail_bytes < 0: " + avail_bytes);
+      }
+      else if (prev_update_time >now) {	//oops, time went backwards
+          avail_bytes =burst_rate;
+          prev_update_time =now;
+      }
   }
 
   
