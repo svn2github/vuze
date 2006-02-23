@@ -65,24 +65,22 @@ public class ManagerUtils {
 	}
 	
 	public static void open(File f) {
-		if (f.isFile()) {
-			PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
-
-			if (mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
-				try {
-					PlatformManagerFactory.getPlatformManager().showFile(f.toString());
-					return;
-				} catch (PlatformManagerException e) {
-					Debug.printStackTrace(e);
-				}
-			}
-		}
-
-		while (f != null && !f.isDirectory())
+		while (f != null && !f.exists())
 			f = f.getParentFile();
 
 		if (f == null)
 			return;
+
+		PlatformManager mgr = PlatformManagerFactory.getPlatformManager();
+
+		if (mgr.hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
+			try {
+				PlatformManagerFactory.getPlatformManager().showFile(f.toString());
+				return;
+			} catch (PlatformManagerException e) {
+				Debug.printStackTrace(e);
+			}
+		}
 
 		Program.launch(f.toString()); // default launcher
 	}

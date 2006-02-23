@@ -757,7 +757,11 @@ PlatformManagerImpl
     {
         try
         {
-            Runtime.getRuntime().exec( new String[]{ "explorer.exe", "/e,/select,",  "\"" + file_name + "\"" });
+        	File file = new File(file_name);
+        	Runtime.getRuntime().exec(
+        			new String[] { "explorer.exe",
+        					file.isDirectory() ? "/e," : "/e,/select,",
+        							"\"" + file_name + "\"" });
         }
         catch (IOException e)
         {
