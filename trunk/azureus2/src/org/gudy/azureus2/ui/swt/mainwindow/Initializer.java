@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import com.aelitis.azureus.core.*;
+
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -278,6 +279,20 @@ Initializer
 	    	        		Debug.printStackTrace(e);
 	    	        	}	
 	    		    }
+	    		}
+	    		
+	    		public void
+	    		stopping(
+	    			AzureusCore		core )
+	    		{
+	    			Alerts.stopInitiated();
+	    		}
+	    		
+	    		public void
+	    		stopped(
+	    			AzureusCore		core )
+	    		{
+	    			Alerts.stopCompleted();
 	    		}
 			});
 	    

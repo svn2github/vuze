@@ -269,12 +269,24 @@ public class MessagePopupShell implements AnimableShell {
     y0 = bounds.y + bounds.height;
     y1 = bounds.y + bounds.height - popupHeight - 5;
     
-    shell.setLocation(x0,y0);
-    viewStack.addFirst(new WeakReference(this));
-    detailsShell.setLocation(x1-detailsShell.getSize().x,y1-detailsShell.getSize().y);
-    currentAnimator = new LinearAnimator(this,new Point(x0,y0),new Point(x0,y1),20,30);
-    currentAnimator.start();
-    shell.open();
+    	// currently always animate
+    
+    if ( true ){
+	    shell.setLocation(x0,y0);
+	    viewStack.addFirst(new WeakReference(this));
+	    detailsShell.setLocation(x1-detailsShell.getSize().x,y1-detailsShell.getSize().y);
+	    currentAnimator = new LinearAnimator(this,new Point(x0,y0),new Point(x0,y1),20,30);
+	    currentAnimator.start();
+	    shell.open();
+    }else{
+        shell.setLocation(x0,y1);
+	    viewStack.addFirst(new WeakReference(this));
+	    detailsShell.setLocation(x1-detailsShell.getSize().x,y1-detailsShell.getSize().y);
+	    currentAnimator = new LinearAnimator(this,new Point(x0,y1),new Point(x0,y1),20,30);
+	    animationStarted(currentAnimator);
+	    shell.open();
+	    animationEnded(currentAnimator);
+    }
     }
 
     private void hideShell()

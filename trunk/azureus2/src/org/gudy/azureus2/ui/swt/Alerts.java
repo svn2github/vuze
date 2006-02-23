@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
 import org.gudy.azureus2.core3.util.*;
+
 /**
  * Utility methods to display popup window
  * 
@@ -43,14 +44,18 @@ public class Alerts {
   private static AEMonitor	class_mon	= new AEMonitor( "Alerts:class" );
   
   
-  private List			alert_queue 	= new ArrayList();
-  private AEMonitor		alert_queue_mon	= new AEMonitor("Alerts:Q");
+  private static List			alert_queue 			= new ArrayList();
+  private static List			alert_stopping_queue 	= new ArrayList();
+  private static AEMonitor		alert_queue_mon	= new AEMonitor("Alerts:Q");
   
-  private List			alert_history		= new ArrayList();
-  private AEMonitor		alert_history_mon	= new AEMonitor("Alerts:H");
-  private boolean 		initialisation_complete = false;
+  private static List			alert_history		= new ArrayList();
+  private static AEMonitor		alert_history_mon	= new AEMonitor("Alerts:H");
+  private static boolean 		initialisation_complete = false;
   
-  private Alerts() {
+  private static transient boolean		stopping	= false;
+  
+  private Alerts() 
+  {
   }
   
   public static Alerts getInstance() 
@@ -95,29 +100,48 @@ public class Alerts {
   {
   	final Display display = SWTThread.getInstance().getDisplay();
   
-  display.asyncExec(new AERunnable() {
-  	public void 
-  	runSupport()
-  	{
-      
-  		String icon_str;
-  		
-  		if ( type == SWT.ICON_INFORMATION ){
-  			
-  			icon_str = MessagePopupShell.ICON_INFO;
-  			
-  		}else if ( type == SWT.ICON_WARNING ){
-  			
-  			icon_str = MessagePopupShell.ICON_WARNING;
-  			
-  		}else{
-  			
-  			icon_str = MessagePopupShell.ICON_ERROR;
-  		}
-  
-  		new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
+  	if ( display.isDisposed()){
+  		return;
   	}
-  });
+  		
+  	if ( stopping ){
+  		
+  		try{
+  			alert_queue_mon.enter();
+  			
+  			alert_stopping_queue.add( new Object[]{ new Integer(type), title, message, details } );
+  			
+  		}finally{
+  			
+  			alert_queue_mon.exit();
+  		}
+  	}else{
+		display.asyncExec( 
+		  	new AERunnable() 
+		  	{
+		  	  	public void 
+		  	  	runSupport()
+		  	  	{
+		  	      
+		  	  		String icon_str;
+		  	  		
+		  	  		if ( type == SWT.ICON_INFORMATION ){
+		  	  			
+		  	  			icon_str = MessagePopupShell.ICON_INFO;
+		  	  			
+		  	  		}else if ( type == SWT.ICON_WARNING ){
+		  	  			
+		  	  			icon_str = MessagePopupShell.ICON_WARNING;
+		  	  			
+		  	  		}else{
+		  	  			
+		  	  			icon_str = MessagePopupShell.ICON_ERROR;
+		  	  		}
+		  	  
+		  	  		new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
+		  	  	}
+		  	});
+  	}
    }
 
   public static void
@@ -151,26 +175,9 @@ public class Alerts {
   	showMessageBoxUsingResourceString( SWT.ICON_INFORMATION, "AlertMessageBox.information", message );
   }
   
-  public static void 
-  showAlert(
-      int 		type,
-      String 	message,
-	  boolean	repeatable ) 
-  {
-    getInstance().showAlertI(type,message,repeatable);
-  }
   
   public static void
   showAlert(
-  	String		message,
-	Throwable	exception,
-	boolean		repeatable )
-  {
-    getInstance().showAlertI(message,exception,repeatable);
-  }
-
-  private void
-  showAlertI(
   	String		message,
 	Throwable	exception,
 	boolean		repeatable )
@@ -204,8 +211,8 @@ public class Alerts {
 
   
   
-  private void
-  showAlertI(
+  public static void
+  showAlert(
   	int		type,
 	String	message,
 	boolean	repeatable )
@@ -246,11 +253,9 @@ public class Alerts {
   }
   }
   
-  public static void initComplete() {
-    getInstance().initCompleteI();
-  }
-  
-  private void initCompleteI() {
+  public static void 
+  initComplete() 
+  {
     new AEThread("Init Complete")
     {
     	public void
@@ -284,6 +289,7 @@ public class Alerts {
     			}
     			
     			alert_queue.clear();
+    			
     		}finally{
     			
     			alert_queue_mon.exit();
@@ -292,11 +298,68 @@ public class Alerts {
     }.start();
   }
   
-  public static void init() {
-    getInstance().initI();
+
+  public static void 
+  stopInitiated()
+  {
+	 stopping	= true;
   }
   
-  private void initI() {
+  public static void 
+  stopCompleted()
+  {
+	  	// give the users a chance to see alerts generated on shutdown
+	  
+	  final Display display = SWTThread.getInstance().getDisplay();
+		
+	  if ( 	alert_stopping_queue.size() > 0 &&
+			  !display.isDisposed() &&
+			  Thread.currentThread() == display.getThread()){
+			  
+		  for (int i=0;i<alert_stopping_queue.size();i++){
+			  
+			  Object[]	x = (Object[])alert_stopping_queue.get(i);
+			  
+			  String	title	= (String)x[1];
+			  String	message	= (String)x[2];
+			  String	details	= (String)x[3];
+			  
+			  int	type = ((Integer)x[0]).intValue();
+			  
+			  String icon_str;
+	  	  		
+			  if ( type == SWT.ICON_INFORMATION ){
+	  	  			
+				  icon_str = MessagePopupShell.ICON_INFO;
+	  	  			
+			  }else if ( type == SWT.ICON_WARNING ){
+	  	  			
+				  icon_str = MessagePopupShell.ICON_WARNING;
+	  	  			
+	  	  	  }else{
+	  	  			
+	  	  		  icon_str = MessagePopupShell.ICON_ERROR;
+	  	  	  }
+	  	  
+			  new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
+		  }
+		  
+		  long	start = SystemTime.getCurrentTime();
+		  
+		  while(SystemTime.getCurrentTime() - start < 5000 && !display.isDisposed()){
+			  try {
+				  if (!display.readAndDispatch())
+					  display.sleep();
+			  }catch( Throwable e ){
+				  break;
+			  }
+		  }
+	  }
+  }
+  
+  public static void 
+  init() 
+  {
 		Logger.addListener(new ILogAlertListener() {
 			/* (non-Javadoc)
 			 * @see org.gudy.azureus2.core3.logging.ILogAlertListener#alertRaised(org.gudy.azureus2.core3.logging.LogAlert)

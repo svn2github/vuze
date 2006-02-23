@@ -27,9 +27,11 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 
 import com.aelitis.net.upnp.*;
+import com.aelitis.net.upnp.impl.UPnPImpl;
 import com.aelitis.net.upnp.impl.device.UPnPRootDeviceImpl;
 import com.aelitis.net.upnp.services.UPnPWANConnectionPortMapping;
 
@@ -360,6 +362,8 @@ UPnPSSWANConnectionImpl
 			
 		}else{	
 
+			long	start = SystemTime.getCurrentTime();
+			
 			UPnPActionInvocation inv = act.getInvocation();
 			
 			inv.addArgument( "NewRemoteHost", 				"" );		// "" = wildcard for hosts, 0 = wildcard for ports
@@ -367,6 +371,18 @@ UPnPSSWANConnectionImpl
 			inv.addArgument( "NewExternalPort", 			"" + port );
 			
 			inv.invoke();
+			
+			long	elapsed = SystemTime.getCurrentTime() - start;
+
+			if ( elapsed > 4000 ){
+				
+				String	info = service.getDevice().getRootDevice().getInfo();
+				
+				((UPnPImpl)service.getDevice().getRootDevice().getUPnP()).logAlert( 
+						"UPnP device '" + info + "' is taking a long time to release port mappings, consider disabling this via the UPnP configuration.",
+						false,
+						UPnPLogListener.TYPE_ONCE_EVER );
+			}
 			
 			try{
 				class_mon.enter();
