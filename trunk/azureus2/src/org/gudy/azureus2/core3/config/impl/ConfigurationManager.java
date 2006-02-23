@@ -116,7 +116,15 @@ ConfigurationManager
   ConfigurationManager(
   	Map data ) 
   {
-  	propertiesMap	= data;
+	  	// default state of play for config initialised from map is debug log files off unless already
+	  	// specified
+	  
+	  if ( data.get("Logger.DebugFiles.Enabled") == null ){
+		  
+		  data.put( "Logger.DebugFiles.Enabled", new Long(0));
+	  }
+	  
+	  propertiesMap	= data;
   }
   
   protected void

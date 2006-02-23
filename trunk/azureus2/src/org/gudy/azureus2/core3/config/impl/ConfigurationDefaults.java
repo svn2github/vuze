@@ -182,7 +182,10 @@ public class ConfigurationDefaults {
     for (int i = 0; i < logComponents.length; i++)
       for (int j = 0; j <= 3; j++)
         def.put("bLog" + logComponents[i] + "-" + j, TRUE);
-
+    def.put("Logger.DebugFiles.Enabled", TRUE);
+    
+    
+    
     // Start/Stop Automation Stuff
     def.put("StartStopManager_iNumPeersAsFullCopy", new Long(0));
     def.put("StartStopManager_iFakeFullCopySeedStart", new Long(1));
