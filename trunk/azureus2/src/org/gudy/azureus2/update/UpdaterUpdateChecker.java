@@ -51,24 +51,16 @@ UpdaterUpdateChecker
 		try{
 			File	plugin_dir = null;
 			
-		    File user_plugin_dir = FileUtil.getUserFile("plugins");
+				// we can't check the user-dir here due to crazy recursion problems
+				// during startup (platform manager init etc)
+			
+		    File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
 	
-		    File user_updater_plugin = new File( user_plugin_dir, PLUGIN_ID );
-			    
-		    if ( user_updater_plugin.exists()){
-		    	
-		    	plugin_dir	= user_updater_plugin;
-		    	
-		    }else{
-			    
-			    File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
-		
-			    File shared_updater_plugin = new File( shared_plugin_dir, PLUGIN_ID );
-			    			    			    
-			    if ( shared_updater_plugin.exists()){
-			    		    	
-			    	plugin_dir	= shared_updater_plugin;
-			    }
+		    File shared_updater_plugin = new File( shared_plugin_dir, PLUGIN_ID );
+		    			    			    
+		    if ( shared_updater_plugin.exists()){
+		    		    	
+		    	plugin_dir	= shared_updater_plugin;
 		    }
 		    
 		    if ( plugin_dir == null ){

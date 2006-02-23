@@ -50,7 +50,6 @@ public class
 PlatformManagerImpl
 	implements PlatformManager, AEWin32AccessListener
 {
-	private static final LogIDs LOGID = LogIDs.CORE;
 	public static final int			RT_NONE		= 0;
 	public static final int			RT_AZ 		= 1;
 	public static final int			RT_OTHER 	= 2;
@@ -78,11 +77,20 @@ PlatformManagerImpl
 		try{
 			class_mon.enter();
 		
-			try{
-												
+			if ( singleton != null ){
+				
+				return( singleton );
+			}
+			
+			try{	
+				if ( initialising ){
+					
+					System.err.println( "PlatformManager: recursive entry during initialisation" );
+				}
+				
 				initialising	= true;
 				
-				if ( singleton == null && !init_tried ){
+				if ( !init_tried ){
 					
 					init_tried	= true;
 					
@@ -99,9 +107,7 @@ PlatformManagerImpl
 						throw( e );
 						
 					}catch( Throwable e ){
-						
-						Logger.log(new LogEvent(LOGID, "Win32Platform: failed to initialise", e ));
-						
+												
 						if ( e instanceof PlatformManagerException ){
 							
 							throw((PlatformManagerException)e);
@@ -211,7 +217,7 @@ PlatformManagerImpl
 			// 
 		
 		if ( 	hasCapability( PlatformManagerCapabilities.CopyFilePermissions ) &&
-				!COConfigurationManager.getBooleanParameter( "platform.win32.permfixdone", false )){
+				!COConfigurationManager.getBooleanParameter( "platform.win32.permfixdone2", false )){
 
 			try{
 				
@@ -226,11 +232,9 @@ PlatformManagerImpl
 				
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
-				
 			}finally{
 				
-				COConfigurationManager.setParameter( "platform.win32.permfixdone", true );
+				COConfigurationManager.setParameter( "platform.win32.permfixdone2", true );
 			}
 		}
 	}
