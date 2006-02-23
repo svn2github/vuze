@@ -18,6 +18,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
+import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 
 import java.io.IOException;
@@ -25,15 +26,17 @@ import java.io.IOException;
 //import com.apple.eawt.*; //Application and ApplicationAdapter
 
 public class CarbonUIEnhancer {
-         private static final int kHICommandPreferences= ('p'<<24) + ('r'<<16) + ('e'<<8) + 'f';
+	private static final int kHICommandPreferences= ('p'<<24) + ('r'<<16) + ('e'<<8) + 'f';
    private static final int kHICommandAbout= ('a'<<24) + ('b'<<16) + ('o'<<8) + 'u';
    private static final int kHICommandServices= ('s'<<24) + ('e'<<16) + ('r'<<8) + 'v';
    private static final int kHICommandWizard = ('a'<<24) + ('z'<<16) + ('c' << 8) + 'n';
+   private static final int kHICommandNatTest = ('a'<<24) + ('z'<<16) + ('n' << 8) + 't';
    private static final int kHICommandRestart = ('a'<<24) + ('z'<<16) + ('r'<<8) + 's';
 
    private static final String RESOURCE_BUNDLE= "org.eclipse.ui.carbon.Messages"; //$NON-NLS-1$
    private static String fgAboutActionName;
    private static String fgWizardActionName;
+   private static String fgNatTestActionName;
    private static String fgRestartActionName;
 
    public CarbonUIEnhancer() {
@@ -42,6 +45,9 @@ public class CarbonUIEnhancer {
       }
       if(fgWizardActionName == null) {
           fgWizardActionName = MessageText.getString("MainWindow.menu.file.configure").replaceAll("&", "");
+      }
+      if(fgNatTestActionName == null) {
+      	fgNatTestActionName = MessageText.getString("MainWindow.menu.tools.nattest").replaceAll("&", "");
       }
       if(fgRestartActionName == null) {
           fgRestartActionName = MessageText.getString("MainWindow.menu.file.restart").replaceAll("&", "");
@@ -106,6 +112,9 @@ public class CarbonUIEnhancer {
                case kHICommandWizard:
                   new ConfigureWizard(MainWindow.getWindow().getAzureusCore(), display);
                   return OS.noErr;
+               case kHICommandNatTest:
+                 new NatTestWindow();
+                 return OS.noErr;
                default:
                   break;
                }
@@ -153,6 +162,16 @@ public class CarbonUIEnhancer {
          str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
          OS.InsertMenuItemTextWithCFString(menu, str, (short) 3, 0, kHICommandWizard);
          OS.CFRelease(str);
+         
+         
+         // NAT test menu
+         l= fgNatTestActionName.length();
+         buffer= new char[l];
+         fgNatTestActionName.getChars(0, l, buffer, 0);
+         str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
+         OS.InsertMenuItemTextWithCFString(menu, str, (short) 3, 0, kHICommandNatTest);
+         OS.CFRelease(str);
+         
 
           OS.InsertMenuItemTextWithCFString(menu, 0, (short) 4, OS.kMenuItemAttrSeparator, 0);
 

@@ -3,6 +3,7 @@ AZUREUS CHANGELOG
 
 2006.xx.xx | Azureus 2.4.0.1
 
+CHANGE: UI    | Add NAT Test item to OSX "Azureus" menu [Nolar]
 CHANGE: UI    | Filter-as-you-type is now more visible [TuxPaper]
 CHANGE: UI    | "Show In Explorer" on a Folder now opens to show what's in the folder [TuxPaper]
 
