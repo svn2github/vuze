@@ -3,6 +3,9 @@ AZUREUS CHANGELOG
 
 2006.xx.xx | Azureus 2.4.0.1
 
+CHANGE: UI    | Filter-as-you-type is now more visible [TuxPaper]
+CHANGE: UI    | "Show In Explorer" on a Folder now opens to show what's in the folder [TuxPaper]
+
 BUGFIX: Core  | Ensure SO_REUSEADDR is set when binding during NAT test [Nolar]
 BUGFIX: Core  | Retain data from terribly slow senders [MjrTom]
 BUGFIX: Plug  | Column dispose listener wasn't being called when there was no cell dispose listener [TuxPaper]
