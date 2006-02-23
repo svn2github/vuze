@@ -215,7 +215,7 @@ public class Messages {
         String toolTip = MessageText.getString(key);
         if(!toolTip.equals('!' + key + '!')) {
           ((ToolItem) widget).setToolTipText(toolTip.replaceAll("Meta\\+",
-							Constants.isOSX ? "Cmd" : "Ctrl"));
+							Constants.isOSX ? "Cmd+" : "Ctrl+"));
         }
       }
     } else if (widget instanceof TableColumn) {
