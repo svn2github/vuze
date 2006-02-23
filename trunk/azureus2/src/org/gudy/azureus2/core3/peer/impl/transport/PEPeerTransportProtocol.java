@@ -46,11 +46,6 @@ import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
-/**
- * 
- * @author MjrTom
- *			2005-2006: lastPiece, bitfield, availabilityAdded
- */
 
 public class 
 PEPeerTransportProtocol
@@ -401,6 +396,7 @@ PEPeerTransportProtocol
       closing = true;
       // immediatly lose interest in peer
       interested_in_other_peer =false;
+      lastNeededUndonePieceChange =Long.MAX_VALUE;
       
       if( identityAdded ) {  //remove identity
       	if( peer_id != null ) {
@@ -419,6 +415,9 @@ PEPeerTransportProtocol
       closing_mon.exit();
     }
     
+    //cancel any pending requests (on the manager side)
+    cancelRequests();
+ 
     if( outgoing_have_message_aggregator != null ) {
         outgoing_have_message_aggregator.destroy();
       }
@@ -435,9 +434,6 @@ PEPeerTransportProtocol
       connection.close();
     }
     
-    //cancel any pending requests (on the manager side)
-    cancelRequests();
- 
     if ( ip_resolver_request != null ){
       ip_resolver_request.cancel();
     }
@@ -603,29 +599,45 @@ PEPeerTransportProtocol
 	}
 
 
-  public boolean request( int pieceNumber, int pieceOffset, int pieceLength) {
-  	if (current_peer_state != TRANSFERING) {
-  		manager.requestCanceled( manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength ) );
-  		return false;
-  	}	
-  	DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, pieceOffset, pieceLength );
-  	if( !hasBeenRequested( request ) ) {
-  		addRequest( request );
-      try{
-      	recent_outgoing_requests_mon.enter();
-      
-        recent_outgoing_requests.put( request, null );
-      }finally{
-      	recent_outgoing_requests_mon.exit();
-      }
-      connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ), false );
-  		return true;
-  	}
-  	return false;
+    public boolean request(final int pieceNumber, final int pieceOffset, final int pieceLength) {
+        final DiskManagerReadRequest request =manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
+        if (current_peer_state != TRANSFERING) {
+            manager.requestCanceled(request);
+            return false;
+        }
+        boolean added =false;
+        try{
+            requested_mon.enter();
+            
+            if (!requested.contains(request))
+            {
+                requested.add(request);
+                added =true;
+            }
+        }finally{
+            
+            requested_mon.exit();
+        }
+                
+        if (added)
+        {
+            connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength ), false );
+            _lastPiece =pieceNumber;
+            
+            try{
+                recent_outgoing_requests_mon.enter();
+                  
+                recent_outgoing_requests.put( request, null );
+            }finally{
+                recent_outgoing_requests_mon.exit();
+            }
+            return true;
+        }
+        return false;
   }
-  
 
-  public void sendCancel( DiskManagerReadRequest request ) {
+
+    public void sendCancel( DiskManagerReadRequest request ) {
   	if ( current_peer_state != TRANSFERING ) return;
 		if ( hasBeenRequested( request ) ) {
 			removeRequest( request );
@@ -712,11 +724,9 @@ PEPeerTransportProtocol
 		interested_in_other_peer =is_interesting;
 	}
 
-	/**
+	/** @deprecated no longer used by CVS code
 	 * Checks if a particular piece makes us interested in the peer
-	 * 
-	 * @param pieceNumber
-	 *            the piece number that has been received
+	 * @param pieceNumber the piece number that has been received
 	 */
 	private void checkInterested(int pieceNumber)
 	{
@@ -724,19 +734,13 @@ PEPeerTransportProtocol
 			return;
 
 		// Do we need this piece and it's not Done?
-		boolean is_interesting =diskManager.isInteresting(pieceNumber);
-
-		if (is_interesting &&!interested_in_other_peer)
+		if (!interested_in_other_peer &&diskManager.isInteresting(pieceNumber))
+        {
 			connection.getOutgoingMessageQueue().addMessage(new BTInterested(), false);
-		else if (!is_interesting &&interested_in_other_peer)
-			connection.getOutgoingMessageQueue().addMessage(new BTUninterested(), false);
-
-		interested_in_other_peer =is_interesting;
+			interested_in_other_peer =true;
+        }
 	}
-  
 
-
-    
   /**
 	 * Private method to send the bitfield.
 	 */
@@ -927,26 +931,33 @@ PEPeerTransportProtocol
 	
 
 
-	private void cancelRequests() {
-	  if ( requested != null ) {
-	    try{
-	      requested_mon.enter();
+	private void cancelRequests()
+    {
+        if (!closing) {   //cancel any unsent requests in the queue
+            final Message[] type ={new BTRequest(-1, -1, -1)};
+            connection.getOutgoingMessageQueue().removeMessagesOfType(type, false);
+        }
+        if (requested !=null &&requested.size() >0) {
+			try{
+				requested_mon.enter();
 		        
-	      for (int i = requested.size() - 1; i >= 0; i--) {
-	        DiskManagerReadRequest request = (DiskManagerReadRequest) requested.remove(i);
-	        manager.requestCanceled(request);
-	      }
-	    }finally{
-		        	
-	      requested_mon.exit();
-	    }
-	  }
-	  if( !closing ) {
-	    //cancel any unsent requests in the queue
-	    Message[] type = { new BTRequest( -1, -1, -1 ) };
-	    connection.getOutgoingMessageQueue().removeMessagesOfType( type, false );
-	  }
-	}
+                if (!closing)
+                {   // may have unchoked us, gotten a request, then choked without filling it - snub them
+                    // if they actually have data coming in, they'll be unsnubbed as soon as it writes
+                    final long timeSinceGoodData =getTimeSinceGoodDataReceived();
+                    if (timeSinceGoodData ==-1 ||timeSinceGoodData >60 *1000)
+                        setSnubbed(true);
+                }
+                for (int i =requested.size() -1; i >=0; i--) {
+                    final DiskManagerReadRequest request =(DiskManagerReadRequest) requested.remove(i);
+                    manager.requestCanceled(request);
+                }
+			}finally{
+			
+				requested_mon.exit();
+			}
+        }
+    }
   
 
 		public int 
@@ -1000,7 +1011,8 @@ PEPeerTransportProtocol
       finally{  requested_mon.exit();  }
 		}
     
-		
+		/** @deprecated no longer used by CVS code
+		*/		
 		protected void
 		addRequest(
 			DiskManagerReadRequest	request )
@@ -1083,41 +1095,31 @@ PEPeerTransportProtocol
 
   
   public boolean doTimeoutChecks() {
-    //Timeouts when in states PEPeerTransport.CONNECTION_PENDING and
-    //PEPeerTransport.CONNECTION_CONNECTING are handled by the ConnectDisconnectManager
-    //so we don't need to deal with them here.
-    
+      //Timeouts when in states PEPeerTransport.CONNECTION_PENDING and
+      //PEPeerTransport.CONNECTION_CONNECTING are handled by the ConnectDisconnectManager
+      //so we don't need to deal with them here. This comment is broken - please fix
+
       final long now =SystemTime.getCurrentTime();
-    //make sure we time out stalled connections
-    if( connection_state == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
-      long dead_time =now - last_message_received_time;
-      
-      if( dead_time < 0 ) {  //oops, system clock went backwards
-        last_message_received_time =now;
-        return false;
+      //make sure we time out stalled connections
+      if( connection_state == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
+          if (last_data_message_received_time >now)
+              last_data_message_received_time =now;
+          else if (now -last_message_received_time > 5*60*1000 ) { //5min timeout
+              closeConnectionInternally( "timed out while waiting for messages" );
+              return true;
+          }
+      }
+      //ensure we dont get stuck in the handshaking phases
+      else if( connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ) {
+          if (connection_established_time >now)
+              connection_established_time =now;
+          else if (now - connection_established_time > 3*60*1000 ) { //3min timeout
+              closeConnectionInternally( "timed out while waiting for handshake" );
+              return true;
+          }
       }
       
-      if( dead_time > 5*60*1000 ) { //5min timeout
-        closeConnectionInternally( "timed out while waiting for messages" );
-        return true;
-      }
-    }
-    //ensure we dont get stuck in the handshaking phases
-    else if( connection_state == PEPeerTransport.CONNECTION_WAITING_FOR_HANDSHAKE ) {
-      long wait_time =now - connection_established_time;
-      
-      if( wait_time < 0 ) {  //oops, system clock went backwards
-        connection_established_time =now;
-        return false;
-      }
-      
-      if( wait_time > 3*60*1000 ) { //3min timeout
-        closeConnectionInternally( "timed out while waiting for handshake" );
-        return true;
-      }
-    }
-    
-    return false;
+      return false;
   }
   
   
@@ -1183,15 +1185,12 @@ PEPeerTransportProtocol
     if( last_data_message_received_time == -1 ) {  //never received
       return -1;
     }
-    
-    long time_since = SystemTime.getCurrentTime() - last_data_message_received_time;
-    
-    if( time_since < 0 ) {  //time went backwards
-      last_data_message_received_time = SystemTime.getCurrentTime();
-      time_since = 0;
-    }
-    
-    return time_since;    
+
+    final long now =SystemTime.getCurrentTime();
+
+    if (last_data_message_received_time >now)
+        last_data_message_received_time =now;   //time went backwards
+    return now -last_data_message_received_time;
   }
   
 	public long getTimeSinceGoodDataReceived()
@@ -1213,15 +1212,10 @@ PEPeerTransportProtocol
     if( last_data_message_sent_time == -1 ) {  //never sent
       return -1;
     }
-    
-    long time_since = SystemTime.getCurrentTime() - last_data_message_sent_time;
-    
-    if( time_since < 0 ) {  //time went backwards
-      last_data_message_sent_time = SystemTime.getCurrentTime();
-      time_since = 0;
-    }
-    
-    return time_since;    
+    final long now =SystemTime.getCurrentTime();
+    if (last_data_message_sent_time >now)
+        last_data_message_sent_time =now;   //time went backwards
+    return now -last_data_message_sent_time;
   }
   
   
@@ -1231,14 +1225,10 @@ PEPeerTransportProtocol
     if( connection_established_time == 0 ) {  //fudge it while the transport is being connected
       return 0;
     }
-    
-    long time = SystemTime.getCurrentTime() - connection_established_time;
-    
-    if( time < 0 ) {  //time went backwards
-      connection_established_time = SystemTime.getCurrentTime();
-      time = 0;
-    }
-    return time;
+    final long now =SystemTime.getCurrentTime();
+    if (connection_established_time >now)
+        connection_established_time =now;
+    return now -connection_established_time;
   }
   
   
@@ -1541,12 +1531,9 @@ PEPeerTransportProtocol
   
   
   protected void decodeInterested( BTInterested interested ) {
-	    interested.destroy();                                                   
-	  // Don't allow known seeds to be interested in us
-	  if (!seed)
-		  other_peer_interested_in_me =true;
-      else
-          other_peer_interested_in_me =false;
+      interested.destroy();
+      // Don't allow known seeds to be interested in us
+      other_peer_interested_in_me =!seed;
   }
   
   
@@ -1564,48 +1551,39 @@ PEPeerTransportProtocol
   
   
   
-  protected void decodeHave( BTHave have ) {
-    final int piece_number = have.getPieceNumber();
-	have.destroy();
-	
-    if ((piece_number >=nbPieces) || (piece_number < 0)) {
-      closeConnectionInternally( "invalid piece_number: " + piece_number );
-      return;
-    }
+    protected void decodeHave(BTHave have) {
+        final int pieceNumber =have.getPieceNumber();
+        have.destroy();
 
-    try{  closing_mon.enter();
-    
-    	if( closing )  return;
-    
-		if (peerHavePieces ==null)
-			peerHavePieces =new BitFlags(nbPieces);
-    
-		if ( peerHavePieces.flags[piece_number]){
-			
-				// BitComet 0.6 (for example) sometimes sends haves for bits already marked.
-			
-			// Debug.out( "Received have but bit already set: " + this );
-			
-		}else{
-	    	peerHavePieces.set(piece_number);
-	    	final int pieceLength = manager.getPieceLength(piece_number);
-	    	peer_stats.hasNewPiece(pieceLength);
-	    	manager.havePiece(piece_number, pieceLength, this);
-		}
-		
-    	checkSeed();
-        // maybe a seed using lazy bitfield, or suddenly became a seed;
-        // never consider seeds interested in us
-        if (seed &&other_peer_interested_in_me)
-            other_peer_interested_in_me =false;
+        if ((pieceNumber >=nbPieces) ||(pieceNumber <0)) {
+            closeConnectionInternally("invalid pieceNumber: " +pieceNumber);
+            return;
+        }
 
-    	if (!interested_in_other_peer) {
-    		checkInterested(piece_number);
-    	}
+        if (closing)
+            return;
+
+        if (peerHavePieces ==null)
+            peerHavePieces =new BitFlags(nbPieces);
+
+        if (!peerHavePieces.flags[pieceNumber])
+        {
+            if (!interested_in_other_peer &&diskManager.isInteresting(pieceNumber))
+            {
+                connection.getOutgoingMessageQueue().addMessage(new BTInterested(), false);
+                interested_in_other_peer =true;
+            }
+            peerHavePieces.set(pieceNumber);
+
+            final int pieceLength =manager.getPieceLength(pieceNumber);
+            manager.havePiece(pieceNumber, pieceLength, this);
+
+            checkSeed(); // maybe a seed using lazy bitfield, or suddenly became a seed;
+            other_peer_interested_in_me &=!seed;	// never consider seeds interested
+
+            peer_stats.hasNewPiece(pieceLength);
+        }
     }
-    finally{ closing_mon.exit();  }    
-  }
-  
   
   
   protected void decodeRequest( BTRequest request ) {
@@ -1624,7 +1602,7 @@ PEPeerTransportProtocol
     }
     else {
     	if (Logger.isEnabled())
-				Logger.log(new LogEvent(this, LOGID, "Protocol:In: peer request for piece #"
+				Logger.log(new LogEvent(this, LOGID, "decodeRequest(): peer request for piece #"
 						+ number + ":" + offset + "->" + (offset + length -1)
 						+ " ignored as peer is currently choked."));
     }
