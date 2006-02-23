@@ -60,6 +60,7 @@ PlatformManagerImpl
 	public static final String				NEW_MAIN_ASSOC	= "Azureus";
 	public static final String				OLD_MAIN_ASS0C	= "BitTorrent";
 	
+	private static boolean					initialising;
 	private static boolean					init_tried;
 	
 	private static PlatformManagerImpl		singleton;
@@ -77,28 +78,41 @@ PlatformManagerImpl
 		try{
 			class_mon.enter();
 		
-			if ( singleton == null && !init_tried ){
+			try{
+												
+				initialising	= true;
 				
-				init_tried	= true;
-				
-				try{
-					singleton	= new PlatformManagerImpl();
+				if ( singleton == null && !init_tried ){
 					
-				}catch( PlatformManagerException e ){
+					init_tried	= true;
 					
-					throw( e );
-					
-				}catch( Throwable e ){
-					
-					Logger.log(new LogEvent(LOGID, "Win32Platform: failed to initialise", e ));
-					
-					if ( e instanceof PlatformManagerException ){
+					try{
+						singleton	= new PlatformManagerImpl();
 						
-						throw((PlatformManagerException)e);
+							// gotta separate this so that a recursive call due to config access during
+							// patching finds the singleton 
+						
+						singleton.applyPatches();
+						
+					}catch( PlatformManagerException e ){
+						
+						throw( e );
+						
+					}catch( Throwable e ){
+						
+						Logger.log(new LogEvent(LOGID, "Win32Platform: failed to initialise", e ));
+						
+						if ( e instanceof PlatformManagerException ){
+							
+							throw((PlatformManagerException)e);
+						}
+						
+						throw( new PlatformManagerException( "Win32Platform: failed to initialise", e ));
 					}
-					
-					throw( new PlatformManagerException( "Win32Platform: failed to initialise", e ));
 				}
+			}finally{
+				
+				initialising	= false;
 			}
 			
 			return( singleton );
@@ -127,8 +141,6 @@ PlatformManagerImpl
 		app_exe_name	= SystemProperties.getApplicationName() + ".exe";
 		
         initializeCapabilities();
-
-        applyPatches();
 	}
 
     private void
@@ -196,6 +208,7 @@ PlatformManagerImpl
 		}
 		
 			// one off fix of permissions in app dir
+			// 
 		
 		if ( 	hasCapability( PlatformManagerCapabilities.CopyFilePermissions ) &&
 				!COConfigurationManager.getBooleanParameter( "platform.win32.permfixdone", false )){
