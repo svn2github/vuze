@@ -90,6 +90,7 @@ AEDiagnostics
 	
 	private static boolean	started_up;
 	private static Map		loggers	= new HashMap();
+	private static boolean	loggers_enabled;
 	
 	private static List		evidence_generators	= new ArrayList();
 	
@@ -108,6 +109,8 @@ AEDiagnostics
 			
 			debug_save_dir	= new File( debug_dir, "save" );
 			
+			loggers_enabled = COConfigurationManager.getBooleanParameter( "Logger.DebugFiles.Enabled", true );
+
 			boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
 			
 			COConfigurationManager.setParameter( CONFIG_KEY, false );
@@ -227,6 +230,11 @@ AEDiagnostics
 		AEDiagnosticsLogger		logger,
 		String					str )
 	{
+		if ( !loggers_enabled ){
+			
+			return;
+		}
+		
 		try{
 			
 			File	log_file	= getLogFile( logger );
