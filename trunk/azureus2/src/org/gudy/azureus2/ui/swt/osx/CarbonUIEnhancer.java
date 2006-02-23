@@ -169,21 +169,21 @@ public class CarbonUIEnhancer {
          buffer= new char[l];
          fgNatTestActionName.getChars(0, l, buffer, 0);
          str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-         OS.InsertMenuItemTextWithCFString(menu, str, (short) 3, 0, kHICommandNatTest);
+         OS.InsertMenuItemTextWithCFString(menu, str, (short) 4, 0, kHICommandNatTest);
          OS.CFRelease(str);
          
 
-          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 4, OS.kMenuItemAttrSeparator, 0);
+          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 5, OS.kMenuItemAttrSeparator, 0);
 
           // restart menu
          l= fgRestartActionName.length();
          buffer= new char[l];
          fgRestartActionName.getChars(0, l, buffer, 0);
          str= OS.CFStringCreateWithCharacters(OS.kCFAllocatorDefault, buffer, l);
-         OS.InsertMenuItemTextWithCFString(menu, str, (short) 5, 0, kHICommandRestart);
+         OS.InsertMenuItemTextWithCFString(menu, str, (short) 6, 0, kHICommandRestart);
          OS.CFRelease(str);
 
-          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 6, OS.kMenuItemAttrSeparator, 0);
+          OS.InsertMenuItemTextWithCFString(menu, 0, (short) 7, OS.kMenuItemAttrSeparator, 0);
       }
 
       // schedule disposal of callback object
