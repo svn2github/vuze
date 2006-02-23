@@ -45,14 +45,14 @@ public class Alerts {
   
   
   private static List			alert_queue 			= new ArrayList();
-  private static List			alert_stopping_queue 	= new ArrayList();
   private static AEMonitor		alert_queue_mon	= new AEMonitor("Alerts:Q");
   
   private static List			alert_history		= new ArrayList();
   private static AEMonitor		alert_history_mon	= new AEMonitor("Alerts:H");
   private static boolean 		initialisation_complete = false;
   
-  private static transient boolean		stopping	= false;
+  private static transient boolean	stopping;
+  private static transient int		stopping_alert_count;
   
   private Alerts() 
   {
@@ -106,42 +106,34 @@ public class Alerts {
   		
   	if ( stopping ){
   		
-  		try{
-  			alert_queue_mon.enter();
-  			
-  			alert_stopping_queue.add( new Object[]{ new Integer(type), title, message, details } );
-  			
-  		}finally{
-  			
-  			alert_queue_mon.exit();
-  		}
-  	}else{
-		display.asyncExec( 
-		  	new AERunnable() 
-		  	{
-		  	  	public void 
-		  	  	runSupport()
-		  	  	{
-		  	      
-		  	  		String icon_str;
-		  	  		
-		  	  		if ( type == SWT.ICON_INFORMATION ){
-		  	  			
-		  	  			icon_str = MessagePopupShell.ICON_INFO;
-		  	  			
-		  	  		}else if ( type == SWT.ICON_WARNING ){
-		  	  			
-		  	  			icon_str = MessagePopupShell.ICON_WARNING;
-		  	  			
-		  	  		}else{
-		  	  			
-		  	  			icon_str = MessagePopupShell.ICON_ERROR;
-		  	  		}
-		  	  
-		  	  		new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
-		  	  	}
-		  	});
+  		stopping_alert_count++;
   	}
+  	
+	display.asyncExec( 
+	  	new AERunnable() 
+	  	{
+	  	  	public void 
+	  	  	runSupport()
+	  	  	{
+	  	      
+	  	  		String icon_str;
+	  	  		
+	  	  		if ( type == SWT.ICON_INFORMATION ){
+	  	  			
+	  	  			icon_str = MessagePopupShell.ICON_INFO;
+	  	  			
+	  	  		}else if ( type == SWT.ICON_WARNING ){
+	  	  			
+	  	  			icon_str = MessagePopupShell.ICON_WARNING;
+	  	  			
+	  	  		}else{
+	  	  			
+	  	  			icon_str = MessagePopupShell.ICON_ERROR;
+	  	  		}
+	  	  
+	  	  		new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
+	  	  	}
+	  	});
    }
 
   public static void
@@ -308,49 +300,37 @@ public class Alerts {
   public static void 
   stopCompleted()
   {
-	  	// give the users a chance to see alerts generated on shutdown
+	  	// give the users a chance to see alerts generated on shutdown, only if this happens to be
+	  	// the swt thread (can't risk sync-exec due to potential deadlock and async is pointless
+	  	// as UI will go ahead and close immediately )
 	  
 	  final Display display = SWTThread.getInstance().getDisplay();
 		
-	  if ( 	alert_stopping_queue.size() > 0 &&
-			  !display.isDisposed() &&
-			  Thread.currentThread() == display.getThread()){
-			  
-		  for (int i=0;i<alert_stopping_queue.size();i++){
-			  
-			  Object[]	x = (Object[])alert_stopping_queue.get(i);
-			  
-			  String	title	= (String)x[1];
-			  String	message	= (String)x[2];
-			  String	details	= (String)x[3];
-			  
-			  int	type = ((Integer)x[0]).intValue();
-			  
-			  String icon_str;
-	  	  		
-			  if ( type == SWT.ICON_INFORMATION ){
-	  	  			
-				  icon_str = MessagePopupShell.ICON_INFO;
-	  	  			
-			  }else if ( type == SWT.ICON_WARNING ){
-	  	  			
-				  icon_str = MessagePopupShell.ICON_WARNING;
-	  	  			
-	  	  	  }else{
-	  	  			
-	  	  		  icon_str = MessagePopupShell.ICON_ERROR;
-	  	  	  }
-	  	  
-			  new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
-		  }
+	  if (	stopping_alert_count > 0 &&
+			Thread.currentThread() == display.getThread()){
 		  
 		  long	start = SystemTime.getCurrentTime();
 		  
-		  while(SystemTime.getCurrentTime() - start < 5000 && !display.isDisposed()){
-			  try {
-				  if (!display.readAndDispatch())
-					  display.sleep();
-			  }catch( Throwable e ){
+		  while( true ){
+			  
+			  long	now = SystemTime.getCurrentTime();
+			  
+			  if ( 	now >= start && 
+				  	now - start < 5000 && 
+				  	!display.isDisposed()){
+		
+				  try{
+					  if (!display.readAndDispatch()){
+						  
+						  display.sleep();
+					  }
+					  
+				  }catch( Throwable e ){
+					  
+					  break;
+				  }
+			  }else{
+				  
 				  break;
 			  }
 		  }
