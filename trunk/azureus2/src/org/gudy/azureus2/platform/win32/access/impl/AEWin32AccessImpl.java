@@ -63,7 +63,16 @@ AEWin32AccessImpl
 	protected
 	AEWin32AccessImpl()
 	{
-		AEWin32AccessInterface.load( this );
+		if ( isEnabled()){
+			
+			AEWin32AccessInterface.load( this );
+		}
+	}
+	
+	public boolean
+	isEnabled()
+	{
+		return( AEWin32AccessInterface.isEnabled());
 	}
 	
 	public long

@@ -44,6 +44,48 @@ UpdaterUpdateChecker
 {
 	private static String PLUGIN_ID		= "azupdater";
 	
+	public static boolean
+	disableNativeCode(
+		String	version )
+	{
+		try{
+			File	plugin_dir = null;
+			
+		    File user_plugin_dir = FileUtil.getUserFile("plugins");
+	
+		    File user_updater_plugin = new File( user_plugin_dir, PLUGIN_ID );
+			    
+		    if ( user_updater_plugin.exists()){
+		    	
+		    	plugin_dir	= user_updater_plugin;
+		    	
+		    }else{
+			    
+			    File shared_plugin_dir = FileUtil.getApplicationFile("plugins");
+		
+			    File shared_updater_plugin = new File( shared_plugin_dir, PLUGIN_ID );
+			    			    			    
+			    if ( shared_updater_plugin.exists()){
+			    		    	
+			    	plugin_dir	= shared_updater_plugin;
+			    }
+		    }
+		    
+		    if ( plugin_dir == null ){
+		    	
+		    	return( false );
+		    }
+		    
+		    return( new File( plugin_dir, "disnat" + version ).exists());
+		    
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
+	    return( false );
+	}
+	
 	public static void
 	checkPlugin()
 	{

@@ -29,6 +29,7 @@ package org.gudy.azureus2.platform.win32.access.impl;
 
 import org.gudy.azureus2.platform.win32.access.*;
 import org.gudy.azureus2.platform.win32.*;
+import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
 public class 
 AEWin32AccessInterface 
@@ -41,10 +42,27 @@ AEWin32AccessInterface
 	public static final int	WM_QUERYENDSESSION		=       0x0011;
 	public static final int	WM_ENDSESSION           =       0x0016;
 	
+	private static boolean						enabled;
 	private static AEWin32AccessCallback		cb;
 	
 	static{
+			// protection against something really bad in the dll
+					
 		System.loadLibrary( PlatformManagerImpl.DLL_NAME );
+		
+		enabled = !UpdaterUpdateChecker.disableNativeCode( getVersion());
+		
+		if ( !enabled ){
+		
+			System.err.println( "Native code has been disabled" );
+		}
+
+	}
+	
+	protected static boolean
+	isEnabled()
+	{
+		return( enabled );
 	}
 	
 	protected static void

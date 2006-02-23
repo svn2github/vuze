@@ -30,21 +30,22 @@ package org.gudy.azureus2.platform;
  */
 public final class PlatformManagerCapabilities
 {
-    public static final PlatformManagerCapabilities GetVersion = new PlatformManagerCapabilities("getVersion");
-    public static final PlatformManagerCapabilities CreateCommandLineProcess = new PlatformManagerCapabilities("CreateCommandLineProcess");
-    public static final PlatformManagerCapabilities UseNativeNotification = new PlatformManagerCapabilities("UseNativeNotification");
-    public static final PlatformManagerCapabilities UseNativeScripting = new PlatformManagerCapabilities("UseNativeScripting");
+    public static final PlatformManagerCapabilities GetVersion 				= new PlatformManagerCapabilities("getVersion");
+    public static final PlatformManagerCapabilities CreateCommandLineProcess 	= new PlatformManagerCapabilities("CreateCommandLineProcess");
+    public static final PlatformManagerCapabilities UseNativeNotification 	= new PlatformManagerCapabilities("UseNativeNotification");
+    public static final PlatformManagerCapabilities UseNativeScripting 		= new PlatformManagerCapabilities("UseNativeScripting");
 
-    public static final PlatformManagerCapabilities PlaySystemAlert = new PlatformManagerCapabilities("PlaySystemAlert");
+    public static final PlatformManagerCapabilities PlaySystemAlert 		= new PlatformManagerCapabilities("PlaySystemAlert");
 
-    public static final PlatformManagerCapabilities GetUserDataDirectory = new PlatformManagerCapabilities("GetUserDataDirectory");
+    public static final PlatformManagerCapabilities GetUserDataDirectory 	= new PlatformManagerCapabilities("GetUserDataDirectory");
 
-    public static final PlatformManagerCapabilities RecoverableFileDelete = new PlatformManagerCapabilities("RecoverableFileDelete");
-    public static final PlatformManagerCapabilities RegisterFileAssociations = new PlatformManagerCapabilities("RegisterFileAssociations");
-    public static final PlatformManagerCapabilities ShowFileInBrowser = new PlatformManagerCapabilities("ShowFileInBrowser");
-    public static final PlatformManagerCapabilities ShowPathInCommandLine = new PlatformManagerCapabilities("ShowPathInCommandLine");
+    public static final PlatformManagerCapabilities RecoverableFileDelete 	= new PlatformManagerCapabilities("RecoverableFileDelete");
+    public static final PlatformManagerCapabilities RegisterFileAssociations 	= new PlatformManagerCapabilities("RegisterFileAssociations");
+    public static final PlatformManagerCapabilities ShowFileInBrowser 		= new PlatformManagerCapabilities("ShowFileInBrowser");
+    public static final PlatformManagerCapabilities ShowPathInCommandLine 	= new PlatformManagerCapabilities("ShowPathInCommandLine");
     
-    public static final PlatformManagerCapabilities SetTCPTOSEnabled = new PlatformManagerCapabilities("SetTCPTOSEnabled");
+    public static final PlatformManagerCapabilities SetTCPTOSEnabled	 	= new PlatformManagerCapabilities("SetTCPTOSEnabled");
+    public static final PlatformManagerCapabilities CopyFilePermissions 	= new PlatformManagerCapabilities("CopyFilePermissions");
 
     private final String myName; // for debug only
 

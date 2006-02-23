@@ -40,10 +40,17 @@
 HMODULE	application_module;
 bool	non_unicode			= false;
 
-UINT uThreadId;
-HINSTANCE hInstance;
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-void RegisterWindowClass();
+UINT		uThreadId;
+HINSTANCE	hInstance;
+LRESULT CALLBACK WndProcW(HWND, UINT, WPARAM, LPARAM);
+void	RegisterWindowClassW();
+
+LRESULT CALLBACK WndProcA(HWND, UINT, WPARAM, LPARAM);
+void	RegisterWindowClassA();
+
+HRESULT
+callback(UINT	Msg, WPARAM	wParam, LPARAM	lParam) ;
+
 JavaVM*	jvm;
 
 BOOL APIENTRY 
@@ -68,7 +75,11 @@ DllMain(
 
 			non_unicode = ( osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS );
 
-			RegisterWindowClass();
+			if ( non_unicode ){
+				RegisterWindowClassA();
+			}else{
+				RegisterWindowClassW();
+			}
 
 			break;
 		}
@@ -214,13 +225,13 @@ jstringToCharsW(
 // WINDOWS HOOK
 
 void
- RegisterWindowClass() 
+RegisterWindowClassW() 
 {
-	WNDCLASSEX wcex;
+	WNDCLASSEXW wcex;
 
-	wcex.cbSize = sizeof(WNDCLASSEX); 
+	wcex.cbSize = sizeof(WNDCLASSEXW); 
 	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= WndProc;
+	wcex.lpfnWndProc	= WndProcW;
 	wcex.cbClsExtra		= 0;
 	wcex.cbWndExtra		= 0;
 	wcex.hInstance		= hInstance;
@@ -231,8 +242,125 @@ void
 	wcex.lpszClassName	= L"Azureus Window Hook";
 	wcex.hIconSm		= 0;
 
-	RegisterClassEx(&wcex);
+	RegisterClassExW(&wcex);
 }
+
+
+LRESULT CALLBACK 
+WndProcW(
+	HWND hWnd, 
+	UINT Msg, 
+	WPARAM wParam, 
+	LPARAM lParam) 
+{
+	long res = callback( Msg, wParam, lParam );
+
+	if ( res != -1 ){
+
+		return( res );
+	}
+
+	return DefWindowProcW(hWnd, Msg, wParam, lParam);
+}
+
+unsigned WINAPI 
+CreateWndThreadW(
+	LPVOID pThreadParam) 
+{
+	HWND hWnd = CreateWindowW( L"Azureus Window Hook", NULL, WS_OVERLAPPEDWINDOW,
+									CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+									NULL, NULL, hInstance, NULL);
+	if( hWnd == NULL){
+
+		printf( "Failed to create window\n" );
+
+		return( 0 );
+
+	}else{
+
+		MSG Msg;
+
+		while(GetMessageW(&Msg, hWnd, 0, 0)) {
+
+			TranslateMessage(&Msg);
+
+			DispatchMessageW(&Msg);
+		}
+
+		return Msg.wParam;
+	}
+} 
+
+
+//
+
+void
+RegisterWindowClassA() 
+{
+	WNDCLASSEXA wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEXA); 
+	wcex.style			= CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc	= WndProcA;
+	wcex.cbClsExtra		= 0;
+	wcex.cbWndExtra		= 0;
+	wcex.hInstance		= hInstance;
+	wcex.hIcon			= 0;
+	wcex.hCursor		= 0;
+	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.lpszMenuName	= 0;
+	wcex.lpszClassName	= "Azureus Window Hook";
+	wcex.hIconSm		= 0;
+
+	RegisterClassExA(&wcex);
+}
+
+
+LRESULT CALLBACK 
+WndProcA(
+	HWND hWnd, 
+	UINT Msg, 
+	WPARAM wParam, 
+	LPARAM lParam) 
+{
+	long res = callback( Msg, wParam, lParam );
+
+	if ( res != -1 ){
+
+		return( res );
+	}
+
+	return DefWindowProcA(hWnd, Msg, wParam, lParam);
+}
+
+unsigned WINAPI 
+CreateWndThreadA(
+	LPVOID pThreadParam) 
+{
+	HWND hWnd = CreateWindowA( "Azureus Window Hook", NULL, WS_OVERLAPPEDWINDOW,
+									CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+									NULL, NULL, hInstance, NULL);
+	if( hWnd == NULL){
+
+		printf( "Failed to create window\n" );
+
+		return( 0 );
+
+	}else{
+
+		MSG Msg;
+
+		while(GetMessageA(&Msg, hWnd, 0, 0)) {
+
+			TranslateMessage(&Msg);
+
+			DispatchMessageA(&Msg);
+		}
+
+		return Msg.wParam;
+	}
+} 
+
 
 HRESULT
 callback(
@@ -276,53 +404,6 @@ callback(
 }
 
 
-LRESULT CALLBACK 
-WndProc(
-	HWND hWnd, 
-	UINT Msg, 
-	WPARAM wParam, 
-	LPARAM lParam) 
-{
-	long res = callback( Msg, wParam, lParam );
-
-	if ( res != -1 ){
-
-		return( res );
-	}
-
-	return DefWindowProc(hWnd, Msg, wParam, lParam);
-}
-
-unsigned WINAPI 
-CreateWndThread(
-	LPVOID pThreadParam) 
-{
-	HWND hWnd = CreateWindow( L"Azureus Window Hook", NULL, WS_OVERLAPPEDWINDOW,
-									CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-									NULL, NULL, hInstance, NULL);
-	if( hWnd == NULL){
-
-		printf( "Failed to create window\n" );
-
-		return( 0 );
-
-	}else{
-
-		MSG Msg;
-
-		while(GetMessage(&Msg, hWnd, 0, 0)) {
-
-			TranslateMessage(&Msg);
-
-			DispatchMessage(&Msg);
-		}
-
-		return Msg.wParam;
-	}
-} 
-
-
-
 JNIEXPORT void JNICALL 
 Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_initialise(
 	JNIEnv *env, 
@@ -332,7 +413,12 @@ Java_org_gudy_azureus2_platform_win32_access_impl_AEWin32AccessInterface_initial
 
 	env->GetJavaVM(&jvm);
 
-	hThread = (HANDLE)_beginthreadex(NULL, 0, &CreateWndThread, NULL, 0, &uThreadId);
+	if ( non_unicode ){
+		hThread = (HANDLE)_beginthreadex(NULL, 0, &CreateWndThreadA, NULL, 0, &uThreadId);
+
+	}else{
+		hThread = (HANDLE)_beginthreadex(NULL, 0, &CreateWndThreadW, NULL, 0, &uThreadId);
+	}
 
 	if(!hThread){
 

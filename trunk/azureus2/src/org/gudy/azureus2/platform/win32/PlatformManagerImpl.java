@@ -27,8 +27,10 @@ package org.gudy.azureus2.platform.win32;
  *
  */
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -80,7 +82,11 @@ PlatformManagerImpl
 				init_tried	= true;
 				
 				try{
-					singleton	= new PlatformManagerImpl( AEWin32Manager.getAccessor());
+					singleton	= new PlatformManagerImpl();
+					
+				}catch( PlatformManagerException e ){
+					
+					throw( e );
 					
 				}catch( Throwable e ){
 					
@@ -110,13 +116,12 @@ PlatformManagerImpl
 	protected boolean			az_exe_checked;
 
 	protected
-	PlatformManagerImpl(
-		AEWin32Access		_access )
+	PlatformManagerImpl()
 	
 		throws PlatformManagerException
 	{
-		access	= _access;
-
+		access	= AEWin32Manager.getAccessor();
+		
 		access.addListener( this );
 		
 		app_exe_name	= SystemProperties.getApplicationName() + ".exe";
@@ -129,13 +134,28 @@ PlatformManagerImpl
     private void
     initializeCapabilities()
     {
-        capabilitySet.add(PlatformManagerCapabilities.CreateCommandLineProcess);
-        capabilitySet.add(PlatformManagerCapabilities.GetUserDataDirectory);
-        capabilitySet.add(PlatformManagerCapabilities.RecoverableFileDelete);
-        capabilitySet.add(PlatformManagerCapabilities.RegisterFileAssociations);
-        capabilitySet.add(PlatformManagerCapabilities.ShowFileInBrowser);
-        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
-        capabilitySet.add(PlatformManagerCapabilities.SetTCPTOSEnabled);
+    	if ( access.isEnabled()){
+    		
+	        capabilitySet.add(PlatformManagerCapabilities.CreateCommandLineProcess);
+	        capabilitySet.add(PlatformManagerCapabilities.GetUserDataDirectory);
+	        capabilitySet.add(PlatformManagerCapabilities.RecoverableFileDelete);
+	        capabilitySet.add(PlatformManagerCapabilities.RegisterFileAssociations);
+	        capabilitySet.add(PlatformManagerCapabilities.ShowFileInBrowser);
+	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
+	        capabilitySet.add(PlatformManagerCapabilities.SetTCPTOSEnabled);
+	        
+	        if ( !Constants.isWindows9598ME ){
+	        	
+	            capabilitySet.add(PlatformManagerCapabilities.CopyFilePermissions);
+	            
+	        }
+    	}else{
+    		
+    			// disabled -> only available capability is that to get the version
+    			// therefore allowing upgrade
+    		
+	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
+    	}
     }
 
     protected void
@@ -174,8 +194,59 @@ PlatformManagerImpl
 			
 			//e.printStackTrace();
 		}
+		
+			// one off fix of permissions in app dir
+		
+		if ( 	hasCapability( PlatformManagerCapabilities.CopyFilePermissions ) &&
+				!COConfigurationManager.getBooleanParameter( "platform.win32.permfixdone", false )){
+
+			try{
+				
+				String	str = SystemProperties.getApplicationPath();
+				
+				if ( str.endsWith(File.separator)){
+					
+					str = str.substring(0,str.length()-1);
+				}
+				
+				fixPermissions( new File( str ), new File( str ));
+				
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
+				
+			}finally{
+				
+				COConfigurationManager.setParameter( "platform.win32.permfixdone", true );
+			}
+		}
 	}
 	
+    protected void
+    fixPermissions(
+    	File		parent,
+    	File		dir )
+    
+    	throws PlatformManagerException
+    {
+    	File[]	files = dir.listFiles();
+    	
+    	if ( files == null ){
+    		
+    		return;
+    	}
+    	
+    	for (int i=0;i<files.length;i++){
+    		
+    		File	file = files[i];
+    		   	   		
+    		if ( file.isFile()){
+    			
+    			copyFilePermissions( parent.getAbsolutePath(), file.getAbsolutePath());
+    		}
+    	}
+    }
+    
 	protected int
 	getIconIndex()
 	
@@ -673,8 +744,9 @@ PlatformManagerImpl
 			
 		}catch( Throwable e ){
 			
-			throw( new PlatformManagerException( "Failed to write registry details", e ));
-		}		}
+			throw( new PlatformManagerException( "Failed to copy file permissions", e ));
+		}		
+	}
 	
     /**
      * {@inheritDoc}

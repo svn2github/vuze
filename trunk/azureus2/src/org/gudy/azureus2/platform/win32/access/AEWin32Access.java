@@ -36,6 +36,9 @@ AEWin32Access
 	public static final int	HKEY_LOCAL_MACHINE		= 3;
 	public static final int	HKEY_CURRENT_USER		= 4;
 
+	public boolean
+	isEnabled();
+	
 	public String
 	getVersion();
 	

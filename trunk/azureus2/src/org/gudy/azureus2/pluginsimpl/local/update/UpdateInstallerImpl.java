@@ -29,6 +29,8 @@ package org.gudy.azureus2.pluginsimpl.local.update;
 
 import java.io.*;
 
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.update.*;
 
@@ -219,22 +221,20 @@ UpdateInstallerImpl
 									+ " Check permissions and rety the update"));
 				}
 			}
-			
-			if ( Constants.isWindows ){
-				
-				try{
-				
+							
+			try{
+				PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
+					
+				if ( pm.hasCapability( PlatformManagerCapabilities.CopyFilePermissions )){
+					
 					String	parent_str = parent.getAbsolutePath();
-					
-					System.out.println( "copying permissions from " + parent_str + " to " + from_file_or_resource );
-					
+										
 					PlatformManagerFactory.getPlatformManager().copyFilePermissions(
 							parent_str, from_file_or_resource );
-					
-				}catch( Throwable e ){
-					
-					Debug.out( e );
 				}
+			}catch( Throwable e ){
+					
+				Debug.out( e );
 			}
 		}catch( Throwable e ){
 			
