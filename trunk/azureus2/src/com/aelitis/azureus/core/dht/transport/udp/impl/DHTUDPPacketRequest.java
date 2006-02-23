@@ -56,7 +56,7 @@ DHTUDPPacketRequest
 	private DHTTransportUDPImpl	transport;
 	
 	private byte				protocol_version;
-	
+	private byte				vendor_id	= DHTTransportUDP.VENDOR_ID_AELITIS;
 	private int					network;
 	
 	private byte				originator_version;
@@ -114,6 +114,11 @@ DHTUDPPacketRequest
 		if ( protocol_version < DHTTransportUDP.PROTOCOL_VERSION_MIN ){
 			
 			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
+		}
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_VENDOR_ID ){
+			
+			vendor_id	= is.readByte();
 		}
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
@@ -206,6 +211,11 @@ DHTUDPPacketRequest
 			// add to this and you need to amend HEADER_SIZE above
 		
 		os.writeByte( protocol_version );		
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_VENDOR_ID ){
+			
+			os.writeByte( vendor_id );
+		}
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
 			
