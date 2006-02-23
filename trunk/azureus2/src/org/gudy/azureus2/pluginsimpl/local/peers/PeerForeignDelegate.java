@@ -228,15 +228,10 @@ PeerForeignDelegate
         if (last_data_message_received_time ==-1)
           return -1;	//never received
         
-        long now =SystemTime.getCurrentTime();
-        long time_since =now -last_data_message_received_time;
-        
-        if (time_since <0)
-        {	//time went backwards
-        	last_data_message_received_time =now;
-        	time_since =0;
-        }
-        return time_since;    
+        final long now =SystemTime.getCurrentTime();
+        if (last_data_message_received_time <now)
+            last_data_message_received_time =now;   //time went backwards
+        return now -last_data_message_received_time;
       }
   
 	public long getTimeSinceGoodDataReceived()
