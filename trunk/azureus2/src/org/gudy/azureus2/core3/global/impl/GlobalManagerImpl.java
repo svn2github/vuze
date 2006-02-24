@@ -981,9 +981,12 @@ public class GlobalManagerImpl
   public void startAllDownloads() {    
     for (Iterator iter = managers_cow.iterator(); iter.hasNext();) {
       DownloadManager manager = (DownloadManager) iter.next();
+      int state = manager.getState();
 
-      if( manager.getState() == DownloadManager.STATE_STOPPED ) {
-        manager.startDownloadInitialized(true);
+      if (manager.getState() == DownloadManager.STATE_STOPPED
+					&& state != DownloadManager.STATE_QUEUED) {
+
+  			manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
       }
     }
   }
