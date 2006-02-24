@@ -162,7 +162,9 @@ PlatformManagerImpl
 	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
 	        capabilitySet.add(PlatformManagerCapabilities.SetTCPTOSEnabled);
 	        
-	        if ( !Constants.isWindows9598ME ){
+	        
+	        if ( 	Constants.compareVersions( access.getVersion(), "1.11" ) >= 0 &&
+	        		!Constants.isWindows9598ME ){
 	        	
 	            capabilitySet.add(PlatformManagerCapabilities.CopyFilePermissions);
 	            
@@ -214,7 +216,6 @@ PlatformManagerImpl
 		}
 		
 			// one off fix of permissions in app dir
-			// 
 		
 		if ( 	hasCapability( PlatformManagerCapabilities.CopyFilePermissions ) &&
 				!COConfigurationManager.getBooleanParameter( "platform.win32.permfixdone2", false )){
