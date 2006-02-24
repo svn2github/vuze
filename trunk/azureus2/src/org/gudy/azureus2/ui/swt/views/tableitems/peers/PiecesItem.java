@@ -161,7 +161,7 @@ public class PiecesItem
     final BitFlags peerHave = infoObj.getAvailable();
     boolean established = ((PEPeerTransport)infoObj).getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
     
-    if (established && peerHave != null && peerHave.length > 0) {
+    if (established && peerHave != null && peerHave.flags.length > 0) {
       if (imageBuffer == null || imageBuffer.length != drawWidth) {
         imageBuffer = new int[drawWidth];
       }

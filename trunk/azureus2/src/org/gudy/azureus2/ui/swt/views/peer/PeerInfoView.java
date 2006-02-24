@@ -420,7 +420,7 @@ public class PeerInfoView extends AbstractIView {
 
 			int iRow = 0;
 			int iCol = 0;
-			for (int i = 0; i < peerHavePieces.length; i++) {
+			for (int i = 0; i < peerHavePieces.flags.length; i++) {
 				int colorIndex;
 				boolean done = (dm_pieces == null) ? false : dm_pieces[i].isDone();
 				int iXPos = iCol * BLOCK_SIZE;
