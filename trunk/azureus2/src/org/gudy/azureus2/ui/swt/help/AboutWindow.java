@@ -111,14 +111,13 @@ public class AboutWindow {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     gridData.verticalSpan = 1;
     gSys.setLayoutData(gridData);
-  
-    label = new Label(gSys, SWT.LEFT);
-    label.setText("Java " + System.getProperty("java.version") + "\n " + System.getProperty("java.vendor")); //$NON-NLS-1$ //$NON-NLS-2$
-    label.setLayoutData(gridData = new GridData());
-    
-    label = new Label(gSys, SWT.LEFT);
-    label.setText("SWT version " + SWT.getVersion()); //$NON-NLS-1$ //$NON-NLS-2$
-    label.setLayoutData(gridData = new GridData());
+
+    Text txtSysInfo = new Text(gSys, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.NO_FOCUS);
+    txtSysInfo.setText("Java " + System.getProperty("java.version") + "\n "
+				+ System.getProperty("java.vendor") + "\n" + "SWT v" + SWT.getVersion()
+				+ ", " + SWT.getPlatform() + "/" + System.getProperty("os.arch"));
+    txtSysInfo.setLayoutData(gridData = new GridData());
+    window.setCaret(null);
   
     Group gInternet = new Group(window, SWT.NULL);
     GridLayout gridLayout = new GridLayout();
