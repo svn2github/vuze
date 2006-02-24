@@ -341,49 +341,57 @@ public class BDecoder {
 	  recovery_mode	= r;
   }
   
-  public void
+  private void
   print(
-	Object	obj )
+	PrintWriter	writer,
+	Object		obj )
   {
-	  print( obj, "", false );
+	  print( writer, obj, "", false );
   }
   
   private void
   print(
-	Object	obj,
-	String	indent,
-	boolean	skip_indent )
+	PrintWriter	writer,
+	Object		obj,
+	String		indent,
+	boolean		skip_indent )
   {
 	  String	use_indent = skip_indent?"":indent;
 	  
 	  if ( obj instanceof Long ){
 		  
-		  System.out.println( use_indent + obj );
+		  writer.println( use_indent + obj );
 		  
 	  }else if ( obj instanceof byte[]){
 		  
 		  byte[]	b = (byte[])obj;
 		  
-		  System.out.println( use_indent + (b.length==20?(" { "+ ByteFormatter.nicePrint( b )+ " }"):new String(b) ));
+		  if ( b.length==20 ){
+			  writer.println( use_indent + " { "+ ByteFormatter.nicePrint( b )+ " }" );
+		  }else if ( b.length < 64 ){
+			  writer.println( new String(b) );
+		  }else{
+			  writer.println( "[byte array length " + b.length );
+		  }
 		
 	  }else if ( obj instanceof String ){
 		  
-		  System.out.println( use_indent + obj );
+		  writer.println( use_indent + obj );
 
 	  }else if ( obj instanceof List ){
 		  
 		  List	l = (List)obj;
 		  
-		  System.out.println( use_indent + "[" );
+		  writer.println( use_indent + "[" );
 		  
 		  for (int i=0;i<l.size();i++){
 			
-			  System.out.print( indent + "  (" + i + ") " );
+			  writer.print( indent + "  (" + i + ") " );
 			  
-			  print( l.get(i), indent + "    ", true );
+			  print( writer, l.get(i), indent + "    ", true );
 		  }
 		  
-		  System.out.println( indent + "]" );
+		  writer.println( indent + "]" );
 
 	  }else{
 		  
@@ -395,47 +403,44 @@ public class BDecoder {
 			  
 			  String	key = (String)it.next();
 			  
-			  System.out.print( indent + key + " = " );
+			  if ( key.length() > 256 ){
+				  writer.print( indent + key.substring(0,256) + "... = " );
+			  }else{
+				  writer.print( indent + key + " = " );
+			  }
 			  
-			  print( m.get(key), indent + "  ", true );
+			  print( writer, m.get(key), indent + "  ", true );
 		  }
 	  }
   }
   
-  public void
+  private static void
   print(
-		File		f )
-  
-  	throws IOException
+	File		f,
+	File		output )
   {
-	  print( decodeStream( new BufferedInputStream( new FileInputStream( f ))));
+	  try{
+		  BDecoder	decoder = new BDecoder();
+		  
+		  decoder.setRecoveryMode( false );
+		  
+		  PrintWriter	pw = new PrintWriter( new FileWriter( output ));
+		  
+		  decoder.print( pw, decoder.decodeStream( new BufferedInputStream( new FileInputStream( f ))));
+		  
+		  pw.flush();
+		  
+	  }catch( Throwable e ){
+		  
+		  e.printStackTrace();
+	  }
   }
   
   public static void
   main(
 	 String[]	args )
   {	  
-	  try{
-		  
-		  BDecoder decoder = new BDecoder();
-		  
-		  decoder.setRecoveryMode( false );
-		  
-		  Map res = decoder.decodeStream( new BufferedInputStream( new FileInputStream( new File( "C:\\Temp\\cdf\\corrupted database files\\8FADB6C18A19A0EBBAE1B29F843791C425C78C94.dat" ))));
-		  
-		  decoder.print( res );
-		  
-		 // byte[] zzz = BEncoder.encode( res );
-		 
-		  //FileOutputStream fos  = new FileOutputStream( new File( "C:\\temp\\downloads.config.630.recov" ));
-		 
-		  //fos.write( zzz );
-		 
-		  //fos.close();
-		 
-	  }catch( Throwable e ){
-		  
-		  e.printStackTrace();
-	  }
+	  print( 	new File( "C:\\Temp\\8565658FA6C187A602A5360A69F11933624DD9B5.dat.bak" ),
+			  	new File( "C:\\Temp\\bdecoder.log" ));
   }
 }

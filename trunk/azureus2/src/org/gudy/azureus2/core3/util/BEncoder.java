@@ -196,23 +196,99 @@ BEncoder
     	os.write( bb.array(), 0, bb.limit());
     }
     
+    private static boolean
+    objectsAreIdentical(
+    	Object		o1,
+    	Object		o2 )
+    {
+    	if ( o1 == null && o2 == null ){
+    		
+    		return( true );
+    		
+    	}else if ( o1 == null || o2 == null ){
+    		
+    		return( false );
+    	}
+    	
+     	if ( o1 instanceof Integer ){
+       		o1 = new Long(((Integer)o1).longValue());
+       	}
+      	if ( o2 instanceof Integer ){
+       		o2 = new Long(((Integer)o2).longValue());
+       	}
+      	
+      	if ( o1 instanceof Float ){
+       		o1 = String.valueOf((Float)o1);
+       	}
+       	if ( o2 instanceof Float ){
+       		o2 = String.valueOf((Float)o2);
+       	}
+       	
+    	if ( o1.getClass() != o2.getClass()){
+    		
+    		return( false );
+    	}
+    	
+    	if ( o1 instanceof Long ){
+    		
+    		return( o1.equals( o2 ));
+    		
+     	}else if ( o1 instanceof byte[] ){
+     		
+     		return( Arrays.equals((byte[])o1,(byte[])o2 ));
+     		
+     	}else if ( o1 instanceof ByteBuffer ){
+     		
+     		return( o1.equals( o2 ));
+     			
+    	}else if ( o1 instanceof String ){
+    		
+    		return( o1.equals(o2 ));
+    		
+    	}else if ( o1 instanceof List ){
+    		
+    		return( listsAreIdentical((List)o1,(List)o2));
+    		
+       	}else if ( o1 instanceof Map ){
+       	    		
+    		return( mapsAreIdentical((Map)o1,(Map)o2));
+    		
+    	}else{
+    		
+    		Debug.out( "Invalid type: " + o1 );
+    		
+    		return( false );
+    	}
+    }
+    
     public static boolean
 	listsAreIdentical(
-		List	l1,
-		List	l2 )
+		List	list1,
+		List	list2 )
     {
-    	Map	m1 = new HashMap();
-    	
-    	if ( l1 != null ){
-    		m1.put("map", l1);
-    	}
-       	Map	m2 = new HashMap();
-    	
-    	if ( l2 != null ){
-    		m2.put("map", l2);
+    	if ( list1 == null && list2 == null ){
+    		
+    		return( true );
+    		
+    	}else if ( list1 == null || list2 == null ){
+    		
+    		return( false );
     	}
     	
-    	return( mapsAreIdentical( m1, m2 ));
+    	if ( list1.size() != list2.size()){
+    		
+    		return( false );
+    	}
+    	
+    	for ( int i=0;i<list1.size();i++){
+    		
+    		if ( !objectsAreIdentical( list1.get(i), list2.get(i))){
+    			
+    			return( false );
+    		}
+    	}
+    	
+    	return( true );
     }
     
     public static boolean
@@ -234,14 +310,21 @@ BEncoder
     		return( false );
     	}
     	
-    	try{
-    		return(  Arrays.equals( encode(map1), encode(map2)));
+    	Iterator	it = map1.keySet().iterator();
+    	
+    	while( it.hasNext()){
     		
-    	}catch( IOException e ){
+    		Object	key = it.next();
     		
-    		Debug.printStackTrace( e );
+    		Object	v1 = map1.get(key);
+    		Object	v2 = map2.get(key);
     		
-    		return( false );
+    		if ( !objectsAreIdentical( v1, v2 )){
+    			
+    			return( false );
+    		}
     	}
+    	
+    	return( true );
     }		
 }
