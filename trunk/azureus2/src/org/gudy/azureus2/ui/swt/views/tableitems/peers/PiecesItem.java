@@ -111,12 +111,8 @@ public class PiecesItem
     int drawWidth = x1 - x0 + 1;
     if (drawWidth < 10 || y1 < 3)
       return;
-    boolean bImageBufferValid = true;
     int[] imageBuffer = (int [])infoObj.getData("PiecesImageBuffer");
-    if (imageBuffer == null || imageBuffer.length != drawWidth) {
-      imageBuffer = new int[drawWidth];
-      bImageBufferValid = false;
-    }
+    boolean bImageBufferValid = imageBuffer != null && imageBuffer.length == drawWidth;
 
     Image image = (Image)infoObj.getData("PiecesImage");
     GC gcImage;
@@ -166,6 +162,9 @@ public class PiecesItem
     boolean established = ((PEPeerTransport)infoObj).getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
     
     if (established && peerHave != null && peerHave.length > 0) {
+      if (imageBuffer == null || imageBuffer.length != drawWidth) {
+        imageBuffer = new int[drawWidth];
+      }
         final boolean available[] =peerHave.flags;
     try {
       
@@ -266,7 +265,7 @@ public class PiecesItem
     } } else {
         gcImage.setForeground(Colors.grey);
         gcImage.setBackground(Colors.grey);
-        gcImage.fillRectangle(0,y0,drawWidth,y1);
+        gcImage.fillRectangle(x0,y0,newWidth,y1);
     }
     gcImage.dispose();
 
