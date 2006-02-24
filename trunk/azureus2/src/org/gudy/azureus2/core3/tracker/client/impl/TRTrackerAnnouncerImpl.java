@@ -54,7 +54,7 @@ TRTrackerAnnouncerImpl
 	implements TRTrackerAnnouncer
 {
   // Used to be componentID 2
-	protected final static LogIDs LOGID = LogIDs.TRACKER;
+	public final static LogIDs LOGID = LogIDs.TRACKER;
 
 	// 	listener
 	
