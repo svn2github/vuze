@@ -9,6 +9,7 @@ CHANGE: UI    | "Show In Explorer" on a Folder now opens to show what's in the f
 
 BUGFIX: Core  | Ensure SO_REUSEADDR is set when binding during NAT test [Nolar]
 BUGFIX: Core  | Retain data from terribly slow senders [MjrTom]
+BUGFIX: Core  | Fixed a bug with potentially becoming uninterested in peers incorrectly [MjrTom]
 BUGFIX: Plug  | Column dispose listener wasn't being called when there was no cell dispose listener [TuxPaper]
 BUGFIX: UI    | Fixed window size/position not always being saved [TuxPaper]
 BUGFIX: UI    | Fix default language: Use same language from diff. country when user's lang/country doesn't exist [TuxPaper]
@@ -16,7 +17,6 @@ BUGFIX: UI    | Fixed new table rows getting last graphic cell's image [TuxPaper
 BUGFIX: UI    | Column sort is now case-insensitive (again) for text columns [TuxPaper]
 BUGFIX: UI    | Fix number display Seeds2Peer column (when radio is really small) [TuxPaper]
 BUGFIX: UI    | Fixed Drag and Drop.  Should work in Windows and Linux. [TuxPaper]
-BUGFIX: Core  | Fixed a bug with potentially becoming uninterested in peers incorrectly [MjrTom]
 
 
 
