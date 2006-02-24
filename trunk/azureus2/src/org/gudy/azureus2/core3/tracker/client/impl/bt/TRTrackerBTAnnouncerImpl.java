@@ -78,7 +78,7 @@ TRTrackerBTAnnouncerImpl
 		
 	private static final int OVERRIDE_PERIOD			= 10*1000;
 	 
-	private static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
+	protected static Timer	tracker_timer = new Timer( "Tracker Timer", 32);
 	
 	public static String 	UDP_REALM = "UDP Tracker";
 	
@@ -90,16 +90,16 @@ TRTrackerBTAnnouncerImpl
 	private static Map			tracker_report_map	= new HashMap();
 	
     
-	private TOTorrent				torrent;
+	protected TOTorrent				torrent;
 	
-	private TimerEvent				current_timer_event;
+	protected TimerEvent				current_timer_event;
 	private TimerEventPerformer		timer_event_action;
 	
-	private int					tracker_state 			= TS_INITIALISED;
+	protected int					tracker_state 			= TS_INITIALISED;
 	private String				tracker_status_str		= "";
 	private TRTrackerAnnouncerResponse	last_response			= null;
 	private long				last_update_time_secs;
-	private long				current_time_to_wait_secs;
+	protected long				current_time_to_wait_secs;
   
 	private long min_interval = 0;
   
@@ -152,7 +152,7 @@ TRTrackerBTAnnouncerImpl
 
 	private static final boolean	socks_peer_inform;
 
-	private boolean	destroyed;
+	protected boolean	destroyed;
 	
 	
 	static{
@@ -212,7 +212,7 @@ TRTrackerBTAnnouncerImpl
 
     key_id	= createKeyID();
     
-	key_udp	= (int)(Math.random() *  (double)0xFFFFFFFFL );
+	key_udp	= (int)(Math.random() *  0xFFFFFFFFL );
 	
 	try {
 	
@@ -751,12 +751,12 @@ TRTrackerBTAnnouncerImpl
 				listeners.dispatch( LDT_TRACKER_RESPONSE, response );
 				
 				return( response.getTimeToWait());
-			}else{
-				
-				tracker_status_str = "";
-				
-				return( getErrorRetryInterval() );
 			}
+				
+			tracker_status_str = "";
+			
+			return( getErrorRetryInterval() );
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
@@ -910,10 +910,10 @@ TRTrackerBTAnnouncerImpl
 	            		
 	            return( resp );
 	            
-			 }else{
-			  			  	
-			 	last_failure_resp = resp;	
 			 }
+			  			  	
+		 	last_failure_resp = resp;	
+			 
 		  }catch( MalformedURLException e ){
 		  	
 		  	Debug.printStackTrace( e );
@@ -1017,13 +1017,13 @@ TRTrackerBTAnnouncerImpl
 			
 					return( message.toByteArray());
 					
-				}else{
-					
-					if ( failure_reason == null ){
-					
-						failure_reason = "No data received from tracker";
-					}
 				}
+					
+				if ( failure_reason == null ){
+				
+					failure_reason = "No data received from tracker";
+				}
+				
 	
 			}catch( SSLException e ){
 				
@@ -1040,10 +1040,10 @@ TRTrackerBTAnnouncerImpl
 						
 						continue;	// retry with new certificate
 						
-					}else{
-						
-						failure_reason = exceptionToString( e );
 					}
+						
+					failure_reason = exceptionToString( e );
+					
 				}else{
 					
 					failure_reason = exceptionToString( e );
@@ -1444,7 +1444,7 @@ TRTrackerBTAnnouncerImpl
 			 					
 			 					return( null );
 			 					
-		 					}else{
+		 					}
 		 					
 			 					PRUDPPacketReplyAnnounce2	announce_reply = (PRUDPPacketReplyAnnounce2)reply;
 			 					
@@ -1477,11 +1477,11 @@ TRTrackerBTAnnouncerImpl
 			 					message.write( data );
 			 					
 			 					return( null );
-		 					}
-		 				}else{
+		 					
+		 				}
 		 			
 		 					failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
-		 				}
+		 				
 		 			}else{
 		 				
 		 				failure_reason = ((PRUDPPacketReplyError)reply).getMessage();
@@ -1681,7 +1681,7 @@ TRTrackerBTAnnouncerImpl
 				
 		while( tok.hasMoreTokens()){
 			
-			String	this_address = (String)tok.nextToken().trim();
+			String	this_address = tok.nextToken().trim();
 			
 			if ( this_address.length() > 0 ){
 				
@@ -2071,25 +2071,25 @@ TRTrackerBTAnnouncerImpl
 
 					} catch (Exception e) {
 				   	
-				     byte[]	failure_reason_bytes = (byte[]) metaData.get("failure reason");
-						
-				     if ( failure_reason_bytes == null ){
-							
-				    	 if (Logger.isEnabled())
-								Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_WARNING,
-										"Problems with Tracker, will retry in "
-												+ getErrorRetryInterval() + "ms"));
-											   			
-				       return( new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), "Unknown cause" ));
-	
-				     }else{
-				     	
-				     		// explicit failure from the tracker
-				     	
-				       failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
+    				     byte[]	failure_reason_bytes = (byte[]) metaData.get("failure reason");
+    						
+    				     if ( failure_reason_bytes == null ){
+    							
+    				    	 if (Logger.isEnabled())
+    								Logger.log(new LogEvent(torrent, LOGID, LogEvent.LT_WARNING,
+    										"Problems with Tracker, will retry in "
+    												+ getErrorRetryInterval() + "ms"));
+    											   			
+    				       return( new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_OFFLINE, getErrorRetryInterval(), "Unknown cause" ));
+    	
+    				     }
+    				     	
+    			     		// explicit failure from the tracker
+    			     	
+    			       failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
                             				
-				       return( new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
-				     }
+    			       return( new TRTrackerAnnouncerResponseImpl( url, torrent_hash, TRTrackerAnnouncerResponse.ST_REPORTED_ERROR, getErrorRetryInterval(), failure_reason ));
+				     
 				   }
 				   
 				   	//System.out.println("Response from Announce: " + new String(data));
@@ -2150,7 +2150,13 @@ TRTrackerBTAnnouncerImpl
 								
 									//get the peer port number
 								
-								int peer_port = ((Long) s_port).intValue(); 
+								int peer_port = ((Long) s_port).intValue();
+                                // try to repair invalid peer ports; worst that can happen is we
+                                // still can't make outgoing connections that we already can't make
+                                if (peer_port >65535)
+                                    peer_port -=65536;
+                                if (peer_port <0)
+                                    peer_port +=65536;
 				                
                 if (peer_port < 0 || peer_port > 65535) {
                 	if (Logger.isEnabled())
@@ -2177,7 +2183,7 @@ TRTrackerBTAnnouncerImpl
 									peer_peer_id = (byte[])s_peerid ; 
 								}
 								
-								short protocol = TRTrackerAnnouncerResponsePeer.PROTOCOL_NORMAL;
+								short protocol = DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
 								
 								if (Logger.isEnabled())
 									Logger.log(new LogEvent(torrent, LOGID,
@@ -2222,7 +2228,7 @@ TRTrackerBTAnnouncerImpl
                 
 				    		byte[]	peer_peer_id = getAnonymousPeerId( ip, peer_port );
 							
-				    		short protocol = TRTrackerAnnouncerResponsePeer.PROTOCOL_NORMAL;
+				    		short protocol = DownloadAnnounceResultPeer.PROTOCOL_NORMAL;
 				    		
 				    		if (Logger.isEnabled())
 									Logger.log(new LogEvent(torrent, LOGID, "COMPACT PEER: ip="
@@ -2408,7 +2414,7 @@ TRTrackerBTAnnouncerImpl
   /**
    * Retrieve the retry interval to use on announce errors.
    */
-  private int getErrorRetryInterval() {
+  protected int getErrorRetryInterval() {
     
     long currentTime = SystemTime.getCurrentTime() /1000;
         
