@@ -228,7 +228,7 @@ public class DiskManagerPieceImpl
 		
 		if (written_ref ==null)
 		{
-            if (isDone())
+            if ((statusFlags &PIECE_STATUS_DONE) !=0)
             {
                 statusFlags |=PIECE_STATUS_WRITTEN;
                 return true;
@@ -236,7 +236,6 @@ public class DiskManagerPieceImpl
             statusFlags &=~PIECE_STATUS_WRITTEN;
             return false;
 		}
-
 		
 		for (int i =0; i <written_ref.length; i++ )
 		{
