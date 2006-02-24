@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -561,10 +562,10 @@ PEPeerTransportProtocol
   
   public int getPercentDoneInThousandNotation()
 	{
-		if (peerHavePieces ==null ||peerHavePieces.length <1)
+		if (peerHavePieces ==null ||peerHavePieces.flags.length ==0)
 			return 0;
 
-		return (peerHavePieces.nbSet *1000) /peerHavePieces.length;
+		return (peerHavePieces.nbSet *1000) /peerHavePieces.flags.length;
 	}
   
 
@@ -979,10 +980,10 @@ PEPeerTransportProtocol
 				// modification (only out-of-bounds can occur)
 				
 			try{
-		    	for (int i = 0; i < requested.size(); i++){
+                for (int i =requested.size() -1; i >=0; i--)
+                {
+                    final DiskManagerReadRequest request = (DiskManagerReadRequest) requested.get(i);
 		    		
-	    			DiskManagerReadRequest request = (DiskManagerReadRequest) requested.get(i);
-		    			
 	    			if (request.isExpired()){
 	    				
 	    				if ( result == null ){
@@ -998,7 +999,7 @@ PEPeerTransportProtocol
 		    	
 		    }catch(Throwable e ){
 		    	
-		    	return( null );
+		    	return result;
 		    }
 		}
 		
