@@ -23,21 +23,40 @@
 package com.aelitis.azureus.core.peermanager.piecepicker.priority.impl;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.priority.PriorityShape;
+import com.aelitis.azureus.core.util.HashCodeUtils;
 
 /**
  * @author MjrTom Jan 17, 2006
  */
 abstract public class PriorityShapeImpl
-	implements PriorityShape
+	implements PriorityShape, Cloneable
 {
     public long mode =0;
     public int  priority =0;	
 
-	public PriorityShapeImpl()
+	protected PriorityShapeImpl(final long m, final int p)
 	{
-		
+        mode =m;
+        priority =p;
 	}
+    
+    public int hashCode()
+    {
+        return HashCodeUtils.hashMore(priority, mode);
+    }
 	
+    public boolean equals(Object other)
+    {
+        if (other ==null ||!(other instanceof PriorityShape))
+            return false;
+        final PriorityShapeImpl priorityShape =(PriorityShapeImpl)other;
+        if (mode !=priorityShape.mode)
+            return false;
+        if (priority !=priorityShape.priority)
+            return false;
+        return true;
+    }
+
     public void setPriority(final int i)
     {
         priority =i;
@@ -58,6 +77,7 @@ abstract public class PriorityShapeImpl
 	{
 		return mode;
 	}
+    
 
     public boolean isNoRandom()
     {

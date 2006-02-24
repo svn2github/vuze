@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.peermanager.piecepicker.priority;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.priority.impl.*;
+import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 
 /**
@@ -30,16 +31,45 @@ import com.aelitis.azureus.core.peermanager.piecepicker.priority.impl.*;
  */
 public class PriorityShapeFactory
 {
+    /**
+     * Creates a basic range selection criteria based shape
+     * @param mode the mode effect of this shape
+     * @param priority the priority associated with this shape
+     * @return PriorityShapeRangedImpl created (hint; put it into the shaper)
+     */
 	public static PriorityShapeRangedImpl
-	createRanged()
+	create(final long mode, final int priority, final int start, final int end)
 	{
-		return new PriorityShapeRangedImpl();
+		return new PriorityShapeRangedImpl(mode, priority, start, end);
 	}
-
-	public static PriorityShapeBitFlagsImpl
-	createBitFlags(int size)
+	
+    
+    /**
+     * Creates a ready to go bit flag selection criteria based shape
+     * @param mode the mode effect of this shape
+     * @param priority the priority associated with this shape 
+     * @param bitFlags your pre-made BitFlags object (which is NOT cloned
+     * into the shape; a reference is used)
+     * @return PriorityShapeBitFlagsImpl created (hint; put it in the shaper)
+     */
+    public static PriorityShapeBitFlagsImpl
+    create(final long mode, final int priority, final BitFlags bitFlags)
+    {
+        return new PriorityShapeBitFlagsImpl(mode, priority, bitFlags);
+    }
+    
+	/**
+     * Creates a basic bit flag selection criteria based shape 
+     * @param mode the mode effect of this shape
+     * @param priority the priority associated with this shape
+     * @param size the size of the required BitFlags
+     * @return PriorityShapeBitFlagsImpl with empty BitFlags
+     * (Hint; set the BitFlags as desired then give it to the shaper)
+	 */
+    public static PriorityShapeBitFlagsImpl
+	create(final long mode, final int priority, final int size)
 	{
-		return new PriorityShapeBitFlagsImpl(size);
+		return new PriorityShapeBitFlagsImpl(mode, priority, size);
 	}
 
 }

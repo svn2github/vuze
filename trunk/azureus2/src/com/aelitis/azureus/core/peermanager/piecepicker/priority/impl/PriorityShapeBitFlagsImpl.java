@@ -24,20 +24,49 @@ package com.aelitis.azureus.core.peermanager.piecepicker.priority.impl;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.priority.PriorityShape;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+import com.aelitis.azureus.core.util.HashCodeUtils;
 
 /**
  * @author MjrTom Jan 26, 2006
  */
 public class PriorityShapeBitFlagsImpl
 	extends PriorityShapeImpl
-	implements PriorityShape
+	implements PriorityShape, Cloneable
 {
-	final BitFlags	field;
+    /**  the selection criteria for the shape */ 
+	public BitFlags	field;
 	
-	public PriorityShapeBitFlagsImpl(int size)
+	public PriorityShapeBitFlagsImpl(final long m, final int p, final int size)
 	{
+        super(m, p);
 		field =new BitFlags(size);
 	}
+
+    public PriorityShapeBitFlagsImpl(final long m, final int p, final BitFlags bitFlags)
+    {
+        super(m, p);
+        field =bitFlags;
+    }
+    
+    public int hashCode()
+    {
+        return HashCodeUtils.hashMore(super.hashCode(), field.hashCode());
+    }
+    
+    public boolean equals(Object other)
+    {
+        if (!super.equals(other))
+            return false;
+        final PriorityShapeBitFlagsImpl priorityShape =(PriorityShapeBitFlagsImpl)other;
+        if (!this.field.equals(priorityShape.field))
+            return false;
+        return true;
+    }
+    
+    public boolean isSelected(final int pieceNumber)
+    {
+        return field.flags[pieceNumber];
+    }
 
 	public int getStart()
 	{
@@ -48,5 +77,24 @@ public class PriorityShapeBitFlagsImpl
 	{
 		return field.end;
 	}
+    
+    /**
+     * @return a reference to the shape's BitFlags selection criteria
+     */ 
+    public BitFlags getBitFlags()
+    {
+        return field;
+    }
+
+    /**
+     * Sets the shape's selection criteria BitFlags to
+     * a reference to the paramater BitFlags
+     * @param bitFlags the BitFlags to set the selection criteria to.
+     * Passing a null BitFlags isn't recommended.
+     */
+    public void setBitFlags(final BitFlags bitFlags)
+    {
+        field =bitFlags;
+    }
 
 }

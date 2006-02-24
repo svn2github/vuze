@@ -23,6 +23,7 @@
 package com.aelitis.azureus.core.peermanager.piecepicker.priority.impl;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.priority.PriorityShape;
+import com.aelitis.azureus.core.util.HashCodeUtils;
 
 
 /**
@@ -30,11 +31,44 @@ import com.aelitis.azureus.core.peermanager.piecepicker.priority.PriorityShape;
  */
 public class PriorityShapeRangedImpl
 	extends PriorityShapeImpl
-	implements PriorityShape
+	implements PriorityShape, Cloneable
 {
-	public int start =0;
-	public int end =0;
+    /** the first piece # for the range selection criteria */
+	public int     start =0;
+    /** the last piece # for the range selection criteria */
+	public int     end =0;
 	
+    public PriorityShapeRangedImpl(final long m, final int p, final int s, final int e)
+    {
+        super(m, p);
+        start =s;
+        end =e;
+    }
+    
+    public int hashCode()
+    {
+        int result =HashCodeUtils.hashMore(super.hashCode(), end);
+        return HashCodeUtils.hashMore(result, start);
+    }
+    
+    public boolean equals(final Object other)
+    {
+        if (!super.equals(other))
+            return false;
+        final PriorityShapeRangedImpl priorityShape =(PriorityShapeRangedImpl)other;
+        if (this.start !=priorityShape.start)
+            return false;
+        if (this.end !=priorityShape.end)
+            return false;
+        return true;
+    }
+    
+
+    public boolean isSelected(final int pieceNumber)
+    {
+        return start <=pieceNumber &&pieceNumber <=end; 
+    }
+    
 	public int getStart()
 	{
 		return start;
@@ -45,10 +79,15 @@ public class PriorityShapeRangedImpl
 		start =i;
 	}
 	
-
+	
 	public int getEnd()
 	{
 		return end;
 	}
 
+    public void setEnd(int i)
+    {
+        end =i;
+    }
+    
 }

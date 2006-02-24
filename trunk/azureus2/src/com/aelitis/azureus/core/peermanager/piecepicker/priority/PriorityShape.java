@@ -23,25 +23,48 @@
 package com.aelitis.azureus.core.peermanager.piecepicker.priority;
 
 
+
 /**
  * @author MjrTom Jan 17, 2006
  */
 public interface PriorityShape
 {
-	public static final long PRIORITY_MODE_NO_RANDOM		=0x00000001;	// random selection will not occur
-	public static final long PRIORITY_MODE_IGNORE_RARITY	=0x00000002;	// priority boosts for rarity will not be applied
-    public static final long PRIORITY_MODE_FULL_PIECES      =0x00000004;	// requests of full pieces are prefered over blocks requests
-    public static final long PRIORITY_MODE_AUTO_RESERVE     =0x00000008;	// when a request is made, the piece will automatically be reserved to the peer
-	public static final long PRIORITY_MODE_REVERSE_ORDER	=0x00000010;	// inverse ordering (ie end to front and/or falling ramp)
-    public static final long PRIORITY_MODE_AUTO_SLIDE       =0x00000020;	// I don't know if this can be practically implemented
-    public static final long PRIORITY_MODE_RAMP             =0x00000040;	// priority adjustment ramps (otherwise flat)
-    public static final long PRIORITY_MODE_STATIC_PRIORITY  =0x00000080;	// base (start) priority is not further modified
-
+    /** random selection will not occur */
+	public static final long PRIORITY_MODE_NO_RANDOM		=0x00000001;
+    /** priority boosts for rarity will not be applied */
+	public static final long PRIORITY_MODE_IGNORE_RARITY	=0x00000002;
+    /** requests of full pieces are prefered over blocks requests */
+    public static final long PRIORITY_MODE_FULL_PIECES      =0x00000004;
+    /** when a request is made, the piece will automatically be reserved to the peer
+     * if neither the piece is already reserved nor the peer has a piece reserved to it already */
+    public static final long PRIORITY_MODE_AUTO_RESERVE     =0x00000008;
+    /** inverse ordering (ie end to front and/or falling ramp) */
+	public static final long PRIORITY_MODE_REVERSE_ORDER	=0x00000010;
+    /** I don't know if this can be practically implemented */
+    public static final long PRIORITY_MODE_AUTO_SLIDE       =0x00000020;
+    /** priority adjustment ramps (otherwise flat) */
+    public static final long PRIORITY_MODE_RAMP             =0x00000040;
+    /** base (start) priority is not further modified */
+    public static final long PRIORITY_MODE_STATIC_PRIORITY  =0x00000080;
+    
+    /** how many bits used in modes defined above (used in hash calculation) */
+    public static final long PRIORITY_MODES_BITS            =8;
+    
+    /** returns the first piece number in the selection criteria */
 	public int getStart();
+    /** returns the last piece number in the selection criteria */
 	public int getEnd();
 	public long getMode();
 	public int getPriority();
     
+    /** @param pieceNumber int piece number to check for selection
+     * @return true if this piece is selected by the shape's selection criteria,
+     * or false if not selected
+     */
+    public boolean isSelected(final int pieceNumber);
+    
+    
     public boolean isNoRandom();
+    public boolean isReverse();
     
 }

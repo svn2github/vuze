@@ -84,10 +84,31 @@ public class PiecePriorityShaperImpl
             return (List)peersShapesMap.get(peer);
         return null;
     }
-    
-    // TODO: implement
+
+    /**
+     * @param shape the PriorityShape to remove
+     * @return true if there was a list of shapes, the paramater shape was in the list,
+     * and the paramater shape was removed
+     * else returns false
+     */
     public boolean removePriorityShape(final PriorityShape shape)
 	{
+        if (torrentPriorityShapes ==null ||torrentPriorityShapes.size() <=0)
+            return false;
+        boolean removed =false;
+        try
+        {   torrentPriorityShapesMon.enter();
+        
+            for (int i =torrentPriorityShapes.size() -1; i >=0; i--)
+            {
+                final PriorityShape listShape =(PriorityShape)torrentPriorityShapes.get(i);
+                if (shape.equals(listShape))
+                {
+                    torrentPriorityShapes.remove(i);
+                    return true;
+                }
+            }
+        } finally { torrentPriorityShapesMon.exit(); }
 		return false;
 	}
 
