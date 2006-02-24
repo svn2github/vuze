@@ -945,7 +945,7 @@ DownloadManagerImpl
 		if ( getState() == STATE_DOWNLOADING) {
 
 			try{
-				getDiskManager().dumpResumeDataToDisk(false, false);
+				getDiskManager().saveResumeData( true, false );
     		
 			}catch( Exception e ){
     		

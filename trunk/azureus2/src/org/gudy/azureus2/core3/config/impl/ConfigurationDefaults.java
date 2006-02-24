@@ -133,6 +133,7 @@ public class ConfigurationDefaults {
     
     
     def.put("Use Resume", TRUE);
+    def.put("On Resume Recheck All", FALSE);
     def.put("Save Resume Interval", new Long(5));
     def.put("Check Pieces on Completion", TRUE);
     def.put("Stop Ratio", new Float(0));

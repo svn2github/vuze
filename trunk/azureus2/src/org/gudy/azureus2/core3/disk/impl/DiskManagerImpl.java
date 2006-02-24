@@ -493,9 +493,7 @@ DiskManagerImpl
 		}
 		
 		started_sem.reserve();
-		
-		boolean	checking = checker.getCompleteRecheckStatus() != -1;
-		
+				
     	checker.stop();
     	
     	writer.stop();
@@ -503,6 +501,7 @@ DiskManagerImpl
 		reader.stop();
 		
 		resume_handler.stop();
+		
 		if ( files != null ){
 			
 			for (int i = 0; i < files.length; i++){
@@ -521,23 +520,13 @@ DiskManagerImpl
 		
 		if ( getState() == DiskManager.READY ){
 		  	
-			if ( checking ){
-				
-					// we've interrupted a "recheck on complete" - clear the resume data so it rechecks on
-					// next start up
-				
-				resume_handler.clearResumeData();
-				
-			}else{
-				
-				try{
+			try{
 					
-					dumpResumeDataToDisk(true, false);
+				saveResumeData( false, false);
 		  		
-				}catch( Exception e ){
+			}catch( Exception e ){
 		  		
-					setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
-				}
+				setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
 			}
 		}
 		
@@ -1483,13 +1472,13 @@ DiskManagerImpl
 
 	
 	public void 
-	dumpResumeDataToDisk(
-		boolean savePartialPieces, 
+	saveResumeData(
+		boolean interim_save, 
 		boolean force_recheck )
 	
 		throws Exception
 	{			
-		resume_handler.dumpResumeDataToDisk( savePartialPieces, force_recheck );
+		resume_handler.saveResumeData( interim_save, force_recheck );
 	}
 		
   /**
@@ -1838,7 +1827,7 @@ DiskManagerImpl
             if ( resumeEnabled ){
             	
             	try{
-            		dumpResumeDataToDisk(true, false);
+            		saveResumeData(true, false);
             		
             	}catch( Exception e ){
             		

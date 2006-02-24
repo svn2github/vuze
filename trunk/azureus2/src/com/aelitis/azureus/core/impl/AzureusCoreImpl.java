@@ -406,7 +406,7 @@ AzureusCoreImpl
 				
 				for (int i=0;i<threads.length;i++){
 					
-					Thread	t = threads[i];
+					final Thread	t = threads[i];
 					
 					if ( t != null && t != Thread.currentThread() && !t.isDaemon()){
 						
@@ -418,7 +418,7 @@ AzureusCoreImpl
 								try{
 									Thread.sleep(10*1000);
 								
-									Debug.out( "Non-daemon thread found, force closing VM" );
+									Debug.out( "Non-daemon thread found '" + t.getName() + "', force closing VM" );
 									
 									SESecurityManager.exitVM(0);
 									

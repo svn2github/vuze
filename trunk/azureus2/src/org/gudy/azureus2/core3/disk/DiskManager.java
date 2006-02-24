@@ -142,8 +142,8 @@ DiskManager
 		DiskManagerCheckRequestListener	listener );
 	
 	public void
-    dumpResumeDataToDisk(
-    	boolean savePartialPieces, 
+    saveResumeData(
+    	boolean interim_save, 
 		boolean force_recheck )
 		
 		throws Exception;

@@ -140,11 +140,11 @@ public class ConfigSectionFile implements UISWTConfigSection {
     
     if( userMode > 0 ) {
     	// resume data
-    final BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", true,
+      final BooleanParameter bpUseResume = new BooleanParameter(gFile, "Use Resume", true,
                                                               "ConfigView.label.usefastresume");
-    bpUseResume.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+      bpUseResume.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 
-    Composite cResumeGroup = new Composite(gFile, SWT.NULL);
+      Composite cResumeGroup = new Composite(gFile, SWT.NULL);
       layout = new GridLayout();
       layout.marginHeight = 0;
       layout.marginWidth = 4;
@@ -166,6 +166,13 @@ public class ConfigSectionFile implements UISWTConfigSection {
       Label lblMinutes = new Label(cResumeGroup, SWT.NULL);
       Messages.setLanguageText(lblMinutes, "ConfigView.text.minutes");
 
+      // save peers
+
+      final BooleanParameter recheck_all = new BooleanParameter(cResumeGroup, "On Resume Recheck All", false,
+                                                               "ConfigView.section.file.resume.recheck.all");
+      gridData = new GridData();
+      gridData.horizontalSpan = 3;
+      recheck_all.setLayoutData(gridData);
       // save peers
 
       final BooleanParameter save_peers = new BooleanParameter(cResumeGroup, "File.save.peers.enable", true,

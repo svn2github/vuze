@@ -536,9 +536,7 @@ DownloadManagerController
 	  	  								DiskManager	dm = getDiskManager();
 	  	  								
 	  	  								if ( dm != null ){
-	  	  							
-	  	  									dm.dumpResumeDataToDisk(true, false);
-		  					  		
+	  	  									  					  		
 	  	  									dm.stop();
 		  							
 	  	  									only_seeding	= dm.getRemaining() == 0;
@@ -943,7 +941,7 @@ DownloadManagerController
 				//invalidate resume info
 	    	
 			try{
-				dm.dumpResumeDataToDisk(false, true);
+				dm.saveResumeData(false, true);
 				
 		  	}catch( Exception e ){
 		  		

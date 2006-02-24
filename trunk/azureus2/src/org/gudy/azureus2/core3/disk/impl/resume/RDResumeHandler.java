@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.disk.impl.resume;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -48,14 +49,34 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
  */
 public class 
 RDResumeHandler
-	implements ParameterListener
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
 
 	private static final byte		PIECE_NOT_DONE			= 0;
 	private static final byte		PIECE_DONE				= 1;
 	private static final byte		PIECE_RECHECK_REQUIRED	= 2;
+	private static final byte		PIECE_STARTED			= 3;
 		
+	private static boolean	use_fast_resume;
+	private static boolean	use_fast_resume_recheck_all;
+	
+	static{
+	    	
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ 
+					"Use Resume", 
+					"On Resume Recheck All" },
+			new ParameterListener() {
+	    	    public void 
+				parameterChanged( 
+					String  str ) 
+	    	    {
+	    	    	use_fast_resume				= COConfigurationManager.getBooleanParameter("Use Resume");
+	    	    	use_fast_resume_recheck_all	= COConfigurationManager.getBooleanParameter("On Resume Recheck All");
+	    	    }
+	    	 });
+	}
+	
 	private DiskManagerImpl		disk_manager;
 	private DMChecker			checker;
 		
@@ -63,7 +84,6 @@ RDResumeHandler
 	private boolean				stopped;
 	private boolean				bStoppedMidCheck;
 	
-	protected boolean useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
 
 	public 
 	RDResumeHandler(
@@ -83,23 +103,12 @@ RDResumeHandler
 		}
 		
 		started	= true;
-		
-		COConfigurationManager.addParameterListener("Use Resume", this);
 	}
 	
 	public void
 	stop()
 	{	
 		stopped	= true;
-		
-		COConfigurationManager.removeParameterListener("Use Resume", this);
-	}
-	
-	public void 
-	parameterChanged(
-		String parameterName )
-	{
-	    useFastResume = COConfigurationManager.getBooleanParameter("Use Resume", true);
 	}
 	
 	public void 
@@ -114,11 +123,11 @@ RDResumeHandler
 			disk_manager.setState( DiskManager.CHECKING );
 					
 			
-			boolean resumeEnabled = useFastResume;
+			boolean resumeEnabled = use_fast_resume;
 			
 				//disable fast resume if a new file was created
 			
-			if (newfiles){
+			if ( newfiles ){
 				
 				resumeEnabled = false;
 			}
@@ -130,7 +139,7 @@ RDResumeHandler
 			int					pending_check_num	= 0;
 
 			DiskManagerPiece[]	pieces	= disk_manager.getPieces();
-
+			
 			if ( resumeEnabled ){
 				
 				boolean resumeValid = false;
@@ -181,11 +190,7 @@ RDResumeHandler
 					}catch(Exception ignore){
 						
 						// ignore.printStackTrace();
-					}
-					
-				}else{
-					
-					// System.out.println( "resume dir not found");
+					}	
 				}
 								
 				if ( resume_pieces == null ){
@@ -193,6 +198,8 @@ RDResumeHandler
 					resumeValid	= false;
 					
 					resume_pieces	= new byte[pieces.length];
+					
+					Arrays.fill( resume_pieces, PIECE_RECHECK_REQUIRED );
 				}
 				
 					// calculate the current file sizes up front for performance reasons
@@ -211,6 +218,30 @@ RDResumeHandler
 					}catch( CacheFileManagerException e ){
 						
 						Debug.printStackTrace(e);
+					}
+				}
+	
+				boolean	recheck_all	= use_fast_resume_recheck_all;
+				
+				if ( !recheck_all ){
+					
+						// override if not much left undone
+					
+					long	total_not_done = 0;
+					
+					int	piece_size = disk_manager.getPieceLength();
+					
+					for (int i = 0; i < pieces.length; i++){
+						
+						if ( resume_pieces[i] != PIECE_DONE ){
+							
+							total_not_done	+= piece_size;
+						}
+					}
+					
+					if ( total_not_done < 64*1024*1024 ){
+						
+						recheck_all	= true;
 					}
 				}
 				
@@ -270,13 +301,18 @@ RDResumeHandler
 						
 						dm_piece.setDone( true );
 						
-					}else{								
+					}else if ( piece_state == PIECE_NOT_DONE && !recheck_all ){
+						
+							// if the piece isn't done and we haven't been asked to recheck all pieces
+							// on restart (only started pieces) then just set as not done 
+																	
+					}else{
 						
 							// We only need to recheck pieces that are marked as not-ok
 							// if the resume data is invalid or explicit recheck needed
 						
 						if ( piece_state == PIECE_RECHECK_REQUIRED || !resumeValid ){
-													
+												
 							while( !stopped ){
 									
 								if ( recheck_inst.getPermission()){
@@ -345,8 +381,15 @@ RDResumeHandler
 						}
 					}
 				}
+				
+				while( pending_check_num > 0 ){
 					
-				if ( partialPieces != null && resumeValid ){
+					pending_checks_sem.reserve();
+					
+					pending_check_num--;
+				}
+				
+				if ( partialPieces != null ){
 														
 					Iterator iter = partialPieces.entrySet().iterator();
 					
@@ -355,14 +398,19 @@ RDResumeHandler
 						Map.Entry key = (Map.Entry)iter.next();
 						
 						int pieceNumber = Integer.parseInt((String)key.getKey());
-													
-						List blocks = (List)partialPieces.get(key.getKey());
-						
-						Iterator iterBlock = blocks.iterator();
-						
-						while (iterBlock.hasNext()) {
 							
-							pieces[pieceNumber].setWritten(((Long)iterBlock.next()).intValue());
+						DiskManagerPiece	dm_piece = pieces[ pieceNumber ];
+						
+						if ( !dm_piece.isDone()){
+							
+							List blocks = (List)partialPieces.get(key.getKey());
+							
+							Iterator iterBlock = blocks.iterator();
+							
+							while (iterBlock.hasNext()) {
+								
+								dm_piece.setWritten(((Long)iterBlock.next()).intValue());
+							}
 						}
 					}
 				}
@@ -434,14 +482,14 @@ RDResumeHandler
 					
 						Debug.printStackTrace(e);
 					}
-				}								
-			}
-						
-			while( pending_check_num > 0 ){
+				}
 				
-				pending_checks_sem.reserve();
-				
-				pending_check_num--;
+				while( pending_check_num > 0 ){
+					
+					pending_checks_sem.reserve();
+					
+					pending_check_num--;
+				}
 			}
 			
 				//dump the newly built resume data to the disk/torrent
@@ -449,7 +497,7 @@ RDResumeHandler
 			if ( !( stopped || resume_data_complete )){
 				
 				try{
-					dumpResumeDataToDisk(false, false);
+					saveResumeData( true, false );
 					
 				}catch( Exception e ){
 					
@@ -473,8 +521,8 @@ RDResumeHandler
 	}
 	
 	public void 
-	dumpResumeDataToDisk(
-		boolean savePartialPieces, 
+	saveResumeData(
+		boolean interim_save, 	// data is marked as "invalid" if this is true to enable checking on pieces on crash restart
 		boolean force_recheck )
 	
 		throws Exception
@@ -489,7 +537,7 @@ RDResumeHandler
 		
 		DiskManagerFileInfo[]	files = disk_manager.getFiles();
 		
-		if ( !useFastResume ){
+		if ( !use_fast_resume ){
 			
 				// flush cache even if resume disable
 			
@@ -509,13 +557,23 @@ RDResumeHandler
 		
 		byte[] resume_pieces = new byte[pieces.length];
 		
-		if ( !force_recheck ){
-				
+		if ( force_recheck ){
+			
+			Arrays.fill( resume_pieces, PIECE_RECHECK_REQUIRED );
+			
+		}else{
+			
 			for (int i = 0; i < resume_pieces.length; i++) {
 		  	
-			  	if ( pieces[i].isDone()){
+				DiskManagerPiece piece = pieces[i];
+
+			  	if ( piece.isDone()){
 			  		
 					resume_pieces[i] = PIECE_DONE;
+			  		
+			  	}else if ( piece.getNbWritten() > 0 ){
+			  		
+			  		resume_pieces[i] = PIECE_STARTED;
 			  		
 			  	}else{
 			  	
@@ -530,7 +588,7 @@ RDResumeHandler
 		
 		Map partialPieces = new HashMap();
 	
-		if ( savePartialPieces && !force_recheck ){
+		if ( !force_recheck ){
 	  		  		      
 			for (int i = 0; i < pieces.length; i++) {
 				
@@ -561,16 +619,9 @@ RDResumeHandler
 			resume_data.put("blocks", partialPieces);
 		}
 		
-			// savePartialPieces has overloaded meanings. It also implies that the download
-			// is stopping, as opposed to this being an interim resume data save, and therefore
-			// that the resume data should be set as "valid". Being valid has the meaning that
-			// blocks marked as not-done will *not* be checked when the torrent is restarted
-			// to see if they are actually complete.
-			// TODO: fix this up!!!!
-		
 		long lValid = 0;
 		
-		if (!force_recheck && savePartialPieces && !bStoppedMidCheck){
+		if ( !( force_recheck || interim_save || bStoppedMidCheck )){
 			
 			lValid = 1;
 		}
@@ -654,10 +705,7 @@ RDResumeHandler
 		
 		byte[] resume_pieces = new byte[piece_count];
 		
-		for (int i = 0; i < resume_pieces.length; i++) {
-			
-			resume_pieces[i] = PIECE_DONE;
-		}
+		Arrays.fill( resume_pieces, PIECE_DONE );
 
 		Map resume_data = new HashMap();
 			
@@ -764,23 +812,6 @@ RDResumeHandler
 	
 	public static void
 	clearResumeData(
-		DownloadManager			download_manager )
-	{
-		Map	resume_data = new HashMap();
-		
-		resume_data.put( "valid", new Long(0));	
-
-		saveResumeData( download_manager.getDownloadState(), resume_data );
-	}
-	
-	public void
-	clearResumeData()
-	{
-		clearResumeData( disk_manager.getDownloadManager());
-	}
-	
-	public static void
-	clearResumeData(
 		DownloadManager			download_manager,
 		DiskManagerFileInfo		file )
 	{
@@ -807,10 +838,7 @@ RDResumeHandler
 		
 		byte[] resume_pieces = new byte[(int)piece_count];
 		
-		for (int i = 0; i < resume_pieces.length; i++) {
-			
-			resume_pieces[i] = PIECE_DONE;
-		}
+		Arrays.fill( resume_pieces, PIECE_DONE );
 
 			// randomly clear some pieces
 		
@@ -818,7 +846,7 @@ RDResumeHandler
 			
 			int	piece_num = (int)(Math.random()*piece_count);
 						
-			resume_pieces[piece_num]= PIECE_NOT_DONE;
+			resume_pieces[piece_num]= PIECE_RECHECK_REQUIRED;
 		}
 		
 		Map resumeMap = new HashMap();
