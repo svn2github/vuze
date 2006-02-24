@@ -6,6 +6,7 @@ AZUREUS CHANGELOG
 FEATURE: UI   | Allow some selection of split data/protocol stats in some views [Parg]
 FEATURE: Core | Make default recheck behaviour after crash only check pieces active at last save point plus config to revert to old behaviour of checking everything [Parg]
 
+CHANGE: Core  | Improved payload data vs. protocol overhead byte accounting [Nolar]
 CHANGE: UI    | Add NAT Test item to OSX "Azureus" menu [Nolar]
 CHANGE: UI    | Filter-as-you-type is now more visible [TuxPaper]
 CHANGE: UI    | "Show In Explorer" on a Folder now opens to show what's in the folder [TuxPaper]
@@ -35,6 +36,7 @@ BUGFIX: Core  | Ignore invalid Vivaldi coords that are too small [Parg]
 BUGFIX: Core  | Default to trivial url in torrent if it is missing [Parg]
 BUGFIX: Core  | Fix initialisation sequence problem that was causing startup errors if config corrupt [Parg]
 BUGFIX: Core  | Apply correct permissions when updated to Windows prog dir to fix multi-user problems on update [Parg]
+
 
 
 2006.02.11 | Azureus 2.4.0.0

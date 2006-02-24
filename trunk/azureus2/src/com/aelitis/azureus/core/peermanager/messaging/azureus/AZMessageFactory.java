@@ -99,7 +99,7 @@ public class AZMessageFactory {
    * @param stream_payload data
    * @return decoded/deserialized AZ message
    * @throws MessageException if message creation failed.
-   * NOTE: Does not auto-return given direct buffer on thrown exception.
+   * NOTE: Does not auto-return to buffer pool the given direct buffer on thrown exception.
    */
   public static Message createAZMessage( DirectByteBuffer stream_payload ) throws MessageException {
     int id_length = stream_payload.getInt( bss );

@@ -59,11 +59,11 @@ public class AZMessageDecoder implements MessageStreamDecoder {
   private ArrayList messages_last_read = new ArrayList();
   private int protocol_bytes_last_read = 0;
   private int data_bytes_last_read = 0;
-
-  private int data_bytes_owed = 0;
   private int percent_complete = -1;
   
   
+  private byte[] msg_id_bytes = null;
+  private boolean msg_id_read_complete = false;
   
   
   public AZMessageDecoder() {
@@ -246,17 +246,44 @@ public class AZMessageDecoder implements MessageStreamDecoder {
 
   
   private int postReadProcess() throws IOException {
-    int bytes_read = 0;
+  	int prot_bytes_read = 0;
+    int data_bytes_read = 0;
     
     if( !reading_length_mode && !destroyed ) {  //reading payload data mode
       //ensure-restore proper buffer limits
       payload_buffer.limit( SS, message_length );
       length_buffer.limit( SS, 4 );
       
-      int read = payload_buffer.position( SS ) - pre_read_start_position;
+      int curr_position = payload_buffer.position( SS );
+      int read = curr_position - pre_read_start_position;
       
-      bytes_read += read;
-
+      if( msg_id_bytes == null && curr_position >= 4 ) {  //need to have read the message id length first 4 bytes
+      	payload_buffer.position( SS, 0 );
+      	int id_size = payload_buffer.getInt( SS );   
+      	payload_buffer.position( SS, curr_position );  //restore
+      	if( id_size < 1 || id_size > 1024 )  throw new IOException( "invalid id_size [" +id_size+ "]" );
+      	msg_id_bytes = new byte[ id_size ];
+      }
+      
+      if( msg_id_bytes != null && curr_position >= msg_id_bytes.length + 4 ) {  //need to have also read the message id bytes
+      	if( !msg_id_read_complete ) {
+      		payload_buffer.position( SS, 4 );
+      		payload_buffer.get( SS, msg_id_bytes );
+      		payload_buffer.position( SS, curr_position );  //restore
+      		msg_id_read_complete = true;
+      	}
+      	 
+      	if( MessageManager.getSingleton().lookupMessage( msg_id_bytes ).getType() == Message.TYPE_DATA_PAYLOAD ) {
+      		data_bytes_read += read;
+      	}
+      	else {
+      		prot_bytes_read += read;
+      	}
+      }
+      else {
+      	prot_bytes_read += read;
+      }
+      
       if( !payload_buffer.hasRemaining( SS ) && !is_paused ) {  //full message received!
         payload_buffer.position( SS, 0 );  //prepare for use
 
@@ -266,11 +293,6 @@ public class AZMessageDecoder implements MessageStreamDecoder {
         try {
           Message msg = AZMessageFactory.createAZMessage( ref_buff );
           messages_last_read.add( msg );
-
-          //we only learn what type of message it is AFTER we are done decoding it, so we probably need to work off the count post-hoc
-          if( msg.getType() == Message.TYPE_DATA_PAYLOAD ) {
-            data_bytes_owed += message_length;
-          }
         }
         catch( MessageException me ) {
           ref_buff.returnToPool();
@@ -279,6 +301,8 @@ public class AZMessageDecoder implements MessageStreamDecoder {
         
         reading_length_mode = true;  //see if we've already read the next message's length
         percent_complete = -1;  //reset receive percentage
+        msg_id_bytes = null;
+        msg_id_read_complete = false;
       }
       else {  //only partial received so far       
         percent_complete = (payload_buffer.position( SS ) * 100) / message_length;  //compute receive percentage
@@ -289,8 +313,7 @@ public class AZMessageDecoder implements MessageStreamDecoder {
     if( reading_length_mode && !destroyed ) {
       length_buffer.limit( SS, 4 );  //ensure proper buffer limit
       
-      int read = (pre_read_start_buffer == 1) ? length_buffer.position( SS ) - pre_read_start_position : length_buffer.position( SS );
-      bytes_read += read;
+      prot_bytes_read += (pre_read_start_buffer == 1) ? length_buffer.position( SS ) - pre_read_start_position : length_buffer.position( SS );
       
       if( !length_buffer.hasRemaining( SS ) ) {  //done reading the length
         reading_length_mode = false;        
@@ -308,18 +331,10 @@ public class AZMessageDecoder implements MessageStreamDecoder {
       }
     }
     
-    if( bytes_read < data_bytes_owed ) {
-      data_bytes_last_read += bytes_read;
-      data_bytes_owed -= bytes_read;
-    }
-    else {  //bytes_read >= data_bytes_owed
-      data_bytes_last_read += data_bytes_owed;
-      data_bytes_owed = 0;
-      
-      protocol_bytes_last_read += bytes_read - data_bytes_owed;
-    }
-
-    return bytes_read;
+    protocol_bytes_last_read += prot_bytes_read;
+    data_bytes_last_read += data_bytes_read;
+    
+    return prot_bytes_read + data_bytes_read;
   }
   
   

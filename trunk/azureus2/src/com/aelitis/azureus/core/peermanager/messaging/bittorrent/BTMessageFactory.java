@@ -64,17 +64,35 @@ public class BTMessageFactory {
   
   
   
-  private static final Map legacy_data = new HashMap();
+  private static final String[] id_to_name = new String[9];  
+  private static final HashMap legacy_data = new HashMap();
   static {
     legacy_data.put( BTMessage.ID_BT_CHOKE, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUnchoke(), new BTPiece( -1, -1, null )}, (byte)0 ) );
+    id_to_name[0] = BTMessage.ID_BT_CHOKE;
+    
     legacy_data.put( BTMessage.ID_BT_UNCHOKE, new LegacyData( RawMessage.PRIORITY_NORMAL, true, new Message[]{new BTChoke()}, (byte)1 ) );
+    id_to_name[1] = BTMessage.ID_BT_UNCHOKE;
+    
     legacy_data.put( BTMessage.ID_BT_INTERESTED, new LegacyData( RawMessage.PRIORITY_HIGH, true, new Message[]{new BTUninterested()}, (byte)2 ) );
+    id_to_name[2] = BTMessage.ID_BT_INTERESTED;
+    
     legacy_data.put( BTMessage.ID_BT_UNINTERESTED, new LegacyData( RawMessage.PRIORITY_NORMAL, false, new Message[]{new BTInterested()}, (byte)3 ) );
+    id_to_name[3] = BTMessage.ID_BT_UNINTERESTED;
+    
     legacy_data.put( BTMessage.ID_BT_HAVE, new LegacyData( RawMessage.PRIORITY_LOW, false, null, (byte)4 ) );
+    id_to_name[4] = BTMessage.ID_BT_HAVE;
+    
     legacy_data.put( BTMessage.ID_BT_BITFIELD, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)5 ) );
+    id_to_name[5] = BTMessage.ID_BT_BITFIELD;
+    
     legacy_data.put( BTMessage.ID_BT_REQUEST, new LegacyData( RawMessage.PRIORITY_NORMAL, true, null, (byte)6 ) );
+    id_to_name[6] = BTMessage.ID_BT_REQUEST;
+    
     legacy_data.put( BTMessage.ID_BT_PIECE, new LegacyData( RawMessage.PRIORITY_LOW, false, null, (byte)7 ) );
+    id_to_name[7] = BTMessage.ID_BT_PIECE;
+    
     legacy_data.put( BTMessage.ID_BT_CANCEL, new LegacyData( RawMessage.PRIORITY_HIGH, true, null, (byte)8 ) );
+    id_to_name[8] = BTMessage.ID_BT_CANCEL;
   }
   
   
@@ -133,6 +151,14 @@ public class BTMessageFactory {
         					throw new MessageException( "Unknown BT message id [" +id+ "]" );
       				}
     }
+  }
+  
+  
+  
+  public static int getMessageType( DirectByteBuffer stream_payload ) {
+  	byte id = stream_payload.get( DirectByteBuffer.SS_MSG, 0 );
+  	if( id == 84 )  return Message.TYPE_PROTOCOL_PAYLOAD;  //handshake message byte in position 4
+  	return MessageManager.getSingleton().lookupMessage( id_to_name[ id ] ).getType();
   }
   
   

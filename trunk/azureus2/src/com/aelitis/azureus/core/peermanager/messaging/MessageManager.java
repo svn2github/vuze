@@ -133,6 +133,9 @@ public class MessageManager {
   }
   
   
+  public Message lookupMessage( byte[] id_bytes ) {
+    return (Message)message_map.get( id_bytes );
+  }
 
 
   /**
