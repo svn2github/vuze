@@ -81,7 +81,6 @@ public class AboutWindow {
     gDevelopers.setLayout(new GridLayout());
     Messages.setLanguageText(gDevelopers, "MainWindow.about.section.developers"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.verticalSpan = 2;
     gDevelopers.setLayoutData(gridData);
     
     Label label = new Label(gDevelopers, SWT.LEFT);
@@ -91,20 +90,28 @@ public class AboutWindow {
     final Label labelImage = new Label(window, SWT.NONE);
     labelImage.setImage(image);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER);
-    gridData.verticalSpan = 2;
     labelImage.setLayoutData(gridData);
   
     Group gTranslators = new Group(window, SWT.NULL);
     gTranslators.setLayout(new GridLayout());
     Messages.setLanguageText(gTranslators, "MainWindow.about.section.translators"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.verticalSpan = 1;
     gTranslators.setLayoutData(gridData);
   
     label = new Label(gTranslators, SWT.LEFT);
     label.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
     label.setLayoutData(gridData = new GridData());
     
+    Group gInternet = new Group(window, SWT.NULL);
+    GridLayout gridLayout = new GridLayout();
+    gridLayout.numColumns = 3;
+    gridLayout.horizontalSpacing = 5;
+    gInternet.setLayout(gridLayout);
+    Messages.setLanguageText(gInternet, "MainWindow.about.section.internet"); //$NON-NLS-1$
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+    gridData.horizontalSpan = 2;
+    gInternet.setLayoutData(gridData);
+  
     Group gSys = new Group(window, SWT.NULL);
     gSys.setLayout(new GridLayout());
     Messages.setLanguageText(gSys, "MainWindow.about.section.system"); //$NON-NLS-1$
@@ -113,22 +120,14 @@ public class AboutWindow {
     gSys.setLayoutData(gridData);
 
     Text txtSysInfo = new Text(gSys, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.NO_FOCUS);
+    txtSysInfo.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
     txtSysInfo.setText("Java " + System.getProperty("java.version") + "\n "
 				+ System.getProperty("java.vendor") + "\n" + "SWT v" + SWT.getVersion()
 				+ ", " + SWT.getPlatform() + "/" + System.getProperty("os.arch"));
-    txtSysInfo.setLayoutData(gridData = new GridData());
-    window.setCaret(null);
-  
-    Group gInternet = new Group(window, SWT.NULL);
-    GridLayout gridLayout = new GridLayout();
-    gridLayout.numColumns = 3;
-    gridLayout.horizontalSpacing = 5;
-    gInternet.setLayout(gridLayout);
-    Messages.setLanguageText(gInternet, "MainWindow.about.section.internet"); //$NON-NLS-1$
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 3;
-    gInternet.setLayoutData(gridData);
-  
+    txtSysInfo.setLayoutData(gridData = new GridData(GridData.FILL_BOTH));
+    if (window.getCaret() != null)
+    	window.getCaret().setVisible(false);
+
     final String[][] link =
       { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "forumdiscussion", "wiki" }, {
           Constants.SF_WEB_SITE,
