@@ -35,7 +35,6 @@ public interface
 DiskManagerReadRequest
 	extends PeerReadRequest
 {  
-	public boolean isExpired();
   
 	/**
 	 * Allow some more time to the request.
@@ -50,7 +49,7 @@ DiskManagerReadRequest
  
 	public int getLength();
 	
-	public long getTimeCreated();
+	public long getTimeCreated(final long now);
 	
 		/**
 		 * If flush is set then data held in memory will be flushed to disk during the read operation
