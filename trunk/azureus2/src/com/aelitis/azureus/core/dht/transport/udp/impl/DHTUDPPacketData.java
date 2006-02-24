@@ -76,7 +76,7 @@ DHTUDPPacketData
 	
 		throws IOException
 	{
-		super( network_handler, is,  DHTUDPPacketHelper.ACT_REQUEST_PING, con_id, trans_id );
+		super( network_handler, is,  DHTUDPPacketHelper.ACT_DATA, con_id, trans_id );
 		
 		packet_type		= is.readByte();
 		transfer_key	= DHTUDPUtils.deserialiseByteArray( is, 64 );

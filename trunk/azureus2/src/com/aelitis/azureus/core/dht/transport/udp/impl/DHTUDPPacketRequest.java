@@ -56,7 +56,7 @@ DHTUDPPacketRequest
 	private DHTTransportUDPImpl	transport;
 	
 	private byte				protocol_version;
-	private byte				vendor_id	= DHTTransportUDP.VENDOR_ID_AELITIS;
+	private byte				vendor_id	= DHTTransportUDP.VENDOR_ID_NONE;
 	private int					network;
 	
 	private byte				originator_version;
@@ -118,7 +118,7 @@ DHTUDPPacketRequest
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_VENDOR_ID ){
 			
-			vendor_id	= is.readByte();
+			vendor_id	= is.readByte();			
 		}
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
@@ -213,8 +213,8 @@ DHTUDPPacketRequest
 		os.writeByte( protocol_version );		
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_VENDOR_ID ){
-			
-			os.writeByte( vendor_id );
+						
+			os.writeByte( DHTTransportUDP.VENDOR_ID_ME );
 		}
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
@@ -274,6 +274,12 @@ DHTUDPPacketRequest
 		return( protocol_version );
 	}
 	
+	protected byte
+	getVendorID()
+	{
+		return( vendor_id );
+	}
+	
 	public int
 	getNetwork()
 	{
@@ -310,5 +316,11 @@ DHTUDPPacketRequest
 	getOriginatorInstanceID()
 	{
 		return( originator_instance_id );
+	}
+	
+	public String
+	getString()
+	{
+		return( super.getString() + ",[prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network+",ov=" + originator_version + "]");
 	}
 }

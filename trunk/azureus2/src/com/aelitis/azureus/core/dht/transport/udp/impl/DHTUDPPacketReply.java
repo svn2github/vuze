@@ -56,7 +56,7 @@ DHTUDPPacketReply
 	
 	private long	connection_id;
 	private byte	protocol_version;
-	private byte	vendor_id	= DHTTransportUDP.VENDOR_ID_AELITIS;
+	private byte	vendor_id	= DHTTransportUDP.VENDOR_ID_NONE;
 	private int		network;
 	private int		target_instance_id;
 	
@@ -123,7 +123,7 @@ DHTUDPPacketReply
 		}
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_VENDOR_ID ){
-			
+	
 			vendor_id	= is.readByte();
 		}
 		
@@ -169,6 +169,12 @@ DHTUDPPacketReply
 		return( protocol_version );
 	}
 	
+	protected byte
+	getVendorID()
+	{
+		return( vendor_id );
+	}
+	
 	public int
 	getNetwork()
 	{
@@ -210,8 +216,8 @@ DHTUDPPacketReply
 		os.writeByte( protocol_version );
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_VENDOR_ID ){
-			
-			os.writeByte( vendor_id );
+						
+			os.writeByte( DHTTransportUDP.VENDOR_ID_ME );
 		}
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_NETWORKS ){
@@ -225,6 +231,6 @@ DHTUDPPacketReply
 	public String
 	getString()
 	{
-		return( super.getString() + ",[con="+connection_id+"]");
+		return( super.getString() + ",[con="+connection_id+",prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network+"]");
 	}
 }

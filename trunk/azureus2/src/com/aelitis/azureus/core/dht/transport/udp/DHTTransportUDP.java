@@ -69,8 +69,10 @@ DHTTransportUDP
 
 	public static final byte VENDOR_ID_AELITIS		= 0x00;
 	public static final byte VENDOR_ID_ShareNET		= 0x01;			// http://www.sharep2p.net/
-	
-	
+	public static final byte VENDOR_ID_NONE			= (byte)0xff;
+
+	public static final byte VENDOR_ID_ME			= VENDOR_ID_AELITIS;
+
 	public DHTTransportContact
 	importContact(
 		InetSocketAddress	address,
