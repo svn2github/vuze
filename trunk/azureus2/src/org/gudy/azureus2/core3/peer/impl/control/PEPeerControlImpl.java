@@ -28,6 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.impl.access.impl.DiskManagerReadRequestImpl;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -956,7 +957,7 @@ PEPeerControlImpl
 			final PEPeerTransport pc =(PEPeerTransport)peer_transports.get(i);
 			if (pc.getPeerState() ==PEPeer.TRANSFERING)
 			{
-				final List expired = pc.getExpiredRequests();
+				final List expired =pc.getExpiredRequests();
 				if (expired !=null &&expired.size() >0)
 				{   // now we know there's a request that's > 60 seconds old
                     final boolean isSeed =pc.isSeed();
@@ -966,7 +967,7 @@ PEPeerControlImpl
                         pc.setSnubbed(true);
                     
                     final long timeSinceData =pc.getTimeSinceLastDataMessageReceived();
-                    final long timeSinceOldestRequest =now -((DiskManagerReadRequest) expired.get(0)).getTimeCreated();
+                    final long timeSinceOldestRequest =now -((DiskManagerReadRequest) expired.get(0)).getTimeCreated(now);
                     
                     for (int j =0; j <expired.size(); j++)
                     {
@@ -990,20 +991,6 @@ PEPeerControlImpl
                                 checkEmptyPiece(pieceNumber);
                         }
                     }
-/*
-                    // if they never respond to our requests, disconnect them
-                    if (timeSinceOldestRequest >120 *1000
-                        &&(timeSinceData <0 ||timeSinceData >300 *1000)
-                        &&(timeSinceGoodData <0 ||timeSinceGoodData >300 *1000)
-                        &&pc.getTimeSinceConnectionEstablished() >300 *1000
-                        &&piecePicker.getMinAvailability() >(isSeed ?2 :1))
-                        closeAndRemovePeer(pc, "Peer not responsive to piece requests."
-                            +" connected time:" +pc.getTimeSinceConnectionEstablished() /1000
-                            +" oldest request:" +timeSinceOldestRequest /1000
-                            +" any data:" +timeSinceData /1000
-                            +" good data:" +timeSinceGoodData/1000
-                            , true);
-*/
 				}
 			}
 		}
@@ -1265,14 +1252,13 @@ PEPeerControlImpl
 	/**
 	 * The way to unmark a request as being downloaded, or also 
 	 * called by Peer connections objects when connection is closed or choked
-	 * @param request
+	 * @param request a DiskManagerReadRequest holding details of what was canceled
 	 */
 	public void requestCanceled(DiskManagerReadRequest request)
 	{
-		int pieceNumber =request.getPieceNumber();	//get the piece number
-		int pieceOffset =request.getOffset();		//get the piece offset    
-		if (pePieces[pieceNumber] !=null)
-            pePieces[pieceNumber].clearRequested(pieceOffset /DiskManager.BLOCK_SIZE);
+        final int pieceNumber =request.getPieceNumber();  //get the piece number
+        if (isPieceActive(pieceNumber))
+    		pePieces[pieceNumber].clearRequested(request.getOffset() /DiskManager.BLOCK_SIZE);
 		//set as not fully Requested
 		dm_pieces[pieceNumber].clearRequested();
 	}
@@ -1477,12 +1463,12 @@ PEPeerControlImpl
 				availability--;
 			if (availability <= 0)
 				return;
-			//for all peers
-			
-			List	peer_transports = peer_transports_cow;
-			
+            //for all peers
+
+			final List peer_transports = peer_transports_cow;
+
 			for (int i = peer_transports.size() - 1; i >= 0; i--) {
-				PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
+				final PEPeerTransport pc = (PEPeerTransport) peer_transports.get(i);
 				if (pc !=pcOrigin &&pc.getPeerState() ==PEPeer.TRANSFERING &&pc.isPieceAvailable(pieceNumber))
 					((PEPeerStatsImpl)pc.getStats()).statisticalSentPiece(pieceLength / availability);
 			}
