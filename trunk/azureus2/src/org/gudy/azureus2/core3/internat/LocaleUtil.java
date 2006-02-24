@@ -328,7 +328,7 @@ LocaleUtil
 	getTorrentEncoding(
   		TOTorrent		torrent )
   		
-  		throws TOTorrentException, UnsupportedEncodingException, LocaleUtilEncodingException
+  		throws TOTorrentException, UnsupportedEncodingException
   	{
 		String	encoding = torrent.getAdditionalStringProperty( "encoding" );
     
@@ -388,7 +388,11 @@ LocaleUtil
 	    
 	    for (int i=0;i<listeners.size();i++){
 	    	
-	    	LocaleUtilDecoderCandidate candidate = ((LocaleUtilListener)listeners.get(i)).selectDecoder( this, torrent, candidates );
+	    	LocaleUtilDecoderCandidate candidate = null;
+				try {
+					candidate = ((LocaleUtilListener)listeners.get(i)).selectDecoder( this, torrent, candidates );
+				} catch (LocaleUtilEncodingException e) {
+				}
 	    	
 	    	if ( candidate != null ){
 	    	    	
