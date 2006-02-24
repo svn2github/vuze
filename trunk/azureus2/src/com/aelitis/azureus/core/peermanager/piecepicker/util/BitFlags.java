@@ -24,41 +24,41 @@ package com.aelitis.azureus.core.peermanager.piecepicker.util;
 
 import java.util.Arrays;
 
+import com.aelitis.azureus.core.util.HashCodeUtils;
+
 /**
  * @author MjrTom
  * A fairly light-weight, versatile boolean array of bit flags with administrative fields and methods
  * Originaly designed as a boolean array to correspond to the pieces in a torrent,
- * for example to show which pieces are; downloading, high priority, rarest, available, or whatever
+ * for example to show which pieces are; downloading, high priority, rarest, available, or whatever.
+ * This class is subject to experimentation, although the important uses of the class must NOT be broken.
  */
 public class BitFlags
     implements Cloneable
 {
-	// These are public so they can be read quickly.  Please don't try to modify them outside of the given methods.
+	// These are public so they can be read quickly.
+    // Please don't try to modify them outside of the given methods.
+    /** Index of first set bit */
+    public int          start;
+    /** Index of last set bit */
+    public int          end;
     /** how many bits are set */
 	public int			nbSet;
-    /** Index of first set bit */
-	public int			start;
-    /** Index of last set bit */
-	public int			end;
-    /** Total # of bits in the array */
-	final public int	length;
     /** The array of bit flags */
-	public boolean[]	flags;
-
-	public BitFlags(int count)
+	public final boolean[]	flags;
+	
+	public BitFlags(final int count)
 	{
-		length =count;
-		flags =new boolean[length];
-		start =0;
-		end =0;
-		nbSet =0;
+        start =0;
+        end =0;
+        nbSet =0;
+		flags =new boolean[count];
 	}
 
-	public BitFlags( boolean[]	_flags )
+	public BitFlags(final boolean[]	_flags )
 	{
 		flags	= _flags;
-		length	= flags.length;
-		for (int i=0;i<length;i++){
+		for (int i=0;i<flags.length;i++){
 			if ( flags[i]){
 				nbSet++;
 				if ( i < start ){
@@ -69,12 +69,60 @@ public class BitFlags
 		}
 	}
     
-    /** You can read .length instead (but please don't modify it)
-     * @return int number of elements in the array
+    /** clone constructor */
+    public BitFlags(final BitFlags other)
+    {
+        start =other.start;
+        end =other.end;
+        nbSet =other.nbSet;
+        flags =(boolean[])other.flags.clone();
+    }
+
+    public Object clone()
+    {
+        return new BitFlags(this);
+    }
+    
+    public int hashCode()
+    {
+        int result =HashCodeUtils.hashMore(0, flags);
+        result =HashCodeUtils.hashMore(result, nbSet);
+        result =HashCodeUtils.hashMore(result, end);
+        return HashCodeUtils.hashMore(result, start);
+    }
+    
+    public boolean equals(Object o)
+    {
+        if (o ==null ||!(o instanceof BitFlags))
+            return false;
+        final BitFlags other =(BitFlags) o;
+        if (this.start !=other.start)
+            return false;
+        if (this.end !=other.end)
+            return false;
+        if (this.nbSet !=other.nbSet)
+            return false;
+        if (this.flags ==null &&other.flags ==null)
+            return true;
+        if (this.flags ==null ||other.flags ==null)
+            return false;
+        if (this.flags.length !=other.flags.length)
+            return false;
+        for (int i =0; i <this.flags.length; i++)
+        {
+            if (this.flags[i] ^ other.flags[i])
+                return false;
+        }
+
+        return true;
+    }
+    
+    /** You can read flags.length instead (but please don't modify it)
+     * @return the number of elements in this array
      */
     public int size()
     {
-        return length;
+        return flags.length;
     }
     
 	public void clear()
@@ -124,20 +172,20 @@ public class BitFlags
 	public void setAll()
 	{
 		start =0;
-		end =length -1;
+		end =flags.length -1;
 		Arrays.fill(flags, start, end, true);
-		nbSet =length;
+		nbSet =flags.length;
 	}
 	
 	/**
-	 * Experimental.  Returns a new BitFlags with flags set as the logical and of both BitFlags
+	 * Experimental.  Returns a new BitFlags with flags set as the logical AND of both BitFlags.
      * The length of both must be the same.
 	 * @param other BitFlags to be ANDed with this BitFlags. Must not be null.
 	 * @return new BitFlags representing the logical AND of the two
 	 */
 	public BitFlags and(final BitFlags other)
 	{
-		final BitFlags result =new BitFlags(length);
+		final BitFlags result =new BitFlags(flags.length);
 		if (this.nbSet >0 &&other.nbSet >0)
 		{
             // setup outer union bounds
