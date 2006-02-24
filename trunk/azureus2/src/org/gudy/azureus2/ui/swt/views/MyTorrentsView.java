@@ -1666,6 +1666,15 @@ public class MyTorrentsView
 
 		// ---
 		new MenuItem(menu, SWT.SEPARATOR);
+		
+		final MenuItem itemFilter = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemFilter, "MyTorrentsView.menu.filter");
+		itemFilter.addListener(SWT.Selection, new SelectedTableRowsListener() {
+			public void run(TableRowCore row) {
+				openFilterDialog();
+			}
+		});
+
 
 		super.fillMenu(menu);
 	} 

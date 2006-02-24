@@ -1030,10 +1030,6 @@ public class TableView
    * @param menu Menu to fill
    */
   public void fillMenu(Menu menu) {
-    menuThisColumn = new Menu(tableComposite.getShell(), SWT.DROP_DOWN);
-    final MenuItem itemThisColumn = new MenuItem(menu, SWT.CASCADE);
-    itemThisColumn.setMenu(menuThisColumn);
-
     final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
     Messages.setLanguageText(itemChangeTable, "MyTorrentsView.menu.editTableColumns");
     Utils.setMenuItemImage(itemChangeTable, "columns");
@@ -1045,6 +1041,10 @@ public class TableView
       }
     });
     
+    menuThisColumn = new Menu(tableComposite.getShell(), SWT.DROP_DOWN);
+    final MenuItem itemThisColumn = new MenuItem(menu, SWT.CASCADE);
+    itemThisColumn.setMenu(menuThisColumn);
+
     // Add Plugin Context menus..
  		boolean	enable_items = table != null && table.getSelection().length > 0;
     
