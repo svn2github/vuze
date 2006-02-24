@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.io.File;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -609,96 +608,13 @@ RDResumeHandler
 	{
 		DownloadManagerState download_manager_state = download_manager.getDownloadState();
 		
-		Map resumeMap = download_manager_state.getResumeData();
+		Map resume_map = download_manager_state.getResumeData();
 		
-		if ( resumeMap != null ){
-			
-				// time to remove this directory based madness - just use a "data" key
-			
-			Map	resume_data = (Map)resumeMap.get( "data" );
-			
-			if ( resume_data != null ){
-				
-				return( resume_data );
-			}
-			
-				// backward compatability here over path management changes :(
-			
-			String	resume_key = 
-				download_manager.getTorrent().isSimpleTorrent()?
-						download_manager.getAbsoluteSaveLocation().getParent():
-						download_manager.getAbsoluteSaveLocation().toString();
-	
-			String[]	resume_keys = new String[4];
-	
-				// see bug 869749 for explanation of this mangling
-				
-				// unfortunately, if the torrent hasn't been saved and restored then the
-				// mangling with not yet have taken place. So we have to also try the 
-				// original key (see 878015)
-
-				// also I've introduced canonicalisation into the resume key (2.1.0.5), so until any migration
-				// issues have been resolved we need to support both original + non-canonicalised forms
-		
-			resume_keys[0]	= resume_key;
-			
-			try{
-				resume_keys[1]= new String( resume_key.getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
-				
-				// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-			
-			String	canonical_resume_key = resume_key;
-			
-			try{
-				canonical_resume_key	= new File( resume_key).getCanonicalFile().toString();
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-			
-			resume_keys[2]	= canonical_resume_key;
-			
-			try{
-				resume_keys[3]= new String( resume_keys[2].getBytes(Constants.DEFAULT_ENCODING),Constants.BYTE_ENCODING);
-				
-				// System.out.println( "resume: path = " + ByteFormatter.nicePrint(path )+ ", mangled_path = " + ByteFormatter.nicePrint(mangled_path));
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace( e );
-			}
-		
-			Map resumeDirectory = null;
-			
-			for (int i=0;i<resume_keys.length;i++){
-				
-				String	rk = resume_keys[i];
-				
-				if ( rk != null ){
+		if ( resume_map != null ){
 						
-					resumeDirectory	= (Map)resumeMap.get(rk);
-					
-					if ( resumeDirectory != null ){
-						
-						break;
-					}
-				}
-			}
+			Map	resume_data = (Map)resume_map.get( "data" );
 			
-				// if we've migrated, move it into the right place
-			
-			if ( resumeDirectory != null ){
-				
-				saveResumeData( download_manager_state, resumeDirectory );
-			}
-			
-			return( resumeDirectory );
+			return( resume_data );
 			
 		}else{
 			
@@ -721,23 +637,6 @@ RDResumeHandler
 		Map	resume_map = new HashMap();
 		
 		resume_map.put( "data", resume_data );
-		
-			// for a short while (2305 B33 current) we'll save the resume data in any existing locations as well so that
-			// people can regress AZ versions after updating and their resume data will still work.... 
-		
-		Map	old_resume_data = download_manager_state.getResumeData();
-		
-		if ( old_resume_data != null ){
-			
-			Iterator	it = old_resume_data.keySet().iterator();
-			
-			while( it.hasNext()){
-				
-				Object	key = it.next();
-							
-				resume_map.put( key, resume_data );
-			}
-		}
 		
 		download_manager_state.setResumeData( resume_map );
 		
