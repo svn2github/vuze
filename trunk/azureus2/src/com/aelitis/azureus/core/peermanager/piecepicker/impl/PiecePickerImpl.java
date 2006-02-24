@@ -52,8 +52,8 @@ public class PiecePickerImpl
     private static final long TIME_MIN_AVAILABILITY	=974;
     /** min ms for recalculating base priorities */
     private static final long TIME_MIN_PRIORITIES	=999;
-    /** min ms for total availability rebuild */
-    private static final long TIME_AVAIL_REBUILD	=2*60*1000; 
+    /** min ms for forced availability rebuild */
+    private static final long TIME_AVAIL_REBUILD	=10*60*1000; 
 
 	// The following are added to the base User setting based priorities (for all inspected pieces)
     /** user select prioritize first/last */
@@ -281,45 +281,49 @@ public class PiecePickerImpl
         if (availabilityDrift >0 || now < time_last_rebuild ||  (now - time_last_rebuild) > TIME_AVAIL_REBUILD ){
             try
             {	availabilityMon.enter();
-
-            time_last_rebuild	= now;
-
-            int[]	new_availability = recomputeAvailability();
-
-            /*
-				int[]	old_availability = availabilityAsynch==null?availability:availabilityAsynch;
-
-				int	errors	= 0;
-
-				for (int i=0;i<new_availability.length;i++){
-					if ( new_availability[i] != old_availability[i]){
-						errors++;
-					}
-				}
-
-				System.out.println( "avail rebuild: errors = " + errors );
-             */
-
-            availabilityAsynch	= new_availability;
-
-            availabilityDrift =0;
-            availabilityChange++;
+                
+                time_last_rebuild	= now;
+                int[]	new_availability = recomputeAvailability();
+                
+                if (Constants.isCVSVersion())
+                {
+                    final int[]   old_availability =availabilityAsynch ==null ?availability :availabilityAsynch;
+                    int	    errors	= 0;
+                    
+                    for (int i=0;i<new_availability.length;i++){
+                        if ( new_availability[i] != old_availability[i]){
+                            errors++;
+                        }
+                    }
+                    if (errors >0 &&errors !=nbPieces)
+                    {
+                        if (Logger.isEnabled())
+                            Logger.log(new LogEvent(peerControl, LOGID, LogEvent.LT_ERROR,
+                                "updateAvailability(): availability rebuild errors = " +errors
+                            ));
+                    }
+                }
+                
+                availabilityAsynch	= new_availability;
+                
+                availabilityDrift =0;
+                availabilityChange++;
             } finally {availabilityMon.exit();}
 
-        }else if (availabilityComputeChange >=availabilityChange){
+        } else if (availabilityComputeChange >=availabilityChange){
             return;
         }
 
         try
         {	availabilityMon.enter();
-        time_last_avail =now;
-        availabilityComputeChange =availabilityChange;
-
-        // take a snapshot of availabilityAsynch
-        if ( availabilityAsynch != null ){
-            availability 		= availabilityAsynch;
-            availabilityAsynch	= null;
-        }
+            time_last_avail =now;
+            availabilityComputeChange =availabilityChange;
+    
+            // take a snapshot of availabilityAsynch
+            if ( availabilityAsynch != null ){
+                availability 		= availabilityAsynch;
+                availabilityAsynch	= null;
+            }
         } finally {availabilityMon.exit();}
 
         int i;
@@ -908,7 +912,7 @@ public class PiecePickerImpl
         if (pieceNumber >=0 &&(resumeIsRarest ||!startIsRarest ||rarestOverride ||startCandidates ==null ||startCandidates.nbSet <=0))
             return pieceNumber;
 
-// this would allow non-rarest pieces to be resumed so they get completed so they can be re-shared,
+// this would allow more non-rarest pieces to be resumed so they get completed so they can be re-shared,
 // which can make us intersting to more peers, and generally improve the speed of the swarm,
 // however, it can sometimes be hard to get the rarest pieces, such as when a holder unchokes very infrequently
 // so for now we go back to always getting rarest (nearly complete pieces should complete soon enough, just less soon)
