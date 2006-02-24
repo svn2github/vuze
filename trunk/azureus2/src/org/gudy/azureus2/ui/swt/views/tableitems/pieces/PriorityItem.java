@@ -20,11 +20,8 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
-import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.peer.PEPiece;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
@@ -45,9 +42,9 @@ implements TableCellRefreshListener
 	
 	public void refresh(TableCell cell)
 	{
-		long	value =0;
-		PEPiece	piece = (PEPiece)cell.getDataSource();
-		if (null !=piece)
+		int	value =0;
+		final PEPiece piece = (PEPiece)cell.getDataSource();
+		if (piece !=null)
 		{
 			value =piece.getResumePriority();
 
