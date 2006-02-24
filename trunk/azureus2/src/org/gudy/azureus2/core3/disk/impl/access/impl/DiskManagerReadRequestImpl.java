@@ -42,11 +42,12 @@ DiskManagerReadRequestImpl
   //60 secs of expiration for any request.
   private static final int EXPIRATION_TIME = 1000 * 60;
   
-  private int pieceNumber;
-  private int offset;
-  private int length;
-  private long timeCreated;
+  private final int pieceNumber;
+  private final int offset;
+  private final int length;
   private final int hashcode;
+
+  private long      timeCreated;
   private boolean	flush;
   private boolean	cancelled;
   private boolean	use_cache	= true;
@@ -59,7 +60,7 @@ DiskManagerReadRequestImpl
    * @param offset
    * @param length
    */
-  public DiskManagerReadRequestImpl(int _pieceNumber,int _offset,int _length)
+  public DiskManagerReadRequestImpl(final int _pieceNumber, final int _offset, final int _length)
   {
     pieceNumber = _pieceNumber;
     offset = _offset;
@@ -77,10 +78,10 @@ DiskManagerReadRequestImpl
   public boolean isExpired()
   {
       final long now =SystemTime.getCurrentTime();
-      if (timeCreated >0 &&now >timeCreated)
-          return (now -timeCreated) >EXPIRATION_TIME;
+      if (this.timeCreated >0 &&now >this.timeCreated)
+          return (now -this.timeCreated) >EXPIRATION_TIME;
       //time error
-      timeCreated =now;
+      this.timeCreated =now;
       return false;
   }
   
@@ -162,7 +163,7 @@ DiskManagerReadRequestImpl
   public boolean equals(Object o)
   {
     if(! (o instanceof DiskManagerReadRequestImpl))
-      return false;    
+      return false;
 	DiskManagerReadRequestImpl otherRequest = (DiskManagerReadRequestImpl) o;
     if(otherRequest.pieceNumber != this.pieceNumber)
       return false;
@@ -179,8 +180,10 @@ DiskManagerReadRequestImpl
   }
   
   
-  public long getTimeCreated() {
-    return timeCreated;
+  public long getTimeCreated(final long now) {
+      if (this.timeCreated >now)
+          this.timeCreated =now;
+    return this.timeCreated;
   }
 
 }
