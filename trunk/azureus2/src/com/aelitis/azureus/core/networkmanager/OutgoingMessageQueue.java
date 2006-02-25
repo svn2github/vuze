@@ -438,7 +438,7 @@ public class OutgoingMessageQueue {
             int bytes_written = (bb.limit() - bb.remaining()) - ((Integer)orig_positions.get( pos )).intValue();
             total_size -= bytes_written;
             
-            if( msg.getType() == Message.TYPE_DATA_PAYLOAD ) {
+            if( x > 0 && msg.getType() == Message.TYPE_DATA_PAYLOAD ) {  //assumes the first buffer is message header
               data_written += bytes_written;
             }
             else {
