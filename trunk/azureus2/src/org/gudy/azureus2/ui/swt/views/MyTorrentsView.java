@@ -118,6 +118,7 @@ public class MyTorrentsView
   private Composite cHeader = null;
   private Label lblHeader = null;
   private Text txtFilter = null;
+  private Label lblX = null;
   
   int userMode;
   boolean isTrackerOn;
@@ -286,7 +287,7 @@ public class MyTorrentsView
         lblFilter.setLayoutData(gridData);
         Messages.setLanguageText(lblFilter, "MyTorrentsView.filter");
 
-        Label lblX = new Label(cHeader, SWT.WRAP);
+				lblX = new Label(cHeader, SWT.WRAP);
         Messages.setLanguageText(lblX, "MyTorrentsView.clearFilter", true);
         gridData = new GridData(SWT.TOP);
         lblX.setLayoutData(gridData);
@@ -1669,8 +1670,8 @@ public class MyTorrentsView
 		
 		final MenuItem itemFilter = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemFilter, "MyTorrentsView.menu.filter");
-		itemFilter.addListener(SWT.Selection, new SelectedTableRowsListener() {
-			public void run(TableRowCore row) {
+		itemFilter.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
 				openFilterDialog();
 			}
 		});
@@ -2067,6 +2068,9 @@ public class MyTorrentsView
 			sLastSearch += String.valueOf(e.character);
 
 		if (ASYOUTYPE_MODE == ASYOUTYPE_MODE_FILTER) {
+			if (txtFilter != null && !txtFilter.isDisposed()) {
+				txtFilter.setFocus();
+			}
 			updateLastSearch();
 		} else {
 			Table table = getTable();
@@ -2130,8 +2134,10 @@ public class MyTorrentsView
 			createTabs();
 
 		if (txtFilter != null && !txtFilter.isDisposed()) {
-			if (!sLastSearch.equals(txtFilter.getText())) 
+			if (!sLastSearch.equals(txtFilter.getText())) { 
 				txtFilter.setText(sLastSearch);
+				txtFilter.setSelection(sLastSearch.length());
+			}
 
 			if (sLastSearch.length() > 0) {
 				if (bRegexSearch) {
@@ -2487,8 +2493,6 @@ public class MyTorrentsView
       return up;
     if(itemKey.equals("down"))
       return down;
-    if(itemKey.equals("filter"))
-    	return true;
     return false;
   }
 
@@ -2532,10 +2536,6 @@ public class MyTorrentsView
     if(itemKey.equals("remove")){
       removeSelectedTorrents();
       return;
-    }
-    if(itemKey.equals("filter")) {
-    	openFilterDialog();
-    	return;
     }
   }
 
