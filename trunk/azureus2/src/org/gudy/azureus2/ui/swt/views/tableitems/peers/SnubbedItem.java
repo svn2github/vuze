@@ -48,14 +48,13 @@ public class SnubbedItem
 
   public void refresh(TableCell cell) {
     PEPeer peer = (PEPeer)cell.getDataSource();
-    long value = (peer == null) ? 0 : (peer.isSnubbed() ? 1 : 0);
+    boolean bSnubbed = (peer == null) ? false : peer.isSnubbed();
 
-    if (!cell.setSortValue(value) && cell.isValid())
+    if (!cell.setSortValue(bSnubbed ? 1 : 0) && cell.isValid())
       return;
 
-    if (cell.setText((value == 1) ? "*" : "")) {
-      ((TableCellCore)cell).getTableRowCore().setForeground((value == 1) ? Colors.grey 
-                                                                     : null);
-    }
+    cell.setText(bSnubbed ? "*" : "");
+    ((TableCellCore)cell).getTableRowCore().setForeground(bSnubbed ? Colors.grey 
+    		: null);
   }
 }
