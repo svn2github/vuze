@@ -57,7 +57,15 @@ PRUDPPacketHandlerFactoryImpl
 				receiver_map.put( new Integer(port), receiver );
 			}
 			
-			receiver.setRequestHandler( request_handler );
+				// only set the incoming request handler if one has been specified. This is important when
+				// the port is shared (e.g. default udp tracker and dht) and only one usage has need to handle
+				// unsolicited inbound requests as we don't want the tracker null handler to erase the dht's
+				// one
+			
+			if ( request_handler != null ){
+				
+				receiver.setRequestHandler( request_handler );
+			}
 			
 			return( receiver );
 			

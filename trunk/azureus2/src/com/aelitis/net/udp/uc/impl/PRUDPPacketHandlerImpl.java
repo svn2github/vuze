@@ -521,8 +521,14 @@ PRUDPPacketHandlerImpl
 			
 				// if someone's sending us junk we just log and continue
 			
-			// e.printStackTrace();
-			// Logger.log(new LogEvent(LOGID, "", e));
+			if ( e instanceof IOException ){
+			
+					// generally uninteresting
+				
+			}else{
+							
+				Logger.log(new LogEvent(LOGID, "", e));
+			}
 		}
 	}
 	
