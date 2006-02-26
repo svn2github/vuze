@@ -205,29 +205,33 @@ public class Utils {
     return prefixes[0];
   }
 
-  public static void
-  centreWindow(
-  	Shell	shell )
-  {
-    Rectangle displayRect;
-    try {
-    	displayRect = shell.getMonitor().getClientArea();
-    } catch (NoSuchMethodError e) {
-      displayRect = shell.getDisplay().getClientArea();
-    }
+  public static void centreWindow(Shell shell) {
+		Rectangle displayBounds; // whole display area (including taskbar)
+		Rectangle displayClientArea; // area to center in
+		try {
+			displayBounds = shell.getMonitor().getBounds();
+			displayClientArea = shell.getMonitor().getClientArea();
+		} catch (NoSuchMethodError e) {
+			displayBounds = shell.getDisplay().getBounds();
+			displayClientArea = shell.getDisplay().getClientArea();
+		}
 
-    Rectangle shellRect = shell.getBounds();
-    if (shellRect.width > displayRect.width - 100)
-    	shellRect.width = displayRect.width - 100;
+		Rectangle shellRect = shell.getBounds();
 
-    if (shellRect.height > displayRect.height - 64)
-    	shellRect.height = displayRect.height - 100;
-	
-    shellRect.x = (displayRect.width - shellRect.width) / 2;
-    shellRect.y = (displayRect.height - shellRect.height) / 2;
+		if (shellRect.height > displayBounds.height - 50) {
+			shellRect.height = displayBounds.height - 50;
+			displayClientArea.height = displayBounds.height;
+		}
+		if (shellRect.width > displayBounds.width - 50) {
+			shellRect.width = displayBounds.width - 50;
+			displayClientArea.width = displayBounds.width;
+		}
 
-    shell.setBounds(shellRect);
-  }
+		shellRect.x = (displayClientArea.width - shellRect.width) / 2;
+		shellRect.y = (displayClientArea.height - shellRect.height) / 2;
+
+		shell.setBounds(shellRect);
+	}
 
   /**
    * Centers a window relative to a control. That is to say, the window will be located at the center of the control.
