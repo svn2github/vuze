@@ -317,6 +317,7 @@ public class VersionCheckClient {
 	      message.put( "total_bytes_downloaded", new Long( total_bytes_downloaded ) );
 	      message.put( "total_bytes_uploaded", new Long( total_bytes_uploaded ) );
 	      message.put( "total_uptime", new Long( total_uptime ) );
+	      message.put( "dlstats", stats.getDownloadStats());
       }
       
       if ( AzureusCoreFactory.isCoreAvailable()){

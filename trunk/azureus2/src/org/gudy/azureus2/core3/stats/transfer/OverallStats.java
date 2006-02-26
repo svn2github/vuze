@@ -25,18 +25,4 @@ package org.gudy.azureus2.core3.stats.transfer;
  *
  */
 public interface OverallStats extends GeneralStats {
-
-  public YearStatsList getYearStats();
-  
-  public static final int LOG_LEVEL_NO_LOG       = 0;
-  public static final int LOG_LEVEL_OVERALL      = 1;
-  public static final int LOG_LEVEL_YEAR         = 2;
-  public static final int LOG_LEVEL_MONTH        = 3;
-  public static final int LOG_LEVEL_DAY          = 4;
-  public static final int LOG_LEVEL_HOUR         = 5;
-  
-  public void setLogLevel(int logLevel);
-  
-  public String getXMLExport();
-
 }

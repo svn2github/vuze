@@ -23,11 +23,12 @@ package org.gudy.azureus2.core3.stats.transfer.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.global.impl.GlobalManagerAdpater;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
-import org.gudy.azureus2.core3.stats.transfer.YearStatsList;
 import org.gudy.azureus2.core3.util.*;
 
 
@@ -38,8 +39,6 @@ import org.gudy.azureus2.core3.util.*;
 public class OverallStatsImpl extends GlobalManagerAdpater implements OverallStats, TimerEventPerformer{
 
   GlobalManager manager;
-  Map statisticsMap;
-  Map overallMap;
    
   long totalDownloaded;
   long totalUploaded;
@@ -51,25 +50,28 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
   
   long session_start_time = SystemTime.getCurrentTime();
   
+  long	downloadCount;
+  
   protected AEMonitor	this_mon	= new AEMonitor( "OverallStats" );
 
-  private void 
+  private Map 
   load(String filename) 
   {
-    statisticsMap = FileUtil.readResilientConfigFile( filename );
+    return( FileUtil.readResilientConfigFile( filename ));
   }
   
-  private void load() {
-	  load("azureus.statistics");
+  private Map load() {
+	  return( load("azureus.statistics"));
 	}
   
   private void 
-  save(String filename) 
+  save(String filename,
+		Map	map ) 
   {  	  
   	try{
   		this_mon.enter();
   	  		
-  		FileUtil.writeResilientConfigFile( filename, statisticsMap );
+  		FileUtil.writeResilientConfigFile( filename, map );
   		
   	}finally{
   		
@@ -77,56 +79,50 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
   	}
   }
   
-  private void save() {
-	  save("azureus.statistics");
+  private void save( Map map ) {
+	  save("azureus.statistics", map);
 	}
   
-  private void validateAndLoadValues() {
-    overallMap = (Map) statisticsMap.get("all");
-    if(overallMap == null) {
-      overallMap = new HashMap();
-      overallMap.put("downloaded",new Long(0));
-      overallMap.put("uploaded",new Long(0));
-      overallMap.put("uptime",new Long(0));
-      statisticsMap.put("all",overallMap);
-    }
-    try{
-	    totalDownloaded = ((Long)overallMap.get("downloaded")).longValue();
-	    totalUploaded = ((Long)overallMap.get("uploaded")).longValue();
-	    totalUptime = ((Long)overallMap.get("uptime")).longValue();
-	    lastUptime = SystemTime.getCurrentTime() / 1000;
+  private void validateAndLoadValues(
+	Map	statisticsMap ) {
+	  
+    lastUptime = SystemTime.getCurrentTime() / 1000;
+
+    Map overallMap = (Map) statisticsMap.get("all");
+
+    totalDownloaded = getLong( overallMap, "downloaded" );
+	totalUploaded = getLong( overallMap, "uploaded" );
+	totalUptime = getLong( overallMap, "uptime" );	    
 	    
-    }catch( Throwable e ){
-    	
-    	Debug.out( "Stats invalid, resetting to 0" );
-    	
-    	save();
-    }
+	downloadCount = getLong( overallMap, "download_count" );
   }
   
-  public OverallStatsImpl(GlobalManager manager) {
-    this.manager = manager;
+  protected long
+  getLong(
+	Map		map,
+	String	name )
+  {
+	  if ( map == null ){
+		  return( 0 );
+	  }
+	
+	  Object	obj = map.get(name);
+	
+	  if (!(obj instanceof Long )){
+		return(0);
+	  }
+	
+	  return(((Long)obj).longValue());
+  }
+  
+  public OverallStatsImpl(GlobalManager _manager) {
+    manager = _manager;
     manager.addListener(this);
-    load();
-    validateAndLoadValues();
+    Map 	stats = load();
+    validateAndLoadValues(stats);
 
     SimpleTimer.addPeriodicEvent(1000 * 60,this);
   }
-  
-	public String getXMLExport() {
-		// TODO Implement the XML export thing
-		return null;
-	}
-	
-	public YearStatsList getYearStats() {
-		// TODO Implement granularity
-		return null;
-	}
-
-	public void setLogLevel(int logLevel) {
-		// TODO Auto-generated method stub
-	}
-
   
 	public int getAverageDownloadSpeed() {
 		if(totalUptime > 1) {
@@ -158,10 +154,39 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
     return (SystemTime.getCurrentTime() - session_start_time) / 1000;
   }
   
+  public Map getDownloadStats(){
+	  Map	res = new HashMap();
+	  
+	  res.put( "tot", new Long(downloadCount));
+	  
+	  return( res );
+  }
 	public void perform(TimerEvent event) {
     updateStats();
 	}
   
+	public void 
+	downloadManagerAdded(
+		DownloadManager dm) 
+	{
+		if ( !dm.isPersistent()){
+				// don't count shares
+			return;
+		}
+		
+		if ( dm.getStats().getDownloadCompleted(false) > 0 ){
+				// don't count downloads added as seeding
+			return;
+		}
+		
+		if ( !dm.getDownloadState().getBooleanParameter( DownloadManagerState.PARAM_STATS_COUNTED )){
+			
+			downloadCount++;
+			
+			dm.getDownloadState().setBooleanParameter( DownloadManagerState.PARAM_STATS_COUNTED, true );
+		}
+	}
+	
   public void destroyInitiated() {
     updateStats();
   }
@@ -203,11 +228,18 @@ public class OverallStatsImpl extends GlobalManagerAdpater implements OverallSta
 	    totalUptime += delta;
 	    lastUptime = current_time;
 	    
+	    HashMap	overallMap = new HashMap();
+	    
 	    overallMap.put("downloaded",new Long(totalDownloaded));
 	    overallMap.put("uploaded",new Long(totalUploaded));
 	    overallMap.put("uptime",new Long(totalUptime));
+	    overallMap.put("download_count",new Long(downloadCount));
 	    
-	    save();
+	    Map	map = new HashMap();
+	    
+	    map.put( "all", overallMap );
+	    
+	    save( map );
   	}finally{
   	
   		this_mon.exit();

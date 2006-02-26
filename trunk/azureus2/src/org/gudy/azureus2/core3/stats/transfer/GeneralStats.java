@@ -20,6 +20,8 @@
  */
 package org.gudy.azureus2.core3.stats.transfer;
 
+import java.util.Map;
+
 /**
  * @author Olivier
  *
@@ -45,6 +47,8 @@ public interface GeneralStats {
    * @return this session uptime in seconds
    */
   public long getSessionUpTime();
+  
+  public Map getDownloadStats();
   
   /**
    * @return the average download speed in bytes per second
