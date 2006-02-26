@@ -37,6 +37,7 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -291,7 +292,7 @@ public class MyTorrentsView
         Messages.setLanguageText(lblX, "MyTorrentsView.clearFilter", true);
         gridData = new GridData(SWT.TOP);
         lblX.setLayoutData(gridData);
-        lblX.setImage(ImageRepository.getImage("smallx"));
+        lblX.setImage(ImageRepository.getImage("smallx-gray"));
         lblX.addMouseListener(new MouseAdapter() {
         	public void mouseUp(MouseEvent e) {
         		if (e.y <= 10) {
@@ -2154,6 +2155,12 @@ public class MyTorrentsView
 	        Messages.setLanguageText(txtFilter, "MyTorrentsView.filter", true);
 				}
 			}
+		}
+		if (lblX != null && !lblX.isDisposed()) {
+			Image img = ImageRepository.getImage(sLastSearch.length() > 0 ? "smallx"
+					: "smallx-gray");
+
+			lblX.setImage(img);
 		}
 
 		activateCategory(currentCategory);
