@@ -96,5 +96,111 @@ public class PriorityShapeBitFlagsImpl
     {
         field =bitFlags;
     }
-
+    
+    
+    
+    public boolean isNoRandom(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_NO_RANDOM) ==PRIORITY_MODE_NO_RANDOM
+            &&field.flags[pieceNumber];
+    }
+    
+    public boolean isNoRandom(final int start, final int end)
+    {
+        return (mode &PRIORITY_MODE_NO_RANDOM) ==PRIORITY_MODE_NO_RANDOM
+            &&field.start <=start &&field.end >=end;
+    }
+    
+    
+    public boolean isIgnoreRarity(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_IGNORE_RARITY) ==PRIORITY_MODE_IGNORE_RARITY
+            &&field.flags[pieceNumber];
+    }
+    
+    public boolean isIgnoreRarity(final int start, final int end)
+    {
+        return (mode &PRIORITY_MODE_IGNORE_RARITY) ==PRIORITY_MODE_IGNORE_RARITY
+            &&field.start <=start &&field.end >=end;
+    }
+    
+    
+    public boolean isFullPieces(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_FULL_PIECES) ==PRIORITY_MODE_FULL_PIECES
+            &&field.flags[pieceNumber];
+    }
+    
+    public boolean isFullPieces(final int start, final int end)
+    {
+        return (mode &PRIORITY_MODE_FULL_PIECES) ==PRIORITY_MODE_FULL_PIECES
+            &&field.start <=start &&field.end >=end;
+    }
+    
+    
+    public boolean isAutoReserve(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_AUTO_RESERVE) ==PRIORITY_MODE_AUTO_RESERVE
+            &&field.flags[pieceNumber];
+    }
+    
+    public boolean isAutoReserve(final int start, final int end)
+    {
+        return (mode &PRIORITY_MODE_AUTO_RESERVE) ==PRIORITY_MODE_AUTO_RESERVE
+            &&field.start <=start &&field.end >=end;
+    }
+    
+    
+    public boolean isReverse(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_REVERSE_ORDER) ==PRIORITY_MODE_REVERSE_ORDER
+            &&field.flags[pieceNumber];
+    }
+    
+    public boolean isReverse(final int start, final int end)
+    {
+        return (mode &PRIORITY_MODE_REVERSE_ORDER) ==PRIORITY_MODE_REVERSE_ORDER
+            &&field.start <=start &&field.end >=end;
+    }
+    
+    
+    public boolean isAutoSlide(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_AUTO_SLIDE) ==PRIORITY_MODE_AUTO_SLIDE
+            &&field.flags[pieceNumber];
+    }
+    
+    public boolean isAutoSlide(final int start, final int end)
+    {
+        return (mode &PRIORITY_MODE_AUTO_SLIDE) ==PRIORITY_MODE_AUTO_SLIDE
+            &&field.start <=start &&field.end >=end;
+    }
+    
+    
+    public boolean isRamp(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_RAMP) ==PRIORITY_MODE_RAMP
+            &&field.flags[pieceNumber];
+    }
+    
+    public boolean isRamp(final int start, final int end)
+    {
+        return (mode &PRIORITY_MODE_RAMP) ==PRIORITY_MODE_RAMP
+            &&field.start <=start &&field.end >=end;
+    }
+    
+    
+    public boolean isStaticPriority(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_STATIC_PRIORITY) ==PRIORITY_MODE_STATIC_PRIORITY
+            &&field.flags[pieceNumber];
+    }
+    
+    public boolean isStaticPriority(final int start, final int end)
+    {
+        return (mode &PRIORITY_MODE_STATIC_PRIORITY) ==PRIORITY_MODE_STATIC_PRIORITY
+            &&field.start <=start &&field.end >=end;
+    }
+    
+    
 }

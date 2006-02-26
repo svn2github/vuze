@@ -69,6 +69,7 @@ public class PriorityShapeRangedImpl
         return start <=pieceNumber &&pieceNumber <=end; 
     }
     
+    
 	public int getStart()
 	{
 		return start;
@@ -89,5 +90,111 @@ public class PriorityShapeRangedImpl
     {
         end =i;
     }
+    
+    
+    
+    public boolean isNoRandom(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_NO_RANDOM) ==PRIORITY_MODE_NO_RANDOM
+            &&start <=pieceNumber &&end >=pieceNumber;
+    }
+    
+    public boolean isNoRandom(final int s, final int e)
+    {
+        return (mode &PRIORITY_MODE_NO_RANDOM) ==PRIORITY_MODE_NO_RANDOM
+            &&this.start <=s &&this.end >=e;
+    }
+    
+    
+    public boolean isIgnoreRarity(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_IGNORE_RARITY) ==PRIORITY_MODE_IGNORE_RARITY
+            &&start <=pieceNumber &&end >=pieceNumber;
+    }
+    
+    public boolean isIgnoreRarity(final int s, final int e)
+    {
+        return (mode &PRIORITY_MODE_IGNORE_RARITY) ==PRIORITY_MODE_IGNORE_RARITY
+            &&this.start <=s &&this.end >=e;
+    }
+    
+    
+    public boolean isFullPieces(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_FULL_PIECES) ==PRIORITY_MODE_FULL_PIECES
+            &&start <=pieceNumber &&end >=pieceNumber;
+    }
+    
+    public boolean isFullPieces(final int s, final int e)
+    {
+        return (mode &PRIORITY_MODE_FULL_PIECES) ==PRIORITY_MODE_FULL_PIECES
+            &&this.start <=s &&this.end >=e;
+    }
+    
+    
+    public boolean isAutoReserve(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_AUTO_RESERVE) ==PRIORITY_MODE_AUTO_RESERVE
+            &&start <=pieceNumber &&end >=pieceNumber;
+    }
+    
+    public boolean isAutoReserve(final int s, final int e)
+    {
+        return (mode &PRIORITY_MODE_AUTO_RESERVE) ==PRIORITY_MODE_AUTO_RESERVE
+            &&this.start <=s &&this.end >=e;
+    }
+    
+    
+    public boolean isReverse(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_REVERSE_ORDER) ==PRIORITY_MODE_REVERSE_ORDER
+            &&start <=pieceNumber &&end >=pieceNumber;
+    }
+    
+    public boolean isReverse(final int s, final int e)
+    {
+        return (mode &PRIORITY_MODE_REVERSE_ORDER) ==PRIORITY_MODE_REVERSE_ORDER
+            &&this.start <=s &&this.end >=e;
+    }
+    
+    
+    public boolean isAutoSlide(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_AUTO_SLIDE) ==PRIORITY_MODE_AUTO_SLIDE
+            &&start <=pieceNumber &&end >=pieceNumber;
+    }
+    
+    public boolean isAutoSlide(final int s, final int e)
+    {
+        return (mode &PRIORITY_MODE_AUTO_SLIDE) ==PRIORITY_MODE_AUTO_SLIDE
+            &&this.start <=s &&this.end >=e;
+    }
+    
+    
+    public boolean isRamp(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_RAMP) ==PRIORITY_MODE_RAMP
+            &&start <=pieceNumber &&end >=pieceNumber;
+    }
+    
+    public boolean isRamp(final int s, final int e)
+    {
+        return (mode &PRIORITY_MODE_RAMP) ==PRIORITY_MODE_RAMP
+            &&this.start <=s &&this.end >=e;
+    }
+    
+    
+    public boolean isStaticPriority(final int pieceNumber)
+    {
+        return (mode &PRIORITY_MODE_STATIC_PRIORITY) ==PRIORITY_MODE_STATIC_PRIORITY
+            &&start <=pieceNumber &&end >=pieceNumber;
+    }
+    
+    public boolean isStaticPriority(final int s, final int e)
+    {
+        return (mode &PRIORITY_MODE_STATIC_PRIORITY) ==PRIORITY_MODE_STATIC_PRIORITY
+            &&this.start <=s &&this.end >=e;
+    }
+    
     
 }

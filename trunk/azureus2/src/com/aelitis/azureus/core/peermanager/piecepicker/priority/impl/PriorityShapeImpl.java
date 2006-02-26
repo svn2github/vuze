@@ -31,8 +31,8 @@ import com.aelitis.azureus.core.util.HashCodeUtils;
 abstract public class PriorityShapeImpl
 	implements PriorityShape, Cloneable
 {
-    public long mode =0;
-    public int  priority =0;	
+    public long mode;
+    public int  priority;	
 
 	protected PriorityShapeImpl(final long m, final int p)
 	{
@@ -84,8 +84,39 @@ abstract public class PriorityShapeImpl
         return (mode &PRIORITY_MODE_NO_RANDOM) ==PRIORITY_MODE_NO_RANDOM;
     }
 
+    public boolean isIgnoreRarity()
+    {
+        return (mode &PRIORITY_MODE_IGNORE_RARITY) ==PRIORITY_MODE_IGNORE_RARITY;
+    }
+
+    public boolean isFullPieces()
+    {
+        return (mode &PRIORITY_MODE_FULL_PIECES) ==PRIORITY_MODE_FULL_PIECES;
+    }
+
+    public boolean isAutoReserve()
+    {
+        return (mode &PRIORITY_MODE_AUTO_RESERVE) ==PRIORITY_MODE_AUTO_RESERVE;
+    }
+
     public boolean isReverse()
     {
         return (mode &PRIORITY_MODE_REVERSE_ORDER) ==PRIORITY_MODE_REVERSE_ORDER;
     }
+    
+    public boolean isAutoSlide()
+    {
+        return (mode &PRIORITY_MODE_AUTO_SLIDE) ==PRIORITY_MODE_AUTO_SLIDE;
+    }
+    
+    public boolean isRamp()
+    {
+        return (mode &PRIORITY_MODE_RAMP) ==PRIORITY_MODE_RAMP;
+    }
+    
+    public boolean isStaticPriority()
+    {
+        return (mode &PRIORITY_MODE_STATIC_PRIORITY) ==PRIORITY_MODE_STATIC_PRIORITY;
+    }
+    
 }

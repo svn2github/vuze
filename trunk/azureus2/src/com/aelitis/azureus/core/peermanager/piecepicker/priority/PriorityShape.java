@@ -47,7 +47,7 @@ public interface PriorityShape
     /** base (start) priority is not further modified */
     public static final long PRIORITY_MODE_STATIC_PRIORITY  =0x00000080;
     
-    /** how many bits used in modes defined above (used in hash calculation) */
+    /** how many bits used to define above modes */
     public static final long PRIORITY_MODES_BITS            =8;
     
     /** returns the first piece number in the selection criteria */
@@ -65,6 +65,35 @@ public interface PriorityShape
     
     
     public boolean isNoRandom();
+    public boolean isNoRandom(final int pieceNumber);
+    public boolean isNoRandom(final int start, final int end);
+    
+    public boolean isIgnoreRarity();
+    public boolean isIgnoreRarity(final int pieceNumber);
+    public boolean isIgnoreRarity(final int start, final int end);
+    
+    public boolean isFullPieces();
+    public boolean isFullPieces(final int pieceNumber);
+    public boolean isFullPieces(final int start, final int end);
+    
+    public boolean isAutoReserve();
+    public boolean isAutoReserve(final int pieceNumber);
+    public boolean isAutoReserve(final int start, final int end);
+    
     public boolean isReverse();
+    public boolean isReverse(final int pieceNumber);
+    public boolean isReverse(final int start, final int end);
+    
+    public boolean isAutoSlide();
+    public boolean isAutoSlide(final int pieceNumber);
+    public boolean isAutoSlide(final int start, final int end);
+    
+    public boolean isRamp();
+    public boolean isRamp(final int pieceNumber);
+    public boolean isRamp(final int start, final int end);
+    
+    public boolean isStaticPriority();
+    public boolean isStaticPriority(final int pieceNumber);
+    public boolean isStaticPriority(final int start, final int end);
     
 }
