@@ -78,6 +78,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "UT", "µTorrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "TR", "Transmission" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "CD", "CTorrent" )) != null ) return decoded;      
+      if( (decoded = decodeAzStyle( peerID, "RT", "Retriever" )) != null ) return decoded;      
       
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
@@ -351,12 +352,14 @@ public class BTPeerIDByteDecoder {
         String decoded = new String( id, 1, 2, Constants.BYTE_ENCODING );
         if( decoded.equals( ident ) ) {
           if( ident.equals( "BC" ) ) {
+          	// 4.56
         	  String v2 = new String( id, 4, 1, Constants.BYTE_ENCODING );
         	  String v3 = new String( id, 5, 1, Constants.BYTE_ENCODING );
         	  String v4 = new String( id, 6, 1, Constants.BYTE_ENCODING );
         	  return name + " " + v2 + "." + v3 + v4;
           }
           if( ident.equals( "KT") ) {
+          	// 3.4.5=[RD].6
         	  String v2 = new String( id, 3, 1, Constants.BYTE_ENCODING );
               String v3 = new String( id, 4, 1, Constants.BYTE_ENCODING );
               String v4 = new String( id, 5, 1, Constants.BYTE_ENCODING );
@@ -364,12 +367,14 @@ public class BTPeerIDByteDecoder {
               return name + " " + v2 + "." + v3 + ( v4.equals("R") ? (" RC" + v5) : ( v4.equals("D") ? " Dev":"" ) );
           }
           if( ident.equals( "UT") ) {
+          	// 3.4.5
         	  String v2 = new String( id, 3, 1, Constants.BYTE_ENCODING );
               String v3 = new String( id, 4, 1, Constants.BYTE_ENCODING );
               String v4 = new String( id, 5, 1, Constants.BYTE_ENCODING );
               return name + " " + v2 + "." + v3 + "." + v4;
           }
           if( ident.equals( "TR") || ident.equals( "CD") ) {
+          	// 34.56
         	  	String v2 = new String( id, 3, 2, Constants.BYTE_ENCODING );
               String v3 = new String( id, 5, 2, Constants.BYTE_ENCODING );
               return name + " " + Integer.parseInt(v2) + "." + Integer.parseInt(v3);
