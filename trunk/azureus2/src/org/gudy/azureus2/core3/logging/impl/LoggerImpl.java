@@ -226,10 +226,20 @@ public class LoggerImpl {
 		log(event);
 	}
 
+	/**
+	 * 
+	 * @param aListener
+	 * @deprecated
+	 */
 	public void addListener(ILoggerListener aListener) {
 		logListeners.add(aListener);
 	}
 
+	/**
+	 * 
+	 * @param aListener
+	 * @deprecated
+	 */
 	public void removeListener(ILoggerListener aListener) {
 		logListeners.remove(aListener);
 	}

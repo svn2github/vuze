@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.logging;
 /**
  * @author Olivier
  * 
+ * @deprecated
  */
 public interface ILoggerListener {
 

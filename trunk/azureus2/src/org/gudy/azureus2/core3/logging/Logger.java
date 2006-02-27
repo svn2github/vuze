@@ -132,6 +132,7 @@ public class Logger {
 	 * 
 	 * @param aListener
 	 *            Listener to call when an event is logged
+	 * @deprecated
 	 */
 	public static void addListener(ILoggerListener aListener) {
 		loggerImpl.addListener(aListener);
@@ -142,6 +143,7 @@ public class Logger {
 	 * 
 	 * @param aListener
 	 *            Listener to remove
+	 * @deprecated
 	 */
 	public static void removeListener(ILoggerListener aListener) {
 		loggerImpl.removeListener(aListener);
