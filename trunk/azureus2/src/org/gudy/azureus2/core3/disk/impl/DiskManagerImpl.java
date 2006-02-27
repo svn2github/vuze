@@ -2613,54 +2613,65 @@ DiskManagerImpl
 							}
 							
 							try{
-							 	CacheFile cache_file = 
-							 		CacheFileManagerFactory.getSingleton().createFile( 
-					  						new CacheFileOwner()
-					  						{
-					  						 	public String
-					  						  	getCacheFileOwnerName()
-					  						  	{
-					  						  		return( download_manager.getInternalName());
-					  						  	}
-					  						  	
-					  							public TOTorrentFile
-					  							getCacheFileTorrentFile()
-					  							{
-					  								return( torrent_file );
-					  							}
-					  							
-					  							public File 
-					  							getCacheFileControlFile(String name) 
-					  							{
-					  								return( download_manager.getDownloadState().getStateFile( name ));
-					  							}  							
-					  						}, 
-					  						getFile( true ), 
-					  						type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );							
-					  							
-					  			cache_file.close();
-					  			
-					  				// download's not running, update resume data as necessary 
-					  			
-					  			int	cleared = RDResumeHandler.storageTypeChanged( download_manager, this );
-					  			
-					  				// try and maintain reasonable figures for downloaded. Note that because
-					  				// we don't screw with the first and last pieces of the file during
-					  				// storage type changes we don't have the problem of dealing with
-					  				// the last piece being smaller than torrent piece size
-					  			
-					  			if ( cleared > 0 ){
-					  				
-					  				downloaded = downloaded - cleared * torrent_file.getTorrent().getPieceLength();
-					  				
-					  				if ( downloaded < 0 ){
-					  					
-					  					downloaded = 0;
-					  				}
-					  				
-					  				storeFileDownloaded( download_manager, res );
-					  			}
-					  			
+								File	target_file = getFile( true );
+								
+									// if the file doesn't exist then this is the start-of-day, most likely
+									// being called from the torrent-opener, so we don't need to do any
+									// file fiddling (in fact, if we do, we end up leaving zero length
+									// files for dnd files which then force a recheck when the download
+									// starts for the first time)
+								
+								if ( target_file.exists()){
+
+								 	CacheFile cache_file = 
+								 		CacheFileManagerFactory.getSingleton().createFile( 
+						  						new CacheFileOwner()
+						  						{
+						  						 	public String
+						  						  	getCacheFileOwnerName()
+						  						  	{
+						  						  		return( download_manager.getInternalName());
+						  						  	}
+						  						  	
+						  							public TOTorrentFile
+						  							getCacheFileTorrentFile()
+						  							{
+						  								return( torrent_file );
+						  							}
+						  							
+						  							public File 
+						  							getCacheFileControlFile(String name) 
+						  							{
+						  								return( download_manager.getDownloadState().getStateFile( name ));
+						  							}  							
+						  						}, 
+						  						target_file, 
+						  						type==ST_LINEAR?CacheFile.CT_LINEAR:CacheFile.CT_COMPACT );							
+						  							
+						  			cache_file.close();
+						  			
+						  				// download's not running, update resume data as necessary 
+						  			
+						  			int	cleared = RDResumeHandler.storageTypeChanged( download_manager, this );
+						  			
+						  				// try and maintain reasonable figures for downloaded. Note that because
+						  				// we don't screw with the first and last pieces of the file during
+						  				// storage type changes we don't have the problem of dealing with
+						  				// the last piece being smaller than torrent piece size
+						  			
+						  			if ( cleared > 0 ){
+						  				
+						  				downloaded = downloaded - cleared * torrent_file.getTorrent().getPieceLength();
+						  				
+						  				if ( downloaded < 0 ){
+						  					
+						  					downloaded = 0;
+						  				}
+						  				
+						  				storeFileDownloaded( download_manager, res );
+						  			}
+								}
+								
 								return( true );
 								
 							}catch( Throwable e ){
@@ -2681,14 +2692,14 @@ DiskManagerImpl
 				  							
 							}finally{
 				  							
-							types[file_index] = type==ST_LINEAR?"L":"C";
-							
-							DownloadManagerState	dm_state = download_manager.getDownloadState();
-							
-							dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
-							
-							dm_state.save();
-						}
+								types[file_index] = type==ST_LINEAR?"L":"C";
+								
+								DownloadManagerState	dm_state = download_manager.getDownloadState();
+								
+								dm_state.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types );
+								
+								dm_state.save();
+							}
 						}
 						
 						public int
