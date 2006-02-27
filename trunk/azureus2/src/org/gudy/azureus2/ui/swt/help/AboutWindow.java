@@ -104,8 +104,8 @@ public class AboutWindow {
     
     Group gInternet = new Group(window, SWT.NULL);
     GridLayout gridLayout = new GridLayout();
-    gridLayout.numColumns = 3;
-    gridLayout.horizontalSpacing = 5;
+    gridLayout.numColumns = 2;
+    gridLayout.makeColumnsEqualWidth = true;
     gInternet.setLayout(gridLayout);
     Messages.setLanguageText(gInternet, "MainWindow.about.section.internet"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
@@ -122,8 +122,11 @@ public class AboutWindow {
     Text txtSysInfo = new Text(gSys, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.NO_FOCUS);
     txtSysInfo.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
     txtSysInfo.setText("Java " + System.getProperty("java.version") + "\n "
-				+ System.getProperty("java.vendor") + "\n" + "SWT v" + SWT.getVersion()
-				+ ", " + SWT.getPlatform() + "/" + System.getProperty("os.arch"));
+				+ System.getProperty("java.vendor") + "\n"
+				+ "SWT v" + SWT.getVersion() + ", " + SWT.getPlatform() + "\n"
+				+ System.getProperty("os.name") + " v"
+				+ System.getProperty("os.version") + ", "
+				+ System.getProperty("os.arch"));
     txtSysInfo.setLayoutData(gridData = new GridData(GridData.FILL_BOTH));
     if (window.getCaret() != null)
     	window.getCaret().setVisible(false);
@@ -144,7 +147,7 @@ public class AboutWindow {
       linkLabel.setData(link[1][i]);
       linkLabel.setCursor(Cursors.handCursor);
       linkLabel.setForeground(Colors.blue);
-      gridData = new GridData();
+      gridData = new GridData(GridData.FILL_HORIZONTAL);
       gridData.horizontalSpan = 1;
       linkLabel.setLayoutData(gridData);
       linkLabel.addMouseListener(new MouseAdapter() {
