@@ -356,29 +356,42 @@ AzureusCoreImpl
 		}
 		
 		try{
-			for (int i=0;i<lifecycle_listeners.size();i++){
-				
-				try{
-					((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopping( this );
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-			}
+				// in case something hangs during listener notification (e.g. version check server is down
+				// and the instance manager tries to obtain external address) we limit overall dispatch
+				// time to 10 seconds
+			
+			ListenerManager.dispatchWithTimeout(
+					lifecycle_listeners,
+					new ListenerManagerDispatcher()
+					{
+						public void
+						dispatch(
+							Object		listener,
+							int			type,
+							Object		value )
+						{
+							((AzureusCoreLifecycleListener)listener).stopping( AzureusCoreImpl.this );
+						}
+					},
+					10*1000 );
+	
 			
 			global_manager.stopGlobalManager();
 				
-			for (int i=0;i<lifecycle_listeners.size();i++){
-					
-				try{
-					((AzureusCoreLifecycleListener)lifecycle_listeners.get(i)).stopped( this );
-			
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-			}
+			ListenerManager.dispatchWithTimeout(
+					lifecycle_listeners,
+					new ListenerManagerDispatcher()
+					{
+						public void
+						dispatch(
+							Object		listener,
+							int			type,
+							Object		value )
+						{
+							((AzureusCoreLifecycleListener)listener).stopped( AzureusCoreImpl.this );
+						}
+					},
+					10*1000 );
 				
 			NonDaemonTaskRunner.waitUntilIdle();
 			

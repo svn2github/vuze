@@ -35,6 +35,7 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.*;
 
+
 public class 
 ListenerManager
 {
@@ -453,6 +454,90 @@ ListenerManager
 		}
 		
 		// System.out.println( "ListenerManager::dispatch thread '" + Thread.currentThread() + "' ends");
+	}
+	
+	public static void
+	dispatchWithTimeout(
+		List							_listeners,
+		final ListenerManagerDispatcher	_dispatcher,
+		long							_timeout )
+	{
+		final List	listeners = new ArrayList( _listeners );
+		
+		final boolean[]	completed = new boolean[listeners.size()];
+		
+		final AESemaphore	timeout_sem = new AESemaphore("ListenerManager:dwt:timeout");
+		
+		for (int i=0;i<listeners.size();i++){
+			
+			final int f_i	= i;
+						
+			new AEThread( "ListenerManager:dwt:dispatcher", true ){
+				public void
+				runSupport()
+				{
+					try{
+						_dispatcher.dispatch( listeners.get(f_i), -1, null );
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+						
+					}finally{
+						
+						completed[f_i]	= true;
+						
+						timeout_sem.release();
+					}
+				}
+			}.start();
+		}
+		
+		boolean	timeout_occurred = false;
+		
+		for (int i=0;i<listeners.size() ;i++){
+			
+			if ( _timeout <= 0 ){
+				
+				timeout_occurred	= true;
+				
+				break;
+			}
+			
+			long start = SystemTime.getCurrentTime();
+			
+			if ( !timeout_sem.reserve( _timeout )){
+				
+				timeout_occurred	= true;
+				
+				break;
+			}
+			
+			long end = SystemTime.getCurrentTime();
+
+			if ( end > start ){
+
+				_timeout = _timeout - ( end - start );
+			}
+		}
+		
+		if ( timeout_occurred ){
+			
+			String	str = "";
+			
+			for (int i=0;i<completed.length;i++){
+			
+				if ( !completed[i] ){
+					
+					str += (str.length()==0?"":",") + listeners.get(i);
+				}
+			}
+			
+			if ( str.length() > 0 ){
+				
+				Debug.out( "Listener dispatch timeout: failed = " + str );
+			}
+		}
 	}
 }
 
