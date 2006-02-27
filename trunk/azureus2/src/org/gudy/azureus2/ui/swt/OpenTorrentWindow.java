@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
@@ -1670,7 +1671,7 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 		ArrayList addedTorrentsTop = new ArrayList();
 
 		for (int i = 0; i < torrentList.size(); i++) {
-			TorrentInfo info = (TorrentInfo) torrentList.get(i);
+			final TorrentInfo info = (TorrentInfo) torrentList.get(i);
 			try {
 				if (info.torrent == null)
 					continue;
@@ -1680,9 +1681,33 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				int iStartMode = (info.iStartID == STARTMODE_STOPPED)
 						? DownloadManager.STATE_STOPPED : DownloadManager.STATE_WAITING;
 
-				DownloadManager dm = gm
-						.addDownloadManager(info.sFileName, info.sDestDir, iStartMode,
-								true, info.iStartID == STARTMODE_SEEDING);
+				final TorrentFileInfo[] files = info.getFiles();
+				DownloadManager dm = gm.addDownloadManager(info.sFileName,
+						info.sDestDir, iStartMode, true,
+						info.iStartID == STARTMODE_SEEDING,
+						new DownloadManagerInitialisationAdapter() {
+							public void fileInfoInitialised(DiskManagerFileInfo fileInfo) {
+								int iIndex = fileInfo.getIndex();
+								if (iIndex >= 0 && iIndex < files.length
+										&& files[iIndex].lSize == fileInfo.getLength()) {
+
+									File fDest;
+									if (files[iIndex].sDestFileName != null) {
+										fDest = new File(files[iIndex].sDestFileName);
+										fileInfo.setLink(fDest);
+									} else {
+										fDest = new File(info.sDestDir, files[iIndex].sFullFileName);
+									}
+
+									if (!files[iIndex].bDownload) {
+										fileInfo.setSkipped(true);
+										if (!fDest.exists()) {
+											fileInfo.setStorageType(DiskManagerFileInfo.ST_COMPACT);
+										}
+									}
+								}
+							}
+						});
 
 				// If dm is null, most likely there was an error printed.. let's hope
 				// the user was notified and skip the error quietly.
@@ -1697,29 +1722,6 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				if (iStartMode == STARTMODE_FORCESTARTED)
 					dm.setForceStart(true);
 
-				TorrentFileInfo[] files = info.getFiles();
-				DiskManagerFileInfo[] dmFileInfo = dm.getDiskManagerFileInfo();
-				for (int j = 0; j < dmFileInfo.length; j++) {
-					int iIndex = dmFileInfo[j].getIndex();
-					if (iIndex >= 0 && iIndex < files.length
-							&& files[iIndex].lSize == dmFileInfo[j].getLength()) {
-
-						File fDest;
-						if (files[iIndex].sDestFileName != null) {
-							fDest = new File(files[iIndex].sDestFileName);
-							dmFileInfo[j].setLink(fDest);
-						} else {
-							fDest = new File(info.sDestDir, files[iIndex].sFullFileName);
-						}
-
-						if (!files[iIndex].bDownload) {
-							dmFileInfo[j].setSkipped(true);
-							if (!fDest.exists()) {
-								dmFileInfo[j].setStorageType(DiskManagerFileInfo.ST_COMPACT);
-							}
-						}
-					}
-				}
 			} catch (Exception e) {
 				if (shell == null)
 					new MessagePopupShell(MessagePopupShell.ICON_ERROR,
