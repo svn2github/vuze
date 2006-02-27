@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
@@ -48,6 +49,8 @@ public class FileLogging implements ILogEventListener {
 			LogIDs.PLUGIN, LogIDs.TRACKER, LogIDs.CACHE, LogIDs.PIECES };
 
 	private static final String sTimeStampFormat = "HH:mm:ss.SSS ";
+	
+	private static final String CFG_ENABLELOGTOFILE = "Logging Enable";
 
 	private boolean bLogToFile = false;
 
@@ -64,8 +67,6 @@ public class FileLogging implements ILogEventListener {
 		final ConfigurationManager config = ConfigurationManager.getInstance();
 		boolean overrideLog = System.getProperty("azureus.overridelog") != null;
 
-		Logger.addListener(this);
-
 		for (int i = 0; i < ignoredComponents.length; i++) {
 			ignoredComponents[i] = new ArrayList();
 		}
@@ -79,11 +80,26 @@ public class FileLogging implements ILogEventListener {
 		}
 
 		checkLoggingConfig();
-		config.addParameterListener("Logging Enable", new ParameterListener() {
+		config.addParameterListener(CFG_ENABLELOGTOFILE, new ParameterListener() {
 			public void parameterChanged(String parameterName) {
-				bLogToFile = config.getBooleanParameter("Logging Enable");
+				FileLogging.this.reloadLogToFileParam();
 			}
 		});
+	}
+
+	/**
+	 * 
+	 */
+	protected void reloadLogToFileParam() {
+		final ConfigurationManager config = ConfigurationManager.getInstance();
+		boolean bNewLogToFile = config.getBooleanParameter(CFG_ENABLELOGTOFILE);
+		if (bNewLogToFile != bLogToFile) {
+			bLogToFile = bNewLogToFile;
+			if (bLogToFile)
+				Logger.addListener(this);
+			else
+				Logger.removeListener(this);
+		}
 	}
 
 	private void checkLoggingConfig() {
@@ -101,7 +117,7 @@ public class FileLogging implements ILogEventListener {
 					ignoredComponents[i].clear();
 				}
 			} else {
-				bLogToFile = config.getBooleanParameter("Logging Enable");
+				reloadLogToFileParam();
 
 				sLogDir = config.getStringParameter("Logging Dir", "");
 
