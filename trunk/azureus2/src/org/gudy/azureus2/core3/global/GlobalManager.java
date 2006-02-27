@@ -76,7 +76,7 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 *          in GlobalManager. 
 	 */
 	public DownloadManager addDownloadManager(String fileName, String savePath,
-			int initialState, boolean persistent, boolean for_seeding);
+			int initialState, boolean persistent, boolean for_seeding, DownloadManagerInitialisationAdapter adapter );
 
 	/**
 	 * Removes a DownloadManager from the global list, providing it can be

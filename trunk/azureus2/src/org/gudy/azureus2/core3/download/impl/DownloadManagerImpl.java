@@ -239,7 +239,6 @@ DownloadManagerImpl
 	private boolean		latest_informed_force_start;
 
 	private GlobalManager globalManager;
-
 	private String torrentFileName;
 	
 	private String	display_name	= "";
@@ -348,16 +347,17 @@ DownloadManagerImpl
 	
 	public 
 	DownloadManagerImpl(
-		GlobalManager 	_gm,
-		byte[]			_torrent_hash,
-		String 			_torrentFileName, 
-		String 			_torrent_save_dir,
-		String			_torrent_save_file,
-		int   			_initialState,
-		boolean			_persistent,
-		boolean			_recovered,
-		boolean			_open_for_seeding,
-		boolean			_has_ever_been_started ) 
+		GlobalManager 							_gm,
+		byte[]									_torrent_hash,
+		String 									_torrentFileName, 
+		String 									_torrent_save_dir,
+		String									_torrent_save_file,
+		int   									_initialState,
+		boolean									_persistent,
+		boolean									_recovered,
+		boolean									_open_for_seeding,
+		boolean									_has_ever_been_started,
+		DownloadManagerInitialisationAdapter	_initialisation_adapter ) 
 	{
 		if ( 	_initialState != STATE_WAITING &&
 				_initialState != STATE_STOPPED &&
@@ -368,7 +368,6 @@ DownloadManagerImpl
 		
 		persistent		= _persistent;
 		globalManager 	= _gm;
-		
 
 		stats = new DownloadManagerStatsImpl( this );
   	
@@ -389,6 +388,21 @@ DownloadManagerImpl
 						persistent && !_recovered, _open_for_seeding, _has_ever_been_started,
 						_initialState );		
 
+		if ( torrent != null && _initialisation_adapter != null ){
+			
+			DiskManagerFileInfo[]	file_info = getDiskManagerFileInfo();
+			
+			for (int i=0;i<file_info.length;i++){
+			
+				try{
+					_initialisation_adapter.fileInfoInitialised( file_info[i] );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+		}
 	}
 
 

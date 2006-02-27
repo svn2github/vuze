@@ -42,9 +42,10 @@ DownloadManagerFactory
 		String 			savePath, 
 		int      		initialState,
 		boolean			persistent,
-		boolean			for_seeding )
+		boolean			for_seeding,
+		DownloadManagerInitialisationAdapter adapter )
 	{
-		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, initialState, persistent, false, for_seeding, false ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, savePath, null, initialState, persistent, false, for_seeding, false, adapter ));
 	}
 	
 		// recovery method
@@ -61,6 +62,6 @@ DownloadManagerFactory
 		boolean			recovered,
 		boolean			has_ever_been_started )
 	{
-		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, initialState, persistent, recovered, false, has_ever_been_started ));
+		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, initialState, persistent, recovered, false, has_ever_been_started, null ));
 	}
 }

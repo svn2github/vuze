@@ -209,7 +209,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 						default_start_stopped 	? DownloadManager.STATE_STOPPED 
 												: DownloadManager.STATE_QUEUED,
 						true,	// persistent 
-						true );	// for seeding
+						true,	// for seeding
+						null );	// no adapter required
                 
                 if ( ((NewTorrentWizard)wizard).autoHost &&  ((NewTorrentWizard)wizard).tracker_type != NewTorrentWizard.TT_EXTERNAL ){
                 	
