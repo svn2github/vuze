@@ -24,48 +24,80 @@ package org.gudy.azureus2.plugins.logging;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 /**
- * @author parg
- *
+ * Logging utilities class
+ * 
+ * @since 2.0.7.0
  */
+public interface Logger {
 
-public interface 
-Logger 
-{
-	public LoggerChannel
-	getChannel(
-		String		name );
-	
-	public LoggerChannel
-	getTimeStampedChannel(
-		String		name );
-	
-		/**
-		 * Returns a logger channel that doesn't output to the standard AZ log. Add listeners
-		 * to it if output needs to be routed somewhere
-		 * @param name
-		 * @return
-		 */
-	
-	public LoggerChannel
-	getNullChannel(
-		String		name );
-	
-	public LoggerChannel[]
-	getChannels();
-	
-	public PluginInterface
-	getPluginInterface();
+	/**
+	 * Create a normal logging channel.  Multiple calls to this method with the
+	 * same name parameter results in different channels.
+	 *  
+	 * @param name Name of LoggerChannel
+	 * @return a new LoggerChannel
+	 * 
+	 * @since 2.0.7.0
+	 */
+	public LoggerChannel getChannel(String name);
 
-		/**
-		 * these methods give access to all alerts raised, not channel specific ones
-		 * @param listener
-		 */
-	
-	public void
-	addAlertListener(
-		LoggerAlertListener		listener );
-	
-	public void
-	removeAlertListener(
-		LoggerAlertListener		listener );
+	/**
+	 * Create a timestamped logging channel. Multiple calls to this method with
+	 * the same name parameter results in different channels.
+	 *  
+	 * @param name Name of LoggerChannel
+	 * @return a new LoggerChannel
+	 * 
+	 * @since 2.3.0.0
+	 */
+	public LoggerChannel getTimeStampedChannel(String name);
+
+	/**
+	 * Create a logger channel that doesn't output to the standard AZ log.
+	 * Add listeners to it if output needs to be routed somewhere.
+	 * Multiple calls to this method with the same name parameter results in 
+	 * different channels
+	 *  
+	 * @param name Name of LoggerChannel
+	 * @return a new LoggerChannel
+	 * 
+	 * @since 2.3.0.0
+	 */
+	public LoggerChannel getNullChannel(String name);
+
+	/**
+	 * Retrieve all the channels that have been created for all plugins.
+	 * 
+	 * @return Array of LoggerChannel objects
+	 * 
+	 * @since 2.1.0.0
+	 */
+	public LoggerChannel[] getChannels();
+
+	/**
+	 * Retrieve the PluginInterface
+	 * 
+	 * @return PluginInterface object
+	 * 
+	 * @since 2.3.0.0
+	 */
+	public PluginInterface getPluginInterface();
+
+	/**
+	 * Add LoggerAlertListener for all alerts raised
+	 * 
+	 * @param listener Listener to add
+	 * 
+	 * @since 2.3.0.6
+	 */
+	public void addAlertListener(LoggerAlertListener listener);
+
+	/**
+	 * Remove previously added Alert Listener
+	 * 
+	 * @param listener LoggerAltertListener to remove
+	 * 
+	 * @since 2.3.0.6
+	 */
+	public void removeAlertListener(LoggerAlertListener listener);
 }
