@@ -1213,10 +1213,13 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 					File f = new File(sFilterPath);
 					if (!f.isDirectory()) {
-						sFileName = new File(sFilterPath, sFileName).getAbsolutePath();
 						// Move up the tree until we have an existing path
 						while (sFilterPath != null) {
-							sFilterPath = f.getParent();
+							String parentPath = f.getParent();
+							if (parentPath == null)
+								break;
+							
+							sFilterPath = parentPath;
 							f = new File(sFilterPath);
 							if (f.isDirectory())
 								break;
