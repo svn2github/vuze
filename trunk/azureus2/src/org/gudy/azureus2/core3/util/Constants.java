@@ -20,6 +20,8 @@
  */
 package org.gudy.azureus2.core3.util;
 
+import java.nio.charset.Charset;
+
 /**
  *  
  * @author Olivier
@@ -38,6 +40,19 @@ Constants
   
   public static final String DEFAULT_ENCODING 	= "UTF8";
   public static final String BYTE_ENCODING 		= "ISO-8859-1";
+  public static Charset	BYTE_CHARSET;
+  public static Charset	DEFAULT_CHARSET;
+
+  static{
+	  try{
+	  	BYTE_CHARSET 	= Charset.forName( Constants.BYTE_ENCODING );
+	 	DEFAULT_CHARSET = Charset.forName( Constants.DEFAULT_ENCODING );
+
+	}catch( Throwable e ){
+		
+		e.printStackTrace();
+	}
+  }
   
   public static final String INFINITY_STRING	= "\u221E"; // "oo";
   public static final int    INFINITY_AS_INT = 31536000; // seconds (365days)

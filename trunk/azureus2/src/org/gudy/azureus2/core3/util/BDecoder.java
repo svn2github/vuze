@@ -36,20 +36,6 @@ import java.nio.charset.*;
  */
 public class BDecoder {
 	
-	protected static Charset	BYTE_CHARSET;
-	protected static Charset	DEFAULT_CHARSET;
-
-	static{
-	 	try{
-	  		BYTE_CHARSET 	= Charset.forName( Constants.BYTE_ENCODING );
-	 		DEFAULT_CHARSET = Charset.forName( Constants.DEFAULT_ENCODING );
-
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace( e );
-		}
-	}
-	
 	private boolean recovery_mode;
 		
 
@@ -163,7 +149,7 @@ public class BDecoder {
 	          
 	          	//add the value to the map
 	          
-	          CharBuffer	cb = BYTE_CHARSET.decode(ByteBuffer.wrap(tempByteArray));
+	          CharBuffer	cb = Constants.BYTE_CHARSET.decode(ByteBuffer.wrap(tempByteArray));
 	          
 	          String	key = new String(cb.array(),0,cb.limit());
 	                    
@@ -297,7 +283,7 @@ public class BDecoder {
 
     //return the value
     
-    CharBuffer	cb = DEFAULT_CHARSET.decode(ByteBuffer.wrap(tempArray));
+    CharBuffer	cb = Constants.DEFAULT_CHARSET.decode(ByteBuffer.wrap(tempArray));
     
     String	str_value = new String(cb.array(),0,cb.limit());
 

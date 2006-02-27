@@ -302,7 +302,7 @@ ConfigurationManager
 	  }
       if (bp == null)
         return null;
-      return new String(bp);
+      return bytesToString(bp);
   }
   
   public String getStringParameter(String parameter, String defaultValue) {
@@ -337,7 +337,15 @@ ConfigurationManager
   
   public boolean setParameter(String parameter,StringList value) {
   	try {
-  		propertiesMap.put(parameter,new ArrayList(((StringListImpl)value).getList()));
+  		List	encoded = new ArrayList();
+  		
+  		List	l = ((StringListImpl)value).getList();
+  		
+  		for (int i=0;i<l.size();i++){
+  			
+  			encoded.add( stringToBytes((String)l.get(i)));
+  		}
+  		propertiesMap.put(parameter,encoded);
   	} catch(Exception e) {
   		Debug.printStackTrace(e);
   		return false;
@@ -436,7 +444,7 @@ ConfigurationManager
 
   public boolean setParameter(String parameter, float defaultValue) {
     String newValue = String.valueOf(defaultValue);
-    return setParameter(parameter, newValue.getBytes());
+    return setParameter(parameter, stringToBytes(newValue));
   }
 
   public boolean setParameter(String parameter, int defaultValue) {
@@ -451,7 +459,7 @@ ConfigurationManager
    }
   
   public boolean setParameter(String parameter, String defaultValue) {
-    return setParameter(parameter, defaultValue.getBytes());
+    return setParameter(parameter, stringToBytes(defaultValue));
   }
 
 	public boolean setRGBParameter(String parameter, int red, int green, int blue) {
@@ -680,7 +688,7 @@ ConfigurationManager
 								break;
 							}
 						}
-						writer.println( key + "=" + (hex?ByteFormatter.nicePrint(b):new String((byte[])value)));
+						writer.println( key + "=" + (hex?ByteFormatter.nicePrint(b):bytesToString((byte[])value)));
 						
 					}else{
 						
@@ -696,4 +704,31 @@ ConfigurationManager
 			writer.exdent();
 		}
 	}
+	
+	protected static String
+	bytesToString(
+		byte[]	bytes )
+	{
+		try{
+			return( new String( bytes, Constants.DEFAULT_ENCODING ));
+			
+		}catch( Throwable e ){
+			
+			return( new String(bytes));
+		}
+	}
+	
+	protected static byte[]
+	stringToBytes(
+		String	str )
+	{
+		try{
+			return( str.getBytes( Constants.DEFAULT_ENCODING ));
+			
+		}catch( Throwable e ){
+			
+			return( str.getBytes());
+		}
+	}
+	
 }

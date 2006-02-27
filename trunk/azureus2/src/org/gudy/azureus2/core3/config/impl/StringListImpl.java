@@ -57,7 +57,7 @@ public class StringListImpl implements StringList {
 			if(obj instanceof String) {
 				list.add(obj);
 			} else if(obj instanceof byte[]) {
-				list.add(new String((byte[]) obj));
+				list.add(ConfigurationManager.bytesToString((byte[]) obj));
 			} else if(obj instanceof Object) {
 				list.add(obj.toString());
 			}

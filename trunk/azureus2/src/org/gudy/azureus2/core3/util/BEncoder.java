@@ -54,9 +54,9 @@ BEncoder
         	
             String tempString = (object instanceof String) ? (String)object : String.valueOf((Float)object);
 
-            ByteBuffer	bb 	= BDecoder.DEFAULT_CHARSET.encode( tempString );           
+            ByteBuffer	bb 	= Constants.DEFAULT_CHARSET.encode( tempString );           
             
-            write(baos,BDecoder.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
+            write(baos,Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
             
             baos.write(':');
             
@@ -118,7 +118,7 @@ BEncoder
 		                		   		
 		   					try{
 		  					
-		   				 		encode( baos, BDecoder.BYTE_CHARSET.encode(key));
+		   				 		encode( baos, Constants.BYTE_CHARSET.encode(key));
 		      				
 		      					encode( baos, tempMap.get(key));
 		      		
@@ -160,27 +160,27 @@ BEncoder
             Long tempLong = (Long)object;         
             //write out the l       
                baos.write('i');
-               write(baos,BDecoder.DEFAULT_CHARSET.encode(tempLong.toString()));
+               write(baos,Constants.DEFAULT_CHARSET.encode(tempLong.toString()));
                baos.write('e');
          }else if(object instanceof Integer){
          	
 			Integer tempInteger = (Integer)object;         
 			//write out the l       
 			baos.write('i');
-			write(baos,BDecoder.DEFAULT_CHARSET.encode(tempInteger.toString()));
+			write(baos,Constants.DEFAULT_CHARSET.encode(tempInteger.toString()));
 			baos.write('e');
 			
        }else if(object instanceof byte[]){
        	
             byte[] tempByteArray = (byte[])object;
-            write(baos,BDecoder.DEFAULT_CHARSET.encode(String.valueOf(tempByteArray.length)));
+            write(baos,Constants.DEFAULT_CHARSET.encode(String.valueOf(tempByteArray.length)));
             baos.write(':');
             baos.write(tempByteArray);
             
        }else if(object instanceof ByteBuffer ){
        	
        		ByteBuffer  bb = (ByteBuffer)object;
-       		write(baos,BDecoder.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
+       		write(baos,Constants.DEFAULT_CHARSET.encode(String.valueOf(bb.limit())));
             baos.write(':');
             write(baos,bb);
         }   
