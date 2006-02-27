@@ -288,8 +288,8 @@ public class MyTorrentsView
         lblFilter.setLayoutData(gridData);
         Messages.setLanguageText(lblFilter, "MyTorrentsView.filter");
 
-				lblX = new Label(cHeader, SWT.WRAP);
-        Messages.setLanguageText(lblX, "MyTorrentsView.clearFilter", true);
+		lblX = new Label(cHeader, SWT.WRAP);
+        Messages.setLanguageTooltip(lblX, "MyTorrentsView.clearFilter.tooltip");
         gridData = new GridData(SWT.TOP);
         lblX.setLayoutData(gridData);
         lblX.setImage(ImageRepository.getImage("smallx-gray"));

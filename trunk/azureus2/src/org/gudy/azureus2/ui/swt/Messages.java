@@ -308,6 +308,8 @@ public class Messages {
     if (widget.getData() != null) {
       if (widget instanceof CLabel)
         ((CLabel) widget).setToolTipText(MessageText.getString((String) widget.getData()));
+      else if (widget instanceof Label)
+          ((Label) widget).setToolTipText(MessageText.getString((String) widget.getData()));
       else
         System.out.println("No cast for " + widget.getClass().getName());
     }
