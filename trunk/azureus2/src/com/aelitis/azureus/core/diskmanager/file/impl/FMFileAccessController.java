@@ -115,57 +115,89 @@ FMFileAccessController
 		
 		boolean	ok	= false;
 		
-		try{		
-			raf = new RandomAccessFile( file, FMFileImpl.WRITE_ACCESS_MODE);
-			
-				// due to the simplistic implementation of compact we only actually need to deal with
-				// the last piece of the file (first piece is in the right place already)
-			
+		try{
 			FMFileAccess	target_access;
-			
-			FMFileAccessCompact	compact_access;
 			
 			if ( target_type == FMFile.FT_LINEAR ){
 				
 				target_access = new FMFileAccessLinear( owner );
-				
-				compact_access = (FMFileAccessCompact)file_access;
-					
+									
 			}else{
 				
-				target_access = compact_access =
-					new FMFileAccessCompact(
-							owner.getOwner().getTorrentFile(),
-							control_file,  
-							new FMFileAccessLinear( owner ));
+				target_access = new FMFileAccessCompact(
+										owner.getOwner().getTorrentFile(),
+										control_file,  
+										new FMFileAccessLinear( owner ));
 			}
-			
-			long	length = file_access.getLength( raf );
-			
-			long	last_piece_start 	= compact_access.getLastPieceStart();
-			long	last_piece_length 	= compact_access.getLastPieceLength();
-			
-				// see if we have any potential data for the last piece
-			
-			if ( last_piece_length > 0 && length > last_piece_start ){
+
+			if ( file.exists()){
+
+				raf = new RandomAccessFile( file, FMFileImpl.WRITE_ACCESS_MODE);
 				
-				long	data_length = length - last_piece_start;
+					// due to the simplistic implementation of compact we only actually need to deal with
+					// the last piece of the file (first piece is in the right place already)
 				
-				if ( data_length > last_piece_length ){
+				FMFileAccessCompact	compact_access;
+				
+				if ( target_type == FMFile.FT_LINEAR ){
+										
+					compact_access = (FMFileAccessCompact)file_access;
+						
+				}else{
 					
-					Debug.out("data length inconsistent: len=" + data_length + ",limit=" + last_piece_length );
-					
-					data_length = last_piece_length;
+					 compact_access = (FMFileAccessCompact)target_access;
 				}
 				
-				DirectByteBuffer	buffer = 
-					DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_FILE, (int)data_length );
+				long	length = file_access.getLength( raf );
 				
-				try{
+				long	last_piece_start 	= compact_access.getLastPieceStart();
+				long	last_piece_length 	= compact_access.getLastPieceLength();
 				
-					file_access.read( raf, buffer, last_piece_start );
+					// see if we have any potential data for the last piece
+				
+				if ( last_piece_length > 0 && length > last_piece_start ){
 					
-						// see if we need to truncate
+					long	data_length = length - last_piece_start;
+					
+					if ( data_length > last_piece_length ){
+						
+						Debug.out("data length inconsistent: len=" + data_length + ",limit=" + last_piece_length );
+						
+						data_length = last_piece_length;
+					}
+					
+					DirectByteBuffer	buffer = 
+						DirectByteBufferPool.getBuffer( DirectByteBuffer.AL_FILE, (int)data_length );
+					
+					try{
+					
+						file_access.read( raf, buffer, last_piece_start );
+						
+							// see if we need to truncate
+						
+						if ( target_type == FMFile.FT_COMPACT ){
+							
+							long	first_piece_length = compact_access.getFirstPieceLength();
+							
+							long	physical_length = raf.length();
+							
+							if ( physical_length > first_piece_length ){
+						
+								raf.setLength( first_piece_length );
+							}
+						}
+						
+						buffer.flip( DirectByteBuffer.AL_FILE );
+						
+						target_access.write( raf, new DirectByteBuffer[]{ buffer }, last_piece_start );
+						
+					}finally{
+						
+						buffer.returnToPool();
+					}
+				}else{
+					
+						// no last piece, truncate after the first piece
 					
 					if ( target_type == FMFile.FT_COMPACT ){
 						
@@ -178,39 +210,16 @@ FMFileAccessController
 							raf.setLength( first_piece_length );
 						}
 					}
-					
-					buffer.flip( DirectByteBuffer.AL_FILE );
-					
-					target_access.write( raf, new DirectByteBuffer[]{ buffer }, last_piece_start );
-					
-				}finally{
-					
-					buffer.returnToPool();
 				}
-			}else{
-				
-					// no last piece, truncate after the first piece
-				
-				if ( target_type == FMFile.FT_COMPACT ){
 					
-					long	first_piece_length = compact_access.getFirstPieceLength();
-					
-					long	physical_length = raf.length();
-					
-					if ( physical_length > first_piece_length ){
+				target_access.setLength( raf, length );
 				
-						raf.setLength( first_piece_length );
-					}
-				}
+				target_access.flush();
 			}
-				
-			target_access.setLength( raf, length );
-			
-			target_access.flush();
 			
 			type		= target_type;
 			file_access	= target_access;
-
+	
 			ok	= true;
 			
 		}catch( Throwable e ){
