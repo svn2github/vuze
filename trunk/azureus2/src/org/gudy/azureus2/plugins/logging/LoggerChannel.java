@@ -27,7 +27,8 @@ package org.gudy.azureus2.plugins.logging;
  * A logger channel is created or retrieve via {@link Logger}.  Typically,
  * a plugin has it's own channel which it can manipulate.  All channels
  * are part of Azureus logging as a whole, meaning anything logged here will
- * also be fed to any functionality that operates on logging data.
+ * also be fed to any functionality that operates on logging data (with
+ * the exception of {@link Logger#getNullChannel(String)}).
  * 
  * @since 2.0.7.0
  */
