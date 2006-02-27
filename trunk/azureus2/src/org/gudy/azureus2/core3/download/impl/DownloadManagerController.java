@@ -289,10 +289,10 @@ DownloadManagerController
 
 	public void 
 	initializeDiskManager(
-		int	initialising_state ) 
+		final boolean	open_for_seeding )
 	{
 		initializeDiskManagerSupport(
-			initialising_state,
+			DownloadManager.STATE_INITIALIZED,
 			new DiskManagerListener()
 	  			{
 	  				public void
@@ -341,18 +341,24 @@ DownloadManagerController
 	  							
 			  						if ( completed < 1000 ){
 		  							
-				  						// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
-				  						// and resumed 
-				  				
-				  									  										 
-			  								// assume downloaded = uploaded, optimistic but at least results in
-			  								// future share ratios relevant to amount up/down from now on
-			  								// see bug 1077060 
+			  							if ( open_for_seeding ){
 			  								
-			  							long	amount_downloaded = (completed*dm.getTotalLength())/1000;
+			  								setFailed( "File check failed" );
 			  								
-			 							stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
-			   						
+			  							}else{
+			  								
+					  						// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
+					  						// and resumed 
+					  				
+					  									  										 
+				  								// assume downloaded = uploaded, optimistic but at least results in
+				  								// future share ratios relevant to amount up/down from now on
+				  								// see bug 1077060 
+				  								
+				  							long	amount_downloaded = (completed*dm.getTotalLength())/1000;
+				  								
+				 							stats.setSavedDownloadedUploaded( amount_downloaded, amount_downloaded );
+			  							}
 			  						}else{		  					
 			  								// see GlobalManager for comment on this
 			  							

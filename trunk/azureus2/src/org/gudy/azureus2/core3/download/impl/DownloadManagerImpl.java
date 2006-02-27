@@ -241,6 +241,8 @@ DownloadManagerImpl
 	private GlobalManager globalManager;
 	private String torrentFileName;
 	
+	private boolean	open_for_seeding;
+	
 	private String	display_name	= "";
 	private String	internal_name	= "";
 	
@@ -366,8 +368,9 @@ DownloadManagerImpl
 			Debug.out( "DownloadManagerImpl: Illegal start state, " + _initialState );
 		}
 		
-		persistent		= _persistent;
-		globalManager 	= _gm;
+		persistent			= _persistent;
+		globalManager 		= _gm;
+		open_for_seeding	= _open_for_seeding;
 
 		stats = new DownloadManagerStatsImpl( this );
   	
@@ -1044,9 +1047,18 @@ DownloadManagerImpl
       		// we need to set the state to "initialized" before kicking off the disk manager
       		// initialisation as it should only report its status while in the "initialized"
       		// state (see getState for how this works...)
-      	        
-			controller.initializeDiskManager( DownloadManager.STATE_INITIALIZED );
-
+      	      
+			try{
+				controller.initializeDiskManager( open_for_seeding );
+				
+			}finally{
+				
+					// only supply this the very first time the torrent starts so the controller can check 
+					// that things are ok. Subsequent restarts are under user control
+				
+				open_for_seeding	= false;
+			}
+			
 		}catch( TRTrackerAnnouncerException e ){
  		
 			setFailed( e ); 
