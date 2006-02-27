@@ -82,6 +82,7 @@ public class BTPeerIDByteDecoder {
       
       if( (decoded = decodeTornadoStyle( peerID, "T", "BitTornado" )) != null ) return decoded;
       if( (decoded = decodeTornadoStyle( peerID, "A", "ABC" )) != null ) return decoded;
+      if( (decoded = decodeTornadoStyle( peerID, "O", "Osprey permaseed" )) != null ) return decoded;
      
       if( (decoded = decodeMainlineStyle( peerID, "M", "Mainline" )) != null ) return decoded;
       
