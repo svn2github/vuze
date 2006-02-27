@@ -2299,9 +2299,11 @@ DiskManagerImpl
 		DownloadManager			download_manager,
 		DiskManagerFileInfo[]	info,
 		DiskManagerFileInfo		file_info,
-		File					from_link,
+		File					from_file,
 		File					to_link )
 	{
+			// existing link is that for the TO_LINK and will come back as TO_LINK if no link is defined
+		
 		File	existing_link = FMFileManagerFactory.getSingleton().getFileLink( download_manager.getTorrent(), to_link );
 		
 		if ( !existing_link.equals( to_link )){
@@ -2309,7 +2311,7 @@ DiskManagerImpl
 				// where we're mapping to is already linked somewhere else. Only case we support
 				// is where this is a remapping of the same file back to where it came from
 			
-			if ( !from_link.equals( to_link )){
+			if ( !from_file.equals( to_link )){
 				
 				Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
 								"Attempt to link to existing link '" + existing_link.toString()
@@ -2319,6 +2321,15 @@ DiskManagerImpl
 			}
 		}
 		
+		File	existing_file = file_info.getFile( true );
+
+		if ( to_link.equals( existing_file )){
+		
+				// already pointing to the right place
+			
+			return( true );
+		}
+
 		for (int i=0;i<info.length;i++){
 			
 			if ( to_link.equals( info[i].getFile( true ))){
@@ -2331,15 +2342,9 @@ DiskManagerImpl
 			}
 		}
 
-		File	existing_file = file_info.getFile( true );
-		
 		if ( to_link.exists()){
    		 
-			if ( to_link.equals( existing_file )){
-		  
-				return( true );
-				
-			}else if ( !existing_file.exists()){
+			if ( !existing_file.exists()){
 
 					// using a new file, make sure we recheck
 				
@@ -2377,7 +2382,7 @@ DiskManagerImpl
 
 		DownloadManagerState	state = download_manager.getDownloadState();
 		
-		state.setFileLink( from_link, to_link );
+		state.setFileLink( from_file, to_link );
 		
 		state.save();
 		
