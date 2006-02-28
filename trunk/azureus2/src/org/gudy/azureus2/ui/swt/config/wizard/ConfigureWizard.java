@@ -63,12 +63,12 @@ public class ConfigureWizard extends Wizard {
   {
     super(azureus_core,display,"configureWizard.title");
     IWizardPanel panel = new LanguagePanel(this,null);
-    this.setFirstPanel(panel);
     try  {
       torrentPath = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
     } catch(Exception e) {
       torrentPath = ""; 
     }
+    this.setFirstPanel(panel);
   }
   
   public void onClose() {
