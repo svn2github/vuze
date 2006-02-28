@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import com.aelitis.azureus.core.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 /**
@@ -61,7 +62,7 @@ public class ConfigureWizard extends Wizard {
 	Display 		display) 
   {
     super(azureus_core,display,"configureWizard.title");
-    WelcomePanel panel = new WelcomePanel(this,null);
+    IWizardPanel panel = new LanguagePanel(this,null);
     this.setFirstPanel(panel);
     try  {
       torrentPath = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");

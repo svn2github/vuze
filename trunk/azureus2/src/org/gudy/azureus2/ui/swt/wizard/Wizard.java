@@ -333,6 +333,10 @@ public class Wizard {
     this.title.setText(title);
   }
 
+  public void setTitleAsResourceID(String id) {
+  	Messages.setLanguageText(title, id);
+  }
+
   public void setCurrentInfo(String currentInfo) {
     this.currentInfo.setText("\t" + currentInfo);
   }
@@ -366,6 +370,12 @@ public class Wizard {
     insureSize();
     Utils.centreWindow( wizardWindow );
     wizardWindow.open();
+    
+    while (!wizardWindow.isDisposed()) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
   }
 
   public Shell getWizardWindow() {
