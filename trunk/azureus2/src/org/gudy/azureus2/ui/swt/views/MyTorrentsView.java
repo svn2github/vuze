@@ -303,7 +303,7 @@ public class MyTorrentsView
         });
         
         txtFilter = new Text(cHeader, SWT.BORDER);
-        Messages.setLanguageText(txtFilter, "MyTorrentsView.filter", true);
+        Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
         txtFilter.addKeyListener(this);
         gridData = new GridData(GridData.FILL_HORIZONTAL);
         txtFilter.setLayoutData(gridData);
@@ -2145,14 +2145,14 @@ public class MyTorrentsView
 					try {
 						Pattern.compile(sLastSearch, Pattern.CASE_INSENSITIVE);
 						txtFilter.setBackground(Colors.colorAltRow);
-		        Messages.setLanguageText(txtFilter, "MyTorrentsView.filter", true);
+						Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
 					} catch (Exception e) {
 						txtFilter.setBackground(Colors.colorErrorBG);
 						txtFilter.setToolTipText(e.getMessage());
 					}
 				} else {
 					txtFilter.setBackground(null);
-	        Messages.setLanguageText(txtFilter, "MyTorrentsView.filter", true);
+					Messages.setLanguageTooltip(txtFilter, "MyTorrentsView.filter.tooltip");
 				}
 			}
 		}
