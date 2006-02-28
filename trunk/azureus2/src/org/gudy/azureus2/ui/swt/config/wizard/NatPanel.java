@@ -113,27 +113,32 @@ public class NatPanel extends AbstractWizardPanel {
     rootPanel.setLayout(layout);
 
     Composite panel = new Composite(rootPanel, SWT.NULL);
-    GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+    GridData gridData = new GridData(GridData.FILL_BOTH);
     panel.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 4;
     panel.setLayout(layout);
 
     Label label = new Label(panel, SWT.WRAP);
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    gridData.widthHint = 380;
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 4;
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "configureWizard.nat.message");
 
     label = new Label(panel, SWT.NULL);
+    gridData = new GridData();
+    gridData.horizontalSpan = 4;
+    label.setLayoutData(gridData);
+    
+    
     label = new Label(panel, SWT.NULL);
-    label = new Label(panel, SWT.NULL);
+    gridData = new GridData();
+    label.setLayoutData(gridData);
     Messages.setLanguageText(label, "configureWizard.nat.server.tcp_listen_port");
 
     final Text textServerTCPListen = new Text(panel, SWT.BORDER);
-    gridData = new GridData();
-    gridData.widthHint = 100;
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 80;
     textServerTCPListen.setLayoutData(gridData);
     textServerTCPListen.setText("" + ((ConfigureWizard) wizard).serverTCPListenPort);
     textServerTCPListen.addListener(SWT.Verify, new Listener() {
@@ -219,10 +224,9 @@ public class NatPanel extends AbstractWizardPanel {
     bCancel.setEnabled(false);
 
     textResults = new StyledText(panel, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-    gridData = new GridData();
-    gridData.widthHint = 350;
-    gridData.heightHint = 100;
-    gridData.horizontalSpan = 2;
+    gridData = new GridData(GridData.FILL_BOTH);
+    gridData.heightHint = 70;
+    gridData.horizontalSpan = 4;
     textResults.setLayoutData(gridData);
     textResults.setBackground(panel.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
