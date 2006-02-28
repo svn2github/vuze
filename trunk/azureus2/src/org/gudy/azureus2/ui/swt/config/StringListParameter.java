@@ -22,11 +22,7 @@
 package org.gudy.azureus2.ui.swt.config;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.*;
 
 /**
@@ -35,16 +31,63 @@ import org.gudy.azureus2.core3.config.*;
  */
 public class StringListParameter extends Parameter {
 
-  Combo list;
+  Control list;
   final String name;
   final String default_value;
 
-  public StringListParameter( Composite composite, String _name, String labels[], String values[]) 
-  {
-	  this( composite, _name, COConfigurationManager.getStringParameter(_name), labels, values );
-  }
-  
-  public StringListParameter( Composite composite, String _name, String defaultValue, final String labels[], final String values[]) {
+  /**
+   * 
+   * @param composite
+   * @param _name
+   * @param labels
+   * @param values
+   * @param bUseCombo
+   */
+  public StringListParameter(Composite composite, String _name,
+			String labels[], String values[], boolean bUseCombo) {
+		this(composite, _name, COConfigurationManager.getStringParameter(_name),
+				labels, values, bUseCombo);
+	}
+
+  /**
+   * 
+   * @param composite
+   * @param _name
+   * @param labels
+   * @param values
+   */
+	public StringListParameter(Composite composite, String _name,
+			String labels[], String values[]) {
+		this(composite, _name, COConfigurationManager.getStringParameter(_name),
+				labels, values, true);
+	}
+
+	/**
+	 * 
+	 * @param composite
+	 * @param _name
+	 * @param defaultValue
+	 * @param labels
+	 * @param values
+	 */
+	public StringListParameter(Composite composite, String _name,
+			String defaultValue, final String labels[], final String values[]) {
+		this(composite, _name, COConfigurationManager.getStringParameter(_name),
+				labels, values, true);
+	}
+
+	/**
+	 * 
+	 * @param composite
+	 * @param _name
+	 * @param defaultValue
+	 * @param labels
+	 * @param values
+	 * @param bUseCombo
+	 */
+	public StringListParameter(Composite composite, String _name,
+			String defaultValue, final String labels[], final String values[],
+			final boolean bUseCombo) {
     this.name = _name;
     this.default_value = defaultValue;
     
@@ -54,17 +97,31 @@ public class StringListParameter extends Parameter {
     
     String value = COConfigurationManager.getStringParameter(name,defaultValue);
     int index = findIndex(value,values);
-    list = new Combo(composite,SWT.SINGLE | SWT.READ_ONLY);
+    if (bUseCombo)
+    	list = new Combo(composite,SWT.SINGLE | SWT.READ_ONLY);
+    else
+    	list = new List(composite, SWT.SINGLE | SWT.BORDER);
     
     for(int i = 0 ; i < labels.length  ;i++) {
-      list.add(labels[i]);
+    	if (bUseCombo)
+    		((Combo)list).add(labels[i]);
+    	else
+    		((List)list).add(labels[i]);
     }
       
-    list.select(index);
+  	if (bUseCombo)
+  		((Combo)list).select(index);
+  	else
+  		((List)list).select(index);
       
     list.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
-        COConfigurationManager.setParameter(name, values[list.getSelectionIndex()]);
+      	int index;
+      	if (bUseCombo)
+      		index = ((Combo)list).getSelectionIndex();
+      	else
+      		index = ((List)list).getSelectionIndex();
+        COConfigurationManager.setParameter(name, values[index]);
         
         if( change_listeners != null ) {
           for (int i=0;i<change_listeners.size();i++){
