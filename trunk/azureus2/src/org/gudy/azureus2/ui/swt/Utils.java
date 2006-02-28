@@ -250,7 +250,12 @@ public class Utils {
 
   public static DropTarget createTorrentDropTarget(Control control,
 			boolean bAllowShareAdd) {
-		return createDropTarget(control, bAllowShareAdd, null);
+  	try {
+  		return createDropTarget(control, bAllowShareAdd, null);
+  	} catch (Exception e) {
+      Debug.out(e);
+  	}
+    return null;
 	}
 
 	/**
@@ -261,7 +266,12 @@ public class Utils {
 	 */
 	public static DropTarget createURLDropTarget(final Control control,
 			final Text url) {
-		return createDropTarget(control, false, url);
+		try {
+			return createDropTarget(control, false, url);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+		return null;
 	}
 
 	private static DropTarget createDropTarget(final Control control,
