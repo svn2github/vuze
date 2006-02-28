@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +49,7 @@ import java.util.List;
  */
 public class Wizard {
 
+	private final static int DEFAULT_WIDTH = 500;
   List		listeners = new ArrayList();
   
   AzureusCore	azureus_core;
@@ -83,7 +85,7 @@ public class Wizard {
   	azureus_core	= _azureus_core;
     this.display 	= display;
     
-    wizardWindow = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM);
+    wizardWindow = ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.RESIZE);
     GridLayout layout = new GridLayout();
     layout.numColumns = 1;
     layout.horizontalSpacing = 0;
@@ -241,8 +243,8 @@ public class Wizard {
 		}
 	});
  	
- 	wizardHeight = wizardWindow.computeSize(400,SWT.DEFAULT).y - 50;
- 	wizardWindow.setSize(400,400);
+ 	wizardHeight = wizardWindow.computeSize(DEFAULT_WIDTH,SWT.DEFAULT).y - 50;
+ 	wizardWindow.setSize(DEFAULT_WIDTH,400);
 
   }
   
@@ -424,10 +426,10 @@ public class Wizard {
   
   private void insureSize() {
   	//panel.pack();
-  	Point p = panel.computeSize(400,SWT.DEFAULT);
+  	Point p = panel.computeSize(wizardWindow.getSize().x,SWT.DEFAULT);
   	int height = p.y + wizardHeight;
   	if(height > wizardWindow.getSize().y)
-  		wizardWindow.setSize(400,height);
+  		wizardWindow.setSize(p.x,height);
   }
   
   public AzureusCore

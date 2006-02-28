@@ -74,24 +74,21 @@ public class WelcomePanel extends AbstractWizardPanel {
     rootPanel.setLayout(layout);
   
     Composite panel = new Composite(rootPanel, SWT.NULL);
-    GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+    GridData gridData = new GridData(GridData.FILL_BOTH);
     panel.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 1;
     panel.setLayout(layout);     
 
     Label label0 = new Label(panel,SWT.WRAP);
-    gridData = new GridData();
-    gridData.widthHint = 380;    
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     label0.setLayoutData(gridData);
     Messages.setLanguageText(label0,"configureWizard.welcome.message");
     
     label0 = new Label(panel, SWT.NULL);
-    label0 = new Label(panel, SWT.NULL);
     
     Label label1 = new Label(panel,SWT.WRAP);
-    gridData = new GridData();
-    gridData.widthHint = 380;
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     label1.setLayoutData(gridData);
     Messages.setLanguageText(label1,"configureWizard.welcome.usermodes");
     

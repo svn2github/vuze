@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.StartupUtils;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
@@ -108,6 +109,11 @@ public class LanguagePanel extends AbstractWizardPanel {
 						lstLanguage.setItem(i, buildName(locales[i]));
 					}
 					lstLanguage.setRedraw(true);
+
+					try {
+						MainWindow.getWindow().getMenu().refreshLanguage();
+					} catch (Exception ex) {
+					}
 				}
 			}
 		});

@@ -103,16 +103,15 @@ public class TransferPanel extends AbstractWizardPanel {
     rootPanel.setLayout(layout);
 
     Composite panel = new Composite(rootPanel, SWT.NULL);
-    GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
+    GridData gridData = new GridData(GridData.FILL_BOTH);
     panel.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 2;
     panel.setLayout(layout);
 
     Label label = new Label(panel, SWT.WRAP);
-    gridData = new GridData();
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
-    gridData.widthHint = 380;
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "configureWizard.transfer.message");
 
