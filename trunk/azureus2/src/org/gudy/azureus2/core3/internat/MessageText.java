@@ -347,30 +347,31 @@ public class MessageText {
     String[] bundles = null;
     
     if (urlString.startsWith("jar:file:")) {
-    	
-        File jar = FileUtil.getJarFileFromURL( urlString );
-        
-        if ( jar != null ){
-        	
-        	try{
-		        //        System.out.println("jar: " + jar.getAbsolutePath());
-		        JarFile jarFile = new JarFile(jar);
-		        Enumeration entries = jarFile.entries();
-		        ArrayList list = new ArrayList(250);
-		        while (entries.hasMoreElements()) {
-		          JarEntry jarEntry = (JarEntry) entries.nextElement();
-		          if (jarEntry.getName().startsWith(bundleFolder) && jarEntry.getName().endsWith(extension) && jarEntry.getName().length() < bundleFolder.length() + extension.length() + 7) {
-		            //            System.out.println("jarEntry: " + jarEntry.getName());
-		            list.add(jarEntry.getName().substring(bundleFolder.length() - prefix.length()));
-		            // "MessagesBundle_de_DE.properties"
-		          }
-		        }
-		        bundles = (String[]) list.toArray(new String[list.size()]);
-        	} catch (Exception e) {
-        		Debug.printStackTrace( e );
-        	}
-        }
-    } else {
+
+			File jar = FileUtil.getJarFileFromURL(urlString);
+
+			if (jar != null) {
+				try {
+					// System.out.println("jar: " + jar.getAbsolutePath());
+					JarFile jarFile = new JarFile(jar);
+					Enumeration entries = jarFile.entries();
+					ArrayList list = new ArrayList(250);
+					while (entries.hasMoreElements()) {
+						JarEntry jarEntry = (JarEntry) entries.nextElement();
+						if (jarEntry.getName().startsWith(bundleFolder)
+								&& jarEntry.getName().endsWith(extension)) {
+							// System.out.println("jarEntry: " + jarEntry.getName());
+							list.add(jarEntry.getName().substring(
+									bundleFolder.length() - prefix.length()));
+							// "MessagesBundle_de_DE.properties"
+						}
+					}
+					bundles = (String[]) list.toArray(new String[list.size()]);
+				} catch (Exception e) {
+					Debug.printStackTrace(e);
+				}
+			}
+		} else {
       File bundleDirectory = new File(URI.create(urlString)).getParentFile();
       //      System.out.println("bundleDirectory: " +
       // bundleDirectory.getAbsolutePath());
@@ -425,10 +426,10 @@ public class MessageText {
     while (val.hasNext()) {
       String sBundle = (String)val.next();
       
-      //      System.out.println("ResourceBundle: " + bundles[i]);
+      // System.out.println("ResourceBundle: " + bundles[i]);
       if (prefix.length() + 1 < sBundle.length() - extension.length()) {
         String locale = sBundle.substring(prefix.length() + 1, sBundle.length() - extension.length());
-        //      System.out.println("Locale: " + locale);
+        //System.out.println("Locale: " + locale);
         String[] sLocalesSplit = locale.split("_", 3);
         if (sLocalesSplit.length > 0 && sLocalesSplit[0].length() == 2) {
           if (sLocalesSplit.length == 3) {
