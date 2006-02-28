@@ -2785,6 +2785,7 @@ public class MyTorrentsView
 	public void updateLanguage() {
 		super.updateLanguage();
 		updateTableLabel();
+		getComposite().layout(true, true);
 	}
 
 	/**
