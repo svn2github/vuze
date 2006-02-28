@@ -51,6 +51,7 @@ import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.components.ColorUtils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellManager;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
@@ -842,7 +843,27 @@ MainWindow
     if (COConfigurationManager.getBooleanParameter("Open Stats On Start", false)) {
       showStats();
     }
+
+    azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS );
+    
+    if (!COConfigurationManager.getBooleanParameter("Wizard Completed", false)) {
+    	ConfigureWizard	wizard = new ConfigureWizard(getAzureusCore(),display);
+    	
+    	wizard.addListener(
+    		new WizardListener()
+    		{
+    			public void
+    			closed()
+    			{
+   					azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
+    			}
+    		});
+    }else{
+    	
+    	azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
+    }
   
+    
     mainWindow.open();
     if(!Constants.isOSX) {mainWindow.forceActive();}
     updater = new GUIUpdater(azureus_core,this);
@@ -875,25 +896,6 @@ MainWindow
 	    }
     }
 
-    azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_STARTS );
-    
-    if (!COConfigurationManager.getBooleanParameter("Wizard Completed", false)) {
-    	ConfigureWizard	wizard = new ConfigureWizard(getAzureusCore(),display);
-    	
-    	wizard.addListener(
-    		new WizardListener()
-    		{
-    			public void
-    			closed()
-    			{
-   					azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
-    			}
-    		});
-    }else{
-    	
-    	azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
-    }
-  
     if (COConfigurationManager.getBooleanParameter("Show Download Basket", false)) { //$NON-NLS-1$
       if(tray == null)
         tray = new TrayWindow(this);
@@ -908,6 +910,7 @@ MainWindow
     // globalManager.startChecker();
     
     	// check file associations   
+    AssociationChecker.checkAssociations();
     DonationWindow2.checkForDonationPopup();
    }
 

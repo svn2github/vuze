@@ -188,7 +188,13 @@ AssociationChecker
 	 	
 		Utils.centreWindow( shell );
 
-		shell.open ();   
+		shell.open ();
+		
+    while (!shell.isDisposed()) {
+			if (!display.readAndDispatch()) {
+				display.sleep();
+			}
+		}
 	}
 					   
 	protected void

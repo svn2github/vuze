@@ -38,7 +38,6 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.LocaleUtilSWT;
 import org.gudy.azureus2.ui.swt.StartServer;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.associations.AssociationChecker;
 import org.gudy.azureus2.ui.swt.auth.AuthenticatorWindow;
 import org.gudy.azureus2.ui.swt.auth.CertificateTrustWindow;
 import org.gudy.azureus2.ui.swt.networks.SWTNetworkSelection;
@@ -77,7 +76,6 @@ Initializer
   		StartServer 			_server,
 		String[] 				_args ) 
   {
-    
     listeners = new ArrayList();
     
     azureus_core	= _azureus_core;
@@ -241,8 +239,6 @@ Initializer
 		    		    if (finalLogListener != null)
 		    		    	Logger.removeListener(finalLogListener);
 		    		    
-		    		    AssociationChecker.checkAssociations();
-
 	    				nextTask();	    
 	    				reportCurrentTask(MessageText.getString("splash.initializePlugins"));    				
 	    			}
