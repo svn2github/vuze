@@ -25,11 +25,14 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.List;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.ui.config.*;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.Parameter;
 import org.gudy.azureus2.ui.swt.config.ParameterChangeListener;
@@ -61,13 +64,17 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
   public Composite configSectionCreate(final Composite parent) {
     Label label;
     GridLayout layout;
+    GridData gridData;
     Composite cMain = new Composite( parent,  SWT.NULL );
     cMain.setLayoutData( new GridData( GridData.FILL_BOTH ) );
     layout = new GridLayout();
     layout.numColumns = 2;
+    layout.marginHeight = 0;
     cMain.setLayout( layout );
     
     label = new Label( cMain, SWT.NULL );
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    label.setLayoutData(gridData);
     Messages.setLanguageText( label, "MainWindow.menu.language" );  //old name path, but already translated
 
     Locale[] locales = MessageText.getLocales();
@@ -77,19 +84,27 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     int iUsingLocale = -1;
     for( int i=0; i < locales.length; i++ ) {
       Locale locale = locales[ i ];
-      drop_labels[ i ] = locale.getDisplayName( locale );
+      String sName = locale.getDisplayName(locale);
+      String sName2 = locale.getDisplayName();
+      if (!sName.equals(sName2)) {
+      	sName += " - " + sName2;
+      }
+      drop_labels[ i ] = sName + " - " + locale;
       drop_values[ i ] = locale.toString();
       if (MessageText.isCurrentLocale(locale))
       	iUsingLocale = i;
     }
     
-    final StringListParameter locale_param = new StringListParameter( cMain, "locale", drop_labels, drop_values );
+    StringListParameter locale_param = new StringListParameter(cMain, "locale",
+				drop_labels, drop_values, false);
+    gridData = new GridData(GridData.FILL_BOTH);
+    locale_param.setLayoutData(gridData);
     // There may be no "locale" setting stored in config, so set it to
     // what we are using now.  Don't automatically write it to config, because
     // the user may switch languages (or a new language file may become avail
     // in the future that matches closer to their locale)
     if (iUsingLocale >= 0)
-    	((Combo)locale_param.getControl()).select(iUsingLocale);
+    	((List)locale_param.getControl()).select(iUsingLocale);
     
     locale_param.addChangeListener( new ParameterChangeListener() {
       public void parameterChanged( Parameter p, boolean caused_internally ) {
