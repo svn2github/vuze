@@ -345,6 +345,8 @@ DownloadManagerController
 			  								
 			  								setFailed( "File check failed" );
 			  								
+			  								download_manager.getDownloadState().clearResumeData();
+			  								
 			  							}else{
 			  								
 					  						// make up some sensible "downloaded" figure for torrents that have been re-added to Azureus
