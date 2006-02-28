@@ -758,6 +758,8 @@ PluginUpdatePlugin
 
 		String	plugin_dir	= plugin.getPluginDirectoryName();
 		
+		UpdateInstaller	installer	= null;
+		
 		try{
 			boolean update_txt_found	= false;
 
@@ -772,6 +774,7 @@ PluginUpdatePlugin
 					// always need to restart for this
 				
 				update.setRestartRequired( Update.RESTART_REQUIRED_YES );
+				
 			}else{
 				
 			
@@ -1027,23 +1030,50 @@ PluginUpdatePlugin
 															"saving new file '" + old_file_name + "'as '" + file_name +"'" );
 											}else{
 												
-												log.log( LoggerChannel.LT_INFORMATION,
-														"overwriting '" + file_name +"'" );
+													// if it is a versioned artifact then we don't need to do anything as the update contains
+													// the same version of the file
 												
-													// back up just in case
-												
-												File	backup = new File( initial_target.getParentFile(), initial_target.getName() + ".bak" );
-												
-												if ( backup.exists()){
-													
-													backup.delete();
-												}
-												
-												if ( !initial_target.renameTo( backup )){
+												if ( isVersioned( file_name )){
 													
 													log.log( LoggerChannel.LT_INFORMATION,
-															"    failed to backup '" + file_name +"'" );
-
+															"Version '" + file_name +"' already present, skipping" );
+													
+													skip_file	= true;
+													
+												}else{
+						
+													log.log( LoggerChannel.LT_INFORMATION,
+															"overwriting '" + file_name +"'" );
+													
+														// back up just in case
+													
+													File	backup = new File( initial_target.getParentFile(), initial_target.getName() + ".bak" );
+													
+													if ( backup.exists()){
+														
+														backup.delete();
+													}
+													
+													if ( !initial_target.renameTo( backup )){
+														
+														log.log( LoggerChannel.LT_INFORMATION,
+																"    failed to backup '" + file_name +"', deferring until restart" );
+	
+														if ( installer == null ){
+															
+															update.setRestartRequired( Update.RESTART_REQUIRED_YES );
+															
+															installer = update.getCheckInstance().createInstaller();
+														}
+														
+														File	tmp = new File( initial_target.getParentFile(), initial_target.getName() + ".tmp" );
+	
+														tmp.delete();
+														
+														installer.addMoveAction( tmp.getAbsolutePath(), initial_target.getAbsolutePath());
+														
+														final_target = tmp;
+													}
 												}
 											}
 										}
@@ -1341,6 +1371,46 @@ PluginUpdatePlugin
 			
 			update.complete();
 		}
+	}
+	
+	protected boolean
+	isVersioned(
+		String	name )
+	{
+			// assumption: versioned names are of the form <prefix>_<version>.<extension>
+			// where version is mixture of digits and .s
+		
+		int	pos = name.lastIndexOf('_');
+		
+		if ( pos == -1 || name.endsWith("_")){
+			
+			return( false );
+		}
+		
+			// remove everything up to _
+		
+		String	rem = name.substring(pos+1);
+		
+		pos = rem.lastIndexOf( '.' );
+		
+			// remove extension (e.g. .jar)
+		
+		if ( pos != -1 ){
+			
+			rem = rem.substring(0,pos);
+		}
+		
+		for (int i=0;i<rem.length();i++){
+			
+			char	c = rem.charAt(i);
+			
+			if ( c != '.' && !Character.isDigit( c )){
+				
+				return( false );
+			}
+		}
+		
+		return( true );
 	}
 	
 	protected void
