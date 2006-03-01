@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -54,7 +55,7 @@ implements TableCellRefreshListener
 	  if(value == -1) {
 	    cell.setText(MessageText.getString("MyTorrents.items.UpSpeedLimit.disabled"));
 	  } else if(value  == 0) {
-	    cell.setText(MessageText.getString("MyTorrents.items.UpSpeedLimit.unlimited"));
+	    cell.setText(Constants.INFINITY_STRING);
 	  } else {
 	    cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
 	  }
