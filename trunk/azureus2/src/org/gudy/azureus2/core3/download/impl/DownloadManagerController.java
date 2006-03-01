@@ -190,6 +190,20 @@ DownloadManagerController
 				return;
 			}
 			
+	 		if ( tracker_client == null ){
+	  			
+	  			Debug.out( "DownloadManagerController:startDownload: tracker_client is null" );
+	  			
+	  				// one day we should really do a proper state machine for this. In the meantime...
+	  				// probably caused by a "stop" during initialisation, I've reproduced it once or twice
+	  				// in my life... Tidy things up so we don't sit here in a READ state that can't
+	  				// be started.
+	  			
+	  			stopIt( DownloadManager.STATE_STOPPED, false, false );
+	  			
+	  			return;
+	  		}
+	  			
 			if ( peer_manager != null ){
 				
 				Debug.out( "DownloadManagerController::startDownload: peer manager not null" );

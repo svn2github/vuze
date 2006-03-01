@@ -1159,16 +1159,7 @@ DownloadManagerImpl
   	public void
   	startDownload()
   	{
-  		TRTrackerAnnouncer tc = getTrackerClient();
-  		
-  		if ( tc == null ){
-  			
-  			Debug.out( "DownloadManager:startDownload called with no tracker client" );
-  			
-  		}else{
-  			
-  			controller.startDownload( tc );
-  		}
+ 		controller.startDownload( getTrackerClient() ); 
   	}
   	
   	public void
