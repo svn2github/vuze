@@ -43,6 +43,11 @@ import org.gudy.azureus2.core3.internat.*;
 public class
 DisplayFormatters
 {
+	final private static boolean ROUND_NO = true;
+	final private static boolean ROUND_YES = false;
+	final private static boolean TRUNCZEROS_NO = false;
+	final private static boolean TRUNCZEROS_YES = true;
+	
 	final public static int UNIT_B  = 0;
 	final public static int UNIT_KB = 1;
 	final public static int UNIT_MB = 2;
@@ -56,7 +61,7 @@ DisplayFormatters
 	                                                     3 //TB
 	                                                  };
 	
-	final private static NumberFormat[]	cached_number_formats = new NumberFormat[10];
+	final private static NumberFormat[]	cached_number_formats = new NumberFormat[20]; 
 	
 	private static NumberFormat	percentage_format;
 
@@ -342,7 +347,7 @@ DisplayFormatters
 	formatByteCountToKiBEtc(
 		long n )
 	{
-		return( formatByteCountToKiBEtc( n, false, false ));
+		return( formatByteCountToKiBEtc( n, false, TRUNCZEROS_NO));
 	}
 
 	public static
@@ -368,8 +373,16 @@ DisplayFormatters
 		  unitIndex++;
 		}
 			 
-		return( formatDecimal( dbl, UNITS_PRECISION[unitIndex], bTruncateZeros ) +  
-				( rate ? units_rate[unitIndex] : units[unitIndex]));
+	  // round for rating, because when the user enters something like 7.3kbps
+		// they don't want it truncated and displayed as 7.2  
+		// (7.3*1024 = 7475.2; 7475/1024.0 = 7.2998;  trunc(7.2998, 1 prec.) == 7.2
+	  //
+		// Truncate for rest, otherwise we get complaints like:
+		// "I have a 1.0GB torrent and it says I've downloaded 1.0GB.. why isn't 
+		//  it complete? waaah"
+
+		return formatDecimal(dbl, UNITS_PRECISION[unitIndex], bTruncateZeros, rate)
+				+ (rate ? units_rate[unitIndex] : units[unitIndex]);
 	}
 
 	public static String
@@ -420,7 +433,7 @@ DisplayFormatters
 	formatByteCountToKiBEtcPerSec(
 		long		n )
 	{
-		return( formatByteCountToKiBEtc(n,true,false));
+		return( formatByteCountToKiBEtc(n,true,TRUNCZEROS_NO));
 	}
 
 	public static String
@@ -756,63 +769,83 @@ DisplayFormatters
     return( TimeFormatter.formatColon( time / 1000 ));
   }
 
+  /**
+   * Format a real number to the precision specified.  Does not round the number
+   * or truncate trailing zeros.
+   * 
+   * @param value real number to format
+   * @param precision # of digits after the decimal place
+   * @return formatted string
+   */
   public static String
   formatDecimal(
   	double value, 
   	int		precision)
   {
-  	return formatDecimal(value, precision, false);
+  	return formatDecimal(value, precision, TRUNCZEROS_NO, ROUND_NO);
   }
 
 
-  public static String
-  formatDecimal(
-  	double value, 
-  	int		precision,
-  	boolean bTruncateZeros)
-  {
-  	try {
-	  	if (value == 1.0 / 0) {
-	  		return Constants.INFINITY_STRING;
-	  	}
-  	} catch (Exception e) {
-  		// for compilers that throw on division by 0
-  	}
-  	
-  		// NumberFormat rounds, so truncate at precision
-  	
-  	double tValue;
-  	if (precision == 0) {
-  		tValue = (long)value; 
-  	} else {
-  		double shift =  Math.pow(10, precision);
-  		tValue = ((long)(value * shift)) / shift;
-  	}
-  	
-  	int	cache_index = precision*2 + (bTruncateZeros?1:0);
-  	
-  	NumberFormat nf	= null;
-  	
-  	if ( cache_index < cached_number_formats.length ){
-  		
-  		nf = cached_number_formats[cache_index];
-  	}
-  	
-  	if ( nf == null ){
-  		nf =  NumberFormat.getNumberInstance();
-  		nf.setGroupingUsed(false); // no commas
-  		if (!bTruncateZeros){
-  			nf.setMinimumFractionDigits(precision);
-  		}
-  		
-  		if ( cache_index < cached_number_formats.length ){
-  			
-  			cached_number_formats[cache_index] = nf;
-  		}
-  	}
-  	
-	return nf.format(tValue);
-  }
+  /**
+   * Format a real number
+   * 
+   * @param value real number to format
+   * @param precision max # of digits after the decimal place
+   * @param bTruncateZeros remove any trailing zeros after decimal place
+   * @param bRound Whether the number will be rounded to the precision, or
+   *                truncated off.
+   * @return formatted string
+   */
+	public static String
+	formatDecimal(
+			double value,
+			int precision,
+			boolean bTruncateZeros,
+			boolean bRound)
+	{
+		if (Double.isNaN(value) || Double.isInfinite(value)) {
+			return Constants.INFINITY_STRING;
+		}
+
+		double tValue;
+		if (bRound) {
+			tValue = value;
+		} else {
+			// NumberFormat rounds, so truncate at precision
+			if (precision == 0) {
+				tValue = (long) value;
+			} else {
+				double shift = Math.pow(10, precision);
+				tValue = ((long) (value * shift)) / shift;
+			}
+		}
+
+		int cache_index = (precision << 2) + ((bTruncateZeros ? 1 : 0) << 1)
+				+ (bRound ? 1 : 0);
+
+		NumberFormat nf = null;
+
+		if (cache_index < cached_number_formats.length) {
+			nf = cached_number_formats[cache_index];
+		}
+
+		if (nf == null) {
+			nf = NumberFormat.getNumberInstance();
+			nf.setGroupingUsed(false); // no commas
+			if (!bTruncateZeros) {
+				nf.setMinimumFractionDigits(precision);
+			}
+			if (bRound) {
+				nf.setMaximumFractionDigits(precision);
+			}
+
+			if (cache_index < cached_number_formats.length) {
+				cached_number_formats[cache_index] = nf;
+			}
+		}
+
+		return nf.format(tValue);
+	}
   
   		/**
   		 * Attempts vaguely smart string truncation by searching for largest token and truncating that
@@ -880,7 +913,7 @@ DisplayFormatters
   	// Keep until everything works okay.
   	public static void main(String[] args) {
   		// set decimal display to ","
-  		Locale.setDefault(Locale.GERMAN);
+  		//Locale.setDefault(Locale.GERMAN);
   		
   		double d = 0.000003991630774821635;
   		NumberFormat nf =  NumberFormat.getNumberInstance();
@@ -897,12 +930,13 @@ DisplayFormatters
   		// should display 0.000000
 			System.out.println("0.000000:" + DisplayFormatters.formatDecimal(0 , 6));
   		// should display 0.001
-			System.out.println("0.001:" + DisplayFormatters.formatDecimal(0.001, 6, true));
+			System.out.println("0.001:" + DisplayFormatters.formatDecimal(0.001, 6, TRUNCZEROS_YES, ROUND_NO));
   		// should display 0
 			System.out.println("0:" + DisplayFormatters.formatDecimal(0 , 0));
   		// should display 123456
 			System.out.println("123456:" + DisplayFormatters.formatDecimal(123456, 0));
   		// should display 123456
 			System.out.println("123456:" + DisplayFormatters.formatDecimal(123456.999, 0));
+			System.out.println(DisplayFormatters.formatDecimal(0.0/0, 3));
 		}
 }
