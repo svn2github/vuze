@@ -323,8 +323,9 @@ DownloadManagerImpl
 		
 		
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
-	
-  
+	private TRTrackerScraperResponse	scrape_response_being_set;
+	private AEMonitor					scrape_response_being_set_mon	= new AEMonitor( "DM:DownloadManager:SRBS" );
+
 	private HashMap data;
   
 	private boolean data_already_allocated = false;
@@ -1323,9 +1324,46 @@ DownloadManagerImpl
   
   	public void
   	setTrackerScrapeResponse(
-  			TRTrackerScraperResponse	response )
+  		TRTrackerScraperResponse	response )
   	{
-  		tracker_listeners.dispatch( LDT_TL_SCRAPERESULT, response );
+  			// strange bug here : http://sourceforge.net/tracker/index.php?func=detail&aid=1441262&group_id=84122&atid=575154
+  			// added some diagnostics to stop recursion and log some info
+  			
+  		try{
+  			scrape_response_being_set_mon.enter();
+  		
+	  		if ( scrape_response_being_set != null ){
+	  	
+	  			Debug.out( "Recursive scrape response setting: " + 
+	  							scrape_response_being_set.getString() + "/" +
+	  							response.getString());
+  	  			
+	  			return;
+	  		}
+	  		
+			scrape_response_being_set	= response;
+
+		}finally{
+	  			
+	  		scrape_response_being_set_mon.exit();
+	  	}
+		
+		try{
+	  	
+	 		tracker_listeners.dispatch( LDT_TL_SCRAPERESULT, response );
+	  			
+	 	}finally{
+	  			
+	 		try{
+	  			scrape_response_being_set_mon.enter();
+	 
+	  			scrape_response_being_set	= null;
+
+	 		}finally{
+  			
+	 			scrape_response_being_set_mon.exit();
+	 		}
+  		}
   	}
   
   	public TRTrackerAnnouncer 

@@ -198,7 +198,7 @@ TRTrackerScraperResponseImpl
 	public String
 	getString()
 	{
-	  return( ByteFormatter.encodeString(hash) +",seeds=" + seeds + ",peers=" + peers +",state="+status+
+	  return( getURL() + ": " + ByteFormatter.encodeString(hash) +",seeds=" + seeds + ",peers=" + peers +",state="+status+
 			  "/"+sStatus+",last="+last_status+"/"+sLastStatus+",start="+scrapeStartTime+",next="+nextScrapeStartTime);
 	}
 }

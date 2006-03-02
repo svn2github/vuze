@@ -74,4 +74,7 @@ TRTrackerScraperResponse
 	
 	public URL
 	getURL();
+	
+	public String
+	getString();
 }
