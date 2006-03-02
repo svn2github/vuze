@@ -35,6 +35,9 @@ SFPluginDetails
 	public String
 	getName();
 	
+	public String
+	getCategory();
+	
 		/**
 		 * 
 		 * @return null if version number unknown

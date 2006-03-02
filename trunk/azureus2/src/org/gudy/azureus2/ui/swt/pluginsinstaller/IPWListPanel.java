@@ -133,7 +133,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 					Object o1, 
 					Object o2)
 	      		{
-	      			return(((StandardPlugin)o1).getName().compareTo(((StandardPlugin)o2).getName()));
+	      			return(((StandardPlugin)o1).getName().compareToIgnoreCase(((StandardPlugin)o2).getName()));
 	      		}
 			});
 			

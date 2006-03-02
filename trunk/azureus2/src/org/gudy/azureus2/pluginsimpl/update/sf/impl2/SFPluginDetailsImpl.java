@@ -33,19 +33,20 @@ public class
 SFPluginDetailsImpl
 	implements SFPluginDetails
 {
-	protected SFPluginDetailsLoaderImpl		loader;
-	protected boolean						fully_loaded;
+	private SFPluginDetailsLoaderImpl		loader;
+	private boolean						fully_loaded;
 	
-	protected String		id;
-	protected String		name;
-	protected String		version;
-	protected String		download_url;
-	protected String		author;
-	protected String		cvs_version;
-	protected String		cvs_download_url;
+	private String		id;
+	private String		name;
+	private String		version;
+	private String		category;
+	private String		download_url;
+	private String		author;
+	private String		cvs_version;
+	private String		cvs_download_url;
 
-	protected String		desc;
-	protected String		comment;
+	private String		desc;
+	private String		comment;
 	
 	protected
 	SFPluginDetailsImpl(
@@ -53,13 +54,15 @@ SFPluginDetailsImpl
 		String						_id,
 		String						_version,
 		String						_cvs_version,
-		String						_name )
+		String						_name,
+		String						_category )
 	{
 		loader				= _loader;
 		id					= _id;
 		version				= _version;
 		cvs_version			= _cvs_version;
 		name				= _name;
+		category			= _category;
 	}
 	
 	protected void
@@ -106,6 +109,12 @@ SFPluginDetailsImpl
 	getName()
 	{
 		return( name );
+	}
+	
+	public String
+	getCategory()
+	{
+		return( category );
 	}
 	
 	public String

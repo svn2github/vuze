@@ -42,7 +42,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.pluginsimpl.local.FailedPlugin;
-import org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 
 import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
@@ -131,6 +130,11 @@ PluginInstallerImpl
 				}else if ( version == null || version.length() == 0 || !Character.isDigit(version.charAt(0))){
 					
 						// dodgy version
+					
+				}else if ( detail.getCategory().equalsIgnoreCase("hidden")){
+					
+						// not public
+					
 				}else{
 					
 					res.add( new StandardPluginImpl( this, details[i], version ));
