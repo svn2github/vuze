@@ -53,7 +53,7 @@ public class PiecePickerImpl
     /** min ms for recalculating base priorities */
     private static final long TIME_MIN_PRIORITIES	=999;
     /** min ms for forced availability rebuild */
-    private static final long TIME_AVAIL_REBUILD	=10*60*1000; 
+    private static final long TIME_AVAIL_REBUILD	=5*60*1000; 
 
 	// The following are added to the base User setting based priorities (for all inspected pieces)
     /** user select prioritize first/last */
