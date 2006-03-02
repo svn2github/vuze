@@ -415,8 +415,7 @@ LocalTrackerPlugin
 		
 		PeerManager	peer_manager = download.getPeerManager();
 		
-		if ( peer_manager != null ){
-			
+		if ( peer_manager != null ){	
 			
 			String	peer_ip		= inst.getInternalAddress().getHostAddress();
 			int		peer_port	= inst.getTrackerClientPort();
@@ -436,11 +435,18 @@ LocalTrackerPlugin
 		
 			Torrent	torrent = download.getTorrent();
 			
-			if ( torrent == null || torrent.isPrivate()){
+			if ( torrent == null ){
 				
 				return;
 			}
 			
+			if ( torrent.isPrivate()){
+				
+				log.log( "Not tracking " + download.getName() + ": torrent is private" );
+
+				return;
+			}
+		
 			String[]	networks = download.getListAttribute( ta_networks );
 			
 			boolean	public_net = false;
@@ -457,6 +463,8 @@ LocalTrackerPlugin
 			
 			if ( !public_net ){
 				
+				log.log( "Not tracking " + download.getName() + ": torrent has no public network" );
+
 				return;
 			}
 			
