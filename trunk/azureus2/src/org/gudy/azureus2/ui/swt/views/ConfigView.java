@@ -38,6 +38,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
@@ -455,11 +456,15 @@ public class ConfigView extends AbstractIView {
 
     save.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent event) {
-        COConfigurationManager.setParameter("updated", 1); //$NON-NLS-1$
-        COConfigurationManager.save();
+      	event.widget.getDisplay().asyncExec(new AERunnable() {
+      		public void runSupport() {
+            COConfigurationManager.setParameter("updated", 1); //$NON-NLS-1$
+            COConfigurationManager.save();
 
-        for (int i = 0; i < pluginSections.size(); i++)
-          ((ConfigSection)pluginSections.get(i)).configSectionSave();
+            for (int i = 0; i < pluginSections.size(); i++)
+              ((ConfigSection)pluginSections.get(i)).configSectionSave();
+      		}
+      	});
       }
     });
   }
