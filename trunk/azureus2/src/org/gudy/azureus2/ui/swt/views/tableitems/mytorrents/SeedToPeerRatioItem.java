@@ -60,7 +60,14 @@ public class SeedToPeerRatioItem
         peers = dm.getNbPeers();
       }
       
-      ratio = (float)seeds / peers;
+      if (peers == 0) {
+      	if (seeds == 0)
+      		ratio = 1;
+      	else
+        	ratio = Float.POSITIVE_INFINITY;
+      } else {
+      	ratio = (float)seeds / peers;
+      }
     }
 
     if( !cell.setSortValue( ratio ) && cell.isValid() ) {
