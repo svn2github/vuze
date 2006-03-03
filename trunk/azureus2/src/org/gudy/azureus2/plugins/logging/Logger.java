@@ -100,4 +100,7 @@ public interface Logger {
 	 * @since 2.3.0.6
 	 */
 	public void removeAlertListener(LoggerAlertListener listener);
+	
+	public void addFileLoggingListener(FileLoggerAdapter listener);
+	public void removeFileLoggingListener(FileLoggerAdapter listener);
 }

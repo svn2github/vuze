@@ -218,4 +218,8 @@ public class Logger {
 	public static PrintStream getOldStdErr() {
 		return loggerImpl.getOldStdErr();
 	}
+	
+	public static FileLogging getFileLoggingInstance() {
+		return fileLogging;
+	}
 }

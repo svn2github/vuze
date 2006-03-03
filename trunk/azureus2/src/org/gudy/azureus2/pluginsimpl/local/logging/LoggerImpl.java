@@ -30,7 +30,11 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.logging.ILogAlertListener;
 import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.impl.FileLogging;
+import org.gudy.azureus2.core3.logging.impl.FileLoggingAdapter;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.logging.FileLoggerAdapter;
 import org.gudy.azureus2.plugins.logging.Logger;
 import org.gudy.azureus2.plugins.logging.LoggerAlertListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -140,6 +144,44 @@ LoggerImpl
 		if ( lg_listener != null ){
 			
 			org.gudy.azureus2.core3.logging.Logger.removeListener( lg_listener );
+		}
+	}
+
+	public void addFileLoggingListener(final FileLoggerAdapter listener) {
+		FileLogging fileLogging = org.gudy.azureus2.core3.logging.Logger.getFileLoggingInstance();
+		if (fileLogging == null)
+			return;
+		
+		fileLogging.addListener(new PluginFileLoggerAdapater(fileLogging, listener));
+	}
+
+	public void removeFileLoggingListener(FileLoggerAdapter listener) {
+		FileLogging fileLogging = org.gudy.azureus2.core3.logging.Logger.getFileLoggingInstance();
+		if (fileLogging == null)
+			return;
+
+		// find listener and remove
+		Object[] listeners = fileLogging.getListeners().toArray();
+		for (int i = 0; i < listeners.length; i++) {
+			if (listeners[i] instanceof PluginFileLoggerAdapater) {
+				PluginFileLoggerAdapater l = (PluginFileLoggerAdapater) listeners[i];
+				if (l.listener == listener) {
+					fileLogging.removeListener(l);
+				}
+			}
+		}
+	}
+	
+	private class PluginFileLoggerAdapater extends FileLoggingAdapter {
+		public FileLoggerAdapter listener;
+
+		public PluginFileLoggerAdapater(FileLogging fileLogging, FileLoggerAdapter listener) {
+			fileLogging.addListener(this);
+			this.listener = listener;
+		}
+
+		public boolean logToFile(LogEvent event, StringBuffer lineOut) {
+			return listener.logToFile(lineOut);
 		}
 	}
 }
