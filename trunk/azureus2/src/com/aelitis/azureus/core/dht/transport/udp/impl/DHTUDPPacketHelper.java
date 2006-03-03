@@ -60,6 +60,8 @@ DHTUDPPacketHelper
 	public static final int		ACT_REPLY_STATS			= 1033;
 	public static final int		ACT_REQUEST_STATS		= 1034;
 	public static final int		ACT_DATA				= 1035;
+	public static final int		ACT_REQUEST_KEY_BLOCK	= 1036;
+	public static final int		ACT_REPLY_KEY_BLOCK		= 1037;
 	
 	
 	private static boolean	registered				= false;
@@ -122,6 +124,10 @@ DHTUDPPacketHelper
 						{
 							return( new DHTUDPPacketData(network_handler,is, connection_id, transaction_id));
 						}
+						case ACT_REQUEST_KEY_BLOCK:
+						{
+							return( new DHTUDPPacketRequestKeyBlock(network_handler,is, connection_id, transaction_id));
+						}
 						default:
 						{
 							throw( new IOException( "Unknown action type" ));
@@ -136,9 +142,9 @@ DHTUDPPacketHelper
 		request_decoders.put( new Integer( ACT_REQUEST_STORE ), request_decoder );
 		request_decoders.put( new Integer( ACT_REQUEST_FIND_NODE ), request_decoder );
 		request_decoders.put( new Integer( ACT_REQUEST_FIND_VALUE ), request_decoder );
-		request_decoders.put( new Integer( ACT_REQUEST_STATS ), request_decoder );
-		
+		request_decoders.put( new Integer( ACT_REQUEST_STATS ), request_decoder );		
 		request_decoders.put( new Integer( ACT_DATA ), request_decoder );
+		request_decoders.put( new Integer( ACT_REQUEST_KEY_BLOCK ), request_decoder );
 		
 		PRUDPPacketRequest.registerDecoders( request_decoders );	
 			
@@ -184,6 +190,10 @@ DHTUDPPacketHelper
 						{
 							return( new DHTUDPPacketReplyStats( network_handler, is, transaction_id));
 						}
+						case ACT_REPLY_KEY_BLOCK:
+						{
+							return( new DHTUDPPacketReplyKeyBlock( network_handler, is, transaction_id));
+						}
 						default:
 						{
 							throw( new IOException( "Unknown action type" ));
@@ -200,6 +210,7 @@ DHTUDPPacketHelper
 		reply_decoders.put( new Integer( ACT_REPLY_FIND_VALUE ), reply_decoder );
 		reply_decoders.put( new Integer( ACT_REPLY_ERROR ), reply_decoder );
 		reply_decoders.put( new Integer( ACT_REPLY_STATS ), reply_decoder );
+		reply_decoders.put( new Integer( ACT_REPLY_KEY_BLOCK ), reply_decoder );
 		
 		PRUDPPacketReply.registerDecoders( reply_decoders );
 	}

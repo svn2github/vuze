@@ -1,7 +1,7 @@
 /*
- * Created on 10-Mar-2005
+ * Created on 02-Mar-2006
  * Created by Paul Gardner
- * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,32 +22,18 @@
 
 package com.aelitis.azureus.core.dht.transport;
 
-/**
- * @author parg
- *
- */
-
 public interface 
-DHTTransportFindValueReply 
+DHTTransportStoreReply 
 {
-	public byte
-	getDiversificationType();
-	
-	public boolean
-	hit();
-	
-	public DHTTransportValue[]
-	getValues();
-	
-	public DHTTransportContact[]
-	getContacts();
+	public byte[]
+	getDiversificationTypes();
 	
 	public boolean
 	blocked();
 	
 	public byte[]
-	getBlockedKey();
+	getBlockRequest();
 	
 	public byte[]
-	getBlockedSignature();
+	getBlockSignature();
 }

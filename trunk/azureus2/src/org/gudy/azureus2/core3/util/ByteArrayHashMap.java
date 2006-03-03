@@ -27,6 +27,9 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 
 public class 
@@ -96,7 +99,13 @@ ByteArrayHashMap
         return size == 0;
     }
 
-   
+    public Object get(byte[] key, int offset, int len )
+    {
+    	byte[]	k = new byte[len];
+    	System.arraycopy( key, offset, k, 0, len );
+    	return( get( k ));
+    }
+    
     public Object get(byte[] key) {
         
         int hash = hash(key);
@@ -157,6 +166,62 @@ ByteArrayHashMap
         for (int i = 0; i < tab.length; i++) 
             tab[i] = null;
         size = 0;
+    }
+    
+    public List
+    keys()
+    {
+    	List	res = new ArrayList();
+    	
+        for (int j = 0; j < table.length; j++) {
+	         Entry e = table[j];
+	         while( e != null ){
+               	res.add( e.key );
+                	
+                 e = e.next;
+	        }
+	    }
+        
+        return( res );
+    }
+    
+    public List
+    values()
+    {
+    	List	res = new ArrayList();
+    	
+        for (int j = 0; j < table.length; j++) {
+	         Entry e = table[j];
+	         while( e != null ){
+               	res.add( e.value );
+                	
+                e = e.next;
+	        }
+	    }
+        
+        return( res );
+    }
+    
+    /**
+     * Bit inefficient at the moment
+     * @return
+     */
+    
+    public ByteArrayHashMap
+    duplicate()
+    {
+    	ByteArrayHashMap	res = new ByteArrayHashMap(size,loadFactor);
+    	
+        for (int j = 0; j < table.length; j++) {
+	         Entry e = table[j];
+	         while( e != null ){
+              	res.put( e.key, e.value );
+               	
+               e = e.next;
+	        }
+	    }
+       
+       return( res );
     }
     
     	//////////////////////////////////

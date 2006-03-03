@@ -56,6 +56,9 @@ DHTTransportStats
 	public long[]
 	getData();
 	
+	public long[]
+	getKeyBlocks();
+	
 		// aliens are indexed by these constants
 
 	public static final int AT_FIND_NODE		= 0; 
@@ -63,6 +66,7 @@ DHTTransportStats
 	public static final int AT_PING				= 2; 
 	public static final int AT_STATS			= 3; 
 	public static final int AT_STORE			= 4; 
+	public static final int AT_KEY_BLOCK		= 5; 
 	
 	public long[]
 	getAliens();

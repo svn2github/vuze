@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.*;
@@ -512,7 +513,7 @@ DHTTransportUDPImpl
 				
 				if ( TEST_EXTERNAL_IP ){
 					
-					new_external_address	= "192.168.0.2";
+					new_external_address	= "127.0.0.1";
 					
 					log.log( "    External IP address obtained from test data: " + new_external_address );
 				}
@@ -1108,7 +1109,7 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
-							requestSendReplyProcessor( contact, packet, elapsed_time );							
+							requestSendReplyProcessor( contact, handler, packet, elapsed_time );							
 								
 							stats.pingOK();
 							
@@ -1140,6 +1141,85 @@ DHTTransportUDPImpl
 		}catch( Throwable e ){
 			
 			stats.pingFailed();
+			
+			handler.failed( contact,e );
+		}
+	}
+	
+	protected void
+	sendKeyBlockRequest(
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler,
+		byte[]								block_request,
+		byte[]								block_signature )
+	{
+		try{
+			checkAddress( contact );
+			
+			final long	connection_id = getConnectionID();			
+
+			final DHTUDPPacketRequestKeyBlock	request = 
+				new DHTUDPPacketRequestKeyBlock( this, connection_id, local_contact, contact );
+			
+			request.setKeyBlockDetails( block_request, block_signature );
+			
+			stats.keyBlockSent( request );
+
+			request.setRandomID( contact.getRandomID());
+
+			requestSendRequestProcessor( contact, request );
+			
+			packet_handler.sendAndReceive(
+				request,
+				contact.getTransportAddress(),
+				new DHTUDPPacketReceiver()
+				{
+					public void
+					packetReceived(
+						DHTUDPPacketReply	packet,
+						InetSocketAddress	from_address,
+						long				elapsed_time )
+					{
+						try{							
+							if ( packet.getConnectionId() != connection_id ){
+								
+								throw( new Exception( "connection id mismatch" ));
+							}
+							
+							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
+							
+							requestSendReplyProcessor( contact, handler, packet, elapsed_time );							
+								
+							stats.keyBlockOK();
+							
+							handler.keyBlockReply( contact );
+						
+						}catch( DHTUDPPacketHandlerException e ){
+							
+							error( e );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+							
+							error( new DHTUDPPacketHandlerException( "send key block failed", e ));
+						}
+					}
+					
+					public void
+					error(
+						DHTUDPPacketHandlerException	e )
+					{
+						stats.keyBlockFailed();
+						
+						handler.failed( contact,e );
+					}
+				},
+				request_timeout, PRUDPPacketHandler.PRIORITY_MEDIUM );
+			
+		}catch( Throwable e ){
+			
+			stats.keyBlockFailed();
 			
 			handler.failed( contact,e );
 		}
@@ -1183,7 +1263,7 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
-							requestSendReplyProcessor( contact, packet, elapsed_time );
+							requestSendReplyProcessor( contact, handler, packet, elapsed_time );
 										
 							DHTUDPPacketReplyStats	reply = (DHTUDPPacketReplyStats)packet;
 
@@ -1476,7 +1556,7 @@ DHTTransportUDPImpl
 								
 								contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 								
-								requestSendReplyProcessor( contact, packet, elapsed_time );
+								requestSendReplyProcessor( contact, handler, packet, elapsed_time );
 
 								DHTUDPPacketReplyStore	reply = (DHTUDPPacketReplyStore)packet;
 									
@@ -1567,7 +1647,7 @@ DHTTransportUDPImpl
 
 							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
-							requestSendReplyProcessor( contact, packet, elapsed_time );
+							requestSendReplyProcessor( contact, handler, packet, elapsed_time );
 								
 							DHTUDPPacketReplyFindNode	reply = (DHTUDPPacketReplyFindNode)packet;
 							
@@ -1662,7 +1742,7 @@ DHTTransportUDPImpl
 							
 							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
 							
-							requestSendReplyProcessor( contact, packet, elapsed_time );
+							requestSendReplyProcessor( contact, handler, packet, elapsed_time );
 								
 							DHTUDPPacketReplyFindValue	reply = (DHTUDPPacketReplyFindValue)packet;
 								
@@ -2756,6 +2836,31 @@ DHTTransportUDPImpl
 
 						packet_handler.send( reply, request.getAddress());
 					}
+				}else if ( request instanceof DHTUDPPacketRequestKeyBlock ){
+						
+					if ( !bootstrap_node ){
+						
+						DHTUDPPacketRequestKeyBlock	kb_request = (DHTUDPPacketRequestKeyBlock)request;
+
+						originating_contact.setRandomID( kb_request.getRandomID());
+
+						request_handler.keyBlockRequest( 
+								originating_contact, 
+								kb_request.getKeyBlockRequest(),
+								kb_request.getKeyBlockSignature());
+						
+						DHTUDPPacketReplyKeyBlock	reply = 
+							new DHTUDPPacketReplyKeyBlock(
+									this,
+									request.getTransactionId(),
+									request.getConnectionId(),
+									local_contact,
+									originating_contact );
+						
+						requestReceiveReplyProcessor( originating_contact, reply );
+
+						packet_handler.send( reply, request.getAddress());
+					}
 				}else if ( request instanceof DHTUDPPacketRequestStats ){
 					
 					DHTTransportFullStats	full_stats = request_handler.statsRequest( originating_contact );
@@ -2782,25 +2887,63 @@ DHTTransportUDPImpl
 						
 						originating_contact.setRandomID( store_request.getRandomID());
 						
-						byte[] diversify = 
+						DHTTransportStoreReply	res = 
 							request_handler.storeRequest(
 								originating_contact, 
 								store_request.getKeys(), 
 								store_request.getValueSets());
 						
-						DHTUDPPacketReplyStore	reply = 
-							new DHTUDPPacketReplyStore(
-									this,
-									request.getTransactionId(),
-									request.getConnectionId(),
-									local_contact,
-									originating_contact );
-						
-						reply.setDiversificationTypes( diversify );
-						
-						requestReceiveReplyProcessor( originating_contact, reply );
+						if ( res.blocked()){
+							
+							if ( originating_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_BLOCK_KEYS ){
+								
+								DHTUDPPacketReplyError	reply = 
+									new DHTUDPPacketReplyError(
+										this,
+										request.getTransactionId(),
+										request.getConnectionId(),
+										local_contact,
+										originating_contact );
+								
+								reply.setErrorType( DHTUDPPacketReplyError.ET_KEY_BLOCKED );
+								
+								reply.setKeyBlockDetails( res.getBlockRequest(), res.getBlockSignature() );
+								
+								requestReceiveReplyProcessor( originating_contact, reply );
 
-						packet_handler.send( reply, request.getAddress());
+								packet_handler.send( reply, request.getAddress());
+							}else{
+								
+								DHTUDPPacketReplyStore	reply = 
+									new DHTUDPPacketReplyStore(
+											this,
+											request.getTransactionId(),
+											request.getConnectionId(),
+											local_contact,
+											originating_contact );
+								
+								reply.setDiversificationTypes( new byte[store_request.getKeys().length] );
+								
+								requestReceiveReplyProcessor( originating_contact, reply );
+		
+								packet_handler.send( reply, request.getAddress());
+							}
+						}else{
+							
+							DHTUDPPacketReplyStore	reply = 
+								new DHTUDPPacketReplyStore(
+										this,
+										request.getTransactionId(),
+										request.getConnectionId(),
+										local_contact,
+										originating_contact );
+							
+							reply.setDiversificationTypes( res.getDiversificationTypes());
+							
+							requestReceiveReplyProcessor( originating_contact, reply );
+	
+							packet_handler.send( reply, request.getAddress());
+						}
 					}
 					
 				}else if ( request instanceof DHTUDPPacketRequestFindNode ){
@@ -2861,78 +3004,117 @@ DHTTransportUDPImpl
 										find_request.getID(),
 										find_request.getMaximumValues(),
 										find_request.getFlags());
-						
-						DHTUDPPacketReplyFindValue	reply = 
-							new DHTUDPPacketReplyFindValue(
-								this,
-								request.getTransactionId(),
-								request.getConnectionId(),
-								local_contact,
-								originating_contact );
-						
-						if ( res.hit()){
+					
+						if ( res.blocked()){
 							
-							DHTTransportValue[]	res_values = res.getValues();
-							
-							int		max_size = DHTUDPPacketHelper.PACKET_MAX_BYTES - DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_HEADER_SIZE;
-														
-							List	values 		= new ArrayList();
-							int		values_size	= 0;
-							
-							int	pos = 0;
-							
-							while( pos < res_values.length ){
-						
-								DHTTransportValue	v = res_values[pos];
+							if ( originating_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_BLOCK_KEYS ){
 								
-								int	v_len = v.getValue().length + DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_TV_HEADER_SIZE;
+								DHTUDPPacketReplyError	reply = 
+									new DHTUDPPacketReplyError(
+										this,
+										request.getTransactionId(),
+										request.getConnectionId(),
+										local_contact,
+										originating_contact );
 								
-								if ( 	values_size > 0 && // if value too big, cram it in anyway 
-										values_size + v_len > max_size ){
-									
-										// won't fit, send what we've got
-									
-									DHTTransportValue[]	x = new DHTTransportValue[values.size()];
-									
-									values.toArray( x );
-																		
-									reply.setValues( x, res.getDiversificationType(), true );	// continuation = true
-																	
-									packet_handler.send( reply, request.getAddress());
-									
-									values_size	= 0;
-									
-									values		= new ArrayList();
-									
-								}else{
-									
-									values.add(v);
-									
-									values_size	+= v_len;
-									
-									pos++;
-								}
+								reply.setErrorType( DHTUDPPacketReplyError.ET_KEY_BLOCKED );
+								
+								reply.setKeyBlockDetails( res.getBlockedKey(), res.getBlockedSignature() );
+								
+								requestReceiveReplyProcessor( originating_contact, reply );
+
+								packet_handler.send( reply, request.getAddress());
+								
+							}else{
+								
+								DHTUDPPacketReplyFindValue	reply = 
+									new DHTUDPPacketReplyFindValue(
+										this,
+										request.getTransactionId(),
+										request.getConnectionId(),
+										local_contact,
+										originating_contact );
+								
+								reply.setValues( new DHTTransportValue[0], DHT.DT_NONE, false );
+								
+								requestReceiveReplyProcessor( originating_contact, reply );
+	
+								packet_handler.send( reply, request.getAddress());
 							}
 							
-								// send the remaining (possible zero length) non-continuation values
-								
-							DHTTransportValue[]	x = new DHTTransportValue[values.size()];
-								
-							values.toArray( x );
-								
-							reply.setValues( x, res.getDiversificationType(), false );
-								
-							requestReceiveReplyProcessor( originating_contact, reply );
-
-							packet_handler.send( reply, request.getAddress());
-						
 						}else{
+							DHTUDPPacketReplyFindValue	reply = 
+								new DHTUDPPacketReplyFindValue(
+									this,
+									request.getTransactionId(),
+									request.getConnectionId(),
+									local_contact,
+									originating_contact );
 							
-							reply.setContacts(res.getContacts());
+							if ( res.hit()){
+								
+								DHTTransportValue[]	res_values = res.getValues();
+								
+								int		max_size = DHTUDPPacketHelper.PACKET_MAX_BYTES - DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_HEADER_SIZE;
+															
+								List	values 		= new ArrayList();
+								int		values_size	= 0;
+								
+								int	pos = 0;
+								
+								while( pos < res_values.length ){
 							
-							requestReceiveReplyProcessor( originating_contact, reply );
-
-							packet_handler.send( reply, request.getAddress());
+									DHTTransportValue	v = res_values[pos];
+									
+									int	v_len = v.getValue().length + DHTUDPPacketReplyFindValue.DHT_FIND_VALUE_TV_HEADER_SIZE;
+									
+									if ( 	values_size > 0 && // if value too big, cram it in anyway 
+											values_size + v_len > max_size ){
+										
+											// won't fit, send what we've got
+										
+										DHTTransportValue[]	x = new DHTTransportValue[values.size()];
+										
+										values.toArray( x );
+																			
+										reply.setValues( x, res.getDiversificationType(), true );	// continuation = true
+																		
+										packet_handler.send( reply, request.getAddress());
+										
+										values_size	= 0;
+										
+										values		= new ArrayList();
+										
+									}else{
+										
+										values.add(v);
+										
+										values_size	+= v_len;
+										
+										pos++;
+									}
+								}
+								
+									// send the remaining (possible zero length) non-continuation values
+									
+								DHTTransportValue[]	x = new DHTTransportValue[values.size()];
+									
+								values.toArray( x );
+									
+								reply.setValues( x, res.getDiversificationType(), false );
+									
+								requestReceiveReplyProcessor( originating_contact, reply );
+	
+								packet_handler.send( reply, request.getAddress());
+							
+							}else{
+								
+								reply.setContacts(res.getContacts());
+								
+								requestReceiveReplyProcessor( originating_contact, reply );
+	
+								packet_handler.send( reply, request.getAddress());
+							}
 						}
 					}
 				}else if ( request instanceof DHTUDPPacketData ){
@@ -2999,6 +3181,7 @@ DHTTransportUDPImpl
 	protected void
 	requestSendReplyProcessor(
 		DHTTransportUDPContactImpl	contact,
+		DHTTransportReplyHandler	handler,
 		DHTUDPPacketReply			reply,
 		long						elapsed_time )
 	
@@ -3037,6 +3220,14 @@ DHTTransportUDPImpl
 						Debug.printStackTrace(e);
 					}
 											
+					break;
+				}
+				case DHTUDPPacketReplyError.ET_KEY_BLOCKED:
+				{
+					handler.keyBlockRequest( error.getKeyBlockRequest(), error.getKeyBlockSignature());
+					
+					contactAlive( contact );
+					
 					break;
 				}
 				default:

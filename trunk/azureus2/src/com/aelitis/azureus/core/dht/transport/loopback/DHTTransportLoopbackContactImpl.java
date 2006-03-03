@@ -133,6 +133,15 @@ DHTTransportLoopbackContactImpl
 	}
 		
 	public void
+	sendKeyBlock(
+		DHTTransportReplyHandler	handler, 
+		byte[]						request,
+		byte[]						signature )
+	{
+		transport.sendKeyBlock( this, handler, request, signature );
+	}
+	
+	public void
 	sendStats(
 		DHTTransportReplyHandler	handler )
 	{

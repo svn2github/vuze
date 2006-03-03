@@ -44,8 +44,9 @@ DHTTransportStatsImpl
 	private long[]	stores		= new long[4];
 	private long[]	stats		= new long[4];
 	private long[]	data		= new long[4];
+	private long[]	key_blocks	= new long[4];
 	
-	private long[]	aliens		= new long[5];
+	private long[]	aliens		= new long[6];
 
 	private long	incoming_requests;
 	private long	outgoing_requests;
@@ -81,6 +82,7 @@ DHTTransportStatsImpl
 		add( stores, other.stores );
 		add( stats, other.stats );
 		add( data, other.data );
+		add( key_blocks, other.key_blocks );
 		add( aliens, other.aliens );
 		
 		incoming_requests += other.incoming_requests;
@@ -106,6 +108,7 @@ DHTTransportStatsImpl
 		clone.find_values	= (long[])find_values.clone();
 		clone.stores		= (long[])stores.clone();
 		clone.data			= (long[])data.clone();
+		clone.key_blocks	= (long[])key_blocks.clone();
 		clone.aliens		= (long[])aliens.clone();
 		
 		clone.incoming_requests	= incoming_requests;
@@ -142,6 +145,38 @@ DHTTransportStatsImpl
 	getPings()
 	{
 		return( pings );
+	}
+	
+		// key blocks
+	
+	public void
+	keyBlockSent(
+		DHTUDPPacketRequest	request )
+	{
+		key_blocks[STAT_SENT]++;
+					
+		outgoingRequestSent( request );
+	}
+	public void
+	keyBlockOK()
+	{
+		key_blocks[STAT_OK]++;
+	}
+	public void
+	keyBlockFailed()
+	{
+		key_blocks[STAT_FAILED]++;
+	}
+	public void
+	keyBlockReceived()
+	{
+		key_blocks[STAT_RECEIVED]++;
+	}
+	
+	public long[]
+	getKeyBlocks()
+	{
+		return( key_blocks );
 	}
 	
 		// find node
@@ -376,6 +411,10 @@ DHTTransportStatsImpl
 			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_STORE ){
 				
 				aliens[AT_STORE]++;
+				
+			}else if ( type == DHTUDPPacketHelper.ACT_REQUEST_KEY_BLOCK ){
+				
+				aliens[AT_KEY_BLOCK]++;
 			}
 		}
 		
@@ -441,6 +480,7 @@ DHTTransportStatsImpl
 				"value:" + getString( find_values ) + "," +
 				"stats:" + getString( stats ) + "," +
 				"data:" + getString( data ) + "," +
+				"kb:" + getString( key_blocks ) + "," +
 				"incoming:" + incoming_requests +"," +
 				"alien:" + getString( aliens ));
 	}

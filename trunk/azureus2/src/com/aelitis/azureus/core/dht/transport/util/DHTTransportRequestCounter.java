@@ -26,6 +26,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFindValueReply;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportRequestHandler;
+import com.aelitis.azureus.core.dht.transport.DHTTransportStoreReply;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
 /**
@@ -58,6 +59,17 @@ DHTTransportRequestCounter
 		delegate.pingRequest( contact );
 	}
 	
+	public void
+	keyBlockRequest(
+		DHTTransportContact contact,
+		byte[]				key_block_request,
+		byte[]				key_block_signature )
+	{
+		stats.keyBlockReceived();
+		
+		delegate.keyBlockRequest( contact, key_block_request, key_block_signature );
+	}
+	
 	public DHTTransportFullStats
 	statsRequest(
 		DHTTransportContact contact )
@@ -67,7 +79,7 @@ DHTTransportRequestCounter
 		return( delegate.statsRequest( contact ));
 	}
 	
-	public byte[]
+	public DHTTransportStoreReply
 	storeRequest(
 		DHTTransportContact 	contact, 
 		byte[][]				keys,

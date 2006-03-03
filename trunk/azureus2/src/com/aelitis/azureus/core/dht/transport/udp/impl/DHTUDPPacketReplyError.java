@@ -41,10 +41,13 @@ DHTUDPPacketReplyError
 {
 	public static final int	ET_UNKNOWN						= 0;
 	public static final int	ET_ORIGINATOR_ADDRESS_WRONG		= 1;
+	public static final int	ET_KEY_BLOCKED					= 2;
 	
 	private int						error_type	= ET_UNKNOWN;
 	
 	private InetSocketAddress		originator_address;
+	private byte[]					key_block_request;
+	private byte[]					key_block_signature;
 
 	public
 	DHTUDPPacketReplyError(
@@ -72,6 +75,11 @@ DHTUDPPacketReplyError
 		if ( error_type == ET_ORIGINATOR_ADDRESS_WRONG ){
 			
 			originator_address	= DHTUDPUtils.deserialiseAddress( is );
+			
+		}else if( error_type == ET_KEY_BLOCKED ){
+			
+			key_block_request	= DHTUDPUtils.deserialiseByteArray( is, 255 );
+			key_block_signature = DHTUDPUtils.deserialiseByteArray( is, 65535 );
 		}
 	}
 
@@ -101,6 +109,27 @@ DHTUDPPacketReplyError
 		return( originator_address );
 	}
 	
+	protected void
+	setKeyBlockDetails(
+		byte[]	kbr,
+		byte[]	sig )
+	{
+		key_block_request	= kbr;
+		key_block_signature = sig;
+	}
+	
+	protected byte[]
+	getKeyBlockRequest()
+	{
+		return( key_block_request );
+	}
+	
+	protected byte[]
+   	getKeyBlockSignature()
+   	{
+   		return( key_block_signature );
+   	}
+	
 	public void
 	serialise(
 		DataOutputStream	os )
@@ -122,6 +151,10 @@ DHTUDPPacketReplyError
 				
 				throw( new IOException( e.getMessage()));
 			}
+		}else if( error_type == ET_KEY_BLOCKED ){
+			
+			DHTUDPUtils.serialiseByteArray( os, key_block_request, 255 );
+			DHTUDPUtils.serialiseByteArray( os, key_block_signature, 65535 );
 		}
 	}
 }

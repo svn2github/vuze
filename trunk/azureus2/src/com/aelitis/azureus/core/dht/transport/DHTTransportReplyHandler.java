@@ -62,6 +62,15 @@ DHTTransportReplyHandler
 		DHTTransportContact[]	contacts );
 	
 	public void
+	keyBlockReply(
+		DHTTransportContact 	contact );
+	
+	public void
+	keyBlockRequest(
+		byte[]					key,
+		byte[]					key_signature );
+	
+	public void
 	failed(
 		DHTTransportContact 	contact,
 		Throwable				error );

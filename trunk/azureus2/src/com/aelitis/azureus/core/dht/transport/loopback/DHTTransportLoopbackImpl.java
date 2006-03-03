@@ -358,6 +358,54 @@ DHTTransportLoopbackImpl
 		}
 	}
 		
+	public void
+	sendKeyBlock(
+		final DHTTransportContact			contact,
+		final DHTTransportReplyHandler		handler,
+		final byte[]						request,
+		final byte[]						sig )
+	{
+		AERunnable	runnable = 
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					sendKeyBlockSupport( contact, handler, request, sig );
+				}
+			};
+		
+		run( runnable );
+	}
+	
+	public void
+	sendKeyBlockSupport(
+		DHTTransportContact			contact,
+		DHTTransportReplyHandler	handler,
+		byte[]						request,
+		byte[]						sig )
+	{
+		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
+		
+		stats.keyBlockSent(null);
+		
+		if ( target == null || triggerFailure()){
+		
+			stats.keyBlockFailed();
+			
+			handler.failed(contact, new Exception( "failed" ));
+			
+		}else{
+			
+			stats.keyBlockOK();
+			
+			target.getRequestHandler().keyBlockRequest(
+						new DHTTransportLoopbackContactImpl( target, node_id ),
+						request, sig );
+			
+			handler.keyBlockReply(contact);
+		}
+	}
 		// STATS
 	
 	public void
@@ -450,12 +498,21 @@ DHTTransportLoopbackImpl
 			
 			temp.setRandomID( contact.getRandomID());
 			
-			byte[] diversifies = 
+			DHTTransportStoreReply	rep = 
 				target.getRequestHandler().storeRequest( 
 					temp,
 					keys, value_sets );
 			
-			handler.storeReply( contact, diversifies );
+			if ( rep.blocked()){
+				
+				handler.keyBlockRequest( rep.getBlockRequest(), rep.getBlockSignature());
+				
+				handler.failed( contact, new Throwable( "key blocked" ));
+				
+			}else{
+				
+				handler.storeReply( contact, rep.getDiversificationTypes());
+			}
 		}
 	}
 	
@@ -574,6 +631,12 @@ DHTTransportLoopbackImpl
 				
 				handler.findValueReply( contact, find_res.getValues(), find_res.getDiversificationType(), false );
 
+			}else if ( find_res.blocked()){
+				
+				handler.keyBlockRequest( find_res.getBlockedKey(), find_res.getBlockedSignature() );
+				
+				handler.failed( contact, new Throwable( "key blocked" ));
+				
 			}else{
 				
 				DHTTransportContact[]	res  = find_res.getContacts();

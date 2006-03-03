@@ -28,6 +28,11 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.math.BigInteger;
+import java.security.KeyFactory;
+import java.security.Signature;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -38,16 +43,17 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
-import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
+import com.aelitis.azureus.core.dht.DHTStorageBlock;
 import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -64,12 +70,15 @@ public class
 DHTPluginStorageManager 
 	implements DHTStorageAdapter
 {
+	private static final String	pub_exp = "10001";
+	private static final String	modulus	= "98d9045813abcfaeadafedafaca3a48a97b92d443f89ddbbe5fa24253b37892d58057c53d51c1707e6dd2fdc75367220a89aaf08f247a28aee953fd48bcdf99c6c6a74313562c8f41c3d0e040da5e54cd9cfa2883b123db7ae1b1afb3f886fb5aa8a113e38c9baf6996e1e64158341aa3926028f35d25441b0c66f378ac68653";
+
 	private static final long		ADDRESS_EXPIRY			= 7*24*60*60*1000; 
 	private static final int		DIV_WIDTH				= 10;
 	private static final int		DIV_FRAG_GET_SIZE		= 2;
 	private static final long		DIV_EXPIRY_MIN			= 2*24*60*60*1000;
 	private static final long		DIV_EXPIRY_RAND			= 1*24*60*60*1000;
-		
+	private static final long		KEY_BLOCK_TIMEOUT_SECS	= 7*24*60*60;
 	
 	public static final int			LOCAL_DIVERSIFICATION_SIZE_LIMIT			= 4096;
 	public static final int			LOCAL_DIVERSIFICATION_ENTRIES_LIMIT			= 512;
@@ -85,6 +94,7 @@ DHTPluginStorageManager
 	private AEMonitor	contact_mon	= new AEMonitor( "DHTPluginStorageManager:contact" );
 	private AEMonitor	storage_mon	= new AEMonitor( "DHTPluginStorageManager:storage" );
 	private AEMonitor	version_mon	= new AEMonitor( "DHTPluginStorageManager:version" );
+	private AEMonitor	key_block_mon	= new AEMonitor( "DHTPluginStorageManager:block" );
 	
 	private Map					version_map			= new HashMap();
 	private Map					recent_addresses	= new HashMap();
@@ -92,12 +102,31 @@ DHTPluginStorageManager
 	private Map					remote_diversifications	= new HashMap();
 	private Map					local_storage_keys		= new HashMap();
 	
-
+	private volatile ByteArrayHashMap	key_block_map_cow		= new ByteArrayHashMap();
+	private volatile DHTStorageBlock[]	key_blocks_direct_cow	= new DHTStorageBlock[0];
+	private BloomFilter					kb_verify_fail_bloom;
+	private long						kb_verify_fail_bloom_create_time;
+	
+	private RSAPublicKey key_block_public_key;
+	
 	public
 	DHTPluginStorageManager(
 		DHTLogger			_log,
 		File				_data_dir )
 	{
+		try{
+			KeyFactory key_factory = KeyFactory.getInstance("RSA");
+			
+			RSAPublicKeySpec 	public_key_spec = 
+				new RSAPublicKeySpec( new BigInteger(modulus,16), new BigInteger(pub_exp,16));
+	
+			key_block_public_key 	= (RSAPublicKey)key_factory.generatePublic( public_key_spec );
+
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
 		log			= _log;
 		data_dir	= _data_dir;
 		
@@ -108,6 +137,8 @@ DHTPluginStorageManager
 		readDiversifications();
 		
 		readVersionData();
+		
+		readKeyBlocks();
 	}
 	
 	protected void
@@ -341,36 +372,42 @@ DHTPluginStorageManager
 
 			saving.delete();
 			
-			FileOutputStream os = null;
-			
-			boolean	ok = false;
-			
-			try{
-				byte[]	data = BEncoder.encode( map );
+			if ( map.size() == 0 ){
 				
-				os = new FileOutputStream( saving );
+				target.delete();
+				
+			}else{
+				
+				FileOutputStream os = null;
+				
+				boolean	ok = false;
+				
+				try{
+					byte[]	data = BEncoder.encode( map );
 					
-				os.write( data );
-			
-				os.close();
-			
-				ok	= true;
+					os = new FileOutputStream( saving );
+						
+					os.write( data );
 				
-			}finally{
-				
-				if ( os != null ){
-					
 					os.close();
+				
+					ok	= true;
 					
-					if ( ok ){
+				}finally{
+					
+					if ( os != null ){
 						
-						target.delete();
+						os.close();
 						
-						saving.renameTo( target );
+						if ( ok ){
+							
+							target.delete();
+							
+							saving.renameTo( target );
+						}
 					}
 				}
 			}
-			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
@@ -930,6 +967,433 @@ DHTPluginStorageManager
 		long	diff = l - SystemTime.getCurrentTime();
 		
 		return( (diff<0?"-":"") + DisplayFormatters.formatTime(Math.abs(diff)));
+	}
+	
+	
+		// key blocks
+	
+	protected void
+	readKeyBlocks()
+	{
+		try{
+			key_block_mon.enter();
+			
+			Map	map = readMapFromFile( "block" );
+	
+			List	entries = (List)map.get( "entries" );
+			
+			int	now_secs = (int)(SystemTime.getCurrentTime()/1000);
+			
+			ByteArrayHashMap	new_map = new ByteArrayHashMap();
+			
+			if ( entries != null ){
+			
+				for (int i=0;i<entries.size();i++){
+					
+					try{
+						Map	m = (Map)entries.get(i);
+						
+						byte[]	request = (byte[])m.get( "req" );
+						byte[]	cert	= (byte[])m.get( "cert" );
+						int		recv	= ((Long)m.get( "received" )).intValue();
+						boolean	direct	= ((Long)m.get( "direct" )).longValue()==1;
+						
+						if ( recv > now_secs ){
+							
+							recv	= now_secs;
+						}
+
+						keyBlock	kb = new keyBlock( request, cert, recv, direct );
+
+							// direct "add" values never timeout, however direct "removals" do, as do 
+							// indirect values
+						
+						if ( ( direct && kb.isAdd()) || now_secs - recv < KEY_BLOCK_TIMEOUT_SECS ){
+						
+							log.log( "KB: deserialised " + DHTLog.getString2( kb.getKey()) + ",add=" + kb.isAdd() + ",dir=" + kb.isDirect());
+					
+							new_map.put( kb.getKey(), kb );
+						}
+						
+					}catch( Throwable e ){
+						
+						Debug.printStackTrace(e);
+					}
+				}
+			}
+			
+			key_block_map_cow		= new_map;
+			key_blocks_direct_cow	= buildKeyBlockDetails( new_map );
+			
+		}finally{
+			
+			key_block_mon.exit();
+		}
+	}
+	
+	protected DHTStorageBlock[]
+	buildKeyBlockDetails(
+		ByteArrayHashMap		map )
+	{
+		List	kbs = map.values();
+		
+		Iterator	it = kbs.iterator();
+		
+		while( it.hasNext()){
+			
+			keyBlock	kb = (keyBlock)it.next();
+			
+			if ( !kb.isDirect()){
+				
+				it.remove();
+			}
+		}
+		
+		DHTStorageBlock[]	new_blocks = new DHTStorageBlock[kbs.size()];
+		
+		kbs.toArray( new_blocks );
+		
+		return( new_blocks );
+	}
+	
+	protected void
+	writeKeyBlocks()
+	{
+		try{
+			key_block_mon.enter();
+	
+			Map	map = new HashMap();
+			
+			List	entries = new ArrayList();
+			
+			map.put( "entries", entries );
+			
+			List	kbs = key_block_map_cow.values();
+			
+			for (int i=0;i<kbs.size();i++){
+								
+				keyBlock	kb = (keyBlock)kbs.get(i);
+									
+				Map	m = new HashMap();
+				
+				m.put( "req", kb.getRequest());
+				m.put( "cert", kb.getCertificate());
+				m.put( "received", new Long(kb.getReceived()));
+				m.put( "direct", new Long(kb.isDirect()?1:0));
+				
+				entries.add( m );
+			}
+			
+			writeMapToFile( map, "block" );
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+	
+		}finally{
+			
+			key_block_mon.exit();
+		}
+	}
+	
+	
+	public DHTStorageBlock
+	keyBlockRequest(
+		DHTTransportContact		originating_contact,
+		byte[]					request,
+		byte[]					signature )
+	{
+			// request is 4 bytes flags, 4 byte time, K byte key
+			// flag: MSB 00 -> unblock, 01 ->block
+		
+		if ( request.length <= 8 ){
+			
+			return( null );
+		}
+				
+		keyBlock	kb = 
+			new keyBlock(request, signature, (int)(SystemTime.getCurrentTime()/1000), originating_contact != null );
+		
+		try{
+			key_block_mon.enter();
+
+			boolean	add_it	= false;
+			
+			try{
+				keyBlock	old = (keyBlock)key_block_map_cow.get( kb.getKey());
+								
+				if ( old != null ){
+				
+						// never override a direct value with an indirect one as direct = first hand knowledge
+						// whereas indirect is hearsay
+
+					if ( old.isDirect() && !kb.isDirect()){
+					
+						return( null );
+					}
+					 
+						// don't let older instructions override newer ones
+					
+					if ( old.getCreated() > kb.getCreated()){
+						
+						return( null );
+					}
+				}
+				
+				if ( kb.isAdd()){
+					
+					if ( old == null || !old.isAdd()){
+						
+						if ( !verifyKeyBlock( kb, originating_contact )){
+							
+							return( null );
+						}
+					
+						add_it	= true;
+					}
+					
+					return( kb );
+					
+				}else{
+					
+						// only direct operations can "remove" blocks
+					
+					if ( kb.isDirect() && ( old == null || old.isAdd())){
+					
+						if ( !verifyKeyBlock( kb, originating_contact )){
+							
+							return( null );
+						}
+						
+						add_it	= true;
+					}
+					
+					return( null );
+				}
+			}finally{
+				
+				if ( add_it ){
+					
+					ByteArrayHashMap new_map = key_block_map_cow.duplicate();
+					
+					new_map.put( kb.getKey(), kb );
+					
+						// seeing as we've received this from someone there's no point in replicating it
+						// back to them later - mark them to prevent this
+					
+					if ( originating_contact != null ){
+						
+						kb.sentTo( originating_contact );
+					}
+					
+					key_block_map_cow		= new_map;
+					key_blocks_direct_cow	= buildKeyBlockDetails( key_block_map_cow );
+					
+					writeKeyBlocks();
+				}
+			}
+		}finally{
+			
+			key_block_mon.exit();
+		}
+	}
+	
+	protected boolean
+	verifyKeyBlock(
+		keyBlock				kb,
+		DHTTransportContact		originator )
+	{
+		byte[]	id = originator==null?new byte[20]:originator.getID();
+		
+		BloomFilter	filter = kb_verify_fail_bloom;
+		
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( 	filter == null || 
+				kb_verify_fail_bloom_create_time > now ||
+				now - kb_verify_fail_bloom_create_time > 30*60*1000 ){
+			
+			kb_verify_fail_bloom_create_time	= now;
+			
+			filter = BloomFilterFactory.createAddOnly(4000);
+			
+			kb_verify_fail_bloom	= filter;
+		}
+		
+		if ( filter.contains( id )){
+			
+			log.log( "BK: request verify denied" );
+			
+			return( false );
+		}
+		
+		try{
+			Signature	verifier = Signature.getInstance("MD5withRSA" );
+			
+			verifier.initVerify( key_block_public_key );
+			
+			verifier.update( kb.getRequest() );
+
+			if ( !verifier.verify( kb.getCertificate())){
+			
+				log.log( "BK: request verify failed for " + DHTLog.getString2( kb.getKey()));
+
+				filter.add( id );
+				
+				return( false );
+			}
+			
+			log.log( "BK: request verify ok " + DHTLog.getString2( kb.getKey()) + ", add = " + kb.isAdd() + ", direct = " + kb.isDirect());
+
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
+	}
+	
+	public DHTStorageBlock
+	getKeyBlockDetails(
+		byte[]		key )
+	{
+		keyBlock	kb = (keyBlock)key_block_map_cow.get( key );
+		
+		if ( kb == null || !kb.isAdd()){
+			
+			return( null );
+		}
+		
+		return( kb );
+	}
+	
+	public DHTStorageBlock[]
+	getDirectKeyBlocks()
+	{
+		return( key_blocks_direct_cow );
+	}
+	
+	public byte[]
+	getKeyForKeyBlock(
+		byte[]	request )
+	{
+		if ( request.length <= 8 ){
+			
+			return( new byte[0] );
+		}
+		
+		byte[]	key = new byte[ request.length - 8 ];
+		
+		System.arraycopy( request, 8, key, 0, key.length );
+		
+		return( key );
+	}
+	
+	protected static class
+	keyBlock
+		implements DHTStorageBlock
+	{
+		private byte[]		request;
+		private byte[]		cert;
+		private int			received;
+		private boolean		direct;
+		
+		private BloomFilter	sent_to_bloom;
+		
+		protected
+		keyBlock(
+			byte[]		_request,
+			byte[]		_cert,
+			int			_received,
+			boolean		_direct )
+		{
+			request		= _request;
+			cert		= _cert;
+			received	= _received;
+			direct		= _direct;
+		}
+		
+		public byte[]
+		getRequest()
+		{
+			return( request );
+		}
+		
+		public byte[]
+		getCertificate()
+		{
+			return( cert );
+		}
+		    		
+		public byte[]
+		getKey()
+		{
+			byte[]	key = new byte[ request.length - 8 ];
+		
+			System.arraycopy( request, 8, key, 0, key.length );
+			
+			return( key );
+		}
+		
+		protected boolean
+		isAdd()
+		{
+			return( request[0] == 0x01 );
+		}
+		
+		protected int
+		getCreated()
+		{
+			int	created = 
+					(request[4]<<24)&0xff000000 | 
+					(request[5]<<16)&0x00ff0000 | 
+					(request[6]<< 8)&0x0000ff00 | 
+					 request[7]     &0x000000ff;
+						
+			return( created );
+		}
+		
+		protected int
+		getReceived()
+		{
+			return( received );
+		}
+		
+		protected boolean
+		isDirect()
+		{
+			return( direct );
+		}
+		
+		public boolean
+		hasBeenSentTo(
+			DHTTransportContact	contact )
+		{
+			BloomFilter	filter = sent_to_bloom;
+			
+			if ( filter == null ){
+				
+				return( false );
+			}
+			
+			return( filter.contains( contact.getID()));
+		}
+		
+		public void
+		sentTo(
+			DHTTransportContact	contact )
+		{
+			BloomFilter	filter = sent_to_bloom;
+			
+			if ( filter == null || filter.getEntryCount() > 100 ){
+				
+				filter = BloomFilterFactory.createAddOnly(500);
+				
+				sent_to_bloom	= filter;
+			}
+		
+			filter.add( contact.getID());
+		}
 	}
 	
 	protected static class

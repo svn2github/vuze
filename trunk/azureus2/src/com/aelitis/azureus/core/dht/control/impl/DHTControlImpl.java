@@ -44,6 +44,7 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTOperationAdapter;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
+import com.aelitis.azureus.core.dht.DHTStorageBlock;
 import com.aelitis.azureus.core.dht.impl.*;
 import com.aelitis.azureus.core.dht.control.*;
 import com.aelitis.azureus.core.dht.db.*;
@@ -893,15 +894,56 @@ DHTControlImpl
 	protected void
 	put(
 		final ThreadPool						thread_pool,
-		final byte[][]							encoded_keys,
+		byte[][]								initial_encoded_keys,
 		final String							description,
-		final DHTTransportValue[][]				value_sets,
+		final DHTTransportValue[][]				initial_value_sets,
 		final List								contacts,
 		final long								timeout,
 		final DHTOperationListenerDemuxer		listener,
 		final boolean							consider_diversification,
 		final Set								keys_written )
 	{		
+		boolean[]	ok = new boolean[initial_encoded_keys.length];
+		int	failed = 0;
+		
+		for (int i=0;i<initial_encoded_keys.length;i++){
+			
+			if ( ! (ok[i] = !database.isKeyBlocked( initial_encoded_keys[i]))){
+				
+				failed++;
+			}
+		}
+		
+			// if all failed then nothing to do
+		
+		if ( failed == ok.length ){
+			
+			listener.incrementCompletes();
+			
+			listener.complete( false );
+			
+			return;
+		}
+		
+		final byte[][] 				encoded_keys 	= failed==0?initial_encoded_keys:new byte[ok.length-failed][];
+		final DHTTransportValue[][] value_sets 		= failed==0?initial_value_sets:new DHTTransportValue[ok.length-failed][];
+		
+		if ( failed > 0 ){
+			
+			int	pos = 0;
+			
+			for (int i=0;i<ok.length;i++){
+				
+				if ( ok[i] ){
+					
+					encoded_keys[ pos ] = initial_encoded_keys[i];
+					value_sets[ pos ] 	= initial_value_sets[i];
+					
+					pos++;
+				}
+			}
+		}
+		
 			// only diversify on one hit as we're storing at closest 'n' so we only need to
 			// do it once for each key
 		
@@ -930,7 +972,7 @@ DHTControlImpl
 						// each store is going to report its complete event
 					
 					listener.incrementCompletes();
-					
+										
 					contact.sendStore( 
 						new DHTTransportReplyHandlerAdapter()
 						{
@@ -990,6 +1032,33 @@ DHTControlImpl
 								}finally{
 									
 									listener.complete( true );
+								}
+							}
+							
+							public void
+							keyBlockRequest(
+								byte[]					request,
+								byte[]					key_signature )
+							{
+								DHTStorageBlock	key_block = database.keyBlockRequest( null, request, key_signature );
+								
+								if ( key_block != null ){
+									
+										// remove this key for any subsequent publishes. Quickest hack
+										// is to change it into a random key value - this will be rejected
+										// by the recipient as not being close enough anyway
+									
+									for (int i=0;i<encoded_keys.length;i++){
+										
+										if ( Arrays.equals( encoded_keys[i], key_block.getKey())){
+											
+											byte[]	dummy = new byte[encoded_keys[i].length];
+											
+											new Random().nextBytes( dummy );
+											
+											encoded_keys[i] = dummy;
+										}
+									}
 								}
 							}
 						},
@@ -1273,10 +1342,17 @@ DHTControlImpl
 		last_lookup	= SystemTime.getCurrentTime();
 	
 		result_handler.incrementCompletes();
-		
+
 		try{
 			DHTLog.log( "lookup for " + DHTLog.getString( lookup_id ));
 			
+			if ( value_search && database.isKeyBlocked( lookup_id )){
+				
+					// bail out and pretend everything worked with zero results
+				
+				return;
+			}
+		
 				// keep querying successively closer nodes until we have got responses from the K
 				// closest nodes that we've seen. We might get a bunch of closer nodes that then
 				// fail to respond, which means we have reconsider further away nodes
@@ -1337,6 +1413,8 @@ DHTControlImpl
 			final int[]	value_replies	= { 0 };
 			final Set	values_found_set	= new HashSet();
 			
+			final boolean[]	key_blocked	= { false };
+
 			long	start = SystemTime.getCurrentTime();
 	
 			while( true ){
@@ -1387,6 +1465,14 @@ DHTControlImpl
 						break;
 					}						
 
+						// if we've received a key block then easiest way to terminate the query is to
+						// dump any outstanding targets
+					
+					if ( key_blocked[0] ){
+						
+						contacts_to_query.clear();
+					}
+					
 						// if nothing pending then we need to wait for the results of a previous
 						// search to arrive. Of course, if there are no searches active then
 						// we've run out of things to do
@@ -1608,11 +1694,14 @@ DHTControlImpl
 								DHTLog.log( "findValueReply: " + DHTLog.getString( values ) + ",mtc=" + more_to_come + ", dt=" + diversification_type );
 
 								try{
-									if ( diversification_type != DHT.DT_NONE ){
+									if ( !key_blocked[0] ){
 										
-											// diversification instruction									
-	
-										result_handler.diversify( contact, diversification_type );									
+										if ( diversification_type != DHT.DT_NONE ){
+										
+												// diversification instruction									
+		
+											result_handler.diversify( contact, diversification_type );
+										}								
 									}
 									
 									value_reply_received	= true;
@@ -1621,35 +1710,38 @@ DHTControlImpl
 									
 									int	new_values = 0;
 									
-									for (int i=0;i<values.length;i++){
+									if ( !key_blocked[0] ){
 										
-										DHTTransportValue	value = values[i];
-										
-										DHTTransportContact	originator = value.getOriginator();
-										
-											// can't just use originator id as this value can be DOSed (see DB code)
-										
-										byte[]	originator_id 	= originator.getID();
-										byte[]	value_bytes		= value.getValue();
-										
-										byte[]	value_id = new byte[originator_id.length + value_bytes.length];
-										
-										System.arraycopy( originator_id, 0, value_id, 0, originator_id.length );
-										
-										System.arraycopy( value_bytes, 0, value_id, originator_id.length, value_bytes.length );
-										
-										HashWrapper	x = new HashWrapper( value_id );
-
-										if ( !values_found_set.contains( x )){
+										for (int i=0;i<values.length;i++){
 											
-											new_values++;
+											DHTTransportValue	value = values[i];
 											
-											values_found_set.add( x );
+											DHTTransportContact	originator = value.getOriginator();
 											
-											result_handler.read( contact, values[i] );
+												// can't just use originator id as this value can be DOSed (see DB code)
+											
+											byte[]	originator_id 	= originator.getID();
+											byte[]	value_bytes		= value.getValue();
+											
+											byte[]	value_id = new byte[originator_id.length + value_bytes.length];
+											
+											System.arraycopy( originator_id, 0, value_id, 0, originator_id.length );
+											
+											System.arraycopy( value_bytes, 0, value_id, originator_id.length, value_bytes.length );
+											
+											HashWrapper	x = new HashWrapper( value_id );
+	
+											if ( !values_found_set.contains( x )){
+												
+												new_values++;
+												
+												values_found_set.add( x );
+												
+												result_handler.read( contact, values[i] );
+											}
 										}
 									}
-											
+									
 									try{
 										contacts_to_query_mon.enter();
 
@@ -1721,6 +1813,20 @@ DHTControlImpl
 									}
 									
 									search_sem.release();
+								}
+							}
+							
+							public void
+							keyBlockRequest(
+								byte[]					request,
+								byte[]					key_signature )
+							{
+									// we don't want to kill the contact due to this so indicate that
+									// it is ok by setting the flag
+								
+								if ( database.keyBlockRequest( null, request, key_signature ) != null ){
+									
+									key_blocked[0]	= true;
 								}
 							}
 						};
@@ -1805,7 +1911,20 @@ DHTControlImpl
 		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 	}
 		
-	public byte[]
+	public void
+	keyBlockRequest(
+		DHTTransportContact originating_contact,
+		byte[]				request,
+		byte[]				sig )
+	{
+		DHTLog.log( "keyBlockRequest from " + DHTLog.getString( originating_contact.getID()));
+			
+		router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
+		
+		database.keyBlockRequest( originating_contact, request, sig );
+	}
+		
+	public DHTTransportStoreReply
 	storeRequest(
 		DHTTransportContact 	originating_contact, 
 		byte[][]				keys,
@@ -1823,10 +1942,12 @@ DHTControlImpl
 			
 			Debug.out( "DHTControl:storeRequest - invalid request received from " + originating_contact.getString() + ", keys and values length mismatch");
 			
-			return( diverse_res );
+			return( new DHTTransportStoreReplyImpl(  diverse_res ));
 		}
 		
 		// System.out.println( "storeRequest: received " + originating_contact.getRandomID() + " from " + originating_contact.getAddress());
+		
+		DHTStorageBlock	blocked_details	= null;
 		
 		for (int i=0;i<keys.length;i++){
 			
@@ -1837,9 +1958,24 @@ DHTControlImpl
 			DHTLog.log( "    key=" + DHTLog.getString(key) + ", value=" + DHTLog.getString(values));
 			
 			diverse_res[i] = database.store( originating_contact, key, values );
+			
+			if ( blocked_details == null ){
+					
+				blocked_details = database.getKeyBlockDetails( keys[i] );
+			}
 		}
 		
-		return( diverse_res );
+			// fortunately we can get away with this as diversifications are only taken note of by initial, single value stores
+			// and not by the multi-value cache forwards...
+		
+		if ( blocked_details == null ){
+			
+			return( new DHTTransportStoreReplyImpl( diverse_res ));
+			
+		}else{
+		
+			return( new DHTTransportStoreReplyImpl( blocked_details.getRequest(), blocked_details.getCertificate()));
+		}
 	}
 	
 	public DHTTransportContact[]
@@ -1891,8 +2027,17 @@ DHTControlImpl
 			
 			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 
-			return( new DHTTransportFindValueReplyImpl( result.getDiversificationType(), result.getValues()));
+			DHTStorageBlock	block_details = database.getKeyBlockDetails( key );
 			
+			if ( block_details == null ){
+			
+				return( new DHTTransportFindValueReplyImpl( result.getDiversificationType(), result.getValues()));
+			
+			}else{
+				
+				return( new DHTTransportFindValueReplyImpl( block_details.getRequest(), block_details.getCertificate()));
+
+			}
 		}else{
 			
 			return( new DHTTransportFindValueReplyImpl( findNodeRequest( originating_contact, key )));
@@ -1950,7 +2095,9 @@ DHTControlImpl
 		
 		Map	keys_to_store	= new HashMap();
 		
-		if ( database.isEmpty()){
+		DHTStorageBlock[]	direct_key_blocks = database.getDirectKeyBlocks();
+		
+		if ( database.isEmpty() && direct_key_blocks.length == 0 ){
 							
 			// nothing to do, ping it if it isn't known to be alive
 				
@@ -1997,6 +2144,11 @@ DHTControlImpl
 			HashWrapper	key		= (HashWrapper)it.next();
 			
 			byte[]	encoded_key		= key.getHash();
+
+			if ( database.isKeyBlocked( encoded_key )){
+				
+				continue;
+			}
 			
 			DHTDBLookupResult	result = database.get( null, key, 0, false );
 			
@@ -2058,12 +2210,14 @@ DHTControlImpl
 			}
 		}
 		
+		final DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getTransportContact();
+
+		final boolean[]	anti_spoof_done	= { false };
+		
 		if ( keys_to_store.size() > 0 ){
 			
 			it = keys_to_store.entrySet().iterator();
 			
-			final DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getTransportContact();
-	
 			final byte[][]				keys 		= new byte[keys_to_store.size()][];
 			final DHTTransportValue[][]	value_sets 	= new DHTTransportValue[keys.length][];
 			
@@ -2101,6 +2255,8 @@ DHTControlImpl
 							DHTTransportContact[]	contacts )
 						{	
 							// System.out.println( "nodeAdded: pre-store findNode OK" );
+								
+							anti_spoof_done[0]	= true;
 							
 							t_contact.sendStore( 
 									new DHTTransportReplyHandlerAdapter()
@@ -2132,6 +2288,14 @@ DHTControlImpl
 																					
 											router.contactDead( _contact.getID(), false);
 										}
+										
+										public void
+										keyBlockRequest(
+											byte[]					request,
+											byte[]					signature )
+										{
+											database.keyBlockRequest( null, request, signature );
+										}
 									},
 									keys, 
 									value_sets );
@@ -2156,6 +2320,83 @@ DHTControlImpl
 			if ( !new_contact.hasBeenAlive()){
 				
 				requestPing( new_contact );
+			}
+		}
+		
+			// finally transfer any key-blocks
+		
+		if ( t_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_BLOCK_KEYS ){
+					
+			for (int i=0;i<direct_key_blocks.length;i++){
+				
+				final DHTStorageBlock	key_block = direct_key_blocks[i];
+				
+				if ( key_block.hasBeenSentTo( t_contact )){
+					
+					continue;
+				}
+				
+				final Runnable task = 
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							t_contact.sendKeyBlock(
+									new DHTTransportReplyHandlerAdapter()
+									{
+										public void
+										keyBlockReply(
+											DHTTransportContact 	_contact )
+										{
+											DHTLog.log( "key block forward ok " + DHTLog.getString( _contact ));
+											
+											key_block.sentTo( _contact );
+										}
+										
+										public void
+										failed(
+											DHTTransportContact 	_contact,
+											Throwable				_error )
+										{
+											DHTLog.log( "key block forward failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+										}
+									},
+									key_block.getRequest(),
+									key_block.getCertificate());
+						}
+					};
+					
+				if ( anti_spoof_done[0] ){
+				
+					task.run();
+					
+				}else{
+					
+					t_contact.sendFindNode(
+							new DHTTransportReplyHandlerAdapter()
+							{
+								public void
+								findNodeReply(
+									DHTTransportContact 	contact,
+									DHTTransportContact[]	contacts )
+								{	
+									task.run();
+								}
+								public void
+								failed(
+									DHTTransportContact 	_contact,
+									Throwable				_error )
+								{
+									// System.out.println( "nodeAdded: pre-store findNode Failed" );
+
+									DHTLog.log( "pre-kb findNode failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+																			
+									router.contactDead( _contact.getID(), false);
+								}
+							},
+							t_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
+				}
 			}
 		}
 	}
@@ -2675,7 +2916,7 @@ DHTControlImpl
 		return( new ArrayList( sorted_contacts ));
 	}
 	
-	protected class
+	protected static class
 	sortedTransportContactSet
 	{
 		private TreeSet	tree_set;
@@ -2705,7 +2946,7 @@ DHTControlImpl
 						DHTTransportContact	t1 = (DHTTransportContact)o1;
 						DHTTransportContact t2 = (DHTTransportContact)o2;
 											
-						int	distance = computeAndCompareDistances( t1.getID(), t2.getID(), pivot );
+						int	distance = computeAndCompareDistances2( t1.getID(), t2.getID(), pivot );
 						
 						if ( ascending ){
 							
@@ -2726,7 +2967,7 @@ DHTControlImpl
 		}
 	}
 	
-	class
+	protected static class
 	DHTOperationListenerDemuxer
 		implements DHTOperationListener
 	{
@@ -2830,7 +3071,7 @@ DHTControlImpl
 		}
 	}
 	
-	abstract class
+	abstract static class
 	lookupResultHandler
 		extends DHTOperationListenerDemuxer
 	{		
@@ -2853,13 +3094,15 @@ DHTControlImpl
 	}
 	
 
-	class
+	protected static class
 	DHTTransportFindValueReplyImpl
 		implements DHTTransportFindValueReply
 	{
 		private byte					dt = DHT.DT_NONE;
 		private DHTTransportValue[]		values;
 		private DHTTransportContact[]	contacts;
+		private byte[]					blocked_key;
+		private byte[]					blocked_sig;
 		
 		protected
 		DHTTransportFindValueReplyImpl(
@@ -2877,6 +3120,15 @@ DHTControlImpl
 			contacts	= _contacts;
 		}
 		
+		protected
+		DHTTransportFindValueReplyImpl(
+			byte[]		_blocked_key,
+			byte[]		_blocked_sig )
+		{
+			blocked_key	= _blocked_key;
+			blocked_sig	= _blocked_sig;
+		}
+		
 		public byte
 		getDiversificationType()
 		{
@@ -2889,6 +3141,12 @@ DHTControlImpl
 			return( values != null );
 		}
 		
+		public boolean
+		blocked()
+		{
+			return( blocked_key != null );
+		}
+		
 		public DHTTransportValue[]
 		getValues()
 		{
@@ -2899,6 +3157,67 @@ DHTControlImpl
 		getContacts()
 		{
 			return( contacts );
+		}
+		
+		public byte[]
+		getBlockedKey()
+		{
+			return( blocked_key );
+		}
+		
+		public byte[]
+		getBlockedSignature()
+		{
+			return( blocked_sig );
+		}
+	}
+	
+	protected static class
+	DHTTransportStoreReplyImpl
+		implements DHTTransportStoreReply
+	{
+		private byte[]	divs;
+		private byte[]	block_request;
+		private byte[]	block_sig;
+		
+		protected 
+		DHTTransportStoreReplyImpl(
+			byte[]		_divs )
+		{
+			divs	= _divs;
+		}
+		
+		protected 
+		DHTTransportStoreReplyImpl(
+			byte[]		_bk,
+			byte[]		_bs )
+		{
+			block_request	= _bk;
+			block_sig		= _bs;
+		}
+		
+		public byte[]
+		getDiversificationTypes()
+		{
+			return( divs );
+		}
+		
+		public boolean
+		blocked()
+		{
+			return( block_request != null );
+		}
+		
+		public byte[]
+		getBlockRequest()
+		{
+			return( block_request );
+		}
+		
+		public byte[]
+		getBlockSignature()
+		{
+			return( block_sig );
 		}
 	}
 	

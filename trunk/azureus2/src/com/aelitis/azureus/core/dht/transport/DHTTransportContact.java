@@ -99,6 +99,12 @@ DHTTransportContact
 		int							max_values,
 		byte						flags );
 		
+	public void
+	sendKeyBlock(
+		DHTTransportReplyHandler	handler,
+		byte[]						key_block_request,
+		byte[]						key_block_signature );
+
 	public DHTTransportFullStats
 	getStats();
 	

@@ -222,15 +222,50 @@ Test
 		System.out.println( "TransportHandler: ping" );
 	}
 		
-	public byte[]
+	public void
+	keyBlockRequest(
+		DHTTransportContact contact,
+		byte[]				key_block_request,
+		byte[]				key_block_signature )
+	{
+		System.out.println( "TransportHandler: keyBlockRequest" );
+	}
+	
+	public DHTTransportStoreReply
 	storeRequest(
 		DHTTransportContact 	contact, 
-		byte[][]				keys,
+		final byte[][]			keys,
 		DHTTransportValue[][]	value_sets )
 	{
 		System.out.println( "TransportHandler: store" );
 		
-		return( new byte[keys.length] );
+		return( 
+				new DHTTransportStoreReply()
+				{
+					public byte[]
+		        	getDiversificationTypes()
+					{
+						return( new byte[keys.length] );
+					}
+		        	
+		        	public boolean
+		        	blocked()
+		        	{
+		        		return( false );
+		        	}
+		        	
+		        	public byte[]
+		        	getBlockRequest()
+		        	{
+		        		return( null );
+		        	}
+		        	
+		        	public byte[]
+		        	getBlockSignature()
+		        	{
+		        		return( null );
+		        	}
+				});
 	}
 	
 	public DHTTransportContact[]
@@ -277,6 +312,24 @@ Test
 					getContacts()
 					{
 						return( new DHTTransportContact[]{ contact } );
+					}
+					
+					public boolean
+					blocked()
+					{
+						return( false );
+					}
+					
+					public byte[]
+					getBlockedKey()
+					{
+						return( null );
+					}
+					
+					public byte[]
+					getBlockedSignature()
+					{
+						return( null );
 					}
 				});
 	}

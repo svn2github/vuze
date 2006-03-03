@@ -92,4 +92,20 @@ DHTStorageAdapter
 	getNextValueVersions(
 		int		num );
 	
+	public DHTStorageBlock
+	keyBlockRequest(
+		DHTTransportContact		direct_sender,
+		byte[]					request,
+		byte[]					signature );
+	
+	public DHTStorageBlock
+	getKeyBlockDetails(
+		byte[]		key );
+	
+	public DHTStorageBlock[]
+	getDirectKeyBlocks();
+
+	public byte[]
+	getKeyForKeyBlock(
+		byte[]	request );
 }

@@ -34,11 +34,17 @@ DHTTransportRequestHandler
 	pingRequest(
 		DHTTransportContact contact );
 		
+	public void
+	keyBlockRequest(
+		DHTTransportContact contact,
+		byte[]				key_block_request,
+		byte[]				key_block_signature );
+	
 	public DHTTransportFullStats
 	statsRequest(	
 		DHTTransportContact contact );
 	
-	public byte[]
+	public DHTTransportStoreReply
 	storeRequest(
 		DHTTransportContact contact, 
 		byte[][]				keys,

@@ -33,11 +33,19 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginStorageManager;
 
 import java.io.*;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
+import java.security.KeyFactory;
+import java.security.Signature;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -182,7 +190,7 @@ Test
 	Test()
 	{
 		try{
-	
+			DHTLog.setLogging( true );
 			
 			DHT[]			dhts 		= new DHT[num_dhts*2+30];
 			DHTTransport[]	transports 	= new DHTTransport[num_dhts*2+30];
@@ -711,6 +719,74 @@ Test
 
 							puncher.punch( dhts[2].getTransport().getLocalContact());
 						}
+					}else if ( command == 'k' ){
+						
+						int	sp = rhs.indexOf(' ');
+						
+						String	key_block;
+						boolean	add;
+						
+						if ( sp == -1 ){
+							key_block = rhs;
+							add	= true;
+						}else{
+							key_block = rhs.substring(0,sp);
+							add = false;
+						}
+						
+						String	mod = "123";
+						String	exp = "567";
+						
+						
+						KeyFactory key_factory = KeyFactory.getInstance("RSA");
+						
+						RSAPrivateKeySpec 	private_key_spec = 
+							new RSAPrivateKeySpec( new BigInteger(mod,16), new BigInteger(exp,16));
+				
+						RSAPrivateKey	key = (RSAPrivateKey)key_factory.generatePrivate( private_key_spec );
+						
+						byte[]	req = new byte[ 8 + 20 ];
+						
+						req[0]	= (byte)(add?0x01:0x00);
+						
+						int	time = (int)(System.currentTimeMillis()/1000);
+						
+						req[4] = (byte)(time>>24);
+						req[5] = (byte)(time>>16);
+						req[6] = (byte)(time>>8);
+						req[7] = (byte)(time);
+						
+						System.arraycopy( new SHA1Simple().calculateHash(key_block.getBytes()), 0, req, 8, 20 );
+						
+						Signature	sig = Signature.getInstance("MD5withRSA" );
+						
+						sig.initSign( key );
+						
+						sig.update( req );
+						
+						dhts[1].getTransport().getLocalContact().sendKeyBlock(
+							new DHTTransportReplyHandlerAdapter()
+							{
+								public void
+								keyBlockReply(
+									DHTTransportContact 	_contact )
+								{
+									System.out.println( "key block sent ok" );
+								}
+								
+								public void
+								failed(
+									DHTTransportContact 	contact,
+									Throwable				error )
+								{
+									System.out.println( "key block failed" );
+									
+									error.printStackTrace();
+								}
+							},
+							req,
+							sig.sign());
+						
 					}else{
 						
 						usage();

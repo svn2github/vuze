@@ -26,6 +26,7 @@ import java.util.Iterator;
 
 import org.gudy.azureus2.core3.util.HashWrapper;
 
+import com.aelitis.azureus.core.dht.DHTStorageBlock;
 import com.aelitis.azureus.core.dht.control.DHTControl;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
@@ -99,6 +100,23 @@ DHTDB
 	remove(	
 		DHTTransportContact 	sender,
 		HashWrapper				key );
+	
+	public DHTStorageBlock
+	keyBlockRequest(
+		DHTTransportContact		direct_sender,
+		byte[]					request,
+		byte[]					signature );
+	
+	public DHTStorageBlock
+	getKeyBlockDetails(
+		byte[]			key );
+	
+	public boolean
+	isKeyBlocked(
+		byte[]			key );
+	
+	public DHTStorageBlock[]
+	getDirectKeyBlocks();
 	
 	public boolean
 	isEmpty();

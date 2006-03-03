@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.dht.transport;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 /**
  * @author parg
  *
@@ -79,12 +81,19 @@ DHTTransportReplyHandlerAdapter
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}
-	/*
+	
 	public void
-	failed(
-		DHTTransportContact 	contact )
+	keyBlockRequest(
+		byte[]					key,
+		byte[]					key_signature )
+	{
+		Debug.out( "keyblock not handled" );
+	}
+	
+	public void
+	keyBlockReply(
+		DHTTransportContact 	_contact )
 	{
 		throw( new RuntimeException( "Not implemented" ));
 	}
-	*/
 }

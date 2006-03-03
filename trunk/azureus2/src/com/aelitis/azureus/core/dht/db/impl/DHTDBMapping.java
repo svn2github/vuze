@@ -60,7 +60,7 @@ DHTDBMapping
 	private int				local_size;
 	
 	private byte			diversification_state	= DHT.DT_NONE;
-
+	
 	private static final int		IP_COUNT_BLOOM_SIZE_INCREASE_CHUNK	= 50;
 
 		// 4 bit filter - counts up to 15

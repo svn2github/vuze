@@ -295,6 +295,36 @@ DHTTransportUDPContactImpl
 		transport.sendFindValue( this, handler, key, max_values, flags );
 	}
 	
+	public void
+	sendKeyBlock(
+		final DHTTransportReplyHandler	handler,
+		final byte[]					request,
+		final byte[]					signature )
+	{
+			// gotta do anti-spoof
+		
+		sendFindNode(
+			new DHTTransportReplyHandlerAdapter()
+			{
+				public void
+				findNodeReply(
+					DHTTransportContact 	contact,
+					DHTTransportContact[]	contacts )
+				{	
+					transport.sendKeyBlockRequest( DHTTransportUDPContactImpl.this, handler, request, signature );
+				}
+				public void
+				failed(
+					DHTTransportContact 	_contact,
+					Throwable				_error )
+				{	
+					handler.failed( _contact, _error );
+				}
+			},
+			new byte[0] );
+		
+	}
+	
 	public DHTTransportFullStats
 	getStats()
 	{

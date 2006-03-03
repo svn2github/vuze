@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
+import com.aelitis.azureus.core.dht.DHTStorageBlock;
 import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.db.*;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
@@ -535,6 +536,86 @@ DHTDBImpl
 		}
 	}
 	
+	public DHTStorageBlock
+	keyBlockRequest(
+		DHTTransportContact		direct_sender,
+		byte[]					request,
+		byte[]					signature )
+	{
+		if ( adapter == null ){
+			
+			return( null );
+		}
+		
+			// for block requests sent to us (as opposed to being returned from other operations)
+			// make sure that the key is close enough to us
+		
+		if ( direct_sender != null ){
+			
+			byte[]	key = adapter.getKeyForKeyBlock( request );
+			
+			List closest_contacts = control.getClosestKContactsList( key, true );
+			
+			boolean	process_it	= false;
+			
+			for (int i=0;i<closest_contacts.size();i++){
+				
+				if ( router.isID(((DHTTransportContact)closest_contacts.get(i)).getID())){
+					
+					process_it	= true;
+					
+					break;
+				}		
+			}
+		
+			if ( !process_it ){
+			
+				DHTLog.log( "Not processing key block for  " + DHTLog.getString2(key) + " as key too far away" );
+
+				return( null );
+			}
+			
+			if ( ! control.verifyContact( direct_sender, true )){
+				
+				DHTLog.log( "Not processing key block for  " + DHTLog.getString2(key) + " as verification failed" );
+
+				return( null );
+			}
+		}
+		
+		return( adapter.keyBlockRequest( direct_sender, request, signature ));
+	}
+	
+	public DHTStorageBlock
+	getKeyBlockDetails(
+		byte[]		key )
+	{
+		if ( adapter == null ){
+			
+			return( null );
+		}
+		
+		return( adapter.getKeyBlockDetails( key ));
+	}
+	
+	public boolean
+	isKeyBlocked(
+		byte[]		key )
+	{
+		return( getKeyBlockDetails(key) != null );
+	}
+	
+	public DHTStorageBlock[]
+	getDirectKeyBlocks()
+	{
+		if ( adapter == null ){
+			
+			return( new DHTStorageBlock[0] );
+		}
+		
+		return( adapter.getDirectKeyBlocks());
+	}
+	
 	public boolean
 	isEmpty()
 	{
@@ -756,6 +837,8 @@ DHTDBImpl
 		final int[]	keys_published		= {0};
 		final int[]	republish_ops		= {0};
 		
+		final HashSet	anti_spoof_done	= new HashSet();
+		
 		if ( republish.size() > 0 ){
 			
 			// System.out.println( "cache replublish" );
@@ -859,6 +942,8 @@ DHTDBImpl
 								DHTTransportContact 	_contact,
 								DHTTransportContact[]	_contacts )
 							{	
+								anti_spoof_done.add( _contact );
+							
 								try{
 									// System.out.println( "cacheForward: pre-store findNode OK" );
 								
@@ -947,6 +1032,93 @@ DHTDBImpl
 			}finally{
 				
 				this_mon.exit();
+			}
+		}
+		
+		DHTStorageBlock[]	direct_key_blocks = getDirectKeyBlocks();
+
+		if ( direct_key_blocks.length > 0 ){
+					
+			for (int i=0;i<direct_key_blocks.length;i++){
+			
+				final DHTStorageBlock	key_block = direct_key_blocks[i];
+				
+				List	contacts = control.getClosestKContactsList( key_block.getKey(), false );
+
+				for (int j=0;j<contacts.size();j++){
+					
+					final DHTTransportContact	contact = (DHTTransportContact)contacts.get(j);
+					
+					if ( key_block.hasBeenSentTo( contact )){
+						
+						continue;
+					}
+					
+					if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_BLOCK_KEYS ){
+						
+						final Runnable task = 
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									contact.sendKeyBlock(
+										new DHTTransportReplyHandlerAdapter()
+										{
+											public void
+											keyBlockReply(
+												DHTTransportContact 	_contact )
+											{
+												DHTLog.log( "key block forward ok " + DHTLog.getString( _contact ));
+												
+												key_block.sentTo( _contact );
+											}
+											
+											public void
+											failed(
+												DHTTransportContact 	_contact,
+												Throwable				_error )
+											{
+												DHTLog.log( "key block forward failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+											}
+										},
+										key_block.getRequest(),
+										key_block.getCertificate());
+								}
+							};
+						
+							if ( anti_spoof_done.contains( contact )){
+								
+								task.run();
+								
+							}else{
+								
+								contact.sendFindNode(
+										new DHTTransportReplyHandlerAdapter()
+										{
+											public void
+											findNodeReply(
+												DHTTransportContact 	contact,
+												DHTTransportContact[]	contacts )
+											{	
+												task.run();
+											}
+											public void
+											failed(
+												DHTTransportContact 	_contact,
+												Throwable				_error )
+											{
+												// System.out.println( "nodeAdded: pre-store findNode Failed" );
+
+												DHTLog.log( "pre-kb findNode failed " + DHTLog.getString( _contact ) + " -> failed: " + _error.getMessage());
+																						
+												router.contactDead( _contact.getID(), false);
+											}
+										},
+										contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
+							}
+					}
+				}
 			}
 		}
 		
@@ -1589,6 +1761,35 @@ DHTDBImpl
 			int		num )
 		{
 			return( delegate.getNextValueVersions(num));
+		}
+		
+		public DHTStorageBlock
+		keyBlockRequest(
+			DHTTransportContact		direct_sender,
+			byte[]					request,
+			byte[]					signature )
+		{
+			return( delegate.keyBlockRequest( direct_sender, request, signature ));
+		}
+		
+		public DHTStorageBlock
+		getKeyBlockDetails(
+			byte[]		key )
+		{
+			return( delegate.getKeyBlockDetails(key));
+		}
+		
+		public DHTStorageBlock[]
+		getDirectKeyBlocks()
+		{
+			return( delegate.getDirectKeyBlocks());
+		}
+		
+		public byte[]
+    	getKeyForKeyBlock(
+    		byte[]	request )
+		{
+			return( delegate.getKeyForKeyBlock( request ));
 		}
 	}
 }

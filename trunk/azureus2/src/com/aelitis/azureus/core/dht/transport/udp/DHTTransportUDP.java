@@ -58,6 +58,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_XFER_STATUS			= 12;
 	public static final byte PROTOCOL_VERSION_SIZE_ESTIMATE			= 13;
 	public static final byte PROTOCOL_VERSION_VENDOR_ID				= 14;
+	public static final byte PROTOCOL_VERSION_BLOCK_KEYS			= 14;
 
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
