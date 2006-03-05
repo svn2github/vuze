@@ -302,6 +302,10 @@ ConfigurationChecker
 	      COConfigurationManager.setParameter("diskmanager.perf.cache.size", COConfigurationManager.CONFIG_CACHE_SIZE_MAX_MB );
 	      changed = true;
 	    }
+	    if( cache_max < 1 ) {  //oops
+	    	COConfigurationManager.setParameter("diskmanager.perf.cache.size", 4 );
+	      changed = true;
+	    }
 	    
 	    if ( !COConfigurationManager.doesParameterNonDefaultExist( "Sharing Protocol" )){
 	    	
