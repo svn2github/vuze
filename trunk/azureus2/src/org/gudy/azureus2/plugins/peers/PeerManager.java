@@ -48,12 +48,15 @@ PeerManager
 	   * and port.
 	   * @param ip_address of peer to inject
 	   * @param port of peer to inject
+	   * @deprecated
 	   */
 	
 	public void 
 	addPeer( 
 		String ip_address, 
 		int port );
+	
+	public void addPeer( String ip_address, int port, boolean use_crypto );
   
 	public void
 	removePeer(

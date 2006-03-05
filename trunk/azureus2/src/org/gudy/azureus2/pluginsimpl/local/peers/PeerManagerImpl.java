@@ -177,14 +177,17 @@ PeerManagerImpl
 		manager.removePeer(mapForeignPeer( peer ));
 	}
   
-	public void 
-	addPeer( 
+	public void addPeer( 
 		String 	ip_address, 
 		int 	port ) 
 	{
-		manager.addPeer( ip_address, port );
+		manager.addPeer( ip_address, port, false );
 	}
   
+	
+	public void addPeer( String ip_address, int port, boolean use_crypto ) {
+		manager.addPeer( ip_address, port, use_crypto );
+	}
   
 	public Peer[]
 	getPeers()

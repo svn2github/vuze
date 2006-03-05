@@ -1299,8 +1299,8 @@ Test
 		}
 
     
-    public void addPeer( String ip, int port ) {  /* nothing */   }
-    
+    public void addPeer( String ip, int port ) {  /* nothing */   }    
+    public void addPeer( String ip_address, int port, boolean use_crypto ) {  }
 		
 		public void
 		removePeer(

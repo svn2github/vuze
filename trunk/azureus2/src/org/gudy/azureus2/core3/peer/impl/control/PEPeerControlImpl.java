@@ -541,14 +541,14 @@ PEPeerControlImpl
 	
 	
 	
-	public void addPeer( String ip_address, int port ) {	//TODO do plugins need a way to force crypto???	
-		PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN );
+	public void addPeer( String ip_address, int port, boolean use_crypto ) {
+		int type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+		PeerItem peer_item = PeerItemFactory.createPeerItem( ip_address, port, PeerItem.convertSourceID( PEPeerSource.PS_PLUGIN ), type );
 		
 		if( !isAlreadyConnected( peer_item ) ) {
-			boolean use_crypto = peer_item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
 			boolean added = makeNewOutgoingConnection( PEPeerSource.PS_PLUGIN, ip_address, port, use_crypto );  //directly inject the the imported peer
 			if( !added )  Debug.out( "injected peer was not added" );
-	}
+		}
 	}
 	
 	
