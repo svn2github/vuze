@@ -374,6 +374,11 @@ public class VersionCheckClient {
     catch( NoClassDefFoundError er ) {  /* ignore */ }
     catch( Throwable t ) {  t.printStackTrace();  }
     
+    
+    boolean using_phe = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require" );
+    message.put( "using_phe", using_phe ? new Long(1) : new Long(0) );
+    
+    
     return message;
   }
   
