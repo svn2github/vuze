@@ -70,6 +70,8 @@ OverallStatsImpl
 	}
   }
   
+  private static final long TEN_YEARS = 60*60*24*365*10;
+  
   GlobalManager manager;
    
   long totalDownloaded;
@@ -360,13 +362,11 @@ OverallStatsImpl
 	    lastDownloaded = current_total_received;
 	    
 	    if( totalDownloaded < 0 )  totalDownloaded = 0;
-	    if( totalDownloaded > 1024*1024*1024*1024*1024 )  totalDownloaded = 0;  //petabyte
-	    
+
 	    totalUploaded +=  current_total_sent - lastUploaded;
 	    lastUploaded = current_total_sent;
-	    
+
 	    if( totalUploaded < 0 )  totalUploaded = 0;
-	    if( totalUploaded > 1024*1024*1024*1024*1024 )  totalUploaded = 0;  //petabyte
 	    
 	    long delta = current_time - lastUptime;
 	    
@@ -375,7 +375,7 @@ OverallStatsImpl
 	      return;
 	    }
 	    
-	    if( totalUptime > 60*60*24*365*10 ) {  //total uptime > 10years is an error, reset
+	    if( totalUptime > TEN_YEARS ) {  //total uptime > 10years is an error, reset
 	      totalUptime = 0;
 	    }
 	    
