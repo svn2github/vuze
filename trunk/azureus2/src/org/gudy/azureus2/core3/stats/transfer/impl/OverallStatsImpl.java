@@ -304,11 +304,10 @@ OverallStatsImpl
 			long	size_mb = t.getSize()/(1024*1024);
 			
 			for (int i=0;i<file_sizes.length;i++){
-				if ( size_mb <= file_sizes[i] ){
-					
-					size_id = i+1;
+				size_id++;
+				if ( size_mb < file_sizes[i] ){					
 					break;
-				}
+				}				
 			}
 			
 			for (int i=0;i<ext_sets.length;i++){
