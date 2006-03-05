@@ -47,12 +47,12 @@ OverallStatsImpl
 	extends GlobalManagerAdpater 
 	implements OverallStats, TimerEventPerformer
 {
-  private static final String[]	exts = { "mp3;ogg;wav", "avi;mpg", "vob" };
+  private static final String[]	exts = { "mp3;ogg;wav;wma;flac", "avi;mpg;mpeg;wmv;vob;mp4;divx;mov", "zip;rar;iso;bin;tar;sit" };
   private static Set[]	ext_sets;
   
   	// sizes in MB
   
-  private long[]	file_sizes = { 500, 1000 };
+  private long[]	file_sizes = { 400, 800, 1600 };
   
   static{
 	ext_sets = new Set[exts.length];
@@ -359,8 +359,14 @@ OverallStatsImpl
 	    totalDownloaded +=  current_total_received - lastDownloaded;
 	    lastDownloaded = current_total_received;
 	    
+	    if( totalDownloaded < 0 )  totalDownloaded = 0;
+	    if( totalDownloaded > 1024*1024*1024*1024*1024 )  totalDownloaded = 0;  //petabyte
+	    
 	    totalUploaded +=  current_total_sent - lastUploaded;
 	    lastUploaded = current_total_sent;
+	    
+	    if( totalUploaded < 0 )  totalUploaded = 0;
+	    if( totalUploaded > 1024*1024*1024*1024*1024 )  totalUploaded = 0;  //petabyte
 	    
 	    long delta = current_time - lastUptime;
 	    
@@ -372,6 +378,8 @@ OverallStatsImpl
 	    if( totalUptime > 60*60*24*365*10 ) {  //total uptime > 10years is an error, reset
 	      totalUptime = 0;
 	    }
+	    
+	    if( totalUptime < 0 )  totalUptime = 0;
 	    
 	    totalUptime += delta;
 	    lastUptime = current_time;
