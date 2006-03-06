@@ -47,7 +47,7 @@ OverallStatsImpl
 	extends GlobalManagerAdpater 
 	implements OverallStats, TimerEventPerformer
 {
-  private static final String[]	exts = { "mp3;ogg;wav;wma;flac", "avi;mpg;mpeg;wmv;vob;mp4;divx;mov", "zip;rar;iso;bin;tar;sit" };
+  private static final String[]	exts = { "mp3;ogg;wav;wma;flac", "avi;mpg;mpeg;wmv;vob;mp4;divx;mov;mkv", "zip;rar;iso;bin;tar;sit" };
   private static Set[]	ext_sets;
   
   	// sizes in MB
@@ -304,11 +304,14 @@ OverallStatsImpl
 			long	size_mb = t.getSize()/(1024*1024);
 			
 			for (int i=0;i<file_sizes.length;i++){
-				size_id++;
+				size_id = i + 1;
 				if ( size_mb < file_sizes[i] ){					
 					break;
-				}				
+				}
 			}
+			
+			if( size_id < 1 )  Debug.out( "ERROR: size_id < 1: " +size_id );
+			
 			
 			for (int i=0;i<ext_sets.length;i++){
 				if ( ext_sets[i].contains(largest_ext) ){
