@@ -84,6 +84,7 @@ DHTTransportReplyHandlerAdapter
 	
 	public void
 	keyBlockRequest(
+		DHTTransportContact		contact,
 		byte[]					key,
 		byte[]					key_signature )
 	{

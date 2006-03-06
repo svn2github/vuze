@@ -3220,25 +3220,19 @@ DHTTransportUDPImpl
 						Debug.printStackTrace(e);
 					}
 											
-					break;
+					throw( new DHTUDPPacketHandlerException( "address changed notification" ));
 				}
 				case DHTUDPPacketReplyError.ET_KEY_BLOCKED:
 				{
-					handler.keyBlockRequest( error.getKeyBlockRequest(), error.getKeyBlockSignature());
+					handler.keyBlockRequest( contact, error.getKeyBlockRequest(), error.getKeyBlockSignature());
 					
 					contactAlive( contact );
 					
-					break;
-				}
-				default:
-				{
-					Debug.out( "Unknown error type received" );
-					
-					break;
+					throw( new DHTUDPPacketHandlerException( "key blocked" ));
 				}
 			}
 				
-			throw( new DHTUDPPacketHandlerException( "retry not permitted" ));
+			throw( new DHTUDPPacketHandlerException( "unknown error type " + error.getErrorType()));
 			
 		}else{
 			

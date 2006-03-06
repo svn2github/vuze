@@ -505,7 +505,7 @@ DHTTransportLoopbackImpl
 			
 			if ( rep.blocked()){
 				
-				handler.keyBlockRequest( rep.getBlockRequest(), rep.getBlockSignature());
+				handler.keyBlockRequest( contact, rep.getBlockRequest(), rep.getBlockSignature());
 				
 				handler.failed( contact, new Throwable( "key blocked" ));
 				
@@ -633,7 +633,7 @@ DHTTransportLoopbackImpl
 
 			}else if ( find_res.blocked()){
 				
-				handler.keyBlockRequest( find_res.getBlockedKey(), find_res.getBlockedSignature() );
+				handler.keyBlockRequest( contact, find_res.getBlockedKey(), find_res.getBlockedSignature() );
 				
 				handler.failed( contact, new Throwable( "key blocked" ));
 				

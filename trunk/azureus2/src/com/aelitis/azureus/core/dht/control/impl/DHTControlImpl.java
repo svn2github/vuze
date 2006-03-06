@@ -1109,6 +1109,97 @@ DHTControlImpl
 		getSupport( encoded_key, description, flags, max_values, timeout, exhaustive, new DHTOperationListenerDemuxer( get_listener ));
 	}
 	
+	public boolean
+   	lookup(		
+   		byte[]							unencoded_key,
+   		long							timeout,
+   		final DHTOperationListener		lookup_listener )
+	{
+		final byte[]	encoded_key = encodeKey( unencoded_key );
+
+		DHTLog.log( "lookup for " + DHTLog.getString( encoded_key ));
+
+		final AESemaphore	sem = new AESemaphore( "DHTControl:lookup" );
+
+		final	boolean[]	diversified = { false };
+		
+		DHTOperationListener	delegate = 
+			new DHTOperationListener()
+			{
+				public void
+				searching(
+					DHTTransportContact	contact,
+					int					level,
+					int					active_searches )
+				{
+					lookup_listener.searching( contact, level, active_searches );
+				}
+				
+				public void
+				found(
+					DHTTransportContact	contact )
+				{
+				}
+				
+				public void
+				read(
+					DHTTransportContact	contact,
+					DHTTransportValue	value )
+				{
+				}
+				
+				public void
+				wrote(
+					DHTTransportContact	contact,
+					DHTTransportValue	value )
+				{
+				}
+				
+				public void
+				complete(
+					boolean				timeout )
+				{
+					lookup_listener.complete( timeout );
+					
+					sem.release();
+				}
+			};
+			
+		lookup( 	external_lookup_pool,
+					encoded_key, 
+					"lookup",
+					(byte)0,
+					false, 
+					timeout,
+					search_concurrency,
+					1,
+					router.getK(),
+					new lookupResultHandler( delegate )
+					{
+						public void
+						diversify(
+							DHTTransportContact	cause,
+							byte				diversification_type )
+						{
+							diversified[0] = true;
+						}
+														
+						public void
+						closest(
+							List	closest )
+						{
+							for (int i=0;i<closest.size();i++){
+								
+								lookup_listener.found((DHTTransportContact)closest.get(i));
+							}
+						}
+					});
+		
+		sem.reserve();
+				
+		return( diversified[0] );
+	}
+	
 	public void
 	getSupport(
 		final byte[]						initial_encoded_key,
@@ -1346,11 +1437,16 @@ DHTControlImpl
 		try{
 			DHTLog.log( "lookup for " + DHTLog.getString( lookup_id ));
 			
-			if ( value_search && database.isKeyBlocked( lookup_id )){
+			if ( value_search ){
 				
-					// bail out and pretend everything worked with zero results
+				if ( database.isKeyBlocked( lookup_id )){
+							
+					DHTLog.log( "lookup: terminates - key blocked" );
+
+						// bail out and pretend everything worked with zero results
 				
-				return;
+					return;
+				}
 			}
 		
 				// keep querying successively closer nodes until we have got responses from the K

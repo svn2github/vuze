@@ -146,6 +146,12 @@ DHTControl
 		DHTTransportContact c,
 		boolean				direct );
 	
+	public boolean
+	lookup(
+		byte[]					id,
+		long					timeout,
+		DHTOperationListener	listener );
+	
 	/**
 	 * Returns a list of DHTContact objects
 	 * @return

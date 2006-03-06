@@ -107,13 +107,9 @@ DHTPluginStorageManager
 	private BloomFilter					kb_verify_fail_bloom;
 	private long						kb_verify_fail_bloom_create_time;
 	
-	private RSAPublicKey key_block_public_key;
+	private static RSAPublicKey key_block_public_key;
 	
-	public
-	DHTPluginStorageManager(
-		DHTLogger			_log,
-		File				_data_dir )
-	{
+	static{
 		try{
 			KeyFactory key_factory = KeyFactory.getInstance("RSA");
 			
@@ -126,7 +122,13 @@ DHTPluginStorageManager
 			
 			Debug.printStackTrace(e);
 		}
-		
+	}
+	
+	public
+	DHTPluginStorageManager(
+		DHTLogger			_log,
+		File				_data_dir )
+	{	
 		log			= _log;
 		data_dir	= _data_dir;
 		
@@ -1222,7 +1224,7 @@ DHTPluginStorageManager
 		
 		if ( filter.contains( id )){
 			
-			log.log( "BK: request verify denied" );
+			log.log( "KB: request verify denied" );
 			
 			return( false );
 		}
@@ -1236,15 +1238,40 @@ DHTPluginStorageManager
 
 			if ( !verifier.verify( kb.getCertificate())){
 			
-				log.log( "BK: request verify failed for " + DHTLog.getString2( kb.getKey()));
+				log.log( "KB: request verify failed for " + DHTLog.getString2( kb.getKey()));
 
 				filter.add( id );
 				
 				return( false );
 			}
 			
-			log.log( "BK: request verify ok " + DHTLog.getString2( kb.getKey()) + ", add = " + kb.isAdd() + ", direct = " + kb.isDirect());
+			log.log( "KB: request verify ok " + DHTLog.getString2( kb.getKey()) + ", add = " + kb.isAdd() + ", direct = " + kb.isDirect());
 
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
+	}
+	
+	public static boolean
+	verifyKeyBlock(
+		byte[]		request,
+		byte[]		signature )
+	{
+		try{
+			Signature	verifier = Signature.getInstance("MD5withRSA" );
+			
+			verifier.initVerify( key_block_public_key );
+			
+			verifier.update( request );
+
+			if ( !verifier.verify( signature )){
+			
+				return( false );
+			}
+			
 			return( true );
 			
 		}catch( Throwable e ){
@@ -1262,6 +1289,13 @@ DHTPluginStorageManager
 		if ( kb == null || !kb.isAdd()){
 			
 			return( null );
+		}
+		
+		if ( !kb.getLogged()){
+			
+			kb.setLogged();
+			
+			log.log( "KB: Access to key '" + DHTLog.getFullString( kb.getKey()) + "' denied as it is blocked" );
 		}
 		
 		return( kb );
@@ -1299,6 +1333,7 @@ DHTPluginStorageManager
 		private boolean		direct;
 		
 		private BloomFilter	sent_to_bloom;
+		private boolean		logged;
 		
 		protected
 		keyBlock(
@@ -1339,6 +1374,18 @@ DHTPluginStorageManager
 		isAdd()
 		{
 			return( request[0] == 0x01 );
+		}
+		
+		protected boolean
+		getLogged()
+		{
+			return( logged );
+		}
+		
+		protected void
+		setLogged()
+		{
+			logged	= true;
 		}
 		
 		protected int
