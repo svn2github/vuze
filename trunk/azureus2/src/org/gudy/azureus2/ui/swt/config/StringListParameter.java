@@ -72,8 +72,7 @@ public class StringListParameter extends Parameter {
 	 */
 	public StringListParameter(Composite composite, String _name,
 			String defaultValue, final String labels[], final String values[]) {
-		this(composite, _name, COConfigurationManager.getStringParameter(_name),
-				labels, values, true);
+		this(composite, _name, defaultValue, labels, values, true);
 	}
 
 	/**

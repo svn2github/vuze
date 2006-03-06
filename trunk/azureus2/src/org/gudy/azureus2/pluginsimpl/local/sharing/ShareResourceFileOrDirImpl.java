@@ -188,11 +188,6 @@ ShareResourceFileOrDirImpl
 				to_torrent.setComment( comment );
 			}
 			
-			if ( TorrentUtils.isDecentralised(to_torrent)){
-				
-				TorrentUtils.setDecentralised( to_torrent );
-			}
-			
 			boolean	dht_backup_enabled = COConfigurationManager.getBooleanParameter( "Sharing Permit DHT", true );
 			
 			TorrentUtils.setDHTBackupEnabled( to_torrent, dht_backup_enabled );
@@ -201,17 +196,11 @@ ShareResourceFileOrDirImpl
 
 			TorrentUtils.setPrivate( to_torrent, private_torrent );
 			
-			File	save_dir;
-			
-			if ( type == ST_FILE ){
+			if ( TorrentUtils.isDecentralised(to_torrent)){
 				
-				save_dir = file.getParentFile();
-				
-			}else{
-				
-				save_dir = file;
+				TorrentUtils.setDecentralised( to_torrent );
 			}
-			
+						
 			DownloadManagerState	download_manager_state = 
 				DownloadManagerStateFactory.getDownloadState( to_torrent ); 
 

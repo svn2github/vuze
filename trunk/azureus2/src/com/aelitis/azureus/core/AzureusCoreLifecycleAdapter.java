@@ -73,4 +73,10 @@ AzureusCoreLifecycleAdapter
 	{
 		return( true );
 	}
+	
+	public boolean
+	syncInvokeRequired()
+	{
+		return( false );
+	}
 }

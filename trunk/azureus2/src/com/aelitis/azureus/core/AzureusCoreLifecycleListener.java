@@ -65,4 +65,13 @@ AzureusCoreLifecycleListener
 	
 		throws AzureusCoreException;
 
+		/**
+		 * Some listeners must be invoked on the same thread that initiates a core closedown. In particular
+		 * the show-alerts-raised-during-closedown logic requires that it is invoked on the swt thread that
+		 * initiated the closedown.
+		 * @return
+		 */
+	
+	public boolean
+	syncInvokeRequired();
 }

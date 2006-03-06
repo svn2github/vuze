@@ -290,6 +290,12 @@ Initializer
 	    		{
 	    			Alerts.stopCompleted();
 	    		}
+	    		
+	    		public boolean
+	    		syncInvokeRequired()
+	    		{
+	    			return( true );
+	    		}
 			});
 	    
 	    azureus_core.start();

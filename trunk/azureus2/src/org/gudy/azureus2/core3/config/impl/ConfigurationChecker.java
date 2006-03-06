@@ -306,19 +306,7 @@ ConfigurationChecker
 	    	COConfigurationManager.setParameter("diskmanager.perf.cache.size", 4 );
 	      changed = true;
 	    }
-	    
-	    if ( !COConfigurationManager.doesParameterNonDefaultExist( "Sharing Protocol" )){
-	    	
-	    		// replacement of "Sharing Use SSL" with "Sharing Protocol" 
-	    	
-	    	boolean	ssl = COConfigurationManager.getBooleanParameter("Sharing Use SSL", false);
-	    	
-	    	COConfigurationManager.setParameter( "Sharing Protocol", ssl?"HTTPS":"HTTP" );
-	    	
-	    	changed	= true;
-	    }
-	    
-	    
+	    	    
 	    /**
 	     * Special Patch for OSX users
 	     */

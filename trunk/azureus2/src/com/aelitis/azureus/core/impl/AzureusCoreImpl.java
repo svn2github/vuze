@@ -355,13 +355,37 @@ AzureusCoreImpl
 			this_mon.exit();
 		}
 		
+		List	sync_listeners 	= new ArrayList();
+		List	async_listeners	= new ArrayList();
+		
+		for (int i=0;i<lifecycle_listeners.size();i++){
+			
+			AzureusCoreLifecycleListener	l = (AzureusCoreLifecycleListener)lifecycle_listeners.get(i);
+			
+			if ( l.syncInvokeRequired()){
+				sync_listeners.add( l );
+			}else{
+				async_listeners.add( l );
+			}
+		}
+		
 		try{
+			for (int i=0;i<sync_listeners.size();i++){		
+				try{
+					((AzureusCoreLifecycleListener)sync_listeners.get(i)).stopping( this );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+			
 				// in case something hangs during listener notification (e.g. version check server is down
 				// and the instance manager tries to obtain external address) we limit overall dispatch
 				// time to 10 seconds
 			
 			ListenerManager.dispatchWithTimeout(
-					lifecycle_listeners,
+					async_listeners,
 					new ListenerManagerDispatcher()
 					{
 						public void
@@ -378,8 +402,18 @@ AzureusCoreImpl
 			
 			global_manager.stopGlobalManager();
 				
+			for (int i=0;i<sync_listeners.size();i++){		
+				try{
+					((AzureusCoreLifecycleListener)sync_listeners.get(i)).stopped( this );
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+			
 			ListenerManager.dispatchWithTimeout(
-					lifecycle_listeners,
+					async_listeners,
 					new ListenerManagerDispatcher()
 					{
 						public void

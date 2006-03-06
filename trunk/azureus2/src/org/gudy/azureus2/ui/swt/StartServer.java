@@ -343,7 +343,7 @@ StartServer
     try {
       socket.close();
     }
-    catch (Exception e) {/*ignore */}
+    catch (Throwable e) {/*ignore */}
   }
   /**
    * @return
