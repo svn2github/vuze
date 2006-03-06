@@ -21,6 +21,7 @@
 package org.gudy.azureus2.core3.util;
 
 import java.nio.charset.Charset;
+import java.util.StringTokenizer;
 
 /**
  *  
@@ -177,58 +178,53 @@ Constants
 	compareVersions(
 		String		version_1,
 		String		version_2 )
-	{		
-		for (int j=0;j<Math.min(version_2.length(), version_1.length());j++){
-			
-			char	v1_c	= version_1.charAt(j);
-			char	v2_c	= version_2.charAt(j);
-			
-			if ( v1_c == v2_c ){
-				
-				continue;
+	{	
+		try{
+			if ( version_1.startsWith("." )){
+				version_1 = "0" + version_1;
+			}
+			if ( version_2.startsWith("." )){
+				version_2 = "0" + version_2;
 			}
 			
-			if ( v2_c == '.' ){
+			StringTokenizer	tok1 = new StringTokenizer(version_1,".");
+			StringTokenizer	tok2 = new StringTokenizer(version_2,".");
+			
+			while( true ){
+				if ( tok1.hasMoreTokens() && tok2.hasMoreTokens()){
 				
-					// version1 higher (e.g. 10.2 -vs- 1.2)
+					int	i1 = Integer.parseInt(tok1.nextToken());
+					int	i2 = Integer.parseInt(tok2.nextToken());
 				
-				return( +1 );
-				
-			}else if ( v1_c == '.' ){
-				
-					// version2 higher ( e.g. 1.2 -vs- 10.2 )
-				
-				return( -1 );
-								
-			}else{
-				
-					// could be 1.4.9 -vs- 1.4.10
-				
-				int	v1_next_dot = j+1;
-				
-				while( v1_next_dot < version_1.length() && version_1.charAt(v1_next_dot) != '.'){
+					if ( i1 != i2 ){
+						
+						return( i1 - i2 );
+					}
+				}else if ( tok1.hasMoreTokens()){
 					
-					v1_next_dot++;
-				}
-				
-				int	v2_next_dot = j+1;
-				
-				while( v2_next_dot < version_2.length() && version_2.charAt(v2_next_dot) != '.'){
+					int	i1 = Integer.parseInt(tok1.nextToken());
+	
+					if ( i1 != 0 ){
+						
+						return( 1 );
+					}
+				}else if ( tok2.hasMoreTokens()){
 					
-					v2_next_dot++;
+					int	i2 = Integer.parseInt(tok2.nextToken());
+	
+					if ( i2 != 0 ){
+						
+						return( -1 );
+					}
+				}else{
+					return( 0 );
 				}
-				
-				if ( v1_next_dot == v2_next_dot ){
-					
-					return( v1_c - v2_c );
-				}
-				
-				return( v1_next_dot - v2_next_dot );
 			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( 0 );
 		}
-		
-			// longest one wins. e.g. 1.2.1 -vs- 1.2
-		
-		return( version_1.length() - version_2.length());
 	}
 }
