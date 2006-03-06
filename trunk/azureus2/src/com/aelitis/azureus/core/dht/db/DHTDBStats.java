@@ -35,6 +35,9 @@ DHTDBStats
 	public int
 	getKeyCount();
 	
+	public int
+	getKeyBlockCount();
+	
 		/**
 		 * returned values indexed by above VD_ constants for meaning
 		 * @return

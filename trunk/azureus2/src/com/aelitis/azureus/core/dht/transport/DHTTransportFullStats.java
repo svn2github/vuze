@@ -35,6 +35,9 @@ DHTTransportFullStats
 	public long
 	getDBValuesStored();
 	
+	public long
+	getDBKeysBlocked();
+	
 		// Router
 	
 	public long
@@ -79,6 +82,9 @@ DHTTransportFullStats
 	
 	public long
 	getTotalStoresReceived();
+	
+	public long
+	getTotalKeyBlocksReceived();
 	
 	public long
 	getIncomingRequests();

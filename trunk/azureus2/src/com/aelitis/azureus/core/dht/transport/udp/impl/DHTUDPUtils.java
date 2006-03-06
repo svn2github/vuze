@@ -647,11 +647,14 @@ DHTUDPUtils
 		String	azversion = stats.getVersion() + "["+version+"]";
 		
 		serialiseByteArray( os, azversion.getBytes(), 64);
+					
+		os.writeLong( stats.getRouterUptime());
+		os.writeInt( stats.getRouterCount());
 		
-		if ( version >= 5 ){
+		if ( version >= DHTTransportUDP.PROTOCOL_VERSION_BLOCK_KEYS ){
 			
-			os.writeLong( stats.getRouterUptime());
-			os.writeInt( stats.getRouterCount());
+			os.writeLong( stats.getDBKeysBlocked());
+			os.writeLong( stats.getTotalKeyBlocksReceived());
 		}
 	}
 	
@@ -685,17 +688,19 @@ DHTUDPUtils
 		
 		final String	az_version = new String( deserialiseByteArray( is, 64 ));
 		
-		final long	router_uptime;
-		final int	router_count;
+		final long	router_uptime	= is.readLong();
+		final int	router_count	= is.readInt();
+			
+		final long db_keys_blocked;
+		final long total_key_blocks_received;
 		
-		if ( version >= 5 ){
+		if ( version >= DHTTransportUDP.PROTOCOL_VERSION_BLOCK_KEYS ){
 			
-			router_uptime	= is.readLong();
-			router_count	= is.readInt();
+			db_keys_blocked				= is.readLong();
+			total_key_blocks_received	= is.readLong();
 		}else{
-			
-			router_uptime	= 0;
-			router_count	= 0;
+			db_keys_blocked				= 0;
+			total_key_blocks_received	= 0;
 		}
 		
 		DHTTransportFullStats	res = 
@@ -705,6 +710,12 @@ DHTUDPUtils
 				getDBValuesStored()
 				{
 					return( db_values_stored );
+				}
+				
+				public long
+				getDBKeysBlocked()
+				{
+					return( db_keys_blocked );
 				}
 				
 					// Router
@@ -786,6 +797,12 @@ DHTUDPUtils
 					return( total_stores_received );
 				}
 				
+				public long
+				getTotalKeyBlocksReceived()
+				{
+					return( total_key_blocks_received );
+				}
+
 					// averages
 				
 				public long
@@ -836,6 +853,7 @@ DHTUDPUtils
 							getTotalFindNodesReceived() + "," +
 							getTotalFindValuesReceived() + "," +
 							getTotalStoresReceived() + "," +
+							getTotalKeyBlocksReceived() + "," +
 							getAverageBytesReceived() + "," +
 							getAverageBytesSent() + "," +
 							getAveragePacketsReceived() + "," +
@@ -846,7 +864,8 @@ DHTUDPUtils
 							getRouterLeaves() + "," +
 							getRouterContacts() + 
 							",database:" +
-							getDBValuesStored()+
+							getDBValuesStored()+ "," +
+							getDBKeysBlocked()+
 							",version:" + getVersion()+","+
 							getRouterUptime() + ","+
 							getRouterCount());

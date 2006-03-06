@@ -152,7 +152,12 @@ DHTControlStatsImpl
 	{
 		return( transport_snapshot.getStores()[DHTTransportStats.STAT_RECEIVED]);
 	}
-	
+	public long
+	getTotalKeyBlocksReceived()
+	{
+		return( transport_snapshot.getKeyBlocks()[DHTTransportStats.STAT_RECEIVED]);
+	}
+
 		// averages
 	
 	public long
@@ -192,6 +197,11 @@ DHTControlStatsImpl
 		return( control.getDataBase().getStats().getValueDetails()[ DHTDBStats.VD_VALUE_COUNT ]);
 	}
 	
+	public long
+	getDBKeysBlocked()
+	{
+		return( control.getDataBase().getStats().getKeyBlockCount());
+	}
 		// Router
 	
 	public long
@@ -248,6 +258,7 @@ DHTControlStatsImpl
 				getTotalFindNodesReceived() + "," +
 				getTotalFindValuesReceived() + "," +
 				getTotalStoresReceived() + "," +
+				getTotalKeyBlocksReceived() + "," +
 				getAverageBytesReceived() + "," +
 				getAverageBytesSent() + "," +
 				getAveragePacketsReceived() + "," +
@@ -258,7 +269,8 @@ DHTControlStatsImpl
 				getRouterLeaves() + "," +
 				getRouterContacts() + 
 				",database:" +
-				getDBValuesStored()+
+				getDBValuesStored()+ ","+
+				getDBKeysBlocked()+
 				",version:" + getVersion()+","+
 				getRouterUptime() + ","+
 				getRouterCount());

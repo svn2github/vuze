@@ -667,6 +667,17 @@ DHTDBImpl
 		}
 	}
 	
+	public int
+	getKeyBlockCount()
+	{
+		if ( adapter == null ){
+		
+			return( 0 );
+		}
+		
+		return( adapter.getDirectKeyBlocks().length );
+	}
+	
 	public Iterator
 	getKeys()
 	{
