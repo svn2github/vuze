@@ -405,7 +405,7 @@ ShareManagerImpl
 	{
 		if ( announce_urls == null ){
 						
-			String	protocol = COConfigurationManager.getStringParameter( "Sharing Protocol", "HTTP" );
+			String	protocol = COConfigurationManager.getStringParameter( "Sharing Protocol" );
 			
 			if ( protocol.equalsIgnoreCase( "DHT" )){
 				

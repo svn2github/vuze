@@ -201,7 +201,7 @@ public class TorrentOpener {
 						openTorrentWindow(dir_name, null, bOverrideToStopped);
 					} else {
 						String drop_action = COConfigurationManager.getStringParameter(
-								"config.style.dropdiraction", "0");
+								"config.style.dropdiraction" );
 	
 						if (drop_action.equals("1")) {
 							ShareUtils.shareDir(azureus_core, dir_name);

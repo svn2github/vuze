@@ -353,7 +353,7 @@ public class ConfigurationDefaults {
     
     def.put( "Save Torrent Backup", FALSE );
     
-    def.put( "Sharing Protocol", "HTTP" );
+    def.put( "Sharing Protocol", "DHT" );
     def.put( "Sharing Add Hashes", FALSE );
     def.put( "Sharing Rescan Enable", FALSE);
     def.put( "Sharing Rescan Period", new Long(60));
@@ -388,7 +388,7 @@ public class ConfigurationDefaults {
     def.put( "locale", Locale.getDefault().toString() );
     def.put( "locale.set.complete.count", new Long(0));
     def.put( "Add URL Silently", FALSE );
-    def.put( "config.style.dropdiraction", "0" );
+    def.put( "config.style.dropdiraction", "1" );
     def.put( "MyTorrents.SplitAt", new Long(30) );
     def.put( "Confirm Data Delete", TRUE );
     def.put( "Password Confirm", null );

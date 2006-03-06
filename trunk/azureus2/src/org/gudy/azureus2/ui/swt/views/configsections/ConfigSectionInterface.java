@@ -486,7 +486,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 			dropLabels[i] = MessageText.getString(drop_options[i]);
 			dropValues[i] = "" + i;
 		}
-		new StringListParameter(cArea, "config.style.dropdiraction", "",
+		new StringListParameter(cArea, "config.style.dropdiraction", "1",
 				dropLabels, dropValues);
 
 		// reset associations

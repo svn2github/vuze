@@ -72,7 +72,7 @@ public class ConfigSectionSharing implements UISWTConfigSection {
 	String[]	protocols = {"HTTP","HTTPS","UDP","DHT" };
     String[]	descs = {"HTTP","HTTPS (SSL)", "UDP", "Decentralised" };
     
-	new StringListParameter(gSharing, "Sharing Protocol", "HTTP", descs, protocols );
+	new StringListParameter(gSharing, "Sharing Protocol", "DHT", descs, protocols );
 
 	// row
     
