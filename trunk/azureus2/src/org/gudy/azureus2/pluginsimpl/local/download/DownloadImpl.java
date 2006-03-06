@@ -1277,21 +1277,21 @@ DownloadImpl
  	public void
 	requestTrackerAnnounce()
  	{
- 		download_manager.checkTracker( false );
+ 		download_manager.requestTrackerAnnounce( false );
  	}
  	
 	public void
 	requestTrackerAnnounce(
 		boolean		immediate )
 	{
-		download_manager.checkTracker( immediate );
+		download_manager.requestTrackerAnnounce( immediate );
 	}
 	
 	public void
 	requestTrackerScrape(
 		boolean		immediate )
 	{
-		download_manager.scrapeTracker( immediate );
+		download_manager.requestTrackerScrape( immediate );
 	}
 	
   public byte[] getDownloadPeerId() {

@@ -532,14 +532,14 @@ Test
 		}
 		
 		public void
-		checkTracker(
+		requestTrackerAnnounce(
 			boolean now )
 		{
 			
 		}
 		
 		public void
-		scrapeTracker(
+		requestTrackerScrape(
 			boolean now )
 		{
 			

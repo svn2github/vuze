@@ -285,14 +285,14 @@ DownloadManagerImpl
 					boolean explicit) 
 				{
 					if ( explicit ){
-						checkTracker( true );
+						requestTrackerAnnounce( true );
 					}
 				}
 
 				public void 
 				urlRefresh() 
 				{
-					checkTracker( true );
+					requestTrackerAnnounce( true );
 				}
 			};
 	
@@ -323,8 +323,6 @@ DownloadManagerImpl
 		
 		
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
-	private TRTrackerScraperResponse	scrape_response_being_set;
-	private AEMonitor					scrape_response_being_set_mon	= new AEMonitor( "DM:DownloadManager:SRBS" );
 
 	private HashMap data;
   
@@ -416,7 +414,7 @@ DownloadManagerImpl
 		String		torrent_save_file,
 		byte[]		torrent_hash,		// can be null for initial torrents
 		boolean		new_torrent,		// probably equivalend to (torrent_hash == null)????
-		boolean		open_for_seeding,
+		boolean		for_seeding,
 		boolean		has_ever_been_started,
 		int			initial_state )
 	{		
@@ -621,7 +619,7 @@ DownloadManagerImpl
 				 		// also remove resume data incase someone's published a torrent with resume
 				 		// data in it
 				 	
-				 	if ( open_for_seeding ){
+				 	if ( for_seeding ){
 				 		
 				 		DiskManagerFactory.setTorrentResumeDataNearlyComplete(download_manager_state);
 	
@@ -690,7 +688,7 @@ DownloadManagerImpl
 				read_torrent_state = 
 					new Object[]{ 	
 						torrent_save_dir, torrent_save_file, torrent_hash,
-						new Boolean(new_torrent), new Boolean( open_for_seeding ), new Boolean( has_ever_been_started ),
+						new Boolean(new_torrent), new Boolean( for_seeding ), new Boolean( has_ever_been_started ),
 						new Integer( initial_state )
 					};
 	
@@ -1319,52 +1317,6 @@ DownloadManagerImpl
 
   		return "";
   	}
-
-  		// this is called asynchronously when a response is received
-  
-  	public void
-  	setTrackerScrapeResponse(
-  		TRTrackerScraperResponse	response )
-  	{
-  			// strange bug here : http://sourceforge.net/tracker/index.php?func=detail&aid=1441262&group_id=84122&atid=575154
-  			// added some diagnostics to stop recursion and log some info
-  			
-  		try{
-  			scrape_response_being_set_mon.enter();
-  		
-	  		if ( scrape_response_being_set != null ){
-	  	
-	  			Debug.out( "Recursive scrape response setting: " + 
-	  							scrape_response_being_set.getString() + "/" +
-	  							response.getString());
-  	  			
-	  			return;
-	  		}
-	  		
-			scrape_response_being_set	= response;
-
-		}finally{
-	  			
-	  		scrape_response_being_set_mon.exit();
-	  	}
-		
-		try{
-	  	
-	 		tracker_listeners.dispatch( LDT_TL_SCRAPERESULT, response );
-	  			
-	 	}finally{
-	  			
-	 		try{
-	  			scrape_response_being_set_mon.enter();
-	 
-	  			scrape_response_being_set	= null;
-
-	 		}finally{
-  			
-	 			scrape_response_being_set_mon.exit();
-	 		}
-  		}
-  	}
   
   	public TRTrackerAnnouncer 
   	getTrackerClient() 
@@ -1562,10 +1514,56 @@ DownloadManagerImpl
 		torrentFileName = string;
 	}
 
+		// this is called asynchronously when a response is received
+	  
+  	public void
+  	setTrackerScrapeResponse(
+  		TRTrackerScraperResponse	response )
+  	{
+  			// this is a reasonable place to pick up the change in active url caused by this scrape
+  			// response and update the torrent's url accordingly
+		
+		Object[] res = getActiveScrapeResponse();
+  		
+		URL	active_url = (URL)res[1];
+
+		if ( active_url != null && torrent != null ){
+			
+			torrent.setAnnounceURL( active_url );
+		}
+		
+			// big-time yuck here. GlobalManager used to only call this method if the response was valid
+			// so errors got lost. Due to the changes to setting the announce-url here (rather than in the
+			// "get" logic that was leading to recursive mayhem) I need to pick up the errors here to so 
+			// I dropped the GM condition. However, I'm a little worried about screwing up existing code
+			// that doesn't do sensible things with "invalid" responses, so I've added the test here
+			// for the moment...
+		
+		if ( response.isValid()){
+		
+			tracker_listeners.dispatch( LDT_TL_SCRAPERESULT, response );
+		}
+  	}
+  	
 	public TRTrackerScraperResponse 
 	getTrackerScrapeResponse() 
 	{
-		TRTrackerScraperResponse r = null;
+		Object[] res = getActiveScrapeResponse();
+		
+		return((TRTrackerScraperResponse)res[0]);
+	}
+  
+		/**
+		 * Returns the "first" online scrape response found, and its active URL, otherwise one of the failing
+		 * scrapes
+		 * @return
+		 */
+	
+	protected Object[]
+	getActiveScrapeResponse()
+	{
+		TRTrackerScraperResponse 	response	= null;
+       	URL							active_url	= null;
        	
 		TRTrackerScraper	scraper = globalManager.getTrackerScraper();
 	
@@ -1573,10 +1571,10 @@ DownloadManagerImpl
 		
 		if ( tc != null ){
   	
-			r = scraper.scrape( tc );
+			response = scraper.scrape( tc );
 		}
   
-		if ( r == null && torrent != null){
+		if ( response == null && torrent != null){
       	
 				// torrent not running. For multi-tracker torrents we need to behave sensibly
       			// here
@@ -1587,8 +1585,8 @@ DownloadManagerImpl
     	
 			if ( sets.length == 0 ){
     	
-				r = scraper.scrape(torrent);
-    		
+				response = scraper.scrape(torrent);
+   
 			}else{
     			    			
 					// we use a fixed seed so that subsequent scrapes will randomise
@@ -1598,7 +1596,7 @@ DownloadManagerImpl
     		
 				Random	scrape_random = new Random(scrape_random_seed);
     		
-				for (int i=0;r==null && i<sets.length;i++){
+				for (int i=0;response==null && i<sets.length;i++){
     			
 					TOTorrentAnnounceURLSet	set = sets[i];
     			
@@ -1615,57 +1613,61 @@ DownloadManagerImpl
 						rand_urls.add(pos,url);
 					}
 			 	
-					for (int j=0;r==null && j<rand_urls.size();j++){
+					for (int j=0;response==null && j<rand_urls.size();j++){
+						
 						URL url = (URL)rand_urls.get(j);
-						r = scraper.scrape(torrent, url);
+						
+						response = scraper.scrape(torrent, url);
 			 		
-						if ( r!= null ){
+						if ( response!= null ){
 							
-							int status = r.getStatus();
+							int status = response.getStatus();
 							
-							// Exit if online
+								// Exit if online
+							
 							if (status == TRTrackerScraperResponse.ST_ONLINE) {
-								// trigger listeners of new scrape
-								if (torrent.setAnnounceURL(url))
-							  	setTrackerScrapeResponse(r);
+
+								active_url	= url;
+								
 								break;
 							}
 
-							// Scrape 1 at a time to save on outgoing connections
-							if (status == TRTrackerScraperResponse.ST_INITIALIZING || 
+								// Scrape 1 at a time to save on outgoing connections
+							
+							if (	status == TRTrackerScraperResponse.ST_INITIALIZING || 
 									status == TRTrackerScraperResponse.ST_SCRAPING) {
+								
 								break;
 							}
 								
 								// treat bad scrapes as missing so we go on to 
 			 					// the next tracker
 			 			
-							if ( (!r.isValid()) || status == TRTrackerScraperResponse.ST_ERROR ){
+							if ( (!response.isValid()) || status == TRTrackerScraperResponse.ST_ERROR ){
 			 				
 								if ( non_null_response == null ){
 			 					
-									non_null_response	= r;
+									non_null_response	= response;
 								}
 			 				
-								r	= null;
-							}
-							
+								response	= null;
+							}					
 						}
 					}
 				}
     		
-				if ( r == null ){
+				if ( response == null ){
     			
-					r = non_null_response;
+					response = non_null_response;
 				}
 			}
 		}
 		
-		return( r );
+		return( new Object[]{ response, active_url } );
 	}
-  
+	
 	public void
-	checkTracker(
+	requestTrackerAnnounce(
 		boolean	force )
 	{
 		TRTrackerAnnouncer tc = getTrackerClient();
@@ -1676,7 +1678,7 @@ DownloadManagerImpl
 	}
 
 	public void
-	scrapeTracker(
+	requestTrackerScrape(
 		boolean	force )
 	{
 		if ( torrent != null ){

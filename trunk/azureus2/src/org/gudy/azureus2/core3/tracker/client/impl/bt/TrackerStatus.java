@@ -175,7 +175,9 @@ public class TrackerStatus {
   	try{
   		hashes_mon.enter();
  
-  		return (TRTrackerScraperResponseImpl) hashes.get( new HashWrapper(hash));
+  		TRTrackerScraperResponseImpl	res =  (TRTrackerScraperResponseImpl) hashes.get( new HashWrapper(hash));
+  		
+  		return( res );
   	}finally{
   		
   		hashes_mon.exit();

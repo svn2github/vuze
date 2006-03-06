@@ -1131,7 +1131,7 @@ public class MyTorrentsView
 		itemManualUpdate.addListener(SWT.Selection,
 				new SelectedTableRowsListener() {
 					public void run(TableRowCore row) {
-						((DownloadManager) row.getDataSource(true)).checkTracker(false);
+						((DownloadManager) row.getDataSource(true)).requestTrackerAnnounce(false);
 					}
 				});
 		itemManualUpdate.setEnabled(manualUpdate);
@@ -1151,7 +1151,7 @@ public class MyTorrentsView
 		itemManualScrape.addListener(SWT.Selection,
 				new SelectedTableRowsListener() {
 					public void run(TableRowCore row) {
-						((DownloadManager) row.getDataSource(true)).scrapeTracker(true);
+						((DownloadManager) row.getDataSource(true)).requestTrackerScrape(true);
 					}
 				});
 		itemManualScrape.setEnabled(manualScrape);

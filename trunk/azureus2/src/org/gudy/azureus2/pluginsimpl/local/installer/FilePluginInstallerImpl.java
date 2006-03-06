@@ -110,7 +110,7 @@ FilePluginInstallerImpl
 						
 							// System.out.println( "zis1:" + zip_name );
 							
-							if ( zip_name.equals( "plugin.properties" )){
+							if ( zip_name.equals( "plugin.properties" ) || zip_name.endsWith( "/plugin.properties")){
 								
 								properties	= new Properties();
 								

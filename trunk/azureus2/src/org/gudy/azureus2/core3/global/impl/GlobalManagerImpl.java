@@ -380,11 +380,9 @@ public class GlobalManagerImpl
     		public void scrapeReceived(TRTrackerScraperResponse response) {
     			byte[]	hash = response.getHash();
     			
-    			if ( response.isValid() ){
-    				DownloadManager manager = (DownloadManager)manager_map.get(new HashWrapper(hash));
-    				if ( manager != null ) {
-    					manager.setTrackerScrapeResponse( response );
-    				}
+   				DownloadManager manager = (DownloadManager)manager_map.get(new HashWrapper(hash));
+   				if ( manager != null ) {
+   					manager.setTrackerScrapeResponse( response );
     			}
     		}
     	});

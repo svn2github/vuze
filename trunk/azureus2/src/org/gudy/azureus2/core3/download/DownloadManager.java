@@ -163,11 +163,11 @@ DownloadManager
 	getTrackerClient();
 	
 	public void
-	checkTracker(
+	requestTrackerAnnounce(
 		boolean		immediate );
 	
 	public void
-	scrapeTracker(
+	requestTrackerScrape(
 		boolean		immediate );
 	
 	public TRTrackerScraperResponse
