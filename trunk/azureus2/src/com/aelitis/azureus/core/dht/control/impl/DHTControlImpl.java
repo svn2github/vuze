@@ -1037,6 +1037,7 @@ DHTControlImpl
 							
 							public void
 							keyBlockRequest(
+								DHTTransportContact		contact,
 								byte[]					request,
 								byte[]					key_signature )
 							{
@@ -1914,6 +1915,7 @@ DHTControlImpl
 							
 							public void
 							keyBlockRequest(
+								DHTTransportContact		contact,
 								byte[]					request,
 								byte[]					key_signature )
 							{
@@ -2387,6 +2389,7 @@ DHTControlImpl
 										
 										public void
 										keyBlockRequest(
+											DHTTransportContact		contact,
 											byte[]					request,
 											byte[]					signature )
 										{
