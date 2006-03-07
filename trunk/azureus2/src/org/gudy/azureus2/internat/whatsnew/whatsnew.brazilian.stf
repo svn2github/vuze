@@ -1,22 +1,37 @@
 $ 
-$    Bem vindo ao Azureus 2.4.0.0
+$    Bem vindo ao Azureus 2.4.0.2
 $ 
 
-+1. O que há de novo no Azureus 2.4.0.0
++1. O que há de novo no Azureus 2.4.0.2
+
+!1.1 Faster Crash Recovery
+ By default Azureus will now only check parts of the file that were being actively download the last time resume data was saved. The old beheviour of rechecking the whole file can be re-enabled via 'Files' configuration.
  
-!1.1 Encrypted/Obfuscated Data Transfer
+!1.2 Bug fixes and performance improvements
+ Notable fixes:
+    Occassionally encrypted connections would send invalid data
+    Startup error 'no class found' fixed.
+    Data transfer to slow peers improved.
+ 
+    Note: New Windows launcher might require allowing "Azureus.exe" Internet access in your software firewall.
+ 
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.4.0.2
+    
++2. O que há de novo no Azureus 2.4.0.0
+ 
+!2.1 Encrypted/Obfuscated Data Transfer
  Support for encrypting the data between Azureus and other compatible clients is included. This both provides a level of protection of data and can help with ISPs that block or restrict peer-to-peer traffic.
   
-!1.2 High Speed LAN Transfers
+!2.2 High Speed LAN Transfers
  Multiple copies of Azureus running on the same local network support high speed direct connections.
 
-!1.3 Improved Download Algorithm
+!2.3 Improved Download Algorithm
  The algorithm used to determine which pieces of a download to request from which peers has been rewritten to improve its behaviour and performance.
 
-!1.4 Webseed Support
+!2.4 Webseed Support
  Basic webseed support is included. Webseeds will only be used when a download's availability is less than 1.0.
 
-!1.5 Other
+!2.5 Other
 
  Various user interface improvements.
  Performance improvements.
@@ -28,60 +43,60 @@ $
    
     Veja http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4, 2.3.0.2 para mudanças prévias.
     
-+2. O que há de novo no Azureus 2.3.0.0
++3. O que há de novo no Azureus 2.3.0.0
 
-!2.1 Base de Dados Distribuída
+!3.1 Base de Dados Distribuída
  Azureus agora tem uma base distribuída e descentralizada que pode ser usada para rastrear torrents descentralizados. Isso permite torrents sem rastreador e manutenção da multidão onde o rastreador ficou indisponível ou onde o torrent foi removido do rastreador.
  Ela usa o protocolo UDP, se você tiver um firewall/router, você vai precisar abrir/"forward" a porta UDP do mesmo jeito que você fez com os dados de download TCP.
  
-*2.1.1 "Links magnéticos"
+*3.1.1 "Links magnéticos"
  Para torrents que são rastreados de modo descentralizado, o Azureus pode exportar "links magnéticos". Estes são da forma "magnet:?xt=urn:btih:..." e podem ser usados para downloadar o torrent de uma base de dados distribuída via do "abrir->url" item no menu.
  http://azureus.aelitis.com/wiki/index.php/Magnet_link
  
-!2.2 Protocolo Aprimorado
+!3.2 Protocolo Aprimorado
  Azureus agora suporta um protocolo aprimorado de mensagens entre clientes, que tem como alvo deixar plugins usarem conexões criadas pelo Azureus para adicionar funcionalidade ao programa. Outros desenvolvedores de clientes podem ver as especificações desse protocolo em http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Desenvolvedores de plugins podem checar os "javadocs" dos plugins para ver como usá-los.
  Como exemplo, o JPC e o plugin de Chat usam essa extensão.
 
-!2.3 JPC
+!3.3 JPC
  "Joltid Peer Cache (JPC)" agora é integrado ao Azureus. Para usuários cujo ISP suporta isso, JPC deveria aumentar a velocidade dos downloads e ajudar o ISP a reduzir o tamanho da banda da conexão. O plugin JPC é seguro, pois o seu ISP não vai saber o que você está downloadando e não pode ser usado para espionar você. O plugin JPC pode ser desativado em Ferramentas > Opções > Plugins > JPC.
   
-!2.4 Plugins
+!3.4 Plugins
  A Base de Dados Distribuída e o "Protocolo Aprimorado" nos deixaram criar alguns novos plugins. Nós não iremos instalá-los automaticamente, mas recomendamos que todos os usuários que estejam interessados neles que os instalem usando Plugins > Programa de Instalação no menu.
  
-*2.4.1 Chat
+*3.4.1 Chat
  Este plugin vai criar um cana de discussão para cada torrent que você esteja downloadando. Cada canal é independente, e você é livre pra discutir o que quiser no canal. Esse plugin usa o "Protocolo Aprimorado". Desenvolvedores de outros clientes que queiram implementar o Chat no cliente deles são bem vindos a vir olhar o protocolo, que é muito simples, usado e descrito aqui: http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
  Você também pode criar/se juntar a um canal arbitrário, escrevendo o nome desse canal dentro do plugin. Isso vai criar um torrent "virtual", sem seeds, para deixar outros usuários criarem conexões para o Chat. Os torrents "virtuais" usam a Base de Dados Distribuída como o seu rastreador, assim é impossível usar o Plugin de Chat sem a Base de Dados Distribuída. 
 
-*2.4.2 Avaliações & Comentários
+*3.4.2 Avaliações & Comentários
  Este plugin vai deixar você ver as avaliações e os comentários de outros usuários, assim como avaliar e comentar um torrent você mesmo(clique direito no torrent em "Meus torrents" e escolher "ratings & comments"/"avaliações & comentários"). Esse plugin usa a Base de Dados Distribuída, então você precisa a Base de Dados Distribuída para que o plugin funcione. 
 
-+3. Conselho de Atualização
++4. Conselho de Atualização
 
-!3.1 Java 5.0
+!4.1 Java 5.0
  Azureus é escrito em Java e precisa do Java "runtime". Nós recomendamos Java 5.0 (também conhecido como Java 1.5)pois tem uma performance melhor e é mais confiável -  por favor atualize se necessário.
  Você achará torrents para atualizar Java aqui : http://azureus.sourceforge.net/download.php
  Downloade aquele que corresponde ao seu sistema, feche o Azureus, abra o arquivo downloadado. Depois da instalação abra o Azureus de novo.
  Usuários do WinXP vão ter que ir em Ferramentas > Configuração > Interface > Mostrar, e reselecionar a opção "Habilitar estilo WinXP".
   
-!3.2 NOD32
+!4.2 NOD32
  NOD32 (http://www.nod32.com/) é um antivírus que é conhecido por ter problemas ao Azureus, causando o uso de 100% do CPU.
  Veja http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
 
-+4. Problemas Comuns
++5. Problemas Comuns
 
-!4.1 "erro" de NAT
+!5.1 "erro" de NAT
  NAT significa "Network Address Translation". O teste de NAT no Azureus determina se você é conectável pelas pessoas na Internet. Você terá velocidades melhores se você FOR conectável.
  Por favor não nos contate para resolver problemas de NAT, já que há recursos suficientes disponíveis na Internet sobre isso. Primeiro cheque:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
 
-!4.2 Azureus "caindo"
+!5.2 Azureus "caindo"
  Se seu Azureus está "caindo", a razão mais provável é um problema com seus componentes de redes (placa, drivers, SO). Nós recomendamos que você atualize todos os seus componentes relacionados à rede. Se isso não ajudar, a provável razão é que seu sistema não consegue gerenciar essa quantidade de conexões aos seus pares.
  Diminua o número de conexões no Azureus(Ferramentas > Configuração > Transferências > Número máximo de conexões por torrent/global), tente um valor baixo como 30 primeiro.
 
-!4.3 Suporte
+!5.3 Suporte
  Antes de entrar em contato com o grupo de suporte, cheque todos os recursos em :
  - Site oficial            : http://azureus.sourceforge.net/
  - Site oficial da Wiki    : http://azureus.aelitis.com/wiki/

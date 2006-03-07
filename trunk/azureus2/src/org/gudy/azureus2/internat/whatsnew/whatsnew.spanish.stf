@@ -1,22 +1,37 @@
 $ 
-$    Bienvenido a Azureus 2.4.0.0
+$    Bienvenido a Azureus 2.4.0.2
 $ 
 
-+1. Lo nuevo en Azureus 2.4.0.0
++1. Lo nuevo en Azureus 2.4.0.2
 
-!1.1 Transferencia de Datos Encriptados/Ofuscados
+!1.1 Faster Crash Recovery
+ By default Azureus will now only check parts of the file that were being actively download the last time resume data was saved. The old beheviour of rechecking the whole file can be re-enabled via 'Files' configuration.
+ 
+!1.2 Bug fixes and performance improvements
+ Notable fixes:
+    Occassionally encrypted connections would send invalid data
+    Startup error 'no class found' fixed.
+    Data transfer to slow peers improved.
+ 
+    Note: New Windows launcher might require allowing "Azureus.exe" Internet access in your software firewall.
+ 
+    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.4.0.2
+    
++2. Lo nuevo en Azureus 2.4.0.0
+
+!2.1 Transferencia de Datos Encriptados/Ofuscados
  Se incluye el soporte para encriptado de datos entre Azureus y cualquier otro cliente compatible. Esto proporciona una protección para los datos y también puede servir de ayuda con los ISPs que impiden o restrigen el tráfico entre pares.
   
-!1.2 Transferencia de Alta Velocidad en Redes de Área Local
+!2.2 Transferencia de Alta Velocidad en Redes de Área Local
  Varias copias de Azureus corriendo en la misma red local soportarán conexiones directas de alta velocidad.
 
-!1.3 Algoritmo de Descarga Mejorado
+!2.3 Algoritmo de Descarga Mejorado
  Se ha reescrito el algoritmo utilizado para determinar qué partes de una descarga hay que pedir a qué cliente, de modo que mejore su comportamiento y rendimiento.
 
-!1.4 Soporte para Webseed
+!2.4 Soporte para Webseed
  Se incluye un soporte básico para webseed. Los webseeds se utilizarán sólo cuando la disponibilidad de una descarga sea menor de 1.0.
 
-!1.5 Otros
+!2.5 Otros
 
  Diverssas mejoras en el interface de usuario.
  Mejoras en el rendimiento.
@@ -28,60 +43,60 @@ $
    
     Mire en http://azureus.sourceforge.net/changelog.php?version=2.3.0.6, 2.3.0.4, 2.3.0.2 para cambios más antiguos.
 
-+2. Lo nuevo en Azureus 2.3.0.0
++3. Lo nuevo en Azureus 2.3.0.0
 
-!2.1 Base de datos Distribuída
+!3.1 Base de datos Distribuída
  Azureus ahora tiene una base datos descentralizada y distribuída, que puede utilizarse para rastrear torrents descentralizados. Esta característica permite los torrents "sin rastreador" y el mantenimiento de los enjambres (=total de clientes + semillas) donde el rastreador ya no esté accesible o cuyo torrent haya sido retirado de él.
  Se utiliza el protocolo UDP, así que si tienes un cortafuegos/enrutador, tendrás que abrirles/reenviar el puerto UDP al igual que tuviste que hacer con el TCP para descargar datos.
  
-*2.1.1 Enlaces Magnet (Imantados)
+*3.1.1 Enlaces Magnet (Imantados)
  Si los torrents están rastreados descentralizadamente, Azureus puede exportar un "Enlace Magnet". Su formato es "magnet:?xt=urn:btih:..." y pueden usarse para descargar el torrent desde la base de datos distribuída via el elemento de menú "abrir->url".
  http://azureus.aelitis.com/wiki/index.php/Magnet_link
  
-!2.2 Protocolo Mejorado
+!3.2 Protocolo Mejorado
  Azureus soporta ahora un protocolo mejorado para mensajería interclientes, el cual está enfocado a que los complementos puedan utilizar las conexiones creadas por Azureus para añadir funcionalidad al programa. Otros programadores de clientes pueden ver las especificaciones de este protocolo en http://azureus.aelitis.com/wiki/index.php/AzureusMessagingProtocol . Los programadores del Complemento podrán echarle un vistazo los plugin javadocs para saber cómo usarlo.
  Por ejemplo, los complementos JPC y Chat hacen uso de esta extensión para mensajería.
 
-!2.3 JPC
+!3.3 JPC
  El Joltid Peer Cache (JPC) ahora está integrado en Azureus. Para usuarios cuyo ISP lo soporta, JPC debería acelerar las descargas, al tiempo que ayudará al ISP a reducir sus costos en ancho de banda. El complemento JPC es seguro en el sentido de que tu ISP no sabe lo que estás descargando, y por tanto no puede usarlo para espiarte. El complemento JPC puede desactivarse en Herramientas > Opciones > Complementos > JPC.
   
-!2.4 Complementos Destacados
+!3.4 Complementos Destacados
  La Base de datos Distribuída y el Protocolo Mejorado nos permiten desarrollar nuevos complementos, que creemos que son interesantes. No queremos autoinstalártelos, pero recomendamos a todos los usuarios que puedan estar interesados en ellos que los instalen mediante el menú Complementos > Asistente de instalación.
 
-*2.4.1 Chat
+*3.4.1 Chat
  Este complemento creará un canal de discusión por cada torrent que estés descargando. Cada canal es independiente, y eres libre de discutir lo que quieras dentro del canal. Este complemento hace uso del protocolo Mejorado. Los desarrolladores de otros clientes que deseen implementar la funcionalidad chat en sus clientes están invitados a echarle un vistazo al sencillísimo protocolo utilizado y que se describe aquí : http://azureus.aelitis.com/wiki/index.php/ChatPlugin .
  También puedes crear/unirte a un canal arbitrario tecleando su nombre en el complemento, lo que tendrá como efecto el crear un torrent "virtual", sin semillas, para poder permitir a los usuarios el crear conexiones al chat. Los torrents "virtuales" hacen uso de la Base de datos Distribuída como su tracker, de modo que mientras puedes usar el Complemento Chat sin la Base de datos Distribuída, no podrás utilizar el truco del canal virtual si la deshabilitas.
  
-*2.4.2 Ratings & Comments (Valoraciones & Comentarios)
+*3.4.2 Ratings & Comments (Valoraciones & Comentarios)
  Este complemento te permitirá ver las valoraciones y comentarios sobre un torrent de otros usuarios, así como hacerlos tú mismo (en "Mis torrents" haz clic dcho. sobre el torrent y elige "valoraciones y comentarios". Este complemento utiliza la Base de datos Distribuída, así que para que funcione has de tenerla activada.
 
-+3. Consejos de Actualización
++4. Consejos de Actualización
 
-!3.1 Java 5.0
+!4.1 Java 5.0
  Azureus está escrito en Java y necesita el Java runtime. Recomendamos Java 5.0 (también conocido como 1.5) por su fiabilidad y mejor rendimiento - actualice por favor si fuere necesario.
  Aquí encontrará los torrents para actualizar Java : http://azureus.sourceforge.net/download.php
  Descarga el de tu sistema, cierra Azureus, ejecuta el archivo descargado, y reinicia Azureus.
  Los usuarios de WindowsXP tienen que ir a Herramientas > Configuracion > Interfaz > Display, y re-marcar la opción "Activar Estilo XP".
 
-!3.2 NOD32
+!4.2 NOD32
  NOD32 (http://www.nod32.com/) es un antivirus del que se sabe que tiene problemas con Azureus, llevando a usar el 100% de la CPU.
  Vea http://azureus.aelitis.com/wiki/index.php/LikelyNetworkDisconnectReconnect
  
 
-+4. Sucesos Comunes
++5. Sucesos Comunes
 
-!4.1 "error" NAT
+!5.1 "error" NAT
  NAT significa "Network Address Translation" (Traducción de direcciones de red). La prueba NAT en Azureus te dice si eres o no, conectable por los demás desde Internet. Tendrás mejores velocidades si ERES conectable.
  Por favor no acuda a nosotros para resolver asuntos de NAT, ya que existen multitud de recursos sobre ello en Internet. Puede probrar en:
  - http://azureus.aelitis.com/wiki/index.php/PortForwarding
  - http://www.portforward.com
  
 
-!4.2 Azureus Colgándose
+!5.2 Azureus Colgándose
  Si se cuelga tu Azureus, la razón más probable es que sea debido a tus componentes de red (tarjeta, drivers, OS). Recomendamos encarecidamente que actualices todos los componentes relacionados con la red. Si aún no se soluciona, entonces la razón más probable es que tu sistema no puede manejar tantas conexiones de clientes.
  Disminuye el número de conexiones de Azureus en (Herramientas > Opciones > Transferencia > Nº máximo de conexiones por torrent / globalmente), prueba primero con un valor bajo como 30.
 
-!4.3 Soporte
+!5.3 Soporte
  Antes de contactar con el equipo de soporte, asegúrese de comprobar los recursos disponibles en :
  - Sitio Web oficial	: http://azureus.sourceforge.net/
  - El Wiki oficial	: http://azureus.aelitis.com/wiki/
