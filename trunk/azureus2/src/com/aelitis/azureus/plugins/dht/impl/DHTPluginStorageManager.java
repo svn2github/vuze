@@ -71,8 +71,8 @@ DHTPluginStorageManager
 	implements DHTStorageAdapter
 {
 	private static final String	pub_exp = "10001";
-	private static final String	modulus	= "98d9045813abcfaeadafedafaca3a48a97b92d443f89ddbbe5fa24253b37892d58057c53d51c1707e6dd2fdc75367220a89aaf08f247a28aee953fd48bcdf99c6c6a74313562c8f41c3d0e040da5e54cd9cfa2883b123db7ae1b1afb3f886fb5aa8a113e38c9baf6996e1e64158341aa3926028f35d25441b0c66f378ac68653";
-
+	private static final String	modulus	= "b8a440c76405b2175a24c86d70f2c71929673a31045791d8bd84220a48729998900d227b560e88357074fa534ccccc6944729bfdda5413622f068e7926176a8afc8b75d4ba6cde760096624415b544f73677e8093ddba46723cb973b4d55f61c2003b73f52582894c018e141e8d010bb615cdbbfaeb97a7af6ce1a5a20a62994da81bde6487e8a39e66c8df0cfd9d763c2da4729cbf54278ea4912169edb0a33";
+	
 	private static final long		ADDRESS_EXPIRY			= 7*24*60*60*1000; 
 	private static final int		DIV_WIDTH				= 10;
 	private static final int		DIV_FRAG_GET_SIZE		= 2;
