@@ -75,7 +75,7 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeAzStyle( peerID, "ZT", "ZipTorrent" )) != null ) return decoded; 
       if( (decoded = decodeAzStyle( peerID, "SZ", "Shareaza" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "KT", "KTorrent" )) != null ) return decoded;
-      if( (decoded = decodeAzStyle( peerID, "UT", "µTorrent" )) != null ) return decoded;
+      if( (decoded = decodeAzStyle( peerID, "UT", "\u00B5Torrent" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "TR", "Transmission" )) != null ) return decoded;
       if( (decoded = decodeAzStyle( peerID, "CD", "CTorrent" )) != null ) return decoded;      
       if( (decoded = decodeAzStyle( peerID, "RT", "Retriever" )) != null ) return decoded;      
