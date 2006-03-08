@@ -5,7 +5,7 @@ $
 +1. What's new in Azureus 2.4.0.2
 
 !1.1 Faster Crash Recovery
- By default Azureus will now only check parts of the file that were being actively download the last time resume data was saved. The old beheviour of rechecking the whole file can be re-enabled via 'Files' configuration.
+ By default Azureus will now only check parts of the file that were being actively downloaded the last time resume data was saved. The old beheviour of rechecking the whole file can be re-enabled via 'Files' configuration.
  
 !1.2 Bug fixes and performance improvements
  Notable fixes:
