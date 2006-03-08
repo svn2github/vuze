@@ -139,7 +139,7 @@ public class MessagePopupShell implements AnimableShell {
 
 		Image imgIcon = ImageRepository.getImage(icon);
 		int iconWidth = 0;
-		int iconHeight = 0;
+		int iconHeight = 15;
 		if (imgIcon != null) {
 			imgIcon.setBackground(shell.getBackground());
 			gcImage.drawImage(imgIcon, 5, 5);

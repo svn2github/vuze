@@ -59,7 +59,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.MainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
+import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 /**
  * Torrent Opener Window.
@@ -1463,10 +1463,9 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						if (shell == null)
-							new MessagePopupShell(MessagePopupShell.ICON_ERROR,
-									"OpenTorrentWindow.mb.openError", "",
-									new String[] { sOriginatingLocation, "Not a File" },
-									MainWindow.getWindow().getDisplay());
+							new MessageSlideShell(MainWindow.getWindow().getDisplay(),
+									SWT.ICON_ERROR, "OpenTorrentWindow.mb.openError", "",
+									new String[] { sOriginatingLocation, "Not a File" });
 						else
 							Utils.openMessageBox(shell, SWT.OK,
 									"OpenTorrentWindow.mb.openError", new String[] {
@@ -1495,10 +1494,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (shell == null)
-						new MessagePopupShell(MessagePopupShell.ICON_ERROR,
-								"OpenTorrentWindow.mb.openError", Debug.getStackTrace(e),
-								new String[] { sOriginatingLocation, e.getMessage() },
-								MainWindow.getWindow().getDisplay());
+						new MessageSlideShell(MainWindow.getWindow().getDisplay(),
+								SWT.ICON_ERROR, "OpenTorrentWindow.mb.openError", Debug
+										.getStackTrace(e), new String[] { sOriginatingLocation,
+										e.getMessage() });
 					else
 						Utils.openMessageBox(shell, SWT.OK,
 								"OpenTorrentWindow.mb.openError", new String[] {
@@ -1523,10 +1522,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					if (shell == null)
-						new MessagePopupShell(MessagePopupShell.ICON_ERROR,
-								"OpenTorrentWindow.mb.alreadyExists", null, new String[] {
-										sOriginatingLocation, existingDownload.getDisplayName() },
-								MainWindow.getWindow().getDisplay());
+						new MessageSlideShell(MainWindow.getWindow().getDisplay(),
+								SWT.ICON_ERROR, "OpenTorrentWindow.mb.alreadyExists", null,
+								new String[] { sOriginatingLocation,
+										existingDownload.getDisplayName() });
 					else
 						Utils.openMessageBox(shell, SWT.OK,
 								"OpenTorrentWindow.mb.alreadyExists", new String[] {
@@ -1727,10 +1726,10 @@ public class OpenTorrentWindow implements TorrentDownloaderCallBackInterface {
 
 			} catch (Exception e) {
 				if (shell == null)
-					new MessagePopupShell(MessagePopupShell.ICON_ERROR,
-							"OpenTorrentWindow.mb.openError", Debug.getStackTrace(e),
-							new String[] { info.sOriginatingLocation, e.getMessage() },
-							MainWindow.getWindow().getDisplay());
+					new MessageSlideShell(MainWindow.getWindow().getDisplay(),
+							SWT.ICON_ERROR, "OpenTorrentWindow.mb.openError", Debug
+									.getStackTrace(e), new String[] { info.sOriginatingLocation,
+									e.getMessage() });
 				else
 					Utils.openMessageBox(shell, SWT.OK, "OpenTorrentWindow.mb.openError",
 							new String[] { info.sOriginatingLocation, e.getMessage() });

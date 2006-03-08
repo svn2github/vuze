@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.shells.MessagePopupShell;
+import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.core3.util.*;
 
 /**
@@ -115,23 +115,7 @@ public class Alerts {
 	  	  	public void 
 	  	  	runSupport()
 	  	  	{
-	  	      
-	  	  		String icon_str;
-	  	  		
-	  	  		if ( type == SWT.ICON_INFORMATION ){
-	  	  			
-	  	  			icon_str = MessagePopupShell.ICON_INFO;
-	  	  			
-	  	  		}else if ( type == SWT.ICON_WARNING ){
-	  	  			
-	  	  			icon_str = MessagePopupShell.ICON_WARNING;
-	  	  			
-	  	  		}else{
-	  	  			
-	  	  			icon_str = MessagePopupShell.ICON_ERROR;
-	  	  		}
-	  	  
-	  	  		new MessagePopupShell(display,icon_str,title,message==null?"":message,details);
+	  	      new MessageSlideShell(display, type, title, message==null?"":message, details);
 	  	  	}
 	  	});
    }
