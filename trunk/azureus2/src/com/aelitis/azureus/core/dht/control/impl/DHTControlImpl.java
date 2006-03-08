@@ -658,7 +658,7 @@ DHTControlImpl
 			start	= now;
 		}
 		
-		long	remaining = 60*1000 - ( now - start );
+		long	remaining = 30*1000 - ( now - start );
 
 		if ( remaining > 0 && !full_wait ){
 			

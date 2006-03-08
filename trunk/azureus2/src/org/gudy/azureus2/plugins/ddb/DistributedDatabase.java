@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.ddb;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author parg
  *
@@ -59,6 +61,12 @@ DistributedDatabase
 	
 		throws DistributedDatabaseException;
 		
+	public DistributedDatabaseContact
+	importContact(
+		InetSocketAddress				address )
+	
+		throws DistributedDatabaseException;
+	
 	public void
 	write(
 		DistributedDatabaseListener		listener,

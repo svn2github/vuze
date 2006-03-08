@@ -1088,6 +1088,20 @@ DHTPlugin
 	}
 	
 	public DHTPluginContact
+	importContact(
+		InetSocketAddress				address )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+
+			// first DHT will do here
+		
+		return( dhts[0].importContact( address ));
+	}
+	
+	public DHTPluginContact
 	getLocalAddress()
 	{
 		if ( !isEnabled()){

@@ -30,6 +30,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -244,8 +245,9 @@ MagnetURIHandlerImpl
 		
 			// magnet:?xt=urn:sha1:YNCKHTQCWBTRNJIV4WNAE52SJUQCZO5C
 		
-		Map	params = new HashMap();
-	
+		Map		params 			= new HashMap();
+		List 	source_params	= new ArrayList();
+		
 		int	pos	= get.indexOf( '?' );
 		
 		if ( pos != -1 ){
@@ -263,10 +265,18 @@ MagnetURIHandlerImpl
 					params.put( arg.trim(), "" );
 					
 				}else{
-					
+										
 					try{
-						params.put( arg.substring( 0, pos ).trim(), URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING));
+						String	lhs = arg.substring( 0, pos ).trim();
 						
+						String	rhs = URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING);
+
+						params.put( lhs, rhs );
+						
+						if ( lhs.equalsIgnoreCase( "xsource" )){
+							
+							source_params.add( rhs );
+						}
 					}catch( UnsupportedEncodingException e ){
 						
 						Debug.printStackTrace( e );
@@ -405,17 +415,42 @@ MagnetURIHandlerImpl
 			
 			final PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os ));
 
-			try{
-								
+			try{			
 				pw.print( "HTTP/1.0 200 OK" + NL ); 
 
 				pw.flush();
-				
+								
 				String	base_32 = urn.substring(9);
+				
+				List	sources = new ArrayList();
+				
+				for (int i=0;i<source_params.size();i++){
 					
+					String	source = (String)source_params.get(i);
+					
+					int	p = source.indexOf(':');
+					
+					if ( p != -1 ){
+						
+						try{
+							InetSocketAddress	sa = new InetSocketAddress( source.substring(0,p), Integer.parseInt( source.substring(p+1)));
+							
+							sources.add( sa );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				}
+					
+				InetSocketAddress[]	s = new InetSocketAddress[ sources.size()];
+				
+				sources.toArray( s );
+				
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "MagentURIHandler: download of '"
-							+ base_32 + "' starts"));
+							+ base_32 + "' starts (initial sources=" + s.length + ")"));
 
 				byte[] sha1 = Base32.decode( base_32 );
 				
@@ -455,6 +490,7 @@ MagnetURIHandlerImpl
 								}
 							},
 							sha1, 
+							s,
 							DOWNLOAD_TIMEOUT );
 					
 					if ( data != null ){

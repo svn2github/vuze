@@ -27,7 +27,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.net.InetSocketAddress;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -201,6 +201,7 @@ MagnetPlugin
 				download(
 					final MagnetURIHandlerProgressListener		muh_listener,
 					final byte[]								hash,
+					final InetSocketAddress[]					sources,
 					final long									timeout )
 				
 					throws MagnetURIHandlerException
@@ -230,6 +231,7 @@ MagnetPlugin
 								}
 							},
 							hash,
+							sources,
 							timeout ));
 				}
 				
@@ -349,6 +351,7 @@ MagnetPlugin
 	download(
 		final MagnetPluginProgressListener		listener,
 		final byte[]							hash,
+		final InetSocketAddress[]				sources,
 		final long								timeout )
 	
 		throws MagnetURIHandlerException
@@ -364,8 +367,8 @@ MagnetPlugin
 
 			listener.reportActivity( "searching..." );
 			
-			db.read(
-				new DistributedDatabaseListener()
+			downloadListener	ddb_listener = 
+				new downloadListener()
 				{
 					public void
 					event(
@@ -374,85 +377,104 @@ MagnetPlugin
 						int	type = event.getType();
 	
 						if ( type == DistributedDatabaseEvent.ET_VALUE_READ ){
-							
-							final DistributedDatabaseValue	value = event.getValue();
-							
-							listener.reportActivity( "found " + value.getContact().getName());
-					
-							outstanding[0]++;
-							
-							Thread t = 
-								new AEThread( "MagnetPlugin:HitHandler")
-								{
-									public void
-									runSupport()
-									{
-										try{
-											boolean	alive = value.getContact().isAlive(20*1000);
-																							
-											listener.reportActivity( value.getContact().getName() + " is " + (alive?"":"not ") + "alive" );
-											
-											try{
-												potential_contacts_mon.enter();
-												
-												Object[]	entry = new Object[]{ new Boolean( alive ), value.getContact()};
-												
-												boolean	added = false;
-												
-												if ( alive ){
 													
-														// try and place before first dead entry 
-											
-													for (int i=0;i<potential_contacts.size();i++){
-														
-														if (!((Boolean)((Object[])potential_contacts.get(i))[0]).booleanValue()){
-															
-															potential_contacts.add(i, entry );
-															
-															added = true;
-															
-															break;
-														}
-													}
-												}
-												
-												if ( !added ){
-													
-													potential_contacts.add( entry );	// dead at end
-												}
-													
-												potential_contacts_sem.release();
-													
-											}finally{
-													
-												potential_contacts_mon.exit();
-											}
-										}finally{
-											
-											try{
-												potential_contacts_mon.enter();													
-
-												outstanding[0]--;
-												
-											}finally{
-												
-												potential_contacts_mon.exit();
-											}
-										}
-									}
-								};
-								
-							t.setDaemon(true);
-							
-							t.start();
-						
+							contactFound( event.getValue().getContact());
+			
 						}else if (	type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ||
 									type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ){
-																		
+																
 							potential_contacts_sem.release();
 						}
 					}
-				},
+					
+					public void
+					contactFound(
+						final DistributedDatabaseContact	contact )
+					{
+						listener.reportActivity( "found " + contact.getName());
+				
+						outstanding[0]++;
+						
+						Thread t = 
+							new AEThread( "MagnetPlugin:HitHandler")
+							{
+								public void
+								runSupport()
+								{
+									try{
+										boolean	alive = contact.isAlive(20*1000);
+																						
+										listener.reportActivity( contact.getName() + " is " + (alive?"":"not ") + "alive" );
+										
+										try{
+											potential_contacts_mon.enter();
+											
+											Object[]	entry = new Object[]{ new Boolean( alive ), contact};
+											
+											boolean	added = false;
+											
+											if ( alive ){
+												
+													// try and place before first dead entry 
+										
+												for (int i=0;i<potential_contacts.size();i++){
+													
+													if (!((Boolean)((Object[])potential_contacts.get(i))[0]).booleanValue()){
+														
+														potential_contacts.add(i, entry );
+														
+														added = true;
+														
+														break;
+													}
+												}
+											}
+											
+											if ( !added ){
+												
+												potential_contacts.add( entry );	// dead at end
+											}
+												
+											potential_contacts_sem.release();
+												
+										}finally{
+												
+											potential_contacts_mon.exit();
+										}
+									}finally{
+										
+										try{
+											potential_contacts_mon.enter();													
+
+											outstanding[0]--;
+											
+										}finally{
+											
+											potential_contacts_mon.exit();
+										}
+									}
+								}
+							};
+							
+						t.setDaemon(true);
+						
+						t.start();
+					}
+				};
+				
+			for (int i=0;i<sources.length;i++){
+				
+				try{
+					ddb_listener.contactFound( db.importContact(sources[i]));
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
+			
+			db.read(
+				ddb_listener,
 				db.createKey( hash, "Torrent download lookup for '" + ByteFormatter.encodeString( hash ) + "'" ),
 				timeout );
 			
@@ -555,5 +577,14 @@ MagnetPlugin
 
 			throw( new MagnetURIHandlerException( "MagnetURIHandler failed", e ));
 		}
+	}
+	
+	private interface
+	downloadListener
+		extends DistributedDatabaseListener
+	{
+		public void
+		contactFound(
+			final DistributedDatabaseContact	contact );
 	}
 }

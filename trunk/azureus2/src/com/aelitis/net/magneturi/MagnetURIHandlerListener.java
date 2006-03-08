@@ -22,6 +22,7 @@
 
 package com.aelitis.net.magneturi;
 
+import java.net.InetSocketAddress;
 import java.net.URL;
 
 /**
@@ -39,6 +40,7 @@ MagnetURIHandlerListener
 	download(
 		MagnetURIHandlerProgressListener	progress,
 		byte[]								hash,
+		InetSocketAddress[]					sources,
 		long								timeout )
 	
 		throws MagnetURIHandlerException;

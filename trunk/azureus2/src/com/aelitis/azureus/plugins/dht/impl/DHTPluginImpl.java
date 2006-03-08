@@ -833,7 +833,22 @@ outer:
 	public DHTPluginContact
 	getLocalAddress()
 	{
-		return( new DHTPluginContactImpl( this, dht.getTransport().getLocalContact()));
+		return( new DHTPluginContactImpl( this, transport.getLocalContact()));
+	}
+	
+	public DHTPluginContact
+	importContact(
+		InetSocketAddress				address )
+	{
+		try{
+			return( new DHTPluginContactImpl( this, transport.importContact( address, protocol_version )));
+			
+		}catch( DHTTransportException	e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
 	}
 	
 		// direct read/write support

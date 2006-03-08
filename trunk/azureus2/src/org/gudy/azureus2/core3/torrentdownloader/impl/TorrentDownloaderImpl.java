@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection;
 import org.gudy.azureus2.core3.torrent.*;
 
 
@@ -595,6 +596,9 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
   public void cancel() {
     this.cancel = true;
+    if ( con instanceof MagnetConnection ){
+    	con.disconnect();
+    }
   }
 
   public void setDownloadPath(String path, String file) {

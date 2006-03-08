@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
+import java.net.InetSocketAddress;
 import java.util.*;
 
 
@@ -197,6 +198,24 @@ DDBaseImpl
 		throwIfNotAvailable();
 		
 		return( new DDBaseValueImpl( new DDBaseContactImpl( this, dht.getLocalAddress()), value, SystemTime.getCurrentTime()));
+	}
+	
+	public DistributedDatabaseContact
+	importContact(
+		InetSocketAddress				address )
+	
+		throws DistributedDatabaseException
+	{
+		throwIfNotAvailable();
+	
+		DHTPluginContact	contact = dht.importContact( address );
+		
+		if ( contact == null ){
+			
+			throw( new DistributedDatabaseException( "import of '" + address + "' failed" ));
+		}
+		
+		return( new DDBaseContactImpl( this, contact));
 	}
 	
 	public void
