@@ -5,7 +5,7 @@ $
 +1. Quoi de neuf dans Azureus 2.4.0.2
 
 !1.1 Récupération après crash plus rapide
- Par défaut, Azureus ne vérifiera que les aprties du fichier qui étaient entrain d'être téléchargées à la dernière sauvegarde d'information de reprise rapide. La méthode précédente de vérification complète du fichier peut être activée dans le menu Options > Fichiers.
+ Par défaut, Azureus ne vérifiera que les parties du fichier qui étaient entrain d'être téléchargées à la dernière sauvegarde d'information de reprise rapide. La méthode précédente de vérification complète du fichier peut être activée dans le menu Options > Fichiers.
  
 !1.2 Réglages de bogue et améliorations de performances
  Principaux réglages:
