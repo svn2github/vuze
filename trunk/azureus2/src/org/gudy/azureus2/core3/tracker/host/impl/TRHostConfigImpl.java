@@ -39,7 +39,7 @@ public class
 TRHostConfigImpl 
 {
 	public static final String	LOG_FILE_NAME				= "tracker.log";
-	public static final long	BACKUP_RETENTION_PERIOD		= 7*24*60*60*1000;
+	public static final long	BACKUP_RETENTION_PERIOD		= 7*24*60*60*1000L;
 	
 	private TRHostImpl	host;
 	

@@ -119,15 +119,37 @@ AEDiagnostics
 			
 			if ( debug_dir.exists()){
 				
+				long	now = SystemTime.getCurrentTime();
+				
 				debug_save_dir.mkdir();
 				
-				File[]	files = debug_dir.listFiles();
+					// clear out any really old files in the save-dir
+				
+				File[]	files = debug_save_dir.listFiles();
+
+				if ( files != null ){
+					
+					for (int i=0;i<files.length;i++){
+						
+						File	file = files[i];
+						
+						if ( !file.isDirectory()){
+							
+							long	last_modified = file.lastModified();
+							
+							if ( now - last_modified > 30*24*60*60*1000L ){
+								
+								file.delete();
+							}
+						}
+					}
+				}
+				
+				files = debug_dir.listFiles();
 				
 				if ( files != null ){
 					
-					boolean	file_moved	= false;
-					
-					long	now = SystemTime.getCurrentTime();
+					boolean	file_copied	= false;
 					
 					for (int i=0;i<files.length;i++){
 						
@@ -140,18 +162,14 @@ AEDiagnostics
 						
 						if ( !was_tidy ){
 				
-							file_moved	= true;
+							file_copied	= true;
 							
-							FileUtil.renameFile( file, new File( debug_save_dir, now + "_" + file.getName()));
-							
-						}else{
-							
-							// leave the file there, it'll get appended to
-							// file.delete();
+							FileUtil.copyFile( file, new File( debug_save_dir, now + "_" + file.getName()));
 						}
 					}
 					
-					if ( file_moved ){
+					if ( file_copied ){
+						
 						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
 								LogAlert.AT_WARNING, "diagnostics.log_found"),
 								new String[] { debug_save_dir.toString() });
@@ -254,7 +272,8 @@ AEDiagnostics
 			Calendar now = GregorianCalendar.getInstance();
 	        
 			String timeStamp =
-				"[" + now.get(Calendar.HOUR_OF_DAY)+ ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "] ";        
+				"[" + format(now.get(Calendar.DAY_OF_MONTH))+format(now.get(Calendar.MONTH)+1) + " " + 
+				format(now.get(Calendar.HOUR_OF_DAY))+ ":" + format(now.get(Calendar.MINUTE)) + ":" + format(now.get(Calendar.SECOND)) + "] ";        
 
 			str = timeStamp + str;
 	

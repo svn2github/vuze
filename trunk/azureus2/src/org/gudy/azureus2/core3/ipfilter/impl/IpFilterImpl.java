@@ -44,7 +44,7 @@ IpFilterImpl
 {
 	private static final LogIDs LOGID = LogIDs.CORE;
 
-	private final static long BAN_IP_PERSIST_TIME	= 7*24*60*60*1000;
+	private final static long BAN_IP_PERSIST_TIME	= 7*24*60*60*1000L;
 	
 	private final static int MAX_BLOCKS_TO_REMEMBER = 500;
   
