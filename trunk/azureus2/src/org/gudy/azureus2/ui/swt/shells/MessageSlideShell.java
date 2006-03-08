@@ -43,17 +43,17 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 /**
  * 
- * +============================+
- * | +----+                     |
- * | |Icon| Big Bold Title      |
- * | +----+                     |
- * | Wrapping message text      |
- * | with optional URL links    |
- * | +-----+                    |
- * | |BGImg|                    |
- * | | Icon| Closing in XX secs |
- * | +-----+    [Details] [Hide]|
- * +============================+ 
+ * +=====================================+
+ * | +----+                              |
+ * | |Icon| Big Bold Title               |
+ * | +----+                              |
+ * | Wrapping message text               |
+ * | with optional URL links             |
+ * | +-----+                             |
+ * | |BGImg|           XX more slideys.. |
+ * | | Icon|          Closing in XX secs |
+ * | +-----+  [HideAll] [Details] [Hide] |
+ * +=====================================+ 
  * 
  * @author TuxPaper
  * @created Mar 7, 2006
@@ -63,36 +63,53 @@ public class MessageSlideShell {
 	private final static boolean USE_SWT32_BG_SET = true && !(Constants.isLinux && SWT
 			.getVersion() <= 3224);
 
+	/** Slide until there's this much gap between shell and edge of screen */
 	private final static int EDGE_GAP = 0;
 
+	/** Width used when BG image can't be loaded */
 	private final static int SHELL_DEF_WIDTH = 280;
 
+	/** Standard height of the shell.  Shell may grow depending on text */
 	private final static int SHELL_MIN_HEIGHT = 150;
 
+	/** Width of the details shell */
 	private final static int DETAILS_WIDTH = 550;
 
+	/** Height of the details shell */
 	private final static int DETAILS_HEIGHT = 300;
 
+	/** List of popups currently in queue.  Maintained so we can have the HideAll
+	 * and ""XX more slideys" text
+	 */
 	private final static ArrayList popupList = new ArrayList(2);
 
+	/** Synchronization for popupList */
 	private final static AEMonitor popupList_mon = new AEMonitor("popupList_mon");
 
+	/** Shell for popup */
 	private Shell shell;
 
-	private Display display;
-
+	/** popup could and closing in xx seconds label */
 	private Label lblCloseIn;
 
+	/** Button that hides all slideys in the popupList.  Visible only when there's
+	 * more than 1 slidey
+	 */
+	private Button btnHideAll;
+
+	/** shell to start sliding in once this one starts unsliding */
 	private MessageSlideShell slideInAfter = null;
 
-	private boolean delayPaused = false;
-
+	/** location to slide in next shell to */
 	private Rectangle slideInAfterEndBounds;
 
-	private Button btnHideAll;
+	/** paused state of auto-close delay */
+	private boolean delayPaused = false;
 
 	/** Open a popup using resource keys for title/text
 	 * 
+	 * @param display Display to create the shell on
+	 * @param iconID SWT.ICON_* constant for icon in top left
 	 * @param keyPrefix message bundle key prefix used to get title and text.  
 	 *         Title will be keyPrefix + ".title", and text will be set to
 	 *         keyPrefix + ".text"
@@ -101,20 +118,21 @@ public class MessageSlideShell {
 	 * 
 	 * @note Display moved to end to remove conflict in constructors
 	 */
-  public MessageSlideShell(Display display, int iconID, String keyPrefix,
+	public MessageSlideShell(Display display, int iconID, String keyPrefix,
 			String details, String[] textParams) {
-  	this(display, iconID, MessageText.getString(keyPrefix + ".title"),
+		this(display, iconID, MessageText.getString(keyPrefix + ".title"),
 				MessageText.getString(keyPrefix + ".text", textParams), details);
 	}
 
 	/**
-	 * Default constructor
+	 * Open Mr Slidey
 	 * 
-	 * @param display
-	 * @param iconID
-	 * @param title
-	 * @param text
-	 * @param details
+	 * @param display Display to create the shell on
+	 * @param iconID SWT.ICON_* constant for icon in top left
+	 * @param title Text to put in the title
+	 * @param text Text to put in the body
+	 * @param details Text displayed when the Details button is pressed.  Null
+	 *                 for disabled Details button.
 	 */
 	public MessageSlideShell(final Display display, int iconID, String title,
 			String text, String details) {
@@ -150,6 +168,8 @@ public class MessageSlideShell {
 				break;
 		}
 
+		// Pause the auto-close delay when mouse is over slidey
+		// This will be applies to every control
 		final MouseTrackAdapter mouseAdapter = new MouseTrackAdapter() {
 			public void mouseEnter(MouseEvent e) {
 				delayPaused = true;
@@ -162,7 +182,6 @@ public class MessageSlideShell {
 
 		// Create shell & widgets
 		shell = new Shell(display, SWT.ON_TOP);
-		this.display = shell.getDisplay();
 		if (USE_SWT32_BG_SET) {
 			try {
 				shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
@@ -215,7 +234,7 @@ public class MessageSlideShell {
 			linkLabel.setLayoutData(gridData);
 
 			//<a href="http://atorre.s">test</A> and <a href="http://atorre.s">test2</A>
-			
+
 			text = java.util.regex.Pattern.compile("<A HREF=\"(.+?)\">(.+?)</A>",
 					Pattern.CASE_INSENSITIVE).matcher(text).replaceAll("$2 ($1)");
 
@@ -227,7 +246,7 @@ public class MessageSlideShell {
 
 			linkLabel.setText(text);
 		}
-
+		
 		lblCloseIn = new Label(cShell, SWT.TRAIL);
 		gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
 		gridData.horizontalSpan = 2;
@@ -347,6 +366,8 @@ public class MessageSlideShell {
 		}
 
 		if (bAlternateDrawing) {
+			// Drawing of BG Image for pre SWT 3.2
+
 			cShell.addPaintListener(new PaintListener() {
 				public void paintControl(PaintEvent e) {
 					// clipping handled by gc
@@ -362,8 +383,7 @@ public class MessageSlideShell {
 				Control control = children[i];
 				control.addPaintListener(new PaintListener() {
 					public void paintControl(PaintEvent e) {
-						Control c = (Control) e.widget;
-						Rectangle bounds = c.getBounds();
+						Rectangle bounds = ((Control) e.widget).getBounds();
 
 						Image img = new Image(display, e.width, e.height);
 						e.gc.copyArea(img, e.x, e.y);
@@ -378,6 +398,8 @@ public class MessageSlideShell {
 						Image imgTransparent = new Image(display, data);
 
 						// This is an alternative way of setting the transparency.
+						// Probably much slower
+
 						//int bgIndex = data.palette.getPixel(bgRGB);
 						//ImageData transparencyMask = data.getTransparencyMask();
 						//for (int y = 0; y < data.height; y++) {
@@ -404,7 +426,6 @@ public class MessageSlideShell {
 
 		final Rectangle endBounds = shell.computeTrim(bounds.width - bestSize.x,
 				bounds.height - bestSize.y, bestSize.x, bestSize.y);
-		//System.out.println("best: " + bestSize + ";bounds: " + bounds + ";end=" + endBounds);
 		// bottom and right trim will be off the edge, calulate this trim
 		// and adjust it up and left (trim may not be the same size on all sides)
 		int diff = (endBounds.x + endBounds.width) - (bounds.x + bounds.width);
@@ -413,6 +434,7 @@ public class MessageSlideShell {
 		diff = (endBounds.y + endBounds.height) - (bounds.y + bounds.height);
 		if (diff >= 0)
 			endBounds.y -= diff + EDGE_GAP;
+		//System.out.println("best" + bestSize + ";mon" + bounds + ";end" + endBounds);
 
 		FormData data = new FormData(bestSize.x, bestSize.y);
 		cShell.setLayoutData(data);
@@ -430,8 +452,10 @@ public class MessageSlideShell {
 					popupList_mon.exit();
 				}
 
-				imgBackground.dispose();
-				boldFont.dispose();
+				if (imgBackground != null && !imgBackground.isDisposed())
+					imgBackground.dispose();
+				if (boldFont != null && !boldFont.isDisposed())
+					boldFont.dispose();
 			}
 		});
 
@@ -457,6 +481,12 @@ public class MessageSlideShell {
 			startSliding(endBounds);
 	}
 
+	/**
+	 * Adds mousetracklistener to composite and all it's children
+	 * 
+	 * @param parent Composite to start at
+	 * @param listener Listener to add
+	 */
 	private void addMouseTrackListener(Composite parent,
 			MouseTrackListener listener) {
 		Control[] children = parent.getChildren();
@@ -468,6 +498,13 @@ public class MessageSlideShell {
 		}
 	}
 
+	/**
+	 * Start the slid in, wait specified time while notifying user of impending
+	 * auto-close, then slide out.  Run on separate thread, so this method
+	 * returns immediately
+	 * 
+	 * @param endBounds end location and size wanted
+	 */
 	private void startSliding(final Rectangle endBounds) {
 		if (shell == null || shell.isDisposed())
 			return;
@@ -486,13 +523,17 @@ public class MessageSlideShell {
 
 				long lastDelaySecs = 0;
 				while ((delayPaused || delayLeft > 0) && !shell.isDisposed()) {
-					final long delaySecs = Math.round(delayLeft / 1000.0);
+					int delayPausedOfs = (delayPaused ? 1 : 0);
+					final long delaySecs = Math.round(delayLeft / 1000.0) + delayPausedOfs;
 					if (lastDelaySecs != delaySecs) {
 						lastDelaySecs = delaySecs;
-						display.asyncExec(new AERunnable() {
+						shell.getDisplay().asyncExec(new AERunnable() {
 							public void runSupport() {
-								String sText = MessageText.getString("popup.closing.in",
-										new String[] { String.valueOf(delaySecs) });
+								String sText = "";
+
+								if (!delayPaused)
+									sText += MessageText.getString("popup.closing.in",
+											new String[] { String.valueOf(delaySecs) });
 
 								int numPopups = popupList.size();
 								boolean bHasMany = numPopups > 1;
@@ -524,12 +565,17 @@ public class MessageSlideShell {
 					}
 				}
 
-				if (this.isInterrupted())
+				if (this.isInterrupted()) {
+					if (shell != null && !shell.isDisposed())
+						shell.dispose();
 					return;
+				}
 
+				// start sliding in next popup
 				if (slideInAfter != null)
 					slideInAfter.startSliding(slideInAfterEndBounds);
 
+				// slide out current popup
 				new SlideShell(shell, SWT.RIGHT).run();
 			}
 		};
@@ -537,6 +583,8 @@ public class MessageSlideShell {
 	}
 
 	/**
+	 * Sets the slidey that will slide in when this one is closing/sliding out
+	 * 
 	 * @param slideInAfter The slideInAfter to set.
 	 * @param slideInAfterEndBounds 
 	 */
@@ -546,13 +594,23 @@ public class MessageSlideShell {
 		this.slideInAfterEndBounds = slideInAfterEndBounds;
 	}
 
+	/**
+	 * Waits until all slideys are closed before returning to caller.
+	 */
 	public void waitUntilClosed() {
+		if (shell == null || shell.isDisposed())
+			return;
+
+		Display display = shell.getDisplay();
 		while (!shell.isDisposed()) {
 			if (!display.readAndDispatch())
 				display.sleep();
 		}
 	}
 
+	/**
+	 * XXX This could/should be its own class 
+	 */
 	private class SlideShell {
 		private final static int STEP = 5;
 
@@ -585,8 +643,9 @@ public class MessageSlideShell {
 			if (shell == null || shell.isDisposed())
 				return;
 
-			shell.getDisplay().syncExec(new AERunnable() {
-				public void runSupport() {
+			Display display = shell.getDisplay(); 
+			display.syncExec(new Runnable() {
+				public void run() {
 					if (shell == null || shell.isDisposed())
 						return;
 
