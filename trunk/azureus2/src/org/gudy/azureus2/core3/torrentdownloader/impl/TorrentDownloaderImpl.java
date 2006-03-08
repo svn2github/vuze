@@ -502,7 +502,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	      }
       } catch (Exception e) {
     	  
-      	Debug.out("'" + this.directoryname + "' '" +  this.filename + "'", e);
+    	if ( !cancel ){
+    		
+    		Debug.out("'" + this.directoryname + "' '" +  this.filename + "'", e);
+    	}
       	
         this.error("Exception while downloading '" + this.url.toString() + "':" + e.getMessage());
       }
