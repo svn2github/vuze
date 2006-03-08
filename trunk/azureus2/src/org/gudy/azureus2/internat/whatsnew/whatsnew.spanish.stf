@@ -4,23 +4,23 @@ $
 
 +1. Lo nuevo en Azureus 2.4.0.2
 
-!1.1 Faster Crash Recovery
- By default Azureus will now only check parts of the file that were being actively downloaded the last time resume data was saved. The old beheviour of rechecking the whole file can be re-enabled via 'Files' configuration.
+!1.1 Recuperación más rápida ante caídas del programa
+ Antes, Azureus recomprobaba todo el archivo y ahora solamente lo hace con las partes de él que se estuvieran descargando activamente en el instante en que se guardaron los últimos datos de recuperación. Se puede reactivar el antiguo comportamiento mediante configuración -> Archivos.
  
-!1.2 Bug fixes and performance improvements
- Notable fixes:
-    Occassionally encrypted connections would send invalid data
-    Startup error 'no class found' fixed.
-    Data transfer to slow peers improved.
+!1.2 Arreglo de fallos y mejoras de rendimiento
+ Arreglos más notables:
+    En ocasiones, conexiones encriptadas podían enviar datos inválidos
+    Arreglado el error de inicio 'no class found'
+    Mejorada la transferencia de datos hacia pares lentos.
  
-    Note: New Windows launcher might require allowing "Azureus.exe" Internet access in your software firewall.
+    Nota: El nuevo lanzador para Windows podría necesitar que tu cortafuegos permita a "Azureus.exe" acceder a Internet.
  
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.4.0.2
+    Informe completo de cambios en http://azureus.sourceforge.net/changelog.php?version=2.4.0.2
     
 +2. Lo nuevo en Azureus 2.4.0.0
 
 !2.1 Transferencia de Datos Encriptados/Ofuscados
- Se incluye el soporte para encriptado de datos entre Azureus y cualquier otro cliente compatible. Esto proporciona una protección para los datos y también puede servir de ayuda con los ISPs que impiden o restrigen el tráfico entre pares.
+ Se incluye el soporte para la encriptación de los datos entre Azureus y cualquier otro cliente compatible. Esto proporciona una protección para los datos y también puede servir de ayuda con los ISPs que impiden o restrigen el tráfico entre pares.
   
 !2.2 Transferencia de Alta Velocidad en Redes de Área Local
  Varias copias de Azureus corriendo en la misma red local soportarán conexiones directas de alta velocidad.
@@ -33,7 +33,7 @@ $
 
 !2.5 Otros
 
- Diverssas mejoras en el interface de usuario.
+ Diversas mejoras en el interfaz de usuario.
  Mejoras en el rendimiento.
  Arreglo de errores.
     
