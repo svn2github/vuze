@@ -131,11 +131,17 @@ public class FileDownloadWindow implements TorrentDownloaderCallBackInterface{
     lLocation.setLayoutData(data);
         
     String shortUrl = url;
-    if(url.length() > 70) {
-      shortUrl = DisplayFormatters.truncateString(url,120);
+    	// truncate any url parameters for display. This has the benefit of hiding additional uninteresting
+    	// parameters added to urls to control the download process (e.g. "&pause_on_error" for magnet downloads")
+    int	amp_pos = shortUrl.indexOf('&');
+    if ( amp_pos != -1 ){
+    	shortUrl = shortUrl.substring(0,amp_pos+1) + "...";
+    }
+    if(shortUrl.length() > 70) {
+      shortUrl = DisplayFormatters.truncateString(shortUrl,120);
     }
     lLocation.setText(shortUrl);
-    lLocation.setToolTipText(url);
+    lLocation.setToolTipText(url.replaceAll("&", "&&" ));
     
     
     progressBar = new ProgressBar(shell, SWT.NONE);

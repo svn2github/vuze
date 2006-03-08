@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.ddb;
 
+import java.net.InetSocketAddress;
+
 /**
  * @author parg
  *
@@ -32,6 +34,9 @@ DistributedDatabaseContact
 {
 	public String
 	getName();
+	
+	public InetSocketAddress
+	getAddress();
 	
 	public boolean
 	isAlive(

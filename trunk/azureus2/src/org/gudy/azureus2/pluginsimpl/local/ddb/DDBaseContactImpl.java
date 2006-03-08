@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.pluginsimpl.local.ddb;
 
+import java.net.InetSocketAddress;
+
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseKey;
@@ -57,6 +59,12 @@ DDBaseContactImpl
 	getName()
 	{
 		return( contact.getName());
+	}
+	
+	public InetSocketAddress
+	getAddress()
+	{
+		return( contact.getAddress());
 	}
 	
 	public boolean

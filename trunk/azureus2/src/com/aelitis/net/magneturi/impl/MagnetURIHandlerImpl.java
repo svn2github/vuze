@@ -61,7 +61,7 @@ MagnetURIHandlerImpl
 	
 	private static AEMonitor				class_mon = new AEMonitor( "MagnetURLHandler:class" );
 	
-	private static final int				DOWNLOAD_TIMEOUT	= 120000;
+	private static final int				DOWNLOAD_TIMEOUT	= 3*60*1000;
 	
 	protected static final String	NL			= "\015\012";
 
@@ -535,7 +535,7 @@ MagnetURIHandlerImpl
 				
 				pw.flush();
 				
-				Debug.printStackTrace(e);
+				// Debug.printStackTrace(e);
 				
 					// pause on error
 				
