@@ -313,6 +313,14 @@ public class MyTorrentsView
         		updateLastSearch();
         	}
         });
+        txtFilter.addKeyListener(new KeyAdapter() {
+        	public void keyPressed(KeyEvent e) {
+        		if (e.keyCode == SWT.ARROW_DOWN) {
+        			getTable().setFocus();
+        			e.doit = false;
+        		}
+        	}
+        });
         
         lblSep = new Label(cHeader, SWT.SEPARATOR | SWT.VERTICAL);
         gridData = new GridData(GridData.FILL_VERTICAL);
