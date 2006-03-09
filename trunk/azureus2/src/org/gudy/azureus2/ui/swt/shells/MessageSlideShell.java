@@ -265,8 +265,10 @@ public class MessageSlideShell {
 			linkLabel.setText(text);
 		}
 
-		// if there's a link, disable timer and mouse watching
-		bDelayPaused = TorrentOpener.parseTextForURL(text) != null;
+		// if there's a link, or the info is non-information,
+		// disable timer and mouse watching
+		bDelayPaused = TorrentOpener.parseTextForURL(text) != null
+				|| iconID != SWT.ICON_INFORMATION;
 		// Pause the auto-close delay when mouse is over slidey
 		// This will be applies to every control
 		final MouseTrackAdapter mouseAdapter = bDelayPaused ? null
@@ -838,7 +840,7 @@ public class MessageSlideShell {
 		slide = new MessageSlideShell(display, SWT.ICON_INFORMATION, title, text,
 				"Details");
 
-		slide = new MessageSlideShell(display, SWT.ICON_INFORMATION, title, text,
+		slide = new MessageSlideShell(display, SWT.ICON_ERROR, title, text,
 				(String) null);
 
 		slide.waitUntilClosed();
