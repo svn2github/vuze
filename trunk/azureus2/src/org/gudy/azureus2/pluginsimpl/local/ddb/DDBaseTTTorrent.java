@@ -40,7 +40,6 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferHandler;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
@@ -56,15 +55,16 @@ public class
 DDBaseTTTorrent
 	implements DistributedDatabaseTransferType, DistributedDatabaseTransferHandler
 {
-	public static final boolean	TRACE			= false;
+	private static final boolean	TRACE			= false;
 	
-	public static final byte	CRYPTO_VERSION	= 1;
+	private static final byte	CRYPTO_VERSION	= 1;
 	
 	static{
 		if ( TRACE ){
 			System.out.println( "**** Torrent xfer tracing on ****" );
 		}
 	}
+	
 	private AzureusCore		azureus_core;
 	private DDBaseImpl		ddb;
 		
@@ -92,11 +92,9 @@ DDBaseTTTorrent
 	
 		throws DistributedDatabaseException
 	{
-			// from protocol version 8 we use sha1(hash) as the key for torrent downloads
+			// We use sha1(hash) as the key for torrent downloads
 			// and encrypt the torrent content using the hash as the basis for a key. This
 			// prevents someone without the hash from downloading the torrent
-
-		int	protocol_version = ((DDBaseContactImpl)contact).getContact().getProtocolVersion();
 		
 		try{
 			byte[]	search_key = ((DDBaseKeyImpl)key).getBytes();
@@ -106,79 +104,52 @@ DDBaseTTTorrent
 			PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
 			
 			boolean	encrypt	= false;
+						
+			String	search_sha1 = pi.getUtilities().getFormatters().encodeBytesToString( search_key );
 			
-			if ( protocol_version >= 8 ){	// DHTTransportUDP.PROTOCOL_VERSION_ENCRYPT_TT
+			if ( ta_sha1 == null ){
 				
-				String	search_sha1 = pi.getUtilities().getFormatters().encodeBytesToString( search_key );
+				ta_sha1 = pi.getTorrentManager().getPluginAttribute( "DDBaseTTTorrent::sha1");
+			}
 				
-				if ( ta_sha1 == null ){
-					
-					ta_sha1 = pi.getTorrentManager().getPluginAttribute( "DDBaseTTTorrent::sha1");
-				}
-					
-					// gotta look for the sha1(hash)
+				// gotta look for the sha1(hash)
+			
+			Download[]	downloads = pi.getDownloadManager().getDownloads();
+			
+			for (int i=0;i<downloads.length;i++){
 				
-				Download[]	downloads = pi.getDownloadManager().getDownloads();
+				Download	dl = downloads[i];
 				
-				for (int i=0;i<downloads.length;i++){
+				if ( dl.getTorrent() == null ){
 					
-					Download	dl = downloads[i];
-					
-					if ( dl.getTorrent() == null ){
-						
-						continue;
-					}
-					
-					String	sha1 = dl.getAttribute( ta_sha1 );
-					
-					if ( sha1 == null ){
-						
-						sha1 = pi.getUtilities().getFormatters().encodeBytesToString( 
-									new SHA1Simple().calculateHash( dl.getTorrent().getHash()));
-						
-						dl.setAttribute( ta_sha1, sha1 );
-					}
-					
-					if ( sha1.equals( search_sha1 )){
-						
-						download	= dl;
-						
-						encrypt	= true;
-						
-						break;
-					}
+					continue;
 				}
 				
-					// there's a bug whereby 2.3.0.2 + below clients, given a contact indirectly at, say, version 8
-					// will send a request claiming to be version 8, whereas it really is version 7
-					// to continue to work correctly with these we fall back to 
+				String	sha1 = dl.getAttribute( ta_sha1 );
+				
+				if ( sha1 == null ){
 					
-				if ( download == null ){
+					sha1 = pi.getUtilities().getFormatters().encodeBytesToString( 
+								new SHA1Simple().calculateHash( dl.getTorrent().getHash()));
 					
-					download = pi.getShortCuts().getDownload( search_key );
-					
-					if (TRACE ){
-						
-						System.out.println( "TorrentXfer: received lookup via hash, fallback to V7 -> " + download );
-					}
-				}else{
-					
-					if ( TRACE ){
-						
-						System.out.println( "TorrentXfer: received lookup via sha1(hash) -> " + download );
-					}
+					dl.setAttribute( ta_sha1, sha1 );
 				}
 				
-			}else{
-				
-				download = pi.getShortCuts().getDownload( search_key );
-				
-				if ( TRACE ){
+				if ( sha1.equals( search_sha1 )){
 					
-					System.out.println( "TorrentXfer: received lookup via hash -> " + download );
+					download	= dl;
+					
+					encrypt	= true;
+					
+					break;
 				}
 			}
-			
+				
+			if ( TRACE ){
+					
+				System.out.println( "TorrentXfer: received lookup via sha1(hash) -> " + download );
+			}
+				
 			if ( download == null ){
 				
 				String msg = "TorrentDownload: " + (encrypt?"secure":"insecure") + " request for '" + pi.getUtilities().getFormatters().encodeBytesToString( search_key ) + "' not found";
@@ -228,12 +199,6 @@ DDBaseTTTorrent
 			
 			return( ddb.createValue( data ));
 			
-		}catch( DownloadException e ){
-			
-				// torrent not found in shortcut stuff
-			
-			return( null );
-			
 		}catch( Throwable e ){
 			
 			throw( new DistributedDatabaseException("Torrent write fails", e ));
@@ -266,29 +231,12 @@ DDBaseTTTorrent
 	
 		throws DistributedDatabaseException
 	{
-			// see comment above
-		
-		int	protocol_version = contact.getContact().getProtocolVersion();
-
 		byte[]	torrent_hash	= ((DDBaseKeyImpl)key).getBytes();
 		
-		byte[]	lookup_key;
-		
-		if ( protocol_version >= 8 ){	// DHTTransportUDP.PROTOCOL_VERSION_ENCRYPT_TT
-			
-			if ( TRACE ){
-				System.out.println( "TorrentXfer: sending via sha1(hash)" );
-			}
-
-			lookup_key	= new SHA1Simple().calculateHash( torrent_hash );
-			
-		}else{
-			
-			if (TRACE ){
-				System.out.println( "TorrentXfer: sending via hash" );
-			}
-
-			lookup_key	= torrent_hash;
+		byte[]	lookup_key	= new SHA1Simple().calculateHash( torrent_hash );
+					
+		if ( TRACE ){
+			System.out.println( "TorrentXfer: sending via sha1(hash)" );
 		}
 		
 		byte[]	data = ddb.getDHT().read( 
@@ -325,14 +273,11 @@ DDBaseTTTorrent
 			return( null );
 		}
 		
-		if ( protocol_version >= 8 ){	// DHTTransportUDP.PROTOCOL_VERSION_ENCRYPT_TT
-
-			data = decrypt( torrent_hash, data );
+		data = decrypt( torrent_hash, data );
 			
-			if ( data == null ){
+		if ( data == null ){
 				
-				return( null );
-			}
+			return( null );
 		}
 		
 		return( new DDBaseValueImpl( contact, data, SystemTime.getCurrentTime()));
