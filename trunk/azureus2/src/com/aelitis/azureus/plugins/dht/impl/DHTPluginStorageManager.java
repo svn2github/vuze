@@ -1012,9 +1012,12 @@ DHTPluginStorageManager
 						
 						if ( ( direct && kb.isAdd()) || now_secs - recv < KEY_BLOCK_TIMEOUT_SECS ){
 						
-							log.log( "KB: deserialised " + DHTLog.getString2( kb.getKey()) + ",add=" + kb.isAdd() + ",dir=" + kb.isDirect());
-					
-							new_map.put( kb.getKey(), kb );
+							if ( verifyKeyBlock( request, cert )){
+								
+								log.log( "KB: deserialised " + DHTLog.getString2( kb.getKey()) + ",add=" + kb.isAdd() + ",dir=" + kb.isDirect());
+						
+								new_map.put( kb.getKey(), kb );
+							}
 						}
 						
 					}catch( Throwable e ){
