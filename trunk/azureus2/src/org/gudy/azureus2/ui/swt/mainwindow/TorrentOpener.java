@@ -150,7 +150,7 @@ public class TorrentOpener {
   	
 		Pattern pat = Pattern.compile("<.*a\\s++.*href=\"?([^\\'\"\\s>]++).*", Pattern.CASE_INSENSITIVE);
 		Matcher m = pat.matcher(text);
-		if (m.matches()) {
+		if (m.find()) {
 			return m.group(1);
 		}
 		
