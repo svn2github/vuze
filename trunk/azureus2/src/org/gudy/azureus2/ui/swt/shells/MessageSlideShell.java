@@ -353,8 +353,10 @@ public class MessageSlideShell {
 								}
 							}
 						});
-						if (mouseAdapter != null)
-							addMouseTrackListener(detailsShell, mouseAdapter);
+
+						// disable auto-close on opening of details
+						bDelayPaused = true;
+						removeMouseTrackListener(shell, mouseAdapter);
 					} else {
 						Shell detailsShell = (Shell) shell.getData("detailsShell");
 						if (detailsShell != null && !detailsShell.isDisposed()) {
@@ -554,6 +556,26 @@ public class MessageSlideShell {
 	}
 
 	/**
+	 * removes mousetracklistener from composite and all it's children
+	 * 
+	 * @param parent Composite to start at
+	 * @param listener Listener to remove
+	 */
+	private void removeMouseTrackListener(Composite parent,
+			MouseTrackListener listener) {
+		if (parent == null || listener == null || parent.isDisposed())
+			return;
+
+		Control[] children = parent.getChildren();
+		for (int i = 0; i < children.length; i++) {
+			Control control = children[i];
+			control.removeMouseTrackListener(listener);
+			if (control instanceof Composite)
+				removeMouseTrackListener((Composite) control, listener);
+		}
+	}
+
+	/**
 	 * Start the slid in, wait specified time while notifying user of impending
 	 * auto-close, then slide out.  Run on separate thread, so this method
 	 * returns immediately
@@ -589,7 +611,7 @@ public class MessageSlideShell {
 						shell.getDisplay().asyncExec(new AERunnable() {
 							public void runSupport() {
 								String sText = "";
-								
+
 								if (lblCloseIn == null || lblCloseIn.isDisposed())
 									return;
 
