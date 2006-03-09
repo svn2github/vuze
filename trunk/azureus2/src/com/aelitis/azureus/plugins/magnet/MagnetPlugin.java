@@ -367,8 +367,8 @@ MagnetPlugin
 
 			listener.reportActivity( "searching..." );
 			
-			downloadListener	ddb_listener = 
-				new downloadListener()
+			DistributedDatabaseListener	ddb_listener = 
+				new DistributedDatabaseListener()
 				{
 					public void
 					event(
@@ -382,7 +382,20 @@ MagnetPlugin
 			
 						}else if (	type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ||
 									type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ){
-																
+								
+								// now inject any explicit sources
+							
+							for (int i=0;i<sources.length;i++){
+								
+								try{
+									contactFound( db.importContact(sources[i]));
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+							}
+							
 							potential_contacts_sem.release();
 						}
 					}
@@ -462,17 +475,6 @@ MagnetPlugin
 					}
 				};
 				
-			for (int i=0;i<sources.length;i++){
-				
-				try{
-					ddb_listener.contactFound( db.importContact(sources[i]));
-					
-				}catch( Throwable e ){
-					
-					Debug.printStackTrace(e);
-				}
-			}
-			
 			db.read(
 				ddb_listener,
 				db.createKey( hash, "Torrent download lookup for '" + ByteFormatter.encodeString( hash ) + "'" ),
@@ -521,11 +523,13 @@ MagnetPlugin
 				
 				if ( !live_contact ){
 					
+					listener.reportActivity( "tunnelling to " + contact.getName());
+
 					contact.openTunnel();
 				}
 				
 				try{
-					listener.reportActivity( "downloading data from " + contact.getName());
+					listener.reportActivity( "downloading from " + contact.getName());
 					
 					DistributedDatabaseValue	value = 
 						contact.read( 
@@ -577,14 +581,5 @@ MagnetPlugin
 
 			throw( new MagnetURIHandlerException( "MagnetURIHandler failed", e ));
 		}
-	}
-	
-	private interface
-	downloadListener
-		extends DistributedDatabaseListener
-	{
-		public void
-		contactFound(
-			final DistributedDatabaseContact	contact );
 	}
 }

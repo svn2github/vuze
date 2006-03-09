@@ -2520,7 +2520,7 @@ DHTTransportUDPImpl
 						
 						if ( entire_request_count == 2 ){
 						
-							listener.reportActivity( "Timeout, no replies received" );
+							listener.reportActivity( "Timeout, no replies from " + target_name );
 							
 							return( null );
 						}
