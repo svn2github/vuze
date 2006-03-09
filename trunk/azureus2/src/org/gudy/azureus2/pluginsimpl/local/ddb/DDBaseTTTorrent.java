@@ -102,9 +102,7 @@ DDBaseTTTorrent
 			Download 	download = null;
 				
 			PluginInterface pi = azureus_core.getPluginManager().getDefaultPluginInterface();
-			
-			boolean	encrypt	= false;
-						
+									
 			String	search_sha1 = pi.getUtilities().getFormatters().encodeBytesToString( search_key );
 			
 			if ( ta_sha1 == null ){
@@ -138,21 +136,14 @@ DDBaseTTTorrent
 				if ( sha1.equals( search_sha1 )){
 					
 					download	= dl;
-					
-					encrypt	= true;
-					
+										
 					break;
 				}
 			}
-				
-			if ( TRACE ){
-					
-				System.out.println( "TorrentXfer: received lookup via sha1(hash) -> " + download );
-			}
-				
+								
 			if ( download == null ){
 				
-				String msg = "TorrentDownload: " + (encrypt?"secure":"insecure") + " request for '" + pi.getUtilities().getFormatters().encodeBytesToString( search_key ) + "' not found";
+				String msg = "TorrentDownload: request for '" + pi.getUtilities().getFormatters().encodeBytesToString( search_key ) + "' not found";
 				
 				if ( TRACE ){
 					
@@ -169,7 +160,7 @@ DDBaseTTTorrent
 			
 			Torrent	torrent = download.getTorrent();
 			
-			String	msg = "TorrentDownload: " + (encrypt?"secure":"insecure") + " request for '" + download.getName() + "' OK";		
+			String	msg = "TorrentDownload: request for '" + download.getName() + "' OK";		
 
 			if ( TRACE ){
 				
@@ -186,15 +177,12 @@ DDBaseTTTorrent
 			torrent.setDecentralisedBackupRequested( true );
 			
 			byte[] data = torrent.writeToBEncodedData();
-			
-			if ( encrypt ){
+							
+			data = encrypt( torrent.getHash(), data );
 				
-				data = encrypt( torrent.getHash(), data );
-				
-				if ( data == null ){
+			if ( data == null ){
 					
-					return( null );
-				}
+				return( null );
 			}
 			
 			return( ddb.createValue( data ));
