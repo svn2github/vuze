@@ -863,9 +863,13 @@ MainWindow
     	azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
     }
   
+    boolean bPassworded = COConfigurationManager.getBooleanParameter("Password enabled", false);
+    boolean bStartMinimize = bPassworded || COConfigurationManager.getBooleanParameter("Start Minimized", false);
     
-    mainWindow.open();
-    if(!Constants.isOSX) {mainWindow.forceActive();}
+    if (!bStartMinimize) {
+	    mainWindow.open();
+	    if(!Constants.isOSX) {mainWindow.forceActive();}
+    }
     updater = new GUIUpdater(azureus_core,this);
     updater.start();
 
@@ -883,13 +887,13 @@ MainWindow
 						"Upgrade to SWT3.0M8 or later for system tray support."));
    	    }
 
-	    if (COConfigurationManager.getBooleanParameter("Start Minimized", false)) {
+	    if (bStartMinimize) {
 	      minimizeToTray(null);
 	    }
 	    //Only show the password if not started minimized
 	    //Correct bug #878227
 	    else {
-		    if (COConfigurationManager.getBooleanParameter("Password enabled", false)) {
+		    if (bPassworded) {
 		      minimizeToTray(null);
 		      PasswordWindow.showPasswordWindow(display);
 		    }
