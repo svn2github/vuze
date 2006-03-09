@@ -31,6 +31,9 @@ import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
@@ -72,6 +75,11 @@ public class MessageSlideShell {
 	/** Standard height of the shell.  Shell may grow depending on text */
 	private final static int SHELL_MIN_HEIGHT = 150;
 
+	/** Maximimum height of popup.  If text is too long, the full text will be
+	 * put into details.
+	 */
+	private final static int SHELL_MAX_HEIGHT = 450;
+
 	/** Width of the details shell */
 	private final static int DETAILS_WIDTH = 550;
 
@@ -104,7 +112,13 @@ public class MessageSlideShell {
 	private Rectangle slideInAfterEndBounds;
 
 	/** paused state of auto-close delay */
-	private boolean delayPaused = false;
+	private boolean bDelayPaused = false;
+
+	/** List of SWT objects needing disposal */
+	private ArrayList disposeList = new ArrayList();
+
+	/** Text to put into details popup */
+	private String sDetails;
 
 	/** Open a popup using resource keys for title/text
 	 * 
@@ -134,10 +148,25 @@ public class MessageSlideShell {
 	 * @param details Text displayed when the Details button is pressed.  Null
 	 *                 for disabled Details button.
 	 */
-	public MessageSlideShell(final Display display, int iconID, String title,
+	public MessageSlideShell(Display display, int iconID, String title,
+			String text, String details) {
+		try {
+			create(display, iconID, title, text, details);
+		} catch (Exception e) {
+			Logger.log(new LogEvent(LogIDs.GUI, "Mr. Slidey Init", e));
+			if (shell != null && shell.isDisposed()) {
+				shell.dispose();
+			}
+			Utils.disposeSWTObjects(disposeList);
+		}
+	}
+
+	private void create(final Display display, int iconID, String title,
 			String text, String details) {
 		GridData gridData;
 		int shellWidth;
+
+		sDetails = details;
 
 		// Load Images
 		Image imgPopup = ImageRepository.getImage("popup");
@@ -168,18 +197,6 @@ public class MessageSlideShell {
 				break;
 		}
 
-		// Pause the auto-close delay when mouse is over slidey
-		// This will be applies to every control
-		final MouseTrackAdapter mouseAdapter = new MouseTrackAdapter() {
-			public void mouseEnter(MouseEvent e) {
-				delayPaused = true;
-			}
-
-			public void mouseExit(MouseEvent e) {
-				delayPaused = false;
-			}
-		};
-
 		// Create shell & widgets
 		shell = new Shell(display, SWT.ON_TOP);
 		if (USE_SWT32_BG_SET) {
@@ -209,7 +226,8 @@ public class MessageSlideShell {
 		FontData[] fontData = label.getFont().getFontData();
 		fontData[0].setStyle(SWT.BOLD);
 		fontData[0].setHeight((int) (fontData[0].getHeight() * 1.5));
-		final Font boldFont = new Font(display, fontData);
+		Font boldFont = new Font(display, fontData);
+		disposeList.add(boldFont);
 		label.setFont(boldFont);
 
 		try {
@@ -218,6 +236,7 @@ public class MessageSlideShell {
 			gridData.horizontalSpan = 2;
 			linkLabel.setLayoutData(gridData);
 			linkLabel.setText(text);
+			// if there's a link, disable timer
 			linkLabel.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					if (e.text.endsWith(".torrent"))
@@ -238,15 +257,28 @@ public class MessageSlideShell {
 			text = java.util.regex.Pattern.compile("<A HREF=\"(.+?)\">(.+?)</A>",
 					Pattern.CASE_INSENSITIVE).matcher(text).replaceAll("$2 ($1)");
 
-			if (details == null) {
-				details = text;
+			if (sDetails == null) {
+				sDetails = text;
 			} else {
-				details = text + "\n" + details;
+				sDetails = text + "\n---------\n" + sDetails;
 			}
 
 			linkLabel.setText(text);
 		}
-		
+		bDelayPaused = TorrentOpener.parseTextForURL(text) != null;
+		// Pause the auto-close delay when mouse is over slidey
+		// This will be applies to every control
+		final MouseTrackAdapter mouseAdapter = bDelayPaused ? null
+				: new MouseTrackAdapter() {
+					public void mouseEnter(MouseEvent e) {
+						bDelayPaused = true;
+					}
+
+					public void mouseExit(MouseEvent e) {
+						bDelayPaused = false;
+					}
+				};
+
 		lblCloseIn = new Label(cShell, SWT.TRAIL);
 		gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
 		gridData.horizontalSpan = 2;
@@ -280,49 +312,54 @@ public class MessageSlideShell {
 
 					popupList.clear();
 
+				} catch (Exception e) {
+					Logger.log(new LogEvent(LogIDs.GUI, "Mr. Slidey HideAll", e));
 				} finally {
 					popupList_mon.exit();
 				}
 			}
 		});
 
-		final String sDetailsText = details;
 		final Button btnDetails = new Button(cButtons, SWT.TOGGLE);
 		Messages.setLanguageText(btnDetails, "popup.error.details");
-		btnDetails.setEnabled(details != null);
 		btnDetails.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
-				boolean bShow = btnDetails.getSelection();
-				if (bShow) {
-					Shell detailsShell = new Shell(display, SWT.BORDER | SWT.ON_TOP);
-					Utils.setShellIcon(detailsShell);
-					detailsShell.setLayout(new FillLayout());
-					StyledText textDetails = new StyledText(detailsShell, SWT.READ_ONLY
-							| SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
-					textDetails.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-					textDetails.setWordWrap(true);
-					textDetails.setText(sDetailsText);
-					detailsShell.layout();
-					Rectangle shellBounds = shell.getBounds();
-					detailsShell.setBounds(shellBounds.x + shellBounds.width
-							- DETAILS_WIDTH, shellBounds.y - DETAILS_HEIGHT, DETAILS_WIDTH,
-							DETAILS_HEIGHT);
-					detailsShell.open();
-					shell.setData("detailsShell", detailsShell);
-					shell.addDisposeListener(new DisposeListener() {
-						public void widgetDisposed(DisposeEvent e) {
-							Shell detailsShell = (Shell) shell.getData("detailsShell");
-							if (detailsShell != null && !detailsShell.isDisposed()) {
-								detailsShell.dispose();
+				try {
+					boolean bShow = btnDetails.getSelection();
+					if (bShow) {
+						Shell detailsShell = new Shell(display, SWT.BORDER | SWT.ON_TOP);
+						Utils.setShellIcon(detailsShell);
+						detailsShell.setLayout(new FillLayout());
+						StyledText textDetails = new StyledText(detailsShell, SWT.READ_ONLY
+								| SWT.V_SCROLL | SWT.H_SCROLL | SWT.BORDER);
+						textDetails.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
+						textDetails.setWordWrap(true);
+						textDetails.setText(sDetails);
+						detailsShell.layout();
+						Rectangle shellBounds = shell.getBounds();
+						detailsShell.setBounds(shellBounds.x + shellBounds.width
+								- DETAILS_WIDTH, shellBounds.y - DETAILS_HEIGHT, DETAILS_WIDTH,
+								DETAILS_HEIGHT);
+						detailsShell.open();
+						shell.setData("detailsShell", detailsShell);
+						shell.addDisposeListener(new DisposeListener() {
+							public void widgetDisposed(DisposeEvent e) {
+								Shell detailsShell = (Shell) shell.getData("detailsShell");
+								if (detailsShell != null && !detailsShell.isDisposed()) {
+									detailsShell.dispose();
+								}
 							}
+						});
+						if (mouseAdapter != null)
+							addMouseTrackListener(detailsShell, mouseAdapter);
+					} else {
+						Shell detailsShell = (Shell) shell.getData("detailsShell");
+						if (detailsShell != null && !detailsShell.isDisposed()) {
+							detailsShell.dispose();
 						}
-					});
-					addMouseTrackListener(detailsShell, mouseAdapter);
-				} else {
-					Shell detailsShell = (Shell) shell.getData("detailsShell");
-					if (detailsShell != null && !detailsShell.isDisposed()) {
-						detailsShell.dispose();
 					}
+				} catch (Exception e) {
+					Logger.log(new LogEvent(LogIDs.GUI, "Mr. Slidey DetailsButton", e));
 				}
 			}
 		});
@@ -339,81 +376,94 @@ public class MessageSlideShell {
 		// Image has gap for text at the top (with image at bottom left)
 		// trim top to height of shell 
 		Point bestSize = cShell.computeSize(shellWidth, SWT.DEFAULT);
-		int bottomHeight = cButtons.computeSize(SWT.DEFAULT, SWT.DEFAULT).y
-				+ lblCloseIn.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-		// no text on the frog in the bottom left
-		if (bottomHeight < 50)
-			bestSize.y += 50 - bottomHeight;
 		if (bestSize.y < SHELL_MIN_HEIGHT)
 			bestSize.y = SHELL_MIN_HEIGHT;
-
-		final Image imgBackground = new Image(display, bestSize.x, bestSize.y);
-		GC gc = new GC(imgBackground);
-		int dstY = imgPopupBounds.height - bestSize.y;
-		if (dstY < 0)
-			dstY = 0;
-		gc.drawImage(imgPopup, 0, dstY, imgPopupBounds.width, imgPopupBounds.height
-				- dstY, 0, 0, bestSize.x, bestSize.y);
-		gc.dispose();
-
-		boolean bAlternateDrawing = true;
-		if (USE_SWT32_BG_SET) {
-			try {
-				shell.setBackgroundImage(imgBackground);
-				bAlternateDrawing = false;
-			} catch (NoSuchMethodError e) {
+		else if (bestSize.y > SHELL_MAX_HEIGHT) {
+			bestSize.y = SHELL_MAX_HEIGHT;
+			if (sDetails == null) {
+				sDetails = text;
+			} else {
+				sDetails = text + "\n===============\n" + sDetails;
 			}
 		}
 
-		if (bAlternateDrawing) {
-			// Drawing of BG Image for pre SWT 3.2
+		if (imgPopup != null) {
+			// no text on the frog in the bottom left
+			int bottomHeight = cButtons.computeSize(SWT.DEFAULT, SWT.DEFAULT).y
+					+ lblCloseIn.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+			if (bottomHeight < 50)
+				bestSize.y += 50 - bottomHeight;
 
-			cShell.addPaintListener(new PaintListener() {
-				public void paintControl(PaintEvent e) {
-					// clipping handled by gc
-					e.gc.drawImage(imgBackground, 0, 0);
+			final Image imgBackground = new Image(display, bestSize.x, bestSize.y);
+
+			disposeList.add(imgBackground);
+			GC gc = new GC(imgBackground);
+			int dstY = imgPopupBounds.height - bestSize.y;
+			if (dstY < 0)
+				dstY = 0;
+			gc.drawImage(imgPopup, 0, dstY, imgPopupBounds.width,
+					imgPopupBounds.height - dstY, 0, 0, bestSize.x, bestSize.y);
+			gc.dispose();
+
+			boolean bAlternateDrawing = true;
+			if (USE_SWT32_BG_SET) {
+				try {
+					shell.setBackgroundImage(imgBackground);
+					bAlternateDrawing = false;
+				} catch (NoSuchMethodError e) {
 				}
-			});
+			}
 
-			final RGB bgRGB = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND)
-					.getRGB();
+			if (bAlternateDrawing) {
+				// Drawing of BG Image for pre SWT 3.2
 
-			Control[] children = cShell.getChildren();
-			for (int i = 0; i < children.length; i++) {
-				Control control = children[i];
-				control.addPaintListener(new PaintListener() {
+				cShell.addPaintListener(new PaintListener() {
 					public void paintControl(PaintEvent e) {
-						Rectangle bounds = ((Control) e.widget).getBounds();
-
-						Image img = new Image(display, e.width, e.height);
-						e.gc.copyArea(img, e.x, e.y);
-
-						e.gc.drawImage(imgBackground, -bounds.x, -bounds.y);
-
-						// Set the background color to invisible.  img.setBackground
-						// doesn't work, so change transparentPixel directly and roll
-						// a new image
-						ImageData data = img.getImageData();
-						data.transparentPixel = data.palette.getPixel(bgRGB);
-						Image imgTransparent = new Image(display, data);
-
-						// This is an alternative way of setting the transparency.
-						// Probably much slower
-
-						//int bgIndex = data.palette.getPixel(bgRGB);
-						//ImageData transparencyMask = data.getTransparencyMask();
-						//for (int y = 0; y < data.height; y++) {
-						//	for (int x = 0; x < data.width; x++) {
-						//		if (bgIndex == data.getPixel(x, y))
-						//			transparencyMask.setPixel(x, y, 0);
-						//	}
-						//}
-						//
-						//Image imgTransparent = new Image(display, data, transparencyMask);
-
-						e.gc.drawImage(imgTransparent, e.x, e.y);
+						// clipping handled by gc
+						e.gc.drawImage(imgBackground, 0, 0);
 					}
 				});
+
+				final RGB bgRGB = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND)
+						.getRGB();
+
+				Control[] children = cShell.getChildren();
+				for (int i = 0; i < children.length; i++) {
+					Control control = children[i];
+					control.addPaintListener(new PaintListener() {
+						public void paintControl(PaintEvent e) {
+							Rectangle bounds = ((Control) e.widget).getBounds();
+
+							Image img = new Image(display, e.width, e.height);
+							e.gc.copyArea(img, e.x, e.y);
+
+							e.gc.drawImage(imgBackground, -bounds.x, -bounds.y);
+
+							// Set the background color to invisible.  img.setBackground
+							// doesn't work, so change transparentPixel directly and roll
+							// a new image
+							ImageData data = img.getImageData();
+							data.transparentPixel = data.palette.getPixel(bgRGB);
+							Image imgTransparent = new Image(display, data);
+
+							// This is an alternative way of setting the transparency.
+							// Probably much slower
+
+							//int bgIndex = data.palette.getPixel(bgRGB);
+							//ImageData transparencyMask = data.getTransparencyMask();
+							//for (int y = 0; y < data.height; y++) {
+							//	for (int x = 0; x < data.width; x++) {
+							//		if (bgIndex == data.getPixel(x, y))
+							//			transparencyMask.setPixel(x, y, 0);
+							//	}
+							//}
+							//
+							//Image imgTransparent = new Image(display, data, transparencyMask);
+
+							e.gc.drawImage(imgTransparent, e.x, e.y);
+						}
+					});
+				}
 			}
 		}
 
@@ -440,6 +490,7 @@ public class MessageSlideShell {
 		cShell.setLayoutData(data);
 		shell.layout();
 
+		btnDetails.setEnabled(sDetails != null);
 		btnHide.setFocus();
 		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
@@ -452,14 +503,12 @@ public class MessageSlideShell {
 					popupList_mon.exit();
 				}
 
-				if (imgBackground != null && !imgBackground.isDisposed())
-					imgBackground.dispose();
-				if (boldFont != null && !boldFont.isDisposed())
-					boldFont.dispose();
+				Utils.disposeSWTObjects(disposeList);
 			}
 		});
 
-		addMouseTrackListener(shell, mouseAdapter);
+		if (mouseAdapter != null)
+			addMouseTrackListener(shell, mouseAdapter);
 
 		int count = 0;
 		try {
@@ -489,6 +538,9 @@ public class MessageSlideShell {
 	 */
 	private void addMouseTrackListener(Composite parent,
 			MouseTrackListener listener) {
+		if (parent == null || listener == null || parent.isDisposed())
+			return;
+
 		Control[] children = parent.getChildren();
 		for (int i = 0; i < children.length; i++) {
 			Control control = children[i];
@@ -522,16 +574,17 @@ public class MessageSlideShell {
 						.getIntParameter("Message Popup Autoclose in Seconds") * 1000;
 
 				long lastDelaySecs = 0;
-				while ((delayPaused || delayLeft > 0) && !shell.isDisposed()) {
-					int delayPausedOfs = (delayPaused ? 1 : 0);
-					final long delaySecs = Math.round(delayLeft / 1000.0) + delayPausedOfs;
+				while ((bDelayPaused || delayLeft > 0) && !shell.isDisposed()) {
+					int delayPausedOfs = (bDelayPaused ? 1 : 0);
+					final long delaySecs = Math.round(delayLeft / 1000.0)
+							+ delayPausedOfs;
 					if (lastDelaySecs != delaySecs) {
 						lastDelaySecs = delaySecs;
 						shell.getDisplay().asyncExec(new AERunnable() {
 							public void runSupport() {
 								String sText = "";
 
-								if (!delayPaused)
+								if (!bDelayPaused)
 									sText += MessageText.getString("popup.closing.in",
 											new String[] { String.valueOf(delaySecs) });
 
@@ -556,7 +609,7 @@ public class MessageSlideShell {
 						});
 					}
 
-					if (!delayPaused)
+					if (!bDelayPaused)
 						delayLeft -= PAUSE;
 					try {
 						Thread.sleep(PAUSE);
@@ -643,7 +696,7 @@ public class MessageSlideShell {
 			if (shell == null || shell.isDisposed())
 				return;
 
-			Display display = shell.getDisplay(); 
+			Display display = shell.getDisplay();
 			display.syncExec(new Runnable() {
 				public void run() {
 					if (shell == null || shell.isDisposed())
@@ -773,11 +826,14 @@ public class MessageSlideShell {
 				"ShortText", "Details").waitUntilClosed();
 
 		slide = new MessageSlideShell(display, SWT.ICON_INFORMATION, "ShortTitle3",
-				"ShortText", "Details");
+				"ShortText", (String) null);
 		for (int x = 0; x < 10; x++)
 			text += "\n\n\n\n\n\n\n\nWow";
 		slide = new MessageSlideShell(display, SWT.ICON_INFORMATION, title, text,
-				"Details: " + text);
+				"Details");
+
+		slide = new MessageSlideShell(display, SWT.ICON_INFORMATION, title, text,
+				(String) null);
 
 		slide.waitUntilClosed();
 	}
