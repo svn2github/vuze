@@ -236,7 +236,6 @@ public class MessageSlideShell {
 			gridData.horizontalSpan = 2;
 			linkLabel.setLayoutData(gridData);
 			linkLabel.setText(text);
-			// if there's a link, disable timer
 			linkLabel.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					if (e.text.endsWith(".torrent"))
@@ -265,6 +264,8 @@ public class MessageSlideShell {
 
 			linkLabel.setText(text);
 		}
+
+		// if there's a link, disable timer and mouse watching
 		bDelayPaused = TorrentOpener.parseTextForURL(text) != null;
 		// Pause the auto-close delay when mouse is over slidey
 		// This will be applies to every control
@@ -574,21 +575,26 @@ public class MessageSlideShell {
 						.getIntParameter("Message Popup Autoclose in Seconds") * 1000;
 
 				long lastDelaySecs = 0;
+				long lastNumPopups = 0;
 				while ((bDelayPaused || delayLeft > 0) && !shell.isDisposed()) {
 					int delayPausedOfs = (bDelayPaused ? 1 : 0);
 					final long delaySecs = Math.round(delayLeft / 1000.0)
 							+ delayPausedOfs;
-					if (lastDelaySecs != delaySecs) {
+					final long numPopups = popupList.size();
+					if (lastDelaySecs != delaySecs || lastNumPopups != numPopups) {
 						lastDelaySecs = delaySecs;
+						lastNumPopups = numPopups;
 						shell.getDisplay().asyncExec(new AERunnable() {
 							public void runSupport() {
 								String sText = "";
+								
+								if (lblCloseIn == null || lblCloseIn.isDisposed())
+									return;
 
 								if (!bDelayPaused)
 									sText += MessageText.getString("popup.closing.in",
 											new String[] { String.valueOf(delaySecs) });
 
-								int numPopups = popupList.size();
 								boolean bHasMany = numPopups > 1;
 								if (bHasMany) {
 									sText += "\n"
