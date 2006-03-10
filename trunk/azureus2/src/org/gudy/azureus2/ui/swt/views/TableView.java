@@ -2415,8 +2415,11 @@ public class TableView
 					} else {
 						pt.y += 21;
 					}
+					
+					if (pt.y < displayRect.y)
+						pt.y = displayRect.y;
 
-					toolTipShell.setBounds(pt.x, (pt.y < 0) ? 0 : pt.y, size.x, size.y);
+					toolTipShell.setBounds(pt.x, pt.y, size.x, size.y);
 					toolTipShell.setVisible(true);
 
 					break;
