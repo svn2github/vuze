@@ -4,18 +4,18 @@ $
 
 +1. Mitä uutta on Azureus 2.4.0.2:ssa
 
-!1.1 Faster Crash Recovery
- By default Azureus will now only check parts of the file that were being actively downloaded the last time resume data was saved. The old beheviour of rechecking the whole file can be re-enabled via 'Files' configuration.
+!1.1 Nopeampi palautuminen ohjelman kaatuessa
+ Azureus tarkastaa nyt kaatumisen jälkeen käynnistyessään oletusarvoisesti vain ne tiedoston osat, joita ladattiin aktiivisesti viimeisimmän tietojen tallennuksen aikana ennen kaatumista. Vanhan tavan (tiedoston tarkastaminen kokonaisuudessaan) voi kuitenkin palauttaa käyttöön asetuksista.
  
-!1.2 Bug fixes and performance improvements
- Notable fixes:
-    Occassionally encrypted connections would send invalid data
-    Startup error 'no class found' fixed.
-    Data transfer to slow peers improved.
+!1.2 Ohjelmavirhekorjauksia ja parannuksia suorituskykyyn
+ Huomattavaa:
+    Korjattu satunnainen korruptoituneen tiedon lähettäminen käytettäessä liikenteen salausta
+    Korjattu "no class found" -virhe käynnistettäessä
+    Parannettu tiedon lähettämistä hitaiden yhteyksien käyttäjille
  
-    Note: New Windows launcher might require allowing "Azureus.exe" Internet access in your software firewall.
+    Huom.: Windows-ympäristössä ohjelmistopohjaiseen palomuuriin tarvitaan liikenteen salliva sääntö prosessille Azureus.exe.
  
-    Full ChangeLog http://azureus.sourceforge.net/changelog.php?version=2.4.0.2
+    Kaikki muutokset: http://azureus.sourceforge.net/changelog.php?version=2.4.0.2
     
 +2. Mitä uutta on Azureus 2.4.0.0:ssa
 
