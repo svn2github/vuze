@@ -378,7 +378,7 @@ public class DiskManagerPieceImpl
 	public void setDone(boolean b)
 	{
 		// we delegate this operation to the disk manager so it can synchronise the activity
-        if (b != done )
+        if (b !=done)
         {
             diskManager.setPieceDone(this, b);
         }
@@ -388,14 +388,9 @@ public class DiskManagerPieceImpl
 	// i.e. don't use it else where!
 	protected void setDoneSupport(final boolean b)
 	{
-		if (b)
-        {
-			done = true;
-            written = null;
-        } else
-        {
-        	done = false;
-        }
+        done =b;
+        if (done)
+            written =null;
 	}
 
 	public long getLastWriteTime()
@@ -420,7 +415,7 @@ public class DiskManagerPieceImpl
 
 	public boolean isRequestable()
 	{
-		return (statusFlags &PIECE_STATUS_MASK_REQUESTABLE) ==PIECE_STATUS_NEEDED && !done;
+		return !done &&(statusFlags &PIECE_STATUS_MASK_REQUESTABLE) ==PIECE_STATUS_NEEDED;
 	}
 
 	/**
@@ -428,7 +423,7 @@ public class DiskManagerPieceImpl
 	 */
 	public boolean isInteresting()
 	{
-		return (statusFlags &PIECE_STATUS_NEEDED) != 0 && !done;
+		return !done &&(statusFlags &PIECE_STATUS_NEEDED) != 0;
 	}
     
     public boolean      isEGMActive()
