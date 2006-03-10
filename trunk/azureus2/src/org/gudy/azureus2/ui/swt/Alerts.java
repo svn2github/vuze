@@ -130,11 +130,13 @@ public class Alerts {
 
   public static void
   showErrorMessageBox(
-  	String		title,
+  	String		message,
   Throwable	error )
   {
   	String error_message = Debug.getStackTrace(error);
-  	showMessageBox( SWT.ICON_ERROR, title, error.getMessage(),error_message );
+  	showMessageBox(SWT.ICON_ERROR, MessageText
+				.getString("AlertMessageBox.error"), message + "\n"
+				+ error.getMessage(), error_message);
   }
 
   public static void
