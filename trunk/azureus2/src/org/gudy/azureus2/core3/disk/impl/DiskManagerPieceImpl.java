@@ -37,13 +37,33 @@ import org.gudy.azureus2.core3.util.SystemTime;
 public class DiskManagerPieceImpl
 	implements DiskManagerPiece
 {
+	private static final int	PIECE_STATUS_NEEDED		=0x00000001;	//want to have the piece
+//	public static final int	PIECE_STATUS_AVAIL		=0x00000002;	//piece is available from others
+	private static final int	PIECE_STATUS_REQUESTED	=0x00000004;	//piece fully requested
+	private static final int	PIECE_STATUS_DOWNLOADED	=0x00000010;	//piece fully downloaded
+	private static final int	PIECE_STATUS_WRITTEN	=0x00000020;	//piece fully written to storage
+	private static final int	PIECE_STATUS_CHECKING	=0x00000040;	//piece is being hash checked
+	//private static final int	PIECE_STATUS_DONE		=0x00000080;	//everything completed - piece 100%
+
+	private static final int	PIECE_STATUS_MASK_REQUESTABLE=0x00000075;    // Needed IS once again included in this
+
+	private static final int PIECE_STATUS_MASK_EGM_ACTIVE =0x00000005;    //requested and needed
+	private static final int PIECE_STATUS_MASK_EGM_IGNORED=0x00000071;    //EGM ignores these pieces
+
     private static final LogIDs LOGID = LogIDs.PIECES;
-    private static boolean statusTested =false;
+    //private static boolean statusTested =false;
 
     private final DiskManagerImpl	diskManager;
 	private final int				pieceNumber;
     private volatile int            statusFlags;
 
+    	// it is *very* important to accurately maintain the "done" state of a piece. Currently the statusFlags
+    	// are updated in a non-thread-safe manner so I've (Parg) created a 'done' variable to guarantee
+    	// proper behaviour regarding this particular flag. Of course we could synchronize
+    	// write access to the statusFlags but again I don't know how often they get hit....
+    
+    private volatile boolean		done;
+    
 	private volatile long	        time_last_write;
 	// to save memory the "written" field is only maintained for pieces that are
 	// downloading. A value of "null" means that either the piece hasn't started 
@@ -228,7 +248,7 @@ public class DiskManagerPieceImpl
 		
 		if (written_ref ==null)
 		{
-            if ((statusFlags &PIECE_STATUS_DONE) !=0)
+            if ( done )
             {
                 statusFlags |=PIECE_STATUS_WRITTEN;
                 return true;
@@ -352,13 +372,13 @@ public class DiskManagerPieceImpl
 
 	public boolean isDone()
 	{
-		return (statusFlags &PIECE_STATUS_DONE) !=0;
+		return ( done );
 	}
 
 	public void setDone(boolean b)
 	{
 		// we delegate this operation to the disk manager so it can synchronise the activity
-        if (b !=isDone())
+        if (b != done )
         {
             diskManager.setPieceDone(this, b);
         }
@@ -370,11 +390,11 @@ public class DiskManagerPieceImpl
 	{
 		if (b)
         {
-			statusFlags |=PIECE_STATUS_DONE;
-            written =null;
+			done = true;
+            written = null;
         } else
         {
-			statusFlags &=~PIECE_STATUS_DONE;
+        	done = false;
         }
 	}
 
@@ -392,14 +412,15 @@ public class DiskManagerPieceImpl
 	 * Avail isn't affected by this.
 	 */
 	public void setRequestable()
-	{
-		statusFlags &=~(PIECE_STATUS_REQUESTABLE);
+	{		
+		setDone(false);
+		statusFlags &=~(PIECE_STATUS_MASK_REQUESTABLE);
 		calcNeeded();	// Needed wouldn't have been calced before if couldn't download more
 	}
 
 	public boolean isRequestable()
 	{
-		return (statusFlags &PIECE_STATUS_REQUESTABLE) ==PIECE_STATUS_NEEDED;
+		return (statusFlags &PIECE_STATUS_MASK_REQUESTABLE) ==PIECE_STATUS_NEEDED && !done;
 	}
 
 	/**
@@ -407,17 +428,17 @@ public class DiskManagerPieceImpl
 	 */
 	public boolean isInteresting()
 	{
-		return (statusFlags &PIECE_STATUS_NEEDED_DONE) ==PIECE_STATUS_NEEDED;
+		return (statusFlags &PIECE_STATUS_NEEDED) != 0 && !done;
 	}
     
     public boolean      isEGMActive()
     {
-        return (statusFlags &PIECE_STATUS_EGM_ACTIVE) ==PIECE_STATUS_EGM_ACTIVE;
+        return (statusFlags &PIECE_STATUS_MASK_EGM_ACTIVE) ==PIECE_STATUS_MASK_EGM_ACTIVE;
     }
 
     public boolean isEGMIgnored()
     {
-        return (statusFlags &PIECE_STATUS_EGM_IGNORED) !=PIECE_STATUS_NEEDED;
+        return done || (statusFlags &PIECE_STATUS_MASK_EGM_IGNORED) !=PIECE_STATUS_NEEDED;
     }
 
 	public void reset()
@@ -437,6 +458,7 @@ public class DiskManagerPieceImpl
 		}
 	}
     
+	/*
     public int getStatus()
     {
         if ((statusFlags &PIECE_STATUS_DONE) !=0)
@@ -487,4 +509,5 @@ public class DiskManagerPieceImpl
         }
         statusFlags =originalStatus;
     }
+    */
 }

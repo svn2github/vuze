@@ -30,21 +30,6 @@ package com.aelitis.azureus.core.util;
 
 public interface Piece
 {
-	public static final int	PIECE_STATUS_NEEDED		=0x00000001;	//want to have the piece
-//	public static final int	PIECE_STATUS_AVAIL		=0x00000002;	//piece is available from others
-	public static final int	PIECE_STATUS_REQUESTED	=0x00000004;	//piece fully requested
-	public static final int	PIECE_STATUS_DOWNLOADED	=0x00000010;	//piece fully downloaded
-	public static final int	PIECE_STATUS_WRITTEN	=0x00000020;	//piece fully written to storage
-	public static final int	PIECE_STATUS_CHECKING	=0x00000040;	//piece is being hash checked
-	public static final int	PIECE_STATUS_DONE		=0x00000080;	//everything completed - piece 100%
-
-	public static final int	PIECE_STATUS_NEEDED_DONE=0x00000081;
-
-	public static final int	PIECE_STATUS_REQUESTABLE=0x000000F5;    // Needed IS once again included in this
-
-    public static final int PIECE_STATUS_EGM_ACTIVE =0x00000005;    //requested and needed
-    public static final int PIECE_STATUS_EGM_IGNORED=0x000000F1;    //EGM ignores these pieces
-
     public int          getPieceNumber();
     public int          getNbBlocks();
     /**
