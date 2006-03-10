@@ -2402,9 +2402,9 @@ public class TableView
 					Point pt = table.toDisplay(event.x, event.y);
 					Rectangle displayRect;
 					try {
-						displayRect = toolTipShell.getMonitor().getClientArea();
+						displayRect = table.getMonitor().getClientArea();
 					} catch (NoSuchMethodError e) {
-						displayRect = toolTipShell.getDisplay().getClientArea();
+						displayRect = table.getDisplay().getClientArea();
 					}
 					if (pt.x + size.x > displayRect.x + displayRect.width) {
 						pt.x = displayRect.x + displayRect.width - size.x;
