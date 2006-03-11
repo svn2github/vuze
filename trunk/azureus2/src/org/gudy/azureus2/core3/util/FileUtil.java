@@ -1062,7 +1062,7 @@ public class FileUtil {
     		Logger
 					.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
 							"renameFile: source file '" + from_file
-									+ "' already exists, failing"));
+									+ "' doesn't exist, failing"));
     		
     		return( false );
     	}
