@@ -61,6 +61,10 @@ DHTControl
 		byte					flags,
 		DHTOperationListener	listener );
 	
+	public boolean
+	isDiversified(
+		byte[]		key );
+	
 	public DHTTransportValue
 	getLocalValue(
 		byte[]		key );

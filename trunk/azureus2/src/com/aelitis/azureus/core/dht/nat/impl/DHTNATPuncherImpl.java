@@ -613,6 +613,11 @@ DHTNATPuncherImpl
 										{}
 										
 										public void
+										diversified()
+										{
+										}
+										
+										public void
 										read(
 											DHTTransportContact	contact,
 											DHTTransportValue	value )
@@ -655,6 +660,11 @@ DHTNATPuncherImpl
 										found(
 											DHTTransportContact	contact )
 										{}
+										
+										public void
+										diversified()
+										{
+										}
 										
 										public void
 										read(
@@ -702,6 +712,11 @@ DHTNATPuncherImpl
 									found(
 										DHTTransportContact	contact )
 									{}
+									
+									public void
+									diversified()
+									{
+									}
 									
 									public void
 									read(

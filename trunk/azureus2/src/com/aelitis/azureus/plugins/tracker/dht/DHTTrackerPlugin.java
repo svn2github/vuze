@@ -87,6 +87,13 @@ DHTTrackerPlugin
 	private static final int	ANNOUNCE_MIN_DEFAULT		= 2*60*1000;
 	private static final int	ANNOUNCE_MAX				= 60*60*1000;
 	
+	private static final int	INTERESTING_CHECK_PERIOD	= 4*60*60*1000;
+	private static final int	INTERESTING_INIT_RAND		=   30*60*1000;
+	private static final int	INTERESTING_INIT_MIN		=    5*60*1000;
+
+	private static final int	INTERESTING_AVAIL_MAX		= 8;	// won't pub if more
+	private static final int	INTERESTING_PUB_MAX			= 30;	// limit on pubs
+	
 	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
 	
 	private static final int	NUM_WANT			= 30;	// Limit to ensure replies fit in 1 packet
@@ -110,6 +117,9 @@ DHTTrackerPlugin
 	private TorrentAttribute 	ta_networks;
 	private TorrentAttribute 	ta_peer_sources;
 
+	private Map					interesting_downloads 	= new HashMap();
+	private int					interesting_published	= 0;
+	
 	private Set					running_downloads 		= new HashSet();
 	private Map					registered_downloads 	= new HashMap();
 	
@@ -457,10 +467,48 @@ DHTTrackerPlugin
 		plugin_interface.getDownloadManager().addListener(
 				new DownloadManagerListener()
 				{
+					Random	random = new Random();
+					
 					public void
 					downloadAdded(
 						Download	download )
 					{
+						String[]	networks = download.getListAttribute( ta_networks );
+						
+						Torrent	torrent = download.getTorrent();
+						
+						if ( torrent != null && networks != null ){
+							
+							boolean	public_net = false;
+							
+							for (int i=0;i<networks.length;i++){
+								
+								if ( networks[i].equalsIgnoreCase( "Public" )){
+										
+									public_net	= true;
+									
+									break;
+								}
+							}
+							
+							if ( public_net && !torrent.isPrivate()){
+	
+								try{
+									this_mon.enter();
+						
+									interesting_downloads.put( 
+											download,
+											new Long( 	plugin_interface.getUtilities().getCurrentSystemTime() + 
+														INTERESTING_INIT_MIN + 
+														random.nextInt( INTERESTING_INIT_RAND )));
+									
+								}finally{
+									
+									this_mon.exit();
+								}
+							}
+						}
+						
 						download.addPropertyListener( DHTTrackerPlugin.this );
 						
 						download.addTrackerListener( DHTTrackerPlugin.this );
@@ -483,6 +531,8 @@ DHTTrackerPlugin
 						try{
 							this_mon.enter();
 				
+							interesting_downloads.remove( download );
+							
 							running_downloads.remove( download );
 							
 						}finally{
@@ -496,11 +546,20 @@ DHTTrackerPlugin
 			15000,
 			new UTTimerEventPerformer()
 			{
+				private int	ticks;
+				
 				public void 
 				perform(
 					UTTimerEvent event) 
 				{
+					ticks++;
+					
 					processRegistrations();
+					
+					if ( ticks%4==0 ){
+						
+						processNonRegistrations();
+					}
 				}
 			});
 	}
@@ -697,6 +756,14 @@ DHTTrackerPlugin
 										+ register_reason);
 	
 						running_downloads.remove( download );
+						
+							// add back to interesting downloads for monitoring
+						
+						interesting_downloads.put( 
+								download,
+								new Long( 	plugin_interface.getUtilities().getCurrentSystemTime() + 
+											INTERESTING_INIT_MIN ));
+
 					}else{
 						
 						if ( first_time ){
@@ -843,6 +910,11 @@ DHTTrackerPlugin
 							new DHTPluginOperationListener()
 							{
 								public void
+								diversified()
+								{
+								}
+								
+								public void
 								valueRead(
 									DHTPluginContact	originator,
 									DHTPluginValue		value )
@@ -916,6 +988,11 @@ DHTTrackerPlugin
 						"Tracker deregistration of '" + dl.getName() + "'",
 						new DHTPluginOperationListener()
 						{
+							public void
+							diversified()
+							{
+							}
+							
 							public void
 							valueRead(
 								DHTPluginContact	originator,
@@ -1037,6 +1114,11 @@ DHTTrackerPlugin
 								int		leecher_count;
 								
 								public void
+								diversified()
+								{
+								}
+								
+								public void
 								valueRead(
 									DHTPluginContact	originator,
 									DHTPluginValue		value )
@@ -1063,8 +1145,6 @@ DHTTrackerPlugin
 										}
 									}
 									
-									flags.add( flag );
-									
 									try{
 										sep = str_val.indexOf(':');
 									
@@ -1083,19 +1163,24 @@ DHTTrackerPlugin
 										}
 										
 										int	port = Integer.parseInt( port_str );
-																			
-										addresses.add( 
-												ip_str==null?originator.getAddress().getAddress().getHostAddress():ip_str);
-										
-										ports.add(new Integer(port));
-										
-										if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
 											
-											leecher_count++;
+										if ( port > 0 && port < 65536 ){
 											
-										}else{
+											addresses.add( 
+													ip_str==null?originator.getAddress().getAddress().getHostAddress():ip_str);
 											
-											seed_count++;
+											ports.add( new Integer(port));
+											
+											flags.add( flag );
+											
+											if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+												
+												leecher_count++;
+												
+											}else{
+												
+												seed_count++;
+											}
 										}
 										
 									}catch( Throwable e ){
@@ -1407,6 +1492,190 @@ DHTTrackerPlugin
 		}
 	}
 	
+	protected void
+	processNonRegistrations()
+	{
+		if ( !dht.isReachable()){
+			
+			return;
+		}
+		
+		if ( interesting_published > INTERESTING_PUB_MAX ){
+			
+			return;
+		}
+		
+		Download	ready_download = null;
+	
+		long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+		
+		try{
+			this_mon.enter();
+
+			Iterator	it = interesting_downloads.keySet().iterator();
+			
+			while( it.hasNext() && ready_download == null ){
+				
+				Download	download = (Download)it.next();
+				
+				if ( !running_downloads.contains( download)){
+					
+					DownloadScrapeResult	scrape = download.getLastScrapeResult();
+					
+					if ( scrape.getSeedCount() + scrape.getNonSeedCount() > NUM_WANT ){
+						
+						continue;
+					}
+					
+					long	target = ((Long)interesting_downloads.get( download )).longValue();
+					
+					if ( target <= now ){
+						
+						ready_download	= download;
+						
+						interesting_downloads.put( download, new Long( now + INTERESTING_CHECK_PERIOD ));
+						
+					}else if ( target - now > INTERESTING_CHECK_PERIOD ){
+						
+						interesting_downloads.put( download, new Long( now + (target%INTERESTING_CHECK_PERIOD)));
+					}
+				}
+			}
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		if ( ready_download != null ){
+			
+			final Download	f_ready_download = ready_download;
+			
+			if ( dht.isDiversified( ready_download.getTorrent().getHash())){
+				
+				// System.out.println( "presence query for " + f_ready_download.getName() + "-> diversified pre start" );
+
+				try{
+					this_mon.enter();
+
+					interesting_downloads.remove( f_ready_download );
+					
+				}finally{
+					
+					this_mon.exit();
+				}
+			}else{
+			
+				//System.out.println( "presence query for " + ready_download.getName());
+				
+				dht.get(	ready_download.getTorrent().getHash(), 
+							"Presence query for '" + ready_download.getName() + "'",
+							(byte)0,
+							INTERESTING_AVAIL_MAX, 
+							ANNOUNCE_TIMEOUT,
+							false,
+							new DHTPluginOperationListener()
+							{
+								private boolean diversified;
+								private int total = 0;
+								
+								public void
+								diversified()
+								{
+									diversified	= true;
+								}
+								
+								public void
+								valueRead(
+									DHTPluginContact	originator,
+									DHTPluginValue		value )
+								{
+									total++;
+								}
+								
+								public void
+								valueWritten(
+									DHTPluginContact	target,
+									DHTPluginValue		value )
+								{
+								}
+								
+								public void
+								complete(
+									boolean	timeout_occurred )
+								{
+									// System.out.println( "    presence query for " + f_ready_download.getName() + "->" + total + "/div = " + diversified );
+	
+									if ( diversified ){
+										
+										try{
+											this_mon.enter();
+	
+											interesting_downloads.remove( f_ready_download );
+											
+										}finally{
+											
+											this_mon.exit();
+										}
+										
+									}else if ( total < INTERESTING_AVAIL_MAX ){
+										
+											// once we're registered we don't need to process this download any
+											// more unless it goes active and then inactive again
+										
+										try{
+											this_mon.enter();
+	
+											interesting_downloads.remove( f_ready_download );
+											
+										}finally{
+											
+											this_mon.exit();
+										}
+										
+										interesting_published++;
+										
+										dht.put( 
+												f_ready_download.getTorrent().getHash(),
+												"Presence store '" + f_ready_download.getName() + "'",
+												"0".getBytes(),	// port 0, no connections
+												(byte)0,
+												new DHTPluginOperationListener()
+												{
+													public void
+													diversified()
+													{
+													}
+													
+													public void
+													valueRead(
+														DHTPluginContact	originator,
+														DHTPluginValue		value )
+													{
+													}
+													
+													public void
+													valueWritten(
+														DHTPluginContact	target,
+														DHTPluginValue		value )
+													{
+													}
+													
+													public void
+													complete(
+														boolean	timeout_occurred )
+													{
+													}
+												});
+	
+									}
+								}
+							});
+	
+			}
+		}
+	}
+	
 	public void
 	stateChanged(
 		Download		download,
@@ -1475,6 +1744,11 @@ DHTTrackerPlugin
 				false,
 				new DHTPluginOperationListener()
 				{
+					public void
+					diversified()
+					{
+					}
+					
 					public void
 					valueRead(
 						DHTPluginContact	originator,

@@ -31,6 +31,9 @@ public interface
 DHTPluginOperationListener 
 {
 	public void
+	diversified();
+	
+	public void
 	valueRead(
 		DHTPluginContact	originator,
 		DHTPluginValue		value );

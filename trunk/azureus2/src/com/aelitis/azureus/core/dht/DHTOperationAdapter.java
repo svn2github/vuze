@@ -43,6 +43,11 @@ DHTOperationAdapter
 	}
 	
 	public void
+	diversified()
+	{
+	}
+	
+	public void
 	found(
 		DHTTransportContact	contact )
 	{

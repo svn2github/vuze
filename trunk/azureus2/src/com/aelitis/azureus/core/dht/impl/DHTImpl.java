@@ -84,6 +84,18 @@ DHTImpl
 						return( storage_adapter );
 					}
 					
+					public boolean
+					isDiversified(
+						byte[]		key )
+					{
+						if ( storage_adapter == null ){
+							
+							return( false );
+						}
+						
+						return( storage_adapter.isDiversified( key ));
+					}
+					
 					public byte[][]
 					diversify(
 						DHTTransportContact	cause,
@@ -165,6 +177,13 @@ DHTImpl
 		String		name )
 	{
 		return(((Integer)properties.get(name)).intValue());
+	}
+	
+	public boolean
+	isDiversified(
+		byte[]		key )
+	{
+		return( control.isDiversified( key ));
 	}
 	
 	public void

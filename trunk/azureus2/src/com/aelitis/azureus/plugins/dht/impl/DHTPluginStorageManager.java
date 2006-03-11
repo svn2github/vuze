@@ -595,6 +595,23 @@ DHTPluginStorageManager
 		}
 	}
 	
+	public boolean
+	isDiversified(
+		byte[]		key )
+	{
+		HashWrapper	wrapper = new HashWrapper( key );
+		
+		try{
+			storage_mon.enter();
+		
+			return( lookupDiversification( wrapper ) != null );
+			
+		}finally{
+			
+			storage_mon.exit();
+		}
+	}
+	
 		// get diversifications for put operations must deterministically return the same end points
 		// but gets for gets should be randomised to load balance
 	

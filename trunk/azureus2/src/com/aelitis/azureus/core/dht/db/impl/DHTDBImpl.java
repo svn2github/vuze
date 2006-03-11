@@ -1747,6 +1747,13 @@ DHTDBImpl
 		
 			// local lookup/put operations
 		
+		public boolean
+		isDiversified(
+			byte[]		key )
+		{
+			return( delegate.isDiversified( key ));
+		}
+		
 		public byte[][]
 		getExistingDiversification(
 			byte[]			key,

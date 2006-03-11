@@ -44,4 +44,8 @@ DHTControlAdapter
 		byte[]				key,
 		byte				type,
 		boolean				exhaustive );
+	
+	public boolean
+	isDiversified(
+		byte[]		key );
 }

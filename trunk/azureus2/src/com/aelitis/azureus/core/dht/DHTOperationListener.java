@@ -40,6 +40,9 @@ DHTOperationListener
 		int					active_searches );
 	
 	public void
+	diversified();
+	
+	public void
 	found(
 		DHTTransportContact	contact );
 	

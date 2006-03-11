@@ -588,6 +588,11 @@ DDBaseImpl
 		}
 		
 		public void
+		diversified()
+		{
+		}
+		
+		public void
 		valueRead(
 			DHTPluginContact	originator,
 			DHTPluginValue		_value )

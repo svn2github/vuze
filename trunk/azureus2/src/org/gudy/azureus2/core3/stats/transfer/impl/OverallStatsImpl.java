@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.stats.transfer.impl;
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
@@ -218,6 +219,26 @@ OverallStatsImpl
 	  res.put( "type", downloadTypes );
 	  
 	  res.put( "ver", new Long( download_stats_version ) );
+	  
+	  List	managers = manager.getDownloadManagers();
+	  
+	  res.put( "cur", new Long( managers.size()));
+	  
+	  int	pub = 0;
+	  
+	  for (int i=0;i<managers.size();i++){
+		  
+		  DownloadManager	dm = (DownloadManager)managers.get(i);
+		  
+		  TOTorrent	torrent = dm.getTorrent();
+		  
+		  if ( torrent != null && !torrent.getPrivate()){
+			  
+			  pub++;
+		  }
+	  }
+	  
+	  res.put( "curp", new Long( pub ));
 	  
 	  return( res );
   }

@@ -111,6 +111,10 @@ DHT
 		String					description,
 		DHTOperationListener	listener );
 	
+	public boolean
+	isDiversified(
+		byte[]		key );
+	
 	public int
 	getIntProperty(
 		String		name );

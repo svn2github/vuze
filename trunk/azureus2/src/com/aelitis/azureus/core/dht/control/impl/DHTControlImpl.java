@@ -1111,6 +1111,15 @@ DHTControlImpl
 	}
 	
 	public boolean
+	isDiversified(
+		byte[]		unencoded_key )
+	{
+		final byte[]	encoded_key = encodeKey( unencoded_key );
+
+		return( adapter.isDiversified( encoded_key ));
+	}
+	
+	public boolean
    	lookup(		
    		byte[]							unencoded_key,
    		long							timeout,
@@ -1140,6 +1149,12 @@ DHTControlImpl
 				found(
 					DHTTransportContact	contact )
 				{
+				}
+				
+				public void
+				diversified()
+				{
+					lookup_listener.diversified();
 				}
 				
 				public void
@@ -1182,6 +1197,8 @@ DHTControlImpl
 							DHTTransportContact	cause,
 							byte				diversification_type )
 						{
+							diversified();
+							
 							diversified[0] = true;
 						}
 														
@@ -1220,11 +1237,16 @@ DHTControlImpl
 			final boolean[]	diversified = { false };
 
 			final byte[]	encoded_key	= encoded_keys[i];
-						
+				
+			boolean	div = !Arrays.equals( encoded_key, initial_encoded_key );
+			
+			if ( div ){
+				
+				get_listener.diversified();
+			}
+			
 			final String	this_description = 
-				Arrays.equals( encoded_key, initial_encoded_key )?
-						description:
-						("Diversification of [" + description + "]" );
+				div?("Diversification of [" + description + "]" ):description;						
 
 			lookup( external_lookup_pool,
 					encoded_key, 
@@ -1244,6 +1266,8 @@ DHTControlImpl
 							DHTTransportContact	cause,
 							byte				diversification_type )
 						{
+							diversified();
+							
 								// we only want to follow one diversification
 							
 							if ( !diversified[0]){
@@ -3112,6 +3136,12 @@ DHTControlImpl
 			int					active_searches )
 		{
 			delegate.searching( contact, level, active_searches );
+		}
+		
+		public void
+		diversified()
+		{
+			delegate.diversified();
 		}
 		
 		public void

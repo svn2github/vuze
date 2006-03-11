@@ -269,6 +269,11 @@ DHTPlugin
 			new DHTPluginOperationListener()
 			{
 				public void
+				diversified()
+				{
+				}
+				
+				public void
 				valueRead(
 					DHTPluginContact	originator,
 					DHTPluginValue		value )
@@ -902,6 +907,29 @@ DHTPlugin
 		return( dht_data_port );
 	}
 	
+	public boolean
+	isReachable()
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+				
+		return( dhts[0].isReachable());
+	}
+	
+	public boolean
+	isDiversified(
+		byte[]		key )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+				
+		return( dhts[0].isDiversified( key ));
+	}
+	
 	public void
 	put(
 		final byte[]						key,
@@ -929,6 +957,11 @@ DHTPlugin
 					dhts[f_i].put( key, description, value, flags, 
 							new DHTPluginOperationListener()
 							{
+								public void
+								diversified()
+								{
+								}
+								
 								public void
 								valueRead(
 									DHTPluginContact	originator,
@@ -994,6 +1027,11 @@ DHTPlugin
 							new DHTPluginOperationListener()
 							{
 								public void
+								diversified()
+								{
+								}
+								
+								public void
 								valueRead(
 									DHTPluginContact	originator,
 									DHTPluginValue		value )
@@ -1053,6 +1091,11 @@ DHTPlugin
 							key, description, 
 							new DHTPluginOperationListener()
 							{
+								public void
+								diversified()
+								{
+								}
+								
 								public void
 								valueRead(
 									DHTPluginContact	originator,

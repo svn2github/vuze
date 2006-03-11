@@ -74,6 +74,10 @@ DHTStorageAdapter
 	
 		// local lookup/put operations
 	
+	public boolean
+	isDiversified(
+		byte[]		key );
+	
 	public byte[][]
 	getExistingDiversification(
 		byte[]			key,

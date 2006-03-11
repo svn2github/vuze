@@ -446,6 +446,11 @@ Test
 									}
 									
 									public void
+									diversified()
+									{
+									}
+									
+									public void
 									found(
 										DHTTransportContact	contact )
 									{

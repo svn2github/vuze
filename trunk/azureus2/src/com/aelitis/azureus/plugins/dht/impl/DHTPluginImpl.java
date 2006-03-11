@@ -606,7 +606,12 @@ outer:
 	}
 	
 
-	
+	public boolean
+	isDiversified(
+		byte[]		key )
+	{
+		return( dht.isDiversified( key ));
+	}
 
 	public void
 	put(
@@ -636,6 +641,11 @@ outer:
 							}
 							
 							// log.log( indent + "Put: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
+						}
+
+						public void
+						diversified()
+						{
 						}
 						
 						public void
@@ -713,6 +723,7 @@ outer:
 							int					level,
 							int					active_searches )
 						{
+							/*
 							String	indent = "";
 							
 							for (int i=0;i<level;i++){
@@ -720,7 +731,17 @@ outer:
 								indent += "  ";
 							}
 							
-							// log.log( indent + "Get: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
+							log.log( indent + "Get: level = " + level + ", active = " + active_searches + ", contact = " + contact.getString());
+							*/
+						}
+						
+						public void
+						diversified()
+						{
+							if ( listener != null ){
+								
+								listener.diversified();
+							}
 						}
 						
 						public void
@@ -796,6 +817,11 @@ outer:
 							{
 							}
 
+							public void
+							diversified()
+							{
+							}
+							
 							public void
 							read(
 								DHTTransportContact	contact,
