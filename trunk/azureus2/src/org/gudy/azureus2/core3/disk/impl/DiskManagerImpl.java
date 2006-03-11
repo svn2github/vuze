@@ -1787,30 +1787,39 @@ DiskManagerImpl
 	          
 	          File oldTorrentFile = new File(oldFullName);
 	          
-	          String oldFileName = oldTorrentFile.getName();
-	          
-	          File newTorrentFile = new File(move_to_dir, oldFileName);
-	          
-	          if (!newTorrentFile.equals(oldTorrentFile)){
-	          	
-	          	if ( TorrentUtils.move( oldTorrentFile, newTorrentFile )){
-	            	            
-	          		download_manager.setTorrentFileName(newTorrentFile.getCanonicalPath());
-	          		
-	          	}else{
-	          
-		            String msg = "Failed to move " + oldTorrentFile.toString() + " to " + newTorrentFile.toString();
-		            
-		            if (Logger.isEnabled())
-		            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
-		            
-		            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
-									LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-									new String[] { oldTorrentFile.toString(),
-											newTorrentFile.toString() });
-		
-		            Debug.out(msg);
-	          	}
+	          if ( oldTorrentFile.exists()){
+	        	  
+		          String oldFileName = oldTorrentFile.getName();
+		          
+		          File newTorrentFile = new File(move_to_dir, oldFileName);
+		          
+		          if (!newTorrentFile.equals(oldTorrentFile)){
+		          	
+		          	if ( TorrentUtils.move( oldTorrentFile, newTorrentFile )){
+		            	            
+		          		download_manager.setTorrentFileName(newTorrentFile.getCanonicalPath());
+		          		
+		          	}else{
+		          
+			            String msg = "Failed to move " + oldTorrentFile.toString() + " to " + newTorrentFile.toString();
+			            
+			            if (Logger.isEnabled())
+			            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
+			            
+			            Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+										LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
+										new String[] { oldTorrentFile.toString(),
+												newTorrentFile.toString() });
+			
+			            Debug.out(msg);
+		          	}
+		          }
+	          }else{
+	        	  	// torrent file's been removed in the meantime, just log a warning
+		           
+	        	  if (Logger.isEnabled())
+		            	Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING, "Torrent file '" + oldFullName + "' has been deleted, move operation ignored" ));
+
 	          }
 	      }
 	}catch( Exception e){
