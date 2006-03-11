@@ -224,7 +224,8 @@ OverallStatsImpl
 	  
 	  res.put( "cur", new Long( managers.size()));
 	  
-	  int	pub = 0;
+	  int	pub 	= 0;
+	  int	run		= 0;
 	  
 	  for (int i=0;i<managers.size();i++){
 		  
@@ -236,9 +237,18 @@ OverallStatsImpl
 			  
 			  pub++;
 		  }
+		  
+		  int	state = dm.getState();
+		  
+		  if (	 state != DownloadManager.STATE_ERROR &&
+				 state != DownloadManager.STATE_STOPPED ){
+			  
+			  run++;
+		  }
 	  }
 	  
 	  res.put( "curp", new Long( pub ));
+	  res.put( "curr", new Long( run ));
 	  
 	  return( res );
   }
