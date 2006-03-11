@@ -269,6 +269,14 @@ TRTrackerServerProcessorUDP
 			
 			Logger.log(new LogEvent(LOGID,
 					"TRTrackerServerProcessorUDP: processing fails", e)); 
+		}finally{
+			
+			try{
+				is.close();
+				
+			}catch( Throwable e ){
+				
+			}
 		}
 	}
 	

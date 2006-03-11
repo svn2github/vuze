@@ -135,12 +135,14 @@ public class SWTUpdateChecker implements UpdatableComponent
 	UpdateChecker checker,
 	InputStream data ) 
   {
+	ZipInputStream zip = null;
+	
     try {
       String	osx_app = "/" + SystemProperties.getApplicationName() + ".app";
         
       UpdateInstaller installer = checker.createInstaller();
       
-      ZipInputStream zip = new ZipInputStream(data);
+      zip = new ZipInputStream(data);
       
       ZipEntry entry = null;
       
@@ -195,11 +197,19 @@ public class SWTUpdateChecker implements UpdatableComponent
         	
     	   Debug.out( "SWTUpdate: ignoring zip entry '" + name + "'" );
        }
-      }
-      zip.close();      
+      }     
     } catch(Exception e) {
     	Debug.printStackTrace( e );
       return false;
+    }finally{
+    	if ( zip != null ){
+    		
+    		try{
+    			  zip.close();
+    			  
+    		}catch( Throwable e ){
+    		}
+    	}
     }
         
     return true;

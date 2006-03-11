@@ -132,11 +132,25 @@ public class TrackersUtil {
             this.multiTrackers.put(configName,resGroups);
           }
         }
-        bin.close();                
-        fin.close();
       } catch(Exception e) {
+    	  
       	Debug.printStackTrace( e );
-      }
+      	
+	  }finally{
+		  
+		if ( bin != null ){
+			try{
+			    bin.close();
+			}catch( Throwable e ){
+			}
+		}
+		if ( fin != null ){
+			try{
+				fin.close();
+			}catch( Throwable e ){
+			}
+		}
+	  }
     }
   }
   
@@ -144,16 +158,23 @@ public class TrackersUtil {
     Map map = new HashMap();
     map.put("trackers",trackers);
     map.put("multi-trackers",multiTrackers);
+    FileOutputStream fos = null;
     try {
       //  Open the file
       File fTrackers = FileUtil.getUserFile("trackers.config");
-      FileOutputStream fos = new FileOutputStream(fTrackers);
+      fos = new FileOutputStream(fTrackers);
       fos.write(BEncoder.encode(map));
       fos.close();     
     } catch (Exception e) {
     	Debug.printStackTrace( e );
-      // TODO: handle exception
-    }    
+    } finally{
+		if ( fos != null ){
+			try{
+				fos.close();
+			}catch( Throwable e ){
+			}
+		}   	
+    }
   }
 
   

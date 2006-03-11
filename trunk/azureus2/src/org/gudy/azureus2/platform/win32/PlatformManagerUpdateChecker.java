@@ -258,10 +258,12 @@ PlatformManagerUpdateChecker
 		ResourceDownloader	rd,
 		InputStream			data )
 	{
+		ZipInputStream zip = null;
+		
 		try {
 			UpdateInstaller installer = checker.createInstaller();
 
-			ZipInputStream zip = new ZipInputStream(data);
+			zip = new ZipInputStream(data);
 
 			ZipEntry entry = null;
 
@@ -292,12 +294,19 @@ PlatformManagerUpdateChecker
 					}
 				}
 			}
-
-			zip.close();
-
 		} catch (Throwable e) {
 
 			rd.reportActivity("Update install failed:" + e.getMessage());
+		}finally{
+			
+			if ( zip != null ){
+				
+				try{
+					zip.close();
+					
+				}catch( Throwable e ){
+				}
+			}
 		}
 	}
 	

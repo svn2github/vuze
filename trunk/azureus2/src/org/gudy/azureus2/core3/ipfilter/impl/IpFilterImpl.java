@@ -209,11 +209,22 @@ IpFilterImpl
 				  
 				  new_ipRanges.add( ipRange );
 				}
-				bin.close();
-				fin.close();
 			}		
 		  }finally{
 		  
+			if ( bin != null ){
+				try{
+				    bin.close();
+				}catch( Throwable e ){
+				}
+			}
+			if ( fin != null ){
+				try{
+					fin.close();
+				}catch( Throwable e ){
+				}
+			}
+			
 		  	all_ip_ranges 	= new_ipRanges;
 		  	
 		  	Iterator	it = all_ip_ranges.iterator();
