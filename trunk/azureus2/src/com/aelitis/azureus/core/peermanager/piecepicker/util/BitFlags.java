@@ -49,7 +49,7 @@ public class BitFlags
 	
 	public BitFlags(final int count)
 	{
-        start =0;
+        start =count;
         end =0;
         nbSet =0;
 		flags =new boolean[count];
@@ -57,6 +57,7 @@ public class BitFlags
 
 	public BitFlags(final boolean[]	_flags )
 	{
+        start =_flags.length;
 		flags	= _flags;
 		for (int i=0;i<flags.length;i++){
 			if ( flags[i]){
@@ -128,11 +129,12 @@ public class BitFlags
 	public void clear()
 	{
 		Arrays.fill(flags, false);
-		start =0;
+		start =flags.length;
 		end =0;
 		nbSet =0;
 	}
 
+    /** for setting a flag that is already known to be the first true flag */ 
 	public void setStart(final int i)
 	{
 		flags[i] =true;
@@ -140,6 +142,7 @@ public class BitFlags
 		start =i;
 	}
 
+    /** for setting a flag that is not known to be the first or last, or not */ 
 	public void set(final int i)
 	{
 		if (!flags[i])
@@ -153,22 +156,25 @@ public class BitFlags
 		}
 	}
 
+    /** this is for setting a flag that is already known to be the last true flag */ 
 	public void setEnd(final int i)
 	{
 		flags[i] =true;
 		nbSet++;
 		end =i;
 	}
-
+	
+    /** clears the array then sets the given flag */ 
 	public void setOnly(final int i)
 	{
-		Arrays.fill(flags, start, end, false);
+        if (start <flags.length)
+            Arrays.fill(flags, start, end, false);
 		nbSet =1;
 		start =i;
 		end =i;
 		flags[i] =true;
 	}
-
+	
 	public void setAll()
 	{
 		start =0;
