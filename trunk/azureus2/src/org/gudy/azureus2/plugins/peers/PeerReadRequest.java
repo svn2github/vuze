@@ -40,7 +40,7 @@ PeerReadRequest
 	getLength();
 	
 	public void
-	resetTime();
+	resetTime(final long now);
 	
 	public boolean
 	isExpired();

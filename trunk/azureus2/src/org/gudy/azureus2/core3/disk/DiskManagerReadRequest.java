@@ -41,7 +41,7 @@ DiskManagerReadRequest
 	 * Typically used on peers that have just sent some data, we reset all
 	 * other requests to give them extra time.
 	 */
-	public void reSetTime();
+	public void reSetTime(final long now);
  
 	public int getPieceNumber();
  

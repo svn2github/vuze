@@ -78,7 +78,7 @@ DiskManagerReadRequestImpl
   public boolean isExpired()
   {
       final long now =SystemTime.getCurrentTime();
-      if (this.timeCreated >0 &&now >this.timeCreated)
+      if (now >=this.timeCreated)
           return (now -this.timeCreated) >EXPIRATION_TIME;
       //time error
       this.timeCreated =now;
@@ -90,15 +90,15 @@ DiskManagerReadRequestImpl
    * Typically used on peers that have just sent some data, we reset all
    * other requests to give them extra time.
    */
-  public void reSetTime()
+  public void reSetTime(final long now)
   {
-      timeCreated = SystemTime.getCurrentTime();
+      timeCreated =now;
   }
   
   public void
-  resetTime()
+  resetTime(final long now)
   {
-	  reSetTime();
+	  reSetTime(now);
   }
   
   //Getters  

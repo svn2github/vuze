@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.peer.util.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.network.Connection;
-import org.gudy.azureus2.plugins.peers.PeerReadRequest;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -46,6 +45,7 @@ import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+
 
 
 public class 
@@ -987,7 +987,7 @@ PEPeerTransportProtocol
 	    			if (request.isExpired()){
 	    				
 	    				if ( result == null ){
-	    					
+	    				
 	    					result = new ArrayList();
 	    				}
 	    				
@@ -1047,7 +1047,7 @@ PEPeerTransportProtocol
 		}
 		
 		protected void 
-		reSetRequestsTime() 
+		reSetRequestsTime(final long now)
 		{
 			try{
 			  requested_mon.enter();
@@ -1060,7 +1060,7 @@ PEPeerTransportProtocol
 			  	catch (Exception e) { Debug.printStackTrace( e );}
 	        
 			  	if (request != null)
-			  		request.reSetTime();
+			  		request.reSetTime(now);
 			  }
 			}finally{
 				
@@ -1198,14 +1198,10 @@ PEPeerTransportProtocol
 	{
 		if (last_good_data_time ==-1)
 			return -1;	// never received
-		long now =SystemTime.getCurrentTime();
-		long time_since =now -last_good_data_time;
-		if (time_since <0)
-		{	// time went backwards
-			last_good_data_time =now;
-			time_since =0;
-		}
-		return time_since;
+		final long now =SystemTime.getCurrentTime();
+        if (last_good_data_time >now)
+            last_good_data_time =now;   //time went backwards
+        return now -last_good_data_time;
 	}
   
   
@@ -1302,17 +1298,17 @@ PEPeerTransportProtocol
     }
 
     //make sure we haven't reached our connection limit
-    int maxAllowed = manager.getMaxNewConnectionsAllowed();
-    if( maxAllowed == 0 ) {
-    	String msg = "too many existing peer connections [p" +
-    								PeerIdentityManager.getIdentityCount( my_peer_data_id )+
-    								"/g" +PeerIdentityManager.getTotalIdentityCount()+
-    								", pmx" +PeerUtils.MAX_CONNECTIONS_PER_TORRENT+ "/gmx" +
-    								PeerUtils.MAX_CONNECTIONS_TOTAL+"/dmx" + manager.getMaxConnections()+ "]";
-    	//System.out.println( msg );
-      closeConnectionInternally( msg );
-      handshake.destroy();
-      return;
+    final int maxAllowed = manager.getMaxNewConnectionsAllowed();
+    if (maxAllowed ==0) {
+        final String msg = "too many existing peer connections [p" +
+            PeerIdentityManager.getIdentityCount( my_peer_data_id )
+            +"/g" +PeerIdentityManager.getTotalIdentityCount()
+            +", pmx" +PeerUtils.MAX_CONNECTIONS_PER_TORRENT+ "/gmx"
+            +PeerUtils.MAX_CONNECTIONS_TOTAL+"/dmx" + manager.getMaxConnections()+ "]";
+        //System.out.println( msg );
+        closeConnectionInternally( msg );
+        handshake.destroy();
+        return;
     }
 
     try{
@@ -1661,19 +1657,19 @@ PEPeerTransportProtocol
     if (pePiece !=null)
         pePiece.setDownloaded(offset);
     
-    DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
+    final DiskManagerReadRequest request = manager.createDiskManagerRequest( pieceNumber, offset, length );
     boolean piece_error = true;
 
     if( hasBeenRequested( request ) ) {  //from active request
       removeRequest( request );
-      reSetRequestsTime();
+      final long now =SystemTime.getCurrentTime();
+      reSetRequestsTime(now);
         
       if( manager.isWritten( pieceNumber, offset ) ) {  //oops, looks like this block has already been written
         peer_stats.bytesDiscarded( length );
         manager.discarded( length );
 
         if( manager.isInEndGameMode() ) {  //we're probably in end-game mode then
-            final long now =SystemTime.getCurrentTime();
             if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
                 setSnubbed(false);
             last_good_data_time =now;
@@ -1684,6 +1680,11 @@ PEPeerTransportProtocol
                             +"but piece block ignored as already written in end-game mode."));      
         }
         else {
+            // if they're not snubbed, then most likely this peer got a re-request after some other peer
+            // snubbed themselves, and the slow peer finially finished the piece, but before this peer did
+            // so give credit to this peer anyway for having delivered a block at this time
+            if (!isSnubbed())
+                last_good_data_time =now;
         	if (Logger.isEnabled())
 						Logger.log(new LogEvent(this, LogIDs.PIECES, LogEvent.LT_WARNING,
                             "decodePiece(): " +error_msg
@@ -1695,7 +1696,6 @@ PEPeerTransportProtocol
       }
       else {  //successfully received block!
           manager.writeBlock( pieceNumber, offset, payload, this, false);
-          final long now =SystemTime.getCurrentTime();
           if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
               setSnubbed(false);
           last_good_data_time =now;
@@ -1717,8 +1717,8 @@ PEPeerTransportProtocol
             final long now =SystemTime.getCurrentTime();
             if (last_good_data_time !=-1 &&now -last_good_data_time <=60 *1000)
                 setSnubbed(false);
+            reSetRequestsTime(now);
             last_good_data_time =now;
-            reSetRequestsTime();
           requests_recovered++;
           printRequestStats();
           piece_error = false;  //dont destroy message, as we've passed the payload on to the disk manager for writing
