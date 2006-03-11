@@ -122,4 +122,13 @@ public interface DiskManagerPiece
      * @return true if EGM should ignore the piece
      */
     public boolean      isEGMIgnored();
+    
+    /** This returns a single concise status for the stage of progression the entire piece
+     * has reached.  The statuses are defined in Piece.java.
+     * @return may be;  PIECE_STATUS_DONE, PIECE_STATUS_CHECKING, PIECE_STATUS_WRITTEN,
+     * PIECE_STATUS_DOWNLOADED, PIECE_STATUS_REQUESTED, or if nothing else PIECE_STATUS_NEEDED.
+     * A status of 0 means that the piece has not progressed to any stage of completion and is
+     * not even needed according to the current priority settings.
+     */
+    public int          getStatus();
 }
