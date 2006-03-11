@@ -68,4 +68,6 @@ PEPeerControl
 	
 	public int
 	getPort();
+    
+    public boolean doOptimisticDisconnect();
 }

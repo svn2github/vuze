@@ -28,7 +28,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.disk.*;
-import org.gudy.azureus2.core3.disk.impl.access.impl.DiskManagerReadRequestImpl;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.*;
@@ -671,6 +670,8 @@ PEPeerControlImpl
 	 */ 
 	private boolean checkEmptyPiece(final int pieceNumber)
 	{
+        if (piecePicker.isInEndGameMode())
+            return false;   // be sure to not remove pieces in EGM
 		final PEPiece pePiece =pePieces[pieceNumber];
 		final DiskManagerPiece dmPiece =dm_pieces[pieceNumber];
 		if (pePiece ==null ||dmPiece.isRequested())
@@ -735,7 +736,7 @@ PEPeerControlImpl
 						}
 //						if (!piecePicker.isInEndGameMode())
 //							pePiece.checkRequests();
-						checkEmptyPiece(i);
+                        checkEmptyPiece(i);
 					}
 				}
 			}
@@ -2334,15 +2335,15 @@ PEPeerControlImpl
 	{
 		//every 1 second
 		if ( mainloop_loop_count % MAINLOOP_ONE_SECOND_INTERVAL == 0 ){
-			ArrayList peer_transports = peer_transports_cow;
+			final ArrayList peer_transports = peer_transports_cow;
 			
 			int num_waiting_establishments = 0;
 			
 			for( int i=0; i < peer_transports.size(); i++ ) {
-				PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
+				final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
 				
 				//update waiting count
-				int state = transport.getConnectionState();
+				final int state = transport.getConnectionState();
 				if( state == PEPeerTransport.CONNECTION_PENDING || state == PEPeerTransport.CONNECTION_CONNECTING ) {
 					num_waiting_establishments++;
 				}
@@ -2354,13 +2355,13 @@ PEPeerControlImpl
 			if( allowed < 0 || allowed > 1000 )  allowed = 1000;  //ensure a very upper limit so it doesnt get out of control when using PEX
 			
       if( adapter.isNATHealthy()) {  //if unfirewalled, leave slots avail for remote connections
-				int free = getMaxConnections() / 20;  //leave 5%
+				final int free = getMaxConnections() / 20;  //leave 5%
 				allowed = allowed - free;
 			}
 			
 			if( allowed > 0 ) {
 				//try and connect only as many as necessary
-				int wanted = ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
+				final int wanted = ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS - num_waiting_establishments;
 				if( wanted > allowed ) {
 					num_waiting_establishments += wanted - allowed;
 				}
@@ -2369,7 +2370,7 @@ PEPeerControlImpl
         while( num_waiting_establishments < ConnectDisconnectManager.MAX_SIMULTANIOUS_CONNECT_ATTEMPTS ) {        	
         	if( peer_database == null || !is_running )  break;        	
        
-        	PeerItem item = peer_database.getNextOptimisticConnectPeer();
+        	final PeerItem item = peer_database.getNextOptimisticConnectPeer();
         	
         	if( item == null || !is_running )  break;
 
@@ -2381,7 +2382,7 @@ PEPeerControlImpl
         	if( !isAlreadyConnected( item ) ) {
         		String source = PeerItem.convertSourceString( item.getSource() );
 
-        		boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
+        		final boolean use_crypto = item.getHandshakeType() == PeerItemFactory.HANDSHAKE_TYPE_CRYPTO;
         		
         		if( makeNewOutgoingConnection( source, item.getAddressString(), item.getPort(), use_crypto ) ) {
         			num_waiting_establishments++;
@@ -2393,10 +2394,10 @@ PEPeerControlImpl
     
 		//every 5 seconds
 		if ( mainloop_loop_count % MAINLOOP_FIVE_SECOND_INTERVAL == 0 ) {
-			ArrayList peer_transports = peer_transports_cow;
+			final ArrayList peer_transports = peer_transports_cow;
 			
 			for( int i=0; i < peer_transports.size(); i++ ) {
-				PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
+				final PEPeerTransport transport = (PEPeerTransport)peer_transports.get( i );
 				
 				//check for timeouts
 				if( transport.doTimeoutChecks() )  continue;
@@ -2416,7 +2417,7 @@ PEPeerControlImpl
 		// every 10 seconds check for connected + banned peers
 		if ( mainloop_loop_count % MAINLOOP_TEN_SECOND_INTERVAL == 0 )
 		{
-			long	last_update = ip_filter.getLastUpdateTime();
+			final long	last_update = ip_filter.getLastUpdateTime();
 			if ( last_update != ip_filter_last_update_time )
 			{
 				ip_filter_last_update_time	= last_update;
@@ -2425,54 +2426,11 @@ PEPeerControlImpl
 		}
 		
 		//every 30 seconds
-		if ( mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0 ) {
+		if (mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0 ) {
 			//if we're at our connection limit, time out the least-useful
 			//one so we can establish a possibly-better new connection
 			if( getMaxNewConnectionsAllowed() == 0 ) {  //we've reached limit        
-				ArrayList peer_transports = peer_transports_cow;
-				PEPeerTransport max_transport = null;
-				long max_time = 0;
-				
-				for( int i=0; i < peer_transports.size(); i++ ) {
-					PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
-					
-					if( peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
-						long last_time = 0;            
-						
-						if( seeding_mode ) {
-							long time = peer.getTimeSinceLastDataMessageSent();
-							
-							if( time != -1 ) {  //ensure we've sent them at least one data message to qualify for drop
-								last_time = time;
-							}
-						}
-						else {
-							long time = peer.getTimeSinceGoodDataReceived();
-							
-							if( time == -1 ) {  //never received
-								last_time = peer.getTimeSinceConnectionEstablished();
-							}
-							else {
-								last_time = time;
-							}
-							
-							last_time +=peer.getSnubbedTime();
-						}
-						
-						if( !peer.isIncoming() ) {  //prefer to drop a local connection, to make room for more remotes
-							last_time = last_time * 2;
-						}
-						
-						if( last_time > max_time ) {
-							max_time = last_time;
-							max_transport = peer;
-						}
-					}
-				}
-				
-				if( max_transport != null && max_time > 60*1000 ) {  //ensure a 1min minimum
-					closeAndRemovePeer( max_transport, "timed out by optimistic-connect", true );
-				}
+                doOptimisticDisconnect();
 			}
 		}
 		
@@ -2487,6 +2445,64 @@ PEPeerControlImpl
 			}
 		}
 	}
+    
+    public boolean doOptimisticDisconnect()
+    {
+        final ArrayList peer_transports = peer_transports_cow;
+        PEPeerTransport max_transport = null;
+        long max_time = 0;
+        
+        for( int i=0; i < peer_transports.size(); i++ ) {
+            final PEPeerTransport peer = (PEPeerTransport)peer_transports.get( i );
+            
+            if( peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
+                final long timeSinceSentData =peer.getTimeSinceLastDataMessageSent();
+                
+                long peerTestTime = 0;
+                if( seeding_mode)
+                {
+                    if( timeSinceSentData != -1 )
+                        peerTestTime = timeSinceSentData;  //ensure we've sent them at least one data message to qualify for drop
+                } else
+                {
+                    final long timeSinceGoodData =peer.getTimeSinceGoodDataReceived();
+                    final long timeSinceConnection =peer.getTimeSinceConnectionEstablished();
+
+                    if( timeSinceGoodData == -1 ) 
+                        peerTestTime +=timeSinceConnection;   //never received
+                    else
+                        peerTestTime +=timeSinceGoodData;
+                    
+                    peerTestTime +=peer.getSnubbedTime();
+                    
+                    // try to drop unInteresting in favor of Interesting connections
+                    if (!peer.isInteresting())
+                    {
+                        if (!peer.isInterested())   // if mutually unInterested, really try to drop the connection
+                            peerTestTime +=timeSinceConnection +timeSinceSentData;   // if we never sent, it will subtract 1, which is good
+                        else
+                            peerTestTime -=timeSinceConnection +timeSinceSentData; // try to give interested peers a chance to get data
+                        
+                        peerTestTime =peerTestTime *2;
+                    }
+                }
+                
+                if( !peer.isIncoming() )
+                    peerTestTime = peerTestTime * 2;   //prefer to drop a local connection, to make room for more remotes
+                
+                if( peerTestTime > max_time ) {
+                    max_time = peerTestTime;
+                    max_transport = peer;
+                }
+            }
+        }
+        
+        if( max_transport != null && max_time > 5 *60*1000 ) {  //ensure a 5 min minimum test time
+            closeAndRemovePeer( max_transport, "timed out by optimistic-disconnect", true );
+            return true;
+        }
+        return false;
+    }
 	
 	
 	public PeerExchangerItem createPeerExchangeConnection( final PEPeerTransport base_peer ) {
@@ -2572,9 +2588,9 @@ PEPeerControlImpl
 	public int
 	getMaxNewConnectionsAllowed()
 	{
-		int	dl_max = getMaxConnections();
+		final int	dl_max = getMaxConnections();
 
-		int	allowed_peers = PeerUtils.numNewConnectionsAllowed(getPeerIdentityDataID(), dl_max );
+		final int	allowed_peers = PeerUtils.numNewConnectionsAllowed(getPeerIdentityDataID(), dl_max );
 				
 		return( allowed_peers );
 	}
@@ -2600,16 +2616,16 @@ PEPeerControlImpl
 	
 	
 	public PEPeerTransport getTransportFromIdentity( byte[] peer_id ) {
-		ArrayList	peer_transports = peer_transports_cow;      	
+		final ArrayList	peer_transports = peer_transports_cow;      	
 		for( int i=0; i < peer_transports.size(); i++ ) {
-			PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );			
+			final PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );			
 			if( Arrays.equals( peer_id, conn.getId() ) )   return conn;
 }
 		return null;
 	}
 	
 	
-	/*
+	/* peer item is not reliable for general use
 	public PEPeerTransport getTransportFromPeerItem(PeerItem peerItem)
 	{
 		ArrayList peer_transports =peer_transports_cow;
@@ -2625,10 +2641,10 @@ PEPeerControlImpl
 
 	public PEPeerTransport getTransportFromAddress(String peer)
 	{
-		ArrayList peer_transports =peer_transports_cow;
+		final ArrayList peer_transports =peer_transports_cow;
 		for (int i =0; i <peer_transports.size(); i++)
 		{
-			PEPeerTransport pt =(PEPeerTransport) peer_transports.get(i);
+			final PEPeerTransport pt =(PEPeerTransport) peer_transports.get(i);
 			if (peer.equals(pt.getIp()))
 				return pt;
 		}
