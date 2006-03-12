@@ -21,7 +21,6 @@
 package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.net.*;
 
 import org.gudy.azureus2.core3.logging.*;
@@ -34,7 +33,7 @@ import org.gudy.azureus2.core3.util.*;
  * @author Olivier
  * 
  */
-public class TrackerChecker implements AEDiagnosticsEvidenceGenerator {
+public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTime.consumer {
 	private final static LogIDs LOGID = LogIDs.TRACKER;
 
   /** List of Trackers. 
@@ -71,6 +70,8 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator {
     t.start();
     
     AEDiagnostics.addEvidenceGenerator( this );
+    
+    SystemTime.registerClockChangeListener( this );
   }
   
 
@@ -400,6 +401,54 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator {
 	    return( next_response_to_scrape );
   	}
 
+
+  	public void
+  	consume(
+  		long	offset )
+  	{	
+  		if ( Math.abs( offset ) < 60*1000 ){
+  			
+  			return;
+  		}
+  		
+	    try{
+	    	trackers_mon.enter();
+	    	
+	    	Iterator iter = trackers.values().iterator();
+	      
+	    	while (iter.hasNext()) {
+	    		
+	    		TrackerStatus ts = (TrackerStatus) iter.next();
+	    			    		
+	    		Map hashmap = ts.getHashes();
+	    		  
+	    		try{
+	    			ts.getHashesMonitor().enter();
+	        	
+	    			Iterator iterHashes = hashmap.values().iterator();
+	    			
+	    			while( iterHashes.hasNext() ) {
+	            
+	    				TRTrackerBTScraperResponseImpl response = (TRTrackerBTScraperResponseImpl)iterHashes.next();    				
+	            
+	    				long	time = response.getNextScrapeStartTime();
+	
+	    				if ( time > 0 ){
+	    						    					
+	    					response.setNextScrapeStartTime( time + offset );
+	    				}
+	    			}
+	    		}finally{
+	        	
+	    			ts.getHashesMonitor().exit();
+	    		}
+	    	} 
+	    }finally{
+	    	
+	    	trackers_mon.exit();
+	    }
+  	}
+  	
 	public void
 	generate(
 		IndentWriter		writer )
