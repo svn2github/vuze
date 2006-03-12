@@ -63,7 +63,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
  *
  */
 public class MessageSlideShell {
-	private final static boolean USE_SWT32_BG_SET = true && !(Constants.isLinux && SWT
+	private final static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT
 			.getVersion() <= 3224);
 
 	/** Slide until there's this much gap between shell and edge of screen */
@@ -432,11 +432,17 @@ public class MessageSlideShell {
 				final RGB bgRGB = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND)
 						.getRGB();
 
-				Control[] children = cShell.getChildren();
-				for (int i = 0; i < children.length; i++) {
-					Control control = children[i];
-					control.addPaintListener(new PaintListener() {
-						public void paintControl(PaintEvent e) {
+				PaintListener paintListener = new PaintListener() {
+					// OSX: copyArea() causes a paint event, resulting in recursion
+					boolean alreadyPainting = false;
+
+					public void paintControl(PaintEvent e) {
+						if (alreadyPainting)
+							return;
+
+						alreadyPainting = true;
+
+						try {
 							Rectangle bounds = ((Control) e.widget).getBounds();
 
 							Image img = new Image(display, e.width, e.height);
@@ -466,8 +472,15 @@ public class MessageSlideShell {
 							//Image imgTransparent = new Image(display, data, transparencyMask);
 
 							e.gc.drawImage(imgTransparent, e.x, e.y);
+						} finally {
+							alreadyPainting = false;
 						}
-					});
+					}
+				};
+
+				Control[] children = cShell.getChildren();
+				for (int i = 0; i < children.length; i++) {
+					children[i].addPaintListener(paintListener);
 				}
 			}
 		}
@@ -851,6 +864,7 @@ public class MessageSlideShell {
 		//				MessagePopupShell.ICON_INFO, "Title", text, "Details");
 		MessageSlideShell slide = new MessageSlideShell(display,
 				SWT.ICON_INFORMATION, title, text, "Details: " + text);
+
 
 		new MessageSlideShell(display, SWT.ICON_INFORMATION, "ShortTitle",
 				"ShortText", "Details").waitUntilClosed();
