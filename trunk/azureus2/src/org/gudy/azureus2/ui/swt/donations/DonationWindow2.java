@@ -23,11 +23,7 @@ package org.gudy.azureus2.ui.swt.donations;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -50,6 +46,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.core3.util.*;
@@ -102,7 +99,7 @@ public class DonationWindow2 {
   }  
 
   public void show() {
-    shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.BORDER | SWT.APPLICATION_MODAL);
+    shell = ShellFactory.createShell(SWT.BORDER | SWT.APPLICATION_MODAL | SWT.TITLE);
     FormLayout layout = new FormLayout();
     shell.setLayout(layout);
     
@@ -166,7 +163,8 @@ public class DonationWindow2 {
     });*/
     
     ImageData data = background.getImageData();
-    shell.setSize(data.width,data.height);        
+    Rectangle shellSize = shell.computeTrim(0,0, data.width, data.height);
+    shell.setSize(shellSize.width, shellSize.height);
     Utils.centreWindow(shell);
     
     addControls();
@@ -193,36 +191,46 @@ public class DonationWindow2 {
           return;
         drawingDone = false;
         Utils.execSWTThread(new AERunnable() {
-          public void runSupport() {
-            if(display == null || display.isDisposed())
-              return;
-           Image tempImage = new Image(display,background,SWT.IMAGE_COPY);
-          
-           nbchars++;
-           if(nbchars <= mainText.length()) {
-            String textToSet = mainText.substring(0,nbchars);
-            GC tempGC = new GC(tempImage);
-            if(mainFont == null || mainFont.isDisposed()) return;
-            tempGC.setFont(mainFont);
-            tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getDownloadedBytes()),80,14,true);
-            tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats.getUploadedBytes()),235,14,true);
-            tempGC.drawText(stats.getTotalUpTime() / (60*60) + " " + MessageText.getString("DonationWindow.text.hours"),465,14,true);
-            tempGC.drawText(textToSet,10,60,true);
-            tempGC.setFont(null);
-            tempGC.drawText(MessageText.getString("DonationWindow.text.downloaded"),70,32,true);
-            tempGC.drawText(MessageText.getString("DonationWindow.text.uploaded"),235,32,true);
-            tempGC.dispose();
-            Image oldImage = workingImage;
-            workingImage = tempImage;
+					public void runSupport() {
+						if (display == null || display.isDisposed())
+							return;
+						Image tempImage = new Image(display, background, SWT.IMAGE_COPY);
 
-            if(oldImage != null && ! oldImage.isDisposed()) oldImage.dispose();
-            paint();                        
-           } else {
-            ended = true;            
-           }  
-           drawingDone = true;
-          }
-        });
+						nbchars++;
+						if (nbchars <= mainText.length()) {
+							String textToSet = mainText.substring(0, nbchars);
+							GC tempGC = new GC(tempImage);
+							if (mainFont == null || mainFont.isDisposed())
+								return;
+							tempGC.setFont(mainFont);
+							if (stats != null) {
+								tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats
+										.getDownloadedBytes()), 80, 14, true);
+								tempGC.drawText(DisplayFormatters.formatByteCountToKiBEtc(stats
+										.getUploadedBytes()), 235, 14, true);
+								tempGC.drawText(stats.getTotalUpTime() / (60 * 60) + " "
+										+ MessageText.getString("DonationWindow.text.hours"), 465,
+										14, true);
+							}
+							tempGC.drawText(textToSet, 10, 60, true);
+							tempGC.setFont(null);
+							tempGC.drawText(MessageText
+									.getString("DonationWindow.text.downloaded"), 70, 32, true);
+							tempGC.drawText(MessageText
+									.getString("DonationWindow.text.uploaded"), 235, 32, true);
+							tempGC.dispose();
+							Image oldImage = workingImage;
+							workingImage = tempImage;
+
+							if (oldImage != null && !oldImage.isDisposed())
+								oldImage.dispose();
+							paint();
+						} else {
+							ended = true;
+						}
+						drawingDone = true;
+					}
+				});
     		try {
           Thread.sleep(30);
           while(!drawingDone)
