@@ -1103,8 +1103,8 @@ PEPeerTransportProtocol
       final long now =SystemTime.getCurrentTime();
       //make sure we time out stalled connections
       if( connection_state == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
-          if (last_data_message_received_time >now)
-              last_data_message_received_time =now;
+          if (last_message_received_time >now)
+              last_message_received_time =now;
           else if (now -last_message_received_time > 5*60*1000 ) { //5min timeout
               closeConnectionInternally( "timed out while waiting for messages" );
               return true;
