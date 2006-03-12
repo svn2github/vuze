@@ -1096,16 +1096,19 @@ PEPeerTransportProtocol
 
   
   public boolean doTimeoutChecks() {
-      //Timeouts when in states PEPeerTransport.CONNECTION_PENDING and
+      //Timeouts for states PEPeerTransport.CONNECTION_PENDING and
       //PEPeerTransport.CONNECTION_CONNECTING are handled by the ConnectDisconnectManager
-      //so we don't need to deal with them here. This comment is broken - please fix
-
+      //so we don't need to deal with them here.
+      
       final long now =SystemTime.getCurrentTime();
       //make sure we time out stalled connections
       if( connection_state == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED ) {
           if (last_message_received_time >now)
               last_message_received_time =now;
-          else if (now -last_message_received_time > 5*60*1000 ) { //5min timeout
+          if (last_data_message_received_time >now)
+              last_data_message_received_time =now;
+          if (now -last_message_received_time >5*60*1000
+              &&now -last_data_message_received_time >5*60*1000) { //5min timeout
               closeConnectionInternally( "timed out while waiting for messages" );
               return true;
           }
