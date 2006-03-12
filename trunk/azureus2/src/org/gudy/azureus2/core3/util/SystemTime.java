@@ -47,7 +47,8 @@ public class SystemTime {
   private volatile int		access_average_per_slice;
   private volatile int		drift_adjusted_granularity;
  
-  private volatile List		consumer_list	= new ArrayList();
+  private volatile List		consumer_list		= new ArrayList();
+  private volatile List		clock_change_list	= new ArrayList();
   
   private 
   SystemTime() 
@@ -90,6 +91,13 @@ public class SystemTime {
     						
     						access_average 	= null;
     						drift_average	= null;
+    						
+    						Iterator	it = clock_change_list.iterator();
+    						
+    						while( it.hasNext()){
+    							
+    							((consumer)it.next()).consume( offset );
+    						}
     					}
     				}
     				
@@ -130,7 +138,7 @@ public class SystemTime {
   						consumer	cons = (consumer)consumer_list_ref.get(i);
   						
   						try{
-  							cons.timeRead( stepped_time );
+  							cons.consume( stepped_time );
   							
   						}catch( Throwable e ){
   							
@@ -230,11 +238,41 @@ public class SystemTime {
 	}  
   }
   
+  public static void
+  registerClockChangeListener(
+	consumer	c )
+  {
+	synchronized( instance ){
+		
+		List	new_list = new ArrayList( instance.clock_change_list );
+		
+		new_list.add( c );
+		
+		instance.clock_change_list	= new_list;
+	}
+  }
+		
+  public static void
+  unregisterClockChangeListener(
+	consumer	c )
+  {
+	synchronized( instance ){
+			
+		List	new_list = new ArrayList( instance.clock_change_list );
+			
+		new_list.remove( c );
+			
+		instance.clock_change_list	= new_list;
+	}  
+  }
+  
   public interface
   consumer
   {
+	  	// for consumers this is the current time, for clock change listeners this is the delta
+	  
 	  public void
-	  timeRead(
+	  consume(
 		long	time );
   }
   

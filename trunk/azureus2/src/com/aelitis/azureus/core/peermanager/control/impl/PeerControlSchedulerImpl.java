@@ -77,7 +77,7 @@ PeerControlSchedulerImpl
 			new SystemTime.consumer()
 			{
 				public void
-				timeRead(
+				consume(
 					long	time )
 				{
 					synchronized( PeerControlSchedulerImpl.this ){

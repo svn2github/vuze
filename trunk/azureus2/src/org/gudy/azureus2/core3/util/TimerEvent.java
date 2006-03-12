@@ -69,6 +69,13 @@ TimerEvent
 		return( when );
 	}
 	
+	protected void
+	setWhen(
+		long	new_when )
+	{
+		when	= new_when;
+	}
+	
 	protected AERunnable
 	getRunnable()
 	{
