@@ -1568,6 +1568,8 @@ DHTTrackerPlugin
 			
 				//System.out.println( "presence query for " + ready_download.getName());
 				
+				final long start = now;
+				
 				dht.get(	ready_download.getTorrent().getHash(), 
 							"Presence query for '" + ready_download.getName() + "'",
 							(byte)0,
@@ -1606,6 +1608,11 @@ DHTTrackerPlugin
 								{
 									// System.out.println( "    presence query for " + f_ready_download.getName() + "->" + total + "/div = " + diversified );
 	
+									log.log( f_ready_download.getTorrent(), LoggerChannel.LT_INFORMATION,
+											"Presence query for '" + f_ready_download.getName() + "': availability="+
+											(total==INTERESTING_AVAIL_MAX?(INTERESTING_AVAIL_MAX+"+"):(total+"")) + ",div=" + diversified +
+											" (elapsed=" + (SystemTime.getCurrentTime() - start) + ")");
+											
 									if ( diversified ){
 										
 										try{

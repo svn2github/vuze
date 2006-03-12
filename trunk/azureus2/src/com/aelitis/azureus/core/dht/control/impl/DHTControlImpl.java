@@ -645,7 +645,7 @@ DHTControlImpl
 					}
 				});
 		
-			// we always wait at least a minute before returning
+			// we always wait at least a minimum amount of time before returning
 		
 		long	start = SystemTime.getCurrentTime();
 		
