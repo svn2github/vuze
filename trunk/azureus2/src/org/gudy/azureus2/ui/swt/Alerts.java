@@ -131,12 +131,12 @@ public class Alerts {
   public static void
   showErrorMessageBox(
   	String		message,
-  Throwable	error )
+  	Throwable	error )
   {
   	String error_message = Debug.getStackTrace(error);
   	showMessageBox(SWT.ICON_ERROR, MessageText
 				.getString("AlertMessageBox.error"), message + "\n"
-				+ error.getMessage(), error_message);
+				+ Debug.getExceptionMessage( error ), error_message);
   }
 
   public static void
