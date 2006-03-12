@@ -226,6 +226,8 @@ OverallStatsImpl
 	  
 	  int	pub 	= 0;
 	  int	run		= 0;
+	  int	dl		= 0;
+	  int	seed	= 0;
 	  
 	  for (int i=0;i<managers.size();i++){
 		  
@@ -244,11 +246,22 @@ OverallStatsImpl
 				 state != DownloadManager.STATE_STOPPED ){
 			  
 			  run++;
+			  
+			  if ( state == DownloadManager.STATE_DOWNLOADING ){
+				  
+				  dl++;
+				  
+			  }else if ( state == DownloadManager.STATE_SEEDING ){
+				  
+				  seed++;
+			  }
 		  }
 	  }
 	  
 	  res.put( "curp", new Long( pub ));
 	  res.put( "curr", new Long( run ));
+	  res.put( "curd", new Long( dl ));
+	  res.put( "curs", new Long( seed ));
 	  
 	  return( res );
   }
