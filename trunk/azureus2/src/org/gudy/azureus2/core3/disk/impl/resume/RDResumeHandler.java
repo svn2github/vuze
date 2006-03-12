@@ -526,8 +526,7 @@ RDResumeHandler
 		boolean force_recheck )
 	
 		throws Exception
-	{
-    
+	{		
 			// if file caching is enabled then this is an important time to ensure that the cache is
 			// flushed as we are going to record details about the accuracy of written data.
 			// First build the resume map from the data (as updates can still be goin on)

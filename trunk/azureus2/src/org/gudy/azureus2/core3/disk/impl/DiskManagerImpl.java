@@ -1557,10 +1557,18 @@ DiskManagerImpl
 	    boolean moveTorrent = COConfigurationManager.getBooleanParameter("Move Torrent When Done", true);
 
 	    moveFiles( moveToDir, moveTorrent, true );
-	    
+	    	    
 	  }finally{
 		  
 		  start_stop_mon.exit();
+
+		  try{
+			  saveResumeData(false, false);
+			  
+		  }catch( Throwable e ){
+				  
+			  setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
+		  }		
 	  }
     }
     
@@ -1827,31 +1835,6 @@ DiskManagerImpl
 	  	Debug.printStackTrace( e );
 	  	
     }finally{
-    	
-    	try{
-            boolean resumeEnabled = COConfigurationManager.getBooleanParameter("Use Resume", true);
-            
-            	//update resume data
-            
-            if ( resumeEnabled ){
-            	
-            	try{
-            		saveResumeData(true, false);
-            		
-            	}catch( Exception e ){
-            		
-            			// won't go wrong here due to cache write fails as these must have completed
-            			// prior to the files being moved. Possible problems with torrent save but
-            			// if this fails we can live with it (just means that on restart we'll do
-            			// a recheck )
-            		
-            		Debug.out( "dumpResumeDataToDisk fails" );
-            	}
-            }
-    	}catch( Throwable e ){
-    		
-    		Debug.printStackTrace(e);
-    	}
     	
     	start_stop_mon.exit();
     }
