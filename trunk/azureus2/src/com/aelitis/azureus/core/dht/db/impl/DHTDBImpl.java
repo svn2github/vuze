@@ -66,7 +66,7 @@ DHTDBImpl
 		// the grace period gives the originator time to republish their data as this could involve
 		// some work on their behalf to find closest nodes etc. There's no real urgency here anyway
 	
-	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 30*60*1000;
+	private int			ORIGINAL_REPUBLISH_INTERVAL_GRACE	= 60*60*1000;
 	
 	private int			cache_republish_interval;
 	
