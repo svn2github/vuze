@@ -63,13 +63,13 @@ public class VivaldiPositionImpl implements VivaldiPosition{
   
   public void 
   update(float rtt,Coordinates cj,float ej) 
-  {
+  {	  
 	  if ( valid(rtt) && valid(ej) && cj.isValid()){
 		  
 		 // System.out.println( "accepted vivaldi update:" + rtt + "/" + cj + "/" + ej );
 
-	    //Insure we have valid data in input
-	    if(rtt < 0) return;
+	    //Ensure we have valid data in input (clock changes lead to crazy rtt values)
+	    if(rtt <= 0 || rtt > 5*60*1000 ) return;
 	    if(error + ej == 0) return;
 	    
 	    //Sample weight balances local and remote error. (1)
