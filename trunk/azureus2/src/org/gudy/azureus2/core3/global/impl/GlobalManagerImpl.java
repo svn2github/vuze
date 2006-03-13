@@ -949,16 +949,7 @@ public class GlobalManagerImpl
   informDestroyed();
   }
 
-  /**
-   * Stops all downloads without removing them
-   *
-   * @author Rene Leonhardt
-   */
   public void stopAllDownloads() {
-    stopAllDownloads(DownloadManager.STATE_STOPPED);
-  }
-
-  public void stopAllDownloads(int stateAfterStopping) {
     for (Iterator iter = managers_cow.iterator(); iter.hasNext();) {
       DownloadManager manager = (DownloadManager) iter.next();
       
@@ -967,7 +958,7 @@ public class GlobalManagerImpl
       if( state != DownloadManager.STATE_STOPPED &&
           state != DownloadManager.STATE_STOPPING ) {
         
-        manager.stopIt( stateAfterStopping, false, false );
+        manager.stopIt( DownloadManager.STATE_STOPPED, false, false );
       }
     }
   }
@@ -979,10 +970,8 @@ public class GlobalManagerImpl
   public void startAllDownloads() {    
     for (Iterator iter = managers_cow.iterator(); iter.hasNext();) {
       DownloadManager manager = (DownloadManager) iter.next();
-      int state = manager.getState();
-
-      if (manager.getState() == DownloadManager.STATE_STOPPED
-					&& state != DownloadManager.STATE_QUEUED) {
+ 
+      if ( manager.getState() == DownloadManager.STATE_STOPPED ){
 
   			manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
       }
@@ -1185,7 +1174,7 @@ public class GlobalManagerImpl
         		
         	}else{
           	
-        		manager.startDownloadInitialized( true );
+        		manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
         	}
         }   	
 	}
@@ -1207,7 +1196,7 @@ public class GlobalManagerImpl
           	manager.setForceStart(true);
           }else{
           	
-          	manager.startDownloadInitialized( true );
+        	manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
           }
         }
       }
