@@ -422,6 +422,8 @@ PlatformManagerImpl
 		
 		if ( isAdditionalFileTypeRegistered( OLD_MAIN_ASS0C, ".torrent" )){
 			
+			unregisterAdditionalFileType( OLD_MAIN_ASS0C, ".torrent" );
+			
 			registerAdditionalFileType( NEW_MAIN_ASSOC, "BitTorrent File", ".torrent", "application/x-bittorrent" );
 		}
 		
