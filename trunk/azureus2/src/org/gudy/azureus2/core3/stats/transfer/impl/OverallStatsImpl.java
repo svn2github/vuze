@@ -49,7 +49,7 @@ OverallStatsImpl
 	implements OverallStats, TimerEventPerformer
 {
 	
-	private static final int download_stats_version = 1;
+  private static final int download_stats_version = 1;
   private static final String[]	exts = { "mp3;ogg;wav;wma;flac", "avi;mpg;mpeg;wmv;vob;mp4;divx;mov;mkv", "zip;rar;iso;bin;tar;sit" };
   private static Set[]	ext_sets;
   
@@ -73,7 +73,12 @@ OverallStatsImpl
 	}
   }
   
-  private static final long TEN_YEARS = 60*60*24*365*10;
+  private static final long TEN_YEARS 		= 60*60*24*365*10L;
+  
+  private static final long	STATS_PERIOD	= 60*1000;	// 1 min
+  private static final long DL_STATE_TICKS	= 15;		// 15 min
+  private static final int DL_AVERAGE_CELLS = (int)( 12*60*60*1000 / ( STATS_PERIOD * DL_STATE_TICKS ));
+ 
   
   GlobalManager manager;
    
@@ -92,6 +97,13 @@ OverallStatsImpl
   
   protected AEMonitor	this_mon	= new AEMonitor( "OverallStats" );
 
+  private int 	tick_count;
+  private int	dl_cell_pos;
+  private int[]	dl_average_cells 	= new int[DL_AVERAGE_CELLS];
+  private int[]	seed_average_cells	= new int[DL_AVERAGE_CELLS];
+  private int	dl_average;
+  private int	seed_average;
+  
   private Map 
   load(String filename) 
   {
@@ -134,6 +146,22 @@ OverallStatsImpl
 	    
 	downloadCount = getLong( overallMap, "download_count" );
 	downloadTypes = getMap( overallMap,  "download_types" );
+	
+	dl_average 		= (int)getLong( overallMap, "download_average" );
+	seed_average 	= (int)getLong( overallMap, "seed_average" );
+	
+	if ( dl_average < 0 || dl_average > 32000 ){
+		dl_average = 0;
+	}
+	
+	if ( seed_average < 0 || seed_average > 32000 ){
+		seed_average = 0;
+	}
+	
+	dl_average_cells[0]		= dl_average;
+	seed_average_cells[0]	= seed_average;
+	
+	dl_cell_pos	= 1;
   }
   
   protected long
@@ -178,7 +206,7 @@ OverallStatsImpl
     Map 	stats = load();
     validateAndLoadValues(stats);
 
-    SimpleTimer.addPeriodicEvent(1000 * 60,this);
+    SimpleTimer.addPeriodicEvent(STATS_PERIOD,this);
   }
   
 	public int getAverageDownloadSpeed() {
@@ -226,8 +254,6 @@ OverallStatsImpl
 	  
 	  int	pub 	= 0;
 	  int	run		= 0;
-	  int	dl		= 0;
-	  int	seed	= 0;
 	  
 	  for (int i=0;i<managers.size();i++){
 		  
@@ -246,27 +272,20 @@ OverallStatsImpl
 				 state != DownloadManager.STATE_STOPPED ){
 			  
 			  run++;
-			  
-			  if ( state == DownloadManager.STATE_DOWNLOADING ){
-				  
-				  dl++;
-				  
-			  }else if ( state == DownloadManager.STATE_SEEDING ){
-				  
-				  seed++;
-			  }
 		  }
 	  }
 	  
 	  res.put( "curp", new Long( pub ));
 	  res.put( "curr", new Long( run ));
-	  res.put( "curd", new Long( dl ));
-	  res.put( "curs", new Long( seed ));
+	  res.put( "curd", new Long( dl_average ));
+	  res.put( "curs", new Long( seed_average ));
 	  
 	  return( res );
   }
-	public void perform(TimerEvent event) {
-    updateStats();
+	public void 
+	perform(TimerEvent event) 
+	{
+		updateStats();
 	}
   
 	public void 
@@ -431,6 +450,57 @@ OverallStatsImpl
 	    totalUptime += delta;
 	    lastUptime = current_time;
 	    
+	    tick_count++;
+	    
+	    if ( tick_count % DL_STATE_TICKS == 0 ){
+	    	
+	      try{
+		  	  List	managers = manager.getDownloadManagers();
+			  		  
+			  int	dl		= 0;
+			  int	seed	= 0;
+			  
+			  for (int i=0;i<managers.size();i++){
+				  
+				  DownloadManager	dm = (DownloadManager)managers.get(i);
+				  			  
+				  int	state = dm.getState();
+				  
+				  if ( state == DownloadManager.STATE_DOWNLOADING ){
+						  
+					  dl++;
+						  
+				  }else if ( state == DownloadManager.STATE_SEEDING ){
+						  
+					  seed++;
+				  }
+			  }
+		    
+			  dl_average_cells[dl_cell_pos%DL_AVERAGE_CELLS]	= dl;
+		    	
+			  seed_average_cells[dl_cell_pos%DL_AVERAGE_CELLS]	= seed;
+		    	
+			  dl_cell_pos++;
+			  
+			  int	cells = Math.min( dl_cell_pos, DL_AVERAGE_CELLS );
+			  
+			  dl_average	= 0;
+			  seed_average	= 0;
+			  
+			  for (int i=0;i<cells;i++){
+				  dl_average += dl_average_cells[i];
+				  seed_average += seed_average_cells[i];
+			  }
+			  
+			  dl_average 	= dl_average/cells;
+			  seed_average 	= seed_average/cells;
+			 			  
+	      }catch( Throwable e ){
+	    	  
+	    	  Debug.printStackTrace(e);
+	      }
+	    }
+	    
 	    HashMap	overallMap = new HashMap();
 	    
 	    overallMap.put("downloaded",new Long(totalDownloaded));
@@ -438,7 +508,9 @@ OverallStatsImpl
 	    overallMap.put("uptime",new Long(totalUptime));
 	    overallMap.put("download_count",new Long(downloadCount));
 	    overallMap.put("download_types", downloadTypes);
-	    
+	    overallMap.put("download_average", new Long(dl_average));
+	    overallMap.put("seed_average", new Long(seed_average));
+
 	    Map	map = new HashMap();
 	    
 	    map.put( "all", overallMap );
