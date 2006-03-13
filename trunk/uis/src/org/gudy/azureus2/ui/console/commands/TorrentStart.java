@@ -54,11 +54,22 @@ public class TorrentStart extends TorrentCommand {
 	protected boolean performCommand(ConsoleInput ci, DownloadManager dm, List args)
 	{
 		try {
-			dm.setStateWaiting();
-			if( startNow )
-			{
-				dm.startDownloadInitialized(true);
+			int	state = dm.getState();
+			
+			if ( state != DownloadManager.STATE_STOPPED ){
+				
+				ci.out.println( "Torrent isn't stopped" );
+				
+				return( false );
 			}
+			
+			if ( startNow ){
+				
+				ci.out.println( "'now' option has been deprecated, use forcestart" );
+			}
+			
+			dm.stopIt( DownloadManager.STATE_QUEUED, false, false );
+			
 		} catch (Exception e) {
 			e.printStackTrace(ci.out);
 			return false;
@@ -67,7 +78,7 @@ public class TorrentStart extends TorrentCommand {
 	}
 
 	public String getCommandDescriptions() {
-		return "start (<torrentoptions>) [now]\ts\tStart torrent(s).";
+		return "start (<torrentoptions>) \ts\tStart torrent(s).";
 	}
 	
 	public String getHelpExtra()
