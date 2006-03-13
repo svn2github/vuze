@@ -112,6 +112,8 @@ public class GenericRPAttributes {
                 PluginConfig.CORE_PARAM_INT_MAX_DOWNLOADS,
                 PluginConfig.CORE_PARAM_INT_MAX_ACTIVE,
                 PluginConfig.CORE_PARAM_INT_MAX_ACTIVE_SEEDING,
+                PluginConfig.CORE_PARAM_INT_MAX_UPLOADS,
+                PluginConfig.CORE_PARAM_INT_MAX_UPLOADS_SEEDING
             };
             // All integers at the moment.
             int[] property_values = new int[property_names.length];
