@@ -1162,26 +1162,6 @@ DownloadManagerImpl
   	}
   	
   	public void
-  	startDownloadInitialized(
-  		boolean	initialise_stopped_downloads )
-  	{
-  		int	state = getState();
-  		
-	  	if ( 	state == DownloadManager.STATE_WAITING || 
-	  			( initialise_stopped_downloads && state == DownloadManager.STATE_STOPPED )){
-			
-	  		initialize();
-	  	}
-		
-	  	state = getState();
-	  	
-	  	if ( state == DownloadManager.STATE_READY ){
-			
-	  		startDownload();
-	  	}
-	}
-  	
-  	public void
   	stopIt(
   		int		state_after_stopping,
   		boolean	remove_torrent,

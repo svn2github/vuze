@@ -92,10 +92,6 @@ DownloadManager
 	
 	public void
 	startDownload();
-	
-	public void
-	startDownloadInitialized(
-		boolean		initStoppedDownloads );
 		
     public boolean canForceRecheck();
 
