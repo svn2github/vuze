@@ -105,11 +105,15 @@ DiskManagerFileInfoImpl
   
   protected void 
   moveFile(
-  	File	newFile )
+  	File	newFile,
+  	boolean	link_only )
   
   	throws CacheFileManagerException
   {
-	  cache_file.moveFile( newFile );
+	  if ( !link_only ){
+		  
+		  cache_file.moveFile( newFile );
+	  }
 	  
 	  file	= newFile;
   }

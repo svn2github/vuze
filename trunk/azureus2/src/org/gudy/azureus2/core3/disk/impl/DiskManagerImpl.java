@@ -1491,9 +1491,7 @@ DiskManagerImpl
   {
 	  try{
     	start_stop_mon.enter();
-	    
-	    String rPath = download_manager.getAbsoluteSaveLocation().getParent();
-	    	    
+	    	    	    
 	    	// don't move non-persistent files as these aren't managed by us
 	    
 	    if ( !download_manager.isPersistent()){
@@ -1541,7 +1539,9 @@ DiskManagerImpl
 	        	Debug.printStackTrace(e);
 	        }
 	        
-	        if (!rPath.equals(defSaveDir)){
+		    String save_dir = download_manager.getSaveLocation().getParent();
+
+	        if (!save_dir.equals(defSaveDir)){
 	        	
 	        	if (Logger.isEnabled())
 							Logger.log(new LogEvent(this, LOGID, LogEvent.LT_WARNING,
@@ -1641,15 +1641,14 @@ DiskManagerImpl
 		      
 		      File[]	new_files 	= new File[files.length];
 		      File[]	old_files	= new File[files.length];
-		      
+		      boolean[]	link_only	= new boolean[files.length];
+		             	         	              
 		      for (int i=0; i < files.length; i++) {
 		          	    	  
 		          File old_file = files[i].getFile(false);
 		          
 		          File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
-		            
-		          boolean	skip = false;
-		            
+		            		            
 		          if ( linked_file != old_file ){
 		        	  
 			       	  if ( save_location.isDirectory()){
@@ -1657,20 +1656,27 @@ DiskManagerImpl
 			        	  	// if we are linked to a file outside of the torrent's save directory then we don't
 			        	  	// move the file
 			        	  
-			        	  if ( !linked_file.getCanonicalPath().startsWith( save_location.getCanonicalPath())){
-			            			
-			        		  skip = true;
+			        	  if ( linked_file.getCanonicalPath().startsWith( save_location.getCanonicalPath())){
+			            		
+			        		  old_file	= linked_file;
+			        		  
+			        	  }else{
+			        		  
+			        		  link_only[i] = true;
+			        	  }
+			          }else{
+			        	  
+			        	  	// simple torrent, only handle a link if its a simple rename
+			        	  
+			        	  if ( linked_file.getParentFile().getCanonicalPath().equals( save_location.getParentFile().getCanonicalPath())){
+
+			        		  old_file	= linked_file;
+			        		  
+			        	  }else{
+			        		  
+			        		  link_only[i] = true;
 			        	  }
 			          }
-	
-	           		  old_file	= linked_file;
-		          }
-		          
-		          if ( skip ){
-		        	  
-		        	  	// actual file is outside the dir, ignore it
-		        	  
-		        	  continue;
 		          }
 		          
 		          old_files[i]	= old_file;
@@ -1687,7 +1693,7 @@ DiskManagerImpl
 		          
 		          if ( subPath.startsWith( File.separator )){
 		          	
-		          	subPath = subPath.substring(1);
+		        	  subPath = subPath.substring(1);
 		          }
 		          
 		          File destDir = new File(move_to_dir, subPath);
@@ -1698,40 +1704,35 @@ DiskManagerImpl
 		
 		          new_files[i]	= newFile;
 	
-			          if ( newFile.exists()){
-			          	
-			        	  String msg = "" + linked_file.getName() + " already exists in MoveTo destination dir";
+		          if ( !link_only[i] ){
+		        	  
+				      if ( newFile.exists()){
+				          	
+				    	  String msg = "" + linked_file.getName() + " already exists in MoveTo destination dir";
+				            
+				       	  Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
+				            
+				       	  Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
+				            		LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
+				            		new String[] { old_file.getName() });
 			            
-			        	  Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
-			            			msg));
-			            
-			        	  Logger.logTextResource(new LogAlert(LogAlert.REPEATABLE,
-			            		LogAlert.AT_ERROR, "DiskManager.alert.movefileexists"),
-			            		new String[] { old_file.getName() });
-		            
-			            
-			            Debug.out(msg);
-			            
-			            return;
-			            
-			          }  
-		    		  destDir.mkdirs();
-		    	  }
+				            
+				          Debug.out(msg);
+				            
+				          return;  
+				      }  
+		    		
+				      destDir.mkdirs();
+		          }
+		      }
 		      
 		      for (int i=0; i < files.length; i++){
 		      		 	          
 		          File new_file = new_files[i];
-		          	          
-		          if ( new_file == null ){
-		        	
-		        	  	// not moving this one
-		        	  
-		        	  continue;
-		          }
 		          
 		          try{
 		          	
-		          	files[i].moveFile( new_file );
+		          	files[i].moveFile( new_file, link_only[i] );
 		           	
 		          	if ( change_to_read_only ){
 		          		
@@ -1752,14 +1753,9 @@ DiskManagerImpl
 		            	// try some recovery by moving any moved files back...
 		            
 		            for (int j=0;j<i;j++){
-		            	
-		            	if (new_files[j] == null ){
-		            		
-		            		continue;
-		            	}
-		            	
+		            		            	
 		            	try{
-		            		files[j].moveFile( old_files[j]);
+		            		files[j].moveFile( old_files[j],  link_only[j]);
 			         		
 		            	}catch( CacheFileManagerException f ){
 		              
@@ -1783,6 +1779,8 @@ DiskManagerImpl
 		    	  FileUtil.recursiveEmptyDirDelete( save_location, false );
 		      }
 		        
+		      	// NOTE: this operation FIXES up any file links
+
 		      download_manager.setTorrentSaveDir( move_to_dir );
     	  }
     	  
