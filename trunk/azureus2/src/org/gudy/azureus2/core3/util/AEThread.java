@@ -22,6 +22,9 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.util.WeakHashMap;
+
+
 /**
  * @author parg
  *
@@ -31,6 +34,8 @@ public abstract class
 AEThread 
 	extends Thread
 {
+	private static WeakHashMap	our_thread_map = new WeakHashMap();
+		
 	public
 	AEThread(
 		String	name )
@@ -71,4 +76,40 @@ AEThread
 	
 	public abstract void
 	runSupport();
+	
+	public static boolean
+	isOurThread(
+		Thread	thread )
+	{
+		if ( thread instanceof AEThread ){
+			
+			return( true );
+		}
+		
+		synchronized( our_thread_map ){
+			
+			return( our_thread_map.get( thread ) != null );
+		}
+	}
+	
+	public static void
+	setOurThread()
+	{
+		setOurThread( Thread.currentThread());
+	}
+	
+	public static void
+	setOurThread(
+		Thread	thread )
+	{
+		if ( thread instanceof AEThread ){
+			
+			return;
+		}
+				
+		synchronized( our_thread_map ){
+			
+			our_thread_map.put( thread, "" );
+		}
+	}
 }

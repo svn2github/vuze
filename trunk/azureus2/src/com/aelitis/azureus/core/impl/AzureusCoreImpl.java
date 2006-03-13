@@ -124,6 +124,8 @@ AzureusCoreImpl
 		
 		AETemporaryFileHandler.startup();
     
+		AEThread.setOurThread();
+		
 		PlatformManagerFactory.getPlatformManager().addListener(
 			new PlatformManagerListener()
 			{
@@ -166,6 +168,8 @@ AzureusCoreImpl
 	
 		throws AzureusCoreException
 	{
+		AEThread.setOurThread();
+		
 		try{
 			this_mon.enter();
 		
@@ -455,7 +459,7 @@ AzureusCoreImpl
 					
 					final Thread	t = threads[i];
 					
-					if ( t != null && t != Thread.currentThread() && !t.isDaemon()){
+					if ( t != null && t != Thread.currentThread() && !t.isDaemon() && !AEThread.isOurThread( t )){
 						
 						new AEThread( "VMKiller", true )
 						{
