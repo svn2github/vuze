@@ -863,20 +863,28 @@ MainWindow
     	azureus_core.getPluginManager().firePluginEvent( PluginEvent.PEV_CONFIGURATION_WIZARD_COMPLETES );
     }
   
+    boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray");
     boolean bPassworded = COConfigurationManager.getBooleanParameter("Password enabled", false);
-    boolean bStartMinimize = bPassworded || COConfigurationManager.getBooleanParameter("Start Minimized", false);
+    boolean bStartMinimize = bEnableTray
+				&& (bPassworded || COConfigurationManager.getBooleanParameter(
+						"Start Minimized", false));
     
     if (!bStartMinimize) {
-	    mainWindow.open();
-	    if(!Constants.isOSX) {mainWindow.forceActive();}
-    }
+			mainWindow.open();
+			if (!Constants.isOSX) {
+				mainWindow.forceActive();
+			}
+		} else if (Constants.isOSX) {
+			mainWindow.setMinimized(true);
+			mainWindow.setVisible(true);
+		}
     updater = new GUIUpdater(azureus_core,this);
     updater.start();
 
      
     
 
-    if ( COConfigurationManager.getBooleanParameter("Enable System Tray")){
+    if (bEnableTray){
     	
    	   try {
     	      systemTraySWT = new SystemTraySWT(this);
