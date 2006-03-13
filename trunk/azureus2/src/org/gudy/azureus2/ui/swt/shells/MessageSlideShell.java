@@ -20,6 +20,7 @@
 package org.gudy.azureus2.ui.swt.shells;
 
 import java.util.ArrayList;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
@@ -63,7 +64,10 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
  *
  */
 public class MessageSlideShell {
-	private final static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT.getVersion() <= 3224);
+	private final static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT
+			.getVersion() <= 3224);
+
+	private final static String REGEX_URLHTML = "<A HREF=\"(.+?)\">(.+?)</A>";
 
 	/** Slide until there's this much gap between shell and edge of screen */
 	private final static int EDGE_GAP = 0;
@@ -243,6 +247,18 @@ public class MessageSlideShell {
 						Program.launch(e.text);
 				}
 			});
+
+			Matcher matcher = Pattern
+					.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(text);
+			String tooltip = null;
+			while (matcher.find()) {
+				if (tooltip == null)
+					tooltip = "";
+				else
+					tooltip += "\n";
+				tooltip += matcher.group(2) + ": " + matcher.group(1);
+			}
+			linkLabel.setToolTipText(tooltip);
 		} catch (Throwable t) {
 			// 3.0
 			Label linkLabel = new Label(cShell, SWT.WRAP);
@@ -252,8 +268,8 @@ public class MessageSlideShell {
 
 			//<a href="http://atorre.s">test</A> and <a href="http://atorre.s">test2</A>
 
-			text = java.util.regex.Pattern.compile("<A HREF=\"(.+?)\">(.+?)</A>",
-					Pattern.CASE_INSENSITIVE).matcher(text).replaceAll("$2 ($1)");
+			text = Pattern.compile(REGEX_URLHTML, Pattern.CASE_INSENSITIVE).matcher(
+					text).replaceAll("$2 ($1)");
 
 			if (sDetails == null) {
 				sDetails = text;
@@ -282,6 +298,9 @@ public class MessageSlideShell {
 				};
 
 		lblCloseIn = new Label(cShell, SWT.TRAIL);
+		// Ensure computeSize computes for 2 lined label
+		if (!bDelayPaused)
+			lblCloseIn.setText("\n");
 		gridData = new GridData(SWT.FILL, SWT.TOP, true, false);
 		gridData.horizontalSpan = 2;
 		lblCloseIn.setLayoutData(gridData);
@@ -423,8 +442,8 @@ public class MessageSlideShell {
 
 				cShell.addPaintListener(new PaintListener() {
 					public void paintControl(PaintEvent e) {
-						// clipping handled by gc
-						e.gc.drawImage(imgBackground, 0, 0);
+						e.gc.drawImage(imgBackground, e.x, e.y, e.width, e.height, e.x,
+								e.y, e.width, e.height);
 					}
 				});
 
@@ -436,8 +455,9 @@ public class MessageSlideShell {
 					boolean alreadyPainting = false;
 
 					public void paintControl(PaintEvent e) {
-						if (alreadyPainting)
+						if (alreadyPainting) {
 							return;
+						}
 
 						alreadyPainting = true;
 
@@ -470,7 +490,8 @@ public class MessageSlideShell {
 							//
 							//Image imgTransparent = new Image(display, data, transparencyMask);
 
-							e.gc.drawImage(imgTransparent, e.x, e.y);
+							e.gc.drawImage(imgTransparent, 0, 0, e.width, e.height, e.x, e.y,
+									e.width, e.height);
 						} finally {
 							alreadyPainting = false;
 						}
@@ -478,11 +499,8 @@ public class MessageSlideShell {
 				};
 
 				shell.setBackground(colorBG);
-				Control[] children = cShell.getChildren();
-				for (int i = 0; i < children.length; i++) {
-					children[i].setBackground(colorBG);
-					children[i].addPaintListener(paintListener);
-				}
+				cShell.setBackground(colorBG);
+				addPaintListener(cShell, paintListener, colorBG, true);
 			}
 		}
 
@@ -560,12 +578,36 @@ public class MessageSlideShell {
 		if (parent == null || listener == null || parent.isDisposed())
 			return;
 
+		parent.addMouseTrackListener(listener);
 		Control[] children = parent.getChildren();
 		for (int i = 0; i < children.length; i++) {
 			Control control = children[i];
-			control.addMouseTrackListener(listener);
 			if (control instanceof Composite)
 				addMouseTrackListener((Composite) control, listener);
+			else
+				control.addMouseTrackListener(listener);
+		}
+	}
+
+	private void addPaintListener(Composite parent, PaintListener listener,
+			Color colorBG, boolean childrenOnly) {
+		if (parent == null || listener == null || parent.isDisposed())
+			return;
+
+		if (!childrenOnly) {
+			parent.addPaintListener(listener);
+			parent.setBackground(colorBG);
+		}
+
+		Control[] children = parent.getChildren();
+		for (int i = 0; i < children.length; i++) {
+			Control control = children[i];
+
+			control.addPaintListener(listener);
+			control.setBackground(colorBG);
+
+			if (control instanceof Composite)
+				addPaintListener((Composite) control, listener, colorBG, true);
 		}
 	}
 
@@ -635,9 +677,10 @@ public class MessageSlideShell {
 
 								boolean bHasMany = numPopups > 1;
 								if (bHasMany) {
-									sText += "\n"
-											+ MessageText.getString("popup.more.waiting",
-													new String[] { String.valueOf(numPopups - 1) });
+									if (sText.length() > 0)
+										sText += "\n";
+									sText += MessageText.getString("popup.more.waiting",
+											new String[] { String.valueOf(numPopups - 1) });
 								}
 
 								lblCloseIn.setText(sText);
@@ -869,12 +912,11 @@ public class MessageSlideShell {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		//		MessagePopupShell shell = new MessagePopupShell(display,
 		//				MessagePopupShell.ICON_INFO, "Title", text, "Details");
 		MessageSlideShell slide = new MessageSlideShell(display,
 				SWT.ICON_INFORMATION, title, text, "Details: " + text);
-
 
 		new MessageSlideShell(display, SWT.ICON_INFORMATION, "ShortTitle",
 				"ShortText", "Details").waitUntilClosed();
