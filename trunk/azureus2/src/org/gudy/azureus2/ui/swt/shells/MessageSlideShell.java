@@ -63,8 +63,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
  *
  */
 public class MessageSlideShell {
-	private final static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT
-			.getVersion() <= 3224);
+	private final static boolean USE_SWT32_BG_SET = false; 
+	// !(Constants.isLinux && SWT.getVersion() <= 3224);
 
 	/** Slide until there's this much gap between shell and edge of screen */
 	private final static int EDGE_GAP = 0;
@@ -429,8 +429,8 @@ public class MessageSlideShell {
 					}
 				});
 
-				final RGB bgRGB = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND)
-						.getRGB();
+				Color colorBG = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+				final RGB bgRGB = colorBG.getRGB();
 
 				PaintListener paintListener = new PaintListener() {
 					// OSX: copyArea() causes a paint event, resulting in recursion
@@ -478,8 +478,10 @@ public class MessageSlideShell {
 					}
 				};
 
+				shell.setBackground(colorBG);
 				Control[] children = cShell.getChildren();
 				for (int i = 0; i < children.length; i++) {
+					children[i].setBackground(colorBG);
 					children[i].addPaintListener(paintListener);
 				}
 			}
@@ -708,9 +710,9 @@ public class MessageSlideShell {
 	 * XXX This could/should be its own class 
 	 */
 	private class SlideShell {
-		private final static int STEP = 5;
+		private final static int STEP = 9;
 
-		private final static int PAUSE = 20;
+		private final static int PAUSE = 30;
 
 		private Shell shell;
 
@@ -860,6 +862,15 @@ public class MessageSlideShell {
 				+ "end.  Cursed is the long text that is in this test and may it fill"
 				+ "every last line of the shell until there is no more.";
 
+		// delay before running, to give eclipse time to finish up it's work
+		// Otherwise, Mr Slidey is jumpy
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		//		MessagePopupShell shell = new MessagePopupShell(display,
 		//				MessagePopupShell.ICON_INFO, "Title", text, "Details");
 		MessageSlideShell slide = new MessageSlideShell(display,
