@@ -63,8 +63,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
  *
  */
 public class MessageSlideShell {
-	private final static boolean USE_SWT32_BG_SET = false; 
-	// !(Constants.isLinux && SWT.getVersion() <= 3224);
+	private final static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT.getVersion() <= 3224);
 
 	/** Slide until there's this much gap between shell and edge of screen */
 	private final static int EDGE_GAP = 0;
