@@ -50,7 +50,9 @@ DMWriterImpl
 	implements DMWriter
 {
 	private static final LogIDs LOGID = LogIDs.DISK;
-
+	
+	private static final int		MIN_ZERO_BLOCK	= 1*1024*1024;	// must be mult of 1024 (see init below)
+	
 	private DiskManagerHelper		disk_manager;
 	private DiskAccessController	disk_access;
 		
@@ -146,38 +148,42 @@ DMWriterImpl
 	{
 		CacheFile	cache_file = file.getCacheFile();
 		
-		long written = 0;
-		
 		try{
 			if( length == 0 ){ //create a zero-length file if it is listed in the torrent
 				
 				cache_file.setLength( 0 );
 				
 			}else{
-					
-		        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_ZERO,pieceLength);
+				int	buffer_size = pieceLength < MIN_ZERO_BLOCK?MIN_ZERO_BLOCK:pieceLength;
+				
+				buffer_size	= ((buffer_size+1023)/1024)*1024;
+				
+		        DirectByteBuffer	buffer = DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_DM_ZERO,buffer_size);
 		    
-		        try{
-			        buffer.limit(DirectByteBuffer.SS_DW, pieceLength);
-			        
-					for (int i = 0; i < buffer.limit(DirectByteBuffer.SS_DW); i++){
+		        long remainder	= length;
+				long written 	= 0;
+				
+		        try{	
+		        	final byte[]	blanks = new byte[1024];
+		        	
+					for (int i = 0; i < buffer_size/1024; i++ ){
 						
-						buffer.put(DirectByteBuffer.SS_DW, (byte)0);
+						buffer.put(DirectByteBuffer.SS_DW, blanks );
 					}
 					
 					buffer.position(DirectByteBuffer.SS_DW, 0);
 
-					while (written < length && !stopped ){
+					while ( remainder > 0 && !stopped ){
 						
-						int	write_size = buffer.capacity(DirectByteBuffer.SS_DW);
+						int	write_size = buffer_size;
 						
-						if ((length - written) < write_size ){
+						if ( remainder < write_size ){
             	
-							write_size = (int)(length - written);
+							write_size = (int)remainder;
+           
+							buffer.limit(DirectByteBuffer.SS_DW, write_size);
 						}
-            
-						buffer.limit(DirectByteBuffer.SS_DW, write_size);
-             
+						
 						final AESemaphore	sem = new AESemaphore( "DMW&C:zeroFile" );
 						final Throwable[]	op_failed = {null};
 						
@@ -224,8 +230,9 @@ DMWriterImpl
 						
 						buffer.position(DirectByteBuffer.SS_DW, 0);
             
-						written += write_size;
-            
+						written 	+= write_size;
+						remainder 	-= write_size;
+						
 						disk_manager.setAllocated( disk_manager.getAllocated() + write_size );
             
 						disk_manager.setPercentDone((int) ((disk_manager.getAllocated() * 1000) / totalLength));
@@ -234,7 +241,8 @@ DMWriterImpl
 		        	
 		        	buffer.returnToPool();
 		        }
-				
+		        
+		        cache_file.flushCache();
 			}
 			
 			if ( stopped ){
