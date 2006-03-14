@@ -113,10 +113,6 @@ AEDiagnostics
 
 			boolean	was_tidy	= COConfigurationManager.getBooleanParameter( CONFIG_KEY );
 			
-			COConfigurationManager.setParameter( CONFIG_KEY, false );
-			
-			COConfigurationManager.save();
-			
 			if ( debug_dir.exists()){
 				
 				long	now = SystemTime.getCurrentTime();
@@ -338,7 +334,22 @@ AEDiagnostics
 	}
 	
 	public static void
-	shutdown()
+	markDirty()
+	{
+		try{
+
+			COConfigurationManager.setParameter( CONFIG_KEY, false );
+		
+			COConfigurationManager.save();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
+	}
+
+	public static void
+	markClean()
 	{
 		try{
 			COConfigurationManager.setParameter( CONFIG_KEY, true );

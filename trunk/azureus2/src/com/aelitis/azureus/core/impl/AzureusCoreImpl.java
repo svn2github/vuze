@@ -122,6 +122,8 @@ AzureusCoreImpl
 		
 		AEDiagnostics.startup();
 		
+		AEDiagnostics.markDirty();
+		
 		AETemporaryFileHandler.startup();
     
 		AEThread.setOurThread();
@@ -435,7 +437,7 @@ AzureusCoreImpl
 			
 				// shut down diags - this marks the shutdown as tidy and saves the config
 			
-			AEDiagnostics.shutdown();
+			AEDiagnostics.markClean();
 	
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "Stop operation completes"));
