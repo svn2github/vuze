@@ -10,6 +10,7 @@ FEATURE: UI   | Allow some selection of split data/protocol stats in some views 
 CHANGE: Core  | Improved payload data vs. protocol overhead byte accounting [Nolar]
 CHANGE: Core  | Remove option to truncate files when setting to do-not-download as too many users confused by this [Parg]
 CHANGE: Core  | Pick up alerts raised during closedown and give user chance to see them [Parg]
+CHANGE: Core  | Improved optimistic disconnect algorithm in several ways - should speed up single seed torrents [MjrTom]
 CHANGE: Core  | Only remove temp files created by Azureus in the "tmp" dir as some users placing files in there [Parg]
 CHANGE: Core  | Resumed downloads now placed into queued state rather than started [Parg]
 CHANGE: Core  | Improved magnet download potential [Parg]
