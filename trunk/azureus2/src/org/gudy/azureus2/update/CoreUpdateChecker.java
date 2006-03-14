@@ -41,8 +41,6 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-import org.gudy.azureus2.pluginsimpl.local.logging.LoggerImpl;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 import com.aelitis.azureus.core.versioncheck.*;
 
@@ -148,15 +146,7 @@ CoreUpdateChecker
 			String	current_version = plugin_interface.getAzureusVersion();
 			
 			log.log( "Update check starts: current = " + current_version );
-									
-			boolean	TESTING = false;	// !!!!TODO: REMOVE THIS
-			
-			if ( TESTING ){
-			
-				System.out.println( "CoreUpdater: !!!! Testing mode !!!!" );
-				
-			}
-				
+													
 			Map	decoded = VersionCheckClient.getSingleton().getVersionCheckInfo(
 		  			first_check?VersionCheckClient.REASON_UPDATE_CHECK_START:VersionCheckClient.REASON_UPDATE_CHECK_PERIODIC);
 
@@ -192,26 +182,11 @@ CoreUpdateChecker
 			
 			log.log( msg );
 			
-			boolean	latest_is_cvs	= Constants.isCVSVersion( latest_version );
-			String	latest_base		= Constants.getBaseVersion( latest_version );
-			
-			String	current_base	= Constants.getBaseVersion();
-				
-				// currently we upgrade from, for example
-				//  1) 2.0.8.4     -> 2.0.8.6
-				//	2) 2.0.8.5_CVS -> 2.0.8.6
-				// but not to a CVS version (also currently never reported as latest...)
-				
-			if ( latest_is_cvs && !TESTING ){
+			if ( !shouldUpdate( current_version, latest_version )){
 				
 				return;
 			}
-
-			if ( Constants.compareVersions( current_base, latest_base ) >= 0 && !TESTING){
 				
-				return;
-			}
-			
 			final String	f_latest_version	= latest_version;
 			final String	f_latest_file_name	= latest_file_name;
 			
@@ -550,10 +525,66 @@ CoreUpdateChecker
 		}
 	}
 	
+	protected static boolean
+	shouldUpdate(
+		String	current_version,
+		String	latest_version )
+	{
+		String	current_base	= Constants.getBaseVersion( current_version );
+		int		current_inc		= Constants.getIncrementalBuild( current_version );
+
+		String	latest_base	= Constants.getBaseVersion( latest_version );
+		int		latest_inc	= Constants.getIncrementalBuild( latest_version );
+			
+			// currently we upgrade from, for example
+			//  1) 2.4.0.0     -> 2.4.0.2
+			//	2) 2.4.0.1_CVS -> 2.4.0.2
+			//	3) 2.4.0.1_B12 -> 2.4.0.2  and 2.4.0.1_B14
+		
+			// but NOT
+			//  1) 2.4.0.0 	   -> 2.4.0.1_CVS or 2.4.0.1_B23
+			//  2) 2.4.0.1_CVS -> 2.4.0.1_B23
+		
+			// for inc values: 0 = not CVS, -1 = _CVS, > 0 = Bnn
+
+		int	major_comp = Constants.compareVersions( current_base, latest_base );
+		
+		if ( major_comp < 0 && latest_inc == 0 ){
+			
+			return( true );		// latest is higher version and not CVS
+		}
+		
+			// same version, both are B versions and latest B is more recent
+		
+		return( major_comp == 0 && current_inc > 0 && latest_inc > 0 && latest_inc > current_inc );
+	}
+	
 	public static void
 	main(
 		String[]	args )
 	{
+		String[][]	tests = {
+				{ "2.4.0.0", 		"2.4.0.2", 		"true" },
+				{ "2.4.0.1_CVS", 	"2.4.0.2", 		"true" },
+				{ "2.4.0.1_B12",	"2.4.0.2", 		"true" },
+				{ "2.4.0.1_B12", 	"2.4.0.1_B34",	"true" },
+				{ "2.4.0.1_B12", 	"2.4.0.1_B6",	"false" },
+				{ "2.4.0.0", 		"2.4.0.1_CVS",	"false" },
+				{ "2.4.0.0", 		"2.4.0.1_B12",	"false" },
+				{ "2.4.0.0", 		"2.4.0.0"	,	"false" },
+				{ "2.4.0.1_CVS", 	"2.4.0.1_CVS",	"false" },
+				{ "2.4.0.1_B2", 	"2.4.0.1_B2",	"false" },
+				{ "2.4.0.1_CVS", 	"2.4.0.1_B2",	"false" },
+				{ "2.4.0.1_B2", 	"2.4.0.1_CVS",	"false" },
+
+		};
+
+		for (int i=0;i<tests.length;i++){
+			
+			System.out.println( shouldUpdate(tests[i][0],tests[i][1]) + " / " + tests[i][2] );
+		}
+		
+		/*
 		AEDiagnostics.startup();
 		
 		CoreUpdateChecker	checker = new CoreUpdateChecker();
@@ -600,5 +631,6 @@ CoreUpdateChecker
 			
 			e.printStackTrace();
 		}
+		*/
 	}
 }
