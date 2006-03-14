@@ -45,6 +45,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
@@ -62,6 +63,8 @@ ConfigSectionTrackerServer
 {
 	
 	protected	AzureusCore	azureus_core;
+	
+	private final int REQUIRED_MODE = 1;
 	
 	public
 	ConfigSectionTrackerServer(
@@ -89,7 +92,6 @@ ConfigSectionTrackerServer
     GridData gridData;
     GridLayout layout;
     Label label;
-    int userMode = COConfigurationManager.getIntParameter("User Mode");
     
     // main tab set up
     Composite gMainTab = new Composite(parent, SWT.NULL);
@@ -99,6 +101,34 @@ ConfigSectionTrackerServer
     layout = new GridLayout();
     layout.numColumns = 4;
     gMainTab.setLayout(layout);
+    
+    int userMode = COConfigurationManager.getIntParameter("User Mode");
+    
+	if (userMode < REQUIRED_MODE) {
+		label = new Label(gMainTab, SWT.WRAP);
+		gridData = new GridData();
+		label.setLayoutData(gridData);
+
+		final String[] modeKeys = { "ConfigView.section.mode.beginner",
+				"ConfigView.section.mode.intermediate",
+				"ConfigView.section.mode.advanced" };
+
+		String param1, param2;
+		if (REQUIRED_MODE < modeKeys.length)
+			param1 = MessageText.getString(modeKeys[REQUIRED_MODE]);
+		else
+			param1 = String.valueOf(REQUIRED_MODE);
+				
+		if (userMode < modeKeys.length)
+			param2 = MessageText.getString(modeKeys[userMode]);
+		else
+			param2 = String.valueOf(userMode);
+
+		label.setText(MessageText.getString("ConfigView.notAvailableForMode",
+				new String[] { param1, param2 } ));
+
+		return gMainTab;
+	}
     
       // MAIN TAB DATA
 
