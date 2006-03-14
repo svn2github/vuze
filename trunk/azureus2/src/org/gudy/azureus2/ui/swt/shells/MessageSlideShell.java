@@ -349,7 +349,6 @@ public class MessageSlideShell {
 		});
 
 		final Button btnDetails = new Button(cButtons, SWT.TOGGLE);
-		btnDetails.setSize(50, 150);
 		Messages.setLanguageText(btnDetails, "popup.error.details");
 		btnDetails.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
