@@ -522,7 +522,7 @@ DiskManagerImpl
 		  	
 			try{
 					
-				saveResumeData( false, false);
+				saveResumeData( false );
 		  		
 			}catch( Exception e ){
 		  		
@@ -1473,12 +1473,11 @@ DiskManagerImpl
 	
 	public void 
 	saveResumeData(
-		boolean interim_save, 
-		boolean force_recheck )
+		boolean interim_save )
 	
 		throws Exception
 	{			
-		resume_handler.saveResumeData( interim_save, force_recheck );
+		resume_handler.saveResumeData( interim_save );
 	}
 		
   /**
@@ -1563,7 +1562,7 @@ DiskManagerImpl
 		  start_stop_mon.exit();
 
 		  try{
-			  saveResumeData(false, false);
+			  saveResumeData(false );
 			  
 		  }catch( Throwable e ){
 				  

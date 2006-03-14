@@ -143,8 +143,7 @@ DiskManager
 	
 	public void
     saveResumeData(
-    	boolean interim_save, 
-		boolean force_recheck )
+    	boolean interim_save )
 		
 		throws Exception;
 

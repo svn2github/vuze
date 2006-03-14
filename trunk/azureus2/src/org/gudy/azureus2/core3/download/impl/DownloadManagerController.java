@@ -951,26 +951,10 @@ DownloadManagerController
 	   */
 	  
 	public void 
-	restartDownload(
-		boolean use_fast_resume ) 
+	restartDownload()
 	{
 		boolean	was_force_start = isForceStart();
-		
-		DiskManager	dm = getDiskManager();
-		
-		if ( dm != null && !use_fast_resume ){
-	      
-				//invalidate resume info
-	    	
-			try{
-				dm.saveResumeData(false, true);
-				
-		  	}catch( Exception e ){
-		  		
-		  		setFailed( "Resume data save fails: " + Debug.getNestedExceptionMessage(e));
-		  	}
-		}
-	    
+			    
 		stopIt( DownloadManager.STATE_STOPPED, false, false );
 	    
 		download_manager.initialize();

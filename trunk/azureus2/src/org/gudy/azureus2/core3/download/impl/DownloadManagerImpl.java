@@ -961,7 +961,7 @@ DownloadManagerImpl
 		if ( getState() == STATE_DOWNLOADING) {
 
 			try{
-				getDiskManager().saveResumeData( true, false );
+				getDiskManager().saveResumeData( true );
     		
 			}catch( Exception e ){
     		
@@ -1149,10 +1149,9 @@ DownloadManagerImpl
 	  }
     
   	public void
-  	restartDownload(
-  		boolean	use_resume )
+  	restartDownload()
   	{
-  		controller.restartDownload( use_resume );
+  		controller.restartDownload();
   	}
   
   	public void

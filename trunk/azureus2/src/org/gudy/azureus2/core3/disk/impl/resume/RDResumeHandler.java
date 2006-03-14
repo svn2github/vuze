@@ -416,17 +416,17 @@ RDResumeHandler
 				}
 			}else{
 				
-				while( ! stopped ){
-					
-					if ( recheck_inst.getPermission()){
-						
-						break;
-					}
-				}
-				
 					// resume not enabled, recheck everything
 				
 				for (int i = 0; i < pieces.length; i++){
+					
+					while( ! stopped ){
+						
+						if ( recheck_inst.getPermission()){
+							
+							break;
+						}
+					}
 					
 					if ( stopped ){
 						
@@ -497,7 +497,7 @@ RDResumeHandler
 			if ( !( stopped || resume_data_complete )){
 				
 				try{
-					saveResumeData( true, false );
+					saveResumeData( true );
 					
 				}catch( Exception e ){
 					
@@ -522,8 +522,7 @@ RDResumeHandler
 	
 	public void 
 	saveResumeData(
-		boolean interim_save, 	// data is marked as "invalid" if this is true to enable checking on pieces on crash restart
-		boolean force_recheck )
+		boolean interim_save ) 	// data is marked as "invalid" if this is true to enable checking on pieces on crash restart
 	
 		throws Exception
 	{		
@@ -556,29 +555,22 @@ RDResumeHandler
 		
 		byte[] resume_pieces = new byte[pieces.length];
 		
-		if ( force_recheck ){
-			
-			Arrays.fill( resume_pieces, PIECE_RECHECK_REQUIRED );
-			
-		}else{
-			
-			for (int i = 0; i < resume_pieces.length; i++) {
-		  	
-				DiskManagerPiece piece = pieces[i];
+		for (int i = 0; i < resume_pieces.length; i++) {
+	  	
+			DiskManagerPiece piece = pieces[i];
 
-			  	if ( piece.isDone()){
-			  		
-					resume_pieces[i] = PIECE_DONE;
-			  		
-			  	}else if ( piece.getNbWritten() > 0 ){
-			  		
-			  		resume_pieces[i] = PIECE_STARTED;
-			  		
-			  	}else{
-			  	
-					resume_pieces[i] = PIECE_NOT_DONE;
-			  	}
-			}
+		  	if ( piece.isDone()){
+		  		
+				resume_pieces[i] = PIECE_DONE;
+		  		
+		  	}else if ( piece.getNbWritten() > 0 ){
+		  		
+		  		resume_pieces[i] = PIECE_STARTED;
+		  		
+		  	}else{
+		  	
+				resume_pieces[i] = PIECE_NOT_DONE;
+		  	}
 		}
 		
 		Map	resume_data = new HashMap();
@@ -586,41 +578,38 @@ RDResumeHandler
 		resume_data.put( "resume data", resume_pieces );
 		
 		Map partialPieces = new HashMap();
-	
-		if ( !force_recheck ){
-	  		  		      
-			for (int i = 0; i < pieces.length; i++) {
-				
-				DiskManagerPiece piece = pieces[i];
-				
-					// save the partial pieces for any pieces that have not yet been completed
-					// and are in-progress (i.e. have at least one block downloaded)
-				
-				boolean[] downloaded = piece.getWritten();
-
-				if (( !piece.isDone()) && piece.getNbWritten() > 0 && downloaded != null ){
-					
-					
-					List blocks = new ArrayList();
-					
-					for (int j = 0; j < downloaded.length; j++) {
-						
-						if (downloaded[j]){
-							
-							blocks.add(new Long(j));
-						}
-					}
-          
-					partialPieces.put("" + i, blocks);
-				}
-			}
+		  		  		      
+		for (int i = 0; i < pieces.length; i++) {
 			
-			resume_data.put("blocks", partialPieces);
+			DiskManagerPiece piece = pieces[i];
+			
+				// save the partial pieces for any pieces that have not yet been completed
+				// and are in-progress (i.e. have at least one block downloaded)
+			
+			boolean[] downloaded = piece.getWritten();
+
+			if (( !piece.isDone()) && piece.getNbWritten() > 0 && downloaded != null ){
+				
+				
+				List blocks = new ArrayList();
+				
+				for (int j = 0; j < downloaded.length; j++) {
+					
+					if (downloaded[j]){
+						
+						blocks.add(new Long(j));
+					}
+				}
+      
+				partialPieces.put("" + i, blocks);
+			}
 		}
+		
+		resume_data.put("blocks", partialPieces);
 		
 		long lValid = 0;
 		
-		if ( !( force_recheck || interim_save || bStoppedMidCheck )){
+		if ( !( interim_save || bStoppedMidCheck )){
 			
 			lValid = 1;
 		}

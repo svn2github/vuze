@@ -1841,7 +1841,7 @@ PEPeerControlImpl
 					if (!restart_initiated)
 					{
 						restart_initiated =true;
-						adapter.restartDownload(false);
+						adapter.restartDownload();
 					}
 				}
 				return;
