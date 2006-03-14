@@ -64,7 +64,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
  *
  */
 public class MessageSlideShell {
-	private final static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT
+	private static boolean USE_SWT32_BG_SET = !(Constants.isLinux && SWT
 			.getVersion() <= 3224);
 
 	private final static String REGEX_URLHTML = "<A HREF=\"(.+?)\">(.+?)</A>";
@@ -172,7 +172,14 @@ public class MessageSlideShell {
 		sDetails = details;
 
 		// Load Images
-		Image imgPopup = ImageRepository.getImage("popup");
+		// Disable BG Image on OSX
+		Image imgPopup;
+		if (Constants.isOSX && SWT.getVersion() < 3221) {
+			USE_SWT32_BG_SET = false;
+			imgPopup = null;
+		} else {
+			imgPopup = ImageRepository.getImage("popup"); 
+		}
 		Rectangle imgPopupBounds;
 		if (imgPopup != null) {
 			shellWidth = imgPopup.getBounds().width;
@@ -312,7 +319,7 @@ public class MessageSlideShell {
 		rowLayout.marginRight = 0;
 		rowLayout.marginTop = 0;
 		cButtons.setLayout(rowLayout);
-		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
+		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END | GridData.VERTICAL_ALIGN_CENTER);
 		gridData.horizontalSpan = 2;
 		cButtons.setLayoutData(gridData);
 
@@ -342,6 +349,7 @@ public class MessageSlideShell {
 		});
 
 		final Button btnDetails = new Button(cButtons, SWT.TOGGLE);
+		btnDetails.setSize(50, 150);
 		Messages.setLanguageText(btnDetails, "popup.error.details");
 		btnDetails.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
