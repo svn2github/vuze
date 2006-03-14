@@ -78,7 +78,6 @@ AETemporaryFileHandler
 				tmp_dir.mkdir();
 			}
 			
-			createTempFile();
 		}catch( Throwable e ){
 			
 			try{
