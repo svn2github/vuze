@@ -68,7 +68,7 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     Composite cMain = new Composite( parent,  SWT.NULL );
     cMain.setLayoutData( new GridData( GridData.FILL_BOTH ) );
     layout = new GridLayout();
-    layout.numColumns = 2;
+    layout.numColumns = 1;
     layout.marginHeight = 0;
     cMain.setLayout( layout );
     
