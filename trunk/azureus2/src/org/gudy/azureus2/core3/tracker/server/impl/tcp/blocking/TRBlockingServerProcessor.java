@@ -203,7 +203,7 @@ TRBlockingServerProcessor
 						
 					}else{
 						
-						post_file	= AETemporaryFileHandler.createTempFile( "AZU", null );
+						post_file	= AETemporaryFileHandler.createTempFile();
 						
 						post_file.deleteOnExit();
 						

@@ -249,7 +249,7 @@ AEJarSigner2
 		
 		throws 	IOException
 	{
-		File	temp_file = AETemporaryFileHandler.createTempFile("AZU", null );
+		File	temp_file = AETemporaryFileHandler.createTempFile();
 		
 		FileOutputStream	fos = null;
 		

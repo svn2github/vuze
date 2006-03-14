@@ -34,6 +34,9 @@ import java.io.IOException;
 public class 
 AETemporaryFileHandler 
 {
+	private static final String	PREFIX = "AZU";
+	private static final String	SUFFIX = ".tmp";
+	
 	private static boolean	started_up;
 	private static File		tmp_dir;
 
@@ -63,16 +66,28 @@ AETemporaryFileHandler
 						if ( file.isDirectory()){
 							
 							continue;
-						}
+							
+						}else if ( file.getName().startsWith(PREFIX) && file.getName().endsWith(SUFFIX)){
 						
-						file.delete();
+							file.delete();
+						}
 					}
 				}
 			}else{
 				
 				tmp_dir.mkdir();
 			}
+			
+			createTempFile();
 		}catch( Throwable e ){
+			
+			try{
+				tmp_dir = File.createTempFile(PREFIX,SUFFIX).getParentFile();
+			
+			}catch( Throwable f ){
+				
+				tmp_dir = new File("");
+			}
 			
 				// with webui we don't have the file stuff so this fails with class not found
 			
@@ -84,14 +99,12 @@ AETemporaryFileHandler
 	}
 	
 	public static File 
-	createTempFile(
-		String prefix, 
-		String suffix )
+	createTempFile()
 	
 			throws IOException
 	{
 		startup();
 		
-		return( File.createTempFile( prefix, suffix, tmp_dir ));
+		return( File.createTempFile( PREFIX, SUFFIX, tmp_dir ));
 	}
 }
