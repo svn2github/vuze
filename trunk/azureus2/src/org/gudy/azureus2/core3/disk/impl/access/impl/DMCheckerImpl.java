@@ -362,18 +362,17 @@ DMCheckerImpl
 					checkCancelled(
 						DiskManagerCheckRequest		request )
 					{
-						try{						
-							disk_manager.getPiece(request.getPieceNumber()).setDone( false );
+							// don't explicitly mark a piece as failed if we get a cancellation as the 
+							// existing state will suffice. Either we're rechecking because it is bad
+							// already (in which case it won't be done, or we're doing a recheck-on-complete
+							// in which case the state is ok and musn't be flipped to bad 
+						
+						listener.checkCancelled( request );
 							
-						}finally{
-							
-							listener.checkCancelled( request );
-							
-							if (Logger.isEnabled()){							
-								Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_WARNING, 
-												"Piece " + request.getPieceNumber() + " hash check cancelled."));
-							}
-						}					
+						if (Logger.isEnabled()){							
+							Logger.log(new LogEvent(disk_manager, LOGID, LogEvent.LT_WARNING, 
+											"Piece " + request.getPieceNumber() + " hash check cancelled."));
+						}				
 					}
 					
 					public void 
