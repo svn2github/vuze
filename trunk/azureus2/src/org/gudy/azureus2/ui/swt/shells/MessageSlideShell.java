@@ -724,6 +724,9 @@ public class MessageSlideShell {
 
 				// slide out current popup
 				new SlideShell(shell, SWT.RIGHT).run();
+				
+				if (shell != null && !shell.isDisposed())
+					shell.dispose();
 			}
 		};
 		thread.start();
