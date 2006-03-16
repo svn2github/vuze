@@ -157,9 +157,7 @@ public class MessageSlideShell {
 			create(display, iconID, title, text, details);
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LogIDs.GUI, "Mr. Slidey Init", e));
-			if (shell != null && shell.isDisposed()) {
-				shell.dispose();
-			}
+			disposeShell(shell);
 			Utils.disposeSWTObjects(disposeList);
 		}
 	}
@@ -713,8 +711,7 @@ public class MessageSlideShell {
 				}
 
 				if (this.isInterrupted()) {
-					if (shell != null && !shell.isDisposed())
-						shell.dispose();
+					disposeShell(shell);
 					return;
 				}
 
@@ -725,11 +722,21 @@ public class MessageSlideShell {
 				// slide out current popup
 				new SlideShell(shell, SWT.RIGHT).run();
 				
-				if (shell != null && !shell.isDisposed())
-					shell.dispose();
+				disposeShell(shell);
 			}
 		};
 		thread.start();
+	}
+	
+	private void disposeShell(final Shell shell) {
+		if (shell == null || shell.isDisposed())
+			return;
+		
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				shell.dispose();
+			}
+		});
 	}
 
 	/**
@@ -834,7 +841,9 @@ public class MessageSlideShell {
 				// TODO: Other directions
 			} else {
 				if (direction == SWT.RIGHT) {
-					return shellBounds.width > 1;
+					// stop early, because some OSes have trim, and won't allow the window
+					// to go smaller than it.
+					return shellBounds.width > 10;
 				}
 			}
 			return false;
