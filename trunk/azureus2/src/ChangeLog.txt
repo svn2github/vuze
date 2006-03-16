@@ -1,7 +1,7 @@
 AZUREUS CHANGELOG
 -----------------
 
-2006.03.xx | Azureus 2.4.0.1
+2006.03.16 | Azureus 2.4.0.2
 
 FEATURE: Core | Make default recheck behaviour after crash only check pieces active at last save point plus config to revert to old behaviour of checking everything [Parg]
 FEATURE: Core | Attempt to repair invalid port #s returned from trackers potentially improving outgoing connection success rate [MjrTom]
@@ -47,6 +47,7 @@ BUGFIX: UI    | Column sort is now case-insensitive (again) for text columns [Tu
 BUGFIX: UI    | Fix number display Seeds2Peer column (when radio is really small) [TuxPaper]
 BUGFIX: UI    | Fixed Drag and Drop.  Should work in Windows and Linux. [TuxPaper]
 BUGFIX: UI    | Mr. Slidey no longer slides from (on slide-in) or onto (on slide-out) a different monitor [TuxPaper]
+
 
 
 
