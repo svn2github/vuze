@@ -145,7 +145,7 @@ IpFilterImpl
 				String startIp = range.getStartIp();
 				String endIp = range.getEndIp();
 				Map mapRange = new HashMap();
-				mapRange.put("description",description);
+				mapRange.put("description",description.getBytes( "UTF-8" ));
 				mapRange.put("start",startIp);
 				mapRange.put("end",endIp);
 				filters.add(mapRange);
@@ -199,7 +199,7 @@ IpFilterImpl
 				Iterator iter = list.listIterator();
 				while(iter.hasNext()) {
 				  Map range = (Map) iter.next();
-				  String description =  new String((byte[])range.get("description"));
+				  String description =  new String((byte[])range.get("description"), "UTF-8");
 				  String startIp =  new String((byte[])range.get("start"));
 				  String endIp = new String((byte[])range.get("end"));
 		        
@@ -266,7 +266,7 @@ IpFilterImpl
 					Map	entry = (Map)ips.get(i);
 					
 					String	ip 		= new String((byte[])entry.get("ip"));
-					String	desc 	= new String((byte[])entry.get("desc"));
+					String	desc 	= new String((byte[])entry.get("desc"), "UTF-8");
 					Long	ltime	= (Long)entry.get("time");
 					
 					long	time = ltime.longValue();
@@ -333,7 +333,7 @@ IpFilterImpl
 				Map	entry = new HashMap();
 				
 				entry.put( "ip", bip.getIp());
-				entry.put( "desc", bip.getTorrentName());
+				entry.put( "desc", bip.getTorrentName().getBytes( "UTF-8" ));
 				entry.put( "time", new Long( bip.getBanningTime()));
 				
 				ips.add( entry );
