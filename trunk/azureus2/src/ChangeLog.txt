@@ -1,6 +1,9 @@
 AZUREUS CHANGELOG
 -----------------
 
+2006.0x.xx | Azureus 2.4.0.3
+
+
 2006.03.16 | Azureus 2.4.0.2
 
 FEATURE: Core | Make default recheck behaviour after crash only check pieces active at last save point plus config to revert to old behaviour of checking everything [Parg]
