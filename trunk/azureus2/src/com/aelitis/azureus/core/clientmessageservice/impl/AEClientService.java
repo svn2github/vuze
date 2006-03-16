@@ -48,11 +48,11 @@ public class AEClientService implements ClientMessageService {
 	private final AESemaphore read_block = new AESemaphore( "AEClientService:R" );
 	private final AESemaphore write_block = new AESemaphore( "AEClientService:W" );
   
-  private final ArrayList received_messages = new ArrayList();  
+	private final ArrayList received_messages = new ArrayList();  
   
 	private final NonBlockingReadWriteService rw_service;
 	
-	private Throwable error;
+	private volatile Throwable error;
 	
   
 	public AEClientService( String server_address, int server_port, String _msg_type_id ) {
@@ -78,8 +78,8 @@ public class AEClientService implements ClientMessageService {
 			
 			public void connectionError( ClientConnection connection ) {
 				error = new IOException( "connection error" );
-    		read_block.release();
-    		write_block.release();
+				read_block.releaseForever();
+				write_block.releaseForever();
 			}
 		});
 	}
@@ -91,21 +91,23 @@ public class AEClientService implements ClientMessageService {
 	private void connect() throws IOException {
     final TCPTransport transport = TransportFactory.createTCPTransport( false, false, null );  //use transport for proxy capabilities
     
+    final AESemaphore connect_block = new AESemaphore( "AEClientService:C" );
+    
     transport.establishOutboundConnection( new InetSocketAddress( address, port ), new TCPTransport.ConnectListener() {  //NOTE: async operation!
     	public void connectAttemptStarted() {  /*nothing*/ }
       
     	public void connectSuccess() {
     		conn = new ClientConnection( transport );
-    		read_block.release();       
+    		connect_block.release();       
     	}
      
     	public void connectFailure( Throwable failure_msg ) {
     		error = failure_msg;
-    		read_block.release();  
+    		connect_block.release();  
     	}
     });
     
-    read_block.reserve();  //block while waiting for connect
+    connect_block.reserve();  //block while waiting for connect
     
     //connect op finished   
     
@@ -123,6 +125,11 @@ public class AEClientService implements ClientMessageService {
 	public void sendMessage( Map message ) throws IOException {
 		if( conn == null ) {  //not yet connected
 			connect();
+		}
+		
+		if( error != null ) {
+		    close();
+		    throw new IOException( "send op failed: " + error.getMessage() == null ? "[]" : error.getMessage() );
 		}
 		
 		ClientMessage client_msg = new ClientMessage( msg_type_id, conn, message, new ClientMessageHandler() {
@@ -158,22 +165,21 @@ public class AEClientService implements ClientMessageService {
 			connect();
 		}	
 		
+		read_block.reserve();  //block until receive completes
+
 		if( !received_messages.isEmpty() ) {  //there were still read messages left from the previous read call
 			Map recv_msg = (Map)received_messages.remove( 0 );
 			return recv_msg;
 		}
-
-		read_block.reserve();  //block until receive completes
 		
 		//receive op finished	
     
-    if( error != null ) {  //connect failure
-      close();
-      throw new IOException( "receive op failed: " + error.getMessage() == null ? "[]" : error.getMessage() );
-    }
+		if (error == null ){
+			error = new IOException( "receive op inconsistent" );
+		}
 		
-		Map recv_msg = (Map)received_messages.remove( 0 );
-		return recv_msg;
+		close();
+		throw new IOException( "receive op failed: " + error.getMessage() == null ? "[]" : error.getMessage() );
 	}
 	
 	
