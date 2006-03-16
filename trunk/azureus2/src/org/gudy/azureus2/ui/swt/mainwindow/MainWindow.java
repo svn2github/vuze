@@ -630,8 +630,28 @@ MainWindow
          items[i].dispose(); 
         }
         
+        final String	auto_param = TransferSpeedValidator.getActiveAutoUploadParameter(globalManager);
+        
+        boolean	auto = COConfigurationManager.getBooleanParameter( auto_param );
+        
+        	// auto
+        final MenuItem auto_item = new MenuItem(menuUpSpeed,SWT.CHECK);
+        auto_item.setText(MessageText.getString("ConfigView.auto"));
+        auto_item.addListener(SWT.Selection,new Listener() {
+          public void handleEvent(Event e) {
+            COConfigurationManager.setParameter(auto_param,auto_item.getSelection());
+            COConfigurationManager.save();
+          }
+        });
+        
+        if(auto)auto_item.setSelection(true);
+        
+        new MenuItem(menuUpSpeed,SWT.SEPARATOR);
+
+        	// unlimited
+        
         final String	config_param = TransferSpeedValidator.getActiveUploadParameter(globalManager);
-      	
+
         int upLimit = COConfigurationManager.getIntParameter(config_param,0);
         
         MenuItem item = new MenuItem(menuUpSpeed,SWT.RADIO);
@@ -639,15 +659,18 @@ MainWindow
         item.addListener(SWT.Selection,new Listener() {
           public void handleEvent(Event e) {
             COConfigurationManager.setParameter(config_param,0);
+            COConfigurationManager.setParameter( auto_param, false );
             COConfigurationManager.save();
           }
         });
-        if(upLimit == 0) item.setSelection(true);
+        if(upLimit == 0 && !auto) item.setSelection(true);
+        
         
         final Listener speedChangeListener = new Listener() {
               public void handleEvent(Event e) {
                 int iSpeed = ((Integer)new TransferSpeedValidator(config_param, ((MenuItem)e.widget).getData("speed")).getValue()).intValue();
                 COConfigurationManager.setParameter(config_param, iSpeed);
+                COConfigurationManager.setParameter( auto_param, false );
                 COConfigurationManager.save();
               }
             };
@@ -664,12 +687,12 @@ MainWindow
           for (int j = 0; j < iAboveBelow.length; j++) {
             if (iAboveBelow[j] >= 5) {
               item = new MenuItem(menuUpSpeed, SWT.RADIO, 
-                                  (j == 0) ? 1 : menuUpSpeed.getItemCount());
+                                  (j == 0) ? 3 : menuUpSpeed.getItemCount());
               item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(iAboveBelow[j] * 1024, true));
               item.setData("speed", new Long(iAboveBelow[j]));
               item.addListener(SWT.Selection, speedChangeListener);
   
-              if (upLimit == iAboveBelow[j]) item.setSelection(true);
+              if (upLimit == iAboveBelow[j]&& !auto) item.setSelection(true);
             }
           }
           

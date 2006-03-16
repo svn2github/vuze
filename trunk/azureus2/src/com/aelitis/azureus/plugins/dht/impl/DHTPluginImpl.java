@@ -163,6 +163,7 @@ DHTPluginImpl
 					localContactChanged(
 						DHTTransportContact	local_contact )
 					{
+						storage_manager.localContactChanged( local_contact );
 					}
 					
 					public void

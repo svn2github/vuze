@@ -260,7 +260,15 @@ DHTTransportUDPContactImpl
 	{
 		transport.sendPing( this, handler );
 	}
-		
+	
+	public void
+	sendImmediatePing(
+		DHTTransportReplyHandler	handler,
+		long						timeout )
+	{
+		transport.sendImmediatePing( this, handler, timeout );
+	}
+	
 	public void
 	sendStats(
 		DHTTransportReplyHandler	handler )

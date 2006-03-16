@@ -78,6 +78,11 @@ DHTTransportContact
 		DHTTransportReplyHandler	handler );
 	
 	public void
+	sendImmediatePing(
+		DHTTransportReplyHandler	handler,
+		long						timeout );
+
+	public void
 	sendStats(
 		DHTTransportReplyHandler	handler );
 	

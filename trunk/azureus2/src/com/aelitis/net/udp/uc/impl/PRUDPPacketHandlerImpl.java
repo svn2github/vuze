@@ -201,11 +201,13 @@ PRUDPPacketHandlerImpl
 					
 					socket.receive( packet );
 					
+					long	receive_time = SystemTime.getCurrentTime();
+					
 					successful_accepts++;
 					
 					failed_accepts = 0;
 					
-					process( packet );
+					process( packet, receive_time );
 				
 				}catch( SocketTimeoutException e ){
 										
@@ -308,7 +310,8 @@ PRUDPPacketHandlerImpl
 	
 	protected void
 	process(
-		DatagramPacket	dg_packet )
+		DatagramPacket	dg_packet,
+		long			receive_time )
 	{
 		try{
 				// HACK alert. Due to the form of the tracker UDP protocol (no common
@@ -514,7 +517,7 @@ PRUDPPacketHandlerImpl
 				
 				}else{
 				
-					request.setReply( packet, (InetSocketAddress)dg_packet.getSocketAddress());
+					request.setReply( packet, (InetSocketAddress)dg_packet.getSocketAddress(), receive_time );
 				}
 			}
 		}catch( Throwable e ){
@@ -660,7 +663,7 @@ PRUDPPacketHandlerImpl
 			try{
 				// System.out.println( "Outgoing to " + dg_packet.getAddress());
 
-				if ( send_delay > 0 ){
+				if ( send_delay > 0 && priority != PRUDPPacketHandler.PRIORITY_IMMEDIATE ){
 									
 					try{
 						send_queue_mon.enter();

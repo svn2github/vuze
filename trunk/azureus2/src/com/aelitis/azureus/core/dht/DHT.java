@@ -28,6 +28,7 @@ import com.aelitis.azureus.core.dht.control.DHTControl;
 import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
+import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 
@@ -133,6 +134,9 @@ DHT
 	
 	public DHTNATPuncher
 	getNATPuncher();
+	
+	public DHTSpeedTester
+	getSpeedTester();
 	
 		/**
 		 * externalises information that allows the DHT to be recreated at a later date

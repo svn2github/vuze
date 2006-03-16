@@ -35,6 +35,8 @@ PRUDPPacketHandler
 	public static final int	PRIORITY_MEDIUM		= 1;
 	public static final int	PRIORITY_HIGH		= 0;
 	
+	public static final int	PRIORITY_IMMEDIATE	= 99;
+
 		/**
 		 * Asynchronous send and receive
 		 * @param request_packet

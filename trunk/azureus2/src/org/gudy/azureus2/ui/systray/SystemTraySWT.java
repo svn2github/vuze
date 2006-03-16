@@ -193,9 +193,7 @@ public class SystemTraySWT {
         {
             public void handleEvent(Event event)
             {
-                createLimitMenuItems(
-                		TransferSpeedValidator.getActiveUploadParameter( mainWindow.getGlobalManager()), 
-                		uploadSpeedMenu);
+                createLimitMenuItems( true, uploadSpeedMenu );
             }
         });
 
@@ -218,7 +216,7 @@ public class SystemTraySWT {
         {
             public void handleEvent(Event event)
             {
-                createLimitMenuItems("Max Download Speed KBs", downloadSpeedMenu);
+                createLimitMenuItems(false, downloadSpeedMenu);
             }
         });
 
@@ -230,27 +228,56 @@ public class SystemTraySWT {
      * @param configKey Configuration key to get initial max bandwidth
      * @param parent Parent menu to populate the items in
      */
-    private final void createLimitMenuItems(final String configKey, final Menu parent) {
+    private final void createLimitMenuItems(boolean up_menu, final Menu parent) {
         final MenuItem[] oldItems = parent.getItems();
         for(int i = 0; i < oldItems.length; i++)
         {
             oldItems[i].dispose();
         }
 
+        final String configKey = 
+        	up_menu?
+        		TransferSpeedValidator.getActiveUploadParameter( mainWindow.getGlobalManager()):
+        		"Max Download Speed KBs";
+               	 
         final int speedPartitions = 12;
 
         int maxBandwidth = COConfigurationManager.getIntParameter(configKey);
         final boolean unlim = (maxBandwidth == 0);
-        if(maxBandwidth == 0 && configKey == "Max Download Speed KBs")
+        if(maxBandwidth == 0 && !up_menu )
         {
             maxBandwidth = 275;
+        }
+        
+        boolean	auto = false;
+        
+        if ( up_menu ){	   
+        	
+            final String configAutoKey = 
+            		TransferSpeedValidator.getActiveAutoUploadParameter( mainWindow.getGlobalManager());
+     
+	        auto = COConfigurationManager.getBooleanParameter( configAutoKey );
+	        
+	        	// auto
+	        final MenuItem auto_item = new MenuItem(parent,SWT.CHECK);
+	        auto_item.setText(MessageText.getString("ConfigView.auto"));
+	        auto_item.addListener(SWT.Selection,new Listener() {
+	          public void handleEvent(Event e) {
+	            COConfigurationManager.setParameter(configAutoKey,auto_item.getSelection());
+	            COConfigurationManager.save();
+	          }
+	        });
+	        
+	        if(auto)auto_item.setSelection(true);
+	        
+	        new MenuItem(parent,SWT.SEPARATOR);
         }
         
         MenuItem item = new MenuItem(parent, SWT.RADIO);
         item.setText(MessageText.getString("MyTorrentsView.menu.setSpeed.unlimited"));
         item.setData("maxkb", new Integer(0));
-        item.setSelection(unlim);
-        item.addListener(SWT.Selection, getLimitMenuItemListener(parent, configKey));
+        item.setSelection(unlim && !auto);
+        item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu,parent, configKey));
 
         int delta = 0;
         for (int i = 0; i < speedPartitions; i++) {
@@ -262,11 +289,11 @@ public class SystemTraySWT {
 
               for (int j = 0; j < valuePair.length; j++) {
                 if (valuePair[j] >= 5) {
-                  item = new MenuItem(parent, SWT.RADIO, (j == 0) ? 1 : parent.getItemCount());
+                  item = new MenuItem(parent, SWT.RADIO, (j == 0) ? (up_menu?3:1) : parent.getItemCount());
                   item.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(valuePair[j] * 1024, true));
                   item.setData("maxkb", new Integer(valuePair[j]));
-                  item.addListener(SWT.Selection, getLimitMenuItemListener(parent, configKey));
-                  item.setSelection(!unlim && valuePair[j] == maxBandwidth);
+                  item.addListener(SWT.Selection, getLimitMenuItemListener(up_menu,parent, configKey));
+                  item.setSelection(!unlim && valuePair[j] == maxBandwidth && !auto);
                 }
               }
 
@@ -280,7 +307,7 @@ public class SystemTraySWT {
      * @param configKey The configuration key
      * @return The selection listener
      */
-   private final Listener getLimitMenuItemListener(final Menu parent, final String configKey)
+   private final Listener getLimitMenuItemListener(final boolean up_menu, final Menu parent, final String configKey)
    {
        return new Listener() {
            public void handleEvent(Event event) {
@@ -291,6 +318,15 @@ public class SystemTraySWT {
                         items[i].setSelection(true);
                         final int cValue = ((Integer)new TransferSpeedValidator(configKey, items[i].getData("maxkb")).getValue()).intValue();
                         COConfigurationManager.setParameter(configKey, cValue);
+                        
+                        if ( up_menu ){
+                            
+                        	String configAutoKey = 
+                        		TransferSpeedValidator.getActiveAutoUploadParameter( mainWindow.getGlobalManager());
+             
+                        	COConfigurationManager.setParameter( configAutoKey, false );
+                        }
+                        
                         COConfigurationManager.save();
                     }
                     else {

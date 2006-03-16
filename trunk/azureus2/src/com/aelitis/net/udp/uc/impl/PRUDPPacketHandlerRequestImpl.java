@@ -105,11 +105,12 @@ PRUDPPacketHandlerRequestImpl
 	protected void
 	setReply(
 		PRUDPPacket			packet,
-		InetSocketAddress	originator )
+		InetSocketAddress	originator,
+		long				receive_time )
 	{
 		if ( reply == null ){
 	
-			reply_time	= SystemTime.getCurrentTime();
+			reply_time	= receive_time;
 			
 			reply	= packet;
 			

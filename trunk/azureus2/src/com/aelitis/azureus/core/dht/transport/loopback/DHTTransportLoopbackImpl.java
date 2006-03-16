@@ -354,7 +354,7 @@ DHTTransportLoopbackImpl
 			
 			target.getRequestHandler().pingRequest( new DHTTransportLoopbackContactImpl( target, node_id ));
 			
-			handler.pingReply(contact);
+			handler.pingReply(contact,0);
 		}
 	}
 		

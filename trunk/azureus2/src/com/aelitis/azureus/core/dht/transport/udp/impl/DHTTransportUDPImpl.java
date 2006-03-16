@@ -1076,7 +1076,9 @@ DHTTransportUDPImpl
 	protected void
 	sendPing(
 		final DHTTransportUDPContactImpl	contact,
-		final DHTTransportReplyHandler		handler )
+		final DHTTransportReplyHandler		handler,
+		long								timeout,
+		int									priority )
 	{
 		try{
 			checkAddress( contact );
@@ -1113,7 +1115,7 @@ DHTTransportUDPImpl
 								
 							stats.pingOK();
 							
-							handler.pingReply( contact );
+							handler.pingReply( contact, (int)elapsed_time );
 						
 						}catch( DHTUDPPacketHandlerException e ){
 							
@@ -1136,7 +1138,7 @@ DHTTransportUDPImpl
 						handler.failed( contact,e );
 					}
 				},
-				request_timeout, PRUDPPacketHandler.PRIORITY_MEDIUM );
+				timeout, priority );
 			
 		}catch( Throwable e ){
 			
@@ -1144,6 +1146,23 @@ DHTTransportUDPImpl
 			
 			handler.failed( contact,e );
 		}
+	}
+	
+	protected void
+	sendPing(
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler )
+	{
+		sendPing( contact, handler, request_timeout, PRUDPPacketHandler.PRIORITY_MEDIUM );
+	}
+
+	protected void
+	sendImmediatePing(
+		final DHTTransportUDPContactImpl	contact,
+		final DHTTransportReplyHandler		handler,
+		long								timeout )
+	{
+		sendPing( contact, handler, timeout, PRUDPPacketHandler.PRIORITY_IMMEDIATE );
 	}
 	
 	protected void

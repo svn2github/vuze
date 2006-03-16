@@ -37,6 +37,7 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -345,8 +346,24 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 						}
 
 						// UL/DL Status Sections
-						int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
+						
+				        
 						int dl_limit = NetworkManager.getMaxDownloadRateBPS() / 1024;
+
+
+						mainWindow.statusDown.setText(
+								(dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
+								+ DisplayFormatters
+										.formatDataProtByteCountToKiBEtcPerSec(
+												mainWindow.globalManager.getStats().getDataReceiveRate(),
+												mainWindow.globalManager.getStats().getProtocolReceiveRate()));
+
+					    boolean	auto_up = 
+					    	COConfigurationManager.getBooleanParameter( 
+					    			TransferSpeedValidator.getActiveAutoUploadParameter( mainWindow.globalManager ));
+						 
+				
+						int ul_limit_norm = NetworkManager.getMaxUploadRateBPSNormal() / 1024;
 
 						String seeding_only;
 						if (NetworkManager.isSeedingOnlyUploadRate()) {
@@ -361,17 +378,10 @@ public class GUIUpdater extends AEThread implements ParameterListener {
 						} else {
 							seeding_only = "";
 						}
-
-						mainWindow.statusDown.setText(
-								(dl_limit == 0 ? "" : "[" + dl_limit + "K] ")
-								+ DisplayFormatters
-										.formatDataProtByteCountToKiBEtcPerSec(
-												mainWindow.globalManager.getStats().getDataReceiveRate(),
-												mainWindow.globalManager.getStats().getProtocolReceiveRate()));
-
+						
 						mainWindow.statusUp.setText(
 								(ul_limit_norm == 0 ? "" : "[" + ul_limit_norm + "K"
-										+ seeding_only + "] ")
+										+ seeding_only + "]") + (auto_up?"* ":" ")
 								+ DisplayFormatters
 										.formatDataProtByteCountToKiBEtcPerSec(
 												mainWindow.globalManager.getStats().getDataSendRate(),

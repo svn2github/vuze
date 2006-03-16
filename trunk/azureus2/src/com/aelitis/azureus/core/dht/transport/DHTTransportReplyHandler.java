@@ -32,7 +32,8 @@ DHTTransportReplyHandler
 {
 	public void
 	pingReply(
-		DHTTransportContact contact );
+		DHTTransportContact contact,
+		int					elapsed_time );
 		
 	public void
 	statsReply(

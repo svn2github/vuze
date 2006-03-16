@@ -36,6 +36,11 @@ import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncherFactory;
 import com.aelitis.azureus.core.dht.router.DHTRouter;
+import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
+import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContact;
+import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContactListener;
+import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterFactory;
+import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterListener;
 import com.aelitis.azureus.core.dht.transport.*;
 
 /**
@@ -50,6 +55,7 @@ DHTImpl
 	private DHTStorageAdapter	storage_adapter;
 	private DHTControl			control;
 	private DHTNATPuncher		nat_puncher;
+	private DHTSpeedTester		speed_tester;
 	private	Properties			properties;
 	private DHTLogger			logger;
 	
@@ -153,6 +159,8 @@ DHTImpl
 				logger );
 		
 		nat_puncher	= DHTNATPuncherFactory.create( this );
+		
+		speed_tester = DHTSpeedTesterFactory.create( this );
 	}
 	
 	protected int
@@ -254,6 +262,12 @@ DHTImpl
 	getNATPuncher()
 	{
 		return( nat_puncher );
+	}
+	
+	public DHTSpeedTester
+	getSpeedTester()
+	{
+		return( speed_tester );
 	}
 	
 	public void

@@ -131,7 +131,15 @@ DHTTransportLoopbackContactImpl
 	{
 		transport.sendPing( this, handler );
 	}
-		
+	
+	public void
+	sendImmediatePing(
+		DHTTransportReplyHandler	handler,
+		long						timeout )
+	{
+		transport.sendPing( this, handler );
+	}
+	
 	public void
 	sendKeyBlock(
 		DHTTransportReplyHandler	handler, 

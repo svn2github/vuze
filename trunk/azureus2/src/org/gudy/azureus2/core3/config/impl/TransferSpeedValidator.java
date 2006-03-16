@@ -33,6 +33,9 @@ import org.gudy.azureus2.core3.global.GlobalManager;
  */
 public final class TransferSpeedValidator
 {
+	public static final String AUTO_UPLOAD_CONFIGKEY 			=  "Auto Upload Speed Enabled";
+	public static final String AUTO_UPLOAD_SEEDING_CONFIGKEY 	=  "Auto Upload Speed Seeding Enabled";
+    
     public static final String UPLOAD_CONFIGKEY 		=  "Max Upload Speed KBs";
     public static final String UPLOAD_SEEDING_CONFIGKEY =  "Max Upload Speed Seeding KBs";
     public static final String DOWNLOAD_CONFIGKEY 		=  "Max Download Speed KBs";
@@ -54,7 +57,7 @@ public final class TransferSpeedValidator
         			{
         				seeding_upload_enabled = COConfigurationManager.getBooleanParameter( parameterName );
         			}
-        		});		
+        		});	
     }
     
     /**
@@ -142,13 +145,27 @@ public final class TransferSpeedValidator
     getActiveUploadParameter(
     	GlobalManager	gm )
     {
-       if ( gm.isSeedingOnly() && seeding_upload_enabled ){
+       if ( seeding_upload_enabled && gm.isSeedingOnly()){
         	
         	return( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY );
         	
       	}else{
       		
       		return( TransferSpeedValidator.UPLOAD_CONFIGKEY );
+      	}
+    }
+    
+    public static String
+    getActiveAutoUploadParameter(
+    	GlobalManager	gm )
+    {
+       if ( gm.isSeedingOnly()){
+        	
+        	return( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_CONFIGKEY );
+        	
+      	}else{
+      		
+      		return( TransferSpeedValidator.AUTO_UPLOAD_CONFIGKEY );
       	}
     }
 }

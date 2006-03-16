@@ -289,7 +289,7 @@ DHTPluginStorageManager
 	{
 		try{
 			address_mon.enter();
-
+			
 			recent_addresses.put( address, new Long( SystemTime.getCurrentTime()));
 		
 			recent_addresses.put( "most_recent", address.getBytes());
@@ -322,14 +322,28 @@ DHTPluginStorageManager
 		try{
 			address_mon.enter();
 
-			return( recent_addresses.containsKey( address ));
+			if ( recent_addresses.containsKey( address )){
+				
+				return( true );
+			}
 					
+			String	most_recent = getMostRecentAddress();
+			
+			return( most_recent != null && most_recent.equals( address ));
+			
 		}finally{
 			
 			address_mon.exit();
 		}
 	}
 	
+	protected void
+	localContactChanged(
+		DHTTransportContact	contact )
+	{
+		purgeDirectKeyBlocks();
+	}
+			
 	
 	protected Map
 	readMapFromFile(
@@ -1341,6 +1355,47 @@ DHTPluginStorageManager
 		System.arraycopy( request, 8, key, 0, key.length );
 		
 		return( key );
+	}
+	
+	protected void
+	purgeDirectKeyBlocks()
+	{
+		try{
+			key_block_mon.enter();
+		
+			ByteArrayHashMap new_map = new ByteArrayHashMap();
+			
+			Iterator	it = key_block_map_cow.values().iterator();
+			
+			boolean	changed = false;
+			
+			while( it.hasNext()){
+				
+				keyBlock	kb = (keyBlock)it.next();
+				
+				if ( kb.isDirect()){
+					
+					changed	= true;
+					
+				}else{
+					
+					new_map.put( kb.getKey(), kb );
+				}
+			}
+			
+			if ( changed ){
+				
+				log.log( "KB: Purged direct entries on ID change" );
+				
+				key_block_map_cow		= new_map;
+				key_blocks_direct_cow	= buildKeyBlockDetails( key_block_map_cow );
+				
+				writeKeyBlocks();
+			}
+		}finally{
+			
+			key_block_mon.exit();
+		}
 	}
 	
 	protected static class

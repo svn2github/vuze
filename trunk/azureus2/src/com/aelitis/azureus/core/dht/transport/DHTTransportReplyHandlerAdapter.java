@@ -33,11 +33,29 @@ public abstract class
 DHTTransportReplyHandlerAdapter
 	implements DHTTransportReplyHandler
 {
+	private int		elapsed;
+	
+	public void
+	pingReply(
+		DHTTransportContact contact,
+		int					_elapsed )
+	{
+		elapsed	= _elapsed;
+		
+		pingReply( contact );
+	}
+	
 	public void
 	pingReply(
 		DHTTransportContact contact )
 	{
 		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public int
+	getElapsed()
+	{
+		return( elapsed );
 	}
 	
 	public void
