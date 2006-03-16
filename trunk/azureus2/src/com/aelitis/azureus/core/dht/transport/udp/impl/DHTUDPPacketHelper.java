@@ -99,6 +99,14 @@ DHTUDPPacketHelper
 					
 					DHTUDPPacketNetworkHandler	network_handler = (DHTUDPPacketNetworkHandler)handler.getRequestHandler();
 
+					if ( network_handler == null ){
+						
+							// we an get this after a port change and the old port listener is still running (e.g.
+							// its still doing UDP tracker)
+						
+						throw( new IOException( "No network handler available for DHT packet decode" ));
+					}
+					
 					switch( action ){
 						case ACT_REQUEST_PING:
 						{
@@ -162,7 +170,23 @@ DHTUDPPacketHelper
 				
 					throws IOException
 				{
+					if ( handler == null ){
+						
+							// most likely cause is DHT packet ending up on the UDP tracker as it'll get
+							// router here but with a null-handler
+					
+						throw( new IOException( "No handler available for DHT packet decode" ));
+					}
+					
 					DHTUDPPacketNetworkHandler	network_handler = (DHTUDPPacketNetworkHandler)handler.getRequestHandler();
+					
+					if ( network_handler == null ){
+						
+						// we an get this after a port change and the old port listener is still running (e.g.
+						// its still doing UDP tracker)
+					
+						throw( new IOException( "No network handler available for DHT packet decode" ));
+					}
 					
 					switch( action ){
 					
