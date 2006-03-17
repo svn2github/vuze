@@ -36,6 +36,7 @@ public class Hack extends TorrentCommand
 		subCommands.add(new HackTracker());
 		subCommands.add(new HackDownloadSpeed());
 		subCommands.add(new HackUploadSpeed());
+		subCommands.add(new HackUploads());
 	}
 	
 	public String getCommandDescriptions()
@@ -139,6 +140,32 @@ public class Hack extends TorrentCommand
 			}
 			int newSpeed = Math.max(-1, Integer.parseInt((String) args.get(0)));
 			dm.getStats().setUploadRateLimitBytesPerSecond(newSpeed*1024);
+			return true;
+		}
+	}
+	
+	private static class HackUploads extends TorrentSubCommand
+	{
+		public HackUploads()
+		{
+			super(new String[] { "uploads", "v" });
+		}
+		
+		public String getCommandDescriptions() {
+			return "uploads\tv\tSet max upload slots of a torrent.";
+		}
+		
+		/**
+		 * locate the appropriate subcommand and execute it 
+		 */
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List args) 
+		{
+			if (args.isEmpty()) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand '" + getCommandName() + "'");
+				return false;
+			}
+			int newSlots = Math.max(-1, Integer.parseInt((String) args.get(0)));
+			dm.getStats().setMaxUploads(newSlots);
 			return true;
 		}
 	}

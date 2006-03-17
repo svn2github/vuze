@@ -242,6 +242,7 @@ public class Show extends IConsoleCommand {
 	 * %u upload speed<br>
 	 * %D amount downloaded<br>
 	 * %U amount uploaded<br>
+	 * %v upload slots
 	 * %s connected seeds<br>
 	 * %p connected peers<br>
 	 * %S tracker seeds<br>
@@ -311,6 +312,8 @@ public class Show extends IConsoleCommand {
 				return Integer.toString(dm.getNbSeeds());
 			case 'p':
 				return Integer.toString(dm.getNbPeers());	
+			case 'v':
+				return Integer.toString(dm.getStats().getMaxUploads());
 			case 'I':
 				int downloadSpeed = dm.getStats().getDownloadRateLimitBytesPerSecond();
 				if( downloadSpeed <= 0 )
