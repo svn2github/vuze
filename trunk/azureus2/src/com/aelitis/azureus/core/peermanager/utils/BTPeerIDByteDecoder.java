@@ -109,6 +109,8 @@ public class BTPeerIDByteDecoder {
       if( (decoded = decodeSimpleStyle( peerID, 0, "a00---0", "Swarmy" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "a02---0", "Swarmy" )) != null ) return decoded;
       if( (decoded = decodeSimpleStyle( peerID, 0, "T00---0", "Teeweety" )) != null ) return decoded;
+      
+      if( (decoded = decodeSimpleStyle( peerID, 0, "10-------", "JVtorrent" )) != null ) return decoded;
 
       String burst = new String(peerID, 0, 5, Constants.BYTE_ENCODING);
       if( burst.equals( "Mbrst" ) ) {
