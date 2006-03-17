@@ -564,8 +564,19 @@ PEPeerTransportProtocol
 	{
 		if (peerHavePieces ==null ||peerHavePieces.flags.length ==0)
 			return 0;
-
-		return (peerHavePieces.nbSet *1000) /peerHavePieces.flags.length;
+				
+		long	total_done;
+		
+		if ( peerHavePieces.flags[nbPieces-1] ){
+			
+			total_done = ((peerHavePieces.nbSet-1) * (long)diskManager.getPieceLength()) + diskManager.getLastPieceLength();
+			
+		}else{
+			
+			total_done = peerHavePieces.nbSet * diskManager.getPieceLength();
+		}
+		
+		return (int)((total_done *1000) /diskManager.getTotalLength());
 	}
   
 
