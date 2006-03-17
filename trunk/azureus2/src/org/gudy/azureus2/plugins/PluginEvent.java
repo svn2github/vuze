@@ -34,6 +34,13 @@ PluginEvent
 	public static final int	PEV_INITIALISATION_PROGRESS_TASK		= 3;
 	public static final int	PEV_INITIALISATION_PROGRESS_PERCENT		= 4;
 
+		/**
+		 * Plugin specific events can be raised by a plugin to communicate with
+		 * other components. The event type must start from the number below
+		 */
+	
+	public static final int	PEV_FIRST_USER_EVENT					= 1024;
+
 	public int
 	getType();
 	

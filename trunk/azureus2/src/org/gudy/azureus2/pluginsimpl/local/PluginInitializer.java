@@ -1347,7 +1347,7 @@ PluginInitializer
   	for (int i=0;i<plugin_interfaces.size();i++){
   		
   		try{
-  			((PluginInterfaceImpl)plugin_interfaces.get(i)).fireEvent(ev);
+  			((PluginInterfaceImpl)plugin_interfaces.get(i)).firePluginEvent(ev);
   			
   		}catch(Throwable e ){
   			
@@ -1357,7 +1357,7 @@ PluginInitializer
   	
  	if ( default_plugin != null ){
   		
-  		default_plugin.fireEvent(ev);
+  		default_plugin.firePluginEvent(ev);
   	}
   }
   

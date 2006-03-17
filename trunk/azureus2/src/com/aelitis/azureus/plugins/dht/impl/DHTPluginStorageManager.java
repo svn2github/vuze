@@ -87,6 +87,7 @@ DHTPluginStorageManager
 	
 	public static final int			MAX_STORAGE_KEYS	= 65536;
 	
+	private int				network;
 	private DHTLogger		log;
 	private File			data_dir;
 	
@@ -126,9 +127,11 @@ DHTPluginStorageManager
 	
 	public
 	DHTPluginStorageManager(
+		int					_network,
 		DHTLogger			_log,
 		File				_data_dir )
 	{	
+		network		= _network;
 		log			= _log;
 		data_dir	= _data_dir;
 		
@@ -559,7 +562,7 @@ DHTPluginStorageManager
 		DHTStorageKey		key,
 		DHTTransportValue	value )
 	{
-		//System.out.println( "DHT value added" );
+		System.out.println( network + ": DHT value added: "  + DHTLog.getString2( ((storageKey)key).getKey().getBytes()) + " -> " + value.getString());
 		
 		try{
 			storage_mon.enter();

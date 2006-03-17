@@ -2454,7 +2454,25 @@ DHTControlImpl
 				
 				final DHTStorageBlock	key_block = direct_key_blocks[i];
 				
-				if ( key_block.hasBeenSentTo( t_contact )){
+				List	contacts = getClosestKContactsList( key_block.getKey(), false );
+
+				boolean	forward_it = false;
+				
+					// ensure that the key is close enough to us 
+				
+				for (int j=0;j<contacts.size();j++){
+
+					final DHTTransportContact	contact = (DHTTransportContact)contacts.get(j);
+
+					if ( router.isID( contact.getID())){
+						
+						forward_it	= true;
+						
+						break;
+					}
+				}
+				
+				if ( !forward_it || key_block.hasBeenSentTo( t_contact )){
 					
 					continue;
 				}

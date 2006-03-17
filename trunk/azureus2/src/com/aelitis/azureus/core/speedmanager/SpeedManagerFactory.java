@@ -22,7 +22,7 @@
 
 package com.aelitis.azureus.core.speedmanager;
 
-import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 
 public class 
@@ -30,9 +30,9 @@ SpeedManagerFactory
 {
 	public static SpeedManager
 	createSpeedManager(
-		SpeedManagerAdapter		adapter,
-		DHTSpeedTester			tester )
+		AzureusCore				core,
+		SpeedManagerAdapter		adapter )
 	{
-		return( new SpeedManagerImpl( adapter, tester ));
+		return( new SpeedManagerImpl( core, adapter ));
 	}
 }

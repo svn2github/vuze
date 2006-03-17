@@ -27,6 +27,9 @@ import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 public interface 
 SpeedManager 
 {
+	public boolean
+	isAvailable();
+	
 	public void
 	setMinumumUploadSpeed(
 		int		speed );
@@ -47,6 +50,10 @@ SpeedManager
 	
 	public boolean
 	isEnabled();
+	
+	public void
+	setSpeedTester(
+		DHTSpeedTester	tester );
 	
 	public DHTSpeedTester
 	getSpeedTester();

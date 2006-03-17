@@ -162,6 +162,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.config"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.control.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.cl"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.speedmanager.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.messaging"/>
 <javaElement handleIdentifier="=azdiag/&lt;com.aelitis.azureus.core.monitoring.thread"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl"/>
@@ -200,10 +201,12 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.server"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.extseed.impl.getright"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.removerules"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.speedmanager"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.vivaldi.maths.impl.tests"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.jce.interfaces"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.peermanager"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.plugins.extseed.impl.webseed"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.speed.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.clientmessageservice.secure"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.pluginsimpl.local.ui.components"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.download"/>
@@ -301,6 +304,7 @@
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.ui.swt.pluginsimpl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.util.protocol.magnet"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.plugins.config"/>
+<javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.dht.speed"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.gudy.azureus2.core3.tracker.util.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;com.aelitis.azureus.core.update.impl"/>
 <javaElement handleIdentifier="=azureus3/&lt;org.bouncycastle.jce.spec"/>

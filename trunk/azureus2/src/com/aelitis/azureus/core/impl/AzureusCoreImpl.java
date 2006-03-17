@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.logging.*;
@@ -40,12 +41,17 @@ import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.download.session.TorrentSessionManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
+import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
 import com.aelitis.azureus.core.update.AzureusRestarterFactory;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 /**
  * @author parg
@@ -105,6 +111,7 @@ AzureusCoreImpl
 	private PluginInitializer 	pi;
 	private GlobalManager		global_manager;
 	private AZInstanceManager	instance_manager;
+	private SpeedManager		speed_manager;
 	
 	private boolean				started;
 	private boolean				stopped;
@@ -157,6 +164,27 @@ AzureusCoreImpl
 		pi = PluginInitializer.getSingleton(this,this);
 		
 		instance_manager = AZInstanceManagerFactory.getSingleton( this );
+		
+		speed_manager	= 
+			SpeedManagerFactory.createSpeedManager( 
+					this,
+					new SpeedManagerAdapter()
+					{
+						public int
+						getCurrentUploadSpeed()
+						{
+							GlobalManagerStats stats = global_manager.getStats();
+							
+							return( stats.getDataSendRate() + stats.getProtocolSendRate());
+						}
+						
+						public void
+						setCurrentUploadLimit(
+							int		bytes_per_second )
+						{
+							// System.out.println( "recommended upload rate: " + bytes_per_second );
+						}
+					});
 	}
 	
 	public LocaleUtil
@@ -196,7 +224,7 @@ AzureusCoreImpl
 			Logger.log(new LogEvent(LOGID, "Loading of Plugins starts"));
 
 		pi.loadPlugins(this);
-
+		
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Loading of Plugins complete"));
 
@@ -219,6 +247,38 @@ AzureusCoreImpl
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "Initializing Plugins complete"));
 
+		try{
+			PluginInterface dht_pi 	= getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+
+			if ( dht_pi != null ){
+				
+				dht_pi.addEventListener(
+					new PluginEventListener()
+					{
+						private boolean	first_dht = true;
+						
+						public void
+						handleEvent(
+							PluginEvent	ev )
+						{
+							if ( ev.getType() == DHTPlugin.EVENT_DHT_AVAILABLE ){
+								
+								if ( first_dht ){
+									
+									first_dht	= false;
+								
+									DHT 	dht = (DHT)ev.getValue();
+									
+									speed_manager.setSpeedTester( dht.getSpeedTester());
+								}
+							}
+						}
+						
+					});
+			}
+		}catch( Throwable e ){
+		}
+		
 	    new AEThread("Plugin Init Complete")
 	       {
 	        	public void
@@ -634,6 +694,12 @@ AzureusCoreImpl
 	getInstanceManager()
 	{
 		return( instance_manager );
+	}
+	
+	public SpeedManager
+	getSpeedManager()
+	{
+		return( speed_manager );
 	}
 	
 	public void 

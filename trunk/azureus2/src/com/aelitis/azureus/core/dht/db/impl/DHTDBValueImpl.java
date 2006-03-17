@@ -217,6 +217,8 @@ DHTDBValueImpl
 	{
 		long	now = SystemTime.getCurrentTime();
 		
-		return( DHTLog.getString( value ) + " - " + new String(value) + "{v=" + version + ",f=" + Integer.toHexString(flags) +",ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+"}" );
+		return( DHTLog.getString( value ) + " - " + new String(value) + "{v=" + version + ",f=" + 
+				Integer.toHexString(flags) +",ca=" + (now - creation_time ) + ",sa=" + (now-store_time)+
+				",se=" + sender.getString() + ",or=" + originator.getString() +"}" );
 	}
 }

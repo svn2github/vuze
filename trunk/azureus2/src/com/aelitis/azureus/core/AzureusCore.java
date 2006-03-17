@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.internat.LocaleUtil;
 import org.gudy.azureus2.plugins.*;
 
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
+import com.aelitis.azureus.core.speedmanager.SpeedManager;
 
 public interface 
 AzureusCore 
@@ -122,6 +123,9 @@ AzureusCore
 	
 	public AZInstanceManager
 	getInstanceManager();
+	
+	public SpeedManager
+	getSpeedManager();
 	
 	public void
 	addLifecycleListener(

@@ -607,9 +607,9 @@ PluginInterfaceImpl
   	}
   }
   
-  protected void
-  fireEvent(
-  	PluginEvent		event )
+  public void
+  firePluginEvent(
+	PluginEvent		event )
   {
   	for (int i=0;i<event_listeners.size();i++){
   		

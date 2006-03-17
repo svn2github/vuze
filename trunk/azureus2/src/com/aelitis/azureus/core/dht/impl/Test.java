@@ -914,7 +914,7 @@ Test
 		check.put(id,"");
 		*/
 		
-		DHTStorageAdapter	storage_adapter = new DHTPluginStorageManager( logger, new File( "C:\\temp\\dht\\" + i));
+		DHTStorageAdapter	storage_adapter = new DHTPluginStorageManager( network, logger, new File( "C:\\temp\\dht\\" + i));
 
 		DHT	dht = DHTFactory.create( transport, dht_props, storage_adapter, logger );
 		

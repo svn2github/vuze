@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.clientmessageservice.ClientMessageService;
 import com.aelitis.azureus.core.clientmessageservice.ClientMessageServiceClient;
@@ -59,8 +60,10 @@ Test
 	Test()
 	{	
 		try{
+			AzureusCore	core = AzureusCoreFactory.create();
+			
 			final LoggerChannel logger = 
-				AzureusCoreFactory.create().getPluginManager().getDefaultPluginInterface().getLogger().getNullChannel("DHTChurner");
+				core.getPluginManager().getDefaultPluginInterface().getLogger().getNullChannel("DHTChurner");
 
 			DHTLogger	dht_logger = 
 				new DHTLogger()
@@ -128,7 +131,9 @@ Test
 				}
 			}.start();
 			
-			SpeedManager	sm = SpeedManagerFactory.createSpeedManager( this, dht.getSpeedTester());
+			SpeedManager	sm = core.getSpeedManager();
+			
+			sm.setSpeedTester( dht.getSpeedTester());
 			
 			new AEThread( "init", true )
 			{

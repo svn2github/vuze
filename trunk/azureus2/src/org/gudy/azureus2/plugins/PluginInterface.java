@@ -500,6 +500,16 @@ public interface PluginInterface {
   removeListener(
   	PluginListener	l );
   
+  	/**
+  	 * Fire a plugin-specific event. See PluginEvent for details of type values to use 
+  	 * @since 2403
+  	 * @param event
+  	 */
+  
+  public void
+  firePluginEvent(
+	PluginEvent		event );
+  
   /**
    *
    * @since 2.0.8.0

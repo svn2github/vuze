@@ -25,10 +25,12 @@ package com.aelitis.azureus.core.speedmanager.impl;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Average;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContact;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterContactListener;
@@ -44,7 +46,7 @@ SpeedManagerImpl
 	private static final int CONTACT_NUMBER	= 3;
 	private static final int PING_SECS		= 5;
 	
-	
+	private AzureusCore			core;
 	private DHTSpeedTester		speed_tester;
 	private SpeedManagerAdapter	adapter;
 	
@@ -52,17 +54,33 @@ SpeedManagerImpl
 	private int					max_up;
 	private boolean				enabled;
 	
-	private CopyOnWriteList		ping_sources = new CopyOnWriteList();
+	private volatile CopyOnWriteList		ping_sources = new CopyOnWriteList();
 	
 	private Average ping_average = Average.getInstance( 1000, 10 );
 
 	public
 	SpeedManagerImpl(
-		SpeedManagerAdapter	_adapter,
-		DHTSpeedTester		_tester)
+		AzureusCore			_core,
+		SpeedManagerAdapter	_adapter )
 	{
+		core			= _core;
 		adapter			= _adapter;
+	}
+	
+	public void
+	setSpeedTester(
+		DHTSpeedTester	_tester )
+	{
+		if ( speed_tester != null ){
+			
+			Debug.out( "speed tester already set!" );
+			
+			return;
+		}
+		
 		speed_tester	= _tester;
+		
+			// TODO: who persists this stuff like enabled?
 		
 		setEnabled( true );
 		
@@ -73,7 +91,14 @@ SpeedManagerImpl
 					contactAdded(
 						DHTSpeedTesterContact contact)
 					{
-						new pingSource( contact );
+						if ( core.getInstanceManager().isLANAddress(contact.getContact().getAddress().getAddress())){
+							
+							contact.destroy();
+							
+						}else{
+							
+							new pingSource( contact );
+						}
 					}
 				});
 		
@@ -142,6 +167,12 @@ SpeedManagerImpl
 		adapter.setCurrentUploadLimit( speed_limit );
 	}
 	
+	public boolean
+	isAvailable()
+	{
+		return( ping_sources.getList().size() > 0 );
+	}
+	
 	public void
 	setMinumumUploadSpeed(
 		int		speed )
@@ -167,13 +198,17 @@ SpeedManagerImpl
 	{
 		return( max_up );
 	}
+	
 	public void
 	setEnabled(
 		boolean		_enabled )
 	{
 		enabled	= _enabled;
 		
-		speed_tester.setContactNumber( enabled?CONTACT_NUMBER:0);
+		if ( speed_tester != null ){
+			
+			speed_tester.setContactNumber( enabled?CONTACT_NUMBER:0);
+		}
 	}
 	
 	public boolean

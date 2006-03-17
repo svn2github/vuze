@@ -87,7 +87,7 @@ DownloadAnnounceResultImpl
 	public int
 	getReportedPeerCount()
 	{
-		return( response==null?0:response.getPeers().length );
+		return( response==null||response.getPeers()==null?0:response.getPeers().length );
 	}
 	
 	public int

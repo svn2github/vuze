@@ -559,6 +559,13 @@ RPPluginInterface
 	}
 	
 	public void
+	firePluginEvent(
+		PluginEvent		event )
+	{
+	  notSupported();
+	}
+	  
+	public void
 	addEventListener(
 		PluginEventListener	l )
 	{

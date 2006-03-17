@@ -127,7 +127,7 @@ DHTPluginImpl
 		dht_log				= _dht_log;
 		
 		try{
-			storage_manager = new DHTPluginStorageManager( dht_log, getDataDir( _network ));
+			storage_manager = new DHTPluginStorageManager( network, dht_log, getDataDir( _network ));
 			
 			final PluginConfig conf = plugin_interface.getPluginconfig();
 			
@@ -202,6 +202,22 @@ DHTPluginImpl
 						props,
 						storage_manager,
 						dht_log );
+			
+			plugin_interface.firePluginEvent(
+				new PluginEvent()
+				{
+					public int
+					getType()
+					{
+						return( DHTPlugin.EVENT_DHT_AVAILABLE );
+					}
+					
+					public Object
+					getValue()
+					{
+						return( dht );
+					}
+				});
 			
 			dht.setLogging( _logging );
 			

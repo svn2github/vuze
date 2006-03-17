@@ -58,7 +58,6 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTTransportUDPImpl;
-import com.aelitis.azureus.core.instancemanager.impl.AZMyInstanceImpl;
 
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.impl.DHTPluginImpl;
@@ -75,6 +74,10 @@ public class
 DHTPlugin
 	implements Plugin
 {
+		// data will be the DHT instance created
+	
+	public static final int			EVENT_DHT_AVAILABLE		= PluginEvent.PEV_FIRST_USER_EVENT;
+	
 	public static final int			STATUS_DISABLED			= 1;
 	public static final int			STATUS_INITALISING		= 2;
 	public static final int			STATUS_RUNNING			= 3;

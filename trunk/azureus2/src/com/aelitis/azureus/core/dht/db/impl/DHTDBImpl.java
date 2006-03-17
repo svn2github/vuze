@@ -1056,7 +1056,23 @@ DHTDBImpl
 				
 				List	contacts = control.getClosestKContactsList( key_block.getKey(), false );
 
+				boolean	forward_it = false;
+				
+					// ensure that the key is close enough to us 
+				
 				for (int j=0;j<contacts.size();j++){
+
+					final DHTTransportContact	contact = (DHTTransportContact)contacts.get(j);
+
+					if ( router.isID( contact.getID())){
+						
+						forward_it	= true;
+						
+						break;
+					}
+				}
+					
+				for (int j=0; forward_it && j<contacts.size();j++){
 					
 					final DHTTransportContact	contact = (DHTTransportContact)contacts.get(j);
 					
