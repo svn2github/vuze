@@ -562,7 +562,7 @@ DHTPluginStorageManager
 		DHTStorageKey		key,
 		DHTTransportValue	value )
 	{
-		System.out.println( network + ": DHT value added: "  + DHTLog.getString2( ((storageKey)key).getKey().getBytes()) + " -> " + value.getString());
+		// System.out.println( network + ": DHT value added: "  + DHTLog.getString2( ((storageKey)key).getKey().getBytes()) + " -> " + value.getString());
 		
 		try{
 			storage_mon.enter();
