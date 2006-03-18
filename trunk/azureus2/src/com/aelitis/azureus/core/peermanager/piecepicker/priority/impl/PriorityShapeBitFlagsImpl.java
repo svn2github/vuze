@@ -67,12 +67,12 @@ public class PriorityShapeBitFlagsImpl
     {
         return field.flags[pieceNumber];
     }
-
+    
 	public int getStart()
 	{
 		return field.start;
 	}
-
+	
 	public int getEnd()
 	{
 		return field.end;
@@ -85,7 +85,7 @@ public class PriorityShapeBitFlagsImpl
     {
         return field;
     }
-
+    
     /**
      * Sets the shape's selection criteria BitFlags to
      * a reference to the paramater BitFlags

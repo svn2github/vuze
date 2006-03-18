@@ -89,7 +89,8 @@ public class PiecePriorityShaperImpl
     
     /**
      * @param shape the PriorityShape to remove.  This need not be the same shape object that was
-     * inserted into the shaper, but can instead be a congruent shape.  Do not pass a null shape.
+     * inserted into the shaper; a congruent shape is sufficient. If there were somehow multiple
+     * congruent shapes in the list, only the last congruent shape is removed.  Do not pass a null shape.
      * @return true if there was a list of shapes, and a shape congruent to the paramater
      * shape was in the list, and the shape was removed else returns false
      */
@@ -128,6 +129,7 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
+            
             for (int i =peerPriorityShapes.size() -1; i >=0; i--)
             {
                 final PriorityShape listShape =(PriorityShape)peerPriorityShapes.get(i);
@@ -142,6 +144,50 @@ public class PiecePriorityShaperImpl
 	}
 	
 	
+	public int getPriority(int pieceNumber)
+	{
+        if (torrentPriorityShapes ==null ||torrentPriorityShapes.isEmpty())
+            return 0;
+        int priority =0;
+        // get the aggregate priority from the torrent-global shapes
+        try
+        {   torrentPriorityShapesMon.enter();
+        	final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
+            {
+                final PriorityShapeImpl shape =(PriorityShapeImpl)torrentPriorityShapes.get(i);
+                // does the shape cover the piece of interest
+                priority +=shape.getPriority(pieceNumber);
+            }
+        } finally { torrentPriorityShapesMon.exit(); }
+        
+        return priority;
+	}
+	
+	public int getPriority(final int pieceNumber, final PEPeer peer)
+	{
+		int priority =getPriority(pieceNumber);
+		
+        try
+        {   peersShapesMapMon.enter();
+            // aggregate the peer's shapes' modes
+            final List peerPriorityShapes =getPeerPriorityShapes(peer);
+            if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
+                return priority;
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
+            {
+                final PriorityShapeImpl shape =(PriorityShapeImpl)peerPriorityShapes.get(i);
+                // does the shape cover the piece of interest
+                priority +=shape.getPriority(pieceNumber);
+            }
+        } finally {peersShapesMapMon.exit();}
+
+        return priority;
+	}
+	
+	
 	/** possibly this should never be used since the PEPeer version must be called when the
 	 * peer is known and it probably should always be known whenever this might be called
 	 */
@@ -153,7 +199,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+        	final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShapeImpl shape =(PriorityShapeImpl)torrentPriorityShapes.get(i);
                 // does the shape cover the piece of interest
@@ -176,7 +223,8 @@ public class PiecePriorityShaperImpl
 		// get the aggregate mode from the torrent-global shapes
 		try
 		{	torrentPriorityShapesMon.enter();
-			for (int i =0; i <torrentPriorityShapes.size(); i++)
+    		final int shapesSize =torrentPriorityShapes.size();
+			for (int i =0; i <shapesSize; i++)
 			{
 				final PriorityShapeImpl shape =(PriorityShapeImpl)torrentPriorityShapes.get(i);
 				// does the shape cover the range of interest
@@ -195,11 +243,12 @@ public class PiecePriorityShaperImpl
         try
         {   peersShapesMapMon.enter();
             // aggregate the peer's shapes' modes
-            List peerPriorityShapes =getPeerPriorityShapes(peer);
+            final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return mode;
     
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShapeImpl shape =(PriorityShapeImpl)peerPriorityShapes.get(i);
                 // does the shape cover the piece of interest
@@ -218,11 +267,12 @@ public class PiecePriorityShaperImpl
 	    try
 	    {   peersShapesMapMon.enter();
     	    // aggregate the peer's shapes' modes
-    	    List peerPriorityShapes =getPeerPriorityShapes(peer);
+    	    final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
     	        return mode;
     
-    	    for (int i =0; i <peerPriorityShapes.size(); i++)
+            final int shapesSize =peerPriorityShapes.size();
+    	    for (int i =0; i <shapesSize; i++)
     	    {
     	        final PriorityShapeImpl shape =(PriorityShapeImpl)peerPriorityShapes.get(i);
     	        // does the shape cover the range of interest
@@ -243,7 +293,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+        	final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -262,7 +313,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -285,7 +337,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -308,7 +362,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+			final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -328,7 +384,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -347,7 +404,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -370,7 +428,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -393,7 +453,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -413,7 +475,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -432,7 +495,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -455,7 +519,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -478,7 +544,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -498,7 +566,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -517,7 +586,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -540,7 +610,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -563,7 +635,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -583,7 +657,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -602,7 +677,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -625,7 +701,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -648,7 +726,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -668,7 +748,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -687,7 +768,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -710,7 +792,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -733,7 +817,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -753,7 +839,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -772,7 +859,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -795,7 +883,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -818,7 +908,9 @@ public class PiecePriorityShaperImpl
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -838,7 +930,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -857,7 +950,8 @@ public class PiecePriorityShaperImpl
         // get the aggregate mode from the torrent-global shapes
         try
         {   torrentPriorityShapesMon.enter();
-            for (int i =0; i <torrentPriorityShapes.size(); i++)
+			final int shapesSize =torrentPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)torrentPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question
@@ -873,14 +967,16 @@ public class PiecePriorityShaperImpl
     {   // if it's globally true, it's true for this peer
         if (isStaticPriority(pieceNumber))
             return true;
-
+        
         try
         {   peersShapesMapMon.enter();
             // check any/all per-peer shapes
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape specify the mode in question and does the selection criteria cover the piece
@@ -896,14 +992,16 @@ public class PiecePriorityShaperImpl
     {   // if it's globally true, it's true for this peer
         if (isStaticPriority(start, end))
             return true;
-
+        
         try
         {   peersShapesMapMon.enter();
             // check any/all per-peer shapes
             final List peerPriorityShapes =getPeerPriorityShapes(peer);
             if (peerPriorityShapes ==null ||peerPriorityShapes.isEmpty())
                 return false;
-            for (int i =0; i <peerPriorityShapes.size(); i++)
+            
+            final int shapesSize =peerPriorityShapes.size();
+            for (int i =0; i <shapesSize; i++)
             {
                 final PriorityShape shape =(PriorityShape)peerPriorityShapes.get(i);
                 // does the shape cover the range of interest and specify the mode in question

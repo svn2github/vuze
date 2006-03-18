@@ -61,24 +61,38 @@ abstract public class PriorityShapeImpl
     {
         priority =i;
     }
-
+    
     public int getPriority()
     {
         return priority;
     }
-
-
+    
+    public int getPriority(int pieceNumber)
+    {
+    	if (!isSelected(pieceNumber))
+    		return 0;
+    	if (!isRamp(pieceNumber))
+    		return priority;
+    	final int start =getStart();
+    	final int end =getEnd();
+		final float per =priority /(start -end);
+    	if (!isReverse(pieceNumber))
+    		return (int)(per *(end -pieceNumber));
+    	return (int)(per *(pieceNumber -start));
+    }
+    
+    
     public void setMode(final long i)
     {
         mode =i;
     }
-
+    
     public long getMode()
 	{
 		return mode;
 	}
     
-
+    
     public boolean isNoRandom()
     {
         return (mode &PRIORITY_MODE_NO_RANDOM) ==PRIORITY_MODE_NO_RANDOM;

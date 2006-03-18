@@ -54,8 +54,13 @@ public interface PriorityShape
 	public int getStart();
     /** returns the last piece number in the selection criteria */
 	public int getEnd();
-	public long getMode();
+	/** returns the priority of the shape itself */
 	public int getPriority();
+
+	/** returns the shaped priority for the given pieceNumber */
+	public int getPriority(int pieceNumber);
+
+	public long getMode();
     
     /** @param pieceNumber int piece number to check for selection
      * @return true if this piece is selected by the shape's selection criteria,
