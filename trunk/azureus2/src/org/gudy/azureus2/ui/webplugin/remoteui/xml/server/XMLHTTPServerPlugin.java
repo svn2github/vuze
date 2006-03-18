@@ -60,8 +60,6 @@ XMLHTTPServerPlugin
 
     protected RPRequestHandler              request_handler;
     protected RPRequestAccessController     access_controller;
-    protected boolean use_generic_classes = false;
-    protected boolean use_request_processor_2 = false;
     protected boolean serialise_debug = false;
     protected boolean deserialise_debug = false;
     protected LoggerChannel channel = null;
@@ -81,18 +79,6 @@ XMLHTTPServerPlugin
          * Set up configuration settings.
          */
         BasicPluginConfigModel  config = getConfigModel();
-
-        LabelParameter advanced_section_description = config.addLabelParameter2("xmlhttp.config.group.advanced.description");
-
-        BooleanParameter generic_classes = config.addBooleanParameter2("xmlhttp.config.option.generic_classes", "xmlhttp.config.option.generic_classes", false);
-
-        final BooleanParameter request_processor_param = config.addBooleanParameter2("xmlhttp.config.option.use_request_processor_2", "xmlhttp.config.option.use_request_processor_2", false);
-
-        generic_classes.addDisabledOnSelection(request_processor_param);
-
-        config.createGroup("xmlhttp.config.group.advanced",
-            new Parameter[] {advanced_section_description, generic_classes,
-                request_processor_param});
 
         LabelParameter debug_section_description = config.addLabelParameter2("xmlhttp.config.group.debug.description");
 
@@ -126,10 +112,7 @@ XMLHTTPServerPlugin
         ParameterListener pl = new ParameterListener() {
             public void parameterChanged(Parameter param) {
                 boolean new_value = ((BooleanParameter)param).getValue();
-                if (param == request_processor_param) {
-                    XMLHTTPServerPlugin.this.use_request_processor_2 = new_value;
-                }
-                else if (param == method_lookup_param) {
+                if (param == method_lookup_param) {
                     RemoteMethodInvoker.setLogResolution(new_value);
                 }
                 else if (param == method_invoke_param) {
@@ -148,7 +131,6 @@ XMLHTTPServerPlugin
         serialise_param.addListener(pl);
         method_lookup_param.addListener(pl);
         method_invoke_param.addListener(pl);
-        request_processor_param.addListener(pl);
 
         final BasicPluginViewModel view_model = this.getViewModel();
         if (log_to_console.getValue()) {
@@ -178,12 +160,10 @@ XMLHTTPServerPlugin
         /**
          * Use configuration settings.
          */
-        this.use_request_processor_2 = request_processor_param.getValue();
-        this.use_generic_classes = generic_classes.getValue();
         this.deserialise_debug = deserialise_param.getValue();
         this.serialise_debug = serialise_param.getValue();
 
-        request_handler = new RPRequestHandler(_plugin_interface, this.use_generic_classes);
+        request_handler = new RPRequestHandler(_plugin_interface, true);
         access_controller = new WebPluginAccessController(_plugin_interface);
     }
 
@@ -207,26 +187,16 @@ XMLHTTPServerPlugin
             try{
                 response.setContentType("text/xml; charset=\"utf-8\"");
 
-                if (this.use_request_processor_2 || this.use_generic_classes) {
-                    new XMLRequestProcessor2(
-                                request_handler,
-                                access_controller,
-                                request.getClientAddress(),
-                                request.getInputStream(),
-                                response.getOutputStream(),
-                                this.plugin_interface,
-                                this.channel,
-                                this.serialise_debug,
-                                this.deserialise_debug);
-                }
-                else {
-                    new XMLRequestProcessor(
-                                request_handler,
-                                access_controller,
-                                request.getClientAddress(),
-                                request.getInputStream(),
-                                response.getOutputStream());
-                }
+                new XMLRequestProcessor2(
+                            request_handler,
+                            access_controller,
+                            request.getClientAddress(),
+                            request.getInputStream(),
+                            response.getOutputStream(),
+                            this.plugin_interface,
+                            this.channel,
+                            this.serialise_debug,
+                            this.deserialise_debug);
 
                 if (this.log_to_plugin) {
                     this.getViewModel().getLogArea().appendText("REQUEST END\n");
