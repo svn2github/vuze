@@ -34,6 +34,8 @@ import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.ipfilter.IPFilter;
 import org.gudy.azureus2.plugins.ipfilter.IPRange;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -100,6 +102,16 @@ public class GenericRPAttributes {
             map.put("description", range.getDescription());
             map.put("start_ip",    range.getStartIP());
             map.put("end_ip",      range.getEndIP());
+        }
+        else if (obj_class == LoggerChannel.class) {
+        	LoggerChannel lc = (LoggerChannel)object;
+        	map.put("name",    lc.getName());
+        	map.put("enabled", lc.isEnabled());
+        }
+        else if (obj_class == Peer.class) {
+        	Peer peer = (Peer)object;
+        	map.put("ip",   peer.getIp());
+        	map.put("port", peer.getPort());
         }
         else if (obj_class == PluginConfig.class) {
             PluginConfig pconfig = (PluginConfig)object;
@@ -230,7 +242,19 @@ public class GenericRPAttributes {
         attributes.put("start_ip",    String.class);
         attributes.put("end_ip",      String.class);
         class_definitions.put(plugin_class, attributes);
-
+        
+        attributes = new HashMap();
+        plugin_class = LoggerChannel.class;
+        attributes.put("enabled", boolean.class);
+        attributes.put("name",    String.class);
+        class_definitions.put(plugin_class, attributes);
+        
+        attributes = new HashMap();
+        plugin_class = Peer.class;
+        attributes.put("ip",   String.class);
+        attributes.put("port", int.class);
+        class_definitions.put(plugin_class, attributes);
+        
         attributes = new HashMap();
         plugin_class = PluginConfig.class;
         attributes.put("cached_property_names",  new String[0].getClass());
