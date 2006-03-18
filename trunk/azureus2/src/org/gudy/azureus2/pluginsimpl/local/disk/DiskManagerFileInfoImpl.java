@@ -52,6 +52,27 @@ public class DiskManagerFileInfoImpl
 	}
 	 
 	public void
+	setDeleted(boolean b)
+	{
+		if ( b ){
+			
+			core.setSkipped( true );
+			
+			core.setStorageType( org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_COMPACT );
+			
+		}else{
+			
+			core.setStorageType( org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_LINEAR );
+		}
+	}
+	
+	public boolean
+	isDeleted()
+	{
+		return( core.getStorageType() ==  org.gudy.azureus2.core3.disk.DiskManagerFileInfo.ST_COMPACT );
+	}
+	
+	public void
 	setLink(
 		File	link_destination )
 	{

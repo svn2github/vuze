@@ -48,6 +48,16 @@ DiskManagerFileInfo
 	setSkipped(
 		boolean b );
 	
+		/**
+		 * Mark the file as deleted or not (deleted means the file will be truncated to take up minimum
+		 * space. This is generally 0 <= X < 2*piece_length as pieces can span file boundaries
+		 * @since 2403
+		 * @param b
+		 */
+	
+	public void
+	setDeleted(boolean b);
+	
 		// links the file to the named destination
 	
 	public void
@@ -84,6 +94,9 @@ DiskManagerFileInfo
 	
 	public boolean 
 	isSkipped();
+	
+	public boolean
+	isDeleted();
 	
 	public Download 
 	getDownload()

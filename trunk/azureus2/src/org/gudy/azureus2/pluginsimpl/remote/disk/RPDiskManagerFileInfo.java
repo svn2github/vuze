@@ -117,8 +117,19 @@ RPDiskManagerFileInfo
 	{
 		notSupported();
 	}
-	 
-		 	
+	public void
+	setDeleted(boolean b)
+	{
+		notSupported();
+	}
+	public boolean
+	isDeleted()
+	{
+		notSupported();
+		
+		return( false );
+	}
+	
 	public int getAccessMode()
 	{
 		return( access_mode );
